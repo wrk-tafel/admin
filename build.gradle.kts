@@ -2,7 +2,7 @@ group = "at.tafel1030.admin"
 version = findProperty("buildVersion") ?: "0.0.1-SNAPSHOT"
 
 val nodeVersion by extra("12.19.0")
-val javaVersion by extra(JavaVersion.VERSION_11.name)
+val javaVersion by extra(JavaVersion.VERSION_11)
 
 plugins {
     id("com.github.node-gradle.node") version "3.0.0-rc3" apply false

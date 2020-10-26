@@ -7,7 +7,7 @@ plugins {
 }
 
 java {
-    sourceCompatibility = JavaVersion.valueOf(property("javaVersion").toString())
+    sourceCompatibility = property("javaVersion") as JavaVersion
 }
 
 springBoot {
@@ -38,7 +38,7 @@ tasks {
     compileKotlin {
         kotlinOptions {
             freeCompilerArgs = listOf("-Xjsr305=strict")
-            val javaVersion: JavaVersion = JavaVersion.valueOf(project.property("javaVersion").toString())
+            val javaVersion = project.property("javaVersion") as JavaVersion
             jvmTarget = javaVersion.majorVersion
         }
     }
