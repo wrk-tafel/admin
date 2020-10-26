@@ -48,6 +48,6 @@ tasks {
     }
 
     bootBuildImage {
-        imageName = "toet/admin-backend:${project.version}"
+        imageName = "toet/admin-backend:${project.property("imageTag")}"
     }
 }
