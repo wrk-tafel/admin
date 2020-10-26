@@ -1,8 +1,20 @@
 plugins {
-    id("com.github.node-gradle.node") version "2.2.4"
+    id("com.github.node-gradle.node")
+    id("com.palantir.docker")
 }
 
 node {
-    download = true
-    version = "12.19.0"
+    version.set(property("nodeVersion").toString())
+    download.set(true)
+}
+
+docker {
+    name = "toet/admin-frontend"
+    //tags = mutableSetOf("${project.version}")
+    //tags("${project.version}")
+    //files(file("dist/*"))
+
+    //tag("docker", "${project.version}")
+    //files(distTar.outputs, 'my-file.txt')
+    //files(tasks)
 }
