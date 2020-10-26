@@ -3,7 +3,7 @@ version = findProperty("buildVersion") ?: "99.99.99"
 
 val nodeVersion by extra("12.19.0")
 val javaVersion by extra(JavaVersion.VERSION_11)
-val imageTag by extra(findProperty("imageTag") ?: version)
+val imageTag by extra(findProperty("imageTag") ?: "local")
 
 plugins {
     id("com.github.node-gradle.node") version "3.0.0-rc3" apply false

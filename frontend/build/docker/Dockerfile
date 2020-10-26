@@ -7,6 +7,11 @@ FROM node:current-alpine
 # RUN npm run build
 # COPY --chown=node:node . .
 
+RUN npm install http-server -g
+
+COPY app /app
+WORKDIR /app
+
 EXPOSE 8080
 
-CMD [ "node", "app.js" ]
+CMD [ "http-server", "-p", "8080", "/app" ]

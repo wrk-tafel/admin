@@ -10,13 +10,5 @@ node {
 
 docker {
     name = "toet/admin-frontend:${project.property("imageTag")}"
-
-    // TODO add files
-    //tags = mutableSetOf("${project.version}")
-    //tags("${project.version}")
-    //files(file("dist/*"))
-
-    //tag("docker", "${project.version}")
-    //files(distTar.outputs, 'my-file.txt')
-    //files(tasks)
+    copySpec.from("dist").into("app")
 }
