@@ -10,6 +10,8 @@ node {
 
 docker {
     name = "toet/admin-frontend"
+    // TODO set tag (version)
+
     //tags = mutableSetOf("${project.version}")
     //tags("${project.version}")
     //files(file("dist/*"))

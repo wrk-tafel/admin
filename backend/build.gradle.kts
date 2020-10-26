@@ -1,17 +1,14 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
-
 plugins {
     id("org.springframework.boot")
     id("io.spring.dependency-management")
-    kotlin("jvm")
-    kotlin("plugin.spring")
-    kotlin("plugin.jpa")
+    id("org.jetbrains.kotlin.jvm")
+    id("org.jetbrains.kotlin.plugin.spring")
+    id("org.jetbrains.kotlin.plugin.jpa")
 }
 
-group = "at.tafel1030.admin"
-version = "0.0.1-SNAPSHOT"
-java.sourceCompatibility = JavaVersion.VERSION_11
+java {
+    sourceCompatibility = JavaVersion.valueOf(property("javaVersion").toString())
+}
 
 springBoot {
     buildInfo()
@@ -37,17 +34,20 @@ dependencies {
     }
 }
 
-tasks.withType<Test> {
-    useJUnitPlatform()
-}
-
-tasks.withType<KotlinCompile> {
-    kotlinOptions {
-        freeCompilerArgs = listOf("-Xjsr305=strict")
-        jvmTarget = "11"
+tasks {
+    compileKotlin {
+        kotlinOptions {
+            freeCompilerArgs = listOf("-Xjsr305=strict")
+            val javaVersion: JavaVersion = JavaVersion.valueOf(project.property("javaVersion").toString())
+            jvmTarget = javaVersion.majorVersion
+        }
     }
-}
 
-tasks.getByName<BootBuildImage>("bootBuildImage") {
-    imageName = "toet/admin-backend:${project.version}"
+    test {
+        useJUnitPlatform()
+    }
+
+    bootBuildImage {
+        imageName = "toet/admin-backend:${project.version}"
+    }
 }
