@@ -4,8 +4,8 @@ services:
   - postgres:9.3
 
 before_script:
-  - bundle install
+  - echo "before"
 
 test:
   script:
-    - echo "test123"
+    - echo "test test123"
