@@ -8,4 +8,4 @@ before_script:
 
 test:
   script:
-    - bundle exec rake spec
+    - echo "test123"
