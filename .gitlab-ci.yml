@@ -8,4 +8,4 @@ before_script:
 
 test:
   script:
-    - echo "test test123"
+    - echo "test test123 456"
