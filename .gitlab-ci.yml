@@ -5,6 +5,9 @@ stages:
   - deploy-test
   - deploy-production
 
+variables:
+  GRADLE_OPTS: "-Dorg.gradle.daemon=false"
+
 before_script:
   - chmod 777 gradlew
 
