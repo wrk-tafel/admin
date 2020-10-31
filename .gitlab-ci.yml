@@ -10,31 +10,30 @@ variables:
 
 before_script:
   - chmod 755 gradlew
-  - export GRADLE_USER_HOME=`pwd`/.gradle
 
 build-backend:
   stage: build
   image: openjdk:11-jdk-slim
   script:
-    - ./gradlew --build-cache :backend:bootBuildImage
+    - ./gradlew :backend:bootBuildImage
 
 build-frontend:
   stage: build
   image: openjdk:11-jdk-slim
   script:
-    - ./gradlew --build-cache :frontend:npm_run_build :frontend:docker
+    - ./gradlew :frontend:npm_run_build :frontend:docker
 
 test-backend:
   stage: test
   image: openjdk:11-jdk-slim
   script:
-    - ./gradlew --build-cache :backend:test
+    - ./gradlew :backend:test
 
 test-frontend:
   stage: test
   image: openjdk:11-jdk-slim
   script:
-    - ./gradlew --build-cache :frontend:test
+    - ./gradlew :frontend:test
 
 e2e-test:
   stage: e2e-test
