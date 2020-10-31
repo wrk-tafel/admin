@@ -22,15 +22,13 @@ e2e-test:
 
 deploy-to-test:
   stage: deploy-test
-  environment:
-    - test
+  environment: "test"
   script:
     - echo "deploy"
 
 deploy-to-production:
   stage: deploy-production
-  environment:
-    - prod
+  environment: "prod"
   script:
     - echo "deploy"
   when: manual
