@@ -8,22 +8,22 @@ stages:
 build-backend:
   stage: build
   script:
-    - gradlew :backend:bootBuildImage
+    - ./gradlew :backend:bootBuildImage
 
 build-frontend:
   stage: build
   script:
-    - gradlew :frontend:npm_run_build :frontend:docker
+    - ./gradlew :frontend:npm_run_build :frontend:docker
 
 test-backend:
   stage: test
   script:
-    - gradlew :backend:test
+    - ./gradlew :backend:test
 
 test-frontend:
   stage: test
   script:
-    - gradlew :frontend:test
+    - ./gradlew :frontend:test
 
 e2e-test:
   stage: e2e-test
