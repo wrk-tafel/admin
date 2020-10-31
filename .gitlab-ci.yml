@@ -5,6 +5,9 @@ stages:
   - deploy-test
   - deploy-production
 
+before_script:
+  - chmod 777 gradlew
+
 build-backend:
   stage: build
   script:
