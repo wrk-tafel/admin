@@ -9,31 +9,32 @@ variables:
   GRADLE_OPTS: "-Dorg.gradle.daemon=false"
 
 before_script:
-  - chmod 777 gradlew
+  - chmod 755 gradlew
+  - export GRADLE_USER_HOME=`pwd`/.gradle
 
 build-backend:
   stage: build
   image: openjdk:11-jdk-slim
   script:
-    - ./gradlew :backend:bootBuildImage
+    - ./gradlew --build-cache :backend:bootBuildImage
 
 build-frontend:
   stage: build
   image: openjdk:11-jdk-slim
   script:
-    - ./gradlew :frontend:npm_run_build :frontend:docker
+    - ./gradlew --build-cache :frontend:npm_run_build :frontend:docker
 
 test-backend:
   stage: test
   image: openjdk:11-jdk-slim
   script:
-    - ./gradlew :backend:test
+    - ./gradlew --build-cache :backend:test
 
 test-frontend:
   stage: test
   image: openjdk:11-jdk-slim
   script:
-    - ./gradlew :frontend:test
+    - ./gradlew --build-cache :frontend:test
 
 e2e-test:
   stage: e2e-test
