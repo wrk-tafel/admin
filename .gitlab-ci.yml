@@ -1,11 +1,25 @@
-image: ruby:2.6
+stages:
+  - build
+  - test
+  - e2e-test
+  - deploy
 
-services:
-  - postgres:9.3
-
-before_script:
-  - echo "before"
+build:
+  stage: build
+  script:
+    - echo "build"
 
 test:
+  stage: test
   script:
-    - echo "test test123 456"
+    - echo "test"
+
+e2e-test:
+  stage: e2e-test
+  script:
+    - echo "e2e-test"
+
+deploy-test:
+  stage: deploy
+  script:
+    - echo "deploy"
