@@ -33,6 +33,7 @@ e2e-test:
   stage: e2e-test
   script:
     - echo "e2e-test"
+  when: manual
 
 deploy-to-test:
   stage: deploy-test
@@ -41,6 +42,7 @@ deploy-to-test:
     url: "https://adminneu-test.tafel1030.at"
   script:
     - echo "deploy"
+  when: manual
 
 deploy-to-production:
   stage: deploy-production
