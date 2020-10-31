@@ -8,21 +8,25 @@ stages:
 build-frontend:
   stage: build
   script:
+    - sleep 20
     - echo "build frontend"
 
 build-backend:
   stage: build
   script:
+    - sleep 20
     - echo "build backend"
 
 test-frontend:
   stage: test
   script:
+    - sleep 20
     - echo "test"
 
 test-backend:
   stage: test
   script:
+    - sleep 20
     - echo "test"
 
 e2e-test:
