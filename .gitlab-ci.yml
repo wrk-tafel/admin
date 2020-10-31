@@ -5,12 +5,11 @@ stages:
   - deploy-test
   - deploy-production
 
-image: openjdk:11-jdk-slim
-
 before_script:
   - chmod 777 gradlew
 
 build-backend:
+  image: openjdk:11-jdk-slim
   stage: build
   script:
     - ./gradlew :backend:bootBuildImage
@@ -21,6 +20,7 @@ build-frontend:
     - ./gradlew :frontend:npm_run_build :frontend:docker
 
 test-backend:
+  image: openjdk:11-jdk-slim
   stage: test
   script:
     - ./gradlew :backend:test
