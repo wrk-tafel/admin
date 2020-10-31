@@ -21,13 +21,3 @@ subprojects {
         jcenter()
     }
 }
-
-tasks.register<DefaultTask>("buildAll") {
-    description = "Admin: Builds both docker images for backend and frontend"
-    group = "Tafel1030"
-
-    //dependsOn(":backend:bootBuildImage")
-    // TODO fix task
-    dependsOn(":frontend:npm_run_build")
-            .dependsOn(":frontend:docker")
-}

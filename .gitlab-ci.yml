@@ -5,29 +5,25 @@ stages:
   - deploy-test
   - deploy-production
 
-build-frontend:
-  stage: build
-  script:
-    - sleep 20
-    - echo "build frontend"
-
 build-backend:
   stage: build
   script:
-    - sleep 20
-    - echo "build backend"
+    - gradlew :backend:bootBuildImage
 
-test-frontend:
-  stage: test
+build-frontend:
+  stage: build
   script:
-    - sleep 20
-    - echo "test"
+    - gradlew :frontend:npm_run_build :frontend:docker
 
 test-backend:
   stage: test
   script:
-    - sleep 20
-    - echo "test"
+    - gradlew :backend:test
+
+test-frontend:
+  stage: test
+  script:
+    - gradlew :frontend:test
 
 e2e-test:
   stage: e2e-test
