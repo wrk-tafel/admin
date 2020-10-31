@@ -9,24 +9,26 @@ before_script:
   - chmod 777 gradlew
 
 build-backend:
-  image: openjdk:11-jdk-slim
   stage: build
+  image: openjdk:11-jdk-slim
   script:
     - ./gradlew :backend:bootBuildImage
 
 build-frontend:
   stage: build
+  image: openjdk:11-jdk-slim
   script:
     - ./gradlew :frontend:npm_run_build :frontend:docker
 
 test-backend:
-  image: openjdk:11-jdk-slim
   stage: test
+  image: openjdk:11-jdk-slim
   script:
     - ./gradlew :backend:test
 
 test-frontend:
   stage: test
+  image: openjdk:11-jdk-slim
   script:
     - ./gradlew :frontend:test
 
