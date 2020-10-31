@@ -5,6 +5,8 @@ stages:
   - deploy-test
   - deploy-production
 
+image: openjdk:11-jdk-slim
+
 before_script:
   - chmod 777 gradlew
 
