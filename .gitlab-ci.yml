@@ -5,12 +5,22 @@ stages:
   - deploy-test
   - deploy-production
 
-build:
+build-frontend:
   stage: build
   script:
-    - echo "build"
+    - echo "build frontend"
 
-test:
+build-backend:
+  stage: build
+  script:
+    - echo "build backend"
+
+test-frontend:
+  stage: test
+  script:
+    - echo "test"
+
+test-backend:
   stage: test
   script:
     - echo "test"
