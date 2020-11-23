@@ -3,3 +3,9 @@
 
 ### IntelliJ IDEA ###
 .idea
+/.metadata/
+
+### Eclipse ###
+.project
+.settings
+.metadata
