@@ -19,7 +19,7 @@
     "url": "git@github.com:coreui/coreui-free-vue-admin-template.git"
   },
   "homepage": "http://coreui.io",
-  "copyright": "Copyright 2020 creativeLabs Łukasz Holeczek",
+  "copyright": "Copyright 2020 creativeLabs ŝukasz Holeczek",
   "license": "MIT",
   "scripts": {
     "serve": "vue-cli-service serve",
@@ -52,7 +52,7 @@
     "auto-changelog": "~2.2.0",
     "babel-eslint": "~10.1.0",
     "babel-jest": "~26.3.0",
-    "chromedriver": "^85.0.0",
+    "chromedriver": "^87.0.0",
     "core-js": "~3.6.5",
     "eslint": "~7.8.1",
     "eslint-plugin-vue": "~6.2.2",
