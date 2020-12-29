@@ -1,0 +1,30 @@
+version: "3.6"
+
+services:
+  backend:
+    image: toet/admin-backend:local
+    container_name: admin_backend
+    hostname: admin_backend
+    ports:
+      - 8090:8080
+    environment:
+      - TZ="Europe/Vienna"
+    networks:
+      - admin_net
+
+  frontend:
+    image: toet/admin-frontend:local
+    container_name: admin_frontend
+    hostname: admin_frontend
+    depends_on:
+      - backend
+    ports:
+      - 8091:8080
+    environment:
+      - TZ="Europe/Vienna"
+    networks:
+      - admin_net
+
+networks:
+  admin_net:
+    name: admin_net

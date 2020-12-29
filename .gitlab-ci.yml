@@ -15,25 +15,25 @@ build-backend:
   stage: build
   image: openjdk:11-jdk-slim
   script:
-    - ./gradlew :backend:bootBuildImage
+    - ./gradlew -w :backend:bootBuildImage
 
 build-frontend:
   stage: build
   image: openjdk:11-jdk-slim
   script:
-    - ./gradlew :frontend:npm_run_build :frontend:docker
+    - ./gradlew -w :frontend:npm_run_build :frontend:docker
 
 test-backend:
   stage: test
   image: openjdk:11-jdk-slim
   script:
-    - ./gradlew :backend:test
+    - ./gradlew -w :backend:test
 
 test-frontend:
   stage: test
   image: openjdk:11-jdk-slim
   script:
-    - ./gradlew :frontend:test
+    - ./gradlew -w :frontend:test
 
 e2e-test:
   stage: e2e-test
