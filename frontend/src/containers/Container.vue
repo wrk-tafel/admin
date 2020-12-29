@@ -1,8 +1,8 @@
 <template>
   <div class="c-app">
-    <TheSidebar/>
+    <Sidebar />
     <CWrapper>
-      <TheHeader/>
+      <Header />
       <div class="c-body">
         <main class="c-main">
           <CContainer fluid>
@@ -12,24 +12,24 @@
           </CContainer>
         </main>
       </div>
-      <TheFooter/>
+      <Footer />
     </CWrapper>
   </div>
 </template>
 
 <script>
-import TheSidebar from './TheSidebar'
-import TheHeader from './TheHeader'
-import TheFooter from './TheFooter'
+import Sidebar from "./Sidebar";
+import Header from "./Header";
+import Footer from "./Footer";
 
 export default {
-  name: 'TheContainer',
+  name: "Container",
   components: {
-    TheSidebar,
-    TheHeader,
-    TheFooter
+    Sidebar,
+    Header,
+    Footer
   }
-}
+};
 </script>
 
 <style scoped>
