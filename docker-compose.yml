@@ -8,7 +8,7 @@ services:
     ports:
       - 8090:8080
     environment:
-      - TZ="Europe/Vienna"
+      - TZ=Europe/Vienna
     networks:
       - admin_net
 
@@ -21,7 +21,7 @@ services:
     ports:
       - 8091:8080
     environment:
-      - TZ="Europe/Vienna"
+      - TZ=Europe/Vienna
     networks:
       - admin_net
 
