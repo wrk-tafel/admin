@@ -22,18 +22,21 @@ build-frontend:
   image: openjdk:11-jdk-slim
   script:
     - ./gradlew -w :frontend:npm_run_build :frontend:docker
+  when: manual
 
 test-backend:
   stage: test
   image: openjdk:11-jdk-slim
   script:
     - ./gradlew -w :backend:test
+  when: manual
 
 test-frontend:
   stage: test
   image: openjdk:11-jdk-slim
   script:
     - ./gradlew -w :frontend:test
+  when: manual
 
 e2e-test:
   stage: e2e-test
