@@ -15,7 +15,7 @@ build-backend:
   stage: build
   image: openjdk:11-jdk-slim
   script:
-    - ./gradlew :backend:bootBuildImage
+    - ./gradlew -w :backend:bootBuildImage
 
 build-frontend:
   stage: build
