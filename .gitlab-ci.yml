@@ -16,8 +16,7 @@ build-backend:
   image: openjdk:11-jdk-slim
   script:
     - ./gradlew -w :backend:bootBuildImage
-  only:
-    - merge_requests
+  when: manual
 
 build-frontend:
   stage: build
