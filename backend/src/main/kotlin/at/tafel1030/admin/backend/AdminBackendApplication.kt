@@ -4,13 +4,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 
 @SpringBootApplication
-class AdminBackendApplication {
+class AdminBackendApplication
 
-    companion object {
-        @JvmStatic
-        fun main(args: Array<String>) {
-            runApplication<AdminBackendApplication>(*args)
-        }
-    }
-
+fun main(args: Array<String>) {
+    runApplication<AdminBackendApplication>(*args)
 }
