@@ -6,7 +6,7 @@ services:
     container_name: admin_backend
     hostname: admin_backend
     ports:
-      - 8090:8080
+      - "8090:8080"
     environment:
       - TZ=Europe/Vienna
     networks:
@@ -19,7 +19,7 @@ services:
     depends_on:
       - backend
     ports:
-      - 8091:8080
+      - "8091:8080"
     environment:
       - TZ=Europe/Vienna
     networks:
