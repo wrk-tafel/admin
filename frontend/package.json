@@ -1,21 +1,15 @@
 {
-  "name": "@coreui/coreui-free-angular-admin-template",
-  "version": "2.11.2",
-  "description": "CoreUI Free Angular 11 Admin Template",
-  "author": {
-    "name": "Łukasz Holeczek",
-    "url": "http://holeczek.pl",
-    "github": "https://github.com/mrholek",
-    "twitter": "https://twitter.com/lukaszholeczek"
-  },
+  "name": "@wrk/tafel-admin",
+  "version": "0.0.0",
+  "description": "WRK Tafel Admin",
   "contributors": [
     {
-      "name": "Andrzej Kopański",
-      "url": "https://github.com/xidedix"
+      "name": "Stephan Prantl"
+    },
+    {
+      "name": "Stefan Kladler"
     }
   ],
-  "homepage": "https://coreui.io/angular",
-  "copyright": "Copyright 2021 creativeLabs Łukasz Holeczek",
   "license": "MIT",
   "scripts": {
     "ng": "ng",
