@@ -6,44 +6,55 @@ stages:
   - deploy-production
 
 variables:
-  GRADLE_OPTS: "-Dorg.gradle.daemon=false"
-  DOCKER_HOST: tcp://host.docker.internal:2375
+  DOCKER_HOST: tcp://docker:2376
 
-before_script:
-  - chmod 755 gradlew
+services:
+  - docker:20.10.8-dind
+
+cache:
+  key: tafel-admin
+  paths:
+    - frontend/node_modules
 
 build-backend:
   stage: build
   image: openjdk:11-jdk-slim
   script:
-    - ./gradlew -w :backend:bootBuildImage
+    - ./mvnw clean install -DskipTests
   when: manual
 
 build-frontend:
   stage: build
   image: openjdk:11-jdk-slim
   script:
-    - ./gradlew -w :frontend:npm_run_build :frontend:docker
+    - npm install
+    - cd frontend
+    - ng build
+  artifacts:
+    paths:
+      - frontend/dist
   when: manual
 
 test-backend:
   stage: test
   image: openjdk:11-jdk-slim
   script:
-    - ./gradlew -w :backend:test
+    - ./mvnw test
   when: manual
 
 test-frontend:
   stage: test
   image: openjdk:11-jdk-slim
   script:
-    - ./gradlew -w :frontend:test
+    - cd frontend
+    - ng test
   when: manual
 
 e2e-test:
   stage: e2e-test
   script:
-    - echo "e2e-test"
+    - cd frontend
+    - ng e2e
   when: manual
 
 deploy-to-test:
