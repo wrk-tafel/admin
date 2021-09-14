@@ -15,12 +15,12 @@ describe('CoreUI template', () => {
   //   page.navigateTo();
   // });
 
-  it('should display CoreUI Dashboard', async () => {
+  it('should display Dashboard', async () => {
     expect(await page.getParagraphText()).toEqual('Traffic');
   });
 
-  it('should display footer containing creativeLabs', async () => {
-    expect(await page.getFooterText()).toContain('creativeLabs');
+  it('should display footer containing WRK Tafel Admin', async () => {
+    expect(await page.getFooterText()).toContain('WRK Tafel Admin');
   });
 
   it('should toggle `sidebar-minimized` body.class on `sidebar-minimizer` click', () => {
