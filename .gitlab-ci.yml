@@ -1,8 +1,11 @@
+workflow:
+  rules:
+    - always
+
 stages:
-  - build
   - test
-  - e2e-test
   - package
+  - e2e-test
   - deploy
 
 variables:
@@ -17,64 +20,74 @@ cache:
     - frontend/node_modules
     - .m2/repository
 
-build-backend:
-  stage: build
-  image: openjdk:11-jdk-slim
-  script:
-    - ./mvnw clean install -DskipTests -f backend/pom.xml
-  artifacts:
-    paths:
-      - backend/target/admin-backend-0.0.0.jar
-  when: manual
-
-build-frontend:
-  stage: build
-  image: node:14.17.6-buster-slim
-  script:
-    - npm install --prefix frontend
-    - npm run build --prefix frontend
-  artifacts:
-    paths:
-      - frontend/dist
-  when: manual
-
 test-backend:
   stage: test
   image: openjdk:11-jdk-slim
   script:
     - ./mvnw test -f backend/pom.xml
-  when: manual
 
 test-frontend:
   stage: test
   image: node:14.17.6-buster-slim
   script:
+    - npm install --prefix frontend
     - npm run test --prefix frontend
-  when: manual
-
-e2e-test:
-  stage: e2e-test
-  image: node:14.17.6-buster-slim
-  script:
-    - npm run e2e --prefix frontend
-  when: manual
 
 package-backend:
   stage: package
+  needs:
+    - test-backend
   image: openjdk:11-jdk-slim
   script:
-    - echo "test"
-  when: manual
+    - ./mvnw clean install -DskipTests -f backend/pom.xml
+    # - TODO build docker image
 
-package-frontend:
+package-frontend-test:
   stage: package
+  needs:
+    - test-frontend
   image: node:14.17.6-buster-slim
   script:
-    - echo "test"
-  when: manual
+    - npm install --prefix frontend
+    - npm run build-test --prefix frontend
+    # - TODO build docker image
 
-deploy-to-test:
+package-frontend-e2e-test:
+  stage: package
+  needs:
+    - test-frontend
+  image: node:14.17.6-buster-slim
+  script:
+    - npm install --prefix frontend
+    - npm run build-e2e-test --prefix frontend
+    # - TODO build docker image
+
+package-frontend-prod:
+  stage: package
+  needs:
+    - test-frontend
+  image: node:14.17.6-buster-slim
+  script:
+    - npm install --prefix frontend
+    - npm run build-prod --prefix frontend
+    # - TODO build docker image
+
+e2e-test:
+  stage: e2e-test
+  needs:
+    - package-backend
+    - package-frontend-e2e-test
+  cache: [ ]
+  image: node:14.17.6-buster-slim
+  script:
+    - npm install --prefix frontend
+    - npm run e2e --prefix frontend
+
+deploy-test:
   stage: deploy
+  #  needs:
+  #    - e2e-test
+  cache: [ ]
   environment:
     name: test
     url: "https://adminneu-test.tafel1030.at"
@@ -82,8 +95,11 @@ deploy-to-test:
     - echo "deploy"
   when: manual
 
-deploy-to-production:
+deploy-production:
   stage: deploy
+  #  needs:
+  #    - e2e-test
+  cache: [ ]
   environment:
     name: prod
     url: "https://adminneu.tafel1030.at"
