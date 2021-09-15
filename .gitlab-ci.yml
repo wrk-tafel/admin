@@ -30,9 +30,8 @@ build-backend:
 build-frontend:
   stage: build
   script:
-    - cd frontend
-    - npm install
-    - npm run build
+    - npm install --prefix frontend
+    - npm run build --prefix frontend
   artifacts:
     paths:
       - frontend/dist
@@ -48,15 +47,13 @@ test-backend:
 test-frontend:
   stage: test
   script:
-    - cd frontend
-    - npm run test
+    - npm run test --prefix frontend
   when: manual
 
 e2e-test:
   stage: e2e-test
   script:
-    - cd frontend
-    - npm run e2e
+    - npm run e2e --prefix frontend
   when: manual
 
 package-backend:
