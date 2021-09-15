@@ -2,34 +2,37 @@ stages:
   - build
   - test
   - e2e-test
-  - deploy-test
-  - deploy-production
+  - package
+  - deploy
 
 variables:
   DOCKER_HOST: tcp://docker:2376
+  MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
 
 services:
   - docker:20.10.8-dind
 
 cache:
-  key: tafel-admin
   paths:
     - frontend/node_modules
+    - .m2/repository
 
 build-backend:
   stage: build
   image: openjdk:11-jdk-slim
   script:
-    - ./mvnw clean install -DskipTests
+    - ./mvnw clean install -DskipTests -f backend/pom.xml
+  artifacts:
+    paths:
+      - backend/target/admin-backend-0.0.0.jar
   when: manual
 
 build-frontend:
   stage: build
-  image: openjdk:11-jdk-slim
   script:
-    - npm install
     - cd frontend
-    - ng build
+    - npm install
+    - npm run build
   artifacts:
     paths:
       - frontend/dist
@@ -39,26 +42,37 @@ test-backend:
   stage: test
   image: openjdk:11-jdk-slim
   script:
-    - ./mvnw test
+    - ./mvnw test -f backend/pom.xml
   when: manual
 
 test-frontend:
   stage: test
-  image: openjdk:11-jdk-slim
   script:
     - cd frontend
-    - ng test
+    - npm run test
   when: manual
 
 e2e-test:
   stage: e2e-test
   script:
     - cd frontend
-    - ng e2e
+    - npm run e2e
+  when: manual
+
+package-backend:
+  stage: package
+  script:
+    - echo "test"
+  when: manual
+
+package-frontend:
+  stage: package
+  script:
+    - echo "test"
   when: manual
 
 deploy-to-test:
-  stage: deploy-test
+  stage: deploy
   environment:
     name: test
     url: "https://adminneu-test.tafel1030.at"
@@ -67,7 +81,7 @@ deploy-to-test:
   when: manual
 
 deploy-to-production:
-  stage: deploy-production
+  stage: deploy
   environment:
     name: prod
     url: "https://adminneu.tafel1030.at"
