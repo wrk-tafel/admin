@@ -18,6 +18,7 @@ services:
   - docker:20.10.8-dind
 
 cache:
+  key: tafel-admin
   paths:
     - frontend/node_modules
     - .m2/repository
