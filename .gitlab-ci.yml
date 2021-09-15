@@ -29,7 +29,7 @@ test-frontend:
     - npm install --prefix frontend
     - npm run test --prefix frontend
 
-package-backend:
+pkg-backend:
   stage: package
   needs:
     - test-backend
@@ -38,7 +38,7 @@ package-backend:
     - ./mvnw clean install -DskipTests -f backend/pom.xml
     # - TODO build docker image
 
-package-frontend-test:
+pkg-frontend-test:
   stage: package
   needs:
     - test-frontend
@@ -48,7 +48,7 @@ package-frontend-test:
     - npm run build-test --prefix frontend
     # - TODO build docker image
 
-package-frontend-e2e-test:
+pkg-frontend-e2e-test:
   stage: package
   needs:
     - test-frontend
@@ -58,7 +58,7 @@ package-frontend-e2e-test:
     - npm run build-e2e-test --prefix frontend
     # - TODO build docker image
 
-package-frontend-prod:
+pkg-frontend-prod:
   stage: package
   needs:
     - test-frontend
@@ -71,8 +71,8 @@ package-frontend-prod:
 e2e-test:
   stage: e2e-test
   needs:
-    - package-backend
-    - package-frontend-e2e-test
+    - pkg-backend
+    - pkg-frontend-e2e-test
   image: node:14.17.6-buster-slim
   script:
     - npm install --prefix frontend
@@ -81,8 +81,8 @@ e2e-test:
 deploy-test:
   stage: deploy
   #  needs:
-  #    - package-backend
-  #    - package-frontend-test
+  #    - pkg-backend
+  #    - pkg-frontend-test
   cache: { }
   environment:
     name: test
@@ -94,8 +94,8 @@ deploy-test:
 deploy-production:
   stage: deploy
   #  needs:
-  #    - package-backend
-  #    - package-frontend-prod
+  #    - pkg-backend
+  #    - pkg-frontend-prod
   cache: { }
   environment:
     name: prod
