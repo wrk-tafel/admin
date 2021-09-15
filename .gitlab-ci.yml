@@ -81,7 +81,8 @@ e2e-test:
 deploy-test:
   stage: deploy
   #  needs:
-  #    - e2e-test
+  #    - package-backend
+  #    - package-frontend-test
   cache: { }
   environment:
     name: test
@@ -93,7 +94,8 @@ deploy-test:
 deploy-production:
   stage: deploy
   #  needs:
-  #    - e2e-test
+  #    - package-backend
+  #    - package-frontend-prod
   cache: { }
   environment:
     name: prod
