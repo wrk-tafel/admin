@@ -29,6 +29,7 @@ build-backend:
 
 build-frontend:
   stage: build
+  image: node:14.17.6-buster-slim
   script:
     - npm install --prefix frontend
     - npm run build --prefix frontend
@@ -46,24 +47,28 @@ test-backend:
 
 test-frontend:
   stage: test
+  image: node:14.17.6-buster-slim
   script:
     - npm run test --prefix frontend
   when: manual
 
 e2e-test:
   stage: e2e-test
+  image: node:14.17.6-buster-slim
   script:
     - npm run e2e --prefix frontend
   when: manual
 
 package-backend:
   stage: package
+  image: openjdk:11-jdk-slim
   script:
     - echo "test"
   when: manual
 
 package-frontend:
   stage: package
+  image: node:14.17.6-buster-slim
   script:
     - echo "test"
   when: manual
