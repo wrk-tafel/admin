@@ -48,7 +48,7 @@ pkg-backend:
     - build-test-backend
   image: docker:dind
   script:
-    - docker build -t tafel/admin-backend:${CI_COMMIT_SHORT_SHA} _build/backend/Dockerfile
+    - docker build -t tafel/admin-backend:${CI_COMMIT_SHORT_SHA} _build/backend
 
 pkg-frontend-test:
   stage: package
