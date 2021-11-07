@@ -32,6 +32,7 @@ build-backend:
     paths:
       - backend/target
     expire_in: 1 week
+  when: manual
 
 build-frontend-test:
   stage: build
@@ -43,6 +44,7 @@ build-frontend-test:
     paths:
       - frontend/dist
     expire_in: 1 week
+  when: manual
 
 test-backend:
   stage: test
@@ -76,6 +78,7 @@ pkg-backend:
       alias: docker
   script:
     - docker build -t tafel/admin-backend:${CI_COMMIT_SHORT_SHA} -f _build/backend/Dockerfile .
+  when: manual
 
 pkg-frontend-test:
   stage: package
@@ -90,23 +93,25 @@ pkg-frontend-test:
       alias: docker
   script:
     - docker build -t tafel/admin-frontend:test-${CI_COMMIT_SHORT_SHA} -f _build/frontend/Dockerfile .
+  when: manual
 
 deploy-test:
   stage: deploy
-  needs:
-    - pkg-backend
-    - pkg-frontend-test
+  #  needs:
+  #    - pkg-backend
+  #    - pkg-frontend-test
   cache: { }
+  image: alpine
   environment:
     name: test
     url: "https://adminneu-test.tafel1030.at"
   before_script:
+    - apk add openssh-client
     - eval $(ssh-agent -s)
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
   script:
-    - ssh -p $SSH_PORT $SSH_USER@$SSH_HOST
-    - id
-    - sudo id
+    - ssh -p $SSH_PORT $SSH_USER@$SSH_HOST "id"
+    - ssh -p $SSH_PORT $SSH_USER@$SSH_HOST "sudo id"
   when: manual
