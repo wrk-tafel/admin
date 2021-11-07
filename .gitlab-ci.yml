@@ -15,7 +15,8 @@ variables:
   MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
 
 services:
-  - docker:20.10.8-dind
+  - name: docker:20.10.8-dind
+    alias: docker
 
 cache:
   key: tafel-admin
