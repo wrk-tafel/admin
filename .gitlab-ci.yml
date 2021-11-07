@@ -106,6 +106,7 @@ deploy-test:
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
   script:
+    - ssh -p 64321 deploy@host.docker.internal
     - id
     - sudo id
   when: manual
