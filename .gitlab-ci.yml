@@ -15,10 +15,6 @@ variables:
   DOCKER_HOST: tcp://docker:2376
   MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
 
-services:
-  - name: docker:20.10.8-dind
-    alias: docker
-
 cache:
   key: tafel-admin
   paths:
@@ -32,7 +28,7 @@ build-backend:
     - ./mvnw clean install -DskipTests -f backend/pom.xml
   artifacts:
     paths:
-      - backend/target/admin-backend-0.0.0.jar
+      - backend/target
     expire_in: 1 week
 
 build-frontend-test:
@@ -49,6 +45,7 @@ build-frontend-test:
 test-backend:
   stage: test
   image: openjdk:11-jdk-slim
+  cache: { }
   script:
     - ./mvnw test -f backend/pom.xml
   when: manual
@@ -56,6 +53,7 @@ test-backend:
 test-frontend:
   stage: test
   image: node:14.17.6-buster-slim
+  cache: { }
   script:
     - npm install --prefix frontend
     # - npm run test --prefix frontend
@@ -70,6 +68,10 @@ pkg-backend:
   needs:
     - build-backend
   image: docker:dind
+  cache: { }
+  services:
+    - name: docker:20.10.8-dind
+      alias: docker
   script:
     - docker build -t tafel/admin-backend:${CI_COMMIT_SHORT_SHA} _build/backend
 
@@ -80,6 +82,10 @@ pkg-frontend-test:
   needs:
     - build-frontend-test
   image: docker:dind
+  cache: { }
+  services:
+    - name: docker:20.10.8-dind
+      alias: docker
   script:
     - docker build -t tafel/admin-frontend:test-${CI_COMMIT_SHORT_SHA} _build/frontend/Dockerfile
 
