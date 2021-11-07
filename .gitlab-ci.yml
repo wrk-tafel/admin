@@ -100,11 +100,11 @@ deploy-test:
   environment:
     name: test
     url: "https://adminneu-test.tafel1030.at"
-    before_script:
-      - eval $(ssh-agent -s)
-      - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
-      - mkdir -p ~/.ssh
-      - chmod 700 ~/.ssh
+  before_script:
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
   script:
     - id
     - sudo id
