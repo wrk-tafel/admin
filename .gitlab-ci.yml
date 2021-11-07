@@ -5,6 +5,7 @@ workflow:
     - when: always # Run pipeline for all other cases
 
 stages:
+  - build
   - test
   - package
   - e2e-test
@@ -24,15 +25,29 @@ cache:
     - frontend/node_modules
     - .m2/repository
 
-build-test-backend:
-  stage: test
+build-backend:
+  stage: build
   image: openjdk:11-jdk-slim
   script:
-    - ./mvnw clean install -f backend/pom.xml
+    - ./mvnw clean install -DskipTests -f backend/pom.xml
   artifacts:
     paths:
       - backend/target/admin-backend-0.0.0.jar
     expire_in: 1 week
+
+build-frontend-test:
+  stage: build
+  image: node:14.17.6-buster-slim
+  script:
+    - npm install --prefix frontend
+    - npm run build-test --prefix frontend
+
+test-backend:
+  stage: test
+  image: openjdk:11-jdk-slim
+  script:
+    - ./mvnw test -f backend/pom.xml
+  when: manual
 
 test-frontend:
   stage: test
@@ -45,8 +60,11 @@ test-frontend:
 
 pkg-backend:
   stage: package
+  # TODO
+  #  needs:
+  #    - test-backend
   needs:
-    - build-test-backend
+    - build-backend
   image: docker:dind
   script:
     - docker build -t tafel/admin-backend:${CI_COMMIT_SHORT_SHA} _build/backend
@@ -55,46 +73,9 @@ pkg-frontend-test:
   stage: package
   #  needs:
   #    - test-frontend
-  image: node:14.17.6-buster-slim
+  image: docker:dind
   script:
-    - npm install --prefix frontend
-    - npm run build-test --prefix frontend
     - docker build -t tafel/admin-frontend:test-${CI_COMMIT_SHORT_SHA} _build/frontend/Dockerfile
-
-pkg-frontend-e2e-test:
-  stage: package
-  needs:
-    - test-frontend
-  image: node:14.17.6-buster-slim
-  script:
-    - npm install --prefix frontend
-    - npm run build-e2e-test --prefix frontend
-    - docker build -t tafel/admin-frontend:e2e-test-${CI_COMMIT_SHORT_SHA} _build/frontend/Dockerfile
-  when: manual
-
-pkg-frontend-prod:
-  stage: package
-  needs:
-    - test-frontend
-  image: node:14.17.6-buster-slim
-  script:
-    - npm install --prefix frontend
-    - npm run build-prod --prefix frontend
-    - docker build -t tafel/admin-frontend:prod-${CI_COMMIT_SHORT_SHA} _build/frontend/Dockerfile
-  when: manual
-
-e2e-test:
-  stage: e2e-test
-  needs:
-    - pkg-backend
-    - pkg-frontend-e2e-test
-  image: node:14.17.6-buster-slim
-  script:
-    - npm install --prefix frontend
-    #- npm run e2e --prefix frontend
-    # probably also start backend and so ...
-    - echo "TODO headless run"
-  when: manual
 
 deploy-test:
   stage: deploy
@@ -105,19 +86,6 @@ deploy-test:
   environment:
     name: test
     url: "https://adminneu-test.tafel1030.at"
-  script:
-    - echo "deploy"
-  when: manual
-
-deploy-production:
-  stage: deploy
-  #  needs:
-  #    - pkg-backend
-  #    - pkg-frontend-prod
-  cache: { }
-  environment:
-    name: prod
-    url: "https://adminneu.tafel1030.at"
   script:
     - echo "deploy"
   when: manual
