@@ -101,7 +101,7 @@ deploy-test:
   #    - pkg-backend
   #    - pkg-frontend-test
   cache: { }
-  image: alpine
+  image: alpine:latest
   environment:
     name: test
     url: "https://adminneu-test.tafel1030.at"
@@ -113,5 +113,5 @@ deploy-test:
     - chmod 700 ~/.ssh
   script:
     - ssh -o StrictHostKeyChecking=no -p $SSH_PORT $SSH_USER@$SSH_HOST "id"
-    - ssh -o StrictHostKeyChecking=no -p $SSH_PORT $SSH_USER@$SSH_HOST "sudo id"
+    - echo $ROOT_PWD | ssh -o StrictHostKeyChecking=no -p $SSH_PORT $SSH_USER@$SSH_HOST "sudo id"
   when: manual
