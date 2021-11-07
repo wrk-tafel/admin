@@ -28,6 +28,10 @@ build-test-backend:
   image: openjdk:11-jdk-slim
   script:
     - ./mvnw clean install -f backend/pom.xml
+  artifacts:
+    paths:
+      - backend/target/admin-backend-0.0.0.jar
+    expire_in: 1 week
 
 test-frontend:
   stage: test
