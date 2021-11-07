@@ -34,7 +34,7 @@ test-frontend:
   image: node:14.17.6-buster-slim
   script:
     - npm install --prefix frontend
-    #- npm run test --prefix frontend
+    # - npm run test --prefix frontend
     - echo "TODO headless run"
 
 pkg-backend:
@@ -44,7 +44,7 @@ pkg-backend:
   image: openjdk:11-jdk-slim
   script:
     - ./mvnw clean install -DskipTests -f backend/pom.xml
-    # - TODO build docker image
+    - docker build -t tafel/admin-backend:${CI_COMMIT_SHORT_SHA} _build/backend/Dockerfile
 
 pkg-frontend-test:
   stage: package
@@ -54,7 +54,7 @@ pkg-frontend-test:
   script:
     - npm install --prefix frontend
     - npm run build-test --prefix frontend
-    # - TODO build docker image
+    - docker build -t tafel/admin-frontend:test-${CI_COMMIT_SHORT_SHA} _build/frontend/Dockerfile
 
 pkg-frontend-e2e-test:
   stage: package
@@ -64,7 +64,7 @@ pkg-frontend-e2e-test:
   script:
     - npm install --prefix frontend
     - npm run build-e2e-test --prefix frontend
-    # - TODO build docker image
+    - docker build -t tafel/admin-frontend:e2e-test-${CI_COMMIT_SHORT_SHA} _build/frontend/Dockerfile
 
 pkg-frontend-prod:
   stage: package
@@ -74,7 +74,7 @@ pkg-frontend-prod:
   script:
     - npm install --prefix frontend
     - npm run build-prod --prefix frontend
-    # - TODO build docker image
+    - docker build -t tafel/admin-frontend:prod-${CI_COMMIT_SHORT_SHA} _build/frontend/Dockerfile
 
 e2e-test:
   stage: e2e-test
@@ -85,13 +85,14 @@ e2e-test:
   script:
     - npm install --prefix frontend
     #- npm run e2e --prefix frontend
+    # probably also start backend and so ...
     - echo "TODO headless run"
 
 deploy-test:
   stage: deploy
-  #  needs:
-  #    - pkg-backend
-  #    - pkg-frontend-test
+  needs:
+    - pkg-backend
+    - pkg-frontend-test
   cache: { }
   environment:
     name: test
