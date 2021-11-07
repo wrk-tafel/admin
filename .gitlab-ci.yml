@@ -112,6 +112,6 @@ deploy-test:
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
   script:
-    - ssh -p $SSH_PORT $SSH_USER@$SSH_HOST "id"
-    - ssh -p $SSH_PORT $SSH_USER@$SSH_HOST "sudo id"
+    - ssh -o StrictHostKeyChecking=no -p $SSH_PORT $SSH_USER@$SSH_HOST "id"
+    - ssh -o StrictHostKeyChecking=no -p $SSH_PORT $SSH_USER@$SSH_HOST "sudo id"
   when: manual
