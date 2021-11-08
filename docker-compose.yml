@@ -1,36 +1,39 @@
 version: "3.6"
 
 services:
-
-  backend:
-    build:
-      dockerfile: _build/backend/Dockerfile
-      context: .
-    image: tafel/admin-backend:local
-    container_name: admin_backend
-    hostname: admin_backend
+  database:
+    image: "postgres:14.0-alpine3.14"
+    container_name: admin-postgres
+    hostname: admin-postgres
     ports:
-      - "8090:8080"
+      - "5432:5432"
     environment:
-      - TZ=Europe/Vienna
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: admin
+    volumes:
+      - database-data:/var/lib/postgresql/data/
     networks:
       - admin_net
 
-  frontend:
-    build:
-      dockerfile: _build/frontend/Dockerfile
-      context: .
-    image: tafel/admin-frontend:local
-    container_name: admin_frontend
-    hostname: admin_frontend
-    depends_on:
-      - backend
+  pgadmin:
+    image: "dpage/pgadmin4:6.1"
+    container_name: admin-pgadmin
+    hostname: admin-pgadmin
     ports:
-      - "8091:80"
+      - "5050:80"
     environment:
-      - TZ=Europe/Vienna
+      PGADMIN_DEFAULT_EMAIL: defaultmail@local.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
     networks:
       - admin_net
+
+volumes:
+  database-data:
+  pgadmin-data:
 
 networks:
   admin_net:
