@@ -104,8 +104,8 @@ deploy-test:
     name: test
     url: "https://adminneu-test.tafel1030.at"
   variables:
-    - DEPLOY_SOURCE=test
-    - DEPLOY_TARGET=/toet/docker/adminneu-test
+    DEPLOY_SOURCE: test
+    DEPLOY_TARGET: /toet/docker/adminneu-test
   when: manual
 
 # add scheduled step / cleanup docker images (*:build-*)
