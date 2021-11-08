@@ -8,7 +8,6 @@ stages:
   - build
   - test
   - package
-  - e2e-test
   - deploy
 
 variables:
@@ -34,7 +33,7 @@ build-backend:
     expire_in: 1 week
   when: manual
 
-build-frontend-test:
+build-frontend:
   stage: build
   image: node:14.17.6-buster-slim
   script:
@@ -64,54 +63,49 @@ test-frontend:
     - echo "TODO headless run"
   when: manual
 
-pkg-backend:
+# TODO e2etest
+
+package:
   stage: package
-  # TODO
-  #  needs:
-  #    - test-backend
   needs:
     - build-backend
-  image: docker:dind
-  cache: { }
-  services:
-    - name: docker:20.10.8-dind
-      alias: docker
-  script:
-    - docker build -t tafel/admin-backend:${CI_COMMIT_SHORT_SHA} -f _build/backend/Dockerfile .
-  when: manual
-
-pkg-frontend-test:
-  stage: package
+    - build-frontend
   #  needs:
+  #    - test-backend
   #    - test-frontend
-  needs:
-    - build-frontend-test
-  image: docker:dind
+  image: docker:20.10.10-dind-alpine3.14
   cache: { }
   services:
-    - name: docker:20.10.8-dind
+    - name: docker:20.10.10-dind-alpine3.14
       alias: docker
   script:
-    - docker build -t tafel/admin-frontend:test-${CI_COMMIT_SHORT_SHA} -f _build/frontend/Dockerfile .
+    - docker build -t tafel/deploy-base:latest -f _deploy/image/Dockerfile .
+    - docker build -t tafel/admin-backend:build-${CI_COMMIT_SHORT_SHA} -f _build/backend/Dockerfile .
+    - docker build -t tafel/admin-frontend:build-${CI_COMMIT_SHORT_SHA} -f _build/frontend/Dockerfile .
   when: manual
 
-deploy-test:
+.deploy:
   stage: deploy
-  #  needs:
-  #    - pkg-backend
-  #    - pkg-frontend-test
   cache: { }
-  image: alpine:latest
-  environment:
-    name: test
-    url: "https://adminneu-test.tafel1030.at"
-  before_script:
-    - apk add openssh-client
-    - eval $(ssh-agent -s)
-    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
-    - mkdir -p ~/.ssh
-    - chmod 700 ~/.ssh
+  image: tafel/deploy-base:latest
+  services:
+    - name: docker:20.10.10-dind-alpine3.14
+      alias: docker
   script:
     - ssh -o StrictHostKeyChecking=no -p $SSH_PORT $SSH_USER@$SSH_HOST "id"
     - echo $ROOT_PWD | ssh -o StrictHostKeyChecking=no -p $SSH_PORT $SSH_USER@$SSH_HOST "sudo id"
+
+deploy-test:
+  extends: .deploy
+  #  needs:
+  #    - pkg-backend
+  #    - pkg-frontend-test
+  environment:
+    name: test
+    url: "https://adminneu-test.tafel1030.at"
+  variables:
+    - DEPLOY_SOURCE=test
+    - DEPLOY_TARGET=/toet/docker/adminneu-test
   when: manual
+
+# add scheduled step / cleanup docker images (*:build-*)

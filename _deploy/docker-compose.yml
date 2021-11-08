@@ -1,0 +1,27 @@
+version: "3.6"
+
+services:
+
+  backend:
+    image: tafel/admin-backend:${BACKEND_VERSION}
+    container_name: ${BACKEND_CONTAINER_NAME}
+    hostname: ${BACKEND_HOSTNAME}
+    environment:
+      - TZ=Europe/Vienna
+    networks:
+      - ${NETWORK_NAME}
+
+  frontend:
+    image: tafel/admin-frontend:${FRONTEND_VERSION}
+    container_name: ${FRONTEND_CONTAINER_NAME}
+    hostname: ${FRONTEND_HOSTNAME}
+    depends_on:
+      - backend
+    environment:
+      - TZ=Europe/Vienna
+    networks:
+      - ${NETWORK_NAME}
+
+networks:
+  adminnet_test:
+    name: ${NETWORK_NAME}
