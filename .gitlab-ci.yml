@@ -31,7 +31,6 @@ build-backend:
     paths:
       - backend/target
     expire_in: 1 week
-  when: manual
 
 build-frontend:
   stage: build
@@ -43,7 +42,6 @@ build-frontend:
     paths:
       - frontend/dist
     expire_in: 1 week
-  when: manual
 
 test-backend:
   stage: test
@@ -82,7 +80,6 @@ package:
     - docker build -t tafel/deploy-base:latest -f _deploy/image/Dockerfile .
     - docker build -t tafel/admin-backend:build-${CI_COMMIT_SHORT_SHA} -f _build/backend/Dockerfile .
     - docker build -t tafel/admin-frontend:build-${CI_COMMIT_SHORT_SHA} -f _build/frontend/Dockerfile .
-  when: manual
 
 .deploy:
   stage: deploy
@@ -97,9 +94,8 @@ package:
 
 deploy-test:
   extends: .deploy
-  #  needs:
-  #    - pkg-backend
-  #    - pkg-frontend-test
+  needs:
+    - package
   environment:
     name: test
     url: "https://adminneu-test.tafel1030.at"
