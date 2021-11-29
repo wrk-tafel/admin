@@ -1,4 +1,4 @@
-package at.tafel1030.admin.backend
+package at.wrk.tafel.admin.backend
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication

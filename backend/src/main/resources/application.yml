@@ -2,3 +2,4 @@ spring:
   flyway:
     locations: classpath:/db-migration
     group: true
+    ignoreMissingMigrations: true
