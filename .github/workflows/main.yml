@@ -1,6 +1,6 @@
 name: release-admin
 
-on: [ push ]
+on: [ ]
 
 jobs:
   test:
