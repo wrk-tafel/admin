@@ -3,8 +3,8 @@ version: "3.6"
 services:
   database:
     image: "postgres:14.0-alpine3.14"
-    container_name: admin-postgres
-    hostname: admin-postgres
+    container_name: tafeladmin-postgres
+    hostname: tafeladmin-postgres
     ports:
       - "5432:5432"
     environment:
@@ -14,12 +14,12 @@ services:
     volumes:
       - database-data:/var/lib/postgresql/data/
     networks:
-      - admin_net
+      - tafeladmin_net
 
   pgadmin:
     image: "dpage/pgadmin4:6.1"
-    container_name: admin-pgadmin
-    hostname: admin-pgadmin
+    container_name: tafeladmin-pgadmin
+    hostname: tafeladmin-pgadmin
     ports:
       - "5050:80"
     environment:
@@ -29,12 +29,12 @@ services:
     volumes:
       - pgadmin-data:/var/lib/pgadmin
     networks:
-      - admin_net
+      - tafeladmin_net
 
 volumes:
   database-data:
   pgadmin-data:
 
 networks:
-  admin_net:
-    name: admin_net
+  tafeladmin_net:
+    name: tafeladmin_net
