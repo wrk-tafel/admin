@@ -12,3 +12,4 @@
 .metadata
 /admin-parent.iml
 /frontend/admin-frontend.iml
+/frontend/target/
