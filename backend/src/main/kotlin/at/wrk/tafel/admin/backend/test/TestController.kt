@@ -1,4 +1,4 @@
-package at.tafel1030.admin.backend.test
+package at.wrk.tafel.admin.backend.test
 
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController

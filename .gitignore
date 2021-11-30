@@ -2,10 +2,12 @@
 !gradle/wrapper/gradle-wrapper.jar
 
 ### IntelliJ IDEA ###
-.idea
+.idea/*
+!.idea/runConfigurations
 /.metadata/
 
 ### Eclipse ###
 .project
 .settings
 .metadata
+/admin-parent.iml
