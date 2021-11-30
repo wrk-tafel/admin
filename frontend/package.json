@@ -1,6 +1,6 @@
 {
-  "name": "@tafel/admin",
-  "version": "0.0.0",
+  "name": "@wrk-tafel/admin",
+  "version": "0.0.1",
   "description": "WRK Tafel Admin",
   "contributors": [
     {
