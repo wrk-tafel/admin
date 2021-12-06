@@ -12,7 +12,7 @@
 
     <properties>
         <java.version>17</java.version>
-        <kotlin.version>1.6.0</kotlin.version>
+        <kotlin.version>1.5.32</kotlin.version>
 
         <spring.boot.version>2.6.1</spring.boot.version>
         <jackson.kotlin.module.version>2.13.0-rc2</jackson.kotlin.module.version>
@@ -96,7 +96,7 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-configuration-processor</artifactId>
-            <scope>test</scope>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -132,7 +132,7 @@
                 <version>${spring.boot.version}</version>
                 <configuration>
                     <finalName>admin-backend</finalName>
-                    <mainClass>at.wrk.tafel.admin.backend.AdminBackendApplication</mainClass>
+                    <mainClass>at.wrk.tafel.admin.backend.AdminBackendApplicationKt</mainClass>
                 </configuration>
                 <executions>
                     <execution>
@@ -168,7 +168,6 @@
                             <goal>compile</goal>
                         </goals>
                     </execution>
-
                     <execution>
                         <id>test-compile</id>
                         <goals>
