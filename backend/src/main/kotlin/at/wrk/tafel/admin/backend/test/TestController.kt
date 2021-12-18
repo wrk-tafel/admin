@@ -8,7 +8,7 @@ class TestController {
 
     @GetMapping("test")
     fun test(): String {
-        return "testResponse";
+        return "testResponse"
     }
 
 }
