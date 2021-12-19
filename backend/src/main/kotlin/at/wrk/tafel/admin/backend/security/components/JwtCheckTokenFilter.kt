@@ -3,6 +3,8 @@ package at.wrk.tafel.admin.backend.security.components
 import io.jsonwebtoken.ExpiredJwtException
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.core.userdetails.UserDetails
+import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
@@ -11,9 +13,9 @@ import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 @Component
-class JwtRequestFilter(
-    private val jwtUserDetailsService: JwtUserDetailsService,
-    private val jwtTokenProcessor: JwtTokenProcessor
+class JwtCheckTokenFilter(
+    private val userDetailsService: UserDetailsService,
+    private val jwtTokenService: JwtTokenService
 ) : OncePerRequestFilter() {
 
     override fun doFilterInternal(
@@ -28,18 +30,14 @@ class JwtRequestFilter(
 
         // JWT Token is in the form "Bearer token". Remove Bearer word and get
         // only the Token
-        // JWT Token is in the form "Bearer token". Remove Bearer word and get
-        // only the Token
-        if (requestTokenHeader != null) {
-            if (requestTokenHeader.startsWith("Bearer ")) {
-                jwtToken = requestTokenHeader.substring(7)
-                try {
-                    username = jwtTokenProcessor.getUsernameFromToken(jwtToken)
-                } catch (e: IllegalArgumentException) {
-                    println("Unable to get JWT Token")
-                } catch (e: ExpiredJwtException) {
-                    println("JWT Token has expired")
-                }
+        if (requestTokenHeader != null && requestTokenHeader.startsWith("Bearer ")) {
+            jwtToken = requestTokenHeader.substring(7)
+            try {
+                username = jwtTokenService.getUsernameFromToken(jwtToken)
+            } catch (e: IllegalArgumentException) {
+                println("Unable to get JWT Token")
+            } catch (e: ExpiredJwtException) {
+                println("JWT Token has expired")
             }
         } else {
             logger.warn("JWT Token does not begin with Bearer String")
@@ -47,11 +45,11 @@ class JwtRequestFilter(
 
         // Once we get the token validate it.
         if (username != null && SecurityContextHolder.getContext().authentication == null) {
-            val userDetails = jwtUserDetailsService.loadUserByUsername(username)
+            val userDetails: UserDetails = this.userDetailsService.loadUserByUsername(username)
 
             // if token is valid configure Spring Security to manually set
             // authentication
-            if (jwtTokenProcessor.validateToken(jwtToken!!, userDetails)) {
+            if (jwtTokenService.validateToken(jwtToken!!, userDetails)) {
                 val usernamePasswordAuthenticationToken = UsernamePasswordAuthenticationToken(
                     userDetails, null, userDetails.authorities
                 )

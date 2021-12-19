@@ -2,30 +2,29 @@ package at.wrk.tafel.admin.backend.security.components
 
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
-import io.jsonwebtoken.security.Keys
+import io.jsonwebtoken.SignatureAlgorithm
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.core.userdetails.UserDetails
-import org.springframework.stereotype.Component
+import org.springframework.stereotype.Service
 import java.util.*
 
-@Component
-class JwtTokenProcessor(
+@Service
+class JwtTokenService(
     @Value("\${jwt.secret}")
-    private val secret: String
+    private var secret: String
 ) {
-
     companion object {
         const val JWT_TOKEN_VALIDITY = (5 * 60 * 60).toLong()
     }
 
     //retrieve username from jwt token
     fun getUsernameFromToken(token: String): String {
-        return getClaimFromToken(token) { claims: Claims -> claims.subject }
+        return getClaimFromToken(token) { obj: Claims -> obj.subject }
     }
 
     //retrieve expiration date from jwt token
     fun getExpirationDateFromToken(token: String): Date {
-        return getClaimFromToken(token) { claims: Claims -> claims.expiration }
+        return getClaimFromToken(token) { obj: Claims -> obj.expiration }
     }
 
     fun <T> getClaimFromToken(token: String, claimsResolver: (claims: Claims) -> T): T {
@@ -33,13 +32,9 @@ class JwtTokenProcessor(
         return claimsResolver(claims)
     }
 
-    //for retrieving any information from token we will need the secret key
+    //for retrieveing any information from token we will need the secret key
     private fun getAllClaimsFromToken(token: String): Claims {
-        return Jwts.parserBuilder()
-            .setSigningKey(secret)
-            .build()
-            .parseClaimsJws(token)
-            .body
+        return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).body
     }
 
     //check if the token has expired
@@ -60,18 +55,13 @@ class JwtTokenProcessor(
     //3. According to JWS Compact Serialization(https://tools.ietf.org/html/draft-ietf-jose-json-web-signature-41#section-3.1)
     //   compaction of the JWT to a URL-safe string
     private fun doGenerateToken(claims: Map<String, Any>, subject: String): String {
-        return Jwts.builder()
-            .setClaims(claims)
-            .setSubject(subject)
-            .setIssuedAt(Date(System.currentTimeMillis()))
+        return Jwts.builder().setClaims(claims).setSubject(subject).setIssuedAt(Date(System.currentTimeMillis()))
             .setExpiration(Date(System.currentTimeMillis() + JWT_TOKEN_VALIDITY * 1000))
-            .signWith(Keys.hmacShaKeyFor(secret.encodeToByteArray()))
-            .compact()
+            .signWith(SignatureAlgorithm.HS512, secret).compact()
     }
 
-    //validate token
     fun validateToken(token: String, userDetails: UserDetails): Boolean {
-        val username = getUsernameFromToken(token)
+        val username = getUsernameFromToken(token!!)
         return username == userDetails.username && !isTokenExpired(token)
     }
 

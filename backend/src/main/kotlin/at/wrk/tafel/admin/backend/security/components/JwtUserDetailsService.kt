@@ -3,21 +3,25 @@ package at.wrk.tafel.admin.backend.security.components
 import org.springframework.security.core.userdetails.User
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UserDetailsService
-import org.springframework.security.core.userdetails.UsernameNotFoundException
-import org.springframework.stereotype.Service
+import org.springframework.security.provisioning.InMemoryUserDetailsManager
+import org.springframework.stereotype.Component
 
-@Service
+@Component
 class JwtUserDetailsService : UserDetailsService {
 
-    override fun loadUserByUsername(username: String): UserDetails {
-        return if ("javainuse" == username) {
+    private val inMemoryUserDetailsManager = InMemoryUserDetailsManager()
+
+    init {
+        inMemoryUserDetailsManager.createUser(
             User(
                 "javainuse", "$2a$10\$slYQmyNdGzTn7ZLBXBChFOC9f6kFjAqPhccnP6DxlWXx2lPk1C3G6",
-                ArrayList()
+                listOf()
             )
-        } else {
-            throw UsernameNotFoundException("User not found with username: $username")
-        }
+        )
+    }
+
+    override fun loadUserByUsername(username: String): UserDetails {
+        return inMemoryUserDetailsManager.loadUserByUsername(username)
     }
 
 }
