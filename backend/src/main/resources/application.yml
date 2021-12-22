@@ -3,3 +3,7 @@ spring:
     locations: classpath:/db-migration
     group: true
     ignoreMissingMigrations: true
+
+security:
+  jwtToken:
+    expirationTimeInSeconds: 3600 # 5 minutes
