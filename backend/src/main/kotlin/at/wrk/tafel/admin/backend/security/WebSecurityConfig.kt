@@ -1,6 +1,7 @@
 package at.wrk.tafel.admin.backend.security
 
-import at.wrk.tafel.admin.backend.security.components.JwtCheckTokenFilter
+import at.wrk.tafel.admin.backend.security.components.JwtAuthenticationFilter
+import at.wrk.tafel.admin.backend.security.components.JwtAuthenticationProvider
 import at.wrk.tafel.admin.backend.security.components.JwtUserDetailsService
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -21,24 +22,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 class WebSecurityConfig(
-    private val userDetailsService: JwtUserDetailsService,
-    private val jwtCheckTokenFilter: JwtCheckTokenFilter
+    private val jwtAuthenticationProvider: JwtAuthenticationProvider,
+    private val userDetailsService: JwtUserDetailsService
 ) : WebSecurityConfigurerAdapter() {
-
-    override fun configure(auth: AuthenticationManagerBuilder) {
-        auth.userDetailsService(userDetailsService)
-            .passwordEncoder(passwordEncoder())
-    }
-
-    @Bean
-    fun passwordEncoder(): PasswordEncoder {
-        return BCryptPasswordEncoder()
-    }
-
-    @Bean
-    override fun authenticationManagerBean(): AuthenticationManager {
-        return super.authenticationManagerBean()
-    }
 
     override fun configure(http: HttpSecurity) {
         http.csrf().disable() // csrf anyway not possible due to jwt usage
@@ -47,13 +33,34 @@ class WebSecurityConfig(
             .anyRequest() // all other requests need to be authenticated
             .authenticated()
             .and()
+            .authenticationProvider(jwtAuthenticationProvider)
             .exceptionHandling() // make sure we use stateless session; session won't be used to store user's state.
             .authenticationEntryPoint(HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
             .and().sessionManagement()
             .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
 
         // Add a filter to validate the tokens with every request
-        http.addFilterBefore(jwtCheckTokenFilter, UsernamePasswordAuthenticationFilter::class.java)
+        http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter::class.java)
+    }
+
+    override fun configure(auth: AuthenticationManagerBuilder) {
+        auth.userDetailsService(userDetailsService)
+            .passwordEncoder(passwordEncoder())
+    }
+
+    @Bean
+    fun passwordEncoder(): PasswordEncoder {
+        return BCryptPasswordEncoder() // TODO change to Argon2
+    }
+
+    @Bean
+    override fun authenticationManagerBean(): AuthenticationManager {
+        return super.authenticationManagerBean()
+    }
+
+    @Bean
+    fun jwtAuthenticationFilter(): JwtAuthenticationFilter {
+        return JwtAuthenticationFilter(authenticationManagerBean())
     }
 
 }
