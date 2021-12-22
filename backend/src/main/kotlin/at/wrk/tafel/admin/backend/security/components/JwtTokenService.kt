@@ -4,7 +4,6 @@ import at.wrk.tafel.admin.backend.config.ApplicationProperties
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
-import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.stereotype.Service
 import java.util.*
 
@@ -19,36 +18,22 @@ class JwtTokenService(
             .body
     }
 
-    private fun createJwtParser() = Jwts.parserBuilder()
-        .setSigningKey(applicationProperties.security.jwtToken.secret)
-        .build()
+    fun generateToken(username: String): String {
+        val expirationMillis = applicationProperties.security.jwtToken.expirationTimeInSeconds * 1000
+        val expirationDate = Date(System.currentTimeMillis() + expirationMillis)
 
-    /*** TODO REWORK BELOW TODO ***/
-    /*** TODO REWORK BELOW TODO ***/
-    /*** TODO REWORK BELOW TODO ***/
-    /*** TODO REWORK BELOW TODO ***/
-    /*** TODO REWORK BELOW TODO ***/
-
-    //generate token for user
-    fun generateToken(userDetails: UserDetails): String {
-        val claims: Map<String, Any> = HashMap()
-        return doGenerateToken(claims, userDetails.username)
-    }
-
-    //while creating the token -
-    //1. Define  claims of the token, like Issuer, Expiration, Subject, and the ID
-    //2. Sign the JWT using the HS512 algorithm and secret key.
-    //3. According to JWS Compact Serialization(https://tools.ietf.org/html/draft-ietf-jose-json-web-signature-41#section-3.1)
-    //   compaction of the JWT to a URL-safe string
-    private fun doGenerateToken(claims: Map<String, Any>, subject: String): String {
         return Jwts.builder()
-            .setClaims(claims)
-            .setSubject(subject)
+            .setClaims(emptyMap<String, Any>())
+            .setSubject(username)
             .setIssuedAt(Date(System.currentTimeMillis()))
-            .setExpiration(Date(System.currentTimeMillis() + (applicationProperties.security.jwtToken.expirationTimeInSeconds * 1000)))
+            .setExpiration(expirationDate)
             // TODO replace deprecated call
             .signWith(SignatureAlgorithm.HS512, applicationProperties.security.jwtToken.secret)
             .compact()
     }
+
+    private fun createJwtParser() = Jwts.parserBuilder()
+        .setSigningKey(applicationProperties.security.jwtToken.secret)
+        .build()
 
 }
