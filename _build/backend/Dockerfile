@@ -1,4 +1,4 @@
-FROM openjdk:17-slim-bullseye
+FROM openjdk:18-ea-6
 
 COPY backend/target/admin-backend.jar app.jar
 
