@@ -19,6 +19,7 @@
         <jackson.kotlin.module.version>2.13.0</jackson.kotlin.module.version>
         <flyway.version>8.0.3</flyway.version>
         <postgresql.driver.version>42.3.1</postgresql.driver.version>
+        <bouncycastle.version>1.70</bouncycastle.version>
 
         <!-- Maven plugin version -->
         <maven.surefire.plugin.version>2.22.2</maven.surefire.plugin.version>
@@ -108,6 +109,11 @@
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <version>${postgresql.driver.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk15on</artifactId>
+            <version>${bouncycastle.version}</version>
         </dependency>
 
         <!-- Dev and Test dependencies -->
