@@ -30,7 +30,7 @@ class JwtAuthenticationProvider(
      * As the token provides stateless authentication we could also save the query and use the informations from the token.
      * Still the database query is more realtime when deactivating users, etc...
      */
-    override fun retrieveUser(username: String, authentication: UsernamePasswordAuthenticationToken): UserDetails? {
+    override fun retrieveUser(username: String, authentication: UsernamePasswordAuthenticationToken): UserDetails {
         val jwtAuthenticationToken = authentication as JwtAuthenticationToken
 
         val claims = jwtTokenService.getClaimsFromToken(jwtAuthenticationToken.tokenValue)
