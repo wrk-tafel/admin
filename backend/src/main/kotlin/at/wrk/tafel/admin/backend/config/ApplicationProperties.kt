@@ -14,6 +14,11 @@ data class SecurityProperties(
 )
 
 data class SecurityJwtTokenProperties(
-    val secret: String,
+    val secret: SecurityJwtTokenSecretProperties,
     val expirationTimeInSeconds: Int
+)
+
+data class SecurityJwtTokenSecretProperties(
+    val value: String,
+    val algorithm: String
 )
