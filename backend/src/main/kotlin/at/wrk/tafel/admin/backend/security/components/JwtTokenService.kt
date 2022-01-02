@@ -20,9 +20,11 @@ class JwtTokenService(
     }
 
     fun generateToken(username: String, authorities: Collection<GrantedAuthority>): String {
-        val expirationMillis = applicationProperties.security.jwtToken.expirationTimeInSeconds * 1000
+        val tokenSettings = applicationProperties.security.jwtToken
+
+        val expirationMillis = tokenSettings.expirationTimeInSeconds * 1000
         val expirationDate = Date(System.currentTimeMillis() + expirationMillis)
-        val secretKeySpec = SecretKeySpec(applicationProperties.security.jwtToken.secret.toByteArray(), "HmacSHA512")
+        val secretKeySpec = createSecretKeySpec()
 
         return Jwts.builder()
             .setClaims(emptyMap<String, Any>())
@@ -35,7 +37,13 @@ class JwtTokenService(
     }
 
     private fun createJwtParser() = Jwts.parserBuilder()
-        .setSigningKey(applicationProperties.security.jwtToken.secret)
+        .setSigningKey(createSecretKeySpec())
         .build()
+
+    private fun createSecretKeySpec() =
+        SecretKeySpec(
+            applicationProperties.security.jwtToken.secret.value.toByteArray(),
+            applicationProperties.security.jwtToken.secret.algorithm
+        )
 
 }

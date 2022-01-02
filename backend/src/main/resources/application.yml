@@ -6,5 +6,7 @@ spring:
 
 security:
   jwtToken:
-    secret: dummy
+    secret:
+      value: dummy
+      algorithm: HmacSHA512
     expirationTimeInSeconds: 3600 # 5 minutes
