@@ -3,10 +3,10 @@ package at.wrk.tafel.admin.backend.security.components
 import at.wrk.tafel.admin.backend.config.ApplicationProperties
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
-import io.jsonwebtoken.SignatureAlgorithm
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.stereotype.Service
 import java.util.*
+import javax.crypto.spec.SecretKeySpec
 
 @Service
 class JwtTokenService(
@@ -22,6 +22,7 @@ class JwtTokenService(
     fun generateToken(username: String, authorities: Collection<GrantedAuthority>): String {
         val expirationMillis = applicationProperties.security.jwtToken.expirationTimeInSeconds * 1000
         val expirationDate = Date(System.currentTimeMillis() + expirationMillis)
+        val secretKeySpec = SecretKeySpec(applicationProperties.security.jwtToken.secret.toByteArray(), "HmacSHA512")
 
         return Jwts.builder()
             .setClaims(emptyMap<String, Any>())
@@ -29,8 +30,7 @@ class JwtTokenService(
             .setIssuedAt(Date(System.currentTimeMillis()))
             .setExpiration(expirationDate)
             .claim("roles", authorities.map { it.authority })
-            // TODO replace deprecated call
-            .signWith(SignatureAlgorithm.HS512, applicationProperties.security.jwtToken.secret)
+            .signWith(secretKeySpec)
             .compact()
     }
 
