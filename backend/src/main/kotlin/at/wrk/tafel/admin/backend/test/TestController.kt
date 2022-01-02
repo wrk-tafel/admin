@@ -9,6 +9,11 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/test")
 class TestController {
 
+    @GetMapping("/noPreAuth")
+    fun noPreAuth(): String {
+        return "noPreAuth response"
+    }
+
     @GetMapping("/authenticated")
     @PreAuthorize("isAuthenticated()")
     fun authenticated(): String {
