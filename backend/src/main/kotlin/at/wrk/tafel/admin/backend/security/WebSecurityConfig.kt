@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.security
 
 import at.wrk.tafel.admin.backend.security.components.JwtAuthenticationFilter
 import at.wrk.tafel.admin.backend.security.components.JwtAuthenticationProvider
+import at.wrk.tafel.admin.backend.security.components.JwtTokenService
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpStatus
@@ -24,8 +25,8 @@ import javax.sql.DataSource
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 class WebSecurityConfig(
-    private val jwtAuthenticationProvider: JwtAuthenticationProvider,
-    private val datasource: DataSource
+    private val datasource: DataSource,
+    private val jwtTokenService: JwtTokenService
 ) : WebSecurityConfigurerAdapter() {
 
     override fun configure(http: HttpSecurity) {
@@ -40,7 +41,7 @@ class WebSecurityConfig(
             .anyRequest() // all other requests need to be authenticated
             .authenticated()
             .and()
-            .authenticationProvider(jwtAuthenticationProvider)
+            .authenticationProvider(jwtAuthenticationProvider())
             .exceptionHandling() // make sure we use stateless session; session won't be used to store user's state.
             .authenticationEntryPoint(HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
             .and().sessionManagement()
@@ -50,9 +51,7 @@ class WebSecurityConfig(
     }
 
     override fun configure(auth: AuthenticationManagerBuilder) {
-        auth.jdbcAuthentication()
-            .dataSource(datasource)
-            .passwordEncoder(passwordEncoder())
+        auth.userDetailsService(userDetailsManager()).passwordEncoder(passwordEncoder())
     }
 
     @Bean
@@ -65,6 +64,11 @@ class WebSecurityConfig(
         val userDetailsManager = JdbcUserDetailsManager(datasource)
         userDetailsManager.setEnableGroups(true)
         return userDetailsManager
+    }
+
+    @Bean
+    fun jwtAuthenticationProvider(): JwtAuthenticationProvider {
+        return JwtAuthenticationProvider(jwtTokenService, userDetailsManager())
     }
 
     @Bean
