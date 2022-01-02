@@ -17,16 +17,13 @@ class JwtLoginController(
     @PostMapping("/token")
     fun generateToken(): ResponseEntity<JwtResponse> {
         val auth = SecurityContextHolder.getContext().authentication
-        if (auth != null) {
+        if (auth?.principal != null) {
 
             val user = auth.principal as User
-            if (user != null) {
-                val token: String? = user.username.let { jwtTokenService.generateToken(it) }
-                token.let { return ResponseEntity.ok(JwtResponse(token!!)) }
+            val token: String? = user.username.let { jwtTokenService.generateToken(it, user.authorities) }
+            token.let { return ResponseEntity.ok(JwtResponse(token!!)) }
 
-                return ResponseEntity.ok(JwtResponse(token!!))
-            }
-
+            return ResponseEntity.ok(JwtResponse(token!!))
         }
 
         return ResponseEntity.status(HttpStatus.FORBIDDEN.value()).build()
