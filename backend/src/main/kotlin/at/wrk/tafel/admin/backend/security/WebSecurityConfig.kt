@@ -30,7 +30,9 @@ class WebSecurityConfig(
         http.csrf().disable() // csrf anyway not possible due to jwt usage
             .formLogin()
             .successForwardUrl("/token")
-            .failureHandler { _, response, _ -> response.sendError(HttpStatus.FORBIDDEN.value()) } // TODO ends in 401 instead 403
+            .failureHandler { _, response, _ ->
+                response.status = HttpStatus.FORBIDDEN.value()
+            } // TODO ends in 401 instead 403
             .and()
             .authorizeRequests()
             .anyRequest() // all other requests need to be authenticated
