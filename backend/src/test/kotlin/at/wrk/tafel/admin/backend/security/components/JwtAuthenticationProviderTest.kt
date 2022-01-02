@@ -11,7 +11,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
-import org.springframework.security.authentication.CredentialsExpiredException
+import org.springframework.security.authentication.InsufficientAuthenticationException
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.userdetails.User
 import org.springframework.security.core.userdetails.UserDetailsService
@@ -74,7 +74,7 @@ class JwtAuthenticationProviderTest {
 
         val authentication = JwtAuthenticationToken("TOKEN")
 
-        assertThrows<CredentialsExpiredException> {
+        assertThrows<InsufficientAuthenticationException> {
             jwtAuthenticationProvider.authenticate(authentication)
         }
     }
