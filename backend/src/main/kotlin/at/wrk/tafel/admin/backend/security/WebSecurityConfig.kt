@@ -2,7 +2,6 @@ package at.wrk.tafel.admin.backend.security
 
 import at.wrk.tafel.admin.backend.security.components.JwtAuthenticationFilter
 import at.wrk.tafel.admin.backend.security.components.JwtAuthenticationProvider
-import at.wrk.tafel.admin.backend.security.components.UserDetailsService
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpStatus
@@ -13,17 +12,20 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
 import org.springframework.security.config.http.SessionCreationPolicy
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
+import org.springframework.security.crypto.argon2.Argon2PasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
+import org.springframework.security.provisioning.JdbcUserDetailsManager
+import org.springframework.security.provisioning.UserDetailsManager
 import org.springframework.security.web.authentication.HttpStatusEntryPoint
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
+import javax.sql.DataSource
 
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 class WebSecurityConfig(
     private val jwtAuthenticationProvider: JwtAuthenticationProvider,
-    private val userDetailsService: UserDetailsService
+    private val datasource: DataSource
 ) : WebSecurityConfigurerAdapter() {
 
     override fun configure(http: HttpSecurity) {
@@ -48,13 +50,19 @@ class WebSecurityConfig(
     }
 
     override fun configure(auth: AuthenticationManagerBuilder) {
-        auth.userDetailsService(userDetailsService)
+        auth.jdbcAuthentication()
+            .dataSource(datasource)
             .passwordEncoder(passwordEncoder())
     }
 
     @Bean
     fun passwordEncoder(): PasswordEncoder {
-        return BCryptPasswordEncoder() // TODO change to Argon2
+        return Argon2PasswordEncoder()
+    }
+
+    @Bean
+    fun userDetailsManager(): UserDetailsManager {
+        return JdbcUserDetailsManager(datasource)
     }
 
     @Bean
