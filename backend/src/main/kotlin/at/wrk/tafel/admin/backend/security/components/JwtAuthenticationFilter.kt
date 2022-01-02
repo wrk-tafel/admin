@@ -32,7 +32,7 @@ class JwtAuthenticationFilter(
 
         val jwtTokenString = header.substringAfter(AUTHORIZATION_PREFIX)
         val authRequest = JwtAuthenticationToken(
-            tokenString = jwtTokenString
+            tokenValue = jwtTokenString
         )
 
         return authenticationManager.authenticate(authRequest)

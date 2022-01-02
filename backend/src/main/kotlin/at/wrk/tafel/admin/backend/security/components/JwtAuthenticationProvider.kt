@@ -33,7 +33,7 @@ class JwtAuthenticationProvider(
     override fun retrieveUser(username: String, authentication: UsernamePasswordAuthenticationToken): UserDetails? {
         val jwtAuthenticationToken = authentication as JwtAuthenticationToken
 
-        val claims = jwtTokenService.getClaimsFromToken(jwtAuthenticationToken.tokenString)
+        val claims = jwtTokenService.getClaimsFromToken(jwtAuthenticationToken.tokenValue)
         val expired = claims.expiration.before(Date())
         if (expired) {
             throw CredentialsExpiredException("Token not valid")
