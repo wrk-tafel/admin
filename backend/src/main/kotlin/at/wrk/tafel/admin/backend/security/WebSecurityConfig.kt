@@ -62,7 +62,9 @@ class WebSecurityConfig(
 
     @Bean
     fun userDetailsManager(): UserDetailsManager {
-        return JdbcUserDetailsManager(datasource)
+        val userDetailsManager = JdbcUserDetailsManager(datasource)
+        userDetailsManager.setEnableGroups(true)
+        return userDetailsManager
     }
 
     @Bean
