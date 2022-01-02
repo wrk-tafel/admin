@@ -32,7 +32,7 @@ class WebSecurityConfig(
             .successForwardUrl("/token")
             .failureHandler { _, response, _ ->
                 response.status = HttpStatus.FORBIDDEN.value()
-            } // TODO ends in 401 instead 403
+            }
             .and()
             .authorizeRequests()
             .anyRequest() // all other requests need to be authenticated
