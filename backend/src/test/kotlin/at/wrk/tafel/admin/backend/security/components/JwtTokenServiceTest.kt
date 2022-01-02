@@ -6,7 +6,7 @@ import at.wrk.tafel.admin.backend.config.SecurityJwtTokenSecretProperties
 import at.wrk.tafel.admin.backend.config.SecurityProperties
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.SignatureException
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -47,7 +47,7 @@ class JwtTokenServiceTest {
 
         val claims = jwtTokenService.getClaimsFromToken(token)
 
-        Assertions.assertThat(claims["roles"] as List<String>).contains("dummy-role")
+        assertThat(claims["roles"] as List<*>).contains("dummy-role")
     }
 
     @Test
