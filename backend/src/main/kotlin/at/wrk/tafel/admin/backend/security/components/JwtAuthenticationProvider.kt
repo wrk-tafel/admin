@@ -6,7 +6,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UserDetailsService
-import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.stereotype.Component
 import java.util.*
 
@@ -35,18 +34,13 @@ class JwtAuthenticationProvider(
         val jwtAuthenticationToken = authentication as JwtAuthenticationToken
 
         val claims = jwtTokenService.getClaimsFromToken(jwtAuthenticationToken.tokenString)
-        val valid = claims.expiration.before(Date())
-        if (!valid) {
+        val expired = claims.expiration.before(Date())
+        if (expired) {
             throw CredentialsExpiredException("Token not valid")
         }
 
         val tokenUsername = claims.subject
-        val userDetails: UserDetails = userDetailsService.loadUserByUsername(tokenUsername)
-        if (tokenUsername != username) {
-            throw UsernameNotFoundException("Username doesn't match") // TODO necessary?
-        }
-
-        return userDetails
+        return userDetailsService.loadUserByUsername(tokenUsername)
     }
 
 }
