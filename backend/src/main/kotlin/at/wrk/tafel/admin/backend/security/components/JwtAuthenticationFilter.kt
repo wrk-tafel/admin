@@ -6,13 +6,22 @@ import org.springframework.http.HttpHeaders
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.core.Authentication
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter
+import org.springframework.security.web.util.matcher.AndRequestMatcher
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher
+import org.springframework.security.web.util.matcher.NegatedRequestMatcher
 import javax.servlet.FilterChain
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 class JwtAuthenticationFilter(
     configuredAuthenticationManager: AuthenticationManager
-) : AbstractAuthenticationProcessingFilter("/**") {
+) : AbstractAuthenticationProcessingFilter(
+    AndRequestMatcher(
+        AntPathRequestMatcher("/**"),
+        NegatedRequestMatcher(AntPathRequestMatcher("/token")),
+        NegatedRequestMatcher(AntPathRequestMatcher("/login"))
+    )
+) {
 
     init {
         authenticationManager = configuredAuthenticationManager
@@ -48,7 +57,8 @@ class JwtAuthenticationFilter(
 
         // As this authentication is in HTTP header, after success we need to continue the request normally
         // and return the response as if the resource was not secured at all
-        // chain.doFilter(request, response); // TODO check if really necessary
+
+        chain.doFilter(request, response); // TODO check if really necessary
     }
 
 }
