@@ -27,7 +27,6 @@ class JwtTokenService(
         val secretKeySpec = createSecretKeySpec()
 
         return Jwts.builder()
-            .setClaims(emptyMap<String, Any>())
             .setSubject(username)
             .setIssuedAt(Date(System.currentTimeMillis()))
             .setExpiration(expirationDate)
