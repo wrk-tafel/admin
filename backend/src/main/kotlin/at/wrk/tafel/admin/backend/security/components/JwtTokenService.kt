@@ -4,6 +4,7 @@ import at.wrk.tafel.admin.backend.config.ApplicationProperties
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
+import org.springframework.security.core.GrantedAuthority
 import org.springframework.stereotype.Service
 import java.util.*
 
@@ -18,7 +19,7 @@ class JwtTokenService(
             .body
     }
 
-    fun generateToken(username: String): String {
+    fun generateToken(username: String, authorities: Collection<GrantedAuthority>): String {
         val expirationMillis = applicationProperties.security.jwtToken.expirationTimeInSeconds * 1000
         val expirationDate = Date(System.currentTimeMillis() + expirationMillis)
 
@@ -27,6 +28,7 @@ class JwtTokenService(
             .setSubject(username)
             .setIssuedAt(Date(System.currentTimeMillis()))
             .setExpiration(expirationDate)
+            .claim("roles", authorities.map { it.authority })
             // TODO replace deprecated call
             .signWith(SignatureAlgorithm.HS512, applicationProperties.security.jwtToken.secret)
             .compact()
