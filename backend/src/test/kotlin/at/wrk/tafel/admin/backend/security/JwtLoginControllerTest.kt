@@ -5,6 +5,7 @@ import at.wrk.tafel.admin.backend.security.model.JwtResponse
 import io.mockk.every
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
+import org.apache.catalina.realm.GenericPrincipal
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -66,6 +67,23 @@ class JwtLoginControllerTest {
 
         assertThat(responseEntity.statusCodeValue).isEqualTo(HttpStatus.OK.value())
         assertThat(responseEntity.body).isEqualTo(JwtResponse("TOKEN"))
+    }
+
+    @Test
+    fun `generateToken - securityContext given wrong principal`() {
+        every { jwtTokenService.generateToken(any(), any()) } returns "TOKEN"
+
+        SecurityContextHolder.setContext(
+            SecurityContextImpl(
+                UsernamePasswordAuthenticationToken(
+                    GenericPrincipal("username", "pwd", emptyList()), null
+                )
+            )
+        )
+
+        val responseEntity = jwtLoginController.generateToken()
+
+        assertThat(responseEntity.statusCodeValue).isEqualTo(HttpStatus.FORBIDDEN.value())
     }
 
 }

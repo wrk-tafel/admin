@@ -17,7 +17,7 @@ class JwtLoginController(
     @PostMapping("/token")
     fun generateToken(): ResponseEntity<JwtResponse> {
         val auth = SecurityContextHolder.getContext().authentication
-        if (auth?.principal != null) {
+        if (auth?.principal != null && auth?.principal is User) {
 
             val user = auth.principal as User
             val token: String? = user.username.let { jwtTokenService.generateToken(it, user.authorities) }
