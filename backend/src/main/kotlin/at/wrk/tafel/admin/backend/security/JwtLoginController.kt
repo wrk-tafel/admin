@@ -21,9 +21,8 @@ class JwtLoginController(
 
             val user = auth.principal as User
             val token: String? = user.username.let { jwtTokenService.generateToken(it, user.authorities) }
-            token.let { return ResponseEntity.ok(JwtResponse(token!!)) }
 
-            return ResponseEntity.ok(JwtResponse(token!!))
+            token.let { return ResponseEntity.ok(JwtResponse(token!!)) }
         }
 
         return ResponseEntity.status(HttpStatus.FORBIDDEN.value()).build()
