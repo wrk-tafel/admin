@@ -2,14 +2,13 @@ package at.wrk.tafel.admin.backend.security.components
 
 import at.wrk.tafel.admin.backend.security.model.JwtAuthenticationToken
 import org.springframework.security.authentication.CredentialsExpiredException
+import org.springframework.security.authentication.InsufficientAuthenticationException
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UserDetailsService
-import org.springframework.stereotype.Component
 import java.util.*
 
-@Component
 class JwtAuthenticationProvider(
     private val jwtTokenService: JwtTokenService,
     private val userDetailsService: UserDetailsService
@@ -31,16 +30,20 @@ class JwtAuthenticationProvider(
      * Still the database query is more realtime when deactivating users, etc...
      */
     override fun retrieveUser(username: String, authentication: UsernamePasswordAuthenticationToken): UserDetails {
-        val jwtAuthenticationToken = authentication as JwtAuthenticationToken
+        try {
+            val jwtAuthenticationToken = authentication as JwtAuthenticationToken
 
-        val claims = jwtTokenService.getClaimsFromToken(jwtAuthenticationToken.tokenValue)
-        val expired = claims.expiration.before(Date())
-        if (expired) {
-            throw CredentialsExpiredException("Token not valid")
+            val claims = jwtTokenService.getClaimsFromToken(jwtAuthenticationToken.tokenValue)
+            val expired = claims.expiration.before(Date())
+            if (expired) {
+                throw CredentialsExpiredException("Token not valid")
+            }
+
+            val tokenUsername = claims.subject
+            return userDetailsService.loadUserByUsername(tokenUsername)
+        } catch (e: Exception) {
+            throw InsufficientAuthenticationException(e.message, e)
         }
-
-        val tokenUsername = claims.subject
-        return userDetailsService.loadUserByUsername(tokenUsername)
     }
 
 }
