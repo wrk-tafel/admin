@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.security
 
+import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.security.components.JwtAuthenticationFilter
 import at.wrk.tafel.admin.backend.security.components.JwtAuthenticationProvider
 import at.wrk.tafel.admin.backend.security.components.JwtTokenService
@@ -24,6 +25,7 @@ import javax.sql.DataSource
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
+@ExcludeFromTestCoverage
 class WebSecurityConfig(
     private val datasource: DataSource,
     private val jwtTokenService: JwtTokenService

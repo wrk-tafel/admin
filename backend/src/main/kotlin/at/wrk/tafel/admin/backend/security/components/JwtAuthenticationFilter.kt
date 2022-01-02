@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.security.components
 
+import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.security.model.JwtAuthenticationToken
 import org.springframework.http.HttpHeaders
 import org.springframework.security.authentication.AuthenticationManager
@@ -38,6 +39,7 @@ class JwtAuthenticationFilter(
         return authenticationManager.authenticate(authRequest)
     }
 
+    @ExcludeFromTestCoverage
     override fun successfulAuthentication(
         request: HttpServletRequest,
         response: HttpServletResponse,
