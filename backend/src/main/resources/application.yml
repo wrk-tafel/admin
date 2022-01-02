@@ -6,4 +6,5 @@ spring:
 
 security:
   jwtToken:
+    secret: dummy
     expirationTimeInSeconds: 3600 # 5 minutes
