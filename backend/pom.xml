@@ -26,6 +26,7 @@
         <!-- Test dependency versions -->
         <h2.database.version>1.4.200</h2.database.version>
         <archunit.version>0.22.0</archunit.version>
+        <mockk.version>1.12.2</mockk.version>
     </properties>
 
     <dependencyManagement>
@@ -119,6 +120,12 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-configuration-processor</artifactId>
             <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>io.mockk</groupId>
+            <artifactId>mockk</artifactId>
+            <version>${mockk.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
