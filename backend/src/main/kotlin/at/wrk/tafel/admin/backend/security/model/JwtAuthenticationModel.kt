@@ -6,11 +6,6 @@ data class JwtAuthenticationToken(
     val tokenString: String
 ) : UsernamePasswordAuthenticationToken(null, null)
 
-data class JwtAuthenticationRequest(
-    val username: String,
-    val password: String
-)
-
 data class JwtResponse(
     val token: String
 )

@@ -8,7 +8,7 @@ import org.springframework.security.provisioning.InMemoryUserDetailsManager
 import org.springframework.stereotype.Component
 
 @Component
-class JwtUserDetailsService : UserDetailsService {
+class UserDetailsService : UserDetailsService {
 
     private val inMemoryUserDetailsManager = InMemoryUserDetailsManager()
 

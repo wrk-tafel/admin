@@ -17,7 +17,7 @@ class JwtAuthenticationProvider(
 ) : AbstractUserDetailsAuthenticationProvider() {
 
     override fun supports(authenticationClass: Class<*>): Boolean {
-        return authenticationClass.isAssignableFrom(JwtAuthenticationToken::class.java)
+        return authenticationClass == JwtAuthenticationToken::class.java
     }
 
     override fun additionalAuthenticationChecks(

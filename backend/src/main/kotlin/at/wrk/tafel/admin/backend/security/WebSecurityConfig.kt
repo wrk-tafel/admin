@@ -2,7 +2,7 @@ package at.wrk.tafel.admin.backend.security
 
 import at.wrk.tafel.admin.backend.security.components.JwtAuthenticationFilter
 import at.wrk.tafel.admin.backend.security.components.JwtAuthenticationProvider
-import at.wrk.tafel.admin.backend.security.components.JwtUserDetailsService
+import at.wrk.tafel.admin.backend.security.components.UserDetailsService
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpStatus
@@ -16,20 +16,22 @@ import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.authentication.HttpStatusEntryPoint
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 class WebSecurityConfig(
     private val jwtAuthenticationProvider: JwtAuthenticationProvider,
-    private val userDetailsService: JwtUserDetailsService
+    private val userDetailsService: UserDetailsService
 ) : WebSecurityConfigurerAdapter() {
 
     override fun configure(http: HttpSecurity) {
         http.csrf().disable() // csrf anyway not possible due to jwt usage
-            .authorizeRequests().antMatchers("/authenticate")
-            .permitAll()
+            .formLogin()
+            .successForwardUrl("/token")
+            .failureHandler { _, response, _ -> response.sendError(HttpStatus.FORBIDDEN.value()) } // TODO ends in 401 instead 403
+            .and()
+            .authorizeRequests()
             .anyRequest() // all other requests need to be authenticated
             .authenticated()
             .and()
@@ -39,8 +41,7 @@ class WebSecurityConfig(
             .and().sessionManagement()
             .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
 
-        // Add a filter to validate the tokens with every request
-        http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter::class.java)
+        //http.addFilterAfter(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter::class.java)
     }
 
     override fun configure(auth: AuthenticationManagerBuilder) {
