@@ -20,6 +20,7 @@ import org.springframework.security.provisioning.JdbcUserDetailsManager
 import org.springframework.security.provisioning.UserDetailsManager
 import org.springframework.security.web.authentication.HttpStatusEntryPoint
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository
 import javax.sql.DataSource
 
 @Configuration
@@ -33,11 +34,10 @@ class WebSecurityConfig(
 
     override fun configure(http: HttpSecurity) {
         http
-            .csrf().disable()
-            // TODO enable CSRF
-            //.csrf()
-            //.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-            // .and()
+            .csrf()
+            .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+            .ignoringAntMatchers("/login")
+            .and()
             .formLogin()
             .successForwardUrl("/token")
             .failureHandler { _, response, _ ->
