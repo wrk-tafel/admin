@@ -1,13 +1,10 @@
 {
-  "name": "@wrk-tafel/admin",
+  "name": "@tafel/admin",
   "version": "0.0.1",
-  "description": "WRK Tafel Admin",
+  "description": "Tafel Admin",
   "contributors": [
     {
       "name": "Stephan Prantl"
-    },
-    {
-      "name": "Stefan Kladler"
     }
   ],
   "license": "MIT",
