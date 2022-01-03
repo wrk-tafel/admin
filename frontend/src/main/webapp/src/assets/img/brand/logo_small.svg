@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg viewBox="686.632 9.792 247.625 247.633" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <clipPath id="clipPath2724">
+      <path d="M 8.505,850.392 L 8.505,698.319 L 603.783,698.319 L 603.783,850.392 L 8.505,850.392" id="path2726"/>
+    </clipPath>
+    <clipPath id="clipPath2732">
+      <path d="M 162.565,826.843 L 447.515,826.843 L 447.515,746.223 L 162.565,746.223 L 162.565,826.843" id="path2734"/>
+    </clipPath>
+    <clipPath id="clipPath2740">
+      <path d="M 162.565,746.223 L 447.515,746.223 L 447.515,826.843 L 162.565,826.843 L 162.565,746.223 z" id="path2742"/>
+    </clipPath>
+  </defs>
+  <g transform="matrix(1, 0, 0, 1, -13.254889, -18.614225)" id="layer1">
+    <g transform="matrix(5.8162922,0,0,-5.8162922,-949.42493,4810.2952)" clip-path="url(#clipPath2724)" id="g2722">
+      <g id="g2728">
+        <g clip-path="url(#clipPath2732)" id="g2730">
+          <g id="g2736">
+            <g clip-path="url(#clipPath2740)" id="g2738">
+              <g transform="matrix(1.3899994,0,0,1.3899994,-107.09485,185.64844)" id="g2744">
+                <g transform="translate(291.2637,457.918)" id="g2746">
+                  <path d="M 0,0 L 10.207,0 L 10.207,-30.63 L 0,-30.63 L 0,0 z" id="path2748" style="fill:#ed1c24;fill-opacity:1;fill-rule:nonzero;stroke:none"/>
+                </g>
+                <g transform="translate(281.0522,447.7065)" id="g2750">
+                  <path d="M 0,0 L 0,-10.207 L 30.629,-10.207 L 30.629,0 L 0,0 z" id="path2752" style="fill:#ed1c24;fill-opacity:1;fill-rule:nonzero;stroke:none"/>
+                </g>
+                <g transform="translate(198.1919,417.0342)" id="g2754"/>
+                <g transform="translate(210.1094,406.7021)" id="g2758"/>
+                <g transform="translate(218.0684,414.2607)" id="g2762"/>
+                <g transform="translate(222.9297,414.249)" id="g2766"/>
+                <g transform="translate(232.0488,406.9092)" id="g2770"/>
+                <g transform="translate(239.8271,406.9092)" id="g2774"/>
+                <g transform="translate(245.2441,414.249)" id="g2778"/>
+                <g transform="translate(251.0224,406.9092)" id="g2782"/>
+                <g transform="translate(259.4961,406.999)" id="g2786"/>
+                <g transform="translate(267.0684,406.9092)" id="g2790"/>
+                <g transform="translate(271.6338,406.9092)" id="g2794"/>
+                <g transform="translate(276.5088,406.7021)" id="g2798"/>
+                <g transform="translate(287.0859,406.999)" id="g2802"/>
+                <g transform="translate(294.6572,406.9092)" id="g2806"/>
+                <g transform="translate(300.2041,414.249)" id="g2810"/>
+                <g transform="translate(307.2832,406.7021)" id="g2814"/>
+                <g transform="translate(320.3379,406.9092)" id="g2818"/>
+                <g transform="translate(328.1025,406.7549)" id="g2822"/>
+                <g transform="translate(337.3114,414.2607)" id="g2826"/>
+                <g transform="translate(342.1738,414.249)" id="g2830"/>
+                <g transform="translate(349.2539,406.7021)" id="g2834"/>
+                <g transform="translate(362.8096,406.9092)" id="g2838"/>
+                <g transform="translate(370.4834,406.9092)" id="g2842"/>
+                <g transform="translate(375.9023,414.249)" id="g2846"/>
+                <g transform="translate(386.9932,408.0693)" id="g2850"/>
+                <g transform="translate(395.8164,414.2744)" id="g2854"/>
+              </g>
+            </g>
+          </g>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>
