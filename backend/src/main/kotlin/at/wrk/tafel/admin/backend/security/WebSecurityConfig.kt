@@ -32,7 +32,12 @@ class WebSecurityConfig(
 ) : WebSecurityConfigurerAdapter() {
 
     override fun configure(http: HttpSecurity) {
-        http.csrf().disable() // csrf anyway not possible due to jwt usage
+        http
+            .csrf().disable()
+            // TODO enable CSRF
+            //.csrf()
+            //.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+            // .and()
             .formLogin()
             .successForwardUrl("/token")
             .failureHandler { _, response, _ ->
