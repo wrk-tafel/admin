@@ -44,9 +44,6 @@ class WebSecurityConfig(
                 response.status = HttpStatus.FORBIDDEN.value()
             }
             .and()
-            .authorizeRequests()
-            .anyRequest().authenticated()
-            .and()
             .authenticationProvider(jwtAuthenticationProvider())
             .exceptionHandling() // make sure we use stateless session; session won't be used to store user's state.
             .authenticationEntryPoint(HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
