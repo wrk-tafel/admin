@@ -14,11 +14,10 @@ import javax.servlet.http.HttpServletResponse
 
 class JwtAuthenticationFilter(
     configuredAuthenticationManager: AuthenticationManager
-) : AbstractAuthenticationProcessingFilter(AntPathRequestMatcher("/**")) {
-
-    init {
-        authenticationManager = configuredAuthenticationManager
-    }
+) : AbstractAuthenticationProcessingFilter(
+    AntPathRequestMatcher("/**"),
+    configuredAuthenticationManager
+) {
 
     companion object {
         private const val AUTHORIZATION_PREFIX = "Bearer "
