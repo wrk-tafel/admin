@@ -19,8 +19,8 @@ describe('CoreUI template', () => {
     expect(await page.getParagraphText()).toEqual('Traffic');
   });
 
-  it('should display footer containing WRK Tafel Admin', async () => {
-    expect(await page.getFooterText()).toContain('WRK Tafel Admin');
+  it('should display footer containing Tafel Admin', async () => {
+    expect(await page.getFooterText()).toContain('Tafel Admin');
   });
 
   it('should toggle `sidebar-minimized` body.class on `sidebar-minimizer` click', () => {
