@@ -51,7 +51,7 @@ class JwtAuthenticationProvider(
         authentication: UsernamePasswordAuthenticationToken
     ) {
         if (!userDetails.isEnabled) {
-            throw DisabledException("user is disabled")
+            throw DisabledException("User is disabled")
         }
     }
 
