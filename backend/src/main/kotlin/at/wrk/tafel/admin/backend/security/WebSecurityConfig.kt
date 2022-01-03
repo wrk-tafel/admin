@@ -45,8 +45,7 @@ class WebSecurityConfig(
             }
             .and()
             .authorizeRequests()
-            .anyRequest() // all other requests need to be authenticated
-            .authenticated()
+            .anyRequest().authenticated()
             .and()
             .authenticationProvider(jwtAuthenticationProvider())
             .exceptionHandling() // make sure we use stateless session; session won't be used to store user's state.
