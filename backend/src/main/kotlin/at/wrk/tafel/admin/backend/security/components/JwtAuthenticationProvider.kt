@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.security.components
 
 import at.wrk.tafel.admin.backend.security.model.JwtAuthenticationToken
 import org.springframework.security.authentication.CredentialsExpiredException
+import org.springframework.security.authentication.DisabledException
 import org.springframework.security.authentication.InsufficientAuthenticationException
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider
@@ -16,12 +17,6 @@ class JwtAuthenticationProvider(
 
     override fun supports(authenticationClass: Class<*>): Boolean {
         return authenticationClass == JwtAuthenticationToken::class.java
-    }
-
-    override fun additionalAuthenticationChecks(
-        userDetails: UserDetails,
-        authentication: UsernamePasswordAuthenticationToken
-    ) {
     }
 
     /**
@@ -40,10 +35,23 @@ class JwtAuthenticationProvider(
             }
 
             val tokenUsername = claims.subject
+
+            // TODO open decision:
+            // * query the database and therefore have advanced things (like live-logout when user gets disabled)
+            // * no database access and fully use of stateless token
             return userDetailsService.loadUserByUsername(tokenUsername)
         } catch (e: Exception) {
             logger.error(e.message, e)
             throw InsufficientAuthenticationException(e.message, e)
+        }
+    }
+
+    override fun additionalAuthenticationChecks(
+        userDetails: UserDetails,
+        authentication: UsernamePasswordAuthenticationToken
+    ) {
+        if (!userDetails.isEnabled) {
+            throw DisabledException("user is disabled")
         }
     }
 
