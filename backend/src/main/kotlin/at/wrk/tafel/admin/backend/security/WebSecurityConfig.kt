@@ -70,6 +70,14 @@ class WebSecurityConfig(
     }
 
     @Bean
+    fun jwtAuthenticationFilter(): JwtAuthenticationFilter {
+        val filter = JwtAuthenticationFilter(authenticationManagerBean())
+        // We do not need to do anything extra on REST authentication success, because there is no page to redirect to
+        filter.setAuthenticationSuccessHandler { _, _, _ -> }
+        return filter
+    }
+
+    @Bean
     fun jwtAuthenticationProvider(): JwtAuthenticationProvider {
         return JwtAuthenticationProvider(jwtTokenService, userDetailsManager())
     }
@@ -77,14 +85,6 @@ class WebSecurityConfig(
     @Bean
     override fun authenticationManagerBean(): AuthenticationManager {
         return super.authenticationManagerBean()
-    }
-
-    @Bean
-    fun jwtAuthenticationFilter(): JwtAuthenticationFilter {
-        val filter = JwtAuthenticationFilter(authenticationManagerBean())
-        // We do not need to do anything extra on REST authentication success, because there is no page to redirect to
-        filter.setAuthenticationSuccessHandler { _, _, _ -> }
-        return filter
     }
 
 }
