@@ -21,6 +21,9 @@ import org.springframework.security.provisioning.UserDetailsManager
 import org.springframework.security.web.authentication.HttpStatusEntryPoint
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository
+import org.springframework.security.web.util.matcher.AndRequestMatcher
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher
+import org.springframework.security.web.util.matcher.NegatedRequestMatcher
 import javax.sql.DataSource
 
 @Configuration
@@ -71,7 +74,12 @@ class WebSecurityConfig(
 
     @Bean
     fun jwtAuthenticationFilter(): JwtAuthenticationFilter {
-        val filter = JwtAuthenticationFilter(authenticationManagerBean())
+        val requestMatcher = AndRequestMatcher(
+            AntPathRequestMatcher("/**"),
+            NegatedRequestMatcher(AntPathRequestMatcher("/static"))
+        )
+
+        val filter = JwtAuthenticationFilter(requestMatcher, authenticationManagerBean())
         // We do not need to do anything extra on REST authentication success, because there is no page to redirect to
         filter.setAuthenticationSuccessHandler { _, _, _ -> }
         return filter

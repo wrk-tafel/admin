@@ -7,15 +7,16 @@ import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.InsufficientAuthenticationException
 import org.springframework.security.core.Authentication
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher
+import org.springframework.security.web.util.matcher.RequestMatcher
 import javax.servlet.FilterChain
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 class JwtAuthenticationFilter(
+    requestMatcher: RequestMatcher,
     configuredAuthenticationManager: AuthenticationManager
 ) : AbstractAuthenticationProcessingFilter(
-    AntPathRequestMatcher("/**"),
+    requestMatcher,
     configuredAuthenticationManager
 ) {
 
