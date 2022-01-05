@@ -21,9 +21,7 @@ import org.springframework.security.provisioning.UserDetailsManager
 import org.springframework.security.web.authentication.HttpStatusEntryPoint
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository
-import org.springframework.security.web.util.matcher.AndRequestMatcher
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher
-import org.springframework.security.web.util.matcher.NegatedRequestMatcher
 import javax.sql.DataSource
 
 @Configuration
@@ -39,10 +37,11 @@ class WebSecurityConfig(
         http
             .csrf()
             .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-            .ignoringAntMatchers("/login")
+            .ignoringAntMatchers("/api/login")
             .and()
             .formLogin()
-            .successForwardUrl("/token")
+            .loginPage("/api/login")
+            .successForwardUrl("/api/token")
             .failureHandler { _, response, _ ->
                 response.status = HttpStatus.FORBIDDEN.value()
             }
@@ -74,10 +73,7 @@ class WebSecurityConfig(
 
     @Bean
     fun jwtAuthenticationFilter(): JwtAuthenticationFilter {
-        val requestMatcher = AndRequestMatcher(
-            AntPathRequestMatcher("/**"),
-            NegatedRequestMatcher(AntPathRequestMatcher("/static"))
-        )
+        val requestMatcher = AntPathRequestMatcher("/api/**")
 
         val filter = JwtAuthenticationFilter(requestMatcher, authenticationManagerBean())
         // We do not need to do anything extra on REST authentication success, because there is no page to redirect to
