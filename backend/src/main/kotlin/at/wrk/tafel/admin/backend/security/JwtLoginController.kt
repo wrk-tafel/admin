@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.security
 
+import at.wrk.tafel.admin.backend.common.rest.TafelRestController
 import at.wrk.tafel.admin.backend.security.components.JwtTokenService
 import at.wrk.tafel.admin.backend.security.model.JwtResponse
 import org.springframework.http.HttpStatus
@@ -7,9 +8,8 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.User
 import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RestController
 
-@RestController
+@TafelRestController
 class JwtLoginController(
     private val jwtTokenService: JwtTokenService
 ) {
