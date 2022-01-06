@@ -290,6 +290,7 @@
                             </resources>
                         </configuration>
                     </execution>
+                    <!-- TODO exclude application-*.yml files from packaging -->
                 </executions>
             </plugin>
         </plugins>
