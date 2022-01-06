@@ -37,7 +37,7 @@ class JwtAuthenticationProvider(
             val tokenUsername = claims.subject
 
             // TODO open decision:
-            // * query the database and therefore have advanced things (like live-logout when user gets disabled)
+            // * query the database and therefore have advanced things (like "live-logout" when user gets disabled)
             // * no database access and fully use of stateless token
             return userDetailsService.loadUserByUsername(tokenUsername)
         } catch (e: Exception) {

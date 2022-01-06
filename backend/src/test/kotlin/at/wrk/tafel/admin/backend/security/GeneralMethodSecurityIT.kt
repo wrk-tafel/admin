@@ -1,6 +1,7 @@
 package at.wrk.tafel.admin.backend.security
 
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
@@ -20,6 +21,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
  */
 @ExtendWith(SpringExtension::class)
 @SpringBootTest
+@Disabled
 class GeneralMethodSecurityIT {
 
     @Autowired
