@@ -13,12 +13,15 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.http.HttpHeaders
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.InsufficientAuthenticationException
-import javax.servlet.FilterChain
+import org.springframework.security.web.util.matcher.RequestMatcher
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 @ExtendWith(MockKExtension::class)
 class JwtAuthenticationFilterTest {
+
+    @RelaxedMockK
+    private lateinit var requestMatcher: RequestMatcher
 
     @RelaxedMockK
     private lateinit var authenticationManager: AuthenticationManager
@@ -28,9 +31,6 @@ class JwtAuthenticationFilterTest {
 
     @RelaxedMockK
     private lateinit var response: HttpServletResponse
-
-    @RelaxedMockK
-    private lateinit var filterChain: FilterChain
 
     @InjectMockKs
     private lateinit var jwtAuthenticationFilter: JwtAuthenticationFilter
