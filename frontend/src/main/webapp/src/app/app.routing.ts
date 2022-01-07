@@ -8,25 +8,29 @@ import { P404Component } from './views/error/404.component';
 import { P500Component } from './views/error/500.component';
 import { LoginComponent } from './views/login/login.component';
 
+import { AuthGuardService as AuthGuard } from './common/authguard.service';
+
 export const routes: Routes = [
   {
     path: '',
     redirectTo: 'dashboard',
-    pathMatch: 'full',
+    pathMatch: 'full'
   },
   {
     path: '404',
     component: P404Component,
     data: {
       title: 'Page 404'
-    }
+    },
+    canActivate: [AuthGuard]
   },
   {
     path: '500',
     component: P500Component,
     data: {
       title: 'Page 500'
-    }
+    },
+    canActivate: [AuthGuard]
   },
   {
     path: 'login',
@@ -41,6 +45,7 @@ export const routes: Routes = [
     data: {
       title: 'Home'
     },
+    canActivate: [AuthGuard],
     children: [
       {
         path: 'base',
@@ -76,11 +81,15 @@ export const routes: Routes = [
       }
     ]
   },
-  { path: '**', component: P404Component }
+  {
+    path: '**',
+    component: P404Component,
+    canActivate: [AuthGuard]
+  }
 ];
 
 @NgModule({
-  imports: [ RouterModule.forRoot(routes, { relativeLinkResolution: 'legacy' }) ],
-  exports: [ RouterModule ]
+  imports: [RouterModule.forRoot(routes, { relativeLinkResolution: 'legacy' })],
+  exports: [RouterModule]
 })
-export class AppRoutingModule {}
+export class AppRoutingModule { }
