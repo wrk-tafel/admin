@@ -9,6 +9,7 @@ import { P500Component } from './views/error/500.component';
 import { LoginComponent } from './views/login/login.component';
 
 import { AuthGuardService as AuthGuard } from './common/authguard.service';
+import { PermissionGuardService as PermissionGuard } from './common/permissionguard.service';
 
 export const routes: Routes = [
   {
@@ -21,16 +22,14 @@ export const routes: Routes = [
     component: P404Component,
     data: {
       title: 'Page 404'
-    },
-    canActivate: [AuthGuard]
+    }
   },
   {
     path: '500',
     component: P500Component,
     data: {
       title: 'Page 500'
-    },
-    canActivate: [AuthGuard]
+    }
   },
   {
     path: 'login',
@@ -53,7 +52,11 @@ export const routes: Routes = [
       },
       {
         path: 'buttons',
-        loadChildren: () => import('./views/buttons/buttons.module').then(m => m.ButtonsModule)
+        loadChildren: () => import('./views/buttons/buttons.module').then(m => m.ButtonsModule),
+        canActivateChild: [PermissionGuard],
+        data: {
+          expectedPermission: 'BUTTONS' // TODO remove
+        }
       },
       {
         path: 'charts',
@@ -83,8 +86,7 @@ export const routes: Routes = [
   },
   {
     path: '**',
-    component: P404Component,
-    canActivate: [AuthGuard]
+    component: P404Component
   }
 ];
 

@@ -20,8 +20,17 @@ export class AuthenticationService {
   }
 
   public isAuthenticated(): boolean {
+    // TODO impl
+    /*
     let token = localStorage.getItem(this.LOCAL_STORAGE_TOKEN_KEY)
     return token !== null && !this.jwtHelper.isTokenExpired(token)
+    */
+    return true
+  }
+
+  public hasRole(role: string): boolean {
+    // TODO impl
+    return true
   }
 
 }
