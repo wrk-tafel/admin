@@ -19,7 +19,7 @@ export class AuthenticationService {
   public login(username: string, password: string) {
     this.executeLoginRequest(username, password)
       .subscribe(response => {
-        localStorage.setItem(this.LOCAL_STORAGE_TOKEN_KEY, response.token)
+        this.storeToken(response)
         this.router.navigate(['dashboard'])
       })
 
@@ -27,14 +27,19 @@ export class AuthenticationService {
   }
 
   public isAuthenticated(): boolean {
-    // TODO check signature?
-    let token = localStorage.getItem(this.LOCAL_STORAGE_TOKEN_KEY)
+    // TODO check signature ?
+    let token = this.readToken()
     return token !== null && !this.jwtHelper.isTokenExpired(token)
   }
 
   public hasRole(role: string): boolean {
+    let token = this.jwtHelper.decodeToken(this.readToken())
     // TODO impl
     return true
+  }
+
+  public getToken(): string {
+    return this.readToken()
   }
 
   private executeLoginRequest(username: string, password: string) {
@@ -42,12 +47,16 @@ export class AuthenticationService {
     body.set("username", username);
     body.set("password", password);
 
-    return this.http.post<LoginResponse>(
-      "/login",
-      body.toString(),
-      {
-        headers: new HttpHeaders().set("Content-Type", "application/x-www-form-urlencoded")
-      });
+    let options = { headers: new HttpHeaders().set("Content-Type", "application/x-www-form-urlencoded") }
+    return this.http.post<LoginResponse>("/login", body.toString(), options);
+  }
+
+  private storeToken(response: LoginResponse) {
+    localStorage.setItem(this.LOCAL_STORAGE_TOKEN_KEY, response.token)
+  }
+
+  private readToken(): string {
+    return localStorage.getItem(this.LOCAL_STORAGE_TOKEN_KEY)
   }
 
 }
