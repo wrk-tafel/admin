@@ -33,9 +33,13 @@ export class AuthenticationService {
   }
 
   public hasRole(role: string): boolean {
-    let token = this.jwtHelper.decodeToken(this.readToken())
-    // TODO impl
-    return true
+    let token = this.jwtHelper.decodeToken<JwtToken>(this.readToken())
+
+    let index = token.roles.findIndex(element => {
+      return element.toLowerCase() === role.toLowerCase();
+    });
+
+    return index !== -1
   }
 
   public getToken(): string {
@@ -63,4 +67,8 @@ export class AuthenticationService {
 
 type LoginResponse = {
   token: string
+}
+
+type JwtToken = {
+  roles: string[]
 }
