@@ -15,10 +15,10 @@ export class JwtTokenInterceptor implements HttpInterceptor {
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     let token = this.auth.getToken()
     if (token !== null) {
-      let request = req.clone({
+      let modRequest = req.clone({
         headers: req.headers.set("Authorization", token)
       });
-      return next.handle(request);
+      return next.handle(modRequest);
     }
     else {
       return next.handle(req);
