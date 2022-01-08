@@ -10,8 +10,8 @@ export class ApiPathInterceptor implements HttpInterceptor {
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     // TODO works for now but with a proxy in front and different configurations this maybe doesn't work
     const apiUrl = window.location.origin + "/api"
-    let request = req.clone({ url: apiUrl + req.url });
-    return next.handle(request);
+    let modRequest = req.clone({ url: apiUrl + req.url });
+    return next.handle(modRequest);
   }
 
 }
