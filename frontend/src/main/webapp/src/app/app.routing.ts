@@ -60,7 +60,11 @@ export const routes: Routes = [
       },
       {
         path: 'charts',
-        loadChildren: () => import('./views/chartjs/chartjs.module').then(m => m.ChartJSModule)
+        loadChildren: () => import('./views/chartjs/chartjs.module').then(m => m.ChartJSModule),
+        canActivateChild: [PermissionGuard],
+        data: {
+          expectedPermission: 'CHECKIN' // TODO remove
+        }
       },
       {
         path: 'dashboard',
