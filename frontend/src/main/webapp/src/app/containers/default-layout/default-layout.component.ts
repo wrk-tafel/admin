@@ -1,4 +1,5 @@
-import {Component} from '@angular/core';
+import { Component } from '@angular/core';
+import { AuthenticationService } from '../../common/security/authentication.service';
 import { navItems } from '../../_nav';
 
 @Component({
@@ -9,7 +10,16 @@ export class DefaultLayoutComponent {
   public sidebarMinimized = false;
   public navItems = navItems;
 
+  constructor(
+    private auth: AuthenticationService
+  ) { }
+
   toggleMinimize(e) {
     this.sidebarMinimized = e;
   }
+
+  public onLogout() {
+    this.auth.logout()
+  }
+
 }
