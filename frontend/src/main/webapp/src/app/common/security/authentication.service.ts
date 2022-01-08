@@ -33,7 +33,16 @@ export class AuthenticationService {
 
   public isAuthenticated(): boolean {
     let token = this.readToken()
-    return token !== null && !this.jwtHelper.isTokenExpired(token)
+    if (token !== null) {
+      let expired = this.jwtHelper.isTokenExpired(token)
+      if (expired) {
+        this.removeToken()
+      }
+      else {
+        return true
+      }
+    }
+    return false
   }
 
   public hasRole(role: string): boolean {
