@@ -8,8 +8,8 @@ import { P404Component } from './views/error/404.component';
 import { P500Component } from './views/error/500.component';
 import { LoginComponent } from './views/login/login.component';
 
-import { AuthGuardService as AuthGuard } from './common/authguard.service';
-import { PermissionGuardService as PermissionGuard } from './common/permissionguard.service';
+import { AuthGuardService as AuthGuard } from './common/security/authguard.service';
+import { PermissionGuardService as PermissionGuard } from './common/security/permissionguard.service';
 
 export const routes: Routes = [
   {

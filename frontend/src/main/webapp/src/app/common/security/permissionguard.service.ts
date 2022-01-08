@@ -8,7 +8,8 @@ import { AuthenticationService } from './authentication.service';
 export class PermissionGuardService implements CanActivateChild {
 
   constructor(
-    public auth: AuthenticationService, public router: Router
+    private auth: AuthenticationService,
+    private router: Router
   ) { }
 
   canActivateChild(route: ActivatedRouteSnapshot): boolean {
