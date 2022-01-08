@@ -26,8 +26,12 @@ export class AuthenticationService {
     // TODO errorhandling
   }
 
+  public logout() {
+    this.removeToken()
+    this.router.navigate(['login'])
+  }
+
   public isAuthenticated(): boolean {
-    // TODO check signature ?
     let token = this.readToken()
     return token !== null && !this.jwtHelper.isTokenExpired(token)
   }
@@ -61,6 +65,10 @@ export class AuthenticationService {
 
   private readToken(): string {
     return localStorage.getItem(this.LOCAL_STORAGE_TOKEN_KEY)
+  }
+
+  private removeToken() {
+    localStorage.removeItem(this.LOCAL_STORAGE_TOKEN_KEY)
   }
 
 }
