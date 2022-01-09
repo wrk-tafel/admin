@@ -9,7 +9,10 @@ export class LoginComponent {
 
   constructor(
     private auth: AuthenticationService
-  ) { }
+  ) {
+    // just for safety - logout when loginpage is opened
+    auth.logout()
+  }
 
   onClickSubmit(data: LoginFormData) {
     this.auth.login(data.username, data.password)
