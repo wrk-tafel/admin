@@ -44,7 +44,7 @@ import { ChartsModule } from 'ng2-charts';
 import { JwtHelperService, JWT_OPTIONS } from '@auth0/angular-jwt';
 import { HttpClientModule, HttpClientXsrfModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { ApiPathInterceptor } from './common/http/apipath-interceptor.service';
-import { JwtTokenInterceptor } from './common/http/jwttoken-interceptor.service';
+import { AuthorizationHeaderInterceptor } from './common/http/auth-header-interceptor.service';
 
 @NgModule({
   imports: [
@@ -88,7 +88,7 @@ import { JwtTokenInterceptor } from './common/http/jwttoken-interceptor.service'
     },
     {
       provide: HTTP_INTERCEPTORS,
-      useClass: JwtTokenInterceptor,
+      useClass: AuthorizationHeaderInterceptor,
       multi: true
     }
   ],
