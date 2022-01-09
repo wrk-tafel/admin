@@ -24,18 +24,21 @@
                 <executions>
                     <execution>
                         <id>install node and npm</id>
+                        <phase>package</phase>
                         <goals>
                             <goal>install-node-and-npm</goal>
                         </goals>
                     </execution>
                     <execution>
                         <id>npm install</id>
+                        <phase>package</phase>
                         <goals>
                             <goal>npm</goal>
                         </goals>
                     </execution>
                     <execution>
                         <id>npm run build</id>
+                        <phase>package</phase>
                         <goals>
                             <goal>npm</goal>
                         </goals>
