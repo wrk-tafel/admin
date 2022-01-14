@@ -15,6 +15,7 @@
     "build-local": "ng build --aot --build-optimizer --common-chunk --vendor-chunk --optimization --progress",
     "build-prod": "ng build --configuration=production --aot --build-optimizer --common-chunk --vendor-chunk --optimization --progress",
     "test": "ng test",
+    "test-ci": "ng test --sourceMap=false --browsers=ChromeHeadless --watch=false",
     "lint": "ng lint",
     "e2e": "ng e2e"
   },
