@@ -25,7 +25,9 @@ jobs:
           java-version: '17'
           distribution: 'adopt'
       - name: Execute maven build
-        run: ./mvnw clean install -DskipTests
+        run:
+          - ./mvnw clean install -DskipTests
+          - echo "test123"
 
   test:
     runs-on: ubuntu-latest
