@@ -10,20 +10,13 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Cache maven and node directories
-        uses: actions/cache@v2
-        with:
-          path: |
-            $HOME/.m2
-            ./frontend/src/main/webapp/node
-            ./frontend/src/main/webapp/node_modules
-          key: build-repositories
       - uses: actions/checkout@v2
       - name: Set up JDK 17
         uses: actions/setup-java@v2
         with:
           java-version: '17'
           distribution: 'adopt'
+          cache: 'maven'
       - name: Execute maven build
         run: ./mvnw clean install -DskipTests
       - name: Echo
@@ -32,20 +25,13 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - name: Cache maven and node directories
-        uses: actions/cache@v2
-        with:
-          path: |
-            $HOME/.m2
-            ./frontend/src/main/webapp/node
-            ./frontend/src/main/webapp/node_modules
-          key: build-repositories
       - uses: actions/checkout@v2
       - name: Set up JDK 17
         uses: actions/setup-java@v2
         with:
           java-version: '17'
           distribution: 'adopt'
+          cache: 'maven'
       - name: Run tests
         run: ./mvnw test
 
