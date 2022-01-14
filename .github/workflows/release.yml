@@ -16,7 +16,7 @@ jobs:
           java-version: '17'
           distribution: 'adopt'
       - name: Build with Maven
-        run: mvnw clean install
+        run: ./mvnw clean install
   test:
     runs-on: ubuntu-latest
     steps:
@@ -27,7 +27,7 @@ jobs:
           java-version: '17'
           distribution: 'adopt'
       - name: Test with Maven
-        run: mvnw test
+        run: ./mvnw test
 
   Explore-GitHub-Actions:
     runs-on: ubuntu-latest
