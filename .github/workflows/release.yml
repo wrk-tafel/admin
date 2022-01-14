@@ -8,7 +8,7 @@ env:
   JAVA_VERSION: '17'
   JAVA_DISTRIBUTION: 'adopt'
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  IMAGE_NAME: ${{ github.repository }}:latest
 
 jobs:
 
@@ -68,22 +68,19 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: admin-jarfile
-          path: ${GITHUB_WORKSPACE}/artifact
+          path: ./artifact
       - name: Log in to the container registry
         uses: docker/login-action@v1
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@v3
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
       - name: Build and push docker image
         uses: docker/build-push-action@v2
         with:
-          context: _build
+          context: .
+          file: _build/Dockerfile
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ env.IMAGE_NAME }}
+
+# TODO lint kotlin?, lint angular, e2e-test
