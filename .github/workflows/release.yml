@@ -26,8 +26,6 @@ jobs:
           cache: 'maven'
       - name: Execute maven build
         run: ./mvnw clean install -DskipTests
-      - name: Echo
-        run: echo "test"
 
   test:
     runs-on: ubuntu-latest
