@@ -23,25 +23,13 @@
                 </configuration>
                 <executions>
                     <execution>
-                        <phase>package</phase>
+                        <id>install node and npm</id>
                         <goals>
                             <goal>install-node-and-npm</goal>
                         </goals>
                     </execution>
                     <execution>
-                        <phase>test</phase>
-                        <goals>
-                            <goal>install-node-and-npm</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>npm</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <phase>test</phase>
+                        <id>npm install</id>
                         <goals>
                             <goal>npm</goal>
                         </goals>
