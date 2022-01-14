@@ -30,8 +30,22 @@
                         </goals>
                     </execution>
                     <execution>
+                        <id>install node and npm</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>install-node-and-npm</goal>
+                        </goals>
+                    </execution>
+                    <execution>
                         <id>npm install</id>
                         <phase>package</phase>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>npm install</id>
+                        <phase>test</phase>
                         <goals>
                             <goal>npm</goal>
                         </goals>
