@@ -14,7 +14,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: |
-            ./.m2
+            $HOME/.m2
             ./frontend/src/main/webapp/node
             ./frontend/src/main/webapp/node_modules
           key: build-repositories
@@ -25,7 +25,7 @@ jobs:
           java-version: '17'
           distribution: 'adopt'
       - name: Execute maven build
-        run: ./mvnw -Dmaven.repo.local=./.m2 clean install -DskipTests
+        run: ./mvnw clean install -DskipTests
 
   test:
     runs-on: ubuntu-latest
@@ -34,7 +34,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: |
-            ./.m2
+            $HOME/.m2
             ./frontend/src/main/webapp/node
             ./frontend/src/main/webapp/node_modules
           key: build-repositories
@@ -45,7 +45,7 @@ jobs:
           java-version: '17'
           distribution: 'adopt'
       - name: Run tests
-        run: ./mvnw -Dmaven.repo.local=./.m2 test
+        run: ./mvnw test
 
   Explore-GitHub-Actions:
     runs-on: ubuntu-latest
