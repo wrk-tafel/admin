@@ -13,3 +13,8 @@ updates:
     directory: "/frontend/src/main/webapp" # Location of package manifests
     schedule:
       interval: "daily"
+  # Maintain dependencies for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
