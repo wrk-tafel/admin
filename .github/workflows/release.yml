@@ -13,6 +13,7 @@ jobs:
       - name: Cache node packages
         uses: actions/cache@v2
         with:
+          key: node-cache
           path: |
             ./frontend/src/main/webapp/node
             ./frontend/src/main/webapp/node_modules
@@ -34,6 +35,7 @@ jobs:
       - name: Cache node packages
         uses: actions/cache@v2
         with:
+          key: node-cache
           path: |
             ./frontend/src/main/webapp/node
             ./frontend/src/main/webapp/node_modules
