@@ -56,7 +56,7 @@ jobs:
       - name: Run tests
         run: echo "TODO test TODO" # ./mvnw test
 
-  build-docker-images:
+  publish-docker-image:
     runs-on: ubuntu-latest
     permissions:
       contents: read
