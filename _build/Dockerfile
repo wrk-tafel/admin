@@ -1,5 +1,6 @@
 FROM openjdk:17.0.1-oraclelinux7
 
+VOLUME /config
 COPY ./artifact/admin-backend.jar /app.jar
 
-ENTRYPOINT ["java","-jar","/app.jar"]
+ENTRYPOINT ["java","-Dspring.config.import=file:/config/config.yml", "-jar","/app.jar"]
