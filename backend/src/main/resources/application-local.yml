@@ -3,13 +3,8 @@ spring:
     url: jdbc:postgresql://localhost:5432/admin
     username: admin
     password: admin
-    driverClassName: org.postgresql.Driver
-  jpa:
-    hibernate:
-      ddl-auto: create-drop
 
 security:
   jwtToken:
     secret:
       value: 8a58255b49728fe758502948917ae98709b7cc502e4c7a0d3bc9d183b5be24378a58255b49728fe758502948917ae98709b7cc502e4c7a0d3bc9d183b5be24378a58255b49728fe758502948917ae98709b7cc502e4c7a0d3bc9d183b5be24378a58255b49728fe7585012
-    expirationTimeInSeconds: 36000 # 10 hours
