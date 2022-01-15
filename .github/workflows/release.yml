@@ -64,7 +64,7 @@ jobs:
       - name: run ktlint
         run: |
           ktlint --reporter=plain?group_by_file
-        continue-on-error: false
+        continue-on-error: true
 
   lint-frontend:
     runs-on: ubuntu-latest
@@ -86,6 +86,7 @@ jobs:
         working-directory: frontend/src/main/webapp
       - run: npm run lint
         working-directory: frontend/src/main/webapp
+        continue-on-error: true
 
   publish-docker-image:
     runs-on: ubuntu-latest
