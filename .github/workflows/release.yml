@@ -56,6 +56,21 @@ jobs:
       - name: Run tests
         run: echo "TODO test TODO" # ./mvnw test
 
+  lint-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: |
+      curl -sSLO https://github.com/pinterest/ktlint/releases/download/0.42.1/ktlint && chmod a+x ktlint && sudo mv ktlint /usr/local/bin/
+      - name: run ktlint
+        run: |
+          ktlint --reporter=checkstyle,output=report/ktlint-report.xml
+        continue-on-error: true
+      - uses: yutailang0119/action-ktlint@v1
+        with:
+          report-path: report/*.xml # Support glob patterns by https://www.npmjs.com/package/@actions/glob
+        continue-on-error: false # If annotations contain error of severity, action-ktlint exit 1.
+
   lint-frontend:
     runs-on: ubuntu-latest
     steps:
