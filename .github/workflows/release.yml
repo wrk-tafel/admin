@@ -67,8 +67,11 @@ jobs:
             ./frontend/src/main/webapp/node
             ./frontend/src/main/webapp/node_modules
       - uses: actions/checkout@v2
-      - name: Run lint
-        run: npm run lint --prefix frontend/src/main/webapp
+      - uses: actions/setup-node@v2
+        with:
+          cache: 'npm'
+      - run: npm install
+      - run: npm run lint --prefix frontend/src/main/webapp
 
   publish-docker-image:
     runs-on: ubuntu-latest
