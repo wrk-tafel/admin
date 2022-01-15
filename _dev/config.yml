@@ -1,10 +1,6 @@
-logging:
-  level:
-    root: DEBUG
-
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/admin
+    url: jdbc:postgresql://host.docker.internal:5432/admin
     username: admin
     password: admin
 
