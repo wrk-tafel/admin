@@ -64,7 +64,7 @@ jobs:
           curl -sSLO https://github.com/pinterest/ktlint/releases/download/0.43.2/ktlint && chmod a+x ktlint && sudo mv ktlint /usr/local/bin/
       - name: run ktlint
         run: |
-          ktlint --reporter=plain
+          ktlint --reporter=plain?group_by_file
         continue-on-error: false
 
   lint-frontend:
