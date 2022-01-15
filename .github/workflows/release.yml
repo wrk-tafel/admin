@@ -7,7 +7,6 @@ on:
 env:
   JAVA_VERSION: '17'
   JAVA_DISTRIBUTION: 'adopt'
-  KTLINT_VERSION: '0.43.2'
   REGISTRY: ghcr.io/${{ github.repository }}
   IMAGE_NAME: ${{ github.repository }}:latest
 
@@ -62,7 +61,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: |
-          curl -sSLO https://github.com/pinterest/ktlint/releases/download/${{KTLINT_VERSION}}/ktlint && chmod a+x ktlint && sudo mv ktlint /usr/local/bin/
+          curl -sSLO https://github.com/pinterest/ktlint/releases/download/0.43.2/ktlint && chmod a+x ktlint && sudo mv ktlint /usr/local/bin/
       - name: run ktlint
         run: |
           ktlint --reporter=checkstyle,output=report/ktlint-report.xml
