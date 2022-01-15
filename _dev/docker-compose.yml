@@ -31,37 +31,38 @@ services:
     networks:
       - tafeladmin_net
 
-  ui-remote:
-    image: ikt01toet1030/wrk-tafel-admin:latest
-    restart: unless-stopped
-    container_name: tafeladmin-ui
-    hostname: tafeladmin-ui
-    ports:
-      - "8081:8080"
-    volumes:
-      - ../backend/src/main/resources/application-local.yml:/config/config.yml
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
-      - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
-    networks:
-      - tafeladmin_net
-
-#  ui-local-build:
-#    build:
-#      context: .
-#    image: local-build/wrk-tafel-admin:latest
+#  ui-remote:
+#    image: ikt01toet1030/wrk-tafel-admin:latest
 #    restart: unless-stopped
 #    container_name: tafeladmin-ui
 #    hostname: tafeladmin-ui
 #    ports:
-#      - "8082:8080"
+#      - "8081:8080"
 #    volumes:
-#      - ../backend/src/main/resources/application-local.yml:/config/application.yml
+#      - ../backend/src/main/resources/application-local.yml:/config/config.yml
 #      - /etc/localtime:/etc/localtime:ro
 #      - /etc/timezone:/etc/timezone:ro
 #      - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
 #    networks:
 #      - tafeladmin_net
+
+  ui-local-build:
+    build:
+      context: ../
+      dockerfile: _build/backend/Dockerfile
+    image: local-build/wrk-tafel-admin:latest
+    restart: unless-stopped
+    container_name: tafeladmin-ui
+    hostname: tafeladmin-ui
+    ports:
+      - "8082:8080"
+    volumes:
+      - ./config.yml:/config/config.yml
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
+    networks:
+      - tafeladmin_net
 
 volumes:
   database-data:
