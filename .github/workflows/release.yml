@@ -7,8 +7,7 @@ on:
 env:
   JAVA_VERSION: '17'
   JAVA_DISTRIBUTION: 'adopt'
-  REGISTRY: ghcr.io/${{ github.repository }}
-  IMAGE_NAME: ${{ github.repository }}:latest
+  IMAGE_NAME: ikt01toet1030/wrk-tafel-admin:latest
 
 jobs:
 
@@ -104,9 +103,8 @@ jobs:
       - name: Log in to the container registry
         uses: docker/login-action@v1
         with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Build and push docker image
         uses: docker/build-push-action@v2
         with:
