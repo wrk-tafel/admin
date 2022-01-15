@@ -1,4 +1,6 @@
 spring:
+  datasource:
+    driverClassName: org.postgresql.Driver
   flyway:
     locations: classpath:/db-migration
     group: true
@@ -7,6 +9,5 @@ spring:
 security:
   jwtToken:
     secret:
-      value: dummy
       algorithm: HmacSHA512
-    expirationTimeInSeconds: 3600 # 5 minutes
+    expirationTimeInSeconds: 36000 # 10 hours
