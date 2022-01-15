@@ -7,7 +7,7 @@ on:
 env:
   JAVA_VERSION: '17'
   JAVA_DISTRIBUTION: 'adopt'
-  REGISTRY: ghcr.io
+  REGISTRY: ghcr.io/${{ github.repository }}
   IMAGE_NAME: ${{ github.repository }}:latest
 
 jobs:
