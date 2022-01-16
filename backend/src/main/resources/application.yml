@@ -17,3 +17,6 @@ security:
     secret:
       algorithm: HmacSHA512
     expirationTimeInSeconds: 36000 # 10 hours
+
+tafeladmin:
+  baseUrl: http://localhost:8080
