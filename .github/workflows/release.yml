@@ -7,7 +7,7 @@ on:
 env:
   JAVA_VERSION: '17'
   JAVA_DISTRIBUTION: 'adopt'
-  IMAGE_NAME: ikt01toet1030/wrk-tafel-admin:latest
+  IMAGE_NAME: rktafel/admin:latest
 
 jobs:
 
