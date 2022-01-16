@@ -46,23 +46,23 @@ services:
 #    networks:
 #      - tafeladmin_net
 
-  ui-local-build:
-    build:
-      context: ../
-      dockerfile: _build/backend/Dockerfile
-    image: local-build/wrk-tafel-admin:latest
-    restart: unless-stopped
-    container_name: tafeladmin-ui
-    hostname: tafeladmin-ui
-    ports:
-      - "8082:8080"
-    volumes:
-      - ./config.yml:/config/config.yml
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
-      - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
-    networks:
-      - tafeladmin_net
+#  ui-local-build:
+#    build:
+#      context: ../
+#      dockerfile: _build/backend/Dockerfile
+#    image: local-build/wrk-tafel-admin:latest
+#    restart: unless-stopped
+#    container_name: tafeladmin-ui
+#    hostname: tafeladmin-ui
+#    ports:
+#      - "8082:8080"
+#    volumes:
+#      - ./config.yml:/config/config.yml
+#      - /etc/localtime:/etc/localtime:ro
+#      - /etc/timezone:/etc/timezone:ro
+#      - /usr/share/zoneinfo:/usr/share/zoneinfo:ro
+#    networks:
+#      - tafeladmin_net
 
 volumes:
   database-data:
