@@ -12,7 +12,8 @@ class ConfigController(
 
     @GetMapping("/config.json")
     fun getConfig(request: HttpServletRequest): ConfigResponse {
-        return ConfigResponse(apiBaseUrl = "${tafelAdminProperties.baseUrl}/api")
+        val baseUrl = tafelAdminProperties.baseUrl ?: request.requestURL.dropLast(request.servletPath.length)
+        return ConfigResponse(apiBaseUrl = "$baseUrl/api")
     }
 
 }

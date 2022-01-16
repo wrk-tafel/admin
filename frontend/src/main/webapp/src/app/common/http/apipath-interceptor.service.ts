@@ -11,9 +11,12 @@ export class ApiPathInterceptor implements HttpInterceptor {
   constructor(private appConfigService: AppConfigService) { }
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    const apiUrl = this.appConfigService.getConfig().apiBaseUrl + "/api"
-    let modRequest = req.clone({ url: apiUrl + req.url });
-    return next.handle(modRequest);
+    if (req.url !== "/config.json") {
+      const apiUrl = this.appConfigService.getConfig().apiBaseUrl
+      let modRequest = req.clone({ url: apiUrl + req.url });
+      return next.handle(modRequest);
+    }
+    return next.handle(req);
   }
 
 }
