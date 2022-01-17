@@ -14,7 +14,9 @@ export class AppConfigService {
     console.log("CTX ORIG", contextPath)
     contextPath = contextPath.endsWith('/') ? contextPath.slice(0, -1) : contextPath;
     console.log("CTX EDIT", contextPath)
-    return this.http.get<AppConfig>(`${contextPath}/config.json`)
+    let configUrl = `${contextPath}/config.json`
+    console.log("CFG URL", configUrl)
+    return this.http.get<AppConfig>(configUrl)
       .toPromise()
       .then(data => {
         console.log("REQ OK", data)
