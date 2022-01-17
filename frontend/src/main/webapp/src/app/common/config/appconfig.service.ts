@@ -12,9 +12,9 @@ export class AppConfigService {
   loadAppConfig() {
     let contextPath = window.location.pathname
     console.log("CTX ORIG", contextPath)
-    contextPath = contextPath.length > 1 && contextPath.endsWith('/') ? contextPath.slice(0, -1) : contextPath;
+    contextPath = contextPath.endsWith('/') ? contextPath.slice(0, -1) : contextPath;
     console.log("CTX EDIT", contextPath)
-    return this.http.get<AppConfig>(`${contextPath}config.json`)
+    return this.http.get<AppConfig>(`${contextPath}/config.json`)
       .toPromise()
       .then(data => {
         console.log("REQ OK", data)
