@@ -10,7 +10,9 @@ export class AppConfigService {
   constructor(private http: HttpClient) { }
 
   loadAppConfig() {
-    return this.http.get<AppConfig>('assets/config.json')
+    let contextPath = window.location.pathname
+    contextPath = contextPath.length > 1 && contextPath.endsWith('/') ? contextPath.slice(0, -1) : contextPath;
+    return this.http.get<AppConfig>(`${contextPath}config.json`)
       .toPromise()
       .then(data => {
         this.appConfig = data;
