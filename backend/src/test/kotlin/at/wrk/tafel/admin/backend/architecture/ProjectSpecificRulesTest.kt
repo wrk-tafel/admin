@@ -1,7 +1,6 @@
 package at.wrk.tafel.admin.backend.architecture
 
 import at.wrk.tafel.admin.backend.common.rest.TafelRestController
-import at.wrk.tafel.admin.backend.restapi.config.ConfigController
 import com.tngtech.archunit.junit.AnalyzeClasses
 import com.tngtech.archunit.junit.ArchTest
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes
@@ -15,7 +14,6 @@ class ProjectSpecificRulesTest {
         .areNotAnnotations()
         .and().areAnnotatedWith(RestController::class.java)
         .and().areNotAnnotatedWith(TafelRestController::class.java)
-        .and().doNotHaveFullyQualifiedName(ConfigController::class.qualifiedName)
         .should().beAnnotatedWith(TafelRestController::class.java)
         .andShould().notBeAnnotatedWith(RestController::class.java)
 
