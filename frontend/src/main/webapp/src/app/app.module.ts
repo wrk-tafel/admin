@@ -1,7 +1,7 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { APP_INITIALIZER, NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { LocationStrategy, HashLocationStrategy } from '@angular/common';
+import { LocationStrategy, HashLocationStrategy, APP_BASE_HREF } from '@angular/common';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { PerfectScrollbarModule } from 'ngx-perfect-scrollbar';
@@ -46,6 +46,7 @@ import { HttpClientModule, HttpClientXsrfModule, HTTP_INTERCEPTORS } from '@angu
 import { ApiPathInterceptor } from './common/http/apipath-interceptor.service';
 import { AuthorizationHeaderInterceptor } from './common/http/auth-header-interceptor.service';
 import { AppConfigService } from './common/config/appconfig.service';
+import { cibWindows } from '@coreui/icons';
 
 const appInitializerFn = (appConfig: AppConfigService) => {
   return () => {
@@ -81,6 +82,11 @@ const appInitializerFn = (appConfig: AppConfigService) => {
     LoginComponent
   ],
   providers: [
+    {
+      provide: APP_BASE_HREF,
+      deps: [],
+      useFactory: () => window.location.pathname
+    },
     AppConfigService,
     {
       provide: APP_INITIALIZER,
