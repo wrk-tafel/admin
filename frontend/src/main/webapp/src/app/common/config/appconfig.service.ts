@@ -4,6 +4,7 @@ import { Injectable } from '@angular/core';
 @Injectable({
   providedIn: 'root'
 })
+// TODO maybe obsolete
 export class AppConfigService {
   private appConfig: AppConfig;
 
@@ -12,12 +13,14 @@ export class AppConfigService {
   loadAppConfig() {
     let configUrl = "config.json"
     console.log("CFG URL", configUrl)
+    /*
     return this.http.get<AppConfig>(configUrl)
       .toPromise()
       .then(data => {
         console.log("REQ OK", data)
         this.appConfig = data;
       });
+      */
   }
 
   getConfig() {
