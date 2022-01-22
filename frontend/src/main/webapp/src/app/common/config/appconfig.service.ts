@@ -10,7 +10,11 @@ export class AppConfigService {
   constructor(private http: HttpClient) { }
 
   loadAppConfig() {
-    let configUrl = "assets/frontend-config.json"
+    let contextPath = window.location.pathname
+    console.log("CTX ORIG", contextPath)
+    contextPath = contextPath.endsWith('/') ? contextPath.slice(0, -1) : contextPath;
+    console.log("CTX EDIT", contextPath)
+    let configUrl = `${contextPath}/config.json`
     console.log("CFG URL", configUrl)
     return this.http.get<AppConfig>(configUrl)
       .toPromise()
