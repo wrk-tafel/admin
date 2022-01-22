@@ -82,11 +82,6 @@ const appInitializerFn = (appConfig: AppConfigService) => {
     LoginComponent
   ],
   providers: [
-    {
-      provide: APP_BASE_HREF,
-      deps: [],
-      useFactory: () => window.location.pathname
-    },
     AppConfigService,
     {
       provide: APP_INITIALIZER,

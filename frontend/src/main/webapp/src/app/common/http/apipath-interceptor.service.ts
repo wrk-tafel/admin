@@ -10,7 +10,8 @@ export class ApiPathInterceptor implements HttpInterceptor {
   constructor() { }
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    let modRequest = req.clone({ url: `api${req.url}` });
+    let apiPath = `${window.location.pathname}api${req.url}`
+    let modRequest = req.clone({ url: apiPath });
     return next.handle(modRequest);
   }
 
