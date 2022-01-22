@@ -10,7 +10,7 @@ export class AppConfigService {
   constructor(private http: HttpClient) { }
 
   loadAppConfig() {
-    let configUrl = "/config.json"
+    let configUrl = "config.json"
     console.log("CFG URL", configUrl)
     return this.http.get<AppConfig>(configUrl)
       .toPromise()
