@@ -4,8 +4,8 @@ logging:
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/admin
-    username: admin
+    url: jdbc:postgresql://localhost:5432/tafeladmin
+    username: tafeladmin
     password: admin
 
 security:
