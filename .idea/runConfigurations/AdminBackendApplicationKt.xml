@@ -3,7 +3,7 @@
     <option name="MAIN_CLASS_NAME" value="at.wrk.tafel.admin.backend.AdminBackendApplicationKt" />
     <module name="admin-backend" />
     <shortenClasspath name="NONE" />
-    <option name="VM_PARAMETERS" value="-Dspring.profiles.active=local" />
+    <option name="VM_PARAMETERS" value="-Dspring.profiles.active=local,testdata" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>
