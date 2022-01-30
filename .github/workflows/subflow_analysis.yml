@@ -1,5 +1,3 @@
-name: Analysis
-
 env:
   KTLINT_VERSION: '0.43.2'
 

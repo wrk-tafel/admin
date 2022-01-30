@@ -1,5 +1,3 @@
-name: Build and publish main branch
-
 on:
   push:
     branches: [ 'main' ] # switch to seperate release branch later on
@@ -15,3 +13,5 @@ jobs:
     secrets:
       dockerHubUsername: ${{ secrets.DOCKERHUB_USERNAME }}
       dockerHubToken: ${{ secrets.DOCKERHUB_TOKEN }}
+
+# TODO maybe add deploy
