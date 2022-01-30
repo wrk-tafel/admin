@@ -13,7 +13,9 @@ jobs:
       ktlint-version: '0.43.2'
   publish-image:
     uses: wrk-tafel/admin/.github/workflows/subflow_publish_image.yml@main
+    needs: build-and-test
     with:
+      jarfile: ${{ needs.build-and-test.outputs.jarfile }}
       imageName: 'rktafel/admin:latest'
     secrets:
       dockerHubUsername: ${{ secrets.DOCKERHUB_USERNAME }}
