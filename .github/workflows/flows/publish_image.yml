@@ -1,0 +1,43 @@
+name: Publish docker image
+
+on:
+  workflow_call:
+    inputs:
+      dockerimage-name:
+        required: true
+        type: string
+    secrets:
+      dockerhub-username:
+        required: true
+        type: string
+      dockerhub-token:
+        required: true
+        type: string
+
+jobs:
+  publish-docker-image:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    needs: [ build, test ]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/download-artifact@v2
+        with:
+          name: admin-jarfile
+          path: ./artifact
+      - name: Log in to the container registry
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.dockerhub-username }}
+          password: ${{ secrets.dockerhub-token }}
+      - name: Build and push docker image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: _build/Dockerfile
+          push: true
+          tags: ${{ inputs.dockerimage-name }}
+
+# TODO e2e-test, tslint
