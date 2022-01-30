@@ -5,10 +5,6 @@ env:
 
 on:
   workflow_call:
-    inputs:
-      imageName:
-        required: true
-        type: string
     secrets:
       dockerHubUsername:
         required: true
