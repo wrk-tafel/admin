@@ -7,6 +7,8 @@ on:
 jobs:
   build-and-test:
     uses: wrk-tafel/admin/.github/workflows/subflow_build_test.yml@main
+  analysis:
+    uses: wrk-tafel/admin/.github/workflows/subflow_analysis.yml@main
   docker-image:
     uses: wrk-tafel/admin/.github/workflows/subflow_publish_image.yml@main
     needs: build-and-test

@@ -35,5 +35,3 @@ jobs:
           file: _build/Dockerfile
           push: true
           tags: ${{ env.IMAGE_NAME }}
-
-# TODO e2e-test, tslint
