@@ -9,10 +9,8 @@ on:
     secrets:
       dockerhub-username:
         required: true
-        type: string
       dockerhub-token:
         required: true
-        type: string
 
 jobs:
   publish-docker-image:
