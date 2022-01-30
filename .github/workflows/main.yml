@@ -15,6 +15,4 @@ jobs:
     uses: wrk-tafel/admin/.github/workflows/subflow_publish_image.yml@main
     with:
       secrets:
-        dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
-        dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
         dockerimage-name: 'rktafel/admin:latest'
