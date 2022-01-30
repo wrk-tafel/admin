@@ -1,3 +1,5 @@
+name: Push on main branch
+
 on:
   push:
     branches: [ 'main' ] # switch to seperate release branch later on

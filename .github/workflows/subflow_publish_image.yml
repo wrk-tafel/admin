@@ -1,3 +1,5 @@
+name: Publish docker image
+
 env:
   IMAGE_NAME: 'rktafel/admin:latest'
 

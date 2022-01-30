@@ -1,3 +1,5 @@
+name: Build and Test
+
 env:
   JAVA_VERSION: '17'
   JAVA_DISTRIBUTION: 'adopt'
