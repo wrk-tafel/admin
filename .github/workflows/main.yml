@@ -12,13 +12,13 @@ env:
 
 jobs:
   build-and-test:
-    uses: wrk-tafel/admin/.github/workflows/subflow_build_test.yml
+    uses: wrk-tafel/admin/.github/workflows/subflow_build_test.yml@main
     with:
       java-version: ${{ env.JAVA_VERSION }}
       java-distribution: ${{ env.JAVA_DISTRIBUTION }}
       ktlint-version: ${{ env.KTLINT_VERSION }}
   publish-image:
-    uses: wrk-tafel/admin/.github/workflows/subflow_publish_image.yml
+    uses: wrk-tafel/admin/.github/workflows/subflow_publish_image.yml@main
     with:
       secrets:
         dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
