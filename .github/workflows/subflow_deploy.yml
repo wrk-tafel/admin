@@ -1,4 +1,4 @@
-name: Pull Request
+name: Deploy to server
 
 on:
   workflow_call:
@@ -32,4 +32,4 @@ jobs:
           SSH_KNOWN_HOSTS: ${{ secrets.sshKnownHosts }}
           SSH_KEY_PATH: ${{ github.workspace }}/../private.key
       - name: Deploy to server
-        run: ssh ${{ secrets.sshUser }}@${{ secrets.sshHost }}:${{ secrets.sshPort }} -f ${{ secrets.sshDeployCommand }}
+        run: ssh ${{ secrets.sshUser }}@${{ secrets.sshHost }} -p ${{ secrets.sshPort }} -f "${{ secrets.sshDeployCommand }}"
