@@ -4,23 +4,17 @@ on:
   push:
     branches: [ 'main' ] # switch to seperate release branch later on
 
-env:
-  JAVA_VERSION: '17'
-  JAVA_DISTRIBUTION: 'adopt'
-  KTLINT_VERSION: '0.43.2'
-  IMAGE_NAME: rktafel/admin:latest
-
 jobs:
   build-and-test:
     uses: wrk-tafel/admin/.github/workflows/subflow_build_test.yml@main
     with:
-      java-version: ${{ env.JAVA_VERSION }}
-      java-distribution: ${{ env.JAVA_DISTRIBUTION }}
-      ktlint-version: ${{ env.KTLINT_VERSION }}
+      java-version: '17'
+      java-distribution: 'adopt'
+      ktlint-version: '0.43.2'
   publish-image:
     uses: wrk-tafel/admin/.github/workflows/subflow_publish_image.yml@main
     with:
       secrets:
         dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
         dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
-        dockerimage-name: ${{ env.IMAGE_NAME }}
+        dockerimage-name: 'rktafel/admin:latest'
