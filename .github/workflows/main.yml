@@ -7,15 +7,9 @@ on:
 jobs:
   build-and-test:
     uses: wrk-tafel/admin/.github/workflows/subflow_build_test.yml@main
-    with:
-      java-version: '17'
-      java-distribution: 'adopt'
-      ktlint-version: '0.43.2'
-  publish-image:
+  docker-image:
     uses: wrk-tafel/admin/.github/workflows/subflow_publish_image.yml@main
     needs: build-and-test
-    with:
-      imageName: 'rktafel/admin:latest'
     secrets:
       dockerHubUsername: ${{ secrets.DOCKERHUB_USERNAME }}
       dockerHubToken: ${{ secrets.DOCKERHUB_TOKEN }}

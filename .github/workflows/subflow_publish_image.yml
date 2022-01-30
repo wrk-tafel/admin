@@ -1,5 +1,8 @@
 name: Publish docker image
 
+env:
+  IMAGE_NAME: 'rktafel/admin:latest'
+
 on:
   workflow_call:
     inputs:
@@ -13,7 +16,7 @@ on:
         required: true
 
 jobs:
-  publish-docker-image:
+  publish:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -35,6 +38,6 @@ jobs:
           context: .
           file: _build/Dockerfile
           push: true
-          tags: ${{ inputs.imageName }}
+          tags: ${{ env.IMAGE_NAME }}
 
 # TODO e2e-test, tslint
