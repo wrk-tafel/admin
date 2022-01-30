@@ -10,3 +10,6 @@ jobs:
   docker-image:
     uses: wrk-tafel/admin/.github/workflows/subflow_publish_image.yml@main
     needs: build-and-test
+    secrets:
+      dockerHubUsername: ${{ secrets.DOCKERHUB_USERNAME }}
+      dockerHubToken: ${{ secrets.DOCKERHUB_TOKEN }}
