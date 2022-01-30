@@ -13,7 +13,8 @@ jobs:
       ktlint-version: '0.43.2'
   publish-image:
     uses: wrk-tafel/admin/.github/workflows/subflow_publish_image.yml@main
+    with:
+      imageName: 'rktafel/admin:latest'
     secrets:
       dockerHubUsername: ${{ secrets.DOCKERHUB_USERNAME }}
       dockerHubToken: ${{ secrets.DOCKERHUB_TOKEN }}
-      imageName: 'rktafel/admin:latest'
