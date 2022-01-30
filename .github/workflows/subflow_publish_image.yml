@@ -3,13 +3,13 @@ name: Publish docker image
 on:
   workflow_call:
     inputs:
-      dockerimage-name:
+      imageName:
         required: true
         type: string
     secrets:
-      dockerhub-username:
+      dockerHubUsername:
         required: true
-      dockerhub-token:
+      dockerHubToken:
         required: true
 
 jobs:
