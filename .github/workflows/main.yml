@@ -15,5 +15,13 @@ jobs:
     secrets:
       dockerHubUsername: ${{ secrets.DOCKERHUB_USERNAME }}
       dockerHubToken: ${{ secrets.DOCKERHUB_TOKEN }}
-
-# TODO maybe add deploy
+  deploy:
+    uses: wrk-tafel/admin/.github/workflows/subflow_deploy.yml@main
+    needs: docker-image
+    secrets:
+      sshKey: ${{ secrets.SSH_DEPLOY_KEY }}
+      sshKnownHosts: ${{ secrets.SSH_KNOWN_HOSTS }}
+      sshHost: ${{ secrets.SSH_HOST }}
+      sshPort: ${{ secrets.SSH_PORT }}
+      sshUser: ${{ secrets.SSH_USER }}
+      sshDeployCommand: ${{ secrets.SSH_DEPLOY_COMMAND }}

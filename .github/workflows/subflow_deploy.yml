@@ -1,0 +1,35 @@
+name: Pull Request
+
+on:
+  workflow_call:
+    secrets:
+      sshKey:
+        required: true
+      sshKnownHosts:
+        required: true
+      sshHost:
+        required: true
+      sshPort:
+        required: true
+      sshUser:
+        required: true
+      sshDeployCommand:
+        required: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create SSH key
+        run: |
+          mkdir -p ~/.ssh/
+          echo "$SSH_PRIVATE_KEY" > ../private.key
+          sudo chmod 600 ../private.key
+          echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+        shell: bash
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.sshKey }}
+          SSH_KNOWN_HOSTS: ${{ secrets.sshKnownHosts }}
+          SSH_KEY_PATH: ${{ github.workspace }}/../private.key
+      - name: Deploy to server
+        run: ssh ${{ secrets.sshUser }}@${{ secrets.sshHost }}:${{ secrets.sshPort }} -f ${{ secrets.sshDeployCommand }}
