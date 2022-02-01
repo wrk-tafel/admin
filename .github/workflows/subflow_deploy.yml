@@ -32,4 +32,4 @@ jobs:
           SSH_KNOWN_HOSTS: ${{ secrets.sshKnownHosts }}
           SSH_KEY_PATH: ${{ github.workspace }}/../private.key
       - name: Deploy to server
-        run: ssh ${{ secrets.sshUser }}@${{ secrets.sshHost }} -p ${{ secrets.sshPort }} "${{ secrets.sshDeployCommand }} &"
+        run: ssh ${{ secrets.sshUser }}@${{ secrets.sshHost }} -p ${{ secrets.sshPort }} -q "${{ secrets.sshDeployCommand }}" 2> /dev/null
