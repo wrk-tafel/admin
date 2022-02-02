@@ -18,7 +18,7 @@
         <jjwt.version>0.11.2</jjwt.version>
         <jackson.kotlin.module.version>2.13.1</jackson.kotlin.module.version>
         <flyway.version>8.4.3</flyway.version>
-        <postgresql.driver.version>42.3.1</postgresql.driver.version>
+        <postgresql.driver.version>42.3.2</postgresql.driver.version>
         <bouncycastle.version>1.70</bouncycastle.version>
 
         <!-- Maven plugin version -->
