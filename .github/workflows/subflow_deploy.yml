@@ -7,12 +7,6 @@ on:
         required: true
       sshKnownHosts:
         required: true
-      sshHost:
-        required: true
-      sshPort:
-        required: true
-      sshUser:
-        required: true
       sshDeployCommand:
         required: true
 
