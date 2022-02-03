@@ -21,7 +21,4 @@ jobs:
     secrets:
       sshKey: ${{ secrets.SSH_DEPLOY_KEY }}
       sshKnownHosts: ${{ secrets.SSH_KNOWN_HOSTS }}
-      sshHost: ${{ secrets.SSH_HOST }}
-      sshPort: ${{ secrets.SSH_PORT }}
-      sshUser: ${{ secrets.SSH_USER }}
       sshDeployCommand: ${{ secrets.SSH_DEPLOY_COMMAND }}
