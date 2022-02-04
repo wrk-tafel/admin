@@ -31,6 +31,8 @@ jobs:
         with:
           name: admin-jarfile
           path: ./backend/target/admin-backend.jar
+          if-no-files-found: error
+          retention-days: 1
 
   test:
     runs-on: ubuntu-latest
