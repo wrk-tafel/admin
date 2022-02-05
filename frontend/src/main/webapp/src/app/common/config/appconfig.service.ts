@@ -12,7 +12,6 @@ export class AppConfigService {
 
   loadAppConfig() {
     let configUrl = "config.json"
-    console.log("CFG URL", configUrl)
     /*
     return this.http.get<AppConfig>(configUrl)
       .toPromise()
