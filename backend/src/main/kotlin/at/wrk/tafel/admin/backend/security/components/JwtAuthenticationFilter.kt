@@ -6,6 +6,7 @@ import org.springframework.http.HttpHeaders
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.InsufficientAuthenticationException
 import org.springframework.security.core.Authentication
+import org.springframework.security.core.AuthenticationException
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter
 import org.springframework.security.web.util.matcher.RequestMatcher
 import javax.servlet.FilterChain
@@ -19,7 +20,6 @@ class JwtAuthenticationFilter(
     requestMatcher,
     configuredAuthenticationManager
 ) {
-
     companion object {
         private const val AUTHORIZATION_PREFIX = "Bearer "
     }
@@ -46,6 +46,12 @@ class JwtAuthenticationFilter(
         chain: FilterChain,
         authResult: Authentication
     ) {
+        var ipAddress = request.getHeader("X-FORWARDED-FOR")
+        if (ipAddress == null) {
+            ipAddress = request.remoteAddr
+        }
+        logger.info("Login successful - User ${authResult.name} from IP: $ipAddress")
+
         super.successfulAuthentication(request, response, chain, authResult)
 
         // As this authentication is in HTTP header, after success we need to continue the request normally
@@ -53,4 +59,17 @@ class JwtAuthenticationFilter(
         chain.doFilter(request, response)
     }
 
+    override fun unsuccessfulAuthentication(
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+        failed: AuthenticationException
+    ) {
+        var ipAddress = request.getHeader("X-FORWARDED-FOR")
+        if (ipAddress == null) {
+            ipAddress = request.remoteAddr
+        }
+        logger.info("Login failed - exception '${failed.message}' from IP: $ipAddress")
+
+        super.unsuccessfulAuthentication(request, response, failed)
+    }
 }
