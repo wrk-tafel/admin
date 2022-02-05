@@ -26,22 +26,21 @@ class JwtLoginController(
             val token: String? = user.username.let { jwtTokenService.generateToken(it, user.authorities) }
 
             token.let {
-                var ipAddress = request.getHeader("X-FORWARDED-FOR")
-                if (ipAddress == null) {
-                    ipAddress = request.remoteAddr
-                }
-                logger.info("Login successful - User '${user.username}' from IP: $ipAddress")
+                logger.info("Login successful - User '${user.username}' from IP: ${getIpAddress(request)}")
 
                 return ResponseEntity.ok(JwtResponse(token!!))
             }
         }
 
+        logger.info("Login failed from IP: ${getIpAddress(request)}")
+        return ResponseEntity.status(HttpStatus.FORBIDDEN.value()).build()
+    }
+
+    private fun getIpAddress(request: HttpServletRequest): String {
         var ipAddress = request.getHeader("X-FORWARDED-FOR")
         if (ipAddress == null) {
             ipAddress = request.remoteAddr
         }
-        logger.info("Login failed from IP: $ipAddress")
-        return ResponseEntity.status(HttpStatus.FORBIDDEN.value()).build()
+        return ipAddress
     }
-
 }
