@@ -40,7 +40,7 @@ describe('AuthenticationInterceptor', () => {
     client.get('/test').subscribe()
 
     let req = httpMock.expectOne('/test')
-    expect(req.request.headers.get('Authorization')).toBeNull
+    expect(req.request.headers.get('Authorization')).toBeNull()
   });
 
   it('authenticated - called with authorization header', () => {
@@ -50,7 +50,7 @@ describe('AuthenticationInterceptor', () => {
     client.get('/test').subscribe()
 
     let req = httpMock.expectOne('/test')
-    expect(req.request.headers.get('Authorization')).toEqual('Bearer TOKENVALUE')
+    expect(req.request.headers.get('Authorization')).toBe('Bearer TOKENVALUE')
   });
 
 });
