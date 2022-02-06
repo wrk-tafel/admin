@@ -1,3 +1,4 @@
+import { HttpClient } from '@angular/common/http';
 import { Component } from '@angular/core';
 import { AuthenticationService } from '../../common/security/authentication.service';
 import { navItems } from '../../_nav';
@@ -11,7 +12,8 @@ export class DefaultLayoutComponent {
   public navItems = navItems;
 
   constructor(
-    private auth: AuthenticationService
+    private auth: AuthenticationService,
+    private http: HttpClient
   ) { }
 
   toggleMinimize(e) {

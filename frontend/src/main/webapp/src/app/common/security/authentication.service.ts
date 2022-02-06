@@ -32,6 +32,10 @@ export class AuthenticationService {
     this.router.navigate(['login'])
   }
 
+  public logoutAndRedirectExpired() {
+    this.router.navigate(['login'], { state: { errorType: 'expired' } });
+  }
+
   public isAuthenticated(): boolean {
     let token = this.readToken()
     if (token !== null) {

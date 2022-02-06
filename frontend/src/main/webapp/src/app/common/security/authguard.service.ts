@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { ActivatedRouteSnapshot, CanActivateChild, Router, RouterStateSnapshot } from '@angular/router';
+import { ActivatedRouteSnapshot, CanActivateChild, RouterStateSnapshot } from '@angular/router';
 import { AuthenticationService } from './authentication.service';
 
 @Injectable({
@@ -8,14 +8,13 @@ import { AuthenticationService } from './authentication.service';
 export class AuthGuardService implements CanActivateChild {
 
   constructor(
-    private auth: AuthenticationService,
-    private router: Router
+    private auth: AuthenticationService
   ) { }
 
   canActivateChild(childRoute: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean {
     let authenticated = this.auth.isAuthenticated()
     if (!authenticated) {
-      this.router.navigate(['login'], { state: { errorType: 'expired' } });
+      this.auth.logoutAndRedirectExpired();
       return false;
     }
     return true;

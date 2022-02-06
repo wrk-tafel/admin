@@ -44,9 +44,8 @@ import { ChartsModule } from 'ng2-charts';
 import { JwtHelperService, JWT_OPTIONS } from '@auth0/angular-jwt';
 import { HttpClientModule, HttpClientXsrfModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { ApiPathInterceptor } from './common/http/apipath-interceptor.service';
-import { AuthorizationHeaderInterceptor } from './common/http/auth-header-interceptor.service';
+import { AuthenticationInterceptor } from './common/http/authentication-interceptor.service';
 import { AppConfigService } from './common/config/appconfig.service';
-import { cibWindows } from '@coreui/icons';
 
 const appInitializerFn = (appConfig: AppConfigService) => {
   return () => {
@@ -103,7 +102,7 @@ const appInitializerFn = (appConfig: AppConfigService) => {
     },
     {
       provide: HTTP_INTERCEPTORS,
-      useClass: AuthorizationHeaderInterceptor,
+      useClass: AuthenticationInterceptor,
       multi: true
     }
   ],

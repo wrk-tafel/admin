@@ -1,13 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 
-import { AuthorizationHeaderInterceptor } from './auth-header-interceptor.service';
+import { AuthenticationInterceptor } from './authentication-interceptor.service';
 
 describe('JwtTokenInterceptor', () => {
-  let service: AuthorizationHeaderInterceptor;
+  let service: AuthenticationInterceptor;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(AuthorizationHeaderInterceptor);
+    service = TestBed.inject(AuthenticationInterceptor);
   });
 
   it('should be created', () => {
