@@ -8,7 +8,7 @@ import { AuthenticationInterceptor } from './authentication-interceptor.service'
 describe('AuthenticationInterceptor', () => {
   let client: HttpClient
   let httpMock: HttpTestingController
-  let authServiceSpy: jasmine.SpyObj<AuthenticationService>;
+  let authServiceSpy: jasmine.SpyObj<AuthenticationService>
 
   beforeEach(() => {
     const spy = jasmine.createSpyObj('AuthenticationService', ['isAuthenticated', 'getToken']);
