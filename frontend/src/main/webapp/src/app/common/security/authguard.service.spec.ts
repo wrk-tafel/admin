@@ -2,16 +2,29 @@ import { TestBed } from '@angular/core/testing';
 import { AuthGuardService } from './authguard.service';
 
 describe('AuthGuardService', () => {
-  let service: AuthGuardService;
+  function setup() {
+    const authServiceSpy =
+      jasmine.createSpyObj('AuthenticationService', ['isAuthenticated', 'logoutAndRedirectExpired']);
+    const service = new AuthGuardService(authServiceSpy);
+    return { service, authServiceSpy };
+  }
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({});
-    service = TestBed.inject(AuthGuardService);
+  it('canActivate when authenticated', () => {
+    const { service, authServiceSpy } = setup();
+    authServiceSpy.isAuthenticated.and.returnValue(true)
+
+    let canActivate = service.canActivateChild(null, null)
+    expect(canActivate).toBeTrue()
   });
 
-  it('should be created', () => {
-    expect(service).toBeTruthy();
+
+  it('canActivate when not authenticated', () => {
+    const { service, authServiceSpy } = setup();
+    authServiceSpy.isAuthenticated.and.returnValue(false)
+
+    let canActivate = service.canActivateChild(null, null)
+    expect(canActivate).toBeFalse()
+    expect(authServiceSpy.logoutAndRedirectExpired).toHaveBeenCalled()
   });
+
 });
-
-// TODO
