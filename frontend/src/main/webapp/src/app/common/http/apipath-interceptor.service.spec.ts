@@ -29,6 +29,7 @@ describe('ApiPathInterceptor', () => {
     client.get('/test').subscribe()
 
     httpMock.expectOne('/api/test')
+    expect().nothing()
   });
 
   it('should add the api path when under subpath', () => {
@@ -39,6 +40,7 @@ describe('ApiPathInterceptor', () => {
     client.get('/test').subscribe()
 
     httpMock.expectOne('/mypath/api/test')
+    expect().nothing()
   });
 
 });

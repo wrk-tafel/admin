@@ -11,8 +11,6 @@ describe('AuthenticationService', () => {
   });
 
   it('should be created', () => {
-
+    // TODO
   });
 });
-
-// TODO
