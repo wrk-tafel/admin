@@ -14,11 +14,13 @@ export class PermissionGuardService implements CanActivateChild {
 
   canActivateChild(route: ActivatedRouteSnapshot): boolean {
     const expectedPermission = route.data.expectedPermission;
-    if (!this.auth.hasRole(expectedPermission)) {
-      this.router.navigate(['dashboard']);
-      return false;
+    if (expectedPermission != null && this.auth.hasRole(expectedPermission)) {
+      return true;
+
     }
-    return true;
+
+    this.router.navigate(['dashboard']);
+    return false;
   }
 
 }
