@@ -32,7 +32,7 @@ describe('ApiPathInterceptor', () => {
   });
 
   it('should add the api path when under subpath', () => {
-    TestBed.overrideProvider(Window, { useValue: { location: { pathname: '/mypath' } } })
+    TestBed.overrideProvider(Window, { useValue: { location: { pathname: '/mypath/' } } })
     let client = TestBed.inject(HttpClient)
     let httpMock = TestBed.inject(HttpTestingController);
 
