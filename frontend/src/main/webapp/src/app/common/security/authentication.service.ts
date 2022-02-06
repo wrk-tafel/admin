@@ -16,17 +16,18 @@ export class AuthenticationService {
     private router: Router
   ) { }
 
-  public login(username: string, password: string) {
-    this.executeLoginRequest(username, password)
-      .subscribe(response => {
+  public async login(username: string, password: string): Promise<boolean> {
+    return await this.executeLoginRequest(username, password)
+      .then(response => {
         this.storeToken(response)
-        this.router.navigate(['dashboard'])
+        return true
       })
-
-    // TODO errorhandling
+      .catch(() => {
+        return false
+      })
   }
 
-  public logout() {
+  public logoutAndRedirect() {
     this.removeToken()
     this.router.navigate(['login'])
   }
@@ -59,13 +60,17 @@ export class AuthenticationService {
     return this.readToken()
   }
 
+  public removeToken() {
+    localStorage.removeItem(this.LOCAL_STORAGE_TOKEN_KEY)
+  }
+
   private executeLoginRequest(username: string, password: string) {
     let body = new URLSearchParams();
     body.set("username", username);
     body.set("password", password);
 
     let options = { headers: new HttpHeaders().set("Content-Type", "application/x-www-form-urlencoded") }
-    return this.http.post<LoginResponse>("/login", body.toString(), options);
+    return this.http.post<LoginResponse>("/login", body.toString(), options).toPromise()
   }
 
   private storeToken(response: LoginResponse) {
@@ -74,10 +79,6 @@ export class AuthenticationService {
 
   private readToken(): string {
     return localStorage.getItem(this.LOCAL_STORAGE_TOKEN_KEY)
-  }
-
-  private removeToken() {
-    localStorage.removeItem(this.LOCAL_STORAGE_TOKEN_KEY)
   }
 
 }

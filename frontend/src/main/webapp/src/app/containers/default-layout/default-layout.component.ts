@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { Router } from '@angular/router';
 import { AuthenticationService } from '../../common/security/authentication.service';
 import { navItems } from '../../_nav';
 
@@ -11,7 +12,8 @@ export class DefaultLayoutComponent {
   public navItems = navItems;
 
   constructor(
-    private auth: AuthenticationService
+    private auth: AuthenticationService,
+    private router: Router
   ) { }
 
   toggleMinimize(e) {
@@ -19,7 +21,7 @@ export class DefaultLayoutComponent {
   }
 
   public onLogout() {
-    this.auth.logout()
+    this.auth.logoutAndRedirect()
   }
 
 }

@@ -1,4 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
+import { parseMessage } from '@angular/localize/src/utils';
+import { ActivatedRoute, Params, Router } from '@angular/router';
 import { AuthenticationService } from '../../common/security/authentication.service';
 
 @Component({
@@ -7,15 +9,29 @@ import { AuthenticationService } from '../../common/security/authentication.serv
 })
 export class LoginComponent {
 
+  @Input() errorMsg: String
+
   constructor(
-    private auth: AuthenticationService
+    private auth: AuthenticationService,
+    private router: Router
   ) {
-    // just for safety - logout when loginpage is opened
-    auth.logout()
+    // just for safety - remove token on loginpage
+    auth.removeToken()
+
+    const errorType = this.router.getCurrentNavigation()?.extras?.state?.errorType;
+    if (errorType === "expired") {
+      this.errorMsg = "Sitzung abgelaufen! Bitte erneut anmelden.";
+    }
   }
 
-  onClickSubmit(data: LoginFormData) {
-    this.auth.login(data.username, data.password)
+  async onClickSubmit(data: LoginFormData) {
+    let successful = await this.auth.login(data.username, data.password)
+    if (successful) {
+      this.router.navigate(['dashboard'])
+    }
+    else {
+      this.errorMsg = "Anmeldung fehlgeschlagen!"
+    }
   }
 
 }
