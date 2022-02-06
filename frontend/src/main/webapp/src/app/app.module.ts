@@ -104,8 +104,13 @@ const appInitializerFn = (appConfig: AppConfigService) => {
       provide: HTTP_INTERCEPTORS,
       useClass: AuthenticationInterceptor,
       multi: true
+    },
+    {
+      provide: Window,
+      useValue: window
     }
   ],
   bootstrap: [AppComponent]
 })
+
 export class AppModule { }

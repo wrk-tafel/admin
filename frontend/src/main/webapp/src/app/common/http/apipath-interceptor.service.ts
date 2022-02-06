@@ -7,10 +7,10 @@ import { Observable } from 'rxjs';
 })
 export class ApiPathInterceptor implements HttpInterceptor {
 
-  constructor() { }
+  constructor(private window: Window) { }
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    let apiPath = `${window.location.pathname}api${req.url}`.replaceAll("//", "/")
+    let apiPath = `${this.window.location.pathname}api${req.url}`.replaceAll("//", "/")
     let modRequest = req.clone({ url: apiPath });
     return next.handle(modRequest);
   }
