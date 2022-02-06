@@ -1,5 +1,4 @@
 import { Component } from '@angular/core';
-import { Router } from '@angular/router';
 import { AuthenticationService } from '../../common/security/authentication.service';
 import { navItems } from '../../_nav';
 
@@ -12,8 +11,7 @@ export class DefaultLayoutComponent {
   public navItems = navItems;
 
   constructor(
-    private auth: AuthenticationService,
-    private router: Router
+    private auth: AuthenticationService
   ) { }
 
   toggleMinimize(e) {

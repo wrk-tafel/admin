@@ -1,6 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { parseMessage } from '@angular/localize/src/utils';
-import { ActivatedRoute, Params, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { AuthenticationService } from '../../common/security/authentication.service';
 
 @Component({

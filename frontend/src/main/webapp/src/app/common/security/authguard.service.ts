@@ -15,7 +15,7 @@ export class AuthGuardService implements CanActivateChild {
   canActivateChild(childRoute: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean {
     let authenticated = this.auth.isAuthenticated()
     if (!authenticated) {
-      this.router.navigate(['login']);
+      this.router.navigate(['login'], { state: { errorType: 'expired' } });
       return false;
     }
     return true;
