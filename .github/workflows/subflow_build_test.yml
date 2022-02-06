@@ -52,6 +52,6 @@ jobs:
           distribution: ${{ env.JAVA_DISTRIBUTION }}
           cache: 'maven'
       - name: Run tests
-        run: echo "TODO test TODO" # ./mvnw test
+        run: ./mvnw test
 
 # TODO e2e-test
