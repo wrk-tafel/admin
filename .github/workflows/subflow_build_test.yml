@@ -52,7 +52,7 @@ jobs:
           name: backend-codecoverage-report
           path: ./backend/target/site/jacoco/
           if-no-files-found: error
-          retention-days: 1
+          retention-days: 14
 
   test-frontend:
     runs-on: ubuntu-latest
@@ -73,6 +73,6 @@ jobs:
           name: frontend-codecoverage-report
           path: ./frontend/src/main/webapp/coverage/
           if-no-files-found: error
-          retention-days: 1
+          retention-days: 14
 
 # TODO e2e-test
