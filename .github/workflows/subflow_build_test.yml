@@ -53,5 +53,11 @@ jobs:
           cache: 'maven'
       - name: Run tests
         run: ./mvnw test
+      - uses: actions/upload-artifact@v2
+          with:
+            name: frontend-codeverage-report
+            path: ./frontend/src/main/webapp/coverage
+            if-no-files-found: error
+            retention-days: 1
 
 # TODO e2e-test
