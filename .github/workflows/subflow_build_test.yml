@@ -47,6 +47,7 @@ jobs:
       - name: Run tests
         run: ./mvnw -pl backend test
       - uses: actions/upload-artifact@v2
+        if: always()
         with:
           name: backend-codecoverage-report
           path: ./backend/target/site/jacoco/
@@ -67,6 +68,7 @@ jobs:
       - name: Run tests
         run: ./mvnw -pl frontend test
       - uses: actions/upload-artifact@v2
+        if: always()
         with:
           name: frontend-codecoverage-report
           path: ./frontend/src/main/webapp/coverage/
