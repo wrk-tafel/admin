@@ -1,5 +1,4 @@
 import { ActivatedRouteSnapshot } from '@angular/router';
-import { map } from 'rxjs/operators';
 import { PermissionGuardService } from './permissionguard.service';
 
 describe('PermissionGuardService', () => {
