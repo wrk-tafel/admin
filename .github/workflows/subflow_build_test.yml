@@ -55,8 +55,14 @@ jobs:
         run: ./mvnw test
       - uses: actions/upload-artifact@v2
         with:
-          name: frontend-codeverage-report
-          path: ./frontend/src/main/webapp/coverage
+          name: backend-codecoverage-report
+          path: ./backend/target/site/jacoco/
+          if-no-files-found: error
+          retention-days: 1
+      - uses: actions/upload-artifact@v2
+        with:
+          name: frontend-codecoverage-report
+          path: ./frontend/src/main/webapp/coverage/
           if-no-files-found: error
           retention-days: 1
 
