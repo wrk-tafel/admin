@@ -23,6 +23,7 @@ export class AuthenticationService {
         return true
       })
       .catch(() => {
+        this.removeToken()
         return false
       })
   }
@@ -33,6 +34,7 @@ export class AuthenticationService {
   }
 
   public logoutAndRedirectExpired() {
+    this.removeToken()
     this.router.navigate(['login'], { state: { errorType: 'expired' } });
   }
 
@@ -53,11 +55,15 @@ export class AuthenticationService {
   public hasRole(role: string): boolean {
     let token = this.jwtHelper.decodeToken<JwtToken>(this.readToken())
 
-    let index = token.roles.findIndex(element => {
-      return element.toLowerCase() === role.toLowerCase();
-    });
+    if (token.roles != null) {
+      let index = token.roles.findIndex(element => {
+        return element.toLowerCase() === role.toLowerCase();
+      });
 
-    return index !== -1
+      return index !== -1
+    }
+
+    return false
   }
 
   public getToken(): string {

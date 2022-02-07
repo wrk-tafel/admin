@@ -17,8 +17,8 @@ describe('AuthenticationService', () => {
   let service: AuthenticationService
 
   beforeEach(() => {
-    const jwtHelperSpy = jasmine.createSpyObj('JwtHelperService', ['TODO']);
-    const routerSpy = jasmine.createSpyObj('Router', ['TODO']);
+    const jwtHelperSpy = jasmine.createSpyObj('JwtHelperService', ['isTokenExpired', 'decodeToken']);
+    const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
 
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
@@ -46,8 +46,8 @@ describe('AuthenticationService', () => {
   it('login successful', () => {
     localStorage.removeItem(LOCAL_STORAGE_TOKEN_KEY)
 
-    service.login("USER", "PWD").then(response => {
-      expect(localStorage.getItem(LOCAL_STORAGE_TOKEN_KEY)).toBe("TOKENVALUE")
+    service.login('USER', 'PWD').then(response => {
+      expect(localStorage.getItem(LOCAL_STORAGE_TOKEN_KEY)).toBe('TOKENVALUE')
       expect(response).toBeTrue()
     })
 
@@ -60,4 +60,138 @@ describe('AuthenticationService', () => {
     mockReq.flush(data, mockErrorResponse)
   });
 
+  it('login failed', () => {
+    localStorage.setItem(LOCAL_STORAGE_TOKEN_KEY, 'OLDVALUE')
+
+    service.login('USER', 'PWD').then(response => {
+      expect(localStorage.getItem(LOCAL_STORAGE_TOKEN_KEY)).toBeNull()
+      expect(response).toBeFalse()
+    })
+
+    let mockReq = httpMock.expectOne('/login')
+    expect(mockReq.request.method).toBe('POST')
+    expect(mockReq.request.body).toBe('username=USER&password=PWD')
+
+    const mockErrorResponse = { status: 403, statusText: 'Forbidden' };
+    mockReq.flush(null, mockErrorResponse)
+  });
+
+  it('logoutAndRedirect', () => {
+    localStorage.setItem(LOCAL_STORAGE_TOKEN_KEY, 'OLDVALUE')
+
+    service.logoutAndRedirect()
+
+    expect(localStorage.getItem(LOCAL_STORAGE_TOKEN_KEY)).toBeNull()
+    expect(router.navigate).toHaveBeenCalledWith(['login'])
+  });
+
+  it('logoutAndRedirectExpired', () => {
+    localStorage.setItem(LOCAL_STORAGE_TOKEN_KEY, 'OLDVALUE')
+
+    service.logoutAndRedirectExpired()
+
+    expect(localStorage.getItem(LOCAL_STORAGE_TOKEN_KEY)).toBeNull()
+    expect(router.navigate).toHaveBeenCalledWith(['login'], { state: { errorType: 'expired' } })
+  });
+
+  it('isAuthenticated - token set and valid', () => {
+    localStorage.setItem(LOCAL_STORAGE_TOKEN_KEY, 'TOKENVALUE')
+    jwtHelper.isTokenExpired.and.returnValue(false)
+
+    let isAuthenticated = service.isAuthenticated()
+
+    expect(isAuthenticated).toBeTrue()
+  });
+
+  it('isAuthenticated - token set but invalid', () => {
+    localStorage.setItem(LOCAL_STORAGE_TOKEN_KEY, 'TOKENVALUE')
+    jwtHelper.isTokenExpired.and.returnValue(true)
+
+    let isAuthenticated = service.isAuthenticated()
+
+    expect(isAuthenticated).toBeFalse()
+    expect(localStorage.getItem(LOCAL_STORAGE_TOKEN_KEY)).toBeNull()
+  });
+
+  it('isAuthenticated - token not set', () => {
+    localStorage.removeItem(LOCAL_STORAGE_TOKEN_KEY)
+
+    let isAuthenticated = service.isAuthenticated()
+
+    expect(isAuthenticated).toBeFalse()
+    expect(jwtHelper.isTokenExpired).not.toHaveBeenCalled()
+  });
+
+  it('hasRole - role exists', () => {
+    localStorage.setItem(LOCAL_STORAGE_TOKEN_KEY, 'TOKENVALUE')
+    jwtHelper.decodeToken.and.returnValue(<JwtToken>{ roles: ['ROLE1'] })
+
+    let hasRole = service.hasRole('ROLE1')
+
+    expect(hasRole).toBeTrue()
+  });
+
+  it('hasRole - role doesnt exist', () => {
+    localStorage.setItem(LOCAL_STORAGE_TOKEN_KEY, 'TOKENVALUE')
+    jwtHelper.decodeToken.and.returnValue(<JwtToken>{ roles: ['ROLE2'] })
+
+    let hasRole = service.hasRole('ROLE1')
+
+    expect(hasRole).toBeFalse()
+  });
+
+  it('hasRole - no roles given', () => {
+    localStorage.setItem(LOCAL_STORAGE_TOKEN_KEY, 'TOKENVALUE')
+    jwtHelper.decodeToken.and.returnValue(<JwtToken>{ roles: [] })
+
+    let hasRole = service.hasRole('ROLE1')
+
+    expect(hasRole).toBeFalse()
+  });
+
+  it('hasRole - no roles field defined', () => {
+    localStorage.setItem(LOCAL_STORAGE_TOKEN_KEY, 'TOKENVALUE')
+    jwtHelper.decodeToken.and.returnValue(<JwtToken>{})
+
+    let hasRole = service.hasRole('ROLE1')
+
+    expect(hasRole).toBeFalse()
+  });
+
+  it('getToken - exists', () => {
+    localStorage.setItem(LOCAL_STORAGE_TOKEN_KEY, 'TOKENVALUE')
+
+    let token = service.getToken()
+
+    expect(token).toBe('TOKENVALUE')
+  });
+
+  it('getToken - not existing', () => {
+    localStorage.removeItem(LOCAL_STORAGE_TOKEN_KEY)
+
+    let token = service.getToken()
+
+    expect(token).toBeNull()
+  });
+
+  it('removeToken - exists', () => {
+    localStorage.setItem(LOCAL_STORAGE_TOKEN_KEY, 'VALUE')
+
+    service.removeToken()
+
+    expect(localStorage.getItem(LOCAL_STORAGE_TOKEN_KEY)).toBeNull()
+  });
+
+  it('removeToken - not existing', () => {
+    localStorage.removeItem(LOCAL_STORAGE_TOKEN_KEY)
+
+    service.removeToken()
+
+    expect(localStorage.getItem(LOCAL_STORAGE_TOKEN_KEY)).toBeNull()
+  });
+
 });
+
+type JwtToken = {
+  roles: string[]
+}
