@@ -76,8 +76,9 @@ describe('AuthenticationService', () => {
     mockReq.flush(null, mockErrorResponse);
   });
 
-  it('logoutAndRedirect', () => {
-    localStorage.setItem(LOCAL_STORAGE_TOKEN_KEY, 'OLDVALUE');
+  it('logoutAndRedirect - token set and valid', () => {
+    localStorage.setItem(LOCAL_STORAGE_TOKEN_KEY, 'TOKENVALUE');
+    jwtHelper.isTokenExpired.and.returnValue(false);
 
     service.logoutAndRedirect();
 
@@ -85,13 +86,22 @@ describe('AuthenticationService', () => {
     expect(router.navigate).toHaveBeenCalledWith(['login']);
   });
 
-  it('logoutAndRedirectExpired', () => {
-    localStorage.setItem(LOCAL_STORAGE_TOKEN_KEY, 'OLDVALUE');
+  it('logoutAndRedirect - expired token', () => {
+    localStorage.setItem(LOCAL_STORAGE_TOKEN_KEY, 'TOKENVALUE');
+    jwtHelper.isTokenExpired.and.returnValue(true);
 
-    service.logoutAndRedirectExpired();
+    service.logoutAndRedirect();
 
     expect(localStorage.getItem(LOCAL_STORAGE_TOKEN_KEY)).toBeNull();
     expect(router.navigate).toHaveBeenCalledWith(['login'], { state: { errorType: 'expired' } });
+  });
+
+  it('logoutAndRedirect - token not set', () => {
+    localStorage.removeItem(LOCAL_STORAGE_TOKEN_KEY);
+
+    service.logoutAndRedirect();
+
+    expect(router.navigate).toHaveBeenCalledWith(['login']);
   });
 
   it('isAuthenticated - token set and valid', () => {
@@ -110,7 +120,6 @@ describe('AuthenticationService', () => {
     const isAuthenticated = service.isAuthenticated();
 
     expect(isAuthenticated).toBeFalse();
-    expect(localStorage.getItem(LOCAL_STORAGE_TOKEN_KEY)).toBeNull();
   });
 
   it('isAuthenticated - token not set', () => {

@@ -28,30 +28,28 @@ export class AuthenticationService {
   }
 
   public logoutAndRedirect() {
-    this.removeToken();
-    this.router.navigate(['login']);
-  }
-
-  public logoutAndRedirectExpired() {
-    this.removeToken();
-    this.router.navigate(['login'], { state: { errorType: 'expired' } });
-  }
-
-  public isAuthenticated(): boolean {
-    const token = this.readToken();
+    const token = this.getToken();
     if (token !== null) {
       const expired = this.jwtHelper.isTokenExpired(token);
       if (expired) {
         this.removeToken();
+        this.router.navigate(['login'], { state: { errorType: 'expired' } });
       } else {
-        return true;
+        this.removeToken();
+        this.router.navigate(['login']);
       }
+    } else {
+      this.router.navigate(['login']);
     }
-    return false;
+  }
+
+  public isAuthenticated(): boolean {
+    const token = this.getToken();
+    return token !== null && !this.jwtHelper.isTokenExpired(token);
   }
 
   public hasRole(role: string): boolean {
-    const token = this.jwtHelper.decodeToken<JwtToken>(this.readToken());
+    const token = this.jwtHelper.decodeToken<JwtToken>(this.getToken());
 
     if (token.roles != null) {
       const index = token.roles.findIndex(element => {
@@ -65,7 +63,7 @@ export class AuthenticationService {
   }
 
   public getToken(): string {
-    return this.readToken();
+    return localStorage.getItem(this.LOCAL_STORAGE_TOKEN_KEY);
   }
 
   public removeToken() {
@@ -83,10 +81,6 @@ export class AuthenticationService {
 
   private storeToken(response: LoginResponse) {
     localStorage.setItem(this.LOCAL_STORAGE_TOKEN_KEY, response.token);
-  }
-
-  private readToken(): string {
-    return localStorage.getItem(this.LOCAL_STORAGE_TOKEN_KEY);
   }
 
 }

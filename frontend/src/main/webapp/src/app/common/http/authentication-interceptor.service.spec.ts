@@ -22,7 +22,7 @@ describe('AuthenticationInterceptor', () => {
         },
         {
           provide: AuthenticationService,
-          useValue: jasmine.createSpyObj('AuthenticationService', ['getToken', 'logoutAndRedirectExpired'])
+          useValue: jasmine.createSpyObj('AuthenticationService', ['getToken', 'logoutAndRedirect'])
         }
       ],
     });
@@ -54,7 +54,7 @@ describe('AuthenticationInterceptor', () => {
     authServiceSpy.getToken.and.returnValue('TOKENVALUE-EXPIRED');
 
     client.get('/test').subscribe(() => { }, err => {
-      expect(authServiceSpy.logoutAndRedirectExpired).toHaveBeenCalled();
+      expect(authServiceSpy.logoutAndRedirect).toHaveBeenCalled();
     });
 
     const mockReq = httpMock.expectOne('/test');

@@ -27,7 +27,7 @@ export class AuthenticationInterceptor implements HttpInterceptor {
 
   private handleAuthError(err: HttpErrorResponse): Observable<any> {
     if (err.status === 401 || err.status === 403) {
-      this.auth.logoutAndRedirectExpired();
+      this.auth.logoutAndRedirect();
     }
     return throwError(err);
   }

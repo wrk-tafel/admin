@@ -3,7 +3,7 @@ import { AuthGuardService } from './authguard.service';
 describe('AuthGuardService', () => {
   function setup() {
     const authServiceSpy =
-      jasmine.createSpyObj('AuthenticationService', ['isAuthenticated', 'logoutAndRedirectExpired']);
+      jasmine.createSpyObj('AuthenticationService', ['isAuthenticated', 'logoutAndRedirect']);
     const service = new AuthGuardService(authServiceSpy);
     return { service, authServiceSpy };
   }
@@ -13,6 +13,7 @@ describe('AuthGuardService', () => {
     authServiceSpy.isAuthenticated.and.returnValue(true);
 
     const canActivate = service.canActivateChild(null, null);
+
     expect(canActivate).toBeTrue();
   });
 
@@ -22,8 +23,9 @@ describe('AuthGuardService', () => {
     authServiceSpy.isAuthenticated.and.returnValue(false);
 
     const canActivate = service.canActivateChild(null, null);
+
     expect(canActivate).toBeFalse();
-    expect(authServiceSpy.logoutAndRedirectExpired).toHaveBeenCalled();
+    expect(authServiceSpy.logoutAndRedirect).toHaveBeenCalled();
   });
 
 });
