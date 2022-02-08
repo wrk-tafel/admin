@@ -13,47 +13,47 @@ describe('PermissionGuardService', () => {
 
   it('canActivate - not authenticated and no permission needed', () => {
     const { service, authServiceSpy, routerSpy } = setup();
-    authServiceSpy.hasRole.and.returnValue(false)
+    authServiceSpy.hasRole.and.returnValue(false);
 
-    let activatedRoute = <ActivatedRouteSnapshot>{ data: {} }
-    let canActivate = service.canActivateChild(activatedRoute)
+    const activatedRoute = <ActivatedRouteSnapshot>{ data: {} };
+    const canActivate = service.canActivateChild(activatedRoute);
 
-    expect(canActivate).toBeFalse()
-    expect(routerSpy.navigate).toHaveBeenCalledWith(['dashboard'])
+    expect(canActivate).toBeFalse();
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['dashboard']);
   });
 
   it('canActivate - not authenticated and permission needed', () => {
     const { service, authServiceSpy, routerSpy } = setup();
-    authServiceSpy.hasRole.and.returnValue(false)
+    authServiceSpy.hasRole.and.returnValue(false);
 
-    let activatedRoute = <any>{ data: { expectedPermission: 'PERM1' } }
-    let canActivate = service.canActivateChild(activatedRoute)
+    const activatedRoute = <any>{ data: { expectedPermission: 'PERM1' } };
+    const canActivate = service.canActivateChild(activatedRoute);
 
-    expect(canActivate).toBeFalse()
-    expect(routerSpy.navigate).toHaveBeenCalledWith(['dashboard'])
+    expect(canActivate).toBeFalse();
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['dashboard']);
   });
 
   it('canActivate - authenticated and permission needed', () => {
     const { service, authServiceSpy, routerSpy } = setup();
-    authServiceSpy.hasRole.and.returnValue(true)
+    authServiceSpy.hasRole.and.returnValue(true);
 
-    let activatedRoute = <any>{ data: { expectedPermission: 'PERM1' } }
-    let canActivate = service.canActivateChild(activatedRoute)
+    const activatedRoute = <any>{ data: { expectedPermission: 'PERM1' } };
+    const canActivate = service.canActivateChild(activatedRoute);
 
-    expect(canActivate).toBeTrue()
-    expect(authServiceSpy.hasRole).toHaveBeenCalledWith('PERM1')
-    expect(routerSpy.navigate).not.toHaveBeenCalled()
+    expect(canActivate).toBeTrue();
+    expect(authServiceSpy.hasRole).toHaveBeenCalledWith('PERM1');
+    expect(routerSpy.navigate).not.toHaveBeenCalled();
   });
 
   it('canActivate - authenticated and no permission needed', () => {
     const { service, authServiceSpy, routerSpy } = setup();
-    authServiceSpy.hasRole.and.returnValue(true)
+    authServiceSpy.hasRole.and.returnValue(true);
 
-    let activatedRoute = <any>{ data: {} }
-    let canActivate = service.canActivateChild(activatedRoute)
+    const activatedRoute = <any>{ data: {} };
+    const canActivate = service.canActivateChild(activatedRoute);
 
-    expect(canActivate).toBeFalse()
-    expect(routerSpy.navigate).toHaveBeenCalled()
+    expect(canActivate).toBeFalse();
+    expect(routerSpy.navigate).toHaveBeenCalled();
   });
 
 });

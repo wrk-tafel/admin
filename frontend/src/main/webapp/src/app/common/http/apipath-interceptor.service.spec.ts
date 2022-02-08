@@ -22,25 +22,25 @@ describe('ApiPathInterceptor', () => {
   });
 
   it('should add the api path when under rootpath', () => {
-    TestBed.overrideProvider(Window, { useValue: { location: { pathname: '/' } } })
-    let client = TestBed.inject(HttpClient)
-    let httpMock = TestBed.inject(HttpTestingController);
+    TestBed.overrideProvider(Window, { useValue: { location: { pathname: '/' } } });
+    const client = TestBed.inject(HttpClient);
+    const httpMock = TestBed.inject(HttpTestingController);
 
-    client.get('/test').subscribe()
+    client.get('/test').subscribe();
 
-    httpMock.expectOne('/api/test')
-    expect().nothing()
+    httpMock.expectOne('/api/test');
+    expect().nothing();
   });
 
   it('should add the api path when under subpath', () => {
-    TestBed.overrideProvider(Window, { useValue: { location: { pathname: '/mypath/' } } })
-    let client = TestBed.inject(HttpClient)
-    let httpMock = TestBed.inject(HttpTestingController);
+    TestBed.overrideProvider(Window, { useValue: { location: { pathname: '/mypath/' } } });
+    const client = TestBed.inject(HttpClient);
+    const httpMock = TestBed.inject(HttpTestingController);
 
-    client.get('/test').subscribe()
+    client.get('/test').subscribe();
 
-    httpMock.expectOne('/mypath/api/test')
-    expect().nothing()
+    httpMock.expectOne('/mypath/api/test');
+    expect().nothing();
   });
 
 });

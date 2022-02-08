@@ -15,7 +15,7 @@ export class LoginComponent {
     private router: Router
   ) {
     // just for safety - remove token on loginpage
-    auth.removeToken()
+    auth.removeToken();
 
     const errorType = this.router.getCurrentNavigation()?.extras?.state?.errorType;
     if (errorType === "expired") {
@@ -24,12 +24,11 @@ export class LoginComponent {
   }
 
   async onClickSubmit(data: LoginFormData) {
-    let successful = await this.auth.login(data.username, data.password)
+    const successful = await this.auth.login(data.username, data.password);
     if (successful) {
-      this.router.navigate(['dashboard'])
-    }
-    else {
-      this.errorMsg = "Anmeldung fehlgeschlagen!"
+      this.router.navigate(['dashboard']);
+    } else {
+      this.errorMsg = "Anmeldung fehlgeschlagen!";
     }
   }
 

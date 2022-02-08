@@ -10,20 +10,20 @@ describe('AuthGuardService', () => {
 
   it('canActivate when authenticated', () => {
     const { service, authServiceSpy } = setup();
-    authServiceSpy.isAuthenticated.and.returnValue(true)
+    authServiceSpy.isAuthenticated.and.returnValue(true);
 
-    let canActivate = service.canActivateChild(null, null)
-    expect(canActivate).toBeTrue()
+    const canActivate = service.canActivateChild(null, null);
+    expect(canActivate).toBeTrue();
   });
 
 
   it('canActivate when not authenticated', () => {
     const { service, authServiceSpy } = setup();
-    authServiceSpy.isAuthenticated.and.returnValue(false)
+    authServiceSpy.isAuthenticated.and.returnValue(false);
 
-    let canActivate = service.canActivateChild(null, null)
-    expect(canActivate).toBeFalse()
-    expect(authServiceSpy.logoutAndRedirectExpired).toHaveBeenCalled()
+    const canActivate = service.canActivateChild(null, null);
+    expect(canActivate).toBeFalse();
+    expect(authServiceSpy.logoutAndRedirectExpired).toHaveBeenCalled();
   });
 
 });

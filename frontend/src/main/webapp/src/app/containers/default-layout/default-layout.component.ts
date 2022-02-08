@@ -19,7 +19,7 @@ export class DefaultLayoutComponent {
   }
 
   public onLogout() {
-    this.auth.logoutAndRedirect()
+    this.auth.logoutAndRedirect();
   }
 
 }

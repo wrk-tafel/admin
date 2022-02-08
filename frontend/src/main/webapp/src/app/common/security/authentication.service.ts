@@ -8,7 +8,7 @@ import { JwtHelperService } from '@auth0/angular-jwt';
 })
 export class AuthenticationService {
 
-  private LOCAL_STORAGE_TOKEN_KEY: string = "JWT_TOKEN"
+  private LOCAL_STORAGE_TOKEN_KEY: string = 'JWT_TOKEN'
 
   constructor(
     private jwtHelper: JwtHelperService,
@@ -19,76 +19,76 @@ export class AuthenticationService {
   public async login(username: string, password: string): Promise<boolean> {
     return await this.executeLoginRequest(username, password)
       .then(response => {
-        this.storeToken(response)
-        return true
+        this.storeToken(response);
+        return true;
       })
       .catch(() => {
-        this.removeToken()
-        return false
-      })
+        this.removeToken();
+        return false;
+      });
   }
 
   public logoutAndRedirect() {
-    this.removeToken()
-    this.router.navigate(['login'])
+    this.removeToken();
+    this.router.navigate(['login']);
   }
 
   public logoutAndRedirectExpired() {
-    this.removeToken()
+    this.removeToken();
     this.router.navigate(['login'], { state: { errorType: 'expired' } });
   }
 
   public isAuthenticated(): boolean {
-    let token = this.readToken()
+    const token = this.readToken();
     if (token !== null) {
-      let expired = this.jwtHelper.isTokenExpired(token)
+      const expired = this.jwtHelper.isTokenExpired(token);
       if (expired) {
-        this.removeToken()
+        this.removeToken();
       }
       else {
-        return true
+        return true;
       }
     }
-    return false
+    return false;
   }
 
   public hasRole(role: string): boolean {
-    let token = this.jwtHelper.decodeToken<JwtToken>(this.readToken())
+    const token = this.jwtHelper.decodeToken<JwtToken>(this.readToken());
 
     if (token.roles != null) {
-      let index = token.roles.findIndex(element => {
+      const index = token.roles.findIndex(element => {
         return element.toLowerCase() === role.toLowerCase();
       });
 
-      return index !== -1
+      return index !== -1;
     }
 
-    return false
+    return false;
   }
 
   public getToken(): string {
-    return this.readToken()
+    return this.readToken();
   }
 
   public removeToken() {
-    localStorage.removeItem(this.LOCAL_STORAGE_TOKEN_KEY)
+    localStorage.removeItem(this.LOCAL_STORAGE_TOKEN_KEY);
   }
 
   private executeLoginRequest(username: string, password: string) {
     let body = new URLSearchParams();
-    body.set("username", username);
-    body.set("password", password);
+    body.set('username', username);
+    body.set('password', password);
 
-    let options = { headers: new HttpHeaders().set("Content-Type", "application/x-www-form-urlencoded") }
-    return this.http.post<LoginResponse>("/login", body.toString(), options).toPromise()
+    const options = { headers: new HttpHeaders().set('Content-Type', 'application/x-www-form-urlencoded') };
+    return this.http.post<LoginResponse>('/login', body.toString(), options).toPromise();
   }
 
   private storeToken(response: LoginResponse) {
-    localStorage.setItem(this.LOCAL_STORAGE_TOKEN_KEY, response.token)
+    localStorage.setItem(this.LOCAL_STORAGE_TOKEN_KEY, response.token);
   }
 
   private readToken(): string {
-    return localStorage.getItem(this.LOCAL_STORAGE_TOKEN_KEY)
+    return localStorage.getItem(this.LOCAL_STORAGE_TOKEN_KEY);
   }
 
 }
