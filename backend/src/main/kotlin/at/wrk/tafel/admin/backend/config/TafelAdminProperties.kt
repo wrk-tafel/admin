@@ -5,6 +5,4 @@ import org.springframework.boot.context.properties.ConstructorBinding
 
 @ConfigurationProperties(prefix = "tafeladmin")
 @ConstructorBinding
-data class TafelAdminProperties(
-    val baseUrl: String?
-)
+class TafelAdminProperties

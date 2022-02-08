@@ -19,4 +19,3 @@ security:
     expirationTimeInSeconds: 36000 # 10 hours
 
 tafeladmin:
-#  baseUrl: https://host:port:/path # in case of reverse proxy

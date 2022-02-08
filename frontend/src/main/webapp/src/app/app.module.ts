@@ -1,5 +1,5 @@
 import { BrowserModule } from '@angular/platform-browser';
-import { APP_INITIALIZER, NgModule } from '@angular/core';
+import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { LocationStrategy, HashLocationStrategy, APP_BASE_HREF } from '@angular/common';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
@@ -45,13 +45,6 @@ import { JwtHelperService, JWT_OPTIONS } from '@auth0/angular-jwt';
 import { HttpClientModule, HttpClientXsrfModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { ApiPathInterceptor } from './common/http/apipath-interceptor.service';
 import { AuthenticationInterceptor } from './common/http/authentication-interceptor.service';
-import { AppConfigService } from './common/config/appconfig.service';
-
-const appInitializerFn = (appConfig: AppConfigService) => {
-  return () => {
-    return appConfig.loadAppConfig();
-  };
-};
 
 @NgModule({
   imports: [
@@ -81,13 +74,6 @@ const appInitializerFn = (appConfig: AppConfigService) => {
     LoginComponent
   ],
   providers: [
-    AppConfigService,
-    {
-      provide: APP_INITIALIZER,
-      useFactory: appInitializerFn,
-      multi: true,
-      deps: [AppConfigService]
-    },
     {
       provide: LocationStrategy,
       useClass: HashLocationStrategy
