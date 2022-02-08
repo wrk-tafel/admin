@@ -86,7 +86,7 @@ describe('AuthenticationService', () => {
     expect(router.navigate).toHaveBeenCalledWith(['login']);
   });
 
-  it('logoutAndRedirect - expired token', () => {
+  it('logoutAndRedirect - token set and expired', () => {
     localStorage.setItem(LOCAL_STORAGE_TOKEN_KEY, 'TOKENVALUE');
     jwtHelper.isTokenExpired.and.returnValue(true);
 
