@@ -17,7 +17,7 @@ export class AuthenticationInterceptor implements HttpInterceptor {
     let token = this.auth.getToken()
     if (token) {
       let modRequest = req.clone({
-        headers: req.headers.set("Authorization", `Bearer ${token}`)
+        headers: req.headers.set('Authorization', `Bearer ${token}`)
       });
       return next.handle(modRequest).pipe(catchError((error) => this.handleAuthError(error)))
     }
