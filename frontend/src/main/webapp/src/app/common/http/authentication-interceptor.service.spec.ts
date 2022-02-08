@@ -54,12 +54,12 @@ describe('AuthenticationInterceptor', () => {
     authServiceSpy.getToken.and.returnValue('TOKENVALUE-EXPIRED');
 
     client.get('/test').subscribe(() => { }, err => {
-      expect(authServiceSpy.logoutAndRedirectExpired).toHaveBeenCalled()
+      expect(authServiceSpy.logoutAndRedirectExpired).toHaveBeenCalled();
     });
 
     const mockReq = httpMock.expectOne('/test');
     const mockErrorResponse = { status: 401, statusText: 'Unauthorized' };
-    mockReq.flush(null, mockErrorResponse)
+    mockReq.flush(null, mockErrorResponse);
   });
 
 });

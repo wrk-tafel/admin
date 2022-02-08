@@ -7,14 +7,14 @@ import { JwtHelperService } from '@auth0/angular-jwt';
 import { AuthenticationService } from './authentication.service';
 
 describe('AuthenticationService', () => {
-  const LOCAL_STORAGE_TOKEN_KEY: string = 'JWT_TOKEN'
+  const LOCAL_STORAGE_TOKEN_KEY = 'JWT_TOKEN';
 
-  let client: HttpClient
-  let httpMock: HttpTestingController
+  let client: HttpClient;
+  let httpMock: HttpTestingController;
 
-  let jwtHelper: jasmine.SpyObj<JwtHelperService>
-  let router: jasmine.SpyObj<Router>
-  let service: AuthenticationService
+  let jwtHelper: jasmine.SpyObj<JwtHelperService>;
+  let router: jasmine.SpyObj<Router>;
+  let service: AuthenticationService;
 
   beforeEach(() => {
     const jwtHelperSpy = jasmine.createSpyObj('JwtHelperService', ['isTokenExpired', 'decodeToken']);
@@ -192,6 +192,6 @@ describe('AuthenticationService', () => {
 
 });
 
-type JwtToken = {
+interface JwtToken {
   roles: string[]
-}
+};

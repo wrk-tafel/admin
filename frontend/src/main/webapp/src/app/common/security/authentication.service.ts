@@ -7,8 +7,7 @@ import { JwtHelperService } from '@auth0/angular-jwt';
   providedIn: 'root'
 })
 export class AuthenticationService {
-
-  private LOCAL_STORAGE_TOKEN_KEY: string = 'JWT_TOKEN'
+  private LOCAL_STORAGE_TOKEN_KEY = 'JWT_TOKEN';
 
   constructor(
     private jwtHelper: JwtHelperService,
@@ -44,8 +43,7 @@ export class AuthenticationService {
       const expired = this.jwtHelper.isTokenExpired(token);
       if (expired) {
         this.removeToken();
-      }
-      else {
+      } else {
         return true;
       }
     }
@@ -75,7 +73,7 @@ export class AuthenticationService {
   }
 
   private executeLoginRequest(username: string, password: string) {
-    let body = new URLSearchParams();
+    const body = new URLSearchParams();
     body.set('username', username);
     body.set('password', password);
 
@@ -93,10 +91,10 @@ export class AuthenticationService {
 
 }
 
-type LoginResponse = {
+interface LoginResponse {
   token: string
-}
+};
 
-type JwtToken = {
+interface JwtToken {
   roles: string[]
-}
+};

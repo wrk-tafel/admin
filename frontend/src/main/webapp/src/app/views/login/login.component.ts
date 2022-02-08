@@ -8,7 +8,7 @@ import { AuthenticationService } from '../../common/security/authentication.serv
 })
 export class LoginComponent {
 
-  @Input() errorMsg: String
+  @Input() errorMsg: String;
 
   constructor(
     private auth: AuthenticationService,
@@ -18,8 +18,8 @@ export class LoginComponent {
     auth.removeToken();
 
     const errorType = this.router.getCurrentNavigation()?.extras?.state?.errorType;
-    if (errorType === "expired") {
-      this.errorMsg = "Sitzung abgelaufen! Bitte erneut anmelden.";
+    if (errorType === 'expired') {
+      this.errorMsg = 'Sitzung abgelaufen! Bitte erneut anmelden.';
     }
   }
 
@@ -28,13 +28,13 @@ export class LoginComponent {
     if (successful) {
       this.router.navigate(['dashboard']);
     } else {
-      this.errorMsg = "Anmeldung fehlgeschlagen!";
+      this.errorMsg = 'Anmeldung fehlgeschlagen!';
     }
   }
 
 }
 
-type LoginFormData = {
+interface LoginFormData {
   username: string,
   password: string
-}
+};
