@@ -53,6 +53,7 @@ class JwtAuthenticationFilter(
         chain.doFilter(request, response)
     }
 
+    @ExcludeFromTestCoverage
     override fun unsuccessfulAuthentication(
         request: HttpServletRequest,
         response: HttpServletResponse,

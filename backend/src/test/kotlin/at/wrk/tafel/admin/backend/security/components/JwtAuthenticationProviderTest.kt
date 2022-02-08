@@ -11,6 +11,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.security.authentication.DisabledException
 import org.springframework.security.authentication.InsufficientAuthenticationException
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.userdetails.User
@@ -75,6 +76,24 @@ class JwtAuthenticationProviderTest {
         val authentication = JwtAuthenticationToken("TOKEN")
 
         assertThrows<InsufficientAuthenticationException> {
+            jwtAuthenticationProvider.authenticate(authentication)
+        }
+    }
+
+    @Test
+    fun `additionalAuthenticationChecks - user disabled`() {
+        val claims = DefaultClaims()
+        claims.expiration = Date.from(Instant.now().plus(1, ChronoUnit.HOURS))
+        claims.subject = "subj"
+
+        every { jwtTokenService.getClaimsFromToken(any()) } returns claims
+
+        val user = User("username", "password", false, true, true, true, emptyList())
+        every { userDetailsService.loadUserByUsername(any()) } returns user
+
+        val authentication = JwtAuthenticationToken("TOKEN")
+
+        assertThrows<DisabledException> {
             jwtAuthenticationProvider.authenticate(authentication)
         }
     }
