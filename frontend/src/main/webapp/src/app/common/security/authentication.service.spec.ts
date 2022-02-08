@@ -193,5 +193,5 @@ describe('AuthenticationService', () => {
 });
 
 interface JwtToken {
-  roles: string[]
-};
+  roles: string[];
+}

@@ -35,6 +35,6 @@ export class LoginComponent {
 }
 
 interface LoginFormData {
-  username: string,
-  password: string
-};
+  username: string;
+  password: string;
+}

@@ -92,9 +92,9 @@ export class AuthenticationService {
 }
 
 interface LoginResponse {
-  token: string
-};
+  token: string;
+}
 
 interface JwtToken {
-  roles: string[]
-};
+  roles: string[];
+}
