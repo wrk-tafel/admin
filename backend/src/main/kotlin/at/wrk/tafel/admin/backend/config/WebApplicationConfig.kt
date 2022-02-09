@@ -1,32 +1,29 @@
 package at.wrk.tafel.admin.backend.config
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
-import org.springframework.boot.web.server.ErrorPage
-import org.springframework.boot.web.server.WebServerFactoryCustomizer
-import org.springframework.boot.web.servlet.server.ConfigurableServletWebServerFactory
-import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.http.HttpStatus
-import org.springframework.web.servlet.config.annotation.ViewControllerRegistry
+import org.springframework.core.io.ClassPathResource
+import org.springframework.core.io.Resource
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
+import org.springframework.web.servlet.resource.PathResourceResolver
 
 @Configuration
 @ExcludeFromTestCoverage
 class WebApplicationConfig : WebMvcConfigurer {
-    override fun addViewControllers(registry: ViewControllerRegistry) {
-        registry.addViewController("/notFound").setViewName("forward:/index.html")
-    }
 
-    @Bean
-    fun containerCustomizer(): WebServerFactoryCustomizer<ConfigurableServletWebServerFactory> {
-        return WebServerFactoryCustomizer { container: ConfigurableServletWebServerFactory ->
-            container.addErrorPages(
-                ErrorPage(
-                    HttpStatus.NOT_FOUND,
-                    "/notFound"
-                )
-            )
-        }
+    override fun addResourceHandlers(registry: ResourceHandlerRegistry) {
+        // Redirect per default to static resources for url-processing by angular
+        registry.addResourceHandler("/**")
+            .addResourceLocations("classpath:/static/")
+            .resourceChain(true)
+            .addResolver(object : PathResourceResolver() {
+                override fun getResource(resourcePath: String, location: Resource): Resource {
+                    val requestedResource: Resource = location.createRelative(resourcePath)
+                    return if (requestedResource.exists() && requestedResource.isReadable) requestedResource
+                    else ClassPathResource("/static/index.html")
+                }
+            })
     }
 
 }
