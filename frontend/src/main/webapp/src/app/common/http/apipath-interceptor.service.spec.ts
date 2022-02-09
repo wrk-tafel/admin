@@ -38,6 +38,20 @@ describe('ApiPathInterceptor', () => {
     expect().nothing();
   });
 
+  it('should add the api path when base is root and with further subpath', () => {
+    TestBed.overrideProvider(Window, { useValue: { location: { pathname: '/' } } });
+    const routerSpy = jasmine.createSpyObj('Router', ['url']);
+    TestBed.overrideProvider(Router, { useValue: routerSpy });
+    const client = TestBed.inject(HttpClient);
+    const httpMock = TestBed.inject(HttpTestingController);
+    routerSpy.url.and.returnValue('/subpath');
+
+    client.get('/test').subscribe();
+
+    httpMock.expectOne('/api/test');
+    expect().nothing();
+  });
+
   it('should add the api path when base is subpath and no further subpath', () => {
     TestBed.overrideProvider(Window, { useValue: { location: { pathname: '/subpath' } } });
     const routerSpy = jasmine.createSpyObj('Router', ['url']);
