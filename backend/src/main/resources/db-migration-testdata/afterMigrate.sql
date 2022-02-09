@@ -13,5 +13,6 @@ $$ LANGUAGE plpgsql;
 
 SELECT truncate_tables('tafeladmin');
 
-INSERT INTO users (username, password, enabled) VALUES ('test', '$argon2id$v=19$m=4096,t=3,p=1$fmhdC1kR4gJ8695c9JTgGg$FFyyNe/YNzAnwZQSj76gC9q9qAWDNkabxmpU9BKKSz4', true);
-INSERT INTO authorities (username, authority) VALUES ('test', 'TEST_AUTHORITY');
+-- pwd: 35bc40681124f412c5d052366edb9eb9
+INSERT INTO users (username, password, enabled) VALUES ('testuser', '$argon2id$v=19$m=16,t=2,p=1$MzViYzQwNjgxMTI0ZjQxMmM1ZDA1MjM2NmVkYjllYjk$Lf4rs14B9IfNmou71DMRTQ', true);
+INSERT INTO authorities (username, authority) VALUES ('testuser', 'TEST_AUTHORITY');
