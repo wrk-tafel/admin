@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.config
 
+import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import org.springframework.boot.web.server.ErrorPage
 import org.springframework.boot.web.server.WebServerFactoryCustomizer
 import org.springframework.boot.web.servlet.server.ConfigurableServletWebServerFactory
@@ -10,6 +11,7 @@ import org.springframework.web.servlet.config.annotation.ViewControllerRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 
 @Configuration
+@ExcludeFromTestCoverage
 class WebApplicationConfig : WebMvcConfigurer {
     override fun addViewControllers(registry: ViewControllerRegistry) {
         registry.addViewController("/notFound").setViewName("forward:/index.html")
