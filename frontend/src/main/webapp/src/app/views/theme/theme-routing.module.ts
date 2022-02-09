@@ -2,7 +2,6 @@ import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 
 import { ColorsComponent } from './colors.component';
-import { TypographyComponent } from './typography.component';
 
 const routes: Routes = [
   {
@@ -21,13 +20,6 @@ const routes: Routes = [
         data: {
           title: 'Colors'
         }
-      },
-      {
-        path: 'typography',
-        component: TypographyComponent,
-        data: {
-          title: 'Typography'
-        }
       }
     ]
   }
@@ -37,4 +29,4 @@ const routes: Routes = [
   imports: [RouterModule.forChild(routes)],
   exports: [RouterModule]
 })
-export class ThemeRoutingModule {}
+export class ThemeRoutingModule { }

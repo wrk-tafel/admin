@@ -20,11 +20,6 @@ export const navItems: INavData[] = [
     icon: 'icon-drop'
   },
   {
-    name: 'Typography',
-    url: '/theme/typography',
-    icon: 'icon-pencil'
-  },
-  {
     title: true,
     name: 'Components'
   },
@@ -95,15 +90,6 @@ export const navItems: INavData[] = [
         icon: 'icon-puzzle'
       }
     ]
-  },
-  {
-    name: 'Widgets',
-    url: '/widgets',
-    icon: 'icon-calculator',
-    badge: {
-      variant: 'info',
-      text: 'NEW'
-    }
   },
   {
     divider: true
