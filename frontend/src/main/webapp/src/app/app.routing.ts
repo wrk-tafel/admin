@@ -52,19 +52,11 @@ export const routes: Routes = [
       },
       {
         path: 'buttons',
-        loadChildren: () => import('./views/buttons/buttons.module').then(m => m.ButtonsModule),
-        canActivateChild: [PermissionGuard],
-        data: {
-          expectedPermission: 'BUTTONS' // TODO remove
-        }
+        loadChildren: () => import('./views/buttons/buttons.module').then(m => m.ButtonsModule)
       },
       {
         path: 'charts',
-        loadChildren: () => import('./views/chartjs/chartjs.module').then(m => m.ChartJSModule),
-        canActivateChild: [PermissionGuard],
-        data: {
-          expectedPermission: 'CHECKIN' // TODO remove
-        }
+        loadChildren: () => import('./views/chartjs/chartjs.module').then(m => m.ChartJSModule)
       },
       {
         path: 'dashboard',
@@ -95,7 +87,7 @@ export const routes: Routes = [
 ];
 
 @NgModule({
-  imports: [RouterModule.forRoot(routes, { relativeLinkResolution: 'legacy' })],
+  imports: [RouterModule.forRoot(routes)],
   exports: [RouterModule]
 })
 export class AppRoutingModule { }
