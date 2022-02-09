@@ -46,10 +46,6 @@ export const routes: Routes = [
     canActivateChild: [AuthGuard],
     children: [
       {
-        path: 'base',
-        loadChildren: () => import('./views/base/base.module').then(m => m.BaseModule)
-      },
-      {
         path: 'dashboard',
         loadChildren: () => import('./views/dashboard/dashboard.module').then(m => m.DashboardModule)
       },
