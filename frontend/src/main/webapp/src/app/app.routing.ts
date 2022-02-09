@@ -9,7 +9,6 @@ import { P500Component } from './views/error/500.component';
 import { LoginComponent } from './views/login/login.component';
 
 import { AuthGuardService as AuthGuard } from './common/security/authguard.service';
-import { PermissionGuardService as PermissionGuard } from './common/security/permissionguard.service';
 
 export const routes: Routes = [
   {
@@ -61,10 +60,6 @@ export const routes: Routes = [
       {
         path: 'dashboard',
         loadChildren: () => import('./views/dashboard/dashboard.module').then(m => m.DashboardModule)
-      },
-      {
-        path: 'icons',
-        loadChildren: () => import('./views/icons/icons.module').then(m => m.IconsModule)
       },
       {
         path: 'notifications',
