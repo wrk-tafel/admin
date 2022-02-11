@@ -19,7 +19,7 @@ describe('PermissionGuardService', () => {
     const canActivate = service.canActivateChild(activatedRoute);
 
     expect(canActivate).toBeFalse();
-    expect(routerSpy.navigate).toHaveBeenCalledWith(['dashboard']);
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['uebersicht']);
   });
 
   it('canActivate - not authenticated and permission needed', () => {
@@ -30,7 +30,7 @@ describe('PermissionGuardService', () => {
     const canActivate = service.canActivateChild(activatedRoute);
 
     expect(canActivate).toBeFalse();
-    expect(routerSpy.navigate).toHaveBeenCalledWith(['dashboard']);
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['uebersicht']);
   });
 
   it('canActivate - authenticated and permission needed', () => {

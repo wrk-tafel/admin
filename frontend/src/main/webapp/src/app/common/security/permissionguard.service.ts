@@ -18,7 +18,7 @@ export class PermissionGuardService implements CanActivateChild {
       return true;
     }
 
-    this.router.navigate(['dashboard']);
+    this.router.navigate(['uebersicht']);
     return false;
   }
 
