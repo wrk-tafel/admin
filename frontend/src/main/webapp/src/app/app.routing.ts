@@ -18,31 +18,19 @@ export const routes: Routes = [
   },
   {
     path: '404',
-    component: P404Component,
-    data: {
-      title: 'Page 404'
-    }
+    component: P404Component
   },
   {
     path: '500',
-    component: P500Component,
-    data: {
-      title: 'Page 500'
-    }
+    component: P500Component
   },
   {
     path: 'login',
-    component: LoginComponent,
-    data: {
-      title: 'Login Page'
-    }
+    component: LoginComponent
   },
   {
     path: '',
     component: DefaultLayoutComponent,
-    data: {
-      title: 'Home'
-    },
     canActivateChild: [AuthGuard],
     children: [
       {
