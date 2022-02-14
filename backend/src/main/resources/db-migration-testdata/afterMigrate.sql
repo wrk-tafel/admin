@@ -16,7 +16,3 @@ SELECT truncate_tables('tafeladmin');
 -- pwd: 35bc40681124f412c5d052366edb9eb9
 INSERT INTO users (username, password, enabled) VALUES ('testuser', '$argon2id$v=19$m=16,t=2,p=1$MzViYzQwNjgxMTI0ZjQxMmM1ZDA1MjM2NmVkYjllYjk$Lf4rs14B9IfNmou71DMRTQ', true);
 INSERT INTO authorities (username, authority) VALUES ('testuser', 'TEST_AUTHORITY');
-
--- countries
-INSERT INTO country (id, version, code, name) VALUES (1, 0, 'AT', 'Österreich');
-INSERT INTO country (id, version, code, name) VALUES (2, 0, 'DE', 'Deutschland');
