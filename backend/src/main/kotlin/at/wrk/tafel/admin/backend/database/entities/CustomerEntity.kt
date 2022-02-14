@@ -10,8 +10,8 @@ class CustomerEntity(
     id: Long,
     version: Long,
 
-    @Column(name = "customer_number")
-    var customerNumber: Long,
+    @Column(name = "customer_id")
+    var customerId: Long,
 
     @Column(name = "firstname")
     var firstname: String,
