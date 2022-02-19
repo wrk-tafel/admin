@@ -52,6 +52,20 @@ jobs:
             ./frontend/src/main/webapp/node
             ./frontend/src/main/webapp/node_modules
       - name: Run tests
-        run: ./mvnw test verify
+        run: ./mvnw --fail-at-end test verify
+      - uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: backend-codecoverage-report
+          path: ./target/site/TODO
+          if-no-files-found: error
+          retention-days: 14
+      - uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: frontend-codecoverage-report
+          path: ./frontend/src/main/webapp/coverage/
+          if-no-files-found: error
+          retention-days: 14
 
 # TODO e2e-test

@@ -24,3 +24,6 @@
 /backend/modules/modules.iml
 /backend/modules/checkin/checkin.iml
 /backend/modules/checkin/target/
+/backend/target/
+/backend/modules/target/
+target/
