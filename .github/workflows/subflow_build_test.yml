@@ -30,7 +30,7 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: admin-jarfile
-          path: ./backend/target/admin-backend.jar
+          path: ./backend/application/target/admin-backend.jar
           if-no-files-found: error
           retention-days: 1
 
