@@ -30,11 +30,11 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: admin-jarfile
-          path: ./backend/target/admin-backend.jar
+          path: ./backend/application/target/admin-backend.jar
           if-no-files-found: error
           retention-days: 1
 
-  test-backend:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -44,19 +44,6 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: ${{ env.JAVA_DISTRIBUTION }}
           cache: 'maven'
-      - name: Run tests
-        run: ./mvnw -pl backend test
-      - uses: actions/upload-artifact@v2
-        if: always()
-        with:
-          name: backend-codecoverage-report
-          path: ./backend/target/site/jacoco/
-          if-no-files-found: error
-          retention-days: 14
-
-  test-frontend:
-    runs-on: ubuntu-latest
-    steps:
       - name: Cache node packages
         uses: actions/cache@v2
         with:
@@ -64,15 +51,7 @@ jobs:
           path: |
             ./frontend/src/main/webapp/node
             ./frontend/src/main/webapp/node_modules
-      - uses: actions/checkout@v2
       - name: Run tests
-        run: ./mvnw -pl frontend test
-      - uses: actions/upload-artifact@v2
-        if: always()
-        with:
-          name: frontend-codecoverage-report
-          path: ./frontend/src/main/webapp/coverage/
-          if-no-files-found: error
-          retention-days: 14
+        run: ./mvnw test verify
 
 # TODO e2e-test

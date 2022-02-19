@@ -26,7 +26,7 @@ export class LoginComponent {
   async onClickSubmit(data: LoginFormData) {
     const successful = await this.auth.login(data.username, data.password);
     if (successful) {
-      this.router.navigate(['dashboard']);
+      this.router.navigate(['uebersicht']);
     } else {
       this.errorMsg = 'Anmeldung fehlgeschlagen!';
     }
