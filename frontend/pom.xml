@@ -5,10 +5,10 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>at.wrk.tafel</groupId>
-        <artifactId>admin-parent</artifactId>
+        <artifactId>admin</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
-    <artifactId>admin-frontend</artifactId>
+    <artifactId>frontend</artifactId>
 
     <build>
         <plugins>

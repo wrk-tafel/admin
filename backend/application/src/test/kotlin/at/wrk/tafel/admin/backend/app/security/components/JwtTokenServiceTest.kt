@@ -1,9 +1,9 @@
 package at.wrk.tafel.admin.backend.app.security.components
 
-import at.wrk.tafel.admin.backend.application.config.ApplicationProperties
-import at.wrk.tafel.admin.backend.application.config.SecurityJwtTokenProperties
-import at.wrk.tafel.admin.backend.application.config.SecurityJwtTokenSecretProperties
-import at.wrk.tafel.admin.backend.application.config.SecurityProperties
+import at.wrk.tafel.admin.backend.common.config.ApplicationProperties
+import at.wrk.tafel.admin.backend.common.config.SecurityJwtTokenProperties
+import at.wrk.tafel.admin.backend.common.config.SecurityJwtTokenSecretProperties
+import at.wrk.tafel.admin.backend.common.config.SecurityProperties
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.SignatureException
 import org.assertj.core.api.Assertions.assertThat
@@ -40,7 +40,8 @@ class JwtTokenServiceTest {
     @Test
     fun `getClaimsFromToken - valid token generated and parsed`() {
         val token = jwtTokenService.generateToken(
-            "test-user", listOf(
+            "test-user",
+            listOf(
                 SimpleGrantedAuthority("dummy-role")
             )
         )
@@ -73,5 +74,4 @@ class JwtTokenServiceTest {
             .signWith(secretKeySpec)
             .compact()
     }
-
 }

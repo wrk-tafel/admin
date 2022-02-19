@@ -1,6 +1,6 @@
 package at.wrk.tafel.admin.backend.app.security.components
 
-import at.wrk.tafel.admin.backend.application.config.ApplicationProperties
+import at.wrk.tafel.admin.backend.common.config.ApplicationProperties
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
 import org.springframework.security.core.GrantedAuthority
@@ -44,5 +44,4 @@ class JwtTokenService(
             applicationProperties.security.jwtToken.secret.value.toByteArray(),
             applicationProperties.security.jwtToken.secret.algorithm
         )
-
 }

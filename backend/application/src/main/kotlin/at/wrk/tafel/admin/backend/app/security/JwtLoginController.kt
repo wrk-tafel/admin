@@ -1,7 +1,7 @@
 package at.wrk.tafel.admin.backend.app.security
 
-import at.wrk.tafel.admin.backend.application.security.components.JwtTokenService
-import at.wrk.tafel.admin.backend.application.security.model.JwtResponse
+import at.wrk.tafel.admin.backend.app.security.components.JwtTokenService
+import at.wrk.tafel.admin.backend.app.security.model.JwtResponse
 import at.wrk.tafel.admin.backend.common.rest.TafelRestController
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus

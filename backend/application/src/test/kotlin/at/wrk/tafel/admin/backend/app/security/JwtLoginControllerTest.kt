@@ -1,7 +1,7 @@
 package at.wrk.tafel.admin.backend.app.security
 
-import at.wrk.tafel.admin.backend.application.security.components.JwtTokenService
-import at.wrk.tafel.admin.backend.application.security.model.JwtResponse
+import at.wrk.tafel.admin.backend.app.security.components.JwtTokenService
+import at.wrk.tafel.admin.backend.app.security.model.JwtResponse
 import io.mockk.every
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension

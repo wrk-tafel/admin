@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>at.wrk.tafel</groupId>
-        <artifactId>backend-parent</artifactId>
+        <artifactId>modules</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
     <artifactId>checkin</artifactId>
@@ -17,4 +17,9 @@
             <version>${project.version}</version>
         </dependency>
     </dependencies>
+
+    <build>
+        <sourceDirectory>${project.basedir}/src/main/kotlin</sourceDirectory>
+        <testSourceDirectory>${project.basedir}/src/test/kotlin</testSourceDirectory>
+    </build>
 </project>

@@ -1,6 +1,6 @@
 package at.wrk.tafel.admin.backend.app.security.components
 
-import at.wrk.tafel.admin.backend.application.security.model.JwtAuthenticationToken
+import at.wrk.tafel.admin.backend.app.security.model.JwtAuthenticationToken
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import org.springframework.http.HttpHeaders
 import org.springframework.security.authentication.AuthenticationManager

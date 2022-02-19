@@ -1,8 +1,8 @@
 package at.wrk.tafel.admin.backend.app.security
 
-import at.wrk.tafel.admin.backend.application.security.components.JwtAuthenticationFilter
-import at.wrk.tafel.admin.backend.application.security.components.JwtAuthenticationProvider
-import at.wrk.tafel.admin.backend.application.security.components.JwtTokenService
+import at.wrk.tafel.admin.backend.app.security.components.JwtAuthenticationFilter
+import at.wrk.tafel.admin.backend.app.security.components.JwtAuthenticationProvider
+import at.wrk.tafel.admin.backend.app.security.components.JwtTokenService
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration

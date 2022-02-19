@@ -5,9 +5,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan
 import org.springframework.boot.runApplication
 
-@SpringBootApplication
-@ConfigurationPropertiesScan
+@ConfigurationPropertiesScan("at.wrk.tafel.admin.backend")
 @ExcludeFromTestCoverage
+@SpringBootApplication(scanBasePackages = ["at.wrk.tafel.admin.backend"])
 class AdminBackendApplication
 
 @ExcludeFromTestCoverage
