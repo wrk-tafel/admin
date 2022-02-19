@@ -1,7 +1,7 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="AdminBackendApplicationKt" type="JetRunConfigurationType" nameIsGenerated="true">
-    <option name="MAIN_CLASS_NAME" value="at.wrk.tafel.admin.backend.AdminBackendApplicationKt" />
-    <module name="admin-backend" />
+    <option name="MAIN_CLASS_NAME" value="at.wrk.tafel.admin.backend.application.AdminBackendApplicationKt" />
+    <module name="application" />
     <shortenClasspath name="NONE" />
     <option name="VM_PARAMETERS" value="-Dspring.profiles.active=local,testdata" />
     <method v="2">

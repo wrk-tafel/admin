@@ -14,3 +14,7 @@
 /frontend/admin-frontend.iml
 /frontend/target/
 /logs/
+/backend/application/application.iml
+/backend/database-model/database-model.iml
+/backend/modules/modules-parent.iml
+/backend/backend-parent.iml
