@@ -5,6 +5,6 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 
 @Configuration
-@EnableJpaRepositories("at.wrk.tafel.admin.backend.repositories")
-@EntityScan("at.wrk.tafel.admin.backend.entities")
+@EnableJpaRepositories("at.wrk.tafel.admin.backend.dbmodel.repositories")
+@EntityScan("at.wrk.tafel.admin.backend.dbmodel.entities")
 class DatabaseConfig
