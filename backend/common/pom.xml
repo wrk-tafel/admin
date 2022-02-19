@@ -9,9 +9,4 @@
         <version>0.0.1-SNAPSHOT</version>
     </parent>
     <artifactId>common</artifactId>
-
-    <build>
-        <sourceDirectory>${project.basedir}/src/main/kotlin</sourceDirectory>
-        <testSourceDirectory>${project.basedir}/src/test/kotlin</testSourceDirectory>
-    </build>
 </project>
