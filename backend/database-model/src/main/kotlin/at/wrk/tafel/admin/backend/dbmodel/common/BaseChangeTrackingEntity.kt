@@ -7,7 +7,7 @@ import javax.persistence.Column
 import javax.persistence.MappedSuperclass
 
 @MappedSuperclass
-abstract class BaseChangeTrackingEntity<T>(id: T, version: Long) : BaseEntity<T>(id, version) {
+abstract class BaseChangeTrackingEntity : BaseEntity() {
 
     @Column(name = "created_at")
     @CreationTimestamp
@@ -20,17 +20,4 @@ abstract class BaseChangeTrackingEntity<T>(id: T, version: Long) : BaseEntity<T>
     override fun toString(): String {
         return "BaseChangeTrackingEntity(id=$id, version=$version, createdAt=$createdAt, updatedAt=$updatedAt, isNew=$isNew)"
     }
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-        other as BaseChangeTrackingEntity<*>
-        if (id != other.id) return false
-        return true
-    }
-
-    override fun hashCode(): Int {
-        return id?.hashCode() ?: 0
-    }
-
 }

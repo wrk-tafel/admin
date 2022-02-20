@@ -7,15 +7,15 @@ import javax.persistence.MappedSuperclass
 import javax.persistence.Version
 
 @MappedSuperclass
-abstract class BaseEntity<T>(
+abstract class BaseEntity(
     @Id
     @Column(name = "id", nullable = false)
-    private var id: T,
+    private var id: Long? = null,
 
-    @Version var version: Long
-) : Persistable<T> {
+    @Version var version: Long? = null
+) : Persistable<Long?> {
 
-    override fun getId(): T {
+    override fun getId(): Long? {
         return id
     }
 
@@ -30,7 +30,7 @@ abstract class BaseEntity<T>(
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
-        other as BaseEntity<*>
+        other as BaseEntity
         if (id != other.id) return false
         return true
     }
@@ -38,5 +38,4 @@ abstract class BaseEntity<T>(
     override fun hashCode(): Int {
         return id?.hashCode() ?: 0
     }
-
 }
