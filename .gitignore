@@ -10,7 +10,6 @@
 .project
 .settings
 .metadata
-/admin-parent.iml
 /frontend/frontend.iml
 /frontend/target/
 /logs/
