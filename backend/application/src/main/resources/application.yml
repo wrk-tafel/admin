@@ -6,7 +6,11 @@ server:
   tomcat:
     accesslog:
       enabled: true
-      directory: logs
+      directory: ${user.dir}/logs
+      buffered: false
+      prefix: access
+      suffix: .log
+      rotate: false
 
 spring:
   datasource:
