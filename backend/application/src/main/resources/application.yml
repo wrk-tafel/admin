@@ -2,7 +2,11 @@ server:
   servlet:
     session:
       cookie:
-        path: / # TODO configurable for contextpaths of e.g. nginx
+        path: ${tafeladmin.server.relativeBaseUrl}
+  tomcat:
+    accesslog:
+      enabled: true
+      directory: logs
 
 spring:
   datasource:
@@ -19,3 +23,5 @@ security:
     expirationTimeInSeconds: 36000 # 10 hours
 
 tafeladmin:
+  server:
+    relativeBaseUrl: /

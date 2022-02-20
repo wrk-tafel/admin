@@ -18,7 +18,7 @@ import org.springframework.security.core.userdetails.User
 import javax.servlet.http.HttpServletRequest
 
 @ExtendWith(MockKExtension::class)
-class JwtLoginControllerTest {
+class JwtTokenControllerTest {
 
     @RelaxedMockK
     private lateinit var request: HttpServletRequest
@@ -26,18 +26,18 @@ class JwtLoginControllerTest {
     @RelaxedMockK
     private lateinit var jwtTokenService: JwtTokenService
 
-    private lateinit var jwtLoginController: JwtLoginController
+    private lateinit var controller: JwtTokenController
 
     @BeforeEach
     fun beforeEach() {
-        jwtLoginController = JwtLoginController(jwtTokenService)
+        controller = JwtTokenController(jwtTokenService)
     }
 
     @Test
     fun `generateToken - no securityContext given`() {
         SecurityContextHolder.clearContext()
 
-        val responseEntity = jwtLoginController.generateToken(request)
+        val responseEntity = controller.generateToken(request)
 
         assertThat(responseEntity.statusCodeValue).isEqualTo(HttpStatus.FORBIDDEN.value())
     }
@@ -50,7 +50,7 @@ class JwtLoginControllerTest {
             )
         )
 
-        val responseEntity = jwtLoginController.generateToken(request)
+        val responseEntity = controller.generateToken(request)
 
         assertThat(responseEntity.statusCodeValue).isEqualTo(HttpStatus.FORBIDDEN.value())
     }
@@ -67,7 +67,7 @@ class JwtLoginControllerTest {
             )
         )
 
-        val responseEntity = jwtLoginController.generateToken(request)
+        val responseEntity = controller.generateToken(request)
 
         assertThat(responseEntity.statusCodeValue).isEqualTo(HttpStatus.OK.value())
         assertThat(responseEntity.body).isEqualTo(JwtResponse("TOKEN"))
@@ -85,9 +85,8 @@ class JwtLoginControllerTest {
             )
         )
 
-        val responseEntity = jwtLoginController.generateToken(request)
+        val responseEntity = controller.generateToken(request)
 
         assertThat(responseEntity.statusCodeValue).isEqualTo(HttpStatus.FORBIDDEN.value())
     }
-
 }

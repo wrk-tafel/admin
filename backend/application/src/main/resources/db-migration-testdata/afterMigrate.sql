@@ -17,7 +17,8 @@ SELECT truncate_tables('tafeladmin');
 INSERT INTO users (username, password, enabled) VALUES ('testuser', '$argon2id$v=19$m=16,t=2,p=1$MzViYzQwNjgxMTI0ZjQxMmM1ZDA1MjM2NmVkYjllYjk$Lf4rs14B9IfNmou71DMRTQ', true);
 INSERT INTO authorities (username, authority) VALUES ('testuser', 'TEST_AUTHORITY');
 
--- fake user with weak password for security auditing
+-- TODO remove | fake user with weak password to gain some intrusion insights
+-- pwd: 12345
 INSERT INTO users (username, password, enabled) VALUES ('admin', '$argon2id$v=19$m=16,t=2,p=1$YWRzYWRzYWRzYWRzYWRzYWRzYWQ$L/OMN2YcZCB9YGhFIM1ASg', true);
 INSERT INTO authorities (username, authority) VALUES ('admin', 'TEST_AUTHORITY');
 

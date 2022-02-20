@@ -54,5 +54,4 @@ class JwtAuthenticationProvider(
             throw DisabledException("User is disabled")
         }
     }
-
 }

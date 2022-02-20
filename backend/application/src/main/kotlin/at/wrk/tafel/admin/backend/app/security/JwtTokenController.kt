@@ -12,10 +12,10 @@ import org.springframework.web.bind.annotation.PostMapping
 import javax.servlet.http.HttpServletRequest
 
 @TafelRestController
-class JwtLoginController(
+class JwtTokenController(
     private val jwtTokenService: JwtTokenService
 ) {
-    private val logger = LoggerFactory.getLogger(JwtLoginController::class.java)
+    private val logger = LoggerFactory.getLogger(JwtTokenController::class.java)
 
     @PostMapping("/token")
     fun generateToken(request: HttpServletRequest): ResponseEntity<JwtResponse> {
@@ -32,7 +32,8 @@ class JwtLoginController(
             }
         }
 
-        logger.info("Login failed from IP: ${getIpAddress(request)}")
+        val username = request.getParameter("username")
+        logger.info("Login failed via user '$username' from IP ${getIpAddress(request)} on ${request.requestURL}")
         return ResponseEntity.status(HttpStatus.FORBIDDEN.value()).build()
     }
 

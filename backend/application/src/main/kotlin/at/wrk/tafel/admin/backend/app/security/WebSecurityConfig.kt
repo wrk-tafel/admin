@@ -90,5 +90,4 @@ class WebSecurityConfig(
     override fun authenticationManagerBean(): AuthenticationManager {
         return super.authenticationManagerBean()
     }
-
 }
