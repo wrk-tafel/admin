@@ -11,6 +11,6 @@ class SpringDataRestConfig : RepositoryRestConfigurer {
     override fun configureRepositoryRestConfiguration(config: RepositoryRestConfiguration, cors: CorsRegistry) {
         config.setBasePath("/api")
         config.repositoryDetectionStrategy =
-            RepositoryDetectionStrategy.RepositoryDetectionStrategies.ALL
+            RepositoryDetectionStrategy.RepositoryDetectionStrategies.ANNOTATED
     }
 }
