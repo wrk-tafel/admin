@@ -9,7 +9,7 @@
         </layout>
     </appender>
     <appender name="File" class="ch.qos.logback.core.FileAppender">
-        <file>logs/app.log</file>
+        <file>${user.dir}/logs/app.log</file>
         <append>true</append>
         <immediateFlush>true</immediateFlush>
         <encoder>
