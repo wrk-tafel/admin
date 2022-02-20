@@ -30,7 +30,7 @@
         <!-- Frontend as dependency for the maven reactor (correct build order) -->
         <dependency>
             <groupId>at.wrk.tafel</groupId>
-            <artifactId>admin-frontend</artifactId>
+            <artifactId>frontend</artifactId>
             <version>${project.version}</version>
             <scope>runtime</scope>
         </dependency>
