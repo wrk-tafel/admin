@@ -8,7 +8,7 @@
         <artifactId>modules</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
-    <artifactId>checkin</artifactId>
+    <artifactId>customer</artifactId>
 
     <dependencies>
         <dependency>
