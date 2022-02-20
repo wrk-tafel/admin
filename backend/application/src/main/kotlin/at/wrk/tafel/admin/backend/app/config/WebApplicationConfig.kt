@@ -17,12 +17,15 @@ class WebApplicationConfig : WebMvcConfigurer {
         registry.addResourceHandler("/**")
             .addResourceLocations("classpath:/static/")
             .resourceChain(true)
-            .addResolver(object : PathResourceResolver() {
-                override fun getResource(resourcePath: String, location: Resource): Resource {
-                    val requestedResource: Resource = location.createRelative(resourcePath)
-                    return if (requestedResource.exists() && requestedResource.isReadable) requestedResource
-                    else ClassPathResource("/static/index.html")
-                }
-            })
+            .addResolver(AngularResourceResolver())
+    }
+}
+
+@ExcludeFromTestCoverage
+class AngularResourceResolver : PathResourceResolver() {
+    override fun getResource(resourcePath: String, location: Resource): Resource {
+        val requestedResource: Resource = location.createRelative(resourcePath)
+        return if (requestedResource.exists() && requestedResource.isReadable) requestedResource
+        else ClassPathResource("/static/index.html")
     }
 }
