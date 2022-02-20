@@ -24,4 +24,6 @@ INSERT INTO authorities (username, authority) VALUES ('admin', 'TEST_AUTHORITY')
 
 -- customers
 INSERT INTO customers (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, address_street, address_housenumber, address_stairway, address_postcode, address_city, telephone_number, email, count_persons_in_household, count_infants) values
-(0, NOW(), NOW(), 0, 'Max', 'Mustermann', '1980-01-01', 'Erdberg', 1, '2', '1030', 'Wien', 00436641231234, 'max.mustermann@wrk.at', 0, 0);
+(0, NOW(), NOW(), 0, 'Max', 'Mustermann', '1980-01-01', 'Erdberg', 1, '2', '1030', 'Wien', 00436641231234, 'max.mustermann@wrk.at', 3, 1);
+INSERT INTO customers (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, address_street, address_housenumber, address_stairway, address_postcode, address_city, telephone_number, email, count_persons_in_household, count_infants) values
+(1, NOW(), NOW(), 1, 'Eva', 'Musterfrau', '1990-01-01', 'Erdberg', 2, '1', '1010', 'Wien', 00436645678953, 'eva.musterfrau@wrk.at', 2, 0);
