@@ -26,7 +26,7 @@ class JwtLoginController(
             val token: String? = user.username.let { jwtTokenService.generateToken(it, user.authorities) }
 
             token.let {
-                logger.info("Login successful via user '${user.username}' from IP: ${getIpAddress(request)}")
+                logger.info("Login successful via user '${user.username}' from IP ${getIpAddress(request)} on ${request.requestURL}")
 
                 return ResponseEntity.ok(JwtResponse(token!!))
             }
