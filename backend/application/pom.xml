@@ -93,7 +93,7 @@
                             <outputDirectory>${project.build.directory}/classes/static</outputDirectory>
                             <resources>
                                 <resource>
-                                    <directory>${project.parent.basedir}/frontend/src/main/webapp/dist</directory>
+                                    <directory>${project.parent.basedir}/../frontend/src/main/webapp/dist</directory>
                                 </resource>
                             </resources>
                         </configuration>
