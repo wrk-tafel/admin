@@ -1,6 +1,6 @@
-DROP TABLE IF EXISTS customer;
+DROP TABLE IF EXISTS customers;
 
-create table customer(
+create table customers(
 	id bigint not null primary key,
 	created_at timestamp not null,
 	updated_at timestamp not null,
@@ -19,6 +19,6 @@ create table customer(
     count_infants integer null default 0
 );
 
-create unique index uix_customer_id on customer (customer_id);
-create unique index uix_customer_telephone_number on customer (telephone_number);
-create unique index uix_customer_email on customer (email);
+create unique index uix_customer_id on customers (customer_id);
+create unique index uix_customer_telephone_number on customers (telephone_number);
+create unique index uix_customer_email on customers (email);

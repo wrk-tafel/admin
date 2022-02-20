@@ -21,3 +21,7 @@ INSERT INTO authorities (username, authority) VALUES ('testuser', 'CUSTOMER');
 -- pwd: 12345
 INSERT INTO users (username, password, enabled) VALUES ('admin', '$argon2id$v=19$m=16,t=2,p=1$YWRzYWRzYWRzYWRzYWRzYWRzYWQ$L/OMN2YcZCB9YGhFIM1ASg', true);
 INSERT INTO authorities (username, authority) VALUES ('admin', 'TEST_AUTHORITY');
+
+-- customers
+INSERT INTO customers (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, address_street, address_housenumber, address_stairway, address_postcode, address_city, telephone_number, email, count_persons_in_household, count_infants) values
+(0, NOW(), NOW(), 0, 'Max', 'Mustermann', '1980-01-01', 'Erdberg', 1, '2', '1030', 'Wien', 00436641231234, 'max.mustermann@wrk.at', 0, 0);

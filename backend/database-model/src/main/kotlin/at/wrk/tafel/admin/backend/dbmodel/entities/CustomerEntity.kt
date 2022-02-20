@@ -7,7 +7,7 @@ import javax.persistence.Entity
 import javax.persistence.Table
 
 @Entity
-@Table(name = "customer")
+@Table(name = "customers")
 class CustomerEntity : BaseChangeTrackingEntity() {
     @Column(name = "customer_id")
     var customerId: Long? = null
