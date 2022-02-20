@@ -4,15 +4,12 @@ import org.springframework.data.domain.Persistable
 import javax.persistence.Column
 import javax.persistence.Id
 import javax.persistence.MappedSuperclass
-import javax.persistence.Version
 
 @MappedSuperclass
 abstract class BaseEntity(
     @Id
     @Column(name = "id", nullable = false)
-    private var id: Long? = null,
-
-    @Version var version: Long? = null
+    private var id: Long? = null
 ) : Persistable<Long?> {
 
     override fun getId(): Long? {
@@ -20,11 +17,11 @@ abstract class BaseEntity(
     }
 
     override fun isNew(): Boolean {
-        return version == null
+        return id == null
     }
 
     override fun toString(): String {
-        return "BaseIdEntity(id=$id, version=$version, isNew=$isNew)"
+        return "BaseIdEntity(id=$id, isNew=$isNew)"
     }
 
     override fun equals(other: Any?): Boolean {

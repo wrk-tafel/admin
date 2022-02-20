@@ -16,5 +16,10 @@
             <artifactId>common</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>at.wrk.tafel</groupId>
+            <artifactId>database-model</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 </project>

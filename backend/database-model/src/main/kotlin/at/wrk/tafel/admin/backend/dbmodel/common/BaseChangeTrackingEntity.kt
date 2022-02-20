@@ -18,6 +18,6 @@ abstract class BaseChangeTrackingEntity : BaseEntity() {
     val updatedAt: Instant? = null
 
     override fun toString(): String {
-        return "BaseChangeTrackingEntity(id=$id, version=$version, createdAt=$createdAt, updatedAt=$updatedAt, isNew=$isNew)"
+        return "BaseChangeTrackingEntity(id=$id, isNew=$isNew, createdAt=$createdAt, updatedAt=$updatedAt)"
     }
 }
