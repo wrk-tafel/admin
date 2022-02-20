@@ -38,7 +38,7 @@ class JwtTokenController(
     }
 
     private fun getIpAddress(request: HttpServletRequest): String {
-        var ipAddress = request.getHeader("X-FORWARDED-FOR")
+        var ipAddress = request.getHeader("X-Real-IP")
         if (ipAddress == null) {
             ipAddress = request.remoteAddr
         }
