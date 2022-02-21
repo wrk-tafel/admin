@@ -41,7 +41,7 @@
     "bootstrap": "4.6.0",
     "chart.js": "2.9.4",
     "classlist.js": "1.1.20150312",
-    "core-js": "^3.21.0",
+    "core-js": "^3.21.1",
     "flag-icon-css": "3.5.0",
     "follow-redirects": "^1.14.8",
     "font-awesome": "4.7.0",
