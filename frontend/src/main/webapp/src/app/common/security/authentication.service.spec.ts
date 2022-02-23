@@ -1,4 +1,3 @@
-import { HttpClient } from '@angular/common/http';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
@@ -9,7 +8,6 @@ import { AuthenticationService } from './authentication.service';
 describe('AuthenticationService', () => {
   const LOCAL_STORAGE_TOKEN_KEY = 'JWT_TOKEN';
 
-  let client: HttpClient;
   let httpMock: HttpTestingController;
 
   let jwtHelper: jasmine.SpyObj<JwtHelperService>;
@@ -35,7 +33,6 @@ describe('AuthenticationService', () => {
       ],
     });
 
-    client = TestBed.inject(HttpClient);
     httpMock = TestBed.inject(HttpTestingController);
 
     jwtHelper = TestBed.inject(JwtHelperService) as jasmine.SpyObj<JwtHelperService>;
@@ -131,40 +128,40 @@ describe('AuthenticationService', () => {
     expect(jwtHelper.isTokenExpired).not.toHaveBeenCalled();
   });
 
-  it('hasRole - role exists', () => {
+  it('hasPermission - permission exists', () => {
     localStorage.setItem(LOCAL_STORAGE_TOKEN_KEY, 'TOKENVALUE');
-    jwtHelper.decodeToken.and.returnValue(<JwtToken>{ roles: ['ROLE1'] });
+    jwtHelper.decodeToken.and.returnValue(<JwtToken>{ permissions: ['PERM1'] });
 
-    const hasRole = service.hasRole('ROLE1');
+    const hasPermission = service.hasPermission('PERM1');
 
-    expect(hasRole).toBeTrue();
+    expect(hasPermission).toBeTrue();
   });
 
-  it('hasRole - role doesnt exist', () => {
+  it('hasPermission - permission doesnt exist', () => {
     localStorage.setItem(LOCAL_STORAGE_TOKEN_KEY, 'TOKENVALUE');
-    jwtHelper.decodeToken.and.returnValue(<JwtToken>{ roles: ['ROLE2'] });
+    jwtHelper.decodeToken.and.returnValue(<JwtToken>{ permissions: ['PERM2'] });
 
-    const hasRole = service.hasRole('ROLE1');
+    const hasPermission = service.hasPermission('PERM1');
 
-    expect(hasRole).toBeFalse();
+    expect(hasPermission).toBeFalse();
   });
 
-  it('hasRole - no roles given', () => {
+  it('hasPermission - no permissions given', () => {
     localStorage.setItem(LOCAL_STORAGE_TOKEN_KEY, 'TOKENVALUE');
-    jwtHelper.decodeToken.and.returnValue(<JwtToken>{ roles: [] });
+    jwtHelper.decodeToken.and.returnValue(<JwtToken>{ permissions: [] });
 
-    const hasRole = service.hasRole('ROLE1');
+    const hasPermission = service.hasPermission('PERM1');
 
-    expect(hasRole).toBeFalse();
+    expect(hasPermission).toBeFalse();
   });
 
-  it('hasRole - no roles field defined', () => {
+  it('hasPermission - no permissions field defined', () => {
     localStorage.setItem(LOCAL_STORAGE_TOKEN_KEY, 'TOKENVALUE');
     jwtHelper.decodeToken.and.returnValue(<JwtToken>{});
 
-    const hasRole = service.hasRole('ROLE1');
+    const hasPermission = service.hasPermission('PERM1');
 
-    expect(hasRole).toBeFalse();
+    expect(hasPermission).toBeFalse();
   });
 
   it('getToken - exists', () => {
@@ -202,5 +199,5 @@ describe('AuthenticationService', () => {
 });
 
 interface JwtToken {
-  roles: string[];
+  permissions: string[];
 }

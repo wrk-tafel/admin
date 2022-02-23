@@ -48,7 +48,7 @@ class JwtTokenServiceTest {
 
         val claims = jwtTokenService.getClaimsFromToken(token)
 
-        assertThat(claims["roles"] as List<*>).contains("dummy-role")
+        assertThat(claims["permissions"] as List<*>).contains("dummy-role")
     }
 
     @Test

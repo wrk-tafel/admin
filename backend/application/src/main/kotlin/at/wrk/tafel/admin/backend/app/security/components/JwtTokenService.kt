@@ -30,7 +30,7 @@ class JwtTokenService(
             .setSubject(username)
             .setIssuedAt(Date(System.currentTimeMillis()))
             .setExpiration(expirationDate)
-            .claim("roles", authorities.map { it.authority })
+            .claim("permissions", authorities.map { it.authority })
             .signWith(secretKeySpec)
             .compact()
     }

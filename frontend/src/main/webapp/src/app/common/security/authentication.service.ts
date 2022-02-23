@@ -48,11 +48,11 @@ export class AuthenticationService {
     return token !== null && !this.jwtHelper.isTokenExpired(token);
   }
 
-  public hasRole(role: string): boolean {
+  public hasPermission(role: string): boolean {
     const token = this.jwtHelper.decodeToken<JwtToken>(this.getToken());
 
-    if (token.roles != null) {
-      const index = token.roles.findIndex(element => {
+    if (token.permissions != null) {
+      const index = token.permissions.findIndex(element => {
         return element.toLowerCase() === role.toLowerCase();
       });
 
@@ -90,5 +90,5 @@ interface LoginResponse {
 }
 
 interface JwtToken {
-  roles: string[];
+  permissions: string[];
 }
