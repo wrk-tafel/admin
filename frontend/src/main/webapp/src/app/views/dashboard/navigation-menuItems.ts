@@ -1,6 +1,10 @@
 import { INavData } from '@coreui/angular';
 
-export const navItems: INavData[] = [
+export interface IPermissionNavData extends INavData {
+  permissions?: string[];
+}
+
+export const navigationMenuItems: IPermissionNavData[] = [
   {
     name: 'Übersicht',
     url: '/uebersicht',
@@ -13,6 +17,7 @@ export const navItems: INavData[] = [
   {
     name: 'Stammdaten',
     url: '/stammdaten',
-    icon: 'fa fa-archive'
+    icon: 'fa fa-archive',
+    permissions: ['CUSTOMER']
   }
 ];
