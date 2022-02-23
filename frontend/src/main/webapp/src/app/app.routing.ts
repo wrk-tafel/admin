@@ -38,8 +38,8 @@ export const routes: Routes = [
         loadChildren: () => import('./views/dashboard/dashboard.module').then(m => m.DashboardModule)
       },
       {
-        path: 'stammdaten',
-        loadChildren: () => import('./views/coredata/coredata.module').then(m => m.CoreDataModule)
+        path: 'kunden',
+        loadChildren: () => import('./views/customer/customer.module').then(m => m.CustomerModule)
       }
     ]
   },

@@ -31,6 +31,8 @@ describe('DefaultLayoutComponent', () => {
     expect(app).toBeTruthy();
   }));
 
+  // TODO add test for sideBarMinimize
+
   it('navItems are filtered by permissions - permissions undefined', () => {
     const fixture = TestBed.createComponent(DefaultLayoutComponent);
     let component = fixture.componentInstance;

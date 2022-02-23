@@ -11,12 +11,12 @@ export const navigationMenuItems: IPermissionNavData[] = [
     icon: 'icon-speedometer'
   },
   {
-    name: 'Stammdatenverwaltung',
+    name: 'Kundenverwaltung',
     title: true
   },
   {
-    name: 'Stammdaten',
-    url: '/stammdaten',
+    name: 'Kunde anlegen',
+    url: '/kunden',
     icon: 'fa fa-archive',
     permissions: ['CUSTOMER']
   }
