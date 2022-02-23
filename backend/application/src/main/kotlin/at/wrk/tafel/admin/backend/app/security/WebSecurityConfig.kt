@@ -51,7 +51,6 @@ class WebSecurityConfig(
             .authenticationEntryPoint(HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
             .and().sessionManagement()
             .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            .and().authorizeRequests().anyRequest().authenticated()
 
         http.addFilterAfter(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter::class.java)
     }
