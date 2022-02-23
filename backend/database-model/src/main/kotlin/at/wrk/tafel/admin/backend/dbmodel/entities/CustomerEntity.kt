@@ -1,15 +1,14 @@
 package at.wrk.tafel.admin.backend.dbmodel.entities
 
+import at.wrk.tafel.admin.backend.dbmodel.common.BaseChangeTrackingEntity
 import java.time.LocalDate
-import javax.persistence.*
+import javax.persistence.Column
+import javax.persistence.Entity
+import javax.persistence.Table
 
 @Entity
-@Table(name = "customer")
-class CustomerEntity {
-    @Id
-    @Column(name = "id", nullable = false)
-    var id: Long? = null
-
+@Table(name = "customers")
+class CustomerEntity : BaseChangeTrackingEntity() {
     @Column(name = "customer_id")
     var customerId: Long? = null
 
@@ -19,21 +18,33 @@ class CustomerEntity {
     @Column(name = "lastname")
     var lastname: String? = null
 
-    @Column(name = "gender")
-    @Enumerated(EnumType.STRING)
-    var gender: CustomerGender? = null
-
     @Column(name = "birth_date")
     var birthDate: LocalDate? = null
+
+    @Column(name = "address_street")
+    var addressStreet: String? = null
+
+    @Column(name = "address_housenumber")
+    var addressHousenumber: String? = null
+
+    @Column(name = "address_stairway")
+    var addressStairway: Int? = null
+
+    @Column(name = "address_postcode")
+    var addressPostCode: Int? = null
+
+    @Column(name = "address_city")
+    var addressCity: String? = null
 
     @Column(name = "telephone_number")
     var telephoneNumber: Long? = null
 
     @Column(name = "email")
     var email: String? = null
-}
-// TODO  : BaseChangeTrackingEntity<Long>(id, version)
 
-enum class CustomerGender {
-    MALE, FEMALE
+    @Column(name = "count_persons_in_household")
+    var countPersonsInHousehold: Int? = null
+
+    @Column(name = "count_infants")
+    var countInfants: Int? = null
 }

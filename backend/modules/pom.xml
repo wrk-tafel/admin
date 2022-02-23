@@ -11,6 +11,6 @@
     <artifactId>modules</artifactId>
     <packaging>pom</packaging>
     <modules>
-        <module>checkin</module>
+        <module>customer</module>
     </modules>
 </project>
