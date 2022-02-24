@@ -4,15 +4,18 @@ import at.wrk.tafel.admin.backend.common.config.ApplicationProperties
 import at.wrk.tafel.admin.backend.common.config.SecurityJwtTokenProperties
 import at.wrk.tafel.admin.backend.common.config.SecurityJwtTokenSecretProperties
 import at.wrk.tafel.admin.backend.common.config.SecurityProperties
+import io.jsonwebtoken.ExpiredJwtException
+import io.jsonwebtoken.IncorrectClaimException
 import io.jsonwebtoken.Jwts
+import io.jsonwebtoken.MissingClaimException
 import io.jsonwebtoken.security.SignatureException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.springframework.security.core.authority.SimpleGrantedAuthority
-import java.time.Instant
-import java.time.temporal.ChronoUnit
+import java.time.LocalDateTime
+import java.time.ZoneId
 import java.util.*
 import javax.crypto.spec.SecretKeySpec
 
@@ -26,11 +29,13 @@ class JwtTokenServiceTest {
         properties = ApplicationProperties(
             security = SecurityProperties(
                 jwtToken = SecurityJwtTokenProperties(
+                    issuer = "issuer",
+                    audience = "audience",
+                    expirationTimeInSeconds = 5000,
                     secret = SecurityJwtTokenSecretProperties(
                         value = "test-dummy".padEnd(50, 'A'),
                         algorithm = "HmacSHA512"
-                    ),
-                    expirationTimeInSeconds = 5000
+                    )
                 )
             )
         )
@@ -53,24 +58,83 @@ class JwtTokenServiceTest {
 
     @Test
     fun `getClaimsFromToken - invalid token denied`() {
-        val token = generateToken(secretKey = "wrongkey".padEnd(50, 'A'))
+        val token = generateToken(overrideSecretKey = "wrongkey".padEnd(50, 'A'))
 
         assertThrows<SignatureException> {
             jwtTokenService.getClaimsFromToken(token)
         }
     }
 
-    private fun generateToken(secretKey: String? = null): String {
+    @Test
+    fun `getClaimsFromToken - expired token denied`() {
+        val token = generateToken(overrideExpirationTime = LocalDateTime.now().minusDays(1))
+
+        assertThrows<ExpiredJwtException> {
+            jwtTokenService.getClaimsFromToken(token)
+        }
+    }
+
+    @Test
+    fun `getClaimsFromToken - wrong issuer denied`() {
+        val token = generateToken(overrideIssuer = "wrong")
+
+        assertThrows<IncorrectClaimException> {
+            jwtTokenService.getClaimsFromToken(token)
+        }
+    }
+
+    @Test
+    fun `getClaimsFromToken - missing issuer denied`() {
+        val token = generateToken(issuerNull = true)
+
+        assertThrows<MissingClaimException> {
+            jwtTokenService.getClaimsFromToken(token)
+        }
+    }
+
+    @Test
+    fun `getClaimsFromToken - wrong audience denied`() {
+        val token = generateToken(overrideAudience = "wrong")
+
+        assertThrows<IncorrectClaimException> {
+            jwtTokenService.getClaimsFromToken(token)
+        }
+    }
+
+    @Test
+    fun `getClaimsFromToken - missing audience denied`() {
+        val token = generateToken(audienceNull = true)
+
+        assertThrows<MissingClaimException> {
+            jwtTokenService.getClaimsFromToken(token)
+        }
+    }
+
+    private fun generateToken(
+        overrideSecretKey: String? = null,
+        overrideExpirationTime: LocalDateTime? = null,
+        overrideIssuer: String? = null,
+        issuerNull: Boolean? = false,
+        overrideAudience: String? = null,
+        audienceNull: Boolean? = false
+    ): String {
         val tokenProperties = properties.security.jwtToken
 
         val secretKeySpec =
-            SecretKeySpec((secretKey ?: tokenProperties.secret.value).toByteArray(), tokenProperties.secret.algorithm)
-        val expirationDate = Date.from(Instant.now().plus(1, ChronoUnit.HOURS))
+            SecretKeySpec(
+                (overrideSecretKey ?: tokenProperties.secret.value).toByteArray(),
+                tokenProperties.secret.algorithm
+            )
+        val expirationTime = overrideExpirationTime ?: LocalDateTime.now().plusHours(1)
+        val issuer = if (issuerNull == true) null else overrideIssuer ?: tokenProperties.issuer
+        val audience = if (audienceNull == true) null else overrideAudience ?: tokenProperties.audience
 
         return Jwts.builder()
             .setSubject("dummy-subject")
+            .setIssuer(issuer)
+            .setAudience(audience)
             .setIssuedAt(Date(System.currentTimeMillis()))
-            .setExpiration(expirationDate)
+            .setExpiration(Date.from(expirationTime.atZone(ZoneId.systemDefault()).toInstant()))
             .signWith(secretKeySpec)
             .compact()
     }
