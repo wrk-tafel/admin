@@ -37,7 +37,7 @@
 
         <!-- Test dependency versions -->
         <h2.database.version>2.1.210</h2.database.version>
-        <archunit.version>0.22.0</archunit.version>
+        <archunit.version>0.23.0</archunit.version>
         <mockk.version>1.12.2</mockk.version>
     </properties>
 
