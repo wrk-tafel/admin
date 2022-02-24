@@ -9,8 +9,6 @@ import { Router } from '@angular/router';
 
 describe('ApiPathInterceptor', () => {
   beforeEach(() => {
-    let routerSpy: jasmine.SpyObj<Router>;
-
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
       providers: [

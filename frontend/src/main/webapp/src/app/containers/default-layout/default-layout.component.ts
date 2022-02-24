@@ -26,7 +26,7 @@ export class DefaultLayoutComponent {
   }
 
   public getNavItemsFilteredByPermissions(navItems: IPermissionNavData[]) {
-    let filteredNavItems: INavData[] = [];
+    const filteredNavItems: INavData[] = [];
 
     navItems?.forEach(navItem => {
       let missingPermission = false;
@@ -50,18 +50,17 @@ export class DefaultLayoutComponent {
       return navItems;
     }
 
-    let filteredNavItems: INavData[] = [];
+    const filteredNavItems: INavData[] = [];
 
     for (let i = 0; i < navItems.length; i++) {
-      let currentItem = navItems[i];
+      const currentItem = navItems[i];
 
       if ((i + 2) > navItems.length) {
         filteredNavItems.push(currentItem);
         break;
-      }
-      else {
-        let nextItem = navItems[i + 1];
-        if (currentItem.title == true && nextItem.title == true) {
+      } else {
+        const nextItem = navItems[i + 1];
+        if (currentItem.title === true && nextItem.title === true) {
           continue;
         } else {
           filteredNavItems.push(currentItem);

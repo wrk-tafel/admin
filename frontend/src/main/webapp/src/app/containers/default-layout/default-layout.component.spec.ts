@@ -35,63 +35,63 @@ describe('DefaultLayoutComponent', () => {
 
   it('navItems are filtered by permissions - permissions undefined', () => {
     const fixture = TestBed.createComponent(DefaultLayoutComponent);
-    let component = fixture.componentInstance;
+    const component = fixture.componentInstance;
 
-    let filteredItems = component.getNavItemsFilteredByPermissions(undefined);
-    expect(filteredItems).toEqual([])
+    const filteredItems = component.getNavItemsFilteredByPermissions(undefined);
+    expect(filteredItems).toEqual([]);
   });
 
   it('navItems are filtered by permissions - permissions null', () => {
     const fixture = TestBed.createComponent(DefaultLayoutComponent);
-    let component = fixture.componentInstance;
+    const component = fixture.componentInstance;
 
-    let filteredItems = component.getNavItemsFilteredByPermissions(null);
-    expect(filteredItems).toEqual([])
+    const filteredItems = component.getNavItemsFilteredByPermissions(null);
+    expect(filteredItems).toEqual([]);
   });
 
   it('navItems are filtered by permissions - permissions empty', () => {
     const fixture = TestBed.createComponent(DefaultLayoutComponent);
-    let component = fixture.componentInstance;
+    const component = fixture.componentInstance;
 
-    let filteredItems = component.getNavItemsFilteredByPermissions([]);
-    expect(filteredItems).toEqual([])
+    const filteredItems = component.getNavItemsFilteredByPermissions([]);
+    expect(filteredItems).toEqual([]);
   });
 
   it('navItems are filtered by permissions - permission missing', () => {
     authService.hasPermission.and.returnValue(false);
 
     const fixture = TestBed.createComponent(DefaultLayoutComponent);
-    let component = fixture.componentInstance;
+    const component = fixture.componentInstance;
 
-    let filteredItems = component.getNavItemsFilteredByPermissions([
+    const filteredItems = component.getNavItemsFilteredByPermissions([
       {
         name: 'Test1',
         permissions: ['PERM1']
       }
     ]);
 
-    expect(filteredItems).toEqual([])
+    expect(filteredItems).toEqual([]);
   });
 
   it('navItems are filtered by permissions - permission given but not required', () => {
     authService.hasPermission.and.returnValue(true);
-    let testMenuItems = [
+    const testMenuItems = [
       {
         name: 'Test1'
       }
     ];
 
     const fixture = TestBed.createComponent(DefaultLayoutComponent);
-    let component = fixture.componentInstance;
+    const component = fixture.componentInstance;
 
-    let filteredItems = component.getNavItemsFilteredByPermissions(testMenuItems);
+    const filteredItems = component.getNavItemsFilteredByPermissions(testMenuItems);
 
-    expect(filteredItems).toEqual(testMenuItems)
+    expect(filteredItems).toEqual(testMenuItems);
   });
 
   it('navItems are filtered by permissions - permission given', () => {
     authService.hasPermission.and.returnValue(true);
-    let testMenuItems = [
+    const testMenuItems = [
       {
         name: 'Test1',
         permissions: ['PERM1']
@@ -99,11 +99,11 @@ describe('DefaultLayoutComponent', () => {
     ];
 
     const fixture = TestBed.createComponent(DefaultLayoutComponent);
-    let component = fixture.componentInstance;
+    const component = fixture.componentInstance;
 
-    let filteredItems = component.getNavItemsFilteredByPermissions(testMenuItems);
+    const filteredItems = component.getNavItemsFilteredByPermissions(testMenuItems);
 
-    expect(filteredItems).toEqual(testMenuItems)
+    expect(filteredItems).toEqual(testMenuItems);
   });
 
   it('navItems are filtered by permissions - permission partially given', waitForAsync(() => {
@@ -111,61 +111,61 @@ describe('DefaultLayoutComponent', () => {
     authService.hasPermission.withArgs('PERM1').and.returnValue(false);
     authService.hasPermission.withArgs('PERM2').and.returnValue(true);
 
-    let testMenuItem1 = {
+    const testMenuItem1 = {
       name: 'Test1',
       permissions: ['PERM1']
     };
-    let testMenuItem2 = {
+    const testMenuItem2 = {
       name: 'Test2',
       permissions: ['PERM2']
     };
-    let testMenuItems = [testMenuItem1, testMenuItem2];
+    const testMenuItems = [testMenuItem1, testMenuItem2];
 
     const fixture = TestBed.createComponent(DefaultLayoutComponent);
-    let component = fixture.componentInstance;
+    const component = fixture.componentInstance;
 
-    let filteredItems = component.getNavItemsFilteredByPermissions(testMenuItems);
+    const filteredItems = component.getNavItemsFilteredByPermissions(testMenuItems);
 
-    expect(filteredItems).toEqual([testMenuItem2])
+    expect(filteredItems).toEqual([testMenuItem2]);
   }));
 
-  it('navItems are filtered by permissions - permission partially given and empty titles deleted', waitForAsync(() => {
+  it('navItems are filtered by permissions - permission partially given and empty titles deconsted', waitForAsync(() => {
     authService.hasPermission.and.returnValue(false);
     authService.hasPermission.withArgs('PERM1').and.returnValue(true);
     authService.hasPermission.withArgs('PERM2').and.returnValue(false);
 
-    let testMenuItem1 = {
+    const testMenuItem1 = {
       name: 'Test1',
       permissions: ['PERM1']
     };
-    let testMenuItem2 = {
+    const testMenuItem2 = {
       name: 'Title',
       title: true
     };
-    let testMenuItem3 = {
+    const testMenuItem3 = {
       name: 'Test3',
       permissions: ['PERM2']
     };
-    let testMenuItem4 = {
+    const testMenuItem4 = {
       name: 'Test4',
       title: true
     };
-    let testMenuItem5 = {
+    const testMenuItem5 = {
       name: 'Test5',
       permissions: ['PERM1']
     };
-    let testMenuItem6 = {
+    const testMenuItem6 = {
       name: 'Title',
       title: true
     };
-    let testMenuItems = [testMenuItem1, testMenuItem2, testMenuItem3, testMenuItem4, testMenuItem5, testMenuItem6];
+    const testMenuItems = [testMenuItem1, testMenuItem2, testMenuItem3, testMenuItem4, testMenuItem5, testMenuItem6];
 
     const fixture = TestBed.createComponent(DefaultLayoutComponent);
-    let component = fixture.componentInstance;
+    const component = fixture.componentInstance;
 
-    let filteredItems = component.getNavItemsFilteredByPermissions(testMenuItems);
+    const filteredItems = component.getNavItemsFilteredByPermissions(testMenuItems);
 
-    expect(filteredItems).toEqual([testMenuItem1, testMenuItem4, testMenuItem5, testMenuItem6])
+    expect(filteredItems).toEqual([testMenuItem1, testMenuItem4, testMenuItem5, testMenuItem6]);
   }));
 
 });
