@@ -1,1 +1,1 @@
--- here comes the mock testdata
+-- here comes the mock testdata - probably only for e2e-tests

@@ -8,12 +8,17 @@
         <artifactId>modules</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
-    <artifactId>checkin</artifactId>
+    <artifactId>customer</artifactId>
 
     <dependencies>
         <dependency>
             <groupId>at.wrk.tafel</groupId>
             <artifactId>common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>at.wrk.tafel</groupId>
+            <artifactId>database-model</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>
