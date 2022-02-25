@@ -110,6 +110,29 @@ class JwtTokenServiceTest {
         }
     }
 
+    @Test
+    fun `getClaimsFromToken - token modified and rejected`() {
+        val originalExpirationDate = LocalDateTime.now().plusHours(1)
+        val originalToken = generateToken(overrideExpirationTime = originalExpirationDate)
+        val tokenParts = originalToken.split(".")
+        val tokenHeader = tokenParts[0]
+        val tokenBody = tokenParts[1]
+        val tokenSignature = tokenParts[2]
+
+        val decodedBody = String(Base64.getDecoder().decode(tokenBody))
+        val modifiedBody = decodedBody.replace(
+            originalExpirationDate.atZone(ZoneId.systemDefault()).toEpochSecond().toString(),
+            LocalDateTime.now().plusYears(1).atZone(ZoneId.systemDefault()).toEpochSecond().toString()
+        )
+        val modifiedBodyEncoded = Base64.getEncoder().encodeToString(modifiedBody.encodeToByteArray())
+
+        val modifiedToken = "$tokenHeader.$modifiedBodyEncoded.$tokenSignature"
+
+        assertThrows<SignatureException> {
+            jwtTokenService.getClaimsFromToken(modifiedToken)
+        }
+    }
+
     private fun generateToken(
         overrideSecretKey: String? = null,
         overrideExpirationTime: LocalDateTime? = null,
