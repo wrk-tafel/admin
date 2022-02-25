@@ -43,7 +43,7 @@
     "classlist.js": "1.1.20150312",
     "core-js": "^3.21.1",
     "flag-icon-css": "3.5.0",
-    "follow-redirects": "^1.14.8",
+    "follow-redirects": "^1.14.9",
     "font-awesome": "4.7.0",
     "nanoid": "^3.3.1",
     "ng2-charts": "2.4.3",
