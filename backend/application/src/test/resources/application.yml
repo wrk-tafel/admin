@@ -13,7 +13,9 @@ spring:
 
 security:
   jwtToken:
+    issuer: test-issuer
+    audience: test-audience
     secret:
-      value: test-dummy
+      value: test-secret
       algorithm: HmacSHA512
     expirationTimeInSeconds: 3600 # 5 minutes

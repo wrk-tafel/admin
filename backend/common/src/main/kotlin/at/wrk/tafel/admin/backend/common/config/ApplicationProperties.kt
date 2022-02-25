@@ -14,6 +14,8 @@ data class SecurityProperties(
 )
 
 data class SecurityJwtTokenProperties(
+    val issuer: String,
+    val audience: String,
     val secret: SecurityJwtTokenSecretProperties,
     val expirationTimeInSeconds: Int
 )
