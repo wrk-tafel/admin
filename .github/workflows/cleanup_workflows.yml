@@ -12,12 +12,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Delete main workflow runs (keep last 10 runs)
+      - name: Delete main workflow runs (keep last week)
         uses: MajorScruffy/delete-old-workflow-runs@v0.1.0
         with:
           repository: wrk-tafel/admin
           workflow: ".github/workflows/main.yml"
-          maximum-workflow-runs-to-keep: 10
+          older-than-seconds: 604800
           # older-than-seconds: 3600
           # created-before: "2021-12-08T16:34:00Z"
           # actor: test@test.com
@@ -35,19 +35,19 @@ jobs:
           older-than-seconds: 604800
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Delete scheduled analysis workflow runs (keep last 2 weeks)
+      - name: Delete scheduled analysis workflow runs (keep last week)
         uses: MajorScruffy/delete-old-workflow-runs@v0.1.0
         with:
           repository: wrk-tafel/admin
           workflow: ".github/workflows/subflow_analysis.yml"
-          older-than-seconds: 1209600
+          older-than-seconds: 604800
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Delete scheduled cleanup workflow runs (keep last 2 weeks)
+      - name: Delete scheduled cleanup workflow runs (keep last week)
         uses: MajorScruffy/delete-old-workflow-runs@v0.1.0
         with:
           repository: wrk-tafel/admin
           workflow: ".github/workflows/subflow_analysis.yml"
-          older-than-seconds: 1209600
+          older-than-seconds: 604800
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
