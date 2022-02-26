@@ -6,6 +6,7 @@ env:
   JAVA_DISTRIBUTION: 'adopt'
 
 on:
+  workflow_dispatch:
   workflow_call:
   schedule:
     - cron: '00 8 * * 5'
@@ -44,7 +45,7 @@ jobs:
         working-directory: frontend/src/main/webapp
         continue-on-error: true
 
-# TODO tslint frontend
+  # TODO tslint frontend
 
   codeql:
     name: CodeQL analyze
