@@ -8,23 +8,46 @@ on:
 jobs:
   delete-workflow-runs:
     runs-on: ubuntu-latest
-    name: Delete old workflow runs (main)
+    name: Delete old workflow runs
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Delete workflow runs
-        uses: MajorScruffy/delete-workflow-runs@v0.1
-        id: delete-workflow-runs
+      - name: Delete main workflow runs (keep last 10 runs)
+        uses: MajorScruffy/delete-old-workflow-runs@v0.1.0
         with:
           repository: wrk-tafel/admin
           workflow: ".github/workflows/main.yml"
+          maximum-workflow-runs-to-keep: 10
           # older-than-seconds: 3600
           # created-before: "2021-12-08T16:34:00Z"
           # actor: test@test.com
           # branch: main
           # event: push
           # event: completed
-          maximum-workflow-runs-to-keep: 10
           # what-if: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Delete pull-request workflow runs (keep last 10 runs)
+        uses: MajorScruffy/delete-old-workflow-runs@v0.1.0
+        with:
+          repository: wrk-tafel/admin
+          workflow: ".github/workflows/pull_request.yml"
+          maximum-workflow-runs-to-keep: 10
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Delete scheduled analysis workflow runs (keep last 2)
+        uses: MajorScruffy/delete-old-workflow-runs@v0.1.0
+        with:
+          repository: wrk-tafel/admin
+          workflow: ".github/workflows/subflow_analysis.yml"
+          maximum-workflow-runs-to-keep: 2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Delete scheduled cleanup workflow runs (keep last 2)
+        uses: MajorScruffy/delete-old-workflow-runs@v0.1.0
+        with:
+          repository: wrk-tafel/admin
+          workflow: ".github/workflows/subflow_analysis.yml"
+          maximum-workflow-runs-to-keep: 2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
