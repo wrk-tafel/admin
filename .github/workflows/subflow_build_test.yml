@@ -5,6 +5,7 @@ env:
   JAVA_DISTRIBUTION: 'adopt'
 
 on:
+  workflow_dispatch:
   workflow_call:
 
 jobs:
