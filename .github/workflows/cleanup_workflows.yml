@@ -8,13 +8,12 @@ on:
 jobs:
   delete-workflow-runs:
     runs-on: ubuntu-latest
-    name: Delete old workflow runs
+    name: Delete old workflow runs (main)
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-
       - name: Delete workflow runs
-        uses: ./ # Uses an action in the root directory
+        uses: MajorScruffy/delete-workflow-runs@v0.1
         id: delete-workflow-runs
         with:
           repository: wrk-tafel/admin
