@@ -8,7 +8,7 @@ env:
 on:
   workflow_call:
   schedule:
-    - cron: '25 10 * * 1'
+    - cron: '00 8 * * 5'
 
 jobs:
   lint-backend:
