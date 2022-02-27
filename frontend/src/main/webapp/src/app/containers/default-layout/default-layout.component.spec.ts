@@ -129,7 +129,7 @@ describe('DefaultLayoutComponent', () => {
     expect(filteredItems).toEqual([testMenuItem2]);
   }));
 
-  it('navItems are filtered by permissions - permission partially given and empty titles deleted', waitForAsync(() => {
+  it('navItems are filtered by permissions - permission partially given and empty titles removed', waitForAsync(() => {
     authService.hasPermission.and.returnValue(false);
     authService.hasPermission.withArgs('PERM1').and.returnValue(true);
     authService.hasPermission.withArgs('PERM2').and.returnValue(false);
@@ -168,7 +168,7 @@ describe('DefaultLayoutComponent', () => {
     expect(filteredItems).toEqual([testMenuItem1, testMenuItem4, testMenuItem5, testMenuItem6]);
   }));
 
-  it('navItems are filtered by permissions - empty titles deleted on single title', waitForAsync(() => {
+  it('navItems are filtered by permissions - empty titles removed on single title', waitForAsync(() => {
     authService.hasPermission.and.returnValue(false);
     authService.hasPermission.withArgs('PERM2').and.returnValue(false);
 
