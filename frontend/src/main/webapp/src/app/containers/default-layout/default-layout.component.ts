@@ -46,7 +46,10 @@ export class DefaultLayoutComponent {
   }
 
   private filterEmptyTitleItems(navItems: INavData[]) {
-    if (navItems.length <= 1) {
+    if (navItems.length == 1) {
+      if (navItems[0].title === true) {
+        return [];
+      }
       return navItems;
     }
 
