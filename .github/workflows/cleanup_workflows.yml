@@ -11,7 +11,7 @@ jobs:
     name: Delete old workflow runs
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Delete main workflow runs (keep last week)
         uses: MajorScruffy/delete-old-workflow-runs@v0.2.0
         with:
