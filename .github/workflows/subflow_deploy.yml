@@ -13,6 +13,8 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment: test
+    concurrency: test
     steps:
       - name: Create SSH key
         run: |
