@@ -1,6 +1,5 @@
 name: Push on main branch
 
-environment: test
 concurrency: test
 
 on:
