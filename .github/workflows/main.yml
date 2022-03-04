@@ -1,5 +1,8 @@
 name: Push on main branch
 
+environment: test
+concurrency: test
+
 on:
   push:
     branches: [ 'main' ] # switch to seperate release branch later on
