@@ -11,9 +11,9 @@ jobs:
     name: Delete old workflow runs
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Delete main workflow runs (keep last week)
-        uses: MajorScruffy/delete-old-workflow-runs@v0.1.0
+        uses: MajorScruffy/delete-old-workflow-runs@v0.2.0
         with:
           repository: wrk-tafel/admin
           workflow: ".github/workflows/main.yml"
@@ -28,7 +28,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Delete pull-request workflow runs (keep last week)
-        uses: MajorScruffy/delete-old-workflow-runs@v0.1.0
+        uses: MajorScruffy/delete-old-workflow-runs@v0.2.0
         with:
           repository: wrk-tafel/admin
           workflow: ".github/workflows/pull_request.yml"
@@ -36,7 +36,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Delete scheduled analysis workflow runs (keep last week)
-        uses: MajorScruffy/delete-old-workflow-runs@v0.1.0
+        uses: MajorScruffy/delete-old-workflow-runs@v0.2.0
         with:
           repository: wrk-tafel/admin
           workflow: ".github/workflows/subflow_analysis.yml"
@@ -44,7 +44,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Delete scheduled cleanup workflow runs (keep last week)
-        uses: MajorScruffy/delete-old-workflow-runs@v0.1.0
+        uses: MajorScruffy/delete-old-workflow-runs@v0.2.0
         with:
           repository: wrk-tafel/admin
           workflow: ".github/workflows/subflow_analysis.yml"
