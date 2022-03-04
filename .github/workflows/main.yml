@@ -1,6 +1,6 @@
 name: Push on main branch
 
-concurrency: test
+concurrency: release
 
 on:
   push:
