@@ -9,3 +9,5 @@ create table income_limits(
     valid_from date not null,
     valid_to date not null
 );
+
+create unique index uix_type_validFrom_validTo on income_limits (type, valid_from, valid_to);
