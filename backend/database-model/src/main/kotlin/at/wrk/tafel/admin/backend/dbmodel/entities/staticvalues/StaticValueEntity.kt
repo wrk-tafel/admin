@@ -11,11 +11,11 @@ import javax.persistence.*
 @DiscriminatorColumn(name = "type", discriminatorType = DiscriminatorType.STRING)
 abstract class StaticValueEntity : BaseChangeTrackingEntity() {
     @Column(name = "value")
-    var value: BigDecimal? = null
+    open var value: BigDecimal? = null
 
     @Column(name = "valid_from")
-    var validFrom: LocalDate? = null
+    open var validFrom: LocalDate? = null
 
     @Column(name = "valid_to")
-    var validTo: LocalDate? = null
+    open var validTo: LocalDate? = null
 }
