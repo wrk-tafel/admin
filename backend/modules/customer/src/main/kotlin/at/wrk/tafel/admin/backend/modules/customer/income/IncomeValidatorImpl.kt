@@ -4,6 +4,7 @@ import at.wrk.tafel.admin.backend.dbmodel.entities.IncomeLimitType
 import at.wrk.tafel.admin.backend.dbmodel.repositories.IncomeLimitRepository
 import java.math.BigDecimal
 import java.time.LocalDate
+import kotlin.math.max
 
 class IncomeValidatorImpl(
     private val incomeLimitRepository: IncomeLimitRepository
@@ -49,52 +50,30 @@ class IncomeValidatorImpl(
     private fun determineLimit(persons: List<IncomeValidatorInputPerson>): BigDecimal {
         var overallLimit = BigDecimal.ZERO
 
-        var countPersons = 0
-        var countChildren = 0
-        var countAdditionalPersons = 0
-        var countAdditionalChildren = 0
+        val countPersons = persons.count { !it.isChild() }
+        val countChildren = persons.count { it.isChild() }
+        val countAdditionalPersons = max(0, countPersons - 2)
+        val countAdditionalChildren = max(0, countChildren - 3)
 
-        for (person in persons) {
-            if (person.isChild()) {
-                countChildren++
-            } else {
-                countPersons++
-            }
-        }
+        val incomeLimitType = IncomeLimitType.valueOfCount((countPersons - countAdditionalPersons), countChildren)
+        incomeLimitType?.let { overallLimit = overallLimit.add(getLimitValue(it)) }
 
-        if (countPersons > 2) {
-            countAdditionalPersons = countPersons - 2
-            countPersons = 2
-        }
-        if (countChildren > 3) {
-            countAdditionalChildren = countChildren - 3
-            countChildren = 3
-        }
+        val additionalAdultLimit = getLimitValue(IncomeLimitType.ADDADULT)
+        overallLimit = overallLimit.add(additionalAdultLimit.multiply(countAdditionalPersons.toBigDecimal()))
 
-        val incomeLimitType = IncomeLimitType.valueOfCount(countPersons, countChildren)
-        incomeLimitType?.let { incomeLimitTypeEnum ->
-            val incomeLimit = incomeLimitRepository.findByTypeAndDate(incomeLimitTypeEnum.name, LocalDate.now())
-            incomeLimit?.let { overallLimit = overallLimit.add(it.value) }
-        }
-
-        if (countAdditionalPersons > 0) {
-            val incomeLimit = incomeLimitRepository.findByTypeAndDate(IncomeLimitType.ADDADULT.name, LocalDate.now())
-            incomeLimit?.let { incomeLimit ->
-                incomeLimit?.let {
-                    overallLimit = overallLimit.add(it.value)
-                }
-            }
-        }
-
-        if (countAdditionalChildren > 0) {
-            val incomeLimit = incomeLimitRepository.findByTypeAndDate(IncomeLimitType.ADDCHILD.name, LocalDate.now())
-            incomeLimit?.let { incomeLimit ->
-                incomeLimit?.let {
-                    overallLimit = overallLimit.add(it.value)
-                }
-            }
-        }
+        val additionalChildrenLimit = getLimitValue(IncomeLimitType.ADDCHILD)
+        overallLimit = overallLimit.add(additionalChildrenLimit.multiply(countAdditionalChildren.toBigDecimal()))
 
         return overallLimit
+    }
+
+    private fun getLimitValue(type: IncomeLimitType): BigDecimal {
+        val incomeLimit = incomeLimitRepository.findByTypeAndDate(type.name, LocalDate.now())
+        incomeLimit?.let { incomeLimit ->
+            incomeLimit?.let {
+                return it.value!!
+            }
+        }
+        return BigDecimal.ZERO
     }
 }
