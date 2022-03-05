@@ -7,7 +7,7 @@ import javax.persistence.Entity
 @Entity(name = "IncomeLimit")
 @DiscriminatorValue("INCOME-LIMIT")
 class IncomeLimitEntity : StaticValueEntity() {
-    @Column(name = "count_persons")
+    @Column(name = "count_adult")
     var countAdult: Int? = null
 
     @Column(name = "count_child")
