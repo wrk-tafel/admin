@@ -10,16 +10,16 @@ class IncomeValidatorImpl : IncomeValidator {
         var monthlySum = BigDecimal.ZERO
         for (person in input.persons) {
             monthlySum = monthlySum.add(person.monthlyIncome)
-            monthlySum = addFamilyCredit(person)
+            monthlySum = monthlySum.add(calculateFamilyCredit(person))
         }
 
         return createResult(input, monthlySum)
     }
 
-    private fun addFamilyCredit(person: IncomeValidatorInputPerson): BigDecimal {
+    private fun calculateFamilyCredit(person: IncomeValidatorInputPerson): BigDecimal {
         var value = BigDecimal.ZERO
         if (person.age <= 24) {
-            value = value.add(BigDecimal.TEN) // TODO correct value
+            value = value.add(BigDecimal.ZERO) // TODO correct value
         }
         return value
     }
