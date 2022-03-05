@@ -1,18 +1,18 @@
 package at.wrk.tafel.admin.backend.modules.customer.income
 
-import at.wrk.tafel.admin.backend.dbmodel.entities.StaticValueType
-import at.wrk.tafel.admin.backend.dbmodel.repositories.StaticValueRepository
+import at.wrk.tafel.admin.backend.dbmodel.repositories.FamilyBonusRepository
+import at.wrk.tafel.admin.backend.dbmodel.repositories.IncomeLimitRepository
 import java.math.BigDecimal
-import java.time.LocalDate
 import kotlin.math.max
 
 class IncomeValidatorImpl(
-    private val incomeLimitRepository: StaticValueRepository
+    private val incomeLimitRepository: IncomeLimitRepository,
+    private val familyBonusRepository: FamilyBonusRepository
 ) : IncomeValidator {
 
     private val TOLERANCE_VALUE = BigDecimal("100")
 
-    override fun validate(persons: List<IncomeValidatorInputPerson>): Boolean {
+    override fun validate(persons: List<IncomeValidatorPerson>): Boolean {
         if (persons.isEmpty()) {
             throw IllegalArgumentException("No persons given")
         }
@@ -26,18 +26,23 @@ class IncomeValidatorImpl(
         return checkLimit(persons, monthlySum)
     }
 
-    private fun calculateFamilyBonus(person: IncomeValidatorInputPerson): BigDecimal {
+    private fun calculateFamilyBonus(person: IncomeValidatorPerson): BigDecimal {
         var value = BigDecimal.ZERO
         if (person.isChild()) {
-            val valueType = StaticValueType.valueOfAge(person.age)
-            valueType?.let {
-                value = value.add(getLimitValue(it))
-            }
+            value = value.add(getFamilyBonusForAge(person.age))
         }
         return value
     }
 
-    private fun checkLimit(persons: List<IncomeValidatorInputPerson>, monthlySum: BigDecimal): Boolean {
+    private fun getFamilyBonusForAge(age: Int): BigDecimal? {
+        return familyBonusRepository.findAll()
+            .sortedByDescending { it.age }
+            .filter { it.age!! >= age }
+            .map { it.value }
+            .firstOrNull()
+    }
+
+    private fun checkLimit(persons: List<IncomeValidatorPerson>, monthlySum: BigDecimal): Boolean {
         var valid = false
 
         val limit = determineLimit(persons).add(TOLERANCE_VALUE)
@@ -50,7 +55,7 @@ class IncomeValidatorImpl(
         return valid
     }
 
-    private fun determineLimit(persons: List<IncomeValidatorInputPerson>): BigDecimal {
+    private fun determineLimit(persons: List<IncomeValidatorPerson>): BigDecimal {
         var overallLimit = BigDecimal.ZERO
 
         val countPersons = persons.count { !it.isChild() }
@@ -60,25 +65,19 @@ class IncomeValidatorImpl(
         val childrenLimit = if (countPersons == 1) 2 else 3
         val countAdditionalChildren = max(0, countChildren - childrenLimit)
 
-        val staticValueType = StaticValueType.valueOfCounts((countPersons - countAdditionalPersons), countChildren)
-        staticValueType?.let { overallLimit = overallLimit.add(getLimitValue(it)) }
+        val staticValueType =
+            incomeLimitRepository.findLatestForPersonCount(
+                (countPersons - countAdditionalPersons),
+                (countChildren - countAdditionalChildren)
+            )
+        staticValueType?.let { overallLimit = overallLimit.add(it.value ?: BigDecimal.ZERO) }
 
-        val additionalAdultLimit = getLimitValue(StaticValueType.INCADDADULT)
+        val additionalAdultLimit = incomeLimitRepository.findLatestAdditionalAdult()?.value ?: BigDecimal.ZERO
         overallLimit = overallLimit.add(additionalAdultLimit.multiply(countAdditionalPersons.toBigDecimal()))
 
-        val additionalChildrenLimit = getLimitValue(StaticValueType.INCADDCHILD)
+        val additionalChildrenLimit = incomeLimitRepository.findLatestAdditionalChild()?.value ?: BigDecimal.ZERO
         overallLimit = overallLimit.add(additionalChildrenLimit.multiply(countAdditionalChildren.toBigDecimal()))
 
         return overallLimit
-    }
-
-    private fun getLimitValue(type: StaticValueType): BigDecimal {
-        val incomeLimit = incomeLimitRepository.findByTypeAndDate(type.name, LocalDate.now())
-        incomeLimit?.let { incomeLimit ->
-            incomeLimit?.let {
-                return it.value!!
-            }
-        }
-        return BigDecimal.ZERO
     }
 }

@@ -29,29 +29,32 @@ INSERT INTO customers (id, created_at, updated_at, customer_id, firstname, lastn
 (1, NOW(), NOW(), 1, 'Eva', 'Musterfrau', '1990-01-01', 'Erdberg', 2, '1', '1010', 'Wien', 00436645678953, 'eva.musterfrau@wrk.at', 2, 0);
 
 -- static values
-INSERT INTO static_values(id, created_at, updated_at, type, value, valid_from, valid_to) VALUES
-(1, NOW(), NOW(), 'INCPERS1', 1328.00, '1900-01-01', '2999-12-31');
-INSERT INTO static_values(id, created_at, updated_at, type, value, valid_from, valid_to) VALUES
-(2, NOW(), NOW(), 'INCPERS1CH1', 1726.00, '1900-01-01', '2999-12-31');
-INSERT INTO static_values(id, created_at, updated_at, type, value, valid_from, valid_to) VALUES
-(3, NOW(), NOW(), 'INCPERS1CH2', 2124.00, '1900-01-01', '2999-12-31');
-INSERT INTO static_values(id, created_at, updated_at, type, value, valid_from, valid_to) VALUES
-(4, NOW(), NOW(), 'INCPERS2', 1992.00, '1900-01-01', '2999-12-31');
-INSERT INTO static_values(id, created_at, updated_at, type, value, valid_from, valid_to) VALUES
-(5, NOW(), NOW(), 'INCPERS2CH1', 2390.00, '1900-01-01', '2999-12-31');
-INSERT INTO static_values(id, created_at, updated_at, type, value, valid_from, valid_to) VALUES
-(6, NOW(), NOW(), 'INCPERS2CH2', 2788.00, '1900-01-01', '2999-12-31');
-INSERT INTO static_values(id, created_at, updated_at, type, value, valid_from, valid_to) VALUES
-(7, NOW(), NOW(), 'INCPERS2CH3', 3187.00, '1900-01-01', '2999-12-31');
-INSERT INTO static_values(id, created_at, updated_at, type, value, valid_from, valid_to) VALUES
-(8, NOW(), NOW(), 'INCADDADULT', 664.00, '1900-01-01', '2999-12-31');
-INSERT INTO static_values(id, created_at, updated_at, type, value, valid_from, valid_to) VALUES
-(9, NOW(), NOW(), 'INCADDCHILD', 398.00, '1900-01-01', '2999-12-31');
-INSERT INTO static_values(id, created_at, updated_at, type, value, valid_from, valid_to) VALUES
-(10, NOW(), NOW(), 'INCFAMBONAGE0', 114.00, '1900-01-01', '2999-12-31');
-INSERT INTO static_values(id, created_at, updated_at, type, value, valid_from, valid_to) VALUES
-(11, NOW(), NOW(), 'INCFAMBONAGE3', 121.90, '1900-01-01', '2999-12-31');
-INSERT INTO static_values(id, created_at, updated_at, type, value, valid_from, valid_to) VALUES
-(12, NOW(), NOW(), 'INCFAMBONAGE10', 141.50, '1900-01-01', '2999-12-31');
-INSERT INTO static_values(id, created_at, updated_at, type, value, valid_from, valid_to) VALUES
-(13, NOW(), NOW(), 'INCFAMBONAGE19', 165.10, '1900-01-01', '2999-12-31');
+-- income limits
+INSERT INTO static_values(id, created_at, updated_at, type, valid_from, valid_to, value, count_adult, count_child) VALUES
+(1, NOW(), NOW(), 'INCOME-LIMIT', '1900-01-01', '2999-12-31', 1328.00, 1, 0);
+INSERT INTO static_values(id, created_at, updated_at, type, valid_from, valid_to, value, count_adult, count_child) VALUES
+(2, NOW(), NOW(), 'INCOME-LIMIT', '1900-01-01', '2999-12-31', 1726.00, 1, 1);
+INSERT INTO static_values(id, created_at, updated_at, type, valid_from, valid_to, value, count_adult, count_child) VALUES
+(3, NOW(), NOW(), 'INCOME-LIMIT', '1900-01-01', '2999-12-31', 2124.00, 1, 2);
+INSERT INTO static_values(id, created_at, updated_at, type, valid_from, valid_to, value, count_adult, count_child) VALUES
+(4, NOW(), NOW(), 'INCOME-LIMIT', '1900-01-01', '2999-12-31', 1992.00, 2, 0);
+INSERT INTO static_values(id, created_at, updated_at, type, valid_from, valid_to, value, count_adult, count_child) VALUES
+(5, NOW(), NOW(), 'INCOME-LIMIT', '1900-01-01', '2999-12-31', 2390.00, 2, 1);
+INSERT INTO static_values(id, created_at, updated_at, type, valid_from, valid_to, value, count_adult, count_child) VALUES
+(6, NOW(), NOW(), 'INCOME-LIMIT', '1900-01-01', '2999-12-31', 2788.00, 2, 2);
+INSERT INTO static_values(id, created_at, updated_at, type, valid_from, valid_to, value, count_adult, count_child) VALUES
+(7, NOW(), NOW(), 'INCOME-LIMIT', '1900-01-01', '2999-12-31', 3187.00, 2, 3);
+INSERT INTO static_values(id, created_at, updated_at, type, valid_from, valid_to, value, additional_adult) VALUES
+(8, NOW(), NOW(), 'INCOME-LIMIT', '1900-01-01', '2999-12-31', 664.00, true);
+INSERT INTO static_values(id, created_at, updated_at, type, valid_from, valid_to, value, additional_child) VALUES
+(9, NOW(), NOW(), 'INCOME-LIMIT', '1900-01-01', '2999-12-31', 398.00, true);
+
+-- family bonus
+INSERT INTO static_values(id, created_at, updated_at, type, valid_from, valid_to, value, age) VALUES
+(10, NOW(), NOW(), 'INCOME-LIMIT', '1900-01-01', '2999-12-31', 114.00, 0);
+INSERT INTO static_values(id, created_at, updated_at, type, valid_from, valid_to, value, age) VALUES
+(11, NOW(), NOW(), 'INCOME-LIMIT', '1900-01-01', '2999-12-31', 121.90, 3);
+INSERT INTO static_values(id, created_at, updated_at, type, valid_from, valid_to, value, age) VALUES
+(12, NOW(), NOW(), 'INCOME-LIMIT', '1900-01-01', '2999-12-31', 141.50, 10);
+INSERT INTO static_values(id, created_at, updated_at, type, valid_from, valid_to, value, age) VALUES
+(13, NOW(), NOW(), 'INCOME-LIMIT', '1900-01-01', '2999-12-31', 165.10, 19);

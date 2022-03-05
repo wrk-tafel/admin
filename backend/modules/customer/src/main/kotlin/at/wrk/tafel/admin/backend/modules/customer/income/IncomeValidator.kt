@@ -3,10 +3,10 @@ package at.wrk.tafel.admin.backend.modules.customer.income
 import java.math.BigDecimal
 
 interface IncomeValidator {
-    fun validate(persons: List<IncomeValidatorInputPerson>): Boolean
+    fun validate(persons: List<IncomeValidatorPerson>): Boolean
 }
 
-data class IncomeValidatorInputPerson(
+data class IncomeValidatorPerson(
     val monthlyIncome: BigDecimal,
     val age: Int,
     val compulsoryEducation: Boolean? = false
