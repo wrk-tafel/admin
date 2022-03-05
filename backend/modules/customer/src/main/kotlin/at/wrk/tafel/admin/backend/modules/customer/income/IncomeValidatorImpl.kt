@@ -23,7 +23,7 @@ class IncomeValidatorImpl(
             monthlySum = monthlySum.add(calculateFamilyCredit(person))
         }
 
-        return createResult(persons, monthlySum)
+        return checkLimit(persons, monthlySum)
     }
 
     private fun calculateFamilyCredit(person: IncomeValidatorInputPerson): BigDecimal {
@@ -34,7 +34,7 @@ class IncomeValidatorImpl(
         return value
     }
 
-    private fun createResult(persons: List<IncomeValidatorInputPerson>, monthlySum: BigDecimal): Boolean {
+    private fun checkLimit(persons: List<IncomeValidatorInputPerson>, monthlySum: BigDecimal): Boolean {
         var valid = false
 
         val limit = determineLimit(persons).add(TOLERANCE_VALUE)
