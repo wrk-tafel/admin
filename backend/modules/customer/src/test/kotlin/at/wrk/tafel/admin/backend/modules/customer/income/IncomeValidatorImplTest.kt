@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.customer.income
 
+import at.wrk.tafel.admin.backend.dbmodel.entities.staticvalues.FamilyBonusEntity
 import at.wrk.tafel.admin.backend.dbmodel.entities.staticvalues.IncomeLimitEntity
 import at.wrk.tafel.admin.backend.dbmodel.repositories.FamilyBonusRepository
 import at.wrk.tafel.admin.backend.dbmodel.repositories.IncomeLimitRepository
@@ -24,6 +25,13 @@ class IncomeValidatorImplTest {
         IncomeLimitMockData(value = BigDecimal("1600"), countAdult = 2, countChild = 1),
         IncomeLimitMockData(value = BigDecimal("1700"), countAdult = 2, countChild = 2),
         IncomeLimitMockData(value = BigDecimal("1800"), countAdult = 2, countChild = 3)
+    )
+
+    private val MOCK_FAMILY_BONUS = listOf(
+        FamilyBonusMockData(value = BigDecimal("10"), age = 0),
+        FamilyBonusMockData(value = BigDecimal("30"), age = 3),
+        FamilyBonusMockData(value = BigDecimal("90"), age = 10),
+        FamilyBonusMockData(value = BigDecimal("190"), age = 19)
     )
 
     @RelaxedMockK
@@ -52,6 +60,12 @@ class IncomeValidatorImplTest {
         }
         every { incomeLimitRepository.findLatestAdditionalAdult() } returns createAdditionalAdultLimitEntity()
         every { incomeLimitRepository.findLatestAdditionalChild() } returns createAdditionalChildLimitEntity()
+        every { familyBonusRepository.findAll() } returns MOCK_FAMILY_BONUS.map {
+            val entity = FamilyBonusEntity()
+            entity.value = it.value
+            entity.age = it.age
+            entity
+        }
 
         incomeValidator = IncomeValidatorImpl(incomeLimitRepository, familyBonusRepository)
     }
@@ -256,4 +270,9 @@ data class IncomeLimitMockData(
     val value: BigDecimal,
     val countAdult: Int,
     val countChild: Int? = 0
+)
+
+data class FamilyBonusMockData(
+    val value: BigDecimal,
+    val age: Int
 )
