@@ -53,7 +53,9 @@ class IncomeValidatorImpl(
         val countPersons = persons.count { !it.isChild() }
         val countChildren = persons.count { it.isChild() }
         val countAdditionalPersons = max(0, countPersons - 2)
-        val countAdditionalChildren = max(0, countChildren - 3)
+
+        val childrenLimit = if (countPersons == 1) 2 else 3
+        val countAdditionalChildren = max(0, countChildren - childrenLimit)
 
         val incomeLimitType = IncomeLimitType.valueOfCount((countPersons - countAdditionalPersons), countChildren)
         incomeLimitType?.let { overallLimit = overallLimit.add(getLimitValue(it)) }
