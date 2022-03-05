@@ -51,10 +51,10 @@ INSERT INTO static_values(id, created_at, updated_at, type, valid_from, valid_to
 
 -- family bonus
 INSERT INTO static_values(id, created_at, updated_at, type, valid_from, valid_to, value, age) VALUES
-(10, NOW(), NOW(), 'INCOME-LIMIT', '1900-01-01', '2999-12-31', 114.00, 0);
+(10, NOW(), NOW(), 'FAMILY-BONUS', '1900-01-01', '2999-12-31', 114.00, 0);
 INSERT INTO static_values(id, created_at, updated_at, type, valid_from, valid_to, value, age) VALUES
-(11, NOW(), NOW(), 'INCOME-LIMIT', '1900-01-01', '2999-12-31', 121.90, 3);
+(11, NOW(), NOW(), 'FAMILY-BONUS', '1900-01-01', '2999-12-31', 121.90, 3);
 INSERT INTO static_values(id, created_at, updated_at, type, valid_from, valid_to, value, age) VALUES
-(12, NOW(), NOW(), 'INCOME-LIMIT', '1900-01-01', '2999-12-31', 141.50, 10);
+(12, NOW(), NOW(), 'FAMILY-BONUS', '1900-01-01', '2999-12-31', 141.50, 10);
 INSERT INTO static_values(id, created_at, updated_at, type, valid_from, valid_to, value, age) VALUES
-(13, NOW(), NOW(), 'INCOME-LIMIT', '1900-01-01', '2999-12-31', 165.10, 19);
+(13, NOW(), NOW(), 'FAMILY-BONUS', '1900-01-01', '2999-12-31', 165.10, 19);
