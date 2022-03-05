@@ -20,16 +20,19 @@ class IncomeValidatorImpl(
         var monthlySum = BigDecimal.ZERO
         for (person in persons) {
             monthlySum = monthlySum.add(person.monthlyIncome)
-            monthlySum = monthlySum.add(calculateFamilyCredit(person))
+            monthlySum = monthlySum.add(calculateFamilyBonus(person))
         }
 
         return checkLimit(persons, monthlySum)
     }
 
-    private fun calculateFamilyCredit(person: IncomeValidatorInputPerson): BigDecimal {
+    private fun calculateFamilyBonus(person: IncomeValidatorInputPerson): BigDecimal {
         var value = BigDecimal.ZERO
-        if (person.age <= 24) {
-            value = value.add(BigDecimal.ZERO) // TODO correct value
+        if (person.isChild()) {
+            val valueType = StaticValueType.valueOfAge(person.age)
+            valueType?.let {
+                value = value.add(getLimitValue(it))
+            }
         }
         return value
     }
@@ -57,7 +60,7 @@ class IncomeValidatorImpl(
         val childrenLimit = if (countPersons == 1) 2 else 3
         val countAdditionalChildren = max(0, countChildren - childrenLimit)
 
-        val staticValueType = StaticValueType.valueOfCount((countPersons - countAdditionalPersons), countChildren)
+        val staticValueType = StaticValueType.valueOfCounts((countPersons - countAdditionalPersons), countChildren)
         staticValueType?.let { overallLimit = overallLimit.add(getLimitValue(it)) }
 
         val additionalAdultLimit = getLimitValue(StaticValueType.INCADDADULT)

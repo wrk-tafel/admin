@@ -47,3 +47,11 @@ INSERT INTO static_values(id, created_at, updated_at, type, value, valid_from, v
 (8, NOW(), NOW(), 'INCADDADULT', 664.00, '1900-01-01', '2999-12-31');
 INSERT INTO static_values(id, created_at, updated_at, type, value, valid_from, valid_to) VALUES
 (9, NOW(), NOW(), 'INCADDCHILD', 398.00, '1900-01-01', '2999-12-31');
+INSERT INTO static_values(id, created_at, updated_at, type, value, valid_from, valid_to) VALUES
+(10, NOW(), NOW(), 'INCFAMBONAGE0', 114.00, '1900-01-01', '2999-12-31');
+INSERT INTO static_values(id, created_at, updated_at, type, value, valid_from, valid_to) VALUES
+(11, NOW(), NOW(), 'INCFAMBONAGE3', 121.90, '1900-01-01', '2999-12-31');
+INSERT INTO static_values(id, created_at, updated_at, type, value, valid_from, valid_to) VALUES
+(12, NOW(), NOW(), 'INCFAMBONAGE10', 141.50, '1900-01-01', '2999-12-31');
+INSERT INTO static_values(id, created_at, updated_at, type, value, valid_from, valid_to) VALUES
+(13, NOW(), NOW(), 'INCFAMBONAGE19', 165.10, '1900-01-01', '2999-12-31');

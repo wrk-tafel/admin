@@ -25,7 +25,11 @@ class IncomeValidatorImplTest {
         StaticValueType.INCPERS2CH2 to BigDecimal("1700"),
         StaticValueType.INCPERS2CH3 to BigDecimal("1800"),
         StaticValueType.INCADDADULT to BigDecimal("200"),
-        StaticValueType.INCADDCHILD to BigDecimal("100")
+        StaticValueType.INCADDCHILD to BigDecimal("100"),
+        StaticValueType.INCFAMBONAGE0 to BigDecimal("10"),
+        StaticValueType.INCFAMBONAGE3 to BigDecimal("30"),
+        StaticValueType.INCFAMBONAGE10 to BigDecimal("90"),
+        StaticValueType.INCFAMBONAGE19 to BigDecimal("190")
     )
 
     @RelaxedMockK

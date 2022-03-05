@@ -24,7 +24,8 @@ class StaticValueEntity : BaseChangeTrackingEntity() {
 
 enum class StaticValueType(
     val countPersons: Int = 0,
-    val countChilds: Int = 0
+    val countChilds: Int = 0,
+    val age: Int? = null
 ) {
     INCPERS1(countPersons = 1),
     INCPERS1CH1(countPersons = 1, countChilds = 1),
@@ -34,12 +35,27 @@ enum class StaticValueType(
     INCPERS2CH2(countPersons = 2, countChilds = 2),
     INCPERS2CH3(countPersons = 2, countChilds = 3),
     INCADDADULT,
-    INCADDCHILD;
+    INCADDCHILD,
+    INCFAMBONAGE0(age = 0),
+    INCFAMBONAGE3(age = 3),
+    INCFAMBONAGE10(age = 10),
+    INCFAMBONAGE19(age = 19);
 
     companion object {
-        fun valueOfCount(countPersons: Int? = 0, countChilds: Int? = 0): StaticValueType? {
+        fun valueOfCounts(countPersons: Int? = 0, countChilds: Int? = 0): StaticValueType? {
             for (value in values()) {
                 if (value.countPersons == countPersons && value.countChilds == countChilds) {
+                    return value
+                }
+            }
+            return null
+        }
+
+        fun valueOfAge(age: Int): StaticValueType? {
+            val ageValuesSorted = listOf(*values()).sortedByDescending { it.age }
+            for (value in ageValuesSorted) {
+                val valueAge = value.age
+                if (valueAge != null && age >= valueAge) {
                     return value
                 }
             }

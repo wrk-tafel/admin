@@ -11,3 +11,5 @@ create table static_values(
 );
 
 create unique index uix_type_validFrom_validTo on static_values (type, valid_from, valid_to);
+create unique index uix_type_validFrom on static_values (type, valid_from);
+create unique index uix_type_validTo on static_values (type, valid_to);
