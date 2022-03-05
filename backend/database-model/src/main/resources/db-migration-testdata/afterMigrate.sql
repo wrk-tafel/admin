@@ -28,22 +28,22 @@ INSERT INTO customers (id, created_at, updated_at, customer_id, firstname, lastn
 INSERT INTO customers (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, address_street, address_housenumber, address_stairway, address_postcode, address_city, telephone_number, email, count_persons_in_household, count_infants) values
 (1, NOW(), NOW(), 1, 'Eva', 'Musterfrau', '1990-01-01', 'Erdberg', 2, '1', '1010', 'Wien', 00436645678953, 'eva.musterfrau@wrk.at', 2, 0);
 
--- income limits
-INSERT INTO income_limits(id, created_at, updated_at, type, value, valid_from, valid_to) VALUES
+-- static values
+INSERT INTO static_values(id, created_at, updated_at, type, value, valid_from, valid_to) VALUES
 (1, NOW(), NOW(), 'PERS1', 1328.00, '1900-01-01', '2999-12-31');
-INSERT INTO income_limits(id, created_at, updated_at, type, value, valid_from, valid_to) VALUES
+INSERT INTO static_values(id, created_at, updated_at, type, value, valid_from, valid_to) VALUES
 (2, NOW(), NOW(), 'PERS1CH1', 1726.00, '1900-01-01', '2999-12-31');
-INSERT INTO income_limits(id, created_at, updated_at, type, value, valid_from, valid_to) VALUES
+INSERT INTO static_values(id, created_at, updated_at, type, value, valid_from, valid_to) VALUES
 (3, NOW(), NOW(), 'PERS1CH2', 2124.00, '1900-01-01', '2999-12-31');
-INSERT INTO income_limits(id, created_at, updated_at, type, value, valid_from, valid_to) VALUES
+INSERT INTO static_values(id, created_at, updated_at, type, value, valid_from, valid_to) VALUES
 (4, NOW(), NOW(), 'PERS2', 1992.00, '1900-01-01', '2999-12-31');
-INSERT INTO income_limits(id, created_at, updated_at, type, value, valid_from, valid_to) VALUES
+INSERT INTO static_values(id, created_at, updated_at, type, value, valid_from, valid_to) VALUES
 (5, NOW(), NOW(), 'PERS2CH1', 2390.00, '1900-01-01', '2999-12-31');
-INSERT INTO income_limits(id, created_at, updated_at, type, value, valid_from, valid_to) VALUES
+INSERT INTO static_values(id, created_at, updated_at, type, value, valid_from, valid_to) VALUES
 (6, NOW(), NOW(), 'PERS2CH2', 2788.00, '1900-01-01', '2999-12-31');
-INSERT INTO income_limits(id, created_at, updated_at, type, value, valid_from, valid_to) VALUES
+INSERT INTO static_values(id, created_at, updated_at, type, value, valid_from, valid_to) VALUES
 (7, NOW(), NOW(), 'PERS2CH3', 3187.00, '1900-01-01', '2999-12-31');
-INSERT INTO income_limits(id, created_at, updated_at, type, value, valid_from, valid_to) VALUES
+INSERT INTO static_values(id, created_at, updated_at, type, value, valid_from, valid_to) VALUES
 (8, NOW(), NOW(), 'ADDADULT', 664.00, '1900-01-01', '2999-12-31');
-INSERT INTO income_limits(id, created_at, updated_at, type, value, valid_from, valid_to) VALUES
+INSERT INTO static_values(id, created_at, updated_at, type, value, valid_from, valid_to) VALUES
 (9, NOW(), NOW(), 'ADDCHILD', 398.00, '1900-01-01', '2999-12-31');

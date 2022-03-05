@@ -1,13 +1,13 @@
 package at.wrk.tafel.admin.backend.modules.customer.income
 
-import at.wrk.tafel.admin.backend.dbmodel.entities.IncomeLimitType
-import at.wrk.tafel.admin.backend.dbmodel.repositories.IncomeLimitRepository
+import at.wrk.tafel.admin.backend.dbmodel.entities.StaticValueType
+import at.wrk.tafel.admin.backend.dbmodel.repositories.StaticValueRepository
 import java.math.BigDecimal
 import java.time.LocalDate
 import kotlin.math.max
 
 class IncomeValidatorImpl(
-    private val incomeLimitRepository: IncomeLimitRepository
+    private val incomeLimitRepository: StaticValueRepository
 ) : IncomeValidator {
 
     private val TOLERANCE_VALUE = BigDecimal("100")
@@ -57,19 +57,19 @@ class IncomeValidatorImpl(
         val childrenLimit = if (countPersons == 1) 2 else 3
         val countAdditionalChildren = max(0, countChildren - childrenLimit)
 
-        val incomeLimitType = IncomeLimitType.valueOfCount((countPersons - countAdditionalPersons), countChildren)
-        incomeLimitType?.let { overallLimit = overallLimit.add(getLimitValue(it)) }
+        val staticValueType = StaticValueType.valueOfCount((countPersons - countAdditionalPersons), countChildren)
+        staticValueType?.let { overallLimit = overallLimit.add(getLimitValue(it)) }
 
-        val additionalAdultLimit = getLimitValue(IncomeLimitType.ADDADULT)
+        val additionalAdultLimit = getLimitValue(StaticValueType.ADDADULT)
         overallLimit = overallLimit.add(additionalAdultLimit.multiply(countAdditionalPersons.toBigDecimal()))
 
-        val additionalChildrenLimit = getLimitValue(IncomeLimitType.ADDCHILD)
+        val additionalChildrenLimit = getLimitValue(StaticValueType.ADDCHILD)
         overallLimit = overallLimit.add(additionalChildrenLimit.multiply(countAdditionalChildren.toBigDecimal()))
 
         return overallLimit
     }
 
-    private fun getLimitValue(type: IncomeLimitType): BigDecimal {
+    private fun getLimitValue(type: StaticValueType): BigDecimal {
         val incomeLimit = incomeLimitRepository.findByTypeAndDate(type.name, LocalDate.now())
         incomeLimit?.let { incomeLimit ->
             incomeLimit?.let {

@@ -17,7 +17,7 @@ services:
       - tafeladmin_net
 
   pgadmin:
-    image: "dpage/pgadmin4:6.1"
+    image: "dpage/pgadmin4:latest"
     container_name: tafeladmin-pgadmin
     hostname: tafeladmin-pgadmin
     ports:

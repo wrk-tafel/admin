@@ -1,8 +1,8 @@
 package at.wrk.tafel.admin.backend.modules.customer.income
 
-import at.wrk.tafel.admin.backend.dbmodel.entities.IncomeLimitEntity
-import at.wrk.tafel.admin.backend.dbmodel.entities.IncomeLimitType
-import at.wrk.tafel.admin.backend.dbmodel.repositories.IncomeLimitRepository
+import at.wrk.tafel.admin.backend.dbmodel.entities.StaticValueEntity
+import at.wrk.tafel.admin.backend.dbmodel.entities.StaticValueType
+import at.wrk.tafel.admin.backend.dbmodel.repositories.StaticValueRepository
 import io.mockk.every
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
@@ -17,36 +17,36 @@ import java.math.BigDecimal
 class IncomeValidatorImplTest {
 
     private val TEST_LIMITS = mapOf(
-        IncomeLimitType.PERS1 to BigDecimal("1000"),
-        IncomeLimitType.PERS1CH1 to BigDecimal("1100"),
-        IncomeLimitType.PERS1CH2 to BigDecimal("1200"),
-        IncomeLimitType.PERS2 to BigDecimal("1500"),
-        IncomeLimitType.PERS2CH1 to BigDecimal("1600"),
-        IncomeLimitType.PERS2CH2 to BigDecimal("1700"),
-        IncomeLimitType.PERS2CH3 to BigDecimal("1800"),
-        IncomeLimitType.ADDADULT to BigDecimal("200"),
-        IncomeLimitType.ADDCHILD to BigDecimal("100")
+        StaticValueType.PERS1 to BigDecimal("1000"),
+        StaticValueType.PERS1CH1 to BigDecimal("1100"),
+        StaticValueType.PERS1CH2 to BigDecimal("1200"),
+        StaticValueType.PERS2 to BigDecimal("1500"),
+        StaticValueType.PERS2CH1 to BigDecimal("1600"),
+        StaticValueType.PERS2CH2 to BigDecimal("1700"),
+        StaticValueType.PERS2CH3 to BigDecimal("1800"),
+        StaticValueType.ADDADULT to BigDecimal("200"),
+        StaticValueType.ADDCHILD to BigDecimal("100")
     )
 
     @RelaxedMockK
-    private lateinit var incomeLimitRepository: IncomeLimitRepository
+    private lateinit var staticValueRepository: StaticValueRepository
 
     private lateinit var incomeValidator: IncomeValidator
 
     @BeforeEach
     fun beforeEach() {
         every {
-            incomeLimitRepository.findByTypeAndDate(
+            staticValueRepository.findByTypeAndDate(
                 any(),
                 any()
             )
         } answers {
-            val type = IncomeLimitType.valueOf(firstArg())
+            val type = StaticValueType.valueOf(firstArg())
             val value = TEST_LIMITS[type]
-            createIncomeLimitEntity(value!!)
+            createStaticValueEntity(value!!)
         }
 
-        incomeValidator = IncomeValidatorImpl(incomeLimitRepository)
+        incomeValidator = IncomeValidatorImpl(staticValueRepository)
     }
 
     @Test
@@ -226,9 +226,9 @@ class IncomeValidatorImplTest {
         assertThat(result).isTrue
     }
 
-    private fun createIncomeLimitEntity(value: BigDecimal): IncomeLimitEntity {
-        val incomeLimitEntity = IncomeLimitEntity()
-        incomeLimitEntity.value = value
-        return incomeLimitEntity
+    private fun createStaticValueEntity(value: BigDecimal): StaticValueEntity {
+        val staticValueEntity = StaticValueEntity()
+        staticValueEntity.value = value
+        return staticValueEntity
     }
 }

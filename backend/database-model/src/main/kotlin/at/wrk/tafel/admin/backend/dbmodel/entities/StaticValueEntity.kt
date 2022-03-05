@@ -5,12 +5,12 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import javax.persistence.*
 
-@Entity
-@Table(name = "income_limits")
-class IncomeLimitEntity : BaseChangeTrackingEntity() {
+@Entity(name = "StaticValue")
+@Table(name = "static_values")
+class StaticValueEntity : BaseChangeTrackingEntity() {
     @Column(name = "type")
     @Enumerated(EnumType.STRING)
-    var type: IncomeLimitType? = null
+    var type: StaticValueType? = null
 
     @Column(name = "value")
     var value: BigDecimal? = null
@@ -22,7 +22,7 @@ class IncomeLimitEntity : BaseChangeTrackingEntity() {
     var validTo: LocalDate? = null
 }
 
-enum class IncomeLimitType(
+enum class StaticValueType(
     val countPersons: Int = 0,
     val countChilds: Int = 0
 ) {
@@ -37,7 +37,7 @@ enum class IncomeLimitType(
     ADDCHILD;
 
     companion object {
-        fun valueOfCount(countPersons: Int? = 0, countChilds: Int? = 0): IncomeLimitType? {
+        fun valueOfCount(countPersons: Int? = 0, countChilds: Int? = 0): StaticValueType? {
             for (value in values()) {
                 if (value.countPersons == countPersons && value.countChilds == countChilds) {
                     return value
