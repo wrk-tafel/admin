@@ -36,12 +36,14 @@ enum class IncomeLimitType(
     ADDADULT,
     ADDCHILD;
 
-    fun valueOfCount(countPersons: Int? = 0, countChilds: Int? = 0): IncomeLimitType? {
-        for (value in values()) {
-            if (value.countPersons == countPersons && value.countChilds == countChilds) {
-                return value
+    companion object {
+        fun valueOfCount(countPersons: Int? = 0, countChilds: Int? = 0): IncomeLimitType? {
+            for (value in values()) {
+                if (value.countPersons == countPersons && value.countChilds == countChilds) {
+                    return value
+                }
             }
+            return null
         }
-        return null
     }
 }
