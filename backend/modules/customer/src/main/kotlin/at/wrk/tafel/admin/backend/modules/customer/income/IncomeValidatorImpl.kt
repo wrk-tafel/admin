@@ -60,10 +60,10 @@ class IncomeValidatorImpl(
         val staticValueType = StaticValueType.valueOfCount((countPersons - countAdditionalPersons), countChildren)
         staticValueType?.let { overallLimit = overallLimit.add(getLimitValue(it)) }
 
-        val additionalAdultLimit = getLimitValue(StaticValueType.ADDADULT)
+        val additionalAdultLimit = getLimitValue(StaticValueType.INCADDADULT)
         overallLimit = overallLimit.add(additionalAdultLimit.multiply(countAdditionalPersons.toBigDecimal()))
 
-        val additionalChildrenLimit = getLimitValue(StaticValueType.ADDCHILD)
+        val additionalChildrenLimit = getLimitValue(StaticValueType.INCADDCHILD)
         overallLimit = overallLimit.add(additionalChildrenLimit.multiply(countAdditionalChildren.toBigDecimal()))
 
         return overallLimit

@@ -26,15 +26,15 @@ enum class StaticValueType(
     val countPersons: Int = 0,
     val countChilds: Int = 0
 ) {
-    PERS1(countPersons = 1),
-    PERS1CH1(countPersons = 1, countChilds = 1),
-    PERS1CH2(countPersons = 1, countChilds = 2),
-    PERS2(countPersons = 2),
-    PERS2CH1(countPersons = 2, countChilds = 1),
-    PERS2CH2(countPersons = 2, countChilds = 2),
-    PERS2CH3(countPersons = 2, countChilds = 3),
-    ADDADULT,
-    ADDCHILD;
+    INCPERS1(countPersons = 1),
+    INCPERS1CH1(countPersons = 1, countChilds = 1),
+    INCPERS1CH2(countPersons = 1, countChilds = 2),
+    INCPERS2(countPersons = 2),
+    INCPERS2CH1(countPersons = 2, countChilds = 1),
+    INCPERS2CH2(countPersons = 2, countChilds = 2),
+    INCPERS2CH3(countPersons = 2, countChilds = 3),
+    INCADDADULT,
+    INCADDCHILD;
 
     companion object {
         fun valueOfCount(countPersons: Int? = 0, countChilds: Int? = 0): StaticValueType? {

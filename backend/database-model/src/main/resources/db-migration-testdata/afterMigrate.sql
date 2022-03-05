@@ -30,20 +30,20 @@ INSERT INTO customers (id, created_at, updated_at, customer_id, firstname, lastn
 
 -- static values
 INSERT INTO static_values(id, created_at, updated_at, type, value, valid_from, valid_to) VALUES
-(1, NOW(), NOW(), 'PERS1', 1328.00, '1900-01-01', '2999-12-31');
+(1, NOW(), NOW(), 'INCPERS1', 1328.00, '1900-01-01', '2999-12-31');
 INSERT INTO static_values(id, created_at, updated_at, type, value, valid_from, valid_to) VALUES
-(2, NOW(), NOW(), 'PERS1CH1', 1726.00, '1900-01-01', '2999-12-31');
+(2, NOW(), NOW(), 'INCPERS1CH1', 1726.00, '1900-01-01', '2999-12-31');
 INSERT INTO static_values(id, created_at, updated_at, type, value, valid_from, valid_to) VALUES
-(3, NOW(), NOW(), 'PERS1CH2', 2124.00, '1900-01-01', '2999-12-31');
+(3, NOW(), NOW(), 'INCPERS1CH2', 2124.00, '1900-01-01', '2999-12-31');
 INSERT INTO static_values(id, created_at, updated_at, type, value, valid_from, valid_to) VALUES
-(4, NOW(), NOW(), 'PERS2', 1992.00, '1900-01-01', '2999-12-31');
+(4, NOW(), NOW(), 'INCPERS2', 1992.00, '1900-01-01', '2999-12-31');
 INSERT INTO static_values(id, created_at, updated_at, type, value, valid_from, valid_to) VALUES
-(5, NOW(), NOW(), 'PERS2CH1', 2390.00, '1900-01-01', '2999-12-31');
+(5, NOW(), NOW(), 'INCPERS2CH1', 2390.00, '1900-01-01', '2999-12-31');
 INSERT INTO static_values(id, created_at, updated_at, type, value, valid_from, valid_to) VALUES
-(6, NOW(), NOW(), 'PERS2CH2', 2788.00, '1900-01-01', '2999-12-31');
+(6, NOW(), NOW(), 'INCPERS2CH2', 2788.00, '1900-01-01', '2999-12-31');
 INSERT INTO static_values(id, created_at, updated_at, type, value, valid_from, valid_to) VALUES
-(7, NOW(), NOW(), 'PERS2CH3', 3187.00, '1900-01-01', '2999-12-31');
+(7, NOW(), NOW(), 'INCPERS2CH3', 3187.00, '1900-01-01', '2999-12-31');
 INSERT INTO static_values(id, created_at, updated_at, type, value, valid_from, valid_to) VALUES
-(8, NOW(), NOW(), 'ADDADULT', 664.00, '1900-01-01', '2999-12-31');
+(8, NOW(), NOW(), 'INCADDADULT', 664.00, '1900-01-01', '2999-12-31');
 INSERT INTO static_values(id, created_at, updated_at, type, value, valid_from, valid_to) VALUES
-(9, NOW(), NOW(), 'ADDCHILD', 398.00, '1900-01-01', '2999-12-31');
+(9, NOW(), NOW(), 'INCADDCHILD', 398.00, '1900-01-01', '2999-12-31');

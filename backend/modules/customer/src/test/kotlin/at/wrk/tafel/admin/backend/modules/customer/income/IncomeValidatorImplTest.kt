@@ -17,15 +17,15 @@ import java.math.BigDecimal
 class IncomeValidatorImplTest {
 
     private val TEST_LIMITS = mapOf(
-        StaticValueType.PERS1 to BigDecimal("1000"),
-        StaticValueType.PERS1CH1 to BigDecimal("1100"),
-        StaticValueType.PERS1CH2 to BigDecimal("1200"),
-        StaticValueType.PERS2 to BigDecimal("1500"),
-        StaticValueType.PERS2CH1 to BigDecimal("1600"),
-        StaticValueType.PERS2CH2 to BigDecimal("1700"),
-        StaticValueType.PERS2CH3 to BigDecimal("1800"),
-        StaticValueType.ADDADULT to BigDecimal("200"),
-        StaticValueType.ADDCHILD to BigDecimal("100")
+        StaticValueType.INCPERS1 to BigDecimal("1000"),
+        StaticValueType.INCPERS1CH1 to BigDecimal("1100"),
+        StaticValueType.INCPERS1CH2 to BigDecimal("1200"),
+        StaticValueType.INCPERS2 to BigDecimal("1500"),
+        StaticValueType.INCPERS2CH1 to BigDecimal("1600"),
+        StaticValueType.INCPERS2CH2 to BigDecimal("1700"),
+        StaticValueType.INCPERS2CH3 to BigDecimal("1800"),
+        StaticValueType.INCADDADULT to BigDecimal("200"),
+        StaticValueType.INCADDCHILD to BigDecimal("100")
     )
 
     @RelaxedMockK
