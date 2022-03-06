@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RestController
 import java.math.BigDecimal
 
 @RestController
-@RequestMapping("/api/customers/income")
+@RequestMapping("/api/customers/incomes")
 @PreAuthorize("hasAuthority('CUSTOMER')")
 class CustomerIncomeController(
     private val incomeValidatorService: IncomeValidatorService
