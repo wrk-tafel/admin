@@ -15,7 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import java.math.BigDecimal
 
 @ExtendWith(MockKExtension::class)
-class IncomeValidatorImplTest {
+class IncomeValidatorServiceImplTest {
 
     private val MOCK_INCOME_LIMITS = listOf(
         IncomeLimitMockData(value = BigDecimal("1000"), countAdult = 1),
@@ -40,7 +40,7 @@ class IncomeValidatorImplTest {
     @RelaxedMockK
     private lateinit var familyBonusRepository: FamilyBonusRepository
 
-    private lateinit var incomeValidator: IncomeValidator
+    private lateinit var incomeValidatorService: IncomeValidatorService
 
     @BeforeEach
     fun beforeEach() {
@@ -67,12 +67,12 @@ class IncomeValidatorImplTest {
             entity
         }
 
-        incomeValidator = IncomeValidatorImpl(incomeLimitRepository, familyBonusRepository)
+        incomeValidatorService = IncomeValidatorServiceImpl(incomeLimitRepository, familyBonusRepository)
     }
 
     @Test
     fun `no data given`() {
-        assertThrows<IllegalArgumentException> { incomeValidator.validate(listOf()) }
+        assertThrows<IllegalArgumentException> { incomeValidatorService.validate(listOf()) }
     }
 
     @Test
@@ -84,7 +84,7 @@ class IncomeValidatorImplTest {
             )
         )
 
-        val result = incomeValidator.validate(persons)
+        val result = incomeValidatorService.validate(persons)
 
         assertThat(result).isTrue
     }
@@ -98,7 +98,7 @@ class IncomeValidatorImplTest {
             )
         )
 
-        val result = incomeValidator.validate(persons)
+        val result = incomeValidatorService.validate(persons)
 
         assertThat(result).isTrue
     }
@@ -112,7 +112,7 @@ class IncomeValidatorImplTest {
             )
         )
 
-        val result = incomeValidator.validate(persons)
+        val result = incomeValidatorService.validate(persons)
 
         assertThat(result).isFalse
     }
@@ -126,7 +126,7 @@ class IncomeValidatorImplTest {
             )
         )
 
-        val result = incomeValidator.validate(persons)
+        val result = incomeValidatorService.validate(persons)
 
         assertThat(result).isTrue
     }
@@ -140,7 +140,7 @@ class IncomeValidatorImplTest {
             )
         )
 
-        val result = incomeValidator.validate(persons)
+        val result = incomeValidatorService.validate(persons)
 
         assertThat(result).isTrue
     }
@@ -158,7 +158,7 @@ class IncomeValidatorImplTest {
             )
         )
 
-        val result = incomeValidator.validate(persons)
+        val result = incomeValidatorService.validate(persons)
 
         assertThat(result).isTrue
     }
@@ -176,7 +176,7 @@ class IncomeValidatorImplTest {
             )
         )
 
-        val result = incomeValidator.validate(persons)
+        val result = incomeValidatorService.validate(persons)
 
         assertThat(result).isFalse
     }
@@ -198,7 +198,7 @@ class IncomeValidatorImplTest {
             )
         )
 
-        val result = incomeValidator.validate(persons)
+        val result = incomeValidatorService.validate(persons)
 
         assertThat(result).isTrue
     }
@@ -220,7 +220,7 @@ class IncomeValidatorImplTest {
             )
         )
 
-        val result = incomeValidator.validate(persons)
+        val result = incomeValidatorService.validate(persons)
 
         assertThat(result).isFalse
     }
@@ -242,7 +242,7 @@ class IncomeValidatorImplTest {
             )
         )
 
-        val result = incomeValidator.validate(persons)
+        val result = incomeValidatorService.validate(persons)
 
         assertThat(result).isTrue
     }

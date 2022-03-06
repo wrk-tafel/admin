@@ -2,7 +2,7 @@ package at.wrk.tafel.admin.backend.modules.customer.income
 
 import java.math.BigDecimal
 
-interface IncomeValidator {
+interface IncomeValidatorService {
     fun validate(persons: List<IncomeValidatorPerson>): Boolean
 }
 
@@ -12,6 +12,6 @@ data class IncomeValidatorPerson(
     val compulsoryEducation: Boolean? = false
 ) {
     fun isChild(): Boolean {
-        return age <= 24 // TODO correct?
+        return age <= 24
     }
 }

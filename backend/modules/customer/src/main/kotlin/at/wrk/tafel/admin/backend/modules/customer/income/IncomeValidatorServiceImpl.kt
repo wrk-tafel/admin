@@ -2,13 +2,15 @@ package at.wrk.tafel.admin.backend.modules.customer.income
 
 import at.wrk.tafel.admin.backend.dbmodel.repositories.FamilyBonusRepository
 import at.wrk.tafel.admin.backend.dbmodel.repositories.IncomeLimitRepository
+import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import kotlin.math.max
 
-class IncomeValidatorImpl(
+@Service
+class IncomeValidatorServiceImpl(
     private val incomeLimitRepository: IncomeLimitRepository,
     private val familyBonusRepository: FamilyBonusRepository
-) : IncomeValidator {
+) : IncomeValidatorService {
 
     private val TOLERANCE_VALUE = BigDecimal("100")
 
