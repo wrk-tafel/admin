@@ -157,6 +157,22 @@ class IncomeValidatorServiceImplTest {
     }
 
     @Test
+    fun `single person above limit without tolerance`() {
+        every { incomeToleranceRepository.findCurrentValue() } returns Optional.empty()
+
+        val persons = listOf(
+            IncomeValidatorPerson(
+                monthlyIncome = BigDecimal("1050"),
+                age = 35
+            )
+        )
+
+        val result = incomeValidatorService.validate(persons)
+
+        assertThat(result).isFalse
+    }
+
+    @Test
     fun `two persons below limit`() {
         val persons = listOf(
             IncomeValidatorPerson(
