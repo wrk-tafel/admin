@@ -54,7 +54,6 @@ class IncomeValidatorServiceImpl(
         limit = limit.add(toleranceValueOptional.map { it.value }.orElse(BigDecimal.ZERO))
 
         val differenceFromLimit = limit.subtract(monthlySum)
-
         if (differenceFromLimit >= BigDecimal.ZERO) {
             valid = true
         }
