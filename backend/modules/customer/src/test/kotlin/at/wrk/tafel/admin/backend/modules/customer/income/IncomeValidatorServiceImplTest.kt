@@ -2,8 +2,10 @@ package at.wrk.tafel.admin.backend.modules.customer.income
 
 import at.wrk.tafel.admin.backend.dbmodel.entities.staticvalues.FamilyBonusEntity
 import at.wrk.tafel.admin.backend.dbmodel.entities.staticvalues.IncomeLimitEntity
+import at.wrk.tafel.admin.backend.dbmodel.entities.staticvalues.IncomeToleranceEntity
 import at.wrk.tafel.admin.backend.dbmodel.repositories.FamilyBonusRepository
 import at.wrk.tafel.admin.backend.dbmodel.repositories.IncomeLimitRepository
+import at.wrk.tafel.admin.backend.dbmodel.repositories.IncomeToleranceRepository
 import io.mockk.every
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
@@ -13,6 +15,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import java.math.BigDecimal
+import java.util.*
 
 @ExtendWith(MockKExtension::class)
 class IncomeValidatorServiceImplTest {
@@ -36,6 +39,9 @@ class IncomeValidatorServiceImplTest {
 
     @RelaxedMockK
     private lateinit var incomeLimitRepository: IncomeLimitRepository
+
+    @RelaxedMockK
+    private lateinit var incomeToleranceRepository: IncomeToleranceRepository
 
     @RelaxedMockK
     private lateinit var familyBonusRepository: FamilyBonusRepository
@@ -67,7 +73,12 @@ class IncomeValidatorServiceImplTest {
             entity
         }
 
-        incomeValidatorService = IncomeValidatorServiceImpl(incomeLimitRepository, familyBonusRepository)
+        val incomeToleranceEntity = IncomeToleranceEntity()
+        incomeToleranceEntity.value = BigDecimal("100")
+        every { incomeToleranceRepository.findCurrentValue() } returns Optional.of(incomeToleranceEntity)
+
+        incomeValidatorService =
+            IncomeValidatorServiceImpl(incomeLimitRepository, incomeToleranceRepository, familyBonusRepository)
     }
 
     @Test

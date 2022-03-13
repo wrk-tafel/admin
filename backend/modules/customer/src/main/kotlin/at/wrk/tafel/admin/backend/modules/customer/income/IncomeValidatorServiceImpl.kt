@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.modules.customer.income
 
 import at.wrk.tafel.admin.backend.dbmodel.repositories.FamilyBonusRepository
 import at.wrk.tafel.admin.backend.dbmodel.repositories.IncomeLimitRepository
+import at.wrk.tafel.admin.backend.dbmodel.repositories.IncomeToleranceRepository
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import kotlin.math.max
@@ -9,10 +10,9 @@ import kotlin.math.max
 @Service
 class IncomeValidatorServiceImpl(
     private val incomeLimitRepository: IncomeLimitRepository,
+    private val incomeToleranceRepository: IncomeToleranceRepository,
     private val familyBonusRepository: FamilyBonusRepository
 ) : IncomeValidatorService {
-
-    private val TOLERANCE_VALUE = BigDecimal("100")
 
     override fun validate(persons: List<IncomeValidatorPerson>): Boolean {
         if (persons.isEmpty()) {
@@ -48,7 +48,11 @@ class IncomeValidatorServiceImpl(
     private fun checkLimit(persons: List<IncomeValidatorPerson>, monthlySum: BigDecimal): Boolean {
         var valid = false
 
-        val limit = determineLimit(persons).add(TOLERANCE_VALUE)
+        var limit = determineLimit(persons)
+
+        val toleranceValueOptional = incomeToleranceRepository.findCurrentValue()
+        limit = limit.add(toleranceValueOptional.map { it.value }.orElse(BigDecimal.ZERO))
+
         val differenceFromLimit = limit.subtract(monthlySum)
 
         if (differenceFromLimit >= BigDecimal.ZERO) {
