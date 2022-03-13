@@ -8,13 +8,13 @@ import org.springframework.web.bind.annotation.RestController
 import java.math.BigDecimal
 
 @RestController
-@RequestMapping("/api/customers/incomes")
+@RequestMapping("/api/customers")
 @PreAuthorize("hasAuthority('CUSTOMER')")
 class CustomerIncomeController(
     private val incomeValidatorService: IncomeValidatorService
 ) {
 
-    @PostMapping("/validate")
+    @PostMapping("/validate-income")
     fun validateIncome(@RequestBody request: ValidateIncomeRequest): ValidateIncomeResponse {
         val valid = incomeValidatorService.validate(request.persons.map { mapToValidationPerson(it) })
         return ValidateIncomeResponse(valid)
@@ -33,12 +33,12 @@ data class ValidateIncomeRequest(
     val persons: List<ValidateIncomePerson>
 )
 
-data class ValidateIncomeResponse(
-    val valid: Boolean
-)
-
 data class ValidateIncomePerson(
     val monthlyIncome: BigDecimal,
     val age: Int,
     val compulsoryEducation: Boolean? = false
+)
+
+data class ValidateIncomeResponse(
+    val valid: Boolean
 )

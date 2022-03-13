@@ -37,7 +37,8 @@ class IncomeValidatorServiceImpl(
     }
 
     private fun getFamilyBonusForAge(age: Int): BigDecimal? {
-        return familyBonusRepository.findAll()
+        return familyBonusRepository.findCurrentValues()
+            .asSequence()
             .sortedByDescending { it.age }
             .filter { it.age!! >= age }
             .map { it.value }
