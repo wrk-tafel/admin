@@ -1,8 +1,10 @@
 package at.wrk.tafel.admin.backend.modules.customer.income
 
+import at.wrk.tafel.admin.backend.dbmodel.entities.staticvalues.ChildTaxAllowanceEntity
 import at.wrk.tafel.admin.backend.dbmodel.entities.staticvalues.FamilyBonusEntity
 import at.wrk.tafel.admin.backend.dbmodel.entities.staticvalues.IncomeLimitEntity
 import at.wrk.tafel.admin.backend.dbmodel.entities.staticvalues.IncomeToleranceEntity
+import at.wrk.tafel.admin.backend.dbmodel.repositories.ChildTaxAllowanceRepository
 import at.wrk.tafel.admin.backend.dbmodel.repositories.FamilyBonusRepository
 import at.wrk.tafel.admin.backend.dbmodel.repositories.IncomeLimitRepository
 import at.wrk.tafel.admin.backend.dbmodel.repositories.IncomeToleranceRepository
@@ -46,7 +48,12 @@ class IncomeValidatorServiceImplTest {
     @RelaxedMockK
     private lateinit var familyBonusRepository: FamilyBonusRepository
 
+    @RelaxedMockK
+    private lateinit var childTaxAllowanceRepository: ChildTaxAllowanceRepository
+
     private lateinit var incomeValidatorService: IncomeValidatorService
+
+    private lateinit var incomeTolerance100Entity: IncomeToleranceEntity
 
     @BeforeEach
     fun beforeEach() {
@@ -59,8 +66,8 @@ class IncomeValidatorServiceImplTest {
             val countAdult = firstArg<Int>()
             val countChild = secondArg<Int>()
             MOCK_INCOME_LIMITS
-                .filter { countAdult != null && it.countAdult == countAdult }
-                .filter { countChild != null && it.countChild == countChild }
+                .filter { it.countAdult == countAdult }
+                .filter { it.countChild == countChild }
                 .map { createIncomeLimitEntity(it.value) }
                 .first()
         }
@@ -73,12 +80,21 @@ class IncomeValidatorServiceImplTest {
             entity
         }
 
-        val incomeToleranceEntity = IncomeToleranceEntity()
-        incomeToleranceEntity.value = BigDecimal("100")
-        every { incomeToleranceRepository.findCurrentValue() } returns Optional.of(incomeToleranceEntity)
+        incomeTolerance100Entity = IncomeToleranceEntity()
+        incomeTolerance100Entity.value = BigDecimal("100")
+        every { incomeToleranceRepository.findCurrentValue() } returns Optional.empty()
+
+        val childTaxAllowanceEntity = ChildTaxAllowanceEntity()
+        childTaxAllowanceEntity.value = BigDecimal("15")
+        every { childTaxAllowanceRepository.findCurrentValue() } returns Optional.of(childTaxAllowanceEntity)
 
         incomeValidatorService =
-            IncomeValidatorServiceImpl(incomeLimitRepository, incomeToleranceRepository, familyBonusRepository)
+            IncomeValidatorServiceImpl(
+                incomeLimitRepository,
+                incomeToleranceRepository,
+                familyBonusRepository,
+                childTaxAllowanceRepository
+            )
     }
 
     @Test
@@ -97,7 +113,9 @@ class IncomeValidatorServiceImplTest {
 
         val result = incomeValidatorService.validate(persons)
 
-        assertThat(result).isTrue
+        assertThat(result.valid).isTrue
+        assertThat(result.totalSum).isEqualTo(BigDecimal("500"))
+        assertThat(result.amountExceededLimit).isEqualTo(BigDecimal.ZERO)
     }
 
     @Test
@@ -111,7 +129,9 @@ class IncomeValidatorServiceImplTest {
 
         val result = incomeValidatorService.validate(persons)
 
-        assertThat(result).isTrue
+        assertThat(result.valid).isTrue
+        assertThat(result.totalSum).isEqualTo(BigDecimal("1000"))
+        assertThat(result.amountExceededLimit).isEqualTo(BigDecimal.ZERO)
     }
 
     @Test
@@ -125,11 +145,15 @@ class IncomeValidatorServiceImplTest {
 
         val result = incomeValidatorService.validate(persons)
 
-        assertThat(result).isFalse
+        assertThat(result.valid).isFalse
+        assertThat(result.totalSum).isEqualTo(BigDecimal("1150"))
+        assertThat(result.amountExceededLimit).isEqualTo(BigDecimal("-150"))
     }
 
     @Test
     fun `single person above limit within tolerance`() {
+        every { incomeToleranceRepository.findCurrentValue() } returns Optional.of(incomeTolerance100Entity)
+
         val persons = listOf(
             IncomeValidatorPerson(
                 monthlyIncome = BigDecimal("1050"),
@@ -139,11 +163,15 @@ class IncomeValidatorServiceImplTest {
 
         val result = incomeValidatorService.validate(persons)
 
-        assertThat(result).isTrue
+        assertThat(result.valid).isTrue
+        assertThat(result.totalSum).isEqualTo(BigDecimal("1050"))
+        assertThat(result.amountExceededLimit).isEqualTo(BigDecimal.ZERO)
     }
 
     @Test
     fun `single person above limit exactly on tolerance`() {
+        every { incomeToleranceRepository.findCurrentValue() } returns Optional.of(incomeTolerance100Entity)
+
         val persons = listOf(
             IncomeValidatorPerson(
                 monthlyIncome = BigDecimal("1100"),
@@ -153,13 +181,13 @@ class IncomeValidatorServiceImplTest {
 
         val result = incomeValidatorService.validate(persons)
 
-        assertThat(result).isTrue
+        assertThat(result.valid).isTrue
+        assertThat(result.totalSum).isEqualTo(BigDecimal("1100"))
+        assertThat(result.amountExceededLimit).isEqualTo(BigDecimal.ZERO)
     }
 
     @Test
     fun `single person above limit without tolerance`() {
-        every { incomeToleranceRepository.findCurrentValue() } returns Optional.empty()
-
         val persons = listOf(
             IncomeValidatorPerson(
                 monthlyIncome = BigDecimal("1050"),
@@ -169,7 +197,9 @@ class IncomeValidatorServiceImplTest {
 
         val result = incomeValidatorService.validate(persons)
 
-        assertThat(result).isFalse
+        assertThat(result.valid).isFalse
+        assertThat(result.totalSum).isEqualTo(BigDecimal("1050"))
+        assertThat(result.amountExceededLimit).isEqualTo(BigDecimal("-50"))
     }
 
     @Test
@@ -187,7 +217,9 @@ class IncomeValidatorServiceImplTest {
 
         val result = incomeValidatorService.validate(persons)
 
-        assertThat(result).isTrue
+        assertThat(result.valid).isTrue
+        assertThat(result.totalSum).isEqualTo(BigDecimal("1400"))
+        assertThat(result.amountExceededLimit).isEqualTo(BigDecimal.ZERO)
     }
 
     @Test
@@ -205,7 +237,9 @@ class IncomeValidatorServiceImplTest {
 
         val result = incomeValidatorService.validate(persons)
 
-        assertThat(result).isFalse
+        assertThat(result.valid).isFalse
+        assertThat(result.totalSum).isEqualTo(BigDecimal("2000"))
+        assertThat(result.amountExceededLimit).isEqualTo(BigDecimal("-500"))
     }
 
     @Test
@@ -227,7 +261,9 @@ class IncomeValidatorServiceImplTest {
 
         val result = incomeValidatorService.validate(persons)
 
-        assertThat(result).isTrue
+        assertThat(result.valid).isTrue
+        assertThat(result.totalSum).isEqualTo(BigDecimal("750"))
+        assertThat(result.amountExceededLimit).isEqualTo(BigDecimal.ZERO)
     }
 
     @Test
@@ -249,7 +285,9 @@ class IncomeValidatorServiceImplTest {
 
         val result = incomeValidatorService.validate(persons)
 
-        assertThat(result).isFalse
+        assertThat(result.valid).isFalse
+        assertThat(result.totalSum).isEqualTo(BigDecimal("1850"))
+        assertThat(result.amountExceededLimit).isEqualTo(BigDecimal("-150"))
     }
 
     @Test
@@ -271,7 +309,52 @@ class IncomeValidatorServiceImplTest {
 
         val result = incomeValidatorService.validate(persons)
 
-        assertThat(result).isTrue
+        assertThat(result.valid).isTrue
+        assertThat(result.totalSum).isEqualTo(BigDecimal("1700"))
+        assertThat(result.amountExceededLimit).isEqualTo(BigDecimal.ZERO)
+    }
+
+    @Test
+    fun `family below limit`() {
+        val persons = listOf(
+            IncomeValidatorPerson(
+                monthlyIncome = BigDecimal("500"),
+                age = 35
+            ),
+            IncomeValidatorPerson(
+                monthlyIncome = BigDecimal("500"),
+                age = 30
+            ),
+            IncomeValidatorPerson(age = 10)
+        )
+
+        val result = incomeValidatorService.validate(persons)
+
+        assertThat(result.valid).isTrue
+        assertThat(result.totalSum).isEqualTo(BigDecimal("1015"))
+        assertThat(result.limit).isEqualTo(BigDecimal("1600"))
+        assertThat(result.amountExceededLimit).isEqualTo(BigDecimal.ZERO)
+    }
+
+    @Test
+    fun `family matching limit`() {
+        val persons = listOf(
+            IncomeValidatorPerson(
+                monthlyIncome = BigDecimal("1000"),
+                age = 35
+            ),
+            IncomeValidatorPerson(
+                monthlyIncome = BigDecimal("495"),
+                age = 30
+            ),
+            IncomeValidatorPerson(age = 10)
+        )
+
+        val result = incomeValidatorService.validate(persons)
+
+        assertThat(result.valid).isTrue
+        assertThat(result.totalSum).isEqualTo(BigDecimal("1510"))
+        assertThat(result.amountExceededLimit).isEqualTo(BigDecimal.ZERO)
     }
 
     private fun createIncomeLimitEntity(value: BigDecimal): IncomeLimitEntity {

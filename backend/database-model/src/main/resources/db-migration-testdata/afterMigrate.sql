@@ -62,3 +62,7 @@ INSERT INTO static_values(id, created_at, updated_at, type, valid_from, valid_to
 (13, NOW(), NOW(), 'FAMILY-BONUS', '1900-01-01', '2999-12-31', 141.50, 10);
 INSERT INTO static_values(id, created_at, updated_at, type, valid_from, valid_to, value, age) VALUES
 (14, NOW(), NOW(), 'FAMILY-BONUS', '1900-01-01', '2999-12-31', 165.10, 19);
+
+-- child tax allowance
+INSERT INTO static_values(id, created_at, updated_at, type, valid_from, valid_to, value) VALUES
+(15, NOW(), NOW(), 'CHILD-TAX-ALLOWANCE', '1900-01-01', '2999-12-31', 58.40);

@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.customer.income
 
+import at.wrk.tafel.admin.backend.dbmodel.repositories.ChildTaxAllowanceRepository
 import at.wrk.tafel.admin.backend.dbmodel.repositories.FamilyBonusRepository
 import at.wrk.tafel.admin.backend.dbmodel.repositories.IncomeLimitRepository
 import at.wrk.tafel.admin.backend.dbmodel.repositories.IncomeToleranceRepository
@@ -11,29 +12,29 @@ import kotlin.math.max
 class IncomeValidatorServiceImpl(
     private val incomeLimitRepository: IncomeLimitRepository,
     private val incomeToleranceRepository: IncomeToleranceRepository,
-    private val familyBonusRepository: FamilyBonusRepository
+    private val familyBonusRepository: FamilyBonusRepository,
+    private val childTaxAllowanceRepository: ChildTaxAllowanceRepository
 ) : IncomeValidatorService {
 
-    override fun validate(persons: List<IncomeValidatorPerson>): Boolean {
+    override fun validate(persons: List<IncomeValidatorPerson>): IncomeValidatorResult {
         if (persons.isEmpty()) {
             throw IllegalArgumentException("No persons given")
         }
 
         var monthlySum = BigDecimal.ZERO
         for (person in persons) {
-            monthlySum = monthlySum.add(person.monthlyIncome)
-            monthlySum = monthlySum.add(calculateFamilyBonus(person))
+            monthlySum = monthlySum.add(person.monthlyIncome ?: BigDecimal.ZERO)
+
+            if (person.isChild()) {
+                monthlySum = monthlySum.add(getFamilyBonusForAge(person.age) ?: BigDecimal.ZERO)
+
+                val childTaxAllowanceValue =
+                    childTaxAllowanceRepository.findCurrentValue().map { it.value }.orElse(BigDecimal.ZERO)!!
+                monthlySum = monthlySum.add(childTaxAllowanceValue)
+            }
         }
 
         return checkLimit(persons, monthlySum)
-    }
-
-    private fun calculateFamilyBonus(person: IncomeValidatorPerson): BigDecimal {
-        var value = BigDecimal.ZERO
-        if (person.isChild()) {
-            value = value.add(getFamilyBonusForAge(person.age))
-        }
-        return value
     }
 
     private fun getFamilyBonusForAge(age: Int): BigDecimal? {
@@ -45,7 +46,7 @@ class IncomeValidatorServiceImpl(
             .firstOrNull()
     }
 
-    private fun checkLimit(persons: List<IncomeValidatorPerson>, monthlySum: BigDecimal): Boolean {
+    private fun checkLimit(persons: List<IncomeValidatorPerson>, monthlySum: BigDecimal): IncomeValidatorResult {
         var valid = false
 
         var limit = determineLimit(persons)
@@ -58,7 +59,12 @@ class IncomeValidatorServiceImpl(
             valid = true
         }
 
-        return valid
+        return IncomeValidatorResult(
+            valid = valid,
+            totalSum = monthlySum,
+            limit = limit,
+            amountExceededLimit = if (!valid) differenceFromLimit else BigDecimal.ZERO
+        )
     }
 
     private fun determineLimit(persons: List<IncomeValidatorPerson>): BigDecimal {

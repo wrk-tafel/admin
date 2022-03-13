@@ -16,8 +16,8 @@ class CustomerIncomeController(
 
     @PostMapping("/validate-income")
     fun validateIncome(@RequestBody request: ValidateIncomeRequest): ValidateIncomeResponse {
-        val valid = incomeValidatorService.validate(request.persons.map { mapToValidationPerson(it) })
-        return ValidateIncomeResponse(valid)
+        val result = incomeValidatorService.validate(request.persons.map { mapToValidationPerson(it) })
+        return ValidateIncomeResponse(result.valid)
     }
 
     private fun mapToValidationPerson(person: ValidateIncomePerson): IncomeValidatorPerson {
