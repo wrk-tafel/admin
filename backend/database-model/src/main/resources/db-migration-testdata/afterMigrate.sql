@@ -66,3 +66,17 @@ INSERT INTO static_values(id, created_at, updated_at, type, valid_from, valid_to
 -- child tax allowance
 INSERT INTO static_values(id, created_at, updated_at, type, valid_from, valid_to, value) VALUES
 (15, NOW(), NOW(), 'CHILD-TAX-ALLOWANCE', '1900-01-01', '2999-12-31', 58.40);
+
+-- sibling addition
+INSERT INTO static_values(id, created_at, updated_at, type, valid_from, valid_to, value, count_child) VALUES
+(16, NOW(), NOW(), 'SIBLING-ADDITION', '1900-01-01', '2999-12-31', 7.10, 2);
+INSERT INTO static_values(id, created_at, updated_at, type, valid_from, valid_to, value, count_child) VALUES
+(17, NOW(), NOW(), 'SIBLING-ADDITION', '1900-01-01', '2999-12-31', 17.40, 3);
+INSERT INTO static_values(id, created_at, updated_at, type, valid_from, valid_to, value, count_child) VALUES
+(18, NOW(), NOW(), 'SIBLING-ADDITION', '1900-01-01', '2999-12-31', 26.50, 4);
+INSERT INTO static_values(id, created_at, updated_at, type, valid_from, valid_to, value, count_child) VALUES
+(19, NOW(), NOW(), 'SIBLING-ADDITION', '1900-01-01', '2999-12-31', 32.00, 5);
+INSERT INTO static_values(id, created_at, updated_at, type, valid_from, valid_to, value, count_child) VALUES
+(20, NOW(), NOW(), 'SIBLING-ADDITION', '1900-01-01', '2999-12-31', 35.70, 6);
+INSERT INTO static_values(id, created_at, updated_at, type, valid_from, valid_to, value, count_child) VALUES
+(21, NOW(), NOW(), 'SIBLING-ADDITION', '1900-01-01', '2999-12-31', 52.00, 7);

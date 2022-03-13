@@ -1,9 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.customer.income
 
-import at.wrk.tafel.admin.backend.dbmodel.repositories.ChildTaxAllowanceRepository
-import at.wrk.tafel.admin.backend.dbmodel.repositories.FamilyBonusRepository
-import at.wrk.tafel.admin.backend.dbmodel.repositories.IncomeLimitRepository
-import at.wrk.tafel.admin.backend.dbmodel.repositories.IncomeToleranceRepository
+import at.wrk.tafel.admin.backend.dbmodel.repositories.*
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import kotlin.math.max
@@ -13,7 +10,8 @@ class IncomeValidatorServiceImpl(
     private val incomeLimitRepository: IncomeLimitRepository,
     private val incomeToleranceRepository: IncomeToleranceRepository,
     private val familyBonusRepository: FamilyBonusRepository,
-    private val childTaxAllowanceRepository: ChildTaxAllowanceRepository
+    private val childTaxAllowanceRepository: ChildTaxAllowanceRepository,
+    private val siblingAdditionRepository: SiblingAdditionRepository
 ) : IncomeValidatorService {
 
     override fun validate(persons: List<IncomeValidatorPerson>): IncomeValidatorResult {
@@ -34,7 +32,30 @@ class IncomeValidatorServiceImpl(
             }
         }
 
-        return checkLimit(persons, monthlySum)
+        monthlySum = monthlySum.add(calculateSiblingAddition(persons))
+        return calculateResult(persons, monthlySum)
+    }
+
+    private fun calculateSiblingAddition(
+        persons: List<IncomeValidatorPerson>
+    ): BigDecimal {
+        val countChild = persons.count { it.isChild() }
+
+        var siblingAdditionValue: BigDecimal = if (countChild >= 7) {
+            siblingAdditionRepository.findCurrentMaxAddition()
+                .map { it.value }
+                .orElse(BigDecimal.ZERO)
+                ?: BigDecimal.ZERO
+        } else {
+            siblingAdditionRepository.findCurrentValues()
+                .asSequence()
+                .filter { it.countChild == countChild }
+                .firstOrNull()
+                ?.value
+                ?: BigDecimal.ZERO
+        }
+
+        return siblingAdditionValue.multiply(countChild.toBigDecimal())
     }
 
     private fun getFamilyBonusForAge(age: Int): BigDecimal? {
@@ -46,7 +67,7 @@ class IncomeValidatorServiceImpl(
             .firstOrNull()
     }
 
-    private fun checkLimit(persons: List<IncomeValidatorPerson>, monthlySum: BigDecimal): IncomeValidatorResult {
+    private fun calculateResult(persons: List<IncomeValidatorPerson>, monthlySum: BigDecimal): IncomeValidatorResult {
         var valid = false
 
         var limit = determineLimit(persons)
@@ -63,7 +84,7 @@ class IncomeValidatorServiceImpl(
             valid = valid,
             totalSum = monthlySum,
             limit = limit,
-            amountExceededLimit = if (!valid) differenceFromLimit else BigDecimal.ZERO
+            amountExceededLimit = if (!valid) differenceFromLimit.abs() else BigDecimal.ZERO
         )
     }
 
