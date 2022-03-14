@@ -6,7 +6,7 @@ import javax.persistence.Column
 import javax.persistence.Entity
 import javax.persistence.Table
 
-@Entity
+@Entity(name = "Customer")
 @Table(name = "customers")
 class CustomerEntity : BaseChangeTrackingEntity() {
     @Column(name = "customer_id")

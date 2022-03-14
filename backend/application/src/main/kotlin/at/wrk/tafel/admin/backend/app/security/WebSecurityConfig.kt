@@ -4,6 +4,7 @@ import at.wrk.tafel.admin.backend.app.security.components.JwtAuthenticationFilte
 import at.wrk.tafel.admin.backend.app.security.components.JwtAuthenticationProvider
 import at.wrk.tafel.admin.backend.app.security.components.JwtTokenService
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpStatus
@@ -29,16 +30,14 @@ import javax.sql.DataSource
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 @ExcludeFromTestCoverage
 class WebSecurityConfig(
+    @Value("\${security.enable-csrf:true}")
+    private val csrfEnabled: Boolean,
     private val datasource: DataSource,
     private val jwtTokenService: JwtTokenService
 ) : WebSecurityConfigurerAdapter() {
 
     override fun configure(http: HttpSecurity) {
         http
-            .csrf()
-            .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-            .ignoringAntMatchers("/api/login")
-            .and()
             .formLogin()
             .loginPage("/api/login")
             .successForwardUrl("/api/token")
@@ -51,6 +50,14 @@ class WebSecurityConfig(
             .authenticationEntryPoint(HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
             .and().sessionManagement()
             .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+
+        if (csrfEnabled) {
+            http.csrf()
+                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                .ignoringAntMatchers("/api/login")
+        } else {
+            http.csrf().disable()
+        }
 
         http.addFilterAfter(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter::class.java)
     }

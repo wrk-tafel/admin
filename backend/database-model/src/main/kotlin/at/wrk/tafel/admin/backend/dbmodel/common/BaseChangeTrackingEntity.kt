@@ -11,11 +11,11 @@ abstract class BaseChangeTrackingEntity : BaseEntity() {
 
     @Column(name = "created_at")
     @CreationTimestamp
-    val createdAt: Instant? = null
+    open var createdAt: Instant? = null
 
     @Column(name = "updated_at")
     @UpdateTimestamp
-    val updatedAt: Instant? = null
+    open var updatedAt: Instant? = null
 
     override fun toString(): String {
         return "BaseChangeTrackingEntity(id=$id, isNew=$isNew, createdAt=$createdAt, updatedAt=$updatedAt)"
