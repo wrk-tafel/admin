@@ -81,24 +81,24 @@ class IncomeValidatorServiceImplTest {
         every { incomeLimitRepository.findLatestAdditionalChild() } returns createAdditionalChildLimitEntity()
         every { familyBonusRepository.findCurrentValues() } returns MOCK_FAMILY_BONUS.map {
             val entity = FamilyBonusEntity()
-            entity.value = it.value
+            entity.amount = it.value
             entity.age = it.age
             entity
         }
 
         incomeTolerance100Entity = IncomeToleranceEntity()
-        incomeTolerance100Entity.value = BigDecimal("100")
+        incomeTolerance100Entity.amount = BigDecimal("100")
         every { incomeToleranceRepository.findCurrentValue() } returns Optional.empty()
 
         val childTaxAllowanceEntity = ChildTaxAllowanceEntity()
-        childTaxAllowanceEntity.value = BigDecimal("15")
+        childTaxAllowanceEntity.amount = BigDecimal("15")
         every { childTaxAllowanceRepository.findCurrentValue() } returns Optional.of(childTaxAllowanceEntity)
 
         every {
             siblingAdditionRepository.findCurrentValues()
         } returns MOCK_SIBLING_ADDITION.map {
             var siblingAdditionEntity = SiblingAdditionEntity()
-            siblingAdditionEntity.value = it.value
+            siblingAdditionEntity.amount = it.value
             siblingAdditionEntity.countChild = it.countChild
             siblingAdditionEntity
         }
@@ -108,7 +108,7 @@ class IncomeValidatorServiceImplTest {
         } answers {
             val mockAddition = MOCK_SIBLING_ADDITION.last()
             var siblingAdditionEntity = SiblingAdditionEntity()
-            siblingAdditionEntity.value = mockAddition.value
+            siblingAdditionEntity.amount = mockAddition.value
             siblingAdditionEntity.countChild = mockAddition.countChild
             Optional.of(siblingAdditionEntity)
         }
@@ -447,19 +447,19 @@ class IncomeValidatorServiceImplTest {
 
     private fun createIncomeLimitEntity(value: BigDecimal): IncomeLimitEntity {
         val entity = IncomeLimitEntity()
-        entity.value = value
+        entity.amount = value
         return entity
     }
 
     private fun createAdditionalAdultLimitEntity(): IncomeLimitEntity {
         val entity = IncomeLimitEntity()
-        entity.value = BigDecimal("200")
+        entity.amount = BigDecimal("200")
         return entity
     }
 
     private fun createAdditionalChildLimitEntity(): IncomeLimitEntity {
         val entity = IncomeLimitEntity()
-        entity.value = BigDecimal("100")
+        entity.amount = BigDecimal("100")
         return entity
     }
 }

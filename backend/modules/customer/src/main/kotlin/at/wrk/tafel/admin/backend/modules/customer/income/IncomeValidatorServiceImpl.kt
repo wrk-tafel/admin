@@ -27,7 +27,7 @@ class IncomeValidatorServiceImpl(
                 monthlySum = monthlySum.add(getFamilyBonusForAge(person.age) ?: BigDecimal.ZERO)
 
                 val childTaxAllowanceValue =
-                    childTaxAllowanceRepository.findCurrentValue().map { it.value }.orElse(BigDecimal.ZERO)!!
+                    childTaxAllowanceRepository.findCurrentValue().map { it.amount }.orElse(BigDecimal.ZERO)!!
                 monthlySum = monthlySum.add(childTaxAllowanceValue)
             }
         }
@@ -43,7 +43,7 @@ class IncomeValidatorServiceImpl(
 
         var siblingAdditionValue: BigDecimal = if (countChild >= 7) {
             siblingAdditionRepository.findCurrentMaxAddition()
-                .map { it.value }
+                .map { it.amount }
                 .orElse(BigDecimal.ZERO)
                 ?: BigDecimal.ZERO
         } else {
@@ -51,7 +51,7 @@ class IncomeValidatorServiceImpl(
                 .asSequence()
                 .filter { it.countChild == countChild }
                 .firstOrNull()
-                ?.value
+                ?.amount
                 ?: BigDecimal.ZERO
         }
 
@@ -63,7 +63,7 @@ class IncomeValidatorServiceImpl(
             .asSequence()
             .sortedByDescending { it.age }
             .filter { it.age!! >= age }
-            .map { it.value }
+            .map { it.amount }
             .firstOrNull()
     }
 
@@ -73,7 +73,7 @@ class IncomeValidatorServiceImpl(
         var limit = determineLimit(persons)
 
         val toleranceValueOptional = incomeToleranceRepository.findCurrentValue()
-        limit = limit.add(toleranceValueOptional.map { it.value }.orElse(BigDecimal.ZERO))
+        limit = limit.add(toleranceValueOptional.map { it.amount }.orElse(BigDecimal.ZERO))
 
         val differenceFromLimit = limit.subtract(monthlySum)
         if (differenceFromLimit >= BigDecimal.ZERO) {
@@ -103,12 +103,12 @@ class IncomeValidatorServiceImpl(
                 (countPersons - countAdditionalPersons),
                 (countChildren - countAdditionalChildren)
             )
-        staticValueType?.let { overallLimit = overallLimit.add(it.value ?: BigDecimal.ZERO) }
+        staticValueType?.let { overallLimit = overallLimit.add(it.amount ?: BigDecimal.ZERO) }
 
-        val additionalAdultLimit = incomeLimitRepository.findLatestAdditionalAdult()?.value ?: BigDecimal.ZERO
+        val additionalAdultLimit = incomeLimitRepository.findLatestAdditionalAdult()?.amount ?: BigDecimal.ZERO
         overallLimit = overallLimit.add(additionalAdultLimit.multiply(countAdditionalPersons.toBigDecimal()))
 
-        val additionalChildrenLimit = incomeLimitRepository.findLatestAdditionalChild()?.value ?: BigDecimal.ZERO
+        val additionalChildrenLimit = incomeLimitRepository.findLatestAdditionalChild()?.amount ?: BigDecimal.ZERO
         overallLimit = overallLimit.add(additionalChildrenLimit.multiply(countAdditionalChildren.toBigDecimal()))
 
         return overallLimit

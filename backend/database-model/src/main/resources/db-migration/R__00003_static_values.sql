@@ -5,7 +5,7 @@ create table static_values(
 	created_at timestamp not null,
 	updated_at timestamp not null,
     type varchar(50) not null,
-    value numeric not null,
+    amount numeric not null,
     valid_from date not null,
     valid_to date not null,
     count_adult integer null,
