@@ -26,7 +26,7 @@
         <spring.boot.version>2.6.4</spring.boot.version>
         <jjwt.version>0.11.2</jjwt.version>
         <jackson.kotlin.module.version>2.13.1</jackson.kotlin.module.version>
-        <flyway.version>8.5.2</flyway.version>
+        <flyway.version>8.5.3</flyway.version>
         <postgresql.driver.version>42.3.3</postgresql.driver.version>
         <bouncycastle.version>1.70</bouncycastle.version>
 
