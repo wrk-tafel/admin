@@ -26,3 +26,6 @@
 /backend/target/
 /backend/modules/target/
 target/
+
+### Cypress
+/frontend/src/main/webapp/cypress/videos/
