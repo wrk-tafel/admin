@@ -33,7 +33,7 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: cypress-results
-          path:
-            - ./frontend/cypress/screenshots/
-            - ./frontend/cypress/videos/
+          path: |
+            ./frontend/cypress/screenshots/
+            ./frontend/cypress/videos/
           retention-days: 1
