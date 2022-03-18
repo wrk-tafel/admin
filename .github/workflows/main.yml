@@ -22,7 +22,7 @@ jobs:
       dockerHubToken: ${{ secrets.DOCKERHUB_TOKEN }}
   deploy:
     uses: wrk-tafel/admin/.github/workflows/subflow_deploy.yml@main
-    needs: docker-image
+    needs: publish-image
     secrets:
       sshKey: ${{ secrets.SSH_DEPLOY_KEY }}
       sshKnownHosts: ${{ secrets.SSH_KNOWN_HOSTS }}
