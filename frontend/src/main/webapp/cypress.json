@@ -1,13 +1,4 @@
 {
-  "cypress-run": {
-    "builder": "@cypress/schematic:cypress",
-    "options": {
-      "browser": "chrome"
-    },
-    "configurations": {
-      "production": {
-        "devServerTarget": "{project-name}:serve:production"
-      }
-    }
-  }
+  "builder": "@cypress/schematic:cypress",
+  "baseUrl": "http://localhost:4200"
 }
