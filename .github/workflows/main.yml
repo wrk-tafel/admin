@@ -4,16 +4,19 @@ concurrency: release
 
 on:
   push:
-    branches: [ 'main' ] # switch to seperate release branch later on
+    branches: [ 'main' ] # TODO switch to separate release branch later on
 
 jobs:
   build-and-test:
     uses: wrk-tafel/admin/.github/workflows/subflow_build_test.yml@main
   analysis:
     uses: wrk-tafel/admin/.github/workflows/subflow_analysis.yml@main
-  docker-image:
-    uses: wrk-tafel/admin/.github/workflows/subflow_publish_image.yml@main
+  build-image:
+    uses: wrk-tafel/admin/.github/workflows/subflow_build_image.yml@main
     needs: build-and-test
+  publish-image:
+    uses: wrk-tafel/admin/.github/workflows/subflow_publish_image.yml@main
+    needs: build-image
     secrets:
       dockerHubUsername: ${{ secrets.DOCKERHUB_USERNAME }}
       dockerHubToken: ${{ secrets.DOCKERHUB_TOKEN }}

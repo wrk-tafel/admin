@@ -1,0 +1,32 @@
+name: Build docker image
+
+env:
+  IMAGE_NAME: 'rktafel/admin:latest'
+
+on:
+  workflow_call:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/download-artifact@v2
+        with:
+          name: admin-jarfile
+          path: ./artifact
+      - name: Build docker image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: _build/Dockerfile
+          tags: ${{ env.IMAGE_NAME }}
+          outputs: type=docker,dest=/tmp/admin-image.tar
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: admin-image
+          path: /tmp/admin-image.tar
