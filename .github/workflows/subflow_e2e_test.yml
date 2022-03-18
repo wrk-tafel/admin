@@ -26,6 +26,8 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: ${{ env.JAVA_DISTRIBUTION }}
           cache: 'maven'
+      - run: npm install
+        working-directory: frontend/src/main/webapp
       - name: Run cypress
         run: |
           cd frontend/src/main/webapp
