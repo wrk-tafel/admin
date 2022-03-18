@@ -35,7 +35,5 @@ jobs:
           username: ${{ secrets.dockerHubUsername }}
           password: ${{ secrets.dockerHubToken }}
       - name: Push docker image
-        uses: docker/build-push-action@v2
-        with:
-          push: true
-          tags: ${{ env.IMAGE_NAME }}
+        run: |
+          docker push ${{ env.IMAGE_NAME }}
