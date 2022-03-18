@@ -9,7 +9,7 @@ on:
   workflow_call:
 
 jobs:
-  build:
+  execute:
     runs-on: ubuntu-latest
     steps:
       - name: Cache node packages

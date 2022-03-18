@@ -11,13 +11,13 @@ jobs:
     uses: wrk-tafel/admin/.github/workflows/subflow_build_test.yml@main
   analysis:
     uses: wrk-tafel/admin/.github/workflows/subflow_analysis.yml@main
-  build-image:
+  docker-image:
     uses: wrk-tafel/admin/.github/workflows/subflow_build_image.yml@main
     needs: build-and-test
   e2e-test:
     uses: wrk-tafel/admin/.github/workflows/subflow_e2e_test.yml@main
-    needs: build-image
-  publish-image:
+    needs: docker-image
+  dockerhub:
     uses: wrk-tafel/admin/.github/workflows/subflow_publish_image.yml@main
     needs: e2e-test
     secrets:
@@ -25,7 +25,7 @@ jobs:
       dockerHubToken: ${{ secrets.DOCKERHUB_TOKEN }}
   deploy:
     uses: wrk-tafel/admin/.github/workflows/subflow_deploy.yml@main
-    needs: publish-image
+    needs: dockerhub
     secrets:
       sshKey: ${{ secrets.SSH_DEPLOY_KEY }}
       sshKnownHosts: ${{ secrets.SSH_KNOWN_HOSTS }}
