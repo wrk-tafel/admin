@@ -1,0 +1,4 @@
+{
+  "builder": "@cypress/schematic:cypress",
+  "baseUrl": "http://localhost:4200"
+}
