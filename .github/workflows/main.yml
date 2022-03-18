@@ -14,9 +14,12 @@ jobs:
   build-image:
     uses: wrk-tafel/admin/.github/workflows/subflow_build_image.yml@main
     needs: build-and-test
+  e2e-test:
+    uses: wrk-tafel/admin/.github/workflows/subflow_e2e_test.yml@main
+    needs: build-image
   publish-image:
     uses: wrk-tafel/admin/.github/workflows/subflow_publish_image.yml@main
-    needs: build-image
+    needs: e2e-test
     secrets:
       dockerHubUsername: ${{ secrets.DOCKERHUB_USERNAME }}
       dockerHubToken: ${{ secrets.DOCKERHUB_TOKEN }}

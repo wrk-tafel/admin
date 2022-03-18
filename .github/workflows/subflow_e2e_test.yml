@@ -1,0 +1,39 @@
+name: E2E Test
+
+env:
+  JAVA_VERSION: '17'
+  JAVA_DISTRIBUTION: 'adopt'
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache node packages
+        uses: actions/cache@v2
+        with:
+          key: node-cache
+          path: |
+            ./frontend/src/main/webapp/node
+            ./frontend/src/main/webapp/node_modules
+      - uses: actions/checkout@v3
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3.0.0
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          cache: 'maven'
+      - name: Run cypress
+        run: |
+          cd frontend/src/main/webapp
+          npm run cy:run
+      - uses: actions/upload-artifact@v2
+        with:
+          name: cypress-results
+          path:
+            - ./frontend/cypress/screenshots/
+            - ./frontend/cypress/videos/
+          retention-days: 1
