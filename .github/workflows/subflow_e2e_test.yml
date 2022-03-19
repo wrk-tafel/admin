@@ -11,6 +11,16 @@ on:
 jobs:
   execute:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:14.0-alpine3.14
+        env:
+          POSTGRES_USER: tafeladmin
+          POSTGRES_PASSWORD: tafeladmin
+          POSTGRES_DB: tafeladmin
+        ports:
+          - 5432/tcp
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
       - name: Cache node packages
         uses: actions/cache@v2
@@ -26,8 +36,14 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: ${{ env.JAVA_DISTRIBUTION }}
           cache: 'maven'
+      - uses: actions/download-artifact@v2
+        with:
+          name: admin-jarfile
+          path: ./artifact
       - run: npm install
         working-directory: frontend/src/main/webapp
+      - name: Start app
+        run: java -Dspring.profiles.active=e2e -jar ./artifact/admin-backend.jar &
       - name: Run cypress
         run: |
           cd frontend/src/main/webapp
