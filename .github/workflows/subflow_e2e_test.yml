@@ -50,6 +50,6 @@ jobs:
         with:
           name: cypress-results
           path: |
-            ./frontend/cypress/screenshots/
-            ./frontend/cypress/videos/
+            ./frontend/src/main/webapp/cypress/screenshots/
+            ./frontend/src/main/webapp/cypress/videos/
           retention-days: 1
