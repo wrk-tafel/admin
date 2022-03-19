@@ -40,10 +40,10 @@ jobs:
         with:
           name: admin-jarfile
           path: ./artifact
-      - run: npm install
-        working-directory: frontend/src/main/webapp
       - name: Start app
         run: java -Dspring.profiles.active=e2e -jar ./artifact/admin-backend.jar &
+      - run: npm install
+        working-directory: frontend/src/main/webapp
       - name: Run cypress
         run: |
           cd frontend/src/main/webapp

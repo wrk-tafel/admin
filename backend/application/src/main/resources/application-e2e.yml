@@ -4,3 +4,9 @@ spring:
     username: tafeladmin
     password: tafeladmin
   flyway.locations: classpath:/db-migration,classpath:/db-migration-testdata
+
+security:
+  jwtToken:
+    issuer: http://e2e-test
+    audience: wrk-tafel-e2e
+    secret.value: 8a58255b49728fe758502948917ae98709b7cc502e4c7a0d3bc9d183b5be24378a58255b49728fe758502948917ae98709b7cc502e4c7a0d3bc9d183b5be24378a58255b49728fe758502948917ae98709b7cc502e4c7a0d3bc9d183b5be24378a58255b49728fe7585012
