@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://postgres:5432/tafeladmin
+    url: jdbc:postgresql://localhost:5432/tafeladmin
     username: tafeladmin
     password: tafeladmin
   flyway.locations: classpath:/db-migration,classpath:/db-migration-testdata
