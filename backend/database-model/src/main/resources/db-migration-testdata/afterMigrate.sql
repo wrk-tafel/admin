@@ -13,6 +13,10 @@ $$ LANGUAGE plpgsql;
 
 SELECT truncate_tables('tafeladmin');
 
+-- user e2etest for cypress tests
+INSERT INTO users (username, password, enabled) VALUES ('e2etest', '$argon2id$v=19$m=16,t=2,p=1$OE8zSkpxV25qMTVoZnMzYg$nopPJkmmPJsi+41695pQ9Q', true);
+INSERT INTO authorities (username, authority) VALUES ('e2etest', 'CUSTOMER');
+
 -- pwd: 35bc40681124f412c5d052366edb9eb9
 INSERT INTO users (username, password, enabled) VALUES ('testuser', '$argon2id$v=19$m=16,t=2,p=1$MzViYzQwNjgxMTI0ZjQxMmM1ZDA1MjM2NmVkYjllYjk$Lf4rs14B9IfNmou71DMRTQ', true);
 INSERT INTO authorities (username, authority) VALUES ('testuser', 'CUSTOMER');

@@ -11,26 +11,26 @@
                     <img src="assets/img/brand/logo.svg" width="200px" class="mb-2" />
                     <h1>Tafel Admin</h1>
                   </div>
-                  <div *ngIf="errorMsg" class="alert alert-danger">
+                  <div testId="errorMsg" *ngIf="errorMsg" class="alert alert-danger">
                     <div>{{errorMsg}}</div>
                   </div>
                   <div class="input-group mb-3">
                     <div class="input-group-prepend">
                       <span class="input-group-text"><i class="icon-user"></i></span>
                     </div>
-                    <input ngModel name="username" type="text" class="form-control" placeholder="Benutzername"
+                    <input ngModel testId="username" name="username" type="text" class="form-control" placeholder="Benutzername"
                       autocomplete="username" required autofocus>
                   </div>
                   <div class="input-group mb-4">
                     <div class="input-group-prepend">
                       <span class="input-group-text"><i class="icon-lock"></i></span>
                     </div>
-                    <input ngModel name="password" type="password" class="form-control" placeholder="Passwort"
+                    <input ngModel testId="password" name="password" type="password" class="form-control" placeholder="Passwort"
                       autocomplete="current-password" required>
                   </div>
                   <div class="row">
                     <div class="col-6">
-                      <button type="submit" class="btn btn-primary px-4">Anmelden</button>
+                      <button testId="loginButton" type="submit" class="btn btn-primary px-4">Anmelden</button>
                     </div>
                   </div>
                 </form>

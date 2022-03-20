@@ -23,3 +23,22 @@
 //
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
+
+Cypress.Commands.add('loginWithoutSession', (username, password) => {
+    cy.visit('/login');
+    cy.get('[testId=username]').type(username);
+    cy.get('[testId=password]').type(password);
+    cy.get('[testId=loginButton]').click();
+});
+
+Cypress.Commands.add('login', (username, password) => {
+    cy.session([username, password], () => {
+        cy.loginWithoutSession(username, password);
+    });
+});
+
+Cypress.Commands.add('loginWithTestuser', () => {
+    let username = 'e2etest';
+    let password = 'e2etest';
+    cy.login(username, password);
+});

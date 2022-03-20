@@ -1,4 +1,5 @@
 describe('Admin', () => {
+
   beforeEach(() => {
     cy.visit('/');
   });
@@ -6,4 +7,5 @@ describe('Admin', () => {
   it('window title correct', () => {
     cy.contains('Tafel Admin');
   });
+
 });
