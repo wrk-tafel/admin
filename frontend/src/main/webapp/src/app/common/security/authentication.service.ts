@@ -7,7 +7,7 @@ import { JwtHelperService } from '@auth0/angular-jwt';
   providedIn: 'root'
 })
 export class AuthenticationService {
-  private LOCAL_STORAGE_TOKEN_KEY = 'JWT_TOKEN';
+  private SESSION_STORAGE_TOKEN_KEY = 'JWT_TOKEN';
 
   constructor(
     private jwtHelper: JwtHelperService,
@@ -63,11 +63,11 @@ export class AuthenticationService {
   }
 
   public getToken(): string {
-    return localStorage.getItem(this.LOCAL_STORAGE_TOKEN_KEY);
+    return sessionStorage.getItem(this.SESSION_STORAGE_TOKEN_KEY);
   }
 
   public removeToken() {
-    localStorage.removeItem(this.LOCAL_STORAGE_TOKEN_KEY);
+    sessionStorage.removeItem(this.SESSION_STORAGE_TOKEN_KEY);
   }
 
   private executeLoginRequest(username: string, password: string) {
@@ -80,7 +80,7 @@ export class AuthenticationService {
   }
 
   private storeToken(response: LoginResponse) {
-    localStorage.setItem(this.LOCAL_STORAGE_TOKEN_KEY, response.token);
+    sessionStorage.setItem(this.SESSION_STORAGE_TOKEN_KEY, response.token);
   }
 
 }

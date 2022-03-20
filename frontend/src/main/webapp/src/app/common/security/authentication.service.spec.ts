@@ -6,7 +6,7 @@ import { JwtHelperService } from '@auth0/angular-jwt';
 import { AuthenticationService } from './authentication.service';
 
 describe('AuthenticationService', () => {
-  const LOCAL_STORAGE_TOKEN_KEY = 'JWT_TOKEN';
+  const SESSION_STORAGE_TOKEN_KEY = 'JWT_TOKEN';
 
   let httpMock: HttpTestingController;
 
@@ -41,10 +41,10 @@ describe('AuthenticationService', () => {
   });
 
   it('login successful', () => {
-    localStorage.removeItem(LOCAL_STORAGE_TOKEN_KEY);
+    sessionStorage.removeItem(SESSION_STORAGE_TOKEN_KEY);
 
     service.login('USER', 'PWD').then(response => {
-      expect(localStorage.getItem(LOCAL_STORAGE_TOKEN_KEY)).toBe('TOKENVALUE');
+      expect(sessionStorage.getItem(SESSION_STORAGE_TOKEN_KEY)).toBe('TOKENVALUE');
       expect(response).toBeTrue();
     });
 
@@ -58,10 +58,10 @@ describe('AuthenticationService', () => {
   });
 
   it('login failed', () => {
-    localStorage.setItem(LOCAL_STORAGE_TOKEN_KEY, 'OLDVALUE');
+    sessionStorage.setItem(SESSION_STORAGE_TOKEN_KEY, 'OLDVALUE');
 
     service.login('USER', 'PWD').then(response => {
-      expect(localStorage.getItem(LOCAL_STORAGE_TOKEN_KEY)).toBeNull();
+      expect(sessionStorage.getItem(SESSION_STORAGE_TOKEN_KEY)).toBeNull();
       expect(response).toBeFalse();
     });
 
@@ -74,27 +74,27 @@ describe('AuthenticationService', () => {
   });
 
   it('logoutAndRedirect - token set and valid', () => {
-    localStorage.setItem(LOCAL_STORAGE_TOKEN_KEY, 'TOKENVALUE');
+    sessionStorage.setItem(SESSION_STORAGE_TOKEN_KEY, 'TOKENVALUE');
     jwtHelper.isTokenExpired.and.returnValue(false);
 
     service.logoutAndRedirect();
 
-    expect(localStorage.getItem(LOCAL_STORAGE_TOKEN_KEY)).toBeNull();
+    expect(sessionStorage.getItem(SESSION_STORAGE_TOKEN_KEY)).toBeNull();
     expect(router.navigate).toHaveBeenCalledWith(['login']);
   });
 
   it('logoutAndRedirect - token set and expired', () => {
-    localStorage.setItem(LOCAL_STORAGE_TOKEN_KEY, 'TOKENVALUE');
+    sessionStorage.setItem(SESSION_STORAGE_TOKEN_KEY, 'TOKENVALUE');
     jwtHelper.isTokenExpired.and.returnValue(true);
 
     service.logoutAndRedirect();
 
-    expect(localStorage.getItem(LOCAL_STORAGE_TOKEN_KEY)).toBeNull();
+    expect(sessionStorage.getItem(SESSION_STORAGE_TOKEN_KEY)).toBeNull();
     expect(router.navigate).toHaveBeenCalledWith(['login'], { state: { errorType: 'expired' } });
   });
 
   it('logoutAndRedirect - token not set', () => {
-    localStorage.removeItem(LOCAL_STORAGE_TOKEN_KEY);
+    sessionStorage.removeItem(SESSION_STORAGE_TOKEN_KEY);
 
     service.logoutAndRedirect();
 
@@ -102,7 +102,7 @@ describe('AuthenticationService', () => {
   });
 
   it('isAuthenticated - token set and valid', () => {
-    localStorage.setItem(LOCAL_STORAGE_TOKEN_KEY, 'TOKENVALUE');
+    sessionStorage.setItem(SESSION_STORAGE_TOKEN_KEY, 'TOKENVALUE');
     jwtHelper.isTokenExpired.and.returnValue(false);
 
     const isAuthenticated = service.isAuthenticated();
@@ -111,7 +111,7 @@ describe('AuthenticationService', () => {
   });
 
   it('isAuthenticated - token set but invalid', () => {
-    localStorage.setItem(LOCAL_STORAGE_TOKEN_KEY, 'TOKENVALUE');
+    sessionStorage.setItem(SESSION_STORAGE_TOKEN_KEY, 'TOKENVALUE');
     jwtHelper.isTokenExpired.and.returnValue(true);
 
     const isAuthenticated = service.isAuthenticated();
@@ -120,7 +120,7 @@ describe('AuthenticationService', () => {
   });
 
   it('isAuthenticated - token not set', () => {
-    localStorage.removeItem(LOCAL_STORAGE_TOKEN_KEY);
+    sessionStorage.removeItem(SESSION_STORAGE_TOKEN_KEY);
 
     const isAuthenticated = service.isAuthenticated();
 
@@ -129,7 +129,7 @@ describe('AuthenticationService', () => {
   });
 
   it('hasPermission - permission exists', () => {
-    localStorage.setItem(LOCAL_STORAGE_TOKEN_KEY, 'TOKENVALUE');
+    sessionStorage.setItem(SESSION_STORAGE_TOKEN_KEY, 'TOKENVALUE');
     jwtHelper.decodeToken.and.returnValue(<JwtToken>{ permissions: ['PERM1'] });
 
     const hasPermission = service.hasPermission('PERM1');
@@ -138,7 +138,7 @@ describe('AuthenticationService', () => {
   });
 
   it('hasPermission - permission doesnt exist', () => {
-    localStorage.setItem(LOCAL_STORAGE_TOKEN_KEY, 'TOKENVALUE');
+    sessionStorage.setItem(SESSION_STORAGE_TOKEN_KEY, 'TOKENVALUE');
     jwtHelper.decodeToken.and.returnValue(<JwtToken>{ permissions: ['PERM2'] });
 
     const hasPermission = service.hasPermission('PERM1');
@@ -147,7 +147,7 @@ describe('AuthenticationService', () => {
   });
 
   it('hasPermission - no permissions given', () => {
-    localStorage.setItem(LOCAL_STORAGE_TOKEN_KEY, 'TOKENVALUE');
+    sessionStorage.setItem(SESSION_STORAGE_TOKEN_KEY, 'TOKENVALUE');
     jwtHelper.decodeToken.and.returnValue(<JwtToken>{ permissions: [] });
 
     const hasPermission = service.hasPermission('PERM1');
@@ -156,7 +156,7 @@ describe('AuthenticationService', () => {
   });
 
   it('hasPermission - no permissions field defined', () => {
-    localStorage.setItem(LOCAL_STORAGE_TOKEN_KEY, 'TOKENVALUE');
+    sessionStorage.setItem(SESSION_STORAGE_TOKEN_KEY, 'TOKENVALUE');
     jwtHelper.decodeToken.and.returnValue(<JwtToken>{});
 
     const hasPermission = service.hasPermission('PERM1');
@@ -165,7 +165,7 @@ describe('AuthenticationService', () => {
   });
 
   it('getToken - exists', () => {
-    localStorage.setItem(LOCAL_STORAGE_TOKEN_KEY, 'TOKENVALUE');
+    sessionStorage.setItem(SESSION_STORAGE_TOKEN_KEY, 'TOKENVALUE');
 
     const token = service.getToken();
 
@@ -173,7 +173,7 @@ describe('AuthenticationService', () => {
   });
 
   it('getToken - not existing', () => {
-    localStorage.removeItem(LOCAL_STORAGE_TOKEN_KEY);
+    sessionStorage.removeItem(SESSION_STORAGE_TOKEN_KEY);
 
     const token = service.getToken();
 
@@ -181,19 +181,19 @@ describe('AuthenticationService', () => {
   });
 
   it('removeToken - exists', () => {
-    localStorage.setItem(LOCAL_STORAGE_TOKEN_KEY, 'VALUE');
+    sessionStorage.setItem(SESSION_STORAGE_TOKEN_KEY, 'VALUE');
 
     service.removeToken();
 
-    expect(localStorage.getItem(LOCAL_STORAGE_TOKEN_KEY)).toBeNull();
+    expect(sessionStorage.getItem(SESSION_STORAGE_TOKEN_KEY)).toBeNull();
   });
 
   it('removeToken - not existing', () => {
-    localStorage.removeItem(LOCAL_STORAGE_TOKEN_KEY);
+    sessionStorage.removeItem(SESSION_STORAGE_TOKEN_KEY);
 
     service.removeToken();
 
-    expect(localStorage.getItem(LOCAL_STORAGE_TOKEN_KEY)).toBeNull();
+    expect(sessionStorage.getItem(SESSION_STORAGE_TOKEN_KEY)).toBeNull();
   });
 
 });
