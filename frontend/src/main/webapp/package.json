@@ -19,7 +19,8 @@
     "codecoverage": "ng test --sourceMap=false --watch=false --code-coverage",
     "lint": "ng lint",
     "cy:run-ci": "cypress run --browser chrome --config baseUrl=http://localhost:8080/#",
-    "cy:open": "cypress open --browser chrome"
+    "cy:open-ci": "cypress open --browser chrome --config baseUrl=http://localhost:8080/#",
+    "cy:open-dev": "cypress open --browser chrome"
   },
   "private": true,
   "dependencies": {
