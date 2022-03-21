@@ -8,7 +8,7 @@ describe('Login', () => {
     cy.loginWithTestuser();
     cy.visit('/');
 
-    cy.url().should('contain', '/uebersicht');
+    cy.url({ timeout: 10000 }).should('contain', '/uebersicht');
   });
 
   it('login failed', () => {
@@ -18,7 +18,7 @@ describe('Login', () => {
 
     cy.loginWithoutSession('dummy', 'dummy');
 
-    cy.url().should('contain', '/login');
+    cy.url({ timeout: 10000 }).should('contain', '/login');
     cy.get('[testId=errorMsg]').should('exist');
   });
 
