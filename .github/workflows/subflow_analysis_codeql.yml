@@ -1,7 +1,6 @@
-name: Analysis
+name: Analysis CodeQL
 
 env:
-  KTLINT_VERSION: '0.43.2'
   JAVA_VERSION: '17'
   JAVA_DISTRIBUTION: 'adopt'
 
@@ -12,34 +11,6 @@ on:
     - cron: '00 8 * * 5'
 
 jobs:
-  lint-backend:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - run: |
-          curl -sSLO https://github.com/pinterest/ktlint/releases/download/${{ env.KTLINT_VERSION }}/ktlint && chmod a+x ktlint && sudo mv ktlint /usr/local/bin/
-      - name: run ktlint
-        run: |
-          ktlint --reporter=plain?group_by_file --disabled_rules=no-wildcard-imports, no-blank-line-before-rbrace, indent, filename, no-wildcard-imports
-        continue-on-error: true
-
-  lint-frontend:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3.0.0
-        with:
-          node-version-file: 'frontend/src/main/webapp/.nvmrc'
-          cache: 'npm'
-          cache-dependency-path: 'frontend/src/main/webapp/package-lock.json'
-      - run: npm install
-        working-directory: frontend/src/main/webapp
-      - run: npm run lint
-        working-directory: frontend/src/main/webapp
-        continue-on-error: true
-
-  # TODO tslint frontend
-
   codeql:
     name: CodeQL analyze
     runs-on: ubuntu-latest
