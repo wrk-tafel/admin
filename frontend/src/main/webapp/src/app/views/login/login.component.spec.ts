@@ -1,6 +1,6 @@
 import { fakeAsync, TestBed, waitForAsync } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Navigation, Router, UrlTree } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { AuthenticationService } from '../../common/security/authentication.service';
 import { LoginComponent } from './login.component';
@@ -39,6 +39,16 @@ describe('LoginComponent', () => {
     const app = fixture.debugElement.componentInstance;
 
     expect(app).toBeTruthy();
+  }));
+
+  it('init with expired flag should show message', waitForAsync(() => {
+    const navigation: jasmine.SpyObj<Navigation> = jasmine.createSpyObj('Navigation', {}, { extras: { state: { errorType: 'expired' } } });
+    router.getCurrentNavigation.and.returnValue(navigation);
+
+    const fixture = TestBed.createComponent(LoginComponent);
+    const component = fixture.componentInstance;
+
+    expect(component.errorMsg).toBe('Sitzung abgelaufen! Bitte erneut anmelden.');
   }));
 
   it('onClickSubmit - login successful', waitForAsync(() => {
