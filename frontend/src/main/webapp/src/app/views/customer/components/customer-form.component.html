@@ -1,0 +1,75 @@
+<div class="card">
+    <div class="card-header text-center h5">
+        Haushalt anlegen/bearbeiten
+    </div>
+    <div class="card-body">
+        <form>
+            <button (click)="showLastName()">Log DEBUG</button>
+            <div class="row mb-2">
+                <div class="col-6">
+                    <label class="form-label">Familienname</label>
+                    <input type="text" [(ngModel)]="customer.lastName" name="lastName" class="form-control">
+                </div>
+                <div class="col-6">
+                    <label class="form-label">Vorname</label>
+                    <input type="text" [(ngModel)]="customer.firstName" name="fistName" class="form-control">
+                </div>
+            </div>
+            <div class="row mb-2">
+                <div class="col-12">
+                    <label class="form-label">Nationalität</label>
+                    <input type="text" [(ngModel)]="customer.nationality" name="nationality" class="form-control">
+                </div>
+            </div>
+            <div class="row mb-2">
+                <div class="col-3">
+                    <label class="form-label">Straße</label>
+                    <input type="text" [(ngModel)]="customer.street" name="Straße" class="form-control">
+                </div>
+                <div class="col-3">
+                    <label class="form-label">Hausnummer</label>
+                    <input type="number" [(ngModel)]="customer.houseNumber" name="houseNumber" class="form-control">
+                </div>
+                <div class="col-3">
+                    <label class="form-label">Stiege</label>
+                    <input type="number" [(ngModel)]="customer.stair" name="stair" class="form-control">
+                </div>
+                <div class="col-3">
+                    <label class="form-label">Tür</label>
+                    <input type="number" [(ngModel)]="customer.door" name="door" class="form-control">
+                </div>
+            </div>
+            <div class="row mb-2">
+                <div class="col-6">
+                    <label class="form-label">PLZ</label>
+                    <input type="number" [(ngModel)]="customer.postalCode" name="postalCode" class="form-control">
+                </div>
+                <div class="col-6">
+                    <label class="form-label">Ort</label>
+                    <input type="text" [(ngModel)]="customer.city" name="city" class="form-control">
+                </div>
+            </div>
+            <div class="row mb-2">
+                <div class="col-12">
+                    <label class="form-label">Geburtsdatum</label>
+                    <input type="date" [(ngModel)]="customer.birthDate" name="birthDate" type="date"
+                        class="form-control">
+                </div>
+            </div>
+            <div class="row mb-2">
+                <div class="col-4">
+                    <label class="form-label">Arbeitgeber</label>
+                    <input type="text" [(ngModel)]="customer.employer" name="employer" class="form-control">
+                </div>
+                <div class="col-4">
+                    <label class="form-label">Einkommen</label>
+                    <input type="number" [(ngModel)]="customer.income" name="income" class="form-control">
+                </div>
+                <div class="col-4">
+                    <label class="form-label">Auszahlung bis</label>
+                    <input type="date" [(ngModel)]="customer.incomeDue" name="incomeDue" class="form-control">
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

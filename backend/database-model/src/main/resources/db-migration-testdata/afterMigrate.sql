@@ -24,7 +24,7 @@ INSERT INTO authorities (username, authority) VALUES ('testuser', 'CUSTOMER');
 -- TODO remove | fake user with weak password to gain some intrusion insights
 -- pwd: 12345
 INSERT INTO users (username, password, enabled) VALUES ('admin', '$argon2id$v=19$m=16,t=2,p=1$YWRzYWRzYWRzYWRzYWRzYWRzYWQ$L/OMN2YcZCB9YGhFIM1ASg', true);
-INSERT INTO authorities (username, authority) VALUES ('admin', 'TEST_AUTHORITY');
+INSERT INTO authorities (username, authority) VALUES ('admin', 'CUSTOMER');
 
 -- customers
 INSERT INTO customers (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, address_street, address_housenumber, address_stairway, address_postcode, address_city, telephone_number, email, count_persons_in_household, count_infants) values
