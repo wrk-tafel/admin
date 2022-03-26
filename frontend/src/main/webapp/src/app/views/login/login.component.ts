@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthenticationService } from '../../common/security/authentication.service';
 
@@ -12,8 +12,8 @@ export class LoginComponent {
   errorMessage: String;
 
   loginForm = new FormGroup({
-    username: new FormControl(),
-    password: new FormControl()
+    username: new FormControl('', Validators.required),
+    password: new FormControl('', Validators.required)
   });
 
   constructor(
