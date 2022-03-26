@@ -25,10 +25,10 @@ describe('DefaultLayoutComponent', () => {
     authService = TestBed.inject(AuthenticationService) as jasmine.SpyObj<AuthenticationService>;
   }));
 
-  it('should create the app', waitForAsync(() => {
+  it('should create the component', waitForAsync(() => {
     const fixture = TestBed.createComponent(DefaultLayoutComponent);
-    const app = fixture.debugElement.componentInstance;
-    expect(app).toBeTruthy();
+    const component = fixture.debugElement.componentInstance;
+    expect(component).toBeTruthy();
   }));
 
   // TODO add test for sideBarMinimize
