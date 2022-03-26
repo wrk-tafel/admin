@@ -1,4 +1,5 @@
-import { Component, Input } from '@angular/core';
+import { Component } from '@angular/core';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthenticationService } from '../../common/security/authentication.service';
 
@@ -8,7 +9,12 @@ import { AuthenticationService } from '../../common/security/authentication.serv
 })
 export class LoginComponent {
 
-  @Input() errorMsg: String;
+  errorMessage: String;
+
+  loginForm = new FormGroup({
+    username: new FormControl('', Validators.required),
+    password: new FormControl('', Validators.required)
+  });
 
   constructor(
     private auth: AuthenticationService,
@@ -19,22 +25,17 @@ export class LoginComponent {
 
     const errorType = this.router.getCurrentNavigation()?.extras?.state?.errorType;
     if (errorType === 'expired') {
-      this.errorMsg = 'Sitzung abgelaufen! Bitte erneut anmelden.';
+      this.errorMessage = 'Sitzung abgelaufen! Bitte erneut anmelden.';
     }
   }
 
-  async onClickSubmit(data: LoginFormData) {
-    const successful = await this.auth.login(data.username, data.password);
+  public async login() {
+    const successful = await this.auth.login(this.loginForm.get('username').value, this.loginForm.get('password').value);
     if (successful) {
       this.router.navigate(['uebersicht']);
     } else {
-      this.errorMsg = 'Anmeldung fehlgeschlagen!';
+      this.errorMessage = 'Anmeldung fehlgeschlagen!';
     }
   }
 
-}
-
-interface LoginFormData {
-  username: string;
-  password: string;
 }
