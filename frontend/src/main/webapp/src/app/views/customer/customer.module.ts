@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 
-import { CustomerComponent } from './customer.component';
+import { CustomerCreateComponent } from './views/customer-create.component';
 import { CustomerRoutingModule } from './customer-routing.module';
 import { CustomerFormComponent } from './components/customer-form.component';
 import { CommonModule } from '@angular/common';
@@ -12,6 +12,6 @@ import { CommonModule } from '@angular/common';
     ReactiveFormsModule,
     CustomerRoutingModule
   ],
-  declarations: [CustomerComponent, CustomerFormComponent]
+  declarations: [CustomerCreateComponent, CustomerFormComponent]
 })
 export class CustomerModule { }
