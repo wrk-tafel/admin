@@ -1,75 +1,127 @@
 <div class="card">
     <div class="card-header text-center h5">
-        Haushalt anlegen/bearbeiten
+        Kunde anlegen/bearbeiten
     </div>
     <div class="card-body">
-        <form>
-            <button (click)="showLastName()">Log DEBUG</button>
+        <form [formGroup]="customerForm" (ngSubmit)="save()">
             <div class="row mb-2">
                 <div class="col-6">
                     <label class="form-label">Familienname</label>
-                    <input type="text" [(ngModel)]="customer.lastName" name="lastName" class="form-control">
+                    <input type="text" formControlName="lastname" name="lastname" class="form-control"
+                        [ngClass]="{'is-invalid': customerForm.controls['lastname'].invalid, 'is-valid': customerForm.controls['lastname'].valid}"
+                        autofocus>
+                    <div *ngIf="customerForm.controls['lastname'].errors?.required" class="invalid-feedback">
+                        Pflichtfeld
+                    </div>
                 </div>
                 <div class="col-6">
                     <label class="form-label">Vorname</label>
-                    <input type="text" [(ngModel)]="customer.firstName" name="fistName" class="form-control">
+                    <input type="text" formControlName="firstname" name="firstname" class="form-control"
+                        [ngClass]="{'is-invalid': customerForm.controls['firstname'].invalid, 'is-valid': customerForm.controls['firstname'].valid}">
+                    <div *ngIf="customerForm.controls['firstname'].errors?.required" class="invalid-feedback">
+                        Pflichtfeld
+                    </div>
                 </div>
             </div>
             <div class="row mb-2">
                 <div class="col-12">
                     <label class="form-label">Nationalität</label>
-                    <input type="text" [(ngModel)]="customer.nationality" name="nationality" class="form-control">
+                    <input type="text" formControlName="nationality" name="nationality" class="form-control"
+                        [ngClass]="{'is-invalid': customerForm.controls['nationality'].invalid, 'is-valid': customerForm.controls['nationality'].valid}">
+                    <div *ngIf="customerForm.controls['nationality'].errors?.required" class="invalid-feedback">
+                        Pflichtfeld
+                    </div>
                 </div>
             </div>
             <div class="row mb-2">
                 <div class="col-3">
                     <label class="form-label">Straße</label>
-                    <input type="text" [(ngModel)]="customer.street" name="Straße" class="form-control">
+                    <input type="text" formControlName="street" name="Straße" class="form-control"
+                        [ngClass]="{'is-invalid': customerForm.controls['street'].invalid, 'is-valid': customerForm.controls['street'].valid}">
+                    <div *ngIf="customerForm.controls['street'].errors?.required" class="invalid-feedback">
+                        Pflichtfeld
+                    </div>
                 </div>
                 <div class="col-3">
                     <label class="form-label">Hausnummer</label>
-                    <input type="number" [(ngModel)]="customer.houseNumber" name="houseNumber" class="form-control">
+                    <input type="number" formControlName="houseNumber" name="houseNumber" class="form-control"
+                        [ngClass]="{'is-invalid': customerForm.controls['houseNumber'].invalid, 'is-valid': customerForm.controls['houseNumber'].valid}">
+                    <div *ngIf="customerForm.controls['houseNumber'].errors?.required" class="invalid-feedback">
+                        Pflichtfeld
+                    </div>
                 </div>
                 <div class="col-3">
                     <label class="form-label">Stiege</label>
-                    <input type="number" [(ngModel)]="customer.stair" name="stair" class="form-control">
+                    <input type="number" formControlName="stair" name="stair" class="form-control"
+                        [ngClass]="{'is-invalid': customerForm.controls['stair'].invalid, 'is-valid': customerForm.controls['stair'].valid}">
+                    <div *ngIf="customerForm.controls['stair'].errors?.required" class="invalid-feedback">
+                        Pflichtfeld
+                    </div>
                 </div>
                 <div class="col-3">
                     <label class="form-label">Tür</label>
-                    <input type="number" [(ngModel)]="customer.door" name="door" class="form-control">
+                    <input type="number" formControlName="door" name="door" class="form-control"
+                        [ngClass]="{'is-invalid': customerForm.controls['door'].invalid, 'is-valid': customerForm.controls['door'].valid}">
+                    <div *ngIf="customerForm.controls['door'].errors?.required" class="invalid-feedback">
+                        Pflichtfeld
+                    </div>
                 </div>
             </div>
             <div class="row mb-2">
                 <div class="col-6">
                     <label class="form-label">PLZ</label>
-                    <input type="number" [(ngModel)]="customer.postalCode" name="postalCode" class="form-control">
+                    <input type="number" formControlName="postalCode" name="postalCode" class="form-control"
+                        [ngClass]="{'is-invalid': customerForm.controls['postalCode'].invalid, 'is-valid': customerForm.controls['postalCode'].valid}">
+                    <div *ngIf="customerForm.controls['postalCode'].errors?.required" class="invalid-feedback">
+                        Pflichtfeld
+                    </div>
                 </div>
                 <div class="col-6">
                     <label class="form-label">Ort</label>
-                    <input type="text" [(ngModel)]="customer.city" name="city" class="form-control">
+                    <input type="text" formControlName="city" name="city" class="form-control"
+                        [ngClass]="{'is-invalid': customerForm.controls['city'].invalid, 'is-valid': customerForm.controls['city'].valid}">
+                    <div *ngIf="customerForm.controls['city'].errors?.required" class="invalid-feedback">
+                        Pflichtfeld
+                    </div>
                 </div>
             </div>
             <div class="row mb-2">
                 <div class="col-12">
                     <label class="form-label">Geburtsdatum</label>
-                    <input type="date" [(ngModel)]="customer.birthDate" name="birthDate" type="date"
-                        class="form-control">
+                    <input type="date" formControlName="birthDate" name="birthDate" type="date" class="form-control"
+                        [ngClass]="{'is-invalid': customerForm.controls['birthDate'].invalid, 'is-valid': customerForm.controls['birthDate'].valid}">
+                    <div *ngIf="customerForm.controls['birthDate'].errors?.required" class="invalid-feedback">
+                        Pflichtfeld
+                    </div>
                 </div>
             </div>
             <div class="row mb-2">
                 <div class="col-4">
                     <label class="form-label">Arbeitgeber</label>
-                    <input type="text" [(ngModel)]="customer.employer" name="employer" class="form-control">
+                    <input type="text" formControlName="employer" name="employer" class="form-control"
+                        [ngClass]="{'is-invalid': customerForm.controls['employer'].invalid, 'is-valid': customerForm.controls['employer'].valid}">
+                    <div *ngIf="customerForm.controls['employer'].errors?.required" class="invalid-feedback">
+                        Pflichtfeld
+                    </div>
                 </div>
                 <div class="col-4">
                     <label class="form-label">Einkommen</label>
-                    <input type="number" [(ngModel)]="customer.income" name="income" class="form-control">
+                    <input type="number" formControlName="income" name="income" class="form-control"
+                        [ngClass]="{'is-invalid': customerForm.controls['income'].invalid, 'is-valid': customerForm.controls['income'].valid}">
+                    <div *ngIf="customerForm.controls['income'].errors?.required" class="invalid-feedback">
+                        Pflichtfeld
+                    </div>
                 </div>
                 <div class="col-4">
                     <label class="form-label">Auszahlung bis</label>
-                    <input type="date" [(ngModel)]="customer.incomeDue" name="incomeDue" class="form-control">
+                    <input type="date" formControlName="incomeDue" name="incomeDue" class="form-control"
+                        [ngClass]="{'is-invalid': customerForm.controls['incomeDue'].invalid, 'is-valid': customerForm.controls['incomeDue'].valid}">
+                    <div *ngIf="customerForm.controls['incomeDue'].errors?.required" class="invalid-feedback">
+                        Pflichtfeld
+                    </div>
                 </div>
             </div>
+            <button testId="saveButton" class="btn btn-primary px-4" type="submit">Speichern</button>
         </form>
     </div>
 </div>
