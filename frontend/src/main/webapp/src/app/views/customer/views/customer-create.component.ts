@@ -8,10 +8,6 @@ import { CustomerFormData } from '../components/customer-form.component';
 export class CustomerCreateComponent {
   customerData: CustomerFormData;
 
-  debug() {
-    console.log("FORM-DATA", this.customerData);
-  }
-
   updateFormData(updatedFormData: CustomerFormData) {
     this.customerData = updatedFormData;
   }

@@ -4,7 +4,6 @@
             Kunde anlegen
         </div>
         <div class="card-body">
-            <button (click)="debug()">Log DEBUG</button>
             <customer-form [initialData]="customerData" (dataUpdateEvent)="updateFormData($event)"></customer-form>
             <button testId="saveButton" class="btn btn-primary px-4" type="submit">Speichern</button>
         </div>
