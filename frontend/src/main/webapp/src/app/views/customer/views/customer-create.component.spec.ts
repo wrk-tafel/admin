@@ -14,7 +14,7 @@ describe('CustomerCreateComponent', () => {
 
   it('should create the component', waitForAsync(() => {
     const fixture = TestBed.createComponent(CustomerCreateComponent);
-    const component = fixture.debugElement.componentInstance;
+    const component = fixture.componentInstance;
     expect(component).toBeTruthy();
   }));
 
