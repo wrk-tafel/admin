@@ -39,6 +39,7 @@ describe('CustomerFormComponent', () => {
     component.ngOnInit();
 
     expect(component.customerForm.value).toEqual(testData);
+    expect(component.customerForm.valid).toBe(true);
   }));
 
   it('prefilled postalCode and city', waitForAsync(() => {
@@ -46,6 +47,7 @@ describe('CustomerFormComponent', () => {
 
     expect(component.customerForm.get('postalCode').value).toBe(1030);
     expect(component.customerForm.get('city').value).toBe('Wien');
+    expect(component.customerForm.valid).toBe(false);
   }));
 
 });
