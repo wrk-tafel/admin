@@ -1,7 +1,7 @@
 DROP TABLE IF EXISTS static_values;
 
 create table static_values(
-	id bigint not null primary key,
+	id bigint primary key,
 	created_at timestamp not null,
 	updated_at timestamp not null,
     type varchar(50) not null,

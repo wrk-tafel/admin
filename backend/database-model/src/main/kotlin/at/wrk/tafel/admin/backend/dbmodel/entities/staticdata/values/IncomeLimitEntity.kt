@@ -1,4 +1,4 @@
-package at.wrk.tafel.admin.backend.dbmodel.entities.staticvalues
+package at.wrk.tafel.admin.backend.dbmodel.entities.staticdata.values
 
 import javax.persistence.Column
 import javax.persistence.DiscriminatorValue

@@ -7,5 +7,5 @@ import org.springframework.security.access.prepost.PreAuthorize;
 
 @RepositoryRestResource(path = "customers", collectionResourceRel = "customers")
 @PreAuthorize("hasAuthority('CUSTOMER')")
-public interface CustomerRestRepository extends CrudRepository<CustomerEntity, Long> {
+public interface CustomersRestRepository extends CrudRepository<CustomerEntity, Long> {
 }

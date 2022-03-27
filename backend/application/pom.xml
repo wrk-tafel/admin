@@ -23,6 +23,11 @@
         </dependency>
         <dependency>
             <groupId>at.wrk.tafel</groupId>
+            <artifactId>generic</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>at.wrk.tafel</groupId>
             <artifactId>customer</artifactId>
             <version>${project.version}</version>
         </dependency>
