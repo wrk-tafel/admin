@@ -11,6 +11,7 @@
     <artifactId>modules</artifactId>
     <packaging>pom</packaging>
     <modules>
+        <module>generic</module>
         <module>customer</module>
     </modules>
 </project>

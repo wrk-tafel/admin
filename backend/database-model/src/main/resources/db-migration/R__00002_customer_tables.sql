@@ -1,7 +1,7 @@
 DROP TABLE IF EXISTS customers;
 
 create table customers(
-	id bigint not null primary key,
+	id bigint primary key,
 	created_at timestamp not null,
 	updated_at timestamp not null,
 	customer_id integer not null,

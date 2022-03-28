@@ -27,7 +27,7 @@ describe('DefaultLayoutComponent', () => {
 
   it('should create the component', waitForAsync(() => {
     const fixture = TestBed.createComponent(DefaultLayoutComponent);
-    const component = fixture.debugElement.componentInstance;
+    const component = fixture.componentInstance;
     expect(component).toBeTruthy();
   }));
 

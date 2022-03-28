@@ -1,6 +1,10 @@
 package at.wrk.tafel.admin.backend.modules.customer.income
 
-import at.wrk.tafel.admin.backend.dbmodel.entities.staticvalues.*
+import at.wrk.tafel.admin.backend.dbmodel.entities.staticdata.values.ChildTaxAllowanceEntity
+import at.wrk.tafel.admin.backend.dbmodel.entities.staticdata.values.FamilyBonusEntity
+import at.wrk.tafel.admin.backend.dbmodel.entities.staticdata.values.IncomeToleranceEntity
+import at.wrk.tafel.admin.backend.dbmodel.entities.staticdata.values.SiblingAdditionEntity
+import at.wrk.tafel.admin.backend.dbmodel.entities.staticdata.values.*
 import at.wrk.tafel.admin.backend.dbmodel.repositories.*
 import io.mockk.every
 import io.mockk.impl.annotations.RelaxedMockK
