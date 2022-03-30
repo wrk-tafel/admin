@@ -1,6 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.customer.income
 
-import at.wrk.tafel.admin.backend.database.entities.staticvalues.*
+import at.wrk.tafel.admin.backend.database.entities.staticdata.*
 import at.wrk.tafel.admin.backend.database.repositories.*
 import io.mockk.every
 import io.mockk.impl.annotations.RelaxedMockK

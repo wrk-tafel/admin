@@ -1,6 +1,6 @@
 package at.wrk.tafel.admin.backend.database.repositories
 
-import at.wrk.tafel.admin.backend.database.entities.staticvalues.IncomeLimitEntity
+import at.wrk.tafel.admin.backend.database.entities.staticdata.IncomeLimitEntity
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
