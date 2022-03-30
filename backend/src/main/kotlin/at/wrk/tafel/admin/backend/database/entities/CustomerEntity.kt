@@ -1,6 +1,5 @@
 package at.wrk.tafel.admin.backend.database.entities
 
-import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.database.entities.base.BaseChangeTrackingEntity
 import java.time.LocalDate
 import javax.persistence.Column
@@ -9,7 +8,6 @@ import javax.persistence.Table
 
 @Entity(name = "Customer")
 @Table(name = "customers")
-@ExcludeFromTestCoverage
 class CustomerEntity : BaseChangeTrackingEntity() {
     @Column(name = "customer_id")
     var customerId: Long? = null
