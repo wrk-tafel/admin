@@ -1,0 +1,52 @@
+package at.wrk.tafel.admin.backend.database.entities
+
+import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
+import at.wrk.tafel.admin.backend.database.entities.base.BaseChangeTrackingEntity
+import java.time.LocalDate
+import javax.persistence.Column
+import javax.persistence.Entity
+import javax.persistence.Table
+
+@Entity(name = "Customer")
+@Table(name = "customers")
+@ExcludeFromTestCoverage
+class CustomerEntity : BaseChangeTrackingEntity() {
+    @Column(name = "customer_id")
+    var customerId: Long? = null
+
+    @Column(name = "firstname")
+    var firstname: String? = null
+
+    @Column(name = "lastname")
+    var lastname: String? = null
+
+    @Column(name = "birth_date")
+    var birthDate: LocalDate? = null
+
+    @Column(name = "address_street")
+    var addressStreet: String? = null
+
+    @Column(name = "address_housenumber")
+    var addressHousenumber: String? = null
+
+    @Column(name = "address_stairway")
+    var addressStairway: Int? = null
+
+    @Column(name = "address_postcode")
+    var addressPostCode: Int? = null
+
+    @Column(name = "address_city")
+    var addressCity: String? = null
+
+    @Column(name = "telephone_number")
+    var telephoneNumber: Long? = null
+
+    @Column(name = "email")
+    var email: String? = null
+
+    @Column(name = "count_persons_in_household")
+    var countPersonsInHousehold: Int? = null
+
+    @Column(name = "count_infants")
+    var countInfants: Int? = null
+}
