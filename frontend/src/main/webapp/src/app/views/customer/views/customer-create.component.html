@@ -1,0 +1,11 @@
+<div class="animated fadeIn">
+    <div class="card">
+        <div class="card-header text-center h5">
+            Kunde anlegen
+        </div>
+        <div class="card-body">
+            <customer-form [initialData]="customerData" (dataUpdateEvent)="updateFormData($event)"></customer-form>
+            <button testId="saveButton" class="btn btn-primary px-4" type="submit">Speichern</button>
+        </div>
+    </div>
+</div>
