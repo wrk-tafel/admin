@@ -11,10 +11,11 @@ import java.util.concurrent.TimeUnit
 @EnableCaching
 class CacheConfig {
 
+    // TODO
     @Bean
-    fun countriesCache(): CaffeineCache {
+    fun demoCache(): CaffeineCache {
         return CaffeineCache(
-            "countries",
+            "demo",
             Caffeine.newBuilder().expireAfterWrite(1, TimeUnit.DAYS).recordStats().build()
         )
     }
