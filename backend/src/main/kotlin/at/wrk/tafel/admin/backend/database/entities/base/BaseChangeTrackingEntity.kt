@@ -20,6 +20,6 @@ abstract class BaseChangeTrackingEntity : BaseEntity() {
     open var updatedAt: Instant? = null
 
     override fun toString(): String {
-        return "BaseChangeTrackingEntity(id=$id, isNew=$isNew, createdAt=$createdAt, updatedAt=$updatedAt)"
+        return "BaseChangeTrackingEntity(id=$id, createdAt=$createdAt, updatedAt=$updatedAt)"
     }
 }
