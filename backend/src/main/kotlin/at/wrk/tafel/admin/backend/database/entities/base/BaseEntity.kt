@@ -1,7 +1,6 @@
 package at.wrk.tafel.admin.backend.database.entities.base
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
-import org.springframework.data.domain.Persistable
 import javax.persistence.Column
 import javax.persistence.Id
 import javax.persistence.MappedSuperclass
@@ -11,19 +10,10 @@ import javax.persistence.MappedSuperclass
 abstract class BaseEntity(
     @Id
     @Column(name = "id", nullable = false)
-    private var id: Long? = null
-) : Persistable<Long?> {
-
-    override fun getId(): Long? {
-        return id
-    }
-
-    override fun isNew(): Boolean {
-        return id == null
-    }
-
+    open var id: Long? = null
+) {
     override fun toString(): String {
-        return "BaseIdEntity(id=$id, isNew=$isNew)"
+        return "BaseEntity(id=$id)"
     }
 
     override fun equals(other: Any?): Boolean {

@@ -1,6 +1,7 @@
 management:
   server:
     port: 8081
+  endpoints.web.exposure.include: caches,env,prometheus
 
 server:
   port: 8080
