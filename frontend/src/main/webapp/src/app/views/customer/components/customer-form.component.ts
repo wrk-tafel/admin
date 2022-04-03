@@ -10,15 +10,15 @@ export class CustomerFormComponent implements OnInit {
   @Output() dataUpdateEvent = new EventEmitter<CustomerFormData>();
 
   customerForm = new FormGroup({
-    lastname: new FormControl('', Validators.required),
-    firstname: new FormControl('', Validators.required),
+    lastname: new FormControl('', [Validators.required, Validators.maxLength(50)]),
+    firstname: new FormControl('', [Validators.required, , Validators.maxLength(50)]),
     nationality: new FormControl('', Validators.required),
-    street: new FormControl('', Validators.required),
-    houseNumber: new FormControl('', Validators.required),
+    street: new FormControl('', [Validators.required, Validators.maxLength(100)]),
+    houseNumber: new FormControl('', [Validators.required, Validators.maxLength(10)]),
     stair: new FormControl(''),
     door: new FormControl('', Validators.required),
-    postalCode: new FormControl(1030, Validators.required),
-    city: new FormControl('Wien', Validators.required),
+    postalCode: new FormControl(1030, [Validators.required, Validators.pattern("^[0-9]{4}$")]),
+    city: new FormControl('Wien', [Validators.required, Validators.maxLength(50)]),
     birthDate: new FormControl('', Validators.required),
     employer: new FormControl('', Validators.required),
     income: new FormControl('', Validators.required),

@@ -28,9 +28,9 @@ class CustomerEntity : BaseChangeTrackingEntity() {
     var addressHousenumber: String? = null
 
     @Column(name = "address_stairway")
-    var addressStairway: Int? = null
+    var addressStairway: String? = null
 
-    @Column(name = "address_postcode")
+    @Column(name = "address_postalCode")
     var addressPostCode: Int? = null
 
     @Column(name = "address_city")

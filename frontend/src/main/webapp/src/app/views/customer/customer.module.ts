@@ -4,6 +4,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { CustomerCreateComponent } from './views/customer-create.component';
 import { CustomerRoutingModule } from './customer-routing.module';
 import { CustomerFormComponent } from './components/customer-form.component';
+import { AddPersonsTableComponent } from './components/addpersons-table.component';
 import { CommonModule } from '@angular/common';
 
 @NgModule({
@@ -12,6 +13,6 @@ import { CommonModule } from '@angular/common';
     ReactiveFormsModule,
     CustomerRoutingModule
   ],
-  declarations: [CustomerCreateComponent, CustomerFormComponent]
+  declarations: [CustomerCreateComponent, CustomerFormComponent, AddPersonsTableComponent]
 })
 export class CustomerModule { }
