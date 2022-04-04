@@ -1,11 +1,16 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { Country, CustomerApiService } from '../api/customer-api.service';
 
 @Component({
   selector: 'customer-form',
   templateUrl: 'customer-form.component.html'
 })
 export class CustomerFormComponent implements OnInit {
+  constructor(
+    private customerApiService: CustomerApiService
+  ) { }
+
   @Input() initialData: CustomerFormData;
   @Output() dataUpdateEvent = new EventEmitter<CustomerFormData>();
 
@@ -25,9 +30,13 @@ export class CustomerFormComponent implements OnInit {
     incomeDue: new FormControl('', Validators.required)
   })
 
-  countries = [{ code: 'AT', name: 'Österreich' }, { code: 'DE', name: 'Deutschland' }, { code: 'CH', name: 'Schweiz' }]
+  countries: Country[];
 
   ngOnInit(): void {
+    this.customerApiService.getCountries().subscribe((data: Country[]) => {
+      this.countries = data;
+    });
+
     this.customerForm.valueChanges.subscribe((value) => {
       this.dataUpdateEvent.emit(value);
     });
@@ -68,9 +77,4 @@ export interface CustomerFormData {
   employer?: String,
   income?: number,
   incomeDue?: Date
-}
-
-export interface Country {
-  code: String,
-  name: String
 }
