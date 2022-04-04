@@ -15,7 +15,7 @@ export const navigationMenuItems: IPermissionNavData[] = [
     title: true
   },
   {
-    name: 'Kunde anlegen',
+    name: 'Kunden anlegen',
     url: '/kunden/anlegen',
     icon: 'fa fa-archive',
     permissions: ['CUSTOMER']

@@ -1,5 +1,6 @@
 <form [formGroup]="customerForm">
     <div class="row">
+        <button (click)="debug()">DEBUG</button>
         <div class="col-6">
             <label class="form-label">Familienname</label>
             <input type="text" formControlName="lastname" name="lastname" class="form-control"
@@ -37,10 +38,8 @@
             <label class="form-label">Nationalität</label>
             <select formControlName="nationality" class="form-control"
                 [ngClass]="{'is-invalid': nationality.invalid && (nationality.dirty || nationality.touched), 'is-valid': nationality.valid && (nationality.dirty || nationality.touched)}">
-                <option [value]="null">Bitte auswählen</option>
-                <option *ngFor="let country of countries" [ngClass]="'flag-icon-' + country.code.toLowerCase()"
-                    [selected]="opt === selectedCountry" [value]="country">
-                    <span class="flag-icon-at"></span>{{country.name}}
+                <option *ngFor="let country of countries" [ngValue]="country">
+                    {{country.name}}
                 </option>
             </select>
             <div *ngIf="nationality.errors?.required && (nationality.dirty || nationality.touched)"

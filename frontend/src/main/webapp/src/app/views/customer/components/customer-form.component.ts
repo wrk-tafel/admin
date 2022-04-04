@@ -26,7 +26,6 @@ export class CustomerFormComponent implements OnInit {
   })
 
   countries = [{ code: 'AT', name: 'Österreich' }, { code: 'DE', name: 'Deutschland' }, { code: 'CH', name: 'Schweiz' }]
-  selectedCountry: Country = null
 
   ngOnInit(): void {
     this.customerForm.valueChanges.subscribe((value) => {
@@ -48,6 +47,11 @@ export class CustomerFormComponent implements OnInit {
   get employer() { return this.customerForm.get('employer'); }
   get income() { return this.customerForm.get('income'); }
   get incomeDue() { return this.customerForm.get('incomeDue'); }
+
+  debug() {
+    console.log("SEL COUNTRY", this.nationality.value);
+    console.log("FORM", this.customerForm);
+  }
 }
 
 export interface CustomerFormData {
