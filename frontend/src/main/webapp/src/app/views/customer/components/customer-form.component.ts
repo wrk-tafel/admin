@@ -25,12 +25,29 @@ export class CustomerFormComponent implements OnInit {
     incomeDue: new FormControl('', Validators.required)
   })
 
+  countries = [{ code: 'AT', name: 'Österreich' }, { code: 'DE', name: 'Deutschland' }, { code: 'CH', name: 'Schweiz' }]
+  selectedCountry: Country = null
+
   ngOnInit(): void {
     this.customerForm.valueChanges.subscribe((value) => {
       this.dataUpdateEvent.emit(value);
     });
     this.customerForm.patchValue(this.initialData);
   }
+
+  get lastname() { return this.customerForm.get('lastname'); }
+  get firstname() { return this.customerForm.get('firstname'); }
+  get nationality() { return this.customerForm.get('nationality'); }
+  get street() { return this.customerForm.get('street'); }
+  get houseNumber() { return this.customerForm.get('houseNumber'); }
+  get stair() { return this.customerForm.get('stair'); }
+  get door() { return this.customerForm.get('door'); }
+  get postalCode() { return this.customerForm.get('postalCode'); }
+  get city() { return this.customerForm.get('city'); }
+  get birthDate() { return this.customerForm.get('birthDate'); }
+  get employer() { return this.customerForm.get('employer'); }
+  get income() { return this.customerForm.get('income'); }
+  get incomeDue() { return this.customerForm.get('incomeDue'); }
 }
 
 export interface CustomerFormData {
@@ -47,4 +64,9 @@ export interface CustomerFormData {
   employer?: String,
   income?: number,
   incomeDue?: Date
+}
+
+export interface Country {
+  code: String,
+  name: String
 }

@@ -3,24 +3,24 @@
         <div class="col-6">
             <label class="form-label">Familienname</label>
             <input type="text" formControlName="lastname" name="lastname" class="form-control"
-                [ngClass]="{'is-invalid': customerForm.controls['lastname'].invalid, 'is-valid': customerForm.controls['lastname'].valid}"
+                [ngClass]="{'is-invalid': lastname.invalid && (lastname.dirty || lastname.touched), 'is-valid': lastname.valid && (lastname.dirty || lastname.touched)}"
                 autofocus>
-            <div *ngIf="customerForm.controls['lastname'].errors?.required" class="invalid-feedback">
+            <div *ngIf="lastname.errors?.required && (lastname.dirty || lastname.touched)" class="invalid-feedback">
                 Pflichtfeld
             </div>
-            <div *ngIf="customerForm.controls['lastname'].errors?.maxlength" class="invalid-feedback">
-                Familienname zu lang (Limit: {{customerForm.controls['lastname'].errors.maxlength.requiredLength}})
+            <div *ngIf="lastname.errors?.maxlength && (lastname.dirty || lastname.touched)" class="invalid-feedback">
+                Familienname zu lang (Limit: {{lastname.errors.maxlength.requiredLength}})
             </div>
         </div>
         <div class="col-6">
             <label class="form-label">Vorname</label>
             <input type="text" formControlName="firstname" name="firstname" class="form-control"
-                [ngClass]="{'is-invalid': customerForm.controls['firstname'].invalid, 'is-valid': customerForm.controls['firstname'].valid}">
-            <div *ngIf="customerForm.controls['firstname'].errors?.required" class="invalid-feedback">
+                [ngClass]="{'is-invalid': firstname.invalid && (firstname.dirty || firstname.touched), 'is-valid': firstname.valid && (firstname.dirty || firstname.touched)}">
+            <div *ngIf="firstname.errors?.required && (firstname.dirty || firstname.touched)" class="invalid-feedback">
                 Pflichtfeld
             </div>
-            <div *ngIf="customerForm.controls['lastname'].errors?.maxlength" class="invalid-feedback">
-                Vorname zu lang (Limit: {{customerForm.controls['lastname'].errors.maxlength.requiredLength}})
+            <div *ngIf="firstname.errors?.maxlength && (firstname.dirty || firstname.touched)" class="invalid-feedback">
+                Vorname zu lang (Limit: {{firstname.errors.maxlength.requiredLength}})
             </div>
         </div>
     </div>
@@ -28,16 +28,23 @@
         <div class="col-6">
             <label class="form-label">Geburtsdatum</label>
             <input type="date" formControlName="birthDate" name="birthDate" type="date" class="form-control"
-                [ngClass]="{'is-invalid': customerForm.controls['birthDate'].invalid, 'is-valid': customerForm.controls['birthDate'].valid}">
-            <div *ngIf="customerForm.controls['birthDate'].errors?.required" class="invalid-feedback">
+                [ngClass]="{'is-invalid': birthDate.invalid && (birthDate.dirty || birthDate.touched), 'is-valid': birthDate.valid && (birthDate.dirty || birthDate.touched)}">
+            <div *ngIf="birthDate.errors?.required && (birthDate.dirty || birthDate.touched)" class="invalid-feedback">
                 Pflichtfeld
             </div>
         </div>
         <div class="col-6">
             <label class="form-label">Nationalität</label>
-            <input type="text" formControlName="nationality" name="nationality" class="form-control"
-                [ngClass]="{'is-invalid': customerForm.controls['nationality'].invalid, 'is-valid': customerForm.controls['nationality'].valid}">
-            <div *ngIf="customerForm.controls['nationality'].errors?.required" class="invalid-feedback">
+            <select formControlName="nationality" class="form-control"
+                [ngClass]="{'is-invalid': nationality.invalid && (nationality.dirty || nationality.touched), 'is-valid': nationality.valid && (nationality.dirty || nationality.touched)}">
+                <option [value]="null">Bitte auswählen</option>
+                <option *ngFor="let country of countries" [ngClass]="'flag-icon-' + country.code.toLowerCase()"
+                    [selected]="opt === selectedCountry" [value]="country">
+                    <span class="flag-icon-at"></span>{{country.name}}
+                </option>
+            </select>
+            <div *ngIf="nationality.errors?.required && (nationality.dirty || nationality.touched)"
+                class="invalid-feedback">
                 Pflichtfeld
             </div>
         </div>
@@ -47,12 +54,12 @@
         <div class="col-12">
             <label class="form-label">Straße</label>
             <input type="text" formControlName="street" name="Straße" class="form-control"
-                [ngClass]="{'is-invalid': customerForm.controls['street'].invalid, 'is-valid': customerForm.controls['street'].valid}">
-            <div *ngIf="customerForm.controls['street'].errors?.required" class="invalid-feedback">
+                [ngClass]="{'is-invalid': street.invalid && (street.dirty || street.touched), 'is-valid': street.valid && (street.dirty || street.touched)}">
+            <div *ngIf="street.errors?.required && (street.dirty || street.touched)" class="invalid-feedback">
                 Pflichtfeld
             </div>
-            <div *ngIf="customerForm.controls['lastname'].errors?.maxlength" class="invalid-feedback">
-                Straße zu lang (Limit: {{customerForm.controls['lastname'].errors.maxlength.requiredLength}})
+            <div *ngIf="street.errors?.maxlength && (street.dirty || street.touched)" class="invalid-feedback">
+                Straße zu lang (Limit: {{street.errors.maxlength.requiredLength}})
             </div>
         </div>
     </div>
@@ -60,27 +67,26 @@
         <div class="col-4">
             <label class="form-label">Hausnummer</label>
             <input type="number" formControlName="houseNumber" name="houseNumber" class="form-control"
-                [ngClass]="{'is-invalid': customerForm.controls['houseNumber'].invalid, 'is-valid': customerForm.controls['houseNumber'].valid}">
-            <div *ngIf="customerForm.controls['houseNumber'].errors?.required" class="invalid-feedback">
+                [ngClass]="{'is-invalid': houseNumber.invalid && (houseNumber.dirty || houseNumber.touched), 'is-valid': houseNumber.valid && (houseNumber.dirty || houseNumber.touched)}">
+            <div *ngIf="houseNumber.errors?.required && (houseNumber.dirty || houseNumber.touched)"
+                class="invalid-feedback">
                 Pflichtfeld
             </div>
-            <div *ngIf="customerForm.controls['lastname'].errors?.maxlength" class="invalid-feedback">
-                Hausnummer zu lang (Limit: {{customerForm.controls['lastname'].errors.maxlength.requiredLength}})
+            <div *ngIf="houseNumber.errors?.maxlength && (houseNumber.dirty || houseNumber.touched)"
+                class="invalid-feedback">
+                Hausnummer zu lang (Limit: {{houseNumber.errors.maxlength.requiredLength}})
             </div>
         </div>
         <div class="col-4">
             <label class="form-label">Stiege</label>
             <input type="number" formControlName="stair" name="stair" class="form-control"
-                [ngClass]="{'is-invalid': customerForm.controls['stair'].invalid, 'is-valid': customerForm.controls['stair'].valid}">
-            <div *ngIf="customerForm.controls['stair'].errors?.required" class="invalid-feedback">
-                Pflichtfeld
-            </div>
+                [ngClass]="{'is-invalid': stair.invalid && (stair.dirty || stair.touched), 'is-valid': stair.valid && (stair.dirty || stair.touched)}">
         </div>
         <div class="col-4">
             <label class="form-label">Tür</label>
             <input type="number" formControlName="door" name="door" class="form-control"
-                [ngClass]="{'is-invalid': customerForm.controls['door'].invalid, 'is-valid': customerForm.controls['door'].valid}">
-            <div *ngIf="customerForm.controls['door'].errors?.required" class="invalid-feedback">
+                [ngClass]="{'is-invalid': door.invalid && (door.dirty || door.touched), 'is-valid': door.valid && (door.dirty || door.touched)}">
+            <div *ngIf="door.errors?.required && (door.dirty || door.touched)" class="invalid-feedback">
                 Pflichtfeld
             </div>
         </div>
@@ -89,20 +95,20 @@
         <div class="col-6">
             <label class="form-label">PLZ</label>
             <input type="number" formControlName="postalCode" name="postalCode" class="form-control"
-                [ngClass]="{'is-invalid': customerForm.controls['postalCode'].invalid, 'is-valid': customerForm.controls['postalCode'].valid}">
-            <div *ngIf="customerForm.controls['postalCode'].errors" class="invalid-feedback">
+                [ngClass]="{'is-invalid': postalCode.invalid && (postalCode.dirty || postalCode.touched), 'is-valid': postalCode.valid && (postalCode.dirty || postalCode.touched)}">
+            <div *ngIf="postalCode.errors && (postalCode.dirty || postalCode.touched)" class="invalid-feedback">
                 Pflichtfeld / 4-stellig
             </div>
         </div>
         <div class="col-6">
             <label class="form-label">Ort</label>
             <input type="text" formControlName="city" name="city" class="form-control"
-                [ngClass]="{'is-invalid': customerForm.controls['city'].invalid, 'is-valid': customerForm.controls['city'].valid}">
-            <div *ngIf="customerForm.controls['city'].errors?.required" class="invalid-feedback">
+                [ngClass]="{'is-invalid': city.invalid && (city.dirty || city.touched), 'is-valid': city.valid && (city.dirty || city.touched)}">
+            <div *ngIf="city.errors?.required && (city.dirty || city.touched)" class="invalid-feedback">
                 Pflichtfeld
             </div>
-            <div *ngIf="customerForm.controls['lastname'].errors?.maxlength" class="invalid-feedback">
-                Ort zu lang (Limit: {{customerForm.controls['lastname'].errors.maxlength.requiredLength}})
+            <div *ngIf="city.errors?.maxlength && (city.dirty || city.touched)" class="invalid-feedback">
+                Ort zu lang (Limit: {{city.errors.maxlength.requiredLength}})
             </div>
         </div>
     </div>
@@ -111,8 +117,8 @@
         <div class="col-12">
             <label class="form-label">Arbeitgeber</label>
             <input type="text" formControlName="employer" name="employer" class="form-control"
-                [ngClass]="{'is-invalid': customerForm.controls['employer'].invalid, 'is-valid': customerForm.controls['employer'].valid}">
-            <div *ngIf="customerForm.controls['employer'].errors?.required" class="invalid-feedback">
+                [ngClass]="{'is-invalid': employer.invalid && (employer.dirty || employer.touched), 'is-valid': employer.valid && (employer.dirty || employer.touched)}">
+            <div *ngIf="employer.errors?.required && (employer.dirty || employer.touched)" class="invalid-feedback">
                 Pflichtfeld
             </div>
         </div>
@@ -121,16 +127,16 @@
         <div class="col-6">
             <label class="form-label">Einkommen</label>
             <input type="number" formControlName="income" name="income" class="form-control"
-                [ngClass]="{'is-invalid': customerForm.controls['income'].invalid, 'is-valid': customerForm.controls['income'].valid}">
-            <div *ngIf="customerForm.controls['income'].errors?.required" class="invalid-feedback">
+                [ngClass]="{'is-invalid': income.invalid && (income.dirty || income.touched), 'is-valid': income.valid && (income.dirty || income.touched)}">
+            <div *ngIf="income.errors?.required && (income.dirty || income.touched)" class="invalid-feedback">
                 Pflichtfeld
             </div>
         </div>
         <div class="col-6">
             <label class="form-label">Auszahlung bis</label>
             <input type="date" formControlName="incomeDue" name="incomeDue" class="form-control"
-                [ngClass]="{'is-invalid': customerForm.controls['incomeDue'].invalid, 'is-valid': customerForm.controls['incomeDue'].valid}">
-            <div *ngIf="customerForm.controls['incomeDue'].errors?.required" class="invalid-feedback">
+                [ngClass]="{'is-invalid': incomeDue.invalid && (incomeDue.dirty || incomeDue.touched), 'is-valid': incomeDue.valid && (incomeDue.dirty || incomeDue.touched)}">
+            <div *ngIf="incomeDue.errors?.required && (incomeDue.dirty || incomeDue.touched)" class="invalid-feedback">
                 Pflichtfeld
             </div>
         </div>

@@ -28,10 +28,10 @@ describe('CustomerFormComponent', () => {
       door: '1',
       employer: 'WRK',
       houseNumber: '123A',
-      income: 123.0,
+      income: 123.50,
       incomeDue: new Date(),
       nationality: 'Österreich',
-      postalCode: 123,
+      postalCode: 1234,
       stair: '1',
       street: 'Testgasse'
     }
@@ -45,8 +45,8 @@ describe('CustomerFormComponent', () => {
   it('prefilled postalCode and city', waitForAsync(() => {
     const component = new CustomerFormComponent();
 
-    expect(component.customerForm.get('postalCode').value).toBe(1030);
-    expect(component.customerForm.get('city').value).toBe('Wien');
+    expect(component.postalCode.value).toBe(1030);
+    expect(component.city.value).toBe('Wien');
     expect(component.customerForm.valid).toBe(false);
   }));
 
