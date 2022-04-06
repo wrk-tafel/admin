@@ -28,7 +28,7 @@
     <div class="row mb-2">
         <div class="col-6">
             <label class="form-label">Geburtsdatum</label>
-            <input type="date" formControlName="birthDate" name="birthDate" type="date" class="form-control"
+            <input type="date" formControlName="birthDate" name="birthDate" class="form-control"
                 [ngClass]="{'is-invalid': birthDate.invalid && (birthDate.dirty || birthDate.touched), 'is-valid': birthDate.valid && (birthDate.dirty || birthDate.touched)}">
             <div *ngIf="birthDate.errors?.required && (birthDate.dirty || birthDate.touched)" class="invalid-feedback">
                 Pflichtfeld
@@ -45,6 +45,24 @@
             <div *ngIf="nationality.errors?.required && (nationality.dirty || nationality.touched)"
                 class="invalid-feedback">
                 Pflichtfeld
+            </div>
+        </div>
+    </div>
+    <div class="row mb-2">
+        <div class="col-6">
+            <label class="form-label">Telefonnummer</label>
+            <input type="number" formControlName="telephoneNumber" name="telephoneNumber" class="form-control"
+                [ngClass]="{'is-invalid': telephoneNumber.invalid && (telephoneNumber.dirty || telephoneNumber.touched), 'is-valid': telephoneNumber.valid && (telephoneNumber.dirty || telephoneNumber.touched)}">
+        </div>
+        <div class="col-6">
+            <label class="form-label">E-Mail</label>
+            <input type="text" formControlName="email" name="email" class="form-control"
+                [ngClass]="{'is-invalid': email.invalid && (email.dirty || email.touched), 'is-valid': email.valid && (email.dirty || email.touched)}">
+            <div *ngIf="email.errors?.required && (email.dirty || email.touched)" class="invalid-feedback">
+                Pflichtfeld
+            </div>
+            <div *ngIf="email.errors?.maxlength && (email.dirty || email.touched)" class="invalid-feedback">
+                E-Mail zu lang (Limit: {{email.errors.maxlength.requiredLength}})
             </div>
         </div>
     </div>

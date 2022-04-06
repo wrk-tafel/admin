@@ -25,6 +25,7 @@ class CustomerController(
                     street = it.addressStreet!!,
                     houseNumber = it.addressHouseNumber!!,
                     stairway = it.addressStairway!!,
+                    door = it.addressDoor!!,
                     postalCode = it.addressPostalCode!!,
                     city = it.addressCity!!
                 ),
@@ -49,6 +50,7 @@ data class CustomerAddress(
     val street: String,
     val houseNumber: String,
     val stairway: String? = null,
+    val door: String,
     val postalCode: Int,
     val city: String
 )
