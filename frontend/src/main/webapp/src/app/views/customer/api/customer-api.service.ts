@@ -13,16 +13,12 @@ export class CustomerApiService {
 
   // TODO simplify response in backend
   getCountries(): Observable<Country[]> {
-    return this.http.get<CountryResponse>('/countries').pipe(map(val => val._embedded.countries));
+    return this.http.get<CountryListResponse>('/countries').pipe(map(val => val.items));
   }
 }
 
-interface CountryResponse {
-  _embedded: CountryEmbeddedResponse
-}
-
-interface CountryEmbeddedResponse {
-  countries: Country[]
+interface CountryListResponse {
+  items: Country[]
 }
 
 export interface Country {

@@ -20,7 +20,7 @@ export class CustomerFormComponent implements OnInit {
     nationality: new FormControl('', Validators.required),
     street: new FormControl('', [Validators.required, Validators.maxLength(100)]),
     houseNumber: new FormControl('', [Validators.required, Validators.maxLength(10)]),
-    stair: new FormControl(''),
+    stairway: new FormControl(''),
     door: new FormControl('', Validators.required),
     postalCode: new FormControl(1030, [Validators.required, Validators.pattern("^[0-9]{4}$")]),
     city: new FormControl('Wien', [Validators.required, Validators.maxLength(50)]),
@@ -48,7 +48,7 @@ export class CustomerFormComponent implements OnInit {
   get nationality() { return this.customerForm.get('nationality'); }
   get street() { return this.customerForm.get('street'); }
   get houseNumber() { return this.customerForm.get('houseNumber'); }
-  get stair() { return this.customerForm.get('stair'); }
+  get stairway() { return this.customerForm.get('stairway'); }
   get door() { return this.customerForm.get('door'); }
   get postalCode() { return this.customerForm.get('postalCode'); }
   get city() { return this.customerForm.get('city'); }
@@ -69,7 +69,7 @@ export interface CustomerFormData {
   nationality?: String,
   street?: String,
   houseNumber?: String,
-  stair?: String,
+  stairway?: String,
   door?: String,
   postalCode?: number,
   city?: String,

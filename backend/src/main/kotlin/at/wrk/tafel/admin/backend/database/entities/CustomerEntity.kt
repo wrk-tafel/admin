@@ -9,9 +9,6 @@ import javax.persistence.Table
 @Entity(name = "Customer")
 @Table(name = "customers")
 class CustomerEntity : BaseChangeTrackingEntity() {
-    @Column(name = "customer_id")
-    var customerId: Long? = null
-
     @Column(name = "firstname")
     var firstname: String? = null
 
@@ -24,14 +21,14 @@ class CustomerEntity : BaseChangeTrackingEntity() {
     @Column(name = "address_street")
     var addressStreet: String? = null
 
-    @Column(name = "address_housenumber")
-    var addressHousenumber: String? = null
+    @Column(name = "address_houseNumber")
+    var addressHouseNumber: String? = null
 
     @Column(name = "address_stairway")
     var addressStairway: String? = null
 
     @Column(name = "address_postalCode")
-    var addressPostCode: Int? = null
+    var addressPostalCode: Int? = null
 
     @Column(name = "address_city")
     var addressCity: String? = null
