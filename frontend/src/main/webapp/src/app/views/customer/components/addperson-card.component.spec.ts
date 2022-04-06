@@ -1,13 +1,13 @@
 import { TestBed, waitForAsync } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
-import { AddPersonsTableComponent } from './addpersons-table.component';
+import { AddPersonCardComponent } from './addperson-card.component';
 import { CustomerFormComponent } from './customer-form.component';
 
 describe('AddPersonsTableComponent', () => {
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [
-        AddPersonsTableComponent
+        AddPersonCardComponent
       ],
       imports: [RouterTestingModule]
     }).compileComponents();

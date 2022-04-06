@@ -10,6 +10,7 @@
                     </customer-form>
                 </div>
             </div>
+            <button testId="saveButton" class="btn btn-primary px-4" type="submit">Speichern</button>
         </div>
         <div class="col-sm-6">
             <div class="card">
@@ -17,12 +18,9 @@
                     Weitere Personen im Haushalt
                 </div>
                 <div class="card-body">
-                    <addpersons-table></addpersons-table>
+                    <addperson-card *ngFor="let _ of [].constructor(5)"></addperson-card>
                 </div>
             </div>
-        </div>
-        <div class="col-sm-6">
-            <button testId="saveButton" class="btn btn-primary px-4" type="submit">Speichern</button>
         </div>
     </div>
 </div>
