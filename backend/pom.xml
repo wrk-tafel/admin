@@ -26,7 +26,7 @@
         <!-- Maven plugin version -->
         <maven.surefire.plugin.version>2.22.2</maven.surefire.plugin.version>
         <maven.resources.plugin.version>3.2.0</maven.resources.plugin.version>
-        <jacoco.maven.plugin.version>0.8.7</jacoco.maven.plugin.version>
+        <jacoco.maven.plugin.version>0.8.8</jacoco.maven.plugin.version>
 
         <!-- Test dependency versions -->
         <h2.database.version>2.1.210</h2.database.version>
