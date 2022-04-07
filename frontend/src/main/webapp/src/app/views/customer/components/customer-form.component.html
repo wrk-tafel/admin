@@ -1,6 +1,6 @@
 <form [formGroup]="customerForm">
+    <button (click)="debug()">DEBUG</button>
     <div class="row">
-        <button (click)="debug()">DEBUG</button>
         <div class="col-6">
             <label class="form-label">Familienname</label>
             <input type="text" formControlName="lastname" name="lastname" class="form-control"
@@ -63,6 +63,9 @@
             </div>
             <div *ngIf="email.errors?.maxlength && (email.dirty || email.touched)" class="invalid-feedback">
                 E-Mail zu lang (Limit: {{email.errors.maxlength.requiredLength}})
+            </div>
+            <div *ngIf="email.errors?.email && (email.dirty || email.touched)" class="invalid-feedback">
+                E-Mail-Format ungültig!
             </div>
         </div>
     </div>

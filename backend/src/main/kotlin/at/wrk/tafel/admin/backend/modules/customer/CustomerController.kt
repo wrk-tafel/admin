@@ -15,22 +15,30 @@ class CustomerController(
 ) {
     @GetMapping
     fun listCustomers(): List<Customer> {
-        return customerRepository.findAll().map {
+        return customerRepository.findAll().map { customerEntity ->
             Customer(
-                id = it.id!!,
-                firstname = it.firstname!!,
-                lastname = it.lastname!!,
-                birthDate = it.birthDate!!,
+                id = customerEntity.id!!,
+                firstname = customerEntity.firstname!!,
+                lastname = customerEntity.lastname!!,
+                birthDate = customerEntity.birthDate!!,
                 address = CustomerAddress(
-                    street = it.addressStreet!!,
-                    houseNumber = it.addressHouseNumber!!,
-                    stairway = it.addressStairway!!,
-                    door = it.addressDoor!!,
-                    postalCode = it.addressPostalCode!!,
-                    city = it.addressCity!!
+                    street = customerEntity.addressStreet!!,
+                    houseNumber = customerEntity.addressHouseNumber!!,
+                    stairway = customerEntity.addressStairway!!,
+                    door = customerEntity.addressDoor!!,
+                    postalCode = customerEntity.addressPostalCode!!,
+                    city = customerEntity.addressCity!!
                 ),
-                telephoneNumber = it.telephoneNumber,
-                email = it.email
+                telephoneNumber = customerEntity.telephoneNumber,
+                email = customerEntity.email,
+                additionalPersons = customerEntity.additionalPersons.map {
+                    CustomerAdditionalPerson(
+                        id = it.id!!,
+                        firstname = it.firstname!!,
+                        lastname = it.lastname!!,
+                        birthDate = it.birthDate!!
+                    )
+                }
             )
         }
     }
@@ -43,7 +51,8 @@ data class Customer(
     val birthDate: LocalDate,
     val address: CustomerAddress,
     val telephoneNumber: Long? = null,
-    val email: String? = null
+    val email: String? = null,
+    val additionalPersons: List<CustomerAdditionalPerson> = emptyList()
 )
 
 data class CustomerAddress(
@@ -53,4 +62,11 @@ data class CustomerAddress(
     val door: String,
     val postalCode: Int,
     val city: String
+)
+
+data class CustomerAdditionalPerson(
+    val id: Long,
+    val firstname: String,
+    val lastname: String,
+    val birthDate: LocalDate
 )

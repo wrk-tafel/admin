@@ -4,6 +4,7 @@ import at.wrk.tafel.admin.backend.database.entities.base.BaseChangeTrackingEntit
 import java.time.LocalDate
 import javax.persistence.Column
 import javax.persistence.Entity
+import javax.persistence.OneToMany
 import javax.persistence.Table
 
 @Entity(name = "Customer")
@@ -47,4 +48,7 @@ class CustomerEntity : BaseChangeTrackingEntity() {
 
     @Column(name = "count_infants")
     var countInfants: Int? = null
+
+    @OneToMany(mappedBy = "customer")
+    var additionalPersons: Set<CustomerAddPersonEntity> = emptySet()
 }

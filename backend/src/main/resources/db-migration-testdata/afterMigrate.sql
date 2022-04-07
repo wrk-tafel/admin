@@ -30,9 +30,13 @@ INSERT INTO authorities (username, authority) VALUES ('admin', 'CUSTOMER');
 
 -- customers
 INSERT INTO customers (id, created_at, updated_at, firstname, lastname, birth_date, address_street, address_houseNumber, address_stairway, address_door, address_postalCode, address_city, telephone_number, email, count_persons_in_household, count_infants) values
-(0, NOW(), NOW(), 'Max', 'Mustermann', '1980-01-01', 'Erdberg', 1, '2', '10', '1030', 'Wien', 00436641231234, 'max.mustermann@wrk.at', 3, 1);
+(0, NOW(), NOW(), 'Max Single', 'Mustermann', '1980-01-01', 'Erdberg', 1, '2', '10', '1030', 'Wien', 00436641231234, 'max.mustermann@wrk.at', 3, 1);
 INSERT INTO customers (id, created_at, updated_at, firstname, lastname, birth_date, address_street, address_houseNumber, address_stairway, address_door, address_postalCode, address_city, telephone_number, email, count_persons_in_household, count_infants) values
 (1, NOW(), NOW(), 'Eva', 'Musterfrau', '1990-01-01', 'Erdberg', 2, '1', '20', '1010', 'Wien', 00436645678953, 'eva.musterfrau@wrk.at', 2, 0);
+INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date) values
+(1, NOW(), NOW(), 1, 'Child 1', 'Musterfrau', '2000-01-01');
+INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date) values
+(2, NOW(), NOW(), 1, 'Child 2', 'Musterfrau', '2020-01-01');
 
 -- static values
 -- income limits

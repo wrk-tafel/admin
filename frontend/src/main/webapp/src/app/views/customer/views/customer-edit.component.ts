@@ -2,10 +2,10 @@ import { Component } from '@angular/core';
 import { CustomerFormData } from '../components/customer-form.component';
 
 @Component({
-  selector: 'customer-create',
-  templateUrl: 'customer-create.component.html'
+  selector: 'customer-edit',
+  templateUrl: 'customer-edit.component.html'
 })
-export class CustomerCreateComponent {
+export class CustomerEditComponent {
   customerData: CustomerFormData;
 
   updateFormData(updatedFormData: CustomerFormData) {

@@ -1,19 +1,19 @@
 import { TestBed, waitForAsync } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
-import { CustomerCreateComponent } from './customer-create.component';
+import { CustomerEditComponent } from './customer-edit.component';
 
-describe('CustomerCreateComponent', () => {
+describe('CustomerEditComponent', () => {
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [
-        CustomerCreateComponent
+        CustomerEditComponent
       ],
       imports: [RouterTestingModule]
     }).compileComponents();
   }));
 
   it('should create the component', waitForAsync(() => {
-    const fixture = TestBed.createComponent(CustomerCreateComponent);
+    const fixture = TestBed.createComponent(CustomerEditComponent);
     const component = fixture.componentInstance;
     expect(component).toBeTruthy();
   }));
