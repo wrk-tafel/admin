@@ -19,14 +19,14 @@ export class CustomerEditComponent {
   }
 
   addNewPerson() {
-    this.additionalPersonsData.push({ id: this.additionalPersonsData.length + 1 });
+    this.additionalPersonsData.push({});
   }
 
   removePerson(index: number) {
     this.additionalPersonsData.splice(index, 1);
   }
 
-  trackBy(index: number, personData: AddPersonCardData) {
-    return personData.id;
+  trackBy(personData: AddPersonCardData) {
+    return personData;
   }
 }

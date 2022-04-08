@@ -30,7 +30,6 @@ export class AddPersonCardComponent implements OnInit {
 }
 
 export interface AddPersonCardData {
-  id?: number,
   lastname?: String,
   firstname?: String
   birthDate?: Date,
