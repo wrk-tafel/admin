@@ -1,7 +1,6 @@
 <form [formGroup]="customerForm">
-    <button (click)="debug()">DEBUG</button>
     <div class="row">
-        <div class="col-6">
+        <div class="col">
             <label class="form-label">Familienname</label>
             <input type="text" formControlName="lastname" name="lastname" class="form-control"
                 [ngClass]="{'is-invalid': lastname.invalid && (lastname.dirty || lastname.touched), 'is-valid': lastname.valid && (lastname.dirty || lastname.touched)}"
@@ -13,7 +12,7 @@
                 Familienname zu lang (Limit: {{lastname.errors.maxlength.requiredLength}})
             </div>
         </div>
-        <div class="col-6">
+        <div class="col">
             <label class="form-label">Vorname</label>
             <input type="text" formControlName="firstname" name="firstname" class="form-control"
                 [ngClass]="{'is-invalid': firstname.invalid && (firstname.dirty || firstname.touched), 'is-valid': firstname.valid && (firstname.dirty || firstname.touched)}">
@@ -26,7 +25,7 @@
         </div>
     </div>
     <div class="row mb-2">
-        <div class="col-6">
+        <div class="col">
             <label class="form-label">Geburtsdatum</label>
             <input type="date" formControlName="birthDate" name="birthDate" class="form-control"
                 [ngClass]="{'is-invalid': birthDate.invalid && (birthDate.dirty || birthDate.touched), 'is-valid': birthDate.valid && (birthDate.dirty || birthDate.touched)}">
@@ -34,7 +33,7 @@
                 Pflichtfeld
             </div>
         </div>
-        <div class="col-6">
+        <div class="col">
             <label class="form-label">Nationalität</label>
             <select formControlName="nationality" class="form-control"
                 [ngClass]="{'is-invalid': nationality.invalid && (nationality.dirty || nationality.touched), 'is-valid': nationality.valid && (nationality.dirty || nationality.touched)}">
@@ -49,12 +48,12 @@
         </div>
     </div>
     <div class="row mb-2">
-        <div class="col-6">
+        <div class="col">
             <label class="form-label">Telefonnummer</label>
             <input type="number" formControlName="telephoneNumber" name="telephoneNumber" class="form-control"
                 [ngClass]="{'is-invalid': telephoneNumber.invalid && (telephoneNumber.dirty || telephoneNumber.touched), 'is-valid': telephoneNumber.valid && (telephoneNumber.dirty || telephoneNumber.touched)}">
         </div>
-        <div class="col-6">
+        <div class="col">
             <label class="form-label">E-Mail</label>
             <input type="text" formControlName="email" name="email" class="form-control"
                 [ngClass]="{'is-invalid': email.invalid && (email.dirty || email.touched), 'is-valid': email.valid && (email.dirty || email.touched)}">
@@ -71,7 +70,7 @@
     </div>
     <hr>
     <div class="row mb-2">
-        <div class="col-12">
+        <div class="col">
             <label class="form-label">Straße</label>
             <input type="text" formControlName="street" name="Straße" class="form-control"
                 [ngClass]="{'is-invalid': street.invalid && (street.dirty || street.touched), 'is-valid': street.valid && (street.dirty || street.touched)}">
@@ -84,7 +83,7 @@
         </div>
     </div>
     <div class="row mb-2">
-        <div class="col-4">
+        <div class="col">
             <label class="form-label">Hausnummer</label>
             <input type="number" formControlName="houseNumber" name="houseNumber" class="form-control"
                 [ngClass]="{'is-invalid': houseNumber.invalid && (houseNumber.dirty || houseNumber.touched), 'is-valid': houseNumber.valid && (houseNumber.dirty || houseNumber.touched)}">
@@ -97,12 +96,12 @@
                 Hausnummer zu lang (Limit: {{houseNumber.errors.maxlength.requiredLength}})
             </div>
         </div>
-        <div class="col-4">
+        <div class="col">
             <label class="form-label">Stiege</label>
             <input type="number" formControlName="stairway" name="stairway" class="form-control"
                 [ngClass]="{'is-invalid': stairway.invalid && (stairway.dirty || stairway.touched), 'is-valid': stairway.valid && (stairway.dirty || stairway.touched)}">
         </div>
-        <div class="col-4">
+        <div class="col">
             <label class="form-label">Tür</label>
             <input type="number" formControlName="door" name="door" class="form-control"
                 [ngClass]="{'is-invalid': door.invalid && (door.dirty || door.touched), 'is-valid': door.valid && (door.dirty || door.touched)}">
@@ -112,7 +111,7 @@
         </div>
     </div>
     <div class="row mb-2">
-        <div class="col-6">
+        <div class="col">
             <label class="form-label">PLZ</label>
             <input type="number" formControlName="postalCode" name="postalCode" class="form-control"
                 [ngClass]="{'is-invalid': postalCode.invalid && (postalCode.dirty || postalCode.touched), 'is-valid': postalCode.valid && (postalCode.dirty || postalCode.touched)}">
@@ -120,7 +119,7 @@
                 Pflichtfeld / 4-stellig
             </div>
         </div>
-        <div class="col-6">
+        <div class="col">
             <label class="form-label">Ort</label>
             <input type="text" formControlName="city" name="city" class="form-control"
                 [ngClass]="{'is-invalid': city.invalid && (city.dirty || city.touched), 'is-valid': city.valid && (city.dirty || city.touched)}">
@@ -134,7 +133,7 @@
     </div>
     <hr>
     <div class="row mb-2">
-        <div class="col-12">
+        <div class="col">
             <label class="form-label">Arbeitgeber</label>
             <input type="text" formControlName="employer" name="employer" class="form-control"
                 [ngClass]="{'is-invalid': employer.invalid && (employer.dirty || employer.touched), 'is-valid': employer.valid && (employer.dirty || employer.touched)}">
@@ -144,7 +143,7 @@
         </div>
     </div>
     <div class="row mb-2">
-        <div class="col-6">
+        <div class="col">
             <label class="form-label">Einkommen</label>
             <input type="number" formControlName="income" name="income" class="form-control"
                 [ngClass]="{'is-invalid': income.invalid && (income.dirty || income.touched), 'is-valid': income.valid && (income.dirty || income.touched)}">
@@ -152,7 +151,7 @@
                 Pflichtfeld
             </div>
         </div>
-        <div class="col-6">
+        <div class="col">
             <label class="form-label">Auszahlung bis</label>
             <input type="date" formControlName="incomeDue" name="incomeDue" class="form-control"
                 [ngClass]="{'is-invalid': incomeDue.invalid && (incomeDue.dirty || incomeDue.touched), 'is-valid': incomeDue.valid && (incomeDue.dirty || incomeDue.touched)}">

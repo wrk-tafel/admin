@@ -11,7 +11,7 @@ export class CustomerFormComponent implements OnInit {
     private customerApiService: CustomerApiService
   ) { }
 
-  @Input() initialData: CustomerFormData;
+  @Input() customerData: CustomerFormData;
   @Output() dataUpdateEvent = new EventEmitter<CustomerFormData>();
 
   customerForm = new FormGroup({
@@ -44,7 +44,7 @@ export class CustomerFormComponent implements OnInit {
     this.customerForm.valueChanges.subscribe((value) => {
       this.dataUpdateEvent.emit(value);
     });
-    this.customerForm.patchValue(this.initialData);
+    this.customerForm.patchValue(this.customerData);
   }
 
   get lastname() { return this.customerForm.get('lastname'); }
@@ -64,11 +64,6 @@ export class CustomerFormComponent implements OnInit {
   get employer() { return this.customerForm.get('employer'); }
   get income() { return this.customerForm.get('income'); }
   get incomeDue() { return this.customerForm.get('incomeDue'); }
-
-  debug() {
-    console.log("SEL COUNTRY", this.nationality.value);
-    console.log("FORM", this.customerForm);
-  }
 }
 
 export interface CustomerFormData {

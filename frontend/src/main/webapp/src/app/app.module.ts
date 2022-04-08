@@ -22,10 +22,6 @@ import { P404Component } from './views/error/404.component';
 import { P500Component } from './views/error/500.component';
 import { LoginComponent } from './views/login/login.component';
 
-const APP_CONTAINERS = [
-  DefaultLayoutComponent
-];
-
 import {
   AppAsideModule,
   AppBreadcrumbModule,
@@ -40,6 +36,7 @@ import { AppRoutingModule } from './app.routing';
 // Import 3rd party components
 import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
 import { TabsModule } from 'ngx-bootstrap/tabs';
+import { ModalModule } from 'ngx-bootstrap/modal';
 import { ChartsModule } from 'ng2-charts';
 import { JwtHelperService, JWT_OPTIONS } from '@auth0/angular-jwt';
 import { HttpClientModule, HttpClientXsrfModule, HTTP_INTERCEPTORS } from '@angular/common/http';
@@ -57,18 +54,19 @@ import { AuthenticationInterceptor } from './common/http/authentication-intercep
     AppFooterModule,
     AppHeaderModule,
     AppSidebarModule,
-    PerfectScrollbarModule,
     BsDropdownModule.forRoot(),
-    TabsModule.forRoot(),
     ChartsModule,
+    HttpClientModule,
+    HttpClientXsrfModule,
     IconModule,
     IconSetModule.forRoot(),
-    HttpClientModule,
-    HttpClientXsrfModule
+    ModalModule.forRoot(),
+    PerfectScrollbarModule,
+    TabsModule.forRoot()
   ],
   declarations: [
     AppComponent,
-    ...APP_CONTAINERS,
+    DefaultLayoutComponent,
     P404Component,
     P500Component,
     LoginComponent
@@ -79,7 +77,10 @@ import { AuthenticationInterceptor } from './common/http/authentication-intercep
       useClass: HashLocationStrategy
     },
     IconSetService,
-    { provide: JWT_OPTIONS, useValue: JWT_OPTIONS },
+    {
+      provide: JWT_OPTIONS,
+      useValue: JWT_OPTIONS
+    },
     JwtHelperService,
     {
       provide: HTTP_INTERCEPTORS,
