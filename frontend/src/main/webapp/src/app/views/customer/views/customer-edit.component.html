@@ -27,7 +27,6 @@
                     <div *ngFor="let additionalPersonData of additionalPersonsData; trackBy: trackBy; let i = index">
                         <div class="row">
                             <div class="col-10">
-                                IDX: {{i}}
                                 <addperson-card [personData]="additionalPersonData"
                                     (dataUpdateEvent)="updatePersonsData(i, $event)">
                                 </addperson-card>

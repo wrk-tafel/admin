@@ -1,22 +1,22 @@
 import { HttpClient } from "@angular/common/http";
 import { HttpClientTestingModule, HttpTestingController } from "@angular/common/http/testing";
 import { TestBed } from "@angular/core/testing";
-import { CustomerApiService } from "./customer-api.service";
+import { CountryApiService } from "./country-api.service";
 
-describe('CustomerApiService', () => {
+describe('CountryApiService', () => {
   let client: HttpClient;
   let httpMock: HttpTestingController;
-  let apiService: CustomerApiService;
+  let apiService: CountryApiService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
-      providers: [CustomerApiService]
+      providers: [CountryApiService]
     });
 
     client = TestBed.inject(HttpClient);
     httpMock = TestBed.inject(HttpTestingController);
-    apiService = TestBed.inject(CustomerApiService);
+    apiService = TestBed.inject(CountryApiService);
   });
 
   it('fetch countries and map correctly', () => {

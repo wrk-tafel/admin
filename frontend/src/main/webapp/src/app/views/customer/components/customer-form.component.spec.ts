@@ -1,14 +1,14 @@
 import { TestBed, waitForAsync } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
-import { Observable, of } from 'rxjs';
-import { CustomerApiService } from '../api/customer-api.service';
+import { of } from 'rxjs';
+import { CountryApiService } from '../../../common/api/country-api.service';
 import { CustomerFormComponent, CustomerFormData } from './customer-form.component';
 
 describe('CustomerFormComponent', () => {
-  let apiService: jasmine.SpyObj<CustomerApiService>;
+  let apiService: jasmine.SpyObj<CountryApiService>;
 
   beforeEach(waitForAsync(() => {
-    const apiServiceSpy = jasmine.createSpyObj('CustomerApiService', ['getCountries']);
+    const apiServiceSpy = jasmine.createSpyObj('CountryApiService', ['getCountries']);
 
     TestBed.configureTestingModule({
       declarations: [
@@ -17,13 +17,13 @@ describe('CustomerFormComponent', () => {
       imports: [RouterTestingModule],
       providers: [
         {
-          provide: CustomerApiService,
+          provide: CountryApiService,
           useValue: apiServiceSpy
         }
       ]
     }).compileComponents();
 
-    apiService = TestBed.inject(CustomerApiService) as jasmine.SpyObj<CustomerApiService>;
+    apiService = TestBed.inject(CountryApiService) as jasmine.SpyObj<CountryApiService>;
   }));
 
   it('should create the component', waitForAsync(() => {

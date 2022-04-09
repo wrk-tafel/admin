@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { Country, CustomerApiService } from '../api/customer-api.service';
+import { Country, CountryApiService } from '../../../common/api/country-api.service';
 
 @Component({
   selector: 'customer-form',
@@ -8,7 +8,7 @@ import { Country, CustomerApiService } from '../api/customer-api.service';
 })
 export class CustomerFormComponent implements OnInit {
   constructor(
-    private customerApiService: CustomerApiService
+    private countryApiService: CountryApiService
   ) { }
 
   @Input() customerData: CustomerFormData;
@@ -37,7 +37,7 @@ export class CustomerFormComponent implements OnInit {
   countries: Country[];
 
   ngOnInit(): void {
-    this.customerApiService.getCountries().subscribe((data: Country[]) => {
+    this.countryApiService.getCountries().subscribe((data: Country[]) => {
       this.countries = data;
     });
 
