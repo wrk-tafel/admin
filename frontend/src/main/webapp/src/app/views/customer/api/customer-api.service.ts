@@ -11,7 +11,6 @@ export class CustomerApiService {
     private http: HttpClient
   ) { }
 
-  // TODO simplify response in backend
   getCountries(): Observable<Country[]> {
     return this.http.get<CountryListResponse>('/countries').pipe(map(val => val.items));
   }
