@@ -1,0 +1,44 @@
+<div class="animated fadeIn">
+    <div class="row">
+        <div class="col">
+            <div class="card">
+                <div class="card-header text-center h5">
+                    Hauptperson
+                </div>
+                <div class="card-body">
+                    <customer-form [customerData]="customerData" (dataUpdateEvent)="updateCustomerFormData($event)">
+                    </customer-form>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card">
+                <div class="card-header h5">
+                    Weitere Personen
+                    <div class="card-header-actions">
+                        <button testid="addperson-button" type="button" class="btn btn-block btn-success"
+                            (click)="addNewPerson()">Hinzufügen</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div *ngIf="additionalPersonsData.length === 0">
+                        <h6 testid="nopersons-label">Keine Personen vorhanden</h6>
+                    </div>
+                    <div *ngFor="let additionalPersonData of additionalPersonsData; trackBy: trackBy; let i = index">
+                        <div class="row">
+                            <div class="col-10">
+                                <addperson-card [attr.testid]="'personcard-' + i" [personData]="additionalPersonData"
+                                    (dataUpdateEvent)="updatePersonsData(i, $event)">
+                                </addperson-card>
+                            </div>
+                            <div class="col-xxl-2 mb-3 ml-3">
+                                <button [attr.testid]="'remove-personcard-' + i" type="button"
+                                    class="btn btn-block btn-danger" (click)="removePerson(i)">Löschen</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

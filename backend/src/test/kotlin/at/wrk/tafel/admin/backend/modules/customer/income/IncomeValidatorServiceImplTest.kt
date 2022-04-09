@@ -1,7 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.customer.income
 
 import at.wrk.tafel.admin.backend.database.entities.staticdata.*
-import at.wrk.tafel.admin.backend.database.repositories.*
+import at.wrk.tafel.admin.backend.database.repositories.staticdata.*
 import io.mockk.every
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension

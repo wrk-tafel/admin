@@ -1,17 +1,16 @@
 package at.wrk.tafel.admin.backend.database.entities
 
 import at.wrk.tafel.admin.backend.database.entities.base.BaseChangeTrackingEntity
+import java.math.BigDecimal
 import java.time.LocalDate
 import javax.persistence.Column
 import javax.persistence.Entity
+import javax.persistence.OneToMany
 import javax.persistence.Table
 
 @Entity(name = "Customer")
 @Table(name = "customers")
 class CustomerEntity : BaseChangeTrackingEntity() {
-    @Column(name = "customer_id")
-    var customerId: Long? = null
-
     @Column(name = "firstname")
     var firstname: String? = null
 
@@ -25,13 +24,16 @@ class CustomerEntity : BaseChangeTrackingEntity() {
     var addressStreet: String? = null
 
     @Column(name = "address_housenumber")
-    var addressHousenumber: String? = null
+    var addressHouseNumber: String? = null
 
     @Column(name = "address_stairway")
-    var addressStairway: Int? = null
+    var addressStairway: String? = null
 
-    @Column(name = "address_postcode")
-    var addressPostCode: Int? = null
+    @Column(name = "address_postalcode")
+    var addressPostalCode: Int? = null
+
+    @Column(name = "address_door")
+    var addressDoor: String? = null
 
     @Column(name = "address_city")
     var addressCity: String? = null
@@ -42,9 +44,21 @@ class CustomerEntity : BaseChangeTrackingEntity() {
     @Column(name = "email")
     var email: String? = null
 
+    @Column(name = "employer")
+    var employer: String? = null
+
+    @Column(name = "income")
+    var income: BigDecimal? = null
+
+    @Column(name = "income_due")
+    var incomeDue: LocalDate? = null
+
     @Column(name = "count_persons_in_household")
     var countPersonsInHousehold: Int? = null
 
     @Column(name = "count_infants")
     var countInfants: Int? = null
+
+    @OneToMany(mappedBy = "customer")
+    var additionalPersons: Set<CustomerAddPersonEntity> = emptySet()
 }

@@ -1,4 +1,4 @@
-package at.wrk.tafel.admin.backend.modules.generic;
+package at.wrk.tafel.admin.backend.modules.base;
 
 import at.wrk.tafel.admin.backend.dbmodel.entities.staticdata.CountryEntity;
 import org.springframework.data.repository.CrudRepository;

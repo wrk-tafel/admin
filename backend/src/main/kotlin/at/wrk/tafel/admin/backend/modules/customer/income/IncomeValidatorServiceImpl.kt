@@ -1,6 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.customer.income
 
-import at.wrk.tafel.admin.backend.database.repositories.*
+import at.wrk.tafel.admin.backend.database.repositories.staticdata.*
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import kotlin.math.max

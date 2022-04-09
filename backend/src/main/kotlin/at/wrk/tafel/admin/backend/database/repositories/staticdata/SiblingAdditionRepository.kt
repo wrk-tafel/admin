@@ -1,4 +1,4 @@
-package at.wrk.tafel.admin.backend.database.repositories
+package at.wrk.tafel.admin.backend.database.repositories.staticdata
 
 import at.wrk.tafel.admin.backend.database.entities.staticdata.SiblingAdditionEntity
 import org.springframework.data.jpa.repository.JpaRepository

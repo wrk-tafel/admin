@@ -1,12 +1,12 @@
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 
-import { CustomerCreateComponent } from './views/customer-create.component';
+import { CustomerEditComponent } from './views/customer-edit.component';
 
 const routes: Routes = [
   {
     path: 'anlegen',
-    component: CustomerCreateComponent
+    component: CustomerEditComponent
   }
 ];
 

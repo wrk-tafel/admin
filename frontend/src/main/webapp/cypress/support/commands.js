@@ -26,9 +26,9 @@
 
 Cypress.Commands.add('login', (username, password) => {
     cy.visit('/login');
-    cy.get('[testId=username]').type(username);
-    cy.get('[testId=password]').type(password);
-    cy.get('[testId=loginButton]').click();
+    cy.get('[testid=username]').type(username);
+    cy.get('[testid=password]').type(password);
+    cy.get('[testid=loginButton]').click();
 });
 
 Cypress.Commands.add('loginWithTestuser', () => {
