@@ -1,63 +1,89 @@
+import { TestBed, waitForAsync } from '@angular/core/testing';
 import { CustomerEditComponent } from './customer-edit.component';
 
 describe('CustomerEditComponent', () => {
-  function setup() {
-    const service = new CustomerEditComponent();
-    return { service };
-  }
+  beforeEach(waitForAsync(() => {
+    TestBed.configureTestingModule({
+      declarations: [
+        CustomerEditComponent
+      ]
+    }).compileComponents();
+  }));
+
+  it('initial checks', () => {
+    const fixture = TestBed.createComponent(CustomerEditComponent);
+    const component = fixture.componentInstance;
+    expect(component).toBeTruthy();
+
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[testid=nopersons-label]')).toBeTruthy();
+  });
 
   it('updateCustomerFormData', () => {
-    const { service } = setup();
+    const fixture = TestBed.createComponent(CustomerEditComponent);
+    const component = fixture.componentInstance;
 
-    expect(service.customerData).toBe(undefined);
+    expect(component.customerData).toBe(undefined);
 
     const updatedData = { lastname: 'updated' };
-    service.updateCustomerFormData(updatedData);
+    component.updateCustomerFormData(updatedData);
 
-    expect(service.customerData).toEqual(updatedData);
+    expect(component.customerData).toEqual(updatedData);
   });
 
   it('updatePersonsData', () => {
-    const { service } = setup();
+    const fixture = TestBed.createComponent(CustomerEditComponent);
+    const component = fixture.componentInstance;
 
     const existingData = { lastname: 'old' };
-    service.additionalPersonsData[0] = existingData;
-    expect(service.additionalPersonsData[0]).toEqual(existingData);
+    component.additionalPersonsData[0] = existingData;
+    expect(component.additionalPersonsData[0]).toEqual(existingData);
 
     const updatedData = { lastname: 'updated' };
-    service.updatePersonsData(0, updatedData);
+    component.updatePersonsData(0, updatedData);
 
-    expect(service.additionalPersonsData[0]).toEqual(updatedData);
+    expect(component.additionalPersonsData[0]).toEqual(updatedData);
   });
 
   it('addNewPerson', () => {
-    const { service } = setup();
+    const fixture = TestBed.createComponent(CustomerEditComponent);
+    const component = fixture.componentInstance;
 
-    expect(service.additionalPersonsData.length).toBe(0);
+    expect(component.additionalPersonsData.length).toBe(0);
 
-    service.addNewPerson();
+    component.addNewPerson();
 
-    expect(service.additionalPersonsData.length).toBe(1);
-    expect(service.additionalPersonsData[0].uuid).toBeDefined();
+    expect(component.additionalPersonsData.length).toBe(1);
+    expect(component.additionalPersonsData[0].uuid).toBeDefined();
+
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[testid=nopersons-label]')).toBeNull();
+    expect(fixture.nativeElement.querySelector('[testid=personcard-0]')).toBeTruthy();
   });
 
   it('removePerson', () => {
-    const { service } = setup();
+    const fixture = TestBed.createComponent(CustomerEditComponent);
+    const component = fixture.componentInstance;
 
     const existingData = { lastname: 'old' };
-    service.additionalPersonsData[0] = existingData;
-    expect(service.additionalPersonsData.length).toBe(1);
+    component.additionalPersonsData[0] = existingData;
+    expect(component.additionalPersonsData.length).toBe(1);
 
-    service.removePerson(0);
+    component.removePerson(0);
 
-    expect(service.additionalPersonsData.length).toBe(0);
+    expect(component.additionalPersonsData.length).toBe(0);
+
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[testid=nopersons-label]')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('[testid=personcard-0]')).toBeNull();
   });
 
   it('trackBy', () => {
-    const { service } = setup();
+    const fixture = TestBed.createComponent(CustomerEditComponent);
+    const component = fixture.componentInstance;
     const testUuid = 'test-UUID';
 
-    const trackingId = service.trackBy(0, { uuid: testUuid });
+    const trackingId = component.trackBy(0, { uuid: testUuid });
 
     expect(trackingId).toBe(testUuid);
   });
