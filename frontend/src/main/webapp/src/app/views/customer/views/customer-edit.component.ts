@@ -24,11 +24,7 @@ export class CustomerEditComponent {
   }
 
   removePerson(index: number) {
-    console.log("BEFORE", this.additionalPersonsData);
-    console.log("REMOVE IDX", index, "VALUE", this.additionalPersonsData[index]);
-    let deleted = this.additionalPersonsData.splice(index, 1);
-    console.log("DELETED", deleted);
-    console.log("AFTER", this.additionalPersonsData);
+    this.additionalPersonsData.splice(index, 1);
   }
 
   trackBy(index: number, personData: AddPersonCardData) {
