@@ -17,7 +17,6 @@ describe('AuthGuardService', () => {
     expect(canActivate).toBeTrue();
   });
 
-
   it('canActivate when not authenticated', () => {
     const { service, authServiceSpy } = setup();
     authServiceSpy.isAuthenticated.and.returnValue(false);
