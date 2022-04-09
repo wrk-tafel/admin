@@ -1,4 +1,5 @@
 import { TestBed, waitForAsync } from '@angular/core/testing';
+import { isFunctionOrConstructorTypeNode } from 'typescript';
 import { CustomerEditComponent } from './customer-edit.component';
 
 describe('CustomerEditComponent', () => {
@@ -51,12 +52,11 @@ describe('CustomerEditComponent', () => {
 
     expect(component.additionalPersonsData.length).toBe(0);
 
-    component.addNewPerson();
+    fixture.nativeElement.querySelector('[testid=addperson-button]').click();
+    fixture.detectChanges();
 
     expect(component.additionalPersonsData.length).toBe(1);
     expect(component.additionalPersonsData[0].uuid).toBeDefined();
-
-    fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('[testid=nopersons-label]')).toBeNull();
     expect(fixture.nativeElement.querySelector('[testid=personcard-0]')).toBeTruthy();
   });
@@ -69,11 +69,11 @@ describe('CustomerEditComponent', () => {
     component.additionalPersonsData[0] = existingData;
     expect(component.additionalPersonsData.length).toBe(1);
 
-    component.removePerson(0);
-
-    expect(component.additionalPersonsData.length).toBe(0);
+    fixture.detectChanges();
+    fixture.nativeElement.querySelector('[testid=remove-personcard-0]').click();
 
     fixture.detectChanges();
+    expect(component.additionalPersonsData.length).toBe(0);
     expect(fixture.nativeElement.querySelector('[testid=nopersons-label]')).toBeTruthy();
     expect(fixture.nativeElement.querySelector('[testid=personcard-0]')).toBeNull();
   });

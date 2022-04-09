@@ -16,7 +16,7 @@
                 <div class="card-header h5">
                     Weitere Personen
                     <div class="card-header-actions">
-                        <button type="button" class="btn btn-block btn-success"
+                        <button testid="addperson-button" type="button" class="btn btn-block btn-success"
                             (click)="addNewPerson()">Hinzufügen</button>
                     </div>
                 </div>
@@ -33,7 +33,7 @@
                                 </addperson-card>
                             </div>
                             <div class="col-xxl-2 mb-3 ml-3">
-                                <button type="button" class="btn btn-block btn-danger"
+                                <button [attr.testid]="'remove-personcard-' + i" type="button" class="btn btn-block btn-danger"
                                     (click)="removePerson(i)">Löschen</button>
                             </div>
                         </div>
