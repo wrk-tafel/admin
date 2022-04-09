@@ -10,6 +10,7 @@ export class AddPersonCardComponent implements OnInit {
   @Output() dataUpdateEvent = new EventEmitter<AddPersonCardData>();
 
   personForm = new FormGroup({
+    uuid: new FormControl(),
     lastname: new FormControl('', [Validators.required, Validators.maxLength(50)]),
     firstname: new FormControl('', [Validators.required, , Validators.maxLength(50)]),
     birthDate: new FormControl('', Validators.required),
@@ -30,8 +31,9 @@ export class AddPersonCardComponent implements OnInit {
 }
 
 export interface AddPersonCardData {
-  lastname?: String,
-  firstname?: String
+  uuid?: string,
+  lastname?: string,
+  firstname?: string
   birthDate?: Date,
   income?: number
 }

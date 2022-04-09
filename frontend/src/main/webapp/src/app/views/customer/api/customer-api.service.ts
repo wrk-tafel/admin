@@ -22,6 +22,6 @@ interface CountryListResponse {
 }
 
 export interface Country {
-  code: String,
-  name: String
+  code: string,
+  name: string
 }

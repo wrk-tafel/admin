@@ -67,21 +67,21 @@ export class CustomerFormComponent implements OnInit {
 }
 
 export interface CustomerFormData {
-  lastname?: String,
-  firstname?: String,
+  lastname?: string,
+  firstname?: string,
   birthDate?: Date,
-  nationality?: String,
+  nationality?: string,
   telephoneNumber?: number,
-  email?: String
+  email?: string
 
-  street?: String,
-  houseNumber?: String,
-  stairway?: String,
-  door?: String,
+  street?: string,
+  houseNumber?: string,
+  stairway?: string,
+  door?: string,
   postalCode?: number,
-  city?: String,
+  city?: string,
 
-  employer?: String,
+  employer?: string,
   income?: number,
   incomeDue?: Date
 }

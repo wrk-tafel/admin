@@ -9,7 +9,7 @@ import { AuthenticationService } from '../../common/security/authentication.serv
 })
 export class LoginComponent {
 
-  errorMessage: String;
+  errorMessage: string;
 
   loginForm = new FormGroup({
     username: new FormControl('', Validators.required),

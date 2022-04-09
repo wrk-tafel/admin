@@ -15,22 +15,26 @@
             <div class="card">
                 <div class="card-header h5">
                     Weitere Personen
-                    <div class="card-header-actions ml-1">
+                    <div class="card-header-actions">
                         <button type="button" class="btn btn-block btn-success"
                             (click)="addNewPerson()">Hinzufügen</button>
                     </div>
                 </div>
                 <div class="card-body">
-                    <div *ngFor="let additionalPersonData of additionalPersonsData; let i = index; trackBy: trackBy">
+                    <div *ngIf="additionalPersonsData.length === 0">
+                        <h6>Keine Personen vorhanden</h6>
+                    </div>
+                    <div *ngFor="let additionalPersonData of additionalPersonsData; trackBy: trackBy; let i = index">
                         <div class="row">
                             <div class="col-10">
+                                IDX: {{i}}
                                 <addperson-card [personData]="additionalPersonData"
                                     (dataUpdateEvent)="updatePersonsData(i, $event)">
                                 </addperson-card>
                             </div>
-                            <div class="col-2">
+                            <div class="col-xxl-2 mb-3 ml-3">
                                 <button type="button" class="btn btn-block btn-danger"
-                                    (click)="removePerson(i)">X</button>
+                                    (click)="removePerson(i)">Löschen</button>
                             </div>
                         </div>
                     </div>
