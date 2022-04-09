@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS customers_addpersons;
 DROP TABLE IF EXISTS customers;
 
 create table customers(
@@ -15,6 +16,9 @@ create table customers(
     address_door varchar(10) not null,
 	telephone_number bigint null,
     email varchar(100) null,
+    employer varchar(100) null,
+    income decimal null,
+    income_due date null,
     count_persons_in_household integer null default 0,
     count_infants integer null default 0
 );
@@ -26,7 +30,8 @@ create table customers_addpersons(
 	customer_id bigint not null,
 	firstname varchar(50) not null,
 	lastname varchar(50) not null,
-	birth_date date not null
+	birth_date date not null,
+    income decimal null
 );
 
 create unique index uix_customer_telephone_number on customers (telephone_number);

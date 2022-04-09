@@ -1,6 +1,7 @@
 package at.wrk.tafel.admin.backend.database.entities
 
 import at.wrk.tafel.admin.backend.database.entities.base.BaseChangeTrackingEntity
+import java.math.BigDecimal
 import java.time.LocalDate
 import javax.persistence.*
 
@@ -19,4 +20,7 @@ class CustomerAddPersonEntity : BaseChangeTrackingEntity() {
 
     @Column(name = "birth_date")
     var birthDate: LocalDate? = null
+
+    @Column(name = "income")
+    var income: BigDecimal? = null
 }

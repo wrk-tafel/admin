@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.base
 
+import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.database.repositories.staticdata.CountryRepository
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -24,10 +25,12 @@ class CountryController(
     }
 }
 
+@ExcludeFromTestCoverage
 data class CountryListResponse(
     val items: List<Country> = emptyList()
 )
 
+@ExcludeFromTestCoverage
 data class Country(
     val code: String,
     val name: String
