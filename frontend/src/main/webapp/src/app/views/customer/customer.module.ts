@@ -5,7 +5,7 @@ import { CustomerEditComponent } from './views/customer-edit.component';
 import { CustomerRoutingModule } from './customer-routing.module';
 import { CustomerFormComponent } from './components/customer-form.component';
 import { CommonModule } from '@angular/common';
-import { AddPersonCardComponent } from './components/addperson-card.component';
+import { AddPersonFormComponent } from './components/addperson-form.component';
 
 @NgModule({
   imports: [
@@ -16,7 +16,7 @@ import { AddPersonCardComponent } from './components/addperson-card.component';
   declarations: [
     CustomerEditComponent,
     CustomerFormComponent,
-    AddPersonCardComponent
+    AddPersonFormComponent
   ]
 })
 export class CustomerModule { }

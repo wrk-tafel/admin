@@ -1,0 +1,42 @@
+<form [formGroup]="personForm">
+    <div class="row">
+        <div class="col-lg">
+            <label class="form-label">Familienname</label>
+            <input type="text" formControlName="lastname" name="lastname" class="form-control"
+                [ngClass]="{'is-invalid': lastname.invalid && (lastname.dirty || lastname.touched), 'is-valid': lastname.valid && (lastname.dirty || lastname.touched)}"
+                autofocus>
+            <div *ngIf="lastname.errors?.required && (lastname.dirty || lastname.touched)" class="invalid-feedback">
+                Pflichtfeld
+            </div>
+            <div *ngIf="lastname.errors?.maxlength && (lastname.dirty || lastname.touched)" class="invalid-feedback">
+                Familienname zu lang (Limit: {{lastname.errors.maxlength.requiredLength}})
+            </div>
+        </div>
+        <div class="col-lg">
+            <label class="form-label">Vorname</label>
+            <input type="text" formControlName="firstname" name="firstname" class="form-control"
+                [ngClass]="{'is-invalid': firstname.invalid && (firstname.dirty || firstname.touched), 'is-valid': firstname.valid && (firstname.dirty || firstname.touched)}">
+            <div *ngIf="firstname.errors?.required && (firstname.dirty || firstname.touched)" class="invalid-feedback">
+                Pflichtfeld
+            </div>
+            <div *ngIf="firstname.errors?.maxlength && (firstname.dirty || firstname.touched)" class="invalid-feedback">
+                Vorname zu lang (Limit: {{firstname.errors.maxlength.requiredLength}})
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg">
+            <label class="form-label">Geburtsdatum</label>
+            <input type="date" formControlName="birthDate" name="birthDate" class="form-control"
+                [ngClass]="{'is-invalid': birthDate.invalid && (birthDate.dirty || birthDate.touched), 'is-valid': birthDate.valid && (birthDate.dirty || birthDate.touched)}">
+            <div *ngIf="birthDate.errors?.required && (birthDate.dirty || birthDate.touched)" class="invalid-feedback">
+                Pflichtfeld
+            </div>
+        </div>
+        <div class="col-lg">
+            <label class="form-label">Einkommen</label>
+            <input type="number" formControlName="income" name="income" class="form-control"
+                [ngClass]="{'is-invalid': income.invalid && (income.dirty || income.touched), 'is-valid': income.valid && (income.dirty || income.touched)}">
+        </div>
+    </div>
+</form>

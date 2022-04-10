@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { AddPersonCardData } from '../components/addperson-card.component';
+import { AddPersonFormData } from '../components/addperson-form.component';
 import { CustomerFormData } from '../components/customer-form.component';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -9,13 +9,13 @@ import { v4 as uuidv4 } from 'uuid';
 })
 export class CustomerEditComponent {
   customerData: CustomerFormData;
-  additionalPersonsData: AddPersonCardData[] = [];
+  additionalPersonsData: AddPersonFormData[] = [];
 
   updateCustomerFormData(updatedFormData: CustomerFormData) {
     this.customerData = updatedFormData;
   }
 
-  updatePersonsData(index: number, additionalPersonsData: AddPersonCardData) {
+  updatePersonsData(index: number, additionalPersonsData: AddPersonFormData) {
     this.additionalPersonsData[index] = additionalPersonsData;
   }
 
@@ -27,7 +27,7 @@ export class CustomerEditComponent {
     this.additionalPersonsData.splice(index, 1);
   }
 
-  trackBy(index: number, personData: AddPersonCardData) {
+  trackBy(index: number, personData: AddPersonFormData) {
     return personData.uuid;
   }
 }

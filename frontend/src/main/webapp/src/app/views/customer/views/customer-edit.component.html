@@ -25,15 +25,25 @@
                         <h6 testid="nopersons-label">Keine Personen vorhanden</h6>
                     </div>
                     <div *ngFor="let additionalPersonData of additionalPersonsData; trackBy: trackBy; let i = index">
-                        <div class="row">
-                            <div class="col-10">
-                                <addperson-card [attr.testid]="'personcard-' + i" [personData]="additionalPersonData"
-                                    (dataUpdateEvent)="updatePersonsData(i, $event)">
-                                </addperson-card>
-                            </div>
-                            <div class="col-xxl-2 mb-3 ml-3">
-                                <button [attr.testid]="'remove-personcard-' + i" type="button"
-                                    class="btn btn-block btn-danger" (click)="removePerson(i)">Löschen</button>
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col">
+                                            <addperson-form [attr.testid]="'personcard-' + i"
+                                                [personData]="additionalPersonData"
+                                                (dataUpdateEvent)="updatePersonsData(i, $event)">
+                                            </addperson-form>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-lg-5 col-xxl-2 mt-3">
+                                            <button [attr.testid]="'remove-personcard-' + i" type="button"
+                                                class="btn btn-block btn-danger"
+                                                (click)="removePerson(i)">Löschen</button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>

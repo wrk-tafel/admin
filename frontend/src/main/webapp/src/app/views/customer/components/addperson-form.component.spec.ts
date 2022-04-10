@@ -1,28 +1,28 @@
 import { TestBed, waitForAsync } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
-import { AddPersonCardComponent, AddPersonCardData } from './addperson-card.component';
+import { AddPersonFormComponent, AddPersonFormData } from './addperson-form.component';
 import { v4 as uuidv4 } from 'uuid';
 
 describe('AddPersonsCardComponent', () => {
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [
-        AddPersonCardComponent
+        AddPersonFormComponent
       ],
       imports: [RouterTestingModule]
     }).compileComponents();
   }));
 
   it('should create the component', waitForAsync(() => {
-    const fixture = TestBed.createComponent(AddPersonCardComponent);
+    const fixture = TestBed.createComponent(AddPersonFormComponent);
     const component = fixture.componentInstance;
     expect(component).toBeTruthy();
   }));
 
   it('data filling and update is working', waitForAsync(() => {
-    const fixture = TestBed.createComponent(AddPersonCardComponent);
+    const fixture = TestBed.createComponent(AddPersonFormComponent);
     const component = fixture.componentInstance;
-    const testData: AddPersonCardData = {
+    const testData: AddPersonFormData = {
       uuid: uuidv4(),
       lastname: 'Mustermann',
       firstname: 'Max',

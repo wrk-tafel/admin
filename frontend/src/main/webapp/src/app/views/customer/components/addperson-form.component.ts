@@ -2,12 +2,12 @@ import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 
 @Component({
-  selector: 'addperson-card',
-  templateUrl: 'addperson-card.component.html'
+  selector: 'addperson-form',
+  templateUrl: 'addperson-form.component.html'
 })
-export class AddPersonCardComponent implements OnInit {
-  @Input() personData: AddPersonCardData;
-  @Output() dataUpdateEvent = new EventEmitter<AddPersonCardData>();
+export class AddPersonFormComponent implements OnInit {
+  @Input() personData: AddPersonFormData;
+  @Output() dataUpdateEvent = new EventEmitter<AddPersonFormData>();
 
   personForm = new FormGroup({
     uuid: new FormControl(),
@@ -30,7 +30,7 @@ export class AddPersonCardComponent implements OnInit {
   get income() { return this.personForm.get('income'); }
 }
 
-export interface AddPersonCardData {
+export interface AddPersonFormData {
   uuid?: string,
   lastname?: string,
   firstname?: string
