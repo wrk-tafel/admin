@@ -1,4 +1,7 @@
 <div class="animated fadeIn">
+    <div testid="errorMessage" *ngIf="errorMessage" class="alert alert-danger mb-3">
+        <div>{{errorMessage}}</div>
+    </div>
     <div class="row">
         <div class="col">
             <div class="card">
@@ -51,4 +54,5 @@
             </div>
         </div>
     </div>
+    <button class="btn btn-primary px-4 mb-3" (click)="save()">Speichern</button>
 </div>

@@ -75,12 +75,4 @@ describe('CustomerFormComponent', () => {
     }));
   }));
 
-  it('prefilled postalCode and city', waitForAsync(() => {
-    const component = new CustomerFormComponent(apiService);
-
-    expect(component.postalCode.value).toBe(1030);
-    expect(component.city.value).toBe('Wien');
-    expect(component.customerForm.valid).toBe(false);
-  }));
-
 });
