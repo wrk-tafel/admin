@@ -1,3 +1,4 @@
+import { DecimalPipe } from "@angular/common";
 import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 import { Observable } from "rxjs";
@@ -26,5 +27,30 @@ export interface ValidateCustomerResponse {
 }
 
 export interface CustomerRequestData {
-  todo: string
+  firstname: string,
+  lastname: string,
+  birthDate: Date,
+  address: CustomerAddressRequestData,
+  telephoneNumber: number,
+  email: string,
+  employer: string,
+  income: number,
+  incomeDue: Date,
+  additionalPersons: CustomerAddPersonRequestData[]
+}
+
+export interface CustomerAddressRequestData {
+  street: string,
+  houseNumber: number,
+  stairway: string,
+  door: string,
+  postalCode: number,
+  city: string
+}
+
+export interface CustomerAddPersonRequestData {
+  firstname: string,
+  lastname: string,
+  birthDate: Date,
+  income: number
 }

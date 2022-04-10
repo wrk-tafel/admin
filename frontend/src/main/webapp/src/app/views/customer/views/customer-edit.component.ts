@@ -3,7 +3,7 @@ import { AddPersonFormComponent, AddPersonFormData } from '../components/addpers
 import { CustomerFormComponent, CustomerFormData } from '../components/customer-form.component';
 import { v4 as uuidv4 } from 'uuid';
 import { FormGroup } from '@angular/forms';
-import { CustomerRequestData, CustomerApiService } from '../api/customer-api.service';
+import { CustomerRequestData, CustomerApiService, CustomerAddPersonRequestData } from '../api/customer-api.service';
 
 @Component({
   selector: 'customer-edit',
@@ -15,7 +15,7 @@ export class CustomerEditComponent {
   ) { }
 
   @ViewChild(CustomerFormComponent) customerFormComponent: CustomerFormComponent;
-  @ViewChildren(AddPersonFormComponent) addPersonCards: AddPersonFormComponent[];
+  @ViewChildren(AddPersonFormComponent) addPersonForms: AddPersonFormComponent[];
 
   customerData: CustomerFormData;
   additionalPersonsData: AddPersonFormData[] = [];
@@ -48,7 +48,7 @@ export class CustomerEditComponent {
     const customerFormValid = this.customerFormComponent.customerForm.valid;
 
     let addPersonFormsValid = true;
-    this.addPersonCards.map<FormGroup>((cmp) => { return cmp.personForm })
+    this.addPersonForms.map<FormGroup>((cmp) => { return cmp.personForm })
       .forEach((form: FormGroup) => {
         form.markAllAsTouched();
         addPersonFormsValid &&= form.valid;
@@ -59,25 +59,48 @@ export class CustomerEditComponent {
     } else {
       this.errorMessage = null;
 
-      const customerData = this.mapFormsToCustomerData();
-      this.apiService.validate(customerData);
-
-      // TODO validate todo check valid
-      this.saveDisabled = false;
+      const customerData = this.mapFormsToCustomerRequestData();
+      this.apiService.validate(customerData).subscribe((result) => {
+        this.saveDisabled = !result.valid;
+      });
     }
   }
 
   save() {
     // TODO impl
     throw new Error('Method not implemented.');
-
-    /*
-    const customerData = this.mapFormsToCustomerData();
-    this.apiService.createCustomer(customerData);
-    */
   }
 
-  mapFormsToCustomerData(): CustomerRequestData {
-    throw new Error('Method not implemented.');
+  mapFormsToCustomerRequestData(): CustomerRequestData {
+    let addPersons: CustomerAddPersonRequestData[];
+    this.addPersonForms.forEach((personComponent) => {
+      addPersons.push({
+        lastname: personComponent.lastname.value,
+        firstname: personComponent.firstname.value,
+        birthDate: personComponent.birthDate.value,
+        income: personComponent.income.value
+      });
+    });
+
+    const customer = this.customerFormComponent;
+    return {
+      lastname: customer.lastname.value,
+      firstname: customer.firstname.value,
+      birthDate: customer.birthDate.value,
+      address: {
+        street: customer.street.value,
+        houseNumber: customer.houseNumber.value,
+        stairway: customer.stairway.value,
+        door: customer.door.value,
+        postalCode: customer.postalCode.value,
+        city: customer.city.value
+      },
+      telephoneNumber: customer.telephoneNumber.value,
+      email: customer.email.value,
+      employer: customer.employer.value,
+      income: customer.income.value,
+      incomeDue: customer.incomeDue.value,
+      additionalPersons: addPersons
+    }
   }
 }
