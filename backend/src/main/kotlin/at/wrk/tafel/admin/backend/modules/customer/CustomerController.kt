@@ -1,20 +1,24 @@
 package at.wrk.tafel.admin.backend.modules.customer
 
-import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.database.repositories.CustomerRepository
+import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorPerson
+import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorService
 import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
-import java.math.BigDecimal
-import java.time.LocalDate
+import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/api/customers")
 @PreAuthorize("hasAuthority('CUSTOMER')")
 class CustomerController(
-    private val customerRepository: CustomerRepository
+    private val customerRepository: CustomerRepository,
+    private val incomeValidatorService: IncomeValidatorService
 ) {
+    @PostMapping("/validate")
+    fun validate(@RequestBody customer: Customer): ValidateCustomerResponse {
+        val result = incomeValidatorService.validate(mapToValidationPersons(customer))
+        return ValidateCustomerResponse(result.valid)
+    }
+
     @GetMapping
     fun listCustomers(): CustomerListResponse {
         val customerItems = customerRepository.findAll().map { customerEntity ->
@@ -49,43 +53,25 @@ class CustomerController(
         }
         return CustomerListResponse(items = customerItems)
     }
+
+    private fun mapToValidationPersons(customer: Customer): List<IncomeValidatorPerson> {
+        val personList = mutableListOf<IncomeValidatorPerson>()
+        personList.add(
+            IncomeValidatorPerson(
+                monthlyIncome = customer.income,
+                birthDate = customer.birthDate
+            )
+        )
+
+        customer.additionalPersons.forEach {
+            personList.add(
+                IncomeValidatorPerson(
+                    monthlyIncome = it.income,
+                    birthDate = it.birthDate
+                )
+            )
+        }
+
+        return personList
+    }
 }
-
-@ExcludeFromTestCoverage
-data class CustomerListResponse(
-    val items: List<Customer>
-)
-
-@ExcludeFromTestCoverage
-data class Customer(
-    val id: Long,
-    val firstname: String,
-    val lastname: String,
-    val birthDate: LocalDate,
-    val address: CustomerAddress,
-    val telephoneNumber: Long? = null,
-    val email: String? = null,
-    val employer: String? = null,
-    val income: BigDecimal? = null,
-    val incomeDue: LocalDate? = null,
-    val additionalPersons: List<CustomerAdditionalPerson> = emptyList()
-)
-
-@ExcludeFromTestCoverage
-data class CustomerAddress(
-    val street: String,
-    val houseNumber: String,
-    val stairway: String? = null,
-    val door: String,
-    val postalCode: Int,
-    val city: String
-)
-
-@ExcludeFromTestCoverage
-data class CustomerAdditionalPerson(
-    val id: Long,
-    val firstname: String,
-    val lastname: String,
-    val birthDate: LocalDate,
-    val income: BigDecimal? = null
-)

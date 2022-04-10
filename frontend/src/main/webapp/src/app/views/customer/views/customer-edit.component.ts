@@ -3,19 +3,24 @@ import { AddPersonFormComponent, AddPersonFormData } from '../components/addpers
 import { CustomerFormComponent, CustomerFormData } from '../components/customer-form.component';
 import { v4 as uuidv4 } from 'uuid';
 import { FormGroup } from '@angular/forms';
+import { CustomerRequestData, CustomerApiService } from '../api/customer-api.service';
 
 @Component({
   selector: 'customer-edit',
   templateUrl: 'customer-edit.component.html'
 })
 export class CustomerEditComponent {
+  constructor(
+    private apiService: CustomerApiService
+  ) { }
+
   @ViewChild(CustomerFormComponent) customerFormComponent: CustomerFormComponent;
   @ViewChildren(AddPersonFormComponent) addPersonCards: AddPersonFormComponent[];
 
   customerData: CustomerFormData;
   additionalPersonsData: AddPersonFormData[] = [];
-  saveDisabled: boolean = true;
 
+  @Output() saveDisabled: boolean = true;
   @Output() errorMessage: string;
 
   updateCustomerFormData(updatedFormData: CustomerFormData) {
@@ -38,7 +43,7 @@ export class CustomerEditComponent {
     return personData.uuid;
   }
 
-  save() {
+  validate() {
     this.customerFormComponent.customerForm.markAllAsTouched();
     const customerFormValid = this.customerFormComponent.customerForm.valid;
 
@@ -49,13 +54,30 @@ export class CustomerEditComponent {
         addPersonFormsValid &&= form.valid;
       });
 
-    console.log("CUSTOMER VALID", customerFormValid);
-    console.log("PERSONS VALID", addPersonFormsValid);
-
     if (!customerFormValid || !addPersonFormsValid) {
       this.errorMessage = "Bitte Eingaben überprüfen!";
     } else {
       this.errorMessage = null;
+
+      const customerData = this.mapFormsToCustomerData();
+      this.apiService.validate(customerData);
+
+      // TODO validate todo check valid
+      this.saveDisabled = false;
     }
+  }
+
+  save() {
+    // TODO impl
+    throw new Error('Method not implemented.');
+
+    /*
+    const customerData = this.mapFormsToCustomerData();
+    this.apiService.createCustomer(customerData);
+    */
+  }
+
+  mapFormsToCustomerData(): CustomerRequestData {
+    throw new Error('Method not implemented.');
   }
 }

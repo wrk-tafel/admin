@@ -3,11 +3,15 @@ package at.wrk.tafel.admin.backend.modules.customer
 import at.wrk.tafel.admin.backend.database.entities.CustomerAddPersonEntity
 import at.wrk.tafel.admin.backend.database.entities.CustomerEntity
 import at.wrk.tafel.admin.backend.database.repositories.CustomerRepository
+import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorPerson
+import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorResult
+import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorService
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
-import org.assertj.core.api.Assertions
+import io.mockk.verify
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import java.math.BigDecimal
@@ -15,11 +19,73 @@ import java.time.LocalDate
 
 @ExtendWith(MockKExtension::class)
 class CustomerControllerTest {
+
     @RelaxedMockK
     private lateinit var customerRepository: CustomerRepository
 
+    @RelaxedMockK
+    private lateinit var incomeValidatorService: IncomeValidatorService
+
     @InjectMockKs
-    private lateinit var customerController: CustomerController
+    private lateinit var controller: CustomerController
+
+    @Test
+    fun `validateIncome`() {
+        every { incomeValidatorService.validate(any()) } returns IncomeValidatorResult(
+            true,
+            totalSum = BigDecimal.ZERO,
+            limit = BigDecimal.ZERO,
+            amountExceededLimit = BigDecimal.ZERO
+        )
+
+        val customer = Customer(
+            firstname = "test",
+            lastname = "test",
+            birthDate = LocalDate.now().minusYears(30),
+            address = CustomerAddress(
+                street = "street",
+                houseNumber = "10",
+                stairway = "1",
+                door = "20",
+                postalCode = 1010,
+                city = "Wien"
+            ),
+            income = BigDecimal("1000"),
+            additionalPersons = listOf(
+                CustomerAdditionalPerson(
+                    id = 1,
+                    firstname = "test",
+                    lastname = "test",
+                    birthDate = LocalDate.now().minusYears(40),
+                    income = BigDecimal("2000")
+                )
+            )
+        )
+
+        val response = controller.validate(customer)
+
+        assertThat(response.valid).isTrue
+        verify {
+            incomeValidatorService.validate(
+                withArg {
+                    assertThat(it[0])
+                        .isEqualTo(
+                            IncomeValidatorPerson(
+                                birthDate = LocalDate.now().minusYears(30),
+                                monthlyIncome = BigDecimal("1000")
+                            )
+                        )
+                    assertThat(it[1])
+                        .isEqualTo(
+                            IncomeValidatorPerson(
+                                birthDate = LocalDate.now().minusYears(40),
+                                monthlyIncome = BigDecimal("2000")
+                            )
+                        )
+                }
+            )
+        }
+    }
 
     @Test
     fun `list customers`() {
@@ -60,12 +126,12 @@ class CustomerControllerTest {
 
         every { customerRepository.findAll() } returns listOf(customer)
 
-        val response = customerController.listCustomers()
+        val response = controller.listCustomers()
 
-        Assertions.assertThat(response).isNotNull
-        Assertions.assertThat(response.items).hasSize(1)
+        assertThat(response).isNotNull
+        assertThat(response.items).hasSize(1)
 
-        Assertions.assertThat(response.items).hasSameElementsAs(
+        assertThat(response.items).hasSameElementsAs(
             listOf(
                 Customer(
                     id = 1,

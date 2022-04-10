@@ -2,6 +2,8 @@ package at.wrk.tafel.admin.backend.modules.customer.income
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import java.math.BigDecimal
+import java.time.LocalDate
+import java.time.Period
 
 interface IncomeValidatorService {
     fun validate(persons: List<IncomeValidatorPerson>): IncomeValidatorResult
@@ -10,10 +12,14 @@ interface IncomeValidatorService {
 @ExcludeFromTestCoverage
 data class IncomeValidatorPerson(
     val monthlyIncome: BigDecimal? = null,
-    val age: Int
+    val birthDate: LocalDate
 ) {
     fun isChild(): Boolean {
-        return age <= 24
+        return getAge() <= 24
+    }
+
+    fun getAge(): Int {
+        return Period.between(birthDate, LocalDate.now()).years
     }
 }
 

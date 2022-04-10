@@ -54,5 +54,6 @@
             </div>
         </div>
     </div>
-    <button class="btn btn-primary px-4 mb-3" (click)="save()">Speichern</button>
+    <button class="btn btn-primary px-4 mb-3" (click)="validate()">Anspruch prüfen</button>
+    <button class="btn btn-primary px-4 mb-3 ml-2" (click)="save()" [disabled]="saveDisabled">Speichern</button>
 </div>

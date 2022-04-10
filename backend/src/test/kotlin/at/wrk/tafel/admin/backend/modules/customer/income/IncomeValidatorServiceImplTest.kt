@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import java.math.BigDecimal
+import java.time.LocalDate
 import java.util.*
 
 @ExtendWith(MockKExtension::class)
@@ -133,7 +134,7 @@ class IncomeValidatorServiceImplTest {
         val persons = listOf(
             IncomeValidatorPerson(
                 monthlyIncome = BigDecimal("500"),
-                age = 35
+                birthDate = LocalDate.now().minusYears(35)
             )
         )
 
@@ -150,7 +151,7 @@ class IncomeValidatorServiceImplTest {
         val persons = listOf(
             IncomeValidatorPerson(
                 monthlyIncome = BigDecimal("1000"),
-                age = 35
+                birthDate = LocalDate.now().minusYears(35)
             )
         )
 
@@ -167,7 +168,7 @@ class IncomeValidatorServiceImplTest {
         val persons = listOf(
             IncomeValidatorPerson(
                 monthlyIncome = BigDecimal("1150"),
-                age = 35
+                birthDate = LocalDate.now().minusYears(35)
             )
         )
 
@@ -186,7 +187,7 @@ class IncomeValidatorServiceImplTest {
         val persons = listOf(
             IncomeValidatorPerson(
                 monthlyIncome = BigDecimal("1050"),
-                age = 35
+                birthDate = LocalDate.now().minusYears(35)
             )
         )
 
@@ -205,7 +206,7 @@ class IncomeValidatorServiceImplTest {
         val persons = listOf(
             IncomeValidatorPerson(
                 monthlyIncome = BigDecimal("1100"),
-                age = 35
+                birthDate = LocalDate.now().minusYears(35)
             )
         )
 
@@ -222,7 +223,7 @@ class IncomeValidatorServiceImplTest {
         val persons = listOf(
             IncomeValidatorPerson(
                 monthlyIncome = BigDecimal("1050"),
-                age = 35
+                birthDate = LocalDate.now().minusYears(35)
             )
         )
 
@@ -239,11 +240,11 @@ class IncomeValidatorServiceImplTest {
         val persons = listOf(
             IncomeValidatorPerson(
                 monthlyIncome = BigDecimal("700"),
-                age = 35
+                birthDate = LocalDate.now().minusYears(35)
             ),
             IncomeValidatorPerson(
                 monthlyIncome = BigDecimal("700"),
-                age = 30
+                birthDate = LocalDate.now().minusYears(30)
             )
         )
 
@@ -260,11 +261,11 @@ class IncomeValidatorServiceImplTest {
         val persons = listOf(
             IncomeValidatorPerson(
                 monthlyIncome = BigDecimal("1000"),
-                age = 35
+                birthDate = LocalDate.now().minusYears(35)
             ),
             IncomeValidatorPerson(
                 monthlyIncome = BigDecimal("1000"),
-                age = 30
+                birthDate = LocalDate.now().minusYears(30)
             )
         )
 
@@ -281,15 +282,15 @@ class IncomeValidatorServiceImplTest {
         val persons = listOf(
             IncomeValidatorPerson(
                 monthlyIncome = BigDecimal("250"),
-                age = 35
+                birthDate = LocalDate.now().minusYears(35)
             ),
             IncomeValidatorPerson(
                 monthlyIncome = BigDecimal("250"),
-                age = 30
+                birthDate = LocalDate.now().minusYears(30)
             ),
             IncomeValidatorPerson(
                 monthlyIncome = BigDecimal("250"),
-                age = 30
+                birthDate = LocalDate.now().minusYears(30)
             )
         )
 
@@ -306,15 +307,15 @@ class IncomeValidatorServiceImplTest {
         val persons = listOf(
             IncomeValidatorPerson(
                 monthlyIncome = BigDecimal("600"),
-                age = 35
+                birthDate = LocalDate.now().minusYears(35)
             ),
             IncomeValidatorPerson(
                 monthlyIncome = BigDecimal("600"),
-                age = 30
+                birthDate = LocalDate.now().minusYears(30)
             ),
             IncomeValidatorPerson(
                 monthlyIncome = BigDecimal("650"),
-                age = 30
+                birthDate = LocalDate.now().minusYears(30)
             )
         )
 
@@ -331,15 +332,15 @@ class IncomeValidatorServiceImplTest {
         val persons = listOf(
             IncomeValidatorPerson(
                 monthlyIncome = BigDecimal("750"),
-                age = 35
+                birthDate = LocalDate.now().minusYears(35)
             ),
             IncomeValidatorPerson(
                 monthlyIncome = BigDecimal("750"),
-                age = 30
+                birthDate = LocalDate.now().minusYears(30)
             ),
             IncomeValidatorPerson(
                 monthlyIncome = BigDecimal("200"),
-                age = 30
+                birthDate = LocalDate.now().minusYears(30)
             )
         )
 
@@ -356,13 +357,13 @@ class IncomeValidatorServiceImplTest {
         val persons = listOf(
             IncomeValidatorPerson(
                 monthlyIncome = BigDecimal("500"),
-                age = 35
+                birthDate = LocalDate.now().minusYears(35)
             ),
             IncomeValidatorPerson(
                 monthlyIncome = BigDecimal("500"),
-                age = 30
+                birthDate = LocalDate.now().minusYears(30)
             ),
-            IncomeValidatorPerson(age = 10)
+            IncomeValidatorPerson(birthDate = LocalDate.now().minusYears(10))
         )
 
         val result = incomeValidatorService.validate(persons)
@@ -378,13 +379,13 @@ class IncomeValidatorServiceImplTest {
         val persons = listOf(
             IncomeValidatorPerson(
                 monthlyIncome = BigDecimal("1000"),
-                age = 35
+                birthDate = LocalDate.now().minusYears(35)
             ),
             IncomeValidatorPerson(
                 monthlyIncome = BigDecimal("395"),
-                age = 30
+                birthDate = LocalDate.now().minusYears(30)
             ),
-            IncomeValidatorPerson(age = 10)
+            IncomeValidatorPerson(birthDate = LocalDate.now().minusYears(10))
         )
 
         val result = incomeValidatorService.validate(persons)
@@ -400,13 +401,13 @@ class IncomeValidatorServiceImplTest {
         val persons = listOf(
             IncomeValidatorPerson(
                 monthlyIncome = BigDecimal("1000"),
-                age = 35
+                birthDate = LocalDate.now().minusYears(35)
             ),
             IncomeValidatorPerson(
                 monthlyIncome = BigDecimal("600"),
-                age = 30
+                birthDate = LocalDate.now().minusYears(30)
             ),
-            IncomeValidatorPerson(age = 10)
+            IncomeValidatorPerson(birthDate = LocalDate.now().minusYears(10))
         )
 
         val result = incomeValidatorService.validate(persons)
@@ -422,19 +423,19 @@ class IncomeValidatorServiceImplTest {
         val persons = listOf(
             IncomeValidatorPerson(
                 monthlyIncome = BigDecimal("992"),
-                age = 35
+                birthDate = LocalDate.now().minusYears(35)
             ),
             IncomeValidatorPerson(
-                age = 30
+                birthDate = LocalDate.now().minusYears(30)
             ),
-            IncomeValidatorPerson(age = 0),
-            IncomeValidatorPerson(age = 3),
-            IncomeValidatorPerson(age = 10),
-            IncomeValidatorPerson(age = 19),
-            IncomeValidatorPerson(age = 24),
-            IncomeValidatorPerson(age = 4),
-            IncomeValidatorPerson(age = 12),
-            IncomeValidatorPerson(age = 20)
+            IncomeValidatorPerson(birthDate = LocalDate.now().minusYears(0)),
+            IncomeValidatorPerson(birthDate = LocalDate.now().minusYears(3)),
+            IncomeValidatorPerson(birthDate = LocalDate.now().minusYears(10)),
+            IncomeValidatorPerson(birthDate = LocalDate.now().minusYears(19)),
+            IncomeValidatorPerson(birthDate = LocalDate.now().minusYears(24)),
+            IncomeValidatorPerson(birthDate = LocalDate.now().minusYears(4)),
+            IncomeValidatorPerson(birthDate = LocalDate.now().minusYears(12)),
+            IncomeValidatorPerson(birthDate = LocalDate.now().minusYears(20))
         )
 
         val result = incomeValidatorService.validate(persons)
