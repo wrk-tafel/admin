@@ -41,7 +41,7 @@ export interface CustomerRequestData {
 
 export interface CustomerAddressRequestData {
   street: string,
-  houseNumber: number,
+  houseNumber: string,
   stairway: string,
   door: string,
   postalCode: number,

@@ -85,7 +85,7 @@
     <div class="row mb-2">
         <div class="col">
             <label class="form-label">Hausnummer</label>
-            <input type="number" formControlName="houseNumber" name="houseNumber" class="form-control"
+            <input type="text" formControlName="houseNumber" name="houseNumber" class="form-control"
                 [ngClass]="{'is-invalid': houseNumber.invalid && (houseNumber.dirty || houseNumber.touched), 'is-valid': houseNumber.valid && (houseNumber.dirty || houseNumber.touched)}">
             <div *ngIf="houseNumber.errors?.required && (houseNumber.dirty || houseNumber.touched)"
                 class="invalid-feedback">

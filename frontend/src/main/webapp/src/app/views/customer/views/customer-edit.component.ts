@@ -32,10 +32,12 @@ export class CustomerEditComponent {
   }
 
   addNewPerson() {
+    this.saveDisabled = true;
     this.additionalPersonsData.push({ uuid: uuidv4() });
   }
 
   removePerson(index: number) {
+    this.saveDisabled = true;
     this.additionalPersonsData.splice(index, 1);
   }
 
@@ -44,6 +46,8 @@ export class CustomerEditComponent {
   }
 
   validate() {
+    this.saveDisabled = true;
+
     this.customerFormComponent.customerForm.markAllAsTouched();
     const customerFormValid = this.customerFormComponent.customerForm.valid;
 
@@ -72,14 +76,13 @@ export class CustomerEditComponent {
   }
 
   mapFormsToCustomerRequestData(): CustomerRequestData {
-    let addPersons: CustomerAddPersonRequestData[];
-    this.addPersonForms.forEach((personComponent) => {
-      addPersons.push({
+    let addPersons = this.addPersonForms.map<CustomerAddPersonRequestData>((personComponent) => {
+      return {
         lastname: personComponent.lastname.value,
         firstname: personComponent.firstname.value,
         birthDate: personComponent.birthDate.value,
         income: personComponent.income.value
-      });
+      }
     });
 
     const customer = this.customerFormComponent;
