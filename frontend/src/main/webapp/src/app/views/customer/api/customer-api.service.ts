@@ -1,5 +1,6 @@
 import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
+import { Observable } from "rxjs";
 
 @Injectable({
   providedIn: 'root'
@@ -9,7 +10,7 @@ export class CustomerApiService {
     private http: HttpClient
   ) { }
 
-  validate(data: CustomerRequestData): ValidateCustomerResponse {
+  validate(data: CustomerRequestData): Observable<ValidateCustomerResponse> {
     return this.http.post<ValidateCustomerResponse>('/customers/validate', data);
   }
 
