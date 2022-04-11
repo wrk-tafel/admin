@@ -26,7 +26,7 @@ describe('CustomerEditComponent', () => {
     expect(component.customerData).toBe(undefined);
 
     const updatedData = { lastname: 'updated' };
-    component.updateCustomerFormData(updatedData);
+    component.updatedCustomerFormData();
 
     expect(component.customerData).toEqual(updatedData);
   });
@@ -40,7 +40,7 @@ describe('CustomerEditComponent', () => {
     expect(component.additionalPersonsData[0]).toEqual(existingData);
 
     const updatedData = { lastname: 'updated' };
-    component.updatePersonsData(0, updatedData);
+    component.updatedPersonsFormData();
 
     expect(component.additionalPersonsData[0]).toEqual(updatedData);
   });

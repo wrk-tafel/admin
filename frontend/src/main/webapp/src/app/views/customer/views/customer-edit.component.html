@@ -9,7 +9,8 @@
                     Hauptbezieher
                 </div>
                 <div class="card-body">
-                    <customer-form [customerData]="customerData"></customer-form>
+                    <customer-form [customerData]="customerData" (dataUpdatedEvent)="updatedCustomerFormData()">
+                    </customer-form>
                 </div>
             </div>
         </div>
@@ -33,7 +34,8 @@
                                     <div class="row">
                                         <div class="col">
                                             <addperson-form [attr.testid]="'personcard-' + i"
-                                                [personData]="additionalPersonData">
+                                                [personData]="additionalPersonData"
+                                                (dataUpdatedEvent)="updatedPersonsFormData()">
                                             </addperson-form>
                                         </div>
                                     </div>

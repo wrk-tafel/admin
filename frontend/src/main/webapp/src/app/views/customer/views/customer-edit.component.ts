@@ -1,4 +1,4 @@
-import { Component, OnInit, Output, ViewChild, ViewChildren } from '@angular/core';
+import { Component, Output, ViewChild, ViewChildren } from '@angular/core';
 import { AddPersonFormComponent, AddPersonFormData } from '../components/addperson-form.component';
 import { CustomerFormComponent, CustomerFormData } from '../components/customer-form.component';
 import { v4 as uuidv4 } from 'uuid';
@@ -10,7 +10,7 @@ import { ModalDirective } from 'ngx-bootstrap/modal';
   selector: 'customer-edit',
   templateUrl: 'customer-edit.component.html'
 })
-export class CustomerEditComponent implements OnInit {
+export class CustomerEditComponent {
   constructor(
     private apiService: CustomerApiService
   ) { }
@@ -32,6 +32,7 @@ export class CustomerEditComponent implements OnInit {
     country: 'AT',
     telephoneNumber: 664456465465,
     email: 'stephan.prantl@gmail.com',
+
     street: 'Leopoldauer Straße',
     houseNumber: '157A',
     stairway: '1',
@@ -43,9 +44,6 @@ export class CustomerEditComponent implements OnInit {
     income: 1000,
     incomeDue: new Date()
   };
-
-  ngOnInit(): void {
-  }
 
   addNewPerson() {
     this.saveDisabled = true;
@@ -59,6 +57,14 @@ export class CustomerEditComponent implements OnInit {
 
   trackBy(index: number, personData: AddPersonFormData) {
     return personData.uuid;
+  }
+
+  updatedCustomerFormData() {
+    this.saveDisabled = true;
+  }
+
+  updatedPersonsFormData() {
+    this.saveDisabled = true;
   }
 
   validate() {

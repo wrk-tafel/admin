@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Country, CountryApiService } from '../../../common/api/country-api.service';
 
@@ -12,6 +12,7 @@ export class CustomerFormComponent implements OnInit {
   ) { }
 
   @Input() customerData: CustomerFormData;
+  @Output() dataUpdatedEvent = new EventEmitter<void>();
 
   customerForm = new FormGroup({
     lastname: new FormControl('', [Validators.required, Validators.maxLength(50)]),
@@ -43,6 +44,10 @@ export class CustomerFormComponent implements OnInit {
     this.customerForm.patchValue(this.customerData);
     this.birthDate.setValue(this.customerData.birthDate.toISOString().substring(0, 10));
     this.incomeDue.setValue(this.customerData.incomeDue.toISOString().substring(0, 10));
+
+    this.customerForm.valueChanges.subscribe((value) => {
+      this.dataUpdatedEvent.emit();
+    });
   }
 
   get lastname() { return this.customerForm.get('lastname'); }

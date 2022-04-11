@@ -30,7 +30,7 @@ describe('AddPersonsCardComponent', () => {
       income: 500
     }
     component.personData = testData;
-    spyOn(component.dataUpdateEvent, 'emit');
+    spyOn(component.dataUpdatedEvent, 'emit');
     component.ngOnInit();
 
     expect(component.personForm.value).toEqual(testData);
@@ -39,7 +39,7 @@ describe('AddPersonsCardComponent', () => {
     expect(component.lastname.value).toBe(testData.lastname);
     component.lastname.setValue('updated');
     fixture.detectChanges();
-    expect(component.dataUpdateEvent.emit).toHaveBeenCalledWith(jasmine.objectContaining({
+    expect(component.dataUpdatedEvent.emit).toHaveBeenCalledWith(jasmine.objectContaining({
       lastname: 'updated'
     }));
   }));
