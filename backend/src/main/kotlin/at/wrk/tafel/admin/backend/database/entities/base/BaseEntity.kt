@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.database.entities.base
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import javax.persistence.Column
+import javax.persistence.GeneratedValue
 import javax.persistence.Id
 import javax.persistence.MappedSuperclass
 
@@ -9,6 +10,7 @@ import javax.persistence.MappedSuperclass
 @ExcludeFromTestCoverage
 abstract class BaseEntity(
     @Id
+    @GeneratedValue
     @Column(name = "id", nullable = false)
     open var id: Long? = null
 ) {

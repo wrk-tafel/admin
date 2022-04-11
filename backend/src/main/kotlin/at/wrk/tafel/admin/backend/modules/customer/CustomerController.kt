@@ -43,22 +43,22 @@ class CustomerController(
 
     private fun mapRequestToEntity(customer: Customer): CustomerEntity {
         val entity = CustomerEntity()
-        entity.lastname = customer.lastname
-        entity.firstname = customer.firstname
+        entity.lastname = customer.lastname.trim()
+        entity.firstname = customer.firstname.trim()
         entity.birthDate = customer.birthDate
-        entity.addressStreet = customer.address.street
-        entity.addressHouseNumber = customer.address.houseNumber
-        entity.addressStairway = customer.address.stairway
-        entity.addressDoor = customer.address.door
+        entity.addressStreet = customer.address.street.trim()
+        entity.addressHouseNumber = customer.address.houseNumber.trim()
+        entity.addressStairway = customer.address.stairway?.trim()
+        entity.addressDoor = customer.address.door.trim()
         entity.addressPostalCode = customer.address.postalCode
-        entity.addressCity = customer.address.city
+        entity.addressCity = customer.address.city.trim()
         entity.telephoneNumber = customer.telephoneNumber
-        entity.email = customer.email
-        entity.employer = customer.employer
+        entity.email = customer.email?.trim()
+        entity.employer = customer.employer.trim()
         entity.income = customer.income
         entity.incomeDue = customer.incomeDue
 
-        // TODO save customer seperataly and update addPersons? cascade?
+        // TODO save customer separately and update addPersons? cascade?
         entity.additionalPersons = customer.additionalPersons.map {
             val addPersonEntity = CustomerAddPersonEntity()
             addPersonEntity.lastname = it.lastname
@@ -87,7 +87,7 @@ class CustomerController(
             ),
             telephoneNumber = customerEntity.telephoneNumber,
             email = customerEntity.email,
-            employer = customerEntity.employer,
+            employer = customerEntity.employer!!,
             income = customerEntity.income,
             incomeDue = customerEntity.incomeDue,
             additionalPersons = customerEntity.additionalPersons.map {

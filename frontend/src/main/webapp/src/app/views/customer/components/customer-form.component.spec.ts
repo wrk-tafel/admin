@@ -46,7 +46,7 @@ describe('CustomerFormComponent', () => {
       lastname: 'Mustermann',
       firstname: 'Max',
       birthDate: new Date(),
-      nationality: 'Österreich',
+      country: 'AT',
       telephoneNumber: 660123123,
       email: 'test@mail.com',
       street: 'Testgasse',

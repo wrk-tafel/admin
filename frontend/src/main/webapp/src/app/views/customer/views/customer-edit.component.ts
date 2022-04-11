@@ -22,8 +22,8 @@ export class CustomerEditComponent {
   customerData: CustomerFormData = {
     lastname: 'Prantl',
     firstname: 'Stephan',
-    birthDate: new Date(1987, 7, 13),
-    nationality: 'Österreich',
+    birthDate: new Date(1987, 6, 14, 0, 0, 0),
+    country: 'AT',
     telephoneNumber: 664456465465,
     email: 'stephan.prantl@gmail.com',
     street: 'Leopoldauer Straße',
@@ -37,6 +37,8 @@ export class CustomerEditComponent {
     income: 1000,
     incomeDue: new Date()
   };
+
+  // TODO add listener to forms (-> saveState=false)
 
   additionalPersonsData: AddPersonFormData[] = [];
   validationResult: ValidateCustomerResponse;
@@ -95,7 +97,7 @@ export class CustomerEditComponent {
   save() {
     console.log("SAVE");
     const customerData = this.mapFormsToCustomerRequestData();
-    this.apiService.createCustomer(customerData);
+    this.apiService.createCustomer(customerData).subscribe();
   }
 
   mapFormsToCustomerRequestData(): CustomerRequestData {

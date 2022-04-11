@@ -3,8 +3,8 @@ DROP TABLE IF EXISTS customers;
 
 create table customers(
 	id bigint primary key,
-	created_at timestamp not null,
-	updated_at timestamp not null,
+	created_at timestamptz not null,
+	updated_at timestamptz not null,
 	firstname varchar(50) not null,
 	lastname varchar(50) not null,
 	birth_date date not null,
@@ -18,21 +18,16 @@ create table customers(
     email varchar(100) null,
     employer varchar(100) null,
     income decimal null,
-    income_due date null,
-    count_persons_in_household integer null default 0,
-    count_infants integer null default 0
+    income_due date null
 );
 
 create table customers_addpersons(
 	id bigint primary key,
-	created_at timestamp not null,
-	updated_at timestamp not null,
+	created_at timestamptz not null,
+	updated_at timestamptz not null,
 	customer_id bigint not null,
 	firstname varchar(50) not null,
 	lastname varchar(50) not null,
 	birth_date date not null,
     income decimal null
 );
-
-create unique index uix_customer_telephone_number on customers (telephone_number);
-create unique index uix_customer_email on customers (email);

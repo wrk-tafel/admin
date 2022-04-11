@@ -18,7 +18,7 @@ export class CustomerFormComponent implements OnInit {
     lastname: new FormControl('', [Validators.required, Validators.maxLength(50)]),
     firstname: new FormControl('', [Validators.required, , Validators.maxLength(50)]),
     birthDate: new FormControl('', Validators.required),
-    nationality: new FormControl('', Validators.required),
+    country: new FormControl('', Validators.required),
     telephoneNumber: new FormControl(''),
     email: new FormControl('', [Validators.maxLength(100), Validators.email]),
 
@@ -45,12 +45,14 @@ export class CustomerFormComponent implements OnInit {
       this.dataUpdateEvent.emit(value);
     });
     this.customerForm.patchValue(this.customerData);
+    this.birthDate.setValue(this.customerData.birthDate.toISOString().substring(0, 10));
+    this.incomeDue.setValue(this.customerData.incomeDue.toISOString().substring(0, 10));
   }
 
   get lastname() { return this.customerForm.get('lastname'); }
   get firstname() { return this.customerForm.get('firstname'); }
   get birthDate() { return this.customerForm.get('birthDate'); }
-  get nationality() { return this.customerForm.get('nationality'); }
+  get country() { return this.customerForm.get('country'); }
   get telephoneNumber() { return this.customerForm.get('telephoneNumber'); }
   get email() { return this.customerForm.get('email'); }
 
@@ -70,7 +72,7 @@ export interface CustomerFormData {
   lastname?: string,
   firstname?: string,
   birthDate?: Date,
-  nationality?: string,
+  country?: string,
   telephoneNumber?: number,
   email?: string
 

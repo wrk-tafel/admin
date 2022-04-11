@@ -53,12 +53,6 @@ class CustomerEntity : BaseChangeTrackingEntity() {
     @Column(name = "income_due")
     var incomeDue: LocalDate? = null
 
-    @Column(name = "count_persons_in_household")
-    var countPersonsInHousehold: Int? = null
-
-    @Column(name = "count_infants")
-    var countInfants: Int? = null
-
     @OneToMany(mappedBy = "customer")
     var additionalPersons: Set<CustomerAddPersonEntity> = emptySet()
 }

@@ -51,6 +51,7 @@ class CustomerControllerTest {
                 postalCode = 1010,
                 city = "Wien"
             ),
+            employer = "employer",
             income = BigDecimal("1000"),
             additionalPersons = listOf(
                 CustomerAdditionalPerson(
@@ -115,8 +116,6 @@ class CustomerControllerTest {
         customer.employer = "Employer 123"
         customer.income = BigDecimal("1000")
         customer.incomeDue = LocalDate.now()
-        customer.countPersonsInHousehold = 4
-        customer.countInfants = 1
 
         val addPerson1 = CustomerAddPersonEntity()
         addPerson1.id = 2
