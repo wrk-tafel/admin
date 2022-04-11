@@ -1,12 +1,10 @@
 package at.wrk.tafel.admin.backend.database.entities
 
 import at.wrk.tafel.admin.backend.database.entities.base.BaseChangeTrackingEntity
+import at.wrk.tafel.admin.backend.database.entities.staticdata.CountryEntity
 import java.math.BigDecimal
 import java.time.LocalDate
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.OneToMany
-import javax.persistence.Table
+import javax.persistence.*
 
 @Entity(name = "Customer")
 @Table(name = "customers")
@@ -19,6 +17,9 @@ class CustomerEntity : BaseChangeTrackingEntity() {
 
     @Column(name = "birth_date")
     var birthDate: LocalDate? = null
+
+    @ManyToOne
+    var country: CountryEntity? = null
 
     @Column(name = "address_street")
     var addressStreet: String? = null

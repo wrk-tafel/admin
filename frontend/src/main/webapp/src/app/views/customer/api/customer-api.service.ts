@@ -32,6 +32,7 @@ export interface CustomerRequestData {
   firstname: string,
   lastname: string,
   birthDate: Date,
+  country: string,
   address: CustomerAddressRequestData,
   telephoneNumber: number,
   email: string,

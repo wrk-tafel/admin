@@ -2,7 +2,9 @@ package at.wrk.tafel.admin.backend.modules.customer
 
 import at.wrk.tafel.admin.backend.database.entities.CustomerAddPersonEntity
 import at.wrk.tafel.admin.backend.database.entities.CustomerEntity
+import at.wrk.tafel.admin.backend.database.entities.staticdata.CountryEntity
 import at.wrk.tafel.admin.backend.database.repositories.CustomerRepository
+import at.wrk.tafel.admin.backend.database.repositories.staticdata.CountryRepository
 import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorPerson
 import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorResult
 import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorService
@@ -12,6 +14,7 @@ import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import java.math.BigDecimal
@@ -24,10 +27,24 @@ class CustomerControllerTest {
     private lateinit var customerRepository: CustomerRepository
 
     @RelaxedMockK
+    private lateinit var countryRepository: CountryRepository
+
+    @RelaxedMockK
     private lateinit var incomeValidatorService: IncomeValidatorService
 
     @InjectMockKs
     private lateinit var controller: CustomerController
+
+    private lateinit var testCountry: CountryEntity
+
+    @BeforeEach
+    fun beforeEach() {
+        testCountry = CountryEntity()
+        testCountry.code = "AT"
+        testCountry.name = "Österreich"
+
+        every { countryRepository.findByCode("AT") } returns testCountry
+    }
 
     @Test
     fun `validate customer`() {
@@ -43,6 +60,7 @@ class CustomerControllerTest {
             firstname = "test",
             lastname = "test",
             birthDate = LocalDate.now().minusYears(30),
+            country = "AT",
             address = CustomerAddress(
                 street = "street",
                 houseNumber = "10",
@@ -105,6 +123,7 @@ class CustomerControllerTest {
         customer.lastname = "Mustermann"
         customer.firstname = "Max"
         customer.birthDate = LocalDate.now()
+        customer.country = testCountry
         customer.addressStreet = "Test-Straße"
         customer.addressHouseNumber = "100"
         customer.addressStairway = "1"
@@ -147,6 +166,7 @@ class CustomerControllerTest {
                     lastname = "Mustermann",
                     firstname = "Max",
                     birthDate = LocalDate.now(),
+                    country = "AT",
                     address = CustomerAddress(
                         street = "Test-Straße",
                         houseNumber = "100",

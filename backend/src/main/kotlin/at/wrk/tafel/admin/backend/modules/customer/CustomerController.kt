@@ -3,6 +3,7 @@ package at.wrk.tafel.admin.backend.modules.customer
 import at.wrk.tafel.admin.backend.database.entities.CustomerAddPersonEntity
 import at.wrk.tafel.admin.backend.database.entities.CustomerEntity
 import at.wrk.tafel.admin.backend.database.repositories.CustomerRepository
+import at.wrk.tafel.admin.backend.database.repositories.staticdata.CountryRepository
 import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorPerson
 import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorService
 import org.springframework.security.access.prepost.PreAuthorize
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.*
 @PreAuthorize("hasAuthority('CUSTOMER')")
 class CustomerController(
     private val customerRepository: CustomerRepository,
+    private val countryRepository: CountryRepository,
     private val incomeValidatorService: IncomeValidatorService
 ) {
     @PostMapping("/validate")
@@ -46,6 +48,7 @@ class CustomerController(
         entity.lastname = customer.lastname.trim()
         entity.firstname = customer.firstname.trim()
         entity.birthDate = customer.birthDate
+        entity.country = countryRepository.findByCode(customer.country)
         entity.addressStreet = customer.address.street.trim()
         entity.addressHouseNumber = customer.address.houseNumber.trim()
         entity.addressStairway = customer.address.stairway?.trim()
@@ -77,6 +80,7 @@ class CustomerController(
             firstname = customerEntity.firstname!!,
             lastname = customerEntity.lastname!!,
             birthDate = customerEntity.birthDate!!,
+            country = customerEntity.country?.code!!,
             address = CustomerAddress(
                 street = customerEntity.addressStreet!!,
                 houseNumber = customerEntity.addressHouseNumber!!,

@@ -115,6 +115,7 @@ export class CustomerEditComponent {
       lastname: customer.lastname.value,
       firstname: customer.firstname.value,
       birthDate: customer.birthDate.value,
+      country: customer.country.value,
       address: {
         street: customer.street.value,
         houseNumber: customer.houseNumber.value,
