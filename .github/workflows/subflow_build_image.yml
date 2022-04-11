@@ -28,7 +28,7 @@ jobs:
           tags: ${{ env.IMAGE_NAME }}
           outputs: type=docker,dest=/tmp/admin-image.tar
       - name: Upload artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: admin-image
           path: /tmp/admin-image.tar

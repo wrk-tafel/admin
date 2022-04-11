@@ -21,7 +21,7 @@ jobs:
           cache: 'maven'
       - name: Execute maven build
         run: ./mvnw clean install -DskipTests
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           name: admin-jarfile
           path: ./backend/target/admin-backend.jar
@@ -45,7 +45,7 @@ jobs:
           cache-dependency-path: 'frontend/src/main/webapp/package-lock.json'
       - name: Run tests
         run: ./mvnw --fail-at-end test verify
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         if: always()
         with:
           name: backend-codecoverage-reports
@@ -54,7 +54,7 @@ jobs:
                 ./backend/modules/**/target/site/jacoco/
           if-no-files-found: error
           retention-days: 14
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         if: always()
         with:
           name: frontend-codecoverage-report
