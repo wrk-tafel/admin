@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 
 @Component({
@@ -7,7 +7,6 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 })
 export class AddPersonFormComponent implements OnInit {
   @Input() personData: AddPersonFormData;
-  @Output() dataUpdateEvent = new EventEmitter<AddPersonFormData>();
 
   personForm = new FormGroup({
     uuid: new FormControl(),
@@ -18,10 +17,8 @@ export class AddPersonFormComponent implements OnInit {
   })
 
   ngOnInit(): void {
-    this.personForm.valueChanges.subscribe((value) => {
-      this.dataUpdateEvent.emit(value);
-    });
     this.personForm.patchValue(this.personData);
+    this.birthDate.setValue(this.personData.birthDate.toISOString().substring(0, 10));
   }
 
   get lastname() { return this.personForm.get('lastname'); }

@@ -1,4 +1,4 @@
-import { Component, Output, ViewChild, ViewChildren } from '@angular/core';
+import { Component, OnInit, Output, ViewChild, ViewChildren } from '@angular/core';
 import { AddPersonFormComponent, AddPersonFormData } from '../components/addperson-form.component';
 import { CustomerFormComponent, CustomerFormData } from '../components/customer-form.component';
 import { v4 as uuidv4 } from 'uuid';
@@ -10,7 +10,7 @@ import { ModalDirective } from 'ngx-bootstrap/modal';
   selector: 'customer-edit',
   templateUrl: 'customer-edit.component.html'
 })
-export class CustomerEditComponent {
+export class CustomerEditComponent implements OnInit {
   constructor(
     private apiService: CustomerApiService
   ) { }
@@ -18,6 +18,12 @@ export class CustomerEditComponent {
   @ViewChild(CustomerFormComponent) customerFormComponent: CustomerFormComponent;
   @ViewChildren(AddPersonFormComponent) addPersonForms: AddPersonFormComponent[];
   @ViewChild('validationResultModal') public validationResultModal: ModalDirective;
+
+  additionalPersonsData: AddPersonFormData[] = [];
+  validationResult: ValidateCustomerResponse;
+
+  @Output() saveDisabled: boolean = true;
+  @Output() errorMessage: string;
 
   customerData: CustomerFormData = {
     lastname: 'Prantl',
@@ -38,20 +44,7 @@ export class CustomerEditComponent {
     incomeDue: new Date()
   };
 
-  // TODO add listener to forms (-> saveState=false)
-
-  additionalPersonsData: AddPersonFormData[] = [];
-  validationResult: ValidateCustomerResponse;
-
-  @Output() saveDisabled: boolean = true;
-  @Output() errorMessage: string;
-
-  updateCustomerFormData(updatedFormData: CustomerFormData) {
-    this.customerData = updatedFormData;
-  }
-
-  updatePersonsData(index: number, additionalPersonsData: AddPersonFormData) {
-    this.additionalPersonsData[index] = additionalPersonsData;
+  ngOnInit(): void {
   }
 
   addNewPerson() {
@@ -70,17 +63,8 @@ export class CustomerEditComponent {
 
   validate() {
     this.saveDisabled = true;
-    this.customerFormComponent.customerForm.markAllAsTouched();
-    const customerFormValid = this.customerFormComponent.customerForm.valid;
 
-    let addPersonFormsValid = true;
-    this.addPersonForms.map<FormGroup>((cmp) => { return cmp.personForm })
-      .forEach((form: FormGroup) => {
-        form.markAllAsTouched();
-        addPersonFormsValid &&= form.valid;
-      });
-
-    if (!customerFormValid || !addPersonFormsValid) {
+    if (this.formsAreInvalid()) {
       this.errorMessage = "Bitte Eingaben überprüfen!";
     } else {
       this.errorMessage = null;
@@ -94,9 +78,23 @@ export class CustomerEditComponent {
     }
   }
 
+  formsAreInvalid() {
+    this.customerFormComponent.customerForm.markAllAsTouched();
+    const customerFormValid = this.customerFormComponent.customerForm.valid;
+
+    let addPersonFormsValid = true;
+    this.addPersonForms.map<FormGroup>((cmp) => { return cmp.personForm })
+      .forEach((form: FormGroup) => {
+        form.markAllAsTouched();
+        addPersonFormsValid &&= form.valid;
+      });
+
+    return !customerFormValid || !addPersonFormsValid
+  }
+
   save() {
-    console.log("SAVE");
     const customerData = this.mapFormsToCustomerRequestData();
+    // TODO do something with subscribe
     this.apiService.createCustomer(customerData).subscribe();
   }
 
