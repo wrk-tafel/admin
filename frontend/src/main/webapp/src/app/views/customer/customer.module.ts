@@ -6,12 +6,14 @@ import { CustomerRoutingModule } from './customer-routing.module';
 import { CustomerFormComponent } from './components/customer-form.component';
 import { CommonModule } from '@angular/common';
 import { AddPersonFormComponent } from './components/addperson-form.component';
+import { ModalModule } from 'ngx-bootstrap/modal';
 
 @NgModule({
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    CustomerRoutingModule
+    CustomerRoutingModule,
+    ModalModule.forRoot()
   ],
   declarations: [
     CustomerEditComponent,

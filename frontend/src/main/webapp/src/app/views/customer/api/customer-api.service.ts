@@ -15,15 +15,17 @@ export class CustomerApiService {
     return this.http.post<ValidateCustomerResponse>('/customers/validate', data);
   }
 
-  createCustomer(data: CustomerRequestData) {
-    // return this.http.get<CountryListResponse>('/countries').pipe(map(val => val.items));
-    // TODO impl
-    throw new Error('Method not implemented.');
+  createCustomer(data: CustomerRequestData): Observable<any> {
+    return this.http.post('/customers', data);
   }
 }
 
 export interface ValidateCustomerResponse {
-  valid: boolean
+  valid: boolean,
+  totalSum: number,
+  limit: number,
+  toleranceValue: number,
+  amountExceededLimit: number
 }
 
 export interface CustomerRequestData {

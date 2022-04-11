@@ -144,7 +144,7 @@
     </div>
     <div class="row mb-2">
         <div class="col">
-            <label class="form-label">Einkommen</label>
+            <label class="form-label">Einkommen (monatlich)</label>
             <input type="number" formControlName="income" name="income" class="form-control"
                 [ngClass]="{'is-invalid': income.invalid && (income.dirty || income.touched), 'is-valid': income.valid && (income.dirty || income.touched)}">
             <div *ngIf="income.errors?.required && (income.dirty || income.touched)" class="invalid-feedback">

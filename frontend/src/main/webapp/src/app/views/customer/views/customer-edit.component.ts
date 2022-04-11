@@ -3,7 +3,8 @@ import { AddPersonFormComponent, AddPersonFormData } from '../components/addpers
 import { CustomerFormComponent, CustomerFormData } from '../components/customer-form.component';
 import { v4 as uuidv4 } from 'uuid';
 import { FormGroup } from '@angular/forms';
-import { CustomerRequestData, CustomerApiService, CustomerAddPersonRequestData } from '../api/customer-api.service';
+import { CustomerRequestData, CustomerApiService, CustomerAddPersonRequestData, ValidateCustomerResponse } from '../api/customer-api.service';
+import { ModalDirective } from 'ngx-bootstrap/modal';
 
 @Component({
   selector: 'customer-edit',
@@ -16,9 +17,29 @@ export class CustomerEditComponent {
 
   @ViewChild(CustomerFormComponent) customerFormComponent: CustomerFormComponent;
   @ViewChildren(AddPersonFormComponent) addPersonForms: AddPersonFormComponent[];
+  @ViewChild('validationResultModal') public validationResultModal: ModalDirective;
 
-  customerData: CustomerFormData;
+  customerData: CustomerFormData = {
+    lastname: 'Prantl',
+    firstname: 'Stephan',
+    birthDate: new Date(1987, 7, 13),
+    nationality: 'Österreich',
+    telephoneNumber: 664456465465,
+    email: 'stephan.prantl@gmail.com',
+    street: 'Leopoldauer Straße',
+    houseNumber: '157A',
+    stairway: '1',
+    door: '21',
+    postalCode: 1210,
+    city: 'Wien',
+
+    employer: 'willhaben',
+    income: 1000,
+    incomeDue: new Date()
+  };
+
   additionalPersonsData: AddPersonFormData[] = [];
+  validationResult: ValidateCustomerResponse;
 
   @Output() saveDisabled: boolean = true;
   @Output() errorMessage: string;
@@ -47,7 +68,6 @@ export class CustomerEditComponent {
 
   validate() {
     this.saveDisabled = true;
-
     this.customerFormComponent.customerForm.markAllAsTouched();
     const customerFormValid = this.customerFormComponent.customerForm.valid;
 
@@ -65,14 +85,17 @@ export class CustomerEditComponent {
 
       const customerData = this.mapFormsToCustomerRequestData();
       this.apiService.validate(customerData).subscribe((result) => {
+        this.validationResult = result;
         this.saveDisabled = !result.valid;
+        this.validationResultModal.show();
       });
     }
   }
 
   save() {
-    // TODO impl
-    throw new Error('Method not implemented.');
+    console.log("SAVE");
+    const customerData = this.mapFormsToCustomerRequestData();
+    this.apiService.createCustomer(customerData);
   }
 
   mapFormsToCustomerRequestData(): CustomerRequestData {

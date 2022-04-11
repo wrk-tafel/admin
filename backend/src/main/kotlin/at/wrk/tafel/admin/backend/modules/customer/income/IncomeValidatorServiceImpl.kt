@@ -84,6 +84,7 @@ class IncomeValidatorServiceImpl(
             valid = valid,
             totalSum = monthlySum,
             limit = limit,
+            toleranceValue = toleranceValueOptional.map { it.amount }.orElse(BigDecimal.ZERO)!!,
             amountExceededLimit = if (!valid) differenceFromLimit.abs() else BigDecimal.ZERO
         )
     }

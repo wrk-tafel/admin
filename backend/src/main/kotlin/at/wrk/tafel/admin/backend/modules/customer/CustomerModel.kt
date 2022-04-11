@@ -45,5 +45,9 @@ data class CustomerAdditionalPerson(
 
 @ExcludeFromTestCoverage
 data class ValidateCustomerResponse(
-    val valid: Boolean
+    val valid: Boolean,
+    val totalSum: BigDecimal,
+    val limit: BigDecimal,
+    val toleranceValue: BigDecimal,
+    val amountExceededLimit: BigDecimal
 )

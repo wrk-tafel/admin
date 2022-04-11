@@ -30,12 +30,13 @@ class CustomerControllerTest {
     private lateinit var controller: CustomerController
 
     @Test
-    fun `validateIncome`() {
+    fun `validate customer`() {
         every { incomeValidatorService.validate(any()) } returns IncomeValidatorResult(
-            true,
-            totalSum = BigDecimal.ZERO,
-            limit = BigDecimal.ZERO,
-            amountExceededLimit = BigDecimal.ZERO
+            valid = true,
+            totalSum = BigDecimal("1"),
+            limit = BigDecimal("2"),
+            toleranceValue = BigDecimal("3"),
+            amountExceededLimit = BigDecimal("4")
         )
 
         val customer = Customer(
@@ -64,7 +65,16 @@ class CustomerControllerTest {
 
         val response = controller.validate(customer)
 
-        assertThat(response.valid).isTrue
+        assertThat(response).isEqualTo(
+            ValidateCustomerResponse(
+                valid = true,
+                totalSum = BigDecimal("1"),
+                limit = BigDecimal("2"),
+                toleranceValue = BigDecimal("3"),
+                amountExceededLimit = BigDecimal("4")
+            )
+        )
+
         verify {
             incomeValidatorService.validate(
                 withArg {

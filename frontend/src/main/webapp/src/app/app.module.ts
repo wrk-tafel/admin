@@ -36,7 +36,6 @@ import { AppRoutingModule } from './app.routing';
 // Import 3rd party components
 import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
 import { TabsModule } from 'ngx-bootstrap/tabs';
-import { ModalModule } from 'ngx-bootstrap/modal';
 import { ChartsModule } from 'ng2-charts';
 import { JwtHelperService, JWT_OPTIONS } from '@auth0/angular-jwt';
 import { HttpClientModule, HttpClientXsrfModule, HTTP_INTERCEPTORS } from '@angular/common/http';
@@ -60,7 +59,6 @@ import { AuthenticationInterceptor } from './common/http/authentication-intercep
     HttpClientXsrfModule,
     IconModule,
     IconSetModule.forRoot(),
-    ModalModule.forRoot(),
     PerfectScrollbarModule,
     TabsModule.forRoot()
   ],

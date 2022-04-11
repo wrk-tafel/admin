@@ -28,5 +28,6 @@ data class IncomeValidatorResult(
     val valid: Boolean,
     val totalSum: BigDecimal,
     val limit: BigDecimal,
+    val toleranceValue: BigDecimal,
     val amountExceededLimit: BigDecimal
 )
