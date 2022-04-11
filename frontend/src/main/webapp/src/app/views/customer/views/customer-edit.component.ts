@@ -25,6 +25,7 @@ export class CustomerEditComponent {
   @Output() saveDisabled: boolean = true;
   @Output() errorMessage: string;
 
+  // TODO remove mock data
   customerData: CustomerFormData = {
     lastname: 'Prantl',
     firstname: 'Stephan',
