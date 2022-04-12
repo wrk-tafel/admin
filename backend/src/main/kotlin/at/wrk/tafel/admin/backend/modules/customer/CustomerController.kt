@@ -65,8 +65,8 @@ class CustomerController(
         customerEntity.additionalPersons = customer.additionalPersons.map {
             val addPersonEntity = CustomerAddPersonEntity()
             addPersonEntity.customer = customerEntity
-            addPersonEntity.lastname = it.lastname
-            addPersonEntity.firstname = it.firstname
+            addPersonEntity.lastname = it.lastname.trim()
+            addPersonEntity.firstname = it.firstname.trim()
             addPersonEntity.birthDate = it.birthDate
             addPersonEntity.income = it.income
             addPersonEntity
