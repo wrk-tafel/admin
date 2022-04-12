@@ -35,12 +35,17 @@
         </div>
         <div class="col">
             <label class="form-label">Nationalität</label>
-            <select formControlName="country" class="form-control"
-                [ngClass]="{'is-invalid': country.invalid && (country.dirty || country.touched), 'is-valid': country.valid && (country.dirty || country.touched)}">
-                <option *ngFor="let countryItem of countries" [ngValue]="countryItem.code">
-                    {{countryItem.name}}
-                </option>
-            </select>
+            <div class="input-group">
+                <select formControlName="country" class="form-control"
+                    [ngClass]="{'is-invalid': country.invalid && (country.dirty || country.touched), 'is-valid': country.valid && (country.dirty || country.touched)}">
+                    <option *ngFor="let countryItem of countries" [ngValue]="countryItem.code">
+                        {{countryItem.name}}
+                    </option>
+                </select>
+                <div class="input-group-append">
+                    <span class="input-group-text"><i class="fa fa-flag"></i></span>
+                </div>
+            </div>
             <div *ngIf="country.errors?.required && (country.dirty || country.touched)" class="invalid-feedback">
                 Pflichtfeld
             </div>
