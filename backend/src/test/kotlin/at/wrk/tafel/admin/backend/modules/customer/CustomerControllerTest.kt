@@ -150,7 +150,7 @@ class CustomerControllerTest {
         addPerson2.birthDate = LocalDate.now()
         addPerson2.income = BigDecimal("200")
 
-        customer.additionalPersons = setOf(addPerson1, addPerson2)
+        customer.additionalPersons = listOf(addPerson1, addPerson2)
 
         every { customerRepository.findAll() } returns listOf(customer)
 

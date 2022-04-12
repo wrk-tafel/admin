@@ -45,34 +45,34 @@ class CustomerController(
     }
 
     private fun mapRequestToEntity(customer: Customer): CustomerEntity {
-        val entity = CustomerEntity()
-        entity.lastname = customer.lastname.trim()
-        entity.firstname = customer.firstname.trim()
-        entity.birthDate = customer.birthDate
-        entity.country = countryRepository.findByCode(customer.country)
-        entity.addressStreet = customer.address.street.trim()
-        entity.addressHouseNumber = customer.address.houseNumber.trim()
-        entity.addressStairway = customer.address.stairway?.trim()
-        entity.addressDoor = customer.address.door.trim()
-        entity.addressPostalCode = customer.address.postalCode
-        entity.addressCity = customer.address.city.trim()
-        entity.telephoneNumber = customer.telephoneNumber
-        entity.email = customer.email?.trim()
-        entity.employer = customer.employer.trim()
-        entity.income = customer.income
-        entity.incomeDue = customer.incomeDue
+        val customerEntity = CustomerEntity()
+        customerEntity.lastname = customer.lastname.trim()
+        customerEntity.firstname = customer.firstname.trim()
+        customerEntity.birthDate = customer.birthDate
+        customerEntity.country = countryRepository.findByCode(customer.country)
+        customerEntity.addressStreet = customer.address.street.trim()
+        customerEntity.addressHouseNumber = customer.address.houseNumber.trim()
+        customerEntity.addressStairway = customer.address.stairway?.trim()
+        customerEntity.addressDoor = customer.address.door.trim()
+        customerEntity.addressPostalCode = customer.address.postalCode
+        customerEntity.addressCity = customer.address.city.trim()
+        customerEntity.telephoneNumber = customer.telephoneNumber
+        customerEntity.email = customer.email?.trim()
+        customerEntity.employer = customer.employer.trim()
+        customerEntity.income = customer.income
+        customerEntity.incomeDue = customer.incomeDue
 
-        // TODO save customer separately and update addPersons? cascade?
-        entity.additionalPersons = customer.additionalPersons.map {
+        customerEntity.additionalPersons = customer.additionalPersons.map {
             val addPersonEntity = CustomerAddPersonEntity()
+            addPersonEntity.customer = customerEntity
             addPersonEntity.lastname = it.lastname
             addPersonEntity.firstname = it.firstname
             addPersonEntity.birthDate = it.birthDate
             addPersonEntity.income = it.income
             addPersonEntity
-        }.toSet()
+        }.toList()
 
-        return entity
+        return customerEntity
     }
 
     private fun mapEntityToResponse(customerEntity: CustomerEntity) =

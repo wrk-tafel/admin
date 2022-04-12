@@ -54,6 +54,6 @@ class CustomerEntity : BaseChangeTrackingEntity() {
     @Column(name = "income_due")
     var incomeDue: LocalDate? = null
 
-    @OneToMany(mappedBy = "customer")
-    var additionalPersons: Set<CustomerAddPersonEntity> = emptySet()
+    @OneToMany(mappedBy = "customer", cascade = [CascadeType.ALL])
+    var additionalPersons: List<CustomerAddPersonEntity> = emptyList()
 }

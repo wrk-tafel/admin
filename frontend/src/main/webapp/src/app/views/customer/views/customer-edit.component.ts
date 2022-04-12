@@ -24,7 +24,11 @@ export class CustomerEditComponent {
   @ViewChildren(AddPersonFormComponent) addPersonForms: AddPersonFormComponent[];
   @ViewChild('validationResultModal') public validationResultModal: ModalDirective;
 
-  additionalPersonsData: AddPersonFormData[] = [];
+  // TODO remove mock data
+  additionalPersonsData: AddPersonFormData[] = [
+    { lastname: 'Add', firstname: 'Pers 1', birthDate: new Date(1987, 6, 14, 0, 0, 0), income: 50 },
+    { lastname: 'Add', firstname: 'Pers 2', birthDate: new Date(1987, 6, 14, 0, 0, 0), income: 80 }
+  ];
   validationResult: ValidateCustomerResponse;
 
   @Output() saveDisabled: boolean = true;

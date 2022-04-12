@@ -15,7 +15,6 @@ export class CustomerApiService {
   }
 
   createCustomer(data: CustomerData): Observable<CustomerData> {
-    data.lastname = null; // TODO remove
     return this.http.post<CustomerData>('/customers', data);
   }
 }
