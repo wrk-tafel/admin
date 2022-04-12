@@ -1,4 +1,3 @@
-import { DecimalPipe } from "@angular/common";
 import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 import { Observable } from "rxjs";
@@ -11,12 +10,12 @@ export class CustomerApiService {
     private http: HttpClient
   ) { }
 
-  validate(data: CustomerRequestData): Observable<ValidateCustomerResponse> {
+  validate(data: CustomerData): Observable<ValidateCustomerResponse> {
     return this.http.post<ValidateCustomerResponse>('/customers/validate', data);
   }
 
-  createCustomer(data: CustomerRequestData): Observable<any> {
-    return this.http.post('/customers', data);
+  createCustomer(data: CustomerData): Observable<CustomerData> {
+    return this.http.post<CustomerData>('/customers', data);
   }
 }
 
@@ -28,21 +27,22 @@ export interface ValidateCustomerResponse {
   amountExceededLimit: number
 }
 
-export interface CustomerRequestData {
+export interface CustomerData {
+  id?: number,
   firstname: string,
   lastname: string,
   birthDate: Date,
   country: string,
-  address: CustomerAddressRequestData,
+  address: CustomerAddressData,
   telephoneNumber: number,
   email: string,
   employer: string,
   income: number,
   incomeDue: Date,
-  additionalPersons: CustomerAddPersonRequestData[]
+  additionalPersons: CustomerAddPersonData[]
 }
 
-export interface CustomerAddressRequestData {
+export interface CustomerAddressData {
   street: string,
   houseNumber: string,
   stairway: string,
@@ -51,7 +51,7 @@ export interface CustomerAddressRequestData {
   city: string
 }
 
-export interface CustomerAddPersonRequestData {
+export interface CustomerAddPersonData {
   firstname: string,
   lastname: string,
   birthDate: Date,

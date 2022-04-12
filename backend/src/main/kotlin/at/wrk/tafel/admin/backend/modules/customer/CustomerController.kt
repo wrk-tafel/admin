@@ -30,9 +30,10 @@ class CustomerController(
     }
 
     @PostMapping
-    fun createCustomer(@RequestBody customer: Customer) {
+    fun createCustomer(@RequestBody customer: Customer): Customer {
         val entity = mapRequestToEntity(customer)
-        customerRepository.save(entity)
+        val savedEntity = customerRepository.save(entity)
+        return mapEntityToResponse(savedEntity)
     }
 
     @GetMapping

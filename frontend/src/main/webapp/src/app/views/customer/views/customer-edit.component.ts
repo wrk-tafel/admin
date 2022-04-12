@@ -3,8 +3,12 @@ import { AddPersonFormComponent, AddPersonFormData } from '../components/addpers
 import { CustomerFormComponent, CustomerFormData } from '../components/customer-form.component';
 import { v4 as uuidv4 } from 'uuid';
 import { FormGroup } from '@angular/forms';
-import { CustomerRequestData, CustomerApiService, CustomerAddPersonRequestData, ValidateCustomerResponse } from '../api/customer-api.service';
+import { CustomerData, CustomerApiService, CustomerAddPersonData, ValidateCustomerResponse } from '../api/customer-api.service';
 import { ModalDirective } from 'ngx-bootstrap/modal';
+import { catchError, tap } from 'rxjs/operators';
+import { HttpErrorResponse } from '@angular/common/http';
+import { Observable, throwError } from 'rxjs';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'customer-edit',
@@ -12,7 +16,8 @@ import { ModalDirective } from 'ngx-bootstrap/modal';
 })
 export class CustomerEditComponent {
   constructor(
-    private apiService: CustomerApiService
+    private apiService: CustomerApiService,
+    private router: Router
   ) { }
 
   @ViewChild(CustomerFormComponent) customerFormComponent: CustomerFormComponent;
@@ -101,12 +106,22 @@ export class CustomerEditComponent {
 
   save() {
     const customerData = this.mapFormsToCustomerRequestData();
-    // TODO do something with subscribe
-    this.apiService.createCustomer(customerData).subscribe();
+    this.apiService.createCustomer(customerData)
+      .pipe(
+        tap(customer => {
+          this.router.navigate(['/kunden/detail', customer.id]);
+        }),
+        catchError(this.handleSaveError)
+      ).subscribe();
   }
 
-  mapFormsToCustomerRequestData(): CustomerRequestData {
-    let addPersons = this.addPersonForms.map<CustomerAddPersonRequestData>((personComponent) => {
+  private handleSaveError(response: HttpErrorResponse): Observable<CustomerData> {
+    // TODO error handling
+    return throwError(response);
+  }
+
+  mapFormsToCustomerRequestData(): CustomerData {
+    let addPersons = this.addPersonForms.map<CustomerAddPersonData>((personComponent) => {
       return {
         lastname: personComponent.lastname.value,
         firstname: personComponent.firstname.value,
