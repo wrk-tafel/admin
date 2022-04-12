@@ -41,6 +41,7 @@ import { JwtHelperService, JWT_OPTIONS } from '@auth0/angular-jwt';
 import { HttpClientModule, HttpClientXsrfModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { ApiPathInterceptor } from './common/http/apipath-interceptor.service';
 import { AuthenticationInterceptor } from './common/http/authentication-interceptor.service';
+import { ErrorHandlerInterceptor } from './common/http/errorhandler-interceptor.service';
 
 @NgModule({
   imports: [
@@ -80,6 +81,11 @@ import { AuthenticationInterceptor } from './common/http/authentication-intercep
       useValue: JWT_OPTIONS
     },
     JwtHelperService,
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: ErrorHandlerInterceptor,
+      multi: true
+    },
     {
       provide: HTTP_INTERCEPTORS,
       useClass: ApiPathInterceptor,
