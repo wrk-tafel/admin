@@ -15,6 +15,10 @@ $$ LANGUAGE plpgsql;
 
 SELECT truncate_tables('tafeladmin');
 
+-- adapt sequences
+SELECT setval('customer_id_sequence', 10000, false);
+SELECT setval('hibernate_sequence', 5000, false);
+
 -- user e2etest for cypress tests
 INSERT INTO users (username, password, enabled) VALUES ('e2etest', '$argon2id$v=19$m=16,t=2,p=1$OE8zSkpxV25qMTVoZnMzYg$nopPJkmmPJsi+41695pQ9Q', true);
 INSERT INTO authorities (username, authority) VALUES ('e2etest', 'CUSTOMER');

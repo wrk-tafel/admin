@@ -1,7 +1,7 @@
 DROP TABLE IF EXISTS customers_addpersons;
 DROP TABLE IF EXISTS customers;
 
-create sequence if not exists customer_id_sequence MINVALUE 5000;
+create sequence if not exists customer_id_sequence;
 
 create table customers(
 	id bigint primary key,
