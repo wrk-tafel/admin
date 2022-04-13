@@ -15,7 +15,7 @@ export class ErrorHandlerInterceptor implements HttpInterceptor {
   private handleError(response: HttpErrorResponse): Observable<any> {
     // TODO better ui element to show
     const errorDetail = response.error as ErrorResponseData
-    alert("ERROR HTTP - " + errorDetail.status + " - " + errorDetail.error + ": DETAIL: " + errorDetail.message);
+    alert("FEHLER:\nHTTP - " + errorDetail.status + " - " + errorDetail.error + "\nDETAILS:\n" + errorDetail.message);
     return throwError(response);
   }
 }
