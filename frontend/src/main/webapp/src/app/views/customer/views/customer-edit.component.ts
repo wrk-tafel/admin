@@ -111,7 +111,7 @@ export class CustomerEditComponent {
     this.apiService.createCustomer(customerData)
       .pipe(
         tap(customer => {
-          this.router.navigate(['/kunden/detail', customer.id]);
+          this.router.navigate(['/kunden/detail', customer.customerId]);
         })
       ).subscribe();
   }
