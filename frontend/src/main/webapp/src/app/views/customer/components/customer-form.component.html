@@ -1,7 +1,7 @@
 <form [formGroup]="customerForm">
     <div class="row">
         <div class="col-5">
-            <label class="form-label">Kundenummer</label>
+            <label class="form-label">Kundenummer (optional, falls bereits vorhanden)</label>
             <input type="text" formControlName="customerId" name="customerId" class="form-control"
                 [ngClass]="{'is-invalid': customerId.invalid && (customerId.dirty || customerId.touched), 'is-valid': customerId.valid && (customerId.dirty || customerId.touched)}"
                 autofocus>
@@ -11,8 +11,7 @@
         <div class="col">
             <label class="form-label">Familienname</label>
             <input type="text" formControlName="lastname" name="lastname" class="form-control"
-                [ngClass]="{'is-invalid': lastname.invalid && (lastname.dirty || lastname.touched), 'is-valid': lastname.valid && (lastname.dirty || lastname.touched)}"
-                autofocus>
+                [ngClass]="{'is-invalid': lastname.invalid && (lastname.dirty || lastname.touched), 'is-valid': lastname.valid && (lastname.dirty || lastname.touched)}">
             <div *ngIf="lastname.errors?.required && (lastname.dirty || lastname.touched)" class="invalid-feedback">
                 Pflichtfeld
             </div>
