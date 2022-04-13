@@ -5,9 +5,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { FormGroup } from '@angular/forms';
 import { CustomerData, CustomerApiService, CustomerAddPersonData, ValidateCustomerResponse } from '../api/customer-api.service';
 import { ModalDirective } from 'ngx-bootstrap/modal';
-import { catchError, tap } from 'rxjs/operators';
-import { HttpErrorResponse } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
 import { Router } from '@angular/router';
 
 @Component({
