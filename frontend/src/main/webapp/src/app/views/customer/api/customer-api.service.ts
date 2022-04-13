@@ -17,6 +17,10 @@ export class CustomerApiService {
   createCustomer(data: CustomerData): Observable<CustomerData> {
     return this.http.post<CustomerData>('/customers', data);
   }
+
+  getCustomer(customerId: number): Observable<CustomerData> {
+    return this.http.get<CustomerData>('/customers/' + customerId);
+  }
 }
 
 export interface ValidateCustomerResponse {

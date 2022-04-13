@@ -1,19 +1,23 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { CustomerApiService, CustomerData } from '../api/customer-api.service';
 
 @Component({
   selector: 'customer-detail',
   templateUrl: 'customer-detail.component.html'
 })
 export class CustomerDetailComponent implements OnInit {
-  customerId: number;
+  customerData: CustomerData;
 
-  constructor(private route: ActivatedRoute) { }
+  constructor(
+    private route: ActivatedRoute,
+    private apiService: CustomerApiService) { }
 
   ngOnInit(): void {
     this.route.params.subscribe(params => {
-      this.customerId = +params['id'];
-      // TODO load details
+      this.apiService.getCustomer(+params['id']).subscribe((customerData) => {
+        this.customerData = customerData;
+      });
     });
   }
 }

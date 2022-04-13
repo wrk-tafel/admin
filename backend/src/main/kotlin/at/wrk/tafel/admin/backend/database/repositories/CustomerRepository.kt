@@ -7,4 +7,5 @@ import org.springframework.data.jpa.repository.Query
 interface CustomerRepository : JpaRepository<CustomerEntity, Long> {
     @Query("SELECT nextval('customer_id_sequence')", nativeQuery = true)
     fun getNextCustomerSequenceValue(): Long
+    fun findByCustomerId(customerId: Long): CustomerEntity
 }

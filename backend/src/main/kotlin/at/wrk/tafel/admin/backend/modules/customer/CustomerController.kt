@@ -36,6 +36,12 @@ class CustomerController(
         return mapEntityToResponse(savedEntity)
     }
 
+    @GetMapping("/{customerId}")
+    fun getCustomer(@PathVariable("customerId") customerId: Long): Customer {
+        val entity = customerRepository.findByCustomerId(customerId)
+        return mapEntityToResponse(entity)
+    }
+
     @GetMapping
     fun listCustomers(): CustomerListResponse {
         val customerItems = customerRepository.findAll().map { customerEntity ->
