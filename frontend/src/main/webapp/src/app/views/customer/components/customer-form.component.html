@@ -1,5 +1,13 @@
 <form [formGroup]="customerForm">
     <div class="row">
+        <div class="col-5">
+            <label class="form-label">Kundenummer</label>
+            <input type="text" formControlName="customerId" name="customerId" class="form-control"
+                [ngClass]="{'is-invalid': customerId.invalid && (customerId.dirty || customerId.touched), 'is-valid': customerId.valid && (customerId.dirty || customerId.touched)}"
+                autofocus>
+        </div>
+    </div>
+    <div class="row">
         <div class="col">
             <label class="form-label">Familienname</label>
             <input type="text" formControlName="lastname" name="lastname" class="form-control"

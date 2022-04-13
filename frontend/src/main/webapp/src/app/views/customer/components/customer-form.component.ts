@@ -15,6 +15,7 @@ export class CustomerFormComponent implements OnInit {
   @Output() dataUpdatedEvent = new EventEmitter<void>();
 
   customerForm = new FormGroup({
+    customerId: new FormControl(''),
     lastname: new FormControl('', [Validators.required, Validators.maxLength(50)]),
     firstname: new FormControl('', [Validators.required, , Validators.maxLength(50)]),
     birthDate: new FormControl('', Validators.required),
@@ -50,6 +51,7 @@ export class CustomerFormComponent implements OnInit {
     });
   }
 
+  get customerId() { return this.customerForm.get('customerId'); }
   get lastname() { return this.customerForm.get('lastname'); }
   get firstname() { return this.customerForm.get('firstname'); }
   get birthDate() { return this.customerForm.get('birthDate'); }
@@ -70,6 +72,7 @@ export class CustomerFormComponent implements OnInit {
 }
 
 export interface CustomerFormData {
+  customerId?: number,
   lastname?: string,
   firstname?: string,
   birthDate?: Date,

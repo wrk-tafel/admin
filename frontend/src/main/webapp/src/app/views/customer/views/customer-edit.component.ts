@@ -130,6 +130,7 @@ export class CustomerEditComponent {
 
     const customer = this.customerFormComponent;
     return {
+      customerId: customer.customerId.value,
       lastname: customer.lastname.value,
       firstname: customer.firstname.value,
       birthDate: customer.birthDate.value,
