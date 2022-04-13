@@ -10,7 +10,6 @@ import javax.persistence.*
 @Table(name = "customers")
 class CustomerEntity : BaseChangeTrackingEntity() {
     @Column(name = "customer_id")
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "customer_id_sequence")
     var customerId: Long? = null
 
     @Column(name = "firstname")

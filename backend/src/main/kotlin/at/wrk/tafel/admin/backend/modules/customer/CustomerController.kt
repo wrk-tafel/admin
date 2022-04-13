@@ -46,7 +46,7 @@ class CustomerController(
 
     private fun mapRequestToEntity(customer: Customer): CustomerEntity {
         val customerEntity = CustomerEntity()
-        customerEntity.customerId = customer.customerId
+        customerEntity.customerId = customer.customerId ?: customerRepository.getNextCustomerSequenceValue()
         customerEntity.lastname = customer.lastname.trim()
         customerEntity.firstname = customer.firstname.trim()
         customerEntity.birthDate = customer.birthDate

@@ -29,6 +29,7 @@ export interface ValidateCustomerResponse {
 
 export interface CustomerData {
   id?: number,
+  customerId?: number,
   firstname: string,
   lastname: string,
   birthDate: Date,

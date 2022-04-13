@@ -1,14 +1,17 @@
 DROP TABLE IF EXISTS customers_addpersons;
 DROP TABLE IF EXISTS customers;
 
+create sequence if not exists customer_id_sequence MINVALUE 5000;
+
 create table customers(
 	id bigint primary key,
 	created_at timestamptz not null,
 	updated_at timestamptz not null,
-	customer_id bigint not null,
+	customer_id bigint not null unique,
 	firstname varchar(50) not null,
 	lastname varchar(50) not null,
 	birth_date date not null,
+	country_id bigint not null REFERENCES static_countries(id),
     address_street varchar(100) not null,
     address_houseNumber varchar(10) not null,
     address_stairway varchar(5) null,
@@ -32,6 +35,3 @@ create table customers_addpersons(
 	birth_date date not null,
     income decimal null
 );
-
-drop sequence if exists customer_id_sequence;
-create sequence customer_id_sequence minvalue 5000;
