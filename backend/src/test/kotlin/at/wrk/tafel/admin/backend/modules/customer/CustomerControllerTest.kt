@@ -37,6 +37,46 @@ class CustomerControllerTest {
 
     private lateinit var testCountry: CountryEntity
 
+    private val testCustomer = Customer(
+        id = 1,
+        customerId = 100,
+        firstname = "Max",
+        lastname = "Mustermann",
+        birthDate = LocalDate.now().minusYears(30),
+        country = "AT",
+        telephoneNumber = 43660123123,
+        email = "test@mail.com",
+        address = CustomerAddress(
+            street = "Test-Straße",
+            houseNumber = "100",
+            stairway = "1",
+            door = "21",
+            postalCode = 1010,
+            city = "Wien"
+        ),
+        employer = "Employer 123",
+        income = BigDecimal("1000"),
+        incomeDue = LocalDate.now(),
+        additionalPersons = listOf(
+            CustomerAdditionalPerson(
+                id = 2,
+                firstname = "Add pers 1",
+                lastname = "Add pers 1",
+                birthDate = LocalDate.now().minusYears(5),
+                income = BigDecimal("100")
+            ),
+            CustomerAdditionalPerson(
+                id = 3,
+                firstname = "Add pers 2",
+                lastname = "Add pers 2",
+                birthDate = LocalDate.now().minusYears(2),
+                income = BigDecimal("200")
+            )
+        )
+    )
+
+    private val testCustomerEntity = CustomerEntity()
+
     @BeforeEach
     fun beforeEach() {
         testCountry = CountryEntity()
@@ -44,6 +84,40 @@ class CustomerControllerTest {
         testCountry.name = "Österreich"
 
         every { countryRepository.findByCode("AT") } returns testCountry
+
+        testCustomerEntity.id = 1
+        testCustomerEntity.customerId = 100
+        testCustomerEntity.lastname = "Mustermann"
+        testCustomerEntity.firstname = "Max"
+        testCustomerEntity.birthDate = LocalDate.now().minusYears(30)
+        testCustomerEntity.country = testCountry
+        testCustomerEntity.addressStreet = "Test-Straße"
+        testCustomerEntity.addressHouseNumber = "100"
+        testCustomerEntity.addressStairway = "1"
+        testCustomerEntity.addressPostalCode = 1010
+        testCustomerEntity.addressDoor = "21"
+        testCustomerEntity.addressCity = "Wien"
+        testCustomerEntity.telephoneNumber = 43660123123
+        testCustomerEntity.email = "test@mail.com"
+        testCustomerEntity.employer = "Employer 123"
+        testCustomerEntity.income = BigDecimal("1000")
+        testCustomerEntity.incomeDue = LocalDate.now()
+
+        val addPerson1 = CustomerAddPersonEntity()
+        addPerson1.id = 2
+        addPerson1.lastname = "Add pers 1"
+        addPerson1.firstname = "Add pers 1"
+        addPerson1.birthDate = LocalDate.now().minusYears(5)
+        addPerson1.income = BigDecimal("100")
+
+        val addPerson2 = CustomerAddPersonEntity()
+        addPerson2.id = 3
+        addPerson2.lastname = "Add pers 2"
+        addPerson2.firstname = "Add pers 2"
+        addPerson2.birthDate = LocalDate.now().minusYears(2)
+        addPerson2.income = BigDecimal("200")
+
+        testCustomerEntity.additionalPersons = listOf(addPerson1, addPerson2)
     }
 
     @Test
@@ -56,33 +130,7 @@ class CustomerControllerTest {
             amountExceededLimit = BigDecimal("4")
         )
 
-        val customer = Customer(
-            firstname = "test",
-            lastname = "test",
-            birthDate = LocalDate.now().minusYears(30),
-            country = "AT",
-            address = CustomerAddress(
-                street = "street",
-                houseNumber = "10",
-                stairway = "1",
-                door = "20",
-                postalCode = 1010,
-                city = "Wien"
-            ),
-            employer = "employer",
-            income = BigDecimal("1000"),
-            additionalPersons = listOf(
-                CustomerAdditionalPerson(
-                    id = 1,
-                    firstname = "test",
-                    lastname = "test",
-                    birthDate = LocalDate.now().minusYears(40),
-                    income = BigDecimal("2000")
-                )
-            )
-        )
-
-        val response = controller.validate(customer)
+        val response = controller.validate(testCustomer)
 
         assertThat(response).isEqualTo(
             ValidateCustomerResponse(
@@ -107,8 +155,15 @@ class CustomerControllerTest {
                     assertThat(it[1])
                         .isEqualTo(
                             IncomeValidatorPerson(
-                                birthDate = LocalDate.now().minusYears(40),
-                                monthlyIncome = BigDecimal("2000")
+                                birthDate = LocalDate.now().minusYears(5),
+                                monthlyIncome = BigDecimal("100")
+                            )
+                        )
+                    assertThat(it[2])
+                        .isEqualTo(
+                            IncomeValidatorPerson(
+                                birthDate = LocalDate.now().minusYears(2),
+                                monthlyIncome = BigDecimal("200")
                             )
                         )
                 }
@@ -117,87 +172,27 @@ class CustomerControllerTest {
     }
 
     @Test
+    fun `create customer`() {
+        every { customerRepository.save(any()) } returns testCustomerEntity
+
+        val response = controller.createCustomer(testCustomer)
+
+        assertThat(response).isEqualTo(testCustomer)
+
+        verify {
+            customerRepository.save(any())
+        }
+    }
+
+    @Test
     fun `list customers`() {
-        val customer = CustomerEntity()
-        customer.id = 1
-        customer.lastname = "Mustermann"
-        customer.firstname = "Max"
-        customer.birthDate = LocalDate.now()
-        customer.country = testCountry
-        customer.addressStreet = "Test-Straße"
-        customer.addressHouseNumber = "100"
-        customer.addressStairway = "1"
-        customer.addressPostalCode = 1010
-        customer.addressDoor = "21"
-        customer.addressCity = "Wien"
-        customer.telephoneNumber = 43660123123
-        customer.email = "test@mail.com"
-        customer.employer = "Employer 123"
-        customer.income = BigDecimal("1000")
-        customer.incomeDue = LocalDate.now()
-
-        val addPerson1 = CustomerAddPersonEntity()
-        addPerson1.id = 2
-        addPerson1.lastname = "Add lastname 1"
-        addPerson1.firstname = "Add firstname 1"
-        addPerson1.birthDate = LocalDate.now()
-        addPerson1.income = BigDecimal("100")
-
-        val addPerson2 = CustomerAddPersonEntity()
-        addPerson2.id = 3
-        addPerson2.lastname = "Add lastname 2"
-        addPerson2.firstname = "Add firstname 2"
-        addPerson2.birthDate = LocalDate.now()
-        addPerson2.income = BigDecimal("200")
-
-        customer.additionalPersons = listOf(addPerson1, addPerson2)
-
-        every { customerRepository.findAll() } returns listOf(customer)
+        every { customerRepository.findAll() } returns listOf(testCustomerEntity)
 
         val response = controller.listCustomers()
 
         assertThat(response).isNotNull
         assertThat(response.items).hasSize(1)
 
-        assertThat(response.items).hasSameElementsAs(
-            listOf(
-                Customer(
-                    id = 1,
-                    lastname = "Mustermann",
-                    firstname = "Max",
-                    birthDate = LocalDate.now(),
-                    country = "AT",
-                    address = CustomerAddress(
-                        street = "Test-Straße",
-                        houseNumber = "100",
-                        stairway = "1",
-                        door = "21",
-                        postalCode = 1010,
-                        city = "Wien"
-                    ),
-                    telephoneNumber = 43660123123,
-                    email = "test@mail.com",
-                    employer = "Employer 123",
-                    income = BigDecimal("1000"),
-                    incomeDue = LocalDate.now(),
-                    additionalPersons = listOf(
-                        CustomerAdditionalPerson(
-                            id = 2,
-                            lastname = "Add lastname 1",
-                            firstname = "Add firstname 1",
-                            birthDate = LocalDate.now(),
-                            income = BigDecimal("100")
-                        ),
-                        CustomerAdditionalPerson(
-                            id = 3,
-                            lastname = "Add lastname 2",
-                            firstname = "Add firstname 2",
-                            birthDate = LocalDate.now(),
-                            income = BigDecimal("200")
-                        )
-                    )
-                )
-            )
-        )
+        assertThat(response.items).hasSameElementsAs(listOf(testCustomer))
     }
 }

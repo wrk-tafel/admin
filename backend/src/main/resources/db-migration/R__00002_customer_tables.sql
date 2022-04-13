@@ -5,6 +5,7 @@ create table customers(
 	id bigint primary key,
 	created_at timestamptz not null,
 	updated_at timestamptz not null,
+	customer_id bigint not null,
 	firstname varchar(50) not null,
 	lastname varchar(50) not null,
 	birth_date date not null,
@@ -31,3 +32,6 @@ create table customers_addpersons(
 	birth_date date not null,
     income decimal null
 );
+
+drop sequence if exists customer_id_sequence;
+create sequence customer_id_sequence minvalue 5000;

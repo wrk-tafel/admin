@@ -46,6 +46,7 @@ class CustomerController(
 
     private fun mapRequestToEntity(customer: Customer): CustomerEntity {
         val customerEntity = CustomerEntity()
+        customerEntity.customerId = customer.customerId
         customerEntity.lastname = customer.lastname.trim()
         customerEntity.firstname = customer.firstname.trim()
         customerEntity.birthDate = customer.birthDate
@@ -78,6 +79,7 @@ class CustomerController(
     private fun mapEntityToResponse(customerEntity: CustomerEntity) =
         Customer(
             id = customerEntity.id!!,
+            customerId = customerEntity.customerId,
             firstname = customerEntity.firstname!!,
             lastname = customerEntity.lastname!!,
             birthDate = customerEntity.birthDate!!,

@@ -114,14 +114,8 @@ export class CustomerEditComponent {
       .pipe(
         tap(customer => {
           this.router.navigate(['/kunden/detail', customer.id]);
-        }),
-        catchError(this.handleSaveError)
+        })
       ).subscribe();
-  }
-
-  private handleSaveError(response: HttpErrorResponse): Observable<CustomerData> {
-    // TODO error handling
-    return throwError(response);
   }
 
   mapFormsToCustomerRequestData(): CustomerData {
