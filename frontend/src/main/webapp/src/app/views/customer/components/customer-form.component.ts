@@ -46,7 +46,7 @@ export class CustomerFormComponent implements OnInit {
     this.birthDate.setValue(this.customerData.birthDate.toISOString().substring(0, 10));
     this.incomeDue.setValue(this.customerData.incomeDue.toISOString().substring(0, 10));
 
-    this.customerForm.valueChanges.subscribe((value) => {
+    this.customerForm.valueChanges.subscribe(() => {
       this.dataUpdatedEvent.emit();
     });
   }

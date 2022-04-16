@@ -45,7 +45,7 @@ describe('CustomerFormComponent', () => {
     const testData: CustomerFormData = {
       lastname: 'Mustermann',
       firstname: 'Max',
-      birthDate: new Date(),
+      birthDate: new Date(2022, 3, 27),
       country: 'AT',
       telephoneNumber: 660123123,
       email: 'test@mail.com',
@@ -57,22 +57,36 @@ describe('CustomerFormComponent', () => {
       city: 'Wien',
       employer: 'WRK',
       income: 123.50,
-      incomeDue: new Date()
+      incomeDue: new Date(2022, 3, 27)
     }
     component.customerData = testData;
     spyOn(component.dataUpdatedEvent, 'emit');
     component.ngOnInit();
 
-    expect(component.customerForm.value).toEqual(testData);
+    expect(component.customerForm.get('customerId').value).toBe('');
+    expect(component.customerForm.get('lastname').value).toBe(testData.lastname);
+    expect(component.customerForm.get('firstname').value).toBe(testData.firstname);
+    expect(component.customerForm.get('birthDate').value).toBe('2022-04-26');
+    expect(component.customerForm.get('country').value).toBe('AT');
+    expect(component.customerForm.get('telephoneNumber').value).toBe(660123123);
+    expect(component.customerForm.get('email').value).toBe('test@mail.com');
+    expect(component.customerForm.get('street').value).toBe('Testgasse');
+    expect(component.customerForm.get('houseNumber').value).toBe('123A');
+    expect(component.customerForm.get('door').value).toBe('1');
+    expect(component.customerForm.get('stairway').value).toBe('1');
+    expect(component.customerForm.get('postalCode').value).toBe(1234);
+    expect(component.customerForm.get('city').value).toBe('Wien');
+    expect(component.customerForm.get('employer').value).toBe('WRK');
+    expect(component.customerForm.get('income').value).toBe(123.50);
+    expect(component.customerForm.get('incomeDue').value).toBe('2022-04-26');
+
     expect(component.customerForm.valid).toBe(true);
     expect(component.countries).toEqual(mockCountryList);
 
     expect(component.lastname.value).toBe(testData.lastname);
     component.lastname.setValue('updated');
     fixture.detectChanges();
-    expect(component.dataUpdatedEvent.emit).toHaveBeenCalledWith(jasmine.objectContaining({
-      lastname: 'updated'
-    }));
+    expect(component.dataUpdatedEvent.emit).toHaveBeenCalled();
   }));
 
 });
