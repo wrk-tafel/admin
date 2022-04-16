@@ -1,5 +1,6 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { CustomValidators } from '../../../common/CustomValidator';
 
 @Component({
   selector: 'addperson-form',
@@ -13,7 +14,11 @@ export class AddPersonFormComponent implements OnInit {
     uuid: new FormControl(),
     lastname: new FormControl('', [Validators.required, Validators.maxLength(50)]),
     firstname: new FormControl('', [Validators.required, , Validators.maxLength(50)]),
-    birthDate: new FormControl('', Validators.required),
+    birthDate: new FormControl('', [
+      Validators.required,
+      CustomValidators.minDate(new Date(1920, 0, 1)),
+      CustomValidators.maxDate(new Date())
+    ]),
     income: new FormControl('')
   })
 

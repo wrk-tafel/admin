@@ -32,6 +32,13 @@
             <div *ngIf="birthDate.errors?.required && (birthDate.dirty || birthDate.touched)" class="invalid-feedback">
                 Pflichtfeld
             </div>
+            <div *ngIf="birthDate.errors?.mindate && (birthDate.dirty || birthDate.touched)" class="invalid-feedback">
+                Min. Datum: {{birthDate.errors.mindate.minimumDate}}
+            </div>
+            <div *ngIf="birthDate.errors?.maxdate && (birthDate.dirty || birthDate.touched)" class="invalid-feedback">
+                Max. Datum: {{birthDate.errors.maxdate.maximumDate}}
+            </div>
+
         </div>
         <div class="col-lg">
             <label class="form-label">Einkommen monatl.</label>
