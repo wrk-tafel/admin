@@ -1,4 +1,4 @@
-import { HttpErrorResponse, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
+import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -8,16 +8,23 @@ import { catchError } from 'rxjs/operators';
 })
 export class ErrorHandlerInterceptor implements HttpInterceptor {
 
-  intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    return next.handle(req).pipe(catchError(this.handleError));
-  }
+  constructor(private window: Window) { }
 
-  private handleError(response: HttpErrorResponse): Observable<any> {
-    // TODO better ui element to show
-    console.log("ERR-RESP", response);
-    const errorDetail = response.error as ErrorResponseData
-    alert("FEHLER:\nHTTP - " + response.status + " - " + response.statusText + "\nMESSAGE:\n" + response.message + "\nDETAILS:\n" + errorDetail.message);
-    return throwError(response);
+  intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+    return next.handle(req).pipe(catchError(response => {
+      // TODO better ui element to show
+      const errorDetail = response.error as ErrorResponseData;
+
+      const msg = "FEHLER:\nHTTP - " + response.status
+        + " - " + response.statusText
+        + "\nMESSAGE:\n"
+        + response?.message
+        + "\nDETAILS:\n"
+        + errorDetail?.message;
+      this.window.alert(msg);
+
+      return throwError(response);
+    }));
   }
 }
 

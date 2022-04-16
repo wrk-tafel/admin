@@ -31,6 +31,7 @@ describe('CountryApiService', () => {
 
     const req = httpMock.expectOne('/countries');
     req.flush({ items: mockCountries });
+    httpMock.verify();
   });
 
 });

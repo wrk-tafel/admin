@@ -14,7 +14,6 @@ describe('AuthenticationInterceptor', () => {
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
       providers: [
-        AuthenticationInterceptor,
         {
           provide: HTTP_INTERCEPTORS,
           useClass: AuthenticationInterceptor,
@@ -60,6 +59,7 @@ describe('AuthenticationInterceptor', () => {
     const mockReq = httpMock.expectOne('/test');
     const mockErrorResponse = { status: 401, statusText: 'Unauthorized' };
     mockReq.flush(null, mockErrorResponse);
+    httpMock.verify();
   });
 
 });

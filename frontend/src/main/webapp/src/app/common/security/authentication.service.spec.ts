@@ -55,6 +55,7 @@ describe('AuthenticationService', () => {
     const mockErrorResponse = { status: 200, statusText: 'OK' };
     const data = { token: 'TOKENVALUE' };
     mockReq.flush(data, mockErrorResponse);
+    httpMock.verify();
   });
 
   it('login failed', () => {
@@ -71,6 +72,7 @@ describe('AuthenticationService', () => {
 
     const mockErrorResponse = { status: 403, statusText: 'Forbidden' };
     mockReq.flush(null, mockErrorResponse);
+    httpMock.verify();
   });
 
   it('logoutAndRedirect - token set and valid', () => {
