@@ -18,21 +18,20 @@ export class CustomerEditComponent {
     private router: Router
   ) { }
 
-  @ViewChild(CustomerFormComponent) customerFormComponent: CustomerFormComponent;
-  @ViewChildren(AddPersonFormComponent) addPersonForms: AddPersonFormComponent[];
-  @ViewChild('validationResultModal') public validationResultModal: ModalDirective;
-
-  // TODO remove mock data
-  additionalPersonsData: AddPersonFormData[] = [
-    { lastname: 'Add', firstname: 'Pers 1', birthDate: new Date(1987, 6, 14, 0, 0, 0), income: 50 },
-    { lastname: 'Add', firstname: 'Pers 2', birthDate: new Date(1987, 6, 14, 0, 0, 0), income: 80 }
-  ];
-  validationResult: ValidateCustomerResponse;
+  customerData: CustomerFormData;
+  additionalPersonsData: AddPersonFormData[] = [];
 
   @Output() saveDisabled: boolean = true;
   @Output() errorMessage: string;
 
+  @ViewChild(CustomerFormComponent) customerFormComponent: CustomerFormComponent;
+  @ViewChildren(AddPersonFormComponent) addPersonForms: AddPersonFormComponent[];
+  @ViewChild('validationResultModal') public validationResultModal: ModalDirective;
+
+  validationResult: ValidateCustomerResponse;
+
   // TODO remove mock data
+  /*
   customerData: CustomerFormData = {
     lastname: 'Prantl',
     firstname: 'Stephan',
@@ -52,6 +51,11 @@ export class CustomerEditComponent {
     income: 1000,
     incomeDue: new Date()
   };
+  additionalPersonsData: AddPersonFormData[] = [
+    { lastname: 'Add', firstname: 'Pers 1', birthDate: new Date(1987, 6, 14, 0, 0, 0), income: 50 },
+    { lastname: 'Add', firstname: 'Pers 2', birthDate: new Date(1987, 6, 14, 0, 0, 0), income: 80 }
+  ];
+  */
 
   addNewPerson() {
     this.saveDisabled = true;

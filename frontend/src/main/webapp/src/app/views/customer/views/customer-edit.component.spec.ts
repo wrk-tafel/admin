@@ -1,9 +1,17 @@
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { TestBed, waitForAsync } from '@angular/core/testing';
+import { RouterTestingModule } from '@angular/router/testing';
+import { ModalModule } from 'ngx-bootstrap/modal';
 import { CustomerEditComponent } from './customer-edit.component';
 
 describe('CustomerEditComponent', () => {
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
+      imports: [
+        HttpClientTestingModule,
+        RouterTestingModule,
+        ModalModule.forRoot()
+      ],
       declarations: [
         CustomerEditComponent
       ]
@@ -25,10 +33,9 @@ describe('CustomerEditComponent', () => {
 
     expect(component.customerData).toBe(undefined);
 
-    const updatedData = { lastname: 'updated' };
     component.updatedCustomerFormData();
 
-    expect(component.customerData).toEqual(updatedData);
+    expect(component.saveDisabled).toBe(true);
   });
 
   it('updatePersonsData', () => {
@@ -39,10 +46,9 @@ describe('CustomerEditComponent', () => {
     component.additionalPersonsData[0] = existingData;
     expect(component.additionalPersonsData[0]).toEqual(existingData);
 
-    const updatedData = { lastname: 'updated' };
     component.updatedPersonsFormData();
 
-    expect(component.additionalPersonsData[0]).toEqual(updatedData);
+    expect(component.saveDisabled).toEqual(true);
   });
 
   it('addNewPerson', () => {
