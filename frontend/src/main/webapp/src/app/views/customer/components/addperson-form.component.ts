@@ -21,7 +21,7 @@ export class AddPersonFormComponent implements OnInit {
     this.personForm.patchValue(this.personData);
     this.birthDate.setValue(this.personData.birthDate?.toISOString().substring(0, 10));
 
-    this.personForm.valueChanges.subscribe((value) => {
+    this.personForm.valueChanges.subscribe(() => {
       this.dataUpdatedEvent.emit();
     });
   }

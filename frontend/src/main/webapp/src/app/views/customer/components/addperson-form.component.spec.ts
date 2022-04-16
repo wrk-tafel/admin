@@ -26,22 +26,25 @@ describe('AddPersonsCardComponent', () => {
       uuid: uuidv4(),
       lastname: 'Mustermann',
       firstname: 'Max',
-      birthDate: new Date(),
+      birthDate: new Date(2022, 3, 27),
       income: 500
     }
     component.personData = testData;
     spyOn(component.dataUpdatedEvent, 'emit');
     component.ngOnInit();
 
-    expect(component.personForm.value).toEqual(testData);
+    expect(component.personForm.get('uuid').value).toBe(testData.uuid);
+    expect(component.personForm.get('lastname').value).toBe(testData.lastname);
+    expect(component.personForm.get('firstname').value).toBe(testData.firstname);
+    expect(component.personForm.get('birthDate').value).toBe('2022-04-26');
+    expect(component.personForm.get('income').value).toBe(testData.income);
+
     expect(component.personForm.valid).toBe(true);
 
     expect(component.lastname.value).toBe(testData.lastname);
     component.lastname.setValue('updated');
     fixture.detectChanges();
-    expect(component.dataUpdatedEvent.emit).toHaveBeenCalledWith(jasmine.objectContaining({
-      lastname: 'updated'
-    }));
+    expect(component.dataUpdatedEvent.emit).toHaveBeenCalled();
   }));
 
 });

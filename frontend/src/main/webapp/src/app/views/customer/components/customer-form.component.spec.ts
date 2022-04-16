@@ -67,17 +67,17 @@ describe('CustomerFormComponent', () => {
     expect(component.customerForm.get('lastname').value).toBe(testData.lastname);
     expect(component.customerForm.get('firstname').value).toBe(testData.firstname);
     expect(component.customerForm.get('birthDate').value).toBe('2022-04-26');
-    expect(component.customerForm.get('country').value).toBe('AT');
-    expect(component.customerForm.get('telephoneNumber').value).toBe(660123123);
-    expect(component.customerForm.get('email').value).toBe('test@mail.com');
-    expect(component.customerForm.get('street').value).toBe('Testgasse');
-    expect(component.customerForm.get('houseNumber').value).toBe('123A');
-    expect(component.customerForm.get('door').value).toBe('1');
-    expect(component.customerForm.get('stairway').value).toBe('1');
-    expect(component.customerForm.get('postalCode').value).toBe(1234);
-    expect(component.customerForm.get('city').value).toBe('Wien');
-    expect(component.customerForm.get('employer').value).toBe('WRK');
-    expect(component.customerForm.get('income').value).toBe(123.50);
+    expect(component.customerForm.get('country').value).toBe(testData.country);
+    expect(component.customerForm.get('telephoneNumber').value).toBe(testData.telephoneNumber);
+    expect(component.customerForm.get('email').value).toBe(testData.email);
+    expect(component.customerForm.get('street').value).toBe(testData.street);
+    expect(component.customerForm.get('houseNumber').value).toBe(testData.houseNumber);
+    expect(component.customerForm.get('door').value).toBe(testData.door);
+    expect(component.customerForm.get('stairway').value).toBe(testData.stairway);
+    expect(component.customerForm.get('postalCode').value).toBe(testData.postalCode);
+    expect(component.customerForm.get('city').value).toBe(testData.city);
+    expect(component.customerForm.get('employer').value).toBe(testData.employer);
+    expect(component.customerForm.get('income').value).toBe(testData.income);
     expect(component.customerForm.get('incomeDue').value).toBe('2022-04-26');
 
     expect(component.customerForm.valid).toBe(true);
