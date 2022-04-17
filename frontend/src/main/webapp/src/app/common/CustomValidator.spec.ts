@@ -36,6 +36,19 @@ describe('CustomValidator', () => {
         expect(result).toBe(null);
     });
 
+    it('actualDate matching minDate time ignored', () => {
+        var control = Object.defineProperties({} as AbstractControl, {
+            value: {
+                get: function get() { return new Date(2000, 0, 1) }
+            }
+        });
+
+        const minDate = new Date(2000, 0, 1, 12, 0, 0);
+        const result = CustomValidator.minDate(minDate)(control);
+
+        expect(result).toBe(null);
+    });
+
     it('actualDate later than minDate', () => {
         var control = Object.defineProperties({} as AbstractControl, {
             value: {
@@ -66,6 +79,19 @@ describe('CustomValidator', () => {
         var control = Object.defineProperties({} as AbstractControl, {
             value: {
                 get: function get() { return new Date(2000, 0, 1) }
+            }
+        });
+
+        const maxDate = new Date(2000, 0, 1);
+        const result = CustomValidator.maxDate(maxDate)(control);
+
+        expect(result).toBe(null);
+    });
+
+    it('actualDate matching maxDate time ignored', () => {
+        var control = Object.defineProperties({} as AbstractControl, {
+            value: {
+                get: function get() { return new Date(2000, 0, 1, 12, 0, 0) }
             }
         });
 
