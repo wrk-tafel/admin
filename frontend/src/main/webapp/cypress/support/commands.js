@@ -36,3 +36,26 @@ Cypress.Commands.add('loginWithTestuser', () => {
     let password = 'e2etest';
     cy.login(username, password);
 });
+
+Cypress.Commands.add('loginHeadlessWithTestuser', () => {
+    let username = 'e2etest';
+    let password = 'e2etest';
+
+    cy.request({
+        method: 'POST',
+        url: '/api/login',
+        body: 'username=' + username + '&password=' + password,
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        }
+    }).then((response) => {
+        const token = response.body.token;
+        sessionStorage.setItem('JWT_TOKEN', token);
+    });
+});
+
+Cypress.Commands.add(
+    'byTestId',
+    (id) =>
+        cy.get(`[testid="${id}"]`)
+);

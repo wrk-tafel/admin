@@ -1,7 +1,7 @@
 describe('Customer', () => {
 
   beforeEach(() => {
-    cy.loginWithTestuser();
+    cy.loginHeadlessWithTestuser();
     cy.visit('/');
   });
 

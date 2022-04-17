@@ -3,7 +3,7 @@ describe('Login', () => {
   it('login successful', () => {
     cy.visit('/');
     cy.url().should('contain', '/login');
-    cy.get('[testid=errorMessage]').should('not.exist');
+    cy.byTestId('errorMessage').should('not.exist');
 
     cy.loginWithTestuser();
     cy.visit('/');
@@ -14,12 +14,12 @@ describe('Login', () => {
   it('login failed', () => {
     cy.visit('/');
     cy.url().should('contain', '/login');
-    cy.get('[testid=errorMessage]').should('not.exist');
+    cy.byTestId('errorMessage').should('not.exist');
 
     cy.login('dummy', 'dummy');
 
     cy.url().should('contain', '/login');
-    cy.get('[testid=errorMessage]').should('exist');
+    cy.byTestId('errorMessage').should('exist');
   });
 
 });
