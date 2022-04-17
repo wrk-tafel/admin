@@ -9,12 +9,12 @@ export class CustomValidator {
                 return null;
             }
 
-            const controlDate = moment(control.value);
+            const controlDate = moment(control.value).startOf('day');
             if (!controlDate.isValid()) {
                 return null;
             }
 
-            const validationDate = moment(date);
+            const validationDate = moment(date).startOf('day');
 
             const result = !controlDate.isBefore(validationDate) ? null : {
                 'mindate': {
@@ -32,12 +32,12 @@ export class CustomValidator {
                 return null;
             }
 
-            const controlDate = moment(control.value);
+            const controlDate = moment(control.value).startOf('day');
             if (!controlDate.isValid()) {
                 return null;
             }
 
-            const validationDate = moment(date);
+            const validationDate = moment(date).startOf('day');
 
             const result = !controlDate.isAfter(validationDate) ? null : {
                 'maxdate': {
