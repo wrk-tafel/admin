@@ -1,0 +1,29 @@
+name: Build and Test
+
+env:
+  JAVA_VERSION: '17'
+  JAVA_DISTRIBUTION: 'adopt'
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3.1.1
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          cache: 'maven'
+      - name: Execute maven build
+        run: ./mvnw clean install -DskipTests
+      - uses: actions/upload-artifact@v3
+        with:
+          name: admin-jarfile
+          path: ./backend/target/admin-backend.jar
+          if-no-files-found: error
+          retention-days: 1
