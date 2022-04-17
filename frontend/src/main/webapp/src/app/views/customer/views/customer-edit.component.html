@@ -33,7 +33,7 @@
                                 <div class="card-body">
                                     <div class="row">
                                         <div class="col">
-                                            <addperson-form [attr.testid]="'personcard-' + i"
+                                            <addperson-form [attr.testid]="'personform-' + i"
                                                 [personData]="additionalPersonData"
                                                 (dataUpdatedEvent)="updatedPersonsFormData()">
                                             </addperson-form>
@@ -41,7 +41,7 @@
                                     </div>
                                     <div class="row">
                                         <div class="col-lg-5 col-xxl-2 mt-3">
-                                            <button [attr.testid]="'remove-personcard-' + i" type="button"
+                                            <button [attr.testid]="'remove-personform-' + i" type="button"
                                                 class="btn btn-block btn-danger"
                                                 (click)="removePerson(i)">Löschen</button>
                                         </div>
@@ -54,18 +54,18 @@
             </div>
         </div>
     </div>
-    <button class="btn btn-primary px-4 mb-3" (click)="validate()">Anspruch prüfen</button>
-    <button class="btn px-4 mb-3 ml-2" (click)="save()" [disabled]="saveDisabled"
+    <button testid="validate-button" class="btn btn-primary px-4 mb-3" (click)="validate()">Anspruch prüfen</button>
+    <button testid="save-button" class="btn px-4 mb-3 ml-2" (click)="save()" [disabled]="saveDisabled"
         [ngClass]="{'btn-danger': saveDisabled, 'btn-success': !saveDisabled}">Speichern</button>
 </div>
 
-<div bsModal #validationResultModal="bs-modal" class="modal fade" tabindex="-1" role="dialog"
-    aria-labelledby="validationResultModalLabel" aria-hidden="true">
+<div testid="validationresult-modal" bsModal #validationResultModal="bs-modal" class="modal fade" tabindex="-1"
+    role="dialog" aria-labelledby="validationResultModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document"
         [ngClass]="{'modal-danger': saveDisabled, 'modal-success': !saveDisabled}">
         <div class="modal-content">
             <div class="modal-header">
-                <h4 class="modal-title">
+                <h4 testid="title" class="modal-title">
                     {{saveDisabled ? "Kein Anspruch vorhanden" : "Anspruch vorhanden"}}
                 </h4>
                 <button type="button" class="close" (click)="validationResultModal.hide()" aria-label="Close">
@@ -94,7 +94,8 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-primary" (click)="validationResultModal.hide()">OK</button>
+                <button testid="ok-button" type="button" class="btn btn-primary"
+                    (click)="validationResultModal.hide()">OK</button>
             </div>
         </div>
     </div>
