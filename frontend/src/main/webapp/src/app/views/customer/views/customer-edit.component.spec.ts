@@ -116,7 +116,7 @@ describe('CustomerEditComponent', () => {
 
     component.validate();
 
-    expect(component.saveDisabled).toEqual(true);
+    expect(component.saveDisabled).toBe(true);
     expect(component.errorMessage).toBe('Bitte Eingaben überprüfen!');
   });
 
