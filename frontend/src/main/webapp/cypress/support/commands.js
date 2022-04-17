@@ -24,11 +24,16 @@
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
 
+Cypress.Commands.add(
+    'byTestId',
+    (id) => cy.get(`[testid="${id}"]`)
+);
+
 Cypress.Commands.add('login', (username, password) => {
-    cy.visit('/login');
-    cy.get('[testid=username]').type(username);
-    cy.get('[testid=password]').type(password);
-    cy.get('[testid=loginButton]').click();
+    cy.visit('#/login');
+    cy.byTestId('username').type(username);
+    cy.byTestId('password').type(password);
+    cy.byTestId('loginButton').click();
 });
 
 Cypress.Commands.add('loginWithTestuser', () => {
@@ -53,8 +58,3 @@ Cypress.Commands.add('loginHeadlessWithTestuser', () => {
         sessionStorage.setItem('JWT_TOKEN', token);
     });
 });
-
-Cypress.Commands.add(
-    'byTestId',
-    (id) => cy.get(`[testid="${id}"]`)
-);
