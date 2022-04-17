@@ -207,7 +207,35 @@ describe('CustomerEditComponent', () => {
     component.validate();
 
     expect(component.saveDisabled).toBe(false);
-    expect(apiService.validate).toHaveBeenCalledWith(testCustomerRequestData);
+
+    const addPers1 = testCustomerRequestData.additionalPersons[0];
+    const addPers2 = testCustomerRequestData.additionalPersons[1];
+    expect(apiService.validate).toHaveBeenCalledWith(jasmine.objectContaining({
+      lastname: testCustomerRequestData.lastname,
+      firstname: testCustomerRequestData.firstname,
+      birthDate: '1960-04-09',
+      country: testCustomerRequestData.country,
+      telephoneNumber: testCustomerRequestData.telephoneNumber,
+      email: testCustomerRequestData.email,
+      address: {
+        street: testCustomerRequestData.address.street,
+        houseNumber: testCustomerRequestData.address.houseNumber,
+        stairway: testCustomerRequestData.address.stairway,
+        door: testCustomerRequestData.address.door,
+        postalCode: testCustomerRequestData.address.postalCode,
+        city: testCustomerRequestData.address.city
+      },
+
+      employer: testCustomerRequestData.employer,
+      income: testCustomerRequestData.income,
+      incomeDue: '2022-04-17',
+
+      additionalPersons: [
+        { lastname: addPers1.lastname, firstname: addPers1.firstname, birthDate: '1987-07-13', income: addPers1.income },
+        { lastname: addPers2.lastname, firstname: addPers2.firstname, birthDate: '1987-07-13', income: addPers2.income }
+      ]
+    }));
+
     expect(component.validationResultModal.show).toHaveBeenCalled();
   });
 
