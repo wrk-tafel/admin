@@ -2,8 +2,9 @@ import { TestBed, waitForAsync } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { AddPersonFormComponent, AddPersonFormData } from './addperson-form.component';
 import { v4 as uuidv4 } from 'uuid';
+import * as moment from 'moment';
 
-describe('AddPersonsCardComponent', () => {
+describe('AddPersonsFormComponent', () => {
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [
@@ -26,7 +27,7 @@ describe('AddPersonsCardComponent', () => {
       uuid: uuidv4(),
       lastname: 'Mustermann',
       firstname: 'Max',
-      birthDate: new Date(2022, 3, 11),
+      birthDate: moment().subtract(20, 'years').toDate(),
       income: 500
     }
     component.personData = testData;
@@ -36,7 +37,7 @@ describe('AddPersonsCardComponent', () => {
     expect(component.personForm.get('uuid').value).toBe(testData.uuid);
     expect(component.personForm.get('lastname').value).toBe(testData.lastname);
     expect(component.personForm.get('firstname').value).toBe(testData.firstname);
-    expect(component.personForm.get('birthDate').value).toBe('2022-04-10');
+    expect(component.personForm.get('birthDate').value).toBe(moment(testData.birthDate).format('YYYY-MM-DD'));
     expect(component.personForm.get('income').value).toBe(testData.income);
 
     expect(component.personForm.valid).toBe(true);

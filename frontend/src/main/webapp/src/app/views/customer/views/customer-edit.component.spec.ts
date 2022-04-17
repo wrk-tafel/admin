@@ -4,6 +4,7 @@ import { TestBed, waitForAsync } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
+import * as moment from 'moment';
 import { ModalModule } from 'ngx-bootstrap/modal';
 import { of } from 'rxjs';
 import { CustomerApiService, CustomerData } from '../api/customer-api.service';
@@ -15,7 +16,7 @@ describe('CustomerEditComponent', () => {
   const testCustomerData: CustomerFormData = {
     lastname: 'Mustermann',
     firstname: 'Max',
-    birthDate: new Date(1960, 3, 10),
+    birthDate: moment().subtract(40, 'years').toDate(),
     country: 'AT',
     telephoneNumber: 6641231231,
     email: 'max.mustermann@gmail.com',
@@ -32,14 +33,14 @@ describe('CustomerEditComponent', () => {
     incomeDue: new Date()
   };
   const testAddPersonsData = [
-    { lastname: 'Add', firstname: 'Pers 1', birthDate: new Date(1987, 6, 14), income: 50 },
-    { lastname: 'Add', firstname: 'Pers 2', birthDate: new Date(1987, 6, 14), income: 80 }
+    { lastname: 'Add', firstname: 'Pers 1', birthDate: moment().subtract(5, 'years').toDate(), income: 50 },
+    { lastname: 'Add', firstname: 'Pers 2', birthDate: moment().subtract(2, 'years').toDate(), income: 80 }
   ];
   const testCustomerRequestData: CustomerData = {
     customerId: 123,
     lastname: 'Mustermann',
     firstname: 'Max',
-    birthDate: new Date(1960, 3, 10),
+    birthDate: moment().subtract(40, 'years').toDate(),
     country: 'AT',
     telephoneNumber: 6641231231,
     email: 'max.mustermann@gmail.com',
@@ -58,8 +59,8 @@ describe('CustomerEditComponent', () => {
     incomeDue: new Date(),
 
     additionalPersons: [
-      { lastname: 'Add', firstname: 'Pers 1', birthDate: new Date(1987, 6, 14), income: 50 },
-      { lastname: 'Add', firstname: 'Pers 2', birthDate: new Date(1987, 6, 14), income: 80 }
+      { lastname: 'Add', firstname: 'Pers 1', birthDate: moment().subtract(5, 'years').toDate(), income: 50 },
+      { lastname: 'Add', firstname: 'Pers 2', birthDate: moment().subtract(2, 'years').toDate(), income: 80 }
     ]
   };
 
@@ -226,7 +227,7 @@ describe('CustomerEditComponent', () => {
     expect(apiService.validate).toHaveBeenCalledWith(jasmine.objectContaining({
       lastname: testCustomerRequestData.lastname,
       firstname: testCustomerRequestData.firstname,
-      birthDate: '1960-04-09',
+      birthDate: moment(testCustomerRequestData.birthDate).format('YYYY-MM-DD'),
       country: testCustomerRequestData.country,
       telephoneNumber: testCustomerRequestData.telephoneNumber,
       email: testCustomerRequestData.email,
@@ -241,11 +242,11 @@ describe('CustomerEditComponent', () => {
 
       employer: testCustomerRequestData.employer,
       income: testCustomerRequestData.income,
-      incomeDue: '2022-04-17',
+      incomeDue: moment(testCustomerRequestData.incomeDue).format('YYYY-MM-DD'),
 
       additionalPersons: [
-        { lastname: addPers1.lastname, firstname: addPers1.firstname, birthDate: '1987-07-13', income: addPers1.income },
-        { lastname: addPers2.lastname, firstname: addPers2.firstname, birthDate: '1987-07-13', income: addPers2.income }
+        { lastname: addPers1.lastname, firstname: addPers1.firstname, birthDate: moment(addPers1.birthDate).format('YYYY-MM-DD'), income: addPers1.income },
+        { lastname: addPers2.lastname, firstname: addPers2.firstname, birthDate: moment(addPers2.birthDate).format('YYYY-MM-DD'), income: addPers2.income }
       ]
     }));
 
@@ -294,7 +295,7 @@ describe('CustomerEditComponent', () => {
     expect(apiService.createCustomer).toHaveBeenCalledWith(jasmine.objectContaining({
       lastname: testCustomerRequestData.lastname,
       firstname: testCustomerRequestData.firstname,
-      birthDate: '1960-04-09',
+      birthDate: moment(testCustomerRequestData.birthDate).format('YYYY-MM-DD'),
       country: testCustomerRequestData.country,
       telephoneNumber: testCustomerRequestData.telephoneNumber,
       email: testCustomerRequestData.email,
@@ -309,11 +310,11 @@ describe('CustomerEditComponent', () => {
 
       employer: testCustomerRequestData.employer,
       income: testCustomerRequestData.income,
-      incomeDue: '2022-04-17',
+      incomeDue: moment(testCustomerRequestData.incomeDue).format('YYYY-MM-DD'),
 
       additionalPersons: [
-        { lastname: addPers1.lastname, firstname: addPers1.firstname, birthDate: '1987-07-13', income: addPers1.income },
-        { lastname: addPers2.lastname, firstname: addPers2.firstname, birthDate: '1987-07-13', income: addPers2.income }
+        { lastname: addPers1.lastname, firstname: addPers1.firstname, birthDate: moment(addPers1.birthDate).format('YYYY-MM-DD'), income: addPers1.income },
+        { lastname: addPers2.lastname, firstname: addPers2.firstname, birthDate: moment(addPers2.birthDate).format('YYYY-MM-DD'), income: addPers2.income }
       ]
     }));
 

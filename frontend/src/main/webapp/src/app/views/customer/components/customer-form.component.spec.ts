@@ -46,7 +46,7 @@ describe('CustomerFormComponent', () => {
     const testData: CustomerFormData = {
       lastname: 'Mustermann',
       firstname: 'Max',
-      birthDate: new Date(2022, 3, 11),
+      birthDate: moment().subtract(20, 'years').toDate(),
       country: 'AT',
       telephoneNumber: 660123123,
       email: 'test@mail.com',
@@ -67,7 +67,7 @@ describe('CustomerFormComponent', () => {
     expect(component.customerForm.get('customerId').value).toBe('');
     expect(component.customerForm.get('lastname').value).toBe(testData.lastname);
     expect(component.customerForm.get('firstname').value).toBe(testData.firstname);
-    expect(component.customerForm.get('birthDate').value).toBe('2022-04-10');
+    expect(component.customerForm.get('birthDate').value).toBe(moment(testData.birthDate).format('YYYY-MM-DD'));
     expect(component.customerForm.get('country').value).toBe(testData.country);
     expect(component.customerForm.get('telephoneNumber').value).toBe(testData.telephoneNumber);
     expect(component.customerForm.get('email').value).toBe(testData.email);
