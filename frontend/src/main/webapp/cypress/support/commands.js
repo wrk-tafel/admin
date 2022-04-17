@@ -56,6 +56,5 @@ Cypress.Commands.add('loginHeadlessWithTestuser', () => {
 
 Cypress.Commands.add(
     'byTestId',
-    (id) =>
-        cy.get(`[testid="${id}"]`)
+    (id) => cy.get(`[testid="${id}"]`)
 );

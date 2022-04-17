@@ -6,7 +6,7 @@ describe('Customer', () => {
   });
 
   it('create customer', () => {
-    cy.visit('/kunden/anlegen');
+    cy.visit('#/kunden/anlegen');
   });
 
 });
