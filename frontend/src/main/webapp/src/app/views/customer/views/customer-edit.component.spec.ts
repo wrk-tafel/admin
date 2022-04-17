@@ -239,7 +239,7 @@ describe('CustomerEditComponent', () => {
     expect(component.validationResultModal.show).toHaveBeenCalled();
   });
 
-  it('validate - forms valid but not data not valid', () => {
+  it('validate - forms valid but data is not valid', () => {
     const validationResult = {
       valid: false,
       totalSum: 0,
