@@ -45,7 +45,7 @@ describe('CustomerFormComponent', () => {
     const testData: CustomerFormData = {
       lastname: 'Mustermann',
       firstname: 'Max',
-      birthDate: new Date(2022, 3, 27),
+      birthDate: new Date(2022, 3, 11),
       country: 'AT',
       telephoneNumber: 660123123,
       email: 'test@mail.com',
@@ -57,7 +57,7 @@ describe('CustomerFormComponent', () => {
       city: 'Wien',
       employer: 'WRK',
       income: 123.50,
-      incomeDue: new Date(2022, 3, 27)
+      incomeDue: new Date(2022, 3, 11)
     }
     component.customerData = testData;
     spyOn(component.dataUpdatedEvent, 'emit');
@@ -66,7 +66,7 @@ describe('CustomerFormComponent', () => {
     expect(component.customerForm.get('customerId').value).toBe('');
     expect(component.customerForm.get('lastname').value).toBe(testData.lastname);
     expect(component.customerForm.get('firstname').value).toBe(testData.firstname);
-    expect(component.customerForm.get('birthDate').value).toBe('2022-04-26');
+    expect(component.customerForm.get('birthDate').value).toBe('2022-04-10');
     expect(component.customerForm.get('country').value).toBe(testData.country);
     expect(component.customerForm.get('telephoneNumber').value).toBe(testData.telephoneNumber);
     expect(component.customerForm.get('email').value).toBe(testData.email);
@@ -78,7 +78,7 @@ describe('CustomerFormComponent', () => {
     expect(component.customerForm.get('city').value).toBe(testData.city);
     expect(component.customerForm.get('employer').value).toBe(testData.employer);
     expect(component.customerForm.get('income').value).toBe(testData.income);
-    expect(component.customerForm.get('incomeDue').value).toBe('2022-04-26');
+    expect(component.customerForm.get('incomeDue').value).toBe('2022-04-10');
 
     expect(component.customerForm.valid).toBe(true);
     expect(component.countries).toEqual(mockCountryList);

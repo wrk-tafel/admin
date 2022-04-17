@@ -26,7 +26,7 @@ describe('AddPersonsCardComponent', () => {
       uuid: uuidv4(),
       lastname: 'Mustermann',
       firstname: 'Max',
-      birthDate: new Date(2022, 3, 27),
+      birthDate: new Date(2022, 3, 11),
       income: 500
     }
     component.personData = testData;
@@ -36,7 +36,7 @@ describe('AddPersonsCardComponent', () => {
     expect(component.personForm.get('uuid').value).toBe(testData.uuid);
     expect(component.personForm.get('lastname').value).toBe(testData.lastname);
     expect(component.personForm.get('firstname').value).toBe(testData.firstname);
-    expect(component.personForm.get('birthDate').value).toBe('2022-04-26');
+    expect(component.personForm.get('birthDate').value).toBe('2022-04-10');
     expect(component.personForm.get('income').value).toBe(testData.income);
 
     expect(component.personForm.valid).toBe(true);
