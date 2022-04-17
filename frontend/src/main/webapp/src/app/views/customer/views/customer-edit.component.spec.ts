@@ -239,4 +239,30 @@ describe('CustomerEditComponent', () => {
     expect(component.validationResultModal.show).toHaveBeenCalled();
   });
 
+  it('validate - forms valid but not data not valid', () => {
+    const validationResult = {
+      valid: false,
+      totalSum: 0,
+      limit: 0,
+      toleranceValue: 0,
+      amountExceededLimit: 0
+    };
+    apiService.validate.and.returnValue(of(validationResult));
+
+    const fixture = TestBed.createComponent(CustomerEditComponent);
+    const component = fixture.componentInstance;
+    component.customerData = testCustomerData;
+    component.additionalPersonsData = testAddPersonsData;
+    fixture.detectChanges();
+    spyOn(component.validationResultModal, 'show');
+    component.saveDisabled = false;
+
+    expect(component.saveDisabled).toBe(false);
+
+    component.validate();
+
+    expect(component.saveDisabled).toBe(true);
+    expect(component.validationResultModal.show).toHaveBeenCalled();
+  });
+
 });
