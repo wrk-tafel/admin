@@ -26,7 +26,7 @@ export class CustomerEditComponent {
 
   @ViewChild(CustomerFormComponent) customerFormComponent: CustomerFormComponent;
   @ViewChildren(AddPersonFormComponent) addPersonForms: AddPersonFormComponent[];
-  @ViewChild('validationResultModal') public validationResultModal: ModalDirective;
+  @ViewChild('validationResultModal') validationResultModal: ModalDirective;
 
   validationResult: ValidateCustomerResponse;
 
@@ -83,7 +83,7 @@ export class CustomerEditComponent {
     this.saveDisabled = true;
 
     if (this.formsAreInvalid()) {
-      this.errorMessage = "Bitte Eingaben überprüfen!";
+      this.errorMessage = 'Bitte Eingaben überprüfen!';
     } else {
       this.errorMessage = null;
 
@@ -94,20 +94,6 @@ export class CustomerEditComponent {
         this.validationResultModal.show();
       });
     }
-  }
-
-  formsAreInvalid() {
-    this.customerFormComponent.customerForm.markAllAsTouched();
-    const customerFormValid = this.customerFormComponent.customerForm.valid;
-
-    let addPersonFormsValid = true;
-    this.addPersonForms.map<FormGroup>((cmp) => { return cmp.personForm })
-      .forEach((form: FormGroup) => {
-        form.markAllAsTouched();
-        addPersonFormsValid &&= form.valid;
-      });
-
-    return !customerFormValid || !addPersonFormsValid
   }
 
   save() {
@@ -153,4 +139,19 @@ export class CustomerEditComponent {
       additionalPersons: addPersons
     }
   }
+
+  private formsAreInvalid() {
+    this.customerFormComponent.customerForm.markAllAsTouched();
+    const customerFormValid = this.customerFormComponent.customerForm.valid;
+
+    let addPersonFormsValid = true;
+    this.addPersonForms.map<FormGroup>((cmp) => { return cmp.personForm })
+      .forEach((form: FormGroup) => {
+        form.markAllAsTouched();
+        addPersonFormsValid &&= form.valid;
+      });
+
+    return !customerFormValid || !addPersonFormsValid
+  }
+
 }
