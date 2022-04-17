@@ -35,7 +35,7 @@ export class CustomerEditComponent {
   customerData: CustomerFormData = {
     lastname: 'Prantl',
     firstname: 'Stephan',
-    birthDate: new Date(1987, 6, 14, 0, 0, 0),
+    birthDate: new Date(1987, 6, 14),
     country: 'AT',
     telephoneNumber: 664456465465,
     email: 'stephan.prantl@gmail.com',
@@ -52,8 +52,8 @@ export class CustomerEditComponent {
     incomeDue: new Date()
   };
   additionalPersonsData: AddPersonFormData[] = [
-    { lastname: 'Add', firstname: 'Pers 1', birthDate: new Date(1987, 6, 14, 0, 0, 0), income: 50 },
-    { lastname: 'Add', firstname: 'Pers 2', birthDate: new Date(1987, 6, 14, 0, 0, 0), income: 80 }
+    { lastname: 'Add', firstname: 'Pers 1', birthDate: new Date(1987, 6, 14), income: 50 },
+    { lastname: 'Add', firstname: 'Pers 2', birthDate: new Date(1987, 6, 14), income: 80 }
   ];
   */
 
