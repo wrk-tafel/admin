@@ -1,6 +1,8 @@
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { HttpClient } from '@angular/common/http';
+import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { TestBed, waitForAsync } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { ModalModule } from 'ngx-bootstrap/modal';
 import { of } from 'rxjs';
@@ -34,6 +36,7 @@ describe('CustomerEditComponent', () => {
     { lastname: 'Add', firstname: 'Pers 2', birthDate: new Date(1987, 6, 14), income: 80 }
   ];
   const testCustomerRequestData: CustomerData = {
+    customerId: 123,
     lastname: 'Mustermann',
     firstname: 'Max',
     birthDate: new Date(1960, 3, 10),
@@ -60,6 +63,9 @@ describe('CustomerEditComponent', () => {
     ]
   };
 
+  let client: HttpClient;
+  let httpMock: HttpTestingController;
+  let router: jasmine.SpyObj<Router>;
   let apiService: jasmine.SpyObj<CustomerApiService>;
 
   beforeEach(waitForAsync(() => {
@@ -78,11 +84,18 @@ describe('CustomerEditComponent', () => {
       providers: [
         {
           provide: CustomerApiService,
-          useValue: jasmine.createSpyObj('CustomerApiService', ['validate'])
+          useValue: jasmine.createSpyObj('CustomerApiService', ['validate', 'createCustomer'])
+        },
+        {
+          provide: Router,
+          useValue: jasmine.createSpyObj('Router', ['navigate'])
         }
       ]
     }).compileComponents();
 
+    client = TestBed.inject(HttpClient);
+    httpMock = TestBed.inject(HttpTestingController);
+    router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
     apiService = TestBed.inject(CustomerApiService) as jasmine.SpyObj<CustomerApiService>;
   }));
 
@@ -263,6 +276,48 @@ describe('CustomerEditComponent', () => {
 
     expect(component.saveDisabled).toBe(true);
     expect(component.validationResultModal.show).toHaveBeenCalled();
+  });
+
+  it('save successful', () => {
+    apiService.createCustomer.and.returnValue(of(testCustomerRequestData));
+
+    const fixture = TestBed.createComponent(CustomerEditComponent);
+    const component = fixture.componentInstance;
+    component.customerData = testCustomerData;
+    component.additionalPersonsData = testAddPersonsData;
+    fixture.detectChanges();
+
+    component.save();
+
+    const addPers1 = testCustomerRequestData.additionalPersons[0];
+    const addPers2 = testCustomerRequestData.additionalPersons[1];
+    expect(apiService.createCustomer).toHaveBeenCalledWith(jasmine.objectContaining({
+      lastname: testCustomerRequestData.lastname,
+      firstname: testCustomerRequestData.firstname,
+      birthDate: '1960-04-09',
+      country: testCustomerRequestData.country,
+      telephoneNumber: testCustomerRequestData.telephoneNumber,
+      email: testCustomerRequestData.email,
+      address: {
+        street: testCustomerRequestData.address.street,
+        houseNumber: testCustomerRequestData.address.houseNumber,
+        stairway: testCustomerRequestData.address.stairway,
+        door: testCustomerRequestData.address.door,
+        postalCode: testCustomerRequestData.address.postalCode,
+        city: testCustomerRequestData.address.city
+      },
+
+      employer: testCustomerRequestData.employer,
+      income: testCustomerRequestData.income,
+      incomeDue: '2022-04-17',
+
+      additionalPersons: [
+        { lastname: addPers1.lastname, firstname: addPers1.firstname, birthDate: '1987-07-13', income: addPers1.income },
+        { lastname: addPers2.lastname, firstname: addPers2.firstname, birthDate: '1987-07-13', income: addPers2.income }
+      ]
+    }));
+
+    expect(router.navigate).toHaveBeenCalledWith(['/kunden/detail', 123]);
   });
 
 });
