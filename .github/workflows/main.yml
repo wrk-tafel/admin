@@ -22,7 +22,7 @@ jobs:
     needs: build
   docker-image:
     uses: wrk-tafel/admin/.github/workflows/subflow_build_image.yml@main
-    needs: e2e-test
+    needs: [test, e2e-test]
   dockerhub:
     uses: wrk-tafel/admin/.github/workflows/subflow_publish_image.yml@main
     needs: docker-image
