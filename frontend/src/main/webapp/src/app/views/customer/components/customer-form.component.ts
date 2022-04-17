@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Country, CountryApiService } from '../../../common/api/country-api.service';
-import { CustomValidators } from '../../../common/CustomValidator';
+import { CustomValidator } from '../../../common/CustomValidator';
 
 @Component({
   selector: 'customer-form',
@@ -21,8 +21,8 @@ export class CustomerFormComponent implements OnInit {
     firstname: new FormControl('', [Validators.required, , Validators.maxLength(50)]),
     birthDate: new FormControl('', [
       Validators.required,
-      CustomValidators.minDate(new Date(1920, 0, 1)),
-      CustomValidators.maxDate(new Date())
+      CustomValidator.minDate(new Date(1920, 0, 1)),
+      CustomValidator.maxDate(new Date())
     ]),
     country: new FormControl('', Validators.required),
     telephoneNumber: new FormControl(''),

@@ -1,7 +1,7 @@
 import { AbstractControl, ValidationErrors, ValidatorFn } from "@angular/forms";
 import * as moment from "moment";
 
-export class CustomValidators {
+export class CustomValidator {
 
     static minDate(date: Date): ValidatorFn {
         return (control: AbstractControl): ValidationErrors | null => {
