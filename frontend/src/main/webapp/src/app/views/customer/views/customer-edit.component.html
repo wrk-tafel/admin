@@ -61,7 +61,7 @@
 
 <div testid="validationresult-modal" bsModal #validationResultModal="bs-modal" class="modal fade" tabindex="-1"
     role="dialog" aria-labelledby="validationResultModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document"
+    <div testid="validationresult-modal-dialog" class="modal-dialog" role="document"
         [ngClass]="{'modal-danger': saveDisabled, 'modal-success': !saveDisabled}">
         <div class="modal-content">
             <div class="modal-header">

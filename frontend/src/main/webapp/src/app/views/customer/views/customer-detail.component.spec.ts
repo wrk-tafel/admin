@@ -63,7 +63,8 @@ describe('CustomerDetailComponent', () => {
         { lastname: 'Add', firstname: 'Pers 1', birthDate: new Date(1990, 3, 10), income: 50 },
         { lastname: 'Add', firstname: 'Pers 2', birthDate: new Date(2000, 2, 11), income: 80 }
       ]
-    }
+    };
+
     apiService.getCustomer.withArgs(333).and.returnValue(of(mockCustomer));
 
     const fixture = TestBed.createComponent(CustomerDetailComponent);

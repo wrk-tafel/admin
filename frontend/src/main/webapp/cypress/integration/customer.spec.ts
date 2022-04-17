@@ -1,5 +1,7 @@
 import * as moment from 'moment';
 
+// TODO optimize structure
+
 describe('Customer', () => {
 
   beforeEach(() => {
@@ -10,6 +12,16 @@ describe('Customer', () => {
   it('create new valid customer without existing customerId', () => {
     createCustomer();
 
+    cy.byTestId('validationresult-modal')
+      .should('be.visible')
+      .within(() => {
+        cy.byTestId('title').contains('Anspruch vorhanden');
+        cy.byTestId('validationresult-modal-dialog').should('have.class', 'modal-success');
+        cy.byTestId('ok-button').click();
+      });
+
+    cy.byTestId('save-button').click();
+
     cy.url().should('include', '/kunden/detail')
   });
 
@@ -17,15 +29,43 @@ describe('Customer', () => {
     const customerId = getRandomNumber(20000, 500000);
     createCustomer(customerId);
 
+    cy.byTestId('validationresult-modal')
+      .should('be.visible')
+      .within(() => {
+        cy.byTestId('title').contains('Anspruch vorhanden');
+        cy.byTestId('validationresult-modal-dialog').should('have.class', 'modal-success');
+        cy.byTestId('ok-button').click();
+      });
+
+    cy.byTestId('save-button').click();
+
     cy.url().should('include', '/kunden/detail/' + customerId);
   });
 
-  function createCustomer(customerId?: number) {
+  it('create new invalid customer without existing customerId', () => {
+    createCustomer(0, 10000);
+
+    cy.byTestId('validationresult-modal')
+      .should('be.visible')
+      .within(() => {
+        cy.byTestId('title').contains('Kein Anspruch vorhanden');
+        cy.byTestId('validationresult-modal-dialog').should('have.class', 'modal-danger');
+        cy.byTestId('ok-button').click();
+      });
+
+    cy.byTestId('save-button').should('be.disabled');
+  });
+
+  function createCustomer(customerId?: number, income?: number) {
     if (customerId) {
       cy.byTestId('customerIdInput').type(customerId);
     }
     enterCustomerData();
-    cy.byTestId('incomeInput').type('500');
+    if (income) {
+      cy.byTestId('incomeInput').type(income);
+    } else {
+      cy.byTestId('incomeInput').type('500');
+    }
 
     enterAdditionalPersonData(0, {
       lastname: 'Add',
@@ -49,21 +89,12 @@ describe('Customer', () => {
     cy.byTestId('validate-button').should('be.enabled');
 
     cy.byTestId('validate-button').click();
-
-    cy.byTestId('validationresult-modal')
-      .should('be.visible')
-      .within(() => {
-        cy.byTestId('title').contains('Anspruch vorhanden');
-        cy.byTestId('ok-button').click();
-      });
-
-    cy.byTestId('save-button').click();
   }
 
   function enterCustomerData() {
     cy.byTestId('lastnameInput').type('Mustermann');
     cy.byTestId('firstnameInput').type('Max');
-    cy.byTestId('birthDateInput').type(moment().subtract(25, 'years').format('YYYY-MM-DD'));
+    cy.byTestId('birthDateInput').type(moment().subtract(25, 'years').startOf('day').format('YYYY-MM-DD'));
     cy.byTestId('countryInput').select('Österreich');
     cy.byTestId('telephoneNumberInput').type('0664123132123');
     cy.byTestId('emailInput').type('test@gmail.com');
@@ -74,7 +105,7 @@ describe('Customer', () => {
     cy.byTestId('postalCodeInput').type('1010');
     cy.byTestId('cityInput').type('Wien');
     cy.byTestId('employerInput').type('Test Employer');
-    cy.byTestId('incomeDueInput').type(moment().add(2, 'years').format('YYYY-MM-DD'));
+    cy.byTestId('incomeDueInput').type(moment().add(2, 'years').startOf('day').format('YYYY-MM-DD'));
   }
 
   function enterAdditionalPersonData(index: number, data: AddPersonInputData) {
@@ -83,7 +114,7 @@ describe('Customer', () => {
     cy.byTestId('personform-' + index).within(() => {
       cy.byTestId('lastnameInput').type(data.lastname);
       cy.byTestId('firstnameInput').type(data.firstname);
-      cy.byTestId('birthDateInput').type(moment().subtract(data.age, 'years').format('YYYY-MM-DD'));
+      cy.byTestId('birthDateInput').type(moment().subtract(data.age, 'years').startOf('day').format('YYYY-MM-DD'));
       if (data.income !== undefined) {
         cy.byTestId('incomeInput').type(data.income);
       }

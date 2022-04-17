@@ -46,7 +46,7 @@ describe('CustomerFormComponent', () => {
     const testData: CustomerFormData = {
       lastname: 'Mustermann',
       firstname: 'Max',
-      birthDate: moment().subtract(20, 'years').toDate(),
+      birthDate: moment().subtract(20, 'years').startOf('day').toDate(),
       country: 'AT',
       telephoneNumber: 660123123,
       email: 'test@mail.com',
@@ -59,7 +59,8 @@ describe('CustomerFormComponent', () => {
       employer: 'WRK',
       income: 123.50,
       incomeDue: new Date()
-    }
+    };
+
     component.customerData = testData;
     spyOn(component.dataUpdatedEvent, 'emit');
     component.ngOnInit();
@@ -67,7 +68,7 @@ describe('CustomerFormComponent', () => {
     expect(component.customerForm.get('customerId').value).toBe('');
     expect(component.customerForm.get('lastname').value).toBe(testData.lastname);
     expect(component.customerForm.get('firstname').value).toBe(testData.firstname);
-    expect(component.customerForm.get('birthDate').value).toBe(moment(testData.birthDate).format('YYYY-MM-DD'));
+    expect(component.customerForm.get('birthDate').value).toBe(moment(testData.birthDate).startOf('day').format('YYYY-MM-DD'));
     expect(component.customerForm.get('country').value).toBe(testData.country);
     expect(component.customerForm.get('telephoneNumber').value).toBe(testData.telephoneNumber);
     expect(component.customerForm.get('email').value).toBe(testData.email);
@@ -79,7 +80,7 @@ describe('CustomerFormComponent', () => {
     expect(component.customerForm.get('city').value).toBe(testData.city);
     expect(component.customerForm.get('employer').value).toBe(testData.employer);
     expect(component.customerForm.get('income').value).toBe(testData.income);
-    expect(component.customerForm.get('incomeDue').value).toBe(moment(testData.incomeDue).format('YYYY-MM-DD'));
+    expect(component.customerForm.get('incomeDue').value).toBe(moment(testData.incomeDue).startOf('day').format('YYYY-MM-DD'));
 
     expect(component.customerForm.valid).toBe(true);
     expect(component.countries).toEqual(mockCountryList);

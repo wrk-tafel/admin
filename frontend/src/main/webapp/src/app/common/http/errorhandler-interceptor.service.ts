@@ -15,11 +15,11 @@ export class ErrorHandlerInterceptor implements HttpInterceptor {
       // TODO better ui element to show
       const errorDetail = response.error as ErrorResponseData;
 
-      const msg = "FEHLER:\nHTTP - " + response.status
-        + " - " + response.statusText
-        + "\nMESSAGE:\n"
+      const msg = 'FEHLER:\nHTTP - ' + response.status
+        + ' - ' + response.statusText
+        + '\nMESSAGE:\n'
         + response?.message
-        + "\nDETAILS:\n"
+        + '\nDETAILS:\n'
         + errorDetail?.message;
       this.window.alert(msg);
 

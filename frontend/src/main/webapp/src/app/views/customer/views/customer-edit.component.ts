@@ -80,13 +80,13 @@ export class CustomerEditComponent {
   }
 
   mapFormsToCustomerRequestData(): CustomerData {
-    let addPersons = this.addPersonForms.map<CustomerAddPersonData>((personComponent) => {
+    const addPersons = this.addPersonForms.map<CustomerAddPersonData>((personComponent) => {
       return {
         lastname: personComponent.lastname.value,
         firstname: personComponent.firstname.value,
         birthDate: personComponent.birthDate.value,
         income: personComponent.income.value
-      }
+      };
     });
 
     const customer = this.customerFormComponent;
@@ -110,7 +110,7 @@ export class CustomerEditComponent {
       income: customer.income.value,
       incomeDue: customer.incomeDue.value,
       additionalPersons: addPersons
-    }
+    };
   }
 
   private formsAreInvalid() {
@@ -118,13 +118,13 @@ export class CustomerEditComponent {
     const customerFormValid = this.customerFormComponent.customerForm.valid;
 
     let addPersonFormsValid = true;
-    this.addPersonForms.map<FormGroup>((cmp) => { return cmp.personForm })
+    this.addPersonForms.map<FormGroup>((cmp) => cmp.personForm)
       .forEach((form: FormGroup) => {
         form.markAllAsTouched();
         addPersonFormsValid &&= form.valid;
       });
 
-    return !customerFormValid || !addPersonFormsValid
+    return !customerFormValid || !addPersonFormsValid;
   }
 
 }

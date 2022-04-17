@@ -27,9 +27,10 @@ describe('AddPersonsFormComponent', () => {
       uuid: uuidv4(),
       lastname: 'Mustermann',
       firstname: 'Max',
-      birthDate: moment().subtract(20, 'years').toDate(),
+      birthDate: moment().subtract(20, 'years').startOf('day').toDate(),
       income: 500
-    }
+    };
+
     component.personData = testData;
     spyOn(component.dataUpdatedEvent, 'emit');
     component.ngOnInit();
@@ -37,7 +38,7 @@ describe('AddPersonsFormComponent', () => {
     expect(component.personForm.get('uuid').value).toBe(testData.uuid);
     expect(component.personForm.get('lastname').value).toBe(testData.lastname);
     expect(component.personForm.get('firstname').value).toBe(testData.firstname);
-    expect(component.personForm.get('birthDate').value).toBe(moment(testData.birthDate).format('YYYY-MM-DD'));
+    expect(component.personForm.get('birthDate').value).toBe(moment(testData.birthDate).startOf('day').format('YYYY-MM-DD'));
     expect(component.personForm.get('income').value).toBe(testData.income);
 
     expect(component.personForm.valid).toBe(true);

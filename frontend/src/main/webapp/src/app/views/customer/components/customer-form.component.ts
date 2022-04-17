@@ -33,7 +33,7 @@ export class CustomerFormComponent implements OnInit {
     houseNumber: new FormControl('', [Validators.required, Validators.maxLength(10)]),
     stairway: new FormControl(''),
     door: new FormControl('', Validators.required),
-    postalCode: new FormControl('', [Validators.required, Validators.pattern("^[0-9]{4}$")]),
+    postalCode: new FormControl('', [Validators.required, Validators.pattern('^[0-9]{4}$')]),
     city: new FormControl('', [Validators.required, Validators.maxLength(50)]),
 
     employer: new FormControl('', Validators.required),
@@ -43,7 +43,7 @@ export class CustomerFormComponent implements OnInit {
         Validators.required,
         CustomValidator.minDate(new Date())
       ])
-  })
+  });
 
   countries: Country[];
 
@@ -82,22 +82,22 @@ export class CustomerFormComponent implements OnInit {
 }
 
 export interface CustomerFormData {
-  customerId?: number,
-  lastname?: string,
-  firstname?: string,
-  birthDate?: Date,
-  country?: string,
-  telephoneNumber?: number,
-  email?: string
+  customerId?: number;
+  lastname?: string;
+  firstname?: string;
+  birthDate?: Date;
+  country?: string;
+  telephoneNumber?: number;
+  email?: string;
 
-  street?: string,
-  houseNumber?: string,
-  stairway?: string,
-  door?: string,
-  postalCode?: number,
-  city?: string,
+  street?: string;
+  houseNumber?: string;
+  stairway?: string;
+  door?: string;
+  postalCode?: number;
+  city?: string;
 
-  employer?: string,
-  income?: number,
-  incomeDue?: Date
+  employer?: string;
+  income?: number;
+  incomeDue?: Date;
 }

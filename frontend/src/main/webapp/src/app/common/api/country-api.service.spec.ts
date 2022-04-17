@@ -1,7 +1,7 @@
-import { HttpClient } from "@angular/common/http";
-import { HttpClientTestingModule, HttpTestingController } from "@angular/common/http/testing";
-import { TestBed } from "@angular/core/testing";
-import { CountryApiService } from "./country-api.service";
+import { HttpClient } from '@angular/common/http';
+import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import { TestBed } from '@angular/core/testing';
+import { CountryApiService } from './country-api.service';
 
 describe('CountryApiService', () => {
   let client: HttpClient;
@@ -23,7 +23,7 @@ describe('CountryApiService', () => {
     const mockCountries = [
       { code: 'AT', name: 'Österreich' },
       { code: 'DE', name: 'Deutschland' }
-    ]
+    ];
 
     apiService.getCountries().subscribe((data) => {
       expect(data).toEqual(mockCountries);

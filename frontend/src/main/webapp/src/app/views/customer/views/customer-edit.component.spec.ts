@@ -16,7 +16,7 @@ describe('CustomerEditComponent', () => {
   const testCustomerData: CustomerFormData = {
     lastname: 'Mustermann',
     firstname: 'Max',
-    birthDate: moment().subtract(40, 'years').toDate(),
+    birthDate: moment().subtract(40, 'years').startOf('day').toDate(),
     country: 'AT',
     telephoneNumber: 6641231231,
     email: 'max.mustermann@gmail.com',
@@ -33,14 +33,14 @@ describe('CustomerEditComponent', () => {
     incomeDue: new Date()
   };
   const testAddPersonsData = [
-    { lastname: 'Add', firstname: 'Pers 1', birthDate: moment().subtract(5, 'years').toDate(), income: 50 },
-    { lastname: 'Add', firstname: 'Pers 2', birthDate: moment().subtract(2, 'years').toDate(), income: 80 }
+    { lastname: 'Add', firstname: 'Pers 1', birthDate: moment().subtract(5, 'years').startOf('day').toDate(), income: 50 },
+    { lastname: 'Add', firstname: 'Pers 2', birthDate: moment().subtract(2, 'years').startOf('day').toDate(), income: 80 }
   ];
   const testCustomerRequestData: CustomerData = {
     customerId: 123,
     lastname: 'Mustermann',
     firstname: 'Max',
-    birthDate: moment().subtract(40, 'years').toDate(),
+    birthDate: moment().subtract(40, 'years').startOf('day').toDate(),
     country: 'AT',
     telephoneNumber: 6641231231,
     email: 'max.mustermann@gmail.com',
@@ -59,8 +59,8 @@ describe('CustomerEditComponent', () => {
     incomeDue: new Date(),
 
     additionalPersons: [
-      { lastname: 'Add', firstname: 'Pers 1', birthDate: moment().subtract(5, 'years').toDate(), income: 50 },
-      { lastname: 'Add', firstname: 'Pers 2', birthDate: moment().subtract(2, 'years').toDate(), income: 80 }
+      { lastname: 'Add', firstname: 'Pers 1', birthDate: moment().subtract(5, 'years').startOf('day').toDate(), income: 50 },
+      { lastname: 'Add', firstname: 'Pers 2', birthDate: moment().subtract(2, 'years').startOf('day').toDate(), income: 80 }
     ]
   };
 
@@ -123,7 +123,7 @@ describe('CustomerEditComponent', () => {
     expect(component.additionalPersonsData.length).toBe(1);
     expect(component.additionalPersonsData[0].uuid).toBeDefined();
     expect(fixture.nativeElement.querySelector('[testid=nopersons-label]')).toBeNull();
-    expect(fixture.nativeElement.querySelector('[testid=personcard-0]')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('[testid=personform-0]')).toBeTruthy();
     expect(component.saveDisabled).toBe(true);
   });
 
@@ -139,7 +139,7 @@ describe('CustomerEditComponent', () => {
     expect(component.additionalPersonsData.length).toBe(1);
 
     fixture.detectChanges();
-    fixture.nativeElement.querySelector('[testid=remove-personcard-0]').click();
+    fixture.nativeElement.querySelector('[testid=remove-personform-0]').click();
 
     fixture.detectChanges();
     expect(component.additionalPersonsData.length).toBe(0);
@@ -227,7 +227,7 @@ describe('CustomerEditComponent', () => {
     expect(apiService.validate).toHaveBeenCalledWith(jasmine.objectContaining({
       lastname: testCustomerRequestData.lastname,
       firstname: testCustomerRequestData.firstname,
-      birthDate: moment(testCustomerRequestData.birthDate).format('YYYY-MM-DD'),
+      birthDate: moment(testCustomerRequestData.birthDate).startOf('day').format('YYYY-MM-DD'),
       country: testCustomerRequestData.country,
       telephoneNumber: testCustomerRequestData.telephoneNumber,
       email: testCustomerRequestData.email,
@@ -242,11 +242,21 @@ describe('CustomerEditComponent', () => {
 
       employer: testCustomerRequestData.employer,
       income: testCustomerRequestData.income,
-      incomeDue: moment(testCustomerRequestData.incomeDue).format('YYYY-MM-DD'),
+      incomeDue: moment(testCustomerRequestData.incomeDue).startOf('day').format('YYYY-MM-DD'),
 
       additionalPersons: [
-        { lastname: addPers1.lastname, firstname: addPers1.firstname, birthDate: moment(addPers1.birthDate).format('YYYY-MM-DD'), income: addPers1.income },
-        { lastname: addPers2.lastname, firstname: addPers2.firstname, birthDate: moment(addPers2.birthDate).format('YYYY-MM-DD'), income: addPers2.income }
+        {
+          lastname: addPers1.lastname,
+          firstname: addPers1.firstname,
+          birthDate: moment(addPers1.birthDate).startOf('day').format('YYYY-MM-DD'),
+          income: addPers1.income
+        },
+        {
+          lastname: addPers2.lastname,
+          firstname: addPers2.firstname,
+          birthDate: moment(addPers2.birthDate).startOf('day').format('YYYY-MM-DD'),
+          income: addPers2.income
+        }
       ]
     }));
 
@@ -295,7 +305,7 @@ describe('CustomerEditComponent', () => {
     expect(apiService.createCustomer).toHaveBeenCalledWith(jasmine.objectContaining({
       lastname: testCustomerRequestData.lastname,
       firstname: testCustomerRequestData.firstname,
-      birthDate: moment(testCustomerRequestData.birthDate).format('YYYY-MM-DD'),
+      birthDate: moment(testCustomerRequestData.birthDate).startOf('day').format('YYYY-MM-DD'),
       country: testCustomerRequestData.country,
       telephoneNumber: testCustomerRequestData.telephoneNumber,
       email: testCustomerRequestData.email,
@@ -310,11 +320,21 @@ describe('CustomerEditComponent', () => {
 
       employer: testCustomerRequestData.employer,
       income: testCustomerRequestData.income,
-      incomeDue: moment(testCustomerRequestData.incomeDue).format('YYYY-MM-DD'),
+      incomeDue: moment(testCustomerRequestData.incomeDue).startOf('day').format('YYYY-MM-DD'),
 
       additionalPersons: [
-        { lastname: addPers1.lastname, firstname: addPers1.firstname, birthDate: moment(addPers1.birthDate).format('YYYY-MM-DD'), income: addPers1.income },
-        { lastname: addPers2.lastname, firstname: addPers2.firstname, birthDate: moment(addPers2.birthDate).format('YYYY-MM-DD'), income: addPers2.income }
+        {
+          lastname: addPers1.lastname,
+          firstname: addPers1.firstname,
+          birthDate: moment(addPers1.birthDate).startOf('day').format('YYYY-MM-DD'),
+          income: addPers1.income
+        },
+        {
+          lastname: addPers2.lastname,
+          firstname: addPers2.firstname,
+          birthDate: moment(addPers2.birthDate).startOf('day').format('YYYY-MM-DD'),
+          income: addPers2.income
+        }
       ]
     }));
 

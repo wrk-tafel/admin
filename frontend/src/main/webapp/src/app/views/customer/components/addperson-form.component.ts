@@ -20,7 +20,7 @@ export class AddPersonFormComponent implements OnInit {
       CustomValidator.maxDate(new Date())
     ]),
     income: new FormControl('')
-  })
+  });
 
   ngOnInit(): void {
     this.personForm.patchValue(this.personData);
@@ -38,9 +38,9 @@ export class AddPersonFormComponent implements OnInit {
 }
 
 export interface AddPersonFormData {
-  uuid?: string,
-  lastname?: string,
-  firstname?: string
-  birthDate?: Date,
-  income?: number
+  uuid?: string;
+  lastname?: string;
+  firstname?: string;
+  birthDate?: Date;
+  income?: number;
 }
