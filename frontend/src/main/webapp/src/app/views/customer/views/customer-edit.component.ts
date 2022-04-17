@@ -30,33 +30,6 @@ export class CustomerEditComponent {
 
   validationResult: ValidateCustomerResponse;
 
-  // TODO remove mock data
-  /*
-  customerData: CustomerFormData = {
-    lastname: 'Prantl',
-    firstname: 'Stephan',
-    birthDate: new Date(1987, 6, 14),
-    country: 'AT',
-    telephoneNumber: 664456465465,
-    email: 'stephan.prantl@gmail.com',
-
-    street: 'Leopoldauer Straße',
-    houseNumber: '157A',
-    stairway: '1',
-    door: '21',
-    postalCode: 1210,
-    city: 'Wien',
-
-    employer: 'willhaben',
-    income: 1000,
-    incomeDue: new Date()
-  };
-  additionalPersonsData: AddPersonFormData[] = [
-    { lastname: 'Add', firstname: 'Pers 1', birthDate: new Date(1987, 6, 14), income: 50 },
-    { lastname: 'Add', firstname: 'Pers 2', birthDate: new Date(1987, 6, 14), income: 80 }
-  ];
-  */
-
   addNewPerson() {
     this.saveDisabled = true;
     this.additionalPersonsData.push({ uuid: uuidv4() });
