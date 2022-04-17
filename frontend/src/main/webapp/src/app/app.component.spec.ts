@@ -20,5 +20,3 @@ describe('AppComponent', () => {
   }));
 
 });
-
-// TODO
