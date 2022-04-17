@@ -5,8 +5,8 @@ create sequence if not exists customer_id_sequence;
 
 create table customers(
 	id bigint primary key,
-	created_at timestamptz not null,
-	updated_at timestamptz not null,
+	created_at timestamp not null,
+	updated_at timestamp not null,
 	customer_id bigint not null unique,
 	firstname varchar(50) not null,
 	lastname varchar(50) not null,
@@ -27,8 +27,8 @@ create table customers(
 
 create table customers_addpersons(
 	id bigint primary key,
-	created_at timestamptz not null,
-	updated_at timestamptz not null,
+	created_at timestamp not null,
+	updated_at timestamp not null,
 	customer_id bigint not null,
 	firstname varchar(50) not null,
 	lastname varchar(50) not null,
