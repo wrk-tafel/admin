@@ -1,5 +1,6 @@
 import { TestBed, waitForAsync } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
+import * as moment from 'moment';
 import { of } from 'rxjs';
 import { CountryApiService } from '../../../common/api/country-api.service';
 import { CustomerFormComponent, CustomerFormData } from './customer-form.component';
@@ -57,7 +58,7 @@ describe('CustomerFormComponent', () => {
       city: 'Wien',
       employer: 'WRK',
       income: 123.50,
-      incomeDue: new Date(2022, 3, 11)
+      incomeDue: new Date()
     }
     component.customerData = testData;
     spyOn(component.dataUpdatedEvent, 'emit');
@@ -78,7 +79,7 @@ describe('CustomerFormComponent', () => {
     expect(component.customerForm.get('city').value).toBe(testData.city);
     expect(component.customerForm.get('employer').value).toBe(testData.employer);
     expect(component.customerForm.get('income').value).toBe(testData.income);
-    expect(component.customerForm.get('incomeDue').value).toBe('2022-04-10');
+    expect(component.customerForm.get('incomeDue').value).toBe(moment(testData.incomeDue).format('YYYY-MM-DD'));
 
     expect(component.customerForm.valid).toBe(true);
     expect(component.countries).toEqual(mockCountryList);

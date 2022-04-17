@@ -4,7 +4,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { RouterTestingModule } from '@angular/router/testing';
 import { ModalModule } from 'ngx-bootstrap/modal';
 import { AddPersonFormComponent } from '../components/addperson-form.component';
-import { CustomerFormComponent } from '../components/customer-form.component';
+import { CustomerFormComponent, CustomerFormData } from '../components/customer-form.component';
 import { CustomerEditComponent } from './customer-edit.component';
 
 describe('CustomerEditComponent', () => {
@@ -109,6 +109,46 @@ describe('CustomerEditComponent', () => {
   it('validate - forms invalid', () => {
     const fixture = TestBed.createComponent(CustomerEditComponent);
     const component = fixture.componentInstance;
+    fixture.detectChanges();
+    component.saveDisabled = false;
+
+    expect(component.saveDisabled).toBe(false);
+
+    component.validate();
+
+    expect(component.saveDisabled).toBe(true);
+    expect(component.errorMessage).toBe('Bitte Eingaben überprüfen!');
+  });
+
+  it('validate - forms valid', () => {
+    const testCustomerData: CustomerFormData = {
+      lastname: 'Mustermann',
+      firstname: 'Max',
+      birthDate: new Date(1960, 3, 10, 0, 0, 0),
+      country: 'AT',
+      telephoneNumber: 6641231231,
+      email: 'max.mustermann@gmail.com',
+
+      street: 'Teststraße',
+      houseNumber: '123A',
+      stairway: '1',
+      door: '21',
+      postalCode: 1020,
+      city: 'Wien',
+
+      employer: 'test employer',
+      income: 1000,
+      incomeDue: new Date()
+    };
+    const testAddPersonsData = [
+      { lastname: 'Add', firstname: 'Pers 1', birthDate: new Date(1987, 6, 14, 0, 0, 0), income: 50 },
+      { lastname: 'Add', firstname: 'Pers 2', birthDate: new Date(1987, 6, 14, 0, 0, 0), income: 80 }
+    ];
+
+    const fixture = TestBed.createComponent(CustomerEditComponent);
+    const component = fixture.componentInstance;
+    component.customerData = testCustomerData;
+    component.additionalPersonsData = testAddPersonsData;
     fixture.detectChanges();
     component.saveDisabled = false;
 
