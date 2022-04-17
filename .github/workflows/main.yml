@@ -8,18 +8,21 @@ on:
     branches: [ 'main' ] # TODO switch to separate release branch later on
 
 jobs:
-  build-and-test:
-    uses: wrk-tafel/admin/.github/workflows/subflow_build_test.yml@main
+  build:
+    uses: wrk-tafel/admin/.github/workflows/subflow_build.yml@main
+  test:
+    uses: wrk-tafel/admin/.github/workflows/subflow_test.yml@main
+    needs: build
   analysis-lint:
     uses: wrk-tafel/admin/.github/workflows/subflow_analysis_lint.yml@main
   analysis-codeql:
     uses: wrk-tafel/admin/.github/workflows/subflow_analysis_codeql.yml@main
   e2e-test:
     uses: wrk-tafel/admin/.github/workflows/subflow_e2e_test.yml@main
-    needs: build-and-test
+    needs: build
   docker-image:
     uses: wrk-tafel/admin/.github/workflows/subflow_build_image.yml@main
-    needs: e2e-test
+    needs: [test, e2e-test]
   dockerhub:
     uses: wrk-tafel/admin/.github/workflows/subflow_publish_image.yml@main
     needs: docker-image

@@ -19,7 +19,7 @@
         <spring.boot.version>2.6.6</spring.boot.version>
         <jjwt.version>0.11.2</jjwt.version>
         <jackson.kotlin.module.version>2.13.2</jackson.kotlin.module.version>
-        <flyway.version>8.5.6</flyway.version>
+        <flyway.version>8.5.8</flyway.version>
         <postgresql.driver.version>42.3.3</postgresql.driver.version>
         <bouncycastle.version>1.70</bouncycastle.version>
 
@@ -29,7 +29,7 @@
         <jacoco.maven.plugin.version>0.8.8</jacoco.maven.plugin.version>
 
         <!-- Test dependency versions -->
-        <h2.database.version>2.1.210</h2.database.version>
+        <h2.database.version>2.1.212</h2.database.version>
         <archunit.version>0.23.1</archunit.version>
         <mockk.version>1.12.3</mockk.version>
     </properties>
