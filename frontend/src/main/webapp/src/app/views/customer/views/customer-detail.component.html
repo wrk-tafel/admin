@@ -1,3 +1,68 @@
 <div class="animated fadeIn">
-    <p>TODO - Customer Detail of ID: {{customerData?.customerId}} and email: {{customerData?.email}}</p>
+    <div class="row">
+        <div class="col-6">
+            <div class="card">
+                <div class="card-header text-center h5">Kunden-Details</div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col font-weight-bold">Kundennummer:</div>
+                        <div class="col">{{customerData?.customerId}}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col font-weight-bold">Familienname:</div>
+                        <div class="col">{{customerData?.lastname}}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col font-weight-bold">Vorname:</div>
+                        <div class="col">{{customerData?.firstname}}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col font-weight-bold">Geburtsdatum:</div>
+                        <div class="col">{{customerData?.birthDate}}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col font-weight-bold">Nationalität:</div>
+                        <div class="col">{{customerData?.country}}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col font-weight-bold">Telefonnummer:</div>
+                        <div class="col">{{customerData?.telephoneNumber}}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col font-weight-bold">E-Mail:</div>
+                        <div class="col">{{customerData?.email}}</div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col font-weight-bold">Adresse</div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            {{customerData?.address.street}}&nbsp;{{customerData?.address.houseNumber}}&nbsp;Stiege&nbsp;{{customerData?.address.stairway}}&nbsp;Tür&nbsp;{{customerData?.address.door}}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">{{customerData?.address.postalCode}} {{customerData?.address.city}}</div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col font-weight-bold">Arbeitgeber</div>
+                    </div>
+                    <div class="row">
+                        <div class="col">{{customerData?.employer}}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            Einkommen&nbsp;(monatlich):&nbsp;{{customerData?.income}}&nbsp;&euro;
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            Auszahlung&nbsp;bis&nbsp;{{customerData?.incomeDue}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
