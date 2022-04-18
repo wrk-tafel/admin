@@ -41,7 +41,11 @@ describe('CustomerEditComponent', () => {
     lastname: 'Mustermann',
     firstname: 'Max',
     birthDate: moment().subtract(40, 'years').startOf('day').toDate(),
-    country: 'AT',
+    country: {
+      id: 0,
+      code: 'AT',
+      name: 'Österreich'
+    },
     telephoneNumber: 6641231231,
     email: 'max.mustermann@gmail.com',
 

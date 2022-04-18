@@ -1,7 +1,7 @@
 import { TestBed, waitForAsync } from '@angular/core/testing';
 import { ActivatedRoute } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
-import moment from 'moment';
+import * as moment from 'moment';
 import { of } from 'rxjs';
 import { CustomerApiService, CustomerData } from '../api/customer-api.service';
 import { CustomerDetailComponent, CustomerDetailData } from './customer-detail.component';
@@ -79,7 +79,7 @@ describe('CustomerDetailComponent', () => {
       lastname: 'Mustermann',
       firstname: 'Max',
       birthDateAge: moment(mockCustomer.birthDate).format('DD.MM.YYYY') + ' (30)',
-      country: 'AT',
+      country: 'Österreich',
       telephoneNumber: 6644123123123,
       email: 'max.mustermann@gmail.com',
       addressLine: 'Teststraße 123A, Stiege 1, Top 21',
