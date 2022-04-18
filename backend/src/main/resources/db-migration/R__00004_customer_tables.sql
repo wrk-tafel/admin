@@ -1,13 +1,17 @@
 DROP TABLE IF EXISTS customers_addpersons;
 DROP TABLE IF EXISTS customers;
 
+create sequence if not exists customer_id_sequence;
+
 create table customers(
 	id bigint primary key,
 	created_at timestamp not null,
 	updated_at timestamp not null,
+	customer_id bigint not null unique,
 	firstname varchar(50) not null,
 	lastname varchar(50) not null,
 	birth_date date not null,
+	country_id bigint not null REFERENCES static_countries(id),
     address_street varchar(100) not null,
     address_houseNumber varchar(10) not null,
     address_stairway varchar(5) null,
@@ -18,9 +22,7 @@ create table customers(
     email varchar(100) null,
     employer varchar(100) null,
     income decimal null,
-    income_due date null,
-    count_persons_in_household integer null default 0,
-    count_infants integer null default 0
+    income_due date null
 );
 
 create table customers_addpersons(
@@ -33,6 +35,3 @@ create table customers_addpersons(
 	birth_date date not null,
     income decimal null
 );
-
-create unique index uix_customer_telephone_number on customers (telephone_number);
-create unique index uix_customer_email on customers (email);

@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Country, CountryApiService } from '../../../common/api/country-api.service';
+import { CustomValidator } from '../../../common/CustomValidator';
 
 @Component({
   selector: 'customer-form',
@@ -12,13 +13,19 @@ export class CustomerFormComponent implements OnInit {
   ) { }
 
   @Input() customerData: CustomerFormData;
-  @Output() dataUpdateEvent = new EventEmitter<CustomerFormData>();
+  @Output() dataUpdatedEvent = new EventEmitter<void>();
 
   customerForm = new FormGroup({
+    customerId: new FormControl(''),
     lastname: new FormControl('', [Validators.required, Validators.maxLength(50)]),
     firstname: new FormControl('', [Validators.required, , Validators.maxLength(50)]),
-    birthDate: new FormControl('', Validators.required),
-    nationality: new FormControl('', Validators.required),
+    birthDate: new FormControl('',
+      [
+        Validators.required,
+        CustomValidator.minDate(new Date(1920, 0, 1)),
+        CustomValidator.maxDate(new Date())
+      ]),
+    country: new FormControl('', Validators.required),
     telephoneNumber: new FormControl(''),
     email: new FormControl('', [Validators.maxLength(100), Validators.email]),
 
@@ -26,13 +33,17 @@ export class CustomerFormComponent implements OnInit {
     houseNumber: new FormControl('', [Validators.required, Validators.maxLength(10)]),
     stairway: new FormControl(''),
     door: new FormControl('', Validators.required),
-    postalCode: new FormControl(1030, [Validators.required, Validators.pattern("^[0-9]{4}$")]),
-    city: new FormControl('Wien', [Validators.required, Validators.maxLength(50)]),
+    postalCode: new FormControl('', [Validators.required, Validators.pattern('^[0-9]{4}$')]),
+    city: new FormControl('', [Validators.required, Validators.maxLength(50)]),
 
     employer: new FormControl('', Validators.required),
     income: new FormControl('', Validators.required),
-    incomeDue: new FormControl('', Validators.required)
-  })
+    incomeDue: new FormControl('',
+      [
+        Validators.required,
+        CustomValidator.minDate(new Date())
+      ])
+  });
 
   countries: Country[];
 
@@ -41,16 +52,20 @@ export class CustomerFormComponent implements OnInit {
       this.countries = data;
     });
 
-    this.customerForm.valueChanges.subscribe((value) => {
-      this.dataUpdateEvent.emit(value);
-    });
     this.customerForm.patchValue(this.customerData);
+    this.birthDate.setValue(this.customerData?.birthDate?.toISOString().substring(0, 10));
+    this.incomeDue.setValue(this.customerData?.incomeDue?.toISOString().substring(0, 10));
+
+    this.customerForm.valueChanges.subscribe(() => {
+      this.dataUpdatedEvent.emit();
+    });
   }
 
+  get customerId() { return this.customerForm.get('customerId'); }
   get lastname() { return this.customerForm.get('lastname'); }
   get firstname() { return this.customerForm.get('firstname'); }
   get birthDate() { return this.customerForm.get('birthDate'); }
-  get nationality() { return this.customerForm.get('nationality'); }
+  get country() { return this.customerForm.get('country'); }
   get telephoneNumber() { return this.customerForm.get('telephoneNumber'); }
   get email() { return this.customerForm.get('email'); }
 
@@ -67,21 +82,22 @@ export class CustomerFormComponent implements OnInit {
 }
 
 export interface CustomerFormData {
-  lastname?: string,
-  firstname?: string,
-  birthDate?: Date,
-  nationality?: string,
-  telephoneNumber?: number,
-  email?: string
+  customerId?: number;
+  lastname?: string;
+  firstname?: string;
+  birthDate?: Date;
+  country?: string;
+  telephoneNumber?: number;
+  email?: string;
 
-  street?: string,
-  houseNumber?: string,
-  stairway?: string,
-  door?: string,
-  postalCode?: number,
-  city?: string,
+  street?: string;
+  houseNumber?: string;
+  stairway?: string;
+  door?: string;
+  postalCode?: number;
+  city?: string;
 
-  employer?: string,
-  income?: number,
-  incomeDue?: Date
+  employer?: string;
+  income?: number;
+  incomeDue?: Date;
 }

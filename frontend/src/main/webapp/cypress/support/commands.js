@@ -24,15 +24,34 @@
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
 
+Cypress.Commands.add('byTestId', (id) => cy.get(`[testid="${id}"]`));
+
 Cypress.Commands.add('login', (username, password) => {
-    cy.visit('/login');
-    cy.get('[testid=username]').type(username);
-    cy.get('[testid=password]').type(password);
-    cy.get('[testid=loginButton]').click();
+    cy.visit('#/login');
+    cy.byTestId('username').type(username);
+    cy.byTestId('password').type(password);
+    cy.byTestId('loginButton').click();
 });
 
 Cypress.Commands.add('loginWithTestuser', () => {
     let username = 'e2etest';
     let password = 'e2etest';
     cy.login(username, password);
+});
+
+Cypress.Commands.add('loginHeadlessWithTestuser', () => {
+    let username = 'e2etest';
+    let password = 'e2etest';
+
+    cy.request({
+        method: 'POST',
+        url: '/api/login',
+        body: 'username=' + username + '&password=' + password,
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        }
+    }).then((response) => {
+        const token = response.body.token;
+        sessionStorage.setItem('JWT_TOKEN', token);
+    });
 });

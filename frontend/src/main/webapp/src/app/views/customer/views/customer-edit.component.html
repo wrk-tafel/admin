@@ -1,12 +1,15 @@
 <div class="animated fadeIn">
+    <div testid="errorMessage" *ngIf="errorMessage" class="alert alert-danger mb-3">
+        <div>{{errorMessage}}</div>
+    </div>
     <div class="row">
         <div class="col">
             <div class="card">
                 <div class="card-header text-center h5">
-                    Hauptperson
+                    Hauptbezieher
                 </div>
                 <div class="card-body">
-                    <customer-form [customerData]="customerData" (dataUpdateEvent)="updateCustomerFormData($event)">
+                    <customer-form [customerData]="customerData" (dataUpdatedEvent)="updatedCustomerFormData()">
                     </customer-form>
                 </div>
             </div>
@@ -25,19 +28,74 @@
                         <h6 testid="nopersons-label">Keine Personen vorhanden</h6>
                     </div>
                     <div *ngFor="let additionalPersonData of additionalPersonsData; trackBy: trackBy; let i = index">
-                        <div class="row">
-                            <div class="col-10">
-                                <addperson-card [attr.testid]="'personcard-' + i" [personData]="additionalPersonData"
-                                    (dataUpdateEvent)="updatePersonsData(i, $event)">
-                                </addperson-card>
-                            </div>
-                            <div class="col-xxl-2 mb-3 ml-3">
-                                <button [attr.testid]="'remove-personcard-' + i" type="button"
-                                    class="btn btn-block btn-danger" (click)="removePerson(i)">Löschen</button>
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col">
+                                            <addperson-form [attr.testid]="'personform-' + i"
+                                                [personData]="additionalPersonData"
+                                                (dataUpdatedEvent)="updatedPersonsFormData()">
+                                            </addperson-form>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-lg-5 col-xxl-2 mt-3">
+                                            <button [attr.testid]="'remove-personform-' + i" type="button"
+                                                class="btn btn-block btn-danger"
+                                                (click)="removePerson(i)">Löschen</button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+    <button testid="validate-button" class="btn btn-primary px-4 mb-3" (click)="validate()">Anspruch prüfen</button>
+    <button testid="save-button" class="btn px-4 mb-3 ml-2" (click)="save()" [disabled]="saveDisabled"
+        [ngClass]="{'btn-danger': saveDisabled, 'btn-success': !saveDisabled}">Speichern</button>
+</div>
+
+<div testid="validationresult-modal" bsModal #validationResultModal="bs-modal" class="modal fade" tabindex="-1"
+    role="dialog" aria-labelledby="validationResultModalLabel" aria-hidden="true">
+    <div testid="validationresult-modal-dialog" class="modal-dialog" role="document"
+        [ngClass]="{'modal-danger': saveDisabled, 'modal-success': !saveDisabled}">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 testid="title" class="modal-title">
+                    {{saveDisabled ? "Kein Anspruch vorhanden" : "Anspruch vorhanden"}}
+                </h4>
+                <button type="button" class="close" (click)="validationResultModal.hide()" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-6 font-weight-bold">Limit (inkl. Toleranz von
+                        {{validationResult?.toleranceValue}}&nbsp;&euro;):</div>
+                    <div class="col-2">{{validationResult?.limit}}&nbsp;&euro;</div>
+                </div>
+                <div class="row">
+                    <div class="col-6 font-weight-bold">Einkommen gesamt:</div>
+                    <div class="col-2">{{validationResult?.totalSum}}&nbsp;&euro;</div>
+                </div>
+                <div class="row">
+                    <div class="col-8">
+                        <hr>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-6 font-weight-bold">Einkommen über Limit:</div>
+                    <div class="col-2" [ngClass]="{'text-danger': saveDisabled}">
+                        {{validationResult?.amountExceededLimit}}&nbsp;&euro;</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button testid="ok-button" type="button" class="btn btn-primary"
+                    (click)="validationResultModal.hide()">OK</button>
             </div>
         </div>
     </div>

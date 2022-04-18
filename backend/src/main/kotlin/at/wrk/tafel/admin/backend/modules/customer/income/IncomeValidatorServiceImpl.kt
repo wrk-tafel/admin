@@ -24,7 +24,7 @@ class IncomeValidatorServiceImpl(
             monthlySum = monthlySum.add(person.monthlyIncome ?: BigDecimal.ZERO)
 
             if (person.isChild()) {
-                monthlySum = monthlySum.add(getFamilyBonusForAge(person.age) ?: BigDecimal.ZERO)
+                monthlySum = monthlySum.add(getFamilyBonusForAge(person.getAge()) ?: BigDecimal.ZERO)
 
                 val childTaxAllowanceValue =
                     childTaxAllowanceRepository.findCurrentValue().map { it.amount }.orElse(BigDecimal.ZERO)!!
@@ -84,6 +84,7 @@ class IncomeValidatorServiceImpl(
             valid = valid,
             totalSum = monthlySum,
             limit = limit,
+            toleranceValue = toleranceValueOptional.map { it.amount }.orElse(BigDecimal.ZERO)!!,
             amountExceededLimit = if (!valid) differenceFromLimit.abs() else BigDecimal.ZERO
         )
     }

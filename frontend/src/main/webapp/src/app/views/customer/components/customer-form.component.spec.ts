@@ -1,5 +1,6 @@
 import { TestBed, waitForAsync } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
+import * as moment from 'moment';
 import { of } from 'rxjs';
 import { CountryApiService } from '../../../common/api/country-api.service';
 import { CustomerFormComponent, CustomerFormData } from './customer-form.component';
@@ -45,8 +46,8 @@ describe('CustomerFormComponent', () => {
     const testData: CustomerFormData = {
       lastname: 'Mustermann',
       firstname: 'Max',
-      birthDate: new Date(),
-      nationality: 'Österreich',
+      birthDate: moment().subtract(20, 'years').startOf('day').toDate(),
+      country: 'AT',
       telephoneNumber: 660123123,
       email: 'test@mail.com',
       street: 'Testgasse',
@@ -58,29 +59,36 @@ describe('CustomerFormComponent', () => {
       employer: 'WRK',
       income: 123.50,
       incomeDue: new Date()
-    }
+    };
+
     component.customerData = testData;
-    spyOn(component.dataUpdateEvent, 'emit');
+    spyOn(component.dataUpdatedEvent, 'emit');
     component.ngOnInit();
 
-    expect(component.customerForm.value).toEqual(testData);
+    expect(component.customerForm.get('customerId').value).toBe('');
+    expect(component.customerForm.get('lastname').value).toBe(testData.lastname);
+    expect(component.customerForm.get('firstname').value).toBe(testData.firstname);
+    expect(component.customerForm.get('birthDate').value).toBe(moment(testData.birthDate).startOf('day').format('YYYY-MM-DD'));
+    expect(component.customerForm.get('country').value).toBe(testData.country);
+    expect(component.customerForm.get('telephoneNumber').value).toBe(testData.telephoneNumber);
+    expect(component.customerForm.get('email').value).toBe(testData.email);
+    expect(component.customerForm.get('street').value).toBe(testData.street);
+    expect(component.customerForm.get('houseNumber').value).toBe(testData.houseNumber);
+    expect(component.customerForm.get('door').value).toBe(testData.door);
+    expect(component.customerForm.get('stairway').value).toBe(testData.stairway);
+    expect(component.customerForm.get('postalCode').value).toBe(testData.postalCode);
+    expect(component.customerForm.get('city').value).toBe(testData.city);
+    expect(component.customerForm.get('employer').value).toBe(testData.employer);
+    expect(component.customerForm.get('income').value).toBe(testData.income);
+    expect(component.customerForm.get('incomeDue').value).toBe(moment(testData.incomeDue).startOf('day').format('YYYY-MM-DD'));
+
     expect(component.customerForm.valid).toBe(true);
     expect(component.countries).toEqual(mockCountryList);
 
     expect(component.lastname.value).toBe(testData.lastname);
     component.lastname.setValue('updated');
     fixture.detectChanges();
-    expect(component.dataUpdateEvent.emit).toHaveBeenCalledWith(jasmine.objectContaining({
-      lastname: 'updated'
-    }));
-  }));
-
-  it('prefilled postalCode and city', waitForAsync(() => {
-    const component = new CustomerFormComponent(apiService);
-
-    expect(component.postalCode.value).toBe(1030);
-    expect(component.city.value).toBe('Wien');
-    expect(component.customerForm.valid).toBe(false);
+    expect(component.dataUpdatedEvent.emit).toHaveBeenCalled();
   }));
 
 });

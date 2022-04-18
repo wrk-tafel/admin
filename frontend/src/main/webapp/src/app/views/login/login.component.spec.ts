@@ -32,15 +32,10 @@ describe('LoginComponent', () => {
     router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
   }));
 
-  beforeEach(() => {
-    fixture = TestBed.createComponent(LoginComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
-
   it('should create the component', waitForAsync(() => {
     const fixture = TestBed.createComponent(LoginComponent);
     const component = fixture.componentInstance;
+    fixture.detectChanges();
 
     expect(component).toBeTruthy();
   }));
@@ -51,12 +46,17 @@ describe('LoginComponent', () => {
 
     const fixture = TestBed.createComponent(LoginComponent);
     const component = fixture.componentInstance;
+    fixture.detectChanges();
 
     expect(component.errorMessage).toBe('Sitzung abgelaufen! Bitte erneut anmelden.');
   }));
 
   it('login successful', () => {
     authService.login.and.returnValue(Promise.resolve(true));
+
+    const fixture = TestBed.createComponent(LoginComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
 
     component.loginForm.setValue({
       'username': 'user',
@@ -70,6 +70,10 @@ describe('LoginComponent', () => {
 
   it('login failed', () => {
     authService.login.and.returnValue(Promise.resolve(false));
+
+    const fixture = TestBed.createComponent(LoginComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
 
     component.loginForm.setValue({
       'username': 'user',

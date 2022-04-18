@@ -1,16 +1,17 @@
 package at.wrk.tafel.admin.backend.database.entities
 
 import at.wrk.tafel.admin.backend.database.entities.base.BaseChangeTrackingEntity
+import at.wrk.tafel.admin.backend.database.entities.staticdata.CountryEntity
 import java.math.BigDecimal
 import java.time.LocalDate
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.OneToMany
-import javax.persistence.Table
+import javax.persistence.*
 
 @Entity(name = "Customer")
 @Table(name = "customers")
 class CustomerEntity : BaseChangeTrackingEntity() {
+    @Column(name = "customer_id")
+    var customerId: Long? = null
+
     @Column(name = "firstname")
     var firstname: String? = null
 
@@ -19,6 +20,9 @@ class CustomerEntity : BaseChangeTrackingEntity() {
 
     @Column(name = "birth_date")
     var birthDate: LocalDate? = null
+
+    @ManyToOne
+    var country: CountryEntity? = null
 
     @Column(name = "address_street")
     var addressStreet: String? = null
@@ -53,12 +57,6 @@ class CustomerEntity : BaseChangeTrackingEntity() {
     @Column(name = "income_due")
     var incomeDue: LocalDate? = null
 
-    @Column(name = "count_persons_in_household")
-    var countPersonsInHousehold: Int? = null
-
-    @Column(name = "count_infants")
-    var countInfants: Int? = null
-
-    @OneToMany(mappedBy = "customer")
-    var additionalPersons: Set<CustomerAddPersonEntity> = emptySet()
+    @OneToMany(mappedBy = "customer", cascade = [CascadeType.ALL])
+    var additionalPersons: List<CustomerAddPersonEntity> = emptyList()
 }
