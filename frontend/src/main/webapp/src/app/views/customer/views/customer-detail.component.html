@@ -6,63 +6,65 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col font-weight-bold">Kundennummer</div>
-                        <div class="col">{{customerDetailData?.customerId}}</div>
+                        <div testid="customerIdText" class="col">{{customerDetailData?.customerId}}</div>
                     </div>
                     <div class="row">
                         <div class="col font-weight-bold">Familienname</div>
-                        <div class="col">{{customerDetailData?.lastname}}</div>
+                        <div testid="lastnameText" class="col">{{customerDetailData?.lastname}}</div>
                     </div>
                     <div class="row">
                         <div class="col font-weight-bold">Vorname</div>
-                        <div class="col">{{customerDetailData?.firstname}}</div>
+                        <div testid="firstnameText" class="col">{{customerDetailData?.firstname}}</div>
                     </div>
                     <div class="row">
                         <div class="col font-weight-bold">Geburtsdatum (Alter)</div>
-                        <div class="col">{{customerDetailData?.birthDateAge}}</div>
+                        <div testid="birthDateText" class="col">{{customerDetailData?.birthDateAge}}</div>
                     </div>
                     <div class="row">
                         <div class="col font-weight-bold">Nationalität</div>
-                        <div class="col">{{customerDetailData?.country}}</div>
+                        <div testid="countryText" class="col">{{customerDetailData?.country}}</div>
                     </div>
                     <div class="row">
                         <div class="col font-weight-bold">Telefonnummer</div>
-                        <div class="col" *ngIf="customerDetailData?.telephoneNumber !== null">
+                        <div testid="telephoneNumberText" class="col"
+                            *ngIf="customerDetailData?.telephoneNumber !== null">
                             {{customerDetailData?.telephoneNumber}}
                         </div>
-                        <div class="col" *ngIf="customerDetailData?.telephoneNumber === null">-</div>
+                        <div testid="telephoneNumberText" class="col"
+                            *ngIf="customerDetailData?.telephoneNumber === null">-</div>
                     </div>
                     <div class="row">
                         <div class="col font-weight-bold">E-Mail</div>
-                        <div class="col" *ngIf="customerDetailData?.email !== null">
+                        <div testid="emailText" class="col" *ngIf="customerDetailData?.email !== null">
                             {{customerDetailData?.email}}
                         </div>
-                        <div class="col" *ngIf="customerDetailData?.email === null">-</div>
+                        <div testid="emailText" class="col" *ngIf="customerDetailData?.email === null">-</div>
                     </div>
                     <hr>
                     <div class="row">
                         <div class="col font-weight-bold">Adresse</div>
                     </div>
                     <div class="row">
-                        <div class="col">
+                        <div testid="addressLineText" class="col">
                             {{customerDetailData?.addressLine}}
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col">{{customerDetailData?.addressPostalCode}} {{customerDetailData?.addressCity}}
-                        </div>
+                        <div testid="addressLine2Text" class="col">{{customerDetailData?.addressPostalCode}}
+                            {{customerDetailData?.addressCity}}</div>
                     </div>
                     <hr>
                     <div class="row">
                         <div class="col font-weight-bold">Arbeitgeber</div>
                     </div>
                     <div class="row">
-                        <div class="col">{{customerDetailData?.employer}}</div>
+                        <div testid="employerText" class="col">{{customerDetailData?.employer}}</div>
                     </div>
                     <div class="row">
                         <div class="col">
                             Einkommen&nbsp;(monatlich)
                         </div>
-                        <div class="col">
+                        <div testid="incomeText" class="col">
                             {{customerDetailData?.income}}&nbsp;&euro;
                         </div>
                     </div>
@@ -70,7 +72,7 @@
                         <div class="col">
                             Auszahlung&nbsp;bis
                         </div>
-                        <div class="col">
+                        <div testid="incomeDueText" class="col">
                             {{customerDetailData?.incomeDue}}
                         </div>
                     </div>
@@ -87,15 +89,20 @@
                     <div *ngFor="let addPerson of additionalPersonsDetailData; let i = index">
                         <hr *ngIf="i > 0">
                         <div class="row">
-                            <div class="col font-weight-bold">{{addPerson?.lastname}}</div>
-                            <div class="col font-weight-bold">{{addPerson?.firstname}}</div>
+                            <div [attr.testid]="'addperson-' + i + '-lastnameText'" class="col font-weight-bold">
+                                {{addPerson?.lastname}}</div>
+                            <div [attr.testid]="'addperson-' + i + '-firstnameText'" class="col font-weight-bold">
+                                {{addPerson?.firstname}}</div>
                         </div>
                         <div class="row">
-                            <div class="col">{{addPerson?.birthDateAge}}</div>
-                            <div class="col" *ngIf="addPerson?.income !== null">
+                            <div [attr.testid]="'addperson-' + i + '-birthDateText'" class="col">
+                                {{addPerson?.birthDateAge}}</div>
+                            <div [attr.testid]="'addperson-' + i + '-incomeText'" class="col"
+                                *ngIf="addPerson?.income !== null">
                                 Einkommen:&nbsp;{{addPerson?.income}}&nbsp;&euro;
                             </div>
-                            <div class="col" *ngIf="addPerson?.income === null">Einkommen:&nbsp;-</div>
+                            <div [attr.testid]="'addperson-' + i + '-incomeText'" class="col"
+                                *ngIf="addPerson?.income === null">Einkommen:&nbsp;-</div>
                         </div>
                     </div>
                 </div>
