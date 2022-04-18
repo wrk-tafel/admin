@@ -67,7 +67,7 @@ export class CustomerDetailComponent implements OnInit {
 
 }
 
-interface CustomerDetailData {
+export interface CustomerDetailData {
   id?: number;
   customerId?: number;
   firstname: string;
@@ -84,7 +84,7 @@ interface CustomerDetailData {
   incomeDue: string;
 }
 
-interface AddPersonDetailData {
+export interface AddPersonDetailData {
   firstname: string;
   lastname: string;
   birthDateAge: string;

@@ -1,12 +1,44 @@
 import { TestBed, waitForAsync } from '@angular/core/testing';
 import { ActivatedRoute } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
+import moment from 'moment';
 import { of } from 'rxjs';
 import { CustomerApiService, CustomerData } from '../api/customer-api.service';
-import { CustomerDetailComponent } from './customer-detail.component';
+import { CustomerDetailComponent, CustomerDetailData } from './customer-detail.component';
 
 describe('CustomerDetailComponent', () => {
   let apiService: jasmine.SpyObj<CustomerApiService>;
+
+  const mockCustomer: CustomerData = {
+    lastname: 'Mustermann',
+    firstname: 'Max',
+    birthDate: moment().subtract(30, 'years').startOf('day').toDate(),
+    country: {
+      id: 0,
+      code: 'AT',
+      name: 'Österreich'
+    },
+    telephoneNumber: 6644123123123,
+    email: 'max.mustermann@gmail.com',
+
+    address: {
+      street: 'Teststraße',
+      houseNumber: '123A',
+      stairway: '1',
+      door: '21',
+      postalCode: 1020,
+      city: 'Wien',
+    },
+
+    employer: 'test employer',
+    income: 1000,
+    incomeDue: new Date(),
+
+    additionalPersons: [
+      { lastname: 'Add', firstname: 'Pers 1', birthDate: moment().subtract(5, 'years').startOf('day').toDate(), income: 50 },
+      { lastname: 'Add', firstname: 'Pers 2', birthDate: moment().subtract(10, 'years').startOf('day').toDate(), income: 80 }
+    ]
+  };
 
   beforeEach(waitForAsync(() => {
     const apiServiceSpy = jasmine.createSpyObj('CustomerApiService', ['getCustomer']);
@@ -37,67 +69,44 @@ describe('CustomerDetailComponent', () => {
   });
 
   it('initial data loaded', waitForAsync(() => {
-    const incomeDueDate = new Date();
-    const mockCustomer: CustomerData = {
-      lastname: 'Mustermann',
-      firstname: 'Max',
-      birthDate: new Date(1980, 4, 10),
-      country: 'AT',
-      telephoneNumber: 6644123123123,
-      email: 'max.mustermann@gmail.com',
-
-      address: {
-        street: 'Teststraße',
-        houseNumber: '123A',
-        stairway: '1',
-        door: '21',
-        postalCode: 1020,
-        city: 'Wien',
-      },
-
-      employer: 'test employer',
-      income: 1000,
-      incomeDue: incomeDueDate,
-
-      additionalPersons: [
-        { lastname: 'Add', firstname: 'Pers 1', birthDate: new Date(1990, 3, 10), income: 50 },
-        { lastname: 'Add', firstname: 'Pers 2', birthDate: new Date(2000, 2, 11), income: 80 }
-      ]
-    };
-
     apiService.getCustomer.withArgs(333).and.returnValue(of(mockCustomer));
 
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
     component.ngOnInit();
 
-    const checkData: CustomerData = {
+    const checkData: CustomerDetailData = {
       lastname: 'Mustermann',
       firstname: 'Max',
-      birthDate: new Date(1980, 4, 10),
+      birthDateAge: moment(mockCustomer.birthDate).format('DD.MM.YYYY') + ' (30)',
       country: 'AT',
       telephoneNumber: 6644123123123,
       email: 'max.mustermann@gmail.com',
-
-      address: {
-        street: 'Teststraße',
-        houseNumber: '123A',
-        stairway: '1',
-        door: '21',
-        postalCode: 1020,
-        city: 'Wien'
-      },
-
+      addressLine: 'Teststraße 123A, Stiege 1, Top 21',
+      addressPostalCode: 1020,
+      addressCity: 'Wien',
       employer: 'test employer',
       income: 1000,
-      incomeDue: incomeDueDate,
-
-      additionalPersons: [
-        { lastname: 'Add', firstname: 'Pers 1', birthDate: new Date(1990, 3, 10), income: 50 },
-        { lastname: 'Add', firstname: 'Pers 2', birthDate: new Date(2000, 2, 11), income: 80 }
-      ]
+      incomeDue: moment(mockCustomer.incomeDue).format('DD.MM.YYYY')
     };
-    expect(component.customerData).toEqual(checkData);
+    expect(component.customerDetailData).toEqual(checkData);
+
+    expect(component.additionalPersonsDetailData).toEqual(
+      [
+        {
+          lastname: 'Add',
+          firstname: 'Pers 1',
+          birthDateAge: moment(mockCustomer.additionalPersons[0].birthDate).format('DD.MM.YYYY') + ' (5)',
+          income: 50
+        },
+        {
+          lastname: 'Add',
+          firstname: 'Pers 2',
+          birthDateAge: moment(mockCustomer.additionalPersons[1].birthDate).format('DD.MM.YYYY') + ' (10)',
+          income: 80
+        }
+      ]
+    );
   }));
 
 });
