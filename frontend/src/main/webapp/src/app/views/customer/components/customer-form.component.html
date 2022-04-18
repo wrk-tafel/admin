@@ -132,7 +132,7 @@
                 [ngClass]="{'is-invalid': stairway.invalid && (stairway.dirty || stairway.touched), 'is-valid': stairway.valid && (stairway.dirty || stairway.touched)}">
         </div>
         <div class="col-sm">
-            <label class="form-label">Tür</label>
+            <label class="form-label">Top</label>
             <input testId="doorInput" type="number" formControlName="door" name="door" class="form-control"
                 [ngClass]="{'is-invalid': door.invalid && (door.dirty || door.touched), 'is-valid': door.valid && (door.dirty || door.touched)}">
             <div *ngIf="door.errors?.required && (door.dirty || door.touched)" class="invalid-feedback">

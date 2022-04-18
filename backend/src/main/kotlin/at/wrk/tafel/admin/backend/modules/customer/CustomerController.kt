@@ -99,7 +99,7 @@ class CustomerController(
         address = CustomerAddress(
             street = customerEntity.addressStreet!!,
             houseNumber = customerEntity.addressHouseNumber!!,
-            stairway = customerEntity.addressStairway!!,
+            stairway = customerEntity.addressStairway,
             door = customerEntity.addressDoor!!,
             postalCode = customerEntity.addressPostalCode!!,
             city = customerEntity.addressCity!!

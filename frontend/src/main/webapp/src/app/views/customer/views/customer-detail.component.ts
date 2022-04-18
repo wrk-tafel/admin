@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import * as moment from 'moment';
-import { CustomerAddPersonData, CustomerApiService, CustomerData } from '../api/customer-api.service';
+import { CustomerAddPersonData, CustomerAddressData, CustomerApiService, CustomerData } from '../api/customer-api.service';
 
 @Component({
   selector: 'customer-detail',
@@ -36,16 +36,22 @@ export class CustomerDetailComponent implements OnInit {
       country: customerData.country.name,
       telephoneNumber: customerData.telephoneNumber,
       email: customerData.email,
-      addressStreet: customerData.address.street,
-      addressHouseNumber: customerData.address.houseNumber,
-      addressStairway: customerData.address.stairway,
-      addressDoor: customerData.address.door,
+      addressLine: this.createAddressLine(customerData.address),
       addressPostalCode: customerData.address.postalCode,
       addressCity: customerData.address.city,
       employer: customerData.employer,
       income: customerData.income,
       incomeDue: moment(customerData.incomeDue).format('DD.MM.YYYY')
     }
+  }
+  private createAddressLine(address: CustomerAddressData): string {
+    let addressLine = address.street;
+    addressLine += ' ' + address.houseNumber;
+    if (address.stairway) {
+      addressLine += ', Stiege ' + address.stairway;
+    }
+    addressLine += ', Top ' + address.door;
+    return addressLine;
   }
 
   private mapAddPersonDataForView(addPerson: CustomerAddPersonData): AddPersonDetailData {
@@ -68,10 +74,7 @@ interface CustomerDetailData {
   country: string;
   telephoneNumber: number;
   email: string;
-  addressStreet: string;
-  addressHouseNumber: string;
-  addressStairway: string;
-  addressDoor: string;
+  addressLine: string;
   addressPostalCode: number;
   addressCity: string;
   employer: string;
