@@ -78,4 +78,11 @@ describe('Customer Detail', () => {
     cy.byTestId('addperson-2-incomeText').should('have.text', 'Einkommen: -');
   });
 
+  it('defaults for optional fields are correct', () => {
+    cy.visit('/#/kunden/detail/100');
+    cy.byTestId('telephoneNumberText').should('have.text', '-');
+    cy.byTestId('emailText').should('have.text', '-');
+    cy.byTestId('addressLine1Text').should('have.text', 'Erdberg 1, Top 10');
+  });
+
 });
