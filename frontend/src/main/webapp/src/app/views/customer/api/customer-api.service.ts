@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { CountryData } from '../../../common/api/country-api.service';
 
 @Injectable({
   providedIn: 'root'
@@ -37,7 +38,7 @@ export interface CustomerData {
   firstname: string;
   lastname: string;
   birthDate: Date;
-  country: string;
+  country: CountryData;
   address: CustomerAddressData;
   telephoneNumber: number;
   email: string;

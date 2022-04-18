@@ -35,8 +35,8 @@ describe('CustomerFormComponent', () => {
 
   it('data filling and update is working', waitForAsync(() => {
     const mockCountryList = [
-      { code: 'AT', name: 'Österreich' },
-      { code: 'DE', name: 'Deutschland' }
+      { id: 0, code: 'AT', name: 'Österreich' },
+      { id: 1, code: 'DE', name: 'Deutschland' }
     ];
     apiService.getCountries.and.returnValue(of(mockCountryList));
 

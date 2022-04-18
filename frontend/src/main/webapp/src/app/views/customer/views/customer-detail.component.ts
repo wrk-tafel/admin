@@ -12,11 +12,11 @@ export class CustomerDetailComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private apiService: CustomerApiService) { }
+    private customerApiService: CustomerApiService) { }
 
   ngOnInit(): void {
     this.route.params.subscribe(params => {
-      this.apiService.getCustomer(+params['id']).subscribe((customerData) => {
+      this.customerApiService.getCustomer(+params['id']).subscribe((customerData) => {
         this.customerDetailData = this.mapCustomerDataForView(customerData);
       });
     });
@@ -29,7 +29,7 @@ export class CustomerDetailComponent implements OnInit {
       firstname: customerData.firstname,
       lastname: customerData.lastname,
       birthDate: moment(customerData.birthDate).format('DD.MM.YYYY'),
-      country: customerData.country, // TODO map to name
+      country: customerData.country.name,
       telephoneNumber: customerData.telephoneNumber,
       email: customerData.email,
       addressStreet: customerData.address.street,

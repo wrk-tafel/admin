@@ -2,8 +2,10 @@ package at.wrk.tafel.admin.backend.modules.customer
 
 import at.wrk.tafel.admin.backend.database.entities.CustomerAddPersonEntity
 import at.wrk.tafel.admin.backend.database.entities.CustomerEntity
+import at.wrk.tafel.admin.backend.database.entities.staticdata.CountryEntity
 import at.wrk.tafel.admin.backend.database.repositories.CustomerRepository
 import at.wrk.tafel.admin.backend.database.repositories.staticdata.CountryRepository
+import at.wrk.tafel.admin.backend.modules.base.Country
 import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorPerson
 import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorService
 import org.springframework.http.HttpStatus
@@ -61,7 +63,7 @@ class CustomerController(
         customerEntity.lastname = customer.lastname.trim()
         customerEntity.firstname = customer.firstname.trim()
         customerEntity.birthDate = customer.birthDate
-        customerEntity.country = countryRepository.findByCode(customer.country)
+        customerEntity.country = countryRepository.findById(customer.country.id).get()
         customerEntity.addressStreet = customer.address.street.trim()
         customerEntity.addressHouseNumber = customer.address.houseNumber.trim()
         customerEntity.addressStairway = customer.address.stairway?.trim()
@@ -93,7 +95,7 @@ class CustomerController(
         firstname = customerEntity.firstname!!,
         lastname = customerEntity.lastname!!,
         birthDate = customerEntity.birthDate!!,
-        country = customerEntity.country?.code!!,
+        country = mapCustomerCountryToDomain(customerEntity.country!!),
         address = CustomerAddress(
             street = customerEntity.addressStreet!!,
             houseNumber = customerEntity.addressHouseNumber!!,
@@ -117,6 +119,14 @@ class CustomerController(
             )
         }
     )
+
+    private fun mapCustomerCountryToDomain(country: CountryEntity): Country {
+        return Country(
+            id = country.id!!,
+            code = country.code!!,
+            name = country.name!!
+        )
+    }
 
     private fun mapToValidationPersons(customer: Customer): List<IncomeValidatorPerson> {
         val personList = mutableListOf<IncomeValidatorPerson>()
