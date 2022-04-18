@@ -2,35 +2,41 @@
     <div class="row">
         <div class="col-6">
             <div class="card">
-                <div class="card-header text-center h5">Kunden-Details</div>
+                <div class="card-header text-center h5">Hauptbezieher</div>
                 <div class="card-body">
                     <div class="row">
-                        <div class="col font-weight-bold">Kundennummer:</div>
+                        <div class="col font-weight-bold">Kundennummer</div>
                         <div class="col">{{customerDetailData?.customerId}}</div>
                     </div>
                     <div class="row">
-                        <div class="col font-weight-bold">Familienname:</div>
+                        <div class="col font-weight-bold">Familienname</div>
                         <div class="col">{{customerDetailData?.lastname}}</div>
                     </div>
                     <div class="row">
-                        <div class="col font-weight-bold">Vorname:</div>
+                        <div class="col font-weight-bold">Vorname</div>
                         <div class="col">{{customerDetailData?.firstname}}</div>
                     </div>
                     <div class="row">
-                        <div class="col font-weight-bold">Geburtsdatum:</div>
-                        <div class="col">{{customerDetailData?.birthDate}}</div>
+                        <div class="col font-weight-bold">Geburtsdatum (Alter)</div>
+                        <div class="col">{{customerDetailData?.birthDateAge}}</div>
                     </div>
                     <div class="row">
-                        <div class="col font-weight-bold">Nationalität:</div>
+                        <div class="col font-weight-bold">Nationalität</div>
                         <div class="col">{{customerDetailData?.country}}</div>
                     </div>
                     <div class="row">
-                        <div class="col font-weight-bold">Telefonnummer:</div>
-                        <div class="col">{{customerDetailData?.telephoneNumber}}</div>
+                        <div class="col font-weight-bold">Telefonnummer</div>
+                        <div class="col" *ngIf="customerDetailData?.telephoneNumber !== null">
+                            {{customerDetailData?.telephoneNumber}}
+                        </div>
+                        <div class="col" *ngIf="customerDetailData?.telephoneNumber === null">-</div>
                     </div>
                     <div class="row">
-                        <div class="col font-weight-bold">E-Mail:</div>
-                        <div class="col">{{customerDetailData?.email}}</div>
+                        <div class="col font-weight-bold">E-Mail</div>
+                        <div class="col" *ngIf="customerDetailData?.email !== null">
+                            {{customerDetailData?.email}}
+                        </div>
+                        <div class="col" *ngIf="customerDetailData?.email === null">-</div>
                     </div>
                     <hr>
                     <div class="row">
@@ -38,7 +44,7 @@
                     </div>
                     <div class="row">
                         <div class="col">
-                            {{customerDetailData?.addressStreet}}&nbsp;{{customerDetailData?.addressHouseNumber}}&nbsp;Stiege&nbsp;{{customerDetailData?.addressStairway}}&nbsp;Tür&nbsp;{{customerDetailData?.addressDoor}}
+                            {{customerDetailData?.addressStreet}}&nbsp;{{customerDetailData?.addressHouseNumber}},&nbsp;Stiege&nbsp;{{customerDetailData?.addressStairway}},&nbsp;Tür&nbsp;{{customerDetailData?.addressDoor}}
                         </div>
                     </div>
                     <div class="row">
@@ -54,7 +60,7 @@
                     </div>
                     <div class="row">
                         <div class="col">
-                            Einkommen&nbsp;(monatlich):
+                            Einkommen&nbsp;(monatlich)
                         </div>
                         <div class="col">
                             {{customerDetailData?.income}}&nbsp;&euro;
@@ -62,10 +68,40 @@
                     </div>
                     <div class="row">
                         <div class="col">
-                            Auszahlung&nbsp;bis:
+                            Auszahlung&nbsp;bis
                         </div>
                         <div class="col">
                             {{customerDetailData?.incomeDue}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="card">
+                <div class="card-header text-center h5">Weitere Personen</div>
+                <div class="card-body">
+                    <div *ngIf="additionalPersonsDetailData.length === 0">
+                        <h6 testid="nopersons-label">Keine Personen vorhanden</h6>
+                    </div>
+                    <div *ngFor="let addPerson of additionalPersonsDetailData; let i = index">
+                        <hr *ngIf="i > 0">
+                        <div class="row">
+                            <div class="col font-weight-bold">{{addPerson?.lastname}}</div>
+                            <div class="col font-weight-bold">{{addPerson?.firstname}}</div>
+                        </div>
+                        <div class="row">
+                            <div class="col font-weight-bold">Geburtsdatum (Alter)</div>
+                            <div class="col">{{addPerson?.birthDateAge}}</div>
+                        </div>
+                        <div class="row">
+                            <div class="col font-weight-bold">
+                                Einkommen&nbsp;(monatlich)
+                            </div>
+                            <div class="col" *ngIf="addPerson?.income !== null">
+                                {{addPerson?.income}}&nbsp;&euro;
+                            </div>
+                            <div class="col" *ngIf="addPerson?.income === null">-</div>
                         </div>
                     </div>
                 </div>

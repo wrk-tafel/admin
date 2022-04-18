@@ -1,7 +1,7 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
-import { HashLocationStrategy, LocationStrategy } from '@angular/common';
+import { CommonModule, HashLocationStrategy, LocationStrategy } from '@angular/common';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { PerfectScrollbarModule } from 'ngx-perfect-scrollbar';
@@ -45,22 +45,23 @@ import { ErrorHandlerInterceptor } from './common/http/errorhandler-interceptor.
 
 @NgModule({
   imports: [
-    BrowserModule,
-    BrowserAnimationsModule,
-    AppRoutingModule,
-    ReactiveFormsModule,
     AppAsideModule,
     AppBreadcrumbModule.forRoot(),
     AppFooterModule,
     AppHeaderModule,
+    AppRoutingModule,
     AppSidebarModule,
+    BrowserModule,
+    BrowserAnimationsModule,
     BsDropdownModule.forRoot(),
     ChartsModule,
+    CommonModule,
     HttpClientModule,
     HttpClientXsrfModule,
     IconModule,
     IconSetModule.forRoot(),
     PerfectScrollbarModule,
+    ReactiveFormsModule,
     TabsModule.forRoot()
   ],
   declarations: [

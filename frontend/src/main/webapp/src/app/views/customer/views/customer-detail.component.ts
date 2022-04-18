@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import * as moment from 'moment';
-import { CustomerApiService, CustomerData } from '../api/customer-api.service';
+import { CustomerAddPersonData, CustomerApiService, CustomerData } from '../api/customer-api.service';
 
 @Component({
   selector: 'customer-detail',
@@ -9,6 +9,7 @@ import { CustomerApiService, CustomerData } from '../api/customer-api.service';
 })
 export class CustomerDetailComponent implements OnInit {
   customerDetailData: CustomerDetailData;
+  additionalPersonsDetailData: AddPersonDetailData[] = [];
 
   constructor(
     private route: ActivatedRoute,
@@ -18,6 +19,9 @@ export class CustomerDetailComponent implements OnInit {
     this.route.params.subscribe(params => {
       this.customerApiService.getCustomer(+params['id']).subscribe((customerData) => {
         this.customerDetailData = this.mapCustomerDataForView(customerData);
+        customerData.additionalPersons.map((addPers) => {
+          this.additionalPersonsDetailData.push(this.mapAddPersonDataForView(addPers));
+        });
       });
     });
   }
@@ -28,7 +32,7 @@ export class CustomerDetailComponent implements OnInit {
       customerId: customerData.customerId,
       firstname: customerData.firstname,
       lastname: customerData.lastname,
-      birthDate: moment(customerData.birthDate).format('DD.MM.YYYY'),
+      birthDateAge: moment(customerData.birthDate).format('DD.MM.YYYY') + ' (' + moment().diff(customerData.birthDate, 'years') + ')',
       country: customerData.country.name,
       telephoneNumber: customerData.telephoneNumber,
       email: customerData.email,
@@ -43,6 +47,16 @@ export class CustomerDetailComponent implements OnInit {
       incomeDue: moment(customerData.incomeDue).format('DD.MM.YYYY')
     }
   }
+
+  private mapAddPersonDataForView(addPerson: CustomerAddPersonData): AddPersonDetailData {
+    return {
+      lastname: addPerson.lastname,
+      firstname: addPerson.firstname,
+      birthDateAge: moment(addPerson.birthDate).format('DD.MM.YYYY') + ' (' + moment().diff(addPerson.birthDate, 'years') + ')',
+      income: addPerson.income
+    };
+  }
+
 }
 
 interface CustomerDetailData {
@@ -50,7 +64,7 @@ interface CustomerDetailData {
   customerId?: number;
   firstname: string;
   lastname: string;
-  birthDate: string;
+  birthDateAge: string;
   country: string;
   telephoneNumber: number;
   email: string;
@@ -63,4 +77,11 @@ interface CustomerDetailData {
   employer: string;
   income: number;
   incomeDue: string;
+}
+
+interface AddPersonDetailData {
+  firstname: string;
+  lastname: string;
+  birthDateAge: string;
+  income?: number;
 }

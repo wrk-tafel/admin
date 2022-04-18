@@ -60,6 +60,6 @@ export interface CustomerAddressData {
 export interface CustomerAddPersonData {
   firstname: string;
   lastname: string;
-  birthDate: Date;
-  income: number;
+  birthDate: string;
+  income?: number;
 }
