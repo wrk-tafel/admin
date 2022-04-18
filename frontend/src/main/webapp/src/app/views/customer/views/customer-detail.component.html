@@ -91,17 +91,11 @@
                             <div class="col font-weight-bold">{{addPerson?.firstname}}</div>
                         </div>
                         <div class="row">
-                            <div class="col font-weight-bold">Geburtsdatum (Alter)</div>
                             <div class="col">{{addPerson?.birthDateAge}}</div>
-                        </div>
-                        <div class="row">
-                            <div class="col font-weight-bold">
-                                Einkommen&nbsp;(monatlich)
-                            </div>
                             <div class="col" *ngIf="addPerson?.income !== null">
-                                {{addPerson?.income}}&nbsp;&euro;
+                                Einkommen:&nbsp;{{addPerson?.income}}&nbsp;&euro;
                             </div>
-                            <div class="col" *ngIf="addPerson?.income === null">-</div>
+                            <div class="col" *ngIf="addPerson?.income === null">Einkommen:&nbsp;-</div>
                         </div>
                     </div>
                 </div>
