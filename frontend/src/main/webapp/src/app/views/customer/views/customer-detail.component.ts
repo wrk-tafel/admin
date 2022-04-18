@@ -19,6 +19,8 @@ export class CustomerDetailComponent implements OnInit {
     this.route.params.subscribe(params => {
       this.customerApiService.getCustomer(+params['id']).subscribe((customerData) => {
         this.customerDetailData = this.mapCustomerDataForView(customerData);
+
+        this.additionalPersonsDetailData = [];
         customerData.additionalPersons.map((addPers) => {
           this.additionalPersonsDetailData.push(this.mapAddPersonDataForView(addPers));
         });
