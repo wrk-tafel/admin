@@ -26,20 +26,7 @@
 
 Cypress.Commands.add('byTestId', (id) => cy.get(`[testid="${id}"]`));
 
-Cypress.Commands.add('login', (username, password) => {
-    cy.visit('#/login');
-    cy.byTestId('username').type(username);
-    cy.byTestId('password').type(password);
-    cy.byTestId('loginButton').click();
-});
-
-Cypress.Commands.add('loginWithTestuser', () => {
-    let username = 'e2etest';
-    let password = 'e2etest';
-    cy.login(username, password);
-});
-
-Cypress.Commands.add('loginHeadlessWithTestuser', () => {
+Cypress.Commands.add('login', () => {
     let username = 'e2etest';
     let password = 'e2etest';
 

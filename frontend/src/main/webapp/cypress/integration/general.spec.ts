@@ -1,4 +1,4 @@
-describe('Admin', () => {
+describe('General', () => {
 
   beforeEach(() => {
     cy.visit('/');
@@ -6,6 +6,10 @@ describe('Admin', () => {
 
   it('window title correct', () => {
     cy.contains('Tafel Admin');
+  });
+
+  it('redirects per default to login', () => {
+    cy.url().should('include', '/login')
   });
 
 });

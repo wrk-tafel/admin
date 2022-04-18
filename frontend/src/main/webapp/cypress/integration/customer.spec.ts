@@ -5,7 +5,7 @@ import * as moment from 'moment';
 describe('Customer', () => {
 
   beforeEach(() => {
-    cy.loginHeadlessWithTestuser();
+    cy.login();
     cy.visit('#/kunden/anlegen');
   });
 
