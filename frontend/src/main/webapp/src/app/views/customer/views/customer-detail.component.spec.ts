@@ -10,6 +10,8 @@ describe('CustomerDetailComponent', () => {
   let apiService: jasmine.SpyObj<CustomerApiService>;
 
   const mockCustomer: CustomerData = {
+    id: 0,
+    customerId: 1,
     lastname: 'Mustermann',
     firstname: 'Max',
     birthDate: moment().subtract(30, 'years').startOf('day').toDate(),
@@ -76,6 +78,8 @@ describe('CustomerDetailComponent', () => {
     component.ngOnInit();
 
     const checkData: CustomerDetailData = {
+      id: 0,
+      customerId: 1,
       lastname: 'Mustermann',
       firstname: 'Max',
       birthDateAge: moment(mockCustomer.birthDate).format('DD.MM.YYYY') + ' (30)',
