@@ -12,7 +12,7 @@ describe('Customer', () => {
   it('validate shows errorMessage', () => {
     cy.byTestId('validate-button').click();
 
-    cy.byTestId('errorMessage').within((errorMessage) => {
+    cy.byTestId('errorMessage').within(() => {
       cy.byTestId('errorMessageContent').should('have.text', 'Bitte Eingaben überprüfen!');
     });
   });
