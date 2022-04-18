@@ -9,6 +9,14 @@ describe('Customer', () => {
     cy.visit('#/kunden/anlegen');
   });
 
+  it('validate shows errorMessage', () => {
+    cy.byTestId('validate-button').click();
+
+    cy.byTestId('errorMessage').within((errorMessage) => {
+      cy.byTestId('errorMessageContent').should('have.text', 'Bitte Eingaben überprüfen!');
+    });
+  });
+
   it('create new valid customer without existing customerId', () => {
     createCustomer();
 
