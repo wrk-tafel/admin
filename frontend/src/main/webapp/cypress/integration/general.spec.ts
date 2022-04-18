@@ -1,7 +1,7 @@
 describe('General', () => {
 
   beforeEach(() => {
-    cy.visit('/');
+    cy.visit('/#/');
   });
 
   it('window title correct', () => {

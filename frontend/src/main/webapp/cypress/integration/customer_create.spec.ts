@@ -2,22 +2,20 @@ import * as moment from 'moment';
 
 // TODO optimize structure
 
-describe('Customer', () => {
+describe('Customer Creation', () => {
 
   beforeEach(() => {
     cy.login();
-    cy.visit('#/kunden/anlegen');
+    cy.visit('/#/kunden/anlegen');
   });
 
-  it('validate shows errorMessage', () => {
+  it('shows errorMessage', () => {
     cy.byTestId('validate-button').click();
 
-    cy.byTestId('errorMessage').within(() => {
-      cy.byTestId('errorMessageContent').should('have.text', 'Bitte Eingaben überprüfen!');
-    });
+    cy.byTestId('errorMessage').should('be.visible');
   });
 
-  it('create new valid customer without existing customerId', () => {
+  it('create new qualified customer', () => {
     createCustomer();
 
     cy.byTestId('validationresult-modal')
@@ -33,7 +31,7 @@ describe('Customer', () => {
     cy.url().should('include', '/kunden/detail')
   });
 
-  it('create new valid customer with existing customerId', () => {
+  it('create existing qualified customer', () => {
     const customerId = getRandomNumber(20000, 500000);
     createCustomer(customerId);
 
@@ -50,7 +48,7 @@ describe('Customer', () => {
     cy.url().should('include', '/kunden/detail/' + customerId);
   });
 
-  it('create new invalid customer without existing customerId', () => {
+  it('create new customer not qualified', () => {
     createCustomer(0, 10000);
 
     cy.byTestId('validationresult-modal')
