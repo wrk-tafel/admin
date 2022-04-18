@@ -6,31 +6,31 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col font-weight-bold">Kundennummer:</div>
-                        <div class="col">{{customerData?.customerId}}</div>
+                        <div class="col">{{customerDetailData?.customerId}}</div>
                     </div>
                     <div class="row">
                         <div class="col font-weight-bold">Familienname:</div>
-                        <div class="col">{{customerData?.lastname}}</div>
+                        <div class="col">{{customerDetailData?.lastname}}</div>
                     </div>
                     <div class="row">
                         <div class="col font-weight-bold">Vorname:</div>
-                        <div class="col">{{customerData?.firstname}}</div>
+                        <div class="col">{{customerDetailData?.firstname}}</div>
                     </div>
                     <div class="row">
                         <div class="col font-weight-bold">Geburtsdatum:</div>
-                        <div class="col">{{customerData?.birthDate}}</div>
+                        <div class="col">{{customerDetailData?.birthDate}}</div>
                     </div>
                     <div class="row">
                         <div class="col font-weight-bold">Nationalität:</div>
-                        <div class="col">{{customerData?.country}}</div>
+                        <div class="col">{{customerDetailData?.country}}</div>
                     </div>
                     <div class="row">
                         <div class="col font-weight-bold">Telefonnummer:</div>
-                        <div class="col">{{customerData?.telephoneNumber}}</div>
+                        <div class="col">{{customerDetailData?.telephoneNumber}}</div>
                     </div>
                     <div class="row">
                         <div class="col font-weight-bold">E-Mail:</div>
-                        <div class="col">{{customerData?.email}}</div>
+                        <div class="col">{{customerDetailData?.email}}</div>
                     </div>
                     <hr>
                     <div class="row">
@@ -38,27 +38,34 @@
                     </div>
                     <div class="row">
                         <div class="col">
-                            {{customerData?.address.street}}&nbsp;{{customerData?.address.houseNumber}}&nbsp;Stiege&nbsp;{{customerData?.address.stairway}}&nbsp;Tür&nbsp;{{customerData?.address.door}}
+                            {{customerDetailData?.addressStreet}}&nbsp;{{customerDetailData?.addressHouseNumber}}&nbsp;Stiege&nbsp;{{customerDetailData?.addressStairway}}&nbsp;Tür&nbsp;{{customerDetailData?.addressDoor}}
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col">{{customerData?.address.postalCode}} {{customerData?.address.city}}</div>
+                        <div class="col">{{customerDetailData?.addressPostalCode}} {{customerDetailData?.addressCity}}
+                        </div>
                     </div>
                     <hr>
                     <div class="row">
                         <div class="col font-weight-bold">Arbeitgeber</div>
                     </div>
                     <div class="row">
-                        <div class="col">{{customerData?.employer}}</div>
+                        <div class="col">{{customerDetailData?.employer}}</div>
                     </div>
                     <div class="row">
                         <div class="col">
-                            Einkommen&nbsp;(monatlich):&nbsp;{{customerData?.income}}&nbsp;&euro;
+                            Einkommen&nbsp;(monatlich):
+                        </div>
+                        <div class="col">
+                            {{customerDetailData?.income}}&nbsp;&euro;
                         </div>
                     </div>
                     <div class="row">
                         <div class="col">
-                            Auszahlung&nbsp;bis&nbsp;{{customerData?.incomeDue}}
+                            Auszahlung&nbsp;bis:
+                        </div>
+                        <div class="col">
+                            {{customerDetailData?.incomeDue}}
                         </div>
                     </div>
                 </div>
