@@ -44,8 +44,9 @@ export class CustomerDetailComponent implements OnInit {
       employer: customerData.employer,
       income: customerData.income,
       incomeDue: moment(customerData.incomeDue).format('DD.MM.YYYY')
-    }
+    };
   }
+
   private createAddressLine(address: CustomerAddressData): string {
     let addressLine = address.street;
     addressLine += ' ' + address.houseNumber;

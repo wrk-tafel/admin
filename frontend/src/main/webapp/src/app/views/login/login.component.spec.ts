@@ -1,12 +1,9 @@
-import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
+import { TestBed, waitForAsync } from '@angular/core/testing';
 import { Navigation, Router } from '@angular/router';
 import { AuthenticationService } from '../../common/security/authentication.service';
 import { LoginComponent } from './login.component';
 
 describe('LoginComponent', () => {
-  let component: LoginComponent;
-  let fixture: ComponentFixture<LoginComponent>;
-
   let authService: jasmine.SpyObj<AuthenticationService>;
   let router: jasmine.SpyObj<Router>;
 
