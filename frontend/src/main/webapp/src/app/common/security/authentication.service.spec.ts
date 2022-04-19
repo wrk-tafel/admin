@@ -6,7 +6,7 @@ import { JwtHelperService } from '@auth0/angular-jwt';
 import { AuthenticationService } from './authentication.service';
 
 describe('AuthenticationService', () => {
-  const SESSION_STORAGE_TOKEN_KEY = 'JWT_TOKEN';
+  const SESSION_STORAGE_TOKEN_KEY = 'jwt';
 
   let httpMock: HttpTestingController;
 

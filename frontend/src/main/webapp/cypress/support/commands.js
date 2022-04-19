@@ -39,6 +39,6 @@ Cypress.Commands.add('login', () => {
         }
     }).then((response) => {
         const token = response.body.token;
-        sessionStorage.setItem('JWT_TOKEN', token);
+        sessionStorage.setItem('jwt', token);
     });
 });
