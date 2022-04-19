@@ -10,11 +10,11 @@ describe('CustomerDetailComponent', () => {
   let apiService: jasmine.SpyObj<CustomerApiService>;
 
   const mockCustomer: CustomerData = {
-    id: 0,
-    customerId: 1,
+    id: 1,
+    customerId: 133,
     lastname: 'Mustermann',
     firstname: 'Max',
-    birthDate: moment().subtract(30, 'years').startOf('day').toDate(),
+    birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
     country: {
       id: 0,
       code: 'AT',
@@ -34,11 +34,11 @@ describe('CustomerDetailComponent', () => {
 
     employer: 'test employer',
     income: 1000,
-    incomeDue: new Date(),
+    incomeDue: moment().add(1, 'years').startOf('day').utc().toDate(),
 
     additionalPersons: [
-      { lastname: 'Add', firstname: 'Pers 1', birthDate: moment().subtract(5, 'years').startOf('day').toDate(), income: 50 },
-      { lastname: 'Add', firstname: 'Pers 2', birthDate: moment().subtract(10, 'years').startOf('day').toDate(), income: 80 }
+      { lastname: 'Add', firstname: 'Pers 1', birthDate: moment().subtract(5, 'years').startOf('day').utc().toDate(), income: 50 },
+      { lastname: 'Add', firstname: 'Pers 2', birthDate: moment().subtract(10, 'years').startOf('day').utc().toDate(), income: 80 }
     ]
   };
 
@@ -55,7 +55,7 @@ describe('CustomerDetailComponent', () => {
         {
           provide: ActivatedRoute,
           useValue: {
-            params: of({ id: 333 })
+            params: of({ id: mockCustomer.customerId })
           }
         }
       ]
@@ -71,43 +71,51 @@ describe('CustomerDetailComponent', () => {
   });
 
   it('initial data loaded', waitForAsync(() => {
-    apiService.getCustomer.withArgs(333).and.returnValue(of(mockCustomer));
+    apiService.getCustomer.withArgs(mockCustomer.customerId).and.returnValue(of(mockCustomer));
 
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
     component.ngOnInit();
 
     const checkData: CustomerDetailData = {
-      id: 0,
-      customerId: 1,
-      lastname: 'Mustermann',
-      firstname: 'Max',
-      birthDateAge: moment(mockCustomer.birthDate).format('DD.MM.YYYY') + ' (30)',
-      country: 'Österreich',
-      telephoneNumber: 6644123123123,
-      email: 'max.mustermann@gmail.com',
-      addressLine: 'Teststraße 123A, Stiege 1, Top 21',
-      addressPostalCode: 1020,
-      addressCity: 'Wien',
-      employer: 'test employer',
-      income: 1000,
-      incomeDue: moment(mockCustomer.incomeDue).format('DD.MM.YYYY')
+      id: mockCustomer.id,
+      customerId: mockCustomer.customerId,
+      lastname: mockCustomer.lastname,
+      firstname: mockCustomer.firstname,
+      birthDateAge: moment(mockCustomer.birthDate).startOf('day').utc().format('DD.MM.YYYY') + ' (30)',
+      country: mockCustomer.country.name,
+      telephoneNumber: mockCustomer.telephoneNumber,
+      email: mockCustomer.email,
+      addressLine: mockCustomer.address.street
+        + ' '
+        + mockCustomer.address.houseNumber
+        + ', Stiege '
+        + mockCustomer.address.stairway
+        + ', Top '
+        + mockCustomer.address.door,
+      addressPostalCode: mockCustomer.address.postalCode,
+      addressCity: mockCustomer.address.city,
+      employer: mockCustomer.employer,
+      income: mockCustomer.income,
+      incomeDue: moment(mockCustomer.incomeDue).startOf('day').utc().format('DD.MM.YYYY')
     };
     expect(component.customerDetailData).toEqual(checkData);
 
+    const addPers1 = mockCustomer.additionalPersons[0];
+    const addPers2 = mockCustomer.additionalPersons[1];
     expect(component.additionalPersonsDetailData).toEqual(
       [
         {
-          lastname: 'Add',
-          firstname: 'Pers 1',
-          birthDateAge: moment(mockCustomer.additionalPersons[0].birthDate).format('DD.MM.YYYY') + ' (5)',
-          income: 50
+          lastname: addPers1.lastname,
+          firstname: addPers1.firstname,
+          birthDateAge: moment(addPers1.birthDate).startOf('day').utc().format('DD.MM.YYYY') + ' (5)',
+          income: addPers1.income
         },
         {
-          lastname: 'Add',
-          firstname: 'Pers 2',
-          birthDateAge: moment(mockCustomer.additionalPersons[1].birthDate).format('DD.MM.YYYY') + ' (10)',
-          income: 80
+          lastname: addPers2.lastname,
+          firstname: addPers2.firstname,
+          birthDateAge: moment(addPers2.birthDate).startOf('day').utc().format('DD.MM.YYYY') + ' (10)',
+          income: addPers2.income
         }
       ]
     );

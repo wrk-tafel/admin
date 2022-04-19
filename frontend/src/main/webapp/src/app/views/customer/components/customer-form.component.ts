@@ -86,7 +86,7 @@ export interface CustomerFormData {
   lastname?: string;
   firstname?: string;
   birthDate?: Date;
-  country?: string;
+  country?: CountryData;
   telephoneNumber?: number;
   email?: string;
 
