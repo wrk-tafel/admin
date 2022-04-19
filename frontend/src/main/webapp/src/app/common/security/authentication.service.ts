@@ -7,7 +7,7 @@ import { JwtHelperService } from '@auth0/angular-jwt';
   providedIn: 'root'
 })
 export class AuthenticationService {
-  private SESSION_STORAGE_TOKEN_KEY = 'JWT_TOKEN';
+  private SESSION_STORAGE_TOKEN_KEY = 'jwt';
 
   constructor(
     private jwtHelper: JwtHelperService,
