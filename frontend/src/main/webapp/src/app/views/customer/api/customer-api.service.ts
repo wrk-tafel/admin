@@ -19,8 +19,8 @@ export class CustomerApiService {
     return this.http.post<CustomerData>('/customers', data);
   }
 
-  getCustomer(customerId: number): Observable<CustomerData> {
-    return this.http.get<CustomerData>('/customers/' + customerId);
+  getCustomer(id: number): Observable<CustomerData> {
+    return this.http.get<CustomerData>('/customers/' + id);
   }
 }
 
@@ -34,7 +34,6 @@ export interface ValidateCustomerResponse {
 
 export interface CustomerData {
   id?: number;
-  customerId?: number;
   firstname: string;
   lastname: string;
   birthDate: Date;

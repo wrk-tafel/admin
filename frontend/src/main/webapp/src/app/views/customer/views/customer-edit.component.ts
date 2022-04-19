@@ -74,7 +74,7 @@ export class CustomerEditComponent {
     this.apiService.createCustomer(customerData)
       .pipe(
         tap(customer => {
-          this.router.navigate(['/kunden/detail', customer.customerId]);
+          this.router.navigate(['/kunden/detail', customer.id]);
         })
       ).subscribe();
   }
@@ -91,7 +91,7 @@ export class CustomerEditComponent {
 
     const customer = this.customerFormComponent;
     return {
-      customerId: customer.customerId.value,
+      id: customer.customerId.value,
       lastname: customer.lastname.value,
       firstname: customer.firstname.value,
       birthDate: customer.birthDate.value,
