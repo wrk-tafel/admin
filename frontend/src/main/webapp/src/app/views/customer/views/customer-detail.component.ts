@@ -31,7 +31,6 @@ export class CustomerDetailComponent implements OnInit {
   private mapCustomerDataForView(customerData: CustomerData): CustomerDetailData {
     return {
       id: customerData.id,
-      customerId: customerData.customerId,
       firstname: customerData.firstname,
       lastname: customerData.lastname,
       birthDateAge: moment(customerData.birthDate).format('DD.MM.YYYY') + ' (' + moment().diff(customerData.birthDate, 'years') + ')',
@@ -70,7 +69,6 @@ export class CustomerDetailComponent implements OnInit {
 
 export interface CustomerDetailData {
   id?: number;
-  customerId?: number;
   firstname: string;
   lastname: string;
   birthDateAge: string;

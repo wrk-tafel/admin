@@ -35,6 +35,12 @@ class CustomerController(
 
     @PostMapping
     fun createCustomer(@RequestBody customer: Customer): Customer {
+        customer.id?.let {
+            if (customerRepository.existsByCustomerId(it)) {
+                throw ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Kunde Nr. $it bereits vorhanden!")
+            }
+        }
+
         val entity = mapRequestToEntity(customer)
         val savedEntity = customerRepository.save(entity)
         return mapEntityToResponse(savedEntity)
@@ -59,7 +65,7 @@ class CustomerController(
 
     private fun mapRequestToEntity(customer: Customer): CustomerEntity {
         val customerEntity = CustomerEntity()
-        customerEntity.customerId = customer.customerId ?: customerRepository.getNextCustomerSequenceValue()
+        customerEntity.customerId = customer.id ?: customerRepository.getNextCustomerSequenceValue()
         customerEntity.lastname = customer.lastname.trim()
         customerEntity.firstname = customer.firstname.trim()
         customerEntity.birthDate = customer.birthDate
@@ -90,8 +96,7 @@ class CustomerController(
     }
 
     private fun mapEntityToResponse(customerEntity: CustomerEntity) = Customer(
-        id = customerEntity.id!!,
-        customerId = customerEntity.customerId,
+        id = customerEntity.customerId,
         firstname = customerEntity.firstname!!,
         lastname = customerEntity.lastname!!,
         birthDate = customerEntity.birthDate!!,

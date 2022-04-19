@@ -40,7 +40,7 @@ describe('CustomerEditComponent', () => {
     { lastname: 'Add', firstname: 'Pers 2', birthDate: moment().subtract(2, 'years').startOf('day').utc().toDate(), income: 80 }
   ];
   const testCustomerRequestData: CustomerData = {
-    customerId: 123,
+    id: 123,
     lastname: testCustomerData.lastname,
     firstname: testCustomerData.firstname,
     birthDate: moment(testCustomerData.birthDate).startOf('day').utc().toDate(),
@@ -238,7 +238,7 @@ describe('CustomerEditComponent', () => {
     const addPers1 = testCustomerRequestData.additionalPersons[0];
     const addPers2 = testCustomerRequestData.additionalPersons[1];
     expect(apiService.validate).toHaveBeenCalledWith(jasmine.objectContaining({
-      customerId: '',
+      id: '',
       lastname: testCustomerRequestData.lastname,
       firstname: testCustomerRequestData.firstname,
       birthDate: moment(testCustomerRequestData.birthDate).startOf('day').utc().format('YYYY-MM-DD'),
@@ -352,7 +352,7 @@ describe('CustomerEditComponent', () => {
       ]
     }));
 
-    expect(router.navigate).toHaveBeenCalledWith(['/kunden/detail', testCustomerRequestData.customerId]);
+    expect(router.navigate).toHaveBeenCalledWith(['/kunden/detail', testCustomerRequestData.id]);
   });
 
 });

@@ -10,8 +10,7 @@ describe('CustomerDetailComponent', () => {
   let apiService: jasmine.SpyObj<CustomerApiService>;
 
   const mockCustomer: CustomerData = {
-    id: 1,
-    customerId: 133,
+    id: 133,
     lastname: 'Mustermann',
     firstname: 'Max',
     birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
@@ -55,7 +54,7 @@ describe('CustomerDetailComponent', () => {
         {
           provide: ActivatedRoute,
           useValue: {
-            params: of({ id: mockCustomer.customerId })
+            params: of({ id: mockCustomer.id })
           }
         }
       ]
@@ -71,7 +70,7 @@ describe('CustomerDetailComponent', () => {
   });
 
   it('initial data loaded', waitForAsync(() => {
-    apiService.getCustomer.withArgs(mockCustomer.customerId).and.returnValue(of(mockCustomer));
+    apiService.getCustomer.withArgs(mockCustomer.id).and.returnValue(of(mockCustomer));
 
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
@@ -79,7 +78,6 @@ describe('CustomerDetailComponent', () => {
 
     const checkData: CustomerDetailData = {
       id: mockCustomer.id,
-      customerId: mockCustomer.customerId,
       lastname: mockCustomer.lastname,
       firstname: mockCustomer.firstname,
       birthDateAge: moment(mockCustomer.birthDate).startOf('day').utc().format('DD.MM.YYYY') + ' (30)',

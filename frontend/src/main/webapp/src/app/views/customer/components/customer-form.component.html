@@ -59,9 +59,9 @@
                 <div class="input-group-append">
                     <span class="input-group-text"><i class="fa fa-flag"></i></span>
                 </div>
-            </div>
-            <div *ngIf="country.errors?.required && (country.dirty || country.touched)" class="invalid-feedback">
-                Pflichtfeld
+                <div *ngIf="country.errors?.required && (country.dirty || country.touched)" class="invalid-feedback">
+                    Pflichtfeld
+                </div>
             </div>
         </div>
     </div>
@@ -85,15 +85,12 @@
                 <div class="input-group-append">
                     <span class="input-group-text"><i class="cil-envelope-closed"></i></span>
                 </div>
-            </div>
-            <div *ngIf="email.errors?.required && (email.dirty || email.touched)" class="invalid-feedback">
-                Pflichtfeld
-            </div>
-            <div *ngIf="email.errors?.maxlength && (email.dirty || email.touched)" class="invalid-feedback">
-                E-Mail zu lang (Limit: {{email.errors.maxlength.requiredLength}})
-            </div>
-            <div *ngIf="email.errors?.email && (email.dirty || email.touched)" class="invalid-feedback">
-                E-Mail-Format ungültig!
+                <div *ngIf="email.errors?.maxlength && (email.dirty || email.touched)" class="invalid-feedback">
+                    E-Mail zu lang (Limit: {{email.errors.maxlength.requiredLength}})
+                </div>
+                <div *ngIf="email.errors?.email && (email.dirty || email.touched)" class="invalid-feedback">
+                    E-Mail-Format ungültig!
+                </div>
             </div>
         </div>
     </div>
@@ -150,9 +147,9 @@
                 <div class="input-group-append">
                     <span class="input-group-text"><i class="cil-location-pin"></i></span>
                 </div>
-            </div>
-            <div *ngIf="postalCode.errors && (postalCode.dirty || postalCode.touched)" class="invalid-feedback">
-                Pflichtfeld / 4-stellig
+                <div *ngIf="postalCode.errors && (postalCode.dirty || postalCode.touched)" class="invalid-feedback">
+                    Pflichtfeld / 4-stellig
+                </div>
             </div>
         </div>
         <div class="col-sm">
@@ -163,12 +160,12 @@
                 <div class="input-group-append">
                     <span class="input-group-text"><i class="cil-location-pin"></i></span>
                 </div>
-            </div>
-            <div *ngIf="city.errors?.required && (city.dirty || city.touched)" class="invalid-feedback">
-                Pflichtfeld
-            </div>
-            <div *ngIf="city.errors?.maxlength && (city.dirty || city.touched)" class="invalid-feedback">
-                Ort zu lang (Limit: {{city.errors.maxlength.requiredLength}})
+                <div *ngIf="city.errors?.required && (city.dirty || city.touched)" class="invalid-feedback">
+                    Pflichtfeld
+                </div>
+                <div *ngIf="city.errors?.maxlength && (city.dirty || city.touched)" class="invalid-feedback">
+                    Ort zu lang (Limit: {{city.errors.maxlength.requiredLength}})
+                </div>
             </div>
         </div>
     </div>
@@ -183,9 +180,9 @@
                 <div class="input-group-append">
                     <span class="input-group-text"><i class="cil-factory"></i></span>
                 </div>
-            </div>
-            <div *ngIf="employer.errors?.required && (employer.dirty || employer.touched)" class="invalid-feedback">
-                Pflichtfeld
+                <div *ngIf="employer.errors?.required && (employer.dirty || employer.touched)" class="invalid-feedback">
+                    Pflichtfeld
+                </div>
             </div>
         </div>
     </div>
@@ -198,9 +195,9 @@
                 <div class="input-group-append">
                     <span class="input-group-text"><i class="fa fa-euro"></i></span>
                 </div>
-            </div>
-            <div *ngIf="income.errors?.required && (income.dirty || income.touched)" class="invalid-feedback">
-                Pflichtfeld
+                <div *ngIf="income.errors?.required && (income.dirty || income.touched)" class="invalid-feedback">
+                    Pflichtfeld
+                </div>
             </div>
         </div>
         <div class="col-sm">
