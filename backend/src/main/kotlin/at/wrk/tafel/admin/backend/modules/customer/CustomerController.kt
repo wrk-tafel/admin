@@ -36,7 +36,7 @@ class CustomerController(
     @PostMapping
     fun createCustomer(@RequestBody customer: Customer): Customer {
         customer.id?.let {
-            if (customerRepository.existsById(it)) {
+            if (customerRepository.existsByCustomerId(it)) {
                 throw ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Kunde Nr. $it bereits vorhanden!")
             }
         }
