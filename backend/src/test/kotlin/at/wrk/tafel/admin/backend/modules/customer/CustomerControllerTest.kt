@@ -40,8 +40,7 @@ class CustomerControllerTest {
     private lateinit var testCountry: CountryEntity
 
     private val testCustomer = Customer(
-        id = 1,
-        customerId = 100,
+        id = 100,
         firstname = "Max",
         lastname = "Mustermann",
         birthDate = LocalDate.now().minusYears(30),
