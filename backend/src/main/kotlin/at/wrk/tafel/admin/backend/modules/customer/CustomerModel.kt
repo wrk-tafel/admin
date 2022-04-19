@@ -1,6 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.customer
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
+import at.wrk.tafel.admin.backend.modules.base.Country
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -16,7 +17,7 @@ data class Customer(
     val firstname: String,
     val lastname: String,
     val birthDate: LocalDate,
-    val country: String,
+    val country: Country,
     val address: CustomerAddress,
     val telephoneNumber: Long? = null,
     val email: String? = null,

@@ -17,6 +17,7 @@ class CountryController(
         return CountryListResponse(
             items = countryRepository.findAll().map {
                 Country(
+                    id = it.id!!,
                     code = it.code!!,
                     name = it.name!!
                 )
@@ -32,6 +33,7 @@ data class CountryListResponse(
 
 @ExcludeFromTestCoverage
 data class Country(
+    val id: Long,
     val code: String,
     val name: String
 )

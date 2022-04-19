@@ -21,10 +21,12 @@ class CountryControllerTest {
     @Test
     fun `list countries`() {
         val country1 = CountryEntity()
+        country1.id = 1
         country1.code = "AA"
         country1.name = "Name A"
 
         val country2 = CountryEntity()
+        country2.id = 2
         country2.code = "BB"
         country2.name = "Name B"
 
@@ -37,8 +39,8 @@ class CountryControllerTest {
 
         assertThat(response.items).hasSameElementsAs(
             listOf(
-                Country(code = "AA", name = "Name A"),
-                Country(code = "BB", name = "Name B")
+                Country(id = 1, code = "AA", name = "Name A"),
+                Country(id = 2, code = "BB", name = "Name B")
             )
         )
     }

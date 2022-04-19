@@ -1,25 +1,34 @@
 describe('Login', () => {
 
-  it('login successful', () => {
-    cy.visit('/');
-    cy.url().should('contain', '/login');
-    cy.byTestId('errorMessage').should('not.exist');
+  beforeEach(() => {
+    cy.visit('/#/login');
+  });
 
-    cy.loginWithTestuser();
-    cy.visit('/');
+  it('login button disabled by default', () => {
+    cy.byTestId('loginButton').should('be.disabled');
+  });
+
+  it('errorMessage hidden by default', () => {
+    cy.byTestId('errorMessage').should('not.exist');
+  });
+
+  it('login successful', () => {
+    login('e2etest', 'e2etest');
 
     cy.url().should('contain', '/uebersicht');
   });
 
   it('login failed', () => {
-    cy.visit('/');
-    cy.url().should('contain', '/login');
-    cy.byTestId('errorMessage').should('not.exist');
-
-    cy.login('dummy', 'dummy');
+    login('dummy', 'dummy');
 
     cy.url().should('contain', '/login');
     cy.byTestId('errorMessage').should('exist');
   });
+
+  function login(username: string, password: string) {
+    cy.byTestId('username').type(username);
+    cy.byTestId('password').type(password);
+    cy.byTestId('loginButton').click();
+  }
 
 });

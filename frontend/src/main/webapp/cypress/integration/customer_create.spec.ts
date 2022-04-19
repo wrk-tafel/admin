@@ -2,14 +2,20 @@ import * as moment from 'moment';
 
 // TODO optimize structure
 
-describe('Customer', () => {
+describe('Customer Creation', () => {
 
   beforeEach(() => {
-    cy.loginHeadlessWithTestuser();
-    cy.visit('#/kunden/anlegen');
+    cy.login();
+    cy.visit('/#/kunden/anlegen');
   });
 
-  it('create new valid customer without existing customerId', () => {
+  it('shows errorMessage', () => {
+    cy.byTestId('validate-button').click();
+
+    cy.byTestId('errorMessage').should('be.visible');
+  });
+
+  it('create new qualified customer', () => {
     createCustomer();
 
     cy.byTestId('validationresult-modal')
@@ -25,7 +31,7 @@ describe('Customer', () => {
     cy.url().should('include', '/kunden/detail')
   });
 
-  it('create new valid customer with existing customerId', () => {
+  it('create existing qualified customer', () => {
     const customerId = getRandomNumber(20000, 500000);
     createCustomer(customerId);
 
@@ -42,7 +48,7 @@ describe('Customer', () => {
     cy.url().should('include', '/kunden/detail/' + customerId);
   });
 
-  it('create new invalid customer without existing customerId', () => {
+  it('create new customer not qualified', () => {
     createCustomer(0, 10000);
 
     cy.byTestId('validationresult-modal')
@@ -121,17 +127,17 @@ describe('Customer', () => {
     });
   }
 
+  interface AddPersonInputData {
+    lastname: string,
+    firstname: string,
+    age: number,
+    income?: number
+  }
+
+  function getRandomNumber(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
 });
-
-interface AddPersonInputData {
-  lastname: string,
-  firstname: string,
-  age: number,
-  income?: number
-}
-
-function getRandomNumber(min, max) {
-  min = Math.ceil(min);
-  max = Math.floor(max);
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}

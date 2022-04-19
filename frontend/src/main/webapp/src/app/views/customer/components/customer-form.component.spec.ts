@@ -35,8 +35,8 @@ describe('CustomerFormComponent', () => {
 
   it('data filling and update is working', waitForAsync(() => {
     const mockCountryList = [
-      { code: 'AT', name: 'Österreich' },
-      { code: 'DE', name: 'Deutschland' }
+      { id: 0, code: 'AT', name: 'Österreich' },
+      { id: 1, code: 'DE', name: 'Deutschland' }
     ];
     apiService.getCountries.and.returnValue(of(mockCountryList));
 
@@ -46,8 +46,8 @@ describe('CustomerFormComponent', () => {
     const testData: CustomerFormData = {
       lastname: 'Mustermann',
       firstname: 'Max',
-      birthDate: moment().subtract(20, 'years').startOf('day').toDate(),
-      country: 'AT',
+      birthDate: moment().subtract(20, 'years').startOf('day').utc().toDate(),
+      country: mockCountryList[0],
       telephoneNumber: 660123123,
       email: 'test@mail.com',
       street: 'Testgasse',
@@ -58,7 +58,7 @@ describe('CustomerFormComponent', () => {
       city: 'Wien',
       employer: 'WRK',
       income: 123.50,
-      incomeDue: new Date()
+      incomeDue: moment().add(1, 'years').startOf('day').utc().toDate()
     };
 
     component.customerData = testData;
@@ -68,7 +68,7 @@ describe('CustomerFormComponent', () => {
     expect(component.customerForm.get('customerId').value).toBe('');
     expect(component.customerForm.get('lastname').value).toBe(testData.lastname);
     expect(component.customerForm.get('firstname').value).toBe(testData.firstname);
-    expect(component.customerForm.get('birthDate').value).toBe(moment(testData.birthDate).startOf('day').format('YYYY-MM-DD'));
+    expect(component.customerForm.get('birthDate').value).toBe(moment(testData.birthDate).startOf('day').utc().format('YYYY-MM-DD'));
     expect(component.customerForm.get('country').value).toBe(testData.country);
     expect(component.customerForm.get('telephoneNumber').value).toBe(testData.telephoneNumber);
     expect(component.customerForm.get('email').value).toBe(testData.email);
@@ -80,7 +80,7 @@ describe('CustomerFormComponent', () => {
     expect(component.customerForm.get('city').value).toBe(testData.city);
     expect(component.customerForm.get('employer').value).toBe(testData.employer);
     expect(component.customerForm.get('income').value).toBe(testData.income);
-    expect(component.customerForm.get('incomeDue').value).toBe(moment(testData.incomeDue).startOf('day').format('YYYY-MM-DD'));
+    expect(component.customerForm.get('incomeDue').value).toBe(moment(testData.incomeDue).startOf('day').utc().format('YYYY-MM-DD'));
 
     expect(component.customerForm.valid).toBe(true);
     expect(component.countries).toEqual(mockCountryList);

@@ -5,6 +5,7 @@ import at.wrk.tafel.admin.backend.database.entities.CustomerEntity
 import at.wrk.tafel.admin.backend.database.entities.staticdata.CountryEntity
 import at.wrk.tafel.admin.backend.database.repositories.CustomerRepository
 import at.wrk.tafel.admin.backend.database.repositories.staticdata.CountryRepository
+import at.wrk.tafel.admin.backend.modules.base.Country
 import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorPerson
 import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorResult
 import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorService
@@ -19,6 +20,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.util.*
 
 @ExtendWith(MockKExtension::class)
 class CustomerControllerTest {
@@ -43,7 +45,11 @@ class CustomerControllerTest {
         firstname = "Max",
         lastname = "Mustermann",
         birthDate = LocalDate.now().minusYears(30),
-        country = "AT",
+        country = Country(
+            id = 1,
+            code = "AT",
+            name = "Österreich"
+        ),
         telephoneNumber = 43660123123,
         email = "test@mail.com",
         address = CustomerAddress(
@@ -80,10 +86,11 @@ class CustomerControllerTest {
     @BeforeEach
     fun beforeEach() {
         testCountry = CountryEntity()
+        testCountry.id = 1
         testCountry.code = "AT"
         testCountry.name = "Österreich"
 
-        every { countryRepository.findByCode("AT") } returns testCountry
+        every { countryRepository.findById(testCountry.id!!) } returns Optional.of(testCountry)
 
         testCustomerEntity.id = 1
         testCustomerEntity.customerId = 100

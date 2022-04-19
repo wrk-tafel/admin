@@ -1,5 +1,4 @@
-import { HttpClient } from '@angular/common/http';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { TestBed, waitForAsync } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -16,8 +15,12 @@ describe('CustomerEditComponent', () => {
   const testCustomerData: CustomerFormData = {
     lastname: 'Mustermann',
     firstname: 'Max',
-    birthDate: moment().subtract(40, 'years').startOf('day').toDate(),
-    country: 'AT',
+    birthDate: moment().subtract(40, 'years').startOf('day').utc().toDate(),
+    country: {
+      id: 0,
+      code: 'AT',
+      name: 'Österreich'
+    },
     telephoneNumber: 6641231231,
     email: 'max.mustermann@gmail.com',
 
@@ -30,42 +33,54 @@ describe('CustomerEditComponent', () => {
 
     employer: 'test employer',
     income: 1000,
-    incomeDue: new Date()
+    incomeDue: moment().add(1, 'years').startOf('day').utc().toDate()
   };
   const testAddPersonsData = [
-    { lastname: 'Add', firstname: 'Pers 1', birthDate: moment().subtract(5, 'years').startOf('day').toDate(), income: 50 },
-    { lastname: 'Add', firstname: 'Pers 2', birthDate: moment().subtract(2, 'years').startOf('day').toDate(), income: 80 }
+    { lastname: 'Add', firstname: 'Pers 1', birthDate: moment().subtract(5, 'years').startOf('day').utc().toDate(), income: 50 },
+    { lastname: 'Add', firstname: 'Pers 2', birthDate: moment().subtract(2, 'years').startOf('day').utc().toDate(), income: 80 }
   ];
   const testCustomerRequestData: CustomerData = {
     customerId: 123,
-    lastname: 'Mustermann',
-    firstname: 'Max',
-    birthDate: moment().subtract(40, 'years').startOf('day').toDate(),
-    country: 'AT',
-    telephoneNumber: 6641231231,
-    email: 'max.mustermann@gmail.com',
+    lastname: testCustomerData.lastname,
+    firstname: testCustomerData.firstname,
+    birthDate: moment(testCustomerData.birthDate).startOf('day').utc().toDate(),
+    country: {
+      id: testCustomerData.country.id,
+      code: testCustomerData.country.code,
+      name: testCustomerData.country.name
+    },
+    telephoneNumber: testCustomerData.telephoneNumber,
+    email: testCustomerData.email,
 
     address: {
-      street: 'Teststraße',
-      houseNumber: '123A',
-      stairway: '1',
-      door: '21',
-      postalCode: 1020,
-      city: 'Wien'
+      street: testCustomerData.street,
+      houseNumber: testCustomerData.houseNumber,
+      stairway: testCustomerData.stairway,
+      door: testCustomerData.door,
+      postalCode: testCustomerData.postalCode,
+      city: testCustomerData.city
     },
 
-    employer: 'test employer',
-    income: 1000,
-    incomeDue: new Date(),
+    employer: testCustomerData.employer,
+    income: testCustomerData.income,
+    incomeDue: moment(testCustomerData.incomeDue).startOf('day').utc().toDate(),
 
     additionalPersons: [
-      { lastname: 'Add', firstname: 'Pers 1', birthDate: moment().subtract(5, 'years').startOf('day').toDate(), income: 50 },
-      { lastname: 'Add', firstname: 'Pers 2', birthDate: moment().subtract(2, 'years').startOf('day').toDate(), income: 80 }
+      {
+        lastname: testAddPersonsData[0].lastname,
+        firstname: testAddPersonsData[0].firstname,
+        birthDate: moment(testAddPersonsData[0].birthDate).startOf('day').utc().toDate(),
+        income: testAddPersonsData[0].income
+      },
+      {
+        lastname: testAddPersonsData[1].lastname,
+        firstname: testAddPersonsData[1].firstname,
+        birthDate: moment(testAddPersonsData[1].birthDate).startOf('day').utc().toDate(),
+        income: testAddPersonsData[1].income
+      }
     ]
   };
 
-  let client: HttpClient;
-  let httpMock: HttpTestingController;
   let router: jasmine.SpyObj<Router>;
   let apiService: jasmine.SpyObj<CustomerApiService>;
 
@@ -94,8 +109,6 @@ describe('CustomerEditComponent', () => {
       ]
     }).compileComponents();
 
-    client = TestBed.inject(HttpClient);
-    httpMock = TestBed.inject(HttpTestingController);
     router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
     apiService = TestBed.inject(CustomerApiService) as jasmine.SpyObj<CustomerApiService>;
   }));
@@ -225,9 +238,10 @@ describe('CustomerEditComponent', () => {
     const addPers1 = testCustomerRequestData.additionalPersons[0];
     const addPers2 = testCustomerRequestData.additionalPersons[1];
     expect(apiService.validate).toHaveBeenCalledWith(jasmine.objectContaining({
+      customerId: '',
       lastname: testCustomerRequestData.lastname,
       firstname: testCustomerRequestData.firstname,
-      birthDate: moment(testCustomerRequestData.birthDate).startOf('day').format('YYYY-MM-DD'),
+      birthDate: moment(testCustomerRequestData.birthDate).startOf('day').utc().format('YYYY-MM-DD'),
       country: testCustomerRequestData.country,
       telephoneNumber: testCustomerRequestData.telephoneNumber,
       email: testCustomerRequestData.email,
@@ -242,19 +256,19 @@ describe('CustomerEditComponent', () => {
 
       employer: testCustomerRequestData.employer,
       income: testCustomerRequestData.income,
-      incomeDue: moment(testCustomerRequestData.incomeDue).startOf('day').format('YYYY-MM-DD'),
+      incomeDue: moment(testCustomerRequestData.incomeDue).startOf('day').utc().format('YYYY-MM-DD'),
 
       additionalPersons: [
         {
           lastname: addPers1.lastname,
           firstname: addPers1.firstname,
-          birthDate: moment(addPers1.birthDate).startOf('day').format('YYYY-MM-DD'),
+          birthDate: moment(addPers1.birthDate).startOf('day').utc().format('YYYY-MM-DD'),
           income: addPers1.income
         },
         {
           lastname: addPers2.lastname,
           firstname: addPers2.firstname,
-          birthDate: moment(addPers2.birthDate).startOf('day').format('YYYY-MM-DD'),
+          birthDate: moment(addPers2.birthDate).startOf('day').utc().format('YYYY-MM-DD'),
           income: addPers2.income
         }
       ]
@@ -305,7 +319,7 @@ describe('CustomerEditComponent', () => {
     expect(apiService.createCustomer).toHaveBeenCalledWith(jasmine.objectContaining({
       lastname: testCustomerRequestData.lastname,
       firstname: testCustomerRequestData.firstname,
-      birthDate: moment(testCustomerRequestData.birthDate).startOf('day').format('YYYY-MM-DD'),
+      birthDate: moment(testCustomerRequestData.birthDate).startOf('day').utc().format('YYYY-MM-DD'),
       country: testCustomerRequestData.country,
       telephoneNumber: testCustomerRequestData.telephoneNumber,
       email: testCustomerRequestData.email,
@@ -320,25 +334,25 @@ describe('CustomerEditComponent', () => {
 
       employer: testCustomerRequestData.employer,
       income: testCustomerRequestData.income,
-      incomeDue: moment(testCustomerRequestData.incomeDue).startOf('day').format('YYYY-MM-DD'),
+      incomeDue: moment(testCustomerRequestData.incomeDue).startOf('day').utc().format('YYYY-MM-DD'),
 
       additionalPersons: [
         {
           lastname: addPers1.lastname,
           firstname: addPers1.firstname,
-          birthDate: moment(addPers1.birthDate).startOf('day').format('YYYY-MM-DD'),
+          birthDate: moment(addPers1.birthDate).startOf('day').utc().format('YYYY-MM-DD'),
           income: addPers1.income
         },
         {
           lastname: addPers2.lastname,
           firstname: addPers2.firstname,
-          birthDate: moment(addPers2.birthDate).startOf('day').format('YYYY-MM-DD'),
+          birthDate: moment(addPers2.birthDate).startOf('day').utc().format('YYYY-MM-DD'),
           income: addPers2.income
         }
       ]
     }));
 
-    expect(router.navigate).toHaveBeenCalledWith(['/kunden/detail', 123]);
+    expect(router.navigate).toHaveBeenCalledWith(['/kunden/detail', testCustomerRequestData.customerId]);
   });
 
 });

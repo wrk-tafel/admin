@@ -21,8 +21,8 @@ describe('CountryApiService', () => {
 
   it('fetch countries and map correctly', () => {
     const mockCountries = [
-      { code: 'AT', name: 'Österreich' },
-      { code: 'DE', name: 'Deutschland' }
+      { id: 0, code: 'AT', name: 'Österreich' },
+      { id: 1, code: 'DE', name: 'Deutschland' }
     ];
 
     apiService.getCountries().subscribe((data) => {

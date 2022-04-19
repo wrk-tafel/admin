@@ -11,16 +11,17 @@ export class CountryApiService {
     private http: HttpClient
   ) { }
 
-  getCountries(): Observable<Country[]> {
+  getCountries(): Observable<CountryData[]> {
     return this.http.get<CountryListResponse>('/countries').pipe(map(val => val.items));
   }
 }
 
 interface CountryListResponse {
-  items: Country[];
+  items: CountryData[];
 }
 
-export interface Country {
+export interface CountryData {
+  id: number;
   code: string;
   name: string;
 }

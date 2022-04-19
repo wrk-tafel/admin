@@ -2,12 +2,16 @@ package at.wrk.tafel.admin.backend.modules.customer
 
 import at.wrk.tafel.admin.backend.database.entities.CustomerAddPersonEntity
 import at.wrk.tafel.admin.backend.database.entities.CustomerEntity
+import at.wrk.tafel.admin.backend.database.entities.staticdata.CountryEntity
 import at.wrk.tafel.admin.backend.database.repositories.CustomerRepository
 import at.wrk.tafel.admin.backend.database.repositories.staticdata.CountryRepository
+import at.wrk.tafel.admin.backend.modules.base.Country
 import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorPerson
 import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorService
+import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.server.ResponseStatusException
 
 @RestController
 @RequestMapping("/api/customers")
@@ -39,7 +43,10 @@ class CustomerController(
     @GetMapping("/{customerId}")
     fun getCustomer(@PathVariable("customerId") customerId: Long): Customer {
         val entity = customerRepository.findByCustomerId(customerId)
-        return mapEntityToResponse(entity)
+        if (entity.isPresent) {
+            return mapEntityToResponse(entity.get())
+        }
+        throw ResponseStatusException(HttpStatus.NOT_FOUND)
     }
 
     @GetMapping
@@ -56,7 +63,7 @@ class CustomerController(
         customerEntity.lastname = customer.lastname.trim()
         customerEntity.firstname = customer.firstname.trim()
         customerEntity.birthDate = customer.birthDate
-        customerEntity.country = countryRepository.findByCode(customer.country)
+        customerEntity.country = countryRepository.findById(customer.country.id).get()
         customerEntity.addressStreet = customer.address.street.trim()
         customerEntity.addressHouseNumber = customer.address.houseNumber.trim()
         customerEntity.addressStairway = customer.address.stairway?.trim()
@@ -82,52 +89,57 @@ class CustomerController(
         return customerEntity
     }
 
-    private fun mapEntityToResponse(customerEntity: CustomerEntity) =
-        Customer(
-            id = customerEntity.id!!,
-            customerId = customerEntity.customerId,
-            firstname = customerEntity.firstname!!,
-            lastname = customerEntity.lastname!!,
-            birthDate = customerEntity.birthDate!!,
-            country = customerEntity.country?.code!!,
-            address = CustomerAddress(
-                street = customerEntity.addressStreet!!,
-                houseNumber = customerEntity.addressHouseNumber!!,
-                stairway = customerEntity.addressStairway!!,
-                door = customerEntity.addressDoor!!,
-                postalCode = customerEntity.addressPostalCode!!,
-                city = customerEntity.addressCity!!
-            ),
-            telephoneNumber = customerEntity.telephoneNumber,
-            email = customerEntity.email,
-            employer = customerEntity.employer!!,
-            income = customerEntity.income,
-            incomeDue = customerEntity.incomeDue,
-            additionalPersons = customerEntity.additionalPersons.map {
-                CustomerAdditionalPerson(
-                    id = it.id!!,
-                    firstname = it.firstname!!,
-                    lastname = it.lastname!!,
-                    birthDate = it.birthDate!!,
-                    income = it.income
-                )
-            }
+    private fun mapEntityToResponse(customerEntity: CustomerEntity) = Customer(
+        id = customerEntity.id!!,
+        customerId = customerEntity.customerId,
+        firstname = customerEntity.firstname!!,
+        lastname = customerEntity.lastname!!,
+        birthDate = customerEntity.birthDate!!,
+        country = mapCustomerCountryToDomain(customerEntity.country!!),
+        address = CustomerAddress(
+            street = customerEntity.addressStreet!!,
+            houseNumber = customerEntity.addressHouseNumber!!,
+            stairway = customerEntity.addressStairway,
+            door = customerEntity.addressDoor!!,
+            postalCode = customerEntity.addressPostalCode!!,
+            city = customerEntity.addressCity!!
+        ),
+        telephoneNumber = customerEntity.telephoneNumber,
+        email = customerEntity.email,
+        employer = customerEntity.employer!!,
+        income = customerEntity.income,
+        incomeDue = customerEntity.incomeDue,
+        additionalPersons = customerEntity.additionalPersons.map {
+            CustomerAdditionalPerson(
+                id = it.id!!,
+                firstname = it.firstname!!,
+                lastname = it.lastname!!,
+                birthDate = it.birthDate!!,
+                income = it.income
+            )
+        }
+    )
+
+    private fun mapCustomerCountryToDomain(country: CountryEntity): Country {
+        return Country(
+            id = country.id!!,
+            code = country.code!!,
+            name = country.name!!
         )
+    }
 
     private fun mapToValidationPersons(customer: Customer): List<IncomeValidatorPerson> {
         val personList = mutableListOf<IncomeValidatorPerson>()
         personList.add(
             IncomeValidatorPerson(
-                monthlyIncome = customer.income,
-                birthDate = customer.birthDate
+                monthlyIncome = customer.income, birthDate = customer.birthDate
             )
         )
 
         customer.additionalPersons.forEach {
             personList.add(
                 IncomeValidatorPerson(
-                    monthlyIncome = it.income,
-                    birthDate = it.birthDate
+                    monthlyIncome = it.income, birthDate = it.birthDate
                 )
             )
         }

@@ -34,13 +34,15 @@ INSERT INTO authorities (username, authority) VALUES ('admin', 'CUSTOMER');
 
 -- customers
 INSERT INTO customers (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, country_id, address_street, address_houseNumber, address_stairway, address_door, address_postalCode, address_city, telephone_number, email, employer, income, income_due) values
-(0, NOW(), NOW(), 100, 'Max Single', 'Mustermann', '1980-01-01', 1, 'Erdberg', 1, '2', '10', '1030', 'Wien', 00436641231234, 'max.mustermann@wrk.at', 'Stadt Wien', 123.00, '2999-12-31');
+(0, NOW(), NOW(), 100, 'Max Single', 'Mustermann', '1980-01-01', 1, 'Erdberg', 1, null, '10', '1030', 'Wien', null, null, 'Stadt Wien', 123.00, '2999-12-31');
 INSERT INTO customers (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, country_id, address_street, address_houseNumber, address_stairway, address_door, address_postalCode, address_city, telephone_number, email, employer, income, income_due) values
 (1, NOW(), NOW(), 101, 'Eva', 'Musterfrau', '1990-01-01', 2, 'Erdberg', 2, '1', '20', '1010', 'Wien', 00436645678953, 'eva.musterfrau@wrk.at', 'Rotes Kreuz Wien', 456.00, '2999-12-31');
 INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, income) values
 (1, NOW(), NOW(), 1, 'Child 1', 'Musterfrau', '2000-01-01', 500);
 INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, income) values
 (2, NOW(), NOW(), 1, 'Child 2', 'Musterfrau', '2020-01-01', 0);
+INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, income) values
+(3, NOW(), NOW(), 1, 'Child 3', 'Musterfrau', '2020-01-01', null);
 
 -- static values
 -- income limits
