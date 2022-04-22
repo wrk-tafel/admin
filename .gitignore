@@ -16,3 +16,4 @@
 /backend/backend.iml
 /backend/target/
 target/
+/_http-calls/http-client.private.env.json

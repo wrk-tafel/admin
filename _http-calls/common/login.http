@@ -1,0 +1,9 @@
+### Login
+POST {{basePath}}/login
+Content-Type: application/x-www-form-urlencoded
+
+username={{username}}&password={{password}}
+
+> {%
+    client.global.set("jwt", response.body["token"]);
+%}

@@ -1,0 +1,112 @@
+### List customers
+GET {{basePath}}/customers
+Authorization: Bearer {{jwt}}
+
+### Validate customer
+POST {{basePath}}/customers/validate
+Authorization: Bearer {{jwt}}
+Content-Type: application/json
+
+{
+  "id": 101,
+  "firstname": "Eva",
+  "lastname": "Musterfrau",
+  "birthDate": "1990-01-01",
+  "country": {
+    "id": 2,
+    "code": "EG",
+    "name": "Ägypten"
+  },
+  "address": {
+    "street": "Erdberg",
+    "houseNumber": "2",
+    "stairway": "1",
+    "door": "20",
+    "postalCode": 1010,
+    "city": "Wien"
+  },
+  "telephoneNumber": 436645678953,
+  "email": "eva.musterfrau@wrk.at",
+  "employer": "Rotes Kreuz Wien",
+  "income": 456.00,
+  "incomeDue": "2999-12-31",
+  "additionalPersons": [
+    {
+      "id": 1,
+      "firstname": "Child 1",
+      "lastname": "Musterfrau",
+      "birthDate": "2000-01-01",
+      "income": 500
+    },
+    {
+      "id": 2,
+      "firstname": "Child 2",
+      "lastname": "Musterfrau",
+      "birthDate": "2020-01-01",
+      "income": 0
+    },
+    {
+      "id": 3,
+      "firstname": "Child 3",
+      "lastname": "Musterfrau",
+      "birthDate": "2020-01-01",
+      "income": null
+    }
+  ]
+}
+
+### Create customer
+POST {{basePath}}/customers
+Authorization: Bearer {{jwt}}
+Content-Type: application/json
+
+{
+  "firstname": "Test",
+  "lastname": "Example",
+  "birthDate": "1990-01-01",
+  "country": {
+    "id": 2,
+    "code": "AT",
+    "name": "Österreich"
+  },
+  "address": {
+    "street": "Erdberg",
+    "houseNumber": "2",
+    "stairway": "1",
+    "door": "20",
+    "postalCode": 1010,
+    "city": "Wien"
+  },
+  "telephoneNumber": 436645678953,
+  "email": "eva.musterfrau@wrk.at",
+  "employer": "Rotes Kreuz Wien",
+  "income": 456.00,
+  "incomeDue": "2999-12-31",
+  "additionalPersons": [
+    {
+      "id": 1,
+      "firstname": "Child 1",
+      "lastname": "Musterfrau",
+      "birthDate": "2000-01-01",
+      "income": 500
+    },
+    {
+      "firstname": "Child 2",
+      "lastname": "Musterfrau",
+      "birthDate": "2020-01-01",
+      "income": 0
+    },
+    {
+      "firstname": "Child 3",
+      "lastname": "Musterfrau",
+      "birthDate": "2020-01-01",
+      "income": null
+    }
+  ]
+}
+
+### Get customer
+
+GET {{basePath}}/customers/10000
+Authorization: Bearer {{jwt}}
+Content-Type: application/json
