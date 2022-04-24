@@ -7,7 +7,6 @@ import org.apache.commons.io.IOUtils
 import org.apache.fop.apps.FopFactory
 import org.apache.fop.apps.MimeConstants
 import org.springframework.stereotype.Service
-import org.springframework.util.MimeType
 import org.springframework.util.MimeTypeUtils
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -25,7 +24,7 @@ class MasterdataPdfService {
     fun generatePdf(): ByteArray {
         val data = loadPdfData()
         val xmlBytes = generateXmlData(data)
-        val pdfBytes = generatePdf(xmlBytes, "/templates/masterdata.xsl")
+        val pdfBytes = generatePdf(xmlBytes, "/masterdata-template/masterdata.xsl")
 
         // TODO DEBUG REMOVE
         FileUtils.writeByteArrayToFile(File("D:\\test.xml"), xmlBytes)
@@ -37,7 +36,7 @@ class MasterdataPdfService {
 
     fun loadPdfData(): MasterdataPdfData {
         val logoBytes =
-            IOUtils.toByteArray(MasterdataPdfService::class.java.getResourceAsStream("/templates/img/toet_logo.png"))
+            IOUtils.toByteArray(MasterdataPdfService::class.java.getResourceAsStream("/masterdata-template/img/toet_logo.png"))
         return MasterdataPdfData(
             logoContentType = MimeTypeUtils.IMAGE_PNG_VALUE,
             logoBytes = logoBytes
