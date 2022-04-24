@@ -76,9 +76,9 @@ class CustomerController(
         if (customerOptional.isPresent) {
             val customer = customerOptional.get()
             val pdfFilename =
-                "stammdaten-${customer.customerId}-${customer.lastname}-${customer.firstname}.pdf"
+                "stammdaten-${customer.customerId}-${customer.lastname}-${customer.firstname}"
                     .lowercase()
-                    .replace("[^A-Za-z0-9]".toRegex(), "-")
+                    .replace("[^A-Za-z0-9]".toRegex(), "-") + ".pdf"
 
             val pdfBytes = masterdataPdfService.generatePdf()
 

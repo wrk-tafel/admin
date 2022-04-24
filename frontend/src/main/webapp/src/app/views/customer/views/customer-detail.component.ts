@@ -28,6 +28,26 @@ export class CustomerDetailComponent implements OnInit {
     });
   }
 
+  printMasterdata() {
+    this.customerApiService.generateMasterdataPdf(this.customerDetailData.id)
+      .subscribe((response) => {
+        var contentDisposition = response.headers.get('content-disposition');
+        var filename = contentDisposition.split(';')[1].split('filename')[1].split('=')[1].trim();
+
+        const blob = new Blob([response.body], { type: 'application/pdf' });
+        this.downloadFile(filename, blob);
+      });
+  }
+
+  private downloadFile(filename: string, data: Blob) {
+    const a = document.createElement('a')
+    const objectUrl = URL.createObjectURL(data)
+    a.href = objectUrl
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(objectUrl);
+  }
+
   private mapCustomerDataForView(customerData: CustomerData): CustomerDetailData {
     return {
       id: customerData.id,
