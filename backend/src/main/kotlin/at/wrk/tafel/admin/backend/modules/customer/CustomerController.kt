@@ -18,8 +18,6 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 import java.io.ByteArrayInputStream
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
 
 @RestController
 @RequestMapping("/api/customers")
@@ -86,7 +84,7 @@ class CustomerController(
 
             val headers = HttpHeaders()
             headers.add(
-                "Content-Disposition",
+                HttpHeaders.CONTENT_DISPOSITION,
                 "inline; filename=$pdfFilename"
             )
 

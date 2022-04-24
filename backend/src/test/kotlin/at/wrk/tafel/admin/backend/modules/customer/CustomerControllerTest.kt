@@ -9,6 +9,7 @@ import at.wrk.tafel.admin.backend.modules.base.Country
 import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorPerson
 import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorResult
 import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorService
+import at.wrk.tafel.admin.backend.modules.customer.masterdata.MasterdataPdfService
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -18,6 +19,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatus
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.*
@@ -30,6 +33,9 @@ class CustomerControllerTest {
 
     @RelaxedMockK
     private lateinit var countryRepository: CountryRepository
+
+    @RelaxedMockK
+    private lateinit var masterdataPdfService: MasterdataPdfService
 
     @RelaxedMockK
     private lateinit var incomeValidatorService: IncomeValidatorService
@@ -190,15 +196,29 @@ class CustomerControllerTest {
         }
     }
 
-    @Test
-    fun `list customers`() {
-        every { customerRepository.findAll() } returns listOf(testCustomerEntity)
 
-        val response = controller.listCustomers()
+    @Test
+    fun `generate pdf customer unknown`() {
+        every { customerRepository.findByCustomerId(any()) } returns Optional.empty()
+
+        val response = controller.generateMasterdataPdf(1)
 
         assertThat(response).isNotNull
-        assertThat(response.items).hasSize(1)
-
-        assertThat(response.items).hasSameElementsAs(listOf(testCustomer))
+        assertThat(response.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
     }
+
+    @Test
+    fun `generate pdf customer found`() {
+        val pdfBytes = ByteArray(10)
+        every { customerRepository.findByCustomerId(any()) } returns Optional.of(testCustomerEntity)
+        every { masterdataPdfService.generatePdf() } returns pdfBytes
+
+        val response = controller.generateMasterdataPdf(1)
+
+        assertThat(response).isNotNull
+        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(response.headers[HttpHeaders.CONTENT_DISPOSITION]).isEqualTo(listOf("inline; filename=stammdaten-100-mustermann-max-pdf"))
+        assertThat(response.body?.contentLength()).isEqualTo(pdfBytes.size.toLong())
+    }
+
 }
