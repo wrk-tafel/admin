@@ -8,10 +8,18 @@ import at.wrk.tafel.admin.backend.database.repositories.staticdata.CountryReposi
 import at.wrk.tafel.admin.backend.modules.base.Country
 import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorPerson
 import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorService
+import at.wrk.tafel.admin.backend.modules.customer.masterdata.MasterdataPdfService
+import org.springframework.core.io.InputStreamResource
+import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
+import java.io.ByteArrayInputStream
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 @RestController
 @RequestMapping("/api/customers")
@@ -19,7 +27,8 @@ import org.springframework.web.server.ResponseStatusException
 class CustomerController(
     private val customerRepository: CustomerRepository,
     private val countryRepository: CountryRepository,
-    private val incomeValidatorService: IncomeValidatorService
+    private val incomeValidatorService: IncomeValidatorService,
+    private val masterdataPdfService: MasterdataPdfService
 ) {
     @PostMapping("/validate")
     fun validate(@RequestBody customer: Customer): ValidateCustomerResponse {
@@ -61,6 +70,33 @@ class CustomerController(
             mapEntityToResponse(customerEntity)
         }
         return CustomerListResponse(items = customerItems)
+    }
+
+    @GetMapping("/{customerId}/generate-masterdata-pdf", produces = [MediaType.APPLICATION_PDF_VALUE])
+    fun generateMasterdataPdf(@PathVariable("customerId") customerId: Long): ResponseEntity<InputStreamResource> {
+        val customerOptional = customerRepository.findByCustomerId(customerId)
+        if (customerOptional.isPresent) {
+            val customer = customerOptional.get()
+            val pdfFilename =
+                "stammdaten-${customer.customerId}-${customer.lastname}-${customer.firstname}.pdf"
+                    .lowercase()
+                    .replace("[^A-Za-z0-9]".toRegex(), "-")
+
+            val pdfBytes = masterdataPdfService.generatePdf()
+
+            val headers = HttpHeaders()
+            headers.add(
+                "Content-Disposition",
+                "inline; filename=$pdfFilename"
+            )
+
+            return ResponseEntity
+                .ok()
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(InputStreamResource(ByteArrayInputStream(pdfBytes)))
+        }
+        return ResponseEntity.notFound().build()
     }
 
     private fun mapRequestToEntity(customer: Customer): CustomerEntity {

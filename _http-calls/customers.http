@@ -8,7 +8,6 @@ Authorization: Bearer {{jwt}}
 Content-Type: application/json
 
 {
-  "id": 101,
   "firstname": "Eva",
   "lastname": "Musterfrau",
   "birthDate": "1990-01-01",
@@ -107,6 +106,12 @@ Content-Type: application/json
 
 ### Get customer
 
-GET {{basePath}}/customers/10000
+GET {{basePath}}/customers/100
+Authorization: Bearer {{jwt}}
+Content-Type: application/json
+
+### Get masterdata pdf
+
+GET {{basePath}}/customers/100/generate-masterdata-pdf
 Authorization: Bearer {{jwt}}
 Content-Type: application/json
