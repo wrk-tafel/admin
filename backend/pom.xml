@@ -22,6 +22,7 @@
         <flyway.version>8.5.9</flyway.version>
         <postgresql.driver.version>42.3.4</postgresql.driver.version>
         <bouncycastle.version>1.70</bouncycastle.version>
+        <apache.fop.version>2.7</apache.fop.version>
 
         <!-- Maven plugin version -->
         <maven.surefire.plugin.version>2.22.2</maven.surefire.plugin.version>
@@ -139,6 +140,15 @@
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcprov-jdk15on</artifactId>
             <version>${bouncycastle.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-xml</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.xmlgraphics</groupId>
+            <artifactId>fop</artifactId>
+            <version>${apache.fop.version}</version>
         </dependency>
 
         <!-- Dev and Test dependencies -->
