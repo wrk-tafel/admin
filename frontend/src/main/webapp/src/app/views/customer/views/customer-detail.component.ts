@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import * as moment from 'moment';
+import { FileHelperService } from '../../../common/util/file-helper.service';
 import { CustomerAddPersonData, CustomerAddressData, CustomerApiService, CustomerData } from '../api/customer-api.service';
 
 @Component({
@@ -13,7 +14,8 @@ export class CustomerDetailComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private customerApiService: CustomerApiService) { }
+    private customerApiService: CustomerApiService,
+    private fileHelperService: FileHelperService) { }
 
   ngOnInit(): void {
     this.route.params.subscribe(params => {
@@ -31,21 +33,11 @@ export class CustomerDetailComponent implements OnInit {
   printMasterdata() {
     this.customerApiService.generateMasterdataPdf(this.customerDetailData.id)
       .subscribe((response) => {
-        var contentDisposition = response.headers.get('content-disposition');
-        var filename = contentDisposition.split(';')[1].split('filename')[1].split('=')[1].trim();
-
-        const blob = new Blob([response.body], { type: 'application/pdf' });
-        this.downloadFile(filename, blob);
+        const contentDisposition = response.headers.get('content-disposition');
+        const filename = contentDisposition.split(';')[1].split('filename')[1].split('=')[1].trim();
+        const data = new Blob([response.body], { type: 'application/pdf' });
+        this.fileHelperService.downloadFile(filename, data);
       });
-  }
-
-  private downloadFile(filename: string, data: Blob) {
-    const a = document.createElement('a')
-    const objectUrl = URL.createObjectURL(data)
-    a.href = objectUrl
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(objectUrl);
   }
 
   private mapCustomerDataForView(customerData: CustomerData): CustomerDetailData {
