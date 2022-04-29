@@ -87,10 +87,10 @@ fun main() {
             firstname = "Max",
             birthDate = LocalDate.now(),
             address = MasterdataPdfAddressData(
-                street = "",
-                houseNumber = "",
-                door = "",
-                stairway = "",
+                street = "Teststraße",
+                houseNumber = "10",
+                door = "1",
+                stairway = "2",
                 postalCode = 1010,
                 city = "Wien"
             )

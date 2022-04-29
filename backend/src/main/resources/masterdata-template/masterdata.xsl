@@ -4,56 +4,46 @@
     <xsl:template match="data">
         <fo:root xmlns:fo="http://www.w3.org/1999/XSL/Format">
             <fo:layout-master-set>
-                <fo:simple-page-master master-name="simpleA4" page-height="29.7cm" page-width="21cm" margin-top="2cm"
-                                       margin-bottom="2cm" margin-left="2cm" margin-right="2cm">
+                <fo:simple-page-master master-name="simpleA4" page-height="29.7cm" page-width="21cm"
+                                       margin-top="2cm" margin-bottom="2cm" margin-left="2cm" margin-right="2cm">
                     <fo:region-body/>
                 </fo:simple-page-master>
             </fo:layout-master-set>
             <fo:page-sequence master-reference="simpleA4">
                 <fo:flow flow-name="xsl-region-body">
                     <fo:block font-family="Helvetica" font-size="16pt" font-weight="bold" space-after="5mm">
-                        <fo:external-graphic>
-                            <xsl:attribute name="src">
-                                <xsl:text>url('data:</xsl:text>
-                                <xsl:value-of select="logoContentType"/>
-                                <xsl:text>;base64,</xsl:text>
-                                <xsl:value-of select="logoBytes"/>
-                                <xsl:text>')</xsl:text>
-                            </xsl:attribute>
-                        </fo:external-graphic>
-                    </fo:block>
-                    <fo:block font-size="10pt">
-                        <fo:table table-layout="fixed" width="100%" border-collapse="separate">
-                            <fo:table-column column-width="4cm"/>
-                            <fo:table-column column-width="4cm"/>
-                            <fo:table-column column-width="5cm"/>
-                            <fo:table-body>
-                                <xsl:call-template name="detail"/>
-                            </fo:table-body>
-                        </fo:table>
+                        <xsl:call-template name="header"/>
                     </fo:block>
                 </fo:flow>
             </fo:page-sequence>
         </fo:root>
     </xsl:template>
-    <xsl:template name="detail">
-        <fo:table-row>
-            <fo:table-cell>
-                <fo:block>
-                    <xsl:value-of select="'id'"/>
-                </fo:block>
-            </fo:table-cell>
-
-            <fo:table-cell>
-                <fo:block>
-                    <xsl:value-of select="'name'"/>
-                </fo:block>
-            </fo:table-cell>
-            <fo:table-cell>
-                <fo:block>
-                    <xsl:value-of select="'designation'"/>
-                </fo:block>
-            </fo:table-cell>
-        </fo:table-row>
+    <xsl:template name="header">
+        <fo:block>
+            <fo:table table-layout="fixed" width="100%" border-collapse="separate">
+                <fo:table-column column-width="12cm"/>
+                <fo:table-column column-width="4cm"/>
+                <fo:table-body>
+                    <fo:table-row>
+                        <fo:table-cell>
+                            <fo:block font-size="16pt">Stammdatenblatt</fo:block>
+                        </fo:table-cell>
+                        <fo:table-cell>
+                            <fo:block>
+                                <fo:external-graphic content-height="8cm" content-width="4cm">
+                                    <xsl:attribute name="src">
+                                        <xsl:text>url('data:</xsl:text>
+                                        <xsl:value-of select="logoContentType"/>
+                                        <xsl:text>;base64,</xsl:text>
+                                        <xsl:value-of select="logoBytes"/>
+                                        <xsl:text>')</xsl:text>
+                                    </xsl:attribute>
+                                </fo:external-graphic>
+                            </fo:block>
+                        </fo:table-cell>
+                    </fo:table-row>
+                </fo:table-body>
+            </fo:table>
+        </fo:block>
     </xsl:template>
 </xsl:stylesheet>
