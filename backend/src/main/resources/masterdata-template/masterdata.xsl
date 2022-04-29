@@ -11,7 +11,7 @@
             </fo:layout-master-set>
             <fo:page-sequence master-reference="simpleA4">
                 <fo:flow flow-name="xsl-region-body">
-                    <fo:block font-size="16pt" font-weight="bold" space-after="5mm">
+                    <fo:block font-family="Helvetica" font-size="16pt" font-weight="bold" space-after="5mm">
                         <fo:external-graphic>
                             <xsl:attribute name="src">
                                 <xsl:text>url('data:</xsl:text>

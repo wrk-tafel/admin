@@ -1,6 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.customer.masterdata
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.IOUtils
 import org.apache.fop.apps.FopFactory
@@ -18,7 +19,7 @@ import javax.xml.transform.stream.StreamSource
 @Service
 class MasterdataPdfServiceImpl : MasterdataPdfService {
     companion object {
-        private val xmlMapper = XmlMapper()
+        private val xmlMapper = XmlMapper().registerModule(JavaTimeModule())
     }
 
     override fun generatePdf(customer: MasterdataPdfCustomer): ByteArray {
