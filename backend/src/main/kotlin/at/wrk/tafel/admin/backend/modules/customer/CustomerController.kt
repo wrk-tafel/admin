@@ -108,7 +108,7 @@ class CustomerController(
                 street = customer.addressStreet!!,
                 houseNumber = customer.addressHouseNumber!!,
                 door = customer.addressDoor!!,
-                stairway = customer.addressStairway!!,
+                stairway = customer.addressStairway,
                 postalCode = customer.addressPostalCode!!,
                 city = customer.addressCity!!
             )
