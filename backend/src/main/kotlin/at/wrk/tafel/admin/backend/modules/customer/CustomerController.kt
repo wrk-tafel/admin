@@ -8,6 +8,8 @@ import at.wrk.tafel.admin.backend.database.repositories.staticdata.CountryReposi
 import at.wrk.tafel.admin.backend.modules.base.Country
 import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorPerson
 import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorService
+import at.wrk.tafel.admin.backend.modules.customer.masterdata.MasterdataPdfAddressData
+import at.wrk.tafel.admin.backend.modules.customer.masterdata.MasterdataPdfCustomer
 import at.wrk.tafel.admin.backend.modules.customer.masterdata.MasterdataPdfService
 import org.springframework.core.io.InputStreamResource
 import org.springframework.http.HttpHeaders
@@ -80,7 +82,7 @@ class CustomerController(
                     .lowercase()
                     .replace("[^A-Za-z0-9]".toRegex(), "-") + ".pdf"
 
-            val pdfBytes = masterdataPdfService.generatePdf()
+            val pdfBytes = masterdataPdfService.generatePdf(mapToPdfData(customer))
 
             val headers = HttpHeaders()
             headers.add(
@@ -95,6 +97,22 @@ class CustomerController(
                 .body(InputStreamResource(ByteArrayInputStream(pdfBytes)))
         }
         return ResponseEntity.notFound().build()
+    }
+
+    private fun mapToPdfData(customer: CustomerEntity): MasterdataPdfCustomer {
+        return MasterdataPdfCustomer(
+            lastname = customer.lastname!!,
+            firstname = customer.firstname!!,
+            birthDate = customer.birthDate!!,
+            address = MasterdataPdfAddressData(
+                street = customer.addressStreet!!,
+                houseNumber = customer.addressHouseNumber!!,
+                door = customer.addressDoor!!,
+                stairway = customer.addressStairway!!,
+                postalCode = customer.addressPostalCode!!,
+                city = customer.addressCity!!
+            )
+        )
     }
 
     private fun mapRequestToEntity(customer: Customer): CustomerEntity {

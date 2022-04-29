@@ -211,13 +211,13 @@ class CustomerControllerTest {
     fun `generate pdf customer found`() {
         val pdfBytes = ByteArray(10)
         every { customerRepository.findByCustomerId(any()) } returns Optional.of(testCustomerEntity)
-        every { masterdataPdfService.generatePdf() } returns pdfBytes
+        every { masterdataPdfService.generatePdf(any()) } returns pdfBytes
 
         val response = controller.generateMasterdataPdf(1)
 
         assertThat(response).isNotNull
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
-        assertThat(response.headers[HttpHeaders.CONTENT_DISPOSITION]).isEqualTo(listOf("inline; filename=stammdaten-100-mustermann-max-pdf"))
+        assertThat(response.headers[HttpHeaders.CONTENT_DISPOSITION]).isEqualTo(listOf("inline; filename=stammdaten-100-mustermann-max.pdf"))
         assertThat(response.body?.contentLength()).isEqualTo(pdfBytes.size.toLong())
     }
 
