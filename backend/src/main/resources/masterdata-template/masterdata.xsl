@@ -59,6 +59,16 @@
             <fo:table-body>
                 <fo:table-row>
                     <fo:table-cell>
+                        <fo:block font-weight="bold">Kundennummer:</fo:block>
+                    </fo:table-cell>
+                    <fo:table-cell>
+                        <fo:block>
+                            <xsl:value-of select="$data/id"/>
+                        </fo:block>
+                    </fo:table-cell>
+                </fo:table-row>
+                <fo:table-row>
+                    <fo:table-cell>
                         <fo:block font-weight="bold">Name:</fo:block>
                     </fo:table-cell>
                     <fo:table-cell>

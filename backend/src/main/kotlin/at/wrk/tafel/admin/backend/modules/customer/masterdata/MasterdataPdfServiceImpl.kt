@@ -83,6 +83,7 @@ class MasterdataPdfServiceImpl : MasterdataPdfService {
 fun main() {
     MasterdataPdfServiceImpl().generatePdf(
         MasterdataPdfCustomer(
+            id = 1000,
             lastname = "Mustermann",
             firstname = "Max",
             birthDate = LocalDate.now(),

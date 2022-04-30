@@ -101,6 +101,7 @@ class CustomerController(
 
     private fun mapToPdfData(customer: CustomerEntity): MasterdataPdfCustomer {
         return MasterdataPdfCustomer(
+            id = customer.customerId!!,
             lastname = customer.lastname!!,
             firstname = customer.firstname!!,
             birthDate = customer.birthDate!!,

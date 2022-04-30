@@ -8,6 +8,7 @@ interface MasterdataPdfService {
 }
 
 data class MasterdataPdfCustomer(
+    val id: Long,
     val lastname: String,
     val firstname: String,
     val birthDate: LocalDate,
