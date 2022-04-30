@@ -16,25 +16,21 @@
                             <xsl:call-template name="header"/>
                         </fo:block>
                         <fo:block>
-                            <fo:table border="0.1mm solid #000000" table-layout="fixed" width="50%">
-                                <fo:table-column column-width="100%"/>
+                            <fo:table table-layout="fixed" width="100%">
+                                <fo:table-column column-width="50%"/>
+                                <fo:table-column column-width="50%"/>
                                 <fo:table-body>
-                                    <fo:table-row border-bottom="0.1mm solid #000000">
-                                        <fo:table-cell>
-                                            <fo:block font-size="12pt" font-weight="bold" text-align="center"
-                                                      margin-top="1mm" margin-bottom="1mm">
-                                                Hauptbezieher
-                                            </fo:block>
-                                        </fo:table-cell>
-                                    </fo:table-row>
                                     <fo:table-row>
                                         <fo:table-cell>
-                                            <fo:block margin-top="1mm" margin-bottom="1mm" margin-left="1mm"
-                                                      margin-right="1mm">
-                                                <xsl:call-template name="customerData">
-                                                    <xsl:with-param name="data" select="customer"/>
-                                                </xsl:call-template>
-                                            </fo:block>
+                                            <xsl:call-template name="customerData">
+                                                <xsl:with-param name="data" select="./customer"/>
+                                            </xsl:call-template>
+                                        </fo:table-cell>
+                                        <fo:table-cell>
+                                            <xsl:call-template name="additionalPersons">
+                                                <xsl:with-param name="data"
+                                                                select="./customer/additionalPersons"/>
+                                            </xsl:call-template>
                                         </fo:table-cell>
                                     </fo:table-row>
                                 </fo:table-body>
@@ -73,93 +69,156 @@
     </xsl:template>
     <xsl:template name="customerData">
         <xsl:param name="data"/>
-        <fo:table table-layout="fixed" width="100%">
-            <fo:table-column column-width="50%"/>
-            <fo:table-column column-width="50%"/>
+        <fo:table border="0.1mm solid #000000" table-layout="fixed" width="100%">
+            <fo:table-column column-width="100%"/>
             <fo:table-body>
-                <fo:table-row>
+                <fo:table-row border-bottom="0.1mm solid #000000">
                     <fo:table-cell>
-                        <fo:block font-weight="bold">Kundennummer:</fo:block>
-                    </fo:table-cell>
-                    <fo:table-cell>
-                        <fo:block>
-                            <xsl:value-of select="$data/id"/>
+                        <fo:block font-size="12pt" font-weight="bold" text-align="center"
+                                  margin-top="1mm" margin-bottom="1mm">
+                            Hauptbezieher
                         </fo:block>
                     </fo:table-cell>
                 </fo:table-row>
                 <fo:table-row>
                     <fo:table-cell>
-                        <fo:block font-weight="bold">Name:</fo:block>
+                        <fo:block margin-top="1mm" margin-bottom="1mm" margin-left="1mm"
+                                  margin-right="1mm">
+                            <fo:table table-layout="fixed" width="100%">
+                                <fo:table-column column-width="50%"/>
+                                <fo:table-column column-width="50%"/>
+                                <fo:table-body>
+                                    <fo:table-row>
+                                        <fo:table-cell>
+                                            <fo:block font-weight="bold">Kundennummer:</fo:block>
+                                        </fo:table-cell>
+                                        <fo:table-cell>
+                                            <fo:block>
+                                                <xsl:value-of select="$data/id"/>
+                                            </fo:block>
+                                        </fo:table-cell>
+                                    </fo:table-row>
+                                    <fo:table-row>
+                                        <fo:table-cell>
+                                            <fo:block font-weight="bold">Name:</fo:block>
+                                        </fo:table-cell>
+                                        <fo:table-cell>
+                                            <fo:block>
+                                                <xsl:value-of select="concat($data/lastname, ' ', $data/firstname)"/>
+                                            </fo:block>
+                                        </fo:table-cell>
+                                    </fo:table-row>
+                                    <fo:table-row>
+                                        <fo:table-cell>
+                                            <fo:block font-weight="bold">Geburtsdatum:</fo:block>
+                                        </fo:table-cell>
+                                        <fo:table-cell>
+                                            <fo:block>
+                                                <xsl:value-of select="$data/birthDate"/>
+                                            </fo:block>
+                                        </fo:table-cell>
+                                    </fo:table-row>
+                                    <fo:table-row>
+                                        <fo:table-cell>
+                                            <fo:block font-weight="bold">Addresse:</fo:block>
+                                        </fo:table-cell>
+                                        <fo:table-cell>
+                                            <fo:block linefeed-treatment="preserve">
+                                                <xsl:variable name="addressData">
+                                                    <xsl:value-of select="$data/address/street"/>
+                                                    <xsl:value-of select="' '"/>
+                                                    <xsl:value-of select="$data/address/houseNumber"/>
+                                                    <xsl:value-of select="'&#xA;'"/>
+                                                    <xsl:if test="$data/address/stairway != ''">
+                                                        <xsl:value-of select="' Stiege '"/>
+                                                        <xsl:value-of select="$data/address/stairway"/>
+                                                    </xsl:if>
+                                                    <xsl:value-of select="' Top '"/>
+                                                    <xsl:value-of select="$data/address/door"/>
+                                                    <xsl:value-of select="'&#xA;'"/>
+                                                    <xsl:value-of select="$data/address/postalCode"/>
+                                                    <xsl:value-of select="' '"/>
+                                                    <xsl:value-of select="$data/address/city"/>
+                                                </xsl:variable>
+                                                <xsl:value-of select="$addressData"/>
+                                            </fo:block>
+                                        </fo:table-cell>
+                                    </fo:table-row>
+                                    <fo:table-row>
+                                        <fo:table-cell>
+                                            <fo:block font-weight="bold">Telefonnummer:</fo:block>
+                                        </fo:table-cell>
+                                        <fo:table-cell>
+                                            <fo:block>
+                                                <xsl:value-of select="$data/telephoneNumber"/>
+                                            </fo:block>
+                                        </fo:table-cell>
+                                    </fo:table-row>
+                                    <fo:table-row>
+                                        <fo:table-cell>
+                                            <fo:block font-weight="bold">E-Mail:</fo:block>
+                                        </fo:table-cell>
+                                        <fo:table-cell>
+                                            <fo:block>
+                                                <xsl:value-of select="$data/email"/>
+                                            </fo:block>
+                                        </fo:table-cell>
+                                    </fo:table-row>
+                                    <fo:table-row>
+                                        <fo:table-cell>
+                                            <fo:block font-weight="bold">Arbeitgeber:</fo:block>
+                                        </fo:table-cell>
+                                        <fo:table-cell>
+                                            <fo:block>
+                                                <xsl:value-of select="$data/employer"/>
+                                            </fo:block>
+                                        </fo:table-cell>
+                                    </fo:table-row>
+                                </fo:table-body>
+                            </fo:table>
+                        </fo:block>
                     </fo:table-cell>
+                </fo:table-row>
+            </fo:table-body>
+        </fo:table>
+    </xsl:template>
+    <xsl:template name="additionalPersons">
+        <xsl:param name="data"/>
+        <fo:table border="0.1mm solid #000000" table-layout="fixed" width="100%">
+            <fo:table-column column-width="100%"/>
+            <fo:table-body>
+                <fo:table-row border-bottom="0.1mm solid #000000">
                     <fo:table-cell>
-                        <fo:block>
-                            <xsl:value-of select="concat($data/lastname, ' ', $data/firstname)"/>
+                        <fo:block font-size="12pt" font-weight="bold" text-align="center"
+                                  margin-top="1mm" margin-bottom="1mm">
+                            Weitere Personen
                         </fo:block>
                     </fo:table-cell>
                 </fo:table-row>
                 <fo:table-row>
                     <fo:table-cell>
-                        <fo:block font-weight="bold">Geburtsdatum:</fo:block>
-                    </fo:table-cell>
-                    <fo:table-cell>
-                        <fo:block>
-                            <xsl:value-of select="$data/birthDate"/>
-                        </fo:block>
-                    </fo:table-cell>
-                </fo:table-row>
-                <fo:table-row>
-                    <fo:table-cell>
-                        <fo:block font-weight="bold">Addresse:</fo:block>
-                    </fo:table-cell>
-                    <fo:table-cell>
-                        <fo:block linefeed-treatment="preserve">
-                            <xsl:variable name="addressData">
-                                <xsl:value-of select="$data/address/street"/>
-                                <xsl:value-of select="' '"/>
-                                <xsl:value-of select="$data/address/houseNumber"/>
-                                <xsl:value-of select="'&#xA;'"/>
-                                <xsl:if test="$data/address/stairway != ''">
-                                    <xsl:value-of select="' Stiege '"/>
-                                    <xsl:value-of select="$data/address/stairway"/>
-                                </xsl:if>
-                                <xsl:value-of select="' Top '"/>
-                                <xsl:value-of select="$data/address/door"/>
-                                <xsl:value-of select="'&#xA;'"/>
-                                <xsl:value-of select="$data/address/postalCode"/>
-                                <xsl:value-of select="' '"/>
-                                <xsl:value-of select="$data/address/city"/>
-                            </xsl:variable>
-                            <xsl:value-of select="$addressData"/>
-                        </fo:block>
-                    </fo:table-cell>
-                </fo:table-row>
-                <fo:table-row>
-                    <fo:table-cell>
-                        <fo:block font-weight="bold">Telefonnummer:</fo:block>
-                    </fo:table-cell>
-                    <fo:table-cell>
-                        <fo:block>
-                            <xsl:value-of select="$data/telephoneNumber"/>
-                        </fo:block>
-                    </fo:table-cell>
-                </fo:table-row>
-                <fo:table-row>
-                    <fo:table-cell>
-                        <fo:block font-weight="bold">E-Mail:</fo:block>
-                    </fo:table-cell>
-                    <fo:table-cell>
-                        <fo:block>
-                            <xsl:value-of select="$data/email"/>
-                        </fo:block>
-                    </fo:table-cell>
-                </fo:table-row>
-                <fo:table-row>
-                    <fo:table-cell>
-                        <fo:block font-weight="bold">Arbeitgeber:</fo:block>
-                    </fo:table-cell>
-                    <fo:table-cell>
-                        <fo:block>
-                            <xsl:value-of select="$data/employer"/>
+                        <fo:block margin-top="1mm" margin-bottom="1mm" margin-left="1mm"
+                                  margin-right="1mm">
+                            <fo:table table-layout="fixed" width="100%">
+                                <fo:table-column column-width="75%"/>
+                                <fo:table-column column-width="25%"/>
+                                <fo:table-body>
+                                    <xsl:for-each select="$data/additionalPersons">
+                                        <fo:table-row>
+                                            <fo:table-cell>
+                                                <fo:block font-weight="bold">
+                                                    <xsl:value-of select="concat(./lastname, ' ', ./firstname)"/>
+                                                </fo:block>
+                                            </fo:table-cell>
+                                            <fo:table-cell>
+                                                <fo:block>
+                                                    <xsl:value-of select="./birthDate"/>
+                                                </fo:block>
+                                            </fo:table-cell>
+                                        </fo:table-row>
+                                    </xsl:for-each>
+                                </fo:table-body>
+                            </fo:table>
                         </fo:block>
                     </fo:table-cell>
                 </fo:table-row>

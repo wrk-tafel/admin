@@ -12,6 +12,7 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.time.LocalDate
+import java.time.LocalDateTime
 import javax.xml.transform.TransformerFactory
 import javax.xml.transform.sax.SAXResult
 import javax.xml.transform.stream.StreamSource
@@ -97,7 +98,34 @@ fun main() {
                 postalCode = 1010,
                 city = "Wien"
             ),
-            employer = "Test employer"
+            employer = "Test employer",
+            additionalPersons = listOf(
+                MasterdataPdfAdditionalPersonData(
+                    lastname = "Add",
+                    firstname = "Pers 1",
+                    birthDate = LocalDateTime.now()
+                ),
+                MasterdataPdfAdditionalPersonData(
+                    lastname = "Add",
+                    firstname = "Pers 2",
+                    birthDate = LocalDateTime.now()
+                ),
+                MasterdataPdfAdditionalPersonData(
+                    lastname = "Add",
+                    firstname = "Pers 3",
+                    birthDate = LocalDateTime.now()
+                ),
+                MasterdataPdfAdditionalPersonData(
+                    lastname = "Add",
+                    firstname = "Pers 4",
+                    birthDate = LocalDateTime.now()
+                ),
+                MasterdataPdfAdditionalPersonData(
+                    lastname = "Add",
+                    firstname = "Pers 5",
+                    birthDate = LocalDateTime.now()
+                )
+            )
         )
     )
 }

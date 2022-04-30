@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.customer.masterdata
 
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper
 import java.time.LocalDate
 import java.time.LocalDateTime
 
