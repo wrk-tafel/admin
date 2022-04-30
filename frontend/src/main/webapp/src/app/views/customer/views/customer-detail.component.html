@@ -2,7 +2,7 @@
     <div class="row">
         <div class="col-sm-3 mb-3">
             <button testid="print-masterdata-button" type="button" class="btn btn-primary"
-                    (click)="printMasterdata()">Stammdaten drucken</button>
+                (click)="printMasterdata()">Stammdaten drucken</button>
         </div>
     </div>
     <div class="row">
@@ -15,12 +15,8 @@
                         <div testid="customerIdText" class="col">{{customerDetailData?.id}}</div>
                     </div>
                     <div class="row">
-                        <div class="col font-weight-bold">Familienname</div>
-                        <div testid="lastnameText" class="col">{{customerDetailData?.lastname}}</div>
-                    </div>
-                    <div class="row">
-                        <div class="col font-weight-bold">Vorname</div>
-                        <div testid="firstnameText" class="col">{{customerDetailData?.firstname}}</div>
+                        <div class="col font-weight-bold">Name</div>
+                        <div testid="nameText" class="col">{{customerDetailData?.lastname}} {{customerDetailData?.firstname}}</div>
                     </div>
                     <div class="row">
                         <div class="col font-weight-bold">Geburtsdatum (Alter)</div>

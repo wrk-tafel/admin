@@ -13,12 +13,8 @@ describe('Customer Detail', () => {
     cy.byTestId('customerIdText').should('have.text', '101');
   });
 
-  it('lastname correct', () => {
-    cy.byTestId('lastnameText').should('have.text', 'Musterfrau');
-  });
-
-  it('firstname correct', () => {
-    cy.byTestId('firstnameText').should('have.text', 'Eva');
+  it('name correct', () => {
+    cy.byTestId('nameText').should('have.text', 'Musterfrau Eva');
   });
 
   it('birthDate and age correct', () => {
