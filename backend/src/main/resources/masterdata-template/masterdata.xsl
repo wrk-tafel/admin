@@ -59,21 +59,11 @@
             <fo:table-body>
                 <fo:table-row>
                     <fo:table-cell>
-                        <fo:block font-weight="bold">Familienname:</fo:block>
+                        <fo:block font-weight="bold">Name:</fo:block>
                     </fo:table-cell>
                     <fo:table-cell>
                         <fo:block>
-                            <xsl:value-of select="$data/lastname"/>
-                        </fo:block>
-                    </fo:table-cell>
-                </fo:table-row>
-                <fo:table-row>
-                    <fo:table-cell>
-                        <fo:block font-weight="bold">Vorname:</fo:block>
-                    </fo:table-cell>
-                    <fo:table-cell>
-                        <fo:block>
-                            <xsl:value-of select="$data/firstname"/>
+                            <xsl:value-of select="concat($data/lastname, ' ', $data/firstname)"/>
                         </fo:block>
                     </fo:table-cell>
                 </fo:table-row>
