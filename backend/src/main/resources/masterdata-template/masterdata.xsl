@@ -16,9 +16,29 @@
                             <xsl:call-template name="header"/>
                         </fo:block>
                         <fo:block>
-                            <xsl:call-template name="customerData">
-                                <xsl:with-param name="data" select="customer"/>
-                            </xsl:call-template>
+                            <fo:table border="0.1mm solid #000000" table-layout="fixed" width="50%">
+                                <fo:table-column column-width="100%"/>
+                                <fo:table-body>
+                                    <fo:table-row border-bottom="0.1mm solid #000000">
+                                        <fo:table-cell>
+                                            <fo:block font-size="12pt" font-weight="bold" text-align="center"
+                                                      margin-top="1mm" margin-bottom="1mm">
+                                                Hauptbezieher
+                                            </fo:block>
+                                        </fo:table-cell>
+                                    </fo:table-row>
+                                    <fo:table-row>
+                                        <fo:table-cell>
+                                            <fo:block margin-top="1mm" margin-bottom="1mm" margin-left="1mm"
+                                                      margin-right="1mm">
+                                                <xsl:call-template name="customerData">
+                                                    <xsl:with-param name="data" select="customer"/>
+                                                </xsl:call-template>
+                                            </fo:block>
+                                        </fo:table-cell>
+                                    </fo:table-row>
+                                </fo:table-body>
+                            </fo:table>
                         </fo:block>
                     </fo:block>
                 </fo:flow>
@@ -53,7 +73,7 @@
     </xsl:template>
     <xsl:template name="customerData">
         <xsl:param name="data"/>
-        <fo:table table-layout="fixed" width="50%">
+        <fo:table table-layout="fixed" width="100%">
             <fo:table-column column-width="50%"/>
             <fo:table-column column-width="50%"/>
             <fo:table-body>
