@@ -86,6 +86,8 @@ fun main() {
             lastname = "Mustermann",
             firstname = "Max",
             birthDate = LocalDate.now(),
+            telephoneNumber = 664123123132,
+            email = "test@test.com",
             address = MasterdataPdfAddressData(
                 street = "Teststraße",
                 houseNumber = "10",
@@ -93,7 +95,8 @@ fun main() {
                 stairway = "2",
                 postalCode = 1010,
                 city = "Wien"
-            )
+            ),
+            employer = "Test employer"
         )
     )
 }

@@ -104,6 +104,8 @@ class CustomerController(
             lastname = customer.lastname!!,
             firstname = customer.firstname!!,
             birthDate = customer.birthDate!!,
+            telephoneNumber = customer.telephoneNumber,
+            email = customer.email,
             address = MasterdataPdfAddressData(
                 street = customer.addressStreet!!,
                 houseNumber = customer.addressHouseNumber!!,
@@ -111,7 +113,8 @@ class CustomerController(
                 stairway = customer.addressStairway,
                 postalCode = customer.addressPostalCode!!,
                 city = customer.addressCity!!
-            )
+            ),
+            employer = customer.employer!!
         )
     }
 

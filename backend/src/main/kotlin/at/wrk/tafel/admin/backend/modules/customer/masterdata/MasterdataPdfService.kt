@@ -11,7 +11,10 @@ data class MasterdataPdfCustomer(
     val lastname: String,
     val firstname: String,
     val birthDate: LocalDate,
+    val telephoneNumber: Long? = null,
+    val email: String? = null,
     val address: MasterdataPdfAddressData,
+    val employer: String,
     val additionalPersons: List<MasterdataPdfAdditionalPersonData> = emptyList()
 )
 
