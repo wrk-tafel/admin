@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { FormGroup, FormControl } from '@angular/forms';
+import { FormControl, FormGroup } from '@angular/forms';
 
 @Component({
   selector: 'customer-search',
@@ -8,9 +8,9 @@ import { FormGroup, FormControl } from '@angular/forms';
 export class CustomerSearchComponent {
 
   customerSearchForm = new FormGroup({
-    customerId: new FormControl('12313'),
-    lastname: new FormControl('T'),
-    firstname: new FormControl('C'),
+    customerId: new FormControl(''),
+    lastname: new FormControl(''),
+    firstname: new FormControl('')
   });
 
   search() {

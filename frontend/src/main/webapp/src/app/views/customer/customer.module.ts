@@ -8,6 +8,7 @@ import { CommonModule } from '@angular/common';
 import { AddPersonFormComponent } from './components/addperson-form.component';
 import { ModalModule } from 'ngx-bootstrap/modal';
 import { CustomerDetailComponent } from './views/customer-detail.component';
+import { CustomerSearchComponent } from './views/customer-search.component';
 
 @NgModule({
   imports: [
@@ -20,7 +21,8 @@ import { CustomerDetailComponent } from './views/customer-detail.component';
     AddPersonFormComponent,
     CustomerDetailComponent,
     CustomerEditComponent,
-    CustomerFormComponent
+    CustomerFormComponent,
+    CustomerSearchComponent
   ]
 })
 export class CustomerModule { }
