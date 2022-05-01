@@ -1,11 +1,9 @@
 package at.wrk.tafel.admin.backend.modules.customer.masterdata
 
-import at.wrk.tafel.admin.backend.database.entities.CustomerAddPersonEntity
 import at.wrk.tafel.admin.backend.database.entities.CustomerEntity
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import org.apache.commons.io.FileUtils
 import org.apache.commons.io.IOUtils
 import org.apache.fop.apps.FopFactory
 import org.apache.fop.apps.MimeConstants
@@ -33,8 +31,7 @@ class MasterdataPdfServiceImpl : MasterdataPdfService {
     override fun generatePdf(customer: CustomerEntity): ByteArray {
         val data = createPdfData(customer)
         val xmlBytes = generateXmlData(data)
-        val pdfBytes = generatePdf(xmlBytes, "/masterdata-template/masterdata.xsl")
-        return pdfBytes
+        return generatePdf(xmlBytes, "/masterdata-template/masterdata.xsl")
     }
 
     fun createPdfData(customer: CustomerEntity): MasterdataPdfData {
@@ -110,54 +107,3 @@ class MasterdataPdfServiceImpl : MasterdataPdfService {
         }
     }
 }
-
-// TODO DEBUG REMOVE
-fun main() {
-    val customerEntity = CustomerEntity()
-    customerEntity.id = 10
-    customerEntity.customerId = 1000
-    customerEntity.lastname = "Mustermann"
-    customerEntity.firstname = "Max"
-    customerEntity.birthDate = LocalDate.now()
-    customerEntity.telephoneNumber = 664123123132
-    customerEntity.email = "test@test.com"
-
-    customerEntity.addressStreet = "Teststraße"
-    customerEntity.addressHouseNumber = "10A"
-    customerEntity.addressStairway = "1"
-    customerEntity.addressDoor = "21"
-    customerEntity.addressPostalCode = 1020
-    customerEntity.addressCity = "Wien"
-
-    customerEntity.employer = "Österreichisches Rotes Kreuz - Landesverband Wien - Bezirksstelle Nord - Abteilung 1"
-
-    val addPerson1 = CustomerAddPersonEntity()
-    addPerson1.lastname = "Add"
-    addPerson1.firstname = "Pers 1"
-    addPerson1.birthDate = LocalDate.now()
-
-    val addPerson2 = CustomerAddPersonEntity()
-    addPerson2.lastname = "Mustermann"
-    addPerson2.firstname = "Pers 2"
-    addPerson2.birthDate = LocalDate.now()
-
-    val addPerson3 = CustomerAddPersonEntity()
-    addPerson3.lastname = "Mustermann"
-    addPerson3.firstname = "Pers 3 - longertext"
-    addPerson3.birthDate = LocalDate.now().minusYears(40)
-
-    val addPerson4 = CustomerAddPersonEntity()
-    addPerson4.lastname = "Mustermann"
-    addPerson4.firstname = "Pers 4 - longertext"
-    addPerson4.birthDate = LocalDate.now().minusYears(1)
-
-    val addPerson5 = CustomerAddPersonEntity()
-    addPerson5.lastname = "Add"
-    addPerson5.firstname = "Pers 5"
-    addPerson5.birthDate = LocalDate.now().minusYears(2)
-
-    customerEntity.additionalPersons = listOf(addPerson1, addPerson2, addPerson3, addPerson4, addPerson5)
-
-    MasterdataPdfServiceImpl().generatePdf(customerEntity)
-}
-// TODO DEBUG REMOVE
