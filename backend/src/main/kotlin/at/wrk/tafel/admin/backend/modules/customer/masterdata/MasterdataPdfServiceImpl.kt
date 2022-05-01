@@ -48,6 +48,7 @@ class MasterdataPdfServiceImpl : MasterdataPdfService {
         return MasterdataPdfData(
             logoContentType = MimeTypeUtils.IMAGE_PNG_VALUE,
             logoBytes = logoBytes,
+            currentDate = LocalDate.now().format(DATE_FORMATTER),
             customer = MasterdataPdfCustomer(
                 id = customer.customerId!!,
                 lastname = customer.lastname!!,

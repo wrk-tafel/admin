@@ -9,6 +9,7 @@ import java.time.LocalDate
 data class MasterdataPdfData(
     val logoContentType: String,
     val logoBytes: ByteArray,
+    val currentDate: String,
     val customer: MasterdataPdfCustomer
 ) {
     override fun equals(other: Any?): Boolean {
