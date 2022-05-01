@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.customer.masterdata
 
+import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.database.entities.CustomerEntity
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
@@ -20,6 +21,8 @@ import javax.xml.transform.sax.SAXResult
 import javax.xml.transform.stream.StreamSource
 
 @Service
+// TODO add tests
+@ExcludeFromTestCoverage
 class MasterdataPdfServiceImpl : MasterdataPdfService {
     companion object {
         private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
