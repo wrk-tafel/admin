@@ -1,4 +1,7 @@
-logging.level.root: INFO
+logging:
+  level:
+    root: INFO
+    org.apache: INFO
 
 spring:
   datasource:

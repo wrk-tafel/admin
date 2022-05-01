@@ -1,3 +1,8 @@
+logging:
+  level:
+    root: INFO
+    org.apache: WARN
+
 management:
   server:
     port: 8081

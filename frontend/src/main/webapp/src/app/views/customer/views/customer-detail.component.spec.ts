@@ -1,13 +1,16 @@
+import { HttpHeaders, HttpResponse } from '@angular/common/http';
 import { TestBed, waitForAsync } from '@angular/core/testing';
 import { ActivatedRoute } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import * as moment from 'moment';
 import { of } from 'rxjs';
+import { FileHelperService } from '../../../common/util/file-helper.service';
 import { CustomerApiService, CustomerData } from '../api/customer-api.service';
 import { CustomerDetailComponent, CustomerDetailData } from './customer-detail.component';
 
 describe('CustomerDetailComponent', () => {
   let apiService: jasmine.SpyObj<CustomerApiService>;
+  let fileHelperService: jasmine.SpyObj<FileHelperService>;
 
   const mockCustomer: CustomerData = {
     id: 133,
@@ -42,7 +45,8 @@ describe('CustomerDetailComponent', () => {
   };
 
   beforeEach(waitForAsync(() => {
-    const apiServiceSpy = jasmine.createSpyObj('CustomerApiService', ['getCustomer']);
+    const apiServiceSpy = jasmine.createSpyObj('CustomerApiService', ['getCustomer', 'generateMasterdataPdf']);
+    const fileHelperServiceSpy = jasmine.createSpyObj('FileHelperService', ['downloadFile']);
 
     TestBed.configureTestingModule({
       imports: [RouterTestingModule],
@@ -50,6 +54,10 @@ describe('CustomerDetailComponent', () => {
         {
           provide: CustomerApiService,
           useValue: apiServiceSpy
+        },
+        {
+          provide: FileHelperService,
+          useValue: fileHelperServiceSpy
         },
         {
           provide: ActivatedRoute,
@@ -61,6 +69,7 @@ describe('CustomerDetailComponent', () => {
     }).compileComponents();
 
     apiService = TestBed.inject(CustomerApiService) as jasmine.SpyObj<CustomerApiService>;
+    fileHelperService = TestBed.inject(FileHelperService) as jasmine.SpyObj<FileHelperService>;
   }));
 
   it('component can be created', () => {
@@ -117,6 +126,27 @@ describe('CustomerDetailComponent', () => {
         }
       ]
     );
+  }));
+
+  it('printMasterdata', waitForAsync(() => {
+    apiService.getCustomer.withArgs(mockCustomer.id).and.returnValue(of(mockCustomer));
+
+    const response = new HttpResponse({
+      status: 200,
+      headers: new HttpHeaders(
+        { 'Content-Disposition': 'inline; filename=test-name-1.pdf' }
+      ),
+      body: new ArrayBuffer(10)
+    });
+    apiService.generateMasterdataPdf.withArgs(mockCustomer.id).and.returnValue(of(response));
+
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    const component = fixture.componentInstance;
+    component.ngOnInit();
+
+    component.printMasterdata();
+
+    expect(fileHelperService.downloadFile).toHaveBeenCalledWith('test-name-1.pdf', new Blob([response.body], { type: 'application/pdf' }));
   }));
 
 });

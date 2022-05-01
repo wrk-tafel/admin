@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { CountryData } from '../../../common/api/country-api.service';
@@ -21,6 +21,11 @@ export class CustomerApiService {
 
   getCustomer(id: number): Observable<CustomerData> {
     return this.http.get<CustomerData>('/customers/' + id);
+  }
+
+  generateMasterdataPdf(id: number): Observable<HttpResponse<ArrayBuffer>> {
+    return this.http.get('/customers/' + id + '/generate-masterdata-pdf',
+      { responseType: 'arraybuffer', observe: 'response' });
   }
 }
 

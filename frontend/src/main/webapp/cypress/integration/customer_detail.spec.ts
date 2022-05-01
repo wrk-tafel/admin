@@ -1,4 +1,5 @@
 import * as moment from 'moment';
+import * as path from 'path';
 
 // TODO optimize structure
 
@@ -13,12 +14,8 @@ describe('Customer Detail', () => {
     cy.byTestId('customerIdText').should('have.text', '101');
   });
 
-  it('lastname correct', () => {
-    cy.byTestId('lastnameText').should('have.text', 'Musterfrau');
-  });
-
-  it('firstname correct', () => {
-    cy.byTestId('firstnameText').should('have.text', 'Eva');
+  it('name correct', () => {
+    cy.byTestId('nameText').should('have.text', 'Musterfrau Eva');
   });
 
   it('birthDate and age correct', () => {
@@ -83,6 +80,16 @@ describe('Customer Detail', () => {
     cy.byTestId('telephoneNumberText').should('have.text', '-');
     cy.byTestId('emailText').should('have.text', '-');
     cy.byTestId('addressLine1Text').should('have.text', 'Erdberg 1, Top 10');
+  });
+
+  it('generate masterdata pdf and opens for download', () => {
+    cy.byTestId('printMasterdataButton').click();
+
+    const downloadsFolder = Cypress.config('downloadsFolder')
+    const downloadedFilename = path.join(downloadsFolder, 'stammdaten-101-musterfrau-eva.pdf')
+
+    cy.readFile(downloadedFilename, 'binary', { timeout: 15000 })
+      .should((buffer: string | any[]) => expect(buffer.length).to.be.gt(20000));
   });
 
 });
