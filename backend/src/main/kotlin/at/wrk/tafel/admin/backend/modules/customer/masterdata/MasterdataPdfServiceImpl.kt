@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.modules.customer.masterdata
 
 import at.wrk.tafel.admin.backend.database.entities.CustomerAddPersonEntity
 import at.wrk.tafel.admin.backend.database.entities.CustomerEntity
+import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import org.apache.commons.io.FileUtils
@@ -14,6 +15,7 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import javax.xml.transform.TransformerFactory
 import javax.xml.transform.sax.SAXResult
 import javax.xml.transform.stream.StreamSource
@@ -21,7 +23,10 @@ import javax.xml.transform.stream.StreamSource
 @Service
 class MasterdataPdfServiceImpl : MasterdataPdfService {
     companion object {
+        private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+
         private val xmlMapper = XmlMapper().registerModule(JavaTimeModule())
+            .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
     }
 
     override fun generatePdf(customer: CustomerEntity): ByteArray {
@@ -47,7 +52,7 @@ class MasterdataPdfServiceImpl : MasterdataPdfService {
                 id = customer.customerId!!,
                 lastname = customer.lastname!!,
                 firstname = customer.firstname!!,
-                birthDate = customer.birthDate!!,
+                birthDate = customer.birthDate!!.format(DATE_FORMATTER),
                 telephoneNumber = customer.telephoneNumber,
                 email = customer.email,
                 address = MasterdataPdfAddressData(
@@ -63,7 +68,7 @@ class MasterdataPdfServiceImpl : MasterdataPdfService {
                     MasterdataPdfAdditionalPersonData(
                         lastname = it.lastname!!,
                         firstname = it.firstname!!,
-                        birthDate = it.birthDate!!
+                        birthDate = it.birthDate!!.format(DATE_FORMATTER)
                     )
                 }
             )
