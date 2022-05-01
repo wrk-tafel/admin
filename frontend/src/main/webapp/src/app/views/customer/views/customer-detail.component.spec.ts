@@ -134,7 +134,7 @@ describe('CustomerDetailComponent', () => {
     const response = new HttpResponse({
       status: 200,
       headers: new HttpHeaders(
-        { "Content-Disposition": "inline; filename=test-name-1.pdf" }
+        { 'Content-Disposition': 'inline; filename=test-name-1.pdf' }
       ),
       body: new ArrayBuffer(10)
     });
@@ -146,7 +146,7 @@ describe('CustomerDetailComponent', () => {
 
     component.printMasterdata();
 
-    expect(fileHelperService.downloadFile).toHaveBeenCalledWith("test-name-1.pdf", new Blob([response.body], { type: 'application/pdf' }));
+    expect(fileHelperService.downloadFile).toHaveBeenCalledWith('test-name-1.pdf', new Blob([response.body], { type: 'application/pdf' }));
   }));
 
 });
