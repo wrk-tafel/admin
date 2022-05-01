@@ -1,4 +1,5 @@
 import * as moment from 'moment';
+import * as path from 'path';
 
 // TODO optimize structure
 
@@ -79,6 +80,16 @@ describe('Customer Detail', () => {
     cy.byTestId('telephoneNumberText').should('have.text', '-');
     cy.byTestId('emailText').should('have.text', '-');
     cy.byTestId('addressLine1Text').should('have.text', 'Erdberg 1, Top 10');
+  });
+
+  it('generate masterdata pdf and opens for download', () => {
+    cy.byTestId('printMasterdataButton').click();
+
+    const downloadsFolder = Cypress.config('downloadsFolder')
+    const downloadedFilename = path.join(downloadsFolder, 'stammdaten-101-musterfrau-eva.pdf')
+
+    cy.readFile(downloadedFilename, 'binary', { timeout: 15000 })
+      .should((buffer: string | any[]) => expect(buffer.length).to.be.gt(20000));
   });
 
 });
