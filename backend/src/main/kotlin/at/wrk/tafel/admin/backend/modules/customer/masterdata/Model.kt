@@ -1,8 +1,10 @@
 package at.wrk.tafel.admin.backend.modules.customer.masterdata
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
 import java.time.LocalDate
+import java.time.Period
 
 @JacksonXmlRootElement(localName = "data")
 @ExcludeFromTestCoverage
@@ -10,7 +12,9 @@ data class MasterdataPdfData(
     val logoContentType: String,
     val logoBytes: ByteArray,
     val currentDate: String,
-    val customer: MasterdataPdfCustomer
+    val customer: MasterdataPdfCustomer,
+    val countPersons: Int,
+    val countInfants: Int
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

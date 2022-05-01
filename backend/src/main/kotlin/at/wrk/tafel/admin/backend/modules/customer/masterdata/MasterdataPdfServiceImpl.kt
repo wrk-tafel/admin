@@ -15,6 +15,7 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.time.LocalDate
+import java.time.Period
 import java.time.format.DateTimeFormatter
 import javax.xml.transform.TransformerFactory
 import javax.xml.transform.sax.SAXResult
@@ -43,6 +44,10 @@ class MasterdataPdfServiceImpl : MasterdataPdfService {
     }
 
     fun createPdfData(customer: CustomerEntity): MasterdataPdfData {
+        val countPersons = 1 + customer.additionalPersons.size
+        val countInfants =
+            customer.additionalPersons.count { Period.between(it.birthDate, LocalDate.now()).years <= 3 }
+
         val logoBytes =
             IOUtils.toByteArray(MasterdataPdfServiceImpl::class.java.getResourceAsStream("/masterdata-template/img/toet_logo.png"))
         return MasterdataPdfData(
@@ -72,7 +77,9 @@ class MasterdataPdfServiceImpl : MasterdataPdfService {
                         birthDate = it.birthDate!!.format(DATE_FORMATTER)
                     )
                 }
-            )
+            ),
+            countPersons = countPersons,
+            countInfants = countInfants
         )
     }
 
@@ -143,17 +150,17 @@ fun main() {
     val addPerson3 = CustomerAddPersonEntity()
     addPerson3.lastname = "Mustermann"
     addPerson3.firstname = "Pers 3 - longertext"
-    addPerson3.birthDate = LocalDate.now()
+    addPerson3.birthDate = LocalDate.now().minusYears(40)
 
     val addPerson4 = CustomerAddPersonEntity()
     addPerson4.lastname = "Mustermann"
     addPerson4.firstname = "Pers 4 - longertext"
-    addPerson4.birthDate = LocalDate.now()
+    addPerson4.birthDate = LocalDate.now().minusYears(1)
 
     val addPerson5 = CustomerAddPersonEntity()
     addPerson5.lastname = "Add"
     addPerson5.firstname = "Pers 5"
-    addPerson5.birthDate = LocalDate.now()
+    addPerson5.birthDate = LocalDate.now().minusYears(2)
 
     customerEntity.additionalPersons = listOf(addPerson1, addPerson2, addPerson3, addPerson4, addPerson5)
 

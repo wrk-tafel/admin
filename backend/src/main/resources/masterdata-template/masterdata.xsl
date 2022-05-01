@@ -36,6 +36,36 @@
                                 </fo:table-body>
                             </fo:table>
                         </fo:block>
+                        <fo:block margin-top="1cm">
+                            <fo:table table-layout="fixed" width="100%">
+                                <fo:table-column column-width="100%"/>
+                                <fo:table-body>
+                                    <fo:table-row>
+                                        <fo:table-cell>
+                                            <fo:block>
+                                                <fo:inline font-weight="bold">Anzahl der Personen im gemeinsamen
+                                                    Haushalt:
+                                                </fo:inline>
+                                                <fo:inline>
+                                                    <xsl:value-of select="concat(' ', ./countPersons)"/>
+                                                </fo:inline>
+                                            </fo:block>
+                                        </fo:table-cell>
+                                    </fo:table-row>
+                                    <fo:table-row>
+                                        <fo:table-cell>
+                                            <fo:block>
+                                                <fo:inline font-weight="bold">Davon Kinder bis 3 Jahre:
+                                                </fo:inline>
+                                                <fo:inline>
+                                                    <xsl:value-of select="concat(' ', ./countInfants)"/>
+                                                </fo:inline>
+                                            </fo:block>
+                                        </fo:table-cell>
+                                    </fo:table-row>
+                                </fo:table-body>
+                            </fo:table>
+                        </fo:block>
                         <fo:block margin-top="3cm">
                             <fo:table table-layout="fixed" width="100%">
                                 <fo:table-column column-width="30%"/>
