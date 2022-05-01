@@ -34,12 +34,6 @@ class MasterdataPdfServiceImpl : MasterdataPdfService {
         val data = createPdfData(customer)
         val xmlBytes = generateXmlData(data)
         val pdfBytes = generatePdf(xmlBytes, "/masterdata-template/masterdata.xsl")
-
-        // TODO DEBUG REMOVE
-        FileUtils.writeByteArrayToFile(File("D:\\test.xml"), xmlBytes)
-        FileUtils.writeByteArrayToFile(File("D:\\test.pdf"), pdfBytes)
-        // TODO DEBUG REMOVE
-
         return pdfBytes
     }
 

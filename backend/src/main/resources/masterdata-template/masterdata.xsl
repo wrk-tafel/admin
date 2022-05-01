@@ -82,7 +82,7 @@
                                         </fo:table-cell>
                                         <fo:table-cell>
                                             <fo:block border-bottom="0.25mm solid #000000">
-                                                <fo:inline font-weight="bold">Unterschrift:</fo:inline>
+                                                <fo:inline font-weight="bold">Unterschrift Hauptbezieher:</fo:inline>
                                             </fo:block>
                                         </fo:table-cell>
                                     </fo:table-row>

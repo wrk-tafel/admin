@@ -8,8 +8,6 @@ import at.wrk.tafel.admin.backend.database.repositories.staticdata.CountryReposi
 import at.wrk.tafel.admin.backend.modules.base.Country
 import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorPerson
 import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorService
-import at.wrk.tafel.admin.backend.modules.customer.masterdata.MasterdataPdfAddressData
-import at.wrk.tafel.admin.backend.modules.customer.masterdata.MasterdataPdfCustomer
 import at.wrk.tafel.admin.backend.modules.customer.masterdata.MasterdataPdfService
 import org.springframework.core.io.InputStreamResource
 import org.springframework.http.HttpHeaders
@@ -136,7 +134,7 @@ class CustomerController(
         firstname = customerEntity.firstname!!,
         lastname = customerEntity.lastname!!,
         birthDate = customerEntity.birthDate!!,
-        country = mapCustomerCountryToDomain(customerEntity.country!!),
+        country = mapCustomerCountryToResponse(customerEntity.country!!),
         address = CustomerAddress(
             street = customerEntity.addressStreet!!,
             houseNumber = customerEntity.addressHouseNumber!!,
@@ -161,7 +159,7 @@ class CustomerController(
         }
     )
 
-    private fun mapCustomerCountryToDomain(country: CountryEntity): Country {
+    private fun mapCustomerCountryToResponse(country: CountryEntity): Country {
         return Country(
             id = country.id!!,
             code = country.code!!,
