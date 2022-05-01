@@ -1,4 +1,4 @@
-import { HttpClient, HttpResponse } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { CountryData } from '../../../common/api/country-api.service';
@@ -26,6 +26,14 @@ export class CustomerApiService {
   generateMasterdataPdf(id: number): Observable<HttpResponse<ArrayBuffer>> {
     return this.http.get('/customers/' + id + '/generate-masterdata-pdf',
       { responseType: 'arraybuffer', observe: 'response' });
+  }
+
+  searchCustomer(data: CustomerSearchRequestData): Observable<CustomerData[]> {
+    const queryParams = new HttpParams()
+      .set('id', data.customerId.toString())
+      .set('lastname', data.lastname)
+      .set('firstname', data.firstname);
+    return this.http.get<CustomerData[]>('/customers', { params: queryParams });
   }
 }
 
@@ -66,4 +74,10 @@ export interface CustomerAddPersonData {
   lastname: string;
   birthDate: Date;
   income?: number;
+}
+
+export interface CustomerSearchRequestData {
+  customerId?: number;
+  firstname?: string;
+  lastname?: string;
 }

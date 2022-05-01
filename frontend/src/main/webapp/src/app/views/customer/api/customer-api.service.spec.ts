@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpRequest } from '@angular/common/http';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { CustomerApiService } from './customer-api.service';
@@ -47,6 +47,15 @@ describe('CustomerApiService', () => {
     apiService.generateMasterdataPdf(1).subscribe();
 
     const req = httpMock.expectOne({ method: 'GET', url: '/customers/1/generate-masterdata-pdf' });
+    req.flush(null);
+    httpMock.verify();
+  });
+
+  it('search customer', () => {
+    const requestData = { customerId: 1, lastname: 'mustermann', firstname: 'max' };
+    apiService.searchCustomer(requestData).subscribe();
+
+    const req = httpMock.expectOne({ method: 'GET', url: '/customers?id=1&lastname=mustermann&firstname=max' });
     req.flush(null);
     httpMock.verify();
   });

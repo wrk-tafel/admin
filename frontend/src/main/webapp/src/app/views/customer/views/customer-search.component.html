@@ -1,3 +1,41 @@
-<div class="animated fadeIn">
-    SEARCH-FORM
+<div class="card">
+    <form [formGroup]="customerSearchForm">
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col">
+                    <h4>Suche nach</h4>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-3">
+                    <label class="form-label">Kundennummer</label>
+                    <input testId="customerIdInput" type="number" formControlName="customerId" name="customerId"
+                        class="form-control" autofocus>
+                </div>
+            </div>
+            <div class="row mt-4 mb-3">
+                <div class="col-3">
+                    <h5>oder</h5>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-3">
+                    <label class="form-label">Familienname</label>
+                    <input testId="lastnameInput" type="text" formControlName="lastname" name="lastname"
+                        class="form-control">
+                </div>
+                <div class="col-sm-3">
+                    <label class="form-label">Vorname</label>
+                    <input testId="firstnameInput" type="text" formControlName="firstname" name="firstname"
+                        class="form-control">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-3 mt-4">
+                    <button testid="search-button" type="button" class="btn btn-primary"
+                        (click)="search()">Suchen</button>
+                </div>
+            </div>
+        </div>
+    </form>
 </div>
