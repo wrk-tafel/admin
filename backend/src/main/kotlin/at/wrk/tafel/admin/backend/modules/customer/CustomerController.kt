@@ -82,7 +82,7 @@ class CustomerController(
                     .lowercase()
                     .replace("[^A-Za-z0-9]".toRegex(), "-") + ".pdf"
 
-            val pdfBytes = masterdataPdfService.generatePdf(mapToPdfData(customer))
+            val pdfBytes = masterdataPdfService.generatePdf(customer)
 
             val headers = HttpHeaders()
             headers.add(
@@ -97,26 +97,6 @@ class CustomerController(
                 .body(InputStreamResource(ByteArrayInputStream(pdfBytes)))
         }
         return ResponseEntity.notFound().build()
-    }
-
-    private fun mapToPdfData(customer: CustomerEntity): MasterdataPdfCustomer {
-        return MasterdataPdfCustomer(
-            id = customer.customerId!!,
-            lastname = customer.lastname!!,
-            firstname = customer.firstname!!,
-            birthDate = customer.birthDate!!,
-            telephoneNumber = customer.telephoneNumber,
-            email = customer.email,
-            address = MasterdataPdfAddressData(
-                street = customer.addressStreet!!,
-                houseNumber = customer.addressHouseNumber!!,
-                door = customer.addressDoor!!,
-                stairway = customer.addressStairway,
-                postalCode = customer.addressPostalCode!!,
-                city = customer.addressCity!!
-            ),
-            employer = customer.employer!!
-        )
     }
 
     private fun mapRequestToEntity(customer: Customer): CustomerEntity {

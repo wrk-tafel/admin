@@ -17,8 +17,8 @@
                         </fo:block>
                         <fo:block>
                             <fo:table table-layout="fixed" width="100%">
-                                <fo:table-column column-width="50%"/>
-                                <fo:table-column column-width="50%"/>
+                                <fo:table-column column-width="60%"/>
+                                <fo:table-column column-width="40%"/>
                                 <fo:table-body>
                                     <fo:table-row>
                                         <fo:table-cell>
@@ -85,8 +85,8 @@
                         <fo:block margin-top="1mm" margin-bottom="1mm" margin-left="1mm"
                                   margin-right="1mm">
                             <fo:table table-layout="fixed" width="100%">
-                                <fo:table-column column-width="50%"/>
-                                <fo:table-column column-width="50%"/>
+                                <fo:table-column column-width="35%"/>
+                                <fo:table-column column-width="65%"/>
                                 <fo:table-body>
                                     <fo:table-row>
                                         <fo:table-cell>
@@ -199,26 +199,35 @@
                     <fo:table-cell>
                         <fo:block margin-top="1mm" margin-bottom="1mm" margin-left="1mm"
                                   margin-right="1mm">
-                            <fo:table table-layout="fixed" width="100%">
-                                <fo:table-column column-width="75%"/>
-                                <fo:table-column column-width="25%"/>
-                                <fo:table-body>
-                                    <xsl:for-each select="$data/additionalPersons">
-                                        <fo:table-row>
-                                            <fo:table-cell>
-                                                <fo:block font-weight="bold">
-                                                    <xsl:value-of select="concat(./lastname, ' ', ./firstname)"/>
-                                                </fo:block>
-                                            </fo:table-cell>
-                                            <fo:table-cell>
-                                                <fo:block>
-                                                    <xsl:value-of select="./birthDate"/>
-                                                </fo:block>
-                                            </fo:table-cell>
-                                        </fo:table-row>
-                                    </xsl:for-each>
-                                </fo:table-body>
-                            </fo:table>
+                            <xsl:choose>
+                                <xsl:when test="$data/additionalPersons != ''">
+                                    <fo:table table-layout="fixed" width="100%">
+                                        <fo:table-column column-width="100%"/>
+                                        <fo:table-body>
+                                            <xsl:for-each select="$data/additionalPersons">
+                                                <fo:table-row>
+                                                    <fo:table-cell>
+                                                        <fo:block font-weight="bold">
+                                                            <xsl:value-of
+                                                                    select="concat(./lastname, ' ', ./firstname)"/>
+                                                        </fo:block>
+                                                    </fo:table-cell>
+                                                </fo:table-row>
+                                                <fo:table-row>
+                                                    <fo:table-cell>
+                                                        <fo:block>
+                                                            <xsl:value-of select="./birthDate"/>
+                                                        </fo:block>
+                                                    </fo:table-cell>
+                                                </fo:table-row>
+                                            </xsl:for-each>
+                                        </fo:table-body>
+                                    </fo:table>
+                                </xsl:when>
+                                <xsl:otherwise>
+                                    <fo:block>Keine weiteren Personen</fo:block>
+                                </xsl:otherwise>
+                            </xsl:choose>
                         </fo:block>
                     </fo:table-cell>
                 </fo:table-row>

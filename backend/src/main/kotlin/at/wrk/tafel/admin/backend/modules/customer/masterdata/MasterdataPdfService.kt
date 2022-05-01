@@ -1,36 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.customer.masterdata
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper
-import java.time.LocalDate
-import java.time.LocalDateTime
+import at.wrk.tafel.admin.backend.database.entities.CustomerEntity
 
 interface MasterdataPdfService {
-    fun generatePdf(customer: MasterdataPdfCustomer): ByteArray
+    fun generatePdf(customer: CustomerEntity): ByteArray
 }
-
-data class MasterdataPdfCustomer(
-    val id: Long,
-    val lastname: String,
-    val firstname: String,
-    val birthDate: LocalDate,
-    val telephoneNumber: Long? = null,
-    val email: String? = null,
-    val address: MasterdataPdfAddressData,
-    val employer: String,
-    val additionalPersons: List<MasterdataPdfAdditionalPersonData> = emptyList()
-)
-
-data class MasterdataPdfAddressData(
-    val street: String,
-    val houseNumber: String,
-    val door: String,
-    val stairway: String? = null,
-    val postalCode: Int,
-    val city: String
-)
-
-data class MasterdataPdfAdditionalPersonData(
-    val lastname: String,
-    val firstname: String,
-    val birthDate: LocalDateTime
-)

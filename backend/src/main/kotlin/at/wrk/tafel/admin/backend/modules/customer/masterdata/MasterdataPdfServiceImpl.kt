@@ -1,5 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.customer.masterdata
 
+import at.wrk.tafel.admin.backend.database.entities.CustomerAddPersonEntity
+import at.wrk.tafel.admin.backend.database.entities.CustomerEntity
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import org.apache.commons.io.FileUtils
@@ -12,7 +14,6 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.time.LocalDate
-import java.time.LocalDateTime
 import javax.xml.transform.TransformerFactory
 import javax.xml.transform.sax.SAXResult
 import javax.xml.transform.stream.StreamSource
@@ -23,7 +24,7 @@ class MasterdataPdfServiceImpl : MasterdataPdfService {
         private val xmlMapper = XmlMapper().registerModule(JavaTimeModule())
     }
 
-    override fun generatePdf(customer: MasterdataPdfCustomer): ByteArray {
+    override fun generatePdf(customer: CustomerEntity): ByteArray {
         val data = createPdfData(customer)
         val xmlBytes = generateXmlData(data)
         val pdfBytes = generatePdf(xmlBytes, "/masterdata-template/masterdata.xsl")
@@ -36,13 +37,36 @@ class MasterdataPdfServiceImpl : MasterdataPdfService {
         return pdfBytes
     }
 
-    fun createPdfData(customer: MasterdataPdfCustomer): MasterdataPdfData {
+    fun createPdfData(customer: CustomerEntity): MasterdataPdfData {
         val logoBytes =
             IOUtils.toByteArray(MasterdataPdfServiceImpl::class.java.getResourceAsStream("/masterdata-template/img/toet_logo.png"))
         return MasterdataPdfData(
             logoContentType = MimeTypeUtils.IMAGE_PNG_VALUE,
             logoBytes = logoBytes,
-            customer = customer
+            customer = MasterdataPdfCustomer(
+                id = customer.customerId!!,
+                lastname = customer.lastname!!,
+                firstname = customer.firstname!!,
+                birthDate = customer.birthDate!!,
+                telephoneNumber = customer.telephoneNumber,
+                email = customer.email,
+                address = MasterdataPdfAddressData(
+                    street = customer.addressStreet!!,
+                    houseNumber = customer.addressHouseNumber!!,
+                    door = customer.addressDoor!!,
+                    stairway = customer.addressStairway,
+                    postalCode = customer.addressPostalCode!!,
+                    city = customer.addressCity!!
+                ),
+                employer = customer.employer!!,
+                additionalPersons = customer.additionalPersons.map {
+                    MasterdataPdfAdditionalPersonData(
+                        lastname = it.lastname!!,
+                        firstname = it.firstname!!,
+                        birthDate = it.birthDate!!
+                    )
+                }
+            )
         )
     }
 
@@ -82,51 +106,51 @@ class MasterdataPdfServiceImpl : MasterdataPdfService {
 
 // TODO DEBUG REMOVE
 fun main() {
-    MasterdataPdfServiceImpl().generatePdf(
-        MasterdataPdfCustomer(
-            id = 1000,
-            lastname = "Mustermann",
-            firstname = "Max",
-            birthDate = LocalDate.now(),
-            telephoneNumber = 664123123132,
-            email = "test@test.com",
-            address = MasterdataPdfAddressData(
-                street = "Teststraße",
-                houseNumber = "10",
-                door = "1",
-                stairway = "2",
-                postalCode = 1010,
-                city = "Wien"
-            ),
-            employer = "Test employer",
-            additionalPersons = listOf(
-                MasterdataPdfAdditionalPersonData(
-                    lastname = "Add",
-                    firstname = "Pers 1",
-                    birthDate = LocalDateTime.now()
-                ),
-                MasterdataPdfAdditionalPersonData(
-                    lastname = "Add",
-                    firstname = "Pers 2",
-                    birthDate = LocalDateTime.now()
-                ),
-                MasterdataPdfAdditionalPersonData(
-                    lastname = "Add",
-                    firstname = "Pers 3",
-                    birthDate = LocalDateTime.now()
-                ),
-                MasterdataPdfAdditionalPersonData(
-                    lastname = "Add",
-                    firstname = "Pers 4",
-                    birthDate = LocalDateTime.now()
-                ),
-                MasterdataPdfAdditionalPersonData(
-                    lastname = "Add",
-                    firstname = "Pers 5",
-                    birthDate = LocalDateTime.now()
-                )
-            )
-        )
-    )
+    val customerEntity = CustomerEntity()
+    customerEntity.id = 10
+    customerEntity.customerId = 1000
+    customerEntity.lastname = "Mustermann"
+    customerEntity.firstname = "Max"
+    customerEntity.birthDate = LocalDate.now()
+    customerEntity.telephoneNumber = 664123123132
+    customerEntity.email = "test@test.com"
+
+    customerEntity.addressStreet = "Teststraße"
+    customerEntity.addressHouseNumber = "10A"
+    customerEntity.addressStairway = "1"
+    customerEntity.addressDoor = "21"
+    customerEntity.addressPostalCode = 1020
+    customerEntity.addressCity = "Wien"
+
+    customerEntity.employer = "Österreichisches Rotes Kreuz - Landesverband Wien - Bezirksstelle Nord - Abteilung 1"
+
+    val addPerson1 = CustomerAddPersonEntity()
+    addPerson1.lastname = "Add"
+    addPerson1.firstname = "Pers 1"
+    addPerson1.birthDate = LocalDate.now()
+
+    val addPerson2 = CustomerAddPersonEntity()
+    addPerson2.lastname = "Mustermann"
+    addPerson2.firstname = "Pers 2"
+    addPerson2.birthDate = LocalDate.now()
+
+    val addPerson3 = CustomerAddPersonEntity()
+    addPerson3.lastname = "Mustermann"
+    addPerson3.firstname = "Pers 3 - longertext"
+    addPerson3.birthDate = LocalDate.now()
+
+    val addPerson4 = CustomerAddPersonEntity()
+    addPerson4.lastname = "Mustermann"
+    addPerson4.firstname = "Pers 4 - longertext"
+    addPerson4.birthDate = LocalDate.now()
+
+    val addPerson5 = CustomerAddPersonEntity()
+    addPerson5.lastname = "Add"
+    addPerson5.firstname = "Pers 5"
+    addPerson5.birthDate = LocalDate.now()
+
+    customerEntity.additionalPersons = listOf(addPerson1, addPerson2, addPerson3, addPerson4, addPerson5)
+
+    MasterdataPdfServiceImpl().generatePdf(customerEntity)
 }
 // TODO DEBUG REMOVE

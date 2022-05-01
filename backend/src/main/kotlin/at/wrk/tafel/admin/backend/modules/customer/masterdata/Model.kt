@@ -1,8 +1,12 @@
 package at.wrk.tafel.admin.backend.modules.customer.masterdata
 
+import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
+import java.time.LocalDate
+import java.time.LocalDateTime
 
 @JacksonXmlRootElement(localName = "data")
+@ExcludeFromTestCoverage
 data class MasterdataPdfData(
     val logoContentType: String,
     val logoBytes: ByteArray,
@@ -28,3 +32,33 @@ data class MasterdataPdfData(
         return result
     }
 }
+
+@ExcludeFromTestCoverage
+data class MasterdataPdfCustomer(
+    val id: Long,
+    val lastname: String,
+    val firstname: String,
+    val birthDate: LocalDate,
+    val telephoneNumber: Long? = null,
+    val email: String? = null,
+    val address: MasterdataPdfAddressData,
+    val employer: String,
+    val additionalPersons: List<MasterdataPdfAdditionalPersonData> = emptyList()
+)
+
+@ExcludeFromTestCoverage
+data class MasterdataPdfAddressData(
+    val street: String,
+    val houseNumber: String,
+    val door: String,
+    val stairway: String? = null,
+    val postalCode: Int,
+    val city: String
+)
+
+@ExcludeFromTestCoverage
+data class MasterdataPdfAdditionalPersonData(
+    val lastname: String,
+    val firstname: String,
+    val birthDate: LocalDate
+)
