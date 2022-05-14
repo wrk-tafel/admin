@@ -67,18 +67,19 @@ class CustomerController(
         @RequestParam firstname: String? = null,
         @RequestParam lastname: String? = null
     ): CustomerListResponse {
-        var customerItems: List<CustomerEntity> = if (firstname != null && lastname != null) {
-            customerRepository.findAllByFirstnameContainingIgnoreCaseOrLastnameContainingIgnoreCase(
-                firstname,
-                lastname
-            )
-        } else if (firstname != null) {
-            customerRepository.findAllByFirstnameContainingIgnoreCase(firstname)
-        } else if (lastname != null) {
-            customerRepository.findAllByLastnameContainingIgnoreCase(lastname)
-        } else {
-            customerRepository.findAll()
-        }
+        var customerItems: List<CustomerEntity> =
+            if (firstname?.isNotBlank() == true && lastname?.isNotBlank() == true) {
+                customerRepository.findAllByFirstnameContainingIgnoreCaseOrLastnameContainingIgnoreCase(
+                    firstname,
+                    lastname
+                )
+            } else if (firstname?.isNotBlank() == true) {
+                customerRepository.findAllByFirstnameContainingIgnoreCase(firstname)
+            } else if (lastname?.isNotBlank() == true) {
+                customerRepository.findAllByLastnameContainingIgnoreCase(lastname)
+            } else {
+                customerRepository.findAll()
+            }
 
         return CustomerListResponse(items = customerItems.map { customerEntity -> mapEntityToResponse(customerEntity) })
     }

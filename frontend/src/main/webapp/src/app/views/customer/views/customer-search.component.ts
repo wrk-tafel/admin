@@ -1,5 +1,8 @@
 import { Component } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
+import { Router } from '@angular/router';
+import { cibTreehouse } from '@coreui/icons';
+import { of } from 'rxjs';
 import { CustomerApiService } from '../api/customer-api.service';
 
 @Component({
@@ -8,8 +11,11 @@ import { CustomerApiService } from '../api/customer-api.service';
 })
 export class CustomerSearchComponent {
   constructor(
-    private customerApiService: CustomerApiService
+    private customerApiService: CustomerApiService,
+    private router: Router
   ) { }
+
+  errorMessage: string;
 
   customerSearchForm = new FormGroup({
     customerId: new FormControl(''),
@@ -18,14 +24,23 @@ export class CustomerSearchComponent {
   });
 
   search() {
-    if (this.customerId) {
-      // TODO router / navigate, maybe? Check if exists? on detailpage?
-    }
-    else {
-      this.customerApiService.searchCustomer(this.customerSearchForm.value).subscribe((res) => {
-        // TODO
-        console.log("RESPONSE", res);
-      });
+    if (this.customerId.value) {
+      const customerId = this.customerId.value;
+      this.customerApiService.getCustomer(customerId)
+        .subscribe(() => {
+          this.router.navigate(['/kunden/detail', customerId]);
+        }, error => {
+          if (error.status == 404) {
+            this.errorMessage = "Kundennummer " + customerId + " nicht gefunden!";
+          }
+          return of(true);
+        });
+    } else {
+      this.customerApiService.searchCustomer(this.firstname.value, this.lastname.value)
+        .subscribe((res) => {
+          // TODO
+          console.log("RESPONSE", res);
+        });
     }
   }
 

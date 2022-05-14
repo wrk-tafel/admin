@@ -28,11 +28,10 @@ export class CustomerApiService {
       { responseType: 'arraybuffer', observe: 'response' });
   }
 
-  searchCustomer(data: CustomerSearchRequestData): Observable<CustomerData[]> {
+  searchCustomer(firstname?: string, lastname?: string): Observable<CustomerData[]> {
     const queryParams = new HttpParams()
-      .set('id', data.customerId.toString())
-      .set('lastname', data.lastname)
-      .set('firstname', data.firstname);
+      .set('lastname', lastname)
+      .set('firstname', firstname);
     return this.http.get<CustomerData[]>('/customers', { params: queryParams });
   }
 }

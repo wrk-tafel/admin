@@ -1,3 +1,6 @@
+<div testid="errorMessage" *ngIf="errorMessage" class="alert alert-danger mb-3">
+    <div testid="errorMessageContent">{{errorMessage}}</div>
+</div>
 <form [formGroup]="customerSearchForm">
     <div class="card">
         <div class="card-body">
@@ -15,7 +18,7 @@
             </div>
             <div class="row mt-4 mb-3">
                 <div class="col-3">
-                    <h5>oder</h5>
+                    <h5>oder nach</h5>
                 </div>
             </div>
             <div class="row">
@@ -33,6 +36,7 @@
             <div class="row">
                 <div class="col-3 mt-4">
                     <button testid="search-button" type="button" class="btn btn-primary"
+                        [disabled]="!this.customerId.value && !this.firstname.value && !this.lastname.value"
                         (click)="search()">Suchen</button>
                 </div>
             </div>

@@ -39,7 +39,7 @@ describe('ErrorHandlerInterceptor', () => {
     });
 
     const mockReq = httpMock.expectOne('/test');
-    const mockErrorResponse = { status: 404, statusText: 'Not Found' };
+    const mockErrorResponse = { status: 500, statusText: 'Internal Server Error' };
     mockReq.flush(null, mockErrorResponse);
     httpMock.verify();
   });
@@ -52,6 +52,18 @@ describe('ErrorHandlerInterceptor', () => {
     const mockReq = httpMock.expectOne('/test');
     const mockErrorResponse = { status: 400, statusText: 'Bad Request' };
     mockReq.flush({ message: 'detail-message' }, mockErrorResponse);
+    httpMock.verify();
+  });
+
+  // TODO CHECK
+  it('no handling for status 404', () => {
+    client.get('/test').subscribe(() => { }, err => {
+      expect(window.alert).toHaveBeenCalledTimes(0);
+    });
+
+    const mockReq = httpMock.expectOne('/test');
+    const mockErrorResponse = { status: 404, statusText: 'Not Found' };
+    mockReq.flush(null, mockErrorResponse);
     httpMock.verify();
   });
 

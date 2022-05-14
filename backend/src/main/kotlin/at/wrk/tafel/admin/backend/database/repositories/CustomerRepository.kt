@@ -21,8 +21,8 @@ interface CustomerRepository : JpaRepository<CustomerEntity, Long> {
     ): List<CustomerEntity>
 
     fun findAllByFirstnameContainingIgnoreCaseOrLastnameContainingIgnoreCase(
-        firstname: String,
-        lastname: String
+        @Param("firstname") firstname: String,
+        @Param("lastname") lastname: String
     ): List<CustomerEntity>
 
 }

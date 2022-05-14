@@ -12,17 +12,18 @@ export class ErrorHandlerInterceptor implements HttpInterceptor {
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     return next.handle(req).pipe(catchError(response => {
-      // TODO better ui element to show
-      const errorDetail = response.error as ErrorResponseData;
+      if (response.status !== 404) {
+        // TODO better ui element to show
+        const errorDetail = response.error as ErrorResponseData;
 
-      const msg = 'FEHLER:\nHTTP - ' + response.status
-        + ' - ' + response.statusText
-        + '\nMESSAGE:\n'
-        + response?.message
-        + '\nDETAILS:\n'
-        + errorDetail?.message;
-      this.window.alert(msg);
-
+        const msg = 'FEHLER:\nHTTP - ' + response.status
+          + ' - ' + response.statusText
+          + '\nMESSAGE:\n'
+          + response?.message
+          + '\nDETAILS:\n'
+          + errorDetail?.message;
+        this.window.alert(msg);
+      }
       return throwError(response);
     }));
   }
