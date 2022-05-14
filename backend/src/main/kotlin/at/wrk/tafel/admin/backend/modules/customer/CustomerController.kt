@@ -63,11 +63,24 @@ class CustomerController(
     }
 
     @GetMapping
-    fun listCustomers(): CustomerListResponse {
-        val customerItems = customerRepository.findAll().map { customerEntity ->
-            mapEntityToResponse(customerEntity)
+    fun getCustomers(
+        @RequestParam firstname: String? = null,
+        @RequestParam lastname: String? = null
+    ): CustomerListResponse {
+        var customerItems: List<CustomerEntity> = if (firstname != null && lastname != null) {
+            customerRepository.findAllByFirstnameContainingIgnoreCaseOrLastnameContainingIgnoreCase(
+                firstname,
+                lastname
+            )
+        } else if (firstname != null) {
+            customerRepository.findAllByFirstnameContainingIgnoreCase(firstname)
+        } else if (lastname != null) {
+            customerRepository.findAllByLastnameContainingIgnoreCase(lastname)
+        } else {
+            customerRepository.findAll()
         }
-        return CustomerListResponse(items = customerItems)
+
+        return CustomerListResponse(items = customerItems.map { customerEntity -> mapEntityToResponse(customerEntity) })
     }
 
     @GetMapping("/{customerId}/generate-masterdata-pdf", produces = [MediaType.APPLICATION_PDF_VALUE])

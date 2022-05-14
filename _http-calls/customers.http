@@ -2,6 +2,18 @@
 GET {{basePath}}/customers
 Authorization: Bearer {{jwt}}
 
+### Search for customers (only firstname)
+GET {{basePath}}/customers?firstname=x
+Authorization: Bearer {{jwt}}
+
+### Search for customers (only lastname)
+GET {{basePath}}/customers?lastname=x
+Authorization: Bearer {{jwt}}
+
+### Search for customers (firstname and lastname)
+GET {{basePath}}/customers?firstname=x&lastname=x
+Authorization: Bearer {{jwt}}
+
 ### Validate customer
 POST {{basePath}}/customers/validate
 Authorization: Bearer {{jwt}}
@@ -104,7 +116,7 @@ Content-Type: application/json
   ]
 }
 
-### Get customer
+### Get customer 100
 
 GET {{basePath}}/customers/100
 Authorization: Bearer {{jwt}}
