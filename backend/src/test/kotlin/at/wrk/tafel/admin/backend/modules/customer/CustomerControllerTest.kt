@@ -86,7 +86,8 @@ class CustomerControllerTest {
         )
     )
 
-    private val testCustomerEntity = CustomerEntity()
+    private val testCustomerEntity1 = CustomerEntity()
+    private val testCustomerEntity2 = CustomerEntity()
 
     @BeforeEach
     fun beforeEach() {
@@ -97,23 +98,23 @@ class CustomerControllerTest {
 
         every { countryRepository.findById(testCountry.id!!) } returns Optional.of(testCountry)
 
-        testCustomerEntity.id = 1
-        testCustomerEntity.customerId = 100
-        testCustomerEntity.lastname = "Mustermann"
-        testCustomerEntity.firstname = "Max"
-        testCustomerEntity.birthDate = LocalDate.now().minusYears(30)
-        testCustomerEntity.country = testCountry
-        testCustomerEntity.addressStreet = "Test-Straße"
-        testCustomerEntity.addressHouseNumber = "100"
-        testCustomerEntity.addressStairway = "1"
-        testCustomerEntity.addressPostalCode = 1010
-        testCustomerEntity.addressDoor = "21"
-        testCustomerEntity.addressCity = "Wien"
-        testCustomerEntity.telephoneNumber = 43660123123
-        testCustomerEntity.email = "test@mail.com"
-        testCustomerEntity.employer = "Employer 123"
-        testCustomerEntity.income = BigDecimal("1000")
-        testCustomerEntity.incomeDue = LocalDate.now()
+        testCustomerEntity1.id = 1
+        testCustomerEntity1.customerId = 100
+        testCustomerEntity1.lastname = "Mustermann"
+        testCustomerEntity1.firstname = "Max"
+        testCustomerEntity1.birthDate = LocalDate.now().minusYears(30)
+        testCustomerEntity1.country = testCountry
+        testCustomerEntity1.addressStreet = "Test-Straße"
+        testCustomerEntity1.addressHouseNumber = "100"
+        testCustomerEntity1.addressStairway = "1"
+        testCustomerEntity1.addressPostalCode = 1010
+        testCustomerEntity1.addressDoor = "21"
+        testCustomerEntity1.addressCity = "Wien"
+        testCustomerEntity1.telephoneNumber = 43660123123
+        testCustomerEntity1.email = "test@mail.com"
+        testCustomerEntity1.employer = "Employer 123"
+        testCustomerEntity1.income = BigDecimal("1000")
+        testCustomerEntity1.incomeDue = LocalDate.now()
 
         val addPerson1 = CustomerAddPersonEntity()
         addPerson1.id = 2
@@ -129,7 +130,25 @@ class CustomerControllerTest {
         addPerson2.birthDate = LocalDate.now().minusYears(2)
         addPerson2.income = BigDecimal("200")
 
-        testCustomerEntity.additionalPersons = listOf(addPerson1, addPerson2)
+        testCustomerEntity1.additionalPersons = listOf(addPerson1, addPerson2)
+
+        testCustomerEntity2.id = 2
+        testCustomerEntity2.customerId = 200
+        testCustomerEntity2.lastname = "Mustermann"
+        testCustomerEntity2.firstname = "Max 2"
+        testCustomerEntity2.birthDate = LocalDate.now().minusYears(22)
+        testCustomerEntity2.country = testCountry
+        testCustomerEntity2.addressStreet = "Test-Straße 2"
+        testCustomerEntity2.addressHouseNumber = "200"
+        testCustomerEntity2.addressStairway = "1-2"
+        testCustomerEntity2.addressPostalCode = 1010
+        testCustomerEntity2.addressDoor = "21-2"
+        testCustomerEntity2.addressCity = "Wien 2"
+        testCustomerEntity2.telephoneNumber = 43660456456
+        testCustomerEntity2.email = "test2@mail.com"
+        testCustomerEntity2.employer = "Employer 123-2"
+        testCustomerEntity2.income = BigDecimal("2000")
+        testCustomerEntity2.incomeDue = LocalDate.now()
     }
 
     @Test
@@ -184,8 +203,49 @@ class CustomerControllerTest {
     }
 
     @Test
+    fun `list all customer`() {
+        every { customerRepository.findAll() } returns listOf(testCustomerEntity1, testCustomerEntity2)
+
+        val response = controller.getCustomers()
+
+        assertThat(response.items).hasSize(2)
+    }
+
+    @Test
+    fun `find customer by firstname`() {
+        every { customerRepository.findAllByFirstnameContainingIgnoreCase(any()) } returns listOf(testCustomerEntity1)
+
+        val response = controller.getCustomers(firstname = "firstname")
+
+        assertThat(response.items).hasSize(1)
+    }
+
+    @Test
+    fun `find customer by lastname`() {
+        every { customerRepository.findAllByLastnameContainingIgnoreCase(any()) } returns listOf(testCustomerEntity2)
+
+        val response = controller.getCustomers(lastname = "lastname")
+
+        assertThat(response.items).hasSize(1)
+    }
+
+    @Test
+    fun `find customer by firstname and lastname`() {
+        every {
+            customerRepository.findAllByFirstnameContainingIgnoreCaseOrLastnameContainingIgnoreCase(
+                any(),
+                any()
+            )
+        } returns listOf(testCustomerEntity1, testCustomerEntity2)
+
+        val response = controller.getCustomers(firstname = "firstname", lastname = "lastname")
+
+        assertThat(response.items).hasSize(2)
+    }
+
+    @Test
     fun `create customer`() {
-        every { customerRepository.save(any()) } returns testCustomerEntity
+        every { customerRepository.save(any()) } returns testCustomerEntity1
 
         val response = controller.createCustomer(testCustomer)
 
@@ -195,7 +255,6 @@ class CustomerControllerTest {
             customerRepository.save(any())
         }
     }
-
 
     @Test
     fun `generate pdf customer unknown`() {
@@ -210,7 +269,7 @@ class CustomerControllerTest {
     @Test
     fun `generate pdf customer found`() {
         val pdfBytes = ByteArray(10)
-        every { customerRepository.findByCustomerId(any()) } returns Optional.of(testCustomerEntity)
+        every { customerRepository.findByCustomerId(any()) } returns Optional.of(testCustomerEntity1)
         every { masterdataPdfService.generatePdf(any()) } returns pdfBytes
 
         val response = controller.generateMasterdataPdf(1)
