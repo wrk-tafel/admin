@@ -47,6 +47,10 @@ export class CustomerSearchComponent {
     }
   }
 
+  navigateToCustomer(customerId: number) {
+    this.router.navigate(['/kunden/detail', customerId]);
+  }
+
   private mapItem(item: CustomerData): CustomerRow {
     return {
       id: item.id,
