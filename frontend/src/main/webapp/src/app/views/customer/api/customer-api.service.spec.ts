@@ -51,11 +51,26 @@ describe('CustomerApiService', () => {
     httpMock.verify();
   });
 
-  it('search customer', () => {
-    const requestData = { customerId: 1, lastname: 'mustermann', firstname: 'max' };
-    apiService.searchCustomer(requestData).subscribe();
+  it('search customer with firstname and lastname', () => {
+    apiService.searchCustomer('mustermann', 'max').subscribe();
 
-    const req = httpMock.expectOne({ method: 'GET', url: '/customers?id=1&lastname=mustermann&firstname=max' });
+    const req = httpMock.expectOne({ method: 'GET', url: '/customers?lastname=mustermann&firstname=max' });
+    req.flush(null);
+    httpMock.verify();
+  });
+
+  it('search customer with lastname only', () => {
+    apiService.searchCustomer('mustermann').subscribe();
+
+    const req = httpMock.expectOne({ method: 'GET', url: '/customers?lastname=mustermann' });
+    req.flush(null);
+    httpMock.verify();
+  });
+
+  it('search customer with firstname only', () => {
+    apiService.searchCustomer(null, 'max').subscribe();
+
+    const req = httpMock.expectOne({ method: 'GET', url: '/customers?firstname=max' });
     req.flush(null);
     httpMock.verify();
   });
