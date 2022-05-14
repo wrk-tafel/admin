@@ -1,9 +1,8 @@
 import { Component } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
-import { cibTreehouse } from '@coreui/icons';
-import { of } from 'rxjs';
-import { CustomerApiService } from '../api/customer-api.service';
+import * as moment from 'moment';
+import { CustomerAddressData, CustomerApiService, CustomerData, CustomerSearchResponse } from '../api/customer-api.service';
 
 @Component({
   selector: 'customer-search',
@@ -16,10 +15,11 @@ export class CustomerSearchComponent {
   ) { }
 
   errorMessage: string;
+  searchResult: SearchResult;
 
   customerSearchForm = new FormGroup({
     customerId: new FormControl(''),
-    lastname: new FormControl(''),
+    lastname: new FormControl('Muster'), // TODO REMOVE DEFAULT
     firstname: new FormControl('')
   });
 
@@ -33,15 +33,39 @@ export class CustomerSearchComponent {
           if (error.status == 404) {
             this.errorMessage = "Kundennummer " + customerId + " nicht gefunden!";
           }
-          return of(true);
         });
     } else {
       this.customerApiService.searchCustomer(this.firstname.value, this.lastname.value)
-        .subscribe((res) => {
-          // TODO
-          console.log("RESPONSE", res);
+        .subscribe((response: CustomerSearchResponse) => {
+          if (response.items.length == 0) {
+            this.errorMessage = "Keine Kunden gefunden!";
+          } else {
+            this.searchResult = { items: response.items.map(item => this.mapItem(item)) };
+            console.log("RESULT", this.searchResult);
+          }
         });
     }
+  }
+
+  private mapItem(item: CustomerData): CustomerRow {
+    return {
+      id: item.id,
+      lastname: item.lastname,
+      firstname: item.firstname,
+      birthDate: moment(item.birthDate).format('DD.MM.YYYY'),
+      address: this.formatAddress(item.address)
+    };
+  }
+
+  private formatAddress(address: CustomerAddressData): string {
+    let result = '';
+    result += address.street + ' ' + address.houseNumber;
+    if (address.stairway) {
+      result += ', Stiege ' + address.stairway;
+    }
+    result += ', Top ' + address.door;
+    result += ' / ' + address.postalCode + ' ' + address.city;
+    return result;
   }
 
   get customerId() { return this.customerSearchForm.get('customerId'); }
@@ -49,8 +73,14 @@ export class CustomerSearchComponent {
   get firstname() { return this.customerSearchForm.get('firstname'); }
 }
 
-export interface CustomerSearchFormData {
-  customerId?: number;
-  lastname?: string;
-  firstname?: string;
+interface SearchResult {
+  items: CustomerRow[];
+}
+
+interface CustomerRow {
+  id: number;
+  lastname: string;
+  firstname: string;
+  birthDate: string;
+  address: string;
 }

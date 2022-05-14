@@ -28,11 +28,11 @@ export class CustomerApiService {
       { responseType: 'arraybuffer', observe: 'response' });
   }
 
-  searchCustomer(firstname?: string, lastname?: string): Observable<CustomerData[]> {
+  searchCustomer(firstname?: string, lastname?: string): Observable<CustomerSearchResponse> {
     const queryParams = new HttpParams()
       .set('lastname', lastname)
       .set('firstname', firstname);
-    return this.http.get<CustomerData[]>('/customers', { params: queryParams });
+    return this.http.get<CustomerSearchResponse>('/customers', { params: queryParams });
   }
 }
 
@@ -75,8 +75,6 @@ export interface CustomerAddPersonData {
   income?: number;
 }
 
-export interface CustomerSearchRequestData {
-  customerId?: number;
-  firstname?: string;
-  lastname?: string;
+export interface CustomerSearchResponse {
+  items: CustomerData[];
 }
