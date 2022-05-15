@@ -53,20 +53,20 @@ export interface CustomerData {
   firstname: string;
   lastname: string;
   birthDate: Date;
-  country: CountryData;
+  country?: CountryData;
   address: CustomerAddressData;
-  telephoneNumber: number;
-  email: string;
-  employer: string;
-  income: number;
-  incomeDue: Date;
-  additionalPersons: CustomerAddPersonData[];
+  telephoneNumber?: number;
+  email?: string;
+  employer?: string;
+  income?: number;
+  incomeDue?: Date;
+  additionalPersons?: CustomerAddPersonData[];
 }
 
 export interface CustomerAddressData {
   street: string;
   houseNumber: string;
-  stairway: string;
+  stairway?: string;
   door: string;
   postalCode: number;
   city: string;

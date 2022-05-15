@@ -19,7 +19,7 @@ export class CustomerSearchComponent {
 
   customerSearchForm = new FormGroup({
     customerId: new FormControl(''),
-    lastname: new FormControl('Muster'), // TODO REMOVE DEFAULT
+    lastname: new FormControl(''),
     firstname: new FormControl('')
   });
 
