@@ -79,7 +79,8 @@ describe('Customer Detail', () => {
     cy.visit('/#/kunden/detail/100');
     cy.byTestId('telephoneNumberText').should('have.text', '-');
     cy.byTestId('emailText').should('have.text', '-');
-    cy.byTestId('addressLine1Text').should('have.text', 'Erdberg 1, Top 10');
+    cy.byTestId('incomeDueText').should('have.text', '-');
+    cy.byTestId('addressLine1Text').should('have.text', 'Erdberg 1');
   });
 
   it('generate masterdata pdf and opens for download', () => {
