@@ -1,7 +1,7 @@
 {
   "builder": "@cypress/schematic:cypress",
   "baseUrl": "http://localhost:4200/",
-  "experimentalSessionSupport": true,
+  "experimentalSessionAndOrigin": true,
   "viewportWidth": 1280,
   "viewportHeight": 1024,
   "videoCompression": false

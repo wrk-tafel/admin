@@ -15,9 +15,15 @@ export const navigationMenuItems: IPermissionNavData[] = [
     title: true
   },
   {
+    name: 'Kunden suchen',
+    url: '/kunden/suchen',
+    icon: 'fa fa-search',
+    permissions: ['CUSTOMER']
+  },
+  {
     name: 'Kunden anlegen',
     url: '/kunden/anlegen',
-    icon: 'fa fa-archive',
+    icon: 'fa fa-plus',
     permissions: ['CUSTOMER']
   }
 ];

@@ -2,7 +2,7 @@
     <div class="row">
         <div class="col-sm-6">
             <label class="form-label">Kundenummer (falls vorhanden)</label>
-            <input testId="customerIdInput" type="text" formControlName="customerId" name="customerId"
+            <input testId="customerIdInput" type="number" formControlName="customerId" name="customerId"
                 class="form-control"
                 [ngClass]="{'is-invalid': customerId.invalid && (customerId.dirty || customerId.touched), 'is-valid': customerId.valid && (customerId.dirty || customerId.touched)}"
                 autofocus>

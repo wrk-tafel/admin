@@ -28,7 +28,7 @@ describe('Customer Creation', () => {
 
     cy.byTestId('save-button').click();
 
-    cy.url().should('include', '/kunden/detail')
+    cy.url().should('include', '/kunden/detail');
   });
 
   it('create existing qualified customer', () => {

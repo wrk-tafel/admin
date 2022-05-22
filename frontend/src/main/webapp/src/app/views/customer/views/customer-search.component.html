@@ -1,0 +1,80 @@
+<div testid="errorMessage" *ngIf="errorMessage" class="alert alert-danger mb-3">
+    <div testid="errorMessageContent">{{errorMessage}}</div>
+</div>
+<form [formGroup]="customerSearchForm">
+    <div class="card">
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col">
+                    <h4>Suche nach</h4>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-3">
+                    <label class="form-label">Kundennummer</label>
+                    <input testId="customerIdText" type="number" formControlName="customerId" name="customerId"
+                        class="form-control" autofocus>
+                </div>
+            </div>
+            <div class="row mt-4 mb-3">
+                <div class="col-3">
+                    <h5>oder nach</h5>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-3">
+                    <label class="form-label">Familienname</label>
+                    <input testId="lastnameText" type="text" formControlName="lastname" name="lastname"
+                        class="form-control">
+                </div>
+                <div class="col-sm-3">
+                    <label class="form-label">Vorname</label>
+                    <input testId="firstnameText" type="text" formControlName="firstname" name="firstname"
+                        class="form-control">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-3 mt-4">
+                    <button testid="search-button" type="button" class="btn btn-primary"
+                        [disabled]="!customerId.value && !firstname.value && !lastname.value"
+                        (click)="search()">Suchen</button>
+                </div>
+            </div>
+        </div>
+        <div class="col-12" *ngIf="searchResult" testid="searchresult-table">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fa fa-align-justify"></i> Suchergebnis
+                </div>
+                <div class="card-body">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Kundennummer</th>
+                                <th>Nachname</th>
+                                <th>Vorname</th>
+                                <th>Geburtsdatum</th>
+                                <th>Adresse</th>
+                                <th>Aktionen</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr testid="searchresult-row" *ngFor="let customer of searchResult.items; let i = index">
+                                <td>{{customer.id}}</td>
+                                <td>{{customer.lastname}}</td>
+                                <td>{{customer.firstname}}</td>
+                                <td>{{customer.birthDate}}</td>
+                                <td>{{customer.address}}</td>
+                                <td>
+                                    <button [attr.testid]="'showcustomer-button-' + i" type="button"
+                                        class="btn btn-primary"
+                                        (click)="navigateToCustomer(customer.id)">Anzeigen</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>

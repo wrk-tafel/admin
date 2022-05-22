@@ -1,4 +1,4 @@
-import { HttpClient, HttpResponse } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { CountryData } from '../../../common/api/country-api.service';
@@ -27,6 +27,17 @@ export class CustomerApiService {
     return this.http.get('/customers/' + id + '/generate-masterdata-pdf',
       { responseType: 'arraybuffer', observe: 'response' });
   }
+
+  searchCustomer(lastname?: string, firstname?: string): Observable<CustomerSearchResponse> {
+    let queryParams = new HttpParams();
+    if (lastname) {
+      queryParams = queryParams.set('lastname', lastname);
+    }
+    if (firstname) {
+      queryParams = queryParams.set('firstname', firstname);
+    }
+    return this.http.get<CustomerSearchResponse>('/customers', { params: queryParams });
+  }
 }
 
 export interface ValidateCustomerResponse {
@@ -42,20 +53,20 @@ export interface CustomerData {
   firstname: string;
   lastname: string;
   birthDate: Date;
-  country: CountryData;
+  country?: CountryData;
   address: CustomerAddressData;
-  telephoneNumber: number;
-  email: string;
-  employer: string;
-  income: number;
-  incomeDue: Date;
-  additionalPersons: CustomerAddPersonData[];
+  telephoneNumber?: number;
+  email?: string;
+  employer?: string;
+  income?: number;
+  incomeDue?: Date;
+  additionalPersons?: CustomerAddPersonData[];
 }
 
 export interface CustomerAddressData {
   street: string;
   houseNumber: string;
-  stairway: string;
+  stairway?: string;
   door: string;
   postalCode: number;
   city: string;
@@ -66,4 +77,8 @@ export interface CustomerAddPersonData {
   lastname: string;
   birthDate: Date;
   income?: number;
+}
+
+export interface CustomerSearchResponse {
+  items: CustomerData[];
 }
