@@ -97,14 +97,17 @@ describe('CustomerSearchComponent', () => {
 
         component.search();
 
-        expect(component.searchResult).toEqual({
-            items: {
+        const resultItems = component.searchResult.items;
+        expect(resultItems.length).toBe(1);
+        expect(resultItems[0]).toEqual(
+            {
                 id: 0,
-                firstname: 'first',
                 lastname: 'last',
-                birthDate: moment().subtract(20, 'years').format('DD.MM.YYYY')
+                firstname: 'first',
+                birthDate: moment().subtract(20, 'years').format('DD.MM.YYYY'),
+                address: 'street 1, Stiege stairway1, Top 20 / 1010 city'
             }
-        });
+        );
     });
 
 });

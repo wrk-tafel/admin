@@ -15,7 +15,7 @@ export class CustomerSearchComponent {
   ) { }
 
   errorMessage: string;
-  searchResult: SearchResult;
+  searchResult: CustomerSearchResult;
 
   customerSearchForm = new FormGroup({
     customerId: new FormControl(''),
@@ -50,7 +50,7 @@ export class CustomerSearchComponent {
     this.router.navigate(['/kunden/detail', customerId]);
   }
 
-  private mapItem(item: CustomerData): CustomerRow {
+  private mapItem(item: CustomerData): CustomerItem {
     return {
       id: item.id,
       lastname: item.lastname,
@@ -76,11 +76,11 @@ export class CustomerSearchComponent {
   get firstname() { return this.customerSearchForm.get('firstname'); }
 }
 
-interface SearchResult {
-  items: CustomerRow[];
+interface CustomerSearchResult {
+  items: CustomerItem[];
 }
 
-interface CustomerRow {
+interface CustomerItem {
   id: number;
   lastname: string;
   firstname: string;
