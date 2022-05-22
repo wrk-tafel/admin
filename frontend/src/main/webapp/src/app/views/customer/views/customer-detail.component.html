@@ -66,7 +66,9 @@
                     <div class="col">
                         Auszahlung&nbsp;bis
                     </div>
-                    <div testid="incomeDueText" class="col">{{customerDetailData?.incomeDue}}</div>
+                    <div testid="incomeDueText" class="col" *ngIf="customerDetailData?.incomeDue !== null"
+                        [innerHTML]="customerDetailData?.incomeDue"></div>
+                    <div testid="incomeDueText" class="col" *ngIf="customerDetailData?.incomeDue === null">-</div>
                 </div>
             </div>
         </div>

@@ -1,11 +1,11 @@
-import { fakeAsync, TestBed, tick, waitForAsync } from "@angular/core/testing";
-import { ReactiveFormsModule } from "@angular/forms";
-import { Router } from "@angular/router";
-import { RouterTestingModule } from "@angular/router/testing";
-import * as moment from "moment";
-import { of, throwError } from "rxjs";
-import { CustomerApiService } from "../api/customer-api.service";
-import { CustomerSearchComponent } from "./customer-search.component";
+import { TestBed, waitForAsync } from '@angular/core/testing';
+import { ReactiveFormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { RouterTestingModule } from '@angular/router/testing';
+import * as moment from 'moment';
+import { of, throwError } from 'rxjs';
+import { CustomerApiService } from '../api/customer-api.service';
+import { CustomerSearchComponent } from './customer-search.component';
 
 describe('CustomerSearchComponent', () => {
     let apiService: jasmine.SpyObj<CustomerApiService>;

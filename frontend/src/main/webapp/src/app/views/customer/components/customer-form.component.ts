@@ -32,17 +32,13 @@ export class CustomerFormComponent implements OnInit {
     street: new FormControl('', [Validators.required, Validators.maxLength(100)]),
     houseNumber: new FormControl('', [Validators.required, Validators.maxLength(10)]),
     stairway: new FormControl(''),
-    door: new FormControl('', Validators.required),
+    door: new FormControl(''),
     postalCode: new FormControl('', [Validators.required, Validators.pattern('^[0-9]{4}$')]),
     city: new FormControl('', [Validators.required, Validators.maxLength(50)]),
 
     employer: new FormControl('', Validators.required),
     income: new FormControl('', Validators.required),
-    incomeDue: new FormControl('',
-      [
-        Validators.required,
-        CustomValidator.minDate(new Date())
-      ])
+    incomeDue: new FormControl('', CustomValidator.minDate(new Date()))
   });
 
   countries: CountryData[];

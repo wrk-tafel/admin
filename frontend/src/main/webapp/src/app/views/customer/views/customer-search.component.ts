@@ -30,14 +30,14 @@ export class CustomerSearchComponent {
         .subscribe(() => {
           this.router.navigate(['/kunden/detail', customerId]);
         }, error => {
-          if (error.status == 404) {
+          if (error.status === 404) {
             this.errorMessage = 'Kundennummer ' + customerId + ' nicht gefunden!';
           }
         });
     } else {
       this.customerApiService.searchCustomer(this.lastname.value, this.firstname.value)
         .subscribe((response: CustomerSearchResponse) => {
-          if (response.items.length == 0) {
+          if (response.items.length === 0) {
             this.errorMessage = 'Keine Kunden gefunden!';
           } else {
             this.searchResult = { items: response.items.map(item => this.mapItem(item)) };
@@ -66,7 +66,9 @@ export class CustomerSearchComponent {
     if (address.stairway) {
       result += ', Stiege ' + address.stairway;
     }
-    result += ', Top ' + address.door;
+    if (address.stairway) {
+      result += ', Top ' + address.door;
+    }
     result += ' / ' + address.postalCode + ' ' + address.city;
     return result;
   }
