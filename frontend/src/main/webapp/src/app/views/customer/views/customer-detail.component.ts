@@ -64,7 +64,9 @@ export class CustomerDetailComponent implements OnInit {
     if (address.stairway) {
       addressLine += ', Stiege ' + address.stairway;
     }
-    addressLine += ', Top ' + address.door;
+    if (address.door) {
+      addressLine += ', Top ' + address.door;
+    }
     return addressLine;
   }
 

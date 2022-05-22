@@ -66,7 +66,9 @@ export class CustomerSearchComponent {
     if (address.stairway) {
       result += ', Stiege ' + address.stairway;
     }
-    result += ', Top ' + address.door;
+    if (address.stairway) {
+      result += ', Top ' + address.door;
+    }
     result += ' / ' + address.postalCode + ' ' + address.city;
     return result;
   }

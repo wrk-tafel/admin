@@ -31,7 +31,7 @@ data class CustomerAddress(
     val street: String,
     val houseNumber: String,
     val stairway: String? = null,
-    val door: String,
+    val door: String? = null,
     val postalCode: Int,
     val city: String
 )

@@ -121,7 +121,7 @@ class CustomerController(
         customerEntity.addressStreet = customer.address.street.trim()
         customerEntity.addressHouseNumber = customer.address.houseNumber.trim()
         customerEntity.addressStairway = customer.address.stairway?.trim()
-        customerEntity.addressDoor = customer.address.door.trim()
+        customerEntity.addressDoor = customer.address.door?.trim()
         customerEntity.addressPostalCode = customer.address.postalCode
         customerEntity.addressCity = customer.address.city.trim()
         customerEntity.telephoneNumber = customer.telephoneNumber
@@ -153,7 +153,7 @@ class CustomerController(
             street = customerEntity.addressStreet!!,
             houseNumber = customerEntity.addressHouseNumber!!,
             stairway = customerEntity.addressStairway,
-            door = customerEntity.addressDoor!!,
+            door = customerEntity.addressDoor,
             postalCode = customerEntity.addressPostalCode!!,
             city = customerEntity.addressCity!!
         ),
