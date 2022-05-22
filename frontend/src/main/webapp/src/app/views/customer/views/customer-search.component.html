@@ -12,7 +12,7 @@
             <div class="row">
                 <div class="col-sm-3">
                     <label class="form-label">Kundennummer</label>
-                    <input testId="customerIdInput" type="number" formControlName="customerId" name="customerId"
+                    <input testId="customerIdText" type="number" formControlName="customerId" name="customerId"
                         class="form-control" autofocus>
                 </div>
             </div>
@@ -24,12 +24,12 @@
             <div class="row">
                 <div class="col-sm-3">
                     <label class="form-label">Familienname</label>
-                    <input testId="lastnameInput" type="text" formControlName="lastname" name="lastname"
+                    <input testId="lastnameText" type="text" formControlName="lastname" name="lastname"
                         class="form-control">
                 </div>
                 <div class="col-sm-3">
                     <label class="form-label">Vorname</label>
-                    <input testId="firstnameInput" type="text" formControlName="firstname" name="firstname"
+                    <input testId="firstnameText" type="text" formControlName="firstname" name="firstname"
                         class="form-control">
                 </div>
             </div>
@@ -41,7 +41,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-12" *ngIf="searchResult">
+        <div class="col-12" *ngIf="searchResult" testid="searchresult-table">
             <div class="card">
                 <div class="card-header">
                     <i class="fa fa-align-justify"></i> Suchergebnis
@@ -59,14 +59,15 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr *ngFor="let customer of searchResult.items">
+                            <tr *ngFor="let customer of searchResult.items; let i = index">
                                 <td>{{customer.id}}</td>
                                 <td>{{customer.lastname}}</td>
                                 <td>{{customer.firstname}}</td>
                                 <td>{{customer.birthDate}}</td>
                                 <td>{{customer.address}}</td>
                                 <td>
-                                    <button testid="showcustomer-button" type="button" class="btn btn-primary"
+                                    <button [attr.testid]="'showcustomer-button-' + i" type="button"
+                                        class="btn btn-primary"
                                         (click)="navigateToCustomer(customer.id)">Anzeigen</button>
                                 </td>
                             </tr>
