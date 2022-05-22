@@ -35,7 +35,7 @@ describe('ErrorHandlerInterceptor', () => {
 
   it('generic http error', () => {
     client.get('/test').subscribe(() => { }, err => {
-      expect(window.alert).toHaveBeenCalledWith('FEHLER:\nHTTP - 404 - Not Found\nMESSAGE:\nHttp failure response for /test: 404 Not Found\nDETAILS:\nundefined');
+      expect(window.alert).toHaveBeenCalledWith('FEHLER:\nHTTP - 500 - Internal Server Error\nMESSAGE:\nHttp failure response for /test: 500 Internal Server Error\nDETAILS:\nundefined');
     });
 
     const mockReq = httpMock.expectOne('/test');
