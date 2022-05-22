@@ -15,8 +15,7 @@
                 </div>
                 <div class="row">
                     <div class="col font-weight-bold">Name</div>
-                    <div testid="nameText" class="col">{{customerDetailData?.lastname}}
-                        {{customerDetailData?.firstname}}</div>
+                    <div testid="nameText" class="col">{{customerDetailData?.lastname}} {{customerDetailData?.firstname}}</div>
                 </div>
                 <div class="row">
                     <div class="col font-weight-bold">Geburtsdatum (Alter)</div>
@@ -30,8 +29,7 @@
                     <div class="col font-weight-bold">Telefonnummer</div>
                     <div testid="telephoneNumberText" class="col" *ngIf="customerDetailData?.telephoneNumber !== null"
                         [innerHTML]="customerDetailData?.telephoneNumber"></div>
-                    <div testid="telephoneNumberText" class="col" *ngIf="customerDetailData?.telephoneNumber === null">-
-                    </div>
+                    <div testid="telephoneNumberText" class="col" *ngIf="customerDetailData?.telephoneNumber === null">-</div>
                 </div>
                 <div class="row">
                     <div class="col font-weight-bold">E-Mail</div>
