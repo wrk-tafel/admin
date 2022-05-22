@@ -125,7 +125,7 @@ class CustomerController(
         customerEntity.addressPostalCode = customer.address.postalCode
         customerEntity.addressCity = customer.address.city.trim()
         customerEntity.telephoneNumber = customer.telephoneNumber
-        customerEntity.email = customer.email?.trim()
+        customerEntity.email = customer.email?.takeIf { it.isNotBlank() }?.trim()
         customerEntity.employer = customer.employer.trim()
         customerEntity.income = customer.income
         customerEntity.incomeDue = customer.incomeDue

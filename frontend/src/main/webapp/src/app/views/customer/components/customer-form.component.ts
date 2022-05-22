@@ -38,11 +38,7 @@ export class CustomerFormComponent implements OnInit {
 
     employer: new FormControl('', Validators.required),
     income: new FormControl('', Validators.required),
-    incomeDue: new FormControl('',
-      [
-        Validators.required,
-        CustomValidator.minDate(new Date())
-      ])
+    incomeDue: new FormControl('', CustomValidator.minDate(new Date()))
   });
 
   countries: CountryData[];

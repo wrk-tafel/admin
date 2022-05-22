@@ -54,7 +54,7 @@ export class CustomerDetailComponent implements OnInit {
       addressCity: customerData.address.city,
       employer: customerData.employer,
       income: customerData.income,
-      incomeDue: moment(customerData.incomeDue).format('DD.MM.YYYY')
+      incomeDue: customerData.incomeDue ? moment(customerData.incomeDue).format('DD.MM.YYYY') : null
     };
   }
 
