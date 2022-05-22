@@ -59,7 +59,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr *ngFor="let customer of searchResult.items; let i = index">
+                            <tr testid="searchresult-row" *ngFor="let customer of searchResult.items; let i = index">
                                 <td>{{customer.id}}</td>
                                 <td>{{customer.lastname}}</td>
                                 <td>{{customer.firstname}}</td>
