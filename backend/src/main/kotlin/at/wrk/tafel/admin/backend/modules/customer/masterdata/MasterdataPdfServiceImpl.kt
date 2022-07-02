@@ -58,7 +58,7 @@ class MasterdataPdfServiceImpl : MasterdataPdfService {
                 address = MasterdataPdfAddressData(
                     street = customer.addressStreet!!,
                     houseNumber = customer.addressHouseNumber!!,
-                    door = customer.addressDoor!!,
+                    door = customer.addressDoor,
                     stairway = customer.addressStairway,
                     postalCode = customer.addressPostalCode!!,
                     city = customer.addressCity!!
