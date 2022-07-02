@@ -54,7 +54,7 @@ data class MasterdataPdfCustomer(
 data class MasterdataPdfAddressData(
     val street: String,
     val houseNumber: String,
-    val door: String,
+    val door: String? = null,
     val stairway: String? = null,
     val postalCode: Int,
     val city: String
