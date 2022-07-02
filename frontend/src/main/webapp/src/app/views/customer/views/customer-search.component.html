@@ -4,21 +4,24 @@
 <form [formGroup]="customerSearchForm">
     <div class="card">
         <div class="card-body">
-            <div class="row mb-3">
-                <div class="col">
-                    <h4>Suche nach</h4>
-                </div>
-            </div>
             <div class="row">
                 <div class="col-sm-3">
                     <label class="form-label">Kundennummer</label>
-                    <input testId="customerIdText" type="number" formControlName="customerId" name="customerId"
-                        class="form-control" autofocus>
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <input testId="customerIdText" type="number" formControlName="customerId" name="customerId"
+                                class="form-control" autofocus>
+                        </div>
+                        <div class="col-sm-3">
+                            <button testid="show-detail-button" type="button" class="btn btn-primary"
+                                [disabled]="!customerId.value" (click)="showCustomerDetail()">Anzeigen</button>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="row mt-4 mb-3">
                 <div class="col-3">
-                    <h5>oder nach</h5>
+                    <h5>Suche nach</h5>
                 </div>
             </div>
             <div class="row">
@@ -36,8 +39,7 @@
             <div class="row">
                 <div class="col-3 mt-4">
                     <button testid="search-button" type="button" class="btn btn-primary"
-                        [disabled]="!customerId.value && !firstname.value && !lastname.value"
-                        (click)="search()">Suchen</button>
+                        [disabled]="!firstname.value && !lastname.value" (click)="search()">Suchen</button>
                 </div>
             </div>
         </div>

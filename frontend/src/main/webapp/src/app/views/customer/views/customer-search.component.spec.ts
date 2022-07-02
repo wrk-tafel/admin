@@ -78,7 +78,7 @@ describe('CustomerSearchComponent', () => {
         apiService.getCustomer.and.returnValue(of());
 
         component.customerId.setValue(testCustomerId);
-        component.search();
+        component.showCustomerDetail();
 
         tick(1000);
 
@@ -95,7 +95,7 @@ describe('CustomerSearchComponent', () => {
         const testCustomerId = 12345;
 
         component.customerId.setValue(testCustomerId);
-        component.search();
+        component.showCustomerDetail();
 
         expect(router.navigate).toHaveBeenCalledTimes(0);
         expect(component.errorMessage).toBe('Kundennummer ' + testCustomerId + ' nicht gefunden!');

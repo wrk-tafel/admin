@@ -24,26 +24,26 @@ export class CustomerSearchComponent {
   });
 
   search() {
-    if (this.customerId.value) {
-      const customerId = this.customerId.value;
-      this.customerApiService.getCustomer(customerId)
-        .subscribe(() => {
-          this.router.navigate(['/kunden/detail', customerId]);
-        }, error => {
-          if (error.status === 404) {
-            this.errorMessage = 'Kundennummer ' + customerId + ' nicht gefunden!';
-          }
-        });
-    } else {
-      this.customerApiService.searchCustomer(this.lastname.value, this.firstname.value)
-        .subscribe((response: CustomerSearchResponse) => {
-          if (response.items.length === 0) {
-            this.errorMessage = 'Keine Kunden gefunden!';
-          } else {
-            this.searchResult = { items: response.items.map(item => this.mapItem(item)) };
-          }
-        });
-    }
+    this.customerApiService.searchCustomer(this.lastname.value, this.firstname.value)
+      .subscribe((response: CustomerSearchResponse) => {
+        if (response.items.length === 0) {
+          this.errorMessage = 'Keine Kunden gefunden!';
+        } else {
+          this.searchResult = { items: response.items.map(item => this.mapItem(item)) };
+        }
+      });
+  }
+
+  showCustomerDetail() {
+    const customerId = this.customerId.value;
+    this.customerApiService.getCustomer(customerId)
+      .subscribe(() => {
+        this.router.navigate(['/kunden/detail', customerId]);
+      }, error => {
+        if (error.status === 404) {
+          this.errorMessage = 'Kundennummer ' + customerId + ' nicht gefunden!';
+        }
+      });
   }
 
   navigateToCustomer(customerId: number) {
