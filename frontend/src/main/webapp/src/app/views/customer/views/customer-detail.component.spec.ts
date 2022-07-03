@@ -7,6 +7,7 @@ import { of } from 'rxjs';
 import { FileHelperService } from '../../../common/util/file-helper.service';
 import { CustomerApiService, CustomerData } from '../api/customer-api.service';
 import { CustomerDetailComponent, CustomerDetailData } from './customer-detail.component';
+import expect from 'jasmine-core';
 
 describe('CustomerDetailComponent', () => {
   let apiService: jasmine.SpyObj<CustomerApiService>;

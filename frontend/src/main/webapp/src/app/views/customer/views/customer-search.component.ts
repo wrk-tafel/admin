@@ -46,8 +46,12 @@ export class CustomerSearchComponent {
       });
   }
 
-  navigateToCustomer(customerId: number) {
+  navigateToCustomerDetail(customerId: number) {
     this.router.navigate(['/kunden/detail', customerId]);
+  }
+
+  navigateToCustomerEdit(customerId: number) {
+    this.router.navigate(['/kunden/bearbeiten', customerId]);
   }
 
   private mapItem(item: CustomerData): CustomerItem {

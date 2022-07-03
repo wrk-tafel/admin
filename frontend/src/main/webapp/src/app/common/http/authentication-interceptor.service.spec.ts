@@ -2,8 +2,8 @@ import { HttpClient, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { AuthenticationService } from '../security/authentication.service';
-
 import { AuthenticationInterceptor } from './authentication-interceptor.service';
+import expect from 'jasmine-core';
 
 describe('AuthenticationInterceptor', () => {
   let client: HttpClient;

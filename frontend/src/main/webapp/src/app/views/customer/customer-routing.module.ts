@@ -15,6 +15,10 @@ const routes: Routes = [
     component: CustomerDetailComponent
   },
   {
+    path: 'bearbeiten/:id',
+    component: CustomerEditComponent
+  },
+  {
     path: 'suchen',
     component: CustomerSearchComponent
   },

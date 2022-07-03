@@ -1,7 +1,7 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { TestBed, waitForAsync } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import * as moment from 'moment';
 import { ModalModule } from 'ngx-bootstrap/modal';
@@ -10,6 +10,7 @@ import { CustomerApiService, CustomerData } from '../api/customer-api.service';
 import { AddPersonFormComponent } from '../components/addperson-form.component';
 import { CustomerFormComponent, CustomerFormData } from '../components/customer-form.component';
 import { CustomerEditComponent } from './customer-edit.component';
+import expect from 'jasmine-core';
 
 describe('CustomerEditComponent', () => {
   const testCustomerData: CustomerFormData = {
@@ -100,11 +101,17 @@ describe('CustomerEditComponent', () => {
       providers: [
         {
           provide: CustomerApiService,
-          useValue: jasmine.createSpyObj('CustomerApiService', ['validate', 'createCustomer'])
+          useValue: jasmine.createSpyObj('CustomerApiService', ['validate', 'createCustomer', 'getCustomer'])
         },
         {
           provide: Router,
           useValue: jasmine.createSpyObj('Router', ['navigate'])
+        },
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            params: of({ id: testCustomerRequestData.id })
+          }
         }
       ]
     }).compileComponents();
@@ -121,6 +128,17 @@ describe('CustomerEditComponent', () => {
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('[testid=nopersons-label]')).toBeTruthy();
   });
+
+  it('initial data loaded', waitForAsync(() => {
+    apiService.getCustomer.withArgs(testCustomerRequestData.id).and.returnValue(of(testCustomerRequestData));
+
+    const fixture = TestBed.createComponent(CustomerEditComponent);
+    const component = fixture.componentInstance;
+    component.ngOnInit();
+
+    expect(component.customerData).toEqual(testCustomerData);
+    expect(component.additionalPersonsData).toEqual(testAddPersonsData);
+  }));
 
   it('addNewPerson', () => {
     const fixture = TestBed.createComponent(CustomerEditComponent);

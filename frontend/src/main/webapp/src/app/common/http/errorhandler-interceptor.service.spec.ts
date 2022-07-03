@@ -2,8 +2,7 @@ import { HttpClient, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { ErrorHandlerInterceptor } from './errorhandler-interceptor.service';
-import { catchError } from 'rxjs/operators';
-import { throwError } from 'rxjs';
+import expect from 'jasmine-core';
 
 describe('ErrorHandlerInterceptor', () => {
   let client: HttpClient;

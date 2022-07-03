@@ -1,6 +1,7 @@
 import { RouterTestingModule } from '@angular/router/testing';
 import { TestBed, waitForAsync } from '@angular/core/testing';
 import { AppComponent } from './app.component';
+import expect from 'jasmine-core';
 
 describe('AppComponent', () => {
 

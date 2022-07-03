@@ -2,8 +2,8 @@ import { HttpClientTestingModule, HttpTestingController } from '@angular/common/
 import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { JwtHelperService } from '@auth0/angular-jwt';
-
 import { AuthenticationService } from './authentication.service';
+import expect from 'jasmine-core';
 
 describe('AuthenticationService', () => {
   const SESSION_STORAGE_TOKEN_KEY = 'jwt';

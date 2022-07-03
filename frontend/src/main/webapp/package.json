@@ -67,6 +67,8 @@
     "@cypress/schematic": "^1.6.0",
     "@types/jasmine": "4.0.3",
     "@types/jasminewd2": "2.0.10",
+    "@types/karma": "6.3.3",
+    "@types/karma-jasmine": "^4.0.2",
     "@types/node": "14.14.33",
     "codelyzer": "6.0.2",
     "cypress": "10.3.0",

@@ -6,6 +6,7 @@ import * as moment from 'moment';
 import { of, throwError } from 'rxjs';
 import { CustomerApiService } from '../api/customer-api.service';
 import { CustomerSearchComponent } from './customer-search.component';
+import expect from 'jasmine-core';
 
 describe('CustomerSearchComponent', () => {
     let apiService: jasmine.SpyObj<CustomerApiService>;
@@ -138,6 +139,24 @@ describe('CustomerSearchComponent', () => {
         component.search();
 
         expect(apiService.searchCustomer).toHaveBeenCalledWith('lastname', '');
+    });
+
+    it('navigateToCustomerDetail', () => {
+        const fixture = TestBed.createComponent(CustomerSearchComponent);
+        const component = fixture.componentInstance;
+
+        component.navigateToCustomerDetail(1000);
+
+        expect(router.navigate).toHaveBeenCalledWith(['/kunden/detail', 1000]);
+    });
+
+    it('navigateToCustomerEdit', () => {
+        const fixture = TestBed.createComponent(CustomerSearchComponent);
+        const component = fixture.componentInstance;
+
+        component.navigateToCustomerEdit(1000);
+
+        expect(router.navigate).toHaveBeenCalledWith(['/kunden/bearbeiten', 1000]);
     });
 
 });

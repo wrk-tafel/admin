@@ -69,8 +69,11 @@
                                 <td>{{customer.address}}</td>
                                 <td>
                                     <button [attr.testid]="'showcustomer-button-' + i" type="button"
-                                        class="btn btn-primary"
-                                        (click)="navigateToCustomer(customer.id)">Anzeigen</button>
+                                        class="btn btn-primary" (click)="navigateToCustomerDetail(customer.id)"><i
+                                            class="cil-magnifying-glass"></i></button>
+                                    <button [attr.testid]="'editcustomer-button-' + i" type="button"
+                                        class="btn btn-primary" (click)="navigateToCustomerEdit(customer.id)"><i
+                                            class="cil-pencil"></i></button>
                                 </td>
                             </tr>
                         </tbody>

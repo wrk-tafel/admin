@@ -1,6 +1,7 @@
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { CustomerApiService } from './customer-api.service';
+import expect from 'jasmine-core';
 
 describe('CustomerApiService', () => {
   let httpMock: HttpTestingController;

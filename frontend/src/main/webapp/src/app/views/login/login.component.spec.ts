@@ -2,6 +2,7 @@ import { TestBed, waitForAsync } from '@angular/core/testing';
 import { Navigation, Router } from '@angular/router';
 import { AuthenticationService } from '../../common/security/authentication.service';
 import { LoginComponent } from './login.component';
+import expect from 'jasmine-core';
 
 describe('LoginComponent', () => {
   let authService: jasmine.SpyObj<AuthenticationService>;

@@ -1,4 +1,4 @@
-import { Component, Output, ViewChild, ViewChildren } from '@angular/core';
+import { Component, OnInit, Output, ViewChild, ViewChildren } from '@angular/core';
 import { AddPersonFormComponent, AddPersonFormData } from '../components/addperson-form.component';
 import { CustomerFormComponent, CustomerFormData } from '../components/customer-form.component';
 import { v4 as uuidv4 } from 'uuid';
@@ -6,16 +6,17 @@ import { FormGroup } from '@angular/forms';
 import { CustomerData, CustomerApiService, CustomerAddPersonData, ValidateCustomerResponse } from '../api/customer-api.service';
 import { ModalDirective } from 'ngx-bootstrap/modal';
 import { tap } from 'rxjs/operators';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   selector: 'customer-edit',
   templateUrl: 'customer-edit.component.html'
 })
-export class CustomerEditComponent {
+export class CustomerEditComponent implements OnInit {
   constructor(
     private apiService: CustomerApiService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) { }
 
   customerData: CustomerFormData;
@@ -29,6 +30,21 @@ export class CustomerEditComponent {
   @ViewChild('validationResultModal') validationResultModal: ModalDirective;
 
   validationResult: ValidateCustomerResponse;
+
+  ngOnInit(): void {
+    if (this.route) {
+      this.route.params.subscribe(params => {
+        this.apiService.getCustomer(+params['id']).subscribe((customerData) => {
+          this.customerData = this.mapCustomerDataForView(customerData);
+
+          this.additionalPersonsData = [];
+          customerData.additionalPersons.map((addPers) => {
+            this.additionalPersonsData.push(this.mapAddPersonDataForView(addPers));
+          });
+        });
+      });
+    }
+  }
 
   addNewPerson() {
     this.saveDisabled = true;
@@ -125,6 +141,42 @@ export class CustomerEditComponent {
       });
 
     return !customerFormValid || !addPersonFormsValid;
+  }
+
+  private mapCustomerDataForView(customerData: CustomerData): CustomerFormData {
+    return {
+      customerId: customerData.id,
+      lastname: customerData.lastname,
+      firstname: customerData.firstname,
+      birthDate: customerData.birthDate,
+      country: {
+        id: customerData.country.id,
+        code: customerData.country.code,
+        name: customerData.country.name
+      },
+      telephoneNumber: customerData.telephoneNumber,
+      email: customerData.email,
+      street: customerData.address.street,
+      houseNumber: customerData.address.houseNumber,
+      stairway: customerData.address.stairway,
+      door: customerData.address.door,
+      postalCode: customerData.address.postalCode,
+      city: customerData.address.city,
+
+      employer: customerData.employer,
+      income: customerData.income,
+      incomeDue: customerData.incomeDue
+    };
+  }
+
+  private mapAddPersonDataForView(addPerson: CustomerAddPersonData): AddPersonFormData {
+    return {
+      uuid: uuidv4(),
+      lastname: addPerson.lastname,
+      firstname: addPerson.firstname,
+      birthDate: addPerson.birthDate,
+      income: addPerson.income
+    };
   }
 
 }

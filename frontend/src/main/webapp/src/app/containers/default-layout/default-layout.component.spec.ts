@@ -2,6 +2,7 @@ import { TestBed, waitForAsync } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { DefaultLayoutComponent } from '.';
 import { AuthenticationService } from '../../common/security/authentication.service';
+import expect from 'karma-jasmine';
 
 describe('DefaultLayoutComponent', () => {
   let authService: jasmine.SpyObj<AuthenticationService>;
