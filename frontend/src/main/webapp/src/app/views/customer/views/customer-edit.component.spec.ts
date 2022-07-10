@@ -125,7 +125,9 @@ describe('CustomerEditComponent', () => {
     const component = fixture.componentInstance;
     expect(component).toBeTruthy();
 
+    component.ngOnInit();
     fixture.detectChanges();
+
     expect(fixture.nativeElement.querySelector('[testid=nopersons-label]')).toBeTruthy();
   });
 
@@ -136,8 +138,8 @@ describe('CustomerEditComponent', () => {
     const component = fixture.componentInstance;
     component.ngOnInit();
 
-    expect(component.customerData).toEqual(testCustomerData);
-    expect(component.additionalPersonsData).toEqual(testAddPersonsData);
+    expect(component.customerData).objectContaining(testCustomerData);
+    expect(component.additionalPersonsData).objectContaining(testAddPersonsData);
   }));
 
   it('addNewPerson', () => {

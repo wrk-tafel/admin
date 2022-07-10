@@ -2,11 +2,9 @@
   "name": "@tafel/admin",
   "version": "0.0.1",
   "description": "Tafel Admin",
-  "contributors": [
-    {
-      "name": "Stephan Prantl"
-    }
-  ],
+  "contributors": [{
+    "name": "Stephan Prantl"
+  }],
   "license": "MIT",
   "scripts": {
     "ng": "ng",
@@ -87,5 +85,10 @@
   "engines": {
     "node": ">= 14.17.6",
     "npm": ">= 6.14.15"
+  },
+  "browser": {
+    "fs": false,
+    "path": false,
+    "os": false
   }
 }

@@ -39,7 +39,8 @@ export class CustomerEditComponent implements OnInit {
 
           this.additionalPersonsData = [];
           customerData.additionalPersons.map((addPers) => {
-            this.additionalPersonsData.push(this.mapAddPersonDataForView(addPers));
+            const addPersData = this.mapAddPersonDataForView(addPers);
+            this.additionalPersonsData.push(addPersData);
           });
         });
       });
