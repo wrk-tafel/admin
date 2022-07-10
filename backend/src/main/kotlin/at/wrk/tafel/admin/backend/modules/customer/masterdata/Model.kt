@@ -3,6 +3,7 @@ package at.wrk.tafel.admin.backend.modules.customer.masterdata
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.Period
 
@@ -47,6 +48,8 @@ data class MasterdataPdfCustomer(
     val email: String? = null,
     val address: MasterdataPdfAddressData,
     val employer: String,
+    val income: String? = null,
+    val incomeDueDate: String? = null,
     val additionalPersons: List<MasterdataPdfAdditionalPersonData> = emptyList()
 )
 
@@ -64,5 +67,6 @@ data class MasterdataPdfAddressData(
 data class MasterdataPdfAdditionalPersonData(
     val lastname: String,
     val firstname: String,
-    val birthDate: String
+    val birthDate: String,
+    val income: String? = null
 )
