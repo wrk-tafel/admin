@@ -13,6 +13,7 @@ import org.springframework.util.MimeTypeUtils
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.Period
 import java.time.format.DateTimeFormatter
@@ -64,11 +65,20 @@ class MasterdataPdfServiceImpl : MasterdataPdfService {
                     city = customer.addressCity!!
                 ),
                 employer = customer.employer!!,
+                income = customer.income
+                    ?.takeIf { it.compareTo(BigDecimal.ZERO) != 0 }
+                    ?.let { "$it €" }
+                    ?: "-",
+                incomeDueDate = customer.incomeDue?.format(DATE_FORMATTER) ?: "unbefristet",
                 additionalPersons = customer.additionalPersons.map {
                     MasterdataPdfAdditionalPersonData(
                         lastname = it.lastname!!,
                         firstname = it.firstname!!,
-                        birthDate = it.birthDate!!.format(DATE_FORMATTER)
+                        birthDate = it.birthDate!!.format(DATE_FORMATTER),
+                        income = it.income
+                            ?.takeIf { income -> income.compareTo(BigDecimal.ZERO) != 0 }
+                            ?.let { income -> "$income €" }
+                            ?: "-"
                     )
                 }
             ),
