@@ -18,7 +18,7 @@
 
         <spring.boot.version>2.7.1</spring.boot.version>
         <jjwt.version>0.11.5</jjwt.version>
-        <flyway.version>8.5.13</flyway.version>
+        <flyway.version>9.0.0</flyway.version>
         <postgresql.driver.version>42.4.0</postgresql.driver.version>
         <bouncycastle.version>1.70</bouncycastle.version>
         <apache.fop.version>2.7</apache.fop.version>
