@@ -9,7 +9,7 @@ spring:
   flyway:
     locations: classpath:/db-migration
     group: true
-    ignoreMissingMigrations: true
+    ignore-migration-patterns: "*:missing"
 
 security:
   jwtToken:
