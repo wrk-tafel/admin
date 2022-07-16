@@ -9,4 +9,5 @@ class AdminBackendApplicationIT {
     @Test
     fun contextLoads() {
     }
+
 }
