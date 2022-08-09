@@ -16,22 +16,21 @@
         <java.version>17</java.version>
         <kotlin.version>1.7.0</kotlin.version>
 
-        <spring.boot.version>2.7.1</spring.boot.version>
+        <spring.boot.version>2.7.2</spring.boot.version>
         <jjwt.version>0.11.5</jjwt.version>
-        <flyway.version>8.5.13</flyway.version>
-        <postgresql.driver.version>42.4.0</postgresql.driver.version>
+        <postgresql.driver.version>42.4.1</postgresql.driver.version>
         <bouncycastle.version>1.70</bouncycastle.version>
         <apache.fop.version>2.7</apache.fop.version>
 
         <!-- Maven plugin version -->
         <maven.surefire.plugin.version>2.22.2</maven.surefire.plugin.version>
-        <maven.resources.plugin.version>3.2.0</maven.resources.plugin.version>
+        <maven.resources.plugin.version>3.3.0</maven.resources.plugin.version>
         <jacoco.maven.plugin.version>0.8.8</jacoco.maven.plugin.version>
 
         <!-- Test dependency versions -->
         <h2.database.version>2.1.214</h2.database.version>
         <archunit.version>0.23.1</archunit.version>
-        <mockk.version>1.12.4</mockk.version>
+        <mockk.version>1.12.5</mockk.version>
     </properties>
 
     <dependencyManagement>
@@ -117,7 +116,6 @@
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
-            <version>${flyway.version}</version>
         </dependency>
         <dependency>
             <groupId>org.postgresql</groupId>
