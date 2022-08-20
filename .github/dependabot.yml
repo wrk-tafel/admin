@@ -18,6 +18,7 @@ updates:
       - dependency-name: "@angular/cli"
       - dependency-name: "@types/node"
       - dependency-name: "@coreui/icons-angular"
+      - dependency-name: "@angular-devkit/build-angular"
   # Maintain dependencies for GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
