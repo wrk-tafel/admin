@@ -30,7 +30,7 @@
         <!-- Test dependency versions -->
         <h2.database.version>2.1.214</h2.database.version>
         <archunit.version>0.23.1</archunit.version>
-        <mockk.version>1.12.5</mockk.version>
+        <mockk.version>1.12.7</mockk.version>
     </properties>
 
     <dependencyManagement>
