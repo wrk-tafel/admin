@@ -140,4 +140,22 @@ describe('CustomerSearchComponent', () => {
         expect(apiService.searchCustomer).toHaveBeenCalledWith('lastname', '');
     });
 
+    it('navigate to customer', () => {
+        const fixture = TestBed.createComponent(CustomerSearchComponent);
+        const component = fixture.componentInstance;
+
+        component.navigateToCustomer(1);
+
+        expect(router.navigate).toHaveBeenCalledWith(['/kunden/detail', 1]);
+    });
+
+    it('edit customer', () => {
+        const fixture = TestBed.createComponent(CustomerSearchComponent);
+        const component = fixture.componentInstance;
+
+        component.editCustomer(1);
+
+        expect(router.navigate).toHaveBeenCalledWith(['/kunden/bearbeiten', 1]);
+    });
+
 });

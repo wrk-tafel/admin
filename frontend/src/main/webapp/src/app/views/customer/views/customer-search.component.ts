@@ -50,6 +50,10 @@ export class CustomerSearchComponent {
     this.router.navigate(['/kunden/detail', customerId]);
   }
 
+  editCustomer(customerId: number) {
+    this.router.navigate(['/kunden/bearbeiten', customerId]);
+  }
+
   private mapItem(item: CustomerData): CustomerItem {
     return {
       id: item.id,
