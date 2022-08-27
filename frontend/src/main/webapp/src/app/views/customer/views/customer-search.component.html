@@ -75,9 +75,20 @@
                                     <td>{{customer.birthDate}}</td>
                                     <td>{{customer.address}}</td>
                                     <td>
-                                        <button [attr.testid]="'searchresult-showcustomer-button-' + i" type="button"
-                                            class="btn btn-primary" (click)="navigateToCustomer(customer.id)"><i
-                                                class="fa fa-search"></i></button>
+                                        <div class="row">
+                                            <div class="col-3 mr-3">
+                                                <button [attr.testid]="'searchresult-showcustomer-button-' + i"
+                                                    type="button" class="btn btn-primary"
+                                                    (click)="navigateToCustomer(customer.id)"><i
+                                                        class="fa fa-search"></i></button>
+                                            </div>
+                                            <div class="col-3">
+                                                <button [attr.testid]="'searchresult-editcustomer-button-' + i"
+                                                    type="button" class="btn btn-danger"
+                                                    (click)="editCustomer(customer.id)"><i
+                                                        class="fa fa-pencil"></i></button>
+                                            </div>
+                                        </div>
                                     </td>
                                 </tr>
                             </tbody>
