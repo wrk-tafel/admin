@@ -44,8 +44,7 @@
             <div class="row">
                 <div class="col-3 mt-4">
                     <button testid="search-button" type="button" class="btn btn-primary"
-                        [disabled]="!firstname.value && !lastname.value"
-                        (click)="searchForDetails()">Suchen</button>
+                        [disabled]="!firstname.value && !lastname.value" (click)="searchForDetails()">Suchen</button>
                 </div>
             </div>
         </div>
@@ -76,7 +75,7 @@
                                 <td>
                                     <button [attr.testid]="'searchresult-showcustomer-button-' + i" type="button"
                                         class="btn btn-primary"
-                                        (click)="navigateToCustomer(customer.id)">Anzeigen</button>
+                                        (click)="navigateToCustomer(customer.id)"><i class="fa fa-search"></i></button>
                                 </td>
                             </tr>
                         </tbody>
