@@ -20,6 +20,8 @@ server:
     rotate: false
 
 spring:
+  jackson:
+    date-format: dd-MM-yyyy HH:mm:ss
   datasource:
     driverClassName: org.postgresql.Driver
   flyway:
