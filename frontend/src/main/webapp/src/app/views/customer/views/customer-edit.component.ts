@@ -1,4 +1,4 @@
-import { Component, Output, ViewChild, ViewChildren } from '@angular/core';
+import { Component, OnInit, Output, ViewChild, ViewChildren } from '@angular/core';
 import { AddPersonFormComponent, AddPersonFormData } from '../components/addperson-form.component';
 import { CustomerFormComponent, CustomerFormData } from '../components/customer-form.component';
 import { v4 as uuidv4 } from 'uuid';
@@ -6,17 +6,31 @@ import { FormGroup } from '@angular/forms';
 import { CustomerData, CustomerApiService, CustomerAddPersonData, ValidateCustomerResponse } from '../api/customer-api.service';
 import { ModalDirective } from 'ngx-bootstrap/modal';
 import { tap } from 'rxjs/operators';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   selector: 'customer-edit',
   templateUrl: 'customer-edit.component.html'
 })
-export class CustomerEditComponent {
+export class CustomerEditComponent implements OnInit {
   constructor(
     private apiService: CustomerApiService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute,
   ) { }
+
+  ngOnInit(): void {
+    this.route.params.subscribe(params => {
+      this.apiService.getCustomer(+params['id']).subscribe((customerData) => {
+        this.editMode = true;
+
+        console.log("EDIT CUSTOMER", customerData);
+
+        this.customerData = { lastname: customerData.lastname }
+        this.customerFormComponent.customerForm.patchValue(this.customerData);
+      });
+    });
+  }
 
   customerData: CustomerFormData;
   additionalPersonsData: AddPersonFormData[] = [];
@@ -29,6 +43,7 @@ export class CustomerEditComponent {
   @ViewChild('validationResultModal') validationResultModal: ModalDirective;
 
   validationResult: ValidateCustomerResponse;
+  editMode = false;
 
   addNewPerson() {
     this.saveDisabled = true;
@@ -60,7 +75,7 @@ export class CustomerEditComponent {
     } else {
       this.errorMessage = null;
 
-      const customerData = this.mapFormsToCustomerRequestData();
+      const customerData = this.mapFormsToCustomerData();
       this.apiService.validate(customerData).subscribe((result) => {
         this.validationResult = result;
         this.saveDisabled = !result.valid;
@@ -70,7 +85,7 @@ export class CustomerEditComponent {
   }
 
   save() {
-    const customerData = this.mapFormsToCustomerRequestData();
+    const customerData = this.mapFormsToCustomerData();
     this.apiService.createCustomer(customerData)
       .pipe(
         tap(customer => {
@@ -79,7 +94,7 @@ export class CustomerEditComponent {
       ).subscribe();
   }
 
-  mapFormsToCustomerRequestData(): CustomerData {
+  mapFormsToCustomerData(): CustomerData {
     const addPersons = this.addPersonForms.map<CustomerAddPersonData>((personComponent) => {
       return {
         lastname: personComponent.lastname.value,
