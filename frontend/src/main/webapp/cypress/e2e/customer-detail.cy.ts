@@ -13,6 +13,7 @@ describe('Customer Detail', () => {
     cy.byTestId('customerIdText').should('have.text', '101');
   });
 
+  // TODO unnecessary in e2e test --> move to customer-detail.component.spec.ts
   it('name correct', () => {
     cy.visit('/#/kunden/detail/101');
     cy.byTestId('nameText').should('have.text', 'Musterfrau Eva');
@@ -94,6 +95,7 @@ describe('Customer Detail', () => {
     cy.byTestId('incomeDueText').should('have.text', '-');
     cy.byTestId('addressLine1Text').should('have.text', 'Erdberg 1');
   });
+  // TODO unnecessary in e2e test --> move to customer-detail.component.spec.ts
 
   it('generate masterdata pdf and opens for download', () => {
     cy.visit('/#/kunden/detail/101');

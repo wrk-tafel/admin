@@ -5,13 +5,14 @@ describe('Customer Search', () => {
     cy.visit('/#/kunden/suchen');
   });
 
-  it('button disabled by default', () => {
+  it('buttons disabled by default', () => {
+    cy.byTestId('showcustomer-button').should('be.disabled');
     cy.byTestId('search-button').should('be.disabled');
   });
 
   it('search with customerId', () => {
     cy.byTestId('customerIdText').type('100');
-    cy.byTestId('search-button').click();
+    cy.byTestId('showcustomer-button').click();
 
     cy.url().should('include', '/kunden/detail/100');
   });
@@ -24,9 +25,9 @@ describe('Customer Search', () => {
     cy.byTestId('searchresult-table').should('be.visible');
     cy.byTestId('searchresult-row').should('have.length', 2);
 
-    cy.byTestId('showcustomer-button-0').should('be.visible');
+    cy.byTestId('searchresult-showcustomer-button-0').should('be.visible');
 
-    cy.byTestId('showcustomer-button-0').click();
+    cy.byTestId('searchresult-showcustomer-button-0').click();
     cy.url().should('include', '/kunden/detail/201');
   });
 
@@ -37,9 +38,9 @@ describe('Customer Search', () => {
     cy.byTestId('searchresult-table').should('be.visible');
     cy.byTestId('searchresult-row').should('have.length', 2);
 
-    cy.byTestId('showcustomer-button-0').should('be.visible');
+    cy.byTestId('searchresult-showcustomer-button-0').should('be.visible');
 
-    cy.byTestId('showcustomer-button-0').click();
+    cy.byTestId('searchresult-showcustomer-button-0').click();
     cy.url().should('include', '/kunden/detail/201');
   });
 
@@ -50,9 +51,9 @@ describe('Customer Search', () => {
     cy.byTestId('searchresult-table').should('be.visible');
     cy.byTestId('searchresult-row').should('have.length', 1);
 
-    cy.byTestId('showcustomer-button-0').should('be.visible');
+    cy.byTestId('searchresult-showcustomer-button-0').should('be.visible');
 
-    cy.byTestId('showcustomer-button-0').click();
+    cy.byTestId('searchresult-showcustomer-button-0').click();
     cy.url().should('include', '/kunden/detail/202');
   });
 
