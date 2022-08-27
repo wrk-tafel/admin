@@ -16,7 +16,7 @@ const routes: Routes = [
   },
   {
     path: 'bearbeiten/:id',
-    component: CustomerDetailComponent
+    component: CustomerEditComponent
   },
   {
     path: 'suchen',
