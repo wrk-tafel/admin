@@ -6,19 +6,27 @@
         <div class="card-body">
             <div class="row mb-3">
                 <div class="col">
-                    <h4>Suche nach</h4>
+                    <h4>Suche</h4>
                 </div>
             </div>
             <div class="row">
                 <div class="col-sm-3">
                     <label class="form-label">Kundennummer</label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-3">
                     <input testId="customerIdText" type="number" formControlName="customerId" name="customerId"
                         class="form-control" autofocus>
                 </div>
+                <div class="col-sm-3">
+                    <button [attr.testid]="'inputform-showcustomer-button-' + i" type="button" class="btn btn-primary"
+                        [disabled]="!customerId.value" (click)="searchForCustomerId()">Anzeigen</button>
+                </div>
             </div>
             <div class="row mt-4 mb-3">
-                <div class="col-3">
-                    <h5>oder nach</h5>
+                <div class="col-5">
+                    <h5>Detailsuche</h5>
                 </div>
             </div>
             <div class="row">
@@ -36,8 +44,8 @@
             <div class="row">
                 <div class="col-3 mt-4">
                     <button testid="search-button" type="button" class="btn btn-primary"
-                        [disabled]="!customerId.value && !firstname.value && !lastname.value"
-                        (click)="search()">Suchen</button>
+                        [disabled]="!firstname.value && !lastname.value"
+                        (click)="searchForDetails()">Suchen</button>
                 </div>
             </div>
         </div>
@@ -66,7 +74,7 @@
                                 <td>{{customer.birthDate}}</td>
                                 <td>{{customer.address}}</td>
                                 <td>
-                                    <button [attr.testid]="'showcustomer-button-' + i" type="button"
+                                    <button [attr.testid]="'searchresult-showcustomer-button-' + i" type="button"
                                         class="btn btn-primary"
                                         (click)="navigateToCustomer(customer.id)">Anzeigen</button>
                                 </td>
