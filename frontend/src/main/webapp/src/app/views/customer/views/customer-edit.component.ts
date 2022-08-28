@@ -27,7 +27,7 @@ export class CustomerEditComponent implements OnInit {
         console.log("EDIT CUSTOMER", customerData);
         // TODO impl
 
-        this.customerFormComponent.customerForm.patchValue(customerData);
+        this.customerFormComponent.form.patchValue(customerData);
         this.additionalPersonsData.splice(0);
         customerData.additionalPersons.forEach((person) => {
           this.additionalPersonsData.push(person);
@@ -79,7 +79,6 @@ export class CustomerEditComponent implements OnInit {
       this.errorMessage = null;
 
       const customerData = this.readFormData();
-      console.log("VALIDATE", customerData)
       this.apiService.validate(customerData).subscribe((result) => {
         this.validationResult = result;
         this.saveDisabled = !result.valid;
@@ -100,17 +99,17 @@ export class CustomerEditComponent implements OnInit {
 
   private readFormData(): CustomerData {
     return {
-      ...this.customerFormComponent.customerForm.value,
-      additionalPersons: this.addPersonForms.map((personForm) => { personForm.personForm.value })
+      ...this.customerFormComponent.form.value,
+      additionalPersons: this.addPersonForms.map((personForm) => { personForm.form.value })
     }
   }
 
   private formsAreInvalid() {
-    this.customerFormComponent.customerForm.markAllAsTouched();
-    const customerFormValid = this.customerFormComponent.customerForm.valid;
+    this.customerFormComponent.form.markAllAsTouched();
+    const customerFormValid = this.customerFormComponent.form.valid;
 
     let addPersonFormsValid = true;
-    this.addPersonForms.map<FormGroup>((cmp) => cmp.personForm)
+    this.addPersonForms.map<FormGroup>((cmp) => cmp.form)
       .forEach((form: FormGroup) => {
         form.markAllAsTouched();
         addPersonFormsValid &&= form.valid;

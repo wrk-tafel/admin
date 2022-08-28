@@ -68,24 +68,24 @@ describe('CustomerFormComponent', () => {
     spyOn(component.dataUpdatedEvent, 'emit');
     component.ngOnInit();
 
-    expect(component.customerForm.get('customerId').value).toBe('');
-    expect(component.customerForm.get('lastname').value).toBe(testData.lastname);
-    expect(component.customerForm.get('firstname').value).toBe(testData.firstname);
-    expect(component.customerForm.get('birthDate').value).toBe(moment(testData.birthDate).startOf('day').utc().format('YYYY-MM-DD'));
-    expect(component.customerForm.get('country').value).toBe(testData.country);
-    expect(component.customerForm.get('telephoneNumber').value).toBe(testData.telephoneNumber);
-    expect(component.customerForm.get('email').value).toBe(testData.email);
-    expect(component.customerForm.get('address').get('street').value).toBe(testData.address.street);
-    expect(component.customerForm.get('address').get('houseNumber').value).toBe(testData.address.houseNumber);
-    expect(component.customerForm.get('address').get('door').value).toBe(testData.address.door);
-    expect(component.customerForm.get('address').get('stairway').value).toBe(testData.address.stairway);
-    expect(component.customerForm.get('address').get('postalCode').value).toBe(testData.address.postalCode);
-    expect(component.customerForm.get('address').get('city').value).toBe(testData.address.city);
-    expect(component.customerForm.get('employer').value).toBe(testData.employer);
-    expect(component.customerForm.get('income').value).toBe(testData.income);
-    expect(component.customerForm.get('incomeDue').value).toBe(moment(testData.incomeDue).startOf('day').utc().format('YYYY-MM-DD'));
+    expect(component.form.get('customerId').value).toBe('');
+    expect(component.form.get('lastname').value).toBe(testData.lastname);
+    expect(component.form.get('firstname').value).toBe(testData.firstname);
+    expect(component.form.get('birthDate').value).toBe(moment(testData.birthDate).startOf('day').utc().format('YYYY-MM-DD'));
+    expect(component.form.get('country').value).toBe(testData.country);
+    expect(component.form.get('telephoneNumber').value).toBe(testData.telephoneNumber);
+    expect(component.form.get('email').value).toBe(testData.email);
+    expect(component.form.get('address').get('street').value).toBe(testData.address.street);
+    expect(component.form.get('address').get('houseNumber').value).toBe(testData.address.houseNumber);
+    expect(component.form.get('address').get('door').value).toBe(testData.address.door);
+    expect(component.form.get('address').get('stairway').value).toBe(testData.address.stairway);
+    expect(component.form.get('address').get('postalCode').value).toBe(testData.address.postalCode);
+    expect(component.form.get('address').get('city').value).toBe(testData.address.city);
+    expect(component.form.get('employer').value).toBe(testData.employer);
+    expect(component.form.get('income').value).toBe(testData.income);
+    expect(component.form.get('incomeDue').value).toBe(moment(testData.incomeDue).startOf('day').utc().format('YYYY-MM-DD'));
 
-    expect(component.customerForm.valid).toBe(true);
+    expect(component.form.valid).toBe(true);
     expect(component.countries).toEqual(mockCountryList);
 
     expect(component.lastname.value).toBe(testData.lastname);

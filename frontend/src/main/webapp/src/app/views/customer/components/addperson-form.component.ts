@@ -11,7 +11,7 @@ export class AddPersonFormComponent implements OnInit {
   @Input() personData: CustomerAddPersonFormData;
   @Output() dataUpdatedEvent = new EventEmitter<void>();
 
-  personForm = new FormGroup({
+  form = new FormGroup({
     uuid: new FormControl(),
     lastname: new FormControl('', [Validators.required, Validators.maxLength(50)]),
     firstname: new FormControl('', [Validators.required, , Validators.maxLength(50)]),
@@ -24,17 +24,17 @@ export class AddPersonFormComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    this.personForm.patchValue(this.personData);
+    this.form.patchValue(this.personData);
 
-    this.personForm.valueChanges.subscribe(() => {
+    this.form.valueChanges.subscribe(() => {
       this.dataUpdatedEvent.emit();
     });
   }
 
-  get lastname() { return this.personForm.get('lastname'); }
-  get firstname() { return this.personForm.get('firstname'); }
-  get birthDate() { return this.personForm.get('birthDate'); }
-  get income() { return this.personForm.get('income'); }
+  get lastname() { return this.form.get('lastname'); }
+  get firstname() { return this.form.get('firstname'); }
+  get birthDate() { return this.form.get('birthDate'); }
+  get income() { return this.form.get('income'); }
 }
 
 export interface CustomerAddPersonFormData extends CustomerAddPersonData {

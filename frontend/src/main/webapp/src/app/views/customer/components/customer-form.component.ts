@@ -14,7 +14,7 @@ export class CustomerFormComponent implements OnInit {
 
   @Output() dataUpdatedEvent = new EventEmitter<void>();
 
-  customerForm = new FormGroup({
+  form = new FormGroup({
     id: new FormControl(''),
     lastname: new FormControl('', [Validators.required, Validators.maxLength(50)]),
     firstname: new FormControl('', [Validators.required, Validators.maxLength(50)]),
@@ -51,27 +51,27 @@ export class CustomerFormComponent implements OnInit {
       this.countries = data;
     });
 
-    this.customerForm.valueChanges.subscribe(() => {
+    this.form.valueChanges.subscribe(() => {
       this.dataUpdatedEvent.emit();
     });
   }
 
-  get id() { return this.customerForm.get('id'); }
-  get lastname() { return this.customerForm.get('lastname'); }
-  get firstname() { return this.customerForm.get('firstname'); }
-  get birthDate() { return this.customerForm.get('birthDate'); }
-  get country() { return this.customerForm.get('country'); }
-  get telephoneNumber() { return this.customerForm.get('telephoneNumber'); }
-  get email() { return this.customerForm.get('email'); }
+  get id() { return this.form.get('id'); }
+  get lastname() { return this.form.get('lastname'); }
+  get firstname() { return this.form.get('firstname'); }
+  get birthDate() { return this.form.get('birthDate'); }
+  get country() { return this.form.get('country'); }
+  get telephoneNumber() { return this.form.get('telephoneNumber'); }
+  get email() { return this.form.get('email'); }
 
-  get street() { return this.customerForm.get('address')?.get('street'); }
-  get houseNumber() { return this.customerForm.get('address')?.get('houseNumber'); }
-  get stairway() { return this.customerForm.get('address')?.get('stairway'); }
-  get door() { return this.customerForm.get('address')?.get('door'); }
-  get postalCode() { return this.customerForm.get('address')?.get('postalCode'); }
-  get city() { return this.customerForm.get('address')?.get('city'); }
+  get street() { return this.form.get('address')?.get('street'); }
+  get houseNumber() { return this.form.get('address')?.get('houseNumber'); }
+  get stairway() { return this.form.get('address')?.get('stairway'); }
+  get door() { return this.form.get('address')?.get('door'); }
+  get postalCode() { return this.form.get('address')?.get('postalCode'); }
+  get city() { return this.form.get('address')?.get('city'); }
 
-  get employer() { return this.customerForm.get('employer'); }
-  get income() { return this.customerForm.get('income'); }
-  get incomeDue() { return this.customerForm.get('incomeDue'); }
+  get employer() { return this.form.get('employer'); }
+  get income() { return this.form.get('income'); }
+  get incomeDue() { return this.form.get('incomeDue'); }
 }

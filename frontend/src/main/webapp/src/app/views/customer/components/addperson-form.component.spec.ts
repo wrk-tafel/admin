@@ -35,13 +35,13 @@ describe('AddPersonsFormComponent', () => {
     spyOn(component.dataUpdatedEvent, 'emit');
     component.ngOnInit();
 
-    expect(component.personForm.get('uuid').value).toBe(testData.uuid);
-    expect(component.personForm.get('lastname').value).toBe(testData.lastname);
-    expect(component.personForm.get('firstname').value).toBe(testData.firstname);
-    expect(component.personForm.get('birthDate').value).toBe(moment(testData.birthDate).startOf('day').utc().format('YYYY-MM-DD'));
-    expect(component.personForm.get('income').value).toBe(testData.income);
+    expect(component.form.get('uuid').value).toBe(testData.uuid);
+    expect(component.form.get('lastname').value).toBe(testData.lastname);
+    expect(component.form.get('firstname').value).toBe(testData.firstname);
+    expect(component.form.get('birthDate').value).toBe(moment(testData.birthDate).startOf('day').utc().format('YYYY-MM-DD'));
+    expect(component.form.get('income').value).toBe(testData.income);
 
-    expect(component.personForm.valid).toBe(true);
+    expect(component.form.valid).toBe(true);
 
     expect(component.lastname.value).toBe(testData.lastname);
     component.lastname.setValue('updated');
