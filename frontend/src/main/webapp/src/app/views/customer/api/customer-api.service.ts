@@ -48,11 +48,15 @@ export interface ValidateCustomerResponse {
   amountExceededLimit: number;
 }
 
+export interface CustomerSearchResult {
+  items: CustomerData[];
+}
+
 export interface CustomerData {
   id?: number;
   firstname: string;
   lastname: string;
-  birthDate: string;
+  birthDate: Date;
   country?: CountryData;
   address: CustomerAddressData;
   telephoneNumber?: number;
@@ -77,8 +81,4 @@ export interface CustomerAddPersonData {
   lastname: string;
   birthDate: Date;
   income?: number;
-}
-
-export interface CustomerSearchResult {
-  items: CustomerData[];
 }
