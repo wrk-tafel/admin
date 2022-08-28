@@ -1,4 +1,5 @@
 import { TestBed, waitForAsync } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { RouterTestingModule } from '@angular/router/testing';
 import * as moment from 'moment';
 import { of } from 'rxjs';
@@ -70,6 +71,14 @@ describe('CustomerFormComponent', () => {
     component.ngOnInit();
 
     // TODO check dom elements - makes more sense
+    /*
+    fixture.detectChanges();
+
+    fixture.whenStable().then(() => {
+      expect(fixture.debugElement.query(By.css('[testId="idInput"]')).nativeElement.value).toBe(testData.id);
+    });
+    */
+
     expect(component.form.get('id').value).toBe(testData.id);
     expect(component.form.get('lastname').value).toBe(testData.lastname);
     expect(component.form.get('firstname').value).toBe(testData.firstname);

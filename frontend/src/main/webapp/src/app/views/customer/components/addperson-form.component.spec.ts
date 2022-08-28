@@ -35,10 +35,11 @@ describe('AddPersonsFormComponent', () => {
     spyOn(component.dataUpdatedEvent, 'emit');
     component.ngOnInit();
 
+    // TODO check dom elements - makes more sense
     expect(component.form.get('uuid').value).toBe(testData.uuid);
     expect(component.form.get('lastname').value).toBe(testData.lastname);
     expect(component.form.get('firstname').value).toBe(testData.firstname);
-    expect(component.form.get('birthDate').value).toBe(moment(testData.birthDate).startOf('day').utc().format('YYYY-MM-DD'));
+    expect(component.form.get('birthDate').value).toBe(testData.birthDate);
     expect(component.form.get('income').value).toBe(testData.income);
 
     expect(component.form.valid).toBe(true);
