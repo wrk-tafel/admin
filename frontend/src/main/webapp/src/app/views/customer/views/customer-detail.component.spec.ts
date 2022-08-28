@@ -1,5 +1,6 @@
 import { HttpHeaders, HttpResponse } from '@angular/common/http';
 import { TestBed, waitForAsync } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { ActivatedRoute } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import * as moment from 'moment';
@@ -72,15 +73,13 @@ describe('CustomerDetailComponent', () => {
     fileHelperService = TestBed.inject(FileHelperService) as jasmine.SpyObj<FileHelperService>;
   }));
 
-  // TODO: add tests to check data mapping from data into form fields
-
   it('component can be created', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
     expect(component).toBeTruthy();
   });
 
-  it('initial data loaded', waitForAsync(() => {
+  it('initial data loaded and shown correctly', waitForAsync(() => {
     apiService.getCustomer.withArgs(mockCustomer.id).and.returnValue(of(mockCustomer));
 
     const fixture = TestBed.createComponent(CustomerDetailComponent);
@@ -88,6 +87,22 @@ describe('CustomerDetailComponent', () => {
     component.ngOnInit();
 
     expect(component.customerData).toEqual(mockCustomer);
+
+    fixture.detectChanges();
+
+    expect(fixture.debugElement.query(By.css('[testId="customerIdText"]')).nativeElement.textContent).toBe('133');
+    expect(fixture.debugElement.query(By.css('[testId="nameText"]')).nativeElement.textContent).toBe('Mustermann Max');
+
+    const birthDateAge = moment(mockCustomer.birthDate).format('DD.MM.YYYY') + ' (' + moment().diff(mockCustomer.birthDate, 'years') + ')'
+    expect(fixture.debugElement.query(By.css('[testId="birthDateAgeText"]')).nativeElement.textContent).toBe(birthDateAge);
+    expect(fixture.debugElement.query(By.css('[testId="countryText"]')).nativeElement.textContent).toBe('Österreich');
+    expect(fixture.debugElement.query(By.css('[testId="telephoneNumberText"]')).nativeElement.textContent).toBe('6644123123123');
+    expect(fixture.debugElement.query(By.css('[testId="emailText"]')).nativeElement.textContent).toBe('max.mustermann@gmail.com');
+    expect(fixture.debugElement.query(By.css('[testId="addressLine1Text"]')).nativeElement.textContent).toBe('Teststraße 123A, Stiege 1, Top 21');
+    expect(fixture.debugElement.query(By.css('[testId="addressLine2Text"]')).nativeElement.textContent).toBe('1020 Wien');
+    expect(fixture.debugElement.query(By.css('[testId="employerText"]')).nativeElement.textContent).toBe('test employer');
+    expect(fixture.debugElement.query(By.css('[testId="incomeText"]')).nativeElement.textContent).toBe('1000 €');
+    expect(fixture.debugElement.query(By.css('[testId="incomeDueText"]')).nativeElement.textContent).toBe('28.08.2023');
   }));
 
   it('printMasterdata', waitForAsync(() => {

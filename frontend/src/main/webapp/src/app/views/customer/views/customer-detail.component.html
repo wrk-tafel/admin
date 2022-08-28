@@ -27,22 +27,21 @@
                 </div>
                 <div class="row">
                     <div class="col font-weight-bold">Telefonnummer</div>
-                    <div testid="telephoneNumberText" class="col" *ngIf="customerData?.telephoneNumber !== null"
-                        [innerHTML]="customerData?.telephoneNumber"></div>
-                    <div testid="telephoneNumberText" class="col" *ngIf="customerData?.telephoneNumber === null">-</div>
+                    <div testid="telephoneNumberText" class="col"
+                        [innerHTML]="customerData?.telephoneNumber ? customerData?.telephoneNumber : '-'"></div>
                 </div>
                 <div class="row">
                     <div class="col font-weight-bold">E-Mail</div>
-                    <div testid="emailText" class="col" *ngIf="customerData?.email !== null"
-                        [innerHTML]="customerData?.email"></div>
-                    <div testid="emailText" class="col" *ngIf="customerData?.email === null">-</div>
+                    <div testid="emailText" class="col" [innerHTML]="customerData?.email ? customerData?.email : '-'">
+                    </div>
                 </div>
                 <hr>
                 <div class="row">
                     <div class="col font-weight-bold">Adresse</div>
                 </div>
                 <div class="row">
-                    <div testid="addressLine1Text" class="col">{{customerData?.address ? formatAddressLine(customerData?.address) : ''}}</div>
+                    <div testid="addressLine1Text" class="col">{{customerData?.address ?
+                        formatAddressLine(customerData?.address) : ''}}</div>
                 </div>
                 <div class="row">
                     <div testid="addressLine2Text" class="col"
@@ -66,9 +65,8 @@
                     <div class="col">
                         Auszahlung&nbsp;bis
                     </div>
-                    <div testid="incomeDueText" class="col" *ngIf="customerData?.incomeDue !== null"
-                        [innerHTML]="customerData?.incomeDue"></div>
-                    <div testid="incomeDueText" class="col" *ngIf="customerData?.incomeDue === null">-</div>
+                    <div testid="incomeDueText" class="col"
+                        [innerHTML]="customerData?.incomeDue ? formatDate(customerData?.incomeDue) : '-'"></div>
                 </div>
             </div>
         </div>

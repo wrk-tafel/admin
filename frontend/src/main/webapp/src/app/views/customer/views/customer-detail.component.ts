@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import * as moment from 'moment';
+import { DateHelperService } from '../../../common/util/date-helper.service';
 import { FileHelperService } from '../../../common/util/file-helper.service';
 import { CustomerAddressData, CustomerApiService, CustomerData } from '../api/customer-api.service';
 
@@ -9,12 +10,14 @@ import { CustomerAddressData, CustomerApiService, CustomerData } from '../api/cu
   templateUrl: 'customer-detail.component.html'
 })
 export class CustomerDetailComponent implements OnInit {
-  customerData: CustomerData;
-
   constructor(
     private route: ActivatedRoute,
     private customerApiService: CustomerApiService,
-    private fileHelperService: FileHelperService) { }
+    private fileHelperService: FileHelperService,
+    private dateHelper: DateHelperService) { }
+
+  customerData: CustomerData;
+  formatDate = this.dateHelper.formatDate
 
   ngOnInit(): void {
     this.route.params.subscribe(params => {
@@ -47,7 +50,7 @@ export class CustomerDetailComponent implements OnInit {
   }
 
   formatBirthDateAge(birthDate: Date): string {
-    return moment(birthDate).format('DD.MM.YYYY') + ' (' + moment().diff(birthDate, 'years') + ')'
+    return this.formatDate(birthDate) + ' (' + moment().diff(birthDate, 'years') + ')'
   }
 
 }
