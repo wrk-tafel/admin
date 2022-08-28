@@ -21,18 +21,21 @@ export class CustomerEditComponent implements OnInit {
 
   ngOnInit(): void {
     this.route.params.subscribe(params => {
-      this.apiService.getCustomer(+params['id']).subscribe((customerData) => {
-        this.editMode = true;
+      const customerId = +params['id'];
+      if (customerId) {
+        this.apiService.getCustomer(customerId).subscribe((customerData) => {
+          this.editMode = true;
 
-        console.log("EDIT CUSTOMER", customerData);
-        // TODO impl
+          console.log("EDIT CUSTOMER", customerData);
+          // TODO impl
 
-        this.customerFormComponent.form.patchValue(customerData);
-        this.additionalPersonsData.splice(0);
-        customerData.additionalPersons.forEach((person) => {
-          this.additionalPersonsData.push(person);
+          this.customerFormComponent.form.patchValue(customerData);
+          this.additionalPersonsData.splice(0);
+          customerData.additionalPersons.forEach((person) => {
+            this.additionalPersonsData.push(person);
+          });
         });
-      });
+      }
     });
   }
 
