@@ -1,7 +1,6 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { CustomValidator } from '../../../common/CustomValidator';
-import { DateHelperService } from '../../../common/util/date-helper.service';
 import { CustomerAddPersonData } from '../api/customer-api.service';
 
 @Component({
@@ -9,10 +8,6 @@ import { CustomerAddPersonData } from '../api/customer-api.service';
   templateUrl: 'addperson-form.component.html'
 })
 export class AddPersonFormComponent implements OnInit {
-  constructor(
-    private dateHelper: DateHelperService
-  ) { }
-
   @Input() personData: CustomerAddPersonFormData;
   @Output() dataUpdatedEvent = new EventEmitter<void>();
 
@@ -30,7 +25,6 @@ export class AddPersonFormComponent implements OnInit {
 
   ngOnInit(): void {
     this.personForm.patchValue(this.personData);
-    this.birthDate.setValue(this.dateHelper.convertForInputField(this.personData.birthDate));
 
     this.personForm.valueChanges.subscribe(() => {
       this.dataUpdatedEvent.emit();

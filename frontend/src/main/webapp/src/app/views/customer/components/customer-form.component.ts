@@ -2,8 +2,6 @@ import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { CountryData, CountryApiService } from '../../../common/api/country-api.service';
 import { CustomValidator } from '../../../common/CustomValidator';
-import { DateHelperService } from '../../../common/util/date-helper.service';
-import { CustomerData } from '../api/customer-api.service';
 
 @Component({
   selector: 'customer-form',
@@ -11,23 +9,23 @@ import { CustomerData } from '../api/customer-api.service';
 })
 export class CustomerFormComponent implements OnInit {
   constructor(
-    private countryApiService: CountryApiService,
-    private dateHelper: DateHelperService
+    private countryApiService: CountryApiService
   ) { }
 
-  @Input() customerData: CustomerData;
   @Output() dataUpdatedEvent = new EventEmitter<void>();
 
   customerForm = new FormGroup({
-    customerId: new FormControl(''),
+    id: new FormControl(''),
     lastname: new FormControl('', [Validators.required, Validators.maxLength(50)]),
-    firstname: new FormControl('', [Validators.required, , Validators.maxLength(50)]),
+    firstname: new FormControl('', [Validators.required, Validators.maxLength(50)]),
     birthDate: new FormControl('',
       [
         Validators.required,
         CustomValidator.minDate(new Date(1920, 0, 1)),
         CustomValidator.maxDate(new Date())
-      ]),
+      ]
+    ),
+
     country: new FormControl('', Validators.required),
     telephoneNumber: new FormControl(''),
     email: new FormControl('', [Validators.maxLength(100), Validators.email]),
@@ -53,16 +51,12 @@ export class CustomerFormComponent implements OnInit {
       this.countries = data;
     });
 
-    this.customerForm.patchValue(this.customerData);
-    this.birthDate.setValue(this.dateHelper.convertForInputField(this.customerData?.birthDate));
-    this.incomeDue.setValue(this.dateHelper.convertForInputField(this.customerData?.incomeDue));
-
     this.customerForm.valueChanges.subscribe(() => {
       this.dataUpdatedEvent.emit();
     });
   }
 
-  get customerId() { return this.customerForm.get('customerId'); }
+  get id() { return this.customerForm.get('id'); }
   get lastname() { return this.customerForm.get('lastname'); }
   get firstname() { return this.customerForm.get('firstname'); }
   get birthDate() { return this.customerForm.get('birthDate'); }
@@ -70,12 +64,12 @@ export class CustomerFormComponent implements OnInit {
   get telephoneNumber() { return this.customerForm.get('telephoneNumber'); }
   get email() { return this.customerForm.get('email'); }
 
-  get street() { return this.customerForm.get('address').get('street'); }
-  get houseNumber() { return this.customerForm.get('address').get('houseNumber'); }
-  get stairway() { return this.customerForm.get('address').get('stairway'); }
-  get door() { return this.customerForm.get('address').get('door'); }
-  get postalCode() { return this.customerForm.get('address').get('postalCode'); }
-  get city() { return this.customerForm.get('address').get('city'); }
+  get street() { return this.customerForm.get('address')?.get('street'); }
+  get houseNumber() { return this.customerForm.get('address')?.get('houseNumber'); }
+  get stairway() { return this.customerForm.get('address')?.get('stairway'); }
+  get door() { return this.customerForm.get('address')?.get('door'); }
+  get postalCode() { return this.customerForm.get('address')?.get('postalCode'); }
+  get city() { return this.customerForm.get('address')?.get('city'); }
 
   get employer() { return this.customerForm.get('employer'); }
   get income() { return this.customerForm.get('income'); }

@@ -6,12 +6,8 @@ import * as moment from 'moment';
 })
 export class DateHelperService {
 
-    convertForInputField(date: Date) {
-        return date.toISOString().substring(0, 10)
-    }
-
     formatDate(date: Date) {
-        return moment(date).format('DD.MM.YYYY')
+        return moment(date).format('DD.MM.YYYY');
     }
 
 }

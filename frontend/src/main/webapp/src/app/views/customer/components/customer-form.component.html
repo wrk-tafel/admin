@@ -2,9 +2,8 @@
     <div class="row">
         <div class="col-sm-6">
             <label class="form-label">Kundenummer (falls vorhanden)</label>
-            <input testId="customerIdInput" type="number" formControlName="customerId" name="customerId"
-                class="form-control"
-                [ngClass]="{'is-invalid': customerId.invalid && (customerId.dirty || customerId.touched), 'is-valid': customerId.valid && (customerId.dirty || customerId.touched)}"
+            <input testId="idInput" type="number" formControlName="id" name="id" class="form-control"
+                [ngClass]="{'is-invalid': id.invalid && (id.dirty || id.touched), 'is-valid': id.valid && (id.dirty || id.touched)}"
                 autofocus>
         </div>
     </div>
@@ -95,73 +94,76 @@
         </div>
     </div>
     <hr>
-    <div class="row mb-2">
-        <div class="col-sm">
-            <label class="form-label">Straße</label>
-            <input testId="streetInput" type="text" formControlName="street" name="Straße" class="form-control"
-                [ngClass]="{'is-invalid': street.invalid && (street.dirty || street.touched), 'is-valid': street.valid && (street.dirty || street.touched)}">
-            <div *ngIf="street.errors?.required && (street.dirty || street.touched)" class="invalid-feedback">
-                Pflichtfeld
-            </div>
-            <div *ngIf="street.errors?.maxlength && (street.dirty || street.touched)" class="invalid-feedback">
-                Straße zu lang (Limit: {{street.errors.maxlength.requiredLength}})
-            </div>
-        </div>
-    </div>
-    <div class="row mb-2">
-        <div class="col-sm">
-            <label class="form-label">Hausnummer</label>
-            <input testId="houseNumberInput" type="text" formControlName="houseNumber" name="houseNumber"
-                class="form-control"
-                [ngClass]="{'is-invalid': houseNumber.invalid && (houseNumber.dirty || houseNumber.touched), 'is-valid': houseNumber.valid && (houseNumber.dirty || houseNumber.touched)}">
-            <div *ngIf="houseNumber.errors?.required && (houseNumber.dirty || houseNumber.touched)"
-                class="invalid-feedback">
-                Pflichtfeld
-            </div>
-            <div *ngIf="houseNumber.errors?.maxlength && (houseNumber.dirty || houseNumber.touched)"
-                class="invalid-feedback">
-                Hausnummer zu lang (Limit: {{houseNumber.errors.maxlength.requiredLength}})
-            </div>
-        </div>
-        <div class="col-sm">
-            <label class="form-label">Stiege</label>
-            <input testId="stairwayInput" type="number" formControlName="stairway" name="stairway" class="form-control"
-                [ngClass]="{'is-invalid': stairway.invalid && (stairway.dirty || stairway.touched), 'is-valid': stairway.valid && (stairway.dirty || stairway.touched)}">
-        </div>
-        <div class="col-sm">
-            <label class="form-label">Top</label>
-            <input testId="doorInput" type="number" formControlName="door" name="door" class="form-control"
-                [ngClass]="{'is-invalid': door.invalid && (door.dirty || door.touched), 'is-valid': door.valid && (door.dirty || door.touched)}">
-        </div>
-    </div>
-    <div class="row mb-2">
-        <div class="col-sm">
-            <label class="form-label">PLZ</label>
-            <div class="input-group">
-                <input testId="postalCodeInput" type="number" formControlName="postalCode" name="postalCode"
-                    class="form-control"
-                    [ngClass]="{'is-invalid': postalCode.invalid && (postalCode.dirty || postalCode.touched), 'is-valid': postalCode.valid && (postalCode.dirty || postalCode.touched)}">
-                <div class="input-group-append">
-                    <span class="input-group-text"><i class="cil-location-pin"></i></span>
-                </div>
-                <div *ngIf="postalCode.errors && (postalCode.dirty || postalCode.touched)" class="invalid-feedback">
-                    Pflichtfeld / 4-stellig
-                </div>
-            </div>
-        </div>
-        <div class="col-sm">
-            <label class="form-label">Ort</label>
-            <div class="input-group">
-                <input testId="cityInput" type="text" formControlName="city" name="city" class="form-control"
-                    [ngClass]="{'is-invalid': city.invalid && (city.dirty || city.touched), 'is-valid': city.valid && (city.dirty || city.touched)}">
-                <div class="input-group-append">
-                    <span class="input-group-text"><i class="cil-location-pin"></i></span>
-                </div>
-                <div *ngIf="city.errors?.required && (city.dirty || city.touched)" class="invalid-feedback">
+    <div formGroupName="address">
+        <div class="row mb-2">
+            <div class="col-sm">
+                <label class="form-label">Straße</label>
+                <input testId="streetInput" type="text" formControlName="street" name="Straße" class="form-control"
+                    [ngClass]="{'is-invalid': street.invalid && (street.dirty || street.touched), 'is-valid': street.valid && (street.dirty || street.touched)}">
+                <div *ngIf="street.errors?.required && (street.dirty || street.touched)" class="invalid-feedback">
                     Pflichtfeld
                 </div>
-                <div *ngIf="city.errors?.maxlength && (city.dirty || city.touched)" class="invalid-feedback">
-                    Ort zu lang (Limit: {{city.errors.maxlength.requiredLength}})
+                <div *ngIf="street.errors?.maxlength && (street.dirty || street.touched)" class="invalid-feedback">
+                    Straße zu lang (Limit: {{street.errors.maxlength.requiredLength}})
+                </div>
+            </div>
+        </div>
+        <div class="row mb-2">
+            <div class="col-sm">
+                <label class="form-label">Hausnummer</label>
+                <input testId="houseNumberInput" type="text" formControlName="houseNumber" name="houseNumber"
+                    class="form-control"
+                    [ngClass]="{'is-invalid': houseNumber.invalid && (houseNumber.dirty || houseNumber.touched), 'is-valid': houseNumber.valid && (houseNumber.dirty || houseNumber.touched)}">
+                <div *ngIf="houseNumber.errors?.required && (houseNumber.dirty || houseNumber.touched)"
+                    class="invalid-feedback">
+                    Pflichtfeld
+                </div>
+                <div *ngIf="houseNumber.errors?.maxlength && (houseNumber.dirty || houseNumber.touched)"
+                    class="invalid-feedback">
+                    Hausnummer zu lang (Limit: {{houseNumber.errors.maxlength.requiredLength}})
+                </div>
+            </div>
+            <div class="col-sm">
+                <label class="form-label">Stiege</label>
+                <input testId="stairwayInput" type="number" formControlName="stairway" name="stairway"
+                    class="form-control"
+                    [ngClass]="{'is-invalid': stairway.invalid && (stairway.dirty || stairway.touched), 'is-valid': stairway.valid && (stairway.dirty || stairway.touched)}">
+            </div>
+            <div class="col-sm">
+                <label class="form-label">Top</label>
+                <input testId="doorInput" type="number" formControlName="door" name="door" class="form-control"
+                    [ngClass]="{'is-invalid': door.invalid && (door.dirty || door.touched), 'is-valid': door.valid && (door.dirty || door.touched)}">
+            </div>
+        </div>
+        <div class="row mb-2">
+            <div class="col-sm">
+                <label class="form-label">PLZ</label>
+                <div class="input-group">
+                    <input testId="postalCodeInput" type="number" formControlName="postalCode" name="postalCode"
+                        class="form-control"
+                        [ngClass]="{'is-invalid': postalCode.invalid && (postalCode.dirty || postalCode.touched), 'is-valid': postalCode.valid && (postalCode.dirty || postalCode.touched)}">
+                    <div class="input-group-append">
+                        <span class="input-group-text"><i class="cil-location-pin"></i></span>
+                    </div>
+                    <div *ngIf="postalCode.errors && (postalCode.dirty || postalCode.touched)" class="invalid-feedback">
+                        Pflichtfeld / 4-stellig
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm">
+                <label class="form-label">Ort</label>
+                <div class="input-group">
+                    <input testId="cityInput" type="text" formControlName="city" name="city" class="form-control"
+                        [ngClass]="{'is-invalid': city.invalid && (city.dirty || city.touched), 'is-valid': city.valid && (city.dirty || city.touched)}">
+                    <div class="input-group-append">
+                        <span class="input-group-text"><i class="cil-location-pin"></i></span>
+                    </div>
+                    <div *ngIf="city.errors?.required && (city.dirty || city.touched)" class="invalid-feedback">
+                        Pflichtfeld
+                    </div>
+                    <div *ngIf="city.errors?.maxlength && (city.dirty || city.touched)" class="invalid-feedback">
+                        Ort zu lang (Limit: {{city.errors.maxlength.requiredLength}})
+                    </div>
                 </div>
             </div>
         </div>
