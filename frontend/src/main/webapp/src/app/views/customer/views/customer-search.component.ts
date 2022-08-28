@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import * as moment from 'moment';
-import { CustomerAddressData, CustomerApiService, CustomerData, CustomerSearchResponse } from '../api/customer-api.service';
+import { CustomerAddressData, CustomerApiService, CustomerData, CustomerSearchResult } from '../api/customer-api.service';
 
 @Component({
   selector: 'customer-search',
@@ -37,7 +37,7 @@ export class CustomerSearchComponent {
 
   searchForDetails() {
     this.customerApiService.searchCustomer(this.lastname.value, this.firstname.value)
-      .subscribe((response: CustomerSearchResponse) => {
+      .subscribe((response: CustomerSearchResult) => {
         if (response.items.length === 0) {
           this.errorMessage = 'Keine Kunden gefunden!';
         } else {
@@ -54,13 +54,10 @@ export class CustomerSearchComponent {
     this.router.navigate(['/kunden/bearbeiten', customerId]);
   }
 
-  private mapItem(item: CustomerData): CustomerItem {
+  private mapItem(item: CustomerData): CustomerResultItem {
     return {
-      id: item.id,
-      lastname: item.lastname,
-      firstname: item.firstname,
-      birthDate: moment(item.birthDate).format('DD.MM.YYYY'),
-      address: this.formatAddress(item.address)
+      ...item,
+      addressLine: this.formatAddress(item.address)
     };
   }
 
@@ -82,14 +79,6 @@ export class CustomerSearchComponent {
   get firstname() { return this.customerSearchForm.get('firstname'); }
 }
 
-interface CustomerSearchResult {
-  items: CustomerItem[];
-}
-
-interface CustomerItem {
-  id: number;
-  lastname: string;
-  firstname: string;
-  birthDate: string;
-  address: string;
+interface CustomerResultItem extends CustomerData {
+  addressLine: string;
 }
