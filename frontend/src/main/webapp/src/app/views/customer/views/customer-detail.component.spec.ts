@@ -73,6 +73,8 @@ describe('CustomerDetailComponent', () => {
     fileHelperService = TestBed.inject(FileHelperService) as jasmine.SpyObj<FileHelperService>;
   }));
 
+  // TODO: add tests to check data mapping from data into form fields
+
   it('component can be created', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
