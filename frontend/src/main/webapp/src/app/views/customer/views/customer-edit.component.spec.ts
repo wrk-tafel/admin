@@ -7,12 +7,12 @@ import * as moment from 'moment';
 import { ModalModule } from 'ngx-bootstrap/modal';
 import { of } from 'rxjs';
 import { CustomerApiService, CustomerData } from '../api/customer-api.service';
-import { AddPersonFormComponent } from '../components/addperson-form.component';
-import { CustomerFormComponent, CustomerFormData } from '../components/customer-form.component';
+import { AddPersonFormComponent, CustomerAddPersonFormData } from '../components/addperson-form.component';
+import { CustomerFormComponent } from '../components/customer-form.component';
 import { CustomerEditComponent } from './customer-edit.component';
 
 describe('CustomerEditComponent', () => {
-  const testCustomerData: CustomerFormData = {
+  const testCustomerData: CustomerData = {
     lastname: 'Mustermann',
     firstname: 'Max',
     birthDate: moment().subtract(40, 'years').startOf('day').utc().toDate(),
@@ -24,12 +24,14 @@ describe('CustomerEditComponent', () => {
     telephoneNumber: 6641231231,
     email: 'max.mustermann@gmail.com',
 
-    street: 'Teststraße',
-    houseNumber: '123A',
-    stairway: '1',
-    door: '21',
-    postalCode: 1020,
-    city: 'Wien',
+    address: {
+      street: 'Teststraße',
+      houseNumber: '123A',
+      stairway: '1',
+      door: '21',
+      postalCode: 1020,
+      city: 'Wien',
+    },
 
     employer: 'test employer',
     income: 1000,
@@ -53,12 +55,12 @@ describe('CustomerEditComponent', () => {
     email: testCustomerData.email,
 
     address: {
-      street: testCustomerData.street,
-      houseNumber: testCustomerData.houseNumber,
-      stairway: testCustomerData.stairway,
-      door: testCustomerData.door,
-      postalCode: testCustomerData.postalCode,
-      city: testCustomerData.city
+      street: testCustomerData.address.street,
+      houseNumber: testCustomerData.address.houseNumber,
+      stairway: testCustomerData.address.stairway,
+      door: testCustomerData.address.door,
+      postalCode: testCustomerData.address.postalCode,
+      city: testCustomerData.address.city
     },
 
     employer: testCustomerData.employer,
@@ -147,7 +149,7 @@ describe('CustomerEditComponent', () => {
 
     expect(component.saveDisabled).toBe(false);
 
-    const existingData = { lastname: 'old' };
+    const existingData: CustomerAddPersonFormData = { ...testCustomerRequestData.additionalPersons[0], lastname: 'old' };
     component.additionalPersonsData[0] = existingData;
     expect(component.additionalPersonsData.length).toBe(1);
 
@@ -166,7 +168,7 @@ describe('CustomerEditComponent', () => {
     const component = fixture.componentInstance;
     const testUuid = 'test-UUID';
 
-    const trackingId = component.trackBy(0, { uuid: testUuid });
+    const trackingId = component.trackBy(0, { uuid: testUuid, lastname: null, firstname: null, birthDate: null });
 
     expect(trackingId).toBe(testUuid);
   });
@@ -186,7 +188,7 @@ describe('CustomerEditComponent', () => {
     const fixture = TestBed.createComponent(CustomerEditComponent);
     const component = fixture.componentInstance;
 
-    const existingData = { lastname: 'old' };
+    const existingData: CustomerAddPersonFormData = { ...testCustomerRequestData.additionalPersons[0], lastname: 'old' };
     component.additionalPersonsData[0] = existingData;
     expect(component.additionalPersonsData[0]).toEqual(existingData);
 

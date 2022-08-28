@@ -1,6 +1,6 @@
 import { Component, OnInit, Output, ViewChild, ViewChildren } from '@angular/core';
 import { AddPersonFormComponent, CustomerAddPersonFormData } from '../components/addperson-form.component';
-import { CustomerFormComponent, CustomerFormData } from '../components/customer-form.component';
+import { CustomerFormComponent } from '../components/customer-form.component';
 import { v4 as uuidv4 } from 'uuid';
 import { FormGroup } from '@angular/forms';
 import { CustomerData, CustomerApiService, CustomerAddPersonData, ValidateCustomerResponse } from '../api/customer-api.service';
@@ -26,13 +26,15 @@ export class CustomerEditComponent implements OnInit {
 
         console.log("EDIT CUSTOMER", customerData);
 
-        this.customerData = { lastname: customerData.lastname }
+        // TODO impl
+
+        this.customerData = customerData;
         this.customerFormComponent.customerForm.patchValue(this.customerData);
       });
     });
   }
 
-  customerData: CustomerFormData;
+  customerData: CustomerData;
   additionalPersonsData: CustomerAddPersonFormData[] = [];
 
   @Output() saveDisabled: boolean = true;
@@ -47,7 +49,7 @@ export class CustomerEditComponent implements OnInit {
 
   addNewPerson() {
     this.saveDisabled = true;
-    this.additionalPersonsData.push({ uuid: uuidv4() });
+    this.additionalPersonsData.push({ uuid: uuidv4(), firstname: null, lastname: null, birthDate: null });
   }
 
   removePerson(index: number) {

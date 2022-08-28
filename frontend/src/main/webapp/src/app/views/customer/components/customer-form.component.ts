@@ -2,6 +2,8 @@ import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { CountryData, CountryApiService } from '../../../common/api/country-api.service';
 import { CustomValidator } from '../../../common/CustomValidator';
+import { DateHelperService } from '../../../common/util/date-helper.service';
+import { CustomerData } from '../api/customer-api.service';
 
 @Component({
   selector: 'customer-form',
@@ -9,10 +11,11 @@ import { CustomValidator } from '../../../common/CustomValidator';
 })
 export class CustomerFormComponent implements OnInit {
   constructor(
-    private countryApiService: CountryApiService
+    private countryApiService: CountryApiService,
+    private dateHelper: DateHelperService
   ) { }
 
-  @Input() customerData: CustomerFormData;
+  @Input() customerData: CustomerData;
   @Output() dataUpdatedEvent = new EventEmitter<void>();
 
   customerForm = new FormGroup({
@@ -29,12 +32,14 @@ export class CustomerFormComponent implements OnInit {
     telephoneNumber: new FormControl(''),
     email: new FormControl('', [Validators.maxLength(100), Validators.email]),
 
-    street: new FormControl('', [Validators.required, Validators.maxLength(100)]),
-    houseNumber: new FormControl('', [Validators.required, Validators.maxLength(10)]),
-    stairway: new FormControl(''),
-    door: new FormControl(''),
-    postalCode: new FormControl('', [Validators.required, Validators.pattern('^[0-9]{4}$')]),
-    city: new FormControl('', [Validators.required, Validators.maxLength(50)]),
+    address: new FormGroup({
+      street: new FormControl('', [Validators.required, Validators.maxLength(100)]),
+      houseNumber: new FormControl('', [Validators.required, Validators.maxLength(10)]),
+      stairway: new FormControl(''),
+      door: new FormControl(''),
+      postalCode: new FormControl('', [Validators.required, Validators.pattern('^[0-9]{4}$')]),
+      city: new FormControl('', [Validators.required, Validators.maxLength(50)]),
+    }),
 
     employer: new FormControl('', Validators.required),
     income: new FormControl('', Validators.required),
@@ -49,8 +54,8 @@ export class CustomerFormComponent implements OnInit {
     });
 
     this.customerForm.patchValue(this.customerData);
-    this.birthDate.setValue(this.customerData?.birthDate?.toISOString().substring(0, 10));
-    this.incomeDue.setValue(this.customerData?.incomeDue?.toISOString().substring(0, 10));
+    this.birthDate.setValue(this.dateHelper.convertForInputField(this.customerData?.birthDate));
+    this.incomeDue.setValue(this.dateHelper.convertForInputField(this.customerData?.incomeDue));
 
     this.customerForm.valueChanges.subscribe(() => {
       this.dataUpdatedEvent.emit();
@@ -65,35 +70,14 @@ export class CustomerFormComponent implements OnInit {
   get telephoneNumber() { return this.customerForm.get('telephoneNumber'); }
   get email() { return this.customerForm.get('email'); }
 
-  get street() { return this.customerForm.get('street'); }
-  get houseNumber() { return this.customerForm.get('houseNumber'); }
-  get stairway() { return this.customerForm.get('stairway'); }
-  get door() { return this.customerForm.get('door'); }
-  get postalCode() { return this.customerForm.get('postalCode'); }
-  get city() { return this.customerForm.get('city'); }
+  get street() { return this.customerForm.get('address').get('street'); }
+  get houseNumber() { return this.customerForm.get('address').get('houseNumber'); }
+  get stairway() { return this.customerForm.get('address').get('stairway'); }
+  get door() { return this.customerForm.get('address').get('door'); }
+  get postalCode() { return this.customerForm.get('address').get('postalCode'); }
+  get city() { return this.customerForm.get('address').get('city'); }
 
   get employer() { return this.customerForm.get('employer'); }
   get income() { return this.customerForm.get('income'); }
   get incomeDue() { return this.customerForm.get('incomeDue'); }
-}
-
-export interface CustomerFormData {
-  customerId?: number;
-  lastname?: string;
-  firstname?: string;
-  birthDate?: Date;
-  country?: CountryData;
-  telephoneNumber?: number;
-  email?: string;
-
-  street?: string;
-  houseNumber?: string;
-  stairway?: string;
-  door?: string;
-  postalCode?: number;
-  city?: string;
-
-  employer?: string;
-  income?: number;
-  incomeDue?: Date;
 }

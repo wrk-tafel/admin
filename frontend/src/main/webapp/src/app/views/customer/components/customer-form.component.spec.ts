@@ -3,7 +3,8 @@ import { RouterTestingModule } from '@angular/router/testing';
 import * as moment from 'moment';
 import { of } from 'rxjs';
 import { CountryApiService } from '../../../common/api/country-api.service';
-import { CustomerFormComponent, CustomerFormData } from './customer-form.component';
+import { CustomerData } from '../api/customer-api.service';
+import { CustomerFormComponent } from './customer-form.component';
 
 describe('CustomerFormComponent', () => {
   let apiService: jasmine.SpyObj<CountryApiService>;
@@ -43,19 +44,21 @@ describe('CustomerFormComponent', () => {
     const fixture = TestBed.createComponent(CustomerFormComponent);
     const component = fixture.componentInstance;
 
-    const testData: CustomerFormData = {
+    const testData: CustomerData = {
       lastname: 'Mustermann',
       firstname: 'Max',
       birthDate: moment().subtract(20, 'years').startOf('day').utc().toDate(),
       country: mockCountryList[0],
       telephoneNumber: 660123123,
       email: 'test@mail.com',
-      street: 'Testgasse',
-      houseNumber: '123A',
-      door: '1',
-      stairway: '1',
-      postalCode: 1234,
-      city: 'Wien',
+      address: {
+        street: 'Testgasse',
+        houseNumber: '123A',
+        door: '1',
+        stairway: '1',
+        postalCode: 1234,
+        city: 'Wien',
+      },
       employer: 'WRK',
       income: 123.50,
       incomeDue: moment().add(1, 'years').startOf('day').utc().toDate()
@@ -72,12 +75,12 @@ describe('CustomerFormComponent', () => {
     expect(component.customerForm.get('country').value).toBe(testData.country);
     expect(component.customerForm.get('telephoneNumber').value).toBe(testData.telephoneNumber);
     expect(component.customerForm.get('email').value).toBe(testData.email);
-    expect(component.customerForm.get('street').value).toBe(testData.street);
-    expect(component.customerForm.get('houseNumber').value).toBe(testData.houseNumber);
-    expect(component.customerForm.get('door').value).toBe(testData.door);
-    expect(component.customerForm.get('stairway').value).toBe(testData.stairway);
-    expect(component.customerForm.get('postalCode').value).toBe(testData.postalCode);
-    expect(component.customerForm.get('city').value).toBe(testData.city);
+    expect(component.customerForm.get('address').get('street').value).toBe(testData.address.street);
+    expect(component.customerForm.get('address').get('houseNumber').value).toBe(testData.address.houseNumber);
+    expect(component.customerForm.get('address').get('door').value).toBe(testData.address.door);
+    expect(component.customerForm.get('address').get('stairway').value).toBe(testData.address.stairway);
+    expect(component.customerForm.get('address').get('postalCode').value).toBe(testData.address.postalCode);
+    expect(component.customerForm.get('address').get('city').value).toBe(testData.address.city);
     expect(component.customerForm.get('employer').value).toBe(testData.employer);
     expect(component.customerForm.get('income').value).toBe(testData.income);
     expect(component.customerForm.get('incomeDue').value).toBe(moment(testData.incomeDue).startOf('day').utc().format('YYYY-MM-DD'));
