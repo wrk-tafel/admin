@@ -1,13 +1,19 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { CustomValidator } from '../../../common/CustomValidator';
+import { DateHelperService } from '../../../common/util/date-helper.service';
+import { CustomerAddPersonData } from '../api/customer-api.service';
 
 @Component({
   selector: 'addperson-form',
   templateUrl: 'addperson-form.component.html'
 })
 export class AddPersonFormComponent implements OnInit {
-  @Input() personData: AddPersonFormData;
+  constructor(
+    private dateHelper: DateHelperService
+  ) { }
+
+  @Input() personData: CustomerAddPersonFormData;
   @Output() dataUpdatedEvent = new EventEmitter<void>();
 
   personForm = new FormGroup({
@@ -24,7 +30,7 @@ export class AddPersonFormComponent implements OnInit {
 
   ngOnInit(): void {
     this.personForm.patchValue(this.personData);
-    this.birthDate.setValue(this.personData?.birthDate?.toISOString().substring(0, 10));
+    this.birthDate.setValue(this.dateHelper.convertForInputField(this.personData.birthDate));
 
     this.personForm.valueChanges.subscribe(() => {
       this.dataUpdatedEvent.emit();
@@ -37,10 +43,6 @@ export class AddPersonFormComponent implements OnInit {
   get income() { return this.personForm.get('income'); }
 }
 
-export interface AddPersonFormData {
+export interface CustomerAddPersonFormData extends CustomerAddPersonData {
   uuid?: string;
-  lastname?: string;
-  firstname?: string;
-  birthDate?: Date;
-  income?: number;
 }

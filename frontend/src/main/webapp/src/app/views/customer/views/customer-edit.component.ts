@@ -1,5 +1,5 @@
 import { Component, OnInit, Output, ViewChild, ViewChildren } from '@angular/core';
-import { AddPersonFormComponent, AddPersonFormData } from '../components/addperson-form.component';
+import { AddPersonFormComponent, CustomerAddPersonFormData } from '../components/addperson-form.component';
 import { CustomerFormComponent, CustomerFormData } from '../components/customer-form.component';
 import { v4 as uuidv4 } from 'uuid';
 import { FormGroup } from '@angular/forms';
@@ -33,7 +33,7 @@ export class CustomerEditComponent implements OnInit {
   }
 
   customerData: CustomerFormData;
-  additionalPersonsData: AddPersonFormData[] = [];
+  additionalPersonsData: CustomerAddPersonFormData[] = [];
 
   @Output() saveDisabled: boolean = true;
   @Output() errorMessage: string;
@@ -55,7 +55,7 @@ export class CustomerEditComponent implements OnInit {
     this.additionalPersonsData.splice(index, 1);
   }
 
-  trackBy(index: number, personData: AddPersonFormData) {
+  trackBy(index: number, personData: CustomerAddPersonFormData) {
     return personData.uuid;
   }
 

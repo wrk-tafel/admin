@@ -1,6 +1,6 @@
 import { TestBed, waitForAsync } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
-import { AddPersonFormComponent, AddPersonFormData } from './addperson-form.component';
+import { AddPersonFormComponent, CustomerAddPersonFormData } from './addperson-form.component';
 import { v4 as uuidv4 } from 'uuid';
 import * as moment from 'moment';
 
@@ -23,7 +23,7 @@ describe('AddPersonsFormComponent', () => {
   it('data filling and update is working', waitForAsync(() => {
     const fixture = TestBed.createComponent(AddPersonFormComponent);
     const component = fixture.componentInstance;
-    const testData: AddPersonFormData = {
+    const testData: CustomerAddPersonFormData = {
       uuid: uuidv4(),
       lastname: 'Mustermann',
       firstname: 'Max',
