@@ -95,7 +95,7 @@ describe('CustomerSearchComponent', () => {
         const testCustomerId = 12345;
 
         component.customerId.setValue(testCustomerId);
-        component.search();
+        component.searchForCustomerId();
 
         expect(router.navigate).toHaveBeenCalledTimes(0);
         expect(component.errorMessage).toBe('Kundennummer ' + testCustomerId + ' nicht gefunden!');
@@ -110,7 +110,7 @@ describe('CustomerSearchComponent', () => {
 
         apiService.searchCustomer.and.returnValue(of(searchCustomerMockResponse));
 
-        component.search();
+        component.searchForDetails();
 
         expect(apiService.searchCustomer).toHaveBeenCalledWith('lastname', 'firstname');
         const resultItems = component.searchResult.items;
@@ -124,7 +124,7 @@ describe('CustomerSearchComponent', () => {
         component.firstname.setValue('firstname');
         apiService.searchCustomer.and.returnValue(of());
 
-        component.search();
+        component.searchForDetails();
 
         expect(apiService.searchCustomer).toHaveBeenCalledWith('', 'firstname');
     });
@@ -135,7 +135,7 @@ describe('CustomerSearchComponent', () => {
         component.lastname.setValue('lastname');
         apiService.searchCustomer.and.returnValue(of());
 
-        component.search();
+        component.searchForDetails();
 
         expect(apiService.searchCustomer).toHaveBeenCalledWith('lastname', '');
     });

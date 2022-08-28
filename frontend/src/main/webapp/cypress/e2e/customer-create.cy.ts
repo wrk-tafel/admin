@@ -9,12 +9,6 @@ describe('Customer Creation', () => {
     cy.visit('/#/kunden/anlegen');
   });
 
-  it('shows errorMessage', () => {
-    cy.byTestId('validate-button').click();
-
-    cy.byTestId('errorMessage').should('be.visible');
-  });
-
   it('create new qualified customer', () => {
     createCustomer();
 
