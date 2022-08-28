@@ -26,7 +26,10 @@ export class CustomerFormComponent implements OnInit {
       ]
     ),
 
-    country: new FormControl('', Validators.required),
+    country: new FormGroup({
+      name: new FormControl('', Validators.required)
+    }),
+
     telephoneNumber: new FormControl(''),
     email: new FormControl('', [Validators.maxLength(100), Validators.email]),
 
@@ -60,7 +63,7 @@ export class CustomerFormComponent implements OnInit {
   get lastname() { return this.form.get('lastname'); }
   get firstname() { return this.form.get('firstname'); }
   get birthDate() { return this.form.get('birthDate'); }
-  get country() { return this.form.get('country'); }
+  get name() { return this.form.get('country').get('name'); }
   get telephoneNumber() { return this.form.get('telephoneNumber'); }
   get email() { return this.form.get('email'); }
 

@@ -45,6 +45,7 @@ describe('CustomerFormComponent', () => {
     const component = fixture.componentInstance;
 
     const testData: CustomerData = {
+      id: 123,
       lastname: 'Mustermann',
       firstname: 'Max',
       birthDate: moment().subtract(20, 'years').startOf('day').utc().toDate(),
@@ -64,15 +65,16 @@ describe('CustomerFormComponent', () => {
       incomeDue: moment().add(1, 'years').startOf('day').utc().toDate()
     };
 
-    component.customerData = testData;
+    component.form.patchValue(testData);
     spyOn(component.dataUpdatedEvent, 'emit');
     component.ngOnInit();
 
-    expect(component.form.get('customerId').value).toBe('');
+    // TODO check dom elements - makes more sense
+    expect(component.form.get('id').value).toBe(testData.id);
     expect(component.form.get('lastname').value).toBe(testData.lastname);
     expect(component.form.get('firstname').value).toBe(testData.firstname);
-    expect(component.form.get('birthDate').value).toBe(moment(testData.birthDate).startOf('day').utc().format('YYYY-MM-DD'));
-    expect(component.form.get('country').value).toBe(testData.country);
+    expect(component.form.get('birthDate').value).toBe(testData.birthDate);
+    expect(component.form.get('country').get('name').value).toBe(testData.country.name);
     expect(component.form.get('telephoneNumber').value).toBe(testData.telephoneNumber);
     expect(component.form.get('email').value).toBe(testData.email);
     expect(component.form.get('address').get('street').value).toBe(testData.address.street);
@@ -83,7 +85,7 @@ describe('CustomerFormComponent', () => {
     expect(component.form.get('address').get('city').value).toBe(testData.address.city);
     expect(component.form.get('employer').value).toBe(testData.employer);
     expect(component.form.get('income').value).toBe(testData.income);
-    expect(component.form.get('incomeDue').value).toBe(moment(testData.incomeDue).startOf('day').utc().format('YYYY-MM-DD'));
+    expect(component.form.get('incomeDue').value).toBe(testData.incomeDue);
 
     expect(component.form.valid).toBe(true);
     expect(component.countries).toEqual(mockCountryList);
