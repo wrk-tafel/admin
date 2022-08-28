@@ -108,7 +108,7 @@ describe('CustomerDetailComponent', () => {
       income: mockCustomer.income,
       incomeDue: moment(mockCustomer.incomeDue).startOf('day').utc().format('DD.MM.YYYY')
     };
-    expect(component.customerDetailData).toEqual(checkData);
+    expect(component.customerData).toEqual(checkData);
 
     const addPers1 = mockCustomer.additionalPersons[0];
     const addPers2 = mockCustomer.additionalPersons[1];
