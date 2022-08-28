@@ -41,7 +41,7 @@ export class CustomerSearchComponent {
         if (response.items.length === 0) {
           this.errorMessage = 'Keine Kunden gefunden!';
         } else {
-          this.searchResult = { items: response.items.map(item => this.mapItem(item)) };
+          this.searchResult = response;
         }
       });
   }
@@ -54,14 +54,7 @@ export class CustomerSearchComponent {
     this.router.navigate(['/kunden/bearbeiten', customerId]);
   }
 
-  private mapItem(item: CustomerData): CustomerResultItem {
-    return {
-      ...item,
-      addressLine: this.formatAddress(item.address)
-    };
-  }
-
-  private formatAddress(address: CustomerAddressData): string {
+  formatAddress(address: CustomerAddressData): string {
     let result = '';
     result += address.street + ' ' + address.houseNumber;
     if (address.stairway) {
@@ -77,8 +70,4 @@ export class CustomerSearchComponent {
   get customerId() { return this.customerSearchForm.get('customerId'); }
   get lastname() { return this.customerSearchForm.get('lastname'); }
   get firstname() { return this.customerSearchForm.get('firstname'); }
-}
-
-interface CustomerResultItem extends CustomerData {
-  addressLine: string;
 }

@@ -4,6 +4,7 @@
 module.exports = function (config) {
   config.set({
     basePath: '',
+    logLevel: 'LOG',
     frameworks: ['jasmine', '@angular-devkit/build-angular'],
     plugins: [
       require('karma-jasmine'),
@@ -13,6 +14,7 @@ module.exports = function (config) {
       require('@angular-devkit/build-angular/plugins/karma')
     ],
     client: {
+      captureConsole: true,
       jasmine: {
         // you can add configuration options for Jasmine here
         // the possible options are listed at https://jasmine.github.io/api/edge/Configuration.html
@@ -53,6 +55,10 @@ module.exports = function (config) {
         base: 'Chrome',
         flags: ['--remote-debugging-port=0333']
       }
+    },
+    browserConsoleLogOptions: {
+      terminal: true,
+      level: 'log'
     }
   });
 };

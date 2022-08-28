@@ -69,11 +69,11 @@
                             <tbody>
                                 <tr testid="searchresult-row"
                                     *ngFor="let customer of searchResult.items; let i = index">
-                                    <td>{{customer.id}}</td>
-                                    <td>{{customer.lastname}}</td>
-                                    <td>{{customer.firstname}}</td>
-                                    <td>{{customer.birthDate}}</td>
-                                    <td>{{customer.addressLine}}</td>
+                                    <td [attr.testid]="'searchresult-id-' + i">{{customer.id}}</td>
+                                    <td [attr.testid]="'searchresult-lastname-' + i">{{customer.lastname}}</td>
+                                    <td [attr.testid]="'searchresult-firstname-' + i">{{customer.firstname}}</td>
+                                    <td [attr.testid]="'searchresult-birthDate-' + i">{{customer.birthDate}}</td>
+                                    <td [attr.testid]="'searchresult-address-' + i">{{formatAddress(customer.address)}}</td>
                                     <td>
                                         <div class="row">
                                             <div class="col-3 mr-3">

@@ -1,9 +1,11 @@
 import { TestBed, waitForAsync } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
+import { By } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import * as moment from 'moment';
 import { of, throwError } from 'rxjs';
+import { isFunctionOrConstructorTypeNode } from 'typescript';
 import { CustomerApiService } from '../api/customer-api.service';
 import { CustomerSearchComponent } from './customer-search.component';
 
@@ -17,7 +19,7 @@ describe('CustomerSearchComponent', () => {
                 id: 0,
                 firstname: 'first',
                 lastname: 'last',
-                birthDate: moment().subtract(20, 'years').toDate(),
+                birthDate: '10.05.2000',
                 address: {
                     street: 'street',
                     houseNumber: '1',
@@ -28,14 +30,6 @@ describe('CustomerSearchComponent', () => {
                 }
             }
         ]
-    };
-
-    const searchCustomerResultItem = {
-        id: 0,
-        lastname: 'last',
-        firstname: 'first',
-        birthDate: moment().subtract(20, 'years').format('DD.MM.YYYY'),
-        address: 'street 1, Stiege stairway1, Top 20 / 1010 city'
     };
 
     beforeEach(waitForAsync(() => {
@@ -111,11 +105,16 @@ describe('CustomerSearchComponent', () => {
         apiService.searchCustomer.and.returnValue(of(searchCustomerMockResponse));
 
         component.searchForDetails();
+        fixture.detectChanges();
 
         expect(apiService.searchCustomer).toHaveBeenCalledWith('lastname', 'firstname');
-        const resultItems = component.searchResult.items;
-        expect(resultItems.length).toBe(1);
-        expect(resultItems[0]).toEqual(searchCustomerResultItem);
+
+        expect(fixture.debugElement.query(By.css('[testId="searchresult-id-0"]')).nativeElement.textContent).toBe(0);
+        expect(fixture.debugElement.query(By.css('[testId="searchresult-lastname-0"]')).nativeElement.textContent).toBe('last');
+        expect(fixture.debugElement.query(By.css('[testId="searchresult-firstname-0"]')).nativeElement.textContent).toBe('first');
+        expect(fixture.debugElement.query(By.css('[testId="searchresult-birthDate-0"]')).nativeElement.textContent).toBe('10.05.2000');
+        expect(fixture.debugElement.query(By.css('[testId="searchresult-address-0"]')).nativeElement.textContent)
+            .toBe('street 1, Stiege stairway1, Top 20 / 1010 city');
     });
 
     it('search with firstname only', () => {
