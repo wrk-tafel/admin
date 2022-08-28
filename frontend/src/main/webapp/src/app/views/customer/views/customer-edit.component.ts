@@ -29,6 +29,9 @@ export class CustomerEditComponent implements OnInit {
           console.log("EDIT CUSTOMER", customerData);
           // TODO impl
 
+          // TODO correct country input mapping
+          // TODO correct reading from forms (add persons)
+
           this.customerFormComponent.form.patchValue(customerData);
           this.additionalPersonsData.splice(0);
           customerData.additionalPersons.forEach((person) => {
