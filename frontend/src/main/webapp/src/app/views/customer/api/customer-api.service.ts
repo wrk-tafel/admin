@@ -52,7 +52,7 @@ export interface CustomerData {
   id?: number;
   firstname: string;
   lastname: string;
-  birthDate: Date;
+  birthDate: string;
   country?: CountryData;
   address: CustomerAddressData;
   telephoneNumber?: number;

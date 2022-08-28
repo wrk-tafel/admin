@@ -5,7 +5,6 @@ import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import * as moment from 'moment';
 import { of, throwError } from 'rxjs';
-import { isFunctionOrConstructorTypeNode } from 'typescript';
 import { CustomerApiService } from '../api/customer-api.service';
 import { CustomerSearchComponent } from './customer-search.component';
 
@@ -109,7 +108,7 @@ describe('CustomerSearchComponent', () => {
 
         expect(apiService.searchCustomer).toHaveBeenCalledWith('lastname', 'firstname');
 
-        expect(fixture.debugElement.query(By.css('[testId="searchresult-id-0"]')).nativeElement.textContent).toBe(0);
+        expect(fixture.debugElement.query(By.css('[testId="searchresult-id-0"]')).nativeElement.textContent).toBe('0');
         expect(fixture.debugElement.query(By.css('[testId="searchresult-lastname-0"]')).nativeElement.textContent).toBe('last');
         expect(fixture.debugElement.query(By.css('[testId="searchresult-firstname-0"]')).nativeElement.textContent).toBe('first');
         expect(fixture.debugElement.query(By.css('[testId="searchresult-birthDate-0"]')).nativeElement.textContent).toBe('10.05.2000');
