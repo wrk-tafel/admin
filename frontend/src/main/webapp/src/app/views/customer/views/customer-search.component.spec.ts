@@ -18,7 +18,7 @@ describe('CustomerSearchComponent', () => {
                 id: 0,
                 firstname: 'first',
                 lastname: 'last',
-                birthDate: '10.05.2000',
+                birthDate: moment('10.05.2000', 'DD.MM.YYYY').toDate(),
                 address: {
                     street: 'street',
                     houseNumber: '1',
@@ -104,10 +104,10 @@ describe('CustomerSearchComponent', () => {
         apiService.searchCustomer.and.returnValue(of(searchCustomerMockResponse));
 
         component.searchForDetails();
-        fixture.detectChanges();
 
         expect(apiService.searchCustomer).toHaveBeenCalledWith('lastname', 'firstname');
 
+        fixture.detectChanges();
         expect(fixture.debugElement.query(By.css('[testId="searchresult-id-0"]')).nativeElement.textContent).toBe('0');
         expect(fixture.debugElement.query(By.css('[testId="searchresult-lastname-0"]')).nativeElement.textContent).toBe('last');
         expect(fixture.debugElement.query(By.css('[testId="searchresult-firstname-0"]')).nativeElement.textContent).toBe('first');

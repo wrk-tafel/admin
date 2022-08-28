@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
-import * as moment from 'moment';
+import { DateHelperService } from '../../../common/util/date-helper.service';
 import { CustomerAddressData, CustomerApiService, CustomerData, CustomerSearchResult } from '../api/customer-api.service';
 
 @Component({
@@ -11,11 +11,14 @@ import { CustomerAddressData, CustomerApiService, CustomerData, CustomerSearchRe
 export class CustomerSearchComponent {
   constructor(
     private customerApiService: CustomerApiService,
-    private router: Router
+    private router: Router,
+    private dateHelper: DateHelperService
   ) { }
 
   errorMessage: string;
   searchResult: CustomerSearchResult;
+
+  formatDate = this.dateHelper.formatDate
 
   customerSearchForm = new FormGroup({
     customerId: new FormControl(''),
