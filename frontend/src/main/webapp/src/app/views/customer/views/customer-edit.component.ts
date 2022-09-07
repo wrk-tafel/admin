@@ -73,16 +73,12 @@ export class CustomerEditComponent implements OnInit {
   validationResult: ValidateCustomerResponse;
 
   addNewPerson() {
-    if (!this.editMode) {
-      this.saveDisabled = true;
-    }
+    this.setSaveDisabled(true);
     this.additionalPersonsData.push({ uuid: uuidv4(), firstname: null, lastname: null, birthDate: null });
   }
 
   removePerson(index: number) {
-    if (!this.editMode) {
-      this.saveDisabled = true;
-    }
+    this.setSaveDisabled(true);
     this.additionalPersonsData.splice(index, 1);
   }
 
@@ -92,21 +88,15 @@ export class CustomerEditComponent implements OnInit {
 
   // TODO re-enable change binding
   updatedCustomerFormData() {
-    if (!this.editMode) {
-      this.saveDisabled = true;
-    }
+    this.setSaveDisabled(true);
   }
 
   updatedPersonsFormData() {
-    if (!this.editMode) {
-      this.saveDisabled = true;
-    }
+    this.setSaveDisabled(true);
   }
 
   validate() {
-    if (!this.editMode) {
-      this.saveDisabled = true;
-    }
+    this.setSaveDisabled(true);
 
     if (this.formsAreInvalid()) {
       this.errorMessage = 'Bitte Eingaben überprüfen!';
@@ -117,10 +107,7 @@ export class CustomerEditComponent implements OnInit {
       this.customerApiService.validate(customerData).subscribe((result) => {
         this.validationResult = result;
 
-        if (!this.editMode) {
-          this.saveDisabled = !result.valid;
-        }
-
+        this.setSaveDisabled(!result.valid);
         this.validationResultModal.show();
       });
     }
@@ -128,12 +115,28 @@ export class CustomerEditComponent implements OnInit {
 
   save() {
     const customerData = this.readFullData();
-    this.customerApiService.createCustomer(customerData)
-      .pipe(
-        tap(customer => {
-          this.router.navigate(['/kunden/detail', customer.id]);
-        })
-      ).subscribe();
+
+    if (!this.editMode) {
+      this.customerApiService.createCustomer(customerData)
+        .pipe(
+          tap(customer => {
+            this.router.navigate(['/kunden/detail', customer.id]);
+          })
+        ).subscribe();
+    } else {
+      this.customerApiService.updateCustomer(customerData)
+        .pipe(
+          tap(customer => {
+            this.router.navigate(['/kunden/detail', customer.id]);
+          })
+        ).subscribe();
+    }
+  }
+
+  private setSaveDisabled(value: boolean) {
+    if (!this.editMode) {
+      this.saveDisabled = value;
+    }
   }
 
   private readFullData(): CustomerData {

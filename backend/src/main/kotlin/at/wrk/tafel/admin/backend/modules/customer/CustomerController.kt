@@ -40,8 +40,6 @@ class CustomerController(
         )
     }
 
-    // TODO add update POST /{id}
-
     @PostMapping
     fun createCustomer(@RequestBody customer: Customer): Customer {
         customer.id?.let {
@@ -51,6 +49,20 @@ class CustomerController(
         }
 
         val entity = mapRequestToEntity(customer)
+        val savedEntity = customerRepository.save(entity)
+        return mapEntityToResponse(savedEntity)
+    }
+
+    @PostMapping("/{id}")
+    fun updateCustomer(
+        @PathVariable("id") customerId: Long,
+        @RequestBody customer: Customer
+    ): Customer {
+        if (!customerRepository.existsByCustomerId(customerId)) {
+            throw ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Kunde Nr. $customerId nicht vorhanden!")
+        }
+
+        val entity = mapRequestToEntity(customer, customerRepository.getReferenceByCustomerId(customerId))
         val savedEntity = customerRepository.save(entity)
         return mapEntityToResponse(savedEntity)
     }
@@ -113,8 +125,9 @@ class CustomerController(
         return ResponseEntity.notFound().build()
     }
 
-    private fun mapRequestToEntity(customer: Customer): CustomerEntity {
-        val customerEntity = CustomerEntity()
+    private fun mapRequestToEntity(customer: Customer, entity: CustomerEntity? = null): CustomerEntity {
+        val customerEntity = entity ?: CustomerEntity()
+
         customerEntity.customerId = customer.id ?: customerRepository.getNextCustomerSequenceValue()
         customerEntity.lastname = customer.lastname.trim()
         customerEntity.firstname = customer.firstname.trim()
