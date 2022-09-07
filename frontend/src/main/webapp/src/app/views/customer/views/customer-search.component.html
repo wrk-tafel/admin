@@ -58,6 +58,7 @@
                         <table class="table table-striped">
                             <thead>
                                 <tr>
+                                    <th></th>
                                     <th>Nr.</th>
                                     <th>Nachname</th>
                                     <th>Vorname</th>
@@ -69,6 +70,7 @@
                             <tbody>
                                 <tr testid="searchresult-row"
                                     *ngFor="let customer of searchResult.items; let i = index">
+                                    <td><i class="fa fa-user"></i></td>
                                     <td [attr.testid]="'searchresult-id-' + i">{{customer.id}}</td>
                                     <td [attr.testid]="'searchresult-lastname-' + i">{{customer.lastname}}</td>
                                     <td [attr.testid]="'searchresult-firstname-' + i">{{customer.firstname}}</td>
