@@ -2,6 +2,7 @@ import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { CountryData, CountryApiService } from '../../../common/api/country-api.service';
 import { CustomValidator } from '../../../common/CustomValidator';
+import { CustomerData } from '../api/customer-api.service';
 
 @Component({
   selector: 'customer-form',
@@ -11,6 +12,12 @@ export class CustomerFormComponent implements OnInit {
   constructor(
     private countryApiService: CountryApiService
   ) { }
+
+  @Input()
+  set customerData(customerData: CustomerData) {
+    this.form.patchValue(customerData);
+  }
+  get customerData() { return this.customerData; }
 
   @Output() dataUpdatedEvent = new EventEmitter<void>();
 
@@ -26,10 +33,7 @@ export class CustomerFormComponent implements OnInit {
       ]
     ),
 
-    country: new FormGroup({
-      name: new FormControl('', Validators.required)
-    }),
-
+    country: new FormControl({}, Validators.required),
     telephoneNumber: new FormControl(''),
     email: new FormControl('', [Validators.maxLength(100), Validators.email]),
 
@@ -63,7 +67,7 @@ export class CustomerFormComponent implements OnInit {
   get lastname() { return this.form.get('lastname'); }
   get firstname() { return this.form.get('firstname'); }
   get birthDate() { return this.form.get('birthDate'); }
-  get name() { return this.form.get('country').get('name'); }
+  get country() { return this.form.get('country'); }
   get telephoneNumber() { return this.form.get('telephoneNumber'); }
   get email() { return this.form.get('email'); }
 

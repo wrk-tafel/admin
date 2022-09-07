@@ -46,11 +46,11 @@
                 Max. Datum: {{birthDate.errors.maxdate.maximumDate}}
             </div>
         </div>
-        <div class="col-sm" formGroupName="country">
+        <div class="col-sm">
             <label class="form-label">Nationalität</label>
             <div class="input-group">
-                <select testId="countryInput" formControlName="name" class="form-control"
-                    [ngClass]="{'is-invalid': name.invalid && (name.dirty || name.touched), 'is-valid': name.valid && (name.dirty || name.touched)}">
+                <select testId="countryInput" formControlName="country" class="form-control"
+                    [ngClass]="{'is-invalid': country.invalid && (country.dirty || country.touched), 'is-valid': country.valid && (country.dirty || country.touched)}">
                     <option *ngFor="let countryItem of countries" [ngValue]="countryItem">
                         {{countryItem.name}}
                     </option>
@@ -58,7 +58,7 @@
                 <div class="input-group-append">
                     <span class="input-group-text"><i class="fa fa-flag"></i></span>
                 </div>
-                <div *ngIf="name.errors?.required && (name.dirty || name.touched)" class="invalid-feedback">
+                <div *ngIf="country.errors?.required && (country.dirty || country.touched)" class="invalid-feedback">
                     Pflichtfeld
                 </div>
             </div>

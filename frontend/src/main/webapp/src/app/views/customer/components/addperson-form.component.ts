@@ -8,7 +8,12 @@ import { CustomerAddPersonData } from '../api/customer-api.service';
   templateUrl: 'addperson-form.component.html'
 })
 export class AddPersonFormComponent implements OnInit {
-  @Input() personData: CustomerAddPersonFormData;
+  @Input()
+  set personData(personData: CustomerAddPersonFormData) {
+    this.form.patchValue(personData);
+  }
+  get personData() { return this.personData; }
+
   @Output() dataUpdatedEvent = new EventEmitter<void>();
 
   form = new FormGroup({
@@ -24,8 +29,6 @@ export class AddPersonFormComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    this.form.patchValue(this.personData);
-
     this.form.valueChanges.subscribe(() => {
       this.dataUpdatedEvent.emit();
     });

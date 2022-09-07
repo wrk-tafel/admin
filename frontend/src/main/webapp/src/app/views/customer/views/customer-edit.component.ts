@@ -1,4 +1,4 @@
-import { AfterContentChecked, AfterContentInit, AfterViewChecked, AfterViewInit, Component, OnInit, Output, ViewChild, ViewChildren } from '@angular/core';
+import { Component, Input, OnInit, Output, ViewChild, ViewChildren } from '@angular/core';
 import { AddPersonFormComponent, CustomerAddPersonFormData } from '../components/addperson-form.component';
 import { CustomerFormComponent } from '../components/customer-form.component';
 import { v4 as uuidv4 } from 'uuid';
@@ -32,14 +32,19 @@ export class CustomerEditComponent implements OnInit {
           // TODO correct country input mapping
           // TODO correct reading from forms (add persons)
 
+          // const selectedCountry = this.customerFormComponent.countries.filter((country) => country.id === customerData.country.id);
+          // console.log("SEL COUNTRY", selectedCountry);
+          //customerData = { ...customerData, country: selectedCountry }
+
           // Load data into forms
-          this.customerFormComponent.form.patchValue(customerData);
+          this.customerData = customerData;
+
           this.additionalPersonsData.splice(0);
           customerData.additionalPersons.forEach((person) => {
             this.additionalPersonsData.push(person);
           });
 
-          // Mark forms as touched to show the validation state
+          // Mark forms as touched to show the validation state (postponed to next makrotask after angular finished)
           setTimeout(() => {
             this.customerFormComponent.form.markAllAsTouched();
             this.addPersonForms.forEach((personForm) => {
@@ -51,6 +56,7 @@ export class CustomerEditComponent implements OnInit {
     });
   }
 
+  customerData: CustomerData;
   additionalPersonsData: CustomerAddPersonFormData[] = [];
 
   @Output() saveDisabled: boolean = true;
@@ -93,7 +99,7 @@ export class CustomerEditComponent implements OnInit {
     } else {
       this.errorMessage = null;
 
-      const customerData = this.readFormData();
+      const customerData = this.readFullData();
       this.apiService.validate(customerData).subscribe((result) => {
         this.validationResult = result;
         this.saveDisabled = !result.valid;
@@ -103,7 +109,7 @@ export class CustomerEditComponent implements OnInit {
   }
 
   save() {
-    const customerData = this.readFormData();
+    const customerData = this.readFullData();
     this.apiService.createCustomer(customerData)
       .pipe(
         tap(customer => {
@@ -112,10 +118,10 @@ export class CustomerEditComponent implements OnInit {
       ).subscribe();
   }
 
-  private readFormData(): CustomerData {
+  private readFullData(): CustomerData {
     return {
-      ...this.customerFormComponent.form.value,
-      additionalPersons: this.addPersonForms.map((personForm) => { personForm.form.value })
+      ...this.customerData,
+      additionalPersons: this.additionalPersonsData
     }
   }
 
