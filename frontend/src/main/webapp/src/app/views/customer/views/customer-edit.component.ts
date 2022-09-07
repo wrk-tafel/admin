@@ -1,4 +1,4 @@
-import { Component, OnInit, Output, ViewChild, ViewChildren } from '@angular/core';
+import { AfterContentChecked, AfterContentInit, AfterViewChecked, AfterViewInit, Component, OnInit, Output, ViewChild, ViewChildren } from '@angular/core';
 import { AddPersonFormComponent, CustomerAddPersonFormData } from '../components/addperson-form.component';
 import { CustomerFormComponent } from '../components/customer-form.component';
 import { v4 as uuidv4 } from 'uuid';
@@ -32,10 +32,19 @@ export class CustomerEditComponent implements OnInit {
           // TODO correct country input mapping
           // TODO correct reading from forms (add persons)
 
+          // Load data into forms
           this.customerFormComponent.form.patchValue(customerData);
           this.additionalPersonsData.splice(0);
           customerData.additionalPersons.forEach((person) => {
             this.additionalPersonsData.push(person);
+          });
+
+          // Mark forms as touched to show the validation state
+          setTimeout(() => {
+            this.customerFormComponent.form.markAllAsTouched();
+            this.addPersonForms.forEach((personForm) => {
+              personForm.form.markAllAsTouched();
+            });
           });
         });
       }
