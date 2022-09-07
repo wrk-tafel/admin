@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { CountryData, CountryApiService } from '../../../common/api/country-api.service';
+import { CountryData } from '../../../common/api/country-api.service';
 import { CustomValidator } from '../../../common/CustomValidator';
 import { CustomerData } from '../api/customer-api.service';
 
@@ -9,17 +9,15 @@ import { CustomerData } from '../api/customer-api.service';
   templateUrl: 'customer-form.component.html'
 })
 export class CustomerFormComponent implements OnInit {
-  constructor(
-    private countryApiService: CountryApiService
-  ) { }
+
+  @Input() countries: CountryData[];
 
   @Input()
   set customerData(customerData: CustomerData) {
     this.form.patchValue(customerData);
   }
   get customerData() { return this.customerData; }
-
-  @Output() dataUpdatedEvent = new EventEmitter<void>();
+  @Output() customerDataChange = new EventEmitter<CustomerData>();
 
   form = new FormGroup({
     id: new FormControl(''),
@@ -51,15 +49,9 @@ export class CustomerFormComponent implements OnInit {
     incomeDue: new FormControl('', CustomValidator.minDate(new Date()))
   });
 
-  countries: CountryData[];
-
   ngOnInit(): void {
-    this.countryApiService.getCountries().subscribe((data: CountryData[]) => {
-      this.countries = data;
-    });
-
     this.form.valueChanges.subscribe(() => {
-      this.dataUpdatedEvent.emit();
+      this.customerDataChange.emit(this.form.value);
     });
   }
 

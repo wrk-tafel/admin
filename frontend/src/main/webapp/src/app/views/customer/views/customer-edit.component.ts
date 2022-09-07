@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, Output, ViewChild, ViewChildren } from '@angular/core';
+import { Component, OnInit, Output, ViewChild, ViewChildren } from '@angular/core';
 import { AddPersonFormComponent, CustomerAddPersonFormData } from '../components/addperson-form.component';
 import { CustomerFormComponent } from '../components/customer-form.component';
 import { v4 as uuidv4 } from 'uuid';
@@ -7,6 +7,7 @@ import { CustomerData, CustomerApiService, ValidateCustomerResponse } from '../a
 import { ModalDirective } from 'ngx-bootstrap/modal';
 import { tap } from 'rxjs/operators';
 import { ActivatedRoute, Router } from '@angular/router';
+import { CountryApiService, CountryData } from '../../../common/api/country-api.service';
 
 @Component({
   selector: 'customer-edit',
@@ -14,30 +15,31 @@ import { ActivatedRoute, Router } from '@angular/router';
 })
 export class CustomerEditComponent implements OnInit {
   constructor(
-    private apiService: CustomerApiService,
+    private customerApiService: CustomerApiService,
+    private countryApiService: CountryApiService,
     private router: Router,
     private route: ActivatedRoute,
   ) { }
 
   ngOnInit(): void {
+    this.countryApiService.getCountries().subscribe((data: CountryData[]) => {
+      this.countries = data;
+    });
+
     this.route.params.subscribe(params => {
       const customerId = +params['id'];
       if (customerId) {
-        this.apiService.getCustomer(customerId).subscribe((customerData) => {
+        this.customerApiService.getCustomer(customerId).subscribe((customerData) => {
+          // Editing doesn't need a validation check
+          this.saveDisabled = false;
           this.editMode = true;
 
-          console.log("EDIT CUSTOMER", customerData);
-          // TODO impl
-
-          // TODO correct country input mapping
-          // TODO correct reading from forms (add persons)
-
-          // const selectedCountry = this.customerFormComponent.countries.filter((country) => country.id === customerData.country.id);
-          // console.log("SEL COUNTRY", selectedCountry);
-          //customerData = { ...customerData, country: selectedCountry }
-
           // Load data into forms
-          this.customerData = customerData;
+          const selectedCountry = this.countries.filter(country => country.id === customerData.country.id)[0];
+          this.customerData = {
+            ...customerData,
+            country: selectedCountry
+          };
 
           this.additionalPersonsData.splice(0);
           customerData.additionalPersons.forEach((person) => {
@@ -56,26 +58,31 @@ export class CustomerEditComponent implements OnInit {
     });
   }
 
+  countries: CountryData[];
   customerData: CustomerData;
   additionalPersonsData: CustomerAddPersonFormData[] = [];
 
-  @Output() saveDisabled: boolean = true;
-  @Output() errorMessage: string;
+  editMode: boolean = false;
+  saveDisabled: boolean = true;
+  errorMessage: string;
 
   @ViewChild(CustomerFormComponent) customerFormComponent: CustomerFormComponent;
   @ViewChildren(AddPersonFormComponent) addPersonForms: AddPersonFormComponent[];
   @ViewChild('validationResultModal') validationResultModal: ModalDirective;
 
   validationResult: ValidateCustomerResponse;
-  editMode = false;
 
   addNewPerson() {
-    this.saveDisabled = true;
+    if (!this.editMode) {
+      this.saveDisabled = true;
+    }
     this.additionalPersonsData.push({ uuid: uuidv4(), firstname: null, lastname: null, birthDate: null });
   }
 
   removePerson(index: number) {
-    this.saveDisabled = true;
+    if (!this.editMode) {
+      this.saveDisabled = true;
+    }
     this.additionalPersonsData.splice(index, 1);
   }
 
@@ -83,16 +90,23 @@ export class CustomerEditComponent implements OnInit {
     return personData.uuid;
   }
 
+  // TODO re-enable change binding
   updatedCustomerFormData() {
-    this.saveDisabled = true;
+    if (!this.editMode) {
+      this.saveDisabled = true;
+    }
   }
 
   updatedPersonsFormData() {
-    this.saveDisabled = true;
+    if (!this.editMode) {
+      this.saveDisabled = true;
+    }
   }
 
   validate() {
-    this.saveDisabled = true;
+    if (!this.editMode) {
+      this.saveDisabled = true;
+    }
 
     if (this.formsAreInvalid()) {
       this.errorMessage = 'Bitte Eingaben überprüfen!';
@@ -100,9 +114,13 @@ export class CustomerEditComponent implements OnInit {
       this.errorMessage = null;
 
       const customerData = this.readFullData();
-      this.apiService.validate(customerData).subscribe((result) => {
+      this.customerApiService.validate(customerData).subscribe((result) => {
         this.validationResult = result;
-        this.saveDisabled = !result.valid;
+
+        if (!this.editMode) {
+          this.saveDisabled = !result.valid;
+        }
+
         this.validationResultModal.show();
       });
     }
@@ -110,7 +128,7 @@ export class CustomerEditComponent implements OnInit {
 
   save() {
     const customerData = this.readFullData();
-    this.apiService.createCustomer(customerData)
+    this.customerApiService.createCustomer(customerData)
       .pipe(
         tap(customer => {
           this.router.navigate(['/kunden/detail', customer.id]);

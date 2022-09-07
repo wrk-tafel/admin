@@ -40,6 +40,8 @@ class CustomerController(
         )
     }
 
+    // TODO add update POST /{id}
+
     @PostMapping
     fun createCustomer(@RequestBody customer: Customer): Customer {
         customer.id?.let {
