@@ -43,6 +43,7 @@ export class CustomerSearchComponent {
       .subscribe((response: CustomerSearchResult) => {
         if (response.items.length === 0) {
           this.errorMessage = 'Keine Kunden gefunden!';
+          this.searchResult = null;
         } else {
           this.searchResult = response;
         }

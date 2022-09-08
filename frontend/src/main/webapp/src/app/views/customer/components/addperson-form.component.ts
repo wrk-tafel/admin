@@ -14,7 +14,7 @@ export class AddPersonFormComponent implements OnInit {
   }
   get personData() { return this.personData; }
 
-  @Output() dataUpdatedEvent = new EventEmitter<void>();
+  @Output() dataUpdatedEvent = new EventEmitter<CustomerAddPersonFormData>();
 
   form = new FormGroup({
     uuid: new FormControl(),
@@ -30,7 +30,7 @@ export class AddPersonFormComponent implements OnInit {
 
   ngOnInit(): void {
     this.form.valueChanges.subscribe(() => {
-      this.dataUpdatedEvent.emit();
+      this.dataUpdatedEvent.emit(this.form.value);
     });
   }
 

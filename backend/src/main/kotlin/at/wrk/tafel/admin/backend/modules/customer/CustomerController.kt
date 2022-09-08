@@ -3,6 +3,7 @@ package at.wrk.tafel.admin.backend.modules.customer
 import at.wrk.tafel.admin.backend.database.entities.CustomerAddPersonEntity
 import at.wrk.tafel.admin.backend.database.entities.CustomerEntity
 import at.wrk.tafel.admin.backend.database.entities.staticdata.CountryEntity
+import at.wrk.tafel.admin.backend.database.repositories.CustomerAddPersonRepository
 import at.wrk.tafel.admin.backend.database.repositories.CustomerRepository
 import at.wrk.tafel.admin.backend.database.repositories.staticdata.CountryRepository
 import at.wrk.tafel.admin.backend.modules.base.Country
@@ -24,6 +25,7 @@ import java.io.ByteArrayInputStream
 @PreAuthorize("hasAuthority('CUSTOMER')")
 class CustomerController(
     private val customerRepository: CustomerRepository,
+    private val customerAddPersonRepository: CustomerAddPersonRepository,
     private val countryRepository: CountryRepository,
     private val incomeValidatorService: IncomeValidatorService,
     private val masterdataPdfService: MasterdataPdfService
@@ -146,14 +148,14 @@ class CustomerController(
         customerEntity.incomeDue = customer.incomeDue
 
         customerEntity.additionalPersons = customer.additionalPersons.map {
-            val addPersonEntity = CustomerAddPersonEntity()
+            val addPersonEntity = customerAddPersonRepository.findById(it.id).orElseGet { CustomerAddPersonEntity() }
             addPersonEntity.customer = customerEntity
             addPersonEntity.lastname = it.lastname.trim()
             addPersonEntity.firstname = it.firstname.trim()
             addPersonEntity.birthDate = it.birthDate
             addPersonEntity.income = it.income
             addPersonEntity
-        }.toList()
+        }.toMutableList()
 
         return customerEntity
     }

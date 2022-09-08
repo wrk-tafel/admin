@@ -1,4 +1,4 @@
-import { Component, OnInit, Output, ViewChild, ViewChildren } from '@angular/core';
+import { Component, OnInit, ViewChild, ViewChildren } from '@angular/core';
 import { AddPersonFormComponent, CustomerAddPersonFormData } from '../components/addperson-form.component';
 import { CustomerFormComponent } from '../components/customer-form.component';
 import { v4 as uuidv4 } from 'uuid';
@@ -86,12 +86,14 @@ export class CustomerEditComponent implements OnInit {
     return personData.uuid;
   }
 
-  // TODO re-enable change binding
-  updatedCustomerFormData() {
+  updatedCustomerFormData(event: CustomerData) {
+    this.customerData = event;
     this.setSaveDisabled(true);
   }
 
-  updatedPersonsFormData() {
+  updatedAddPersonsFormData(event: CustomerAddPersonFormData) {
+    const index = this.additionalPersonsData.findIndex(person => person.uuid === event.uuid);
+    this.additionalPersonsData[index] = event;
     this.setSaveDisabled(true);
   }
 
@@ -104,6 +106,7 @@ export class CustomerEditComponent implements OnInit {
       this.errorMessage = null;
 
       const customerData = this.readFullData();
+      console.log("CUSDATA", customerData);
       this.customerApiService.validate(customerData).subscribe((result) => {
         this.validationResult = result;
 
@@ -115,6 +118,8 @@ export class CustomerEditComponent implements OnInit {
 
   save() {
     const customerData = this.readFullData();
+    // TODO remove
+    console.log("SAVE DATA", customerData);
 
     if (!this.editMode) {
       this.customerApiService.createCustomer(customerData)

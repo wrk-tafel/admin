@@ -17,7 +17,7 @@ export class CustomerFormComponent implements OnInit {
     this.form.patchValue(customerData);
   }
   get customerData() { return this.customerData; }
-  @Output() customerDataChange = new EventEmitter<CustomerData>();
+  @Output() dataUpdatedEvent = new EventEmitter<CustomerData>();
 
   form = new FormGroup({
     id: new FormControl(''),
@@ -51,7 +51,7 @@ export class CustomerFormComponent implements OnInit {
 
   ngOnInit(): void {
     this.form.valueChanges.subscribe(() => {
-      this.customerDataChange.emit(this.form.value);
+      this.dataUpdatedEvent.emit(this.form.value);
     });
   }
 
