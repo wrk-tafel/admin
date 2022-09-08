@@ -62,11 +62,11 @@
 <div testid="validationresult-modal" bsModal #validationResultModal="bs-modal" class="modal fade" tabindex="-1"
     role="dialog" aria-labelledby="validationResultModalLabel" aria-hidden="true">
     <div testid="validationresult-modal-dialog" class="modal-dialog" role="document"
-        [ngClass]="{'modal-danger': saveDisabled, 'modal-success': !saveDisabled}">
+        [ngClass]="{'modal-danger': validationResult?.valid === false, 'modal-success': validationResult?.valid === true}">
         <div class="modal-content">
             <div class="modal-header">
                 <h4 testid="title" class="modal-title">
-                    {{saveDisabled ? "Kein Anspruch vorhanden" : "Anspruch vorhanden"}}
+                    {{validationResult?.valid === true ? "Anspruch vorhanden" : "Kein Anspruch vorhanden"}}
                 </h4>
                 <button type="button" class="close" (click)="validationResultModal.hide()" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
@@ -89,7 +89,7 @@
                 </div>
                 <div class="row">
                     <div class="col-6 font-weight-bold">Einkommen über Limit:</div>
-                    <div class="col-2" [ngClass]="{'text-danger': saveDisabled}">
+                    <div class="col-2" [ngClass]="{'text-danger': validationResult?.valid === false}">
                         {{validationResult?.amountExceededLimit}}&nbsp;&euro;</div>
                 </div>
             </div>

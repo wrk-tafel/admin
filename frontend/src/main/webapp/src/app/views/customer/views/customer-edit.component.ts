@@ -106,7 +106,6 @@ export class CustomerEditComponent implements OnInit {
       this.errorMessage = null;
 
       const customerData = this.readFullData();
-      console.log("CUSDATA", customerData);
       this.customerApiService.validate(customerData).subscribe((result) => {
         this.validationResult = result;
 
