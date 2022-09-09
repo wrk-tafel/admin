@@ -1,13 +1,14 @@
-import { Component, OnInit, ViewChild, ViewChildren } from '@angular/core';
+import { Component, OnInit, Output, ViewChild, ViewChildren } from '@angular/core';
 import { AddPersonFormComponent, CustomerAddPersonFormData } from '../components/addperson-form.component';
 import { CustomerFormComponent } from '../components/customer-form.component';
 import { v4 as uuidv4 } from 'uuid';
 import { FormGroup } from '@angular/forms';
 import { CustomerData, CustomerApiService, ValidateCustomerResponse } from '../api/customer-api.service';
 import { ModalDirective } from 'ngx-bootstrap/modal';
-import { tap } from 'rxjs/operators';
+import { shareReplay, tap } from 'rxjs/operators';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CountryApiService, CountryData } from '../../../common/api/country-api.service';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'customer-edit',
@@ -19,13 +20,11 @@ export class CustomerEditComponent implements OnInit {
     private countryApiService: CountryApiService,
     private router: Router,
     private route: ActivatedRoute,
-  ) { }
+  ) {
+    this.countries = this.countryApiService.getCountries().pipe(shareReplay(1));
+  }
 
   ngOnInit(): void {
-    this.countryApiService.getCountries().subscribe((data: CountryData[]) => {
-      this.countries = data;
-    });
-
     this.route.params.subscribe(params => {
       const customerId = +params['id'];
       if (customerId) {
@@ -35,22 +34,25 @@ export class CustomerEditComponent implements OnInit {
           this.editMode = true;
 
           // Load data into forms
-          const selectedCountry = this.countries.filter(country => country.id === customerData.country.id)[0];
-          this.customerData = {
-            ...customerData,
-            country: selectedCountry
-          };
+          this.countries.subscribe((countries) => {
+            const selectedCountry = countries.filter(country => country.id === customerData.country.id)[0];
 
-          this.additionalPersonsData.splice(0);
-          customerData.additionalPersons.forEach((person) => {
-            this.additionalPersonsData.push(person);
-          });
+            this.customerData = {
+              ...customerData,
+              country: selectedCountry
+            };
 
-          // Mark forms as touched to show the validation state (postponed to next makrotask after angular finished)
-          setTimeout(() => {
-            this.customerFormComponent.form.markAllAsTouched();
-            this.addPersonForms.forEach((personForm) => {
-              personForm.form.markAllAsTouched();
+            this.additionalPersonsData.splice(0);
+            customerData.additionalPersons.forEach((person) => {
+              this.additionalPersonsData.push(person);
+            });
+
+            // Mark forms as touched to show the validation state (postponed to next makrotask after angular finished)
+            setTimeout(() => {
+              this.customerFormComponent.form.markAllAsTouched();
+              this.addPersonForms.forEach((personForm) => {
+                personForm.form.markAllAsTouched();
+              });
             });
           });
         });
@@ -58,13 +60,14 @@ export class CustomerEditComponent implements OnInit {
     });
   }
 
-  countries: CountryData[];
+  countries: Observable<CountryData[]>;
   customerData: CustomerData;
   additionalPersonsData: CustomerAddPersonFormData[] = [];
 
-  editMode: boolean = false;
-  saveDisabled: boolean = true;
-  errorMessage: string;
+  @Output() editMode: boolean = false;
+  // TODO fix state update
+  @Output() saveDisabled: boolean = true;
+  @Output() errorMessage: string;
 
   @ViewChild(CustomerFormComponent) customerFormComponent: CustomerFormComponent;
   @ViewChildren(AddPersonFormComponent) addPersonForms: AddPersonFormComponent[];
@@ -73,12 +76,12 @@ export class CustomerEditComponent implements OnInit {
   validationResult: ValidateCustomerResponse;
 
   addNewPerson() {
-    this.setSaveDisabled(true);
+    this.changeSaveDisabledState(true);
     this.additionalPersonsData.push({ uuid: uuidv4(), firstname: null, lastname: null, birthDate: null });
   }
 
   removePerson(index: number) {
-    this.setSaveDisabled(true);
+    this.changeSaveDisabledState(true);
     this.additionalPersonsData.splice(index, 1);
   }
 
@@ -88,17 +91,17 @@ export class CustomerEditComponent implements OnInit {
 
   updatedCustomerFormData(event: CustomerData) {
     this.customerData = event;
-    this.setSaveDisabled(true);
+    this.changeSaveDisabledState(true);
   }
 
   updatedAddPersonsFormData(event: CustomerAddPersonFormData) {
     const index = this.additionalPersonsData.findIndex(person => person.uuid === event.uuid);
     this.additionalPersonsData[index] = event;
-    this.setSaveDisabled(true);
+    this.changeSaveDisabledState(true);
   }
 
   validate() {
-    this.setSaveDisabled(true);
+    this.changeSaveDisabledState(true);
 
     if (this.formsAreInvalid()) {
       this.errorMessage = 'Bitte Eingaben überprüfen!';
@@ -109,7 +112,7 @@ export class CustomerEditComponent implements OnInit {
       this.customerApiService.validate(customerData).subscribe((result) => {
         this.validationResult = result;
 
-        this.setSaveDisabled(!result.valid);
+        this.saveDisabled = !result.valid;
         this.validationResultModal.show();
       });
     }
@@ -117,8 +120,6 @@ export class CustomerEditComponent implements OnInit {
 
   save() {
     const customerData = this.readFullData();
-    // TODO remove
-    console.log("SAVE DATA", customerData);
 
     if (!this.editMode) {
       this.customerApiService.createCustomer(customerData)
@@ -137,7 +138,7 @@ export class CustomerEditComponent implements OnInit {
     }
   }
 
-  private setSaveDisabled(value: boolean) {
+  private changeSaveDisabledState(value: boolean) {
     if (!this.editMode) {
       this.saveDisabled = value;
     }
