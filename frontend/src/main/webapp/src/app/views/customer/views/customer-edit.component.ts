@@ -3,12 +3,10 @@ import { AddPersonFormComponent, CustomerAddPersonFormData } from '../components
 import { CustomerFormComponent } from '../components/customer-form.component';
 import { v4 as uuidv4 } from 'uuid';
 import { FormGroup } from '@angular/forms';
-import { CustomerData, CustomerApiService, ValidateCustomerResponse } from '../api/customer-api.service';
+import { CustomerApiService, CustomerData, ValidateCustomerResponse } from '../api/customer-api.service';
 import { ModalDirective } from 'ngx-bootstrap/modal';
-import { shareReplay, tap } from 'rxjs/operators';
+import { tap } from 'rxjs/operators';
 import { ActivatedRoute, Router } from '@angular/router';
-import { CountryApiService, CountryData } from '../../../common/api/country-api.service';
-import { Observable } from 'rxjs';
 
 @Component({
   selector: 'customer-edit',
@@ -17,12 +15,9 @@ import { Observable } from 'rxjs';
 export class CustomerEditComponent implements OnInit {
   constructor(
     private customerApiService: CustomerApiService,
-    private countryApiService: CountryApiService,
     private router: Router,
-    private route: ActivatedRoute,
-  ) {
-    this.countries = this.countryApiService.getCountries().pipe(shareReplay(1));
-  }
+    private route: ActivatedRoute
+  ) { }
 
   ngOnInit(): void {
     this.route.params.subscribe(params => {
@@ -52,7 +47,6 @@ export class CustomerEditComponent implements OnInit {
     });
   }
 
-  countries: Observable<CountryData[]>;
   customerData: CustomerData;
   additionalPersonsData: CustomerAddPersonFormData[] = [];
 

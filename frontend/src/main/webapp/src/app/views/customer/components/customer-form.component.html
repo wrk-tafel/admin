@@ -52,8 +52,7 @@
                 <select testId="countryInput" formControlName="country" class="form-control"
                     [compareWith]="compareCountry"
                     [ngClass]="{'is-invalid': country.invalid && (country.dirty || country.touched), 'is-valid': country.valid && (country.dirty || country.touched)}">
-                    <option *ngFor="let countryItem of countries | async" [ngValue]="countryItem">{{countryItem.name}}
-                    </option>
+                    <option *ngFor="let countryItem of countries" [ngValue]="countryItem">{{countryItem.name}}</option>
                 </select>
                 <div class="input-group-append">
                     <span class="input-group-text"><i class="fa fa-flag"></i></span>

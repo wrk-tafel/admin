@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { CountryData } from '../../../common/api/country-api.service';
+import { CountryApiService, CountryData } from '../../../common/api/country-api.service';
 import { CustomValidator } from '../../../common/CustomValidator';
 import { CustomerData } from '../api/customer-api.service';
 
@@ -9,8 +9,9 @@ import { CustomerData } from '../api/customer-api.service';
   templateUrl: 'customer-form.component.html'
 })
 export class CustomerFormComponent implements OnInit {
-
-  @Input() countries: CountryData[];
+  constructor(
+    private countryApiService: CountryApiService
+  ) { }
 
   @Input()
   set customerData(customerData: CustomerData) {
@@ -49,7 +50,11 @@ export class CustomerFormComponent implements OnInit {
     incomeDue: new FormControl('', CustomValidator.minDate(new Date()))
   });
 
+  countries: CountryData[];
+
   ngOnInit(): void {
+    this.countryApiService.getCountries().subscribe((countries) => this.countries = countries);
+
     this.form.valueChanges.subscribe(() => {
       this.dataUpdatedEvent.emit(this.form.value);
     });
