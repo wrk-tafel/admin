@@ -94,7 +94,7 @@
                     </div>
                     <div class="row">
                         <div [attr.testid]="'addperson-' + i + '-birthDateAgeText'" class="col"
-                            [innerHTML]="formatBirthDateAge(customerData?.birthDate)"></div>
+                            [innerHTML]="formatBirthDateAge(addPerson?.birthDate)"></div>
                         <div [attr.testid]="'addperson-' + i + '-incomeText'" class="col"
                             *ngIf="addPerson?.income !== null">Einkommen: {{addPerson?.income}} &euro;</div>
                         <div [attr.testid]="'addperson-' + i + '-incomeText'" class="col"
