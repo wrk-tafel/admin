@@ -40,12 +40,11 @@
                     <div class="col font-weight-bold">Adresse</div>
                 </div>
                 <div class="row">
-                    <div testid="addressLine1Text" class="col">{{customerData?.address ?
-                        formatAddressLine(customerData?.address) : ''}}</div>
+                    <div testid="addressLine1Text" class="col">{{customerData?.address ? formatAddressLine1(customerData?.address) : ''}}</div>
                 </div>
                 <div class="row">
                     <div testid="addressLine2Text" class="col"
-                        [innerHTML]="customerData?.address?.postalCode + ' ' + customerData?.address?.city">
+                        [innerHTML]="customerData?.address ? formatAddressLine2(customerData?.address) : ''">
                     </div>
                 </div>
                 <hr>

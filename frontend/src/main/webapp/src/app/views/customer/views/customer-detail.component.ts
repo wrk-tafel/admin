@@ -37,7 +37,7 @@ export class CustomerDetailComponent implements OnInit {
       });
   }
 
-  formatAddressLine(address: CustomerAddressData): string {
+  formatAddressLine1(address: CustomerAddressData): string {
     let addressLine = address.street;
     addressLine += ' ' + address.houseNumber;
     if (address.stairway) {
@@ -49,8 +49,15 @@ export class CustomerDetailComponent implements OnInit {
     return addressLine;
   }
 
+  formatAddressLine2(address: CustomerAddressData): string {
+    return address.postalCode + ' ' + address.city;
+  }
+
   formatBirthDateAge(birthDate: Date): string {
-    return this.formatDate(birthDate) + ' (' + moment().diff(birthDate, 'years') + ')'
+    if (birthDate) {
+      return this.formatDate(birthDate) + ' (' + moment().diff(birthDate, 'years') + ')'
+    }
+    return '';
   }
 
 }
