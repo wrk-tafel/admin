@@ -3,6 +3,7 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { CustomValidator } from '../../../common/CustomValidator';
 import { CustomerAddPersonData } from '../api/customer-api.service';
 
+// TODO maybe integrate into customer-edit
 @Component({
   selector: 'addperson-form',
   templateUrl: 'addperson-form.component.html'

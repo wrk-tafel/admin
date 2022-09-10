@@ -4,6 +4,7 @@ import { CountryApiService, CountryData } from '../../../common/api/country-api.
 import { CustomValidator } from '../../../common/CustomValidator';
 import { CustomerData } from '../api/customer-api.service';
 
+// TODO maybe integrate into customer-edit
 @Component({
   selector: 'customer-form',
   templateUrl: 'customer-form.component.html'
