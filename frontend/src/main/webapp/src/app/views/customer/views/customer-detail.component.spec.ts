@@ -1,7 +1,7 @@
 import { HttpHeaders, HttpResponse } from '@angular/common/http';
 import { TestBed, waitForAsync } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import * as moment from 'moment';
 import { of } from 'rxjs';
@@ -12,6 +12,7 @@ import { CustomerDetailComponent } from './customer-detail.component';
 describe('CustomerDetailComponent', () => {
   let apiService: jasmine.SpyObj<CustomerApiService>;
   let fileHelperService: jasmine.SpyObj<FileHelperService>;
+  let router: jasmine.SpyObj<Router>;
 
   const mockCustomer: CustomerData = {
     id: 133,
@@ -65,6 +66,10 @@ describe('CustomerDetailComponent', () => {
           useValue: {
             params: of({ id: mockCustomer.id })
           }
+        },
+        {
+          provide: Router,
+          useValue: jasmine.createSpyObj('Router', ['navigate'])
         }
       ]
     }).compileComponents();
@@ -126,6 +131,18 @@ describe('CustomerDetailComponent', () => {
     component.printMasterdata();
 
     expect(fileHelperService.downloadFile).toHaveBeenCalledWith('test-name-1.pdf', new Blob([response.body], { type: 'application/pdf' }));
+  }));
+
+  it('editCustomer', waitForAsync(() => {
+    apiService.getCustomer.withArgs(mockCustomer.id).and.returnValue(of(mockCustomer));
+
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    const component = fixture.componentInstance;
+    component.ngOnInit();
+
+    component.editCustomer();
+
+    expect(router.navigate).toHaveBeenCalledWith(['/kunden/bearbeiten', mockCustomer.id]);
   }));
 
 });

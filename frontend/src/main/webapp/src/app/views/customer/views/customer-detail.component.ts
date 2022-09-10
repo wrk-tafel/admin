@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import * as moment from 'moment';
 import { DateHelperService } from '../../../common/util/date-helper.service';
 import { FileHelperService } from '../../../common/util/file-helper.service';
@@ -14,10 +14,11 @@ export class CustomerDetailComponent implements OnInit {
     private route: ActivatedRoute,
     private customerApiService: CustomerApiService,
     private fileHelperService: FileHelperService,
-    private dateHelper: DateHelperService) { }
+    private dateHelper: DateHelperService,
+    private router: Router) { }
 
   customerData: CustomerData;
-  formatDate = this.dateHelper.formatDate
+  formatDate = this.dateHelper.formatDate;
 
   ngOnInit(): void {
     this.route.params.subscribe(params => {
@@ -58,6 +59,10 @@ export class CustomerDetailComponent implements OnInit {
       return this.formatDate(birthDate) + ' (' + moment().diff(birthDate, 'years') + ')'
     }
     return '';
+  }
+
+  editCustomer() {
+    this.router.navigate(['/kunden/bearbeiten', this.customerData.id]);
   }
 
 }

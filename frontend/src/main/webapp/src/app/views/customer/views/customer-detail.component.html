@@ -1,7 +1,11 @@
-<div class="row">
-    <div class="col-sm-3 mb-3">
+<div class="row" style="display: flex;">
+    <div class="col-sm-auto mb-3">
         <button testid="printMasterdataButton" type="button" class="btn btn-primary"
             (click)="printMasterdata()">Stammdaten drucken</button>
+    </div>
+    <div class="col-sm-auto mb-3">
+        <button testid="editCustomerButton" type="button" class="btn btn-danger" (click)="editCustomer()">Kunde
+            bearbeiten</button>
     </div>
 </div>
 <div class="row">
@@ -15,11 +19,13 @@
                 </div>
                 <div class="row">
                     <div class="col font-weight-bold">Name</div>
-                    <div testid="nameText" class="col">{{customerData?.lastname}} {{customerData?.firstname}}</div>
+                    <div testid="nameText" class="col">{{customerData?.lastname}} {{customerData?.firstname}}
+                    </div>
                 </div>
                 <div class="row">
                     <div class="col font-weight-bold">Geburtsdatum (Alter)</div>
-                    <div testid="birthDateAgeText" class="col">{{formatBirthDateAge(customerData?.birthDate)}}</div>
+                    <div testid="birthDateAgeText" class="col">{{formatBirthDateAge(customerData?.birthDate)}}
+                    </div>
                 </div>
                 <div class="row">
                     <div class="col font-weight-bold">Nationalität</div>
@@ -40,7 +46,8 @@
                     <div class="col font-weight-bold">Adresse</div>
                 </div>
                 <div class="row">
-                    <div testid="addressLine1Text" class="col">{{customerData?.address ? formatAddressLine1(customerData?.address) : ''}}</div>
+                    <div testid="addressLine1Text" class="col">{{customerData?.address ?
+                        formatAddressLine1(customerData?.address) : ''}}</div>
                 </div>
                 <div class="row">
                     <div testid="addressLine2Text" class="col"
