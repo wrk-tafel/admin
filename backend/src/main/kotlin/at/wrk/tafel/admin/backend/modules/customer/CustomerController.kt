@@ -147,6 +147,7 @@ class CustomerController(
         customerEntity.income = customer.income
         customerEntity.incomeDue = customer.incomeDue
 
+        // TODO fix update
         customerEntity.additionalPersons = customer.additionalPersons.map {
             val addPersonEntity = customerAddPersonRepository.findById(it.id).orElseGet { CustomerAddPersonEntity() }
             addPersonEntity.customer = customerEntity
