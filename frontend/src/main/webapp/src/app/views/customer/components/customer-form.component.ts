@@ -55,6 +55,10 @@ export class CustomerFormComponent implements OnInit {
     });
   }
 
+  compareCountry(c1: CountryData, c2: CountryData): boolean {
+    return c1 && c2 ? c1.id === c2.id : c1 === c2;
+  }
+
   get id() { return this.form.get('id'); }
   get lastname() { return this.form.get('lastname'); }
   get firstname() { return this.form.get('firstname'); }

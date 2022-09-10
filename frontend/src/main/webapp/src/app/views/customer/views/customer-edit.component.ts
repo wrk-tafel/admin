@@ -34,25 +34,17 @@ export class CustomerEditComponent implements OnInit {
           this.editMode = true;
 
           // Load data into forms
-          this.countries.subscribe((countries) => {
-            const selectedCountry = countries.filter(country => country.id === customerData.country.id)[0];
+          this.customerData = customerData;
+          this.additionalPersonsData.splice(0);
+          customerData.additionalPersons.forEach((person) => {
+            this.additionalPersonsData.push(person);
+          });
 
-            this.customerData = {
-              ...customerData,
-              country: selectedCountry
-            };
-
-            this.additionalPersonsData.splice(0);
-            customerData.additionalPersons.forEach((person) => {
-              this.additionalPersonsData.push(person);
-            });
-
-            // Mark forms as touched to show the validation state (postponed to next makrotask after angular finished)
-            setTimeout(() => {
-              this.customerFormComponent.form.markAllAsTouched();
-              this.addPersonForms.forEach((personForm) => {
-                personForm.form.markAllAsTouched();
-              });
+          // Mark forms as touched to show the validation state (postponed to next makrotask after angular finished)
+          setTimeout(() => {
+            this.customerFormComponent.form.markAllAsTouched();
+            this.addPersonForms.forEach((personForm) => {
+              personForm.form.markAllAsTouched();
             });
           });
         });
