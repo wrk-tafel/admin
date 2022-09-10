@@ -1,8 +1,9 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormArray, FormControl, FormGroup, Validators } from '@angular/forms';
+import * as moment from 'moment';
 import { CountryApiService, CountryData } from '../../../common/api/country-api.service';
 import { CustomValidator } from '../../../common/CustomValidator';
-import { CustomerData } from '../api/customer-api.service';
+import { CustomerAddPersonData, CustomerData } from '../api/customer-api.service';
 
 // TODO maybe integrate into customer-edit
 @Component({
@@ -14,11 +15,15 @@ export class CustomerFormComponent implements OnInit {
     private countryApiService: CountryApiService
   ) { }
 
-  @Input()
-  set customerData(customerData: CustomerData) {
-    this.form.patchValue(customerData);
-  }
-  get customerData() { return this.customerData; }
+  /*
+  TODO impl
+  @Input() 
+    set customerData(customerData: CustomerData) {
+      this.form.patchValue(customerData);
+    }
+    get customerData() { return this.customerData; }
+
+  */
   @Output() dataUpdatedEvent = new EventEmitter<CustomerData>();
 
   form = new FormGroup({
@@ -46,14 +51,52 @@ export class CustomerFormComponent implements OnInit {
       city: new FormControl('', [Validators.required, Validators.maxLength(50)]),
     }),
 
+    additionalPersons: new FormArray([
+      new FormGroup({
+        uuid: new FormControl(),
+        lastname: new FormControl('', [Validators.required, Validators.maxLength(50)]),
+        firstname: new FormControl('', [Validators.required, , Validators.maxLength(50)]),
+        birthDate: new FormControl('', [
+          Validators.required,
+          CustomValidator.minDate(new Date(1920, 0, 1)),
+          CustomValidator.maxDate(new Date())
+        ]),
+        income: new FormControl('')
+      })
+    ]),
+
     employer: new FormControl('', Validators.required),
     income: new FormControl('', Validators.required),
     incomeDue: new FormControl('', CustomValidator.minDate(new Date()))
   });
 
+  customerData: CustomerData = {
+    id: 123,
+    lastname: 'Mustermann',
+    firstname: 'Max',
+    birthDate: moment().subtract(20, 'years').startOf('day').utc().toDate(),
+    country: { id: 0, code: 'AT', name: 'Österreich' },
+    telephoneNumber: 660123123,
+    email: 'test@mail.com',
+    address: {
+      street: 'Testgasse',
+      houseNumber: '123A',
+      door: '1',
+      stairway: '1',
+      postalCode: 1234,
+      city: 'Wien',
+    },
+    employer: 'WRK',
+    income: 123.50,
+    incomeDue: moment().add(1, 'years').startOf('day').utc().toDate(),
+    additionalPersons: []
+  };
   countries: CountryData[];
 
   ngOnInit(): void {
+    // TODO remove
+    this.form.patchValue(this.customerData);
+
     this.countryApiService.getCountries().subscribe((countries) => this.countries = countries);
 
     this.form.valueChanges.subscribe(() => {
@@ -64,23 +107,8 @@ export class CustomerFormComponent implements OnInit {
   compareCountry(c1: CountryData, c2: CountryData): boolean {
     return c1 && c2 ? c1.id === c2.id : c1 === c2;
   }
+}
 
-  get id() { return this.form.get('id'); }
-  get lastname() { return this.form.get('lastname'); }
-  get firstname() { return this.form.get('firstname'); }
-  get birthDate() { return this.form.get('birthDate'); }
-  get country() { return this.form.get('country'); }
-  get telephoneNumber() { return this.form.get('telephoneNumber'); }
-  get email() { return this.form.get('email'); }
-
-  get street() { return this.form.get('address')?.get('street'); }
-  get houseNumber() { return this.form.get('address')?.get('houseNumber'); }
-  get stairway() { return this.form.get('address')?.get('stairway'); }
-  get door() { return this.form.get('address')?.get('door'); }
-  get postalCode() { return this.form.get('address')?.get('postalCode'); }
-  get city() { return this.form.get('address')?.get('city'); }
-
-  get employer() { return this.form.get('employer'); }
-  get income() { return this.form.get('income'); }
-  get incomeDue() { return this.form.get('incomeDue'); }
+export interface CustomerAddPersonFormData extends CustomerAddPersonData {
+  uuid?: string;
 }

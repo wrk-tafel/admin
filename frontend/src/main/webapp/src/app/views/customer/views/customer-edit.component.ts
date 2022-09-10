@@ -1,6 +1,5 @@
 import { Component, OnInit, Output, ViewChild, ViewChildren } from '@angular/core';
-import { AddPersonFormComponent, CustomerAddPersonFormData } from '../components/addperson-form.component';
-import { CustomerFormComponent } from '../components/customer-form.component';
+import { CustomerAddPersonFormData, CustomerFormComponent } from '../components/customer-form.component';
 import { v4 as uuidv4 } from 'uuid';
 import { FormGroup } from '@angular/forms';
 import { CustomerApiService, CustomerData, ValidateCustomerResponse } from '../api/customer-api.service';
@@ -38,9 +37,11 @@ export class CustomerEditComponent implements OnInit {
           // Mark forms as touched to show the validation state (postponed to next makrotask after angular finished)
           setTimeout(() => {
             this.customerFormComponent.form.markAllAsTouched();
+            /*
             this.addPersonForms.forEach((personForm) => {
               personForm.form.markAllAsTouched();
             });
+            */
           });
         });
       }
@@ -56,7 +57,7 @@ export class CustomerEditComponent implements OnInit {
   @Output() errorMessage: string;
 
   @ViewChild(CustomerFormComponent) customerFormComponent: CustomerFormComponent;
-  @ViewChildren(AddPersonFormComponent) addPersonForms: AddPersonFormComponent[];
+  // TODO @ViewChildren(AddPersonFormComponent) addPersonForms: AddPersonFormComponent[];
   @ViewChild('validationResultModal') validationResultModal: ModalDirective;
 
   validationResult: ValidateCustomerResponse;
@@ -142,13 +143,16 @@ export class CustomerEditComponent implements OnInit {
     const customerFormValid = this.customerFormComponent.form.valid;
 
     let addPersonFormsValid = true;
+    /*
     this.addPersonForms.map<FormGroup>((cmp) => cmp.form)
       .forEach((form: FormGroup) => {
         form.markAllAsTouched();
         addPersonFormsValid &&= form.valid;
       });
+      */
 
-    return !customerFormValid || !addPersonFormsValid;
+    // TODO return !customerFormValid || !addPersonFormsValid;
+    return !customerFormValid;
   }
 
 }

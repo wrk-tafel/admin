@@ -5,7 +5,6 @@ import { CustomerEditComponent } from './views/customer-edit.component';
 import { CustomerRoutingModule } from './customer-routing.module';
 import { CustomerFormComponent } from './components/customer-form.component';
 import { CommonModule } from '@angular/common';
-import { AddPersonFormComponent } from './components/addperson-form.component';
 import { ModalModule } from 'ngx-bootstrap/modal';
 import { CustomerDetailComponent } from './views/customer-detail.component';
 import { CustomerSearchComponent } from './views/customer-search.component';
@@ -18,7 +17,6 @@ import { CustomerSearchComponent } from './views/customer-search.component';
     ModalModule.forRoot()
   ],
   declarations: [
-    AddPersonFormComponent,
     CustomerDetailComponent,
     CustomerEditComponent,
     CustomerFormComponent,
