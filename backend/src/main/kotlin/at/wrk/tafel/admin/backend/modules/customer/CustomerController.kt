@@ -147,16 +147,19 @@ class CustomerController(
         customerEntity.income = customer.income
         customerEntity.incomeDue = customer.incomeDue
 
-        // TODO fix update
-        customerEntity.additionalPersons = customer.additionalPersons.map {
-            val addPersonEntity = customerAddPersonRepository.findById(it.id).orElseGet { CustomerAddPersonEntity() }
-            addPersonEntity.customer = customerEntity
-            addPersonEntity.lastname = it.lastname.trim()
-            addPersonEntity.firstname = it.firstname.trim()
-            addPersonEntity.birthDate = it.birthDate
-            addPersonEntity.income = it.income
-            addPersonEntity
-        }.toMutableList()
+        customerEntity.additionalPersons.clear()
+        customerEntity.additionalPersons.addAll(
+            customer.additionalPersons.map {
+                val addPersonEntity =
+                    customerAddPersonRepository.findById(it.id).orElseGet { CustomerAddPersonEntity() }
+                addPersonEntity.customer = customerEntity
+                addPersonEntity.lastname = it.lastname.trim()
+                addPersonEntity.firstname = it.firstname.trim()
+                addPersonEntity.birthDate = it.birthDate
+                addPersonEntity.income = it.income
+                addPersonEntity
+            }.toList()
+        )
 
         return customerEntity
     }
