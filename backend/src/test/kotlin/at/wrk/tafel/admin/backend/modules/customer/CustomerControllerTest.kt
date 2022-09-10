@@ -3,6 +3,7 @@ package at.wrk.tafel.admin.backend.modules.customer
 import at.wrk.tafel.admin.backend.database.entities.CustomerAddPersonEntity
 import at.wrk.tafel.admin.backend.database.entities.CustomerEntity
 import at.wrk.tafel.admin.backend.database.entities.staticdata.CountryEntity
+import at.wrk.tafel.admin.backend.database.repositories.CustomerAddPersonRepository
 import at.wrk.tafel.admin.backend.database.repositories.CustomerRepository
 import at.wrk.tafel.admin.backend.database.repositories.staticdata.CountryRepository
 import at.wrk.tafel.admin.backend.modules.base.Country
@@ -18,9 +19,11 @@ import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
+import org.springframework.web.server.ResponseStatusException
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.*
@@ -30,6 +33,9 @@ class CustomerControllerTest {
 
     @RelaxedMockK
     private lateinit var customerRepository: CustomerRepository
+
+    @RelaxedMockK
+    private lateinit var customerAddPersonRepository: CustomerAddPersonRepository
 
     @RelaxedMockK
     private lateinit var countryRepository: CountryRepository
@@ -130,7 +136,7 @@ class CustomerControllerTest {
         addPerson2.birthDate = LocalDate.now().minusYears(2)
         addPerson2.income = BigDecimal("200")
 
-        testCustomerEntity1.additionalPersons = listOf(addPerson1, addPerson2)
+        testCustomerEntity1.additionalPersons = mutableListOf(addPerson1, addPerson2)
 
         testCustomerEntity2.id = 2
         testCustomerEntity2.customerId = 200
@@ -246,10 +252,48 @@ class CustomerControllerTest {
     @Test
     fun `create customer`() {
         every { customerRepository.save(any()) } returns testCustomerEntity1
+        every { customerAddPersonRepository.findById(any()) } returns Optional.empty()
 
         val response = controller.createCustomer(testCustomer)
 
         assertThat(response).isEqualTo(testCustomer)
+
+        verify {
+            customerRepository.save(any())
+        }
+    }
+
+    @Test
+    fun `update customer - id not found`() {
+        every { customerRepository.existsByCustomerId(any()) } returns false
+
+        assertThrows<ResponseStatusException> { controller.updateCustomer(testCustomer.id!!, testCustomer) }
+    }
+
+    @Test
+    fun `update customer`() {
+        every { customerRepository.existsByCustomerId(any()) } returns true
+        every { customerRepository.save(any()) } returns testCustomerEntity1
+
+        val updatedCustomer = testCustomer.copy(
+            lastname = "updated-lastname",
+            firstname = "updated-firstname",
+            birthDate = LocalDate.now(),
+            employer = "updated-employer",
+            income = BigDecimal.TEN,
+            additionalPersons = emptyList()
+        )
+        every { customerRepository.getReferenceByCustomerId(testCustomer.id!!) } returns testCustomerEntity1
+        every { customerAddPersonRepository.findById(testCustomerEntity1.additionalPersons[0].id!!) } returns Optional.of(
+            testCustomerEntity1.additionalPersons[0]
+        )
+        every { customerAddPersonRepository.findById(testCustomerEntity1.additionalPersons[1].id!!) } returns Optional.of(
+            testCustomerEntity1.additionalPersons[1]
+        )
+
+        val response = controller.updateCustomer(testCustomer.id!!, updatedCustomer)
+
+        assertThat(response).isEqualTo(updatedCustomer)
 
         verify {
             customerRepository.save(any())
