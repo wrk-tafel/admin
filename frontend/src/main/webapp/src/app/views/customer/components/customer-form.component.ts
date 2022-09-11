@@ -75,7 +75,7 @@ export class CustomerFormComponent implements OnInit {
     lastname: 'Mustermann',
     firstname: 'Max',
     birthDate: moment().subtract(20, 'years').startOf('day').utc().toDate(),
-    country: { id: 0, code: 'AT', name: 'Österreich' },
+    country: { id: 165, code: 'AT', name: 'Österreich' },
     telephoneNumber: 660123123,
     email: 'test@mail.com',
     address: {
@@ -94,14 +94,16 @@ export class CustomerFormComponent implements OnInit {
   countries: CountryData[];
 
   ngOnInit(): void {
+    this.countryApiService.getCountries().subscribe((countries) => {
+      this.countries = countries;
+    });
+
     const editedCustomerData = {
       ...this.customerData,
       birthDate: moment(this.customerData.birthDate).format('yyyy-MM-DD'),
       incomeDue: moment(this.customerData.incomeDue).format('yyyy-MM-DD')
     };
-    this.form.patchValue(editedCustomerData);
-
-    this.countryApiService.getCountries().subscribe((countries) => this.countries = countries);
+    this.form.setValue(editedCustomerData);
 
     this.form.valueChanges.subscribe(() => {
       this.dataUpdatedEvent.emit(this.form.value);
