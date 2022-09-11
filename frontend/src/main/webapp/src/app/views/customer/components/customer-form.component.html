@@ -128,7 +128,8 @@
                                 </div>
                                 <div *ngIf="form.get('address').get('street').errors?.maxlength && (form.get('address').get('street').dirty || form.get('address').get('street').touched)"
                                     class="invalid-feedback">
-                                    Straße zu lang (Limit: {{form.get('address').get('street').errors.maxlength.requiredLength}})
+                                    Straße zu lang (Limit:
+                                    {{form.get('address').get('street').errors.maxlength.requiredLength}})
                                 </div>
                             </div>
                         </div>
@@ -144,7 +145,8 @@
                                 </div>
                                 <div *ngIf="form.get('address').get('houseNumber').errors?.maxlength && (form.get('address').get('houseNumber').dirty || form.get('address').get('houseNumber').touched)"
                                     class="invalid-feedback">
-                                    Hausnummer zu lang (Limit: {{form.get('address').get('houseNumber').errors.maxlength.requiredLength}})
+                                    Hausnummer zu lang (Limit:
+                                    {{form.get('address').get('houseNumber').errors.maxlength.requiredLength}})
                                 </div>
                             </div>
                             <div class="col-sm">
@@ -191,7 +193,8 @@
                                     </div>
                                     <div *ngIf="form.get('address').get('city').errors?.maxlength && (form.get('address').get('city').dirty || form.get('address').get('city').touched)"
                                         class="invalid-feedback">
-                                        Ort zu lang (Limit: {{form.get('address').get('city').errors.maxlength.requiredLength}})
+                                        Ort zu lang (Limit:
+                                        {{form.get('address').get('city').errors.maxlength.requiredLength}})
                                     </div>
                                 </div>
                             </div>

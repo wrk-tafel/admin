@@ -27,10 +27,10 @@ export class CustomerFormComponent implements OnInit {
   @Output() dataUpdatedEvent = new EventEmitter<CustomerData>();
 
   form = new FormGroup({
-    id: new FormControl(''),
-    lastname: new FormControl('', [Validators.required, Validators.maxLength(50)]),
-    firstname: new FormControl('', [Validators.required, Validators.maxLength(50)]),
-    birthDate: new FormControl('',
+    id: new FormControl(null),
+    lastname: new FormControl(null, [Validators.required, Validators.maxLength(50)]),
+    firstname: new FormControl(null, [Validators.required, Validators.maxLength(50)]),
+    birthDate: new FormControl(null,
       [
         Validators.required,
         CustomValidator.minDate(new Date(1920, 0, 1)),
@@ -39,35 +39,35 @@ export class CustomerFormComponent implements OnInit {
     ),
 
     country: new FormControl({}, Validators.required),
-    telephoneNumber: new FormControl(''),
-    email: new FormControl('', [Validators.maxLength(100), Validators.email]),
+    telephoneNumber: new FormControl(null),
+    email: new FormControl(null, [Validators.maxLength(100), Validators.email]),
 
     address: new FormGroup({
-      street: new FormControl('', [Validators.required, Validators.maxLength(100)]),
-      houseNumber: new FormControl('', [Validators.required, Validators.maxLength(10)]),
-      stairway: new FormControl(''),
-      door: new FormControl(''),
-      postalCode: new FormControl('', [Validators.required, Validators.pattern('^[0-9]{4}$')]),
-      city: new FormControl('', [Validators.required, Validators.maxLength(50)]),
+      street: new FormControl(null, [Validators.required, Validators.maxLength(100)]),
+      houseNumber: new FormControl(null, [Validators.required, Validators.maxLength(10)]),
+      stairway: new FormControl(null),
+      door: new FormControl(null),
+      postalCode: new FormControl(null, [Validators.required, Validators.pattern('^[0-9]{4}$')]),
+      city: new FormControl(null, [Validators.required, Validators.maxLength(50)]),
     }),
 
     additionalPersons: new FormArray([
       new FormGroup({
         uuid: new FormControl(),
-        lastname: new FormControl('', [Validators.required, Validators.maxLength(50)]),
-        firstname: new FormControl('', [Validators.required, , Validators.maxLength(50)]),
-        birthDate: new FormControl('', [
+        lastname: new FormControl(null, [Validators.required, Validators.maxLength(50)]),
+        firstname: new FormControl(null, [Validators.required, , Validators.maxLength(50)]),
+        birthDate: new FormControl(null, [
           Validators.required,
           CustomValidator.minDate(new Date(1920, 0, 1)),
           CustomValidator.maxDate(new Date())
         ]),
-        income: new FormControl('')
+        income: new FormControl(null)
       })
     ]),
 
-    employer: new FormControl('', Validators.required),
-    income: new FormControl('', Validators.required),
-    incomeDue: new FormControl('', CustomValidator.minDate(new Date()))
+    employer: new FormControl(null, Validators.required),
+    income: new FormControl(null, Validators.required),
+    incomeDue: new FormControl(null, CustomValidator.minDate(new Date()))
   });
 
   customerData: CustomerData = {
@@ -88,14 +88,18 @@ export class CustomerFormComponent implements OnInit {
     },
     employer: 'WRK',
     income: 123.50,
-    incomeDue: moment().add(1, 'years').startOf('day').utc().toDate(),
+    incomeDue: moment().add(1, 'years').startOf('day').toDate(),
     additionalPersons: []
   };
   countries: CountryData[];
 
   ngOnInit(): void {
-    // TODO remove
-    this.form.patchValue(this.customerData);
+    const editedCustomerData = {
+      ...this.customerData,
+      birthDate: moment(this.customerData.birthDate).format('yyyy-MM-DD'),
+      incomeDue: moment(this.customerData.incomeDue).format('yyyy-MM-DD')
+    };
+    this.form.patchValue(editedCustomerData);
 
     this.countryApiService.getCountries().subscribe((countries) => this.countries = countries);
 
