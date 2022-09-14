@@ -1,6 +1,5 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormArray, FormControl, FormGroup, Validators } from '@angular/forms';
-import * as moment from 'moment';
 import { CountryApiService, CountryData } from '../../../common/api/country-api.service';
 import { CustomValidator } from '../../../common/CustomValidator';
 import { CustomerAddPersonData, CustomerData } from '../api/customer-api.service';
@@ -17,21 +16,7 @@ export class CustomerFormComponent implements OnInit {
 
   @Input()
   set customerData(customerData: CustomerData) {
-    if (customerData) {
-      const editedCustomerData = {
-        ...customerData,
-        birthDate: moment(customerData.birthDate).format('yyyy-MM-DD'),
-        incomeDue: moment(customerData.incomeDue).format('yyyy-MM-DD'),
-        additionalPersons: customerData.additionalPersons.map((person) => {
-          return {
-            ...person,
-            uuid: uuidv4(),
-            birthDate: moment(person.birthDate).format('yyyy-MM-DD')
-          }
-        })
-      };
-      this.form.setValue(editedCustomerData);
-    }
+    this.form.patchValue(customerData);
   }
   get customerData() { return this.customerData; }
 
@@ -64,7 +49,7 @@ export class CustomerFormComponent implements OnInit {
 
     additionalPersons: new FormArray([
       new FormGroup({
-        uuid: new FormControl(),
+        key: new FormControl(null),
         lastname: new FormControl(null, [Validators.required, Validators.maxLength(50)]),
         firstname: new FormControl(null, [Validators.required, , Validators.maxLength(50)]),
         birthDate: new FormControl(null, [
@@ -98,7 +83,15 @@ export class CustomerFormComponent implements OnInit {
   }
 
   trackBy(index: number, personData: CustomerAddPersonFormData) {
-    return personData.uuid;
+    return personData.key;
+  }
+
+  addNewPerson() {
+    // TODO this.form.patchValue();
+  }
+
+  removePerson(index: number) {
+    // TODO this.customerFormComponent.removePerson(index);
   }
 
   get id() { return this.form.get('id'); }
@@ -122,5 +115,5 @@ export class CustomerFormComponent implements OnInit {
 }
 
 export interface CustomerAddPersonFormData extends CustomerAddPersonData {
-  uuid?: string;
+  key?: string;
 }

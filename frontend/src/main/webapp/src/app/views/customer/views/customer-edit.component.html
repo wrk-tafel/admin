@@ -2,12 +2,11 @@
     <div testid="errorMessage" *ngIf="errorMessage" class="alert alert-danger mb-3">
         <div testid="errorMessageContent">{{errorMessage}}</div>
     </div>
-    <customer-form [(customerData)]="customerData"></customer-form>
+    <customer-form [customerData]="customerData" (customerDataChange)="customerDataUpdated($event)"></customer-form>
     <button testid="validate-button" class="btn btn-primary px-4 mb-3" (click)="validate()">Anspruch prüfen</button>
     <button testid="save-button" class="btn px-4 mb-3 ml-2" (click)="save()" [disabled]="saveDisabled"
         [ngClass]="{'btn-danger': saveDisabled, 'btn-success': !saveDisabled}">Speichern</button>
 </div>
-
 <div testid="validationresult-modal" bsModal #validationResultModal="bs-modal" class="modal fade" tabindex="-1"
     role="dialog" aria-labelledby="validationResultModalLabel" aria-hidden="true">
     <div testid="validationresult-modal-dialog" class="modal-dialog" role="document"

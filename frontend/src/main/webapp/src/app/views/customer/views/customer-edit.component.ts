@@ -1,6 +1,5 @@
 import { Component, OnInit, Output, ViewChild } from '@angular/core';
-import { CustomerAddPersonFormData, CustomerFormComponent } from '../components/customer-form.component';
-import { v4 as uuidv4 } from 'uuid';
+import { CustomerFormComponent } from '../components/customer-form.component';
 import { CustomerApiService, CustomerData, ValidateCustomerResponse } from '../api/customer-api.service';
 import { ModalDirective } from 'ngx-bootstrap/modal';
 import { tap } from 'rxjs/operators';
@@ -28,19 +27,10 @@ export class CustomerEditComponent implements OnInit {
 
           // Load data into forms
           this.customerData = customerData;
-          this.additionalPersonsData.splice(0);
-          customerData.additionalPersons.forEach((person) => {
-            this.additionalPersonsData.push(person);
-          });
 
           // Mark forms as touched to show the validation state (postponed to next makrotask after angular finished)
           setTimeout(() => {
             this.customerFormComponent.form.markAllAsTouched();
-            /*
-            this.addPersonForms.forEach((personForm) => {
-              personForm.form.markAllAsTouched();
-            });
-            */
           });
         });
       }
@@ -48,7 +38,6 @@ export class CustomerEditComponent implements OnInit {
   }
 
   customerData: CustomerData;
-  additionalPersonsData: CustomerAddPersonFormData[] = [];
 
   @Output() editMode: boolean = false;
   // TODO fix state update
@@ -56,36 +45,19 @@ export class CustomerEditComponent implements OnInit {
   @Output() errorMessage: string;
 
   @ViewChild(CustomerFormComponent) customerFormComponent: CustomerFormComponent;
-  // TODO @ViewChildren(AddPersonFormComponent) addPersonForms: AddPersonFormComponent[];
   @ViewChild('validationResultModal') validationResultModal: ModalDirective;
 
   validationResult: ValidateCustomerResponse;
 
-  addNewPerson() {
-    this.changeSaveDisabledState(true);
-    this.additionalPersonsData.push({ uuid: uuidv4(), firstname: null, lastname: null, birthDate: null });
-  }
-
-  removePerson(index: number) {
-    this.changeSaveDisabledState(true);
-    this.additionalPersonsData.splice(index, 1);
-  }
-
-  updatedCustomerFormData(event: CustomerData) {
+  customerDataUpdated(event: CustomerData) {
     this.customerData = event;
-    this.changeSaveDisabledState(true);
-  }
-
-  updatedAddPersonsFormData(event: CustomerAddPersonFormData) {
-    const index = this.additionalPersonsData.findIndex(person => person.uuid === event.uuid);
-    this.additionalPersonsData[index] = event;
     this.changeSaveDisabledState(true);
   }
 
   validate() {
     this.changeSaveDisabledState(true);
 
-    if (this.formsAreInvalid()) {
+    if (!this.formIsValid()) {
       this.errorMessage = 'Bitte Eingaben überprüfen!';
     } else {
       this.errorMessage = null;
@@ -123,21 +95,9 @@ export class CustomerEditComponent implements OnInit {
     }
   }
 
-  private formsAreInvalid() {
+  private formIsValid() {
     this.customerFormComponent.form.markAllAsTouched();
-    const customerFormValid = this.customerFormComponent.form.valid;
-
-    let addPersonFormsValid = true;
-    /*
-    this.addPersonForms.map<FormGroup>((cmp) => cmp.form)
-      .forEach((form: FormGroup) => {
-        form.markAllAsTouched();
-        addPersonFormsValid &&= form.valid;
-      });
-      */
-
-    // TODO return !customerFormValid || !addPersonFormsValid;
-    return !customerFormValid;
+    return this.customerFormComponent.form.valid;
   }
 
 }
