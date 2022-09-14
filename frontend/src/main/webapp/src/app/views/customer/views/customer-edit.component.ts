@@ -1,7 +1,6 @@
-import { Component, OnInit, Output, ViewChild, ViewChildren } from '@angular/core';
+import { Component, OnInit, Output, ViewChild } from '@angular/core';
 import { CustomerAddPersonFormData, CustomerFormComponent } from '../components/customer-form.component';
 import { v4 as uuidv4 } from 'uuid';
-import { FormGroup } from '@angular/forms';
 import { CustomerApiService, CustomerData, ValidateCustomerResponse } from '../api/customer-api.service';
 import { ModalDirective } from 'ngx-bootstrap/modal';
 import { tap } from 'rxjs/operators';
@@ -72,10 +71,6 @@ export class CustomerEditComponent implements OnInit {
     this.additionalPersonsData.splice(index, 1);
   }
 
-  trackBy(index: number, personData: CustomerAddPersonFormData) {
-    return personData.uuid;
-  }
-
   updatedCustomerFormData(event: CustomerData) {
     this.customerData = event;
     this.changeSaveDisabledState(true);
@@ -95,8 +90,7 @@ export class CustomerEditComponent implements OnInit {
     } else {
       this.errorMessage = null;
 
-      const customerData = this.readFullData();
-      this.customerApiService.validate(customerData).subscribe((result) => {
+      this.customerApiService.validate(this.customerData).subscribe((result) => {
         this.validationResult = result;
 
         this.saveDisabled = !result.valid;
@@ -106,17 +100,15 @@ export class CustomerEditComponent implements OnInit {
   }
 
   save() {
-    const customerData = this.readFullData();
-
     if (!this.editMode) {
-      this.customerApiService.createCustomer(customerData)
+      this.customerApiService.createCustomer(this.customerData)
         .pipe(
           tap(customer => {
             this.router.navigate(['/kunden/detail', customer.id]);
           })
         ).subscribe();
     } else {
-      this.customerApiService.updateCustomer(customerData)
+      this.customerApiService.updateCustomer(this.customerData)
         .pipe(
           tap(customer => {
             this.router.navigate(['/kunden/detail', customer.id]);
@@ -128,13 +120,6 @@ export class CustomerEditComponent implements OnInit {
   private changeSaveDisabledState(value: boolean) {
     if (!this.editMode) {
       this.saveDisabled = value;
-    }
-  }
-
-  private readFullData(): CustomerData {
-    return {
-      ...this.customerData,
-      additionalPersons: this.additionalPersonsData
     }
   }
 

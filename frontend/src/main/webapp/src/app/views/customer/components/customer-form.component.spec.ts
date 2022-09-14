@@ -67,7 +67,7 @@ describe('CustomerFormComponent', () => {
     };
 
     component.form.patchValue(testData);
-    spyOn(component.dataUpdatedEvent, 'emit');
+    spyOn(component.customerDataChange, 'emit');
     component.ngOnInit();
 
     // TODO check dom elements - makes more sense
@@ -102,7 +102,7 @@ describe('CustomerFormComponent', () => {
     expect(component.lastname.value).toBe(testData.lastname);
     component.lastname.setValue('updated');
     fixture.detectChanges();
-    expect(component.dataUpdatedEvent.emit).toHaveBeenCalled();
+    expect(component.customerDataChange.emit).toHaveBeenCalled();
   }));
 
 });
