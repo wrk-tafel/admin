@@ -77,8 +77,8 @@ export class CustomerFormComponent implements OnInit {
     return c1 && c2 ? c1.id === c2.id : c1 === c2;
   }
 
-  trackBy(index: number, personData: CustomerAddPersonData) {
-    return personData.id + personData.lastname + personData.firstname + personData.birthDate + personData.income;
+  trackBy(index: number, personDataControl: FormGroup) {
+    return index;
   }
 
   addNewPerson() {
