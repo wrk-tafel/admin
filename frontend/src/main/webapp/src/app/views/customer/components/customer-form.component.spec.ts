@@ -1,11 +1,10 @@
-import { TestBed, waitForAsync } from '@angular/core/testing';
-import { By } from '@angular/platform-browser';
-import { RouterTestingModule } from '@angular/router/testing';
+import {TestBed, waitForAsync} from '@angular/core/testing';
+import {RouterTestingModule} from '@angular/router/testing';
 import * as moment from 'moment';
-import { of } from 'rxjs';
-import { CountryApiService } from '../../../common/api/country-api.service';
-import { CustomerData } from '../api/customer-api.service';
-import { CustomerFormComponent } from './customer-form.component';
+import {of} from 'rxjs';
+import {CountryApiService} from '../../../common/api/country-api.service';
+import {CustomerData} from '../api/customer-api.service';
+import {CustomerFormComponent} from './customer-form.component';
 
 describe('CustomerFormComponent', () => {
   let apiService: jasmine.SpyObj<CountryApiService>;
@@ -37,8 +36,8 @@ describe('CustomerFormComponent', () => {
 
   it('data filling and update is working', waitForAsync(() => {
     const mockCountryList = [
-      { id: 0, code: 'AT', name: 'Österreich' },
-      { id: 1, code: 'DE', name: 'Deutschland' }
+      {id: 0, code: 'AT', name: 'Österreich'},
+      {id: 1, code: 'DE', name: 'Deutschland'}
     ];
     apiService.getCountries.and.returnValue(of(mockCountryList));
 
@@ -66,7 +65,7 @@ describe('CustomerFormComponent', () => {
       incomeDue: moment().add(1, 'years').startOf('day').utc().toDate()
     };
 
-    component.form.patchValue(testData);
+    // TODO component.form.patchValue(testData);
     spyOn(component.customerDataChange, 'emit');
     component.ngOnInit();
 
@@ -79,24 +78,24 @@ describe('CustomerFormComponent', () => {
     });
     */
 
-    expect(component.form.get('id').value).toBe(testData.id);
-    expect(component.form.get('lastname').value).toBe(testData.lastname);
-    expect(component.form.get('firstname').value).toBe(testData.firstname);
-    expect(component.form.get('birthDate').value).toBe(testData.birthDate);
-    expect(component.form.get('country').get('name').value).toBe(testData.country.name);
-    expect(component.form.get('telephoneNumber').value).toBe(testData.telephoneNumber);
-    expect(component.form.get('email').value).toBe(testData.email);
-    expect(component.form.get('address').get('street').value).toBe(testData.address.street);
-    expect(component.form.get('address').get('houseNumber').value).toBe(testData.address.houseNumber);
-    expect(component.form.get('address').get('door').value).toBe(testData.address.door);
-    expect(component.form.get('address').get('stairway').value).toBe(testData.address.stairway);
-    expect(component.form.get('address').get('postalCode').value).toBe(testData.address.postalCode);
-    expect(component.form.get('address').get('city').value).toBe(testData.address.city);
-    expect(component.form.get('employer').value).toBe(testData.employer);
-    expect(component.form.get('income').value).toBe(testData.income);
-    expect(component.form.get('incomeDue').value).toBe(testData.incomeDue);
+    expect(component.id.value).toBe(testData.id);
+    expect(component.lastname.value).toBe(testData.lastname);
+    expect(component.firstname.value).toBe(testData.firstname);
+    expect(component.birthDate.value).toBe(testData.birthDate);
+    expect(component.country.get('name').value).toBe(testData.country.name);
+    expect(component.telephoneNumber.value).toBe(testData.telephoneNumber);
+    expect(component.email.value).toBe(testData.email);
+    expect(component.street.value).toBe(testData.address.street);
+    expect(component.houseNumber.value).toBe(testData.address.houseNumber);
+    expect(component.door.value).toBe(testData.address.door);
+    expect(component.stairway.value).toBe(testData.address.stairway);
+    expect(component.postalCode.value).toBe(testData.address.postalCode);
+    expect(component.city.value).toBe(testData.address.city);
+    expect(component.employer.value).toBe(testData.employer);
+    expect(component.income.value).toBe(testData.income);
+    expect(component.incomeDue.value).toBe(testData.incomeDue);
 
-    expect(component.form.valid).toBe(true);
+    expect(component.isValid()).toBe(true);
     expect(component.countries).toEqual(mockCountryList);
 
     expect(component.lastname.value).toBe(testData.lastname);

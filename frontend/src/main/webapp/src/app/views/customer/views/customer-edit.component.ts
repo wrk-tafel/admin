@@ -31,7 +31,7 @@ export class CustomerEditComponent implements OnInit {
 
           // Mark forms as touched to show the validation state (postponed to next makrotask after angular finished)
           setTimeout(() => {
-            this.customerFormComponent.form.markAllAsTouched();
+            this.customerFormComponent.markAllAsTouched();
           });
         });
       }
@@ -51,7 +51,6 @@ export class CustomerEditComponent implements OnInit {
   validationResult: ValidateCustomerResponse;
 
   customerDataUpdated(event: CustomerData) {
-    console.log("UPDA OUT", event);
     this.customerData = event;
     this.changeSaveDisabledState(true);
   }
@@ -104,8 +103,8 @@ export class CustomerEditComponent implements OnInit {
   }
 
   private formIsValid() {
-    this.customerFormComponent.form.markAllAsTouched();
-    return this.customerFormComponent.form.valid;
+    this.customerFormComponent.markAllAsTouched();
+    return this.customerFormComponent.isValid();
   }
 
 }

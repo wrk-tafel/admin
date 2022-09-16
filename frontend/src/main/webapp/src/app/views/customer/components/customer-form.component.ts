@@ -17,8 +17,6 @@ export class CustomerFormComponent implements OnInit {
   @Input()
   set customerData(customerData: CustomerData) {
     if (customerData) {
-      console.log("DATA", customerData);
-
       this.form.patchValue(customerData);
       this.additionalPersons.clear();
       customerData.additionalPersons.forEach((person) => this.additionalPersons.push(this.getPersonGroupControl(person)));
@@ -31,7 +29,7 @@ export class CustomerFormComponent implements OnInit {
 
   @Output() customerDataChange = new EventEmitter<CustomerData>();
 
-  form = new FormGroup({
+  private form = new FormGroup({
     id: new FormControl(null),
     lastname: new FormControl(null, [Validators.required, Validators.maxLength(50)]),
     firstname: new FormControl(null, [Validators.required, Validators.maxLength(50)]),
@@ -71,8 +69,6 @@ export class CustomerFormComponent implements OnInit {
     });
 
     this.form.valueChanges.subscribe(() => {
-      console.log("FORM VALUE", this.form.value);
-      // TODO FIX additionalPersons currently empty when reading value
       this.customerDataChange.emit(this.form.value);
     });
   }
@@ -82,7 +78,7 @@ export class CustomerFormComponent implements OnInit {
   }
 
   trackBy(index: number, personData: CustomerAddPersonData) {
-    return personData.id;
+    return personData.id + personData.lastname + personData.firstname + personData.birthDate + personData.income;
   }
 
   addNewPerson() {
@@ -98,6 +94,14 @@ export class CustomerFormComponent implements OnInit {
 
   removePerson(index: number) {
     this.additionalPersons.removeAt(index);
+  }
+
+  markAllAsTouched() {
+    this.form.markAllAsTouched();
+  }
+
+  isValid(): boolean {
+    return this.form.valid;
   }
 
   private getPersonGroupControl(additionalPerson: CustomerAddPersonData): FormGroup {
