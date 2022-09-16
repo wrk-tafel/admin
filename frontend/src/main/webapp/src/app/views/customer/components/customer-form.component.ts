@@ -1,9 +1,9 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormArray, FormControl, FormGroup, Validators } from '@angular/forms';
+import { add } from 'cypress/types/lodash';
 import { CountryApiService, CountryData } from '../../../common/api/country-api.service';
 import { CustomValidator } from '../../../common/CustomValidator';
 import { CustomerAddPersonData, CustomerData } from '../api/customer-api.service';
-import { v4 as uuidv4 } from 'uuid';
 
 @Component({
   selector: 'customer-form',
@@ -16,7 +16,18 @@ export class CustomerFormComponent implements OnInit {
 
   @Input()
   set customerData(customerData: CustomerData) {
-    this.form.patchValue(customerData);
+    if (customerData) {
+      console.log("DATA", customerData);
+
+      const additionalPersons = customerData.additionalPersons.map((person) => this.getPersonGroupControl(person));
+      console.log("PERS ORIG", customerData.additionalPersons);
+      console.log("PERS EDIT", additionalPersons);
+
+      this.form.patchValue({
+        ...customerData,
+        additionalPersons: additionalPersons
+      });
+    }
   }
   get customerData() { return this.customerData; }
 
@@ -47,23 +58,11 @@ export class CustomerFormComponent implements OnInit {
       city: new FormControl(null, [Validators.required, Validators.maxLength(50)]),
     }),
 
-    additionalPersons: new FormArray([
-      new FormGroup({
-        key: new FormControl(null),
-        lastname: new FormControl(null, [Validators.required, Validators.maxLength(50)]),
-        firstname: new FormControl(null, [Validators.required, , Validators.maxLength(50)]),
-        birthDate: new FormControl(null, [
-          Validators.required,
-          CustomValidator.minDate(new Date(1920, 0, 1)),
-          CustomValidator.maxDate(new Date())
-        ]),
-        income: new FormControl(null)
-      })
-    ]),
-
     employer: new FormControl(null, Validators.required),
     income: new FormControl(null, Validators.required),
-    incomeDue: new FormControl(null, CustomValidator.minDate(new Date()))
+    incomeDue: new FormControl(null, CustomValidator.minDate(new Date())),
+
+    additionalPersons: new FormArray([])
   });
 
   countries: CountryData[];
@@ -74,6 +73,8 @@ export class CustomerFormComponent implements OnInit {
     });
 
     this.form.valueChanges.subscribe(() => {
+      console.log("FORM VALUE", this.form.value);
+      // TODO FIX additionalPersons currently empty when reading value
       this.customerDataChange.emit(this.form.value);
     });
   }
@@ -82,16 +83,26 @@ export class CustomerFormComponent implements OnInit {
     return c1 && c2 ? c1.id === c2.id : c1 === c2;
   }
 
-  trackBy(index: number, personData: CustomerAddPersonFormData) {
-    return personData.key;
-  }
-
   addNewPerson() {
-    // TODO this.form.patchValue();
+    const control = this.getPersonGroupControl({ firstname: null, lastname: null, birthDate: null, income: null });
+    this.additionalPersons.push(control);
   }
 
   removePerson(index: number) {
-    // TODO this.customerFormComponent.removePerson(index);
+    this.additionalPersons.removeAt(index);
+  }
+
+  private getPersonGroupControl(additionalPerson: CustomerAddPersonData): FormGroup {
+    return new FormGroup({
+      lastname: new FormControl(additionalPerson.lastname, [Validators.required, Validators.maxLength(50)]),
+      firstname: new FormControl(additionalPerson.firstname, [Validators.required, , Validators.maxLength(50)]),
+      birthDate: new FormControl(additionalPerson.birthDate, [
+        Validators.required,
+        CustomValidator.minDate(new Date(1920, 0, 1)),
+        CustomValidator.maxDate(new Date())
+      ]),
+      income: new FormControl(additionalPerson.income)
+    })
   }
 
   get id() { return this.form.get('id'); }
@@ -112,8 +123,4 @@ export class CustomerFormComponent implements OnInit {
   get incomeDue() { return this.form.get('incomeDue'); }
 
   get additionalPersons() { return this.form.get('additionalPersons') as FormArray; }
-}
-
-export interface CustomerAddPersonFormData extends CustomerAddPersonData {
-  key?: string;
 }

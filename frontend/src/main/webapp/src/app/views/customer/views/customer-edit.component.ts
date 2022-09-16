@@ -50,6 +50,7 @@ export class CustomerEditComponent implements OnInit {
   validationResult: ValidateCustomerResponse;
 
   customerDataUpdated(event: CustomerData) {
+    console.log("UPDA OUT", event);
     this.customerData = event;
     this.changeSaveDisabledState(true);
   }
