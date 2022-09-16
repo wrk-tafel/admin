@@ -1,9 +1,9 @@
-import { Component, OnInit, Output, ViewChild } from '@angular/core';
-import { CustomerFormComponent } from '../components/customer-form.component';
-import { CustomerApiService, CustomerData, ValidateCustomerResponse } from '../api/customer-api.service';
-import { ModalDirective } from 'ngx-bootstrap/modal';
-import { tap } from 'rxjs/operators';
-import { ActivatedRoute, Router } from '@angular/router';
+import {Component, OnInit, Output, ViewChild} from '@angular/core';
+import {CustomerFormComponent} from '../components/customer-form.component';
+import {CustomerApiService, CustomerData, ValidateCustomerResponse} from '../api/customer-api.service';
+import {ModalDirective} from 'ngx-bootstrap/modal';
+import {tap} from 'rxjs/operators';
+import {ActivatedRoute, Router} from '@angular/router';
 
 @Component({
   selector: 'customer-edit',
@@ -14,7 +14,8 @@ export class CustomerEditComponent implements OnInit {
     private customerApiService: CustomerApiService,
     private router: Router,
     private route: ActivatedRoute
-  ) { }
+  ) {
+  }
 
   ngOnInit(): void {
     this.route.params.subscribe(params => {
@@ -73,20 +74,26 @@ export class CustomerEditComponent implements OnInit {
   }
 
   save() {
-    if (!this.editMode) {
-      this.customerApiService.createCustomer(this.customerData)
-        .pipe(
-          tap(customer => {
-            this.router.navigate(['/kunden/detail', customer.id]);
-          })
-        ).subscribe();
+    if (!this.formIsValid()) {
+      this.errorMessage = 'Bitte Eingaben überprüfen!';
     } else {
-      this.customerApiService.updateCustomer(this.customerData)
-        .pipe(
-          tap(customer => {
-            this.router.navigate(['/kunden/detail', customer.id]);
-          })
-        ).subscribe();
+      this.errorMessage = null;
+
+      if (!this.editMode) {
+        this.customerApiService.createCustomer(this.customerData)
+          .pipe(
+            tap(customer => {
+              this.router.navigate(['/kunden/detail', customer.id]);
+            })
+          ).subscribe();
+      } else {
+        this.customerApiService.updateCustomer(this.customerData)
+          .pipe(
+            tap(customer => {
+              this.router.navigate(['/kunden/detail', customer.id]);
+            })
+          ).subscribe();
+      }
     }
   }
 

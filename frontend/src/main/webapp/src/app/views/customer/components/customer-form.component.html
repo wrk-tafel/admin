@@ -253,7 +253,7 @@
                         <h6 testid="nopersons-label">Keine Personen vorhanden</h6>
                     </div>
                     <div formArrayName="additionalPersons"
-                        *ngFor="let additionalPerson of additionalPersons.controls; let i = index">
+                        *ngFor="let additionalPerson of additionalPersons.controls; let i = index; trackBy: trackBy; let i = index">
                         <div class="col-12">
                             <div class="card">
                                 <div class="card-body">
@@ -309,7 +309,6 @@
                                                         class="invalid-feedback">
                                                         Max. Datum: {{additionalPerson.get('birthDate').errors.maxdate.maximumDate}}
                                                     </div>
-
                                                 </div>
                                                 <div class="col-lg">
                                                     <label class="form-label">Einkommen monatl.</label>

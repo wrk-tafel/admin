@@ -1,9 +1,8 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { FormArray, FormControl, FormGroup, Validators } from '@angular/forms';
-import { add } from 'cypress/types/lodash';
-import { CountryApiService, CountryData } from '../../../common/api/country-api.service';
-import { CustomValidator } from '../../../common/CustomValidator';
-import { CustomerAddPersonData, CustomerData } from '../api/customer-api.service';
+import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
+import {FormArray, FormControl, FormGroup, Validators} from '@angular/forms';
+import {CountryApiService, CountryData} from '../../../common/api/country-api.service';
+import {CustomValidator} from '../../../common/CustomValidator';
+import {CustomerAddPersonData, CustomerData} from '../api/customer-api.service';
 
 @Component({
   selector: 'customer-form',
@@ -12,24 +11,23 @@ import { CustomerAddPersonData, CustomerData } from '../api/customer-api.service
 export class CustomerFormComponent implements OnInit {
   constructor(
     private countryApiService: CountryApiService
-  ) { }
+  ) {
+  }
 
   @Input()
   set customerData(customerData: CustomerData) {
     if (customerData) {
       console.log("DATA", customerData);
 
-      const additionalPersons = customerData.additionalPersons.map((person) => this.getPersonGroupControl(person));
-      console.log("PERS ORIG", customerData.additionalPersons);
-      console.log("PERS EDIT", additionalPersons);
-
-      this.form.patchValue({
-        ...customerData,
-        additionalPersons: additionalPersons
-      });
+      this.form.patchValue(customerData);
+      this.additionalPersons.clear();
+      customerData.additionalPersons.forEach((person) => this.additionalPersons.push(this.getPersonGroupControl(person)));
     }
   }
-  get customerData() { return this.customerData; }
+
+  get customerData() {
+    return this.customerData;
+  }
 
   @Output() customerDataChange = new EventEmitter<CustomerData>();
 
@@ -83,8 +81,18 @@ export class CustomerFormComponent implements OnInit {
     return c1 && c2 ? c1.id === c2.id : c1 === c2;
   }
 
+  trackBy(index: number, personData: CustomerAddPersonData) {
+    return personData.id;
+  }
+
   addNewPerson() {
-    const control = this.getPersonGroupControl({ firstname: null, lastname: null, birthDate: null, income: null });
+    const control = this.getPersonGroupControl({
+      id: null,
+      firstname: null,
+      lastname: null,
+      birthDate: null,
+      income: null
+    });
     this.additionalPersons.push(control);
   }
 
@@ -105,22 +113,71 @@ export class CustomerFormComponent implements OnInit {
     })
   }
 
-  get id() { return this.form.get('id'); }
-  get lastname() { return this.form.get('lastname'); }
-  get firstname() { return this.form.get('firstname'); }
-  get birthDate() { return this.form.get('birthDate'); }
-  get country() { return this.form.get('country'); }
-  get telephoneNumber() { return this.form.get('telephoneNumber'); }
-  get email() { return this.form.get('email'); }
-  get street() { return this.form.get('address').get('street'); }
-  get houseNumber() { return this.form.get('address').get('houseNumber'); }
-  get stairway() { return this.form.get('address').get('stairway'); }
-  get door() { return this.form.get('address').get('door'); }
-  get postalCode() { return this.form.get('address').get('postalCode'); }
-  get city() { return this.form.get('address').get('city'); }
-  get employer() { return this.form.get('employer'); }
-  get income() { return this.form.get('income'); }
-  get incomeDue() { return this.form.get('incomeDue'); }
+  get id() {
+    return this.form.get('id');
+  }
 
-  get additionalPersons() { return this.form.get('additionalPersons') as FormArray; }
+  get lastname() {
+    return this.form.get('lastname');
+  }
+
+  get firstname() {
+    return this.form.get('firstname');
+  }
+
+  get birthDate() {
+    return this.form.get('birthDate');
+  }
+
+  get country() {
+    return this.form.get('country');
+  }
+
+  get telephoneNumber() {
+    return this.form.get('telephoneNumber');
+  }
+
+  get email() {
+    return this.form.get('email');
+  }
+
+  get street() {
+    return this.form.get('address').get('street');
+  }
+
+  get houseNumber() {
+    return this.form.get('address').get('houseNumber');
+  }
+
+  get stairway() {
+    return this.form.get('address').get('stairway');
+  }
+
+  get door() {
+    return this.form.get('address').get('door');
+  }
+
+  get postalCode() {
+    return this.form.get('address').get('postalCode');
+  }
+
+  get city() {
+    return this.form.get('address').get('city');
+  }
+
+  get employer() {
+    return this.form.get('employer');
+  }
+
+  get income() {
+    return this.form.get('income');
+  }
+
+  get incomeDue() {
+    return this.form.get('incomeDue');
+  }
+
+  get additionalPersons() {
+    return this.form.get('additionalPersons') as FormArray;
+  }
 }

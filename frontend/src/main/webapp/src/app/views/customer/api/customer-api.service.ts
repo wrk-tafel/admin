@@ -81,7 +81,7 @@ export interface CustomerAddressData {
 }
 
 export interface CustomerAddPersonData {
-  // TODO add id
+  id: number;
   firstname: string;
   lastname: string;
   birthDate: Date;
