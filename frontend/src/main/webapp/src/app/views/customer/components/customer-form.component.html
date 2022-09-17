@@ -249,7 +249,7 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <div *ngIf="!form.additionalPersons || form.additionalPersons?.length === 0">
+                    <div *ngIf="!additionalPersons || additionalPersons?.length === 0">
                         <h6 testid="nopersons-label">Keine Personen vorhanden</h6>
                     </div>
                     <div formArrayName="additionalPersons"
