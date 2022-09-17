@@ -1,12 +1,9 @@
-import { Component, OnInit, Output, ViewChild, ViewChildren } from '@angular/core';
-import { AddPersonFormComponent, CustomerAddPersonFormData } from '../components/addperson-form.component';
-import { CustomerFormComponent } from '../components/customer-form.component';
-import { v4 as uuidv4 } from 'uuid';
-import { FormGroup } from '@angular/forms';
-import { CustomerApiService, CustomerData, ValidateCustomerResponse } from '../api/customer-api.service';
-import { ModalDirective } from 'ngx-bootstrap/modal';
-import { tap } from 'rxjs/operators';
-import { ActivatedRoute, Router } from '@angular/router';
+import {Component, OnInit, Output, ViewChild} from '@angular/core';
+import {CustomerFormComponent} from '../components/customer-form.component';
+import {CustomerApiService, CustomerData, ValidateCustomerResponse} from '../api/customer-api.service';
+import {ModalDirective} from 'ngx-bootstrap/modal';
+import {tap} from 'rxjs/operators';
+import {ActivatedRoute, Router} from '@angular/router';
 
 @Component({
   selector: 'customer-edit',
@@ -17,7 +14,8 @@ export class CustomerEditComponent implements OnInit {
     private customerApiService: CustomerApiService,
     private router: Router,
     private route: ActivatedRoute
-  ) { }
+  ) {
+  }
 
   ngOnInit(): void {
     this.route.params.subscribe(params => {
@@ -29,26 +27,19 @@ export class CustomerEditComponent implements OnInit {
           this.editMode = true;
 
           // Load data into forms
-          this.customerData = customerData;
-          this.additionalPersonsData.splice(0);
-          customerData.additionalPersons.forEach((person) => {
-            this.additionalPersonsData.push(person);
-          });
+          this.customerInput = customerData;
 
           // Mark forms as touched to show the validation state (postponed to next makrotask after angular finished)
           setTimeout(() => {
-            this.customerFormComponent.form.markAllAsTouched();
-            this.addPersonForms.forEach((personForm) => {
-              personForm.form.markAllAsTouched();
-            });
+            this.customerFormComponent.markAllAsTouched();
           });
         });
       }
     });
   }
 
-  customerData: CustomerData;
-  additionalPersonsData: CustomerAddPersonFormData[] = [];
+  customerInput: CustomerData;
+  customerUpdated: CustomerData;
 
   @Output() editMode: boolean = false;
   // TODO fix state update
@@ -56,46 +47,24 @@ export class CustomerEditComponent implements OnInit {
   @Output() errorMessage: string;
 
   @ViewChild(CustomerFormComponent) customerFormComponent: CustomerFormComponent;
-  @ViewChildren(AddPersonFormComponent) addPersonForms: AddPersonFormComponent[];
   @ViewChild('validationResultModal') validationResultModal: ModalDirective;
 
   validationResult: ValidateCustomerResponse;
 
-  addNewPerson() {
-    this.changeSaveDisabledState(true);
-    this.additionalPersonsData.push({ uuid: uuidv4(), firstname: null, lastname: null, birthDate: null });
-  }
-
-  removePerson(index: number) {
-    this.changeSaveDisabledState(true);
-    this.additionalPersonsData.splice(index, 1);
-  }
-
-  trackBy(index: number, personData: CustomerAddPersonFormData) {
-    return personData.uuid;
-  }
-
-  updatedCustomerFormData(event: CustomerData) {
-    this.customerData = event;
-    this.changeSaveDisabledState(true);
-  }
-
-  updatedAddPersonsFormData(event: CustomerAddPersonFormData) {
-    const index = this.additionalPersonsData.findIndex(person => person.uuid === event.uuid);
-    this.additionalPersonsData[index] = event;
+  customerDataUpdated(event: CustomerData) {
+    this.customerUpdated = event;
     this.changeSaveDisabledState(true);
   }
 
   validate() {
     this.changeSaveDisabledState(true);
 
-    if (this.formsAreInvalid()) {
+    if (!this.formIsValid()) {
       this.errorMessage = 'Bitte Eingaben überprüfen!';
     } else {
       this.errorMessage = null;
 
-      const customerData = this.readFullData();
-      this.customerApiService.validate(customerData).subscribe((result) => {
+      this.customerApiService.validate(this.customerUpdated).subscribe((result) => {
         this.validationResult = result;
 
         this.saveDisabled = !result.valid;
@@ -105,22 +74,26 @@ export class CustomerEditComponent implements OnInit {
   }
 
   save() {
-    const customerData = this.readFullData();
-
-    if (!this.editMode) {
-      this.customerApiService.createCustomer(customerData)
-        .pipe(
-          tap(customer => {
-            this.router.navigate(['/kunden/detail', customer.id]);
-          })
-        ).subscribe();
+    if (!this.formIsValid()) {
+      this.errorMessage = 'Bitte Eingaben überprüfen!';
     } else {
-      this.customerApiService.updateCustomer(customerData)
-        .pipe(
-          tap(customer => {
-            this.router.navigate(['/kunden/detail', customer.id]);
-          })
-        ).subscribe();
+      this.errorMessage = null;
+
+      if (!this.editMode) {
+        this.customerApiService.createCustomer(this.customerUpdated)
+          .pipe(
+            tap(customer => {
+              this.router.navigate(['/kunden/detail', customer.id]);
+            })
+          ).subscribe();
+      } else {
+        this.customerApiService.updateCustomer(this.customerUpdated)
+          .pipe(
+            tap(customer => {
+              this.router.navigate(['/kunden/detail', customer.id]);
+            })
+          ).subscribe();
+      }
     }
   }
 
@@ -130,25 +103,9 @@ export class CustomerEditComponent implements OnInit {
     }
   }
 
-  private readFullData(): CustomerData {
-    return {
-      ...this.customerData,
-      additionalPersons: this.additionalPersonsData
-    }
-  }
-
-  private formsAreInvalid() {
-    this.customerFormComponent.form.markAllAsTouched();
-    const customerFormValid = this.customerFormComponent.form.valid;
-
-    let addPersonFormsValid = true;
-    this.addPersonForms.map<FormGroup>((cmp) => cmp.form)
-      .forEach((form: FormGroup) => {
-        form.markAllAsTouched();
-        addPersonFormsValid &&= form.valid;
-      });
-
-    return !customerFormValid || !addPersonFormsValid;
+  private formIsValid() {
+    this.customerFormComponent.markAllAsTouched();
+    return this.customerFormComponent.isValid();
   }
 
 }

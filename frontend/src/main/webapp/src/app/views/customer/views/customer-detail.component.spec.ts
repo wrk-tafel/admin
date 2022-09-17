@@ -1,13 +1,14 @@
-import { HttpHeaders, HttpResponse } from '@angular/common/http';
-import { TestBed, waitForAsync } from '@angular/core/testing';
-import { By } from '@angular/platform-browser';
-import { ActivatedRoute, Router } from '@angular/router';
-import { RouterTestingModule } from '@angular/router/testing';
+import {HttpHeaders, HttpResponse} from '@angular/common/http';
+import {TestBed, waitForAsync} from '@angular/core/testing';
+import {By} from '@angular/platform-browser';
+import {ActivatedRoute, Router} from '@angular/router';
+import {RouterTestingModule} from '@angular/router/testing';
 import * as moment from 'moment';
-import { of } from 'rxjs';
-import { FileHelperService } from '../../../common/util/file-helper.service';
-import { CustomerApiService, CustomerData } from '../api/customer-api.service';
-import { CustomerDetailComponent } from './customer-detail.component';
+import {of} from 'rxjs';
+import {FileHelperService} from '../../../common/util/file-helper.service';
+import {CustomerApiService, CustomerData} from '../api/customer-api.service';
+import {CustomerDetailComponent} from './customer-detail.component';
+import {CommonModule} from "@angular/common";
 
 describe('CustomerDetailComponent', () => {
   let apiService: jasmine.SpyObj<CustomerApiService>;
@@ -41,17 +42,32 @@ describe('CustomerDetailComponent', () => {
     incomeDue: moment().add(1, 'years').startOf('day').utc().toDate(),
 
     additionalPersons: [
-      { lastname: 'Add', firstname: 'Pers 1', birthDate: moment().subtract(5, 'years').startOf('day').utc().toDate(), income: 50 },
-      { lastname: 'Add', firstname: 'Pers 2', birthDate: moment().subtract(10, 'years').startOf('day').utc().toDate(), income: 80 }
+      {
+        key: 0,
+        id: 0,
+        lastname: 'Add',
+        firstname: 'Pers 1',
+        birthDate: moment().subtract(5, 'years').startOf('day').utc().toDate(),
+        income: 50
+      },
+      {
+        key: 1,
+        id: 1,
+        lastname: 'Add',
+        firstname: 'Pers 2',
+        birthDate: moment().subtract(10, 'years').startOf('day').utc().toDate(),
+        income: 80
+      }
     ]
   };
 
   beforeEach(waitForAsync(() => {
     const apiServiceSpy = jasmine.createSpyObj('CustomerApiService', ['getCustomer', 'generateMasterdataPdf']);
     const fileHelperServiceSpy = jasmine.createSpyObj('FileHelperService', ['downloadFile']);
+    const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
 
     TestBed.configureTestingModule({
-      imports: [RouterTestingModule],
+      imports: [CommonModule, RouterTestingModule],
       providers: [
         {
           provide: CustomerApiService,
@@ -64,18 +80,19 @@ describe('CustomerDetailComponent', () => {
         {
           provide: ActivatedRoute,
           useValue: {
-            params: of({ id: mockCustomer.id })
+            params: of({id: mockCustomer.id})
           }
         },
         {
           provide: Router,
-          useValue: jasmine.createSpyObj('Router', ['navigate'])
+          useValue: routerSpy
         }
       ]
     }).compileComponents();
 
     apiService = TestBed.inject(CustomerApiService) as jasmine.SpyObj<CustomerApiService>;
     fileHelperService = TestBed.inject(FileHelperService) as jasmine.SpyObj<FileHelperService>;
+    router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
   }));
 
   // TODO: add tests to check data mapping from data into form fields
@@ -109,7 +126,7 @@ describe('CustomerDetailComponent', () => {
     expect(fixture.debugElement.query(By.css('[testId="addressLine2Text"]')).nativeElement.textContent).toBe('1020 Wien');
     expect(fixture.debugElement.query(By.css('[testId="employerText"]')).nativeElement.textContent).toBe('test employer');
     expect(fixture.debugElement.query(By.css('[testId="incomeText"]')).nativeElement.textContent).toBe('1000 €');
-    expect(fixture.debugElement.query(By.css('[testId="incomeDueText"]')).nativeElement.textContent).toBe('28.08.2023');
+    expect(fixture.debugElement.query(By.css('[testId="incomeDueText"]')).nativeElement.textContent).toBe(moment(mockCustomer.incomeDue).format('DD.MM.yyyy'));
   }));
 
   it('printMasterdata', waitForAsync(() => {
@@ -118,7 +135,7 @@ describe('CustomerDetailComponent', () => {
     const response = new HttpResponse({
       status: 200,
       headers: new HttpHeaders(
-        { 'Content-Disposition': 'inline; filename=test-name-1.pdf' }
+        {'Content-Disposition': 'inline; filename=test-name-1.pdf'}
       ),
       body: new ArrayBuffer(10)
     });
@@ -130,7 +147,7 @@ describe('CustomerDetailComponent', () => {
 
     component.printMasterdata();
 
-    expect(fileHelperService.downloadFile).toHaveBeenCalledWith('test-name-1.pdf', new Blob([response.body], { type: 'application/pdf' }));
+    expect(fileHelperService.downloadFile).toHaveBeenCalledWith('test-name-1.pdf', new Blob([response.body], {type: 'application/pdf'}));
   }));
 
   it('editCustomer', waitForAsync(() => {

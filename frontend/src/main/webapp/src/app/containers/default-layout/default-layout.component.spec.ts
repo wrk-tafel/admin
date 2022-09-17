@@ -1,7 +1,14 @@
-import { TestBed, waitForAsync } from '@angular/core/testing';
-import { RouterTestingModule } from '@angular/router/testing';
-import { DefaultLayoutComponent } from '.';
-import { AuthenticationService } from '../../common/security/authentication.service';
+import {TestBed, waitForAsync} from '@angular/core/testing';
+import {RouterTestingModule} from '@angular/router/testing';
+import {DefaultLayoutComponent} from '.';
+import {AuthenticationService} from '../../common/security/authentication.service';
+import {
+  AppHeaderComponent,
+  AppSidebarComponent,
+  AppSidebarMinimizerComponent,
+  AppSidebarNavComponent
+} from "@coreui/angular";
+import {AppSidebarNavItemsComponent} from "@coreui/angular/lib/sidebar/app-sidebar-nav/app-sidebar-nav-items.component";
 
 describe('DefaultLayoutComponent', () => {
   let authService: jasmine.SpyObj<AuthenticationService>;
@@ -11,6 +18,11 @@ describe('DefaultLayoutComponent', () => {
 
     TestBed.configureTestingModule({
       declarations: [
+        AppHeaderComponent,
+        AppSidebarComponent,
+        AppSidebarNavComponent,
+        AppSidebarNavItemsComponent,
+        AppSidebarMinimizerComponent,
         DefaultLayoutComponent
       ],
       providers: [

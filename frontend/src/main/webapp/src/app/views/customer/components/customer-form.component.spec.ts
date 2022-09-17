@@ -1,14 +1,58 @@
-import { TestBed, waitForAsync } from '@angular/core/testing';
-import { By } from '@angular/platform-browser';
-import { RouterTestingModule } from '@angular/router/testing';
+import {TestBed, waitForAsync} from '@angular/core/testing';
+import {RouterTestingModule} from '@angular/router/testing';
 import * as moment from 'moment';
-import { of } from 'rxjs';
-import { CountryApiService } from '../../../common/api/country-api.service';
-import { CustomerData } from '../api/customer-api.service';
-import { CustomerFormComponent } from './customer-form.component';
+import {of} from 'rxjs';
+import {CountryApiService} from '../../../common/api/country-api.service';
+import {CustomerData} from '../api/customer-api.service';
+import {CustomerFormComponent} from './customer-form.component';
+import {ReactiveFormsModule} from "@angular/forms";
 
 describe('CustomerFormComponent', () => {
   let apiService: jasmine.SpyObj<CountryApiService>;
+
+  const mockCountryList = [
+    {id: 0, code: 'AT', name: 'Österreich'},
+    {id: 1, code: 'DE', name: 'Deutschland'}
+  ];
+
+  const testCustomerData: CustomerData = {
+    id: 123,
+    lastname: 'Mustermann',
+    firstname: 'Max',
+    birthDate: moment().subtract(20, 'years').startOf('day').utc().toDate(),
+    country: mockCountryList[0],
+    telephoneNumber: 660123123,
+    email: 'test@mail.com',
+    address: {
+      street: 'Testgasse',
+      houseNumber: '123A',
+      door: '1',
+      stairway: '1',
+      postalCode: 1234,
+      city: 'Wien',
+    },
+    employer: 'WRK',
+    income: 123.50,
+    incomeDue: moment().add(1, 'years').startOf('day').utc().toDate(),
+    additionalPersons: [
+      {
+        key: 0,
+        id: 0,
+        lastname: 'Last 1',
+        firstname: 'First 1',
+        birthDate: moment().subtract(1, 'years').startOf('day').utc().toDate(),
+        income: null
+      },
+      {
+        key: 1,
+        id: 1,
+        lastname: 'Last 2',
+        firstname: 'First 2',
+        birthDate: moment().subtract(4, 'years').startOf('day').utc().toDate(),
+        income: null
+      }
+    ]
+  };
 
   beforeEach(waitForAsync(() => {
     const apiServiceSpy = jasmine.createSpyObj('CountryApiService', ['getCountries']);
@@ -17,7 +61,10 @@ describe('CustomerFormComponent', () => {
       declarations: [
         CustomerFormComponent
       ],
-      imports: [RouterTestingModule],
+      imports: [
+        RouterTestingModule,
+        ReactiveFormsModule,
+      ],
       providers: [
         {
           provide: CountryApiService,
@@ -35,40 +82,15 @@ describe('CustomerFormComponent', () => {
     expect(component).toBeTruthy();
   }));
 
-  it('data filling and update is working', waitForAsync(() => {
-    const mockCountryList = [
-      { id: 0, code: 'AT', name: 'Österreich' },
-      { id: 1, code: 'DE', name: 'Deutschland' }
-    ];
+  it('data filling works', waitForAsync(() => {
     apiService.getCountries.and.returnValue(of(mockCountryList));
 
     const fixture = TestBed.createComponent(CustomerFormComponent);
     const component = fixture.componentInstance;
 
-    const testData: CustomerData = {
-      id: 123,
-      lastname: 'Mustermann',
-      firstname: 'Max',
-      birthDate: moment().subtract(20, 'years').startOf('day').utc().toDate(),
-      country: mockCountryList[0],
-      telephoneNumber: 660123123,
-      email: 'test@mail.com',
-      address: {
-        street: 'Testgasse',
-        houseNumber: '123A',
-        door: '1',
-        stairway: '1',
-        postalCode: 1234,
-        city: 'Wien',
-      },
-      employer: 'WRK',
-      income: 123.50,
-      incomeDue: moment().add(1, 'years').startOf('day').utc().toDate()
-    };
-
-    component.form.patchValue(testData);
-    spyOn(component.dataUpdatedEvent, 'emit');
+    spyOn(component.customerDataChange, 'emit');
     component.ngOnInit();
+    component.customerData = testCustomerData;
 
     // TODO check dom elements - makes more sense
     /*
@@ -79,30 +101,103 @@ describe('CustomerFormComponent', () => {
     });
     */
 
-    expect(component.form.get('id').value).toBe(testData.id);
-    expect(component.form.get('lastname').value).toBe(testData.lastname);
-    expect(component.form.get('firstname').value).toBe(testData.firstname);
-    expect(component.form.get('birthDate').value).toBe(testData.birthDate);
-    expect(component.form.get('country').get('name').value).toBe(testData.country.name);
-    expect(component.form.get('telephoneNumber').value).toBe(testData.telephoneNumber);
-    expect(component.form.get('email').value).toBe(testData.email);
-    expect(component.form.get('address').get('street').value).toBe(testData.address.street);
-    expect(component.form.get('address').get('houseNumber').value).toBe(testData.address.houseNumber);
-    expect(component.form.get('address').get('door').value).toBe(testData.address.door);
-    expect(component.form.get('address').get('stairway').value).toBe(testData.address.stairway);
-    expect(component.form.get('address').get('postalCode').value).toBe(testData.address.postalCode);
-    expect(component.form.get('address').get('city').value).toBe(testData.address.city);
-    expect(component.form.get('employer').value).toBe(testData.employer);
-    expect(component.form.get('income').value).toBe(testData.income);
-    expect(component.form.get('incomeDue').value).toBe(testData.incomeDue);
+    expect(component.id.value).toBe(testCustomerData.id);
+    expect(component.lastname.value).toBe(testCustomerData.lastname);
+    expect(component.firstname.value).toBe(testCustomerData.firstname);
+    expect(component.birthDate.value).toBe(testCustomerData.birthDate);
+    expect(component.country.value).toBe(testCustomerData.country);
+    expect(component.telephoneNumber.value).toBe(testCustomerData.telephoneNumber);
+    expect(component.email.value).toBe(testCustomerData.email);
+    expect(component.street.value).toBe(testCustomerData.address.street);
+    expect(component.houseNumber.value).toBe(testCustomerData.address.houseNumber);
+    expect(component.door.value).toBe(testCustomerData.address.door);
+    expect(component.stairway.value).toBe(testCustomerData.address.stairway);
+    expect(component.postalCode.value).toBe(testCustomerData.address.postalCode);
+    expect(component.city.value).toBe(testCustomerData.address.city);
+    expect(component.employer.value).toBe(testCustomerData.employer);
+    expect(component.income.value).toBe(testCustomerData.income);
+    expect(component.incomeDue.value).toBe(testCustomerData.incomeDue);
 
-    expect(component.form.valid).toBe(true);
+    expect(component.isValid()).toBe(true);
     expect(component.countries).toEqual(mockCountryList);
 
-    expect(component.lastname.value).toBe(testData.lastname);
-    component.lastname.setValue('updated');
+    expect(component.additionalPersons.length).toBe(2);
+    expect(component.additionalPersons.at(0).value)
+      .toEqual(jasmine.objectContaining({
+        id: testCustomerData.additionalPersons[0].id,
+        lastname: testCustomerData.additionalPersons[0].lastname,
+        firstname: testCustomerData.additionalPersons[0].firstname,
+        birthDate: testCustomerData.additionalPersons[0].birthDate,
+        income: testCustomerData.additionalPersons[0].income
+      }));
+    expect(component.additionalPersons.at(1).value)
+      .toEqual(jasmine.objectContaining({
+        id: testCustomerData.additionalPersons[1].id,
+        lastname: testCustomerData.additionalPersons[1].lastname,
+        firstname: testCustomerData.additionalPersons[1].firstname,
+        birthDate: testCustomerData.additionalPersons[1].birthDate,
+        income: testCustomerData.additionalPersons[1].income
+      }));
+  }));
+
+  it('data update works', waitForAsync(() => {
+    apiService.getCountries.and.returnValue(of(mockCountryList));
+
+    const fixture = TestBed.createComponent(CustomerFormComponent);
+    const component = fixture.componentInstance;
+
+    spyOn(component.customerDataChange, 'emit');
+    component.ngOnInit();
+    component.customerData = testCustomerData;
+
+    const updatedLastname = 'updated';
+    const updatedBirthDate = moment().subtract(30, 'years').startOf('day').utc().toDate();
+    const updatedIncome = 54321;
+    const updatedPers1Lastname = 'Pers1UpdatedLastName';
+    component.lastname.setValue(updatedLastname);
+    component.birthDate.setValue(updatedBirthDate);
+    component.income.setValue(updatedIncome);
+    // TODO component.additionalPersons.at(1).get('lastname').setValue(updatedPers1Lastname);
     fixture.detectChanges();
-    expect(component.dataUpdatedEvent.emit).toHaveBeenCalled();
+
+    expect(component.customerDataChange.emit).toHaveBeenCalledWith(jasmine.objectContaining({
+      lastname: updatedLastname,
+      birthDate: updatedBirthDate,
+      income: updatedIncome
+    }));
+
+    // TODO validate add person change
+    /*
+    expect(component.customerDataChange.emit).toHaveBeenCalledWith(jasmine.objectContaining({
+      additionalPersons: [
+        {},
+        {
+          lastname: updatedPers1Lastname
+        }]
+    }));
+     */
+  }));
+
+  it('addNewPerson should add empty form control', waitForAsync(() => {
+    const fixture = TestBed.createComponent(CustomerFormComponent);
+    const component = fixture.componentInstance;
+
+    expect(component.additionalPersons.length).toBe(0);
+    component.addNewPerson();
+    expect(component.additionalPersons.length).toBe(1);
+  }));
+
+  it('removePerson should remove correct form control', waitForAsync(() => {
+    apiService.getCountries.and.returnValue(of(mockCountryList));
+
+    const fixture = TestBed.createComponent(CustomerFormComponent);
+    const component = fixture.componentInstance;
+    component.ngOnInit();
+    component.customerData = testCustomerData;
+
+    expect(component.additionalPersons.length).toBe(2);
+    component.removePerson(0);
+    expect(component.additionalPersons.length).toBe(1);
   }));
 
 });

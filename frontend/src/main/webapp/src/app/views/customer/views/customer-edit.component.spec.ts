@@ -1,15 +1,14 @@
-import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { TestBed, waitForAsync } from '@angular/core/testing';
-import { ReactiveFormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
-import { RouterTestingModule } from '@angular/router/testing';
+import {HttpClientTestingModule} from '@angular/common/http/testing';
+import {TestBed, waitForAsync} from '@angular/core/testing';
+import {ReactiveFormsModule} from '@angular/forms';
+import {ActivatedRoute, Router} from '@angular/router';
+import {RouterTestingModule} from '@angular/router/testing';
 import * as moment from 'moment';
-import { ModalModule } from 'ngx-bootstrap/modal';
-import { EMPTY, empty, of } from 'rxjs';
-import { CustomerApiService, CustomerData } from '../api/customer-api.service';
-import { AddPersonFormComponent, CustomerAddPersonFormData } from '../components/addperson-form.component';
-import { CustomerFormComponent } from '../components/customer-form.component';
-import { CustomerEditComponent } from './customer-edit.component';
+import {ModalModule} from 'ngx-bootstrap/modal';
+import {EMPTY} from 'rxjs';
+import {CustomerApiService, CustomerData} from '../api/customer-api.service';
+import {CustomerFormComponent} from '../components/customer-form.component';
+import {CustomerEditComponent} from './customer-edit.component';
 
 describe('CustomerEditComponent', () => {
   const testCustomerData: CustomerData = {
@@ -39,8 +38,22 @@ describe('CustomerEditComponent', () => {
     incomeDue: moment().add(1, 'years').startOf('day').utc().toDate(),
 
     additionalPersons: [
-      { lastname: 'Add', firstname: 'Pers 1', birthDate: moment().subtract(5, 'years').startOf('day').utc().toDate(), income: 50 },
-      { lastname: 'Add', firstname: 'Pers 2', birthDate: moment().subtract(2, 'years').startOf('day').utc().toDate(), income: 80 }
+      {
+        key: 0,
+        id: 0,
+        lastname: 'Add',
+        firstname: 'Pers 1',
+        birthDate: moment().subtract(5, 'years').startOf('day').utc().toDate(),
+        income: 50
+      },
+      {
+        key: 1,
+        id: 1,
+        lastname: 'Add',
+        firstname: 'Pers 2',
+        birthDate: moment().subtract(2, 'years').startOf('day').utc().toDate(),
+        income: 80
+      }
     ]
   };
 
@@ -57,8 +70,7 @@ describe('CustomerEditComponent', () => {
       ],
       declarations: [
         CustomerEditComponent,
-        CustomerFormComponent,
-        AddPersonFormComponent
+        CustomerFormComponent
       ],
       providers: [
         {
@@ -90,4 +102,6 @@ describe('CustomerEditComponent', () => {
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('[testid=nopersons-label]')).toBeTruthy();
   });
+
+  // TODO add more tests
 });

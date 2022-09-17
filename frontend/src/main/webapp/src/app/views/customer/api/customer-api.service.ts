@@ -81,6 +81,8 @@ export interface CustomerAddressData {
 }
 
 export interface CustomerAddPersonData {
+  key: number;
+  id: number;
   firstname: string;
   lastname: string;
   birthDate: Date;

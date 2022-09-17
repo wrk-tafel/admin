@@ -2,6 +2,7 @@ import { HttpClientTestingModule, HttpTestingController } from '@angular/common/
 import { TestBed } from '@angular/core/testing';
 import * as moment from 'moment';
 import { CustomerApiService } from './customer-api.service';
+import {ReactiveFormsModule} from "@angular/forms";
 
 describe('CustomerApiService', () => {
   let httpMock: HttpTestingController;
@@ -9,7 +10,7 @@ describe('CustomerApiService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
+      imports: [HttpClientTestingModule, ReactiveFormsModule],
       providers: [CustomerApiService]
     });
 
