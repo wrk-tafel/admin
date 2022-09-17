@@ -5,6 +5,7 @@ import {of} from 'rxjs';
 import {CountryApiService} from '../../../common/api/country-api.service';
 import {CustomerData} from '../api/customer-api.service';
 import {CustomerFormComponent} from './customer-form.component';
+import {ReactiveFormsModule} from "@angular/forms";
 
 describe('CustomerFormComponent', () => {
   let apiService: jasmine.SpyObj<CountryApiService>;
@@ -16,7 +17,10 @@ describe('CustomerFormComponent', () => {
       declarations: [
         CustomerFormComponent
       ],
-      imports: [RouterTestingModule],
+      imports: [
+        RouterTestingModule,
+        ReactiveFormsModule,
+      ],
       providers: [
         {
           provide: CountryApiService,
@@ -62,12 +66,31 @@ describe('CustomerFormComponent', () => {
       },
       employer: 'WRK',
       income: 123.50,
-      incomeDue: moment().add(1, 'years').startOf('day').utc().toDate()
+      incomeDue: moment().add(1, 'years').startOf('day').utc().toDate(),
+      additionalPersons: [
+        {
+          key: 0,
+          id: 0,
+          lastname: 'Last 1',
+          firstname: 'First 1',
+          birthDate: moment().subtract(1, 'years').startOf('day').utc().toDate(),
+          income: null
+        },
+        {
+          key: 1,
+          id: 1,
+          lastname: 'Last 2',
+          firstname: 'First 2',
+          birthDate: moment().subtract(4, 'years').startOf('day').utc().toDate(),
+          income: null
+        }
+      ]
     };
 
-    // TODO component.form.patchValue(testData);
     spyOn(component.customerDataChange, 'emit');
     component.ngOnInit();
+
+    component.customerData = testData;
 
     // TODO check dom elements - makes more sense
     /*
@@ -82,7 +105,7 @@ describe('CustomerFormComponent', () => {
     expect(component.lastname.value).toBe(testData.lastname);
     expect(component.firstname.value).toBe(testData.firstname);
     expect(component.birthDate.value).toBe(testData.birthDate);
-    expect(component.country.get('name').value).toBe(testData.country.name);
+    expect(component.country.value).toBe(testData.country);
     expect(component.telephoneNumber.value).toBe(testData.telephoneNumber);
     expect(component.email.value).toBe(testData.email);
     expect(component.street.value).toBe(testData.address.street);

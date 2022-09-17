@@ -1,13 +1,13 @@
-import { HttpHeaders, HttpResponse } from '@angular/common/http';
-import { TestBed, waitForAsync } from '@angular/core/testing';
-import { By } from '@angular/platform-browser';
-import { ActivatedRoute, Router } from '@angular/router';
-import { RouterTestingModule } from '@angular/router/testing';
+import {HttpHeaders, HttpResponse} from '@angular/common/http';
+import {TestBed, waitForAsync} from '@angular/core/testing';
+import {By} from '@angular/platform-browser';
+import {ActivatedRoute, Router} from '@angular/router';
+import {RouterTestingModule} from '@angular/router/testing';
 import * as moment from 'moment';
-import { of } from 'rxjs';
-import { FileHelperService } from '../../../common/util/file-helper.service';
-import { CustomerApiService, CustomerData } from '../api/customer-api.service';
-import { CustomerDetailComponent } from './customer-detail.component';
+import {of} from 'rxjs';
+import {FileHelperService} from '../../../common/util/file-helper.service';
+import {CustomerApiService, CustomerData} from '../api/customer-api.service';
+import {CustomerDetailComponent} from './customer-detail.component';
 
 describe('CustomerDetailComponent', () => {
   let apiService: jasmine.SpyObj<CustomerApiService>;
@@ -41,8 +41,22 @@ describe('CustomerDetailComponent', () => {
     incomeDue: moment().add(1, 'years').startOf('day').utc().toDate(),
 
     additionalPersons: [
-      { lastname: 'Add', firstname: 'Pers 1', birthDate: moment().subtract(5, 'years').startOf('day').utc().toDate(), income: 50 },
-      { lastname: 'Add', firstname: 'Pers 2', birthDate: moment().subtract(10, 'years').startOf('day').utc().toDate(), income: 80 }
+      {
+        key: 0,
+        id: 0,
+        lastname: 'Add',
+        firstname: 'Pers 1',
+        birthDate: moment().subtract(5, 'years').startOf('day').utc().toDate(),
+        income: 50
+      },
+      {
+        key: 1,
+        id: 1,
+        lastname: 'Add',
+        firstname: 'Pers 2',
+        birthDate: moment().subtract(10, 'years').startOf('day').utc().toDate(),
+        income: 80
+      }
     ]
   };
 
@@ -64,7 +78,7 @@ describe('CustomerDetailComponent', () => {
         {
           provide: ActivatedRoute,
           useValue: {
-            params: of({ id: mockCustomer.id })
+            params: of({id: mockCustomer.id})
           }
         },
         {
@@ -118,7 +132,7 @@ describe('CustomerDetailComponent', () => {
     const response = new HttpResponse({
       status: 200,
       headers: new HttpHeaders(
-        { 'Content-Disposition': 'inline; filename=test-name-1.pdf' }
+        {'Content-Disposition': 'inline; filename=test-name-1.pdf'}
       ),
       body: new ArrayBuffer(10)
     });
@@ -130,7 +144,7 @@ describe('CustomerDetailComponent', () => {
 
     component.printMasterdata();
 
-    expect(fileHelperService.downloadFile).toHaveBeenCalledWith('test-name-1.pdf', new Blob([response.body], { type: 'application/pdf' }));
+    expect(fileHelperService.downloadFile).toHaveBeenCalledWith('test-name-1.pdf', new Blob([response.body], {type: 'application/pdf'}));
   }));
 
   it('editCustomer', waitForAsync(() => {
