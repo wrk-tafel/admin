@@ -95,8 +95,6 @@ describe('CustomerDetailComponent', () => {
     router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
   }));
 
-  // TODO: add tests to check data mapping from data into form fields
-
   it('component can be created', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
@@ -128,6 +126,8 @@ describe('CustomerDetailComponent', () => {
     expect(fixture.debugElement.query(By.css('[testId="incomeText"]')).nativeElement.textContent).toBe('1000 €');
     expect(fixture.debugElement.query(By.css('[testId="incomeDueText"]')).nativeElement.textContent)
       .toBe(moment(mockCustomer.incomeDue).format('DD.MM.yyyy'));
+
+    // TODO check additional persons
   }));
 
   it('printMasterdata', waitForAsync(() => {
