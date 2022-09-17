@@ -1,21 +1,24 @@
 import { Component } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
-import * as moment from 'moment';
-import { CustomerAddressData, CustomerApiService, CustomerData, CustomerSearchResponse } from '../api/customer-api.service';
+import { DateHelperService } from '../../../common/util/date-helper.service';
+import { CustomerAddressData, CustomerApiService, CustomerData, CustomerSearchResult } from '../api/customer-api.service';
 
 @Component({
-  selector: 'customer-search',
+  selector: 'tafel-customer-search',
   templateUrl: 'customer-search.component.html'
 })
 export class CustomerSearchComponent {
   constructor(
     private customerApiService: CustomerApiService,
-    private router: Router
+    private router: Router,
+    private dateHelper: DateHelperService
   ) { }
 
   errorMessage: string;
   searchResult: CustomerSearchResult;
+
+  formatDate = this.dateHelper.formatDate;
 
   customerSearchForm = new FormGroup({
     customerId: new FormControl(''),
@@ -37,11 +40,12 @@ export class CustomerSearchComponent {
 
   searchForDetails() {
     this.customerApiService.searchCustomer(this.lastname.value, this.firstname.value)
-      .subscribe((response: CustomerSearchResponse) => {
+      .subscribe((response: CustomerSearchResult) => {
         if (response.items.length === 0) {
           this.errorMessage = 'Keine Kunden gefunden!';
+          this.searchResult = null;
         } else {
-          this.searchResult = { items: response.items.map(item => this.mapItem(item)) };
+          this.searchResult = response;
         }
       });
   }
@@ -50,17 +54,11 @@ export class CustomerSearchComponent {
     this.router.navigate(['/kunden/detail', customerId]);
   }
 
-  private mapItem(item: CustomerData): CustomerItem {
-    return {
-      id: item.id,
-      lastname: item.lastname,
-      firstname: item.firstname,
-      birthDate: moment(item.birthDate).format('DD.MM.YYYY'),
-      address: this.formatAddress(item.address)
-    };
+  editCustomer(customerId: number) {
+    this.router.navigate(['/kunden/bearbeiten', customerId]);
   }
 
-  private formatAddress(address: CustomerAddressData): string {
+  formatAddress(address: CustomerAddressData): string {
     let result = '';
     result += address.street + ' ' + address.houseNumber;
     if (address.stairway) {
@@ -76,16 +74,4 @@ export class CustomerSearchComponent {
   get customerId() { return this.customerSearchForm.get('customerId'); }
   get lastname() { return this.customerSearchForm.get('lastname'); }
   get firstname() { return this.customerSearchForm.get('firstname'); }
-}
-
-interface CustomerSearchResult {
-  items: CustomerItem[];
-}
-
-interface CustomerItem {
-  id: number;
-  lastname: string;
-  firstname: string;
-  birthDate: string;
-  address: string;
 }

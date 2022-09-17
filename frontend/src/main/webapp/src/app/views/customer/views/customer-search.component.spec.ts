@@ -1,5 +1,6 @@
 import { TestBed, waitForAsync } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
+import { By } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import * as moment from 'moment';
@@ -17,7 +18,7 @@ describe('CustomerSearchComponent', () => {
                 id: 0,
                 firstname: 'first',
                 lastname: 'last',
-                birthDate: moment().subtract(20, 'years').toDate(),
+                birthDate: moment('10.05.2000', 'DD.MM.YYYY').toDate(),
                 address: {
                     street: 'street',
                     houseNumber: '1',
@@ -28,14 +29,6 @@ describe('CustomerSearchComponent', () => {
                 }
             }
         ]
-    };
-
-    const searchCustomerResultItem = {
-        id: 0,
-        lastname: 'last',
-        firstname: 'first',
-        birthDate: moment().subtract(20, 'years').format('DD.MM.YYYY'),
-        address: 'street 1, Stiege stairway1, Top 20 / 1010 city'
     };
 
     beforeEach(waitForAsync(() => {
@@ -113,9 +106,14 @@ describe('CustomerSearchComponent', () => {
         component.searchForDetails();
 
         expect(apiService.searchCustomer).toHaveBeenCalledWith('lastname', 'firstname');
-        const resultItems = component.searchResult.items;
-        expect(resultItems.length).toBe(1);
-        expect(resultItems[0]).toEqual(searchCustomerResultItem);
+
+        fixture.detectChanges();
+        expect(fixture.debugElement.query(By.css('[testId="searchresult-id-0"]')).nativeElement.textContent).toBe('0');
+        expect(fixture.debugElement.query(By.css('[testId="searchresult-lastname-0"]')).nativeElement.textContent).toBe('last');
+        expect(fixture.debugElement.query(By.css('[testId="searchresult-firstname-0"]')).nativeElement.textContent).toBe('first');
+        expect(fixture.debugElement.query(By.css('[testId="searchresult-birthDate-0"]')).nativeElement.textContent).toBe('10.05.2000');
+        expect(fixture.debugElement.query(By.css('[testId="searchresult-address-0"]')).nativeElement.textContent)
+            .toBe('street 1, Stiege stairway1, Top 20 / 1010 city');
     });
 
     it('search with firstname only', () => {
@@ -138,6 +136,24 @@ describe('CustomerSearchComponent', () => {
         component.searchForDetails();
 
         expect(apiService.searchCustomer).toHaveBeenCalledWith('lastname', '');
+    });
+
+    it('navigate to customer', () => {
+        const fixture = TestBed.createComponent(CustomerSearchComponent);
+        const component = fixture.componentInstance;
+
+        component.navigateToCustomer(1);
+
+        expect(router.navigate).toHaveBeenCalledWith(['/kunden/detail', 1]);
+    });
+
+    it('edit customer', () => {
+        const fixture = TestBed.createComponent(CustomerSearchComponent);
+        const component = fixture.componentInstance;
+
+        component.editCustomer(1);
+
+        expect(router.navigate).toHaveBeenCalledWith(['/kunden/bearbeiten', 1]);
     });
 
 });

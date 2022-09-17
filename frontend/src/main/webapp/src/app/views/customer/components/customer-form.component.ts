@@ -1,99 +1,197 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { CountryData, CountryApiService } from '../../../common/api/country-api.service';
-import { CustomValidator } from '../../../common/CustomValidator';
+import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
+import {FormArray, FormControl, FormGroup, Validators} from '@angular/forms';
+import {CountryApiService, CountryData} from '../../../common/api/country-api.service';
+import {CustomValidator} from '../../../common/CustomValidator';
+import {CustomerAddPersonData, CustomerData} from '../api/customer-api.service';
+import {v4 as uuidv4} from 'uuid';
 
 @Component({
-  selector: 'customer-form',
+  selector: 'tafel-customer-form',
   templateUrl: 'customer-form.component.html'
 })
 export class CustomerFormComponent implements OnInit {
   constructor(
     private countryApiService: CountryApiService
-  ) { }
+  ) {
+  }
 
-  @Input() customerData: CustomerFormData;
-  @Output() dataUpdatedEvent = new EventEmitter<void>();
+  @Input()
+  set customerData(customerData: CustomerData) {
+    if (customerData) {
+      this.form.patchValue(customerData);
+      this.additionalPersons.clear();
+      customerData.additionalPersons.forEach((person) => this.pushPersonGroupControl(
+        {
+          ...person,
+          key: person.key ? person.key : uuidv4()
+        }
+      ));
+    }
+  }
 
-  customerForm = new FormGroup({
-    customerId: new FormControl(''),
-    lastname: new FormControl('', [Validators.required, Validators.maxLength(50)]),
-    firstname: new FormControl('', [Validators.required, , Validators.maxLength(50)]),
-    birthDate: new FormControl('',
+  get customerData() {
+    return this.customerData;
+  }
+
+  @Output() customerDataChange = new EventEmitter<CustomerData>();
+
+  form = new FormGroup({
+    id: new FormControl(null),
+    lastname: new FormControl(null, [Validators.required, Validators.maxLength(50)]),
+    firstname: new FormControl(null, [Validators.required, Validators.maxLength(50)]),
+    birthDate: new FormControl(null,
       [
         Validators.required,
         CustomValidator.minDate(new Date(1920, 0, 1)),
         CustomValidator.maxDate(new Date())
-      ]),
-    country: new FormControl('', Validators.required),
-    telephoneNumber: new FormControl(''),
-    email: new FormControl('', [Validators.maxLength(100), Validators.email]),
+      ]
+    ),
 
-    street: new FormControl('', [Validators.required, Validators.maxLength(100)]),
-    houseNumber: new FormControl('', [Validators.required, Validators.maxLength(10)]),
-    stairway: new FormControl(''),
-    door: new FormControl(''),
-    postalCode: new FormControl('', [Validators.required, Validators.pattern('^[0-9]{4}$')]),
-    city: new FormControl('', [Validators.required, Validators.maxLength(50)]),
+    country: new FormControl({}, Validators.required),
+    telephoneNumber: new FormControl(null),
+    email: new FormControl(null, [Validators.maxLength(100), Validators.email]),
 
-    employer: new FormControl('', Validators.required),
-    income: new FormControl('', Validators.required),
-    incomeDue: new FormControl('', CustomValidator.minDate(new Date()))
+    address: new FormGroup({
+      street: new FormControl(null, [Validators.required, Validators.maxLength(100)]),
+      houseNumber: new FormControl(null, [Validators.required, Validators.maxLength(10)]),
+      stairway: new FormControl(null),
+      door: new FormControl(null),
+      postalCode: new FormControl(null, [Validators.required, Validators.pattern('^[0-9]{4}$')]),
+      city: new FormControl(null, [Validators.required, Validators.maxLength(50)]),
+    }),
+
+    employer: new FormControl(null, Validators.required),
+    income: new FormControl(null, Validators.required),
+    incomeDue: new FormControl(null, CustomValidator.minDate(new Date())),
+
+    additionalPersons: new FormArray([])
   });
 
   countries: CountryData[];
 
   ngOnInit(): void {
-    this.countryApiService.getCountries().subscribe((data: CountryData[]) => {
-      this.countries = data;
+    this.countryApiService.getCountries().subscribe((countries) => {
+      this.countries = countries;
     });
 
-    this.customerForm.patchValue(this.customerData);
-    this.birthDate.setValue(this.customerData?.birthDate?.toISOString().substring(0, 10));
-    this.incomeDue.setValue(this.customerData?.incomeDue?.toISOString().substring(0, 10));
-
-    this.customerForm.valueChanges.subscribe(() => {
-      this.dataUpdatedEvent.emit();
+    this.form.valueChanges.subscribe(() => {
+      this.customerDataChange.emit(this.form.value);
     });
   }
 
-  get customerId() { return this.customerForm.get('customerId'); }
-  get lastname() { return this.customerForm.get('lastname'); }
-  get firstname() { return this.customerForm.get('firstname'); }
-  get birthDate() { return this.customerForm.get('birthDate'); }
-  get country() { return this.customerForm.get('country'); }
-  get telephoneNumber() { return this.customerForm.get('telephoneNumber'); }
-  get email() { return this.customerForm.get('email'); }
+  compareCountry(c1: CountryData, c2: CountryData): boolean {
+    return c1 && c2 ? c1.id === c2.id : c1 === c2;
+  }
 
-  get street() { return this.customerForm.get('street'); }
-  get houseNumber() { return this.customerForm.get('houseNumber'); }
-  get stairway() { return this.customerForm.get('stairway'); }
-  get door() { return this.customerForm.get('door'); }
-  get postalCode() { return this.customerForm.get('postalCode'); }
-  get city() { return this.customerForm.get('city'); }
+  trackBy(index: number, personDataControl: FormGroup) {
+    const personData = personDataControl.value;
+    return personData.key;
+  }
 
-  get employer() { return this.customerForm.get('employer'); }
-  get income() { return this.customerForm.get('income'); }
-  get incomeDue() { return this.customerForm.get('incomeDue'); }
-}
+  addNewPerson() {
+    this.pushPersonGroupControl({
+      key: uuidv4(),
+      id: null,
+      firstname: null,
+      lastname: null,
+      birthDate: null,
+      income: null
+    });
+  }
 
-export interface CustomerFormData {
-  customerId?: number;
-  lastname?: string;
-  firstname?: string;
-  birthDate?: Date;
-  country?: CountryData;
-  telephoneNumber?: number;
-  email?: string;
+  removePerson(index: number) {
+    this.additionalPersons.removeAt(index);
+  }
 
-  street?: string;
-  houseNumber?: string;
-  stairway?: string;
-  door?: string;
-  postalCode?: number;
-  city?: string;
+  markAllAsTouched() {
+    this.form.markAllAsTouched();
+  }
 
-  employer?: string;
-  income?: number;
-  incomeDue?: Date;
+  isValid(): boolean {
+    return this.form.valid;
+  }
+
+  private pushPersonGroupControl(additionalPerson: CustomerAddPersonData) {
+    const control = new FormGroup({
+      key: new FormControl(additionalPerson.key),
+      id: new FormControl(additionalPerson.id),
+      lastname: new FormControl(additionalPerson.lastname, [Validators.required, Validators.maxLength(50)]),
+      firstname: new FormControl(additionalPerson.firstname, [Validators.required, , Validators.maxLength(50)]),
+      birthDate: new FormControl(additionalPerson.birthDate, [
+        Validators.required,
+        CustomValidator.minDate(new Date(1920, 0, 1)),
+        CustomValidator.maxDate(new Date())
+      ]),
+      income: new FormControl(additionalPerson.income)
+    });
+    this.additionalPersons.push(control);
+  }
+
+  get id() {
+    return this.form.get('id');
+  }
+
+  get lastname() {
+    return this.form.get('lastname');
+  }
+
+  get firstname() {
+    return this.form.get('firstname');
+  }
+
+  get birthDate() {
+    return this.form.get('birthDate');
+  }
+
+  get country() {
+    return this.form.get('country');
+  }
+
+  get telephoneNumber() {
+    return this.form.get('telephoneNumber');
+  }
+
+  get email() {
+    return this.form.get('email');
+  }
+
+  get street() {
+    return this.form.get('address').get('street');
+  }
+
+  get houseNumber() {
+    return this.form.get('address').get('houseNumber');
+  }
+
+  get stairway() {
+    return this.form.get('address').get('stairway');
+  }
+
+  get door() {
+    return this.form.get('address').get('door');
+  }
+
+  get postalCode() {
+    return this.form.get('address').get('postalCode');
+  }
+
+  get city() {
+    return this.form.get('address').get('city');
+  }
+
+  get employer() {
+    return this.form.get('employer');
+  }
+
+  get income() {
+    return this.form.get('income');
+  }
+
+  get incomeDue() {
+    return this.form.get('incomeDue');
+  }
+
+  get additionalPersons() {
+    return this.form.get('additionalPersons') as FormArray;
+  }
 }

@@ -58,26 +58,39 @@
                         <table class="table table-striped">
                             <thead>
                                 <tr>
+                                    <th></th>
                                     <th>Nr.</th>
                                     <th>Nachname</th>
                                     <th>Vorname</th>
                                     <th>Geb. Datum</th>
                                     <th>Adresse</th>
-                                    <th></th>
+                                    <th>Aktionen</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr testid="searchresult-row"
                                     *ngFor="let customer of searchResult.items; let i = index">
-                                    <td>{{customer.id}}</td>
-                                    <td>{{customer.lastname}}</td>
-                                    <td>{{customer.firstname}}</td>
-                                    <td>{{customer.birthDate}}</td>
-                                    <td>{{customer.address}}</td>
+                                    <td><i class="fa fa-user"></i></td>
+                                    <td [attr.testid]="'searchresult-id-' + i">{{customer.id}}</td>
+                                    <td [attr.testid]="'searchresult-lastname-' + i">{{customer.lastname}}</td>
+                                    <td [attr.testid]="'searchresult-firstname-' + i">{{customer.firstname}}</td>
+                                    <td [attr.testid]="'searchresult-birthDate-' + i">{{formatDate(customer.birthDate)}}</td>
+                                    <td [attr.testid]="'searchresult-address-' + i">{{formatAddress(customer.address)}}</td>
                                     <td>
-                                        <button [attr.testid]="'searchresult-showcustomer-button-' + i" type="button"
-                                            class="btn btn-primary" (click)="navigateToCustomer(customer.id)"><i
-                                                class="fa fa-search"></i></button>
+                                        <div class="row">
+                                            <div class="col-3 mr-2">
+                                                <button [attr.testid]="'searchresult-showcustomer-button-' + i"
+                                                    type="button" class="btn btn-primary"
+                                                    (click)="navigateToCustomer(customer.id)"><i
+                                                        class="fa fa-search"></i></button>
+                                            </div>
+                                            <div class="col-3">
+                                                <button [attr.testid]="'searchresult-editcustomer-button-' + i"
+                                                    type="button" class="btn btn-danger"
+                                                    (click)="editCustomer(customer.id)"><i
+                                                        class="fa fa-pencil"></i></button>
+                                            </div>
+                                        </div>
                                     </td>
                                 </tr>
                             </tbody>

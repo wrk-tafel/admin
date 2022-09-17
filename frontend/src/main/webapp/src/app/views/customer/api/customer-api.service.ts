@@ -19,6 +19,10 @@ export class CustomerApiService {
     return this.http.post<CustomerData>('/customers', data);
   }
 
+  updateCustomer(data: CustomerData): Observable<any> {
+    return this.http.post<CustomerData>(`/customers/${data.id}`, data);
+  }
+
   getCustomer(id: number): Observable<CustomerData> {
     return this.http.get<CustomerData>('/customers/' + id);
   }
@@ -28,7 +32,7 @@ export class CustomerApiService {
       { responseType: 'arraybuffer', observe: 'response' });
   }
 
-  searchCustomer(lastname?: string, firstname?: string): Observable<CustomerSearchResponse> {
+  searchCustomer(lastname?: string, firstname?: string): Observable<CustomerSearchResult> {
     let queryParams = new HttpParams();
     if (lastname) {
       queryParams = queryParams.set('lastname', lastname);
@@ -36,7 +40,7 @@ export class CustomerApiService {
     if (firstname) {
       queryParams = queryParams.set('firstname', firstname);
     }
-    return this.http.get<CustomerSearchResponse>('/customers', { params: queryParams });
+    return this.http.get<CustomerSearchResult>('/customers', { params: queryParams });
   }
 }
 
@@ -46,6 +50,10 @@ export interface ValidateCustomerResponse {
   limit: number;
   toleranceValue: number;
   amountExceededLimit: number;
+}
+
+export interface CustomerSearchResult {
+  items: CustomerData[];
 }
 
 export interface CustomerData {
@@ -73,12 +81,10 @@ export interface CustomerAddressData {
 }
 
 export interface CustomerAddPersonData {
+  key: number;
+  id: number;
   firstname: string;
   lastname: string;
   birthDate: Date;
   income?: number;
-}
-
-export interface CustomerSearchResponse {
-  items: CustomerData[];
 }
