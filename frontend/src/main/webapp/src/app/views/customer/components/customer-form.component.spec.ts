@@ -5,7 +5,7 @@ import {of} from 'rxjs';
 import {CountryApiService} from '../../../common/api/country-api.service';
 import {CustomerData} from '../api/customer-api.service';
 import {CustomerFormComponent} from './customer-form.component';
-import {ReactiveFormsModule} from '@angular/forms';
+import {FormControl, FormGroup, ReactiveFormsModule} from '@angular/forms';
 
 describe('CustomerFormComponent', () => {
   let apiService: jasmine.SpyObj<CountryApiService>;
@@ -178,26 +178,16 @@ describe('CustomerFormComponent', () => {
      */
   }));
 
-  it('addNewPerson should add empty form control', waitForAsync(() => {
+  it('trackBy', () => {
     const fixture = TestBed.createComponent(CustomerFormComponent);
     const component = fixture.componentInstance;
+    const testUuid = 'test-UUID';
 
-    expect(component.additionalPersons.length).toBe(0);
-    component.addNewPerson();
-    expect(component.additionalPersons.length).toBe(1);
-  }));
+    const trackingId = component.trackBy(0, new FormGroup({
+      key: new FormControl(testUuid)
+    }));
 
-  it('removePerson should remove correct form control', waitForAsync(() => {
-    apiService.getCountries.and.returnValue(of(mockCountryList));
-
-    const fixture = TestBed.createComponent(CustomerFormComponent);
-    const component = fixture.componentInstance;
-    component.ngOnInit();
-    component.customerData = testCustomerData;
-
-    expect(component.additionalPersons.length).toBe(2);
-    component.removePerson(0);
-    expect(component.additionalPersons.length).toBe(1);
-  }));
+    expect(trackingId).toBe(testUuid);
+  });
 
 });
