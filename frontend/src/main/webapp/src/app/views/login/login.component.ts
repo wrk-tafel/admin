@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { AuthenticationService } from '../../common/security/authentication.service';
 
 @Component({
-  selector: 'app-dashboard',
+  selector: 'tafel-login',
   templateUrl: 'login.component.html'
 })
 export class LoginComponent {

@@ -4,7 +4,7 @@ import { AuthenticationService } from '../../common/security/authentication.serv
 import { IPermissionNavData, navigationMenuItems } from '../../views/dashboard/navigation-menuItems';
 
 @Component({
-  selector: 'app-dashboard',
+  selector: 'tafel-default-layout',
   templateUrl: './default-layout.component.html'
 })
 export class DefaultLayoutComponent {
