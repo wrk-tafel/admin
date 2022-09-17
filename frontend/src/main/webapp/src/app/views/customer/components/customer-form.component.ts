@@ -3,6 +3,7 @@ import {FormArray, FormControl, FormGroup, Validators} from '@angular/forms';
 import {CountryApiService, CountryData} from '../../../common/api/country-api.service';
 import {CustomValidator} from '../../../common/CustomValidator';
 import {CustomerAddPersonData, CustomerData} from '../api/customer-api.service';
+import {v4 as uuidv4} from 'uuid';
 
 @Component({
   selector: 'customer-form',
@@ -19,7 +20,12 @@ export class CustomerFormComponent implements OnInit {
     if (customerData) {
       this.form.patchValue(customerData);
       this.additionalPersons.clear();
-      customerData.additionalPersons.forEach((person) => this.additionalPersons.push(this.getPersonGroupControl(person)));
+      customerData.additionalPersons.forEach((person) => this.pushPersonGroupControl(
+        {
+          ...person,
+          key: person.key ? person.key : uuidv4()
+        }
+      ));
     }
   }
 
@@ -78,18 +84,20 @@ export class CustomerFormComponent implements OnInit {
   }
 
   trackBy(index: number, personDataControl: FormGroup) {
-    return index;
+    const personData = personDataControl.value;
+    console.log("IDX", index, "DATA", personData);
+    return personData.key;
   }
 
   addNewPerson() {
-    const control = this.getPersonGroupControl({
+    this.pushPersonGroupControl({
+      key: uuidv4(),
       id: null,
       firstname: null,
       lastname: null,
       birthDate: null,
       income: null
     });
-    this.additionalPersons.push(control);
   }
 
   removePerson(index: number) {
@@ -104,8 +112,11 @@ export class CustomerFormComponent implements OnInit {
     return this.form.valid;
   }
 
-  private getPersonGroupControl(additionalPerson: CustomerAddPersonData): FormGroup {
-    return new FormGroup({
+  private pushPersonGroupControl(additionalPerson: CustomerAddPersonData) {
+    console.log("CREATE CONTROL");
+    const control = new FormGroup({
+      key: new FormControl(additionalPerson.key),
+      id: new FormControl(additionalPerson.id),
       lastname: new FormControl(additionalPerson.lastname, [Validators.required, Validators.maxLength(50)]),
       firstname: new FormControl(additionalPerson.firstname, [Validators.required, , Validators.maxLength(50)]),
       birthDate: new FormControl(additionalPerson.birthDate, [
@@ -114,7 +125,8 @@ export class CustomerFormComponent implements OnInit {
         CustomValidator.maxDate(new Date())
       ]),
       income: new FormControl(additionalPerson.income)
-    })
+    });
+    this.additionalPersons.push(control);
   }
 
   get id() {

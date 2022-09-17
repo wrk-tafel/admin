@@ -56,6 +56,8 @@ export class CustomerEditComponent implements OnInit {
   }
 
   validate() {
+    console.log("CURR DATA", this.customerData);
+
     this.changeSaveDisabledState(true);
 
     if (!this.formIsValid()) {
