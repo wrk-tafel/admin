@@ -1,4 +1,4 @@
-import {Component, OnInit, Output, ViewChild} from '@angular/core';
+import {Component, OnInit, ViewChild} from '@angular/core';
 import {CustomerFormComponent} from '../components/customer-form.component';
 import {CustomerApiService, CustomerData, ValidateCustomerResponse} from '../api/customer-api.service';
 import {ModalDirective} from 'ngx-bootstrap/modal';
@@ -20,10 +20,9 @@ export class CustomerEditComponent implements OnInit {
   customerInput: CustomerData;
   customerUpdated: CustomerData;
 
-  @Output() editMode: boolean = false;
-  // TODO fix state update
-  @Output() saveDisabled: boolean = true;
-  @Output() errorMessage: string;
+  editMode: boolean = false;
+  customerValidForSave: boolean = false;
+  errorMessage: string;
 
   @ViewChild(CustomerFormComponent) customerFormComponent: CustomerFormComponent;
   @ViewChild('validationResultModal') validationResultModal: ModalDirective;
@@ -36,7 +35,6 @@ export class CustomerEditComponent implements OnInit {
       if (customerId) {
         this.customerApiService.getCustomer(customerId).subscribe((customerData) => {
           // Editing doesn't need a validation check
-          this.saveDisabled = false;
           this.editMode = true;
 
           // Load data into forms
@@ -53,11 +51,11 @@ export class CustomerEditComponent implements OnInit {
 
   customerDataUpdated(event: CustomerData) {
     this.customerUpdated = event;
-    this.changeSaveDisabledState(true);
+    this.customerValidForSave = false;
   }
 
   validate() {
-    this.changeSaveDisabledState(true);
+    this.customerFormComponent.markAllAsTouched();
 
     if (!this.formIsValid()) {
       this.errorMessage = 'Bitte Eingaben überprüfen!';
@@ -67,13 +65,15 @@ export class CustomerEditComponent implements OnInit {
       this.customerApiService.validate(this.customerUpdated).subscribe((result) => {
         this.validationResult = result;
 
-        this.saveDisabled = !result.valid;
+        this.customerValidForSave = result.valid;
         this.validationResultModal.show();
       });
     }
   }
 
   save() {
+    this.customerFormComponent.markAllAsTouched();
+
     if (!this.formIsValid()) {
       this.errorMessage = 'Bitte Eingaben überprüfen!';
     } else {
@@ -97,15 +97,15 @@ export class CustomerEditComponent implements OnInit {
     }
   }
 
-  private changeSaveDisabledState(value: boolean) {
-    if (!this.editMode) {
-      this.saveDisabled = value;
+  private formIsValid() {
+    if (this.customerFormComponent) {
+      return this.customerFormComponent.isValid();
     }
+    return true;
   }
 
-  private formIsValid() {
-    this.customerFormComponent.markAllAsTouched();
-    return this.customerFormComponent.isValid();
+  private isSaveDisabled(): boolean {
+    return !this.formIsValid() || (!this.editMode && !this.customerValidForSave);
   }
 
 }
