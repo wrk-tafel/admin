@@ -85,7 +85,6 @@ export class CustomerFormComponent implements OnInit {
 
   trackBy(index: number, personDataControl: FormGroup) {
     const personData = personDataControl.value;
-    console.log("IDX", index, "DATA", personData);
     return personData.key;
   }
 
@@ -113,7 +112,6 @@ export class CustomerFormComponent implements OnInit {
   }
 
   private pushPersonGroupControl(additionalPerson: CustomerAddPersonData) {
-    console.log("CREATE CONTROL");
     const control = new FormGroup({
       key: new FormControl(additionalPerson.key),
       id: new FormControl(additionalPerson.id),

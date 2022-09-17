@@ -27,7 +27,7 @@ export class CustomerEditComponent implements OnInit {
           this.editMode = true;
 
           // Load data into forms
-          this.customerData = customerData;
+          this.customerInput = customerData;
 
           // Mark forms as touched to show the validation state (postponed to next makrotask after angular finished)
           setTimeout(() => {
@@ -38,7 +38,8 @@ export class CustomerEditComponent implements OnInit {
     });
   }
 
-  customerData: CustomerData;
+  customerInput: CustomerData;
+  customerUpdated: CustomerData;
 
   @Output() editMode: boolean = false;
   // TODO fix state update
@@ -51,13 +52,11 @@ export class CustomerEditComponent implements OnInit {
   validationResult: ValidateCustomerResponse;
 
   customerDataUpdated(event: CustomerData) {
-    this.customerData = event;
+    this.customerUpdated = event;
     this.changeSaveDisabledState(true);
   }
 
   validate() {
-    console.log("CURR DATA", this.customerData);
-
     this.changeSaveDisabledState(true);
 
     if (!this.formIsValid()) {
@@ -65,7 +64,7 @@ export class CustomerEditComponent implements OnInit {
     } else {
       this.errorMessage = null;
 
-      this.customerApiService.validate(this.customerData).subscribe((result) => {
+      this.customerApiService.validate(this.customerUpdated).subscribe((result) => {
         this.validationResult = result;
 
         this.saveDisabled = !result.valid;
@@ -81,14 +80,14 @@ export class CustomerEditComponent implements OnInit {
       this.errorMessage = null;
 
       if (!this.editMode) {
-        this.customerApiService.createCustomer(this.customerData)
+        this.customerApiService.createCustomer(this.customerUpdated)
           .pipe(
             tap(customer => {
               this.router.navigate(['/kunden/detail', customer.id]);
             })
           ).subscribe();
       } else {
-        this.customerApiService.updateCustomer(this.customerData)
+        this.customerApiService.updateCustomer(this.customerUpdated)
           .pipe(
             tap(customer => {
               this.router.navigate(['/kunden/detail', customer.id]);
