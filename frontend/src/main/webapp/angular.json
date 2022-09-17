@@ -127,11 +127,11 @@
   "defaultProject": "ng",
   "schematics": {
     "@schematics/angular:component": {
-      "prefix": "app",
+      "prefix": "tafel",
       "style": "scss"
     },
     "@schematics/angular:directive": {
-      "prefix": "app"
+      "prefix": "tafel"
     }
   },
   "cli": {
