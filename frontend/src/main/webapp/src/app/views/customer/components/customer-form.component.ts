@@ -35,7 +35,7 @@ export class CustomerFormComponent implements OnInit {
 
   @Output() customerDataChange = new EventEmitter<CustomerData>();
 
-  private form = new FormGroup({
+  form = new FormGroup({
     id: new FormControl(null),
     lastname: new FormControl(null, [Validators.required, Validators.maxLength(50)]),
     firstname: new FormControl(null, [Validators.required, Validators.maxLength(50)]),
