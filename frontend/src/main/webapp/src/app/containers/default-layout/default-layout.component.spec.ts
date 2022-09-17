@@ -8,6 +8,7 @@ import {
   AppSidebarMinimizerComponent,
   AppSidebarNavComponent
 } from "@coreui/angular";
+import {AppSidebarNavItemsComponent} from "@coreui/angular/lib/sidebar/app-sidebar-nav/app-sidebar-nav-items.component";
 
 describe('DefaultLayoutComponent', () => {
   let authService: jasmine.SpyObj<AuthenticationService>;
@@ -20,6 +21,7 @@ describe('DefaultLayoutComponent', () => {
         AppHeaderComponent,
         AppSidebarComponent,
         AppSidebarNavComponent,
+        AppSidebarNavItemsComponent,
         AppSidebarMinimizerComponent,
         DefaultLayoutComponent
       ],
