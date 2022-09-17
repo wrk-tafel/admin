@@ -97,15 +97,15 @@ export class CustomerEditComponent implements OnInit {
     }
   }
 
+  isSaveDisabled(): boolean {
+    return !this.formIsValid() || (!this.editMode && !this.customerValidForSave);
+  }
+
   private formIsValid() {
     if (this.customerFormComponent) {
       return this.customerFormComponent.isValid();
     }
     return true;
-  }
-
-  isSaveDisabled(): boolean {
-    return !this.formIsValid() || (!this.editMode && !this.customerValidForSave);
   }
 
 }
