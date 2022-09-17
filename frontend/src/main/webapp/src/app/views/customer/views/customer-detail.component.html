@@ -1,107 +1,108 @@
 <div class="row">
-    <div class="col-sm-auto mb-3">
-        <button testid="printMasterdataButton" type="button" class="btn btn-primary"
-            (click)="printMasterdata()">Stammdaten drucken</button>
-    </div>
-    <div class="col-sm-auto mb-3">
-        <button testid="editCustomerButton" type="button" class="btn btn-danger" (click)="editCustomer()">Kunde
-            bearbeiten</button>
-    </div>
+  <div class="col-sm-auto mb-3">
+    <button testid="printMasterdataButton" type="button" class="btn btn-primary"
+            (click)="printMasterdata()">Stammdaten drucken
+    </button>
+  </div>
+  <div class="col-sm-auto mb-3">
+    <button testid="editCustomerButton" type="button" class="btn btn-danger" (click)="editCustomer()">Kunde bearbeiten
+    </button>
+  </div>
 </div>
 <div class="row">
-    <div class="col-sm-6">
-        <div class="card">
-            <div class="card-header text-center h5">Hauptbezieher</div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col font-weight-bold">Kundennummer</div>
-                    <div testid="customerIdText" class="col">{{customerData?.id}}</div>
-                </div>
-                <div class="row">
-                    <div class="col font-weight-bold">Name</div>
-                    <div testid="nameText" class="col">{{customerData?.lastname}} {{customerData?.firstname}}
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col font-weight-bold">Geburtsdatum (Alter)</div>
-                    <div testid="birthDateAgeText" class="col">{{formatBirthDateAge(customerData?.birthDate)}}
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col font-weight-bold">Nationalität</div>
-                    <div testid="countryText" class="col">{{customerData?.country?.name}}</div>
-                </div>
-                <div class="row">
-                    <div class="col font-weight-bold">Telefonnummer</div>
-                    <div testid="telephoneNumberText" class="col"
-                        [innerHTML]="customerData?.telephoneNumber ? customerData?.telephoneNumber : '-'"></div>
-                </div>
-                <div class="row">
-                    <div class="col font-weight-bold">E-Mail</div>
-                    <div testid="emailText" class="col" [innerHTML]="customerData?.email ? customerData?.email : '-'">
-                    </div>
-                </div>
-                <hr>
-                <div class="row">
-                    <div class="col font-weight-bold">Adresse</div>
-                </div>
-                <div class="row">
-                    <div testid="addressLine1Text" class="col">{{customerData?.address ?
-                        formatAddressLine1(customerData?.address) : ''}}</div>
-                </div>
-                <div class="row">
-                    <div testid="addressLine2Text" class="col"
-                        [innerHTML]="customerData?.address ? formatAddressLine2(customerData?.address) : ''">
-                    </div>
-                </div>
-                <hr>
-                <div class="row">
-                    <div class="col font-weight-bold">Arbeitgeber</div>
-                </div>
-                <div class="row">
-                    <div testid="employerText" class="col">{{customerData?.employer}}</div>
-                </div>
-                <div class="row">
-                    <div class="col">
-                        Einkommen&nbsp;(monatlich)
-                    </div>
-                    <div testid="incomeText" class="col">{{customerData?.income}} &euro;</div>
-                </div>
-                <div class="row">
-                    <div class="col">
-                        Auszahlung&nbsp;bis
-                    </div>
-                    <div testid="incomeDueText" class="col"
-                        [innerHTML]="customerData?.incomeDue ? formatDate(customerData?.incomeDue) : '-'"></div>
-                </div>
-            </div>
+  <div class="col-sm-6">
+    <div class="card">
+      <div class="card-header text-center h5">Hauptbezieher</div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col font-weight-bold">Kundennummer</div>
+          <div testid="customerIdText" class="col">{{customerData?.id}}</div>
         </div>
-    </div>
-    <div class="col-sm-6">
-        <div class="card">
-            <div class="card-header text-center h5">Weitere Personen</div>
-            <div class="card-body">
-                <div *ngIf="customerData?.additionalPersons.length === 0">
-                    <h6 testid="nopersons-label">Keine Personen vorhanden</h6>
-                </div>
-                <div *ngFor="let addPerson of customerData?.additionalPersons; let i = index">
-                    <hr *ngIf="i > 0">
-                    <div class="row">
-                        <div [attr.testid]="'addperson-' + i + '-lastnameText'" class="col font-weight-bold"
-                            [innerHTML]="addPerson?.lastname"></div>
-                        <div [attr.testid]="'addperson-' + i + '-firstnameText'" class="col font-weight-bold"
-                            [innerHTML]="addPerson?.firstname"></div>
-                    </div>
-                    <div class="row">
-                        <div [attr.testid]="'addperson-' + i + '-birthDateAgeText'" class="col"
-                            [innerHTML]="formatBirthDateAge(addPerson?.birthDate)"></div>
-                        <div [attr.testid]="'addperson-' + i + '-incomeText'" class="col"
-                            *ngIf="addPerson?.income !== null">Einkommen: {{addPerson?.income}} &euro;</div>
-                        <div [attr.testid]="'addperson-' + i + '-incomeText'" class="col"
-                            *ngIf="addPerson?.income === null">Einkommen: -</div>
-                    </div>
-                </div>
-            </div>
+        <div class="row">
+          <div class="col font-weight-bold">Name</div>
+          <div testid="nameText" class="col">{{customerData?.lastname}} {{customerData?.firstname}}</div>
         </div>
+        <div class="row">
+          <div class="col font-weight-bold">Geburtsdatum (Alter)</div>
+          <div testid="birthDateAgeText" class="col">{{formatBirthDateAge(customerData?.birthDate)}}</div>
+        </div>
+        <div class="row">
+          <div class="col font-weight-bold">Nationalität</div>
+          <div testid="countryText" class="col">{{customerData?.country?.name}}</div>
+        </div>
+        <div class="row">
+          <div class="col font-weight-bold">Telefonnummer</div>
+          <div testid="telephoneNumberText" class="col"
+               [innerHTML]="customerData?.telephoneNumber ? customerData?.telephoneNumber : '-'"></div>
+        </div>
+        <div class="row">
+          <div class="col font-weight-bold">E-Mail</div>
+          <div testid="emailText" class="col" [innerHTML]="customerData?.email ? customerData?.email : '-'">
+          </div>
+        </div>
+        <hr>
+        <div class="row">
+          <div class="col font-weight-bold">Adresse</div>
+        </div>
+        <div class="row">
+          <div testid="addressLine1Text" class="col">{{customerData?.address ?
+            formatAddressLine1(customerData?.address) : ''}}</div>
+        </div>
+        <div class="row">
+          <div testid="addressLine2Text" class="col"
+               [innerHTML]="customerData?.address ? formatAddressLine2(customerData?.address) : ''">
+          </div>
+        </div>
+        <hr>
+        <div class="row">
+          <div class="col font-weight-bold">Arbeitgeber</div>
+        </div>
+        <div class="row">
+          <div testid="employerText" class="col">{{customerData?.employer}}</div>
+        </div>
+        <div class="row">
+          <div class="col">
+            Einkommen&nbsp;(monatlich)
+          </div>
+          <div testid="incomeText" class="col">{{customerData?.income}} &euro;</div>
+        </div>
+        <div class="row">
+          <div class="col">
+            Auszahlung&nbsp;bis
+          </div>
+          <div testid="incomeDueText" class="col"
+               [innerHTML]="customerData?.incomeDue ? formatDate(customerData?.incomeDue) : '-'"></div>
+        </div>
+      </div>
     </div>
+  </div>
+  <div class="col-sm-6">
+    <div class="card">
+      <div class="card-header text-center h5">Weitere Personen</div>
+      <div class="card-body">
+        <div *ngIf="customerData?.additionalPersons.length === 0">
+          <h6 testid="nopersons-label">Keine Personen vorhanden</h6>
+        </div>
+        <div *ngFor="let addPerson of customerData?.additionalPersons; let i = index">
+          <hr *ngIf="i > 0">
+          <div class="row">
+            <div [attr.testid]="'addperson-' + i + '-lastnameText'" class="col font-weight-bold"
+                 [innerHTML]="addPerson?.lastname"></div>
+            <div [attr.testid]="'addperson-' + i + '-firstnameText'" class="col font-weight-bold"
+                 [innerHTML]="addPerson?.firstname"></div>
+          </div>
+          <div class="row">
+            <div [attr.testid]="'addperson-' + i + '-birthDateAgeText'" class="col"
+                 [innerHTML]="formatBirthDateAge(addPerson?.birthDate)"></div>
+            <div [attr.testid]="'addperson-' + i + '-incomeText'" class="col"
+                 *ngIf="addPerson?.income !== null">Einkommen: {{addPerson?.income}} &euro;
+            </div>
+            <div [attr.testid]="'addperson-' + i + '-incomeText'" class="col"
+                 *ngIf="addPerson?.income === null">Einkommen: -
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>

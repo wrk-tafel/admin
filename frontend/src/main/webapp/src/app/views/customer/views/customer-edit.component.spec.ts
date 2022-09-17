@@ -102,4 +102,6 @@ describe('CustomerEditComponent', () => {
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('[testid=nopersons-label]')).toBeTruthy();
   });
+
+  // TODO add more tests
 });
