@@ -9,7 +9,7 @@ import {EMPTY, of} from 'rxjs';
 import {CustomerApiService, CustomerData} from '../api/customer-api.service';
 import {CustomerFormComponent} from '../components/customer-form.component';
 import {CustomerEditComponent} from './customer-edit.component';
-import {By} from "@angular/platform-browser";
+import {By} from '@angular/platform-browser';
 
 describe('CustomerEditComponent - Creating a new customer', () => {
   const testCustomerData: CustomerData = {
@@ -94,7 +94,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
 
     router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
     apiService = TestBed.inject(CustomerApiService) as jasmine.SpyObj<CustomerApiService>;
-    activatedRoute = TestBed.inject(ActivatedRoute)
+    activatedRoute = TestBed.inject(ActivatedRoute);
   }));
 
   it('initial checks', () => {
