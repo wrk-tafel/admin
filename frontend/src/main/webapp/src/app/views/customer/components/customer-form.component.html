@@ -9,7 +9,7 @@
                     <div class="row">
                         <div class="col-sm-6">
                             <label class="form-label">Kundenummer (falls vorhanden)</label>
-                            <input testId="idInput" type="number" formControlName="id" class="form-control"
+                            <input testId="customerIdInput" type="number" formControlName="id" class="form-control"
                                 [ngClass]="{'is-invalid': id.invalid && (id.dirty || id.touched), 'is-valid': id.valid && (id.dirty || id.touched)}"
                                 autofocus>
                         </div>
@@ -257,7 +257,7 @@
                         <div class="col-12">
                             <div class="card">
                                 <div class="card-body">
-                                    <div class="row" [formGroupName]="i">
+                                    <div class="row" [formGroupName]="i" [attr.testid]="'personform-' + i">
                                         <div class="col">
                                             <div class="row">
                                                 <div class="col-lg">
