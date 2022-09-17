@@ -6,7 +6,7 @@ import {tap} from 'rxjs/operators';
 import {ActivatedRoute, Router} from '@angular/router';
 
 @Component({
-  selector: 'customer-edit',
+  selector: 'tafel-customer-edit',
   templateUrl: 'customer-edit.component.html'
 })
 export class CustomerEditComponent implements OnInit {
@@ -16,6 +16,19 @@ export class CustomerEditComponent implements OnInit {
     private route: ActivatedRoute
   ) {
   }
+
+  customerInput: CustomerData;
+  customerUpdated: CustomerData;
+
+  @Output() editMode: boolean = false;
+  // TODO fix state update
+  @Output() saveDisabled: boolean = true;
+  @Output() errorMessage: string;
+
+  @ViewChild(CustomerFormComponent) customerFormComponent: CustomerFormComponent;
+  @ViewChild('validationResultModal') validationResultModal: ModalDirective;
+
+  validationResult: ValidateCustomerResponse;
 
   ngOnInit(): void {
     this.route.params.subscribe(params => {
@@ -37,19 +50,6 @@ export class CustomerEditComponent implements OnInit {
       }
     });
   }
-
-  customerInput: CustomerData;
-  customerUpdated: CustomerData;
-
-  @Output() editMode: boolean = false;
-  // TODO fix state update
-  @Output() saveDisabled: boolean = true;
-  @Output() errorMessage: string;
-
-  @ViewChild(CustomerFormComponent) customerFormComponent: CustomerFormComponent;
-  @ViewChild('validationResultModal') validationResultModal: ModalDirective;
-
-  validationResult: ValidateCustomerResponse;
 
   customerDataUpdated(event: CustomerData) {
     this.customerUpdated = event;

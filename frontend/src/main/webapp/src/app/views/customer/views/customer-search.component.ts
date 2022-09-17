@@ -5,7 +5,7 @@ import { DateHelperService } from '../../../common/util/date-helper.service';
 import { CustomerAddressData, CustomerApiService, CustomerData, CustomerSearchResult } from '../api/customer-api.service';
 
 @Component({
-  selector: 'customer-search',
+  selector: 'tafel-customer-search',
   templateUrl: 'customer-search.component.html'
 })
 export class CustomerSearchComponent {
@@ -18,7 +18,7 @@ export class CustomerSearchComponent {
   errorMessage: string;
   searchResult: CustomerSearchResult;
 
-  formatDate = this.dateHelper.formatDate
+  formatDate = this.dateHelper.formatDate;
 
   customerSearchForm = new FormGroup({
     customerId: new FormControl(''),

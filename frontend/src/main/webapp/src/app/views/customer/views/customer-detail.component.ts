@@ -6,7 +6,7 @@ import { FileHelperService } from '../../../common/util/file-helper.service';
 import { CustomerAddressData, CustomerApiService, CustomerData } from '../api/customer-api.service';
 
 @Component({
-  selector: 'customer-detail',
+  selector: 'tafel-customer-detail',
   templateUrl: 'customer-detail.component.html'
 })
 export class CustomerDetailComponent implements OnInit {
@@ -56,7 +56,7 @@ export class CustomerDetailComponent implements OnInit {
 
   formatBirthDateAge(birthDate: Date): string {
     if (birthDate) {
-      return this.formatDate(birthDate) + ' (' + moment().diff(birthDate, 'years') + ')'
+      return this.formatDate(birthDate) + ' (' + moment().diff(birthDate, 'years') + ')';
     }
     return '';
   }

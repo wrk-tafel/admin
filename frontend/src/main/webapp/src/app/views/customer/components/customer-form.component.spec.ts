@@ -5,7 +5,7 @@ import {of} from 'rxjs';
 import {CountryApiService} from '../../../common/api/country-api.service';
 import {CustomerData} from '../api/customer-api.service';
 import {CustomerFormComponent} from './customer-form.component';
-import {ReactiveFormsModule} from "@angular/forms";
+import {ReactiveFormsModule} from '@angular/forms';
 
 describe('CustomerFormComponent', () => {
   let apiService: jasmine.SpyObj<CountryApiService>;

@@ -6,7 +6,7 @@ import {CustomerAddPersonData, CustomerData} from '../api/customer-api.service';
 import {v4 as uuidv4} from 'uuid';
 
 @Component({
-  selector: 'customer-form',
+  selector: 'tafel-customer-form',
   templateUrl: 'customer-form.component.html'
 })
 export class CustomerFormComponent implements OnInit {

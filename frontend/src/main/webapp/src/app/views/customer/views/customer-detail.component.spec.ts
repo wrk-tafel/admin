@@ -8,7 +8,7 @@ import {of} from 'rxjs';
 import {FileHelperService} from '../../../common/util/file-helper.service';
 import {CustomerApiService, CustomerData} from '../api/customer-api.service';
 import {CustomerDetailComponent} from './customer-detail.component';
-import {CommonModule} from "@angular/common";
+import {CommonModule} from '@angular/common';
 
 describe('CustomerDetailComponent', () => {
   let apiService: jasmine.SpyObj<CustomerApiService>;
@@ -117,7 +117,7 @@ describe('CustomerDetailComponent', () => {
     expect(fixture.debugElement.query(By.css('[testId="customerIdText"]')).nativeElement.textContent).toBe('133');
     expect(fixture.debugElement.query(By.css('[testId="nameText"]')).nativeElement.textContent).toBe('Mustermann Max');
 
-    const birthDateAge = moment(mockCustomer.birthDate).format('DD.MM.YYYY') + ' (' + moment().diff(mockCustomer.birthDate, 'years') + ')'
+    const birthDateAge = moment(mockCustomer.birthDate).format('DD.MM.YYYY') + ' (' + moment().diff(mockCustomer.birthDate, 'years') + ')';
     expect(fixture.debugElement.query(By.css('[testId="birthDateAgeText"]')).nativeElement.textContent).toBe(birthDateAge);
     expect(fixture.debugElement.query(By.css('[testId="countryText"]')).nativeElement.textContent).toBe('Österreich');
     expect(fixture.debugElement.query(By.css('[testId="telephoneNumberText"]')).nativeElement.textContent).toBe('6644123123123');
@@ -126,7 +126,8 @@ describe('CustomerDetailComponent', () => {
     expect(fixture.debugElement.query(By.css('[testId="addressLine2Text"]')).nativeElement.textContent).toBe('1020 Wien');
     expect(fixture.debugElement.query(By.css('[testId="employerText"]')).nativeElement.textContent).toBe('test employer');
     expect(fixture.debugElement.query(By.css('[testId="incomeText"]')).nativeElement.textContent).toBe('1000 €');
-    expect(fixture.debugElement.query(By.css('[testId="incomeDueText"]')).nativeElement.textContent).toBe(moment(mockCustomer.incomeDue).format('DD.MM.yyyy'));
+    expect(fixture.debugElement.query(By.css('[testId="incomeDueText"]')).nativeElement.textContent)
+      .toBe(moment(mockCustomer.incomeDue).format('DD.MM.yyyy'));
   }));
 
   it('printMasterdata', waitForAsync(() => {
