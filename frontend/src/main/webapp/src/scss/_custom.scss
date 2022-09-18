@@ -1,2 +1,10 @@
-// Here you can add other styles
- 
+.tafel,
+tafel-dashboard,
+tafel-login,
+tafel-root {
+  display: -ms-flexbox;
+  display: flex;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  min-height: 100vh;
+}
