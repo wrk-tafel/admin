@@ -39,6 +39,16 @@ export class CustomerDetailComponent implements OnInit {
       });
   }
 
+  printIdCard() {
+    this.customerApiService.generateIdCardPdf(this.customerData.id)
+      .subscribe((response) => {
+        const contentDisposition = response.headers.get('content-disposition');
+        const filename = contentDisposition.split(';')[1].split('filename')[1].split('=')[1].trim();
+        const data = new Blob([response.body], {type: 'application/pdf'});
+        this.fileHelperService.downloadFile(filename, data);
+      });
+  }
+
   formatAddressLine1(address: CustomerAddressData): string {
     let addressLine = address.street;
     addressLine += ' ' + address.houseNumber;

@@ -1,11 +1,16 @@
 <div class="row">
   <div class="col-sm-auto mb-3">
+    <button testid="editCustomerButton" type="button" class="btn btn-danger" (click)="editCustomer()">Kunde bearbeiten
+    </button>
+  </div>
+  <div class="col-sm-auto mb-3">
     <button testid="printMasterdataButton" type="button" class="btn btn-primary"
             (click)="printMasterdata()">Stammdaten drucken
     </button>
   </div>
   <div class="col-sm-auto mb-3">
-    <button testid="editCustomerButton" type="button" class="btn btn-danger" (click)="editCustomer()">Kunde bearbeiten
+    <button testid="printIdCardButton" type="button" class="btn btn-primary"
+            (click)="printIdCard()">Ausweis drucken
     </button>
   </div>
 </div>

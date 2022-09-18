@@ -33,6 +33,11 @@ export class CustomerApiService {
       {responseType: 'arraybuffer', observe: 'response'});
   }
 
+  generateIdCardPdf(id: number): Observable<HttpResponse<ArrayBuffer>> {
+    return this.http.get('/customers/' + id + '/generate-idcard-pdf',
+      {responseType: 'arraybuffer', observe: 'response'});
+  }
+
   searchCustomer(lastname?: string, firstname?: string): Observable<CustomerSearchResult> {
     let queryParams = new HttpParams();
     if (lastname) {

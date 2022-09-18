@@ -24,7 +24,7 @@ import javax.xml.transform.stream.StreamSource
 @Service
 // TODO add tests
 @ExcludeFromTestCoverage
-class MasterdataPdfServiceImpl : MasterdataPdfService {
+class CustomerPdfServiceImpl : CustomerPdfService {
     companion object {
         private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
 
@@ -32,19 +32,25 @@ class MasterdataPdfServiceImpl : MasterdataPdfService {
             .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
     }
 
-    override fun generatePdf(customer: CustomerEntity): ByteArray {
-        val data = createPdfData(customer)
+    override fun generateMasterdataPdf(customer: CustomerEntity): ByteArray {
+        val data = createCustomerPdfData(customer)
         val xmlBytes = generateXmlData(data)
         return generatePdf(xmlBytes, "/pdf-templates/masterdata_singlepage.xsl")
     }
 
-    fun createPdfData(customer: CustomerEntity): MasterdataPdfData {
+    override fun generateIdCardPdf(customer: CustomerEntity): ByteArray {
+        val data = createCustomerPdfData(customer)
+        val xmlBytes = generateXmlData(data)
+        return generatePdf(xmlBytes, "/pdf-templates/idcard_singlepage.xsl")
+    }
+
+    fun createCustomerPdfData(customer: CustomerEntity): MasterdataPdfData {
         val countPersons = 1 + customer.additionalPersons.size
         val countInfants =
             customer.additionalPersons.count { Period.between(it.birthDate, LocalDate.now()).years <= 3 }
 
         val logoBytes =
-            IOUtils.toByteArray(MasterdataPdfServiceImpl::class.java.getResourceAsStream("/pdf-templates/img/toet_logo.png"))
+            IOUtils.toByteArray(CustomerPdfServiceImpl::class.java.getResourceAsStream("/pdf-templates/img/toet_logo.png"))
         return MasterdataPdfData(
             logoContentType = MimeTypeUtils.IMAGE_PNG_VALUE,
             logoBytes = logoBytes,
@@ -108,7 +114,7 @@ class MasterdataPdfServiceImpl : MasterdataPdfService {
                 val factory = TransformerFactory.newInstance()
                 val transformer = factory.newTransformer(
                     StreamSource(
-                        MasterdataPdfServiceImpl::class.java.getResourceAsStream(stylesheetPath)
+                        CustomerPdfServiceImpl::class.java.getResourceAsStream(stylesheetPath)
                     )
                 )
 

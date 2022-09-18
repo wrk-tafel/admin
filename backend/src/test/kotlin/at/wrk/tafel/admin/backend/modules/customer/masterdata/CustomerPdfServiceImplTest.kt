@@ -6,13 +6,13 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 
 @ExtendWith(MockKExtension::class)
-class MasterdataPdfServiceImplTest {
+class CustomerPdfServiceImplTest {
 
-    private lateinit var masterdataPdfServiceImpl: MasterdataPdfServiceImpl
+    private lateinit var customerPdfServiceImpl: CustomerPdfServiceImpl
 
     @BeforeEach
     fun beforeEach() {
-        masterdataPdfServiceImpl = MasterdataPdfServiceImpl()
+        customerPdfServiceImpl = CustomerPdfServiceImpl()
     }
 
     @Test
