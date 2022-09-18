@@ -66,28 +66,11 @@
                                 </fo:table-body>
                             </fo:table>
                         </fo:block>
-                        <fo:block margin-top="3cm">
-                            <fo:table table-layout="fixed" width="100%">
-                                <fo:table-column column-width="30%"/>
-                                <fo:table-column column-width="70%"/>
-                                <fo:table-body>
-                                    <fo:table-row>
-                                        <fo:table-cell>
-                                            <fo:block>
-                                                <fo:inline font-weight="bold">Datum:</fo:inline>
-                                                <fo:inline>
-                                                    <xsl:value-of select="concat(' ', ./currentDate)"/>
-                                                </fo:inline>
-                                            </fo:block>
-                                        </fo:table-cell>
-                                        <fo:table-cell>
-                                            <fo:block border-bottom="0.25mm solid #000000">
-                                                <fo:inline font-weight="bold">Unterschrift Hauptbezieher:</fo:inline>
-                                            </fo:block>
-                                        </fo:table-cell>
-                                    </fo:table-row>
-                                </fo:table-body>
-                            </fo:table>
+                        <fo:block margin-top="2cm">
+                            <fo:inline font-weight="bold">Datum:</fo:inline>
+                            <fo:inline>
+                                <xsl:value-of select="concat(' ', ./currentDate)"/>
+                            </fo:inline>
                         </fo:block>
                     </fo:block>
                 </fo:flow>
