@@ -1,7 +1,7 @@
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { TestBed } from '@angular/core/testing';
+import {HttpClientTestingModule, HttpTestingController} from '@angular/common/http/testing';
+import {TestBed} from '@angular/core/testing';
 import * as moment from 'moment';
-import { CustomerApiService } from './customer-api.service';
+import {CustomerApiService} from './customer-api.service';
 import {ReactiveFormsModule} from '@angular/forms';
 
 describe('CustomerApiService', () => {
@@ -21,7 +21,7 @@ describe('CustomerApiService', () => {
   it('validate customer', () => {
     apiService.validate(null).subscribe();
 
-    const req = httpMock.expectOne({ method: 'POST', url: '/customers/validate' });
+    const req = httpMock.expectOne({method: 'POST', url: '/customers/validate'});
     req.flush(null);
     httpMock.verify();
   });
@@ -29,7 +29,7 @@ describe('CustomerApiService', () => {
   it('create customer', () => {
     apiService.createCustomer(null).subscribe();
 
-    const req = httpMock.expectOne({ method: 'POST', url: '/customers' });
+    const req = httpMock.expectOne({method: 'POST', url: '/customers'});
     req.flush(null);
     httpMock.verify();
   });
@@ -54,7 +54,7 @@ describe('CustomerApiService', () => {
     };
     apiService.updateCustomer(mockCustomer).subscribe();
 
-    const req = httpMock.expectOne({ method: 'POST', url: '/customers/133' });
+    const req = httpMock.expectOne({method: 'POST', url: '/customers/133'});
     req.flush(null);
     httpMock.verify();
   });
@@ -62,7 +62,7 @@ describe('CustomerApiService', () => {
   it('get customer', () => {
     apiService.getCustomer(1).subscribe();
 
-    const req = httpMock.expectOne({ method: 'GET', url: '/customers/1' });
+    const req = httpMock.expectOne({method: 'GET', url: '/customers/1'});
     req.flush(null);
     httpMock.verify();
   });
@@ -70,7 +70,7 @@ describe('CustomerApiService', () => {
   it('generate masterdata pdf', () => {
     apiService.generateMasterdataPdf(1).subscribe();
 
-    const req = httpMock.expectOne({ method: 'GET', url: '/customers/1/generate-masterdata-pdf' });
+    const req = httpMock.expectOne({method: 'GET', url: '/customers/1/generate-masterdata-pdf'});
     req.flush(null);
     httpMock.verify();
   });
@@ -78,7 +78,7 @@ describe('CustomerApiService', () => {
   it('search customer with firstname and lastname', () => {
     apiService.searchCustomer('mustermann', 'max').subscribe();
 
-    const req = httpMock.expectOne({ method: 'GET', url: '/customers?lastname=mustermann&firstname=max' });
+    const req = httpMock.expectOne({method: 'GET', url: '/customers?lastname=mustermann&firstname=max'});
     req.flush(null);
     httpMock.verify();
   });
@@ -86,7 +86,7 @@ describe('CustomerApiService', () => {
   it('search customer with lastname only', () => {
     apiService.searchCustomer('mustermann').subscribe();
 
-    const req = httpMock.expectOne({ method: 'GET', url: '/customers?lastname=mustermann' });
+    const req = httpMock.expectOne({method: 'GET', url: '/customers?lastname=mustermann'});
     req.flush(null);
     httpMock.verify();
   });
@@ -94,7 +94,7 @@ describe('CustomerApiService', () => {
   it('search customer with firstname only', () => {
     apiService.searchCustomer(null, 'max').subscribe();
 
-    const req = httpMock.expectOne({ method: 'GET', url: '/customers?firstname=max' });
+    const req = httpMock.expectOne({method: 'GET', url: '/customers?firstname=max'});
     req.flush(null);
     httpMock.verify();
   });

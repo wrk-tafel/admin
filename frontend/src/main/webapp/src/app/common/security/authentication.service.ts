@@ -1,7 +1,7 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Injectable } from '@angular/core';
-import { Router } from '@angular/router';
-import { JwtHelperService } from '@auth0/angular-jwt';
+import {HttpClient, HttpHeaders} from '@angular/common/http';
+import {Injectable} from '@angular/core';
+import {Router} from '@angular/router';
+import {JwtHelperService} from '@auth0/angular-jwt';
 
 @Injectable({
   providedIn: 'root'
@@ -13,7 +13,8 @@ export class AuthenticationService {
     private jwtHelper: JwtHelperService,
     private http: HttpClient,
     private router: Router
-  ) { }
+  ) {
+  }
 
   public async login(username: string, password: string): Promise<boolean> {
     return await this.executeLoginRequest(username, password)
@@ -33,7 +34,7 @@ export class AuthenticationService {
       const expired = this.jwtHelper.isTokenExpired(token);
       if (expired) {
         this.removeToken();
-        this.router.navigate(['login'], { state: { errorType: 'expired' } });
+        this.router.navigate(['login'], {state: {errorType: 'expired'}});
       } else {
         this.removeToken();
         this.router.navigate(['login']);
@@ -75,7 +76,7 @@ export class AuthenticationService {
     body.set('username', username);
     body.set('password', password);
 
-    const options = { headers: new HttpHeaders().set('Content-Type', 'application/x-www-form-urlencoded') };
+    const options = {headers: new HttpHeaders().set('Content-Type', 'application/x-www-form-urlencoded')};
     return this.http.post<LoginResponse>('/login', body.toString(), options).toPromise();
   }
 

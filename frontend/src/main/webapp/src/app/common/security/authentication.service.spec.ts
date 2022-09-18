@@ -1,9 +1,9 @@
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { TestBed } from '@angular/core/testing';
-import { Router } from '@angular/router';
-import { JwtHelperService } from '@auth0/angular-jwt';
+import {HttpClientTestingModule, HttpTestingController} from '@angular/common/http/testing';
+import {TestBed} from '@angular/core/testing';
+import {Router} from '@angular/router';
+import {JwtHelperService} from '@auth0/angular-jwt';
 
-import { AuthenticationService } from './authentication.service';
+import {AuthenticationService} from './authentication.service';
 
 describe('AuthenticationService', () => {
   const SESSION_STORAGE_TOKEN_KEY = 'jwt';
@@ -52,8 +52,8 @@ describe('AuthenticationService', () => {
     expect(mockReq.request.method).toBe('POST');
     expect(mockReq.request.body).toBe('username=USER&password=PWD');
 
-    const mockErrorResponse = { status: 200, statusText: 'OK' };
-    const data = { token: 'TOKENVALUE' };
+    const mockErrorResponse = {status: 200, statusText: 'OK'};
+    const data = {token: 'TOKENVALUE'};
     mockReq.flush(data, mockErrorResponse);
     httpMock.verify();
   });
@@ -70,7 +70,7 @@ describe('AuthenticationService', () => {
     expect(mockReq.request.method).toBe('POST');
     expect(mockReq.request.body).toBe('username=USER&password=PWD');
 
-    const mockErrorResponse = { status: 403, statusText: 'Forbidden' };
+    const mockErrorResponse = {status: 403, statusText: 'Forbidden'};
     mockReq.flush(null, mockErrorResponse);
     httpMock.verify();
   });
@@ -92,7 +92,7 @@ describe('AuthenticationService', () => {
     service.logoutAndRedirect();
 
     expect(sessionStorage.getItem(SESSION_STORAGE_TOKEN_KEY)).toBeNull();
-    expect(router.navigate).toHaveBeenCalledWith(['login'], { state: { errorType: 'expired' } });
+    expect(router.navigate).toHaveBeenCalledWith(['login'], {state: {errorType: 'expired'}});
   });
 
   it('logoutAndRedirect - token not set', () => {
@@ -132,7 +132,7 @@ describe('AuthenticationService', () => {
 
   it('hasPermission - permission exists', () => {
     sessionStorage.setItem(SESSION_STORAGE_TOKEN_KEY, 'TOKENVALUE');
-    jwtHelper.decodeToken.and.returnValue(<JwtToken>{ permissions: ['PERM1'] });
+    jwtHelper.decodeToken.and.returnValue(<JwtToken>{permissions: ['PERM1']});
 
     const hasPermission = service.hasPermission('PERM1');
 
@@ -141,7 +141,7 @@ describe('AuthenticationService', () => {
 
   it('hasPermission - permission doesnt exist', () => {
     sessionStorage.setItem(SESSION_STORAGE_TOKEN_KEY, 'TOKENVALUE');
-    jwtHelper.decodeToken.and.returnValue(<JwtToken>{ permissions: ['PERM2'] });
+    jwtHelper.decodeToken.and.returnValue(<JwtToken>{permissions: ['PERM2']});
 
     const hasPermission = service.hasPermission('PERM1');
 
@@ -150,7 +150,7 @@ describe('AuthenticationService', () => {
 
   it('hasPermission - no permissions given', () => {
     sessionStorage.setItem(SESSION_STORAGE_TOKEN_KEY, 'TOKENVALUE');
-    jwtHelper.decodeToken.and.returnValue(<JwtToken>{ permissions: [] });
+    jwtHelper.decodeToken.and.returnValue(<JwtToken>{permissions: []});
 
     const hasPermission = service.hasPermission('PERM1');
 

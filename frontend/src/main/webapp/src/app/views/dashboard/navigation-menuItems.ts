@@ -1,4 +1,4 @@
-import { INavData } from '@coreui/angular';
+import {INavData} from '@coreui/angular';
 
 export interface IPermissionNavData extends INavData {
   permissions?: string[];

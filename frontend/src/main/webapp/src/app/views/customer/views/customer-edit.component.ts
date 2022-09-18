@@ -10,24 +10,21 @@ import {ActivatedRoute, Router} from '@angular/router';
   templateUrl: 'customer-edit.component.html'
 })
 export class CustomerEditComponent implements OnInit {
+  customerInput: CustomerData;
+  customerUpdated: CustomerData;
+  editMode: boolean = false;
+  customerValidForSave: boolean = false;
+  errorMessage: string;
+  @ViewChild(CustomerFormComponent) customerFormComponent: CustomerFormComponent;
+  @ViewChild('validationResultModal') validationResultModal: ModalDirective;
+  validationResult: ValidateCustomerResponse;
+
   constructor(
     private customerApiService: CustomerApiService,
     private router: Router,
     private route: ActivatedRoute
   ) {
   }
-
-  customerInput: CustomerData;
-  customerUpdated: CustomerData;
-
-  editMode: boolean = false;
-  customerValidForSave: boolean = false;
-  errorMessage: string;
-
-  @ViewChild(CustomerFormComponent) customerFormComponent: CustomerFormComponent;
-  @ViewChild('validationResultModal') validationResultModal: ModalDirective;
-
-  validationResult: ValidateCustomerResponse;
 
   ngOnInit(): void {
     this.route.params.subscribe(params => {

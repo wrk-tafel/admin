@@ -1,7 +1,7 @@
-import { Component } from '@angular/core';
-import { INavData } from '@coreui/angular';
-import { AuthenticationService } from '../../common/security/authentication.service';
-import { IPermissionNavData, navigationMenuItems } from '../../views/dashboard/navigation-menuItems';
+import {Component} from '@angular/core';
+import {INavData} from '@coreui/angular';
+import {AuthenticationService} from '../../common/security/authentication.service';
+import {IPermissionNavData, navigationMenuItems} from '../../views/dashboard/navigation-menuItems';
 
 @Component({
   selector: 'tafel-default-layout',
@@ -64,7 +64,7 @@ export class DefaultLayoutComponent {
       } else {
         const nextItem = navItems[i + 1];
         if (currentItem.title === true && nextItem.title === true) {
-          continue;
+
         } else {
           filteredNavItems.push(currentItem);
         }
