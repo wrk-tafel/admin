@@ -1,10 +1,9 @@
 package at.wrk.tafel.admin.backend
 
+import at.wrk.tafel.admin.backend.common.TafelSpringBootIT
 import org.junit.jupiter.api.Test
-import org.springframework.boot.test.context.SpringBootTest
 
-@SpringBootTest
-class AdminBackendApplicationIT {
+class AdminBackendApplicationIT : TafelSpringBootIT() {
 
     @Test
     fun contextLoads() {

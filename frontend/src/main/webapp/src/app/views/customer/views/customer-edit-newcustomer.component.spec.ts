@@ -22,7 +22,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
       code: 'AT',
       name: 'Österreich'
     },
-    telephoneNumber: 6641231231,
+    telephoneNumber: '00436641231231',
     email: 'max.mustermann@gmail.com',
 
     address: {

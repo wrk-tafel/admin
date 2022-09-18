@@ -1,6 +1,4 @@
-DROP TABLE IF EXISTS static_values;
-
-create table static_values(
+create table if not exists static_values(
 	id bigint primary key,
 	created_at timestamp not null,
 	updated_at timestamp not null,
@@ -15,8 +13,8 @@ create table static_values(
     age integer null
 );
 
-create unique index uix_type_counts on static_values (type, valid_from, valid_to, count_adult, count_child);
-create unique index uix_type_additional_adult on static_values (type, valid_from, valid_to, additional_adult);
-create unique index uix_type_additional_child on static_values (type, valid_from, valid_to, additional_child);
+create unique index if not exists uix_type_counts on static_values (type, valid_from, valid_to, count_adult, count_child);
+create unique index if not exists uix_type_additional_adult on static_values (type, valid_from, valid_to, additional_adult);
+create unique index if not exists uix_type_additional_child on static_values (type, valid_from, valid_to, additional_child);
 
-create unique index uix_type_age on static_values (type, valid_from, valid_to, age);
+create unique index if not exists uix_type_age on static_values (type, valid_from, valid_to, age);
