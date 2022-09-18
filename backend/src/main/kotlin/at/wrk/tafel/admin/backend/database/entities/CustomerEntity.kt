@@ -43,7 +43,7 @@ class CustomerEntity : BaseChangeTrackingEntity() {
     var addressCity: String? = null
 
     @Column(name = "telephone_number")
-    var telephoneNumber: Long? = null
+    var telephoneNumber: String? = null
 
     @Column(name = "email")
     var email: String? = null

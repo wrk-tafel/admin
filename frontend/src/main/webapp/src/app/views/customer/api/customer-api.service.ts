@@ -64,7 +64,7 @@ export interface CustomerData {
   birthDate: Date;
   country?: CountryData;
   address: CustomerAddressData;
-  telephoneNumber?: number;
+  telephoneNumber?: string;
   email?: string;
   employer?: string;
   income?: number;

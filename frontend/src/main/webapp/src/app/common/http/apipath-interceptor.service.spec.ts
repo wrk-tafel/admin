@@ -1,6 +1,6 @@
 import {HTTP_INTERCEPTORS, HttpClient} from '@angular/common/http';
 import {TestBed} from '@angular/core/testing';
-import {HttpClientTestingModule, HttpTestingController,} from '@angular/common/http/testing';
+import {HttpClientTestingModule, HttpTestingController} from '@angular/common/http/testing';
 import {ApiPathInterceptor} from './apipath-interceptor.service';
 import {Router} from '@angular/router';
 
