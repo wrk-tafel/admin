@@ -2,7 +2,7 @@
     <div testid="errorMessage" *ngIf="errorMessage" class="alert alert-danger mb-3">
         <div testid="errorMessageContent">{{errorMessage}}</div>
     </div>
-    <tafel-customer-form [customerData]="customerInput" (customerDataChange)="customerDataUpdated($event)"></tafel-customer-form>
+    <tafel-customer-form [customerData]="customerInput" (customerDataChange)="customerDataUpdated($event)" [editMode]="editMode"></tafel-customer-form>
     <button testid="validate-button" class="btn btn-primary px-4 mb-3" (click)="validate()">Anspruch prüfen</button>
     <button testid="save-button" class="btn px-4 mb-3 ml-2" (click)="save()" [disabled]="isSaveDisabled()"
         [ngClass]="{'btn-danger': isSaveDisabled(), 'btn-success': !isSaveDisabled()}">Speichern</button>
