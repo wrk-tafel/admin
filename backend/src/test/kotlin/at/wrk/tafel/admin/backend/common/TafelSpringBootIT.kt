@@ -7,14 +7,9 @@ import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 
-// TODO use or delete it
-// or per config
-//   datasource:
-//    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
-//    jdbc-url: jdbc:tc:postgresql:14.0:///tafeladmin
 @SpringBootTest
 @Testcontainers
-class TafelSpringBootIntegrationTest {
+class TafelSpringBootIT {
 
     companion object {
         @Container
