@@ -35,7 +35,7 @@ class MasterdataPdfServiceImpl : MasterdataPdfService {
     override fun generatePdf(customer: CustomerEntity): ByteArray {
         val data = createPdfData(customer)
         val xmlBytes = generateXmlData(data)
-        return generatePdf(xmlBytes, "/masterdata-template/masterdata.xsl")
+        return generatePdf(xmlBytes, "/pdf-templates/masterdata/masterdata_singlepage.xsl")
     }
 
     fun createPdfData(customer: CustomerEntity): MasterdataPdfData {
@@ -44,7 +44,7 @@ class MasterdataPdfServiceImpl : MasterdataPdfService {
             customer.additionalPersons.count { Period.between(it.birthDate, LocalDate.now()).years <= 3 }
 
         val logoBytes =
-            IOUtils.toByteArray(MasterdataPdfServiceImpl::class.java.getResourceAsStream("/masterdata-template/img/toet_logo.png"))
+            IOUtils.toByteArray(MasterdataPdfServiceImpl::class.java.getResourceAsStream("/pdf-templates/masterdata/img/toet_logo.png"))
         return MasterdataPdfData(
             logoContentType = MimeTypeUtils.IMAGE_PNG_VALUE,
             logoBytes = logoBytes,
