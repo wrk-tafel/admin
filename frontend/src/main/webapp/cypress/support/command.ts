@@ -27,18 +27,18 @@
 Cypress.Commands.add('byTestId', (id) => cy.get(`[testid="${id}"]`));
 
 Cypress.Commands.add('login', () => {
-    let username = 'e2etest';
-    let password = 'e2etest';
+  let username = 'e2etest';
+  let password = 'e2etest';
 
-    cy.request({
-        method: 'POST',
-        url: '/api/login',
-        body: 'username=' + username + '&password=' + password,
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-        }
-    }).then((response) => {
-        const token = response.body.token;
-        sessionStorage.setItem('jwt', token);
-    });
+  cy.request({
+    method: 'POST',
+    url: '/api/login',
+    body: 'username=' + username + '&password=' + password,
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    }
+  }).then((response) => {
+    const token = response.body.token;
+    sessionStorage.setItem('jwt', token);
+  });
 });
