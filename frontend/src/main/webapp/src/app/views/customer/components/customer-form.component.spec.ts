@@ -153,10 +153,10 @@ describe('CustomerFormComponent', () => {
     const updatedLastname = 'updated';
     const updatedBirthDate = moment().subtract(30, 'years').startOf('day').utc().toDate();
     const updatedIncome = 54321;
-    const updatedPers1Lastname = 'Pers1UpdatedLastName';
     component.lastname.setValue(updatedLastname);
     component.birthDate.setValue(updatedBirthDate);
     component.income.setValue(updatedIncome);
+    // TODO const updatedPers1Lastname = 'Pers1UpdatedLastName';
     // TODO component.additionalPersons.at(1).get('lastname').setValue(updatedPers1Lastname);
     fixture.detectChanges();
 
