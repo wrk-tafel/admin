@@ -17,7 +17,7 @@
             <div class="row">
                 <div class="col-sm-3 mb-3">
                     <input testId="customerIdText" type="number" formControlName="customerId" name="customerId"
-                        class="form-control" autofocus>
+                        class="form-control" autofocus (keydown.enter)="searchForCustomerId()">
                 </div>
                 <div class="col-sm-3">
                     <button testId="showcustomer-button" type="button" class="btn btn-primary"

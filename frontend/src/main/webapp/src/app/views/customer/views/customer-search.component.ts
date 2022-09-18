@@ -1,8 +1,8 @@
-import { Component } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
-import { Router } from '@angular/router';
-import { DateHelperService } from '../../../common/util/date-helper.service';
-import { CustomerAddressData, CustomerApiService, CustomerData, CustomerSearchResult } from '../api/customer-api.service';
+import {Component} from '@angular/core';
+import {FormControl, FormGroup} from '@angular/forms';
+import {Router} from '@angular/router';
+import {DateHelperService} from '../../../common/util/date-helper.service';
+import {CustomerAddressData, CustomerApiService, CustomerSearchResult} from '../api/customer-api.service';
 
 @Component({
   selector: 'tafel-customer-search',
@@ -13,7 +13,8 @@ export class CustomerSearchComponent {
     private customerApiService: CustomerApiService,
     private router: Router,
     private dateHelper: DateHelperService
-  ) { }
+  ) {
+  }
 
   errorMessage: string;
   searchResult: CustomerSearchResult;
@@ -71,7 +72,15 @@ export class CustomerSearchComponent {
     return result;
   }
 
-  get customerId() { return this.customerSearchForm.get('customerId'); }
-  get lastname() { return this.customerSearchForm.get('lastname'); }
-  get firstname() { return this.customerSearchForm.get('firstname'); }
+  get customerId() {
+    return this.customerSearchForm.get('customerId');
+  }
+
+  get lastname() {
+    return this.customerSearchForm.get('lastname');
+  }
+
+  get firstname() {
+    return this.customerSearchForm.get('firstname');
+  }
 }

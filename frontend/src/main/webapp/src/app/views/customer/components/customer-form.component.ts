@@ -33,6 +33,7 @@ export class CustomerFormComponent implements OnInit {
     return this.customerData;
   }
 
+  @Input() editMode: boolean = false;
   @Output() customerDataChange = new EventEmitter<CustomerData>();
 
   form = new FormGroup({
@@ -97,6 +98,10 @@ export class CustomerFormComponent implements OnInit {
       birthDate: null,
       income: null
     });
+
+    if (this.editMode) {
+      this.additionalPersons.at(this.additionalPersons.length - 1).markAllAsTouched();
+    }
   }
 
   removePerson(index: number) {
