@@ -1,15 +1,15 @@
-import { AuthGuardService } from './authguard.service';
+import {AuthGuardService} from './authguard.service';
 
 describe('AuthGuardService', () => {
   function setup() {
     const authServiceSpy =
       jasmine.createSpyObj('AuthenticationService', ['isAuthenticated', 'logoutAndRedirect']);
     const service = new AuthGuardService(authServiceSpy);
-    return { service, authServiceSpy };
+    return {service, authServiceSpy};
   }
 
   it('canActivate when authenticated', () => {
-    const { service, authServiceSpy } = setup();
+    const {service, authServiceSpy} = setup();
     authServiceSpy.isAuthenticated.and.returnValue(true);
 
     const canActivate = service.canActivateChild(null, null);
@@ -18,7 +18,7 @@ describe('AuthGuardService', () => {
   });
 
   it('canActivate when not authenticated', () => {
-    const { service, authServiceSpy } = setup();
+    const {service, authServiceSpy} = setup();
     authServiceSpy.isAuthenticated.and.returnValue(false);
 
     const canActivate = service.canActivateChild(null, null);

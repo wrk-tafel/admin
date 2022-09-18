@@ -1,9 +1,9 @@
-import { HttpClient, HTTP_INTERCEPTORS } from '@angular/common/http';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { TestBed } from '@angular/core/testing';
-import { AuthenticationService } from '../security/authentication.service';
+import {HTTP_INTERCEPTORS, HttpClient} from '@angular/common/http';
+import {HttpClientTestingModule, HttpTestingController} from '@angular/common/http/testing';
+import {TestBed} from '@angular/core/testing';
+import {AuthenticationService} from '../security/authentication.service';
 
-import { AuthenticationInterceptor } from './authentication-interceptor.service';
+import {AuthenticationInterceptor} from './authentication-interceptor.service';
 
 describe('AuthenticationInterceptor', () => {
   let client: HttpClient;
@@ -52,12 +52,13 @@ describe('AuthenticationInterceptor', () => {
   it('authenticated - called with expired authorization header', () => {
     authServiceSpy.getToken.and.returnValue('TOKENVALUE-EXPIRED');
 
-    client.get('/test').subscribe(() => { }, err => {
+    client.get('/test').subscribe(() => {
+    }, err => {
       expect(authServiceSpy.logoutAndRedirect).toHaveBeenCalled();
     });
 
     const mockReq = httpMock.expectOne('/test');
-    const mockErrorResponse = { status: 401, statusText: 'Unauthorized' };
+    const mockErrorResponse = {status: 401, statusText: 'Unauthorized'};
     mockReq.flush(null, mockErrorResponse);
     httpMock.verify();
   });

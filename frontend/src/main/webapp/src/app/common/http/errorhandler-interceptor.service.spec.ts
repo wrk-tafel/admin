@@ -1,9 +1,7 @@
-import { HttpClient, HTTP_INTERCEPTORS } from '@angular/common/http';
-import { TestBed } from '@angular/core/testing';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { ErrorHandlerInterceptor } from './errorhandler-interceptor.service';
-import { catchError } from 'rxjs/operators';
-import { throwError } from 'rxjs';
+import {HTTP_INTERCEPTORS, HttpClient} from '@angular/common/http';
+import {TestBed} from '@angular/core/testing';
+import {HttpClientTestingModule, HttpTestingController} from '@angular/common/http/testing';
+import {ErrorHandlerInterceptor} from './errorhandler-interceptor.service';
 
 describe('ErrorHandlerInterceptor', () => {
   let client: HttpClient;
@@ -34,35 +32,38 @@ describe('ErrorHandlerInterceptor', () => {
   });
 
   it('generic http error', () => {
-    client.get('/test').subscribe(() => { }, err => {
+    client.get('/test').subscribe(() => {
+    }, err => {
       expect(window.alert).toHaveBeenCalledWith('FEHLER:\nHTTP - 500 - Internal Server Error\nMESSAGE:\nHttp failure response for /test: 500 Internal Server Error\nDETAILS:\nundefined');
     });
 
     const mockReq = httpMock.expectOne('/test');
-    const mockErrorResponse = { status: 500, statusText: 'Internal Server Error' };
+    const mockErrorResponse = {status: 500, statusText: 'Internal Server Error'};
     mockReq.flush(null, mockErrorResponse);
     httpMock.verify();
   });
 
   it('specific spring http error', () => {
-    client.get('/test').subscribe(() => { }, err => {
+    client.get('/test').subscribe(() => {
+    }, err => {
       expect(window.alert).toHaveBeenCalledWith('FEHLER:\nHTTP - 400 - Bad Request\nMESSAGE:\nHttp failure response for /test: 400 Bad Request\nDETAILS:\ndetail-message');
     });
 
     const mockReq = httpMock.expectOne('/test');
-    const mockErrorResponse = { status: 400, statusText: 'Bad Request' };
-    mockReq.flush({ message: 'detail-message' }, mockErrorResponse);
+    const mockErrorResponse = {status: 400, statusText: 'Bad Request'};
+    mockReq.flush({message: 'detail-message'}, mockErrorResponse);
     httpMock.verify();
   });
 
   // TODO CHECK
   it('no handling for status 404', () => {
-    client.get('/test').subscribe(() => { }, err => {
+    client.get('/test').subscribe(() => {
+    }, err => {
       expect(window.alert).toHaveBeenCalledTimes(0);
     });
 
     const mockReq = httpMock.expectOne('/test');
-    const mockErrorResponse = { status: 404, statusText: 'Not Found' };
+    const mockErrorResponse = {status: 404, statusText: 'Not Found'};
     mockReq.flush(null, mockErrorResponse);
     httpMock.verify();
   });

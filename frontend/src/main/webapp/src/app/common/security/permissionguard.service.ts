@@ -1,6 +1,6 @@
-import { Injectable } from '@angular/core';
-import { ActivatedRouteSnapshot, CanActivateChild, Router } from '@angular/router';
-import { AuthenticationService } from './authentication.service';
+import {Injectable} from '@angular/core';
+import {ActivatedRouteSnapshot, CanActivateChild, Router} from '@angular/router';
+import {AuthenticationService} from './authentication.service';
 
 @Injectable({
   providedIn: 'root'
@@ -10,7 +10,8 @@ export class PermissionGuardService implements CanActivateChild {
   constructor(
     private auth: AuthenticationService,
     private router: Router
-  ) { }
+  ) {
+  }
 
   canActivateChild(route: ActivatedRouteSnapshot): boolean {
     const expectedPermission = route.data.expectedPermission;

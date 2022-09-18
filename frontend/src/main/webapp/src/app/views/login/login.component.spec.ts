@@ -1,7 +1,7 @@
-import { TestBed, waitForAsync } from '@angular/core/testing';
-import { Navigation, Router } from '@angular/router';
-import { AuthenticationService } from '../../common/security/authentication.service';
-import { LoginComponent } from './login.component';
+import {TestBed, waitForAsync} from '@angular/core/testing';
+import {Navigation, Router} from '@angular/router';
+import {AuthenticationService} from '../../common/security/authentication.service';
+import {LoginComponent} from './login.component';
 import {ReactiveFormsModule} from '@angular/forms';
 
 describe('LoginComponent', () => {
@@ -40,7 +40,7 @@ describe('LoginComponent', () => {
   }));
 
   it('init with expired flag should show message', waitForAsync(() => {
-    const navigation: jasmine.SpyObj<Navigation> = jasmine.createSpyObj('Navigation', {}, { extras: { state: { errorType: 'expired' } } });
+    const navigation: jasmine.SpyObj<Navigation> = jasmine.createSpyObj('Navigation', {}, {extras: {state: {errorType: 'expired'}}});
     router.getCurrentNavigation.and.returnValue(navigation);
 
     const fixture = TestBed.createComponent(LoginComponent);

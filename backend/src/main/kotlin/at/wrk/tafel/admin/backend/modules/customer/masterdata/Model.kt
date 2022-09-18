@@ -1,11 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.customer.masterdata
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
-import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
-import java.math.BigDecimal
-import java.time.LocalDate
-import java.time.Period
 
 @JacksonXmlRootElement(localName = "data")
 @ExcludeFromTestCoverage

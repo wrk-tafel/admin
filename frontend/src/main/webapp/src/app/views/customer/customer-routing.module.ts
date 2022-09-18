@@ -1,9 +1,9 @@
-import { NgModule } from '@angular/core';
-import { Routes, RouterModule } from '@angular/router';
-import { CustomerDetailComponent } from './views/customer-detail.component';
+import {NgModule} from '@angular/core';
+import {RouterModule, Routes} from '@angular/router';
+import {CustomerDetailComponent} from './views/customer-detail.component';
 
-import { CustomerEditComponent } from './views/customer-edit.component';
-import { CustomerSearchComponent } from './views/customer-search.component';
+import {CustomerEditComponent} from './views/customer-edit.component';
+import {CustomerSearchComponent} from './views/customer-search.component';
 
 const routes: Routes = [
   {
@@ -28,4 +28,5 @@ const routes: Routes = [
   imports: [RouterModule.forChild(routes)],
   exports: [RouterModule]
 })
-export class CustomerRoutingModule { }
+export class CustomerRoutingModule {
+}

@@ -1,7 +1,7 @@
-import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import {HttpClient} from '@angular/common/http';
+import {Injectable} from '@angular/core';
+import {Observable} from 'rxjs';
+import {map} from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -9,7 +9,8 @@ import { map } from 'rxjs/operators';
 export class CountryApiService {
   constructor(
     private http: HttpClient
-  ) { }
+  ) {
+  }
 
   getCountries(): Observable<CountryData[]> {
     return this.http.get<CountryListResponse>('/countries').pipe(map(val => val.items));

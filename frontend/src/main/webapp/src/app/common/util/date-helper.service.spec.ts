@@ -1,7 +1,7 @@
 describe('DateHelper', () => {
 
-    it('convertDateForInputField', () => {
-        // TODO
-    });
+  it('convertDateForInputField', () => {
+    // TODO
+  });
 
 });

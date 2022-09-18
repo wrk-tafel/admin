@@ -1,7 +1,7 @@
-import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
-import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
-import { CountryData } from '../../../common/api/country-api.service';
+import {HttpClient, HttpParams, HttpResponse} from '@angular/common/http';
+import {Injectable} from '@angular/core';
+import {Observable} from 'rxjs';
+import {CountryData} from '../../../common/api/country-api.service';
 
 @Injectable({
   providedIn: 'root'
@@ -9,7 +9,8 @@ import { CountryData } from '../../../common/api/country-api.service';
 export class CustomerApiService {
   constructor(
     private http: HttpClient
-  ) { }
+  ) {
+  }
 
   validate(data: CustomerData): Observable<ValidateCustomerResponse> {
     return this.http.post<ValidateCustomerResponse>('/customers/validate', data);
@@ -29,7 +30,7 @@ export class CustomerApiService {
 
   generateMasterdataPdf(id: number): Observable<HttpResponse<ArrayBuffer>> {
     return this.http.get('/customers/' + id + '/generate-masterdata-pdf',
-      { responseType: 'arraybuffer', observe: 'response' });
+      {responseType: 'arraybuffer', observe: 'response'});
   }
 
   searchCustomer(lastname?: string, firstname?: string): Observable<CustomerSearchResult> {
@@ -40,7 +41,7 @@ export class CustomerApiService {
     if (firstname) {
       queryParams = queryParams.set('firstname', firstname);
     }
-    return this.http.get<CustomerSearchResult>('/customers', { params: queryParams });
+    return this.http.get<CustomerSearchResult>('/customers', {params: queryParams});
   }
 }
 

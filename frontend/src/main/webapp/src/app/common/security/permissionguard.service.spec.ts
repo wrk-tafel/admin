@@ -1,5 +1,5 @@
-import { ActivatedRouteSnapshot } from '@angular/router';
-import { PermissionGuardService } from './permissionguard.service';
+import {ActivatedRouteSnapshot} from '@angular/router';
+import {PermissionGuardService} from './permissionguard.service';
 
 describe('PermissionGuardService', () => {
   function setup() {
@@ -8,14 +8,14 @@ describe('PermissionGuardService', () => {
     const routerSpy =
       jasmine.createSpyObj('Router', ['navigate']);
     const service = new PermissionGuardService(authServiceSpy, routerSpy);
-    return { service, authServiceSpy, routerSpy };
+    return {service, authServiceSpy, routerSpy};
   }
 
   it('canActivate - not authenticated and no permission needed', () => {
-    const { service, authServiceSpy, routerSpy } = setup();
+    const {service, authServiceSpy, routerSpy} = setup();
     authServiceSpy.hasPermission.and.returnValue(false);
 
-    const activatedRoute = <ActivatedRouteSnapshot>{ data: {} };
+    const activatedRoute = <ActivatedRouteSnapshot>{data: {}};
     const canActivate = service.canActivateChild(activatedRoute);
 
     expect(canActivate).toBeFalse();
@@ -23,10 +23,10 @@ describe('PermissionGuardService', () => {
   });
 
   it('canActivate - not authenticated and permission needed', () => {
-    const { service, authServiceSpy, routerSpy } = setup();
+    const {service, authServiceSpy, routerSpy} = setup();
     authServiceSpy.hasPermission.and.returnValue(false);
 
-    const activatedRoute = <any>{ data: { expectedPermission: 'PERM1' } };
+    const activatedRoute = <any>{data: {expectedPermission: 'PERM1'}};
     const canActivate = service.canActivateChild(activatedRoute);
 
     expect(canActivate).toBeFalse();
@@ -34,10 +34,10 @@ describe('PermissionGuardService', () => {
   });
 
   it('canActivate - authenticated and permission needed', () => {
-    const { service, authServiceSpy, routerSpy } = setup();
+    const {service, authServiceSpy, routerSpy} = setup();
     authServiceSpy.hasPermission.and.returnValue(true);
 
-    const activatedRoute = <any>{ data: { expectedPermission: 'PERM1' } };
+    const activatedRoute = <any>{data: {expectedPermission: 'PERM1'}};
     const canActivate = service.canActivateChild(activatedRoute);
 
     expect(canActivate).toBeTrue();
@@ -46,10 +46,10 @@ describe('PermissionGuardService', () => {
   });
 
   it('canActivate - authenticated and no permission needed', () => {
-    const { service, authServiceSpy, routerSpy } = setup();
+    const {service, authServiceSpy, routerSpy} = setup();
     authServiceSpy.hasPermission.and.returnValue(true);
 
-    const activatedRoute = <any>{ data: {} };
+    const activatedRoute = <any>{data: {}};
     const canActivate = service.canActivateChild(activatedRoute);
 
     expect(canActivate).toBeFalse();
