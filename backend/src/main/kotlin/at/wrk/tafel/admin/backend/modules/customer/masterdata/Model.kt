@@ -40,7 +40,7 @@ data class MasterdataPdfCustomer(
     val lastname: String,
     val firstname: String,
     val birthDate: String,
-    val telephoneNumber: Long? = null,
+    val telephoneNumber: String? = null,
     val email: String? = null,
     val address: MasterdataPdfAddressData,
     val employer: String,

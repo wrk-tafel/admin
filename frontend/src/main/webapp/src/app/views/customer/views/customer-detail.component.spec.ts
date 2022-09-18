@@ -25,7 +25,7 @@ describe('CustomerDetailComponent', () => {
       code: 'AT',
       name: 'Österreich'
     },
-    telephoneNumber: 6644123123123,
+    telephoneNumber: '00436644123123123',
     email: 'max.mustermann@gmail.com',
 
     address: {

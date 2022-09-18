@@ -36,7 +36,7 @@ Content-Type: application/json
     "postalCode": 1010,
     "city": "Wien"
   },
-  "telephoneNumber": 436645678953,
+  "telephoneNumber": "00436645678953",
   "email": "eva.musterfrau@wrk.at",
   "employer": "Rotes Kreuz Wien",
   "income": 456.00,
@@ -88,7 +88,7 @@ Content-Type: application/json
     "postalCode": 1010,
     "city": "Wien"
   },
-  "telephoneNumber": 436645678953,
+  "telephoneNumber": "00436645678953",
   "email": "eva.musterfrau@wrk.at",
   "employer": "Rotes Kreuz Wien",
   "income": 456.00,

@@ -61,7 +61,7 @@ class CustomerControllerTest {
             code = "AT",
             name = "Österreich"
         ),
-        telephoneNumber = 43660123123,
+        telephoneNumber = "0043660123123",
         email = "test@mail.com",
         address = CustomerAddress(
             street = "Test-Straße",
@@ -116,7 +116,7 @@ class CustomerControllerTest {
         testCustomerEntity1.addressPostalCode = 1010
         testCustomerEntity1.addressDoor = "21"
         testCustomerEntity1.addressCity = "Wien"
-        testCustomerEntity1.telephoneNumber = 43660123123
+        testCustomerEntity1.telephoneNumber = "0043660123123"
         testCustomerEntity1.email = "test@mail.com"
         testCustomerEntity1.employer = "Employer 123"
         testCustomerEntity1.income = BigDecimal("1000")
@@ -150,7 +150,7 @@ class CustomerControllerTest {
         testCustomerEntity2.addressPostalCode = 1010
         testCustomerEntity2.addressDoor = "21-2"
         testCustomerEntity2.addressCity = "Wien 2"
-        testCustomerEntity2.telephoneNumber = 43660456456
+        testCustomerEntity2.telephoneNumber = "0043660123123"
         testCustomerEntity2.email = "test2@mail.com"
         testCustomerEntity2.employer = "Employer 123-2"
         testCustomerEntity2.income = BigDecimal("2000")

@@ -21,7 +21,7 @@ describe('CustomerFormComponent', () => {
     firstname: 'Max',
     birthDate: moment().subtract(20, 'years').startOf('day').utc().toDate(),
     country: mockCountryList[0],
-    telephoneNumber: 660123123,
+    telephoneNumber: '0043660123123',
     email: 'test@mail.com',
     address: {
       street: 'Testgasse',
