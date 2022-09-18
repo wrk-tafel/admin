@@ -97,6 +97,7 @@ export class CustomerFormComponent implements OnInit {
       birthDate: null,
       income: null
     });
+    this.markAllAsTouched();
   }
 
   removePerson(index: number) {
