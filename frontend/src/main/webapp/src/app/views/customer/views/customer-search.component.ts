@@ -9,15 +9,6 @@ import {CustomerAddressData, CustomerApiService, CustomerSearchResult} from '../
   templateUrl: 'customer-search.component.html'
 })
 export class CustomerSearchComponent {
-  errorMessage: string;
-  searchResult: CustomerSearchResult;
-  formatDate = this.dateHelper.formatDate;
-  customerSearchForm = new FormGroup({
-    customerId: new FormControl(''),
-    lastname: new FormControl(''),
-    firstname: new FormControl('')
-  });
-
   constructor(
     private customerApiService: CustomerApiService,
     private router: Router,
@@ -25,17 +16,16 @@ export class CustomerSearchComponent {
   ) {
   }
 
-  get customerId() {
-    return this.customerSearchForm.get('customerId');
-  }
+  errorMessage: string;
+  searchResult: CustomerSearchResult;
 
-  get lastname() {
-    return this.customerSearchForm.get('lastname');
-  }
+  formatDate = this.dateHelper.formatDate;
 
-  get firstname() {
-    return this.customerSearchForm.get('firstname');
-  }
+  customerSearchForm = new FormGroup({
+    customerId: new FormControl(''),
+    lastname: new FormControl(''),
+    firstname: new FormControl('')
+  });
 
   searchForCustomerId() {
     const customerId = this.customerId.value;
@@ -80,5 +70,17 @@ export class CustomerSearchComponent {
     }
     result += ' / ' + address.postalCode + ' ' + address.city;
     return result;
+  }
+
+  get customerId() {
+    return this.customerSearchForm.get('customerId');
+  }
+
+  get lastname() {
+    return this.customerSearchForm.get('lastname');
+  }
+
+  get firstname() {
+    return this.customerSearchForm.get('firstname');
   }
 }
