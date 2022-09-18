@@ -105,12 +105,13 @@
     </xsl:template>
     <xsl:template name="customerData">
         <xsl:param name="data"/>
-        <fo:table border="0.1mm solid #000000" table-layout="fixed" width="100%">
+        <fo:table table-layout="fixed" width="100%">
             <fo:table-column column-width="100%"/>
             <fo:table-body>
-                <fo:table-row border-bottom="0.1mm solid #000000">
+                <fo:table-row>
                     <fo:table-cell>
-                        <fo:block font-size="12pt" font-weight="bold" text-align="center"
+                        <fo:block border-bottom="0.2mm solid #000000"
+                                  font-size="12pt" font-weight="bold" text-align="center"
                                   margin-top="1mm" margin-bottom="1mm">
                             Hauptbezieher
                         </fo:block>
@@ -118,7 +119,8 @@
                 </fo:table-row>
                 <fo:table-row>
                     <fo:table-cell>
-                        <fo:block margin-top="1mm" margin-bottom="1mm" margin-left="1mm"
+                        <fo:block border-right="0.1mm solid #000000"
+                                  margin-top="1mm" margin-bottom="1mm" margin-left="1mm"
                                   margin-right="1mm">
                             <fo:table table-layout="fixed" width="100%">
                                 <fo:table-column column-width="35%"/>
@@ -240,12 +242,13 @@
     </xsl:template>
     <xsl:template name="additionalPersons">
         <xsl:param name="data"/>
-        <fo:table border="0.1mm solid #000000" table-layout="fixed" width="100%">
+        <fo:table table-layout="fixed" width="100%">
             <fo:table-column column-width="100%"/>
             <fo:table-body>
-                <fo:table-row border-bottom="0.1mm solid #000000">
+                <fo:table-row>
                     <fo:table-cell>
-                        <fo:block font-size="12pt" font-weight="bold" text-align="center"
+                        <fo:block border-bottom="0.2mm solid #000000" font-size="12pt" font-weight="bold"
+                                  text-align="center"
                                   margin-top="1mm" margin-bottom="1mm">
                             Weitere Personen
                         </fo:block>

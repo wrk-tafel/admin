@@ -67,7 +67,7 @@ class MasterdataPdfServiceImpl : MasterdataPdfService {
                 employer = customer.employer!!,
                 income = customer.income
                     ?.takeIf { it.compareTo(BigDecimal.ZERO) != 0 }
-                    ?.let { "$it €" }
+                    ?.let { "${it.setScale(0)} €" }
                     ?: "-",
                 incomeDueDate = customer.incomeDue?.format(DATE_FORMATTER) ?: "unbefristet",
                 additionalPersons = customer.additionalPersons.map {
