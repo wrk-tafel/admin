@@ -260,7 +260,7 @@
                                   margin-right="1mm">
                             <xsl:choose>
                                 <xsl:when test="$data/additionalPersons != ''">
-                                    <fo:table table-layout="fixed" width="100%">
+                                    <fo:table table-layout="fixed" width="100%" border-collapse="separate" border-spacing="0pt 2pt">
                                         <fo:table-column column-width="100%"/>
                                         <fo:table-body>
                                             <xsl:for-each select="$data/additionalPersons">
