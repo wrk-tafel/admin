@@ -36,6 +36,29 @@ describe('Customer Detail', () => {
       .should((buffer: string | any[]) => expect(buffer.length).to.be.gt(20000));
   });
 
+  it('generate idcard pdf and opens for download', () => {
+    cy.visit('/#/kunden/detail/101');
+    cy.byTestId('printIdCardButton').click();
+
+    const downloadsFolder = Cypress.config('downloadsFolder')
+    const downloadedFilename = path.join(downloadsFolder, 'ausweis-101-musterfrau-eva.pdf')
+
+    cy.readFile(downloadedFilename, 'binary', {timeout: 15000})
+      .should((buffer: string | any[]) => expect(buffer.length).to.be.gt(5000));
+  });
+
+  it('generate idcard pdf and opens for download with less data from customer', () => {
+    cy.visit('/#/kunden/detail/100');
+
+    cy.byTestId('printIdCardButton').click();
+
+    const downloadsFolder = Cypress.config('downloadsFolder')
+    const downloadedFilename = path.join(downloadsFolder, 'ausweis-100-mustermann-max-single.pdf')
+
+    cy.readFile(downloadedFilename, 'binary', {timeout: 15000})
+      .should((buffer: string | any[]) => expect(buffer.length).to.be.gt(5000));
+  });
+
   it('edit customer', () => {
     cy.visit('/#/kunden/detail/101');
     cy.byTestId('editCustomerButton').click()
