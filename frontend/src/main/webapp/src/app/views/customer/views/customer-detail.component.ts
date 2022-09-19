@@ -4,7 +4,7 @@ import * as moment from 'moment';
 import {DateHelperService} from '../../../common/util/date-helper.service';
 import {FileHelperService} from '../../../common/util/file-helper.service';
 import {CustomerAddressData, CustomerApiService, CustomerData} from '../api/customer-api.service';
-import {HttpResponse} from "@angular/common/http";
+import {HttpResponse} from '@angular/common/http';
 
 @Component({
   selector: 'tafel-customer-detail',

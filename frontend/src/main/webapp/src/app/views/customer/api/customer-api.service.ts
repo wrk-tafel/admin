@@ -30,7 +30,7 @@ export class CustomerApiService {
 
   generatePdf(id: number, type: PdfType): Observable<HttpResponse<ArrayBuffer>> {
     let queryParams = new HttpParams();
-    queryParams = queryParams.append("type", type);
+    queryParams = queryParams.append('type', type);
 
     return this.http.get('/customers/' + id + '/generate-pdf',
       {
@@ -97,4 +97,4 @@ export interface CustomerAddPersonData {
   income?: number;
 }
 
-type PdfType = 'MASTERDATA' | 'IDCARD' | 'BOTH'
+type PdfType = 'MASTERDATA' | 'IDCARD' | 'BOTH';

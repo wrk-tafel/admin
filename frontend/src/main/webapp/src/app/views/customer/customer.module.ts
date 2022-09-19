@@ -8,7 +8,7 @@ import {CommonModule} from '@angular/common';
 import {ModalModule} from 'ngx-bootstrap/modal';
 import {CustomerDetailComponent} from './views/customer-detail.component';
 import {CustomerSearchComponent} from './views/customer-search.component';
-import {BsDropdownModule} from "ngx-bootstrap/dropdown";
+import {BsDropdownModule} from 'ngx-bootstrap/dropdown';
 
 @NgModule({
   imports: [
