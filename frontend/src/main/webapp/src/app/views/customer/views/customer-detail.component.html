@@ -3,15 +3,18 @@
     <button testid="editCustomerButton" type="button" class="btn btn-danger" (click)="editCustomer()">Kunde bearbeiten
     </button>
   </div>
-  <div class="col-s-auto mb-3 mr-3">
-    <button testid="printMasterdataButton" type="button" class="btn btn-primary"
-            (click)="printMasterdata()">Stammdaten drucken
-    </button>
-  </div>
   <div class="col-s-auto mb-3">
-    <button testid="printIdCardButton" type="button" class="btn btn-primary"
-            (click)="printIdCard()">Ausweis drucken
-    </button>
+    <div class="btn-group" dropdown>
+      <button dropdownToggle type="button" class="btn btn-primary dropdown-toggle">
+        Drucken <span class="caret"></span>
+      </button>
+      <ul *dropdownMenu class="dropdown-menu" role="menu">
+        <li role="menuitem"><a class="dropdown-item" style="cursor: pointer;" (click)="printMasterdataAndIdCard()">Stammdaten + Ausweis</a></li>
+        <li class="divider dropdown-divider"></li>
+        <li role="menuitem"><a class="dropdown-item" style="cursor: pointer;" (click)="printMasterdata()">Stammdaten</a></li>
+        <li role="menuitem"><a class="dropdown-item" style="cursor: pointer;" (click)="printIdCard()">Ausweis</a></li>
+      </ul>
+    </div>
   </div>
 </div>
 <div class="row">

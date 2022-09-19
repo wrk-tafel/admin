@@ -49,6 +49,10 @@ export class CustomerDetailComponent implements OnInit {
       });
   }
 
+  printMasterdataAndIdCard() {
+    // TODO generate both pdfs
+  }
+
   formatAddressLine1(address: CustomerAddressData): string {
     let addressLine = address.street;
     addressLine += ' ' + address.houseNumber;
