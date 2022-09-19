@@ -68,7 +68,7 @@ describe('CustomerApiService', () => {
   });
 
   it('generate masterdata pdf', () => {
-    apiService.generateMasterdataPdf(1).subscribe();
+    apiService.generatePdf(1).subscribe();
 
     const req = httpMock.expectOne({method: 'GET', url: '/customers/1/generate-masterdata-pdf'});
     req.flush(null);

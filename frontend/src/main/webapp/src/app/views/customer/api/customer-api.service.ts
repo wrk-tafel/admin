@@ -28,14 +28,16 @@ export class CustomerApiService {
     return this.http.get<CustomerData>('/customers/' + id);
   }
 
-  generateMasterdataPdf(id: number): Observable<HttpResponse<ArrayBuffer>> {
-    return this.http.get('/customers/' + id + '/generate-masterdata-pdf',
-      {responseType: 'arraybuffer', observe: 'response'});
-  }
+  generatePdf(id: number, type: PdfType): Observable<HttpResponse<ArrayBuffer>> {
+    let queryParams = new HttpParams();
+    queryParams = queryParams.append("type", type);
 
-  generateIdCardPdf(id: number): Observable<HttpResponse<ArrayBuffer>> {
-    return this.http.get('/customers/' + id + '/generate-idcard-pdf',
-      {responseType: 'arraybuffer', observe: 'response'});
+    return this.http.get('/customers/' + id + '/generate-pdf',
+      {
+        params: queryParams,
+        responseType: 'arraybuffer',
+        observe: 'response'
+      });
   }
 
   searchCustomer(lastname?: string, firstname?: string): Observable<CustomerSearchResult> {
@@ -94,3 +96,5 @@ export interface CustomerAddPersonData {
   birthDate: Date;
   income?: number;
 }
+
+type PdfType = 'MASTERDATA' | 'IDCARD' | 'BOTH'

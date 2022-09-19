@@ -140,7 +140,7 @@ describe('CustomerDetailComponent', () => {
       ),
       body: new ArrayBuffer(10)
     });
-    apiService.generateMasterdataPdf.withArgs(mockCustomer.id).and.returnValue(of(response));
+    apiService.generatePdf.withArgs(mockCustomer.id).and.returnValue(of(response));
 
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;

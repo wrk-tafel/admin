@@ -100,14 +100,21 @@ class CustomerController(
         return CustomerListResponse(items = customerItems.map { customerEntity -> mapEntityToResponse(customerEntity) })
     }
 
-    @GetMapping("/{customerId}/generate-masterdata-pdf", produces = [MediaType.APPLICATION_PDF_VALUE])
-    fun generateMasterdataPdf(@PathVariable("customerId") customerId: Long): ResponseEntity<InputStreamResource> {
-        return generatePdfResponse(customerId, "stammdaten", customerPdfService::generateMasterdataPdf)
-    }
+    @GetMapping("/{customerId}/generate-pdf", produces = [MediaType.APPLICATION_PDF_VALUE])
+    fun generatePdf(
+        @PathVariable("customerId") customerId: Long,
+        @RequestParam("type") type: PdfType
+    ): ResponseEntity<InputStreamResource> {
+        return when (type) {
+            PdfType.MASTERDATA -> generatePdfResponse(
+                customerId,
+                "stammdaten",
+                customerPdfService::generateMasterdataPdf
+            )
 
-    @GetMapping("/{customerId}/generate-idcard-pdf", produces = [MediaType.APPLICATION_PDF_VALUE])
-    fun generateIdCardPdf(@PathVariable("customerId") customerId: Long): ResponseEntity<InputStreamResource> {
-        return generatePdfResponse(customerId, "ausweis", customerPdfService::generateIdCardPdf)
+            PdfType.IDCARD -> generatePdfResponse(customerId, "ausweis", customerPdfService::generateIdCardPdf)
+            PdfType.BOTH -> generatePdfResponse(customerId, "stammdaten-ausweis", customerPdfService::generateIdCardPdf)
+        }
     }
 
     private fun generatePdfResponse(
@@ -232,4 +239,8 @@ class CustomerController(
 
         return personList
     }
+}
+
+enum class PdfType {
+    MASTERDATA, IDCARD, BOTH;
 }
