@@ -5,14 +5,14 @@
   </div>
   <div class="col-s-auto mb-3">
     <div class="btn-group" dropdown>
-      <button dropdownToggle type="button" class="btn btn-primary dropdown-toggle">
+      <button testid="printMenuButton" dropdownToggle type="button" class="btn btn-primary dropdown-toggle">
         Drucken <span class="caret"></span>
       </button>
       <ul *dropdownMenu class="dropdown-menu" role="menu">
-        <li role="menuitem"><a class="dropdown-item" style="cursor: pointer;" (click)="printMasterdataAndIdCard()">Stammdaten + Ausweis</a></li>
+        <li role="menuitem"><a class="dropdown-item" style="cursor: pointer;" testid="printMasterdataIdCardButton" (click)="printMasterdataAndIdCard()">Stammdaten + Ausweis</a></li>
         <li class="divider dropdown-divider"></li>
-        <li role="menuitem"><a class="dropdown-item" style="cursor: pointer;" (click)="printMasterdata()">Stammdaten</a></li>
-        <li role="menuitem"><a class="dropdown-item" style="cursor: pointer;" (click)="printIdCard()">Ausweis</a></li>
+        <li role="menuitem"><a class="dropdown-item" style="cursor: pointer;" testid="printMasterdataButton" (click)="printMasterdata()">Stammdaten</a></li>
+        <li role="menuitem"><a class="dropdown-item" style="cursor: pointer;" testid="printIdCardButton" (click)="printIdCard()">Ausweis</a></li>
       </ul>
     </div>
   </div>

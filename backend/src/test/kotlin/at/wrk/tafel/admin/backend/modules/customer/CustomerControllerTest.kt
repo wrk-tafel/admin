@@ -301,10 +301,10 @@ class CustomerControllerTest {
     }
 
     @Test
-    fun `generate pdf customer unknown`() {
+    fun `generate pdf customer`() {
         every { customerRepository.findByCustomerId(any()) } returns Optional.empty()
 
-        val response = controller.generateMasterdataPdf(1)
+        val response = controller.generatePdf(1, PdfType.MASTERDATA)
 
         assertThat(response).isNotNull
         assertThat(response.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
@@ -316,7 +316,7 @@ class CustomerControllerTest {
         every { customerRepository.findByCustomerId(any()) } returns Optional.of(testCustomerEntity1)
         every { customerPdfService.generateMasterdataPdf(any()) } returns pdfBytes
 
-        val response = controller.generateMasterdataPdf(1)
+        val response = controller.generatePdf(1, PdfType.MASTERDATA)
 
         assertThat(response).isNotNull
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)

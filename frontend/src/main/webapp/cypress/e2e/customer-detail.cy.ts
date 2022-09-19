@@ -13,8 +13,10 @@ describe('Customer Detail', () => {
     cy.byTestId('customerIdText').should('have.text', '101');
   });
 
-  it('generate masterdata pdf and opens for download', () => {
+  it('generate pdf and opens for download', () => {
     cy.visit('/#/kunden/detail/101');
+
+    cy.byTestId('printMenuButton').click();
     cy.byTestId('printMasterdataButton').click();
 
     const downloadsFolder = Cypress.config('downloadsFolder')
@@ -24,9 +26,10 @@ describe('Customer Detail', () => {
       .should((buffer: string | any[]) => expect(buffer.length).to.be.gt(20000));
   });
 
-  it('generate masterdata pdf and opens for download with less data from customer', () => {
+  it('generate pdf and opens for download with less data from customer', () => {
     cy.visit('/#/kunden/detail/100');
 
+    cy.byTestId('printMenuButton').click();
     cy.byTestId('printMasterdataButton').click();
 
     const downloadsFolder = Cypress.config('downloadsFolder')
@@ -34,29 +37,6 @@ describe('Customer Detail', () => {
 
     cy.readFile(downloadedFilename, 'binary', {timeout: 15000})
       .should((buffer: string | any[]) => expect(buffer.length).to.be.gt(20000));
-  });
-
-  it('generate idcard pdf and opens for download', () => {
-    cy.visit('/#/kunden/detail/101');
-    cy.byTestId('printIdCardButton').click();
-
-    const downloadsFolder = Cypress.config('downloadsFolder')
-    const downloadedFilename = path.join(downloadsFolder, 'ausweis-101-musterfrau-eva.pdf')
-
-    cy.readFile(downloadedFilename, 'binary', {timeout: 15000})
-      .should((buffer: string | any[]) => expect(buffer.length).to.be.gt(5000));
-  });
-
-  it('generate idcard pdf and opens for download with less data from customer', () => {
-    cy.visit('/#/kunden/detail/100');
-
-    cy.byTestId('printIdCardButton').click();
-
-    const downloadsFolder = Cypress.config('downloadsFolder')
-    const downloadedFilename = path.join(downloadsFolder, 'ausweis-100-mustermann-max-single.pdf')
-
-    cy.readFile(downloadedFilename, 'binary', {timeout: 15000})
-      .should((buffer: string | any[]) => expect(buffer.length).to.be.gt(5000));
   });
 
   it('edit customer', () => {
