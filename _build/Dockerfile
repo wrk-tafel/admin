@@ -1,4 +1,4 @@
-FROM openjdk:17.0.1-oraclelinux7
+FROM openjdk:18.0.2.1-oraclelinux7
 VOLUME /app/config
 VOLUME /app/logs
 
