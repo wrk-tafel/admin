@@ -52,25 +52,25 @@ class CustomerPdfServiceImpl : CustomerPdfService {
         return generatePdf(xmlBytes, "/pdf-templates/masterdata_idcard_document.xsl")
     }
 
-    fun createCustomerPdfData(customer: CustomerEntity): MasterdataPdfData {
+    fun createCustomerPdfData(customer: CustomerEntity): CustomerPdfData {
         val countPersons = 1 + customer.additionalPersons.size
         val countInfants =
             customer.additionalPersons.count { Period.between(it.birthDate, LocalDate.now()).years <= 3 }
 
         val logoBytes =
             IOUtils.toByteArray(CustomerPdfServiceImpl::class.java.getResourceAsStream("/pdf-templates/img/toet_logo.png"))
-        return MasterdataPdfData(
+        return CustomerPdfData(
             logoContentType = MimeTypeUtils.IMAGE_PNG_VALUE,
             logoBytes = logoBytes,
             currentDate = LocalDate.now().format(DATE_FORMATTER),
-            customer = MasterdataPdfCustomer(
+            customer = PdfCustomerData(
                 id = customer.customerId!!,
                 lastname = customer.lastname!!,
                 firstname = customer.firstname!!,
                 birthDate = customer.birthDate!!.format(DATE_FORMATTER),
                 telephoneNumber = customer.telephoneNumber,
                 email = customer.email,
-                address = MasterdataPdfAddressData(
+                address = PdfAddressData(
                     street = customer.addressStreet!!,
                     houseNumber = customer.addressHouseNumber!!,
                     door = customer.addressDoor,
@@ -85,7 +85,7 @@ class CustomerPdfServiceImpl : CustomerPdfService {
                     ?: "-",
                 incomeDueDate = customer.incomeDue?.format(DATE_FORMATTER) ?: "unbefristet",
                 additionalPersons = customer.additionalPersons.map {
-                    MasterdataPdfAdditionalPersonData(
+                    PdfAdditionalPersonData(
                         lastname = it.lastname!!,
                         firstname = it.firstname!!,
                         birthDate = it.birthDate!!.format(DATE_FORMATTER),
@@ -101,7 +101,7 @@ class CustomerPdfServiceImpl : CustomerPdfService {
         )
     }
 
-    fun generateXmlData(data: MasterdataPdfData): ByteArray {
+    fun generateXmlData(data: CustomerPdfData): ByteArray {
         val xmlOutStream = ByteArrayOutputStream()
         xmlOutStream.use {
             xmlMapper.writeValue(it, data)

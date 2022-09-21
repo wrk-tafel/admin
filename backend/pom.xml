@@ -21,6 +21,7 @@
         <postgresql.driver.version>42.5.0</postgresql.driver.version>
         <bouncycastle.version>1.70</bouncycastle.version>
         <apache.fop.version>2.7</apache.fop.version>
+        <qrcode.kotlin.version>3.2.0</qrcode.kotlin.version>
 
         <!-- Maven plugin version -->
         <maven.surefire.plugin.version>2.22.2</maven.surefire.plugin.version>
@@ -148,6 +149,11 @@
             <groupId>org.apache.xmlgraphics</groupId>
             <artifactId>fop</artifactId>
             <version>${apache.fop.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.g0dkar</groupId>
+            <artifactId>qrcode-kotlin-jvm</artifactId>
+            <version>${qrcode.kotlin.version}</version>
         </dependency>
 
         <!-- Dev and Test dependencies -->
