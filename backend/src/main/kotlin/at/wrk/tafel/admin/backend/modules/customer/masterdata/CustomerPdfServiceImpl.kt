@@ -46,6 +46,12 @@ class CustomerPdfServiceImpl : CustomerPdfService {
         return generatePdf(xmlBytes, "/pdf-templates/idcard_document.xsl")
     }
 
+    override fun generateMasterdataIdCardPdf(customer: CustomerEntity): ByteArray {
+        val data = createCustomerPdfData(customer)
+        val xmlBytes = generateXmlData(data)
+        return generatePdf(xmlBytes, "/pdf-templates/masterdata_idcard_document.xsl")
+    }
+
     fun createCustomerPdfData(customer: CustomerEntity): MasterdataPdfData {
         val countPersons = 1 + customer.additionalPersons.size
         val countInfants =

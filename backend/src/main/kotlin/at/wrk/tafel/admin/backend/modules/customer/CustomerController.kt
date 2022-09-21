@@ -113,7 +113,11 @@ class CustomerController(
             )
 
             PdfType.IDCARD -> generatePdfResponse(customerId, "ausweis", customerPdfService::generateIdCardPdf)
-            PdfType.BOTH -> generatePdfResponse(customerId, "stammdaten-ausweis", customerPdfService::generateIdCardPdf)
+            PdfType.BOTH -> generatePdfResponse(
+                customerId,
+                "stammdaten-ausweis",
+                customerPdfService::generateMasterdataIdCardPdf
+            )
         }
     }
 
