@@ -97,4 +97,4 @@ export interface CustomerAddPersonData {
   income?: number;
 }
 
-type PdfType = 'MASTERDATA' | 'IDCARD' | 'BOTH';
+type PdfType = 'MASTERDATA' | 'IDCARD' | 'COMBINED';

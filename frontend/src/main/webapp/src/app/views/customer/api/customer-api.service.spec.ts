@@ -83,10 +83,10 @@ describe('CustomerApiService', () => {
     httpMock.verify();
   });
 
-  it('generate masterdata and idcard pdf', () => {
-    apiService.generatePdf(1, 'BOTH').subscribe();
+  it('generate combined pdf', () => {
+    apiService.generatePdf(1, 'COMBINED').subscribe();
 
-    const req = httpMock.expectOne({method: 'GET', url: '/customers/1/generate-pdf?type=BOTH'});
+    const req = httpMock.expectOne({method: 'GET', url: '/customers/1/generate-pdf?type=COMBINED'});
     req.flush(null);
     httpMock.verify();
   });

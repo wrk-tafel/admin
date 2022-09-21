@@ -40,8 +40,8 @@ export class CustomerDetailComponent implements OnInit {
       .subscribe((response) => this.processPdfResponse(response));
   }
 
-  printMasterdataAndIdCard() {
-    this.customerApiService.generatePdf(this.customerData.id, 'BOTH')
+  printCombined() {
+    this.customerApiService.generatePdf(this.customerData.id, 'COMBINED')
       .subscribe((response) => this.processPdfResponse(response));
   }
 

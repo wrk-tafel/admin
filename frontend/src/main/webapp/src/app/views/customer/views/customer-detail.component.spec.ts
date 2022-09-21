@@ -172,7 +172,7 @@ describe('CustomerDetailComponent', () => {
     expect(fileHelperService.downloadFile).toHaveBeenCalledWith('test-name-1.pdf', new Blob([response.body], {type: 'application/pdf'}));
   }));
 
-  it('printMasterdataAndIdCard', waitForAsync(() => {
+  it('printCombined', waitForAsync(() => {
     apiService.getCustomer.withArgs(mockCustomer.id).and.returnValue(of(mockCustomer));
 
     const response = new HttpResponse({
@@ -182,13 +182,13 @@ describe('CustomerDetailComponent', () => {
       ),
       body: new ArrayBuffer(10)
     });
-    apiService.generatePdf.withArgs(mockCustomer.id, 'BOTH').and.returnValue(of(response));
+    apiService.generatePdf.withArgs(mockCustomer.id, 'COMBINED').and.returnValue(of(response));
 
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
     component.ngOnInit();
 
-    component.printMasterdataAndIdCard();
+    component.printCombined();
 
     expect(fileHelperService.downloadFile).toHaveBeenCalledWith('test-name-1.pdf', new Blob([response.body], {type: 'application/pdf'}));
   }));

@@ -113,7 +113,7 @@ class CustomerController(
             )
 
             PdfType.IDCARD -> generatePdfResponse(customerId, "ausweis", customerPdfService::generateIdCardPdf)
-            PdfType.BOTH -> generatePdfResponse(
+            PdfType.COMBINED -> generatePdfResponse(
                 customerId,
                 "stammdaten-ausweis",
                 customerPdfService::generateMasterdataIdCardPdf
@@ -246,5 +246,5 @@ class CustomerController(
 }
 
 enum class PdfType {
-    MASTERDATA, IDCARD, BOTH;
+    MASTERDATA, IDCARD, COMBINED;
 }
