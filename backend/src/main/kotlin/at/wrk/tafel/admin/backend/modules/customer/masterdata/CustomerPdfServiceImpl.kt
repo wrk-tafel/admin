@@ -2,11 +2,12 @@ package at.wrk.tafel.admin.backend.modules.customer.masterdata
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.database.entities.CustomerEntity
+import at.wrk.tafel.admin.backend.modules.customer.masterdata.fop.ClasspathResolverURIAdapter
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import org.apache.commons.io.IOUtils
-import org.apache.fop.apps.FopFactory
+import org.apache.fop.apps.FopFactoryBuilder
 import org.apache.fop.apps.MimeConstants
 import org.springframework.stereotype.Service
 import org.springframework.util.MimeTypeUtils
@@ -20,6 +21,7 @@ import java.time.format.DateTimeFormatter
 import javax.xml.transform.TransformerFactory
 import javax.xml.transform.sax.SAXResult
 import javax.xml.transform.stream.StreamSource
+
 
 @Service
 // TODO add tests
@@ -35,13 +37,13 @@ class CustomerPdfServiceImpl : CustomerPdfService {
     override fun generateMasterdataPdf(customer: CustomerEntity): ByteArray {
         val data = createCustomerPdfData(customer)
         val xmlBytes = generateXmlData(data)
-        return generatePdf(xmlBytes, "/pdf-templates/masterdata_singlepage.xsl")
+        return generatePdf(xmlBytes, "/pdf-templates/masterdata_document.xsl")
     }
 
     override fun generateIdCardPdf(customer: CustomerEntity): ByteArray {
         val data = createCustomerPdfData(customer)
         val xmlBytes = generateXmlData(data)
-        return generatePdf(xmlBytes, "/pdf-templates/idcard_singlepage.xsl")
+        return generatePdf(xmlBytes, "/pdf-templates/idcard_document.xsl")
     }
 
     fun createCustomerPdfData(customer: CustomerEntity): MasterdataPdfData {
@@ -104,7 +106,9 @@ class CustomerPdfServiceImpl : CustomerPdfService {
     private fun generatePdf(xmlBytes: ByteArray, stylesheetPath: String): ByteArray {
         ByteArrayInputStream(xmlBytes).use { xmlStream ->
             val xmlSource = StreamSource(xmlStream)
-            val fopFactory = FopFactory.newInstance(File(".").toURI())
+
+            val fopBuilder = FopFactoryBuilder(File(".").toURI(), ClasspathResolverURIAdapter())
+            val fopFactory = fopBuilder.build()
             val foUserAgent = fopFactory.newFOUserAgent()
             val outStream = ByteArrayOutputStream()
 

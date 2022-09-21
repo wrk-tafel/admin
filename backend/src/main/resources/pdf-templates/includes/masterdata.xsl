@@ -1,83 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:fo="http://www.w3.org/1999/XSL/Format"
                 version="1.1" exclude-result-prefixes="fo">
-    <xsl:template match="data">
-        <fo:root xmlns:fo="http://www.w3.org/1999/XSL/Format">
-            <fo:layout-master-set>
-                <fo:simple-page-master master-name="simpleA4" page-height="29.7cm" page-width="21cm"
-                                       margin-top="1cm" margin-bottom="1cm" margin-left="1cm" margin-right="1cm">
-                    <fo:region-body/>
-                </fo:simple-page-master>
-            </fo:layout-master-set>
-            <fo:page-sequence master-reference="simpleA4">
-                <fo:flow flow-name="xsl-region-body">
-                    <fo:block font-family="Helvetica">
-                        <fo:block space-after="1cm">
-                            <xsl:call-template name="header"/>
-                        </fo:block>
-                        <fo:block>
-                            <fo:table table-layout="fixed" width="100%">
-                                <fo:table-column column-width="60%"/>
-                                <fo:table-column column-width="40%"/>
-                                <fo:table-body>
-                                    <fo:table-row>
-                                        <fo:table-cell>
-                                            <xsl:call-template name="customerData">
-                                                <xsl:with-param name="data" select="./customer"/>
-                                            </xsl:call-template>
-                                        </fo:table-cell>
-                                        <fo:table-cell>
-                                            <xsl:call-template name="additionalPersons">
-                                                <xsl:with-param name="data"
-                                                                select="./customer/additionalPersons"/>
-                                            </xsl:call-template>
-                                        </fo:table-cell>
-                                    </fo:table-row>
-                                </fo:table-body>
-                            </fo:table>
-                        </fo:block>
-                        <fo:block margin-top="1cm">
-                            <fo:table table-layout="fixed" width="100%">
-                                <fo:table-column column-width="100%"/>
-                                <fo:table-body>
-                                    <fo:table-row>
-                                        <fo:table-cell>
-                                            <fo:block>
-                                                <fo:inline font-weight="bold">Anzahl der Personen im gemeinsamen
-                                                    Haushalt:
-                                                </fo:inline>
-                                                <fo:inline>
-                                                    <xsl:value-of select="concat(' ', ./countPersons)"/>
-                                                </fo:inline>
-                                            </fo:block>
-                                        </fo:table-cell>
-                                    </fo:table-row>
-                                    <fo:table-row>
-                                        <fo:table-cell>
-                                            <fo:block>
-                                                <fo:inline font-weight="bold">Davon Kinder bis 3 Jahre:
-                                                </fo:inline>
-                                                <fo:inline>
-                                                    <xsl:value-of select="concat(' ', ./countInfants)"/>
-                                                </fo:inline>
-                                            </fo:block>
-                                        </fo:table-cell>
-                                    </fo:table-row>
-                                </fo:table-body>
-                            </fo:table>
-                        </fo:block>
-                        <fo:block margin-top="2cm">
-                            <fo:inline font-weight="bold">Datum:</fo:inline>
-                            <fo:inline>
-                                <xsl:value-of select="concat(' ', ./currentDate)"/>
-                            </fo:inline>
-                        </fo:block>
-                    </fo:block>
-                </fo:flow>
-            </fo:page-sequence>
-        </fo:root>
+    <xsl:template name="masterdata">
+        <fo:block font-family="Helvetica">
+            <fo:block space-after="1cm">
+                <xsl:call-template name="masterdata-header"/>
+            </fo:block>
+            <fo:block space-after="1cm">
+                <xsl:call-template name="masterdata-body"/>
+            </fo:block>
+            <fo:block space-after="1cm">
+                <xsl:call-template name="masterdata-footer"/>
+            </fo:block>
+        </fo:block>
     </xsl:template>
-    <xsl:template name="header">
+    <xsl:template name="masterdata-header">
         <fo:table table-layout="fixed" width="100%">
             <fo:table-column column-width="75%"/>
             <fo:table-column column-width="25%"/>
@@ -103,7 +40,7 @@
             </fo:table-body>
         </fo:table>
     </xsl:template>
-    <xsl:template name="customerData">
+    <xsl:template name="masterdata-customerData">
         <xsl:param name="data"/>
         <fo:table table-layout="fixed" width="100%">
             <fo:table-column column-width="100%"/>
@@ -240,7 +177,7 @@
             </fo:table-body>
         </fo:table>
     </xsl:template>
-    <xsl:template name="additionalPersons">
+    <xsl:template name="masterdata-additionalPersons">
         <xsl:param name="data"/>
         <fo:table table-layout="fixed" width="100%">
             <fo:table-column column-width="100%"/>
@@ -260,7 +197,8 @@
                                   margin-right="1mm">
                             <xsl:choose>
                                 <xsl:when test="$data/additionalPersons != ''">
-                                    <fo:table table-layout="fixed" width="100%" border-collapse="separate" border-spacing="0pt 2pt">
+                                    <fo:table table-layout="fixed" width="100%" border-collapse="separate"
+                                              border-spacing="0pt 2pt">
                                         <fo:table-column column-width="100%"/>
                                         <fo:table-body>
                                             <xsl:for-each select="$data/additionalPersons">
@@ -307,5 +245,66 @@
                 </fo:table-row>
             </fo:table-body>
         </fo:table>
+    </xsl:template>
+    <xsl:template name="masterdata-body">
+        <fo:block>
+            <fo:table table-layout="fixed" width="100%">
+                <fo:table-column column-width="60%"/>
+                <fo:table-column column-width="40%"/>
+                <fo:table-body>
+                    <fo:table-row>
+                        <fo:table-cell>
+                            <xsl:call-template name="masterdata-customerData">
+                                <xsl:with-param name="data" select="./customer"/>
+                            </xsl:call-template>
+                        </fo:table-cell>
+                        <fo:table-cell>
+                            <xsl:call-template name="masterdata-additionalPersons">
+                                <xsl:with-param name="data"
+                                                select="./customer/additionalPersons"/>
+                            </xsl:call-template>
+                        </fo:table-cell>
+                    </fo:table-row>
+                </fo:table-body>
+            </fo:table>
+        </fo:block>
+    </xsl:template>
+    <xsl:template name="masterdata-footer">
+        <fo:block margin-top="1cm">
+            <fo:table table-layout="fixed" width="100%">
+                <fo:table-column column-width="100%"/>
+                <fo:table-body>
+                    <fo:table-row>
+                        <fo:table-cell>
+                            <fo:block>
+                                <fo:inline font-weight="bold">Anzahl der Personen im gemeinsamen
+                                    Haushalt:
+                                </fo:inline>
+                                <fo:inline>
+                                    <xsl:value-of select="concat(' ', ./countPersons)"/>
+                                </fo:inline>
+                            </fo:block>
+                        </fo:table-cell>
+                    </fo:table-row>
+                    <fo:table-row>
+                        <fo:table-cell>
+                            <fo:block>
+                                <fo:inline font-weight="bold">Davon Kinder bis 3 Jahre:
+                                </fo:inline>
+                                <fo:inline>
+                                    <xsl:value-of select="concat(' ', ./countInfants)"/>
+                                </fo:inline>
+                            </fo:block>
+                        </fo:table-cell>
+                    </fo:table-row>
+                </fo:table-body>
+            </fo:table>
+        </fo:block>
+        <fo:block margin-top="2cm">
+            <fo:inline font-weight="bold">Datum:</fo:inline>
+            <fo:inline>
+                <xsl:value-of select="concat(' ', ./currentDate)"/>
+            </fo:inline>
+        </fo:block>
     </xsl:template>
 </xsl:stylesheet>
