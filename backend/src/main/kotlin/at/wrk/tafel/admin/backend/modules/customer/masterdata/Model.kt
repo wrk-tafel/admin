@@ -53,7 +53,7 @@ data class PdfCustomerData(
     val income: String? = null,
     val incomeDueDate: String? = null,
     val additionalPersons: List<PdfAdditionalPersonData> = emptyList(),
-    val idcard: PdfIdCardData? = null
+    val idCard: PdfIdCardData? = null
 )
 
 @ExcludeFromTestCoverage
