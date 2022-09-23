@@ -29,7 +29,7 @@
 
         <!-- Test dependency versions -->
         <archunit.version>0.23.1</archunit.version>
-        <mockk.version>1.12.8</mockk.version>
+        <mockk.version>1.13.1</mockk.version>
         <testcontainers.version>1.17.3</testcontainers.version>
     </properties>
 
