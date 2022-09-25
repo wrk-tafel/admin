@@ -6,5 +6,5 @@ interface CustomerPdfService {
     fun generateMasterdataPdf(customer: CustomerEntity): ByteArray
 
     fun generateIdCardPdf(customer: CustomerEntity): ByteArray
-    fun generateMasterdataIdCardPdf(customer: CustomerEntity): ByteArray
+    fun generateCombinedPdf(customer: CustomerEntity): ByteArray
 }

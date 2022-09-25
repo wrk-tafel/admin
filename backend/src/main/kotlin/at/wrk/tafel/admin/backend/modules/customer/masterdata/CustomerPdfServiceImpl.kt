@@ -48,7 +48,7 @@ class CustomerPdfServiceImpl : CustomerPdfService {
         return generatePdf(xmlBytes, "/pdf-templates/idcard-document.xsl")
     }
 
-    override fun generateMasterdataIdCardPdf(customer: CustomerEntity): ByteArray {
+    override fun generateCombinedPdf(customer: CustomerEntity): ByteArray {
         val data = createCustomerPdfData(customer)
         val xmlBytes = generateXmlData(data)
         return generatePdf(xmlBytes, "/pdf-templates/masterdata-idcard-document.xsl")

@@ -116,7 +116,7 @@ class CustomerController(
             PdfType.COMBINED -> generatePdfResponse(
                 customerId,
                 "stammdaten-ausweis",
-                customerPdfService::generateMasterdataIdCardPdf
+                customerPdfService::generateCombinedPdf
             )
         }
     }
