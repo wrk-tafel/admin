@@ -5,7 +5,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
 
 @JacksonXmlRootElement(localName = "data")
 @ExcludeFromTestCoverage
-data class CustomerPdfData(
+data class PdfData(
     val logoContentType: String,
     val logoBytes: ByteArray,
     val currentDate: String,
@@ -17,7 +17,7 @@ data class CustomerPdfData(
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as CustomerPdfData
+        other as PdfData
 
         if (logoContentType != other.logoContentType) return false
         if (!logoBytes.contentEquals(other.logoBytes)) return false

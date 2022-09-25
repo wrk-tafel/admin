@@ -1,11 +1,12 @@
 package at.wrk.tafel.admin.backend.modules.customer.masterdata
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
+import at.wrk.tafel.admin.backend.common.fop.ClasspathResolverURIAdapter
 import at.wrk.tafel.admin.backend.database.entities.CustomerEntity
-import at.wrk.tafel.admin.backend.modules.customer.masterdata.fop.ClasspathResolverURIAdapter
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import io.github.g0dkar.qrcode.QRCode
 import org.apache.commons.io.IOUtils
 import org.apache.fop.apps.FopFactoryBuilder
 import org.apache.fop.apps.MimeConstants
@@ -14,6 +15,7 @@ import org.springframework.util.MimeTypeUtils
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.FileOutputStream
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.Period
@@ -37,29 +39,29 @@ class CustomerPdfServiceImpl : CustomerPdfService {
     override fun generateMasterdataPdf(customer: CustomerEntity): ByteArray {
         val data = createCustomerPdfData(customer)
         val xmlBytes = generateXmlData(data)
-        return generatePdf(xmlBytes, "/pdf-templates/masterdata_document.xsl")
+        return generatePdf(xmlBytes, "/pdf-templates/masterdata-document.xsl")
     }
 
     override fun generateIdCardPdf(customer: CustomerEntity): ByteArray {
         val data = createCustomerPdfData(customer)
         val xmlBytes = generateXmlData(data)
-        return generatePdf(xmlBytes, "/pdf-templates/idcard_document.xsl")
+        return generatePdf(xmlBytes, "/pdf-templates/idcard-document.xsl")
     }
 
     override fun generateMasterdataIdCardPdf(customer: CustomerEntity): ByteArray {
         val data = createCustomerPdfData(customer)
         val xmlBytes = generateXmlData(data)
-        return generatePdf(xmlBytes, "/pdf-templates/masterdata_idcard_document.xsl")
+        return generatePdf(xmlBytes, "/pdf-templates/masterdata-idcard-document.xsl")
     }
 
-    fun createCustomerPdfData(customer: CustomerEntity): CustomerPdfData {
+    fun createCustomerPdfData(customer: CustomerEntity): PdfData {
         val countPersons = 1 + customer.additionalPersons.size
         val countInfants =
             customer.additionalPersons.count { Period.between(it.birthDate, LocalDate.now()).years <= 3 }
 
         val logoBytes =
-            IOUtils.toByteArray(CustomerPdfServiceImpl::class.java.getResourceAsStream("/pdf-templates/img/toet_logo.png"))
-        return CustomerPdfData(
+            IOUtils.toByteArray(CustomerPdfServiceImpl::class.java.getResourceAsStream("/pdf-templates/img/toet-logo.png"))
+        return PdfData(
             logoContentType = MimeTypeUtils.IMAGE_PNG_VALUE,
             logoBytes = logoBytes,
             currentDate = LocalDate.now().format(DATE_FORMATTER),
@@ -101,7 +103,7 @@ class CustomerPdfServiceImpl : CustomerPdfService {
         )
     }
 
-    fun generateXmlData(data: CustomerPdfData): ByteArray {
+    fun generateXmlData(data: PdfData): ByteArray {
         val xmlOutStream = ByteArrayOutputStream()
         xmlOutStream.use {
             xmlMapper.writeValue(it, data)
@@ -109,7 +111,8 @@ class CustomerPdfServiceImpl : CustomerPdfService {
         return xmlOutStream.toByteArray()
     }
 
-    private fun generatePdf(xmlBytes: ByteArray, stylesheetPath: String): ByteArray {
+    // TODO set to private after development
+    fun generatePdf(xmlBytes: ByteArray, stylesheetPath: String): ByteArray {
         ByteArrayInputStream(xmlBytes).use { xmlStream ->
             val xmlSource = StreamSource(xmlStream)
 
@@ -135,4 +138,48 @@ class CustomerPdfServiceImpl : CustomerPdfService {
             return outStream.toByteArray()
         }
     }
+
 }
+
+// TODO remove only for development
+fun main(args: Array<String>) {
+    val logoBytes =
+        IOUtils.toByteArray(CustomerPdfServiceImpl::class.java.getResourceAsStream("/pdf-templates/img/toet-logo.png"))
+    val qrCodeBytes = QRCode("123").render().getBytes()
+
+    val data = PdfData(
+        customer = PdfCustomerData(
+            id = 123,
+            lastname = "Mustermann",
+            firstname = "Max",
+            birthDate = LocalDate.now().toString(),
+            address = PdfAddressData(
+                street = "Teststreet",
+                houseNumber = "1",
+                postalCode = 1020,
+                city = "Wien"
+            ),
+            employer = "Employer",
+            idCard = PdfIdCardData(
+                qrCodeBytes = qrCodeBytes,
+                qrCodeContentType = MimeTypeUtils.IMAGE_PNG_VALUE
+            )
+        ),
+        countInfants = 1,
+        countPersons = 2,
+        currentDate = LocalDate.now().toString(),
+        logoBytes = logoBytes,
+        logoContentType = MimeTypeUtils.IMAGE_PNG_VALUE
+    )
+
+    // IOUtils.write(qrCodeBytes, FileOutputStream("D:\\test_code.png"))
+
+    val pdfService = CustomerPdfServiceImpl()
+
+    val xmlBytes = pdfService.generateXmlData(data)
+    IOUtils.write(xmlBytes, FileOutputStream("D:\\test.xml"))
+
+    val pdfBytes = pdfService.generatePdf(xmlBytes, "/pdf-templates/idcard-document.xsl")
+    IOUtils.write(pdfBytes, FileOutputStream("D:\\test.pdf"))
+}
+// TODO remove only for development

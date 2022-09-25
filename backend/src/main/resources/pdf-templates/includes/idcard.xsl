@@ -19,7 +19,7 @@
                     <fo:table-cell>
                         <fo:block>OUTSIDE PART 1</fo:block>
                     </fo:table-cell>
-                    <fo:table-cell>
+                    <fo:table-cell border-left="0.5mm solid #000000">
                         <fo:block>OUTSIDE PART 2</fo:block>
                     </fo:table-cell>
                 </fo:table-row>
