@@ -1,7 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.customer.masterdata
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
-import at.wrk.tafel.admin.backend.common.fop.ClasspathResolverURIAdapter
+import at.wrk.tafel.admin.backend.common.fop.ClasspathResourceURIResolver
 import at.wrk.tafel.admin.backend.database.entities.CustomerEntity
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
@@ -116,7 +116,7 @@ class CustomerPdfServiceImpl : CustomerPdfService {
         ByteArrayInputStream(xmlBytes).use { xmlStream ->
             val xmlSource = StreamSource(xmlStream)
 
-            val fopBuilder = FopFactoryBuilder(File(".").toURI(), ClasspathResolverURIAdapter())
+            val fopBuilder = FopFactoryBuilder(File(".").toURI())
             val fopFactory = fopBuilder.build()
             val foUserAgent = fopFactory.newFOUserAgent()
             val outStream = ByteArrayOutputStream()
@@ -125,6 +125,8 @@ class CustomerPdfServiceImpl : CustomerPdfService {
                 val fop = fopFactory.newFop(MimeConstants.MIME_PDF, foUserAgent, out)
 
                 val factory = TransformerFactory.newInstance()
+                factory.uriResolver = ClasspathResourceURIResolver()
+
                 val transformer = factory.newTransformer(
                     StreamSource(
                         CustomerPdfServiceImpl::class.java.getResourceAsStream(stylesheetPath)
