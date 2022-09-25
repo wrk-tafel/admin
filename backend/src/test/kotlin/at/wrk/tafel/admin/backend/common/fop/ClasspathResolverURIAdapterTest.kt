@@ -13,7 +13,7 @@ class ClasspathResolverURIAdapterTest {
     fun `getResource from absolute classpath`() {
         val resource = adapter.getResource(URI.create("classpath:/fop/test.txt"))
 
-        assertThat("12345").isEqualTo(resource?.readAllBytes().toString())
+        assertThat(resource?.readAllBytes().toString()).isEqualTo("12345")
     }
 
 }

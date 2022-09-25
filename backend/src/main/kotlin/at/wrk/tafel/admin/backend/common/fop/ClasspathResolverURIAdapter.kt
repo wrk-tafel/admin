@@ -23,7 +23,7 @@ class ClasspathResolverURIAdapter : ResourceResolver {
             val fileNameMap: FileNameMap = URLConnection.getFileNameMap()
             val mimeType = fileNameMap.getContentTypeFor(resourcePath)
 
-            val resourceStream = ClassLoader.getSystemClassLoader().getResourceAsStream(resourcePath)
+            val resourceStream = javaClass.getResourceAsStream(resourcePath)
             resourceStream?.let { Resource(mimeType, resourceStream) }
         } else {
             delegate.getResource(uri)
@@ -34,7 +34,7 @@ class ClasspathResolverURIAdapter : ResourceResolver {
         return if (uri.scheme.equals("classpath")) {
             val resourcePath = uri.schemeSpecificPart
 
-            val resourceInputStream = ClassLoader.getSystemClassLoader().getResourceAsStream(resourcePath)
+            val resourceInputStream = javaClass.getResourceAsStream(resourcePath)
             val byteArrayOutputStream = ByteArrayOutputStream()
             resourceInputStream.transferTo(byteArrayOutputStream)
 
