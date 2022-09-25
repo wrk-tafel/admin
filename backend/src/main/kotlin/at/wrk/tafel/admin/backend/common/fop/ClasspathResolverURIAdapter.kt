@@ -1,23 +1,18 @@
 package at.wrk.tafel.admin.backend.common.fop
 
-import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import org.apache.fop.apps.io.ResourceResolverFactory
 import org.apache.xmlgraphics.io.Resource
 import org.apache.xmlgraphics.io.ResourceResolver
-import java.io.ByteArrayOutputStream
 import java.io.OutputStream
 import java.net.FileNameMap
 import java.net.URI
 import java.net.URLConnection
 
-
-@ExcludeFromTestCoverage
-// TODO write tests
 class ClasspathResolverURIAdapter : ResourceResolver {
-    private val delegate: ResourceResolver = ResourceResolverFactory.createDefaultResourceResolver()
+    var delegate: ResourceResolver = ResourceResolverFactory.createDefaultResourceResolver()
 
     override fun getResource(uri: URI): Resource? {
-        return if (uri.scheme.equals("classpath")) {
+        return if ("classpath" == uri.scheme) {
             val resourcePath = uri.schemeSpecificPart
 
             val fileNameMap: FileNameMap = URLConnection.getFileNameMap()
@@ -31,17 +26,7 @@ class ClasspathResolverURIAdapter : ResourceResolver {
     }
 
     override fun getOutputStream(uri: URI): OutputStream? {
-        return if (uri.scheme.equals("classpath")) {
-            val resourcePath = uri.schemeSpecificPart
-
-            val resourceInputStream = javaClass.getResourceAsStream(resourcePath)
-            val byteArrayOutputStream = ByteArrayOutputStream()
-            resourceInputStream.transferTo(byteArrayOutputStream)
-
-            return byteArrayOutputStream
-        } else {
-            delegate.getOutputStream(uri)
-        }
+        return delegate.getOutputStream(uri)
     }
 
 }
