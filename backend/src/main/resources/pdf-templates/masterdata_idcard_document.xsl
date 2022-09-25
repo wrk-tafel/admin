@@ -14,6 +14,7 @@
             <fo:page-sequence master-reference="simpleA4">
                 <fo:flow flow-name="xsl-region-body">
                     <xsl:call-template name="masterdata"/>
+                    <fo:block border-top="0.5mm solid #000000" space-after="1cm"/>
                     <xsl:call-template name="idcard"/>
                 </fo:flow>
             </fo:page-sequence>
