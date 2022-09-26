@@ -156,8 +156,10 @@ fun main(args: Array<String>) {
             firstname = "Max",
             birthDate = LocalDate.now().toString(),
             address = PdfAddressData(
-                street = "Teststreet",
-                houseNumber = "1",
+                street = "Karl-Schäfer-Straße",
+                houseNumber = "8",
+                stairway = "1",
+                door = "3F",
                 postalCode = 1020,
                 city = "Wien"
             ),

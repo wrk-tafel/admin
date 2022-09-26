@@ -3,11 +3,11 @@
                 version="1.1" exclude-result-prefixes="fo">
     <xsl:template name="idcard">
         <!--
-        -->
         <fo:block-container border="0.1mm dashed #000000" font-family="Helvetica" height="8cm"
                             page-break-after="always">
             <xsl:call-template name="outside"/>
         </fo:block-container>
+        -->
         <fo:block-container border="0.1mm dashed #000000" font-family="Helvetica" height="8cm">
             <xsl:call-template name="inside"/>
         </fo:block-container>
@@ -80,19 +80,105 @@
         </fo:table>
     </xsl:template>
     <xsl:template name="inside">
-        <fo:table table-layout="fixed" width="100%" margin-left="0.25cm" margin-top="0.5cm">
+        <fo:table table-layout="fixed" width="100%">
             <fo:table-column column-width="50%"/>
             <fo:table-column column-width="50%"/>
             <fo:table-body>
                 <fo:table-row>
                     <fo:table-cell>
-                        <fo:block>INSIDE PART 1</fo:block>
+                        <fo:block-container height="8cm">
+                            <xsl:call-template name="inside-left"/>
+                        </fo:block-container>
                     </fo:table-cell>
                     <fo:table-cell>
-                        <fo:block>INSIDE PART 2</fo:block>
+                        <fo:block-container border-left="0.5mm solid #000000" height="8cm">
+                            <xsl:call-template name="inside-right"/>
+                        </fo:block-container>
                     </fo:table-cell>
                 </fo:table-row>
             </fo:table-body>
         </fo:table>
+    </xsl:template>
+    <xsl:template name="inside-left">
+        <fo:table table-layout="fixed" width="100%">
+            <fo:table-column column-width="50%"/>
+            <fo:table-column column-width="50%"/>
+            <fo:table-body>
+                <fo:table-row>
+                    <fo:table-cell>
+                        <fo:block margin-left="0.5cm" margin-top="0.5cm" margin-right="0.25cm">
+                            <xsl:call-template name="field-with-subtext">
+                                <xsl:with-param name="value" select="customer/lastname"/>
+                                <xsl:with-param name="label" select="'Nachname'"/>
+                            </xsl:call-template>
+                        </fo:block>
+                    </fo:table-cell>
+                    <fo:table-cell>
+                        <fo:block margin-left="0.25cm" margin-top="0.5cm" margin-right="0.5cm">
+                            <xsl:call-template name="field-with-subtext">
+                                <xsl:with-param name="value" select="customer/firstname"/>
+                                <xsl:with-param name="label" select="'Vorname'"/>
+                            </xsl:call-template>
+                        </fo:block>
+                    </fo:table-cell>
+                </fo:table-row>
+                <fo:table-row>
+                    <fo:table-cell>
+                        <fo:block margin-left="0.5cm" margin-top="0.5cm" margin-right="0.25cm">
+                            <xsl:call-template name="field-with-subtext">
+                                <xsl:with-param name="value" select="customer/birthDate"/>
+                                <xsl:with-param name="label" select="'Geburtsdatum'"/>
+                            </xsl:call-template>
+                        </fo:block>
+                    </fo:table-cell>
+                    <fo:table-cell>
+                        <fo:block/>
+                    </fo:table-cell>
+                </fo:table-row>
+                <fo:table-row>
+                    <fo:table-cell number-columns-spanned="2">
+                        <fo:block margin-left="0.5cm" margin-top="0.5cm" margin-right="0.5cm">
+                            <xsl:variable name="addressLine">
+                                <xsl:value-of select="customer/address/street"/>
+                                <xsl:value-of select="' '"/>
+                                <xsl:value-of select="customer/address/houseNumber"/>
+                                <xsl:if test="customer/address/stairway != '' or customer/address/door != ''">
+                                    <xsl:value-of select="', '"/>
+                                </xsl:if>
+                                <xsl:if test="customer/address/stairway != ''">
+                                    <xsl:value-of select="' Stiege '"/>
+                                    <xsl:value-of select="customer/address/stairway"/>
+                                </xsl:if>
+                                <xsl:if test="customer/address/door != ''">
+                                    <xsl:value-of select="' Top '"/>
+                                    <xsl:value-of select="customer/address/door"/>
+                                </xsl:if>
+                                <xsl:value-of select="', '"/>
+                                <xsl:value-of select="customer/address/postalCode"/>
+                                <xsl:value-of select="' '"/>
+                                <xsl:value-of select="customer/address/city"/>
+                            </xsl:variable>
+                            <xsl:call-template name="field-with-subtext">
+                                <xsl:with-param name="value" select="$addressLine"/>
+                                <xsl:with-param name="label" select="'Addresse'"/>
+                            </xsl:call-template>
+                        </fo:block>
+                    </fo:table-cell>
+                </fo:table-row>
+            </fo:table-body>
+        </fo:table>
+    </xsl:template>
+    <xsl:template name="inside-right">
+        <fo:block>RIGHT</fo:block>
+    </xsl:template>
+    <xsl:template name="field-with-subtext">
+        <xsl:param name="value"/>
+        <xsl:param name="label"/>
+        <fo:block font-size="12pt">
+            <xsl:value-of select="$value"/>
+        </fo:block>
+        <fo:block border-top="0.1mm solid #000000" font-size="8pt">
+            <xsl:value-of select="$label"/>
+        </fo:block>
     </xsl:template>
 </xsl:stylesheet>
