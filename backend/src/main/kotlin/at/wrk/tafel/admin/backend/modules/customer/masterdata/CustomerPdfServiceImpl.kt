@@ -166,7 +166,8 @@ fun main(args: Array<String>) {
             employer = "Employer",
             idCard = PdfIdCardData(
                 qrCodeContentType = MimeTypeUtils.IMAGE_PNG_VALUE,
-                qrCodeBytes = qrCodeBytes
+                qrCodeBytes = qrCodeBytes,
+                issuer = "8579 Stefan Bergmann"
             )
         ),
         countInfants = 1,

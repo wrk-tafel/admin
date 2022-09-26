@@ -77,7 +77,8 @@ data class PdfAdditionalPersonData(
 @ExcludeFromTestCoverage
 data class PdfIdCardData(
     val qrCodeContentType: String,
-    val qrCodeBytes: ByteArray
+    val qrCodeBytes: ByteArray,
+    val issuer: String
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -87,6 +88,7 @@ data class PdfIdCardData(
 
         if (qrCodeContentType != other.qrCodeContentType) return false
         if (!qrCodeBytes.contentEquals(other.qrCodeBytes)) return false
+        if (issuer != other.issuer) return false
 
         return true
     }
@@ -94,6 +96,7 @@ data class PdfIdCardData(
     override fun hashCode(): Int {
         var result = qrCodeContentType.hashCode()
         result = 31 * result + qrCodeBytes.contentHashCode()
+        result = 31 * result + issuer.hashCode()
         return result
     }
 }

@@ -165,6 +165,36 @@
                         </fo:block>
                     </fo:table-cell>
                 </fo:table-row>
+                <fo:table-row>
+                    <fo:table-cell number-columns-spanned="2">
+                        <fo:block-container margin-top="0.75cm">
+                            <fo:table table-layout="fixed" width="100%">
+                                <fo:table-column column-width="35%"/>
+                                <fo:table-column column-width="65%"/>
+                                <fo:table-body>
+                                    <fo:table-row>
+                                        <fo:table-cell display-align="after">
+                                            <fo:block margin-left="0.5cm" margin-right="0.1cm" margin-bottom="0.5cm">
+                                                <xsl:call-template name="field-with-subtext">
+                                                    <xsl:with-param name="value" select="currentDate"/>
+                                                    <xsl:with-param name="label" select="'Ausgestellt am'"/>
+                                                </xsl:call-template>
+                                            </fo:block>
+                                        </fo:table-cell>
+                                        <fo:table-cell display-align="after">
+                                            <fo:block margin-left="0.5cm" margin-right="0.5cm" margin-bottom="0.5cm">
+                                                <xsl:call-template name="field-with-subtext">
+                                                    <xsl:with-param name="value" select="customer/idCard/issuer"/>
+                                                    <xsl:with-param name="label" select="'Ausgestellt von'"/>
+                                                </xsl:call-template>
+                                            </fo:block>
+                                        </fo:table-cell>
+                                    </fo:table-row>
+                                </fo:table-body>
+                            </fo:table>
+                        </fo:block-container>
+                    </fo:table-cell>
+                </fo:table-row>
             </fo:table-body>
         </fo:table>
     </xsl:template>
@@ -177,8 +207,10 @@
         <fo:block font-size="12pt">
             <xsl:value-of select="$value"/>
         </fo:block>
-        <fo:block border-top="0.1mm solid #000000" font-size="8pt">
-            <xsl:value-of select="$label"/>
+        <fo:block border-top="0.1mm solid #000000" font-size="8pt" margin-top="1mm">
+            <fo:block margin-top="1mm" font-weight="bold">
+                <xsl:value-of select="$label"/>
+            </fo:block>
         </fo:block>
     </xsl:template>
 </xsl:stylesheet>
