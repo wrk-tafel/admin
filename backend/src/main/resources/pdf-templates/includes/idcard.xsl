@@ -199,7 +199,10 @@
         </fo:table>
     </xsl:template>
     <xsl:template name="inside-right">
-        <fo:block>RIGHT</fo:block>
+        <fo:block>TODO</fo:block>
+        <fo:block>ADDITIONAL PERSON</fo:block>
+        <fo:block>PERS IN HOUSEHOLD</fo:block>
+        <fo:block>CHILDS BELOW 3</fo:block>
     </xsl:template>
     <xsl:template name="field-with-subtext">
         <xsl:param name="value"/>
