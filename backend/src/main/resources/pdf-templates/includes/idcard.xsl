@@ -106,16 +106,23 @@
             <fo:table-body>
                 <fo:table-row>
                     <fo:table-cell>
-                        <fo:block margin-left="0.5cm" margin-top="0.5cm" margin-right="0.25cm">
-                            <xsl:call-template name="field-with-subtext">
+                        <fo:block margin-left="0.5cm" margin-top="0.5cm" font-weight="bold" font-size="10pt">
+                            Hauptbezieher
+                        </fo:block>
+                    </fo:table-cell>
+                </fo:table-row>
+                <fo:table-row>
+                    <fo:table-cell>
+                        <fo:block margin-left="0.5cm" margin-top="0.25cm" margin-right="0.25cm">
+                            <xsl:call-template name="field-with-label">
                                 <xsl:with-param name="value" select="customer/lastname"/>
                                 <xsl:with-param name="label" select="'Nachname'"/>
                             </xsl:call-template>
                         </fo:block>
                     </fo:table-cell>
                     <fo:table-cell>
-                        <fo:block margin-left="0.25cm" margin-top="0.5cm" margin-right="0.5cm">
-                            <xsl:call-template name="field-with-subtext">
+                        <fo:block margin-left="0.25cm" margin-top="0.25cm" margin-right="0.5cm">
+                            <xsl:call-template name="field-with-label">
                                 <xsl:with-param name="value" select="customer/firstname"/>
                                 <xsl:with-param name="label" select="'Vorname'"/>
                             </xsl:call-template>
@@ -124,8 +131,8 @@
                 </fo:table-row>
                 <fo:table-row>
                     <fo:table-cell>
-                        <fo:block margin-left="0.5cm" margin-top="0.5cm" margin-right="0.25cm">
-                            <xsl:call-template name="field-with-subtext">
+                        <fo:block margin-left="0.5cm" margin-top="0.25cm" margin-right="0.25cm">
+                            <xsl:call-template name="field-with-label">
                                 <xsl:with-param name="value" select="customer/birthDate"/>
                                 <xsl:with-param name="label" select="'Geburtsdatum'"/>
                             </xsl:call-template>
@@ -137,7 +144,7 @@
                 </fo:table-row>
                 <fo:table-row>
                     <fo:table-cell number-columns-spanned="2">
-                        <fo:block margin-left="0.5cm" margin-top="0.5cm" margin-right="0.5cm">
+                        <fo:block margin-left="0.5cm" margin-top="0.25cm" margin-right="0.5cm">
                             <xsl:variable name="addressLine">
                                 <xsl:value-of select="customer/address/street"/>
                                 <xsl:value-of select="' '"/>
@@ -158,7 +165,7 @@
                                 <xsl:value-of select="' '"/>
                                 <xsl:value-of select="customer/address/city"/>
                             </xsl:variable>
-                            <xsl:call-template name="field-with-subtext">
+                            <xsl:call-template name="field-with-label">
                                 <xsl:with-param name="value" select="$addressLine"/>
                                 <xsl:with-param name="label" select="'Addresse'"/>
                             </xsl:call-template>
@@ -175,7 +182,7 @@
                                     <fo:table-row>
                                         <fo:table-cell display-align="after">
                                             <fo:block margin-left="0.5cm" margin-right="0.1cm" margin-bottom="0.5cm">
-                                                <xsl:call-template name="field-with-subtext">
+                                                <xsl:call-template name="field-with-label">
                                                     <xsl:with-param name="value" select="currentDate"/>
                                                     <xsl:with-param name="label" select="'Ausgestellt am'"/>
                                                 </xsl:call-template>
@@ -183,12 +190,13 @@
                                         </fo:table-cell>
                                         <fo:table-cell display-align="after">
                                             <fo:block margin-left="0.5cm" margin-right="0.5cm" margin-bottom="0.5cm">
-                                                <xsl:call-template name="field-with-subtext">
+                                                <xsl:call-template name="field-with-label">
                                                     <xsl:with-param name="value" select="customer/idCard/issuer"/>
                                                     <xsl:with-param name="label" select="'Ausgestellt von'"/>
                                                 </xsl:call-template>
                                             </fo:block>
                                         </fo:table-cell>
+                                        <!-- TODO add validDue/incomeDue Date -->
                                     </fo:table-row>
                                 </fo:table-body>
                             </fo:table>
@@ -199,12 +207,76 @@
         </fo:table>
     </xsl:template>
     <xsl:template name="inside-right">
-        <fo:block>TODO</fo:block>
-        <fo:block>ADDITIONAL PERSON</fo:block>
-        <fo:block>PERS IN HOUSEHOLD</fo:block>
-        <fo:block>CHILDS BELOW 3</fo:block>
+        <fo:table table-layout="fixed" width="100%">
+            <fo:table-column column-width="100%"/>
+            <fo:table-body>
+                <fo:table-row>
+                    <fo:table-cell>
+                        <fo:block margin-left="0.5cm" margin-top="0.5cm" font-weight="bold" font-size="10pt">
+                            Weitere Bezugsberechtigte
+                        </fo:block>
+                    </fo:table-cell>
+                </fo:table-row>
+                <fo:table-row>
+                    <fo:table-cell>
+                        <fo:table table-layout="fixed" width="100%">
+                            <fo:table-column column-width="50%"/>
+                            <fo:table-column column-width="50%"/>
+                            <fo:table-body>
+                                <fo:table-row>
+                                    <fo:table-cell>
+                                        <fo:block margin-left="0.5cm" margin-top="0.25cm" margin-right="0.5cm">
+                                            <xsl:call-template name="field-with-label">
+                                                <xsl:with-param name="value" select="'TODO'"/>
+                                                <xsl:with-param name="label" select="'Nachname'"/>
+                                            </xsl:call-template>
+                                        </fo:block>
+                                    </fo:table-cell>
+                                    <fo:table-cell>
+                                        <fo:block margin-top="0.25cm" margin-right="0.5cm">
+                                            <xsl:call-template name="field-with-label">
+                                                <xsl:with-param name="value" select="'TODO'"/>
+                                                <xsl:with-param name="label" select="'Vorname'"/>
+                                            </xsl:call-template>
+                                        </fo:block>
+                                    </fo:table-cell>
+                                </fo:table-row>
+                                <fo:table-row>
+                                    <fo:table-cell>
+                                        <fo:block margin-left="0.5cm" margin-top="1cm" margin-right="0.5cm"
+                                                  font-size="10pt">
+                                            Anzahl Personen im gemeinsamen Haushalt:
+                                        </fo:block>
+                                    </fo:table-cell>
+                                    <fo:table-cell>
+                                        <fo:block margin-left="0.25cm" margin-top="1cm" margin-right="0.5cm"
+                                                  font-size="10pt">
+                                            TODO
+                                        </fo:block>
+                                    </fo:table-cell>
+                                </fo:table-row>
+                                <fo:table-row>
+                                    <fo:table-cell>
+                                        <fo:block margin-left="0.5cm" margin-top="0.5cm" margin-right="0.5cm"
+                                                  font-size="10pt">
+                                            davon unter 3 Jahren:
+                                        </fo:block>
+                                    </fo:table-cell>
+                                    <fo:table-cell>
+                                        <fo:block margin-left="0.25cm" margin-top="0.5cm" margin-right="0.5cm"
+                                                  font-size="10pt">
+                                            TODO
+                                        </fo:block>
+                                    </fo:table-cell>
+                                </fo:table-row>
+                            </fo:table-body>
+                        </fo:table>
+                    </fo:table-cell>
+                </fo:table-row>
+            </fo:table-body>
+        </fo:table>
     </xsl:template>
-    <xsl:template name="field-with-subtext">
+    <xsl:template name="field-with-label">
         <xsl:param name="value"/>
         <xsl:param name="label"/>
         <fo:block font-size="12pt">
