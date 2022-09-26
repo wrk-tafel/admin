@@ -163,8 +163,8 @@ fun main(args: Array<String>) {
             ),
             employer = "Employer",
             idCard = PdfIdCardData(
-                qrCodeBytes = qrCodeBytes,
-                qrCodeContentType = MimeTypeUtils.IMAGE_PNG_VALUE
+                qrCodeContentType = MimeTypeUtils.IMAGE_PNG_VALUE,
+                qrCodeBytes = qrCodeBytes
             )
         ),
         countInfants = 1,

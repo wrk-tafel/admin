@@ -2,13 +2,13 @@
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:fo="http://www.w3.org/1999/XSL/Format"
                 version="1.1" exclude-result-prefixes="fo">
     <xsl:template name="idcard">
-        <fo:block border="0.1mm dashed #000000" font-family="Helvetica" height="10cm"
-                  page-break-after="always">
+        <fo:block-container border="0.1mm dashed #000000" font-family="Helvetica" height="8cm"
+                            page-break-after="always">
             <xsl:call-template name="outside"/>
-        </fo:block>
-        <fo:block border="0.1mm dashed #000000" font-family="Helvetica" height="10cm">
+        </fo:block-container>
+        <fo:block-container border="0.1mm dashed #000000" font-family="Helvetica" height="8cm">
             <xsl:call-template name="inside"/>
-        </fo:block>
+        </fo:block-container>
     </xsl:template>
     <xsl:template name="outside">
         <fo:table table-layout="fixed" width="100%">
@@ -17,10 +17,56 @@
             <fo:table-body>
                 <fo:table-row>
                     <fo:table-cell>
-                        <fo:block>OUTSIDE PART 1</fo:block>
+                        <fo:block/>
                     </fo:table-cell>
-                    <fo:table-cell border-left="0.5mm solid #000000">
-                        <fo:block>OUTSIDE PART 2</fo:block>
+                    <fo:table-cell>
+                        <fo:block-container border-left="0.5mm solid #000000" height="8cm">
+                            <xsl:call-template name="outside-front"/>
+                        </fo:block-container>
+                    </fo:table-cell>
+                </fo:table-row>
+            </fo:table-body>
+        </fo:table>
+    </xsl:template>
+    <xsl:template name="outside-front">
+        <fo:table table-layout="fixed" width="100%" text-align="center">
+            <fo:table-column column-width="100%"/>
+            <fo:table-body>
+                <fo:table-row>
+                    <fo:table-cell>
+                        <fo:block margin-top="0.5cm">
+                            <fo:external-graphic content-width="5.0cm">
+                                <xsl:attribute name="src">
+                                    <xsl:text>url('data:</xsl:text>
+                                    <xsl:value-of select="logoContentType"/>
+                                    <xsl:text>;base64,</xsl:text>
+                                    <xsl:value-of select="logoBytes"/>
+                                    <xsl:text>')</xsl:text>
+                                </xsl:attribute>
+                            </fo:external-graphic>
+                        </fo:block>
+                    </fo:table-cell>
+                </fo:table-row>
+                <fo:table-row>
+                    <fo:table-cell>
+                        <fo:block margin-top="0.5cm">
+                            <fo:external-graphic content-width="3.0cm">
+                                <xsl:attribute name="src">
+                                    <xsl:text>url('data:</xsl:text>
+                                    <xsl:value-of select="customer/idCard/qrCodeContentType"/>
+                                    <xsl:text>;base64,</xsl:text>
+                                    <xsl:value-of select="customer/idCard/qrCodeBytes"/>
+                                    <xsl:text>')</xsl:text>
+                                </xsl:attribute>
+                            </fo:external-graphic>
+                        </fo:block>
+                    </fo:table-cell>
+                </fo:table-row>
+                <fo:table-row>
+                    <fo:table-cell>
+                        <fo:block margin-top="0.1cm">
+                            <xsl:value-of select="customer/id"/>
+                        </fo:block>
                     </fo:table-cell>
                 </fo:table-row>
             </fo:table-body>
