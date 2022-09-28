@@ -251,7 +251,7 @@
                                     <fo:table-cell>
                                         <fo:block margin-left="0.25cm" margin-top="1cm" margin-right="0.5cm"
                                                   font-size="10pt">
-                                            TODO
+                                            <xsl:value-of select="countPersons"/>
                                         </fo:block>
                                     </fo:table-cell>
                                 </fo:table-row>
@@ -265,7 +265,7 @@
                                     <fo:table-cell>
                                         <fo:block margin-left="0.25cm" margin-top="0.5cm" margin-right="0.5cm"
                                                   font-size="10pt">
-                                            TODO
+                                            <xsl:value-of select="countInfants"/>
                                         </fo:block>
                                     </fo:table-cell>
                                 </fo:table-row>
