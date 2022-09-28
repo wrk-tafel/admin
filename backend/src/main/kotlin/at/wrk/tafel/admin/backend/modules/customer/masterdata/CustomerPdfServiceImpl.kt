@@ -96,7 +96,12 @@ class CustomerPdfServiceImpl : CustomerPdfService {
                             ?.let { income -> "$income €" }
                             ?: "-"
                     )
-                }
+                },
+                idCard = PdfIdCardData(
+                    qrCodeContentType = MimeTypeUtils.IMAGE_PNG_VALUE,
+                    qrCodeBytes = QRCode(customer.id.toString()).render().getBytes(),
+                    issuer = "TODO" // TODO
+                )
             ),
             countPersons = countPersons,
             countInfants = countInfants
