@@ -2,12 +2,10 @@
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:fo="http://www.w3.org/1999/XSL/Format"
                 version="1.1" exclude-result-prefixes="fo">
     <xsl:template name="idcard">
-        <!--
         <fo:block-container border="0.1mm dashed #000000" font-family="Helvetica" height="8cm"
                             page-break-after="always">
             <xsl:call-template name="outside"/>
         </fo:block-container>
-        -->
         <fo:block-container border="0.1mm dashed #000000" font-family="Helvetica" height="8cm">
             <xsl:call-template name="inside"/>
         </fo:block-container>
@@ -19,12 +17,50 @@
             <fo:table-body>
                 <fo:table-row>
                     <fo:table-cell>
-                        <fo:block font-size="10pt" margin-top="6.75cm" margin-left="0.5cm">
-                            Wiener Rotes Kreuz - Team Österreich Tafel
-                        </fo:block>
-                        <fo:block font-size="10pt" margin-left="0.5cm">
-                            Safargasse 4, 1030 Wien
-                        </fo:block>
+                        <fo:table table-layout="fixed" width="100%">
+                            <fo:table-column column-width="50%"/>
+                            <fo:table-column column-width="50%"/>
+                            <fo:table-body>
+                                <fo:table-row>
+                                    <fo:table-cell>
+                                        <fo:block margin-left="0.5cm" margin-top="0.5cm" margin-right="0.5cm"
+                                                  font-size="10pt">
+                                            Anzahl Personen im Haushalt:
+                                        </fo:block>
+                                    </fo:table-cell>
+                                    <fo:table-cell>
+                                        <fo:block margin-left="0.25cm" margin-top="0.5cm" margin-right="0.5cm"
+                                                  font-size="10pt">
+                                            <xsl:value-of select="countPersons"/>
+                                        </fo:block>
+                                    </fo:table-cell>
+                                </fo:table-row>
+                                <fo:table-row>
+                                    <fo:table-cell>
+                                        <fo:block margin-left="0.5cm" margin-top="0.5cm" margin-right="0.5cm"
+                                                  font-size="10pt">
+                                            davon unter 3 Jahren:
+                                        </fo:block>
+                                    </fo:table-cell>
+                                    <fo:table-cell>
+                                        <fo:block margin-left="0.25cm" margin-top="0.5cm" margin-right="0.5cm"
+                                                  font-size="10pt">
+                                            <xsl:value-of select="countInfants"/>
+                                        </fo:block>
+                                    </fo:table-cell>
+                                </fo:table-row>
+                                <fo:table-row>
+                                    <fo:table-cell number-columns-spanned="2">
+                                        <fo:block font-size="10pt" margin-top="4.5cm" margin-left="0.5cm">
+                                            Wiener Rotes Kreuz - Team Österreich Tafel
+                                        </fo:block>
+                                        <fo:block font-size="10pt" margin-left="0.5cm">
+                                            Safargasse 4, 1030 Wien
+                                        </fo:block>
+                                    </fo:table-cell>
+                                </fo:table-row>
+                            </fo:table-body>
+                        </fo:table>
                     </fo:table-cell>
                     <fo:table-cell>
                         <fo:block-container border-left="0.5mm solid #000000" height="8cm">
