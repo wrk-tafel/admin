@@ -1,16 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:fo="http://www.w3.org/1999/XSL/Format"
                 version="1.1" exclude-result-prefixes="fo">
-    <xsl:template name="idcard">
-        <fo:block-container border="0.1mm dashed #000000" font-family="Helvetica" height="8cm"
-                            page-break-after="always">
-            <xsl:call-template name="outside"/>
-        </fo:block-container>
-        <fo:block-container border="0.1mm dashed #000000" font-family="Helvetica" height="8cm">
-            <xsl:call-template name="inside"/>
-        </fo:block-container>
-    </xsl:template>
-    <xsl:template name="outside">
+    <xsl:template name="idcard-outside">
         <fo:table table-layout="fixed" width="100%">
             <fo:table-column column-width="50%"/>
             <fo:table-column column-width="50%"/>
@@ -115,7 +106,7 @@
             </fo:table-body>
         </fo:table>
     </xsl:template>
-    <xsl:template name="inside">
+    <xsl:template name="idcard-inside">
         <fo:table table-layout="fixed" width="100%">
             <fo:table-column column-width="50%"/>
             <fo:table-column column-width="50%"/>

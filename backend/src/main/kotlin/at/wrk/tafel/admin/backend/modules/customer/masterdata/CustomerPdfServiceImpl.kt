@@ -206,7 +206,7 @@ fun main(args: Array<String>) {
     val xmlBytes = pdfService.generateXmlData(data)
     IOUtils.write(xmlBytes, FileOutputStream("D:\\test.xml"))
 
-    val pdfBytes = pdfService.generatePdf(xmlBytes, "/pdf-templates/idcard-document.xsl")
+    val pdfBytes = pdfService.generatePdf(xmlBytes, "/pdf-templates/masterdata-idcard-document.xsl")
     IOUtils.write(pdfBytes, FileOutputStream("D:\\test.pdf"))
 }
 // TODO remove only for development

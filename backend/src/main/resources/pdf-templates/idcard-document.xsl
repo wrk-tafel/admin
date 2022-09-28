@@ -12,7 +12,13 @@
             </fo:layout-master-set>
             <fo:page-sequence master-reference="simpleA4">
                 <fo:flow flow-name="xsl-region-body">
-                    <xsl:call-template name="idcard"/>
+                    <fo:block-container border="0.1mm dashed #000000" font-family="Helvetica" height="8cm"
+                                        page-break-after="always">
+                        <xsl:call-template name="idcard-outside"/>
+                    </fo:block-container>
+                    <fo:block-container border="0.1mm dashed #000000" font-family="Helvetica" height="8cm">
+                        <xsl:call-template name="idcard-inside"/>
+                    </fo:block-container>
                 </fo:flow>
             </fo:page-sequence>
         </fo:root>
