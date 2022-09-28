@@ -289,8 +289,7 @@
                     <fo:table-row>
                         <fo:table-cell>
                             <fo:block>
-                                <fo:inline font-weight="bold">Davon Kinder bis 3 Jahre:
-                                </fo:inline>
+                                <fo:inline font-weight="bold">--> davon Kinder bis 3 Jahre:</fo:inline>
                                 <fo:inline>
                                     <xsl:value-of select="concat(' ', ./countInfants)"/>
                                 </fo:inline>

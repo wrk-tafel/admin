@@ -9,8 +9,8 @@
                 <fo:table-row>
                     <fo:table-cell>
                         <fo:table table-layout="fixed" width="100%">
-                            <fo:table-column column-width="50%"/>
-                            <fo:table-column column-width="50%"/>
+                            <fo:table-column column-width="60%"/>
+                            <fo:table-column column-width="40%"/>
                             <fo:table-body>
                                 <fo:table-row>
                                     <fo:table-cell>
@@ -30,7 +30,7 @@
                                     <fo:table-cell>
                                         <fo:block margin-left="0.5cm" margin-top="0.25cm" margin-right="0.5cm"
                                                   font-size="10pt">
-                                            davon unter 3 Jahren:
+                                            --> davon unter 3 Jahren:
                                         </fo:block>
                                     </fo:table-cell>
                                     <fo:table-cell>
