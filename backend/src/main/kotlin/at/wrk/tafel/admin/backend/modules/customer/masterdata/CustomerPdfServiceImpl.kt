@@ -168,6 +168,23 @@ fun main(args: Array<String>) {
                 qrCodeContentType = MimeTypeUtils.IMAGE_PNG_VALUE,
                 qrCodeBytes = qrCodeBytes,
                 issuer = "8579 Stefan Bergmann"
+            ),
+            additionalPersons = listOf(
+                PdfAdditionalPersonData(
+                    lastname = "Muster",
+                    firstname = "1",
+                    birthDate = null
+                ),
+                PdfAdditionalPersonData(
+                    lastname = "Muster",
+                    firstname = "2",
+                    birthDate = null
+                ),
+                PdfAdditionalPersonData(
+                    lastname = "Muster",
+                    firstname = "3",
+                    birthDate = null
+                )
             )
         ),
         countInfants = 1,

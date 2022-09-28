@@ -217,62 +217,50 @@
                         </fo:block>
                     </fo:table-cell>
                 </fo:table-row>
-                <fo:table-row>
-                    <fo:table-cell>
-                        <fo:table table-layout="fixed" width="100%">
-                            <fo:table-column column-width="50%"/>
-                            <fo:table-column column-width="50%"/>
-                            <fo:table-body>
-                                <fo:table-row>
-                                    <fo:table-cell>
-                                        <fo:block margin-left="0.5cm" margin-top="0.25cm" margin-right="0.5cm">
-                                            <xsl:call-template name="field-with-label">
-                                                <xsl:with-param name="value" select="'TODO'"/>
-                                                <xsl:with-param name="label" select="'Nachname'"/>
-                                            </xsl:call-template>
-                                        </fo:block>
-                                    </fo:table-cell>
-                                    <fo:table-cell>
-                                        <fo:block margin-top="0.25cm" margin-right="0.5cm">
-                                            <xsl:call-template name="field-with-label">
-                                                <xsl:with-param name="value" select="'TODO'"/>
-                                                <xsl:with-param name="label" select="'Vorname'"/>
-                                            </xsl:call-template>
-                                        </fo:block>
-                                    </fo:table-cell>
-                                </fo:table-row>
-                                <fo:table-row>
-                                    <fo:table-cell>
-                                        <fo:block margin-left="0.5cm" margin-top="1cm" margin-right="0.5cm"
-                                                  font-size="10pt">
-                                            Anzahl Personen im gemeinsamen Haushalt:
-                                        </fo:block>
-                                    </fo:table-cell>
-                                    <fo:table-cell>
-                                        <fo:block margin-left="0.25cm" margin-top="1cm" margin-right="0.5cm"
-                                                  font-size="10pt">
-                                            <xsl:value-of select="countPersons"/>
-                                        </fo:block>
-                                    </fo:table-cell>
-                                </fo:table-row>
-                                <fo:table-row>
-                                    <fo:table-cell>
-                                        <fo:block margin-left="0.5cm" margin-top="0.5cm" margin-right="0.5cm"
-                                                  font-size="10pt">
-                                            davon unter 3 Jahren:
-                                        </fo:block>
-                                    </fo:table-cell>
-                                    <fo:table-cell>
-                                        <fo:block margin-left="0.25cm" margin-top="0.5cm" margin-right="0.5cm"
-                                                  font-size="10pt">
-                                            <xsl:value-of select="countInfants"/>
-                                        </fo:block>
-                                    </fo:table-cell>
-                                </fo:table-row>
-                            </fo:table-body>
-                        </fo:table>
-                    </fo:table-cell>
-                </fo:table-row>
+                <xsl:choose>
+                    <xsl:when test="customer/additionalPersons != ''">
+                        <xsl:for-each select="customer/additionalPersons/additionalPersons">
+                            <fo:table-row>
+                                <fo:table-cell>
+                                    <fo:table table-layout="fixed" width="100%">
+                                        <fo:table-column column-width="50%"/>
+                                        <fo:table-column column-width="50%"/>
+                                        <fo:table-body>
+                                            <fo:table-row>
+                                                <fo:table-cell>
+                                                    <fo:block margin-left="0.5cm" margin-top="0.25cm"
+                                                              margin-right="0.5cm">
+                                                        <xsl:call-template name="field-with-label">
+                                                            <xsl:with-param name="value" select="./lastname"/>
+                                                            <xsl:with-param name="label" select="'Nachname'"/>
+                                                        </xsl:call-template>
+                                                    </fo:block>
+                                                </fo:table-cell>
+                                                <fo:table-cell>
+                                                    <fo:block margin-top="0.25cm" margin-right="0.5cm">
+                                                        <xsl:call-template name="field-with-label">
+                                                            <xsl:with-param name="value" select="./firstname"/>
+                                                            <xsl:with-param name="label" select="'Vorname'"/>
+                                                        </xsl:call-template>
+                                                    </fo:block>
+                                                </fo:table-cell>
+                                            </fo:table-row>
+                                        </fo:table-body>
+                                    </fo:table>
+                                </fo:table-cell>
+                            </fo:table-row>
+                        </xsl:for-each>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <fo:table-row>
+                            <fo:table-cell>
+                                <fo:block margin-left="0.5cm" margin-top="0.5cm" font-size="10pt">
+                                    Keine
+                                </fo:block>
+                            </fo:table-cell>
+                        </fo:table-row>
+                    </xsl:otherwise>
+                </xsl:choose>
             </fo:table-body>
         </fo:table>
     </xsl:template>
