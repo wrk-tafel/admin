@@ -165,7 +165,7 @@
                                         </fo:table-cell>
                                         <fo:table-cell>
                                             <fo:block>
-                                                <xsl:value-of select="$data/incomeDueDate"/>
+                                                <xsl:value-of select="$data/validUntilDate"/>
                                             </fo:block>
                                         </fo:table-cell>
                                     </fo:table-row>
@@ -302,7 +302,7 @@
         <fo:block margin-top="2cm">
             <fo:inline font-weight="bold">Datum:</fo:inline>
             <fo:inline>
-                <xsl:value-of select="concat(' ', ./currentDate)"/>
+                <xsl:value-of select="concat(' ', ./issuedAtDate)"/>
             </fo:inline>
         </fo:block>
     </xsl:template>

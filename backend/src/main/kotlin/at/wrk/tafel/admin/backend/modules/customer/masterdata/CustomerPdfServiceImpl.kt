@@ -64,7 +64,7 @@ class CustomerPdfServiceImpl : CustomerPdfService {
         return PdfData(
             logoContentType = MimeTypeUtils.IMAGE_PNG_VALUE,
             logoBytes = logoBytes,
-            currentDate = LocalDate.now().format(DATE_FORMATTER),
+            issuedAtDate = LocalDate.now().format(DATE_FORMATTER),
             customer = PdfCustomerData(
                 id = customer.customerId!!,
                 lastname = customer.lastname!!,
@@ -85,7 +85,7 @@ class CustomerPdfServiceImpl : CustomerPdfService {
                     ?.takeIf { it.compareTo(BigDecimal.ZERO) != 0 }
                     ?.let { "${it.setScale(0)} €" }
                     ?: "-",
-                incomeDueDate = customer.incomeDue?.format(DATE_FORMATTER) ?: "unbefristet",
+                validUntilDate = customer.incomeDue?.format(DATE_FORMATTER) ?: "unbefristet",
                 additionalPersons = customer.additionalPersons.map {
                     PdfAdditionalPersonData(
                         lastname = it.lastname!!,
@@ -160,6 +160,7 @@ fun main(args: Array<String>) {
             lastname = "Mustermann",
             firstname = "Max",
             birthDate = LocalDate.now().toString(),
+            validUntilDate = LocalDate.now().toString(),
             address = PdfAddressData(
                 street = "Karl-Schäfer-Straße",
                 houseNumber = "8",
@@ -194,7 +195,7 @@ fun main(args: Array<String>) {
         ),
         countInfants = 1,
         countPersons = 2,
-        currentDate = LocalDate.now().toString(),
+        issuedAtDate = LocalDate.now().toString(),
         logoBytes = logoBytes,
         logoContentType = MimeTypeUtils.IMAGE_PNG_VALUE
     )
@@ -206,7 +207,7 @@ fun main(args: Array<String>) {
     val xmlBytes = pdfService.generateXmlData(data)
     IOUtils.write(xmlBytes, FileOutputStream("D:\\test.xml"))
 
-    val pdfBytes = pdfService.generatePdf(xmlBytes, "/pdf-templates/masterdata-document.xsl")
+    val pdfBytes = pdfService.generatePdf(xmlBytes, "/pdf-templates/idcard-document.xsl")
     IOUtils.write(pdfBytes, FileOutputStream("D:\\test.pdf"))
 }
 // TODO remove only for development

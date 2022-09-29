@@ -8,7 +8,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
 data class PdfData(
     val logoContentType: String,
     val logoBytes: ByteArray,
-    val currentDate: String,
+    val issuedAtDate: String,
     val customer: PdfCustomerData,
     val countPersons: Int,
     val countInfants: Int
@@ -21,7 +21,7 @@ data class PdfData(
 
         if (logoContentType != other.logoContentType) return false
         if (!logoBytes.contentEquals(other.logoBytes)) return false
-        if (currentDate != other.currentDate) return false
+        if (issuedAtDate != other.issuedAtDate) return false
         if (customer != other.customer) return false
         if (countPersons != other.countPersons) return false
         if (countInfants != other.countInfants) return false
@@ -32,7 +32,7 @@ data class PdfData(
     override fun hashCode(): Int {
         var result = logoContentType.hashCode()
         result = 31 * result + logoBytes.contentHashCode()
-        result = 31 * result + currentDate.hashCode()
+        result = 31 * result + issuedAtDate.hashCode()
         result = 31 * result + customer.hashCode()
         result = 31 * result + countPersons
         result = 31 * result + countInfants
@@ -51,7 +51,7 @@ data class PdfCustomerData(
     val address: PdfAddressData,
     val employer: String,
     val income: String? = null,
-    val incomeDueDate: String? = null,
+    val validUntilDate: String? = null,
     val additionalPersons: List<PdfAdditionalPersonData> = emptyList(),
     val idCard: PdfIdCardData? = null
 )
