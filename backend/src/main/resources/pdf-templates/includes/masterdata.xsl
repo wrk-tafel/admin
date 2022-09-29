@@ -200,7 +200,7 @@
                                     <fo:table table-layout="fixed" width="100%" border-collapse="separate"
                                               border-spacing="0pt 2pt">
                                         <fo:table-column column-width="100%"/>
-                                        <fo:table-body>
+                                        <fo:table-body end-indent="-0.1in">
                                             <xsl:for-each select="$data/additionalPersons">
                                                 <fo:table-row>
                                                     <fo:table-cell>
