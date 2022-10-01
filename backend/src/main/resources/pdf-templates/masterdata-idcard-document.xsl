@@ -6,16 +6,15 @@
     <xsl:template match="data">
         <fo:root xmlns:fo="http://www.w3.org/1999/XSL/Format">
             <fo:layout-master-set>
-                <fo:simple-page-master master-name="simpleA4" page-height="29.7cm" page-width="21cm"
-                                       margin-top="1cm" margin-bottom="1cm" margin-left="1cm" margin-right="1cm">
+                <fo:simple-page-master master-name="simpleA4" page-height="29.7cm" page-width="21cm">
                     <fo:region-body/>
-                    <fo:region-after extent="9cm"/>
+                    <fo:region-after extent="8cm"/>
                 </fo:simple-page-master>
             </fo:layout-master-set>
             <!-- First page - masterdata and idcard outside -->
             <fo:page-sequence master-reference="simpleA4">
                 <fo:static-content flow-name="xsl-region-after">
-                    <fo:block-container border="0.1mm dashed #000000" font-family="Helvetica" height="8cm">
+                    <fo:block-container border-top="0.1mm dashed #000000" font-family="Helvetica" height="8cm">
                         <xsl:call-template name="idcard-outside"/>
                     </fo:block-container>
                 </fo:static-content>
@@ -27,7 +26,7 @@
             <!-- Second page - only idcard inside -->
             <fo:page-sequence master-reference="simpleA4">
                 <fo:static-content flow-name="xsl-region-after">
-                    <fo:block-container border="0.1mm dashed #000000" font-family="Helvetica" height="8cm">
+                    <fo:block-container border-top="0.1mm dashed #000000" font-family="Helvetica" height="8cm">
                         <xsl:call-template name="idcard-inside"/>
                     </fo:block-container>
                 </fo:static-content>
