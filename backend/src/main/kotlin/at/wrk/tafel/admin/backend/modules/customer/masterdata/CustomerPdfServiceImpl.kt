@@ -159,8 +159,8 @@ fun main(args: Array<String>) {
             id = 123,
             lastname = "Mustermann",
             firstname = "Max",
-            birthDate = LocalDate.now().toString(),
-            validUntilDate = LocalDate.now().toString(),
+            birthDate = LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")),
+            validUntilDate = LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")),
             address = PdfAddressData(
                 street = "Karl-Schäfer-Straße",
                 houseNumber = "8",
@@ -179,23 +179,26 @@ fun main(args: Array<String>) {
                 PdfAdditionalPersonData(
                     lastname = "Mustermann",
                     firstname = "Eva-Maria Magdalena",
-                    birthDate = null
+                    birthDate = LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")),
+                    income = "1000 €"
                 ),
                 PdfAdditionalPersonData(
                     lastname = "Mustermann",
                     firstname = "Eva-Maria Magdalena",
-                    birthDate = null
+                    birthDate = LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")),
+                    income = "1000 €"
                 ),
                 PdfAdditionalPersonData(
                     lastname = "Mustermann",
                     firstname = "Eva-Maria Magdalena",
-                    birthDate = null
+                    birthDate = LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")),
+                    income = "1000 €"
                 )
             )
         ),
         countInfants = 1,
         countPersons = 2,
-        issuedAtDate = LocalDate.now().toString(),
+        issuedAtDate = LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")),
         logoBytes = logoBytes,
         logoContentType = MimeTypeUtils.IMAGE_PNG_VALUE
     )

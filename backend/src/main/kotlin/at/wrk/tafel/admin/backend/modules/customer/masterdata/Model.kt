@@ -70,7 +70,7 @@ data class PdfAddressData(
 data class PdfAdditionalPersonData(
     val lastname: String,
     val firstname: String,
-    val birthDate: String? = null,
+    val birthDate: String,
     val income: String? = null
 )
 
