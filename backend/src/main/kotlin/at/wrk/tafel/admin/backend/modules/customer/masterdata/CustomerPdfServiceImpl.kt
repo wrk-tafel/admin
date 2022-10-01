@@ -177,18 +177,18 @@ fun main(args: Array<String>) {
             ),
             additionalPersons = listOf(
                 PdfAdditionalPersonData(
-                    lastname = "Muster",
-                    firstname = "1",
+                    lastname = "Mustermann",
+                    firstname = "Eva-Maria Magdalena",
                     birthDate = null
                 ),
                 PdfAdditionalPersonData(
-                    lastname = "Muster",
-                    firstname = "2",
+                    lastname = "Mustermann",
+                    firstname = "Eva-Maria Magdalena",
                     birthDate = null
                 ),
                 PdfAdditionalPersonData(
-                    lastname = "Muster",
-                    firstname = "3",
+                    lastname = "Mustermann",
+                    firstname = "Eva-Maria Magdalena",
                     birthDate = null
                 )
             )
