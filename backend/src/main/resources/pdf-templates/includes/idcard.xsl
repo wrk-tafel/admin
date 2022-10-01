@@ -261,7 +261,7 @@
                 <fo:table-row>
                     <fo:table-cell>
                         <fo:block margin-left="0.5cm" margin-top="0.5cm" font-weight="bold" font-size="10pt">
-                            Weitere Personen
+                            weitere Personen
                         </fo:block>
                     </fo:table-cell>
                 </fo:table-row>

@@ -197,7 +197,7 @@
                         <fo:block border-bottom="0.2mm solid #000000" font-size="12pt" font-weight="bold"
                                   text-align="center"
                                   margin-top="1mm" margin-bottom="1mm">
-                            Weitere Personen
+                            weitere Personen
                         </fo:block>
                     </fo:table-cell>
                 </fo:table-row>
