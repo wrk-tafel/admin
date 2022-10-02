@@ -2,7 +2,7 @@
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:fo="http://www.w3.org/1999/XSL/Format"
                 version="1.1" exclude-result-prefixes="fo">
     <xsl:template name="masterdata">
-        <fo:block font-family="Helvetica">
+        <fo:block font-family="Helvetica" start-indent="0pt" end-indent="0pt">
             <fo:block space-after="1cm">
                 <xsl:call-template name="masterdata-header"/>
             </fo:block>

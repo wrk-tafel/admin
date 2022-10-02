@@ -19,8 +19,9 @@
                     </fo:block-container>
                 </fo:static-content>
                 <fo:flow flow-name="xsl-region-body">
-                    <xsl:call-template name="masterdata"/>
-                    <fo:block border-top="0.5mm solid #000000"/>
+                    <fo:block-container margin-top="1cm" margin-left="1cm" margin-right="1cm">
+                        <xsl:call-template name="masterdata"/>
+                    </fo:block-container>
                 </fo:flow>
             </fo:page-sequence>
             <!-- Second page - only idcard inside -->
