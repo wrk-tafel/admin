@@ -10,6 +10,7 @@ import org.apache.pdfbox.rendering.PDFRenderer
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.io.File
 import java.math.BigDecimal
 import java.time.LocalDate
 import javax.imageio.ImageIO
@@ -18,6 +19,11 @@ class CustomerPdfServiceImplTest {
 
     private lateinit var service: CustomerPdfServiceImpl
     private lateinit var testCustomer: CustomerEntity
+
+    private val comparisonResultDirectory = File(
+        System.getProperty("user.dir"),
+        "target/custom-test-results/pdf-comparison-results"
+    )
 
     @BeforeEach
     fun beforeEach() {
@@ -72,6 +78,7 @@ class CustomerPdfServiceImplTest {
         val comparisonResult = ImageComparison(expectedImage, actualImage).compareImages()
         assertThat(comparisonResult.imageComparisonState).isEqualTo(ImageComparisonState.MATCH)
 
+        comparisonResult.writeResultTo(File(comparisonResultDirectory, "masterdata.png"))
         document.close()
     }
 
@@ -98,6 +105,8 @@ class CustomerPdfServiceImplTest {
         val comparisonSecondPageResult = ImageComparison(expectedSecondPageImage, actualSecondPageImage).compareImages()
         assertThat(comparisonSecondPageResult.imageComparisonState).isEqualTo(ImageComparisonState.MATCH)
 
+        comparisonFirstPageResult.writeResultTo(File(comparisonResultDirectory, "idcard-page0.png"))
+        comparisonSecondPageResult.writeResultTo(File(comparisonResultDirectory, "idcard-page1.png"))
         document.close()
     }
 
@@ -124,6 +133,8 @@ class CustomerPdfServiceImplTest {
         val comparisonSecondPageResult = ImageComparison(expectedSecondPageImage, actualSecondPageImage).compareImages()
         assertThat(comparisonSecondPageResult.imageComparisonState).isEqualTo(ImageComparisonState.MATCH)
 
+        comparisonFirstPageResult.writeResultTo(File(comparisonResultDirectory, "combined-page0.png"))
+        comparisonSecondPageResult.writeResultTo(File(comparisonResultDirectory, "combined-page1.png"))
         document.close()
     }
 
