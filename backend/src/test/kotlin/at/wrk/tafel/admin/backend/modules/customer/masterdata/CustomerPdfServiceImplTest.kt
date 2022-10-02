@@ -8,11 +8,15 @@ import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.rendering.ImageType
 import org.apache.pdfbox.rendering.PDFRenderer
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.io.File
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.LocalTime
+import java.time.ZoneId
+import java.time.ZonedDateTime
 import javax.imageio.ImageIO
 
 class CustomerPdfServiceImplTest {
@@ -20,14 +24,30 @@ class CustomerPdfServiceImplTest {
     private lateinit var service: CustomerPdfServiceImpl
     private lateinit var testCustomer: CustomerEntity
 
-    private val comparisonResultDirectory = File(
-        System.getProperty("user.dir"),
-        "target/custom-test-results/pdf-comparison-results"
-    )
+    companion object {
+        private val comparisonResultDirectory = File(
+            System.getProperty("user.dir"),
+            "target/custom-test-results/pdf-comparison-results"
+        )
+
+        @JvmStatic
+        @BeforeAll
+        fun beforeAll() {
+            comparisonResultDirectory.mkdirs()
+        }
+
+    }
 
     @BeforeEach
     fun beforeEach() {
         testCustomer = CustomerEntity()
+        // TODO replace by issuedAt
+        testCustomer.createdAt =
+            ZonedDateTime.of(
+                LocalDate.of(2022, 10, 3),
+                LocalTime.of(10, 10),
+                ZoneId.systemDefault()
+            )
         testCustomer.customerId = 123
         testCustomer.lastname = "Mustermann"
         testCustomer.firstname = "Max"
@@ -76,13 +96,13 @@ class CustomerPdfServiceImplTest {
         ImageIO.write(expectedImage, "png", File(comparisonResultDirectory, "masterdata-expected.png"))
         val actualImage = pdfRenderer.renderImageWithDPI(0, 300f, ImageType.RGB)
         ImageIO.write(actualImage, "png", File(comparisonResultDirectory, "masterdata-actual.png"))
-        document.close()
 
         val comparisonResult = ImageComparison(expectedImage, actualImage).compareImages()
         comparisonResult.writeResultTo(File(comparisonResultDirectory, "masterdata-result.png"))
 
-
         assertThat(comparisonResult.imageComparisonState).isEqualTo(ImageComparisonState.MATCH)
+
+        document.close()
     }
 
     @Test
@@ -106,8 +126,6 @@ class CustomerPdfServiceImplTest {
         val actualSecondPageImage = pdfRenderer.renderImageWithDPI(1, 300f, ImageType.RGB)
         ImageIO.write(actualSecondPageImage, "png", File(comparisonResultDirectory, "idcard-page1-actual.png"))
 
-        document.close()
-
         val comparisonFirstPageResult = ImageComparison(expectedFirstPageImage, actualFirstPageImage).compareImages()
         comparisonFirstPageResult.writeResultTo(File(comparisonResultDirectory, "idcard-page0-result.png"))
         val comparisonSecondPageResult = ImageComparison(expectedSecondPageImage, actualSecondPageImage).compareImages()
@@ -115,6 +133,8 @@ class CustomerPdfServiceImplTest {
 
         assertThat(comparisonFirstPageResult.imageComparisonState).isEqualTo(ImageComparisonState.MATCH)
         assertThat(comparisonSecondPageResult.imageComparisonState).isEqualTo(ImageComparisonState.MATCH)
+
+        document.close()
     }
 
     @Test
@@ -138,8 +158,6 @@ class CustomerPdfServiceImplTest {
         val actualSecondPageImage = pdfRenderer.renderImageWithDPI(1, 300f, ImageType.RGB)
         ImageIO.write(actualSecondPageImage, "png", File(comparisonResultDirectory, "combined-page1-actual.png"))
 
-        document.close()
-
         val comparisonFirstPageResult = ImageComparison(expectedFirstPageImage, actualFirstPageImage).compareImages()
         comparisonFirstPageResult.writeResultTo(File(comparisonResultDirectory, "combined-page0-result.png"))
         val comparisonSecondPageResult = ImageComparison(expectedSecondPageImage, actualSecondPageImage).compareImages()
@@ -147,6 +165,8 @@ class CustomerPdfServiceImplTest {
 
         assertThat(comparisonFirstPageResult.imageComparisonState).isEqualTo(ImageComparisonState.MATCH)
         assertThat(comparisonSecondPageResult.imageComparisonState).isEqualTo(ImageComparisonState.MATCH)
+
+        document.close()
     }
 
 }

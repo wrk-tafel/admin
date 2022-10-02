@@ -60,7 +60,7 @@ class CustomerPdfServiceImpl : CustomerPdfService {
         return PdfData(
             logoContentType = MimeTypeUtils.IMAGE_PNG_VALUE,
             logoBytes = logoBytes,
-            issuedAtDate = LocalDate.now().format(DATE_FORMATTER),
+            issuedAtDate = customer.createdAt!!.format(DATE_FORMATTER),
             customer = PdfCustomerData(
                 id = customer.customerId!!,
                 lastname = customer.lastname!!,
