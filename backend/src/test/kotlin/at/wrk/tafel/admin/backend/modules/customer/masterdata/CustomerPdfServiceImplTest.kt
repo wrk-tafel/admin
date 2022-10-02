@@ -27,8 +27,6 @@ class CustomerPdfServiceImplTest {
 
     @BeforeEach
     fun beforeEach() {
-        println("Writing pdf comparison results to " + comparisonResultDirectory.absolutePath)
-
         testCustomer = CustomerEntity()
         testCustomer.customerId = 123
         testCustomer.lastname = "Mustermann"
