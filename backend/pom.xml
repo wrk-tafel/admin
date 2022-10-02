@@ -32,6 +32,8 @@
         <archunit.version>0.23.1</archunit.version>
         <mockk.version>1.12.8</mockk.version>
         <testcontainers.version>1.17.3</testcontainers.version>
+        <apache.pdfbox.version>2.0.27</apache.pdfbox.version>
+        <image.comparison.version>4.4.0</image.comparison.version>
     </properties>
 
     <dependencyManagement>
@@ -204,6 +206,18 @@
             <groupId>org.testcontainers</groupId>
             <artifactId>postgresql</artifactId>
             <version>${testcontainers.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>pdfbox</artifactId>
+            <version>${apache.pdfbox.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.romankh3</groupId>
+            <artifactId>image-comparison</artifactId>
+            <version>${image.comparison.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
