@@ -109,9 +109,9 @@ class CustomerPdfServiceImplTest {
         document.close()
 
         val comparisonFirstPageResult = ImageComparison(expectedFirstPageImage, actualFirstPageImage).compareImages()
-        comparisonFirstPageResult.writeResultTo(File(comparisonResultDirectory, "idcard-page0.png"))
+        comparisonFirstPageResult.writeResultTo(File(comparisonResultDirectory, "idcard-page0-result.png"))
         val comparisonSecondPageResult = ImageComparison(expectedSecondPageImage, actualSecondPageImage).compareImages()
-        comparisonSecondPageResult.writeResultTo(File(comparisonResultDirectory, "idcard-page1.png"))
+        comparisonSecondPageResult.writeResultTo(File(comparisonResultDirectory, "idcard-page1-result.png"))
 
         assertThat(comparisonFirstPageResult.imageComparisonState).isEqualTo(ImageComparisonState.MATCH)
         assertThat(comparisonSecondPageResult.imageComparisonState).isEqualTo(ImageComparisonState.MATCH)
@@ -141,9 +141,9 @@ class CustomerPdfServiceImplTest {
         document.close()
 
         val comparisonFirstPageResult = ImageComparison(expectedFirstPageImage, actualFirstPageImage).compareImages()
-        comparisonFirstPageResult.writeResultTo(File(comparisonResultDirectory, "combined-page0.png"))
+        comparisonFirstPageResult.writeResultTo(File(comparisonResultDirectory, "combined-page0-result.png"))
         val comparisonSecondPageResult = ImageComparison(expectedSecondPageImage, actualSecondPageImage).compareImages()
-        comparisonSecondPageResult.writeResultTo(File(comparisonResultDirectory, "combined-page1.png"))
+        comparisonSecondPageResult.writeResultTo(File(comparisonResultDirectory, "combined-page1-result.png"))
 
         assertThat(comparisonFirstPageResult.imageComparisonState).isEqualTo(ImageComparisonState.MATCH)
         assertThat(comparisonSecondPageResult.imageComparisonState).isEqualTo(ImageComparisonState.MATCH)
