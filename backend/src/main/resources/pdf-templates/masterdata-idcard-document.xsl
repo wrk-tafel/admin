@@ -8,7 +8,7 @@
             <fo:layout-master-set>
                 <fo:simple-page-master master-name="simpleA4" page-height="29.7cm" page-width="21cm">
                     <fo:region-body/>
-                    <fo:region-after extent="8cm"/>
+                    <fo:region-after extent="8.01cm"/>
                 </fo:simple-page-master>
             </fo:layout-master-set>
             <!-- First page - masterdata and idcard outside -->
