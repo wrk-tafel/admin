@@ -14,9 +14,9 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <java.version>17</java.version>
-        <kotlin.version>1.7.0</kotlin.version>
+        <kotlin.version>1.7.20</kotlin.version>
 
-        <spring.boot.version>2.7.3</spring.boot.version>
+        <spring.boot.version>2.7.4</spring.boot.version>
         <jjwt.version>0.11.5</jjwt.version>
         <postgresql.driver.version>42.5.0</postgresql.driver.version>
         <bouncycastle.version>1.70</bouncycastle.version>
@@ -30,8 +30,8 @@
 
         <!-- Test dependency versions -->
         <archunit.version>0.23.1</archunit.version>
-        <mockk.version>1.12.8</mockk.version>
-        <testcontainers.version>1.17.3</testcontainers.version>
+        <mockk.version>1.13.2</mockk.version>
+        <testcontainers.version>1.17.4</testcontainers.version>
         <apache.pdfbox.version>2.0.27</apache.pdfbox.version>
         <image.comparison.version>4.4.0</image.comparison.version>
     </properties>
