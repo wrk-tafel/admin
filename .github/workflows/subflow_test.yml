@@ -31,9 +31,16 @@ jobs:
         with:
           name: backend-codecoverage-reports
           path: |
-                ./backend/**/target/site/jacoco/
-                ./backend/modules/**/target/site/jacoco/
+            ./backend/**/target/site/jacoco/
+            ./backend/modules/**/target/site/jacoco/
           if-no-files-found: error
+          retention-days: 14
+      - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: backend-custom-test-results
+          path: ./backend/**/target/custom-test-results/
+          if-no-files-found: ignore
           retention-days: 14
       - uses: actions/upload-artifact@v3
         if: always()
