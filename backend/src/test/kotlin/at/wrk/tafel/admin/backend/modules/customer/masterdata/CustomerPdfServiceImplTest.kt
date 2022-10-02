@@ -63,7 +63,7 @@ class CustomerPdfServiceImplTest {
 
         val document: PDDocument = PDDocument.load(pdfBytes)
         val pdfRenderer = PDFRenderer(document)
-        val expectedImage = ImageIO.read(javaClass.getResourceAsStream("/pdf-references/masterdata.png"))
+        val expectedImage = ImageIO.read(javaClass.getResourceAsStream("/pdf/master-references/masterdata.png"))
         val actualImage = pdfRenderer.renderImageWithDPI(0, 300f, ImageType.RGB)
 
         assertThat(document.numberOfPages).isEqualTo(1)
@@ -80,10 +80,10 @@ class CustomerPdfServiceImplTest {
         val document: PDDocument = PDDocument.load(pdfBytes)
         val pdfRenderer = PDFRenderer(document)
 
-        val expectedFirstPageImage = ImageIO.read(javaClass.getResourceAsStream("/pdf-references/idcard-page0.png"))
+        val expectedFirstPageImage = ImageIO.read(javaClass.getResourceAsStream("/pdf/master-references/idcard-page0.png"))
         val actualFirstPageImage = pdfRenderer.renderImageWithDPI(0, 300f, ImageType.RGB)
 
-        val expectedSecondPageImage = ImageIO.read(javaClass.getResourceAsStream("/pdf-references/idcard-page1.png"))
+        val expectedSecondPageImage = ImageIO.read(javaClass.getResourceAsStream("/pdf/master-references/idcard-page1.png"))
         val actualSecondPageImage = pdfRenderer.renderImageWithDPI(1, 300f, ImageType.RGB)
 
         assertThat(document.numberOfPages).isEqualTo(2)
@@ -104,11 +104,11 @@ class CustomerPdfServiceImplTest {
         val document: PDDocument = PDDocument.load(pdfBytes)
         val pdfRenderer = PDFRenderer(document)
 
-        val expectedFirstPageImage = ImageIO.read(javaClass.getResourceAsStream("/pdf-references/combined-page0.png"))
+        val expectedFirstPageImage = ImageIO.read(javaClass.getResourceAsStream("/pdf/master-references/combined-page0.png"))
         val actualFirstPageImage = pdfRenderer.renderImageWithDPI(0, 300f, ImageType.RGB)
 
 
-        val expectedSecondPageImage = ImageIO.read(javaClass.getResourceAsStream("/pdf-references/combined-page1.png"))
+        val expectedSecondPageImage = ImageIO.read(javaClass.getResourceAsStream("/pdf/master-references/combined-page1.png"))
         val actualSecondPageImage = pdfRenderer.renderImageWithDPI(1, 300f, ImageType.RGB)
 
         assertThat(document.numberOfPages).isEqualTo(2)
