@@ -44,6 +44,7 @@ class CustomerPdfServiceImplTest {
                Therefore, the image comparison fails.
                So this is a workaround currently while there are the following possible improvements:
                - Bigger tolerance level in the ImageComparison
+               --> setAllowingPercentOfDifferentPixels(40.0) but allowing 40% makes it also kind of obsolete
                - Installing correct fonts in the linux pipeline (but also a different font in production)
                - Find an OS-independent font
              */
@@ -189,4 +190,15 @@ class CustomerPdfServiceImplTest {
         document.close()
     }
 
+    @Test
+    fun test() {
+        val expected =
+            ImageIO.read(javaClass.getResourceAsStream("/pdf/master-references/windows/combined-page0.png"))
+        val actual =
+            ImageIO.read(javaClass.getResourceAsStream("/pdf/master-references/linux/combined-page0.png"))
+
+        val comparisonResult =
+            ImageComparison(expected, actual).setAllowingPercentOfDifferentPixels(40.0).compareImages()
+        println(comparisonResult)
+    }
 }

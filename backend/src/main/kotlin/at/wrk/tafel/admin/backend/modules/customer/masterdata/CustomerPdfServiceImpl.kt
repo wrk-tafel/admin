@@ -14,7 +14,6 @@ import org.springframework.util.MimeTypeUtils
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
-import java.io.FileOutputStream
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.Period
@@ -50,7 +49,7 @@ class CustomerPdfServiceImpl : CustomerPdfService {
         return generatePdf(xmlBytes, "/pdf-templates/masterdata-idcard-document.xsl")
     }
 
-    fun createCustomerPdfData(customer: CustomerEntity): PdfData {
+    private fun createCustomerPdfData(customer: CustomerEntity): PdfData {
         val countPersons = 1 + customer.additionalPersons.size
         val countInfants =
             customer.additionalPersons.count { Period.between(it.birthDate, LocalDate.now()).years <= 3 }
@@ -104,7 +103,7 @@ class CustomerPdfServiceImpl : CustomerPdfService {
         )
     }
 
-    fun generateXmlData(data: PdfData): ByteArray {
+    private fun generateXmlData(data: PdfData): ByteArray {
         val xmlOutStream = ByteArrayOutputStream()
         xmlOutStream.use {
             xmlMapper.writeValue(it, data)
@@ -112,8 +111,7 @@ class CustomerPdfServiceImpl : CustomerPdfService {
         return xmlOutStream.toByteArray()
     }
 
-    // TODO set to private after development
-    fun generatePdf(xmlBytes: ByteArray, stylesheetPath: String): ByteArray {
+    private fun generatePdf(xmlBytes: ByteArray, stylesheetPath: String): ByteArray {
         ByteArrayInputStream(xmlBytes).use { xmlStream ->
             val xmlSource = StreamSource(xmlStream)
 
@@ -143,78 +141,3 @@ class CustomerPdfServiceImpl : CustomerPdfService {
     }
 
 }
-
-// TODO remove only for development
-fun main(args: Array<String>) {
-    val logoBytes =
-        IOUtils.toByteArray(CustomerPdfServiceImpl::class.java.getResourceAsStream("/pdf-templates/img/toet-logo.png"))
-    val qrCodeBytes = QRCode("123").render().getBytes()
-
-    val data = PdfData(
-        customer = PdfCustomerData(
-            id = 123,
-            lastname = "Mustermann",
-            firstname = "Max",
-            birthDate = LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")),
-            validUntilDate = LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")),
-            address = PdfAddressData(
-                street = "Karl-Schäfer-Straße",
-                houseNumber = "8",
-                stairway = "1",
-                door = "3F",
-                postalCode = 1020,
-                city = "Wien"
-            ),
-            employer = "Employer",
-            idCard = PdfIdCardData(
-                qrCodeContentType = MimeTypeUtils.IMAGE_PNG_VALUE,
-                qrCodeBytes = qrCodeBytes,
-                issuer = "8579 Stefan Bergmann"
-            ),
-            additionalPersons = listOf(
-                PdfAdditionalPersonData(
-                    lastname = "Mustermann",
-                    firstname = "Eva-Maria Magdalena",
-                    birthDate = LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")),
-                    income = "1000 €"
-                ),
-                PdfAdditionalPersonData(
-                    lastname = "Mustermann",
-                    firstname = "Eva-Maria Magdalena",
-                    birthDate = LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")),
-                    income = "1000 €"
-                ),
-                PdfAdditionalPersonData(
-                    lastname = "Mustermann",
-                    firstname = "Eva-Maria Magdalena",
-                    birthDate = LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")),
-                    income = "1000 €"
-                )
-            )
-        ),
-        countInfants = 1,
-        countPersons = 2,
-        issuedAtDate = LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")),
-        logoBytes = logoBytes,
-        logoContentType = MimeTypeUtils.IMAGE_PNG_VALUE
-    )
-
-    // IOUtils.write(qrCodeBytes, FileOutputStream("D:\\test_code.png"))
-
-    val pdfService = CustomerPdfServiceImpl()
-
-    val xmlBytes = pdfService.generateXmlData(data)
-    IOUtils.write(xmlBytes, FileOutputStream("D:\\test.xml"))
-
-    /*
-    val pdfBytes = pdfService.generatePdf(xmlBytes, "/pdf-templates/masterdata-document.xsl")
-    IOUtils.write(pdfBytes, FileOutputStream("D:\\test.pdf"))
-
-    val pdfBytes2 = pdfService.generatePdf(xmlBytes, "/pdf-templates/idcard-document.xsl")
-    IOUtils.write(pdfBytes2, FileOutputStream("D:\\test2.pdf"))
-     */
-
-    val pdfBytes3 = pdfService.generatePdf(xmlBytes, "/pdf-templates/masterdata-idcard-document.xsl")
-    IOUtils.write(pdfBytes3, FileOutputStream("D:\\test3.pdf"))
-}
-// TODO remove only for development
