@@ -12,6 +12,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.testcontainers.shaded.org.apache.commons.lang3.SystemUtils
 import java.io.File
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -31,12 +32,27 @@ class CustomerPdfServiceImplTest {
             "target/custom-test-results/customerpdf-comparison-results"
         )
 
+        private var masterReferencesPath = "/pdf/master-references/"
+
         @JvmStatic
         @BeforeAll
         fun beforeAll() {
             comparisonResultDirectory.mkdirs()
-        }
 
+            // TODO improve pdfbox rendering to be system-independent
+            /* pdfbox currently uses a different font on linux to render the pdf-pages to images.
+               Therefore, the image comparison fails.
+               So this is a workaround currently while there are the following possible improvements:
+               - Bigger tolerance level in the ImageComparison
+               - Installing correct fonts in the linux pipeline (but also a different font in production)
+               - Find an OS-independent font
+             */
+            if (SystemUtils.IS_OS_WINDOWS) {
+                masterReferencesPath += "windows"
+            } else if (SystemUtils.IS_OS_LINUX) {
+                masterReferencesPath += "linux"
+            }
+        }
     }
 
     @BeforeEach
@@ -94,7 +110,7 @@ class CustomerPdfServiceImplTest {
 
         assertThat(document.numberOfPages).isEqualTo(1)
 
-        val expectedImage = ImageIO.read(javaClass.getResourceAsStream("/pdf/master-references/masterdata.png"))
+        val expectedImage = ImageIO.read(javaClass.getResourceAsStream("$masterReferencesPath/masterdata.png"))
         ImageIO.write(expectedImage, "png", File(comparisonResultDirectory, "masterdata-expected.png"))
         val actualImage = pdfRenderer.renderImageWithDPI(0, 300f, ImageType.RGB)
         ImageIO.write(actualImage, "png", File(comparisonResultDirectory, "masterdata-actual.png"))
@@ -118,13 +134,13 @@ class CustomerPdfServiceImplTest {
         assertThat(document.numberOfPages).isEqualTo(2)
 
         val expectedFirstPageImage =
-            ImageIO.read(javaClass.getResourceAsStream("/pdf/master-references/idcard-page0.png"))
+            ImageIO.read(javaClass.getResourceAsStream("$masterReferencesPath/idcard-page0.png"))
         ImageIO.write(expectedFirstPageImage, "png", File(comparisonResultDirectory, "idcard-page0-expected.png"))
         val actualFirstPageImage = pdfRenderer.renderImageWithDPI(0, 300f, ImageType.RGB)
         ImageIO.write(actualFirstPageImage, "png", File(comparisonResultDirectory, "idcard-page0-actual.png"))
 
         val expectedSecondPageImage =
-            ImageIO.read(javaClass.getResourceAsStream("/pdf/master-references/idcard-page1.png"))
+            ImageIO.read(javaClass.getResourceAsStream("$masterReferencesPath/idcard-page1.png"))
         ImageIO.write(expectedSecondPageImage, "png", File(comparisonResultDirectory, "idcard-page1-expected.png"))
         val actualSecondPageImage = pdfRenderer.renderImageWithDPI(1, 300f, ImageType.RGB)
         ImageIO.write(actualSecondPageImage, "png", File(comparisonResultDirectory, "idcard-page1-actual.png"))
@@ -151,13 +167,13 @@ class CustomerPdfServiceImplTest {
         assertThat(document.numberOfPages).isEqualTo(2)
 
         val expectedFirstPageImage =
-            ImageIO.read(javaClass.getResourceAsStream("/pdf/master-references/combined-page0.png"))
+            ImageIO.read(javaClass.getResourceAsStream("$masterReferencesPath/combined-page0.png"))
         ImageIO.write(expectedFirstPageImage, "png", File(comparisonResultDirectory, "combined-page0-expected.png"))
         val actualFirstPageImage = pdfRenderer.renderImageWithDPI(0, 300f, ImageType.RGB)
         ImageIO.write(actualFirstPageImage, "png", File(comparisonResultDirectory, "combined-page0-actual.png"))
 
         val expectedSecondPageImage =
-            ImageIO.read(javaClass.getResourceAsStream("/pdf/master-references/combined-page1.png"))
+            ImageIO.read(javaClass.getResourceAsStream("$masterReferencesPath/combined-page1.png"))
         ImageIO.write(expectedSecondPageImage, "png", File(comparisonResultDirectory, "combined-page1-expected.png"))
         val actualSecondPageImage = pdfRenderer.renderImageWithDPI(1, 300f, ImageType.RGB)
         ImageIO.write(actualSecondPageImage, "png", File(comparisonResultDirectory, "combined-page1-actual.png"))
