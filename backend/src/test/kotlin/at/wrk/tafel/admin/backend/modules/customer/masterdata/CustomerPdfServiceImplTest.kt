@@ -28,7 +28,7 @@ class CustomerPdfServiceImplTest {
     companion object {
         private val comparisonResultDirectory = File(
             System.getProperty("user.dir"),
-            "target/custom-test-results/pdf-comparison-results"
+            "target/custom-test-results/customerpdf-comparison-results"
         )
 
         @JvmStatic
