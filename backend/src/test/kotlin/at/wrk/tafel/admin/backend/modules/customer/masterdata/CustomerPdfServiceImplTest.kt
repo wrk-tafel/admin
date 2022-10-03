@@ -189,16 +189,4 @@ class CustomerPdfServiceImplTest {
 
         document.close()
     }
-
-    @Test
-    fun test() {
-        val expected =
-            ImageIO.read(javaClass.getResourceAsStream("/pdf/master-references/windows/combined-page0.png"))
-        val actual =
-            ImageIO.read(javaClass.getResourceAsStream("/pdf/master-references/linux/combined-page0.png"))
-
-        val comparisonResult =
-            ImageComparison(expected, actual).setAllowingPercentOfDifferentPixels(40.0).compareImages()
-        println(comparisonResult)
-    }
 }
