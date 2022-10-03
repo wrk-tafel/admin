@@ -4,6 +4,7 @@ import at.wrk.tafel.admin.backend.database.entities.CustomerAddPersonEntity
 import at.wrk.tafel.admin.backend.database.entities.CustomerEntity
 import com.github.romankh3.image.comparison.ImageComparison
 import com.github.romankh3.image.comparison.model.ImageComparisonState
+import org.apache.commons.io.FileUtils
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.rendering.ImageType
 import org.apache.pdfbox.rendering.PDFRenderer
@@ -86,6 +87,7 @@ class CustomerPdfServiceImplTest {
     @Test
     fun `generate masterdata pdf`() {
         val pdfBytes = service.generateMasterdataPdf(testCustomer)
+        FileUtils.writeByteArrayToFile(File(comparisonResultDirectory, "masterdata-result.pdf"), pdfBytes)
 
         val document: PDDocument = PDDocument.load(pdfBytes)
         val pdfRenderer = PDFRenderer(document)
@@ -98,7 +100,7 @@ class CustomerPdfServiceImplTest {
         ImageIO.write(actualImage, "png", File(comparisonResultDirectory, "masterdata-actual.png"))
 
         val comparisonResult = ImageComparison(expectedImage, actualImage).compareImages()
-        comparisonResult.writeResultTo(File(comparisonResultDirectory, "masterdata-result.png"))
+        comparisonResult.writeResultTo(File(comparisonResultDirectory, "masterdata-diff.png"))
 
         assertThat(comparisonResult.imageComparisonState).isEqualTo(ImageComparisonState.MATCH)
 
@@ -108,6 +110,7 @@ class CustomerPdfServiceImplTest {
     @Test
     fun `generate idcard pdf`() {
         val pdfBytes = service.generateIdCardPdf(testCustomer)
+        FileUtils.writeByteArrayToFile(File(comparisonResultDirectory, "idcard-result.pdf"), pdfBytes)
 
         val document: PDDocument = PDDocument.load(pdfBytes)
         val pdfRenderer = PDFRenderer(document)
@@ -127,9 +130,9 @@ class CustomerPdfServiceImplTest {
         ImageIO.write(actualSecondPageImage, "png", File(comparisonResultDirectory, "idcard-page1-actual.png"))
 
         val comparisonFirstPageResult = ImageComparison(expectedFirstPageImage, actualFirstPageImage).compareImages()
-        comparisonFirstPageResult.writeResultTo(File(comparisonResultDirectory, "idcard-page0-result.png"))
+        comparisonFirstPageResult.writeResultTo(File(comparisonResultDirectory, "idcard-page0-diff.png"))
         val comparisonSecondPageResult = ImageComparison(expectedSecondPageImage, actualSecondPageImage).compareImages()
-        comparisonSecondPageResult.writeResultTo(File(comparisonResultDirectory, "idcard-page1-result.png"))
+        comparisonSecondPageResult.writeResultTo(File(comparisonResultDirectory, "idcard-page1-diff.png"))
 
         assertThat(comparisonFirstPageResult.imageComparisonState).isEqualTo(ImageComparisonState.MATCH)
         assertThat(comparisonSecondPageResult.imageComparisonState).isEqualTo(ImageComparisonState.MATCH)
@@ -140,6 +143,7 @@ class CustomerPdfServiceImplTest {
     @Test
     fun `generate combined pdf`() {
         val pdfBytes = service.generateCombinedPdf(testCustomer)
+        FileUtils.writeByteArrayToFile(File(comparisonResultDirectory, "combined-result.pdf"), pdfBytes)
 
         val document: PDDocument = PDDocument.load(pdfBytes)
         val pdfRenderer = PDFRenderer(document)
@@ -159,9 +163,9 @@ class CustomerPdfServiceImplTest {
         ImageIO.write(actualSecondPageImage, "png", File(comparisonResultDirectory, "combined-page1-actual.png"))
 
         val comparisonFirstPageResult = ImageComparison(expectedFirstPageImage, actualFirstPageImage).compareImages()
-        comparisonFirstPageResult.writeResultTo(File(comparisonResultDirectory, "combined-page0-result.png"))
+        comparisonFirstPageResult.writeResultTo(File(comparisonResultDirectory, "combined-page0-diff.png"))
         val comparisonSecondPageResult = ImageComparison(expectedSecondPageImage, actualSecondPageImage).compareImages()
-        comparisonSecondPageResult.writeResultTo(File(comparisonResultDirectory, "combined-page1-result.png"))
+        comparisonSecondPageResult.writeResultTo(File(comparisonResultDirectory, "combined-page1-diff.png"))
 
         assertThat(comparisonFirstPageResult.imageComparisonState).isEqualTo(ImageComparisonState.MATCH)
         assertThat(comparisonSecondPageResult.imageComparisonState).isEqualTo(ImageComparisonState.MATCH)
