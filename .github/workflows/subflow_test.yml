@@ -30,9 +30,7 @@ jobs:
         if: always()
         with:
           name: backend-codecoverage-reports
-          path: |
-            ./backend/**/target/site/jacoco/
-            ./backend/modules/**/target/site/jacoco/
+          path: ./backend/target/site/jacoco/
           if-no-files-found: error
           retention-days: 14
       - uses: actions/upload-artifact@v3
