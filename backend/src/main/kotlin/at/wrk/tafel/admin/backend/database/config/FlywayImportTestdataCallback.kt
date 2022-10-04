@@ -11,13 +11,14 @@ import org.springframework.stereotype.Component
 @Component
 @ExcludeFromTestCoverage
 class FlywayImportTestdataCallback(
-    @Value("\${tafeladmin.testdata.enabled:false}") private val testdataEnabled: Boolean
+    @Value("\${tafeladmin.testdata.enabled:false}") private val testdataEnabled: Boolean,
+    @Value("/db-migration-testdata/data.sql") val sqlFilePath: String? = null
 ) : BaseCallback() {
 
     override fun handle(event: Event, context: Context) {
         if (testdataEnabled && event == Event.AFTER_MIGRATE) {
             val sqlLines =
-                (IOUtils.readLines(javaClass.getResourceAsStream("/db-migration-testdata/data.sql")) as List<String>)
+                (IOUtils.readLines(javaClass.getResourceAsStream(sqlFilePath)) as List<String>)
                     .filter { !it.startsWith("--") }
                     .filter { it.isNotBlank() }
                     .joinToString("") { it }
