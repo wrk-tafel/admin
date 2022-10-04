@@ -37,3 +37,4 @@ jobs:
         continue-on-error: true
 
   # TODO tslint frontend
+  # migrate: https://github.com/angular-eslint/angular-eslint#migrating-an-angular-cli-project-from-codelyzer-and-tslint

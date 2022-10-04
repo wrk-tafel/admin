@@ -22,7 +22,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # TODO wait/check for kotlin support
+        # TODO wait/check for kotlin support - see: https://github.com/github/roadmap/issues/207
         language: [ 'javascript', 'typescript' ]
         # CodeQL supports [ 'cpp', 'csharp', 'go', 'java', 'javascript', 'python', 'ruby' ]
         # Learn more about CodeQL language support at https://git.io/codeql-language-support
