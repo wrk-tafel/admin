@@ -41,7 +41,7 @@ class FlywayImportTestdataCallback(
                 }
             }
 
-            LOGGER.info("Import of testdata finished!")
+            LOGGER.info("Importing testdata finished!")
         }
     }
 
