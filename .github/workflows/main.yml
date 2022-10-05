@@ -15,10 +15,10 @@ jobs:
   analysis-codeql:
     uses: wrk-tafel/admin/.github/workflows/subflow_analysis_codeql.yml@main
   test-backend:
-    uses: wrk-tafel/admin/.github/workflows/subflow_test_backend.yml@main
+    uses: wrk-tafel/admin/.github/workflows/subflow_test-backend.yml@main
     needs: build
   test-frontend:
-    uses: wrk-tafel/admin/.github/workflows/subflow_test_frontend.yml@main
+    uses: wrk-tafel/admin/.github/workflows/subflow_test-frontend.yml@main
     needs: build
   e2e-test:
     uses: wrk-tafel/admin/.github/workflows/subflow_e2e_test.yml@main
