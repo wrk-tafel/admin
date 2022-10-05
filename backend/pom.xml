@@ -21,6 +21,7 @@
         <postgresql.driver.version>42.5.0</postgresql.driver.version>
         <bouncycastle.version>1.70</bouncycastle.version>
         <apache.fop.version>2.7</apache.fop.version>
+        <qrcode.kotlin.version>3.2.0</qrcode.kotlin.version>
 
         <!-- Maven plugin version -->
         <maven.surefire.plugin.version>2.22.2</maven.surefire.plugin.version>
@@ -31,6 +32,8 @@
         <archunit.version>1.0.0</archunit.version>
         <mockk.version>1.13.2</mockk.version>
         <testcontainers.version>1.17.5</testcontainers.version>
+        <apache.pdfbox.version>2.0.27</apache.pdfbox.version>
+        <image.comparison.version>4.4.0</image.comparison.version>
     </properties>
 
     <dependencyManagement>
@@ -149,6 +152,11 @@
             <artifactId>fop</artifactId>
             <version>${apache.fop.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.github.g0dkar</groupId>
+            <artifactId>qrcode-kotlin-jvm</artifactId>
+            <version>${qrcode.kotlin.version}</version>
+        </dependency>
 
         <!-- Dev and Test dependencies -->
         <dependency>
@@ -198,6 +206,18 @@
             <groupId>org.testcontainers</groupId>
             <artifactId>postgresql</artifactId>
             <version>${testcontainers.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>pdfbox</artifactId>
+            <version>${apache.pdfbox.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.romankh3</groupId>
+            <artifactId>image-comparison</artifactId>
+            <version>${image.comparison.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

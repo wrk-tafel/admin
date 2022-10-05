@@ -4,6 +4,7 @@ import * as moment from 'moment';
 import {DateHelperService} from '../../../common/util/date-helper.service';
 import {FileHelperService} from '../../../common/util/file-helper.service';
 import {CustomerAddressData, CustomerApiService, CustomerData} from '../api/customer-api.service';
+import {HttpResponse} from '@angular/common/http';
 
 @Component({
   selector: 'tafel-customer-detail',
@@ -30,13 +31,18 @@ export class CustomerDetailComponent implements OnInit {
   }
 
   printMasterdata() {
-    this.customerApiService.generateMasterdataPdf(this.customerData.id)
-      .subscribe((response) => {
-        const contentDisposition = response.headers.get('content-disposition');
-        const filename = contentDisposition.split(';')[1].split('filename')[1].split('=')[1].trim();
-        const data = new Blob([response.body], {type: 'application/pdf'});
-        this.fileHelperService.downloadFile(filename, data);
-      });
+    this.customerApiService.generatePdf(this.customerData.id, 'MASTERDATA')
+      .subscribe((response) => this.processPdfResponse(response));
+  }
+
+  printIdCard() {
+    this.customerApiService.generatePdf(this.customerData.id, 'IDCARD')
+      .subscribe((response) => this.processPdfResponse(response));
+  }
+
+  printCombined() {
+    this.customerApiService.generatePdf(this.customerData.id, 'COMBINED')
+      .subscribe((response) => this.processPdfResponse(response));
   }
 
   formatAddressLine1(address: CustomerAddressData): string {
@@ -66,4 +72,10 @@ export class CustomerDetailComponent implements OnInit {
     this.router.navigate(['/kunden/bearbeiten', this.customerData.id]);
   }
 
+  private processPdfResponse(response: HttpResponse<ArrayBuffer>) {
+    const contentDisposition = response.headers.get('content-disposition');
+    const filename = contentDisposition.split(';')[1].split('filename')[1].split('=')[1].trim();
+    const data = new Blob([response.body], {type: 'application/pdf'});
+    this.fileHelperService.downloadFile(filename, data);
+  }
 }

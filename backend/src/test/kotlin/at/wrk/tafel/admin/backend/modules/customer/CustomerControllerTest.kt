@@ -10,7 +10,7 @@ import at.wrk.tafel.admin.backend.modules.base.Country
 import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorPerson
 import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorResult
 import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorService
-import at.wrk.tafel.admin.backend.modules.customer.masterdata.MasterdataPdfService
+import at.wrk.tafel.admin.backend.modules.customer.masterdata.CustomerPdfService
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -41,7 +41,7 @@ class CustomerControllerTest {
     private lateinit var countryRepository: CountryRepository
 
     @RelaxedMockK
-    private lateinit var masterdataPdfService: MasterdataPdfService
+    private lateinit var customerPdfService: CustomerPdfService
 
     @RelaxedMockK
     private lateinit var incomeValidatorService: IncomeValidatorService
@@ -301,10 +301,10 @@ class CustomerControllerTest {
     }
 
     @Test
-    fun `generate pdf customer unknown`() {
+    fun `generate pdf customer`() {
         every { customerRepository.findByCustomerId(any()) } returns Optional.empty()
 
-        val response = controller.generateMasterdataPdf(1)
+        val response = controller.generatePdf(1, PdfType.MASTERDATA)
 
         assertThat(response).isNotNull
         assertThat(response.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
@@ -314,9 +314,9 @@ class CustomerControllerTest {
     fun `generate pdf customer found`() {
         val pdfBytes = ByteArray(10)
         every { customerRepository.findByCustomerId(any()) } returns Optional.of(testCustomerEntity1)
-        every { masterdataPdfService.generatePdf(any()) } returns pdfBytes
+        every { customerPdfService.generateMasterdataPdf(any()) } returns pdfBytes
 
-        val response = controller.generateMasterdataPdf(1)
+        val response = controller.generatePdf(1, PdfType.MASTERDATA)
 
         assertThat(response).isNotNull
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)

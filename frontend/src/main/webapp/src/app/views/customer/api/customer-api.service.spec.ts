@@ -68,9 +68,25 @@ describe('CustomerApiService', () => {
   });
 
   it('generate masterdata pdf', () => {
-    apiService.generateMasterdataPdf(1).subscribe();
+    apiService.generatePdf(1, 'MASTERDATA').subscribe();
 
-    const req = httpMock.expectOne({method: 'GET', url: '/customers/1/generate-masterdata-pdf'});
+    const req = httpMock.expectOne({method: 'GET', url: '/customers/1/generate-pdf?type=MASTERDATA'});
+    req.flush(null);
+    httpMock.verify();
+  });
+
+  it('generate idcard pdf', () => {
+    apiService.generatePdf(1, 'IDCARD').subscribe();
+
+    const req = httpMock.expectOne({method: 'GET', url: '/customers/1/generate-pdf?type=IDCARD'});
+    req.flush(null);
+    httpMock.verify();
+  });
+
+  it('generate combined pdf', () => {
+    apiService.generatePdf(1, 'COMBINED').subscribe();
+
+    const req = httpMock.expectOne({method: 'GET', url: '/customers/1/generate-pdf?type=COMBINED'});
     req.flush(null);
     httpMock.verify();
   });

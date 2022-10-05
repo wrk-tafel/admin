@@ -62,23 +62,18 @@ describe('CustomerSearchComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  /*
-  // TODO finish test
-  it('search with existing customerId', fakeAsync(() => {
-      const fixture = TestBed.createComponent(CustomerSearchComponent);
-      const component = fixture.componentInstance;
-      const testCustomerId = 12345;
-      apiService.getCustomer.and.returnValue(of());
+  it('search with existing customerId', () => {
+    const fixture = TestBed.createComponent(CustomerSearchComponent);
+    const component = fixture.componentInstance;
+    apiService.getCustomer.and.returnValue(of(searchCustomerMockResponse.items[0]));
 
-      component.customerId.setValue(testCustomerId);
-      component.search();
+    const testCustomerId = 12345;
 
-      tick(1000);
+    component.customerId.setValue(testCustomerId);
+    component.searchForCustomerId();
 
-      expect(apiService.getCustomer).toHaveBeenCalledWith(testCustomerId);
-      expect(router.navigate).toHaveBeenCalledWith(['/kunden/detail', testCustomerId]);
-  }));
-  */
+    expect(router.navigate).toHaveBeenCalledWith(['/kunden/detail', testCustomerId]);
+  });
 
   it('search with wrong customerId', () => {
     const fixture = TestBed.createComponent(CustomerSearchComponent);

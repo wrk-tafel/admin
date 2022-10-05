@@ -23,9 +23,7 @@ spring:
   datasource:
     driverClassName: org.postgresql.Driver
   flyway:
-    locations: classpath:/db-migration
-    group: true
-    ignore-migration-patterns: "*:missing"
+    enabled: false
 
 security:
   jwtToken:

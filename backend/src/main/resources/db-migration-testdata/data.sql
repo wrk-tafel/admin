@@ -1,24 +1,3 @@
-DROP FUNCTION IF EXISTS truncate_tables;
-CREATE
-OR REPLACE FUNCTION truncate_tables(username IN VARCHAR) RETURNS void AS $$
-DECLARE
-statements CURSOR FOR
-SELECT tablename
-FROM pg_tables
-WHERE tableowner = username
-  AND schemaname = 'public'
-  AND tablename <> 'flyway_schema_history'
-  AND tablename <> 'static_countries';
-BEGIN
-FOR stmt IN statements LOOP
-        EXECUTE 'TRUNCATE TABLE ' || quote_ident(stmt.tablename) || ' CASCADE;';
-END LOOP;
-END;
-$$
-LANGUAGE plpgsql;
-
-SELECT truncate_tables('tafeladmin');
-
 -- adapt sequences
 SELECT setval('customer_id_sequence', 10000, false);
 SELECT setval('hibernate_sequence', 5000, false);

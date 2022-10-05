@@ -58,11 +58,11 @@ describe('Customer Creation', () => {
 
   function createCustomer(customerId?: number, income?: number) {
     if (customerId) {
-      cy.byTestId('customerIdInput').type(customerId);
+      cy.byTestId('customerIdInput').type(customerId.toString());
     }
     enterCustomerData();
     if (income) {
-      cy.byTestId('incomeInput').type(income);
+      cy.byTestId('incomeInput').type(income.toString());
     } else {
       cy.byTestId('incomeInput').type('500');
     }
@@ -116,7 +116,7 @@ describe('Customer Creation', () => {
       cy.byTestId('firstnameInput').type(data.firstname);
       cy.byTestId('birthDateInput').type(moment().subtract(data.age, 'years').startOf('day').format('YYYY-MM-DD'));
       if (data.income !== undefined) {
-        cy.byTestId('incomeInput').type(data.income);
+        cy.byTestId('incomeInput').type(data.income.toString());
       }
     });
   }

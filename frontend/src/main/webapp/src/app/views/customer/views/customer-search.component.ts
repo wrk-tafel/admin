@@ -11,12 +11,12 @@ import {CustomerAddressData, CustomerApiService, CustomerSearchResult} from '../
 export class CustomerSearchComponent {
   errorMessage: string;
   searchResult: CustomerSearchResult;
-  formatDate = this.dateHelper.formatDate;
   customerSearchForm = new FormGroup({
     customerId: new FormControl(''),
     lastname: new FormControl(''),
     firstname: new FormControl('')
   });
+  formatDate = this.dateHelper.formatDate;
 
   constructor(
     private customerApiService: CustomerApiService,

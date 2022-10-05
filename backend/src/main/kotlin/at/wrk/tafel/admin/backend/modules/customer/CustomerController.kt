@@ -9,7 +9,7 @@ import at.wrk.tafel.admin.backend.database.repositories.staticdata.CountryReposi
 import at.wrk.tafel.admin.backend.modules.base.Country
 import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorPerson
 import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorService
-import at.wrk.tafel.admin.backend.modules.customer.masterdata.MasterdataPdfService
+import at.wrk.tafel.admin.backend.modules.customer.masterdata.CustomerPdfService
 import org.springframework.core.io.InputStreamResource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -28,7 +28,7 @@ class CustomerController(
     private val customerAddPersonRepository: CustomerAddPersonRepository,
     private val countryRepository: CountryRepository,
     private val incomeValidatorService: IncomeValidatorService,
-    private val masterdataPdfService: MasterdataPdfService
+    private val customerPdfService: CustomerPdfService
 ) {
     @PostMapping("/validate")
     fun validate(@RequestBody customer: Customer): ValidateCustomerResponse {
@@ -100,17 +100,39 @@ class CustomerController(
         return CustomerListResponse(items = customerItems.map { customerEntity -> mapEntityToResponse(customerEntity) })
     }
 
-    @GetMapping("/{customerId}/generate-masterdata-pdf", produces = [MediaType.APPLICATION_PDF_VALUE])
-    fun generateMasterdataPdf(@PathVariable("customerId") customerId: Long): ResponseEntity<InputStreamResource> {
+    @GetMapping("/{customerId}/generate-pdf", produces = [MediaType.APPLICATION_PDF_VALUE])
+    fun generatePdf(
+        @PathVariable("customerId") customerId: Long,
+        @RequestParam("type") type: PdfType
+    ): ResponseEntity<InputStreamResource> {
+        return when (type) {
+            PdfType.MASTERDATA -> generatePdfResponse(
+                customerId,
+                "stammdaten",
+                customerPdfService::generateMasterdataPdf
+            )
+
+            PdfType.IDCARD -> generatePdfResponse(customerId, "ausweis", customerPdfService::generateIdCardPdf)
+            PdfType.COMBINED -> generatePdfResponse(
+                customerId,
+                "stammdaten-ausweis",
+                customerPdfService::generateCombinedPdf
+            )
+        }
+    }
+
+    private fun generatePdfResponse(
+        customerId: Long,
+        filenamePrefix: String,
+        getPdfBytes: (customer: CustomerEntity) -> ByteArray
+    ): ResponseEntity<InputStreamResource> {
         val customerOptional = customerRepository.findByCustomerId(customerId)
         if (customerOptional.isPresent) {
             val customer = customerOptional.get()
             val pdfFilename =
-                "stammdaten-${customer.customerId}-${customer.lastname}-${customer.firstname}"
+                "$filenamePrefix-${customer.customerId}-${customer.lastname}-${customer.firstname}"
                     .lowercase()
                     .replace("[^A-Za-z0-9]".toRegex(), "-") + ".pdf"
-
-            val pdfBytes = masterdataPdfService.generatePdf(customer)
 
             val headers = HttpHeaders()
             headers.add(
@@ -118,6 +140,7 @@ class CustomerController(
                 "inline; filename=$pdfFilename"
             )
 
+            val pdfBytes = getPdfBytes(customer)
             return ResponseEntity
                 .ok()
                 .headers(headers)
@@ -220,4 +243,8 @@ class CustomerController(
 
         return personList
     }
+}
+
+enum class PdfType {
+    MASTERDATA, IDCARD, COMBINED;
 }

@@ -62,7 +62,7 @@ describe('CustomerDetailComponent', () => {
   };
 
   beforeEach(waitForAsync(() => {
-    const apiServiceSpy = jasmine.createSpyObj('CustomerApiService', ['getCustomer', 'generateMasterdataPdf']);
+    const apiServiceSpy = jasmine.createSpyObj('CustomerApiService', ['getCustomer', 'generatePdf']);
     const fileHelperServiceSpy = jasmine.createSpyObj('FileHelperService', ['downloadFile']);
     const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
 
@@ -140,13 +140,55 @@ describe('CustomerDetailComponent', () => {
       ),
       body: new ArrayBuffer(10)
     });
-    apiService.generateMasterdataPdf.withArgs(mockCustomer.id).and.returnValue(of(response));
+    apiService.generatePdf.withArgs(mockCustomer.id, 'MASTERDATA').and.returnValue(of(response));
 
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
     component.ngOnInit();
 
     component.printMasterdata();
+
+    expect(fileHelperService.downloadFile).toHaveBeenCalledWith('test-name-1.pdf', new Blob([response.body], {type: 'application/pdf'}));
+  }));
+
+  it('printIdCard', waitForAsync(() => {
+    apiService.getCustomer.withArgs(mockCustomer.id).and.returnValue(of(mockCustomer));
+
+    const response = new HttpResponse({
+      status: 200,
+      headers: new HttpHeaders(
+        {'Content-Disposition': 'inline; filename=test-name-1.pdf'}
+      ),
+      body: new ArrayBuffer(10)
+    });
+    apiService.generatePdf.withArgs(mockCustomer.id, 'IDCARD').and.returnValue(of(response));
+
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    const component = fixture.componentInstance;
+    component.ngOnInit();
+
+    component.printIdCard();
+
+    expect(fileHelperService.downloadFile).toHaveBeenCalledWith('test-name-1.pdf', new Blob([response.body], {type: 'application/pdf'}));
+  }));
+
+  it('printCombined', waitForAsync(() => {
+    apiService.getCustomer.withArgs(mockCustomer.id).and.returnValue(of(mockCustomer));
+
+    const response = new HttpResponse({
+      status: 200,
+      headers: new HttpHeaders(
+        {'Content-Disposition': 'inline; filename=test-name-1.pdf'}
+      ),
+      body: new ArrayBuffer(10)
+    });
+    apiService.generatePdf.withArgs(mockCustomer.id, 'COMBINED').and.returnValue(of(response));
+
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    const component = fixture.componentInstance;
+    component.ngOnInit();
+
+    component.printCombined();
 
     expect(fileHelperService.downloadFile).toHaveBeenCalledWith('test-name-1.pdf', new Blob([response.body], {type: 'application/pdf'}));
   }));

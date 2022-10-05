@@ -5,11 +5,11 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
 
 @JacksonXmlRootElement(localName = "data")
 @ExcludeFromTestCoverage
-data class MasterdataPdfData(
+data class PdfData(
     val logoContentType: String,
     val logoBytes: ByteArray,
-    val currentDate: String,
-    val customer: MasterdataPdfCustomer,
+    val issuedAtDate: String,
+    val customer: PdfCustomerData,
     val countPersons: Int,
     val countInfants: Int
 ) {
@@ -17,11 +17,14 @@ data class MasterdataPdfData(
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as MasterdataPdfData
+        other as PdfData
 
         if (logoContentType != other.logoContentType) return false
         if (!logoBytes.contentEquals(other.logoBytes)) return false
+        if (issuedAtDate != other.issuedAtDate) return false
         if (customer != other.customer) return false
+        if (countPersons != other.countPersons) return false
+        if (countInfants != other.countInfants) return false
 
         return true
     }
@@ -29,28 +32,32 @@ data class MasterdataPdfData(
     override fun hashCode(): Int {
         var result = logoContentType.hashCode()
         result = 31 * result + logoBytes.contentHashCode()
+        result = 31 * result + issuedAtDate.hashCode()
         result = 31 * result + customer.hashCode()
+        result = 31 * result + countPersons
+        result = 31 * result + countInfants
         return result
     }
 }
 
 @ExcludeFromTestCoverage
-data class MasterdataPdfCustomer(
+data class PdfCustomerData(
     val id: Long,
     val lastname: String,
     val firstname: String,
     val birthDate: String,
     val telephoneNumber: String? = null,
     val email: String? = null,
-    val address: MasterdataPdfAddressData,
+    val address: PdfAddressData,
     val employer: String,
     val income: String? = null,
-    val incomeDueDate: String? = null,
-    val additionalPersons: List<MasterdataPdfAdditionalPersonData> = emptyList()
+    val validUntilDate: String? = null,
+    val additionalPersons: List<PdfAdditionalPersonData> = emptyList(),
+    val idCard: PdfIdCardData? = null
 )
 
 @ExcludeFromTestCoverage
-data class MasterdataPdfAddressData(
+data class PdfAddressData(
     val street: String,
     val houseNumber: String,
     val door: String? = null,
@@ -60,9 +67,36 @@ data class MasterdataPdfAddressData(
 )
 
 @ExcludeFromTestCoverage
-data class MasterdataPdfAdditionalPersonData(
+data class PdfAdditionalPersonData(
     val lastname: String,
     val firstname: String,
     val birthDate: String,
     val income: String? = null
 )
+
+@ExcludeFromTestCoverage
+data class PdfIdCardData(
+    val qrCodeContentType: String,
+    val qrCodeBytes: ByteArray,
+    val issuer: String
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as PdfIdCardData
+
+        if (qrCodeContentType != other.qrCodeContentType) return false
+        if (!qrCodeBytes.contentEquals(other.qrCodeBytes)) return false
+        if (issuer != other.issuer) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = qrCodeContentType.hashCode()
+        result = 31 * result + qrCodeBytes.contentHashCode()
+        result = 31 * result + issuer.hashCode()
+        return result
+    }
+}
