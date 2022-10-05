@@ -105,7 +105,7 @@ describe('Customer Creation', () => {
     cy.byTestId('postalCodeInput').type('1010');
     cy.byTestId('cityInput').type('Wien');
     cy.byTestId('employerInput').type('Test Employer');
-    cy.byTestId('incomeDueInput').type(moment().add(2, 'years').startOf('day').format('YYYY-MM-DD'));
+    cy.byTestId('validUntilInput').type(moment().add(2, 'years').startOf('day').format('YYYY-MM-DD'));
   }
 
   function enterAdditionalPersonData(index: number, data: AddPersonInputData) {

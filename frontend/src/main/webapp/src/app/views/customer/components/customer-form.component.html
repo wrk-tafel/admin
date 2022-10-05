@@ -227,12 +227,12 @@
                             </div>
                         </div>
                         <div class="col-sm">
-                            <label class="form-label">Auszahlung bis</label>
-                            <input testId="incomeDueInput" type="date" formControlName="incomeDue" class="form-control"
-                                [ngClass]="{'is-invalid': incomeDue.invalid && (incomeDue.dirty || incomeDue.touched), 'is-valid': incomeDue.valid && (incomeDue.dirty || incomeDue.touched)}">
-                            <div *ngIf="incomeDue.errors?.mindate && (incomeDue.dirty || incomeDue.touched)"
+                            <label class="form-label">Gültig bis</label>
+                            <input testId="validUntilInput" type="date" formControlName="validUntil" class="form-control"
+                                [ngClass]="{'is-invalid': validUntil.invalid && (validUntil.dirty || validUntil.touched), 'is-valid': validUntil.valid && (validUntil.dirty || validUntil.touched)}">
+                            <div *ngIf="validUntil.errors?.mindate && (validUntil.dirty || validUntil.touched)"
                                 class="invalid-feedback">
-                                Min. Datum: {{incomeDue.errors.mindate.minimumDate}}
+                                Min. Datum: {{validUntil.errors.mindate.minimumDate}}
                             </div>
                         </div>
                     </div>

@@ -76,10 +76,10 @@
         </div>
         <div class="row">
           <div class="col">
-            Auszahlung&nbsp;bis
+            Gültig&nbsp;bis
           </div>
-          <div testid="incomeDueText" class="col"
-               [innerHTML]="customerData?.incomeDue ? formatDate(customerData?.incomeDue) : '-'"></div>
+          <div testid="validUntilText" class="col"
+               [innerHTML]="customerData?.validUntil ? formatDate(customerData?.validUntil) : '-'"></div>
         </div>
       </div>
     </div>

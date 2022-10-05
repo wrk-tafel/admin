@@ -73,7 +73,7 @@ class CustomerControllerTest {
         ),
         employer = "Employer 123",
         income = BigDecimal("1000"),
-        incomeDue = LocalDate.now(),
+        validUntil = LocalDate.now(),
         additionalPersons = listOf(
             CustomerAdditionalPerson(
                 id = 2,
@@ -120,7 +120,7 @@ class CustomerControllerTest {
         testCustomerEntity1.email = "test@mail.com"
         testCustomerEntity1.employer = "Employer 123"
         testCustomerEntity1.income = BigDecimal("1000")
-        testCustomerEntity1.incomeDue = LocalDate.now()
+        testCustomerEntity1.validUntil = LocalDate.now()
 
         val addPerson1 = CustomerAddPersonEntity()
         addPerson1.id = 2
@@ -154,7 +154,7 @@ class CustomerControllerTest {
         testCustomerEntity2.email = "test2@mail.com"
         testCustomerEntity2.employer = "Employer 123-2"
         testCustomerEntity2.income = BigDecimal("2000")
-        testCustomerEntity2.incomeDue = LocalDate.now()
+        testCustomerEntity2.validUntil = LocalDate.now()
     }
 
     @Test

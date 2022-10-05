@@ -36,7 +36,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
 
     employer: 'test employer',
     income: 1000,
-    incomeDue: moment().add(1, 'years').startOf('day').utc().toDate(),
+    validUntil: moment().add(1, 'years').startOf('day').utc().toDate(),
 
     additionalPersons: [
       {

@@ -80,7 +80,7 @@ class CustomerPdfServiceImpl : CustomerPdfService {
                     ?.takeIf { it.compareTo(BigDecimal.ZERO) != 0 }
                     ?.let { "${it.setScale(0)} €" }
                     ?: "-",
-                validUntilDate = customer.incomeDue?.format(DATE_FORMATTER) ?: "unbefristet",
+                validUntilDate = customer.validUntil?.format(DATE_FORMATTER) ?: "unbefristet",
                 additionalPersons = customer.additionalPersons.map {
                     PdfAdditionalPersonData(
                         lastname = it.lastname!!,

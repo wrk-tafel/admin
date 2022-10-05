@@ -39,7 +39,7 @@ export class CustomerFormComponent implements OnInit {
 
     employer: new FormControl(null, Validators.required),
     income: new FormControl(null, Validators.required),
-    incomeDue: new FormControl(null, CustomValidator.minDate(new Date())),
+    validUntil: new FormControl(null, CustomValidator.minDate(new Date())),
 
     additionalPersons: new FormArray([])
   });
@@ -128,8 +128,8 @@ export class CustomerFormComponent implements OnInit {
     return this.form.get('income');
   }
 
-  get incomeDue() {
-    return this.form.get('incomeDue');
+  get validUntil() {
+    return this.form.get('validUntil');
   }
 
   get additionalPersons() {

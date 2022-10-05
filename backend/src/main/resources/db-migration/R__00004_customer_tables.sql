@@ -23,7 +23,7 @@ create table customers
     email               varchar(100) null,
     employer            varchar(100) null,
     income              decimal null,
-    income_due          date null
+    valid_until         date         not null
 );
 
 create table customers_addpersons

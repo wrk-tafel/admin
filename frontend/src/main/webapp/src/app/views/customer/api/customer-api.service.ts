@@ -75,7 +75,7 @@ export interface CustomerData {
   email?: string;
   employer?: string;
   income?: number;
-  incomeDue?: Date;
+  validUntil?: Date;
   additionalPersons?: CustomerAddPersonData[];
 }
 
