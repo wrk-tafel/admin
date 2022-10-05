@@ -19,13 +19,8 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: ${{ env.JAVA_DISTRIBUTION }}
           cache: 'maven'
-      - uses: actions/setup-node@v3.4.1
-        with:
-          node-version-file: 'frontend/src/main/webapp/.nvmrc'
-          cache: 'npm'
-          cache-dependency-path: 'frontend/src/main/webapp/package-lock.json'
       - name: Run tests
-        run: ./mvnw --fail-at-end test verify
+        run: ./mvnw -pl backend --fail-at-end test verify
       - uses: actions/upload-artifact@v3
         if: always()
         with:
@@ -39,11 +34,4 @@ jobs:
           name: backend-custom-test-results
           path: ./backend/target/custom-test-results/
           if-no-files-found: ignore
-          retention-days: 14
-      - uses: actions/upload-artifact@v3
-        if: always()
-        with:
-          name: frontend-codecoverage-report
-          path: ./frontend/src/main/webapp/coverage/
-          if-no-files-found: error
           retention-days: 14

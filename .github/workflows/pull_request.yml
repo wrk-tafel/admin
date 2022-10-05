@@ -6,11 +6,14 @@ on:
 jobs:
   build:
     uses: wrk-tafel/admin/.github/workflows/subflow_build.yml@main
-  test:
-    uses: wrk-tafel/admin/.github/workflows/subflow_test.yml@main
-    needs: build
   analysis-lint:
     uses: wrk-tafel/admin/.github/workflows/subflow_analysis_lint.yml@main
+  test-backend:
+    uses: wrk-tafel/admin/.github/workflows/subflow_test_backend.yml@main
+    needs: build
+  test-frontend:
+    uses: wrk-tafel/admin/.github/workflows/subflow_test_frontend.yml@main
+    needs: build
   e2e-test:
     uses: wrk-tafel/admin/.github/workflows/subflow_e2e_test.yml@main
     needs: build

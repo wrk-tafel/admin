@@ -10,19 +10,22 @@ on:
 jobs:
   build:
     uses: wrk-tafel/admin/.github/workflows/subflow_build.yml@main
-  test:
-    uses: wrk-tafel/admin/.github/workflows/subflow_test.yml@main
-    needs: build
   analysis-lint:
     uses: wrk-tafel/admin/.github/workflows/subflow_analysis_lint.yml@main
   analysis-codeql:
     uses: wrk-tafel/admin/.github/workflows/subflow_analysis_codeql.yml@main
+  test-backend:
+    uses: wrk-tafel/admin/.github/workflows/subflow_test_backend.yml@main
+    needs: build
+  test-frontend:
+    uses: wrk-tafel/admin/.github/workflows/subflow_test_frontend.yml@main
+    needs: build
   e2e-test:
     uses: wrk-tafel/admin/.github/workflows/subflow_e2e_test.yml@main
     needs: build
   docker-image:
     uses: wrk-tafel/admin/.github/workflows/subflow_build_image.yml@main
-    needs: [test, e2e-test]
+    needs: [test-backend, test-frontend, e2e-test]
   dockerhub:
     uses: wrk-tafel/admin/.github/workflows/subflow_publish_image.yml@main
     needs: docker-image
