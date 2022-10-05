@@ -27,7 +27,7 @@ INSERT INTO customers (id, created_at, updated_at, customer_id, firstname, lastn
                        address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
                        address_city, telephone_number, email, employer, income, valid_until)
 values (0, NOW(), NOW(), 100, 'Max Single', 'Mustermann', '1980-01-01', 1, 'Erdberg', 1, null, null, '1030', 'Wien',
-        null, null, 'Stadt Wien', 123.00, null);
+        null, null, 'Stadt Wien', 123.00, '2999-12-31');
 INSERT INTO customers (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, country_id,
                        address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
                        address_city, telephone_number, email, employer, income, valid_until)
