@@ -12,6 +12,7 @@ import {v4 as uuidv4} from 'uuid';
 export class CustomerFormComponent implements OnInit {
   @Input() editMode: boolean = false;
   @Output() customerDataChange = new EventEmitter<CustomerData>();
+
   form = new FormGroup({
     id: new FormControl(null),
     lastname: new FormControl(null, [Validators.required, Validators.maxLength(50)]),
@@ -39,10 +40,7 @@ export class CustomerFormComponent implements OnInit {
 
     employer: new FormControl(null, Validators.required),
     income: new FormControl(null, Validators.required),
-    validUntil: new FormControl(null, [
-      Validators.required,
-      CustomValidator.minDate(new Date())
-    ]),
+    validUntil: new FormControl(null, Validators.required),
 
     additionalPersons: new FormArray([])
   });
