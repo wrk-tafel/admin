@@ -230,6 +230,10 @@
                             <label class="form-label">Gültig bis</label>
                             <input testId="validUntilInput" type="date" formControlName="validUntil" class="form-control"
                                 [ngClass]="{'is-invalid': validUntil.invalid && (validUntil.dirty || validUntil.touched), 'is-valid': validUntil.valid && (validUntil.dirty || validUntil.touched)}">
+                            <div *ngIf="validUntil.errors?.required && (validUntil.dirty || validUntil.touched)"
+                                 class="invalid-feedback">
+                                Pflichtfeld
+                            </div>
                             <div *ngIf="validUntil.errors?.mindate && (validUntil.dirty || validUntil.touched)"
                                 class="invalid-feedback">
                                 Min. Datum: {{validUntil.errors.mindate.minimumDate}}
