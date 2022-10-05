@@ -73,7 +73,7 @@ export class CustomerDetailComponent implements OnInit {
   }
 
   isValid(): Boolean {
-    return !moment(this.customerData.validUntil).isBefore(moment().startOf('day'))
+    return !moment(this.customerData.validUntil).isBefore(moment().startOf('day'));
   }
 
   private processPdfResponse(response: HttpResponse<ArrayBuffer>) {

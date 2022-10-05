@@ -52,10 +52,12 @@
           </div>
         </div>
         <div class="row">
-          <div class="col font-weight-bold" [ngClass]="{'bg-success': customerData?.validUntil && isValid(), 'bg-danger': customerData?.validUntil && !isValid()}">
+          <div class="col font-weight-bold"
+               [ngClass]="{'bg-success': customerData?.validUntil && isValid(), 'bg-danger': customerData?.validUntil && !isValid()}">
             Gültig&nbsp;bis
           </div>
-          <div testid="validUntilText" class="col" [ngClass]="{'bg-success': customerData?.validUntil && isValid(), 'bg-danger': customerData?.validUntil && !isValid()}"
+          <div testid="validUntilText" class="col"
+               [ngClass]="{'bg-success': customerData?.validUntil && isValid(), 'bg-danger': customerData?.validUntil && !isValid()}"
                [innerHTML]="customerData?.validUntil ? formatDate(customerData?.validUntil) : '-'"></div>
         </div>
         <hr>
