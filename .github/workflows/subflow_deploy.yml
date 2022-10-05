@@ -11,7 +11,7 @@ on:
         required: true
 
 jobs:
-  deploy:
+  run:
     runs-on: ubuntu-latest
     steps:
       - name: Create SSH key

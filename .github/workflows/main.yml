@@ -26,7 +26,7 @@ jobs:
   docker-image:
     uses: wrk-tafel/admin/.github/workflows/subflow_build_image.yml@main
     needs: [test-backend, test-frontend, e2e-test]
-  dockerhub:
+  docker-hub:
     uses: wrk-tafel/admin/.github/workflows/subflow_publish_image.yml@main
     needs: docker-image
     secrets:
@@ -34,7 +34,7 @@ jobs:
       dockerHubToken: ${{ secrets.DOCKERHUB_TOKEN }}
   deploy:
     uses: wrk-tafel/admin/.github/workflows/subflow_deploy.yml@main
-    needs: dockerhub
+    needs: docker-hub
     secrets:
       sshKey: ${{ secrets.SSH_DEPLOY_KEY }}
       sshKnownHosts: ${{ secrets.SSH_KNOWN_HOSTS }}
