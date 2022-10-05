@@ -171,7 +171,7 @@
                                     </fo:table-row>
                                     <fo:table-row>
                                         <fo:table-cell>
-                                            <fo:block font-weight="bold">Auszahlung bis:</fo:block>
+                                            <fo:block font-weight="bold">Gültig bis:</fo:block>
                                         </fo:table-cell>
                                         <fo:table-cell>
                                             <fo:block>
