@@ -48,6 +48,13 @@
           <div testid="emailText" class="col" [innerHTML]="customerData?.email ? customerData?.email : '-'">
           </div>
         </div>
+        <div class="row">
+          <div class="col font-weight-bold">
+            Gültig&nbsp;bis
+          </div>
+          <div testid="validUntilText" class="col"
+               [innerHTML]="customerData?.validUntil ? formatDate(customerData?.validUntil) : '-'"></div>
+        </div>
         <hr>
         <div class="row">
           <div class="col font-weight-bold">Adresse</div>
@@ -73,14 +80,6 @@
             Einkommen&nbsp;(monatlich)
           </div>
           <div testid="incomeText" class="col">{{customerData?.income}} &euro;</div>
-        </div>
-        <hr>
-        <div class="row">
-          <div class="col font-weight-bold">
-            Gültig&nbsp;bis
-          </div>
-          <div testid="validUntilText" class="col"
-               [innerHTML]="customerData?.validUntil ? formatDate(customerData?.validUntil) : '-'"></div>
         </div>
       </div>
     </div>
