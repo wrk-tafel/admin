@@ -52,7 +52,7 @@
                                 </fo:table-row>
                                 <fo:table-row>
                                     <fo:table-cell>
-                                        <fo:block margin-left="0.5cm" margin-right="0.5cm" font-size="10pt">
+                                        <fo:block margin-left="0.5cm" margin-right="0.5cm" font-size="10pt" font-weight="bold">
                                             Gültig bis:
                                         </fo:block>
                                     </fo:table-cell>

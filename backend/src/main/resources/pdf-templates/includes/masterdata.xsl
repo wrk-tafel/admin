@@ -169,16 +169,6 @@
                                             </fo:block>
                                         </fo:table-cell>
                                     </fo:table-row>
-                                    <fo:table-row>
-                                        <fo:table-cell>
-                                            <fo:block font-weight="bold">Gültig bis:</fo:block>
-                                        </fo:table-cell>
-                                        <fo:table-cell>
-                                            <fo:block>
-                                                <xsl:value-of select="$data/validUntilDate"/>
-                                            </fo:block>
-                                        </fo:table-cell>
-                                    </fo:table-row>
                                 </fo:table-body>
                             </fo:table>
                         </fo:block>
@@ -311,10 +301,26 @@
             </fo:table>
         </fo:block>
         <fo:block margin-top="2cm">
-            <fo:inline font-weight="bold">Datum:</fo:inline>
-            <fo:inline>
-                <xsl:value-of select="concat(' ', ./issuedAtDate)"/>
-            </fo:inline>
+            <fo:table table-layout="fixed" width="100%">
+                <fo:table-column column-width="50%"/>
+                <fo:table-column column-width="50%"/>
+                <fo:table-body>
+                    <fo:table-row>
+                        <fo:table-cell>
+                            <fo:block font-weight="bold">Datum:</fo:block>
+                            <fo:block>
+                                <xsl:value-of select="concat(' ', ./issuedAtDate)"/>
+                            </fo:block>
+                        </fo:table-cell>
+                        <fo:table-cell>
+                            <fo:block font-weight="bold">Gültig bis:</fo:block>
+                            <fo:block>
+                                <xsl:value-of select="./customer/validUntilDate"/>
+                            </fo:block>
+                        </fo:table-cell>
+                    </fo:table-row>
+                </fo:table-body>
+            </fo:table>
         </fo:block>
     </xsl:template>
 </xsl:stylesheet>
