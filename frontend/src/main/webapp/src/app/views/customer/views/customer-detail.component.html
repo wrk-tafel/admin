@@ -52,7 +52,7 @@
           </div>
         </div>
         <div class="row">
-          <div class="col font-weight-bold">
+          <div class="col font-weight-bold" [ngClass]="{'bg-success': isValid(), 'bg-danger': !isValid()}">
             Gültig&nbsp;bis
           </div>
           <div testid="validUntilText" class="col" [ngClass]="{'bg-success': isValid(), 'bg-danger': !isValid()}"
