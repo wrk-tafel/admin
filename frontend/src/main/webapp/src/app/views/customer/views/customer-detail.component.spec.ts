@@ -205,4 +205,43 @@ describe('CustomerDetailComponent', () => {
     expect(router.navigate).toHaveBeenCalledWith(['/kunden/bearbeiten', mockCustomer.id]);
   }));
 
+  it('isValid with date yesterday is not valid', waitForAsync(() => {
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    const component = fixture.componentInstance;
+    component.customerData = {
+      ...mockCustomer,
+      validUntil: moment().subtract(1, 'days').toDate()
+    };
+
+    const valid = component.isValid();
+
+    expect(valid).toBe(false);
+  }));
+
+  it('isValid with date today is valid', waitForAsync(() => {
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    const component = fixture.componentInstance;
+    component.customerData = {
+      ...mockCustomer,
+      validUntil: moment().toDate()
+    };
+
+    const valid = component.isValid();
+
+    expect(valid).toBe(true);
+  }));
+
+  it('isValid with date tomorrow is valid', waitForAsync(() => {
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    const component = fixture.componentInstance;
+    component.customerData = {
+      ...mockCustomer,
+      validUntil: moment().add(1, 'days').toDate()
+    };
+
+    const valid = component.isValid();
+
+    expect(valid).toBe(true);
+  }));
+
 });

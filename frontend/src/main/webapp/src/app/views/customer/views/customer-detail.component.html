@@ -9,10 +9,13 @@
         Daten ausdrucken <span class="caret"></span>
       </button>
       <ul *dropdownMenu class="dropdown-menu" role="menu">
-        <li role="menuitem"><a class="dropdown-item" style="cursor: pointer;" testid="printCombinedButton" (click)="printCombined()">Stammdaten + Ausweis</a></li>
+        <li role="menuitem"><a class="dropdown-item" style="cursor: pointer;" testid="printCombinedButton"
+                               (click)="printCombined()">Stammdaten + Ausweis</a></li>
         <li class="divider dropdown-divider"></li>
-        <li role="menuitem"><a class="dropdown-item" style="cursor: pointer;" testid="printMasterdataButton" (click)="printMasterdata()">Nur Stammdaten</a></li>
-        <li role="menuitem"><a class="dropdown-item" style="cursor: pointer;" testid="printIdCardButton" (click)="printIdCard()">Nur Ausweis</a></li>
+        <li role="menuitem"><a class="dropdown-item" style="cursor: pointer;" testid="printMasterdataButton"
+                               (click)="printMasterdata()">Nur Stammdaten</a></li>
+        <li role="menuitem"><a class="dropdown-item" style="cursor: pointer;" testid="printIdCardButton"
+                               (click)="printIdCard()">Nur Ausweis</a></li>
       </ul>
     </div>
   </div>
@@ -52,7 +55,7 @@
           <div class="col font-weight-bold">
             Gültig&nbsp;bis
           </div>
-          <div testid="validUntilText" class="col"
+          <div testid="validUntilText" class="col" [ngClass]="{'bg-success': isValid(), 'bg-danger': !isValid()}"
                [innerHTML]="customerData?.validUntil ? formatDate(customerData?.validUntil) : '-'"></div>
         </div>
         <hr>

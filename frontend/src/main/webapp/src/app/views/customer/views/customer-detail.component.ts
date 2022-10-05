@@ -72,6 +72,10 @@ export class CustomerDetailComponent implements OnInit {
     this.router.navigate(['/kunden/bearbeiten', this.customerData.id]);
   }
 
+  isValid(): Boolean {
+    return !moment(this.customerData.validUntil).isBefore(moment().startOf('day'))
+  }
+
   private processPdfResponse(response: HttpResponse<ArrayBuffer>) {
     const contentDisposition = response.headers.get('content-disposition');
     const filename = contentDisposition.split(';')[1].split('filename')[1].split('=')[1].trim();
