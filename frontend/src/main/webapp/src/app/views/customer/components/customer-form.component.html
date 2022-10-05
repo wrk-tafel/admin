@@ -210,35 +210,36 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="row mb-2">
                         <div class="col-sm">
-                            <label class="form-label">Einkommen monatl.</label>
-                            <div class="input-group">
-                                <input testId="incomeInput" type="number" formControlName="income" class="form-control"
-                                    [ngClass]="{'is-invalid': income.invalid && (income.dirty || income.touched), 'is-valid': income.valid && (income.dirty || income.touched)}">
-                                <div class="input-group-append">
-                                    <span class="input-group-text"><i class="fa fa-euro"></i></span>
-                                </div>
-                                <div *ngIf="income.errors?.required && (income.dirty || income.touched)"
-                                    class="invalid-feedback">
-                                    Pflichtfeld
-                                </div>
+                          <label class="form-label">Einkommen monatl.</label>
+                          <div class="input-group">
+                            <input testId="incomeInput" type="number" formControlName="income" class="form-control"
+                                   [ngClass]="{'is-invalid': income.invalid && (income.dirty || income.touched), 'is-valid': income.valid && (income.dirty || income.touched)}">
+                            <div class="input-group-append">
+                              <span class="input-group-text"><i class="fa fa-euro"></i></span>
                             </div>
-                        </div>
-                        <div class="col-sm">
-                            <label class="form-label">Gültig bis</label>
-                            <input testId="validUntilInput" type="date" formControlName="validUntil" class="form-control"
-                                [ngClass]="{'is-invalid': validUntil.invalid && (validUntil.dirty || validUntil.touched), 'is-valid': validUntil.valid && (validUntil.dirty || validUntil.touched)}">
-                            <div *ngIf="validUntil.errors?.required && (validUntil.dirty || validUntil.touched)"
+                            <div *ngIf="income.errors?.required && (income.dirty || income.touched)"
                                  class="invalid-feedback">
-                                Pflichtfeld
+                              Pflichtfeld
                             </div>
-                            <div *ngIf="validUntil.errors?.mindate && (validUntil.dirty || validUntil.touched)"
-                                class="invalid-feedback">
-                                Min. Datum: {{validUntil.errors.mindate.minimumDate}}
-                            </div>
+                          </div>
                         </div>
+                    </div>
+                    <hr/>
+                    <div class="row mb-2">
+                      <div class="col-sm">
+                        <label class="form-label">Gültig bis</label>
+                        <input testId="validUntilInput" type="date" formControlName="validUntil" class="form-control"
+                               [ngClass]="{'is-invalid': validUntil.invalid && (validUntil.dirty || validUntil.touched), 'is-valid': validUntil.valid && (validUntil.dirty || validUntil.touched)}">
+                        <div *ngIf="validUntil.errors?.required && (validUntil.dirty || validUntil.touched)"
+                             class="invalid-feedback">
+                          Pflichtfeld
+                        </div>
+                        <div *ngIf="validUntil.errors?.mindate && (validUntil.dirty || validUntil.touched)"
+                             class="invalid-feedback">
+                          Min. Datum: {{validUntil.errors.mindate.minimumDate}}
+                        </div>
+                      </div>
                     </div>
                 </div>
             </div>
