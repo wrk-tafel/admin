@@ -20,7 +20,7 @@ export class CustomerFormComponent implements OnInit {
     birthDate: new FormControl(null,
       [
         Validators.required,
-        CustomValidator.minDate(new Date(1920, 0, 1)),
+        CustomValidator.minDate(new Date(1900, 0, 1)),
         CustomValidator.maxDate(new Date())
       ]
     ),
@@ -40,7 +40,10 @@ export class CustomerFormComponent implements OnInit {
 
     employer: new FormControl(null, Validators.required),
     income: new FormControl(null, Validators.required),
-    validUntil: new FormControl(null, Validators.required),
+    validUntil: new FormControl(null, [
+      Validators.required,
+      CustomValidator.minDate(new Date(1900, 0, 1))
+    ]),
 
     additionalPersons: new FormArray([])
   });
