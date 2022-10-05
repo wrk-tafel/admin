@@ -9,7 +9,7 @@ on:
   workflow_call:
 
 jobs:
-  execute:
+  run:
     runs-on: ubuntu-latest
     services:
       postgres:
