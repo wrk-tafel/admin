@@ -42,15 +42,15 @@ describe('CustomerFormComponent', () => {
         lastname: 'Last 1',
         firstname: 'First 1',
         birthDate: moment().subtract(1, 'years').startOf('day').utc().toDate(),
-        income: null
+        income: 200,
+        incomeDue: moment().add(1, 'years').startOf('day').utc().toDate(),
       },
       {
         key: 1,
         id: 1,
         lastname: 'Last 2',
         firstname: 'First 2',
-        birthDate: moment().subtract(4, 'years').startOf('day').utc().toDate(),
-        income: null
+        birthDate: moment().subtract(4, 'years').startOf('day').utc().toDate()
       }
     ]
   };
@@ -64,7 +64,7 @@ describe('CustomerFormComponent', () => {
       ],
       imports: [
         RouterTestingModule,
-        ReactiveFormsModule,
+        ReactiveFormsModule
       ],
       providers: [
         {
@@ -130,15 +130,15 @@ describe('CustomerFormComponent', () => {
         lastname: testCustomerData.additionalPersons[0].lastname,
         firstname: testCustomerData.additionalPersons[0].firstname,
         birthDate: testCustomerData.additionalPersons[0].birthDate,
-        income: testCustomerData.additionalPersons[0].income
+        income: testCustomerData.additionalPersons[0].income,
+        incomeDue: testCustomerData.additionalPersons[0].incomeDue
       }));
     expect(component.additionalPersons.at(1).value)
       .toEqual(jasmine.objectContaining({
         id: testCustomerData.additionalPersons[1].id,
         lastname: testCustomerData.additionalPersons[1].lastname,
         firstname: testCustomerData.additionalPersons[1].firstname,
-        birthDate: testCustomerData.additionalPersons[1].birthDate,
-        income: testCustomerData.additionalPersons[1].income
+        birthDate: testCustomerData.additionalPersons[1].birthDate
       }));
   }));
 
