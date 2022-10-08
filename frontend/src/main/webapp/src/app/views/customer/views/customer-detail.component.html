@@ -105,20 +105,28 @@
         <div *ngFor="let addPerson of customerData?.additionalPersons; let i = index">
           <hr *ngIf="i > 0">
           <div class="row">
-            <div [attr.testid]="'addperson-' + i + '-lastnameText'" class="col font-weight-bold"
+            <div class="col font-weight-bold" [attr.testid]="'addperson-' + i + '-lastnameText'"
                  [innerHTML]="addPerson?.lastname"></div>
-            <div [attr.testid]="'addperson-' + i + '-firstnameText'" class="col font-weight-bold"
+            <div class="col font-weight-bold" [attr.testid]="'addperson-' + i + '-firstnameText'"
                  [innerHTML]="addPerson?.firstname"></div>
           </div>
           <div class="row">
-            <div [attr.testid]="'addperson-' + i + '-birthDateAgeText'" class="col"
+            <div class="col" [attr.testid]="'addperson-' + i + '-birthDateAgeText'"
                  [innerHTML]="formatBirthDateAge(addPerson?.birthDate)"></div>
-            <div [attr.testid]="'addperson-' + i + '-incomeText'" class="col"
-                 *ngIf="addPerson?.income !== null">Einkommen: {{addPerson?.income}} &euro;
-            </div>
-            <div [attr.testid]="'addperson-' + i + '-incomeText'" class="col"
-                 *ngIf="addPerson?.income === null">Einkommen: -
-            </div>
+          </div>
+          <div class="row">
+            <div class="col-6">Einkommen (monatl.):</div>
+            <div class="col-6" [attr.testid]="'addperson-' + i + '-incomeText'"
+                 *ngIf="addPerson?.income !== null">{{addPerson?.income}} &euro;</div>
+            <div class="col-6" [attr.testid]="'addperson-' + i + '-incomeText'"
+                 *ngIf="addPerson?.income === null">-</div>
+          </div>
+          <div class="row">
+            <div class="col-6">--> nachgewiesen bis:</div>
+            <div class="col-6" [attr.testid]="'addperson-' + i + '-incomeDueText'"
+                 *ngIf="addPerson?.incomeDue !== null">{{formatDate(addPerson?.incomeDue)}}</div>
+            <div class="col-6" [attr.testid]="'addperson-' + i + '-incomeDueText'"
+                 *ngIf="addPerson?.incomeDue === null">-</div>
           </div>
         </div>
       </div>
