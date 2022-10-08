@@ -96,6 +96,7 @@ export interface CustomerAddPersonData {
   lastname: string;
   birthDate: Date;
   income?: number;
+  incomeDue?: Date;
 }
 
 type PdfType = 'MASTERDATA' | 'IDCARD' | 'COMBINED';

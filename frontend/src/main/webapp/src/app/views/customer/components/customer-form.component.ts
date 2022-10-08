@@ -40,10 +40,7 @@ export class CustomerFormComponent implements OnInit {
 
     employer: new FormControl(null, Validators.required),
     income: new FormControl(null, Validators.required),
-    incomeDue: new FormControl(null, [
-      Validators.required,
-      CustomValidator.minDate(new Date())
-    ]),
+    incomeDue: new FormControl(null),
 
     validUntil: new FormControl(null, [
       Validators.required,
@@ -103,7 +100,8 @@ export class CustomerFormComponent implements OnInit {
       firstname: null,
       lastname: null,
       birthDate: null,
-      income: null
+      income: null,
+      incomeDue: null
     });
 
     if (this.editMode) {
@@ -134,7 +132,8 @@ export class CustomerFormComponent implements OnInit {
         CustomValidator.minDate(new Date(1920, 0, 1)),
         CustomValidator.maxDate(new Date())
       ]),
-      income: new FormControl(additionalPerson.income)
+      income: new FormControl(additionalPerson.income),
+      incomeDue: new FormControl(additionalPerson.incomeDue)
     });
     this.additionalPersons.push(control);
   }
