@@ -203,7 +203,7 @@
                 <fo:table-row>
                     <fo:table-cell>
                         <fo:block border-left="0.1mm solid #000000"
-                                  margin-top="1mm" margin-bottom="1mm" margin-left="5mm"
+                                  margin-top="1mm" margin-bottom="1mm"
                                   margin-right="1mm">
                             <xsl:choose>
                                 <xsl:when test="$data/additionalPersons != ''">
