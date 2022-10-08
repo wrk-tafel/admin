@@ -196,4 +196,36 @@ describe('CustomerFormComponent', () => {
     expect(trackingId).toBe(testUuid);
   });
 
+  it('validUntil set when incomeDue is updated', () => {
+    apiService.getCountries.and.returnValue(of(mockCountryList));
+
+    const fixture = TestBed.createComponent(CustomerFormComponent);
+    const component = fixture.componentInstance;
+    component.ngOnInit();
+    component.incomeDue.setValue('2000-01-01');
+
+    fixture.detectChanges();
+
+    expect(component.validUntil.value).toBe('2000-03-01');
+  });
+
+  it('validUntil set when incomeDue is updated respects additional persons', () => {
+    apiService.getCountries.and.returnValue(of(mockCountryList));
+
+    const fixture = TestBed.createComponent(CustomerFormComponent);
+    const component = fixture.componentInstance;
+    component.ngOnInit();
+    component.incomeDue.setValue('2000-03-03');
+    component.addNewPerson();
+    component.addNewPerson();
+    component.additionalPersons.at(0).get('incomeDue').setValue('2000-02-02');
+    component.additionalPersons.at(1).get('incomeDue').setValue('2000-01-01');
+
+    component.removePerson(1);
+
+    fixture.detectChanges();
+
+    expect(component.validUntil.value).toBe('2000-04-02');
+  });
+
 });
