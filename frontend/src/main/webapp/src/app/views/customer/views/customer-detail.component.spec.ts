@@ -243,8 +243,9 @@ describe('CustomerDetailComponent', () => {
     };
 
     const valid = component.isValid();
-
     expect(valid).toBe(true);
+
+    // TODO expect(incomeDueText)-class success or danger
   }));
 
 });
