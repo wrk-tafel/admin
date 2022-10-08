@@ -53,7 +53,7 @@
               </div>
               <div *ngIf="birthDate.errors?.mindate && (birthDate.dirty || birthDate.touched)"
                    class="invalid-feedback">
-                Min. Datum: {{birthDate.errors.mindate.minimumDate}}
+                Mind. Datum: {{birthDate.errors.mindate.minimumDate}}
               </div>
               <div *ngIf="birthDate.errors?.maxdate && (birthDate.dirty || birthDate.touched)"
                    class="invalid-feedback">
@@ -231,13 +231,9 @@
               <div class="input-group">
                 <input testId="incomeDueInput" type="date" formControlName="incomeDue" class="form-control"
                        [ngClass]="{'is-invalid': incomeDue.invalid && (incomeDue.dirty || incomeDue.touched), 'is-valid': incomeDue.valid && (incomeDue.dirty || incomeDue.touched)}">
-                <div *ngIf="incomeDue.errors?.required && (incomeDue.dirty || incomeDue.touched)"
-                     class="invalid-feedback">
-                  Pflichtfeld
-                </div>
                 <div *ngIf="incomeDue.errors?.mindate && (incomeDue.dirty || incomeDue.touched)"
                      class="invalid-feedback">
-                  Min. Datum: {{incomeDue.errors.mindate.minimumDate}}
+                  Mind. Datum: {{incomeDue.errors.mindate.minimumDate}}
                 </div>
               </div>
             </div>
@@ -254,7 +250,7 @@
               </div>
               <div *ngIf="validUntil.errors?.mindate && (validUntil.dirty || validUntil.touched)"
                    class="invalid-feedback">
-                Min. Datum: {{validUntil.errors.mindate.minimumDate}}
+                Mind. Datum: {{validUntil.errors.mindate.minimumDate}}
               </div>
             </div>
           </div>
@@ -334,7 +330,7 @@
                           <div
                             *ngIf="additionalPerson.get('birthDate').errors?.mindate && (additionalPerson.get('birthDate').dirty || additionalPerson.get('birthDate').touched)"
                             class="invalid-feedback">
-                            Min. Datum: {{additionalPerson.get('birthDate').errors.mindate.minimumDate}}
+                            Mind. Datum: {{additionalPerson.get('birthDate').errors.mindate.minimumDate}}
                           </div>
                           <div
                             *ngIf="additionalPerson.get('birthDate').errors?.maxdate && (additionalPerson.get('birthDate').dirty || additionalPerson.get('birthDate').touched)"
@@ -361,6 +357,10 @@
                             <input testid="incomeDueInput" type="date"
                                    formControlName="incomeDue" class="form-control"
                                    [ngClass]="{'is-invalid': additionalPerson.get('incomeDue').invalid && (additionalPerson.get('incomeDue').dirty || additionalPerson.get('incomeDue').touched), 'is-valid': additionalPerson.get('incomeDue').valid && (additionalPerson.get('incomeDue').dirty || additionalPerson.get('incomeDue').touched)}">
+                              <div *ngIf="additionalPerson.get('incomeDue').errors?.mindate && (additionalPerson.get('incomeDue').dirty || additionalPerson.get('incomeDue').touched)"
+                                   class="invalid-feedback">
+                                Mind. Datum: {{additionalPerson.get('incomeDue').errors.mindate.minimumDate}}
+                              </div>
                           </div>
                         </div>
                       </div>
