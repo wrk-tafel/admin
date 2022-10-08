@@ -126,7 +126,8 @@ describe('CustomerDetailComponent', () => {
     expect(fixture.debugElement.query(By.css('[testId="addressLine2Text"]')).nativeElement.textContent).toBe('1020 Wien');
     expect(fixture.debugElement.query(By.css('[testId="employerText"]')).nativeElement.textContent).toBe('test employer');
     expect(fixture.debugElement.query(By.css('[testId="incomeText"]')).nativeElement.textContent).toBe('1000 €');
-    expect(fixture.debugElement.query(By.css('[testId="incomeDueText"]')).nativeElement.textContent).toBe(moment(mockCustomer.incomeDue).format('DD.MM.YYYY'));
+    expect(fixture.debugElement.query(By.css('[testId="incomeDueText"]')).nativeElement.textContent)
+      .toBe(moment(mockCustomer.incomeDue).format('DD.MM.YYYY'));
     expect(fixture.debugElement.query(By.css('[testId="validUntilText"]')).nativeElement.textContent)
       .toBe(moment(mockCustomer.validUntil).format('DD.MM.yyyy'));
 
