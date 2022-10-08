@@ -74,20 +74,21 @@ class CustomerControllerTest {
         employer = "Employer 123",
         income = BigDecimal("1000"),
         incomeDue = LocalDate.now(),
+        validUntil = LocalDate.now(),
         additionalPersons = listOf(
             CustomerAdditionalPerson(
                 id = 2,
                 firstname = "Add pers 1",
                 lastname = "Add pers 1",
                 birthDate = LocalDate.now().minusYears(5),
-                income = BigDecimal("100")
+                income = BigDecimal("100"),
+                incomeDue = LocalDate.now()
             ),
             CustomerAdditionalPerson(
                 id = 3,
                 firstname = "Add pers 2",
                 lastname = "Add pers 2",
-                birthDate = LocalDate.now().minusYears(2),
-                income = BigDecimal("200")
+                birthDate = LocalDate.now().minusYears(2)
             )
         )
     )
@@ -121,6 +122,7 @@ class CustomerControllerTest {
         testCustomerEntity1.employer = "Employer 123"
         testCustomerEntity1.income = BigDecimal("1000")
         testCustomerEntity1.incomeDue = LocalDate.now()
+        testCustomerEntity1.validUntil = LocalDate.now()
 
         val addPerson1 = CustomerAddPersonEntity()
         addPerson1.id = 2
@@ -128,13 +130,13 @@ class CustomerControllerTest {
         addPerson1.firstname = "Add pers 1"
         addPerson1.birthDate = LocalDate.now().minusYears(5)
         addPerson1.income = BigDecimal("100")
+        addPerson1.incomeDue = LocalDate.now()
 
         val addPerson2 = CustomerAddPersonEntity()
         addPerson2.id = 3
         addPerson2.lastname = "Add pers 2"
         addPerson2.firstname = "Add pers 2"
         addPerson2.birthDate = LocalDate.now().minusYears(2)
-        addPerson2.income = BigDecimal("200")
 
         testCustomerEntity1.additionalPersons = mutableListOf(addPerson1, addPerson2)
 
@@ -155,6 +157,7 @@ class CustomerControllerTest {
         testCustomerEntity2.employer = "Employer 123-2"
         testCustomerEntity2.income = BigDecimal("2000")
         testCustomerEntity2.incomeDue = LocalDate.now()
+        testCustomerEntity2.validUntil = LocalDate.now()
     }
 
     @Test
@@ -199,8 +202,7 @@ class CustomerControllerTest {
                     assertThat(it[2])
                         .isEqualTo(
                             IncomeValidatorPerson(
-                                birthDate = LocalDate.now().minusYears(2),
-                                monthlyIncome = BigDecimal("200")
+                                birthDate = LocalDate.now().minusYears(2)
                             )
                         )
                 }
@@ -304,7 +306,7 @@ class CustomerControllerTest {
     fun `generate pdf customer`() {
         every { customerRepository.findByCustomerId(any()) } returns Optional.empty()
 
-        val response = controller.generatePdf(1, PdfType.MASTERDATA)
+        val response = controller.generatePdf(1, CustomerPdfType.MASTERDATA)
 
         assertThat(response).isNotNull
         assertThat(response.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
@@ -316,7 +318,7 @@ class CustomerControllerTest {
         every { customerRepository.findByCustomerId(any()) } returns Optional.of(testCustomerEntity1)
         every { customerPdfService.generateMasterdataPdf(any()) } returns pdfBytes
 
-        val response = controller.generatePdf(1, PdfType.MASTERDATA)
+        val response = controller.generatePdf(1, CustomerPdfType.MASTERDATA)
 
         assertThat(response).isNotNull
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)

@@ -76,6 +76,7 @@ export interface CustomerData {
   employer?: string;
   income?: number;
   incomeDue?: Date;
+  validUntil?: Date;
   additionalPersons?: CustomerAddPersonData[];
 }
 
@@ -95,6 +96,7 @@ export interface CustomerAddPersonData {
   lastname: string;
   birthDate: Date;
   income?: number;
+  incomeDue?: Date;
 }
 
 type PdfType = 'MASTERDATA' | 'IDCARD' | 'COMBINED';

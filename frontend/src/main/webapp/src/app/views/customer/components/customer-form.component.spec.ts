@@ -34,6 +34,7 @@ describe('CustomerFormComponent', () => {
     employer: 'WRK',
     income: 123.50,
     incomeDue: moment().add(1, 'years').startOf('day').utc().toDate(),
+    validUntil: moment().add(1, 'years').startOf('day').utc().toDate(),
     additionalPersons: [
       {
         key: 0,
@@ -41,15 +42,15 @@ describe('CustomerFormComponent', () => {
         lastname: 'Last 1',
         firstname: 'First 1',
         birthDate: moment().subtract(1, 'years').startOf('day').utc().toDate(),
-        income: null
+        income: 200,
+        incomeDue: moment().add(1, 'years').startOf('day').utc().toDate(),
       },
       {
         key: 1,
         id: 1,
         lastname: 'Last 2',
         firstname: 'First 2',
-        birthDate: moment().subtract(4, 'years').startOf('day').utc().toDate(),
-        income: null
+        birthDate: moment().subtract(4, 'years').startOf('day').utc().toDate()
       }
     ]
   };
@@ -63,7 +64,7 @@ describe('CustomerFormComponent', () => {
       ],
       imports: [
         RouterTestingModule,
-        ReactiveFormsModule,
+        ReactiveFormsModule
       ],
       providers: [
         {
@@ -117,6 +118,7 @@ describe('CustomerFormComponent', () => {
     expect(component.employer.value).toBe(testCustomerData.employer);
     expect(component.income.value).toBe(testCustomerData.income);
     expect(component.incomeDue.value).toBe(testCustomerData.incomeDue);
+    expect(component.validUntil.value).toBe(testCustomerData.validUntil);
 
     expect(component.isValid()).toBe(true);
     expect(component.countries).toEqual(mockCountryList);
@@ -128,15 +130,15 @@ describe('CustomerFormComponent', () => {
         lastname: testCustomerData.additionalPersons[0].lastname,
         firstname: testCustomerData.additionalPersons[0].firstname,
         birthDate: testCustomerData.additionalPersons[0].birthDate,
-        income: testCustomerData.additionalPersons[0].income
+        income: testCustomerData.additionalPersons[0].income,
+        incomeDue: testCustomerData.additionalPersons[0].incomeDue
       }));
     expect(component.additionalPersons.at(1).value)
       .toEqual(jasmine.objectContaining({
         id: testCustomerData.additionalPersons[1].id,
         lastname: testCustomerData.additionalPersons[1].lastname,
         firstname: testCustomerData.additionalPersons[1].firstname,
-        birthDate: testCustomerData.additionalPersons[1].birthDate,
-        income: testCustomerData.additionalPersons[1].income
+        birthDate: testCustomerData.additionalPersons[1].birthDate
       }));
   }));
 
@@ -153,9 +155,13 @@ describe('CustomerFormComponent', () => {
     const updatedLastname = 'updated';
     const updatedBirthDate = moment().subtract(30, 'years').startOf('day').utc().toDate();
     const updatedIncome = 54321;
+    const updatedIncomeDue = moment().add(2, 'years').startOf('day').utc().toDate();
+
     component.lastname.setValue(updatedLastname);
     component.birthDate.setValue(updatedBirthDate);
     component.income.setValue(updatedIncome);
+    component.incomeDue.setValue(updatedIncomeDue);
+
     // TODO const updatedPers1Lastname = 'Pers1UpdatedLastName';
     // TODO component.additionalPersons.at(1).get('lastname').setValue(updatedPers1Lastname);
     fixture.detectChanges();
@@ -188,6 +194,38 @@ describe('CustomerFormComponent', () => {
     }));
 
     expect(trackingId).toBe(testUuid);
+  });
+
+  it('validUntil set when incomeDue is updated', () => {
+    apiService.getCountries.and.returnValue(of(mockCountryList));
+
+    const fixture = TestBed.createComponent(CustomerFormComponent);
+    const component = fixture.componentInstance;
+    component.ngOnInit();
+    component.incomeDue.setValue('2000-01-01');
+
+    fixture.detectChanges();
+
+    expect(component.validUntil.value).toBe('2000-03-01');
+  });
+
+  it('validUntil set when incomeDue is updated respects additional persons', () => {
+    apiService.getCountries.and.returnValue(of(mockCountryList));
+
+    const fixture = TestBed.createComponent(CustomerFormComponent);
+    const component = fixture.componentInstance;
+    component.ngOnInit();
+    component.incomeDue.setValue('2000-03-03');
+    component.addNewPerson();
+    component.addNewPerson();
+    component.additionalPersons.at(0).get('incomeDue').setValue('2000-02-02');
+    component.additionalPersons.at(1).get('incomeDue').setValue('2000-01-01');
+
+    component.removePerson(1);
+
+    fixture.detectChanges();
+
+    expect(component.validUntil.value).toBe('2000-04-02');
   });
 
 });

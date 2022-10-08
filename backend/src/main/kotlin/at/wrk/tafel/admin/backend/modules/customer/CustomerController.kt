@@ -103,17 +103,17 @@ class CustomerController(
     @GetMapping("/{customerId}/generate-pdf", produces = [MediaType.APPLICATION_PDF_VALUE])
     fun generatePdf(
         @PathVariable("customerId") customerId: Long,
-        @RequestParam("type") type: PdfType
+        @RequestParam("type") type: CustomerPdfType
     ): ResponseEntity<InputStreamResource> {
         return when (type) {
-            PdfType.MASTERDATA -> generatePdfResponse(
+            CustomerPdfType.MASTERDATA -> generatePdfResponse(
                 customerId,
                 "stammdaten",
                 customerPdfService::generateMasterdataPdf
             )
 
-            PdfType.IDCARD -> generatePdfResponse(customerId, "ausweis", customerPdfService::generateIdCardPdf)
-            PdfType.COMBINED -> generatePdfResponse(
+            CustomerPdfType.IDCARD -> generatePdfResponse(customerId, "ausweis", customerPdfService::generateIdCardPdf)
+            CustomerPdfType.COMBINED -> generatePdfResponse(
                 customerId,
                 "stammdaten-ausweis",
                 customerPdfService::generateCombinedPdf
@@ -169,6 +169,7 @@ class CustomerController(
         customerEntity.employer = customer.employer.trim()
         customerEntity.income = customer.income
         customerEntity.incomeDue = customer.incomeDue
+        customerEntity.validUntil = customer.validUntil
 
         customerEntity.additionalPersons.clear()
         customerEntity.additionalPersons.addAll(
@@ -180,6 +181,7 @@ class CustomerController(
                 addPersonEntity.firstname = it.firstname.trim()
                 addPersonEntity.birthDate = it.birthDate
                 addPersonEntity.income = it.income
+                addPersonEntity.incomeDue = it.incomeDue
                 addPersonEntity
             }.toList()
         )
@@ -206,13 +208,15 @@ class CustomerController(
         employer = customerEntity.employer!!,
         income = customerEntity.income,
         incomeDue = customerEntity.incomeDue,
+        validUntil = customerEntity.validUntil,
         additionalPersons = customerEntity.additionalPersons.map {
             CustomerAdditionalPerson(
                 id = it.id!!,
                 firstname = it.firstname!!,
                 lastname = it.lastname!!,
                 birthDate = it.birthDate!!,
-                income = it.income
+                income = it.income,
+                incomeDue = it.incomeDue
             )
         }
     )
@@ -245,6 +249,6 @@ class CustomerController(
     }
 }
 
-enum class PdfType {
+enum class CustomerPdfType {
     MASTERDATA, IDCARD, COMBINED;
 }

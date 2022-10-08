@@ -70,7 +70,6 @@ class CustomerPdfServiceImplTest {
         testCustomer.lastname = "Mustermann"
         testCustomer.firstname = "Max"
         testCustomer.birthDate = LocalDate.of(1980, 6, 10)
-        testCustomer.incomeDue = LocalDate.of(2030, 1, 1)
         testCustomer.addressStreet = "Karl-Schäfer-Straße"
         testCustomer.addressHouseNumber = "8"
         testCustomer.addressStairway = "1"
@@ -78,6 +77,9 @@ class CustomerPdfServiceImplTest {
         testCustomer.addressPostalCode = 1210
         testCustomer.addressCity = "Wien"
         testCustomer.employer = "WRK Team Österreich Tafel"
+        testCustomer.income = BigDecimal.TEN
+        testCustomer.incomeDue = LocalDate.of(2030, 1, 1)
+        testCustomer.validUntil = LocalDate.of(2030, 3, 1)
 
         val addPers1 = CustomerAddPersonEntity()
         addPers1.lastname = "Mustermann"

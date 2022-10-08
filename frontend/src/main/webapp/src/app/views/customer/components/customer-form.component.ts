@@ -4,6 +4,7 @@ import {CountryApiService, CountryData} from '../../../common/api/country-api.se
 import {CustomValidator} from '../../../common/CustomValidator';
 import {CustomerAddPersonData, CustomerData} from '../api/customer-api.service';
 import {v4 as uuidv4} from 'uuid';
+import * as moment from 'moment';
 
 @Component({
   selector: 'tafel-customer-form',
@@ -12,6 +13,12 @@ import {v4 as uuidv4} from 'uuid';
 export class CustomerFormComponent implements OnInit {
   @Input() editMode: boolean = false;
   @Output() customerDataChange = new EventEmitter<CustomerData>();
+
+  constructor(
+    private countryApiService: CountryApiService
+  ) {
+  }
+
   form = new FormGroup({
     id: new FormControl(null),
     lastname: new FormControl(null, [Validators.required, Validators.maxLength(50)]),
@@ -19,7 +26,7 @@ export class CustomerFormComponent implements OnInit {
     birthDate: new FormControl(null,
       [
         Validators.required,
-        CustomValidator.minDate(new Date(1920, 0, 1)),
+        CustomValidator.minDate(new Date(1900, 0, 1)),
         CustomValidator.maxDate(new Date())
       ]
     ),
@@ -39,16 +46,16 @@ export class CustomerFormComponent implements OnInit {
 
     employer: new FormControl(null, Validators.required),
     income: new FormControl(null, Validators.required),
-    incomeDue: new FormControl(null, CustomValidator.minDate(new Date())),
+    incomeDue: new FormControl(null, [CustomValidator.minDate(new Date())]),
+
+    validUntil: new FormControl(null, [
+      Validators.required,
+      CustomValidator.minDate(new Date())
+    ]),
 
     additionalPersons: new FormArray([])
   });
   countries: CountryData[];
-
-  constructor(
-    private countryApiService: CountryApiService
-  ) {
-  }
 
   get customerData() {
     return this.customerData;
@@ -66,6 +73,107 @@ export class CustomerFormComponent implements OnInit {
         }
       ));
     }
+  }
+
+  ngOnInit(): void {
+    this.countryApiService.getCountries().subscribe((countries) => {
+      this.countries = countries;
+    });
+
+    this.incomeDue.valueChanges.subscribe(() => {
+      this.updateValidUntilDate();
+    });
+
+    this.form.valueChanges.subscribe(() => {
+      this.customerDataChange.emit(this.form.value);
+    });
+  }
+
+  updateValidUntilDate() {
+    let incomeDueValues = [];
+    if (this.incomeDue.value) {
+      incomeDueValues.push(this.incomeDue.value);
+    }
+
+    for (let i = 0; i < this.additionalPersons.length; i++) {
+      const value = this.additionalPersons.at(i).get('incomeDue').value;
+      if (value) {
+        incomeDueValues.push(value);
+      }
+    }
+
+    incomeDueValues = incomeDueValues.map((dateString) => moment(dateString, 'YYYY-MM-DD').toDate());
+
+    if (incomeDueValues.length > 0) {
+      const minIncomeDueValue = new Date(Math.min.apply(null, incomeDueValues));
+
+      const derivedValidUntilDate = moment(minIncomeDueValue)
+        .add(2, 'months')
+        .format('YYYY-MM-DD');
+      this.validUntil.setValue(derivedValidUntilDate);
+    }
+  }
+
+  compareCountry(c1: CountryData, c2: CountryData): boolean {
+    return c1 && c2 ? c1.id === c2.id : c1 === c2;
+  }
+
+  trackBy(index: number, personDataControl: FormGroup) {
+    const personData = personDataControl.value;
+    return personData.key;
+  }
+
+  addNewPerson() {
+    this.pushPersonGroupControl({
+      key: uuidv4(),
+      id: null,
+      firstname: null,
+      lastname: null,
+      birthDate: null,
+      income: null,
+      incomeDue: null
+    });
+
+    if (this.editMode) {
+      this.additionalPersons.at(this.additionalPersons.length - 1).markAllAsTouched();
+    }
+  }
+
+  removePerson(index: number) {
+    this.additionalPersons.removeAt(index);
+    this.updateValidUntilDate();
+  }
+
+  markAllAsTouched() {
+    this.form.markAllAsTouched();
+  }
+
+  isValid(): boolean {
+    return this.form.valid;
+  }
+
+  private pushPersonGroupControl(additionalPerson: CustomerAddPersonData) {
+    const control = new FormGroup({
+      key: new FormControl(additionalPerson.key),
+      id: new FormControl(additionalPerson.id),
+      lastname: new FormControl(additionalPerson.lastname, [Validators.required, Validators.maxLength(50)]),
+      firstname: new FormControl(additionalPerson.firstname, [Validators.required, , Validators.maxLength(50)]),
+      birthDate: new FormControl(additionalPerson.birthDate, [
+        Validators.required,
+        CustomValidator.minDate(new Date(1920, 0, 1)),
+        CustomValidator.maxDate(new Date())
+      ]),
+      income: new FormControl(additionalPerson.income),
+      incomeDue: new FormControl(additionalPerson.incomeDue, [
+        CustomValidator.minDate(new Date())
+      ])
+    });
+
+    control.get('incomeDue').valueChanges.subscribe(() => {
+      this.updateValidUntilDate();
+    });
+
+    this.additionalPersons.push(control);
   }
 
   get id() {
@@ -132,69 +240,12 @@ export class CustomerFormComponent implements OnInit {
     return this.form.get('incomeDue');
   }
 
+  get validUntil() {
+    return this.form.get('validUntil');
+  }
+
   get additionalPersons() {
     return this.form.get('additionalPersons') as FormArray;
   }
 
-  ngOnInit(): void {
-    this.countryApiService.getCountries().subscribe((countries) => {
-      this.countries = countries;
-    });
-
-    this.form.valueChanges.subscribe(() => {
-      this.customerDataChange.emit(this.form.value);
-    });
-  }
-
-  compareCountry(c1: CountryData, c2: CountryData): boolean {
-    return c1 && c2 ? c1.id === c2.id : c1 === c2;
-  }
-
-  trackBy(index: number, personDataControl: FormGroup) {
-    const personData = personDataControl.value;
-    return personData.key;
-  }
-
-  addNewPerson() {
-    this.pushPersonGroupControl({
-      key: uuidv4(),
-      id: null,
-      firstname: null,
-      lastname: null,
-      birthDate: null,
-      income: null
-    });
-
-    if (this.editMode) {
-      this.additionalPersons.at(this.additionalPersons.length - 1).markAllAsTouched();
-    }
-  }
-
-  removePerson(index: number) {
-    this.additionalPersons.removeAt(index);
-  }
-
-  markAllAsTouched() {
-    this.form.markAllAsTouched();
-  }
-
-  isValid(): boolean {
-    return this.form.valid;
-  }
-
-  private pushPersonGroupControl(additionalPerson: CustomerAddPersonData) {
-    const control = new FormGroup({
-      key: new FormControl(additionalPerson.key),
-      id: new FormControl(additionalPerson.id),
-      lastname: new FormControl(additionalPerson.lastname, [Validators.required, Validators.maxLength(50)]),
-      firstname: new FormControl(additionalPerson.firstname, [Validators.required, , Validators.maxLength(50)]),
-      birthDate: new FormControl(additionalPerson.birthDate, [
-        Validators.required,
-        CustomValidator.minDate(new Date(1920, 0, 1)),
-        CustomValidator.maxDate(new Date())
-      ]),
-      income: new FormControl(additionalPerson.income)
-    });
-    this.additionalPersons.push(control);
-  }
 }

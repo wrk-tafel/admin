@@ -56,8 +56,7 @@
                 </fo:table-row>
                 <fo:table-row>
                     <fo:table-cell>
-                        <fo:block border-right="0.1mm solid #000000"
-                                  margin-top="1mm" margin-bottom="1mm" margin-left="1mm"
+                        <fo:block margin-top="1mm" margin-bottom="1mm" margin-left="1mm"
                                   margin-right="1mm">
                             <fo:table table-layout="fixed" width="100%">
                                 <fo:table-column column-width="35%"/>
@@ -171,11 +170,11 @@
                                     </fo:table-row>
                                     <fo:table-row>
                                         <fo:table-cell>
-                                            <fo:block font-weight="bold">Auszahlung bis:</fo:block>
+                                            <fo:block font-weight="bold">--> bis:</fo:block>
                                         </fo:table-cell>
                                         <fo:table-cell>
                                             <fo:block>
-                                                <xsl:value-of select="$data/validUntilDate"/>
+                                                <xsl:value-of select="$data/incomeDueDate"/>
                                             </fo:block>
                                         </fo:table-cell>
                                     </fo:table-row>
@@ -203,7 +202,8 @@
                 </fo:table-row>
                 <fo:table-row>
                     <fo:table-cell>
-                        <fo:block margin-top="1mm" margin-bottom="1mm" margin-left="1mm"
+                        <fo:block border-left="0.1mm solid #000000"
+                                  margin-top="1mm" margin-bottom="1mm"
                                   margin-right="1mm">
                             <xsl:choose>
                                 <xsl:when test="$data/additionalPersons != ''">
@@ -223,19 +223,34 @@
                                                 </fo:table-row>
                                                 <fo:table-row>
                                                     <fo:table-cell>
+                                                        <fo:block>
+                                                            <xsl:value-of select="./birthDate"/>
+                                                        </fo:block>
+                                                    </fo:table-cell>
+                                                </fo:table-row>
+                                                <fo:table-row>
+                                                    <fo:table-cell>
                                                         <fo:table table-layout="fixed" width="100%">
                                                             <fo:table-column column-width="50%"/>
                                                             <fo:table-column column-width="50%"/>
                                                             <fo:table-body>
                                                                 <fo:table-row>
                                                                     <fo:table-cell>
-                                                                        <fo:block>
-                                                                            <xsl:value-of select="./birthDate"/>
-                                                                        </fo:block>
+                                                                        <fo:block>Einkommen:</fo:block>
                                                                     </fo:table-cell>
                                                                     <fo:table-cell>
                                                                         <fo:block>
                                                                             <xsl:value-of select="./income"/>
+                                                                        </fo:block>
+                                                                    </fo:table-cell>
+                                                                </fo:table-row>
+                                                                <fo:table-row>
+                                                                    <fo:table-cell>
+                                                                        <fo:block>--> bis:</fo:block>
+                                                                    </fo:table-cell>
+                                                                    <fo:table-cell>
+                                                                        <fo:block>
+                                                                            <xsl:value-of select="./incomeDueDate"/>
                                                                         </fo:block>
                                                                     </fo:table-cell>
                                                                 </fo:table-row>
@@ -311,10 +326,30 @@
             </fo:table>
         </fo:block>
         <fo:block margin-top="2cm">
-            <fo:inline font-weight="bold">Datum:</fo:inline>
-            <fo:inline>
-                <xsl:value-of select="concat(' ', ./issuedAtDate)"/>
-            </fo:inline>
+            <fo:table table-layout="fixed" width="100%">
+                <fo:table-column column-width="50%"/>
+                <fo:table-column column-width="50%"/>
+                <fo:table-body>
+                    <fo:table-row>
+                        <fo:table-cell>
+                            <fo:block>
+                                <fo:inline>
+                                    <fo:inline font-weight="bold">Datum:</fo:inline>
+                                    <xsl:value-of select="concat(' ', ./issuedAtDate)"/>
+                                </fo:inline>
+                            </fo:block>
+                        </fo:table-cell>
+                        <fo:table-cell>
+                            <fo:block>
+                                <fo:inline>
+                                    <fo:inline font-weight="bold">Gültig bis:</fo:inline>
+                                    <xsl:value-of select="concat(' ', ./customer/validUntilDate)"/>
+                                </fo:inline>
+                            </fo:block>
+                        </fo:table-cell>
+                    </fo:table-row>
+                </fo:table-body>
+            </fo:table>
         </fo:block>
     </xsl:template>
 </xsl:stylesheet>

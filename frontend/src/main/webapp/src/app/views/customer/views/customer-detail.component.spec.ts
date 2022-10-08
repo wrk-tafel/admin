@@ -41,6 +41,8 @@ describe('CustomerDetailComponent', () => {
     income: 1000,
     incomeDue: moment().add(1, 'years').startOf('day').utc().toDate(),
 
+    validUntil: moment().add(1, 'years').startOf('day').utc().toDate(),
+
     additionalPersons: [
       {
         key: 0,
@@ -48,15 +50,15 @@ describe('CustomerDetailComponent', () => {
         lastname: 'Add',
         firstname: 'Pers 1',
         birthDate: moment().subtract(5, 'years').startOf('day').utc().toDate(),
-        income: 50
+        income: 50,
+        incomeDue: moment().add(1, 'years').startOf('day').utc().toDate()
       },
       {
         key: 1,
         id: 1,
         lastname: 'Add',
         firstname: 'Pers 2',
-        birthDate: moment().subtract(10, 'years').startOf('day').utc().toDate(),
-        income: 80
+        birthDate: moment().subtract(10, 'years').startOf('day').utc().toDate()
       }
     ]
   };
@@ -125,7 +127,9 @@ describe('CustomerDetailComponent', () => {
     expect(fixture.debugElement.query(By.css('[testId="employerText"]')).nativeElement.textContent).toBe('test employer');
     expect(fixture.debugElement.query(By.css('[testId="incomeText"]')).nativeElement.textContent).toBe('1000 €');
     expect(fixture.debugElement.query(By.css('[testId="incomeDueText"]')).nativeElement.textContent)
-      .toBe(moment(mockCustomer.incomeDue).format('DD.MM.yyyy'));
+      .toBe(moment(mockCustomer.incomeDue).format('DD.MM.YYYY'));
+    expect(fixture.debugElement.query(By.css('[testId="validUntilText"]')).nativeElement.textContent)
+      .toBe(moment(mockCustomer.validUntil).format('DD.MM.yyyy'));
 
     // TODO check additional persons
   }));
@@ -203,6 +207,46 @@ describe('CustomerDetailComponent', () => {
     component.editCustomer();
 
     expect(router.navigate).toHaveBeenCalledWith(['/kunden/bearbeiten', mockCustomer.id]);
+  }));
+
+  it('isValid with date yesterday is not valid', waitForAsync(() => {
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    const component = fixture.componentInstance;
+    component.customerData = {
+      ...mockCustomer,
+      validUntil: moment().subtract(1, 'days').toDate()
+    };
+
+    const valid = component.isValid();
+
+    expect(valid).toBe(false);
+  }));
+
+  it('isValid with date today is valid', waitForAsync(() => {
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    const component = fixture.componentInstance;
+    component.customerData = {
+      ...mockCustomer,
+      validUntil: moment().toDate()
+    };
+
+    const valid = component.isValid();
+
+    expect(valid).toBe(true);
+  }));
+
+  it('isValid with date tomorrow is valid', waitForAsync(() => {
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    const component = fixture.componentInstance;
+    component.customerData = {
+      ...mockCustomer,
+      validUntil: moment().add(1, 'days').toDate()
+    };
+
+    const valid = component.isValid();
+    expect(valid).toBe(true);
+
+    // TODO expect(incomeDueText)-class success or danger
   }));
 
 });

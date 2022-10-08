@@ -54,8 +54,11 @@ class CustomerEntity : BaseChangeTrackingEntity() {
     @Column(name = "income")
     var income: BigDecimal? = null
 
-    @Column(name = "income_due")
+    @Column(name = "incomeDue")
     var incomeDue: LocalDate? = null
+
+    @Column(name = "valid_until")
+    var validUntil: LocalDate? = null
 
     @OneToMany(mappedBy = "customer", cascade = [CascadeType.ALL], orphanRemoval = true)
     var additionalPersons: MutableList<CustomerAddPersonEntity> = mutableListOf()

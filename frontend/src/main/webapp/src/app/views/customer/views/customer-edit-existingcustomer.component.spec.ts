@@ -36,6 +36,7 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
     employer: 'test employer',
     income: 1000,
     incomeDue: moment().add(1, 'years').startOf('day').utc().toDate(),
+    validUntil: moment().add(1, 'years').startOf('day').utc().toDate(),
 
     additionalPersons: [
       {
@@ -44,15 +45,15 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
         lastname: 'Add',
         firstname: 'Pers 1',
         birthDate: moment().subtract(5, 'years').startOf('day').utc().toDate(),
-        income: 50
+        income: 50,
+        incomeDue: moment().add(1, 'years').startOf('day').utc().toDate()
       },
       {
         key: 1,
         id: 1,
         lastname: 'Add',
         firstname: 'Pers 2',
-        birthDate: moment().subtract(2, 'years').startOf('day').utc().toDate(),
-        income: 80
+        birthDate: moment().subtract(2, 'years').startOf('day').utc().toDate()
       }
     ]
   };

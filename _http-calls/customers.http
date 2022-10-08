@@ -41,6 +41,7 @@ Content-Type: application/json
   "employer": "Rotes Kreuz Wien",
   "income": 456.00,
   "incomeDue": "2999-12-31",
+  "validUntil": "2999-12-31",
   "additionalPersons": [
     {
       "id": 1,
@@ -93,6 +94,7 @@ Content-Type: application/json
   "employer": "Rotes Kreuz Wien",
   "income": 456.00,
   "incomeDue": "2999-12-31",
+  "validUntil": "2999-12-31",
   "additionalPersons": [
     {
       "id": 1,

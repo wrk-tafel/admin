@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.modules.customer.masterdata
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
+import java.time.LocalDate
 
 @JacksonXmlRootElement(localName = "data")
 @ExcludeFromTestCoverage
@@ -51,6 +52,7 @@ data class PdfCustomerData(
     val address: PdfAddressData,
     val employer: String,
     val income: String? = null,
+    val incomeDueDate: String? = null,
     val validUntilDate: String? = null,
     val additionalPersons: List<PdfAdditionalPersonData> = emptyList(),
     val idCard: PdfIdCardData? = null
@@ -71,7 +73,8 @@ data class PdfAdditionalPersonData(
     val lastname: String,
     val firstname: String,
     val birthDate: String,
-    val income: String? = null
+    val income: String? = null,
+    val incomeDueDate: String? = null
 )
 
 @ExcludeFromTestCoverage
