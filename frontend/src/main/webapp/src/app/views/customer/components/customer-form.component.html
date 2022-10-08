@@ -212,18 +212,21 @@
             </div>
           </div>
           <div class="row mb-2">
-            <div class="col-sm pr-0">
+            <div class="col-sm">
               <label class="form-label">Einkommen (monatl.)</label>
               <div class="input-group">
                 <input testId="incomeInput" type="number" formControlName="income" class="form-control"
                        [ngClass]="{'is-invalid': income.invalid && (income.dirty || income.touched), 'is-valid': income.valid && (income.dirty || income.touched)}">
+                <div class="input-group-append">
+                  <span class="input-group-text"><i class="fa fa-euro"></i></span>
+                </div>
                 <div *ngIf="income.errors?.required && (income.dirty || income.touched)"
                      class="invalid-feedback">
                   Pflichtfeld
                 </div>
               </div>
             </div>
-            <div class="col-sm pl-0">
+            <div class="col-sm">
               <label class="form-label">nachgewiesen bis</label>
               <div class="input-group">
                 <input testId="incomeDueInput" type="date" formControlName="incomeDue" class="form-control"
@@ -341,15 +344,18 @@
                         </div>
                       </div>
                       <div class="row mt-2">
-                        <div class="col pr-0">
+                        <div class="col">
                           <label class="form-label">Einkommen (monatl.)</label>
                           <div class="input-group">
                             <input testid="incomeInput" type="number"
                                    formControlName="income" class="form-control"
                                    [ngClass]="{'is-invalid': additionalPerson.get('income').invalid && (additionalPerson.get('income').dirty || additionalPerson.get('income').touched), 'is-valid': additionalPerson.get('income').valid && (additionalPerson.get('income').dirty || additionalPerson.get('income').touched)}">
+                            <div class="input-group-append">
+                              <span class="input-group-text"><i class="fa fa-euro"></i></span>
+                            </div>
                           </div>
                         </div>
-                        <div class="col pl-0">
+                        <div class="col">
                           <label class="form-label">nachgewiesen bis</label>
                           <div class="input-group">
                             <input testid="incomeDueInput" type="date"
