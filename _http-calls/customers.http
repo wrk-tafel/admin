@@ -40,6 +40,7 @@ Content-Type: application/json
   "email": "eva.musterfrau@wrk.at",
   "employer": "Rotes Kreuz Wien",
   "income": 456.00,
+  "incomeDue": "2999-12-31",
   "validUntil": "2999-12-31",
   "additionalPersons": [
     {
@@ -92,6 +93,7 @@ Content-Type: application/json
   "email": "eva.musterfrau@wrk.at",
   "employer": "Rotes Kreuz Wien",
   "income": 456.00,
+  "incomeDue": "2999-12-31",
   "validUntil": "2999-12-31",
   "additionalPersons": [
     {

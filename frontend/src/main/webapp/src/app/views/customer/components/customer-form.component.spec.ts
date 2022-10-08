@@ -33,6 +33,7 @@ describe('CustomerFormComponent', () => {
     },
     employer: 'WRK',
     income: 123.50,
+    incomeDue: moment().add(1, 'years').startOf('day').utc().toDate(),
     validUntil: moment().add(1, 'years').startOf('day').utc().toDate(),
     additionalPersons: [
       {
@@ -116,6 +117,7 @@ describe('CustomerFormComponent', () => {
     expect(component.city.value).toBe(testCustomerData.address.city);
     expect(component.employer.value).toBe(testCustomerData.employer);
     expect(component.income.value).toBe(testCustomerData.income);
+    expect(component.incomeDue.value).toBe(testCustomerData.incomeDue);
     expect(component.validUntil.value).toBe(testCustomerData.validUntil);
 
     expect(component.isValid()).toBe(true);
@@ -153,9 +155,13 @@ describe('CustomerFormComponent', () => {
     const updatedLastname = 'updated';
     const updatedBirthDate = moment().subtract(30, 'years').startOf('day').utc().toDate();
     const updatedIncome = 54321;
+    const updatedIncomeDue = moment().add(2, 'years').startOf('day').utc().toDate();
+
     component.lastname.setValue(updatedLastname);
     component.birthDate.setValue(updatedBirthDate);
     component.income.setValue(updatedIncome);
+    component.incomeDue.setValue(updatedIncomeDue);
+
     // TODO const updatedPers1Lastname = 'Pers1UpdatedLastName';
     // TODO component.additionalPersons.at(1).get('lastname').setValue(updatedPers1Lastname);
     fixture.detectChanges();

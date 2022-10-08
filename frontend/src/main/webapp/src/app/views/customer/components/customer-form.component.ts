@@ -40,9 +40,14 @@ export class CustomerFormComponent implements OnInit {
 
     employer: new FormControl(null, Validators.required),
     income: new FormControl(null, Validators.required),
+    incomeDue: new FormControl(null, [
+      Validators.required,
+      CustomValidator.minDate(new Date())
+    ]),
+
     validUntil: new FormControl(null, [
       Validators.required,
-      CustomValidator.minDate(new Date(1900, 0, 1))
+      CustomValidator.minDate(new Date())
     ]),
 
     additionalPersons: new FormArray([])
@@ -70,74 +75,6 @@ export class CustomerFormComponent implements OnInit {
         }
       ));
     }
-  }
-
-  get id() {
-    return this.form.get('id');
-  }
-
-  get lastname() {
-    return this.form.get('lastname');
-  }
-
-  get firstname() {
-    return this.form.get('firstname');
-  }
-
-  get birthDate() {
-    return this.form.get('birthDate');
-  }
-
-  get country() {
-    return this.form.get('country');
-  }
-
-  get telephoneNumber() {
-    return this.form.get('telephoneNumber');
-  }
-
-  get email() {
-    return this.form.get('email');
-  }
-
-  get street() {
-    return this.form.get('address').get('street');
-  }
-
-  get houseNumber() {
-    return this.form.get('address').get('houseNumber');
-  }
-
-  get stairway() {
-    return this.form.get('address').get('stairway');
-  }
-
-  get door() {
-    return this.form.get('address').get('door');
-  }
-
-  get postalCode() {
-    return this.form.get('address').get('postalCode');
-  }
-
-  get city() {
-    return this.form.get('address').get('city');
-  }
-
-  get employer() {
-    return this.form.get('employer');
-  }
-
-  get income() {
-    return this.form.get('income');
-  }
-
-  get validUntil() {
-    return this.form.get('validUntil');
-  }
-
-  get additionalPersons() {
-    return this.form.get('additionalPersons') as FormArray;
   }
 
   ngOnInit(): void {
@@ -201,4 +138,77 @@ export class CustomerFormComponent implements OnInit {
     });
     this.additionalPersons.push(control);
   }
+
+  get id() {
+    return this.form.get('id');
+  }
+
+  get lastname() {
+    return this.form.get('lastname');
+  }
+
+  get firstname() {
+    return this.form.get('firstname');
+  }
+
+  get birthDate() {
+    return this.form.get('birthDate');
+  }
+
+  get country() {
+    return this.form.get('country');
+  }
+
+  get telephoneNumber() {
+    return this.form.get('telephoneNumber');
+  }
+
+  get email() {
+    return this.form.get('email');
+  }
+
+  get street() {
+    return this.form.get('address').get('street');
+  }
+
+  get houseNumber() {
+    return this.form.get('address').get('houseNumber');
+  }
+
+  get stairway() {
+    return this.form.get('address').get('stairway');
+  }
+
+  get door() {
+    return this.form.get('address').get('door');
+  }
+
+  get postalCode() {
+    return this.form.get('address').get('postalCode');
+  }
+
+  get city() {
+    return this.form.get('address').get('city');
+  }
+
+  get employer() {
+    return this.form.get('employer');
+  }
+
+  get income() {
+    return this.form.get('income');
+  }
+
+  get incomeDue() {
+    return this.form.get('incomeDue');
+  }
+
+  get validUntil() {
+    return this.form.get('validUntil');
+  }
+
+  get additionalPersons() {
+    return this.form.get('additionalPersons') as FormArray;
+  }
+
 }

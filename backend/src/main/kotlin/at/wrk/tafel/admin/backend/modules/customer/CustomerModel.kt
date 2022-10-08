@@ -22,6 +22,7 @@ data class Customer(
     val email: String? = null,
     val employer: String,
     val income: BigDecimal? = null,
+    val incomeDue: LocalDate? = null,
     val validUntil: LocalDate? = null,
     val additionalPersons: List<CustomerAdditionalPerson> = emptyList()
 )

@@ -54,6 +54,9 @@ class CustomerEntity : BaseChangeTrackingEntity() {
     @Column(name = "income")
     var income: BigDecimal? = null
 
+    @Column(name = "incomeDue")
+    var incomeDue: LocalDate? = null
+
     @Column(name = "valid_until")
     var validUntil: LocalDate? = null
 

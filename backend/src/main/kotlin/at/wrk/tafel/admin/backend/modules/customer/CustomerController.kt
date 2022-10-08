@@ -168,6 +168,7 @@ class CustomerController(
         customerEntity.email = customer.email?.takeIf { it.isNotBlank() }?.trim()
         customerEntity.employer = customer.employer.trim()
         customerEntity.income = customer.income
+        customerEntity.incomeDue = customer.incomeDue
         customerEntity.validUntil = customer.validUntil
 
         customerEntity.additionalPersons.clear()
@@ -205,6 +206,7 @@ class CustomerController(
         email = customerEntity.email,
         employer = customerEntity.employer!!,
         income = customerEntity.income,
+        incomeDue = customerEntity.incomeDue,
         validUntil = customerEntity.validUntil,
         additionalPersons = customerEntity.additionalPersons.map {
             CustomerAdditionalPerson(
