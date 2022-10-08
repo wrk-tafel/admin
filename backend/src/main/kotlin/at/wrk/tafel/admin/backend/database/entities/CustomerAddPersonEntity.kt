@@ -23,4 +23,7 @@ class CustomerAddPersonEntity : BaseChangeTrackingEntity() {
 
     @Column(name = "income")
     var income: BigDecimal? = null
+
+    @Column(name = "incomeDue")
+    var incomeDue: LocalDate? = null
 }
