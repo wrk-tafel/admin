@@ -90,25 +90,22 @@ export class CustomerFormComponent implements OnInit {
   }
 
   updateValidUntilDate() {
-    let incomeDueValues = []
+    let incomeDueValues = [];
     if (this.incomeDue.value) {
       incomeDueValues.push(this.incomeDue.value);
     }
 
     for (let i = 0; i < this.additionalPersons.length; i++) {
-      const value = this.additionalPersons.at(i).get('incomeDue').value
+      const value = this.additionalPersons.at(i).get('incomeDue').value;
       if (value) {
         incomeDueValues.push(value);
       }
     }
 
     incomeDueValues = incomeDueValues.map((dateString) => moment(dateString, 'YYYY-MM-DD').toDate());
-    console.log("INC VALUES", incomeDueValues);
 
     if (incomeDueValues.length > 0) {
       const minIncomeDueValue = new Date(Math.min.apply(null, incomeDueValues));
-
-      console.log("MIN VALUE", minIncomeDueValue);
 
       const derivedValidUntilDate = moment(minIncomeDueValue)
         .add(2, 'months')
