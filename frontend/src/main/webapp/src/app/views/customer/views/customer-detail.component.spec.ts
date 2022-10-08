@@ -39,6 +39,8 @@ describe('CustomerDetailComponent', () => {
 
     employer: 'test employer',
     income: 1000,
+    incomeDue: moment().add(1, 'years').startOf('day').utc().toDate(),
+
     validUntil: moment().add(1, 'years').startOf('day').utc().toDate(),
 
     additionalPersons: [
@@ -48,15 +50,15 @@ describe('CustomerDetailComponent', () => {
         lastname: 'Add',
         firstname: 'Pers 1',
         birthDate: moment().subtract(5, 'years').startOf('day').utc().toDate(),
-        income: 50
+        income: 50,
+        incomeDue: moment().add(1, 'years').startOf('day').utc().toDate()
       },
       {
         key: 1,
         id: 1,
         lastname: 'Add',
         firstname: 'Pers 2',
-        birthDate: moment().subtract(10, 'years').startOf('day').utc().toDate(),
-        income: 80
+        birthDate: moment().subtract(10, 'years').startOf('day').utc().toDate()
       }
     ]
   };
@@ -124,6 +126,7 @@ describe('CustomerDetailComponent', () => {
     expect(fixture.debugElement.query(By.css('[testId="addressLine2Text"]')).nativeElement.textContent).toBe('1020 Wien');
     expect(fixture.debugElement.query(By.css('[testId="employerText"]')).nativeElement.textContent).toBe('test employer');
     expect(fixture.debugElement.query(By.css('[testId="incomeText"]')).nativeElement.textContent).toBe('1000 €');
+    expect(fixture.debugElement.query(By.css('[testId="incomeDueText"]')).nativeElement.textContent).toBe(moment(mockCustomer.incomeDue).format('DD.MM.YYYY'));
     expect(fixture.debugElement.query(By.css('[testId="validUntilText"]')).nativeElement.textContent)
       .toBe(moment(mockCustomer.validUntil).format('DD.MM.yyyy'));
 

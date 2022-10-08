@@ -90,7 +90,8 @@ class CustomerPdfServiceImpl : CustomerPdfService {
                         income = it.income
                             ?.takeIf { income -> income.compareTo(BigDecimal.ZERO) != 0 }
                             ?.let { income -> "$income €" }
-                            ?: "-"
+                            ?: "-",
+                        incomeDueDate = it.incomeDue?.format(DATE_FORMATTER) ?: "-",
                     )
                 },
                 idCard = PdfIdCardData(

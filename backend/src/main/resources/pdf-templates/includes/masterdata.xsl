@@ -169,6 +169,16 @@
                                             </fo:block>
                                         </fo:table-cell>
                                     </fo:table-row>
+                                    <fo:table-row>
+                                        <fo:table-cell>
+                                            <fo:block font-weight="bold">--> bis:</fo:block>
+                                        </fo:table-cell>
+                                        <fo:table-cell>
+                                            <fo:block>
+                                                <xsl:value-of select="$data/incomeDueDate"/>
+                                            </fo:block>
+                                        </fo:table-cell>
+                                    </fo:table-row>
                                 </fo:table-body>
                             </fo:table>
                         </fo:block>
@@ -213,19 +223,34 @@
                                                 </fo:table-row>
                                                 <fo:table-row>
                                                     <fo:table-cell>
+                                                        <fo:block>
+                                                            <xsl:value-of select="./birthDate"/>
+                                                        </fo:block>
+                                                    </fo:table-cell>
+                                                </fo:table-row>
+                                                <fo:table-row>
+                                                    <fo:table-cell>
                                                         <fo:table table-layout="fixed" width="100%">
                                                             <fo:table-column column-width="50%"/>
                                                             <fo:table-column column-width="50%"/>
                                                             <fo:table-body>
                                                                 <fo:table-row>
                                                                     <fo:table-cell>
-                                                                        <fo:block>
-                                                                            <xsl:value-of select="./birthDate"/>
-                                                                        </fo:block>
+                                                                        <fo:block>Einkommen:</fo:block>
                                                                     </fo:table-cell>
                                                                     <fo:table-cell>
                                                                         <fo:block>
                                                                             <xsl:value-of select="./income"/>
+                                                                        </fo:block>
+                                                                    </fo:table-cell>
+                                                                </fo:table-row>
+                                                                <fo:table-row>
+                                                                    <fo:table-cell>
+                                                                        <fo:block>--> bis:</fo:block>
+                                                                    </fo:table-cell>
+                                                                    <fo:table-cell>
+                                                                        <fo:block>
+                                                                            <xsl:value-of select="./incomeDueDate"/>
                                                                         </fo:block>
                                                                     </fo:table-cell>
                                                                 </fo:table-row>
