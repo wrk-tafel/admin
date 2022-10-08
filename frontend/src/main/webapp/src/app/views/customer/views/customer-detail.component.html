@@ -80,14 +80,14 @@
         <div class="row">
           <div testid="employerText" class="col">{{customerData?.employer}}</div>
         </div>
-        <div class="row">
-          <div class="col">
+        <div class="row mt-2">
+          <div class="col font-weight-bold">
             Einkommen&nbsp;(monatlich)
           </div>
           <div testid="incomeText" class="col">{{customerData?.income}} &euro;</div>
         </div>
         <div class="row">
-          <div class="col">
+          <div class="col font-weight-bold">
             --> nachgewiesen bis
           </div>
           <div testid="incomeDueText" class="col">{{formatDate(customerData?.incomeDue)}}</div>
@@ -115,16 +115,16 @@
                  [innerHTML]="formatBirthDateAge(addPerson?.birthDate)"></div>
           </div>
           <div class="row">
-            <div class="col-6">Einkommen (monatl.):</div>
+            <div class="col-6 font-weight-bold">Einkommen (monatl.)</div>
             <div class="col-6" [attr.testid]="'addperson-' + i + '-incomeText'"
                  *ngIf="addPerson?.income !== null">{{addPerson?.income}} &euro;</div>
             <div class="col-6" [attr.testid]="'addperson-' + i + '-incomeText'"
                  *ngIf="addPerson?.income === null">-</div>
           </div>
           <div class="row">
-            <div class="col-6">--> nachgewiesen bis:</div>
+            <div class="col-6 font-weight-bold">--> nachgewiesen bis</div>
             <div class="col-6" [attr.testid]="'addperson-' + i + '-incomeDueText'"
-                 *ngIf="addPerson?.incomeDue !== null">{{formatDate(addPerson?.incomeDue)}}</div>
+eitge                 *ngIf="addPerson?.incomeDue !== null">{{formatDate(addPerson?.incomeDue)}}</div>
             <div class="col-6" [attr.testid]="'addperson-' + i + '-incomeDueText'"
                  *ngIf="addPerson?.incomeDue === null">-</div>
           </div>

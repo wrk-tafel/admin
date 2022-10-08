@@ -56,8 +56,7 @@
                 </fo:table-row>
                 <fo:table-row>
                     <fo:table-cell>
-                        <fo:block border-right="0.1mm solid #000000"
-                                  margin-top="1mm" margin-bottom="1mm" margin-left="1mm"
+                        <fo:block margin-top="1mm" margin-bottom="1mm" margin-left="1mm"
                                   margin-right="1mm">
                             <fo:table table-layout="fixed" width="100%">
                                 <fo:table-column column-width="35%"/>
@@ -203,7 +202,8 @@
                 </fo:table-row>
                 <fo:table-row>
                     <fo:table-cell>
-                        <fo:block margin-top="1mm" margin-bottom="1mm" margin-left="1mm"
+                        <fo:block border-left="0.1mm solid #000000"
+                                  margin-top="1mm" margin-bottom="1mm" margin-left="5mm"
                                   margin-right="1mm">
                             <xsl:choose>
                                 <xsl:when test="$data/additionalPersons != ''">
