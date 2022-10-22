@@ -69,7 +69,10 @@ export class CustomerDetailComponent implements OnInit {
   }
 
   formatIssuer(issuer: CustomerIssuer): string {
-    return issuer.personnelNumber + ' ' + issuer.firstname + ' ' + issuer.lastname;
+    if (issuer) {
+      return issuer.personnelNumber + ' ' + issuer.firstname + ' ' + issuer.lastname;
+    }
+    return '';
   }
 
   editCustomer() {
