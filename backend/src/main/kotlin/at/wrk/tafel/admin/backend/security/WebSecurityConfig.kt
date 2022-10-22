@@ -1,7 +1,7 @@
 package at.wrk.tafel.admin.backend.security
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
-import at.wrk.tafel.admin.backend.database.repositories.UserRepository
+import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
 import at.wrk.tafel.admin.backend.security.components.JwtAuthenticationFilter
 import at.wrk.tafel.admin.backend.security.components.JwtAuthenticationProvider
 import at.wrk.tafel.admin.backend.security.components.JwtTokenService

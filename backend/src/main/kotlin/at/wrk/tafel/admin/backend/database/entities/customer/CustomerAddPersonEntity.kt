@@ -1,4 +1,4 @@
-package at.wrk.tafel.admin.backend.database.entities
+package at.wrk.tafel.admin.backend.database.entities.customer
 
 import at.wrk.tafel.admin.backend.database.entities.base.BaseChangeTrackingEntity
 import java.math.BigDecimal

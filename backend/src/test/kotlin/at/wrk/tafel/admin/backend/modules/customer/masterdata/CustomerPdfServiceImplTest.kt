@@ -1,7 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.customer.masterdata
 
-import at.wrk.tafel.admin.backend.database.entities.CustomerAddPersonEntity
-import at.wrk.tafel.admin.backend.database.entities.CustomerEntity
+import at.wrk.tafel.admin.backend.database.entities.customer.CustomerAddPersonEntity
+import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity
 import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
 import com.github.romankh3.image.comparison.ImageComparison
 import com.github.romankh3.image.comparison.model.ImageComparisonState

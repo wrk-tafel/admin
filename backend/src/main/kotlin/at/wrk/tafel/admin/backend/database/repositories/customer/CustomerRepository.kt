@@ -1,6 +1,6 @@
-package at.wrk.tafel.admin.backend.database.repositories
+package at.wrk.tafel.admin.backend.database.repositories.customer
 
-import at.wrk.tafel.admin.backend.database.entities.CustomerEntity
+import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param

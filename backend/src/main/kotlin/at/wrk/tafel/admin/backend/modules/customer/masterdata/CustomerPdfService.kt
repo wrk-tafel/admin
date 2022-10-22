@@ -1,6 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.customer.masterdata
 
-import at.wrk.tafel.admin.backend.database.entities.CustomerEntity
+import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity
 
 interface CustomerPdfService {
     fun generateMasterdataPdf(customer: CustomerEntity): ByteArray

@@ -2,7 +2,7 @@ package at.wrk.tafel.admin.backend.security.components
 
 import at.wrk.tafel.admin.backend.database.entities.auth.UserAuthorityEntity
 import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
-import at.wrk.tafel.admin.backend.database.repositories.UserRepository
+import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
 import at.wrk.tafel.admin.backend.security.model.TafelUser
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs

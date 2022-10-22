@@ -1,12 +1,12 @@
 package at.wrk.tafel.admin.backend.modules.customer
 
-import at.wrk.tafel.admin.backend.database.entities.CustomerAddPersonEntity
-import at.wrk.tafel.admin.backend.database.entities.CustomerEntity
+import at.wrk.tafel.admin.backend.database.entities.customer.CustomerAddPersonEntity
+import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity
 import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.entities.staticdata.CountryEntity
-import at.wrk.tafel.admin.backend.database.repositories.CustomerAddPersonRepository
-import at.wrk.tafel.admin.backend.database.repositories.CustomerRepository
-import at.wrk.tafel.admin.backend.database.repositories.UserRepository
+import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerAddPersonRepository
+import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerRepository
+import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.repositories.staticdata.CountryRepository
 import at.wrk.tafel.admin.backend.modules.base.Country
 import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorPerson
