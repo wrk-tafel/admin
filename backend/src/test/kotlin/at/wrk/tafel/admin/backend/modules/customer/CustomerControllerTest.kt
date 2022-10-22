@@ -316,6 +316,20 @@ class CustomerControllerTest {
                 assertThat(it.issuer?.lastname).isEqualTo(testUserEntity.lastname)
                 assertThat(it.issuer?.firstname).isEqualTo(testUserEntity.firstname)
                 assertThat(it.issuer?.personnelNumber).isEqualTo(testUserEntity.personnelNumber)
+
+                assertThat(it.additionalPersons).hasSize(testCustomerEntity1.additionalPersons.size)
+
+                assertThat(it.additionalPersons[0].firstname).isEqualTo(testCustomerEntity1.additionalPersons[0].firstname)
+                assertThat(it.additionalPersons[0].lastname).isEqualTo(testCustomerEntity1.additionalPersons[0].lastname)
+                assertThat(it.additionalPersons[0].birthDate).isEqualTo(testCustomerEntity1.additionalPersons[0].birthDate)
+                assertThat(it.additionalPersons[0].income).isEqualTo(testCustomerEntity1.additionalPersons[0].income)
+                assertThat(it.additionalPersons[0].incomeDue).isEqualTo(testCustomerEntity1.additionalPersons[0].incomeDue)
+
+                assertThat(it.additionalPersons[1].firstname).isEqualTo(testCustomerEntity1.additionalPersons[1].firstname)
+                assertThat(it.additionalPersons[1].lastname).isEqualTo(testCustomerEntity1.additionalPersons[1].lastname)
+                assertThat(it.additionalPersons[1].birthDate).isEqualTo(testCustomerEntity1.additionalPersons[1].birthDate)
+                assertThat(it.additionalPersons[1].income).isEqualTo(testCustomerEntity1.additionalPersons[1].income)
+                assertThat(it.additionalPersons[1].incomeDue).isEqualTo(testCustomerEntity1.additionalPersons[1].incomeDue)
             })
         }
     }
