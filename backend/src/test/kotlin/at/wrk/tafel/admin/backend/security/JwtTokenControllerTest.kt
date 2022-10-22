@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.security
 
 import at.wrk.tafel.admin.backend.security.components.JwtTokenService
 import at.wrk.tafel.admin.backend.security.model.JwtResponse
+import at.wrk.tafel.admin.backend.security.model.TafelUser
 import io.mockk.every
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
@@ -14,7 +15,6 @@ import org.springframework.http.HttpStatus
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.context.SecurityContextImpl
-import org.springframework.security.core.userdetails.User
 import javax.servlet.http.HttpServletRequest
 
 @ExtendWith(MockKExtension::class)
@@ -62,7 +62,15 @@ class JwtTokenControllerTest {
         SecurityContextHolder.setContext(
             SecurityContextImpl(
                 UsernamePasswordAuthenticationToken(
-                    User("test-name", "no-pwd", listOf()), null
+                    TafelUser(
+                        username = "test-name",
+                        password = "no-pwd",
+                        enabled = true,
+                        personnelNumber = "0000",
+                        firstname = "First",
+                        lastname = "Last",
+                        authorities = emptyList()
+                    ), null
                 )
             )
         )

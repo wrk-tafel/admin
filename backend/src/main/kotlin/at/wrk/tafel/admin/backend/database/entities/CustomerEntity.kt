@@ -62,4 +62,5 @@ class CustomerEntity : BaseChangeTrackingEntity() {
 
     @OneToMany(mappedBy = "customer", cascade = [CascadeType.ALL], orphanRemoval = true)
     var additionalPersons: MutableList<CustomerAddPersonEntity> = mutableListOf()
+
 }

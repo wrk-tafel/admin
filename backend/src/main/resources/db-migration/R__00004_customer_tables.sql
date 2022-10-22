@@ -15,15 +15,15 @@ create table customers
     country_id          bigint       not null REFERENCES static_countries (id),
     address_street      varchar(100) not null,
     address_houseNumber varchar(10)  not null,
-    address_stairway    varchar(5) null,
+    address_stairway    varchar(5)   null,
     address_postalCode  integer      not null,
     address_city        varchar(50)  not null,
-    address_door        varchar(10) null,
-    telephone_number    bigint null,
+    address_door        varchar(10)  null,
+    telephone_number    bigint       null,
     email               varchar(100) null,
     employer            varchar(100) null,
-    income              decimal null,
-    income_due          date null,
+    income              decimal      null,
+    income_due          date         null,
     valid_until         date         not null
 );
 
@@ -36,6 +36,6 @@ create table customers_addpersons
     firstname   varchar(50) not null,
     lastname    varchar(50) not null,
     birth_date  date        not null,
-    income      decimal null,
-    income_due  date null
+    income      decimal     null,
+    income_due  date        null
 );
