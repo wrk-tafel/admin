@@ -92,6 +92,13 @@
           </div>
           <div testid="incomeDueText" class="col">{{formatDate(customerData?.incomeDue)}}</div>
         </div>
+        <hr>
+        <div class="row">
+          <div class="col font-weight-bold">Angelegt</div>
+        </div>
+        <div class="row">
+          <div testid="issuedInformation" class="col">am {{formatDate(customerData?.issuedAt)}} von {{formatIssuer(customerData?.issuer)}}</div>
+        </div>
       </div>
     </div>
   </div>

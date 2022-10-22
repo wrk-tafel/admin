@@ -3,7 +3,7 @@ import {ActivatedRoute, Router} from '@angular/router';
 import * as moment from 'moment';
 import {DateHelperService} from '../../../common/util/date-helper.service';
 import {FileHelperService} from '../../../common/util/file-helper.service';
-import {CustomerAddressData, CustomerApiService, CustomerData} from '../api/customer-api.service';
+import {CustomerAddressData, CustomerApiService, CustomerData, CustomerIssuer} from '../api/customer-api.service';
 import {HttpResponse} from '@angular/common/http';
 
 @Component({
@@ -66,6 +66,10 @@ export class CustomerDetailComponent implements OnInit {
       return this.formatDate(birthDate) + ' (' + moment().diff(birthDate, 'years') + ')';
     }
     return '';
+  }
+
+  formatIssuer(issuer: CustomerIssuer): string {
+    return issuer.personnelNumber + ' ' + issuer.firstname + ' ' + issuer.lastname;
   }
 
   editCustomer() {

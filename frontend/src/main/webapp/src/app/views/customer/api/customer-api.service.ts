@@ -66,6 +66,8 @@ export interface CustomerSearchResult {
 
 export interface CustomerData {
   id?: number;
+  issuer?: CustomerIssuer;
+  issuedAt?: Date;
   firstname: string;
   lastname: string;
   birthDate: Date;
@@ -78,6 +80,12 @@ export interface CustomerData {
   incomeDue?: Date;
   validUntil?: Date;
   additionalPersons?: CustomerAddPersonData[];
+}
+
+export interface CustomerIssuer {
+  personnelNumber: string;
+  firstname: string;
+  lastname: string;
 }
 
 export interface CustomerAddressData {

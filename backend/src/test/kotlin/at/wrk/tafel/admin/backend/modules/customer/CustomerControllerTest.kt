@@ -31,6 +31,7 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.server.ResponseStatusException
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.ZonedDateTime
 import java.util.*
 
 @ExtendWith(MockKExtension::class)
@@ -66,6 +67,7 @@ class CustomerControllerTest {
             firstname = "test-firstname",
             lastname = "test-lastname"
         ),
+        issuedAt = LocalDate.now(),
         firstname = "Max",
         lastname = "Mustermann",
         birthDate = LocalDate.now().minusYears(30),
@@ -144,6 +146,7 @@ class CustomerControllerTest {
 
         testCustomerEntity1.id = 1
         testCustomerEntity1.issuer = testUserEntity
+        testCustomerEntity1.createdAt = ZonedDateTime.now()
         testCustomerEntity1.customerId = 100
         testCustomerEntity1.lastname = "Mustermann"
         testCustomerEntity1.firstname = "Max"
@@ -179,6 +182,7 @@ class CustomerControllerTest {
         testCustomerEntity1.additionalPersons = mutableListOf(addPerson1, addPerson2)
 
         testCustomerEntity2.id = 2
+        testCustomerEntity2.createdAt = ZonedDateTime.now()
         testCustomerEntity2.customerId = 200
         testCustomerEntity2.lastname = "Mustermann"
         testCustomerEntity2.firstname = "Max 2"

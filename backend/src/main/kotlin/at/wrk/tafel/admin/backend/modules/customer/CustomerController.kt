@@ -204,6 +204,7 @@ class CustomerController(
                 lastname = it.lastname!!
             )
         },
+        issuedAt = customerEntity.createdAt!!.toLocalDate(),
         firstname = customerEntity.firstname!!,
         lastname = customerEntity.lastname!!,
         birthDate = customerEntity.birthDate!!,

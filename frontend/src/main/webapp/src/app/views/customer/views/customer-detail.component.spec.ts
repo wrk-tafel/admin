@@ -17,6 +17,12 @@ describe('CustomerDetailComponent', () => {
 
   const mockCustomer: CustomerData = {
     id: 133,
+    issuer: {
+      personnelNumber: '12345',
+      firstname: 'first',
+      lastname: 'last'
+    },
+    issuedAt: moment().startOf('day').utc().toDate(),
     lastname: 'Mustermann',
     firstname: 'Max',
     birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
@@ -130,6 +136,8 @@ describe('CustomerDetailComponent', () => {
       .toBe(moment(mockCustomer.incomeDue).format('DD.MM.YYYY'));
     expect(fixture.debugElement.query(By.css('[testId="validUntilText"]')).nativeElement.textContent)
       .toBe(moment(mockCustomer.validUntil).format('DD.MM.yyyy'));
+    expect(fixture.debugElement.query(By.css('[testId="issuedInformation"]')).nativeElement.textContent)
+      .toBe('am ' + moment(mockCustomer.issuedAt).format('DD.MM.YYYY') + ' von 12345 first last');
 
     // TODO check additional persons
   }));
