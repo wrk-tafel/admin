@@ -2,15 +2,18 @@ package at.wrk.tafel.admin.backend.modules.customer
 
 import at.wrk.tafel.admin.backend.database.entities.CustomerAddPersonEntity
 import at.wrk.tafel.admin.backend.database.entities.CustomerEntity
+import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.entities.staticdata.CountryEntity
 import at.wrk.tafel.admin.backend.database.repositories.CustomerAddPersonRepository
 import at.wrk.tafel.admin.backend.database.repositories.CustomerRepository
+import at.wrk.tafel.admin.backend.database.repositories.UserRepository
 import at.wrk.tafel.admin.backend.database.repositories.staticdata.CountryRepository
 import at.wrk.tafel.admin.backend.modules.base.Country
 import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorPerson
 import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorResult
 import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorService
 import at.wrk.tafel.admin.backend.modules.customer.masterdata.CustomerPdfService
+import at.wrk.tafel.admin.backend.security.model.TafelUser
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -23,6 +26,8 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.server.ResponseStatusException
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -45,6 +50,9 @@ class CustomerControllerTest {
 
     @RelaxedMockK
     private lateinit var incomeValidatorService: IncomeValidatorService
+
+    @RelaxedMockK
+    private lateinit var userRepository: UserRepository
 
     @InjectMockKs
     private lateinit var controller: CustomerController
@@ -93,11 +101,35 @@ class CustomerControllerTest {
         )
     )
 
+    private val testUserEntity = UserEntity()
     private val testCustomerEntity1 = CustomerEntity()
     private val testCustomerEntity2 = CustomerEntity()
 
     @BeforeEach
     fun beforeEach() {
+        testUserEntity.username = "test-username"
+        testUserEntity.password = "test-password"
+        testUserEntity.enabled = true
+        testUserEntity.id = 0
+        testUserEntity.personnelNumber = "test-personnelnumber"
+        testUserEntity.firstname = "test-firstname"
+        testUserEntity.lastname = "test-lastname"
+        testUserEntity.authorities = mutableListOf()
+
+        every { userRepository.getReferenceById(any()) } returns testUserEntity
+
+        val user = TafelUser(
+            username = testUserEntity.username!!,
+            password = null,
+            enabled = true,
+            id = testUserEntity.id!!,
+            personnelNumber = testUserEntity.personnelNumber!!,
+            firstname = testUserEntity.firstname!!,
+            lastname = testUserEntity.lastname!!,
+            authorities = emptyList()
+        )
+        SecurityContextHolder.getContext().authentication = UsernamePasswordAuthenticationToken(user, null)
+
         testCountry = CountryEntity()
         testCountry.id = 1
         testCountry.code = "AT"
@@ -260,8 +292,31 @@ class CustomerControllerTest {
 
         assertThat(response).isEqualTo(testCustomer)
 
-        verify {
-            customerRepository.save(any())
+        verify(exactly = 1) {
+            customerRepository.save(withArg {
+                assertThat(it.customerId).isEqualTo(testCustomerEntity1.customerId)
+                assertThat(it.lastname).isEqualTo(testCustomerEntity1.lastname)
+                assertThat(it.firstname).isEqualTo(testCustomerEntity1.firstname)
+                assertThat(it.birthDate).isEqualTo(testCustomerEntity1.birthDate)
+                assertThat(it.country).isEqualTo(testCustomerEntity1.country)
+                assertThat(it.addressStreet).isEqualTo(testCustomerEntity1.addressStreet)
+                assertThat(it.addressHouseNumber).isEqualTo(testCustomerEntity1.addressHouseNumber)
+                assertThat(it.addressStairway).isEqualTo(testCustomerEntity1.addressStairway)
+                assertThat(it.addressPostalCode).isEqualTo(testCustomerEntity1.addressPostalCode)
+                assertThat(it.addressDoor).isEqualTo(testCustomerEntity1.addressDoor)
+                assertThat(it.addressCity).isEqualTo(testCustomerEntity1.addressCity)
+                assertThat(it.telephoneNumber).isEqualTo(testCustomerEntity1.telephoneNumber)
+                assertThat(it.email).isEqualTo(testCustomerEntity1.email)
+                assertThat(it.employer).isEqualTo(testCustomerEntity1.employer)
+                assertThat(it.income).isEqualTo(testCustomerEntity1.income)
+                assertThat(it.incomeDue).isEqualTo(testCustomerEntity1.incomeDue)
+                assertThat(it.validUntil).isEqualTo(testCustomerEntity1.validUntil)
+
+                assertThat(it.issuer?.id).isEqualTo(testUserEntity.id)
+                assertThat(it.issuer?.lastname).isEqualTo(testUserEntity.lastname)
+                assertThat(it.issuer?.firstname).isEqualTo(testUserEntity.firstname)
+                assertThat(it.issuer?.personnelNumber).isEqualTo(testUserEntity.personnelNumber)
+            })
         }
     }
 

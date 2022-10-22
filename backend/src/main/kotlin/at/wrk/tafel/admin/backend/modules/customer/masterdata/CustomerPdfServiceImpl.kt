@@ -2,7 +2,6 @@ package at.wrk.tafel.admin.backend.modules.customer.masterdata
 
 import at.wrk.tafel.admin.backend.common.fop.ClasspathResourceURIResolver
 import at.wrk.tafel.admin.backend.database.entities.CustomerEntity
-import at.wrk.tafel.admin.backend.security.model.TafelUser
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
@@ -10,7 +9,6 @@ import io.github.g0dkar.qrcode.QRCode
 import org.apache.commons.io.IOUtils
 import org.apache.fop.apps.FopFactoryBuilder
 import org.apache.fop.apps.MimeConstants
-import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import org.springframework.util.MimeTypeUtils
 import java.io.ByteArrayInputStream
@@ -52,7 +50,7 @@ class CustomerPdfServiceImpl : CustomerPdfService {
     }
 
     private fun createCustomerPdfData(customer: CustomerEntity): PdfData {
-        val user = SecurityContextHolder.getContext().authentication.principal as TafelUser
+        val user = customer.issuer!!
         val issuer = "${user.personnelNumber} ${user.firstname} ${user.lastname}"
 
         val countPersons = 1 + customer.additionalPersons.size

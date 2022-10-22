@@ -40,6 +40,7 @@ class TafelUserDetailsManager(
             username = userEntity.username!!,
             password = userEntity.password!!,
             enabled = userEntity.enabled!!,
+            id = userEntity.id!!,
             personnelNumber = userEntity.personnelNumber!!,
             firstname = userEntity.firstname!!,
             lastname = userEntity.lastname!!,

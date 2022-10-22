@@ -25,7 +25,7 @@ class FlywayImportTestdataCallback(
             LOGGER.info("Importing testdata ...")
 
             val sqlLines =
-                (IOUtils.readLines(javaClass.getResourceAsStream(sqlFilePath)) as List<String>)
+                (IOUtils.readLines(javaClass.getResourceAsStream(sqlFilePath)) as MutableList<String>)
                     .filter { !it.startsWith("--") }
                     .filter { it.isNotBlank() }
                     .joinToString("") { it }

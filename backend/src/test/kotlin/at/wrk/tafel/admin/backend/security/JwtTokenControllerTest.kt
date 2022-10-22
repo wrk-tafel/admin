@@ -66,6 +66,7 @@ class JwtTokenControllerTest {
                         username = "test-name",
                         password = "no-pwd",
                         enabled = true,
+                        id = 0,
                         personnelNumber = "0000",
                         firstname = "First",
                         lastname = "Last",

@@ -3,16 +3,13 @@ create table if not exists users
     id               bigint primary key,
     created_at       timestamp    not null,
     updated_at       timestamp    not null,
-    username         varchar(50)  not null,
+    username         varchar(50)  not null unique,
     password         varchar(500) not null,
     enabled          boolean      not null default false,
-    personnel_number varchar(50)  not null,
+    personnel_number varchar(50)  not null unique,
     firstname        varchar(50)  not null,
     lastname         varchar(50)  not null
 );
-
-create unique index if not exists uidx_users_username on users (username);
-create unique index if not exists uidx_users_persnr on users (personnel_number);
 
 create index if not exists idx_users_username on users (username);
 

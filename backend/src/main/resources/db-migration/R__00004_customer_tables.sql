@@ -9,6 +9,7 @@ create table customers
     created_at          timestamp    not null,
     updated_at          timestamp    not null,
     customer_id         bigint       not null unique,
+    user_id             bigint       not null REFERENCES users (id),
     firstname           varchar(50)  not null,
     lastname            varchar(50)  not null,
     birth_date          date         not null,

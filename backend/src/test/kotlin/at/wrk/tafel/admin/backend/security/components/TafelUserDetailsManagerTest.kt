@@ -3,6 +3,7 @@ package at.wrk.tafel.admin.backend.security.components
 import at.wrk.tafel.admin.backend.database.entities.auth.UserAuthorityEntity
 import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.repositories.UserRepository
+import at.wrk.tafel.admin.backend.security.model.TafelUser
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -49,6 +50,7 @@ class TafelUserDetailsManagerTest {
         userEntity.username = "test-username"
         userEntity.password = "test-password"
         userEntity.enabled = true
+        userEntity.id = 0
         userEntity.personnelNumber = "test-personnelnumber"
         userEntity.firstname = "test-firstname"
         userEntity.lastname = "test-lastname"
@@ -56,16 +58,20 @@ class TafelUserDetailsManagerTest {
 
         every { userRepository.findByUsername(any()) } returns Optional.of(userEntity)
 
-        val userDetails = manager.loadUserByUsername("test")
+        val userDetails = manager.loadUserByUsername("test") as TafelUser
 
         assertThat(userDetails).isNotNull
-        assertThat(userDetails?.username).isEqualTo(userEntity.username)
-        assertThat(userDetails?.password).isEqualTo(userEntity.password)
-        assertThat(userDetails?.isEnabled).isTrue
-        assertThat(userDetails?.isAccountNonExpired).isTrue
-        assertThat(userDetails?.isAccountNonLocked).isTrue
-        assertThat(userDetails?.isCredentialsNonExpired).isTrue
-        assertThat(userDetails?.authorities).hasSameElementsAs(
+        assertThat(userDetails.username).isEqualTo(userEntity.username)
+        assertThat(userDetails.password).isEqualTo(userEntity.password)
+        assertThat(userDetails.isEnabled).isTrue
+        assertThat(userDetails.id).isEqualTo(userEntity.id)
+        assertThat(userDetails.personnelNumber).isEqualTo(userEntity.personnelNumber)
+        assertThat(userDetails.firstname).isEqualTo(userEntity.firstname)
+        assertThat(userDetails.lastname).isEqualTo(userEntity.lastname)
+        assertThat(userDetails.isAccountNonExpired).isTrue
+        assertThat(userDetails.isAccountNonLocked).isTrue
+        assertThat(userDetails.isCredentialsNonExpired).isTrue
+        assertThat(userDetails.authorities).hasSameElementsAs(
             listOf(
                 SimpleGrantedAuthority(userAuthorityEntity1.name),
                 SimpleGrantedAuthority(userAuthorityEntity2.name)

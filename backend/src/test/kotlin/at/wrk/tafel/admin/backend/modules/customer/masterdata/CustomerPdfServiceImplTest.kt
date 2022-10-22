@@ -2,7 +2,7 @@ package at.wrk.tafel.admin.backend.modules.customer.masterdata
 
 import at.wrk.tafel.admin.backend.database.entities.CustomerAddPersonEntity
 import at.wrk.tafel.admin.backend.database.entities.CustomerEntity
-import at.wrk.tafel.admin.backend.security.model.TafelUser
+import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
 import com.github.romankh3.image.comparison.ImageComparison
 import com.github.romankh3.image.comparison.model.ImageComparisonState
 import org.apache.commons.io.FileUtils
@@ -13,8 +13,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
-import org.springframework.security.core.context.SecurityContextHolder
 import org.testcontainers.shaded.org.apache.commons.lang3.SystemUtils
 import java.io.File
 import java.math.BigDecimal
@@ -61,19 +59,16 @@ class CustomerPdfServiceImplTest {
 
     @BeforeEach
     fun beforeEach() {
-        val user = TafelUser(
-            username = "test-username",
-            password = null,
-            enabled = true,
-            personnelNumber = "0000",
-            firstname = "First",
-            lastname = "Last",
-            authorities = emptyList()
-        )
-        SecurityContextHolder.getContext().authentication = UsernamePasswordAuthenticationToken(user, null)
+        val testUserEntity = UserEntity()
+        testUserEntity.username = "test-username"
+        testUserEntity.password = null
+        testUserEntity.enabled = true
+        testUserEntity.id = 0
+        testUserEntity.personnelNumber = "0000"
+        testUserEntity.firstname = "First"
+        testUserEntity.lastname = "Last"
 
         testCustomer = CustomerEntity()
-        // TODO replace by issuedAt
         testCustomer.createdAt =
             ZonedDateTime.of(
                 LocalDate.of(2022, 10, 3),
@@ -81,6 +76,7 @@ class CustomerPdfServiceImplTest {
                 ZoneId.systemDefault()
             )
         testCustomer.customerId = 123
+        testCustomer.issuer = testUserEntity
         testCustomer.lastname = "Mustermann"
         testCustomer.firstname = "Max"
         testCustomer.birthDate = LocalDate.of(1980, 6, 10)

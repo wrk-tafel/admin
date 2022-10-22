@@ -27,15 +27,15 @@ INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (2, NOW(), NOW(), 2, 'CUSTOMER');
 
 -- customers
-INSERT INTO customers (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, country_id,
+INSERT INTO customers (id, created_at, updated_at, customer_id, user_id, firstname, lastname, birth_date, country_id,
                        address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
                        address_city, telephone_number, email, employer, income, income_due, valid_until)
-values (0, NOW(), NOW(), 100, 'Max Single', 'Mustermann', '1980-01-01', 1, 'Erdberg', 1, null, null, '1030', 'Wien',
+values (0, NOW(), NOW(), 100, 0, 'Max Single', 'Mustermann', '1980-01-01', 1, 'Erdberg', 1, null, null, '1030', 'Wien',
         null, null, 'Stadt Wien', 123.00, '2999-12-31', '2999-12-31');
-INSERT INTO customers (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, country_id,
+INSERT INTO customers (id, created_at, updated_at, customer_id, user_id, firstname, lastname, birth_date, country_id,
                        address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
                        address_city, telephone_number, email, employer, income, income_due, valid_until)
-values (1, NOW(), NOW(), 101, 'Eva', 'Musterfrau', '1990-01-01', 2, 'Erdberg', 2, '1', '20', '1010', 'Wien',
+values (1, NOW(), NOW(), 101, 0, 'Eva', 'Musterfrau', '1990-01-01', 2, 'Erdberg', 2, '1', '20', '1010', 'Wien',
         '00436645678953', 'eva.musterfrau@wrk.at', 'Rotes Kreuz Wien', 456.00, '2999-12-31', '2999-12-31');
 INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, income,
                                   income_due)
@@ -46,15 +46,15 @@ values (2, NOW(), NOW(), 1, 'Child 2', 'Musterfrau', '2020-01-01', 0, null);
 INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, income,
                                   income_due)
 values (3, NOW(), NOW(), 1, 'Child 3', 'Musterfrau', '2020-01-01', null, null);
-INSERT INTO customers (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, country_id,
+INSERT INTO customers (id, created_at, updated_at, customer_id, user_id, firstname, lastname, birth_date, country_id,
                        address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
                        address_city, telephone_number, email, employer, income, income_due, valid_until)
-values (4, NOW(), NOW(), 201, '1', 'e2esearch', '1980-01-01', 1, 'Erdberg', 1, null, '10', '1030', 'Wien', null, null,
+values (4, NOW(), NOW(), 201, 0, '1', 'e2esearch', '1980-01-01', 1, 'Erdberg', 1, null, '10', '1030', 'Wien', null, null,
         'Stadt Wien', 123.00, '2999-12-31', '2999-12-31');
-INSERT INTO customers (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, country_id,
+INSERT INTO customers (id, created_at, updated_at, customer_id, user_id, firstname, lastname, birth_date, country_id,
                        address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
                        address_city, telephone_number, email, employer, income, income_due, valid_until)
-values (5, NOW(), NOW(), 202, '2', 'e2esearch', '1980-01-01', 1, 'Erdberg', 1, null, '10', '1030', 'Wien', null, null,
+values (5, NOW(), NOW(), 202, 0, '2', 'e2esearch', '1980-01-01', 1, 'Erdberg', 1, null, '10', '1030', 'Wien', null, null,
         'Stadt Wien', 123.00, '2999-12-31', '2999-12-31');
 
 -- static values
