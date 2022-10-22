@@ -10,9 +10,9 @@ data class TafelUser(
     private val username: String,
     private var password: String?,
     private val enabled: Boolean,
-    private val personnelNumber: String,
-    private val firstname: String,
-    private val lastname: String,
+    val personnelNumber: String,
+    val firstname: String,
+    val lastname: String,
     private val authorities: Collection<GrantedAuthority>
 ) : UserDetails, CredentialsContainer {
     override fun getAuthorities(): Collection<out GrantedAuthority> = authorities

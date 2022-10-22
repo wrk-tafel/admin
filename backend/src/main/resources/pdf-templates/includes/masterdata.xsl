@@ -333,19 +333,21 @@
                 <fo:table-body>
                     <fo:table-row>
                         <fo:table-cell>
+                            <fo:block font-weight="bold">Datum, ausgestellt von:</fo:block>
+                        </fo:table-cell>
+                        <fo:table-cell>
+                            <fo:block font-weight="bold">Gültig bis:</fo:block>
+                        </fo:table-cell>
+                    </fo:table-row>
+                    <fo:table-row>
+                        <fo:table-cell>
                             <fo:block>
-                                <fo:inline>
-                                    <fo:inline font-weight="bold">Datum:</fo:inline>
-                                    <xsl:value-of select="concat(' ', ./issuedAtDate)"/>
-                                </fo:inline>
+                                <xsl:value-of select="concat(' ', ./issuedAtDate, ', ', ./issuer)"/>
                             </fo:block>
                         </fo:table-cell>
                         <fo:table-cell>
                             <fo:block>
-                                <fo:inline>
-                                    <fo:inline font-weight="bold">Gültig bis:</fo:inline>
-                                    <xsl:value-of select="concat(' ', ./customer/validUntilDate)"/>
-                                </fo:inline>
+                                <xsl:value-of select="concat(' ', ./customer/validUntilDate)"/>
                             </fo:block>
                         </fo:table-cell>
                     </fo:table-row>
