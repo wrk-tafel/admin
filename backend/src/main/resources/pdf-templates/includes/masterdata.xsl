@@ -209,7 +209,8 @@
                                 <xsl:when test="$data/additionalPersons != ''">
                                     <fo:table table-layout="fixed" width="100%"
                                               border-collapse="separate"
-                                              border-spacing="0pt 4pt">
+                                              border-spacing="0pt 4pt"
+                                              margin-left="2mm">
                                         <fo:table-column column-width="100%"/>
                                         <fo:table-body end-indent="-0.1in">
                                             <xsl:for-each select="$data/additionalPersons">
