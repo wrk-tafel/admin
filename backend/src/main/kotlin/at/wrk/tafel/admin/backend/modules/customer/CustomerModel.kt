@@ -13,6 +13,7 @@ data class CustomerListResponse(
 @ExcludeFromTestCoverage
 data class Customer(
     val id: Long? = null,
+    val issuer: CustomerIssuer? = null,
     val firstname: String,
     val lastname: String,
     val birthDate: LocalDate,
@@ -25,6 +26,13 @@ data class Customer(
     val incomeDue: LocalDate? = null,
     val validUntil: LocalDate? = null,
     val additionalPersons: List<CustomerAdditionalPerson> = emptyList()
+)
+
+@ExcludeFromTestCoverage
+data class CustomerIssuer(
+    val personnelNumber: String,
+    val firstname: String,
+    val lastname: String
 )
 
 @ExcludeFromTestCoverage

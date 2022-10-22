@@ -3,9 +3,9 @@ package at.wrk.tafel.admin.backend.modules.customer
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerAddPersonEntity
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity
 import at.wrk.tafel.admin.backend.database.entities.staticdata.CountryEntity
+import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerAddPersonRepository
 import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerRepository
-import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.repositories.staticdata.CountryRepository
 import at.wrk.tafel.admin.backend.modules.base.Country
 import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorPerson
@@ -159,7 +159,7 @@ class CustomerController(
         val customerEntity = entity ?: CustomerEntity()
 
         customerEntity.customerId = customer.id ?: customerRepository.getNextCustomerSequenceValue()
-        customerEntity.issuer = userRepository.getReferenceById(user.id)
+        customerEntity.issuer = customerEntity.issuer ?: userRepository.getReferenceById(user.id)
         customerEntity.lastname = customer.lastname.trim()
         customerEntity.firstname = customer.firstname.trim()
         customerEntity.birthDate = customer.birthDate
@@ -197,6 +197,13 @@ class CustomerController(
 
     private fun mapEntityToResponse(customerEntity: CustomerEntity) = Customer(
         id = customerEntity.customerId,
+        issuer = customerEntity.issuer?.let {
+            CustomerIssuer(
+                personnelNumber = it.personnelNumber!!,
+                firstname = it.firstname!!,
+                lastname = it.lastname!!
+            )
+        },
         firstname = customerEntity.firstname!!,
         lastname = customerEntity.lastname!!,
         birthDate = customerEntity.birthDate!!,

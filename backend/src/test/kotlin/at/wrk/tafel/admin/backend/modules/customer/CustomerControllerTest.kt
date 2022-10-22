@@ -1,12 +1,12 @@
 package at.wrk.tafel.admin.backend.modules.customer
 
+import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerAddPersonEntity
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity
-import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.entities.staticdata.CountryEntity
+import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerAddPersonRepository
 import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerRepository
-import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.repositories.staticdata.CountryRepository
 import at.wrk.tafel.admin.backend.modules.base.Country
 import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorPerson
@@ -61,6 +61,11 @@ class CustomerControllerTest {
 
     private val testCustomer = Customer(
         id = 100,
+        issuer = CustomerIssuer(
+            personnelNumber = "test-personnelnumber",
+            firstname = "test-firstname",
+            lastname = "test-lastname"
+        ),
         firstname = "Max",
         lastname = "Mustermann",
         birthDate = LocalDate.now().minusYears(30),
@@ -138,6 +143,7 @@ class CustomerControllerTest {
         every { countryRepository.findById(testCountry.id!!) } returns Optional.of(testCountry)
 
         testCustomerEntity1.id = 1
+        testCustomerEntity1.issuer = testUserEntity
         testCustomerEntity1.customerId = 100
         testCustomerEntity1.lastname = "Mustermann"
         testCustomerEntity1.firstname = "Max"
@@ -293,44 +299,7 @@ class CustomerControllerTest {
         assertThat(response).isEqualTo(testCustomer)
 
         verify(exactly = 1) {
-            customerRepository.save(withArg {
-                assertThat(it.customerId).isEqualTo(testCustomerEntity1.customerId)
-                assertThat(it.lastname).isEqualTo(testCustomerEntity1.lastname)
-                assertThat(it.firstname).isEqualTo(testCustomerEntity1.firstname)
-                assertThat(it.birthDate).isEqualTo(testCustomerEntity1.birthDate)
-                assertThat(it.country).isEqualTo(testCustomerEntity1.country)
-                assertThat(it.addressStreet).isEqualTo(testCustomerEntity1.addressStreet)
-                assertThat(it.addressHouseNumber).isEqualTo(testCustomerEntity1.addressHouseNumber)
-                assertThat(it.addressStairway).isEqualTo(testCustomerEntity1.addressStairway)
-                assertThat(it.addressPostalCode).isEqualTo(testCustomerEntity1.addressPostalCode)
-                assertThat(it.addressDoor).isEqualTo(testCustomerEntity1.addressDoor)
-                assertThat(it.addressCity).isEqualTo(testCustomerEntity1.addressCity)
-                assertThat(it.telephoneNumber).isEqualTo(testCustomerEntity1.telephoneNumber)
-                assertThat(it.email).isEqualTo(testCustomerEntity1.email)
-                assertThat(it.employer).isEqualTo(testCustomerEntity1.employer)
-                assertThat(it.income).isEqualTo(testCustomerEntity1.income)
-                assertThat(it.incomeDue).isEqualTo(testCustomerEntity1.incomeDue)
-                assertThat(it.validUntil).isEqualTo(testCustomerEntity1.validUntil)
-
-                assertThat(it.issuer?.id).isEqualTo(testUserEntity.id)
-                assertThat(it.issuer?.lastname).isEqualTo(testUserEntity.lastname)
-                assertThat(it.issuer?.firstname).isEqualTo(testUserEntity.firstname)
-                assertThat(it.issuer?.personnelNumber).isEqualTo(testUserEntity.personnelNumber)
-
-                assertThat(it.additionalPersons).hasSize(testCustomerEntity1.additionalPersons.size)
-
-                assertThat(it.additionalPersons[0].firstname).isEqualTo(testCustomerEntity1.additionalPersons[0].firstname)
-                assertThat(it.additionalPersons[0].lastname).isEqualTo(testCustomerEntity1.additionalPersons[0].lastname)
-                assertThat(it.additionalPersons[0].birthDate).isEqualTo(testCustomerEntity1.additionalPersons[0].birthDate)
-                assertThat(it.additionalPersons[0].income).isEqualTo(testCustomerEntity1.additionalPersons[0].income)
-                assertThat(it.additionalPersons[0].incomeDue).isEqualTo(testCustomerEntity1.additionalPersons[0].incomeDue)
-
-                assertThat(it.additionalPersons[1].firstname).isEqualTo(testCustomerEntity1.additionalPersons[1].firstname)
-                assertThat(it.additionalPersons[1].lastname).isEqualTo(testCustomerEntity1.additionalPersons[1].lastname)
-                assertThat(it.additionalPersons[1].birthDate).isEqualTo(testCustomerEntity1.additionalPersons[1].birthDate)
-                assertThat(it.additionalPersons[1].income).isEqualTo(testCustomerEntity1.additionalPersons[1].income)
-                assertThat(it.additionalPersons[1].incomeDue).isEqualTo(testCustomerEntity1.additionalPersons[1].incomeDue)
-            })
+            customerRepository.save(any())
         }
     }
 
@@ -355,19 +324,24 @@ class CustomerControllerTest {
             additionalPersons = emptyList()
         )
         every { customerRepository.getReferenceByCustomerId(testCustomer.id!!) } returns testCustomerEntity1
-        every { customerAddPersonRepository.findById(testCustomerEntity1.additionalPersons[0].id!!) } returns Optional.of(
-            testCustomerEntity1.additionalPersons[0]
-        )
-        every { customerAddPersonRepository.findById(testCustomerEntity1.additionalPersons[1].id!!) } returns Optional.of(
-            testCustomerEntity1.additionalPersons[1]
+
+        val updatedWithIssuer = updatedCustomer.copy(
+            issuer = CustomerIssuer(
+                personnelNumber = "12345",
+                firstname = "first",
+                lastname = "last"
+            )
         )
 
-        val response = controller.updateCustomer(testCustomer.id!!, updatedCustomer)
+        val response = controller.updateCustomer(testCustomer.id!!, updatedWithIssuer)
 
         assertThat(response).isEqualTo(updatedCustomer)
 
-        verify {
-            customerRepository.save(any())
+        verify(exactly = 1) {
+            customerRepository.save(withArg {
+                // issuer shouldn't be updated
+                assertThat(it.issuer?.personnelNumber).isEqualTo(testCustomer.issuer?.personnelNumber)
+            })
         }
     }
 
