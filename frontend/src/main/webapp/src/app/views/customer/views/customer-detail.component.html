@@ -51,15 +51,6 @@
           <div testid="emailText" class="col" [innerHTML]="customerData?.email ? customerData?.email : '-'">
           </div>
         </div>
-        <div class="row">
-          <div class="col font-weight-bold"
-               [ngClass]="{'bg-success': customerData?.validUntil && isValid(), 'bg-danger': customerData?.validUntil && !isValid()}">
-            Gültig&nbsp;bis
-          </div>
-          <div testid="validUntilText" class="col"
-               [ngClass]="{'bg-success': customerData?.validUntil && isValid(), 'bg-danger': customerData?.validUntil && !isValid()}"
-               [innerHTML]="customerData?.validUntil ? formatDate(customerData?.validUntil) : '-'"></div>
-        </div>
         <hr>
         <div class="row">
           <div class="col font-weight-bold">Adresse</div>
@@ -87,10 +78,24 @@
           <div testid="incomeText" class="col">{{customerData?.income}} &euro;</div>
         </div>
         <div class="row">
-          <div class="col font-weight-bold">
+          <div class="col">
             --> nachgewiesen bis
           </div>
           <div testid="incomeDueText" class="col">{{formatDate(customerData?.incomeDue)}}</div>
+        </div>
+        <hr>
+        <div class="row">
+          <div class="col font-weight-bold">Angelegt</div>
+          <div testid="issuedInformation" class="col">am {{formatDate(customerData?.issuedAt)}} von {{formatIssuer(customerData?.issuer)}}</div>
+        </div>
+        <div class="row">
+          <div class="col font-weight-bold"
+               [ngClass]="{'bg-success': customerData?.validUntil && isValid(), 'bg-danger': customerData?.validUntil && !isValid()}">
+            Gültig&nbsp;bis
+          </div>
+          <div testid="validUntilText" class="col"
+               [ngClass]="{'bg-success': customerData?.validUntil && isValid(), 'bg-danger': customerData?.validUntil && !isValid()}"
+               [innerHTML]="customerData?.validUntil ? formatDate(customerData?.validUntil) : '-'"></div>
         </div>
       </div>
     </div>
@@ -122,9 +127,9 @@
                  *ngIf="addPerson?.income === null">-</div>
           </div>
           <div class="row">
-            <div class="col-6 font-weight-bold">--> nachgewiesen bis</div>
+            <div class="col-6">--> nachgewiesen bis</div>
             <div class="col-6" [attr.testid]="'addperson-' + i + '-incomeDueText'"
-eitge                 *ngIf="addPerson?.incomeDue !== null">{{formatDate(addPerson?.incomeDue)}}</div>
+                 *ngIf="addPerson?.incomeDue !== null">{{formatDate(addPerson?.incomeDue)}}</div>
             <div class="col-6" [attr.testid]="'addperson-' + i + '-incomeDueText'"
                  *ngIf="addPerson?.incomeDue === null">-</div>
           </div>

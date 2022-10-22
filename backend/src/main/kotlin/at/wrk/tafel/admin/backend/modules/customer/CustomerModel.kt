@@ -4,6 +4,8 @@ import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.modules.base.Country
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 @ExcludeFromTestCoverage
 data class CustomerListResponse(
@@ -13,6 +15,8 @@ data class CustomerListResponse(
 @ExcludeFromTestCoverage
 data class Customer(
     val id: Long? = null,
+    val issuer: CustomerIssuer? = null,
+    val issuedAt: LocalDate? = null,
     val firstname: String,
     val lastname: String,
     val birthDate: LocalDate,
@@ -25,6 +29,13 @@ data class Customer(
     val incomeDue: LocalDate? = null,
     val validUntil: LocalDate? = null,
     val additionalPersons: List<CustomerAdditionalPerson> = emptyList()
+)
+
+@ExcludeFromTestCoverage
+data class CustomerIssuer(
+    val personnelNumber: String,
+    val firstname: String,
+    val lastname: String
 )
 
 @ExcludeFromTestCoverage

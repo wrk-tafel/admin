@@ -126,6 +126,18 @@ Content-Type: application/json
 
 ### Get masterdata pdf
 
-GET {{basePath}}/customers/100/generate-masterdata-pdf
+GET {{basePath}}/customers/100/generate-pdf?type=MASTERDATA
+Authorization: Bearer {{jwt}}
+Content-Type: application/json
+
+### Get idcard pdf
+
+GET {{basePath}}/customers/100/generate-pdf?type=IDCARD
+Authorization: Bearer {{jwt}}
+Content-Type: application/json
+
+### Get combined pdf
+
+GET {{basePath}}/customers/100/generate-pdf?type=COMBINED
 Authorization: Bearer {{jwt}}
 Content-Type: application/json

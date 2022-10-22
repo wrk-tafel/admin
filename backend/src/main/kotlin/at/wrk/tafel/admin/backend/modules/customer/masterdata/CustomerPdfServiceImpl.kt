@@ -1,7 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.customer.masterdata
 
 import at.wrk.tafel.admin.backend.common.fop.ClasspathResourceURIResolver
-import at.wrk.tafel.admin.backend.database.entities.CustomerEntity
+import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
@@ -50,6 +50,9 @@ class CustomerPdfServiceImpl : CustomerPdfService {
     }
 
     private fun createCustomerPdfData(customer: CustomerEntity): PdfData {
+        val user = customer.issuer!!
+        val issuer = "${user.personnelNumber} ${user.firstname} ${user.lastname}"
+
         val countPersons = 1 + customer.additionalPersons.size
         val countInfants =
             customer.additionalPersons.count { Period.between(it.birthDate, LocalDate.now()).years <= 3 }
@@ -59,6 +62,7 @@ class CustomerPdfServiceImpl : CustomerPdfService {
         return PdfData(
             logoContentType = MimeTypeUtils.IMAGE_PNG_VALUE,
             logoBytes = logoBytes,
+            issuer = issuer,
             issuedAtDate = customer.createdAt!!.format(DATE_FORMATTER),
             customer = PdfCustomerData(
                 id = customer.customerId!!,
@@ -96,8 +100,7 @@ class CustomerPdfServiceImpl : CustomerPdfService {
                 },
                 idCard = PdfIdCardData(
                     qrCodeContentType = MimeTypeUtils.IMAGE_PNG_VALUE,
-                    qrCodeBytes = QRCode(customer.id.toString()).render().getBytes(),
-                    issuer = "TODO" // TODO
+                    qrCodeBytes = QRCode(customer.id.toString()).render().getBytes()
                 )
             ),
             countPersons = countPersons,

@@ -240,7 +240,7 @@
                                         <fo:table-cell display-align="after">
                                             <fo:block margin-left="0.5cm" margin-right="0.5cm" margin-bottom="0.5cm">
                                                 <xsl:call-template name="field-with-label">
-                                                    <xsl:with-param name="value" select="customer/idCard/issuer"/>
+                                                    <xsl:with-param name="value" select="issuer"/>
                                                     <xsl:with-param name="label" select="'Ausgestellt von'"/>
                                                 </xsl:call-template>
                                             </fo:block>

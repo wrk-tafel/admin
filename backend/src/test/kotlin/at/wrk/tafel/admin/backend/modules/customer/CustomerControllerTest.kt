@@ -1,16 +1,19 @@
 package at.wrk.tafel.admin.backend.modules.customer
 
-import at.wrk.tafel.admin.backend.database.entities.CustomerAddPersonEntity
-import at.wrk.tafel.admin.backend.database.entities.CustomerEntity
+import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
+import at.wrk.tafel.admin.backend.database.entities.customer.CustomerAddPersonEntity
+import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity
 import at.wrk.tafel.admin.backend.database.entities.staticdata.CountryEntity
-import at.wrk.tafel.admin.backend.database.repositories.CustomerAddPersonRepository
-import at.wrk.tafel.admin.backend.database.repositories.CustomerRepository
+import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
+import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerAddPersonRepository
+import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerRepository
 import at.wrk.tafel.admin.backend.database.repositories.staticdata.CountryRepository
 import at.wrk.tafel.admin.backend.modules.base.Country
 import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorPerson
 import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorResult
 import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorService
 import at.wrk.tafel.admin.backend.modules.customer.masterdata.CustomerPdfService
+import at.wrk.tafel.admin.backend.security.model.TafelUser
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -23,9 +26,12 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.server.ResponseStatusException
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.ZonedDateTime
 import java.util.*
 
 @ExtendWith(MockKExtension::class)
@@ -46,6 +52,9 @@ class CustomerControllerTest {
     @RelaxedMockK
     private lateinit var incomeValidatorService: IncomeValidatorService
 
+    @RelaxedMockK
+    private lateinit var userRepository: UserRepository
+
     @InjectMockKs
     private lateinit var controller: CustomerController
 
@@ -53,6 +62,12 @@ class CustomerControllerTest {
 
     private val testCustomer = Customer(
         id = 100,
+        issuer = CustomerIssuer(
+            personnelNumber = "test-personnelnumber",
+            firstname = "test-firstname",
+            lastname = "test-lastname"
+        ),
+        issuedAt = LocalDate.now(),
         firstname = "Max",
         lastname = "Mustermann",
         birthDate = LocalDate.now().minusYears(30),
@@ -93,11 +108,35 @@ class CustomerControllerTest {
         )
     )
 
+    private val testUserEntity = UserEntity()
     private val testCustomerEntity1 = CustomerEntity()
     private val testCustomerEntity2 = CustomerEntity()
 
     @BeforeEach
     fun beforeEach() {
+        testUserEntity.username = "test-username"
+        testUserEntity.password = "test-password"
+        testUserEntity.enabled = true
+        testUserEntity.id = 0
+        testUserEntity.personnelNumber = "test-personnelnumber"
+        testUserEntity.firstname = "test-firstname"
+        testUserEntity.lastname = "test-lastname"
+        testUserEntity.authorities = mutableListOf()
+
+        every { userRepository.getReferenceById(any()) } returns testUserEntity
+
+        val user = TafelUser(
+            username = testUserEntity.username!!,
+            password = null,
+            enabled = true,
+            id = testUserEntity.id!!,
+            personnelNumber = testUserEntity.personnelNumber!!,
+            firstname = testUserEntity.firstname!!,
+            lastname = testUserEntity.lastname!!,
+            authorities = emptyList()
+        )
+        SecurityContextHolder.getContext().authentication = UsernamePasswordAuthenticationToken(user, null)
+
         testCountry = CountryEntity()
         testCountry.id = 1
         testCountry.code = "AT"
@@ -106,6 +145,8 @@ class CustomerControllerTest {
         every { countryRepository.findById(testCountry.id!!) } returns Optional.of(testCountry)
 
         testCustomerEntity1.id = 1
+        testCustomerEntity1.issuer = testUserEntity
+        testCustomerEntity1.createdAt = ZonedDateTime.now()
         testCustomerEntity1.customerId = 100
         testCustomerEntity1.lastname = "Mustermann"
         testCustomerEntity1.firstname = "Max"
@@ -141,6 +182,7 @@ class CustomerControllerTest {
         testCustomerEntity1.additionalPersons = mutableListOf(addPerson1, addPerson2)
 
         testCustomerEntity2.id = 2
+        testCustomerEntity2.createdAt = ZonedDateTime.now()
         testCustomerEntity2.customerId = 200
         testCustomerEntity2.lastname = "Mustermann"
         testCustomerEntity2.firstname = "Max 2"
@@ -260,7 +302,7 @@ class CustomerControllerTest {
 
         assertThat(response).isEqualTo(testCustomer)
 
-        verify {
+        verify(exactly = 1) {
             customerRepository.save(any())
         }
     }
@@ -286,19 +328,24 @@ class CustomerControllerTest {
             additionalPersons = emptyList()
         )
         every { customerRepository.getReferenceByCustomerId(testCustomer.id!!) } returns testCustomerEntity1
-        every { customerAddPersonRepository.findById(testCustomerEntity1.additionalPersons[0].id!!) } returns Optional.of(
-            testCustomerEntity1.additionalPersons[0]
-        )
-        every { customerAddPersonRepository.findById(testCustomerEntity1.additionalPersons[1].id!!) } returns Optional.of(
-            testCustomerEntity1.additionalPersons[1]
+
+        val updatedWithIssuer = updatedCustomer.copy(
+            issuer = CustomerIssuer(
+                personnelNumber = "12345",
+                firstname = "first",
+                lastname = "last"
+            )
         )
 
-        val response = controller.updateCustomer(testCustomer.id!!, updatedCustomer)
+        val response = controller.updateCustomer(testCustomer.id!!, updatedWithIssuer)
 
         assertThat(response).isEqualTo(updatedCustomer)
 
-        verify {
-            customerRepository.save(any())
+        verify(exactly = 1) {
+            customerRepository.save(withArg {
+                // issuer shouldn't be updated
+                assertThat(it.issuer?.personnelNumber).isEqualTo(testCustomer.issuer?.personnelNumber)
+            })
         }
     }
 

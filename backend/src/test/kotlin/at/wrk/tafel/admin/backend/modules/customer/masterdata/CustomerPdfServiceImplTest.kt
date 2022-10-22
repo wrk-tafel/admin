@@ -1,7 +1,8 @@
 package at.wrk.tafel.admin.backend.modules.customer.masterdata
 
-import at.wrk.tafel.admin.backend.database.entities.CustomerAddPersonEntity
-import at.wrk.tafel.admin.backend.database.entities.CustomerEntity
+import at.wrk.tafel.admin.backend.database.entities.customer.CustomerAddPersonEntity
+import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity
+import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
 import com.github.romankh3.image.comparison.ImageComparison
 import com.github.romankh3.image.comparison.model.ImageComparisonState
 import org.apache.commons.io.FileUtils
@@ -58,8 +59,16 @@ class CustomerPdfServiceImplTest {
 
     @BeforeEach
     fun beforeEach() {
+        val testUserEntity = UserEntity()
+        testUserEntity.username = "test-username"
+        testUserEntity.password = null
+        testUserEntity.enabled = true
+        testUserEntity.id = 0
+        testUserEntity.personnelNumber = "0000"
+        testUserEntity.firstname = "First"
+        testUserEntity.lastname = "Last"
+
         testCustomer = CustomerEntity()
-        // TODO replace by issuedAt
         testCustomer.createdAt =
             ZonedDateTime.of(
                 LocalDate.of(2022, 10, 3),
@@ -67,6 +76,7 @@ class CustomerPdfServiceImplTest {
                 ZoneId.systemDefault()
             )
         testCustomer.customerId = 123
+        testCustomer.issuer = testUserEntity
         testCustomer.lastname = "Mustermann"
         testCustomer.firstname = "Max"
         testCustomer.birthDate = LocalDate.of(1980, 6, 10)

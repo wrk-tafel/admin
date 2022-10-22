@@ -2,13 +2,13 @@ package at.wrk.tafel.admin.backend.modules.customer.masterdata
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
-import java.time.LocalDate
 
 @JacksonXmlRootElement(localName = "data")
 @ExcludeFromTestCoverage
 data class PdfData(
     val logoContentType: String,
     val logoBytes: ByteArray,
+    val issuer: String,
     val issuedAtDate: String,
     val customer: PdfCustomerData,
     val countPersons: Int,
@@ -80,8 +80,7 @@ data class PdfAdditionalPersonData(
 @ExcludeFromTestCoverage
 data class PdfIdCardData(
     val qrCodeContentType: String,
-    val qrCodeBytes: ByteArray,
-    val issuer: String
+    val qrCodeBytes: ByteArray
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -91,7 +90,6 @@ data class PdfIdCardData(
 
         if (qrCodeContentType != other.qrCodeContentType) return false
         if (!qrCodeBytes.contentEquals(other.qrCodeBytes)) return false
-        if (issuer != other.issuer) return false
 
         return true
     }
@@ -99,7 +97,6 @@ data class PdfIdCardData(
     override fun hashCode(): Int {
         var result = qrCodeContentType.hashCode()
         result = 31 * result + qrCodeBytes.contentHashCode()
-        result = 31 * result + issuer.hashCode()
         return result
     }
 }

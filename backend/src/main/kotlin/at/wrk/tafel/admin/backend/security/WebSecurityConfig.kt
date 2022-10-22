@@ -1,9 +1,11 @@
 package at.wrk.tafel.admin.backend.security
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
+import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
 import at.wrk.tafel.admin.backend.security.components.JwtAuthenticationFilter
 import at.wrk.tafel.admin.backend.security.components.JwtAuthenticationProvider
 import at.wrk.tafel.admin.backend.security.components.JwtTokenService
+import at.wrk.tafel.admin.backend.security.components.TafelUserDetailsManager
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -17,13 +19,11 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
-import org.springframework.security.provisioning.JdbcUserDetailsManager
 import org.springframework.security.provisioning.UserDetailsManager
 import org.springframework.security.web.authentication.HttpStatusEntryPoint
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher
-import javax.sql.DataSource
 
 @Configuration
 @EnableWebSecurity
@@ -32,8 +32,8 @@ import javax.sql.DataSource
 class WebSecurityConfig(
     @Value("\${security.enable-csrf:true}")
     private val csrfEnabled: Boolean,
-    private val datasource: DataSource,
-    private val jwtTokenService: JwtTokenService
+    private val jwtTokenService: JwtTokenService,
+    private val userRepository: UserRepository
 ) : WebSecurityConfigurerAdapter() {
 
     override fun configure(http: HttpSecurity) {
@@ -73,9 +73,7 @@ class WebSecurityConfig(
 
     @Bean
     fun userDetailsManager(): UserDetailsManager {
-        val userDetailsManager = JdbcUserDetailsManager(datasource)
-        userDetailsManager.setEnableGroups(true)
-        return userDetailsManager
+        return TafelUserDetailsManager(userRepository)
     }
 
     @Bean
@@ -97,4 +95,5 @@ class WebSecurityConfig(
     override fun authenticationManagerBean(): AuthenticationManager {
         return super.authenticationManagerBean()
     }
+
 }

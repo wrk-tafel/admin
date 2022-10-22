@@ -209,7 +209,8 @@
                                 <xsl:when test="$data/additionalPersons != ''">
                                     <fo:table table-layout="fixed" width="100%"
                                               border-collapse="separate"
-                                              border-spacing="0pt 4pt">
+                                              border-spacing="0pt 4pt"
+                                              margin-left="2mm">
                                         <fo:table-column column-width="100%"/>
                                         <fo:table-body end-indent="-0.1in">
                                             <xsl:for-each select="$data/additionalPersons">
@@ -332,19 +333,21 @@
                 <fo:table-body>
                     <fo:table-row>
                         <fo:table-cell>
+                            <fo:block font-weight="bold">Datum, ausgestellt von:</fo:block>
+                        </fo:table-cell>
+                        <fo:table-cell>
+                            <fo:block font-weight="bold">Gültig bis:</fo:block>
+                        </fo:table-cell>
+                    </fo:table-row>
+                    <fo:table-row>
+                        <fo:table-cell>
                             <fo:block>
-                                <fo:inline>
-                                    <fo:inline font-weight="bold">Datum:</fo:inline>
-                                    <xsl:value-of select="concat(' ', ./issuedAtDate)"/>
-                                </fo:inline>
+                                <xsl:value-of select="concat(' ', ./issuedAtDate, ', ', ./issuer)"/>
                             </fo:block>
                         </fo:table-cell>
                         <fo:table-cell>
                             <fo:block>
-                                <fo:inline>
-                                    <fo:inline font-weight="bold">Gültig bis:</fo:inline>
-                                    <xsl:value-of select="concat(' ', ./customer/validUntilDate)"/>
-                                </fo:inline>
+                                <xsl:value-of select="concat(' ', ./customer/validUntilDate)"/>
                             </fo:block>
                         </fo:table-cell>
                     </fo:table-row>

@@ -1,5 +1,6 @@
-package at.wrk.tafel.admin.backend.database.entities
+package at.wrk.tafel.admin.backend.database.entities.customer
 
+import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.entities.base.BaseChangeTrackingEntity
 import at.wrk.tafel.admin.backend.database.entities.staticdata.CountryEntity
 import java.math.BigDecimal
@@ -11,6 +12,10 @@ import javax.persistence.*
 class CustomerEntity : BaseChangeTrackingEntity() {
     @Column(name = "customer_id")
     var customerId: Long? = null
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    var issuer: UserEntity? = null
 
     @Column(name = "firstname")
     var firstname: String? = null
@@ -62,4 +67,5 @@ class CustomerEntity : BaseChangeTrackingEntity() {
 
     @OneToMany(mappedBy = "customer", cascade = [CascadeType.ALL], orphanRemoval = true)
     var additionalPersons: MutableList<CustomerAddPersonEntity> = mutableListOf()
+
 }

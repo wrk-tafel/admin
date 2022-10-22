@@ -1,21 +1,24 @@
 package at.wrk.tafel.admin.backend.modules.customer
 
-import at.wrk.tafel.admin.backend.database.entities.CustomerAddPersonEntity
-import at.wrk.tafel.admin.backend.database.entities.CustomerEntity
+import at.wrk.tafel.admin.backend.database.entities.customer.CustomerAddPersonEntity
+import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity
 import at.wrk.tafel.admin.backend.database.entities.staticdata.CountryEntity
-import at.wrk.tafel.admin.backend.database.repositories.CustomerAddPersonRepository
-import at.wrk.tafel.admin.backend.database.repositories.CustomerRepository
+import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
+import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerAddPersonRepository
+import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerRepository
 import at.wrk.tafel.admin.backend.database.repositories.staticdata.CountryRepository
 import at.wrk.tafel.admin.backend.modules.base.Country
 import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorPerson
 import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorService
 import at.wrk.tafel.admin.backend.modules.customer.masterdata.CustomerPdfService
+import at.wrk.tafel.admin.backend.security.model.TafelUser
 import org.springframework.core.io.InputStreamResource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 import java.io.ByteArrayInputStream
@@ -28,7 +31,8 @@ class CustomerController(
     private val customerAddPersonRepository: CustomerAddPersonRepository,
     private val countryRepository: CountryRepository,
     private val incomeValidatorService: IncomeValidatorService,
-    private val customerPdfService: CustomerPdfService
+    private val customerPdfService: CustomerPdfService,
+    private val userRepository: UserRepository
 ) {
     @PostMapping("/validate")
     fun validate(@RequestBody customer: Customer): ValidateCustomerResponse {
@@ -151,9 +155,11 @@ class CustomerController(
     }
 
     private fun mapRequestToEntity(customer: Customer, entity: CustomerEntity? = null): CustomerEntity {
+        val user = SecurityContextHolder.getContext().authentication.principal as TafelUser
         val customerEntity = entity ?: CustomerEntity()
 
         customerEntity.customerId = customer.id ?: customerRepository.getNextCustomerSequenceValue()
+        customerEntity.issuer = customerEntity.issuer ?: userRepository.getReferenceById(user.id)
         customerEntity.lastname = customer.lastname.trim()
         customerEntity.firstname = customer.firstname.trim()
         customerEntity.birthDate = customer.birthDate
@@ -191,6 +197,14 @@ class CustomerController(
 
     private fun mapEntityToResponse(customerEntity: CustomerEntity) = Customer(
         id = customerEntity.customerId,
+        issuer = customerEntity.issuer?.let {
+            CustomerIssuer(
+                personnelNumber = it.personnelNumber!!,
+                firstname = it.firstname!!,
+                lastname = it.lastname!!
+            )
+        },
+        issuedAt = customerEntity.createdAt!!.toLocalDate(),
         firstname = customerEntity.firstname!!,
         lastname = customerEntity.lastname!!,
         birthDate = customerEntity.birthDate!!,

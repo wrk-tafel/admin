@@ -3,51 +3,58 @@ SELECT setval('customer_id_sequence', 10000, false);
 SELECT setval('hibernate_sequence', 5000, false);
 
 -- user e2etest for cypress tests
-INSERT INTO users (username, password, enabled)
-VALUES ('e2etest', '$argon2id$v=19$m=16,t=2,p=1$OE8zSkpxV25qMTVoZnMzYg$nopPJkmmPJsi+41695pQ9Q', true);
-INSERT INTO authorities (username, authority)
-VALUES ('e2etest', 'CUSTOMER');
+INSERT INTO users (id, created_at, updated_at, username, password, enabled, personnel_number, firstname, lastname)
+VALUES (0, NOW(), NOW(), 'e2etest', '$argon2id$v=19$m=16,t=2,p=1$OE8zSkpxV25qMTVoZnMzYg$nopPJkmmPJsi+41695pQ9Q', true,
+        '00000', 'E2E', 'Test');
+INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
+VALUES (0, NOW(), NOW(), 0, 'CUSTOMER');
 
 -- pwd: 35bc40681124f412c5d052366edb9eb9
-INSERT INTO users (username, password, enabled)
-VALUES ('testuser', '$argon2id$v=19$m=16,t=2,p=1$MzViYzQwNjgxMTI0ZjQxMmM1ZDA1MjM2NmVkYjllYjk$Lf4rs14B9IfNmou71DMRTQ',
-        true);
-INSERT INTO authorities (username, authority)
-VALUES ('testuser', 'CUSTOMER');
+INSERT INTO users (id, created_at, updated_at, username, password, enabled, personnel_number, firstname, lastname)
+VALUES (1, NOW(), NOW(), 'testuser',
+        '$argon2id$v=19$m=16,t=2,p=1$MzViYzQwNjgxMTI0ZjQxMmM1ZDA1MjM2NmVkYjllYjk$Lf4rs14B9IfNmou71DMRTQ', true,
+        '00001', 'Test', 'User');
+INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
+VALUES (1, NOW(), NOW(), 1, 'CUSTOMER');
 
 -- TODO remove | fake user with weak password to gain some intrusion insights
 -- pwd: 12345
-INSERT INTO users (username, password, enabled)
-VALUES ('admin', '$argon2id$v=19$m=16,t=2,p=1$YWRzYWRzYWRzYWRzYWRzYWRzYWQ$L/OMN2YcZCB9YGhFIM1ASg', true);
-INSERT INTO authorities (username, authority)
-VALUES ('admin', 'CUSTOMER');
+INSERT INTO users (id, created_at, updated_at, username, password, enabled, personnel_number, firstname, lastname)
+VALUES (2, NOW(), NOW(), 'admin', '$argon2id$v=19$m=16,t=2,p=1$YWRzYWRzYWRzYWRzYWRzYWRzYWQ$L/OMN2YcZCB9YGhFIM1ASg',
+        true,
+        '00002', 'AD', 'min');
+INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
+VALUES (2, NOW(), NOW(), 2, 'CUSTOMER');
 
 -- customers
-INSERT INTO customers (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, country_id,
+INSERT INTO customers (id, created_at, updated_at, customer_id, user_id, firstname, lastname, birth_date, country_id,
                        address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
                        address_city, telephone_number, email, employer, income, income_due, valid_until)
-values (0, NOW(), NOW(), 100, 'Max Single', 'Mustermann', '1980-01-01', 1, 'Erdberg', 1, null, null, '1030', 'Wien',
+values (0, NOW(), NOW(), 100, 0, 'Max Single', 'Mustermann', '1980-01-01', 1, 'Erdberg', 1, null, null, '1030', 'Wien',
         null, null, 'Stadt Wien', 123.00, '2999-12-31', '2999-12-31');
-INSERT INTO customers (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, country_id,
+INSERT INTO customers (id, created_at, updated_at, customer_id, user_id, firstname, lastname, birth_date, country_id,
                        address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
                        address_city, telephone_number, email, employer, income, income_due, valid_until)
-values (1, NOW(), NOW(), 101, 'Eva', 'Musterfrau', '1990-01-01', 2, 'Erdberg', 2, '1', '20', '1010', 'Wien',
+values (1, NOW(), NOW(), 101, 0, 'Eva', 'Musterfrau', '1990-01-01', 2, 'Erdberg', 2, '1', '20', '1010', 'Wien',
         '00436645678953', 'eva.musterfrau@wrk.at', 'Rotes Kreuz Wien', 456.00, '2999-12-31', '2999-12-31');
-INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, income, income_due)
+INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, income,
+                                  income_due)
 values (1, NOW(), NOW(), 1, 'Child 1', 'Musterfrau', '2000-01-01', 500, '2999-12-31');
-INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, income, income_due)
+INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, income,
+                                  income_due)
 values (2, NOW(), NOW(), 1, 'Child 2', 'Musterfrau', '2020-01-01', 0, null);
-INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, income, income_due)
+INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, income,
+                                  income_due)
 values (3, NOW(), NOW(), 1, 'Child 3', 'Musterfrau', '2020-01-01', null, null);
-INSERT INTO customers (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, country_id,
+INSERT INTO customers (id, created_at, updated_at, customer_id, user_id, firstname, lastname, birth_date, country_id,
                        address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
                        address_city, telephone_number, email, employer, income, income_due, valid_until)
-values (4, NOW(), NOW(), 201, '1', 'e2esearch', '1980-01-01', 1, 'Erdberg', 1, null, '10', '1030', 'Wien', null, null,
+values (4, NOW(), NOW(), 201, 0, '1', 'e2esearch', '1980-01-01', 1, 'Erdberg', 1, null, '10', '1030', 'Wien', null, null,
         'Stadt Wien', 123.00, '2999-12-31', '2999-12-31');
-INSERT INTO customers (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, country_id,
+INSERT INTO customers (id, created_at, updated_at, customer_id, user_id, firstname, lastname, birth_date, country_id,
                        address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
                        address_city, telephone_number, email, employer, income, income_due, valid_until)
-values (5, NOW(), NOW(), 202, '2', 'e2esearch', '1980-01-01', 1, 'Erdberg', 1, null, '10', '1030', 'Wien', null, null,
+values (5, NOW(), NOW(), 202, 0, '2', 'e2esearch', '1980-01-01', 1, 'Erdberg', 1, null, '10', '1030', 'Wien', null, null,
         'Stadt Wien', 123.00, '2999-12-31', '2999-12-31');
 
 -- static values

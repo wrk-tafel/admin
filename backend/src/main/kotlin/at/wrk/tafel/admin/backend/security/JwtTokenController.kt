@@ -2,11 +2,11 @@ package at.wrk.tafel.admin.backend.security
 
 import at.wrk.tafel.admin.backend.security.components.JwtTokenService
 import at.wrk.tafel.admin.backend.security.model.JwtResponse
+import at.wrk.tafel.admin.backend.security.model.TafelUser
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.security.core.userdetails.User
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletRequest
@@ -20,9 +20,9 @@ class JwtTokenController(
     @PostMapping("/api/token")
     fun generateToken(request: HttpServletRequest): ResponseEntity<JwtResponse> {
         val auth = SecurityContextHolder.getContext().authentication
-        if (auth?.principal is User) {
+        if (auth?.principal is TafelUser) {
 
-            val user = auth.principal as User
+            val user = auth.principal as TafelUser
             val token: String? = user.username.let { jwtTokenService.generateToken(it, user.authorities) }
 
             token.let {
