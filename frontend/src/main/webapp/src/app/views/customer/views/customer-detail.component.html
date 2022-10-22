@@ -51,15 +51,6 @@
           <div testid="emailText" class="col" [innerHTML]="customerData?.email ? customerData?.email : '-'">
           </div>
         </div>
-        <div class="row">
-          <div class="col font-weight-bold"
-               [ngClass]="{'bg-success': customerData?.validUntil && isValid(), 'bg-danger': customerData?.validUntil && !isValid()}">
-            Gültig&nbsp;bis
-          </div>
-          <div testid="validUntilText" class="col"
-               [ngClass]="{'bg-success': customerData?.validUntil && isValid(), 'bg-danger': customerData?.validUntil && !isValid()}"
-               [innerHTML]="customerData?.validUntil ? formatDate(customerData?.validUntil) : '-'"></div>
-        </div>
         <hr>
         <div class="row">
           <div class="col font-weight-bold">Adresse</div>
@@ -98,6 +89,15 @@
         </div>
         <div class="row">
           <div testid="issuedInformation" class="col">am {{formatDate(customerData?.issuedAt)}} von {{formatIssuer(customerData?.issuer)}}</div>
+        </div>
+        <div class="row">
+          <div class="col font-weight-bold"
+               [ngClass]="{'bg-success': customerData?.validUntil && isValid(), 'bg-danger': customerData?.validUntil && !isValid()}">
+            Gültig&nbsp;bis
+          </div>
+          <div testid="validUntilText" class="col"
+               [ngClass]="{'bg-success': customerData?.validUntil && isValid(), 'bg-danger': customerData?.validUntil && !isValid()}"
+               [innerHTML]="customerData?.validUntil ? formatDate(customerData?.validUntil) : '-'"></div>
         </div>
       </div>
     </div>
