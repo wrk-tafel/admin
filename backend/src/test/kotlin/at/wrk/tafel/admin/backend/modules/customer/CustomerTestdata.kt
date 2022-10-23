@@ -1,8 +1,14 @@
 package at.wrk.tafel.admin.backend.modules.customer
 
+import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
+import at.wrk.tafel.admin.backend.database.entities.customer.CustomerAddPersonEntity
+import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity
+import at.wrk.tafel.admin.backend.database.entities.staticdata.CountryEntity
 import at.wrk.tafel.admin.backend.modules.base.Country
+import at.wrk.tafel.admin.backend.security.model.TafelUser
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.ZonedDateTime
 
 val testCustomer = Customer(
     id = 100,
@@ -51,3 +57,92 @@ val testCustomer = Customer(
         )
     )
 )
+
+val testCountry = CountryEntity().apply {
+    id = 1
+    code = "AT"
+    name = "Österreich"
+}
+
+val testUserEntity = UserEntity().apply {
+    username = "test-username"
+    password = "test-password"
+    enabled = true
+    id = 0
+    personnelNumber = "test-personnelnumber"
+    firstname = "test-firstname"
+    lastname = "test-lastname"
+    authorities = mutableListOf()
+}
+
+val testUser = TafelUser(
+    username = testUserEntity.username!!,
+    password = null,
+    enabled = true,
+    id = testUserEntity.id!!,
+    personnelNumber = testUserEntity.personnelNumber!!,
+    firstname = testUserEntity.firstname!!,
+    lastname = testUserEntity.lastname!!,
+    authorities = emptyList()
+)
+
+val testCustomerEntity1 = CustomerEntity().apply {
+    id = 1
+    issuer = testUserEntity
+    createdAt = ZonedDateTime.now()
+    customerId = 100
+    lastname = "Mustermann"
+    firstname = "Max"
+    birthDate = LocalDate.now().minusYears(30)
+    country = testCountry
+    addressStreet = "Test-Straße"
+    addressHouseNumber = "100"
+    addressStairway = "1"
+    addressPostalCode = 1010
+    addressDoor = "21"
+    addressCity = "Wien"
+    telephoneNumber = "0043660123123"
+    email = "test@mail.com"
+    employer = "Employer 123"
+    income = BigDecimal("1000")
+    incomeDue = LocalDate.now()
+    validUntil = LocalDate.now()
+
+    val addPerson1 = CustomerAddPersonEntity()
+    addPerson1.id = 2
+    addPerson1.lastname = "Add pers 1"
+    addPerson1.firstname = "Add pers 1"
+    addPerson1.birthDate = LocalDate.now().minusYears(5)
+    addPerson1.income = BigDecimal("100")
+    addPerson1.incomeDue = LocalDate.now()
+
+    val addPerson2 = CustomerAddPersonEntity()
+    addPerson2.id = 3
+    addPerson2.lastname = "Add pers 2"
+    addPerson2.firstname = "Add pers 2"
+    addPerson2.birthDate = LocalDate.now().minusYears(2)
+
+    additionalPersons = mutableListOf(addPerson1, addPerson2)
+}
+
+val testCustomerEntity2 = CustomerEntity().apply {
+    id = 2
+    createdAt = ZonedDateTime.now()
+    customerId = 200
+    lastname = "Mustermann"
+    firstname = "Max 2"
+    birthDate = LocalDate.now().minusYears(22)
+    country = testCountry
+    addressStreet = "Test-Straße 2"
+    addressHouseNumber = "200"
+    addressStairway = "1-2"
+    addressPostalCode = 1010
+    addressDoor = "21-2"
+    addressCity = "Wien 2"
+    telephoneNumber = "0043660123123"
+    email = "test2@mail.com"
+    employer = "Employer 123-2"
+    income = BigDecimal("2000")
+    incomeDue = LocalDate.now()
+    validUntil = LocalDate.now()
+}

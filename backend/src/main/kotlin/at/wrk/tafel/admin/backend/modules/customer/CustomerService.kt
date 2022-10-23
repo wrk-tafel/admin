@@ -54,7 +54,7 @@ class CustomerService(
         return mapEntityToResponse(savedEntity)
     }
 
-    fun searchForCustomers(firstname: String? = null, lastname: String? = null): List<Customer> {
+    fun getCustomers(firstname: String? = null, lastname: String? = null): List<Customer> {
         val customerItems: List<CustomerEntity> =
             if (firstname?.isNotBlank() == true && lastname?.isNotBlank() == true) {
                 customerRepository.findAllByFirstnameContainingIgnoreCaseOrLastnameContainingIgnoreCase(
