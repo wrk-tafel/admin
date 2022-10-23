@@ -9,9 +9,7 @@ import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerAddPers
 import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerRepository
 import at.wrk.tafel.admin.backend.database.repositories.staticdata.CountryRepository
 import at.wrk.tafel.admin.backend.modules.base.Country
-import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorPerson
 import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorResult
-import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorService
 import at.wrk.tafel.admin.backend.modules.customer.masterdata.CustomerPdfService
 import at.wrk.tafel.admin.backend.security.model.TafelUser
 import io.mockk.every
@@ -50,10 +48,10 @@ class CustomerControllerTest {
     private lateinit var customerPdfService: CustomerPdfService
 
     @RelaxedMockK
-    private lateinit var incomeValidatorService: IncomeValidatorService
+    private lateinit var userRepository: UserRepository
 
     @RelaxedMockK
-    private lateinit var userRepository: UserRepository
+    private lateinit var service: CustomerService
 
     @InjectMockKs
     private lateinit var controller: CustomerController
@@ -204,7 +202,7 @@ class CustomerControllerTest {
 
     @Test
     fun `validate customer`() {
-        every { incomeValidatorService.validate(any()) } returns IncomeValidatorResult(
+        every { service.validate(any()) } returns IncomeValidatorResult(
             valid = true,
             totalSum = BigDecimal("1"),
             limit = BigDecimal("2"),
@@ -225,30 +223,7 @@ class CustomerControllerTest {
         )
 
         verify {
-            incomeValidatorService.validate(
-                withArg {
-                    assertThat(it[0])
-                        .isEqualTo(
-                            IncomeValidatorPerson(
-                                birthDate = LocalDate.now().minusYears(30),
-                                monthlyIncome = BigDecimal("1000")
-                            )
-                        )
-                    assertThat(it[1])
-                        .isEqualTo(
-                            IncomeValidatorPerson(
-                                birthDate = LocalDate.now().minusYears(5),
-                                monthlyIncome = BigDecimal("100")
-                            )
-                        )
-                    assertThat(it[2])
-                        .isEqualTo(
-                            IncomeValidatorPerson(
-                                birthDate = LocalDate.now().minusYears(2)
-                            )
-                        )
-                }
-            )
+            service.validate(testCustomer)
         }
     }
 

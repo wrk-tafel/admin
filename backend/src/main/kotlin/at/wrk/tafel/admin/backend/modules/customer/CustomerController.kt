@@ -8,8 +8,6 @@ import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerAddPers
 import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerRepository
 import at.wrk.tafel.admin.backend.database.repositories.staticdata.CountryRepository
 import at.wrk.tafel.admin.backend.modules.base.Country
-import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorPerson
-import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorService
 import at.wrk.tafel.admin.backend.modules.customer.masterdata.CustomerPdfService
 import at.wrk.tafel.admin.backend.security.model.TafelUser
 import org.springframework.core.io.InputStreamResource
@@ -27,16 +25,16 @@ import java.io.ByteArrayInputStream
 @RequestMapping("/api/customers")
 @PreAuthorize("hasAuthority('CUSTOMER')")
 class CustomerController(
+    private val customerService: CustomerService,
     private val customerRepository: CustomerRepository,
     private val customerAddPersonRepository: CustomerAddPersonRepository,
     private val countryRepository: CountryRepository,
-    private val incomeValidatorService: IncomeValidatorService,
     private val customerPdfService: CustomerPdfService,
     private val userRepository: UserRepository
 ) {
     @PostMapping("/validate")
     fun validate(@RequestBody customer: Customer): ValidateCustomerResponse {
-        val result = incomeValidatorService.validate(mapToValidationPersons(customer))
+        val result = customerService.validate(customer)
         return ValidateCustomerResponse(
             valid = result.valid,
             totalSum = result.totalSum,
@@ -241,25 +239,6 @@ class CustomerController(
             code = country.code!!,
             name = country.name!!
         )
-    }
-
-    private fun mapToValidationPersons(customer: Customer): List<IncomeValidatorPerson> {
-        val personList = mutableListOf<IncomeValidatorPerson>()
-        personList.add(
-            IncomeValidatorPerson(
-                monthlyIncome = customer.income, birthDate = customer.birthDate
-            )
-        )
-
-        customer.additionalPersons.forEach {
-            personList.add(
-                IncomeValidatorPerson(
-                    monthlyIncome = it.income, birthDate = it.birthDate
-                )
-            )
-        }
-
-        return personList
     }
 }
 
