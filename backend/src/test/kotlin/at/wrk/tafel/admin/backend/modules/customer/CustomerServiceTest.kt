@@ -1,8 +1,13 @@
 package at.wrk.tafel.admin.backend.modules.customer
 
+import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
+import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerAddPersonRepository
+import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerRepository
+import at.wrk.tafel.admin.backend.database.repositories.staticdata.CountryRepository
 import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorPerson
 import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorResult
 import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorService
+import at.wrk.tafel.admin.backend.modules.customer.masterdata.CustomerPdfService
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -19,6 +24,21 @@ class CustomerServiceTest {
 
     @RelaxedMockK
     private lateinit var incomeValidatorService: IncomeValidatorService
+
+    @RelaxedMockK
+    private lateinit var customerRepository: CustomerRepository
+
+    @RelaxedMockK
+    private lateinit var customerAddPersonRepository: CustomerAddPersonRepository
+
+    @RelaxedMockK
+    private lateinit var countryRepository: CountryRepository
+
+    @RelaxedMockK
+    private lateinit var userRepository: UserRepository
+
+    @RelaxedMockK
+    private lateinit var customerPdfService: CustomerPdfService
 
     @InjectMockKs
     private lateinit var service: CustomerService
@@ -71,6 +91,16 @@ class CustomerServiceTest {
                 }
             )
         }
+    }
+
+    @Test
+    fun `existsByCustomerId`() {
+        every { service.existsByCustomerId(any()) } returns true
+
+        val result = service.existsByCustomerId(1)
+
+        assertThat(result).isTrue
+        verify { customerRepository.existsByCustomerId(1) }
     }
 
 }
