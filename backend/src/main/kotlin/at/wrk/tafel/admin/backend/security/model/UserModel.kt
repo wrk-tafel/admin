@@ -10,5 +10,6 @@ data class ChangePasswordRequest(
 
 @ExcludeFromTestCoverage
 data class ChangePasswordResponse(
-    val message: String
+    val message: String,
+    val details: List<String>? = emptyList()
 )

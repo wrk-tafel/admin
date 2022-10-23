@@ -5,7 +5,6 @@ import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
 import at.wrk.tafel.admin.backend.security.model.TafelUser
 import org.passay.PasswordData
 import org.passay.PasswordValidator
-import org.passay.RuleResult
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.UserDetails
@@ -47,7 +46,8 @@ class TafelUserDetailsManager(
         val data = PasswordData(storedUser.username, newPassword)
         val result = passwordValidator.validate(data)
         if (!result.isValid) {
-            throw PasswordException("Neues Passwort ist ungültig!", result)
+            // TODO map validation details
+            throw PasswordException("Neues Passwort ist ungültig!", emptyList())
         }
     }
 
@@ -68,5 +68,5 @@ class TafelUserDetailsManager(
 
 }
 
-class PasswordException(override val message: String, val validationResult: RuleResult? = null) :
+class PasswordException(override val message: String, val validationDetails: List<String>? = emptyList()) :
     RuntimeException(message)

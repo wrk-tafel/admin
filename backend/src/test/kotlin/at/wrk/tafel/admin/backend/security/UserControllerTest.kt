@@ -36,13 +36,15 @@ class UserControllerTest {
     @Test
     fun `change password failed`() {
         val errMsg = "failed"
-        every { userDetailsManager.changePassword(any(), any()) } throws PasswordException(errMsg)
+        val errDetails = listOf("Length error ...", "Complexity error ...")
+        every { userDetailsManager.changePassword(any(), any()) } throws PasswordException(errMsg, errDetails)
         val request = ChangePasswordRequest(oldPassword = "old", newPassword = "new")
 
         val response = controller.changePassword(request)
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY)
         assertThat(response.body?.message).isEqualTo(errMsg)
+        assertThat(response.body?.details).hasSameElementsAs(errDetails)
 
         verify { userDetailsManager.changePassword("old", "new") }
     }

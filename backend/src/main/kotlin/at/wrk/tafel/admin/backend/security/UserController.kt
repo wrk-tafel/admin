@@ -3,7 +3,6 @@ package at.wrk.tafel.admin.backend.security
 import at.wrk.tafel.admin.backend.security.components.PasswordException
 import at.wrk.tafel.admin.backend.security.model.ChangePasswordRequest
 import at.wrk.tafel.admin.backend.security.model.ChangePasswordResponse
-import org.passay.RuleResult
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -26,15 +25,10 @@ class UserController(
         try {
             userDetailsManager.changePassword(request.oldPassword, request.newPassword)
         } catch (e: PasswordException) {
-            val validationResult = mapValidationResult(e.message, e.validationResult)
+            val validationResult = ChangePasswordResponse(message = e.message, details = e.validationDetails)
             return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(validationResult)
         }
         return ResponseEntity.ok().build()
-    }
-
-    private fun mapValidationResult(message: String, validationResult: RuleResult?): ChangePasswordResponse {
-        // TODO
-        return ChangePasswordResponse(message = message)
     }
 
 }
