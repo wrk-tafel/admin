@@ -41,6 +41,24 @@ class WebSecurityConfig(
     private val userRepository: UserRepository
 ) : WebSecurityConfigurerAdapter() {
 
+    companion object {
+        val passwordValidator = PasswordValidator(
+            listOf(
+                LengthRule(8, 50),
+                UsernameRule(),
+                WhitespaceRule(),
+                DictionarySubstringRule(
+                    WordListDictionary(
+                        ArrayWordList(
+                            listOf("wrk", "örk", "oerk", "tafel", "roteskreuz", "toet", "töt", "1030")
+                                .toTypedArray(), false, ArraysSort()
+                        )
+                    )
+                )
+            )
+        )
+    }
+
     override fun configure(http: HttpSecurity) {
         http
             .formLogin()
@@ -78,25 +96,8 @@ class WebSecurityConfig(
     }
 
     @Bean
-    fun passwordValidator(): PasswordValidator {
-        val wordList = listOf("wrk", "örk", "oerk", "tafel", "roteskreuz", "toet", "töt", "1030")
-        return PasswordValidator(
-            listOf(
-                LengthRule(8, 50),
-                UsernameRule(),
-                WhitespaceRule(),
-                DictionarySubstringRule(
-                    WordListDictionary(
-                        ArrayWordList(wordList.toTypedArray(), false, ArraysSort())
-                    )
-                )
-            )
-        )
-    }
-
-    @Bean
     fun userDetailsManager(): UserDetailsManager {
-        return TafelUserDetailsManager(userRepository, passwordEncoder(), passwordValidator())
+        return TafelUserDetailsManager(userRepository, passwordEncoder(), passwordValidator)
     }
 
     @Bean
