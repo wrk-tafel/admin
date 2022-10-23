@@ -4,8 +4,8 @@ import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 
 @ExcludeFromTestCoverage
 data class ChangePasswordRequest(
-    val oldPassword: String,
-    val newPassword: String
+    val passwordCurrent: String,
+    val passwordNew: String
 )
 
 @ExcludeFromTestCoverage

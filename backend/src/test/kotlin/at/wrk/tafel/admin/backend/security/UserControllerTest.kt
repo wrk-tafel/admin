@@ -25,7 +25,7 @@ class UserControllerTest {
 
     @Test
     fun `change password`() {
-        val request = ChangePasswordRequest(oldPassword = "old", newPassword = "new")
+        val request = ChangePasswordRequest(passwordCurrent = "old", passwordNew = "new")
 
         val response = controller.changePassword(request)
 
@@ -38,7 +38,7 @@ class UserControllerTest {
         val errMsg = "failed"
         val errDetails = listOf("Length error ...", "Complexity error ...")
         every { userDetailsManager.changePassword(any(), any()) } throws PasswordException(errMsg, errDetails)
-        val request = ChangePasswordRequest(oldPassword = "old", newPassword = "new")
+        val request = ChangePasswordRequest(passwordCurrent = "old", passwordNew = "new")
 
         val response = controller.changePassword(request)
 

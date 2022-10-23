@@ -7,3 +7,13 @@ username={{username}}&password={{password}}
 > {%
     client.global.set("jwt", response.body["token"]);
 %}
+
+### Change password
+POST {{baseApiPath}}/users/change-password
+Authorization: Bearer {{jwt}}
+Content-Type: application/json
+
+{
+  "passwordCurrent": "12345",
+  "passwordNew": "67890"
+}

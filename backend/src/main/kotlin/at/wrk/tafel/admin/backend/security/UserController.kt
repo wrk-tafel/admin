@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.provisioning.UserDetailsManager
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
@@ -20,10 +21,10 @@ class UserController(
 ) {
     private val logger = LoggerFactory.getLogger(UserController::class.java)
 
-    @PostMapping
-    fun changePassword(request: ChangePasswordRequest): ResponseEntity<ChangePasswordResponse> {
+    @PostMapping("/change-password")
+    fun changePassword(@RequestBody request: ChangePasswordRequest): ResponseEntity<ChangePasswordResponse> {
         try {
-            userDetailsManager.changePassword(request.oldPassword, request.newPassword)
+            userDetailsManager.changePassword(request.passwordCurrent, request.passwordNew)
         } catch (e: PasswordException) {
             val validationResult = ChangePasswordResponse(message = e.message, details = e.validationDetails)
             return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(validationResult)

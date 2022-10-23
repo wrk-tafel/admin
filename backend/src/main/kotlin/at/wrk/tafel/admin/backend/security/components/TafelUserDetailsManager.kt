@@ -37,7 +37,7 @@ class TafelUserDetailsManager(
 
     override fun changePassword(oldPassword: String, newPassword: String) {
         val authenticatedUser = SecurityContextHolder.getContext().authentication.principal as TafelUser
-        val storedUser = loadUserByUsername(authenticatedUser.username)!!
+        var storedUser = userRepository.findByUsername(authenticatedUser.username).get()
 
         if (!passwordEncoder.matches(oldPassword, storedUser.password)) {
             throw PasswordException("Passwörter stimmen nicht überein!")
@@ -48,6 +48,9 @@ class TafelUserDetailsManager(
         if (!result.isValid) {
             // TODO map validation details
             throw PasswordException("Neues Passwort ist ungültig!", emptyList())
+        } else {
+            storedUser.password = passwordEncoder.encode(newPassword)
+            userRepository.save(storedUser)
         }
     }
 
