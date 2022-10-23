@@ -4,16 +4,26 @@ import at.wrk.tafel.admin.backend.database.entities.auth.UserAuthorityEntity
 import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
 import at.wrk.tafel.admin.backend.security.model.TafelUser
+import at.wrk.tafel.admin.backend.security.testUser
+import at.wrk.tafel.admin.backend.security.testUserEntity
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
+import io.mockk.impl.annotations.SpyK
 import io.mockk.junit5.MockKExtension
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
+import org.passay.PasswordValidator
+import org.passay.RuleResult
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.authority.SimpleGrantedAuthority
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.crypto.argon2.Argon2PasswordEncoder
+import org.springframework.security.crypto.password.DelegatingPasswordEncoder
+import org.springframework.security.crypto.password.PasswordEncoder
 import java.util.*
 
 @ExtendWith(MockKExtension::class)
@@ -21,6 +31,13 @@ class TafelUserDetailsManagerTest {
 
     @RelaxedMockK
     private lateinit var userRepository: UserRepository
+
+    @SpyK
+    private var passwordEncoder: PasswordEncoder =
+        DelegatingPasswordEncoder("argon2", mapOf("argon2" to Argon2PasswordEncoder()))
+
+    @RelaxedMockK
+    private lateinit var passwordValidator: PasswordValidator
 
     @InjectMockKs
     private lateinit var manager: TafelUserDetailsManager
@@ -99,8 +116,60 @@ class TafelUserDetailsManagerTest {
     }
 
     @Test
-    fun `changePassword - not implemented`() {
-        assertThrows<NotImplementedError> { manager.changePassword(null, null) }
+    fun `changePassword - passwords matching`() {
+        SecurityContextHolder.getContext().authentication = UsernamePasswordAuthenticationToken(testUser, null)
+        every { userRepository.findByUsername(any()) } returns Optional.of(testUserEntity)
+        every { passwordValidator.validate(any()) } returns RuleResult(true)
+
+        val oldPassword = "12345"
+        val newPassword = "67890"
+
+        manager.changePassword(oldPassword, newPassword)
+
+        verify { userRepository.findByUsername(testUser.username) }
+        verify { passwordEncoder.matches(oldPassword, testUserEntity.password) }
+    }
+
+    @Test
+    fun `changePassword - passwords not matching`() {
+        SecurityContextHolder.getContext().authentication = UsernamePasswordAuthenticationToken(testUser, null)
+        every { userRepository.findByUsername(any()) } returns Optional.of(testUserEntity)
+        every { passwordValidator.validate(any()) } returns RuleResult(true)
+
+        val oldPassword = "wrong-password"
+        val newPassword = "67890"
+
+        val exception = assertThrows<PasswordChangeException> {
+            manager.changePassword(oldPassword, newPassword)
+        }
+        assertThat(exception.message).isEqualTo("Passwörter stimmen nicht überein!")
+
+        verify { userRepository.findByUsername(testUser.username) }
+        verify { passwordEncoder.matches(oldPassword, testUserEntity.password) }
+    }
+
+    @Test
+    fun `changePassword - new password invalid`() {
+        SecurityContextHolder.getContext().authentication = UsernamePasswordAuthenticationToken(testUser, null)
+        every { userRepository.findByUsername(any()) } returns Optional.of(testUserEntity)
+        every { passwordValidator.validate(any()) } returns RuleResult(false)
+
+        val oldPassword = "12345"
+        val newPassword = "67890"
+
+        val exception = assertThrows<PasswordChangeException> {
+            manager.changePassword(oldPassword, newPassword)
+        }
+        assertThat(exception.message).isEqualTo("Passwort ungültig!")
+
+        verify { userRepository.findByUsername(testUser.username) }
+        verify { passwordEncoder.matches(oldPassword, testUserEntity.password) }
+        verify {
+            passwordValidator.validate(withArg {
+                assertThat(it.username).isEqualTo(testUserEntity.username)
+                assertThat(it.password).isEqualTo(newPassword)
+            })
+        }
     }
 
     @Test

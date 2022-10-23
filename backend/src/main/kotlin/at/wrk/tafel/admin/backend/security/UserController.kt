@@ -1,11 +1,9 @@
 package at.wrk.tafel.admin.backend.security
 
 import at.wrk.tafel.admin.backend.security.model.ChangePasswordRequest
-import at.wrk.tafel.admin.backend.security.model.TafelUser
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.provisioning.UserDetailsManager
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -21,9 +19,7 @@ class UserController(
 
     @PostMapping
     fun changePassword(request: ChangePasswordRequest): ResponseEntity<Void> {
-        val user = SecurityContextHolder.getContext().authentication.principal as TafelUser
         userDetailsManager.changePassword(request.oldPassword, request.newPassword)
-        logger.info("Changed password for user with id: ${user.id}")
         return ResponseEntity.ok().build()
     }
 

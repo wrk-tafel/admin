@@ -3,12 +3,18 @@ package at.wrk.tafel.admin.backend.security.components
 import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
 import at.wrk.tafel.admin.backend.security.model.TafelUser
+import org.passay.PasswordData
+import org.passay.PasswordValidator
 import org.springframework.security.core.authority.SimpleGrantedAuthority
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.UserDetails
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.provisioning.UserDetailsManager
 
 class TafelUserDetailsManager(
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val passwordEncoder: PasswordEncoder,
+    private val passwordValidator: PasswordValidator
 ) : UserDetailsManager {
 
     override fun loadUserByUsername(username: String): UserDetails? {
@@ -29,8 +35,19 @@ class TafelUserDetailsManager(
         TODO("Not yet implemented")
     }
 
-    override fun changePassword(oldPassword: String?, newPassword: String?) {
-        TODO("Not yet implemented")
+    override fun changePassword(oldPassword: String, newPassword: String) {
+        val authenticatedUser = SecurityContextHolder.getContext().authentication.principal as TafelUser
+        val storedUser = loadUserByUsername(authenticatedUser.username)!!
+
+        if (!passwordEncoder.matches(oldPassword, storedUser.password)) {
+            throw PasswordChangeException("Passwörter stimmen nicht überein!")
+        }
+
+        val data = PasswordData(storedUser.username, newPassword)
+        val result = passwordValidator.validate(data)
+        if (!result.isValid) {
+            throw PasswordChangeException("Passwort ungültig!")
+        }
     }
 
     override fun userExists(username: String): Boolean = userRepository.existsByUsername(username)
@@ -49,3 +66,5 @@ class TafelUserDetailsManager(
     }
 
 }
+
+class PasswordChangeException(message: String) : RuntimeException(message)

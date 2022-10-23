@@ -6,6 +6,10 @@ import at.wrk.tafel.admin.backend.security.components.JwtAuthenticationFilter
 import at.wrk.tafel.admin.backend.security.components.JwtAuthenticationProvider
 import at.wrk.tafel.admin.backend.security.components.JwtTokenService
 import at.wrk.tafel.admin.backend.security.components.TafelUserDetailsManager
+import org.passay.LengthRule
+import org.passay.PasswordValidator
+import org.passay.UsernameRule
+import org.passay.WhitespaceRule
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -18,6 +22,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder
+import org.springframework.security.crypto.password.DelegatingPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.provisioning.UserDetailsManager
 import org.springframework.security.web.authentication.HttpStatusEntryPoint
@@ -63,17 +68,29 @@ class WebSecurityConfig(
     }
 
     override fun configure(auth: AuthenticationManagerBuilder) {
-        auth.userDetailsService(userDetailsManager()).passwordEncoder(passwordEncoder())
+        auth.userDetailsService(userDetailsManager())
+            .passwordEncoder(passwordEncoder())
     }
 
     @Bean
     fun passwordEncoder(): PasswordEncoder {
-        return Argon2PasswordEncoder()
+        return DelegatingPasswordEncoder("argon2", mapOf("argon2" to Argon2PasswordEncoder()))
+    }
+
+    @Bean
+    fun passwordValidator(): PasswordValidator {
+        return PasswordValidator(
+            listOf(
+                LengthRule(8, 30),
+                UsernameRule(),
+                WhitespaceRule()
+            )
+        )
     }
 
     @Bean
     fun userDetailsManager(): UserDetailsManager {
-        return TafelUserDetailsManager(userRepository)
+        return TafelUserDetailsManager(userRepository, passwordEncoder(), passwordValidator())
     }
 
     @Bean

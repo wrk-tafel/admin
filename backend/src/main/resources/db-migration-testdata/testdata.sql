@@ -3,8 +3,9 @@ SELECT setval('customer_id_sequence', 10000, false);
 SELECT setval('hibernate_sequence', 5000, false);
 
 -- user e2etest for cypress tests
+-- pwd: e2etest
 INSERT INTO users (id, created_at, updated_at, username, password, enabled, personnel_number, firstname, lastname)
-VALUES (0, NOW(), NOW(), 'e2etest', '$argon2id$v=19$m=16,t=2,p=1$OE8zSkpxV25qMTVoZnMzYg$nopPJkmmPJsi+41695pQ9Q', true,
+VALUES (0, NOW(), NOW(), 'e2etest', '{argon2}$argon2id$v=19$m=4096,t=3,p=1$Cnj0ayQKhOPbkomIRV5tnQ$BfU/uOr20/vg9ie0CQcWhCD00DqjPDf6UI0pRvz1/gg', true,
         '00000', 'E2E', 'Test');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (0, NOW(), NOW(), 0, 'CUSTOMER');
@@ -12,7 +13,7 @@ VALUES (0, NOW(), NOW(), 0, 'CUSTOMER');
 -- pwd: 35bc40681124f412c5d052366edb9eb9
 INSERT INTO users (id, created_at, updated_at, username, password, enabled, personnel_number, firstname, lastname)
 VALUES (1, NOW(), NOW(), 'testuser',
-        '$argon2id$v=19$m=16,t=2,p=1$MzViYzQwNjgxMTI0ZjQxMmM1ZDA1MjM2NmVkYjllYjk$Lf4rs14B9IfNmou71DMRTQ', true,
+        '{argon2}$argon2id$v=19$m=4096,t=3,p=1$DZTJhKdC4/5fzGDI2CtozA$ELfBRSqAKes7ThqkzL7AN6JkEq7wzWgKejhLQ02XD6c', true,
         '00001', 'Test', 'User');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (1, NOW(), NOW(), 1, 'CUSTOMER');
@@ -20,7 +21,7 @@ VALUES (1, NOW(), NOW(), 1, 'CUSTOMER');
 -- TODO remove | fake user with weak password to gain some intrusion insights
 -- pwd: 12345
 INSERT INTO users (id, created_at, updated_at, username, password, enabled, personnel_number, firstname, lastname)
-VALUES (2, NOW(), NOW(), 'admin', '$argon2id$v=19$m=16,t=2,p=1$YWRzYWRzYWRzYWRzYWRzYWRzYWQ$L/OMN2YcZCB9YGhFIM1ASg',
+VALUES (2, NOW(), NOW(), 'admin', '{argon2}$argon2id$v=19$m=4096,t=3,p=1$RXn6Xt/0q/Wtrvdns6NUnw$X3xWUjENAbNSJNckeVFXWrjkoFSowwlu3xHx1/zb40w',
         true,
         '00002', 'AD', 'min');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)

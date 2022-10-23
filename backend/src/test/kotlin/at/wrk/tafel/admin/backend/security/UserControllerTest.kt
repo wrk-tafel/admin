@@ -10,8 +10,6 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.http.HttpStatus
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
-import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.provisioning.UserDetailsManager
 
 @ExtendWith(MockKExtension::class)
@@ -24,9 +22,7 @@ class UserControllerTest {
     private lateinit var controller: UserController
 
     @Test
-    fun `changed password`() {
-        SecurityContextHolder.getContext().authentication = UsernamePasswordAuthenticationToken(testUser, null)
-
+    fun `change password`() {
         val request = ChangePasswordRequest(oldPassword = "old", newPassword = "new")
         val response = controller.changePassword(request)
 
