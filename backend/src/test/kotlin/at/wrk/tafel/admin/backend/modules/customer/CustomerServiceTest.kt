@@ -8,6 +8,8 @@ import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorPerson
 import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorResult
 import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorService
 import at.wrk.tafel.admin.backend.modules.customer.masterdata.CustomerPdfService
+import at.wrk.tafel.admin.backend.security.testUser
+import at.wrk.tafel.admin.backend.security.testUserEntity
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK

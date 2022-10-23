@@ -1,11 +1,10 @@
 package at.wrk.tafel.admin.backend.modules.customer
 
-import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerAddPersonEntity
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity
 import at.wrk.tafel.admin.backend.database.entities.staticdata.CountryEntity
 import at.wrk.tafel.admin.backend.modules.base.Country
-import at.wrk.tafel.admin.backend.security.model.TafelUser
+import at.wrk.tafel.admin.backend.security.testUserEntity
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.ZonedDateTime
@@ -63,28 +62,6 @@ val testCountry = CountryEntity().apply {
     code = "AT"
     name = "Österreich"
 }
-
-val testUserEntity = UserEntity().apply {
-    username = "test-username"
-    password = "test-password"
-    enabled = true
-    id = 0
-    personnelNumber = "test-personnelnumber"
-    firstname = "test-firstname"
-    lastname = "test-lastname"
-    authorities = mutableListOf()
-}
-
-val testUser = TafelUser(
-    username = testUserEntity.username!!,
-    password = null,
-    enabled = true,
-    id = testUserEntity.id!!,
-    personnelNumber = testUserEntity.personnelNumber!!,
-    firstname = testUserEntity.firstname!!,
-    lastname = testUserEntity.lastname!!,
-    authorities = emptyList()
-)
 
 val testCustomerEntity1 = CustomerEntity().apply {
     id = 1
