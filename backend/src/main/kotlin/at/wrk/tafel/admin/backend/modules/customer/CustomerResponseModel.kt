@@ -4,8 +4,6 @@ import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.modules.base.Country
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.ZonedDateTime
 
 @ExcludeFromTestCoverage
 data class CustomerListResponse(
@@ -66,3 +64,7 @@ data class ValidateCustomerResponse(
     val toleranceValue: BigDecimal,
     val amountExceededLimit: BigDecimal
 )
+
+enum class CustomerPdfType {
+    MASTERDATA, IDCARD, COMBINED;
+}

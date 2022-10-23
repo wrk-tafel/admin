@@ -1,210 +1,34 @@
 package at.wrk.tafel.admin.backend.modules.customer
 
-import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
-import at.wrk.tafel.admin.backend.database.entities.customer.CustomerAddPersonEntity
-import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity
-import at.wrk.tafel.admin.backend.database.entities.staticdata.CountryEntity
-import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
-import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerAddPersonRepository
-import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerRepository
-import at.wrk.tafel.admin.backend.database.repositories.staticdata.CountryRepository
-import at.wrk.tafel.admin.backend.modules.base.Country
-import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorPerson
 import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorResult
-import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorService
-import at.wrk.tafel.admin.backend.modules.customer.masterdata.CustomerPdfService
-import at.wrk.tafel.admin.backend.security.model.TafelUser
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
-import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.http.MediaType
 import org.springframework.web.server.ResponseStatusException
 import java.math.BigDecimal
-import java.time.LocalDate
-import java.time.ZonedDateTime
 import java.util.*
 
 @ExtendWith(MockKExtension::class)
 class CustomerControllerTest {
 
     @RelaxedMockK
-    private lateinit var customerRepository: CustomerRepository
-
-    @RelaxedMockK
-    private lateinit var customerAddPersonRepository: CustomerAddPersonRepository
-
-    @RelaxedMockK
-    private lateinit var countryRepository: CountryRepository
-
-    @RelaxedMockK
-    private lateinit var customerPdfService: CustomerPdfService
-
-    @RelaxedMockK
-    private lateinit var incomeValidatorService: IncomeValidatorService
-
-    @RelaxedMockK
-    private lateinit var userRepository: UserRepository
+    private lateinit var service: CustomerService
 
     @InjectMockKs
     private lateinit var controller: CustomerController
 
-    private lateinit var testCountry: CountryEntity
-
-    private val testCustomer = Customer(
-        id = 100,
-        issuer = CustomerIssuer(
-            personnelNumber = "test-personnelnumber",
-            firstname = "test-firstname",
-            lastname = "test-lastname"
-        ),
-        issuedAt = LocalDate.now(),
-        firstname = "Max",
-        lastname = "Mustermann",
-        birthDate = LocalDate.now().minusYears(30),
-        country = Country(
-            id = 1,
-            code = "AT",
-            name = "Österreich"
-        ),
-        telephoneNumber = "0043660123123",
-        email = "test@mail.com",
-        address = CustomerAddress(
-            street = "Test-Straße",
-            houseNumber = "100",
-            stairway = "1",
-            door = "21",
-            postalCode = 1010,
-            city = "Wien"
-        ),
-        employer = "Employer 123",
-        income = BigDecimal("1000"),
-        incomeDue = LocalDate.now(),
-        validUntil = LocalDate.now(),
-        additionalPersons = listOf(
-            CustomerAdditionalPerson(
-                id = 2,
-                firstname = "Add pers 1",
-                lastname = "Add pers 1",
-                birthDate = LocalDate.now().minusYears(5),
-                income = BigDecimal("100"),
-                incomeDue = LocalDate.now()
-            ),
-            CustomerAdditionalPerson(
-                id = 3,
-                firstname = "Add pers 2",
-                lastname = "Add pers 2",
-                birthDate = LocalDate.now().minusYears(2)
-            )
-        )
-    )
-
-    private val testUserEntity = UserEntity()
-    private val testCustomerEntity1 = CustomerEntity()
-    private val testCustomerEntity2 = CustomerEntity()
-
-    @BeforeEach
-    fun beforeEach() {
-        testUserEntity.username = "test-username"
-        testUserEntity.password = "test-password"
-        testUserEntity.enabled = true
-        testUserEntity.id = 0
-        testUserEntity.personnelNumber = "test-personnelnumber"
-        testUserEntity.firstname = "test-firstname"
-        testUserEntity.lastname = "test-lastname"
-        testUserEntity.authorities = mutableListOf()
-
-        every { userRepository.getReferenceById(any()) } returns testUserEntity
-
-        val user = TafelUser(
-            username = testUserEntity.username!!,
-            password = null,
-            enabled = true,
-            id = testUserEntity.id!!,
-            personnelNumber = testUserEntity.personnelNumber!!,
-            firstname = testUserEntity.firstname!!,
-            lastname = testUserEntity.lastname!!,
-            authorities = emptyList()
-        )
-        SecurityContextHolder.getContext().authentication = UsernamePasswordAuthenticationToken(user, null)
-
-        testCountry = CountryEntity()
-        testCountry.id = 1
-        testCountry.code = "AT"
-        testCountry.name = "Österreich"
-
-        every { countryRepository.findById(testCountry.id!!) } returns Optional.of(testCountry)
-
-        testCustomerEntity1.id = 1
-        testCustomerEntity1.issuer = testUserEntity
-        testCustomerEntity1.createdAt = ZonedDateTime.now()
-        testCustomerEntity1.customerId = 100
-        testCustomerEntity1.lastname = "Mustermann"
-        testCustomerEntity1.firstname = "Max"
-        testCustomerEntity1.birthDate = LocalDate.now().minusYears(30)
-        testCustomerEntity1.country = testCountry
-        testCustomerEntity1.addressStreet = "Test-Straße"
-        testCustomerEntity1.addressHouseNumber = "100"
-        testCustomerEntity1.addressStairway = "1"
-        testCustomerEntity1.addressPostalCode = 1010
-        testCustomerEntity1.addressDoor = "21"
-        testCustomerEntity1.addressCity = "Wien"
-        testCustomerEntity1.telephoneNumber = "0043660123123"
-        testCustomerEntity1.email = "test@mail.com"
-        testCustomerEntity1.employer = "Employer 123"
-        testCustomerEntity1.income = BigDecimal("1000")
-        testCustomerEntity1.incomeDue = LocalDate.now()
-        testCustomerEntity1.validUntil = LocalDate.now()
-
-        val addPerson1 = CustomerAddPersonEntity()
-        addPerson1.id = 2
-        addPerson1.lastname = "Add pers 1"
-        addPerson1.firstname = "Add pers 1"
-        addPerson1.birthDate = LocalDate.now().minusYears(5)
-        addPerson1.income = BigDecimal("100")
-        addPerson1.incomeDue = LocalDate.now()
-
-        val addPerson2 = CustomerAddPersonEntity()
-        addPerson2.id = 3
-        addPerson2.lastname = "Add pers 2"
-        addPerson2.firstname = "Add pers 2"
-        addPerson2.birthDate = LocalDate.now().minusYears(2)
-
-        testCustomerEntity1.additionalPersons = mutableListOf(addPerson1, addPerson2)
-
-        testCustomerEntity2.id = 2
-        testCustomerEntity2.createdAt = ZonedDateTime.now()
-        testCustomerEntity2.customerId = 200
-        testCustomerEntity2.lastname = "Mustermann"
-        testCustomerEntity2.firstname = "Max 2"
-        testCustomerEntity2.birthDate = LocalDate.now().minusYears(22)
-        testCustomerEntity2.country = testCountry
-        testCustomerEntity2.addressStreet = "Test-Straße 2"
-        testCustomerEntity2.addressHouseNumber = "200"
-        testCustomerEntity2.addressStairway = "1-2"
-        testCustomerEntity2.addressPostalCode = 1010
-        testCustomerEntity2.addressDoor = "21-2"
-        testCustomerEntity2.addressCity = "Wien 2"
-        testCustomerEntity2.telephoneNumber = "0043660123123"
-        testCustomerEntity2.email = "test2@mail.com"
-        testCustomerEntity2.employer = "Employer 123-2"
-        testCustomerEntity2.income = BigDecimal("2000")
-        testCustomerEntity2.incomeDue = LocalDate.now()
-        testCustomerEntity2.validUntil = LocalDate.now()
-    }
-
     @Test
     fun `validate customer`() {
-        every { incomeValidatorService.validate(any()) } returns IncomeValidatorResult(
+        every { service.validate(any()) } returns IncomeValidatorResult(
             valid = true,
             totalSum = BigDecimal("1"),
             limit = BigDecimal("2"),
@@ -225,152 +49,111 @@ class CustomerControllerTest {
         )
 
         verify {
-            incomeValidatorService.validate(
-                withArg {
-                    assertThat(it[0])
-                        .isEqualTo(
-                            IncomeValidatorPerson(
-                                birthDate = LocalDate.now().minusYears(30),
-                                monthlyIncome = BigDecimal("1000")
-                            )
-                        )
-                    assertThat(it[1])
-                        .isEqualTo(
-                            IncomeValidatorPerson(
-                                birthDate = LocalDate.now().minusYears(5),
-                                monthlyIncome = BigDecimal("100")
-                            )
-                        )
-                    assertThat(it[2])
-                        .isEqualTo(
-                            IncomeValidatorPerson(
-                                birthDate = LocalDate.now().minusYears(2)
-                            )
-                        )
-                }
-            )
+            service.validate(testCustomer)
         }
     }
 
     @Test
-    fun `list all customer`() {
-        every { customerRepository.findAll() } returns listOf(testCustomerEntity1, testCustomerEntity2)
+    fun `create customer - given id and exists already`() {
+        every { service.existsByCustomerId(testCustomer.id!!) } returns true
 
-        val response = controller.getCustomers()
+        val exception = assertThrows<ResponseStatusException> { controller.createCustomer(testCustomer) }
 
-        assertThat(response.items).hasSize(2)
+        assertThat(exception.status).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY)
+        assertThat(exception.reason).isEqualTo("Kunde Nr. 100 bereits vorhanden!")
     }
 
     @Test
-    fun `find customer by firstname`() {
-        every { customerRepository.findAllByFirstnameContainingIgnoreCase(any()) } returns listOf(testCustomerEntity1)
+    fun `create customer - missing id so the customer should be created`() {
+        every { service.existsByCustomerId(testCustomer.id!!) } returns false
 
-        val response = controller.getCustomers(firstname = "firstname")
+        controller.createCustomer(testCustomer)
 
+        verify { service.createCustomer(testCustomer) }
+    }
+
+    @Test
+    fun `update customer - doesnt exist`() {
+        every { service.existsByCustomerId(testCustomer.id!!) } returns false
+
+        val exception =
+            assertThrows<ResponseStatusException> { controller.updateCustomer(testCustomer.id!!, testCustomer) }
+
+        assertThat(exception.status).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY)
+        assertThat(exception.reason).isEqualTo("Kunde Nr. 100 nicht vorhanden!")
+    }
+
+    @Test
+    fun `update customer - exists and should be updated`() {
+        every { service.existsByCustomerId(testCustomer.id!!) } returns true
+
+        controller.updateCustomer(testCustomer.id!!, testCustomer)
+
+        verify { service.updateCustomer(testCustomer.id!!, testCustomer) }
+    }
+
+    @Test
+    fun `get customer - doesnt exist`() {
+        every { service.findByCustomerId(testCustomer.id!!) } returns null
+
+        val exception =
+            assertThrows<ResponseStatusException> { controller.getCustomer(testCustomer.id!!) }
+
+        assertThat(exception.status).isEqualTo(HttpStatus.NOT_FOUND)
+        verify { service.findByCustomerId(testCustomer.id!!) }
+    }
+
+    @Test
+    fun `get customer - exists`() {
+        every { service.findByCustomerId(testCustomer.id!!) } returns testCustomer
+
+        val customer = controller.getCustomer(testCustomer.id!!)
+
+        verify { service.findByCustomerId(testCustomer.id!!) }
+        assertThat(customer).isEqualTo(testCustomer)
+    }
+
+    @Test
+    fun `get customers - mapped correctly`() {
+        every { service.getCustomers(any(), any()) } returns listOf(testCustomer)
+
+        val response = controller.getCustomers("first", "last")
+
+        verify { service.getCustomers(any(), any()) }
         assertThat(response.items).hasSize(1)
     }
 
     @Test
-    fun `find customer by lastname`() {
-        every { customerRepository.findAllByLastnameContainingIgnoreCase(any()) } returns listOf(testCustomerEntity2)
+    fun `generate pdf - no result`() {
+        every { service.generatePdf(any(), any()) } returns null
 
-        val response = controller.getCustomers(lastname = "lastname")
+        val response = controller.generatePdf(123, CustomerPdfType.COMBINED)
 
-        assertThat(response.items).hasSize(1)
-    }
-
-    @Test
-    fun `find customer by firstname and lastname`() {
-        every {
-            customerRepository.findAllByFirstnameContainingIgnoreCaseOrLastnameContainingIgnoreCase(
-                any(),
-                any()
-            )
-        } returns listOf(testCustomerEntity1, testCustomerEntity2)
-
-        val response = controller.getCustomers(firstname = "firstname", lastname = "lastname")
-
-        assertThat(response.items).hasSize(2)
-    }
-
-    @Test
-    fun `create customer`() {
-        every { customerRepository.save(any()) } returns testCustomerEntity1
-        every { customerAddPersonRepository.findById(any()) } returns Optional.empty()
-
-        val response = controller.createCustomer(testCustomer)
-
-        assertThat(response).isEqualTo(testCustomer)
-
-        verify(exactly = 1) {
-            customerRepository.save(any())
-        }
-    }
-
-    @Test
-    fun `update customer - id not found`() {
-        every { customerRepository.existsByCustomerId(any()) } returns false
-
-        assertThrows<ResponseStatusException> { controller.updateCustomer(testCustomer.id!!, testCustomer) }
-    }
-
-    @Test
-    fun `update customer`() {
-        every { customerRepository.existsByCustomerId(any()) } returns true
-        every { customerRepository.save(any()) } returns testCustomerEntity1
-
-        val updatedCustomer = testCustomer.copy(
-            lastname = "updated-lastname",
-            firstname = "updated-firstname",
-            birthDate = LocalDate.now(),
-            employer = "updated-employer",
-            income = BigDecimal.TEN,
-            additionalPersons = emptyList()
-        )
-        every { customerRepository.getReferenceByCustomerId(testCustomer.id!!) } returns testCustomerEntity1
-
-        val updatedWithIssuer = updatedCustomer.copy(
-            issuer = CustomerIssuer(
-                personnelNumber = "12345",
-                firstname = "first",
-                lastname = "last"
-            )
-        )
-
-        val response = controller.updateCustomer(testCustomer.id!!, updatedWithIssuer)
-
-        assertThat(response).isEqualTo(updatedCustomer)
-
-        verify(exactly = 1) {
-            customerRepository.save(withArg {
-                // issuer shouldn't be updated
-                assertThat(it.issuer?.personnelNumber).isEqualTo(testCustomer.issuer?.personnelNumber)
-            })
-        }
-    }
-
-    @Test
-    fun `generate pdf customer`() {
-        every { customerRepository.findByCustomerId(any()) } returns Optional.empty()
-
-        val response = controller.generatePdf(1, CustomerPdfType.MASTERDATA)
-
-        assertThat(response).isNotNull
         assertThat(response.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
     }
 
     @Test
-    fun `generate pdf customer found`() {
-        val pdfBytes = ByteArray(10)
-        every { customerRepository.findByCustomerId(any()) } returns Optional.of(testCustomerEntity1)
-        every { customerPdfService.generateMasterdataPdf(any()) } returns pdfBytes
+    fun `generate pdf - result mapped`() {
+        val testFilename = "file.pdf"
+        every { service.generatePdf(any(), any()) } returns CustomerPdfResult(
+            filename = testFilename,
+            bytes = testFilename.toByteArray()
+        )
 
-        val response = controller.generatePdf(1, CustomerPdfType.MASTERDATA)
+        val response = controller.generatePdf(123, CustomerPdfType.COMBINED)
 
-        assertThat(response).isNotNull
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
-        assertThat(response.headers[HttpHeaders.CONTENT_DISPOSITION]).isEqualTo(listOf("inline; filename=stammdaten-100-mustermann-max.pdf"))
-        assertThat(response.body?.contentLength()).isEqualTo(pdfBytes.size.toLong())
+        assertThat(
+            response.headers.filter { it.key === HttpHeaders.CONTENT_TYPE }
+                .map { it.value.first().toString() }.first()
+        ).isEqualTo(MediaType.APPLICATION_PDF_VALUE)
+        assertThat(
+            response.headers.filter { it.key === HttpHeaders.CONTENT_DISPOSITION }
+                .map { it.value.first().toString() }.first()
+        ).isEqualTo("inline; filename=$testFilename")
+
+        val bodyBytes = response.body?.inputStream?.readAllBytes()!!
+        assertThat(String(bodyBytes)).isEqualTo(testFilename)
     }
 
 }
