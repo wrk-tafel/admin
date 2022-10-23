@@ -139,7 +139,7 @@ class TafelUserDetailsManagerTest {
         val oldPassword = "wrong-password"
         val newPassword = "67890"
 
-        val exception = assertThrows<PasswordChangeException> {
+        val exception = assertThrows<PasswordException> {
             manager.changePassword(oldPassword, newPassword)
         }
         assertThat(exception.message).isEqualTo("Passwörter stimmen nicht überein!")
@@ -157,10 +157,10 @@ class TafelUserDetailsManagerTest {
         val oldPassword = "12345"
         val newPassword = "67890"
 
-        val exception = assertThrows<PasswordChangeException> {
+        val exception = assertThrows<PasswordException> {
             manager.changePassword(oldPassword, newPassword)
         }
-        assertThat(exception.message).isEqualTo("Passwort ungültig!")
+        assertThat(exception.message).isEqualTo("Neues Passwort ist ungültig!")
 
         verify { userRepository.findByUsername(testUser.username) }
         verify { passwordEncoder.matches(oldPassword, testUserEntity.password) }

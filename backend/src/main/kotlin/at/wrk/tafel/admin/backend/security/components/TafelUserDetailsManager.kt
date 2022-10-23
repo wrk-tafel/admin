@@ -5,6 +5,7 @@ import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
 import at.wrk.tafel.admin.backend.security.model.TafelUser
 import org.passay.PasswordData
 import org.passay.PasswordValidator
+import org.passay.RuleResult
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.UserDetails
@@ -40,13 +41,13 @@ class TafelUserDetailsManager(
         val storedUser = loadUserByUsername(authenticatedUser.username)!!
 
         if (!passwordEncoder.matches(oldPassword, storedUser.password)) {
-            throw PasswordChangeException("Passwörter stimmen nicht überein!")
+            throw PasswordException("Passwörter stimmen nicht überein!")
         }
 
         val data = PasswordData(storedUser.username, newPassword)
         val result = passwordValidator.validate(data)
         if (!result.isValid) {
-            throw PasswordChangeException("Passwort ungültig!")
+            throw PasswordException("Neues Passwort ist ungültig!", result)
         }
     }
 
@@ -67,4 +68,5 @@ class TafelUserDetailsManager(
 
 }
 
-class PasswordChangeException(message: String) : RuntimeException(message)
+class PasswordException(message: String, validationResult: RuleResult? = null) :
+    RuntimeException(message)
