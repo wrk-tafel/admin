@@ -68,5 +68,5 @@ class TafelUserDetailsManager(
 
 }
 
-class PasswordException(message: String, validationResult: RuleResult? = null) :
+class PasswordException(override val message: String, val validationResult: RuleResult? = null) :
     RuntimeException(message)

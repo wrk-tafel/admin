@@ -7,3 +7,8 @@ data class ChangePasswordRequest(
     val oldPassword: String,
     val newPassword: String
 )
+
+@ExcludeFromTestCoverage
+data class ChangePasswordResponse(
+    val message: String
+)

@@ -1,6 +1,8 @@
 package at.wrk.tafel.admin.backend.security
 
+import at.wrk.tafel.admin.backend.security.components.PasswordException
 import at.wrk.tafel.admin.backend.security.model.ChangePasswordRequest
+import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
@@ -24,9 +26,24 @@ class UserControllerTest {
     @Test
     fun `change password`() {
         val request = ChangePasswordRequest(oldPassword = "old", newPassword = "new")
+
         val response = controller.changePassword(request)
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+        verify { userDetailsManager.changePassword("old", "new") }
+    }
+
+    @Test
+    fun `change password failed`() {
+        val errMsg = "failed"
+        every { userDetailsManager.changePassword(any(), any()) } throws PasswordException(errMsg)
+        val request = ChangePasswordRequest(oldPassword = "old", newPassword = "new")
+
+        val response = controller.changePassword(request)
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY)
+        assertThat(response.body?.message).isEqualTo(errMsg)
+
         verify { userDetailsManager.changePassword("old", "new") }
     }
 
