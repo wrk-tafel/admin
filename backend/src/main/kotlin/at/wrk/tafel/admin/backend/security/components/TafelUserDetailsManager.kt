@@ -3,8 +3,7 @@ package at.wrk.tafel.admin.backend.security.components
 import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
 import at.wrk.tafel.admin.backend.security.model.TafelUser
-import org.passay.PasswordData
-import org.passay.PasswordValidator
+import org.passay.*
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.UserDetails
@@ -35,22 +34,34 @@ class TafelUserDetailsManager(
         TODO("Not yet implemented")
     }
 
-    override fun changePassword(oldPassword: String, newPassword: String) {
+    override fun changePassword(currentPassword: String, newPassword: String) {
         val authenticatedUser = SecurityContextHolder.getContext().authentication.principal as TafelUser
         var storedUser = userRepository.findByUsername(authenticatedUser.username).get()
 
-        if (!passwordEncoder.matches(oldPassword, storedUser.password)) {
+        if (!passwordEncoder.matches(currentPassword, storedUser.password)) {
             throw PasswordException("Passwörter stimmen nicht überein!")
         }
 
         val data = PasswordData(storedUser.username, newPassword)
         val result = passwordValidator.validate(data)
-        if (!result.isValid) {
-            // TODO map validation details
-            throw PasswordException("Neues Passwort ist ungültig!", emptyList())
-        } else {
+        if (result.isValid) {
             storedUser.password = passwordEncoder.encode(newPassword)
             userRepository.save(storedUser)
+        } else {
+            throw PasswordException("Das neue Passwort ist ungültig!", translateViolationsToMessages(result))
+        }
+    }
+
+    private fun translateViolationsToMessages(result: RuleResult): List<String> {
+        return result.details.mapNotNull {
+            when (it.errorCode) {
+                LengthRule.ERROR_CODE_MIN -> """Mindestlänge: ${it.parameters["minimumLength"]}, Maximale Länge: ${it.parameters["maximumLength"]}"""
+                LengthRule.ERROR_CODE_MAX -> """Mindestlänge: ${it.parameters["minimumLength"]}, Maximale Länge: ${it.parameters["maximumLength"]}"""
+                WhitespaceRule.ERROR_CODE -> """Leerzeichen sind nicht erlaubt"""
+                UsernameRule.ERROR_CODE, UsernameRule.ERROR_CODE_REVERSED -> "Der Benutzername darf nicht Teil des Passworts sein"
+                DictionarySubstringRule.ERROR_CODE, DictionarySubstringRule.ERROR_CODE_REVERSED -> "Folgende Wörter dürfen nicht enhalten sein: ${it.parameters["matchingWord"]}"
+                else -> null
+            }
         }
     }
 

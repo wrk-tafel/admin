@@ -6,10 +6,10 @@ import at.wrk.tafel.admin.backend.security.components.JwtAuthenticationFilter
 import at.wrk.tafel.admin.backend.security.components.JwtAuthenticationProvider
 import at.wrk.tafel.admin.backend.security.components.JwtTokenService
 import at.wrk.tafel.admin.backend.security.components.TafelUserDetailsManager
-import org.passay.LengthRule
-import org.passay.PasswordValidator
-import org.passay.UsernameRule
-import org.passay.WhitespaceRule
+import org.passay.*
+import org.passay.dictionary.ArrayWordList
+import org.passay.dictionary.WordListDictionary
+import org.passay.dictionary.sort.ArraysSort
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -79,11 +79,17 @@ class WebSecurityConfig(
 
     @Bean
     fun passwordValidator(): PasswordValidator {
+        val wordList = listOf("wrk", "örk", "oerk", "tafel", "roteskreuz", "toet", "töt", "1030")
         return PasswordValidator(
             listOf(
-                LengthRule(8, 30),
+                LengthRule(8, 50),
                 UsernameRule(),
-                WhitespaceRule()
+                WhitespaceRule(),
+                DictionarySubstringRule(
+                    WordListDictionary(
+                        ArrayWordList(wordList.toTypedArray(), false, ArraysSort())
+                    )
+                )
             )
         )
     }

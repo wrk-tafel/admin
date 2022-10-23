@@ -120,14 +120,19 @@ class TafelUserDetailsManagerTest {
         SecurityContextHolder.getContext().authentication = UsernamePasswordAuthenticationToken(testUser, null)
         every { userRepository.findByUsername(any()) } returns Optional.of(testUserEntity)
         every { passwordValidator.validate(any()) } returns RuleResult(true)
+        every { userRepository.save(any()) } returns testUserEntity
 
-        val oldPassword = "12345"
+        val currentPasswordHash = testUserEntity.password
+
+        val currentPassword = "12345"
         val newPassword = "67890"
 
-        manager.changePassword(oldPassword, newPassword)
+        manager.changePassword(currentPassword, newPassword)
 
         verify { userRepository.findByUsername(testUser.username) }
-        verify { passwordEncoder.matches(oldPassword, testUserEntity.password) }
+        verify { passwordEncoder.matches(currentPassword, currentPasswordHash) }
+        verify { passwordEncoder.encode(newPassword) }
+        verify(exactly = 1) { userRepository.save(testUserEntity) }
     }
 
     @Test
@@ -136,16 +141,17 @@ class TafelUserDetailsManagerTest {
         every { userRepository.findByUsername(any()) } returns Optional.of(testUserEntity)
         every { passwordValidator.validate(any()) } returns RuleResult(true)
 
-        val oldPassword = "wrong-password"
+        val currentPassword = "wrong-password"
         val newPassword = "67890"
 
         val exception = assertThrows<PasswordException> {
-            manager.changePassword(oldPassword, newPassword)
+            manager.changePassword(currentPassword, newPassword)
         }
         assertThat(exception.message).isEqualTo("Passwörter stimmen nicht überein!")
 
         verify { userRepository.findByUsername(testUser.username) }
-        verify { passwordEncoder.matches(oldPassword, testUserEntity.password) }
+        verify { passwordEncoder.matches(currentPassword, testUserEntity.password) }
+        verify(exactly = 0) { userRepository.save(testUserEntity) }
     }
 
     @Test
@@ -154,22 +160,23 @@ class TafelUserDetailsManagerTest {
         every { userRepository.findByUsername(any()) } returns Optional.of(testUserEntity)
         every { passwordValidator.validate(any()) } returns RuleResult(false)
 
-        val oldPassword = "12345"
+        val currentPassword = "12345"
         val newPassword = "67890"
 
         val exception = assertThrows<PasswordException> {
-            manager.changePassword(oldPassword, newPassword)
+            manager.changePassword(currentPassword, newPassword)
         }
-        assertThat(exception.message).isEqualTo("Neues Passwort ist ungültig!")
+        assertThat(exception.message).isEqualTo("Das neue Passwort ist ungültig!")
 
         verify { userRepository.findByUsername(testUser.username) }
-        verify { passwordEncoder.matches(oldPassword, testUserEntity.password) }
+        verify { passwordEncoder.matches(currentPassword, testUserEntity.password) }
         verify {
             passwordValidator.validate(withArg {
                 assertThat(it.username).isEqualTo(testUserEntity.username)
                 assertThat(it.password).isEqualTo(newPassword)
             })
         }
+        verify(exactly = 0) { userRepository.save(testUserEntity) }
     }
 
     @Test

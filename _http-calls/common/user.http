@@ -15,5 +15,5 @@ Content-Type: application/json
 
 {
   "passwordCurrent": "12345",
-  "passwordNew": "67890"
+  "passwordNew": "wrk-tafel"
 }
