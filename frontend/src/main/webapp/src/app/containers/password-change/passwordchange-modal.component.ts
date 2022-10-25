@@ -20,6 +20,19 @@ export class PasswordChangeModalComponent {
     this.modal.show();
   }
 
+  public changePassword() {
+    const data = this.form.value;
+    console.log("CHANGED: ", data);
+    this.hideModalDelayed();
+  }
+
+  private hideModalDelayed() {
+    const root = this;
+    setTimeout(function () {
+      root.modal.hide();
+    }, 1500);
+  }
+
   get currentPassword() {
     return this.form.get('currentPassword');
   }
