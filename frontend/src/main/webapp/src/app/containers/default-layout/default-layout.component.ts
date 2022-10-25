@@ -1,7 +1,8 @@
-import {Component} from '@angular/core';
+import {Component, ViewChild} from '@angular/core';
 import {INavData} from '@coreui/angular';
 import {AuthenticationService} from '../../common/security/authentication.service';
 import {IPermissionNavData, navigationMenuItems} from '../../views/dashboard/navigation-menuItems';
+import {PasswordChangeModalComponent} from "../password-change/passwordchange-modal.component";
 
 @Component({
   selector: 'tafel-default-layout',
@@ -10,6 +11,9 @@ import {IPermissionNavData, navigationMenuItems} from '../../views/dashboard/nav
 export class DefaultLayoutComponent {
   public sidebarMinimized = false;
   public navItems = [];
+
+  @ViewChild(PasswordChangeModalComponent)
+  private passwordChangeModalComponent: PasswordChangeModalComponent;
 
   constructor(
     private auth: AuthenticationService
@@ -23,6 +27,10 @@ export class DefaultLayoutComponent {
 
   public onLogout() {
     this.auth.logoutAndRedirect();
+  }
+
+  public changePassword() {
+    this.passwordChangeModalComponent.showDialog();
   }
 
   public getNavItemsFilteredByPermissions(navItems: IPermissionNavData[]) {
