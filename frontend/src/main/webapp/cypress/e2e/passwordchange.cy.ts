@@ -11,21 +11,22 @@ describe('PasswordChange', () => {
     cy.byTestId('usermenu').click();
     cy.byTestId('usermenu-changepassword').click();
 
-    cy.byTestId('currentPasswordText').type('e2etest');
+    const currentPassword = 'e2etest';
+    recurse(
+      () => cy.byTestId('currentPasswordText').type(currentPassword),
+      ($input) => $input.val() === currentPassword,
+    ).should('have.value', currentPassword);
 
     const newPassword = '4wtouCcWWqDJsP';
     recurse(
-      // the commands to repeat, and they yield the input element
       () => cy.byTestId('newPasswordText').type(newPassword),
-      // the predicate takes the output of the above commands
-      // and returns a boolean. If it returns true, the recursion stops
       ($input) => $input.val() === newPassword,
-    )
-      // the recursion yields whatever the command function yields
-      // and we can confirm that the text was entered correctly
-      .should('have.value', newPassword);
+    ).should('have.value', newPassword);
 
-    cy.byTestId('newRepeatedPasswordText').type('4wtouCcWWqDJsP');
+    recurse(
+      () => cy.byTestId('newRepeatedPasswordText').type(newPassword),
+      ($input) => $input.val() === newPassword,
+    ).should('have.value', newPassword);
 
     cy.byTestId('saveButton').click();
 
