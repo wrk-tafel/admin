@@ -1,9 +1,9 @@
 import {ComponentFixture, fakeAsync, TestBed, tick, waitForAsync} from '@angular/core/testing';
 import {PasswordChangeModalComponent} from './passwordchange-modal.component';
-import {ModalDirective, ModalModule} from "ngx-bootstrap/modal";
-import {HttpClientTestingModule, HttpTestingController} from "@angular/common/http/testing";
-import {FormControl, FormGroup} from "@angular/forms";
-import {ChangePasswordResponse} from "../../common/api/user-api.service";
+import {ModalDirective, ModalModule} from 'ngx-bootstrap/modal';
+import {HttpClientTestingModule, HttpTestingController} from '@angular/common/http/testing';
+import {FormControl, FormGroup} from '@angular/forms';
+import {ChangePasswordResponse} from '../../common/api/user-api.service';
 
 describe('PasswordChangeModalComponent', () => {
   let httpMock: HttpTestingController;
@@ -93,7 +93,7 @@ describe('PasswordChangeModalComponent', () => {
     const errorResponse: ChangePasswordResponse = {
       message: 'ERROR 123',
       details: ['DETAIL 0', 'DETAIL 1']
-    }
+    };
 
     component.currentPassword.setValue('CURR');
     component.newPassword.setValue('NEW');

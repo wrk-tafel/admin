@@ -1,8 +1,8 @@
 import {Component, ViewChild} from '@angular/core';
-import {ModalDirective} from "ngx-bootstrap/modal";
-import {FormControl, FormGroup, ValidatorFn, Validators} from "@angular/forms";
-import {ChangePasswordRequest, ChangePasswordResponse, UserApiService} from "../../common/api/user-api.service";
-import {HttpErrorResponse} from "@angular/common/http";
+import {ModalDirective} from 'ngx-bootstrap/modal';
+import {FormControl, FormGroup, ValidatorFn, Validators} from '@angular/forms';
+import {ChangePasswordRequest, ChangePasswordResponse, UserApiService} from '../../common/api/user-api.service';
+import {HttpErrorResponse} from '@angular/common/http';
 
 @Component({
   selector: 'tafel-passwordchange-modal',
@@ -23,7 +23,7 @@ export class PasswordChangeModalComponent {
     const newPassword = formGroup.get('newPassword').value;
     const newRepeatedPassword = formGroup.get('newRepeatedPassword').value;
 
-    if (newPassword != newRepeatedPassword) {
+    if (newPassword !== newRepeatedPassword) {
       return {passwordsDontMatch: true};
     }
 
@@ -57,15 +57,15 @@ export class PasswordChangeModalComponent {
   }
 
   public changePassword() {
-    const currentPassword = this.currentPassword.value
-    const newPassword = this.newPassword.value
+    const currentPassword = this.currentPassword.value;
+    const newPassword = this.newPassword.value;
 
     const passwordChangeRequest: ChangePasswordRequest = {passwordCurrent: currentPassword, passwordNew: newPassword};
     this.userApiService.updatePassword(passwordChangeRequest).subscribe(
       response => {
         this.errorMessage = null;
         this.errorMessageDetails = null;
-        this.successMessage = "Passwort erfolgreich geändert!";
+        this.successMessage = 'Passwort erfolgreich geändert!';
         this.hideModalDelayed();
       },
       (error: HttpErrorResponse) => {
