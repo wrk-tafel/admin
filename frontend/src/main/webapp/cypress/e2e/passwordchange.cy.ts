@@ -10,7 +10,11 @@ describe('PasswordChange', () => {
     cy.byTestId('usermenu-changepassword').click();
 
     cy.byTestId('currentPasswordText').type('e2etest');
+
     cy.byTestId('newPasswordText').type('4wtouCcWWqDJsP');
+    cy.byTestId('newPasswordText').type('4wtouCcWWqDJsP');
+    cy.byTestId('newPasswordText').type('4wtouCcWWqDJsP');
+
     cy.byTestId('newRepeatedPasswordText').type('4wtouCcWWqDJsP');
 
     cy.byTestId('saveButton').click();
