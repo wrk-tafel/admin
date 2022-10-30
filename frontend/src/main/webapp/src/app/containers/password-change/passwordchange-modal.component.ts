@@ -31,9 +31,19 @@ export class PasswordChangeModalComponent {
   }
 
   form = new FormGroup({
-      currentPassword: new FormControl('', [Validators.required]),
-      newPassword: new FormControl('', [Validators.required, Validators.minLength(8), Validators.maxLength(50)]),
-      newRepeatedPassword: new FormControl('', [Validators.required, Validators.minLength(8), Validators.maxLength(50)])
+      currentPassword: new FormControl('', [
+        Validators.required
+      ]),
+      newPassword: new FormControl('', [
+        Validators.required,
+        Validators.minLength(8),
+        Validators.maxLength(50)
+      ]),
+      newRepeatedPassword: new FormControl('', [
+        Validators.required,
+        Validators.minLength(8),
+        Validators.maxLength(50)
+      ])
     },
     {
       validators: [validateNewAndRepeatedPasswords],
