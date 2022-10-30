@@ -4,17 +4,6 @@ import {FormControl, FormGroup, ValidatorFn, Validators} from "@angular/forms";
 import {ChangePasswordRequest, ChangePasswordResponse, UserApiService} from "../../common/api/user-api.service";
 import {HttpErrorResponse} from "@angular/common/http";
 
-const validateNewAndRepeatedPasswords: ValidatorFn = (formGroup: FormGroup) => {
-  const newPassword = formGroup.get('newPassword').value;
-  const newRepeatedPassword = formGroup.get('newRepeatedPassword').value;
-
-  if (newPassword != newRepeatedPassword) {
-    return {passwordsDontMatch: true};
-  }
-
-  return null;
-}
-
 @Component({
   selector: 'tafel-passwordchange-modal',
   templateUrl: './passwordchange-modal.component.html'
@@ -28,6 +17,17 @@ export class PasswordChangeModalComponent {
   constructor(
     private userApiService: UserApiService
   ) {
+  }
+
+  validateNewAndRepeatedPasswords: ValidatorFn = (formGroup: FormGroup) => {
+    const newPassword = formGroup.get('newPassword').value;
+    const newRepeatedPassword = formGroup.get('newRepeatedPassword').value;
+
+    if (newPassword != newRepeatedPassword) {
+      return {passwordsDontMatch: true};
+    }
+
+    return null;
   }
 
   form = new FormGroup({
@@ -46,7 +46,7 @@ export class PasswordChangeModalComponent {
       ])
     },
     {
-      validators: [validateNewAndRepeatedPasswords],
+      validators: [this.validateNewAndRepeatedPasswords],
       updateOn: 'change'
     }
   );
@@ -76,7 +76,7 @@ export class PasswordChangeModalComponent {
     );
   }
 
-  private hideModalDelayed() {
+  hideModalDelayed() {
     const root = this;
     setTimeout(function () {
       root.modal.hide();
