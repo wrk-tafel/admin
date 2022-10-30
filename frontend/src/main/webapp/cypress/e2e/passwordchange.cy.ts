@@ -9,15 +9,10 @@ describe('PasswordChange', () => {
     cy.byTestId('usermenu').click();
     cy.byTestId('usermenu-changepassword').click();
 
-    cy.byTestId('currentPasswordText').type('e2etest');
-
-    cy.byTestId('newPasswordText').type('4wtouCcWWqDJsP');
-    cy.byTestId('newPasswordText').type('4wtouCcWWqDJsP');
-    cy.byTestId('newPasswordText').type('4wtouCcWWqDJsP');
-
-    cy.byTestId('newRepeatedPasswordText').type('4wtouCcWWqDJsP');
-
-    cy.byTestId('saveButton').click();
+    cy.byTestId('currentPasswordText').type('e2etest')
+      .then(() => cy.byTestId('newPasswordText').type('4wtouCcWWqDJsP'))
+      .then(() => cy.byTestId('newRepeatedPasswordText').type('4wtouCcWWqDJsP'))
+      .then(() => cy.byTestId('saveButton').click());
 
     cy.byTestId('usermenu').click();
     cy.byTestId('usermenu-logout').click();
