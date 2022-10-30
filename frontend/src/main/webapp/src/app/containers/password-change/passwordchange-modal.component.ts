@@ -10,9 +10,9 @@ import {HttpErrorResponse} from "@angular/common/http";
 })
 export class PasswordChangeModalComponent {
   @ViewChild('pwdChangeModal') public modal: ModalDirective;
-  private successMessage: string;
-  private errorMessage: string;
-  private errorMessageDetails: string[];
+  successMessage: string;
+  errorMessage: string;
+  errorMessageDetails: string[];
 
   constructor(
     private userApiService: UserApiService
