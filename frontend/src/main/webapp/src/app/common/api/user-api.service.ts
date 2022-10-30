@@ -1,5 +1,6 @@
 import {HttpClient} from '@angular/common/http';
 import {Injectable} from '@angular/core';
+import {Observable} from "rxjs";
 
 @Injectable({
   providedIn: 'root'
@@ -11,4 +12,17 @@ export class UserApiService {
   ) {
   }
 
+  updatePassword(request: ChangePasswordRequest): Observable<ChangePasswordResponse> {
+    return this.http.post<ChangePasswordResponse>('/user/change-password', request);
+  }
+}
+
+export interface ChangePasswordRequest {
+  passwordCurrent: string;
+  passwordNew: string;
+}
+
+export interface ChangePasswordResponse {
+  message: string;
+  details: string[];
 }
