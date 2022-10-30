@@ -1,7 +1,7 @@
 package at.wrk.tafel.admin.backend.security
 
 import at.wrk.tafel.admin.backend.security.components.JwtTokenService
-import at.wrk.tafel.admin.backend.security.model.JwtResponse
+import at.wrk.tafel.admin.backend.security.model.JwtAuthenticationResponse
 import at.wrk.tafel.admin.backend.security.model.TafelUser
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -18,7 +18,7 @@ class JwtTokenController(
     private val logger = LoggerFactory.getLogger(JwtTokenController::class.java)
 
     @PostMapping("/api/token")
-    fun generateToken(request: HttpServletRequest): ResponseEntity<JwtResponse> {
+    fun generateToken(request: HttpServletRequest): ResponseEntity<JwtAuthenticationResponse> {
         val auth = SecurityContextHolder.getContext().authentication
         if (auth?.principal is TafelUser) {
 
@@ -26,9 +26,20 @@ class JwtTokenController(
             val token: String? = user.username.let { jwtTokenService.generateToken(it, user.authorities) }
 
             token.let {
-                logger.info("Login successful via user '${user.username}' from IP ${getIpAddress(request)} on ${request.requestURL}")
+                logger.info(
+                    """
+                        Login successful via user '${user.username}'
+                        from IP ${getIpAddress(request)} on ${request.requestURL}
+                        (password change required: ${user.passwordChangeRequired}
+                    """.trimIndent()
+                )
 
-                return ResponseEntity.ok(JwtResponse(token!!))
+                return ResponseEntity.ok(
+                    JwtAuthenticationResponse(
+                        token = it,
+                        passwordChangeRequired = user.passwordChangeRequired
+                    )
+                )
             }
         }
 

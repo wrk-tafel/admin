@@ -24,5 +24,6 @@ val testUser = TafelUser(
     personnelNumber = testUserEntity.personnelNumber!!,
     firstname = testUserEntity.firstname!!,
     lastname = testUserEntity.lastname!!,
-    authorities = emptyList()
+    authorities = emptyList(),
+    passwordChangeRequired = false
 )

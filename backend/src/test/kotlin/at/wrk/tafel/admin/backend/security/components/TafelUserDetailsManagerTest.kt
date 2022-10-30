@@ -89,6 +89,7 @@ class TafelUserDetailsManagerTest {
         userEntity.firstname = "test-firstname"
         userEntity.lastname = "test-lastname"
         userEntity.authorities = mutableListOf(userAuthorityEntity1, userAuthorityEntity2)
+        userEntity.passwordChangeRequired = true
 
         every { userRepository.findByUsername(any()) } returns Optional.of(userEntity)
 
@@ -105,6 +106,7 @@ class TafelUserDetailsManagerTest {
         assertThat(userDetails.isAccountNonExpired).isTrue
         assertThat(userDetails.isAccountNonLocked).isTrue
         assertThat(userDetails.isCredentialsNonExpired).isTrue
+        assertThat(userDetails.passwordChangeRequired).isTrue
         assertThat(userDetails.authorities).hasSameElementsAs(
             listOf(
                 SimpleGrantedAuthority(userAuthorityEntity1.name),

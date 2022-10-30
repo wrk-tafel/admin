@@ -76,7 +76,8 @@ class TafelUserDetailsManager(
             personnelNumber = userEntity.personnelNumber!!,
             firstname = userEntity.firstname!!,
             lastname = userEntity.lastname!!,
-            authorities = userEntity.authorities.map { SimpleGrantedAuthority(it.name) }
+            authorities = userEntity.authorities.map { SimpleGrantedAuthority(it.name) },
+            passwordChangeRequired = userEntity.passwordChangeRequired!!
         )
     }
 
