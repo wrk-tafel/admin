@@ -49,17 +49,10 @@ export class PasswordChangeModalComponent {
   public changePassword() {
     const currentPassword = this.currentPassword.value
     const newPassword = this.newPassword.value
-    const newRepeatedPassword = this.newRepeatedPassword.value
 
-    /*
-    this.userApiService.updatePassword(
-      {passwordCurrent: this.currentPassword.value, passwordNew: this.newPassword.value}
-    )
-     */
+    const passwordChangeRequest = {passwordCurrent: currentPassword, passwordNew: newPassword};
+    this.userApiService.updatePassword(passwordChangeRequest);
 
-    console.log("FORM", this.form);
-
-    // console.log("CHANGED: ", data);
     this.hideModalDelayed();
   }
 
