@@ -1,3 +1,5 @@
+import {recurse} from "cypress-recurse";
+
 describe('PasswordChange', () => {
 
   beforeEach(() => {
@@ -9,9 +11,22 @@ describe('PasswordChange', () => {
     cy.byTestId('usermenu').click();
     cy.byTestId('usermenu-changepassword').click();
 
-    cy.byTestId('currentPasswordText').type('e2etest');
-    cy.byTestId('newPasswordText').type('4wtouCcWWqDJsP');
-    cy.byTestId('newRepeatedPasswordText').type('4wtouCcWWqDJsP');
+    const currentPassword = 'e2etest';
+    recurse(
+      () => cy.byTestId('currentPasswordText').type(currentPassword),
+      ($input) => $input.val() === currentPassword,
+    ).should('have.value', currentPassword);
+
+    const newPassword = '4wtouCcWWqDJsP';
+    recurse(
+      () => cy.byTestId('newPasswordText').type(newPassword),
+      ($input) => $input.val() === newPassword,
+    ).should('have.value', newPassword);
+
+    recurse(
+      () => cy.byTestId('newRepeatedPasswordText').type(newPassword),
+      ($input) => $input.val() === newPassword,
+    ).should('have.value', newPassword);
 
     cy.byTestId('saveButton').click();
 
