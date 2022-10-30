@@ -14,7 +14,7 @@ declare namespace Cypress {
      * Custom command to execute a login via api using fixed credentials.
      * @example cy.login();
      */
-    login();
+    loginDefault();
 
     /**
      * Custom command to execute a login via api using fixed credentials.

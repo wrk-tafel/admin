@@ -1,7 +1,7 @@
 describe('Logout', () => {
 
   beforeEach(() => {
-    cy.login();
+    cy.loginDefault();
     cy.visit('/#');
   });
 

@@ -27,7 +27,7 @@
 
 Cypress.Commands.add('byTestId', (id) => cy.get(`[testid="${id}"]`));
 
-Cypress.Commands.add('login', () => {
+Cypress.Commands.add('loginDefault', () => {
   let username = 'e2etest';
   let password = 'e2etest';
 

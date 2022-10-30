@@ -1,7 +1,7 @@
 describe('Customer Search', () => {
 
   beforeEach(() => {
-    cy.login();
+    cy.loginDefault();
     cy.visit('/#/kunden/suchen');
   });
 
