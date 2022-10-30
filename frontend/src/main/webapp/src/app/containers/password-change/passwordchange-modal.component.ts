@@ -1,20 +1,17 @@
 import {Component, ViewChild} from '@angular/core';
 import {ModalDirective} from "ngx-bootstrap/modal";
 import {FormControl, FormGroup, ValidatorFn, Validators} from "@angular/forms";
-import {UserApiService} from "../../common/api/user-api.service";
+import {ChangePasswordRequest, ChangePasswordResponse, UserApiService} from "../../common/api/user-api.service";
+import {HttpErrorResponse} from "@angular/common/http";
 
 const validateNewAndRepeatedPasswords: ValidatorFn = (formGroup: FormGroup) => {
   const newPassword = formGroup.get('newPassword').value;
   const newRepeatedPassword = formGroup.get('newRepeatedPassword').value;
 
-  console.log("VAL", newPassword, newRepeatedPassword);
-
   if (newPassword != newRepeatedPassword) {
-    console.log("DONT MATCH!");
     return {passwordsDontMatch: true};
   }
 
-  console.log("MATCH!");
   return null;
 }
 
@@ -24,6 +21,9 @@ const validateNewAndRepeatedPasswords: ValidatorFn = (formGroup: FormGroup) => {
 })
 export class PasswordChangeModalComponent {
   @ViewChild('pwdChangeModal') public modal: ModalDirective;
+  private successMessage: string;
+  private errorMessage: string;
+  private errorMessageDetails: string[];
 
   constructor(
     private userApiService: UserApiService
@@ -60,10 +60,20 @@ export class PasswordChangeModalComponent {
     const currentPassword = this.currentPassword.value
     const newPassword = this.newPassword.value
 
-    const passwordChangeRequest = {passwordCurrent: currentPassword, passwordNew: newPassword};
-    this.userApiService.updatePassword(passwordChangeRequest);
-
-    this.hideModalDelayed();
+    const passwordChangeRequest: ChangePasswordRequest = {passwordCurrent: currentPassword, passwordNew: newPassword};
+    this.userApiService.updatePassword(passwordChangeRequest).subscribe(
+      response => {
+        this.errorMessage = null;
+        this.errorMessageDetails = null;
+        this.successMessage = "Passwort erfolgreich geändert!";
+        this.hideModalDelayed();
+      },
+      (error: HttpErrorResponse) => {
+        const errorBody = error.error as ChangePasswordResponse;
+        this.errorMessage = errorBody.message;
+        this.errorMessageDetails = errorBody.details;
+      }
+    );
   }
 
   private hideModalDelayed() {

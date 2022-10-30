@@ -39,7 +39,7 @@ class TafelUserDetailsManager(
         var storedUser = userRepository.findByUsername(authenticatedUser.username).get()
 
         if (!passwordEncoder.matches(currentPassword, storedUser.password)) {
-            throw PasswordException("Passwörter stimmen nicht überein!")
+            throw PasswordException("Aktuelles Passwort ist falsch!")
         }
 
         val data = PasswordData(storedUser.username, newPassword)
