@@ -68,6 +68,10 @@ export class PasswordChangeFormComponent {
     );
   }
 
+  reset() {
+    this.form.reset();
+  }
+
   get currentPassword() {
     return this.form.get('currentPassword');
   }

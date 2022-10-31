@@ -11,7 +11,7 @@ export class PasswordChangeModalComponent {
   @ViewChild(PasswordChangeFormComponent) public form: PasswordChangeFormComponent;
 
   showDialog() {
-    this.form.form.reset();
+    this.form.reset();
     this.modal.show();
   }
 
