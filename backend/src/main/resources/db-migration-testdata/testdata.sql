@@ -14,7 +14,7 @@ VALUES (1000, NOW(), NOW(), 100, 'CUSTOMER');
 -- pwd: e2etest
 INSERT INTO users (id, created_at, updated_at, username, password, enabled, personnel_number, firstname, lastname)
 VALUES (101, NOW(), NOW(), 'e2etest2', '{argon2}$argon2id$v=19$m=4096,t=3,p=1$Cnj0ayQKhOPbkomIRV5tnQ$BfU/uOr20/vg9ie0CQcWhCD00DqjPDf6UI0pRvz1/gg', true,
-        '00000-2', 'E2E', 'Test 2');
+        '00000-0', 'E2E', 'Test');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (1010, NOW(), NOW(), 101, 'CUSTOMER');
 
