@@ -1,14 +1,14 @@
-import {ComponentFixture, fakeAsync, TestBed, tick, waitForAsync} from '@angular/core/testing';
-import {PasswordChangeModalComponent} from './passwordchange-modal.component';
-import {ModalDirective, ModalModule} from 'ngx-bootstrap/modal';
+import {ComponentFixture, fakeAsync, TestBed, waitForAsync} from '@angular/core/testing';
+import {ModalModule} from 'ngx-bootstrap/modal';
 import {HttpClientTestingModule, HttpTestingController} from '@angular/common/http/testing';
 import {FormControl, FormGroup} from '@angular/forms';
 import {ChangePasswordResponse} from '../../api/user-api.service';
+import {PasswordChangeFormComponent} from "./passwordchange-form.component";
 
-describe('PasswordChangeModalComponent', () => {
+describe('PasswordChangeFormComponent', () => {
   let httpMock: HttpTestingController;
-  let fixture: ComponentFixture<PasswordChangeModalComponent>;
-  let component: PasswordChangeModalComponent;
+  let fixture: ComponentFixture<PasswordChangeFormComponent>;
+  let component: PasswordChangeFormComponent;
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
@@ -17,38 +17,17 @@ describe('PasswordChangeModalComponent', () => {
         HttpClientTestingModule
       ],
       declarations: [
-        PasswordChangeModalComponent
+        PasswordChangeFormComponent
       ]
     }).compileComponents();
 
     httpMock = TestBed.inject(HttpTestingController);
-    fixture = TestBed.createComponent(PasswordChangeModalComponent);
+    fixture = TestBed.createComponent(PasswordChangeFormComponent);
     component = fixture.componentInstance;
   }));
 
   it('should create the component', waitForAsync(() => {
     expect(component).toBeTruthy();
-  }));
-
-  it('showDialog should open the modal dialog', waitForAsync(() => {
-    component.form = jasmine.createSpyObj<FormGroup>(['reset']);
-    component.modal = jasmine.createSpyObj<ModalDirective>(['show']);
-
-    component.showDialog();
-
-    expect(component.form.reset).toHaveBeenCalled();
-    expect(component.modal.show).toHaveBeenCalled();
-  }));
-
-  it('hideModalDelayed should hide the modal dialog after a delay', fakeAsync(() => {
-    component.modal = jasmine.createSpyObj<ModalDirective>(['hide']);
-
-    component.hideModalDelayed();
-    expect(component.modal.hide).not.toHaveBeenCalled();
-
-    tick(2000);
-
-    expect(component.modal.hide).toHaveBeenCalled();
   }));
 
   it('validateNewAndRepeatedPasswords should return null on matching values', waitForAsync(() => {
@@ -77,18 +56,6 @@ describe('PasswordChangeModalComponent', () => {
     expect(result).toEqual({passwordsDontMatch: true});
   }));
 
-  it('changePassword should call apiService correctly', waitForAsync(() => {
-    // apiService.updatePassword.and.returnValue(of())
-
-    component.currentPassword.setValue('CURR');
-    component.newPassword.setValue('NEW');
-
-    component.changePassword();
-
-    const changePasswordRequest = {passwordCurrent: 'CURR', passwordNew: 'NEW'};
-    // expect(apiService.updatePassword).toHaveBeenCalledWith(changePasswordRequest);
-  }));
-
   it('changePassword should fill errorMessages correctly', waitForAsync(() => {
     const errorResponse: ChangePasswordResponse = {
       message: 'ERROR 123',
@@ -108,9 +75,7 @@ describe('PasswordChangeModalComponent', () => {
     expect(component.errorMessageDetails).toEqual(errorResponse.details);
   }));
 
-  it('changePassword should set successMessage and hide the modal dialog', fakeAsync(() => {
-    component.modal = jasmine.createSpyObj<ModalDirective>(['hide']);
-
+  it('changePassword should set successMessage', fakeAsync(() => {
     component.currentPassword.setValue('CURR');
     component.newPassword.setValue('NEW');
     component.errorMessage = 'error-msg';
@@ -125,9 +90,6 @@ describe('PasswordChangeModalComponent', () => {
     expect(component.errorMessage).toBe(null);
     expect(component.errorMessageDetails).toEqual(null);
     expect(component.successMessage).toBe('Passwort erfolgreich geändert!');
-
-    tick(2000);
-    expect(component.modal.hide).toHaveBeenCalled();
   }));
 
 });

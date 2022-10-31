@@ -2,7 +2,7 @@ import {Component, ViewChild} from '@angular/core';
 import {INavData} from '@coreui/angular';
 import {AuthenticationService} from '../../../common/security/authentication.service';
 import {IPermissionNavData, navigationMenuItems} from '../../dashboard/navigation-menuItems';
-import {PasswordChangeModalComponent} from '../../user/views/password-change/passwordchange-modal.component';
+import {PasswordChangeModalComponent} from '../../user/views/passwordchange-modal/passwordchange-modal.component';
 
 @Component({
   selector: 'tafel-default-layout',

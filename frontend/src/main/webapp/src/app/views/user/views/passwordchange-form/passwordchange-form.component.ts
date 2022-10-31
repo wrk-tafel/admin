@@ -1,15 +1,13 @@
-import {Component, ViewChild} from '@angular/core';
-import {ModalDirective} from 'ngx-bootstrap/modal';
+import {Component} from '@angular/core';
 import {FormControl, FormGroup, ValidatorFn, Validators} from '@angular/forms';
 import {ChangePasswordRequest, ChangePasswordResponse, UserApiService} from '../../api/user-api.service';
 import {HttpErrorResponse} from '@angular/common/http';
 
 @Component({
-  selector: 'tafel-passwordchange-modal',
-  templateUrl: './passwordchange-modal.component.html'
+  selector: 'tafel-passwordchange-form',
+  templateUrl: './passwordchange-form.component.html'
 })
-export class PasswordChangeModalComponent {
-  @ViewChild('pwdChangeModal') public modal: ModalDirective;
+export class PasswordChangeFormComponent {
   successMessage: string;
   errorMessage: string;
   errorMessageDetails: string[];
@@ -51,11 +49,6 @@ export class PasswordChangeModalComponent {
     }
   );
 
-  public showDialog() {
-    this.form.reset();
-    this.modal.show();
-  }
-
   public changePassword() {
     const currentPassword = this.currentPassword.value;
     const newPassword = this.newPassword.value;
@@ -66,7 +59,6 @@ export class PasswordChangeModalComponent {
         this.errorMessage = null;
         this.errorMessageDetails = null;
         this.successMessage = 'Passwort erfolgreich geändert!';
-        this.hideModalDelayed();
       },
       (error: HttpErrorResponse) => {
         const errorBody = error.error as ChangePasswordResponse;
@@ -74,13 +66,6 @@ export class PasswordChangeModalComponent {
         this.errorMessageDetails = errorBody.details;
       }
     );
-  }
-
-  hideModalDelayed() {
-    const root = this;
-    setTimeout(function () {
-      root.modal.hide();
-    }, 1500);
   }
 
   get currentPassword() {
