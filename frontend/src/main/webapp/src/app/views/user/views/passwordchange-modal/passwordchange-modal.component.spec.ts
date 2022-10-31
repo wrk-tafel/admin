@@ -3,6 +3,7 @@ import {PasswordChangeModalComponent} from './passwordchange-modal.component';
 import {ModalDirective, ModalModule} from 'ngx-bootstrap/modal';
 import {HttpClientTestingModule, HttpTestingController} from '@angular/common/http/testing';
 import {PasswordChangeFormComponent} from "../passwordchange-form/passwordchange-form.component";
+import {Observable, of} from "rxjs";
 
 describe('PasswordChangeModalComponent', () => {
   let httpMock: HttpTestingController;
@@ -50,11 +51,33 @@ describe('PasswordChangeModalComponent', () => {
     expect(component.modal.hide).toHaveBeenCalled();
   }));
 
-  it('changePassword calls form', fakeAsync(() => {
-    component.form = jasmine.createSpyObj<PasswordChangeFormComponent>(['changePassword']);
+  it('changePassword calls form and hides modal on success', fakeAsync(() => {
+    const response: Observable<boolean> = of(true);
+
+    const formMock = jasmine.createSpyObj<PasswordChangeFormComponent>(['changePassword']);
+    formMock.changePassword.and.returnValue(response);
+    component.form = formMock;
+    component.modal = jasmine.createSpyObj<ModalDirective>(['hide']);
 
     component.changePassword();
+    tick(2000);
 
+    expect(component.modal.hide).toHaveBeenCalled();
+    expect(component.form.changePassword).toHaveBeenCalled();
+  }));
+
+  it('changePassword calls form and doesnt hide modal on failure', fakeAsync(() => {
+    const response: Observable<boolean> = of(false);
+
+    const formMock = jasmine.createSpyObj<PasswordChangeFormComponent>(['changePassword']);
+    formMock.changePassword.and.returnValue(response);
+    component.form = formMock;
+    component.modal = jasmine.createSpyObj<ModalDirective>(['hide']);
+
+    component.changePassword();
+    tick(2000);
+
+    expect(component.modal.hide).not.toHaveBeenCalled();
     expect(component.form.changePassword).toHaveBeenCalled();
   }));
 

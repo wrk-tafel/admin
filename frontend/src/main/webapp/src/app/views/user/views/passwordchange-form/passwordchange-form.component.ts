@@ -2,6 +2,8 @@ import {Component} from '@angular/core';
 import {FormControl, FormGroup, ValidatorFn, Validators} from '@angular/forms';
 import {ChangePasswordRequest, ChangePasswordResponse, UserApiService} from '../../api/user-api.service';
 import {HttpErrorResponse} from '@angular/common/http';
+import {map} from "rxjs/operators";
+import {Observable} from "rxjs";
 
 @Component({
   selector: 'tafel-passwordchange-form',
@@ -49,23 +51,27 @@ export class PasswordChangeFormComponent {
     }
   );
 
-  public changePassword() {
+  public changePassword(): Observable<boolean> {
     const currentPassword = this.currentPassword.value;
     const newPassword = this.newPassword.value;
 
     const passwordChangeRequest: ChangePasswordRequest = {passwordCurrent: currentPassword, passwordNew: newPassword};
-    this.userApiService.updatePassword(passwordChangeRequest).subscribe(
-      response => {
-        this.errorMessage = null;
-        this.errorMessageDetails = null;
-        this.successMessage = 'Passwort erfolgreich geändert!';
-      },
-      (error: HttpErrorResponse) => {
-        const errorBody = error.error as ChangePasswordResponse;
-        this.errorMessage = errorBody.message;
-        this.errorMessageDetails = errorBody.details;
-      }
-    );
+
+    return this.userApiService.updatePassword(passwordChangeRequest).pipe(
+      map(
+        (response: ChangePasswordResponse) => {
+          this.errorMessage = null;
+          this.errorMessageDetails = null;
+          this.successMessage = 'Passwort erfolgreich geändert!';
+          return true;
+        },
+        (error: HttpErrorResponse) => {
+          const errorBody = error.error as ChangePasswordResponse;
+          this.errorMessage = errorBody.message;
+          this.errorMessageDetails = errorBody.details;
+          return false;
+        }
+      ));
   }
 
   reset() {

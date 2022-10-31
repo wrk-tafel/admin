@@ -20,7 +20,11 @@ export class PasswordChangeModalComponent {
   }
 
   changePassword() {
-    this.form.changePassword();
+    this.form.changePassword().subscribe(successful => {
+      if (successful) {
+        this.hideModalDelayed();
+      }
+    });
   }
 
   isSaveDisabled(): Boolean {
@@ -30,7 +34,7 @@ export class PasswordChangeModalComponent {
   hideModalDelayed() {
     const root = this;
     setTimeout(function () {
-      root.modal.hide();
+      root.hideDialog();
     }, 1500);
   }
 }
