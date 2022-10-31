@@ -20,10 +20,12 @@ class JwtTokenService(
             .body
     }
 
-    fun generateToken(username: String, authorities: Collection<GrantedAuthority>): String {
-        val tokenSettings = applicationProperties.security.jwtToken
-
-        val expirationMillis = tokenSettings.expirationTimeInSeconds * 1000
+    fun generateToken(
+        username: String,
+        authorities: Collection<GrantedAuthority>,
+        expirationSeconds: Int
+    ): String {
+        val expirationMillis = expirationSeconds * 1000
         val expirationDate = Date(System.currentTimeMillis() + expirationMillis)
         val secretKeySpec = createSecretKeySpec()
 
