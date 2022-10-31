@@ -3,17 +3,30 @@ package at.wrk.tafel.admin.backend.security.components
 import at.wrk.tafel.admin.backend.database.entities.auth.UserAuthorityEntity
 import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
+import at.wrk.tafel.admin.backend.security.WebSecurityConfig
 import at.wrk.tafel.admin.backend.security.model.TafelUser
+import at.wrk.tafel.admin.backend.security.testUser
+import at.wrk.tafel.admin.backend.security.testUserEntity
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
+import io.mockk.impl.annotations.SpyK
 import io.mockk.junit5.MockKExtension
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
+import org.passay.PasswordValidator
+import org.passay.RuleResult
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.authority.SimpleGrantedAuthority
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.crypto.argon2.Argon2PasswordEncoder
+import org.springframework.security.crypto.password.DelegatingPasswordEncoder
+import org.springframework.security.crypto.password.PasswordEncoder
 import java.util.*
 
 @ExtendWith(MockKExtension::class)
@@ -22,8 +35,29 @@ class TafelUserDetailsManagerTest {
     @RelaxedMockK
     private lateinit var userRepository: UserRepository
 
+    @SpyK
+    private var passwordEncoder: PasswordEncoder =
+        DelegatingPasswordEncoder("argon2", mapOf("argon2" to Argon2PasswordEncoder()))
+
+    @SpyK
+    private var passwordValidator: PasswordValidator = WebSecurityConfig.passwordValidator
+
     @InjectMockKs
     private lateinit var manager: TafelUserDetailsManager
+
+    private lateinit var testUserEntityPassword: String
+
+    @BeforeEach
+    fun beforeEach() {
+        SecurityContextHolder.getContext().authentication = UsernamePasswordAuthenticationToken(testUser.copy(), null)
+        every { userRepository.findByUsername(any()) } returns Optional.of(testUserEntity)
+        testUserEntityPassword = testUserEntity.password!!
+    }
+
+    @AfterEach
+    fun afterEach() {
+        testUserEntity.password = testUserEntityPassword
+    }
 
     @Test
     fun `loadUserByUsername - user not found`() {
@@ -99,8 +133,136 @@ class TafelUserDetailsManagerTest {
     }
 
     @Test
-    fun `changePassword - not implemented`() {
-        assertThrows<NotImplementedError> { manager.changePassword(null, null) }
+    fun `changePassword - passwords matching`() {
+        every { passwordValidator.validate(any()) } returns RuleResult(true)
+        every { userRepository.save(any()) } returns testUserEntity
+
+        val currentPasswordHash = testUserEntity.password
+
+        val currentPassword = "12345"
+        val newPassword = "67890"
+
+        manager.changePassword(currentPassword, newPassword)
+
+        verify { userRepository.findByUsername(testUser.username) }
+        verify { passwordEncoder.matches(currentPassword, currentPasswordHash) }
+        verify { passwordEncoder.encode(newPassword) }
+        verify(exactly = 1) { userRepository.save(testUserEntity) }
+    }
+
+    @Test
+    fun `changePassword - passwords not matching`() {
+        every { passwordValidator.validate(any()) } returns RuleResult(true)
+
+        val currentPassword = "wrong-password"
+        val newPassword = "67890"
+
+        val exception = assertThrows<PasswordException> {
+            manager.changePassword(currentPassword, newPassword)
+        }
+        assertThat(exception.message).isEqualTo("Aktuelles Passwort ist falsch!")
+
+        verify { userRepository.findByUsername(testUser.username) }
+        verify { passwordEncoder.matches(currentPassword, testUserEntity.password) }
+        verify(exactly = 0) { userRepository.save(testUserEntity) }
+    }
+
+    @Test
+    fun `changePassword - new password invalid`() {
+        every { passwordValidator.validate(any()) } returns RuleResult(false)
+
+        val currentPassword = "12345"
+        val newPassword = "67890"
+
+        val exception = assertThrows<PasswordException> {
+            manager.changePassword(currentPassword, newPassword)
+        }
+        assertThat(exception.message).isEqualTo("Das neue Passwort ist ungültig!")
+
+        verify { userRepository.findByUsername(testUser.username) }
+        verify { passwordEncoder.matches(currentPassword, testUserEntity.password) }
+        verify {
+            passwordValidator.validate(withArg {
+                assertThat(it.username).isEqualTo(testUserEntity.username)
+                assertThat(it.password).isEqualTo(newPassword)
+            })
+        }
+        verify(exactly = 0) { userRepository.save(testUserEntity) }
+    }
+
+    @Test
+    fun `changePassword - password too short`() {
+        val newPassword = "67890"
+
+        val exception = assertThrows<PasswordException> {
+            manager.changePassword("12345", newPassword)
+        }
+        assertThat(exception.message).isEqualTo("Das neue Passwort ist ungültig!")
+        assertThat(exception.validationDetails).hasSameElementsAs(
+            listOf(
+                "Mindestlänge: 8, Maximale Länge: 50"
+            )
+        )
+    }
+
+    @Test
+    fun `changePassword - password too long`() {
+        val newPassword = "6789067890678906789067890678906789067890678906789067890"
+
+        val exception = assertThrows<PasswordException> {
+            manager.changePassword("12345", newPassword)
+        }
+        assertThat(exception.message).isEqualTo("Das neue Passwort ist ungültig!")
+        assertThat(exception.validationDetails).hasSameElementsAs(
+            listOf(
+                "Mindestlänge: 8, Maximale Länge: 50"
+            )
+        )
+    }
+
+    @Test
+    fun `changePassword - contains username`() {
+        val newPassword = "123${testUserEntity.username}123"
+
+        val exception = assertThrows<PasswordException> {
+            manager.changePassword("12345", newPassword)
+        }
+        assertThat(exception.message).isEqualTo("Das neue Passwort ist ungültig!")
+        assertThat(exception.validationDetails).hasSameElementsAs(
+            listOf(
+                "Der Benutzername darf nicht Teil des Passworts sein"
+            )
+        )
+    }
+
+    @Test
+    fun `changePassword - contains whitespace`() {
+        val newPassword = "1234 1234"
+
+        val exception = assertThrows<PasswordException> {
+            manager.changePassword("12345", newPassword)
+        }
+        assertThat(exception.message).isEqualTo("Das neue Passwort ist ungültig!")
+        assertThat(exception.validationDetails).hasSameElementsAs(
+            listOf(
+                "Leerzeichen sind nicht erlaubt"
+            )
+        )
+    }
+
+    @Test
+    fun `changePassword - contains illegal words`() {
+        val newPassword = "123wrk123tafel123"
+
+        val exception = assertThrows<PasswordException> {
+            manager.changePassword("12345", newPassword)
+        }
+        assertThat(exception.message).isEqualTo("Das neue Passwort ist ungültig!")
+        assertThat(exception.validationDetails).hasSameElementsAs(
+            listOf(
+                "Folgende Wörter dürfen nicht enhalten sein: wrk"
+            )
+        )
     }
 
     @Test

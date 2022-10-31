@@ -59,6 +59,7 @@ module.exports = function (config) {
     browserConsoleLogOptions: {
       terminal: true,
       level: 'log'
-    }
+    },
+    browserNoActivityTimeout: 600000
   });
 };

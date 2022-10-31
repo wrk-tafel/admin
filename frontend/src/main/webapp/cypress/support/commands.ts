@@ -24,21 +24,36 @@
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
 
+
 Cypress.Commands.add('byTestId', (id) => cy.get(`[testid="${id}"]`));
 
-Cypress.Commands.add('login', () => {
+Cypress.Commands.add('loginDefault', () => {
   let username = 'e2etest';
   let password = 'e2etest';
 
-  cy.request({
+  cy.createLoginRequest(username, password)
+    .then((response) => {
+      const token = response.body.token;
+      sessionStorage.setItem('jwt', token);
+    });
+});
+
+Cypress.Commands.add('login', (username: string, password: string) => {
+  cy.createLoginRequest(username, password)
+    .then((response) => {
+      const token = response.body.token;
+      sessionStorage.setItem('jwt', token);
+    });
+});
+
+Cypress.Commands.add('createLoginRequest', (username: string, password: string, failOnStatusCode?: boolean): Cypress.Chainable<Cypress.Response<any>> => {
+  return cy.request({
     method: 'POST',
     url: '/api/login',
+    failOnStatusCode: failOnStatusCode,
     body: 'username=' + username + '&password=' + password,
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
     }
-  }).then((response) => {
-    const token = response.body.token;
-    sessionStorage.setItem('jwt', token);
   });
 });

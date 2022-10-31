@@ -6,6 +6,10 @@ import at.wrk.tafel.admin.backend.security.components.JwtAuthenticationFilter
 import at.wrk.tafel.admin.backend.security.components.JwtAuthenticationProvider
 import at.wrk.tafel.admin.backend.security.components.JwtTokenService
 import at.wrk.tafel.admin.backend.security.components.TafelUserDetailsManager
+import org.passay.*
+import org.passay.dictionary.ArrayWordList
+import org.passay.dictionary.WordListDictionary
+import org.passay.dictionary.sort.ArraysSort
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -18,6 +22,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder
+import org.springframework.security.crypto.password.DelegatingPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.provisioning.UserDetailsManager
 import org.springframework.security.web.authentication.HttpStatusEntryPoint
@@ -35,6 +40,24 @@ class WebSecurityConfig(
     private val jwtTokenService: JwtTokenService,
     private val userRepository: UserRepository
 ) : WebSecurityConfigurerAdapter() {
+
+    companion object {
+        val passwordValidator = PasswordValidator(
+            listOf(
+                LengthRule(8, 50),
+                UsernameRule(),
+                WhitespaceRule(),
+                DictionarySubstringRule(
+                    WordListDictionary(
+                        ArrayWordList(
+                            listOf("wrk", "örk", "oerk", "tafel", "roteskreuz", "toet", "töt", "1030")
+                                .toTypedArray(), false, ArraysSort()
+                        )
+                    )
+                )
+            )
+        )
+    }
 
     override fun configure(http: HttpSecurity) {
         http
@@ -63,17 +86,18 @@ class WebSecurityConfig(
     }
 
     override fun configure(auth: AuthenticationManagerBuilder) {
-        auth.userDetailsService(userDetailsManager()).passwordEncoder(passwordEncoder())
+        auth.userDetailsService(userDetailsManager())
+            .passwordEncoder(passwordEncoder())
     }
 
     @Bean
     fun passwordEncoder(): PasswordEncoder {
-        return Argon2PasswordEncoder()
+        return DelegatingPasswordEncoder("argon2", mapOf("argon2" to Argon2PasswordEncoder()))
     }
 
     @Bean
     fun userDetailsManager(): UserDetailsManager {
-        return TafelUserDetailsManager(userRepository)
+        return TafelUserDetailsManager(userRepository, passwordEncoder(), passwordValidator)
     }
 
     @Bean

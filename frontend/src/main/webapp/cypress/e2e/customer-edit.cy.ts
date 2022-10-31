@@ -1,7 +1,7 @@
 describe('Customer Edit', () => {
 
   beforeEach(() => {
-    cy.login();
+    cy.loginDefault();
   });
 
   it('customerId correct', () => {

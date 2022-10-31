@@ -8,7 +8,20 @@ declare namespace Cypress {
      * Custom command to execute a login via api using fixed credentials.
      * @example cy.login();
      */
-    login();
+    createLoginRequest(username: string, password: string, failOnStatusCode?: boolean): Cypress.Chainable<Cypress.Response<any>>;
+
+    /**
+     * Custom command to execute a login via api using fixed credentials.
+     * @example cy.login();
+     */
+    loginDefault();
+
+    /**
+     * Custom command to execute a login via api using fixed credentials.
+     * Second testuser.
+     * @example cy.login();
+     */
+    login(username: string, password: string);
 
     /**
      * Custom command to select DOM element by testId attribute.

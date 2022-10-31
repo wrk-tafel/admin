@@ -13,7 +13,7 @@ export class ErrorHandlerInterceptor implements HttpInterceptor {
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     return next.handle(req).pipe(catchError(response => {
-      if (response.status !== 404) {
+      if (response.status !== 404 && response.status !== 422) {
         // TODO better ui element to show
         const errorDetail = response.error as ErrorResponseData;
 

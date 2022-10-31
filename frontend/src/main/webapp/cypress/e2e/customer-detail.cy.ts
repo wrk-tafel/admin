@@ -5,7 +5,7 @@ import * as path from 'path';
 describe('Customer Detail', () => {
 
   beforeEach(() => {
-    cy.login();
+    cy.loginDefault();
   });
 
   it('customerId correct', () => {

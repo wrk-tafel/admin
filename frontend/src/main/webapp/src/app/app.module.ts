@@ -36,6 +36,8 @@ import {HTTP_INTERCEPTORS, HttpClientModule, HttpClientXsrfModule} from '@angula
 import {ApiPathInterceptor} from './common/http/apipath-interceptor.service';
 import {AuthenticationInterceptor} from './common/http/authentication-interceptor.service';
 import {ErrorHandlerInterceptor} from './common/http/errorhandler-interceptor.service';
+import { ModalModule } from 'ngx-bootstrap/modal';
+import {PasswordChangeModalComponent} from './containers/password-change/passwordchange-modal.component';
 
 const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
   suppressScrollX: true
@@ -58,6 +60,7 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
     HttpClientXsrfModule,
     IconModule,
     IconSetModule.forRoot(),
+    ModalModule.forRoot(),
     PerfectScrollbarModule,
     ReactiveFormsModule,
     TabsModule.forRoot()
@@ -67,7 +70,8 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
     DefaultLayoutComponent,
     P404Component,
     P500Component,
-    LoginComponent
+    LoginComponent,
+    PasswordChangeModalComponent
   ],
   providers: [
     {

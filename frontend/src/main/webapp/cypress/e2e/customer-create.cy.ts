@@ -5,7 +5,7 @@ import * as moment from 'moment';
 describe('Customer Creation', () => {
 
   beforeEach(() => {
-    cy.login();
+    cy.loginDefault();
     cy.visit('/#/kunden/anlegen');
   });
 
