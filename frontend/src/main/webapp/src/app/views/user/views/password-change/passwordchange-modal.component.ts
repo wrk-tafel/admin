@@ -1,7 +1,7 @@
 import {Component, ViewChild} from '@angular/core';
 import {ModalDirective} from 'ngx-bootstrap/modal';
 import {FormControl, FormGroup, ValidatorFn, Validators} from '@angular/forms';
-import {ChangePasswordRequest, ChangePasswordResponse, UserApiService} from '../../common/api/user-api.service';
+import {ChangePasswordRequest, ChangePasswordResponse, UserApiService} from '../../api/user-api.service';
 import {HttpErrorResponse} from '@angular/common/http';
 
 @Component({

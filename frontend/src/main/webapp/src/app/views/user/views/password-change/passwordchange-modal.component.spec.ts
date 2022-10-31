@@ -3,7 +3,7 @@ import {PasswordChangeModalComponent} from './passwordchange-modal.component';
 import {ModalDirective, ModalModule} from 'ngx-bootstrap/modal';
 import {HttpClientTestingModule, HttpTestingController} from '@angular/common/http/testing';
 import {FormControl, FormGroup} from '@angular/forms';
-import {ChangePasswordResponse} from '../../common/api/user-api.service';
+import {ChangePasswordResponse} from '../../api/user-api.service';
 
 describe('PasswordChangeModalComponent', () => {
   let httpMock: HttpTestingController;
