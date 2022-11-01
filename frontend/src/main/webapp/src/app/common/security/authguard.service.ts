@@ -33,7 +33,7 @@ export class AuthGuardService implements CanActivateChild {
   private checkPermissions(route: ActivatedRouteSnapshot): boolean {
     const permissions = this.auth.getPermissions();
     if (permissions.length == 0) {
-      this.router.navigate(['login', 'verweigert']);
+      this.router.navigate(['login', 'fehlgeschlagen']);
       return false;
     }
 

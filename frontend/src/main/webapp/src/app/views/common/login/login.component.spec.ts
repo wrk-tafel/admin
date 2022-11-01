@@ -57,7 +57,7 @@ describe('LoginComponent', () => {
   }));
 
   it('init with forbidden flag should show message', waitForAsync(() => {
-    TestBed.inject(ActivatedRoute).params = of({errorType: 'verweigert'});
+    TestBed.inject(ActivatedRoute).params = of({errorType: 'fehlgeschlagen'});
 
     const fixture = TestBed.createComponent(LoginComponent);
     const component = fixture.componentInstance;

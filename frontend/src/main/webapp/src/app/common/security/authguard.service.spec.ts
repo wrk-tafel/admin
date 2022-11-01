@@ -45,7 +45,7 @@ describe('AuthGuardService', () => {
     const canActivate = service.canActivateChild(activatedRoute, null);
 
     expect(canActivate).toBeFalse();
-    expect(routerSpy.navigate).toHaveBeenCalledWith(['login', 'verweigert']);
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['login', 'fehlgeschlagen']);
   });
 
   it('canActivate when authenticated with wrong permission', () => {

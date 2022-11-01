@@ -29,7 +29,7 @@ export class LoginComponent implements OnInit {
       const errorType: string = params['errorType'];
       if (errorType === 'abgelaufen') {
         this.errorMessage = 'Sitzung abgelaufen! Bitte erneut anmelden.';
-      } else if (errorType === 'verweigert') {
+      } else if (errorType === 'fehlgeschlagen') {
         this.errorMessage = 'Zugriff nicht erlaubt!';
       }
     });
