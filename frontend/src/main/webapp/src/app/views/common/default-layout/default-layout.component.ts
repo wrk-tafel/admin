@@ -18,7 +18,10 @@ export class DefaultLayoutComponent {
   constructor(
     private auth: AuthenticationService
   ) {
-    this.navItems = this.getNavItemsFilteredByPermissions(navigationMenuItems);
+    const permissions = this.auth.getPermissions();
+    if (permissions.length > 0) {
+      this.navItems = this.getNavItemsFilteredByPermissions(navigationMenuItems);
+    }
   }
 
   toggleMinimize(e) {

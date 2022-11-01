@@ -29,7 +29,7 @@ export class AuthenticationService {
   }
 
   public logoutAndRedirect() {
-    const token = this.getToken();
+    const token = this.getTokenString();
     if (token !== null) {
       const expired = this.jwtHelper.isTokenExpired(token);
       if (expired) {
@@ -45,15 +45,19 @@ export class AuthenticationService {
   }
 
   public isAuthenticated(): boolean {
-    const token = this.getToken();
+    const token = this.getTokenString();
     return token !== null && !this.jwtHelper.isTokenExpired(token);
   }
 
-  public hasPermission(role: string): boolean {
-    const token = this.jwtHelper.decodeToken<JwtToken>(this.getToken());
+  public getPermissions() {
+    return this.decodeToken().permissions;
+  }
 
-    if (token.permissions != null) {
-      const index = token.permissions.findIndex(element => {
+  public hasPermission(role: string): boolean {
+    const permissions = this.getPermissions();
+
+    if (permissions != null) {
+      const index = permissions.findIndex(element => {
         return element.toLowerCase() === role.toLowerCase();
       });
 
@@ -63,7 +67,7 @@ export class AuthenticationService {
     return false;
   }
 
-  public getToken(): string {
+  public getTokenString(): string {
     return sessionStorage.getItem(this.SESSION_STORAGE_TOKEN_KEY);
   }
 
@@ -84,6 +88,9 @@ export class AuthenticationService {
     sessionStorage.setItem(this.SESSION_STORAGE_TOKEN_KEY, response.token);
   }
 
+  private decodeToken(): JwtToken {
+    return this.jwtHelper.decodeToken<JwtToken>(this.getTokenString());
+  }
 }
 
 interface LoginResponse {

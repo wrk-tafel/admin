@@ -169,7 +169,7 @@ describe('AuthenticationService', () => {
   it('getToken - exists', () => {
     sessionStorage.setItem(SESSION_STORAGE_TOKEN_KEY, 'TOKENVALUE');
 
-    const token = service.getToken();
+    const token = service.getTokenString();
 
     expect(token).toBe('TOKENVALUE');
   });
@@ -177,7 +177,7 @@ describe('AuthenticationService', () => {
   it('getToken - not existing', () => {
     sessionStorage.removeItem(SESSION_STORAGE_TOKEN_KEY);
 
-    const token = service.getToken();
+    const token = service.getTokenString();
 
     expect(token).toBeNull();
   });
