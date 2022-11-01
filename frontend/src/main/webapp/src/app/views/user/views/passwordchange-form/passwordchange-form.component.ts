@@ -75,6 +75,9 @@ export class PasswordChangeFormComponent {
   }
 
   reset() {
+    this.successMessage = null;
+    this.errorMessage = null;
+    this.errorMessageDetails = null;
     this.form.reset();
   }
 

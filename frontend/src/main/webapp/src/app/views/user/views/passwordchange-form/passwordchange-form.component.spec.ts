@@ -1,4 +1,4 @@
-import {ComponentFixture, fakeAsync, TestBed, waitForAsync} from '@angular/core/testing';
+import {ComponentFixture, TestBed, waitForAsync} from '@angular/core/testing';
 import {ModalModule} from 'ngx-bootstrap/modal';
 import {HttpClientTestingModule, HttpTestingController} from '@angular/common/http/testing';
 import {FormControl, FormGroup} from '@angular/forms';
@@ -65,7 +65,7 @@ describe('PasswordChangeFormComponent', () => {
     component.currentPassword.setValue('CURR');
     component.newPassword.setValue('NEW');
 
-    component.changePassword();
+    component.changePassword().subscribe();
 
     const req = httpMock.expectOne('/users/change-password');
     req.flush(errorResponse, {status: 422, statusText: 'Unprocessable Entity'});
@@ -75,13 +75,14 @@ describe('PasswordChangeFormComponent', () => {
     expect(component.errorMessageDetails).toEqual(errorResponse.details);
   }));
 
-  it('changePassword should set successMessage', fakeAsync(() => {
+  it('changePassword should set successMessage and clear errorMessages', waitForAsync(() => {
     component.currentPassword.setValue('CURR');
     component.newPassword.setValue('NEW');
+    component.successMessage = 'success-msg';
     component.errorMessage = 'error-msg';
     component.errorMessageDetails = ['detail0', 'detail1'];
 
-    component.changePassword();
+    component.changePassword().subscribe();
 
     const req = httpMock.expectOne('/users/change-password');
     req.flush({});
@@ -90,6 +91,24 @@ describe('PasswordChangeFormComponent', () => {
     expect(component.errorMessage).toBe(null);
     expect(component.errorMessageDetails).toEqual(null);
     expect(component.successMessage).toBe('Passwort erfolgreich geändert!');
+  }));
+
+  it('reset clears messages and form state', waitForAsync(() => {
+    component.currentPassword.setValue('CURR');
+    component.newPassword.setValue('NEW');
+    component.newRepeatedPassword.setValue('NEW-REPEATED');
+    component.successMessage = 'succ-msg';
+    component.errorMessage = 'error-msg';
+    component.errorMessageDetails = ['detail0', 'detail1'];
+
+    component.reset();
+
+    expect(component.currentPassword.value).toBe(null);
+    expect(component.newPassword.value).toBe(null);
+    expect(component.newRepeatedPassword.value).toBe(null);
+    expect(component.successMessage).toBe(null);
+    expect(component.errorMessage).toBe(null);
+    expect(component.errorMessageDetails).toBe(null);
   }));
 
 });
