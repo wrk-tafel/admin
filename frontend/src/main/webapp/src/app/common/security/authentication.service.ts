@@ -50,18 +50,16 @@ export class AuthenticationService {
   }
 
   public hasAnyPermissions(): boolean {
-    return this.decodeToken().permissions.length > 0;
+    return this.decodeToken().permissions?.length > 0;
   }
 
   public hasPermission(role: string): boolean {
-    if (this.hasAnyPermissions() != null) {
-      const index = this.decodeToken().permissions.findIndex(element => {
+    if (this.hasAnyPermissions()) {
+      const index = this.decodeToken().permissions?.findIndex(element => {
         return element.toLowerCase() === role.toLowerCase();
       });
-
       return index !== -1;
     }
-
     return false;
   }
 
