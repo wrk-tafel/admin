@@ -8,7 +8,8 @@ export const navigationMenuItems: IPermissionNavData[] = [
   {
     name: 'Übersicht',
     url: '/uebersicht',
-    icon: 'icon-speedometer'
+    icon: 'icon-speedometer',
+    permissions: ['DASHBOARD']
   },
   {
     name: 'Kundenverwaltung',
