@@ -16,19 +16,15 @@ export class AuthenticationService {
   ) {
   }
 
-  public async login(username: string, password: string): Promise<boolean> {
+  public async login(username: string, password: string): Promise<LoginResult> {
     return await this.executeLoginRequest(username, password)
       .then((response: LoginResponse) => {
         this.storeToken(response);
-        if (response.passwordChangeRequired) {
-          this.router.navigate(['login/passwortaendern']);
-          return false;
-        }
-        return true;
+        return {successful: true, passwordChangeRequired: response.passwordChangeRequired};
       })
       .catch(() => {
         this.removeToken();
-        return false;
+        return {successful: false, passwordChangeRequired: false};
       });
   }
 
@@ -105,4 +101,9 @@ interface LoginResponse {
 interface JwtToken {
   sub: string;
   permissions: string[];
+}
+
+export interface LoginResult {
+  successful: boolean;
+  passwordChangeRequired: boolean;
 }

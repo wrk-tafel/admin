@@ -36,9 +36,16 @@ export class LoginComponent implements OnInit {
   }
 
   public async login() {
-    const successful = await this.auth.login(this.loginForm.get('username').value, this.loginForm.get('password').value);
-    if (successful) {
-      await this.router.navigate(['uebersicht']);
+    const username = this.loginForm.get('username').value;
+    const password = this.loginForm.get('password').value;
+
+    const loginResult = await this.auth.login(username, password);
+    if (loginResult) {
+      if (loginResult.passwordChangeRequired) {
+        await this.router.navigate(['login/passwortaendern']);
+      } else {
+        await this.router.navigate(['uebersicht']);
+      }
     } else {
       this.errorMessage = 'Anmeldung fehlgeschlagen!';
     }
