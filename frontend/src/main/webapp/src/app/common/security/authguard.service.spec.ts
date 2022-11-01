@@ -54,7 +54,7 @@ describe('AuthGuardService', () => {
     authServiceSpy.getPermissions.and.returnValue(['PERM1']);
     authServiceSpy.hasPermission.and.returnValue(false);
 
-    const activatedRoute = <ActivatedRouteSnapshot><unknown>{data: {expectedPermission: 'PERM2'}};
+    const activatedRoute = <ActivatedRouteSnapshot><unknown>{data: {permission: 'PERM2'}};
     const canActivate = service.canActivateChild(activatedRoute, null);
 
     expect(canActivate).toBeFalse();
@@ -67,7 +67,7 @@ describe('AuthGuardService', () => {
     authServiceSpy.getPermissions.and.returnValue(['PERM1']);
     authServiceSpy.hasPermission.and.returnValue(true);
 
-    const activatedRoute = <ActivatedRouteSnapshot><unknown>{data: {expectedPermission: 'PERM1'}};
+    const activatedRoute = <ActivatedRouteSnapshot><unknown>{data: {permission: 'PERM1'}};
     const canActivate = service.canActivateChild(activatedRoute, null);
 
     expect(canActivate).toBeTruthy();

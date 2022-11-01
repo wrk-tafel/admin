@@ -37,8 +37,8 @@ export class AuthGuardService implements CanActivateChild {
       return false;
     }
 
-    const expectedPermission = route.data.expectedPermission;
-    if (expectedPermission == null || this.auth.hasPermission(expectedPermission)) {
+    const permission = route.data.permission;
+    if (permission == null || this.auth.hasPermission(permission)) {
       return true;
     }
 
