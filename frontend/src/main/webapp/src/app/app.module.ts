@@ -9,12 +9,10 @@ import {PerfectScrollbarConfigInterface, PerfectScrollbarModule} from 'ngx-perfe
 import {IconModule, IconSetModule, IconSetService} from '@coreui/icons-angular';
 import {AppComponent} from './app.component';
 
-// Import containers
-import {DefaultLayoutComponent} from './containers';
-
-import {P404Component} from './views/error/404.component';
-import {P500Component} from './views/error/500.component';
-import {LoginComponent} from './views/login/login.component';
+import {DefaultLayoutComponent} from './views/common/default-layout/default-layout.component';
+import {P404Component} from './views/common/error/404.component';
+import {P500Component} from './views/common/error/500.component';
+import {LoginComponent} from './views/common/login/login.component';
 
 import {
   AppAsideModule,
@@ -37,7 +35,8 @@ import {ApiPathInterceptor} from './common/http/apipath-interceptor.service';
 import {AuthenticationInterceptor} from './common/http/authentication-interceptor.service';
 import {ErrorHandlerInterceptor} from './common/http/errorhandler-interceptor.service';
 import { ModalModule } from 'ngx-bootstrap/modal';
-import {PasswordChangeModalComponent} from './containers/password-change/passwordchange-modal.component';
+import {PasswordChangeModalComponent} from './views/user/views/passwordchange-modal/passwordchange-modal.component';
+import {PasswordChangeFormComponent} from "./views/user/views/passwordchange-form/passwordchange-form.component";
 
 const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
   suppressScrollX: true
@@ -71,6 +70,7 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
     P404Component,
     P500Component,
     LoginComponent,
+    PasswordChangeFormComponent,
     PasswordChangeModalComponent
   ],
   providers: [

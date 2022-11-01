@@ -1,15 +1,15 @@
-import {Component, ViewChild} from '@angular/core';
-import {ModalDirective} from 'ngx-bootstrap/modal';
+import {Component} from '@angular/core';
 import {FormControl, FormGroup, ValidatorFn, Validators} from '@angular/forms';
-import {ChangePasswordRequest, ChangePasswordResponse, UserApiService} from '../../common/api/user-api.service';
-import {HttpErrorResponse} from '@angular/common/http';
+import {ChangePasswordRequest, ChangePasswordResponse, UserApiService} from '../../api/user-api.service';
+import {catchError, map} from "rxjs/operators";
+import {Observable, throwError} from "rxjs";
+import {HttpErrorResponse} from "@angular/common/http";
 
 @Component({
-  selector: 'tafel-passwordchange-modal',
-  templateUrl: './passwordchange-modal.component.html'
+  selector: 'tafel-passwordchange-form',
+  templateUrl: './passwordchange-form.component.html'
 })
-export class PasswordChangeModalComponent {
-  @ViewChild('pwdChangeModal') public modal: ModalDirective;
+export class PasswordChangeFormComponent {
   successMessage: string;
   errorMessage: string;
   errorMessageDetails: string[];
@@ -51,36 +51,37 @@ export class PasswordChangeModalComponent {
     }
   );
 
-  public showDialog() {
-    this.form.reset();
-    this.modal.show();
-  }
-
-  public changePassword() {
+  public changePassword(): Observable<boolean> {
     const currentPassword = this.currentPassword.value;
     const newPassword = this.newPassword.value;
 
     const passwordChangeRequest: ChangePasswordRequest = {passwordCurrent: currentPassword, passwordNew: newPassword};
-    this.userApiService.updatePassword(passwordChangeRequest).subscribe(
-      response => {
-        this.errorMessage = null;
-        this.errorMessageDetails = null;
-        this.successMessage = 'Passwort erfolgreich geändert!';
-        this.hideModalDelayed();
-      },
-      (error: HttpErrorResponse) => {
-        const errorBody = error.error as ChangePasswordResponse;
-        this.errorMessage = errorBody.message;
-        this.errorMessageDetails = errorBody.details;
-      }
+
+    return this.userApiService.updatePassword(passwordChangeRequest).pipe(
+      map(
+        (response: ChangePasswordResponse) => {
+          this.errorMessage = null;
+          this.errorMessageDetails = null;
+          this.successMessage = 'Passwort erfolgreich geändert!';
+          return true;
+        }
+      ),
+      catchError(
+        (error: HttpErrorResponse) => {
+          const errorBody = error.error as ChangePasswordResponse;
+          this.errorMessage = errorBody.message;
+          this.errorMessageDetails = errorBody.details;
+          return throwError(false);
+        }
+      )
     );
   }
 
-  hideModalDelayed() {
-    const root = this;
-    setTimeout(function () {
-      root.modal.hide();
-    }, 1500);
+  reset() {
+    this.successMessage = null;
+    this.errorMessage = null;
+    this.errorMessageDetails = null;
+    this.form.reset();
   }
 
   get currentPassword() {
