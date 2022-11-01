@@ -49,15 +49,13 @@ export class AuthenticationService {
     return token !== null && !this.jwtHelper.isTokenExpired(token);
   }
 
-  public getPermissions() {
-    return this.decodeToken().permissions;
+  public hasAnyPermissions(): boolean {
+    return this.decodeToken().permissions.length > 0;
   }
 
   public hasPermission(role: string): boolean {
-    const permissions = this.getPermissions();
-
-    if (permissions != null) {
-      const index = permissions.findIndex(element => {
+    if (this.hasAnyPermissions() != null) {
+      const index = this.decodeToken().permissions.findIndex(element => {
         return element.toLowerCase() === role.toLowerCase();
       });
 

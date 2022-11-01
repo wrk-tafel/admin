@@ -18,8 +18,7 @@ export class DefaultLayoutComponent {
   constructor(
     private auth: AuthenticationService
   ) {
-    const permissions = this.auth.getPermissions();
-    if (permissions.length > 0) {
+    if (this.auth.hasAnyPermissions()) {
       this.navItems = this.getNavItemsFilteredByPermissions(navigationMenuItems);
     }
   }

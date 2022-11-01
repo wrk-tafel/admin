@@ -5,7 +5,7 @@ describe('AuthGuardService', () => {
   function setup() {
     const authServiceSpy =
       jasmine.createSpyObj('AuthenticationService',
-        ['isAuthenticated', 'getPermissions', 'hasPermission', 'logoutAndRedirect']
+        ['isAuthenticated', 'hasAnyPermissions', 'hasPermission', 'logoutAndRedirect']
       );
     const routerSpy =
       jasmine.createSpyObj('Router', ['navigate']);
@@ -16,7 +16,7 @@ describe('AuthGuardService', () => {
   it('canActivate when authenticated', () => {
     const {service, authServiceSpy} = setup();
     authServiceSpy.isAuthenticated.and.returnValue(true);
-    authServiceSpy.getPermissions.and.returnValue(['PERM1']);
+    authServiceSpy.hasAnyPermissions.and.returnValue(true);
 
     const activatedRoute = <ActivatedRouteSnapshot>{data: {}};
     const canActivate = service.canActivateChild(activatedRoute, null);
@@ -27,7 +27,7 @@ describe('AuthGuardService', () => {
   it('canActivate when not authenticated', () => {
     const {service, authServiceSpy} = setup();
     authServiceSpy.isAuthenticated.and.returnValue(false);
-    authServiceSpy.getPermissions.and.returnValue(['PERM1']);
+    authServiceSpy.hasAnyPermissions.and.returnValue(true);
 
     const activatedRoute = <ActivatedRouteSnapshot>{data: {}};
     const canActivate = service.canActivateChild(activatedRoute, null);
@@ -39,7 +39,7 @@ describe('AuthGuardService', () => {
   it('canActivate when authenticated without permissions', () => {
     const {service, authServiceSpy, routerSpy} = setup();
     authServiceSpy.isAuthenticated.and.returnValue(true);
-    authServiceSpy.getPermissions.and.returnValue([]);
+    authServiceSpy.hasAnyPermissions.and.returnValue(false);
 
     const activatedRoute = <ActivatedRouteSnapshot>{data: {}};
     const canActivate = service.canActivateChild(activatedRoute, null);
@@ -51,7 +51,7 @@ describe('AuthGuardService', () => {
   it('canActivate when authenticated with wrong permission', () => {
     const {service, authServiceSpy, routerSpy} = setup();
     authServiceSpy.isAuthenticated.and.returnValue(true);
-    authServiceSpy.getPermissions.and.returnValue(['PERM1']);
+    authServiceSpy.hasAnyPermissions.and.returnValue(true);
     authServiceSpy.hasPermission.and.returnValue(false);
 
     const activatedRoute = <ActivatedRouteSnapshot><unknown>{data: {permission: 'PERM2'}};
@@ -64,7 +64,7 @@ describe('AuthGuardService', () => {
   it('canActivate when authenticated with correct permission', () => {
     const {service, authServiceSpy, routerSpy} = setup();
     authServiceSpy.isAuthenticated.and.returnValue(true);
-    authServiceSpy.getPermissions.and.returnValue(['PERM1']);
+    authServiceSpy.hasAnyPermissions.and.returnValue(true);
     authServiceSpy.hasPermission.and.returnValue(true);
 
     const activatedRoute = <ActivatedRouteSnapshot><unknown>{data: {permission: 'PERM1'}};
