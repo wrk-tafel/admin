@@ -1,6 +1,6 @@
 import {Component} from '@angular/core';
 import {FormControl, FormGroup, Validators} from '@angular/forms';
-import {Router} from '@angular/router';
+import {ActivatedRoute, Router} from '@angular/router';
 import {AuthenticationService} from '../../../common/security/authentication.service';
 
 @Component({
@@ -18,21 +18,26 @@ export class LoginComponent {
 
   constructor(
     private auth: AuthenticationService,
-    private router: Router
+    private router: Router,
+    private activatedRoute: ActivatedRoute
   ) {
-    // just for safety - remove token on loginpage
+    // just for safety reasons - remove token on loginpage
     auth.removeToken();
 
-    const errorType = this.router.getCurrentNavigation()?.extras?.state?.errorType;
-    if (errorType === 'expired') {
-      this.errorMessage = 'Sitzung abgelaufen! Bitte erneut anmelden.';
-    }
+    this.activatedRoute.params.subscribe(params => {
+      const errorType: string = params['errorType'];
+      if (errorType === 'expired') {
+        this.errorMessage = 'Sitzung abgelaufen! Bitte erneut anmelden.';
+      } else if (errorType === 'forbidden') {
+        this.errorMessage = 'Zugriff nicht erlaubt!';
+      }
+    });
   }
 
   public async login() {
     const successful = await this.auth.login(this.loginForm.get('username').value, this.loginForm.get('password').value);
     if (successful) {
-      this.router.navigate(['uebersicht']);
+      await this.router.navigate(['uebersicht']);
     } else {
       this.errorMessage = 'Anmeldung fehlgeschlagen!';
     }
