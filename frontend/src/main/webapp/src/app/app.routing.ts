@@ -27,6 +27,10 @@ export const routes: Routes = [
     component: LoginComponent
   },
   {
+    path: 'login/:errorType',
+    component: LoginComponent
+  },
+  {
     path: '',
     component: DefaultLayoutComponent,
     canActivateChild: [AuthGuard],
@@ -48,7 +52,7 @@ export const routes: Routes = [
 ];
 
 @NgModule({
-  imports: [RouterModule.forRoot(routes, {useHash: true})],
+  imports: [RouterModule.forRoot(routes, {useHash: true, onSameUrlNavigation: 'reload'})],
   exports: [RouterModule]
 })
 export class AppRoutingModule {

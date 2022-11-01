@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {FormControl, FormGroup, Validators} from '@angular/forms';
 import {ActivatedRoute, Router} from '@angular/router';
 import {AuthenticationService} from '../../../common/security/authentication.service';
@@ -7,8 +7,7 @@ import {AuthenticationService} from '../../../common/security/authentication.ser
   selector: 'tafel-login',
   templateUrl: 'login.component.html'
 })
-export class LoginComponent {
-
+export class LoginComponent implements OnInit {
   errorMessage: string;
 
   loginForm = new FormGroup({
@@ -19,12 +18,14 @@ export class LoginComponent {
   constructor(
     private auth: AuthenticationService,
     private router: Router,
-    private activatedRoute: ActivatedRoute
+    private route: ActivatedRoute
   ) {
     // just for safety reasons - remove token on loginpage
-    auth.removeToken();
+    this.auth.removeToken();
+  }
 
-    this.activatedRoute.params.subscribe(params => {
+  ngOnInit(): void {
+    this.route.params.subscribe(params => {
       const errorType: string = params['errorType'];
       if (errorType === 'expired') {
         this.errorMessage = 'Sitzung abgelaufen! Bitte erneut anmelden.';
