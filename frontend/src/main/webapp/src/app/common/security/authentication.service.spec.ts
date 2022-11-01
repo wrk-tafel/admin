@@ -44,6 +44,7 @@ describe('AuthenticationService', () => {
     sessionStorage.removeItem(SESSION_STORAGE_TOKEN_KEY);
 
     service.login('USER', 'PWD').then(response => {
+      // TODO improve - these calls are probably not checked currently
       expect(sessionStorage.getItem(SESSION_STORAGE_TOKEN_KEY)).toBe('TOKENVALUE');
       expect(response).toBeTrue();
     });
@@ -54,6 +55,28 @@ describe('AuthenticationService', () => {
 
     const mockErrorResponse = {status: 200, statusText: 'OK'};
     const data = {token: 'TOKENVALUE'};
+    mockReq.flush(data, mockErrorResponse);
+    httpMock.verify();
+
+    expect(router.navigate).not.toHaveBeenCalledWith(['login/passwortaendern']);
+  });
+
+  it('login successful but passwordchange is required', () => {
+    sessionStorage.removeItem(SESSION_STORAGE_TOKEN_KEY);
+
+    service.login('USER', 'PWD').then(response => {
+      // TODO improve - these calls are probably not checked currently
+      expect(sessionStorage.getItem(SESSION_STORAGE_TOKEN_KEY)).toBe('TOKENVALUE');
+      expect(response).toBeFalse();
+      expect(router.navigate).toHaveBeenCalledWith(['login/passwortaendern']);
+    });
+
+    const mockReq = httpMock.expectOne('/login');
+    expect(mockReq.request.method).toBe('POST');
+    expect(mockReq.request.body).toBe('username=USER&password=PWD');
+
+    const mockErrorResponse = {status: 200, statusText: 'OK'};
+    const data = {token: 'TOKENVALUE', passwordChangeRequired: true};
     mockReq.flush(data, mockErrorResponse);
     httpMock.verify();
   });
