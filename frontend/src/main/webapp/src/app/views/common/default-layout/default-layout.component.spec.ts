@@ -1,7 +1,7 @@
 import {TestBed, waitForAsync} from '@angular/core/testing';
 import {RouterTestingModule} from '@angular/router/testing';
-import {DefaultLayoutComponent} from '.';
-import {AuthenticationService} from '../../common/security/authentication.service';
+import {DefaultLayoutComponent} from './default-layout.component';
+import {AuthenticationService} from '../../../common/security/authentication.service';
 import {
   AppHeaderComponent,
   AppSidebarComponent,

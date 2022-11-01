@@ -2,7 +2,6 @@ import {Component, OnInit, ViewChild} from '@angular/core';
 import {CustomerFormComponent} from '../components/customer-form.component';
 import {CustomerApiService, CustomerData, ValidateCustomerResponse} from '../api/customer-api.service';
 import {ModalDirective} from 'ngx-bootstrap/modal';
-import {tap} from 'rxjs/operators';
 import {ActivatedRoute, Router} from '@angular/router';
 
 @Component({
@@ -78,18 +77,10 @@ export class CustomerEditComponent implements OnInit {
 
       if (!this.editMode) {
         this.customerApiService.createCustomer(this.customerUpdated)
-          .pipe(
-            tap(customer => {
-              this.router.navigate(['/kunden/detail', customer.id]);
-            })
-          ).subscribe();
+          .subscribe(customer => this.router.navigate(['/kunden/detail', customer.id]));
       } else {
         this.customerApiService.updateCustomer(this.customerUpdated)
-          .pipe(
-            tap(customer => {
-              this.router.navigate(['/kunden/detail', customer.id]);
-            })
-          ).subscribe();
+          .subscribe(customer => this.router.navigate(['/kunden/detail', customer.id]));
       }
     }
   }
