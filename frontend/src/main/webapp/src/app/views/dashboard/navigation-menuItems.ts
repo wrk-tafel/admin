@@ -4,6 +4,7 @@ export interface IPermissionNavData extends INavData {
   permissions?: string[];
 }
 
+// TODO permissions can be read via router and therefore save the duplication here
 export const navigationMenuItems: IPermissionNavData[] = [
   {
     name: 'Übersicht',
