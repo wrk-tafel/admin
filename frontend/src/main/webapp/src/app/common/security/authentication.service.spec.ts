@@ -92,7 +92,7 @@ describe('AuthenticationService', () => {
     service.logoutAndRedirect();
 
     expect(sessionStorage.getItem(SESSION_STORAGE_TOKEN_KEY)).toBeNull();
-    expect(router.navigate).toHaveBeenCalledWith(['login', 'expired']);
+    expect(router.navigate).toHaveBeenCalledWith(['login', 'abgelaufen']);
   });
 
   it('logoutAndRedirect - token not set', () => {

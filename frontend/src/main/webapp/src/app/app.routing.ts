@@ -37,11 +37,17 @@ export const routes: Routes = [
     children: [
       {
         path: 'uebersicht',
-        loadChildren: () => import('./views/dashboard/dashboard.module').then(m => m.DashboardModule)
+        loadChildren: () => import('./views/dashboard/dashboard.module').then(m => m.DashboardModule),
+        data: {
+          expectedPermission: 'DASHBOARD'
+        }
       },
       {
         path: 'kunden',
-        loadChildren: () => import('./views/customer/customer.module').then(m => m.CustomerModule)
+        loadChildren: () => import('./views/customer/customer.module').then(m => m.CustomerModule),
+        data: {
+          expectedPermission: 'CUSTOMER'
+        }
       }
     ]
   },

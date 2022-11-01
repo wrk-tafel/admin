@@ -47,7 +47,7 @@ describe('LoginComponent', () => {
   }));
 
   it('init with expired flag should show message', waitForAsync(() => {
-    TestBed.inject(ActivatedRoute).params = of({errorType: 'expired'});
+    TestBed.inject(ActivatedRoute).params = of({errorType: 'abgelaufen'});
 
     const fixture = TestBed.createComponent(LoginComponent);
     const component = fixture.componentInstance;
@@ -57,7 +57,7 @@ describe('LoginComponent', () => {
   }));
 
   it('init with forbidden flag should show message', waitForAsync(() => {
-    TestBed.inject(ActivatedRoute).params = of({errorType: 'forbidden'});
+    TestBed.inject(ActivatedRoute).params = of({errorType: 'verweigert'});
 
     const fixture = TestBed.createComponent(LoginComponent);
     const component = fixture.componentInstance;

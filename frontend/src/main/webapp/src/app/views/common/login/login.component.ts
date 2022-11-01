@@ -27,9 +27,9 @@ export class LoginComponent implements OnInit {
   ngOnInit(): void {
     this.route.params.subscribe(params => {
       const errorType: string = params['errorType'];
-      if (errorType === 'expired') {
+      if (errorType === 'abgelaufen') {
         this.errorMessage = 'Sitzung abgelaufen! Bitte erneut anmelden.';
-      } else if (errorType === 'forbidden') {
+      } else if (errorType === 'verweigert') {
         this.errorMessage = 'Zugriff nicht erlaubt!';
       }
     });

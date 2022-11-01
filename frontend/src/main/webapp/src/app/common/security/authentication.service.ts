@@ -34,7 +34,7 @@ export class AuthenticationService {
       const expired = this.jwtHelper.isTokenExpired(token);
       if (expired) {
         this.removeToken();
-        this.router.navigate(['login', 'expired']);
+        this.router.navigate(['login', 'abgelaufen']);
       } else {
         this.removeToken();
         this.router.navigate(['login']);
