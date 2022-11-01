@@ -14,6 +14,7 @@ val testUserEntity = UserEntity().apply {
     firstname = "test-firstname"
     lastname = "test-lastname"
     authorities = mutableListOf()
+    passwordChangeRequired = true
 }
 
 val testUser = TafelUser(

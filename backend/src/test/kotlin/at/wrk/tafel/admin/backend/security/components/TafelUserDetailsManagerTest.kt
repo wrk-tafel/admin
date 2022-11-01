@@ -136,20 +136,27 @@ class TafelUserDetailsManagerTest {
 
     @Test
     fun `changePassword - passwords matching`() {
+        val currentPassword = "12345"
+        val newPassword = "67890"
+        val newPasswordEncoded = "encoded-pwd"
+
         every { passwordValidator.validate(any()) } returns RuleResult(true)
+        every { passwordEncoder.encode(newPassword) } returns newPasswordEncoded
         every { userRepository.save(any()) } returns testUserEntity
 
         val currentPasswordHash = testUserEntity.password
-
-        val currentPassword = "12345"
-        val newPassword = "67890"
 
         manager.changePassword(currentPassword, newPassword)
 
         verify { userRepository.findByUsername(testUser.username) }
         verify { passwordEncoder.matches(currentPassword, currentPasswordHash) }
         verify { passwordEncoder.encode(newPassword) }
-        verify(exactly = 1) { userRepository.save(testUserEntity) }
+        verify(exactly = 1) {
+            userRepository.save(withArg {
+                assertThat(it.password).isEqualTo(newPasswordEncoded)
+                assertThat(it.passwordChangeRequired).isFalse()
+            })
+        }
     }
 
     @Test
