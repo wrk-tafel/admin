@@ -1,9 +1,9 @@
 import {Component} from '@angular/core';
 import {FormControl, FormGroup, ValidatorFn, Validators} from '@angular/forms';
 import {ChangePasswordRequest, ChangePasswordResponse, UserApiService} from '../../api/user-api.service';
-import {HttpErrorResponse} from '@angular/common/http';
-import {map} from "rxjs/operators";
-import {Observable} from "rxjs";
+import {catchError, map} from "rxjs/operators";
+import {Observable, throwError} from "rxjs";
+import {HttpErrorResponse} from "@angular/common/http";
 
 @Component({
   selector: 'tafel-passwordchange-form',
@@ -64,14 +64,17 @@ export class PasswordChangeFormComponent {
           this.errorMessageDetails = null;
           this.successMessage = 'Passwort erfolgreich geändert!';
           return true;
-        },
+        }
+      ),
+      catchError(
         (error: HttpErrorResponse) => {
           const errorBody = error.error as ChangePasswordResponse;
           this.errorMessage = errorBody.message;
           this.errorMessageDetails = errorBody.details;
-          return false;
+          return throwError(false);
         }
-      ));
+      )
+    );
   }
 
   reset() {
