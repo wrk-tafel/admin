@@ -221,6 +221,41 @@ describe('AuthenticationService', () => {
     expect(sessionStorage.getItem(SESSION_STORAGE_TOKEN_KEY)).toBeNull();
   });
 
+  it('getUsername - authenticated', () => {
+    sessionStorage.setItem(SESSION_STORAGE_TOKEN_KEY, 'TOKENVALUE');
+    jwtHelper.decodeToken.and.returnValue(<JwtToken>{sub: 'test-user', permissions: []});
+
+    const username = service.getUsername();
+
+    expect(username).toBe('test-user');
+  });
+
+  it('getUsername - not authenticated', () => {
+    sessionStorage.removeItem(SESSION_STORAGE_TOKEN_KEY);
+
+    const username = service.getUsername();
+
+    expect(username).toEqual(undefined);
+  });
+
+  it('hasAnyPermissions - no permissions', () => {
+    sessionStorage.setItem(SESSION_STORAGE_TOKEN_KEY, 'TOKENVALUE');
+    jwtHelper.decodeToken.and.returnValue(<JwtToken>{permissions: []});
+
+    const hasAnyPermissions = service.hasAnyPermissions();
+
+    expect(hasAnyPermissions).toBeFalse();
+  });
+
+  it('hasAnyPermissions - given permissions', () => {
+    sessionStorage.setItem(SESSION_STORAGE_TOKEN_KEY, 'TOKENVALUE');
+    jwtHelper.decodeToken.and.returnValue(<JwtToken>{permissions: ['PERM1']});
+
+    const hasAnyPermissions = service.hasAnyPermissions();
+
+    expect(hasAnyPermissions).toBeTrue();
+  });
+
 });
 
 interface JwtToken {

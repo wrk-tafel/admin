@@ -75,6 +75,10 @@ export class AuthenticationService {
     sessionStorage.removeItem(this.SESSION_STORAGE_TOKEN_KEY);
   }
 
+  public getUsername(): string {
+    return this.decodeToken()?.sub;
+  }
+
   private executeLoginRequest(username: string, password: string) {
     const body = new URLSearchParams();
     body.set('username', username);
@@ -99,5 +103,6 @@ interface LoginResponse {
 }
 
 interface JwtToken {
+  sub: string;
   permissions: string[];
 }
