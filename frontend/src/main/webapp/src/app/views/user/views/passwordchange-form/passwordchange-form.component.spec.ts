@@ -30,7 +30,7 @@ describe('PasswordChangeFormComponent', () => {
   }));
 
   it('validateNewAndRepeatedPasswords should return null on matching values', waitForAsync(() => {
-    const validator = component.validateNewAndRepeatedPasswords;
+    const validator = component.validateNewAndRepeatedPasswords();
 
     const testForm = new FormGroup({
       newPassword: new FormControl('12345'),
@@ -43,7 +43,7 @@ describe('PasswordChangeFormComponent', () => {
   }));
 
   it('validateNewAndRepeatedPasswords should return object when values dont match', waitForAsync(() => {
-    const validator = component.validateNewAndRepeatedPasswords;
+    const validator = component.validateNewAndRepeatedPasswords();
 
     const testForm = new FormGroup({
       newPassword: new FormControl('12345'),

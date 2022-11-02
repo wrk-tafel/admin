@@ -14,22 +14,6 @@ export class PasswordChangeFormComponent {
   errorMessage: string;
   errorMessageDetails: string[];
 
-  constructor(
-    private userApiService: UserApiService
-  ) {
-  }
-
-  validateNewAndRepeatedPasswords: ValidatorFn = (formGroup: FormGroup) => {
-    const newPassword = formGroup.get('newPassword').value;
-    const newRepeatedPassword = formGroup.get('newRepeatedPassword').value;
-
-    if (newPassword !== newRepeatedPassword) {
-      return {passwordsDontMatch: true};
-    }
-
-    return null;
-  }
-
   form = new FormGroup({
       currentPassword: new FormControl('', [
         Validators.required
@@ -46,12 +30,17 @@ export class PasswordChangeFormComponent {
       ])
     },
     {
-      validators: [this.validateNewAndRepeatedPasswords],
+      validators: [this.validateNewAndRepeatedPasswords()],
       updateOn: 'change'
     }
   );
 
-  public changePassword(): Observable<boolean> {
+  constructor(
+    private userApiService: UserApiService
+  ) {
+  }
+
+  changePassword(): Observable<boolean> {
     const currentPassword = this.currentPassword.value;
     const newPassword = this.newPassword.value;
 
@@ -82,6 +71,19 @@ export class PasswordChangeFormComponent {
     this.errorMessage = null;
     this.errorMessageDetails = null;
     this.form.reset();
+  }
+
+  validateNewAndRepeatedPasswords(): ValidatorFn {
+    return (formGroup: FormGroup) => {
+      const newPassword = formGroup.get('newPassword').value;
+      const newRepeatedPassword = formGroup.get('newRepeatedPassword').value;
+
+      if (newPassword !== newRepeatedPassword) {
+        return {passwordsDontMatch: true};
+      }
+
+      return null;
+    }
   }
 
   get currentPassword() {
