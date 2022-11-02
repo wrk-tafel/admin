@@ -46,7 +46,7 @@ describe('AuthenticationService', () => {
     service.login('USER', 'PWD').then(response => {
       // TODO improve - these calls are probably not checked currently
       expect(sessionStorage.getItem(SESSION_STORAGE_TOKEN_KEY)).toBe('TOKENVALUE');
-      expect(response).toBeTrue();
+      expect(response).toEqual({successful: true, passwordChangeRequired: false});
     });
 
     const mockReq = httpMock.expectOne('/login');
@@ -54,7 +54,7 @@ describe('AuthenticationService', () => {
     expect(mockReq.request.body).toBe('username=USER&password=PWD');
 
     const mockErrorResponse = {status: 200, statusText: 'OK'};
-    const data = {token: 'TOKENVALUE'};
+    const data = {token: 'TOKENVALUE', passwordChangeRequired: false};
     mockReq.flush(data, mockErrorResponse);
     httpMock.verify();
 
@@ -67,8 +67,7 @@ describe('AuthenticationService', () => {
     service.login('USER', 'PWD').then(response => {
       // TODO improve - these calls are probably not checked currently
       expect(sessionStorage.getItem(SESSION_STORAGE_TOKEN_KEY)).toBe('TOKENVALUE');
-      expect(response).toBeFalse();
-      expect(router.navigate).toHaveBeenCalledWith(['login/passwortaendern']);
+      expect(response).toEqual({successful: true, passwordChangeRequired: true});
     });
 
     const mockReq = httpMock.expectOne('/login');
@@ -86,7 +85,7 @@ describe('AuthenticationService', () => {
 
     service.login('USER', 'PWD').then(response => {
       expect(sessionStorage.getItem(SESSION_STORAGE_TOKEN_KEY)).toBeNull();
-      expect(response).toBeFalse();
+      expect(response).toEqual({successful: false, passwordChangeRequired: false});
     });
 
     const mockReq = httpMock.expectOne('/login');

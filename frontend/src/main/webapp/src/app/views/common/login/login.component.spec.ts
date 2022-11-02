@@ -107,4 +107,22 @@ describe('LoginComponent', () => {
     expect(component.errorMessage).toBe('Anmeldung fehlgeschlagen!');
   });
 
+  it('login but passwordchange required', async () => {
+    const loginResult = {successful: true, passwordChangeRequired: true};
+    authService.login.and.returnValue(Promise.resolve(loginResult));
+
+    const fixture = TestBed.createComponent(LoginComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.loginForm.setValue({
+      'username': 'user',
+      'password': 'pwd'
+    });
+
+    await component.login();
+
+    expect(router.navigate).toHaveBeenCalledWith(['login/passwortaendern']);
+  });
+
 });
