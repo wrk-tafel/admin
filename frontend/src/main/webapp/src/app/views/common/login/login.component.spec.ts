@@ -86,7 +86,7 @@ describe('LoginComponent', () => {
       expectedDone = true;
     });
 
-    expect(expectedDone).toBe(true);
+    expect(expectedDone).toBeTrue();
   });
 
   it('login failed', async () => {

@@ -105,8 +105,8 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
     component.ngOnInit();
     fixture.detectChanges();
 
-    expect(component.editMode).toBe(true);
-    expect(component.customerValidForSave).toBe(false);
+    expect(component.editMode).toBeTrue();
+    expect(component.customerValidForSave).toBeFalse();
     expect(component.errorMessage).toBeUndefined();
   }));
 
@@ -125,7 +125,7 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
 
     component.save();
 
-    expect(component.editMode).toBe(true);
+    expect(component.editMode).toBeTrue();
     expect(component.customerInput).toEqual(testCustomerData);
     expect(customerFormComponent.markAllAsTouched).toHaveBeenCalled();
     expect(apiService.updateCustomer).toHaveBeenCalledWith(jasmine.objectContaining(testCustomerData));
@@ -147,7 +147,7 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
 
     component.save();
 
-    expect(component.editMode).toBe(true);
+    expect(component.editMode).toBeTrue();
     expect(component.customerInput).toEqual(testCustomerData);
     expect(customerFormComponent.markAllAsTouched).toHaveBeenCalled();
     expect(apiService.updateCustomer).toHaveBeenCalledWith(jasmine.objectContaining(testCustomerData));
@@ -167,7 +167,7 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
 
     component.save();
 
-    expect(component.editMode).toBe(true);
+    expect(component.editMode).toBeTrue();
     expect(component.customerInput).toEqual(testCustomerData);
     expect(customerFormComponent.markAllAsTouched).toHaveBeenCalled();
     expect(apiService.updateCustomer).not.toHaveBeenCalled();

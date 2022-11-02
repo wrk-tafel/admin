@@ -120,7 +120,7 @@ describe('CustomerFormComponent', () => {
     expect(component.incomeDue.value).toBe(testCustomerData.incomeDue);
     expect(component.validUntil.value).toBe(testCustomerData.validUntil);
 
-    expect(component.isValid()).toBe(true);
+    expect(component.isValid()).toBeTrue();
     expect(component.countries).toEqual(mockCountryList);
 
     expect(component.additionalPersons.length).toBe(2);
