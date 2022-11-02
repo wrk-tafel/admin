@@ -84,6 +84,7 @@ describe('AuthenticationService', () => {
     sessionStorage.setItem(SESSION_STORAGE_TOKEN_KEY, 'OLDVALUE');
 
     service.login('USER', 'PWD').then(response => {
+      // TODO improve - these calls are probably not checked currently
       expect(sessionStorage.getItem(SESSION_STORAGE_TOKEN_KEY)).toBeNull();
       expect(response).toEqual({successful: false, passwordChangeRequired: false});
     });
