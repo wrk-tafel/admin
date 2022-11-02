@@ -40,11 +40,10 @@ describe('AuthenticationService', () => {
     service = TestBed.inject(AuthenticationService);
   });
 
-  it('login successful', () => {
+  it('login successful', async () => {
     sessionStorage.removeItem(SESSION_STORAGE_TOKEN_KEY);
 
     service.login('USER', 'PWD').then(response => {
-      // TODO improve - these calls are probably not checked currently
       expect(sessionStorage.getItem(SESSION_STORAGE_TOKEN_KEY)).toBe('TOKENVALUE');
       expect(response).toEqual({successful: true, passwordChangeRequired: false});
     });
@@ -61,11 +60,10 @@ describe('AuthenticationService', () => {
     expect(router.navigate).not.toHaveBeenCalledWith(['login/passwortaendern']);
   });
 
-  it('login successful but passwordchange is required', () => {
+  it('login successful but passwordchange is required', async () => {
     sessionStorage.removeItem(SESSION_STORAGE_TOKEN_KEY);
 
     service.login('USER', 'PWD').then(response => {
-      // TODO improve - these calls are probably not checked currently
       expect(sessionStorage.getItem(SESSION_STORAGE_TOKEN_KEY)).toBe('TOKENVALUE');
       expect(response).toEqual({successful: true, passwordChangeRequired: true});
     });
@@ -80,11 +78,10 @@ describe('AuthenticationService', () => {
     httpMock.verify();
   });
 
-  it('login failed', () => {
+  it('login failed', async () => {
     sessionStorage.setItem(SESSION_STORAGE_TOKEN_KEY, 'OLDVALUE');
 
     service.login('USER', 'PWD').then(response => {
-      // TODO improve - these calls are probably not checked currently
       expect(sessionStorage.getItem(SESSION_STORAGE_TOKEN_KEY)).toBeNull();
       expect(response).toEqual({successful: false, passwordChangeRequired: false});
     });
