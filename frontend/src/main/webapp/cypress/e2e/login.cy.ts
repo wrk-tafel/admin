@@ -25,6 +25,35 @@ describe('Login', () => {
     cy.byTestId('errorMessage').should('exist');
   });
 
+  it('login with required password change cannot access the dashboard', () => {
+    enterLoginData('e2etest3', 'e2etest');
+    cy.url().should('contain', '/login/passwortaendern');
+
+    cy.visit('/#/uebersicht');
+    cy.url().should('contain', '/login');
+    cy.byTestId('errorMessage').should('exist');
+  });
+
+  it('login with required password change cancelled', () => {
+    enterLoginData('e2etest3', 'e2etest');
+
+    cy.url().should('contain', '/login/passwortaendern');
+    cy.byTestId('cancelButton').click();
+    cy.url().should('contain', '/login');
+  });
+
+  it('login with required password change and password changed', () => {
+    enterLoginData('e2etest3', 'e2etest');
+    cy.url().should('contain', '/login/passwortaendern');
+
+    cy.byTestId('currentPasswordText').type('e2etest');
+    cy.byTestId('newPasswordText').type('11111111');
+    cy.byTestId('newRepeatedPasswordText').type('11111111');
+
+    cy.byTestId('saveButton').click();
+    cy.url().should('contain', '/uebersicht');
+  });
+
   function enterLoginData(username: string, password: string) {
     cy.byTestId('username').type(username);
     cy.byTestId('password').type(password);
