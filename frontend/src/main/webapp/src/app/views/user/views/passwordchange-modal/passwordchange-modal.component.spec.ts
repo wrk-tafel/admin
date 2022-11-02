@@ -2,8 +2,8 @@ import {ComponentFixture, fakeAsync, TestBed, tick, waitForAsync} from '@angular
 import {PasswordChangeModalComponent} from './passwordchange-modal.component';
 import {ModalDirective, ModalModule} from 'ngx-bootstrap/modal';
 import {HttpClientTestingModule, HttpTestingController} from '@angular/common/http/testing';
-import {PasswordChangeFormComponent} from "../passwordchange-form/passwordchange-form.component";
-import {Observable, of} from "rxjs";
+import {PasswordChangeFormComponent} from '../passwordchange-form/passwordchange-form.component';
+import {Observable, of} from 'rxjs';
 
 describe('PasswordChangeModalComponent', () => {
   let httpMock: HttpTestingController;

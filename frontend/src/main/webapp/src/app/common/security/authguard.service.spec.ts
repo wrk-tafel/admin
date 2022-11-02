@@ -1,5 +1,5 @@
 import {AuthGuardService} from './authguard.service';
-import {ActivatedRouteSnapshot} from "@angular/router";
+import {ActivatedRouteSnapshot} from '@angular/router';
 
 describe('AuthGuardService', () => {
   function setup() {

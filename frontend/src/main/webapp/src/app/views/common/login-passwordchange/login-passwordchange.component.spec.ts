@@ -1,6 +1,6 @@
 import {TestBed, waitForAsync} from '@angular/core/testing';
 import {ReactiveFormsModule} from '@angular/forms';
-import {LoginPasswordChangeComponent} from "./login-passwordchange.component";
+import {LoginPasswordChangeComponent} from './login-passwordchange.component';
 
 describe('LoginPasswordChangeComponent', () => {
 

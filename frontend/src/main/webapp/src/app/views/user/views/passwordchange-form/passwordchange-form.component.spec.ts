@@ -2,8 +2,7 @@ import {ComponentFixture, TestBed, waitForAsync} from '@angular/core/testing';
 import {ModalModule} from 'ngx-bootstrap/modal';
 import {HttpClientTestingModule, HttpTestingController} from '@angular/common/http/testing';
 import {FormControl, FormGroup} from '@angular/forms';
-import {ChangePasswordResponse} from '../../api/user-api.service';
-import {PasswordChangeFormComponent} from "./passwordchange-form.component";
+import {PasswordChangeFormComponent} from './passwordchange-form.component';
 
 describe('PasswordChangeFormComponent', () => {
   let httpMock: HttpTestingController;

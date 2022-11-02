@@ -1,7 +1,7 @@
 import {Component, ViewChild} from '@angular/core';
-import {PasswordChangeFormComponent} from "../../user/views/passwordchange-form/passwordchange-form.component";
-import {Router} from "@angular/router";
-import {AuthenticationService, LoginResult} from "../../../common/security/authentication.service";
+import {PasswordChangeFormComponent} from '../../user/views/passwordchange-form/passwordchange-form.component';
+import {Router} from '@angular/router';
+import {AuthenticationService, LoginResult} from '../../../common/security/authentication.service';
 
 @Component({
   selector: 'tafel-login-passwordchange',
@@ -20,7 +20,7 @@ export class LoginPasswordChangeComponent {
     this.form.changePassword().subscribe(successful => {
       if (successful) {
         const username = this.authService.getUsername();
-        const password = this.form.newPassword.value
+        const password = this.form.newPassword.value;
         this.authService.login(username, password).then((result: LoginResult) => {
           if (result.successful) {
             this.router.navigate(['uebersicht']);

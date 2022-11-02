@@ -59,7 +59,7 @@ export class DefaultLayoutComponent {
     const filteredNavItems: INavData[] = [];
 
     navItems.forEach((currentItem, index) => {
-      const nextItem = (index + 1) < navItems.length ? navItems[index + 1] : undefined
+      const nextItem = (index + 1) < navItems.length ? navItems[index + 1] : undefined;
 
       if (currentItem.title && (!nextItem || nextItem.title)) {
         return;

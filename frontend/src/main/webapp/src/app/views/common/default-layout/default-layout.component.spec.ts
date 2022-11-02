@@ -201,8 +201,6 @@ describe('DefaultLayoutComponent', () => {
     const component = fixture.componentInstance;
 
     const filteredItems = component.getNavItemsFilteredByPermissions(testMenuItems);
-
-    console.log("RESULT", filteredItems);
     expect(filteredItems).toEqual([testMenuItem1, testMenuItem5, testMenuItem6]);
   }));
 

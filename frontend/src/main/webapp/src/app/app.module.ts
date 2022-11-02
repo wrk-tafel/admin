@@ -36,8 +36,8 @@ import {AuthenticationInterceptor} from './common/http/authentication-intercepto
 import {ErrorHandlerInterceptor} from './common/http/errorhandler-interceptor.service';
 import { ModalModule } from 'ngx-bootstrap/modal';
 import {PasswordChangeModalComponent} from './views/user/views/passwordchange-modal/passwordchange-modal.component';
-import {PasswordChangeFormComponent} from "./views/user/views/passwordchange-form/passwordchange-form.component";
-import {LoginPasswordChangeComponent} from "./views/common/login-passwordchange/login-passwordchange.component";
+import {PasswordChangeFormComponent} from './views/user/views/passwordchange-form/passwordchange-form.component';
+import {LoginPasswordChangeComponent} from './views/common/login-passwordchange/login-passwordchange.component';
 
 const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
   suppressScrollX: true

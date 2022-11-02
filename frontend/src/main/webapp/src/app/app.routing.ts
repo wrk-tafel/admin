@@ -7,7 +7,7 @@ import {P500Component} from './views/common/error/500.component';
 import {LoginComponent} from './views/common/login/login.component';
 
 import {AuthGuardService as AuthGuard} from './common/security/authguard.service';
-import {LoginPasswordChangeComponent} from "./views/common/login-passwordchange/login-passwordchange.component";
+import {LoginPasswordChangeComponent} from './views/common/login-passwordchange/login-passwordchange.component';
 
 export const routes: Routes = [
   {

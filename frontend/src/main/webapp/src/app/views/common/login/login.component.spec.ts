@@ -3,7 +3,7 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {AuthenticationService} from '../../../common/security/authentication.service';
 import {LoginComponent} from './login.component';
 import {ReactiveFormsModule} from '@angular/forms';
-import {of} from "rxjs";
+import {of} from 'rxjs';
 
 describe('LoginComponent', () => {
   let authService: jasmine.SpyObj<AuthenticationService>;

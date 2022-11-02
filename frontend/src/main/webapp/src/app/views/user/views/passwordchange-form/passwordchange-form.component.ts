@@ -1,9 +1,9 @@
 import {Component} from '@angular/core';
 import {FormControl, FormGroup, ValidatorFn, Validators} from '@angular/forms';
 import {ChangePasswordRequest, ChangePasswordResponse, UserApiService} from '../../api/user-api.service';
-import {catchError, map} from "rxjs/operators";
-import {Observable, throwError} from "rxjs";
-import {HttpErrorResponse} from "@angular/common/http";
+import {catchError, map} from 'rxjs/operators';
+import {Observable, throwError} from 'rxjs';
+import {HttpErrorResponse} from '@angular/common/http';
 
 @Component({
   selector: 'tafel-passwordchange-form',

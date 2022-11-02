@@ -1,6 +1,6 @@
 import {Component, ViewChild} from '@angular/core';
 import {ModalDirective} from 'ngx-bootstrap/modal';
-import {PasswordChangeFormComponent} from "../passwordchange-form/passwordchange-form.component";
+import {PasswordChangeFormComponent} from '../passwordchange-form/passwordchange-form.component';
 
 @Component({
   selector: 'tafel-passwordchange-modal',
