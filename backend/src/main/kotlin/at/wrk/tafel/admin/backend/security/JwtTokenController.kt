@@ -48,13 +48,7 @@ class JwtTokenController(
             expirationSeconds = applicationProperties.security.jwtToken.expirationTimeInSeconds
         )
 
-        logger.info(
-            """
-                Login successful via user '${user.username}'
-                from IP ${getIpAddress(request)} on ${request.requestURL}
-                (password change required: ${user.passwordChangeRequired}
-            """.trimIndent()
-        )
+        logger.info("Login successful via user '${user.username}' from IP ${getIpAddress(request)} on ${request.requestURL} (password change required: ${user.passwordChangeRequired})")
 
         return ResponseEntity.ok(
             JwtAuthenticationResponse(
