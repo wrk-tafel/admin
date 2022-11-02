@@ -40,7 +40,7 @@ export class LoginComponent implements OnInit {
     const password = this.loginForm.get('password').value;
 
     const loginResult = await this.auth.login(username, password);
-    if (loginResult) {
+    if (loginResult.successful) {
       if (loginResult.passwordChangeRequired) {
         await this.router.navigate(['login/passwortaendern']);
       } else {

@@ -67,7 +67,8 @@ describe('LoginComponent', () => {
   }));
 
   it('login successful', async () => {
-    authService.login.and.returnValue(Promise.resolve(true));
+    const loginResult = {successful: true, passwordChangeRequired: false};
+    authService.login.and.returnValue(Promise.resolve(loginResult));
 
     const fixture = TestBed.createComponent(LoginComponent);
     const component = fixture.componentInstance;
@@ -89,7 +90,8 @@ describe('LoginComponent', () => {
   });
 
   it('login failed', async () => {
-    authService.login.and.returnValue(Promise.resolve(false));
+    const loginResult = {successful: false, passwordChangeRequired: false};
+    authService.login.and.returnValue(Promise.resolve(loginResult));
 
     const fixture = TestBed.createComponent(LoginComponent);
     const component = fixture.componentInstance;
@@ -100,14 +102,9 @@ describe('LoginComponent', () => {
       'password': 'pwd'
     });
 
-    let expectedDone = false;
+    await component.login();
 
-    await component.login().then(() => {
-      expect(component.errorMessage).toBe('Anmeldung fehlgeschlagen!');
-      expectedDone = true;
-    });
-
-    expect(expectedDone).toBe(true);
+    expect(component.errorMessage).toBe('Anmeldung fehlgeschlagen!');
   });
 
 });
