@@ -1,7 +1,7 @@
 import {HttpClient} from '@angular/common/http';
 import {HttpClientTestingModule, HttpTestingController} from '@angular/common/http/testing';
 import {TestBed} from '@angular/core/testing';
-import {UserApiService} from './user-api.service';
+import {ChangePasswordRequest, ChangePasswordResponse, UserApiService} from './user-api.service';
 
 describe('UserApiService', () => {
   let client: HttpClient;
@@ -19,22 +19,23 @@ describe('UserApiService', () => {
     apiService = TestBed.inject(UserApiService);
   });
 
-  TODO
-  it('changed password successfully', () => {
-    /*
-    const mockCountries = [
-      {id: 0, code: 'AT', name: 'Österreich'},
-      {id: 1, code: 'DE', name: 'Deutschland'}
-    ];
+  it('changed password called', () => {
+    const testRequest: ChangePasswordRequest = {
+      passwordCurrent: 'pwd-current',
+      passwordNew: 'pwd-new'
+    };
+    const testResponse: ChangePasswordResponse = {
+      message: 'msg',
+      details: ['detail1', 'detail2']
+    };
 
-    apiService.getCountries().subscribe((data) => {
-      expect(data).toEqual(mockCountries);
+    apiService.changePassword(testRequest).subscribe((response: ChangePasswordResponse) => {
+      expect(response).toEqual(testResponse);
     });
 
-    const req = httpMock.expectOne('/countries');
-    req.flush({items: mockCountries});
+    const req = httpMock.expectOne('/users/change-password');
+    req.flush(testResponse);
     httpMock.verify();
-     */
   });
 
 });
