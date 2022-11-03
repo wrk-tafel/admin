@@ -46,7 +46,7 @@ export class PasswordChangeFormComponent {
 
     const passwordChangeRequest: ChangePasswordRequest = {passwordCurrent: currentPassword, passwordNew: newPassword};
 
-    return this.userApiService.updatePassword(passwordChangeRequest).pipe(
+    return this.userApiService.changePassword(passwordChangeRequest).pipe(
       map(
         (response: ChangePasswordResponse) => {
           this.errorMessage = null;
@@ -83,7 +83,7 @@ export class PasswordChangeFormComponent {
       }
 
       return null;
-    }
+    };
   }
 
   get currentPassword() {
