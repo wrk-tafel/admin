@@ -64,8 +64,8 @@ describe('LoginPasswordChangeComponent', () => {
     expect(component.isSaveDisabled()).toBeTrue();
   }));
 
-  // TODO isSaveDisabled is false when form is valid
-  // TODO isSaveDisabled is true when form is invalid
+  // TODO test: isSaveDisabled is false when form is valid
+  // TODO test: isSaveDisabled is true when form is invalid
 
   it('changePassword successful', fakeAsync(() => {
     const testUsername = 'test-username';

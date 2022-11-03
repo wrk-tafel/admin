@@ -86,6 +86,10 @@ export class PasswordChangeFormComponent {
     };
   }
 
+  isValid() {
+    return this.form.valid;
+  }
+
   get currentPassword() {
     return this.form.get('currentPassword');
   }
