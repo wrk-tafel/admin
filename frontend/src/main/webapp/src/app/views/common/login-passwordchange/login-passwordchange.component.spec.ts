@@ -4,8 +4,8 @@ import {LoginPasswordChangeComponent} from './login-passwordchange.component';
 import {AuthenticationService, LoginResult} from '../../../common/security/authentication.service';
 import {Router} from '@angular/router';
 import {of} from 'rxjs';
-import {PasswordChangeFormComponent} from "../../user/views/passwordchange-form/passwordchange-form.component";
-import {HttpClientTestingModule} from "@angular/common/http/testing";
+import {PasswordChangeFormComponent} from '../../user/views/passwordchange-form/passwordchange-form.component';
+import {HttpClientTestingModule} from '@angular/common/http/testing';
 
 describe('LoginPasswordChangeComponent', () => {
   let authServiceSpy: jasmine.SpyObj<AuthenticationService>;
