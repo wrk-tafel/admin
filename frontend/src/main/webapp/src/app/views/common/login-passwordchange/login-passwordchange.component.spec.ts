@@ -1,9 +1,11 @@
-import {TestBed, waitForAsync} from '@angular/core/testing';
-import {ReactiveFormsModule} from '@angular/forms';
+import {fakeAsync, TestBed, tick, waitForAsync} from '@angular/core/testing';
+import {AbstractControl, ReactiveFormsModule} from '@angular/forms';
 import {LoginPasswordChangeComponent} from './login-passwordchange.component';
-import {AuthenticationService} from '../../../common/security/authentication.service';
+import {AuthenticationService, LoginResult} from '../../../common/security/authentication.service';
 import {Router} from '@angular/router';
 import {of} from 'rxjs';
+import {PasswordChangeFormComponent} from "../../user/views/passwordchange-form/passwordchange-form.component";
+import {HttpClientTestingModule} from "@angular/common/http/testing";
 
 describe('LoginPasswordChangeComponent', () => {
   let authServiceSpy: jasmine.SpyObj<AuthenticationService>;
@@ -11,12 +13,18 @@ describe('LoginPasswordChangeComponent', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      imports: [ReactiveFormsModule],
-      declarations: [LoginPasswordChangeComponent],
+      imports: [
+        ReactiveFormsModule,
+        HttpClientTestingModule
+      ],
+      declarations: [
+        LoginPasswordChangeComponent,
+        PasswordChangeFormComponent
+      ],
       providers: [
         {
           provide: AuthenticationService,
-          useValue: jasmine.createSpyObj('AuthenticationService', ['TODO'])
+          useValue: jasmine.createSpyObj('AuthenticationService', ['login', 'getUsername'])
         },
         {
           provide: Router,
@@ -59,18 +67,27 @@ describe('LoginPasswordChangeComponent', () => {
   // TODO isSaveDisabled is false when form is valid
   // TODO isSaveDisabled is true when form is invalid
 
-  it('changePassword successful', waitForAsync(() => {
+  it('changePassword successful', fakeAsync(() => {
+    const testUsername = 'test-username';
+    const testNewPassword = 'test-new-password';
+
     const fixture = TestBed.createComponent(LoginPasswordChangeComponent);
     const component = fixture.componentInstance;
-    const formSpy = jasmine.createSpyObj(['changePassword']);
-    component.form = formSpy;
-    fixture.detectChanges();
+    component.form = TestBed.createComponent(PasswordChangeFormComponent).componentInstance as PasswordChangeFormComponent;
+    spyOn(component.form, 'changePassword').and.returnValue(of(true));
+    spyOnProperty(component.form, 'newPassword', 'get').and.returnValue({value: testNewPassword} as AbstractControl);
+    authServiceSpy.getUsername.and.returnValue(testUsername);
 
-    formSpy.changePassword.and.returnValue(of(true));
+    const loginResult: LoginResult = {successful: true, passwordChangeRequired: false};
+    authServiceSpy.login.and.returnValue(of(loginResult).toPromise());
 
     component.changePassword();
 
-    expect().toBeTrue();
+    // TODO get rid of the wait
+    tick(1000);
+
+    expect(authServiceSpy.login).toHaveBeenCalledWith(testUsername, testNewPassword);
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['uebersicht']);
   }));
 
 });
