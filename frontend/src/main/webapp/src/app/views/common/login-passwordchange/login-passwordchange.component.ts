@@ -35,7 +35,7 @@ export class LoginPasswordChangeComponent {
   }
 
   isSaveDisabled(): Boolean {
-    return !this.form?.form?.valid;
+    return !this.form?.isValid();
   }
 
 }
