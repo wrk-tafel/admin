@@ -12,7 +12,7 @@ export class UserApiService {
   ) {
   }
 
-  updatePassword(request: ChangePasswordRequest): Observable<ChangePasswordResponse> {
+  changePassword(request: ChangePasswordRequest): Observable<ChangePasswordResponse> {
     return this.http.post<ChangePasswordResponse>('/users/change-password', request);
   }
 }

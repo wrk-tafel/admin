@@ -21,7 +21,7 @@ describe('AuthenticationInterceptor', () => {
         },
         {
           provide: AuthenticationService,
-          useValue: jasmine.createSpyObj('AuthenticationService', ['getToken', 'logoutAndRedirect'])
+          useValue: jasmine.createSpyObj('AuthenticationService', ['getTokenString', 'logoutAndRedirect'])
         }
       ],
     });
@@ -32,7 +32,7 @@ describe('AuthenticationInterceptor', () => {
   });
 
   it('not authenticated - called without authorization header', () => {
-    authServiceSpy.getToken.and.returnValue(null);
+    authServiceSpy.getTokenString.and.returnValue(null);
 
     client.get('/test').subscribe();
 
@@ -41,7 +41,7 @@ describe('AuthenticationInterceptor', () => {
   });
 
   it('authenticated - called with authorization header', () => {
-    authServiceSpy.getToken.and.returnValue('TOKENVALUE');
+    authServiceSpy.getTokenString.and.returnValue('TOKENVALUE');
 
     client.get('/test').subscribe();
 
@@ -50,7 +50,7 @@ describe('AuthenticationInterceptor', () => {
   });
 
   it('authenticated - called with expired authorization header', () => {
-    authServiceSpy.getToken.and.returnValue('TOKENVALUE-EXPIRED');
+    authServiceSpy.getTokenString.and.returnValue('TOKENVALUE-EXPIRED');
 
     client.get('/test').subscribe(() => {
     }, err => {

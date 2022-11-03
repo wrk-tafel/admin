@@ -8,7 +8,9 @@ INSERT INTO users (id, created_at, updated_at, username, password, enabled, pers
 VALUES (100, NOW(), NOW(), 'e2etest', '{argon2}$argon2id$v=19$m=4096,t=3,p=1$Cnj0ayQKhOPbkomIRV5tnQ$BfU/uOr20/vg9ie0CQcWhCD00DqjPDf6UI0pRvz1/gg', true,
         '00000', 'E2E', 'Test');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
-VALUES (1000, NOW(), NOW(), 100, 'CUSTOMER');
+VALUES (1000, NOW(), NOW(), 100, 'DASHBOARD');
+INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
+VALUES (1001, NOW(), NOW(), 100, 'CUSTOMER');
 
 -- user e2etest2 for cypress test (password change)
 -- pwd: e2etest
@@ -16,24 +18,38 @@ INSERT INTO users (id, created_at, updated_at, username, password, enabled, pers
 VALUES (101, NOW(), NOW(), 'e2etest2', '{argon2}$argon2id$v=19$m=4096,t=3,p=1$Cnj0ayQKhOPbkomIRV5tnQ$BfU/uOr20/vg9ie0CQcWhCD00DqjPDf6UI0pRvz1/gg', true,
         '00000-0', 'E2E', 'Test');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
-VALUES (1010, NOW(), NOW(), 101, 'CUSTOMER');
+VALUES (1010, NOW(), NOW(), 101, 'DASHBOARD');
+INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
+VALUES (1011, NOW(), NOW(), 101, 'CUSTOMER');
 
+-- user e2etest3 for cypress test (password change)
+-- pwd: e2etest
+INSERT INTO users (id, created_at, updated_at, username, password, enabled, personnel_number, firstname, lastname, passwordchange_required)
+VALUES (102, NOW(), NOW(), 'e2etest3', '{argon2}$argon2id$v=19$m=4096,t=3,p=1$Cnj0ayQKhOPbkomIRV5tnQ$BfU/uOr20/vg9ie0CQcWhCD00DqjPDf6UI0pRvz1/gg', true,
+        '00000-3', 'E2E', 'Test 3', true);
+INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
+VALUES (1020, NOW(), NOW(), 102, 'DASHBOARD');
+
+-- user: testuser
 -- pwd: 35bc40681124f412c5d052366edb9eb9
 INSERT INTO users (id, created_at, updated_at, username, password, enabled, personnel_number, firstname, lastname)
 VALUES (200, NOW(), NOW(), 'testuser',
         '{argon2}$argon2id$v=19$m=4096,t=3,p=1$DZTJhKdC4/5fzGDI2CtozA$ELfBRSqAKes7ThqkzL7AN6JkEq7wzWgKejhLQ02XD6c', true,
         '0200', 'Test', 'User');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
-VALUES (2000, NOW(), NOW(), 200, 'CUSTOMER');
+VALUES (2000, NOW(), NOW(), 200, 'DASHBOARD');
+INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
+VALUES (2001, NOW(), NOW(), 200, 'CUSTOMER');
 
 -- TODO remove | fake user with weak password to gain some intrusion insights
+-- user: admin
 -- pwd: 12345
 INSERT INTO users (id, created_at, updated_at, username, password, enabled, personnel_number, firstname, lastname)
 VALUES (300, NOW(), NOW(), 'admin', '{argon2}$argon2id$v=19$m=4096,t=3,p=1$RXn6Xt/0q/Wtrvdns6NUnw$X3xWUjENAbNSJNckeVFXWrjkoFSowwlu3xHx1/zb40w',
         true,
         '0300', 'AD', 'min');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
-VALUES (3000, NOW(), NOW(), 300, 'CUSTOMER');
+VALUES (3000, NOW(), NOW(), 300, 'DASHBOARD');
 
 -- customers
 INSERT INTO customers (id, created_at, updated_at, customer_id, user_id, firstname, lastname, birth_date, country_id,

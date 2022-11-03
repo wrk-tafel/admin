@@ -24,6 +24,9 @@ class UserEntity : BaseChangeTrackingEntity() {
     @Column(name = "lastname")
     var lastname: String? = null
 
+    @Column(name = "passwordchange_required")
+    var passwordChangeRequired: Boolean? = null
+
     @OneToMany(mappedBy = "user", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
     var authorities: MutableList<UserAuthorityEntity> = mutableListOf()
 

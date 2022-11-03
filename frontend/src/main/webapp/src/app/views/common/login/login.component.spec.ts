@@ -1,8 +1,9 @@
 import {TestBed, waitForAsync} from '@angular/core/testing';
-import {Navigation, Router} from '@angular/router';
+import {ActivatedRoute, Router} from '@angular/router';
 import {AuthenticationService} from '../../../common/security/authentication.service';
 import {LoginComponent} from './login.component';
 import {ReactiveFormsModule} from '@angular/forms';
+import {of} from 'rxjs';
 
 describe('LoginComponent', () => {
   let authService: jasmine.SpyObj<AuthenticationService>;
@@ -22,7 +23,13 @@ describe('LoginComponent', () => {
         {
           provide: Router,
           useValue: routerSpy
-        }
+        },
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            params: of()
+          }
+        },
       ],
       declarations: [LoginComponent]
     }).compileComponents();
@@ -40,8 +47,7 @@ describe('LoginComponent', () => {
   }));
 
   it('init with expired flag should show message', waitForAsync(() => {
-    const navigation: jasmine.SpyObj<Navigation> = jasmine.createSpyObj('Navigation', {}, {extras: {state: {errorType: 'expired'}}});
-    router.getCurrentNavigation.and.returnValue(navigation);
+    TestBed.inject(ActivatedRoute).params = of({errorType: 'abgelaufen'});
 
     const fixture = TestBed.createComponent(LoginComponent);
     const component = fixture.componentInstance;
@@ -50,8 +56,19 @@ describe('LoginComponent', () => {
     expect(component.errorMessage).toBe('Sitzung abgelaufen! Bitte erneut anmelden.');
   }));
 
-  it('login successful', () => {
-    authService.login.and.returnValue(Promise.resolve(true));
+  it('init with forbidden flag should show message', waitForAsync(() => {
+    TestBed.inject(ActivatedRoute).params = of({errorType: 'fehlgeschlagen'});
+
+    const fixture = TestBed.createComponent(LoginComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    expect(component.errorMessage).toBe('Zugriff nicht erlaubt!');
+  }));
+
+  it('login successful', async () => {
+    const loginResult = {successful: true, passwordChangeRequired: false};
+    authService.login.and.returnValue(Promise.resolve(loginResult));
 
     const fixture = TestBed.createComponent(LoginComponent);
     const component = fixture.componentInstance;
@@ -62,13 +79,19 @@ describe('LoginComponent', () => {
       'password': 'pwd'
     });
 
-    component.login().then(() => {
+    let expectedDone = false;
+
+    await component.login().then(() => {
       expect(router.navigate).toHaveBeenCalledWith(['uebersicht']);
+      expectedDone = true;
     });
+
+    expect(expectedDone).toBeTrue();
   });
 
-  it('login failed', () => {
-    authService.login.and.returnValue(Promise.resolve(false));
+  it('login failed', async () => {
+    const loginResult = {successful: false, passwordChangeRequired: false};
+    authService.login.and.returnValue(Promise.resolve(loginResult));
 
     const fixture = TestBed.createComponent(LoginComponent);
     const component = fixture.componentInstance;
@@ -79,9 +102,27 @@ describe('LoginComponent', () => {
       'password': 'pwd'
     });
 
-    component.login().then(() => {
-      expect(component.errorMessage).toBe('Anmeldung fehlgeschlagen!');
+    await component.login();
+
+    expect(component.errorMessage).toBe('Anmeldung fehlgeschlagen!');
+  });
+
+  it('login but passwordchange required', async () => {
+    const loginResult = {successful: true, passwordChangeRequired: true};
+    authService.login.and.returnValue(Promise.resolve(loginResult));
+
+    const fixture = TestBed.createComponent(LoginComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.loginForm.setValue({
+      'username': 'user',
+      'password': 'pwd'
     });
+
+    await component.login();
+
+    expect(router.navigate).toHaveBeenCalledWith(['login/passwortaendern']);
   });
 
 });

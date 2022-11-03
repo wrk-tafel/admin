@@ -18,7 +18,9 @@ export class DefaultLayoutComponent {
   constructor(
     private auth: AuthenticationService
   ) {
-    this.navItems = this.getNavItemsFilteredByPermissions(navigationMenuItems);
+    if (this.auth.hasAnyPermissions()) {
+      this.navItems = this.getNavItemsFilteredByPermissions(navigationMenuItems);
+    }
   }
 
   toggleMinimize(e) {
@@ -45,7 +47,7 @@ export class DefaultLayoutComponent {
         }
       });
 
-      if (!missingPermission) {
+      if (navItem.title || !missingPermission) {
         filteredNavItems.push(navItem);
       }
     });
@@ -54,30 +56,17 @@ export class DefaultLayoutComponent {
   }
 
   private filterEmptyTitleItems(navItems: INavData[]) {
-    if (navItems.length === 1) {
-      if (navItems[0].title === true) {
-        return [];
-      }
-      return navItems;
-    }
-
     const filteredNavItems: INavData[] = [];
 
-    for (let i = 0; i < navItems.length; i++) {
-      const currentItem = navItems[i];
+    navItems.forEach((currentItem, index) => {
+      const nextItem = (index + 1) < navItems.length ? navItems[index + 1] : undefined;
 
-      if ((i + 2) > navItems.length) {
-        filteredNavItems.push(currentItem);
-        break;
-      } else {
-        const nextItem = navItems[i + 1];
-        if (currentItem.title === true && nextItem.title === true) {
-
-        } else {
-          filteredNavItems.push(currentItem);
-        }
+      if (currentItem.title && (!nextItem || nextItem.title)) {
+        return;
       }
-    }
+
+      filteredNavItems.push(currentItem);
+    });
 
     return filteredNavItems;
   }

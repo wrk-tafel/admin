@@ -9,6 +9,7 @@ data class JwtAuthenticationToken(
 ) : UsernamePasswordAuthenticationToken(null, null)
 
 @ExcludeFromTestCoverage
-data class JwtResponse(
-    val token: String
+data class JwtAuthenticationResponse(
+    val token: String?,
+    val passwordChangeRequired: Boolean? = false
 )

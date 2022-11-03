@@ -2,8 +2,7 @@ import {ComponentFixture, TestBed, waitForAsync} from '@angular/core/testing';
 import {ModalModule} from 'ngx-bootstrap/modal';
 import {HttpClientTestingModule, HttpTestingController} from '@angular/common/http/testing';
 import {FormControl, FormGroup} from '@angular/forms';
-import {ChangePasswordResponse} from '../../api/user-api.service';
-import {PasswordChangeFormComponent} from "./passwordchange-form.component";
+import {PasswordChangeFormComponent} from './passwordchange-form.component';
 
 describe('PasswordChangeFormComponent', () => {
   let httpMock: HttpTestingController;
@@ -31,7 +30,7 @@ describe('PasswordChangeFormComponent', () => {
   }));
 
   it('validateNewAndRepeatedPasswords should return null on matching values', waitForAsync(() => {
-    const validator = component.validateNewAndRepeatedPasswords;
+    const validator = component.validateNewAndRepeatedPasswords();
 
     const testForm = new FormGroup({
       newPassword: new FormControl('12345'),
@@ -44,7 +43,7 @@ describe('PasswordChangeFormComponent', () => {
   }));
 
   it('validateNewAndRepeatedPasswords should return object when values dont match', waitForAsync(() => {
-    const validator = component.validateNewAndRepeatedPasswords;
+    const validator = component.validateNewAndRepeatedPasswords();
 
     const testForm = new FormGroup({
       newPassword: new FormControl('12345'),
@@ -56,7 +55,8 @@ describe('PasswordChangeFormComponent', () => {
     expect(result).toEqual({passwordsDontMatch: true});
   }));
 
-  /* TODO fix test
+  // TODO fix test
+  /*
   it('changePassword should fill errorMessages correctly', waitForAsync(() => {
     const errorResponse: ChangePasswordResponse = {
       message: 'ERROR 123',
@@ -112,5 +112,7 @@ describe('PasswordChangeFormComponent', () => {
     expect(component.errorMessage).toBe(null);
     expect(component.errorMessageDetails).toBe(null);
   }));
+
+  // TODO test: isValid --> form.true/false/undefined
 
 });

@@ -13,4 +13,5 @@ security:
     secret:
       value: test-secret
       algorithm: HmacSHA512
-    expirationTimeInSeconds: 3600 # 5 minutes
+    expirationTimeInSeconds: 300 # 5 minutes
+    expirationTimePwdChangeInSeconds: 600 # 10 minutes

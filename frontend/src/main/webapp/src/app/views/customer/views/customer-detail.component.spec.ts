@@ -227,7 +227,7 @@ describe('CustomerDetailComponent', () => {
 
     const valid = component.isValid();
 
-    expect(valid).toBe(false);
+    expect(valid).toBeFalse();
   }));
 
   it('isValid with date today is valid', waitForAsync(() => {
@@ -240,7 +240,7 @@ describe('CustomerDetailComponent', () => {
 
     const valid = component.isValid();
 
-    expect(valid).toBe(true);
+    expect(valid).toBeTrue();
   }));
 
   it('isValid with date tomorrow is valid', waitForAsync(() => {
@@ -252,7 +252,7 @@ describe('CustomerDetailComponent', () => {
     };
 
     const valid = component.isValid();
-    expect(valid).toBe(true);
+    expect(valid).toBeTrue();
 
     // TODO expect(incomeDueText)-class success or danger
   }));

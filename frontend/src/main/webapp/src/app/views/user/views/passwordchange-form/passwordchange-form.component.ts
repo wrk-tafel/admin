@@ -1,9 +1,9 @@
 import {Component} from '@angular/core';
 import {FormControl, FormGroup, ValidatorFn, Validators} from '@angular/forms';
 import {ChangePasswordRequest, ChangePasswordResponse, UserApiService} from '../../api/user-api.service';
-import {catchError, map} from "rxjs/operators";
-import {Observable, throwError} from "rxjs";
-import {HttpErrorResponse} from "@angular/common/http";
+import {catchError, map} from 'rxjs/operators';
+import {Observable, throwError} from 'rxjs';
+import {HttpErrorResponse} from '@angular/common/http';
 
 @Component({
   selector: 'tafel-passwordchange-form',
@@ -13,22 +13,6 @@ export class PasswordChangeFormComponent {
   successMessage: string;
   errorMessage: string;
   errorMessageDetails: string[];
-
-  constructor(
-    private userApiService: UserApiService
-  ) {
-  }
-
-  validateNewAndRepeatedPasswords: ValidatorFn = (formGroup: FormGroup) => {
-    const newPassword = formGroup.get('newPassword').value;
-    const newRepeatedPassword = formGroup.get('newRepeatedPassword').value;
-
-    if (newPassword !== newRepeatedPassword) {
-      return {passwordsDontMatch: true};
-    }
-
-    return null;
-  }
 
   form = new FormGroup({
       currentPassword: new FormControl('', [
@@ -46,18 +30,23 @@ export class PasswordChangeFormComponent {
       ])
     },
     {
-      validators: [this.validateNewAndRepeatedPasswords],
+      validators: [this.validateNewAndRepeatedPasswords()],
       updateOn: 'change'
     }
   );
 
-  public changePassword(): Observable<boolean> {
+  constructor(
+    private userApiService: UserApiService
+  ) {
+  }
+
+  changePassword(): Observable<boolean> {
     const currentPassword = this.currentPassword.value;
     const newPassword = this.newPassword.value;
 
     const passwordChangeRequest: ChangePasswordRequest = {passwordCurrent: currentPassword, passwordNew: newPassword};
 
-    return this.userApiService.updatePassword(passwordChangeRequest).pipe(
+    return this.userApiService.changePassword(passwordChangeRequest).pipe(
       map(
         (response: ChangePasswordResponse) => {
           this.errorMessage = null;
@@ -82,6 +71,23 @@ export class PasswordChangeFormComponent {
     this.errorMessage = null;
     this.errorMessageDetails = null;
     this.form.reset();
+  }
+
+  validateNewAndRepeatedPasswords(): ValidatorFn {
+    return (formGroup: FormGroup) => {
+      const newPassword = formGroup.get('newPassword').value;
+      const newRepeatedPassword = formGroup.get('newRepeatedPassword').value;
+
+      if (newPassword !== newRepeatedPassword) {
+        return {passwordsDontMatch: true};
+      }
+
+      return null;
+    };
+  }
+
+  isValid() {
+    return this.form.valid;
   }
 
   get currentPassword() {

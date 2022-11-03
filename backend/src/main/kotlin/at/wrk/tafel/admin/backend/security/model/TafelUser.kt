@@ -14,7 +14,8 @@ data class TafelUser(
     val personnelNumber: String,
     val firstname: String,
     val lastname: String,
-    private val authorities: Collection<out GrantedAuthority>
+    private val authorities: Collection<out GrantedAuthority>,
+    val passwordChangeRequired: Boolean
 ) : UserDetails, CredentialsContainer {
     override fun getAuthorities(): Collection<out GrantedAuthority> = authorities
     override fun getPassword(): String? = password

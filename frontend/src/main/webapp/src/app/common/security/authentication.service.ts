@@ -16,25 +16,25 @@ export class AuthenticationService {
   ) {
   }
 
-  public async login(username: string, password: string): Promise<boolean> {
+  public async login(username: string, password: string): Promise<LoginResult> {
     return await this.executeLoginRequest(username, password)
-      .then(response => {
+      .then((response: LoginResponse) => {
         this.storeToken(response);
-        return true;
+        return {successful: true, passwordChangeRequired: response.passwordChangeRequired};
       })
       .catch(() => {
         this.removeToken();
-        return false;
+        return {successful: false, passwordChangeRequired: false};
       });
   }
 
   public logoutAndRedirect() {
-    const token = this.getToken();
+    const token = this.getTokenString();
     if (token !== null) {
       const expired = this.jwtHelper.isTokenExpired(token);
       if (expired) {
         this.removeToken();
-        this.router.navigate(['login'], {state: {errorType: 'expired'}});
+        this.router.navigate(['login', 'abgelaufen']);
       } else {
         this.removeToken();
         this.router.navigate(['login']);
@@ -45,30 +45,34 @@ export class AuthenticationService {
   }
 
   public isAuthenticated(): boolean {
-    const token = this.getToken();
+    const token = this.getTokenString();
     return token !== null && !this.jwtHelper.isTokenExpired(token);
   }
 
-  public hasPermission(role: string): boolean {
-    const token = this.jwtHelper.decodeToken<JwtToken>(this.getToken());
+  public hasAnyPermissions(): boolean {
+    return this.decodeToken().permissions?.length > 0;
+  }
 
-    if (token.permissions != null) {
-      const index = token.permissions.findIndex(element => {
+  public hasPermission(role: string): boolean {
+    if (this.hasAnyPermissions()) {
+      const index = this.decodeToken().permissions?.findIndex(element => {
         return element.toLowerCase() === role.toLowerCase();
       });
-
       return index !== -1;
     }
-
     return false;
   }
 
-  public getToken(): string {
+  public getTokenString(): string {
     return sessionStorage.getItem(this.SESSION_STORAGE_TOKEN_KEY);
   }
 
   public removeToken() {
     sessionStorage.removeItem(this.SESSION_STORAGE_TOKEN_KEY);
+  }
+
+  public getUsername(): string {
+    return this.decodeToken()?.sub;
   }
 
   private executeLoginRequest(username: string, password: string) {
@@ -84,12 +88,22 @@ export class AuthenticationService {
     sessionStorage.setItem(this.SESSION_STORAGE_TOKEN_KEY, response.token);
   }
 
+  private decodeToken(): JwtToken {
+    return this.jwtHelper.decodeToken<JwtToken>(this.getTokenString());
+  }
 }
 
 interface LoginResponse {
   token: string;
+  passwordChangeRequired: boolean;
 }
 
 interface JwtToken {
+  sub: string;
   permissions: string[];
+}
+
+export interface LoginResult {
+  successful: boolean;
+  passwordChangeRequired: boolean;
 }

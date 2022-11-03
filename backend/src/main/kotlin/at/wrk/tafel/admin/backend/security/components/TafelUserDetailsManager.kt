@@ -46,6 +46,7 @@ class TafelUserDetailsManager(
         val result = passwordValidator.validate(data)
         if (result.isValid) {
             storedUser.password = passwordEncoder.encode(newPassword)
+            storedUser.passwordChangeRequired = false
             userRepository.save(storedUser)
         } else {
             throw PasswordException("Das neue Passwort ist ungültig!", translateViolationsToMessages(result))
@@ -76,7 +77,8 @@ class TafelUserDetailsManager(
             personnelNumber = userEntity.personnelNumber!!,
             firstname = userEntity.firstname!!,
             lastname = userEntity.lastname!!,
-            authorities = userEntity.authorities.map { SimpleGrantedAuthority(it.name) }
+            authorities = userEntity.authorities.map { SimpleGrantedAuthority(it.name) },
+            passwordChangeRequired = userEntity.passwordChangeRequired!!
         )
     }
 

@@ -29,6 +29,7 @@ security:
   jwtToken:
     secret.algorithm: HmacSHA512
     expirationTimeInSeconds: 36000 # 10 hours
+    expirationTimePwdChangeInSeconds: 300 # 5 minutes
 
 tafeladmin:
   server:

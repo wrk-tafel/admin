@@ -32,6 +32,7 @@ class JwtTokenServiceTest {
                     issuer = "issuer",
                     audience = "audience",
                     expirationTimeInSeconds = 5000,
+                    expirationTimePwdChangeInSeconds = 100,
                     secret = SecurityJwtTokenSecretProperties(
                         value = "test-dummy".padEnd(50, 'A'),
                         algorithm = "HmacSHA512"
@@ -48,7 +49,8 @@ class JwtTokenServiceTest {
             "test-user",
             listOf(
                 SimpleGrantedAuthority("dummy-role")
-            )
+            ),
+            expirationSeconds = 100
         )
 
         val claims = jwtTokenService.getClaimsFromToken(token)

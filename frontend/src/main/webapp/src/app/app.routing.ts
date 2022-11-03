@@ -7,6 +7,7 @@ import {P500Component} from './views/common/error/500.component';
 import {LoginComponent} from './views/common/login/login.component';
 
 import {AuthGuardService as AuthGuard} from './common/security/authguard.service';
+import {LoginPasswordChangeComponent} from './views/common/login-passwordchange/login-passwordchange.component';
 
 export const routes: Routes = [
   {
@@ -23,7 +24,15 @@ export const routes: Routes = [
     component: P500Component
   },
   {
+    path: 'login/passwortaendern',
+    component: LoginPasswordChangeComponent
+  },
+  {
     path: 'login',
+    component: LoginComponent
+  },
+  {
+    path: 'login/:errorType',
     component: LoginComponent
   },
   {
@@ -33,11 +42,17 @@ export const routes: Routes = [
     children: [
       {
         path: 'uebersicht',
-        loadChildren: () => import('./views/dashboard/dashboard.module').then(m => m.DashboardModule)
+        loadChildren: () => import('./views/dashboard/dashboard.module').then(m => m.DashboardModule),
+        data: {
+          permission: 'DASHBOARD'
+        }
       },
       {
         path: 'kunden',
-        loadChildren: () => import('./views/customer/customer.module').then(m => m.CustomerModule)
+        loadChildren: () => import('./views/customer/customer.module').then(m => m.CustomerModule),
+        data: {
+          permission: 'CUSTOMER'
+        }
       }
     ]
   },
@@ -48,7 +63,7 @@ export const routes: Routes = [
 ];
 
 @NgModule({
-  imports: [RouterModule.forRoot(routes, {useHash: true})],
+  imports: [RouterModule.forRoot(routes, {useHash: true, onSameUrlNavigation: 'reload'})],
   exports: [RouterModule]
 })
 export class AppRoutingModule {

@@ -1,14 +1,13 @@
-import {Component} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {FormControl, FormGroup, Validators} from '@angular/forms';
-import {Router} from '@angular/router';
+import {ActivatedRoute, Router} from '@angular/router';
 import {AuthenticationService} from '../../../common/security/authentication.service';
 
 @Component({
   selector: 'tafel-login',
   templateUrl: 'login.component.html'
 })
-export class LoginComponent {
-
+export class LoginComponent implements OnInit {
   errorMessage: string;
 
   loginForm = new FormGroup({
@@ -18,21 +17,35 @@ export class LoginComponent {
 
   constructor(
     private auth: AuthenticationService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {
-    // just for safety - remove token on loginpage
-    auth.removeToken();
+    // just for safety reasons - remove token on loginpage
+    this.auth.removeToken();
+  }
 
-    const errorType = this.router.getCurrentNavigation()?.extras?.state?.errorType;
-    if (errorType === 'expired') {
-      this.errorMessage = 'Sitzung abgelaufen! Bitte erneut anmelden.';
-    }
+  ngOnInit(): void {
+    this.route.params.subscribe(params => {
+      const errorType: string = params['errorType'];
+      if (errorType === 'abgelaufen') {
+        this.errorMessage = 'Sitzung abgelaufen! Bitte erneut anmelden.';
+      } else if (errorType === 'fehlgeschlagen') {
+        this.errorMessage = 'Zugriff nicht erlaubt!';
+      }
+    });
   }
 
   public async login() {
-    const successful = await this.auth.login(this.loginForm.get('username').value, this.loginForm.get('password').value);
-    if (successful) {
-      this.router.navigate(['uebersicht']);
+    const username = this.loginForm.get('username').value;
+    const password = this.loginForm.get('password').value;
+
+    const loginResult = await this.auth.login(username, password);
+    if (loginResult.successful) {
+      if (loginResult.passwordChangeRequired) {
+        await this.router.navigate(['login/passwortaendern']);
+      } else {
+        await this.router.navigate(['uebersicht']);
+      }
     } else {
       this.errorMessage = 'Anmeldung fehlgeschlagen!';
     }

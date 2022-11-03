@@ -89,6 +89,7 @@ class TafelUserDetailsManagerTest {
         userEntity.firstname = "test-firstname"
         userEntity.lastname = "test-lastname"
         userEntity.authorities = mutableListOf(userAuthorityEntity1, userAuthorityEntity2)
+        userEntity.passwordChangeRequired = true
 
         every { userRepository.findByUsername(any()) } returns Optional.of(userEntity)
 
@@ -105,6 +106,7 @@ class TafelUserDetailsManagerTest {
         assertThat(userDetails.isAccountNonExpired).isTrue
         assertThat(userDetails.isAccountNonLocked).isTrue
         assertThat(userDetails.isCredentialsNonExpired).isTrue
+        assertThat(userDetails.passwordChangeRequired).isTrue
         assertThat(userDetails.authorities).hasSameElementsAs(
             listOf(
                 SimpleGrantedAuthority(userAuthorityEntity1.name),
@@ -134,20 +136,27 @@ class TafelUserDetailsManagerTest {
 
     @Test
     fun `changePassword - passwords matching`() {
+        val currentPassword = "12345"
+        val newPassword = "67890"
+        val newPasswordEncoded = "encoded-pwd"
+
         every { passwordValidator.validate(any()) } returns RuleResult(true)
+        every { passwordEncoder.encode(newPassword) } returns newPasswordEncoded
         every { userRepository.save(any()) } returns testUserEntity
 
         val currentPasswordHash = testUserEntity.password
-
-        val currentPassword = "12345"
-        val newPassword = "67890"
 
         manager.changePassword(currentPassword, newPassword)
 
         verify { userRepository.findByUsername(testUser.username) }
         verify { passwordEncoder.matches(currentPassword, currentPasswordHash) }
         verify { passwordEncoder.encode(newPassword) }
-        verify(exactly = 1) { userRepository.save(testUserEntity) }
+        verify(exactly = 1) {
+            userRepository.save(withArg {
+                assertThat(it.password).isEqualTo(newPasswordEncoded)
+                assertThat(it.passwordChangeRequired).isFalse()
+            })
+        }
     }
 
     @Test

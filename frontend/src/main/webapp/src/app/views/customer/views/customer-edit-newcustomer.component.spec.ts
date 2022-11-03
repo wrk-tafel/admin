@@ -105,8 +105,8 @@ describe('CustomerEditComponent - Creating a new customer', () => {
 
     fixture.detectChanges();
     expect(fixture.debugElement.query(By.css('[testId="nopersons-label"]'))).toBeTruthy();
-    expect(component.editMode).toBe(false);
-    expect(component.customerValidForSave).toBe(false);
+    expect(component.editMode).toBeFalse();
+    expect(component.customerValidForSave).toBeFalse();
     expect(component.errorMessage).toBeUndefined();
   });
 
@@ -169,7 +169,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
 
     expect(customerFormComponent.markAllAsTouched).toHaveBeenCalled();
     expect(apiService.validate).toHaveBeenCalledWith(jasmine.objectContaining(testCustomerData));
-    expect(component.customerValidForSave).toBe(true);
+    expect(component.customerValidForSave).toBeTrue();
     expect(validationResultModal.show).toHaveBeenCalled();
   });
 
@@ -197,7 +197,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
 
     expect(customerFormComponent.markAllAsTouched).toHaveBeenCalled();
     expect(apiService.validate).toHaveBeenCalledWith(jasmine.objectContaining(testCustomerData));
-    expect(component.customerValidForSave).toBe(false);
+    expect(component.customerValidForSave).toBeFalse();
     expect(validationResultModal.show).toHaveBeenCalled();
   });
 
