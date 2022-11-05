@@ -11,6 +11,8 @@ INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (1000, NOW(), NOW(), 100, 'DASHBOARD');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (1001, NOW(), NOW(), 100, 'CUSTOMER');
+INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
+VALUES (1002, NOW(), NOW(), 100, 'ENROLLMENT');
 
 -- user e2etest2 for cypress test (password change)
 -- pwd: e2etest
@@ -22,7 +24,7 @@ VALUES (1010, NOW(), NOW(), 101, 'DASHBOARD');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (1011, NOW(), NOW(), 101, 'CUSTOMER');
 
--- user e2etest3 for cypress test (password change)
+-- user e2etest3 for cypress test (forced password change on login)
 -- pwd: e2etest
 INSERT INTO users (id, created_at, updated_at, username, password, enabled, personnel_number, firstname, lastname, passwordchange_required)
 VALUES (102, NOW(), NOW(), 'e2etest3', '{argon2}$argon2id$v=19$m=4096,t=3,p=1$Cnj0ayQKhOPbkomIRV5tnQ$BfU/uOr20/vg9ie0CQcWhCD00DqjPDf6UI0pRvz1/gg', true,
@@ -40,6 +42,8 @@ INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (2000, NOW(), NOW(), 200, 'DASHBOARD');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (2001, NOW(), NOW(), 200, 'CUSTOMER');
+INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
+VALUES (2002, NOW(), NOW(), 200, 'ENROLLMENT');
 
 -- TODO remove | fake user with weak password to gain some intrusion insights
 -- user: admin
@@ -50,6 +54,10 @@ VALUES (300, NOW(), NOW(), 'admin', '{argon2}$argon2id$v=19$m=4096,t=3,p=1$RXn6X
         '0300', 'AD', 'min');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (3000, NOW(), NOW(), 300, 'DASHBOARD');
+INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
+VALUES (3001, NOW(), NOW(), 300, 'CUSTOMER');
+INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
+VALUES (3002, NOW(), NOW(), 300, 'ENROLLMENT');
 
 -- customers
 INSERT INTO customers (id, created_at, updated_at, customer_id, user_id, firstname, lastname, birth_date, country_id,

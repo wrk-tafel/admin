@@ -48,6 +48,13 @@ export const routes: Routes = [
         }
       },
       {
+        path: 'anmeldung',
+        loadChildren: () => import('./modules/enrollment/enrollment.module').then(m => m.EnrollmentModule),
+        data: {
+          permission: 'ENROLLMENT'
+        }
+      },
+      {
         path: 'kunden',
         loadChildren: () => import('./modules/customer/customer.module').then(m => m.CustomerModule),
         data: {
