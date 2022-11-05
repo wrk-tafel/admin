@@ -1,7 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {FormControl, FormGroup, Validators} from '@angular/forms';
 import {ActivatedRoute, Router} from '@angular/router';
-import {AuthenticationService} from '../../../common/security/authentication.service';
+import {AuthenticationService} from '../../security/authentication.service';
 
 @Component({
   selector: 'tafel-login',
