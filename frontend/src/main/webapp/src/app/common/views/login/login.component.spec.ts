@@ -1,6 +1,6 @@
 import {TestBed, waitForAsync} from '@angular/core/testing';
 import {ActivatedRoute, Router} from '@angular/router';
-import {AuthenticationService} from '../../../common/security/authentication.service';
+import {AuthenticationService} from '../../security/authentication.service';
 import {LoginComponent} from './login.component';
 import {ReactiveFormsModule} from '@angular/forms';
 import {of} from 'rxjs';

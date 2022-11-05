@@ -1,10 +1,10 @@
 import {fakeAsync, TestBed, tick, waitForAsync} from '@angular/core/testing';
 import {AbstractControl, ReactiveFormsModule} from '@angular/forms';
 import {LoginPasswordChangeComponent} from './login-passwordchange.component';
-import {AuthenticationService, LoginResult} from '../../../common/security/authentication.service';
+import {AuthenticationService, LoginResult} from '../../security/authentication.service';
 import {Router} from '@angular/router';
 import {of} from 'rxjs';
-import {PasswordChangeFormComponent} from '../../user/views/passwordchange-form/passwordchange-form.component';
+import {PasswordChangeFormComponent} from '../../../modules/user/views/passwordchange-form/passwordchange-form.component';
 import {HttpClientTestingModule} from '@angular/common/http/testing';
 
 describe('LoginPasswordChangeComponent', () => {

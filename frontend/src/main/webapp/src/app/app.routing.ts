@@ -1,13 +1,13 @@
 import {NgModule} from '@angular/core';
 import {RouterModule, Routes} from '@angular/router';
 
-import {DefaultLayoutComponent} from './views/common/default-layout/default-layout.component';
-import {P404Component} from './views/common/error/404.component';
-import {P500Component} from './views/common/error/500.component';
-import {LoginComponent} from './views/common/login/login.component';
+import {DefaultLayoutComponent} from './common/views/default-layout/default-layout.component';
+import {P404Component} from './common/views/error/404.component';
+import {P500Component} from './common/views/error/500.component';
+import {LoginComponent} from './common/views/login/login.component';
 
 import {AuthGuardService as AuthGuard} from './common/security/authguard.service';
-import {LoginPasswordChangeComponent} from './views/common/login-passwordchange/login-passwordchange.component';
+import {LoginPasswordChangeComponent} from './common/views/login-passwordchange/login-passwordchange.component';
 
 export const routes: Routes = [
   {
@@ -42,14 +42,14 @@ export const routes: Routes = [
     children: [
       {
         path: 'uebersicht',
-        loadChildren: () => import('./views/dashboard/dashboard.module').then(m => m.DashboardModule),
+        loadChildren: () => import('./modules/dashboard/dashboard.module').then(m => m.DashboardModule),
         data: {
           permission: 'DASHBOARD'
         }
       },
       {
         path: 'kunden',
-        loadChildren: () => import('./views/customer/customer.module').then(m => m.CustomerModule),
+        loadChildren: () => import('./modules/customer/customer.module').then(m => m.CustomerModule),
         data: {
           permission: 'CUSTOMER'
         }

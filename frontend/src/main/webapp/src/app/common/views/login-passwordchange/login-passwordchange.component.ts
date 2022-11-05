@@ -1,7 +1,7 @@
 import {Component, ViewChild} from '@angular/core';
-import {PasswordChangeFormComponent} from '../../user/views/passwordchange-form/passwordchange-form.component';
+import {PasswordChangeFormComponent} from '../../../modules/user/views/passwordchange-form/passwordchange-form.component';
 import {Router} from '@angular/router';
-import {AuthenticationService, LoginResult} from '../../../common/security/authentication.service';
+import {AuthenticationService, LoginResult} from '../../security/authentication.service';
 
 @Component({
   selector: 'tafel-login-passwordchange',

@@ -1,8 +1,8 @@
 import {Component, ViewChild} from '@angular/core';
 import {INavData} from '@coreui/angular';
-import {AuthenticationService} from '../../../common/security/authentication.service';
-import {IPermissionNavData, navigationMenuItems} from '../../dashboard/navigation-menuItems';
-import {PasswordChangeModalComponent} from '../../user/views/passwordchange-modal/passwordchange-modal.component';
+import {AuthenticationService} from '../../security/authentication.service';
+import {IPermissionNavData, navigationMenuItems} from '../../../modules/dashboard/navigation-menuItems';
+import {PasswordChangeModalComponent} from '../../../modules/user/views/passwordchange-modal/passwordchange-modal.component';
 
 @Component({
   selector: 'tafel-default-layout',
