@@ -1,3 +1,25 @@
-<div class="animated fadeIn">
-  TODO SCANNER
+<div class="d-flex justify-content-center">
+  <form [formGroup]="form">
+    <div class="row">
+      <div class="col">
+        <div *ngIf="loadingActive" class="font-weight-bold">Kameras werden geladen ...</div>
+        <div *ngIf="!loadingActive">
+          <div class="form-inline">
+            <label class="form-label font-weight-bold mr-2">Kamera</label>
+            <select testId="cameraSelectionInput" formControlName="camera" class="form-control"
+                    [compareWith]="compareCamera">
+              <option *ngFor="let camera of availableCameras" [ngValue]="camera">
+                {{camera.label}}</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div id="codeReaderBox"></div>
+    </div>
+    <div class="row">
+      OUTPUT: {{output}}
+    </div>
+  </form>
 </div>
