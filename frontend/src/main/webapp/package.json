@@ -48,6 +48,7 @@
     "flag-icon-css": "4.1.7",
     "follow-redirects": "1.15.2",
     "font-awesome": "4.7.0",
+    "html5-qrcode": "^2.2.8",
     "nanoid": "4.0.0",
     "ng2-charts": "2.4.3",
     "ngx-bootstrap": "6.2.0",
