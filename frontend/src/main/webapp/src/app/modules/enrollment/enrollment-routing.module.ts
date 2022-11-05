@@ -4,7 +4,7 @@ import {ScannerComponent} from "./views/scanner/scanner.component";
 
 const routes: Routes = [
   {
-    path: '',
+    path: 'scanner',
     component: ScannerComponent
   }
 ];
