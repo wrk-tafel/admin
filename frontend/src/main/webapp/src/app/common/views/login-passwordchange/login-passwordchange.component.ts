@@ -1,5 +1,5 @@
 import {Component, ViewChild} from '@angular/core';
-import {PasswordChangeFormComponent} from '../../../views/user/views/passwordchange-form/passwordchange-form.component';
+import {PasswordChangeFormComponent} from '../../../modules/user/views/passwordchange-form/passwordchange-form.component';
 import {Router} from '@angular/router';
 import {AuthenticationService, LoginResult} from '../../security/authentication.service';
 

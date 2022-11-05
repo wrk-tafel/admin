@@ -42,14 +42,14 @@ export const routes: Routes = [
     children: [
       {
         path: 'uebersicht',
-        loadChildren: () => import('./views/dashboard/dashboard.module').then(m => m.DashboardModule),
+        loadChildren: () => import('./modules/dashboard/dashboard.module').then(m => m.DashboardModule),
         data: {
           permission: 'DASHBOARD'
         }
       },
       {
         path: 'kunden',
-        loadChildren: () => import('./views/customer/customer.module').then(m => m.CustomerModule),
+        loadChildren: () => import('./modules/customer/customer.module').then(m => m.CustomerModule),
         data: {
           permission: 'CUSTOMER'
         }
