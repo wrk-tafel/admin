@@ -98,7 +98,7 @@ export class ScannerComponent implements OnInit {
   };
 
   private errorCallback = (errorMessage: string, error: Html5QrcodeError) => {
-    this.stateMessage = 'Kein QR-Code gefunden!';
+    this.stateMessage = 'Kein QR-Code gefunden';
     this.stateClass = 'alert-info';
   };
 
