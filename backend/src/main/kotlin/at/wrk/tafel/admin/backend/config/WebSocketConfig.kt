@@ -1,22 +1,30 @@
 package at.wrk.tafel.admin.backend.config
 
-import at.wrk.tafel.admin.backend.config.websocket.WebSocketAuhenticationInterceptor
-import at.wrk.tafel.admin.backend.modules.enrollment.scanner.ScannerWebSocketHandler
 import org.springframework.context.annotation.Configuration
-import org.springframework.web.socket.config.annotation.EnableWebSocket
-import org.springframework.web.socket.config.annotation.WebSocketConfigurer
-import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
+import org.springframework.messaging.simp.config.MessageBrokerRegistry
+import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker
+import org.springframework.web.socket.config.annotation.StompEndpointRegistry
+import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer
 
 @Configuration
-@EnableWebSocket
-class WebSocketConfig(
-    private val webSocketAuhenticationInterceptor: WebSocketAuhenticationInterceptor,
-    private val scannerWebSocketHandler: ScannerWebSocketHandler
-) : WebSocketConfigurer {
+@EnableWebSocketMessageBroker
+class WebSocketConfig : WebSocketMessageBrokerConfigurer {
 
-    override fun registerWebSocketHandlers(registry: WebSocketHandlerRegistry) {
-        registry.addHandler(scannerWebSocketHandler, "/ws-api/scanners")
-            .addInterceptors(webSocketAuhenticationInterceptor)
+    override fun registerStompEndpoints(registry: StompEndpointRegistry) {
+        registry.addEndpoint("/ws-api/scanners")
+    }
+
+    override fun configureMessageBroker(registry: MessageBrokerRegistry) {
+        // nice explanation here for the different prefixes and channels
+        // https://www.toptal.com/java/stomp-spring-boot-websocket
+
+        registry.enableSimpleBroker(
+            "/topic", // broadcasting
+            "/queue" // private channel 1:1
+        )
+
+        // use /app to send messages only to the backend without forwarding to other clients
+        registry.setApplicationDestinationPrefixes("/app")
     }
 
 }
