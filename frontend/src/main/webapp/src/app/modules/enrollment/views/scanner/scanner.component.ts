@@ -39,6 +39,7 @@ export class ScannerComponent implements OnInit {
       }
 
       this.initQrCodeReader();
+      this.startQrCodeReader();
     });
   }
 
@@ -47,16 +48,26 @@ export class ScannerComponent implements OnInit {
       formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
       verbose: false
     };
+    this.qrCodeReader = new Html5Qrcode("codeReaderBox", basicConfig);
+  }
 
+  private startQrCodeReader() {
     const cameraConfig: Html5QrcodeCameraScanConfig = {
       fps: 10,
       qrbox: this.qrBoxSizingFunction
     };
 
-    this.qrCodeReader = new Html5Qrcode("codeReaderBox", basicConfig);
-    this.qrCodeReader.start(this.currentCamera.id, cameraConfig, this.successCallback, this.errorCallback).then(() => {
-      this.stateMessage = 'Bereit';
-    });
+    if (this.qrCodeReader.isScanning) {
+      this.qrCodeReader.stop().then(() => {
+        this.qrCodeReader.start(this.currentCamera.id, cameraConfig, this.successCallback, this.errorCallback).then(() => {
+          this.stateMessage = 'Bereit';
+        });
+      });
+    } else {
+      this.qrCodeReader.start(this.currentCamera.id, cameraConfig, this.successCallback, this.errorCallback).then(() => {
+        this.stateMessage = 'Bereit';
+      });
+    }
   }
 
   private qrBoxSizingFunction = (viewfinderWidth, viewfinderHeight) => {
@@ -83,5 +94,8 @@ export class ScannerComponent implements OnInit {
   set selectedCamera(camera: CameraDevice) {
     this.currentCamera = camera;
     this.cameraService.saveLastUsedCameraId(camera.id);
+
+    this.stateMessage = 'Wird geladen ...';
+    this.startQrCodeReader();
   }
 }
