@@ -78,13 +78,11 @@ export class ScannerComponent implements OnInit {
   }
 
   private successCallback = (decodedText: string, result: Html5QrcodeResult) => {
-    this.stateMessage = decodedText;
-    // console.log("SUCCESS", decodedText, result);
+    this.stateMessage = 'Scan erfolgreich - ' + decodedText;
   };
 
   private errorCallback = (errorMessage: string, error: Html5QrcodeError) => {
-    this.stateMessage = errorMessage;
-    // console.log("ERROR", errorMessage, error);
+    this.stateMessage = 'Kein QR-Code gefunden!';
   };
 
   get selectedCamera(): CameraDevice {
