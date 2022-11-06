@@ -3,6 +3,7 @@ import {Html5Qrcode, Html5QrcodeSupportedFormats} from "html5-qrcode";
 import {Html5QrcodeError, Html5QrcodeResult} from "html5-qrcode/esm/core";
 import {Html5QrcodeFullConfig} from "html5-qrcode/esm/html5-qrcode";
 import {CameraDevice} from "html5-qrcode/core";
+import {CameraService} from "./camera/camera.service";
 
 @Component({
   selector: 'tafel-scanner',
@@ -11,12 +12,18 @@ import {CameraDevice} from "html5-qrcode/core";
 export class ScannerComponent implements OnInit {
 
   private availableCameras: CameraDevice[] = [];
+
   private qrCodeReader: Html5Qrcode;
 
   private stateMessage: string = 'Wird geladen ...';
 
+  constructor(
+    private cameraService: CameraService
+  ) {
+  }
+
   ngOnInit(): void {
-    Html5Qrcode.getCameras().then(cameras => {
+    this.cameraService.getCameras().then(cameras => {
       this.availableCameras = cameras;
       this.stateMessage = 'Bereit';
 
