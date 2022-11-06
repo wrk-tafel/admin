@@ -3,9 +3,7 @@ import {Injectable} from '@angular/core';
 import {Observable} from 'rxjs';
 import {CountryData} from '../../../common/api/country-api.service';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable()
 export class CustomerApiService {
   constructor(
     private http: HttpClient
