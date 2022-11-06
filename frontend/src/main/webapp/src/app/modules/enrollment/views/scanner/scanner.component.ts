@@ -12,6 +12,7 @@ import {CameraService} from "./camera/camera.service";
 export class ScannerComponent implements OnInit {
 
   private availableCameras: CameraDevice[] = [];
+  private selectedCamera: CameraDevice;
 
   private qrCodeReader: Html5Qrcode;
 
@@ -24,7 +25,15 @@ export class ScannerComponent implements OnInit {
 
   ngOnInit(): void {
     this.cameraService.getCameras().then(cameras => {
-      this.availableCameras = cameras;
+      this.availableCameras = cameras.sort((c1: CameraDevice, c2: CameraDevice) => {
+        return c1.label.localeCompare(c2.label);
+      });
+
+      const savedCameraId = this.cameraService.getLastUsedCameraId();
+      if (savedCameraId) {
+        this.selectedCamera = this.availableCameras.find(camera => camera.id === savedCameraId)
+      }
+
       this.stateMessage = 'Bereit';
 
       // TODO remove
