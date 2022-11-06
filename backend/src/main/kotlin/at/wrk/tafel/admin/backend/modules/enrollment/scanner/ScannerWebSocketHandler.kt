@@ -8,6 +8,7 @@ import org.springframework.web.socket.handler.TextWebSocketHandler
 
 @Component
 class ScannerWebSocketHandler : TextWebSocketHandler() {
+
     private val logger = LoggerFactory.getLogger(ScannerWebSocketHandler::class.java)
 
     override fun handleTextMessage(session: WebSocketSession, message: TextMessage) {

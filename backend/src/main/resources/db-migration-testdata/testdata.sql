@@ -21,8 +21,6 @@ VALUES (101, NOW(), NOW(), 'e2etest2', '{argon2}$argon2id$v=19$m=4096,t=3,p=1$Cn
         '00000-0', 'E2E', 'Test');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (1010, NOW(), NOW(), 101, 'DASHBOARD');
-INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
-VALUES (1011, NOW(), NOW(), 101, 'CUSTOMER');
 
 -- user e2etest3 for cypress test (forced password change on login)
 -- pwd: e2etest
