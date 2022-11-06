@@ -3,6 +3,7 @@ import {Html5Qrcode} from "html5-qrcode";
 import {Html5QrcodeError, Html5QrcodeResult} from "html5-qrcode/esm/core";
 import {CameraDevice} from "html5-qrcode/core";
 import {CameraService} from "./camera/camera.service";
+import {ScannerApiService} from "../../api/scanner-api.service";
 
 @Component({
   selector: 'tafel-scanner',
@@ -20,7 +21,8 @@ export class ScannerComponent implements OnInit {
   private stateClass: string = 'alert-info';
 
   constructor(
-    private cameraService: CameraService
+    private cameraService: CameraService,
+    private scannerApiService: ScannerApiService
   ) {
   }
 

@@ -4,6 +4,7 @@ import {ScannerComponent} from "./views/scanner/scanner.component";
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {CommonModule} from "@angular/common";
 import {CameraService} from "./views/scanner/camera/camera.service";
+import {ScannerApiService} from "./api/scanner-api.service";
 
 @NgModule({
   imports: [
@@ -16,7 +17,8 @@ import {CameraService} from "./views/scanner/camera/camera.service";
     ScannerComponent
   ],
   providers: [
-    CameraService
+    CameraService,
+    ScannerApiService
   ]
 })
 export class EnrollmentModule {
