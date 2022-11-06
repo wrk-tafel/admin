@@ -11,6 +11,7 @@ import {CameraService} from "./camera/camera.service";
 })
 export class ScannerComponent implements OnInit {
 
+  private scannerId: number = 1;
   private availableCameras: CameraDevice[] = [];
   private currentCamera: CameraDevice;
 
