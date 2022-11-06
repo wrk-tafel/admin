@@ -1,4 +1,4 @@
-package at.wrk.tafel.admin.backend.security
+package at.wrk.tafel.admin.backend.config
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
