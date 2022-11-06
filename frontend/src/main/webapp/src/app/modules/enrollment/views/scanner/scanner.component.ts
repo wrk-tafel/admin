@@ -17,6 +17,7 @@ export class ScannerComponent implements OnInit {
   private qrCodeReader: Html5Qrcode;
 
   private stateMessage: string = 'Wird geladen ...';
+  private stateClass: string = 'alert-info';
 
   constructor(
     private cameraService: CameraService
@@ -59,14 +60,28 @@ export class ScannerComponent implements OnInit {
 
     if (this.qrCodeReader.isScanning) {
       this.qrCodeReader.stop().then(() => {
-        this.qrCodeReader.start(this.currentCamera.id, cameraConfig, this.successCallback, this.errorCallback).then(() => {
-          this.stateMessage = 'Bereit';
-        });
+        this.qrCodeReader.start(this.currentCamera.id, cameraConfig, this.successCallback, this.errorCallback).then(
+          () => {
+            this.stateMessage = 'Bereit';
+            this.stateClass = 'alert-info';
+          },
+          () => {
+            this.stateMessage = 'Kamera konnte nicht geladen werden!';
+            this.stateClass = 'alert-danger';
+          }
+        );
       });
     } else {
-      this.qrCodeReader.start(this.currentCamera.id, cameraConfig, this.successCallback, this.errorCallback).then(() => {
-        this.stateMessage = 'Bereit';
-      });
+      this.qrCodeReader.start(this.currentCamera.id, cameraConfig, this.successCallback, this.errorCallback).then(
+        () => {
+          this.stateMessage = 'Bereit';
+          this.stateClass = 'alert-info';
+        },
+        () => {
+          this.stateMessage = 'Kamera konnte nicht geladen werden!';
+          this.stateClass = 'alert-danger';
+        }
+      );
     }
   }
 
@@ -79,10 +94,12 @@ export class ScannerComponent implements OnInit {
 
   private successCallback = (decodedText: string, result: Html5QrcodeResult) => {
     this.stateMessage = 'Scan erfolgreich - ' + decodedText;
+    this.stateClass = 'alert-success';
   };
 
   private errorCallback = (errorMessage: string, error: Html5QrcodeError) => {
     this.stateMessage = 'Kein QR-Code gefunden!';
+    this.stateClass = 'alert-info';
   };
 
   get selectedCamera(): CameraDevice {
