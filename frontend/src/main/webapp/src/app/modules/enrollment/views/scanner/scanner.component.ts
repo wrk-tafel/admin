@@ -3,7 +3,6 @@ import {Html5Qrcode, Html5QrcodeSupportedFormats} from "html5-qrcode";
 import {Html5QrcodeError, Html5QrcodeResult} from "html5-qrcode/esm/core";
 import {Html5QrcodeFullConfig} from "html5-qrcode/esm/html5-qrcode";
 import {CameraDevice} from "html5-qrcode/core";
-import {FormControl, FormGroup, Validators} from "@angular/forms";
 
 @Component({
   selector: 'tafel-scanner',
@@ -11,19 +10,15 @@ import {FormControl, FormGroup, Validators} from "@angular/forms";
 })
 export class ScannerComponent implements OnInit {
 
-  private loadingActive: boolean = true;
-  private availableCameras: CameraDevice[];
+  private availableCameras: CameraDevice[] = [];
   private qrCodeReader: Html5Qrcode;
-  private output: string;
 
-  form = new FormGroup({
-    camera: new FormControl({}, Validators.required),
-  });
+  private stateMessage: string = 'Wird geladen ...';
 
   ngOnInit(): void {
     Html5Qrcode.getCameras().then(cameras => {
       this.availableCameras = cameras;
-      this.loadingActive = false;
+      this.stateMessage = 'Bereit';
 
       // TODO remove
       console.log(cameras);
@@ -57,17 +52,13 @@ export class ScannerComponent implements OnInit {
   }
 
   private successCallback = (decodedText: string, result: Html5QrcodeResult) => {
-    this.output = decodedText;
+    this.stateMessage = decodedText;
     console.log("SUCCESS", decodedText, result);
   };
 
   private errorCallback = (errorMessage: string, error: Html5QrcodeError) => {
-    this.output = errorMessage;
+    this.stateMessage = errorMessage;
     console.log("ERROR", errorMessage, error);
   };
-
-  private compareCamera(c1: CameraDevice, c2: CameraDevice): boolean {
-    return c1 && c2 ? c1.id === c2.id : c1 === c2;
-  }
 
 }
