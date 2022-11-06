@@ -1,7 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {Html5Qrcode, Html5QrcodeSupportedFormats} from "html5-qrcode";
 import {Html5QrcodeError, Html5QrcodeResult} from "html5-qrcode/esm/core";
-import {Html5QrcodeFullConfig} from "html5-qrcode/esm/html5-qrcode";
+import {Html5QrcodeCameraScanConfig, Html5QrcodeFullConfig} from "html5-qrcode/esm/html5-qrcode";
 import {CameraDevice} from "html5-qrcode/core";
 import {CameraService} from "./camera/camera.service";
 
@@ -12,7 +12,7 @@ import {CameraService} from "./camera/camera.service";
 export class ScannerComponent implements OnInit {
 
   private availableCameras: CameraDevice[] = [];
-  private selectedCamera: CameraDevice;
+  private currentCamera: CameraDevice;
 
   private qrCodeReader: Html5Qrcode;
 
@@ -31,33 +31,32 @@ export class ScannerComponent implements OnInit {
 
       const savedCameraId = this.cameraService.getLastUsedCameraId();
       if (savedCameraId) {
-        this.selectedCamera = this.availableCameras.find(camera => camera.id === savedCameraId)
+        this.currentCamera = this.availableCameras.find(camera => camera.id === savedCameraId);
+      } else {
+        const firstCamera = this.availableCameras[0];
+        this.currentCamera = firstCamera;
+        this.cameraService.saveLastUsedCameraId(firstCamera.id);
       }
 
-      this.stateMessage = 'Bereit';
-
-      // TODO remove
-      console.log(cameras);
-      // TODO remove
+      this.initQrCodeReader();
     });
   }
 
   private initQrCodeReader() {
-    const config: Html5QrcodeFullConfig = {
+    const basicConfig: Html5QrcodeFullConfig = {
       formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
       verbose: false
     };
 
-    /*
-      supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
-      fps: 25,
-      qrbox: this.qrBoxSizingFunction,
-      rememberLastUsedCamera: true,
-    */
+    const cameraConfig: Html5QrcodeCameraScanConfig = {
+      fps: 10,
+      qrbox: this.qrBoxSizingFunction
+    };
 
-    this.qrCodeReader = new Html5Qrcode("codeReaderBox", config);
-
-    // html5QrcodeScanner.render(successCallback, errorCallback);
+    this.qrCodeReader = new Html5Qrcode("codeReaderBox", basicConfig);
+    this.qrCodeReader.start(this.currentCamera.id, cameraConfig, this.successCallback, this.errorCallback).then(() => {
+      this.stateMessage = 'Bereit';
+    });
   }
 
   private qrBoxSizingFunction = (viewfinderWidth, viewfinderHeight) => {
@@ -69,12 +68,20 @@ export class ScannerComponent implements OnInit {
 
   private successCallback = (decodedText: string, result: Html5QrcodeResult) => {
     this.stateMessage = decodedText;
-    console.log("SUCCESS", decodedText, result);
+    // console.log("SUCCESS", decodedText, result);
   };
 
   private errorCallback = (errorMessage: string, error: Html5QrcodeError) => {
     this.stateMessage = errorMessage;
-    console.log("ERROR", errorMessage, error);
+    // console.log("ERROR", errorMessage, error);
   };
 
+  get selectedCamera(): CameraDevice {
+    return this.currentCamera;
+  }
+
+  set selectedCamera(camera: CameraDevice) {
+    this.currentCamera = camera;
+    this.cameraService.saveLastUsedCameraId(camera.id);
+  }
 }
