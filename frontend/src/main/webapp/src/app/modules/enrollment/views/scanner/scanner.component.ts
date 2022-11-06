@@ -1,7 +1,6 @@
 import {Component, OnInit} from '@angular/core';
-import {Html5Qrcode, Html5QrcodeSupportedFormats} from "html5-qrcode";
+import {Html5Qrcode} from "html5-qrcode";
 import {Html5QrcodeError, Html5QrcodeResult} from "html5-qrcode/esm/core";
-import {Html5QrcodeCameraScanConfig, Html5QrcodeFullConfig} from "html5-qrcode/esm/html5-qrcode";
 import {CameraDevice} from "html5-qrcode/core";
 import {CameraService} from "./camera/camera.service";
 
@@ -40,59 +39,22 @@ export class ScannerComponent implements OnInit {
         this.cameraService.saveLastUsedCameraId(firstCamera.id);
       }
 
-      this.initQrCodeReader();
-      this.startQrCodeReader();
+      this.cameraService.initQrCodeReader("codeReaderBox", this.successCallback, this.errorCallback);
+      this.processCameraStart(this.cameraService.startQrCodeReader(this.currentCamera.id));
     });
   }
 
-  private initQrCodeReader() {
-    const basicConfig: Html5QrcodeFullConfig = {
-      formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
-      verbose: false
-    };
-    this.qrCodeReader = new Html5Qrcode("codeReaderBox", basicConfig);
-  }
-
-  private startQrCodeReader() {
-    const cameraConfig: Html5QrcodeCameraScanConfig = {
-      fps: 10,
-      qrbox: this.qrBoxSizingFunction
-    };
-
-    if (this.qrCodeReader.isScanning) {
-      this.qrCodeReader.stop().then(() => {
-        this.qrCodeReader.start(this.currentCamera.id, cameraConfig, this.successCallback, this.errorCallback).then(
-          () => {
-            this.stateMessage = 'Bereit';
-            this.stateClass = 'alert-info';
-          },
-          () => {
-            // TODO not called
-            this.stateMessage = 'Kamera konnte nicht geladen werden!';
-            this.stateClass = 'alert-danger';
-          }
-        );
-      });
-    } else {
-      this.qrCodeReader.start(this.currentCamera.id, cameraConfig, this.successCallback, this.errorCallback).then(
-        () => {
-          this.stateMessage = 'Bereit';
-          this.stateClass = 'alert-info';
-        },
-        () => {
-          // TODO not called
-          this.stateMessage = 'Kamera konnte nicht geladen werden!';
-          this.stateClass = 'alert-danger';
-        }
-      );
-    }
-  }
-
-  private qrBoxSizingFunction = (viewfinderWidth, viewfinderHeight) => {
-    return {
-      width: viewfinderWidth * 0.96,
-      height: viewfinderHeight * 0.96
-    };
+  private processCameraStart(promise: Promise<null>) {
+    promise.then(
+      () => {
+        this.stateMessage = 'Bereit';
+        this.stateClass = 'alert-info';
+      }, () => {
+        // TODO not called
+        this.stateMessage = 'Kamera konnte nicht geladen werden!';
+        this.stateClass = 'alert-danger';
+      }
+    )
   }
 
   private successCallback = (decodedText: string, result: Html5QrcodeResult) => {
@@ -114,6 +76,6 @@ export class ScannerComponent implements OnInit {
     this.cameraService.saveLastUsedCameraId(camera.id);
 
     this.stateMessage = 'Wird geladen ...';
-    this.startQrCodeReader();
+    this.cameraService.restartQrCodeReader(camera.id);
   }
 }
