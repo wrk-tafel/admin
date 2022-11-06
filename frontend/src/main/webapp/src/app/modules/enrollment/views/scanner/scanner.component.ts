@@ -27,6 +27,8 @@ export class ScannerComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.scannerApiService.test();
+
     this.cameraService.getCameras().then(cameras => {
       this.availableCameras = cameras.sort((c1: CameraDevice, c2: CameraDevice) => {
         return c1.label.localeCompare(c2.label);
