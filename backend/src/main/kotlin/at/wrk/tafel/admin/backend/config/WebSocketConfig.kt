@@ -11,7 +11,7 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 class WebSocketConfig : WebSocketMessageBrokerConfigurer {
 
     override fun registerStompEndpoints(registry: StompEndpointRegistry) {
-        registry.addEndpoint("/ws-api/scanners")
+        registry.addEndpoint("/ws-api")
     }
 
     override fun configureMessageBroker(registry: MessageBrokerRegistry) {
