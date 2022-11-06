@@ -10,5 +10,12 @@
     "secure": false,
     "changeOrigin": true,
     "logLevel": "info"
+  },
+  "/ws-api": {
+    "target": "http://localhost:8080",
+    "ws": true,
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "info"
   }
 }
