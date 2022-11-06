@@ -67,6 +67,7 @@ export class ScannerComponent implements OnInit {
             this.stateClass = 'alert-info';
           },
           () => {
+            // TODO not called
             this.stateMessage = 'Kamera konnte nicht geladen werden!';
             this.stateClass = 'alert-danger';
           }
@@ -79,6 +80,7 @@ export class ScannerComponent implements OnInit {
           this.stateClass = 'alert-info';
         },
         () => {
+          // TODO not called
           this.stateMessage = 'Kamera konnte nicht geladen werden!';
           this.stateClass = 'alert-danger';
         }
