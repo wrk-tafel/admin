@@ -3,7 +3,7 @@ import {EnrollmentRoutingModule} from './enrollment-routing.module';
 import {ScannerComponent} from "./views/scanner/scanner.component";
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {CommonModule} from "@angular/common";
-import {CameraService} from "./views/scanner/camera/camera.service";
+import {QRCodeReaderService} from "./views/scanner/camera/qrcode-reader.service";
 import {ScannerApiService} from "./api/scanner-api.service";
 
 @NgModule({
@@ -17,7 +17,7 @@ import {ScannerApiService} from "./api/scanner-api.service";
     ScannerComponent
   ],
   providers: [
-    CameraService,
+    QRCodeReaderService,
     ScannerApiService
   ]
 })

@@ -5,7 +5,7 @@ import {Html5QrcodeCameraScanConfig, Html5QrcodeFullConfig} from "html5-qrcode/e
 import {throwError} from "rxjs";
 
 @Injectable()
-export class CameraService {
+export class QRCodeReaderService {
 
   private LOCAL_STORAGE_LAST_CAMERA_ID_KEY = 'TAFEL_LAST_CAMERA_ID';
   private qrCodeReader: Html5Qrcode;

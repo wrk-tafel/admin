@@ -1,7 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {Html5QrcodeError, Html5QrcodeResult} from "html5-qrcode/esm/core";
 import {CameraDevice} from "html5-qrcode/core";
-import {CameraService} from "./camera/camera.service";
+import {QRCodeReaderService} from "./camera/qrcode-reader.service";
 import {ScannerApiService, ScanResult} from "../../api/scanner-api.service";
 import {IFrame} from "@stomp/stompjs/src/i-frame";
 import {combineLatest, Subject} from 'rxjs';
@@ -28,7 +28,7 @@ export class ScannerComponent implements OnInit {
   private stateClass: string = 'alert-info';
 
   constructor(
-    private cameraService: CameraService,
+    private cameraService: QRCodeReaderService,
     private scannerApiService: ScannerApiService
   ) {
   }
