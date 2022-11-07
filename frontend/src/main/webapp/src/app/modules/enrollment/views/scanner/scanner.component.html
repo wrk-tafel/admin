@@ -8,6 +8,13 @@
           </div>
         </div>
         <div class="row">
+          <div class="col d-flex justify-content-center">
+            <div class="alert ml-2 mr-2" testId="message" [ngClass]="stateClass">
+              <div><strong>Status:</strong> {{stateMessage}}</div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
           <div class="col">
             <div id="codeReaderBox"></div>
           </div>
@@ -21,13 +28,6 @@
                   {{camera.label}}</option>
               </select>
             </div>
-          </div>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col d-flex justify-content-center">
-          <div class="alert ml-2 mr-2" testId="message" [ngClass]="stateClass">
-            <div><strong>Status:</strong> {{stateMessage}}</div>
           </div>
         </div>
       </div>
