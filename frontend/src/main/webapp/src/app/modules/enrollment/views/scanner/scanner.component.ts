@@ -27,6 +27,8 @@ export class ScannerComponent implements OnInit {
   private stateMessage: string = 'Wird geladen ...';
   private stateClass: string = 'alert-info';
 
+  private lastSentText: string;
+
   constructor(
     private cameraService: QRCodeReaderService,
     private scannerApiService: ScannerApiService
@@ -85,9 +87,11 @@ export class ScannerComponent implements OnInit {
     this.stateMessage = 'Scan erfolgreich - ' + decodedText;
     this.stateClass = 'alert-success';
 
-    // TODO add wait before re-sending
-    const scanResult: ScanResult = {content: decodedText};
-    this.scannerApiService.sendScanResult(scanResult);
+    if (!this.lastSentText || this.lastSentText !== decodedText) {
+      const scanResult: ScanResult = {content: decodedText};
+      this.scannerApiService.sendScanResult(scanResult);
+      this.lastSentText = decodedText;
+    }
   };
 
   private qrCodeReaderErrorCallback = (errorMessage: string, error: Html5QrcodeError) => {
