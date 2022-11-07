@@ -3,7 +3,7 @@ import {Html5Qrcode} from "html5-qrcode";
 import {Html5QrcodeError, Html5QrcodeResult} from "html5-qrcode/esm/core";
 import {CameraDevice} from "html5-qrcode/core";
 import {CameraService} from "./camera/camera.service";
-import {ScannerApiService} from "../../api/scanner-api.service";
+import {ScannerApiService, ScanResult} from "../../api/scanner-api.service";
 
 @Component({
   selector: 'tafel-scanner',
@@ -27,8 +27,6 @@ export class ScannerComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.scannerApiService.test();
-
     this.cameraService.getCameras().then(cameras => {
       this.availableCameras = cameras.sort((c1: CameraDevice, c2: CameraDevice) => {
         return c1.label.localeCompare(c2.label);
@@ -44,6 +42,10 @@ export class ScannerComponent implements OnInit {
       }
 
       this.cameraService.initQrCodeReader("codeReaderBox", this.successCallback, this.errorCallback);
+
+      // TODO handle
+      this.scannerApiService.connect();
+
       this.processCameraStart(this.cameraService.startQrCodeReader(this.currentCamera.id));
     });
   }
@@ -64,6 +66,10 @@ export class ScannerComponent implements OnInit {
   private successCallback = (decodedText: string, result: Html5QrcodeResult) => {
     this.stateMessage = 'Scan erfolgreich - ' + decodedText;
     this.stateClass = 'alert-success';
+
+    // TODO add wait before re-sending
+    const scanResult: ScanResult = {content: decodedText};
+    this.scannerApiService.sendScanResult(scanResult);
   };
 
   private errorCallback = (errorMessage: string, error: Html5QrcodeError) => {
