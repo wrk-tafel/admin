@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
 import {CompatClient, Stomp, StompHeaders} from '@stomp/stompjs';
-import {IFrame} from "@stomp/stompjs/src/i-frame";
 import {PlatformLocation} from "@angular/common";
+import {frameCallbackType} from "@stomp/stompjs/src/types";
 
 @Injectable()
 export class ScannerApiService {
@@ -13,31 +13,20 @@ export class ScannerApiService {
   ) {
   }
 
-  connect() {
+  connect(connectCallback: frameCallbackType,
+          errorCallback: frameCallbackType,
+          closeCallback: frameCallbackType) {
     const headers: StompHeaders = {};
 
     this.client = Stomp.client(this.getBaseUrl());
-    // TODO Promise.any<IFrame>([this.connect, this.error]);
-    this.client.connect(headers, this.connected, this.error, this.close);
+    this.client.connect(headers, connectCallback, errorCallback, closeCallback);
   }
 
   sendScanResult(result: ScanResult) {
     this.client.send('/app/scanners', {}, JSON.stringify(result));
   }
 
-  private connected = (receipt: IFrame) => {
-    console.log("CONNECTED TO WS", receipt);
-  };
-
-  private error = (receipt: IFrame) => {
-    console.log("ERROR FROM WS", receipt);
-  };
-
-  private close = (receipt: IFrame) => {
-    console.log("CLOSED WS", receipt);
-  };
-
-  private getBaseUrl() {
+  getBaseUrl() {
     return 'ws://' + this.location.hostname + ':' + this.location.port + '/ws-api';
   }
 

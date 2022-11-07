@@ -1,9 +1,10 @@
 import {Component, OnInit} from '@angular/core';
-import {Html5Qrcode} from "html5-qrcode";
 import {Html5QrcodeError, Html5QrcodeResult} from "html5-qrcode/esm/core";
 import {CameraDevice} from "html5-qrcode/core";
 import {CameraService} from "./camera/camera.service";
 import {ScannerApiService, ScanResult} from "../../api/scanner-api.service";
+import {IFrame} from "@stomp/stompjs/src/i-frame";
+import {combineLatest, Subject} from 'rxjs';
 
 @Component({
   selector: 'tafel-scanner',
@@ -15,7 +16,13 @@ export class ScannerComponent implements OnInit {
   private availableCameras: CameraDevice[] = [];
   private currentCamera: CameraDevice;
 
-  private qrCodeReader: Html5Qrcode;
+  private qrCodeReaderReadyState = new Subject<boolean>();
+  private apiClientReadyState = new Subject<boolean>();
+
+  private readyStates =
+    combineLatest(
+      [this.qrCodeReaderReadyState, this.apiClientReadyState]
+    );
 
   private stateMessage: string = 'Wird geladen ...';
   private stateClass: string = 'alert-info';
@@ -41,29 +48,40 @@ export class ScannerComponent implements OnInit {
         this.cameraService.saveLastUsedCameraId(firstCamera.id);
       }
 
-      this.cameraService.initQrCodeReader("codeReaderBox", this.successCallback, this.errorCallback);
+      this.scannerApiService.connect(this.apiClientSuccessCallback, this.apiClientErrorCallback, this.apiClientCloseCallback);
 
-      // TODO handle
-      this.scannerApiService.connect();
+      this.cameraService.initQrCodeReader("codeReaderBox", this.qrCodeReaderSuccessCallback, this.qrCodeReaderErrorCallback);
+      this.cameraService.startQrCodeReader(this.currentCamera.id).then(
+        () => {
+          this.qrCodeReaderReadyState.next(true);
+        },
+        // TODO not called?
+        () => {
+          this.qrCodeReaderReadyState.next(false);
+        }
+      );
 
-      this.processCameraStart(this.cameraService.startQrCodeReader(this.currentCamera.id));
+      this.readyStates.subscribe((ready: boolean[]) => {
+        const qrCodeReaderReady = ready[0];
+        const apiClientReady = ready[1];
+        const bothReady = qrCodeReaderReady && apiClientReady;
+        if (bothReady) {
+          this.stateMessage = 'Bereit';
+          this.stateClass = 'alert-info';
+        } else {
+          if (!qrCodeReaderReady) {
+            this.stateMessage = 'Kamera konnte nicht geladen werden!';
+            this.stateClass = 'alert-danger';
+          } else if (!apiClientReady) {
+            this.stateMessage = 'Verbindung zum Server fehlgeschlagen!';
+            this.stateClass = 'alert-danger';
+          }
+        }
+      });
     });
   }
 
-  private processCameraStart(promise: Promise<null>) {
-    promise.then(
-      () => {
-        this.stateMessage = 'Bereit';
-        this.stateClass = 'alert-info';
-      }, () => {
-        // TODO not called
-        this.stateMessage = 'Kamera konnte nicht geladen werden!';
-        this.stateClass = 'alert-danger';
-      }
-    )
-  }
-
-  private successCallback = (decodedText: string, result: Html5QrcodeResult) => {
+  private qrCodeReaderSuccessCallback = (decodedText: string, result: Html5QrcodeResult) => {
     this.stateMessage = 'Scan erfolgreich - ' + decodedText;
     this.stateClass = 'alert-success';
 
@@ -72,10 +90,24 @@ export class ScannerComponent implements OnInit {
     this.scannerApiService.sendScanResult(scanResult);
   };
 
-  private errorCallback = (errorMessage: string, error: Html5QrcodeError) => {
+  private qrCodeReaderErrorCallback = (errorMessage: string, error: Html5QrcodeError) => {
     this.stateMessage = 'Kein QR-Code gefunden';
     this.stateClass = 'alert-info';
   };
+
+  private apiClientSuccessCallback = (receipt: IFrame) => {
+    if (receipt.command === 'CONNECTED') {
+      this.apiClientReadyState.next(true);
+    }
+  }
+
+  private apiClientErrorCallback = (receipt: IFrame) => {
+    this.apiClientReadyState.next(false);
+  }
+
+  private apiClientCloseCallback = (receipt: IFrame) => {
+    this.apiClientReadyState.next(false);
+  }
 
   get selectedCamera(): CameraDevice {
     return this.currentCamera;
@@ -86,7 +118,16 @@ export class ScannerComponent implements OnInit {
     this.cameraService.saveLastUsedCameraId(camera.id);
 
     this.stateMessage = 'Wird geladen ...';
-    this.processCameraStart(this.cameraService.restartQrCodeReader(camera.id));
+    console.log("CAM", camera);
+    console.log("CAM SERVICE", this.cameraService);
+    this.cameraService.restartQrCodeReader(camera.id).then(
+      () => {
+        this.qrCodeReaderReadyState.next(true);
+      },
+      () => {
+        this.qrCodeReaderReadyState.next(false);
+      }
+    );
   }
 
 }

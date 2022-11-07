@@ -1,7 +1,7 @@
 import {HttpEvent, HttpHandler, HttpInterceptor, HttpRequest} from '@angular/common/http';
 import {Injectable} from '@angular/core';
-import {Router} from '@angular/router';
 import {Observable} from 'rxjs';
+import {PlatformLocation} from "@angular/common";
 
 @Injectable({
   providedIn: 'root'
@@ -9,15 +9,18 @@ import {Observable} from 'rxjs';
 export class ApiPathInterceptor implements HttpInterceptor {
 
   constructor(
-    private window: Window,
-    private router: Router) {
+    private location: PlatformLocation
+  ) {
   }
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    const baseUrl = `${this.window.location.pathname.replace(this.router.url, '')}/`;
-    const apiPath = `${baseUrl}api${req.url}`.replaceAll('//', '/');
+    const apiPath = this.getBaseUrl() + '/api/' + req.url;
     const modRequest = req.clone({url: apiPath});
     return next.handle(modRequest);
+  }
+
+  private getBaseUrl() {
+    return this.location.protocol + '//' + this.location.hostname + ':' + this.location.port;
   }
 
 }

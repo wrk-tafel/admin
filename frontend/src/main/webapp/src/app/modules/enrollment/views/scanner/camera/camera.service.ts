@@ -48,12 +48,10 @@ export class CameraService {
     return this.qrCodeReader.start(cameraId, this.cameraConfig, this.successCallback, this.errorCallback);
   }
 
-  restartQrCodeReader(cameraId: string): Promise<null> {
+  async restartQrCodeReader(cameraId: string): Promise<null> {
     if (this.qrCodeReader.isScanning) {
-      this.qrCodeReader.stop().then(
-        () => {
-          return this.qrCodeReader.start(cameraId, this.cameraConfig, this.successCallback, this.errorCallback);
-        },
+      await this.qrCodeReader.stop().then(
+        () => this.qrCodeReader.start(cameraId, this.cameraConfig, this.successCallback, this.errorCallback),
         () => throwError(null)
       );
     } else {
