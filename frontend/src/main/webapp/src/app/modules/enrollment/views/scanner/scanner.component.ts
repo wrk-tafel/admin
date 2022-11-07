@@ -118,8 +118,6 @@ export class ScannerComponent implements OnInit {
     this.cameraService.saveLastUsedCameraId(camera.id);
 
     this.stateMessage = 'Wird geladen ...';
-    console.log("CAM", camera);
-    console.log("CAM SERVICE", this.cameraService);
     this.cameraService.restartQrCodeReader(camera.id).then(
       () => {
         this.qrCodeReaderReadyState.next(true);
