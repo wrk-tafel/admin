@@ -110,19 +110,16 @@ export class ScannerComponent implements OnInit, OnDestroy {
   };
 
   private apiClientSuccessCallback = (receipt: IFrame) => {
-    console.log("CLIENT SUCCESS", receipt);
     if (receipt.command === 'CONNECTED') {
       this.apiClientReadyState.next(true);
     }
   }
 
   private apiClientErrorCallback = (receipt: IFrame) => {
-    console.log("CLIENT ERROR", receipt);
     this.apiClientReadyState.next(false);
   }
 
   private apiClientCloseCallback = (receipt: IFrame) => {
-    console.log("CLIENT CLOSE", receipt);
     this.apiClientReadyState.next(false);
   }
 
