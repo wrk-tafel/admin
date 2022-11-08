@@ -52,7 +52,7 @@ export class ScannerComponent implements OnInit {
 
       this.scannerApiService.connect(this.apiClientSuccessCallback, this.apiClientErrorCallback, this.apiClientCloseCallback);
 
-      this.cameraService.initQrCodeReader("codeReaderBox", this.qrCodeReaderSuccessCallback, this.qrCodeReaderErrorCallback);
+      this.cameraService.initQrCodeReader("qrCodeReaderBox", this.qrCodeReaderSuccessCallback, this.qrCodeReaderErrorCallback);
       this.cameraService.startQrCodeReader(this.currentCamera.id).then(
         () => {
           this.qrCodeReaderReadyState.next(true);

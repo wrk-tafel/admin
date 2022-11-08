@@ -6,11 +6,12 @@ import org.springframework.messaging.handler.annotation.MessageMapping
 import org.springframework.stereotype.Controller
 
 @Controller
+@MessageMapping("/scanners")
 class ScannerController {
 
     private val logger: Logger = LoggerFactory.getLogger(ScannerController::class.java)
 
-    @MessageMapping("/scanners")
+    @MessageMapping("/result")
     fun getScanResult(message: String) {
         logger.info("GOT SCANRESULT: $message")
     }

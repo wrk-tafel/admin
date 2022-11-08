@@ -23,7 +23,7 @@ export class ScannerApiService {
   }
 
   sendScanResult(result: ScanResult) {
-    this.client.send('/app/scanners', {}, JSON.stringify(result));
+    this.client.send('/app/scanners/result', {}, JSON.stringify(result));
   }
 
   getBaseUrl() {
