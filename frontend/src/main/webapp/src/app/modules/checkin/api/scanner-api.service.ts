@@ -8,7 +8,7 @@ export class ScannerApiService {
   private client: CompatClient;
 
   constructor(
-    private location: PlatformLocation
+    private platformLocation: PlatformLocation
   ) {
   }
 
@@ -30,7 +30,7 @@ export class ScannerApiService {
   }
 
   private getBaseUrl() {
-    return 'ws://' + this.location.hostname + ':' + this.location.port + '/ws-api';
+    return 'ws://' + this.platformLocation.hostname + ':' + this.platformLocation.port + '/ws-api';
   }
 
 }
