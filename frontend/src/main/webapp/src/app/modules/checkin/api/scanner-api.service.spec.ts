@@ -3,13 +3,13 @@ import {PlatformLocation} from "@angular/common";
 import {CompatClient, Stomp} from "@stomp/stompjs";
 
 describe('ScannerApiService', () => {
-  const testHost: string = 'testhost';
-  const testPort: string = '1234';
+  let overwriteTestPathname: string;
 
   function setup() {
     const platformLocationSpy: jasmine.SpyObj<PlatformLocation> = jasmine.createSpyObj('PlatformLocation', [], {
-      hostname: testHost,
-      port: testPort
+      hostname: 'testhost',
+      port: '1234',
+      pathname: overwriteTestPathname ? overwriteTestPathname : '/subpath'
     });
 
     const clientSpy: jasmine.SpyObj<CompatClient> = jasmine.createSpyObj('CompatClient', ['connect', 'send', 'forceDisconnect']);
@@ -17,7 +17,7 @@ describe('ScannerApiService', () => {
 
     const service = new ScannerApiService(platformLocationSpy);
 
-    return {service, stompSpy, clientSpy};
+    return {service, platformLocationSpy, stompSpy, clientSpy};
   }
 
   it('connect creates the client', () => {
@@ -31,8 +31,19 @@ describe('ScannerApiService', () => {
     };
     service.connect(connectCallback, errorCallback, closeCallback);
 
-    expect(stompSpy).toHaveBeenCalledWith('ws://testhost:1234/ws-api');
+    expect(stompSpy).toHaveBeenCalledWith('ws://testhost:1234/subpath/ws-api');
     expect(clientSpy.connect).toHaveBeenCalledWith({}, connectCallback, errorCallback, closeCallback);
+  });
+
+  it('connect with empty pathname creates correct baseUrl', () => {
+    overwriteTestPathname = '/';
+    const {service, stompSpy} = setup();
+
+    service.connect(null, null, null);
+
+    expect(stompSpy).toHaveBeenCalledWith('ws://testhost:1234/ws-api');
+
+    overwriteTestPathname = undefined;
   });
 
   it('sendScanResult transported successfully', () => {

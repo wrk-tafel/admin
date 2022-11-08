@@ -30,7 +30,11 @@ export class ScannerApiService {
   }
 
   private getBaseUrl() {
-    return 'ws://' + this.platformLocation.hostname + ':' + this.platformLocation.port + '/ws-api';
+    let pathname = this.platformLocation.pathname;
+    if (pathname === '/') {
+      pathname = '';
+    }
+    return 'ws://' + this.platformLocation.hostname + ':' + this.platformLocation.port + pathname + '/ws-api';
   }
 
 }
