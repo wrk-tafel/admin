@@ -89,7 +89,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
   }
 
   private qrCodeReaderSuccessCallback = (decodedText: string, result: Html5QrcodeResult) => {
-    this.stateMessage = 'Scan erfolgreich - ' + decodedText;
+    this.stateMessage = 'Scan erfolgreich: ' + decodedText;
     this.stateClass = 'alert-success';
 
     if (!this.lastSentText || this.lastSentText !== decodedText) {

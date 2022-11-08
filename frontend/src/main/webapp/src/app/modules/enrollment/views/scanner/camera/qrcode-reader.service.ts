@@ -60,7 +60,9 @@ export class QRCodeReaderService {
   }
 
   stop(): Promise<void> {
-    return this.qrCodeReader.stop();
+    if (this.qrCodeReader.isScanning) {
+      return this.qrCodeReader.stop();
+    }
   }
 
 }
