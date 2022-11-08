@@ -33,7 +33,7 @@ describe('QRCodeReaderService', () => {
 
     service.saveLastUsedCameraId(testCameraId);
 
-    expect(service.getLastUsedCameraId).toBe(testCameraId);
+    expect(service.getLastUsedCameraId()).toBe(testCameraId);
 
     expect(localStorage.getItem(LOCAL_STORAGE_LAST_CAMERA_ID_KEY)).toBe(testCameraId);
   });
