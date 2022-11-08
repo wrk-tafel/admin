@@ -48,6 +48,7 @@ describe('ScannerApiService', () => {
 
   it('sendScanResult transported successfully', () => {
     const {service, clientSpy} = setup();
+    service.connect(null, null, null);
 
     const testResult = {value: 'test-value'};
     service.sendScanResult(testResult);
@@ -57,6 +58,7 @@ describe('ScannerApiService', () => {
 
   it('close forceDisconnects the client', () => {
     const {service, clientSpy} = setup();
+    service.connect(null, null, null);
 
     service.close();
 
