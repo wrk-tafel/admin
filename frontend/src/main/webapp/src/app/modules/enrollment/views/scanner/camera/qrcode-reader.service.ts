@@ -38,17 +38,17 @@ export class QRCodeReaderService {
     return localStorage.getItem(this.LOCAL_STORAGE_LAST_CAMERA_ID_KEY);
   }
 
-  initQrCodeReader(elementId: string, successCallback: QrcodeSuccessCallback, errorCallback: QrcodeErrorCallback) {
+  init(elementId: string, successCallback: QrcodeSuccessCallback, errorCallback: QrcodeErrorCallback) {
     this.successCallback = successCallback;
     this.errorCallback = errorCallback;
     this.qrCodeReader = new Html5Qrcode(elementId, this.basicConfig);
   }
 
-  startQrCodeReader(cameraId: string): Promise<null> {
+  start(cameraId: string): Promise<null> {
     return this.qrCodeReader.start(cameraId, this.cameraConfig, this.successCallback, this.errorCallback);
   }
 
-  async restartQrCodeReader(cameraId: string): Promise<null> {
+  async restart(cameraId: string): Promise<null> {
     if (this.qrCodeReader.isScanning) {
       await this.qrCodeReader.stop().then(
         () => this.qrCodeReader.start(cameraId, this.cameraConfig, this.successCallback, this.errorCallback),
@@ -57,6 +57,10 @@ export class QRCodeReaderService {
     } else {
       return this.qrCodeReader.start(cameraId, this.cameraConfig, this.successCallback, this.errorCallback);
     }
+  }
+
+  stop(): Promise<void> {
+    return this.qrCodeReader.stop();
   }
 
 }

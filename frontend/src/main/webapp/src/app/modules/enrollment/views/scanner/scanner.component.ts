@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnDestroy, OnInit} from '@angular/core';
 import {Html5QrcodeError, Html5QrcodeResult} from "html5-qrcode/esm/core";
 import {CameraDevice} from "html5-qrcode/core";
 import {QRCodeReaderService} from "./camera/qrcode-reader.service";
@@ -10,7 +10,7 @@ import {combineLatest, Subject} from 'rxjs';
   selector: 'tafel-scanner',
   templateUrl: 'scanner.component.html'
 })
-export class ScannerComponent implements OnInit {
+export class ScannerComponent implements OnInit, OnDestroy {
 
   private scannerId: number = 1;
   private availableCameras: CameraDevice[] = [];
@@ -30,30 +30,30 @@ export class ScannerComponent implements OnInit {
   private lastSentText: string;
 
   constructor(
-    private cameraService: QRCodeReaderService,
+    private qrCodeReaderService: QRCodeReaderService,
     private scannerApiService: ScannerApiService
   ) {
   }
 
   ngOnInit(): void {
-    this.cameraService.getCameras().then(cameras => {
+    this.qrCodeReaderService.getCameras().then(cameras => {
       this.availableCameras = cameras.sort((c1: CameraDevice, c2: CameraDevice) => {
         return c1.label.localeCompare(c2.label);
       });
 
-      const savedCameraId = this.cameraService.getLastUsedCameraId();
+      const savedCameraId = this.qrCodeReaderService.getLastUsedCameraId();
       if (savedCameraId) {
         this.currentCamera = this.availableCameras.find(camera => camera.id === savedCameraId);
       } else {
         const firstCamera = this.availableCameras[0];
         this.currentCamera = firstCamera;
-        this.cameraService.saveLastUsedCameraId(firstCamera.id);
+        this.qrCodeReaderService.saveLastUsedCameraId(firstCamera.id);
       }
 
       this.scannerApiService.connect(this.apiClientSuccessCallback, this.apiClientErrorCallback, this.apiClientCloseCallback);
 
-      this.cameraService.initQrCodeReader("qrCodeReaderBox", this.qrCodeReaderSuccessCallback, this.qrCodeReaderErrorCallback);
-      this.cameraService.startQrCodeReader(this.currentCamera.id).then(
+      this.qrCodeReaderService.init("qrCodeReaderBox", this.qrCodeReaderSuccessCallback, this.qrCodeReaderErrorCallback);
+      this.qrCodeReaderService.start(this.currentCamera.id).then(
         () => {
           this.qrCodeReaderReadyState.next(true);
         },
@@ -83,6 +83,11 @@ export class ScannerComponent implements OnInit {
     });
   }
 
+  ngOnDestroy(): void {
+    this.qrCodeReaderService.stop();
+    this.scannerApiService.close();
+  }
+
   private qrCodeReaderSuccessCallback = (decodedText: string, result: Html5QrcodeResult) => {
     this.stateMessage = 'Scan erfolgreich - ' + decodedText;
     this.stateClass = 'alert-success';
@@ -100,21 +105,24 @@ export class ScannerComponent implements OnInit {
   };
 
   private qrCodeReaderErrorCallback = (errorMessage: string, error: Html5QrcodeError) => {
-    this.stateMessage = 'Kein QR-Code gefunden';
+    this.stateMessage = 'Kein gültiger QR-Code gefunden!';
     this.stateClass = 'alert-info';
   };
 
   private apiClientSuccessCallback = (receipt: IFrame) => {
+    console.log("CLIENT SUCCESS", receipt);
     if (receipt.command === 'CONNECTED') {
       this.apiClientReadyState.next(true);
     }
   }
 
   private apiClientErrorCallback = (receipt: IFrame) => {
+    console.log("CLIENT ERROR", receipt);
     this.apiClientReadyState.next(false);
   }
 
   private apiClientCloseCallback = (receipt: IFrame) => {
+    console.log("CLIENT CLOSE", receipt);
     this.apiClientReadyState.next(false);
   }
 
@@ -124,10 +132,10 @@ export class ScannerComponent implements OnInit {
 
   set selectedCamera(camera: CameraDevice) {
     this.currentCamera = camera;
-    this.cameraService.saveLastUsedCameraId(camera.id);
+    this.qrCodeReaderService.saveLastUsedCameraId(camera.id);
 
     this.stateMessage = 'Wird geladen ...';
-    this.cameraService.restartQrCodeReader(camera.id).then(
+    this.qrCodeReaderService.restart(camera.id).then(
       () => {
         this.qrCodeReaderReadyState.next(true);
       },

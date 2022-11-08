@@ -5,7 +5,6 @@ import {frameCallbackType} from "@stomp/stompjs/src/types";
 
 @Injectable()
 export class ScannerApiService {
-
   private client: CompatClient;
 
   constructor(
@@ -26,7 +25,11 @@ export class ScannerApiService {
     this.client.send('/app/scanners/result', {}, JSON.stringify(result));
   }
 
-  getBaseUrl() {
+  close() {
+    this.client.forceDisconnect();
+  }
+
+  private getBaseUrl() {
     return 'ws://' + this.location.hostname + ':' + this.location.port + '/ws-api';
   }
 
