@@ -91,6 +91,11 @@ export class ScannerComponent implements OnInit {
       const scanResult: ScanResult = {content: decodedText};
       this.scannerApiService.sendScanResult(scanResult);
       this.lastSentText = decodedText;
+
+      // reset to retry in case of an error while transmitting/receiving
+      setTimeout(() => {
+        this.lastSentText = null;
+      }, 3000);
     }
   };
 
