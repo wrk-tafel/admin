@@ -49,9 +49,9 @@ export const routes: Routes = [
       },
       {
         path: 'anmeldung',
-        loadChildren: () => import('./modules/enrollment/enrollment.module').then(m => m.EnrollmentModule),
+        loadChildren: () => import('./modules/checkin/checkin.module').then(m => m.CheckinModule),
         data: {
-          permission: 'ENROLLMENT'
+          permission: 'CHECKIN'
         }
       },
       {

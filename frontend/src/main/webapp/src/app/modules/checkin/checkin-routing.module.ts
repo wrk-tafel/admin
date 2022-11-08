@@ -13,5 +13,5 @@ const routes: Routes = [
   imports: [RouterModule.forChild(routes)],
   exports: [RouterModule]
 })
-export class EnrollmentRoutingModule {
+export class CheckinRoutingModule {
 }

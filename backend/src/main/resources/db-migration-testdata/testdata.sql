@@ -12,7 +12,7 @@ VALUES (1000, NOW(), NOW(), 100, 'DASHBOARD');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (1001, NOW(), NOW(), 100, 'CUSTOMER');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
-VALUES (1002, NOW(), NOW(), 100, 'ENROLLMENT');
+VALUES (1002, NOW(), NOW(), 100, 'CHECKIN');
 
 -- user e2etest2 for cypress test (password change)
 -- pwd: e2etest
@@ -41,7 +41,7 @@ VALUES (2000, NOW(), NOW(), 200, 'DASHBOARD');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (2001, NOW(), NOW(), 200, 'CUSTOMER');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
-VALUES (2002, NOW(), NOW(), 200, 'ENROLLMENT');
+VALUES (2002, NOW(), NOW(), 200, 'CHECKIN');
 
 -- TODO remove | fake user with weak password to gain some intrusion insights
 -- user: admin
@@ -55,7 +55,7 @@ VALUES (3000, NOW(), NOW(), 300, 'DASHBOARD');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (3001, NOW(), NOW(), 300, 'CUSTOMER');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
-VALUES (3002, NOW(), NOW(), 300, 'ENROLLMENT');
+VALUES (3002, NOW(), NOW(), 300, 'CHECKIN');
 
 -- customers
 INSERT INTO customers (id, created_at, updated_at, customer_id, user_id, firstname, lastname, birth_date, country_id,

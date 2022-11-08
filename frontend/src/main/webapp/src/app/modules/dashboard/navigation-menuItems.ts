@@ -20,7 +20,7 @@ export const navigationMenuItems: IPermissionNavData[] = [
     name: 'Scanner',
     url: '/anmeldung/scanner',
     icon: 'fa fa-barcode',
-    permissions: ['ENROLLMENT']
+    permissions: ['CHECKIN']
   },
   {
     name: 'Kundenverwaltung',

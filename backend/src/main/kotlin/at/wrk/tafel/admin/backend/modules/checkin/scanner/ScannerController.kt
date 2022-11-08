@@ -1,4 +1,4 @@
-package at.wrk.tafel.admin.backend.modules.enrollment.scanner
+package at.wrk.tafel.admin.backend.modules.checkin.scanner
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import org.slf4j.Logger

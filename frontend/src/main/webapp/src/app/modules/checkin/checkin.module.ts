@@ -1,5 +1,5 @@
 import {NgModule} from '@angular/core';
-import {EnrollmentRoutingModule} from './enrollment-routing.module';
+import {CheckinRoutingModule} from './checkin-routing.module';
 import {ScannerComponent} from "./views/scanner/scanner.component";
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {CommonModule} from "@angular/common";
@@ -8,7 +8,7 @@ import {ScannerApiService} from "./api/scanner-api.service";
 
 @NgModule({
   imports: [
-    EnrollmentRoutingModule,
+    CheckinRoutingModule,
     ReactiveFormsModule,
     CommonModule,
     FormsModule
@@ -21,5 +21,5 @@ import {ScannerApiService} from "./api/scanner-api.service";
     ScannerApiService
   ]
 })
-export class EnrollmentModule {
+export class CheckinModule {
 }
