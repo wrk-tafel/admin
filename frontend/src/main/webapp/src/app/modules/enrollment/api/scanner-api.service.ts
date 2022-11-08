@@ -36,5 +36,5 @@ export class ScannerApiService {
 }
 
 export interface ScanResult {
-  content: string
+  value: string
 }

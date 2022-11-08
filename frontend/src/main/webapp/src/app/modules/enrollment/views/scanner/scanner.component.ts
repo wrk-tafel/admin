@@ -93,7 +93,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
     this.stateClass = 'alert-success';
 
     if (!this.lastSentText || this.lastSentText !== decodedText) {
-      const scanResult: ScanResult = {content: decodedText};
+      const scanResult: ScanResult = {value: decodedText};
       this.scannerApiService.sendScanResult(scanResult);
       this.lastSentText = decodedText;
 
