@@ -2,6 +2,7 @@ import {QRCodeReaderService} from "./qrcode-reader.service";
 import {Html5Qrcode} from "html5-qrcode";
 import {CameraDevice} from "html5-qrcode/esm/core";
 import {of} from "rxjs";
+import {Html5QrcodeScannerState} from "html5-qrcode/esm/state-manager";
 
 describe('QRCodeReaderService', () => {
   const LOCAL_STORAGE_LAST_CAMERA_ID_KEY = 'TAFEL_LAST_CAMERA_ID';
@@ -13,7 +14,7 @@ describe('QRCodeReaderService', () => {
     const html5QrCodeSpy = spyOn(Html5Qrcode, 'getCameras').and.returnValue(of(testCameras).toPromise());
 
     const service = new QRCodeReaderService();
-    const qrCodeReaderSpy = jasmine.createSpyObj('QRCodeReader', ['start']);
+    const qrCodeReaderSpy = jasmine.createSpyObj('QRCodeReader', ['start', 'getState', 'stop']);
     service.qrCodeReader = qrCodeReaderSpy;
 
     return {service, html5QrCodeSpy, qrCodeReaderSpy};
@@ -48,6 +49,24 @@ describe('QRCodeReaderService', () => {
     service.start(testCameraId);
 
     expect(qrCodeReaderSpy.start).toHaveBeenCalledWith(testCameraId, jasmine.objectContaining({fps: 10}), undefined, undefined);
+  });
+
+  it('stop when not scanning is not called', () => {
+    const {service, qrCodeReaderSpy} = setup();
+    qrCodeReaderSpy.getState.and.returnValue(Html5QrcodeScannerState.UNKNOWN);
+
+    service.stop();
+
+    expect(qrCodeReaderSpy.stop).not.toHaveBeenCalled();
+  });
+
+  it('stop when scanning is active', () => {
+    const {service, qrCodeReaderSpy} = setup();
+    qrCodeReaderSpy.getState.and.returnValue(Html5QrcodeScannerState.SCANNING);
+
+    service.stop();
+
+    expect(qrCodeReaderSpy.stop).toHaveBeenCalled();
   });
 
 });

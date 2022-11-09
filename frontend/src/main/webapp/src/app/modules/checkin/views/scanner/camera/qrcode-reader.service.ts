@@ -3,6 +3,7 @@ import {Html5Qrcode, Html5QrcodeSupportedFormats} from "html5-qrcode";
 import {CameraDevice, QrcodeErrorCallback, QrcodeSuccessCallback} from "html5-qrcode/esm/core";
 import {Html5QrcodeCameraScanConfig, Html5QrcodeFullConfig} from "html5-qrcode/esm/html5-qrcode";
 import {throwError} from "rxjs";
+import {Html5QrcodeScannerState} from "html5-qrcode/esm/state-manager";
 
 @Injectable()
 export class QRCodeReaderService {
@@ -49,7 +50,7 @@ export class QRCodeReaderService {
   }
 
   async restart(cameraId: string): Promise<null> {
-    if (this.qrCodeReader.isScanning) {
+    if (this.qrCodeReader.getState() === Html5QrcodeScannerState.SCANNING) {
       await this.qrCodeReader.stop().then(
         () => this.qrCodeReader.start(cameraId, this.cameraConfig, this.successCallback, this.errorCallback),
         () => throwError(null)
@@ -60,7 +61,7 @@ export class QRCodeReaderService {
   }
 
   stop(): Promise<void> {
-    if (this.qrCodeReader.isScanning) {
+    if (this.qrCodeReader.getState() === Html5QrcodeScannerState.SCANNING) {
       return this.qrCodeReader.stop();
     }
   }
