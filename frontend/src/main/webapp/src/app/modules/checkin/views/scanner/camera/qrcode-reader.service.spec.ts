@@ -10,18 +10,21 @@ describe('QRCodeReaderService', () => {
   function setup() {
     localStorage.removeItem(LOCAL_STORAGE_LAST_CAMERA_ID_KEY);
 
-    const qrCodeSpy = spyOn(Html5Qrcode, 'getCameras').and.returnValue(of(testCameras).toPromise());
+    const html5QrCodeSpy = spyOn(Html5Qrcode, 'getCameras').and.returnValue(of(testCameras).toPromise());
 
     const service = new QRCodeReaderService();
-    return {service, qrCodeSpy};
+    const qrCodeReaderSpy = jasmine.createSpyObj('QRCodeReader', ['start']);
+    service.qrCodeReader = qrCodeReaderSpy;
+
+    return {service, html5QrCodeSpy, qrCodeReaderSpy};
   }
 
   it('getCameras returns correct result', async () => {
-    const {service, qrCodeSpy} = setup();
+    const {service, html5QrCodeSpy} = setup();
 
     const cameras = await service.getCameras();
 
-    expect(qrCodeSpy).toHaveBeenCalled();
+    expect(html5QrCodeSpy).toHaveBeenCalled();
     expect(cameras).toEqual(testCameras);
   });
 
@@ -36,6 +39,15 @@ describe('QRCodeReaderService', () => {
     expect(service.getLastUsedCameraId()).toBe(testCameraId);
 
     expect(localStorage.getItem(LOCAL_STORAGE_LAST_CAMERA_ID_KEY)).toBe(testCameraId);
+  });
+
+  it('start called correctly', () => {
+    const {service, qrCodeReaderSpy} = setup();
+
+    const testCameraId = '123';
+    service.start(testCameraId);
+
+    expect(qrCodeReaderSpy.start).toHaveBeenCalledWith(testCameraId, jasmine.objectContaining({fps: 10}), undefined, undefined);
   });
 
 });

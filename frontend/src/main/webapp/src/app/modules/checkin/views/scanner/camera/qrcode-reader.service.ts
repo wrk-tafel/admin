@@ -8,7 +8,7 @@ import {throwError} from "rxjs";
 export class QRCodeReaderService {
 
   private LOCAL_STORAGE_LAST_CAMERA_ID_KEY = 'TAFEL_LAST_CAMERA_ID';
-  private qrCodeReader: Html5Qrcode;
+  qrCodeReader: Html5Qrcode;
   private successCallback: QrcodeSuccessCallback;
   private errorCallback: QrcodeErrorCallback;
 
