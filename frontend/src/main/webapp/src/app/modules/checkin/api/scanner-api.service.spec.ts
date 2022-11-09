@@ -3,13 +3,15 @@ import {PlatformLocation} from "@angular/common";
 import {CompatClient, Stomp} from "@stomp/stompjs";
 
 describe('ScannerApiService', () => {
+  let overwriteProtocol: string;
   let overwriteTestPathname: string;
 
   function setup() {
     const platformLocationSpy: jasmine.SpyObj<PlatformLocation> = jasmine.createSpyObj('PlatformLocation', [], {
       hostname: 'testhost',
       port: '1234',
-      pathname: overwriteTestPathname ? overwriteTestPathname : '/subpath'
+      pathname: overwriteTestPathname ? overwriteTestPathname : '/subpath',
+      protocol: overwriteProtocol ? overwriteProtocol : 'http'
     });
 
     const clientSpy: jasmine.SpyObj<CompatClient> = jasmine.createSpyObj('CompatClient', ['connect', 'send', 'forceDisconnect']);
@@ -44,6 +46,17 @@ describe('ScannerApiService', () => {
     expect(stompSpy).toHaveBeenCalledWith('ws://testhost:1234/ws-api');
 
     overwriteTestPathname = undefined;
+  });
+
+  it('connect with https creates correct baseUrl', () => {
+    overwriteProtocol = 'https';
+    const {service, stompSpy} = setup();
+
+    service.connect(null, null, null);
+
+    expect(stompSpy).toHaveBeenCalledWith('wss://testhost:1234/subpath/ws-api');
+
+    overwriteProtocol = undefined;
   });
 
   it('sendScanResult transported successfully', () => {
