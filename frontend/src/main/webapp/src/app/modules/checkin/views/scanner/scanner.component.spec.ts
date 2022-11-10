@@ -1,4 +1,4 @@
-import {TestBed, waitForAsync} from '@angular/core/testing';
+import {fakeAsync, TestBed, tick, waitForAsync} from '@angular/core/testing';
 import {CommonModule} from '@angular/common';
 import {ScannerComponent} from "./scanner.component";
 import {ScannerApiService} from "../../api/scanner-api.service";
@@ -11,8 +11,8 @@ describe('ScannerComponent', () => {
   let qrCodeReaderService: jasmine.SpyObj<QRCodeReaderService>;
 
   beforeEach(waitForAsync(() => {
-    const apiServiceSpy = jasmine.createSpyObj('ScannerApiService', ['close', 'sendScanResult']);
-    const qrCodeReaderServiceSpy = jasmine.createSpyObj('QRCodeReaderService', ['stop', 'saveCurrentCamera', 'restart', 'getCameras']);
+    const apiServiceSpy = jasmine.createSpyObj('ScannerApiService', ['close', 'sendScanResult', 'connect']);
+    const qrCodeReaderServiceSpy = jasmine.createSpyObj('QRCodeReaderService', ['stop', 'saveCurrentCamera', 'restart', 'getCameras', 'getCurrentCamera', 'init', 'start']);
 
     TestBed.configureTestingModule({
       imports: [CommonModule],
@@ -37,6 +37,28 @@ describe('ScannerComponent', () => {
     const component = fixture.componentInstance;
     expect(component).toBeTruthy();
   });
+
+  it('ngOnInit', fakeAsync(() => {
+    const fixture = TestBed.createComponent(ScannerComponent);
+    const component = fixture.componentInstance;
+
+    const testCamera1: CameraDevice = {id: 'cam1', label: 'Camera 1 Front'};
+    const testCamera2: CameraDevice = {id: 'cam2', label: 'A camera 2 Back'};
+    const testCameraList: CameraDevice[] = [testCamera1, testCamera2];
+    qrCodeReaderService.getCameras.and.returnValue(Promise.resolve(testCameraList));
+    qrCodeReaderService.getCurrentCamera.and.returnValue(testCamera2);
+    qrCodeReaderService.start.and.returnValue(Promise.resolve(null));
+
+    component.ngOnInit();
+    tick(1000);
+
+    expect(component.availableCameras).toEqual(testCameraList);
+    expect(component.currentCamera).toEqual(testCamera2);
+    expect(qrCodeReaderService.getCameras).toHaveBeenCalled();
+    expect(qrCodeReaderService.getCurrentCamera).toHaveBeenCalled();
+    expect(qrCodeReaderService.start).toHaveBeenCalled();
+    expect(apiService.connect).toHaveBeenCalled();
+  }));
 
   it('ngOnDestroy calls stops scanner api and qrCodeReader', () => {
     const fixture = TestBed.createComponent(ScannerComponent);
