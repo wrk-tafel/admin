@@ -99,8 +99,14 @@ export class ScannerComponent implements OnInit, OnDestroy {
   };
 
   qrCodeReaderErrorCallback = (errorMessage: string, error: Html5QrcodeError) => {
-    this.stateMessage = 'Kein gültiger QR-Code gefunden!';
-    this.stateClass = 'alert-info';
+    this.apiClientReadyState.toPromise().then(
+      (connected: boolean) => {
+        if (connected) {
+          this.stateMessage = 'Kein gültiger QR-Code gefunden!';
+          this.stateClass = 'alert-info';
+        }
+      }
+    );
   };
 
   apiClientSuccessCallback = (receipt: IFrame) => {
@@ -110,7 +116,6 @@ export class ScannerComponent implements OnInit, OnDestroy {
   }
 
   apiClientErrorCallback = (receipt: IFrame) => {
-    console.log("ERROR ", receipt);
     this.apiClientReadyState.next(false);
   }
 
