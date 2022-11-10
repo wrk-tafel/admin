@@ -12,7 +12,7 @@ import {combineLatest, Subject} from 'rxjs';
 })
 export class ScannerComponent implements OnInit, OnDestroy {
 
-  private scannerId: number = 1;
+  scannerId: number = 1;
   availableCameras: CameraDevice[] = [];
   currentCamera: CameraDevice;
 
