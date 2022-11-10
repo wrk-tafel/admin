@@ -19,7 +19,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
   private qrCodeReaderReadyState = new Subject<boolean>();
   private apiClientReadyState = new Subject<boolean>();
 
-  private readyStates =
+  readyStates =
     combineLatest(
       [this.qrCodeReaderReadyState, this.apiClientReadyState]
     );
@@ -105,12 +105,12 @@ export class ScannerComponent implements OnInit, OnDestroy {
     }
   };
 
-  private qrCodeReaderErrorCallback = (errorMessage: string, error: Html5QrcodeError) => {
+  qrCodeReaderErrorCallback = (errorMessage: string, error: Html5QrcodeError) => {
     this.stateMessage = 'Kein gültiger QR-Code gefunden!';
     this.stateClass = 'alert-info';
   };
 
-  private apiClientSuccessCallback = (receipt: IFrame) => {
+  apiClientSuccessCallback = (receipt: IFrame) => {
     if (receipt.command === 'CONNECTED') {
       this.apiClientReadyState.next(true);
     }

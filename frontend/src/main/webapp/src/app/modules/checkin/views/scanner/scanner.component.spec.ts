@@ -137,4 +137,39 @@ describe('ScannerComponent', () => {
     expect(component.lastSentText).toBe(testText);
   });
 
+  it('qrCodeReaderErrorCallback fills fields correctly', () => {
+    const fixture = TestBed.createComponent(ScannerComponent);
+    const component = fixture.componentInstance;
+    const testErrMsg = 'test-error';
+
+    component.qrCodeReaderErrorCallback(testErrMsg, undefined);
+
+    expect(component.stateMessage).toBe('Kein gültiger QR-Code gefunden!');
+    expect(component.stateClass).toBe('alert-info');
+  });
+
+  it('apiClientSuccessCallback with a connected command', async () => {
+    const fixture = TestBed.createComponent(ScannerComponent);
+    const component = fixture.componentInstance;
+    const testFrame = {command: 'CONNECTED', headers: null, isBinaryBody: false, body: null, binaryBody: null};
+
+    component.apiClientSuccessCallback(testFrame);
+
+    await component.readyStates.subscribe(result => {
+      expect(result[0]).toBe(true);
+    });
+  });
+
+  it('apiClientSuccessCallback without a connected command', async () => {
+    const fixture = TestBed.createComponent(ScannerComponent);
+    const component = fixture.componentInstance;
+    const testFrame = {command: 'TEST', headers: null, isBinaryBody: false, body: null, binaryBody: null};
+
+    component.apiClientSuccessCallback(testFrame);
+
+    await component.readyStates.subscribe(result => {
+      expect(result[0]).toBe(false);
+    });
+  });
+
 });
