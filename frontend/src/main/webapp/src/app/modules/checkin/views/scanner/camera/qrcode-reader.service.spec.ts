@@ -28,17 +28,40 @@ describe('QRCodeReaderService', () => {
     expect(cameras).toEqual([testCameras[1], testCameras[0]]);
   });
 
-  it('lastUsedCameraId saved and loaded successfully', () => {
+  it('getCurrentCamera without a saved cameraId', () => {
     const {service} = setup();
-    const testCameraId = '123';
+    localStorage.removeItem(LOCAL_STORAGE_LAST_CAMERA_ID_KEY);
 
-    expect(localStorage.getItem(LOCAL_STORAGE_LAST_CAMERA_ID_KEY)).toBe(null);
+    const currentCamera = service.getCurrentCamera(testCameras);
 
-    service.saveLastUsedCameraId(testCameraId);
+    expect(currentCamera).toBe(testCameras[0]);
+  });
 
-    expect(service.getLastUsedCameraId()).toBe(testCameraId);
+  it('getCurrentCamera with a saved cameraId', () => {
+    const {service} = setup();
+    localStorage.setItem(LOCAL_STORAGE_LAST_CAMERA_ID_KEY, testCameras[1].id);
 
-    expect(localStorage.getItem(LOCAL_STORAGE_LAST_CAMERA_ID_KEY)).toBe(testCameraId);
+    const currentCamera = service.getCurrentCamera(testCameras);
+
+    expect(currentCamera).toBe(testCameras[1]);
+  });
+
+  it('getCurrentCamera with an invalid saved cameraId', () => {
+    const {service} = setup();
+    localStorage.setItem(LOCAL_STORAGE_LAST_CAMERA_ID_KEY, 'doesntexist');
+
+    const currentCamera = service.getCurrentCamera(testCameras);
+
+    expect(currentCamera).toEqual(testCameras[0]);
+  });
+
+  it('saveCurrentCamera done successfully', () => {
+    const {service} = setup();
+    localStorage.removeItem(LOCAL_STORAGE_LAST_CAMERA_ID_KEY);
+
+    service.saveCurrentCamera(testCameras[0]);
+
+    expect(localStorage.getItem(LOCAL_STORAGE_LAST_CAMERA_ID_KEY)).toEqual(testCameras[0].id);
   });
 
   it('start called correctly', () => {

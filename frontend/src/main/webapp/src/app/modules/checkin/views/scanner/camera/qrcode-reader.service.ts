@@ -37,12 +37,19 @@ export class QRCodeReaderService {
       .catch(reason => Promise.reject(reason));
   }
 
-  saveLastUsedCameraId(cameraId: string) {
-    localStorage.setItem(this.LOCAL_STORAGE_LAST_CAMERA_ID_KEY, cameraId);
+  getCurrentCamera(cameras: CameraDevice[]) {
+    const savedCameraId = this.getLastUsedCameraId();
+    if (savedCameraId) {
+      const camera = cameras.find(camera => camera.id === savedCameraId);
+      if (camera) {
+        return camera;
+      }
+    }
+    return cameras[0];
   }
 
-  getLastUsedCameraId(): string {
-    return localStorage.getItem(this.LOCAL_STORAGE_LAST_CAMERA_ID_KEY);
+  saveCurrentCamera(camera: CameraDevice) {
+    localStorage.setItem(this.LOCAL_STORAGE_LAST_CAMERA_ID_KEY, camera.id);
   }
 
   init(elementId: string, successCallback: QrcodeSuccessCallback, errorCallback: QrcodeErrorCallback) {
@@ -70,6 +77,10 @@ export class QRCodeReaderService {
       return this.qrCodeReader.stop();
     }
     return Promise.resolve();
+  }
+
+  private getLastUsedCameraId(): string {
+    return localStorage.getItem(this.LOCAL_STORAGE_LAST_CAMERA_ID_KEY);
   }
 
 }

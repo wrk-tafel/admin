@@ -37,15 +37,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.qrCodeReaderService.getCameras().then(cameras => {
       this.availableCameras = cameras;
-
-      const savedCameraId = this.qrCodeReaderService.getLastUsedCameraId();
-      if (savedCameraId) {
-        this.currentCamera = this.availableCameras.find(camera => camera.id === savedCameraId);
-      } else {
-        const firstCamera = this.availableCameras[0];
-        this.currentCamera = firstCamera;
-        this.qrCodeReaderService.saveLastUsedCameraId(firstCamera.id);
-      }
+      this.currentCamera = this.qrCodeReaderService.getCurrentCamera(cameras);
 
       this.scannerApiService.connect(this.apiClientSuccessCallback, this.apiClientErrorCallback, this.apiClientCloseCallback);
 
@@ -132,7 +124,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
 
   set selectedCamera(camera: CameraDevice) {
     this.currentCamera = camera;
-    this.qrCodeReaderService.saveLastUsedCameraId(camera.id);
+    this.qrCodeReaderService.saveCurrentCamera(camera);
 
     this.stateMessage = 'Wird geladen ...';
     const promise = this.qrCodeReaderService.restart(camera.id);

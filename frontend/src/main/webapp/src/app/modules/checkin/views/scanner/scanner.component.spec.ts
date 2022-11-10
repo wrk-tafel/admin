@@ -12,7 +12,7 @@ describe('ScannerComponent', () => {
 
   beforeEach(waitForAsync(() => {
     const apiServiceSpy = jasmine.createSpyObj('ScannerApiService', ['close', 'sendScanResult']);
-    const qrCodeReaderServiceSpy = jasmine.createSpyObj('QRCodeReaderService', ['stop', 'saveLastUsedCameraId', 'restart', 'getCameras']);
+    const qrCodeReaderServiceSpy = jasmine.createSpyObj('QRCodeReaderService', ['stop', 'saveCurrentCamera', 'restart', 'getCameras']);
 
     TestBed.configureTestingModule({
       imports: [CommonModule],
@@ -232,7 +232,7 @@ describe('ScannerComponent', () => {
     component.selectedCamera = testCamera;
 
     expect(component.currentCamera).toEqual(testCamera);
-    expect(qrCodeReaderService.saveLastUsedCameraId).toHaveBeenCalledWith(testCamera.id);
+    expect(qrCodeReaderService.saveCurrentCamera).toHaveBeenCalledWith(testCamera);
     expect(component.stateMessage).toBe('Wird geladen ...');
     expect(qrCodeReaderService.restart).toHaveBeenCalledWith(testCamera.id);
   });
