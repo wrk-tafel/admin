@@ -37,7 +37,7 @@ export class ScannerApiService {
       pathname = '';
     }
 
-    return protocol + '://' + this.platformLocation.hostname + ':' + this.platformLocation.port + pathname + '/ws-api';
+    return protocol + '//' + this.platformLocation.hostname + ':' + this.platformLocation.port + pathname + '/ws-api';
   }
 
 }

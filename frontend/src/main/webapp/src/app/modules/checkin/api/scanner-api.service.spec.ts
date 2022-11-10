@@ -11,7 +11,7 @@ describe('ScannerApiService', () => {
       hostname: 'testhost',
       port: '1234',
       pathname: overwriteTestPathname ? overwriteTestPathname : '/subpath',
-      protocol: overwriteProtocol ? overwriteProtocol : 'http'
+      protocol: overwriteProtocol ? overwriteProtocol : 'http:'
     });
 
     const clientSpy: jasmine.SpyObj<CompatClient> = jasmine.createSpyObj('CompatClient', ['connect', 'send', 'forceDisconnect']);
@@ -49,7 +49,7 @@ describe('ScannerApiService', () => {
   });
 
   it('connect with https creates correct baseUrl', () => {
-    overwriteProtocol = 'https';
+    overwriteProtocol = 'https:';
     const {service, stompSpy} = setup();
 
     service.connect(null, null, null);
