@@ -10,7 +10,6 @@ import org.passay.*
 import org.passay.dictionary.ArrayWordList
 import org.passay.dictionary.WordListDictionary
 import org.passay.dictionary.sort.ArraysSort
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpStatus
@@ -35,8 +34,6 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 @ExcludeFromTestCoverage
 class WebSecurityConfig(
-    @Value("\${security.enable-csrf:true}")
-    private val csrfEnabled: Boolean,
     private val jwtTokenService: JwtTokenService,
     private val userRepository: UserRepository
 ) : WebSecurityConfigurerAdapter() {
@@ -73,14 +70,10 @@ class WebSecurityConfig(
             .authenticationEntryPoint(HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
             .and().sessionManagement()
             .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-
-        if (csrfEnabled) {
-            http.csrf()
-                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .ignoringAntMatchers("/api/login")
-        } else {
-            http.csrf().disable()
-        }
+            .and()
+            .csrf()
+            .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+            .ignoringAntMatchers("/api/login")
 
         http.addFilterAfter(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter::class.java)
     }
