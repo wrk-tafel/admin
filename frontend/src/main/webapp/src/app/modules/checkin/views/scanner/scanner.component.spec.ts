@@ -94,6 +94,30 @@ describe('ScannerComponent', () => {
     expect(component.stateClass).toBe('alert-danger');
   });
 
+  it('processQrCodeReaderPromise fills state when successful', async () => {
+    const fixture = TestBed.createComponent(ScannerComponent);
+    const component = fixture.componentInstance;
+    component.qrCodeReaderReadyState.next(false);
+
+    await component.processQrCodeReaderPromise(Promise.resolve(null));
+
+    await component.readyStates.subscribe(result => {
+      expect(result[0]).toBe(true);
+    });
+  });
+
+  it('processQrCodeReaderPromise fills state when failed', async () => {
+    const fixture = TestBed.createComponent(ScannerComponent);
+    const component = fixture.componentInstance;
+    component.qrCodeReaderReadyState.next(true);
+
+    await component.processQrCodeReaderPromise(Promise.reject());
+
+    await component.readyStates.subscribe(result => {
+      expect(result[0]).toBe(false);
+    });
+  });
+
   it('qrCodeReaderSuccessCallback received new text', () => {
     const fixture = TestBed.createComponent(ScannerComponent);
     const component = fixture.componentInstance;
@@ -158,7 +182,7 @@ describe('ScannerComponent', () => {
     component.apiClientSuccessCallback(testFrame);
 
     await component.readyStates.subscribe(result => {
-      expect(result[0]).toBe(true);
+      expect(result[1]).toBe(true);
     });
   });
 

@@ -52,15 +52,8 @@ export class ScannerComponent implements OnInit, OnDestroy {
       this.scannerApiService.connect(this.apiClientSuccessCallback, this.apiClientErrorCallback, this.apiClientCloseCallback);
 
       this.qrCodeReaderService.init("qrCodeReaderBox", this.qrCodeReaderSuccessCallback, this.qrCodeReaderErrorCallback);
-      this.qrCodeReaderService.start(this.currentCamera.id).then(
-        () => {
-          this.qrCodeReaderReadyState.next(true);
-        },
-        // TODO not called?
-        () => {
-          this.qrCodeReaderReadyState.next(false);
-        }
-      );
+      const promise = this.qrCodeReaderService.start(this.currentCamera.id);
+      this.processQrCodeReaderPromise(promise);
 
       this.readyStates.subscribe((states: boolean[]) => this.processReadyStates(states));
     });
@@ -87,6 +80,17 @@ export class ScannerComponent implements OnInit, OnDestroy {
         this.stateClass = 'alert-danger';
       }
     }
+  }
+
+  async processQrCodeReaderPromise(promise: Promise<null>) {
+    await promise.then(
+      () => {
+        this.qrCodeReaderReadyState.next(true);
+      },
+      () => {
+        this.qrCodeReaderReadyState.next(false);
+      }
+    );
   }
 
   qrCodeReaderSuccessCallback = (decodedText: string, result: Html5QrcodeResult) => {
@@ -133,14 +137,8 @@ export class ScannerComponent implements OnInit, OnDestroy {
     this.qrCodeReaderService.saveLastUsedCameraId(camera.id);
 
     this.stateMessage = 'Wird geladen ...';
-    this.qrCodeReaderService.restart(camera.id).then(
-      () => {
-        this.qrCodeReaderReadyState.next(true);
-      },
-      () => {
-        this.qrCodeReaderReadyState.next(false);
-      }
-    );
+    const promise = this.qrCodeReaderService.restart(camera.id);
+    this.processQrCodeReaderPromise(promise);
   }
 
 }
