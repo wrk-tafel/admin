@@ -10,6 +10,7 @@ spring:
     password: admin
 
 security:
+  enable-csrf: false
   jwtToken:
     issuer: http://localhost
     audience: wrk-tafel
