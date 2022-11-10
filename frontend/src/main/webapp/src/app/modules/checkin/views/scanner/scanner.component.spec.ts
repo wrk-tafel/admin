@@ -164,11 +164,38 @@ describe('ScannerComponent', () => {
     const fixture = TestBed.createComponent(ScannerComponent);
     const component = fixture.componentInstance;
     const testFrame = {command: 'TEST', headers: null, isBinaryBody: false, body: null, binaryBody: null};
+    component.apiClientReadyState.next(false);
 
     component.apiClientSuccessCallback(testFrame);
 
     await component.readyStates.subscribe(result => {
-      expect(result[0]).toBe(false);
+      expect(result[1]).toBe(true);
+    });
+  });
+
+  it('apiClientErrorCallback fills state', async () => {
+    const fixture = TestBed.createComponent(ScannerComponent);
+    const component = fixture.componentInstance;
+    const testFrame = {command: 'ERROR', headers: null, isBinaryBody: false, body: null, binaryBody: null};
+    component.apiClientReadyState.next(true);
+
+    component.apiClientErrorCallback(testFrame);
+
+    await component.readyStates.subscribe(result => {
+      expect(result[1]).toBe(false);
+    });
+  });
+
+  it('apiClientCloseCallback fills state', async () => {
+    const fixture = TestBed.createComponent(ScannerComponent);
+    const component = fixture.componentInstance;
+    const testFrame = {command: 'CLOSED', headers: null, isBinaryBody: false, body: null, binaryBody: null};
+    component.apiClientReadyState.next(true);
+
+    component.apiClientErrorCallback(testFrame);
+
+    await component.readyStates.subscribe(result => {
+      expect(result[1]).toBe(false);
     });
   });
 

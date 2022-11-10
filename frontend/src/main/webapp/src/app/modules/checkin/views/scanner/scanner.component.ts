@@ -16,8 +16,8 @@ export class ScannerComponent implements OnInit, OnDestroy {
   private availableCameras: CameraDevice[] = [];
   private currentCamera: CameraDevice;
 
-  private qrCodeReaderReadyState = new Subject<boolean>();
-  private apiClientReadyState = new Subject<boolean>();
+  qrCodeReaderReadyState = new Subject<boolean>();
+  apiClientReadyState = new Subject<boolean>();
 
   readyStates =
     combineLatest(
@@ -116,7 +116,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
     }
   }
 
-  private apiClientErrorCallback = (receipt: IFrame) => {
+  apiClientErrorCallback = (receipt: IFrame) => {
     this.apiClientReadyState.next(false);
   }
 
