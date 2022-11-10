@@ -87,7 +87,7 @@ describe('QRCodeReaderService', () => {
     expect(qrCodeReaderSpy.start).toHaveBeenCalledWith(testCameraId, jasmine.objectContaining({fps: 10}), undefined, undefined);
   });
 
-  it('restart while scanning is active and stop successful', () => {
+  it('restart while scanning is active and stop was successful', () => {
     const {service, qrCodeReaderSpy} = setup();
     qrCodeReaderSpy.getState.and.returnValue(Html5QrcodeScannerState.SCANNING);
     qrCodeReaderSpy.stop.and.returnValue(Promise.resolve());

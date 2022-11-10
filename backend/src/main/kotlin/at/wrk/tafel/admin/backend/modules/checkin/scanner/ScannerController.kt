@@ -13,7 +13,7 @@ class ScannerController {
     private val logger: Logger = LoggerFactory.getLogger(ScannerController::class.java)
 
     @MessageMapping("/result")
-    fun getScanResult(result: ScanResult) {
+    fun retrieveScanResult(result: ScanResult) {
         logger.info("GOT SCANRESULT: $result")
     }
 
