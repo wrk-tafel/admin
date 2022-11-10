@@ -29,7 +29,7 @@ export class QRCodeReaderService {
   getCameras(): Promise<CameraDevice[]> {
     return Html5Qrcode.getCameras()
       .then((cameras: CameraDevice[]) => {
-        const sorted = cameras.sort((c1: CameraDevice, c2: CameraDevice) => {
+        const sorted = Object.assign([], cameras).sort((c1: CameraDevice, c2: CameraDevice) => {
           return c1.label.localeCompare(c2.label);
         });
         return Promise.resolve(sorted);
