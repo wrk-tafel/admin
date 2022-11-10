@@ -57,8 +57,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
   processReadyStates(states: boolean[]) {
     const qrCodeReaderReady = states[0];
     const apiClientReady = states[1];
-    const bothReady = qrCodeReaderReady && apiClientReady;
-    if (bothReady) {
+    if (qrCodeReaderReady && apiClientReady) {
       this.stateMessage = 'Bereit';
       this.stateClass = 'alert-info';
     } else {
@@ -111,6 +110,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
   }
 
   apiClientErrorCallback = (receipt: IFrame) => {
+    console.log("ERROR ", receipt);
     this.apiClientReadyState.next(false);
   }
 
