@@ -3,6 +3,8 @@ import {CommonModule} from '@angular/common';
 import {ScannerComponent} from "./scanner.component";
 import {ScannerApiService} from "../../api/scanner-api.service";
 import {QRCodeReaderService} from "./camera/qrcode-reader.service";
+import {CameraDevice} from "html5-qrcode/core";
+import {IFrame} from "@stomp/stompjs";
 
 describe('ScannerComponent', () => {
   let apiService: jasmine.SpyObj<ScannerApiService>;
@@ -10,7 +12,7 @@ describe('ScannerComponent', () => {
 
   beforeEach(waitForAsync(() => {
     const apiServiceSpy = jasmine.createSpyObj('ScannerApiService', ['close', 'sendScanResult']);
-    const qrCodeReaderServiceSpy = jasmine.createSpyObj('QRCodeReaderService', ['stop']);
+    const qrCodeReaderServiceSpy = jasmine.createSpyObj('QRCodeReaderService', ['stop', 'saveLastUsedCameraId', 'restart']);
 
     TestBed.configureTestingModule({
       imports: [CommonModule],
@@ -151,7 +153,7 @@ describe('ScannerComponent', () => {
   it('apiClientSuccessCallback with a connected command', async () => {
     const fixture = TestBed.createComponent(ScannerComponent);
     const component = fixture.componentInstance;
-    const testFrame = {command: 'CONNECTED', headers: null, isBinaryBody: false, body: null, binaryBody: null};
+    const testFrame: IFrame = {command: 'CONNECTED', headers: null, isBinaryBody: false, body: null, binaryBody: null};
 
     component.apiClientSuccessCallback(testFrame);
 
@@ -163,7 +165,7 @@ describe('ScannerComponent', () => {
   it('apiClientSuccessCallback without a connected command', async () => {
     const fixture = TestBed.createComponent(ScannerComponent);
     const component = fixture.componentInstance;
-    const testFrame = {command: 'TEST', headers: null, isBinaryBody: false, body: null, binaryBody: null};
+    const testFrame: IFrame = {command: 'TEST', headers: null, isBinaryBody: false, body: null, binaryBody: null};
     component.apiClientReadyState.next(false);
 
     component.apiClientSuccessCallback(testFrame);
@@ -176,7 +178,7 @@ describe('ScannerComponent', () => {
   it('apiClientErrorCallback fills state', async () => {
     const fixture = TestBed.createComponent(ScannerComponent);
     const component = fixture.componentInstance;
-    const testFrame = {command: 'ERROR', headers: null, isBinaryBody: false, body: null, binaryBody: null};
+    const testFrame: IFrame = {command: 'ERROR', headers: null, isBinaryBody: false, body: null, binaryBody: null};
     component.apiClientReadyState.next(true);
 
     component.apiClientErrorCallback(testFrame);
@@ -189,7 +191,7 @@ describe('ScannerComponent', () => {
   it('apiClientCloseCallback fills state', async () => {
     const fixture = TestBed.createComponent(ScannerComponent);
     const component = fixture.componentInstance;
-    const testFrame = {command: 'CLOSED', headers: null, isBinaryBody: false, body: null, binaryBody: null};
+    const testFrame: IFrame = {command: 'CLOSED', headers: null, isBinaryBody: false, body: null, binaryBody: null};
     component.apiClientReadyState.next(true);
 
     component.apiClientErrorCallback(testFrame);
@@ -197,6 +199,20 @@ describe('ScannerComponent', () => {
     await component.readyStates.subscribe(result => {
       expect(result[1]).toBe(false);
     });
+  });
+
+  it('setSelectedCamera', () => {
+    const fixture = TestBed.createComponent(ScannerComponent);
+    const component = fixture.componentInstance;
+    qrCodeReaderService.restart.and.returnValue(Promise.resolve(null));
+    const testCamera: CameraDevice = {id: 'cam1', label: 'Camera 1 Front'};
+
+    component.selectedCamera = testCamera;
+
+    expect(component.currentCamera).toEqual(testCamera);
+    expect(qrCodeReaderService.saveLastUsedCameraId).toHaveBeenCalledWith(testCamera.id);
+    expect(component.stateMessage).toBe('Wird geladen ...');
+    expect(qrCodeReaderService.restart).toHaveBeenCalledWith(testCamera.id);
   });
 
 });

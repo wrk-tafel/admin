@@ -14,7 +14,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
 
   private scannerId: number = 1;
   private availableCameras: CameraDevice[] = [];
-  private currentCamera: CameraDevice;
+  currentCamera: CameraDevice;
 
   qrCodeReaderReadyState = new Subject<boolean>();
   apiClientReadyState = new Subject<boolean>();
