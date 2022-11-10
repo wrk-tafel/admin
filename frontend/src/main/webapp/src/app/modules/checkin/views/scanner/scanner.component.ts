@@ -120,7 +120,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
     this.apiClientReadyState.next(false);
   }
 
-  private apiClientCloseCallback = (receipt: IFrame) => {
+  apiClientCloseCallback = (receipt: IFrame) => {
     this.apiClientReadyState.next(false);
   }
 

@@ -175,7 +175,7 @@ describe('ScannerComponent', () => {
     });
   });
 
-  it('apiClientErrorCallback fills state', async () => {
+  it('apiClientErrorCallback fills state correctly', async () => {
     const fixture = TestBed.createComponent(ScannerComponent);
     const component = fixture.componentInstance;
     const testFrame: IFrame = {command: 'ERROR', headers: null, isBinaryBody: false, body: null, binaryBody: null};
@@ -188,13 +188,13 @@ describe('ScannerComponent', () => {
     });
   });
 
-  it('apiClientCloseCallback fills state', async () => {
+  it('apiClientCloseCallback fills state correctly', async () => {
     const fixture = TestBed.createComponent(ScannerComponent);
     const component = fixture.componentInstance;
     const testFrame: IFrame = {command: 'CLOSED', headers: null, isBinaryBody: false, body: null, binaryBody: null};
     component.apiClientReadyState.next(true);
 
-    component.apiClientErrorCallback(testFrame);
+    component.apiClientCloseCallback(testFrame);
 
     await component.readyStates.subscribe(result => {
       expect(result[1]).toBe(false);
