@@ -5,7 +5,7 @@ import {Html5QrcodeScannerState} from "html5-qrcode/esm/state-manager";
 
 describe('QRCodeReaderService', () => {
   const LOCAL_STORAGE_LAST_CAMERA_ID_KEY = 'TAFEL_LAST_CAMERA_ID';
-  const testCameras: Array<CameraDevice> = Array({id: '1', label: 'cam1'}, {id: '2', label: 'cam2'});
+  const testCameras: CameraDevice[] = [{id: '1', label: 'cam1'}, {id: '2', label: 'a cam2'}];
 
   function setup() {
     localStorage.removeItem(LOCAL_STORAGE_LAST_CAMERA_ID_KEY);
@@ -19,13 +19,13 @@ describe('QRCodeReaderService', () => {
     return {service, html5QrCodeSpy, qrCodeReaderSpy};
   }
 
-  it('getCameras returns correct result', async () => {
+  it('getCameras returns result sorted by label ascending', async () => {
     const {service, html5QrCodeSpy} = setup();
 
     const cameras = await service.getCameras();
 
     expect(html5QrCodeSpy).toHaveBeenCalled();
-    expect(cameras).toEqual(testCameras);
+    expect(cameras).toEqual([testCameras[1], testCameras[0]]);
   });
 
   it('lastUsedCameraId saved and loaded successfully', () => {

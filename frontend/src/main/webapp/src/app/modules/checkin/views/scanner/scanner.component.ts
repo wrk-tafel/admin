@@ -36,7 +36,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.qrCodeReaderService.getCameras().then(cameras => {
-      this.availableCameras = this.sortCameras(cameras);
+      this.availableCameras = cameras;
 
       const savedCameraId = this.qrCodeReaderService.getLastUsedCameraId();
       if (savedCameraId) {
@@ -54,12 +54,6 @@ export class ScannerComponent implements OnInit, OnDestroy {
       this.processQrCodeReaderPromise(promise);
 
       this.readyStates.subscribe((states: boolean[]) => this.processReadyStates(states));
-    });
-  }
-
-  sortCameras(cameras: CameraDevice[]) {
-    return cameras.sort((c1: CameraDevice, c2: CameraDevice) => {
-      return c1.label.localeCompare(c2.label);
     });
   }
 

@@ -26,8 +26,15 @@ export class QRCodeReaderService {
     }
   };
 
-  getCameras(): Promise<Array<CameraDevice>> {
-    return Html5Qrcode.getCameras();
+  getCameras(): Promise<CameraDevice[]> {
+    return Html5Qrcode.getCameras()
+      .then((cameras: CameraDevice[]) => {
+        const sorted = cameras.sort((c1: CameraDevice, c2: CameraDevice) => {
+          return c1.label.localeCompare(c2.label);
+        });
+        return Promise.resolve(sorted);
+      })
+      .catch(reason => Promise.reject(reason));
   }
 
   saveLastUsedCameraId(cameraId: string) {
