@@ -24,8 +24,8 @@ export class ScannerComponent implements OnInit, OnDestroy {
       [this.qrCodeReaderReadyState, this.apiClientReadyState]
     );
 
-  private stateMessage: string = 'Wird geladen ...';
-  private stateClass: string = 'alert-info';
+  stateMessage: string = 'Wird geladen ...';
+  stateClass: string = 'alert-info';
 
   private lastSentText: string;
 
@@ -63,29 +63,31 @@ export class ScannerComponent implements OnInit, OnDestroy {
         }
       );
 
-      this.readyStates.subscribe((ready: boolean[]) => {
-        const qrCodeReaderReady = ready[0];
-        const apiClientReady = ready[1];
-        const bothReady = qrCodeReaderReady && apiClientReady;
-        if (bothReady) {
-          this.stateMessage = 'Bereit';
-          this.stateClass = 'alert-info';
-        } else {
-          if (!qrCodeReaderReady) {
-            this.stateMessage = 'Kamera konnte nicht geladen werden!';
-            this.stateClass = 'alert-danger';
-          } else if (!apiClientReady) {
-            this.stateMessage = 'Verbindung zum Server fehlgeschlagen!';
-            this.stateClass = 'alert-danger';
-          }
-        }
-      });
+      this.readyStates.subscribe((states: boolean[]) => this.processReadyStates(states));
     });
   }
 
   ngOnDestroy(): void {
     this.qrCodeReaderService.stop();
     this.scannerApiService.close();
+  }
+
+  processReadyStates(states: boolean[]) {
+    const qrCodeReaderReady = states[0];
+    const apiClientReady = states[1];
+    const bothReady = qrCodeReaderReady && apiClientReady;
+    if (bothReady) {
+      this.stateMessage = 'Bereit';
+      this.stateClass = 'alert-info';
+    } else {
+      if (!qrCodeReaderReady) {
+        this.stateMessage = 'Kamera konnte nicht geladen werden!';
+        this.stateClass = 'alert-danger';
+      } else if (!apiClientReady) {
+        this.stateMessage = 'Verbindung zum Server fehlgeschlagen!';
+        this.stateClass = 'alert-danger';
+      }
+    }
   }
 
   private qrCodeReaderSuccessCallback = (decodedText: string, result: Html5QrcodeResult) => {
