@@ -54,15 +54,15 @@ export class QRCodeReaderService {
         () => this.qrCodeReader.start(cameraId, this.cameraConfig, this.successCallback, this.errorCallback),
         () => Promise.reject()
       );
-    } else {
-      return this.qrCodeReader.start(cameraId, this.cameraConfig, this.successCallback, this.errorCallback);
     }
+    return this.qrCodeReader.start(cameraId, this.cameraConfig, this.successCallback, this.errorCallback);
   }
 
   stop(): Promise<void> {
     if (this.qrCodeReader.getState() === Html5QrcodeScannerState.SCANNING) {
       return this.qrCodeReader.stop();
     }
+    return Promise.resolve();
   }
 
 }
