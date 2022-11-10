@@ -12,7 +12,7 @@ describe('ScannerComponent', () => {
 
   beforeEach(waitForAsync(() => {
     const apiServiceSpy = jasmine.createSpyObj('ScannerApiService', ['close', 'sendScanResult']);
-    const qrCodeReaderServiceSpy = jasmine.createSpyObj('QRCodeReaderService', ['stop', 'saveLastUsedCameraId', 'restart']);
+    const qrCodeReaderServiceSpy = jasmine.createSpyObj('QRCodeReaderService', ['stop', 'saveLastUsedCameraId', 'restart', 'getCameras']);
 
     TestBed.configureTestingModule({
       imports: [CommonModule],
@@ -38,7 +38,18 @@ describe('ScannerComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  // TODO INIT
+  it('sortCameras by label ascending', () => {
+    const fixture = TestBed.createComponent(ScannerComponent);
+    const component = fixture.componentInstance;
+
+    const testCamera1: CameraDevice = {id: 'cam1', label: 'Camera 1 Front'};
+    const testCamera2: CameraDevice = {id: 'cam2', label: 'A camera 2 Back'};
+    const testCameraList: CameraDevice[] = [testCamera1, testCamera2];
+
+    const sortedCameras = component.sortCameras(testCameraList);
+
+    expect(sortedCameras).toEqual([testCamera2, testCamera1]);
+  });
 
   it('ngOnDestroy calls stops scanner api and qrCodeReader', () => {
     const fixture = TestBed.createComponent(ScannerComponent);

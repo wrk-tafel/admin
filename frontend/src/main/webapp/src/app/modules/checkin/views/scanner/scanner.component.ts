@@ -13,7 +13,7 @@ import {combineLatest, Subject} from 'rxjs';
 export class ScannerComponent implements OnInit, OnDestroy {
 
   private scannerId: number = 1;
-  private availableCameras: CameraDevice[] = [];
+  availableCameras: CameraDevice[] = [];
   currentCamera: CameraDevice;
 
   qrCodeReaderReadyState = new Subject<boolean>();
@@ -36,9 +36,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.qrCodeReaderService.getCameras().then(cameras => {
-      this.availableCameras = cameras.sort((c1: CameraDevice, c2: CameraDevice) => {
-        return c1.label.localeCompare(c2.label);
-      });
+      this.availableCameras = this.sortCameras(cameras);
 
       const savedCameraId = this.qrCodeReaderService.getLastUsedCameraId();
       if (savedCameraId) {
@@ -56,6 +54,12 @@ export class ScannerComponent implements OnInit, OnDestroy {
       this.processQrCodeReaderPromise(promise);
 
       this.readyStates.subscribe((states: boolean[]) => this.processReadyStates(states));
+    });
+  }
+
+  sortCameras(cameras: CameraDevice[]) {
+    return cameras.sort((c1: CameraDevice, c2: CameraDevice) => {
+      return c1.label.localeCompare(c2.label);
     });
   }
 
