@@ -9,7 +9,7 @@ describe('ScannerComponent', () => {
   let qrCodeReaderService: jasmine.SpyObj<QRCodeReaderService>;
 
   beforeEach(waitForAsync(() => {
-    const apiServiceSpy = jasmine.createSpyObj('ScannerApiService', ['close']);
+    const apiServiceSpy = jasmine.createSpyObj('ScannerApiService', ['close', 'sendScanResult']);
     const qrCodeReaderServiceSpy = jasmine.createSpyObj('QRCodeReaderService', ['stop']);
 
     TestBed.configureTestingModule({
@@ -90,6 +90,51 @@ describe('ScannerComponent', () => {
 
     expect(component.stateMessage).toBe('Kamera konnte nicht geladen werden!');
     expect(component.stateClass).toBe('alert-danger');
+  });
+
+  it('qrCodeReaderSuccessCallback received new text', () => {
+    const fixture = TestBed.createComponent(ScannerComponent);
+    const component = fixture.componentInstance;
+
+    component.lastSentText = null;
+    const testText = 'test123';
+
+    component.qrCodeReaderSuccessCallback(testText, undefined);
+
+    expect(component.stateMessage).toBe('Scan erfolgreich: ' + testText);
+    expect(component.stateClass).toBe('alert-success');
+    expect(apiService.sendScanResult).toHaveBeenCalledWith({value: testText});
+    expect(component.lastSentText).toBe(testText);
+  });
+
+  it('qrCodeReaderSuccessCallback and received the same text', () => {
+    const fixture = TestBed.createComponent(ScannerComponent);
+    const component = fixture.componentInstance;
+
+    const testText = 'test123';
+    component.lastSentText = testText;
+
+    component.qrCodeReaderSuccessCallback(testText, undefined);
+
+    expect(component.stateMessage).toBe('Scan erfolgreich: ' + testText);
+    expect(component.stateClass).toBe('alert-success');
+    expect(apiService.sendScanResult).not.toHaveBeenCalledWith({value: testText});
+    expect(component.lastSentText).toBe(testText);
+  });
+
+  it('qrCodeReaderSuccessCallback and received a different text', () => {
+    const fixture = TestBed.createComponent(ScannerComponent);
+    const component = fixture.componentInstance;
+
+    component.lastSentText = 'old-test123';
+    const testText = 'test123';
+
+    component.qrCodeReaderSuccessCallback(testText, undefined);
+
+    expect(component.stateMessage).toBe('Scan erfolgreich: ' + testText);
+    expect(component.stateClass).toBe('alert-success');
+    expect(apiService.sendScanResult).toHaveBeenCalledWith({value: testText});
+    expect(component.lastSentText).toBe(testText);
   });
 
 });
