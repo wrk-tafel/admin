@@ -1,7 +1,7 @@
-import {QRCodeReaderService} from "./qrcode-reader.service";
-import {Html5Qrcode} from "html5-qrcode";
-import {CameraDevice} from "html5-qrcode/esm/core";
-import {Html5QrcodeScannerState} from "html5-qrcode/esm/state-manager";
+import {QRCodeReaderService} from './qrcode-reader.service';
+import {Html5Qrcode} from 'html5-qrcode';
+import {CameraDevice} from 'html5-qrcode/esm/core';
+import {Html5QrcodeScannerState} from 'html5-qrcode/esm/state-manager';
 
 describe('QRCodeReaderService', () => {
   const LOCAL_STORAGE_LAST_CAMERA_ID_KEY = 'TAFEL_LAST_CAMERA_ID';

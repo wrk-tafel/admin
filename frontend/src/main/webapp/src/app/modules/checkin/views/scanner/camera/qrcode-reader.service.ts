@@ -1,8 +1,8 @@
 import {Injectable} from '@angular/core';
-import {Html5Qrcode, Html5QrcodeSupportedFormats} from "html5-qrcode";
-import {CameraDevice, QrcodeErrorCallback, QrcodeSuccessCallback} from "html5-qrcode/esm/core";
-import {Html5QrcodeCameraScanConfig, Html5QrcodeFullConfig} from "html5-qrcode/esm/html5-qrcode";
-import {Html5QrcodeScannerState} from "html5-qrcode/esm/state-manager";
+import {Html5Qrcode, Html5QrcodeSupportedFormats} from 'html5-qrcode';
+import {CameraDevice, QrcodeErrorCallback, QrcodeSuccessCallback} from 'html5-qrcode/esm/core';
+import {Html5QrcodeCameraScanConfig, Html5QrcodeFullConfig} from 'html5-qrcode/esm/html5-qrcode';
+import {Html5QrcodeScannerState} from 'html5-qrcode/esm/state-manager';
 
 @Injectable()
 export class QRCodeReaderService {

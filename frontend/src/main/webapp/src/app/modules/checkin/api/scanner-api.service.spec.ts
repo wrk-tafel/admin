@@ -1,6 +1,6 @@
-import {ScannerApiService} from "./scanner-api.service";
-import {PlatformLocation} from "@angular/common";
-import {CompatClient, Stomp} from "@stomp/stompjs";
+import {ScannerApiService} from './scanner-api.service';
+import {PlatformLocation} from '@angular/common';
+import {CompatClient, Stomp} from '@stomp/stompjs';
 
 describe('ScannerApiService', () => {
   let overwriteProtocol: string;

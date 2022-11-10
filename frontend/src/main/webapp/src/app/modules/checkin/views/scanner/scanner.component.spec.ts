@@ -1,10 +1,10 @@
 import {fakeAsync, TestBed, tick, waitForAsync} from '@angular/core/testing';
 import {CommonModule} from '@angular/common';
-import {ScannerComponent} from "./scanner.component";
-import {ScannerApiService} from "../../api/scanner-api.service";
-import {QRCodeReaderService} from "./camera/qrcode-reader.service";
-import {CameraDevice} from "html5-qrcode/core";
-import {IFrame} from "@stomp/stompjs";
+import {ScannerComponent} from './scanner.component';
+import {ScannerApiService} from '../../api/scanner-api.service';
+import {QRCodeReaderService} from './camera/qrcode-reader.service';
+import {CameraDevice} from 'html5-qrcode/core';
+import {IFrame} from '@stomp/stompjs';
 
 describe('ScannerComponent', () => {
   let apiService: jasmine.SpyObj<ScannerApiService>;

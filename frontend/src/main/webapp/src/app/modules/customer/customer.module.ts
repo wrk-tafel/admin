@@ -9,7 +9,7 @@ import {ModalModule} from 'ngx-bootstrap/modal';
 import {CustomerDetailComponent} from './views/customer-detail.component';
 import {CustomerSearchComponent} from './views/customer-search.component';
 import {BsDropdownModule} from 'ngx-bootstrap/dropdown';
-import {CustomerApiService} from "./api/customer-api.service";
+import {CustomerApiService} from './api/customer-api.service';
 
 @NgModule({
   imports: [

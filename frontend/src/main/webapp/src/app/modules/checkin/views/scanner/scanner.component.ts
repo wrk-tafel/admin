@@ -1,9 +1,9 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
-import {Html5QrcodeError, Html5QrcodeResult} from "html5-qrcode/esm/core";
-import {CameraDevice} from "html5-qrcode/core";
-import {QRCodeReaderService} from "./camera/qrcode-reader.service";
-import {ScannerApiService, ScanResult} from "../../api/scanner-api.service";
-import {IFrame} from "@stomp/stompjs/src/i-frame";
+import {Html5QrcodeError, Html5QrcodeResult} from 'html5-qrcode/esm/core';
+import {CameraDevice} from 'html5-qrcode/core';
+import {QRCodeReaderService} from './camera/qrcode-reader.service';
+import {ScannerApiService, ScanResult} from '../../api/scanner-api.service';
+import {IFrame} from '@stomp/stompjs/src/i-frame';
 import {combineLatest, Subject} from 'rxjs';
 
 @Component({

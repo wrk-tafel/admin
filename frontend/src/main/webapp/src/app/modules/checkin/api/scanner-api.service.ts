@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
 import {CompatClient, Stomp, StompHeaders} from '@stomp/stompjs';
-import {PlatformLocation} from "@angular/common";
-import {frameCallbackType} from "@stomp/stompjs/src/types";
+import {PlatformLocation} from '@angular/common';
+import {frameCallbackType} from '@stomp/stompjs/src/types';
 
 @Injectable()
 export class ScannerApiService {
@@ -30,7 +30,7 @@ export class ScannerApiService {
   }
 
   private getBaseUrl() {
-    let protocol = this.platformLocation.protocol.replace('http', 'ws');
+    const protocol = this.platformLocation.protocol.replace('http', 'ws');
 
     let pathname = this.platformLocation.pathname;
     if (pathname === '/') {
@@ -43,5 +43,5 @@ export class ScannerApiService {
 }
 
 export interface ScanResult {
-  value: string
+  value: string;
 }
