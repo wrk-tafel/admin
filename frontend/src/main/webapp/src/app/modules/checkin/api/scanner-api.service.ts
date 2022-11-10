@@ -2,20 +2,24 @@ import {Injectable} from '@angular/core';
 import {CompatClient, Stomp, StompHeaders} from '@stomp/stompjs';
 import {PlatformLocation} from '@angular/common';
 import {frameCallbackType} from '@stomp/stompjs/src/types';
+import {CookieService} from "ngx-cookie-service";
 
 @Injectable()
 export class ScannerApiService {
   private client: CompatClient;
 
   constructor(
-    private platformLocation: PlatformLocation
+    private platformLocation: PlatformLocation,
+    private cookieService: CookieService
   ) {
   }
 
   connect(connectCallback: frameCallbackType,
           errorCallback: frameCallbackType,
           closeCallback: frameCallbackType) {
-    const headers: StompHeaders = {};
+    const headers: StompHeaders = {
+      'X-XSRF-TOKEN': this.cookieService.get('XSRF-TOKEN')
+    };
 
     this.client = Stomp.client(this.getBaseUrl());
     this.client.connect(headers, connectCallback, errorCallback, closeCallback);
