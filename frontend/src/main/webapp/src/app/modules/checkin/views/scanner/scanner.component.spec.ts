@@ -129,21 +129,6 @@ describe('ScannerComponent', () => {
     expect(component.lastSentText).toBe(testText);
   });
 
-  // TODO fix test
-  /*
-  it('qrCodeReaderErrorCallback fills default msg when api is connected', () => {
-    const fixture = TestBed.createComponent(ScannerComponent);
-    const component = fixture.componentInstance;
-    const testErrMsg = 'test-error';
-    component.apiClientReadyState.next(true);
-
-    component.qrCodeReaderErrorCallback(testErrMsg, undefined);
-
-    expect(component.stateMessage).toBe('Kein gültiger QR-Code gefunden!');
-    expect(component.stateClass).toBe('alert-info');
-  });
-   */
-
   it('apiClientSuccessCallback with a connected command', async () => {
     const fixture = TestBed.createComponent(ScannerComponent);
     const component = fixture.componentInstance;
