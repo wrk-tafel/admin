@@ -3,6 +3,7 @@ import {CompatClient, Stomp, StompHeaders} from '@stomp/stompjs';
 import {PlatformLocation} from '@angular/common';
 import {frameCallbackType} from '@stomp/stompjs/src/types';
 import {CookieService} from "ngx-cookie-service";
+import {AuthenticationService} from "../../../common/security/authentication.service";
 
 @Injectable()
 export class ScannerApiService {
@@ -10,7 +11,8 @@ export class ScannerApiService {
 
   constructor(
     private platformLocation: PlatformLocation,
-    private cookieService: CookieService
+    private cookieService: CookieService,
+    private authenticationService: AuthenticationService
   ) {
   }
 
@@ -18,9 +20,9 @@ export class ScannerApiService {
           errorCallback: frameCallbackType,
           closeCallback: frameCallbackType) {
 
-    const csrfToken = this.cookieService.get('XSRF-TOKEN');
     const headers: StompHeaders = {
-      'X-XSRF-TOKEN': csrfToken
+      'X-XSRF-TOKEN': this.cookieService.get('XSRF-TOKEN'),
+      'Authorization': 'Bearer ' + this.authenticationService.getTokenString()
     };
 
     this.client = Stomp.client(this.getBaseUrl());
