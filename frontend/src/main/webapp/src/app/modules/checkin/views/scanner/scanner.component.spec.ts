@@ -70,72 +70,24 @@ describe('ScannerComponent', () => {
     expect(qrCodeReaderService.stop).toHaveBeenCalled();
   });
 
-  it('processReadyStates when both services are ready', () => {
-    const fixture = TestBed.createComponent(ScannerComponent);
-    const component = fixture.componentInstance;
-    const testStates = [true, true];
-
-    component.processReadyStates(testStates);
-
-    expect(component.stateMessage).toBe('Bereit');
-    expect(component.stateClass).toBe('alert-info');
-  });
-
-  it('processReadyStates when qrCodeReader service is not ready', () => {
-    const fixture = TestBed.createComponent(ScannerComponent);
-    const component = fixture.componentInstance;
-    const testStates = [false, true];
-
-    component.processReadyStates(testStates);
-
-    expect(component.stateMessage).toBe('Kamera konnte nicht geladen werden!');
-    expect(component.stateClass).toBe('alert-danger');
-  });
-
-  it('processReadyStates when apiService is not ready', () => {
-    const fixture = TestBed.createComponent(ScannerComponent);
-    const component = fixture.componentInstance;
-    const testStates = [true, false];
-
-    component.processReadyStates(testStates);
-
-    expect(component.stateMessage).toBe('Verbindung zum Server fehlgeschlagen!');
-    expect(component.stateClass).toBe('alert-danger');
-  });
-
-  it('processReadyStates when both services are not ready', () => {
-    const fixture = TestBed.createComponent(ScannerComponent);
-    const component = fixture.componentInstance;
-    const testStates = [false, false];
-
-    component.processReadyStates(testStates);
-
-    expect(component.stateMessage).toBe('Kamera konnte nicht geladen werden!');
-    expect(component.stateClass).toBe('alert-danger');
-  });
-
   it('processQrCodeReaderPromise fills state when successful', async () => {
     const fixture = TestBed.createComponent(ScannerComponent);
     const component = fixture.componentInstance;
-    component.qrCodeReaderReadyState.next(false);
+    component.qrCodeReaderReady = false;
 
     await component.processQrCodeReaderPromise(Promise.resolve(null));
 
-    await component.readyStates.subscribe(result => {
-      expect(result[0]).toBe(true);
-    });
+    expect(component.qrCodeReaderReady).toBe(true);
   });
 
   it('processQrCodeReaderPromise fills state when failed', async () => {
     const fixture = TestBed.createComponent(ScannerComponent);
     const component = fixture.componentInstance;
-    component.qrCodeReaderReadyState.next(true);
+    component.qrCodeReaderReady = true;
 
     await component.processQrCodeReaderPromise(Promise.reject());
 
-    await component.readyStates.subscribe(result => {
-      expect(result[0]).toBe(false);
-    });
+    expect(component.qrCodeReaderReady).toBe(false);
   });
 
   it('qrCodeReaderSuccessCallback received new text', () => {
@@ -147,8 +99,6 @@ describe('ScannerComponent', () => {
 
     component.qrCodeReaderSuccessCallback(testText, undefined);
 
-    expect(component.stateMessage).toBe('Scan erfolgreich: ' + testText);
-    expect(component.stateClass).toBe('alert-success');
     expect(apiService.sendScanResult).toHaveBeenCalledWith({value: testText});
     expect(component.lastSentText).toBe(testText);
   });
@@ -162,8 +112,6 @@ describe('ScannerComponent', () => {
 
     component.qrCodeReaderSuccessCallback(testText, undefined);
 
-    expect(component.stateMessage).toBe('Scan erfolgreich: ' + testText);
-    expect(component.stateClass).toBe('alert-success');
     expect(apiService.sendScanResult).not.toHaveBeenCalledWith({value: testText});
     expect(component.lastSentText).toBe(testText);
   });
@@ -177,8 +125,6 @@ describe('ScannerComponent', () => {
 
     component.qrCodeReaderSuccessCallback(testText, undefined);
 
-    expect(component.stateMessage).toBe('Scan erfolgreich: ' + testText);
-    expect(component.stateClass).toBe('alert-success');
     expect(apiService.sendScanResult).toHaveBeenCalledWith({value: testText});
     expect(component.lastSentText).toBe(testText);
   });
@@ -205,48 +151,40 @@ describe('ScannerComponent', () => {
 
     component.apiClientSuccessCallback(testFrame);
 
-    await component.readyStates.subscribe(result => {
-      expect(result[1]).toBe(true);
-    });
+    expect(component.apiClientReady).toBe(true);
   });
 
   it('apiClientSuccessCallback without a connected command', async () => {
     const fixture = TestBed.createComponent(ScannerComponent);
     const component = fixture.componentInstance;
     const testFrame: IFrame = {command: 'TEST', headers: null, isBinaryBody: false, body: null, binaryBody: null};
-    component.apiClientReadyState.next(false);
+    component.apiClientReady = false;
 
     component.apiClientSuccessCallback(testFrame);
 
-    await component.readyStates.subscribe(result => {
-      expect(result[1]).toBe(true);
-    });
+    expect(component.apiClientReady).toBe(true);
   });
 
   it('apiClientErrorCallback fills state correctly', async () => {
     const fixture = TestBed.createComponent(ScannerComponent);
     const component = fixture.componentInstance;
     const testFrame: IFrame = {command: 'ERROR', headers: null, isBinaryBody: false, body: null, binaryBody: null};
-    component.apiClientReadyState.next(true);
+    component.apiClientReady = true;
 
     component.apiClientErrorCallback(testFrame);
 
-    await component.readyStates.subscribe(result => {
-      expect(result[1]).toBe(false);
-    });
+    expect(component.apiClientReady).toBe(false);
   });
 
   it('apiClientCloseCallback fills state correctly', async () => {
     const fixture = TestBed.createComponent(ScannerComponent);
     const component = fixture.componentInstance;
     const testFrame: IFrame = {command: 'CLOSED', headers: null, isBinaryBody: false, body: null, binaryBody: null};
-    component.apiClientReadyState.next(true);
+    component.apiClientReady = true;
 
     component.apiClientCloseCallback(testFrame);
 
-    await component.readyStates.subscribe(result => {
-      expect(result[1]).toBe(false);
-    });
+    expect(component.apiClientReady).toBe(false);
   });
 
   it('setSelectedCamera', () => {
@@ -259,7 +197,6 @@ describe('ScannerComponent', () => {
 
     expect(component.currentCamera).toEqual(testCamera);
     expect(qrCodeReaderService.saveCurrentCamera).toHaveBeenCalledWith(testCamera);
-    expect(component.stateMessage).toBe('Wird geladen ...');
     expect(qrCodeReaderService.restart).toHaveBeenCalledWith(testCamera.id);
   });
 
