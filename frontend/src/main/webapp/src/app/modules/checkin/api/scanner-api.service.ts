@@ -17,12 +17,14 @@ export class ScannerApiService {
   connect(connectCallback: frameCallbackType,
           errorCallback: frameCallbackType,
           closeCallback: frameCallbackType) {
+
+    const csrfToken = this.cookieService.get('XSRF-TOKEN');
     const headers: StompHeaders = {
-      'X-CSRF-TOKEN': this.cookieService.get('XSRF-TOKEN')
+      'X-XSRF-TOKEN': csrfToken
     };
 
     this.client = Stomp.client(this.getBaseUrl());
-    this.client.reconnect_delay = 2000;
+    // TODO this.client.reconnect_delay = 2000;
 
     // TODO this.client.reconnect_delay = 2000; ENABLED RECONNECT
 

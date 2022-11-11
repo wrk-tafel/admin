@@ -37,7 +37,6 @@ class WebSocketConfig : WebSocketMessageBrokerConfigurer, AbstractSecurityWebSoc
         //.simpDestMatchers("/ws-api/scanners/**").hasAuthority("CHECKIN")
     }
 
-    // TODO remove
     override fun sameOriginDisabled(): Boolean = true
 
 }
