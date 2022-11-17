@@ -15,6 +15,11 @@ describe('CustomerDetailComponent', () => {
   let fileHelperService: jasmine.SpyObj<FileHelperService>;
   let router: jasmine.SpyObj<Router>;
 
+  const mockCountry = {
+    id: 0,
+    code: 'AT',
+    name: 'Österreich'
+  };
   const mockCustomer: CustomerData = {
     id: 133,
     issuer: {
@@ -26,11 +31,7 @@ describe('CustomerDetailComponent', () => {
     lastname: 'Mustermann',
     firstname: 'Max',
     birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
-    country: {
-      id: 0,
-      code: 'AT',
-      name: 'Österreich'
-    },
+    country: mockCountry,
     telephoneNumber: '00436644123123123',
     email: 'max.mustermann@gmail.com',
 
@@ -57,14 +58,16 @@ describe('CustomerDetailComponent', () => {
         firstname: 'Pers 1',
         birthDate: moment().subtract(5, 'years').startOf('day').utc().toDate(),
         income: 50,
-        incomeDue: moment().add(1, 'years').startOf('day').utc().toDate()
+        incomeDue: moment().add(1, 'years').startOf('day').utc().toDate(),
+        country: mockCountry
       },
       {
         key: 1,
         id: 1,
         lastname: 'Add',
         firstname: 'Pers 2',
-        birthDate: moment().subtract(10, 'years').startOf('day').utc().toDate()
+        birthDate: moment().subtract(10, 'years').startOf('day').utc().toDate(),
+        country: mockCountry
       }
     ]
   };

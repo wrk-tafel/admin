@@ -116,10 +116,13 @@
                  [innerHTML]="addPerson?.firstname"></div>
           </div>
           <div class="row">
-            <div class="col" [attr.testid]="'addperson-' + i + '-birthDateAgeText'"
+            <div class="col-6" [attr.testid]="'addperson-' + i + '-birthDateAgeText'"
                  [innerHTML]="formatBirthDateAge(addPerson?.birthDate)"></div>
+            <div class="col-6" [attr.testid]="'addperson-' + i + '-countryText'">
+              {{addPerson?.country.name}}
+            </div>
           </div>
-          <div class="row">
+          <div class="row mt-3">
             <div class="col-6 font-weight-bold">Einkommen (monatl.)</div>
             <div class="col-6" [attr.testid]="'addperson-' + i + '-incomeText'"
                  *ngIf="addPerson?.income !== null">{{addPerson?.income}} &euro;</div>
