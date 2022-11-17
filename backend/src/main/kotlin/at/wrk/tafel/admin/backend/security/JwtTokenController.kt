@@ -72,7 +72,7 @@ class JwtTokenController(
             """
                 Login successful via user '${user.username}'
                 from IP ${getIpAddress(request)} on ${request.requestURL}
-                (password change required: ${user.passwordChangeRequired}
+                (passwordchange required: ${user.passwordChangeRequired}
             """.trimIndent()
         )
 

@@ -31,7 +31,7 @@ export class CustomerFormComponent implements OnInit {
       ]
     ),
 
-    country: new FormControl({}, Validators.required),
+    country: new FormControl(null, Validators.required),
     telephoneNumber: new FormControl(null, [Validators.pattern('^[0-9]*$')]),
     email: new FormControl(null, [Validators.maxLength(100), Validators.email]),
 
@@ -157,7 +157,7 @@ export class CustomerFormComponent implements OnInit {
       key: new FormControl(additionalPerson.key),
       id: new FormControl(additionalPerson.id),
       lastname: new FormControl(additionalPerson.lastname, [Validators.required, Validators.maxLength(50)]),
-      firstname: new FormControl(additionalPerson.firstname, [Validators.required, , Validators.maxLength(50)]),
+      firstname: new FormControl(additionalPerson.firstname, [Validators.required, Validators.maxLength(50)]),
       birthDate: new FormControl(additionalPerson.birthDate, [
         Validators.required,
         CustomValidator.minDate(new Date(1920, 0, 1)),

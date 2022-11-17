@@ -16,7 +16,7 @@
           </div>
           <div class="row">
             <div class="col-sm">
-              <label class="form-label">Familienname</label>
+              <label class="form-label">Familienname *</label>
               <input testId="lastnameInput" type="text" formControlName="lastname" class="form-control"
                      [ngClass]="{'is-invalid': lastname.invalid && (lastname.dirty || lastname.touched), 'is-valid': lastname.valid && (lastname.dirty || lastname.touched)}">
               <div *ngIf="lastname.errors?.required && (lastname.dirty || lastname.touched)"
@@ -29,7 +29,7 @@
               </div>
             </div>
             <div class="col-sm">
-              <label class="form-label">Vorname</label>
+              <label class="form-label">Vorname *</label>
               <input testId="firstnameInput" type="text" formControlName="firstname" class="form-control"
                      [ngClass]="{'is-invalid': firstname.invalid && (firstname.dirty || firstname.touched), 'is-valid': firstname.valid && (firstname.dirty || firstname.touched)}">
               <div *ngIf="firstname.errors?.required && (firstname.dirty || firstname.touched)"
@@ -44,7 +44,7 @@
           </div>
           <div class="row mb-2">
             <div class="col-sm">
-              <label class="form-label">Geburtsdatum</label>
+              <label class="form-label">Geburtsdatum *</label>
               <input testId="birthDateInput" type="date" formControlName="birthDate" class="form-control"
                      [ngClass]="{'is-invalid': birthDate.invalid && (birthDate.dirty || birthDate.touched), 'is-valid': birthDate.valid && (birthDate.dirty || birthDate.touched)}">
               <div *ngIf="birthDate.errors?.required && (birthDate.dirty || birthDate.touched)"
@@ -61,7 +61,7 @@
               </div>
             </div>
             <div class="col-sm">
-              <label class="form-label">Nationalität</label>
+              <label class="form-label">Nationalität *</label>
               <div class="input-group">
                 <select testId="countryInput" formControlName="country" class="form-control"
                         [compareWith]="compareCountry"
@@ -114,7 +114,7 @@
           <div formGroupName="address">
             <div class="row mb-2">
               <div class="col-sm">
-                <label class="form-label">Straße</label>
+                <label class="form-label">Straße *</label>
                 <input testId="streetInput" type="text" formControlName="street" class="form-control"
                        [ngClass]="{'is-invalid': street.invalid && (street.dirty || street.touched), 'is-valid': street.valid && (street.dirty || street.touched)}">
                 <div *ngIf="street.errors?.required && (street.dirty || street.touched)"
@@ -130,7 +130,7 @@
             </div>
             <div class="row mb-2">
               <div class="col-sm">
-                <label class="form-label">Hausnummer</label>
+                <label class="form-label">Hausnummer *</label>
                 <input testId="houseNumberInput" type="text" formControlName="houseNumber"
                        class="form-control"
                        [ngClass]="{'is-invalid': houseNumber.invalid && (houseNumber.dirty || houseNumber.touched), 'is-valid': houseNumber.valid && (houseNumber.dirty || houseNumber.touched)}">
@@ -158,7 +158,7 @@
             </div>
             <div class="row mb-2">
               <div class="col-sm">
-                <label class="form-label">PLZ</label>
+                <label class="form-label">PLZ *</label>
                 <div class="input-group">
                   <input testId="postalCodeInput" type="number" formControlName="postalCode"
                          class="form-control"
@@ -173,7 +173,7 @@
                 </div>
               </div>
               <div class="col-sm">
-                <label class="form-label">Ort</label>
+                <label class="form-label">Ort *</label>
                 <div class="input-group">
                   <input testId="cityInput" type="text" formControlName="city" class="form-control"
                          [ngClass]="{'is-invalid': city.invalid && (city.dirty || city.touched), 'is-valid': city.valid && (city.dirty || city.touched)}">
@@ -196,7 +196,7 @@
           <hr>
           <div class="row mb-2">
             <div class="col-sm">
-              <label class="form-label">Arbeitgeber</label>
+              <label class="form-label">Arbeitgeber *</label>
               <div class="input-group">
                 <input testId="employerInput" type="text" formControlName="employer"
                        class="form-control"
@@ -213,7 +213,7 @@
           </div>
           <div class="row mb-2">
             <div class="col-sm">
-              <label class="form-label">Einkommen (monatl.)</label>
+              <label class="form-label">Einkommen (monatl.) *</label>
               <div class="input-group">
                 <input testId="incomeInput" type="number" formControlName="income" class="form-control"
                        [ngClass]="{'is-invalid': income.invalid && (income.dirty || income.touched), 'is-valid': income.valid && (income.dirty || income.touched)}">
@@ -241,7 +241,7 @@
           <hr/>
           <div class="row mb-2">
             <div class="col-sm">
-              <label class="form-label">Gültig bis</label>
+              <label class="form-label">Gültig bis *</label>
               <input testId="validUntilInput" type="date" formControlName="validUntil" class="form-control"
                      [ngClass]="{'is-invalid': validUntil.invalid && (validUntil.dirty || validUntil.touched), 'is-valid': validUntil.valid && (validUntil.dirty || validUntil.touched)}">
               <div *ngIf="validUntil.errors?.required && (validUntil.dirty || validUntil.touched)"
@@ -281,7 +281,7 @@
                       <div class="row">
                         <div class="col-lg">
                           <input testid="idInput" type="hidden" formControlName="id" class="form-control"/>
-                          <label class="form-label">Familienname</label>
+                          <label class="form-label">Familienname *</label>
                           <input testid="lastnameInput" type="text" formControlName="lastname"
                                  class="form-control"
                                  [ngClass]="{'is-invalid': additionalPerson.get('lastname').invalid && (additionalPerson.get('lastname').dirty || additionalPerson.get('lastname').touched), 'is-valid': additionalPerson.get('lastname').valid && (additionalPerson.get('lastname').dirty || additionalPerson.get('lastname').touched)}"
@@ -294,12 +294,11 @@
                           <div
                             *ngIf="additionalPerson.get('lastname').errors?.maxlength && (additionalPerson.get('lastname').dirty || additionalPerson.get('lastname').touched)"
                             class="invalid-feedback">
-                            Familienname zu lang (Limit:
-                            {{lastname.errors.maxlength.requiredLength}})
+                            Familienname zu lang (Limit: {{lastname.errors.maxlength.requiredLength}})
                           </div>
                         </div>
                         <div class="col-lg">
-                          <label class="form-label">Vorname</label>
+                          <label class="form-label">Vorname *</label>
                           <input testid="firstnameInput" type="text"
                                  formControlName="firstname" class="form-control"
                                  [ngClass]="{'is-invalid': additionalPerson.get('firstname').invalid && (additionalPerson.get('firstname').dirty || additionalPerson.get('firstname').touched), 'is-valid': additionalPerson.get('firstname').valid && (additionalPerson.get('firstname').dirty || additionalPerson.get('firstname').touched)}">
@@ -311,14 +310,13 @@
                           <div
                             *ngIf="additionalPerson.get('firstname').errors?.maxlength && (additionalPerson.get('firstname').dirty || additionalPerson.get('firstname').touched)"
                             class="invalid-feedback">
-                            Vorname zu lang
-                            (Limit: {{additionalPerson.get('firstname').errors.maxlength.requiredLength}})
+                            Vorname zu lang (Limit: {{additionalPerson.get('firstname').errors.maxlength.requiredLength}})
                           </div>
                         </div>
                       </div>
                       <div class="row mt-2">
                         <div class="col-lg">
-                          <label class="form-label">Geburtsdatum</label>
+                          <label class="form-label">Geburtsdatum *</label>
                           <input testid="birthDateInput" type="date"
                                  formControlName="birthDate" class="form-control"
                                  [ngClass]="{'is-invalid': additionalPerson.get('birthDate').invalid && (additionalPerson.get('birthDate').dirty || additionalPerson.get('birthDate').touched), 'is-valid': additionalPerson.get('birthDate').valid && (additionalPerson.get('birthDate').dirty || additionalPerson.get('birthDate').touched)}">
@@ -357,10 +355,11 @@
                             <input testid="incomeDueInput" type="date"
                                    formControlName="incomeDue" class="form-control"
                                    [ngClass]="{'is-invalid': additionalPerson.get('incomeDue').invalid && (additionalPerson.get('incomeDue').dirty || additionalPerson.get('incomeDue').touched), 'is-valid': additionalPerson.get('incomeDue').valid && (additionalPerson.get('incomeDue').dirty || additionalPerson.get('incomeDue').touched)}">
-                              <div *ngIf="additionalPerson.get('incomeDue').errors?.mindate && (additionalPerson.get('incomeDue').dirty || additionalPerson.get('incomeDue').touched)"
-                                   class="invalid-feedback">
-                                Mind. Datum: {{additionalPerson.get('incomeDue').errors.mindate.minimumDate}}
-                              </div>
+                            <div
+                              *ngIf="additionalPerson.get('incomeDue').errors?.mindate && (additionalPerson.get('incomeDue').dirty || additionalPerson.get('incomeDue').touched)"
+                              class="invalid-feedback">
+                              Mind. Datum: {{additionalPerson.get('incomeDue').errors.mindate.minimumDate}}
+                            </div>
                           </div>
                         </div>
                       </div>
