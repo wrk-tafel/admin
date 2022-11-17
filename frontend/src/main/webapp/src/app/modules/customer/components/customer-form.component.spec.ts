@@ -132,6 +132,7 @@ describe('CustomerFormComponent', () => {
         lastname: testCustomerData.additionalPersons[0].lastname,
         firstname: testCustomerData.additionalPersons[0].firstname,
         birthDate: testCustomerData.additionalPersons[0].birthDate,
+        country: testCustomerData.additionalPersons[0].country,
         income: testCustomerData.additionalPersons[0].income,
         incomeDue: testCustomerData.additionalPersons[0].incomeDue
       }));
@@ -140,7 +141,8 @@ describe('CustomerFormComponent', () => {
         id: testCustomerData.additionalPersons[1].id,
         lastname: testCustomerData.additionalPersons[1].lastname,
         firstname: testCustomerData.additionalPersons[1].firstname,
-        birthDate: testCustomerData.additionalPersons[1].birthDate
+        birthDate: testCustomerData.additionalPersons[1].birthDate,
+        country: testCustomerData.additionalPersons[1].country
       }));
   }));
 
