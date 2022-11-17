@@ -15,7 +15,7 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 class WebSocketConfig : WebSocketMessageBrokerConfigurer, AbstractSecurityWebSocketMessageBrokerConfigurer() {
 
     override fun registerStompEndpoints(registry: StompEndpointRegistry) {
-        registry.addEndpoint("/ws-api")
+        registry.addEndpoint("/api/websockets").withSockJS()
     }
 
     override fun configureMessageBroker(registry: MessageBrokerRegistry) {
@@ -31,11 +31,7 @@ class WebSocketConfig : WebSocketMessageBrokerConfigurer, AbstractSecurityWebSoc
         registry.setApplicationDestinationPrefixes("/app")
     }
 
-    override fun configureInbound(messages: MessageSecurityMetadataSourceRegistry) {
-        messages.anyMessage().authenticated()
-            .simpDestMatchers("/ws-api/scanners/**").hasAuthority("CHECKIN")
-    }
-
+    // TODO
     override fun sameOriginDisabled(): Boolean = true
 
 }

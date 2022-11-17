@@ -4,6 +4,7 @@ import {CameraDevice} from 'html5-qrcode/core';
 import {QRCodeReaderService} from './camera/qrcode-reader.service';
 import {ScannerApiService, ScanResult} from '../../api/scanner-api.service';
 import {IFrame} from '@stomp/stompjs/src/i-frame';
+import {RxStompState} from "@stomp/rx-stomp/esm6/rx-stomp-state";
 
 @Component({
   selector: 'tafel-scanner',
@@ -27,13 +28,19 @@ export class ScannerComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.scannerApiService.connect(this.apiClientSuccessCallback, this.apiClientErrorCallback, this.apiClientCloseCallback);
+    this.scannerApiService.connect().subscribe((connectionState: RxStompState) => {
+      if (connectionState === RxStompState.OPEN) {
+        this.apiClientReady = true;
+      } else {
+        this.apiClientReady = false;
+      }
+    });
 
     this.qrCodeReaderService.getCameras().then(cameras => {
       this.availableCameras = cameras;
       this.currentCamera = this.qrCodeReaderService.getCurrentCamera(cameras);
 
-      this.qrCodeReaderService.init("qrCodeReaderBox", this.qrCodeReaderSuccessCallback, this.qrCodeReaderErrorCallback);
+      this.qrCodeReaderService.init("qrCodeReaderBox", this.qrCodeReaderSuccessCallback);
       const promise = this.qrCodeReaderService.start(this.currentCamera.id);
       this.processQrCodeReaderPromise(promise);
     });

@@ -28,7 +28,9 @@ import org.springframework.security.provisioning.UserDetailsManager
 import org.springframework.security.web.authentication.HttpStatusEntryPoint
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository
+import org.springframework.security.web.util.matcher.AndRequestMatcher
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher
+import org.springframework.security.web.util.matcher.NegatedRequestMatcher
 
 @Configuration
 @EnableWebSecurity
@@ -73,11 +75,16 @@ class WebSecurityConfig(
             .authenticationEntryPoint(HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
             .and().sessionManagement()
             .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            .and()
+            .authorizeRequests().antMatchers("/api/websockets/**").permitAll()
+            .and()
+            .headers()
+            .frameOptions().sameOrigin()
 
         if (csrfEnabled) {
             http.csrf()
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .ignoringAntMatchers("/api/login")
+                .ignoringAntMatchers("/api/login", "/api/websockets/**")
         } else {
             http.csrf().disable()
         }
@@ -102,7 +109,10 @@ class WebSecurityConfig(
 
     @Bean
     fun jwtAuthenticationFilter(): JwtAuthenticationFilter {
-        val requestMatcher = AntPathRequestMatcher("/api/**")
+        val requestMatcher = AndRequestMatcher(
+            AntPathRequestMatcher("/api/**"),
+            NegatedRequestMatcher(AntPathRequestMatcher("/api/websockets/**"))
+        )
 
         val filter = JwtAuthenticationFilter(requestMatcher, authenticationManagerBean())
         // We do not need to do anything extra on REST authentication success, because there is no page to redirect to

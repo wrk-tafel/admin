@@ -1,13 +1,16 @@
 import {Injectable} from '@angular/core';
-import {CompatClient, Stomp, StompHeaders} from '@stomp/stompjs';
 import {PlatformLocation} from '@angular/common';
-import {frameCallbackType} from '@stomp/stompjs/src/types';
-import {CookieService} from "ngx-cookie-service";
-import {AuthenticationService} from "../../../common/security/authentication.service";
+import {CookieService} from 'ngx-cookie-service';
+import {AuthenticationService} from '../../../common/security/authentication.service';
+import {RxStomp} from '@stomp/rx-stomp';
+import {RxStompConfig} from '@stomp/rx-stomp/esm6/rx-stomp-config';
+import {BehaviorSubject} from 'rxjs';
+import {RxStompState} from '@stomp/rx-stomp/esm6/rx-stomp-state';
+import * as SockJS from 'sockjs-client';
 
 @Injectable()
 export class ScannerApiService {
-  private client: CompatClient;
+  private client: RxStomp;
 
   constructor(
     private platformLocation: PlatformLocation,
@@ -16,44 +19,45 @@ export class ScannerApiService {
   ) {
   }
 
-  connect(connectCallback: frameCallbackType,
-          errorCallback: frameCallbackType,
-          closeCallback: frameCallbackType) {
-
-    const headers: StompHeaders = {
-      'X-XSRF-TOKEN': this.cookieService.get('XSRF-TOKEN'),
-      'Authorization': 'Bearer ' + this.authenticationService.getTokenString()
+  connect(): BehaviorSubject<RxStompState> {
+    const stompConfig: RxStompConfig = {
+      webSocketFactory: this.createSockJSClient,
+      connectHeaders: {
+        'X-XSRF-TOKEN': this.cookieService.get('XSRF-TOKEN'),
+        'Authorization': 'Bearer ' + this.authenticationService.getTokenString()
+      },
+      debug: function (str) {
+        console.log('STOMP: ' + str);
+      },
+      reconnectDelay: 2000
     };
 
-    this.client = Stomp.client(this.getBaseUrl());
-    // TODO this.client.reconnect_delay = 2000;
+    this.client = new RxStomp();
+    this.client.configure(stompConfig);
+    this.client.activate();
 
-    // TODO this.client.reconnect_delay = 2000; ENABLED RECONNECT
-
-    this.client.configure({
-      connectHeaders: {}
-    });
-
-    this.client.connect(headers, connectCallback, errorCallback, closeCallback);
+    return this.client.connectionState$;
   }
 
   sendScanResult(result: ScanResult) {
-    this.client.send('/app/scanners/result', {}, JSON.stringify(result));
+    this.client.publish({destination: '/app/scanners/result', body: JSON.stringify(result)});
   }
 
   close() {
-    this.client.forceDisconnect();
+    this.client.deactivate();
   }
 
   private getBaseUrl() {
-    const protocol = this.platformLocation.protocol.replace('http', 'ws');
-
     let pathname = this.platformLocation.pathname;
     if (pathname === '/') {
       pathname = '';
     }
 
-    return protocol + '//' + this.platformLocation.hostname + ':' + this.platformLocation.port + pathname + '/ws-api';
+    return this.platformLocation.protocol + '//' + this.platformLocation.hostname + ':' + this.platformLocation.port + pathname + '/api/websockets';
+  }
+
+  private createSockJSClient() {
+    return new SockJS('http://localhost:4200/api/websockets');
   }
 
 }

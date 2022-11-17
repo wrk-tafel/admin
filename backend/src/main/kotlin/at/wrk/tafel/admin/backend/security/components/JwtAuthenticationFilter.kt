@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.security.components
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.security.model.JwtAuthenticationToken
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpHeaders
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.InsufficientAuthenticationException
@@ -22,12 +23,14 @@ class JwtAuthenticationFilter(
 ) {
     companion object {
         private const val AUTHORIZATION_PREFIX = "Bearer "
+        private val logger = LoggerFactory.getLogger(JwtAuthenticationFilter::class.java)
     }
 
     override fun attemptAuthentication(request: HttpServletRequest, response: HttpServletResponse): Authentication {
         val header = request.getHeader(HttpHeaders.AUTHORIZATION)
 
         if (header == null || !header.startsWith(AUTHORIZATION_PREFIX)) {
+            logger.info("Failed authentication attempt on ${request.requestURI}")
             throw InsufficientAuthenticationException("no token given")
         }
 

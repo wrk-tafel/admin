@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {Html5Qrcode, Html5QrcodeSupportedFormats} from 'html5-qrcode';
-import {CameraDevice, QrcodeErrorCallback, QrcodeSuccessCallback} from 'html5-qrcode/esm/core';
+import {CameraDevice, QrcodeSuccessCallback} from 'html5-qrcode/esm/core';
 import {Html5QrcodeCameraScanConfig, Html5QrcodeFullConfig} from 'html5-qrcode/esm/html5-qrcode';
 import {Html5QrcodeScannerState} from 'html5-qrcode/esm/state-manager';
 
@@ -10,7 +10,6 @@ export class QRCodeReaderService {
   private LOCAL_STORAGE_LAST_CAMERA_ID_KEY = 'TAFEL_LAST_CAMERA_ID';
   qrCodeReader: Html5Qrcode;
   private successCallback: QrcodeSuccessCallback;
-  private errorCallback: QrcodeErrorCallback;
 
   private basicConfig: Html5QrcodeFullConfig = {
     formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
@@ -52,24 +51,23 @@ export class QRCodeReaderService {
     localStorage.setItem(this.LOCAL_STORAGE_LAST_CAMERA_ID_KEY, camera.id);
   }
 
-  init(elementId: string, successCallback: QrcodeSuccessCallback, errorCallback: QrcodeErrorCallback) {
+  init(elementId: string, successCallback: QrcodeSuccessCallback) {
     this.successCallback = successCallback;
-    this.errorCallback = errorCallback;
     this.qrCodeReader = new Html5Qrcode(elementId, this.basicConfig);
   }
 
   start(cameraId: string): Promise<null> {
-    return this.qrCodeReader.start(cameraId, this.cameraConfig, this.successCallback, this.errorCallback);
+    return this.qrCodeReader.start(cameraId, this.cameraConfig, this.successCallback, undefined);
   }
 
   async restart(cameraId: string): Promise<null> {
     if (this.qrCodeReader.getState() === Html5QrcodeScannerState.SCANNING) {
       return await this.qrCodeReader.stop().then(
-        () => this.qrCodeReader.start(cameraId, this.cameraConfig, this.successCallback, this.errorCallback),
+        () => this.qrCodeReader.start(cameraId, this.cameraConfig, this.successCallback, undefined),
         () => Promise.reject()
       );
     }
-    return this.qrCodeReader.start(cameraId, this.cameraConfig, this.successCallback, this.errorCallback);
+    return this.qrCodeReader.start(cameraId, this.cameraConfig, this.successCallback, undefined);
   }
 
   stop(): Promise<void> {
