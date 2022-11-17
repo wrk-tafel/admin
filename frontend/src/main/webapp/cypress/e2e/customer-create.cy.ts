@@ -71,18 +71,21 @@ describe('Customer Creation', () => {
       lastname: 'Add',
       firstname: 'Adult 1',
       age: 30,
-      income: 500
+      income: 500,
+      country: 'Österreich'
     });
     enterAdditionalPersonData(1, {
       lastname: 'Add',
       firstname: 'Child 1',
       age: 3,
-      income: 0
+      income: 0,
+      country: 'Deutschland'
     });
     enterAdditionalPersonData(2, {
       lastname: 'Add',
       firstname: 'Child 2',
-      age: 8
+      age: 8,
+      country: 'Schweiz'
     });
 
     cy.byTestId('save-button').should('be.disabled');
@@ -115,6 +118,7 @@ describe('Customer Creation', () => {
       cy.byTestId('lastnameInput').type(data.lastname);
       cy.byTestId('firstnameInput').type(data.firstname);
       cy.byTestId('birthDateInput').type(moment().subtract(data.age, 'years').startOf('day').format('YYYY-MM-DD'));
+      cy.byTestId('countryInput').select(data.country);
       if (data.income !== undefined) {
         cy.byTestId('incomeInput').type(data.income.toString());
       }
@@ -125,7 +129,8 @@ describe('Customer Creation', () => {
     lastname: string,
     firstname: string,
     age: number,
-    income?: number
+    income?: number,
+    country: string
   }
 
   function getRandomNumber(min, max) {

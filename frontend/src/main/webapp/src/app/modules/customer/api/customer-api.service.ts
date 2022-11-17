@@ -103,6 +103,7 @@ export interface CustomerAddPersonData {
   firstname: string;
   lastname: string;
   birthDate: Date;
+  country?: CountryData;
   income?: number;
   incomeDue?: Date;
 }

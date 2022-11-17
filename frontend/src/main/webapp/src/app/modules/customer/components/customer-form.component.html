@@ -279,7 +279,7 @@
                   <div class="row" [formGroupName]="i" [attr.testid]="'personform-' + i">
                     <div class="col">
                       <div class="row">
-                        <div class="col-lg">
+                        <div class="col-lg-6">
                           <input testid="idInput" type="hidden" formControlName="id" class="form-control"/>
                           <label class="form-label">Familienname *</label>
                           <input testid="lastnameInput" type="text" formControlName="lastname"
@@ -297,7 +297,7 @@
                             Familienname zu lang (Limit: {{lastname.errors.maxlength.requiredLength}})
                           </div>
                         </div>
-                        <div class="col-lg">
+                        <div class="col-lg-6">
                           <label class="form-label">Vorname *</label>
                           <input testid="firstnameInput" type="text"
                                  formControlName="firstname" class="form-control"
@@ -314,8 +314,8 @@
                           </div>
                         </div>
                       </div>
-                      <div class="row mt-2">
-                        <div class="col-lg">
+                      <div class="row">
+                        <div class="col-lg-6">
                           <label class="form-label">Geburtsdatum *</label>
                           <input testid="birthDateInput" type="date"
                                  formControlName="birthDate" class="form-control"
@@ -336,9 +336,27 @@
                             Max. Datum: {{additionalPerson.get('birthDate').errors.maxdate.maximumDate}}
                           </div>
                         </div>
+                        <div class="col-lg-6">
+                          <label class="form-label">Nationalität *</label>
+                          <div class="input-group">
+                            <select testId="countryInput" formControlName="country" class="form-control"
+                                    [compareWith]="compareCountry"
+                                    [ngClass]="{'is-invalid': additionalPerson.get('country').invalid && (additionalPerson.get('country').dirty || additionalPerson.get('country').touched), 'is-valid': additionalPerson.get('country').valid && (additionalPerson.get('country').dirty || additionalPerson.get('country').touched)}">
+                              <option *ngFor="let countryItem of countries" [ngValue]="countryItem">
+                                {{countryItem.name}}</option>
+                            </select>
+                            <div class="input-group-append">
+                              <span class="input-group-text"><i class="fa fa-flag"></i></span>
+                            </div>
+                            <div *ngIf="additionalPerson.get('country').errors?.required && (additionalPerson.get('country').dirty || additionalPerson.get('country').touched)"
+                                 class="invalid-feedback">
+                              Pflichtfeld
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      <div class="row mt-2">
-                        <div class="col">
+                      <div class="row">
+                        <div class="col-lg-6">
                           <label class="form-label">Einkommen (monatl.)</label>
                           <div class="input-group">
                             <input testid="incomeInput" type="number"
@@ -349,7 +367,7 @@
                             </div>
                           </div>
                         </div>
-                        <div class="col">
+                        <div class="col-lg-6">
                           <label class="form-label">nachgewiesen bis</label>
                           <div class="input-group">
                             <input testid="incomeDueInput" type="date"
