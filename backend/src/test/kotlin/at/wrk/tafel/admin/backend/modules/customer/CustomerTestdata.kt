@@ -46,13 +46,23 @@ val testCustomer = Customer(
             lastname = "Add pers 1",
             birthDate = LocalDate.now().minusYears(5),
             income = BigDecimal("100"),
-            incomeDue = LocalDate.now()
+            incomeDue = LocalDate.now(),
+            country = Country(
+                id = 1,
+                code = "AT",
+                name = "Österreich"
+            )
         ),
         CustomerAdditionalPerson(
             id = 3,
             firstname = "Add pers 2",
             lastname = "Add pers 2",
-            birthDate = LocalDate.now().minusYears(2)
+            birthDate = LocalDate.now().minusYears(2),
+            country = Country(
+                id = 1,
+                code = "AT",
+                name = "Österreich"
+            )
         )
     )
 )
@@ -92,12 +102,14 @@ val testCustomerEntity1 = CustomerEntity().apply {
     addPerson1.birthDate = LocalDate.now().minusYears(5)
     addPerson1.income = BigDecimal("100")
     addPerson1.incomeDue = LocalDate.now()
+    addPerson1.country = testCountry
 
     val addPerson2 = CustomerAddPersonEntity()
     addPerson2.id = 3
     addPerson2.lastname = "Add pers 2"
     addPerson2.firstname = "Add pers 2"
     addPerson2.birthDate = LocalDate.now().minusYears(2)
+    addPerson2.country = testCountry
 
     additionalPersons = mutableListOf(addPerson1, addPerson2)
 }
