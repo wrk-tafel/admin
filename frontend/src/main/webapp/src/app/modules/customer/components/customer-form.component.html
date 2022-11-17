@@ -227,7 +227,7 @@
               </div>
             </div>
             <div class="col-sm">
-              <label class="form-label">nachgewiesen bis *</label>
+              <label class="form-label">nachgewiesen bis</label>
               <div class="input-group">
                 <input testId="incomeDueInput" type="date" formControlName="incomeDue" class="form-control"
                        [ngClass]="{'is-invalid': incomeDue.invalid && (incomeDue.dirty || incomeDue.touched), 'is-valid': incomeDue.valid && (incomeDue.dirty || incomeDue.touched)}">
@@ -241,7 +241,7 @@
           <hr/>
           <div class="row mb-2">
             <div class="col-sm">
-              <label class="form-label">Gültig bis</label>
+              <label class="form-label">Gültig bis *</label>
               <input testId="validUntilInput" type="date" formControlName="validUntil" class="form-control"
                      [ngClass]="{'is-invalid': validUntil.invalid && (validUntil.dirty || validUntil.touched), 'is-valid': validUntil.valid && (validUntil.dirty || validUntil.touched)}">
               <div *ngIf="validUntil.errors?.required && (validUntil.dirty || validUntil.touched)"
