@@ -315,7 +315,7 @@
                         </div>
                       </div>
                       <div class="row mt-2">
-                        <div class="col-lg">
+                        <div class="col">
                           <label class="form-label">Geburtsdatum *</label>
                           <input testid="birthDateInput" type="date"
                                  formControlName="birthDate" class="form-control"
@@ -334,6 +334,24 @@
                             *ngIf="additionalPerson.get('birthDate').errors?.maxdate && (additionalPerson.get('birthDate').dirty || additionalPerson.get('birthDate').touched)"
                             class="invalid-feedback">
                             Max. Datum: {{additionalPerson.get('birthDate').errors.maxdate.maximumDate}}
+                          </div>
+                        </div>
+                        <div class="col">
+                          <label class="form-label">Nationalität *</label>
+                          <div class="input-group">
+                            <select testId="countryInput" formControlName="country" class="form-control"
+                                    [compareWith]="compareCountry"
+                                    [ngClass]="{'is-invalid': additionalPerson.get('country').invalid && (additionalPerson.get('country').dirty || additionalPerson.get('country').touched), 'is-valid': additionalPerson.get('country').valid && (additionalPerson.get('country').dirty || additionalPerson.get('country').touched)}">
+                              <option *ngFor="let countryItem of countries" [ngValue]="countryItem">
+                                {{countryItem.name}}</option>
+                            </select>
+                            <div class="input-group-append">
+                              <span class="input-group-text"><i class="fa fa-flag"></i></span>
+                            </div>
+                            <div *ngIf="additionalPerson.get('country').errors?.required && (additionalPerson.get('country').dirty || additionalPerson.get('country').touched)"
+                                 class="invalid-feedback">
+                              Pflichtfeld
+                            </div>
                           </div>
                         </div>
                       </div>

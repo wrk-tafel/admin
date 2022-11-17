@@ -163,6 +163,7 @@ export class CustomerFormComponent implements OnInit {
         CustomValidator.minDate(new Date(1920, 0, 1)),
         CustomValidator.maxDate(new Date())
       ]),
+      country: new FormControl(null, Validators.required),
       income: new FormControl(additionalPerson.income),
       incomeDue: new FormControl(additionalPerson.incomeDue, [
         CustomValidator.minDate(new Date())

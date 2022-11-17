@@ -42,6 +42,7 @@ describe('CustomerFormComponent', () => {
         lastname: 'Last 1',
         firstname: 'First 1',
         birthDate: moment().subtract(1, 'years').startOf('day').utc().toDate(),
+        country: mockCountryList[0],
         income: 200,
         incomeDue: moment().add(1, 'years').startOf('day').utc().toDate(),
       },
@@ -50,7 +51,8 @@ describe('CustomerFormComponent', () => {
         id: 1,
         lastname: 'Last 2',
         firstname: 'First 2',
-        birthDate: moment().subtract(4, 'years').startOf('day').utc().toDate()
+        birthDate: moment().subtract(4, 'years').startOf('day').utc().toDate(),
+        country: mockCountryList[0],
       }
     ]
   };
