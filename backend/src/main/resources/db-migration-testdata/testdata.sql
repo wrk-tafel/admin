@@ -50,6 +50,8 @@ VALUES (300, NOW(), NOW(), 'admin', '{argon2}$argon2id$v=19$m=4096,t=3,p=1$RXn6X
         '0300', 'AD', 'min');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (3000, NOW(), NOW(), 300, 'DASHBOARD');
+INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
+VALUES (3001, NOW(), NOW(), 300, 'CUSTOMER');
 
 -- customers
 INSERT INTO customers (id, created_at, updated_at, customer_id, user_id, firstname, lastname, birth_date, country_id,
