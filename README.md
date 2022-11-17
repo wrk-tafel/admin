@@ -1,2 +1,2 @@
 # TODO
-* Add a little star to mark required fields
+* Add nationality also to additional persons
