@@ -15,6 +15,7 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.math.BigDecimal
+import java.math.RoundingMode
 import java.time.LocalDate
 import java.time.Period
 import java.time.format.DateTimeFormatter
@@ -82,7 +83,7 @@ class CustomerPdfServiceImpl : CustomerPdfService {
                 employer = customer.employer!!,
                 income = customer.income
                     ?.takeIf { it.compareTo(BigDecimal.ZERO) != 0 }
-                    ?.let { "${it.setScale(0)} €" }
+                    ?.let { "${it.setScale(2, RoundingMode.HALF_EVEN)} €" }
                     ?: "-",
                 incomeDueDate = customer.incomeDue?.format(DATE_FORMATTER) ?: "-",
                 validUntilDate = customer.validUntil!!.format(DATE_FORMATTER),

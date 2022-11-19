@@ -87,7 +87,7 @@ class CustomerPdfServiceImplTest {
         testCustomer.addressPostalCode = 1210
         testCustomer.addressCity = "Wien"
         testCustomer.employer = "WRK Team Österreich Tafel"
-        testCustomer.income = BigDecimal.TEN
+        testCustomer.income = BigDecimal("977.94587")
         testCustomer.incomeDue = LocalDate.of(2030, 1, 1)
         testCustomer.validUntil = LocalDate.of(2030, 3, 1)
 
