@@ -91,6 +91,7 @@
             "karmaConfig": "./karma.conf.js",
             "polyfills": "src/polyfills.ts",
             "tsConfig": "src/tsconfig.spec.json",
+            "preserveSymlinks": true,
             "scripts": [],
             "styles": [
               "node_modules/@coreui/icons/css/free.css",
