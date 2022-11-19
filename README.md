@@ -4,3 +4,4 @@
   * Prolongue customer (dropdown?) --> 1 month, 2 months?
   * Delete customer
 * customer creation - less spacing for additionalpersons
+* masterdata - add nationalities
