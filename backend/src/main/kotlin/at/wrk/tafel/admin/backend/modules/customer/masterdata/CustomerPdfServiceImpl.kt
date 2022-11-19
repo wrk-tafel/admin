@@ -101,7 +101,7 @@ class CustomerPdfServiceImpl : CustomerPdfService {
                 },
                 idCard = PdfIdCardData(
                     qrCodeContentType = MimeTypeUtils.IMAGE_PNG_VALUE,
-                    qrCodeBytes = QRCode(customer.id.toString()).render().getBytes()
+                    qrCodeBytes = QRCode(customer.customerId.toString()).render().getBytes()
                 )
             ),
             countPersons = countPersons,
