@@ -98,7 +98,8 @@ describe('CustomerDetailComponent', () => {
           provide: Router,
           useValue: routerSpy
         }
-      ]
+      ],
+      declarations: [CustomerDetailComponent]
     }).compileComponents();
 
     apiService = TestBed.inject(CustomerApiService) as jasmine.SpyObj<CustomerApiService>;
