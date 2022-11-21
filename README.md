@@ -6,7 +6,6 @@
     * Delete customer
 * customer creation - less spacing for additional persons
     * add employer field also for additional persons
-* masterdata - add nationalities
 
 ### Open things (to be discussed)
 
