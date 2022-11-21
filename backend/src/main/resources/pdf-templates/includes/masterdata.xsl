@@ -104,6 +104,16 @@
                                     </fo:table-row>
                                     <fo:table-row>
                                         <fo:table-cell>
+                                            <fo:block font-weight="bold">Nationalität:</fo:block>
+                                        </fo:table-cell>
+                                        <fo:table-cell>
+                                            <fo:block>
+                                                <xsl:value-of select="$data/country"/>
+                                            </fo:block>
+                                        </fo:table-cell>
+                                    </fo:table-row>
+                                    <fo:table-row>
+                                        <fo:table-cell>
                                             <fo:block font-weight="bold">Addresse:</fo:block>
                                         </fo:table-cell>
                                         <fo:table-cell>
@@ -224,17 +234,22 @@
                                                 </fo:table-row>
                                                 <fo:table-row>
                                                     <fo:table-cell>
-                                                        <fo:block>
-                                                            <xsl:value-of select="./birthDate"/>
-                                                        </fo:block>
-                                                    </fo:table-cell>
-                                                </fo:table-row>
-                                                <fo:table-row>
-                                                    <fo:table-cell>
                                                         <fo:table table-layout="fixed" width="100%">
                                                             <fo:table-column column-width="50%"/>
                                                             <fo:table-column column-width="50%"/>
                                                             <fo:table-body>
+                                                                <fo:table-row>
+                                                                    <fo:table-cell>
+                                                                        <fo:block>
+                                                                            <xsl:value-of select="./birthDate"/>
+                                                                        </fo:block>
+                                                                    </fo:table-cell>
+                                                                    <fo:table-cell>
+                                                                        <fo:block>
+                                                                            <xsl:value-of select="./country"/>
+                                                                        </fo:block>
+                                                                    </fo:table-cell>
+                                                                </fo:table-row>
                                                                 <fo:table-row>
                                                                     <fo:table-cell>
                                                                         <fo:block>Einkommen:</fo:block>
@@ -264,7 +279,7 @@
                                     </fo:table>
                                 </xsl:when>
                                 <xsl:otherwise>
-                                    <fo:block>Keine weiteren Personen</fo:block>
+                                    <fo:block margin-left="2mm">Keine weiteren Personen</fo:block>
                                 </xsl:otherwise>
                             </xsl:choose>
                         </fo:block>

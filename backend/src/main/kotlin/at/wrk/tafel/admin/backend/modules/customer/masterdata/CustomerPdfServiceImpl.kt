@@ -72,6 +72,7 @@ class CustomerPdfServiceImpl : CustomerPdfService {
                 lastname = customer.lastname!!,
                 firstname = customer.firstname!!,
                 birthDate = customer.birthDate!!.format(DATE_FORMATTER),
+                country = customer.country!!.name!!,
                 telephoneNumber = customer.telephoneNumber,
                 email = customer.email,
                 address = PdfAddressData(
@@ -94,6 +95,7 @@ class CustomerPdfServiceImpl : CustomerPdfService {
                         lastname = it.lastname!!,
                         firstname = it.firstname!!,
                         birthDate = it.birthDate!!.format(DATE_FORMATTER),
+                        country = it.country!!.name!!,
                         income = it.income
                             ?.takeIf { income -> income.compareTo(BigDecimal.ZERO) != 0 }
                             ?.let { income ->
