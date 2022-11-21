@@ -1,8 +1,12 @@
 import {BrowserModule} from '@angular/platform-browser';
-import {NgModule} from '@angular/core';
+import {DEFAULT_CURRENCY_CODE, LOCALE_ID, NgModule} from '@angular/core';
 import {ReactiveFormsModule} from '@angular/forms';
 import {CommonModule, HashLocationStrategy, LocationStrategy} from '@angular/common';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
+import { registerLocaleData } from '@angular/common';
+import localeDeAt from '@angular/common/locales/de-AT';
+
+registerLocaleData(localeDeAt);
 
 import {PerfectScrollbarConfigInterface, PerfectScrollbarModule} from 'ngx-perfect-scrollbar';
 
@@ -34,7 +38,7 @@ import {HTTP_INTERCEPTORS, HttpClientModule, HttpClientXsrfModule} from '@angula
 import {ApiPathInterceptor} from './common/http/apipath-interceptor.service';
 import {AuthenticationInterceptor} from './common/http/authentication-interceptor.service';
 import {ErrorHandlerInterceptor} from './common/http/errorhandler-interceptor.service';
-import { ModalModule } from 'ngx-bootstrap/modal';
+import {ModalModule} from 'ngx-bootstrap/modal';
 import {PasswordChangeModalComponent} from './modules/user/views/passwordchange-modal/passwordchange-modal.component';
 import {PasswordChangeFormComponent} from './modules/user/views/passwordchange-form/passwordchange-form.component';
 import {LoginPasswordChangeComponent} from './common/views/login-passwordchange/login-passwordchange.component';
@@ -76,6 +80,14 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
     LoginPasswordChangeComponent
   ],
   providers: [
+    {
+      provide: LOCALE_ID,
+      useValue: 'de-AT'
+    },
+    {
+      provide: DEFAULT_CURRENCY_CODE,
+      useValue: 'EUR'
+    },
     {
       provide: LocationStrategy,
       useClass: HashLocationStrategy
