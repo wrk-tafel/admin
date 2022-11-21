@@ -47,6 +47,7 @@ data class PdfCustomerData(
     val lastname: String,
     val firstname: String,
     val birthDate: String,
+    val country: String,
     val telephoneNumber: String? = null,
     val email: String? = null,
     val address: PdfAddressData,
@@ -73,6 +74,7 @@ data class PdfAdditionalPersonData(
     val lastname: String,
     val firstname: String,
     val birthDate: String,
+    val country: String,
     val income: String? = null,
     val incomeDueDate: String? = null
 )

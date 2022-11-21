@@ -267,13 +267,13 @@
             </button>
           </div>
         </div>
-        <div class="card-body">
+        <div class="card-body pb-0">
           <div *ngIf="!additionalPersons || additionalPersons?.length === 0">
-            <h6 testid="nopersons-label">Keine Personen vorhanden</h6>
+            <h6 testid="nopersons-label" class="mb-3">Keine Personen vorhanden</h6>
           </div>
           <div formArrayName="additionalPersons"
                *ngFor="let additionalPerson of additionalPersons.controls; trackBy: trackBy; let i = index">
-            <div class="col-12">
+            <div class="col-12 p-0">
               <div class="card">
                 <div class="card-body">
                   <div class="row" [formGroupName]="i" [attr.testid]="'personform-' + i">
