@@ -1,7 +1,7 @@
 # TODO
 * Add buttons on detailpage
     * "Disable Customer (dropdown select?) --> today, yesterday"
-    * Prolongue customer (dropdown?) --> 1 month, 2 months?
+    * Prolong customer (dropdown?) --> 1 month, 2 months?
     * Delete customer
 * customer creation
     * add employer field also for additional persons
