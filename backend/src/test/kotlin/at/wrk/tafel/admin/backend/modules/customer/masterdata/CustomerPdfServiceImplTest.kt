@@ -3,6 +3,7 @@ package at.wrk.tafel.admin.backend.modules.customer.masterdata
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerAddPersonEntity
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity
 import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
+import at.wrk.tafel.admin.backend.modules.customer.testCountry
 import com.github.romankh3.image.comparison.ImageComparison
 import com.github.romankh3.image.comparison.model.ImageComparisonState
 import org.apache.commons.io.FileUtils
@@ -29,8 +30,7 @@ class CustomerPdfServiceImplTest {
 
     companion object {
         private val comparisonResultDirectory = File(
-            System.getProperty("user.dir"),
-            "target/custom-test-results/customerpdf-comparison-results"
+            System.getProperty("user.dir"), "target/custom-test-results/customerpdf-comparison-results"
         )
 
         private var masterReferencesPath = "/pdf/master-references/"
@@ -69,12 +69,9 @@ class CustomerPdfServiceImplTest {
         testUserEntity.lastname = "Last"
 
         testCustomer = CustomerEntity()
-        testCustomer.createdAt =
-            ZonedDateTime.of(
-                LocalDate.of(2022, 10, 3),
-                LocalTime.of(10, 10),
-                ZoneId.systemDefault()
-            )
+        testCustomer.createdAt = ZonedDateTime.of(
+            LocalDate.of(2022, 10, 3), LocalTime.of(10, 10), ZoneId.systemDefault()
+        )
         testCustomer.customerId = 123
         testCustomer.issuer = testUserEntity
         testCustomer.lastname = "Mustermann"
@@ -90,23 +87,27 @@ class CustomerPdfServiceImplTest {
         testCustomer.income = BigDecimal("977.94587")
         testCustomer.incomeDue = LocalDate.of(2030, 1, 1)
         testCustomer.validUntil = LocalDate.of(2030, 3, 1)
+        testCustomer.country = testCountry
 
         val addPers1 = CustomerAddPersonEntity()
         addPers1.lastname = "Mustermann"
         addPers1.firstname = "Eva-Maria Magdalena"
         addPers1.birthDate = LocalDate.of(2000, 1, 1)
         addPers1.income = BigDecimal("1000")
+        addPers1.country = testCountry
 
         val addPers2 = CustomerAddPersonEntity()
         addPers2.lastname = "Mustermann"
         addPers2.firstname = "Max"
         addPers2.birthDate = LocalDate.of(2001, 12, 1)
+        addPers2.country = testCountry
 
         val addPers3 = CustomerAddPersonEntity()
         addPers3.lastname = "Mustermann"
         addPers3.firstname = "Maria"
         addPers3.birthDate = LocalDate.of(2005, 2, 28)
         addPers3.income = BigDecimal("132")
+        addPers3.country = testCountry
 
         testCustomer.additionalPersons = mutableListOf(addPers1, addPers2, addPers3)
 
@@ -123,7 +124,7 @@ class CustomerPdfServiceImplTest {
 
         assertThat(document.numberOfPages).isEqualTo(1)
 
-        val expectedImage = ImageIO.read(javaClass.getResourceAsStream("$masterReferencesPath/masterdata.png"))
+        val expectedImage = ImageIO.read(javaClass.getResourceAsStream("$masterReferencesPath/masterdata-actual.png"))
         ImageIO.write(expectedImage, "png", File(comparisonResultDirectory, "masterdata-expected.png"))
         val actualImage = pdfRenderer.renderImageWithDPI(0, 300f, ImageType.RGB)
         ImageIO.write(actualImage, "png", File(comparisonResultDirectory, "masterdata-actual.png"))
@@ -147,13 +148,13 @@ class CustomerPdfServiceImplTest {
         assertThat(document.numberOfPages).isEqualTo(2)
 
         val expectedFirstPageImage =
-            ImageIO.read(javaClass.getResourceAsStream("$masterReferencesPath/idcard-page0.png"))
+            ImageIO.read(javaClass.getResourceAsStream("$masterReferencesPath/idcard-page0-actual.png"))
         ImageIO.write(expectedFirstPageImage, "png", File(comparisonResultDirectory, "idcard-page0-expected.png"))
         val actualFirstPageImage = pdfRenderer.renderImageWithDPI(0, 300f, ImageType.RGB)
         ImageIO.write(actualFirstPageImage, "png", File(comparisonResultDirectory, "idcard-page0-actual.png"))
 
         val expectedSecondPageImage =
-            ImageIO.read(javaClass.getResourceAsStream("$masterReferencesPath/idcard-page1.png"))
+            ImageIO.read(javaClass.getResourceAsStream("$masterReferencesPath/idcard-page1-actual.png"))
         ImageIO.write(expectedSecondPageImage, "png", File(comparisonResultDirectory, "idcard-page1-expected.png"))
         val actualSecondPageImage = pdfRenderer.renderImageWithDPI(1, 300f, ImageType.RGB)
         ImageIO.write(actualSecondPageImage, "png", File(comparisonResultDirectory, "idcard-page1-actual.png"))
@@ -180,13 +181,13 @@ class CustomerPdfServiceImplTest {
         assertThat(document.numberOfPages).isEqualTo(2)
 
         val expectedFirstPageImage =
-            ImageIO.read(javaClass.getResourceAsStream("$masterReferencesPath/combined-page0.png"))
+            ImageIO.read(javaClass.getResourceAsStream("$masterReferencesPath/combined-page0-actual.png"))
         ImageIO.write(expectedFirstPageImage, "png", File(comparisonResultDirectory, "combined-page0-expected.png"))
         val actualFirstPageImage = pdfRenderer.renderImageWithDPI(0, 300f, ImageType.RGB)
         ImageIO.write(actualFirstPageImage, "png", File(comparisonResultDirectory, "combined-page0-actual.png"))
 
         val expectedSecondPageImage =
-            ImageIO.read(javaClass.getResourceAsStream("$masterReferencesPath/combined-page1.png"))
+            ImageIO.read(javaClass.getResourceAsStream("$masterReferencesPath/combined-page1-actual.png"))
         ImageIO.write(expectedSecondPageImage, "png", File(comparisonResultDirectory, "combined-page1-expected.png"))
         val actualSecondPageImage = pdfRenderer.renderImageWithDPI(1, 300f, ImageType.RGB)
         ImageIO.write(actualSecondPageImage, "png", File(comparisonResultDirectory, "combined-page1-actual.png"))
