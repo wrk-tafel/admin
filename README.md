@@ -4,7 +4,7 @@
     * "Disable Customer (dropdown select?) --> today, yesterday"
     * Prolongue customer (dropdown?) --> 1 month, 2 months?
     * Delete customer
-* customer creation - less spacing for additional persons
+* customer creation
     * add employer field also for additional persons
 
 ### Open things (to be discussed)
