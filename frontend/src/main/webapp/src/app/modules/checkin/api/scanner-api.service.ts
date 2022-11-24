@@ -6,7 +6,6 @@ import {RxStomp} from '@stomp/rx-stomp';
 import {RxStompConfig} from '@stomp/rx-stomp/esm6/rx-stomp-config';
 import {BehaviorSubject} from 'rxjs';
 import {RxStompState} from '@stomp/rx-stomp/esm6/rx-stomp-state';
-import * as SockJS from 'sockjs-client';
 
 @Injectable()
 export class ScannerApiService {
@@ -21,14 +20,18 @@ export class ScannerApiService {
 
   connect(): BehaviorSubject<RxStompState> {
     const stompConfig: RxStompConfig = {
-      webSocketFactory: this.createSockJSClient,
+      brokerURL: this.getBaseUrl(),
+      // brokerURL: 'wss://socketsbay.com/wss/v2/2/demo/',
+      /*
       connectHeaders: {
         'X-XSRF-TOKEN': this.cookieService.get('XSRF-TOKEN'),
         'Authorization': 'Bearer ' + this.authenticationService.getTokenString()
       },
+       */
       debug: function (str) {
-        console.log('STOMP: ' + str);
+        console.log('RX-STOMP: ' + str);
       },
+      logRawCommunication: true,
       reconnectDelay: 2000
     };
 
@@ -53,11 +56,8 @@ export class ScannerApiService {
       pathname = '';
     }
 
-    return this.platformLocation.protocol + '//' + this.platformLocation.hostname + ':' + this.platformLocation.port + pathname + '/api/websockets';
-  }
-
-  private createSockJSClient() {
-    return new SockJS('http://localhost:4200/api/websockets');
+    const baseUrl = this.platformLocation.protocol + '//' + this.platformLocation.hostname + ':' + this.platformLocation.port + pathname + '/api/websockets';
+    return baseUrl.replace('http', 'ws');
   }
 
 }

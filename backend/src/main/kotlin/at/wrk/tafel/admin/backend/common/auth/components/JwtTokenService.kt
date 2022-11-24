@@ -1,4 +1,4 @@
-package at.wrk.tafel.admin.backend.security.components
+package at.wrk.tafel.admin.backend.common.auth.components
 
 import at.wrk.tafel.admin.backend.config.ApplicationProperties
 import io.jsonwebtoken.Claims

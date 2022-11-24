@@ -2,10 +2,10 @@ package at.wrk.tafel.admin.backend.config
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
-import at.wrk.tafel.admin.backend.security.components.JwtAuthenticationFilter
-import at.wrk.tafel.admin.backend.security.components.JwtAuthenticationProvider
-import at.wrk.tafel.admin.backend.security.components.JwtTokenService
-import at.wrk.tafel.admin.backend.security.components.TafelUserDetailsManager
+import at.wrk.tafel.admin.backend.common.auth.components.JwtAuthenticationFilter
+import at.wrk.tafel.admin.backend.common.auth.components.JwtAuthenticationProvider
+import at.wrk.tafel.admin.backend.common.auth.components.JwtTokenService
+import at.wrk.tafel.admin.backend.common.auth.components.TafelUserDetailsManager
 import org.passay.*
 import org.passay.dictionary.ArrayWordList
 import org.passay.dictionary.WordListDictionary
@@ -75,8 +75,6 @@ class WebSecurityConfig(
             .authenticationEntryPoint(HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
             .and().sessionManagement()
             .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            .and()
-            .authorizeRequests().antMatchers("/api/websockets/**").permitAll()
             .and()
             .headers()
             .frameOptions().sameOrigin()

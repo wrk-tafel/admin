@@ -1,8 +1,8 @@
-package at.wrk.tafel.admin.backend.security
+package at.wrk.tafel.admin.backend.common.auth
 
-import at.wrk.tafel.admin.backend.security.components.PasswordException
-import at.wrk.tafel.admin.backend.security.model.ChangePasswordRequest
-import at.wrk.tafel.admin.backend.security.model.ChangePasswordResponse
+import at.wrk.tafel.admin.backend.common.auth.components.PasswordException
+import at.wrk.tafel.admin.backend.common.auth.model.ChangePasswordRequest
+import at.wrk.tafel.admin.backend.common.auth.model.ChangePasswordResponse
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity

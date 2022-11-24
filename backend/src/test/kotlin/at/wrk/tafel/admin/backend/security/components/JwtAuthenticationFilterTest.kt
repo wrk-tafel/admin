@@ -1,6 +1,7 @@
 package at.wrk.tafel.admin.backend.security.components
 
-import at.wrk.tafel.admin.backend.security.model.JwtAuthenticationToken
+import at.wrk.tafel.admin.backend.common.auth.components.JwtAuthenticationFilter
+import at.wrk.tafel.admin.backend.common.auth.model.JwtAuthenticationToken
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK

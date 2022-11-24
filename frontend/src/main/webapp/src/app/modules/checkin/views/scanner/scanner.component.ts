@@ -4,7 +4,7 @@ import {CameraDevice} from 'html5-qrcode/core';
 import {QRCodeReaderService} from './camera/qrcode-reader.service';
 import {ScannerApiService, ScanResult} from '../../api/scanner-api.service';
 import {IFrame} from '@stomp/stompjs/src/i-frame';
-import {RxStompState} from "@stomp/rx-stomp/esm6/rx-stomp-state";
+import {RxStompState} from '@stomp/rx-stomp';
 
 @Component({
   selector: 'tafel-scanner',
@@ -40,7 +40,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
       this.availableCameras = cameras;
       this.currentCamera = this.qrCodeReaderService.getCurrentCamera(cameras);
 
-      this.qrCodeReaderService.init("qrCodeReaderBox", this.qrCodeReaderSuccessCallback);
+      this.qrCodeReaderService.init('qrCodeReaderBox', this.qrCodeReaderSuccessCallback);
       const promise = this.qrCodeReaderService.start(this.currentCamera.id);
       this.processQrCodeReaderPromise(promise);
     });
@@ -73,10 +73,10 @@ export class ScannerComponent implements OnInit, OnDestroy {
         this.lastSentText = null;
       }, 3000);
     }
-  };
+  }
 
   qrCodeReaderErrorCallback = (errorMessage: string, error: Html5QrcodeError) => {
-  };
+  }
 
   apiClientSuccessCallback = (receipt: IFrame) => {
     if (receipt.command === 'CONNECTED') {

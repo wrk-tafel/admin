@@ -12,10 +12,10 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @Configuration
 @EnableWebSocketMessageBroker
 @ExcludeFromTestCoverage
-class WebSocketConfig : WebSocketMessageBrokerConfigurer, AbstractSecurityWebSocketMessageBrokerConfigurer() {
+class WebSocketConfig : WebSocketMessageBrokerConfigurer {
 
     override fun registerStompEndpoints(registry: StompEndpointRegistry) {
-        registry.addEndpoint("/api/websockets").withSockJS()
+        registry.addEndpoint("/api/websockets")
     }
 
     override fun configureMessageBroker(registry: MessageBrokerRegistry) {
@@ -30,8 +30,5 @@ class WebSocketConfig : WebSocketMessageBrokerConfigurer, AbstractSecurityWebSoc
         // use /app to send messages only to the backend without forwarding to other clients
         registry.setApplicationDestinationPrefixes("/app")
     }
-
-    // TODO
-    override fun sameOriginDisabled(): Boolean = true
 
 }

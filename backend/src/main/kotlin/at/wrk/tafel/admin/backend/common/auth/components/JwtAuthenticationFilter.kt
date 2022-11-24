@@ -1,7 +1,7 @@
-package at.wrk.tafel.admin.backend.security.components
+package at.wrk.tafel.admin.backend.common.auth.components
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
-import at.wrk.tafel.admin.backend.security.model.JwtAuthenticationToken
+import at.wrk.tafel.admin.backend.common.auth.model.JwtAuthenticationToken
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpHeaders
 import org.springframework.security.authentication.AuthenticationManager
