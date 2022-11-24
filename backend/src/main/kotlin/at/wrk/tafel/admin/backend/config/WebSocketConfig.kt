@@ -32,8 +32,7 @@ class WebSocketConfig : WebSocketMessageBrokerConfigurer, AbstractSecurityWebSoc
     }
 
     override fun configureInbound(messages: MessageSecurityMetadataSourceRegistry) {
-        messages.anyMessage().authenticated()
-            .simpDestMatchers("/ws-api/scanners/**").hasAuthority("CHECKIN")
+        messages.anyMessage().permitAll()
     }
 
     override fun sameOriginDisabled(): Boolean = true
