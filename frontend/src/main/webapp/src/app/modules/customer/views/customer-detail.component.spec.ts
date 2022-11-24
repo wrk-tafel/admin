@@ -9,12 +9,23 @@ import {FileHelperService} from '../../../common/util/file-helper.service';
 import {CustomerApiService, CustomerData} from '../api/customer-api.service';
 import {CustomerDetailComponent} from './customer-detail.component';
 import {CommonModule} from '@angular/common';
+import {DEFAULT_CURRENCY_CODE, LOCALE_ID} from '@angular/core';
+
+import { registerLocaleData } from '@angular/common';
+import localeDeAt from '@angular/common/locales/de-AT';
+
+registerLocaleData(localeDeAt);
 
 describe('CustomerDetailComponent', () => {
   let apiService: jasmine.SpyObj<CustomerApiService>;
   let fileHelperService: jasmine.SpyObj<FileHelperService>;
   let router: jasmine.SpyObj<Router>;
 
+  const mockCountry = {
+    id: 0,
+    code: 'AT',
+    name: 'Österreich'
+  };
   const mockCustomer: CustomerData = {
     id: 133,
     issuer: {
@@ -26,11 +37,7 @@ describe('CustomerDetailComponent', () => {
     lastname: 'Mustermann',
     firstname: 'Max',
     birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
-    country: {
-      id: 0,
-      code: 'AT',
-      name: 'Österreich'
-    },
+    country: mockCountry,
     telephoneNumber: '00436644123123123',
     email: 'max.mustermann@gmail.com',
 
@@ -57,14 +64,16 @@ describe('CustomerDetailComponent', () => {
         firstname: 'Pers 1',
         birthDate: moment().subtract(5, 'years').startOf('day').utc().toDate(),
         income: 50,
-        incomeDue: moment().add(1, 'years').startOf('day').utc().toDate()
+        incomeDue: moment().add(1, 'years').startOf('day').utc().toDate(),
+        country: mockCountry
       },
       {
         key: 1,
         id: 1,
         lastname: 'Add',
         firstname: 'Pers 2',
-        birthDate: moment().subtract(10, 'years').startOf('day').utc().toDate()
+        birthDate: moment().subtract(10, 'years').startOf('day').utc().toDate(),
+        country: mockCountry
       }
     ]
   };
@@ -77,6 +86,14 @@ describe('CustomerDetailComponent', () => {
     TestBed.configureTestingModule({
       imports: [CommonModule, RouterTestingModule],
       providers: [
+        {
+          provide: LOCALE_ID,
+          useValue: 'de-AT'
+        },
+        {
+          provide: DEFAULT_CURRENCY_CODE,
+          useValue: 'EUR'
+        },
         {
           provide: CustomerApiService,
           useValue: apiServiceSpy
@@ -95,7 +112,8 @@ describe('CustomerDetailComponent', () => {
           provide: Router,
           useValue: routerSpy
         }
-      ]
+      ],
+      declarations: [CustomerDetailComponent]
     }).compileComponents();
 
     apiService = TestBed.inject(CustomerApiService) as jasmine.SpyObj<CustomerApiService>;
@@ -131,7 +149,7 @@ describe('CustomerDetailComponent', () => {
     expect(fixture.debugElement.query(By.css('[testId="addressLine1Text"]')).nativeElement.textContent).toBe('Teststraße 123A, Stiege 1, Top 21');
     expect(fixture.debugElement.query(By.css('[testId="addressLine2Text"]')).nativeElement.textContent).toBe('1020 Wien');
     expect(fixture.debugElement.query(By.css('[testId="employerText"]')).nativeElement.textContent).toBe('test employer');
-    expect(fixture.debugElement.query(By.css('[testId="incomeText"]')).nativeElement.textContent).toBe('1000 €');
+    expect(fixture.debugElement.query(By.css('[testId="incomeText"]')).nativeElement.textContent).toBe('€ 1.000,00');
     expect(fixture.debugElement.query(By.css('[testId="incomeDueText"]')).nativeElement.textContent)
       .toBe(moment(mockCustomer.incomeDue).format('DD.MM.YYYY'));
     expect(fixture.debugElement.query(By.css('[testId="validUntilText"]')).nativeElement.textContent)

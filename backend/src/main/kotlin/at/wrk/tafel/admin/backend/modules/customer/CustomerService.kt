@@ -158,6 +158,7 @@ class CustomerService(
                 addPersonEntity.birthDate = it.birthDate
                 addPersonEntity.income = it.income
                 addPersonEntity.incomeDue = it.incomeDue
+                addPersonEntity.country = countryRepository.findById(it.country.id).get()
                 addPersonEntity
             }.toList()
         )
@@ -178,7 +179,7 @@ class CustomerService(
         firstname = customerEntity.firstname!!,
         lastname = customerEntity.lastname!!,
         birthDate = customerEntity.birthDate!!,
-        country = mapCustomerCountryToResponse(customerEntity.country!!),
+        country = mapCountryToResponse(customerEntity.country!!),
         address = CustomerAddress(
             street = customerEntity.addressStreet!!,
             houseNumber = customerEntity.addressHouseNumber!!,
@@ -200,12 +201,13 @@ class CustomerService(
                 lastname = it.lastname!!,
                 birthDate = it.birthDate!!,
                 income = it.income,
-                incomeDue = it.incomeDue
+                incomeDue = it.incomeDue,
+                country = mapCountryToResponse(it.country!!)
             )
         }
     )
 
-    private fun mapCustomerCountryToResponse(country: CountryEntity): Country {
+    private fun mapCountryToResponse(country: CountryEntity): Country {
         return Country(
             id = country.id!!,
             code = country.code!!,

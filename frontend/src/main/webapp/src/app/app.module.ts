@@ -1,8 +1,12 @@
 import {BrowserModule} from '@angular/platform-browser';
-import {NgModule} from '@angular/core';
+import {DEFAULT_CURRENCY_CODE, LOCALE_ID, NgModule} from '@angular/core';
 import {ReactiveFormsModule} from '@angular/forms';
 import {CommonModule, HashLocationStrategy, LocationStrategy} from '@angular/common';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
+import { registerLocaleData } from '@angular/common';
+import localeDeAt from '@angular/common/locales/de-AT';
+
+registerLocaleData(localeDeAt);
 
 import {PerfectScrollbarConfigInterface, PerfectScrollbarModule} from 'ngx-perfect-scrollbar';
 
@@ -77,6 +81,14 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
     LoginPasswordChangeComponent
   ],
   providers: [
+    {
+      provide: LOCALE_ID,
+      useValue: 'de-AT'
+    },
+    {
+      provide: DEFAULT_CURRENCY_CODE,
+      useValue: 'EUR'
+    },
     {
       provide: CookieService,
       useClass: CookieService

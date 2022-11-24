@@ -15,9 +15,12 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.math.BigDecimal
+import java.math.RoundingMode
+import java.text.NumberFormat
 import java.time.LocalDate
 import java.time.Period
 import java.time.format.DateTimeFormatter
+import java.util.*
 import javax.xml.transform.TransformerFactory
 import javax.xml.transform.sax.SAXResult
 import javax.xml.transform.stream.StreamSource
@@ -69,6 +72,7 @@ class CustomerPdfServiceImpl : CustomerPdfService {
                 lastname = customer.lastname!!,
                 firstname = customer.firstname!!,
                 birthDate = customer.birthDate!!.format(DATE_FORMATTER),
+                country = customer.country!!.name!!,
                 telephoneNumber = customer.telephoneNumber,
                 email = customer.email,
                 address = PdfAddressData(
@@ -82,7 +86,7 @@ class CustomerPdfServiceImpl : CustomerPdfService {
                 employer = customer.employer!!,
                 income = customer.income
                     ?.takeIf { it.compareTo(BigDecimal.ZERO) != 0 }
-                    ?.let { "${it.setScale(0)} €" }
+                    ?.let { NumberFormat.getCurrencyInstance().format(it.setScale(2, RoundingMode.HALF_EVEN)) }
                     ?: "-",
                 incomeDueDate = customer.incomeDue?.format(DATE_FORMATTER) ?: "-",
                 validUntilDate = customer.validUntil!!.format(DATE_FORMATTER),
@@ -91,16 +95,19 @@ class CustomerPdfServiceImpl : CustomerPdfService {
                         lastname = it.lastname!!,
                         firstname = it.firstname!!,
                         birthDate = it.birthDate!!.format(DATE_FORMATTER),
+                        country = it.country!!.name!!,
                         income = it.income
                             ?.takeIf { income -> income.compareTo(BigDecimal.ZERO) != 0 }
-                            ?.let { income -> "$income €" }
+                            ?.let { income ->
+                                NumberFormat.getCurrencyInstance().format(income.setScale(2, RoundingMode.HALF_EVEN))
+                            }
                             ?: "-",
                         incomeDueDate = it.incomeDue?.format(DATE_FORMATTER) ?: "-",
                     )
                 },
                 idCard = PdfIdCardData(
                     qrCodeContentType = MimeTypeUtils.IMAGE_PNG_VALUE,
-                    qrCodeBytes = QRCode(customer.id.toString()).render().getBytes()
+                    qrCodeBytes = QRCode(customer.customerId.toString()).render().getBytes()
                 )
             ),
             countPersons = countPersons,

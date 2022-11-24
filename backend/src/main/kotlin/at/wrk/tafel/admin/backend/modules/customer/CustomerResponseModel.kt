@@ -53,7 +53,8 @@ data class CustomerAdditionalPerson(
     val lastname: String,
     val birthDate: LocalDate,
     val income: BigDecimal? = null,
-    val incomeDue: LocalDate? = null
+    val incomeDue: LocalDate? = null,
+    val country: Country
 )
 
 @ExcludeFromTestCoverage

@@ -12,16 +12,17 @@ import {CustomerEditComponent} from './customer-edit.component';
 import {By} from '@angular/platform-browser';
 
 describe('CustomerEditComponent - Creating a new customer', () => {
+  const testCountry = {
+    id: 0,
+    code: 'AT',
+    name: 'Österreich'
+  };
   const testCustomerData: CustomerData = {
     id: 123,
     lastname: 'Mustermann',
     firstname: 'Max',
     birthDate: moment().subtract(40, 'years').startOf('day').utc().toDate(),
-    country: {
-      id: 0,
-      code: 'AT',
-      name: 'Österreich'
-    },
+    country: testCountry,
     telephoneNumber: '00436641231231',
     email: 'max.mustermann@gmail.com',
 
@@ -46,6 +47,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
         lastname: 'Add',
         firstname: 'Pers 1',
         birthDate: moment().subtract(5, 'years').startOf('day').utc().toDate(),
+        country: testCountry,
         income: 50,
         incomeDue: moment().add(1, 'years').startOf('day').utc().toDate()
       },
@@ -54,7 +56,8 @@ describe('CustomerEditComponent - Creating a new customer', () => {
         id: 1,
         lastname: 'Add',
         firstname: 'Pers 2',
-        birthDate: moment().subtract(2, 'years').startOf('day').utc().toDate()
+        birthDate: moment().subtract(2, 'years').startOf('day').utc().toDate(),
+        country: testCountry
       }
     ]
   };
