@@ -23,6 +23,7 @@ class FlywayConfig {
             .ignoreMigrationPatterns("*:missing")
             .baselineOnMigrate(true)
             .callbacks(*callbacks.toTypedArray())
+            .cleanDisabled(false)
             .load()
     }
 

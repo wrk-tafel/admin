@@ -37,7 +37,7 @@ class TafelUserDetailsManagerTest {
 
     @SpyK
     private var passwordEncoder: PasswordEncoder =
-        DelegatingPasswordEncoder("argon2", mapOf("argon2" to Argon2PasswordEncoder()))
+        DelegatingPasswordEncoder("argon2", mapOf("argon2" to Argon2PasswordEncoder(16, 32, 1, 16384, 2)))
 
     @SpyK
     private var passwordValidator: PasswordValidator = WebSecurityConfig.passwordValidator

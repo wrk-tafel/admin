@@ -12,6 +12,7 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
+import org.springframework.http.HttpStatusCode
 import org.springframework.http.MediaType
 import org.springframework.web.server.ResponseStatusException
 import java.math.BigDecimal
@@ -59,7 +60,7 @@ class CustomerControllerTest {
 
         val exception = assertThrows<ResponseStatusException> { controller.createCustomer(testCustomer) }
 
-        assertThat(exception.status).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY)
+        assertThat(exception.statusCode).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY)
         assertThat(exception.reason).isEqualTo("Kunde Nr. 100 bereits vorhanden!")
     }
 
@@ -79,7 +80,7 @@ class CustomerControllerTest {
         val exception =
             assertThrows<ResponseStatusException> { controller.updateCustomer(testCustomer.id!!, testCustomer) }
 
-        assertThat(exception.status).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY)
+        assertThat(exception.statusCode).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY)
         assertThat(exception.reason).isEqualTo("Kunde Nr. 100 nicht vorhanden!")
     }
 
@@ -99,7 +100,7 @@ class CustomerControllerTest {
         val exception =
             assertThrows<ResponseStatusException> { controller.getCustomer(testCustomer.id!!) }
 
-        assertThat(exception.status).isEqualTo(HttpStatus.NOT_FOUND)
+        assertThat(exception.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
         verify { service.findByCustomerId(testCustomer.id!!) }
     }
 

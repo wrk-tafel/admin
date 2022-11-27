@@ -22,8 +22,6 @@ server:
 spring:
   datasource:
     driverClassName: org.postgresql.Driver
-  flyway:
-    enabled: false
 
 security:
   jwtToken:

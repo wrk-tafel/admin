@@ -8,6 +8,7 @@ import io.mockk.every
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.verify
+import jakarta.servlet.http.HttpServletRequest
 import org.apache.catalina.realm.GenericPrincipal
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -18,7 +19,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.context.SecurityContextImpl
-import javax.servlet.http.HttpServletRequest
 
 @ExtendWith(MockKExtension::class)
 class JwtTokenControllerTest {
@@ -50,7 +50,7 @@ class JwtTokenControllerTest {
 
         val responseEntity = controller.generateToken(request)
 
-        assertThat(responseEntity.statusCodeValue).isEqualTo(HttpStatus.FORBIDDEN.value())
+        assertThat(responseEntity.statusCode.value()).isEqualTo(HttpStatus.FORBIDDEN.value())
     }
 
     @Test
@@ -63,7 +63,7 @@ class JwtTokenControllerTest {
 
         val responseEntity = controller.generateToken(request)
 
-        assertThat(responseEntity.statusCodeValue).isEqualTo(HttpStatus.FORBIDDEN.value())
+        assertThat(responseEntity.statusCode.value()).isEqualTo(HttpStatus.FORBIDDEN.value())
     }
 
     @Test
@@ -92,7 +92,7 @@ class JwtTokenControllerTest {
 
         val responseEntity = controller.generateToken(request)
 
-        assertThat(responseEntity.statusCodeValue).isEqualTo(HttpStatus.OK.value())
+        assertThat(responseEntity.statusCode.value()).isEqualTo(HttpStatus.OK.value())
         assertThat(responseEntity.body).isEqualTo(
             JwtAuthenticationResponse(
                 token = "TOKEN",
@@ -126,7 +126,7 @@ class JwtTokenControllerTest {
 
         val responseEntity = controller.generateToken(request)
 
-        assertThat(responseEntity.statusCodeValue).isEqualTo(HttpStatus.OK.value())
+        assertThat(responseEntity.statusCode.value()).isEqualTo(HttpStatus.OK.value())
         assertThat(responseEntity.body).isEqualTo(
             JwtAuthenticationResponse(
                 token = "TOKEN",
@@ -144,14 +144,14 @@ class JwtTokenControllerTest {
         SecurityContextHolder.setContext(
             SecurityContextImpl(
                 UsernamePasswordAuthenticationToken(
-                    GenericPrincipal("username", "pwd", emptyList()), null
+                    GenericPrincipal("username", emptyList()), null
                 )
             )
         )
 
         val responseEntity = controller.generateToken(request)
 
-        assertThat(responseEntity.statusCodeValue).isEqualTo(HttpStatus.FORBIDDEN.value())
+        assertThat(responseEntity.statusCode.value()).isEqualTo(HttpStatus.FORBIDDEN.value())
     }
 
 }
