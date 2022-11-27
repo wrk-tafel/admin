@@ -1,7 +1,6 @@
 import {PlatformLocation} from '@angular/common';
 import {WebsocketService} from './websocket.service';
-import {RxStomp, RxStompState} from '@stomp/rx-stomp';
-import {BehaviorSubject} from "rxjs";
+import {RxStomp} from '@stomp/rx-stomp';
 
 describe('WebsocketService', () => {
   let overwriteProtocol: string;
