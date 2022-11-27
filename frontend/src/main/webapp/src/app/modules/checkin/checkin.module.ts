@@ -4,7 +4,7 @@ import {ScannerComponent} from './views/scanner/scanner.component';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {CommonModule} from '@angular/common';
 import {QRCodeReaderService} from './views/scanner/camera/qrcode-reader.service';
-import {ScannerApiService} from './api/scanner-api.service';
+import {WebsocketService} from '../../common/websocket/websocket.service';
 
 @NgModule({
   imports: [
@@ -18,7 +18,7 @@ import {ScannerApiService} from './api/scanner-api.service';
   ],
   providers: [
     QRCodeReaderService,
-    ScannerApiService
+    WebsocketService
   ]
 })
 export class CheckinModule {
