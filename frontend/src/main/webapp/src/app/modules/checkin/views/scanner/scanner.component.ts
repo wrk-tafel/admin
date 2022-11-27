@@ -1,10 +1,9 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
-import {Html5QrcodeError, Html5QrcodeResult} from 'html5-qrcode/esm/core';
+import {Html5QrcodeResult} from 'html5-qrcode/esm/core';
 import {CameraDevice} from 'html5-qrcode/core';
 import {QRCodeReaderService} from './camera/qrcode-reader.service';
-import {ScannerApiService, ScanResult} from '../../api/scanner-api.service';
-import {IFrame} from '@stomp/stompjs/src/i-frame';
 import {RxStompState} from '@stomp/rx-stomp';
+import {WebsocketService} from '../../../../common/websocket/websocket.service';
 
 @Component({
   selector: 'tafel-scanner',
@@ -23,18 +22,15 @@ export class ScannerComponent implements OnInit, OnDestroy {
 
   constructor(
     private qrCodeReaderService: QRCodeReaderService,
-    private scannerApiService: ScannerApiService
+    private websocketService: WebsocketService
   ) {
   }
 
   ngOnInit(): void {
-    this.scannerApiService.connect().subscribe((connectionState: RxStompState) => {
-      if (connectionState === RxStompState.OPEN) {
-        this.apiClientReady = true;
-      } else {
-        this.apiClientReady = false;
-      }
+    this.websocketService.getConnectionState().subscribe((connectionState: RxStompState) => {
+      this.processApiConnectionState(connectionState);
     });
+    this.websocketService.connect();
 
     this.qrCodeReaderService.getCameras().then(cameras => {
       this.availableCameras = cameras;
@@ -48,7 +44,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.qrCodeReaderService.stop();
-    this.scannerApiService.close();
+    this.websocketService.close();
   }
 
   async processQrCodeReaderPromise(promise: Promise<null>) {
@@ -65,7 +61,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
   qrCodeReaderSuccessCallback = (decodedText: string, result: Html5QrcodeResult) => {
     if (!this.lastSentText || this.lastSentText !== decodedText) {
       const scanResult: ScanResult = {value: decodedText};
-      this.scannerApiService.sendScanResult(scanResult);
+      this.websocketService.publish({destination: '/app/scanners/result', body: JSON.stringify(scanResult)});
       this.lastSentText = decodedText;
 
       // reset to retry in case of an error while transmitting/receiving
@@ -75,21 +71,12 @@ export class ScannerComponent implements OnInit, OnDestroy {
     }
   }
 
-  qrCodeReaderErrorCallback = (errorMessage: string, error: Html5QrcodeError) => {
-  }
-
-  apiClientSuccessCallback = (receipt: IFrame) => {
-    if (receipt.command === 'CONNECTED') {
+  processApiConnectionState(state: RxStompState) {
+    if (state === RxStompState.OPEN) {
       this.apiClientReady = true;
+    } else {
+      this.apiClientReady = false;
     }
-  }
-
-  apiClientErrorCallback = (receipt: IFrame) => {
-    this.apiClientReady = false;
-  }
-
-  apiClientCloseCallback = (receipt: IFrame) => {
-    this.apiClientReady = false;
   }
 
   get selectedCamera(): CameraDevice {
@@ -104,4 +91,8 @@ export class ScannerComponent implements OnInit, OnDestroy {
     this.processQrCodeReaderPromise(promise);
   }
 
+}
+
+export interface ScanResult {
+  value: string;
 }

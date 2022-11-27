@@ -1,24 +1,23 @@
-import {Injectable} from '@angular/core';
+import {Injectable, OnInit} from '@angular/core';
+import {IRxStompPublishParams, RxStomp} from '@stomp/rx-stomp';
 import {PlatformLocation} from '@angular/common';
-import {CookieService} from 'ngx-cookie-service';
-import {AuthenticationService} from '../../../common/security/authentication.service';
-import {RxStomp} from '@stomp/rx-stomp';
 import {RxStompConfig} from '@stomp/rx-stomp/esm6/rx-stomp-config';
 import {BehaviorSubject} from 'rxjs';
 import {RxStompState} from '@stomp/rx-stomp/esm6/rx-stomp-state';
 
-@Injectable()
-export class ScannerApiService {
+@Injectable({
+  providedIn: 'root',
+})
+export class WebsocketService {
   private client: RxStomp;
 
-  constructor(
-    private platformLocation: PlatformLocation,
-    private cookieService: CookieService,
-    private authenticationService: AuthenticationService
-  ) {
+  constructor(private platformLocation: PlatformLocation) {
+    // private cookieService: CookieService,
+    //               private authenticationService: AuthenticationService
+    this.init();
   }
 
-  connect(): BehaviorSubject<RxStompState> {
+  init(): void {
     const stompConfig: RxStompConfig = {
       brokerURL: this.getBaseUrl(),
       // brokerURL: 'wss://socketsbay.com/wss/v2/2/demo/',
@@ -37,17 +36,22 @@ export class ScannerApiService {
 
     this.client = new RxStomp();
     this.client.configure(stompConfig);
-    this.client.activate();
+  }
 
+  getConnectionState(): BehaviorSubject<RxStompState> {
     return this.client.connectionState$;
   }
 
-  sendScanResult(result: ScanResult) {
-    this.client.publish({destination: '/app/scanners/result', body: JSON.stringify(result)});
+  connect() {
+    this.client.activate();
   }
 
-  close() {
-    this.client.deactivate();
+  publish(parameters: IRxStompPublishParams) {
+    this.client.publish(parameters);
+  }
+
+  close(): Promise<void> {
+    return this.client.deactivate();
   }
 
   private getBaseUrl() {
@@ -60,8 +64,4 @@ export class ScannerApiService {
     return baseUrl.replace('http', 'ws');
   }
 
-}
-
-export interface ScanResult {
-  value: string;
 }

@@ -75,14 +75,11 @@ class WebSecurityConfig(
             .authenticationEntryPoint(HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
             .and().sessionManagement()
             .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            .and()
-            .headers()
-            .frameOptions().sameOrigin()
 
         if (csrfEnabled) {
             http.csrf()
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .ignoringAntMatchers("/api/login", "/api/websockets/**")
+                .ignoringAntMatchers("/api/login")
         } else {
             http.csrf().disable()
         }

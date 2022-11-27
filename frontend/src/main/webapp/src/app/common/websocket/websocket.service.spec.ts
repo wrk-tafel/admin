@@ -1,8 +1,8 @@
-import {ScannerApiService} from './scanner-api.service';
 import {PlatformLocation} from '@angular/common';
 import {CompatClient, Stomp} from '@stomp/stompjs';
+import {WebsocketService} from './websocket.service';
 
-describe('ScannerApiService', () => {
+describe('WebsocketService', () => {
   let overwriteProtocol: string;
   let overwriteTestPathname: string;
 
@@ -14,10 +14,10 @@ describe('ScannerApiService', () => {
       protocol: overwriteProtocol ? overwriteProtocol : 'http:'
     });
 
-    const clientSpy: jasmine.SpyObj<CompatClient> = jasmine.createSpyObj('CompatClient', ['connect', 'send', 'forceDisconnect']);
+    const clientSpy: jasmine.SpyObj<CompatClient> = jasmine.createSpyObj('RxStomp', ['activate', 'publish', 'deactivate']);
     const stompSpy = spyOn(Stomp, 'client').and.returnValue(clientSpy);
 
-    const service = new ScannerApiService(platformLocationSpy);
+    const service = new WebsocketService(platformLocationSpy);
 
     return {service, platformLocationSpy, stompSpy, clientSpy};
   }
@@ -25,23 +25,17 @@ describe('ScannerApiService', () => {
   it('connect creates the client', () => {
     const {service, stompSpy, clientSpy} = setup();
 
-    const connectCallback = () => {
-    };
-    const errorCallback = () => {
-    };
-    const closeCallback = () => {
-    };
-    service.connect(connectCallback, errorCallback, closeCallback);
+    service.connect();
 
     expect(stompSpy).toHaveBeenCalledWith('ws://testhost:1234/subpath/ws-api');
-    expect(clientSpy.connect).toHaveBeenCalledWith({}, connectCallback, errorCallback, closeCallback);
+    expect(clientSpy.connect).toHaveBeenCalled();
   });
 
   it('connect with empty pathname creates correct baseUrl', () => {
     overwriteTestPathname = '/';
     const {service, stompSpy} = setup();
 
-    service.connect(null, null, null);
+    service.connect();
 
     expect(stompSpy).toHaveBeenCalledWith('ws://testhost:1234/ws-api');
 
@@ -52,26 +46,16 @@ describe('ScannerApiService', () => {
     overwriteProtocol = 'https:';
     const {service, stompSpy} = setup();
 
-    service.connect(null, null, null);
+    service.connect();
 
     expect(stompSpy).toHaveBeenCalledWith('wss://testhost:1234/subpath/ws-api');
 
     overwriteProtocol = undefined;
   });
 
-  it('sendScanResult transported successfully', () => {
-    const {service, clientSpy} = setup();
-    service.connect(null, null, null);
-
-    const testResult = {value: 'test-value'};
-    service.sendScanResult(testResult);
-
-    expect(clientSpy.send).toHaveBeenCalledWith('/app/scanners/result', {}, JSON.stringify(testResult));
-  });
-
   it('close forceDisconnects the client', () => {
     const {service, clientSpy} = setup();
-    service.connect(null, null, null);
+    service.connect();
 
     service.close();
 

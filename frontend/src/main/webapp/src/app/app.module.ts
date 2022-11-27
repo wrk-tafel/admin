@@ -3,7 +3,7 @@ import {DEFAULT_CURRENCY_CODE, LOCALE_ID, NgModule} from '@angular/core';
 import {ReactiveFormsModule} from '@angular/forms';
 import {CommonModule, HashLocationStrategy, LocationStrategy} from '@angular/common';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
-import { registerLocaleData } from '@angular/common';
+import {registerLocaleData} from '@angular/common';
 import localeDeAt from '@angular/common/locales/de-AT';
 
 registerLocaleData(localeDeAt);
@@ -42,7 +42,7 @@ import {ModalModule} from 'ngx-bootstrap/modal';
 import {PasswordChangeModalComponent} from './modules/user/views/passwordchange-modal/passwordchange-modal.component';
 import {PasswordChangeFormComponent} from './modules/user/views/passwordchange-form/passwordchange-form.component';
 import {LoginPasswordChangeComponent} from './common/views/login-passwordchange/login-passwordchange.component';
-import { CookieService } from 'ngx-cookie-service';
+import {CookieService} from 'ngx-cookie-service';
 
 const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
   suppressScrollX: true

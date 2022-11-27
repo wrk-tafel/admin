@@ -9,7 +9,7 @@ class WebSocketSecurityConfig : AbstractSecurityWebSocketMessageBrokerConfigurer
 
     override fun configureInbound(messages: MessageSecurityMetadataSourceRegistry) {
         // TODO set permissions
-        messages.simpDestMatchers("/api/websockets/**").permitAll()
+        messages.anyMessage().permitAll()
     }
 
     override fun sameOriginDisabled(): Boolean {

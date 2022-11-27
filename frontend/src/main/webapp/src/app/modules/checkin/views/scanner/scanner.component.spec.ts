@@ -1,25 +1,26 @@
 import {fakeAsync, TestBed, tick, waitForAsync} from '@angular/core/testing';
 import {CommonModule} from '@angular/common';
 import {ScannerComponent} from './scanner.component';
-import {ScannerApiService} from '../../api/scanner-api.service';
 import {QRCodeReaderService} from './camera/qrcode-reader.service';
 import {CameraDevice} from 'html5-qrcode/core';
-import {IFrame} from '@stomp/stompjs';
+import {BehaviorSubject} from 'rxjs';
+import {RxStompState} from '@stomp/rx-stomp';
+import {WebsocketService} from '../../../../common/websocket/websocket.service';
 
 describe('ScannerComponent', () => {
-  let apiService: jasmine.SpyObj<ScannerApiService>;
+  let wsService: jasmine.SpyObj<WebsocketService>;
   let qrCodeReaderService: jasmine.SpyObj<QRCodeReaderService>;
 
   beforeEach(waitForAsync(() => {
-    const apiServiceSpy = jasmine.createSpyObj('ScannerApiService', ['close', 'sendScanResult', 'connect']);
+    const wsServiceSpy = jasmine.createSpyObj('WebsocketService', ['close', 'publish', 'connect', 'getConnectionState']);
     const qrCodeReaderServiceSpy = jasmine.createSpyObj('QRCodeReaderService', ['stop', 'saveCurrentCamera', 'restart', 'getCameras', 'getCurrentCamera', 'init', 'start']);
 
     TestBed.configureTestingModule({
       imports: [CommonModule],
       providers: [
         {
-          provide: ScannerApiService,
-          useValue: apiServiceSpy
+          provide: WebsocketService,
+          useValue: wsServiceSpy
         },
         {
           provide: QRCodeReaderService,
@@ -28,7 +29,7 @@ describe('ScannerComponent', () => {
       ]
     }).compileComponents();
 
-    apiService = TestBed.inject(ScannerApiService) as jasmine.SpyObj<ScannerApiService>;
+    wsService = TestBed.inject(WebsocketService) as jasmine.SpyObj<WebsocketService>;
     qrCodeReaderService = TestBed.inject(QRCodeReaderService) as jasmine.SpyObj<QRCodeReaderService>;
   }));
 
@@ -48,6 +49,7 @@ describe('ScannerComponent', () => {
     qrCodeReaderService.getCameras.and.returnValue(Promise.resolve(testCameraList));
     qrCodeReaderService.getCurrentCamera.and.returnValue(testCamera2);
     qrCodeReaderService.start.and.returnValue(Promise.resolve(null));
+    wsService.getConnectionState.and.returnValue(new BehaviorSubject(RxStompState.OPEN));
 
     component.ngOnInit();
     tick(1000);
@@ -57,7 +59,8 @@ describe('ScannerComponent', () => {
     expect(qrCodeReaderService.getCameras).toHaveBeenCalled();
     expect(qrCodeReaderService.getCurrentCamera).toHaveBeenCalled();
     expect(qrCodeReaderService.start).toHaveBeenCalled();
-    expect(apiService.connect).toHaveBeenCalled();
+    expect(wsService.getConnectionState).toHaveBeenCalled();
+    expect(wsService.connect).toHaveBeenCalled();
   }));
 
   it('ngOnDestroy calls stops scanner api and qrCodeReader', () => {
@@ -66,7 +69,7 @@ describe('ScannerComponent', () => {
 
     component.ngOnDestroy();
 
-    expect(apiService.close).toHaveBeenCalled();
+    expect(wsService.close).toHaveBeenCalled();
     expect(qrCodeReaderService.stop).toHaveBeenCalled();
   });
 
@@ -99,7 +102,10 @@ describe('ScannerComponent', () => {
 
     component.qrCodeReaderSuccessCallback(testText, undefined);
 
-    expect(apiService.sendScanResult).toHaveBeenCalledWith({value: testText});
+    expect(wsService.publish).toHaveBeenCalledWith({
+      destination: '/app/scanners/result',
+      body: JSON.stringify({value: testText})
+    });
     expect(component.lastSentText).toBe(testText);
   });
 
@@ -112,7 +118,7 @@ describe('ScannerComponent', () => {
 
     component.qrCodeReaderSuccessCallback(testText, undefined);
 
-    expect(apiService.sendScanResult).not.toHaveBeenCalledWith({value: testText});
+    expect(wsService.publish).not.toHaveBeenCalled();
     expect(component.lastSentText).toBe(testText);
   });
 
@@ -125,49 +131,49 @@ describe('ScannerComponent', () => {
 
     component.qrCodeReaderSuccessCallback(testText, undefined);
 
-    expect(apiService.sendScanResult).toHaveBeenCalledWith({value: testText});
+    expect(wsService.publish).toHaveBeenCalledWith({
+      destination: '/app/scanners/result',
+      body: JSON.stringify({value: testText})
+    });
     expect(component.lastSentText).toBe(testText);
   });
 
-  it('apiClientSuccessCallback with a connected command', async () => {
+  it('processApiConnectionState with state OPEN', () => {
     const fixture = TestBed.createComponent(ScannerComponent);
     const component = fixture.componentInstance;
-    const testFrame: IFrame = {command: 'CONNECTED', headers: null, isBinaryBody: false, body: null, binaryBody: null};
-
-    component.apiClientSuccessCallback(testFrame);
-
-    expect(component.apiClientReady).toBe(true);
-  });
-
-  it('apiClientSuccessCallback without a connected command', async () => {
-    const fixture = TestBed.createComponent(ScannerComponent);
-    const component = fixture.componentInstance;
-    const testFrame: IFrame = {command: 'TEST', headers: null, isBinaryBody: false, body: null, binaryBody: null};
     component.apiClientReady = false;
 
-    component.apiClientSuccessCallback(testFrame);
+    component.processApiConnectionState(RxStompState.OPEN);
 
     expect(component.apiClientReady).toBe(true);
   });
 
-  it('apiClientErrorCallback fills state correctly', async () => {
+  it('processApiConnectionState with state CONNECTING', async () => {
     const fixture = TestBed.createComponent(ScannerComponent);
     const component = fixture.componentInstance;
-    const testFrame: IFrame = {command: 'ERROR', headers: null, isBinaryBody: false, body: null, binaryBody: null};
     component.apiClientReady = true;
 
-    component.apiClientErrorCallback(testFrame);
+    component.processApiConnectionState(RxStompState.CONNECTING);
 
     expect(component.apiClientReady).toBe(false);
   });
 
-  it('apiClientCloseCallback fills state correctly', async () => {
+  it('processApiConnectionState with state CLOSING', async () => {
     const fixture = TestBed.createComponent(ScannerComponent);
     const component = fixture.componentInstance;
-    const testFrame: IFrame = {command: 'CLOSED', headers: null, isBinaryBody: false, body: null, binaryBody: null};
     component.apiClientReady = true;
 
-    component.apiClientCloseCallback(testFrame);
+    component.processApiConnectionState(RxStompState.CLOSING);
+
+    expect(component.apiClientReady).toBe(false);
+  });
+
+  it('processApiConnectionState with state CLOSED', async () => {
+    const fixture = TestBed.createComponent(ScannerComponent);
+    const component = fixture.componentInstance;
+    component.apiClientReady = true;
+
+    component.processApiConnectionState(RxStompState.CLOSED);
 
     expect(component.apiClientReady).toBe(false);
   });
