@@ -80,6 +80,7 @@ class WebSecurityConfig(
             http.csrf()
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                 .ignoringAntMatchers("/api/login")
+                .ignoringAntMatchers("/api/websockets")
         } else {
             http.csrf().disable()
         }
@@ -106,7 +107,7 @@ class WebSecurityConfig(
     fun jwtAuthenticationFilter(): JwtAuthenticationFilter {
         val requestMatcher = AndRequestMatcher(
             AntPathRequestMatcher("/api/**"),
-            NegatedRequestMatcher(AntPathRequestMatcher("/api/websockets/**"))
+            NegatedRequestMatcher(AntPathRequestMatcher("/api/websockets"))
         )
 
         val filter = JwtAuthenticationFilter(requestMatcher, authenticationManagerBean())

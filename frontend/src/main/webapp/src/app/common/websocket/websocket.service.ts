@@ -1,4 +1,4 @@
-import {Injectable, OnInit} from '@angular/core';
+import {Injectable} from '@angular/core';
 import {IRxStompPublishParams, RxStomp} from '@stomp/rx-stomp';
 import {PlatformLocation} from '@angular/common';
 import {RxStompConfig} from '@stomp/rx-stomp/esm6/rx-stomp-config';
@@ -20,7 +20,6 @@ export class WebsocketService {
   init(): void {
     const stompConfig: RxStompConfig = {
       brokerURL: this.getBaseUrl(),
-      // brokerURL: 'wss://socketsbay.com/wss/v2/2/demo/',
       /*
       connectHeaders: {
         'X-XSRF-TOKEN': this.cookieService.get('XSRF-TOKEN'),
@@ -28,14 +27,20 @@ export class WebsocketService {
       },
        */
       debug: function (str) {
-        console.log('RX-STOMP: ' + str);
+        // tslint:disable-next-line:no-console
+        console.debug('RX-STOMP: ' + str);
       },
-      logRawCommunication: true,
-      reconnectDelay: 2000
+      heartbeatIncoming: 0, // Typical value 0 - disabled
+      heartbeatOutgoing: 20000, // Typical value 20000 - every 20 seconds
+      logRawCommunication: true
     };
 
     this.client = new RxStomp();
     this.client.configure(stompConfig);
+
+    this.client.connectionState$.subscribe(state => {
+      console.log('RX-STOMP-STATE', RxStompState[state]);
+    });
   }
 
   getConnectionState(): BehaviorSubject<RxStompState> {

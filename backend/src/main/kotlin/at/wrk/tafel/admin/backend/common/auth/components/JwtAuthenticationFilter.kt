@@ -23,7 +23,6 @@ class JwtAuthenticationFilter(
 ) {
     companion object {
         private const val AUTHORIZATION_PREFIX = "Bearer "
-        private val logger = LoggerFactory.getLogger(JwtAuthenticationFilter::class.java)
     }
 
     override fun attemptAuthentication(request: HttpServletRequest, response: HttpServletResponse): Authentication {
