@@ -1,10 +1,8 @@
 package at.wrk.tafel.admin.backend.config
 
 import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.boot.context.properties.ConstructorBinding
 
 @ConfigurationProperties
-@ConstructorBinding
 data class ApplicationProperties(
     val security: SecurityProperties
 )

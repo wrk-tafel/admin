@@ -4,18 +4,17 @@ import at.wrk.tafel.admin.backend.config.ApplicationProperties
 import at.wrk.tafel.admin.backend.security.components.JwtTokenService
 import at.wrk.tafel.admin.backend.security.model.JwtAuthenticationResponse
 import at.wrk.tafel.admin.backend.security.model.TafelUser
+import jakarta.servlet.http.HttpServletRequest
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RestController
-import javax.servlet.http.HttpServletRequest
 
 @RestController
 class JwtTokenController(
-    private val jwtTokenService: JwtTokenService,
-    private val applicationProperties: ApplicationProperties
+    private val jwtTokenService: JwtTokenService, private val applicationProperties: ApplicationProperties
 ) {
     private val logger = LoggerFactory.getLogger(JwtTokenController::class.java)
 
@@ -39,8 +38,7 @@ class JwtTokenController(
     }
 
     private fun generateAuthenticatedResponse(
-        user: TafelUser,
-        request: HttpServletRequest
+        user: TafelUser, request: HttpServletRequest
     ): ResponseEntity<JwtAuthenticationResponse> {
         val token: String = jwtTokenService.generateToken(
             username = user.username,
@@ -52,15 +50,13 @@ class JwtTokenController(
 
         return ResponseEntity.ok(
             JwtAuthenticationResponse(
-                token = token,
-                passwordChangeRequired = false
+                token = token, passwordChangeRequired = false
             )
         )
     }
 
     private fun generateChangePasswordResponse(
-        user: TafelUser,
-        request: HttpServletRequest
+        user: TafelUser, request: HttpServletRequest
     ): ResponseEntity<JwtAuthenticationResponse> {
         val token: String = jwtTokenService.generateToken(
             username = user.username,
@@ -78,8 +74,7 @@ class JwtTokenController(
 
         return ResponseEntity.ok(
             JwtAuthenticationResponse(
-                token = token,
-                passwordChangeRequired = true
+                token = token, passwordChangeRequired = true
             )
         )
     }
