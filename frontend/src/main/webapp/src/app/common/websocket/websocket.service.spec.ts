@@ -1,6 +1,7 @@
 import {PlatformLocation} from '@angular/common';
-import {CompatClient, Stomp} from '@stomp/stompjs';
 import {WebsocketService} from './websocket.service';
+import {RxStomp, RxStompState} from '@stomp/rx-stomp';
+import {BehaviorSubject} from "rxjs";
 
 describe('WebsocketService', () => {
   let overwriteProtocol: string;
@@ -14,52 +15,79 @@ describe('WebsocketService', () => {
       protocol: overwriteProtocol ? overwriteProtocol : 'http:'
     });
 
-    const clientSpy: jasmine.SpyObj<CompatClient> = jasmine.createSpyObj('RxStomp', ['activate', 'publish', 'deactivate']);
-    const stompSpy = spyOn(Stomp, 'client').and.returnValue(clientSpy);
+    const clientSpy: jasmine.SpyObj<RxStomp> = jasmine.createSpyObj('RxStomp', ['configure', 'activate', 'publish', 'deactivate']);
 
     const service = new WebsocketService(platformLocationSpy);
+    service.client = clientSpy;
 
-    return {service, platformLocationSpy, stompSpy, clientSpy};
+    return {service, platformLocationSpy, clientSpy};
   }
 
-  it('connect creates the client', () => {
-    const {service, stompSpy, clientSpy} = setup();
+  it('client configured correctly', () => {
+    overwriteTestPathname = undefined;
+    const {service, clientSpy} = setup();
 
-    service.connect();
+    service.init();
 
-    expect(stompSpy).toHaveBeenCalledWith('ws://testhost:1234/subpath/ws-api');
-    expect(clientSpy.connect).toHaveBeenCalled();
-  });
-
-  it('connect with empty pathname creates correct baseUrl', () => {
-    overwriteTestPathname = '/';
-    const {service, stompSpy} = setup();
-
-    service.connect();
-
-    expect(stompSpy).toHaveBeenCalledWith('ws://testhost:1234/ws-api');
-
+    expect(clientSpy.configure).toHaveBeenCalledWith({
+      brokerURL: 'ws://testhost:1234/subpath/api/websockets',
+      debug: jasmine.any(Function),
+      heartbeatIncoming: 0,
+      heartbeatOutgoing: 20000,
+      logRawCommunication: true
+    });
     overwriteTestPathname = undefined;
   });
 
-  it('connect with https creates correct baseUrl', () => {
+  it('client configured correctly with empty pathname', () => {
+    overwriteTestPathname = '/';
+    const {service, clientSpy} = setup();
+
+    service.init();
+
+    expect(clientSpy.configure).toHaveBeenCalledWith(jasmine.objectContaining({
+      brokerURL: 'ws://testhost:1234/api/websockets'
+    }));
+    overwriteTestPathname = undefined;
+  });
+
+  it('client configured correctly with https', () => {
     overwriteProtocol = 'https:';
-    const {service, stompSpy} = setup();
+    overwriteTestPathname = undefined;
+    const {service, clientSpy} = setup();
 
-    service.connect();
+    service.init();
 
-    expect(stompSpy).toHaveBeenCalledWith('wss://testhost:1234/subpath/ws-api');
-
+    expect(clientSpy.configure).toHaveBeenCalledWith(jasmine.objectContaining({
+      brokerURL: 'wss://testhost:1234/subpath/api/websockets'
+    }));
+    overwriteTestPathname = undefined;
     overwriteProtocol = undefined;
   });
 
-  it('close forceDisconnects the client', () => {
+  it('connect calls activate', () => {
     const {service, clientSpy} = setup();
+
     service.connect();
+
+    expect(clientSpy.activate).toHaveBeenCalled();
+  });
+
+  it('publish called', () => {
+    const {service, clientSpy} = setup();
+
+    const parameters = {destination: '/test123'};
+    service.publish(parameters);
+
+    expect(clientSpy.publish).toHaveBeenCalledWith(parameters);
+  });
+
+  it('close called', () => {
+    const {service, clientSpy} = setup();
 
     service.close();
 
-    expect(clientSpy.forceDisconnect).toHaveBeenCalled();
+    expect(clientSpy.deactivate).toHaveBeenCalled();
   });
 
 });

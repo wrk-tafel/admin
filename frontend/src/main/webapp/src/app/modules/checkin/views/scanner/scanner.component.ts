@@ -40,6 +40,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
       this.processQrCodeReaderPromise(promise);
     });
 
+    this.websocketService.init();
     this.websocketService.connect();
   }
 

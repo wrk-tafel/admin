@@ -1,4 +1,4 @@
-import {Injectable} from '@angular/core';
+import {Injectable, OnInit} from '@angular/core';
 import {IRxStompPublishParams, RxStomp} from '@stomp/rx-stomp';
 import {PlatformLocation} from '@angular/common';
 import {RxStompConfig} from '@stomp/rx-stomp/esm6/rx-stomp-config';
@@ -9,12 +9,11 @@ import {RxStompState} from '@stomp/rx-stomp/esm6/rx-stomp-state';
   providedIn: 'root',
 })
 export class WebsocketService {
-  private client: RxStomp;
+  client: RxStomp = new RxStomp();
 
   constructor(private platformLocation: PlatformLocation) {
     // private cookieService: CookieService,
-    //               private authenticationService: AuthenticationService
-    this.init();
+    // private authenticationService: AuthenticationService
   }
 
   init(): void {
@@ -35,12 +34,7 @@ export class WebsocketService {
       logRawCommunication: true
     };
 
-    this.client = new RxStomp();
     this.client.configure(stompConfig);
-
-    this.client.connectionState$.subscribe(state => {
-      console.log('RX-STOMP-STATE', RxStompState[state]);
-    });
   }
 
   getConnectionState(): BehaviorSubject<RxStompState> {
@@ -59,7 +53,7 @@ export class WebsocketService {
     return this.client.deactivate();
   }
 
-  private getBaseUrl() {
+  getBaseUrl() {
     let pathname = this.platformLocation.pathname;
     if (pathname === '/') {
       pathname = '';
