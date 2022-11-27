@@ -1,6 +1,6 @@
-package at.wrk.tafel.admin.backend.security.components
+package at.wrk.tafel.admin.backend.common.auth.components
 
-import at.wrk.tafel.admin.backend.security.model.JwtAuthenticationToken
+import at.wrk.tafel.admin.backend.common.auth.model.JwtAuthenticationToken
 import org.springframework.security.authentication.CredentialsExpiredException
 import org.springframework.security.authentication.DisabledException
 import org.springframework.security.authentication.InsufficientAuthenticationException

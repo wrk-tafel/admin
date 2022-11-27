@@ -1,9 +1,9 @@
-package at.wrk.tafel.admin.backend.security
+package at.wrk.tafel.admin.backend.common.auth
 
 import at.wrk.tafel.admin.backend.config.ApplicationProperties
-import at.wrk.tafel.admin.backend.security.components.JwtTokenService
-import at.wrk.tafel.admin.backend.security.model.JwtAuthenticationResponse
-import at.wrk.tafel.admin.backend.security.model.TafelUser
+import at.wrk.tafel.admin.backend.common.auth.components.JwtTokenService
+import at.wrk.tafel.admin.backend.common.auth.model.JwtAuthenticationResponse
+import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity

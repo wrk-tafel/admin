@@ -1,7 +1,7 @@
 package at.wrk.tafel.admin.backend.security
 
 import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
-import at.wrk.tafel.admin.backend.security.model.TafelUser
+import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
 
 val testUserEntity = UserEntity().apply {
     username = "test-username"

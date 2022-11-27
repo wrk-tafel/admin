@@ -11,6 +11,7 @@ export class ApiPathInterceptor implements HttpInterceptor {
   constructor(
     private window: Window,
     private router: Router) {
+    // TODO maybe replace router by platformLocation
   }
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {

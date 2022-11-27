@@ -13,6 +13,16 @@ export const navigationMenuItems: IPermissionNavData[] = [
     permissions: ['DASHBOARD']
   },
   {
+    name: 'Anmeldung',
+    title: true
+  },
+  {
+    name: 'Scanner',
+    url: '/anmeldung/scanner',
+    icon: 'fa fa-barcode',
+    permissions: ['CHECKIN']
+  },
+  {
     name: 'Kundenverwaltung',
     title: true
   },

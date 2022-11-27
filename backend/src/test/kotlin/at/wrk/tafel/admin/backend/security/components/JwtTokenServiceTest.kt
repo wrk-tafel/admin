@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.security.components
 
+import at.wrk.tafel.admin.backend.common.auth.components.JwtTokenService
 import at.wrk.tafel.admin.backend.config.ApplicationProperties
 import at.wrk.tafel.admin.backend.config.SecurityJwtTokenProperties
 import at.wrk.tafel.admin.backend.config.SecurityJwtTokenSecretProperties

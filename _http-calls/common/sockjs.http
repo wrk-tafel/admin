@@ -1,0 +1,2 @@
+### List websocket info
+GET {{baseApiPath}}/websockets/info

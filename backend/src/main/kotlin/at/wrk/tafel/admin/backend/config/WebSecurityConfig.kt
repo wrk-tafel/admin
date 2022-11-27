@@ -1,11 +1,11 @@
-package at.wrk.tafel.admin.backend.security
+package at.wrk.tafel.admin.backend.config
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
-import at.wrk.tafel.admin.backend.security.components.JwtAuthenticationFilter
-import at.wrk.tafel.admin.backend.security.components.JwtAuthenticationProvider
-import at.wrk.tafel.admin.backend.security.components.JwtTokenService
-import at.wrk.tafel.admin.backend.security.components.TafelUserDetailsManager
+import at.wrk.tafel.admin.backend.common.auth.components.JwtAuthenticationFilter
+import at.wrk.tafel.admin.backend.common.auth.components.JwtAuthenticationProvider
+import at.wrk.tafel.admin.backend.common.auth.components.JwtTokenService
+import at.wrk.tafel.admin.backend.common.auth.components.TafelUserDetailsManager
 import org.passay.*
 import org.passay.dictionary.ArrayWordList
 import org.passay.dictionary.WordListDictionary
@@ -28,7 +28,9 @@ import org.springframework.security.provisioning.UserDetailsManager
 import org.springframework.security.web.authentication.HttpStatusEntryPoint
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository
+import org.springframework.security.web.util.matcher.AndRequestMatcher
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher
+import org.springframework.security.web.util.matcher.NegatedRequestMatcher
 
 @Configuration
 @EnableWebSecurity
@@ -78,6 +80,7 @@ class WebSecurityConfig(
             http.csrf()
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                 .ignoringAntMatchers("/api/login")
+                .ignoringAntMatchers("/api/websockets")
         } else {
             http.csrf().disable()
         }
@@ -102,7 +105,10 @@ class WebSecurityConfig(
 
     @Bean
     fun jwtAuthenticationFilter(): JwtAuthenticationFilter {
-        val requestMatcher = AntPathRequestMatcher("/api/**")
+        val requestMatcher = AndRequestMatcher(
+            AntPathRequestMatcher("/api/**"),
+            NegatedRequestMatcher(AntPathRequestMatcher("/api/websockets"))
+        )
 
         val filter = JwtAuthenticationFilter(requestMatcher, authenticationManagerBean())
         // We do not need to do anything extra on REST authentication success, because there is no page to redirect to

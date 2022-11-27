@@ -48,6 +48,13 @@ export const routes: Routes = [
         }
       },
       {
+        path: 'anmeldung',
+        loadChildren: () => import('./modules/checkin/checkin.module').then(m => m.CheckinModule),
+        data: {
+          permission: 'CHECKIN'
+        }
+      },
+      {
         path: 'kunden',
         loadChildren: () => import('./modules/customer/customer.module').then(m => m.CustomerModule),
         data: {
