@@ -1,9 +1,9 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
-import {Html5QrcodeResult} from 'html5-qrcode/esm/core';
-import {CameraDevice} from 'html5-qrcode/core';
 import {QRCodeReaderService} from './camera/qrcode-reader.service';
 import {RxStompState} from '@stomp/rx-stomp';
 import {WebsocketService} from '../../../../common/websocket/websocket.service';
+import {CameraDevice} from 'html5-qrcode/esm/camera/core';
+import {Html5QrcodeResult} from 'html5-qrcode/core';
 
 @Component({
   selector: 'tafel-scanner',
