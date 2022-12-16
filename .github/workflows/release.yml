@@ -1,13 +1,15 @@
-name: Push on main branch
+name: Push on release branch
 
 concurrency: release
 
 on:
   workflow_dispatch:
   push:
-    branches: [ 'main' ] # TODO switch to separate release branch later on
+    branches: [ 'release' ]
 
 jobs:
+  strategy:
+    max-parallel: 1
   build:
     uses: wrk-tafel/admin/.github/workflows/subflow_build.yml@main
   analysis-lint:
