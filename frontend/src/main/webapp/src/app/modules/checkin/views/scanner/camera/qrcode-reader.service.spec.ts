@@ -1,6 +1,6 @@
 import {QRCodeReaderService} from './qrcode-reader.service';
 import {Html5Qrcode} from 'html5-qrcode';
-import {CameraDevice} from 'html5-qrcode/esm/core';
+import {CameraDevice} from 'html5-qrcode/esm/camera/core';
 import {Html5QrcodeScannerState} from 'html5-qrcode/esm/state-manager';
 
 describe('QRCodeReaderService', () => {

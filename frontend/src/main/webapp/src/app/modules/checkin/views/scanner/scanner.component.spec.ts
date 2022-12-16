@@ -2,7 +2,7 @@ import {fakeAsync, TestBed, tick, waitForAsync} from '@angular/core/testing';
 import {CommonModule} from '@angular/common';
 import {ScannerComponent} from './scanner.component';
 import {QRCodeReaderService} from './camera/qrcode-reader.service';
-import {CameraDevice} from 'html5-qrcode/core';
+import {CameraDevice} from 'html5-qrcode/esm/camera/core';
 import {BehaviorSubject} from 'rxjs';
 import {RxStompState} from '@stomp/rx-stomp';
 import {WebsocketService} from '../../../../common/websocket/websocket.service';
