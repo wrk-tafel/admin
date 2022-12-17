@@ -39,7 +39,7 @@ jobs:
         uses: MajorScruffy/delete-old-workflow-runs@v0.3.0
         with:
           repository: wrk-tafel/admin
-          workflow: ".github/subflows/subflow_analysis_lint.yml"
+          workflow: ".github/subflows/subflow_analysis-lint.yml"
           older-than-seconds: 604800
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -47,7 +47,7 @@ jobs:
         uses: MajorScruffy/delete-old-workflow-runs@v0.3.0
         with:
           repository: wrk-tafel/admin
-          workflow: ".github/subflows/subflow_analysis_codeql.yml"
+          workflow: ".github/subflows/subflow_analysis-codeql.yml"
           older-than-seconds: 604800
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

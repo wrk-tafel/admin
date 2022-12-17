@@ -13,9 +13,9 @@ jobs:
   build:
     uses: wrk-tafel/admin/.github/subflows/subflow_build.yml@main
   analysis-lint:
-    uses: wrk-tafel/admin/.github/subflows/subflow_analysis_lint.yml@main
+    uses: wrk-tafel/admin/.github/subflows/subflow_analysis-lint.yml@main
   analysis-codeql:
-    uses: wrk-tafel/admin/.github/subflows/subflow_analysis_codeql.yml@main
+    uses: wrk-tafel/admin/.github/subflows/subflow_analysis-codeql.yml@main
   test-backend:
     uses: wrk-tafel/admin/.github/subflows/subflow_test-backend.yml@main
     needs: build
@@ -26,10 +26,10 @@ jobs:
     uses: wrk-tafel/admin/.github/subflows/subflow_e2e-test.yml@main
     needs: build
   docker-image:
-    uses: wrk-tafel/admin/.github/subflows/subflow_build_image.yml@main
+    uses: wrk-tafel/admin/.github/subflows/subflow_build-image.yml@main
     needs: [test-backend, test-frontend, e2e-test]
   docker-hub:
-    uses: wrk-tafel/admin/.github/subflows/subflow_publish_image.yml@main
+    uses: wrk-tafel/admin/.github/subflows/subflow_publish-image.yml@main
     needs: docker-image
     secrets:
       dockerHubUsername: ${{ secrets.DOCKERHUB_USERNAME }}
