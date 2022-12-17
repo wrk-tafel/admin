@@ -30,4 +30,5 @@ updates:
     schedule:
       interval: "daily"
     ignore:
-      - dependency-name: "openjdk:18.0.2-oraclelinux7"
+      - dependency-name: "openjdk"
+        versions: [ "18.x" ]
