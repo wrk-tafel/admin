@@ -21,7 +21,7 @@ updates:
       - dependency-name: "@angular-devkit/build-angular"
   # Maintain dependencies for GitHub Actions
   - package-ecosystem: "github-actions"
-    directory: "/.github/workflows"
+    directory: "/.github"
     schedule:
       interval: "daily"
   - package-ecosystem: "docker"
