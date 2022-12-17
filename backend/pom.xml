@@ -14,7 +14,7 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <java.version>17</java.version>
-        <kotlin.version>1.7.21</kotlin.version>
+        <kotlin.version>1.7.22</kotlin.version>
 
         <spring.boot.version>2.7.5</spring.boot.version>
         <jjwt.version>0.11.5</jjwt.version>
@@ -31,7 +31,7 @@
 
         <!-- Test dependency versions -->
         <archunit.version>1.0.1</archunit.version>
-        <mockk.version>1.13.2</mockk.version>
+        <mockk.version>1.13.3</mockk.version>
         <testcontainers.version>1.17.6</testcontainers.version>
         <apache.pdfbox.version>2.0.27</apache.pdfbox.version>
         <image.comparison.version>4.4.0</image.comparison.version>
