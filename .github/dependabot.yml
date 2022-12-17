@@ -19,6 +19,7 @@ updates:
       - dependency-name: "@types/node"
       - dependency-name: "@coreui/icons-angular"
       - dependency-name: "@angular-devkit/build-angular"
+      - dependency-name: "ngx-cookie-service"
   # Maintain dependencies for GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/.github/workflows"
