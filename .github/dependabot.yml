@@ -31,4 +31,3 @@ updates:
       interval: "daily"
     ignore:
       - dependency-name: "openjdk"
-        versions: [ "18.x" ]
