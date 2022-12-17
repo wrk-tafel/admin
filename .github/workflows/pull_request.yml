@@ -1,0 +1,19 @@
+name: Pull Request
+
+on:
+  pull_request:
+
+jobs:
+  build:
+    uses: wrk-tafel/admin/.github/workflows/subflows/subflow_build.yml@main
+  analysis-lint:
+    uses: wrk-tafel/admin/.github/workflows/subflows/subflow_analysis-lint.yml@main
+  test-backend:
+    uses: wrk-tafel/admin/.github/workflows/subflows/subflow_test-backend.yml@main
+    needs: build
+  test-frontend:
+    uses: wrk-tafel/admin/.github/workflows/subflows/subflow_test-frontend.yml@main
+    needs: build
+  e2e-test:
+    uses: wrk-tafel/admin/.github/workflows/subflows/subflow_e2e-test.yml@main
+    needs: build
