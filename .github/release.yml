@@ -23,7 +23,7 @@ jobs:
     uses: wrk-tafel/admin/.github/subflows/subflow_test-frontend.yml@main
     needs: build
   e2e-test:
-    uses: wrk-tafel/admin/.github/subflows/subflow_e2e_test.yml@main
+    uses: wrk-tafel/admin/.github/subflows/subflow_e2e-test.yml@main
     needs: build
   docker-image:
     uses: wrk-tafel/admin/.github/subflows/subflow_build_image.yml@main
