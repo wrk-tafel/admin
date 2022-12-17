@@ -5,7 +5,7 @@ concurrency: release
 on:
   workflow_dispatch:
   push:
-    branches: [ 'main' ] # TODO switch to separate release branch later on
+    branches: [ 'release' ]
 
 jobs:
   build:
