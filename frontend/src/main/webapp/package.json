@@ -45,7 +45,7 @@
     "bootstrap": "4.6.0",
     "chart.js": "2.9.4",
     "classlist.js": "1.1.20150312",
-    "core-js": "3.26.1",
+    "core-js": "3.27.1",
     "cypress-recurse": "1.26.0",
     "flag-icon-css": "4.1.7",
     "follow-redirects": "1.15.2",
