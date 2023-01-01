@@ -20,6 +20,7 @@ class JwtAuthenticationFilter(
     requestMatcher,
     configuredAuthenticationManager
 ) {
+
     companion object {
         private const val AUTHORIZATION_PREFIX = "Bearer "
     }
@@ -62,4 +63,5 @@ class JwtAuthenticationFilter(
     ) {
         super.unsuccessfulAuthentication(request, response, failed)
     }
+
 }

@@ -43,6 +43,8 @@ class WebSecurityConfig(
 ) {
 
     companion object {
+        val UNAUTHENTICATED_URLS = listOf("/api/login", "/api/websockets")
+
         val passwordValidator = PasswordValidator(
             listOf(
                 LengthRule(8, 50), UsernameRule(), WhitespaceRule(), DictionarySubstringRule(
@@ -69,19 +71,27 @@ class WebSecurityConfig(
             .authenticationEntryPoint(HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
             .and().sessionManagement()
             .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            .and()
+            .authorizeHttpRequests { auth ->
+                UNAUTHENTICATED_URLS.map { AntPathRequestMatcher(it) }.map {
+                    auth.requestMatchers(it).permitAll()
+                }
+
+                auth.anyRequest().authenticated()
+            }
+            .addFilterAfter(
+                jwtAuthenticationFilter(authenticationManager),
+                UsernamePasswordAuthenticationFilter::class.java
+            )
 
         if (csrfEnabled) {
             http.csrf()
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .ignoringRequestMatchers("/api/login", "/api/websockets")
+                .ignoringRequestMatchers(*UNAUTHENTICATED_URLS.toTypedArray())
         } else {
             http.csrf().disable()
         }
 
-        http.addFilterAfter(
-            jwtAuthenticationFilter(authenticationManager),
-            UsernamePasswordAuthenticationFilter::class.java
-        )
         return http.build()
     }
 
@@ -104,8 +114,12 @@ class WebSecurityConfig(
     @Bean
     fun jwtAuthenticationFilter(authenticationManager: AuthenticationManager): JwtAuthenticationFilter {
         val requestMatcher = AndRequestMatcher(
-            AntPathRequestMatcher("/api/**"),
-            NegatedRequestMatcher(AntPathRequestMatcher("/api/websockets"))
+            NegatedRequestMatcher(
+                AndRequestMatcher(
+                    UNAUTHENTICATED_URLS.map { AntPathRequestMatcher(it) }
+                )
+            ),
+            AntPathRequestMatcher("/api/**")
         )
 
         val filter = JwtAuthenticationFilter(requestMatcher, authenticationManager)
