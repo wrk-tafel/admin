@@ -73,8 +73,7 @@ class WebSecurityConfig(
         if (csrfEnabled) {
             http.csrf()
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .ignoringAntMatchers("/api/login")
-                .ignoringAntMatchers("/api/websockets")
+                .ignoringRequestMatchers("/api/login", "/api/websockets")
         } else {
             http.csrf().disable()
         }
