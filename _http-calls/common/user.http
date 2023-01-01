@@ -1,8 +1,12 @@
 ### Login
-POST {{baseApiPath}}/login
-Content-Type: application/x-www-form-urlencoded
+POST {{baseApiPath}}/login?username={{username}}&password={{password}}
 
-username={{username}}&password={{password}}
+> {%
+    client.global.set("jwt", response.body["token"]);
+%}
+
+### Login (fails)
+POST {{baseApiPath}}/login?username=wrong&password=wrong
 
 > {%
     client.global.set("jwt", response.body["token"]);
