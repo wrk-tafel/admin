@@ -43,9 +43,9 @@ class WebSecurityConfig(
 ) {
 
     companion object {
-        val UNAUTHENTICATED_URLS = listOf("/api/login", "/api/websockets")
+        private val UNAUTHENTICATED_URLS = listOf("/api/login", "/api/websockets")
 
-        val passwordValidator = PasswordValidator(
+        private val passwordValidator = PasswordValidator(
             listOf(
                 LengthRule(8, 50), UsernameRule(), WhitespaceRule(), DictionarySubstringRule(
                     WordListDictionary(
