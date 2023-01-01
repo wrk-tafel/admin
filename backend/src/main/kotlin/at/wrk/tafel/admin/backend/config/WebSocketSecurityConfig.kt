@@ -13,7 +13,7 @@ class WebSocketSecurityConfig {
 
     @Bean
     fun authorizationManager(messages: MessageMatcherDelegatingAuthorizationManager.Builder): AuthorizationManager<Message<*>?>? {
-        return messages.anyMessage().authenticated().build()
+        return messages.anyMessage().permitAll().build()
     }
 
 }
