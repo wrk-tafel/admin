@@ -1,0 +1,46 @@
+<div class="row">
+  <div class="col-md ">
+    <div class="card">
+      <div class="card-body">
+        <div class="row">
+          <div class="col d-flex justify-content-center">
+            <div class="badge mr-3" style="font-size: 10pt;"
+                 [ngClass]="{'badge-success': apiClientReady, 'badge-danger': !apiClientReady}">Status Server
+            </div>
+            <div class="badge" style="font-size: 10pt;"
+                 [ngClass]="{'badge-success': qrCodeReaderReady, 'badge-danger': !qrCodeReaderReady}">Status Kamera
+            </div>
+          </div>
+        </div>
+        <div class="row mt-3">
+          <div class="col d-flex justify-content-center">
+            <h1>Scanner Nr: {{scannerId}}</h1>
+          </div>
+        </div>
+        <div class="row mb-3" *ngIf="availableCameras.length > 0">
+          <div class="col d-flex justify-content-center">
+            <div class="form-inline">
+              <label class="form-label font-weight-bold mr-2">Kamera</label>
+              <select testId="cameraSelectionInput" class="form-control" [(ngModel)]="selectedCamera">
+                <option *ngFor="let camera of availableCameras" [ngValue]="camera">
+                  {{camera.label}}</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col">
+            <div id="qrCodeReaderBox"></div>
+          </div>
+        </div>
+        <div *ngIf="qrCodeReaderReady" class="row mt-3">
+          <div class="col d-flex justify-content-center">
+            <div class="alert alert-info ml-2 mr-2" testId="message">
+              <div><strong>Scan-Ergebnis: </strong>{{lastSentText}}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

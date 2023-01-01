@@ -1,10 +1,7 @@
-package at.wrk.tafel.admin.backend.security.components
+package at.wrk.tafel.admin.backend.common.auth.components
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
-import at.wrk.tafel.admin.backend.security.model.JwtAuthenticationToken
-import jakarta.servlet.FilterChain
-import jakarta.servlet.http.HttpServletRequest
-import jakarta.servlet.http.HttpServletResponse
+import at.wrk.tafel.admin.backend.common.auth.model.JwtAuthenticationToken
 import org.springframework.http.HttpHeaders
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.InsufficientAuthenticationException
@@ -12,6 +9,9 @@ import org.springframework.security.core.Authentication
 import org.springframework.security.core.AuthenticationException
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter
 import org.springframework.security.web.util.matcher.RequestMatcher
+import javax.servlet.FilterChain
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 
 class JwtAuthenticationFilter(
     requestMatcher: RequestMatcher,
@@ -28,6 +28,7 @@ class JwtAuthenticationFilter(
         val header = request.getHeader(HttpHeaders.AUTHORIZATION)
 
         if (header == null || !header.startsWith(AUTHORIZATION_PREFIX)) {
+            logger.info("Failed authentication attempt on ${request.requestURI}")
             throw InsufficientAuthenticationException("no token given")
         }
 

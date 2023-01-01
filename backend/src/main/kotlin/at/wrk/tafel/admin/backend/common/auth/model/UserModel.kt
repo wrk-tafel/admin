@@ -1,4 +1,4 @@
-package at.wrk.tafel.admin.backend.security.model
+package at.wrk.tafel.admin.backend.common.auth.model
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 

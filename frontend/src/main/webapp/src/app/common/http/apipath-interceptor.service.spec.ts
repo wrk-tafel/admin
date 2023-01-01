@@ -23,6 +23,7 @@ describe('ApiPathInterceptor', () => {
     TestBed.overrideProvider(Window, {useValue: {location: {pathname: '/'}}});
     const routerSpy = jasmine.createSpyObj('Router', ['url']);
     TestBed.overrideProvider(Router, {useValue: routerSpy});
+
     const client = TestBed.inject(HttpClient);
     const httpMock = TestBed.inject(HttpTestingController);
     routerSpy.url.and.returnValue('/');
@@ -37,6 +38,7 @@ describe('ApiPathInterceptor', () => {
     TestBed.overrideProvider(Window, {useValue: {location: {pathname: '/'}}});
     const routerSpy = jasmine.createSpyObj('Router', ['url']);
     TestBed.overrideProvider(Router, {useValue: routerSpy});
+
     const client = TestBed.inject(HttpClient);
     const httpMock = TestBed.inject(HttpTestingController);
     routerSpy.url.and.returnValue('/subpath');
@@ -51,6 +53,7 @@ describe('ApiPathInterceptor', () => {
     TestBed.overrideProvider(Window, {useValue: {location: {pathname: '/subpath'}}});
     const routerSpy = jasmine.createSpyObj('Router', ['url']);
     TestBed.overrideProvider(Router, {useValue: routerSpy});
+
     const client = TestBed.inject(HttpClient);
     const httpMock = TestBed.inject(HttpTestingController);
     routerSpy.url.and.returnValue('/');
@@ -65,6 +68,7 @@ describe('ApiPathInterceptor', () => {
     TestBed.overrideProvider(Window, {useValue: {location: {pathname: '/subpath'}}});
     const routerSpy = jasmine.createSpyObj('Router', ['url']);
     TestBed.overrideProvider(Router, {useValue: routerSpy});
+
     const client = TestBed.inject(HttpClient);
     const httpMock = TestBed.inject(HttpTestingController);
     routerSpy.url.and.returnValue('/subpath2');

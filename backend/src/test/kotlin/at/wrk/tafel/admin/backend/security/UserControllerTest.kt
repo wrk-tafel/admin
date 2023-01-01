@@ -1,7 +1,8 @@
 package at.wrk.tafel.admin.backend.security
 
-import at.wrk.tafel.admin.backend.security.components.PasswordException
-import at.wrk.tafel.admin.backend.security.model.ChangePasswordRequest
+import at.wrk.tafel.admin.backend.common.auth.UserController
+import at.wrk.tafel.admin.backend.common.auth.components.PasswordException
+import at.wrk.tafel.admin.backend.common.auth.model.ChangePasswordRequest
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK

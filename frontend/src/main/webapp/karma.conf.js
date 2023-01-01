@@ -60,6 +60,6 @@ module.exports = function (config) {
       terminal: true,
       level: 'log'
     },
-    browserNoActivityTimeout: 600000
+    browserNoActivityTimeout: 6000000
   });
 };
