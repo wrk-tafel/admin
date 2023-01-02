@@ -65,7 +65,7 @@ class JwtAuthenticationFilter(
         failed: AuthenticationException
     ) {
         response.status = HttpStatus.FORBIDDEN.value()
-        logger.info("Login failed: ${failed.message} (from IP: ${getIpAddress(request)})")
+        logger.info("Login failed - ${failed.message} (from IP: ${getIpAddress(request)})")
     }
 
     private fun generateAuthenticatedResponse(

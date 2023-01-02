@@ -25,7 +25,7 @@ class JwtAuthenticationProvider(
         authentication: UsernamePasswordAuthenticationToken
     ) {
         if (!passwordEncoder.matches(authentication.credentials as String, userDetails.password)) {
-            throw BadCredentialsException("Aktuelles Passwort ist falsch!")
+            throw BadCredentialsException("Password wrong for user ${authentication.name}!")
         }
     }
 
