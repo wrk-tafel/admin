@@ -5,12 +5,11 @@ POST {{baseApiPath}}/login?username={{username}}&password={{password}}
     client.global.set("jwt", response.body["token"]);
 %}
 
-### Login (fails)
+### Login fails - user not found
 POST {{baseApiPath}}/login?username=wrong&password=wrong
 
-> {%
-    client.global.set("jwt", response.body["token"]);
-%}
+### Login fails - wrong password
+POST {{baseApiPath}}/login?username=admin&password=wrong
 
 ### Change password
 POST {{baseApiPath}}/users/change-password

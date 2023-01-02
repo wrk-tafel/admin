@@ -1,6 +1,6 @@
 package at.wrk.tafel.admin.backend.common.auth
 
-import at.wrk.tafel.admin.backend.common.auth.components.PasswordException
+import at.wrk.tafel.admin.backend.common.auth.components.PasswordChangeException
 import at.wrk.tafel.admin.backend.common.auth.model.ChangePasswordRequest
 import at.wrk.tafel.admin.backend.common.auth.model.ChangePasswordResponse
 import org.slf4j.LoggerFactory
@@ -25,7 +25,7 @@ class UserController(
     fun changePassword(@RequestBody request: ChangePasswordRequest): ResponseEntity<ChangePasswordResponse> {
         try {
             userDetailsManager.changePassword(request.passwordCurrent, request.passwordNew)
-        } catch (e: PasswordException) {
+        } catch (e: PasswordChangeException) {
             val validationResult = ChangePasswordResponse(message = e.message, details = e.validationDetails)
             return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(validationResult)
         }

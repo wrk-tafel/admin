@@ -1,6 +1,6 @@
 package at.wrk.tafel.admin.backend.security.components
 
-import at.wrk.tafel.admin.backend.common.auth.components.PasswordException
+import at.wrk.tafel.admin.backend.common.auth.components.PasswordChangeException
 import at.wrk.tafel.admin.backend.common.auth.components.TafelUserDetailsManager
 import at.wrk.tafel.admin.backend.database.entities.auth.UserAuthorityEntity
 import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
@@ -168,7 +168,7 @@ class TafelUserDetailsManagerTest {
         val currentPassword = "wrong-password"
         val newPassword = "67890"
 
-        val exception = assertThrows<PasswordException> {
+        val exception = assertThrows<PasswordChangeException> {
             manager.changePassword(currentPassword, newPassword)
         }
         assertThat(exception.message).isEqualTo("Aktuelles Passwort ist falsch!")
@@ -185,7 +185,7 @@ class TafelUserDetailsManagerTest {
         val currentPassword = "12345"
         val newPassword = "67890"
 
-        val exception = assertThrows<PasswordException> {
+        val exception = assertThrows<PasswordChangeException> {
             manager.changePassword(currentPassword, newPassword)
         }
         assertThat(exception.message).isEqualTo("Das neue Passwort ist ungültig!")
@@ -205,7 +205,7 @@ class TafelUserDetailsManagerTest {
     fun `changePassword - password too short`() {
         val newPassword = "67890"
 
-        val exception = assertThrows<PasswordException> {
+        val exception = assertThrows<PasswordChangeException> {
             manager.changePassword("12345", newPassword)
         }
         assertThat(exception.message).isEqualTo("Das neue Passwort ist ungültig!")
@@ -220,7 +220,7 @@ class TafelUserDetailsManagerTest {
     fun `changePassword - password too long`() {
         val newPassword = "6789067890678906789067890678906789067890678906789067890"
 
-        val exception = assertThrows<PasswordException> {
+        val exception = assertThrows<PasswordChangeException> {
             manager.changePassword("12345", newPassword)
         }
         assertThat(exception.message).isEqualTo("Das neue Passwort ist ungültig!")
@@ -235,7 +235,7 @@ class TafelUserDetailsManagerTest {
     fun `changePassword - contains username`() {
         val newPassword = "123${testUserEntity.username}123"
 
-        val exception = assertThrows<PasswordException> {
+        val exception = assertThrows<PasswordChangeException> {
             manager.changePassword("12345", newPassword)
         }
         assertThat(exception.message).isEqualTo("Das neue Passwort ist ungültig!")
@@ -250,7 +250,7 @@ class TafelUserDetailsManagerTest {
     fun `changePassword - contains whitespace`() {
         val newPassword = "1234 1234"
 
-        val exception = assertThrows<PasswordException> {
+        val exception = assertThrows<PasswordChangeException> {
             manager.changePassword("12345", newPassword)
         }
         assertThat(exception.message).isEqualTo("Das neue Passwort ist ungültig!")
@@ -265,7 +265,7 @@ class TafelUserDetailsManagerTest {
     fun `changePassword - contains illegal words`() {
         val newPassword = "123wrk123tafel123"
 
-        val exception = assertThrows<PasswordException> {
+        val exception = assertThrows<PasswordChangeException> {
             manager.changePassword("12345", newPassword)
         }
         assertThat(exception.message).isEqualTo("Das neue Passwort ist ungültig!")

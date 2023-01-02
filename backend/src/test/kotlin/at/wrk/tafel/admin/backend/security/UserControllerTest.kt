@@ -1,7 +1,7 @@
 package at.wrk.tafel.admin.backend.security
 
 import at.wrk.tafel.admin.backend.common.auth.UserController
-import at.wrk.tafel.admin.backend.common.auth.components.PasswordException
+import at.wrk.tafel.admin.backend.common.auth.components.PasswordChangeException
 import at.wrk.tafel.admin.backend.common.auth.model.ChangePasswordRequest
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
@@ -38,7 +38,7 @@ class UserControllerTest {
     fun `change password failed`() {
         val errMsg = "failed"
         val errDetails = listOf("Length error ...", "Complexity error ...")
-        every { userDetailsManager.changePassword(any(), any()) } throws PasswordException(errMsg, errDetails)
+        every { userDetailsManager.changePassword(any(), any()) } throws PasswordChangeException(errMsg, errDetails)
         val request = ChangePasswordRequest(passwordCurrent = "old", passwordNew = "new")
 
         val response = controller.changePassword(request)

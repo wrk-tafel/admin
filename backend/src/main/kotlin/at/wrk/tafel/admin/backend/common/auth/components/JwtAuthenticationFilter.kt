@@ -13,7 +13,6 @@ import org.springframework.http.HttpStatus
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.AuthenticationException
-import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 import java.nio.charset.Charset
 
@@ -35,9 +34,9 @@ class JwtAuthenticationFilter(
         chain: FilterChain,
         authResult: Authentication
     ) {
-        val auth = SecurityContextHolder.getContext().authentication
-        if (auth?.principal is TafelUser) {
-            val user = auth.principal as TafelUser
+        val principal = authResult.principal
+        if (principal is TafelUser) {
+            val user = authResult.principal as TafelUser
 
             val authenticationResponse = if (user.passwordChangeRequired) {
                 generateChangePasswordResponse(user, request)

@@ -104,7 +104,7 @@ class WebSecurityConfig(
 
     @Bean
     fun jwtAuthenticationProvider(): JwtAuthenticationProvider {
-        return JwtAuthenticationProvider(jwtTokenService, userDetailsManager())
+        return JwtAuthenticationProvider(userDetailsManager(), passwordEncoder())
     }
 
 }
