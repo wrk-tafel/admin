@@ -2,6 +2,7 @@ import {HttpClient, HttpHeaders} from '@angular/common/http';
 import {Injectable} from '@angular/core';
 import {Router} from '@angular/router';
 import {JwtHelperService} from '@auth0/angular-jwt';
+import {toBase64String} from "@angular/compiler/src/output/source_map";
 
 @Injectable({
   providedIn: 'root'
@@ -76,12 +77,9 @@ export class AuthenticationService {
   }
 
   private executeLoginRequest(username: string, password: string) {
-    const body = new URLSearchParams();
-    body.set('username', username);
-    body.set('password', password);
-
-    const options = {headers: new HttpHeaders().set('Content-Type', 'application/x-www-form-urlencoded')};
-    return this.http.post<LoginResponse>('/login', body.toString(), options).toPromise();
+    const encodedCredentials = btoa(username + ':' + password);
+    const options = {headers: new HttpHeaders().set('Authorization', 'Basic ' + encodedCredentials)};
+    return this.http.post<LoginResponse>('/login', undefined, options).toPromise();
   }
 
   private storeToken(response: LoginResponse) {
