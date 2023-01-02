@@ -14,6 +14,7 @@ import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.AuthenticationException
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
+import org.springframework.security.web.authentication.www.BasicAuthenticationConverter
 import java.nio.charset.Charset
 
 @ExcludeFromTestCoverage
@@ -21,11 +22,20 @@ class JwtAuthenticationFilter(
     authenticationManager: AuthenticationManager,
     private val jwtTokenService: JwtTokenService,
     private val applicationProperties: ApplicationProperties,
-    private val objectMapper: ObjectMapper
+    private val objectMapper: ObjectMapper,
+    private val basicAuthConverter: BasicAuthenticationConverter = BasicAuthenticationConverter()
 ) : UsernamePasswordAuthenticationFilter(authenticationManager) {
 
     init {
         this.setFilterProcessesUrl("/api/login")
+    }
+
+    override fun obtainUsername(request: HttpServletRequest): String {
+        return basicAuthConverter.convert(request).name as String
+    }
+
+    override fun obtainPassword(request: HttpServletRequest): String {
+        return basicAuthConverter.convert(request).credentials as String
     }
 
     override fun successfulAuthentication(

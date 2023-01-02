@@ -1,15 +1,18 @@
 ### Login
-POST {{baseApiPath}}/login?username={{username}}&password={{password}}
+POST {{baseApiPath}}/login
+Authorization: Basic {{encodedCredentials}}
 
 > {%
     client.global.set("jwt", response.body["token"]);
 %}
 
 ### Login fails - user not found
-POST {{baseApiPath}}/login?username=wrong&password=wrong
+POST {{baseApiPath}}/login
+Authorization: Basic d3Jvbmc6d3Jvbmc=
 
 ### Login fails - wrong password
-POST {{baseApiPath}}/login?username=admin&password=wrong
+POST {{baseApiPath}}/login
+Authorization: Basic YWRtaW46d3Jvbmc=
 
 ### Change password
 POST {{baseApiPath}}/users/change-password
