@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.RestController
 class UserController(
     private val userDetailsManager: UserDetailsManager
 ) {
-    private val logger = LoggerFactory.getLogger(UserController::class.java)
 
     @PostMapping("/change-password")
     fun changePassword(@RequestBody request: ChangePasswordRequest): ResponseEntity<ChangePasswordResponse> {
