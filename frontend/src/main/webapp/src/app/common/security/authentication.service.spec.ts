@@ -50,7 +50,7 @@ describe('AuthenticationService', () => {
 
     const mockReq = httpMock.expectOne('/login');
     expect(mockReq.request.method).toBe('POST');
-    expect(mockReq.request.body).toBe('username=USER&password=PWD');
+    expect(mockReq.request.headers.get('Authorization')).toBe('Basic ' + btoa('USER:PWD'));
 
     const mockErrorResponse = {status: 200, statusText: 'OK'};
     const data = {token: 'TOKENVALUE', passwordChangeRequired: false};
@@ -70,7 +70,7 @@ describe('AuthenticationService', () => {
 
     const mockReq = httpMock.expectOne('/login');
     expect(mockReq.request.method).toBe('POST');
-    expect(mockReq.request.body).toBe('username=USER&password=PWD');
+    expect(mockReq.request.headers.get('Authorization')).toBe('Basic ' + btoa('USER:PWD'));
 
     const mockErrorResponse = {status: 200, statusText: 'OK'};
     const data = {token: 'TOKENVALUE', passwordChangeRequired: true};
@@ -88,7 +88,7 @@ describe('AuthenticationService', () => {
 
     const mockReq = httpMock.expectOne('/login');
     expect(mockReq.request.method).toBe('POST');
-    expect(mockReq.request.body).toBe('username=USER&password=PWD');
+    expect(mockReq.request.headers.get('Authorization')).toBe('Basic ' + btoa('USER:PWD'));
 
     const mockErrorResponse = {status: 403, statusText: 'Forbidden'};
     mockReq.flush(null, mockErrorResponse);
