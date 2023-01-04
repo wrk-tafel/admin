@@ -113,7 +113,7 @@ class WebSecurityConfig(
 
     @Bean
     fun tafelJwtAuthConverter(): TafelJwtAuthConverter {
-        return TafelJwtAuthConverter()
+        return TafelJwtAuthConverter(jwtTokenService)
     }
 
 }
