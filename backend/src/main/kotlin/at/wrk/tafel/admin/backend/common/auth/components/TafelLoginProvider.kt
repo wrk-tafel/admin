@@ -7,7 +7,7 @@ import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.crypto.password.PasswordEncoder
 
-class JwtAuthenticationProvider(
+class TafelLoginProvider(
     private val userDetailsService: UserDetailsService,
     private val passwordEncoder: PasswordEncoder
 ) : AbstractUserDetailsAuthenticationProvider() {

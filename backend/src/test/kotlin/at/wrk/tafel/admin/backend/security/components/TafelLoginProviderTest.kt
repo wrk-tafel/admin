@@ -1,6 +1,6 @@
 package at.wrk.tafel.admin.backend.security.components
 
-import at.wrk.tafel.admin.backend.common.auth.components.JwtAuthenticationProvider
+import at.wrk.tafel.admin.backend.common.auth.components.TafelLoginProvider
 import at.wrk.tafel.admin.backend.common.auth.components.JwtTokenService
 import at.wrk.tafel.admin.backend.common.auth.model.JwtAuthenticationToken
 import io.jsonwebtoken.impl.DefaultClaims
@@ -23,7 +23,7 @@ import java.time.temporal.ChronoUnit
 import java.util.*
 
 @ExtendWith(MockKExtension::class)
-class JwtAuthenticationProviderTest {
+class TafelLoginProviderTest {
 
     @RelaxedMockK
     private lateinit var jwtTokenService: JwtTokenService
@@ -32,16 +32,16 @@ class JwtAuthenticationProviderTest {
     private lateinit var userDetailsService: UserDetailsService
 
     @InjectMockKs
-    private lateinit var jwtAuthenticationProvider: JwtAuthenticationProvider
+    private lateinit var tafelLoginProvider: TafelLoginProvider
 
     @Test
     fun `supports - JwtAuthenticationToken class given`() {
-        assertThat(jwtAuthenticationProvider.supports(JwtAuthenticationToken::class.java)).isTrue
+        assertThat(tafelLoginProvider.supports(JwtAuthenticationToken::class.java)).isTrue
     }
 
     @Test
     fun `supports - different class given`() {
-        assertThat(jwtAuthenticationProvider.supports(UsernamePasswordAuthenticationToken::class.java)).isFalse
+        assertThat(tafelLoginProvider.supports(UsernamePasswordAuthenticationToken::class.java)).isFalse
     }
 
     @Test
@@ -57,7 +57,7 @@ class JwtAuthenticationProviderTest {
 
         val authentication = JwtAuthenticationToken("TOKEN")
 
-        jwtAuthenticationProvider.authenticate(authentication)
+        tafelLoginProvider.authenticate(authentication)
 
         verify(exactly = 1) {
             userDetailsService.loadUserByUsername("subj")
@@ -78,7 +78,7 @@ class JwtAuthenticationProviderTest {
         val authentication = JwtAuthenticationToken("TOKEN")
 
         assertThrows<InsufficientAuthenticationException> {
-            jwtAuthenticationProvider.authenticate(authentication)
+            tafelLoginProvider.authenticate(authentication)
         }
     }
 
@@ -96,7 +96,7 @@ class JwtAuthenticationProviderTest {
         val authentication = JwtAuthenticationToken("TOKEN")
 
         assertThrows<DisabledException> {
-            jwtAuthenticationProvider.authenticate(authentication)
+            tafelLoginProvider.authenticate(authentication)
         }
     }
 }

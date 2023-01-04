@@ -1,11 +1,8 @@
 package at.wrk.tafel.admin.backend.config
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
+import at.wrk.tafel.admin.backend.common.auth.components.*
 import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
-import at.wrk.tafel.admin.backend.common.auth.components.JwtAuthenticationFilter
-import at.wrk.tafel.admin.backend.common.auth.components.JwtAuthenticationProvider
-import at.wrk.tafel.admin.backend.common.auth.components.JwtTokenService
-import at.wrk.tafel.admin.backend.common.auth.components.TafelUserDetailsManager
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.passay.*
 import org.passay.dictionary.ArrayWordList
@@ -62,7 +59,7 @@ class WebSecurityConfig(
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http
             .addFilter(
-                JwtAuthenticationFilter(
+                TafelLoginFilter(
                     authenticationManager = authenticationManager(),
                     jwtTokenService = jwtTokenService,
                     applicationProperties = applicationProperties,
@@ -103,8 +100,8 @@ class WebSecurityConfig(
     }
 
     @Bean
-    fun jwtAuthenticationProvider(): JwtAuthenticationProvider {
-        return JwtAuthenticationProvider(userDetailsManager(), passwordEncoder())
+    fun jwtAuthenticationProvider(): TafelLoginProvider {
+        return TafelLoginProvider(userDetailsManager(), passwordEncoder())
     }
 
 }

@@ -2,7 +2,7 @@ logging:
   level:
     root: INFO
     org.apache: INFO
-    org.springframework.security: DEBUG
+    org.springframework.security: INFO
 
 spring:
   datasource:

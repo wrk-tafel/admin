@@ -18,27 +18,30 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationCo
 import java.nio.charset.Charset
 
 @ExcludeFromTestCoverage
-class JwtAuthenticationFilter(
+class TafelLoginFilter(
     authenticationManager: AuthenticationManager,
     private val jwtTokenService: JwtTokenService,
     private val applicationProperties: ApplicationProperties,
-    private val objectMapper: ObjectMapper,
-    private val basicAuthConverter: BasicAuthenticationConverter = BasicAuthenticationConverter()
+    private val objectMapper: ObjectMapper
 ) : UsernamePasswordAuthenticationFilter(authenticationManager) {
+
+    companion object {
+        private val basicAuthConverter: BasicAuthenticationConverter = BasicAuthenticationConverter()
+    }
 
     init {
         this.setFilterProcessesUrl("/api/login")
     }
 
-    override fun obtainUsername(request: HttpServletRequest): String {
+    public override fun obtainUsername(request: HttpServletRequest): String {
         return basicAuthConverter.convert(request).name as String
     }
 
-    override fun obtainPassword(request: HttpServletRequest): String {
+    public override fun obtainPassword(request: HttpServletRequest): String {
         return basicAuthConverter.convert(request).credentials as String
     }
 
-    override fun successfulAuthentication(
+    public override fun successfulAuthentication(
         request: HttpServletRequest,
         response: HttpServletResponse,
         chain: FilterChain,
