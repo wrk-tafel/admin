@@ -22,6 +22,7 @@ import org.springframework.security.crypto.password.DelegatingPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.provisioning.UserDetailsManager
 import org.springframework.security.web.SecurityFilterChain
+import org.springframework.security.web.authentication.AuthenticationFilter
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository
 
 @Configuration
@@ -66,6 +67,7 @@ class WebSecurityConfig(
                     objectMapper = objectMapper
                 )
             )
+            .addFilter(AuthenticationFilter(authenticationManager(), tafelJwtAuthConverter()))
             .authorizeHttpRequests { auth ->
                 auth.anyRequest().authenticated()
             }
@@ -96,12 +98,22 @@ class WebSecurityConfig(
 
     @Bean
     fun authenticationManager(): AuthenticationManager {
-        return ProviderManager(jwtAuthenticationProvider())
+        return ProviderManager(tafelLoginProvider(), tafelJwtAuthProvider())
     }
 
     @Bean
-    fun jwtAuthenticationProvider(): TafelLoginProvider {
+    fun tafelLoginProvider(): TafelLoginProvider {
         return TafelLoginProvider(userDetailsManager(), passwordEncoder())
+    }
+
+    @Bean
+    fun tafelJwtAuthProvider(): TafelJwtAuthProvider {
+        return TafelJwtAuthProvider()
+    }
+
+    @Bean
+    fun tafelJwtAuthConverter(): TafelJwtAuthConverter {
+        return TafelJwtAuthConverter()
     }
 
 }
