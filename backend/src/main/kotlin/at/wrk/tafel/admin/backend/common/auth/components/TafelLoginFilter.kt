@@ -26,7 +26,7 @@ class TafelLoginFilter(
 ) : UsernamePasswordAuthenticationFilter(authenticationManager) {
 
     companion object {
-        private val basicAuthConverter: BasicAuthenticationConverter = BasicAuthenticationConverter()
+        private val basicAuthConverter = BasicAuthenticationConverter()
     }
 
     init {
