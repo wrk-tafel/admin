@@ -46,6 +46,7 @@ internal class TafelJwtAuthConverterTest {
         val result = converter.convert(request) as TafelJwtAuthenticationToken
 
         assertThat(result.tokenValue).isEqualTo(token)
+        assertThat(result.isAuthenticated).isFalse
     }
 
 }
