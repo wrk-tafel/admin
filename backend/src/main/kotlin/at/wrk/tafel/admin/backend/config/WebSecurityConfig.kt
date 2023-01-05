@@ -22,10 +22,7 @@ import org.springframework.security.crypto.password.DelegatingPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.provisioning.UserDetailsManager
 import org.springframework.security.web.SecurityFilterChain
-import org.springframework.security.web.authentication.AuthenticationFilter
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository
-import org.springframework.security.web.util.matcher.RequestMatcher
 
 @Configuration
 @EnableWebSecurity
@@ -76,7 +73,7 @@ class WebSecurityConfig(
             )
             .addFilterAfter(authFilter, TafelLoginFilter::class.java)
             .authorizeHttpRequests { auth ->
-                auth.anyRequest().permitAll()
+                auth.anyRequest().authenticated()
             }
             .sessionManagement()
             .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
