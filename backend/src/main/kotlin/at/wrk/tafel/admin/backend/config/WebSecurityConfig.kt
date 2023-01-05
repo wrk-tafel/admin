@@ -25,6 +25,7 @@ import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.AuthenticationFilter
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository
+import org.springframework.security.web.util.matcher.RequestMatcher
 
 @Configuration
 @EnableWebSecurity
@@ -75,7 +76,7 @@ class WebSecurityConfig(
             )
             .addFilterAfter(authFilter, TafelLoginFilter::class.java)
             .authorizeHttpRequests { auth ->
-                auth.anyRequest().authenticated()
+                auth.anyRequest().permitAll()
             }
             .sessionManagement()
             .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
