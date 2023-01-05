@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.security.components
 
 import at.wrk.tafel.admin.backend.common.auth.components.PasswordChangeException
 import at.wrk.tafel.admin.backend.common.auth.components.TafelUserDetailsManager
+import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.database.entities.auth.UserAuthorityEntity
 import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
@@ -26,6 +27,7 @@ import org.passay.RuleResult
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder
 import org.springframework.security.crypto.password.DelegatingPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -51,8 +53,9 @@ class TafelUserDetailsManagerTest {
 
     @BeforeEach
     fun beforeEach() {
-        SecurityContextHolder.getContext().authentication = UsernamePasswordAuthenticationToken(testUser.copy(), null)
-        every { userRepository.findByUsername(any()) } returns Optional.of(testUserEntity)
+        SecurityContextHolder.getContext().authentication =
+            TafelJwtAuthentication(tokenValue = "TOKEN", testUser.username)
+        every { userRepository.findByUsername(testUser.username) } returns Optional.of(testUserEntity)
         testUserEntityPassword = testUserEntity.password!!
     }
 
@@ -65,9 +68,9 @@ class TafelUserDetailsManagerTest {
     fun `loadUserByUsername - user not found`() {
         every { userRepository.findByUsername(any()) } returns Optional.empty()
 
-        val userDetails = manager.loadUserByUsername("test")
-
-        assertThat(userDetails).isNull()
+        assertThrows<UsernameNotFoundException> {
+            manager.loadUserByUsername("test")
+        }
 
         verify(exactly = 1) {
             userRepository.findByUsername("test")
