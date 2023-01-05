@@ -28,8 +28,8 @@
 Cypress.Commands.add('byTestId', (id) => cy.get(`[testid="${id}"]`));
 
 Cypress.Commands.add('loginDefault', () => {
-  let username = 'e2etest';
-  let password = 'e2etest';
+  const username = 'e2etest';
+  const password = 'e2etest';
 
   cy.createLoginRequest(username, password)
     .then((response) => {
@@ -47,13 +47,14 @@ Cypress.Commands.add('login', (username: string, password: string) => {
 });
 
 Cypress.Commands.add('createLoginRequest', (username: string, password: string, failOnStatusCode?: boolean): Cypress.Chainable<Cypress.Response<any>> => {
+  const encodedCredentials = btoa(username + ':' + password);
+
   return cy.request({
     method: 'POST',
     url: '/api/login',
     failOnStatusCode: failOnStatusCode,
-    body: 'username=' + username + '&password=' + password,
     headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
+      'Authorization': 'Basic ' + encodedCredentials
     }
   });
 });
