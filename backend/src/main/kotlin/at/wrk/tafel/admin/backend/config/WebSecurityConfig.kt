@@ -23,6 +23,7 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.provisioning.UserDetailsManager
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.AuthenticationFilter
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository
 
 @Configuration
@@ -58,6 +59,11 @@ class WebSecurityConfig(
 
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
+        val authFilter = AuthenticationFilter(authenticationManager(), tafelJwtAuthConverter())
+        // TODO maybe better to use a BasicAuthenticationFilter and write an entryPoint instead a provider
+        // TODO would make this empty handler obsolete
+        authFilter.successHandler = NoOpAuthenticationSuccessHandler()
+
         http
             .addFilter(
                 TafelLoginFilter(
@@ -67,10 +73,7 @@ class WebSecurityConfig(
                     objectMapper = objectMapper
                 )
             )
-            .addFilterAfter(
-                AuthenticationFilter(authenticationManager(), tafelJwtAuthConverter()),
-                TafelLoginFilter::class.java
-            )
+            .addFilterAfter(authFilter, TafelLoginFilter::class.java)
             .authorizeHttpRequests { auth ->
                 auth.anyRequest().authenticated()
             }
