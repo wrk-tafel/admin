@@ -1,7 +1,7 @@
 package at.wrk.tafel.admin.backend.security.components
 
 import at.wrk.tafel.admin.backend.common.auth.components.TafelLoginProvider
-import at.wrk.tafel.admin.backend.common.auth.model.JwtAuthenticationToken
+import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -38,7 +38,7 @@ class TafelLoginProviderTest {
 
     @Test
     fun `supports - different class given`() {
-        assertThat(tafelLoginProvider.supports(JwtAuthenticationToken::class.java)).isFalse
+        assertThat(tafelLoginProvider.supports(TafelJwtAuthentication::class.java)).isFalse
     }
 
     @Test

@@ -67,7 +67,10 @@ class WebSecurityConfig(
                     objectMapper = objectMapper
                 )
             )
-            .addFilter(AuthenticationFilter(authenticationManager(), tafelJwtAuthConverter()))
+            .addFilterAfter(
+                AuthenticationFilter(authenticationManager(), tafelJwtAuthConverter()),
+                TafelLoginFilter::class.java
+            )
             .authorizeHttpRequests { auth ->
                 auth.anyRequest().authenticated()
             }
@@ -108,12 +111,12 @@ class WebSecurityConfig(
 
     @Bean
     fun tafelJwtAuthProvider(): TafelJwtAuthProvider {
-        return TafelJwtAuthProvider()
+        return TafelJwtAuthProvider(jwtTokenService)
     }
 
     @Bean
     fun tafelJwtAuthConverter(): TafelJwtAuthConverter {
-        return TafelJwtAuthConverter(jwtTokenService)
+        return TafelJwtAuthConverter()
     }
 
 }

@@ -15,6 +15,8 @@ import org.springframework.security.core.Authentication
 import org.springframework.security.core.AuthenticationException
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 import org.springframework.security.web.authentication.www.BasicAuthenticationConverter
+import org.springframework.util.MimeType
+import org.springframework.util.MimeTypeUtils
 import java.nio.charset.Charset
 
 @ExcludeFromTestCoverage
@@ -57,6 +59,7 @@ class TafelLoginFilter(
                 generateAuthenticatedResponse(user, request)
             }
 
+            response.contentType = MimeTypeUtils.APPLICATION_JSON_VALUE
             val responseString = objectMapper.writeValueAsString(authenticationResponse)
             IOUtils.write(responseString, response.outputStream, Charset.defaultCharset())
         }

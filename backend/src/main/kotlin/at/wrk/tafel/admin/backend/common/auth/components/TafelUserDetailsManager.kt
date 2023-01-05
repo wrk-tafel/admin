@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.common.auth.components
 
+import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
 import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
@@ -36,8 +37,8 @@ class TafelUserDetailsManager(
     }
 
     override fun changePassword(currentPassword: String, newPassword: String) {
-        val authenticatedUser = SecurityContextHolder.getContext().authentication.principal as TafelUser
-        var storedUser = userRepository.findByUsername(authenticatedUser.username).get()
+        val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
+        var storedUser = userRepository.findByUsername(authenticatedUser.username!!).get()
 
         if (!passwordEncoder.matches(currentPassword, storedUser.password)) {
             throw PasswordChangeException("Aktuelles Passwort ist falsch!")
@@ -69,6 +70,7 @@ class TafelUserDetailsManager(
 
     override fun userExists(username: String): Boolean = userRepository.existsByUsername(username)
 
+    // TODO after the new security mechanism this could be reduced
     private fun mapToUserDetails(userEntity: UserEntity): TafelUser {
         return TafelUser(
             username = userEntity.username!!,

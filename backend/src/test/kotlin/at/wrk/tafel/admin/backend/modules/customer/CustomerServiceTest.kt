@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.customer
 
+import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerAddPersonRepository
 import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerRepository
@@ -51,8 +52,9 @@ class CustomerServiceTest {
 
     @BeforeEach
     fun beforeEach() {
-        every { userRepository.getReferenceById(any()) } returns testUserEntity
-        SecurityContextHolder.getContext().authentication = UsernamePasswordAuthenticationToken(testUser, null)
+        every { userRepository.findByUsername(any()) } returns Optional.of(testUserEntity)
+        SecurityContextHolder.getContext().authentication =
+            TafelJwtAuthentication("TOKEN", testUserEntity.username, true)
 
         every { countryRepository.findById(testCountry.id!!) } returns Optional.of(testCountry)
     }

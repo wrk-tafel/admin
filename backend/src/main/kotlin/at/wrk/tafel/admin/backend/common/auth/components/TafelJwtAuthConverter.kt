@@ -1,8 +1,10 @@
 package at.wrk.tafel.admin.backend.common.auth.components
 
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthenticationToken
+import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.HttpHeaders
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException
+import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.core.Authentication
 import org.springframework.security.web.authentication.AuthenticationConverter
 
@@ -13,18 +15,23 @@ class TafelJwtAuthConverter : AuthenticationConverter {
     }
 
     override fun convert(request: HttpServletRequest): Authentication? {
-        val tokenString = request.getHeader(HttpHeaders.AUTHORIZATION)
-            ?.takeIf { it.startsWith(headerPrefix) }
-            ?.removePrefix(headerPrefix)
-            ?.trim()
+        val hasHeader = request.headerNames.toList()
+            .any { it.equals(HttpHeaders.AUTHORIZATION, ignoreCase = true) }
 
-        if (tokenString?.isNotBlank() == true) {
-            val token = TafelJwtAuthenticationToken(tokenString)
-            token.isAuthenticated = false
-            return token
+        if (hasHeader) {
+            val header = request.getHeader(HttpHeaders.AUTHORIZATION)
+
+            if (header != null && !header.startsWith(headerPrefix)) {
+                throw BadCredentialsException("Invalid token")
+            }
+
+            val tokenString = header.removePrefix(headerPrefix)?.trim()
+            if (tokenString?.isNotBlank() == true) {
+                return TafelJwtAuthentication(tokenString, null, false)
+            }
         }
 
-        return null
+        throw AuthenticationCredentialsNotFoundException("Missing ${HttpHeaders.AUTHORIZATION} header")
     }
 
 }

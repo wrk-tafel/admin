@@ -3,8 +3,6 @@ package at.wrk.tafel.admin.backend.security.components
 import at.wrk.tafel.admin.backend.common.auth.components.JwtTokenService
 import at.wrk.tafel.admin.backend.common.auth.components.TafelLoginFilter
 import at.wrk.tafel.admin.backend.common.auth.model.JwtAuthenticationResponse
-import at.wrk.tafel.admin.backend.common.auth.model.JwtAuthenticationToken
-import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
 import at.wrk.tafel.admin.backend.config.ApplicationProperties
 import at.wrk.tafel.admin.backend.security.testUser
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -16,16 +14,12 @@ import io.mockk.verify
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import org.apache.commons.io.IOUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.http.HttpHeaders
 import org.springframework.security.authentication.AuthenticationManager
-import org.springframework.security.authentication.InsufficientAuthenticationException
 import org.springframework.security.core.Authentication
-import org.springframework.security.web.util.matcher.RequestMatcher
 
 @ExtendWith(MockKExtension::class)
 class TafelLoginFilterTest {
