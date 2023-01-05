@@ -2,8 +2,6 @@ import {HttpClient, HttpHeaders} from '@angular/common/http';
 import {Injectable} from '@angular/core';
 import {Router} from '@angular/router';
 import {JwtHelperService} from '@auth0/angular-jwt';
-import {toBase64String} from "@angular/compiler/src/output/source_map";
-
 @Injectable({
   providedIn: 'root'
 })
