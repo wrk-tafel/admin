@@ -27,7 +27,7 @@ class TafelJwtAuthConverter : AuthenticationConverter {
 
             val tokenString = header.removePrefix(headerPrefix)?.trim()
             if (tokenString?.isNotBlank() == true) {
-                return TafelJwtAuthentication(tokenString, null, false)
+                return TafelJwtAuthentication(tokenString)
             }
         }
 

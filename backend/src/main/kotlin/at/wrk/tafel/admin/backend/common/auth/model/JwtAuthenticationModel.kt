@@ -8,8 +8,8 @@ import org.springframework.security.core.GrantedAuthority
 @ExcludeFromTestCoverage
 class TafelJwtAuthentication(
     val tokenValue: String,
-    val username: String?,
-    private var authenticated: Boolean,
+    val username: String? = null,
+    private var authenticated: Boolean = false,
     private val authorities: List<GrantedAuthority> = emptyList()
 ) : Authentication {
     override fun getName(): String? {
