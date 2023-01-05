@@ -22,6 +22,11 @@ server:
 spring:
   datasource:
     driverClassName: org.postgresql.Driver
+  jpa:
+    properties:
+      hibernate:
+        id:
+          db_structure_naming_strategy: single # TODO migrate to new default strategy (sequence per table)
 
 security:
   jwtToken:
