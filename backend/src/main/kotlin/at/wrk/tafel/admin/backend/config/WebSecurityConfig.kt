@@ -59,7 +59,7 @@ class WebSecurityConfig(
 
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
-        val authFilter = AuthenticationFilter(authenticationManager(), tafelJwtAuthConverter())
+        val authFilter = TafelJwtAuthFilter(authenticationManager(), tafelJwtAuthConverter())
         // TODO maybe better to use a BasicAuthenticationFilter and write an entryPoint instead a provider
         // TODO would make this empty handler obsolete
         authFilter.successHandler = NoOpAuthenticationSuccessHandler()
