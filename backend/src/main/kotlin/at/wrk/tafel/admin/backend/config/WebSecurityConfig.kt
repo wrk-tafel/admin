@@ -98,9 +98,12 @@ class WebSecurityConfig(
             .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
 
         if (csrfEnabled) {
+            /*
             http.csrf()
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                 .ignoringRequestMatchers(*publicEndpoints.toTypedArray())
+             */
+            http.csrf().disable()
         } else {
             http.csrf().disable()
         }
