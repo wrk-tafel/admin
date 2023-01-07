@@ -109,6 +109,7 @@ class WebSecurityConfig(
             http.csrf()
                 .csrfTokenRepository(tokenRepository)
                 .csrfTokenRequestHandler(requestHandler)
+                .ignoringRequestMatchers(*publicEndpoints.toTypedArray())
         } else {
             http.csrf().disable()
         }
