@@ -99,12 +99,9 @@ class WebSecurityConfig(
             .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
 
         if (csrfEnabled) {
-            val requestHandler = CsrfTokenRequestAttributeHandler()
-            requestHandler.setCsrfRequestAttributeName(null)
-
-            http.csrf()
-                .csrfTokenRequestHandler(requestHandler)
-                .ignoringRequestMatchers(*publicEndpoints.toTypedArray())
+            // TODO re-enable CSRF (incl. BREACH) with spring security 6
+            // https://docs.spring.io/spring-security/reference/5.8/migration/servlet/exploits.html#_i_am_using_angularjs_or_another_javascript_framework
+            http.csrf().disable()
         } else {
             http.csrf().disable()
         }
