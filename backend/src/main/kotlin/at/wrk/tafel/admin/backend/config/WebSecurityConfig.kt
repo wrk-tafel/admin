@@ -109,7 +109,12 @@ class WebSecurityConfig(
             http.csrf()
                 .csrfTokenRepository(tokenRepository)
                 .csrfTokenRequestHandler(requestHandler)
-                .ignoringRequestMatchers(*publicEndpoints.toTypedArray())
+                .requireCsrfProtectionMatcher(AntPathRequestMatcher("/api/**"))
+                .ignoringRequestMatchers(
+                    *publicEndpoints.map {
+                        AntPathRequestMatcher(it)
+                    }.toTypedArray()
+                )
         } else {
             http.csrf().disable()
         }
