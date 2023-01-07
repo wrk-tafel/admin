@@ -24,7 +24,10 @@ import org.springframework.security.provisioning.UserDetailsManager
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.AuthenticationFilter
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository
+import org.springframework.security.web.util.matcher.AndRequestMatcher
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher
+import org.springframework.security.web.util.matcher.NegatedRequestMatcher
+import org.springframework.security.web.util.matcher.OrRequestMatcher
 
 @Configuration
 @EnableWebSecurity
@@ -39,6 +42,8 @@ class WebSecurityConfig(
 ) {
 
     companion object {
+        private val publicEndpoints = listOf("/api/login", "/api/websockets")
+
         val passwordValidator = PasswordValidator(
             listOf(
                 LengthRule(8, 50),
@@ -60,7 +65,16 @@ class WebSecurityConfig(
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         val authFilter = AuthenticationFilter(authenticationManager(), tafelJwtAuthConverter())
-        authFilter.requestMatcher = AntPathRequestMatcher("/api/**")
+        authFilter.requestMatcher = AndRequestMatcher(
+            AntPathRequestMatcher("/api/**"),
+            NegatedRequestMatcher(
+                OrRequestMatcher(
+                    publicEndpoints.map {
+                        AntPathRequestMatcher(it)
+                    }
+                )
+            )
+        )
         // TODO maybe better to use a BasicAuthenticationFilter and write an entryPoint instead a provider
         // TODO would make this empty handler obsolete
         authFilter.successHandler = NoOpAuthenticationSuccessHandler()
@@ -76,7 +90,7 @@ class WebSecurityConfig(
             )
             .addFilterAfter(authFilter, TafelLoginFilter::class.java)
             .authorizeHttpRequests { auth ->
-                auth.requestMatchers("/api/login", "/api/websockets").permitAll()
+                auth.requestMatchers(*publicEndpoints.toTypedArray()).permitAll()
                 auth.requestMatchers("/api/**").authenticated()
                 auth.anyRequest().permitAll()
             }
