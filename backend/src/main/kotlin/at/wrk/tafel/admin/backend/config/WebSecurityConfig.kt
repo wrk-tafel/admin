@@ -24,6 +24,7 @@ import org.springframework.security.provisioning.UserDetailsManager
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.AuthenticationFilter
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher
 
 @Configuration
 @EnableWebSecurity
@@ -59,6 +60,7 @@ class WebSecurityConfig(
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         val authFilter = AuthenticationFilter(authenticationManager(), tafelJwtAuthConverter())
+        authFilter.requestMatcher = AntPathRequestMatcher("/api/**")
         // TODO maybe better to use a BasicAuthenticationFilter and write an entryPoint instead a provider
         // TODO would make this empty handler obsolete
         authFilter.successHandler = NoOpAuthenticationSuccessHandler()
