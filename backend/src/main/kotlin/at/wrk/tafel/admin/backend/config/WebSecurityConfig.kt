@@ -23,7 +23,9 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.provisioning.UserDetailsManager
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.AuthenticationFilter
-import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository
+import org.springframework.security.web.csrf.CsrfTokenRequestHandler
+import org.springframework.security.web.csrf.XorCsrfTokenRequestAttributeHandler
 import org.springframework.security.web.util.matcher.AndRequestMatcher
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher
 import org.springframework.security.web.util.matcher.NegatedRequestMatcher
@@ -99,9 +101,14 @@ class WebSecurityConfig(
             .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
 
         if (csrfEnabled) {
-            // TODO re-enable CSRF (incl. BREACH) with spring security 6
-            // https://docs.spring.io/spring-security/reference/5.8/migration/servlet/exploits.html#_i_am_using_angularjs_or_another_javascript_framework
-            http.csrf().disable()
+            val tokenRepository = CookieCsrfTokenRepository.withHttpOnlyFalse()
+            val delegate = XorCsrfTokenRequestAttributeHandler()
+            delegate.setCsrfRequestAttributeName("_csrf")
+            val requestHandler = delegate::handle
+
+            http.csrf()
+                .csrfTokenRepository(tokenRepository)
+                .csrfTokenRequestHandler(requestHandler)
         } else {
             http.csrf().disable()
         }
