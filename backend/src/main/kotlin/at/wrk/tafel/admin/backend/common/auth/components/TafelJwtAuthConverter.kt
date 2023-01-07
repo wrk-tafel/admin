@@ -25,8 +25,8 @@ class TafelJwtAuthConverter : AuthenticationConverter {
                 throw BadCredentialsException("Invalid token")
             }
 
-            val tokenString = header.removePrefix(headerPrefix)?.trim()
-            if (tokenString?.isNotBlank() == true) {
+            val tokenString = header.removePrefix(headerPrefix).trim()
+            if (tokenString.isNotBlank()) {
                 return TafelJwtAuthentication(tokenString)
             }
         }
