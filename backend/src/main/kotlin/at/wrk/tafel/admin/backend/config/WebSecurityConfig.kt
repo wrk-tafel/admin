@@ -24,6 +24,7 @@ import org.springframework.security.provisioning.UserDetailsManager
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.AuthenticationFilter
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository
+import org.springframework.security.web.csrf.CsrfFilter
 import org.springframework.security.web.csrf.CsrfTokenRequestHandler
 import org.springframework.security.web.csrf.XorCsrfTokenRequestAttributeHandler
 import org.springframework.security.web.util.matcher.AndRequestMatcher
@@ -109,7 +110,12 @@ class WebSecurityConfig(
             http.csrf()
                 .csrfTokenRepository(tokenRepository)
                 .csrfTokenRequestHandler(requestHandler)
-                .requireCsrfProtectionMatcher(AntPathRequestMatcher("/api/**"))
+                .requireCsrfProtectionMatcher(
+                    AndRequestMatcher(
+                        CsrfFilter.DEFAULT_CSRF_MATCHER,
+                        AntPathRequestMatcher("/api/**")
+                    )
+                )
                 .ignoringRequestMatchers(
                     *publicEndpoints.map {
                         AntPathRequestMatcher(it)
