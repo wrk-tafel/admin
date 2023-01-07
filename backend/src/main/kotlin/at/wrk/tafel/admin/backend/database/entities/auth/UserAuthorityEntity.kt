@@ -1,7 +1,7 @@
 package at.wrk.tafel.admin.backend.database.entities.auth
 
 import at.wrk.tafel.admin.backend.database.entities.base.BaseChangeTrackingEntity
-import javax.persistence.*
+import jakarta.persistence.*
 
 @Entity(name = "UserAuthority")
 @Table(name = "users_authorities")

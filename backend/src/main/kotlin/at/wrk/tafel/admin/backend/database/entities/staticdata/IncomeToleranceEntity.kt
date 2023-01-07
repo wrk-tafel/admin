@@ -1,7 +1,7 @@
 package at.wrk.tafel.admin.backend.database.entities.staticdata
 
-import javax.persistence.DiscriminatorValue
-import javax.persistence.Entity
+import jakarta.persistence.DiscriminatorValue
+import jakarta.persistence.Entity
 
 @Entity(name = "IncomeTolerance")
 @DiscriminatorValue("INCOME-TOLERANCE")

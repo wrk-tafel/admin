@@ -63,4 +63,13 @@ describe('AuthenticationInterceptor', () => {
     httpMock.verify();
   });
 
+  it('authenticated - skips token on calling login', () => {
+    authServiceSpy.getTokenString.and.returnValue('TOKENVALUE');
+
+    client.get('/api/login').subscribe();
+
+    const req = httpMock.expectOne('/api/login');
+    expect(req.request.headers.get('Authorization')).toBeNull();
+  });
+
 });

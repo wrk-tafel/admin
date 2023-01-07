@@ -5,7 +5,7 @@ import at.wrk.tafel.admin.backend.database.entities.base.BaseChangeTrackingEntit
 import at.wrk.tafel.admin.backend.database.entities.staticdata.CountryEntity
 import java.math.BigDecimal
 import java.time.LocalDate
-import javax.persistence.*
+import jakarta.persistence.*
 
 @Entity(name = "Customer")
 @Table(name = "customers")

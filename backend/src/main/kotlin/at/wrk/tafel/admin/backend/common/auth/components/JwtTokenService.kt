@@ -13,6 +13,9 @@ import javax.crypto.spec.SecretKeySpec
 class JwtTokenService(
     private val applicationProperties: ApplicationProperties
 ) {
+    companion object {
+        const val permissionsClaimKey = "permissions"
+    }
 
     fun getClaimsFromToken(token: String): Claims {
         return createJwtParser()

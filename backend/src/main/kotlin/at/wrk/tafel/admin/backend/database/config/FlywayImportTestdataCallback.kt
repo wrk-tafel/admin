@@ -8,6 +8,7 @@ import org.flywaydb.core.api.callback.Event
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
+import java.nio.charset.Charset
 
 @Component
 @ExcludeFromTestCoverage
@@ -25,7 +26,10 @@ class FlywayImportTestdataCallback(
             LOGGER.info("Importing testdata ...")
 
             val sqlLines =
-                (IOUtils.readLines(javaClass.getResourceAsStream(sqlFilePath)) as MutableList<String>)
+                (IOUtils.readLines(
+                    javaClass.getResourceAsStream(sqlFilePath),
+                    Charset.defaultCharset()
+                ) as MutableList<String>)
                     .filter { !it.startsWith("--") }
                     .filter { it.isNotBlank() }
                     .joinToString("") { it }

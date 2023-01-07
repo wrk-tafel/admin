@@ -14,10 +14,10 @@ data class TafelUser(
     val personnelNumber: String,
     val firstname: String,
     val lastname: String,
-    private val authorities: Collection<out GrantedAuthority>,
+    private val authorities: Collection<GrantedAuthority>,
     val passwordChangeRequired: Boolean
 ) : UserDetails, CredentialsContainer {
-    override fun getAuthorities(): Collection<out GrantedAuthority> = authorities
+    override fun getAuthorities(): Collection<GrantedAuthority> = authorities
     override fun getPassword(): String? = password
     override fun getUsername(): String = username
     override fun isAccountNonExpired(): Boolean = true

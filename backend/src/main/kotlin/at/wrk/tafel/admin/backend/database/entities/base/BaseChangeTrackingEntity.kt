@@ -4,8 +4,8 @@ import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import org.hibernate.annotations.CreationTimestamp
 import org.hibernate.annotations.UpdateTimestamp
 import java.time.ZonedDateTime
-import javax.persistence.Column
-import javax.persistence.MappedSuperclass
+import jakarta.persistence.Column
+import jakarta.persistence.MappedSuperclass
 
 @MappedSuperclass
 @ExcludeFromTestCoverage

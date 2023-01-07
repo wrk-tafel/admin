@@ -11,12 +11,13 @@
     <artifactId>backend</artifactId>
 
     <properties>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
         <java.version>17</java.version>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
         <kotlin.version>1.8.0</kotlin.version>
+        <kotlin.compiler.jvmTarget>${java.version}</kotlin.compiler.jvmTarget>
 
-        <spring.boot.version>2.7.5</spring.boot.version>
+        <spring.boot.version>3.0.1</spring.boot.version>
         <jjwt.version>0.11.5</jjwt.version>
         <postgresql.driver.version>42.5.1</postgresql.driver.version>
         <bouncycastle.version>1.70</bouncycastle.version>
