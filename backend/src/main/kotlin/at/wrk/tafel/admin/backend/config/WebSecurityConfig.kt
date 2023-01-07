@@ -73,7 +73,6 @@ class WebSecurityConfig(
                 )
             )
             .addFilterAfter(authFilter, TafelLoginFilter::class.java)
-            // TODO correct authorization (skip static resources)
             .authorizeHttpRequests { auth ->
                 auth.requestMatchers("/api/login", "/api/websockets").permitAll()
                 auth.requestMatchers("/api/**").authenticated()
