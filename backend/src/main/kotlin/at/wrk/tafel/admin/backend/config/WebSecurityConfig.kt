@@ -73,16 +73,11 @@ class WebSecurityConfig(
                 )
             )
             .addFilterAfter(authFilter, TafelLoginFilter::class.java)
+            // TODO correct authorization (skip static resources)
             .authorizeHttpRequests { auth ->
-                auth.requestMatchers("/**")
-                    .access { _, authorizationContext ->
-                        AuthorizationDecision(
-                            !authorizationContext.request.requestURI.startsWith(
-                                "/api"
-                            )
-                        )
-                    }
-                    .anyRequest().authenticated()
+                auth.requestMatchers("/api/login", "/api/websockets").permitAll()
+                auth.requestMatchers("/api/**").authenticated()
+                auth.anyRequest().permitAll()
             }
             .sessionManagement()
             .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
