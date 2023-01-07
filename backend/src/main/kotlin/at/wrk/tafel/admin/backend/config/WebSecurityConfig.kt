@@ -23,8 +23,7 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.provisioning.UserDetailsManager
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.AuthenticationFilter
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository
-import org.springframework.security.web.csrf.XorCsrfTokenRequestAttributeHandler
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler
 import org.springframework.security.web.util.matcher.AndRequestMatcher
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher
 import org.springframework.security.web.util.matcher.NegatedRequestMatcher
@@ -100,12 +99,11 @@ class WebSecurityConfig(
             .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
 
         if (csrfEnabled) {
-            val delegate = XorCsrfTokenRequestAttributeHandler()
-            delegate.setCsrfRequestAttributeName("_csrf")
+            val requestHandler = CsrfTokenRequestAttributeHandler()
+            requestHandler.setCsrfRequestAttributeName(null)
 
             http.csrf()
-                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .csrfTokenRequestHandler(delegate::handle)
+                .csrfTokenRequestHandler(requestHandler)
                 .ignoringRequestMatchers(*publicEndpoints.toTypedArray())
         } else {
             http.csrf().disable()
