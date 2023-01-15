@@ -31,37 +31,56 @@ describe('AuthenticationService', () => {
   });
 
   it('login successful', async () => {
-    const responseBody = {passwordChangeRequired: false};
+    const loginResponseBody = {passwordChangeRequired: false};
+    const userInfoResponseBody = {username: 'test-user', permissions: ['PERM1']};
 
     service.login('USER', 'PWD').then(response => {
       expect(response).toEqual({successful: true, passwordChangeRequired: false});
+      expect(service.userInfo.username).toBe(userInfoResponseBody.username);
+      expect(service.userInfo.permissions).toEqual(userInfoResponseBody.permissions);
     });
 
-    const mockReq = httpMock.expectOne('/login');
-    expect(mockReq.request.method).toBe('POST');
-    expect(mockReq.request.headers.get('Authorization')).toBe('Basic ' + btoa('USER:PWD'));
+    const mockLoginReq = httpMock.expectOne('/login');
+    expect(mockLoginReq.request.method).toBe('POST');
+    expect(mockLoginReq.request.headers.get('Authorization')).toBe('Basic ' + btoa('USER:PWD'));
 
-    const mockErrorResponse = {status: 200, statusText: 'OK'};
-    mockReq.flush(responseBody, mockErrorResponse);
+    const mockLoginResponse = {status: 200, statusText: 'OK'};
+    mockLoginReq.flush(loginResponseBody, mockLoginResponse);
+
+    const mockUserInfoReq = httpMock.expectOne('/users/info');
+    expect(mockUserInfoReq.request.method).toBe('GET');
+
+    const mockUserInfoResponse = {status: 200, statusText: 'OK'};
+    mockUserInfoReq.flush(userInfoResponseBody, mockUserInfoResponse);
+
     httpMock.verify();
 
     expect(router.navigate).not.toHaveBeenCalledWith(['login/passwortaendern']);
   });
 
   it('login successful but passwordchange is required', async () => {
-    const responseBody = {passwordChangeRequired: true};
+    const loginResponseBody = {passwordChangeRequired: true};
+    const userInfoResponseBody = {username: 'test-user', permissions: []};
 
     service.login('USER', 'PWD').then(response => {
       expect(response).toEqual({successful: true, passwordChangeRequired: true});
+      expect(service.userInfo.username).toBe(userInfoResponseBody.username);
+      expect(service.userInfo.permissions).toEqual(userInfoResponseBody.permissions);
     });
 
-    const mockReq = httpMock.expectOne('/login');
-    expect(mockReq.request.method).toBe('POST');
-    expect(mockReq.request.headers.get('Authorization')).toBe('Basic ' + btoa('USER:PWD'));
+    const loginMockReq = httpMock.expectOne('/login');
+    expect(loginMockReq.request.method).toBe('POST');
+    expect(loginMockReq.request.headers.get('Authorization')).toBe('Basic ' + btoa('USER:PWD'));
 
-    const mockErrorResponse = {status: 200, statusText: 'OK'};
+    const loginMockResponse = {status: 200, statusText: 'OK'};
+    loginMockReq.flush(loginResponseBody, loginMockResponse);
 
-    mockReq.flush(responseBody, mockErrorResponse);
+    const mockUserInfoReq = httpMock.expectOne('/users/info');
+    expect(mockUserInfoReq.request.method).toBe('GET');
+
+    const mockUserInfoResponse = {status: 200, statusText: 'OK'};
+    mockUserInfoReq.flush(userInfoResponseBody, mockUserInfoResponse);
+
     httpMock.verify();
   });
 
@@ -92,7 +111,7 @@ describe('AuthenticationService', () => {
   });
 
   it('hasPermission - permission exists', () => {
-    service.permissions = ['PERM1'];
+    service.userInfo = {username: 'test123', permissions: ['PERM1']};
 
     const hasPermission = service.hasPermission('PERM1');
 
@@ -100,7 +119,7 @@ describe('AuthenticationService', () => {
   });
 
   it('hasPermission - permission doesnt exist', () => {
-    service.permissions = ['PERM2'];
+    service.userInfo = {username: 'test123', permissions: ['PERM2']};
 
     const hasPermission = service.hasPermission('PERM1');
 
@@ -108,7 +127,7 @@ describe('AuthenticationService', () => {
   });
 
   it('hasPermission - no permissions given', () => {
-    service.permissions = [];
+    service.userInfo = {username: 'test123', permissions: []};
 
     const hasPermission = service.hasPermission('PERM1');
 
@@ -116,7 +135,7 @@ describe('AuthenticationService', () => {
   });
 
   it('getUsername - authenticated', () => {
-    service.username = 'test-user';
+    service.userInfo = {username: 'test-user', permissions: []};
 
     const username = service.getUsername();
 
@@ -130,7 +149,7 @@ describe('AuthenticationService', () => {
   });
 
   it('hasAnyPermission - no permissions', () => {
-    service.permissions = [];
+    service.userInfo = {username: 'test-user', permissions: []};
 
     const hasAnyPermission = service.hasAnyPermission();
 
@@ -138,7 +157,7 @@ describe('AuthenticationService', () => {
   });
 
   it('hasAnyPermission - given permissions', () => {
-    service.permissions = ['PERM1'];
+    service.userInfo = {username: 'test-user', permissions: ['PERM1']};
 
     const hasAnyPermission = service.hasAnyPermission();
 
@@ -146,12 +165,10 @@ describe('AuthenticationService', () => {
   });
 
   it('logout', () => {
-    service.username = 'test-user';
-    service.permissions = ['PERM1'];
+    service.userInfo = {username: 'test-user', permissions: ['PERM1']};
 
     service.logout().subscribe(response => {
-      expect(service.username).toBeUndefined();
-      expect(service.permissions.length).toBe(0);
+      expect(service.userInfo).toBeUndefined();
     });
 
     const mockReq = httpMock.expectOne('/users/logout');
