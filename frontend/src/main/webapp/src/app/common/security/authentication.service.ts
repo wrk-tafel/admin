@@ -1,6 +1,7 @@
 import {HttpClient, HttpHeaders} from '@angular/common/http';
 import {Injectable} from '@angular/core';
 import {Router} from '@angular/router';
+import {Observable} from "rxjs";
 
 @Injectable({
   providedIn: 'root'
@@ -32,12 +33,12 @@ export class AuthenticationService {
     this.router.navigate(['login', msgKey].filter(cmd => cmd));
   }
 
-  public hasAnyPermissions(): boolean {
+  public hasAnyPermission(): boolean {
     return this.permissions.length > 0;
   }
 
   public hasPermission(role: string): boolean {
-    if (this.hasAnyPermissions()) {
+    if (this.hasAnyPermission()) {
       const index = this.permissions?.findIndex(element => {
         return element.toLowerCase() === role.toLowerCase();
       });
@@ -48,6 +49,10 @@ export class AuthenticationService {
 
   public getUsername(): string {
     return this.username;
+  }
+
+  public logout(): Observable<void> {
+    return this.http.post<void>('/users/logout', null);
   }
 
   private executeLoginRequest(username: string, password: string) {

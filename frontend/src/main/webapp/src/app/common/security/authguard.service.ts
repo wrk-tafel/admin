@@ -13,7 +13,7 @@ export class AuthGuardService implements CanActivateChild {
   }
 
   canActivateChild(childRoute: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean {
-    if (!this.auth.hasAnyPermissions()) {
+    if (!this.auth.hasAnyPermission()) {
       this.auth.redirectToLogin('fehlgeschlagen');
       return false;
     }

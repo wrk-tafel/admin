@@ -133,20 +133,20 @@ describe('AuthenticationService', () => {
     expect(username).toEqual(undefined);
   });
 
-  it('hasAnyPermissions - no permissions', () => {
+  it('hasAnyPermission - no permissions', () => {
     service.permissions = [];
 
-    const hasAnyPermissions = service.hasAnyPermissions();
+    const hasAnyPermission = service.hasAnyPermission();
 
-    expect(hasAnyPermissions).toBeFalse();
+    expect(hasAnyPermission).toBeFalse();
   });
 
-  it('hasAnyPermissions - given permissions', () => {
+  it('hasAnyPermission - given permissions', () => {
     service.permissions = ['PERM1'];
 
-    const hasAnyPermissions = service.hasAnyPermissions();
+    const hasAnyPermission = service.hasAnyPermission();
 
-    expect(hasAnyPermissions).toBeTrue();
+    expect(hasAnyPermission).toBeTrue();
   });
 
 });
