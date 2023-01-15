@@ -30,7 +30,7 @@ export class DefaultLayoutComponent {
   }
 
   public onLogout() {
-    this.auth.logout().subscribe(response => {
+    this.auth.logout().subscribe(_ => {
       this.auth.redirectToLogin();
     });
   }
