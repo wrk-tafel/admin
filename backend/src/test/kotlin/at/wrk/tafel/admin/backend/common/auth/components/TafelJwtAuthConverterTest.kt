@@ -5,6 +5,7 @@ import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
+import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletRequest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -25,8 +26,8 @@ internal class TafelJwtAuthConverterTest {
     private lateinit var converter: TafelJwtAuthConverter
 
     @Test
-    fun `convert - missing header`() {
-        every { request.getHeader(HttpHeaders.AUTHORIZATION) } returns null
+    fun `convert - missing cookie`() {
+        every { request.cookies } returns emptyArray()
 
         assertThrows<AuthenticationCredentialsNotFoundException> {
             converter.convert(request)
@@ -34,20 +35,18 @@ internal class TafelJwtAuthConverterTest {
     }
 
     @Test
-    fun `convert - header with invalid prefix`() {
-        every { request.headerNames } returns Collections.enumeration(listOf(HttpHeaders.AUTHORIZATION))
-        every { request.getHeader(HttpHeaders.AUTHORIZATION) } returns "WRONG TEST123"
+    fun `convert - empty cookie`() {
+        every { request.cookies } returns arrayOf(Cookie(TafelLoginFilter.jwtCookieName, "   "))
 
-        assertThrows<BadCredentialsException> {
+        assertThrows<AuthenticationCredentialsNotFoundException> {
             converter.convert(request)
         }
     }
 
     @Test
-    fun `convert - header valid`() {
-        val token = "TEST123"
-        every { request.headerNames } returns Collections.enumeration(listOf(HttpHeaders.AUTHORIZATION.uppercase()))
-        every { request.getHeader(HttpHeaders.AUTHORIZATION) } returns "Bearer $token"
+    fun `convert - cookie valid`() {
+        val token = "TOKEN"
+        every { request.cookies } returns arrayOf(Cookie(TafelLoginFilter.jwtCookieName, token))
 
         val result = converter.convert(request) as TafelJwtAuthentication
 

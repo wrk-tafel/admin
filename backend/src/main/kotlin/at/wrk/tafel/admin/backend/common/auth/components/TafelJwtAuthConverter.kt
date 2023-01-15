@@ -10,28 +10,12 @@ import org.springframework.security.web.authentication.AuthenticationConverter
 
 class TafelJwtAuthConverter : AuthenticationConverter {
 
-    companion object {
-        private const val headerPrefix = "Bearer"
-    }
-
     override fun convert(request: HttpServletRequest): Authentication? {
-        val hasHeader = request.headerNames.toList()
-            .any { it.equals(HttpHeaders.AUTHORIZATION, ignoreCase = true) }
+        val authCookie = request.cookies.toList()
+            .firstOrNull { it.name.equals(TafelLoginFilter.jwtCookieName) && it.value.isNotBlank() }
+            ?: throw AuthenticationCredentialsNotFoundException("Missing authentication credentials")
 
-        if (hasHeader) {
-            val header = request.getHeader(HttpHeaders.AUTHORIZATION)
-
-            if (header != null && !header.startsWith(headerPrefix)) {
-                throw BadCredentialsException("Invalid token")
-            }
-
-            val tokenString = header.removePrefix(headerPrefix).trim()
-            if (tokenString.isNotBlank()) {
-                return TafelJwtAuthentication(tokenString)
-            }
-        }
-
-        throw AuthenticationCredentialsNotFoundException("Missing ${HttpHeaders.AUTHORIZATION} header")
+        return TafelJwtAuthentication(authCookie.value)
     }
 
 }
