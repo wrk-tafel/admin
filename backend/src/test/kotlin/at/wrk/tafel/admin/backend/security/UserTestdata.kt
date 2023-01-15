@@ -2,6 +2,10 @@ package at.wrk.tafel.admin.backend.security
 
 import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
 import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
+import at.wrk.tafel.admin.backend.database.entities.auth.UserAuthorityEntity
+import org.springframework.security.core.authority.SimpleGrantedAuthority
+
+val testUserPermissions = listOf("TEST1", "TEST2")
 
 val testUserEntity = UserEntity().apply {
     username = "test-username"
@@ -13,7 +17,12 @@ val testUserEntity = UserEntity().apply {
     personnelNumber = "test-personnelnumber"
     firstname = "test-firstname"
     lastname = "test-lastname"
-    authorities = mutableListOf()
+    authorities = testUserPermissions.map {
+        val entity = UserAuthorityEntity()
+        entity.user = this
+        entity.name = it
+        entity
+    }.toMutableList()
     passwordChangeRequired = true
 }
 
@@ -25,6 +34,6 @@ val testUser = TafelUser(
     personnelNumber = testUserEntity.personnelNumber!!,
     firstname = testUserEntity.firstname!!,
     lastname = testUserEntity.lastname!!,
-    authorities = emptyList(),
+    authorities = testUserPermissions.map { SimpleGrantedAuthority(it) },
     passwordChangeRequired = false
 )

@@ -2,11 +2,13 @@ import {HTTP_INTERCEPTORS, HttpClient} from '@angular/common/http';
 import {TestBed} from '@angular/core/testing';
 import {HttpClientTestingModule, HttpTestingController} from '@angular/common/http/testing';
 import {ErrorHandlerInterceptor} from './errorhandler-interceptor.service';
+import {AuthenticationService} from '../security/authentication.service';
 
 describe('ErrorHandlerInterceptor', () => {
   let client: HttpClient;
   let httpMock: HttpTestingController;
   let window: jasmine.SpyObj<Window>;
+  let authServiceSpy: jasmine.SpyObj<AuthenticationService>;
 
   beforeEach(() => {
     const windowSpy = jasmine.createSpyObj('window', ['alert']);
@@ -22,6 +24,10 @@ describe('ErrorHandlerInterceptor', () => {
         {
           provide: Window,
           useValue: windowSpy
+        },
+        {
+          provide: AuthenticationService,
+          useValue: jasmine.createSpyObj('AuthenticationService', ['redirectToLogin'])
         }
       ]
     });
@@ -29,6 +35,7 @@ describe('ErrorHandlerInterceptor', () => {
     client = TestBed.inject(HttpClient);
     httpMock = TestBed.inject(HttpTestingController);
     window = TestBed.inject(Window) as jasmine.SpyObj<Window>;
+    authServiceSpy = TestBed.inject(AuthenticationService) as jasmine.SpyObj<AuthenticationService>;
   });
 
   it('generic http error', () => {
@@ -64,6 +71,18 @@ describe('ErrorHandlerInterceptor', () => {
 
     const mockReq = httpMock.expectOne('/test');
     const mockErrorResponse = {status: 404, statusText: 'Not Found'};
+    mockReq.flush(null, mockErrorResponse);
+    httpMock.verify();
+  });
+
+  it('not authenticated so credentials are and redirected to login', () => {
+    client.get('/test').subscribe(() => {
+    }, err => {
+      expect(authServiceSpy.redirectToLogin).toHaveBeenCalled();
+    });
+
+    const mockReq = httpMock.expectOne('/test');
+    const mockErrorResponse = {status: 401, statusText: 'Unauthorized'};
     mockReq.flush(null, mockErrorResponse);
     httpMock.verify();
   });

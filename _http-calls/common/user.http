@@ -2,10 +2,6 @@
 POST {{baseApiPath}}/login
 Authorization: Basic {{encodedCredentials}}
 
-> {%
-    client.global.set("jwt", response.body["token"]);
-%}
-
 ### Login fails - user not found
 POST {{baseApiPath}}/login
 Authorization: Basic d3Jvbmc6d3Jvbmc=

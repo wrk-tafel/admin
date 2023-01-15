@@ -1,7 +1,6 @@
 package at.wrk.tafel.admin.backend.common.auth.model
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.GrantedAuthority
 
@@ -42,7 +41,8 @@ class TafelJwtAuthentication(
 }
 
 @ExcludeFromTestCoverage
-data class JwtAuthenticationResponse(
-    val token: String?,
+data class LoginResponse(
+    val username: String,
+    val permissions: List<String>,
     val passwordChangeRequired: Boolean? = false
 )

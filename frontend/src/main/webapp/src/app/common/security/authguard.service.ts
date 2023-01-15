@@ -8,40 +8,22 @@ import {AuthenticationService} from './authentication.service';
 export class AuthGuardService implements CanActivateChild {
 
   constructor(
-    private auth: AuthenticationService,
-    private router: Router
+    private auth: AuthenticationService
   ) {
   }
 
   canActivateChild(childRoute: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean {
-    const authenticated = this.checkAuthentication();
-    if (authenticated) {
-      return this.checkPermissions(childRoute);
-    }
-    return false;
-  }
-
-  private checkAuthentication(): boolean {
-    const authenticated = this.auth.isAuthenticated();
-    if (!authenticated) {
-      this.auth.logoutAndRedirect();
-      return false;
-    }
-    return true;
-  }
-
-  private checkPermissions(route: ActivatedRouteSnapshot): boolean {
     if (!this.auth.hasAnyPermissions()) {
-      this.router.navigate(['login', 'fehlgeschlagen']);
+      this.auth.redirectToLogin('fehlgeschlagen');
       return false;
     }
 
-    const permission = route.data.permission;
+    const permission = childRoute.data.permission;
     if (permission == null || this.auth.hasPermission(permission)) {
       return true;
     }
 
-    this.router.navigate(['login', 'fehlgeschlagen']);
+    this.auth.redirectToLogin('fehlgeschlagen');
     return false;
   }
 

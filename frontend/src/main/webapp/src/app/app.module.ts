@@ -36,7 +36,6 @@ import {ChartsModule} from 'ng2-charts';
 import {JWT_OPTIONS, JwtHelperService} from '@auth0/angular-jwt';
 import {HTTP_INTERCEPTORS, HttpClientModule, HttpClientXsrfModule} from '@angular/common/http';
 import {ApiPathInterceptor} from './common/http/apipath-interceptor.service';
-import {AuthenticationInterceptor} from './common/http/authentication-interceptor.service';
 import {ErrorHandlerInterceptor} from './common/http/errorhandler-interceptor.service';
 import {ModalModule} from 'ngx-bootstrap/modal';
 import {PasswordChangeModalComponent} from './modules/user/views/passwordchange-modal/passwordchange-modal.component';
@@ -111,11 +110,6 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
     {
       provide: HTTP_INTERCEPTORS,
       useClass: ApiPathInterceptor,
-      multi: true
-    },
-    {
-      provide: HTTP_INTERCEPTORS,
-      useClass: AuthenticationInterceptor,
       multi: true
     },
     {
