@@ -41,7 +41,7 @@ import {PasswordChangeModalComponent} from './modules/user/views/passwordchange-
 import {PasswordChangeFormComponent} from './modules/user/views/passwordchange-form/passwordchange-form.component';
 import {LoginPasswordChangeComponent} from './common/views/login-passwordchange/login-passwordchange.component';
 import {CookieService} from 'ngx-cookie-service';
-import {AuthenticationService} from "./common/security/authentication.service";
+import {AuthenticationService} from './common/security/authentication.service';
 
 const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
   suppressScrollX: true

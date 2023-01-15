@@ -87,6 +87,7 @@ describe('AuthenticationService', () => {
   it('login failed', async () => {
     service.login('USER', 'PWD').then(response => {
       expect(response).toEqual({successful: false, passwordChangeRequired: false});
+      expect(service.userInfo).toBe(undefined);
     });
 
     const mockReq = httpMock.expectOne('/login');
