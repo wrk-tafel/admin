@@ -1,8 +1,8 @@
 import {HttpClient, HttpHeaders} from '@angular/common/http';
 import {Injectable} from '@angular/core';
 import {Router} from '@angular/router';
-import {Observable} from 'rxjs';
-import {map, tap} from 'rxjs/operators';
+import {Observable, of} from 'rxjs';
+import {catchError, map, tap} from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -22,10 +22,10 @@ export class AuthenticationService {
       .pipe(map(response => {
           this.loadUserInfo();
           return {successful: true, passwordChangeRequired: response.passwordChangeRequired};
-        },
-        error => {
+        }),
+        catchError(_ => {
           this.userInfo = undefined;
-          return {successful: false, passwordChangeRequired: false};
+          return of({successful: false, passwordChangeRequired: false});
         }))
       .toPromise();
   }
