@@ -30,6 +30,15 @@ class TafelLoginFilter(
     companion object {
         private val basicAuthConverter = BasicAuthenticationConverter()
         const val jwtCookieName = "jwt"
+
+        fun createTokenCookie(token: String?, maxAge: Int, request: HttpServletRequest): Cookie {
+            val cookie = Cookie(jwtCookieName, token)
+            cookie.isHttpOnly = true
+            cookie.secure = request.isSecure
+            cookie.maxAge = maxAge
+            cookie.setAttribute("SameSite", "strict")
+            return cookie
+        }
     }
 
     init {
@@ -66,7 +75,8 @@ class TafelLoginFilter(
 
             logger.info("Login successful via user '${user.username}' from IP ${getIpAddress(request)} on ${request.requestURL} (password change required: ${user.passwordChangeRequired})")
 
-            response.addCookie(getTokenCookie(token, expirationTimeInSeconds, request))
+            val cookie = createTokenCookie(token, expirationTimeInSeconds, request)
+            response.addCookie(cookie)
 
             val responseBody = LoginResponse(
                 username = user.username,
@@ -79,15 +89,6 @@ class TafelLoginFilter(
 
             IOUtils.write(responseString, response.outputStream, Charset.defaultCharset())
         }
-    }
-
-    private fun getTokenCookie(token: String, maxAge: Int, request: HttpServletRequest): Cookie {
-        val cookie = Cookie(jwtCookieName, token)
-        cookie.isHttpOnly = true
-        cookie.secure = request.isSecure
-        cookie.maxAge = maxAge
-        cookie.setAttribute("SameSite", "strict")
-        return cookie
     }
 
     override fun unsuccessfulAuthentication(

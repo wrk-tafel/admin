@@ -19,3 +19,6 @@ Content-Type: application/json
   "passwordCurrent": "12345",
   "passwordNew": "wrk-tafel"
 }
+
+### Logout
+POST {{baseApiPath}}/users/logout
