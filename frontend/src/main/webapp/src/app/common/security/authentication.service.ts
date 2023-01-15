@@ -2,7 +2,7 @@ import {HttpClient, HttpHeaders} from '@angular/common/http';
 import {Injectable} from '@angular/core';
 import {Router} from '@angular/router';
 import {Observable} from 'rxjs';
-import {tap} from "rxjs/operators";
+import {map, tap} from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -18,13 +18,16 @@ export class AuthenticationService {
   userInfo?: UserInfo;
 
   public async login(username: string, password: string): Promise<LoginResult> {
-    return await this.executeLoginRequest(username, password)
-      .then((response: LoginResponse) => {
-        return {successful: true, passwordChangeRequired: response.passwordChangeRequired};
-      })
-      .catch(() => {
-        return {successful: false, passwordChangeRequired: false};
-      });
+    return this.executeLoginRequest(username, password)
+      .pipe(map(response => {
+          this.loadUserInfo();
+          return {successful: true, passwordChangeRequired: response.passwordChangeRequired};
+        },
+        error => {
+          this.userInfo = undefined;
+          return {successful: false, passwordChangeRequired: false};
+        }))
+      .toPromise();
   }
 
   public redirectToLogin(msgKey?: string) {
@@ -54,21 +57,20 @@ export class AuthenticationService {
     return this.http.post<void>('/users/logout', null);
   }
 
-  private executeLoginRequest(username: string, password: string): Promise<LoginResponse> {
+  private executeLoginRequest(username: string, password: string): Observable<LoginResponse> {
     const encodedCredentials = btoa(username + ':' + password);
     const options = {
       headers: new HttpHeaders().set('Authorization', 'Basic ' + encodedCredentials),
       withCredentials: true
     };
-    return this.http.post<LoginResponse>('/login', undefined, options).toPromise();
+    return this.http.post<LoginResponse>('/login', undefined, options);
   }
 
-  public loadUserInfo(): Observable<UserInfo> {
+  public loadUserInfo() {
     return this.http.get<UserInfo>('/users/info')
-      .pipe(tap(userInfo => {
-          this.userInfo = userInfo;
-        }
-      ));
+      .subscribe(userInfo => {
+        this.userInfo = userInfo;
+      });
   }
 
 }
