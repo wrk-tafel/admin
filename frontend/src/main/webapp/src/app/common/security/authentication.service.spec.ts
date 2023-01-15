@@ -1,29 +1,22 @@
 import {HttpClientTestingModule, HttpTestingController} from '@angular/common/http/testing';
 import {TestBed} from '@angular/core/testing';
 import {Router} from '@angular/router';
-import {JwtHelperService} from '@auth0/angular-jwt';
 
 import {AuthenticationService} from './authentication.service';
 
 describe('AuthenticationService', () => {
   let httpMock: HttpTestingController;
 
-  let jwtHelper: jasmine.SpyObj<JwtHelperService>;
   let router: jasmine.SpyObj<Router>;
   let service: AuthenticationService;
 
   beforeEach(() => {
-    const jwtHelperSpy = jasmine.createSpyObj('JwtHelperService', ['isTokenExpired', 'decodeToken']);
     const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
 
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
       providers: [
         AuthenticationService,
-        {
-          provide: JwtHelperService,
-          useValue: jwtHelperSpy
-        },
         {
           provide: Router,
           useValue: routerSpy
@@ -33,7 +26,6 @@ describe('AuthenticationService', () => {
 
     httpMock = TestBed.inject(HttpTestingController);
 
-    jwtHelper = TestBed.inject(JwtHelperService) as jasmine.SpyObj<JwtHelperService>;
     router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
     service = TestBed.inject(AuthenticationService);
   });

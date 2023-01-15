@@ -33,7 +33,6 @@ import {AppRoutingModule} from './app.routing';
 import {BsDropdownModule} from 'ngx-bootstrap/dropdown';
 import {TabsModule} from 'ngx-bootstrap/tabs';
 import {ChartsModule} from 'ng2-charts';
-import {JWT_OPTIONS, JwtHelperService} from '@auth0/angular-jwt';
 import {HTTP_INTERCEPTORS, HttpClientModule, HttpClientXsrfModule} from '@angular/common/http';
 import {ApiPathInterceptor} from './common/http/apipath-interceptor.service';
 import {ErrorHandlerInterceptor} from './common/http/errorhandler-interceptor.service';
@@ -97,11 +96,6 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
       useClass: HashLocationStrategy
     },
     IconSetService,
-    {
-      provide: JWT_OPTIONS,
-      useValue: JWT_OPTIONS
-    },
-    JwtHelperService,
     {
       provide: HTTP_INTERCEPTORS,
       useClass: ErrorHandlerInterceptor,
