@@ -31,12 +31,10 @@ describe('AuthenticationService', () => {
   });
 
   it('login successful', async () => {
-    const responseBody = {username: 'test-user', permissions: ['PERM1'], passwordChangeRequired: false};
+    const responseBody = {passwordChangeRequired: false};
 
     service.login('USER', 'PWD').then(response => {
       expect(response).toEqual({successful: true, passwordChangeRequired: false});
-      expect(service.username).toEqual(responseBody.username);
-      expect(service.permissions).toEqual(responseBody.permissions);
     });
 
     const mockReq = httpMock.expectOne('/login');
@@ -51,12 +49,10 @@ describe('AuthenticationService', () => {
   });
 
   it('login successful but passwordchange is required', async () => {
-    const responseBody = {username: 'test-user', permissions: [], passwordChangeRequired: true};
+    const responseBody = {passwordChangeRequired: true};
 
     service.login('USER', 'PWD').then(response => {
       expect(response).toEqual({successful: true, passwordChangeRequired: true});
-      expect(service.username).toEqual(responseBody.username);
-      expect(service.permissions).toEqual(responseBody.permissions);
     });
 
     const mockReq = httpMock.expectOne('/login');

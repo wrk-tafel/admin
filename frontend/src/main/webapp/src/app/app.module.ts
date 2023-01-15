@@ -1,5 +1,5 @@
 import {BrowserModule} from '@angular/platform-browser';
-import {DEFAULT_CURRENCY_CODE, LOCALE_ID, NgModule} from '@angular/core';
+import {APP_INITIALIZER, DEFAULT_CURRENCY_CODE, LOCALE_ID, NgModule} from '@angular/core';
 import {ReactiveFormsModule} from '@angular/forms';
 import {CommonModule, HashLocationStrategy, LocationStrategy} from '@angular/common';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
@@ -41,6 +41,7 @@ import {PasswordChangeModalComponent} from './modules/user/views/passwordchange-
 import {PasswordChangeFormComponent} from './modules/user/views/passwordchange-form/passwordchange-form.component';
 import {LoginPasswordChangeComponent} from './common/views/login-passwordchange/login-passwordchange.component';
 import {CookieService} from 'ngx-cookie-service';
+import {AuthenticationService} from "./common/security/authentication.service";
 
 const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
   suppressScrollX: true
@@ -109,6 +110,12 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
     {
       provide: Window,
       useValue: window
+    },
+    {
+      provide: APP_INITIALIZER,
+      useFactory: (authService: AuthenticationService) => () => authService.loadUserInfo(),
+      deps: [AuthenticationService],
+      multi: true
     }
   ],
   bootstrap: [AppComponent]

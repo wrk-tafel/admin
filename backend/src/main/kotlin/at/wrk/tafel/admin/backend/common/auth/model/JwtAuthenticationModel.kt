@@ -42,7 +42,5 @@ class TafelJwtAuthentication(
 
 @ExcludeFromTestCoverage
 data class LoginResponse(
-    val username: String,
-    val permissions: List<String>,
     val passwordChangeRequired: Boolean? = false
 )

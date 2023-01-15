@@ -86,8 +86,6 @@ class TafelLoginFilterTest {
 
         verify {
             objectMapper.writeValueAsString(withArg<LoginResponse> { response ->
-                assertThat(response.username).isEqualTo(testUser.username)
-                assertThat(response.permissions).isEqualTo(testUser.authorities.map { it.authority })
                 assertThat(response.passwordChangeRequired).isFalse()
             })
         }
@@ -116,8 +114,6 @@ class TafelLoginFilterTest {
         verify(exactly = 1) { jwtTokenService.generateToken(testUser.username, emptyList(), expirationTime) }
         verify {
             objectMapper.writeValueAsString(withArg<LoginResponse> { response ->
-                assertThat(response.username).isEqualTo(testUser.username)
-                assertThat(response.permissions).isEmpty()
                 assertThat(response.passwordChangeRequired).isTrue()
             })
         }

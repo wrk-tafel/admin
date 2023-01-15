@@ -2,6 +2,7 @@ import {HttpClient, HttpHeaders} from '@angular/common/http';
 import {Injectable} from '@angular/core';
 import {Router} from '@angular/router';
 import {Observable} from 'rxjs';
+import {tap} from "rxjs/operators";
 
 @Injectable({
   providedIn: 'root'
@@ -14,14 +15,11 @@ export class AuthenticationService {
   ) {
   }
 
-  username?: string = undefined;
-  permissions: string[] = [];
+  userInfo?: UserInfo;
 
   public async login(username: string, password: string): Promise<LoginResult> {
     return await this.executeLoginRequest(username, password)
       .then((response: LoginResponse) => {
-        this.username = response.username;
-        this.permissions = response.permissions;
         return {successful: true, passwordChangeRequired: response.passwordChangeRequired};
       })
       .catch(() => {
@@ -34,12 +32,12 @@ export class AuthenticationService {
   }
 
   public hasAnyPermission(): boolean {
-    return this.permissions.length > 0;
+    return this.userInfo?.permissions.length > 0;
   }
 
   public hasPermission(role: string): boolean {
     if (this.hasAnyPermission()) {
-      const index = this.permissions?.findIndex(element => {
+      const index = this.userInfo?.permissions.findIndex(element => {
         return element.toLowerCase() === role.toLowerCase();
       });
       return index !== -1;
@@ -48,12 +46,11 @@ export class AuthenticationService {
   }
 
   public getUsername(): string {
-    return this.username;
+    return this.userInfo?.username;
   }
 
   public logout(): Observable<void> {
-    this.username = undefined;
-    this.permissions = [];
+    this.userInfo = undefined;
     return this.http.post<void>('/users/logout', null);
   }
 
@@ -66,15 +63,26 @@ export class AuthenticationService {
     return this.http.post<LoginResponse>('/login', undefined, options).toPromise();
   }
 
+  public loadUserInfo(): Observable<UserInfo> {
+    return this.http.get<UserInfo>('/users/info')
+      .pipe(tap(userInfo => {
+          this.userInfo = userInfo;
+        }
+      ));
+  }
+
 }
 
 interface LoginResponse {
-  username: string;
-  permissions: string[];
   passwordChangeRequired: boolean;
 }
 
 export interface LoginResult {
   successful: boolean;
   passwordChangeRequired: boolean;
+}
+
+interface UserInfo {
+  username: string;
+  permissions: string[];
 }

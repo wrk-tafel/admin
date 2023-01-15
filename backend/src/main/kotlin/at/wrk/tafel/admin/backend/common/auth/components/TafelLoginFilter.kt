@@ -78,11 +78,7 @@ class TafelLoginFilter(
             val cookie = createTokenCookie(token, expirationTimeInSeconds, request)
             response.addCookie(cookie)
 
-            val responseBody = LoginResponse(
-                username = user.username,
-                permissions = authorities.map { it.authority },
-                passwordChangeRequired = user.passwordChangeRequired
-            )
+            val responseBody = LoginResponse(passwordChangeRequired = user.passwordChangeRequired)
 
             response.contentType = MimeTypeUtils.APPLICATION_JSON_VALUE
             val responseString = objectMapper.writeValueAsString(responseBody)
