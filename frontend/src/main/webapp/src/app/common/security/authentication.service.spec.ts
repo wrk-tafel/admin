@@ -90,12 +90,19 @@ describe('AuthenticationService', () => {
       expect(service.userInfo).toBe(undefined);
     });
 
-    const mockReq = httpMock.expectOne('/login');
-    expect(mockReq.request.method).toBe('POST');
-    expect(mockReq.request.headers.get('Authorization')).toBe('Basic ' + btoa('USER:PWD'));
+    const loginMockReq = httpMock.expectOne('/login');
+    expect(loginMockReq.request.method).toBe('POST');
+    expect(loginMockReq.request.headers.get('Authorization')).toBe('Basic ' + btoa('USER:PWD'));
 
-    const mockErrorResponse = {status: 403, statusText: 'Forbidden'};
-    mockReq.flush(null, mockErrorResponse);
+    const loginMockResponse = {status: 403, statusText: 'Forbidden'};
+    loginMockReq.flush(null, loginMockResponse);
+
+    const userInfoMockReq = httpMock.expectOne('/users/info');
+    expect(userInfoMockReq.request.method).toBe('GET');
+
+    const userInfoMockResponse = {status: 401, statusText: 'Unauthorized'};
+    userInfoMockReq.flush(null, userInfoMockResponse);
+
     httpMock.verify();
   });
 

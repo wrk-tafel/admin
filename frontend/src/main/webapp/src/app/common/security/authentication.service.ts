@@ -1,8 +1,9 @@
 import {HttpClient, HttpHeaders} from '@angular/common/http';
 import {Injectable} from '@angular/core';
 import {Router} from '@angular/router';
-import {Observable, of} from 'rxjs';
-import {catchError, map, tap} from 'rxjs/operators';
+import {combineLatest, concat, Observable, of} from 'rxjs';
+import {catchError, concatAll, concatMap, map, tap} from 'rxjs/operators';
+import {error} from "protractor";
 
 @Injectable({
   providedIn: 'root'
@@ -18,16 +19,22 @@ export class AuthenticationService {
   userInfo?: UserInfo;
 
   public async login(username: string, password: string): Promise<LoginResult> {
-    return this.executeLoginRequest(username, password)
+    const executeLoginObservable = this.executeLoginRequest(username, password)
       .pipe(map(response => {
-          this.loadUserInfo();
           return {successful: true, passwordChangeRequired: response.passwordChangeRequired};
         }),
         catchError(_ => {
           this.userInfo = undefined;
           return of({successful: false, passwordChangeRequired: false});
-        }))
-      .toPromise();
+        }));
+
+    const loadUserInfoObservable = this.loadUserInfo();
+
+    return combineLatest([executeLoginObservable, loadUserInfoObservable]).pipe(
+      map(result => {
+        return result[0];
+      })
+    ).toPromise();
   }
 
   public redirectToLogin(msgKey?: string) {
@@ -65,11 +72,15 @@ export class AuthenticationService {
     return this.http.post<LoginResponse>('/login', undefined, options);
   }
 
-  public loadUserInfo() {
+  public loadUserInfo(): Observable<UserInfo> {
     return this.http.get<UserInfo>('/users/info')
-      .subscribe(userInfo => {
-        this.userInfo = userInfo;
-      });
+      .pipe(tap(userInfo => {
+          this.userInfo = userInfo;
+        }),
+        catchError(_ => {
+          return of(null);
+        })
+      );
   }
 
 }
