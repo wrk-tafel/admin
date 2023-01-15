@@ -60,8 +60,7 @@ export class AuthenticationService {
   private executeLoginRequest(username: string, password: string): Observable<LoginResponse> {
     const encodedCredentials = btoa(username + ':' + password);
     const options = {
-      headers: new HttpHeaders().set('Authorization', 'Basic ' + encodedCredentials),
-      withCredentials: true
+      headers: new HttpHeaders().set('Authorization', 'Basic ' + encodedCredentials)
     };
     return this.http.post<LoginResponse>('/login', undefined, options);
   }
