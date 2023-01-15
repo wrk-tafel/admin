@@ -52,6 +52,8 @@ export class AuthenticationService {
   }
 
   public logout(): Observable<void> {
+    this.username = undefined;
+    this.permissions = [];
     return this.http.post<void>('/users/logout', null);
   }
 

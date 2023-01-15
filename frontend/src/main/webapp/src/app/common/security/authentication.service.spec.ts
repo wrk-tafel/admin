@@ -149,4 +149,21 @@ describe('AuthenticationService', () => {
     expect(hasAnyPermission).toBeTrue();
   });
 
+  it('logout', () => {
+    service.username = 'test-user';
+    service.permissions = ['PERM1'];
+
+    service.logout().subscribe(response => {
+      expect(service.username).toBeUndefined();
+      expect(service.permissions.length).toBe(0);
+    });
+
+    const mockReq = httpMock.expectOne('/users/logout');
+    expect(mockReq.request.method).toBe('POST');
+
+    const mockErrorResponse = {status: 200, statusText: 'OK'};
+    mockReq.flush(null, mockErrorResponse);
+    httpMock.verify();
+  });
+
 });
