@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.security
 
 import at.wrk.tafel.admin.backend.common.auth.UserController
 import at.wrk.tafel.admin.backend.common.auth.components.PasswordChangeException
+import at.wrk.tafel.admin.backend.common.auth.components.TafelLoginFilter
 import at.wrk.tafel.admin.backend.common.auth.model.ChangePasswordRequest
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import io.mockk.every
@@ -9,6 +10,8 @@ import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.verify
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -24,6 +27,12 @@ class UserControllerTest {
 
     @RelaxedMockK
     private lateinit var userDetailsManager: UserDetailsManager
+
+    @RelaxedMockK
+    private lateinit var request: HttpServletRequest
+
+    @RelaxedMockK
+    private lateinit var response: HttpServletResponse
 
     @InjectMockKs
     private lateinit var controller: UserController
@@ -69,6 +78,29 @@ class UserControllerTest {
         assertThat(response.body?.details).hasSameElementsAs(errDetails)
 
         verify { userDetailsManager.changePassword("old", "new") }
+    }
+
+    @Test
+    fun `logout`() {
+        val authentication = TafelJwtAuthentication(
+            tokenValue = "TOKEN",
+            username = testUser.username,
+            authorities = testUserPermissions.map { SimpleGrantedAuthority(it) }
+        )
+        SecurityContextHolder.setContext(SecurityContextImpl(authentication))
+
+        val responseEntity = controller.logout(request, response)
+
+        assertThat(responseEntity.statusCode.value()).isEqualTo(HttpStatus.OK.value())
+
+        verify {
+            response.addCookie(withArg {
+                assertThat(it.name).isEqualTo(TafelLoginFilter.jwtCookieName)
+                assertThat(it.value).isNull()
+                assertThat(it.maxAge).isZero
+                assertThat(it.attributes["SameSite"]).isEqualTo("strict")
+            })
+        }
     }
 
 }
