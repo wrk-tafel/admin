@@ -57,7 +57,7 @@ export class AuthenticationService {
     return this.http.post<void>('/users/logout', null);
   }
 
-  private executeLoginRequest(username: string, password: string) {
+  private executeLoginRequest(username: string, password: string): Promise<LoginResponse> {
     const encodedCredentials = btoa(username + ':' + password);
     const options = {
       headers: new HttpHeaders().set('Authorization', 'Basic ' + encodedCredentials),
