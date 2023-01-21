@@ -72,15 +72,16 @@ export class AuthenticationService {
     return this.http.post<LoginResponse>('/login', undefined, options);
   }
 
-  public loadUserInfo(): Observable<UserInfo> {
+  public loadUserInfo(): Promise<UserInfo> {
     return this.http.get<UserInfo>('/users/info')
       .pipe(tap(userInfo => {
           this.userInfo = userInfo;
+          return of(userInfo);
         }),
         catchError(_ => {
           return of(null);
         })
-      );
+      ).toPromise();
   }
 
 }
