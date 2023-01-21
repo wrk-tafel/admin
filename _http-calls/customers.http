@@ -1,22 +1,17 @@
 ### List customers
 GET {{baseApiPath}}/customers
-Authorization: Bearer {{jwt}}
 
 ### Search for customers (only firstname)
 GET {{baseApiPath}}/customers?firstname=x
-Authorization: Bearer {{jwt}}
 
 ### Search for customers (only lastname)
 GET {{baseApiPath}}/customers?lastname=x
-Authorization: Bearer {{jwt}}
 
 ### Search for customers (firstname and lastname)
 GET {{baseApiPath}}/customers?firstname=x&lastname=x
-Authorization: Bearer {{jwt}}
 
 ### Validate customer
 POST {{baseApiPath}}/customers/validate
-Authorization: Bearer {{jwt}}
 Content-Type: application/json
 
 {
@@ -84,7 +79,6 @@ Content-Type: application/json
 
 ### Create customer
 POST {{baseApiPath}}/customers
-Authorization: Bearer {{jwt}}
 Content-Type: application/json
 
 {
@@ -151,23 +145,19 @@ Content-Type: application/json
 ### Get customer 100
 
 GET {{baseApiPath}}/customers/100
-Authorization: Bearer {{jwt}}
 Content-Type: application/json
 
 ### Get masterdata pdf
 
 GET {{baseApiPath}}/customers/100/generate-pdf?type=MASTERDATA
-Authorization: Bearer {{jwt}}
 Content-Type: application/json
 
 ### Get idcard pdf
 
 GET {{baseApiPath}}/customers/100/generate-pdf?type=IDCARD
-Authorization: Bearer {{jwt}}
 Content-Type: application/json
 
 ### Get combined pdf
 
 GET {{baseApiPath}}/customers/100/generate-pdf?type=COMBINED
-Authorization: Bearer {{jwt}}
 Content-Type: application/json
