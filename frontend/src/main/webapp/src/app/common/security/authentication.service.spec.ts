@@ -87,7 +87,7 @@ describe('AuthenticationService', () => {
   it('login failed', async () => {
     service.login('USER', 'PWD').then(response => {
       expect(response).toEqual({successful: false, passwordChangeRequired: false});
-      expect(service.userInfo).toBe(undefined);
+      expect(service.userInfo).toBeNull();
     });
 
     const loginMockReq = httpMock.expectOne('/login');
@@ -176,7 +176,7 @@ describe('AuthenticationService', () => {
     service.userInfo = {username: 'test-user', permissions: ['PERM1']};
 
     service.logout().subscribe(response => {
-      expect(service.userInfo).toBeUndefined();
+      expect(service.userInfo).toBeNull();
     });
 
     const mockReq = httpMock.expectOne('/users/logout');
@@ -185,6 +185,22 @@ describe('AuthenticationService', () => {
     const mockErrorResponse = {status: 200, statusText: 'OK'};
     mockReq.flush(null, mockErrorResponse);
     httpMock.verify();
+  });
+
+  it('isAuthenticated true', () => {
+    service.userInfo = {username: 'test-user', permissions: ['PERM1']};
+
+    const isAuthenticated = service.isAuthenticated();
+
+    expect(isAuthenticated).toBeTruthy();
+  });
+
+  it('isAuthenticated false', () => {
+    service.userInfo = null;
+
+    const isAuthenticated = service.isAuthenticated();
+
+    expect(isAuthenticated).toBeFalsy();
   });
 
 });

@@ -1,9 +1,8 @@
 import {HttpClient, HttpHeaders} from '@angular/common/http';
 import {Injectable} from '@angular/core';
 import {Router} from '@angular/router';
-import {combineLatest, concat, Observable, of} from 'rxjs';
-import {catchError, concatAll, concatMap, map, tap} from 'rxjs/operators';
-import {error} from "protractor";
+import {combineLatest, Observable, of} from 'rxjs';
+import {catchError, map, tap} from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -16,7 +15,7 @@ export class AuthenticationService {
   ) {
   }
 
-  userInfo?: UserInfo;
+  userInfo: UserInfo = null;
 
   public async login(username: string, password: string): Promise<LoginResult> {
     const executeLoginObservable = this.executeLoginRequest(username, password)
@@ -24,7 +23,7 @@ export class AuthenticationService {
           return {successful: true, passwordChangeRequired: response.passwordChangeRequired};
         }),
         catchError(_ => {
-          this.userInfo = undefined;
+          this.userInfo = null;
           return of({successful: false, passwordChangeRequired: false});
         }));
 
@@ -35,6 +34,10 @@ export class AuthenticationService {
         return result[0];
       })
     ).toPromise();
+  }
+
+  public isAuthenticated(): Boolean {
+    return this.userInfo !== null;
   }
 
   public redirectToLogin(msgKey?: string) {
@@ -60,7 +63,7 @@ export class AuthenticationService {
   }
 
   public logout(): Observable<void> {
-    this.userInfo = undefined;
+    this.userInfo = null;
     return this.http.post<void>('/users/logout', null);
   }
 

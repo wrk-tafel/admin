@@ -20,7 +20,7 @@ export class ErrorHandlerInterceptor implements HttpInterceptor {
   }
 
   private handleAuthError(error: HttpErrorResponse): Observable<any> {
-    if (error.status === 401) {
+    if (this.auth.isAuthenticated() && error.status === 401) {
       this.auth.redirectToLogin('abgelaufen');
     }
     return throwError(error);

@@ -27,7 +27,7 @@ describe('ErrorHandlerInterceptor', () => {
         },
         {
           provide: AuthenticationService,
-          useValue: jasmine.createSpyObj('AuthenticationService', ['redirectToLogin'])
+          useValue: jasmine.createSpyObj('AuthenticationService', ['redirectToLogin', 'isAuthenticated'])
         }
       ]
     });
@@ -39,6 +39,8 @@ describe('ErrorHandlerInterceptor', () => {
   });
 
   it('generic http error', () => {
+    authServiceSpy.isAuthenticated.and.returnValue(false);
+
     client.get('/test').subscribe(() => {
     }, err => {
       expect(window.alert).toHaveBeenCalledWith('FEHLER:\nHTTP - 500 - Internal Server Error\nMESSAGE:\nHttp failure response for /test: 500 Internal Server Error\nDETAILS:\nundefined');
@@ -51,6 +53,8 @@ describe('ErrorHandlerInterceptor', () => {
   });
 
   it('specific spring http error', () => {
+    authServiceSpy.isAuthenticated.and.returnValue(false);
+
     client.get('/test').subscribe(() => {
     }, err => {
       expect(window.alert).toHaveBeenCalledWith('FEHLER:\nHTTP - 400 - Bad Request\nMESSAGE:\nHttp failure response for /test: 400 Bad Request\nDETAILS:\ndetail-message');
@@ -64,6 +68,8 @@ describe('ErrorHandlerInterceptor', () => {
 
   // TODO CHECK
   it('no handling for status 404', () => {
+    authServiceSpy.isAuthenticated.and.returnValue(false);
+
     client.get('/test').subscribe(() => {
     }, err => {
       expect(window.alert).toHaveBeenCalledTimes(0);
@@ -75,7 +81,9 @@ describe('ErrorHandlerInterceptor', () => {
     httpMock.verify();
   });
 
-  it('not authenticated so credentials are and redirected to login', () => {
+  it('authentication expired and redirected to login', () => {
+    authServiceSpy.isAuthenticated.and.returnValue(true);
+
     client.get('/test').subscribe(() => {
     }, err => {
       expect(authServiceSpy.redirectToLogin).toHaveBeenCalled();
