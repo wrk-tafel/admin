@@ -28,9 +28,9 @@ export class AuthenticationService {
           return of({successful: false, passwordChangeRequired: false});
         }));
 
-    const loadUserInfoObservable = this.loadUserInfo();
+    const loadUserInfoPromise = this.loadUserInfo();
 
-    return combineLatest([executeLoginObservable, loadUserInfoObservable]).pipe(
+    return combineLatest([executeLoginObservable, loadUserInfoPromise]).pipe(
       map(result => {
         return result[0];
       })
