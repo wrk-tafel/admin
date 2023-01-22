@@ -13,6 +13,8 @@ export class ErrorHandlerInterceptor implements HttpInterceptor {
               private auth: AuthenticationService) {
   }
 
+  private ERRORCODES_WHITELIST = [401, 404, 422];
+
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     return next.handle(req)
       .pipe(catchError((error) => this.handleAuthError(error)))
@@ -27,7 +29,7 @@ export class ErrorHandlerInterceptor implements HttpInterceptor {
   }
 
   private handleErrorMessage(error: HttpErrorResponse): Observable<any> {
-    if (error.status !== 404 && error.status !== 422) {
+    if (this.ERRORCODES_WHITELIST.indexOf(error.status) === -1) {
       // TODO better ui element to show
       const errorDetail = error.error as ErrorResponseData;
 
