@@ -13,7 +13,7 @@ describe('DefaultLayoutComponent', () => {
   let authService: jasmine.SpyObj<AuthenticationService>;
 
   beforeEach(waitForAsync(() => {
-    const authServiceSpy = jasmine.createSpyObj('AuthenticationService', ['hasPermission', 'hasAnyPermissions']);
+    const authServiceSpy = jasmine.createSpyObj('AuthenticationService', ['hasPermission', 'hasAnyPermission']);
 
     TestBed.configureTestingModule({
       declarations: [
@@ -36,7 +36,7 @@ describe('DefaultLayoutComponent', () => {
   }));
 
   it('should create the component', waitForAsync(() => {
-    authService.hasAnyPermissions.and.returnValue(false);
+    authService.hasAnyPermission.and.returnValue(false);
 
     const fixture = TestBed.createComponent(DefaultLayoutComponent);
     const component = fixture.componentInstance;
@@ -46,7 +46,7 @@ describe('DefaultLayoutComponent', () => {
   // TODO add test for sideBarMinimize
 
   it('navItems are filtered by permissions - permissions undefined', () => {
-    authService.hasAnyPermissions.and.returnValue(false);
+    authService.hasAnyPermission.and.returnValue(false);
 
     const fixture = TestBed.createComponent(DefaultLayoutComponent);
     const component = fixture.componentInstance;
@@ -66,7 +66,7 @@ describe('DefaultLayoutComponent', () => {
   });
 
   it('navItems are filtered by permissions - permissions null', () => {
-    authService.hasAnyPermissions.and.returnValue(true);
+    authService.hasAnyPermission.and.returnValue(true);
 
     const fixture = TestBed.createComponent(DefaultLayoutComponent);
     const component = fixture.componentInstance;
@@ -76,7 +76,7 @@ describe('DefaultLayoutComponent', () => {
   });
 
   it('navItems are filtered by permissions - permissions empty', () => {
-    authService.hasAnyPermissions.and.returnValue(true);
+    authService.hasAnyPermission.and.returnValue(true);
 
     const fixture = TestBed.createComponent(DefaultLayoutComponent);
     const component = fixture.componentInstance;
@@ -86,7 +86,7 @@ describe('DefaultLayoutComponent', () => {
   });
 
   it('navItems are filtered by permissions - permission missing', () => {
-    authService.hasAnyPermissions.and.returnValue(true);
+    authService.hasAnyPermission.and.returnValue(true);
     authService.hasPermission.and.returnValue(false);
 
     const fixture = TestBed.createComponent(DefaultLayoutComponent);
@@ -103,7 +103,7 @@ describe('DefaultLayoutComponent', () => {
   });
 
   it('navItems are filtered by permissions - permission given but not required', () => {
-    authService.hasAnyPermissions.and.returnValue(true);
+    authService.hasAnyPermission.and.returnValue(true);
     authService.hasPermission.and.returnValue(true);
     const testMenuItems = [
       {
@@ -120,7 +120,7 @@ describe('DefaultLayoutComponent', () => {
   });
 
   it('navItems are filtered by permissions - permission given', () => {
-    authService.hasAnyPermissions.and.returnValue(true);
+    authService.hasAnyPermission.and.returnValue(true);
     authService.hasPermission.and.returnValue(true);
     const testMenuItems = [
       {
@@ -139,7 +139,7 @@ describe('DefaultLayoutComponent', () => {
 
   it('navItems are filtered by permissions - permission partially given', waitForAsync(() => {
     authService.hasPermission.and.returnValue(false);
-    authService.hasAnyPermissions.and.returnValue(true);
+    authService.hasAnyPermission.and.returnValue(true);
     authService.hasPermission.withArgs('PERM1').and.returnValue(false);
     authService.hasPermission.withArgs('PERM2').and.returnValue(true);
 
@@ -163,7 +163,7 @@ describe('DefaultLayoutComponent', () => {
 
   it('navItems are filtered by permissions - permission partially given and empty titles removed', waitForAsync(() => {
     authService.hasPermission.and.returnValue(false);
-    authService.hasAnyPermissions.and.returnValue(true);
+    authService.hasAnyPermission.and.returnValue(true);
     authService.hasPermission.withArgs('PERM1').and.returnValue(true);
     authService.hasPermission.withArgs('PERM2').and.returnValue(false);
 
@@ -206,7 +206,7 @@ describe('DefaultLayoutComponent', () => {
 
   it('navItems are filtered by permissions - empty titles removed on single title', waitForAsync(() => {
     authService.hasPermission.and.returnValue(false);
-    authService.hasAnyPermissions.and.returnValue(true);
+    authService.hasAnyPermission.and.returnValue(true);
     authService.hasPermission.withArgs('PERM2').and.returnValue(false);
 
     const testMenuItem1 = {

@@ -2,7 +2,9 @@ import {Component, ViewChild} from '@angular/core';
 import {INavData} from '@coreui/angular';
 import {AuthenticationService} from '../../security/authentication.service';
 import {IPermissionNavData, navigationMenuItems} from '../../../modules/dashboard/navigation-menuItems';
-import {PasswordChangeModalComponent} from '../../../modules/user/views/passwordchange-modal/passwordchange-modal.component';
+import {
+  PasswordChangeModalComponent
+} from '../../../modules/user/views/passwordchange-modal/passwordchange-modal.component';
 
 @Component({
   selector: 'tafel-default-layout',
@@ -18,7 +20,7 @@ export class DefaultLayoutComponent {
   constructor(
     private auth: AuthenticationService
   ) {
-    if (this.auth.hasAnyPermissions()) {
+    if (this.auth.hasAnyPermission()) {
       this.navItems = this.getNavItemsFilteredByPermissions(navigationMenuItems);
     }
   }
@@ -28,7 +30,9 @@ export class DefaultLayoutComponent {
   }
 
   public onLogout() {
-    this.auth.logoutAndRedirect();
+    this.auth.logout().subscribe(_ => {
+      this.auth.redirectToLogin();
+    });
   }
 
   public changePassword() {

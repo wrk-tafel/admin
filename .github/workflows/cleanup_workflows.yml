@@ -35,19 +35,11 @@ jobs:
           older-than-seconds: 604800
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Delete scheduled analysis workflow runs (keep last week)
+      - name: Delete scheduled codeql analysis workflow runs (keep last week)
         uses: MajorScruffy/delete-old-workflow-runs@v0.3.0
         with:
           repository: wrk-tafel/admin
-          workflow: ".github/workflows/subflow_analysis.yml"
-          older-than-seconds: 604800
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Delete scheduled cleanup workflow runs (keep last week)
-        uses: MajorScruffy/delete-old-workflow-runs@v0.3.0
-        with:
-          repository: wrk-tafel/admin
-          workflow: ".github/workflows/subflow_analysis.yml"
+          workflow: ".github/workflows/subflow_analysis_codeql.yml"
           older-than-seconds: 604800
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

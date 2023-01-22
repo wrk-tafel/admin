@@ -2,6 +2,7 @@ logging:
   level:
     root: INFO
     org.apache: INFO
+    org.springframework.security: INFO
 
 spring:
   datasource:
@@ -10,7 +11,6 @@ spring:
     password: admin
 
 security:
-  enable-csrf: false
   jwtToken:
     issuer: http://localhost
     audience: wrk-tafel

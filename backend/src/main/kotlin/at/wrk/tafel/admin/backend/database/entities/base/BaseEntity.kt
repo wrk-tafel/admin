@@ -1,10 +1,10 @@
 package at.wrk.tafel.admin.backend.database.entities.base
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
-import javax.persistence.Column
-import javax.persistence.GeneratedValue
-import javax.persistence.Id
-import javax.persistence.MappedSuperclass
+import jakarta.persistence.Column
+import jakarta.persistence.GeneratedValue
+import jakarta.persistence.Id
+import jakarta.persistence.MappedSuperclass
 
 @MappedSuperclass
 @ExcludeFromTestCoverage

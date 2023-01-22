@@ -1,6 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.customer
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
+import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerAddPersonEntity
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity
 import at.wrk.tafel.admin.backend.database.entities.staticdata.CountryEntity
@@ -13,7 +14,6 @@ import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorPerson
 import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorResult
 import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorService
 import at.wrk.tafel.admin.backend.modules.customer.masterdata.CustomerPdfService
-import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 
@@ -125,11 +125,11 @@ class CustomerService(
     }
 
     private fun mapRequestToEntity(customer: Customer, entity: CustomerEntity? = null): CustomerEntity {
-        val user = SecurityContextHolder.getContext().authentication.principal as TafelUser
+        val user = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
         val customerEntity = entity ?: CustomerEntity()
 
         customerEntity.customerId = customer.id ?: customerRepository.getNextCustomerSequenceValue()
-        customerEntity.issuer = customerEntity.issuer ?: userRepository.getReferenceById(user.id)
+        customerEntity.issuer = customerEntity.issuer ?: userRepository.findByUsername(user.username!!).get()
         customerEntity.lastname = customer.lastname.trim()
         customerEntity.firstname = customer.firstname.trim()
         customerEntity.birthDate = customer.birthDate

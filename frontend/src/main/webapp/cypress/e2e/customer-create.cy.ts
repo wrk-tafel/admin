@@ -126,11 +126,11 @@ describe('Customer Creation', () => {
   }
 
   interface AddPersonInputData {
-    lastname: string,
-    firstname: string,
-    age: number,
-    income?: number,
-    country: string
+    lastname: string;
+    firstname: string;
+    age: number;
+    income?: number;
+    country: string;
   }
 
   function getRandomNumber(min, max) {

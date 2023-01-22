@@ -1,12 +1,14 @@
 ### Login
 POST {{baseApiPath}}/login
-Content-Type: application/x-www-form-urlencoded
+Authorization: Basic {{encodedCredentials}}
 
-username={{username}}&password={{password}}
+### Login fails - user not found
+POST {{baseApiPath}}/login
+Authorization: Basic d3Jvbmc6d3Jvbmc=
 
-> {%
-    client.global.set("jwt", response.body["token"]);
-%}
+### Login fails - wrong password
+POST {{baseApiPath}}/login
+Authorization: Basic YWRtaW46d3Jvbmc=
 
 ### Change password
 POST {{baseApiPath}}/users/change-password
@@ -17,3 +19,6 @@ Content-Type: application/json
   "passwordCurrent": "12345",
   "passwordNew": "wrk-tafel"
 }
+
+### Logout
+POST {{baseApiPath}}/users/logout

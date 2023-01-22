@@ -1,22 +1,17 @@
 ### List customers
 GET {{baseApiPath}}/customers
-Authorization: Bearer {{jwt}}
 
 ### Search for customers (only firstname)
 GET {{baseApiPath}}/customers?firstname=x
-Authorization: Bearer {{jwt}}
 
 ### Search for customers (only lastname)
 GET {{baseApiPath}}/customers?lastname=x
-Authorization: Bearer {{jwt}}
 
 ### Search for customers (firstname and lastname)
 GET {{baseApiPath}}/customers?firstname=x&lastname=x
-Authorization: Bearer {{jwt}}
 
 ### Validate customer
 POST {{baseApiPath}}/customers/validate
-Authorization: Bearer {{jwt}}
 Content-Type: application/json
 
 {
@@ -48,28 +43,42 @@ Content-Type: application/json
       "firstname": "Child 1",
       "lastname": "Musterfrau",
       "birthDate": "2000-01-01",
-      "income": 500
+      "income": 500,
+      "country": {
+        "id": 2,
+        "code": "EG",
+        "name": "Ägypten"
+      }
     },
     {
       "id": 2,
       "firstname": "Child 2",
       "lastname": "Musterfrau",
       "birthDate": "2020-01-01",
-      "income": 0
+      "income": 0,
+      "country": {
+        "id": 2,
+        "code": "EG",
+        "name": "Ägypten"
+      }
     },
     {
       "id": 3,
       "firstname": "Child 3",
       "lastname": "Musterfrau",
       "birthDate": "2020-01-01",
-      "income": null
+      "income": null,
+      "country": {
+        "id": 2,
+        "code": "EG",
+        "name": "Ägypten"
+      }
     }
   ]
 }
 
 ### Create customer
 POST {{baseApiPath}}/customers
-Authorization: Bearer {{jwt}}
 Content-Type: application/json
 
 {
@@ -101,19 +110,34 @@ Content-Type: application/json
       "firstname": "Child 1",
       "lastname": "Musterfrau",
       "birthDate": "2000-01-01",
-      "income": 500
+      "income": 500,
+      "country": {
+        "id": 2,
+        "code": "EG",
+        "name": "Ägypten"
+      }
     },
     {
       "firstname": "Child 2",
       "lastname": "Musterfrau",
       "birthDate": "2020-01-01",
-      "income": 0
+      "income": 0,
+      "country": {
+        "id": 2,
+        "code": "EG",
+        "name": "Ägypten"
+      }
     },
     {
       "firstname": "Child 3",
       "lastname": "Musterfrau",
       "birthDate": "2020-01-01",
-      "income": null
+      "income": null,
+      "country": {
+        "id": 2,
+        "code": "EG",
+        "name": "Ägypten"
+      }
     }
   ]
 }
@@ -121,23 +145,19 @@ Content-Type: application/json
 ### Get customer 100
 
 GET {{baseApiPath}}/customers/100
-Authorization: Bearer {{jwt}}
 Content-Type: application/json
 
 ### Get masterdata pdf
 
 GET {{baseApiPath}}/customers/100/generate-pdf?type=MASTERDATA
-Authorization: Bearer {{jwt}}
 Content-Type: application/json
 
 ### Get idcard pdf
 
 GET {{baseApiPath}}/customers/100/generate-pdf?type=IDCARD
-Authorization: Bearer {{jwt}}
 Content-Type: application/json
 
 ### Get combined pdf
 
 GET {{baseApiPath}}/customers/100/generate-pdf?type=COMBINED
-Authorization: Bearer {{jwt}}
 Content-Type: application/json

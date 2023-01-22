@@ -1,4 +1,4 @@
-import {defineConfig} from 'cypress'
+import {defineConfig} from 'cypress';
 
 export default defineConfig({
   builder: '@cypress/schematic:cypress',
@@ -11,7 +11,6 @@ export default defineConfig({
     setupNodeEvents(on, config) {
       return require('./cypress/plugins/index.js')(on, config)
     },
-    baseUrl: 'http://localhost:4200/',
-    experimentalSessionAndOrigin: true,
+    baseUrl: 'http://localhost:4200/'
   },
-})
+});

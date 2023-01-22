@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.common.auth.components
 
+import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
 import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
@@ -7,6 +8,7 @@ import org.passay.*
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.UserDetails
+import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.provisioning.UserDetailsManager
 
@@ -19,7 +21,7 @@ class TafelUserDetailsManager(
     override fun loadUserByUsername(username: String): UserDetails? {
         return userRepository.findByUsername(username)
             .map { userEntity -> mapToUserDetails(userEntity) }
-            .orElse(null)
+            .orElseThrow { UsernameNotFoundException("Username not found") }
     }
 
     override fun createUser(user: UserDetails?) {
@@ -35,11 +37,11 @@ class TafelUserDetailsManager(
     }
 
     override fun changePassword(currentPassword: String, newPassword: String) {
-        val authenticatedUser = SecurityContextHolder.getContext().authentication.principal as TafelUser
-        var storedUser = userRepository.findByUsername(authenticatedUser.username).get()
+        val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
+        var storedUser = userRepository.findByUsername(authenticatedUser.username!!).get()
 
         if (!passwordEncoder.matches(currentPassword, storedUser.password)) {
-            throw PasswordException("Aktuelles Passwort ist falsch!")
+            throw PasswordChangeException("Aktuelles Passwort ist falsch!")
         }
 
         val data = PasswordData(storedUser.username, newPassword)
@@ -49,7 +51,7 @@ class TafelUserDetailsManager(
             storedUser.passwordChangeRequired = false
             userRepository.save(storedUser)
         } else {
-            throw PasswordException("Das neue Passwort ist ungültig!", translateViolationsToMessages(result))
+            throw PasswordChangeException("Das neue Passwort ist ungültig!", translateViolationsToMessages(result))
         }
     }
 
@@ -68,6 +70,7 @@ class TafelUserDetailsManager(
 
     override fun userExists(username: String): Boolean = userRepository.existsByUsername(username)
 
+    // TODO after the new security mechanism this could be reduced
     private fun mapToUserDetails(userEntity: UserEntity): TafelUser {
         return TafelUser(
             username = userEntity.username!!,
@@ -84,5 +87,5 @@ class TafelUserDetailsManager(
 
 }
 
-class PasswordException(override val message: String, val validationDetails: List<String>? = emptyList()) :
+class PasswordChangeException(override val message: String, val validationDetails: List<String>? = emptyList()) :
     RuntimeException(message)

@@ -20,8 +20,6 @@ export class LoginComponent implements OnInit {
     private router: Router,
     private route: ActivatedRoute
   ) {
-    // just for safety reasons - remove token on loginpage
-    this.auth.removeToken();
   }
 
   ngOnInit(): void {

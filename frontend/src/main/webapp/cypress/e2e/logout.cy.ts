@@ -9,7 +9,7 @@ describe('Logout', () => {
     cy.byTestId('usermenu').click();
     cy.byTestId('usermenu-logout').click();
 
-    cy.url().should('include', '/login')
+    cy.url().should('include', '/login');
   });
 
 });
