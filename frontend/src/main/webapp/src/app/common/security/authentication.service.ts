@@ -18,7 +18,7 @@ export class AuthenticationService {
   userInfo: UserInfo = null;
 
   public async login(username: string, password: string): Promise<LoginResult> {
-    const executeLoginObservable = this.executeLoginRequest(username, password)
+    return this.executeLoginRequest(username, password)
       .pipe(map(async response => {
           this.userInfo = await this.loadUserInfo();
           return {successful: true, passwordChangeRequired: response.passwordChangeRequired};
@@ -26,15 +26,8 @@ export class AuthenticationService {
         catchError(_ => {
           this.userInfo = null;
           return of({successful: false, passwordChangeRequired: false});
-        }));
-
-    const loadUserInfoPromise = this.loadUserInfo();
-
-    return combineLatest([executeLoginObservable, loadUserInfoPromise]).pipe(
-      map(result => {
-        return result[0];
-      })
-    ).toPromise();
+        }))
+      .toPromise();
   }
 
   public isAuthenticated(): Boolean {
