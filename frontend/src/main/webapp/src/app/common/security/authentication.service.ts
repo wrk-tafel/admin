@@ -19,7 +19,8 @@ export class AuthenticationService {
 
   public async login(username: string, password: string): Promise<LoginResult> {
     const executeLoginObservable = this.executeLoginRequest(username, password)
-      .pipe(map(response => {
+      .pipe(map(async response => {
+          this.userInfo = await this.loadUserInfo();
           return {successful: true, passwordChangeRequired: response.passwordChangeRequired};
         }),
         catchError(_ => {
