@@ -73,7 +73,7 @@ class TafelLoginFilter(
                 expirationSeconds = expirationTimeInSeconds
             )
 
-            logger.info("Login successful via user '${user.username}' from IP ${getIpAddress(request)} on ${request.requestURL} (password change required: ${user.passwordChangeRequired})")
+            logger.info("Login successful via user '${user.username}' from IP '${getIpAddress(request)}' on '${request.requestURL}' (password-change required: ${user.passwordChangeRequired})")
 
             val cookie = createTokenCookie(token, expirationTimeInSeconds, request)
             response.addCookie(cookie)

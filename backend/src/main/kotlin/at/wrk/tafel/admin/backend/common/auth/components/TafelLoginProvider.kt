@@ -25,7 +25,7 @@ class TafelLoginProvider(
         authentication: UsernamePasswordAuthenticationToken
     ) {
         if (!passwordEncoder.matches(authentication.credentials as String, userDetails.password)) {
-            throw BadCredentialsException("Password wrong for user ${authentication.name}!")
+            throw BadCredentialsException("Password wrong for user '${authentication.name}'")
         }
     }
 
