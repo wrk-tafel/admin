@@ -1,31 +1,22 @@
 import {HttpClientTestingModule, HttpTestingController} from '@angular/common/http/testing';
 import {TestBed} from '@angular/core/testing';
 import {Router} from '@angular/router';
-import {JwtHelperService} from '@auth0/angular-jwt';
 
 import {AuthenticationService} from './authentication.service';
 
 describe('AuthenticationService', () => {
-  const SESSION_STORAGE_TOKEN_KEY = 'jwt';
-
   let httpMock: HttpTestingController;
 
-  let jwtHelper: jasmine.SpyObj<JwtHelperService>;
   let router: jasmine.SpyObj<Router>;
   let service: AuthenticationService;
 
   beforeEach(() => {
-    const jwtHelperSpy = jasmine.createSpyObj('JwtHelperService', ['isTokenExpired', 'decodeToken']);
     const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
 
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
       providers: [
         AuthenticationService,
-        {
-          provide: JwtHelperService,
-          useValue: jwtHelperSpy
-        },
         {
           provide: Router,
           useValue: routerSpy
@@ -35,124 +26,99 @@ describe('AuthenticationService', () => {
 
     httpMock = TestBed.inject(HttpTestingController);
 
-    jwtHelper = TestBed.inject(JwtHelperService) as jasmine.SpyObj<JwtHelperService>;
     router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
     service = TestBed.inject(AuthenticationService);
   });
 
   it('login successful', async () => {
-    sessionStorage.removeItem(SESSION_STORAGE_TOKEN_KEY);
+    const loginResponseBody = {passwordChangeRequired: false};
+    const userInfoResponseBody = {username: 'test-user', permissions: ['PERM1']};
 
     service.login('USER', 'PWD').then(response => {
-      expect(sessionStorage.getItem(SESSION_STORAGE_TOKEN_KEY)).toBe('TOKENVALUE');
       expect(response).toEqual({successful: true, passwordChangeRequired: false});
+      expect(service.userInfo.username).toBe(userInfoResponseBody.username);
+      expect(service.userInfo.permissions).toEqual(userInfoResponseBody.permissions);
     });
 
-    const mockReq = httpMock.expectOne('/login');
-    expect(mockReq.request.method).toBe('POST');
-    expect(mockReq.request.headers.get('Authorization')).toBe('Basic ' + btoa('USER:PWD'));
+    const mockLoginReq = httpMock.expectOne('/login');
+    expect(mockLoginReq.request.method).toBe('POST');
+    expect(mockLoginReq.request.headers.get('Authorization')).toBe('Basic ' + btoa('USER:PWD'));
 
-    const mockErrorResponse = {status: 200, statusText: 'OK'};
-    const data = {token: 'TOKENVALUE', passwordChangeRequired: false};
-    mockReq.flush(data, mockErrorResponse);
+    const mockLoginResponse = {status: 200, statusText: 'OK'};
+    mockLoginReq.flush(loginResponseBody, mockLoginResponse);
+
+    const mockUserInfoReq = httpMock.expectOne('/users/info');
+    expect(mockUserInfoReq.request.method).toBe('GET');
+
+    const mockUserInfoResponse = {status: 200, statusText: 'OK'};
+    mockUserInfoReq.flush(userInfoResponseBody, mockUserInfoResponse);
+
     httpMock.verify();
 
     expect(router.navigate).not.toHaveBeenCalledWith(['login/passwortaendern']);
   });
 
   it('login successful but passwordchange is required', async () => {
-    sessionStorage.removeItem(SESSION_STORAGE_TOKEN_KEY);
+    const loginResponseBody = {passwordChangeRequired: true};
+    const userInfoResponseBody = {username: 'test-user', permissions: []};
 
     service.login('USER', 'PWD').then(response => {
-      expect(sessionStorage.getItem(SESSION_STORAGE_TOKEN_KEY)).toBe('TOKENVALUE');
       expect(response).toEqual({successful: true, passwordChangeRequired: true});
+      expect(service.userInfo.username).toBe(userInfoResponseBody.username);
+      expect(service.userInfo.permissions).toEqual(userInfoResponseBody.permissions);
     });
 
-    const mockReq = httpMock.expectOne('/login');
-    expect(mockReq.request.method).toBe('POST');
-    expect(mockReq.request.headers.get('Authorization')).toBe('Basic ' + btoa('USER:PWD'));
+    const loginMockReq = httpMock.expectOne('/login');
+    expect(loginMockReq.request.method).toBe('POST');
+    expect(loginMockReq.request.headers.get('Authorization')).toBe('Basic ' + btoa('USER:PWD'));
 
-    const mockErrorResponse = {status: 200, statusText: 'OK'};
-    const data = {token: 'TOKENVALUE', passwordChangeRequired: true};
-    mockReq.flush(data, mockErrorResponse);
+    const loginMockResponse = {status: 200, statusText: 'OK'};
+    loginMockReq.flush(loginResponseBody, loginMockResponse);
+
+    const mockUserInfoReq = httpMock.expectOne('/users/info');
+    expect(mockUserInfoReq.request.method).toBe('GET');
+
+    const mockUserInfoResponse = {status: 200, statusText: 'OK'};
+    mockUserInfoReq.flush(userInfoResponseBody, mockUserInfoResponse);
+
     httpMock.verify();
   });
 
   it('login failed', async () => {
-    sessionStorage.setItem(SESSION_STORAGE_TOKEN_KEY, 'OLDVALUE');
+    service.userInfo = {username: 'test123', permissions: []};
 
     service.login('USER', 'PWD').then(response => {
-      expect(sessionStorage.getItem(SESSION_STORAGE_TOKEN_KEY)).toBeNull();
       expect(response).toEqual({successful: false, passwordChangeRequired: false});
+      // check if it's reset
+      expect(service.userInfo).toBeNull();
     });
 
-    const mockReq = httpMock.expectOne('/login');
-    expect(mockReq.request.method).toBe('POST');
-    expect(mockReq.request.headers.get('Authorization')).toBe('Basic ' + btoa('USER:PWD'));
+    const loginMockReq = httpMock.expectOne('/login');
+    expect(loginMockReq.request.method).toBe('POST');
+    expect(loginMockReq.request.headers.get('Authorization')).toBe('Basic ' + btoa('USER:PWD'));
 
-    const mockErrorResponse = {status: 403, statusText: 'Forbidden'};
-    mockReq.flush(null, mockErrorResponse);
+    const loginMockResponse = {status: 403, statusText: 'Forbidden'};
+    loginMockReq.flush(null, loginMockResponse);
+
+    httpMock.expectNone('/users/info');
+
     httpMock.verify();
   });
 
-  it('logoutAndRedirect - token set and valid', () => {
-    sessionStorage.setItem(SESSION_STORAGE_TOKEN_KEY, 'TOKENVALUE');
-    jwtHelper.isTokenExpired.and.returnValue(false);
-
-    service.logoutAndRedirect();
-
-    expect(sessionStorage.getItem(SESSION_STORAGE_TOKEN_KEY)).toBeNull();
-    expect(router.navigate).toHaveBeenCalledWith(['login']);
-  });
-
-  it('logoutAndRedirect - token set and expired', () => {
-    sessionStorage.setItem(SESSION_STORAGE_TOKEN_KEY, 'TOKENVALUE');
-    jwtHelper.isTokenExpired.and.returnValue(true);
-
-    service.logoutAndRedirect();
-
-    expect(sessionStorage.getItem(SESSION_STORAGE_TOKEN_KEY)).toBeNull();
-    expect(router.navigate).toHaveBeenCalledWith(['login', 'abgelaufen']);
-  });
-
-  it('logoutAndRedirect - token not set', () => {
-    sessionStorage.removeItem(SESSION_STORAGE_TOKEN_KEY);
-
-    service.logoutAndRedirect();
+  it('redirectToLogin without msgKey', () => {
+    service.redirectToLogin();
 
     expect(router.navigate).toHaveBeenCalledWith(['login']);
   });
 
-  it('isAuthenticated - token set and valid', () => {
-    sessionStorage.setItem(SESSION_STORAGE_TOKEN_KEY, 'TOKENVALUE');
-    jwtHelper.isTokenExpired.and.returnValue(false);
+  it('redirectToLogin with msgKey', () => {
+    service.redirectToLogin('key123');
 
-    const isAuthenticated = service.isAuthenticated();
-
-    expect(isAuthenticated).toBeTrue();
-  });
-
-  it('isAuthenticated - token set but invalid', () => {
-    sessionStorage.setItem(SESSION_STORAGE_TOKEN_KEY, 'TOKENVALUE');
-    jwtHelper.isTokenExpired.and.returnValue(true);
-
-    const isAuthenticated = service.isAuthenticated();
-
-    expect(isAuthenticated).toBeFalse();
-  });
-
-  it('isAuthenticated - token not set', () => {
-    sessionStorage.removeItem(SESSION_STORAGE_TOKEN_KEY);
-
-    const isAuthenticated = service.isAuthenticated();
-
-    expect(isAuthenticated).toBeFalse();
-    expect(jwtHelper.isTokenExpired).not.toHaveBeenCalled();
+    expect(router.navigate).toHaveBeenCalledWith(['login', 'key123']);
   });
 
   it('hasPermission - permission exists', () => {
-    sessionStorage.setItem(SESSION_STORAGE_TOKEN_KEY, 'TOKENVALUE');
-    jwtHelper.decodeToken.and.returnValue(<JwtToken>{permissions: ['PERM1']});
+    service.userInfo = {username: 'test123', permissions: ['PERM1']};
 
     const hasPermission = service.hasPermission('PERM1');
 
@@ -160,8 +126,7 @@ describe('AuthenticationService', () => {
   });
 
   it('hasPermission - permission doesnt exist', () => {
-    sessionStorage.setItem(SESSION_STORAGE_TOKEN_KEY, 'TOKENVALUE');
-    jwtHelper.decodeToken.and.returnValue(<JwtToken>{permissions: ['PERM2']});
+    service.userInfo = {username: 'test123', permissions: ['PERM2']};
 
     const hasPermission = service.hasPermission('PERM1');
 
@@ -169,58 +134,15 @@ describe('AuthenticationService', () => {
   });
 
   it('hasPermission - no permissions given', () => {
-    sessionStorage.setItem(SESSION_STORAGE_TOKEN_KEY, 'TOKENVALUE');
-    jwtHelper.decodeToken.and.returnValue(<JwtToken>{permissions: []});
+    service.userInfo = {username: 'test123', permissions: []};
 
     const hasPermission = service.hasPermission('PERM1');
 
     expect(hasPermission).toBeFalse();
-  });
-
-  it('hasPermission - no permissions field defined', () => {
-    sessionStorage.setItem(SESSION_STORAGE_TOKEN_KEY, 'TOKENVALUE');
-    jwtHelper.decodeToken.and.returnValue(<JwtToken>{});
-
-    const hasPermission = service.hasPermission('PERM1');
-
-    expect(hasPermission).toBeFalse();
-  });
-
-  it('getToken - exists', () => {
-    sessionStorage.setItem(SESSION_STORAGE_TOKEN_KEY, 'TOKENVALUE');
-
-    const token = service.getTokenString();
-
-    expect(token).toBe('TOKENVALUE');
-  });
-
-  it('getToken - not existing', () => {
-    sessionStorage.removeItem(SESSION_STORAGE_TOKEN_KEY);
-
-    const token = service.getTokenString();
-
-    expect(token).toBeNull();
-  });
-
-  it('removeToken - exists', () => {
-    sessionStorage.setItem(SESSION_STORAGE_TOKEN_KEY, 'VALUE');
-
-    service.removeToken();
-
-    expect(sessionStorage.getItem(SESSION_STORAGE_TOKEN_KEY)).toBeNull();
-  });
-
-  it('removeToken - not existing', () => {
-    sessionStorage.removeItem(SESSION_STORAGE_TOKEN_KEY);
-
-    service.removeToken();
-
-    expect(sessionStorage.getItem(SESSION_STORAGE_TOKEN_KEY)).toBeNull();
   });
 
   it('getUsername - authenticated', () => {
-    sessionStorage.setItem(SESSION_STORAGE_TOKEN_KEY, 'TOKENVALUE');
-    jwtHelper.decodeToken.and.returnValue(<JwtToken>{sub: 'test-user', permissions: []});
+    service.userInfo = {username: 'test-user', permissions: []};
 
     const username = service.getUsername();
 
@@ -228,33 +150,56 @@ describe('AuthenticationService', () => {
   });
 
   it('getUsername - not authenticated', () => {
-    sessionStorage.removeItem(SESSION_STORAGE_TOKEN_KEY);
-
     const username = service.getUsername();
 
     expect(username).toEqual(undefined);
   });
 
-  it('hasAnyPermissions - no permissions', () => {
-    sessionStorage.setItem(SESSION_STORAGE_TOKEN_KEY, 'TOKENVALUE');
-    jwtHelper.decodeToken.and.returnValue(<JwtToken>{permissions: []});
+  it('hasAnyPermission - no permissions', () => {
+    service.userInfo = {username: 'test-user', permissions: []};
 
-    const hasAnyPermissions = service.hasAnyPermissions();
+    const hasAnyPermission = service.hasAnyPermission();
 
-    expect(hasAnyPermissions).toBeFalse();
+    expect(hasAnyPermission).toBeFalse();
   });
 
-  it('hasAnyPermissions - given permissions', () => {
-    sessionStorage.setItem(SESSION_STORAGE_TOKEN_KEY, 'TOKENVALUE');
-    jwtHelper.decodeToken.and.returnValue(<JwtToken>{permissions: ['PERM1']});
+  it('hasAnyPermission - given permissions', () => {
+    service.userInfo = {username: 'test-user', permissions: ['PERM1']};
 
-    const hasAnyPermissions = service.hasAnyPermissions();
+    const hasAnyPermission = service.hasAnyPermission();
 
-    expect(hasAnyPermissions).toBeTrue();
+    expect(hasAnyPermission).toBeTrue();
+  });
+
+  it('logout', () => {
+    service.userInfo = {username: 'test-user', permissions: ['PERM1']};
+
+    service.logout().subscribe(response => {
+      expect(service.userInfo).toBeNull();
+    });
+
+    const mockReq = httpMock.expectOne('/users/logout');
+    expect(mockReq.request.method).toBe('POST');
+
+    const mockErrorResponse = {status: 200, statusText: 'OK'};
+    mockReq.flush(null, mockErrorResponse);
+    httpMock.verify();
+  });
+
+  it('isAuthenticated true', () => {
+    service.userInfo = {username: 'test-user', permissions: ['PERM1']};
+
+    const isAuthenticated = service.isAuthenticated();
+
+    expect(isAuthenticated).toBeTruthy();
+  });
+
+  it('isAuthenticated false', () => {
+    service.userInfo = null;
+
+    const isAuthenticated = service.isAuthenticated();
+
+    expect(isAuthenticated).toBeFalsy();
   });
 
 });
-
-interface JwtToken {
-  permissions: string[];
-}

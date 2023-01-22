@@ -24,28 +24,20 @@
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
 
-
 Cypress.Commands.add('byTestId', (id) => cy.get(`[testid="${id}"]`));
 
 Cypress.Commands.add('loginDefault', () => {
   const username = 'e2etest';
   const password = 'e2etest';
 
-  cy.createLoginRequest(username, password)
-    .then((response) => {
-      const token = response.body.token;
-      sessionStorage.setItem('jwt', token);
-    });
+  cy.createLoginRequest(username, password);
 });
 
 Cypress.Commands.add('login', (username: string, password: string) => {
-  cy.createLoginRequest(username, password)
-    .then((response) => {
-      const token = response.body.token;
-      sessionStorage.setItem('jwt', token);
-    });
+  cy.createLoginRequest(username, password);
 });
 
+// tslint:disable-next-line:max-line-length
 Cypress.Commands.add('createLoginRequest', (username: string, password: string, failOnStatusCode?: boolean): Cypress.Chainable<Cypress.Response<any>> => {
   const encodedCredentials = btoa(username + ':' + password);
 

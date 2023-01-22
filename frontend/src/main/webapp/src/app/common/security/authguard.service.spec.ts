@@ -5,18 +5,18 @@ describe('AuthGuardService', () => {
   function setup() {
     const authServiceSpy =
       jasmine.createSpyObj('AuthenticationService',
-        ['isAuthenticated', 'hasAnyPermissions', 'hasPermission', 'logoutAndRedirect']
+        ['isAuthenticated', 'hasAnyPermission', 'hasPermission', 'redirectToLogin']
       );
     const routerSpy =
       jasmine.createSpyObj('Router', ['navigate']);
-    const service = new AuthGuardService(authServiceSpy, routerSpy);
-    return {service, authServiceSpy, routerSpy};
+    const service = new AuthGuardService(authServiceSpy);
+    return {service, authServiceSpy};
   }
 
   it('canActivate when authenticated', () => {
     const {service, authServiceSpy} = setup();
     authServiceSpy.isAuthenticated.and.returnValue(true);
-    authServiceSpy.hasAnyPermissions.and.returnValue(true);
+    authServiceSpy.hasAnyPermission.and.returnValue(true);
 
     const activatedRoute = <ActivatedRouteSnapshot>{data: {}};
     const canActivate = service.canActivateChild(activatedRoute, null);
@@ -24,54 +24,42 @@ describe('AuthGuardService', () => {
     expect(canActivate).toBeTrue();
   });
 
-  it('canActivate when not authenticated', () => {
-    const {service, authServiceSpy} = setup();
-    authServiceSpy.isAuthenticated.and.returnValue(false);
-    authServiceSpy.hasAnyPermissions.and.returnValue(true);
-
-    const activatedRoute = <ActivatedRouteSnapshot>{data: {}};
-    const canActivate = service.canActivateChild(activatedRoute, null);
-
-    expect(canActivate).toBeFalse();
-    expect(authServiceSpy.logoutAndRedirect).toHaveBeenCalled();
-  });
-
   it('canActivate when authenticated without permissions', () => {
-    const {service, authServiceSpy, routerSpy} = setup();
+    const {service, authServiceSpy} = setup();
     authServiceSpy.isAuthenticated.and.returnValue(true);
-    authServiceSpy.hasAnyPermissions.and.returnValue(false);
+    authServiceSpy.hasAnyPermission.and.returnValue(false);
 
     const activatedRoute = <ActivatedRouteSnapshot>{data: {}};
     const canActivate = service.canActivateChild(activatedRoute, null);
 
     expect(canActivate).toBeFalse();
-    expect(routerSpy.navigate).toHaveBeenCalledWith(['login', 'fehlgeschlagen']);
+    expect(authServiceSpy.redirectToLogin).toHaveBeenCalledWith('fehlgeschlagen');
   });
 
   it('canActivate when authenticated with wrong permission', () => {
-    const {service, authServiceSpy, routerSpy} = setup();
+    const {service, authServiceSpy} = setup();
     authServiceSpy.isAuthenticated.and.returnValue(true);
-    authServiceSpy.hasAnyPermissions.and.returnValue(true);
+    authServiceSpy.hasAnyPermission.and.returnValue(true);
     authServiceSpy.hasPermission.and.returnValue(false);
 
     const activatedRoute = <ActivatedRouteSnapshot><unknown>{data: {permission: 'PERM2'}};
     const canActivate = service.canActivateChild(activatedRoute, null);
 
     expect(canActivate).toBeFalse();
-    expect(routerSpy.navigate).toHaveBeenCalledWith(['login', 'fehlgeschlagen']);
+    expect(authServiceSpy.redirectToLogin).toHaveBeenCalledWith('fehlgeschlagen');
   });
 
   it('canActivate when authenticated with correct permission', () => {
-    const {service, authServiceSpy, routerSpy} = setup();
+    const {service, authServiceSpy} = setup();
     authServiceSpy.isAuthenticated.and.returnValue(true);
-    authServiceSpy.hasAnyPermissions.and.returnValue(true);
+    authServiceSpy.hasAnyPermission.and.returnValue(true);
     authServiceSpy.hasPermission.and.returnValue(true);
 
     const activatedRoute = <ActivatedRouteSnapshot><unknown>{data: {permission: 'PERM1'}};
     const canActivate = service.canActivateChild(activatedRoute, null);
 
     expect(canActivate).toBeTruthy();
-    expect(routerSpy.navigate).not.toHaveBeenCalled();
+    expect(authServiceSpy.redirectToLogin).not.toHaveBeenCalled();
   });
 
 });

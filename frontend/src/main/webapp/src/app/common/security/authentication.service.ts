@@ -1,60 +1,50 @@
 import {HttpClient, HttpHeaders} from '@angular/common/http';
 import {Injectable} from '@angular/core';
 import {Router} from '@angular/router';
-import {JwtHelperService} from '@auth0/angular-jwt';
+import {combineLatest, Observable, of} from 'rxjs';
+import {catchError, map, tap} from 'rxjs/operators';
+
 @Injectable({
   providedIn: 'root'
 })
 export class AuthenticationService {
-  private SESSION_STORAGE_TOKEN_KEY = 'jwt';
 
   constructor(
-    private jwtHelper: JwtHelperService,
     private http: HttpClient,
     private router: Router
   ) {
   }
 
+  userInfo: UserInfo = null;
+
   public async login(username: string, password: string): Promise<LoginResult> {
-    return await this.executeLoginRequest(username, password)
-      .then((response: LoginResponse) => {
-        this.storeToken(response);
-        return {successful: true, passwordChangeRequired: response.passwordChangeRequired};
-      })
-      .catch(() => {
-        this.removeToken();
-        return {successful: false, passwordChangeRequired: false};
-      });
+    return this.executeLoginRequest(username, password)
+      .pipe(map(async response => {
+          await this.loadUserInfo();
+          return {successful: true, passwordChangeRequired: response.passwordChangeRequired};
+        }),
+        catchError(_ => {
+          this.userInfo = null;
+          return of({successful: false, passwordChangeRequired: false});
+        }))
+      .toPromise();
   }
 
-  public logoutAndRedirect() {
-    const token = this.getTokenString();
-    if (token !== null) {
-      const expired = this.jwtHelper.isTokenExpired(token);
-      if (expired) {
-        this.removeToken();
-        this.router.navigate(['login', 'abgelaufen']);
-      } else {
-        this.removeToken();
-        this.router.navigate(['login']);
-      }
-    } else {
-      this.router.navigate(['login']);
-    }
+  public isAuthenticated(): Boolean {
+    return this.userInfo !== null;
   }
 
-  public isAuthenticated(): boolean {
-    const token = this.getTokenString();
-    return token !== null && !this.jwtHelper.isTokenExpired(token);
+  public redirectToLogin(msgKey?: string) {
+    this.router.navigate(['login', msgKey].filter(cmd => cmd));
   }
 
-  public hasAnyPermissions(): boolean {
-    return this.decodeToken().permissions?.length > 0;
+  public hasAnyPermission(): boolean {
+    return this.userInfo?.permissions.length > 0;
   }
 
   public hasPermission(role: string): boolean {
-    if (this.hasAnyPermissions()) {
-      const index = this.decodeToken().permissions?.findIndex(element => {
+    if (this.hasAnyPermission()) {
+      const index = this.userInfo?.permissions.findIndex(element => {
         return element.toLowerCase() === role.toLowerCase();
       });
       return index !== -1;
@@ -62,44 +52,47 @@ export class AuthenticationService {
     return false;
   }
 
-  public getTokenString(): string {
-    return sessionStorage.getItem(this.SESSION_STORAGE_TOKEN_KEY);
-  }
-
-  public removeToken() {
-    sessionStorage.removeItem(this.SESSION_STORAGE_TOKEN_KEY);
-  }
-
   public getUsername(): string {
-    return this.decodeToken()?.sub;
+    return this.userInfo?.username;
   }
 
-  private executeLoginRequest(username: string, password: string) {
+  public logout(): Observable<void> {
+    this.userInfo = null;
+    return this.http.post<void>('/users/logout', null);
+  }
+
+  private executeLoginRequest(username: string, password: string): Observable<LoginResponse> {
     const encodedCredentials = btoa(username + ':' + password);
-    const options = {headers: new HttpHeaders().set('Authorization', 'Basic ' + encodedCredentials)};
-    return this.http.post<LoginResponse>('/login', undefined, options).toPromise();
+    const options = {
+      headers: new HttpHeaders().set('Authorization', 'Basic ' + encodedCredentials)
+    };
+    return this.http.post<LoginResponse>('/login', undefined, options);
   }
 
-  private storeToken(response: LoginResponse) {
-    sessionStorage.setItem(this.SESSION_STORAGE_TOKEN_KEY, response.token);
+  public loadUserInfo(): Promise<UserInfo> {
+    return this.http.get<UserInfo>('/users/info')
+      .pipe(tap(userInfo => {
+          this.userInfo = userInfo;
+          return of(userInfo);
+        }),
+        catchError(_ => {
+          return of(null);
+        })
+      ).toPromise();
   }
 
-  private decodeToken(): JwtToken {
-    return this.jwtHelper.decodeToken<JwtToken>(this.getTokenString());
-  }
 }
 
 interface LoginResponse {
-  token: string;
   passwordChangeRequired: boolean;
-}
-
-interface JwtToken {
-  sub: string;
-  permissions: string[];
 }
 
 export interface LoginResult {
   successful: boolean;
   passwordChangeRequired: boolean;
+}
+
+interface UserInfo {
+  username: string;
+  permissions: string[];
 }

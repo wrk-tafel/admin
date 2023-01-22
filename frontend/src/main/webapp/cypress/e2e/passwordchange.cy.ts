@@ -1,4 +1,4 @@
-import {recurse} from "cypress-recurse";
+import {recurse} from 'cypress-recurse';
 
 describe('PasswordChange', () => {
 
@@ -42,7 +42,7 @@ describe('PasswordChange', () => {
 
     // expect error for old password
     cy.createLoginRequest('e2etest2', 'e2etest', false).then((resp) => {
-      expect(resp.status).to.eq(403)
+      expect(resp.status).to.eq(403);
     });
   });
 

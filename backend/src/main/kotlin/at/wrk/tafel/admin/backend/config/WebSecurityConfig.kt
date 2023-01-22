@@ -35,7 +35,6 @@ import org.springframework.security.web.util.matcher.OrRequestMatcher
 @EnableMethodSecurity
 @ExcludeFromTestCoverage
 class WebSecurityConfig(
-    @Value("\${security.enable-csrf:true}") private val csrfEnabled: Boolean,
     private val jwtTokenService: JwtTokenService,
     private val userRepository: UserRepository,
     private val applicationProperties: ApplicationProperties,
@@ -97,14 +96,7 @@ class WebSecurityConfig(
             }
             .sessionManagement()
             .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-
-        if (csrfEnabled) {
-            // TODO re-enable CSRF (incl. BREACH) with spring security 6
-            // https://docs.spring.io/spring-security/reference/5.8/migration/servlet/exploits.html#_i_am_using_angularjs_or_another_javascript_framework
-            http.csrf().disable()
-        } else {
-            http.csrf().disable()
-        }
+            .and().csrf().disable()
 
         return http.build()
     }

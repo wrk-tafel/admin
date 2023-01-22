@@ -10,7 +10,7 @@ describe('LoginComponent', () => {
   let router: jasmine.SpyObj<Router>;
 
   beforeEach(waitForAsync(() => {
-    const authServiceSpy = jasmine.createSpyObj('AuthenticationService', ['login', 'removeToken']);
+    const authServiceSpy = jasmine.createSpyObj('AuthenticationService', ['login']);
     const routerSpy = jasmine.createSpyObj('Router', ['navigate', 'getCurrentNavigation']);
 
     TestBed.configureTestingModule({

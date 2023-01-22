@@ -1,5 +1,5 @@
 import {BrowserModule} from '@angular/platform-browser';
-import {DEFAULT_CURRENCY_CODE, LOCALE_ID, NgModule} from '@angular/core';
+import {APP_INITIALIZER, DEFAULT_CURRENCY_CODE, LOCALE_ID, NgModule} from '@angular/core';
 import {ReactiveFormsModule} from '@angular/forms';
 import {CommonModule, HashLocationStrategy, LocationStrategy} from '@angular/common';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
@@ -33,16 +33,15 @@ import {AppRoutingModule} from './app.routing';
 import {BsDropdownModule} from 'ngx-bootstrap/dropdown';
 import {TabsModule} from 'ngx-bootstrap/tabs';
 import {ChartsModule} from 'ng2-charts';
-import {JWT_OPTIONS, JwtHelperService} from '@auth0/angular-jwt';
 import {HTTP_INTERCEPTORS, HttpClientModule, HttpClientXsrfModule} from '@angular/common/http';
 import {ApiPathInterceptor} from './common/http/apipath-interceptor.service';
-import {AuthenticationInterceptor} from './common/http/authentication-interceptor.service';
 import {ErrorHandlerInterceptor} from './common/http/errorhandler-interceptor.service';
 import {ModalModule} from 'ngx-bootstrap/modal';
 import {PasswordChangeModalComponent} from './modules/user/views/passwordchange-modal/passwordchange-modal.component';
 import {PasswordChangeFormComponent} from './modules/user/views/passwordchange-form/passwordchange-form.component';
 import {LoginPasswordChangeComponent} from './common/views/login-passwordchange/login-passwordchange.component';
 import {CookieService} from 'ngx-cookie-service';
+import {AuthenticationService} from './common/security/authentication.service';
 
 const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
   suppressScrollX: true
@@ -99,11 +98,6 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
     },
     IconSetService,
     {
-      provide: JWT_OPTIONS,
-      useValue: JWT_OPTIONS
-    },
-    JwtHelperService,
-    {
       provide: HTTP_INTERCEPTORS,
       useClass: ErrorHandlerInterceptor,
       multi: true
@@ -114,13 +108,14 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
       multi: true
     },
     {
-      provide: HTTP_INTERCEPTORS,
-      useClass: AuthenticationInterceptor,
-      multi: true
-    },
-    {
       provide: Window,
       useValue: window
+    },
+    {
+      provide: APP_INITIALIZER,
+      useFactory: (authService: AuthenticationService) => () => authService.loadUserInfo(),
+      deps: [AuthenticationService],
+      multi: true
     }
   ],
   bootstrap: [AppComponent]

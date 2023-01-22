@@ -14,7 +14,6 @@ import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorPerson
 import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorResult
 import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorService
 import at.wrk.tafel.admin.backend.modules.customer.masterdata.CustomerPdfService
-import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 

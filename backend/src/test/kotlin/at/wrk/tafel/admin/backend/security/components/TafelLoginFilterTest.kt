@@ -2,7 +2,7 @@ package at.wrk.tafel.admin.backend.security.components
 
 import at.wrk.tafel.admin.backend.common.auth.components.JwtTokenService
 import at.wrk.tafel.admin.backend.common.auth.components.TafelLoginFilter
-import at.wrk.tafel.admin.backend.common.auth.model.JwtAuthenticationResponse
+import at.wrk.tafel.admin.backend.common.auth.model.LoginResponse
 import at.wrk.tafel.admin.backend.config.ApplicationProperties
 import at.wrk.tafel.admin.backend.security.testUser
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -73,34 +73,57 @@ class TafelLoginFilterTest {
 
     @Test
     fun `successfulAuthentication when login is successful`() {
+        val token = "TOKEN"
+        val expirationTime = 10000
+
         every { authResult.principal } returns testUser
-        every { jwtTokenService.generateToken(any(), any(), any()) } returns "TOKEN"
-        every { applicationProperties.security.jwtToken.expirationTimeInSeconds } returns 10000
+        every { jwtTokenService.generateToken(any(), any(), any()) } returns token
+        every { applicationProperties.security.jwtToken.expirationTimeInSeconds } returns expirationTime
 
         tafelLoginFilter.successfulAuthentication(request, response, filterChain, authResult)
 
-        verify(exactly = 1) { jwtTokenService.generateToken(testUser.username, testUser.authorities, 10000) }
+        verify(exactly = 1) { jwtTokenService.generateToken(testUser.username, testUser.authorities, expirationTime) }
+
         verify {
-            objectMapper.writeValueAsString(withArg<JwtAuthenticationResponse> {
-                assertThat(it.token).isEqualTo("TOKEN")
-                assertThat(it.passwordChangeRequired).isFalse()
+            objectMapper.writeValueAsString(withArg<LoginResponse> { response ->
+                assertThat(response.passwordChangeRequired).isFalse()
+            })
+        }
+
+        verify {
+            response.addCookie(withArg {
+                assertThat(it.name).isEqualTo(TafelLoginFilter.jwtCookieName)
+                assertThat(it.value).isEqualTo(token)
+                assertThat(it.maxAge).isEqualTo(expirationTime)
+                assertThat(it.attributes["SameSite"]).isEqualTo("strict")
             })
         }
     }
 
     @Test
     fun `successfulAuthentication when passwordChange is required`() {
+        val token = "TOKEN"
+        val expirationTime = 5000
+
         every { authResult.principal } returns testUser.copy(passwordChangeRequired = true)
-        every { jwtTokenService.generateToken(any(), any(), any()) } returns "TOKEN"
-        every { applicationProperties.security.jwtToken.expirationTimePwdChangeInSeconds } returns 5000
+        every { jwtTokenService.generateToken(any(), any(), any()) } returns token
+        every { applicationProperties.security.jwtToken.expirationTimePwdChangeInSeconds } returns expirationTime
 
         tafelLoginFilter.successfulAuthentication(request, response, filterChain, authResult)
 
-        verify(exactly = 1) { jwtTokenService.generateToken(testUser.username, emptyList(), 5000) }
+        verify(exactly = 1) { jwtTokenService.generateToken(testUser.username, emptyList(), expirationTime) }
         verify {
-            objectMapper.writeValueAsString(withArg<JwtAuthenticationResponse> {
-                assertThat(it.token).isEqualTo("TOKEN")
-                assertThat(it.passwordChangeRequired).isTrue()
+            objectMapper.writeValueAsString(withArg<LoginResponse> { response ->
+                assertThat(response.passwordChangeRequired).isTrue()
+            })
+        }
+
+        verify {
+            response.addCookie(withArg {
+                assertThat(it.name).isEqualTo(TafelLoginFilter.jwtCookieName)
+                assertThat(it.value).isEqualTo(token)
+                assertThat(it.maxAge).isEqualTo(expirationTime)
+                assertThat(it.attributes["SameSite"]).isEqualTo("strict")
             })
         }
     }

@@ -1,33 +1,49 @@
-import {HttpEvent, HttpHandler, HttpInterceptor, HttpRequest} from '@angular/common/http';
+import {HttpErrorResponse, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest} from '@angular/common/http';
 import {Injectable} from '@angular/core';
 import {Observable, throwError} from 'rxjs';
 import {catchError} from 'rxjs/operators';
+import {AuthenticationService} from '../security/authentication.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ErrorHandlerInterceptor implements HttpInterceptor {
 
-  constructor(private window: Window) {
+  constructor(private window: Window,
+              private auth: AuthenticationService) {
   }
+
+  private ERRORCODES_WHITELIST = [401, 404, 422];
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    return next.handle(req).pipe(catchError(response => {
-      if (response.status !== 404 && response.status !== 422) {
-        // TODO better ui element to show
-        const errorDetail = response.error as ErrorResponseData;
-
-        const msg = 'FEHLER:\nHTTP - ' + response.status
-          + ' - ' + response.statusText
-          + '\nMESSAGE:\n'
-          + response?.message
-          + '\nDETAILS:\n'
-          + errorDetail?.message;
-        this.window.alert(msg);
-      }
-      return throwError(response);
-    }));
+    return next.handle(req)
+      .pipe(catchError((error) => this.handleAuthError(error)))
+      .pipe(catchError((error) => this.handleErrorMessage(error)));
   }
+
+  private handleAuthError(error: HttpErrorResponse): Observable<any> {
+    if (this.auth.isAuthenticated() && error.status === 401) {
+      this.auth.redirectToLogin('abgelaufen');
+    }
+    return throwError(error);
+  }
+
+  private handleErrorMessage(error: HttpErrorResponse): Observable<any> {
+    if (this.ERRORCODES_WHITELIST.indexOf(error.status) === -1) {
+      // TODO better ui element to show
+      const errorDetail = error.error as ErrorResponseData;
+
+      const msg = 'FEHLER:\nHTTP - ' + error.status
+        + ' - ' + error.statusText
+        + '\nMESSAGE:\n'
+        + error?.message
+        + '\nDETAILS:\n'
+        + errorDetail?.message;
+      this.window.alert(msg);
+    }
+    return throwError(error);
+  }
+
 }
 
 interface ErrorResponseData {

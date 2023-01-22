@@ -1,3 +1,2 @@
 ### List countries
 GET {{baseApiPath}}/countries
-Authorization: Bearer {{jwt}}
