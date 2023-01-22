@@ -85,8 +85,11 @@ describe('AuthenticationService', () => {
   });
 
   it('login failed', async () => {
+    service.userInfo = {username: 'test123', permissions: []};
+
     service.login('USER', 'PWD').then(response => {
       expect(response).toEqual({successful: false, passwordChangeRequired: false});
+      // check if it's reset
       expect(service.userInfo).toBeNull();
     });
 
@@ -97,11 +100,7 @@ describe('AuthenticationService', () => {
     const loginMockResponse = {status: 403, statusText: 'Forbidden'};
     loginMockReq.flush(null, loginMockResponse);
 
-    const userInfoMockReq = httpMock.expectOne('/users/info');
-    expect(userInfoMockReq.request.method).toBe('GET');
-
-    const userInfoMockResponse = {status: 401, statusText: 'Unauthorized'};
-    userInfoMockReq.flush(null, userInfoMockResponse);
+    httpMock.expectNone('/users/info');
 
     httpMock.verify();
   });
