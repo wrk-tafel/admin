@@ -29,7 +29,6 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher
 import org.springframework.security.web.util.matcher.NegatedRequestMatcher
 import org.springframework.security.web.util.matcher.OrRequestMatcher
 
-
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -42,7 +41,7 @@ class WebSecurityConfig(
 ) {
 
     companion object {
-        private val publicEndpoints = listOf("/api/login", "/api/websockets")
+        private val publicEndpoints = listOf("/api/login")
 
         val passwordValidator = PasswordValidator(
             listOf(
@@ -95,7 +94,7 @@ class WebSecurityConfig(
                 auth.anyRequest().permitAll()
             }
             .sessionManagement()
-            .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            .sessionCreationPolicy(SessionCreationPolicy.NEVER)
             .and().csrf().disable()
 
         return http.build()
