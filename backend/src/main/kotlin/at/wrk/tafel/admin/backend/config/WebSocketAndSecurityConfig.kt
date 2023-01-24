@@ -13,7 +13,9 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 class WebSocketAndSecurityConfig : WebSocketMessageBrokerConfigurer {
 
     override fun registerStompEndpoints(registry: StompEndpointRegistry) {
-        registry.addEndpoint("/api/websockets").setAllowedOrigins("*")
+        registry.addEndpoint("/api/websockets")
+            // TODO same-origin should be used (probably only possible with sockjs) while documentation mentions this to be default also without sockjs
+            .setAllowedOrigins("*")
     }
 
     override fun configureMessageBroker(registry: MessageBrokerRegistry) {
