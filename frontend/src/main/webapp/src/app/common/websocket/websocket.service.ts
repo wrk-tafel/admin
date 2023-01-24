@@ -59,8 +59,7 @@ export class WebsocketService {
       pathname = '';
     }
 
-    // this.platformLocation.port
-    const baseUrl = this.platformLocation.protocol + '//' + this.platformLocation.hostname + ':' + '8080' + pathname + '/api/websockets';
+    const baseUrl = this.platformLocation.protocol + '//' + this.platformLocation.hostname + ':' + this.platformLocation.port + pathname + '/api/websockets';
     return baseUrl.replace('http', 'ws');
   }
 
