@@ -22,9 +22,7 @@ class WebSocketAndSecurityConfig(
             // TODO while with enabled authentication and the strict cookie it should be also safe to have cors disabled
             .setAllowedOrigins("*")
             .addInterceptors(
-                TafelWSJwtAuthHandshakeHandler(
-                    authConverter, authProvider
-                )
+                TafelWSJwtAuthHandshakeHandler(authConverter, authProvider)
             )
     }
 
