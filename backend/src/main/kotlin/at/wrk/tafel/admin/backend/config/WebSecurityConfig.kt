@@ -41,7 +41,7 @@ class WebSecurityConfig(
 ) {
 
     companion object {
-        private val publicEndpoints = listOf("/api/login")
+        private val publicEndpoints = listOf("/api/login", "/api/websockets")
 
         val passwordValidator = PasswordValidator(
             listOf(
@@ -94,7 +94,7 @@ class WebSecurityConfig(
                 auth.anyRequest().permitAll()
             }
             .sessionManagement()
-            .sessionCreationPolicy(SessionCreationPolicy.NEVER)
+            .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             .and().csrf().disable()
 
         return http.build()
