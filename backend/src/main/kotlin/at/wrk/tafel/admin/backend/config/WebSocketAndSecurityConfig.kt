@@ -15,6 +15,7 @@ class WebSocketAndSecurityConfig : WebSocketMessageBrokerConfigurer {
     override fun registerStompEndpoints(registry: StompEndpointRegistry) {
         registry.addEndpoint("/api/websockets")
             // TODO same-origin should be used (probably only possible with sockjs) while documentation mentions this to be default also without sockjs
+            // while with enabled authentication and the strict cookie it should be also safe to have cors disabled
             .setAllowedOrigins("*")
     }
 
