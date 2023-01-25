@@ -1,11 +1,11 @@
 package at.wrk.tafel.admin.backend.database.entities.base
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
+import jakarta.persistence.Column
+import jakarta.persistence.MappedSuperclass
 import org.hibernate.annotations.CreationTimestamp
 import org.hibernate.annotations.UpdateTimestamp
 import java.time.ZonedDateTime
-import jakarta.persistence.Column
-import jakarta.persistence.MappedSuperclass
 
 @MappedSuperclass
 @ExcludeFromTestCoverage

@@ -2,9 +2,9 @@ package at.wrk.tafel.admin.backend.database.entities.customer
 
 import at.wrk.tafel.admin.backend.database.entities.base.BaseChangeTrackingEntity
 import at.wrk.tafel.admin.backend.database.entities.staticdata.CountryEntity
+import jakarta.persistence.*
 import java.math.BigDecimal
 import java.time.LocalDate
-import jakarta.persistence.*
 
 @Entity(name = "CustomerAddPerson")
 @Table(name = "customers_addpersons")
