@@ -18,8 +18,8 @@ class WebSocketAndSecurityConfig(
 
     override fun registerStompEndpoints(registry: StompEndpointRegistry) {
         registry.addEndpoint("/api/websockets")
-            // TODO same-origin should be used (probably only possible with sockjs) while documentation mentions this to be default also without sockjs
-            // TODO while with enabled authentication and the strict cookie it should be also safe to have cors disabled
+            // TODO same-origin should be used (probably sockjs is necessary for that) while documentation mentions this to be default also without sockjs
+            // TODO while with enabled authentication and the SameSite strict cookie it should be also safe to have cors disabled
             .setAllowedOrigins("*")
             .addInterceptors(
                 TafelWSJwtAuthHandshakeHandler(authConverter, authProvider)
