@@ -101,8 +101,7 @@ values (5, NOW(), NOW(), 202, 100, '2', 'e2esearch', '1980-01-01', 1, 'Erdberg',
         'Stadt Wien', 123.00, '2999-12-31', '2999-12-31');
 
 -- static values
-DELETE
-FROM static_values;
+DELETE FROM static_values;
 
 -- income limits
 INSERT INTO static_values(id, created_at, updated_at, type, valid_from, valid_to, amount, count_adult, count_child)
