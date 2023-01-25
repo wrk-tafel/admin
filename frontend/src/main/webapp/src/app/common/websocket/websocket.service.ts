@@ -1,4 +1,4 @@
-import {Injectable, OnInit} from '@angular/core';
+import {Injectable} from '@angular/core';
 import {IRxStompPublishParams, RxStomp} from '@stomp/rx-stomp';
 import {PlatformLocation} from '@angular/common';
 import {RxStompConfig} from '@stomp/rx-stomp/esm6/rx-stomp-config';
