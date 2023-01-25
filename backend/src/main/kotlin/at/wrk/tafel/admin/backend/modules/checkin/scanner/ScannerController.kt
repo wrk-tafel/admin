@@ -16,6 +16,7 @@ class ScannerController {
     private val logger: Logger = LoggerFactory.getLogger(ScannerController::class.java)
 
     @MessageMapping("/scanners/register")
+    // TODO build private channels for each client: https://www.baeldung.com/spring-websockets-send-message-to-user
     @SendTo("/topic/scanners/registration")
     fun registerScanner(): ScannerRegistration {
         val scannerId = abs(Random().nextInt()) // TODO generate id (atomic sequence)
