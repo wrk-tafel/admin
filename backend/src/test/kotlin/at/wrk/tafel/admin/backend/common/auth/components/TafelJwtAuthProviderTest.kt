@@ -14,7 +14,6 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.authentication.CredentialsExpiredException
-import java.lang.Exception
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.util.*

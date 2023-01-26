@@ -29,11 +29,7 @@ describe('WebsocketService', () => {
     service.init();
 
     expect(clientSpy.configure).toHaveBeenCalledWith({
-      brokerURL: 'ws://testhost:1234/subpath/api/websockets',
-      debug: jasmine.any(Function),
-      heartbeatIncoming: 0,
-      heartbeatOutgoing: 20000,
-      logRawCommunication: true
+      brokerURL: 'ws://testhost:1234/subpath/api/websockets'
     });
     overwriteTestPathname = undefined;
   });

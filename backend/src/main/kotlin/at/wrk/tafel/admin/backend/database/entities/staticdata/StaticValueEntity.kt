@@ -1,9 +1,9 @@
 package at.wrk.tafel.admin.backend.database.entities.staticdata
 
 import at.wrk.tafel.admin.backend.database.entities.base.BaseChangeTrackingEntity
+import jakarta.persistence.*
 import java.math.BigDecimal
 import java.time.LocalDate
-import jakarta.persistence.*
 
 @Entity
 @Table(name = "static_values")
