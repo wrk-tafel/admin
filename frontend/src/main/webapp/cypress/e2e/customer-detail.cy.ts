@@ -43,7 +43,10 @@ describe('Customer Detail', () => {
     cy.visit('/#/kunden/detail/101');
     cy.byTestId('editCustomerButton').click();
 
-    cy.url({timeout: 10000}).should('include', '/kunden/bearbeiten/101');
+    // TODO wait shouldn't be necessary and removed
+    cy.wait(5000);
+
+    cy.url().should('include', '/kunden/bearbeiten/101');
   });
 
 });
