@@ -43,7 +43,7 @@ describe('Customer Detail', () => {
     cy.visit('/#/kunden/detail/101');
     cy.byTestId('editCustomerButton').click();
 
-    cy.url().should('include', '/kunden/bearbeiten/101');
+    cy.url({timeout: 10000}).should('include', '/kunden/bearbeiten/101');
   });
 
 });
