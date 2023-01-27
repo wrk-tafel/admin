@@ -18,7 +18,7 @@ import org.springframework.http.server.ServletServerHttpRequest
 import org.springframework.web.socket.WebSocketHandler
 
 @ExtendWith(MockKExtension::class)
-internal class TafelWSJwtAuthHandshakeHandlerTest {
+internal class TafelWebSocketJwtAuthHandshakeHandlerTest {
 
     @RelaxedMockK
     private lateinit var authConverter: TafelJwtAuthConverter
@@ -39,7 +39,7 @@ internal class TafelWSJwtAuthHandshakeHandlerTest {
     private lateinit var wsHandler: WebSocketHandler
 
     @InjectMockKs
-    private lateinit var handler: TafelWSJwtAuthHandshakeHandler
+    private lateinit var handler: TafelWebSocketJwtAuthHandshakeHandler
 
     @BeforeEach
     fun beforeEach() {
