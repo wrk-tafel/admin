@@ -59,7 +59,6 @@ class WebSocketAndSecurityConfig(
 
     fun messageAuthorizationManager(messages: MessageMatcherDelegatingAuthorizationManager.Builder): AuthorizationManager<Message<*>?>? {
         return messages
-            .nullDestMatcher().authenticated()
             .simpSubscribeDestMatchers("/topic/scanners/**").hasAuthority("SCANNER")
             .simpDestMatchers("/scanners/**").hasAuthority("SCANNER")
             .anyMessage().authenticated()
