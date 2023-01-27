@@ -14,13 +14,6 @@ class TafelWebSocketJwtAuthInterceptor : ChannelInterceptor {
         return setAuthenticationAsHeader(message)
     }
 
-    override fun postSend(message: Message<*>, channel: MessageChannel, sent: Boolean) {
-    }
-
-    override fun preReceive(channel: MessageChannel): Boolean {
-        return super.preReceive(channel)
-    }
-
     override fun postReceive(message: Message<*>, channel: MessageChannel): Message<*> {
         return setAuthenticationAsHeader(message)
     }
