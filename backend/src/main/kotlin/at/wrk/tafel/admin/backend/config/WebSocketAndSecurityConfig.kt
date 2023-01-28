@@ -5,6 +5,7 @@ import at.wrk.tafel.admin.backend.common.auth.components.JwtTokenService
 import at.wrk.tafel.admin.backend.common.auth.components.TafelJwtAuthConverter
 import at.wrk.tafel.admin.backend.common.auth.components.TafelJwtAuthProvider
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.common.auth.websocket.TafelWebSocketAuthPrincipalArgumentResolver
 import at.wrk.tafel.admin.backend.common.auth.websocket.TafelWebSocketJwtAuthHandshakeHandler
 import at.wrk.tafel.admin.backend.common.auth.websocket.TafelWebSocketJwtAuthInterceptor
 import org.springframework.context.ApplicationContext
@@ -19,7 +20,6 @@ import org.springframework.security.authorization.AuthorizationManager
 import org.springframework.security.authorization.SpringAuthorizationEventPublisher
 import org.springframework.security.messaging.access.intercept.AuthorizationChannelInterceptor
 import org.springframework.security.messaging.access.intercept.MessageMatcherDelegatingAuthorizationManager
-import org.springframework.security.messaging.context.AuthenticationPrincipalArgumentResolver
 import org.springframework.security.messaging.context.SecurityContextChannelInterceptor
 import org.springframework.web.socket.CloseStatus
 import org.springframework.web.socket.WebSocketSession
@@ -77,7 +77,7 @@ class WebSocketAndSecurityConfig(
     }
 
     override fun addArgumentResolvers(argumentResolvers: MutableList<HandlerMethodArgumentResolver>) {
-        argumentResolvers.add(AuthenticationPrincipalArgumentResolver())
+        argumentResolvers.add(TafelWebSocketAuthPrincipalArgumentResolver())
     }
 
     override fun configureClientInboundChannel(registration: ChannelRegistration) {
