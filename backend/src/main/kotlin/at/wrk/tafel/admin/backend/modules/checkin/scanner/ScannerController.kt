@@ -8,6 +8,7 @@ import org.springframework.messaging.handler.annotation.MessageMapping
 import org.springframework.messaging.handler.annotation.SendTo
 import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.messaging.support.MessageHeaderAccessor
+import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.stereotype.Controller
@@ -15,6 +16,7 @@ import java.util.*
 import kotlin.math.abs
 
 @Controller
+@EnableScheduling
 class ScannerController(
     private val simpMessagingTemplate: SimpMessagingTemplate
 ) {

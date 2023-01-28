@@ -12,6 +12,7 @@ import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Configuration
 import org.springframework.messaging.Message
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver
+import org.springframework.messaging.simp.SimpMessageType
 import org.springframework.messaging.simp.config.ChannelRegistration
 import org.springframework.messaging.simp.config.MessageBrokerRegistry
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor
@@ -70,9 +71,9 @@ class WebSocketAndSecurityConfig(
 
     fun messageAuthorizationManager(messages: MessageMatcherDelegatingAuthorizationManager.Builder): AuthorizationManager<Message<*>?>? {
         return messages
-            .simpSubscribeDestMatchers("/topic/scanners/**").hasAuthority("SCANNER")
-            .simpDestMatchers("/scanners/**").hasAuthority("SCANNER")
-            .anyMessage().authenticated()
+            .simpDestMatchers("/scanners/**", "/topic/scanners/**", "/app/scanners/**").hasAuthority("SCANNER")
+            .simpTypeMatchers(SimpMessageType.CONNECT).authenticated()
+            .anyMessage().denyAll()
             .build()
     }
 
