@@ -136,6 +136,20 @@ class JwtTokenServiceTest {
         }
     }
 
+    @Test
+    fun `isValid - true`() {
+        val token = generateToken(overrideExpirationTime = LocalDateTime.now().minusMinutes(5))
+
+        assertThat(jwtTokenService.isValid(token)).isFalse
+    }
+
+    @Test
+    fun `isValid - false`() {
+        val token = generateToken()
+
+        assertThat(jwtTokenService.isValid(token)).isTrue
+    }
+
     private fun generateToken(
         overrideSecretKey: String? = null,
         overrideExpirationTime: LocalDateTime? = null,

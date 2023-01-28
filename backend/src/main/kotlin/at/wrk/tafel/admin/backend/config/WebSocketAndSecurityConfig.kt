@@ -1,6 +1,7 @@
 package at.wrk.tafel.admin.backend.config
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
+import at.wrk.tafel.admin.backend.common.auth.components.JwtTokenService
 import at.wrk.tafel.admin.backend.common.auth.components.TafelJwtAuthConverter
 import at.wrk.tafel.admin.backend.common.auth.components.TafelJwtAuthProvider
 import at.wrk.tafel.admin.backend.common.auth.websocket.TafelWebSocketJwtAuthHandshakeHandler
@@ -29,7 +30,8 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 class WebSocketAndSecurityConfig(
     private val authConverter: TafelJwtAuthConverter,
     private val authProvider: TafelJwtAuthProvider,
-    private val applicationContext: ApplicationContext
+    private val applicationContext: ApplicationContext,
+    private val tokenService: JwtTokenService
 ) : WebSocketMessageBrokerConfigurer {
 
     override fun registerStompEndpoints(registry: StompEndpointRegistry) {
@@ -77,7 +79,7 @@ class WebSocketAndSecurityConfig(
         authz.setAuthorizationEventPublisher(publisher)
 
         registration.interceptors(
-            TafelWebSocketJwtAuthInterceptor(),
+            TafelWebSocketJwtAuthInterceptor(tokenService),
             SecurityContextChannelInterceptor(),
             authz
         )

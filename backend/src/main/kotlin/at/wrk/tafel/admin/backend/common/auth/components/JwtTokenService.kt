@@ -3,9 +3,12 @@ package at.wrk.tafel.admin.backend.common.auth.components
 import at.wrk.tafel.admin.backend.config.ApplicationProperties
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Header
+import io.jsonwebtoken.JwtException
 import io.jsonwebtoken.Jwts
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.stereotype.Service
+import java.time.LocalDateTime
+import java.time.ZoneOffset
 import java.util.*
 import javax.crypto.spec.SecretKeySpec
 
@@ -55,4 +58,16 @@ class JwtTokenService(
             applicationProperties.security.jwtToken.secret.value.toByteArray(),
             applicationProperties.security.jwtToken.secret.algorithm
         )
+
+    fun isValid(tokenValue: String): Boolean {
+        return try {
+            val expirationDate = createJwtParser().parseClaimsJws(tokenValue).body.expiration
+                .toInstant().atZone(ZoneOffset.systemDefault()).toLocalDateTime()
+
+            LocalDateTime.now().isBefore(expirationDate)
+        } catch (e: JwtException) {
+            false
+        }
+    }
+
 }
