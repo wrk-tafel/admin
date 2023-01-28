@@ -10,11 +10,7 @@ import org.springframework.messaging.support.MessageBuilder
 
 class TafelWebSocketJwtAuthInterceptor : ChannelInterceptor {
 
-    override fun preSend(message: Message<*>, channel: MessageChannel): Message<*> {
-        return setAuthenticationAsHeader(message)
-    }
-
-    override fun postReceive(message: Message<*>, channel: MessageChannel): Message<*> {
+    override fun preSend(message: Message<*>, channel: MessageChannel): Message<*>? {
         return setAuthenticationAsHeader(message)
     }
 

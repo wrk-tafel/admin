@@ -4,6 +4,7 @@ import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.common.auth.components.JwtTokenService
 import at.wrk.tafel.admin.backend.common.auth.components.TafelJwtAuthConverter
 import at.wrk.tafel.admin.backend.common.auth.components.TafelJwtAuthProvider
+import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.common.auth.websocket.TafelWebSocketJwtAuthHandshakeHandler
 import at.wrk.tafel.admin.backend.common.auth.websocket.TafelWebSocketJwtAuthInterceptor
 import org.springframework.context.ApplicationContext
@@ -12,6 +13,7 @@ import org.springframework.messaging.Message
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver
 import org.springframework.messaging.simp.config.ChannelRegistration
 import org.springframework.messaging.simp.config.MessageBrokerRegistry
+import org.springframework.messaging.simp.stomp.StompHeaderAccessor
 import org.springframework.security.authorization.AuthorizationEventPublisher
 import org.springframework.security.authorization.AuthorizationManager
 import org.springframework.security.authorization.SpringAuthorizationEventPublisher
@@ -19,9 +21,16 @@ import org.springframework.security.messaging.access.intercept.AuthorizationChan
 import org.springframework.security.messaging.access.intercept.MessageMatcherDelegatingAuthorizationManager
 import org.springframework.security.messaging.context.AuthenticationPrincipalArgumentResolver
 import org.springframework.security.messaging.context.SecurityContextChannelInterceptor
+import org.springframework.web.socket.CloseStatus
+import org.springframework.web.socket.WebSocketSession
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer
+import org.springframework.web.socket.config.annotation.WebSocketTransportRegistration
+import org.springframework.web.socket.handler.WebSocketHandlerDecorator
+import java.time.Instant
+import java.time.temporal.ChronoUnit
+import java.util.*
 
 
 @Configuration
@@ -79,10 +88,30 @@ class WebSocketAndSecurityConfig(
         authz.setAuthorizationEventPublisher(publisher)
 
         registration.interceptors(
-            TafelWebSocketJwtAuthInterceptor(tokenService),
+            TafelWebSocketJwtAuthInterceptor(),
             SecurityContextChannelInterceptor(),
             authz
         )
+    }
+
+    override fun configureWebSocketTransport(registry: WebSocketTransportRegistration) {
+        registry.addDecoratorFactory { handler ->
+            object : WebSocketHandlerDecorator(handler) {
+                override fun afterConnectionEstablished(session: WebSocketSession) {
+                    val authentication = session.attributes[StompHeaderAccessor.USER_HEADER] as TafelJwtAuthentication
+                    val expirationDate = tokenService.getClaimsFromToken(authentication.tokenValue).expiration
+                    val diffInMilliseconds = ChronoUnit.MILLIS.between(Instant.now(), expirationDate.toInstant())
+
+                    Timer().schedule(object : TimerTask() {
+                        override fun run() {
+                            session.close(CloseStatus.PROTOCOL_ERROR)
+                        }
+                    }, diffInMilliseconds)
+
+                    super.afterConnectionEstablished(session)
+                }
+            }
+        }
     }
 
 }
