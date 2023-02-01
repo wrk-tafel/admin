@@ -13,7 +13,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.springframework.http.server.ServerHttpResponse
 import org.springframework.http.server.ServletServerHttpRequest
 import org.springframework.web.socket.WebSocketHandler
 
@@ -33,9 +32,6 @@ internal class TafelWebSocketJwtAuthHandshakeHandlerTest {
     private lateinit var request: HttpServletRequest
 
     @RelaxedMockK
-    private lateinit var response: ServerHttpResponse
-
-    @RelaxedMockK
     private lateinit var wsHandler: WebSocketHandler
 
     @InjectMockKs
@@ -47,38 +43,25 @@ internal class TafelWebSocketJwtAuthHandshakeHandlerTest {
     }
 
     @Test
-    fun `beforeHandshake no authentication given`() {
+    fun `determineUser no authentication given`() {
         every { authConverter.convert(any()) } returns null
 
-        val result = handler.beforeHandshake(serverHttpRequest, response, wsHandler, mutableMapOf())
+        val result = handler.determineUser(serverHttpRequest, wsHandler, mutableMapOf())
 
-        assertThat(result).isFalse
+        assertThat(result).isNull()
 
         verify { authConverter.convert(request) }
     }
 
     @Test
-    fun `beforeHandshake authentication given but not valid`() {
-        val authentication = TafelJwtAuthentication(tokenValue = "", authenticated = false)
-        every { authConverter.convert(any()) } returns authentication
-
-        val result = handler.beforeHandshake(serverHttpRequest, response, wsHandler, mutableMapOf())
-
-        assertThat(result).isFalse
-
-        verify { authConverter.convert(request) }
-        verify { authProvider.authenticate(authentication) }
-    }
-
-    @Test
-    fun `beforeHandshake authentication given and valid`() {
+    fun `determineUser authentication valid`() {
         val authentication = TafelJwtAuthentication(tokenValue = "", authenticated = true)
         every { authConverter.convert(any()) } returns authentication
         every { authProvider.authenticate(authentication) } returns authentication
 
-        val result = handler.beforeHandshake(serverHttpRequest, response, wsHandler, mutableMapOf())
+        val result = handler.determineUser(serverHttpRequest, wsHandler, mutableMapOf())
 
-        assertThat(result).isTrue
+        assertThat(result).isEqualTo(authentication)
 
         verify { authConverter.convert(request) }
         verify { authProvider.authenticate(authentication) }

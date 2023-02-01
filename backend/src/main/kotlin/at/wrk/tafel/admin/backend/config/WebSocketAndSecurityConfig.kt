@@ -5,17 +5,13 @@ import at.wrk.tafel.admin.backend.common.auth.components.JwtTokenService
 import at.wrk.tafel.admin.backend.common.auth.components.TafelJwtAuthConverter
 import at.wrk.tafel.admin.backend.common.auth.components.TafelJwtAuthProvider
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
-import at.wrk.tafel.admin.backend.common.auth.websocket.TafelWebSocketAuthPrincipalArgumentResolver
 import at.wrk.tafel.admin.backend.common.auth.websocket.TafelWebSocketJwtAuthHandshakeHandler
-import at.wrk.tafel.admin.backend.common.auth.websocket.TafelWebSocketJwtAuthInterceptor
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Configuration
 import org.springframework.messaging.Message
-import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver
 import org.springframework.messaging.simp.SimpMessageType
 import org.springframework.messaging.simp.config.ChannelRegistration
 import org.springframework.messaging.simp.config.MessageBrokerRegistry
-import org.springframework.messaging.simp.stomp.StompHeaderAccessor
 import org.springframework.security.authorization.AuthorizationEventPublisher
 import org.springframework.security.authorization.AuthorizationManager
 import org.springframework.security.authorization.SpringAuthorizationEventPublisher
@@ -33,7 +29,6 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.*
 
-
 @Configuration
 @EnableWebSocketMessageBroker
 @ExcludeFromTestCoverage
@@ -49,7 +44,7 @@ class WebSocketAndSecurityConfig(
             // TODO same-origin should be used (probably sockjs is necessary for that) while documentation mentions this to be default also without sockjs
             // TODO while with enabled authentication and the SameSite strict cookie it should be also safe to have cors disabled
             .setAllowedOrigins("*")
-            .addInterceptors(
+            .setHandshakeHandler(
                 TafelWebSocketJwtAuthHandshakeHandler(authConverter, authProvider)
             )
     }
@@ -57,6 +52,7 @@ class WebSocketAndSecurityConfig(
     override fun configureMessageBroker(registry: MessageBrokerRegistry) {
         // Nice explanation for the different prefixes and channels
         // https://www.toptal.com/java/stomp-spring-boot-websocket
+        // https://docs.spring.io/spring-framework/docs/current/reference/html/web.html#websocket-stomp-message-flow
 
         registry.enableSimpleBroker(
             "/topic", // broadcasting
@@ -66,19 +62,16 @@ class WebSocketAndSecurityConfig(
         // use /app to send messages only to the backend without forwarding to other clients
         registry.setApplicationDestinationPrefixes("/app")
 
-        // TODO registry.setUserDestinationPrefix("/client")
+        registry.setUserDestinationPrefix("/user")
     }
 
     fun messageAuthorizationManager(messages: MessageMatcherDelegatingAuthorizationManager.Builder): AuthorizationManager<Message<*>?>? {
         return messages
-            .simpDestMatchers("/scanners/**", "/topic/scanners/**", "/app/scanners/**").hasAuthority("SCANNER")
-            .simpTypeMatchers(SimpMessageType.CONNECT).authenticated()
+            .simpDestMatchers("/scanners/**", "/topic/scanners/**", "/app/scanners/**", "/user/queue/scanners/**")
+            .hasAuthority("SCANNER")
+            .simpTypeMatchers(SimpMessageType.CONNECT, SimpMessageType.DISCONNECT).authenticated()
             .anyMessage().denyAll()
             .build()
-    }
-
-    override fun addArgumentResolvers(argumentResolvers: MutableList<HandlerMethodArgumentResolver>) {
-        argumentResolvers.add(TafelWebSocketAuthPrincipalArgumentResolver())
     }
 
     override fun configureClientInboundChannel(registration: ChannelRegistration) {
@@ -89,7 +82,6 @@ class WebSocketAndSecurityConfig(
         authz.setAuthorizationEventPublisher(publisher)
 
         registration.interceptors(
-            TafelWebSocketJwtAuthInterceptor(),
             SecurityContextChannelInterceptor(),
             authz
         )
@@ -99,7 +91,7 @@ class WebSocketAndSecurityConfig(
         registry.addDecoratorFactory { handler ->
             object : WebSocketHandlerDecorator(handler) {
                 override fun afterConnectionEstablished(session: WebSocketSession) {
-                    val authentication = session.attributes[StompHeaderAccessor.USER_HEADER] as TafelJwtAuthentication
+                    val authentication = session.principal as TafelJwtAuthentication
                     val expirationDate = tokenService.getClaimsFromToken(authentication.tokenValue).expiration
                     val diffInMilliseconds = ChronoUnit.MILLIS.between(Instant.now(), expirationDate.toInstant())
 

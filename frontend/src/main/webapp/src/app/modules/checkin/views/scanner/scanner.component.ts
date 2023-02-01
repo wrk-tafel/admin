@@ -75,7 +75,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
 
   processApiConnectionState(state: RxStompState) {
     if (state === RxStompState.OPEN) {
-      this.websocketService.subscribe({destination: '/topic/scanners/registration'}).subscribe((message) => {
+      this.websocketService.subscribe({destination: '/user/queue/scanners/registration'}).subscribe((message) => {
           const registration: ScannerRegistration = JSON.parse(message.body);
           this.scannerId = registration.scannerId;
           this.apiClientReady = true;
