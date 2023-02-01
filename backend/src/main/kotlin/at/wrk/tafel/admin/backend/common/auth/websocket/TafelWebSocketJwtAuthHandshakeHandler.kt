@@ -18,11 +18,15 @@ class TafelWebSocketJwtAuthHandshakeHandler(
         wsHandler: WebSocketHandler,
         attributes: MutableMap<String, Any>
     ): Principal? {
-        val servletRequest = (request as ServletServerHttpRequest).servletRequest
-        val authentication = authConverter.convert(servletRequest)
+        try {
+            val servletRequest = (request as ServletServerHttpRequest).servletRequest
+            val authentication = authConverter.convert(servletRequest)
 
-        return authentication?.let {
-            return authProvider.authenticate(it)
+            return authentication?.let {
+                return authProvider.authenticate(it)
+            }
+        } catch (e: Exception) {
+            return null
         }
     }
 

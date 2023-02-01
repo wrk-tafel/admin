@@ -14,6 +14,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.http.server.ServletServerHttpRequest
+import org.springframework.security.authentication.CredentialsExpiredException
 import org.springframework.web.socket.WebSocketHandler
 
 @ExtendWith(MockKExtension::class)
@@ -54,7 +55,21 @@ internal class TafelWebSocketJwtAuthHandshakeHandlerTest {
     }
 
     @Test
-    fun `determineUser authentication valid`() {
+    fun `determineUser authentication given but invalid`() {
+        val authentication = TafelJwtAuthentication(tokenValue = "", authenticated = false)
+        every { authConverter.convert(any()) } returns authentication
+        every { authProvider.authenticate(authentication) } throws CredentialsExpiredException("Invalid credentials")
+
+        val result = handler.determineUser(serverHttpRequest, wsHandler, mutableMapOf())
+
+        assertThat(result).isNull()
+
+        verify { authConverter.convert(request) }
+        verify { authProvider.authenticate(authentication) }
+    }
+
+    @Test
+    fun `determineUser authentication given and valid`() {
         val authentication = TafelJwtAuthentication(tokenValue = "", authenticated = true)
         every { authConverter.convert(any()) } returns authentication
         every { authProvider.authenticate(authentication) } returns authentication
