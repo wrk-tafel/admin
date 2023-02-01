@@ -29,6 +29,7 @@ class ScannerController(
     @MessageMapping("/scanners/result")
     fun retrieveScanResult(result: ScanResult) {
         logger.info("GOT SCANRESULT: $result")
+        // TODO process result
     }
 
 }
