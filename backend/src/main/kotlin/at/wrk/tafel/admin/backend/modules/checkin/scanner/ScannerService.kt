@@ -20,9 +20,9 @@ class ScannerService {
         if (id == null) {
             id = registeredClientsCount.incrementAndGet()
             registrationMap[username] = id
-            logger.info("Scanner for user $username registered with ID: $id")
+            logger.info("Scanner logged in as user $username registered with ID: $id")
         } else {
-            logger.info("Scanner for user $username re-assigned to ID: $id")
+            logger.info("Scanner logged in as user $username re-assigned to ID: $id")
         }
         return id
     }
