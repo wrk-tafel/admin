@@ -4,7 +4,7 @@ import {PlatformLocation} from '@angular/common';
 import {RxStompConfig} from '@stomp/rx-stomp/esm6/rx-stomp-config';
 import {BehaviorSubject, Observable} from 'rxjs';
 import {RxStompState} from '@stomp/rx-stomp/esm6/rx-stomp-state';
-import {IMessage} from "@stomp/stompjs";
+import {IMessage} from '@stomp/stompjs';
 
 @Injectable({
   providedIn: 'root',
