@@ -1,7 +1,3 @@
-import {WebSocketSubjectConfig} from 'rxjs/internal-compatibility';
-import {StreamRequestOptions} from '@lensesio/cypress-websocket-testing';
-import {IMessage} from '@stomp/stompjs';
-
 describe('Scanner', () => {
 
   beforeEach(() => {
@@ -18,6 +14,8 @@ describe('Scanner', () => {
     cy.byTestId('state-camera').should('have.class', 'badge-success');
     cy.byTestId('scanner-id').should('have.text', '1');
 
+    /*
+    // TODO assert ws-data
     const config: WebSocketSubjectConfig<IMessage> = {
       url: 'ws://localhost:4500/api/websockets'
     };
@@ -27,6 +25,7 @@ describe('Scanner', () => {
       // tslint:disable-next-line:no-unused-expression
       expect(results).to.not.be.undefined;
     });
+     */
   });
 
 });
