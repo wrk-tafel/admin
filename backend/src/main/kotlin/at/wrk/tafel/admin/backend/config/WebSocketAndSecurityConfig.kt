@@ -4,7 +4,7 @@ import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.common.auth.components.JwtTokenService
 import at.wrk.tafel.admin.backend.common.auth.components.TafelJwtAuthConverter
 import at.wrk.tafel.admin.backend.common.auth.components.TafelJwtAuthProvider
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.common.auth.websocket.TafelWebSocketCloseHandlerDecorator
 import at.wrk.tafel.admin.backend.common.auth.websocket.TafelWebSocketJwtAuthHandshakeHandler
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Configuration
@@ -18,15 +18,10 @@ import org.springframework.security.authorization.SpringAuthorizationEventPublis
 import org.springframework.security.messaging.access.intercept.AuthorizationChannelInterceptor
 import org.springframework.security.messaging.access.intercept.MessageMatcherDelegatingAuthorizationManager
 import org.springframework.security.messaging.context.SecurityContextChannelInterceptor
-import org.springframework.web.socket.CloseStatus
-import org.springframework.web.socket.WebSocketSession
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer
 import org.springframework.web.socket.config.annotation.WebSocketTransportRegistration
-import org.springframework.web.socket.handler.WebSocketHandlerDecorator
-import java.time.Instant
-import java.time.temporal.ChronoUnit
 import java.util.*
 
 @Configuration
@@ -89,21 +84,11 @@ class WebSocketAndSecurityConfig(
 
     override fun configureWebSocketTransport(registry: WebSocketTransportRegistration) {
         registry.addDecoratorFactory { handler ->
-            object : WebSocketHandlerDecorator(handler) {
-                override fun afterConnectionEstablished(session: WebSocketSession) {
-                    val authentication = session.principal as TafelJwtAuthentication
-                    val expirationDate = tokenService.getClaimsFromToken(authentication.tokenValue).expiration
-                    val diffInMilliseconds = ChronoUnit.MILLIS.between(Instant.now(), expirationDate.toInstant())
-
-                    Timer().schedule(object : TimerTask() {
-                        override fun run() {
-                            session.close(CloseStatus.PROTOCOL_ERROR)
-                        }
-                    }, diffInMilliseconds)
-
-                    super.afterConnectionEstablished(session)
-                }
-            }
+            TafelWebSocketCloseHandlerDecorator(
+                tokenService = tokenService,
+                delegate = handler,
+                timer = Timer()
+            )
         }
     }
 
