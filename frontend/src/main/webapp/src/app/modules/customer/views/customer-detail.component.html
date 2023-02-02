@@ -1,6 +1,7 @@
 <div class="row">
   <div class="col-s-auto ml-3 mb-3 mr-3">
-    <button testid="editCustomerButton" type="button" class="btn btn-danger" (click)="editCustomer()">Kunde bearbeiten
+    <button testid="editCustomerButton" type="button" class="btn btn-danger" (click)="editCustomer()"
+            [disabled]="!customerData">Kunde bearbeiten
     </button>
   </div>
   <div class="col-s-auto mb-3">
@@ -35,7 +36,9 @@
         </div>
         <div class="row">
           <div class="col font-weight-bold">Geburtsdatum (Alter)</div>
-          <div testid="birthDateAgeText" class="col">{{customerData?.birthDate | date : 'dd.MM.yyyy'}} ({{getAge(customerData?.birthDate)}})</div>
+          <div testid="birthDateAgeText" class="col">{{customerData?.birthDate | date : 'dd.MM.yyyy'}}
+            ({{getAge(customerData?.birthDate)}})
+          </div>
         </div>
         <div class="row">
           <div class="col font-weight-bold">Nationalität</div>
