@@ -29,4 +29,13 @@ internal class ScannerControllerTest {
         assertThat(registration.scannerId).isEqualTo(id)
     }
 
+    @Test
+    fun `retrieve scan result`() {
+        val result = ScanResult(value = "12345")
+
+        controller.retrieveScanResult(result)
+
+        // TODO extend
+    }
+
 }
