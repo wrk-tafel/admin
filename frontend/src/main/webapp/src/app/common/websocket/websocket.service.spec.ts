@@ -1,6 +1,8 @@
 import {PlatformLocation} from '@angular/common';
 import {WebsocketService} from './websocket.service';
 import {RxStomp} from '@stomp/rx-stomp';
+import {Observable, of} from 'rxjs';
+import {IMessage} from '@stomp/stompjs';
 
 describe('WebsocketService', () => {
   let overwriteProtocol: string;
@@ -14,7 +16,7 @@ describe('WebsocketService', () => {
       protocol: overwriteProtocol ? overwriteProtocol : 'http:'
     });
 
-    const clientSpy: jasmine.SpyObj<RxStomp> = jasmine.createSpyObj('RxStomp', ['configure', 'activate', 'publish', 'deactivate']);
+    const clientSpy: jasmine.SpyObj<RxStomp> = jasmine.createSpyObj('RxStomp', ['configure', 'activate', 'publish', 'deactivate', 'watch']);
 
     const service = new WebsocketService(platformLocationSpy);
     service.client = clientSpy;
@@ -75,6 +77,18 @@ describe('WebsocketService', () => {
     service.publish(parameters);
 
     expect(clientSpy.publish).toHaveBeenCalledWith(parameters);
+  });
+
+  it('subscribe called', () => {
+    const {service, clientSpy} = setup();
+    const mockResult: Observable<IMessage> = of();
+    clientSpy.watch.and.returnValue(mockResult);
+
+    const destination = '/test123';
+    const result = service.subscribe(destination);
+
+    expect(clientSpy.watch).toHaveBeenCalledWith(destination);
+    expect(result).toBe(mockResult);
   });
 
   it('close called', () => {

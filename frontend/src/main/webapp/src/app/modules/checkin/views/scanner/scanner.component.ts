@@ -75,16 +75,20 @@ export class ScannerComponent implements OnInit, OnDestroy {
 
   processApiConnectionState(state: RxStompState) {
     if (state === RxStompState.OPEN) {
-      this.websocketService.subscribe({destination: '/user/queue/scanners/registration'}).subscribe((message) => {
-          const registration: ScannerRegistration = JSON.parse(message.body);
-          this.scannerId = registration.scannerId;
-          this.apiClientReady = true;
-        }
-      );
-      this.websocketService.publish({destination: '/app/scanners/register'});
+      this.processClientRegistration();
     } else {
       this.apiClientReady = false;
     }
+  }
+
+  processClientRegistration() {
+    this.websocketService.subscribe('/user/queue/scanners/registration').subscribe((message) => {
+        const registration: ScannerRegistration = JSON.parse(message.body);
+        this.scannerId = registration.scannerId;
+        this.apiClientReady = true;
+      }
+    );
+    this.websocketService.publish({destination: '/app/scanners/register'});
   }
 
   get selectedCamera(): CameraDevice {

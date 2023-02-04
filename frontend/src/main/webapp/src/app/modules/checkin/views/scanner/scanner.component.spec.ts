@@ -1,18 +1,19 @@
 import {fakeAsync, TestBed, tick, waitForAsync} from '@angular/core/testing';
 import {CommonModule} from '@angular/common';
-import {ScannerComponent} from './scanner.component';
+import {ScannerComponent, ScannerRegistration} from './scanner.component';
 import {QRCodeReaderService} from './camera/qrcode-reader.service';
 import {CameraDevice} from 'html5-qrcode/esm/camera/core';
-import {BehaviorSubject} from 'rxjs';
+import {BehaviorSubject, of} from 'rxjs';
 import {RxStompState} from '@stomp/rx-stomp';
 import {WebsocketService} from '../../../../common/websocket/websocket.service';
+import {IMessage} from '@stomp/stompjs';
 
 describe('ScannerComponent', () => {
   let wsService: jasmine.SpyObj<WebsocketService>;
   let qrCodeReaderService: jasmine.SpyObj<QRCodeReaderService>;
 
   beforeEach(waitForAsync(() => {
-    const wsServiceSpy = jasmine.createSpyObj('WebsocketService', ['close', 'publish', 'init', 'connect', 'getConnectionState']);
+    const wsServiceSpy = jasmine.createSpyObj('WebsocketService', ['close', 'publish', 'init', 'connect', 'getConnectionState', 'subscribe']);
     const qrCodeReaderServiceSpy = jasmine.createSpyObj('QRCodeReaderService', ['stop', 'saveCurrentCamera', 'restart', 'getCameras', 'getCurrentCamera', 'init', 'start']);
 
     TestBed.configureTestingModule({
@@ -50,9 +51,23 @@ describe('ScannerComponent', () => {
     qrCodeReaderService.getCurrentCamera.and.returnValue(testCamera2);
     qrCodeReaderService.start.and.returnValue(Promise.resolve(null));
     wsService.getConnectionState.and.returnValue(new BehaviorSubject(RxStompState.OPEN));
+    const registration: ScannerRegistration = {scannerId: 123};
+    const message: IMessage = {
+      body: JSON.stringify(registration),
+      ack: null,
+      nack: null,
+      headers: null,
+      command: null,
+      binaryBody: null,
+      isBinaryBody: false
+    };
+    wsService.subscribe.and.returnValue(of(message));
 
     component.ngOnInit();
     tick(1000);
+
+    expect(component.apiClientReady).toBeTruthy();
+    expect(component.scannerId).toBe(registration.scannerId);
 
     expect(component.availableCameras).toEqual(testCameraList);
     expect(component.currentCamera).toEqual(testCamera2);
@@ -62,6 +77,7 @@ describe('ScannerComponent', () => {
     expect(wsService.getConnectionState).toHaveBeenCalled();
     expect(wsService.init).toHaveBeenCalled();
     expect(wsService.connect).toHaveBeenCalled();
+    expect(wsService.publish).toHaveBeenCalledWith({destination: '/app/scanners/register'});
   }));
 
   it('ngOnDestroy calls stops scanner api and qrCodeReader', () => {
@@ -98,8 +114,9 @@ describe('ScannerComponent', () => {
     const fixture = TestBed.createComponent(ScannerComponent);
     const component = fixture.componentInstance;
 
-    component.lastSentText = null;
     const testText = 'test123';
+    component.lastSentText = null;
+    component.apiClientReady = true;
 
     component.qrCodeReaderSuccessCallback(testText, undefined);
 
@@ -116,6 +133,7 @@ describe('ScannerComponent', () => {
 
     const testText = 'test123';
     component.lastSentText = testText;
+    component.apiClientReady = true;
 
     component.qrCodeReaderSuccessCallback(testText, undefined);
 
@@ -127,8 +145,9 @@ describe('ScannerComponent', () => {
     const fixture = TestBed.createComponent(ScannerComponent);
     const component = fixture.componentInstance;
 
-    component.lastSentText = 'old-test123';
     const testText = 'test123';
+    component.lastSentText = 'old-test123';
+    component.apiClientReady = true;
 
     component.qrCodeReaderSuccessCallback(testText, undefined);
 
@@ -139,7 +158,34 @@ describe('ScannerComponent', () => {
     expect(component.lastSentText).toBe(testText);
   });
 
+  it('qrCodeReaderSuccessCallback skipped when apiClient not ready', () => {
+    const fixture = TestBed.createComponent(ScannerComponent);
+    const component = fixture.componentInstance;
+
+    const testText = 'test123';
+    component.apiClientReady = false;
+
+    component.qrCodeReaderSuccessCallback(testText, undefined);
+
+    expect(wsService.publish).not.toHaveBeenCalledWith({
+      destination: '/app/scanners/result',
+      body: JSON.stringify({value: testText})
+    });
+  });
+
   it('processApiConnectionState with state OPEN', () => {
+    const registration: ScannerRegistration = {scannerId: 123};
+    const message: IMessage = {
+      body: JSON.stringify(registration),
+      ack: null,
+      nack: null,
+      headers: null,
+      command: null,
+      binaryBody: null,
+      isBinaryBody: false
+    };
+    wsService.subscribe.and.returnValue(of(message));
+
     const fixture = TestBed.createComponent(ScannerComponent);
     const component = fixture.componentInstance;
     component.apiClientReady = false;
