@@ -36,9 +36,7 @@
         </div>
         <div class="row">
           <div class="col font-weight-bold">Geburtsdatum (Alter)</div>
-          <div testid="birthDateAgeText" class="col">{{customerData?.birthDate | date : 'dd.MM.yyyy'}}
-            ({{getAge(customerData?.birthDate)}})
-          </div>
+          <div testid="birthDateAgeText" class="col">{{customerData?.birthDate | date : 'dd.MM.yyyy'}} ({{getAge(customerData?.birthDate)}})</div>
         </div>
         <div class="row">
           <div class="col font-weight-bold">Nationalität</div>
@@ -123,9 +121,7 @@
                  [innerHTML]="addPerson?.firstname"></div>
           </div>
           <div class="row">
-            <div class="col-6" [attr.testid]="'addperson-' + i + '-birthDateAgeText'">
-              {{customerData?.birthDate | date : 'dd.MM.yyyy'}} ({{getAge(customerData?.birthDate)}})
-            </div>
+            <div class="col-6" [attr.testid]="'addperson-' + i + '-birthDateAgeText'">{{customerData?.birthDate | date : 'dd.MM.yyyy'}} ({{getAge(customerData?.birthDate)}})</div>
             <div class="col-6" [attr.testid]="'addperson-' + i + '-countryText'">
               {{addPerson?.country.name}}
             </div>
