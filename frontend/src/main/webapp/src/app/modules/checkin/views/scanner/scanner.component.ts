@@ -11,7 +11,7 @@ import {Html5QrcodeResult} from 'html5-qrcode/core';
 })
 export class ScannerComponent implements OnInit, OnDestroy {
 
-  scannerId: number = 1;
+  scannerId: number;
   availableCameras: CameraDevice[] = [];
   currentCamera: CameraDevice;
 
@@ -61,7 +61,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
   }
 
   qrCodeReaderSuccessCallback = (decodedText: string, result: Html5QrcodeResult) => {
-    if (!this.lastSentText || this.lastSentText !== decodedText) {
+    if (this.apiClientReady && (!this.lastSentText || this.lastSentText !== decodedText)) {
       const scanResult: ScanResult = {value: decodedText};
       this.websocketService.publish({destination: '/app/scanners/result', body: JSON.stringify(scanResult)});
       this.lastSentText = decodedText;
@@ -75,10 +75,20 @@ export class ScannerComponent implements OnInit, OnDestroy {
 
   processApiConnectionState(state: RxStompState) {
     if (state === RxStompState.OPEN) {
-      this.apiClientReady = true;
+      this.processClientRegistration();
     } else {
       this.apiClientReady = false;
     }
+  }
+
+  processClientRegistration() {
+    this.websocketService.subscribe('/user/queue/scanners/registration').subscribe((message) => {
+        const registration: ScannerRegistration = JSON.parse(message.body);
+        this.scannerId = registration.scannerId;
+        this.apiClientReady = true;
+      }
+    );
+    this.websocketService.publish({destination: '/app/scanners/register'});
   }
 
   get selectedCamera(): CameraDevice {
@@ -97,4 +107,8 @@ export class ScannerComponent implements OnInit, OnDestroy {
 
 export interface ScanResult {
   value: string;
+}
+
+export interface ScannerRegistration {
+  scannerId: number;
 }

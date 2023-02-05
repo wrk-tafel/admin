@@ -1,6 +1,7 @@
 <div class="row">
   <div class="col-s-auto ml-3 mb-3 mr-3">
-    <button testid="editCustomerButton" type="button" class="btn btn-danger" (click)="editCustomer()">Kunde bearbeiten
+    <button testid="editCustomerButton" type="button" class="btn btn-danger" (click)="editCustomer()"
+            [disabled]="!customerData">Kunde bearbeiten
     </button>
   </div>
   <div class="col-s-auto mb-3">
@@ -120,9 +121,7 @@
                  [innerHTML]="addPerson?.firstname"></div>
           </div>
           <div class="row">
-            <div class="col-6" [attr.testid]="'addperson-' + i + '-birthDateAgeText'">
-              {{customerData?.birthDate | date : 'dd.MM.yyyy'}} ({{getAge(customerData?.birthDate)}})
-            </div>
+            <div class="col-6" [attr.testid]="'addperson-' + i + '-birthDateAgeText'">{{customerData?.birthDate | date : 'dd.MM.yyyy'}} ({{getAge(customerData?.birthDate)}})</div>
             <div class="col-6" [attr.testid]="'addperson-' + i + '-countryText'">
               {{addPerson?.country.name}}
             </div>

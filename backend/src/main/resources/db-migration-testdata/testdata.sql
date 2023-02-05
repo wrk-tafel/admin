@@ -11,7 +11,7 @@ VALUES (1000, NOW(), NOW(), 100, 'DASHBOARD');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (1001, NOW(), NOW(), 100, 'CUSTOMER');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
-VALUES (1002, NOW(), NOW(), 100, 'CHECKIN');
+VALUES (1002, NOW(), NOW(), 100, 'SCANNER');
 
 -- user e2etest2 for cypress test (password change)
 -- pwd: e2etest
@@ -36,7 +36,7 @@ VALUES (2000, NOW(), NOW(), 200, 'DASHBOARD');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (2001, NOW(), NOW(), 200, 'CUSTOMER');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
-VALUES (2002, NOW(), NOW(), 200, 'CHECKIN');
+VALUES (2002, NOW(), NOW(), 200, 'SCANNER');
 
 -- TODO remove | fake user with weak password to gain some intrusion insights
 -- user: admin
@@ -48,7 +48,25 @@ VALUES (3000, NOW(), NOW(), 300, 'DASHBOARD');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (3001, NOW(), NOW(), 300, 'CUSTOMER');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
-VALUES (3002, NOW(), NOW(), 300, 'CHECKIN');
+VALUES (3002, NOW(), NOW(), 300, 'SCANNER');
+
+-- user: scanner1
+-- pwd: 12345
+INSERT INTO users (id, created_at, updated_at, username, password, enabled, personnel_number, firstname, lastname)
+VALUES (400, NOW(), NOW(), 'scanner1', '{argon2}$argon2id$v=19$m=4096,t=3,p=1$RXn6Xt/0q/Wtrvdns6NUnw$X3xWUjENAbNSJNckeVFXWrjkoFSowwlu3xHx1/zb40w', true, '0400', 'Scanner', '1');
+INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
+VALUES (4000, NOW(), NOW(), 400, 'DASHBOARD');
+INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
+VALUES (4001, NOW(), NOW(), 400, 'SCANNER');
+
+-- user: scanner2
+-- pwd: 12345
+INSERT INTO users (id, created_at, updated_at, username, password, enabled, personnel_number, firstname, lastname)
+VALUES (500, NOW(), NOW(), 'scanner2', '{argon2}$argon2id$v=19$m=4096,t=3,p=1$RXn6Xt/0q/Wtrvdns6NUnw$X3xWUjENAbNSJNckeVFXWrjkoFSowwlu3xHx1/zb40w', true, '0401', 'Scanner', '2');
+INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
+VALUES (5000, NOW(), NOW(), 500, 'DASHBOARD');
+INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
+VALUES (5001, NOW(), NOW(), 500, 'SCANNER');
 
 -- customers
 INSERT INTO customers (id, created_at, updated_at, customer_id, user_id, firstname, lastname, birth_date, country_id,

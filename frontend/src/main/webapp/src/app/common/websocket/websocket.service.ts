@@ -1,9 +1,10 @@
-import {Injectable, OnInit} from '@angular/core';
+import {Injectable} from '@angular/core';
 import {IRxStompPublishParams, RxStomp} from '@stomp/rx-stomp';
 import {PlatformLocation} from '@angular/common';
 import {RxStompConfig} from '@stomp/rx-stomp/esm6/rx-stomp-config';
-import {BehaviorSubject} from 'rxjs';
+import {BehaviorSubject, Observable} from 'rxjs';
 import {RxStompState} from '@stomp/rx-stomp/esm6/rx-stomp-state';
+import {IMessage} from '@stomp/stompjs';
 
 @Injectable({
   providedIn: 'root',
@@ -40,6 +41,10 @@ export class WebsocketService {
 
   publish(parameters: IRxStompPublishParams) {
     this.client.publish(parameters);
+  }
+
+  subscribe(destination: string): Observable<IMessage> {
+    return this.client.watch(destination);
   }
 
   close(): Promise<void> {

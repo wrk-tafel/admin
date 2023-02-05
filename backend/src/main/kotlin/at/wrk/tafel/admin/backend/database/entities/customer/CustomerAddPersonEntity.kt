@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.database.entities.customer
 
+import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.database.entities.base.BaseChangeTrackingEntity
 import at.wrk.tafel.admin.backend.database.entities.staticdata.CountryEntity
 import jakarta.persistence.*
@@ -8,6 +9,7 @@ import java.time.LocalDate
 
 @Entity(name = "CustomerAddPerson")
 @Table(name = "customers_addpersons")
+@ExcludeFromTestCoverage
 class CustomerAddPersonEntity : BaseChangeTrackingEntity() {
     @ManyToOne
     @JoinColumn(name = "customer_id", nullable = false)
