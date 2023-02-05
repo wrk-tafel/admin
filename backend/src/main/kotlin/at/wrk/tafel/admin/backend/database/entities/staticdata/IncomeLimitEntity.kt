@@ -1,11 +1,13 @@
 package at.wrk.tafel.admin.backend.database.entities.staticdata
 
+import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import jakarta.persistence.Column
 import jakarta.persistence.DiscriminatorValue
 import jakarta.persistence.Entity
 
 @Entity(name = "IncomeLimit")
 @DiscriminatorValue("INCOME-LIMIT")
+@ExcludeFromTestCoverage
 class IncomeLimitEntity : StaticValueEntity() {
     @Column(name = "count_adult")
     var countAdult: Int? = null

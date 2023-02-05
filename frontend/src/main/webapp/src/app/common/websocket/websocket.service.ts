@@ -1,9 +1,10 @@
-import {Injectable, OnInit} from '@angular/core';
+import {Injectable} from '@angular/core';
 import {IRxStompPublishParams, RxStomp} from '@stomp/rx-stomp';
 import {PlatformLocation} from '@angular/common';
 import {RxStompConfig} from '@stomp/rx-stomp/esm6/rx-stomp-config';
-import {BehaviorSubject} from 'rxjs';
+import {BehaviorSubject, Observable} from 'rxjs';
 import {RxStompState} from '@stomp/rx-stomp/esm6/rx-stomp-state';
+import {IMessage} from '@stomp/stompjs';
 
 @Injectable({
   providedIn: 'root',
@@ -12,26 +13,19 @@ export class WebsocketService {
   client: RxStomp = new RxStomp();
 
   constructor(private platformLocation: PlatformLocation) {
-    // private cookieService: CookieService,
-    // private authenticationService: AuthenticationService
   }
 
   init(): void {
     const stompConfig: RxStompConfig = {
       brokerURL: this.getBaseUrl(),
       /*
-      connectHeaders: {
-        'X-XSRF-TOKEN': this.cookieService.get('XSRF-TOKEN'),
-        'Authorization': 'Bearer ' + this.authenticationService.getTokenString()
-      },
-       */
+      // TODO keep it for development purposes
       debug: function (str) {
         // tslint:disable-next-line:no-console
         console.debug('RX-STOMP: ' + str);
       },
-      heartbeatIncoming: 0, // Typical value 0 - disabled
-      heartbeatOutgoing: 20000, // Typical value 20000 - every 20 seconds
       logRawCommunication: true
+       */
     };
 
     this.client.configure(stompConfig);
@@ -47,6 +41,10 @@ export class WebsocketService {
 
   publish(parameters: IRxStompPublishParams) {
     this.client.publish(parameters);
+  }
+
+  subscribe(destination: string): Observable<IMessage> {
+    return this.client.watch(destination);
   }
 
   close(): Promise<void> {

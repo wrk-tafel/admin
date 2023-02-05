@@ -2,12 +2,10 @@ package at.wrk.tafel.admin.backend.common.auth.components
 
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import io.jsonwebtoken.JwtException
-import io.jsonwebtoken.MalformedJwtException
 import org.springframework.security.authentication.AuthenticationProvider
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.authentication.CredentialsExpiredException
 import org.springframework.security.core.Authentication
-import org.springframework.security.core.AuthenticationException
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import java.util.*
 
@@ -19,7 +17,7 @@ class TafelJwtAuthProvider(
         return authenticationClass == TafelJwtAuthentication::class.java
     }
 
-    override fun authenticate(authentication: Authentication): Authentication {
+    override fun authenticate(authentication: Authentication): TafelJwtAuthentication {
         try {
             val tafelJwtAuthentication = authentication as TafelJwtAuthentication
 

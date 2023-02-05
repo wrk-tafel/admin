@@ -8,7 +8,6 @@ import at.wrk.tafel.admin.backend.common.auth.model.ChangePasswordResponse
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import org.apache.catalina.User
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
