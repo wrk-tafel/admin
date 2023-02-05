@@ -5,7 +5,7 @@ import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {CommonModule} from '@angular/common';
 import {QRCodeReaderService} from './views/scanner/camera/qrcode-reader.service';
 import {WebsocketService} from '../../common/websocket/websocket.service';
-import {EnrollmentComponent} from './views/enrollment/enrollment.component';
+import {ReceiptComponent} from './views/receipt/receipt.component';
 
 @NgModule({
   imports: [
@@ -16,7 +16,7 @@ import {EnrollmentComponent} from './views/enrollment/enrollment.component';
   ],
   declarations: [
     ScannerComponent,
-    EnrollmentComponent
+    ReceiptComponent
   ],
   providers: [
     QRCodeReaderService,

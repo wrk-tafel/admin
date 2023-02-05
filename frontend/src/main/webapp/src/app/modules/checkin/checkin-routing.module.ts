@@ -1,7 +1,7 @@
 import {NgModule} from '@angular/core';
 import {RouterModule, Routes} from '@angular/router';
 import {ScannerComponent} from './views/scanner/scanner.component';
-import {EnrollmentComponent} from './views/enrollment/enrollment.component';
+import {ReceiptComponent} from './views/receipt/receipt.component';
 
 const routes: Routes = [
   {
@@ -9,8 +9,8 @@ const routes: Routes = [
     component: ScannerComponent
   },
   {
-    path: 'kontrolle',
-    component: EnrollmentComponent
+    path: 'annahme',
+    component: ReceiptComponent
   }
 ];
 

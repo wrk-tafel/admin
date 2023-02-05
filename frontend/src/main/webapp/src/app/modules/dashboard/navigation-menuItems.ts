@@ -17,16 +17,16 @@ export const navigationMenuItems: IPermissionNavData[] = [
     title: true
   },
   {
+    name: 'Annahme',
+    url: '/anmeldung/annahme',
+    icon: 'fa fa-check',
+    permissions: ['CHECKIN']
+  },
+  {
     name: 'Scanner',
     url: '/anmeldung/scanner',
     icon: 'fa fa-barcode',
     permissions: ['SCANNER']
-  },
-  {
-    name: 'Kontrolle',
-    url: '/anmeldung/kontrolle',
-    icon: 'fa fa-check',
-    permissions: ['CHECKIN']
   },
   {
     name: 'Kundenverwaltung',
