@@ -16,5 +16,5 @@ export class ScannerApiService {
 }
 
 export interface ScannerIdsResponse {
-  items: number[];
+  scannerIds: number[];
 }

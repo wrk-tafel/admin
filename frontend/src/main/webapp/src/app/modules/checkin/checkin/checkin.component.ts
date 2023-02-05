@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {FormControl, FormGroup} from "@angular/forms";
 import {CustomerApiService} from "../../../api/customer-api.service";
 import {ScannerApiService} from "../../../api/scanner-api.service";
@@ -7,7 +7,7 @@ import {ScannerApiService} from "../../../api/scanner-api.service";
   selector: 'tafel-checkin',
   templateUrl: 'checkin.component.html'
 })
-export class CheckinComponent {
+export class CheckinComponent implements OnInit {
 
   constructor(
     private customerApiService: CustomerApiService,
@@ -18,6 +18,14 @@ export class CheckinComponent {
   checkinForm = new FormGroup({
     customerId: new FormControl('')
   });
+
+  scannerIds: number[];
+
+  ngOnInit(): void {
+    this.scannerApiService.getScannerIds().subscribe(response => {
+      this.scannerIds = response.scannerIds;
+    });
+  }
 
   searchForCustomerId() {
     const customerId = this.customerId.value;
