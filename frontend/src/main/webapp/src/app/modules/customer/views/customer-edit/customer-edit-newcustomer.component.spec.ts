@@ -6,8 +6,8 @@ import {RouterTestingModule} from '@angular/router/testing';
 import * as moment from 'moment';
 import {ModalModule} from 'ngx-bootstrap/modal';
 import {EMPTY, of} from 'rxjs';
-import {CustomerApiService, CustomerData} from '../api/customer-api.service';
-import {CustomerFormComponent} from '../components/customer-form.component';
+import {CustomerApiService, CustomerData} from '../../../../api/customer-api.service';
+import {CustomerFormComponent} from '../customer-form/customer-form.component';
 import {CustomerEditComponent} from './customer-edit.component';
 import {By} from '@angular/platform-browser';
 

@@ -1,7 +1,7 @@
 import {Component} from '@angular/core';
 import {FormControl, FormGroup} from '@angular/forms';
 import {Router} from '@angular/router';
-import {CustomerAddressData, CustomerApiService, CustomerSearchResult} from '../api/customer-api.service';
+import {CustomerAddressData, CustomerApiService, CustomerSearchResult} from '../../../../api/customer-api.service';
 
 @Component({
   selector: 'tafel-customer-search',

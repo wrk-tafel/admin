@@ -1,6 +1,6 @@
 import {Component, OnInit, ViewChild} from '@angular/core';
-import {CustomerFormComponent} from '../components/customer-form.component';
-import {CustomerApiService, CustomerData, ValidateCustomerResponse} from '../api/customer-api.service';
+import {CustomerFormComponent} from '../customer-form/customer-form.component';
+import {CustomerApiService, CustomerData, ValidateCustomerResponse} from '../../../../api/customer-api.service';
 import {ModalDirective} from 'ngx-bootstrap/modal';
 import {ActivatedRoute, Router} from '@angular/router';
 
