@@ -18,3 +18,7 @@ export class ScannerApiService {
 export interface ScannerIdsResponse {
   scannerIds: number[];
 }
+
+export interface ScanResult {
+  value: number;
+}

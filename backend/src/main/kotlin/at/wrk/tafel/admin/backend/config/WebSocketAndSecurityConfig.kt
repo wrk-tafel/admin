@@ -62,7 +62,7 @@ class WebSocketAndSecurityConfig(
 
     fun messageAuthorizationManager(messages: MessageMatcherDelegatingAuthorizationManager.Builder): AuthorizationManager<Message<*>?>? {
         return messages
-            .simpDestMatchers("/app/scanners/**", "/user/queue/scanners/**")
+            .simpDestMatchers("/app/scanners/**", "/user/queue/scanners/**", "/topic/scanners/**")
             .hasAuthority("SCANNER")
             .simpTypeMatchers(SimpMessageType.CONNECT, SimpMessageType.DISCONNECT).authenticated()
             .anyMessage().denyAll()

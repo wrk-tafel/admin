@@ -116,17 +116,17 @@ describe('ScannerComponent', () => {
     const fixture = TestBed.createComponent(ScannerComponent);
     const component = fixture.componentInstance;
 
-    const testText = 'test123';
+    const testValue = '12345';
     component.lastSentText = null;
     component.apiClientReady = true;
 
-    component.qrCodeReaderSuccessCallback(testText, undefined);
+    component.qrCodeReaderSuccessCallback(testValue, undefined);
 
     expect(wsService.publish).toHaveBeenCalledWith({
       destination: '/app/scanners/result',
-      body: JSON.stringify({value: testText})
+      body: JSON.stringify({value: +testValue})
     });
-    expect(component.lastSentText).toBe(testText);
+    expect(component.lastSentText).toBe(testValue);
   });
 
   it('qrCodeReaderSuccessCallback and received the same text', () => {
@@ -147,15 +147,15 @@ describe('ScannerComponent', () => {
     const fixture = TestBed.createComponent(ScannerComponent);
     const component = fixture.componentInstance;
 
-    const testText = 'test123';
-    component.lastSentText = 'old-test123';
+    const testText = '12345';
+    component.lastSentText = 'old-12345';
     component.apiClientReady = true;
 
     component.qrCodeReaderSuccessCallback(testText, undefined);
 
     expect(wsService.publish).toHaveBeenCalledWith({
       destination: '/app/scanners/result',
-      body: JSON.stringify({value: testText})
+      body: JSON.stringify({value: +testText})
     });
     expect(component.lastSentText).toBe(testText);
   });

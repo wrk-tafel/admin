@@ -1,7 +1,10 @@
 import {Component, OnInit} from '@angular/core';
 import {CustomerApiService} from '../../../api/customer-api.service';
-import {ScannerApiService} from '../../../api/scanner-api.service';
+import {ScannerApiService, ScanResult} from '../../../api/scanner-api.service';
 import {WebsocketService} from '../../../common/websocket/websocket.service';
+import {Subscription} from 'rxjs';
+import {IMessage} from '@stomp/stompjs';
+import {RxStompState} from '@stomp/rx-stomp';
 
 @Component({
   selector: 'tafel-checkin',
@@ -18,10 +21,20 @@ export class CheckinComponent implements OnInit {
 
   scannerIds: number[];
   currentScannerId: number;
+  wsApiClientReady: boolean = false;
   scannerReadyState: boolean;
+  scannerSubscription: Subscription;
+
   customerId: number;
 
   ngOnInit(): void {
+    this.websocketService.init();
+    this.websocketService.connect();
+
+    this.websocketService.getConnectionState().subscribe((connectionState: RxStompState) => {
+      this.wsApiClientReady = true;
+    });
+
     this.scannerApiService.getScannerIds().subscribe(response => {
       this.scannerIds = response.scannerIds;
     });
@@ -45,13 +58,20 @@ export class CheckinComponent implements OnInit {
 
   set selectedScannerId(scannerId: number) {
     this.currentScannerId = scannerId;
-    /*
-    this.websocketService.subscribe('').subscribe(response => {
+    if (this.scannerSubscription) {
+      this.scannerSubscription.unsubscribe();
+    }
+    this.scannerReadyState = false;
 
-    });
-     */
-    // TODO in case of change quit subscribe
-    // TODO subscribe ws topic
+    if (scannerId) {
+      this.scannerSubscription = this.websocketService.watch(`/topic/scanners/${this.currentScannerId}/results`)
+        .subscribe((message: IMessage) => {
+          const result: ScanResult = JSON.parse(message.body);
+          this.customerId = result.value;
+        });
+
+      this.scannerReadyState = true;
+    }
   }
 
 }
