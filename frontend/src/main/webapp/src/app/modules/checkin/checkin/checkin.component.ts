@@ -1,6 +1,7 @@
 import {Component} from '@angular/core';
 import {FormControl, FormGroup} from "@angular/forms";
 import {CustomerApiService} from "../../../api/customer-api.service";
+import {ScannerApiService} from "../../../api/scanner-api.service";
 
 @Component({
   selector: 'tafel-checkin',
@@ -8,7 +9,10 @@ import {CustomerApiService} from "../../../api/customer-api.service";
 })
 export class CheckinComponent {
 
-  constructor(private customerApiService: CustomerApiService) {
+  constructor(
+    private customerApiService: CustomerApiService,
+    private scannerApiService: ScannerApiService
+  ) {
   }
 
   checkinForm = new FormGroup({

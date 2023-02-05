@@ -37,8 +37,8 @@ class ScannerController(
     }
 
     @GetMapping
-    fun getScanners(): ScannersResponse {
-        return ScannersResponse(scannerIds = scannerService.getScannerIds())
+    fun getScannerIds(): ScannerIdsResponse {
+        return ScannerIdsResponse(scannerIds = scannerService.getScannerIds())
     }
 
 }
@@ -54,6 +54,6 @@ data class ScannerRegistration(
 )
 
 @ExcludeFromTestCoverage
-data class ScannersResponse(
+data class ScannerIdsResponse(
     val scannerIds: List<Int>
 )

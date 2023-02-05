@@ -43,7 +43,7 @@ internal class ScannerControllerTest {
         val scannerIds = listOf(1, 2, 3)
         every { service.getScannerIds() } returns scannerIds
 
-        val response = controller.getScanners()
+        val response = controller.getScannerIds()
 
         assertThat(response.scannerIds).containsExactly(*scannerIds.toTypedArray())
     }
@@ -52,7 +52,7 @@ internal class ScannerControllerTest {
     fun `get scanners empty`() {
         every { service.getScannerIds() } returns emptyList()
 
-        val response = controller.getScanners()
+        val response = controller.getScannerIds()
 
         assertThat(response.scannerIds).isEmpty()
     }
