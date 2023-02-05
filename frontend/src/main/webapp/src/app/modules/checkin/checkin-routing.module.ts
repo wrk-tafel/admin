@@ -1,6 +1,6 @@
 import {NgModule} from '@angular/core';
 import {RouterModule, Routes} from '@angular/router';
-import {ScannerComponent} from './views/scanner/scanner.component';
+import {ScannerComponent} from './scanner/scanner.component';
 import {ReceiptComponent} from './receipt/receipt.component';
 
 const routes: Routes = [

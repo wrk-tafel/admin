@@ -1,7 +1,7 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
-import {QRCodeReaderService} from './camera/qrcode-reader.service';
+import {QRCodeReaderService} from '../camera/qrcode-reader.service';
 import {RxStompState} from '@stomp/rx-stomp';
-import {WebsocketService} from '../../../../common/websocket/websocket.service';
+import {WebsocketService} from '../../../common/websocket/websocket.service';
 import {CameraDevice} from 'html5-qrcode/esm/camera/core';
 import {Html5QrcodeResult} from 'html5-qrcode/core';
 

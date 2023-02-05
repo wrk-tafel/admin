@@ -1,11 +1,11 @@
 import {fakeAsync, TestBed, tick, waitForAsync} from '@angular/core/testing';
 import {CommonModule} from '@angular/common';
 import {ScannerComponent, ScannerRegistration} from './scanner.component';
-import {QRCodeReaderService} from './camera/qrcode-reader.service';
+import {QRCodeReaderService} from '../camera/qrcode-reader.service';
 import {CameraDevice} from 'html5-qrcode/esm/camera/core';
 import {BehaviorSubject, of} from 'rxjs';
 import {RxStompState} from '@stomp/rx-stomp';
-import {WebsocketService} from '../../../../common/websocket/websocket.service';
+import {WebsocketService} from '../../../common/websocket/websocket.service';
 import {IMessage} from '@stomp/stompjs';
 
 describe('ScannerComponent', () => {

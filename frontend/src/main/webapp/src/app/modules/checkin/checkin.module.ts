@@ -1,9 +1,9 @@
 import {NgModule} from '@angular/core';
 import {CheckinRoutingModule} from './checkin-routing.module';
-import {ScannerComponent} from './views/scanner/scanner.component';
+import {ScannerComponent} from './scanner/scanner.component';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {CommonModule} from '@angular/common';
-import {QRCodeReaderService} from './views/scanner/camera/qrcode-reader.service';
+import {QRCodeReaderService} from './camera/qrcode-reader.service';
 import {WebsocketService} from '../../common/websocket/websocket.service';
 import {ReceiptComponent} from './receipt/receipt.component';
 
