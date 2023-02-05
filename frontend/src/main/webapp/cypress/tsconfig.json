@@ -7,7 +7,8 @@
     ],
     "types": [
       "cypress",
-      "@types/node"
+      "@types/node",
+      "@lensesio/cypress-websocket-testing"
     ]
   },
   "include": [

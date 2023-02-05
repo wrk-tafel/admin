@@ -1,18 +1,41 @@
 package at.wrk.tafel.admin.backend.modules.checkin.scanner
 
+import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import io.mockk.every
+import io.mockk.impl.annotations.InjectMockKs
+import io.mockk.impl.annotations.RelaxedMockK
+import io.mockk.junit5.MockKExtension
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 
+@ExtendWith(MockKExtension::class)
 internal class ScannerControllerTest {
 
-    private val controller = ScannerController()
+    @RelaxedMockK
+    private lateinit var service: ScannerService
+
+    @InjectMockKs
+    private lateinit var controller: ScannerController
 
     @Test
-    fun `retrieve scanresult`() {
-        val testResult = ScanResult(value = "test123")
+    fun `scanner registration successful`() {
+        val authentication = TafelJwtAuthentication(tokenValue = "TOKEN", username = "USER")
+        val id = 1
+        every { service.registerScanner(authentication.username!!) } returns id
 
-        controller.retrieveScanResult(testResult)
+        val registration = controller.registerScanner(authentication)
 
-        // TODO add asserts
+        assertThat(registration.scannerId).isEqualTo(id)
+    }
+
+    @Test
+    fun `retrieve scan result`() {
+        val result = ScanResult(value = "12345")
+
+        controller.retrieveScanResult(result)
+
+        // TODO extend
     }
 
 }

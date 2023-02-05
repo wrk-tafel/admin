@@ -1,8 +1,8 @@
 package at.wrk.tafel.admin.backend.security
 
-import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
 import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
 import at.wrk.tafel.admin.backend.database.entities.auth.UserAuthorityEntity
+import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 
 val testUserPermissions = listOf("TEST1", "TEST2")

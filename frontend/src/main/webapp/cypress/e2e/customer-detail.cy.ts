@@ -41,9 +41,11 @@ describe('Customer Detail', () => {
 
   it('edit customer', () => {
     cy.visit('/#/kunden/detail/101');
-    cy.byTestId('editCustomerButton').click();
 
-    cy.url().should('include', '/kunden/bearbeiten/101');
+    cy.intercept('/*/customers/101').as('getCustomer');
+    cy.wait('@getCustomer').byTestId('editCustomerButton').click();
+
+    cy.url({timeout: 10000}).should('include', '/kunden/bearbeiten/101');
   });
 
 });

@@ -1,10 +1,12 @@
 package at.wrk.tafel.admin.backend.database.entities.auth
 
+import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.database.entities.base.BaseChangeTrackingEntity
 import jakarta.persistence.*
 
 @Entity(name = "User")
 @Table(name = "users")
+@ExcludeFromTestCoverage
 class UserEntity : BaseChangeTrackingEntity() {
     @Column(name = "username")
     var username: String? = null
