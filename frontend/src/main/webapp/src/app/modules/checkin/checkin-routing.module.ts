@@ -1,7 +1,7 @@
 import {NgModule} from '@angular/core';
 import {RouterModule, Routes} from '@angular/router';
 import {ScannerComponent} from './scanner/scanner.component';
-import {ReceiptComponent} from './receipt/receipt.component';
+import {CheckinComponent} from './checkin/checkin.component';
 
 const routes: Routes = [
   {
@@ -10,7 +10,7 @@ const routes: Routes = [
   },
   {
     path: 'annahme',
-    component: ReceiptComponent
+    component: CheckinComponent
   }
 ];
 
