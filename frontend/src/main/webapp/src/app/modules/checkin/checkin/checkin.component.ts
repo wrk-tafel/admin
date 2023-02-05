@@ -16,6 +16,7 @@ export class CheckinComponent implements OnInit {
 
   scannerIds: number[];
   currentScannerId: number;
+  scannerReadyState: boolean;
   customerId: number;
 
   ngOnInit(): void {
