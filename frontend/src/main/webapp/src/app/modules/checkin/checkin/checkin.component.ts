@@ -1,7 +1,6 @@
 import {Component, OnInit} from '@angular/core';
-import {FormControl, FormGroup} from "@angular/forms";
-import {CustomerApiService} from "../../../api/customer-api.service";
-import {ScannerApiService} from "../../../api/scanner-api.service";
+import {CustomerApiService} from '../../../api/customer-api.service';
+import {ScannerApiService} from '../../../api/scanner-api.service';
 
 @Component({
   selector: 'tafel-checkin',
@@ -15,11 +14,9 @@ export class CheckinComponent implements OnInit {
   ) {
   }
 
-  checkinForm = new FormGroup({
-    customerId: new FormControl('')
-  });
-
   scannerIds: number[];
+  currentScannerId: number;
+  customerId: number;
 
   ngOnInit(): void {
     this.scannerApiService.getScannerIds().subscribe(response => {
@@ -28,8 +25,7 @@ export class CheckinComponent implements OnInit {
   }
 
   searchForCustomerId() {
-    const customerId = this.customerId.value;
-    this.customerApiService.getCustomer(customerId)
+    this.customerApiService.getCustomer(this.customerId)
       .subscribe(() => {
         // TODO impl - show details panel
       }, error => {
@@ -40,8 +36,14 @@ export class CheckinComponent implements OnInit {
       });
   }
 
-  get customerId() {
-    return this.checkinForm.get('customerId');
+  get selectedScannerId(): number {
+    return this.currentScannerId;
+  }
+
+  set selectedScannerId(scannerId: number) {
+    this.currentScannerId = scannerId;
+    // TODO in case of change quit subscribe
+    // TODO subscribe ws topic
   }
 
 }
