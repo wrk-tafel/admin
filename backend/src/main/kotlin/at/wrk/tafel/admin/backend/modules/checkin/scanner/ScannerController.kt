@@ -7,17 +7,21 @@ import org.slf4j.LoggerFactory
 import org.springframework.messaging.handler.annotation.MessageMapping
 import org.springframework.messaging.simp.annotation.SendToUser
 import org.springframework.security.core.annotation.AuthenticationPrincipal
-import org.springframework.stereotype.Controller
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 import java.util.*
 
-@Controller
+@RestController
+@RequestMapping("/api/scanners")
+@MessageMapping("/scanners")
 class ScannerController(
     private val scannerService: ScannerService
 ) {
 
     private val logger: Logger = LoggerFactory.getLogger(ScannerController::class.java)
 
-    @MessageMapping("/scanners/register")
+    @MessageMapping("/register")
     @SendToUser("/queue/scanners/registration")
     fun registerScanner(
         @AuthenticationPrincipal authentication: TafelJwtAuthentication
@@ -26,10 +30,15 @@ class ScannerController(
         return ScannerRegistration(scannerId = id)
     }
 
-    @MessageMapping("/scanners/result")
+    @MessageMapping("/result")
     fun retrieveScanResult(result: ScanResult) {
         logger.info("GOT SCANRESULT: $result")
         // TODO process result
+    }
+
+    @GetMapping
+    fun getScanners(): ScannersResponse {
+        return ScannersResponse(scannerIds = scannerService.getScannerIds())
     }
 
 }
@@ -42,4 +51,9 @@ data class ScanResult(
 @ExcludeFromTestCoverage
 data class ScannerRegistration(
     val scannerId: Int
+)
+
+@ExcludeFromTestCoverage
+data class ScannersResponse(
+    val scannerIds: List<Int>
 )
