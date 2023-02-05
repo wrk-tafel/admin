@@ -1,10 +1,10 @@
 import {Injectable} from '@angular/core';
 import {IRxStompPublishParams, RxStomp} from '@stomp/rx-stomp';
-import {PlatformLocation} from '@angular/common';
 import {RxStompConfig} from '@stomp/rx-stomp/esm6/rx-stomp-config';
 import {BehaviorSubject, Observable} from 'rxjs';
 import {RxStompState} from '@stomp/rx-stomp/esm6/rx-stomp-state';
 import {IMessage} from '@stomp/stompjs';
+import {UrlHelperService} from '../util/url-helper.service';
 
 @Injectable({
   providedIn: 'root',
@@ -12,7 +12,7 @@ import {IMessage} from '@stomp/stompjs';
 export class WebsocketService {
   client: RxStomp = new RxStomp();
 
-  constructor(private platformLocation: PlatformLocation) {
+  constructor(private urlHelper: UrlHelperService) {
   }
 
   init(): void {
@@ -52,12 +52,7 @@ export class WebsocketService {
   }
 
   getBaseUrl() {
-    let pathname = this.platformLocation.pathname;
-    if (pathname === '/') {
-      pathname = '';
-    }
-
-    const baseUrl = this.platformLocation.protocol + '//' + this.platformLocation.hostname + ':' + this.platformLocation.port + pathname + '/api/websockets';
+    const baseUrl = this.urlHelper.getBaseUrl() + '/api/websockets';
     return baseUrl.replace('http', 'ws');
   }
 

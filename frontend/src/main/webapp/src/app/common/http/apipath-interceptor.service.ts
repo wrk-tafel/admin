@@ -1,23 +1,21 @@
 import {HttpEvent, HttpHandler, HttpInterceptor, HttpRequest} from '@angular/common/http';
 import {Injectable} from '@angular/core';
-import {Router} from '@angular/router';
 import {Observable} from 'rxjs';
+import {UrlHelperService} from '../util/url-helper.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ApiPathInterceptor implements HttpInterceptor {
 
-  constructor(
-    private window: Window,
-    private router: Router) {
-    // TODO maybe replace router by platformLocation
+  constructor(private urlHelper: UrlHelperService) {
   }
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    const baseUrl = `${this.window.location.pathname.replace(this.router.url, '')}/`;
-    const apiPath = `${baseUrl}api${req.url}`.replaceAll('//', '/');
-    const modRequest = req.clone({url: apiPath});
+    const baseUrl = this.urlHelper.getBaseUrl();
+    const apiPath = `/api/${req.url}`.replaceAll('//', '/');
+    const absoluteUrl = baseUrl + apiPath;
+    const modRequest = req.clone({url: absoluteUrl});
     return next.handle(modRequest);
   }
 
