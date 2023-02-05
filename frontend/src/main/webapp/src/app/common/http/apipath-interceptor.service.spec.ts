@@ -2,9 +2,11 @@ import {HTTP_INTERCEPTORS, HttpClient} from '@angular/common/http';
 import {TestBed} from '@angular/core/testing';
 import {HttpClientTestingModule, HttpTestingController} from '@angular/common/http/testing';
 import {ApiPathInterceptor} from './apipath-interceptor.service';
-import {Router} from '@angular/router';
+import {UrlHelperService} from '../util/url-helper.service';
 
 describe('ApiPathInterceptor', () => {
+  let urlHelperSpy: jasmine.SpyObj<UrlHelperService>;
+
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
@@ -14,19 +16,21 @@ describe('ApiPathInterceptor', () => {
           provide: HTTP_INTERCEPTORS,
           useClass: ApiPathInterceptor,
           multi: true
+        },
+        {
+          provide: UrlHelperService,
+          useValue: jasmine.createSpyObj('UrlHelperService', ['getBaseUrl'])
         }
       ],
     });
+
+    urlHelperSpy = TestBed.inject(UrlHelperService) as jasmine.SpyObj<UrlHelperService>;
   });
 
-  it('should add the api path when base is root and no subpath', () => {
-    TestBed.overrideProvider(Window, {useValue: {location: {pathname: '/'}}});
-    const routerSpy = jasmine.createSpyObj('Router', ['url']);
-    TestBed.overrideProvider(Router, {useValue: routerSpy});
-
+  it('should add the api path with base root without subpath', () => {
     const client = TestBed.inject(HttpClient);
     const httpMock = TestBed.inject(HttpTestingController);
-    routerSpy.url.and.returnValue('/');
+    urlHelperSpy.getBaseUrl.and.returnValue('/');
 
     client.get('/test').subscribe();
 
@@ -34,29 +38,10 @@ describe('ApiPathInterceptor', () => {
     expect().nothing();
   });
 
-  it('should add the api path when base is root and with further subpath', () => {
-    TestBed.overrideProvider(Window, {useValue: {location: {pathname: '/'}}});
-    const routerSpy = jasmine.createSpyObj('Router', ['url']);
-    TestBed.overrideProvider(Router, {useValue: routerSpy});
-
+  it('should add the api path with base root and with further subpath', () => {
     const client = TestBed.inject(HttpClient);
     const httpMock = TestBed.inject(HttpTestingController);
-    routerSpy.url.and.returnValue('/subpath');
-
-    client.get('/test').subscribe();
-
-    httpMock.expectOne('/api/test');
-    expect().nothing();
-  });
-
-  it('should add the api path when base is subpath and no further subpath', () => {
-    TestBed.overrideProvider(Window, {useValue: {location: {pathname: '/subpath'}}});
-    const routerSpy = jasmine.createSpyObj('Router', ['url']);
-    TestBed.overrideProvider(Router, {useValue: routerSpy});
-
-    const client = TestBed.inject(HttpClient);
-    const httpMock = TestBed.inject(HttpTestingController);
-    routerSpy.url.and.returnValue('/');
+    urlHelperSpy.getBaseUrl.and.returnValue('/subpath');
 
     client.get('/test').subscribe();
 
@@ -64,18 +49,14 @@ describe('ApiPathInterceptor', () => {
     expect().nothing();
   });
 
-  it('should add the api path when base is subpath and further subpath', () => {
-    TestBed.overrideProvider(Window, {useValue: {location: {pathname: '/subpath'}}});
-    const routerSpy = jasmine.createSpyObj('Router', ['url']);
-    TestBed.overrideProvider(Router, {useValue: routerSpy});
-
+  it('should add the api path with subpath and trailing end', () => {
     const client = TestBed.inject(HttpClient);
     const httpMock = TestBed.inject(HttpTestingController);
-    routerSpy.url.and.returnValue('/subpath2');
+    urlHelperSpy.getBaseUrl.and.returnValue('/subpath3/');
 
     client.get('/test').subscribe();
 
-    httpMock.expectOne('/subpath/api/test');
+    httpMock.expectOne('/subpath3/api/test');
     expect().nothing();
   });
 
