@@ -23,6 +23,12 @@ export const navigationMenuItems: IPermissionNavData[] = [
     permissions: ['SCANNER']
   },
   {
+    name: 'Kontrolle',
+    url: '/anmeldung/kontrolle',
+    icon: 'fa fa-check',
+    permissions: ['CHECKIN']
+  },
+  {
     name: 'Kundenverwaltung',
     title: true
   },
