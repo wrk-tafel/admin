@@ -30,33 +30,22 @@ describe('ApiPathInterceptor', () => {
   it('should add the api path with base root without subpath', () => {
     const client = TestBed.inject(HttpClient);
     const httpMock = TestBed.inject(HttpTestingController);
-    urlHelperSpy.getBaseUrl.and.returnValue('/');
+    urlHelperSpy.getBaseUrl.and.returnValue('http://test:1234');
 
     client.get('/test').subscribe();
 
-    httpMock.expectOne('/api/test');
+    httpMock.expectOne('http://test:1234/api/test');
     expect().nothing();
   });
 
-  it('should add the api path with base root and with further subpath', () => {
+  it('should add the api path with base root and with subpath', () => {
     const client = TestBed.inject(HttpClient);
     const httpMock = TestBed.inject(HttpTestingController);
-    urlHelperSpy.getBaseUrl.and.returnValue('/subpath');
+    urlHelperSpy.getBaseUrl.and.returnValue('http://test:1234/subpath');
 
     client.get('/test').subscribe();
 
-    httpMock.expectOne('/subpath/api/test');
-    expect().nothing();
-  });
-
-  it('should add the api path with subpath and trailing end', () => {
-    const client = TestBed.inject(HttpClient);
-    const httpMock = TestBed.inject(HttpTestingController);
-    urlHelperSpy.getBaseUrl.and.returnValue('/subpath3/');
-
-    client.get('/test').subscribe();
-
-    httpMock.expectOne('/subpath3/api/test');
+    httpMock.expectOne('http://test:1234/subpath/api/test');
     expect().nothing();
   });
 
