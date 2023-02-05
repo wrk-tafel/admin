@@ -1,7 +1,7 @@
 import {HttpClient, HttpParams, HttpResponse} from '@angular/common/http';
 import {Injectable} from '@angular/core';
 import {Observable} from 'rxjs';
-import {CountryData} from '../../../common/api/country-api.service';
+import {CountryData} from './country-api.service';
 
 @Injectable()
 export class CustomerApiService {

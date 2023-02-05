@@ -2,8 +2,8 @@ import {TestBed, waitForAsync} from '@angular/core/testing';
 import {RouterTestingModule} from '@angular/router/testing';
 import * as moment from 'moment';
 import {of} from 'rxjs';
-import {CountryApiService} from '../../../common/api/country-api.service';
-import {CustomerData} from '../api/customer-api.service';
+import {CountryApiService} from '../../../../api/country-api.service';
+import {CustomerData} from '../../../../api/customer-api.service';
 import {CustomerFormComponent} from './customer-form.component';
 import {FormControl, FormGroup, ReactiveFormsModule} from '@angular/forms';
 

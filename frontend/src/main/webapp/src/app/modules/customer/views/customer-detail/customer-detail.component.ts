@@ -1,8 +1,8 @@
 import {Component, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import * as moment from 'moment';
-import {FileHelperService} from '../../../common/util/file-helper.service';
-import {CustomerAddressData, CustomerApiService, CustomerData, CustomerIssuer} from '../api/customer-api.service';
+import {FileHelperService} from '../../../../common/util/file-helper.service';
+import {CustomerAddressData, CustomerApiService, CustomerData, CustomerIssuer} from '../../../../api/customer-api.service';
 import {HttpResponse} from '@angular/common/http';
 
 @Component({
