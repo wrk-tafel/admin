@@ -5,7 +5,7 @@ import {Router} from '@angular/router';
 import {RouterTestingModule} from '@angular/router/testing';
 import * as moment from 'moment';
 import {of, throwError} from 'rxjs';
-import {CustomerApiService} from '../api/customer-api.service';
+import {CustomerApiService} from '../../../../api/customer-api.service';
 import {CustomerSearchComponent} from './customer-search.component';
 
 describe('CustomerSearchComponent', () => {
