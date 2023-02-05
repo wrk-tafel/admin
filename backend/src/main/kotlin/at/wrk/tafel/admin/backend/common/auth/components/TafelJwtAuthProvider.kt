@@ -17,7 +17,7 @@ class TafelJwtAuthProvider(
         return authenticationClass == TafelJwtAuthentication::class.java
     }
 
-    override fun authenticate(authentication: Authentication): Authentication {
+    override fun authenticate(authentication: Authentication): TafelJwtAuthentication {
         try {
             val tafelJwtAuthentication = authentication as TafelJwtAuthentication
 

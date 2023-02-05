@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.database.entities.customer
 
+import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.entities.base.BaseChangeTrackingEntity
 import at.wrk.tafel.admin.backend.database.entities.staticdata.CountryEntity
@@ -9,6 +10,7 @@ import java.time.LocalDate
 
 @Entity(name = "Customer")
 @Table(name = "customers")
+@ExcludeFromTestCoverage
 class CustomerEntity : BaseChangeTrackingEntity() {
     @Column(name = "customer_id")
     var customerId: Long? = null

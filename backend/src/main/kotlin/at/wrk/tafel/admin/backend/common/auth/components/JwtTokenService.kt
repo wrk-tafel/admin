@@ -55,4 +55,5 @@ class JwtTokenService(
             applicationProperties.security.jwtToken.secret.value.toByteArray(),
             applicationProperties.security.jwtToken.secret.algorithm
         )
+
 }
