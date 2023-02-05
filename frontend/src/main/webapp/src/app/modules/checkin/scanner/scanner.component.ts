@@ -82,7 +82,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
   }
 
   processClientRegistration() {
-    this.websocketService.subscribe('/user/queue/scanners/registration').subscribe((message) => {
+    this.websocketService.watch('/user/queue/scanners/registration').subscribe((message) => {
         const registration: ScannerRegistration = JSON.parse(message.body);
         this.scannerId = registration.scannerId;
         this.apiClientReady = true;

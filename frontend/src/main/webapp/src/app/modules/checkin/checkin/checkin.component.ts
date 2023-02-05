@@ -1,6 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {CustomerApiService} from '../../../api/customer-api.service';
 import {ScannerApiService} from '../../../api/scanner-api.service';
+import {WebsocketService} from '../../../common/websocket/websocket.service';
 
 @Component({
   selector: 'tafel-checkin',
@@ -10,7 +11,8 @@ export class CheckinComponent implements OnInit {
 
   constructor(
     private customerApiService: CustomerApiService,
-    private scannerApiService: ScannerApiService
+    private scannerApiService: ScannerApiService,
+    private websocketService: WebsocketService
   ) {
   }
 
@@ -43,6 +45,11 @@ export class CheckinComponent implements OnInit {
 
   set selectedScannerId(scannerId: number) {
     this.currentScannerId = scannerId;
+    /*
+    this.websocketService.subscribe('').subscribe(response => {
+
+    });
+     */
     // TODO in case of change quit subscribe
     // TODO subscribe ws topic
   }

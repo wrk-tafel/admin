@@ -14,7 +14,7 @@ describe('ScannerComponent', () => {
 
   beforeEach(waitForAsync(() => {
     const wsServiceSpy = jasmine.createSpyObj('WebsocketService',
-      ['close', 'publish', 'init', 'connect', 'getConnectionState', 'subscribe']
+      ['close', 'publish', 'init', 'connect', 'getConnectionState', 'watch']
     );
     const qrCodeReaderServiceSpy = jasmine.createSpyObj('QRCodeReaderService', ['stop', 'saveCurrentCamera', 'restart', 'getCameras', 'getCurrentCamera', 'init', 'start']);
 
@@ -63,7 +63,7 @@ describe('ScannerComponent', () => {
       binaryBody: null,
       isBinaryBody: false
     };
-    wsService.subscribe.and.returnValue(of(message));
+    wsService.watch.and.returnValue(of(message));
 
     component.ngOnInit();
     tick(1000);
@@ -186,7 +186,7 @@ describe('ScannerComponent', () => {
       binaryBody: null,
       isBinaryBody: false
     };
-    wsService.subscribe.and.returnValue(of(message));
+    wsService.watch.and.returnValue(of(message));
 
     const fixture = TestBed.createComponent(ScannerComponent);
     const component = fixture.componentInstance;
