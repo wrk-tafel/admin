@@ -1,5 +1,5 @@
 import {Component, OnInit} from '@angular/core';
-import {CustomerApiService} from '../../../api/customer-api.service';
+import {CustomerApiService, CustomerData} from '../../../api/customer-api.service';
 import {ScannerApiService, ScanResult} from '../../../api/scanner-api.service';
 import {WebsocketService} from '../../../common/websocket/websocket.service';
 import {Subscription} from 'rxjs';
@@ -19,6 +19,8 @@ export class CheckinComponent implements OnInit {
   ) {
   }
 
+  errorMessage: string;
+
   scannerIds: number[];
   currentScannerId: number;
   wsApiClientReady: boolean = false;
@@ -26,6 +28,7 @@ export class CheckinComponent implements OnInit {
   scannerSubscription: Subscription;
 
   customerId: number;
+  customer: CustomerData;
 
   ngOnInit(): void {
     this.websocketService.init();
@@ -42,12 +45,13 @@ export class CheckinComponent implements OnInit {
 
   searchForCustomerId() {
     this.customerApiService.getCustomer(this.customerId)
-      .subscribe(() => {
-        // TODO impl - show details panel
+      .subscribe((customer: CustomerData) => {
+        this.customer = customer;
+        this.errorMessage = undefined;
       }, error => {
         if (error.status === 404) {
-          // TODO impl
-          // this.errorMessage = 'Kundennummer ' + customerId + ' nicht gefunden!';
+          this.customer = undefined;
+          this.errorMessage = 'Kundennummer ' + this.customerId + ' nicht gefunden!';
         }
       });
   }
@@ -77,6 +81,7 @@ export class CheckinComponent implements OnInit {
         .subscribe((message: IMessage) => {
           const result: ScanResult = JSON.parse(message.body);
           this.customerId = result.value;
+          this.searchForCustomerId();
         });
 
       this.scannerReadyState = true;
