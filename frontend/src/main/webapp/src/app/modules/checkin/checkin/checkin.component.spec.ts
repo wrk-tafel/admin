@@ -116,4 +116,24 @@ describe('CheckinComponent', () => {
     expect(wsService.watch).not.toHaveBeenCalled();
   });
 
+  it('selectedScannerId switch to another scanner', () => {
+    const testSubscription = jasmine.createSpyObj('Subscription', ['unsubscribe']);
+    wsService.watch.and.returnValue(of());
+
+    const fixture = TestBed.createComponent(CheckinComponent);
+    const component = fixture.componentInstance;
+    component.currentScannerId = 123;
+    component.customerId = 1111;
+    component.scannerReadyState = true;
+    component.scannerSubscription = testSubscription;
+
+    const newScannerId = 456;
+    component.selectedScannerId = newScannerId;
+
+    expect(component.currentScannerId).toBe(newScannerId);
+    expect(component.scannerReadyState).toBeTruthy();
+    expect(testSubscription.unsubscribe).toHaveBeenCalled();
+    expect(wsService.watch).toHaveBeenCalled();
+  });
+
 });
