@@ -31,8 +31,8 @@ export class CheckinComponent implements OnInit {
     this.websocketService.init();
     this.websocketService.connect();
 
-    this.websocketService.getConnectionState().subscribe((connectionState: RxStompState) => {
-      this.wsApiClientReady = true;
+    this.websocketService.getConnectionState().subscribe((state: RxStompState) => {
+      this.processWsConnectionState(state);
     });
 
     this.scannerApiService.getScannerIds().subscribe(response => {
@@ -52,6 +52,14 @@ export class CheckinComponent implements OnInit {
       });
   }
 
+  processWsConnectionState(state: RxStompState) {
+    if (state === RxStompState.OPEN) {
+      this.wsApiClientReady = true;
+    } else {
+      this.wsApiClientReady = false;
+    }
+  }
+
   get selectedScannerId(): number {
     return this.currentScannerId;
   }
@@ -61,6 +69,7 @@ export class CheckinComponent implements OnInit {
     if (this.scannerSubscription) {
       this.scannerSubscription.unsubscribe();
     }
+    this.customerId = undefined;
     this.scannerReadyState = false;
 
     if (scannerId) {
