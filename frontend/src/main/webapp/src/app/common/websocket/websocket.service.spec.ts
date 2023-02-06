@@ -44,13 +44,13 @@ describe('WebsocketService', () => {
     expect(clientSpy.publish).toHaveBeenCalledWith(parameters);
   });
 
-  it('subscribe called', () => {
+  it('watch called', () => {
     const {service, clientSpy} = setup();
     const mockResult: Observable<IMessage> = of();
     clientSpy.watch.and.returnValue(mockResult);
 
     const destination = '/test123';
-    const result = service.subscribe(destination);
+    const result = service.watch(destination);
 
     expect(clientSpy.watch).toHaveBeenCalledWith(destination);
     expect(result).toBe(mockResult);
