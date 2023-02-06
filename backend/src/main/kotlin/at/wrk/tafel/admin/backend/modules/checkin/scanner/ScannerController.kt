@@ -4,7 +4,6 @@ import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.messaging.handler.annotation.DestinationVariable
 import org.springframework.messaging.handler.annotation.MessageMapping
 import org.springframework.messaging.simp.annotation.SendToUser
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -28,12 +27,6 @@ class ScannerController(
     ): ScannerRegistration {
         val id = scannerService.registerScanner(authentication.username!!)
         return ScannerRegistration(scannerId = id)
-    }
-
-    @MessageMapping("/topic/scanners/{scannerId}/result")
-    fun retrieveScanResult(@DestinationVariable scannerId: Int, result: ScanResult) {
-        logger.info("GOT SCANRESULT from scannerId $scannerId: $result")
-        // TODO process result
     }
 
     @GetMapping

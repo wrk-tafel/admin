@@ -30,15 +30,6 @@ internal class ScannerControllerTest {
     }
 
     @Test
-    fun `retrieve scan result`() {
-        val result = ScanResult(value = "12345")
-
-        controller.retrieveScanResult(result)
-
-        // TODO extend
-    }
-
-    @Test
     fun `get scanners`() {
         val scannerIds = listOf(1, 2, 3)
         every { service.getScannerIds() } returns scannerIds
