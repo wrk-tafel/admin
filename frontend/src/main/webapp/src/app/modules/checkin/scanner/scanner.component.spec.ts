@@ -119,11 +119,12 @@ describe('ScannerComponent', () => {
     const testValue = '12345';
     component.lastSentText = null;
     component.apiClientReady = true;
+    component.scannerId = 111;
 
     component.qrCodeReaderSuccessCallback(testValue, undefined);
 
     expect(wsService.publish).toHaveBeenCalledWith({
-      destination: '/app/scanners/result',
+      destination: '/topic/scanners/111/results',
       body: JSON.stringify({value: +testValue})
     });
     expect(component.lastSentText).toBe(testValue);
@@ -150,11 +151,12 @@ describe('ScannerComponent', () => {
     const testText = '12345';
     component.lastSentText = 'old-12345';
     component.apiClientReady = true;
+    component.scannerId = 111;
 
     component.qrCodeReaderSuccessCallback(testText, undefined);
 
     expect(wsService.publish).toHaveBeenCalledWith({
-      destination: '/app/scanners/result',
+      destination: '/topic/scanners/111/results',
       body: JSON.stringify({value: +testText})
     });
     expect(component.lastSentText).toBe(testText);
