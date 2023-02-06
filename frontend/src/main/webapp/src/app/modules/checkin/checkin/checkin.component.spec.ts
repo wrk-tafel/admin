@@ -4,9 +4,9 @@ import {WebsocketService} from '../../../common/websocket/websocket.service';
 import {CommonModule} from '@angular/common';
 import {CustomerApiService} from '../../../api/customer-api.service';
 import {ScannerApiService, ScanResult} from '../../../api/scanner-api.service';
-import {RxStompState} from "@stomp/rx-stomp";
-import {of} from "rxjs";
-import {IMessage} from "@stomp/stompjs";
+import {RxStompState} from '@stomp/rx-stomp';
+import {of} from 'rxjs';
+import {IMessage} from '@stomp/stompjs';
 
 describe('CheckinComponent', () => {
   let customerApiService: jasmine.SpyObj<CustomerApiService>;
@@ -95,6 +95,25 @@ describe('CheckinComponent', () => {
     expect(component.customerId).toBe(customerId);
     expect(component.scannerReadyState).toBeTruthy();
     expect(wsService.watch).toHaveBeenCalledWith(`/topic/scanners/${newScannerId}/results`);
+  });
+
+  it('selectedScannerId removed scanner', () => {
+    const testSubscription = jasmine.createSpyObj('Subscription', ['unsubscribe']);
+
+    const fixture = TestBed.createComponent(CheckinComponent);
+    const component = fixture.componentInstance;
+    component.currentScannerId = 123;
+    component.customerId = 1111;
+    component.scannerReadyState = true;
+    component.scannerSubscription = testSubscription;
+
+    component.selectedScannerId = undefined;
+
+    expect(component.currentScannerId).toBeUndefined();
+    expect(component.customerId).toBeUndefined();
+    expect(component.scannerReadyState).toBeFalsy();
+    expect(testSubscription.unsubscribe).toHaveBeenCalled();
+    expect(wsService.watch).not.toHaveBeenCalled();
   });
 
 });
