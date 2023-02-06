@@ -37,4 +37,12 @@ internal class ScannerServiceTest {
         assertThat(secondId).isEqualTo(2)
     }
 
+    @Test
+    fun `get scanner ids`() {
+        val firstId = service.registerScanner("USER1")
+        val secondId = service.registerScanner("USER2")
+
+        assertThat(service.getScannerIds()).containsExactly(firstId, secondId)
+    }
+
 }

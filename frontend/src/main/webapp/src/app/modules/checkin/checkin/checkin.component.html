@@ -1,8 +1,63 @@
 <div class="row">
-  <div class="col-md ">
+  <div class="col-md">
     <div class="card">
       <div class="card-body">
-        <h4>Kunden-Annahme</h4>
+        <div class="row">
+          <div class="col mb-3">
+            <h4>Kunden-Annahme</h4>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-sm-3 align-self-center">
+            <label class="form-label">Scanner</label>
+          </div>
+          <div class="col-sm-3 align-self-center">
+            <select testId="scannerIdInput" class="form-control" [(ngModel)]="selectedScannerId">
+              <option [ngValue]="undefined">Nicht aktiv</option>
+              <option *ngFor="let scannerId of scannerIds" [ngValue]="scannerId">Nr. {{scannerId}}</option>
+            </select>
+          </div>
+          <div class="col-sm-3 align-self-center">
+            <div class="badge" style="font-size: 10pt;" testId="state-server"
+                 [ngClass]="{'badge-success': scannerReadyState, 'badge-danger': !scannerReadyState}">Aktiv
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col">
+            <hr/>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-sm-3">
+            <label class="form-label">Kundennummer</label>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-sm-3 mb-3">
+            <input testId="customerIdText" type="number" name="customerId" [(ngModel)]="customerId"
+                   class="form-control" autofocus (keydown.enter)="searchForCustomerId()">
+          </div>
+          <div class="col-sm-3">
+            <button testId="showcustomer-button" type="button" class="btn btn-primary"
+                    [disabled]="!customerId" (click)="searchForCustomerId()">Anzeigen
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <div class="row">
+          <div class="col mb-3">
+            <h4>Details</h4>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col">
+            Kundennummer: {{customerId}}
+          </div>
+        </div>
       </div>
     </div>
   </div>

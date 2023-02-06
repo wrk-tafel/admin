@@ -27,4 +27,8 @@ class ScannerService {
         return id
     }
 
+    fun getScannerIds(): List<Int> {
+        return registrationMap.values.toList()
+    }
+
 }

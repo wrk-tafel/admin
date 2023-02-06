@@ -14,7 +14,7 @@ describe('ScannerComponent', () => {
 
   beforeEach(waitForAsync(() => {
     const wsServiceSpy = jasmine.createSpyObj('WebsocketService',
-      ['close', 'publish', 'init', 'connect', 'getConnectionState', 'subscribe']
+      ['close', 'publish', 'init', 'connect', 'getConnectionState', 'watch']
     );
     const qrCodeReaderServiceSpy = jasmine.createSpyObj('QRCodeReaderService', ['stop', 'saveCurrentCamera', 'restart', 'getCameras', 'getCurrentCamera', 'init', 'start']);
 
@@ -63,7 +63,7 @@ describe('ScannerComponent', () => {
       binaryBody: null,
       isBinaryBody: false
     };
-    wsService.subscribe.and.returnValue(of(message));
+    wsService.watch.and.returnValue(of(message));
 
     component.ngOnInit();
     tick(1000);
@@ -116,17 +116,18 @@ describe('ScannerComponent', () => {
     const fixture = TestBed.createComponent(ScannerComponent);
     const component = fixture.componentInstance;
 
-    const testText = 'test123';
+    const testValue = '12345';
     component.lastSentText = null;
     component.apiClientReady = true;
+    component.scannerId = 111;
 
-    component.qrCodeReaderSuccessCallback(testText, undefined);
+    component.qrCodeReaderSuccessCallback(testValue, undefined);
 
     expect(wsService.publish).toHaveBeenCalledWith({
-      destination: '/app/scanners/result',
-      body: JSON.stringify({value: testText})
+      destination: '/topic/scanners/111/results',
+      body: JSON.stringify({value: +testValue})
     });
-    expect(component.lastSentText).toBe(testText);
+    expect(component.lastSentText).toBe(testValue);
   });
 
   it('qrCodeReaderSuccessCallback and received the same text', () => {
@@ -147,15 +148,16 @@ describe('ScannerComponent', () => {
     const fixture = TestBed.createComponent(ScannerComponent);
     const component = fixture.componentInstance;
 
-    const testText = 'test123';
-    component.lastSentText = 'old-test123';
+    const testText = '12345';
+    component.lastSentText = 'old-12345';
     component.apiClientReady = true;
+    component.scannerId = 111;
 
     component.qrCodeReaderSuccessCallback(testText, undefined);
 
     expect(wsService.publish).toHaveBeenCalledWith({
-      destination: '/app/scanners/result',
-      body: JSON.stringify({value: testText})
+      destination: '/topic/scanners/111/results',
+      body: JSON.stringify({value: +testText})
     });
     expect(component.lastSentText).toBe(testText);
   });
@@ -186,7 +188,7 @@ describe('ScannerComponent', () => {
       binaryBody: null,
       isBinaryBody: false
     };
-    wsService.subscribe.and.returnValue(of(message));
+    wsService.watch.and.returnValue(of(message));
 
     const fixture = TestBed.createComponent(ScannerComponent);
     const component = fixture.componentInstance;

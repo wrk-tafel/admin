@@ -43,7 +43,7 @@ export class WebsocketService {
     this.client.publish(parameters);
   }
 
-  subscribe(destination: string): Observable<IMessage> {
+  watch(destination: string): Observable<IMessage> {
     return this.client.watch(destination);
   }
 
