@@ -7,7 +7,7 @@ import {ScannerApiService, ScannerIdsResponse, ScanResult} from '../../../api/sc
 import {RxStompState} from '@stomp/rx-stomp';
 import {BehaviorSubject, of, throwError} from 'rxjs';
 import {IMessage} from '@stomp/stompjs';
-import * as moment from "moment/moment";
+import * as moment from 'moment/moment';
 
 describe('CheckinComponent', () => {
   let customerApiService: jasmine.SpyObj<CustomerApiService>;
@@ -162,6 +162,7 @@ describe('CheckinComponent', () => {
   it('searchForCustomerId found customer', () => {
     const fixture = TestBed.createComponent(CheckinComponent);
     const component = fixture.componentInstance;
+    component.errorMessage = 'test msg';
 
     const mockCustomer = {
       id: 133,
@@ -187,6 +188,7 @@ describe('CheckinComponent', () => {
 
     expect(component.customer).toEqual(mockCustomer);
     expect(customerApiService.getCustomer).toHaveBeenCalledWith(mockCustomer.id);
+    expect(component.errorMessage).toBeUndefined();
   });
 
   it('searchForCustomerId customer not found', () => {

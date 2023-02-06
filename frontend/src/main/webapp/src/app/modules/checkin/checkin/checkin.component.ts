@@ -47,6 +47,7 @@ export class CheckinComponent implements OnInit {
     this.customerApiService.getCustomer(this.customerId)
       .subscribe((customer: CustomerData) => {
         this.customer = customer;
+        this.errorMessage = undefined;
       }, error => {
         if (error.status === 404) {
           this.customer = undefined;
