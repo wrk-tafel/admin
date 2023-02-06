@@ -1,3 +1,6 @@
+<div testid="errorMessage" *ngIf="errorMessage" class="alert alert-danger mb-3">
+  <div testid="errorMessageContent">{{errorMessage}}</div>
+</div>
 <div class="row">
   <div class="col-md">
     <div class="card">
@@ -46,7 +49,7 @@
         </div>
       </div>
     </div>
-    <div class="card">
+    <div class="card" *ngIf="customer">
       <div class="card-body">
         <div class="row">
           <div class="col mb-3">
@@ -55,7 +58,12 @@
         </div>
         <div class="row">
           <div class="col">
-            Kundennummer: {{customerId}}
+            Kunde
+          </div>
+        </div>
+        <div class="row">
+          <div class="col">
+            {{customer.id}} - {{customer.firstname}} {{customer.lastname}}
           </div>
         </div>
       </div>

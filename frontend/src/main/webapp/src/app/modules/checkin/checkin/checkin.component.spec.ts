@@ -5,8 +5,9 @@ import {CommonModule} from '@angular/common';
 import {CustomerApiService} from '../../../api/customer-api.service';
 import {ScannerApiService, ScannerIdsResponse, ScanResult} from '../../../api/scanner-api.service';
 import {RxStompState} from '@stomp/rx-stomp';
-import {BehaviorSubject, of} from 'rxjs';
+import {BehaviorSubject, of, throwError} from 'rxjs';
 import {IMessage} from '@stomp/stompjs';
+import * as moment from "moment/moment";
 
 describe('CheckinComponent', () => {
   let customerApiService: jasmine.SpyObj<CustomerApiService>;
@@ -14,12 +15,8 @@ describe('CheckinComponent', () => {
   let wsService: jasmine.SpyObj<WebsocketService>;
 
   beforeEach(waitForAsync(() => {
-    const customerApiServiceSpy = jasmine.createSpyObj('CustomerApiService',
-      ['TODO']
-    );
-    const scannerApiServiceSpy = jasmine.createSpyObj('ScannerApiService',
-      ['getScannerIds']
-    );
+    const customerApiServiceSpy = jasmine.createSpyObj('CustomerApiService', ['getCustomer']);
+    const scannerApiServiceSpy = jasmine.createSpyObj('ScannerApiService', ['getScannerIds']);
     const wsServiceSpy = jasmine.createSpyObj('WebsocketService',
       ['init', 'connect', 'getConnectionState', 'watch', 'close']
     );
@@ -90,6 +87,8 @@ describe('CheckinComponent', () => {
   });
 
   it('selectedScannerId first time selected', () => {
+    customerApiService.getCustomer.and.returnValue(of());
+
     const customerId = 11111;
     const scanResult: ScanResult = {value: customerId};
     const scanResultMessage: IMessage = {
@@ -117,6 +116,7 @@ describe('CheckinComponent', () => {
     expect(component.customerId).toBe(customerId);
     expect(component.scannerReadyState).toBeTruthy();
     expect(wsService.watch).toHaveBeenCalledWith(`/topic/scanners/${newScannerId}/results`);
+    expect(customerApiService.getCustomer).toHaveBeenCalled();
   });
 
   it('selectedScannerId removed scanner', () => {
@@ -136,6 +136,7 @@ describe('CheckinComponent', () => {
     expect(component.scannerReadyState).toBeFalsy();
     expect(testSubscription.unsubscribe).toHaveBeenCalled();
     expect(wsService.watch).not.toHaveBeenCalled();
+    expect(customerApiService.getCustomer).not.toHaveBeenCalled();
   });
 
   it('selectedScannerId switch to another scanner', () => {
@@ -156,6 +157,51 @@ describe('CheckinComponent', () => {
     expect(component.scannerReadyState).toBeTruthy();
     expect(testSubscription.unsubscribe).toHaveBeenCalled();
     expect(wsService.watch).toHaveBeenCalled();
+  });
+
+  it('searchForCustomerId found customer', () => {
+    const fixture = TestBed.createComponent(CheckinComponent);
+    const component = fixture.componentInstance;
+
+    const mockCustomer = {
+      id: 133,
+      lastname: 'Mustermann',
+      firstname: 'Max',
+      birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
+
+      address: {
+        street: 'Teststraße',
+        houseNumber: '123A',
+        door: '21',
+        postalCode: 1020,
+        city: 'Wien',
+      },
+
+      employer: 'test employer',
+      income: 1000
+    };
+    customerApiService.getCustomer.and.returnValue(of(mockCustomer));
+    component.customerId = mockCustomer.id;
+
+    component.searchForCustomerId();
+
+    expect(component.customer).toEqual(mockCustomer);
+    expect(customerApiService.getCustomer).toHaveBeenCalledWith(mockCustomer.id);
+  });
+
+  it('searchForCustomerId customer not found', () => {
+    const fixture = TestBed.createComponent(CheckinComponent);
+    const component = fixture.componentInstance;
+
+    customerApiService.getCustomer.and.returnValue(throwError({status: 404}));
+    const testCustomerId = 1234;
+    component.customerId = testCustomerId;
+
+    component.searchForCustomerId();
+
+    expect(component.customer).toBeUndefined();
+    expect(customerApiService.getCustomer).toHaveBeenCalledWith(testCustomerId);
+    expect(component.errorMessage).toBe(`Kundennummer ${testCustomerId} nicht gefunden!`);
   });
 
 });
