@@ -61,11 +61,35 @@
           </div>
         </div>
         <div class="row">
-          <div class="col mb-3">
-            Gültig bis:
+          <div class="col">
+            bis:
           </div>
-          <div class="col mb-3">
+          <div class="col">
             {{customer.validUntil | date : 'dd.MM.yyyy'}}
+          </div>
+        </div>
+        <div class="row">
+          <div class="col">
+            Geburtsdatum:
+          </div>
+          <div class="col">
+            {{customer.birthDate | date : 'dd.MM.yyyy'}}
+          </div>
+        </div>
+        <div class="row">
+          <div class="col">
+            Personen im Haushalt (insgesamt):
+          </div>
+          <div class="col">
+            {{customer.additionalPersons.length + 1}}
+          </div>
+        </div>
+        <div class="row">
+          <div class="col">
+            Personen unter 3 Jahren:
+          </div>
+          <div class="col">
+            {{getInfantCount()}}
           </div>
         </div>
       </div>

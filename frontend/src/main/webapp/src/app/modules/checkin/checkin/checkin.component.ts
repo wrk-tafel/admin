@@ -95,6 +95,12 @@ export class CheckinComponent implements OnInit {
     }
   }
 
+  getInfantCount(): number {
+    return this.customer.additionalPersons.filter((pers) => {
+      return moment().diff(pers.birthDate, 'years') < 3;
+    }).length;
+  }
+
   get selectedScannerId(): number {
     return this.currentScannerId;
   }
