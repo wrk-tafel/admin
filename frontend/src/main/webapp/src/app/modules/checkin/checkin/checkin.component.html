@@ -6,7 +6,7 @@
     <div class="card">
       <div class="card-body">
         <div class="row">
-          <div class="col mb-3">
+          <div class="col mb-2">
             <h4>Kunden-Annahme</h4>
           </div>
         </div>
@@ -28,7 +28,7 @@
         </div>
         <div class="row">
           <div class="col">
-            <hr/>
+            <hr>
           </div>
         </div>
         <div class="row">
@@ -52,7 +52,7 @@
     <div class="card" *ngIf="customer">
       <div class="card-body">
         <div class="row">
-          <div class="col mb-3">
+          <div class="col mb-2">
             <h4>{{customer.id}} - {{customer.firstname}} {{customer.lastname}}</h4>
             <div class="badge" style="font-size: 10pt;"
                  [ngClass]="{'badge-danger': customerState == 0, 'badge-warning': customerState == 1, 'badge-success': customerState == 2}">
