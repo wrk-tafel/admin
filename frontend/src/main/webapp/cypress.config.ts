@@ -30,10 +30,10 @@ export default defineConfig({
           */
 
           // Windows
-          launchOptions.args.push('--use-file-for-fake-video-capture=D:\\development\\repos\\wrk-admin\\frontend\\src\\main\\webapp\\cypress\\fixtures\\webcam\\qr-code.y4m');
+          // launchOptions.args.push('--use-file-for-fake-video-capture=D:\\development\\repos\\wrk-admin\\frontend\\src\\main\\webapp\\cypress\\fixtures\\webcam\\qr-code.y4m');
         }
 
-        return launchOptions;
+        // return launchOptions;
       });
 
       return require('./cypress/plugins/index.ts')(on, config);
