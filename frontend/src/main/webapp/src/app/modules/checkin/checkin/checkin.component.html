@@ -6,7 +6,7 @@
     <div class="card">
       <div class="card-body">
         <div class="row">
-          <div class="col mb-3">
+          <div class="col mb-2">
             <h4>Kunden-Annahme</h4>
           </div>
         </div>
@@ -20,7 +20,7 @@
               <option *ngFor="let scannerId of scannerIds" [ngValue]="scannerId">Nr. {{scannerId}}</option>
             </select>
           </div>
-          <div class="col-sm-3 align-self-center">
+          <div class="col-sm-3 mt-2 mt-md-0 align-self-center">
             <div class="badge" style="font-size: 10pt;" testId="state-server"
                  [ngClass]="{'badge-success': scannerReadyState, 'badge-danger': !scannerReadyState}">Aktiv
             </div>
@@ -28,7 +28,7 @@
         </div>
         <div class="row">
           <div class="col">
-            <hr/>
+            <hr>
           </div>
         </div>
         <div class="row">
@@ -42,28 +42,55 @@
                    class="form-control" autofocus (keydown.enter)="searchForCustomerId()">
           </div>
           <div class="col-sm-3">
-            <button testId="showcustomer-button" type="button" class="btn btn-primary"
+            <button testId="showCustomerButton" type="button" class="btn btn-primary"
                     [disabled]="!customerId" (click)="searchForCustomerId()">Anzeigen
             </button>
           </div>
         </div>
       </div>
     </div>
-    <div class="card" *ngIf="customer">
+    <div class="card" *ngIf="customer" testId="customerDetailPanel">
       <div class="card-body">
         <div class="row">
-          <div class="col mb-3">
-            <h4>Details</h4>
+          <div class="col mb-2">
+            <h4>{{customer.id}} - {{customer.firstname}} {{customer.lastname}}</h4>
+            <div class="badge" style="font-size: 10pt;"
+                 [ngClass]="{'badge-danger': customerState == 0, 'badge-warning': customerState == 1, 'badge-success': customerState == 2}">
+              {{customerStateText}}
+            </div>
           </div>
         </div>
         <div class="row">
           <div class="col">
-            Kunde
+            bis:
+          </div>
+          <div class="col">
+            {{customer.validUntil | date : 'dd.MM.yyyy'}}
+          </div>
+        </div>
+        <hr>
+        <div class="row">
+          <div class="col">
+            Geburtsdatum:
+          </div>
+          <div class="col">
+            {{customer.birthDate | date : 'dd.MM.yyyy'}}
           </div>
         </div>
         <div class="row">
           <div class="col">
-            {{customer.id}} - {{customer.firstname}} {{customer.lastname}}
+            Personen im Haushalt (insgesamt):
+          </div>
+          <div class="col">
+            {{customer.additionalPersons.length + 1}}
+          </div>
+        </div>
+        <div class="row">
+          <div class="col">
+            Personen unter 3 Jahren:
+          </div>
+          <div class="col">
+            {{getInfantCount()}}
           </div>
         </div>
       </div>

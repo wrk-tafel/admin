@@ -90,10 +90,10 @@ INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, first
 values (1, NOW(), NOW(), 1, 'Child 1', 'Musterfrau', '2000-01-01', 500, '2999-12-31', 1);
 INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, income,
                                   income_due, country_id)
-values (2, NOW(), NOW(), 1, 'Child 2', 'Musterfrau', '2020-01-01', 0, null, 1);
+values (2, NOW(), NOW(), 1, 'Child 2', 'Musterfrau', CURRENT_DATE - interval '8 year', 0, null, 1);
 INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, income,
                                   income_due, country_id)
-values (3, NOW(), NOW(), 1, 'Child 3', 'Musterfrau', '2020-01-01', null, null, 1);
+values (3, NOW(), NOW(), 1, 'Child 3', 'Musterfrau', CURRENT_DATE - interval '2 year', null, null, 1);
 INSERT INTO customers (id, created_at, updated_at, customer_id, user_id, firstname, lastname, birth_date, country_id,
                        address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
                        address_city, telephone_number, email, employer, income, income_due, valid_until)
