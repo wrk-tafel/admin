@@ -43,6 +43,7 @@ export class CheckinComponent implements OnInit {
       this.processWsConnectionState(state);
     });
 
+    // TODO replace with ws?
     this.scannerApiService.getScannerIds().subscribe(response => {
       this.scannerIds = response.scannerIds;
     });
