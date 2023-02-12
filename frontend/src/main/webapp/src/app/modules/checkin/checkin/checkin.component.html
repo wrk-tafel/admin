@@ -42,14 +42,14 @@
                    class="form-control" autofocus (keydown.enter)="searchForCustomerId()">
           </div>
           <div class="col-sm-3">
-            <button testId="showcustomer-button" type="button" class="btn btn-primary"
+            <button testId="showCustomerButton" type="button" class="btn btn-primary"
                     [disabled]="!customerId" (click)="searchForCustomerId()">Anzeigen
             </button>
           </div>
         </div>
       </div>
     </div>
-    <div class="card" *ngIf="customer">
+    <div class="card" *ngIf="customer" testId="customerDetailPanel">
       <div class="card-body">
         <div class="row">
           <div class="col mb-2">
