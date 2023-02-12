@@ -53,17 +53,19 @@
       <div class="card-body">
         <div class="row">
           <div class="col mb-3">
-            <h4>Details</h4>
+            <h4>{{customer.id}} - {{customer.firstname}} {{customer.lastname}}</h4>
+            <div class="badge" style="font-size: 10pt;"
+                 [ngClass]="{'badge-danger': customerState == 0, 'badge-warning': customerState == 1, 'badge-success': customerState == 2}">
+              {{customerStateText}}
+            </div>
           </div>
         </div>
         <div class="row">
-          <div class="col">
-            Kunde
+          <div class="col mb-3">
+            Gültig bis:
           </div>
-        </div>
-        <div class="row">
-          <div class="col">
-            {{customer.id}} - {{customer.firstname}} {{customer.lastname}}
+          <div class="col mb-3">
+            {{customer.validUntil | date : 'dd.MM.yyyy'}}
           </div>
         </div>
       </div>

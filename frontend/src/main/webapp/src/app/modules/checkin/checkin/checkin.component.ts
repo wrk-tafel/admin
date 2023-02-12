@@ -5,6 +5,7 @@ import {WebsocketService} from '../../../common/websocket/websocket.service';
 import {Subscription} from 'rxjs';
 import {IMessage} from '@stomp/stompjs';
 import {RxStompState} from '@stomp/rx-stomp';
+import * as moment from 'moment';
 
 @Component({
   selector: 'tafel-checkin',
@@ -19,6 +20,8 @@ export class CheckinComponent implements OnInit {
   ) {
   }
 
+  private VALID_UNTIL_WARNLIMIT_WEEKS = 6;
+
   errorMessage: string;
 
   scannerIds: number[];
@@ -29,6 +32,8 @@ export class CheckinComponent implements OnInit {
 
   customerId: number;
   customer: CustomerData;
+  customerState: CustomerState;
+  customerStateText: string;
 
   ngOnInit(): void {
     this.websocketService.init();
@@ -46,11 +51,11 @@ export class CheckinComponent implements OnInit {
   searchForCustomerId() {
     this.customerApiService.getCustomer(this.customerId)
       .subscribe((customer: CustomerData) => {
-        this.customer = customer;
+        this.processCustomer(customer);
         this.errorMessage = undefined;
       }, error => {
         if (error.status === 404) {
-          this.customer = undefined;
+          this.processCustomer(undefined);
           this.errorMessage = 'Kundennummer ' + this.customerId + ' nicht gefunden!';
         }
       });
@@ -61,6 +66,32 @@ export class CheckinComponent implements OnInit {
       this.wsApiClientReady = true;
     } else {
       this.wsApiClientReady = false;
+    }
+  }
+
+  processCustomer(customer: CustomerData) {
+    this.customer = customer;
+
+    if (customer) {
+      const validUntil = moment(customer.validUntil).startOf('day');
+      const now = moment().startOf('day');
+
+      if (validUntil.isBefore(now)) {
+        this.customerState = CustomerState.RED;
+        this.customerStateText = 'Ungültig';
+      } else {
+        const warnLimit = now.add(this.VALID_UNTIL_WARNLIMIT_WEEKS, 'weeks');
+        if (!validUntil.isAfter(warnLimit)) {
+          this.customerState = CustomerState.YELLOW;
+          this.customerStateText = 'Gültig - läuft bald ab';
+        } else {
+          this.customerState = CustomerState.GREEN;
+          this.customerStateText = 'Gültig';
+        }
+      }
+    } else {
+      this.customerState = undefined;
+      this.customerStateText = undefined;
     }
   }
 
@@ -88,4 +119,8 @@ export class CheckinComponent implements OnInit {
     }
   }
 
+}
+
+export enum CustomerState {
+  RED, YELLOW, GREEN
 }

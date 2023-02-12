@@ -1,5 +1,5 @@
 import {TestBed, waitForAsync} from '@angular/core/testing';
-import {CheckinComponent} from './checkin.component';
+import {CheckinComponent, CustomerState} from './checkin.component';
 import {WebsocketService} from '../../../common/websocket/websocket.service';
 import {CommonModule} from '@angular/common';
 import {CustomerApiService} from '../../../api/customer-api.service';
@@ -159,7 +159,7 @@ describe('CheckinComponent', () => {
     expect(wsService.watch).toHaveBeenCalled();
   });
 
-  it('searchForCustomerId found customer', () => {
+  it('searchForCustomerId found valid customer', () => {
     const fixture = TestBed.createComponent(CheckinComponent);
     const component = fixture.componentInstance;
     component.errorMessage = 'test msg';
@@ -179,7 +179,9 @@ describe('CheckinComponent', () => {
       },
 
       employer: 'test employer',
-      income: 1000
+      income: 1000,
+
+      validUntil: moment().add(3, 'months').startOf('day').utc().toDate()
     };
     customerApiService.getCustomer.and.returnValue(of(mockCustomer));
     component.customerId = mockCustomer.id;
@@ -189,6 +191,79 @@ describe('CheckinComponent', () => {
     expect(component.customer).toEqual(mockCustomer);
     expect(customerApiService.getCustomer).toHaveBeenCalledWith(mockCustomer.id);
     expect(component.errorMessage).toBeUndefined();
+
+    expect(component.customerState).toBe(CustomerState.GREEN);
+    expect(component.customerStateText).toBe('Gültig');
+  });
+
+  it('searchForCustomerId found valid customer but expires soon', () => {
+    const fixture = TestBed.createComponent(CheckinComponent);
+    const component = fixture.componentInstance;
+
+    const mockCustomer = {
+      id: 133,
+      lastname: 'Mustermann',
+      firstname: 'Max',
+      birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
+
+      address: {
+        street: 'Teststraße',
+        houseNumber: '123A',
+        door: '21',
+        postalCode: 1020,
+        city: 'Wien',
+      },
+
+      employer: 'test employer',
+      income: 1000,
+
+      validUntil: moment().add(2, 'weeks').startOf('day').utc().toDate()
+    };
+    customerApiService.getCustomer.and.returnValue(of(mockCustomer));
+    component.customerId = mockCustomer.id;
+
+    component.searchForCustomerId();
+
+    expect(component.customer).toEqual(mockCustomer);
+    expect(customerApiService.getCustomer).toHaveBeenCalledWith(mockCustomer.id);
+
+    expect(component.customerState).toBe(CustomerState.YELLOW);
+    expect(component.customerStateText).toBe('Gültig - läuft bald ab');
+  });
+
+  it('searchForCustomerId found invalid customer', () => {
+    const fixture = TestBed.createComponent(CheckinComponent);
+    const component = fixture.componentInstance;
+
+    const mockCustomer = {
+      id: 133,
+      lastname: 'Mustermann',
+      firstname: 'Max',
+      birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
+
+      address: {
+        street: 'Teststraße',
+        houseNumber: '123A',
+        door: '21',
+        postalCode: 1020,
+        city: 'Wien',
+      },
+
+      employer: 'test employer',
+      income: 1000,
+
+      validUntil: moment().subtract(2, 'weeks').startOf('day').utc().toDate()
+    };
+    customerApiService.getCustomer.and.returnValue(of(mockCustomer));
+    component.customerId = mockCustomer.id;
+
+    component.searchForCustomerId();
+
+    expect(component.customer).toEqual(mockCustomer);
+    expect(customerApiService.getCustomer).toHaveBeenCalledWith(mockCustomer.id);
+
+    expect(component.customerState).toBe(CustomerState.RED);
+    expect(component.customerStateText).toBe('Ungültig');
   });
 
   it('searchForCustomerId customer not found', () => {
