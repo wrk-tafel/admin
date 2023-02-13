@@ -7,19 +7,16 @@ import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.messaging.simp.annotation.SendToUser
 import org.springframework.messaging.simp.annotation.SubscribeMapping
 import org.springframework.security.core.annotation.AuthenticationPrincipal
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.stereotype.Controller
 import java.util.*
 
-@RestController
-@RequestMapping("/api/scanners")
+@Controller
 class ScannerController(
     private val scannerService: ScannerService,
     private val messagingTemplate: SimpMessagingTemplate
 ) {
 
     @SubscribeMapping("/scanners")
-    // TODO fix first response
     fun getScanners(): ScannersResponse {
         return createCurrentScannersResponse()
     }
