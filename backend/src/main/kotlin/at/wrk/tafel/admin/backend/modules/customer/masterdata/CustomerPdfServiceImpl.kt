@@ -20,6 +20,7 @@ import java.text.NumberFormat
 import java.time.LocalDate
 import java.time.Period
 import java.time.format.DateTimeFormatter
+import java.util.*
 import javax.xml.transform.TransformerFactory
 import javax.xml.transform.sax.SAXResult
 import javax.xml.transform.stream.StreamSource
@@ -85,7 +86,9 @@ class CustomerPdfServiceImpl : CustomerPdfService {
                 employer = customer.employer!!,
                 income = customer.income
                     ?.takeIf { it.compareTo(BigDecimal.ZERO) != 0 }
-                    ?.let { NumberFormat.getCurrencyInstance().format(it.setScale(2, RoundingMode.HALF_EVEN)) }
+                    ?.let {
+                        NumberFormat.getCurrencyInstance(Locale.GERMANY).format(it.setScale(2, RoundingMode.HALF_EVEN))
+                    }
                     ?: "-",
                 incomeDueDate = customer.incomeDue?.format(DATE_FORMATTER) ?: "-",
                 validUntilDate = customer.validUntil!!.format(DATE_FORMATTER),
@@ -98,7 +101,8 @@ class CustomerPdfServiceImpl : CustomerPdfService {
                         income = it.income
                             ?.takeIf { income -> income.compareTo(BigDecimal.ZERO) != 0 }
                             ?.let { income ->
-                                NumberFormat.getCurrencyInstance().format(income.setScale(2, RoundingMode.HALF_EVEN))
+                                NumberFormat.getCurrencyInstance(Locale.GERMANY)
+                                    .format(income.setScale(2, RoundingMode.HALF_EVEN))
                             }
                             ?: "-",
                         incomeDueDate = it.incomeDue?.format(DATE_FORMATTER) ?: "-",

@@ -1,11 +1,11 @@
 import {Component, OnInit} from '@angular/core';
 import {CustomerApiService, CustomerData} from '../../../api/customer-api.service';
-import {ScannerApiService, ScanResult} from '../../../api/scanner-api.service';
 import {WebsocketService} from '../../../common/websocket/websocket.service';
 import {Subscription} from 'rxjs';
 import {IMessage} from '@stomp/stompjs';
 import {RxStompState} from '@stomp/rx-stomp';
 import * as moment from 'moment';
+import {ScannerList} from '../scanner/scanner.component';
 
 @Component({
   selector: 'tafel-checkin',
@@ -15,7 +15,6 @@ export class CheckinComponent implements OnInit {
 
   constructor(
     private customerApiService: CustomerApiService,
-    private scannerApiService: ScannerApiService,
     private websocketService: WebsocketService
   ) {
   }
@@ -43,8 +42,9 @@ export class CheckinComponent implements OnInit {
       this.processWsConnectionState(state);
     });
 
-    this.scannerApiService.getScannerIds().subscribe(response => {
-      this.scannerIds = response.scannerIds;
+    this.websocketService.watch('/topic/scanners').subscribe((message: IMessage) => {
+      const scanners: ScannerList = JSON.parse(message.body);
+      this.scannerIds = scanners.scannerIds;
     });
   }
 
@@ -96,8 +96,8 @@ export class CheckinComponent implements OnInit {
   }
 
   getInfantCount(): number {
-    return this.customer.additionalPersons.filter((pers) => {
-      return moment().diff(pers.birthDate, 'years') < 3;
+    return this.customer.additionalPersons.filter((person) => {
+      return moment().diff(person.birthDate, 'years') < 3;
     }).length;
   }
 
@@ -129,4 +129,8 @@ export class CheckinComponent implements OnInit {
 
 export enum CustomerState {
   RED, YELLOW, GREEN
+}
+
+export interface ScanResult {
+  value: number;
 }

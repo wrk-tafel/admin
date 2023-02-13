@@ -3,7 +3,8 @@ logging:
     root: INFO
     org.apache: INFO
     org.springframework.security: INFO
-    org.springframework.messaging: INFO
+    org.springframework.messaging: DEBUG
+    org.springframework.web.socket.config.WebSocketMessageBrokerStats: DEBUG
 
 spring:
   datasource:

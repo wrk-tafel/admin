@@ -28,7 +28,7 @@ class ScannerService {
     }
 
     fun getScannerIds(): List<Int> {
-        return registrationMap.values.toList()
+        return registrationMap.values.toList().sorted()
     }
 
 }
