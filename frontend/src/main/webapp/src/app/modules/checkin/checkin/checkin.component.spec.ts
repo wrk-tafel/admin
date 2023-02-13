@@ -3,20 +3,18 @@ import {CheckinComponent, CustomerState} from './checkin.component';
 import {WebsocketService} from '../../../common/websocket/websocket.service';
 import {CommonModule} from '@angular/common';
 import {CustomerApiService} from '../../../api/customer-api.service';
-import {ScannerApiService, ScannerIdsResponse, ScanResult} from '../../../api/scanner-api.service';
 import {RxStompState} from '@stomp/rx-stomp';
 import {BehaviorSubject, of, throwError} from 'rxjs';
 import {IMessage} from '@stomp/stompjs';
 import * as moment from 'moment/moment';
+import {ScannerList, ScanResult} from '../scanner/scanner.component';
 
 describe('CheckinComponent', () => {
   let customerApiService: jasmine.SpyObj<CustomerApiService>;
-  let scannerApiService: jasmine.SpyObj<ScannerApiService>;
   let wsService: jasmine.SpyObj<WebsocketService>;
 
   beforeEach(waitForAsync(() => {
     const customerApiServiceSpy = jasmine.createSpyObj('CustomerApiService', ['getCustomer']);
-    const scannerApiServiceSpy = jasmine.createSpyObj('ScannerApiService', ['getScannerIds']);
     const wsServiceSpy = jasmine.createSpyObj('WebsocketService',
       ['init', 'connect', 'getConnectionState', 'watch', 'close']
     );
@@ -29,10 +27,6 @@ describe('CheckinComponent', () => {
           useValue: customerApiServiceSpy
         },
         {
-          provide: ScannerApiService,
-          useValue: scannerApiServiceSpy
-        },
-        {
           provide: WebsocketService,
           useValue: wsServiceSpy
         }
@@ -40,7 +34,6 @@ describe('CheckinComponent', () => {
     }).compileComponents();
 
     customerApiService = TestBed.inject(CustomerApiService) as jasmine.SpyObj<CustomerApiService>;
-    scannerApiService = TestBed.inject(ScannerApiService) as jasmine.SpyObj<ScannerApiService>;
     wsService = TestBed.inject(WebsocketService) as jasmine.SpyObj<WebsocketService>;
   }));
 
@@ -55,15 +48,25 @@ describe('CheckinComponent', () => {
     const component = fixture.componentInstance;
     wsService.getConnectionState.and.returnValue(new BehaviorSubject(RxStompState.OPEN));
 
-    const scannerIdsResponse: ScannerIdsResponse = {scannerIds: [1, 2, 3]};
-    scannerApiService.getScannerIds.and.returnValue(of(scannerIdsResponse));
+    const scannersResponse: ScannerList = {scannerIds: [1, 2, 3]};
+    const scannersMessage: IMessage = {
+      body: JSON.stringify(scannersResponse),
+      ack: null,
+      nack: null,
+      headers: null,
+      command: null,
+      binaryBody: null,
+      isBinaryBody: false
+    };
+    wsService.watch.and.returnValue(of(scannersMessage));
 
     component.ngOnInit();
 
     expect(wsService.getConnectionState).toHaveBeenCalled();
     expect(wsService.init).toHaveBeenCalled();
     expect(wsService.connect).toHaveBeenCalled();
-    expect(component.scannerIds).toEqual(scannerIdsResponse.scannerIds);
+    expect(wsService.watch).toHaveBeenCalledWith('/topic/scanners');
+    expect(component.scannerIds).toEqual(scannersResponse.scannerIds);
   });
 
   it('processWsConnectionState OPEN', () => {

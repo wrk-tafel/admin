@@ -4,7 +4,6 @@ import {RxStompState} from '@stomp/rx-stomp';
 import {WebsocketService} from '../../../common/websocket/websocket.service';
 import {CameraDevice} from 'html5-qrcode/esm/camera/core';
 import {Html5QrcodeResult} from 'html5-qrcode/core';
-import {ScanResult} from '../../../api/scanner-api.service';
 
 @Component({
   selector: 'tafel-scanner',
@@ -64,7 +63,10 @@ export class ScannerComponent implements OnInit, OnDestroy {
   qrCodeReaderSuccessCallback = (decodedText: string, result: Html5QrcodeResult) => {
     if (this.apiClientReady && (!this.lastSentText || this.lastSentText !== decodedText)) {
       const scanResult: ScanResult = {value: +decodedText};
-      this.websocketService.publish({destination: `/topic/scanners/${this.scannerId}/results`, body: JSON.stringify(scanResult)});
+      this.websocketService.publish({
+        destination: `/topic/scanners/${this.scannerId}/results`,
+        body: JSON.stringify(scanResult)
+      });
       this.lastSentText = decodedText;
 
       // reset to retry in case of an error while transmitting/receiving
@@ -108,4 +110,12 @@ export class ScannerComponent implements OnInit, OnDestroy {
 
 export interface ScannerRegistration {
   scannerId: number;
+}
+
+export interface ScannerList {
+  scannerIds: number[];
+}
+
+export interface ScanResult {
+  value: number;
 }

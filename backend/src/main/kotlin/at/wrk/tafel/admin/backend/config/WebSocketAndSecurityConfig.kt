@@ -54,8 +54,8 @@ class WebSocketAndSecurityConfig(
             "/queue" // private channel 1:1
         )
 
-        // use /app to send messages only to the backend without forwarding to other clients
-        registry.setApplicationDestinationPrefixes("/app")
+        // prefixes /app and /topic will be forwarded to controllers for Message/Subscribe-Mapping
+        registry.setApplicationDestinationPrefixes("/app", "/topic")
 
         registry.setUserDestinationPrefix("/user")
     }

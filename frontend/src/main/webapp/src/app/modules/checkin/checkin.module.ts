@@ -7,7 +7,6 @@ import {QRCodeReaderService} from './qrcode-reader/qrcode-reader.service';
 import {WebsocketService} from '../../common/websocket/websocket.service';
 import {CheckinComponent} from './checkin/checkin.component';
 import {CustomerApiService} from '../../api/customer-api.service';
-import {ScannerApiService} from '../../api/scanner-api.service';
 
 @NgModule({
   imports: [
@@ -23,8 +22,7 @@ import {ScannerApiService} from '../../api/scanner-api.service';
   providers: [
     QRCodeReaderService,
     WebsocketService,
-    CustomerApiService,
-    ScannerApiService
+    CustomerApiService
   ]
 })
 export class CheckinModule {
