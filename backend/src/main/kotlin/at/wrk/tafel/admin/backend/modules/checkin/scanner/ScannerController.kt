@@ -21,7 +21,7 @@ class ScannerController(
     @SubscribeMapping("/scanners")
     // TODO fix first response
     fun getScanners(): ScannersResponse {
-        return getCurrentScannersResponse()
+        return createCurrentScannersResponse()
     }
 
     @MessageMapping("/scanners/register")
@@ -32,12 +32,12 @@ class ScannerController(
         val id = scannerService.registerScanner(authentication.username!!)
 
         // publish new scanner to clients
-        messagingTemplate.convertAndSend("/topic/scanners", getCurrentScannersResponse())
+        messagingTemplate.convertAndSend("/topic/scanners", createCurrentScannersResponse())
 
         return ScannerRegistration(scannerId = id)
     }
 
-    private fun getCurrentScannersResponse() = ScannersResponse(scannerIds = scannerService.getScannerIds())
+    private fun createCurrentScannersResponse() = ScannersResponse(scannerIds = scannerService.getScannerIds())
 
 }
 
