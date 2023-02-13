@@ -2,12 +2,11 @@ package at.wrk.tafel.admin.backend.modules.checkin.scanner
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.messaging.handler.annotation.MessageMapping
+import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.messaging.simp.annotation.SendToUser
+import org.springframework.messaging.simp.annotation.SubscribeMapping
 import org.springframework.security.core.annotation.AuthenticationPrincipal
-import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.util.*
@@ -15,10 +14,15 @@ import java.util.*
 @RestController
 @RequestMapping("/api/scanners")
 class ScannerController(
-    private val scannerService: ScannerService
+    private val scannerService: ScannerService,
+    private val messagingTemplate: SimpMessagingTemplate
 ) {
 
-    private val logger: Logger = LoggerFactory.getLogger(ScannerController::class.java)
+    @SubscribeMapping("/scanners")
+    // TODO fix first response
+    fun getScanners(): ScannersResponse {
+        return getCurrentScannersResponse()
+    }
 
     @MessageMapping("/scanners/register")
     @SendToUser("/queue/scanners/registration")
@@ -26,13 +30,14 @@ class ScannerController(
         @AuthenticationPrincipal authentication: TafelJwtAuthentication
     ): ScannerRegistration {
         val id = scannerService.registerScanner(authentication.username!!)
+
+        // publish new scanner to clients
+        messagingTemplate.convertAndSend("/topic/scanners", getCurrentScannersResponse())
+
         return ScannerRegistration(scannerId = id)
     }
 
-    @GetMapping
-    fun getScannerIds(): ScannerIdsResponse {
-        return ScannerIdsResponse(scannerIds = scannerService.getScannerIds())
-    }
+    private fun getCurrentScannersResponse() = ScannersResponse(scannerIds = scannerService.getScannerIds())
 
 }
 
@@ -47,6 +52,6 @@ data class ScannerRegistration(
 )
 
 @ExcludeFromTestCoverage
-data class ScannerIdsResponse(
+data class ScannersResponse(
     val scannerIds: List<Int>
 )
