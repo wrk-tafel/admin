@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnDestroy, OnInit} from '@angular/core';
 import {CustomerApiService, CustomerData} from '../../../api/customer-api.service';
 import {WebsocketService} from '../../../common/websocket/websocket.service';
 import {Subscription} from 'rxjs';
@@ -11,7 +11,7 @@ import {ScannerList} from '../scanner/scanner.component';
   selector: 'tafel-checkin',
   templateUrl: 'checkin.component.html'
 })
-export class CheckinComponent implements OnInit {
+export class CheckinComponent implements OnInit, OnDestroy {
 
   constructor(
     private customerApiService: CustomerApiService,
@@ -35,10 +35,8 @@ export class CheckinComponent implements OnInit {
   customerStateText: string;
 
   ngOnInit(): void {
-    this.websocketService.init();
-    this.websocketService.connect();
-
     this.websocketService.getConnectionState().subscribe((state: RxStompState) => {
+      console.log('STATE CHECKIN', state);
       this.processWsConnectionState(state);
     });
 
@@ -46,6 +44,12 @@ export class CheckinComponent implements OnInit {
       const scanners: ScannerList = JSON.parse(message.body);
       this.scannerIds = scanners.scannerIds;
     });
+  }
+
+  ngOnDestroy(): void {
+    if (this.scannerSubscription) {
+      this.scannerSubscription.unsubscribe();
+    }
   }
 
   searchForCustomerId() {

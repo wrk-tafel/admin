@@ -20,18 +20,11 @@ describe('WebsocketService', () => {
     const {service, urlHelperSpy, clientSpy} = setup();
     urlHelperSpy.getBaseUrl.and.returnValue('https://test:1234/subpath');
 
-    service.init();
+    service.connect();
 
     expect(clientSpy.configure).toHaveBeenCalledWith({
       brokerURL: 'wss://test:1234/subpath/api/websockets'
     });
-  });
-
-  it('connect calls activate', () => {
-    const {service, clientSpy} = setup();
-
-    service.connect();
-
     expect(clientSpy.activate).toHaveBeenCalled();
   });
 
