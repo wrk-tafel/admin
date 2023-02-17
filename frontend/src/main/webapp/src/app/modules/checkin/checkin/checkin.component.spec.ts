@@ -67,6 +67,18 @@ describe('CheckinComponent', () => {
     expect(component.scannerIds).toEqual(scannersResponse.scannerIds);
   });
 
+  it('ngOnDestroy with active subscription', () => {
+    const testSubscription = jasmine.createSpyObj('Subscription', ['unsubscribe']);
+
+    const fixture = TestBed.createComponent(CheckinComponent);
+    const component = fixture.componentInstance;
+    component.scannerSubscription = testSubscription;
+
+    component.ngOnDestroy();
+
+    expect(component.scannerSubscription.unsubscribe).toHaveBeenCalled();
+  });
+
   it('processWsConnectionState OPEN', () => {
     const fixture = TestBed.createComponent(CheckinComponent);
     const component = fixture.componentInstance;

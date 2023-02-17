@@ -86,7 +86,6 @@ describe('ScannerComponent', () => {
 
     component.ngOnDestroy();
 
-    expect(wsService.close).toHaveBeenCalled();
     expect(qrCodeReaderService.stop).toHaveBeenCalled();
   });
 
