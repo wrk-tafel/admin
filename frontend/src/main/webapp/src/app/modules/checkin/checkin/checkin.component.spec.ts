@@ -63,8 +63,6 @@ describe('CheckinComponent', () => {
     component.ngOnInit();
 
     expect(wsService.getConnectionState).toHaveBeenCalled();
-    expect(wsService.init).toHaveBeenCalled();
-    expect(wsService.connect).toHaveBeenCalled();
     expect(wsService.watch).toHaveBeenCalledWith('/topic/scanners');
     expect(component.scannerIds).toEqual(scannersResponse.scannerIds);
   });

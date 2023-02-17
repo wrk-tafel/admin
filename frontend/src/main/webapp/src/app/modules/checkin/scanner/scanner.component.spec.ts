@@ -14,7 +14,7 @@ describe('ScannerComponent', () => {
 
   beforeEach(waitForAsync(() => {
     const wsServiceSpy = jasmine.createSpyObj('WebsocketService',
-      ['close', 'publish', 'init', 'connect', 'getConnectionState', 'watch']
+      ['close', 'publish', 'getConnectionState', 'watch']
     );
     const qrCodeReaderServiceSpy = jasmine.createSpyObj('QRCodeReaderService', ['stop', 'saveCurrentCamera', 'restart', 'getCameras', 'getCurrentCamera', 'init', 'start']);
 
@@ -77,8 +77,6 @@ describe('ScannerComponent', () => {
     expect(qrCodeReaderService.getCurrentCamera).toHaveBeenCalled();
     expect(qrCodeReaderService.start).toHaveBeenCalled();
     expect(wsService.getConnectionState).toHaveBeenCalled();
-    expect(wsService.init).toHaveBeenCalled();
-    expect(wsService.connect).toHaveBeenCalled();
     expect(wsService.publish).toHaveBeenCalledWith({destination: '/app/scanners/register'});
   }));
 
