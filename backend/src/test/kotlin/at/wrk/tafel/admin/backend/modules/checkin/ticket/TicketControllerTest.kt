@@ -4,11 +4,11 @@ import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
-import jakarta.persistence.EntityNotFoundException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.http.HttpStatus
 
 @ExtendWith(MockKExtension::class)
 internal class TicketControllerTest {
@@ -26,16 +26,17 @@ internal class TicketControllerTest {
 
         val response = controller.getNextTicket()
 
-        assertThat(response.ticketNumber).isEqualTo(ticketNumber)
+        assertThat(response.body!!.ticketNumber).isEqualTo(ticketNumber)
     }
 
     @Test
     fun `getNextTicket failed cause no ticket is left`() {
         every { service.getNextTicket() } returns null
 
-        assertThrows(EntityNotFoundException::class.java) {
-            controller.getNextTicket()
-        }
+        val response = controller.getNextTicket()
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
+        assertThat(response.body).isNull()
     }
 
 }
