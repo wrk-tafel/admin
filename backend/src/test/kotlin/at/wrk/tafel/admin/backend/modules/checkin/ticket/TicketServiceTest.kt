@@ -3,8 +3,9 @@ package at.wrk.tafel.admin.backend.modules.checkin.ticket
 import at.wrk.tafel.admin.backend.database.entities.checkin.TicketNumberEntity
 import at.wrk.tafel.admin.backend.database.repositories.checkin.TicketNumberRepository
 import io.mockk.every
+import io.mockk.impl.annotations.InjectMockKs
+import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
-import io.mockk.mockk
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -14,7 +15,10 @@ import java.util.stream.IntStream
 @ExtendWith(MockKExtension::class)
 internal class TicketServiceTest {
 
+    @RelaxedMockK
     private lateinit var repository: TicketNumberRepository
+
+    @InjectMockKs
     private lateinit var service: TicketService
 
     private val testTicketNumbers = IntStream.range(1, 101).mapToObj {
@@ -26,10 +30,8 @@ internal class TicketServiceTest {
 
     @BeforeEach
     fun beforeEach() {
-        repository = mockk()
         every { repository.findAll() } returns testTicketNumbers
-
-        service = TicketService(repository)
+        service.init()
     }
 
     @Test
