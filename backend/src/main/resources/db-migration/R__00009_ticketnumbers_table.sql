@@ -1,7 +1,7 @@
 create table if not exists ticket_numbers
 (
     id            bigint primary key,
-    ticket_number integer null
+    number integer null
 );
 
 DELETE FROM ticket_numbers;
