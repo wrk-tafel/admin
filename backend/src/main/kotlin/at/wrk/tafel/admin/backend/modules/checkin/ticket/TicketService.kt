@@ -15,15 +15,15 @@ class TicketService(
     @PostConstruct
     fun init() {
         possibleNumbers.addAll(
-            ticketNumberRepository.findAll().map { TicketNumber(number = it.number!!, granted = false) }
+            ticketNumberRepository.findAll().map { TicketNumber(number = it.number!!, assigned = false) }
         )
     }
 
     fun getNextTicket(): Int? {
         synchronized(this) {
-            val nextNumber = possibleNumbers.firstOrNull { !it.granted }
+            val nextNumber = possibleNumbers.firstOrNull { !it.assigned }
             if (nextNumber != null) {
-                nextNumber.granted = true
+                nextNumber.assigned = true
                 return nextNumber.number
             }
             return null
@@ -35,5 +35,5 @@ class TicketService(
 @ExcludeFromTestCoverage
 data class TicketNumber(
     val number: Int,
-    var granted: Boolean
+    var assigned: Boolean
 )
