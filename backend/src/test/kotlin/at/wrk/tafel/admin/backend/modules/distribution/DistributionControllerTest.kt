@@ -1,6 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.distribution
 
 import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionEntity
+import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationFailedException
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -11,6 +12,7 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.http.HttpStatus
+import org.springframework.web.server.ResponseStatusException
 import java.util.*
 
 @ExtendWith(MockKExtension::class)
@@ -31,6 +33,18 @@ internal class DistributionControllerTest {
         val distributionItem = controller.startDistribution()
 
         assertThat(distributionItem.id).isEqualTo(distributionEntity.id)
+    }
+
+    @Test
+    fun `start distribution with existing ongoing distribution`() {
+        val message = "MSG"
+        every { service.startDistribution() } throws TafelValidationFailedException(message)
+
+        val exception = assertThrows(ResponseStatusException::class.java) {
+            controller.startDistribution()
+        }
+        assertThat(exception.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
+        assertThat(exception.reason).isEqualTo(message)
     }
 
     @Test

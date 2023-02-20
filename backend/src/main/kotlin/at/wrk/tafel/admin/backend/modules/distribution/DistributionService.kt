@@ -4,6 +4,7 @@ import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.repositories.distribution.DistributionRepository
+import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationFailedException
 import jakarta.persistence.EntityNotFoundException
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
@@ -16,6 +17,11 @@ class DistributionService(
 ) {
 
     fun startDistribution(): DistributionEntity {
+        val currentDistribution = distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc()
+        if (currentDistribution.isPresent) {
+            throw TafelValidationFailedException("Ausgabe bereits gestartet!")
+        }
+
         val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
 
         val distribution = DistributionEntity()

@@ -4,6 +4,7 @@ import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.repositories.distribution.DistributionRepository
+import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationFailedException
 import at.wrk.tafel.admin.backend.security.testUser
 import at.wrk.tafel.admin.backend.security.testUserEntity
 import at.wrk.tafel.admin.backend.security.testUserPermissions
@@ -46,6 +47,7 @@ internal class DistributionServiceTest {
         SecurityContextHolder.setContext(SecurityContextImpl(authentication))
 
         every { userRepository.findByUsername(authentication.username!!) } returns Optional.of(testUserEntity)
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns Optional.empty()
 
         val distributionEntity = DistributionEntity()
         distributionEntity.id = 123
@@ -64,6 +66,19 @@ internal class DistributionServiceTest {
         }
 
         SecurityContextHolder.clearContext()
+    }
+
+    @Test
+    fun `start distribution with existing ongoing distribution`() {
+        val distributionEntity = DistributionEntity()
+        distributionEntity.id = 123
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns Optional.of(
+            distributionEntity
+        )
+
+        assertThrows(TafelValidationFailedException::class.java) {
+            service.startDistribution()
+        }
     }
 
     @Test

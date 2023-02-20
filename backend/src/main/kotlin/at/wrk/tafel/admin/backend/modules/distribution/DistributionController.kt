@@ -2,9 +2,12 @@ package at.wrk.tafel.admin.backend.modules.distribution
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionEntity
+import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationFailedException
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.server.ResponseStatusException
 
 @RestController
 @RequestMapping("/api/distributions")
@@ -15,8 +18,12 @@ class DistributionController(
 
     @PostMapping("/start")
     fun startDistribution(): DistributionItem {
-        val distribution = service.startDistribution()
-        return mapDistribution(distribution)
+        try {
+            val distribution = service.startDistribution()
+            return mapDistribution(distribution)
+        } catch (e: TafelValidationFailedException) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, e.message)
+        }
     }
 
     @PostMapping("/{distributionId}/end")
