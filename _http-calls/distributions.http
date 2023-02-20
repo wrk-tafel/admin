@@ -1,0 +1,8 @@
+### Start a new distribution
+POST {{baseApiPath}}/distributions/start
+
+### End an existing distribution
+POST {{baseApiPath}}/distributions/5000/end
+
+### Get active distribution
+GET {{baseApiPath}}/distributions/current
