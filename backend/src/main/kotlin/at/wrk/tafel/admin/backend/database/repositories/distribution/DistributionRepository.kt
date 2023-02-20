@@ -5,4 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository
 
 interface DistributionRepository : JpaRepository<DistributionEntity, Long> {
 
+    fun findFirstByEndedAtIsNullOrderByStartedAtDesc(): DistributionEntity
+
 }
