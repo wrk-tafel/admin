@@ -31,7 +31,7 @@ class DistributionService(
         return distributionRepository.save(distribution)
     }
 
-    fun endDistribution(distributionId: Long) {
+    fun stopDistribution(distributionId: Long) {
         val latestDistribution = distributionRepository.findById(distributionId)
             .orElseThrow { EntityNotFoundException("Distribution $distributionId not found!") }
 

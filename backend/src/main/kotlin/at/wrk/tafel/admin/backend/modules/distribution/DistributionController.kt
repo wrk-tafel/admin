@@ -26,11 +26,11 @@ class DistributionController(
         }
     }
 
-    @PostMapping("/{distributionId}/end")
+    @PostMapping("/{distributionId}/stop")
     fun endDistribution(
         @PathVariable("distributionId") distributionId: Long? = null,
     ) {
-        distributionId?.let { service.endDistribution(distributionId) }
+        distributionId?.let { service.stopDistribution(distributionId) }
     }
 
     @GetMapping("/current")

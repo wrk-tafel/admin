@@ -88,7 +88,7 @@ internal class DistributionServiceTest {
         every { distributionRepository.findById(distributionEntity.id!!) } returns Optional.of(distributionEntity)
         every { distributionRepository.save(any()) } returns mockk()
 
-        service.endDistribution(distributionEntity.id!!)
+        service.stopDistribution(distributionEntity.id!!)
 
         verify {
             distributionRepository.save(withArg {
@@ -102,7 +102,7 @@ internal class DistributionServiceTest {
         every { distributionRepository.findById(any()) } returns Optional.empty()
 
         assertThrows(EntityNotFoundException::class.java) {
-            service.endDistribution(123)
+            service.stopDistribution(123)
         }
     }
 
