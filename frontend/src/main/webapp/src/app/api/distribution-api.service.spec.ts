@@ -33,4 +33,26 @@ describe('DistributionApiService', () => {
     httpMock.verify();
   });
 
+  it('start distribution', () => {
+    const testResponse: DistributionItem = {
+      id: 123
+    };
+
+    apiService.startDistribution().subscribe((response: DistributionItem) => {
+      expect(response).toEqual(testResponse);
+    });
+
+    const req = httpMock.expectOne('/distributions/start');
+    req.flush(testResponse);
+    httpMock.verify();
+  });
+
+  it('stop distribution', () => {
+    apiService.stopDistribution(123).subscribe();
+
+    const req = httpMock.expectOne('/distributions/123/stop');
+    req.flush(null);
+    httpMock.verify();
+  });
+
 });
