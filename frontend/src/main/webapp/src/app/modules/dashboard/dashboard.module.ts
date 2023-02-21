@@ -5,21 +5,18 @@ import {DashboardComponent} from './dashboard.component';
 import {DashboardRoutingModule} from './dashboard-routing.module';
 import {CommonModule} from '@angular/common';
 import {ModalModule} from 'ngx-bootstrap/modal';
-import {TafelIfPermissionDirective} from '../../common/security/tafel-if-permission.directive';
+import {TafelCommonModule} from '../../common/tafel-common.module';
 
 @NgModule({
   imports: [
     CommonModule,
+    TafelCommonModule,
     DashboardRoutingModule,
     ButtonsModule.forRoot(),
     ModalModule
   ],
   declarations: [
-    DashboardComponent,
-    TafelIfPermissionDirective
-  ],
-  exports: [
-    TafelIfPermissionDirective
+    DashboardComponent
   ]
 })
 export class DashboardModule {
