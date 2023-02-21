@@ -1,7 +1,8 @@
 import {TestBed, waitForAsync} from '@angular/core/testing';
-import {DistributionApiService} from '../../api/distribution-api.service';
+import {DistributionApiService, DistributionItem} from '../../api/distribution-api.service';
 import {DashboardComponent} from './dashboard.component';
-import {ModalModule} from 'ngx-bootstrap/modal';
+import {ModalDirective, ModalModule} from 'ngx-bootstrap/modal';
+import {of} from 'rxjs';
 
 describe('DashboardComponent', () => {
   let distributionApiService: jasmine.SpyObj<DistributionApiService>;
@@ -17,7 +18,7 @@ describe('DashboardComponent', () => {
       providers: [
         {
           provide: DistributionApiService,
-          useValue: jasmine.createSpyObj('DistributionApiService', ['TODO'])
+          useValue: jasmine.createSpyObj('DistributionApiService', ['getCurrentDistribution', 'startDistribution', 'stopDistribution'])
         }
       ]
     }).compileComponents();
@@ -29,6 +30,60 @@ describe('DashboardComponent', () => {
     const fixture = TestBed.createComponent(DashboardComponent);
     const component = fixture.componentInstance;
     expect(component).toBeTruthy();
+  });
+
+  it('component init distribution active', () => {
+    const fixture = TestBed.createComponent(DashboardComponent);
+    const component = fixture.componentInstance;
+
+    const distribution: DistributionItem = {id: 123};
+    distributionApiService.getCurrentDistribution.and.returnValue(of(distribution));
+
+    component.ngOnInit();
+
+    expect(component.distribution).toEqual(distribution);
+    expect(distributionApiService.getCurrentDistribution).toHaveBeenCalled();
+  });
+
+  it('component init distribution not active', () => {
+    const fixture = TestBed.createComponent(DashboardComponent);
+    const component = fixture.componentInstance;
+
+    distributionApiService.getCurrentDistribution.and.returnValue(of());
+
+    component.ngOnInit();
+
+    expect(component.distribution).toBeUndefined();
+    expect(distributionApiService.getCurrentDistribution).toHaveBeenCalled();
+  });
+
+  it('start distribution', () => {
+    const fixture = TestBed.createComponent(DashboardComponent);
+    const component = fixture.componentInstance;
+
+    const distribution: DistributionItem = {id: 123};
+    distributionApiService.startDistribution.and.returnValue(of(distribution));
+
+    component.startDistribution();
+
+    expect(component.distribution).toEqual(distribution);
+    expect(distributionApiService.startDistribution).toHaveBeenCalled();
+  });
+
+  it('stop distribution', () => {
+    const fixture = TestBed.createComponent(DashboardComponent);
+    const component = fixture.componentInstance;
+    component.stopDistributionModal = jasmine.createSpyObj<ModalDirective>(['hide']);
+
+    const distribution: DistributionItem = {id: 123};
+    component.distribution = distribution;
+    distributionApiService.stopDistribution.withArgs(distribution.id).and.returnValue(of(undefined));
+
+    component.stopDistribution();
+
+    expect(distributionApiService.stopDistribution).toHaveBeenCalledWith(distribution.id);
+    expect(component.distribution).toBeUndefined();
+    expect(component.stopDistributionModal.hide).toHaveBeenCalled();
   });
 
 });
