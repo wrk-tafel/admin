@@ -1,14 +1,18 @@
 <div>
   <div class="row">
-    <div class="col-sm-6 col-lg-3">
+    <div class="col-sm-6 col-lg-3" *tafelIfPermission="'DISTRIBUTIONS'">
       <div class="card text-black-50 bg-white">
         <div class="card-body pb-0">
           <div>Status</div>
           <div class="text-value font-weight-bold">Ausgabe {{distribution ? 'AKTIV' : 'INAKTIV'}}</div>
         </div>
         <div class="m-3">
-          <button *ngIf="!distribution" type="button" class="btn btn-block btn-success text-white" (click)="startDistribution()">Starten</button>
-          <button *ngIf="distribution" type="button" class="btn btn-block btn-danger text-white" (click)="stopDistributionModal.show()">Beenden</button>
+          <button *ngIf="!distribution" type="button" class="btn btn-block btn-success text-white"
+                  (click)="startDistribution()">Starten
+          </button>
+          <button *ngIf="distribution" type="button" class="btn btn-block btn-danger text-white"
+                  (click)="stopDistributionModal.show()">Beenden
+          </button>
         </div>
       </div>
     </div>
@@ -30,9 +34,11 @@
         <div class="row">
           <div class="col-6 m-3">
             <button testid="ok-button" type="button" class="btn btn-primary mr-2"
-                    (click)="stopDistribution()">OK</button>
+                    (click)="stopDistribution()">OK
+            </button>
             <button testid="cancel-button" type="button" class="btn btn-secondary"
-                    (click)="stopDistributionModal.hide()">Abbrechen</button>
+                    (click)="stopDistributionModal.hide()">Abbrechen
+            </button>
           </div>
         </div>
       </div>
