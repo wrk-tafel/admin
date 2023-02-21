@@ -1,5 +1,6 @@
-import {Component, OnInit} from '@angular/core';
-import {DistributionApiService, DistributionItem} from "../../api/distribution-api.service";
+import {Component, OnInit, ViewChild} from '@angular/core';
+import {DistributionApiService, DistributionItem} from '../../api/distribution-api.service';
+import {ModalDirective} from 'ngx-bootstrap/modal';
 
 @Component({
   selector: 'tafel-dashboard',
@@ -11,6 +12,8 @@ export class DashboardComponent implements OnInit {
     private distributionApiService: DistributionApiService
   ) {
   }
+
+  @ViewChild('stopDistributionModal') stopDistributionModal: ModalDirective;
 
   distribution: DistributionItem;
 
@@ -32,6 +35,7 @@ export class DashboardComponent implements OnInit {
     // TODO add modal and ask before stopping
     this.distributionApiService.stopDistribution(this.distribution.id).subscribe(() => {
       this.distribution = undefined;
+      this.stopDistributionModal.hide();
     });
   }
 

@@ -1,4 +1,4 @@
-<div class="animated fadeIn">
+<div>
   <div class="row">
     <div class="col-sm-6 col-lg-3">
       <div class="card text-black-50 bg-white">
@@ -8,7 +8,32 @@
         </div>
         <div class="m-3">
           <button *ngIf="!distribution" type="button" class="btn btn-block btn-success text-white" (click)="startDistribution()">Starten</button>
-          <button *ngIf="distribution" type="button" class="btn btn-block btn-danger text-white" (click)="stopDistribution()">Beenden</button>
+          <button *ngIf="distribution" type="button" class="btn btn-block btn-danger text-white" (click)="stopDistributionModal.show()">Beenden</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div testid="stopdistribution-modal" bsModal #stopDistributionModal="bs-modal" class="modal fade" tabindex="-1"
+     role="dialog" aria-labelledby="stopDistributionModalLabel" aria-hidden="true">
+  <div testid="stopDistribution-modal-dialog" class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header bg-warning">
+        <h4 testid="title" class="modal-title">
+          Ausgabe beenden?
+        </h4>
+        <button type="button" class="close" (click)="stopDistributionModal.hide()" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="body">
+        <div class="row">
+          <div class="col-6 m-3">
+            <button testid="ok-button" type="button" class="btn btn-primary mr-2"
+                    (click)="stopDistribution()">OK</button>
+            <button testid="cancel-button" type="button" class="btn btn-secondary"
+                    (click)="stopDistributionModal.hide()">Abbrechen</button>
+          </div>
         </div>
       </div>
     </div>

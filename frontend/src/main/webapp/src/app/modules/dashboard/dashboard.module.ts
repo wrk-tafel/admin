@@ -7,16 +7,18 @@ import {ButtonsModule} from 'ngx-bootstrap/buttons';
 import {DashboardComponent} from './dashboard.component';
 import {DashboardRoutingModule} from './dashboard-routing.module';
 import {CommonModule} from '@angular/common';
+import {ModalModule} from "ngx-bootstrap/modal";
 
 @NgModule({
-  imports: [
-    FormsModule,
-    DashboardRoutingModule,
-    ChartsModule,
-    BsDropdownModule,
-    ButtonsModule.forRoot(),
-    CommonModule
-  ],
+    imports: [
+        FormsModule,
+        DashboardRoutingModule,
+        ChartsModule,
+        BsDropdownModule,
+        ButtonsModule.forRoot(),
+        CommonModule,
+        ModalModule
+    ],
   declarations: [DashboardComponent]
 })
 export class DashboardModule {
