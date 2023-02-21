@@ -24,14 +24,12 @@ export class DashboardComponent implements OnInit {
   }
 
   startDistribution() {
-    // TODO handle errors
     this.distributionApiService.startDistribution().subscribe((distribution) => {
       this.distribution = distribution;
     });
   }
 
   stopDistribution() {
-    // TODO handle errors
     this.distributionApiService.stopDistribution(this.distribution.id).subscribe(() => {
       this.distribution = undefined;
       this.stopDistributionModal.hide();
