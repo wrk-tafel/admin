@@ -9,5 +9,6 @@ import {TafelIfPermissionDirective} from './security/tafel-if-permission.directi
     TafelIfPermissionDirective
   ]
 })
+// TODO adding also views, services, etc?
 export class TafelCommonModule {
 }
