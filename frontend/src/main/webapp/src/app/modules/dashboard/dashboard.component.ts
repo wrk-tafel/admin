@@ -32,7 +32,6 @@ export class DashboardComponent implements OnInit {
 
   stopDistribution() {
     // TODO handle errors
-    // TODO add modal and ask before stopping
     this.distributionApiService.stopDistribution(this.distribution.id).subscribe(() => {
       this.distribution = undefined;
       this.stopDistributionModal.hide();
