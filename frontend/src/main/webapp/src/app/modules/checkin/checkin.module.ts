@@ -4,7 +4,6 @@ import {ScannerComponent} from './scanner/scanner.component';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {CommonModule} from '@angular/common';
 import {QRCodeReaderService} from './qrcode-reader/qrcode-reader.service';
-import {WebsocketService} from '../../common/websocket/websocket.service';
 import {CheckinComponent} from './checkin/checkin.component';
 import {CustomerApiService} from '../../api/customer-api.service';
 
@@ -21,7 +20,6 @@ import {CustomerApiService} from '../../api/customer-api.service';
   ],
   providers: [
     QRCodeReaderService,
-    WebsocketService,
     CustomerApiService
   ]
 })

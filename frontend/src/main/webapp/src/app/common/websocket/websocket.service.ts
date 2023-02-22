@@ -1,4 +1,4 @@
-import {Injectable} from '@angular/core';
+import {Injectable, OnDestroy} from '@angular/core';
 import {IRxStompPublishParams, RxStomp} from '@stomp/rx-stomp';
 import {RxStompConfig} from '@stomp/rx-stomp/esm6/rx-stomp-config';
 import {BehaviorSubject, Observable} from 'rxjs';
@@ -9,13 +9,13 @@ import {UrlHelperService} from '../util/url-helper.service';
 @Injectable({
   providedIn: 'root',
 })
-export class WebsocketService {
+export class WebsocketService implements OnDestroy {
   client: RxStomp = new RxStomp();
 
   constructor(private urlHelper: UrlHelperService) {
   }
 
-  init(): void {
+  connect() {
     const stompConfig: RxStompConfig = {
       brokerURL: this.getBaseUrl(),
       /*
@@ -29,14 +29,15 @@ export class WebsocketService {
     };
 
     this.client.configure(stompConfig);
+    this.client.activate();
+  }
+
+  ngOnDestroy(): void {
+    this.client.deactivate();
   }
 
   getConnectionState(): BehaviorSubject<RxStompState> {
     return this.client.connectionState$;
-  }
-
-  connect() {
-    this.client.activate();
   }
 
   publish(parameters: IRxStompPublishParams) {

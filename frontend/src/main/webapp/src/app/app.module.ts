@@ -1,13 +1,9 @@
 import {BrowserModule} from '@angular/platform-browser';
 import {APP_INITIALIZER, DEFAULT_CURRENCY_CODE, LOCALE_ID, NgModule} from '@angular/core';
 import {ReactiveFormsModule} from '@angular/forms';
-import {CommonModule, HashLocationStrategy, LocationStrategy} from '@angular/common';
+import {CommonModule, HashLocationStrategy, LocationStrategy, registerLocaleData} from '@angular/common';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
-import {registerLocaleData} from '@angular/common';
 import localeDeAt from '@angular/common/locales/de-AT';
-
-registerLocaleData(localeDeAt);
-
 import {PerfectScrollbarConfigInterface, PerfectScrollbarModule} from 'ngx-perfect-scrollbar';
 
 import {IconModule, IconSetModule, IconSetService} from '@coreui/icons-angular';
@@ -37,11 +33,14 @@ import {HTTP_INTERCEPTORS, HttpClientModule, HttpClientXsrfModule} from '@angula
 import {ApiPathInterceptor} from './common/http/apipath-interceptor.service';
 import {ErrorHandlerInterceptor} from './common/http/errorhandler-interceptor.service';
 import {ModalModule} from 'ngx-bootstrap/modal';
-import {PasswordChangeModalComponent} from './modules/user/views/passwordchange-modal/passwordchange-modal.component';
-import {PasswordChangeFormComponent} from './modules/user/views/passwordchange-form/passwordchange-form.component';
+import {PasswordChangeModalComponent} from './common/views/passwordchange-modal/passwordchange-modal.component';
+import {PasswordChangeFormComponent} from './common/views/passwordchange-form/passwordchange-form.component';
 import {LoginPasswordChangeComponent} from './common/views/login-passwordchange/login-passwordchange.component';
 import {CookieService} from 'ngx-cookie-service';
 import {AuthenticationService} from './common/security/authentication.service';
+import {WebsocketService} from './common/websocket/websocket.service';
+
+registerLocaleData(localeDeAt);
 
 const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
   suppressScrollX: true
@@ -112,14 +111,23 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
       useValue: window
     },
     {
+      provide: WebsocketService,
+      useClass: WebsocketService
+    },
+    {
       provide: APP_INITIALIZER,
       useFactory: (authService: AuthenticationService) => () => authService.loadUserInfo(),
       deps: [AuthenticationService],
+      multi: true
+    },
+    {
+      provide: APP_INITIALIZER,
+      useFactory: (websocketService: WebsocketService) => () => websocketService.connect(),
+      deps: [WebsocketService],
       multi: true
     }
   ],
   bootstrap: [AppComponent]
 })
-
 export class AppModule {
 }

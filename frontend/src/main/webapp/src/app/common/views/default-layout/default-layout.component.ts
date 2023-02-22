@@ -4,7 +4,7 @@ import {AuthenticationService} from '../../security/authentication.service';
 import {IPermissionNavData, navigationMenuItems} from '../../../modules/dashboard/navigation-menuItems';
 import {
   PasswordChangeModalComponent
-} from '../../../modules/user/views/passwordchange-modal/passwordchange-modal.component';
+} from '../passwordchange-modal/passwordchange-modal.component';
 
 @Component({
   selector: 'tafel-default-layout',
