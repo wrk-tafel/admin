@@ -11,12 +11,12 @@ import org.springframework.web.server.ResponseStatusException
 
 @RestController
 @RequestMapping("/api/distributions")
-@PreAuthorize("hasAuthority('DISTRIBUTIONS')")
 class DistributionController(
     private val service: DistributionService
 ) {
 
     @PostMapping("/start")
+    @PreAuthorize("hasAuthority('DISTRIBUTION')")
     fun startDistribution(): DistributionItem {
         try {
             val distribution = service.startDistribution()
@@ -27,6 +27,7 @@ class DistributionController(
     }
 
     @PostMapping("/{distributionId}/stop")
+    @PreAuthorize("hasAuthority('DISTRIBUTION')")
     fun endDistribution(
         @PathVariable("distributionId") distributionId: Long? = null,
     ) {
