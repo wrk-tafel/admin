@@ -1,16 +1,19 @@
-<div class="card text-black-50 bg-white">
+<div class="card text-white"
+     [ngClass]="{'bg-success': distribution, 'bg-danger': !distribution}">
   <div class="card-body pb-0">
     <div>Status</div>
     <div class="text-value font-weight-bold" testid="distribtion-state-text">
       Ausgabe {{distribution ? 'AKTIV' : 'INAKTIV'}}</div>
   </div>
   <div class="m-3">
-    <button *ngIf="!distribution" type="button" class="btn btn-block btn-success text-white"
+    <button *ngIf="!distribution" type="button"
             testid="distribution-start-button"
+            class="btn btn-block text-white btn-info"
             (click)="startDistribution()">Starten
     </button>
-    <button *ngIf="distribution" type="button" class="btn btn-block btn-danger text-white"
+    <button *ngIf="distribution" type="button"
             testid="distribution-stop-button"
+            class="btn btn-block text-white btn-info"
             (click)="stopDistributionModal.show()">Beenden
     </button>
   </div>
