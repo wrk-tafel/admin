@@ -15,7 +15,7 @@ VALUES (1002, NOW(), NOW(), 100, 'SCANNER');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (1003, NOW(), NOW(), 100, 'CHECKIN');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
-VALUES (1004, NOW(), NOW(), 100, 'DISTRIBUTIONS');
+VALUES (1004, NOW(), NOW(), 100, 'DISTRIBUTION');
 
 -- user e2etest2 for cypress test (password change)
 -- pwd: e2etest
@@ -44,7 +44,7 @@ VALUES (2002, NOW(), NOW(), 200, 'SCANNER');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (2003, NOW(), NOW(), 200, 'CHECKIN');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
-VALUES (2004, NOW(), NOW(), 200, 'DISTRIBUTIONS');
+VALUES (2004, NOW(), NOW(), 200, 'DISTRIBUTION');
 
 -- TODO remove | fake user with weak password to gain some intrusion insights
 -- user: admin
@@ -60,7 +60,7 @@ VALUES (3002, NOW(), NOW(), 300, 'SCANNER');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (3003, NOW(), NOW(), 300, 'CHECKIN');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
-VALUES (3004, NOW(), NOW(), 300, 'DISTRIBUTIONS');
+VALUES (3004, NOW(), NOW(), 300, 'DISTRIBUTION');
 
 -- user: scanner1
 -- pwd: 12345

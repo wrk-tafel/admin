@@ -11,7 +11,7 @@ import org.springframework.web.server.ResponseStatusException
 
 @RestController
 @RequestMapping("/api/distributions")
-@PreAuthorize("hasAuthority('DISTRIBUTIONS')")
+@PreAuthorize("hasAuthority('DISTRIBUTION')")
 class DistributionController(
     private val service: DistributionService
 ) {
