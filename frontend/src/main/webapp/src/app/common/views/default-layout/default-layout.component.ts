@@ -23,9 +23,7 @@ export class DefaultLayoutComponent implements OnInit {
 
   ngOnInit() {
     if (this.auth.hasAnyPermission()) {
-      let modifiedNavItems = this.filterNavItemsByPermissions(navigationMenuItems);
-      modifiedNavItems = this.filterEmptyTitleItems(modifiedNavItems);
-      this.navItems = modifiedNavItems;
+      this.navItems = this.filterNavItemsByPermissions(navigationMenuItems);
 
       this.editNavItemsForDistributionState();
     }
@@ -62,7 +60,7 @@ export class DefaultLayoutComponent implements OnInit {
       }
     });
 
-    return resultNavItems;
+    return this.filterEmptyTitleItems(resultNavItems);
   }
 
   private filterEmptyTitleItems(navItems: ITafelNavData[]): ITafelNavData[] {
