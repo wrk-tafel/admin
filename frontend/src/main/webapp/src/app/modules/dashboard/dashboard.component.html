@@ -4,13 +4,15 @@
       <div class="card text-black-50 bg-white">
         <div class="card-body pb-0">
           <div>Status</div>
-          <div class="text-value font-weight-bold">Ausgabe {{distribution ? 'AKTIV' : 'INAKTIV'}}</div>
+          <div class="text-value font-weight-bold" testid="distribtion-state-text">Ausgabe {{distribution ? 'AKTIV' : 'INAKTIV'}}</div>
         </div>
         <div class="m-3">
           <button *ngIf="!distribution" type="button" class="btn btn-block btn-success text-white"
+                  testid="distribution-start-button"
                   (click)="startDistribution()">Starten
           </button>
           <button *ngIf="distribution" type="button" class="btn btn-block btn-danger text-white"
+                  testid="distribution-stop-button"
                   (click)="stopDistributionModal.show()">Beenden
           </button>
         </div>
@@ -34,9 +36,11 @@
         <div class="row">
           <div class="col-6 m-3">
             <button testid="ok-button" type="button" class="btn btn-primary mr-2"
+                    testid="distribution-stop-modal-ok-button"
                     (click)="stopDistribution()">OK
             </button>
             <button testid="cancel-button" type="button" class="btn btn-secondary"
+                    testid="distribution-stop-modal-cancel-button"
                     (click)="stopDistributionModal.hide()">Abbrechen
             </button>
           </div>
