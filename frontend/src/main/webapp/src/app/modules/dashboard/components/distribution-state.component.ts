@@ -17,7 +17,7 @@ export class DistributionStateComponent implements OnInit {
 
   distribution: DistributionItem;
 
-  ngOnInit(): void {
+  ngOnInit() {
     this.distributionApiService.getCurrentDistribution().subscribe((distribution) => {
       this.distribution = distribution;
     });
