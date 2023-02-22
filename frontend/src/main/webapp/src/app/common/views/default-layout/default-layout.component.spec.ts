@@ -8,8 +8,8 @@ import {
   AppSidebarMinimizerComponent,
   AppSidebarNavComponent
 } from '@coreui/angular';
-import {DistributionApiService} from "../../../api/distribution-api.service";
-import {of} from "rxjs";
+import {DistributionApiService} from '../../../api/distribution-api.service';
+import {of} from 'rxjs';
 
 describe('DefaultLayoutComponent', () => {
   let authService: jasmine.SpyObj<AuthenticationService>;
