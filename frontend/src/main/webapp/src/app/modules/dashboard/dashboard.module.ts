@@ -6,6 +6,7 @@ import {DashboardRoutingModule} from './dashboard-routing.module';
 import {CommonModule} from '@angular/common';
 import {ModalModule} from 'ngx-bootstrap/modal';
 import {TafelCommonModule} from '../../common/tafel-common.module';
+import {DistributionStateComponent} from './components/distribution-state.component';
 
 @NgModule({
   imports: [
@@ -16,7 +17,8 @@ import {TafelCommonModule} from '../../common/tafel-common.module';
     ModalModule
   ],
   declarations: [
-    DashboardComponent
+    DashboardComponent,
+    DistributionStateComponent
   ]
 })
 export class DashboardModule {
