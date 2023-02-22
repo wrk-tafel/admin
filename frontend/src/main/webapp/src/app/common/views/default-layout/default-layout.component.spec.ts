@@ -61,7 +61,7 @@ describe('DefaultLayoutComponent', () => {
     };
     const testMenuItems = [testMenuItem1, testMenuItem2];
 
-    const filteredItems = component.getNavItemsFilteredByPermissions(testMenuItems);
+    const filteredItems = component.filterNavItemsByPermissions(testMenuItems);
     expect(filteredItems).toEqual([]);
   });
 
@@ -71,7 +71,7 @@ describe('DefaultLayoutComponent', () => {
     const fixture = TestBed.createComponent(DefaultLayoutComponent);
     const component = fixture.componentInstance;
 
-    const filteredItems = component.getNavItemsFilteredByPermissions(null);
+    const filteredItems = component.filterNavItemsByPermissions(null);
     expect(filteredItems).toEqual([]);
   });
 
@@ -81,7 +81,7 @@ describe('DefaultLayoutComponent', () => {
     const fixture = TestBed.createComponent(DefaultLayoutComponent);
     const component = fixture.componentInstance;
 
-    const filteredItems = component.getNavItemsFilteredByPermissions([]);
+    const filteredItems = component.filterNavItemsByPermissions([]);
     expect(filteredItems).toEqual([]);
   });
 
@@ -92,7 +92,7 @@ describe('DefaultLayoutComponent', () => {
     const fixture = TestBed.createComponent(DefaultLayoutComponent);
     const component = fixture.componentInstance;
 
-    const filteredItems = component.getNavItemsFilteredByPermissions([
+    const filteredItems = component.filterNavItemsByPermissions([
       {
         name: 'Test1',
         permissions: ['PERM1']
@@ -114,7 +114,7 @@ describe('DefaultLayoutComponent', () => {
     const fixture = TestBed.createComponent(DefaultLayoutComponent);
     const component = fixture.componentInstance;
 
-    const filteredItems = component.getNavItemsFilteredByPermissions(testMenuItems);
+    const filteredItems = component.filterNavItemsByPermissions(testMenuItems);
 
     expect(filteredItems).toEqual(testMenuItems);
   });
@@ -132,7 +132,7 @@ describe('DefaultLayoutComponent', () => {
     const fixture = TestBed.createComponent(DefaultLayoutComponent);
     const component = fixture.componentInstance;
 
-    const filteredItems = component.getNavItemsFilteredByPermissions(testMenuItems);
+    const filteredItems = component.filterNavItemsByPermissions(testMenuItems);
 
     expect(filteredItems).toEqual(testMenuItems);
   });
@@ -156,7 +156,7 @@ describe('DefaultLayoutComponent', () => {
     const fixture = TestBed.createComponent(DefaultLayoutComponent);
     const component = fixture.componentInstance;
 
-    const filteredItems = component.getNavItemsFilteredByPermissions(testMenuItems);
+    const filteredItems = component.filterNavItemsByPermissions(testMenuItems);
 
     expect(filteredItems).toEqual([testMenuItem2]);
   }));
@@ -200,7 +200,7 @@ describe('DefaultLayoutComponent', () => {
     const fixture = TestBed.createComponent(DefaultLayoutComponent);
     const component = fixture.componentInstance;
 
-    const filteredItems = component.getNavItemsFilteredByPermissions(testMenuItems);
+    const filteredItems = component.filterNavItemsByPermissions(testMenuItems);
     expect(filteredItems).toEqual([testMenuItem1, testMenuItem5, testMenuItem6]);
   }));
 
@@ -222,7 +222,7 @@ describe('DefaultLayoutComponent', () => {
     const fixture = TestBed.createComponent(DefaultLayoutComponent);
     const component = fixture.componentInstance;
 
-    const filteredItems = component.getNavItemsFilteredByPermissions(testMenuItems);
+    const filteredItems = component.filterNavItemsByPermissions(testMenuItems);
 
     expect(filteredItems).toEqual([]);
   }));
