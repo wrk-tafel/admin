@@ -1,14 +1,14 @@
-import {Component, ViewChild} from '@angular/core';
+import {Component, OnInit, ViewChild} from '@angular/core';
 import {AuthenticationService} from '../../security/authentication.service';
 import {ITafelNavData, navigationMenuItems} from '../../../modules/dashboard/navigation-menuItems';
 import {PasswordChangeModalComponent} from '../passwordchange-modal/passwordchange-modal.component';
-import {DistributionApiService} from '../../../api/distribution-api.service';
+import {DistributionApiService, DistributionItem} from '../../../api/distribution-api.service';
 
 @Component({
   selector: 'tafel-default-layout',
   templateUrl: './default-layout.component.html'
 })
-export class DefaultLayoutComponent {
+export class DefaultLayoutComponent implements OnInit {
   public sidebarMinimized = false;
   public navItems = [];
 
@@ -19,11 +19,15 @@ export class DefaultLayoutComponent {
     private auth: AuthenticationService,
     private distributionApiService: DistributionApiService
   ) {
+  }
+
+  ngOnInit() {
     if (this.auth.hasAnyPermission()) {
       let modifiedNavItems = this.filterNavItemsByPermissions(navigationMenuItems);
-      modifiedNavItems = this.editNavItemsForDistributionState(modifiedNavItems);
       modifiedNavItems = this.filterEmptyTitleItems(modifiedNavItems);
       this.navItems = modifiedNavItems;
+
+      this.editNavItemsForDistributionState();
     }
   }
 
@@ -77,33 +81,28 @@ export class DefaultLayoutComponent {
     return resultNavItems;
   }
 
-  public editNavItemsForDistributionState(navItems: ITafelNavData[]): ITafelNavData[] {
-    /*
-    const distributionActive = await this.distributionApiService.getCurrentDistribution() === undefined;
-    console.log("DIS", await this.distributionApiService.getCurrentDistribution())
-    console.log("ACTIVE", distributionActive)
-     */
-    const distributionActive = false;
+  public editNavItemsForDistributionState() {
+    this.distributionApiService.getCurrentDistribution().subscribe((distribution: DistributionItem) => {
+      const resultNavItems: ITafelNavData[] = [];
 
-    const resultNavItems: ITafelNavData[] = [];
+      this.navItems?.forEach(navItem => {
+        if (navItem.activeDistributionRequired && !distribution) {
+          const modifiedNavItem = {
+            ...navItem,
+            badge: {
+              variant: 'danger',
+              text: 'INAKTIV'
+            },
+            attributes: {disabled: true}
+          };
+          resultNavItems.push(modifiedNavItem);
+        } else {
+          resultNavItems.push(navItem);
+        }
+      });
 
-    navItems?.forEach(navItem => {
-      if (navItem.activeDistributionRequired && !distributionActive) {
-        const modifiedNavItem = {
-          ...navItem,
-          badge: {
-            variant: 'danger',
-            text: 'INAKTIV'
-          },
-          attributes: {disabled: true}
-        };
-        resultNavItems.push(modifiedNavItem);
-      } else {
-        resultNavItems.push(navItem);
-      }
+      this.navItems = resultNavItems;
     });
-
-    return resultNavItems;
   }
 
 }
