@@ -1,7 +1,7 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {FormArray, FormControl, FormGroup, Validators} from '@angular/forms';
 import {CountryApiService, CountryData} from '../../../../api/country-api.service';
-import {CustomValidator} from '../../../../common/CustomValidator';
+import {CustomValidator} from '../../../../common/validator/CustomValidator';
 import {CustomerAddPersonData, CustomerData} from '../../../../api/customer-api.service';
 import {v4 as uuidv4} from 'uuid';
 import * as moment from 'moment';

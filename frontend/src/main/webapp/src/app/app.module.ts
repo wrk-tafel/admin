@@ -33,8 +33,8 @@ import {HTTP_INTERCEPTORS, HttpClientModule, HttpClientXsrfModule} from '@angula
 import {ApiPathInterceptor} from './common/http/apipath-interceptor.service';
 import {ErrorHandlerInterceptor} from './common/http/errorhandler-interceptor.service';
 import {ModalModule} from 'ngx-bootstrap/modal';
-import {PasswordChangeModalComponent} from './modules/user/views/passwordchange-modal/passwordchange-modal.component';
-import {PasswordChangeFormComponent} from './modules/user/views/passwordchange-form/passwordchange-form.component';
+import {PasswordChangeModalComponent} from './common/views/passwordchange-modal/passwordchange-modal.component';
+import {PasswordChangeFormComponent} from './common/views/passwordchange-form/passwordchange-form.component';
 import {LoginPasswordChangeComponent} from './common/views/login-passwordchange/login-passwordchange.component';
 import {CookieService} from 'ngx-cookie-service';
 import {AuthenticationService} from './common/security/authentication.service';
@@ -129,6 +129,5 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
   ],
   bootstrap: [AppComponent]
 })
-
 export class AppModule {
 }
