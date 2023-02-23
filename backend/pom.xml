@@ -24,6 +24,7 @@
         <apache.fop.version>2.8</apache.fop.version>
         <qrcode.kotlin.version>3.3.0</qrcode.kotlin.version>
         <passay.version>1.6.2</passay.version>
+        <spring.statemachine.version>3.2.0</spring.statemachine.version>
 
         <!-- Maven plugin version -->
         <maven.surefire.plugin.version>2.22.2</maven.surefire.plugin.version>
@@ -167,6 +168,11 @@
             <groupId>org.passay</groupId>
             <artifactId>passay</artifactId>
             <version>${passay.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.statemachine</groupId>
+            <artifactId>spring-statemachine-core</artifactId>
+            <version>${spring.statemachine.version}</version>
         </dependency>
 
         <!-- Dev and Test dependencies -->
