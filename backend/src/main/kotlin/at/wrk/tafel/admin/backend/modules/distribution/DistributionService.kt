@@ -18,7 +18,7 @@ class DistributionService(
 
     fun startDistribution(): DistributionEntity {
         val currentDistribution = distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc()
-        if (currentDistribution.isPresent) {
+        if (currentDistribution != null) {
             throw TafelValidationFailedException("Ausgabe bereits gestartet!")
         }
 
@@ -41,7 +41,7 @@ class DistributionService(
     }
 
     fun getCurrentDistribution(): DistributionEntity? {
-        return distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc().orElse(null)
+        return distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc()
     }
 
 }
