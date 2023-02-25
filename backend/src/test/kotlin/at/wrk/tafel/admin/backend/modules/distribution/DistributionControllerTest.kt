@@ -49,7 +49,7 @@ internal class DistributionControllerTest {
 
     @Test
     fun `end distribution`() {
-        controller.endDistribution(123)
+        controller.stopDistribution(123)
 
         verify { service.stopDistribution(123) }
     }

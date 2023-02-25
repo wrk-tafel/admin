@@ -28,7 +28,7 @@ class DistributionController(
 
     @PostMapping("/{distributionId}/stop")
     @PreAuthorize("hasAuthority('DISTRIBUTION')")
-    fun endDistribution(
+    fun stopDistribution(
         @PathVariable("distributionId") distributionId: Long? = null,
     ) {
         distributionId?.let { service.stopDistribution(distributionId) }
