@@ -1,10 +1,12 @@
 package at.wrk.tafel.admin.backend.database.entities.distribution
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
+import at.wrk.tafel.admin.backend.common.model.DistributionState
 import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.entities.base.BaseChangeTrackingEntity
 import jakarta.persistence.*
 import java.time.ZonedDateTime
+import java.util.*
 
 @Entity(name = "Distribution")
 @Table(name = "distributions")
@@ -20,5 +22,19 @@ class DistributionEntity : BaseChangeTrackingEntity() {
     @ManyToOne
     @JoinColumn(name = "startedby_userid", nullable = false)
     var startedByUser: UserEntity? = null
+
+    @ManyToOne
+    @JoinColumn(name = "endedby_userid", nullable = false)
+    var endedByuser: UserEntity? = null
+
+    @Column(name = "state_id")
+    var stateId: UUID? = null
+
+    @Column(name = "state_current")
+    @Enumerated(value = EnumType.STRING)
+    var stateCurrent: DistributionState? = null
+
+    @Column(name = "state_context")
+    var stateContext: String? = null
 
 }

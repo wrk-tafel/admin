@@ -1,5 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.distribution.state
 
+import at.wrk.tafel.admin.backend.common.model.DistributionState
+import at.wrk.tafel.admin.backend.common.model.DistributionStateTransitionEvent
 import org.springframework.context.annotation.Configuration
 import org.springframework.statemachine.config.EnableStateMachine
 import org.springframework.statemachine.config.StateMachineConfigurerAdapter
@@ -7,14 +9,15 @@ import org.springframework.statemachine.config.builders.StateMachineStateConfigu
 import org.springframework.statemachine.config.builders.StateMachineTransitionConfigurer
 
 @Configuration
-@EnableStateMachine
+@EnableStateMachine(name = ["distributionStateMachine"])
+// TODO sample, not really needed in the longterm
 class DistributionStateMachineConfig :
     StateMachineConfigurerAdapter<DistributionState, DistributionStateTransitionEvent>() {
 
     override fun configure(states: StateMachineStateConfigurer<DistributionState, DistributionStateTransitionEvent>) {
         states
             .withStates()
-            .initial(DistributionState.INACTIVE)
+            .initial(DistributionState.OPEN)
             .end(DistributionState.COMPLETED)
             .states(setOf(DistributionState.CHECKIN, DistributionState.DISTRIBUTING))
     }
@@ -23,24 +26,14 @@ class DistributionStateMachineConfig :
         transitions: StateMachineTransitionConfigurer<DistributionState, DistributionStateTransitionEvent>
     ) {
         transitions.withExternal()
-            .source(DistributionState.INACTIVE).target(DistributionState.CHECKIN)
-            .event(DistributionStateTransitionEvent.CHECKIN_STARTED)
+            .source(DistributionState.OPEN).target(DistributionState.CHECKIN)
+            .event(DistributionStateTransitionEvent.START_CHECKIN)
             .and().withExternal()
             .source(DistributionState.CHECKIN).target(DistributionState.DISTRIBUTING)
-            .event(DistributionStateTransitionEvent.CHECKIN_ENDED)
-            .event(DistributionStateTransitionEvent.DISTRIBUTION_STARTED)
+            .event(DistributionStateTransitionEvent.START_DISTRIBUTION)
             .and().withExternal()
             .source(DistributionState.DISTRIBUTING).target(DistributionState.COMPLETED)
-            .event(DistributionStateTransitionEvent.DISTRIBUTION_ENDED)
-            .event(DistributionStateTransitionEvent.COMPLETED)
+            .event(DistributionStateTransitionEvent.COMPLETING)
     }
 
-}
-
-enum class DistributionState {
-    INACTIVE, CHECKIN, DISTRIBUTING, COMPLETED;
-}
-
-enum class DistributionStateTransitionEvent {
-    CHECKIN_STARTED, CHECKIN_ENDED, DISTRIBUTION_STARTED, DISTRIBUTION_ENDED, COMPLETED;
 }

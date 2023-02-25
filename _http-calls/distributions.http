@@ -6,3 +6,6 @@ POST {{baseApiPath}}/distributions/5000/stop
 
 ### Get active distribution
 GET {{baseApiPath}}/distributions/current
+
+### Get state visualization
+GET {{baseApiPath}}/distributions/states/visualize
