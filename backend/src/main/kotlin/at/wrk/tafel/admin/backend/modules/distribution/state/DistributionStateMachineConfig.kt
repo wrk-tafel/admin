@@ -17,7 +17,7 @@ class DistributionStateMachineConfig :
         states
             .withStates()
             .initial(DistributionState.OPEN)
-            .end(DistributionState.COMPLETED)
+            .end(DistributionState.CLOSED)
             .states(setOf(DistributionState.CHECKIN, DistributionState.DISTRIBUTING))
     }
 
@@ -31,8 +31,8 @@ class DistributionStateMachineConfig :
             .source(DistributionState.CHECKIN).target(DistributionState.DISTRIBUTING)
             .event(DistributionStateTransitionEvent.START_DISTRIBUTION)
             .and().withExternal()
-            .source(DistributionState.DISTRIBUTING).target(DistributionState.COMPLETED)
-            .event(DistributionStateTransitionEvent.COMPLETING)
+            .source(DistributionState.DISTRIBUTING).target(DistributionState.CLOSED)
+            .event(DistributionStateTransitionEvent.FINALIZING)
     }
 
 }
