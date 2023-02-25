@@ -25,14 +25,14 @@ class DistributionStateMachineConfig :
         transitions: StateMachineTransitionConfigurer<DistributionState, DistributionStateTransitionEvent>
     ) {
         transitions.withExternal()
-            .source(DistributionState.OPEN).target(DistributionState.CHECKIN)
             .event(DistributionStateTransitionEvent.START_CHECKIN)
+            .source(DistributionState.OPEN).target(DistributionState.CHECKIN)
             .and().withExternal()
-            .source(DistributionState.CHECKIN).target(DistributionState.DISTRIBUTING)
             .event(DistributionStateTransitionEvent.START_DISTRIBUTION)
+            .source(DistributionState.CHECKIN).target(DistributionState.DISTRIBUTING)
             .and().withExternal()
-            .source(DistributionState.DISTRIBUTING).target(DistributionState.CLOSED)
             .event(DistributionStateTransitionEvent.FINALIZING)
+            .source(DistributionState.DISTRIBUTING).target(DistributionState.CLOSED)
     }
 
 }
