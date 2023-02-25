@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/api/distributions")
+// TODO sample, not really needed in the longterm
 class DistributionStateVisualizerService(
     private val stateMachine: StateMachine<DistributionState, DistributionStateTransitionEvent>
 ) {

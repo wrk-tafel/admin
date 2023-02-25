@@ -10,7 +10,6 @@ import org.springframework.statemachine.config.builders.StateMachineTransitionCo
 
 @Configuration
 @EnableStateMachine(name = ["distributionStateMachine"])
-// TODO sample, not really needed in the longterm
 class DistributionStateMachineConfig :
     StateMachineConfigurerAdapter<DistributionState, DistributionStateTransitionEvent>() {
 
