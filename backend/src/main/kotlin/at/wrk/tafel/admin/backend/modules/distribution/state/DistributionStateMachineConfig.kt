@@ -18,7 +18,7 @@ class DistributionStateMachineConfig :
             .withStates()
             .initial(DistributionState.OPEN)
             .end(DistributionState.CLOSED)
-            .states(setOf(DistributionState.CHECKIN, DistributionState.PAUSE, DistributionState.DISTRIBUTING))
+            .states(setOf(DistributionState.CHECKIN, DistributionState.PAUSE, DistributionState.DISTRIBUTION))
     }
 
     override fun configure(
@@ -34,11 +34,11 @@ class DistributionStateMachineConfig :
 
             .and().withExternal()
             .event(DistributionStateTransitionEvent.START_DISTRIBUTION)
-            .source(DistributionState.PAUSE).target(DistributionState.DISTRIBUTING)
+            .source(DistributionState.PAUSE).target(DistributionState.DISTRIBUTION)
 
             .and().withExternal()
             .event(DistributionStateTransitionEvent.FINALIZING)
-            .source(DistributionState.DISTRIBUTING).target(DistributionState.CLOSED)
+            .source(DistributionState.DISTRIBUTION).target(DistributionState.CLOSED)
     }
 
 }

@@ -66,7 +66,7 @@ class DistributionController(
             DistributionState.OPEN -> "Offen"
             DistributionState.CHECKIN -> "Anmeldung"
             DistributionState.PAUSE -> "Pause"
-            DistributionState.DISTRIBUTING -> "Verteilung"
+            DistributionState.DISTRIBUTION -> "Verteilung"
             DistributionState.CLOSED -> "Geschlossen"
         }
     }

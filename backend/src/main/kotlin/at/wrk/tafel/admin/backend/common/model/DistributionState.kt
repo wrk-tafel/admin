@@ -1,7 +1,7 @@
 package at.wrk.tafel.admin.backend.common.model
 
 enum class DistributionState {
-    OPEN, CHECKIN, PAUSE, DISTRIBUTING, CLOSED;
+    OPEN, CHECKIN, PAUSE, DISTRIBUTION, CLOSED;
 }
 
 enum class DistributionStateTransitionEvent {
