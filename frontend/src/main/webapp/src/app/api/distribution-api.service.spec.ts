@@ -38,7 +38,7 @@ describe('DistributionApiService', () => {
       id: 123
     };
 
-    apiService.startDistribution().subscribe((response: DistributionItem) => {
+    apiService.createNewDistribution().subscribe((response: DistributionItem) => {
       expect(response).toEqual(testResponse);
     });
 

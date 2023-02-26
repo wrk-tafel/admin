@@ -18,23 +18,15 @@ class DistributionController(
     private val service: DistributionService
 ) {
 
-    @PostMapping("/start")
+    @PostMapping("/new")
     @PreAuthorize("hasAuthority('DISTRIBUTION')")
-    fun startDistribution(): DistributionItem {
+    fun createNewDistribution(): DistributionItem {
         try {
             val distribution = service.startDistribution()
             return mapDistribution(distribution)
         } catch (e: TafelValidationFailedException) {
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, e.message)
         }
-    }
-
-    @PostMapping("/{distributionId}/stop")
-    @PreAuthorize("hasAuthority('DISTRIBUTION')")
-    fun stopDistribution(
-        @PathVariable("distributionId") distributionId: Long? = null,
-    ) {
-        distributionId?.let { service.stopDistribution(distributionId) }
     }
 
     @GetMapping("/current")
@@ -49,7 +41,7 @@ class DistributionController(
 
     @GetMapping("/states")
     fun getDistributionStates(): DistributionStatesResponse {
-        val states = service.getStateList()
+        val states = service.getStates()
         return DistributionStatesResponse(
             states = states.map { mapState(it) }
         )
@@ -57,17 +49,33 @@ class DistributionController(
 
     private fun mapState(state: State<DistributionState, DistributionStateTransitionEvent>): DistributionStateItem {
         val name = state.id.name
-        val label = mapStateToLabel(state.id)
-        return DistributionStateItem(name = name, label = label)
+        val stateLabel = mapStateToStateLabel(state.id)
+        val actionLabel = mapStateToActionLabel(state.id)
+
+        return DistributionStateItem(
+            name = name,
+            stateLabel = stateLabel,
+            actionLabel = actionLabel
+        )
     }
 
-    private fun mapStateToLabel(state: DistributionState): String {
+    private fun mapStateToStateLabel(state: DistributionState): String {
         return when (state) {
             DistributionState.OPEN -> "Offen"
             DistributionState.CHECKIN -> "Anmeldung"
             DistributionState.PAUSE -> "Pause"
             DistributionState.DISTRIBUTION -> "Verteilung"
             DistributionState.CLOSED -> "Geschlossen"
+        }
+    }
+
+    private fun mapStateToActionLabel(state: DistributionState): String {
+        return when (state) {
+            DistributionState.OPEN -> "Ausgabe öffnen"
+            DistributionState.CHECKIN -> "Anmeldung öffnen"
+            DistributionState.PAUSE -> "Pause"
+            DistributionState.DISTRIBUTION -> "Verteilung starten"
+            DistributionState.CLOSED -> "Ausgabe schließen"
         }
     }
 
@@ -90,5 +98,6 @@ data class DistributionStatesResponse(
 @ExcludeFromTestCoverage
 data class DistributionStateItem(
     val name: String,
-    val label: String
+    val stateLabel: String,
+    val actionLabel: String
 )

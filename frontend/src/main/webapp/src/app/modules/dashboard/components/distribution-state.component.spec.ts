@@ -1,7 +1,7 @@
 import {TestBed, waitForAsync} from '@angular/core/testing';
 import {DistributionApiService, DistributionItem} from '../../../api/distribution-api.service';
 import {DistributionStateComponent} from './distribution-state.component';
-import {ModalDirective, ModalModule} from 'ngx-bootstrap/modal';
+import {ModalModule} from 'ngx-bootstrap/modal';
 import {of} from 'rxjs';
 
 describe('DistributionStateComponent', () => {
@@ -57,33 +57,17 @@ describe('DistributionStateComponent', () => {
     expect(distributionApiService.getCurrentDistribution).toHaveBeenCalled();
   });
 
-  it('start distribution', () => {
+  it('create new distribution', () => {
     const fixture = TestBed.createComponent(DistributionStateComponent);
     const component = fixture.componentInstance;
 
     const distribution: DistributionItem = {id: 123};
-    distributionApiService.startDistribution.and.returnValue(of(distribution));
+    distributionApiService.createNewDistribution.and.returnValue(of(distribution));
 
-    component.startDistribution();
+    component.createNewDistribution();
 
     expect(component.distribution).toEqual(distribution);
-    expect(distributionApiService.startDistribution).toHaveBeenCalled();
-  });
-
-  it('stop distribution', () => {
-    const fixture = TestBed.createComponent(DistributionStateComponent);
-    const component = fixture.componentInstance;
-    component.stopDistributionModal = jasmine.createSpyObj<ModalDirective>(['hide']);
-
-    const distribution: DistributionItem = {id: 123};
-    component.distribution = distribution;
-    distributionApiService.stopDistribution.withArgs(distribution.id).and.returnValue(of(undefined));
-
-    component.stopDistribution();
-
-    expect(distributionApiService.stopDistribution).toHaveBeenCalledWith(distribution.id);
-    expect(component.distribution).toBeUndefined();
-    expect(component.stopDistributionModal.hide).toHaveBeenCalled();
+    expect(distributionApiService.createNewDistribution).toHaveBeenCalled();
   });
 
 });

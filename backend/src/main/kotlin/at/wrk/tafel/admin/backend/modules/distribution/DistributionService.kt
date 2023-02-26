@@ -7,7 +7,6 @@ import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionEnt
 import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.repositories.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationFailedException
-import jakarta.persistence.EntityNotFoundException
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.statemachine.StateMachine
 import org.springframework.statemachine.state.State
@@ -22,8 +21,6 @@ class DistributionService(
 ) {
 
     fun startDistribution(): DistributionEntity {
-        // stateMachine.sendEvent()
-
         val currentDistribution = distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc()
         if (currentDistribution != null) {
             throw TafelValidationFailedException("Ausgabe bereits gestartet!")
@@ -38,20 +35,11 @@ class DistributionService(
         return distributionRepository.save(distribution)
     }
 
-    fun stopDistribution(distributionId: Long) {
-        val latestDistribution = distributionRepository.findById(distributionId)
-            .orElseThrow { EntityNotFoundException("Distribution $distributionId not found!") }
-
-        latestDistribution.endedAt = ZonedDateTime.now()
-
-        distributionRepository.save(latestDistribution)
-    }
-
     fun getCurrentDistribution(): DistributionEntity? {
         return distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc()
     }
 
-    fun getStateList(): List<State<DistributionState, DistributionStateTransitionEvent>> {
+    fun getStates(): List<State<DistributionState, DistributionStateTransitionEvent>> {
         return stateMachine.transitions.flatMap { setOf(it.source, it.target) }.distinct()
     }
 

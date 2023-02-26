@@ -6,11 +6,11 @@ import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
-import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.junit.jupiter.api.fail
 import org.springframework.http.HttpStatus
 import org.springframework.web.server.ResponseStatusException
 import java.util.*
@@ -25,33 +25,26 @@ internal class DistributionControllerTest {
     private lateinit var controller: DistributionController
 
     @Test
-    fun `start distribution`() {
+    fun `create new distribution`() {
         val distributionEntity = DistributionEntity()
         distributionEntity.id = 123
         every { service.startDistribution() } returns distributionEntity
 
-        val distributionItem = controller.startDistribution()
+        val distributionItem = controller.createNewDistribution()
 
         assertThat(distributionItem.id).isEqualTo(distributionEntity.id)
     }
 
     @Test
-    fun `start distribution with existing ongoing distribution`() {
+    fun `create new distribution with existing ongoing distribution`() {
         val message = "MSG"
         every { service.startDistribution() } throws TafelValidationFailedException(message)
 
         val exception = assertThrows(ResponseStatusException::class.java) {
-            controller.startDistribution()
+            controller.createNewDistribution()
         }
         assertThat(exception.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
         assertThat(exception.reason).isEqualTo(message)
-    }
-
-    @Test
-    fun `stop distribution`() {
-        controller.stopDistribution(123)
-
-        verify { service.stopDistribution(123) }
     }
 
     @Test
@@ -74,6 +67,15 @@ internal class DistributionControllerTest {
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.NO_CONTENT)
         assertThat(response.body).isNull()
+    }
+
+    @Test
+    fun `get states`() {
+        every { service.getStates() } returns listOf()
+
+        val response = controller.getDistributionStates()
+
+        fail("TODO")
     }
 
 }

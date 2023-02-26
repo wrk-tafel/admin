@@ -1,6 +1,8 @@
 package at.wrk.tafel.admin.backend.modules.distribution
 
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.common.model.DistributionState
+import at.wrk.tafel.admin.backend.common.model.DistributionStateTransitionEvent
 import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.repositories.distribution.DistributionRepository
@@ -12,16 +14,17 @@ import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
-import io.mockk.mockk
 import io.mockk.verify
-import jakarta.persistence.EntityNotFoundException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.junit.jupiter.api.fail
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.context.SecurityContextImpl
+import org.springframework.statemachine.StateMachine
+import org.springframework.statemachine.transition.Transition
 import java.time.ZonedDateTime
 import java.util.*
 
@@ -33,6 +36,9 @@ internal class DistributionServiceTest {
 
     @RelaxedMockK
     private lateinit var userRepository: UserRepository
+
+    @RelaxedMockK
+    private lateinit var stateMachine: StateMachine<DistributionState, DistributionStateTransitionEvent>
 
     @InjectMockKs
     private lateinit var service: DistributionService
@@ -47,7 +53,7 @@ internal class DistributionServiceTest {
         SecurityContextHolder.setContext(SecurityContextImpl(authentication))
 
         every { userRepository.findByUsername(authentication.username!!) } returns Optional.of(testUserEntity)
-        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns Optional.empty()
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns null
 
         val distributionEntity = DistributionEntity()
         distributionEntity.id = 123
@@ -72,9 +78,7 @@ internal class DistributionServiceTest {
     fun `start distribution with existing ongoing distribution`() {
         val distributionEntity = DistributionEntity()
         distributionEntity.id = 123
-        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns Optional.of(
-            distributionEntity
-        )
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns distributionEntity
 
         assertThrows(TafelValidationFailedException::class.java) {
             service.startDistribution()
@@ -82,37 +86,10 @@ internal class DistributionServiceTest {
     }
 
     @Test
-    fun `end distribution`() {
-        val distributionEntity = DistributionEntity()
-        distributionEntity.id = 123
-        every { distributionRepository.findById(distributionEntity.id!!) } returns Optional.of(distributionEntity)
-        every { distributionRepository.save(any()) } returns mockk()
-
-        service.stopDistribution(distributionEntity.id!!)
-
-        verify {
-            distributionRepository.save(withArg {
-                assertThat(it.endedAt).isBetween(ZonedDateTime.now().minusSeconds(1), ZonedDateTime.now())
-            })
-        }
-    }
-
-    @Test
-    fun `end distribution but not found`() {
-        every { distributionRepository.findById(any()) } returns Optional.empty()
-
-        assertThrows(EntityNotFoundException::class.java) {
-            service.stopDistribution(123)
-        }
-    }
-
-    @Test
     fun `current distribution found`() {
         val distributionEntity = DistributionEntity()
         distributionEntity.id = 123
-        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns Optional.of(
-            distributionEntity
-        )
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns distributionEntity
 
         val distribution = service.getCurrentDistribution()
 
@@ -121,11 +98,21 @@ internal class DistributionServiceTest {
 
     @Test
     fun `current distribution not found`() {
-        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns Optional.empty()
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns null
 
         val distribution = service.getCurrentDistribution()
 
         assertThat(distribution).isNull()
+    }
+
+    @Test
+    fun `get state list`() {
+        val transitions = listOf<Transition<DistributionState, DistributionStateTransitionEvent>>()
+        every { stateMachine.transitions } returns listOf()
+
+        service.getStates()
+
+        fail("TODO")
     }
 
 }

@@ -16,12 +16,8 @@ export class DistributionApiService {
     return this.http.get<DistributionItem>('/distributions/current');
   }
 
-  startDistribution(): Observable<DistributionItem> {
-    return this.http.post<DistributionItem>('/distributions/start', null);
-  }
-
-  stopDistribution(distributionId: number): Observable<void> {
-    return this.http.post<void>(`/distributions/${distributionId}/stop`, null);
+  createNewDistribution(): Observable<DistributionItem> {
+    return this.http.post<DistributionItem>('/distributions/new', null);
   }
 
 }

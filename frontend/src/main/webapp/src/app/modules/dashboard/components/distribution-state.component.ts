@@ -23,16 +23,9 @@ export class DistributionStateComponent implements OnInit {
     });
   }
 
-  startDistribution() {
-    this.distributionApiService.startDistribution().subscribe((distribution) => {
+  createNewDistribution() {
+    this.distributionApiService.createNewDistribution().subscribe((distribution) => {
       this.distribution = distribution;
-    });
-  }
-
-  stopDistribution() {
-    this.distributionApiService.stopDistribution(this.distribution.id).subscribe(() => {
-      this.distribution = undefined;
-      this.stopDistributionModal.hide();
     });
   }
 
