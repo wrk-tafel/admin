@@ -1,11 +1,14 @@
 package at.wrk.tafel.admin.backend.modules.distribution
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
+import at.wrk.tafel.admin.backend.common.model.DistributionState
+import at.wrk.tafel.admin.backend.common.model.DistributionStateTransitionEvent
 import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationFailedException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.statemachine.state.State
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 
@@ -44,6 +47,30 @@ class DistributionController(
         return ResponseEntity.noContent().build()
     }
 
+    @GetMapping("/states")
+    fun getDistributionStates(): DistributionStatesResponse {
+        val states = service.getStateList()
+        return DistributionStatesResponse(
+            states = states.map { mapState(it) }
+        )
+    }
+
+    private fun mapState(state: State<DistributionState, DistributionStateTransitionEvent>): DistributionStateItem {
+        val name = state.id.name
+        val label = mapStateToLabel(state.id)
+        return DistributionStateItem(name = name, label = label)
+    }
+
+    private fun mapStateToLabel(state: DistributionState): String {
+        return when (state) {
+            DistributionState.OPEN -> "Offen"
+            DistributionState.CHECKIN -> "Anmeldung"
+            DistributionState.PAUSE -> "Pause"
+            DistributionState.DISTRIBUTING -> "Verteilung"
+            DistributionState.CLOSED -> "Geschlossen"
+        }
+    }
+
     private fun mapDistribution(distribution: DistributionEntity): DistributionItem {
         return DistributionItem(id = distribution.id!!)
     }
@@ -53,4 +80,15 @@ class DistributionController(
 @ExcludeFromTestCoverage
 data class DistributionItem(
     val id: Long
+)
+
+@ExcludeFromTestCoverage
+data class DistributionStatesResponse(
+    val states: List<DistributionStateItem>
+)
+
+@ExcludeFromTestCoverage
+data class DistributionStateItem(
+    val name: String,
+    val label: String
 )
