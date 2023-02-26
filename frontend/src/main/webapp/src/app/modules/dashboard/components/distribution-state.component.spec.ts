@@ -18,7 +18,7 @@ describe('DistributionStateComponent', () => {
       providers: [
         {
           provide: DistributionApiService,
-          useValue: jasmine.createSpyObj('DistributionApiService', ['getCurrentDistribution', 'startDistribution', 'stopDistribution'])
+          useValue: jasmine.createSpyObj('DistributionApiService', ['getCurrentDistribution', 'createNewDistribution', 'stopDistribution'])
         }
       ]
     }).compileComponents();

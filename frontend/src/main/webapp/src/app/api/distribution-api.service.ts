@@ -20,6 +20,10 @@ export class DistributionApiService {
     return this.http.post<DistributionItem>('/distributions/new', null);
   }
 
+  getStates(): Observable<DistributionItem> {
+    return this.http.get<DistributionItem>('/distributions/states');
+  }
+
 }
 
 export interface DistributionItem {

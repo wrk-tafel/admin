@@ -33,7 +33,7 @@ describe('DistributionApiService', () => {
     httpMock.verify();
   });
 
-  it('start distribution', () => {
+  it('create new distribution', () => {
     const testResponse: DistributionItem = {
       id: 123
     };
@@ -42,15 +42,15 @@ describe('DistributionApiService', () => {
       expect(response).toEqual(testResponse);
     });
 
-    const req = httpMock.expectOne('/distributions/start');
+    const req = httpMock.expectOne('/distributions/new');
     req.flush(testResponse);
     httpMock.verify();
   });
 
-  it('stop distribution', () => {
-    apiService.stopDistribution(123).subscribe();
+  it('get states', () => {
+    apiService.getStates().subscribe();
 
-    const req = httpMock.expectOne('/distributions/123/stop');
+    const req = httpMock.expectOne('/distributions/states');
     req.flush(null);
     httpMock.verify();
   });
