@@ -23,7 +23,7 @@
         <button *ngIf="distribution" type="button"
                 testid="distribution-nextstep-button"
                 class="btn btn-block text-white btn-info"
-                (click)="stopDistributionModal.show()">TODO
+                (click)="stopDistributionModal.show()">{{distribution?.state.actionLabel}}
         </button>
       </div>
     </div>

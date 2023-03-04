@@ -23,6 +23,7 @@ export class DistributionStateComponent implements OnInit {
   @ViewChild('stopDistributionModal') stopDistributionModal: ModalDirective;
 
   states: DistributionStateItem[] = this.distributionStates.states;
+
   distribution: DistributionItem;
 
   progressMax: number = this.distributionStates.states.length;
@@ -30,19 +31,22 @@ export class DistributionStateComponent implements OnInit {
 
   ngOnInit() {
     this.distributionApiService.getCurrentDistribution().subscribe((distribution) => {
-      this.distribution = distribution;
-
-      if (distribution) {
-        const stateIndex = this.states.findIndex((state: DistributionStateItem) => state.name === distribution.state.name);
-        this.progressCurrent = stateIndex;
-      }
+      this.processDistribution(distribution);
     });
   }
 
   createNewDistribution() {
     this.distributionApiService.createNewDistribution().subscribe((distribution) => {
-      this.distribution = distribution;
+      this.processDistribution(distribution);
     });
+  }
+
+  processDistribution(distribution: DistributionItem) {
+    this.distribution = distribution;
+    if (distribution) {
+      const stateIndex = this.states.findIndex((state: DistributionStateItem) => state.name === distribution.state.name);
+      this.progressCurrent = stateIndex;
+    }
   }
 
   get distributionStates(): DistributionStatesResponse {

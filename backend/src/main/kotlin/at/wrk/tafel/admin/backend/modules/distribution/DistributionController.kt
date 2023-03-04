@@ -70,13 +70,13 @@ class DistributionController(
         }
     }
 
-    private fun mapStateToActionLabel(state: DistributionState): String {
+    private fun mapStateToActionLabel(state: DistributionState): String? {
         return when (state) {
-            DistributionState.OPEN -> "Ausgabe öffnen"
-            DistributionState.CHECKIN -> "Anmeldung öffnen"
-            DistributionState.PAUSE -> "Pause"
-            DistributionState.DISTRIBUTION -> "Verteilung starten"
-            DistributionState.CLOSED -> "Ausgabe schließen"
+            DistributionState.OPEN -> "Anmeldung öffnen"
+            DistributionState.CHECKIN -> "Pause"
+            DistributionState.PAUSE -> "Verteilung starten"
+            DistributionState.DISTRIBUTION -> "Ausgabe schließen"
+            DistributionState.CLOSED -> null
         }
     }
 
@@ -104,5 +104,5 @@ data class DistributionStatesResponse(
 data class DistributionStateItem(
     val name: String,
     val stateLabel: String,
-    val actionLabel: String
+    val actionLabel: String?
 )
