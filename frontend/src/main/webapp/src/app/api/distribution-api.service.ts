@@ -28,6 +28,7 @@ export class DistributionApiService {
 
 export interface DistributionItem {
   id: number;
+  state: DistributionStateItem;
 }
 
 export interface DistributionStatesResponse {

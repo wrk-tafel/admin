@@ -3,8 +3,7 @@
     <div>Status</div>
     <div class="text-value font-weight-bold">
       <div class="row">
-        <div class="col">Ausgabe</div>
-        <div class="col" testid="distribtion-state-text">{{distribution ? 'AKTIV' : 'INAKTIV'}}</div>
+        <div class="col" testid="distribtion-state-text">{{distribution?.state.stateLabel}}</div>
       </div>
     </div>
   </div>

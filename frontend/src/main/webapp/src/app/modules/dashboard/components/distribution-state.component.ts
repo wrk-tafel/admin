@@ -31,6 +31,8 @@ export class DistributionStateComponent implements OnInit {
   ngOnInit() {
     this.distributionApiService.getCurrentDistribution().subscribe((distribution) => {
       this.distribution = distribution;
+      const stateIndex = 2; // TODO filter distribution.state
+      this.progressCurrent = stateIndex;
     });
   }
 

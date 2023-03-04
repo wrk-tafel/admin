@@ -63,9 +63,9 @@ class DistributionController(
     private fun mapStateToStateLabel(state: DistributionState): String {
         return when (state) {
             DistributionState.OPEN -> "Offen"
-            DistributionState.CHECKIN -> "Anmeldung"
+            DistributionState.CHECKIN -> "Anmeldung aktiv"
             DistributionState.PAUSE -> "Pause"
-            DistributionState.DISTRIBUTION -> "Verteilung"
+            DistributionState.DISTRIBUTION -> "Verteilung C"
             DistributionState.CLOSED -> "Geschlossen"
         }
     }
@@ -81,14 +81,18 @@ class DistributionController(
     }
 
     private fun mapDistribution(distribution: DistributionEntity): DistributionItem {
-        return DistributionItem(id = distribution.id!!)
+        // TODO remove
+        val mockState = mapState(service.getStates()[2])
+
+        return DistributionItem(id = distribution.id!!, state = mockState)
     }
 
 }
 
 @ExcludeFromTestCoverage
 data class DistributionItem(
-    val id: Long
+    val id: Long,
+    val state: DistributionStateItem? = null
 )
 
 @ExcludeFromTestCoverage
