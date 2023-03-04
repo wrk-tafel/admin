@@ -24,6 +24,10 @@ export class DistributionApiService {
     return this.http.get<DistributionStatesResponse>('/distributions/states');
   }
 
+  switchToNextState(): Observable<void> {
+    return this.http.post<void>('/distributions/states/next', null);
+  }
+
 }
 
 export interface DistributionItem {
