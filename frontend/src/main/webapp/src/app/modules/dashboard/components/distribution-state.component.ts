@@ -1,6 +1,12 @@
 import {Component, OnInit, ViewChild} from '@angular/core';
-import {DistributionApiService, DistributionItem, DistributionStateItem} from '../../../api/distribution-api.service';
+import {
+  DistributionApiService,
+  DistributionItem,
+  DistributionStateItem,
+  DistributionStatesResponse
+} from '../../../api/distribution-api.service';
 import {ModalDirective} from 'ngx-bootstrap/modal';
+import {ActivatedRoute} from '@angular/router';
 
 @Component({
   selector: 'tafel-distribution-state',
@@ -9,26 +15,20 @@ import {ModalDirective} from 'ngx-bootstrap/modal';
 export class DistributionStateComponent implements OnInit {
 
   constructor(
-    private distributionApiService: DistributionApiService
+    private distributionApiService: DistributionApiService,
+    private activatedRoute: ActivatedRoute
   ) {
   }
 
   @ViewChild('stopDistributionModal') stopDistributionModal: ModalDirective;
 
-  states: DistributionStateItem[];
+  states: DistributionStateItem[] = this.distributionStates.states;
   distribution: DistributionItem;
 
-  progressMax: number;
+  progressMax: number = this.distributionStates.states.length;
   progressCurrent: number = 0;
 
   ngOnInit() {
-    this.distributionApiService.getStates().subscribe((response) => {
-      const states = response.states;
-      this.progressMax = states.length;
-
-      this.states = response.states;
-    });
-
     this.distributionApiService.getCurrentDistribution().subscribe((distribution) => {
       this.distribution = distribution;
     });
@@ -38,6 +38,10 @@ export class DistributionStateComponent implements OnInit {
     this.distributionApiService.createNewDistribution().subscribe((distribution) => {
       this.distribution = distribution;
     });
+  }
+
+  get distributionStates(): DistributionStatesResponse {
+    return this.activatedRoute.snapshot.data.distributionStates;
   }
 
 }
