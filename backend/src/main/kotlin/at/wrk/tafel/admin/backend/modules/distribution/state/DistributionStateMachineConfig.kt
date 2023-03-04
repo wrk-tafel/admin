@@ -16,7 +16,7 @@ class DistributionStateMachineConfig :
     override fun configure(states: StateMachineStateConfigurer<DistributionState, DistributionStateTransitionEvent>) {
         states
             .withStates()
-            .initial(DistributionState.OPEN)
+            .initial(DistributionState.OPEN) // TODO re-init statemaching when current distribution is ongoing (restartability)
             .end(DistributionState.CLOSED)
             .states(setOf(DistributionState.CHECKIN, DistributionState.PAUSE, DistributionState.DISTRIBUTION))
     }

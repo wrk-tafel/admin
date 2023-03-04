@@ -44,7 +44,7 @@ internal class DistributionServiceTest {
     private lateinit var service: DistributionService
 
     @Test
-    fun `start distribution`() {
+    fun `create new distribution`() {
         val authentication = TafelJwtAuthentication(
             tokenValue = "TOKEN",
             username = testUser.username,
@@ -59,7 +59,7 @@ internal class DistributionServiceTest {
         distributionEntity.id = 123
         every { distributionRepository.save(any()) } returns distributionEntity
 
-        val distribution = service.startDistribution()
+        val distribution = service.createNewDistribution()
 
         assertThat(distribution).isEqualTo(distributionEntity)
 
@@ -70,18 +70,19 @@ internal class DistributionServiceTest {
                 assertThat(it.startedByUser).isEqualTo(testUserEntity)
             })
         }
+        verify { stateMachine.startReactively() }
 
         SecurityContextHolder.clearContext()
     }
 
     @Test
-    fun `start distribution with existing ongoing distribution`() {
+    fun `create new distribution with existing ongoing distribution`() {
         val distributionEntity = DistributionEntity()
         distributionEntity.id = 123
         every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns distributionEntity
 
         assertThrows(TafelValidationFailedException::class.java) {
-            service.startDistribution()
+            service.createNewDistribution()
         }
     }
 
@@ -111,6 +112,16 @@ internal class DistributionServiceTest {
         every { stateMachine.transitions } returns listOf()
 
         service.getStates()
+
+        fail("TODO")
+    }
+
+    @Test
+    fun `switch to next state`() {
+        val transitions = listOf<Transition<DistributionState, DistributionStateTransitionEvent>>()
+        every { stateMachine.transitions } returns listOf()
+
+        service.switchToNextState(DistributionState.DISTRIBUTION)
 
         fail("TODO")
     }

@@ -1,6 +1,7 @@
 package at.wrk.tafel.admin.backend.database.entities.distribution
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
+import at.wrk.tafel.admin.backend.common.model.DistributionState
 import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.entities.base.BaseChangeTrackingEntity
 import jakarta.persistence.*
@@ -23,6 +24,10 @@ class DistributionEntity : BaseChangeTrackingEntity() {
 
     @ManyToOne
     @JoinColumn(name = "endedby_userid")
-    var endedByuser: UserEntity? = null
+    var endedByUser: UserEntity? = null
+
+    @Column(name = "state")
+    @Enumerated(value = EnumType.STRING)
+    var state: DistributionState? = null
 
 }

@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.distribution
 
+import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.common.model.DistributionState
 import at.wrk.tafel.admin.backend.common.model.DistributionStateTransitionEvent
 import guru.nidi.graphviz.attribute.Label
@@ -19,8 +20,9 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/api/distributions")
+@ExcludeFromTestCoverage
 // TODO sample, not really needed in the longterm
-class DistributionStateVisualizerService(
+class DistributionStateVisualizerController(
     private val stateMachine: StateMachine<DistributionState, DistributionStateTransitionEvent>
 ) {
     private lateinit var graphviz: Graphviz

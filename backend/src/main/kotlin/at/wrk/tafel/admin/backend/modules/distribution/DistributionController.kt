@@ -22,7 +22,7 @@ class DistributionController(
     @PreAuthorize("hasAuthority('DISTRIBUTION')")
     fun createNewDistribution(): DistributionItem {
         try {
-            val distribution = service.startDistribution()
+            val distribution = service.createNewDistribution()
             return mapDistribution(distribution)
         } catch (e: TafelValidationFailedException) {
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, e.message)
@@ -46,6 +46,17 @@ class DistributionController(
         return DistributionStatesResponse(
             states = states.map { mapState(it) }
         )
+    }
+
+    @PostMapping("/states/next")
+    @PreAuthorize("hasAuthority('DISTRIBUTION')")
+    fun switchToNextDistributionState(): ResponseEntity<Any> {
+        val currentDistribution = service.getCurrentDistribution()
+        if (currentDistribution != null) {
+            service.switchToNextState(currentDistribution.state!!)
+            return ResponseEntity.ok().build()
+        }
+        return ResponseEntity.badRequest().build()
     }
 
     private fun mapState(state: State<DistributionState, DistributionStateTransitionEvent>): DistributionStateItem {

@@ -28,7 +28,7 @@ internal class DistributionControllerTest {
     fun `create new distribution`() {
         val distributionEntity = DistributionEntity()
         distributionEntity.id = 123
-        every { service.startDistribution() } returns distributionEntity
+        every { service.createNewDistribution() } returns distributionEntity
 
         val distributionItem = controller.createNewDistribution()
 
@@ -38,7 +38,7 @@ internal class DistributionControllerTest {
     @Test
     fun `create new distribution with existing ongoing distribution`() {
         val message = "MSG"
-        every { service.startDistribution() } throws TafelValidationFailedException(message)
+        every { service.createNewDistribution() } throws TafelValidationFailedException(message)
 
         val exception = assertThrows(ResponseStatusException::class.java) {
             controller.createNewDistribution()
@@ -74,6 +74,13 @@ internal class DistributionControllerTest {
         every { service.getStates() } returns listOf()
 
         val response = controller.getDistributionStates()
+
+        fail("TODO")
+    }
+
+    @Test
+    fun `switch to next distribution state`() {
+        val response = controller.switchToNextDistributionState()
 
         fail("TODO")
     }
