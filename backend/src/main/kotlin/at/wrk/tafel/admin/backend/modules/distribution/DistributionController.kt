@@ -42,7 +42,17 @@ class DistributionController(
     @GetMapping("/states")
     fun getDistributionStates(): DistributionStatesResponse {
         val states = service.getStates()
+        val distribution = service.getCurrentDistribution()
+
+        // TODO remove
+        val mockState = DistributionStateItem(
+            name = DistributionState.DISTRIBUTION.name,
+            stateLabel = mapStateToStateLabel(DistributionState.DISTRIBUTION),
+            actionLabel = mapStateToActionLabel(DistributionState.DISTRIBUTION)
+        )
+
         return DistributionStatesResponse(
+            currentState = mockState,
             states = states.map { mapState(it) }
         )
     }
@@ -92,7 +102,8 @@ data class DistributionItem(
 
 @ExcludeFromTestCoverage
 data class DistributionStatesResponse(
-    val states: List<DistributionStateItem>
+    val states: List<DistributionStateItem>,
+    val currentState: DistributionStateItem? = null
 )
 
 @ExcludeFromTestCoverage

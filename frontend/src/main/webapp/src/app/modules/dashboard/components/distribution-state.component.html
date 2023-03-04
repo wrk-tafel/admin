@@ -1,5 +1,4 @@
-<div class="card text-white"
-     [ngClass]="{'bg-success': distribution, 'bg-danger': !distribution}">
+<div class="card text-black-50">
   <div class="card-body pb-0">
     <div>Status</div>
     <div class="text-value font-weight-bold">
@@ -10,16 +9,25 @@
     </div>
   </div>
   <div class="m-3">
-    <button *ngIf="!distribution" type="button"
-            testid="distribution-start-button"
-            class="btn btn-block text-white btn-info"
-            (click)="createNewDistribution()">Starten
-    </button>
-    <button *ngIf="distribution" type="button"
-            testid="distribution-nextstep-button"
-            class="btn btn-block text-white btn-info"
-            (click)="stopDistributionModal.show()">TODO
-    </button>
+    <div class="row mb-3">
+      <div class="col">
+        <progressbar class="progress" [value]="progressCurrent" [max]="progressMax"></progressbar>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col">
+        <button *ngIf="!distribution" type="button"
+                testid="distribution-start-button"
+                class="btn btn-block text-white btn-info"
+                (click)="createNewDistribution()">Starten
+        </button>
+        <button *ngIf="distribution" type="button"
+                testid="distribution-nextstep-button"
+                class="btn btn-block text-white btn-info"
+                (click)="stopDistributionModal.show()">TODO
+        </button>
+      </div>
+    </div>
   </div>
 </div>
 <div testid="stopdistribution-modal" bsModal #stopDistributionModal="bs-modal" class="modal fade" tabindex="-1"
