@@ -12,9 +12,11 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.statemachine.StateMachine
 import org.springframework.statemachine.StateMachineEventResult
 import org.springframework.statemachine.state.State
+import org.springframework.statemachine.support.DefaultStateMachineContext
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import java.time.ZonedDateTime
+
 
 @Service
 class DistributionService(
@@ -36,6 +38,13 @@ class DistributionService(
         distribution.startedByUser = userRepository.findByUsername(authenticatedUser.username!!).orElse(null)
         distribution.state = DistributionState.OPEN
 
+        // TODO add correct reset of state machine
+        stateMachine.stopReactively().block()
+        stateMachine.stateMachineAccessor.doWithAllRegions {
+            it.resetStateMachineReactively(
+                DefaultStateMachineContext(DistributionState.OPEN, null, null, null)
+            ).block()
+        }
         stateMachine.startReactively().block()
         return distributionRepository.save(distribution)
     }
