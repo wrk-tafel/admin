@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.modules.distribution.state
 
 import at.wrk.tafel.admin.backend.common.model.DistributionState
 import at.wrk.tafel.admin.backend.common.model.DistributionStateTransitionEvent
+import at.wrk.tafel.admin.backend.database.repositories.distribution.DistributionRepository
 import org.springframework.context.annotation.Configuration
 import org.springframework.statemachine.config.EnableStateMachine
 import org.springframework.statemachine.config.StateMachineConfigurerAdapter
@@ -10,13 +11,19 @@ import org.springframework.statemachine.config.builders.StateMachineTransitionCo
 
 @Configuration
 @EnableStateMachine(name = ["distributionStateMachine"])
-class DistributionStateMachineConfig :
+class DistributionStateMachineConfig(
+    private val distributionRepository: DistributionRepository
+) :
     StateMachineConfigurerAdapter<DistributionState, DistributionStateTransitionEvent>() {
 
     override fun configure(states: StateMachineStateConfigurer<DistributionState, DistributionStateTransitionEvent>) {
+        val ongoingDistribution = distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc()
+
         states
             .withStates()
-            .initial(DistributionState.OPEN) // TODO re-init statemaching when current distribution is ongoing (restartability)
+            .initial(
+                ongoingDistribution?.state ?: DistributionState.OPEN
+            )
             .end(DistributionState.CLOSED)
             .states(setOf(DistributionState.CHECKIN, DistributionState.PAUSE, DistributionState.DISTRIBUTION))
     }
