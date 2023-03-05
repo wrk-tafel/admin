@@ -45,9 +45,12 @@
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
-      <div class="body">
+      <div class="modal-body">
+        <div class="row mb-3">
+          <div class="col">Achtung: Dieser Schritt kann nicht rückgängig gemacht werden!</div>
+        </div>
         <div class="row">
-          <div class="col-6 m-3">
+          <div class="col-6">
             <button testid="ok-button" type="button" class="btn btn-primary mr-2"
                     testid="next-distributionstate-modal-ok-button"
                     (click)="switchToNextState()">OK

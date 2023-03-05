@@ -8,7 +8,7 @@ GET {{baseApiPath}}/distributions/current
 GET {{baseApiPath}}/distributions/states
 
 ### Switch to next state
-GET {{baseApiPath}}/distributions/states/next
+POST {{baseApiPath}}/distributions/states/next
 
 ### Get state visualization
 GET {{baseApiPath}}/distributions/states/visualize

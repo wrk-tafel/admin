@@ -2,13 +2,11 @@ package at.wrk.tafel.admin.backend.modules.distribution
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.common.model.DistributionState
-import at.wrk.tafel.admin.backend.common.model.DistributionStateTransitionEvent
 import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationFailedException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.statemachine.state.State
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 
@@ -44,13 +42,13 @@ class DistributionController(
         val states = service.getStates()
 
         return DistributionStatesResponse(
-            states = states.map { mapState(it) }
+            states = states.map { mapState(it.id) }
         )
     }
 
     @PostMapping("/states/next")
     @PreAuthorize("hasAuthority('DISTRIBUTION')")
-    fun switchToNextDistributionState(): ResponseEntity<Any> {
+    fun switchToNextDistributionState(): ResponseEntity<Void> {
         val currentDistribution = service.getCurrentDistribution()
         if (currentDistribution != null) {
             service.switchToNextState(currentDistribution.state!!)
@@ -59,10 +57,10 @@ class DistributionController(
         return ResponseEntity.badRequest().build()
     }
 
-    private fun mapState(state: State<DistributionState, DistributionStateTransitionEvent>): DistributionStateItem {
-        val name = state.id.name
-        val stateLabel = mapStateToStateLabel(state.id)
-        val actionLabel = mapStateToActionLabel(state.id)
+    private fun mapState(state: DistributionState): DistributionStateItem {
+        val name = state.name
+        val stateLabel = mapStateToStateLabel(state)
+        val actionLabel = mapStateToActionLabel(state)
 
         return DistributionStateItem(
             name = name,
@@ -92,10 +90,7 @@ class DistributionController(
     }
 
     private fun mapDistribution(distribution: DistributionEntity): DistributionItem {
-        // TODO remove
-        val mockState = mapState(service.getStates()[3])
-
-        return DistributionItem(id = distribution.id!!, state = mockState)
+        return DistributionItem(id = distribution.id!!, state = mapState(distribution.state!!))
     }
 
 }
