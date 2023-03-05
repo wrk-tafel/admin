@@ -20,7 +20,7 @@ export class DistributionStateComponent implements OnInit {
   ) {
   }
 
-  @ViewChild('stopDistributionModal') stopDistributionModal: ModalDirective;
+  @ViewChild('nextDistributionStateModal') stopDistributionModal: ModalDirective;
 
   states: DistributionStateItem[] = this.distributionStates.states;
 
@@ -47,6 +47,10 @@ export class DistributionStateComponent implements OnInit {
       const stateIndex = this.states.findIndex((state: DistributionStateItem) => state.name === distribution.state.name);
       this.progressCurrent = stateIndex;
     }
+  }
+
+  switchToNextState() {
+    this.distributionApiService.switchToNextState();
   }
 
   get distributionStates(): DistributionStatesResponse {

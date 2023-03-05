@@ -25,22 +25,23 @@
           <button *ngIf="distribution" type="button"
                   testid="distribution-nextstep-button"
                   class="btn btn-block text-white btn-info"
-                  (click)="stopDistributionModal.show()">{{distribution?.state.actionLabel}}
+                  (click)="nextDistributionStateModal.show()">{{distribution?.state.actionLabel}}
           </button>
         </div>
       </div>
     </div>
   </div>
 </div>
-<div testid="stopdistribution-modal" bsModal #stopDistributionModal="bs-modal" class="modal fade" tabindex="-1"
-     role="dialog" aria-labelledby="stopDistributionModalLabel" aria-hidden="true">
-  <div testid="stopDistribution-modal-dialog" class="modal-dialog" role="document">
+<div testid="next-distributionstate-modal" bsModal #nextDistributionStateModal="bs-modal" class="modal fade"
+     tabindex="-1"
+     role="dialog" aria-labelledby="nextDistributionStateModalLabel" aria-hidden="true">
+  <div testid="nextDistribution-modal-dialog" class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header bg-warning">
         <h4 testid="title" class="modal-title">
-          Ausgabe beenden?
+          Weiter zum nächsten Schritt?
         </h4>
-        <button type="button" class="close" (click)="stopDistributionModal.hide()" aria-label="Close">
+        <button type="button" class="close" (click)="nextDistributionStateModal.hide()" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
@@ -48,12 +49,12 @@
         <div class="row">
           <div class="col-6 m-3">
             <button testid="ok-button" type="button" class="btn btn-primary mr-2"
-                    testid="distribution-stop-modal-ok-button"
-                    (click)="stopDistribution()">OK
+                    testid="next-distributionstate-modal-ok-button"
+                    (click)="switchToNextState()">OK
             </button>
             <button testid="cancel-button" type="button" class="btn btn-secondary"
-                    testid="distribution-stop-modal-cancel-button"
-                    (click)="stopDistributionModal.hide()">Abbrechen
+                    testid="next-distributionstate-modal-cancel-button"
+                    (click)="nextDistributionStateModal.hide()">Abbrechen
             </button>
           </div>
         </div>

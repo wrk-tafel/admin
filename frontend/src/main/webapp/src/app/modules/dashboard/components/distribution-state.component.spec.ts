@@ -1,15 +1,35 @@
 import {TestBed, waitForAsync} from '@angular/core/testing';
-import {DistributionApiService, DistributionItem} from '../../../api/distribution-api.service';
+import {DistributionApiService, DistributionItem, DistributionStateItem} from '../../../api/distribution-api.service';
 import {DistributionStateComponent} from './distribution-state.component';
 import {ModalModule} from 'ngx-bootstrap/modal';
 import {of} from 'rxjs';
+import {ActivatedRoute} from '@angular/router';
+import {RouterTestingModule} from '@angular/router/testing';
 
 describe('DistributionStateComponent', () => {
   let distributionApiService: jasmine.SpyObj<DistributionApiService>;
 
+  const mockDistributionStates: DistributionStateItem[] = [
+    {
+      name: 'OFFEN',
+      stateLabel: 'Opened',
+      actionLabel: 'Paused'
+    },
+    {
+      name: 'PAUSE',
+      stateLabel: 'Paused',
+      actionLabel: 'Finish'
+    },
+    {
+      name: 'CLOSED',
+      stateLabel: 'Closed'
+    }
+  ];
+
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       imports: [
+        RouterTestingModule,
         ModalModule.forRoot()
       ],
       declarations: [
@@ -17,8 +37,20 @@ describe('DistributionStateComponent', () => {
       ],
       providers: [
         {
+          provide: ActivatedRoute,
+          useValue: {
+            snapshot: {
+              data: {
+                distributionStates: {
+                  states: mockDistributionStates
+                }
+              }
+            }
+          }
+        },
+        {
           provide: DistributionApiService,
-          useValue: jasmine.createSpyObj('DistributionApiService', ['getCurrentDistribution', 'createNewDistribution', 'stopDistribution'])
+          useValue: jasmine.createSpyObj('DistributionApiService', ['getCurrentDistribution', 'createNewDistribution', 'switchToNextState'])
         }
       ]
     }).compileComponents();
@@ -36,7 +68,14 @@ describe('DistributionStateComponent', () => {
     const fixture = TestBed.createComponent(DistributionStateComponent);
     const component = fixture.componentInstance;
 
-    const distribution: DistributionItem = {id: 123};
+    const distribution: DistributionItem = {
+      id: 123,
+      state: {
+        name: 'OPEN',
+        stateLabel: 'Offen',
+        actionLabel: 'Offen'
+      }
+    };
     distributionApiService.getCurrentDistribution.and.returnValue(of(distribution));
 
     component.ngOnInit();
@@ -61,13 +100,29 @@ describe('DistributionStateComponent', () => {
     const fixture = TestBed.createComponent(DistributionStateComponent);
     const component = fixture.componentInstance;
 
-    const distribution: DistributionItem = {id: 123};
+    const distribution: DistributionItem = {
+      id: 123,
+      state: {
+        name: 'OPEN',
+        stateLabel: 'Offen',
+        actionLabel: 'Offen'
+      }
+    };
     distributionApiService.createNewDistribution.and.returnValue(of(distribution));
 
     component.createNewDistribution();
 
     expect(component.distribution).toEqual(distribution);
     expect(distributionApiService.createNewDistribution).toHaveBeenCalled();
+  });
+
+  it('switch to next state', () => {
+    const fixture = TestBed.createComponent(DistributionStateComponent);
+    const component = fixture.componentInstance;
+
+    component.switchToNextState();
+
+    expect(distributionApiService.switchToNextState).toHaveBeenCalled();
   });
 
 });

@@ -43,5 +43,5 @@ export interface DistributionStatesResponse {
 export interface DistributionStateItem {
   name: string;
   stateLabel: string;
-  actionLabel: string;
+  actionLabel?: string;
 }

@@ -2,7 +2,7 @@ import {HttpClientTestingModule} from '@angular/common/http/testing';
 import {TestBed} from '@angular/core/testing';
 import {DistributionApiService, DistributionStatesResponse} from '../../../api/distribution-api.service';
 import {of} from 'rxjs';
-import {DashboardResolver} from './dashboard-resolver.service';
+import {DashboardResolver} from './dashboard-resolver.component';
 
 describe('DashboardResolver', () => {
   let apiService: jasmine.SpyObj<DistributionApiService>;
