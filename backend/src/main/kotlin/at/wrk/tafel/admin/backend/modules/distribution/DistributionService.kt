@@ -42,7 +42,9 @@ class DistributionService(
         stateMachine.stopReactively().block()
         stateMachine.stateMachineAccessor.doWithAllRegions {
             it.resetStateMachineReactively(
-                DefaultStateMachineContext(DistributionState.OPEN, null, null, null)
+                DefaultStateMachineContext(
+                    DistributionState.OPEN, null, null, null
+                )
             ).block()
         }
         stateMachine.startReactively().block()
