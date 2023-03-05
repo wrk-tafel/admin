@@ -10,6 +10,7 @@ import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationFailedEx
 import org.springframework.messaging.support.MessageBuilder
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.statemachine.StateMachine
+import org.springframework.statemachine.StateMachineEventResult
 import org.springframework.statemachine.state.State
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
@@ -35,7 +36,7 @@ class DistributionService(
         distribution.startedByUser = userRepository.findByUsername(authenticatedUser.username!!).orElse(null)
         distribution.state = DistributionState.OPEN
 
-        stateMachine.startReactively()
+        stateMachine.startReactively().block()
         return distributionRepository.save(distribution)
     }
 
@@ -48,14 +49,37 @@ class DistributionService(
     }
 
     fun switchToNextState(currentState: DistributionState) {
-        val nextTransitionEvent: DistributionStateTransitionEvent = stateMachine.transitions
+        val nextState = stateMachine.transitions
+            .filter { transition ->
+                transition.source.id.name == currentState.name
+            }.map { transition -> transition.target.id }
+            .first()
+        val transitionEventToNextState = stateMachine.transitions
             .filter { transition ->
                 transition.source.id.name == currentState.name
             }.map { transition -> transition.trigger.event }
             .first()
 
-        val message = MessageBuilder.withPayload(nextTransitionEvent).build()
-        stateMachine.sendEvent(Mono.just(message))
+        val message = MessageBuilder.withPayload(transitionEventToNextState).build()
+
+        val result = stateMachine.sendEvent(Mono.just(message)).blockFirst()
+        if (result!!.resultType == StateMachineEventResult.ResultType.ACCEPTED) {
+            saveStateToDistribution(nextState)
+        }
+    }
+
+    private fun saveStateToDistribution(nextState: DistributionState) {
+        val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
+
+        val distribution = distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc()
+        if (distribution != null) {
+            distribution.state = nextState
+            if (nextState == DistributionState.CLOSED) {
+                distribution.endedAt = ZonedDateTime.now()
+                distribution.endedByUser = userRepository.findByUsername(authenticatedUser.username!!).get()
+            }
+            distributionRepository.save(distribution)
+        }
     }
 
 }

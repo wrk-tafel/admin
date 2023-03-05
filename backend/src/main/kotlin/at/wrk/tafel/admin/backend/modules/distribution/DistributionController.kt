@@ -81,7 +81,7 @@ class DistributionController(
 
     private fun mapStateToActionLabel(state: DistributionState): String? {
         return when (state) {
-            DistributionState.OPEN -> "Anmeldung öffnen"
+            DistributionState.OPEN -> "Anmeldung starten"
             DistributionState.CHECKIN -> "Pause"
             DistributionState.PAUSE -> "Verteilung starten"
             DistributionState.DISTRIBUTION -> "Ausgabe schließen"

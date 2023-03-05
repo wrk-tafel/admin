@@ -20,7 +20,7 @@ export class DistributionStateComponent implements OnInit {
   ) {
   }
 
-  @ViewChild('nextDistributionStateModal') stopDistributionModal: ModalDirective;
+  @ViewChild('nextDistributionStateModal') nextDistributionStateModal: ModalDirective;
 
   states: DistributionStateItem[] = this.distributionStates.states;
 
@@ -50,7 +50,9 @@ export class DistributionStateComponent implements OnInit {
   }
 
   switchToNextState() {
-    this.distributionApiService.switchToNextState();
+    this.distributionApiService.switchToNextState().subscribe(() => {
+      this.nextDistributionStateModal.hide();
+    });
   }
 
   get distributionStates(): DistributionStatesResponse {

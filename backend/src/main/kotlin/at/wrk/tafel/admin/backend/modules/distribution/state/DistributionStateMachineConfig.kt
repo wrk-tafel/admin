@@ -13,8 +13,7 @@ import org.springframework.statemachine.config.builders.StateMachineTransitionCo
 @EnableStateMachine(name = ["distributionStateMachine"])
 class DistributionStateMachineConfig(
     private val distributionRepository: DistributionRepository
-) :
-    StateMachineConfigurerAdapter<DistributionState, DistributionStateTransitionEvent>() {
+) : StateMachineConfigurerAdapter<DistributionState, DistributionStateTransitionEvent>() {
 
     override fun configure(states: StateMachineStateConfigurer<DistributionState, DistributionStateTransitionEvent>) {
         val ongoingDistribution = distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc()
@@ -25,27 +24,27 @@ class DistributionStateMachineConfig(
                 ongoingDistribution?.state ?: DistributionState.OPEN
             )
             .end(DistributionState.CLOSED)
-            .states(setOf(DistributionState.CHECKIN, DistributionState.PAUSE, DistributionState.DISTRIBUTION))
+            .states(DistributionState.values().toSet())
     }
 
     override fun configure(
         transitions: StateMachineTransitionConfigurer<DistributionState, DistributionStateTransitionEvent>
     ) {
         transitions.withExternal()
-            .event(DistributionStateTransitionEvent.START_CHECKIN)
             .source(DistributionState.OPEN).target(DistributionState.CHECKIN)
+            .event(DistributionStateTransitionEvent.START_CHECKIN)
 
             .and().withExternal()
-            .event(DistributionStateTransitionEvent.PAUSE)
             .source(DistributionState.CHECKIN).target(DistributionState.PAUSE)
+            .event(DistributionStateTransitionEvent.PAUSE)
 
             .and().withExternal()
-            .event(DistributionStateTransitionEvent.START_DISTRIBUTION)
             .source(DistributionState.PAUSE).target(DistributionState.DISTRIBUTION)
+            .event(DistributionStateTransitionEvent.START_DISTRIBUTION)
 
             .and().withExternal()
-            .event(DistributionStateTransitionEvent.FINALIZING)
             .source(DistributionState.DISTRIBUTION).target(DistributionState.CLOSED)
+            .event(DistributionStateTransitionEvent.FINALIZING)
     }
 
 }

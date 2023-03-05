@@ -20,12 +20,12 @@
           <button *ngIf="!distribution" type="button"
                   testid="distribution-start-button"
                   class="btn btn-block text-white btn-info"
-                  (click)="createNewDistribution()">Starten
+                  (click)="createNewDistribution()">--> Ausgabe öffnen
           </button>
           <button *ngIf="distribution" type="button"
                   testid="distribution-nextstep-button"
                   class="btn btn-block text-white btn-info"
-                  (click)="nextDistributionStateModal.show()">{{distribution?.state.actionLabel}}
+                  (click)="nextDistributionStateModal.show()">--> {{distribution?.state.actionLabel}}
           </button>
         </div>
       </div>
