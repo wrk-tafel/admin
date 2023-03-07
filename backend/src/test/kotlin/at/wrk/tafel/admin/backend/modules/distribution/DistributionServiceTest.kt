@@ -2,7 +2,6 @@ package at.wrk.tafel.admin.backend.modules.distribution
 
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.common.model.DistributionState
-import at.wrk.tafel.admin.backend.common.model.DistributionStateTransitionEvent
 import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.repositories.distribution.DistributionRepository
@@ -14,17 +13,17 @@ import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
+import io.mockk.mockk
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.junit.jupiter.api.fail
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.context.SecurityContextImpl
-import org.springframework.statemachine.StateMachine
-import org.springframework.statemachine.transition.Transition
 import java.time.ZonedDateTime
 import java.util.*
 
@@ -37,21 +36,27 @@ internal class DistributionServiceTest {
     @RelaxedMockK
     private lateinit var userRepository: UserRepository
 
-    @RelaxedMockK
-    private lateinit var stateMachine: StateMachine<DistributionState, DistributionStateTransitionEvent>
-
     @InjectMockKs
     private lateinit var service: DistributionService
 
+    private val authentication = TafelJwtAuthentication(
+        tokenValue = "TOKEN",
+        username = testUser.username,
+        authorities = testUserPermissions.map { SimpleGrantedAuthority(it) }
+    )
+
+    @BeforeEach
+    fun beforeEach() {
+        SecurityContextHolder.setContext(SecurityContextImpl(authentication))
+    }
+
+    @AfterEach
+    fun afterEach() {
+        SecurityContextHolder.clearContext()
+    }
+
     @Test
     fun `create new distribution`() {
-        val authentication = TafelJwtAuthentication(
-            tokenValue = "TOKEN",
-            username = testUser.username,
-            authorities = testUserPermissions.map { SimpleGrantedAuthority(it) }
-        )
-        SecurityContextHolder.setContext(SecurityContextImpl(authentication))
-
         every { userRepository.findByUsername(authentication.username!!) } returns Optional.of(testUserEntity)
         every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns null
 
@@ -70,9 +75,6 @@ internal class DistributionServiceTest {
                 assertThat(it.startedByUser).isEqualTo(testUserEntity)
             })
         }
-        verify { stateMachine.startReactively() }
-
-        SecurityContextHolder.clearContext()
     }
 
     @Test
@@ -108,22 +110,57 @@ internal class DistributionServiceTest {
 
     @Test
     fun `get state list`() {
-        val transitions = listOf<Transition<DistributionState, DistributionStateTransitionEvent>>()
-        every { stateMachine.transitions } returns listOf()
+        val states = service.getStates()
 
-        service.getStates()
-
-        fail("TODO")
+        assertThat(states).isEqualTo(
+            listOf(
+                DistributionState.OPEN,
+                DistributionState.CHECKIN,
+                DistributionState.PAUSE,
+                DistributionState.DISTRIBUTION,
+                DistributionState.CLOSED
+            )
+        )
     }
 
     @Test
-    fun `switch to next state`() {
-        val transitions = listOf<Transition<DistributionState, DistributionStateTransitionEvent>>()
-        every { stateMachine.transitions } returns listOf()
+    fun `switch from open to next state`() {
+        val distributionEntity = DistributionEntity()
+        distributionEntity.id = 123
+        distributionEntity.state = DistributionState.OPEN
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns distributionEntity
 
-        service.switchToNextState(DistributionState.DISTRIBUTION)
+        every { distributionRepository.save(any()) } returns mockk()
 
-        fail("TODO")
+        service.switchToNextState(distributionEntity.state!!)
+
+        verify {
+            distributionRepository.save(withArg {
+                assertThat(it.state).isEqualTo(DistributionState.CHECKIN)
+            })
+        }
+    }
+
+    @Test
+    fun `switch to closed state`() {
+        val distributionEntity = DistributionEntity()
+        distributionEntity.id = 123
+        distributionEntity.state = DistributionState.DISTRIBUTION
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns distributionEntity
+
+        every { distributionRepository.save(any()) } returns mockk()
+
+        every { userRepository.findByUsername(authentication.username!!) } returns Optional.of(testUserEntity)
+
+        service.switchToNextState(distributionEntity.state!!)
+
+        verify {
+            distributionRepository.save(withArg {
+                assertThat(it.state).isEqualTo(DistributionState.CLOSED)
+                assertThat(it.endedAt).isBetween(ZonedDateTime.now().minusSeconds(5), ZonedDateTime.now())
+                assertThat(it.endedByUser).isEqualTo(testUserEntity)
+            })
+        }
     }
 
 }
