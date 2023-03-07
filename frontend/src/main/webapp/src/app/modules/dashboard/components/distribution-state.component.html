@@ -4,7 +4,7 @@
     <div class="text-value font-weight-bold">
       <div class="row">
         <div class="col"
-             testid="distribtion-state-text">{{distribution?.state.stateLabel ? distribution?.state.stateLabel : 'Inaktiv'}}</div>
+             testid="distribution-state-text">{{distribution?.state.stateLabel ? distribution?.state.stateLabel : 'Inaktiv'}}</div>
       </div>
     </div>
   </div>
@@ -32,7 +32,7 @@
     </div>
   </div>
 </div>
-<div testid="next-distributionstate-modal" bsModal #nextDistributionStateModal="bs-modal" class="modal fade"
+<div testid="distributionstate-next-modal" bsModal #nextDistributionStateModal="bs-modal" class="modal fade"
      tabindex="-1"
      role="dialog" aria-labelledby="nextDistributionStateModalLabel" aria-hidden="true">
   <div testid="nextDistribution-modal-dialog" class="modal-dialog" role="document">
@@ -52,11 +52,11 @@
         <div class="row">
           <div class="col-6">
             <button testid="ok-button" type="button" class="btn btn-primary mr-2"
-                    testid="next-distributionstate-modal-ok-button"
+                    testid="distributionstate-next-modal-ok-button"
                     (click)="switchToNextState()">OK
             </button>
             <button testid="cancel-button" type="button" class="btn btn-secondary"
-                    testid="next-distributionstate-modal-cancel-button"
+                    testid="distributionstate-next-modal-cancel-button"
                     (click)="nextDistributionStateModal.hide()">Abbrechen
             </button>
           </div>
