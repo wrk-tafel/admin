@@ -2,28 +2,26 @@ package at.wrk.tafel.admin.backend.modules.distribution
 
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.common.model.DistributionState
-import at.wrk.tafel.admin.backend.common.model.DistributionStateTransitionEvent
 import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.repositories.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationFailedException
-import org.springframework.messaging.support.MessageBuilder
 import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.statemachine.StateMachine
-import org.springframework.statemachine.StateMachineEventResult
-import org.springframework.statemachine.state.State
-import org.springframework.statemachine.support.DefaultStateMachineContext
 import org.springframework.stereotype.Service
-import reactor.core.publisher.Mono
 import java.time.ZonedDateTime
-
 
 @Service
 class DistributionService(
     private val distributionRepository: DistributionRepository,
-    private val userRepository: UserRepository,
-    private val stateMachine: StateMachine<DistributionState, DistributionStateTransitionEvent>
+    private val userRepository: UserRepository
 ) {
+    private val STATES_LIST = listOf(
+        DistributionState.OPEN,
+        DistributionState.CHECKIN,
+        DistributionState.PAUSE,
+        DistributionState.DISTRIBUTION,
+        DistributionState.CLOSED
+    )
 
     fun createNewDistribution(): DistributionEntity {
         val currentDistribution = distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc()
@@ -38,16 +36,6 @@ class DistributionService(
         distribution.startedByUser = userRepository.findByUsername(authenticatedUser.username!!).orElse(null)
         distribution.state = DistributionState.OPEN
 
-        // TODO add correct reset of state machine
-        stateMachine.stopReactively().block()
-        stateMachine.stateMachineAccessor.doWithAllRegions {
-            it.resetStateMachineReactively(
-                DefaultStateMachineContext(
-                    DistributionState.OPEN, null, null, null
-                )
-            ).block()
-        }
-        stateMachine.startReactively().block()
         return distributionRepository.save(distribution)
     }
 
@@ -55,28 +43,13 @@ class DistributionService(
         return distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc()
     }
 
-    fun getStates(): List<State<DistributionState, DistributionStateTransitionEvent>> {
-        return stateMachine.transitions.flatMap { setOf(it.source, it.target) }.distinct()
+    fun getStates(): List<DistributionState> {
+        return STATES_LIST
     }
 
     fun switchToNextState(currentState: DistributionState) {
-        val nextState = stateMachine.transitions
-            .filter { transition ->
-                transition.source.id.name == currentState.name
-            }.map { transition -> transition.target.id }
-            .first()
-        val transitionEventToNextState = stateMachine.transitions
-            .filter { transition ->
-                transition.source.id.name == currentState.name
-            }.map { transition -> transition.trigger.event }
-            .first()
-
-        val message = MessageBuilder.withPayload(transitionEventToNextState).build()
-
-        val result = stateMachine.sendEvent(Mono.just(message)).blockFirst()
-        if (result!!.resultType == StateMachineEventResult.ResultType.ACCEPTED) {
-            saveStateToDistribution(nextState)
-        }
+        val nextState = STATES_LIST[STATES_LIST.indexOf(currentState) + 1]
+        saveStateToDistribution(nextState)
     }
 
     private fun saveStateToDistribution(nextState: DistributionState) {

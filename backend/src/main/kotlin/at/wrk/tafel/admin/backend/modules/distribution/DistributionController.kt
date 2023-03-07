@@ -42,7 +42,7 @@ class DistributionController(
         val states = service.getStates()
 
         return DistributionStatesResponse(
-            states = states.map { mapState(it.id) }
+            states = states.map { mapState(it) }
         )
     }
 

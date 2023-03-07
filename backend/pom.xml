@@ -24,7 +24,6 @@
         <apache.fop.version>2.8</apache.fop.version>
         <qrcode.kotlin.version>3.3.0</qrcode.kotlin.version>
         <passay.version>1.6.2</passay.version>
-        <spring.statemachine.version>3.2.0</spring.statemachine.version>
 
         <!-- Maven plugin version -->
         <maven.surefire.plugin.version>2.22.2</maven.surefire.plugin.version>
@@ -168,22 +167,6 @@
             <groupId>org.passay</groupId>
             <artifactId>passay</artifactId>
             <version>${passay.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.statemachine</groupId>
-            <artifactId>spring-statemachine-core</artifactId>
-            <version>${spring.statemachine.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.statemachine</groupId>
-            <artifactId>spring-statemachine-data-jpa</artifactId>
-            <version>${spring.statemachine.version}</version>
-        </dependency>
-        <!-- TODO remove with DistributionStateVisualizer -->
-        <dependency>
-            <groupId>guru.nidi</groupId>
-            <artifactId>graphviz-java</artifactId>
-            <version>0.18.1</version>
         </dependency>
 
         <!-- Dev and Test dependencies -->
