@@ -119,10 +119,13 @@ describe('DistributionStateComponent', () => {
   it('switch to next state', () => {
     const fixture = TestBed.createComponent(DistributionStateComponent);
     const component = fixture.componentInstance;
+    component.nextDistributionStateModal = jasmine.createSpyObj('Modal', ['hide']);
+    distributionApiService.switchToNextState.and.returnValue(of(null));
 
     component.switchToNextState();
 
     expect(distributionApiService.switchToNextState).toHaveBeenCalled();
+    expect(component.nextDistributionStateModal.hide).toHaveBeenCalled();
   });
 
 });
