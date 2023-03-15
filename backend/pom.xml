@@ -26,7 +26,7 @@
         <passay.version>1.6.2</passay.version>
 
         <!-- Maven plugin version -->
-        <maven.surefire.plugin.version>2.22.2</maven.surefire.plugin.version>
+        <maven.surefire.plugin.version>3.0.0</maven.surefire.plugin.version>
         <maven.resources.plugin.version>3.3.0</maven.resources.plugin.version>
         <jacoco.maven.plugin.version>0.8.8</jacoco.maven.plugin.version>
 
