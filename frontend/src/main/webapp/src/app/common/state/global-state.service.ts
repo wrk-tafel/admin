@@ -16,13 +16,15 @@ export class GlobalStateService {
   }
 
   init() {
+    console.log("GLOBAL INIT");
     this.getCurrentDistribution().subscribe();
 
-    return Promise.all([this.currentDistribution.toPromise()]);
+    Promise.all([this.currentDistribution.toPromise()]);
   }
 
   private getCurrentDistribution(): Observable<DistributionItem> {
     return this.distributionApiService.getCurrentDistribution().pipe(map(distributionItem => {
+      console.log("GLOBAL INIT - DIS", distributionItem);
       this.currentDistribution.next(distributionItem);
       return distributionItem;
     }));

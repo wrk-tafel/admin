@@ -7,6 +7,7 @@ import {
 } from '../../../api/distribution-api.service';
 import {ModalDirective} from 'ngx-bootstrap/modal';
 import {ActivatedRoute} from '@angular/router';
+import {GlobalStateService} from "../../../common/state/global-state.service";
 
 @Component({
   selector: 'tafel-distribution-state',
@@ -16,6 +17,7 @@ export class DistributionStateComponent implements OnInit {
 
   constructor(
     private distributionApiService: DistributionApiService,
+    private globalStateService: GlobalStateService,
     private activatedRoute: ActivatedRoute
   ) {
   }
@@ -30,7 +32,7 @@ export class DistributionStateComponent implements OnInit {
   progressCurrent: number = 0;
 
   ngOnInit() {
-    this.distributionApiService.getCurrentDistribution().subscribe((distribution) => {
+    this.globalStateService.currentDistribution.subscribe((distribution) => {
       this.processDistribution(distribution);
     });
   }
