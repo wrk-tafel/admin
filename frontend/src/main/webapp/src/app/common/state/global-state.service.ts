@@ -1,7 +1,6 @@
 import {Injectable} from '@angular/core';
 import {DistributionApiService, DistributionItem} from '../../api/distribution-api.service';
-import {BehaviorSubject, Observable} from 'rxjs';
-import {map} from 'rxjs/operators';
+import {BehaviorSubject} from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -15,18 +14,22 @@ export class GlobalStateService {
   ) {
   }
 
-  init() {
-    // TODO improve
-    this.initCurrentDistribution().subscribe();
-
-    Promise.all([this.currentDistribution.toPromise()]);
+  init(): Promise<any> {
+    return this.getCurrentDistributionPromise();
   }
 
-  private initCurrentDistribution(): Observable<DistributionItem> {
-    return this.distributionApiService.getCurrentDistribution().pipe(map(distributionItem => {
-      this.currentDistribution.next(distributionItem);
-      return distributionItem;
-    }));
+  private getCurrentDistributionPromise(): Promise<any> {
+    return new Promise((resolve, reject) => {
+      this.distributionApiService.getCurrentDistribution()
+        .subscribe(
+          distributionItem => {
+            this.currentDistribution.next(distributionItem);
+            resolve(distributionItem);
+          },
+          error => {
+            reject(error);
+          });
+    });
   }
 
   getCurrentDistribution(): BehaviorSubject<DistributionItem> {

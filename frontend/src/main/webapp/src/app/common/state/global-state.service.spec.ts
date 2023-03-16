@@ -13,6 +13,7 @@ describe('GlobalStateService', () => {
 
   it('init calls services correctly', () => {
     const {service, distributionApiServiceSpy} = setup();
+    expect(service.getCurrentDistribution().value).toBeNull();
 
     const testDistribution = {
       id: 123,
@@ -24,16 +25,10 @@ describe('GlobalStateService', () => {
     };
     distributionApiServiceSpy.getCurrentDistribution.and.returnValue(of(testDistribution));
 
-    let checked = false;
-    service.getCurrentDistribution().subscribe(distributionItem => {
-      expect(distributionItem).toEqual(testDistribution);
-      checked = true;
-    });
-
     service.init();
 
+    expect(service.getCurrentDistribution().value).toEqual(testDistribution);
     expect(distributionApiServiceSpy.getCurrentDistribution).toHaveBeenCalled();
-    expect(checked).toBeTruthy();
   });
 
 });
