@@ -6,9 +6,6 @@ describe('Dashboard', () => {
   });
 
   it('step through a complete distribution lifecycle', () => {
-    // TODO replace by proper ws testing
-    cy.wait(2000);
-
     cy.byTestId('distribution-state-text').should('have.text', 'Inaktiv');
 
     // create distribution (event) - OPEN
@@ -45,7 +42,7 @@ describe('Dashboard', () => {
     cy.byTestId('distributionstate-next-modal-ok-button').click();
 
     // TODO replace by proper ws testing
-    cy.wait(2000);
+    cy.wait(1000);
   }
 
 });
