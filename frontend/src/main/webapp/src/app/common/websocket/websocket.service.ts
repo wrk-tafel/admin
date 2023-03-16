@@ -1,8 +1,7 @@
 import {Injectable, OnDestroy} from '@angular/core';
-import {IRxStompPublishParams, RxStomp} from '@stomp/rx-stomp';
+import {IRxStompPublishParams, RxStomp, RxStompState} from '@stomp/rx-stomp';
 import {RxStompConfig} from '@stomp/rx-stomp/esm6/rx-stomp-config';
 import {BehaviorSubject, Observable} from 'rxjs';
-import {RxStompState} from '@stomp/rx-stomp/esm6/rx-stomp-state';
 import {IMessage} from '@stomp/stompjs';
 import {UrlHelperService} from '../util/url-helper.service';
 
@@ -15,7 +14,7 @@ export class WebsocketService implements OnDestroy {
   constructor(private urlHelper: UrlHelperService) {
   }
 
-  connect() {
+  connect(): Promise<any> {
     const stompConfig: RxStompConfig = {
       brokerURL: this.getBaseUrl(),
       /*
@@ -29,7 +28,7 @@ export class WebsocketService implements OnDestroy {
     };
 
     this.client.configure(stompConfig);
-    this.client.activate();
+    return this.getConnectPromise();
   }
 
   ngOnDestroy(): void {
@@ -55,6 +54,22 @@ export class WebsocketService implements OnDestroy {
   getBaseUrl() {
     const baseUrl = this.urlHelper.getBaseUrl() + '/api/websockets';
     return baseUrl.replace('http', 'ws');
+  }
+
+  private getConnectPromise(): Promise<any> {
+    return new Promise((resolve, reject) => {
+      this.client.activate();
+      this.getConnectionState()
+        .subscribe(
+          connectionState => {
+            if (connectionState === RxStompState.OPEN) {
+              resolve(connectionState);
+            }
+          },
+          error => {
+            reject(error);
+          });
+    });
   }
 
 }
