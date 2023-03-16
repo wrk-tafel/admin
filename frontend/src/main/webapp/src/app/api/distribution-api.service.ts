@@ -31,16 +31,16 @@ export class DistributionApiService {
   getCurrentDistribution(): Observable<DistributionItem> {
     return this.websocketService.watch('/topic/distributions').pipe(map(
       (message: IMessage) => {
-        if (message.body) {
-          const distributionItem: DistributionItem = JSON.parse(message.body);
-          return distributionItem;
-        } else {
-          return null;
-        }
+        const response: DistributionItemResponse = JSON.parse(message.body);
+        return response.distribution;
       }
     ));
   }
 
+}
+
+export interface DistributionItemResponse {
+  distribution: DistributionItem;
 }
 
 export interface DistributionItem {

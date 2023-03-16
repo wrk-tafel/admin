@@ -46,6 +46,8 @@ export class DistributionStateComponent implements OnInit {
     if (distribution) {
       const stateIndex = this.states.findIndex((state: DistributionStateItem) => state.name === distribution.state.name);
       this.progressCurrent = stateIndex;
+    } else {
+      this.progressCurrent = 0;
     }
   }
 

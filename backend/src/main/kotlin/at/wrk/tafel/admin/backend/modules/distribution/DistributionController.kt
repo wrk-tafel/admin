@@ -33,9 +33,9 @@ class DistributionController(
     }
 
     @SubscribeMapping
-    fun getCurrentDistribution(): DistributionItem? {
+    fun getCurrentDistribution(): DistributionItemResponse {
         val distribution = service.getCurrentDistribution()
-        return distribution?.let { mapDistribution(it) }
+        return DistributionItemResponse(distribution = distribution?.let { mapDistribution(it) })
     }
 
     @GetMapping("/states")
@@ -55,8 +55,11 @@ class DistributionController(
             service.switchToNextState(currentDistribution.state!!)
 
             // update clients about new state
-            // TODO val updatedDistribution: DistributionItem? = service.getCurrentDistribution()?.let { mapDistribution(it) }
-            simpMessagingTemplate.convertAndSend("/topic/distributions", currentDistribution)
+            val updatedDistribution: DistributionItem? = service.getCurrentDistribution()?.let { mapDistribution(it) }
+            simpMessagingTemplate.convertAndSend(
+                "/topic/distributions",
+                DistributionItemResponse(distribution = updatedDistribution)
+            )
 
             return ResponseEntity.ok().build()
         }
@@ -100,6 +103,11 @@ class DistributionController(
     }
 
 }
+
+@ExcludeFromTestCoverage
+data class DistributionItemResponse(
+    val distribution: DistributionItem?
+)
 
 @ExcludeFromTestCoverage
 data class DistributionItem(
