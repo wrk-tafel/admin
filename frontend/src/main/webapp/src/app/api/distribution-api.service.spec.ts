@@ -1,7 +1,7 @@
 import {HttpClient} from '@angular/common/http';
 import {HttpClientTestingModule, HttpTestingController} from '@angular/common/http/testing';
 import {TestBed} from '@angular/core/testing';
-import {DistributionApiService, DistributionItem} from './distribution-api.service';
+import {DistributionApiService, DistributionItem, DistributionItemResponse} from './distribution-api.service';
 import {WebsocketService} from '../common/websocket/websocket.service';
 import {of} from 'rxjs';
 import {IMessage} from '@stomp/stompjs';
@@ -30,12 +30,14 @@ describe('DistributionApiService', () => {
   });
 
   it('get current distribution', () => {
-    const testResponse: DistributionItem = {
-      id: 123,
-      state: {
-        name: 'OPEN',
-        stateLabel: 'Offen',
-        actionLabel: 'Offen'
+    const testResponse: DistributionItemResponse = {
+      distribution: {
+        id: 123,
+        state: {
+          name: 'OPEN',
+          stateLabel: 'Offen',
+          actionLabel: 'Offen'
+        }
       }
     };
     const testMessage: IMessage = {
@@ -50,7 +52,7 @@ describe('DistributionApiService', () => {
     websocketService.watch.and.returnValue(of(testMessage));
 
     apiService.getCurrentDistribution().subscribe((response: DistributionItem) => {
-      expect(response).toEqual(testResponse);
+      expect(response).toEqual(testResponse.distribution);
     });
 
     expect(websocketService.watch).toHaveBeenCalledWith('/topic/distributions');
