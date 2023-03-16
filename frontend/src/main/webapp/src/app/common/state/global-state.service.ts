@@ -8,7 +8,7 @@ import {map} from 'rxjs/operators';
 })
 export class GlobalStateService {
 
-  currentDistribution: Subject<DistributionItem> = new Subject();
+  private currentDistribution: Subject<DistributionItem> = new Subject();
 
   constructor(
     private distributionApiService: DistributionApiService
@@ -16,18 +16,20 @@ export class GlobalStateService {
   }
 
   init() {
-    console.log("GLOBAL INIT");
-    this.getCurrentDistribution().subscribe();
+    this.initCurrentDistribution().subscribe();
 
     Promise.all([this.currentDistribution.toPromise()]);
   }
 
-  private getCurrentDistribution(): Observable<DistributionItem> {
+  private initCurrentDistribution(): Observable<DistributionItem> {
     return this.distributionApiService.getCurrentDistribution().pipe(map(distributionItem => {
-      console.log("GLOBAL INIT - DIS", distributionItem);
       this.currentDistribution.next(distributionItem);
       return distributionItem;
     }));
+  }
+
+  getCurrentDistribution(): Subject<DistributionItem> {
+    return this.currentDistribution;
   }
 
 }

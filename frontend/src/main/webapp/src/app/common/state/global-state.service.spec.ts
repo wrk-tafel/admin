@@ -25,7 +25,7 @@ describe('GlobalStateService', () => {
     distributionApiServiceSpy.getCurrentDistribution.and.returnValue(of(testDistribution));
 
     let checked = false;
-    service.currentDistribution.subscribe(distributionItem => {
+    service.getCurrentDistribution().subscribe(distributionItem => {
       expect(distributionItem).toEqual(testDistribution);
       checked = true;
     });

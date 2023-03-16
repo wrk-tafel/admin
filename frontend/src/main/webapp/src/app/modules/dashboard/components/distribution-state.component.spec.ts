@@ -2,12 +2,14 @@ import {TestBed, waitForAsync} from '@angular/core/testing';
 import {DistributionApiService, DistributionItem, DistributionStateItem} from '../../../api/distribution-api.service';
 import {DistributionStateComponent} from './distribution-state.component';
 import {ModalModule} from 'ngx-bootstrap/modal';
-import {of} from 'rxjs';
+import {of, Subject} from 'rxjs';
 import {ActivatedRoute} from '@angular/router';
 import {RouterTestingModule} from '@angular/router/testing';
+import {GlobalStateService} from '../../../common/state/global-state.service';
 
 describe('DistributionStateComponent', () => {
   let distributionApiService: jasmine.SpyObj<DistributionApiService>;
+  let globalStateService: jasmine.SpyObj<GlobalStateService>;
 
   const mockDistributionStates: DistributionStateItem[] = [
     {
@@ -50,12 +52,17 @@ describe('DistributionStateComponent', () => {
         },
         {
           provide: DistributionApiService,
-          useValue: jasmine.createSpyObj('DistributionApiService', ['getCurrentDistribution', 'createNewDistribution', 'switchToNextState'])
+          useValue: jasmine.createSpyObj('DistributionApiService', ['createNewDistribution', 'switchToNextState'])
+        },
+        {
+          provide: GlobalStateService,
+          useValue: jasmine.createSpyObj('GlobalStateService', ['getCurrentDistribution'])
         }
       ]
     }).compileComponents();
 
     distributionApiService = TestBed.inject(DistributionApiService) as jasmine.SpyObj<DistributionApiService>;
+    globalStateService = TestBed.inject(GlobalStateService) as jasmine.SpyObj<GlobalStateService>;
   }));
 
   it('component can be created', () => {
@@ -76,24 +83,28 @@ describe('DistributionStateComponent', () => {
         actionLabel: 'Offen'
       }
     };
-    distributionApiService.getCurrentDistribution.and.returnValue(of(distribution));
+    const subject = new Subject<DistributionItem>();
+    globalStateService.getCurrentDistribution.and.returnValue(subject);
 
     component.ngOnInit();
+    subject.next(distribution);
 
     expect(component.distribution).toEqual(distribution);
-    expect(distributionApiService.getCurrentDistribution).toHaveBeenCalled();
+    expect(globalStateService.getCurrentDistribution).toHaveBeenCalled();
   });
 
   it('component init distribution not active', () => {
     const fixture = TestBed.createComponent(DistributionStateComponent);
     const component = fixture.componentInstance;
 
-    distributionApiService.getCurrentDistribution.and.returnValue(of());
+    const subject = new Subject<DistributionItem>();
+    globalStateService.getCurrentDistribution.and.returnValue(subject);
 
     component.ngOnInit();
+    subject.next(null);
 
-    expect(component.distribution).toBeUndefined();
-    expect(distributionApiService.getCurrentDistribution).toHaveBeenCalled();
+    expect(component.distribution).toBeNull();
+    expect(globalStateService.getCurrentDistribution).toHaveBeenCalled();
   });
 
   it('create new distribution', () => {
