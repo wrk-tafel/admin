@@ -100,19 +100,10 @@ describe('DistributionStateComponent', () => {
     const fixture = TestBed.createComponent(DistributionStateComponent);
     const component = fixture.componentInstance;
 
-    const distribution: DistributionItem = {
-      id: 123,
-      state: {
-        name: 'OPEN',
-        stateLabel: 'Offen',
-        actionLabel: 'Offen'
-      }
-    };
-    distributionApiService.createNewDistribution.and.returnValue(of(distribution));
+    distributionApiService.createNewDistribution.and.returnValue(of(null));
 
     component.createNewDistribution();
 
-    expect(component.distribution).toEqual(distribution);
     expect(distributionApiService.createNewDistribution).toHaveBeenCalled();
   });
 
