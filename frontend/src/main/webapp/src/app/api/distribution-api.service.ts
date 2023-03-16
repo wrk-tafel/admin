@@ -16,8 +16,8 @@ export class DistributionApiService {
   ) {
   }
 
-  createNewDistribution(): Observable<DistributionItem> {
-    return this.http.post<DistributionItem>('/distributions/new', null);
+  createNewDistribution(): Observable<void> {
+    return this.http.post<void>('/distributions/new', null);
   }
 
   getStates(): Observable<DistributionStatesResponse> {

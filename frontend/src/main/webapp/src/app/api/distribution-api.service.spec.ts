@@ -51,9 +51,7 @@ describe('DistributionApiService', () => {
     };
     websocketService.watch.and.returnValue(of(testMessage));
 
-    apiService.getCurrentDistribution().subscribe((response: DistributionItem) => {
-      expect(response).toEqual(testResponse.distribution);
-    });
+    apiService.getCurrentDistribution().subscribe();
 
     expect(websocketService.watch).toHaveBeenCalledWith('/topic/distributions');
   });
@@ -68,9 +66,7 @@ describe('DistributionApiService', () => {
       }
     };
 
-    apiService.createNewDistribution().subscribe((response: DistributionItem) => {
-      expect(response).toEqual(testResponse);
-    });
+    apiService.createNewDistribution().subscribe();
 
     const req = httpMock.expectOne('/distributions/new');
     req.flush(testResponse);

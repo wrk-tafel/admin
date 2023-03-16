@@ -23,10 +23,14 @@ class DistributionController(
 
     @PostMapping("/new")
     @PreAuthorize("hasAuthority('DISTRIBUTION')")
-    fun createNewDistribution(): DistributionItem {
+    fun createNewDistribution() {
         try {
             val distribution = service.createNewDistribution()
-            return mapDistribution(distribution)
+
+            simpMessagingTemplate.convertAndSend(
+                "/topic/distributions",
+                DistributionItemResponse(distribution = mapDistribution(distribution))
+            )
         } catch (e: TafelValidationFailedException) {
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, e.message)
         }

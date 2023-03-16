@@ -36,16 +36,22 @@ internal class DistributionControllerTest {
         distributionEntity.state = DistributionState.OPEN
         every { service.createNewDistribution() } returns distributionEntity
 
-        val distributionItem = controller.createNewDistribution()
+        controller.createNewDistribution()
 
-        assertThat(distributionItem.id).isEqualTo(distributionEntity.id)
-        assertThat(distributionItem.state).isEqualTo(
-            DistributionStateItem(
-                name = distributionEntity.state!!.name,
-                stateLabel = "Geöffnet",
-                actionLabel = "Anmeldung starten"
+        val distributionItemResponse = DistributionItemResponse(
+            distribution = DistributionItem(
+                id = distributionEntity.id!!,
+                state = DistributionStateItem(
+                    name = distributionEntity.state!!.name,
+                    stateLabel = "Geöffnet",
+                    actionLabel = "Anmeldung starten"
+                )
             )
         )
+
+        verify {
+            simpMessagingTemplate.convertAndSend("/topic/distributions", distributionItemResponse)
+        }
     }
 
     @Test
@@ -67,9 +73,9 @@ internal class DistributionControllerTest {
         distributionEntity.state = DistributionState.DISTRIBUTION
         every { service.getCurrentDistribution() } returns distributionEntity
 
-        val distributionItem = controller.getCurrentDistribution()
+        val response = controller.getCurrentDistribution()
 
-        assertThat(distributionItem).isEqualTo(
+        assertThat(response.distribution).isEqualTo(
             DistributionItem(
                 id = distributionEntity.id!!,
                 state = DistributionStateItem(
@@ -85,9 +91,9 @@ internal class DistributionControllerTest {
     fun `current distribution not found`() {
         every { service.getCurrentDistribution() } returns null
 
-        val distributionItem = controller.getCurrentDistribution()
+        val response = controller.getCurrentDistribution()
 
-        assertThat(distributionItem).isNull()
+        assertThat(response.distribution).isNull()
     }
 
     @Test
@@ -140,12 +146,14 @@ internal class DistributionControllerTest {
         verify {
             simpMessagingTemplate.convertAndSend(
                 "/topic/distributions",
-                DistributionItem(
-                    id = 123,
-                    state = DistributionStateItem(
-                        name = DistributionState.DISTRIBUTION.name,
-                        stateLabel = "Verteilung läuft",
-                        actionLabel = "Ausgabe schließen"
+                DistributionItemResponse(
+                    distribution = DistributionItem(
+                        id = 123,
+                        state = DistributionStateItem(
+                            name = DistributionState.DISTRIBUTION.name,
+                            stateLabel = "Verteilung läuft",
+                            actionLabel = "Ausgabe schließen"
+                        )
                     )
                 )
             )

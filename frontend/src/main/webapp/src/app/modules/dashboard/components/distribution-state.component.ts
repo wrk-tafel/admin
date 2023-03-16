@@ -36,9 +36,7 @@ export class DistributionStateComponent implements OnInit {
   }
 
   createNewDistribution() {
-    this.distributionApiService.createNewDistribution().subscribe((distribution) => {
-      this.processDistribution(distribution);
-    });
+    this.distributionApiService.createNewDistribution().subscribe();
   }
 
   processDistribution(distribution: DistributionItem) {
