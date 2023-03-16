@@ -7,6 +7,7 @@ import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationFailedEx
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.messaging.handler.annotation.MessageMapping
+import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.messaging.simp.annotation.SubscribeMapping
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
@@ -14,8 +15,10 @@ import org.springframework.web.server.ResponseStatusException
 
 @RestController
 @RequestMapping("/api/distributions")
+@MessageMapping("/distributions")
 class DistributionController(
-    private val service: DistributionService
+    private val service: DistributionService,
+    private val simpMessagingTemplate: SimpMessagingTemplate
 ) {
 
     @PostMapping("/new")
@@ -29,16 +32,10 @@ class DistributionController(
         }
     }
 
-    @GetMapping("/current")
-    @SubscribeMapping("/current")
-    @MessageMapping("/current")
-    fun getCurrentDistribution(): ResponseEntity<DistributionItem> {
+    @SubscribeMapping
+    fun getCurrentDistribution(): DistributionItem? {
         val distribution = service.getCurrentDistribution()
-        if (distribution != null) {
-            return ResponseEntity.ok(mapDistribution(distribution))
-        }
-
-        return ResponseEntity.noContent().build()
+        return distribution?.let { mapDistribution(it) }
     }
 
     @GetMapping("/states")
@@ -56,6 +53,11 @@ class DistributionController(
         val currentDistribution = service.getCurrentDistribution()
         if (currentDistribution != null) {
             service.switchToNextState(currentDistribution.state!!)
+
+            // update clients about new state
+            // TODO val updatedDistribution: DistributionItem? = service.getCurrentDistribution()?.let { mapDistribution(it) }
+            simpMessagingTemplate.convertAndSend("/topic/distributions", currentDistribution)
+
             return ResponseEntity.ok().build()
         }
         return ResponseEntity.badRequest().build()

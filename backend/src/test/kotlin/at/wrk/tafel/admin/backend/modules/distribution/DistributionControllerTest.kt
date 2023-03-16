@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.http.HttpStatus
+import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.web.server.ResponseStatusException
 import java.util.*
 
@@ -21,6 +22,9 @@ internal class DistributionControllerTest {
 
     @RelaxedMockK
     private lateinit var service: DistributionService
+
+    @RelaxedMockK
+    private lateinit var simpMessagingTemplate: SimpMessagingTemplate
 
     @InjectMockKs
     private lateinit var controller: DistributionController
@@ -63,10 +67,9 @@ internal class DistributionControllerTest {
         distributionEntity.state = DistributionState.DISTRIBUTION
         every { service.getCurrentDistribution() } returns distributionEntity
 
-        val response = controller.getCurrentDistribution()
+        val distributionItem = controller.getCurrentDistribution()
 
-        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
-        assertThat(response.body).isEqualTo(
+        assertThat(distributionItem).isEqualTo(
             DistributionItem(
                 id = distributionEntity.id!!,
                 state = DistributionStateItem(
@@ -82,10 +85,9 @@ internal class DistributionControllerTest {
     fun `current distribution not found`() {
         every { service.getCurrentDistribution() } returns null
 
-        val response = controller.getCurrentDistribution()
+        val distributionItem = controller.getCurrentDistribution()
 
-        assertThat(response.statusCode).isEqualTo(HttpStatus.NO_CONTENT)
-        assertThat(response.body).isNull()
+        assertThat(distributionItem).isNull()
     }
 
     @Test
@@ -135,6 +137,19 @@ internal class DistributionControllerTest {
         assertThat(response.body).isNull()
 
         verify { service.switchToNextState(distributionEntity.state!!) }
+        verify {
+            simpMessagingTemplate.convertAndSend(
+                "/topic/distributions",
+                DistributionItem(
+                    id = 123,
+                    state = DistributionStateItem(
+                        name = DistributionState.DISTRIBUTION.name,
+                        stateLabel = "Verteilung läuft",
+                        actionLabel = "Ausgabe schließen"
+                    )
+                )
+            )
+        }
     }
 
 }

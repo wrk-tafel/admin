@@ -1,9 +1,9 @@
 import {HttpClient} from '@angular/common/http';
 import {Injectable} from '@angular/core';
 import {Observable} from 'rxjs';
-import {WebsocketService} from "../common/websocket/websocket.service";
-import {IMessage} from "@stomp/stompjs";
-import {map} from "rxjs/operators";
+import {WebsocketService} from '../common/websocket/websocket.service';
+import {IMessage} from '@stomp/stompjs';
+import {map} from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -14,10 +14,6 @@ export class DistributionApiService {
     private http: HttpClient,
     private websocketService: WebsocketService
   ) {
-  }
-
-  getCurrentDistribution(): Observable<DistributionItem> {
-    return this.http.get<DistributionItem>('/distributions/current');
   }
 
   createNewDistribution(): Observable<DistributionItem> {
@@ -32,11 +28,15 @@ export class DistributionApiService {
     return this.http.post<void>('/distributions/states/next', null);
   }
 
-  subscribeCurrentDistribution(): Observable<DistributionItem> {
-    return this.websocketService.watch('/distributions/current').pipe(map(
+  getCurrentDistribution(): Observable<DistributionItem> {
+    return this.websocketService.watch('/topic/distributions').pipe(map(
       (message: IMessage) => {
-        const distributionItem: DistributionItem = JSON.parse(message.body);
-        return distributionItem;
+        if (message.body) {
+          const distributionItem: DistributionItem = JSON.parse(message.body);
+          return distributionItem;
+        } else {
+          return null;
+        }
       }
     ));
   }
