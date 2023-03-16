@@ -10,6 +10,7 @@ import {DistributionApiService, DistributionItem} from '../../../api/distributio
 })
 export class DefaultLayoutComponent implements OnInit {
   public sidebarMinimized = false;
+  public allNavItems = navigationMenuItems;
   public navItems = [];
 
   @ViewChild(PasswordChangeModalComponent)
@@ -83,7 +84,7 @@ export class DefaultLayoutComponent implements OnInit {
     this.distributionApiService.getCurrentDistribution().subscribe((distribution: DistributionItem) => {
       const resultNavItems: ITafelNavData[] = [];
 
-      navigationMenuItems?.forEach(navItem => {
+      this.allNavItems?.forEach(navItem => {
         if (navItem.activeDistributionRequired && !distribution) {
           const modifiedNavItem = {
             ...navItem,

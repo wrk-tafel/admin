@@ -257,7 +257,7 @@ describe('DefaultLayoutComponent', () => {
 
     const fixture = TestBed.createComponent(DefaultLayoutComponent);
     const component = fixture.componentInstance;
-    component.navItems = testMenuItems;
+    component.allNavItems = testMenuItems;
 
     component.editNavItemsForDistributionState();
 
