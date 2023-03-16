@@ -6,6 +6,8 @@ import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionEnt
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationFailedException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.messaging.handler.annotation.MessageMapping
+import org.springframework.messaging.simp.annotation.SubscribeMapping
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
@@ -28,6 +30,8 @@ class DistributionController(
     }
 
     @GetMapping("/current")
+    @SubscribeMapping("/current")
+    @MessageMapping("/current")
     fun getCurrentDistribution(): ResponseEntity<DistributionItem> {
         val distribution = service.getCurrentDistribution()
         if (distribution != null) {
