@@ -39,7 +39,6 @@ import {LoginPasswordChangeComponent} from './common/views/login-passwordchange/
 import {CookieService} from 'ngx-cookie-service';
 import {AuthenticationService} from './common/security/authentication.service';
 import {WebsocketService} from './common/websocket/websocket.service';
-import {GlobalStateService} from "./common/state/global-state.service";
 
 registerLocaleData(localeDeAt);
 
@@ -119,18 +118,6 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
       provide: APP_INITIALIZER,
       useFactory: (authService: AuthenticationService) => () => authService.loadUserInfo(),
       deps: [AuthenticationService],
-      multi: true
-    },
-    {
-      provide: APP_INITIALIZER,
-      useFactory: (websocketService: WebsocketService) => () => websocketService.connect(),
-      deps: [WebsocketService],
-      multi: true
-    },
-    {
-      provide: APP_INITIALIZER,
-      useFactory: (globalStateService: GlobalStateService) => () => globalStateService.init(),
-      deps: [GlobalStateService],
       multi: true
     }
   ],
