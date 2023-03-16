@@ -6,8 +6,8 @@ describe('Dashboard', () => {
   });
 
   it('step through a complete distribution lifecycle', () => {
-    cy.intercept('/api/distributions/current').as('getCurrentDistribution');
-    cy.wait('@getCurrentDistribution');
+    // TODO replace by proper ws testing
+    cy.wait(2000);
 
     cy.byTestId('distribution-state-text').should('have.text', 'Inaktiv');
 
@@ -44,10 +44,8 @@ describe('Dashboard', () => {
     cy.byTestId('distribution-nextstep-button').click();
     cy.byTestId('distributionstate-next-modal-ok-button').click();
 
-    cy.wait('@switchToNextStep');
-
-    cy.reload(); // TODO remove reload after ws push version
-    cy.wait('@getCurrentDistribution');
+    // TODO replace by proper ws testing
+    cy.wait(2000);
   }
 
 });
