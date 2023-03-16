@@ -8,10 +8,8 @@ import {of} from 'rxjs';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
 import {CustomerApiService, CustomerData} from '../../../../api/customer-api.service';
 import {CustomerDetailComponent} from './customer-detail.component';
-import {CommonModule} from '@angular/common';
+import {CommonModule, registerLocaleData} from '@angular/common';
 import {DEFAULT_CURRENCY_CODE, LOCALE_ID} from '@angular/core';
-
-import { registerLocaleData } from '@angular/common';
 import localeDeAt from '@angular/common/locales/de-AT';
 
 registerLocaleData(localeDeAt);
@@ -111,6 +109,18 @@ describe('CustomerDetailComponent', () => {
         {
           provide: Router,
           useValue: routerSpy
+        },
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            snapshot: {
+              data: {
+                distributionStates: {
+                  states: mockCustomer
+                }
+              }
+            }
+          }
         }
       ],
       declarations: [CustomerDetailComponent]
@@ -132,7 +142,6 @@ describe('CustomerDetailComponent', () => {
 
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
-    component.ngOnInit();
 
     expect(component.customerData).toEqual(mockCustomer);
 
@@ -174,7 +183,6 @@ describe('CustomerDetailComponent', () => {
 
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
-    component.ngOnInit();
 
     component.printMasterdata();
 
@@ -195,7 +203,6 @@ describe('CustomerDetailComponent', () => {
 
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
-    component.ngOnInit();
 
     component.printIdCard();
 
@@ -216,7 +223,6 @@ describe('CustomerDetailComponent', () => {
 
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
-    component.ngOnInit();
 
     component.printCombined();
 
@@ -228,7 +234,6 @@ describe('CustomerDetailComponent', () => {
 
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
-    component.ngOnInit();
 
     component.editCustomer();
 
