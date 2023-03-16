@@ -83,7 +83,7 @@ export class DefaultLayoutComponent implements OnInit {
     this.distributionApiService.getCurrentDistribution().subscribe((distribution: DistributionItem) => {
       const resultNavItems: ITafelNavData[] = [];
 
-      this.navItems?.forEach(navItem => {
+      navigationMenuItems?.forEach(navItem => {
         if (navItem.activeDistributionRequired && !distribution) {
           const modifiedNavItem = {
             ...navItem,

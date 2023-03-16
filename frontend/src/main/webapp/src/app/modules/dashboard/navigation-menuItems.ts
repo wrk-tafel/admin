@@ -28,8 +28,7 @@ export const navigationMenuItems: ITafelNavData[] = [
     name: 'Scanner',
     url: '/anmeldung/scanner',
     icon: 'fa fa-barcode',
-    permissions: ['SCANNER'],
-    activeDistributionRequired: true
+    permissions: ['SCANNER']
   },
   {
     name: 'Kundenverwaltung',
