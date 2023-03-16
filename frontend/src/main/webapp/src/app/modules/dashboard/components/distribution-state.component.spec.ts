@@ -2,7 +2,7 @@ import {TestBed, waitForAsync} from '@angular/core/testing';
 import {DistributionApiService, DistributionItem, DistributionStateItem} from '../../../api/distribution-api.service';
 import {DistributionStateComponent} from './distribution-state.component';
 import {ModalModule} from 'ngx-bootstrap/modal';
-import {of, Subject} from 'rxjs';
+import {BehaviorSubject, of} from 'rxjs';
 import {ActivatedRoute} from '@angular/router';
 import {RouterTestingModule} from '@angular/router/testing';
 import {GlobalStateService} from '../../../common/state/global-state.service';
@@ -83,11 +83,10 @@ describe('DistributionStateComponent', () => {
         actionLabel: 'Offen'
       }
     };
-    const subject = new Subject<DistributionItem>();
+    const subject = new BehaviorSubject<DistributionItem>(distribution);
     globalStateService.getCurrentDistribution.and.returnValue(subject);
 
     component.ngOnInit();
-    subject.next(distribution);
 
     expect(component.distribution).toEqual(distribution);
     expect(globalStateService.getCurrentDistribution).toHaveBeenCalled();
@@ -97,11 +96,10 @@ describe('DistributionStateComponent', () => {
     const fixture = TestBed.createComponent(DistributionStateComponent);
     const component = fixture.componentInstance;
 
-    const subject = new Subject<DistributionItem>();
+    const subject = new BehaviorSubject<DistributionItem>(null);
     globalStateService.getCurrentDistribution.and.returnValue(subject);
 
     component.ngOnInit();
-    subject.next(null);
 
     expect(component.distribution).toBeNull();
     expect(globalStateService.getCurrentDistribution).toHaveBeenCalled();

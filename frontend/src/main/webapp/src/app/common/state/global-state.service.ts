@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {DistributionApiService, DistributionItem} from '../../api/distribution-api.service';
-import {Observable, Subject} from 'rxjs';
+import {BehaviorSubject, Observable} from 'rxjs';
 import {map} from 'rxjs/operators';
 
 @Injectable({
@@ -8,7 +8,7 @@ import {map} from 'rxjs/operators';
 })
 export class GlobalStateService {
 
-  private currentDistribution: Subject<DistributionItem> = new Subject();
+  private currentDistribution: BehaviorSubject<DistributionItem> = new BehaviorSubject(null);
 
   constructor(
     private distributionApiService: DistributionApiService
@@ -16,6 +16,7 @@ export class GlobalStateService {
   }
 
   init() {
+    // TODO improve
     this.initCurrentDistribution().subscribe();
 
     Promise.all([this.currentDistribution.toPromise()]);
@@ -28,7 +29,7 @@ export class GlobalStateService {
     }));
   }
 
-  getCurrentDistribution(): Subject<DistributionItem> {
+  getCurrentDistribution(): BehaviorSubject<DistributionItem> {
     return this.currentDistribution;
   }
 

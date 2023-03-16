@@ -8,7 +8,7 @@ import {
   AppSidebarMinimizerComponent,
   AppSidebarNavComponent
 } from '@coreui/angular';
-import {Subject} from 'rxjs';
+import {BehaviorSubject} from 'rxjs';
 import {GlobalStateService} from '../../state/global-state.service';
 import {DistributionItem} from '../../../api/distribution-api.service';
 
@@ -242,7 +242,7 @@ describe('DefaultLayoutComponent', () => {
   }));
 
   it('navItems are modified by distribution state when inactive', () => {
-    const subject = new Subject<DistributionItem>();
+    const subject = new BehaviorSubject<DistributionItem>(null);
     globalStateService.getCurrentDistribution.and.returnValue(subject);
 
     const testMenuItem1 = {
@@ -262,7 +262,6 @@ describe('DefaultLayoutComponent', () => {
     component.allNavItems = testMenuItems;
 
     component.editNavItemsForDistributionState();
-    subject.next(null);
 
     expect(component.navItems).toEqual([
       testMenuItem1, {
@@ -277,7 +276,15 @@ describe('DefaultLayoutComponent', () => {
   });
 
   it('navItems are not modified by distribution state when active', () => {
-    const subject = new Subject<DistributionItem>();
+    const testDistribution = {
+      id: 123,
+      state: {
+        name: 'OPEN',
+        stateLabel: 'Offen',
+        actionLabel: 'Offen'
+      }
+    };
+    const subject = new BehaviorSubject<DistributionItem>(testDistribution);
     globalStateService.getCurrentDistribution.and.returnValue(subject);
 
     const testMenuItem1 = {
@@ -297,16 +304,6 @@ describe('DefaultLayoutComponent', () => {
     component.allNavItems = testMenuItems;
 
     component.editNavItemsForDistributionState();
-
-    const testDistribution = {
-      id: 123,
-      state: {
-        name: 'OPEN',
-        stateLabel: 'Offen',
-        actionLabel: 'Offen'
-      }
-    };
-    subject.next(testDistribution);
 
     expect(component.navItems).toEqual(testMenuItems);
   });
