@@ -241,7 +241,7 @@ describe('DefaultLayoutComponent', () => {
     expect(filteredItems).toEqual([]);
   }));
 
-  it('navItems are modified by distribution state', () => {
+  it('navItems are modified by distribution state when inactive', () => {
     const subject = new Subject<DistributionItem>();
     globalStateService.getCurrentDistribution.and.returnValue(subject);
 
@@ -274,6 +274,41 @@ describe('DefaultLayoutComponent', () => {
         attributes: {disabled: true}
       }, testMenuItem3
     ]);
+  });
+
+  it('navItems are not modified by distribution state when active', () => {
+    const subject = new Subject<DistributionItem>();
+    globalStateService.getCurrentDistribution.and.returnValue(subject);
+
+    const testMenuItem1 = {
+      name: 'Title'
+    };
+    const testMenuItem2 = {
+      name: 'Test2',
+      activeDistributionRequired: true
+    };
+    const testMenuItem3 = {
+      name: 'Test3'
+    };
+    const testMenuItems = [testMenuItem1, testMenuItem2, testMenuItem3];
+
+    const fixture = TestBed.createComponent(DefaultLayoutComponent);
+    const component = fixture.componentInstance;
+    component.allNavItems = testMenuItems;
+
+    component.editNavItemsForDistributionState();
+
+    const testDistribution = {
+      id: 123,
+      state: {
+        name: 'OPEN',
+        stateLabel: 'Offen',
+        actionLabel: 'Offen'
+      }
+    };
+    subject.next(testDistribution);
+
+    expect(component.navItems).toEqual(testMenuItems);
   });
 
 });
