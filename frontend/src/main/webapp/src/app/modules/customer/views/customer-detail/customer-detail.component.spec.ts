@@ -4,13 +4,14 @@ import {By} from '@angular/platform-browser';
 import {ActivatedRoute, Router} from '@angular/router';
 import {RouterTestingModule} from '@angular/router/testing';
 import * as moment from 'moment';
-import {of} from 'rxjs';
+import {of, throwError} from 'rxjs';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
 import {CustomerApiService, CustomerData} from '../../../../api/customer-api.service';
 import {CustomerDetailComponent} from './customer-detail.component';
 import {CommonModule, registerLocaleData} from '@angular/common';
 import {DEFAULT_CURRENCY_CODE, LOCALE_ID} from '@angular/core';
 import localeDeAt from '@angular/common/locales/de-AT';
+import {ModalModule} from "ngx-bootstrap/modal";
 
 registerLocaleData(localeDeAt);
 
@@ -77,12 +78,12 @@ describe('CustomerDetailComponent', () => {
   };
 
   beforeEach(waitForAsync(() => {
-    const apiServiceSpy = jasmine.createSpyObj('CustomerApiService', ['getCustomer', 'generatePdf']);
+    const apiServiceSpy = jasmine.createSpyObj('CustomerApiService', ['getCustomer', 'generatePdf', 'deleteCustomer']);
     const fileHelperServiceSpy = jasmine.createSpyObj('FileHelperService', ['downloadFile']);
     const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
 
     TestBed.configureTestingModule({
-      imports: [CommonModule, RouterTestingModule],
+      imports: [CommonModule, RouterTestingModule, ModalModule],
       providers: [
         {
           provide: LOCALE_ID,
@@ -276,5 +277,36 @@ describe('CustomerDetailComponent', () => {
 
     // TODO expect(incomeDueText)-class success or danger
   }));
+
+  it('delete customer successful', () => {
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    const component = fixture.componentInstance;
+    component.customerData = mockCustomer;
+
+    apiService.deleteCustomer.and.returnValue(of(null));
+
+    component.deleteCustomer();
+
+    expect(apiService.deleteCustomer).toHaveBeenCalled();
+    expect(router.navigate).toHaveBeenCalledWith(['/kunden/suchen']);
+  });
+
+  it('delete customer failed', () => {
+    const modal = jasmine.createSpyObj('Modal', ['hide']);
+
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    const component = fixture.componentInstance;
+    component.deleteCustomerModal = modal;
+    component.customerData = mockCustomer;
+
+    apiService.deleteCustomer.and.returnValue(throwError({status: 404}));
+
+    component.deleteCustomer();
+
+    expect(apiService.deleteCustomer).toHaveBeenCalled();
+    expect(router.navigate).not.toHaveBeenCalledWith(['/kunden/suchen']);
+    expect(modal.hide).toHaveBeenCalled();
+    expect(component.errorMessage).toBe('Löschen fehlgeschlagen!');
+  });
 
 });

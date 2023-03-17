@@ -24,8 +24,8 @@ export class CustomerApiService {
     return this.http.post<CustomerData>(`/customers/${data.id}`, data);
   }
 
-  deleteCustomer(customerId: number): Observable<HttpResponse<void>> {
-    return this.http.delete<HttpResponse<void>>(`/customers/${customerId}`);
+  deleteCustomer(customerId: number): Observable<void> {
+    return this.http.delete<void>(`/customers/${customerId}`);
   }
 
   getCustomer(id: number): Observable<CustomerData> {

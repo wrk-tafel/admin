@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import * as moment from 'moment';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
@@ -9,6 +9,7 @@ import {
   CustomerIssuer
 } from '../../../../api/customer-api.service';
 import {HttpResponse} from '@angular/common/http';
+import {ModalDirective} from 'ngx-bootstrap/modal';
 
 @Component({
   selector: 'tafel-customer-detail',
@@ -16,6 +17,8 @@ import {HttpResponse} from '@angular/common/http';
 })
 export class CustomerDetailComponent implements OnInit {
   customerData: CustomerData;
+  errorMessage: string;
+  @ViewChild('deleteCustomerModal') public deleteCustomerModal: ModalDirective;
 
   constructor(
     private activatedRoute: ActivatedRoute,
@@ -89,8 +92,13 @@ export class CustomerDetailComponent implements OnInit {
   }
 
   deleteCustomer() {
-    // TODO add errorMsg
-    this.customerApiService.deleteCustomer(this.customerData.id).subscribe();
+    this.customerApiService.deleteCustomer(this.customerData.id).subscribe(response => {
+        this.router.navigate(['/kunden/suchen']);
+      },
+      error => {
+        this.deleteCustomerModal.hide();
+        this.errorMessage = 'Löschen fehlgeschlagen!';
+      });
   }
 
 }

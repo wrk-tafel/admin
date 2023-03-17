@@ -4,6 +4,9 @@
     * "Disable Customer (dropdown select?) --> today, yesterday"
     * Prolong customer (dropdown?) --> 1 month, 2 months?
     * Delete customer
+* General
+    * Unify errormsg handling (panel on top) ?
+    * Toast messages?
 * customer creation
     * add employer field also for additional persons
 * Fix autofocus: https://davidmcintosh.medium.com/auto-focusing-an-angular-input-the-easy-way-part-1-dcb1799e025f

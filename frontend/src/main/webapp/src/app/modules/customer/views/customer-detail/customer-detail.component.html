@@ -1,3 +1,8 @@
+<div class="row ml-1">
+  <div testid="errorMessage" *ngIf="errorMessage" class="alert alert-danger mb-3">
+    <div testid="errorMessageContent">{{errorMessage}}</div>
+  </div>
+</div>
 <div class="row">
   <div class="col-s-auto ml-3 mb-3">
     <button testid="editCustomerButton" type="button" class="btn btn-danger" (click)="editCustomer()"
@@ -5,7 +10,7 @@
     </button>
   </div>
   <div class="col-s-auto ml-3 mb-3 mr-3">
-    <button testid="editCustomerButton" type="button" class="btn btn-danger" (click)="deleteCustomer()"
+    <button testid="deleteCustomerButton" type="button" class="btn btn-danger" (click)="deleteCustomerModal.show()"
             [disabled]="!customerData">Kunde löschen
     </button>
   </div>
@@ -149,6 +154,36 @@
             </div>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div testId="deletecustomer-modal" bsModal #deleteCustomerModal="bs-modal" class="modal modal-danger fade"
+     tabindex="-1"
+     role="dialog"
+     aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-m" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Kunde löschen</h4>
+        <button type="button" class="close" (click)="deleteCustomerModal.hide()" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="row mb-3">
+          <div class="col">Der Kunde wird unwiderruflich gelöscht.</div>
+        </div>
+        <div class="row mb-3">
+          <div class="col font-weight-bold">Sicher?</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button testId="okButton" type="button" class="btn btn-primary" (click)="deleteCustomer()">Löschen
+        </button>
+        <button testId="cancelButton" type="button" class="btn btn-secondary" (click)="deleteCustomerModal.hide()">
+          Abbrechen
+        </button>
       </div>
     </div>
   </div>
