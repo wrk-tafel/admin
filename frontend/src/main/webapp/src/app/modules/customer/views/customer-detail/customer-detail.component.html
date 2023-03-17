@@ -21,6 +21,25 @@
     </div>
   </div>
   <div class="col-s-auto ml-3">
+    <div class="btn-group" dropdown>
+      <button testid="prolongButton" dropdownToggle type="button" class="btn btn-primary dropdown-toggle">
+        Bezug verlängern <span class="caret"></span>
+      </button>
+      <ul *dropdownMenu class="dropdown-menu" role="menu">
+        <li role="menuitem"><a class="dropdown-item" style="cursor: pointer;" testid="prolongOneMonthButton"
+                               (click)="prolongCustomer(1)">1 Monat</a></li>
+        <li role="menuitem"><a class="dropdown-item" style="cursor: pointer;" testid="prolongTwoMonthsButton"
+                               (click)="prolongCustomer(2)">2 Monate</a></li>
+        <li role="menuitem"><a class="dropdown-item" style="cursor: pointer;" testid="prolongTwoMonthsButton"
+                               (click)="prolongCustomer(3)">3 Monate</a></li>
+        <li role="menuitem"><a class="dropdown-item" style="cursor: pointer;" testid="prolongSixMonthsButton"
+                               (click)="prolongCustomer(6)">6 Monate</a></li>
+        <li role="menuitem"><a class="dropdown-item" style="cursor: pointer;" testid="prolongTwelveMonthsButton"
+                               (click)="prolongCustomer(12)">12 Monate</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="col-s-auto ml-3">
     <button testid="editCustomerButton" type="button" class="btn btn-danger" (click)="editCustomer()"
             [disabled]="!customerData">Kunde bearbeiten
     </button>

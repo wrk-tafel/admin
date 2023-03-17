@@ -20,7 +20,7 @@ export class CustomerApiService {
     return this.http.post<CustomerData>('/customers', data);
   }
 
-  updateCustomer(data: CustomerData): Observable<any> {
+  updateCustomer(data: CustomerData): Observable<CustomerData> {
     return this.http.post<CustomerData>(`/customers/${data.id}`, data);
   }
 

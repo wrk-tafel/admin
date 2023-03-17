@@ -11,7 +11,7 @@ import {CustomerDetailComponent} from './customer-detail.component';
 import {CommonModule, registerLocaleData} from '@angular/common';
 import {DEFAULT_CURRENCY_CODE, LOCALE_ID} from '@angular/core';
 import localeDeAt from '@angular/common/locales/de-AT';
-import {ModalModule} from "ngx-bootstrap/modal";
+import {ModalModule} from 'ngx-bootstrap/modal';
 
 registerLocaleData(localeDeAt);
 
@@ -78,7 +78,7 @@ describe('CustomerDetailComponent', () => {
   };
 
   beforeEach(waitForAsync(() => {
-    const apiServiceSpy = jasmine.createSpyObj('CustomerApiService', ['getCustomer', 'generatePdf', 'deleteCustomer']);
+    const apiServiceSpy = jasmine.createSpyObj('CustomerApiService', ['getCustomer', 'generatePdf', 'deleteCustomer', 'updateCustomer']);
     const fileHelperServiceSpy = jasmine.createSpyObj('FileHelperService', ['downloadFile']);
     const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
 
@@ -307,6 +307,23 @@ describe('CustomerDetailComponent', () => {
     expect(router.navigate).not.toHaveBeenCalledWith(['/kunden/suchen']);
     expect(modal.hide).toHaveBeenCalled();
     expect(component.errorMessage).toBe('Löschen fehlgeschlagen!');
+  });
+
+  it('prolong customer', () => {
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    const component = fixture.componentInstance;
+    component.customerData = mockCustomer;
+
+    const expectedCustomerData = {
+      ...mockCustomer,
+      validUntil: moment(mockCustomer.validUntil).add(3, 'months').toDate()
+    };
+    apiService.updateCustomer.and.returnValue(of(expectedCustomerData));
+
+    component.prolongCustomer(3);
+
+    expect(apiService.updateCustomer).toHaveBeenCalledWith(expectedCustomerData);
+    expect(component.customerData).toEqual(expectedCustomerData);
   });
 
 });
