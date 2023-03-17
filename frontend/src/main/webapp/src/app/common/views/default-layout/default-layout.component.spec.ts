@@ -8,16 +8,17 @@ import {
   AppSidebarMinimizerComponent,
   AppSidebarNavComponent
 } from '@coreui/angular';
-import {DistributionApiService} from '../../../api/distribution-api.service';
-import {of} from 'rxjs';
+import {BehaviorSubject} from 'rxjs';
+import {GlobalStateService} from '../../state/global-state.service';
+import {DistributionItem} from '../../../api/distribution-api.service';
 
 describe('DefaultLayoutComponent', () => {
   let authService: jasmine.SpyObj<AuthenticationService>;
-  let distributionApiService: jasmine.SpyObj<DistributionApiService>;
+  let globalStateService: jasmine.SpyObj<GlobalStateService>;
 
   beforeEach(waitForAsync(() => {
     const authServiceSpy = jasmine.createSpyObj('AuthenticationService', ['hasPermission', 'hasAnyPermission']);
-    const distributionApiServiceSpy = jasmine.createSpyObj('DistributionApiService', ['getCurrentDistribution']);
+    const globalStateServiceSpy = jasmine.createSpyObj('GlobalStateService', ['getCurrentDistribution']);
 
     TestBed.configureTestingModule({
       declarations: [
@@ -33,15 +34,15 @@ describe('DefaultLayoutComponent', () => {
           useValue: authServiceSpy
         },
         {
-          provide: DistributionApiService,
-          useValue: distributionApiServiceSpy
+          provide: GlobalStateService,
+          useValue: globalStateServiceSpy
         }
       ],
       imports: [RouterTestingModule]
     }).compileComponents();
 
     authService = TestBed.inject(AuthenticationService) as jasmine.SpyObj<AuthenticationService>;
-    distributionApiService = TestBed.inject(DistributionApiService) as jasmine.SpyObj<DistributionApiService>;
+    globalStateService = TestBed.inject(GlobalStateService) as jasmine.SpyObj<GlobalStateService>;
   }));
 
   it('should create the component', waitForAsync(() => {
@@ -240,8 +241,9 @@ describe('DefaultLayoutComponent', () => {
     expect(filteredItems).toEqual([]);
   }));
 
-  it('navItems are modified by distribution state', () => {
-    distributionApiService.getCurrentDistribution.and.returnValue(of(null));
+  it('navItems are modified by distribution state when inactive', () => {
+    const subject = new BehaviorSubject<DistributionItem>(null);
+    globalStateService.getCurrentDistribution.and.returnValue(subject);
 
     const testMenuItem1 = {
       name: 'Title'
@@ -257,7 +259,7 @@ describe('DefaultLayoutComponent', () => {
 
     const fixture = TestBed.createComponent(DefaultLayoutComponent);
     const component = fixture.componentInstance;
-    component.navItems = testMenuItems;
+    component.allNavItems = testMenuItems;
 
     component.editNavItemsForDistributionState();
 
@@ -271,6 +273,39 @@ describe('DefaultLayoutComponent', () => {
         attributes: {disabled: true}
       }, testMenuItem3
     ]);
+  });
+
+  it('navItems are not modified by distribution state when active', () => {
+    const testDistribution = {
+      id: 123,
+      state: {
+        name: 'OPEN',
+        stateLabel: 'Offen',
+        actionLabel: 'Offen'
+      }
+    };
+    const subject = new BehaviorSubject<DistributionItem>(testDistribution);
+    globalStateService.getCurrentDistribution.and.returnValue(subject);
+
+    const testMenuItem1 = {
+      name: 'Title'
+    };
+    const testMenuItem2 = {
+      name: 'Test2',
+      activeDistributionRequired: true
+    };
+    const testMenuItem3 = {
+      name: 'Test3'
+    };
+    const testMenuItems = [testMenuItem1, testMenuItem2, testMenuItem3];
+
+    const fixture = TestBed.createComponent(DefaultLayoutComponent);
+    const component = fixture.componentInstance;
+    component.allNavItems = testMenuItems;
+
+    component.editNavItemsForDistributionState();
+
+    expect(component.navItems).toEqual(testMenuItems);
   });
 
 });

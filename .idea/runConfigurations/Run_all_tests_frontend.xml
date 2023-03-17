@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Run all tests frontend" type="JavaScriptTestRunnerKarma">
+    <config-file value="$PROJECT_DIR$/frontend/src/main/webapp/karma.conf.js" />
+    <karma-options value="--browsers ChromeHeadless" />
+    <karma-package-dir value="$PROJECT_DIR$/frontend/src/main/webapp/node_modules/@angular/cli" />
+    <working-directory value="$PROJECT_DIR$/frontend/src/main/webapp" />
+    <node-interpreter value="project" />
+    <envs />
+    <method v="2" />
+  </configuration>
+</component>

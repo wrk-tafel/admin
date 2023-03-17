@@ -1,0 +1,81 @@
+import {HttpClientTestingModule} from '@angular/common/http/testing';
+import {TestBed} from '@angular/core/testing';
+import {CustomerApiService, CustomerData} from '../../../api/customer-api.service';
+import * as moment from 'moment/moment';
+import {of} from 'rxjs';
+import {CustomerDataResolver} from './customerdata-resolver.component';
+import {ActivatedRouteSnapshot} from '@angular/router';
+
+describe('CustomerDataResolver', () => {
+  let customerApiService: jasmine.SpyObj<CustomerApiService>;
+  let resolver: CustomerDataResolver;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [HttpClientTestingModule],
+      providers: [
+        {
+          provide: CustomerApiService,
+          useValue: jasmine.createSpyObj('CustomerApiService', ['getCustomer'])
+        },
+        CustomerDataResolver
+      ]
+    });
+
+    customerApiService = TestBed.inject(CustomerApiService) as jasmine.SpyObj<CustomerApiService>;
+    resolver = TestBed.inject(CustomerDataResolver);
+  });
+
+  it('resolve', () => {
+    const mockCustomer: CustomerData = {
+      id: 133,
+      issuer: {
+        personnelNumber: '12345',
+        firstname: 'first',
+        lastname: 'last'
+      },
+      issuedAt: moment().startOf('day').utc().toDate(),
+      lastname: 'Mustermann',
+      firstname: 'Max',
+      birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
+      telephoneNumber: '00436644123123123',
+      email: 'max.mustermann@gmail.com',
+
+      address: {
+        street: 'Teststraße',
+        houseNumber: '123A',
+        stairway: '1',
+        door: '21',
+        postalCode: 1020,
+        city: 'Wien',
+      },
+
+      employer: 'test employer',
+      income: 1000,
+      incomeDue: moment().add(1, 'years').startOf('day').utc().toDate(),
+
+      validUntil: moment().add(1, 'years').startOf('day').utc().toDate(),
+
+      additionalPersons: [
+        {
+          key: 0,
+          id: 0,
+          lastname: 'Add',
+          firstname: 'Pers 1',
+          birthDate: moment().subtract(5, 'years').startOf('day').utc().toDate(),
+          income: 50,
+          incomeDue: moment().add(1, 'years').startOf('day').utc().toDate(),
+        }
+      ]
+    };
+    customerApiService.getCustomer.withArgs(mockCustomer.id).and.returnValue(of(mockCustomer));
+
+    const activatedRoute = <ActivatedRouteSnapshot><unknown>{params: {id: mockCustomer.id}};
+    resolver.resolve(activatedRoute, undefined).subscribe((customer: CustomerData) => {
+      expect(customer).toEqual(mockCustomer);
+    });
+
+    expect(customerApiService.getCustomer).toHaveBeenCalled();
+  });
+
+});

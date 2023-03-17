@@ -10,6 +10,7 @@
 * Improve rendering / wait for data
     * customer-detail, dashboard (distribution state)
 * Add global app-state per WS (e.g. LCM) and push state change through application
+* Add routing resolver to pre-fetch data before rendering (https://medium.com/@redin.gaetan/angular-for-every-one-resolver-c900c8f7672a)
 
 ### Open things (to be discussed)
 

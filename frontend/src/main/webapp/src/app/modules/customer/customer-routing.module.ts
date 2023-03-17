@@ -4,6 +4,7 @@ import {CustomerDetailComponent} from './views/customer-detail/customer-detail.c
 
 import {CustomerEditComponent} from './views/customer-edit/customer-edit.component';
 import {CustomerSearchComponent} from './views/customer-search/customer-search.component';
+import {CustomerDataResolver} from './resolver/customerdata-resolver.component';
 
 const routes: Routes = [
   {
@@ -12,11 +13,17 @@ const routes: Routes = [
   },
   {
     path: 'detail/:id',
-    component: CustomerDetailComponent
+    component: CustomerDetailComponent,
+    resolve: {
+      customerData: CustomerDataResolver
+    }
   },
   {
     path: 'bearbeiten/:id',
-    component: CustomerEditComponent
+    component: CustomerEditComponent,
+    resolve: {
+      customerData: CustomerDataResolver
+    }
   },
   {
     path: 'suchen',

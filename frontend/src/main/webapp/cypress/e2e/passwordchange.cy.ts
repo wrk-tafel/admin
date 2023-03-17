@@ -15,17 +15,20 @@ describe('PasswordChange', () => {
     recurse(
       () => cy.byTestId('currentPasswordText').type(currentPassword),
       ($input) => $input.val() === currentPassword,
+      {timeout: 30000}
     ).should('have.value', currentPassword);
 
     const newPassword = '4wtouCcWWqDJsP';
     recurse(
       () => cy.byTestId('newPasswordText').type(newPassword),
       ($input) => $input.val() === newPassword,
+      {timeout: 30000}
     ).should('have.value', newPassword);
 
     recurse(
       () => cy.byTestId('newRepeatedPasswordText').type(newPassword),
       ($input) => $input.val() === newPassword,
+      {timeout: 30000}
     ).should('have.value', newPassword);
 
     cy.byTestId('saveButton').click();

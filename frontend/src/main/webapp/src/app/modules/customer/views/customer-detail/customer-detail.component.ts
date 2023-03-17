@@ -2,7 +2,12 @@ import {Component, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import * as moment from 'moment';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
-import {CustomerAddressData, CustomerApiService, CustomerData, CustomerIssuer} from '../../../../api/customer-api.service';
+import {
+  CustomerAddressData,
+  CustomerApiService,
+  CustomerData,
+  CustomerIssuer
+} from '../../../../api/customer-api.service';
 import {HttpResponse} from '@angular/common/http';
 
 @Component({
@@ -13,18 +18,14 @@ export class CustomerDetailComponent implements OnInit {
   customerData: CustomerData;
 
   constructor(
-    private route: ActivatedRoute,
+    private activatedRoute: ActivatedRoute,
     private customerApiService: CustomerApiService,
     private fileHelperService: FileHelperService,
     private router: Router) {
   }
 
   ngOnInit(): void {
-    this.route.params.subscribe(params => {
-      this.customerApiService.getCustomer(+params['id']).subscribe((customerData) => {
-        this.customerData = customerData;
-      });
-    });
+    this.customerData = this.activatedRoute.snapshot.data.customerData;
   }
 
   printMasterdata() {
@@ -86,4 +87,5 @@ export class CustomerDetailComponent implements OnInit {
     const data = new Blob([response.body], {type: 'application/pdf'});
     this.fileHelperService.downloadFile(filename, data);
   }
+
 }

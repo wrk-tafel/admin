@@ -1,8 +1,14 @@
-### Start a new distribution
-POST {{baseApiPath}}/distributions/start
-
-### Stop an existing distribution
-POST {{baseApiPath}}/distributions/5000/stop
+### Create a new distribution
+POST {{baseApiPath}}/distributions/new
 
 ### Get active distribution
 GET {{baseApiPath}}/distributions/current
+
+### List states
+GET {{baseApiPath}}/distributions/states
+
+### Switch to next state
+POST {{baseApiPath}}/distributions/states/next
+
+### Get state visualization
+GET {{baseApiPath}}/distributions/states/visualize
