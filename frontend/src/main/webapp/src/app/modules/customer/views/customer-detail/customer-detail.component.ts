@@ -88,4 +88,9 @@ export class CustomerDetailComponent implements OnInit {
     this.fileHelperService.downloadFile(filename, data);
   }
 
+  deleteCustomer() {
+    // TODO add errorMsg
+    this.customerApiService.deleteCustomer(this.customerData.id).subscribe();
+  }
+
 }

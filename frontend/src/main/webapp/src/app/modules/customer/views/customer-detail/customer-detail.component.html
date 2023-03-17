@@ -1,7 +1,12 @@
 <div class="row">
-  <div class="col-s-auto ml-3 mb-3 mr-3">
+  <div class="col-s-auto ml-3 mb-3">
     <button testid="editCustomerButton" type="button" class="btn btn-danger" (click)="editCustomer()"
             [disabled]="!customerData">Kunde bearbeiten
+    </button>
+  </div>
+  <div class="col-s-auto ml-3 mb-3 mr-3">
+    <button testid="editCustomerButton" type="button" class="btn btn-danger" (click)="deleteCustomer()"
+            [disabled]="!customerData">Kunde löschen
     </button>
   </div>
   <div class="col-s-auto mb-3">

@@ -27,4 +27,5 @@ interface CustomerRepository : JpaRepository<CustomerEntity, Long> {
         @Param("lastname") lastname: String
     ): List<CustomerEntity>
 
+    fun deleteByCustomerId(customerId: Long)
 }

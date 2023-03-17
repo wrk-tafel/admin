@@ -16,6 +16,7 @@ import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorService
 import at.wrk.tafel.admin.backend.modules.customer.masterdata.CustomerPdfService
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
 @Service
 class CustomerService(
@@ -213,6 +214,11 @@ class CustomerService(
             code = country.code!!,
             name = country.name!!
         )
+    }
+
+    @Transactional
+    fun deleteCustomerByCustomerId(customerId: Long) {
+        customerRepository.deleteByCustomerId(customerId)
     }
 
 }
