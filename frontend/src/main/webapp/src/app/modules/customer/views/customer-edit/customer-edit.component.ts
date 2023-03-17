@@ -33,6 +33,7 @@ export class CustomerEditComponent implements OnInit {
 
       // Load data into forms
       this.customerInput = customerData;
+      this.customerUpdated = customerData;
 
       // Mark forms as touched to show the validation state (postponed to next makrotask after angular finished)
       setTimeout(() => {
