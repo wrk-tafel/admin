@@ -36,7 +36,6 @@ export class CheckinComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.websocketService.getConnectionState().subscribe((state: RxStompState) => {
-      console.log('STATE CHECKIN', state);
       this.processWsConnectionState(state);
     });
 
@@ -129,6 +128,13 @@ export class CheckinComponent implements OnInit, OnDestroy {
     }
   }
 
+  resetCustomer() {
+    this.processCustomer(null);
+  }
+
+  isCustomerInvalid(): boolean {
+    return this.customerState === CustomerState.RED;
+  }
 }
 
 export enum CustomerState {

@@ -93,6 +93,12 @@
             {{getInfantCount()}}
           </div>
         </div>
+        <div class="row mt-5">
+          <div class="col">
+            <button testId="assignTicketButton" type="button" class="btn btn-success mr-3" [disabled]="isCustomerInvalid()">LOS-Nummer zuweisen</button>
+            <button testId="resetCustomerButton" type="button" class="btn btn-primary" (click)="resetCustomer()">Zurücksetzen</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
