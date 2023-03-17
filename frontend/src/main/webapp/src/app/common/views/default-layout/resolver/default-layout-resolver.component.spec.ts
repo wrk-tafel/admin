@@ -4,6 +4,7 @@ import {of} from 'rxjs';
 import {WebsocketService} from '../../../websocket/websocket.service';
 import {DefaultLayoutResolver} from './default-layout-resolver.component';
 import {GlobalStateService} from '../../../state/global-state.service';
+import {RxStompState} from '@stomp/rx-stomp';
 
 describe('DefaultLayoutResolver', () => {
   let websocketService: jasmine.SpyObj<WebsocketService>;
@@ -32,13 +33,13 @@ describe('DefaultLayoutResolver', () => {
   });
 
   it('resolve', () => {
-    const mockWsConnect = of('1').toPromise();
+    const mockWsConnect = of<RxStompState>(RxStompState.OPEN).toPromise();
     websocketService.connect.and.returnValue(mockWsConnect);
     const mockGlobalStateInit = of('2').toPromise();
     globalStateService.init.and.returnValue(mockGlobalStateInit);
 
     resolver.resolve(undefined, undefined).then((result: any[]) => {
-      expect(result[0]).toEqual('1');
+      expect(result[0]).toEqual(RxStompState.OPEN);
       expect(result[1]).toEqual('2');
     });
 

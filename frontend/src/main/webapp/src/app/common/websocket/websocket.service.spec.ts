@@ -1,6 +1,6 @@
 import {WebsocketService} from './websocket.service';
-import {RxStomp} from '@stomp/rx-stomp';
-import {Observable, of} from 'rxjs';
+import {RxStomp, RxStompState} from '@stomp/rx-stomp';
+import {BehaviorSubject, Observable, of} from 'rxjs';
 import {IMessage} from '@stomp/stompjs';
 import {UrlHelperService} from '../util/url-helper.service';
 
@@ -19,8 +19,9 @@ describe('WebsocketService', () => {
   it('client configured correctly', () => {
     const {service, urlHelperSpy, clientSpy} = setup();
     urlHelperSpy.getBaseUrl.and.returnValue('https://test:1234/subpath');
+    spyOn(service, 'getConnectionState').and.returnValue(new BehaviorSubject(RxStompState.OPEN));
 
-    service.connect();
+    service.connect().then();
 
     expect(clientSpy.configure).toHaveBeenCalledWith({
       brokerURL: 'wss://test:1234/subpath/api/websockets'

@@ -14,7 +14,7 @@ export class WebsocketService implements OnDestroy {
   constructor(private urlHelper: UrlHelperService) {
   }
 
-  connect(): Promise<any> {
+  connect(): Promise<RxStompState> {
     const stompConfig: RxStompConfig = {
       brokerURL: this.getBaseUrl(),
       /*
@@ -56,7 +56,7 @@ export class WebsocketService implements OnDestroy {
     return baseUrl.replace('http', 'ws');
   }
 
-  private getConnectPromise(): Promise<any> {
+  private getConnectPromise(): Promise<RxStompState> {
     return new Promise((resolve, reject) => {
       this.client.activate();
       this.getConnectionState()

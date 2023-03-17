@@ -103,24 +103,16 @@ describe('CustomerDetailComponent', () => {
         {
           provide: ActivatedRoute,
           useValue: {
-            params: of({id: mockCustomer.id})
+            snapshot: {
+              data: {
+                customerData: mockCustomer
+              }
+            }
           }
         },
         {
           provide: Router,
           useValue: routerSpy
-        },
-        {
-          provide: ActivatedRoute,
-          useValue: {
-            snapshot: {
-              data: {
-                distributionStates: {
-                  states: mockCustomer
-                }
-              }
-            }
-          }
         }
       ],
       declarations: [CustomerDetailComponent]
@@ -142,6 +134,7 @@ describe('CustomerDetailComponent', () => {
 
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
+    component.ngOnInit();
 
     expect(component.customerData).toEqual(mockCustomer);
 
@@ -183,6 +176,7 @@ describe('CustomerDetailComponent', () => {
 
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
+    component.ngOnInit();
 
     component.printMasterdata();
 
@@ -203,6 +197,7 @@ describe('CustomerDetailComponent', () => {
 
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
+    component.ngOnInit();
 
     component.printIdCard();
 
@@ -223,6 +218,7 @@ describe('CustomerDetailComponent', () => {
 
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
+    component.ngOnInit();
 
     component.printCombined();
 
@@ -234,6 +230,7 @@ describe('CustomerDetailComponent', () => {
 
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
+    component.ngOnInit();
 
     component.editCustomer();
 

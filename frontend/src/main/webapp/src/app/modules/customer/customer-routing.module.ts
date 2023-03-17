@@ -20,7 +20,10 @@ const routes: Routes = [
   },
   {
     path: 'bearbeiten/:id',
-    component: CustomerEditComponent
+    component: CustomerEditComponent,
+    resolve: {
+      customerData: CustomerDataResolver
+    }
   },
   {
     path: 'suchen',

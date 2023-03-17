@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import * as moment from 'moment';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
@@ -14,15 +14,18 @@ import {HttpResponse} from '@angular/common/http';
   selector: 'tafel-customer-detail',
   templateUrl: 'customer-detail.component.html'
 })
-export class CustomerDetailComponent {
+export class CustomerDetailComponent implements OnInit {
+  customerData: CustomerData;
 
   constructor(
-    private route: ActivatedRoute,
+    private activatedRoute: ActivatedRoute,
     private customerApiService: CustomerApiService,
     private fileHelperService: FileHelperService,
-    private router: Router,
-    private activatedRoute: ActivatedRoute
-  ) {
+    private router: Router) {
+  }
+
+  ngOnInit(): void {
+    this.customerData = this.activatedRoute.snapshot.data.customerData;
   }
 
   printMasterdata() {
@@ -83,13 +86,6 @@ export class CustomerDetailComponent {
     const filename = contentDisposition.split(';')[1].split('filename')[1].split('=')[1].trim();
     const data = new Blob([response.body], {type: 'application/pdf'});
     this.fileHelperService.downloadFile(filename, data);
-  }
-
-  get customerData(): CustomerData {
-    return this.activatedRoute.snapshot.data.customerData;
-  }
-
-  set customerData(customerData: CustomerData) {
   }
 
 }
