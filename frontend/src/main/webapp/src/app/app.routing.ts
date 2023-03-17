@@ -8,6 +8,7 @@ import {LoginComponent} from './common/views/login/login.component';
 
 import {AuthGuardService as AuthGuard} from './common/security/authguard.service';
 import {LoginPasswordChangeComponent} from './common/views/login-passwordchange/login-passwordchange.component';
+import {DefaultLayoutResolver} from './common/views/default-layout/resolver/default-layout-resolver.component';
 
 export const routes: Routes = [
   {
@@ -39,6 +40,9 @@ export const routes: Routes = [
     path: '',
     component: DefaultLayoutComponent,
     canActivateChild: [AuthGuard],
+    resolve: {
+      initialStates: DefaultLayoutResolver
+    },
     children: [
       {
         path: 'uebersicht',

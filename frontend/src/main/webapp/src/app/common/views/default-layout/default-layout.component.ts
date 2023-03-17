@@ -2,7 +2,8 @@ import {Component, OnInit, ViewChild} from '@angular/core';
 import {AuthenticationService} from '../../security/authentication.service';
 import {ITafelNavData, navigationMenuItems} from '../../../modules/dashboard/navigation-menuItems';
 import {PasswordChangeModalComponent} from '../passwordchange-modal/passwordchange-modal.component';
-import {DistributionApiService, DistributionItem} from '../../../api/distribution-api.service';
+import {DistributionItem} from '../../../api/distribution-api.service';
+import {GlobalStateService} from '../../state/global-state.service';
 
 @Component({
   selector: 'tafel-default-layout',
@@ -10,6 +11,7 @@ import {DistributionApiService, DistributionItem} from '../../../api/distributio
 })
 export class DefaultLayoutComponent implements OnInit {
   public sidebarMinimized = false;
+  public allNavItems = navigationMenuItems;
   public navItems = [];
 
   @ViewChild(PasswordChangeModalComponent)
@@ -17,7 +19,7 @@ export class DefaultLayoutComponent implements OnInit {
 
   constructor(
     private auth: AuthenticationService,
-    private distributionApiService: DistributionApiService
+    private globalStateService: GlobalStateService
   ) {
   }
 
@@ -80,10 +82,10 @@ export class DefaultLayoutComponent implements OnInit {
   }
 
   public editNavItemsForDistributionState() {
-    this.distributionApiService.getCurrentDistribution().subscribe((distribution: DistributionItem) => {
+    this.globalStateService.getCurrentDistribution().subscribe((distribution: DistributionItem) => {
       const resultNavItems: ITafelNavData[] = [];
 
-      this.navItems?.forEach(navItem => {
+      this.allNavItems?.forEach(navItem => {
         if (navItem.activeDistributionRequired && !distribution) {
           const modifiedNavItem = {
             ...navItem,

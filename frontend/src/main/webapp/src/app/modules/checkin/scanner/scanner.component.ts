@@ -28,7 +28,6 @@ export class ScannerComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.websocketService.getConnectionState().subscribe((state: RxStompState) => {
-      console.log('STATE SCANNER', state);
       this.processApiConnectionState(state);
     });
 

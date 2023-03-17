@@ -5,22 +5,44 @@ describe('Dashboard', () => {
     cy.visit('/#/');
   });
 
-  it('start and stop distribution', () => {
-    cy.byTestId('distribtion-state-text').should('have.text', 'INAKTIV');
+  it('step through a complete distribution lifecycle', () => {
+    cy.byTestId('distribution-state-text').should('have.text', 'Inaktiv');
 
+    // create distribution (event) - OPEN
     cy.byTestId('distribution-start-button').click();
+    cy.byTestId('distribution-state-text').should('have.text', 'Geöffnet');
 
-    cy.byTestId('distribtion-state-text').should('have.text', 'AKTIV');
+    // OPEN --> CHECKIN
+    switchToNextStep();
+    cy.byTestId('distribution-state-text').should('have.text', 'Anmeldung läuft');
 
-    cy.byTestId('distribution-stop-button').click();
+    // validate modal hide
+    cy.byTestId('distribution-nextstep-button').click();
+    cy.byTestId('distributionstate-next-modal').should('be.visible');
+    cy.byTestId('distributionstate-next-modal-cancel-button').click();
+    cy.byTestId('distributionstate-next-modal').should('not.be.visible');
 
-    cy.byTestId('distribution-stop-modal-cancel-button').click();
+    // CHECKIN --> PAUSE
+    switchToNextStep();
+    cy.byTestId('distribution-state-text').should('have.text', 'Pausiert');
 
-    cy.byTestId('distribution-stop-button').click();
+    // PAUSE --> DISTRIBUTION
+    switchToNextStep();
+    cy.byTestId('distribution-state-text').should('have.text', 'Verteilung läuft');
 
-    cy.byTestId('distribution-stop-modal-ok-button').click();
-
-    cy.byTestId('distribtion-state-text').should('have.text', 'INAKTIV');
+    // DISTRIBUTION --> CLOSED
+    switchToNextStep();
+    cy.byTestId('distribution-state-text').should('have.text', 'Inaktiv');
   });
+
+  function switchToNextStep() {
+    cy.intercept('/api/distributions/states/next').as('switchToNextStep');
+
+    cy.byTestId('distribution-nextstep-button').click();
+    cy.byTestId('distributionstate-next-modal-ok-button').click();
+
+    // TODO replace by proper ws testing
+    cy.wait(1000);
+  }
 
 });

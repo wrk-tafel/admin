@@ -8,10 +8,8 @@ import {of} from 'rxjs';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
 import {CustomerApiService, CustomerData} from '../../../../api/customer-api.service';
 import {CustomerDetailComponent} from './customer-detail.component';
-import {CommonModule} from '@angular/common';
+import {CommonModule, registerLocaleData} from '@angular/common';
 import {DEFAULT_CURRENCY_CODE, LOCALE_ID} from '@angular/core';
-
-import { registerLocaleData } from '@angular/common';
 import localeDeAt from '@angular/common/locales/de-AT';
 
 registerLocaleData(localeDeAt);
@@ -105,7 +103,11 @@ describe('CustomerDetailComponent', () => {
         {
           provide: ActivatedRoute,
           useValue: {
-            params: of({id: mockCustomer.id})
+            snapshot: {
+              data: {
+                customerData: mockCustomer
+              }
+            }
           }
         },
         {

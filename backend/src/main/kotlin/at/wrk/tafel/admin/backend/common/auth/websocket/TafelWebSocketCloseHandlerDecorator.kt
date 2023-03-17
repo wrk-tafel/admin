@@ -11,7 +11,7 @@ import java.util.*
 
 class TafelWebSocketCloseHandlerDecorator(
     private val tokenService: JwtTokenService,
-    private val delegate: WebSocketHandler,
+    delegate: WebSocketHandler,
     private val timer: Timer
 ) : WebSocketHandlerDecorator(delegate) {
 

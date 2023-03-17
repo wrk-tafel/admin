@@ -1,6 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.distribution
 
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.common.model.DistributionState
 import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.repositories.distribution.DistributionRepository
@@ -14,9 +15,10 @@ import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.mockk
 import io.mockk.verify
-import jakarta.persistence.EntityNotFoundException
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.security.core.authority.SimpleGrantedAuthority
@@ -37,23 +39,32 @@ internal class DistributionServiceTest {
     @InjectMockKs
     private lateinit var service: DistributionService
 
-    @Test
-    fun `start distribution`() {
-        val authentication = TafelJwtAuthentication(
-            tokenValue = "TOKEN",
-            username = testUser.username,
-            authorities = testUserPermissions.map { SimpleGrantedAuthority(it) }
-        )
-        SecurityContextHolder.setContext(SecurityContextImpl(authentication))
+    private val authentication = TafelJwtAuthentication(
+        tokenValue = "TOKEN",
+        username = testUser.username,
+        authorities = testUserPermissions.map { SimpleGrantedAuthority(it) }
+    )
 
+    @BeforeEach
+    fun beforeEach() {
+        SecurityContextHolder.setContext(SecurityContextImpl(authentication))
+    }
+
+    @AfterEach
+    fun afterEach() {
+        SecurityContextHolder.clearContext()
+    }
+
+    @Test
+    fun `create new distribution`() {
         every { userRepository.findByUsername(authentication.username!!) } returns Optional.of(testUserEntity)
-        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns Optional.empty()
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns null
 
         val distributionEntity = DistributionEntity()
         distributionEntity.id = 123
         every { distributionRepository.save(any()) } returns distributionEntity
 
-        val distribution = service.startDistribution()
+        val distribution = service.createNewDistribution()
 
         assertThat(distribution).isEqualTo(distributionEntity)
 
@@ -64,45 +75,16 @@ internal class DistributionServiceTest {
                 assertThat(it.startedByUser).isEqualTo(testUserEntity)
             })
         }
-
-        SecurityContextHolder.clearContext()
     }
 
     @Test
-    fun `start distribution with existing ongoing distribution`() {
+    fun `create new distribution with existing ongoing distribution`() {
         val distributionEntity = DistributionEntity()
         distributionEntity.id = 123
-        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns Optional.of(
-            distributionEntity
-        )
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns distributionEntity
 
         assertThrows(TafelValidationFailedException::class.java) {
-            service.startDistribution()
-        }
-    }
-
-    @Test
-    fun `end distribution`() {
-        val distributionEntity = DistributionEntity()
-        distributionEntity.id = 123
-        every { distributionRepository.findById(distributionEntity.id!!) } returns Optional.of(distributionEntity)
-        every { distributionRepository.save(any()) } returns mockk()
-
-        service.stopDistribution(distributionEntity.id!!)
-
-        verify {
-            distributionRepository.save(withArg {
-                assertThat(it.endedAt).isBetween(ZonedDateTime.now().minusSeconds(1), ZonedDateTime.now())
-            })
-        }
-    }
-
-    @Test
-    fun `end distribution but not found`() {
-        every { distributionRepository.findById(any()) } returns Optional.empty()
-
-        assertThrows(EntityNotFoundException::class.java) {
-            service.stopDistribution(123)
+            service.createNewDistribution()
         }
     }
 
@@ -110,9 +92,7 @@ internal class DistributionServiceTest {
     fun `current distribution found`() {
         val distributionEntity = DistributionEntity()
         distributionEntity.id = 123
-        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns Optional.of(
-            distributionEntity
-        )
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns distributionEntity
 
         val distribution = service.getCurrentDistribution()
 
@@ -121,11 +101,66 @@ internal class DistributionServiceTest {
 
     @Test
     fun `current distribution not found`() {
-        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns Optional.empty()
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns null
 
         val distribution = service.getCurrentDistribution()
 
         assertThat(distribution).isNull()
+    }
+
+    @Test
+    fun `get state list`() {
+        val states = service.getStates()
+
+        assertThat(states).isEqualTo(
+            listOf(
+                DistributionState.OPEN,
+                DistributionState.CHECKIN,
+                DistributionState.PAUSE,
+                DistributionState.DISTRIBUTION,
+                DistributionState.CLOSED
+            )
+        )
+    }
+
+    @Test
+    fun `switch from open to next state`() {
+        val distributionEntity = DistributionEntity()
+        distributionEntity.id = 123
+        distributionEntity.state = DistributionState.OPEN
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns distributionEntity
+
+        every { distributionRepository.save(any()) } returns mockk()
+
+        service.switchToNextState(distributionEntity.state!!)
+
+        verify {
+            distributionRepository.save(withArg {
+                assertThat(it.state).isEqualTo(DistributionState.CHECKIN)
+            })
+        }
+    }
+
+    @Test
+    fun `switch to closed state`() {
+        val distributionEntity = DistributionEntity()
+        distributionEntity.id = 123
+        distributionEntity.state = DistributionState.DISTRIBUTION
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns distributionEntity
+
+        every { distributionRepository.save(any()) } returns mockk()
+
+        every { userRepository.findByUsername(authentication.username!!) } returns Optional.of(testUserEntity)
+
+        service.switchToNextState(distributionEntity.state!!)
+
+        verify {
+            distributionRepository.save(withArg {
+                assertThat(it.state).isEqualTo(DistributionState.CLOSED)
+                assertThat(it.endedAt).isBetween(ZonedDateTime.now().minusSeconds(5), ZonedDateTime.now())
+                assertThat(it.endedByUser).isEqualTo(testUserEntity)
+            })
+        }
     }
 
 }

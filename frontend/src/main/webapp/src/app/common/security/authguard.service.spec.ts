@@ -7,8 +7,6 @@ describe('AuthGuardService', () => {
       jasmine.createSpyObj('AuthenticationService',
         ['isAuthenticated', 'hasAnyPermission', 'hasPermission', 'redirectToLogin']
       );
-    const routerSpy =
-      jasmine.createSpyObj('Router', ['navigate']);
     const service = new AuthGuardService(authServiceSpy);
     return {service, authServiceSpy};
   }
