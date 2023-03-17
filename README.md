@@ -3,7 +3,6 @@
 * Add buttons on detailpage
     * "Disable Customer (dropdown select?) --> today, yesterday"
     * Prolong customer (dropdown?) --> 1 month, 2 months?
-    * Delete customer
 * General
     * Unify errormsg handling (panel on top) ?
     * Toast messages?
