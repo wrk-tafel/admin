@@ -119,12 +119,6 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
       useFactory: (authService: AuthenticationService) => () => authService.loadUserInfo(),
       deps: [AuthenticationService],
       multi: true
-    },
-    {
-      provide: APP_INITIALIZER,
-      useFactory: (websocketService: WebsocketService) => () => websocketService.connect(),
-      deps: [WebsocketService],
-      multi: true
     }
   ],
   bootstrap: [AppComponent]
