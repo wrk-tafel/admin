@@ -93,7 +93,11 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
         {
           provide: ActivatedRoute,
           useValue: {
-            params: of({id: testCustomerData.id})
+            snapshot: {
+              data: {
+                customerData: testCustomerData
+              }
+            }
           }
         }
       ]

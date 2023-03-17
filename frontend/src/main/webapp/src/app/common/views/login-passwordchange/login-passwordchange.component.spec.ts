@@ -4,7 +4,7 @@ import {LoginPasswordChangeComponent} from './login-passwordchange.component';
 import {AuthenticationService, LoginResult} from '../../security/authentication.service';
 import {Router} from '@angular/router';
 import {of} from 'rxjs';
-import {PasswordChangeFormComponent} from '../../../modules/user/views/passwordchange-form/passwordchange-form.component';
+import {PasswordChangeFormComponent} from '../passwordchange-form/passwordchange-form.component';
 import {HttpClientTestingModule} from '@angular/common/http/testing';
 
 describe('LoginPasswordChangeComponent', () => {

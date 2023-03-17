@@ -8,12 +8,17 @@ import {
   AppSidebarMinimizerComponent,
   AppSidebarNavComponent
 } from '@coreui/angular';
+import {BehaviorSubject} from 'rxjs';
+import {GlobalStateService} from '../../state/global-state.service';
+import {DistributionItem} from '../../../api/distribution-api.service';
 
 describe('DefaultLayoutComponent', () => {
   let authService: jasmine.SpyObj<AuthenticationService>;
+  let globalStateService: jasmine.SpyObj<GlobalStateService>;
 
   beforeEach(waitForAsync(() => {
     const authServiceSpy = jasmine.createSpyObj('AuthenticationService', ['hasPermission', 'hasAnyPermission']);
+    const globalStateServiceSpy = jasmine.createSpyObj('GlobalStateService', ['getCurrentDistribution']);
 
     TestBed.configureTestingModule({
       declarations: [
@@ -27,12 +32,17 @@ describe('DefaultLayoutComponent', () => {
         {
           provide: AuthenticationService,
           useValue: authServiceSpy
+        },
+        {
+          provide: GlobalStateService,
+          useValue: globalStateServiceSpy
         }
       ],
       imports: [RouterTestingModule]
     }).compileComponents();
 
     authService = TestBed.inject(AuthenticationService) as jasmine.SpyObj<AuthenticationService>;
+    globalStateService = TestBed.inject(GlobalStateService) as jasmine.SpyObj<GlobalStateService>;
   }));
 
   it('should create the component', waitForAsync(() => {
@@ -61,7 +71,8 @@ describe('DefaultLayoutComponent', () => {
     };
     const testMenuItems = [testMenuItem1, testMenuItem2];
 
-    const filteredItems = component.getNavItemsFilteredByPermissions(testMenuItems);
+    const filteredItems = component.filterNavItemsByPermissions(testMenuItems);
+
     expect(filteredItems).toEqual([]);
   });
 
@@ -71,7 +82,8 @@ describe('DefaultLayoutComponent', () => {
     const fixture = TestBed.createComponent(DefaultLayoutComponent);
     const component = fixture.componentInstance;
 
-    const filteredItems = component.getNavItemsFilteredByPermissions(null);
+    const filteredItems = component.filterNavItemsByPermissions(null);
+
     expect(filteredItems).toEqual([]);
   });
 
@@ -81,7 +93,8 @@ describe('DefaultLayoutComponent', () => {
     const fixture = TestBed.createComponent(DefaultLayoutComponent);
     const component = fixture.componentInstance;
 
-    const filteredItems = component.getNavItemsFilteredByPermissions([]);
+    const filteredItems = component.filterNavItemsByPermissions([]);
+
     expect(filteredItems).toEqual([]);
   });
 
@@ -92,7 +105,7 @@ describe('DefaultLayoutComponent', () => {
     const fixture = TestBed.createComponent(DefaultLayoutComponent);
     const component = fixture.componentInstance;
 
-    const filteredItems = component.getNavItemsFilteredByPermissions([
+    const filteredItems = component.filterNavItemsByPermissions([
       {
         name: 'Test1',
         permissions: ['PERM1']
@@ -114,7 +127,7 @@ describe('DefaultLayoutComponent', () => {
     const fixture = TestBed.createComponent(DefaultLayoutComponent);
     const component = fixture.componentInstance;
 
-    const filteredItems = component.getNavItemsFilteredByPermissions(testMenuItems);
+    const filteredItems = component.filterNavItemsByPermissions(testMenuItems);
 
     expect(filteredItems).toEqual(testMenuItems);
   });
@@ -132,7 +145,7 @@ describe('DefaultLayoutComponent', () => {
     const fixture = TestBed.createComponent(DefaultLayoutComponent);
     const component = fixture.componentInstance;
 
-    const filteredItems = component.getNavItemsFilteredByPermissions(testMenuItems);
+    const filteredItems = component.filterNavItemsByPermissions(testMenuItems);
 
     expect(filteredItems).toEqual(testMenuItems);
   });
@@ -156,7 +169,7 @@ describe('DefaultLayoutComponent', () => {
     const fixture = TestBed.createComponent(DefaultLayoutComponent);
     const component = fixture.componentInstance;
 
-    const filteredItems = component.getNavItemsFilteredByPermissions(testMenuItems);
+    const filteredItems = component.filterNavItemsByPermissions(testMenuItems);
 
     expect(filteredItems).toEqual([testMenuItem2]);
   }));
@@ -200,7 +213,8 @@ describe('DefaultLayoutComponent', () => {
     const fixture = TestBed.createComponent(DefaultLayoutComponent);
     const component = fixture.componentInstance;
 
-    const filteredItems = component.getNavItemsFilteredByPermissions(testMenuItems);
+    const filteredItems = component.filterNavItemsByPermissions(testMenuItems);
+
     expect(filteredItems).toEqual([testMenuItem1, testMenuItem5, testMenuItem6]);
   }));
 
@@ -222,9 +236,76 @@ describe('DefaultLayoutComponent', () => {
     const fixture = TestBed.createComponent(DefaultLayoutComponent);
     const component = fixture.componentInstance;
 
-    const filteredItems = component.getNavItemsFilteredByPermissions(testMenuItems);
+    const filteredItems = component.filterNavItemsByPermissions(testMenuItems);
 
     expect(filteredItems).toEqual([]);
   }));
+
+  it('navItems are modified by distribution state when inactive', () => {
+    const subject = new BehaviorSubject<DistributionItem>(null);
+    globalStateService.getCurrentDistribution.and.returnValue(subject);
+
+    const testMenuItem1 = {
+      name: 'Title'
+    };
+    const testMenuItem2 = {
+      name: 'Test2',
+      activeDistributionRequired: true
+    };
+    const testMenuItem3 = {
+      name: 'Test3'
+    };
+    const testMenuItems = [testMenuItem1, testMenuItem2, testMenuItem3];
+
+    const fixture = TestBed.createComponent(DefaultLayoutComponent);
+    const component = fixture.componentInstance;
+    component.allNavItems = testMenuItems;
+
+    component.editNavItemsForDistributionState();
+
+    expect(component.navItems).toEqual([
+      testMenuItem1, {
+        ...testMenuItem2,
+        badge: {
+          variant: 'danger',
+          text: 'INAKTIV'
+        },
+        attributes: {disabled: true}
+      }, testMenuItem3
+    ]);
+  });
+
+  it('navItems are not modified by distribution state when active', () => {
+    const testDistribution = {
+      id: 123,
+      state: {
+        name: 'OPEN',
+        stateLabel: 'Offen',
+        actionLabel: 'Offen'
+      }
+    };
+    const subject = new BehaviorSubject<DistributionItem>(testDistribution);
+    globalStateService.getCurrentDistribution.and.returnValue(subject);
+
+    const testMenuItem1 = {
+      name: 'Title'
+    };
+    const testMenuItem2 = {
+      name: 'Test2',
+      activeDistributionRequired: true
+    };
+    const testMenuItem3 = {
+      name: 'Test3'
+    };
+    const testMenuItems = [testMenuItem1, testMenuItem2, testMenuItem3];
+
+    const fixture = TestBed.createComponent(DefaultLayoutComponent);
+    const component = fixture.componentInstance;
+    component.allNavItems = testMenuItems;
+
+    component.editNavItemsForDistributionState();
+
+    expect(component.navItems).toEqual(testMenuItems);
+  });
 
 });

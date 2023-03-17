@@ -1,27 +1,33 @@
-import {Component, ViewChild} from '@angular/core';
-import {INavData} from '@coreui/angular';
+import {Component, OnInit, ViewChild} from '@angular/core';
 import {AuthenticationService} from '../../security/authentication.service';
-import {IPermissionNavData, navigationMenuItems} from '../../../modules/dashboard/navigation-menuItems';
-import {
-  PasswordChangeModalComponent
-} from '../../../modules/user/views/passwordchange-modal/passwordchange-modal.component';
+import {ITafelNavData, navigationMenuItems} from '../../../modules/dashboard/navigation-menuItems';
+import {PasswordChangeModalComponent} from '../passwordchange-modal/passwordchange-modal.component';
+import {DistributionItem} from '../../../api/distribution-api.service';
+import {GlobalStateService} from '../../state/global-state.service';
 
 @Component({
   selector: 'tafel-default-layout',
   templateUrl: './default-layout.component.html'
 })
-export class DefaultLayoutComponent {
+export class DefaultLayoutComponent implements OnInit {
   public sidebarMinimized = false;
+  public allNavItems = navigationMenuItems;
   public navItems = [];
 
   @ViewChild(PasswordChangeModalComponent)
   private passwordChangeModalComponent: PasswordChangeModalComponent;
 
   constructor(
-    private auth: AuthenticationService
+    private auth: AuthenticationService,
+    private globalStateService: GlobalStateService
   ) {
+  }
+
+  ngOnInit() {
     if (this.auth.hasAnyPermission()) {
-      this.navItems = this.getNavItemsFilteredByPermissions(navigationMenuItems);
+      this.navItems = this.filterNavItemsByPermissions(navigationMenuItems);
+
+      this.editNavItemsForDistributionState();
     }
   }
 
@@ -39,8 +45,8 @@ export class DefaultLayoutComponent {
     this.passwordChangeModalComponent.showDialog();
   }
 
-  public getNavItemsFilteredByPermissions(navItems: IPermissionNavData[]) {
-    const filteredNavItems: INavData[] = [];
+  public filterNavItemsByPermissions(navItems: ITafelNavData[]): ITafelNavData[] {
+    const resultNavItems: ITafelNavData[] = [];
 
     navItems?.forEach(navItem => {
       let missingPermission = false;
@@ -52,15 +58,15 @@ export class DefaultLayoutComponent {
       });
 
       if (navItem.title || !missingPermission) {
-        filteredNavItems.push(navItem);
+        resultNavItems.push(navItem);
       }
     });
 
-    return this.filterEmptyTitleItems(filteredNavItems);
+    return this.filterEmptyTitleItems(resultNavItems);
   }
 
-  private filterEmptyTitleItems(navItems: INavData[]) {
-    const filteredNavItems: INavData[] = [];
+  private filterEmptyTitleItems(navItems: ITafelNavData[]): ITafelNavData[] {
+    const resultNavItems: ITafelNavData[] = [];
 
     navItems.forEach((currentItem, index) => {
       const nextItem = (index + 1) < navItems.length ? navItems[index + 1] : undefined;
@@ -69,10 +75,34 @@ export class DefaultLayoutComponent {
         return;
       }
 
-      filteredNavItems.push(currentItem);
+      resultNavItems.push(currentItem);
     });
 
-    return filteredNavItems;
+    return resultNavItems;
+  }
+
+  public editNavItemsForDistributionState() {
+    this.globalStateService.getCurrentDistribution().subscribe((distribution: DistributionItem) => {
+      const resultNavItems: ITafelNavData[] = [];
+
+      this.allNavItems?.forEach(navItem => {
+        if (navItem.activeDistributionRequired && !distribution) {
+          const modifiedNavItem = {
+            ...navItem,
+            badge: {
+              variant: 'danger',
+              text: 'INAKTIV'
+            },
+            attributes: {disabled: true}
+          };
+          resultNavItems.push(modifiedNavItem);
+        } else {
+          resultNavItems.push(navItem);
+        }
+      });
+
+      this.navItems = resultNavItems;
+    });
   }
 
 }

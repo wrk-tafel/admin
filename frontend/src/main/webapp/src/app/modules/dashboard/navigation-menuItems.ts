@@ -1,11 +1,12 @@
 import {INavData} from '@coreui/angular';
 
-export interface IPermissionNavData extends INavData {
+export interface ITafelNavData extends INavData {
   permissions?: string[];
+  activeDistributionRequired?: boolean;
 }
 
 // TODO permissions can be read via router and therefore save the duplication here
-export const navigationMenuItems: IPermissionNavData[] = [
+export const navigationMenuItems: ITafelNavData[] = [
   {
     name: 'Übersicht',
     url: '/uebersicht',
@@ -20,7 +21,8 @@ export const navigationMenuItems: IPermissionNavData[] = [
     name: 'Annahme',
     url: '/anmeldung/annahme',
     icon: 'fa fa-check',
-    permissions: ['CHECKIN']
+    permissions: ['CHECKIN'],
+    activeDistributionRequired: true
   },
   {
     name: 'Scanner',

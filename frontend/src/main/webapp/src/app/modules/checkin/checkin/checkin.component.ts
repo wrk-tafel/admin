@@ -36,6 +36,7 @@ export class CheckinComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.websocketService.getConnectionState().subscribe((state: RxStompState) => {
+      console.log('STATE CHECKIN', state);
       this.processWsConnectionState(state);
     });
 

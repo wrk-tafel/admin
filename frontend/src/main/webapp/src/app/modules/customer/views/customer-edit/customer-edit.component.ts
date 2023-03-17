@@ -21,28 +21,25 @@ export class CustomerEditComponent implements OnInit {
   constructor(
     private customerApiService: CustomerApiService,
     private router: Router,
-    private route: ActivatedRoute
+    private activatedRoute: ActivatedRoute
   ) {
   }
 
   ngOnInit(): void {
-    this.route.params.subscribe(params => {
-      const customerId = +params['id'];
-      if (customerId) {
-        this.customerApiService.getCustomer(customerId).subscribe((customerData) => {
-          // Editing doesn't need a validation check
-          this.editMode = true;
+    const customerData = this.activatedRoute.snapshot.data.customerData;
+    if (customerData) {
+      // Editing doesn't need a validation check
+      this.editMode = true;
 
-          // Load data into forms
-          this.customerInput = customerData;
+      // Load data into forms
+      this.customerInput = customerData;
+      this.customerUpdated = customerData;
 
-          // Mark forms as touched to show the validation state (postponed to next makrotask after angular finished)
-          setTimeout(() => {
-            this.customerFormComponent.markAllAsTouched();
-          });
-        });
-      }
-    });
+      // Mark forms as touched to show the validation state (postponed to next makrotask after angular finished)
+      setTimeout(() => {
+        this.customerFormComponent.markAllAsTouched();
+      });
+    }
   }
 
   customerDataUpdated(event: CustomerData) {

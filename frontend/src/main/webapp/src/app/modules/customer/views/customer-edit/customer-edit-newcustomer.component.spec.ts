@@ -5,7 +5,7 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {RouterTestingModule} from '@angular/router/testing';
 import * as moment from 'moment';
 import {ModalModule} from 'ngx-bootstrap/modal';
-import {EMPTY, of} from 'rxjs';
+import {of} from 'rxjs';
 import {CustomerApiService, CustomerData} from '../../../../api/customer-api.service';
 import {CustomerFormComponent} from '../customer-form/customer-form.component';
 import {CustomerEditComponent} from './customer-edit.component';
@@ -90,7 +90,9 @@ describe('CustomerEditComponent - Creating a new customer', () => {
         {
           provide: ActivatedRoute,
           useValue: {
-            params: EMPTY
+            snapshot: {
+              data: {}
+            }
           }
         }
       ]

@@ -6,6 +6,7 @@
     * Delete customer
 * customer creation
     * add employer field also for additional persons
+* Fix autofocus: https://davidmcintosh.medium.com/auto-focusing-an-angular-input-the-easy-way-part-1-dcb1799e025f
 * checkin-prerequisites/notes:
     * dashboard - start/stop distribution (event)
     * checkin
