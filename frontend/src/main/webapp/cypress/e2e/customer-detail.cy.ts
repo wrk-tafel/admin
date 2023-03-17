@@ -42,10 +42,29 @@ describe('Customer Detail', () => {
   it('edit customer', () => {
     cy.visit('/#/kunden/detail/101');
 
-    cy.intercept('/*/customers/101').as('getCustomer');
-    cy.wait('@getCustomer').byTestId('editCustomerButton').click();
+    cy.byTestId('editCustomerButton').click();
 
     cy.url({timeout: 10000}).should('include', '/kunden/bearbeiten/101');
+  });
+
+  it('delete customer', () => {
+    cy.visit('/#/kunden/detail/300');
+
+    cy.byTestId('deleteCustomerButton').click();
+
+    cy.byTestId('deletecustomer-modal').should('be.visible');
+    cy.byTestId('deletecustomer-modal').within(() => {
+      cy.byTestId('cancelButton').click();
+    });
+
+    cy.byTestId('deletecustomer-modal').should('not.be.visible');
+
+    cy.byTestId('deleteCustomerButton').click();
+    cy.byTestId('deletecustomer-modal').within(() => {
+      cy.byTestId('okButton').click();
+    });
+
+    cy.url({timeout: 10000}).should('include', '/kunden/suchen');
   });
 
 });
