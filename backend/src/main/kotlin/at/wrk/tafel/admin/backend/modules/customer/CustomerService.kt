@@ -157,6 +157,7 @@ class CustomerService(
                 addPersonEntity.lastname = it.lastname.trim()
                 addPersonEntity.firstname = it.firstname.trim()
                 addPersonEntity.birthDate = it.birthDate
+                addPersonEntity.employer = it.employer
                 addPersonEntity.income = it.income
                 addPersonEntity.incomeDue = it.incomeDue
                 addPersonEntity.country = countryRepository.findById(it.country.id).get()
@@ -201,6 +202,7 @@ class CustomerService(
                 firstname = it.firstname!!,
                 lastname = it.lastname!!,
                 birthDate = it.birthDate!!,
+                employer = it.employer,
                 income = it.income,
                 incomeDue = it.incomeDue,
                 country = mapCountryToResponse(it.country!!)

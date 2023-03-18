@@ -24,6 +24,9 @@ class CustomerAddPersonEntity : BaseChangeTrackingEntity() {
     @Column(name = "birth_date")
     var birthDate: LocalDate? = null
 
+    @Column(name = "employer")
+    var employer: String? = null
+
     @Column(name = "income")
     var income: BigDecimal? = null
 

@@ -131,6 +131,7 @@ export class CustomerFormComponent implements OnInit {
       lastname: null,
       birthDate: null,
       country: null,
+      employer: null,
       income: null,
       incomeDue: null
     });
@@ -165,6 +166,7 @@ export class CustomerFormComponent implements OnInit {
         CustomValidator.maxDate(new Date())
       ]),
       country: new FormControl(additionalPerson.country, Validators.required),
+      employer: new FormControl(additionalPerson.employer),
       income: new FormControl(additionalPerson.income),
       incomeDue: new FormControl(additionalPerson.incomeDue, [
         CustomValidator.minDate(new Date())

@@ -153,27 +153,23 @@
                  [innerHTML]="addPerson?.firstname"></div>
           </div>
           <div class="row">
-            <div class="col-6" [attr.testid]="'addperson-' + i + '-birthDateAgeText'">{{customerData?.birthDate | date : 'dd.MM.yyyy'}} ({{getAge(customerData?.birthDate)}})</div>
-            <div class="col-6" [attr.testid]="'addperson-' + i + '-countryText'">
-              {{addPerson?.country.name}}
-            </div>
+            <div class="col-6" [attr.testid]="'addperson-' + i + '-birthDateAgeText'">{{customerData?.birthDate | date : 'dd.MM.YYYY'}} ({{getAge(customerData?.birthDate)}})</div>
+            <div class="col-6" [attr.testid]="'addperson-' + i + '-countryText'">{{addPerson?.country.name}}</div>
           </div>
-          <div class="row mt-3">
+          <div class="row mt-1">
+            <div class="col-6 font-weight-bold">Arbeitgeber</div>
+            <div class="col-6" [attr.testid]="'addperson-' + i + '-employerText'" *ngIf="addPerson?.employer !== null">{{addPerson?.employer}}</div>
+            <div class="col-6" [attr.testid]="'addperson-' + i + '-employerText'" *ngIf="addPerson?.employer === null">-</div>
+          </div>
+          <div class="row mt-1">
             <div class="col-6 font-weight-bold">Einkommen (monatl.)</div>
-            <div class="col-6" [attr.testid]="'addperson-' + i + '-incomeText'"
-                 *ngIf="addPerson?.income !== null">{{addPerson?.income | currency}} &euro;
-            </div>
-            <div class="col-6" [attr.testid]="'addperson-' + i + '-incomeText'"
-                 *ngIf="addPerson?.income === null">-
-            </div>
+            <div class="col-6" [attr.testid]="'addperson-' + i + '-incomeText'" *ngIf="addPerson?.income">{{addPerson?.income | currency}}</div>
+            <div class="col-6" [attr.testid]="'addperson-' + i + '-incomeText'" *ngIf="!addPerson?.income">-</div>
           </div>
           <div class="row">
             <div class="col-6">--> nachgewiesen bis</div>
-            <div class="col-6" [attr.testid]="'addperson-' + i + '-incomeDueText'"
-                 *ngIf="addPerson?.incomeDue !== null">{{addPerson?.incomeDue | date : 'dd.MM.yyyy'}}</div>
-            <div class="col-6" [attr.testid]="'addperson-' + i + '-incomeDueText'"
-                 *ngIf="addPerson?.incomeDue === null">-
-            </div>
+            <div class="col-6" [attr.testid]="'addperson-' + i + '-incomeDueText'" *ngIf="addPerson?.incomeDue">{{addPerson?.incomeDue | date : 'dd.MM.yyyy'}}</div>
+            <div class="col-6" [attr.testid]="'addperson-' + i + '-incomeDueText'" *ngIf="!addPerson?.incomeDue">-</div>
           </div>
         </div>
       </div>

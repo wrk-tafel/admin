@@ -52,6 +52,7 @@ data class CustomerAdditionalPerson(
     val firstname: String,
     val lastname: String,
     val birthDate: LocalDate,
+    val employer: String? = null,
     val income: BigDecimal? = null,
     val incomeDue: LocalDate? = null,
     val country: Country
