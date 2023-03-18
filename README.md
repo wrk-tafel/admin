@@ -1,7 +1,5 @@
 # TODO
 
-* Add buttons on detailpage
-    * "Disable Customer (dropdown select?) --> today, yesterday"
 * General
     * Unify errormsg handling (panel on top) ?
     * Toast messages?
