@@ -23,7 +23,7 @@ describe('Customer Search', () => {
     cy.byTestId('search-button').click();
 
     cy.byTestId('searchresult-table').should('be.visible');
-    cy.byTestId('searchresult-row').should('have.length', 3);
+    cy.byTestId('searchresult-row').should('have.length', 2);
 
     cy.byTestId('searchresult-showcustomer-button-0').should('be.visible');
 
