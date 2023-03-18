@@ -65,6 +65,15 @@ class CustomerController(
         return CustomerListResponse(items = customerItems)
     }
 
+    @DeleteMapping("/{customerId}")
+    fun deleteCustomer(@PathVariable("customerId") customerId: Long) {
+        if (!service.existsByCustomerId(customerId)) {
+            throw ResponseStatusException(HttpStatus.NOT_FOUND)
+        }
+
+        service.deleteCustomerByCustomerId(customerId)
+    }
+
     @GetMapping("/{customerId}/generate-pdf", produces = [MediaType.APPLICATION_PDF_VALUE])
     fun generatePdf(
         @PathVariable("customerId") customerId: Long,

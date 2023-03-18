@@ -8,9 +8,7 @@ import {
   AppSidebarMinimizerComponent,
   AppSidebarNavComponent
 } from '@coreui/angular';
-import {BehaviorSubject} from 'rxjs';
 import {GlobalStateService} from '../../state/global-state.service';
-import {DistributionItem} from '../../../api/distribution-api.service';
 
 describe('DefaultLayoutComponent', () => {
   let authService: jasmine.SpyObj<AuthenticationService>;
@@ -56,8 +54,6 @@ describe('DefaultLayoutComponent', () => {
   // TODO add test for sideBarMinimize
 
   it('navItems are filtered by permissions - permissions undefined', () => {
-    authService.hasAnyPermission.and.returnValue(false);
-
     const fixture = TestBed.createComponent(DefaultLayoutComponent);
     const component = fixture.componentInstance;
 
@@ -77,8 +73,6 @@ describe('DefaultLayoutComponent', () => {
   });
 
   it('navItems are filtered by permissions - permissions null', () => {
-    authService.hasAnyPermission.and.returnValue(true);
-
     const fixture = TestBed.createComponent(DefaultLayoutComponent);
     const component = fixture.componentInstance;
 
@@ -99,7 +93,6 @@ describe('DefaultLayoutComponent', () => {
   });
 
   it('navItems are filtered by permissions - permission missing', () => {
-    authService.hasAnyPermission.and.returnValue(true);
     authService.hasPermission.and.returnValue(false);
 
     const fixture = TestBed.createComponent(DefaultLayoutComponent);
@@ -116,7 +109,6 @@ describe('DefaultLayoutComponent', () => {
   });
 
   it('navItems are filtered by permissions - permission given but not required', () => {
-    authService.hasAnyPermission.and.returnValue(true);
     authService.hasPermission.and.returnValue(true);
     const testMenuItems = [
       {
@@ -133,7 +125,6 @@ describe('DefaultLayoutComponent', () => {
   });
 
   it('navItems are filtered by permissions - permission given', () => {
-    authService.hasAnyPermission.and.returnValue(true);
     authService.hasPermission.and.returnValue(true);
     const testMenuItems = [
       {
@@ -152,7 +143,6 @@ describe('DefaultLayoutComponent', () => {
 
   it('navItems are filtered by permissions - permission partially given', waitForAsync(() => {
     authService.hasPermission.and.returnValue(false);
-    authService.hasAnyPermission.and.returnValue(true);
     authService.hasPermission.withArgs('PERM1').and.returnValue(false);
     authService.hasPermission.withArgs('PERM2').and.returnValue(true);
 
@@ -174,23 +164,16 @@ describe('DefaultLayoutComponent', () => {
     expect(filteredItems).toEqual([testMenuItem2]);
   }));
 
-  it('navItems are filtered by permissions - permission partially given and empty titles removed', waitForAsync(() => {
-    authService.hasPermission.and.returnValue(false);
-    authService.hasAnyPermission.and.returnValue(true);
-    authService.hasPermission.withArgs('PERM1').and.returnValue(true);
-    authService.hasPermission.withArgs('PERM2').and.returnValue(false);
-
+  it('navItems - empty titles removed', waitForAsync(() => {
     const testMenuItem1 = {
-      name: 'Test1',
-      permissions: ['PERM1']
+      name: 'Test1'
     };
     const testMenuItem2 = {
       name: 'Title2',
       title: true
     };
     const testMenuItem3 = {
-      name: 'Test3',
-      permissions: ['PERM2']
+      name: 'Test3'
     };
     const testMenuItem4 = {
       name: 'Title4',
@@ -201,8 +184,7 @@ describe('DefaultLayoutComponent', () => {
       title: true
     };
     const testMenuItem6 = {
-      name: 'Test6',
-      permissions: ['PERM1']
+      name: 'Test6'
     };
     const testMenuItem7 = {
       name: 'Title7',
@@ -213,38 +195,12 @@ describe('DefaultLayoutComponent', () => {
     const fixture = TestBed.createComponent(DefaultLayoutComponent);
     const component = fixture.componentInstance;
 
-    const filteredItems = component.filterNavItemsByPermissions(testMenuItems);
+    const filteredItems = component.filterEmptyTitleItems(testMenuItems);
 
-    expect(filteredItems).toEqual([testMenuItem1, testMenuItem5, testMenuItem6]);
-  }));
-
-  it('navItems are filtered by permissions - empty titles removed on single title', waitForAsync(() => {
-    authService.hasPermission.and.returnValue(false);
-    authService.hasAnyPermission.and.returnValue(true);
-    authService.hasPermission.withArgs('PERM2').and.returnValue(false);
-
-    const testMenuItem1 = {
-      name: 'Title',
-      title: true
-    };
-    const testMenuItem2 = {
-      name: 'Test2',
-      permissions: ['PERM2']
-    };
-    const testMenuItems = [testMenuItem1, testMenuItem2];
-
-    const fixture = TestBed.createComponent(DefaultLayoutComponent);
-    const component = fixture.componentInstance;
-
-    const filteredItems = component.filterNavItemsByPermissions(testMenuItems);
-
-    expect(filteredItems).toEqual([]);
+    expect(filteredItems).toEqual([testMenuItem1, testMenuItem2, testMenuItem3, testMenuItem5, testMenuItem6]);
   }));
 
   it('navItems are modified by distribution state when inactive', () => {
-    const subject = new BehaviorSubject<DistributionItem>(null);
-    globalStateService.getCurrentDistribution.and.returnValue(subject);
-
     const testMenuItem1 = {
       name: 'Title'
     };
@@ -259,11 +215,11 @@ describe('DefaultLayoutComponent', () => {
 
     const fixture = TestBed.createComponent(DefaultLayoutComponent);
     const component = fixture.componentInstance;
-    component.allNavItems = testMenuItems;
+    component.navItems = testMenuItems;
 
-    component.editNavItemsForDistributionState();
+    const editedItems = component.editNavItemsForDistributionState(testMenuItems, null);
 
-    expect(component.navItems).toEqual([
+    expect(editedItems).toEqual([
       testMenuItem1, {
         ...testMenuItem2,
         badge: {
@@ -284,8 +240,6 @@ describe('DefaultLayoutComponent', () => {
         actionLabel: 'Offen'
       }
     };
-    const subject = new BehaviorSubject<DistributionItem>(testDistribution);
-    globalStateService.getCurrentDistribution.and.returnValue(subject);
 
     const testMenuItem1 = {
       name: 'Title'
@@ -301,9 +255,9 @@ describe('DefaultLayoutComponent', () => {
 
     const fixture = TestBed.createComponent(DefaultLayoutComponent);
     const component = fixture.componentInstance;
-    component.allNavItems = testMenuItems;
+    component.navItems = testMenuItems;
 
-    component.editNavItemsForDistributionState();
+    component.editNavItemsForDistributionState(testMenuItems, testDistribution);
 
     expect(component.navItems).toEqual(testMenuItems);
   });

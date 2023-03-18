@@ -1,16 +1,11 @@
 # TODO
 
-* Add buttons on detailpage
-    * "Disable Customer (dropdown select?) --> today, yesterday"
-    * Prolong customer (dropdown?) --> 1 month, 2 months?
-    * Delete customer
+* General
+    * Unify errormsg handling (panel on top) ?
+    * Toast messages?
 * customer creation
     * add employer field also for additional persons
 * Fix autofocus: https://davidmcintosh.medium.com/auto-focusing-an-angular-input-the-easy-way-part-1-dcb1799e025f
-* Improve rendering / wait for data
-    * customer-detail, dashboard (distribution state)
-* Add global app-state per WS (e.g. LCM) and push state change through application
-* Add routing resolver to pre-fetch data before rendering (https://medium.com/@redin.gaetan/angular-for-every-one-resolver-c900c8f7672a)
 
 ### Open things (to be discussed)
 

@@ -115,6 +115,26 @@ class CustomerControllerTest {
     }
 
     @Test
+    fun `delete customer - doesnt exist`() {
+        every { service.existsByCustomerId(testCustomer.id!!) } returns false
+
+        val exception =
+            assertThrows<ResponseStatusException> { controller.deleteCustomer(testCustomer.id!!) }
+
+        assertThat(exception.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
+        verify { service.existsByCustomerId(testCustomer.id!!) }
+    }
+
+    @Test
+    fun `delete customer - exists`() {
+        every { service.existsByCustomerId(testCustomer.id!!) } returns true
+
+        controller.deleteCustomer(testCustomer.id!!)
+
+        verify { service.existsByCustomerId(testCustomer.id!!) }
+    }
+
+    @Test
     fun `get customers - mapped correctly`() {
         every { service.getCustomers(any(), any()) } returns listOf(testCustomer)
 
