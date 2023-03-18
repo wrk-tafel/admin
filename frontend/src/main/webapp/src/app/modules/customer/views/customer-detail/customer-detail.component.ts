@@ -113,4 +113,15 @@ export class CustomerDetailComponent implements OnInit {
     });
   }
 
+  invalidateCustomer() {
+    const updatedCustomerData = {
+      ...this.customerData,
+      validUntil: moment().subtract(1, 'day').endOf('day').toDate()
+    };
+
+    this.customerApiService.updateCustomer(updatedCustomerData).subscribe(customerData => {
+      this.customerData = customerData;
+    });
+  }
+
 }

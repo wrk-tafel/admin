@@ -1,4 +1,5 @@
 import * as path from 'path';
+import * as moment from 'moment';
 
 // TODO optimize structure
 
@@ -74,6 +75,14 @@ describe('Customer Detail', () => {
     cy.byTestId('prolongThreeMonthsButton').click();
 
     cy.byTestId('validUntilText').should('have.text', '30.03.3000');
+  });
+
+  it('invalidate customer', () => {
+    cy.visit('/#/kunden/detail/101');
+
+    cy.byTestId('invalidateCustomerButton').click();
+
+    cy.byTestId('validUntilText').should('have.text', moment().subtract(1, 'day').endOf('day').format('DD.MM.YYYY'));
   });
 
 });

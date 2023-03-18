@@ -40,6 +40,11 @@
     </div>
   </div>
   <div class="col-s-auto ml-3">
+    <button testid="invalidateCustomerButton" type="button" class="btn btn-danger" (click)="invalidateCustomer()"
+            [disabled]="!customerData">Kunde deaktivieren
+    </button>
+  </div>
+  <div class="col-s-auto ml-3">
     <button testid="editCustomerButton" type="button" class="btn btn-danger" (click)="editCustomer()"
             [disabled]="!customerData">Kunde bearbeiten
     </button>
@@ -124,12 +129,10 @@
                [ngClass]="{'bg-success': customerData?.validUntil && isValid(), 'bg-danger': customerData?.validUntil && !isValid()}">
             Gültig&nbsp;bis
           </div>
-          <div testid="validUntilText" class="col bg-success"
-               *ngIf="customerData?.validUntil && isValid()"
+          <div testid="validUntilText"
+               class="col"
+               [ngClass]="{'bg-success': customerData?.validUntil && isValid(), 'bg-danger': customerData?.validUntil && !isValid()}"
                [innerHTML]="customerData?.validUntil | date : 'dd.MM.yyyy'"></div>
-          <div testid="validUntilText" class="col bg-danger"
-               *ngIf="customerData?.validUntil && !isValid()"
-               [innerHTML]="'-'"></div>
         </div>
       </div>
     </div>

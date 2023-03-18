@@ -326,4 +326,21 @@ describe('CustomerDetailComponent', () => {
     expect(component.customerData).toEqual(expectedCustomerData);
   });
 
+  it('invalidate customer', () => {
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    const component = fixture.componentInstance;
+    component.customerData = mockCustomer;
+
+    const expectedCustomerData = {
+      ...mockCustomer,
+      validUntil: moment().subtract(1, 'day').endOf('day').toDate()
+    };
+    apiService.updateCustomer.and.returnValue(of(expectedCustomerData));
+
+    component.invalidateCustomer();
+
+    expect(apiService.updateCustomer).toHaveBeenCalledWith(expectedCustomerData);
+    expect(component.customerData).toEqual(expectedCustomerData);
+  });
+
 });
