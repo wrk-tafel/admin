@@ -71,6 +71,7 @@ describe('Customer Creation', () => {
       lastname: 'Add',
       firstname: 'Adult 1',
       age: 30,
+      employer: 'test employer',
       income: 500,
       country: 'Österreich'
     });
@@ -119,7 +120,10 @@ describe('Customer Creation', () => {
       cy.byTestId('firstnameInput').type(data.firstname);
       cy.byTestId('birthDateInput').type(moment().subtract(data.age, 'years').startOf('day').format('YYYY-MM-DD'));
       cy.byTestId('countryInput').select(data.country);
-      if (data.income !== undefined) {
+      if (data.employer) {
+        cy.byTestId('employerInput').type(data.employer);
+      }
+      if (data.income) {
         cy.byTestId('incomeInput').type(data.income.toString());
       }
     });
@@ -129,6 +133,7 @@ describe('Customer Creation', () => {
     lastname: string;
     firstname: string;
     age: number;
+    employer?: string;
     income?: number;
     country: string;
   }

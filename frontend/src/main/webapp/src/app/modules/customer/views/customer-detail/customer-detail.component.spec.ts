@@ -1,16 +1,17 @@
 import {HttpHeaders, HttpResponse} from '@angular/common/http';
-import {TestBed, waitForAsync} from '@angular/core/testing';
+import {ComponentFixture, TestBed, waitForAsync} from '@angular/core/testing';
 import {By} from '@angular/platform-browser';
 import {ActivatedRoute, Router} from '@angular/router';
 import {RouterTestingModule} from '@angular/router/testing';
 import * as moment from 'moment';
-import {of} from 'rxjs';
+import {of, throwError} from 'rxjs';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
 import {CustomerApiService, CustomerData} from '../../../../api/customer-api.service';
 import {CustomerDetailComponent} from './customer-detail.component';
 import {CommonModule, registerLocaleData} from '@angular/common';
 import {DEFAULT_CURRENCY_CODE, LOCALE_ID} from '@angular/core';
 import localeDeAt from '@angular/common/locales/de-AT';
+import {ModalModule} from 'ngx-bootstrap/modal';
 
 registerLocaleData(localeDeAt);
 
@@ -61,6 +62,7 @@ describe('CustomerDetailComponent', () => {
         lastname: 'Add',
         firstname: 'Pers 1',
         birthDate: moment().subtract(5, 'years').startOf('day').utc().toDate(),
+        employer: 'test employer 2',
         income: 50,
         incomeDue: moment().add(1, 'years').startOf('day').utc().toDate(),
         country: mockCountry
@@ -77,12 +79,12 @@ describe('CustomerDetailComponent', () => {
   };
 
   beforeEach(waitForAsync(() => {
-    const apiServiceSpy = jasmine.createSpyObj('CustomerApiService', ['getCustomer', 'generatePdf']);
+    const apiServiceSpy = jasmine.createSpyObj('CustomerApiService', ['getCustomer', 'generatePdf', 'deleteCustomer', 'updateCustomer']);
     const fileHelperServiceSpy = jasmine.createSpyObj('FileHelperService', ['downloadFile']);
     const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
 
     TestBed.configureTestingModule({
-      imports: [CommonModule, RouterTestingModule],
+      imports: [CommonModule, RouterTestingModule, ModalModule],
       providers: [
         {
           provide: LOCALE_ID,
@@ -140,26 +142,47 @@ describe('CustomerDetailComponent', () => {
 
     fixture.detectChanges();
 
-    expect(fixture.debugElement.query(By.css('[testId="customerIdText"]')).nativeElement.textContent).toBe('133');
-    expect(fixture.debugElement.query(By.css('[testId="nameText"]')).nativeElement.textContent).toBe('Mustermann Max');
+    expect(getTextByTestId(fixture, 'customerIdText')).toBe('133');
+    expect(getTextByTestId(fixture, 'nameText')).toBe('Mustermann Max');
 
     const birthDateAge = moment(mockCustomer.birthDate).format('DD.MM.YYYY') + ' (' + moment().diff(mockCustomer.birthDate, 'years') + ')';
-    expect(fixture.debugElement.query(By.css('[testId="birthDateAgeText"]')).nativeElement.textContent).toBe(birthDateAge);
-    expect(fixture.debugElement.query(By.css('[testId="countryText"]')).nativeElement.textContent).toBe('Österreich');
-    expect(fixture.debugElement.query(By.css('[testId="telephoneNumberText"]')).nativeElement.textContent).toBe('00436644123123123');
-    expect(fixture.debugElement.query(By.css('[testId="emailText"]')).nativeElement.textContent).toBe('max.mustermann@gmail.com');
-    expect(fixture.debugElement.query(By.css('[testId="addressLine1Text"]')).nativeElement.textContent).toBe('Teststraße 123A, Stiege 1, Top 21');
-    expect(fixture.debugElement.query(By.css('[testId="addressLine2Text"]')).nativeElement.textContent).toBe('1020 Wien');
-    expect(fixture.debugElement.query(By.css('[testId="employerText"]')).nativeElement.textContent).toBe('test employer');
-    expect(fixture.debugElement.query(By.css('[testId="incomeText"]')).nativeElement.textContent).toBe('€ 1.000,00');
-    expect(fixture.debugElement.query(By.css('[testId="incomeDueText"]')).nativeElement.textContent)
-      .toBe(moment(mockCustomer.incomeDue).format('DD.MM.YYYY'));
-    expect(fixture.debugElement.query(By.css('[testId="validUntilText"]')).nativeElement.textContent)
-      .toBe(moment(mockCustomer.validUntil).format('DD.MM.yyyy'));
-    expect(fixture.debugElement.query(By.css('[testId="issuedInformation"]')).nativeElement.textContent)
-      .toBe('am ' + moment(mockCustomer.issuedAt).format('DD.MM.YYYY') + ' von 12345 first last');
+    expect(getTextByTestId(fixture, 'birthDateAgeText')).toBe(birthDateAge);
+    expect(getTextByTestId(fixture, 'countryText')).toBe('Österreich');
+    expect(getTextByTestId(fixture, 'telephoneNumberText')).toBe('00436644123123123');
+    expect(getTextByTestId(fixture, 'emailText')).toBe('max.mustermann@gmail.com');
+    expect(getTextByTestId(fixture, 'addressLine1Text')).toBe('Teststraße 123A, Stiege 1, Top 21');
+    expect(getTextByTestId(fixture, 'addressLine2Text')).toBe('1020 Wien');
+    expect(getTextByTestId(fixture, 'employerText')).toBe('test employer');
+    expect(getTextByTestId(fixture, 'incomeText')).toBe('€ 1.000,00');
 
-    // TODO check additional persons
+    expect(getTextByTestId(fixture, 'incomeDueText')).toBe(moment(mockCustomer.incomeDue).format('DD.MM.YYYY'));
+    expect(getTextByTestId(fixture, 'validUntilText')).toBe(moment(mockCustomer.validUntil).format('DD.MM.yyyy'));
+    expect(getTextByTestId(fixture, 'issuedInformation')).toBe('am ' + moment(mockCustomer.issuedAt).format('DD.MM.YYYY') + ' von 12345 first last');
+
+    expect(getTextByTestId(fixture, 'addperson-0-lastnameText')).toBe('Add');
+    expect(getTextByTestId(fixture, 'addperson-0-firstnameText')).toBe('Pers 1');
+
+    console.log('PERS', mockCustomer.additionalPersons[0]);
+    console.log('PERS DATE', mockCustomer.additionalPersons[0].birthDate);
+    console.log('PERS DATE MOM', moment(mockCustomer.additionalPersons[0].birthDate).format('DD.MM.YYYY'));
+    // TODO fix
+    /*
+    const birthDateAgePers1 = moment(mockCustomer.additionalPersons[0].birthDate).format('DD.MM.YYYY') +
+      ' (' + moment().diff(mockCustomer.additionalPersons[0].birthDate, 'years') + ')';
+    expect(getTextByTestId(fixture, 'addperson-0-birthDateAgeText')).toBe(birthDateAgePers1);
+     */
+
+    expect(getTextByTestId(fixture, 'addperson-0-countryText')).toBe('Österreich');
+    expect(getTextByTestId(fixture, 'addperson-0-employerText')).toBe('test employer 2');
+    expect(getTextByTestId(fixture, 'addperson-0-incomeText')).toBe('€ 50,00');
+
+    // TODO fix
+    /*
+    expect(getTextByTestId(fixture, 'addperson-0-incomeDueText'))
+      .toBe(moment(mockCustomer.additionalPersons[0].incomeDue).format('DD.MM.YYYY'));
+    expect(getTextByTestId(fixture, 'addperson-1-incomeText')).toBe('-');
+    expect(getTextByTestId(fixture, 'addperson-1-incomeDueText')).toBe('-');
+     */
   }));
 
   it('printMasterdata', waitForAsync(() => {
@@ -276,5 +299,74 @@ describe('CustomerDetailComponent', () => {
 
     // TODO expect(incomeDueText)-class success or danger
   }));
+
+  it('delete customer successful', () => {
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    const component = fixture.componentInstance;
+    component.customerData = mockCustomer;
+
+    apiService.deleteCustomer.and.returnValue(of(null));
+
+    component.deleteCustomer();
+
+    expect(apiService.deleteCustomer).toHaveBeenCalled();
+    expect(router.navigate).toHaveBeenCalledWith(['/kunden/suchen']);
+  });
+
+  it('delete customer failed', () => {
+    const modal = jasmine.createSpyObj('Modal', ['hide']);
+
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    const component = fixture.componentInstance;
+    component.deleteCustomerModal = modal;
+    component.customerData = mockCustomer;
+
+    apiService.deleteCustomer.and.returnValue(throwError({status: 404}));
+
+    component.deleteCustomer();
+
+    expect(apiService.deleteCustomer).toHaveBeenCalled();
+    expect(router.navigate).not.toHaveBeenCalledWith(['/kunden/suchen']);
+    expect(modal.hide).toHaveBeenCalled();
+    expect(component.errorMessage).toBe('Löschen fehlgeschlagen!');
+  });
+
+  it('prolong customer', () => {
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    const component = fixture.componentInstance;
+    component.customerData = mockCustomer;
+
+    const expectedCustomerData = {
+      ...mockCustomer,
+      validUntil: moment(mockCustomer.validUntil).add(3, 'months').endOf('day').toDate()
+    };
+    apiService.updateCustomer.and.returnValue(of(expectedCustomerData));
+
+    component.prolongCustomer(3);
+
+    expect(apiService.updateCustomer).toHaveBeenCalledWith(expectedCustomerData);
+    expect(component.customerData).toEqual(expectedCustomerData);
+  });
+
+  it('invalidate customer', () => {
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    const component = fixture.componentInstance;
+    component.customerData = mockCustomer;
+
+    const expectedCustomerData = {
+      ...mockCustomer,
+      validUntil: moment().subtract(1, 'day').endOf('day').toDate()
+    };
+    apiService.updateCustomer.and.returnValue(of(expectedCustomerData));
+
+    component.invalidateCustomer();
+
+    expect(apiService.updateCustomer).toHaveBeenCalledWith(expectedCustomerData);
+    expect(component.customerData).toEqual(expectedCustomerData);
+  });
+
+  function getTextByTestId(fixture: ComponentFixture<CustomerDetailComponent>, testId: string): string {
+    return fixture.debugElement.query(By.css(`[testId="${testId}"]`)).nativeElement.textContent;
+  }
 
 });

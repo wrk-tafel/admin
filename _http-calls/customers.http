@@ -110,6 +110,7 @@ Content-Type: application/json
       "firstname": "Child 1",
       "lastname": "Musterfrau",
       "birthDate": "2000-01-01",
+      "employer": "Stadt Wien",
       "income": 500,
       "country": {
         "id": 2,
@@ -143,21 +144,21 @@ Content-Type: application/json
 }
 
 ### Get customer 100
-
 GET {{baseApiPath}}/customers/100
 Content-Type: application/json
 
-### Get masterdata pdf
+### Delete customer 100
+DELETE {{baseApiPath}}/customers/100
+Content-Type: application/json
 
+### Get masterdata pdf
 GET {{baseApiPath}}/customers/100/generate-pdf?type=MASTERDATA
 Content-Type: application/json
 
 ### Get idcard pdf
-
 GET {{baseApiPath}}/customers/100/generate-pdf?type=IDCARD
 Content-Type: application/json
 
 ### Get combined pdf
-
 GET {{baseApiPath}}/customers/100/generate-pdf?type=COMBINED
 Content-Type: application/json

@@ -20,8 +20,12 @@ export class CustomerApiService {
     return this.http.post<CustomerData>('/customers', data);
   }
 
-  updateCustomer(data: CustomerData): Observable<any> {
+  updateCustomer(data: CustomerData): Observable<CustomerData> {
     return this.http.post<CustomerData>(`/customers/${data.id}`, data);
+  }
+
+  deleteCustomer(customerId: number): Observable<void> {
+    return this.http.delete<void>(`/customers/${customerId}`);
   }
 
   getCustomer(id: number): Observable<CustomerData> {
@@ -104,6 +108,7 @@ export interface CustomerAddPersonData {
   lastname: string;
   birthDate: Date;
   country?: CountryData;
+  employer?: string;
   income?: number;
   incomeDue?: Date;
 }

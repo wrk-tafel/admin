@@ -16,6 +16,7 @@ import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorService
 import at.wrk.tafel.admin.backend.modules.customer.masterdata.CustomerPdfService
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
 @Service
 class CustomerService(
@@ -156,6 +157,7 @@ class CustomerService(
                 addPersonEntity.lastname = it.lastname.trim()
                 addPersonEntity.firstname = it.firstname.trim()
                 addPersonEntity.birthDate = it.birthDate
+                addPersonEntity.employer = it.employer
                 addPersonEntity.income = it.income
                 addPersonEntity.incomeDue = it.incomeDue
                 addPersonEntity.country = countryRepository.findById(it.country.id).get()
@@ -200,6 +202,7 @@ class CustomerService(
                 firstname = it.firstname!!,
                 lastname = it.lastname!!,
                 birthDate = it.birthDate!!,
+                employer = it.employer,
                 income = it.income,
                 incomeDue = it.incomeDue,
                 country = mapCountryToResponse(it.country!!)
@@ -213,6 +216,11 @@ class CustomerService(
             code = country.code!!,
             name = country.name!!
         )
+    }
+
+    @Transactional
+    fun deleteCustomerByCustomerId(customerId: Long) {
+        customerRepository.deleteByCustomerId(customerId)
     }
 
 }
