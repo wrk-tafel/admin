@@ -11,8 +11,7 @@ import {GlobalStateService} from '../../state/global-state.service';
 })
 export class DefaultLayoutComponent implements OnInit {
   public sidebarMinimized = false;
-  public allNavItems = navigationMenuItems;
-  public navItems = [];
+  public navItems: ITafelNavData[] = navigationMenuItems;
 
   @ViewChild(PasswordChangeModalComponent)
   private passwordChangeModalComponent: PasswordChangeModalComponent;
@@ -24,11 +23,13 @@ export class DefaultLayoutComponent implements OnInit {
   }
 
   ngOnInit() {
-    if (this.auth.hasAnyPermission()) {
-      this.navItems = this.filterNavItemsByPermissions(navigationMenuItems);
-
-      this.editNavItemsForDistributionState();
-    }
+    this.globalStateService.getCurrentDistribution().subscribe((distribution: DistributionItem) => {
+      if (this.auth.hasAnyPermission()) {
+        this.navItems = this.filterNavItemsByPermissions(this.navItems);
+        this.navItems = this.filterEmptyTitleItems(this.navItems);
+      }
+      this.navItems = this.editNavItemsForDistributionState(this.navItems, distribution);
+    });
   }
 
   toggleMinimize(e) {
@@ -62,10 +63,10 @@ export class DefaultLayoutComponent implements OnInit {
       }
     });
 
-    return this.filterEmptyTitleItems(resultNavItems);
+    return resultNavItems;
   }
 
-  private filterEmptyTitleItems(navItems: ITafelNavData[]): ITafelNavData[] {
+  public filterEmptyTitleItems(navItems: ITafelNavData[]): ITafelNavData[] {
     const resultNavItems: ITafelNavData[] = [];
 
     navItems.forEach((currentItem, index) => {
@@ -81,28 +82,26 @@ export class DefaultLayoutComponent implements OnInit {
     return resultNavItems;
   }
 
-  public editNavItemsForDistributionState() {
-    this.globalStateService.getCurrentDistribution().subscribe((distribution: DistributionItem) => {
-      const resultNavItems: ITafelNavData[] = [];
+  public editNavItemsForDistributionState(navItems: ITafelNavData[], distribution: DistributionItem): ITafelNavData[] {
+    const resultNavItems: ITafelNavData[] = [];
 
-      this.allNavItems?.forEach(navItem => {
-        if (navItem.activeDistributionRequired && !distribution) {
-          const modifiedNavItem = {
-            ...navItem,
-            badge: {
-              variant: 'danger',
-              text: 'INAKTIV'
-            },
-            attributes: {disabled: true}
-          };
-          resultNavItems.push(modifiedNavItem);
-        } else {
-          resultNavItems.push(navItem);
-        }
-      });
-
-      this.navItems = resultNavItems;
+    navItems?.forEach(navItem => {
+      if (navItem.activeDistributionRequired && !distribution) {
+        const modifiedNavItem = {
+          ...navItem,
+          badge: {
+            variant: 'danger',
+            text: 'INAKTIV'
+          },
+          attributes: {disabled: true}
+        };
+        resultNavItems.push(modifiedNavItem);
+      } else {
+        resultNavItems.push(navItem);
+      }
     });
+
+    return resultNavItems;
   }
 
 }
