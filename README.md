@@ -6,6 +6,7 @@
 * customer creation
     * add employer field also for additional persons
 * Fix autofocus: https://davidmcintosh.medium.com/auto-focusing-an-angular-input-the-easy-way-part-1-dcb1799e025f
+* Add notes/comments to customers (immutable, add user informations and date/time)
 
 ### Open things (to be discussed)
 
