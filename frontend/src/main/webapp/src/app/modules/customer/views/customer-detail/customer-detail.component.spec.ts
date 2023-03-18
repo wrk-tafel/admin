@@ -316,7 +316,7 @@ describe('CustomerDetailComponent', () => {
 
     const expectedCustomerData = {
       ...mockCustomer,
-      validUntil: moment(mockCustomer.validUntil).add(3, 'months').toDate()
+      validUntil: moment(mockCustomer.validUntil).add(3, 'months').endOf('day').toDate()
     };
     apiService.updateCustomer.and.returnValue(of(expectedCustomerData));
 

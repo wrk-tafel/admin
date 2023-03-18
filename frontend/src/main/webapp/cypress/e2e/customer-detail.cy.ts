@@ -71,10 +71,16 @@ describe('Customer Detail', () => {
   it('prolong customer', () => {
     cy.visit('/#/kunden/detail/100');
 
-    cy.byTestId('prolongButton').click();
-    cy.byTestId('prolongThreeMonthsButton').click();
+    let validDateString;
+    cy.byTestId('validUntilText').then(($value) => {
+      validDateString = $value.text();
+      const expectedValidDate = moment(validDateString, 'DD.MM.YYYY').add(3, 'months').endOf('day').format('DD.MM.YYYY');
 
-    cy.byTestId('validUntilText').should('have.text', '30.03.3000');
+      cy.byTestId('prolongButton').click();
+      cy.byTestId('prolongThreeMonthsButton').click();
+
+      cy.byTestId('validUntilText').should('have.text', expectedValidDate);
+    });
   });
 
   it('invalidate customer', () => {

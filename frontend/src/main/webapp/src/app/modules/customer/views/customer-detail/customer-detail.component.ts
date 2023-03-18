@@ -102,7 +102,7 @@ export class CustomerDetailComponent implements OnInit {
   }
 
   prolongCustomer(countMonths: number) {
-    const newValidUntilDate = moment(this.customerData.validUntil).add(countMonths, 'months').toDate();
+    const newValidUntilDate = moment(this.customerData.validUntil).add(countMonths, 'months').endOf('day').toDate();
     const updatedCustomerData = {
       ...this.customerData,
       validUntil: newValidUntilDate
