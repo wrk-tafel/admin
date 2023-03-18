@@ -19,7 +19,7 @@ describe('Customer Detail', () => {
     cy.byTestId('printMenuButton').click();
     cy.byTestId('printMasterdataButton').click();
 
-    const downloadsFolder = Cypress.config('downloadsFolder')
+    const downloadsFolder = Cypress.config('downloadsFolder');
     const downloadedFilename = path.join(downloadsFolder, 'stammdaten-101-musterfrau-eva.pdf');
 
     cy.readFile(downloadedFilename, 'binary', {timeout: 15000})
@@ -65,6 +65,15 @@ describe('Customer Detail', () => {
     });
 
     cy.url({timeout: 10000}).should('include', '/kunden/suchen');
+  });
+
+  it('prolong customer', () => {
+    cy.visit('/#/kunden/detail/100');
+
+    cy.byTestId('prolongButton').click();
+    cy.byTestId('prolongThreeMonthsButton').click();
+
+    cy.byTestId('validUntilText').should('have.text', '30.03.3000');
   });
 
 });
