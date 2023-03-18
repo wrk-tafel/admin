@@ -1,5 +1,4 @@
 # TODO
-
 * General
     * Unify errormsg handling (panel on top) ?
     * Toast messages?
@@ -9,7 +8,6 @@
 * Add notes/comments to customers (immutable, add user informations and date/time)
 
 ### Open things (to be discussed)
-
 * Checkbox to excluded certain persons from income calculation?
     * 'Guests' which are collecting the groceries for another person
 
