@@ -12,6 +12,5 @@
     * 'Guests' which are collecting the groceries for another person
 
 ### Lower prio
-
 * No validation-date on idcard (will be removed anyway when the checkin is ready)
 * Fix mobile layout in customer-search (result-table)
