@@ -15,10 +15,6 @@ export class PasswordChangeModalComponent {
     this.modal.show();
   }
 
-  hideDialog() {
-    this.modal.hide();
-  }
-
   changePassword() {
     this.form.changePassword().subscribe(successful => {
       if (successful) {
@@ -34,7 +30,7 @@ export class PasswordChangeModalComponent {
   hideModalDelayed() {
     const root = this;
     setTimeout(function () {
-      root.hideDialog();
+      root.modal.hide();
     }, 1500);
   }
 }

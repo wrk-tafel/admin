@@ -115,4 +115,12 @@ describe('CustomerApiService', () => {
     httpMock.verify();
   });
 
+  it('delete customer', () => {
+    apiService.deleteCustomer(1).subscribe();
+
+    const req = httpMock.expectOne({method: 'DELETE', url: '/customers/1'});
+    req.flush(null);
+    httpMock.verify();
+  });
+
 });
