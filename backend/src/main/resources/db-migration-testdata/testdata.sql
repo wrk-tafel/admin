@@ -100,6 +100,10 @@ values (1012, NOW(), NOW(), 101, 'Child 2', 'Musterfrau', CURRENT_DATE - interva
 INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, employer, income,
                                   income_due, country_id)
 values (1013, NOW(), NOW(), 101, 'Child 3', 'Musterfrau', CURRENT_DATE - interval '2 year', 'WRK', null, null, 1);
+INSERT INTO customers_notes (id, created_at, updated_at, customer_id, user_id, note)
+VALUES (1001, NOW(), NOW(), 101, 100, 'Testnote 2');
+INSERT INTO customers_notes (id, created_at, updated_at, customer_id, user_id, note)
+VALUES (1002, NOW(), NOW(), 101, 100, 'Testnote 1');
 
 INSERT INTO customers (id, created_at, updated_at, customer_id, user_id, firstname, lastname, birth_date, country_id,
                        address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
