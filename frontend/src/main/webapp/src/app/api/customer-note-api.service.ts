@@ -23,6 +23,6 @@ export interface CustomerNotesResponse {
 
 export interface CustomerNoteItem {
   author?: string;
-  time: Date;
+  dateTime: Date;
   note: string;
 }

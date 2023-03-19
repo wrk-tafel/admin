@@ -24,7 +24,7 @@ class CustomerNoteService(
 
         return CustomerNoteItem(
             author = userDisplayString,
-            time = entity.createdAt!!,
+            dateTime = entity.createdAt!!,
             note = entity.note!!
         )
     }
@@ -39,6 +39,6 @@ data class CustomerNotesResponse(
 @ExcludeFromTestCoverage
 data class CustomerNoteItem(
     val author: String? = null,
-    val time: ZonedDateTime,
+    val dateTime: ZonedDateTime,
     val note: String
 )
