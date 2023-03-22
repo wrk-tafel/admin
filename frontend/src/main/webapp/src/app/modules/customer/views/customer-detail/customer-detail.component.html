@@ -3,59 +3,49 @@
     <div testid="errorMessageContent">{{errorMessage}}</div>
   </div>
 </div>
-<div class="row mb-3">
-  <div class="col-s-auto ml-3">
-    <div class="btn-group" dropdown>
-      <button testid="printMenuButton" dropdownToggle type="button" class="btn btn-primary dropdown-toggle">
-        Daten ausdrucken <span class="caret"></span>
-      </button>
-      <ul *dropdownMenu class="dropdown-menu" role="menu">
-        <li role="menuitem"><a class="dropdown-item" style="cursor: pointer;" testid="printCombinedButton"
-                               (click)="printCombined()">Stammdaten + Ausweis</a></li>
-        <li class="divider dropdown-divider"></li>
-        <li role="menuitem"><a class="dropdown-item" style="cursor: pointer;" testid="printMasterdataButton"
-                               (click)="printMasterdata()">Nur Stammdaten</a></li>
-        <li role="menuitem"><a class="dropdown-item" style="cursor: pointer;" testid="printIdCardButton"
-                               (click)="printIdCard()">Nur Ausweis</a></li>
-      </ul>
-    </div>
-  </div>
-  <div class="col-s-auto ml-3">
-    <div class="btn-group" dropdown>
-      <button testid="prolongButton" dropdownToggle type="button" class="btn btn-primary dropdown-toggle">
-        Bezug verlängern <span class="caret"></span>
-      </button>
-      <ul *dropdownMenu class="dropdown-menu" role="menu">
-        <li role="menuitem"><a class="dropdown-item" style="cursor: pointer;" testid="prolongOneMonthButton"
-                               (click)="prolongCustomer(1)">1 Monat</a></li>
-        <li role="menuitem"><a class="dropdown-item" style="cursor: pointer;" testid="prolongTwoMonthsButton"
-                               (click)="prolongCustomer(2)">2 Monate</a></li>
-        <li role="menuitem"><a class="dropdown-item" style="cursor: pointer;" testid="prolongThreeMonthsButton"
-                               (click)="prolongCustomer(3)">3 Monate</a></li>
-        <li role="menuitem"><a class="dropdown-item" style="cursor: pointer;" testid="prolongSixMonthsButton"
-                               (click)="prolongCustomer(6)">6 Monate</a></li>
-        <li role="menuitem"><a class="dropdown-item" style="cursor: pointer;" testid="prolongTwelveMonthsButton"
-                               (click)="prolongCustomer(12)">12 Monate</a></li>
-      </ul>
-    </div>
-  </div>
-  <div class="col-s-auto ml-3">
-    <button testid="invalidateCustomerButton" type="button" class="btn btn-danger" (click)="invalidateCustomer()"
-            [disabled]="!customerData">Kunde deaktivieren
+<div class="d-flex flex-column flex-lg-row">
+  <div class="btn-group" dropdown>
+    <button testid="printMenuButton" dropdownToggle type="button" class="btn btn-primary dropdown-toggle">
+      Daten ausdrucken <span class="caret"></span>
     </button>
+    <ul *dropdownMenu class="dropdown-menu" role="menu">
+      <li role="menuitem"><a class="dropdown-item" style="cursor: pointer;" testid="printCombinedButton"
+                             (click)="printCombined()">Stammdaten + Ausweis</a></li>
+      <li class="divider dropdown-divider"></li>
+      <li role="menuitem"><a class="dropdown-item" style="cursor: pointer;" testid="printMasterdataButton"
+                             (click)="printMasterdata()">Nur Stammdaten</a></li>
+      <li role="menuitem"><a class="dropdown-item" style="cursor: pointer;" testid="printIdCardButton"
+                             (click)="printIdCard()">Nur Ausweis</a></li>
+    </ul>
   </div>
-  <div class="col-s-auto ml-3">
-    <button testid="editCustomerButton" type="button" class="btn btn-danger" (click)="editCustomer()"
-            [disabled]="!customerData">Kunde bearbeiten
+  <div class="btn-group mt-3 mt-lg-0 ml-lg-3" dropdown>
+    <button testid="prolongButton" dropdownToggle type="button" class="btn btn-primary dropdown-toggle">
+      Bezug verlängern <span class="caret"></span>
     </button>
+    <ul *dropdownMenu class="dropdown-menu" role="menu">
+      <li role="menuitem"><a class="dropdown-item" style="cursor: pointer;" testid="prolongOneMonthButton"
+                             (click)="prolongCustomer(1)">1 Monat</a></li>
+      <li role="menuitem"><a class="dropdown-item" style="cursor: pointer;" testid="prolongTwoMonthsButton"
+                             (click)="prolongCustomer(2)">2 Monate</a></li>
+      <li role="menuitem"><a class="dropdown-item" style="cursor: pointer;" testid="prolongThreeMonthsButton"
+                             (click)="prolongCustomer(3)">3 Monate</a></li>
+      <li role="menuitem"><a class="dropdown-item" style="cursor: pointer;" testid="prolongSixMonthsButton"
+                             (click)="prolongCustomer(6)">6 Monate</a></li>
+      <li role="menuitem"><a class="dropdown-item" style="cursor: pointer;" testid="prolongTwelveMonthsButton"
+                             (click)="prolongCustomer(12)">12 Monate</a></li>
+    </ul>
   </div>
-  <div class="col-s-auto ml-3">
-    <button testid="deleteCustomerButton" type="button" class="btn btn-danger" (click)="deleteCustomerModal.show()"
-            [disabled]="!customerData">Kunde löschen
-    </button>
-  </div>
+  <button class="btn btn-danger mt-3 mt-lg-0 ml-lg-3" testid="invalidateCustomerButton" type="button" (click)="invalidateCustomer()"
+          [disabled]="!customerData">Kunde deaktivieren
+  </button>
+  <button class="btn btn-danger mt-3 mt-lg-0 ml-lg-3" testid="editCustomerButton" type="button" (click)="editCustomer()"
+          [disabled]="!customerData">Kunde bearbeiten
+  </button>
+  <button class="btn btn-danger mt-3 mt-lg-0 ml-lg-3" testid="deleteCustomerButton" type="button" (click)="deleteCustomerModal.show()"
+          [disabled]="!customerData">Kunde löschen
+  </button>
 </div>
-<div class="row mb-3">
+<div class="row mt-3">
   <div class="col">
     <tabset>
       <tab>
