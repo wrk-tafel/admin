@@ -11,8 +11,8 @@ import {CustomerDetailComponent} from './customer-detail.component';
 import {CommonModule, registerLocaleData} from '@angular/common';
 import {DEFAULT_CURRENCY_CODE, LOCALE_ID} from '@angular/core';
 import localeDeAt from '@angular/common/locales/de-AT';
-import {ModalModule} from 'ngx-bootstrap/modal';
-import {CustomerNoteApiService} from '../../../../api/customer-note-api.service';
+import {ModalDirective, ModalModule} from 'ngx-bootstrap/modal';
+import {CustomerNoteApiService, CustomerNoteItem} from '../../../../api/customer-note-api.service';
 
 registerLocaleData(localeDeAt);
 
@@ -94,7 +94,7 @@ describe('CustomerDetailComponent', () => {
 
   beforeEach(waitForAsync(() => {
     const customerApiServiceSpy = jasmine.createSpyObj('CustomerApiService', ['generatePdf', 'deleteCustomer', 'updateCustomer']);
-    const customerNoteApiServiceSpy = jasmine.createSpyObj('CustomerNoteApiService', ['TODO']);
+    const customerNoteApiServiceSpy = jasmine.createSpyObj('CustomerNoteApiService', ['createNewNote']);
     const fileHelperServiceSpy = jasmine.createSpyObj('FileHelperService', ['downloadFile']);
     const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
 
@@ -377,6 +377,30 @@ describe('CustomerDetailComponent', () => {
 
     expect(customerApiService.updateCustomer).toHaveBeenCalledWith(expectedCustomerData);
     expect(component.customerData).toEqual(expectedCustomerData);
+  });
+
+  it('add new note to customer', () => {
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    const component = fixture.componentInstance;
+    component.customerData = mockCustomer;
+    component.customerNotes = [];
+    component.addNewNoteModal = jasmine.createSpyObj<ModalDirective>(['hide']);
+    const noteText = 'new note text';
+    component.newNoteText = noteText;
+
+    const resultNote: CustomerNoteItem = {
+      author: 'author1',
+      timestamp: moment('2023-03-22T19:45:25.615477+01:00').toDate(),
+      note: 'note from author 2'
+    };
+    customerNoteApiService.createNewNote.and.returnValue(of(resultNote));
+
+    component.addNewNote();
+
+    expect(customerNoteApiService.createNewNote).toHaveBeenCalledWith(mockCustomer.id, noteText);
+    expect(component.customerNotes[0]).toEqual(resultNote);
+    expect(component.newNoteText).toBeUndefined();
+    expect(component.addNewNoteModal.hide).toHaveBeenCalled();
   });
 
   function getTextByTestId(fixture: ComponentFixture<CustomerDetailComponent>, testId: string): string {
