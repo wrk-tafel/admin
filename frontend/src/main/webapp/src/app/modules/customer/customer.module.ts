@@ -10,15 +10,17 @@ import {CustomerDetailComponent} from './views/customer-detail/customer-detail.c
 import {CustomerSearchComponent} from './views/customer-search/customer-search.component';
 import {BsDropdownModule} from 'ngx-bootstrap/dropdown';
 import {CustomerApiService} from '../../api/customer-api.service';
+import {TabsModule} from 'ngx-bootstrap/tabs';
 
 @NgModule({
-  imports: [
-    BsDropdownModule,
-    CommonModule,
-    ReactiveFormsModule,
-    CustomerRoutingModule,
-    ModalModule.forRoot()
-  ],
+    imports: [
+        BsDropdownModule,
+        CommonModule,
+        ReactiveFormsModule,
+        CustomerRoutingModule,
+        ModalModule.forRoot(),
+        TabsModule
+    ],
   declarations: [
     CustomerDetailComponent,
     CustomerEditComponent,

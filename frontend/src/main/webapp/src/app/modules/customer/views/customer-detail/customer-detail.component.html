@@ -55,89 +55,114 @@
     </button>
   </div>
 </div>
-<div class="row flex-wrap">
-  <div class="col">
-    <div class="card">
-      <div class="card-header text-center h5">Hauptbezieher</div>
-      <div class="card-body">
-        <div class="row">
-          <div class="col font-weight-bold">Kundennummer</div>
-          <div testid="customerIdText" class="col">{{customerData?.id}}</div>
-        </div>
-        <div class="row">
-          <div class="col font-weight-bold">Name</div>
-          <div testid="nameText" class="col">{{customerData?.lastname}} {{customerData?.firstname}}</div>
-        </div>
-        <div class="row">
-          <div class="col font-weight-bold">Geburtsdatum (Alter)</div>
-          <div testid="birthDateAgeText" class="col">{{customerData?.birthDate | date : 'dd.MM.yyyy'}} ({{getAge(customerData?.birthDate)}})</div>
-        </div>
-        <div class="row">
-          <div class="col font-weight-bold">Nationalität</div>
-          <div testid="countryText" class="col">{{customerData?.country?.name}}</div>
-        </div>
-        <div class="row">
-          <div class="col font-weight-bold">Telefonnummer</div>
-          <div testid="telephoneNumberText" class="col"
-               [innerHTML]="customerData?.telephoneNumber ? customerData?.telephoneNumber : '-'"></div>
-        </div>
-        <div class="row">
-          <div class="col font-weight-bold">E-Mail</div>
-          <div testid="emailText" class="col" [innerHTML]="customerData?.email ? customerData?.email : '-'">
+<tabset>
+  <tab>
+    <ng-template tabHeading>Allgemeine Daten</ng-template>
+    <div class="row flex-wrap">
+      <div class="col">
+        <div class="card">
+          <div class="card-header text-center h5">Hauptbezieher</div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col font-weight-bold">Kundennummer</div>
+              <div testid="customerIdText" class="col">{{customerData?.id}}</div>
+            </div>
+            <div class="row">
+              <div class="col font-weight-bold">Name</div>
+              <div testid="nameText" class="col">{{customerData?.lastname}} {{customerData?.firstname}}</div>
+            </div>
+            <div class="row">
+              <div class="col font-weight-bold">Geburtsdatum (Alter)</div>
+              <div testid="birthDateAgeText" class="col">{{customerData?.birthDate | date : 'dd.MM.yyyy'}} ({{getAge(customerData?.birthDate)}})</div>
+            </div>
+            <div class="row">
+              <div class="col font-weight-bold">Nationalität</div>
+              <div testid="countryText" class="col">{{customerData?.country?.name}}</div>
+            </div>
+            <div class="row">
+              <div class="col font-weight-bold">Telefonnummer</div>
+              <div testid="telephoneNumberText" class="col"
+                   [innerHTML]="customerData?.telephoneNumber ? customerData?.telephoneNumber : '-'"></div>
+            </div>
+            <div class="row">
+              <div class="col font-weight-bold">E-Mail</div>
+              <div testid="emailText" class="col" [innerHTML]="customerData?.email ? customerData?.email : '-'">
+              </div>
+            </div>
+            <hr>
+            <div class="row">
+              <div class="col font-weight-bold">Adresse</div>
+            </div>
+            <div class="row">
+              <div testid="addressLine1Text" class="col">{{customerData?.address ?
+                formatAddressLine1(customerData?.address) : ''}}</div>
+            </div>
+            <div class="row">
+              <div testid="addressLine2Text" class="col"
+                   [innerHTML]="customerData?.address ? formatAddressLine2(customerData?.address) : ''">
+              </div>
+            </div>
+            <hr>
+            <div class="row">
+              <div class="col font-weight-bold">Arbeitgeber</div>
+            </div>
+            <div class="row">
+              <div testid="employerText" class="col">{{customerData?.employer}}</div>
+            </div>
+            <div class="row mt-2">
+              <div class="col font-weight-bold">
+                Einkommen&nbsp;(monatlich)
+              </div>
+              <div testid="incomeText" class="col">{{customerData?.income | currency}}</div>
+            </div>
+            <div class="row">
+              <div class="col">
+                --> nachgewiesen bis
+              </div>
+              <div testid="incomeDueText" class="col">{{customerData?.incomeDue | date : 'dd.MM.yyyy'}}</div>
+            </div>
+            <hr>
+            <div class="row">
+              <div class="col font-weight-bold">Angelegt</div>
+              <div testid="issuedInformation" class="col">am {{customerData?.issuedAt | date : 'dd.MM.yyyy'}}
+                von {{formatIssuer(customerData?.issuer)}}</div>
+            </div>
+            <div class="row">
+              <div class="col font-weight-bold"
+                   [ngClass]="{'bg-success': customerData?.validUntil && isValid(), 'bg-danger': customerData?.validUntil && !isValid()}">
+                Gültig&nbsp;bis
+              </div>
+              <div testid="validUntilText"
+                   class="col"
+                   [ngClass]="{'bg-success': customerData?.validUntil && isValid(), 'bg-danger': customerData?.validUntil && !isValid()}"
+                   [innerHTML]="customerData?.validUntil | date : 'dd.MM.yyyy'"></div>
+            </div>
           </div>
         </div>
-        <hr>
-        <div class="row">
-          <div class="col font-weight-bold">Adresse</div>
-        </div>
-        <div class="row">
-          <div testid="addressLine1Text" class="col">{{customerData?.address ?
-            formatAddressLine1(customerData?.address) : ''}}</div>
-        </div>
-        <div class="row">
-          <div testid="addressLine2Text" class="col"
-               [innerHTML]="customerData?.address ? formatAddressLine2(customerData?.address) : ''">
+      </div>
+      <div class="col">
+        <div class="card">
+          <div class="card-header text-center h5">Letzte Notiz</div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col font-weight-bold" *ngIf="customerNotes?.length === 0">
+                <h6 testid="nonotes-label">Keine Notiz vorhanden</h6>
+              </div>
+              <div class="col" *ngIf="customerNotes?.length !== 0">
+                <div class="row">
+                  <div class="col">
+                    USER
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-        <hr>
-        <div class="row">
-          <div class="col font-weight-bold">Arbeitgeber</div>
-        </div>
-        <div class="row">
-          <div testid="employerText" class="col">{{customerData?.employer}}</div>
-        </div>
-        <div class="row mt-2">
-          <div class="col font-weight-bold">
-            Einkommen&nbsp;(monatlich)
-          </div>
-          <div testid="incomeText" class="col">{{customerData?.income | currency}}</div>
-        </div>
-        <div class="row">
-          <div class="col">
-            --> nachgewiesen bis
-          </div>
-          <div testid="incomeDueText" class="col">{{customerData?.incomeDue | date : 'dd.MM.yyyy'}}</div>
-        </div>
-        <hr>
-        <div class="row">
-          <div class="col font-weight-bold">Angelegt</div>
-          <div testid="issuedInformation" class="col">am {{customerData?.issuedAt | date : 'dd.MM.yyyy'}}
-            von {{formatIssuer(customerData?.issuer)}}</div>
-        </div>
-        <div class="row">
-          <div class="col font-weight-bold"
-               [ngClass]="{'bg-success': customerData?.validUntil && isValid(), 'bg-danger': customerData?.validUntil && !isValid()}">
-            Gültig&nbsp;bis
-          </div>
-          <div testid="validUntilText"
-               class="col"
-               [ngClass]="{'bg-success': customerData?.validUntil && isValid(), 'bg-danger': customerData?.validUntil && !isValid()}"
-               [innerHTML]="customerData?.validUntil | date : 'dd.MM.yyyy'"></div>
         </div>
       </div>
     </div>
-  </div>
-  <div class="col-sm-6">
+  </tab>
+  <tab>
+    <ng-template tabHeading><i class="icon-people"></i> Weitere Personen</ng-template>
     <div class="card">
       <div class="card-header text-center h5">Weitere Personen</div>
       <div class="card-body">
@@ -174,26 +199,8 @@
         </div>
       </div>
     </div>
-  </div>
-</div>
-<div class="row flex-wrap">
-  <div class="col-6">
-    <div class="card">
-      <div class="card-header text-center h5">Letzte Notiz</div>
-      <div class="card-body">
-        <div class="row">
-          <div class="col" *ngIf="customerNotes?.length === 0">Keine Notiz vorhanden</div>
-          <div class="col" *ngIf="customerNotes?.length !== 0">
-            <div class="row">
-              <div class="col">
-                USER
-              </div>
-            </div>
-          </div>
-        </div>
-    </div>
-  </div>
-</div>
+  </tab>
+</tabset>
 <div testId="deletecustomer-modal" bsModal #deleteCustomerModal="bs-modal" class="modal modal-danger fade"
      tabindex="-1"
      role="dialog"
