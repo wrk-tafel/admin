@@ -131,7 +131,8 @@ export class CustomerDetailComponent implements OnInit {
   }
 
   addNewNote() {
-    this.customerNoteApiService.createNewNote(this.customerData.id, this.newNoteText).subscribe(newNoteItem => {
+    const sanitizedText = this.newNoteText.replace(/\n/g, '<br/>');
+    this.customerNoteApiService.createNewNote(this.customerData.id, sanitizedText).subscribe(newNoteItem => {
       this.customerNotes.unshift(newNoteItem);
       this.newNoteText = undefined;
       this.addNewNoteModal.hide();

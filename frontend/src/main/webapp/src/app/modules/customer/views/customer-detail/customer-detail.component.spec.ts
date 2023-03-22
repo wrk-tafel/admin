@@ -385,19 +385,20 @@ describe('CustomerDetailComponent', () => {
     component.customerData = mockCustomer;
     component.customerNotes = [];
     component.addNewNoteModal = jasmine.createSpyObj<ModalDirective>(['hide']);
-    const noteText = 'new note text';
+    const noteText = 'new note\ntext';
+    const sanitizedNoteText = 'new note<br/>text';
     component.newNoteText = noteText;
 
     const resultNote: CustomerNoteItem = {
       author: 'author1',
       timestamp: moment('2023-03-22T19:45:25.615477+01:00').toDate(),
-      note: 'note from author 2'
+      note: sanitizedNoteText
     };
     customerNoteApiService.createNewNote.and.returnValue(of(resultNote));
 
     component.addNewNote();
 
-    expect(customerNoteApiService.createNewNote).toHaveBeenCalledWith(mockCustomer.id, noteText);
+    expect(customerNoteApiService.createNewNote).toHaveBeenCalledWith(mockCustomer.id, sanitizedNoteText);
     expect(component.customerNotes[0]).toEqual(resultNote);
     expect(component.newNoteText).toBeUndefined();
     expect(component.addNewNoteModal.hide).toHaveBeenCalled();
