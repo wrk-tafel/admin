@@ -130,11 +130,6 @@ export class CustomerDetailComponent implements OnInit {
     });
   }
 
-  onValueChangeNoteText(event: Event) {
-    const value = (event.target as any).value;
-    this.newNoteText = value;
-  }
-
   addNewNote() {
     this.customerNoteApiService.createNewNote(this.customerData.id, this.newNoteText).subscribe(newNoteItem => {
       this.customerNotes.unshift(newNoteItem);
