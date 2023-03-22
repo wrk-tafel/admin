@@ -134,7 +134,14 @@
             </div>
             <div class="col-lg-6 col-sm-12">
               <div class="card">
-                <div class="card-header text-center h5">Letzte Notiz</div>
+                <div class="card-header text-center h5">
+                  Letzte Notiz
+                  <div class="card-header-actions">
+                    <button testid="addnote-button" type="button" class="btn btn-block btn-success">
+                      <i class="fa fa-plus-square"></i>
+                    </button>
+                  </div>
+                </div>
                 <div class="card-body">
                   <div class="row">
                     <div class="col font-weight-bold" *ngIf="customerNotes?.length === 0">
@@ -149,6 +156,9 @@
                       </div>
                     </div>
                   </div>
+                </div>
+                <div class="card-footer" *ngIf="customerNotes.length > 1">
+                  <button testid="showall-notes-button" type="button" class="btn btn-block btn-primary">Alle Notizen anzeigen</button>
                 </div>
               </div>
             </div>
