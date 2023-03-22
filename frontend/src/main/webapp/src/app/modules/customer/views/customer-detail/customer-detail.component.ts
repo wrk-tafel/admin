@@ -10,7 +10,7 @@ import {
 } from '../../../../api/customer-api.service';
 import {HttpResponse} from '@angular/common/http';
 import {ModalDirective} from 'ngx-bootstrap/modal';
-import {CustomerNoteApiService, CustomerNoteItem} from "../../../../api/customer-note-api.service";
+import {CustomerNoteApiService, CustomerNoteItem} from '../../../../api/customer-note-api.service';
 
 @Component({
   selector: 'tafel-customer-detail',
@@ -31,10 +31,8 @@ export class CustomerDetailComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.customerData = this.activatedRoute.snapshot.data.customerData;
-    this.customerNoteApiService.getNotesForCustomer(this.customerData.id).subscribe((response) => {
-      this.customerNotes = response.notes;
-    });
+    this.customerData = this.activatedRoute.snapshot.data.data;
+    this.customerNotes = this.activatedRoute.snapshot.data.notes;
   }
 
   printMasterdata() {

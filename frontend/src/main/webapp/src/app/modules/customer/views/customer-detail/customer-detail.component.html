@@ -142,9 +142,10 @@
                     </div>
                     <div class="col" *ngIf="customerNotes?.length !== 0">
                       <div class="row">
-                        <div class="col">
-                          USER
-                        </div>
+                        <div class="col font-weight-bold">{{customerNotes[0].timestamp | date : 'dd.MM.yyyy HH:mm' }}&nbsp;{{customerNotes[0].author}}</div>
+                      </div>
+                      <div class="row">
+                        <div class="col">{{customerNotes[0].note}}</div>
                       </div>
                     </div>
                   </div>
