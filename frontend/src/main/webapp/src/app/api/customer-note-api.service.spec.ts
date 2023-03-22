@@ -2,7 +2,7 @@ import {HttpClientTestingModule, HttpTestingController} from '@angular/common/ht
 import {TestBed} from '@angular/core/testing';
 import {ReactiveFormsModule} from '@angular/forms';
 import {CreateCustomerNoteRequest, CustomerNoteApiService, CustomerNoteItem} from './customer-note-api.service';
-import * as moment from "moment";
+import * as moment from 'moment';
 
 describe('CustomerNoteApiService', () => {
   let httpMock: HttpTestingController;
