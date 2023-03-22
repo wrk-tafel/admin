@@ -12,7 +12,7 @@ import {CommonModule, registerLocaleData} from '@angular/common';
 import {DEFAULT_CURRENCY_CODE, LOCALE_ID} from '@angular/core';
 import localeDeAt from '@angular/common/locales/de-AT';
 import {ModalModule} from 'ngx-bootstrap/modal';
-import {CustomerNoteApiService, CustomerNotesResponse} from '../../../../api/customer-note-api.service';
+import {CustomerNoteApiService} from '../../../../api/customer-note-api.service';
 
 registerLocaleData(localeDeAt);
 
@@ -79,20 +79,18 @@ describe('CustomerDetailComponent', () => {
       }
     ]
   };
-  const mockNotes: CustomerNotesResponse = {
-    notes: [
-      {
-        author: 'author1',
-        timestamp: moment().subtract(1, 'hour').toDate(),
-        note: 'note from author 1'
-      },
-      {
-        author: 'author2',
-        timestamp: moment().subtract(2, 'hour').toDate(),
-        note: 'note from author 2'
-      }
-    ]
-  };
+  const mockNotes = [
+    {
+      author: 'author1',
+      timestamp: moment().subtract(1, 'hour').toDate(),
+      note: 'note from author 1'
+    },
+    {
+      author: 'author2',
+      timestamp: moment().subtract(2, 'hour').toDate(),
+      note: 'note from author 2'
+    }
+  ];
 
   beforeEach(waitForAsync(() => {
     const customerApiServiceSpy = jasmine.createSpyObj('CustomerApiService', ['generatePdf', 'deleteCustomer', 'updateCustomer']);
@@ -160,7 +158,7 @@ describe('CustomerDetailComponent', () => {
     component.ngOnInit();
 
     expect(component.customerData).toEqual(mockCustomer);
-    expect(component.customerNotes).toEqual(mockNotes.notes);
+    expect(component.customerNotes).toEqual(mockNotes);
 
     fixture.detectChanges();
 
