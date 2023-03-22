@@ -37,8 +37,8 @@ class CustomerNoteService(
         val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
 
         val noteEntity = CustomerNoteEntity()
-        noteEntity.customer = customerRepository.findById(customerId).orElse(null)
-        noteEntity.user = userRepository.findByUsername(authenticatedUser.username!!).orElse(null)
+        noteEntity.customer = customerRepository.findByCustomerId(customerId).get()
+        noteEntity.user = userRepository.findByUsername(authenticatedUser.username!!).get()
         noteEntity.note = note
 
         val savedEntity = customerNoteRepository.save(noteEntity)

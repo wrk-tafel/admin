@@ -103,7 +103,7 @@ internal class CustomerNoteServiceTest {
         noteEntity.note = note
         every { customerNoteRepository.save(any()) } returns noteEntity
 
-        every { customerRepository.findById(testCustomerEntity1.id!!) } returns Optional.of(testCustomerEntity1)
+        every { customerRepository.findByCustomerId(testCustomerEntity1.id!!) } returns Optional.of(testCustomerEntity1)
 
         val noteItem = service.createNewNote(customerId = customerId, note = note)
 
