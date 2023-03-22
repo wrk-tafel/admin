@@ -93,7 +93,6 @@ internal class CustomerNoteServiceTest {
 
     @Test
     fun `create new note`() {
-        val customerId = 123L
         val note = "test note"
 
         val noteEntity = CustomerNoteEntity()
@@ -103,9 +102,11 @@ internal class CustomerNoteServiceTest {
         noteEntity.note = note
         every { customerNoteRepository.save(any()) } returns noteEntity
 
-        every { customerRepository.findByCustomerId(testCustomerEntity1.id!!) } returns Optional.of(testCustomerEntity1)
+        every { customerRepository.findByCustomerId(testCustomerEntity1.customerId!!) } returns Optional.of(
+            testCustomerEntity1
+        )
 
-        val noteItem = service.createNewNote(customerId = customerId, note = note)
+        val noteItem = service.createNewNote(customerId = testCustomerEntity1.customerId!!, note = note)
 
         assertThat(noteItem.author).isEqualTo("${testUser.personnelNumber} ${testUser.firstname} ${testUser.lastname}")
         assertThat(noteItem.timestamp).isEqualTo(noteEntity.createdAt)
