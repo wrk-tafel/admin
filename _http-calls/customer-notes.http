@@ -1,3 +1,11 @@
 ### Get notes
 GET {{baseApiPath}}/customers/101/notes
 Content-Type: application/json
+
+### Create new note
+POST {{baseApiPath}}/customers/101/notes
+Content-Type: application/json
+
+{
+  "note": "new dummy note"
+}

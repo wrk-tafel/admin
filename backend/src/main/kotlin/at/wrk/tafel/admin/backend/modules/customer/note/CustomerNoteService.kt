@@ -1,14 +1,16 @@
 package at.wrk.tafel.admin.backend.modules.customer.note
 
-import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
+import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerNoteEntity
+import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerNoteRepository
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
-import java.time.ZonedDateTime
 
 @Service
 class CustomerNoteService(
-    private val customerNoteRepository: CustomerNoteRepository
+    private val customerNoteRepository: CustomerNoteRepository,
+    private val userRepository: UserRepository
 ) {
 
     fun getNotes(customerId: Long): List<CustomerNoteItem> {
@@ -29,16 +31,16 @@ class CustomerNoteService(
         )
     }
 
+    fun createNewNote(customerId: Long, note: String): CustomerNoteItem {
+        val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
+
+        val noteEntity = CustomerNoteEntity()
+        noteEntity.customerId = customerId
+        noteEntity.user = userRepository.findByUsername(authenticatedUser.username!!).orElse(null)
+        noteEntity.note = note
+
+        val savedEntity = customerNoteRepository.save(noteEntity)
+        return mapNote(savedEntity)
+    }
+
 }
-
-@ExcludeFromTestCoverage
-data class CustomerNotesResponse(
-    val notes: List<CustomerNoteItem> = emptyList()
-)
-
-@ExcludeFromTestCoverage
-data class CustomerNoteItem(
-    val author: String? = null,
-    val timestamp: ZonedDateTime,
-    val note: String
-)

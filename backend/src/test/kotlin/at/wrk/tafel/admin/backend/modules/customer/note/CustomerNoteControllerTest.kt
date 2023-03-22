@@ -8,6 +8,7 @@ import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.http.HttpStatus
 import java.time.ZonedDateTime
 
 @ExtendWith(MockKExtension::class)
@@ -51,6 +52,40 @@ internal class CustomerNoteControllerTest {
         assertThat(response.notes).hasSize(notes.size)
         assertThat(response.notes).isEqualTo(notes)
         verify { service.getNotes(customerId) }
+    }
+
+    @Test
+    fun `create new note - empty text`() {
+        val customerId = 123L
+
+        val response = controller.createNewNote(
+            customerId = customerId,
+            request = NewCustomerNoteRequest(note = "")
+        )
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
+    }
+
+    @Test
+    fun `create new note - successful`() {
+        val customerId = 123L
+        val note = "test note"
+
+        val noteItem = CustomerNoteItem(
+            author = "author 2",
+            timestamp = ZonedDateTime.now().minusDays(1),
+            note = "note 2"
+        )
+        every { service.createNewNote(customerId, note) } returns noteItem
+
+        val response = controller.createNewNote(
+            customerId = customerId,
+            request = NewCustomerNoteRequest(note = note)
+        )
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(response.body).isEqualTo(noteItem)
+        verify { service.createNewNote(customerId, note) }
     }
 
 }
