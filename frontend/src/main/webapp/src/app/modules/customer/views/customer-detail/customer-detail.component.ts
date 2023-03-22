@@ -21,6 +21,7 @@ export class CustomerDetailComponent implements OnInit {
   customerNotes: CustomerNoteItem[];
   errorMessage: string;
   @ViewChild('deleteCustomerModal') public deleteCustomerModal: ModalDirective;
+  newNoteText: string;
 
   constructor(
     private activatedRoute: ActivatedRoute,
@@ -126,6 +127,15 @@ export class CustomerDetailComponent implements OnInit {
     this.customerApiService.updateCustomer(updatedCustomerData).subscribe(customerData => {
       this.customerData = customerData;
     });
+  }
+
+  onValueChangeNoteText(event: Event) {
+    const value = (event.target as any).value;
+    this.newNoteText = value;
+  }
+
+  addNewNote() {
+    console.log("ADD NOTE", this.newNoteText);
   }
 
 }
