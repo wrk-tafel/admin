@@ -158,7 +158,7 @@
                   </div>
                 </div>
                 <div class="card-footer" *ngIf="customerNotes.length > 1">
-                  <button testid="showall-notes-button" type="button" class="btn btn-block btn-primary">Alle Notizen anzeigen</button>
+                  <button testid="showall-notes-button" type="button" class="btn btn-block btn-primary" (click)="showAllNotesModal.show()">Alle Notizen anzeigen</button>
                 </div>
               </div>
             </div>
@@ -239,6 +239,39 @@
         </button>
         <button testId="cancelButton" type="button" class="btn btn-secondary" (click)="deleteCustomerModal.hide()">
           Abbrechen
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<div testId="showallnotes-modal" bsModal #showAllNotesModal="bs-modal" class="modal modal-info fade"
+     tabindex="-1"
+     role="dialog"
+     aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-m" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Alle Notizen</h4>
+        <button type="button" class="close" (click)="showAllNotesModal.hide()" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="row" *ngFor="let noteItem of customerNotes; let i = index">
+          <div class="col" *ngIf="customerNotes?.length !== 0">
+            <hr *ngIf="i > 0">
+            <div class="row mb-2">
+              <div class="col font-weight-bold" testid="note-title">{{noteItem.timestamp | date : 'dd.MM.yyyy HH:mm' }}&nbsp;{{noteItem.author}}</div>
+            </div>
+            <div class="row">
+              <div class="col" testid="note-text">{{noteItem.note}}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button testId="cancelButton" type="button" class="btn btn-primary" (click)="showAllNotesModal.hide()">
+          OK
         </button>
       </div>
     </div>
