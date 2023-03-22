@@ -82,13 +82,13 @@ describe('CustomerDetailComponent', () => {
   const mockNotes = [
     {
       author: 'author1',
-      timestamp: moment().subtract(1, 'hour').toDate(),
-      note: 'note from author 1'
+      timestamp: moment('2023-03-22T19:45:25.615477+01:00').toDate(),
+      note: 'note from author 2'
     },
     {
       author: 'author2',
-      timestamp: moment().subtract(2, 'hour').toDate(),
-      note: 'note from author 2'
+      timestamp: moment('2023-03-20T19:45:25.615477+01:00').toDate(),
+      note: 'note from author 1'
     }
   ];
 
@@ -182,9 +182,6 @@ describe('CustomerDetailComponent', () => {
     expect(getTextByTestId(fixture, 'addperson-0-lastnameText')).toBe('Add');
     expect(getTextByTestId(fixture, 'addperson-0-firstnameText')).toBe('Pers 1');
 
-    console.log('PERS', mockCustomer.additionalPersons[0]);
-    console.log('PERS DATE', mockCustomer.additionalPersons[0].birthDate);
-    console.log('PERS DATE MOM', moment(mockCustomer.additionalPersons[0].birthDate).format('DD.MM.YYYY'));
     // TODO fix
     /*
     const birthDateAgePers1 = moment(mockCustomer.additionalPersons[0].birthDate).format('DD.MM.YYYY') +
@@ -203,6 +200,10 @@ describe('CustomerDetailComponent', () => {
     expect(getTextByTestId(fixture, 'addperson-1-incomeText')).toBe('-');
     expect(getTextByTestId(fixture, 'addperson-1-incomeDueText')).toBe('-');
      */
+
+    // validate note
+    expect(getTextByTestId(fixture, 'note-title')).toBe('22.03.2023 19:45 author1');
+    expect(getTextByTestId(fixture, 'note-text')).toBe('note from author 2');
   }));
 
   it('printMasterdata', waitForAsync(() => {
