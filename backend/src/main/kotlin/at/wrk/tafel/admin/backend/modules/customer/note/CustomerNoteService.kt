@@ -4,12 +4,14 @@ import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerNoteEntity
 import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerNoteRepository
+import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerRepository
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 
 @Service
 class CustomerNoteService(
     private val customerNoteRepository: CustomerNoteRepository,
+    private val customerRepository: CustomerRepository,
     private val userRepository: UserRepository
 ) {
 
@@ -35,7 +37,7 @@ class CustomerNoteService(
         val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
 
         val noteEntity = CustomerNoteEntity()
-        noteEntity.customerId = customerId
+        noteEntity.customer = customerRepository.findById(customerId).orElse(null)
         noteEntity.user = userRepository.findByUsername(authenticatedUser.username!!).orElse(null)
         noteEntity.note = note
 

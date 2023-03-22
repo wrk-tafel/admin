@@ -10,11 +10,12 @@ import jakarta.persistence.*
 @ExcludeFromTestCoverage
 class CustomerNoteEntity : BaseChangeTrackingEntity() {
 
-    @Column(name = "customer_id")
-    var customerId: Long? = null
+    @ManyToOne
+    @JoinColumn(name = "customer_id", nullable = false)
+    var customer: CustomerEntity? = null
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = true)
     var user: UserEntity? = null
 
     @Column(name = "note")

@@ -4,6 +4,8 @@ import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerNoteEntity
 import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerNoteRepository
+import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerRepository
+import at.wrk.tafel.admin.backend.modules.customer.testCustomerEntity1
 import at.wrk.tafel.admin.backend.security.testUser
 import at.wrk.tafel.admin.backend.security.testUserEntity
 import io.mockk.every
@@ -24,6 +26,9 @@ internal class CustomerNoteServiceTest {
 
     @RelaxedMockK
     private lateinit var customerNoteRepository: CustomerNoteRepository
+
+    @RelaxedMockK
+    private lateinit var customerRepository: CustomerRepository
 
     @RelaxedMockK
     private lateinit var userRepository: UserRepository
@@ -92,11 +97,13 @@ internal class CustomerNoteServiceTest {
         val note = "test note"
 
         val noteEntity = CustomerNoteEntity()
-        noteEntity.customerId = customerId
+        noteEntity.customer = testCustomerEntity1
         noteEntity.createdAt = ZonedDateTime.now()
         noteEntity.user = testUserEntity
         noteEntity.note = note
         every { customerNoteRepository.save(any()) } returns noteEntity
+
+        every { customerRepository.findById(testCustomerEntity1.id!!) } returns Optional.of(testCustomerEntity1)
 
         val noteItem = service.createNewNote(customerId = customerId, note = note)
 
@@ -107,7 +114,7 @@ internal class CustomerNoteServiceTest {
         verify {
             customerNoteRepository.save(withArg {
                 assertThat(it.user).isEqualTo(testUserEntity)
-                assertThat(it.customerId).isEqualTo(customerId)
+                assertThat(it.customer).isEqualTo(testCustomerEntity1)
                 assertThat(it.note).isEqualTo(note)
             })
         }
