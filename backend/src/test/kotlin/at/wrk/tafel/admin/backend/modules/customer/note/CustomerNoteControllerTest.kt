@@ -60,7 +60,7 @@ internal class CustomerNoteControllerTest {
 
         val response = controller.createNewNote(
             customerId = customerId,
-            request = NewCustomerNoteRequest(note = "")
+            request = CreateCustomerNoteRequest(note = "")
         )
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
@@ -80,7 +80,7 @@ internal class CustomerNoteControllerTest {
 
         val response = controller.createNewNote(
             customerId = customerId,
-            request = NewCustomerNoteRequest(note = note)
+            request = CreateCustomerNoteRequest(note = note)
         )
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)

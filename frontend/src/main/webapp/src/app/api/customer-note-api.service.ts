@@ -15,6 +15,11 @@ export class CustomerNoteApiService {
     return this.http.get<CustomerNotesResponse>(`/customers/${customerId}/notes`);
   }
 
+  createNewNote(customerId: number, note: string): Observable<CustomerNoteItem> {
+    const request: CreateCustomerNoteRequest = {note: note};
+    return this.http.post<CustomerNoteItem>(`/customers/${customerId}/notes`, request);
+  }
+
 }
 
 export interface CustomerNotesResponse {
@@ -24,5 +29,9 @@ export interface CustomerNotesResponse {
 export interface CustomerNoteItem {
   author?: string;
   timestamp: Date;
+  note: string;
+}
+
+export interface CreateCustomerNoteRequest {
   note: string;
 }

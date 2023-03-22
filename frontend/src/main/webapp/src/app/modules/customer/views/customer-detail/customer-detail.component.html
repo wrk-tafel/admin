@@ -285,17 +285,17 @@
     <div class="modal-content">
       <div class="modal-header">
         <h4 class="modal-title">Neue Notiz hinzufügen</h4>
-        <button type="button" class="close" (click)="addNewNoteModal.hide()" aria-label="Close">
+        <button type="button" class="close" (click)="this.newNoteText = undefined; addNewNoteModal.hide()" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
       <div class="modal-body">
-        <textarea id="textarea-input" name="textarea-input" rows="9" class="form-control" (input)="onValueChangeNoteText($event)"></textarea>
+        <textarea id="textarea-input" name="textarea-input" rows="9" class="form-control" [(ngModel)]="newNoteText"></textarea>
       </div>
       <div class="modal-footer">
-        <button testId="okButton" type="button" class="btn btn-primary" (click)="addNewNote()">Speichern
+        <button testId="okButton" type="button" class="btn btn-primary" (click)="addNewNote()" [disabled]="!newNoteText || newNoteText.trim().length == 0">Speichern
         </button>
-        <button testId="cancelButton" type="button" class="btn btn-secondary" (click)="addNewNoteModal.hide()">
+        <button testId="cancelButton" type="button" class="btn btn-secondary" (click)="this.newNoteText = undefined; addNewNoteModal.hide()">
           Abbrechen
         </button>
       </div>

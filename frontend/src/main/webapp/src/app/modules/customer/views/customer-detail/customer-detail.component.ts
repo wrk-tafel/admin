@@ -21,6 +21,7 @@ export class CustomerDetailComponent implements OnInit {
   customerNotes: CustomerNoteItem[];
   errorMessage: string;
   @ViewChild('deleteCustomerModal') public deleteCustomerModal: ModalDirective;
+  @ViewChild('addNewNoteModal') public addNewNoteModal: ModalDirective;
   newNoteText: string;
 
   constructor(
@@ -135,7 +136,11 @@ export class CustomerDetailComponent implements OnInit {
   }
 
   addNewNote() {
-    console.log("ADD NOTE", this.newNoteText);
+    this.customerNoteApiService.createNewNote(this.customerData.id, this.newNoteText).subscribe(newNoteItem => {
+      this.customerNotes.unshift(newNoteItem);
+      this.newNoteText = undefined;
+      this.addNewNoteModal.hide();
+    });
   }
 
 }

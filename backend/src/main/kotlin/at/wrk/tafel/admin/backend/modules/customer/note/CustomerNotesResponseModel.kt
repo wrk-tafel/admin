@@ -16,6 +16,6 @@ data class CustomerNoteItem(
 )
 
 @ExcludeFromTestCoverage
-data class NewCustomerNoteRequest(
+data class CreateCustomerNoteRequest(
     val note: String
 )

@@ -1,5 +1,5 @@
 import {NgModule} from '@angular/core';
-import {ReactiveFormsModule} from '@angular/forms';
+import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 
 import {CustomerEditComponent} from './views/customer-edit/customer-edit.component';
 import {CustomerRoutingModule} from './customer-routing.module';
@@ -19,7 +19,8 @@ import {TabsModule} from 'ngx-bootstrap/tabs';
         ReactiveFormsModule,
         CustomerRoutingModule,
         ModalModule.forRoot(),
-        TabsModule
+        TabsModule,
+        FormsModule
     ],
   declarations: [
     CustomerDetailComponent,

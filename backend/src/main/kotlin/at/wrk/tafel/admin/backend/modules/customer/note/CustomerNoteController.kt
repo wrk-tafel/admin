@@ -20,7 +20,7 @@ class CustomerNoteController(
     @PostMapping
     fun createNewNote(
         @PathVariable("customerId") customerId: Long,
-        @RequestBody request: NewCustomerNoteRequest
+        @RequestBody request: CreateCustomerNoteRequest
     ): ResponseEntity<CustomerNoteItem> {
         if (request.note.isNullOrBlank()) {
             return ResponseEntity.badRequest().build()
