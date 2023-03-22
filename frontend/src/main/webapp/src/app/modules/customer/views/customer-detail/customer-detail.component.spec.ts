@@ -202,7 +202,8 @@ describe('CustomerDetailComponent', () => {
      */
 
     // validate note
-    expect(getTextByTestId(fixture, 'note-title')).toBe('22.03.2023 19:45 author1');
+    const expectedTimestamp = moment(mockNotes[0].timestamp).format('DD.MM.YYYY HH:mm');
+    expect(getTextByTestId(fixture, 'note-title')).toBe(expectedTimestamp + ' author1');
     expect(getTextByTestId(fixture, 'note-text')).toBe('note from author 2');
   }));
 
