@@ -1,0 +1,3 @@
+### Get notes
+GET {{baseApiPath}}/customers/101/notes
+Content-Type: application/json
