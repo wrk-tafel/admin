@@ -4,7 +4,7 @@
   </div>
 </div>
 <div class="d-flex flex-column-reverse flex-lg-column">
-  <div class="d-flex flex-column flex-lg-row mt-3 mt-lg-0 mb-3 mb-lg-0">
+  <div class="d-flex flex-column flex-lg-row mt-3 mt-lg-0 mb-4 mb-lg-0">
     <div class="btn-group" dropdown>
       <button testid="printMenuButton" dropdownToggle type="button" class="btn btn-primary dropdown-toggle">
         Daten ausdrucken <span class="caret"></span>
@@ -46,7 +46,7 @@
             [disabled]="!customerData">Kunde löschen
     </button>
   </div>
-  <div class="row mt-0 mt-lg-3">
+  <div class="row mt-0 mt-lg-3 mb-0 mb-lg-3">
     <div class="col">
       <tabset>
         <tab heading="Allgemeine Daten">
@@ -155,48 +155,47 @@
         </tab>
         <tab>
           <ng-template tabHeading><i class="icon-people"></i> Weitere Personen ({{customerData?.additionalPersons.length}})</ng-template>
-          <div>
-            <div class="row">
-              <div class="col">
-                <div *ngIf="customerData?.additionalPersons.length === 0" class="mt-3">
-                  <h6 testid="nopersons-label">Keine Personen vorhanden</h6>
-                </div>
-              </div>
+          <div class="row" *ngIf="customerData?.additionalPersons.length === 0">
+            <div class="col mt-3">
+              <h6 testid="nopersons-label">Keine Personen vorhanden</h6>
             </div>
           </div>
-          <div *ngFor="let addPerson of customerData?.additionalPersons; let i = index">
-            <div class="row">
-              <div class="col-sm-12 col-lg-4">
-                <div class="card">
-                  <div class="card-body">
-                    <div class="row">
-                      <div class="col font-weight-bold" [attr.testid]="'addperson-' + i + '-lastnameText'"
-                           [innerHTML]="addPerson?.lastname"></div>
-                      <div class="col font-weight-bold" [attr.testid]="'addperson-' + i + '-firstnameText'"
-                           [innerHTML]="addPerson?.firstname"></div>
-                    </div>
-                    <div class="row">
-                      <div class="col-6" [attr.testid]="'addperson-' + i + '-birthDateAgeText'">{{customerData?.birthDate | date : 'dd.MM.YYYY'}} ({{getAge(customerData?.birthDate)}})</div>
-                      <div class="col-6" [attr.testid]="'addperson-' + i + '-countryText'">{{addPerson?.country.name}}</div>
-                    </div>
-                    <div class="row mt-1">
-                      <div class="col-6 font-weight-bold">Arbeitgeber</div>
-                      <div class="col-6" [attr.testid]="'addperson-' + i + '-employerText'" *ngIf="addPerson?.employer !== null">{{addPerson?.employer}}</div>
-                      <div class="col-6" [attr.testid]="'addperson-' + i + '-employerText'" *ngIf="addPerson?.employer === null">-</div>
-                    </div>
-                    <div class="row mt-1 align-items-end">
-                      <div class="col-6 font-weight-bold">Einkommen (monatl.)</div>
-                      <div class="col-6" [attr.testid]="'addperson-' + i + '-incomeText'" *ngIf="addPerson?.income">{{addPerson?.income | currency}}</div>
-                      <div class="col-6" [attr.testid]="'addperson-' + i + '-incomeText'" *ngIf="!addPerson?.income">-</div>
-                    </div>
-                    <div class="row align-items-end">
-                      <div class="col-6">nachgewiesen bis:</div>
-                      <div class="col-6 align-bottom" [attr.testid]="'addperson-' + i + '-incomeDueText'" *ngIf="addPerson?.incomeDue">{{addPerson?.incomeDue | date : 'dd.MM.yyyy'}}</div>
-                      <div class="col-6 align-bottom" [attr.testid]="'addperson-' + i + '-incomeDueText'" *ngIf="!addPerson?.incomeDue">-</div>
+          <div *ngIf="customerData?.additionalPersons.length > 0">
+            <div class="row mt-4">
+              <ng-container *ngFor="let addPerson of customerData?.additionalPersons; let i = index">
+                <div class="col-12 col-lg-6">
+                  <div class="card">
+                    <div class="card-body">
+                      <div class="row">
+                        <div class="col font-weight-bold" [attr.testid]="'addperson-' + i + '-lastnameText'"
+                             [innerHTML]="addPerson?.lastname"></div>
+                        <div class="col font-weight-bold" [attr.testid]="'addperson-' + i + '-firstnameText'"
+                             [innerHTML]="addPerson?.firstname"></div>
+                      </div>
+                      <div class="row">
+                        <div class="col-6" [attr.testid]="'addperson-' + i + '-birthDateAgeText'">{{customerData?.birthDate | date : 'dd.MM.YYYY'}} ({{getAge(customerData?.birthDate)}})</div>
+                        <div class="col-6" [attr.testid]="'addperson-' + i + '-countryText'">{{addPerson?.country.name}}</div>
+                      </div>
+                      <div class="row mt-1">
+                        <div class="col-6 font-weight-bold">Arbeitgeber</div>
+                        <div class="col-6" [attr.testid]="'addperson-' + i + '-employerText'" *ngIf="addPerson?.employer !== null">{{addPerson?.employer}}</div>
+                        <div class="col-6" [attr.testid]="'addperson-' + i + '-employerText'" *ngIf="addPerson?.employer === null">-</div>
+                      </div>
+                      <div class="row mt-1 align-items-end">
+                        <div class="col-6 font-weight-bold">Einkommen (monatl.)</div>
+                        <div class="col-6" [attr.testid]="'addperson-' + i + '-incomeText'" *ngIf="addPerson?.income">{{addPerson?.income | currency}}</div>
+                        <div class="col-6" [attr.testid]="'addperson-' + i + '-incomeText'" *ngIf="!addPerson?.income">-</div>
+                      </div>
+                      <div class="row align-items-end">
+                        <div class="col-6">nachgewiesen bis:</div>
+                        <div class="col-6 align-bottom" [attr.testid]="'addperson-' + i + '-incomeDueText'" *ngIf="addPerson?.incomeDue">{{addPerson?.incomeDue | date : 'dd.MM.yyyy'}}</div>
+                        <div class="col-6 align-bottom" [attr.testid]="'addperson-' + i + '-incomeDueText'" *ngIf="!addPerson?.incomeDue">-</div>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
+                <div *ngIf="i % 2 != 0" class="w-100"></div>
+              </ng-container>
             </div>
           </div>
         </tab>
