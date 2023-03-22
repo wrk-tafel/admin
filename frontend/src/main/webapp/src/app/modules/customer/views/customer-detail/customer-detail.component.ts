@@ -10,6 +10,7 @@ import {
 } from '../../../../api/customer-api.service';
 import {HttpResponse} from '@angular/common/http';
 import {ModalDirective} from 'ngx-bootstrap/modal';
+import {CustomerNoteApiService, CustomerNoteItem} from "../../../../api/customer-note-api.service";
 
 @Component({
   selector: 'tafel-customer-detail',
@@ -17,18 +18,23 @@ import {ModalDirective} from 'ngx-bootstrap/modal';
 })
 export class CustomerDetailComponent implements OnInit {
   customerData: CustomerData;
+  customerNotes: CustomerNoteItem[];
   errorMessage: string;
   @ViewChild('deleteCustomerModal') public deleteCustomerModal: ModalDirective;
 
   constructor(
     private activatedRoute: ActivatedRoute,
     private customerApiService: CustomerApiService,
+    private customerNoteApiService: CustomerNoteApiService,
     private fileHelperService: FileHelperService,
     private router: Router) {
   }
 
   ngOnInit(): void {
     this.customerData = this.activatedRoute.snapshot.data.customerData;
+    this.customerNoteApiService.getNotesForCustomer(this.customerData.id).subscribe((response) => {
+      this.customerNotes = response.notes;
+    });
   }
 
   printMasterdata() {
