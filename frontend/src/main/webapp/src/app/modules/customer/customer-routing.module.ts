@@ -17,7 +17,7 @@ const routes: Routes = [
     component: CustomerDetailComponent,
     resolve: {
       customerData: CustomerDataResolver,
-      notes: CustomerNotesResolver,
+      customerNotes: CustomerNotesResolver,
     }
   },
   {

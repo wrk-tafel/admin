@@ -32,7 +32,7 @@ export class CustomerDetailComponent implements OnInit {
 
   ngOnInit(): void {
     this.customerData = this.activatedRoute.snapshot.data.customerData;
-    this.customerNotes = this.activatedRoute.snapshot.data.notes;
+    this.customerNotes = this.activatedRoute.snapshot.data.customerNotes;
   }
 
   printMasterdata() {

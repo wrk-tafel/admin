@@ -129,7 +129,7 @@ describe('CustomerDetailComponent', () => {
             snapshot: {
               data: {
                 customerData: mockCustomer,
-                notes: mockNotes
+                customerNotes: mockNotes
               }
             }
           }
