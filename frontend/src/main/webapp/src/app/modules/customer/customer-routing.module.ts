@@ -16,7 +16,7 @@ const routes: Routes = [
     path: 'detail/:id',
     component: CustomerDetailComponent,
     resolve: {
-      data: CustomerDataResolver,
+      customerData: CustomerDataResolver,
       notes: CustomerNotesResolver,
     }
   },

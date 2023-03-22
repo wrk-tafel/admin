@@ -128,7 +128,7 @@ describe('CustomerDetailComponent', () => {
           useValue: {
             snapshot: {
               data: {
-                data: mockCustomer,
+                customerData: mockCustomer,
                 notes: mockNotes
               }
             }
