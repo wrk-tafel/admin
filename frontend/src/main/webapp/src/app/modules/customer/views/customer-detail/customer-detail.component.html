@@ -94,21 +94,21 @@
                 <hr>
                 <div class="row">
                   <div class="col font-weight-bold">Adresse</div>
-                </div>
-                <div class="row">
-                  <div testid="addressLine1Text" class="col">{{customerData?.address ?
-                    formatAddressLine1(customerData?.address) : ''}}</div>
-                </div>
-                <div class="row">
-                  <div testid="addressLine2Text" class="col"
-                       [innerHTML]="customerData?.address ? formatAddressLine2(customerData?.address) : ''">
+                  <div class="col">
+                    <div class="row">
+                      <div testid="addressLine1Text" class="col">{{customerData?.address ?
+                        formatAddressLine1(customerData?.address) : ''}}</div>
+                    </div>
+                    <div class="row">
+                      <div testid="addressLine2Text" class="col"
+                           [innerHTML]="customerData?.address ? formatAddressLine2(customerData?.address) : ''">
+                      </div>
+                    </div>
                   </div>
                 </div>
                 <hr>
                 <div class="row">
                   <div class="col font-weight-bold">Arbeitgeber</div>
-                </div>
-                <div class="row">
                   <div testid="employerText" class="col">{{customerData?.employer}}</div>
                 </div>
                 <div class="row mt-2 align-items-end">
