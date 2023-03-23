@@ -3,8 +3,6 @@
 * General
     * Unify errormsg handling (panel on top) ?
     * Toast messages?
-* customer creation
-    * add employer field also for additional persons
 * customer edit
     * enforce validation also when editing
 * customer-detail

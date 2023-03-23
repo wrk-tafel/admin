@@ -252,6 +252,16 @@
                                                                 </fo:table-row>
                                                                 <fo:table-row>
                                                                     <fo:table-cell>
+                                                                        <fo:block>Arbeitgeber:</fo:block>
+                                                                    </fo:table-cell>
+                                                                    <fo:table-cell>
+                                                                        <fo:block>
+                                                                            <xsl:value-of select="./employer"/>
+                                                                        </fo:block>
+                                                                    </fo:table-cell>
+                                                                </fo:table-row>
+                                                                <fo:table-row>
+                                                                    <fo:table-cell>
                                                                         <fo:block>Einkommen:</fo:block>
                                                                     </fo:table-cell>
                                                                     <fo:table-cell>
