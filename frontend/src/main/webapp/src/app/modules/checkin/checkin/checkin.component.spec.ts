@@ -3,8 +3,7 @@ import {CheckinComponent, CustomerState} from './checkin.component';
 import {WebsocketService} from '../../../common/websocket/websocket.service';
 import {CommonModule} from '@angular/common';
 import {CustomerApiService} from '../../../api/customer-api.service';
-import {RxStompState} from '@stomp/rx-stomp';
-import {BehaviorSubject, of, throwError} from 'rxjs';
+import {of, throwError} from 'rxjs';
 import {IMessage} from '@stomp/stompjs';
 import * as moment from 'moment/moment';
 import {ScannerList, ScanResult} from '../scanner/scanner.component';
@@ -19,7 +18,7 @@ describe('CheckinComponent', () => {
     const customerApiServiceSpy = jasmine.createSpyObj('CustomerApiService', ['getCustomer']);
     const customerNoteApiServiceSpy = jasmine.createSpyObj('CustomerNoteApiService', ['getNotesForCustomer']);
     const wsServiceSpy = jasmine.createSpyObj('WebsocketService',
-      ['init', 'connect', 'getConnectionState', 'watch', 'close']
+      ['init', 'connect', 'watch', 'close']
     );
 
     TestBed.configureTestingModule({
@@ -54,7 +53,6 @@ describe('CheckinComponent', () => {
   it('ngOnInit', () => {
     const fixture = TestBed.createComponent(CheckinComponent);
     const component = fixture.componentInstance;
-    wsService.getConnectionState.and.returnValue(new BehaviorSubject(RxStompState.OPEN));
 
     const scannersResponse: ScannerList = {scannerIds: [1, 2, 3]};
     const scannersMessage: IMessage = {
@@ -70,7 +68,6 @@ describe('CheckinComponent', () => {
 
     component.ngOnInit();
 
-    expect(wsService.getConnectionState).toHaveBeenCalled();
     expect(wsService.watch).toHaveBeenCalledWith('/topic/scanners');
     expect(component.scannerIds).toEqual(scannersResponse.scannerIds);
   });
