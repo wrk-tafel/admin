@@ -246,8 +246,19 @@ describe('DefaultLayoutComponent', () => {
     };
     const testMenuItem2 = {
       name: 'Test2',
+      activeDistributionRequired: true,
+      badge: {
+        variant: 'danger',
+        text: 'INAKTIV'
+      },
+      attributes: {disabled: true}
+    };
+
+    const testMenuItem2Resetted = {
+      name: 'Test2',
       activeDistributionRequired: true
     };
+
     const testMenuItem3 = {
       name: 'Test3'
     };
@@ -257,9 +268,9 @@ describe('DefaultLayoutComponent', () => {
     const component = fixture.componentInstance;
     component.navItems = testMenuItems;
 
-    component.editNavItemsForDistributionState(testMenuItems, testDistribution);
+    const editedItems = component.editNavItemsForDistributionState(testMenuItems, testDistribution);
 
-    expect(component.navItems).toEqual(testMenuItems);
+    expect(editedItems).toEqual([testMenuItem1, testMenuItem2Resetted, testMenuItem3]);
   });
 
 });
