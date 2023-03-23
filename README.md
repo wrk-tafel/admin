@@ -7,6 +7,8 @@
     * add employer field also for additional persons
 * customer edit
     * enforce validation also when editing
+* customer-detail
+    * add document upload
 * Fix autofocus: https://davidmcintosh.medium.com/auto-focusing-an-angular-input-the-easy-way-part-1-dcb1799e025f
 
 ### Open things (to be discussed)

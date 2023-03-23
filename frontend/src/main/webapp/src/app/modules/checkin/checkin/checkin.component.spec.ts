@@ -8,13 +8,16 @@ import {BehaviorSubject, of, throwError} from 'rxjs';
 import {IMessage} from '@stomp/stompjs';
 import * as moment from 'moment/moment';
 import {ScannerList, ScanResult} from '../scanner/scanner.component';
+import {CustomerNoteApiService, CustomerNotesResponse} from '../../../api/customer-note-api.service';
 
 describe('CheckinComponent', () => {
   let customerApiService: jasmine.SpyObj<CustomerApiService>;
+  let customerNoteApiService: jasmine.SpyObj<CustomerNoteApiService>;
   let wsService: jasmine.SpyObj<WebsocketService>;
 
   beforeEach(waitForAsync(() => {
     const customerApiServiceSpy = jasmine.createSpyObj('CustomerApiService', ['getCustomer']);
+    const customerNoteApiServiceSpy = jasmine.createSpyObj('CustomerNoteApiService', ['getNotesForCustomer']);
     const wsServiceSpy = jasmine.createSpyObj('WebsocketService',
       ['init', 'connect', 'getConnectionState', 'watch', 'close']
     );
@@ -27,6 +30,10 @@ describe('CheckinComponent', () => {
           useValue: customerApiServiceSpy
         },
         {
+          provide: CustomerNoteApiService,
+          useValue: customerNoteApiServiceSpy
+        },
+        {
           provide: WebsocketService,
           useValue: wsServiceSpy
         }
@@ -34,6 +41,7 @@ describe('CheckinComponent', () => {
     }).compileComponents();
 
     customerApiService = TestBed.inject(CustomerApiService) as jasmine.SpyObj<CustomerApiService>;
+    customerNoteApiService = TestBed.inject(CustomerNoteApiService) as jasmine.SpyObj<CustomerNoteApiService>;
     wsService = TestBed.inject(WebsocketService) as jasmine.SpyObj<WebsocketService>;
   }));
 
@@ -197,6 +205,8 @@ describe('CheckinComponent', () => {
       validUntil: moment().add(3, 'months').startOf('day').utc().toDate()
     };
     customerApiService.getCustomer.and.returnValue(of(mockCustomer));
+    const notesResponse: CustomerNotesResponse = {notes: []};
+    customerNoteApiService.getNotesForCustomer.and.returnValue(of(notesResponse));
     component.customerId = mockCustomer.id;
 
     component.searchForCustomerId();
@@ -268,6 +278,8 @@ describe('CheckinComponent', () => {
       validUntil: moment().subtract(2, 'weeks').startOf('day').utc().toDate()
     };
     customerApiService.getCustomer.and.returnValue(of(mockCustomer));
+    const notesResponse: CustomerNotesResponse = {notes: []};
+    customerNoteApiService.getNotesForCustomer.and.returnValue(of(notesResponse));
     component.customerId = mockCustomer.id;
 
     component.searchForCustomerId();
@@ -285,6 +297,8 @@ describe('CheckinComponent', () => {
 
     customerApiService.getCustomer.and.returnValue(throwError({status: 404}));
     const testCustomerId = 1234;
+    const notesResponse: CustomerNotesResponse = {notes: []};
+    customerNoteApiService.getNotesForCustomer.and.returnValue(of(notesResponse));
     component.customerId = testCustomerId;
 
     component.searchForCustomerId();
