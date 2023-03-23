@@ -3,9 +3,9 @@ import {CustomerApiService, CustomerData} from '../../../api/customer-api.servic
 import {WebsocketService} from '../../../common/websocket/websocket.service';
 import {Subscription} from 'rxjs';
 import {IMessage} from '@stomp/stompjs';
-import {RxStompState} from '@stomp/rx-stomp';
 import * as moment from 'moment';
 import {ScannerList} from '../scanner/scanner.component';
+import {CustomerNoteApiService, CustomerNoteItem} from '../../../api/customer-note-api.service';
 
 @Component({
   selector: 'tafel-checkin',
@@ -15,6 +15,7 @@ export class CheckinComponent implements OnInit, OnDestroy {
 
   constructor(
     private customerApiService: CustomerApiService,
+    private customerNoteApiService: CustomerNoteApiService,
     private websocketService: WebsocketService
   ) {
   }
@@ -25,7 +26,6 @@ export class CheckinComponent implements OnInit, OnDestroy {
 
   scannerIds: number[];
   currentScannerId: number;
-  wsApiClientReady: boolean = false;
   scannerReadyState: boolean;
   scannerSubscription: Subscription;
 
@@ -34,11 +34,9 @@ export class CheckinComponent implements OnInit, OnDestroy {
   customerState: CustomerState;
   customerStateText: string;
 
-  ngOnInit(): void {
-    this.websocketService.getConnectionState().subscribe((state: RxStompState) => {
-      this.processWsConnectionState(state);
-    });
+  customerNotes: CustomerNoteItem[];
 
+  ngOnInit(): void {
     this.websocketService.watch('/topic/scanners').subscribe((message: IMessage) => {
       const scanners: ScannerList = JSON.parse(message.body);
       this.scannerIds = scanners.scannerIds;
@@ -52,24 +50,20 @@ export class CheckinComponent implements OnInit, OnDestroy {
   }
 
   searchForCustomerId() {
-    this.customerApiService.getCustomer(this.customerId)
-      .subscribe((customer: CustomerData) => {
-        this.processCustomer(customer);
-        this.errorMessage = undefined;
-      }, error => {
-        if (error.status === 404) {
-          this.processCustomer(undefined);
-          this.errorMessage = 'Kundennummer ' + this.customerId + ' nicht gefunden!';
-        }
-      });
-  }
+    this.customerApiService.getCustomer(this.customerId).subscribe(customerData => {
+      this.processCustomer(customerData);
+      this.errorMessage = undefined;
+    }, error => {
+      if (error.status === 404) {
+        this.processCustomer(undefined);
+        this.customerNotes = [];
+        this.errorMessage = 'Kundennummer ' + this.customerId + ' nicht gefunden!';
+      }
+    });
 
-  processWsConnectionState(state: RxStompState) {
-    if (state === RxStompState.OPEN) {
-      this.wsApiClientReady = true;
-    } else {
-      this.wsApiClientReady = false;
-    }
+    this.customerNoteApiService.getNotesForCustomer(this.customerId).subscribe(notesResponse => {
+      this.customerNotes = notesResponse.notes;
+    });
   }
 
   processCustomer(customer: CustomerData) {
@@ -81,15 +75,15 @@ export class CheckinComponent implements OnInit, OnDestroy {
 
       if (validUntil.isBefore(now)) {
         this.customerState = CustomerState.RED;
-        this.customerStateText = 'Ungültig';
+        this.customerStateText = 'UNGÜLTIG';
       } else {
         const warnLimit = now.add(this.VALID_UNTIL_WARNLIMIT_WEEKS, 'weeks');
         if (!validUntil.isAfter(warnLimit)) {
           this.customerState = CustomerState.YELLOW;
-          this.customerStateText = 'Gültig - läuft bald ab';
+          this.customerStateText = 'GÜLTIG - läuft bald ab';
         } else {
           this.customerState = CustomerState.GREEN;
-          this.customerStateText = 'Gültig';
+          this.customerStateText = 'GÜLTIG';
         }
       }
     } else {
@@ -128,13 +122,6 @@ export class CheckinComponent implements OnInit, OnDestroy {
     }
   }
 
-  resetCustomer() {
-    this.processCustomer(null);
-  }
-
-  isCustomerInvalid(): boolean {
-    return this.customerState === CustomerState.RED;
-  }
 }
 
 export enum CustomerState {

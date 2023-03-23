@@ -7,7 +7,7 @@ import {CustomerDataResolver} from './customerdata-resolver.component';
 import {ActivatedRouteSnapshot} from '@angular/router';
 
 describe('CustomerDataResolver', () => {
-  let customerApiService: jasmine.SpyObj<CustomerApiService>;
+  let apiService: jasmine.SpyObj<CustomerApiService>;
   let resolver: CustomerDataResolver;
 
   beforeEach(() => {
@@ -22,7 +22,7 @@ describe('CustomerDataResolver', () => {
       ]
     });
 
-    customerApiService = TestBed.inject(CustomerApiService) as jasmine.SpyObj<CustomerApiService>;
+    apiService = TestBed.inject(CustomerApiService) as jasmine.SpyObj<CustomerApiService>;
     resolver = TestBed.inject(CustomerDataResolver);
   });
 
@@ -68,14 +68,14 @@ describe('CustomerDataResolver', () => {
         }
       ]
     };
-    customerApiService.getCustomer.withArgs(mockCustomer.id).and.returnValue(of(mockCustomer));
+    apiService.getCustomer.withArgs(mockCustomer.id).and.returnValue(of(mockCustomer));
 
     const activatedRoute = <ActivatedRouteSnapshot><unknown>{params: {id: mockCustomer.id}};
     resolver.resolve(activatedRoute, undefined).subscribe((customer: CustomerData) => {
       expect(customer).toEqual(mockCustomer);
     });
 
-    expect(customerApiService.getCustomer).toHaveBeenCalled();
+    expect(apiService.getCustomer).toHaveBeenCalledWith(mockCustomer.id);
   });
 
 });

@@ -21,8 +21,9 @@
             </select>
           </div>
           <div class="col-sm-3 mt-2 mt-md-0 align-self-center">
-            <div class="badge" style="font-size: 10pt;" testId="state-server"
-                 [ngClass]="{'badge-success': scannerReadyState, 'badge-danger': !scannerReadyState}">Aktiv
+            <div class="badge font-lg" testId="state-server"
+                 [ngClass]="{'badge-success': scannerReadyState, 'badge-danger': !scannerReadyState}">
+              {{scannerReadyState ? 'AKTIV' : 'INAKTIV'}}
             </div>
           </div>
         </div>
@@ -53,16 +54,18 @@
       <div class="card-body">
         <div class="row">
           <div class="col mb-2">
-            <h4>{{customer.id}} - {{customer.firstname}} {{customer.lastname}}</h4>
-            <div class="badge" style="font-size: 10pt;"
-                 [ngClass]="{'badge-danger': customerState == 0, 'badge-warning': customerState == 1, 'badge-success': customerState == 2}">
-              {{customerStateText}}
-            </div>
+            <h4>
+              <div class="badge font-lg"
+                   [ngClass]="{'badge-danger': customerState == 0, 'badge-warning': customerState == 1, 'badge-success': customerState == 2}">
+                {{customerStateText}}
+              </div>
+              {{customer.id}} - {{customer.firstname}} {{customer.lastname}}
+            </h4>
           </div>
         </div>
         <div class="row">
           <div class="col">
-            bis:
+            Gültig bis:
           </div>
           <div class="col">
             {{customer.validUntil | date : 'dd.MM.yyyy'}}
@@ -93,10 +96,27 @@
             {{getInfantCount()}}
           </div>
         </div>
-        <div class="row mt-5">
+        <hr>
+        <div class="row">
           <div class="col">
-            <button testId="assignTicketButton" type="button" class="btn btn-success mr-3" [disabled]="isCustomerInvalid()">LOS-Nummer zuweisen</button>
-            <button testId="resetCustomerButton" type="button" class="btn btn-primary" (click)="resetCustomer()">Zurücksetzen</button>
+            <div class="card">
+              <div class="card-header font-weight-bold">
+                Aktuellste Notiz
+              </div>
+              <div class="card-body">
+                <div class="font-weight-bold" *ngIf="customerNotes?.length === 0">
+                  <h6 testid="nonotes-label">Keine Notiz vorhanden</h6>
+                </div>
+                <div *ngIf="customerNotes?.length !== 0">
+                  <div class="row mb-2">
+                    <div class="col font-weight-bold" testid="note-title">{{customerNotes[0].timestamp | date : 'dd.MM.yyyy HH:mm' }}&nbsp;{{customerNotes[0].author}}</div>
+                  </div>
+                  <div class="row">
+                    <div class="col" testid="note-text" [innerHtml]="customerNotes[0].note"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

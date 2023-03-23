@@ -10,6 +10,7 @@ import {
 } from '../../../../api/customer-api.service';
 import {HttpResponse} from '@angular/common/http';
 import {ModalDirective} from 'ngx-bootstrap/modal';
+import {CustomerNoteApiService, CustomerNoteItem} from '../../../../api/customer-note-api.service';
 
 @Component({
   selector: 'tafel-customer-detail',
@@ -17,18 +18,23 @@ import {ModalDirective} from 'ngx-bootstrap/modal';
 })
 export class CustomerDetailComponent implements OnInit {
   customerData: CustomerData;
+  customerNotes: CustomerNoteItem[];
   errorMessage: string;
   @ViewChild('deleteCustomerModal') public deleteCustomerModal: ModalDirective;
+  @ViewChild('addNewNoteModal') public addNewNoteModal: ModalDirective;
+  newNoteText: string;
 
   constructor(
     private activatedRoute: ActivatedRoute,
     private customerApiService: CustomerApiService,
+    private customerNoteApiService: CustomerNoteApiService,
     private fileHelperService: FileHelperService,
     private router: Router) {
   }
 
   ngOnInit(): void {
     this.customerData = this.activatedRoute.snapshot.data.customerData;
+    this.customerNotes = this.activatedRoute.snapshot.data.customerNotes;
   }
 
   printMasterdata() {
@@ -121,6 +127,15 @@ export class CustomerDetailComponent implements OnInit {
 
     this.customerApiService.updateCustomer(updatedCustomerData).subscribe(customerData => {
       this.customerData = customerData;
+    });
+  }
+
+  addNewNote() {
+    const sanitizedText = this.newNoteText.replace(/\n/g, '<br/>');
+    this.customerNoteApiService.createNewNote(this.customerData.id, sanitizedText).subscribe(newNoteItem => {
+      this.customerNotes.unshift(newNoteItem);
+      this.newNoteText = undefined;
+      this.addNewNoteModal.hide();
     });
   }
 
