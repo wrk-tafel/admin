@@ -28,7 +28,6 @@ export class CustomerEditComponent implements OnInit {
   ngOnInit(): void {
     const customerData = this.activatedRoute.snapshot.data.customerData;
     if (customerData) {
-      // Editing doesn't need a validation check
       this.editMode = true;
 
       // Load data into forms
@@ -83,7 +82,7 @@ export class CustomerEditComponent implements OnInit {
   }
 
   isSaveDisabled(): boolean {
-    return !this.formIsValid() || (!this.editMode && !this.customerValidForSave);
+    return !this.formIsValid() || !this.customerValidForSave;
   }
 
   private formIsValid() {
