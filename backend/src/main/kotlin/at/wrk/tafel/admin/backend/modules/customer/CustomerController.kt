@@ -39,9 +39,9 @@ class CustomerController(
         return service.createCustomer(customer)
     }
 
-    @PostMapping("/{id}")
+    @PostMapping("/{customerId}")
     fun updateCustomer(
-        @PathVariable("id") customerId: Long,
+        @PathVariable("customerId") customerId: Long,
         @RequestBody customer: Customer
     ): Customer {
         if (!service.existsByCustomerId(customerId)) {

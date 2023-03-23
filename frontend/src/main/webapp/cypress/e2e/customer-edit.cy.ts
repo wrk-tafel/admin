@@ -11,9 +11,45 @@ describe('Customer Edit', () => {
 
   it('customer updated', () => {
     cy.visit('/#/kunden/bearbeiten/102');
+
+    cy.byTestId('save-button').should('be.disabled');
+
+    cy.byTestId('validate-button').click();
+
+    cy.byTestId('validationresult-modal')
+      .should('be.visible')
+      .within(() => {
+        cy.byTestId('ok-button').click();
+      });
     cy.byTestId('save-button').click();
 
     cy.url().should('contain', '/kunden/detail/102');
+
+    // TODO change actual data (but for that create a new dedicated customer beforehand)
+  });
+
+  it('customer invalid after update', () => {
+    cy.visit('/#/kunden/bearbeiten/102');
+
+    cy.byTestId('save-button').should('be.disabled');
+
+    const incomeInput = cy.byTestId('incomeInput');
+    incomeInput.clear();
+    incomeInput.type('10000');
+
+    cy.byTestId('validate-button').click();
+
+    cy.byTestId('validationresult-modal')
+      .should('be.visible')
+      .within(() => {
+        cy.byTestId('title').contains('Kein Anspruch vorhanden');
+        cy.byTestId('validationresult-modal-dialog').should('have.class', 'modal-danger');
+        cy.byTestId('ok-button').click();
+      });
+
+    cy.byTestId('save-button').should('be.disabled');
+
+    cy.url().should('not.contain', '/kunden/detail/102');
 
     // TODO change actual data (but for that create a new dedicated customer beforehand)
   });

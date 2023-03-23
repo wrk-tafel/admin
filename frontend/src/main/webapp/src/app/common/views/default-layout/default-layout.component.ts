@@ -97,7 +97,12 @@ export class DefaultLayoutComponent implements OnInit {
         };
         resultNavItems.push(modifiedNavItem);
       } else {
-        resultNavItems.push(navItem);
+        const modifiedNavItem = {
+          ...navItem
+        };
+        delete modifiedNavItem['badge'];
+        delete modifiedNavItem['attributes'];
+        resultNavItems.push(modifiedNavItem);
       }
     });
 

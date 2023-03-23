@@ -357,6 +357,17 @@
                       </div>
                       <div class="row">
                         <div class="col-lg-6">
+                          <label class="form-label">Arbeitgeber</label>
+                          <div class="input-group">
+                            <input testid="employerInput" type="text"
+                                   formControlName="employer" class="form-control"
+                                   [ngClass]="{'is-invalid': additionalPerson.get('employer').invalid && (additionalPerson.get('employer').dirty || additionalPerson.get('employer').touched), 'is-valid': additionalPerson.get('employer').valid && (additionalPerson.get('employer').dirty || additionalPerson.get('employer').touched)}">
+                            <div class="input-group-append">
+                              <span class="input-group-text"><i class="cil-factory"></i></span>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="col-lg-6">
                           <label class="form-label">Einkommen (monatl.)</label>
                           <div class="input-group">
                             <input testid="incomeInput" type="number"
@@ -367,6 +378,8 @@
                             </div>
                           </div>
                         </div>
+                      </div>
+                      <div class="row">
                         <div class="col-lg-6">
                           <label class="form-label">nachgewiesen bis</label>
                           <div class="input-group">

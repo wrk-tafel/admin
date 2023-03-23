@@ -75,6 +75,7 @@ data class PdfAdditionalPersonData(
     val firstname: String,
     val birthDate: String,
     val country: String,
+    val employer: String? = null,
     val income: String? = null,
     val incomeDueDate: String? = null
 )

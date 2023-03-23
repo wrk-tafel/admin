@@ -1,5 +1,5 @@
 import {NgModule} from '@angular/core';
-import {ReactiveFormsModule} from '@angular/forms';
+import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 
 import {CustomerEditComponent} from './views/customer-edit/customer-edit.component';
 import {CustomerRoutingModule} from './customer-routing.module';
@@ -10,15 +10,18 @@ import {CustomerDetailComponent} from './views/customer-detail/customer-detail.c
 import {CustomerSearchComponent} from './views/customer-search/customer-search.component';
 import {BsDropdownModule} from 'ngx-bootstrap/dropdown';
 import {CustomerApiService} from '../../api/customer-api.service';
+import {TabsModule} from 'ngx-bootstrap/tabs';
 
 @NgModule({
-  imports: [
-    BsDropdownModule,
-    CommonModule,
-    ReactiveFormsModule,
-    CustomerRoutingModule,
-    ModalModule.forRoot()
-  ],
+    imports: [
+        BsDropdownModule,
+        CommonModule,
+        ReactiveFormsModule,
+        CustomerRoutingModule,
+        ModalModule.forRoot(),
+        TabsModule,
+        FormsModule
+    ],
   declarations: [
     CustomerDetailComponent,
     CustomerEditComponent,

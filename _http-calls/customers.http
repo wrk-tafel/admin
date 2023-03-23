@@ -110,6 +110,7 @@ Content-Type: application/json
       "firstname": "Child 1",
       "lastname": "Musterfrau",
       "birthDate": "2000-01-01",
+      "employer": "Stadt Wien",
       "income": 500,
       "country": {
         "id": 2,
