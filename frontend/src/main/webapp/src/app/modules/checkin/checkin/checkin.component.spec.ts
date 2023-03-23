@@ -86,6 +86,7 @@ describe('CheckinComponent', () => {
 
   it('selectedScannerId first time selected', () => {
     customerApiService.getCustomer.and.returnValue(of());
+    customerNoteApiService.getNotesForCustomer.and.returnValue(of());
 
     const customerId = 11111;
     const scanResult: ScanResult = {value: customerId};
@@ -160,7 +161,7 @@ describe('CheckinComponent', () => {
   it('searchForCustomerId found valid customer', () => {
     const fixture = TestBed.createComponent(CheckinComponent);
     const component = fixture.componentInstance;
-    component.errorMessage = 'test msg';
+    component.errorMessage = 'test msg to be purged';
 
     const mockCustomer = {
       id: 133,
@@ -193,7 +194,7 @@ describe('CheckinComponent', () => {
     expect(component.errorMessage).toBeUndefined();
 
     expect(component.customerState).toBe(CustomerState.GREEN);
-    expect(component.customerStateText).toBe('Gültig');
+    expect(component.customerStateText).toBe('GÜLTIG');
   });
 
   it('searchForCustomerId found valid customer but expires soon', () => {
@@ -220,6 +221,8 @@ describe('CheckinComponent', () => {
       validUntil: moment().add(2, 'weeks').startOf('day').utc().toDate()
     };
     customerApiService.getCustomer.and.returnValue(of(mockCustomer));
+    const notesResponse: CustomerNotesResponse = {notes: []};
+    customerNoteApiService.getNotesForCustomer.and.returnValue(of(notesResponse));
     component.customerId = mockCustomer.id;
 
     component.searchForCustomerId();
@@ -228,7 +231,7 @@ describe('CheckinComponent', () => {
     expect(customerApiService.getCustomer).toHaveBeenCalledWith(mockCustomer.id);
 
     expect(component.customerState).toBe(CustomerState.YELLOW);
-    expect(component.customerStateText).toBe('Gültig - läuft bald ab');
+    expect(component.customerStateText).toBe('GÜLTIG - läuft bald ab');
   });
 
   it('searchForCustomerId found invalid customer', () => {
@@ -265,7 +268,7 @@ describe('CheckinComponent', () => {
     expect(customerApiService.getCustomer).toHaveBeenCalledWith(mockCustomer.id);
 
     expect(component.customerState).toBe(CustomerState.RED);
-    expect(component.customerStateText).toBe('Ungültig');
+    expect(component.customerStateText).toBe('UNGÜLTIG');
   });
 
   it('searchForCustomerId customer not found', () => {
@@ -273,9 +276,9 @@ describe('CheckinComponent', () => {
     const component = fixture.componentInstance;
 
     customerApiService.getCustomer.and.returnValue(throwError({status: 404}));
-    const testCustomerId = 1234;
     const notesResponse: CustomerNotesResponse = {notes: []};
     customerNoteApiService.getNotesForCustomer.and.returnValue(of(notesResponse));
+    const testCustomerId = 1234;
     component.customerId = testCustomerId;
 
     component.searchForCustomerId();
@@ -283,6 +286,32 @@ describe('CheckinComponent', () => {
     expect(component.customer).toBeUndefined();
     expect(customerApiService.getCustomer).toHaveBeenCalledWith(testCustomerId);
     expect(component.errorMessage).toBe(`Kundennummer ${testCustomerId} nicht gefunden!`);
+  });
+
+  it('searchForCustomerId found notes', () => {
+    const fixture = TestBed.createComponent(CheckinComponent);
+    const component = fixture.componentInstance;
+
+    customerApiService.getCustomer.and.returnValue(of());
+
+    const mockNotes = [
+      {
+        author: 'author1',
+        timestamp: moment('2023-03-22T19:45:25.615477+01:00').toDate(),
+        note: 'note from author 2'
+      },
+      {
+        author: 'author2',
+        timestamp: moment('2023-03-20T19:45:25.615477+01:00').toDate(),
+        note: 'note from author 1'
+      }
+    ];
+    const notesResponse: CustomerNotesResponse = {notes: mockNotes};
+    customerNoteApiService.getNotesForCustomer.and.returnValue(of(notesResponse));
+
+    component.searchForCustomerId();
+
+    expect(component.customerNotes).toEqual(mockNotes);
   });
 
 });

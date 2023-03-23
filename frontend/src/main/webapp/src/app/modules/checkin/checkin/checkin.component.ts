@@ -5,7 +5,7 @@ import {Subscription} from 'rxjs';
 import {IMessage} from '@stomp/stompjs';
 import * as moment from 'moment';
 import {ScannerList} from '../scanner/scanner.component';
-import {CustomerNoteApiService, CustomerNoteItem, CustomerNotesResponse} from '../../../api/customer-note-api.service';
+import {CustomerNoteApiService, CustomerNoteItem} from '../../../api/customer-note-api.service';
 
 @Component({
   selector: 'tafel-checkin',
@@ -50,26 +50,19 @@ export class CheckinComponent implements OnInit, OnDestroy {
   }
 
   searchForCustomerId() {
-    const promises: Promise<any[]> = Promise.all(
-      [
-        this.customerApiService.getCustomer(this.customerId).toPromise(),
-        this.customerNoteApiService.getNotesForCustomer(this.customerId).toPromise()
-      ]
-    );
-
-    promises.then((result: any[]) => {
-      const customerData: CustomerData = result[0];
-      const customerNotes: CustomerNotesResponse = result[1];
-
+    this.customerApiService.getCustomer(this.customerId).subscribe(customerData => {
       this.processCustomer(customerData);
       this.errorMessage = undefined;
-
-      this.customerNotes = customerNotes.notes;
-    }, (error) => {
+    }, error => {
       if (error.status === 404) {
         this.processCustomer(undefined);
+        this.customerNotes = [];
         this.errorMessage = 'Kundennummer ' + this.customerId + ' nicht gefunden!';
       }
+    });
+
+    this.customerNoteApiService.getNotesForCustomer(this.customerId).subscribe(notesResponse => {
+      this.customerNotes = notesResponse.notes;
     });
   }
 
