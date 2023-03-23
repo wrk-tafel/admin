@@ -87,26 +87,6 @@ describe('CheckinComponent', () => {
     expect(component.scannerSubscription.unsubscribe).toHaveBeenCalled();
   });
 
-  it('processWsConnectionState OPEN', () => {
-    const fixture = TestBed.createComponent(CheckinComponent);
-    const component = fixture.componentInstance;
-    component.wsApiClientReady = false;
-
-    component.processWsConnectionState(RxStompState.OPEN);
-
-    expect(component.wsApiClientReady).toBeTruthy();
-  });
-
-  it('processWsConnectionState CLOSED', () => {
-    const fixture = TestBed.createComponent(CheckinComponent);
-    const component = fixture.componentInstance;
-    component.wsApiClientReady = true;
-
-    component.processWsConnectionState(RxStompState.CLOSED);
-
-    expect(component.wsApiClientReady).toBeFalsy();
-  });
-
   it('selectedScannerId first time selected', () => {
     customerApiService.getCustomer.and.returnValue(of());
 
