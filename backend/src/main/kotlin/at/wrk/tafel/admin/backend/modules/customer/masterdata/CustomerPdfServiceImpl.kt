@@ -98,6 +98,7 @@ class CustomerPdfServiceImpl : CustomerPdfService {
                         firstname = it.firstname!!,
                         birthDate = it.birthDate!!.format(DATE_FORMATTER),
                         country = it.country!!.name!!,
+                        employer = it.employer ?: "-",
                         income = it.income
                             ?.takeIf { income -> income.compareTo(BigDecimal.ZERO) != 0 }
                             ?.let { income ->

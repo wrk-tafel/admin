@@ -33,7 +33,7 @@ class DistributionService(
 
         val distribution = DistributionEntity()
         distribution.startedAt = ZonedDateTime.now()
-        distribution.startedByUser = userRepository.findByUsername(authenticatedUser.username!!).orElse(null)
+        distribution.startedByUser = userRepository.findByUsername(authenticatedUser.username!!).get()
         distribution.state = DistributionState.OPEN
 
         return distributionRepository.save(distribution)
