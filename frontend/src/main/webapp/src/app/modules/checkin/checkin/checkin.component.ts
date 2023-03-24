@@ -41,7 +41,7 @@ export class CheckinComponent implements OnInit, OnDestroy {
   customerNotes: CustomerNoteItem[];
 
   ngOnInit(): void {
-    if (this.globalStateService.getCurrentDistribution().value == null) {
+    if (this.globalStateService.getCurrentDistribution().value === null) {
       this.router.navigate(['uebersicht']);
     }
 
