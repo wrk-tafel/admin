@@ -3,16 +3,21 @@ import {CheckinComponent, CustomerState} from './checkin.component';
 import {WebsocketService} from '../../../common/websocket/websocket.service';
 import {CommonModule} from '@angular/common';
 import {CustomerApiService} from '../../../api/customer-api.service';
-import {of, throwError} from 'rxjs';
+import {BehaviorSubject, of, throwError} from 'rxjs';
 import {IMessage} from '@stomp/stompjs';
 import * as moment from 'moment/moment';
 import {ScannerList, ScanResult} from '../scanner/scanner.component';
 import {CustomerNoteApiService, CustomerNotesResponse} from '../../../api/customer-note-api.service';
+import {GlobalStateService} from '../../../common/state/global-state.service';
+import {Router} from '@angular/router';
+import {DistributionItem} from '../../../api/distribution-api.service';
 
 describe('CheckinComponent', () => {
   let customerApiService: jasmine.SpyObj<CustomerApiService>;
   let customerNoteApiService: jasmine.SpyObj<CustomerNoteApiService>;
   let wsService: jasmine.SpyObj<WebsocketService>;
+  let globalStateService: jasmine.SpyObj<GlobalStateService>;
+  let router: jasmine.SpyObj<Router>;
 
   beforeEach(waitForAsync(() => {
     const customerApiServiceSpy = jasmine.createSpyObj('CustomerApiService', ['getCustomer']);
@@ -20,6 +25,8 @@ describe('CheckinComponent', () => {
     const wsServiceSpy = jasmine.createSpyObj('WebsocketService',
       ['init', 'connect', 'watch', 'close']
     );
+    const globalStateServiceSpy = jasmine.createSpyObj('GlobalStateService', ['getCurrentDistribution']);
+    const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
 
     TestBed.configureTestingModule({
       imports: [CommonModule],
@@ -35,6 +42,14 @@ describe('CheckinComponent', () => {
         {
           provide: WebsocketService,
           useValue: wsServiceSpy
+        },
+        {
+          provide: GlobalStateService,
+          useValue: globalStateServiceSpy
+        },
+        {
+          provide: Router,
+          useValue: routerSpy
         }
       ]
     }).compileComponents();
@@ -42,6 +57,8 @@ describe('CheckinComponent', () => {
     customerApiService = TestBed.inject(CustomerApiService) as jasmine.SpyObj<CustomerApiService>;
     customerNoteApiService = TestBed.inject(CustomerNoteApiService) as jasmine.SpyObj<CustomerNoteApiService>;
     wsService = TestBed.inject(WebsocketService) as jasmine.SpyObj<WebsocketService>;
+    globalStateService = TestBed.inject(GlobalStateService) as jasmine.SpyObj<GlobalStateService>;
+    router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
   }));
 
   it('component can be created', () => {
@@ -66,10 +83,32 @@ describe('CheckinComponent', () => {
     };
     wsService.watch.and.returnValue(of(scannersMessage));
 
+    const testDistribution = {
+      id: 123,
+      state: {
+        name: 'OPEN',
+        stateLabel: 'Offen',
+        actionLabel: 'Offen'
+      }
+    };
+    globalStateService.getCurrentDistribution.and.returnValue(new BehaviorSubject<DistributionItem>(testDistribution));
+
     component.ngOnInit();
 
     expect(wsService.watch).toHaveBeenCalledWith('/topic/scanners');
     expect(component.scannerIds).toEqual(scannersResponse.scannerIds);
+  });
+
+  it('ngOnInit without ongoing distribution navigates to dashboard', () => {
+    const fixture = TestBed.createComponent(CheckinComponent);
+    const component = fixture.componentInstance;
+
+    wsService.watch.and.returnValue(of());
+    globalStateService.getCurrentDistribution.and.returnValue(new BehaviorSubject<DistributionItem>(null));
+
+    component.ngOnInit();
+
+    expect(router.navigate).toHaveBeenCalledWith(['uebersicht']);
   });
 
   it('ngOnDestroy with active subscription', () => {

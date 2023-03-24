@@ -6,6 +6,8 @@ import {IMessage} from '@stomp/stompjs';
 import * as moment from 'moment';
 import {ScannerList} from '../scanner/scanner.component';
 import {CustomerNoteApiService, CustomerNoteItem} from '../../../api/customer-note-api.service';
+import {GlobalStateService} from '../../../common/state/global-state.service';
+import {Router} from '@angular/router';
 
 @Component({
   selector: 'tafel-checkin',
@@ -16,7 +18,9 @@ export class CheckinComponent implements OnInit, OnDestroy {
   constructor(
     private customerApiService: CustomerApiService,
     private customerNoteApiService: CustomerNoteApiService,
-    private websocketService: WebsocketService
+    private websocketService: WebsocketService,
+    private globalStateService: GlobalStateService,
+    private router: Router,
   ) {
   }
 
@@ -37,6 +41,10 @@ export class CheckinComponent implements OnInit, OnDestroy {
   customerNotes: CustomerNoteItem[];
 
   ngOnInit(): void {
+    if (this.globalStateService.getCurrentDistribution().value == null) {
+      this.router.navigate(['uebersicht']);
+    }
+
     this.websocketService.watch('/topic/scanners').subscribe((message: IMessage) => {
       const scanners: ScannerList = JSON.parse(message.body);
       this.scannerIds = scanners.scannerIds;
