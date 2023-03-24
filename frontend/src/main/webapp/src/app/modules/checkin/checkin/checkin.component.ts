@@ -20,7 +20,7 @@ export class CheckinComponent implements OnInit, OnDestroy {
   ) {
   }
 
-  private VALID_UNTIL_WARNLIMIT_WEEKS = 6;
+  private VALID_UNTIL_WARNLIMIT_WEEKS = 8;
 
   errorMessage: string;
 
@@ -120,6 +120,12 @@ export class CheckinComponent implements OnInit, OnDestroy {
 
       this.scannerReadyState = true;
     }
+  }
+
+  resetCustomer() {
+    this.processCustomer(undefined);
+    this.customerNotes = [];
+    this.customerId = undefined;
   }
 
 }

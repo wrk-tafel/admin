@@ -39,7 +39,7 @@
         </div>
         <div class="row">
           <div class="col-sm-3 mb-3">
-            <input testId="customerIdText" type="number" name="customerId" [(ngModel)]="customerId"
+            <input testId="customerIdText" type="number" name="customerIdInput" [(ngModel)]="customerId"
                    class="form-control" autofocus (keydown.enter)="searchForCustomerId()">
           </div>
           <div class="col-sm-3">
@@ -119,6 +119,9 @@
             </div>
           </div>
         </div>
+      </div>
+      <div class="card-footer">
+        <button testId="resetButton" id="resetButton" type="button" class="btn btn-primary" (click)="resetCustomer()">Zurücksetzen</button>
       </div>
     </div>
   </div>

@@ -314,4 +314,38 @@ describe('CheckinComponent', () => {
     expect(component.customerNotes).toEqual(mockNotes);
   });
 
+  it('reset customer', () => {
+    const fixture = TestBed.createComponent(CheckinComponent);
+    const component = fixture.componentInstance;
+
+    const mockCustomer = {
+      id: 133,
+      lastname: 'Mustermann',
+      firstname: 'Max',
+      birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
+
+      address: {
+        street: 'Teststraße',
+        houseNumber: '123A',
+        door: '21',
+        postalCode: 1020,
+        city: 'Wien',
+      },
+
+      employer: 'test employer',
+      income: 1000,
+
+      validUntil: moment().add(3, 'months').startOf('day').utc().toDate()
+    };
+    component.processCustomer(mockCustomer);
+
+    component.resetCustomer();
+
+    expect(component.customerId).toBeUndefined();
+    expect(component.customerState).toBeUndefined();
+    expect(component.customerStateText).toBeUndefined();
+    expect(component.customerNotes).toBeDefined();
+    expect(component.customerNotes.length).toBe(0);
+  });
+
 });
