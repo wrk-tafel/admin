@@ -128,6 +128,22 @@ export class CheckinComponent implements OnInit, OnDestroy {
     this.customerId = undefined;
   }
 
+  formatAddress(): string {
+    if (this.customer) {
+      const address = this.customer.address;
+      let result = '';
+      result += address.street + ' ' + address.houseNumber;
+      if (address.stairway) {
+        result += ', Stiege ' + address.stairway;
+      }
+      if (address.stairway) {
+        result += ', Top ' + address.door;
+      }
+      result += ' / ' + address.postalCode + ' ' + address.city;
+      return result;
+    }
+  }
+
 }
 
 export enum CustomerState {
