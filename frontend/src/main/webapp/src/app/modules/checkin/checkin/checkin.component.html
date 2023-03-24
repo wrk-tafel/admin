@@ -107,7 +107,7 @@
                 <div class="font-weight-bold" *ngIf="customerNotes?.length === 0">
                   <h6 testid="nonotes-label">Keine Notiz vorhanden</h6>
                 </div>
-                <div *ngIf="customerNotes?.length !== 0">
+                <div *ngIf="customerNotes && customerNotes?.length !== 0">
                   <div class="row mb-2">
                     <div class="col font-weight-bold" testid="note-title">{{customerNotes[0].timestamp | date : 'dd.MM.yyyy HH:mm' }}&nbsp;{{customerNotes[0].author}}</div>
                   </div>
