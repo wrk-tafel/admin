@@ -1,23 +1,17 @@
 package at.wrk.tafel.admin.backend.modules.checkin.ticket
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
-import at.wrk.tafel.admin.backend.database.repositories.checkin.TicketNumberRepository
-import jakarta.annotation.PostConstruct
 import org.springframework.stereotype.Service
+import java.util.stream.Collectors
+import java.util.stream.IntStream
 
 @Service
-class TicketService(
-    private val ticketNumberRepository: TicketNumberRepository
-) {
+class TicketService {
 
-    private val possibleNumbers = ArrayList<TicketNumber>()
-
-    @PostConstruct
-    fun init() {
-        possibleNumbers.addAll(
-            ticketNumberRepository.findAll().map { TicketNumber(number = it.number!!, assigned = false) }
-        )
-    }
+    // TODO replace by infinite number sequence
+    private val possibleNumbers = IntStream.range(1, 201)
+        .mapToObj { TicketNumber(number = it, assigned = false) }
+        .collect(Collectors.toList())
 
     fun getNextTicket(): Int? {
         synchronized(this) {
