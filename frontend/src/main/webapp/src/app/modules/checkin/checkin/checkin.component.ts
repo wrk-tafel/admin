@@ -61,16 +61,16 @@ export class CheckinComponent implements OnInit, OnDestroy {
     this.customerApiService.getCustomer(this.customerId).subscribe(customerData => {
       this.processCustomer(customerData);
       this.errorMessage = undefined;
+
+      this.customerNoteApiService.getNotesForCustomer(this.customerId).subscribe(notesResponse => {
+        this.customerNotes = notesResponse.notes;
+      });
     }, error => {
       if (error.status === 404) {
         this.processCustomer(undefined);
         this.customerNotes = [];
         this.errorMessage = 'Kundennummer ' + this.customerId + ' nicht gefunden!';
       }
-    });
-
-    this.customerNoteApiService.getNotesForCustomer(this.customerId).subscribe(notesResponse => {
-      this.customerNotes = notesResponse.notes;
     });
   }
 

@@ -121,33 +121,8 @@
         </div>
       </div>
       <div class="card-footer">
-        <button *ngIf="customerState !== 0" testId="assignTicketButton" id="assignTicketButton" type="button" class="btn btn-success mr-3" (click)="assignCustomerModal.show()">LOS-Nummer zuweisen</button>
+        <button *ngIf="customerState !== 0" testId="assignTicketButton" id="assignTicketButton" type="button" class="btn btn-success mr-3">LOS-Nummer zuweisen</button>
         <button testId="resetButton" id="resetButton" type="button" class="btn btn-primary" (click)="resetCustomer()">Zurücksetzen</button>
-      </div>
-    </div>
-  </div>
-</div>
-<div testId="assign-customer-modal" bsModal #assignCustomerModal="bs-modal" class="modal fade" tabindex="-1" role="dialog"
-     aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-m" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h4 class="modal-title">LOS-Nummer</h4>
-        <button type="button" class="close" (click)="assignCustomerModal.hide()" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <div class="row">
-          <div class="col">
-            LOS-Nummer
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button testId="cancelButton" type="button" class="btn btn-secondary" (click)="assignCustomerModal.hide()">Abbrechen</button>
-        <button testId="saveButton" type="button" class="btn btn-primary">Speichern
-        </button>
       </div>
     </div>
   </div>
