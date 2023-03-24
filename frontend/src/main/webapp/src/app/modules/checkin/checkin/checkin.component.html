@@ -121,7 +121,7 @@
         </div>
       </div>
       <div class="card-footer">
-        <button testId="assignTicketButton" id="assignTicketButton" type="button" class="btn btn-success mr-2" [disabled]="customerState == 0">LOS-Nummer zuweisen</button>
+        <button *ngIf="customerState !== 0" testId="assignTicketButton" id="assignTicketButton" type="button" class="btn btn-success mr-2">LOS-Nummer zuweisen</button>
         <button testId="resetButton" id="resetButton" type="button" class="btn btn-primary" (click)="resetCustomer()">Zurücksetzen</button>
       </div>
     </div>
