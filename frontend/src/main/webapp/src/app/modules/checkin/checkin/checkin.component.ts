@@ -42,6 +42,7 @@ export class CheckinComponent implements OnInit, OnDestroy {
   customerStateText: string;
 
   customerNotes: CustomerNoteItem[];
+  ticketNumber: number;
 
   ngOnInit(): void {
     if (this.globalStateService.getCurrentDistribution().value === null) {
@@ -153,6 +154,10 @@ export class CheckinComponent implements OnInit, OnDestroy {
       result += ' / ' + address.postalCode + ' ' + address.city;
       return result;
     }
+  }
+
+  assignCustomer() {
+    // TODO impl
   }
 
 }

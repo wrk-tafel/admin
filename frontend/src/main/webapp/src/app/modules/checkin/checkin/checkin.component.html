@@ -121,7 +121,7 @@
         </div>
       </div>
       <div class="card-footer">
-        <button *ngIf="customerState !== 0" testId="assignCustomerButton" id="assignCustomerButton" type="button" class="btn btn-success mr-3">Annehmen</button>
+        <button *ngIf="customerState !== 0" testId="assignCustomerButton" id="assignCustomerButton" type="button" class="btn btn-success mr-3" (click)="assignCustomerModal.show()">Annehmen</button>
         <button testId="resetButton" id="resetButton" type="button" class="btn btn-primary" (click)="resetCustomer()">Zurücksetzen</button>
       </div>
     </div>
@@ -134,14 +134,25 @@
   <div class="modal-dialog modal-m" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h4 class="modal-title">ZUWEISEN</h4>
+        <h4 class="modal-title">Kunden annehmen</h4>
+        <button type="button" class="close" (click)="assignCustomerModal.hide()" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
       </div>
       <div class="modal-body">
-        BODY
+        <div class="row">
+          <div class="col font-weight-bold">LOS-Nummer:</div>
+        </div>
+        <div class="row">
+          <div class="col-6">
+            <input testId="ticketNumberInput" type="number" name="ticketNumberInput" [(ngModel)]="ticketNumber"
+                   class="form-control font-5xl" autofocus (keydown.enter)="assignCustomer()">
+          </div>
+        </div>
       </div>
       <div class="modal-footer">
-        <button testId="okButton" type="button" class="btn btn-primary">OK</button>
-        <button testId="cancelButton" type="button" class="btn btn-secondary">Abbrechen</button>
+        <button testId="okButton" type="button" class="btn btn-primary" (click)="assignCustomer()">OK</button>
+        <button testId="cancelButton" type="button" class="btn btn-secondary" (click)="assignCustomerModal.hide()">Abbrechen</button>
       </div>
     </div>
   </div>
