@@ -8,7 +8,7 @@ import {ScannerList} from '../scanner/scanner.component';
 import {CustomerNoteApiService, CustomerNoteItem} from '../../../api/customer-note-api.service';
 import {GlobalStateService} from '../../../common/state/global-state.service';
 import {Router} from '@angular/router';
-import {ModalDirective} from "ngx-bootstrap/modal";
+import {ModalDirective} from 'ngx-bootstrap/modal';
 
 @Component({
   selector: 'tafel-checkin',

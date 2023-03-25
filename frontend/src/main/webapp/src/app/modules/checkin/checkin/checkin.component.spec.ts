@@ -11,7 +11,8 @@ import {CustomerNoteApiService, CustomerNotesResponse} from '../../../api/custom
 import {GlobalStateService} from '../../../common/state/global-state.service';
 import {Router} from '@angular/router';
 import {DistributionItem} from '../../../api/distribution-api.service';
-import {ModalModule} from "ngx-bootstrap/modal";
+import {ModalModule} from 'ngx-bootstrap/modal';
+import {RouterTestingModule} from '@angular/router/testing';
 
 describe('CheckinComponent', () => {
   let customerApiService: jasmine.SpyObj<CustomerApiService>;
@@ -30,7 +31,8 @@ describe('CheckinComponent', () => {
     const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
 
     TestBed.configureTestingModule({
-      imports: [CommonModule, ModalModule],
+      imports: [CommonModule, RouterTestingModule, ModalModule],
+      declarations: [CheckinComponent],
       providers: [
         {
           provide: CustomerApiService,
@@ -65,6 +67,7 @@ describe('CheckinComponent', () => {
   it('component can be created', () => {
     const fixture = TestBed.createComponent(CheckinComponent);
     const component = fixture.componentInstance;
+
     expect(component).toBeTruthy();
   });
 
