@@ -11,6 +11,7 @@ import {CustomerNoteApiService, CustomerNotesResponse} from '../../../api/custom
 import {GlobalStateService} from '../../../common/state/global-state.service';
 import {Router} from '@angular/router';
 import {DistributionItem} from '../../../api/distribution-api.service';
+import {ModalModule} from "ngx-bootstrap/modal";
 
 describe('CheckinComponent', () => {
   let customerApiService: jasmine.SpyObj<CustomerApiService>;
@@ -29,7 +30,7 @@ describe('CheckinComponent', () => {
     const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
 
     TestBed.configureTestingModule({
-      imports: [CommonModule],
+      imports: [CommonModule, ModalModule],
       providers: [
         {
           provide: CustomerApiService,

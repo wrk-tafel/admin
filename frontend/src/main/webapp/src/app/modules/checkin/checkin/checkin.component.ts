@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
+import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {CustomerApiService, CustomerData} from '../../../api/customer-api.service';
 import {WebsocketService} from '../../../common/websocket/websocket.service';
 import {Subscription} from 'rxjs';
@@ -8,6 +8,7 @@ import {ScannerList} from '../scanner/scanner.component';
 import {CustomerNoteApiService, CustomerNoteItem} from '../../../api/customer-note-api.service';
 import {GlobalStateService} from '../../../common/state/global-state.service';
 import {Router} from '@angular/router';
+import {ModalDirective} from "ngx-bootstrap/modal";
 
 @Component({
   selector: 'tafel-checkin',
@@ -25,6 +26,8 @@ export class CheckinComponent implements OnInit, OnDestroy {
   }
 
   private VALID_UNTIL_WARNLIMIT_WEEKS = 8;
+
+  @ViewChild('assignCustomerModal') public assignCustomerModal: ModalDirective;
 
   errorMessage: string;
 

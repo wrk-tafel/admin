@@ -18,7 +18,7 @@ import {TabsModule} from 'ngx-bootstrap/tabs';
         CommonModule,
         ReactiveFormsModule,
         CustomerRoutingModule,
-        ModalModule.forRoot(),
+        ModalModule,
         TabsModule,
         FormsModule
     ],
