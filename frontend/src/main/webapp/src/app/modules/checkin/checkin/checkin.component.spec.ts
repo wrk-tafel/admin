@@ -205,6 +205,7 @@ describe('CheckinComponent', () => {
     const fixture = TestBed.createComponent(CheckinComponent);
     const component = fixture.componentInstance;
     component.errorMessage = 'test msg to be purged';
+    component.ticketNumber = 123;
 
     const mockCustomer = {
       id: 133,
@@ -238,6 +239,8 @@ describe('CheckinComponent', () => {
 
     expect(component.customerState).toBe(CustomerState.GREEN);
     expect(component.customerStateText).toBe('GÜLTIG');
+
+    expect(component.ticketNumber).toBeUndefined();
   });
 
   it('searchForCustomerId found valid customer but expires soon', () => {

@@ -79,6 +79,7 @@ export class CheckinComponent implements OnInit, OnDestroy {
   }
 
   processCustomer(customer: CustomerData) {
+    this.ticketNumber = undefined;
     this.customer = customer;
 
     if (customer) {
