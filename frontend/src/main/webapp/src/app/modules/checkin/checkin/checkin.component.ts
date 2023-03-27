@@ -138,6 +138,7 @@ export class CheckinComponent implements OnInit, OnDestroy {
     this.processCustomer(undefined);
     this.customerNotes = [];
     this.customerId = undefined;
+    this.ticketNumber = undefined;
   }
 
   formatAddress(): string {
@@ -158,6 +159,7 @@ export class CheckinComponent implements OnInit, OnDestroy {
 
   assignCustomer() {
     // TODO impl
+    console.log('ASSIGN CUSTOMER CALLED');
   }
 
 }
