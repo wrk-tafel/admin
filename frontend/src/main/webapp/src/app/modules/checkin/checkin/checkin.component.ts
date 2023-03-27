@@ -43,6 +43,7 @@ export class CheckinComponent implements OnInit, OnDestroy {
 
   customerNotes: CustomerNoteItem[];
   ticketNumber: number;
+  focusTicketNumberInput: boolean;
 
   ngOnInit(): void {
     if (this.globalStateService.getCurrentDistribution().value === null) {
@@ -98,6 +99,8 @@ export class CheckinComponent implements OnInit, OnDestroy {
           this.customerState = CustomerState.GREEN;
           this.customerStateText = 'GÜLTIG';
         }
+
+        this.focusTicketNumberInput = true;
       }
     } else {
       this.customerState = undefined;

@@ -241,6 +241,7 @@ describe('CheckinComponent', () => {
     expect(component.customerStateText).toBe('GÜLTIG');
 
     expect(component.ticketNumber).toBeUndefined();
+    expect(component.focusTicketNumberInput).toBeTruthy();
   });
 
   it('searchForCustomerId found valid customer but expires soon', () => {
@@ -278,6 +279,8 @@ describe('CheckinComponent', () => {
 
     expect(component.customerState).toBe(CustomerState.YELLOW);
     expect(component.customerStateText).toBe('GÜLTIG - läuft bald ab');
+
+    expect(component.focusTicketNumberInput).toBeTruthy();
   });
 
   it('searchForCustomerId found invalid customer', () => {
@@ -315,6 +318,8 @@ describe('CheckinComponent', () => {
 
     expect(component.customerState).toBe(CustomerState.RED);
     expect(component.customerStateText).toBe('UNGÜLTIG');
+
+    expect(component.focusTicketNumberInput).toBeFalsy();
   });
 
   it('searchForCustomerId customer not found', () => {
