@@ -5,9 +5,7 @@
 * customer-detail
     * add document upload
 * Fix autofocus: https://davidmcintosh.medium.com/auto-focusing-an-angular-input-the-easy-way-part-1-dcb1799e025f
-* Add notes/comments to customers (immutable, add user informations and date/time)
 * Centralize testdata / mocks
-* Merge customer and customer-notes apis
 
 ### Open things (to be discussed)
 * Checkbox to excluded certain persons from income calculation?
