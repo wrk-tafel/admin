@@ -123,7 +123,6 @@ export class CheckinComponent implements OnInit, OnDestroy {
     if (this.scannerSubscription) {
       this.scannerSubscription.unsubscribe();
     }
-    this.customerId = undefined;
     this.scannerReadyState = false;
 
     if (scannerId) {

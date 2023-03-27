@@ -174,7 +174,7 @@ describe('CheckinComponent', () => {
     component.selectedScannerId = undefined;
 
     expect(component.currentScannerId).toBeUndefined();
-    expect(component.customerId).toBeUndefined();
+    expect(component.customerId).not.toBeUndefined();
     expect(component.scannerReadyState).toBeFalsy();
     expect(testSubscription.unsubscribe).toHaveBeenCalled();
     expect(wsService.watch).not.toHaveBeenCalled();
