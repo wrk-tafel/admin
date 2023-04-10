@@ -15,13 +15,13 @@
             <label class="form-label">Scanner</label>
           </div>
           <div class="col-sm-3 align-self-center">
-            <select testId="scannerIdInput" class="form-control" [(ngModel)]="selectedScannerId">
+            <select testid="scannerIdInput" class="form-control" [(ngModel)]="selectedScannerId">
               <option [ngValue]="undefined">Nicht aktiv</option>
               <option *ngFor="let scannerId of scannerIds" [ngValue]="scannerId">Nr. {{scannerId}}</option>
             </select>
           </div>
           <div class="col-sm-3 mt-2 mt-md-0 align-self-center">
-            <div class="badge font-lg" testId="state-server"
+            <div class="badge font-lg" testid="state-server"
                  [ngClass]="{'badge-success': scannerReadyState, 'badge-danger': !scannerReadyState}">
               {{scannerReadyState ? 'AKTIV' : 'INAKTIV'}}
             </div>
@@ -39,18 +39,19 @@
         </div>
         <div class="row">
           <div class="col-sm-3 mb-3">
-            <input testId="customerIdText" type="number" name="customerId" [(ngModel)]="customerId"
-                   class="form-control" autofocus (keydown.enter)="searchForCustomerId()">
+            <input testid="customerIdText" type="number" name="customerIdInput" [(ngModel)]="customerId"
+                   class="form-control" (keydown.enter)="searchForCustomerId()"
+                   [cdkTrapFocusAutoCapture]="focusCustomerIdInput" [cdkTrapFocus]="focusCustomerIdInput">
           </div>
           <div class="col-sm-3">
-            <button testId="showCustomerButton" type="button" class="btn btn-primary"
+            <button testid="showCustomerButton" type="button" class="btn btn-primary"
                     [disabled]="!customerId" (click)="searchForCustomerId()">Anzeigen
             </button>
           </div>
         </div>
       </div>
     </div>
-    <div class="card" *ngIf="customer" testId="customerDetailPanel">
+    <div class="card" *ngIf="customer !== undefined" testid="customerDetailPanel">
       <div class="card-body">
         <div class="row">
           <div class="col mb-2">
@@ -59,7 +60,7 @@
                    [ngClass]="{'badge-danger': customerState == 0, 'badge-warning': customerState == 1, 'badge-success': customerState == 2}">
                 {{customerStateText}}
               </div>
-              {{customer.id}} - {{customer.firstname}} {{customer.lastname}}
+              {{customer.id}} - {{customer.lastname}} {{customer.firstname}}
             </h4>
           </div>
         </div>
@@ -74,10 +75,10 @@
         <hr>
         <div class="row">
           <div class="col">
-            Geburtsdatum:
+            Adresse:
           </div>
           <div class="col">
-            {{customer.birthDate | date : 'dd.MM.yyyy'}}
+            {{formatAddress()}}
           </div>
         </div>
         <div class="row">
@@ -107,7 +108,7 @@
                 <div class="font-weight-bold" *ngIf="customerNotes?.length === 0">
                   <h6 testid="nonotes-label">Keine Notiz vorhanden</h6>
                 </div>
-                <div *ngIf="customerNotes?.length !== 0">
+                <div *ngIf="customerNotes && customerNotes?.length !== 0">
                   <div class="row mb-2">
                     <div class="col font-weight-bold" testid="note-title">{{customerNotes[0].timestamp | date : 'dd.MM.yyyy HH:mm' }}&nbsp;{{customerNotes[0].author}}</div>
                   </div>
@@ -118,6 +119,26 @@
               </div>
             </div>
           </div>
+        </div>
+        <form #ticketForm="ngForm">
+          <div *ngIf="customerState !== 0">
+            <hr>
+            <div class="row">
+              <div class="col-2 font-weight-bold">Ticket-Nummer: *</div>
+              <div class="col-5 align-middle">
+                  <input testid="ticketNumberText" type="number" name="ticketNumberText" [(ngModel)]="ticketNumber"
+                         class="form-control" required (keydown.enter)="assignCustomer()"
+                         [cdkTrapFocusAutoCapture]="focusTicketNumberInput" [cdkTrapFocus]="focusTicketNumberInput">
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="card-footer">
+        <div class="row">
+          <button [disabled]="customerState === 0 || !ticketForm.valid" testid="assignCustomerButton" id="assignCustomerButton" type="button" class="btn btn-success mr-3" (click)="assignCustomer()">Annehmen</button>
+          <button testid="resetButton" id="resetButton" type="button" class="btn btn-primary" (click)="reset()"
+                  [cdkTrapFocusAutoCapture]="focusResetButton" [cdkTrapFocus]="focusResetButton">Zurücksetzen</button>
         </div>
       </div>
     </div>

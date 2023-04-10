@@ -1,7 +1,12 @@
 import {HttpClient} from '@angular/common/http';
 import {HttpClientTestingModule, HttpTestingController} from '@angular/common/http/testing';
 import {TestBed} from '@angular/core/testing';
-import {DistributionApiService, DistributionItem, DistributionItemResponse} from './distribution-api.service';
+import {
+  AssignCustomerRequest,
+  DistributionApiService,
+  DistributionItem,
+  DistributionItemResponse
+} from './distribution-api.service';
 import {WebsocketService} from '../common/websocket/websocket.service';
 import {of} from 'rxjs';
 import {IMessage} from '@stomp/stompjs';
@@ -87,6 +92,17 @@ describe('DistributionApiService', () => {
     const req = httpMock.expectOne('/distributions/states/next');
     req.flush(null);
     httpMock.verify();
+  });
+
+  it('assign customer', () => {
+    const requestBody: AssignCustomerRequest = {customerId: 1, ticketNumber: 100};
+    apiService.assignCustomer(requestBody.customerId, requestBody.ticketNumber).subscribe();
+
+    const req = httpMock.expectOne({method: 'POST', url: '/distributions/customers'});
+    req.flush(null);
+    httpMock.verify();
+
+    expect(req.request.body).toEqual(requestBody);
   });
 
 });

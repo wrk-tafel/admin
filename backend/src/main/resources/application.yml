@@ -23,6 +23,12 @@ server:
 spring:
   datasource:
     driverClassName: org.postgresql.Driver
+  flyway:
+    locations: classpath:/db-migration
+    group: true
+    ignore-migration-patterns: "*:missing"
+    baseline-on-migrate: true
+    clean-disabled: false
   jpa:
     properties:
       hibernate:

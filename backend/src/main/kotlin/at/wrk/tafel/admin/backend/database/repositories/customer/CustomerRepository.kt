@@ -12,7 +12,7 @@ interface CustomerRepository : JpaRepository<CustomerEntity, Long> {
     fun existsByCustomerId(id: Long): Boolean
 
     fun getReferenceByCustomerId(id: Long): CustomerEntity
-    fun findByCustomerId(customerId: Long): Optional<CustomerEntity>
+    fun findByCustomerId(customerId: Long): CustomerEntity?
 
     fun findAllByFirstnameContainingIgnoreCase(
         @Param("firstname") firstname: String,

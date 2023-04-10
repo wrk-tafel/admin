@@ -214,7 +214,7 @@
     </div>
   </div>
 </div>
-<div testId="deletecustomer-modal" bsModal #deleteCustomerModal="bs-modal" class="modal modal-danger fade"
+<div testid="deletecustomer-modal" bsModal #deleteCustomerModal="bs-modal" class="modal modal-danger fade"
      tabindex="-1"
      role="dialog"
      aria-labelledby="myModalLabel" aria-hidden="true">
@@ -235,16 +235,16 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button testId="okButton" type="button" class="btn btn-primary" (click)="deleteCustomer()">Löschen
+        <button testid="okButton" type="button" class="btn btn-primary" (click)="deleteCustomer()">Löschen
         </button>
-        <button testId="cancelButton" type="button" class="btn btn-secondary" (click)="deleteCustomerModal.hide()">
+        <button testid="cancelButton" type="button" class="btn btn-secondary" (click)="deleteCustomerModal.hide()">
           Abbrechen
         </button>
       </div>
     </div>
   </div>
 </div>
-<div testId="showallnotes-modal" bsModal #showAllNotesModal="bs-modal" class="modal modal-info fade"
+<div testid="showallnotes-modal" bsModal #showAllNotesModal="bs-modal" class="modal modal-info fade"
      tabindex="-1"
      role="dialog"
      aria-labelledby="myModalLabel" aria-hidden="true">
@@ -270,14 +270,14 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button testId="cancelButton" type="button" class="btn btn-primary" (click)="showAllNotesModal.hide()">
+        <button testid="cancelButton" type="button" class="btn btn-primary" (click)="showAllNotesModal.hide()">
           OK
         </button>
       </div>
     </div>
   </div>
 </div>
-<div testId="addnew-note-modal" bsModal #addNewNoteModal="bs-modal" class="modal modal-info fade"
+<div testid="addnew-note-modal" bsModal #addNewNoteModal="bs-modal" class="modal modal-info fade"
      tabindex="-1"
      role="dialog"
      aria-labelledby="myModalLabel" aria-hidden="true">
@@ -293,9 +293,9 @@
         <textarea id="textarea-input" name="textarea-input" rows="9" class="form-control" [(ngModel)]="newNoteText"></textarea>
       </div>
       <div class="modal-footer">
-        <button testId="okButton" type="button" class="btn btn-primary" (click)="addNewNote()" [disabled]="!newNoteText || newNoteText.trim().length == 0">Speichern
+        <button testid="okButton" type="button" class="btn btn-primary" (click)="addNewNote()" [disabled]="!newNoteText || newNoteText.trim().length == 0">Speichern
         </button>
-        <button testId="cancelButton" type="button" class="btn btn-secondary" (click)="this.newNoteText = undefined; addNewNoteModal.hide()">
+        <button testid="cancelButton" type="button" class="btn btn-secondary" (click)="this.newNoteText = undefined; addNewNoteModal.hide()">
           Abbrechen
         </button>
       </div>

@@ -119,7 +119,7 @@ class CustomerServiceTest {
 
     @Test
     fun `findByCustomerId - not found`() {
-        every { customerRepository.findByCustomerId(any()) } returns Optional.empty()
+        every { customerRepository.findByCustomerId(any()) } returns null
 
         val customer = service.findByCustomerId(1)
 
@@ -128,7 +128,7 @@ class CustomerServiceTest {
 
     @Test
     fun `findByCustomerId - found`() {
-        every { customerRepository.findByCustomerId(any()) } returns Optional.of(testCustomerEntity1)
+        every { customerRepository.findByCustomerId(any()) } returns testCustomerEntity1
 
         val customer = service.findByCustomerId(1)
 
@@ -233,7 +233,7 @@ class CustomerServiceTest {
 
     @Test
     fun `generate pdf customer - not found`() {
-        every { customerRepository.findByCustomerId(any()) } returns Optional.empty()
+        every { customerRepository.findByCustomerId(any()) } returns null
 
         val result = service.generatePdf(1, CustomerPdfType.MASTERDATA)
 
@@ -243,7 +243,7 @@ class CustomerServiceTest {
     @Test
     fun `generate pdf customer - found`() {
         val pdfBytes = ByteArray(10)
-        every { customerRepository.findByCustomerId(any()) } returns Optional.of(testCustomerEntity1)
+        every { customerRepository.findByCustomerId(any()) } returns testCustomerEntity1
         every { customerPdfService.generateMasterdataPdf(any()) } returns pdfBytes
 
         val result = service.generatePdf(1, CustomerPdfType.MASTERDATA)

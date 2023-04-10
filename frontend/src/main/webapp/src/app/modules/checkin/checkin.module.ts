@@ -5,22 +5,24 @@ import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {CommonModule} from '@angular/common';
 import {QRCodeReaderService} from './qrcode-reader/qrcode-reader.service';
 import {CheckinComponent} from './checkin/checkin.component';
-import {CustomerApiService} from '../../api/customer-api.service';
+import {ModalModule} from 'ngx-bootstrap/modal';
+import {A11yModule} from '@angular/cdk/a11y';
 
 @NgModule({
   imports: [
     CheckinRoutingModule,
     ReactiveFormsModule,
     CommonModule,
-    FormsModule
+    FormsModule,
+    ModalModule,
+    A11yModule
   ],
   declarations: [
     ScannerComponent,
     CheckinComponent
   ],
   providers: [
-    QRCodeReaderService,
-    CustomerApiService
+    QRCodeReaderService
   ]
 })
 export class CheckinModule {

@@ -4,8 +4,11 @@ import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.common.model.DistributionState
 import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
+import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerRepository
+import at.wrk.tafel.admin.backend.database.repositories.distribution.DistributionCustomerRepository
 import at.wrk.tafel.admin.backend.database.repositories.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationFailedException
+import at.wrk.tafel.admin.backend.modules.customer.testCustomerEntity1
 import at.wrk.tafel.admin.backend.security.testUser
 import at.wrk.tafel.admin.backend.security.testUserEntity
 import at.wrk.tafel.admin.backend.security.testUserPermissions
@@ -20,6 +23,7 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
@@ -35,6 +39,12 @@ internal class DistributionServiceTest {
 
     @RelaxedMockK
     private lateinit var userRepository: UserRepository
+
+    @RelaxedMockK
+    private lateinit var distributionCustomerRepository: DistributionCustomerRepository
+
+    @RelaxedMockK
+    private lateinit var customerRepository: CustomerRepository
 
     @InjectMockKs
     private lateinit var service: DistributionService
@@ -79,9 +89,7 @@ internal class DistributionServiceTest {
 
     @Test
     fun `create new distribution with existing ongoing distribution`() {
-        val distributionEntity = DistributionEntity()
-        distributionEntity.id = 123
-        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns distributionEntity
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
 
         assertThrows(TafelValidationFailedException::class.java) {
             service.createNewDistribution()
@@ -90,13 +98,11 @@ internal class DistributionServiceTest {
 
     @Test
     fun `current distribution found`() {
-        val distributionEntity = DistributionEntity()
-        distributionEntity.id = 123
-        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns distributionEntity
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
 
         val distribution = service.getCurrentDistribution()
 
-        assertThat(distribution!!.id).isEqualTo(distributionEntity.id)
+        assertThat(distribution!!.id).isEqualTo(testDistributionEntity.id)
     }
 
     @Test
@@ -125,9 +131,7 @@ internal class DistributionServiceTest {
 
     @Test
     fun `switch from open to next state`() {
-        val distributionEntity = DistributionEntity()
-        distributionEntity.id = 123
-        distributionEntity.state = DistributionState.OPEN
+        val distributionEntity = testDistributionEntity.apply { state = DistributionState.OPEN }
         every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns distributionEntity
 
         every { distributionRepository.save(any()) } returns mockk()
@@ -143,22 +147,62 @@ internal class DistributionServiceTest {
 
     @Test
     fun `switch to closed state`() {
-        val distributionEntity = DistributionEntity()
-        distributionEntity.id = 123
-        distributionEntity.state = DistributionState.DISTRIBUTION
-        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns distributionEntity
-
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
         every { distributionRepository.save(any()) } returns mockk()
 
         every { userRepository.findByUsername(authentication.username!!) } returns Optional.of(testUserEntity)
 
-        service.switchToNextState(distributionEntity.state!!)
+        service.switchToNextState(testDistributionEntity.state!!)
 
         verify {
             distributionRepository.save(withArg {
                 assertThat(it.state).isEqualTo(DistributionState.CLOSED)
                 assertThat(it.endedAt).isBetween(ZonedDateTime.now().minusSeconds(5), ZonedDateTime.now())
                 assertThat(it.endedByUser).isEqualTo(testUserEntity)
+            })
+        }
+    }
+
+    @Test
+    fun `assign customer when distribution is not open`() {
+        val customerId = 1L
+        val ticketNumber = 200
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns null
+
+        assertThrows(TafelValidationFailedException::class.java) {
+            service.assignCustomerToDistribution(customerId = customerId, ticketNumber = ticketNumber)
+        }
+    }
+
+    @Test
+    fun `assign customer when customer doesnt exist`() {
+        val customerId = 1L
+        val ticketNumber = 200
+
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
+        every { customerRepository.findByCustomerId(customerId) } returns null
+
+        assertThrows<TafelValidationFailedException> {
+            service.assignCustomerToDistribution(customerId = customerId, ticketNumber = ticketNumber)
+        }
+    }
+
+    @Test
+    fun `assign customer successful`() {
+        val customerId = 1L
+        val ticketNumber = 200
+
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
+        every { customerRepository.findByCustomerId(customerId) } returns testCustomerEntity1
+        every { distributionCustomerRepository.save(any()) } returns mockk()
+
+        service.assignCustomerToDistribution(customerId = customerId, ticketNumber = ticketNumber)
+
+        verify {
+            distributionCustomerRepository.save(withArg {
+                assertThat(it.customer).isEqualTo(testCustomerEntity1)
+                assertThat(it.distribution).isEqualTo(testDistributionEntity)
+                assertThat(it.ticketNumber).isEqualTo(ticketNumber)
             })
         }
     }

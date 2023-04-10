@@ -160,4 +160,29 @@ internal class DistributionControllerTest {
         }
     }
 
+    @Test
+    fun `assign customer with invalid data`() {
+        every {
+            service.assignCustomerToDistribution(
+                any(),
+                any()
+            )
+        } throws TafelValidationFailedException("dummy error")
+
+        val requestBody = AssignCustomerRequest(customerId = 1, ticketNumber = 100)
+        val response = controller.assignCustomerToDistribution(requestBody)
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
+        assertThat(response.body).isNull()
+    }
+
+    @Test
+    fun `assign customer with valid data`() {
+        val requestBody = AssignCustomerRequest(customerId = 1, ticketNumber = 100)
+        val response = controller.assignCustomerToDistribution(requestBody)
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(response.body).isNull()
+    }
+
 }

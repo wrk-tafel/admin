@@ -13,15 +13,15 @@ import {CustomerApiService} from '../../api/customer-api.service';
 import {TabsModule} from 'ngx-bootstrap/tabs';
 
 @NgModule({
-    imports: [
-        BsDropdownModule,
-        CommonModule,
-        ReactiveFormsModule,
-        CustomerRoutingModule,
-        ModalModule.forRoot(),
-        TabsModule,
-        FormsModule
-    ],
+  imports: [
+    BsDropdownModule,
+    CommonModule,
+    ReactiveFormsModule,
+    CustomerRoutingModule,
+    ModalModule,
+    TabsModule,
+    FormsModule
+  ],
   declarations: [
     CustomerDetailComponent,
     CustomerEditComponent,
