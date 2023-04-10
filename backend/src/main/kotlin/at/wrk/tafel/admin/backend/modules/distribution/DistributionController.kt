@@ -1,6 +1,5 @@
 package at.wrk.tafel.admin.backend.modules.distribution
 
-import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.common.model.DistributionState
 import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationFailedException
@@ -70,6 +69,26 @@ class DistributionController(
         return ResponseEntity.badRequest().build()
     }
 
+    @PostMapping("/customers")
+    @PreAuthorize("hasAuthority('DISTRIBUTION')")
+    fun assignCustomerToDistribution(
+        @RequestBody assignCustomerRequest: AssignCustomerRequest
+    ): ResponseEntity<Void> {
+        val currentDistribution = service.getCurrentDistribution()
+        if (currentDistribution != null) {
+            try {
+                service.assignCustomerToDistribution(
+                    assignCustomerRequest.customerId,
+                    assignCustomerRequest.ticketNumber
+                )
+            } catch (e: TafelValidationFailedException) {
+                return ResponseEntity.badRequest().build()
+            }
+            return ResponseEntity.ok().build()
+        }
+        return ResponseEntity.badRequest().build()
+    }
+
     private fun mapState(state: DistributionState): DistributionStateItem {
         val name = state.name
         val stateLabel = mapStateToStateLabel(state)
@@ -107,26 +126,3 @@ class DistributionController(
     }
 
 }
-
-@ExcludeFromTestCoverage
-data class DistributionItemResponse(
-    val distribution: DistributionItem?
-)
-
-@ExcludeFromTestCoverage
-data class DistributionItem(
-    val id: Long,
-    val state: DistributionStateItem? = null
-)
-
-@ExcludeFromTestCoverage
-data class DistributionStatesResponse(
-    val states: List<DistributionStateItem>
-)
-
-@ExcludeFromTestCoverage
-data class DistributionStateItem(
-    val name: String,
-    val stateLabel: String,
-    val actionLabel: String?
-)

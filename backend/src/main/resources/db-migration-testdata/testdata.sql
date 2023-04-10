@@ -112,6 +112,16 @@ INSERT INTO customers (id, created_at, updated_at, customer_id, user_id, firstna
                        address_city, telephone_number, email, employer, income, income_due, valid_until)
 values (102, NOW(), NOW(), 102, 100, 'John', 'Doe', '1980-01-01', 1, 'Erdberg', 1, null, null, '1030', 'Wien',
         null, null, 'Stadt Wien', 123.00, '2999-12-31', '2999-12-31');
+INSERT INTO customers (id, created_at, updated_at, customer_id, user_id, firstname, lastname, birth_date, country_id,
+                       address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
+                       address_city, telephone_number, email, employer, income, income_due, valid_until)
+values (103, NOW(), NOW(), 103, 100, 'John Doe', 'EXPIRES SOON', '1980-01-01', 1, 'Erdberg', 1, null, null, '1030', 'Wien',
+        null, null, 'Stadt Wien', 123.00, NOW() + interval '1 month', NOW() + interval '1 month');
+INSERT INTO customers (id, created_at, updated_at, customer_id, user_id, firstname, lastname, birth_date, country_id,
+                       address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
+                       address_city, telephone_number, email, employer, income, income_due, valid_until)
+values (104, NOW(), NOW(), 104, 100, 'Jane Doe', 'INVALID', '1980-01-01', 1, 'Erdberg', 1, null, null, '1030', 'Wien',
+        null, null, 'Stadt Wien', 123.00, '2000-12-31', '2000-12-31');
 
 INSERT INTO customers (id, created_at, updated_at, customer_id, user_id, firstname, lastname, birth_date, country_id,
                        address_street, address_houseNumber, address_stairway, address_door, address_postalCode,

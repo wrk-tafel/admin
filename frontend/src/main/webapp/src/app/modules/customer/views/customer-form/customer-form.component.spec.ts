@@ -101,7 +101,7 @@ describe('CustomerFormComponent', () => {
     fixture.detectChanges();
 
     fixture.whenStable().then(() => {
-      expect(fixture.debugElement.query(By.css('[testId="idInput"]')).nativeElement.value).toBe(testData.id);
+      expect(fixture.debugElement.query(By.css('[testid="idInput"]')).nativeElement.value).toBe(testData.id);
     });
     */
 

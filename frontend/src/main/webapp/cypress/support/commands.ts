@@ -50,3 +50,29 @@ Cypress.Commands.add('createLoginRequest', (username: string, password: string, 
     }
   });
 });
+
+Cypress.Commands.add('createDistribution', () => {
+  cy.request({
+    method: 'POST',
+    url: '/api/distributions/new'
+  });
+});
+
+Cypress.Commands.add('finishDistribution', () => {
+  cy.request({
+    method: 'POST',
+    url: '/api/distributions/states/next'
+  });
+  cy.request({
+    method: 'POST',
+    url: '/api/distributions/states/next'
+  });
+  cy.request({
+    method: 'POST',
+    url: '/api/distributions/states/next'
+  });
+  cy.request({
+    method: 'POST',
+    url: '/api/distributions/states/next'
+  });
+});

@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
+import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {CustomerApiService, CustomerData} from '../../../api/customer-api.service';
 import {WebsocketService} from '../../../common/websocket/websocket.service';
 import {Subscription} from 'rxjs';
@@ -6,6 +6,10 @@ import {IMessage} from '@stomp/stompjs';
 import * as moment from 'moment';
 import {ScannerList} from '../scanner/scanner.component';
 import {CustomerNoteApiService, CustomerNoteItem} from '../../../api/customer-note-api.service';
+import {GlobalStateService} from '../../../common/state/global-state.service';
+import {Router} from '@angular/router';
+import {ModalDirective} from 'ngx-bootstrap/modal';
+import {DistributionApiService} from '../../../api/distribution-api.service';
 
 @Component({
   selector: 'tafel-checkin',
@@ -16,11 +20,16 @@ export class CheckinComponent implements OnInit, OnDestroy {
   constructor(
     private customerApiService: CustomerApiService,
     private customerNoteApiService: CustomerNoteApiService,
-    private websocketService: WebsocketService
+    private websocketService: WebsocketService,
+    private globalStateService: GlobalStateService,
+    private distributionApiService: DistributionApiService,
+    private router: Router,
   ) {
   }
 
-  private VALID_UNTIL_WARNLIMIT_WEEKS = 6;
+  private VALID_UNTIL_WARNLIMIT_WEEKS = 8;
+
+  @ViewChild('assignCustomerModal') public assignCustomerModal: ModalDirective;
 
   errorMessage: string;
 
@@ -35,8 +44,16 @@ export class CheckinComponent implements OnInit, OnDestroy {
   customerStateText: string;
 
   customerNotes: CustomerNoteItem[];
+  ticketNumber: number;
+  focusTicketNumberInput: boolean;
+  focusCustomerIdInput: boolean = true;
+  focusResetButton: boolean = false;
 
   ngOnInit(): void {
+    if (this.globalStateService.getCurrentDistribution().value === null) {
+      this.router.navigate(['uebersicht']);
+    }
+
     this.websocketService.watch('/topic/scanners').subscribe((message: IMessage) => {
       const scanners: ScannerList = JSON.parse(message.body);
       this.scannerIds = scanners.scannerIds;
@@ -53,6 +70,10 @@ export class CheckinComponent implements OnInit, OnDestroy {
     this.customerApiService.getCustomer(this.customerId).subscribe(customerData => {
       this.processCustomer(customerData);
       this.errorMessage = undefined;
+
+      this.customerNoteApiService.getNotesForCustomer(this.customerId).subscribe(notesResponse => {
+        this.customerNotes = notesResponse.notes;
+      });
     }, error => {
       if (error.status === 404) {
         this.processCustomer(undefined);
@@ -60,13 +81,10 @@ export class CheckinComponent implements OnInit, OnDestroy {
         this.errorMessage = 'Kundennummer ' + this.customerId + ' nicht gefunden!';
       }
     });
-
-    this.customerNoteApiService.getNotesForCustomer(this.customerId).subscribe(notesResponse => {
-      this.customerNotes = notesResponse.notes;
-    });
   }
 
   processCustomer(customer: CustomerData) {
+    this.ticketNumber = undefined;
     this.customer = customer;
 
     if (customer) {
@@ -76,6 +94,7 @@ export class CheckinComponent implements OnInit, OnDestroy {
       if (validUntil.isBefore(now)) {
         this.customerState = CustomerState.RED;
         this.customerStateText = 'UNGÜLTIG';
+        this.focusResetButton = true;
       } else {
         const warnLimit = now.add(this.VALID_UNTIL_WARNLIMIT_WEEKS, 'weeks');
         if (!validUntil.isAfter(warnLimit)) {
@@ -85,6 +104,8 @@ export class CheckinComponent implements OnInit, OnDestroy {
           this.customerState = CustomerState.GREEN;
           this.customerStateText = 'GÜLTIG';
         }
+
+        this.focusTicketNumberInput = true;
       }
     } else {
       this.customerState = undefined;
@@ -107,7 +128,6 @@ export class CheckinComponent implements OnInit, OnDestroy {
     if (this.scannerSubscription) {
       this.scannerSubscription.unsubscribe();
     }
-    this.customerId = undefined;
     this.scannerReadyState = false;
 
     if (scannerId) {
@@ -120,6 +140,41 @@ export class CheckinComponent implements OnInit, OnDestroy {
 
       this.scannerReadyState = true;
     }
+  }
+
+  reset() {
+    this.processCustomer(undefined);
+    this.customerNotes = [];
+    this.customerId = undefined;
+    this.ticketNumber = undefined;
+    this.focusResetButton = false;
+  }
+
+  formatAddress(): string {
+    if (this.customer) {
+      const address = this.customer.address;
+      let result = '';
+      result += address.street + ' ' + address.houseNumber;
+      if (address.stairway) {
+        result += ', Stiege ' + address.stairway;
+      }
+      if (address.stairway) {
+        result += ', Top ' + address.door;
+      }
+      result += ' / ' + address.postalCode + ' ' + address.city;
+      return result;
+    }
+  }
+
+  assignCustomer() {
+    this.distributionApiService.assignCustomer(this.customer.id, this.ticketNumber).subscribe(
+      response => {
+        this.reset();
+      },
+      error => {
+        this.errorMessage = 'Kunde konnte nicht zugewiesen werden!';
+      }
+    );
   }
 
 }

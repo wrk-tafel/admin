@@ -9,7 +9,7 @@
           <div class="row">
             <div class="col-sm-6">
               <label class="form-label">Kundenummer (falls vorhanden)</label>
-              <input testId="customerIdInput" type="number" formControlName="id" class="form-control"
+              <input testid="customerIdInput" type="number" formControlName="id" class="form-control"
                      [ngClass]="{'is-invalid': id.invalid && (id.dirty || id.touched), 'is-valid': id.valid && (id.dirty || id.touched)}"
                      autofocus>
             </div>
@@ -17,7 +17,7 @@
           <div class="row">
             <div class="col-sm">
               <label class="form-label">Familienname *</label>
-              <input testId="lastnameInput" type="text" formControlName="lastname" class="form-control"
+              <input testid="lastnameInput" type="text" formControlName="lastname" class="form-control"
                      [ngClass]="{'is-invalid': lastname.invalid && (lastname.dirty || lastname.touched), 'is-valid': lastname.valid && (lastname.dirty || lastname.touched)}">
               <div *ngIf="lastname.errors?.required && (lastname.dirty || lastname.touched)"
                    class="invalid-feedback">
@@ -30,7 +30,7 @@
             </div>
             <div class="col-sm">
               <label class="form-label">Vorname *</label>
-              <input testId="firstnameInput" type="text" formControlName="firstname" class="form-control"
+              <input testid="firstnameInput" type="text" formControlName="firstname" class="form-control"
                      [ngClass]="{'is-invalid': firstname.invalid && (firstname.dirty || firstname.touched), 'is-valid': firstname.valid && (firstname.dirty || firstname.touched)}">
               <div *ngIf="firstname.errors?.required && (firstname.dirty || firstname.touched)"
                    class="invalid-feedback">
@@ -45,7 +45,7 @@
           <div class="row mb-2">
             <div class="col-sm">
               <label class="form-label">Geburtsdatum *</label>
-              <input testId="birthDateInput" type="date" formControlName="birthDate" class="form-control"
+              <input testid="birthDateInput" type="date" formControlName="birthDate" class="form-control"
                      [ngClass]="{'is-invalid': birthDate.invalid && (birthDate.dirty || birthDate.touched), 'is-valid': birthDate.valid && (birthDate.dirty || birthDate.touched)}">
               <div *ngIf="birthDate.errors?.required && (birthDate.dirty || birthDate.touched)"
                    class="invalid-feedback">
@@ -63,7 +63,7 @@
             <div class="col-sm">
               <label class="form-label">Nationalität *</label>
               <div class="input-group">
-                <select testId="countryInput" formControlName="country" class="form-control"
+                <select testid="countryInput" formControlName="country" class="form-control"
                         [compareWith]="compareCountry"
                         [ngClass]="{'is-invalid': country.invalid && (country.dirty || country.touched), 'is-valid': country.valid && (country.dirty || country.touched)}">
                   <option *ngFor="let countryItem of countries" [ngValue]="countryItem">
@@ -83,7 +83,7 @@
             <div class="col-sm">
               <label class="form-label">Telefonnummer</label>
               <div class="input-group">
-                <input testId="telephoneNumberInput" type="text" formControlName="telephoneNumber"
+                <input testid="telephoneNumberInput" type="text" formControlName="telephoneNumber"
                        class="form-control"
                        [ngClass]="{'is-invalid': telephoneNumber.invalid && (telephoneNumber.dirty || telephoneNumber.touched), 'is-valid': telephoneNumber.valid && (telephoneNumber.dirty || telephoneNumber.touched)}">
                 <div class="input-group-append">
@@ -94,7 +94,7 @@
             <div class="col-sm">
               <label class="form-label">E-Mail</label>
               <div class="input-group">
-                <input testId="emailInput" type="text" formControlName="email" class="form-control"
+                <input testid="emailInput" type="text" formControlName="email" class="form-control"
                        [ngClass]="{'is-invalid': email.invalid && (email.dirty || email.touched), 'is-valid': email.valid && (email.dirty || email.touched)}">
                 <div class="input-group-append">
                   <span class="input-group-text"><i class="cil-envelope-closed"></i></span>
@@ -115,7 +115,7 @@
             <div class="row mb-2">
               <div class="col-sm">
                 <label class="form-label">Straße *</label>
-                <input testId="streetInput" type="text" formControlName="street" class="form-control"
+                <input testid="streetInput" type="text" formControlName="street" class="form-control"
                        [ngClass]="{'is-invalid': street.invalid && (street.dirty || street.touched), 'is-valid': street.valid && (street.dirty || street.touched)}">
                 <div *ngIf="street.errors?.required && (street.dirty || street.touched)"
                      class="invalid-feedback">
@@ -131,7 +131,7 @@
             <div class="row mb-2">
               <div class="col-sm">
                 <label class="form-label">Hausnummer *</label>
-                <input testId="houseNumberInput" type="text" formControlName="houseNumber"
+                <input testid="houseNumberInput" type="text" formControlName="houseNumber"
                        class="form-control"
                        [ngClass]="{'is-invalid': houseNumber.invalid && (houseNumber.dirty || houseNumber.touched), 'is-valid': houseNumber.valid && (houseNumber.dirty || houseNumber.touched)}">
                 <div *ngIf="houseNumber.errors?.required && (houseNumber.dirty || houseNumber.touched)"
@@ -146,13 +146,13 @@
               </div>
               <div class="col-sm">
                 <label class="form-label">Stiege</label>
-                <input testId="stairwayInput" type="number" formControlName="stairway"
+                <input testid="stairwayInput" type="number" formControlName="stairway"
                        class="form-control"
                        [ngClass]="{'is-invalid': stairway.invalid && (stairway.dirty || stairway.touched), 'is-valid': stairway.valid && (stairway.dirty || stairway.touched)}">
               </div>
               <div class="col-sm">
                 <label class="form-label">Top</label>
-                <input testId="doorInput" type="number" formControlName="door" class="form-control"
+                <input testid="doorInput" type="number" formControlName="door" class="form-control"
                        [ngClass]="{'is-invalid': door.invalid && (door.dirty || door.touched), 'is-valid': door.valid && (door.dirty || door.touched)}">
               </div>
             </div>
@@ -160,7 +160,7 @@
               <div class="col-sm">
                 <label class="form-label">PLZ *</label>
                 <div class="input-group">
-                  <input testId="postalCodeInput" type="number" formControlName="postalCode"
+                  <input testid="postalCodeInput" type="number" formControlName="postalCode"
                          class="form-control"
                          [ngClass]="{'is-invalid': postalCode.invalid && (postalCode.dirty || postalCode.touched), 'is-valid': postalCode.valid && (postalCode.dirty || postalCode.touched)}">
                   <div class="input-group-append">
@@ -175,7 +175,7 @@
               <div class="col-sm">
                 <label class="form-label">Ort *</label>
                 <div class="input-group">
-                  <input testId="cityInput" type="text" formControlName="city" class="form-control"
+                  <input testid="cityInput" type="text" formControlName="city" class="form-control"
                          [ngClass]="{'is-invalid': city.invalid && (city.dirty || city.touched), 'is-valid': city.valid && (city.dirty || city.touched)}">
                   <div class="input-group-append">
                     <span class="input-group-text"><i class="cil-location-pin"></i></span>
@@ -198,7 +198,7 @@
             <div class="col-sm">
               <label class="form-label">Arbeitgeber *</label>
               <div class="input-group">
-                <input testId="employerInput" type="text" formControlName="employer"
+                <input testid="employerInput" type="text" formControlName="employer"
                        class="form-control"
                        [ngClass]="{'is-invalid': employer.invalid && (employer.dirty || employer.touched), 'is-valid': employer.valid && (employer.dirty || employer.touched)}">
                 <div class="input-group-append">
@@ -215,7 +215,7 @@
             <div class="col-sm">
               <label class="form-label">Einkommen (monatl.) *</label>
               <div class="input-group">
-                <input testId="incomeInput" type="number" formControlName="income" class="form-control"
+                <input testid="incomeInput" type="number" formControlName="income" class="form-control"
                        [ngClass]="{'is-invalid': income.invalid && (income.dirty || income.touched), 'is-valid': income.valid && (income.dirty || income.touched)}">
                 <div class="input-group-append">
                   <span class="input-group-text"><i class="fa fa-euro"></i></span>
@@ -229,7 +229,7 @@
             <div class="col-sm">
               <label class="form-label">nachgewiesen bis</label>
               <div class="input-group">
-                <input testId="incomeDueInput" type="date" formControlName="incomeDue" class="form-control"
+                <input testid="incomeDueInput" type="date" formControlName="incomeDue" class="form-control"
                        [ngClass]="{'is-invalid': incomeDue.invalid && (incomeDue.dirty || incomeDue.touched), 'is-valid': incomeDue.valid && (incomeDue.dirty || incomeDue.touched)}">
                 <div *ngIf="incomeDue.errors?.mindate && (incomeDue.dirty || incomeDue.touched)"
                      class="invalid-feedback">
@@ -242,7 +242,7 @@
           <div class="row mb-2">
             <div class="col-sm">
               <label class="form-label">Gültig bis *</label>
-              <input testId="validUntilInput" type="date" formControlName="validUntil" class="form-control"
+              <input testid="validUntilInput" type="date" formControlName="validUntil" class="form-control"
                      [ngClass]="{'is-invalid': validUntil.invalid && (validUntil.dirty || validUntil.touched), 'is-valid': validUntil.valid && (validUntil.dirty || validUntil.touched)}">
               <div *ngIf="validUntil.errors?.required && (validUntil.dirty || validUntil.touched)"
                    class="invalid-feedback">
@@ -339,7 +339,7 @@
                         <div class="col-lg-6">
                           <label class="form-label">Nationalität *</label>
                           <div class="input-group">
-                            <select testId="countryInput" formControlName="country" class="form-control"
+                            <select testid="countryInput" formControlName="country" class="form-control"
                                     [compareWith]="compareCountry"
                                     [ngClass]="{'is-invalid': additionalPerson.get('country').invalid && (additionalPerson.get('country').dirty || additionalPerson.get('country').touched), 'is-valid': additionalPerson.get('country').valid && (additionalPerson.get('country').dirty || additionalPerson.get('country').touched)}">
                               <option *ngFor="let countryItem of countries" [ngValue]="countryItem">

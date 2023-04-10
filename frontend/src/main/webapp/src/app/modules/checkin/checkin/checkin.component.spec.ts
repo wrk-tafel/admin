@@ -3,16 +3,24 @@ import {CheckinComponent, CustomerState} from './checkin.component';
 import {WebsocketService} from '../../../common/websocket/websocket.service';
 import {CommonModule} from '@angular/common';
 import {CustomerApiService} from '../../../api/customer-api.service';
-import {of, throwError} from 'rxjs';
+import {BehaviorSubject, of, throwError} from 'rxjs';
 import {IMessage} from '@stomp/stompjs';
 import * as moment from 'moment/moment';
 import {ScannerList, ScanResult} from '../scanner/scanner.component';
 import {CustomerNoteApiService, CustomerNotesResponse} from '../../../api/customer-note-api.service';
+import {GlobalStateService} from '../../../common/state/global-state.service';
+import {Router} from '@angular/router';
+import {DistributionApiService, DistributionItem} from '../../../api/distribution-api.service';
+import {ModalModule} from 'ngx-bootstrap/modal';
+import {RouterTestingModule} from '@angular/router/testing';
 
 describe('CheckinComponent', () => {
   let customerApiService: jasmine.SpyObj<CustomerApiService>;
   let customerNoteApiService: jasmine.SpyObj<CustomerNoteApiService>;
   let wsService: jasmine.SpyObj<WebsocketService>;
+  let globalStateService: jasmine.SpyObj<GlobalStateService>;
+  let distributionApiService: jasmine.SpyObj<DistributionApiService>;
+  let router: jasmine.SpyObj<Router>;
 
   beforeEach(waitForAsync(() => {
     const customerApiServiceSpy = jasmine.createSpyObj('CustomerApiService', ['getCustomer']);
@@ -20,9 +28,13 @@ describe('CheckinComponent', () => {
     const wsServiceSpy = jasmine.createSpyObj('WebsocketService',
       ['init', 'connect', 'watch', 'close']
     );
+    const globalStateServiceSpy = jasmine.createSpyObj('GlobalStateService', ['getCurrentDistribution']);
+    const distributionApiServiceSpy = jasmine.createSpyObj('DistributionApiService', ['assignCustomer']);
+    const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
 
     TestBed.configureTestingModule({
-      imports: [CommonModule],
+      imports: [CommonModule, RouterTestingModule, ModalModule],
+      declarations: [CheckinComponent],
       providers: [
         {
           provide: CustomerApiService,
@@ -35,6 +47,18 @@ describe('CheckinComponent', () => {
         {
           provide: WebsocketService,
           useValue: wsServiceSpy
+        },
+        {
+          provide: GlobalStateService,
+          useValue: globalStateServiceSpy
+        },
+        {
+          provide: DistributionApiService,
+          useValue: distributionApiServiceSpy
+        },
+        {
+          provide: Router,
+          useValue: routerSpy
         }
       ]
     }).compileComponents();
@@ -42,11 +66,15 @@ describe('CheckinComponent', () => {
     customerApiService = TestBed.inject(CustomerApiService) as jasmine.SpyObj<CustomerApiService>;
     customerNoteApiService = TestBed.inject(CustomerNoteApiService) as jasmine.SpyObj<CustomerNoteApiService>;
     wsService = TestBed.inject(WebsocketService) as jasmine.SpyObj<WebsocketService>;
+    globalStateService = TestBed.inject(GlobalStateService) as jasmine.SpyObj<GlobalStateService>;
+    distributionApiService = TestBed.inject(DistributionApiService) as jasmine.SpyObj<DistributionApiService>;
+    router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
   }));
 
   it('component can be created', () => {
     const fixture = TestBed.createComponent(CheckinComponent);
     const component = fixture.componentInstance;
+
     expect(component).toBeTruthy();
   });
 
@@ -66,10 +94,32 @@ describe('CheckinComponent', () => {
     };
     wsService.watch.and.returnValue(of(scannersMessage));
 
+    const testDistribution = {
+      id: 123,
+      state: {
+        name: 'OPEN',
+        stateLabel: 'Offen',
+        actionLabel: 'Offen'
+      }
+    };
+    globalStateService.getCurrentDistribution.and.returnValue(new BehaviorSubject<DistributionItem>(testDistribution));
+
     component.ngOnInit();
 
     expect(wsService.watch).toHaveBeenCalledWith('/topic/scanners');
     expect(component.scannerIds).toEqual(scannersResponse.scannerIds);
+  });
+
+  it('ngOnInit without ongoing distribution navigates to dashboard', () => {
+    const fixture = TestBed.createComponent(CheckinComponent);
+    const component = fixture.componentInstance;
+
+    wsService.watch.and.returnValue(of());
+    globalStateService.getCurrentDistribution.and.returnValue(new BehaviorSubject<DistributionItem>(null));
+
+    component.ngOnInit();
+
+    expect(router.navigate).toHaveBeenCalledWith(['uebersicht']);
   });
 
   it('ngOnDestroy with active subscription', () => {
@@ -131,7 +181,7 @@ describe('CheckinComponent', () => {
     component.selectedScannerId = undefined;
 
     expect(component.currentScannerId).toBeUndefined();
-    expect(component.customerId).toBeUndefined();
+    expect(component.customerId).not.toBeUndefined();
     expect(component.scannerReadyState).toBeFalsy();
     expect(testSubscription.unsubscribe).toHaveBeenCalled();
     expect(wsService.watch).not.toHaveBeenCalled();
@@ -162,6 +212,7 @@ describe('CheckinComponent', () => {
     const fixture = TestBed.createComponent(CheckinComponent);
     const component = fixture.componentInstance;
     component.errorMessage = 'test msg to be purged';
+    component.ticketNumber = 123;
 
     const mockCustomer = {
       id: 133,
@@ -195,6 +246,9 @@ describe('CheckinComponent', () => {
 
     expect(component.customerState).toBe(CustomerState.GREEN);
     expect(component.customerStateText).toBe('GÜLTIG');
+
+    expect(component.ticketNumber).toBeUndefined();
+    expect(component.focusTicketNumberInput).toBeTruthy();
   });
 
   it('searchForCustomerId found valid customer but expires soon', () => {
@@ -232,6 +286,8 @@ describe('CheckinComponent', () => {
 
     expect(component.customerState).toBe(CustomerState.YELLOW);
     expect(component.customerStateText).toBe('GÜLTIG - läuft bald ab');
+
+    expect(component.focusTicketNumberInput).toBeTruthy();
   });
 
   it('searchForCustomerId found invalid customer', () => {
@@ -269,6 +325,9 @@ describe('CheckinComponent', () => {
 
     expect(component.customerState).toBe(CustomerState.RED);
     expect(component.customerStateText).toBe('UNGÜLTIG');
+
+    expect(component.focusTicketNumberInput).toBeFalsy();
+    expect(component.focusResetButton).toBeTruthy();
   });
 
   it('searchForCustomerId customer not found', () => {
@@ -292,7 +351,26 @@ describe('CheckinComponent', () => {
     const fixture = TestBed.createComponent(CheckinComponent);
     const component = fixture.componentInstance;
 
-    customerApiService.getCustomer.and.returnValue(of());
+    const mockCustomer = {
+      id: 133,
+      lastname: 'Mustermann',
+      firstname: 'Max',
+      birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
+
+      address: {
+        street: 'Teststraße',
+        houseNumber: '123A',
+        door: '21',
+        postalCode: 1020,
+        city: 'Wien',
+      },
+
+      employer: 'test employer',
+      income: 1000,
+
+      validUntil: moment().add(3, 'months').startOf('day').utc().toDate()
+    };
+    customerApiService.getCustomer.and.returnValue(of(mockCustomer));
 
     const mockNotes = [
       {
@@ -312,6 +390,121 @@ describe('CheckinComponent', () => {
     component.searchForCustomerId();
 
     expect(component.customerNotes).toEqual(mockNotes);
+  });
+
+  it('reset customer', () => {
+    const fixture = TestBed.createComponent(CheckinComponent);
+    const component = fixture.componentInstance;
+
+    const mockCustomer = {
+      id: 133,
+      lastname: 'Mustermann',
+      firstname: 'Max',
+      birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
+
+      address: {
+        street: 'Teststraße',
+        houseNumber: '123A',
+        door: '21',
+        postalCode: 1020,
+        city: 'Wien',
+      },
+
+      employer: 'test employer',
+      income: 1000,
+
+      validUntil: moment().add(3, 'months').startOf('day').utc().toDate()
+    };
+    component.processCustomer(mockCustomer);
+    component.focusResetButton = true;
+
+    component.reset();
+
+    expect(component.customerId).toBeUndefined();
+    expect(component.customerState).toBeUndefined();
+    expect(component.customerStateText).toBeUndefined();
+    expect(component.customerNotes).toBeDefined();
+    expect(component.customerNotes.length).toBe(0);
+    expect(component.focusResetButton).toBeFalsy();
+  });
+
+  it('assign customer', () => {
+    const fixture = TestBed.createComponent(CheckinComponent);
+    const component = fixture.componentInstance;
+
+    const mockCustomer = {
+      id: 133,
+      lastname: 'Mustermann',
+      firstname: 'Max',
+      birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
+
+      address: {
+        street: 'Teststraße',
+        houseNumber: '123A',
+        door: '21',
+        postalCode: 1020,
+        city: 'Wien',
+      },
+
+      employer: 'test employer',
+      income: 1000,
+
+      validUntil: moment().add(3, 'months').startOf('day').utc().toDate()
+    };
+    component.processCustomer(mockCustomer);
+
+    const ticketNumber = 55;
+    component.ticketNumber = ticketNumber;
+
+    distributionApiService.assignCustomer.and.returnValue(of(null));
+
+    component.assignCustomer();
+
+    expect(distributionApiService.assignCustomer).toHaveBeenCalledWith(mockCustomer.id, ticketNumber);
+
+    expect(component.customerId).toBeUndefined();
+    expect(component.customerState).toBeUndefined();
+    expect(component.customerStateText).toBeUndefined();
+    expect(component.customerNotes).toBeDefined();
+    expect(component.customerNotes.length).toBe(0);
+    expect(component.ticketNumber).toBeUndefined();
+  });
+
+  it('assign customer failed', () => {
+    const fixture = TestBed.createComponent(CheckinComponent);
+    const component = fixture.componentInstance;
+
+    const mockCustomer = {
+      id: 133,
+      lastname: 'Mustermann',
+      firstname: 'Max',
+      birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
+
+      address: {
+        street: 'Teststraße',
+        houseNumber: '123A',
+        door: '21',
+        postalCode: 1020,
+        city: 'Wien',
+      },
+
+      employer: 'test employer',
+      income: 1000,
+
+      validUntil: moment().add(3, 'months').startOf('day').utc().toDate()
+    };
+    component.processCustomer(mockCustomer);
+
+    const ticketNumber = 55;
+    component.ticketNumber = ticketNumber;
+
+    distributionApiService.assignCustomer.and.returnValue(throwError({status: 400}));
+
+    component.assignCustomer();
+
+    expect(distributionApiService.assignCustomer).toHaveBeenCalledWith(mockCustomer.id, ticketNumber);
+
+    expect(component.errorMessage).toBe('Kunde konnte nicht zugewiesen werden!');
   });
 
 });

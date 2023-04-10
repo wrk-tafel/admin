@@ -109,7 +109,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
     expect(component).toBeTruthy();
 
     fixture.detectChanges();
-    expect(fixture.debugElement.query(By.css('[testId="nopersons-label"]'))).toBeTruthy();
+    expect(fixture.debugElement.query(By.css('[testid="nopersons-label"]'))).toBeTruthy();
     expect(component.editMode).toBeFalse();
     expect(component.customerValidForSave).toBeFalse();
     expect(component.errorMessage).toBeUndefined();

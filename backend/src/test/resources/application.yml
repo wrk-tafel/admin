@@ -1,11 +1,5 @@
 server.port: 0 # Random port for each SpringBootTest
 
-spring:
-  flyway:
-    locations: classpath:/db-migration
-    group: true
-    ignore-migration-patterns: "*:missing"
-
 security:
   jwtToken:
     issuer: test-issuer

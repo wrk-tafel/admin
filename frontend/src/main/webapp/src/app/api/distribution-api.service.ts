@@ -37,6 +37,14 @@ export class DistributionApiService {
     ));
   }
 
+  assignCustomer(customerId: number, ticketNumber: number): Observable<void> {
+    const body: AssignCustomerRequest = {
+      customerId: customerId,
+      ticketNumber: ticketNumber
+    };
+    return this.http.post<void>('/distributions/customers', body);
+  }
+
 }
 
 export interface DistributionItemResponse {
@@ -57,4 +65,9 @@ export interface DistributionStateItem {
   name: string;
   stateLabel: string;
   actionLabel?: string;
+}
+
+export interface AssignCustomerRequest {
+  customerId: number;
+  ticketNumber: number;
 }
