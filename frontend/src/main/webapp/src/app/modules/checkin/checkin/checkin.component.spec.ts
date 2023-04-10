@@ -10,7 +10,7 @@ import {ScannerList, ScanResult} from '../scanner/scanner.component';
 import {CustomerNoteApiService, CustomerNotesResponse} from '../../../api/customer-note-api.service';
 import {GlobalStateService} from '../../../common/state/global-state.service';
 import {Router} from '@angular/router';
-import {DistributionItem} from '../../../api/distribution-api.service';
+import {DistributionApiService, DistributionItem} from '../../../api/distribution-api.service';
 import {ModalModule} from 'ngx-bootstrap/modal';
 import {RouterTestingModule} from '@angular/router/testing';
 
@@ -19,6 +19,7 @@ describe('CheckinComponent', () => {
   let customerNoteApiService: jasmine.SpyObj<CustomerNoteApiService>;
   let wsService: jasmine.SpyObj<WebsocketService>;
   let globalStateService: jasmine.SpyObj<GlobalStateService>;
+  let distributionApiService: jasmine.SpyObj<DistributionApiService>;
   let router: jasmine.SpyObj<Router>;
 
   beforeEach(waitForAsync(() => {
@@ -28,6 +29,7 @@ describe('CheckinComponent', () => {
       ['init', 'connect', 'watch', 'close']
     );
     const globalStateServiceSpy = jasmine.createSpyObj('GlobalStateService', ['getCurrentDistribution']);
+    const distributionApiServiceSpy = jasmine.createSpyObj('DistributionApiService', ['assignCustomer']);
     const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
 
     TestBed.configureTestingModule({
@@ -51,6 +53,10 @@ describe('CheckinComponent', () => {
           useValue: globalStateServiceSpy
         },
         {
+          provide: DistributionApiService,
+          useValue: distributionApiServiceSpy
+        },
+        {
           provide: Router,
           useValue: routerSpy
         }
@@ -61,6 +67,7 @@ describe('CheckinComponent', () => {
     customerNoteApiService = TestBed.inject(CustomerNoteApiService) as jasmine.SpyObj<CustomerNoteApiService>;
     wsService = TestBed.inject(WebsocketService) as jasmine.SpyObj<WebsocketService>;
     globalStateService = TestBed.inject(GlobalStateService) as jasmine.SpyObj<GlobalStateService>;
+    distributionApiService = TestBed.inject(DistributionApiService) as jasmine.SpyObj<DistributionApiService>;
     router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
   }));
 
@@ -409,13 +416,92 @@ describe('CheckinComponent', () => {
     };
     component.processCustomer(mockCustomer);
 
-    component.resetCustomer();
+    component.reset();
 
     expect(component.customerId).toBeUndefined();
     expect(component.customerState).toBeUndefined();
     expect(component.customerStateText).toBeUndefined();
     expect(component.customerNotes).toBeDefined();
     expect(component.customerNotes.length).toBe(0);
+  });
+
+  it('assign customer', () => {
+    const fixture = TestBed.createComponent(CheckinComponent);
+    const component = fixture.componentInstance;
+
+    const mockCustomer = {
+      id: 133,
+      lastname: 'Mustermann',
+      firstname: 'Max',
+      birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
+
+      address: {
+        street: 'Teststraße',
+        houseNumber: '123A',
+        door: '21',
+        postalCode: 1020,
+        city: 'Wien',
+      },
+
+      employer: 'test employer',
+      income: 1000,
+
+      validUntil: moment().add(3, 'months').startOf('day').utc().toDate()
+    };
+    component.processCustomer(mockCustomer);
+
+    const ticketNumber = 55;
+    component.ticketNumber = ticketNumber;
+
+    distributionApiService.assignCustomer.and.returnValue(of(null));
+
+    component.assignCustomer();
+
+    expect(distributionApiService.assignCustomer).toHaveBeenCalledWith(mockCustomer.id, ticketNumber);
+
+    expect(component.customerId).toBeUndefined();
+    expect(component.customerState).toBeUndefined();
+    expect(component.customerStateText).toBeUndefined();
+    expect(component.customerNotes).toBeDefined();
+    expect(component.customerNotes.length).toBe(0);
+    expect(component.ticketNumber).toBeUndefined();
+  });
+
+  it('assign customer failed', () => {
+    const fixture = TestBed.createComponent(CheckinComponent);
+    const component = fixture.componentInstance;
+
+    const mockCustomer = {
+      id: 133,
+      lastname: 'Mustermann',
+      firstname: 'Max',
+      birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
+
+      address: {
+        street: 'Teststraße',
+        houseNumber: '123A',
+        door: '21',
+        postalCode: 1020,
+        city: 'Wien',
+      },
+
+      employer: 'test employer',
+      income: 1000,
+
+      validUntil: moment().add(3, 'months').startOf('day').utc().toDate()
+    };
+    component.processCustomer(mockCustomer);
+
+    const ticketNumber = 55;
+    component.ticketNumber = ticketNumber;
+
+    distributionApiService.assignCustomer.and.returnValue(throwError({status: 400}));
+
+    component.assignCustomer();
+
+    expect(distributionApiService.assignCustomer).toHaveBeenCalledWith(mockCustomer.id, ticketNumber);
+
+    expect(component.errorMessage).toBe('Fehler beim Zuweisen!');
   });
 
 });

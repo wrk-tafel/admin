@@ -9,6 +9,7 @@ import {CustomerNoteApiService, CustomerNoteItem} from '../../../api/customer-no
 import {GlobalStateService} from '../../../common/state/global-state.service';
 import {Router} from '@angular/router';
 import {ModalDirective} from 'ngx-bootstrap/modal';
+import {DistributionApiService} from "../../../api/distribution-api.service";
 
 @Component({
   selector: 'tafel-checkin',
@@ -21,6 +22,7 @@ export class CheckinComponent implements OnInit, OnDestroy {
     private customerNoteApiService: CustomerNoteApiService,
     private websocketService: WebsocketService,
     private globalStateService: GlobalStateService,
+    private distributionApiService: DistributionApiService,
     private router: Router,
   ) {
   }
@@ -137,7 +139,7 @@ export class CheckinComponent implements OnInit, OnDestroy {
     }
   }
 
-  resetCustomer() {
+  reset() {
     this.processCustomer(undefined);
     this.customerNotes = [];
     this.customerId = undefined;
@@ -161,8 +163,14 @@ export class CheckinComponent implements OnInit, OnDestroy {
   }
 
   assignCustomer() {
-    // TODO impl
-    console.log('ASSIGN CUSTOMER CALLED');
+    this.distributionApiService.assignCustomer(this.customer.id, this.ticketNumber).subscribe(
+      response => {
+        this.reset();
+      },
+      error => {
+        this.errorMessage = 'Fehler beim Zuweisen!';
+      }
+    );
   }
 
 }
