@@ -57,6 +57,8 @@ describe('CustomerApiService', () => {
     const req = httpMock.expectOne({method: 'POST', url: '/customers/133'});
     req.flush(null);
     httpMock.verify();
+
+    expect(req.request.body).toEqual(mockCustomer);
   });
 
   it('get customer', () => {
