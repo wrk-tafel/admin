@@ -8,6 +8,7 @@ import {ModalModule} from 'ngx-bootstrap/modal';
 import {TafelCommonModule} from '../../common/tafel-common.module';
 import {DistributionStateComponent} from './components/distribution-state/distribution-state.component';
 import {ProgressbarModule} from 'ngx-bootstrap/progressbar';
+import {RegisteredCustomersComponent} from './components/registered-customers/registered-customers.component';
 
 @NgModule({
     imports: [
@@ -20,7 +21,8 @@ import {ProgressbarModule} from 'ngx-bootstrap/progressbar';
     ],
   declarations: [
     DashboardComponent,
-    DistributionStateComponent
+    DistributionStateComponent,
+    RegisteredCustomersComponent
   ]
 })
 export class DashboardModule {
