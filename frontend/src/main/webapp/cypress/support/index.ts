@@ -28,5 +28,17 @@ declare namespace Cypress {
      * @example cy.byTestId('saveButton');
      */
     byTestId<K extends keyof HTMLElementTagNameMap>(value: string): Chainable<JQuery<HTMLElementTagNameMap[K]>>;
+
+    /**
+     * Custom command to create a distribution.
+     * @example cy.createDistribution();
+     */
+    createDistribution();
+
+    /**
+     * Custom command to finish a distribution.
+     * @example cy.finishDistribution();
+     */
+    finishDistribution();
   }
 }
