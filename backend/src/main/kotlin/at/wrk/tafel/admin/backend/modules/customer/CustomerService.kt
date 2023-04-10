@@ -36,11 +36,7 @@ class CustomerService(
     }
 
     fun findByCustomerId(customerId: Long): Customer? {
-        val entity = customerRepository.findByCustomerId(customerId)
-        if (entity.isPresent) {
-            return mapEntityToResponse(entity.get())
-        }
-        return null
+        return customerRepository.findByCustomerId(customerId)?.let { mapEntityToResponse(it) }
     }
 
     fun createCustomer(customer: Customer): Customer {
@@ -74,9 +70,8 @@ class CustomerService(
     }
 
     fun generatePdf(customerId: Long, type: CustomerPdfType): CustomerPdfResult? {
-        val customerOptional = customerRepository.findByCustomerId(customerId)
-        if (customerOptional.isPresent) {
-            val customer = customerOptional.get()
+        val customer = customerRepository.findByCustomerId(customerId)
+        if (customer != null) {
             var filenamePrefix: String
             var bytes: ByteArray
 

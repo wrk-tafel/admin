@@ -2,8 +2,11 @@ package at.wrk.tafel.admin.backend.modules.distribution
 
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.common.model.DistributionState
+import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionCustomerEntity
 import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
+import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerRepository
+import at.wrk.tafel.admin.backend.database.repositories.distribution.DistributionCustomerRepository
 import at.wrk.tafel.admin.backend.database.repositories.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationFailedException
 import org.springframework.security.core.context.SecurityContextHolder
@@ -13,7 +16,9 @@ import java.time.ZonedDateTime
 @Service
 class DistributionService(
     private val distributionRepository: DistributionRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val distributionCustomerRepository: DistributionCustomerRepository,
+    private val customerRepository: CustomerRepository
 ) {
     private val STATES_LIST = listOf(
         DistributionState.OPEN,
@@ -64,6 +69,21 @@ class DistributionService(
             }
             distributionRepository.save(distribution)
         }
+    }
+
+    fun assignCustomerToDistribution(customerId: Long, ticketNumber: Int) {
+        val currentDistribution = distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc()
+            ?: throw TafelValidationFailedException("Ausgabe nicht gestartet!")
+
+        val customer = customerRepository.findByCustomerId(customerId)
+            ?: throw TafelValidationFailedException("Kunde nicht vorhanden!")
+
+        val entry = DistributionCustomerEntity()
+        entry.distribution = currentDistribution
+        entry.customer = customer
+        entry.ticketNumber = ticketNumber
+
+        distributionCustomerRepository.save(entry)
     }
 
 }
