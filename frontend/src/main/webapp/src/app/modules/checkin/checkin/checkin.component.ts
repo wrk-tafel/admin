@@ -9,7 +9,7 @@ import {CustomerNoteApiService, CustomerNoteItem} from '../../../api/customer-no
 import {GlobalStateService} from '../../../common/state/global-state.service';
 import {Router} from '@angular/router';
 import {ModalDirective} from 'ngx-bootstrap/modal';
-import {DistributionApiService} from "../../../api/distribution-api.service";
+import {DistributionApiService} from '../../../api/distribution-api.service';
 
 @Component({
   selector: 'tafel-checkin',
@@ -46,6 +46,7 @@ export class CheckinComponent implements OnInit, OnDestroy {
   customerNotes: CustomerNoteItem[];
   ticketNumber: number;
   focusTicketNumberInput: boolean;
+  focusCustomerIdInput: boolean = true;
 
   ngOnInit(): void {
     if (this.globalStateService.getCurrentDistribution().value === null) {
