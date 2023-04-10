@@ -4,10 +4,10 @@ import {
   DistributionItem,
   DistributionStateItem,
   DistributionStatesResponse
-} from '../../../api/distribution-api.service';
+} from '../../../../api/distribution-api.service';
 import {ModalDirective} from 'ngx-bootstrap/modal';
 import {ActivatedRoute} from '@angular/router';
-import {GlobalStateService} from '../../../common/state/global-state.service';
+import {GlobalStateService} from '../../../../common/state/global-state.service';
 
 @Component({
   selector: 'tafel-distribution-state',
