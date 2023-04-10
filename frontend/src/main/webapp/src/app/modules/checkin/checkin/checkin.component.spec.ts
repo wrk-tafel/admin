@@ -327,6 +327,7 @@ describe('CheckinComponent', () => {
     expect(component.customerStateText).toBe('UNGÜLTIG');
 
     expect(component.focusTicketNumberInput).toBeFalsy();
+    expect(component.focusResetButton).toBeTruthy();
   });
 
   it('searchForCustomerId customer not found', () => {
@@ -415,6 +416,7 @@ describe('CheckinComponent', () => {
       validUntil: moment().add(3, 'months').startOf('day').utc().toDate()
     };
     component.processCustomer(mockCustomer);
+    component.focusResetButton = true;
 
     component.reset();
 
@@ -423,6 +425,7 @@ describe('CheckinComponent', () => {
     expect(component.customerStateText).toBeUndefined();
     expect(component.customerNotes).toBeDefined();
     expect(component.customerNotes.length).toBe(0);
+    expect(component.focusResetButton).toBeFalsy();
   });
 
   it('assign customer', () => {

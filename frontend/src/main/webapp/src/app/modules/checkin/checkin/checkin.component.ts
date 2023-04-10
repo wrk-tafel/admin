@@ -47,6 +47,7 @@ export class CheckinComponent implements OnInit, OnDestroy {
   ticketNumber: number;
   focusTicketNumberInput: boolean;
   focusCustomerIdInput: boolean = true;
+  focusResetButton: boolean = false;
 
   ngOnInit(): void {
     if (this.globalStateService.getCurrentDistribution().value === null) {
@@ -93,6 +94,7 @@ export class CheckinComponent implements OnInit, OnDestroy {
       if (validUntil.isBefore(now)) {
         this.customerState = CustomerState.RED;
         this.customerStateText = 'UNGÜLTIG';
+        this.focusResetButton = true;
       } else {
         const warnLimit = now.add(this.VALID_UNTIL_WARNLIMIT_WEEKS, 'weeks');
         if (!validUntil.isAfter(warnLimit)) {
@@ -145,6 +147,7 @@ export class CheckinComponent implements OnInit, OnDestroy {
     this.customerNotes = [];
     this.customerId = undefined;
     this.ticketNumber = undefined;
+    this.focusResetButton = false;
   }
 
   formatAddress(): string {
