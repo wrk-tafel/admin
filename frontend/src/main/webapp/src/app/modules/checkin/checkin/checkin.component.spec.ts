@@ -501,7 +501,7 @@ describe('CheckinComponent', () => {
 
     expect(distributionApiService.assignCustomer).toHaveBeenCalledWith(mockCustomer.id, ticketNumber);
 
-    expect(component.errorMessage).toBe('Fehler beim Zuweisen!');
+    expect(component.errorMessage).toBe('Kunde konnte nicht zugewiesen werden!');
   });
 
 });

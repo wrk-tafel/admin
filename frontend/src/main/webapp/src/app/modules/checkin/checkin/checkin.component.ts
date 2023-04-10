@@ -168,7 +168,7 @@ export class CheckinComponent implements OnInit, OnDestroy {
         this.reset();
       },
       error => {
-        this.errorMessage = 'Fehler beim Zuweisen!';
+        this.errorMessage = 'Kunde konnte nicht zugewiesen werden!';
       }
     );
   }
