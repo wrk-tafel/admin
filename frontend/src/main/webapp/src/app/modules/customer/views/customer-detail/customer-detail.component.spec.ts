@@ -405,7 +405,7 @@ describe('CustomerDetailComponent', () => {
   });
 
   function getTextByTestId(fixture: ComponentFixture<CustomerDetailComponent>, testId: string): string {
-    return fixture.debugElement.query(By.css(`[testId="${testId}"]`)).nativeElement.textContent;
+    return fixture.debugElement.query(By.css(`[testid="${testId}"]`)).nativeElement.textContent;
   }
 
 });

@@ -103,11 +103,11 @@ describe('CustomerSearchComponent', () => {
     expect(apiService.searchCustomer).toHaveBeenCalledWith('lastname', 'firstname');
 
     fixture.detectChanges();
-    expect(fixture.debugElement.query(By.css('[testId="searchresult-id-0"]')).nativeElement.textContent).toBe('0');
-    expect(fixture.debugElement.query(By.css('[testId="searchresult-lastname-0"]')).nativeElement.textContent).toBe('last');
-    expect(fixture.debugElement.query(By.css('[testId="searchresult-firstname-0"]')).nativeElement.textContent).toBe('first');
-    expect(fixture.debugElement.query(By.css('[testId="searchresult-birthDate-0"]')).nativeElement.textContent).toBe('10.05.2000');
-    expect(fixture.debugElement.query(By.css('[testId="searchresult-address-0"]')).nativeElement.textContent)
+    expect(fixture.debugElement.query(By.css('[testid="searchresult-id-0"]')).nativeElement.textContent).toBe('0');
+    expect(fixture.debugElement.query(By.css('[testid="searchresult-lastname-0"]')).nativeElement.textContent).toBe('last');
+    expect(fixture.debugElement.query(By.css('[testid="searchresult-firstname-0"]')).nativeElement.textContent).toBe('first');
+    expect(fixture.debugElement.query(By.css('[testid="searchresult-birthDate-0"]')).nativeElement.textContent).toBe('10.05.2000');
+    expect(fixture.debugElement.query(By.css('[testid="searchresult-address-0"]')).nativeElement.textContent)
       .toBe('street 1, Stiege stairway1, Top 20 / 1010 city');
   });
 

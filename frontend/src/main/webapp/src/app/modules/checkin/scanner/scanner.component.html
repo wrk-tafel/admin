@@ -4,10 +4,10 @@
       <div class="card-body">
         <div class="row">
           <div class="col d-flex justify-content-center">
-            <div class="badge mr-3 font-lg" testId="state-server"
+            <div class="badge mr-3 font-lg" testid="state-server"
                  [ngClass]="{'badge-success': apiClientReady, 'badge-danger': !apiClientReady}">Verbindung
             </div>
-            <div class="badge font-lg" testId="state-camera"
+            <div class="badge font-lg" testid="state-camera"
                  [ngClass]="{'badge-success': qrCodeReaderReady, 'badge-danger': !qrCodeReaderReady}">Kamera
             </div>
           </div>
@@ -16,7 +16,7 @@
           <div class="col d-flex justify-content-center">
             <div class="form-inline">
               <label class="form-label font-weight-bold mr-2">Kamera</label>
-              <select testId="cameraSelectionInput" class="form-control" [(ngModel)]="selectedCamera">
+              <select testid="cameraSelectionInput" class="form-control" [(ngModel)]="selectedCamera">
                 <option *ngFor="let camera of availableCameras" [ngValue]="camera">
                   {{camera.label}}</option>
               </select>
@@ -26,7 +26,7 @@
         <div class="row mb-3">
           <div class="col d-flex justify-content-center">
             <h1 class="font-5xl">Nr:</h1>
-            <h1 class="ml-3 font-5xl" testId="scanner-id">{{scannerId}}</h1>
+            <h1 class="ml-3 font-5xl" testid="scanner-id">{{scannerId}}</h1>
           </div>
         </div>
         <div class="row">
@@ -36,7 +36,7 @@
         </div>
         <div *ngIf="qrCodeReaderReady" class="row mt-3">
           <div class="col d-flex justify-content-center">
-            <div class="alert alert-info ml-2 mr-2" testId="message">
+            <div class="alert alert-info ml-2 mr-2" testid="message">
               <div><strong>letzter Scan: </strong>{{lastSentText}}</div>
             </div>
           </div>
