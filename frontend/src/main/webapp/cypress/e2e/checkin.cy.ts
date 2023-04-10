@@ -21,7 +21,8 @@ describe('CheckIn', () => {
     cy.byTestId('assignCustomerButton').click();
 
     cy.byTestId('customerIdText').should('not.have.text');
-    cy.byTestId('customerDetailPanel').should('be.hidden');
+    cy.byTestId('errorMessage').should('not.exist');
+    cy.byTestId('customerDetailPanel').should('not.exist');
   });
 
 });

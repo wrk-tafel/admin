@@ -36,7 +36,8 @@ declare namespace Cypress {
     createDistribution();
 
     /**
-     * Custom command to finish a distribution.
+     * Custom command to finish a distribution (switches states from OPEN to CLOSED).
+     * Assumes that the distribution is in state OPEN.
      * @example cy.finishDistribution();
      */
     finishDistribution();
