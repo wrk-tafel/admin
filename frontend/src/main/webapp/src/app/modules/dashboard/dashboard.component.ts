@@ -1,6 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {WebsocketService} from '../../common/websocket/websocket.service';
-import {IMessage} from "@stomp/stompjs";
+import {IMessage} from '@stomp/stompjs';
 
 @Component({
   selector: 'tafel-dashboard',
