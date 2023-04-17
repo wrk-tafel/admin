@@ -1,11 +1,11 @@
 import {TestBed, waitForAsync} from '@angular/core/testing';
-import {DistributionApiService, DistributionItem, DistributionStateItem} from '../../../api/distribution-api.service';
+import {DistributionApiService, DistributionItem, DistributionStateItem} from '../../../../api/distribution-api.service';
 import {DistributionStateComponent} from './distribution-state.component';
 import {ModalModule} from 'ngx-bootstrap/modal';
 import {BehaviorSubject, of} from 'rxjs';
 import {ActivatedRoute} from '@angular/router';
 import {RouterTestingModule} from '@angular/router/testing';
-import {GlobalStateService} from '../../../common/state/global-state.service';
+import {GlobalStateService} from '../../../../common/state/global-state.service';
 
 describe('DistributionStateComponent', () => {
   let distributionApiService: jasmine.SpyObj<DistributionApiService>;
