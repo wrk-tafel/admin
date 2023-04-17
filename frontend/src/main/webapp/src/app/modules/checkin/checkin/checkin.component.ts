@@ -167,14 +167,16 @@ export class CheckinComponent implements OnInit, OnDestroy {
   }
 
   assignCustomer() {
-    this.distributionApiService.assignCustomer(this.customer.id, this.ticketNumber).subscribe(
-      response => {
-        this.reset();
-      },
-      error => {
-        this.errorMessage = 'Kunde konnte nicht zugewiesen werden!';
-      }
-    );
+    if (this.ticketNumber > 0) {
+      this.distributionApiService.assignCustomer(this.customer.id, this.ticketNumber).subscribe(
+        response => {
+          this.reset();
+        },
+        error => {
+          this.errorMessage = 'Kunde konnte nicht zugewiesen werden!';
+        }
+      );
+    }
   }
 
 }
