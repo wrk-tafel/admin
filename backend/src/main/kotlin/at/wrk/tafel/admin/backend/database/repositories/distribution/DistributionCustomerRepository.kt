@@ -4,5 +4,7 @@ import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionCus
 import org.springframework.data.jpa.repository.JpaRepository
 
 interface DistributionCustomerRepository : JpaRepository<DistributionCustomerEntity, Long> {
-    fun countAllByDistributionFirstByEndedAtIsNullOrderByStartedAtDesc(): Int
+
+    fun countAllByDistributionId(distributionId: Long): Int
+
 }
