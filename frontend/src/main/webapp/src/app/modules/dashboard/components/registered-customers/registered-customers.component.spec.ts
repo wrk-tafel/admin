@@ -3,6 +3,7 @@ import {DistributionApiService} from '../../../../api/distribution-api.service';
 import {ModalModule} from 'ngx-bootstrap/modal';
 import {RouterTestingModule} from '@angular/router/testing';
 import {RegisteredCustomersComponent} from './registered-customers.component';
+import {By} from "@angular/platform-browser";
 
 describe('RegisteredCustomersComponent', () => {
   let distributionApiService: jasmine.SpyObj<DistributionApiService>;
@@ -31,6 +32,17 @@ describe('RegisteredCustomersComponent', () => {
     const fixture = TestBed.createComponent(RegisteredCustomersComponent);
     const component = fixture.componentInstance;
     expect(component).toBeTruthy();
+  });
+
+  it('customers count rendered', () => {
+    const fixture = TestBed.createComponent(RegisteredCustomersComponent);
+    const component = fixture.componentInstance;
+
+    const count = 123;
+    component.count = count;
+
+    fixture.detectChanges();
+    expect(fixture.debugElement.query(By.css('[testid="customers-count"]')).nativeElement.textContent).toBe(`${count}`);
   });
 
 });
