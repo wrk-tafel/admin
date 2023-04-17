@@ -1,4 +1,4 @@
-<div class="card text-black">
+<div class="card text-black dashboard-panel">
   <div class="card-body pb-0">
     <div class="row">
       <div class="col-sm-12">
@@ -6,9 +6,10 @@
       </div>
     </div>
     <div class="row">
-      <div class="col mb-5 text-value font-weight-bold">
-        <h1 *ngIf="count" testid="registered-customers-count">{{count}}</h1>
-        <h1 *ngIf="!count" testid="registered-customers-count">-</h1>
+      <div class="col mb-5">
+        <div *ngIf="count" testid="registered-customers-count"
+             class="text-value dashboard-text-number-huge">{{count}}</div>
+        <div *ngIf="!count" testid="registered-customers-count" class="text-value dashboard-text-number-huge">-</div>
       </div>
     </div>
   </div>
