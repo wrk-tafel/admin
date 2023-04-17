@@ -1,30 +1,55 @@
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ReactiveFormsModule } from '@angular/forms';
 
-import { ButtonsComponent } from './buttons.component';
-import { BrandButtonsComponent } from './brand-buttons.component';
+import { DocsComponentsModule } from '@docs-components/docs-components.module';
+import { ButtonsComponent } from './buttons/buttons.component';
+import { ButtonGroupsComponent } from './button-groups/button-groups.component';
+import { DropdownsComponent } from './dropdowns/dropdowns.component';
 
-// Dropdowns Component
-import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
-import { DropdownsComponent } from './dropdowns.component';
-
-// Buttons Routing
 import { ButtonsRoutingModule } from './buttons-routing.module';
 
-// Angular
+import {
+  ButtonGroupModule,
+  ButtonModule,
+  CardModule,
+  CollapseModule,
+  DropdownModule,
+  FormModule,
+  GridModule,
+  NavbarModule,
+  NavModule,
+  SharedModule,
+  UtilitiesModule
+} from '@coreui/angular';
+
+import { IconModule } from '@coreui/icons-angular';
 
 @NgModule({
+  declarations: [
+    ButtonsComponent,
+    ButtonGroupsComponent,
+    DropdownsComponent,
+  ],
   imports: [
     CommonModule,
     ButtonsRoutingModule,
-    BsDropdownModule.forRoot(),
-    FormsModule
-  ],
-  declarations: [
-    ButtonsComponent,
-    DropdownsComponent,
-    BrandButtonsComponent
+    ButtonModule,
+    ButtonGroupModule,
+    GridModule,
+    IconModule,
+    CardModule,
+    UtilitiesModule,
+    DropdownModule,
+    SharedModule,
+    FormModule,
+    ReactiveFormsModule,
+    DocsComponentsModule,
+    NavbarModule,
+    CollapseModule,
+    NavModule,
+    NavbarModule
   ]
 })
-export class ButtonsModule { }
+export class ButtonsModule {
+}

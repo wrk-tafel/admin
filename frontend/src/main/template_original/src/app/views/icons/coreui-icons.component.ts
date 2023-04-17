@@ -1,25 +1,25 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { Platform } from '@angular/cdk/platform';
 
 import { IconSetService } from '@coreui/icons-angular';
+import { brandSet, flagSet, freeSet } from '@coreui/icons';
 
 @Component({
   templateUrl: 'coreui-icons.component.html',
-  styleUrls: ['coreui-icons.component.scss']
+  providers: [IconSetService],
 })
 export class CoreUIIconsComponent implements OnInit {
   public title = 'CoreUI Icons';
-  public icons = [];
+  public icons!: [string, string[]][];
 
   constructor(
-    public platform: Platform,
-    private route: ActivatedRoute,
-    public iconSet: IconSetService
-  ) {}
+    private route: ActivatedRoute, public iconSet: IconSetService
+  ) {
+    iconSet.icons = { ...freeSet, ...brandSet, ...flagSet };
+  }
 
   ngOnInit() {
-    const path = this.route.routeConfig.path;
+    const path = this.route?.routeConfig?.path;
     let prefix = 'cil';
     if (path === 'coreui-icons') {
       this.title = `${this.title} - Free`;
@@ -34,7 +34,7 @@ export class CoreUIIconsComponent implements OnInit {
     this.icons = this.getIconsView(prefix);
   }
 
-  toKebabCase(str) {
+  toKebabCase(str: string) {
     return str.replace(/([a-z0-9]|(?=[A-Z]))([A-Z])/g, '$1-$2').toLowerCase();
   }
 

@@ -8,33 +8,34 @@ const routes: Routes = [
   {
     path: '',
     data: {
-      title: 'Theme'
+      title: 'Theme',
     },
     children: [
       {
         path: '',
-        redirectTo: 'colors'
+        pathMatch: 'full',
+        redirectTo: 'colors',
       },
       {
         path: 'colors',
         component: ColorsComponent,
         data: {
-          title: 'Colors'
-        }
+          title: 'Colors',
+        },
       },
       {
         path: 'typography',
         component: TypographyComponent,
         data: {
-          title: 'Typography'
-        }
-      }
-    ]
-  }
+          title: 'Typography',
+        },
+      },
+    ],
+  },
 ];
 
 @NgModule({
   imports: [RouterModule.forChild(routes)],
-  exports: [RouterModule]
+  exports: [RouterModule],
 })
 export class ThemeRoutingModule {}

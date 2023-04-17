@@ -1,120 +1,146 @@
 import { NgModule } from '@angular/core';
-import { Routes, RouterModule } from '@angular/router';
+import { RouterModule, Routes } from '@angular/router';
 
-import { CardsComponent } from './cards.component';
-import { FormsComponent } from './forms.component';
-import { SwitchesComponent } from './switches.component';
-import { TablesComponent } from './tables.component';
-import { TabsComponent } from './tabs.component';
-import { CarouselsComponent } from './carousels.component';
-import { CollapsesComponent } from './collapses.component';
-import { PaginationsComponent } from './paginations.component';
-import { PopoversComponent } from './popovers.component';
-import { ProgressComponent } from './progress.component';
-import { TooltipsComponent } from './tooltips.component';
-import { NavbarsComponent } from './navbars/navbars.component';
+import { AccordionsComponent } from './accordion/accordions.component';
+import { BreadcrumbsComponent } from './breadcrumbs/breadcrumbs.component';
+import { CardsComponent } from './cards/cards.component';
+import { CarouselsComponent } from './carousels/carousels.component';
+import { CollapsesComponent } from './collapses/collapses.component';
+import { ListGroupsComponent } from './list-groups/list-groups.component';
+import { NavsComponent } from './navs/navs.component';
+import { PaginationsComponent } from './paginations/paginations.component';
+import { PopoversComponent } from './popovers/popovers.component';
+import { ProgressComponent } from './progress/progress.component';
+import { SpinnersComponent } from './spinners/spinners.component';
+import { TablesComponent } from './tables/tables.component';
+import { TooltipsComponent } from './tooltips/tooltips.component';
+import { TabsComponent } from './tabs/tabs.component';
+import { PlaceholdersComponent } from './placeholders/placeholders.component';
 
 const routes: Routes = [
   {
     path: '',
     data: {
-      title: 'Base'
+      title: 'Base',
     },
     children: [
       {
         path: '',
-        redirectTo: 'cards'
+        pathMatch: 'full',
+        redirectTo: 'cards',
+      },
+      {
+        path: 'accordion',
+        component: AccordionsComponent,
+        data: {
+          title: 'Accordion',
+        },
+      },
+      {
+        path: 'breadcrumbs',
+        component: BreadcrumbsComponent,
+        data: {
+          title: 'Breadcrumbs',
+        },
       },
       {
         path: 'cards',
         component: CardsComponent,
         data: {
-          title: 'Cards'
-        }
+          title: 'Cards',
+        },
       },
       {
-        path: 'forms',
-        component: FormsComponent,
-        data: {
-          title: 'Forms'
-        }
-      },
-      {
-        path: 'switches',
-        component: SwitchesComponent,
-        data: {
-          title: 'Switches'
-        }
-      },
-      {
-        path: 'tables',
-        component: TablesComponent,
-        data: {
-          title: 'Tables'
-        }
-      },
-      {
-        path: 'tabs',
-        component: TabsComponent,
-        data: {
-          title: 'Tabs'
-        }
-      },
-      {
-        path: 'carousels',
+        path: 'carousel',
         component: CarouselsComponent,
         data: {
-          title: 'Carousels'
-        }
+          title: 'Carousel',
+        },
       },
       {
-        path: 'collapses',
+        path: 'collapse',
         component: CollapsesComponent,
         data: {
-          title: 'Collapses'
-        }
+          title: 'Collapse',
+        },
       },
       {
-        path: 'paginations',
+        path: 'list-group',
+        component: ListGroupsComponent,
+        data: {
+          title: 'List Group',
+        },
+      },
+      {
+        path: 'navs',
+        component: NavsComponent,
+        data: {
+          title: 'Navs & Tabs',
+        },
+      },
+      {
+        path: 'pagination',
         component: PaginationsComponent,
         data: {
-          title: 'Pagination'
-        }
+          title: 'Pagination',
+        },
+      },
+      {
+        path: 'placeholder',
+        component: PlaceholdersComponent,
+        data: {
+          title: 'Placeholder',
+        },
       },
       {
         path: 'popovers',
         component: PopoversComponent,
         data: {
-          title: 'Popover'
-        }
+          title: 'Popovers',
+        },
       },
       {
         path: 'progress',
         component: ProgressComponent,
         data: {
-          title: 'Progress'
-        }
+          title: 'Progress',
+        },
+      },
+      {
+        path: 'spinners',
+        component: SpinnersComponent,
+        data: {
+          title: 'Spinners',
+        },
+      },
+      {
+        path: 'tables',
+        component: TablesComponent,
+        data: {
+          title: 'Tables',
+        },
+      },
+      {
+        path: 'tabs',
+        component: TabsComponent,
+        data: {
+          title: 'Tabs',
+        },
       },
       {
         path: 'tooltips',
         component: TooltipsComponent,
         data: {
-          title: 'Tooltips'
-        }
+          title: 'Tooltips',
+        },
       },
-      {
-        path: 'navbars',
-        component: NavbarsComponent,
-        data: {
-          title: 'Navbars'
-        }
-      }
-    ]
-  }
+    ],
+  },
 ];
 
 @NgModule({
   imports: [RouterModule.forChild(routes)],
-  exports: [RouterModule]
+  exports: [RouterModule],
 })
 export class BaseRoutingModule {}
+

@@ -1,26 +1,25 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
+import { CardModule, GridModule } from '@coreui/angular';
 import { IconModule } from '@coreui/icons-angular';
 
 import { CoreUIIconsComponent } from './coreui-icons.component';
-import { FlagsComponent } from './flags.component';
-import { FontAwesomeComponent } from './font-awesome.component';
-import { SimpleLineIconsComponent } from './simple-line-icons.component';
-
 import { IconsRoutingModule } from './icons-routing.module';
+import { DocsComponentsModule } from '@docs-components/docs-components.module';
 
 @NgModule({
   imports: [
-    CommonModule,
     IconsRoutingModule,
-    IconModule
+    CardModule,
+    GridModule,
+    IconModule,
+    CommonModule,
+    DocsComponentsModule
   ],
   declarations: [
-    CoreUIIconsComponent,
-    FlagsComponent,
-    FontAwesomeComponent,
-    SimpleLineIconsComponent
+    CoreUIIconsComponent
   ]
 })
-export class IconsModule { }
+export class IconsModule {
+}
