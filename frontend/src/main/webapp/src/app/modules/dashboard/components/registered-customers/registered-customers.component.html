@@ -7,9 +7,8 @@
     </div>
     <div class="row">
       <div class="col mb-5">
-        <div *ngIf="count" testid="registered-customers-count"
-             class="text-value dashboard-text-number-huge">{{count}}</div>
-        <div *ngIf="!count" testid="registered-customers-count" class="text-value dashboard-text-number-huge">-</div>
+        <div *ngIf="count" testid="registered-customers-count" class="text-value text-right dashboard-number-huge">{{count}}</div>
+        <div *ngIf="!count" testid="registered-customers-count" class="text-value text-right dashboard-number-huge">-</div>
       </div>
     </div>
   </div>
