@@ -6,6 +6,6 @@ import {Component, Input} from '@angular/core';
 })
 export class RegisteredCustomersComponent {
 
-  @Input() registeredCustomers?: number;
+  @Input() count?: number;
 
 }

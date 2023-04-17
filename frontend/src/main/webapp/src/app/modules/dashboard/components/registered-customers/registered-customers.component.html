@@ -2,13 +2,13 @@
   <div class="card-body pb-0">
     <div class="row">
       <div class="col-sm-12">
-        <h4 class="card-title">Angemeldete Kunden</h4>
+        <h4 class="card-title">Kunden angemeldet</h4>
       </div>
     </div>
     <div class="row">
       <div class="col mb-5 text-value font-weight-bold">
-        <h1 *ngIf="registeredCustomers" testid="registered-customers-count">{{registeredCustomers}}</h1>
-        <h1 *ngIf="!registeredCustomers" testid="registered-customers-count">-</h1>
+        <h1 *ngIf="count" testid="registered-customers-count">{{count}}</h1>
+        <h1 *ngIf="!count" testid="registered-customers-count">-</h1>
       </div>
     </div>
   </div>
