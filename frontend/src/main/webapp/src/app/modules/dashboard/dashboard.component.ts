@@ -1,5 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {WebsocketService} from '../../common/websocket/websocket.service';
+import {IMessage} from "@stomp/stompjs";
 
 @Component({
   selector: 'tafel-dashboard',
@@ -15,7 +16,7 @@ export class DashboardComponent implements OnInit {
   data: DashboardData;
 
   ngOnInit(): void {
-    this.websocketService.watch('/topic/dashboard').subscribe((message) => {
+    this.websocketService.watch('/topic/dashboard').subscribe((message: IMessage) => {
       const data: DashboardData = JSON.parse(message.body);
       this.data = data;
     });
@@ -23,6 +24,6 @@ export class DashboardComponent implements OnInit {
 
 }
 
-interface DashboardData {
+export interface DashboardData {
   registeredCustomers?: number;
 }
