@@ -15,11 +15,10 @@ import {P500Component} from './common/views/error/500.component';
 import {LoginComponent} from './common/views/login/login.component';
 
 import {
-  AppAsideModule,
-  AppBreadcrumbModule,
-  AppFooterModule,
-  AppHeaderModule,
-  AppSidebarModule,
+  SidebarModule,
+  BreadcrumbModule,
+  FooterModule,
+  HeaderModule
 } from '@coreui/angular';
 
 // Import routing module
@@ -28,7 +27,6 @@ import {AppRoutingModule} from './app.routing';
 // Import 3rd party components
 import {BsDropdownModule} from 'ngx-bootstrap/dropdown';
 import {TabsModule} from 'ngx-bootstrap/tabs';
-import {ChartsModule} from 'ng2-charts';
 import {HTTP_INTERCEPTORS, HttpClientModule, HttpClientXsrfModule} from '@angular/common/http';
 import {ApiPathInterceptor} from './common/http/apipath-interceptor.service';
 import {ErrorHandlerInterceptor} from './common/http/errorhandler-interceptor.service';
@@ -48,16 +46,14 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
 
 @NgModule({
   imports: [
-    AppAsideModule,
-    AppBreadcrumbModule.forRoot(),
-    AppFooterModule,
-    AppHeaderModule,
+    SidebarModule,
+    BreadcrumbModule,
+    FooterModule,
+    HeaderModule,
     AppRoutingModule,
-    AppSidebarModule,
     BrowserModule,
     BrowserAnimationsModule,
     BsDropdownModule.forRoot(),
-    ChartsModule,
     CommonModule,
     HttpClientModule,
     HttpClientXsrfModule,
