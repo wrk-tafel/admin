@@ -3,7 +3,7 @@ import {DistributionApiService} from '../../../../api/distribution-api.service';
 import {ModalModule} from 'ngx-bootstrap/modal';
 import {RouterTestingModule} from '@angular/router/testing';
 import {RegisteredCustomersComponent} from './registered-customers.component';
-import {By} from "@angular/platform-browser";
+import {By} from '@angular/platform-browser';
 
 describe('RegisteredCustomersComponent', () => {
   let distributionApiService: jasmine.SpyObj<DistributionApiService>;

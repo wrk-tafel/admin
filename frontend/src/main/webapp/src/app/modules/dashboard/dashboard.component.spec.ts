@@ -1,8 +1,8 @@
 import {TestBed, waitForAsync} from '@angular/core/testing';
 import {DashboardComponent, DashboardData} from './dashboard.component';
 import {WebsocketService} from '../../common/websocket/websocket.service';
-import {IMessage} from "@stomp/stompjs";
-import {of} from "rxjs";
+import {IMessage} from '@stomp/stompjs';
+import {of} from 'rxjs';
 
 describe('DashboardComponent', () => {
   let websocketService: jasmine.SpyObj<WebsocketService>;
