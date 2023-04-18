@@ -1,9 +1,9 @@
 import {TestBed, waitForAsync} from '@angular/core/testing';
 import {DistributionApiService} from '../../../../api/distribution-api.service';
-import {ModalModule} from 'ngx-bootstrap/modal';
 import {RouterTestingModule} from '@angular/router/testing';
 import {RegisteredCustomersComponent} from './registered-customers.component';
 import {By} from '@angular/platform-browser';
+import {ModalModule} from '@coreui/angular';
 
 describe('RegisteredCustomersComponent', () => {
   let distributionApiService: jasmine.SpyObj<DistributionApiService>;
@@ -12,7 +12,7 @@ describe('RegisteredCustomersComponent', () => {
     TestBed.configureTestingModule({
       imports: [
         RouterTestingModule,
-        ModalModule.forRoot()
+        ModalModule
       ],
       declarations: [
         RegisteredCustomersComponent

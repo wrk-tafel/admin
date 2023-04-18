@@ -4,12 +4,13 @@ import {ReactiveFormsModule} from '@angular/forms';
 import {ActivatedRoute, Router} from '@angular/router';
 import {RouterTestingModule} from '@angular/router/testing';
 import * as moment from 'moment';
-import {ModalModule} from 'ngx-bootstrap/modal';
 import {of} from 'rxjs';
 import {CustomerApiService, CustomerData} from '../../../../api/customer-api.service';
 import {CustomerFormComponent} from '../customer-form/customer-form.component';
 import {CustomerEditComponent} from './customer-edit.component';
 import {By} from '@angular/platform-browser';
+import {ModalModule} from '@coreui/angular';
+import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 
 describe('CustomerEditComponent - Creating a new customer', () => {
   const testCountry = {
@@ -69,10 +70,11 @@ describe('CustomerEditComponent - Creating a new customer', () => {
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       imports: [
+        BrowserAnimationsModule,
         HttpClientTestingModule,
         RouterTestingModule,
         ReactiveFormsModule,
-        ModalModule.forRoot()
+        ModalModule
       ],
       declarations: [
         CustomerEditComponent,
@@ -154,8 +156,6 @@ describe('CustomerEditComponent - Creating a new customer', () => {
     const customerFormComponent = jasmine.createSpyObj('CustomerFormComponent', ['markAllAsTouched', 'isValid']);
     customerFormComponent.isValid.and.returnValue(true);
 
-    const validationResultModal = jasmine.createSpyObj('ValidationResultModal', ['show']);
-
     apiService.validate.and.returnValue(of({
       valid: true,
       limit: 1000,
@@ -167,7 +167,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
     const fixture = TestBed.createComponent(CustomerEditComponent);
     const component = fixture.componentInstance;
     component.customerFormComponent = customerFormComponent;
-    component.validationResultModal = validationResultModal;
+    component.showValidationResultModal = false;
     component.customerUpdated = testCustomerData;
 
     component.validate();
@@ -175,14 +175,12 @@ describe('CustomerEditComponent - Creating a new customer', () => {
     expect(customerFormComponent.markAllAsTouched).toHaveBeenCalled();
     expect(apiService.validate).toHaveBeenCalledWith(jasmine.objectContaining(testCustomerData));
     expect(component.customerValidForSave).toBeTrue();
-    expect(validationResultModal.show).toHaveBeenCalled();
+    expect(component.showValidationResultModal).toBeTruthy();
   });
 
   it('new customer validation failed', () => {
     const customerFormComponent = jasmine.createSpyObj('CustomerFormComponent', ['markAllAsTouched', 'isValid']);
     customerFormComponent.isValid.and.returnValue(true);
-
-    const validationResultModal = jasmine.createSpyObj('ValidationResultModal', ['show']);
 
     apiService.validate.and.returnValue(of({
       valid: false,
@@ -195,7 +193,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
     const fixture = TestBed.createComponent(CustomerEditComponent);
     const component = fixture.componentInstance;
     component.customerFormComponent = customerFormComponent;
-    component.validationResultModal = validationResultModal;
+    component.showValidationResultModal = false;
     component.customerUpdated = testCustomerData;
 
     component.validate();
@@ -203,7 +201,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
     expect(customerFormComponent.markAllAsTouched).toHaveBeenCalled();
     expect(apiService.validate).toHaveBeenCalledWith(jasmine.objectContaining(testCustomerData));
     expect(component.customerValidForSave).toBeFalse();
-    expect(validationResultModal.show).toHaveBeenCalled();
+    expect(component.showValidationResultModal).toBeTruthy();
   });
 
 });

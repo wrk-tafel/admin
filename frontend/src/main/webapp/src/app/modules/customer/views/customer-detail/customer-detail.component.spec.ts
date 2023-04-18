@@ -11,8 +11,9 @@ import {CustomerDetailComponent} from './customer-detail.component';
 import {CommonModule, registerLocaleData} from '@angular/common';
 import {DEFAULT_CURRENCY_CODE, LOCALE_ID} from '@angular/core';
 import localeDeAt from '@angular/common/locales/de-AT';
-import {ModalDirective, ModalModule} from 'ngx-bootstrap/modal';
 import {CustomerNoteApiService, CustomerNoteItem} from '../../../../api/customer-note-api.service';
+import {ModalModule, TabsModule} from '@coreui/angular';
+import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 
 registerLocaleData(localeDeAt);
 
@@ -99,7 +100,13 @@ describe('CustomerDetailComponent', () => {
     const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
 
     TestBed.configureTestingModule({
-      imports: [CommonModule, RouterTestingModule, ModalModule],
+      imports: [
+        BrowserAnimationsModule,
+        CommonModule,
+        RouterTestingModule,
+        ModalModule,
+        TabsModule
+      ],
       providers: [
         {
           provide: LOCALE_ID,
@@ -332,7 +339,7 @@ describe('CustomerDetailComponent', () => {
 
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
-    component.deleteCustomerModal = modal;
+    component.showDeleteCustomerModal = true;
     component.customerData = mockCustomer;
 
     customerApiService.deleteCustomer.and.returnValue(throwError({status: 404}));
@@ -341,7 +348,7 @@ describe('CustomerDetailComponent', () => {
 
     expect(customerApiService.deleteCustomer).toHaveBeenCalled();
     expect(router.navigate).not.toHaveBeenCalledWith(['/kunden/suchen']);
-    expect(modal.hide).toHaveBeenCalled();
+    expect(component.showDeleteCustomerModal).toBeFalsy();
     expect(component.errorMessage).toBe('Löschen fehlgeschlagen!');
   });
 
@@ -384,7 +391,7 @@ describe('CustomerDetailComponent', () => {
     const component = fixture.componentInstance;
     component.customerData = mockCustomer;
     component.customerNotes = [];
-    component.addNewNoteModal = jasmine.createSpyObj<ModalDirective>(['hide']);
+    component.showAddNewNoteModal = true;
     const noteText = 'new note\ntext';
     const sanitizedNoteText = 'new note<br/>text';
     component.newNoteText = noteText;
@@ -401,7 +408,7 @@ describe('CustomerDetailComponent', () => {
     expect(customerNoteApiService.createNewNote).toHaveBeenCalledWith(mockCustomer.id, sanitizedNoteText);
     expect(component.customerNotes[0]).toEqual(resultNote);
     expect(component.newNoteText).toBeUndefined();
-    expect(component.addNewNoteModal.hide).toHaveBeenCalled();
+    expect(component.showAddNewNoteModal).toBeFalsy();
   });
 
   function getTextByTestId(fixture: ComponentFixture<CustomerDetailComponent>, testId: string): string {

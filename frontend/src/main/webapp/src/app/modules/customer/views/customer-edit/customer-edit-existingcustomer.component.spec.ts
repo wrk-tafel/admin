@@ -4,11 +4,11 @@ import {ReactiveFormsModule} from '@angular/forms';
 import {ActivatedRoute, Router} from '@angular/router';
 import {RouterTestingModule} from '@angular/router/testing';
 import * as moment from 'moment';
-import {ModalModule} from 'ngx-bootstrap/modal';
 import {of} from 'rxjs';
 import {CustomerApiService, CustomerData} from '../../../../api/customer-api.service';
 import {CustomerFormComponent} from '../customer-form/customer-form.component';
 import {CustomerEditComponent} from './customer-edit.component';
+import {ModalModule} from '@coreui/angular';
 
 describe('CustomerEditComponent - Editing an existing customer', () => {
   const testCountry = {
@@ -75,7 +75,7 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
         HttpClientTestingModule,
         RouterTestingModule,
         ReactiveFormsModule,
-        ModalModule.forRoot()
+        ModalModule
       ],
       declarations: [
         CustomerEditComponent,

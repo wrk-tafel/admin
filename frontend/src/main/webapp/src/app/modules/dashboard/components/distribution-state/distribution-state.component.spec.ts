@@ -1,11 +1,16 @@
 import {TestBed, waitForAsync} from '@angular/core/testing';
-import {DistributionApiService, DistributionItem, DistributionStateItem} from '../../../../api/distribution-api.service';
+import {
+  DistributionApiService,
+  DistributionItem,
+  DistributionStateItem
+} from '../../../../api/distribution-api.service';
 import {DistributionStateComponent} from './distribution-state.component';
-import {ModalModule} from 'ngx-bootstrap/modal';
 import {BehaviorSubject, of} from 'rxjs';
 import {ActivatedRoute} from '@angular/router';
 import {RouterTestingModule} from '@angular/router/testing';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
+import {ModalModule} from '@coreui/angular';
+import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 
 describe('DistributionStateComponent', () => {
   let distributionApiService: jasmine.SpyObj<DistributionApiService>;
@@ -31,8 +36,9 @@ describe('DistributionStateComponent', () => {
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       imports: [
+        BrowserAnimationsModule,
         RouterTestingModule,
-        ModalModule.forRoot()
+        ModalModule
       ],
       declarations: [
         DistributionStateComponent
@@ -119,13 +125,13 @@ describe('DistributionStateComponent', () => {
   it('switch to next state', () => {
     const fixture = TestBed.createComponent(DistributionStateComponent);
     const component = fixture.componentInstance;
-    component.nextDistributionStateModal = jasmine.createSpyObj('Modal', ['hide']);
+    component.showNextDistributionStateModal = true;
     distributionApiService.switchToNextState.and.returnValue(of(null));
 
     component.switchToNextState();
 
     expect(distributionApiService.switchToNextState).toHaveBeenCalled();
-    expect(component.nextDistributionStateModal.hide).toHaveBeenCalled();
+    expect(component.showNextDistributionStateModal).toBeFalsy();
   });
 
 });

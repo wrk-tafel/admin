@@ -2,12 +2,7 @@ import {TestBed, waitForAsync} from '@angular/core/testing';
 import {RouterTestingModule} from '@angular/router/testing';
 import {DefaultLayoutComponent} from './default-layout.component';
 import {AuthenticationService} from '../../security/authentication.service';
-import {
-  AppHeaderComponent,
-  AppSidebarComponent,
-  AppSidebarMinimizerComponent,
-  AppSidebarNavComponent
-} from '@coreui/angular';
+import {HeaderComponent, SidebarComponent, SidebarNavComponent} from '@coreui/angular';
 import {GlobalStateService} from '../../state/global-state.service';
 
 describe('DefaultLayoutComponent', () => {
@@ -19,11 +14,13 @@ describe('DefaultLayoutComponent', () => {
     const globalStateServiceSpy = jasmine.createSpyObj('GlobalStateService', ['getCurrentDistribution']);
 
     TestBed.configureTestingModule({
+      imports: [
+        HeaderComponent,
+        SidebarComponent,
+        SidebarNavComponent,
+        RouterTestingModule
+      ],
       declarations: [
-        AppHeaderComponent,
-        AppSidebarComponent,
-        AppSidebarNavComponent,
-        AppSidebarMinimizerComponent,
         DefaultLayoutComponent
       ],
       providers: [
@@ -35,8 +32,7 @@ describe('DefaultLayoutComponent', () => {
           provide: GlobalStateService,
           useValue: globalStateServiceSpy
         }
-      ],
-      imports: [RouterTestingModule]
+      ]
     }).compileComponents();
 
     authService = TestBed.inject(AuthenticationService) as jasmine.SpyObj<AuthenticationService>;
@@ -223,8 +219,9 @@ describe('DefaultLayoutComponent', () => {
       testMenuItem1, {
         ...testMenuItem2,
         badge: {
-          variant: 'danger',
-          text: 'INAKTIV'
+          class: 'danger',
+          text: 'INAKTIV',
+          color: '#FFFFFF' // TODO define correct color
         },
         attributes: {disabled: true}
       }, testMenuItem3
