@@ -1,7 +1,6 @@
 import {Component, OnInit, ViewChild} from '@angular/core';
 import {CustomerFormComponent} from '../customer-form/customer-form.component';
 import {CustomerApiService, CustomerData, ValidateCustomerResponse} from '../../../../api/customer-api.service';
-import {ModalDirective} from 'ngx-bootstrap/modal';
 import {ActivatedRoute, Router} from '@angular/router';
 
 @Component({
@@ -14,9 +13,10 @@ export class CustomerEditComponent implements OnInit {
   editMode: boolean = false;
   customerValidForSave: boolean = false;
   errorMessage: string;
-  @ViewChild(CustomerFormComponent) customerFormComponent: CustomerFormComponent;
-  @ViewChild('validationResultModal') validationResultModal: ModalDirective;
   validationResult: ValidateCustomerResponse;
+  showValidationResultModal: boolean = false;
+
+  @ViewChild(CustomerFormComponent) customerFormComponent: CustomerFormComponent;
 
   constructor(
     private customerApiService: CustomerApiService,
@@ -58,7 +58,7 @@ export class CustomerEditComponent implements OnInit {
         this.validationResult = result;
 
         this.customerValidForSave = result.valid;
-        this.validationResultModal.show();
+        this.showValidationResultModal = true;
       });
     }
   }

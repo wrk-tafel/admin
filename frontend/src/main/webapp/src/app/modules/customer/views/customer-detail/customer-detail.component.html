@@ -42,7 +42,7 @@
     <button class="btn btn-danger mt-3 mt-lg-0 ml-lg-3" testid="editCustomerButton" type="button" (click)="editCustomer()"
             [disabled]="!customerData">Kunde bearbeiten
     </button>
-    <button class="btn btn-danger mt-3 mt-lg-0 ml-lg-3" testid="deleteCustomerButton" type="button" (click)="deleteCustomerModal.show()"
+    <button class="btn btn-danger mt-3 mt-lg-0 ml-lg-3" testid="deleteCustomerButton" type="button" (click)="showDeleteCustomerModal = true"
             [disabled]="!customerData">Kunde löschen
     </button>
   </div>
@@ -137,7 +137,7 @@
                 <div class="card-header text-center h5">
                   Aktuellste Notiz
                   <div class="card-header-actions">
-                    <button testid="addnote-button" type="button" class="btn btn-block btn-success" (click)="addNewNoteModal.show()">
+                    <button testid="addnote-button" type="button" class="btn btn-block btn-success" (click)="showAddNewNoteModal = true">
                       <i class="fa fa-plus-square"></i>
                     </button>
                   </div>
@@ -158,7 +158,7 @@
                   </div>
                 </div>
                 <div class="card-footer" *ngIf="customerNotes.length > 1">
-                  <button testid="showall-notes-button" type="button" class="btn btn-block btn-primary" (click)="showAllNotesModal.show()">Alle Notizen anzeigen</button>
+                  <button testid="showall-notes-button" type="button" class="btn btn-block btn-primary" (click)="showAllNotesModal = true">Alle Notizen anzeigen</button>
                 </div>
               </div>
             </div>
@@ -214,91 +214,74 @@
     </div>
   </div>
 </div>
-<div testid="deletecustomer-modal" bsModal #deleteCustomerModal="bs-modal" class="modal modal-danger fade"
-     tabindex="-1"
-     role="dialog"
-     aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-m" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h4 class="modal-title">Kunde löschen</h4>
-        <button type="button" class="close" (click)="deleteCustomerModal.hide()" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <div class="row mb-3">
-          <div class="col">Der Kunde wird unwiderruflich gelöscht.</div>
-        </div>
-        <div class="row mb-3">
-          <div class="col font-weight-bold">Sicher?</div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button testid="okButton" type="button" class="btn btn-primary" (click)="deleteCustomer()">Löschen
-        </button>
-        <button testid="cancelButton" type="button" class="btn btn-secondary" (click)="deleteCustomerModal.hide()">
-          Abbrechen
-        </button>
-      </div>
+<c-modal id="deleteCustomerModal" testid="deletecustomer-modal" [(visible)]="showDeleteCustomerModal">
+  <c-modal-header>
+    <h4 class="modal-title">Kunde löschen</h4>
+    <button type="button" class="close" (click)="showDeleteCustomerModal = false" aria-label="Close">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </c-modal-header>
+  <c-modal-body>
+    <div class="row mb-3">
+      <div class="col">Der Kunde wird unwiderruflich gelöscht.</div>
     </div>
-  </div>
-</div>
-<div testid="showallnotes-modal" bsModal #showAllNotesModal="bs-modal" class="modal modal-info fade"
-     tabindex="-1"
-     role="dialog"
-     aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-m" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h4 class="modal-title">Alle Notizen</h4>
-        <button type="button" class="close" (click)="showAllNotesModal.hide()" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <div class="row" *ngFor="let noteItem of customerNotes; let i = index">
-          <div class="col" *ngIf="customerNotes?.length !== 0">
-            <hr *ngIf="i > 0">
-            <div class="row mb-2">
-              <div class="col font-weight-bold" testid="note-title">{{noteItem.timestamp | date : 'dd.MM.yyyy HH:mm' }}&nbsp;{{noteItem.author}}</div>
-            </div>
-            <div class="row">
-              <div class="col" testid="note-text" [innerHtml]="noteItem.note"></div>
-            </div>
-          </div>
+    <div class="row mb-3">
+      <div class="col font-weight-bold">Sicher?</div>
+    </div>
+  </c-modal-body>
+  <c-modal-footer>
+    <button testid="okButton" type="button" class="btn btn-primary" (click)="deleteCustomer()">Löschen
+    </button>
+    <button testid="cancelButton" type="button" class="btn btn-secondary" (click)="showDeleteCustomerModal = false">
+      Abbrechen
+    </button>
+  </c-modal-footer>
+</c-modal>
+<c-modal id="showAllNotesModal" testid="showallnotes-modal" [(visible)]="showAllNotesModal">
+  <c-modal-header>
+    <h4 class="modal-title">Alle Notizen</h4>
+    <button type="button" class="close" (click)="showAllNotesModal = false" aria-label="Close">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </c-modal-header>
+  <c-modal-body>
+    <div class="row" *ngFor="let noteItem of customerNotes; let i = index">
+      <div class="col" *ngIf="customerNotes?.length !== 0">
+        <hr *ngIf="i > 0">
+        <div class="row mb-2">
+          <div class="col font-weight-bold" testid="note-title">{{noteItem.timestamp | date : 'dd.MM.yyyy HH:mm' }}&nbsp;{{noteItem.author}}</div>
+        </div>
+        <div class="row">
+          <div class="col" testid="note-text" [innerHtml]="noteItem.note"></div>
         </div>
       </div>
-      <div class="modal-footer">
-        <button testid="cancelButton" type="button" class="btn btn-primary" (click)="showAllNotesModal.hide()">
-          OK
-        </button>
-      </div>
     </div>
-  </div>
-</div>
-<div testid="addnew-note-modal" bsModal #addNewNoteModal="bs-modal" class="modal modal-info fade"
-     tabindex="-1"
-     role="dialog"
-     aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-m" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h4 class="modal-title">Neue Notiz hinzufügen</h4>
-        <button type="button" class="close" (click)="this.newNoteText = undefined; addNewNoteModal.hide()" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <textarea id="textarea-input" name="textarea-input" rows="9" class="form-control" [(ngModel)]="newNoteText"></textarea>
-      </div>
-      <div class="modal-footer">
-        <button testid="okButton" type="button" class="btn btn-primary" (click)="addNewNote()" [disabled]="!newNoteText || newNoteText.trim().length == 0">Speichern
-        </button>
-        <button testid="cancelButton" type="button" class="btn btn-secondary" (click)="this.newNoteText = undefined; addNewNoteModal.hide()">
-          Abbrechen
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
+  </c-modal-body>
+  <c-modal-footer>
+    <button testid="cancelButton" type="button" class="btn btn-primary" (click)="showAllNotesModal = false">
+      OK
+    </button>
+  </c-modal-footer>
+</c-modal>
+<c-modal id="addNewNoteModal" testid="addnew-note-modal" [(visible)]="showAddNewNoteModal">
+  <c-modal-header>
+    <h4 class="modal-title">Neue Notiz hinzufügen</h4>
+    <button type="button" class="close" (click)="newNoteText = undefined; showAddNewNoteModal = false;"
+            aria-label="Close">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </c-modal-header>
+  <c-modal-body>
+    <textarea id="textarea-input" name="textarea-input" rows="9" class="form-control"
+              [(ngModel)]="newNoteText"></textarea>
+  </c-modal-body>
+  <c-modal-footer>
+    <button testid="okButton" type="button" class="btn btn-primary" (click)="addNewNote()"
+            [disabled]="!newNoteText || newNoteText.trim().length == 0">Speichern
+    </button>
+    <button testid="cancelButton" type="button" class="btn btn-secondary"
+            (click)="newNoteText = undefined; showAddNewNoteModal = false;">
+      Abbrechen
+    </button>
+  </c-modal-footer>
+</c-modal>

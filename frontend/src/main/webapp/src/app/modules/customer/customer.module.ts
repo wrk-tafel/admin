@@ -5,22 +5,30 @@ import {CustomerEditComponent} from './views/customer-edit/customer-edit.compone
 import {CustomerRoutingModule} from './customer-routing.module';
 import {CustomerFormComponent} from './views/customer-form/customer-form.component';
 import {CommonModule} from '@angular/common';
-import {ModalModule} from 'ngx-bootstrap/modal';
 import {CustomerDetailComponent} from './views/customer-detail/customer-detail.component';
 import {CustomerSearchComponent} from './views/customer-search/customer-search.component';
-import {BsDropdownModule} from 'ngx-bootstrap/dropdown';
 import {CustomerApiService} from '../../api/customer-api.service';
-import {TabsModule} from 'ngx-bootstrap/tabs';
+import {
+  DropdownModule,
+  ModalBodyComponent,
+  ModalComponent,
+  ModalFooterComponent,
+  ModalHeaderComponent, ModalModule, TabsModule
+} from '@coreui/angular';
 
 @NgModule({
   imports: [
-    BsDropdownModule,
+    DropdownModule,
     CommonModule,
     ReactiveFormsModule,
     CustomerRoutingModule,
     ModalModule,
     TabsModule,
-    FormsModule
+    FormsModule,
+    ModalBodyComponent,
+    ModalComponent,
+    ModalFooterComponent,
+    ModalHeaderComponent
   ],
   declarations: [
     CustomerDetailComponent,

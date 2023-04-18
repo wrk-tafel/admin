@@ -5,7 +5,6 @@ import {
   DistributionStateItem,
   DistributionStatesResponse
 } from '../../../../api/distribution-api.service';
-import {ModalDirective} from 'ngx-bootstrap/modal';
 import {ActivatedRoute} from '@angular/router';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
 
@@ -23,11 +22,9 @@ export class DistributionStateComponent implements OnInit {
   ) {
   }
 
-  @ViewChild('nextDistributionStateModal') nextDistributionStateModal: ModalDirective;
-
   states: DistributionStateItem[] = this.distributionStates.states;
-
   distribution: DistributionItem;
+  showNextDistributionStateModal: boolean = false;
 
   progressMax: number = this.distributionStates.states.length;
   progressCurrent: number = 0;
@@ -54,7 +51,7 @@ export class DistributionStateComponent implements OnInit {
 
   switchToNextState() {
     this.distributionApiService.switchToNextState().subscribe(() => {
-      this.nextDistributionStateModal.hide();
+      this.showNextDistributionStateModal = false;
     });
   }
 

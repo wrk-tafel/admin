@@ -35,7 +35,9 @@
             "scripts": [],
             "allowedCommonJsDependencies": [
               "chart.js",
-              "classnames"
+              "@coreui/chartjs/dist/js/coreui-chartjs.js",
+              "classnames",
+              "angular2-uuid"
             ]
           },
           "configurations": {

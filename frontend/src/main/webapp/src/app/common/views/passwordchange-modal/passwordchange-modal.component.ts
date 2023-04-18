@@ -1,5 +1,4 @@
 import {Component, ViewChild} from '@angular/core';
-import {ModalDirective} from 'ngx-bootstrap/modal';
 import {PasswordChangeFormComponent} from '../passwordchange-form/passwordchange-form.component';
 
 @Component({
@@ -7,12 +6,13 @@ import {PasswordChangeFormComponent} from '../passwordchange-form/passwordchange
   templateUrl: './passwordchange-modal.component.html'
 })
 export class PasswordChangeModalComponent {
-  @ViewChild('pwdChangeModal') public modal: ModalDirective;
   @ViewChild(PasswordChangeFormComponent) public form: PasswordChangeFormComponent;
+
+  showPwdChangeModal: boolean = false;
 
   showDialog() {
     this.form.reset();
-    this.modal.show();
+    this.showPwdChangeModal = true;
   }
 
   changePassword() {
@@ -30,7 +30,7 @@ export class PasswordChangeModalComponent {
   hideModalDelayed() {
     const root = this;
     setTimeout(function () {
-      root.modal.hide();
+      this.showPwdChangeModal = false;
     }, 1500);
   }
 }

@@ -6,7 +6,7 @@ import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import localeDeAt from '@angular/common/locales/de-AT';
 import {PerfectScrollbarConfigInterface, PerfectScrollbarModule} from 'ngx-perfect-scrollbar';
 
-import {IconModule, IconSetModule, IconSetService} from '@coreui/icons-angular';
+import {IconModule, IconSetService} from '@coreui/icons-angular';
 import {AppComponent} from './app.component';
 
 import {DefaultLayoutComponent} from './common/views/default-layout/default-layout.component';
@@ -15,24 +15,23 @@ import {P500Component} from './common/views/error/500.component';
 import {LoginComponent} from './common/views/login/login.component';
 
 import {
-  AppAsideModule,
-  AppBreadcrumbModule,
-  AppFooterModule,
-  AppHeaderModule,
-  AppSidebarModule,
+  BreadcrumbModule,
+  DropdownModule,
+  FooterModule,
+  HeaderModule,
+  ModalModule,
+  SidebarModule,
+  TabsModule
 } from '@coreui/angular';
 
 // Import routing module
 import {AppRoutingModule} from './app.routing';
 
 // Import 3rd party components
-import {BsDropdownModule} from 'ngx-bootstrap/dropdown';
-import {TabsModule} from 'ngx-bootstrap/tabs';
-import {ChartsModule} from 'ng2-charts';
+import {NgChartsModule} from 'ng2-charts';
 import {HTTP_INTERCEPTORS, HttpClientModule, HttpClientXsrfModule} from '@angular/common/http';
 import {ApiPathInterceptor} from './common/http/apipath-interceptor.service';
 import {ErrorHandlerInterceptor} from './common/http/errorhandler-interceptor.service';
-import {ModalModule} from 'ngx-bootstrap/modal';
 import {PasswordChangeModalComponent} from './common/views/passwordchange-modal/passwordchange-modal.component';
 import {PasswordChangeFormComponent} from './common/views/passwordchange-form/passwordchange-form.component';
 import {LoginPasswordChangeComponent} from './common/views/login-passwordchange/login-passwordchange.component';
@@ -48,35 +47,33 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
 
 @NgModule({
   imports: [
-    AppAsideModule,
-    AppBreadcrumbModule.forRoot(),
-    AppFooterModule,
-    AppHeaderModule,
     AppRoutingModule,
-    AppSidebarModule,
-    BrowserModule,
+    BreadcrumbModule,
     BrowserAnimationsModule,
-    BsDropdownModule.forRoot(),
-    ChartsModule,
+    BrowserModule,
     CommonModule,
+    DropdownModule,
+    FooterModule,
+    HeaderModule,
     HttpClientModule,
     HttpClientXsrfModule,
     IconModule,
-    IconSetModule.forRoot(),
-    ModalModule.forRoot(),
+    ModalModule,
+    NgChartsModule,
     PerfectScrollbarModule,
     ReactiveFormsModule,
-    TabsModule.forRoot()
+    SidebarModule,
+    TabsModule
   ],
   declarations: [
     AppComponent,
     DefaultLayoutComponent,
+    LoginComponent,
+    LoginPasswordChangeComponent,
     P404Component,
     P500Component,
-    LoginComponent,
     PasswordChangeFormComponent,
-    PasswordChangeModalComponent,
-    LoginPasswordChangeComponent
+    PasswordChangeModalComponent
   ],
   providers: [
     {
@@ -95,7 +92,6 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
       provide: LocationStrategy,
       useClass: HashLocationStrategy
     },
-    IconSetService,
     {
       provide: HTTP_INTERCEPTORS,
       useClass: ErrorHandlerInterceptor,
@@ -119,7 +115,8 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
       useFactory: (authService: AuthenticationService) => () => authService.loadUserInfo(),
       deps: [AuthenticationService],
       multi: true
-    }
+    },
+    IconSetService
   ],
   bootstrap: [AppComponent]
 })
