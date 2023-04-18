@@ -1,5 +1,5 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {FormArray, FormControl, FormGroup, Validators} from '@angular/forms';
+import {UntypedFormArray, UntypedFormControl, UntypedFormGroup, Validators} from '@angular/forms';
 import {CountryApiService, CountryData} from '../../../../api/country-api.service';
 import {CustomValidator} from '../../../../common/validator/CustomValidator';
 import {CustomerAddPersonData, CustomerData} from '../../../../api/customer-api.service';
@@ -19,11 +19,11 @@ export class CustomerFormComponent implements OnInit {
   ) {
   }
 
-  form = new FormGroup({
-    id: new FormControl(null),
-    lastname: new FormControl(null, [Validators.required, Validators.maxLength(50)]),
-    firstname: new FormControl(null, [Validators.required, Validators.maxLength(50)]),
-    birthDate: new FormControl(null,
+  form = new UntypedFormGroup({
+    id: new UntypedFormControl(null),
+    lastname: new UntypedFormControl(null, [Validators.required, Validators.maxLength(50)]),
+    firstname: new UntypedFormControl(null, [Validators.required, Validators.maxLength(50)]),
+    birthDate: new UntypedFormControl(null,
       [
         Validators.required,
         CustomValidator.minDate(new Date(1900, 0, 1)),
@@ -31,29 +31,29 @@ export class CustomerFormComponent implements OnInit {
       ]
     ),
 
-    country: new FormControl(null, Validators.required),
-    telephoneNumber: new FormControl(null, [Validators.pattern('^[0-9]*$')]),
-    email: new FormControl(null, [Validators.maxLength(100), Validators.email]),
+    country: new UntypedFormControl(null, Validators.required),
+    telephoneNumber: new UntypedFormControl(null, [Validators.pattern('^[0-9]*$')]),
+    email: new UntypedFormControl(null, [Validators.maxLength(100), Validators.email]),
 
-    address: new FormGroup({
-      street: new FormControl(null, [Validators.required, Validators.maxLength(100)]),
-      houseNumber: new FormControl(null, [Validators.required, Validators.maxLength(10)]),
-      stairway: new FormControl(null),
-      door: new FormControl(null),
-      postalCode: new FormControl(null, [Validators.required, Validators.pattern('^[0-9]{4}$')]),
-      city: new FormControl(null, [Validators.required, Validators.maxLength(50)]),
+    address: new UntypedFormGroup({
+      street: new UntypedFormControl(null, [Validators.required, Validators.maxLength(100)]),
+      houseNumber: new UntypedFormControl(null, [Validators.required, Validators.maxLength(10)]),
+      stairway: new UntypedFormControl(null),
+      door: new UntypedFormControl(null),
+      postalCode: new UntypedFormControl(null, [Validators.required, Validators.pattern('^[0-9]{4}$')]),
+      city: new UntypedFormControl(null, [Validators.required, Validators.maxLength(50)]),
     }),
 
-    employer: new FormControl(null, Validators.required),
-    income: new FormControl(null, Validators.required),
-    incomeDue: new FormControl(null, [CustomValidator.minDate(new Date())]),
+    employer: new UntypedFormControl(null, Validators.required),
+    income: new UntypedFormControl(null, Validators.required),
+    incomeDue: new UntypedFormControl(null, [CustomValidator.minDate(new Date())]),
 
-    validUntil: new FormControl(null, [
+    validUntil: new UntypedFormControl(null, [
       Validators.required,
       CustomValidator.minDate(new Date())
     ]),
 
-    additionalPersons: new FormArray([])
+    additionalPersons: new UntypedFormArray([])
   });
   countries: CountryData[];
 
@@ -118,7 +118,7 @@ export class CustomerFormComponent implements OnInit {
     return c1 && c2 ? c1.id === c2.id : c1 === c2;
   }
 
-  trackBy(index: number, personDataControl: FormGroup) {
+  trackBy(index: number, personDataControl: UntypedFormGroup) {
     const personData = personDataControl.value;
     return personData.key;
   }
@@ -155,20 +155,20 @@ export class CustomerFormComponent implements OnInit {
   }
 
   private pushPersonGroupControl(additionalPerson: CustomerAddPersonData) {
-    const control = new FormGroup({
-      key: new FormControl(additionalPerson.key),
-      id: new FormControl(additionalPerson.id),
-      lastname: new FormControl(additionalPerson.lastname, [Validators.required, Validators.maxLength(50)]),
-      firstname: new FormControl(additionalPerson.firstname, [Validators.required, Validators.maxLength(50)]),
-      birthDate: new FormControl(additionalPerson.birthDate, [
+    const control = new UntypedFormGroup({
+      key: new UntypedFormControl(additionalPerson.key),
+      id: new UntypedFormControl(additionalPerson.id),
+      lastname: new UntypedFormControl(additionalPerson.lastname, [Validators.required, Validators.maxLength(50)]),
+      firstname: new UntypedFormControl(additionalPerson.firstname, [Validators.required, Validators.maxLength(50)]),
+      birthDate: new UntypedFormControl(additionalPerson.birthDate, [
         Validators.required,
         CustomValidator.minDate(new Date(1920, 0, 1)),
         CustomValidator.maxDate(new Date())
       ]),
-      country: new FormControl(additionalPerson.country, Validators.required),
-      employer: new FormControl(additionalPerson.employer),
-      income: new FormControl(additionalPerson.income),
-      incomeDue: new FormControl(additionalPerson.incomeDue, [
+      country: new UntypedFormControl(additionalPerson.country, Validators.required),
+      employer: new UntypedFormControl(additionalPerson.employer),
+      income: new UntypedFormControl(additionalPerson.income),
+      incomeDue: new UntypedFormControl(additionalPerson.incomeDue, [
         CustomValidator.minDate(new Date())
       ])
     });
@@ -249,7 +249,7 @@ export class CustomerFormComponent implements OnInit {
   }
 
   get additionalPersons() {
-    return this.form.get('additionalPersons') as FormArray;
+    return this.form.get('additionalPersons') as UntypedFormArray;
   }
 
 }

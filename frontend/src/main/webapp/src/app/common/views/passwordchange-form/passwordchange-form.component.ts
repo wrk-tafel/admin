@@ -1,5 +1,5 @@
 import {Component} from '@angular/core';
-import {FormControl, FormGroup, ValidatorFn, Validators} from '@angular/forms';
+import {UntypedFormControl, UntypedFormGroup, ValidatorFn, Validators} from '@angular/forms';
 import {ChangePasswordRequest, ChangePasswordResponse, UserApiService} from '../../../api/user-api.service';
 import {catchError, map} from 'rxjs/operators';
 import {Observable, throwError} from 'rxjs';
@@ -14,16 +14,16 @@ export class PasswordChangeFormComponent {
   errorMessage: string;
   errorMessageDetails: string[];
 
-  form = new FormGroup({
-      currentPassword: new FormControl('', [
+  form = new UntypedFormGroup({
+      currentPassword: new UntypedFormControl('', [
         Validators.required
       ]),
-      newPassword: new FormControl('', [
+      newPassword: new UntypedFormControl('', [
         Validators.required,
         Validators.minLength(8),
         Validators.maxLength(50)
       ]),
-      newRepeatedPassword: new FormControl('', [
+      newRepeatedPassword: new UntypedFormControl('', [
         Validators.required,
         Validators.minLength(8),
         Validators.maxLength(50)
@@ -74,7 +74,7 @@ export class PasswordChangeFormComponent {
   }
 
   validateNewAndRepeatedPasswords(): ValidatorFn {
-    return (formGroup: FormGroup) => {
+    return (formGroup: UntypedFormGroup) => {
       const newPassword = formGroup.get('newPassword').value;
       const newRepeatedPassword = formGroup.get('newRepeatedPassword').value;
 
