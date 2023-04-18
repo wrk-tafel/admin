@@ -7,9 +7,13 @@ import {GlobalStateService} from '../../state/global-state.service';
 
 @Component({
   selector: 'tafel-default-layout',
-  templateUrl: './default-layout.component.html'
+  templateUrl: 'default-layout.component.html'
 })
 export class DefaultLayoutComponent implements OnInit {
+  public perfectScrollbarConfig = {
+    suppressScrollX: true,
+  };
+
   public sidebarMinimized = false;
   public navItems: ITafelNavData[] = navigationMenuItems;
 
@@ -91,7 +95,8 @@ export class DefaultLayoutComponent implements OnInit {
           ...navItem,
           badge: {
             variant: 'danger',
-            text: 'INAKTIV'
+            text: 'INAKTIV',
+            color: '#FFFFFF' // TODO define correct color
           },
           attributes: {disabled: true}
         };

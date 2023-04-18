@@ -3,7 +3,7 @@ import {PasswordChangeFormComponent} from '../passwordchange-form/passwordchange
 
 @Component({
   selector: 'tafel-passwordchange-modal',
-  templateUrl: './passwordchange-modal.component.html'
+  templateUrl: 'passwordchange-modal.component.html'
 })
 export class PasswordChangeModalComponent {
   @ViewChild(PasswordChangeFormComponent) public form: PasswordChangeFormComponent;

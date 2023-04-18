@@ -1,7 +1,7 @@
 import {BrowserModule} from '@angular/platform-browser';
 import {APP_INITIALIZER, DEFAULT_CURRENCY_CODE, LOCALE_ID, NgModule} from '@angular/core';
 import {ReactiveFormsModule} from '@angular/forms';
-import {CommonModule, HashLocationStrategy, LocationStrategy, registerLocaleData} from '@angular/common';
+import {CommonModule, HashLocationStrategy, LocationStrategy, NgIf, registerLocaleData} from '@angular/common';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import localeDeAt from '@angular/common/locales/de-AT';
 import {PerfectScrollbarConfigInterface, PerfectScrollbarModule} from 'ngx-perfect-scrollbar';
@@ -9,18 +9,21 @@ import {PerfectScrollbarConfigInterface, PerfectScrollbarModule} from 'ngx-perfe
 import {IconModule, IconSetService} from '@coreui/icons-angular';
 import {AppComponent} from './app.component';
 
+// Import containers
 import {DefaultLayoutComponent} from './common/views/default-layout/default-layout.component';
+import {DefaultHeaderComponent} from './common/views/default-layout/default-header/default-header.component';
 import {P404Component} from './common/views/error/404.component';
 import {P500Component} from './common/views/error/500.component';
 import {LoginComponent} from './common/views/login/login.component';
 
 import {
-  BreadcrumbModule,
+  AvatarComponent,
+  BadgeComponent,
+  BreadcrumbModule, ContainerComponent,
   DropdownModule,
-  FooterModule,
   HeaderModule,
-  ModalModule,
-  SidebarModule,
+  ModalModule, NavItemComponent, SidebarBrandComponent, SidebarComponent,
+  SidebarModule, SidebarNavComponent, SidebarToggleDirective, SidebarTogglerComponent,
   TabsModule
 } from '@coreui/angular';
 
@@ -38,6 +41,7 @@ import {LoginPasswordChangeComponent} from './common/views/login-passwordchange/
 import {CookieService} from 'ngx-cookie-service';
 import {AuthenticationService} from './common/security/authentication.service';
 import {WebsocketService} from './common/websocket/websocket.service';
+import {RouterLink, RouterOutlet} from '@angular/router';
 
 registerLocaleData(localeDeAt);
 
@@ -53,7 +57,6 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
     BrowserModule,
     CommonModule,
     DropdownModule,
-    FooterModule,
     HeaderModule,
     HttpClientModule,
     HttpClientXsrfModule,
@@ -63,10 +66,24 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
     PerfectScrollbarModule,
     ReactiveFormsModule,
     SidebarModule,
-    TabsModule
+    TabsModule,
+    ContainerComponent,
+    NgIf,
+    PerfectScrollbarModule,
+    RouterLink,
+    RouterOutlet,
+    SidebarBrandComponent,
+    SidebarComponent,
+    SidebarNavComponent,
+    SidebarToggleDirective,
+    SidebarTogglerComponent,
+    NavItemComponent,
+    BadgeComponent,
+    AvatarComponent
   ],
   declarations: [
     AppComponent,
+    DefaultHeaderComponent,
     DefaultLayoutComponent,
     LoginComponent,
     LoginPasswordChangeComponent,

@@ -21,23 +21,14 @@
               "src/assets"
             ],
             "styles": [
-              "node_modules/@coreui/icons/css/free.css",
-              "node_modules/flag-icon-css/css/flag-icons.css",
-              "node_modules/font-awesome/css/font-awesome.css",
-              "node_modules/simple-line-icons/dist/styles/simple-line-icons.css",
-              "src/scss/style.scss"
+              "src/scss/styles.scss"
             ],
-            "stylePreprocessorOptions": {
-              "includePaths": [
-                "./node_modules"
-              ]
-            },
             "scripts": [],
             "allowedCommonJsDependencies": [
               "chart.js",
               "@coreui/chartjs/dist/js/coreui-chartjs.js",
-              "classnames",
-              "angular2-uuid"
+              "angular2-uuid",
+              "moment"
             ]
           },
           "configurations": {
@@ -101,17 +92,8 @@
             "preserveSymlinks": true,
             "scripts": [],
             "styles": [
-              "node_modules/@coreui/icons/css/free.css",
-              "node_modules/flag-icon-css/css/flag-icons.css",
-              "node_modules/font-awesome/css/font-awesome.css",
-              "node_modules/simple-line-icons/dist/styles/simple-line-icons.css",
-              "src/scss/style.scss"
+              "src/scss/styles.scss"
             ],
-            "stylePreprocessorOptions": {
-              "includePaths": [
-                "./node_modules"
-              ]
-            },
             "assets": [
               "src/assets",
               "src/favicon.ico"

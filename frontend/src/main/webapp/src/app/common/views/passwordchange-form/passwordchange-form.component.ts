@@ -7,7 +7,7 @@ import {HttpErrorResponse} from '@angular/common/http';
 
 @Component({
   selector: 'tafel-passwordchange-form',
-  templateUrl: './passwordchange-form.component.html'
+  templateUrl: 'passwordchange-form.component.html'
 })
 export class PasswordChangeFormComponent {
   successMessage: string;

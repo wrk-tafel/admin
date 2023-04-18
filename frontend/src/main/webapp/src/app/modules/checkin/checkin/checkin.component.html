@@ -41,7 +41,7 @@
           <div class="col-sm-3 mb-3">
             <input testid="customerIdText" type="number" name="customerIdInput" [(ngModel)]="customerId"
                    class="form-control" (keydown.enter)="searchForCustomerId()"
-                   [cdkTrapFocusAutoCapture]="focusCustomerIdInput" [cdkTrapFocus]="focusCustomerIdInput">
+                   cdkTrapFocusAutoCapture="focusCustomerIdInput" cdkTrapFocus="focusCustomerIdInput">
           </div>
           <div class="col-sm-3">
             <button testid="showCustomerButton" type="button" class="btn btn-primary"

@@ -5,8 +5,8 @@ import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {CommonModule} from '@angular/common';
 import {QRCodeReaderService} from './qrcode-reader/qrcode-reader.service';
 import {CheckinComponent} from './checkin/checkin.component';
-import {ModalModule} from 'ngx-bootstrap/modal';
 import {A11yModule} from '@angular/cdk/a11y';
+import {ModalModule} from '@coreui/angular';
 
 @NgModule({
   imports: [

@@ -8,7 +8,6 @@ import {ScannerList} from '../scanner/scanner.component';
 import {CustomerNoteApiService, CustomerNoteItem} from '../../../api/customer-note-api.service';
 import {GlobalStateService} from '../../../common/state/global-state.service';
 import {Router} from '@angular/router';
-import {ModalDirective} from 'ngx-bootstrap/modal';
 import {DistributionApiService} from '../../../api/distribution-api.service';
 
 @Component({
@@ -28,8 +27,6 @@ export class CheckinComponent implements OnInit, OnDestroy {
   }
 
   private VALID_UNTIL_WARNLIMIT_WEEKS = 8;
-
-  @ViewChild('assignCustomerModal') public assignCustomerModal: ModalDirective;
 
   errorMessage: string;
 
