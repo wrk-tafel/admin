@@ -6,7 +6,7 @@ import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import localeDeAt from '@angular/common/locales/de-AT';
 import {PerfectScrollbarConfigInterface, PerfectScrollbarModule} from 'ngx-perfect-scrollbar';
 
-import {IconModule, IconSetService} from '@coreui/icons-angular';
+import {IconDirective, IconModule, IconSetService} from '@coreui/icons-angular';
 import {AppComponent} from './app.component';
 
 // Import containers
@@ -79,7 +79,8 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
     SidebarTogglerComponent,
     NavItemComponent,
     BadgeComponent,
-    AvatarComponent
+    AvatarComponent,
+    IconDirective
   ],
   declarations: [
     AppComponent,

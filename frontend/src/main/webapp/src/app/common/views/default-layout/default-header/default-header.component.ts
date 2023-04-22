@@ -1,7 +1,8 @@
-import { Component, Input } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import {Component, Input, ViewChild} from '@angular/core';
 
-import { ClassToggleService, HeaderComponent } from '@coreui/angular';
+import {HeaderComponent} from '@coreui/angular';
+import {AuthenticationService} from '../../../security/authentication.service';
+import {PasswordChangeModalComponent} from '../../passwordchange-modal/passwordchange-modal.component';
 
 @Component({
   selector: 'app-default-header',
@@ -9,13 +10,22 @@ import { ClassToggleService, HeaderComponent } from '@coreui/angular';
 })
 export class DefaultHeaderComponent extends HeaderComponent {
 
-  @Input() sidebarId: string = 'sidebar';
-
-  public newMessages = new Array(4)
-  public newTasks = new Array(5)
-  public newNotifications = new Array(5)
-
-  constructor(private classToggler: ClassToggleService) {
+  constructor(private auth: AuthenticationService) {
     super();
   }
+
+  @Input() sidebarId: string = 'sidebar';
+  @ViewChild(PasswordChangeModalComponent)
+  private passwordChangeModalComponent: PasswordChangeModalComponent;
+
+  public logout() {
+    this.auth.logout().subscribe(_ => {
+      this.auth.redirectToLogin();
+    });
+  }
+
+  public changePassword() {
+    this.passwordChangeModalComponent.showDialog();
+  }
+
 }

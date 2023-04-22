@@ -28,22 +28,7 @@
 <!--main-->
 <div class="wrapper d-flex flex-column min-vh-100 bg-light dark:bg-transparent">
   <!--app-header-->
-  <app-default-header class="mb-4 d-print-none header header-sticky" position="sticky" sidebarId="sidebar">
-    <ul testid="usermenu" class="nav navbar-nav ml-auto">
-      <li class="nav-item dropdown" dropdown placement="bottom right">
-        <a class="nav-link" data-toggle="dropdown" href="" role="button" aria-haspopup="true" aria-expanded="false"
-           dropdownToggle (click)="false">
-          <img src="./assets/img/user/user.svg" class="img-avatar" />
-        </a>
-        <div class="dropdown-menu dropdown-menu-right" *dropdownMenu aria-labelledby="simple-dropdown">
-          <div class="dropdown-header text-center"><strong>Benutzer</strong></div>
-          <a testid="usermenu-changepassword" class="dropdown-item" [routerLink]="[]" (click)="changePassword()"><i class="fa fa-key"></i> Passwort ändern</a>
-          <a testid="usermenu-logout" class="dropdown-item" [routerLink]="[]" (click)="onLogout()"><i class="fa fa-lock"></i> Abmelden</a>
-        </div>
-      </li>
-    </ul>
-  </app-default-header>
-  <tafel-passwordchange-modal></tafel-passwordchange-modal>
+  <app-default-header class="mb-4 d-print-none header header-sticky" position="sticky" sidebarId="sidebar"></app-default-header>
   <!--app-body-->
   <div class="body flex-grow-1 px-3">
     <c-container breakpoint="lg" class="h-auto">
