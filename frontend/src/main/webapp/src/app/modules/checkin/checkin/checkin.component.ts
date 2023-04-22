@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {Component, OnDestroy, OnInit} from '@angular/core';
 import {CustomerApiService, CustomerData} from '../../../api/customer-api.service';
 import {WebsocketService} from '../../../common/websocket/websocket.service';
 import {Subscription} from 'rxjs';
@@ -9,6 +9,7 @@ import {CustomerNoteApiService, CustomerNoteItem} from '../../../api/customer-no
 import {GlobalStateService} from '../../../common/state/global-state.service';
 import {Router} from '@angular/router';
 import {DistributionApiService} from '../../../api/distribution-api.service';
+import {Colors} from "@coreui/angular";
 
 @Component({
   selector: 'tafel-checkin',
@@ -176,6 +177,20 @@ export class CheckinComponent implements OnInit, OnDestroy {
     }
   }
 
+  get scannerReadyStateColor(): Colors {
+    return this.scannerReadyState ? 'success' : 'danger';
+  }
+
+  get customerStateColor(): Colors {
+    switch (this.customerState) {
+      case CustomerState.RED:
+        return 'danger';
+      case CustomerState.YELLOW:
+        return 'warning';
+      case CustomerState.GREEN:
+        return 'success';
+    }
+  }
 }
 
 export enum CustomerState {
