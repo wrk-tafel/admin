@@ -63,7 +63,7 @@
             <div class="col-sm">
               <label class="form-label">Nationalität *</label>
               <div class="input-group">
-                <select testid="countryInput" formControlName="country" class="form-control"
+                <select testid="countryInput" formControlName="country" class="form-control" cSelect
                         [compareWith]="compareCountry"
                         [ngClass]="{'is-invalid': country.invalid && (country.dirty || country.touched), 'is-valid': country.valid && (country.dirty || country.touched)}">
                   <option *ngFor="let countryItem of countries" [ngValue]="countryItem">
@@ -339,7 +339,7 @@
                         <div class="col-lg-6">
                           <label class="form-label">Nationalität *</label>
                           <div class="input-group">
-                            <select testid="countryInput" formControlName="country" class="form-control"
+                            <select testid="countryInput" formControlName="country" cSelect class="form-control"
                                     [compareWith]="compareCountry"
                                     [ngClass]="{'is-invalid': additionalPerson.get('country').invalid && (additionalPerson.get('country').dirty || additionalPerson.get('country').touched), 'is-valid': additionalPerson.get('country').valid && (additionalPerson.get('country').dirty || additionalPerson.get('country').touched)}">
                               <option *ngFor="let countryItem of countries" [ngValue]="countryItem">

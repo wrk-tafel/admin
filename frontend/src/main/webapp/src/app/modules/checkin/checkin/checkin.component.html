@@ -15,7 +15,7 @@
             <label class="form-label">Scanner</label>
           </div>
           <div class="col-sm-3 align-self-center">
-            <select testid="scannerIdInput" class="form-control" [(ngModel)]="selectedScannerId">
+            <select testid="scannerIdInput" class="form-control" cSelect [(ngModel)]="selectedScannerId">
               <option [ngValue]="undefined">Nicht aktiv</option>
               <option *ngFor="let scannerId of scannerIds" [ngValue]="scannerId">Nr. {{scannerId}}</option>
             </select>

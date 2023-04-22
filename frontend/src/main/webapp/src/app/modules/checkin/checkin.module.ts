@@ -6,17 +6,18 @@ import {CommonModule} from '@angular/common';
 import {QRCodeReaderService} from './qrcode-reader/qrcode-reader.service';
 import {CheckinComponent} from './checkin/checkin.component';
 import {A11yModule} from '@angular/cdk/a11y';
-import {ModalModule} from '@coreui/angular';
+import {FormSelectDirective, ModalModule} from '@coreui/angular';
 
 @NgModule({
-  imports: [
-    CheckinRoutingModule,
-    ReactiveFormsModule,
-    CommonModule,
-    FormsModule,
-    ModalModule,
-    A11yModule
-  ],
+    imports: [
+        CheckinRoutingModule,
+        ReactiveFormsModule,
+        CommonModule,
+        FormsModule,
+        ModalModule,
+        A11yModule,
+        FormSelectDirective
+    ],
   declarations: [
     ScannerComponent,
     CheckinComponent
