@@ -19,11 +19,18 @@ import {LoginComponent} from './common/views/login/login.component';
 import {
   AvatarComponent,
   BadgeComponent,
-  BreadcrumbModule, ContainerComponent,
+  BreadcrumbModule,
+  ContainerComponent,
   DropdownModule,
   HeaderModule,
-  ModalModule, NavItemComponent, SidebarBrandComponent, SidebarComponent,
-  SidebarModule, SidebarNavComponent, SidebarToggleDirective, SidebarTogglerComponent,
+  ModalModule,
+  NavItemComponent,
+  SidebarBrandComponent,
+  SidebarComponent,
+  SidebarModule,
+  SidebarNavComponent,
+  SidebarToggleDirective,
+  SidebarTogglerComponent,
   TabsModule
 } from '@coreui/angular';
 
