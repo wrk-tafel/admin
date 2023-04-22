@@ -94,9 +94,8 @@ export class DefaultLayoutComponent implements OnInit {
         const modifiedNavItem = {
           ...navItem,
           badge: {
-            class: 'danger',
             text: 'INAKTIV',
-            color: '#FFFFFF' // TODO define correct color
+            color: 'danger'
           },
           attributes: {disabled: true}
         };

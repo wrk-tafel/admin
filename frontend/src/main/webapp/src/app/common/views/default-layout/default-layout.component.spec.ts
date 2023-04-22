@@ -217,9 +217,8 @@ describe('DefaultLayoutComponent', () => {
       testMenuItem1, {
         ...testMenuItem2,
         badge: {
-          class: 'danger',
           text: 'INAKTIV',
-          color: '#FFFFFF' // TODO define correct color
+          color: 'danger'
         },
         attributes: {disabled: true}
       }, testMenuItem3
