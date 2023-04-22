@@ -4,7 +4,7 @@ import {RxStompState} from '@stomp/rx-stomp';
 import {WebsocketService} from '../../../common/websocket/websocket.service';
 import {CameraDevice} from 'html5-qrcode/esm/camera/core';
 import {Html5QrcodeResult} from 'html5-qrcode/core';
-import {Colors} from "@coreui/angular";
+import {Colors} from '@coreui/angular';
 
 @Component({
   selector: 'tafel-scanner',

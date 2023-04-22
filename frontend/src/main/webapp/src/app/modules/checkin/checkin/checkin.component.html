@@ -15,7 +15,7 @@
             <label class="form-label">Scanner</label>
           </c-col>
           <c-col sm="3" class="align-self-center">
-            <select testid="scannerIdInput" class="form-control" cSelect [(ngModel)]="selectedScannerId">
+            <select testid="scannerIdInput" class="form-control" cSelect [(ngModel)]="selectedScannerId" tabindex="0">
               <option [ngValue]="undefined">Nicht aktiv</option>
               <option *ngFor="let scannerId of scannerIds" [ngValue]="scannerId">Nr. {{scannerId}}</option>
             </select>
@@ -35,12 +35,12 @@
           </c-col>
           <c-col sm="3" class="mb-3">
             <input testid="customerIdText" type="number" name="customerIdInput" [(ngModel)]="customerId"
-                   class="form-control" (keydown.enter)="searchForCustomerId()"
+                   class="form-control" (keydown.enter)="searchForCustomerId()" tabindex="1"
                    cdkTrapFocusAutoCapture="focusCustomerIdInput" cdkTrapFocus="focusCustomerIdInput">
           </c-col>
           <c-col sm="3">
             <button testid="showCustomerButton" type="button" class="btn btn-primary text-white"
-                    [disabled]="!customerId" (click)="searchForCustomerId()">Anzeigen
+                    tabindex="2" [disabled]="!customerId" (click)="searchForCustomerId()">Anzeigen
             </button>
           </c-col>
         </c-row>
@@ -102,10 +102,10 @@
               <div *ngIf="customerState !== 0">
                 <hr>
                 <c-row>
-                  <c-col size="6" class="fw-bold">Ticket-Nummer: *</c-col>
-                  <c-col size="6" class="align-middle">
+                  <c-col sm="12" md="2" class="fw-bold">Ticket-Nummer: *</c-col>
+                  <c-col sm="12" md="2" class="align-middle">
                     <input testid="ticketNumberText" type="number" name="ticketNumberText" [(ngModel)]="ticketNumber"
-                           class="form-control" required (keydown.enter)="assignCustomer()"
+                           class="form-control" required (keydown.enter)="assignCustomer()" tabindex="3"
                            [cdkTrapFocusAutoCapture]="focusTicketNumberInput" [cdkTrapFocus]="focusTicketNumberInput">
                   </c-col>
                 </c-row>
@@ -117,8 +117,10 @@
       <c-card-footer>
         <c-row>
           <c-col>
-            <button [disabled]="customerState === 0 || !ticketForm.valid" testid="assignCustomerButton" class="btn btn-success me-3 text-white" (click)="assignCustomer()">Annehmen</button>
-            <button testid="resetButton" class="btn btn-primary text-white" (click)="reset()" [cdkTrapFocusAutoCapture]="focusResetButton" [cdkTrapFocus]="focusResetButton">Zurücksetzen</button>
+            <button [disabled]="customerState === 0 || !ticketForm.valid" testid="assignCustomerButton" class="btn btn-success me-3 text-white" (click)="assignCustomer()" tabindex="4">Annehmen</button>
+          </c-col>
+          <c-col>
+            <button testid="resetButton" class="btn btn-primary text-white" (click)="reset()" [cdkTrapFocusAutoCapture]="focusResetButton" [cdkTrapFocus]="focusResetButton" tabindex="5">Zurücksetzen</button>
           </c-col>
         </c-row>
       </c-card-footer>
