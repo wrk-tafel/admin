@@ -125,6 +125,14 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
     IconDirective,
     InputGroupComponent,
     InputGroupTextDirective,
+    RowComponent,
+    ButtonDirective,
+    ColComponent,
+    ContainerComponent,
+    FormControlDirective,
+    IconDirective,
+    InputGroupComponent,
+    InputGroupTextDirective,
     RowComponent
   ],
   declarations: [
