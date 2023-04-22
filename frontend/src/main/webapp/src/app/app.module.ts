@@ -1,7 +1,14 @@
 import {BrowserModule} from '@angular/platform-browser';
 import {APP_INITIALIZER, DEFAULT_CURRENCY_CODE, LOCALE_ID, NgModule} from '@angular/core';
 import {ReactiveFormsModule} from '@angular/forms';
-import {CommonModule, HashLocationStrategy, LocationStrategy, NgIf, registerLocaleData} from '@angular/common';
+import {
+  CommonModule,
+  HashLocationStrategy,
+  LocationStrategy,
+  NgIf,
+  NgOptimizedImage,
+  registerLocaleData
+} from '@angular/common';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import localeDeAt from '@angular/common/locales/de-AT';
 import {PerfectScrollbarConfigInterface, PerfectScrollbarModule} from 'ngx-perfect-scrollbar';
@@ -19,12 +26,12 @@ import {LoginComponent} from './common/views/login/login.component';
 import {
   AvatarComponent,
   BadgeComponent, BgColorDirective,
-  BreadcrumbModule,
+  BreadcrumbModule, ButtonDirective, CardBodyComponent, CardComponent, CardGroupComponent, ColComponent,
   ContainerComponent,
-  DropdownModule,
-  HeaderModule,
+  DropdownModule, FormControlDirective, FormDirective,
+  HeaderModule, InputGroupComponent, InputGroupTextDirective,
   ModalModule,
-  NavItemComponent,
+  NavItemComponent, RowComponent,
   SidebarBrandComponent,
   SidebarComponent,
   SidebarModule,
@@ -88,7 +95,29 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
     BadgeComponent,
     AvatarComponent,
     IconDirective,
-    BgColorDirective
+    BgColorDirective,
+    ButtonDirective,
+    CardBodyComponent,
+    CardComponent,
+    CardGroupComponent,
+    ColComponent,
+    ContainerComponent,
+    FormControlDirective,
+    FormDirective,
+    IconDirective,
+    InputGroupComponent,
+    InputGroupTextDirective,
+    RouterLink,
+    RowComponent,
+    NgOptimizedImage,
+    ButtonDirective,
+    ColComponent,
+    FormControlDirective,
+    FormDirective,
+    IconDirective,
+    InputGroupComponent,
+    InputGroupTextDirective,
+    RowComponent
   ],
   declarations: [
     AppComponent,
