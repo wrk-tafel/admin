@@ -2,6 +2,9 @@
 // If you want to override variables do it here
 @import "variables";
 
+// Bootstrap
+@import "bootstrap";
+
 $enable-ltr: true;
 $enable-rtl: true;
 
@@ -19,6 +22,7 @@ $enable-rtl: true;
 @import "@fortawesome/fontawesome-free/scss/solid";
 @import "@fortawesome/fontawesome-free/scss/brands";
 
+// Basic layout
 @import "layout";
 
 // Some temp fixes

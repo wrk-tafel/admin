@@ -1,24 +1,23 @@
-<div class="card dashboard-panel">
-  <div class="card-body pb-0">
-    <div class="text-black-50 font-weight-bold">Status</div>
-    <div class="text-value font-weight-bold">
-      <div class="row">
-        <div class="col"
-             testid="distribution-state-text">{{distribution?.state.stateLabel ? distribution?.state.stateLabel : 'Inaktiv'}}</div>
-      </div>
-    </div>
-  </div>
-  <div class="m-3">
-    <div class="row mb-3">
-      <div class="col">
+<c-card class="dashboard-panel">
+  <c-card-header>
+    <div class="fw-bold">Status</div>
+  </c-card-header>
+  <c-card-body>
+    <c-row>
+      <c-col testid="distribution-state-text" class="fw-bold">
+        <h4>{{distribution?.state.stateLabel ? distribution?.state.stateLabel : 'Inaktiv'}}</h4>
+      </c-col>
+    </c-row>
+    <c-row class="mb-3">
+      <c-col>
         <c-progress>
           <c-progress-bar [value]="progressCurrent" [max]="progressMax"></c-progress-bar>
         </c-progress>
-      </div>
-    </div>
+      </c-col>
+    </c-row>
     <div *tafelIfPermission="'DISTRIBUTION'">
-      <div class="row">
-        <div class="col">
+      <c-row>
+        <c-col>
           <button *ngIf="!distribution" type="button"
                   testid="distribution-start-button"
                   class="btn btn-block text-white btn-info"
@@ -29,12 +28,13 @@
                   class="btn btn-block text-white btn-info"
                   (click)="showNextDistributionStateModal = true">--> {{distribution?.state.actionLabel}}
           </button>
-        </div>
-      </div>
+        </c-col>
+      </c-row>
     </div>
-  </div>
-</div>
-<c-modal id="nextDistributionStateModal" testid="distributionstate-next-modal" [(visible)]="showNextDistributionStateModal">
+  </c-card-body>
+</c-card>
+<c-modal id="nextDistributionStateModal" testid="distributionstate-next-modal"
+         [(visible)]="showNextDistributionStateModal">
   <c-modal-header class="bg-warning">
     <h4 testid="title" class="modal-title">
       Weiter zum nächsten Schritt?

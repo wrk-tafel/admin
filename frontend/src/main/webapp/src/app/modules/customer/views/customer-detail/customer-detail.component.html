@@ -56,34 +56,34 @@
                 <div class="card-header text-center h5">Hauptbezieher</div>
                 <div class="card-body">
                   <div class="row">
-                    <div class="col font-weight-bold">Kundennummer</div>
+                    <div class="col fw-bold">Kundennummer</div>
                     <div testid="customerIdText" class="col">{{customerData?.id}}</div>
                   </div>
                   <div class="row">
-                    <div class="col font-weight-bold">Name</div>
+                    <div class="col fw-bold">Name</div>
                     <div testid="nameText" class="col">{{customerData?.lastname}} {{customerData?.firstname}}</div>
                   </div>
                   <div class="row">
-                    <div class="col font-weight-bold">Geburtsdatum (Alter)</div>
+                    <div class="col fw-bold">Geburtsdatum (Alter)</div>
                     <div testid="birthDateAgeText" class="col">{{customerData?.birthDate | date : 'dd.MM.yyyy'}} ({{getAge(customerData?.birthDate)}})</div>
                   </div>
                   <div class="row">
-                    <div class="col font-weight-bold">Nationalität</div>
+                    <div class="col fw-bold">Nationalität</div>
                     <div testid="countryText" class="col">{{customerData?.country?.name}}</div>
                   </div>
                   <div class="row">
-                    <div class="col font-weight-bold">Telefon</div>
+                    <div class="col fw-bold">Telefon</div>
                     <div testid="telephoneNumberText" class="col"
                          [innerHTML]="customerData?.telephoneNumber ? customerData?.telephoneNumber : '-'"></div>
                   </div>
                   <div class="row">
-                    <div class="col font-weight-bold">E-Mail</div>
+                    <div class="col fw-bold">E-Mail</div>
                     <div testid="emailText" class="col" [innerHTML]="customerData?.email ? customerData?.email : '-'">
                     </div>
                   </div>
                   <hr>
                   <div class="row">
-                    <div class="col font-weight-bold">Adresse</div>
+                    <div class="col fw-bold">Adresse</div>
                     <div class="col">
                       <div class="row">
                         <div testid="addressLine1Text" class="col">{{customerData?.address ?
@@ -98,11 +98,11 @@
                   </div>
                   <hr>
                   <div class="row">
-                    <div class="col font-weight-bold">Arbeitgeber</div>
+                    <div class="col fw-bold">Arbeitgeber</div>
                     <div testid="employerText" class="col">{{customerData?.employer}}</div>
                   </div>
                   <div class="row mt-2 align-items-end">
-                    <div class="col font-weight-bold">
+                    <div class="col fw-bold">
                       Einkommen (monatlich)
                     </div>
                     <div testid="incomeText" class="col">{{customerData?.income | currency}}</div>
@@ -115,12 +115,12 @@
                   </div>
                   <hr>
                   <div class="row">
-                    <div class="col font-weight-bold">Angelegt</div>
+                    <div class="col fw-bold">Angelegt</div>
                     <div testid="issuedInformation" class="col">am {{customerData?.issuedAt | date : 'dd.MM.yyyy'}}
                       von {{formatIssuer(customerData?.issuer)}}</div>
                   </div>
                   <div class="row">
-                    <div class="col font-weight-bold"
+                    <div class="col fw-bold"
                          [ngClass]="{'bg-success': customerData?.validUntil && isValid(), 'bg-danger': customerData?.validUntil && !isValid()}">
                       Gültig bis:
                     </div>
@@ -144,12 +144,12 @@
                 </div>
                 <div class="card-body">
                   <div class="row">
-                    <div class="col font-weight-bold" *ngIf="customerNotes?.length === 0">
+                    <div class="col fw-bold" *ngIf="customerNotes?.length === 0">
                       <h6 testid="nonotes-label">Keine Notiz vorhanden</h6>
                     </div>
                     <div class="col" *ngIf="customerNotes?.length !== 0">
                       <div class="row mb-2">
-                        <div class="col font-weight-bold" testid="note-title">{{customerNotes[0].timestamp | date : 'dd.MM.yyyy HH:mm' }}&nbsp;{{customerNotes[0].author}}</div>
+                        <div class="col fw-bold" testid="note-title">{{customerNotes[0].timestamp | date : 'dd.MM.yyyy HH:mm' }}&nbsp;{{customerNotes[0].author}}</div>
                       </div>
                       <div class="row">
                         <div class="col" testid="note-text" [innerHtml]="customerNotes[0].note"></div>
@@ -178,9 +178,9 @@
                   <div class="card">
                     <div class="card-body">
                       <div class="row">
-                        <div class="col font-weight-bold" [attr.testid]="'addperson-' + i + '-lastnameText'"
+                        <div class="col fw-bold" [attr.testid]="'addperson-' + i + '-lastnameText'"
                              [innerHTML]="addPerson?.lastname"></div>
-                        <div class="col font-weight-bold" [attr.testid]="'addperson-' + i + '-firstnameText'"
+                        <div class="col fw-bold" [attr.testid]="'addperson-' + i + '-firstnameText'"
                              [innerHTML]="addPerson?.firstname"></div>
                       </div>
                       <div class="row">
@@ -188,12 +188,12 @@
                         <div class="col-6" [attr.testid]="'addperson-' + i + '-countryText'">{{addPerson?.country.name}}</div>
                       </div>
                       <div class="row mt-1">
-                        <div class="col-6 font-weight-bold">Arbeitgeber</div>
+                        <div class="col-6 fw-bold">Arbeitgeber</div>
                         <div class="col-6" [attr.testid]="'addperson-' + i + '-employerText'" *ngIf="addPerson?.employer !== null">{{addPerson?.employer}}</div>
                         <div class="col-6" [attr.testid]="'addperson-' + i + '-employerText'" *ngIf="addPerson?.employer === null">-</div>
                       </div>
                       <div class="row mt-1 align-items-end">
-                        <div class="col-6 font-weight-bold">Einkommen (monatl.)</div>
+                        <div class="col-6 fw-bold">Einkommen (monatl.)</div>
                         <div class="col-6" [attr.testid]="'addperson-' + i + '-incomeText'" *ngIf="addPerson?.income">{{addPerson?.income | currency}}</div>
                         <div class="col-6" [attr.testid]="'addperson-' + i + '-incomeText'" *ngIf="!addPerson?.income">-</div>
                       </div>
@@ -226,7 +226,7 @@
       <div class="col">Der Kunde wird unwiderruflich gelöscht.</div>
     </div>
     <div class="row mb-3">
-      <div class="col font-weight-bold">Sicher?</div>
+      <div class="col fw-bold">Sicher?</div>
     </div>
   </c-modal-body>
   <c-modal-footer>
@@ -249,7 +249,7 @@
       <div class="col" *ngIf="customerNotes?.length !== 0">
         <hr *ngIf="i > 0">
         <div class="row mb-2">
-          <div class="col font-weight-bold" testid="note-title">{{noteItem.timestamp | date : 'dd.MM.yyyy HH:mm' }}&nbsp;{{noteItem.author}}</div>
+          <div class="col fw-bold" testid="note-title">{{noteItem.timestamp | date : 'dd.MM.yyyy HH:mm' }}&nbsp;{{noteItem.author}}</div>
         </div>
         <div class="row">
           <div class="col" testid="note-text" [innerHtml]="noteItem.note"></div>

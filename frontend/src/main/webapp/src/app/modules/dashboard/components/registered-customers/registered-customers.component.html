@@ -1,5 +1,5 @@
 <c-card class="dashboard-panel" color="primary">
-  <c-card-body class="pb-0">
+  <c-card-body>
     <c-row>
       <c-col sm="12">
         <h4 class="card-title text-white">Kunden angemeldet</h4>
@@ -7,8 +7,8 @@
     </c-row>
     <c-row>
       <c-col class="mb-5">
-        <div *ngIf="count" testid="customers-count" class="text-white dashboard-number-huge">{{count}}</div>
-        <div *ngIf="!count" testid="customers-count" class="text-white dashboard-number-huge">-</div>
+        <div *ngIf="count" testid="customers-count" class="text-white text-end dashboard-number-huge">{{count}}</div>
+        <div *ngIf="!count" testid="customers-count" class="text-white text-end dashboard-number-huge">-</div>
       </c-col>
     </c-row>
   </c-card-body>
