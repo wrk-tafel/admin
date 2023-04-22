@@ -10,7 +10,7 @@ export const navigationMenuItems: ITafelNavData[] = [
   {
     name: 'Übersicht',
     url: '/uebersicht',
-    iconComponent: { name: 'cil-speedometer' },
+    icon: 'fa fa-gauge',
     permissions: ['DASHBOARD']
   },
   {
