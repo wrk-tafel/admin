@@ -1,47 +1,52 @@
-<div class="row">
-  <div class="col-md ">
-    <div class="card">
-      <div class="card-body">
-        <div class="row">
-          <div class="col d-flex justify-content-center">
-            <div class="badge me-3 font-lg" testid="state-server"
-                 [ngClass]="{'badge-success': apiClientReady, 'badge-danger': !apiClientReady}">Verbindung
-            </div>
-            <div class="badge font-lg" testid="state-camera"
-                 [ngClass]="{'badge-success': qrCodeReaderReady, 'badge-danger': !qrCodeReaderReady}">Kamera
-            </div>
-          </div>
-        </div>
-        <div class="row mt-3 mb-3" *ngIf="availableCameras.length > 0">
-          <div class="col d-flex justify-content-center">
+<c-row>
+  <c-col>
+    <c-card>
+      <c-card-body>
+        <c-row>
+          <c-col class="d-flex justify-content-center">
+            <h5>
+              <c-badge [color]="apiConnectionStateColor" testid="state-server" class="me-3">
+                Verbindung
+              </c-badge>
+            </h5>
+            <h5>
+              <c-badge [color]="webcamStateColor" testid="state-camera" class="me-3">
+                Kamera
+              </c-badge>
+            </h5>
+          </c-col>
+        </c-row>
+        <c-row class="mt-3 mb-3" *ngIf="availableCameras.length > 0">
+          <c-col class="d-flex justify-content-center">
             <div class="form-inline">
-              <label class="form-label font-weight-bold me-2">Kamera</label>
+              <label class="form-label fw-bold me-2">Kamera</label>
               <select testid="cameraSelectionInput" cSelect class="form-control" [(ngModel)]="selectedCamera">
                 <option *ngFor="let camera of availableCameras" [ngValue]="camera">
                   {{camera.label}}</option>
               </select>
             </div>
-          </div>
-        </div>
-        <div class="row mb-3">
-          <div class="col d-flex justify-content-center">
-            <h1 class="font-5xl">Nr:</h1>
+          </c-col>
+        </c-row>
+        <hr>
+        <c-row class="mb-3">
+          <c-col class="d-flex justify-content-center">
+            <h1 class="font-5xl">Scanner Nr:</h1>
             <h1 class="ms-3 font-5xl" testid="scanner-id">{{scannerId}}</h1>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col">
+          </c-col>
+        </c-row>
+        <c-row>
+          <c-col>
             <div id="qrCodeReaderBox"></div>
-          </div>
-        </div>
-        <div *ngIf="qrCodeReaderReady" class="row mt-3">
-          <div class="col d-flex justify-content-center">
+          </c-col>
+        </c-row>
+        <c-row class="mt-3" *ngIf="qrCodeReaderReady">
+          <c-col class="d-flex justify-content-center">
             <div class="alert alert-info ms-2 me-2" testid="message">
               <div><strong>letzter Scan: </strong>{{lastSentText}}</div>
             </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+          </c-col>
+        </c-row>
+      </c-card-body>
+    </c-card>
+  </c-col>
+</c-row>

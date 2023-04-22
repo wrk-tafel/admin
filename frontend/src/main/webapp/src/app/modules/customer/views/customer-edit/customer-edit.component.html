@@ -18,12 +18,11 @@
   </c-modal-header>
   <c-modal-body>
     <div class="row">
-      <div class="col-6 font-weight-bold">Limit (inkl. Toleranz von
-        {{validationResult?.toleranceValue}}&nbsp;&euro;):</div>
+      <div class="col-6 fw-bold">Limit (inkl. Toleranz von {{validationResult?.toleranceValue}}&nbsp;&euro;):</div>
       <div class="col-2">{{validationResult?.limit}}&nbsp;&euro;</div>
     </div>
     <div class="row">
-      <div class="col-6 font-weight-bold">Einkommen gesamt:</div>
+      <div class="col-6 fw-bold">Einkommen gesamt:</div>
       <div class="col-2">{{validationResult?.totalSum}}&nbsp;&euro;</div>
     </div>
     <div class="row">
@@ -32,7 +31,7 @@
       </div>
     </div>
     <div class="row">
-      <div class="col-6 font-weight-bold">Einkommen über Limit:</div>
+      <div class="col-6 fw-bold">Einkommen über Limit:</div>
       <div class="col-2" [ngClass]="{'text-danger': validationResult?.valid === false}">
         {{validationResult?.amountExceededLimit}}&nbsp;&euro;</div>
     </div>
