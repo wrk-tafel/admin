@@ -18,7 +18,7 @@ import {LoginComponent} from './common/views/login/login.component';
 
 import {
   AvatarComponent,
-  BadgeComponent,
+  BadgeComponent, BgColorDirective,
   BreadcrumbModule,
   ContainerComponent,
   DropdownModule,
@@ -87,7 +87,8 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
     NavItemComponent,
     BadgeComponent,
     AvatarComponent,
-    IconDirective
+    IconDirective,
+    BgColorDirective
   ],
   declarations: [
     AppComponent,
