@@ -116,10 +116,10 @@
       </c-card-body>
       <c-card-footer>
         <c-row>
-          <c-col>
-            <button [disabled]="customerState === 0 || !ticketForm.valid" testid="assignCustomerButton" class="btn btn-success me-3 text-white" (click)="assignCustomer()" tabindex="4">Annehmen</button>
+          <c-col sm="1">
+            <button [disabled]="customerState === 0 || !ticketForm.valid" testid="assignCustomerButton" class="btn btn-success text-white" (click)="assignCustomer()" tabindex="4">Annehmen</button>
           </c-col>
-          <c-col>
+          <c-col sm="1">
             <button testid="resetButton" class="btn btn-primary text-white" (click)="reset()" [cdkTrapFocusAutoCapture]="focusResetButton" [cdkTrapFocus]="focusResetButton" tabindex="5">Zurücksetzen</button>
           </c-col>
         </c-row>
