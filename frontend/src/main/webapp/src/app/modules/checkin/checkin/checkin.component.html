@@ -136,7 +136,7 @@
       </div>
       <div class="card-footer">
         <div class="row">
-          <button [disabled]="customerState === 0 || !ticketForm.valid" testid="assignCustomerButton" id="assignCustomerButton" type="button" class="btn btn-success mr-3" (click)="assignCustomer()">Annehmen</button>
+          <button [disabled]="customerState === 0 || !ticketForm.valid" testid="assignCustomerButton" id="assignCustomerButton" type="button" class="btn btn-success me-3" (click)="assignCustomer()">Annehmen</button>
           <button testid="resetButton" id="resetButton" type="button" class="btn btn-primary" (click)="reset()"
                   [cdkTrapFocusAutoCapture]="focusResetButton" [cdkTrapFocus]="focusResetButton">Zurücksetzen</button>
         </div>
