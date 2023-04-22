@@ -9,7 +9,7 @@ import {CustomerNoteApiService, CustomerNoteItem} from '../../../api/customer-no
 import {GlobalStateService} from '../../../common/state/global-state.service';
 import {Router} from '@angular/router';
 import {DistributionApiService} from '../../../api/distribution-api.service';
-import {Colors} from "@coreui/angular";
+import {Colors} from '@coreui/angular';
 
 @Component({
   selector: 'tafel-checkin',

@@ -9,7 +9,7 @@ import {A11yModule} from '@angular/cdk/a11y';
 import {
   BadgeComponent,
   CardBodyComponent,
-  CardComponent,
+  CardComponent, CardFooterComponent, CardHeaderComponent,
   ColComponent,
   FormSelectDirective,
   ModalModule,
@@ -29,7 +29,9 @@ import {
     ColComponent,
     CardComponent,
     CardBodyComponent,
-    BadgeComponent
+    BadgeComponent,
+    CardHeaderComponent,
+    CardFooterComponent
   ],
   declarations: [
     ScannerComponent,
