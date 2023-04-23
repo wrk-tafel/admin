@@ -257,13 +257,19 @@
         </div>
       </div>
     </div>
-    <div class="col-md">
+    <div class="col-md mt-3 mt-md-0">
       <c-card>
         <c-card-header>
-          <h5>Weitere Personen</h5>
-          <button testid="addperson-button" type="button" class="btn btn-block btn-success text-white"
-                  (click)="addNewPerson()">Hinzufügen
-          </button>
+          <c-row>
+            <c-col>
+              <h5>Weitere Personen</h5>
+            </c-col>
+            <c-col>
+              <button testid="addperson-button" type="button" class="btn btn-block btn-success text-white"
+                      (click)="addNewPerson()">Hinzufügen
+              </button>
+            </c-col>
+          </c-row>
         </c-card-header>
         <c-card-body>
           <div *ngIf="!additionalPersons || additionalPersons?.length === 0">
