@@ -9,6 +9,7 @@ import {CustomerDetailComponent} from './views/customer-detail/customer-detail.c
 import {CustomerSearchComponent} from './views/customer-search/customer-search.component';
 import {CustomerApiService} from '../../api/customer-api.service';
 import {
+  BgColorDirective,
   ButtonCloseDirective,
   ButtonDirective,
   CardBodyComponent,
@@ -84,7 +85,8 @@ import {IconDirective} from "@coreui/icons-angular";
     NavItemComponent,
     NavLinkDirective,
     ButtonCloseDirective,
-    ButtonCloseDirective
+    ButtonCloseDirective,
+    BgColorDirective
   ],
   declarations: [
     CustomerDetailComponent,

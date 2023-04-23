@@ -246,12 +246,10 @@
     </button>
   </c-modal-footer>
 </c-modal>
-<c-modal id="showAllNotesModal" testid="showallnotes-modal" [(visible)]="showAllNotesModal">
-  <c-modal-header>
+<c-modal id="allNotesModal" #allNotesModal testid="showallnotes-modal" [(visible)]="showAllNotesModal">
+  <c-modal-header cBgColor="info">
     <h4 class="modal-title">Alle Notizen</h4>
-    <button type="button" class="close" (click)="showAllNotesModal = false" aria-label="Close">
-      <span aria-hidden="true">&times;</span>
-    </button>
+    <button [cModalToggle]="allNotesModal.id" cButtonClose></button>
   </c-modal-header>
   <c-modal-body>
     <div class="row" *ngFor="let noteItem of customerNotes; let i = index">
@@ -267,13 +265,13 @@
     </div>
   </c-modal-body>
   <c-modal-footer>
-    <button testid="cancelButton" type="button" class="btn btn-primary" (click)="showAllNotesModal = false">
+    <button testid="cancelButton" cButton class="text-white" (click)="showAllNotesModal = false">
       OK
     </button>
   </c-modal-footer>
 </c-modal>
 <c-modal id="addNewNoteModal" #addNewNoteModal testid="addnew-note-modal" [(visible)]="showAddNewNoteModal">
-  <c-modal-header>
+  <c-modal-header cBgColor="info">
     <h4 class="modal-title">Neue Notiz hinzufügen</h4>
     <button [cModalToggle]="addNewNoteModal.id" cButtonClose></button>
   </c-modal-header>
