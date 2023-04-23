@@ -258,20 +258,18 @@
       </div>
     </div>
     <div class="col-md">
-      <div class="card">
-        <div class="card-header h5">
-          Weitere Personen
-          <div class="card-header-actions">
-            <button testid="addperson-button" type="button" class="btn btn-block btn-success"
-                    (click)="addNewPerson()">Hinzufügen
-            </button>
-          </div>
-        </div>
-        <div class="card-body pb-0">
+      <c-card>
+        <c-card-header>
+          <h5>Weitere Personen</h5>
+          <button testid="addperson-button" type="button" class="btn btn-block btn-success text-white"
+                  (click)="addNewPerson()">Hinzufügen
+          </button>
+        </c-card-header>
+        <c-card-body>
           <div *ngIf="!additionalPersons || additionalPersons?.length === 0">
             <h6 testid="nopersons-label" class="mb-3">Keine Personen vorhanden</h6>
           </div>
-          <div formArrayName="additionalPersons"
+          <div formArrayName="additionalPersons" class="mt-3"
                *ngFor="let additionalPerson of additionalPersons.controls; trackBy: trackBy; let i = index">
             <div class="col-12 p-0">
               <div class="card">
@@ -310,7 +308,8 @@
                           <div
                             *ngIf="additionalPerson.get('firstname').errors?.maxlength && (additionalPerson.get('firstname').dirty || additionalPerson.get('firstname').touched)"
                             class="invalid-feedback">
-                            Vorname zu lang (Limit: {{additionalPerson.get('firstname').errors.maxlength.requiredLength}})
+                            Vorname zu lang
+                            (Limit: {{additionalPerson.get('firstname').errors.maxlength.requiredLength}})
                           </div>
                         </div>
                       </div>
@@ -348,8 +347,9 @@
                             <div class="input-group-append">
                               <span class="input-group-text"><i class="fa fa-flag"></i></span>
                             </div>
-                            <div *ngIf="additionalPerson.get('country').errors?.required && (additionalPerson.get('country').dirty || additionalPerson.get('country').touched)"
-                                 class="invalid-feedback">
+                            <div
+                              *ngIf="additionalPerson.get('country').errors?.required && (additionalPerson.get('country').dirty || additionalPerson.get('country').touched)"
+                              class="invalid-feedback">
                               Pflichtfeld
                             </div>
                           </div>
@@ -399,7 +399,7 @@
                   <div class="row">
                     <div class="col-lg-5 col-xxl-2 mt-3">
                       <button [attr.testid]="'remove-personform-' + i" type="button"
-                              class="btn btn-block btn-danger"
+                              class="btn btn-block btn-danger text-white"
                               (click)="removePerson(i)">Löschen
                       </button>
                     </div>
@@ -408,8 +408,8 @@
               </div>
             </div>
           </div>
-        </div>
-      </div>
+        </c-card-body>
+      </c-card>
     </div>
   </div>
 </form>

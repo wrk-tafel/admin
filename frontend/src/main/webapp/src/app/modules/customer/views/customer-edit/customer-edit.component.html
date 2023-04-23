@@ -3,8 +3,8 @@
         <div testid="errorMessageContent">{{errorMessage}}</div>
     </div>
     <tafel-customer-form [customerData]="customerInput" (customerDataChange)="customerDataUpdated($event)" [editMode]="editMode"></tafel-customer-form>
-    <button testid="validate-button" class="btn btn-primary px-4 mb-3" (click)="validate()">Anspruch prüfen</button>
-    <button testid="save-button" class="btn px-4 mb-3 ms-2" (click)="save()" [disabled]="isSaveDisabled()"
+    <button testid="validate-button" class="btn btn-primary px-4 mt-3 text-white" (click)="validate()">Anspruch prüfen</button>
+    <button testid="save-button" class="btn px-4 mt-3 ms-2 text-white" (click)="save()" [disabled]="isSaveDisabled()"
         [ngClass]="{'btn-danger': isSaveDisabled(), 'btn-success': !isSaveDisabled()}">Speichern</button>
 </div>
 <c-modal id="validationResultModal" testid="validationresult-modal" [(visible)]="showValidationResultModal">
@@ -12,7 +12,7 @@
     <h4 testid="title" class="modal-title">
       {{validationResult?.valid === true ? "Anspruch vorhanden" : "Kein Anspruch vorhanden"}}
     </h4>
-    <button type="button" class="close" (click)="showValidationResultModal = false" aria-label="Close">
+    <button type="button" class="close text-white" (click)="showValidationResultModal = false" aria-label="Close">
       <span aria-hidden="true">&times;</span>
     </button>
   </c-modal-header>
@@ -37,7 +37,7 @@
     </div>
   </c-modal-body>
   <c-modal-footer>
-    <button testid="ok-button" type="button" class="btn btn-primary"
+    <button testid="ok-button" type="button" class="btn btn-primary text-white"
             (click)="showValidationResultModal = false">OK</button>
   </c-modal-footer>
 </c-modal>
