@@ -112,12 +112,12 @@
                       von {{formatIssuer(customerData?.issuer)}}</div>
                   </div>
                   <div class="row">
-                    <div class="col fw-bold"
+                    <div class="col fw-bold text-white"
                          [ngClass]="{'bg-success': customerData?.validUntil && isValid(), 'bg-danger': customerData?.validUntil && !isValid()}">
                       Gültig bis:
                     </div>
                     <div testid="validUntilText"
-                         class="col"
+                         class="col text-white"
                          [ngClass]="{'bg-success': customerData?.validUntil && isValid(), 'bg-danger': customerData?.validUntil && !isValid()}"
                          [innerHTML]="customerData?.validUntil | date : 'dd.MM.yyyy'"></div>
                   </div>
