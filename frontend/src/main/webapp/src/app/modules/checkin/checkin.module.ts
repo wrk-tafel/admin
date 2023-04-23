@@ -7,32 +7,33 @@ import {QRCodeReaderService} from './qrcode-reader/qrcode-reader.service';
 import {CheckinComponent} from './checkin/checkin.component';
 import {A11yModule} from '@angular/cdk/a11y';
 import {
-  BadgeComponent,
-  CardBodyComponent,
-  CardComponent, CardFooterComponent, CardHeaderComponent,
-  ColComponent,
-  FormSelectDirective,
-  ModalModule,
-  RowComponent
+    BadgeComponent, ButtonDirective,
+    CardBodyComponent,
+    CardComponent, CardFooterComponent, CardHeaderComponent,
+    ColComponent,
+    FormSelectDirective,
+    ModalModule,
+    RowComponent
 } from '@coreui/angular';
 
 @NgModule({
-  imports: [
-    CheckinRoutingModule,
-    ReactiveFormsModule,
-    CommonModule,
-    FormsModule,
-    ModalModule,
-    A11yModule,
-    FormSelectDirective,
-    RowComponent,
-    ColComponent,
-    CardComponent,
-    CardBodyComponent,
-    BadgeComponent,
-    CardHeaderComponent,
-    CardFooterComponent
-  ],
+    imports: [
+        CheckinRoutingModule,
+        ReactiveFormsModule,
+        CommonModule,
+        FormsModule,
+        ModalModule,
+        A11yModule,
+        FormSelectDirective,
+        RowComponent,
+        ColComponent,
+        CardComponent,
+        CardBodyComponent,
+        BadgeComponent,
+        CardHeaderComponent,
+        CardFooterComponent,
+        ButtonDirective
+    ],
   declarations: [
     ScannerComponent,
     CheckinComponent
