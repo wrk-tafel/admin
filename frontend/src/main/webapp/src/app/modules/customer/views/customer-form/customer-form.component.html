@@ -62,43 +62,43 @@
             </div>
             <div class="col-sm">
               <label class="form-label">Nationalität *</label>
-              <div class="input-group">
+              <c-input-group>
                 <select testid="countryInput" formControlName="country" class="form-control" cSelect
                         [compareWith]="compareCountry"
                         [ngClass]="{'is-invalid': country.invalid && (country.dirty || country.touched), 'is-valid': country.valid && (country.dirty || country.touched)}">
                   <option *ngFor="let countryItem of countries" [ngValue]="countryItem">
                     {{countryItem.name}}</option>
                 </select>
-                <div class="input-group-append">
-                  <span class="input-group-text"><i class="fa fa-flag"></i></span>
-                </div>
+                <span cInputGroupText>
+                  <i class="fa fa-flag"></i>
+                </span>
                 <div *ngIf="country.errors?.required && (country.dirty || country.touched)"
                      class="invalid-feedback">
                   Pflichtfeld
                 </div>
-              </div>
+              </c-input-group>
             </div>
           </div>
           <div class="row mb-2">
             <div class="col-sm">
               <label class="form-label">Telefonnummer</label>
-              <div class="input-group">
+              <c-input-group>
                 <input testid="telephoneNumberInput" type="text" formControlName="telephoneNumber"
                        class="form-control"
                        [ngClass]="{'is-invalid': telephoneNumber.invalid && (telephoneNumber.dirty || telephoneNumber.touched), 'is-valid': telephoneNumber.valid && (telephoneNumber.dirty || telephoneNumber.touched)}">
-                <div class="input-group-append">
-                  <span class="input-group-text"><i class="cil-phone"></i></span>
-                </div>
-              </div>
+                <span cInputGroupText>
+                  <i class="fa fa-phone"></i>
+                </span>
+              </c-input-group>
             </div>
             <div class="col-sm">
               <label class="form-label">E-Mail</label>
-              <div class="input-group">
+              <c-input-group>
                 <input testid="emailInput" type="text" formControlName="email" class="form-control"
                        [ngClass]="{'is-invalid': email.invalid && (email.dirty || email.touched), 'is-valid': email.valid && (email.dirty || email.touched)}">
-                <div class="input-group-append">
-                  <span class="input-group-text"><i class="cil-envelope-closed"></i></span>
-                </div>
+                <span cInputGroupText>
+                  <i class="fa fa-envelope"></i>
+                </span>
                 <div *ngIf="email.errors?.maxlength && (email.dirty || email.touched)"
                      class="invalid-feedback">
                   E-Mail zu lang (Limit: {{email.errors.maxlength.requiredLength}})
@@ -107,7 +107,7 @@
                      class="invalid-feedback">
                   E-Mail-Format ungültig!
                 </div>
-              </div>
+              </c-input-group>
             </div>
           </div>
           <hr>
@@ -159,27 +159,27 @@
             <div class="row mb-2">
               <div class="col-sm">
                 <label class="form-label">PLZ *</label>
-                <div class="input-group">
+                <c-input-group>
                   <input testid="postalCodeInput" type="number" formControlName="postalCode"
                          class="form-control"
                          [ngClass]="{'is-invalid': postalCode.invalid && (postalCode.dirty || postalCode.touched), 'is-valid': postalCode.valid && (postalCode.dirty || postalCode.touched)}">
-                  <div class="input-group-append">
-                    <span class="input-group-text"><i class="cil-location-pin"></i></span>
-                  </div>
+                  <span cInputGroupText>
+                    <i class="fa fa-location-dot"></i>
+                  </span>
                   <div *ngIf="postalCode.errors && (postalCode.dirty || postalCode.touched)"
                        class="invalid-feedback">
                     Pflichtfeld / 4-stellig
                   </div>
-                </div>
+                </c-input-group>
               </div>
               <div class="col-sm">
                 <label class="form-label">Ort *</label>
-                <div class="input-group">
+                <c-input-group>
                   <input testid="cityInput" type="text" formControlName="city" class="form-control"
                          [ngClass]="{'is-invalid': city.invalid && (city.dirty || city.touched), 'is-valid': city.valid && (city.dirty || city.touched)}">
-                  <div class="input-group-append">
-                    <span class="input-group-text"><i class="cil-location-pin"></i></span>
-                  </div>
+                  <span cInputGroupText>
+                    <i class="fa fa-location-dot"></i>
+                  </span>
                   <div *ngIf="city.errors?.required && (city.dirty || city.touched)"
                        class="invalid-feedback">
                     Pflichtfeld
@@ -189,7 +189,7 @@
                     Ort zu lang (Limit:
                     {{city.errors.maxlength.requiredLength}})
                   </div>
-                </div>
+                </c-input-group>
               </div>
             </div>
           </div>
@@ -197,34 +197,34 @@
           <div class="row mb-2">
             <div class="col-sm">
               <label class="form-label">Arbeitgeber *</label>
-              <div class="input-group">
+              <c-input-group>
                 <input testid="employerInput" type="text" formControlName="employer"
                        class="form-control"
                        [ngClass]="{'is-invalid': employer.invalid && (employer.dirty || employer.touched), 'is-valid': employer.valid && (employer.dirty || employer.touched)}">
-                <div class="input-group-append">
-                  <span class="input-group-text"><i class="cil-factory"></i></span>
-                </div>
+                <span cInputGroupText>
+                  <i class="fa fa-building"></i>
+                </span>
                 <div *ngIf="employer.errors?.required && (employer.dirty || employer.touched)"
                      class="invalid-feedback">
                   Pflichtfeld
                 </div>
-              </div>
+              </c-input-group>
             </div>
           </div>
           <div class="row mb-2">
             <div class="col-sm">
               <label class="form-label">Einkommen (monatl.) *</label>
-              <div class="input-group">
+              <c-input-group>
                 <input testid="incomeInput" type="number" formControlName="income" class="form-control"
                        [ngClass]="{'is-invalid': income.invalid && (income.dirty || income.touched), 'is-valid': income.valid && (income.dirty || income.touched)}">
-                <div class="input-group-append">
-                  <span class="input-group-text"><i class="fa fa-euro"></i></span>
-                </div>
+                <span cInputGroupText>
+                  <i class="fa fa-euro-sign"></i>
+                </span>
                 <div *ngIf="income.errors?.required && (income.dirty || income.touched)"
                      class="invalid-feedback">
                   Pflichtfeld
                 </div>
-              </div>
+              </c-input-group>
             </div>
             <div class="col-sm">
               <label class="form-label">nachgewiesen bis</label>
@@ -337,46 +337,46 @@
                         </div>
                         <div class="col-lg-6">
                           <label class="form-label">Nationalität *</label>
-                          <div class="input-group">
+                          <c-input-group>
                             <select testid="countryInput" formControlName="country" cSelect class="form-control"
                                     [compareWith]="compareCountry"
                                     [ngClass]="{'is-invalid': additionalPerson.get('country').invalid && (additionalPerson.get('country').dirty || additionalPerson.get('country').touched), 'is-valid': additionalPerson.get('country').valid && (additionalPerson.get('country').dirty || additionalPerson.get('country').touched)}">
                               <option *ngFor="let countryItem of countries" [ngValue]="countryItem">
                                 {{countryItem.name}}</option>
                             </select>
-                            <div class="input-group-append">
-                              <span class="input-group-text"><i class="fa fa-flag"></i></span>
-                            </div>
+                            <span cInputGroupText>
+                              <i class="fa fa-flag"></i>
+                            </span>
                             <div
                               *ngIf="additionalPerson.get('country').errors?.required && (additionalPerson.get('country').dirty || additionalPerson.get('country').touched)"
                               class="invalid-feedback">
                               Pflichtfeld
                             </div>
-                          </div>
+                          </c-input-group>
                         </div>
                       </div>
                       <div class="row">
                         <div class="col-lg-6">
                           <label class="form-label">Arbeitgeber</label>
-                          <div class="input-group">
+                          <c-input-group>
                             <input testid="employerInput" type="text"
                                    formControlName="employer" class="form-control"
                                    [ngClass]="{'is-invalid': additionalPerson.get('employer').invalid && (additionalPerson.get('employer').dirty || additionalPerson.get('employer').touched), 'is-valid': additionalPerson.get('employer').valid && (additionalPerson.get('employer').dirty || additionalPerson.get('employer').touched)}">
-                            <div class="input-group-append">
-                              <span class="input-group-text"><i class="cil-factory"></i></span>
-                            </div>
-                          </div>
+                            <span cInputGroupText>
+                              <i class="fa fa-building"></i>
+                            </span>
+                          </c-input-group>
                         </div>
                         <div class="col-lg-6">
                           <label class="form-label">Einkommen (monatl.)</label>
-                          <div class="input-group">
+                          <c-input-group>
                             <input testid="incomeInput" type="number"
                                    formControlName="income" class="form-control"
                                    [ngClass]="{'is-invalid': additionalPerson.get('income').invalid && (additionalPerson.get('income').dirty || additionalPerson.get('income').touched), 'is-valid': additionalPerson.get('income').valid && (additionalPerson.get('income').dirty || additionalPerson.get('income').touched)}">
-                            <div class="input-group-append">
-                              <span class="input-group-text"><i class="fa fa-euro"></i></span>
-                            </div>
-                          </div>
+                            <span cInputGroupText>
+                              <i class="fa fa-euro-sign"></i>
+                            </span>
+                          </c-input-group>
                         </div>
                       </div>
                       <div class="row">

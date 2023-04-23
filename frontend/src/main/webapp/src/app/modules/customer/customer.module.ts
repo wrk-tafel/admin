@@ -13,7 +13,7 @@ import {
   CardComponent,
   CardHeaderComponent,
   ColComponent,
-  DropdownModule,
+  DropdownModule, FormControlDirective, InputGroupComponent, InputGroupTextDirective,
   ModalBodyComponent,
   ModalComponent,
   ModalFooterComponent,
@@ -49,7 +49,10 @@ import {
     RowComponent,
     ColComponent,
     CardHeaderComponent,
-    TableDirective
+    TableDirective,
+    FormControlDirective,
+    InputGroupComponent,
+    InputGroupTextDirective
   ],
   declarations: [
     CustomerDetailComponent,
