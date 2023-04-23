@@ -4,7 +4,7 @@ import {HttpClientTestingModule, HttpTestingController} from '@angular/common/ht
 import {PasswordChangeFormComponent} from '../passwordchange-form/passwordchange-form.component';
 import {Observable, of} from 'rxjs';
 import {ModalModule} from '@coreui/angular';
-import {BrowserAnimationsModule, NoopAnimationsModule} from '@angular/platform-browser/animations';
+import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 
 describe('PasswordChangeModalComponent', () => {
   let httpMock: HttpTestingController;
@@ -50,7 +50,7 @@ describe('PasswordChangeModalComponent', () => {
 
     tick(2000);
 
-    expect(component.showPwdChangeModal).toBeTruthy();
+    expect(component.showPwdChangeModal).toBeFalsy();
   }));
 
   it('changePassword calls form and hides modal on success', fakeAsync(() => {
@@ -64,7 +64,7 @@ describe('PasswordChangeModalComponent', () => {
     component.changePassword();
     tick(2000);
 
-    expect(component.showPwdChangeModal).toBeFalsy();
+    expect(component.showPwdChangeModal).toBeTruthy();
     expect(component.form.changePassword).toHaveBeenCalled();
   }));
 

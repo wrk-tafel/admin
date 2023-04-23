@@ -33,4 +33,5 @@ export class PasswordChangeModalComponent {
       this.showPwdChangeModal = false;
     }, 1500);
   }
+
 }

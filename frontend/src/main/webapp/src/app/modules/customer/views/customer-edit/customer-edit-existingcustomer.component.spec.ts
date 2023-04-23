@@ -9,6 +9,7 @@ import {CustomerApiService, CustomerData} from '../../../../api/customer-api.ser
 import {CustomerFormComponent} from '../customer-form/customer-form.component';
 import {CustomerEditComponent} from './customer-edit.component';
 import {ModalModule} from '@coreui/angular';
+import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
 
 describe('CustomerEditComponent - Editing an existing customer', () => {
   const testCountry = {
@@ -75,7 +76,8 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
         HttpClientTestingModule,
         RouterTestingModule,
         ReactiveFormsModule,
-        ModalModule
+        ModalModule,
+        BrowserAnimationsModule
       ],
       declarations: [
         CustomerEditComponent,

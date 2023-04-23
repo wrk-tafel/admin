@@ -2,7 +2,7 @@ import {TestBed, waitForAsync} from '@angular/core/testing';
 import {RouterTestingModule} from '@angular/router/testing';
 import {DefaultLayoutComponent} from './default-layout.component';
 import {AuthenticationService} from '../../security/authentication.service';
-import {HeaderComponent, SidebarComponent, SidebarNavComponent} from '@coreui/angular';
+import {HeaderComponent, SidebarComponent, SidebarModule, SidebarNavComponent} from '@coreui/angular';
 import {GlobalStateService} from '../../state/global-state.service';
 
 describe('DefaultLayoutComponent', () => {
@@ -15,13 +15,11 @@ describe('DefaultLayoutComponent', () => {
 
     TestBed.configureTestingModule({
       imports: [
-        HeaderComponent,
-        SidebarComponent,
-        SidebarNavComponent,
+        SidebarModule,
         RouterTestingModule
       ],
       declarations: [
-        DefaultLayoutComponent
+        DefaultLayoutComponent,
       ],
       providers: [
         {
