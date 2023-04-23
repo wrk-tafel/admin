@@ -13,35 +13,38 @@
       ></svg>
     </button>
     <c-header-nav class="ms-3">
-      <c-dropdown alignment="end" variant="nav-item">
-        <button cButton color="" [caret]="false" cDropdownToggle class="py-0">
-          <c-avatar
-            cTextColor="primary"
-            shape="rounded-1"
-            size="md"
-            src="./assets/img/user/user.svg"
-          >
-          </c-avatar>
-        </button>
-        <ul cDropdownMenu class="pt-0 pr-5 w-auto">
-          <li>
-            <h6 cDropdownHeader class="bg-light fw-semibold py-2">Benutzer</h6>
-          </li>
-          <li>
-            <a [routerLink]="[]" cDropdownItem testid="usermenu-changepassword" (click)="changePassword()">
-              <i class="fa fa-key"></i> Passwort ändern
-            </a>
-          </li>
-          <li>
-            <hr cDropdownDivider/>
-          </li>
-          <li>
-            <a [routerLink]="[]" cDropdownItem testid="usermenu-logout" (click)="logout()">
-              <i class="fa fa-lock"></i> Abmelden
-            </a>
-          </li>
-        </ul>
-      </c-dropdown>
+      <ng-container *ngTemplateOutlet="userDropdown"></ng-container>
     </c-header-nav>
   </c-container>
 </ng-container>
+<ng-template #userDropdown>
+  <c-dropdown alignment="end" variant="nav-item">
+    <button cButton color="" [caret]="false" cDropdownToggle class="py-0">
+      <c-avatar
+        cTextColor="primary"
+        shape="rounded-1"
+        size="md"
+        src="./assets/img/user/user.svg"
+      >
+      </c-avatar>
+    </button>
+    <ul cDropdownMenu class="pt-0 pr-5 w-auto">
+      <li>
+        <h6 cDropdownHeader class="bg-light fw-semibold py-2">Benutzer</h6>
+      </li>
+      <li>
+        <a [routerLink]="[]" cDropdownItem testid="usermenu-changepassword" (click)="changePassword()">
+          <i class="fa fa-key"></i> Passwort ändern
+        </a>
+      </li>
+      <li>
+        <hr cDropdownDivider/>
+      </li>
+      <li>
+        <a [routerLink]="[]" cDropdownItem testid="usermenu-logout" (click)="logout()">
+          <i class="fa fa-lock"></i> Abmelden
+        </a>
+      </li>
+    </ul>
+  </c-dropdown>
+</ng-template>
