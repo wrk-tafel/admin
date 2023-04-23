@@ -272,23 +272,20 @@
     </button>
   </c-modal-footer>
 </c-modal>
-<c-modal id="addNewNoteModal" testid="addnew-note-modal" [(visible)]="showAddNewNoteModal">
+<c-modal id="addNewNoteModal" #addNewNoteModal testid="addnew-note-modal" [(visible)]="showAddNewNoteModal">
   <c-modal-header>
     <h4 class="modal-title">Neue Notiz hinzufügen</h4>
-    <button type="button" class="close" (click)="newNoteText = undefined; showAddNewNoteModal = false;"
-            aria-label="Close">
-      <span aria-hidden="true">&times;</span>
-    </button>
+    <button [cModalToggle]="addNewNoteModal.id" cButtonClose></button>
   </c-modal-header>
   <c-modal-body>
     <textarea id="textarea-input" name="textarea-input" rows="9" class="form-control"
               [(ngModel)]="newNoteText"></textarea>
   </c-modal-body>
   <c-modal-footer>
-    <button testid="okButton" type="button" class="btn btn-primary" (click)="addNewNote()"
+    <button testid="okButton" cButton color="primary" class="text-white" (click)="addNewNote()"
             [disabled]="!newNoteText || newNoteText.trim().length == 0">Speichern
     </button>
-    <button testid="cancelButton" type="button" class="btn btn-secondary"
+    <button testid="cancelButton" cButton color="secondary"
             (click)="newNoteText = undefined; showAddNewNoteModal = false;">
       Abbrechen
     </button>

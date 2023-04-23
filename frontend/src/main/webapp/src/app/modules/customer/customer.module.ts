@@ -9,6 +9,7 @@ import {CustomerDetailComponent} from './views/customer-detail/customer-detail.c
 import {CustomerSearchComponent} from './views/customer-search/customer-search.component';
 import {CustomerApiService} from '../../api/customer-api.service';
 import {
+  ButtonCloseDirective,
   ButtonDirective,
   CardBodyComponent,
   CardComponent, CardFooterComponent,
@@ -81,7 +82,9 @@ import {IconDirective} from "@coreui/icons-angular";
     IconDirective,
     NavComponent,
     NavItemComponent,
-    NavLinkDirective
+    NavLinkDirective,
+    ButtonCloseDirective,
+    ButtonCloseDirective
   ],
   declarations: [
     CustomerDetailComponent,
