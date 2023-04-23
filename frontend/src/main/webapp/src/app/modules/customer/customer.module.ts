@@ -27,7 +27,7 @@ import {
   ModalComponent,
   ModalFooterComponent,
   ModalHeaderComponent,
-  ModalModule,
+  ModalModule, NavComponent, NavItemComponent, NavLinkDirective,
   RoundedDirective,
   RowComponent,
   TabContentComponent,
@@ -36,6 +36,7 @@ import {
   TabsModule
 } from '@coreui/angular';
 import {RouterLink} from "@angular/router";
+import {IconDirective} from "@coreui/icons-angular";
 
 @NgModule({
   imports: [
@@ -72,7 +73,15 @@ import {RouterLink} from "@angular/router";
     DropdownMenuDirective,
     DropdownToggleDirective,
     RouterLink,
-    CardFooterComponent
+    CardFooterComponent,
+    NgIf,
+    RoundedDirective,
+    TabContentComponent,
+    TabPaneComponent,
+    IconDirective,
+    NavComponent,
+    NavItemComponent,
+    NavLinkDirective
   ],
   declarations: [
     CustomerDetailComponent,

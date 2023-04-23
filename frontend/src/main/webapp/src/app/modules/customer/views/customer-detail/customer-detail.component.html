@@ -40,8 +40,20 @@
   </div>
   <div class="row mt-0 mt-lg-3 mb-0 mb-lg-3">
     <div class="col">
+      <c-nav variant="tabs">
+        <c-nav-item>
+          <a [cTabContent]="tabContent1" [routerLink] [tabPaneIdx]="0" cNavLink>
+            Allgemeine Daten
+          </a>
+        </c-nav-item>
+        <c-nav-item>
+          <a [cTabContent]="tabContent1" [routerLink] [tabPaneIdx]="1" cNavLink>
+            <i class="fa fa-users"></i> Weitere Personen ({{customerData?.additionalPersons.length}})
+          </a>
+        </c-nav-item>
+      </c-nav>
       <c-tab-content #tabContent1="cTabContent" [activeTabPaneIdx]="0" cRounded="bottom">
-        <c-tab-pane class="p-3 preview" role="tabpanel" title="Allgemeine Daten">
+        <c-tab-pane class="p-3 preview" role="tabpanel">
           <div class="row">
             <div class="col-lg-6 col-sm-12">
               <div class="card">
@@ -163,7 +175,6 @@
           </div>
         </c-tab-pane>
         <c-tab-pane class="p-3 preview" role="tabpanel">
-          <ng-template title><i class="icon-people"></i> Weitere Personen ({{customerData?.additionalPersons.length}})</ng-template>
           <div class="row" *ngIf="customerData?.additionalPersons.length === 0">
             <div class="col mt-3">
               <h6 testid="nopersons-label">Keine Personen vorhanden</h6>
