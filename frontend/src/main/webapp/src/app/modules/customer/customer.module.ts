@@ -9,11 +9,20 @@ import {CustomerDetailComponent} from './views/customer-detail/customer-detail.c
 import {CustomerSearchComponent} from './views/customer-search/customer-search.component';
 import {CustomerApiService} from '../../api/customer-api.service';
 import {
+  ButtonDirective,
   CardBodyComponent,
   CardComponent,
   CardHeaderComponent,
   ColComponent,
-  DropdownModule, FormControlDirective, InputGroupComponent, InputGroupTextDirective,
+  DropdownComponent,
+  DropdownDividerDirective,
+  DropdownHeaderDirective,
+  DropdownItemDirective,
+  DropdownMenuDirective,
+  DropdownModule, DropdownToggleDirective,
+  FormControlDirective,
+  InputGroupComponent,
+  InputGroupTextDirective,
   ModalBodyComponent,
   ModalComponent,
   ModalFooterComponent,
@@ -26,6 +35,7 @@ import {
   TabPaneComponent,
   TabsModule
 } from '@coreui/angular';
+import {RouterLink} from "@angular/router";
 
 @NgModule({
   imports: [
@@ -52,7 +62,16 @@ import {
     TableDirective,
     FormControlDirective,
     InputGroupComponent,
-    InputGroupTextDirective
+    InputGroupTextDirective,
+    ButtonDirective,
+    ButtonDirective,
+    DropdownComponent,
+    DropdownDividerDirective,
+    DropdownHeaderDirective,
+    DropdownItemDirective,
+    DropdownMenuDirective,
+    DropdownToggleDirective,
+    RouterLink
   ],
   declarations: [
     CustomerDetailComponent,
