@@ -125,34 +125,40 @@
               </div>
             </div>
             <div class="col-lg-6 col-sm-12">
-              <div class="card">
-                <div class="card-header text-center h5">
-                  Aktuellste Notiz
-                  <div class="card-header-actions">
-                    <button testid="addnote-button" type="button" class="btn btn-block btn-success" (click)="showAddNewNoteModal = true">
-                      <i class="fa fa-plus-square"></i>
-                    </button>
-                  </div>
-                </div>
-                <div class="card-body">
-                  <div class="row">
-                    <div class="col fw-bold" *ngIf="customerNotes?.length === 0">
+              <c-card>
+                <c-card-header>
+                  <c-row>
+                    <c-col>
+                      <h5>Aktuellste Notiz</h5>
+                    </c-col>
+                    <c-col class="text-end">
+                      <button testid="addnote-button" cButton color="success" (click)="showAddNewNoteModal = true">
+                        <i class="fa fa-plus text-white"></i>
+                      </button>
+                    </c-col>
+                  </c-row>
+                </c-card-header>
+                <c-card-body>
+                  <c-row>
+                    <c-col class="fw-bold" *ngIf="customerNotes?.length === 0">
                       <h6 testid="nonotes-label">Keine Notiz vorhanden</h6>
-                    </div>
-                    <div class="col" *ngIf="customerNotes?.length !== 0">
-                      <div class="row mb-2">
-                        <div class="col fw-bold" testid="note-title">{{customerNotes[0].timestamp | date : 'dd.MM.yyyy HH:mm' }}&nbsp;{{customerNotes[0].author}}</div>
-                      </div>
-                      <div class="row">
-                        <div class="col" testid="note-text" [innerHtml]="customerNotes[0].note"></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div class="card-footer" *ngIf="customerNotes.length > 1">
+                    </c-col>
+                    <c-col *ngIf="customerNotes?.length !== 0">
+                      <c-row class="mb-2">
+                        <c-col class="fw-bold" testid="note-title">
+                          {{customerNotes[0].timestamp | date : 'dd.MM.yyyy HH:mm' }}&nbsp;{{customerNotes[0].author}}
+                        </c-col>
+                      </c-row>
+                      <c-row>
+                        <c-col testid="note-text" [innerHtml]="customerNotes[0].note"></c-col>
+                      </c-row>
+                    </c-col>
+                  </c-row>
+                </c-card-body>
+                <c-card-footer *ngIf="customerNotes.length > 1">
                   <button testid="showall-notes-button" cButton color="primary" class="text-white" (click)="showAllNotesModal = true">Alle Notizen anzeigen</button>
-                </div>
-              </div>
+                </c-card-footer>
+              </c-card>
             </div>
           </div>
         </c-tab-pane>

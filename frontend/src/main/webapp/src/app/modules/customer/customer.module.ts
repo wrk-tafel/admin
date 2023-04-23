@@ -11,7 +11,7 @@ import {CustomerApiService} from '../../api/customer-api.service';
 import {
   ButtonDirective,
   CardBodyComponent,
-  CardComponent,
+  CardComponent, CardFooterComponent,
   CardHeaderComponent,
   ColComponent,
   DropdownComponent,
@@ -71,7 +71,8 @@ import {RouterLink} from "@angular/router";
     DropdownItemDirective,
     DropdownMenuDirective,
     DropdownToggleDirective,
-    RouterLink
+    RouterLink,
+    CardFooterComponent
   ],
   declarations: [
     CustomerDetailComponent,
