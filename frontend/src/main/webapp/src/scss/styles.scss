@@ -2,9 +2,6 @@
 // If you want to override variables do it here
 @import "variables";
 
-// Bootstrap
-@import "bootstrap";
-
 $enable-ltr: true;
 $enable-rtl: true;
 
@@ -16,11 +13,6 @@ $enable-rtl: true;
 
 // perfect scrollbar theming for use with [perfectScrollbar] directive
 //@import '~perfect-scrollbar/css/perfect-scrollbar.css';
-
-// Font Awesome
-@import "@fortawesome/fontawesome-free/scss/fontawesome";
-@import "@fortawesome/fontawesome-free/scss/solid";
-@import "@fortawesome/fontawesome-free/scss/brands";
 
 // Basic layout
 @import "layout";
