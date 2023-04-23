@@ -18,14 +18,16 @@
     <div *tafelIfPermission="'DISTRIBUTION'">
       <c-row>
         <c-col>
-          <button *ngIf="!distribution" type="button"
+          <button *ngIf="!distribution" cButton
                   testid="distribution-start-button"
-                  class="btn btn-block text-white btn-info"
+                  color="info"
+                  class="text-white"
                   (click)="createNewDistribution()">--> Ausgabe öffnen
           </button>
-          <button *ngIf="distribution" type="button"
+          <button *ngIf="distribution" cButton
                   testid="distribution-nextstep-button"
-                  class="btn btn-block text-white btn-info"
+                  color="info"
+                  class="text-white"
                   (click)="showNextDistributionStateModal = true">--> {{distribution?.state.actionLabel}}
           </button>
         </c-col>
