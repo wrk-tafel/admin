@@ -35,15 +35,13 @@
     </div>
   </c-card-body>
 </c-card>
-<c-modal id="nextDistributionStateModal" testid="distributionstate-next-modal"
+<c-modal id="nextDistributionStateModal" #nextDistributionStateModal testid="distributionstate-next-modal"
          [(visible)]="showNextDistributionStateModal">
   <c-modal-header class="bg-warning">
-    <h4 testid="title">
+    <h4 testid="title" class="text-white">
       Weiter zum nächsten Schritt?
     </h4>
-    <button type="button" class="close" (click)="showNextDistributionStateModal = false" aria-label="Close">
-      <span aria-hidden="true">&times;</span>
-    </button>
+    <button [cModalToggle]="nextDistributionStateModal.id" cButtonClose></button>
   </c-modal-header>
   <c-modal-body>
     <div class="row mb-3">
@@ -51,11 +49,11 @@
     </div>
     <div class="row">
       <div class="col-6">
-        <button testid="ok-button" type="button" class="btn btn-primary me-2"
+        <button testid="ok-button" cButton color="primary" class="me-2 text-white"
                 testid="distributionstate-next-modal-ok-button"
                 (click)="switchToNextState()">OK
         </button>
-        <button testid="cancel-button" type="button" class="btn btn-secondary"
+        <button testid="cancel-button" cButton color="secondary"
                 testid="distributionstate-next-modal-cancel-button"
                 (click)="showNextDistributionStateModal = false">Abbrechen
         </button>
