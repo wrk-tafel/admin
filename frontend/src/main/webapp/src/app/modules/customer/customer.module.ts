@@ -9,11 +9,22 @@ import {CustomerDetailComponent} from './views/customer-detail/customer-detail.c
 import {CustomerSearchComponent} from './views/customer-search/customer-search.component';
 import {CustomerApiService} from '../../api/customer-api.service';
 import {
+  CardBodyComponent,
+  CardComponent,
+  CardHeaderComponent,
+  ColComponent,
   DropdownModule,
   ModalBodyComponent,
   ModalComponent,
   ModalFooterComponent,
-  ModalHeaderComponent, ModalModule, RoundedDirective, TabContentComponent, TabPaneComponent, TabsModule
+  ModalHeaderComponent,
+  ModalModule,
+  RoundedDirective,
+  RowComponent,
+  TabContentComponent,
+  TableDirective,
+  TabPaneComponent,
+  TabsModule
 } from '@coreui/angular';
 
 @NgModule({
@@ -32,7 +43,13 @@ import {
     NgIf,
     RoundedDirective,
     TabContentComponent,
-    TabPaneComponent
+    TabPaneComponent,
+    CardComponent,
+    CardBodyComponent,
+    RowComponent,
+    ColComponent,
+    CardHeaderComponent,
+    TableDirective
   ],
   declarations: [
     CustomerDetailComponent,

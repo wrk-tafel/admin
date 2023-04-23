@@ -1,103 +1,106 @@
 <div testid="errorMessage" *ngIf="errorMessage" class="alert alert-danger mb-3">
     <div testid="errorMessageContent">{{errorMessage}}</div>
 </div>
-<form [formGroup]="customerSearchForm">
-    <div class="card">
-        <div class="card-body">
-            <div class="row mb-3">
-                <div class="col">
-                    <h4>Suche</h4>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-sm-3">
-                    <label class="form-label">Kundennummer</label>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-sm-3 mb-3">
-                    <input testid="customerIdText" type="number" formControlName="customerId" name="customerId"
-                        class="form-control" autofocus (keydown.enter)="searchForCustomerId()">
-                </div>
-                <div class="col-sm-3">
-                    <button testid="showcustomer-button" type="button" class="btn btn-primary"
-                        [disabled]="!customerId.value" (click)="searchForCustomerId()">Anzeigen</button>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-6">
-                    <hr/>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-sm-3">
-                    <label class="form-label">Familienname</label>
-                    <input testid="lastnameText" type="text" formControlName="lastname" name="lastname"
-                        class="form-control">
-                </div>
-                <div class="col-sm-3">
-                    <label class="form-label">Vorname</label>
-                    <input testid="firstnameText" type="text" formControlName="firstname" name="firstname"
-                        class="form-control">
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-3 mt-3">
-                    <button testid="search-button" type="button" class="btn btn-primary"
-                        [disabled]="!firstname.value && !lastname.value" (click)="searchForDetails()">Suchen</button>
-                </div>
-            </div>
-        </div>
-        <div class="col-12" *ngIf="searchResult" testid="searchresult-table">
-            <div class="card">
-                <div class="card-header">
-                    <i class="fa fa-align-justify"></i> Suchergebnis
-                </div>
-                <div class="card-body">
-                    <div class="col-sm-12 column">
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th></th>
-                                    <th>Nr.</th>
-                                    <th>Nachname</th>
-                                    <th>Vorname</th>
-                                    <th>Geb. Datum</th>
-                                    <th>Adresse</th>
-                                    <th>Aktionen</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr testid="searchresult-row"
-                                    *ngFor="let customer of searchResult.items; let i = index">
-                                    <td><i class="fa fa-user"></i></td>
-                                    <td [attr.testid]="'searchresult-id-' + i">{{customer.id}}</td>
-                                    <td [attr.testid]="'searchresult-lastname-' + i">{{customer.lastname}}</td>
-                                    <td [attr.testid]="'searchresult-firstname-' + i">{{customer.firstname}}</td>
-                                    <td [attr.testid]="'searchresult-birthDate-' + i">{{customer.birthDate | date : 'dd.MM.yyyy'}}</td>
-                                    <td [attr.testid]="'searchresult-address-' + i">{{formatAddress(customer.address)}}</td>
-                                    <td>
-                                        <div class="row">
-                                            <div class="col-3">
-                                                <button [attr.testid]="'searchresult-showcustomer-button-' + i"
-                                                    type="button" class="btn btn-primary"
-                                                    (click)="navigateToCustomer(customer.id)"><i
-                                                        class="fa fa-search"></i></button>
-                                            </div>
-                                            <div class="col-3 ms-2">
-                                                <button [attr.testid]="'searchresult-editcustomer-button-' + i"
-                                                    type="button" class="btn btn-danger"
-                                                    (click)="editCustomer(customer.id)"><i
-                                                        class="fa fa-pencil"></i></button>
-                                            </div>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+<form cForm [formGroup]="customerSearchForm">
+  <c-card>
+    <c-card-body>
+      <c-row>
+        <c-col>
+          <h4>Suche</h4>
+        </c-col>
+      </c-row>
+      <c-row>
+        <c-col sm="3">
+          <label class="form-label">Kundennummer</label>
+        </c-col>
+      </c-row>
+      <c-row>
+        <c-col sm="3" class="mb-3">
+          <input testid="customerIdText" type="number" formControlName="customerId" name="customerId"
+                 class="form-control" autofocus (keydown.enter)="searchForCustomerId()">
+        </c-col>
+        <c-col sm="3">
+          <button testid="showcustomer-button" type="button" class="btn btn-primary text-white"
+                  [disabled]="!customerId.value" (click)="searchForCustomerId()">Anzeigen</button>
+        </c-col>
+      </c-row>
+      <hr>
+      <c-row>
+        <c-col sm="3">
+          <label class="form-label">Familienname</label>
+          <input testid="lastnameText" type="text" formControlName="lastname" name="lastname"
+                 class="form-control">
+        </c-col>
+        <c-col sm="3">
+          <label class="form-label">Vorname</label>
+          <input testid="firstnameText" type="text" formControlName="firstname" name="firstname"
+                 class="form-control">
+        </c-col>
+      </c-row>
+      <c-row>
+        <c-col size="3" class="mt-3">
+          <button testid="search-button" type="button" class="btn btn-primary text-white"
+                  [disabled]="!firstname.value && !lastname.value" (click)="searchForDetails()">Suchen</button>
+        </c-col>
+      </c-row>
+      <c-row *ngIf="searchResult" testid="searchresult-table">
+        <c-col>
+          <hr>
+        </c-col>
+      </c-row>
+      <c-row *ngIf="searchResult">
+        <c-card>
+          <c-card-header>
+            <i class="fa fa-align-justify"></i> Suchergebnis
+          </c-card-header>
+          <c-card-body>
+            <c-row>
+              <c-col sm="12">
+                <table cTable>
+                  <thead>
+                    <tr>
+                      <th scope="col"></th>
+                      <th scope="col">Nr.</th>
+                      <th scope="col">Nachname</th>
+                      <th scope="col">Vorname</th>
+                      <th scope="col">Geb. Datum</th>
+                      <th scope="col">Adresse</th>
+                      <th scope="col">Aktionen</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr testid="searchresult-row" scope="row"
+                        *ngFor="let customer of searchResult.items; let i = index">
+                      <td><i class="fa fa-user"></i></td>
+                      <td [attr.testid]="'searchresult-id-' + i">{{customer.id}}</td>
+                      <td [attr.testid]="'searchresult-lastname-' + i">{{customer.lastname}}</td>
+                      <td [attr.testid]="'searchresult-firstname-' + i">{{customer.firstname}}</td>
+                      <td [attr.testid]="'searchresult-birthDate-' + i">{{customer.birthDate | date : 'dd.MM.yyyy'}}</td>
+                      <td [attr.testid]="'searchresult-address-' + i">{{formatAddress(customer.address)}}</td>
+                      <td>
+                        <div class="row">
+                          <div class="col-3">
+                            <button [attr.testid]="'searchresult-showcustomer-button-' + i"
+                                    type="button" class="btn btn-primary text-white"
+                                    (click)="navigateToCustomer(customer.id)"><i
+                              class="fa fa-search"></i></button>
+                          </div>
+                          <div class="col-3 ms-2">
+                            <button [attr.testid]="'searchresult-editcustomer-button-' + i"
+                                    type="button" class="btn btn-danger text-white"
+                                    (click)="editCustomer(customer.id)"><i
+                              class="fa fa-pencil"></i></button>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </c-col>
+            </c-row>
+          </c-card-body>
+        </c-card>
+      </c-row>
+    </c-card-body>
+  </c-card>
 </form>
