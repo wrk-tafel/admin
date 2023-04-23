@@ -223,12 +223,10 @@
     </div>
   </div>
 </div>
-<c-modal id="deleteCustomerModal" testid="deletecustomer-modal" [(visible)]="showDeleteCustomerModal">
-  <c-modal-header>
-    <h4 class="modal-title">Kunde löschen</h4>
-    <button type="button" class="close" (click)="showDeleteCustomerModal = false" aria-label="Close">
-      <span aria-hidden="true">&times;</span>
-    </button>
+<c-modal id="deleteCustomerModal" #deleteCustomerModal testid="deletecustomer-modal" [(visible)]="showDeleteCustomerModal">
+  <c-modal-header cBgColor="warning">
+    <h4 class="text-white">Kunde löschen</h4>
+    <button [cModalToggle]="deleteCustomerModal.id" cButtonClose></button>
   </c-modal-header>
   <c-modal-body>
     <div class="row mb-3">
@@ -239,16 +237,16 @@
     </div>
   </c-modal-body>
   <c-modal-footer>
-    <button testid="okButton" type="button" class="btn btn-primary" (click)="deleteCustomer()">Löschen
+    <button testid="okButton" cButton color="primary" class="text-white" (click)="deleteCustomer()">Löschen
     </button>
-    <button testid="cancelButton" type="button" class="btn btn-secondary" (click)="showDeleteCustomerModal = false">
+    <button testid="cancelButton" cButton color="secondary" (click)="showDeleteCustomerModal = false">
       Abbrechen
     </button>
   </c-modal-footer>
 </c-modal>
 <c-modal id="allNotesModal" #allNotesModal testid="showallnotes-modal" [(visible)]="showAllNotesModal">
   <c-modal-header cBgColor="info">
-    <h4 class="modal-title">Alle Notizen</h4>
+    <h4>Alle Notizen</h4>
     <button [cModalToggle]="allNotesModal.id" cButtonClose></button>
   </c-modal-header>
   <c-modal-body>
@@ -272,7 +270,7 @@
 </c-modal>
 <c-modal id="addNewNoteModal" #addNewNoteModal testid="addnew-note-modal" [(visible)]="showAddNewNoteModal">
   <c-modal-header cBgColor="info">
-    <h4 class="modal-title">Neue Notiz hinzufügen</h4>
+    <h4>Neue Notiz hinzufügen</h4>
     <button [cModalToggle]="addNewNoteModal.id" cButtonClose></button>
   </c-modal-header>
   <c-modal-body>

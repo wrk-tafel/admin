@@ -2,6 +2,7 @@ import {Component, OnInit, ViewChild} from '@angular/core';
 import {CustomerFormComponent} from '../customer-form/customer-form.component';
 import {CustomerApiService, CustomerData, ValidateCustomerResponse} from '../../../../api/customer-api.service';
 import {ActivatedRoute, Router} from '@angular/router';
+import {Colors} from "@coreui/angular";
 
 @Component({
   selector: 'tafel-customer-edit',
@@ -83,6 +84,13 @@ export class CustomerEditComponent implements OnInit {
 
   isSaveDisabled(): boolean {
     return !this.formIsValid() || !this.customerValidForSave;
+  }
+
+  getValidationResultColor(): Colors {
+    if (this.validationResult?.valid === false) {
+      return 'danger';
+    }
+    return 'success';
   }
 
   private formIsValid() {

@@ -7,14 +7,12 @@
     <button testid="save-button" class="btn px-4 mt-3 ms-2 text-white" (click)="save()" [disabled]="isSaveDisabled()"
         [ngClass]="{'btn-danger': isSaveDisabled(), 'btn-success': !isSaveDisabled()}">Speichern</button>
 </div>
-<c-modal id="validationResultModal" testid="validationresult-modal" [(visible)]="showValidationResultModal">
-  <c-modal-header [ngClass]="{'modal-danger': validationResult?.valid === false, 'modal-success': validationResult?.valid === true}">
-    <h4 testid="title" class="modal-title">
+<c-modal id="validationResultModal" #validationResultModal testid="validationresult-modal" [(visible)]="showValidationResultModal">
+  <c-modal-header [cBgColor]="getValidationResultColor()">
+    <h4 testid="title" class="text-white">
       {{validationResult?.valid === true ? "Anspruch vorhanden" : "Kein Anspruch vorhanden"}}
     </h4>
-    <button type="button" class="close text-white" (click)="showValidationResultModal = false" aria-label="Close">
-      <span aria-hidden="true">&times;</span>
-    </button>
+    <button [cModalToggle]="validationResultModal.id" cButtonClose></button>
   </c-modal-header>
   <c-modal-body>
     <div class="row">
