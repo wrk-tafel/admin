@@ -10,7 +10,7 @@ import {ActivatedRoute} from '@angular/router';
 import {RouterTestingModule} from '@angular/router/testing';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
 import {ModalModule} from '@coreui/angular';
-import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
+import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 
 describe('DistributionStateComponent', () => {
   let distributionApiService: jasmine.SpyObj<DistributionApiService>;
@@ -36,7 +36,7 @@ describe('DistributionStateComponent', () => {
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       imports: [
-        BrowserAnimationsModule,
+        NoopAnimationsModule,
         RouterTestingModule,
         ModalModule
       ],

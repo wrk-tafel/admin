@@ -13,7 +13,7 @@ import {DEFAULT_CURRENCY_CODE, LOCALE_ID} from '@angular/core';
 import localeDeAt from '@angular/common/locales/de-AT';
 import {CustomerNoteApiService, CustomerNoteItem} from '../../../../api/customer-note-api.service';
 import {ModalModule, TabsModule} from '@coreui/angular';
-import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
+import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 
 registerLocaleData(localeDeAt);
 
@@ -101,7 +101,7 @@ describe('CustomerDetailComponent', () => {
 
     TestBed.configureTestingModule({
       imports: [
-        BrowserAnimationsModule,
+        NoopAnimationsModule,
         CommonModule,
         RouterTestingModule,
         ModalModule,

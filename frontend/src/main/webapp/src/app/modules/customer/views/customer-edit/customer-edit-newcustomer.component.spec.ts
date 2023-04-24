@@ -10,7 +10,7 @@ import {CustomerFormComponent} from '../customer-form/customer-form.component';
 import {CustomerEditComponent} from './customer-edit.component';
 import {By} from '@angular/platform-browser';
 import {ModalModule} from '@coreui/angular';
-import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
+import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 
 describe('CustomerEditComponent - Creating a new customer', () => {
   const testCountry = {
@@ -70,7 +70,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       imports: [
-        BrowserAnimationsModule,
+        NoopAnimationsModule,
         HttpClientTestingModule,
         RouterTestingModule,
         ReactiveFormsModule,

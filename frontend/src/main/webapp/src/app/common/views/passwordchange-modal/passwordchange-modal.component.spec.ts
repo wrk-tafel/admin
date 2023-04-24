@@ -4,7 +4,7 @@ import {HttpClientTestingModule, HttpTestingController} from '@angular/common/ht
 import {PasswordChangeFormComponent} from '../passwordchange-form/passwordchange-form.component';
 import {Observable, of} from 'rxjs';
 import {ModalModule} from '@coreui/angular';
-import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
+import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 
 describe('PasswordChangeModalComponent', () => {
   let httpMock: HttpTestingController;
@@ -16,7 +16,7 @@ describe('PasswordChangeModalComponent', () => {
       imports: [
         ModalModule,
         HttpClientTestingModule,
-        BrowserAnimationsModule
+        NoopAnimationsModule
       ],
       declarations: [
         PasswordChangeModalComponent
