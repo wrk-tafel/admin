@@ -5,6 +5,7 @@ import {AuthenticationService} from './authentication.service';
   selector: '[tafelIfPermission]'
 })
 export class TafelIfPermissionDirective {
+
   constructor(
     private templateRef: TemplateRef<any>,
     private viewContainer: ViewContainerRef,

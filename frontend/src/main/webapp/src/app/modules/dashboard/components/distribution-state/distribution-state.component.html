@@ -15,24 +15,22 @@
         </c-progress>
       </c-col>
     </c-row>
-    <div *tafelIfPermission="'DISTRIBUTION'">
-      <c-row>
-        <c-col>
-          <button *ngIf="!distribution" cButton
-                  testid="distribution-start-button"
-                  color="info"
-                  class="text-white"
-                  (click)="createNewDistribution()">--> Ausgabe öffnen
-          </button>
-          <button *ngIf="distribution" cButton
-                  testid="distribution-nextstep-button"
-                  color="info"
-                  class="text-white"
-                  (click)="showNextDistributionStateModal = true">--> {{distribution?.state.actionLabel}}
-          </button>
-        </c-col>
-      </c-row>
-    </div>
+    <c-row>
+      <c-col>
+        <button *ngIf="!distribution" cButton
+                testid="distribution-start-button"
+                color="info"
+                class="text-white"
+                (click)="createNewDistribution()">--> Ausgabe öffnen
+        </button>
+        <button *ngIf="distribution" cButton
+                testid="distribution-nextstep-button"
+                color="info"
+                class="text-white"
+                (click)="showNextDistributionStateModal = true">--> {{distribution?.state.actionLabel}}
+        </button>
+      </c-col>
+    </c-row>
   </c-card-body>
 </c-card>
 <c-modal id="nextDistributionStateModal" #nextDistributionStateModal testid="distributionstate-next-modal"
