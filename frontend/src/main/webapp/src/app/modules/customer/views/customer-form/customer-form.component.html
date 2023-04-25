@@ -265,9 +265,7 @@
               <h5>Weitere Personen</h5>
             </c-col>
             <c-col class="text-end">
-              <button testid="addperson-button" type="button" class="btn btn-block btn-success text-white"
-                      (click)="addNewPerson()">Hinzufügen
-              </button>
+              <button cButton color="success" class="text-white" (click)="addNewPerson()">Hinzufügen</button>
             </c-col>
           </c-row>
         </c-card-header>
@@ -415,6 +413,9 @@
             </div>
           </div>
         </c-card-body>
+        <c-card-footer class="text-end">
+          <button testid="addperson-button-bottom" cButton color="success" class="text-white" (click)="addNewPerson()">Hinzufügen</button>
+        </c-card-footer>
       </c-card>
     </div>
   </div>

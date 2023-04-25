@@ -113,7 +113,7 @@ describe('Customer Creation', () => {
   }
 
   function enterAdditionalPersonData(index: number, data: AddPersonInputData) {
-    cy.byTestId('addperson-button').click();
+    cy.byTestId('addperson-button-bottom').click();
 
     cy.byTestId('personform-' + index).within(() => {
       cy.byTestId('lastnameInput').type(data.lastname);
