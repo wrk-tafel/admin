@@ -98,7 +98,7 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
       providers: [
         {
           provide: CustomerApiService,
-          useValue: jasmine.createSpyObj('CustomerApiService', ['validate', 'getCustomer', 'updateCustomer'])
+          useValue: jasmine.createSpyObj('CustomerApiService', ['validate', 'getCustomer', 'createCustomer', 'updateCustomer'])
         },
         {
           provide: Router,
@@ -151,6 +151,7 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
 
     component.save();
 
+    fixture.detectChanges();
     expect(component.editMode).toBeTrue();
     expect(component.customerInput).toEqual(testCustomerData);
     expect(customerFormComponent.markAllAsTouched).toHaveBeenCalled();
@@ -173,6 +174,7 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
 
     component.save();
 
+    fixture.detectChanges();
     expect(component.editMode).toBeTrue();
     expect(component.customerInput).toEqual(testCustomerData);
     expect(customerFormComponent.markAllAsTouched).toHaveBeenCalled();
@@ -183,7 +185,7 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
   it('existing customer save failed when form is invalid', () => {
     const customerFormComponent = jasmine.createSpyObj('CustomerFormComponent', ['markAllAsTouched', 'isValid']);
     customerFormComponent.isValid.and.returnValue(false);
-    apiService.getCustomer.withArgs(testCustomerData.id).and.returnValue(of(testCustomerData));
+    apiService.updateCustomer.withArgs(testCustomerData).and.returnValue(of(testCustomerData));
 
     const fixture = TestBed.createComponent(CustomerEditComponent);
     const component = fixture.componentInstance;
@@ -193,6 +195,7 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
 
     component.save();
 
+    fixture.detectChanges();
     expect(component.editMode).toBeTrue();
     expect(component.customerInput).toEqual(testCustomerData);
     expect(customerFormComponent.markAllAsTouched).toHaveBeenCalled();
