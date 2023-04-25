@@ -8,14 +8,11 @@ import {of, throwError} from 'rxjs';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
 import {CustomerApiService, CustomerData} from '../../../../api/customer-api.service';
 import {CustomerDetailComponent} from './customer-detail.component';
-import {CommonModule, registerLocaleData} from '@angular/common';
+import {CommonModule} from '@angular/common';
 import {DEFAULT_CURRENCY_CODE, LOCALE_ID} from '@angular/core';
-import localeDeAt from '@angular/common/locales/de-AT';
 import {CustomerNoteApiService, CustomerNoteItem} from '../../../../api/customer-note-api.service';
 import {DropdownComponent, ModalModule, NavComponent, NavItemComponent, TabsModule} from '@coreui/angular';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
-
-registerLocaleData(localeDeAt);
 
 describe('CustomerDetailComponent', () => {
   let customerApiService: jasmine.SpyObj<CustomerApiService>;
