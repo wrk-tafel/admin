@@ -2,8 +2,16 @@ import {TestBed, waitForAsync} from '@angular/core/testing';
 import {RouterTestingModule} from '@angular/router/testing';
 import {DefaultLayoutComponent} from './default-layout.component';
 import {AuthenticationService} from '../../security/authentication.service';
-import {HeaderComponent, SidebarComponent, SidebarModule, SidebarNavComponent} from '@coreui/angular';
+import {
+  ContainerComponent,
+  HeaderComponent,
+  SidebarComponent,
+  SidebarModule,
+  SidebarNavComponent
+} from '@coreui/angular';
 import {GlobalStateService} from '../../state/global-state.service';
+import {DefaultHeaderComponent} from "./default-header/default-header.component";
+import {PerfectScrollbarComponent} from "ngx-perfect-scrollbar";
 
 describe('DefaultLayoutComponent', () => {
   let authService: jasmine.SpyObj<AuthenticationService>;
@@ -16,7 +24,10 @@ describe('DefaultLayoutComponent', () => {
     TestBed.configureTestingModule({
       imports: [
         SidebarModule,
-        RouterTestingModule
+        RouterTestingModule,
+        DefaultHeaderComponent,
+        PerfectScrollbarComponent,
+        ContainerComponent
       ],
       declarations: [
         DefaultLayoutComponent,

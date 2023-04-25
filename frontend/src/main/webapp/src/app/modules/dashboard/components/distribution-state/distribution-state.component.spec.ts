@@ -9,7 +9,7 @@ import {BehaviorSubject, of} from 'rxjs';
 import {ActivatedRoute} from '@angular/router';
 import {RouterTestingModule} from '@angular/router/testing';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
-import {ModalModule} from '@coreui/angular';
+import {CardModule, ColComponent, ModalModule, ProgressModule, RowComponent} from '@coreui/angular';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 
 describe('DistributionStateComponent', () => {
@@ -38,7 +38,11 @@ describe('DistributionStateComponent', () => {
       imports: [
         NoopAnimationsModule,
         RouterTestingModule,
-        ModalModule
+        ModalModule,
+        CardModule,
+        RowComponent,
+        ColComponent,
+        ProgressModule
       ],
       declarations: [
         DistributionStateComponent

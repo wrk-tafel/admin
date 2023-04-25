@@ -9,7 +9,7 @@ import {CustomerApiService, CustomerData} from '../../../../api/customer-api.ser
 import {CustomerFormComponent} from '../customer-form/customer-form.component';
 import {CustomerEditComponent} from './customer-edit.component';
 import {By} from '@angular/platform-browser';
-import {ModalModule} from '@coreui/angular';
+import {CardModule, ColComponent, InputGroupComponent, ModalModule, RowComponent} from '@coreui/angular';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 
 describe('CustomerEditComponent - Creating a new customer', () => {
@@ -74,7 +74,11 @@ describe('CustomerEditComponent - Creating a new customer', () => {
         HttpClientTestingModule,
         RouterTestingModule,
         ReactiveFormsModule,
-        ModalModule
+        ModalModule,
+        InputGroupComponent,
+        CardModule,
+        RowComponent,
+        ColComponent
       ],
       declarations: [
         CustomerEditComponent,

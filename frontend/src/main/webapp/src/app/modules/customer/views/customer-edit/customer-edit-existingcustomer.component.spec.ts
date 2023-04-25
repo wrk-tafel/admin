@@ -8,8 +8,15 @@ import {of} from 'rxjs';
 import {CustomerApiService, CustomerData} from '../../../../api/customer-api.service';
 import {CustomerFormComponent} from '../customer-form/customer-form.component';
 import {CustomerEditComponent} from './customer-edit.component';
-import {ModalModule} from '@coreui/angular';
-import {NoopAnimationsModule} from "@angular/platform-browser/animations";
+import {
+  BgColorDirective,
+  CardModule,
+  ColComponent,
+  InputGroupComponent,
+  ModalModule,
+  RowComponent
+} from '@coreui/angular';
+import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 
 describe('CustomerEditComponent - Editing an existing customer', () => {
   const testCountry = {
@@ -77,7 +84,12 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
         RouterTestingModule,
         ReactiveFormsModule,
         ModalModule,
-        NoopAnimationsModule
+        NoopAnimationsModule,
+        CardModule,
+        InputGroupComponent,
+        RowComponent,
+        ColComponent,
+        BgColorDirective
       ],
       declarations: [
         CustomerEditComponent,
