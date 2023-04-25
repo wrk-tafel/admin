@@ -1,7 +1,6 @@
-import {Component, OnInit, ViewChild} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {AuthenticationService} from '../../security/authentication.service';
 import {ITafelNavData, navigationMenuItems} from '../../../modules/dashboard/navigation-menuItems';
-import {PasswordChangeModalComponent} from '../passwordchange-modal/passwordchange-modal.component';
 import {DistributionItem} from '../../../api/distribution-api.service';
 import {GlobalStateService} from '../../state/global-state.service';
 
@@ -17,9 +16,6 @@ export class DefaultLayoutComponent implements OnInit {
   public sidebarMinimized = false;
   public navItems: ITafelNavData[] = navigationMenuItems;
 
-  @ViewChild(PasswordChangeModalComponent)
-  private passwordChangeModalComponent: PasswordChangeModalComponent;
-
   constructor(
     private auth: AuthenticationService,
     private globalStateService: GlobalStateService
@@ -34,20 +30,6 @@ export class DefaultLayoutComponent implements OnInit {
       }
       this.navItems = this.editNavItemsForDistributionState(this.navItems, distribution);
     });
-  }
-
-  toggleMinimize(e) {
-    this.sidebarMinimized = e;
-  }
-
-  public onLogout() {
-    this.auth.logout().subscribe(_ => {
-      this.auth.redirectToLogin();
-    });
-  }
-
-  public changePassword() {
-    this.passwordChangeModalComponent.showDialog();
   }
 
   public filterNavItemsByPermissions(navItems: ITafelNavData[]): ITafelNavData[] {
