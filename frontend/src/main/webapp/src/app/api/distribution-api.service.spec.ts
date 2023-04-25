@@ -1,4 +1,3 @@
-import {HttpClient} from '@angular/common/http';
 import {HttpClientTestingModule, HttpTestingController} from '@angular/common/http/testing';
 import {TestBed} from '@angular/core/testing';
 import {
@@ -12,7 +11,6 @@ import {of} from 'rxjs';
 import {IMessage} from '@stomp/stompjs';
 
 describe('DistributionApiService', () => {
-  let client: HttpClient;
   let httpMock: HttpTestingController;
   let websocketService: jasmine.SpyObj<WebsocketService>;
   let apiService: DistributionApiService;
@@ -28,7 +26,6 @@ describe('DistributionApiService', () => {
       ]
     });
 
-    client = TestBed.inject(HttpClient);
     httpMock = TestBed.inject(HttpTestingController);
     websocketService = TestBed.inject(WebsocketService) as jasmine.SpyObj<WebsocketService>;
     apiService = TestBed.inject(DistributionApiService);
