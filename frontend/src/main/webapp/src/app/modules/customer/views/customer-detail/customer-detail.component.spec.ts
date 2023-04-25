@@ -305,10 +305,10 @@ describe('CustomerDetailComponent', () => {
       ...mockCustomer,
       validUntil: moment().subtract(1, 'days').toDate()
     };
-    fixture.detectChanges();
 
     const valid = component.isValid();
 
+    fixture.detectChanges();
     expect(valid).toBeFalsy();
   });
 
