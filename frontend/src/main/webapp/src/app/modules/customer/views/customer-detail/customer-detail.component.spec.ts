@@ -2,7 +2,6 @@ import {HttpHeaders, HttpResponse} from '@angular/common/http';
 import {ComponentFixture, TestBed, waitForAsync} from '@angular/core/testing';
 import {By} from '@angular/platform-browser';
 import {ActivatedRoute, Router} from '@angular/router';
-import {RouterTestingModule} from '@angular/router/testing';
 import * as moment from 'moment';
 import {of, throwError} from 'rxjs';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
@@ -11,7 +10,15 @@ import {CustomerDetailComponent} from './customer-detail.component';
 import {CommonModule} from '@angular/common';
 import {DEFAULT_CURRENCY_CODE, LOCALE_ID} from '@angular/core';
 import {CustomerNoteApiService, CustomerNoteItem} from '../../../../api/customer-note-api.service';
-import {DropdownComponent, ModalModule, NavComponent, NavItemComponent, TabsModule} from '@coreui/angular';
+import {
+  CardModule,
+  ColComponent,
+  DropdownComponent,
+  ModalModule,
+  NavComponent,
+  NavItemComponent, RowComponent,
+  TabsModule
+} from '@coreui/angular';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 
 describe('CustomerDetailComponent', () => {
@@ -100,12 +107,14 @@ describe('CustomerDetailComponent', () => {
       imports: [
         NoopAnimationsModule,
         CommonModule,
-        RouterTestingModule,
         ModalModule,
         TabsModule,
         DropdownComponent,
         NavComponent,
-        NavItemComponent
+        NavItemComponent,
+        CardModule,
+        ColComponent,
+        RowComponent
       ],
       providers: [
         {
