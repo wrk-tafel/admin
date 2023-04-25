@@ -78,6 +78,12 @@ describe('DistributionStateComponent', () => {
   it('component can be created', () => {
     const fixture = TestBed.createComponent(DistributionStateComponent);
     const component = fixture.componentInstance;
+
+    const subject = new BehaviorSubject<DistributionItem>(null);
+    globalStateService.getCurrentDistribution.and.returnValue(subject);
+
+    fixture.detectChanges();
+
     expect(component).toBeTruthy();
   });
 
@@ -98,6 +104,7 @@ describe('DistributionStateComponent', () => {
 
     component.ngOnInit();
 
+    fixture.detectChanges();
     expect(component.distribution).toEqual(distribution);
     expect(globalStateService.getCurrentDistribution).toHaveBeenCalled();
   });
@@ -111,6 +118,7 @@ describe('DistributionStateComponent', () => {
 
     component.ngOnInit();
 
+    fixture.detectChanges();
     expect(component.distribution).toBeNull();
     expect(globalStateService.getCurrentDistribution).toHaveBeenCalled();
   });
@@ -119,10 +127,13 @@ describe('DistributionStateComponent', () => {
     const fixture = TestBed.createComponent(DistributionStateComponent);
     const component = fixture.componentInstance;
 
+    const subject = new BehaviorSubject<DistributionItem>(null);
+    globalStateService.getCurrentDistribution.and.returnValue(subject);
     distributionApiService.createNewDistribution.and.returnValue(of(null));
 
     component.createNewDistribution();
 
+    fixture.detectChanges();
     expect(distributionApiService.createNewDistribution).toHaveBeenCalled();
   });
 
@@ -130,10 +141,21 @@ describe('DistributionStateComponent', () => {
     const fixture = TestBed.createComponent(DistributionStateComponent);
     const component = fixture.componentInstance;
     component.showNextDistributionStateModal = true;
+
+    const distribution: DistributionItem = {
+      id: 123,
+      state: {
+        name: 'OPEN',
+        stateLabel: 'Offen',
+        actionLabel: 'Offen'
+      }
+    };
+    globalStateService.getCurrentDistribution.and.returnValue(new BehaviorSubject<DistributionItem>(distribution));
     distributionApiService.switchToNextState.and.returnValue(of(null));
 
     component.switchToNextState();
 
+    fixture.detectChanges();
     expect(distributionApiService.switchToNextState).toHaveBeenCalled();
     expect(component.showNextDistributionStateModal).toBeFalsy();
   });
