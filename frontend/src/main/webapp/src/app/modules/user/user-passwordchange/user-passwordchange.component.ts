@@ -1,6 +1,5 @@
 import {Component, ViewChild} from '@angular/core';
 import {PasswordChangeFormComponent} from '../../../common/views/passwordchange-form/passwordchange-form.component';
-import {Router} from "@angular/router";
 
 @Component({
   selector: 'tafel-user-passwordchange',
@@ -8,9 +7,6 @@ import {Router} from "@angular/router";
 })
 export class UserPasswordChangeComponent {
   @ViewChild(PasswordChangeFormComponent) public form: PasswordChangeFormComponent;
-
-  constructor(private router: Router) {
-  }
 
   changePassword() {
     this.form.changePassword().subscribe();
