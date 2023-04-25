@@ -298,7 +298,7 @@ describe('CustomerDetailComponent', () => {
     expect(router.navigate).toHaveBeenCalledWith(['/kunden/bearbeiten', mockCustomer.id]);
   });
 
-  it('isValid with date yesterday results in false', () => {
+  it('isValid with date of yesterday results in false', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
     component.customerData = {
@@ -312,7 +312,7 @@ describe('CustomerDetailComponent', () => {
     expect(valid).toBeFalsy();
   });
 
-  it('isValid with date today results in true', () => {
+  it('isValid with date of today results in true', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
     component.customerData = {
@@ -326,7 +326,7 @@ describe('CustomerDetailComponent', () => {
     expect(valid).toBeTrue();
   });
 
-  it('isValid with date tomorrow results in true', () => {
+  it('isValid with date of tomorrow results in true', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
     component.customerData = {
