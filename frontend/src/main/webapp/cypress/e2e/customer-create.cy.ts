@@ -16,7 +16,7 @@ describe('Customer Creation', () => {
       .should('be.visible')
       .within(() => {
         cy.byTestId('title').contains('Anspruch vorhanden');
-        cy.byTestId('validationresult-modal-dialog').should('have.class', 'modal-success');
+        cy.byTestId('header').should('have.class', 'bg-success');
         cy.byTestId('ok-button').click();
       });
 
@@ -33,7 +33,7 @@ describe('Customer Creation', () => {
       .should('be.visible')
       .within(() => {
         cy.byTestId('title').contains('Anspruch vorhanden');
-        cy.byTestId('validationresult-modal-dialog').should('have.class', 'modal-success');
+        cy.byTestId('header').should('have.class', 'bg-success');
         cy.byTestId('ok-button').click();
       });
 
@@ -49,7 +49,7 @@ describe('Customer Creation', () => {
       .should('be.visible')
       .within(() => {
         cy.byTestId('title').contains('Kein Anspruch vorhanden');
-        cy.byTestId('validationresult-modal-dialog').should('have.class', 'modal-danger');
+        cy.byTestId('header').should('have.class', 'bg-danger');
         cy.byTestId('ok-button').click();
       });
 

@@ -8,7 +8,7 @@
         [ngClass]="{'btn-danger': isSaveDisabled(), 'btn-success': !isSaveDisabled()}">Speichern</button>
 </div>
 <c-modal id="validationResultModal" #validationResultModal testid="validationresult-modal" [(visible)]="showValidationResultModal">
-  <c-modal-header [cBgColor]="getValidationResultColor()">
+  <c-modal-header [cBgColor]="getValidationResultColor()" testid="header">
     <h4 testid="title" class="text-white">
       {{validationResult?.valid === true ? "Anspruch vorhanden" : "Kein Anspruch vorhanden"}}
     </h4>
