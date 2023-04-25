@@ -143,6 +143,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
 
     component.save();
 
+    fixture.detectChanges();
     expect(customerFormComponent.markAllAsTouched).toHaveBeenCalled();
     expect(apiService.createCustomer).toHaveBeenCalledWith(jasmine.objectContaining(testCustomerData));
     expect(router.navigate).toHaveBeenCalledWith(['/kunden/detail', testCustomerData.id]);
@@ -167,8 +168,15 @@ describe('CustomerEditComponent - Creating a new customer', () => {
   });
 
   it('new customer validated successfully', () => {
+    const fixture = TestBed.createComponent(CustomerEditComponent);
+    const component = fixture.componentInstance;
+
     const customerFormComponent = jasmine.createSpyObj('CustomerFormComponent', ['markAllAsTouched', 'isValid']);
     customerFormComponent.isValid.and.returnValue(true);
+
+    component.customerFormComponent = customerFormComponent;
+    component.showValidationResultModal = false;
+    component.customerUpdated = testCustomerData;
 
     apiService.validate.and.returnValue(of({
       valid: true,
@@ -178,14 +186,9 @@ describe('CustomerEditComponent - Creating a new customer', () => {
       totalSum: 1000
     }));
 
-    const fixture = TestBed.createComponent(CustomerEditComponent);
-    const component = fixture.componentInstance;
-    component.customerFormComponent = customerFormComponent;
-    component.showValidationResultModal = false;
-    component.customerUpdated = testCustomerData;
-
     component.validate();
 
+    fixture.detectChanges();
     expect(customerFormComponent.markAllAsTouched).toHaveBeenCalled();
     expect(apiService.validate).toHaveBeenCalledWith(jasmine.objectContaining(testCustomerData));
     expect(component.customerValidForSave).toBeTrue();
@@ -212,6 +215,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
 
     component.validate();
 
+    fixture.detectChanges();
     expect(customerFormComponent.markAllAsTouched).toHaveBeenCalled();
     expect(apiService.validate).toHaveBeenCalledWith(jasmine.objectContaining(testCustomerData));
     expect(component.customerValidForSave).toBeFalse();
