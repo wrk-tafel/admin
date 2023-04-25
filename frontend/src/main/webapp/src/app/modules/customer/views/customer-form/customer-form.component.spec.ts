@@ -6,6 +6,7 @@ import {CountryApiService} from '../../../../api/country-api.service';
 import {CustomerData} from '../../../../api/customer-api.service';
 import {CustomerFormComponent} from './customer-form.component';
 import {FormControl, FormGroup, ReactiveFormsModule} from '@angular/forms';
+import {CardModule, ColComponent, InputGroupComponent, RowComponent} from '@coreui/angular';
 
 describe('CustomerFormComponent', () => {
   let apiService: jasmine.SpyObj<CountryApiService>;
@@ -62,12 +63,16 @@ describe('CustomerFormComponent', () => {
     const apiServiceSpy = jasmine.createSpyObj('CountryApiService', ['getCountries']);
 
     TestBed.configureTestingModule({
-      declarations: [
-        CustomerFormComponent
-      ],
       imports: [
         RouterTestingModule,
-        ReactiveFormsModule
+        ReactiveFormsModule,
+        InputGroupComponent,
+        CardModule,
+        RowComponent,
+        ColComponent
+      ],
+      declarations: [
+        CustomerFormComponent
       ],
       providers: [
         {

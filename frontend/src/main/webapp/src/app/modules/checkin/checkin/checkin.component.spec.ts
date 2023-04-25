@@ -12,7 +12,7 @@ import {GlobalStateService} from '../../../common/state/global-state.service';
 import {Router} from '@angular/router';
 import {DistributionApiService, DistributionItem} from '../../../api/distribution-api.service';
 import {RouterTestingModule} from '@angular/router/testing';
-import {ModalModule} from '@coreui/angular';
+import {BadgeModule, CardModule, ColComponent, ModalModule, RowComponent} from '@coreui/angular';
 
 describe('CheckinComponent', () => {
   let customerApiService: jasmine.SpyObj<CustomerApiService>;
@@ -36,7 +36,11 @@ describe('CheckinComponent', () => {
       imports: [
         CommonModule,
         RouterTestingModule,
-        ModalModule
+        ModalModule,
+        RowComponent,
+        ColComponent,
+        CardModule,
+        BadgeModule
       ],
       declarations: [CheckinComponent],
       providers: [

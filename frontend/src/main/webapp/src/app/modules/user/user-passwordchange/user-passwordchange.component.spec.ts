@@ -3,12 +3,15 @@ import {UserPasswordChangeComponent} from './user-passwordchange.component';
 import {PasswordChangeFormComponent} from '../../../common/views/passwordchange-form/passwordchange-form.component';
 import {of} from 'rxjs';
 import {HttpClientTestingModule} from '@angular/common/http/testing';
+import {CardModule} from '@coreui/angular';
 
 describe('UserPasswordChangeComponent', () => {
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       imports: [
-        HttpClientTestingModule
+        HttpClientTestingModule,
+        CardModule,
+        PasswordChangeFormComponent
       ],
       declarations: [
         UserPasswordChangeComponent

@@ -2,7 +2,7 @@ import {TestBed, waitForAsync} from '@angular/core/testing';
 import {RouterTestingModule} from '@angular/router/testing';
 import {RegisteredCustomersComponent} from './registered-customers.component';
 import {By} from '@angular/platform-browser';
-import {ModalModule} from '@coreui/angular';
+import {CardModule, ColComponent, ModalModule, RowComponent} from '@coreui/angular';
 
 describe('RegisteredCustomersComponent', () => {
 
@@ -10,7 +10,10 @@ describe('RegisteredCustomersComponent', () => {
     TestBed.configureTestingModule({
       imports: [
         RouterTestingModule,
-        ModalModule
+        ModalModule,
+        CardModule,
+        ColComponent,
+        RowComponent
       ],
       declarations: [
         RegisteredCustomersComponent
