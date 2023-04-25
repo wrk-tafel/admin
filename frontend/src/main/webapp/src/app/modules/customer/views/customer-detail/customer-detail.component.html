@@ -157,9 +157,7 @@
                     </c-col>
                     <c-col *ngIf="customerNotes?.length !== 0">
                       <c-row class="mb-2">
-                        <c-col class="fw-bold" testid="note-title">
-                          {{customerNotes[0].timestamp | date : 'dd.MM.yyyy HH:mm' }}&nbsp;{{customerNotes[0].author}}
-                        </c-col>
+                        <c-col class="fw-bold" testid="note-title">{{customerNotes[0].timestamp | date : 'dd.MM.yyyy HH:mm' }}&nbsp;{{customerNotes[0].author}}</c-col>
                       </c-row>
                       <c-row>
                         <c-col testid="note-text" [innerHtml]="customerNotes[0].note"></c-col>

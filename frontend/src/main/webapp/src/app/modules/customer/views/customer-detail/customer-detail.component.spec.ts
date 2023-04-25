@@ -16,7 +16,8 @@ import {
   DropdownComponent,
   ModalModule,
   NavComponent,
-  NavItemComponent, RowComponent,
+  NavItemComponent,
+  RowComponent,
   TabsModule
 } from '@coreui/angular';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
@@ -116,6 +117,9 @@ describe('CustomerDetailComponent', () => {
         ColComponent,
         RowComponent
       ],
+      declarations: [
+        CustomerDetailComponent
+      ],
       providers: [
         {
           provide: LOCALE_ID,
@@ -152,8 +156,7 @@ describe('CustomerDetailComponent', () => {
           provide: Router,
           useValue: routerSpy
         }
-      ],
-      declarations: [CustomerDetailComponent]
+      ]
     }).compileComponents();
 
     customerApiService = TestBed.inject(CustomerApiService) as jasmine.SpyObj<CustomerApiService>;
@@ -165,18 +168,19 @@ describe('CustomerDetailComponent', () => {
   it('component can be created', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
+    fixture.detectChanges();
+
     expect(component).toBeTruthy();
   });
 
-  it('initial data loaded and shown correctly', waitForAsync(() => {
+  it('initial data loaded and shown correctly', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
     component.ngOnInit();
+    fixture.detectChanges();
 
     expect(component.customerData).toEqual(mockCustomer);
     expect(component.customerNotes).toEqual(mockNotes);
-
-    fixture.detectChanges();
 
     expect(getTextByTestId(fixture, 'customerIdText')).toBe('133');
     expect(getTextByTestId(fixture, 'nameText')).toBe('Mustermann Max');
@@ -221,9 +225,9 @@ describe('CustomerDetailComponent', () => {
     const expectedTimestamp = moment(mockNotes[0].timestamp).format('DD.MM.YYYY HH:mm');
     expect(getTextByTestId(fixture, 'note-title')).toBe(expectedTimestamp + ' author1');
     expect(getTextByTestId(fixture, 'note-text')).toBe('note from author 2');
-  }));
+  });
 
-  it('printMasterdata', waitForAsync(() => {
+  it('printMasterdata', () => {
     const response = new HttpResponse({
       status: 200,
       headers: new HttpHeaders(
@@ -236,13 +240,14 @@ describe('CustomerDetailComponent', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
     component.ngOnInit();
+    fixture.detectChanges();
 
     component.printMasterdata();
 
     expect(fileHelperService.downloadFile).toHaveBeenCalledWith('test-name-1.pdf', new Blob([response.body], {type: 'application/pdf'}));
-  }));
+  });
 
-  it('printIdCard', waitForAsync(() => {
+  it('printIdCard', () => {
     const response = new HttpResponse({
       status: 200,
       headers: new HttpHeaders(
@@ -255,13 +260,14 @@ describe('CustomerDetailComponent', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
     component.ngOnInit();
+    fixture.detectChanges();
 
     component.printIdCard();
 
     expect(fileHelperService.downloadFile).toHaveBeenCalledWith('test-name-1.pdf', new Blob([response.body], {type: 'application/pdf'}));
-  }));
+  });
 
-  it('printCombined', waitForAsync(() => {
+  it('printCombined', () => {
     const response = new HttpResponse({
       status: 200,
       headers: new HttpHeaders(
@@ -274,66 +280,72 @@ describe('CustomerDetailComponent', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
     component.ngOnInit();
+    fixture.detectChanges();
 
     component.printCombined();
 
     expect(fileHelperService.downloadFile).toHaveBeenCalledWith('test-name-1.pdf', new Blob([response.body], {type: 'application/pdf'}));
-  }));
+  });
 
-  it('editCustomer', waitForAsync(() => {
+  it('editCustomer', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
     component.ngOnInit();
+    fixture.detectChanges();
 
     component.editCustomer();
 
     expect(router.navigate).toHaveBeenCalledWith(['/kunden/bearbeiten', mockCustomer.id]);
-  }));
+  });
 
-  it('isValid with date yesterday is not valid', waitForAsync(() => {
+  it('isValid with date yesterday results in false', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
     component.customerData = {
       ...mockCustomer,
       validUntil: moment().subtract(1, 'days').toDate()
     };
+    fixture.detectChanges();
 
     const valid = component.isValid();
 
-    expect(valid).toBeFalse();
-  }));
+    expect(valid).toBeFalsy();
+  });
 
-  it('isValid with date today is valid', waitForAsync(() => {
+  it('isValid with date today results in true', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
     component.customerData = {
       ...mockCustomer,
       validUntil: moment().toDate()
     };
+    fixture.detectChanges();
 
     const valid = component.isValid();
 
     expect(valid).toBeTrue();
-  }));
+  });
 
-  it('isValid with date tomorrow is valid', waitForAsync(() => {
+  it('isValid with date tomorrow results in true', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
     component.customerData = {
       ...mockCustomer,
       validUntil: moment().add(1, 'days').toDate()
     };
+    fixture.detectChanges();
 
     const valid = component.isValid();
     expect(valid).toBeTrue();
 
     // TODO expect(incomeDueText)-class success or danger
-  }));
+  });
 
   it('delete customer successful', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
     component.customerData = mockCustomer;
+    fixture.detectChanges();
 
     customerApiService.deleteCustomer.and.returnValue(of(null));
 
@@ -348,6 +360,7 @@ describe('CustomerDetailComponent', () => {
     const component = fixture.componentInstance;
     component.showDeleteCustomerModal = true;
     component.customerData = mockCustomer;
+    fixture.detectChanges();
 
     customerApiService.deleteCustomer.and.returnValue(throwError({status: 404}));
 
@@ -363,6 +376,7 @@ describe('CustomerDetailComponent', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
     component.customerData = mockCustomer;
+    fixture.detectChanges();
 
     const expectedCustomerData = {
       ...mockCustomer,
@@ -380,6 +394,7 @@ describe('CustomerDetailComponent', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
     component.customerData = mockCustomer;
+    fixture.detectChanges();
 
     const expectedCustomerData = {
       ...mockCustomer,
@@ -402,6 +417,7 @@ describe('CustomerDetailComponent', () => {
     const noteText = 'new note\ntext';
     const sanitizedNoteText = 'new note<br/>text';
     component.newNoteText = noteText;
+    fixture.detectChanges();
 
     const resultNote: CustomerNoteItem = {
       author: 'author1',
