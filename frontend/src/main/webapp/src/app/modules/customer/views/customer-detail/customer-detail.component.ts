@@ -20,9 +20,9 @@ export class CustomerDetailComponent implements OnInit {
   customerNotes: CustomerNoteItem[];
   errorMessage: string;
   newNoteText: string;
-  showDeleteCustomerModal: boolean = false;
-  showAddNewNoteModal: boolean = false;
-  showAllNotesModal: boolean = false;
+  showDeleteCustomerModal = false;
+  showAddNewNoteModal = false;
+  showAllNotesModal = false;
 
   constructor(
     private activatedRoute: ActivatedRoute,
@@ -86,7 +86,7 @@ export class CustomerDetailComponent implements OnInit {
     this.router.navigate(['/kunden/bearbeiten', this.customerData.id]);
   }
 
-  isValid(): Boolean {
+  isValid(): boolean {
     return !moment(this.customerData.validUntil).isBefore(moment().startOf('day'));
   }
 
@@ -98,6 +98,7 @@ export class CustomerDetailComponent implements OnInit {
   }
 
   deleteCustomer() {
+    /* eslint-disable @typescript-eslint/no-unused-vars */
     this.customerApiService.deleteCustomer(this.customerData.id).subscribe(response => {
         this.router.navigate(['/kunden/suchen']);
       },

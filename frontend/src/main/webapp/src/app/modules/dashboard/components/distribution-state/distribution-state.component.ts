@@ -1,4 +1,4 @@
-import {Component, OnInit, ViewChild} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {
   DistributionApiService,
   DistributionItem,
@@ -24,10 +24,10 @@ export class DistributionStateComponent implements OnInit {
 
   states: DistributionStateItem[] = this.distributionStates.states;
   distribution: DistributionItem;
-  showNextDistributionStateModal: boolean = false;
+  showNextDistributionStateModal = false;
 
   progressMax: number = this.distributionStates.states.length;
-  progressCurrent: number = 0;
+  progressCurrent = 0;
 
   ngOnInit() {
     this.globalStateService.getCurrentDistribution().subscribe((distribution) => {

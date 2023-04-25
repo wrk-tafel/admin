@@ -11,7 +11,7 @@ import * as moment from 'moment';
   templateUrl: 'customer-form.component.html'
 })
 export class CustomerFormComponent implements OnInit {
-  @Input() editMode: boolean = false;
+  @Input() editMode = false;
   @Output() customerDataChange = new EventEmitter<CustomerData>();
 
   constructor(

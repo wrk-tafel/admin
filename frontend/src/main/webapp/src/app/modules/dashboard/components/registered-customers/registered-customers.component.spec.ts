@@ -1,12 +1,10 @@
 import {TestBed, waitForAsync} from '@angular/core/testing';
-import {DistributionApiService} from '../../../../api/distribution-api.service';
 import {RouterTestingModule} from '@angular/router/testing';
 import {RegisteredCustomersComponent} from './registered-customers.component';
 import {By} from '@angular/platform-browser';
 import {ModalModule} from '@coreui/angular';
 
 describe('RegisteredCustomersComponent', () => {
-  let distributionApiService: jasmine.SpyObj<DistributionApiService>;
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
@@ -16,16 +14,8 @@ describe('RegisteredCustomersComponent', () => {
       ],
       declarations: [
         RegisteredCustomersComponent
-      ],
-      providers: [
-        {
-          provide: DistributionApiService,
-          useValue: jasmine.createSpyObj('DistributionApiService', [''])
-        }
       ]
     }).compileComponents();
-
-    distributionApiService = TestBed.inject(DistributionApiService) as jasmine.SpyObj<DistributionApiService>;
   }));
 
   it('component can be created', () => {

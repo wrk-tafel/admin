@@ -12,7 +12,7 @@ export class UserPasswordChangeComponent {
     this.form.changePassword().subscribe();
   }
 
-  isSaveDisabled(): Boolean {
+  isSaveDisabled(): boolean {
     return !this.form?.form.valid;
   }
 

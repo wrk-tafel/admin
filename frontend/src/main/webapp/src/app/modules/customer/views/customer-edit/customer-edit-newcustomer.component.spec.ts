@@ -13,6 +13,7 @@ import {CardModule, ColComponent, InputGroupComponent, ModalModule, RowComponent
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 
 describe('CustomerEditComponent - Creating a new customer', () => {
+
   const testCountry = {
     id: 0,
     code: 'AT',
@@ -65,6 +66,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
 
   let router: jasmine.SpyObj<Router>;
   let apiService: jasmine.SpyObj<CustomerApiService>;
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   let activatedRoute: ActivatedRoute;
 
   beforeEach(waitForAsync(() => {

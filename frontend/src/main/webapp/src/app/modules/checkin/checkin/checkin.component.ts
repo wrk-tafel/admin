@@ -44,8 +44,7 @@ export class CheckinComponent implements OnInit, OnDestroy {
   customerNotes: CustomerNoteItem[];
   ticketNumber: number;
   focusTicketNumberInput: boolean;
-  focusCustomerIdInput: boolean = true;
-  focusResetButton: boolean = false;
+  focusResetButton = false;
 
   ngOnInit(): void {
     if (this.globalStateService.getCurrentDistribution().value === null) {
@@ -166,6 +165,7 @@ export class CheckinComponent implements OnInit, OnDestroy {
 
   assignCustomer() {
     if (this.ticketNumber > 0) {
+      /* eslint-disable @typescript-eslint/no-unused-vars */
       this.distributionApiService.assignCustomer(this.customer.id, this.ticketNumber).subscribe(
         response => {
           this.reset();

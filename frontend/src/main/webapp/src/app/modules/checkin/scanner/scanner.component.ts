@@ -16,8 +16,8 @@ export class ScannerComponent implements OnInit, OnDestroy {
   availableCameras: CameraDevice[] = [];
   currentCamera: CameraDevice;
 
-  qrCodeReaderReady: boolean = false;
-  apiClientReady: boolean = false;
+  qrCodeReaderReady = false;
+  apiClientReady = false;
 
   lastSentText: string;
 
@@ -57,6 +57,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
     );
   }
 
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   qrCodeReaderSuccessCallback = (decodedText: string, result: Html5QrcodeResult) => {
     if (this.apiClientReady && (!this.lastSentText || this.lastSentText !== decodedText)) {
       const scanResult: ScanResult = {value: +decodedText};

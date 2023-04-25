@@ -13,6 +13,7 @@ export class CustomerDataResolver implements Resolve<CustomerData> {
   ) {
   }
 
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   public resolve(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<CustomerData> {
     const customerId = +route.params['id'];
     return this.customerApiService.getCustomer(customerId);

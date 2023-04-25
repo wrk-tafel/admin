@@ -13,7 +13,6 @@ export class DefaultLayoutComponent implements OnInit {
     suppressScrollX: true,
   };
 
-  public sidebarMinimized = false;
   public navItems: ITafelNavData[] = navigationMenuItems;
 
   constructor(

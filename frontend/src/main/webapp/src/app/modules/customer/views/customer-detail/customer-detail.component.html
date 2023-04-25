@@ -214,7 +214,7 @@
                     </div>
                   </div>
                 </div>
-                <div *ngIf="i % 2 != 0" class="w-100"></div>
+                <div *ngIf="i % 2 !== 0" class="w-100"></div>
               </ng-container>
             </div>
           </div>
@@ -279,7 +279,7 @@
   </c-modal-body>
   <c-modal-footer>
     <button testid="okButton" cButton color="primary" class="text-white" (click)="addNewNote()"
-            [disabled]="!newNoteText || newNoteText.trim().length == 0">Speichern
+            [disabled]="!newNoteText || newNoteText.trim().length === 0">Speichern
     </button>
     <button testid="cancelButton" cButton color="secondary"
             (click)="newNoteText = undefined; showAddNewNoteModal = false;">

@@ -338,8 +338,6 @@ describe('CustomerDetailComponent', () => {
   });
 
   it('delete customer failed', () => {
-    const modal = jasmine.createSpyObj('Modal', ['hide']);
-
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
     component.showDeleteCustomerModal = true;

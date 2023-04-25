@@ -13,6 +13,7 @@ export class DashboardResolver implements Resolve<DistributionStatesResponse> {
   ) {
   }
 
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   public resolve(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<DistributionStatesResponse> {
     return this.distributionApiService.getStates();
   }

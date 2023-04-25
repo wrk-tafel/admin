@@ -41,6 +41,8 @@ describe('ErrorHandlerInterceptor', () => {
   it('generic http error', () => {
     authServiceSpy.isAuthenticated.and.returnValue(false);
 
+    /* eslint-disable @typescript-eslint/no-empty-function */
+    /* eslint-disable @typescript-eslint/no-unused-vars */
     client.get('/test').subscribe(() => {
     }, err => {
       expect(window.alert).toHaveBeenCalledWith('FEHLER:\nHTTP - 500 - Internal Server Error\nMESSAGE:\nHttp failure response for /test: 500 Internal Server Error\nDETAILS:\nundefined');
@@ -55,6 +57,8 @@ describe('ErrorHandlerInterceptor', () => {
   it('specific spring http error', () => {
     authServiceSpy.isAuthenticated.and.returnValue(false);
 
+    /* eslint-disable @typescript-eslint/no-empty-function */
+    /* eslint-disable @typescript-eslint/no-unused-vars */
     client.get('/test').subscribe(() => {
     }, err => {
       expect(window.alert).toHaveBeenCalledWith('FEHLER:\nHTTP - 400 - Bad Request\nMESSAGE:\nHttp failure response for /test: 400 Bad Request\nDETAILS:\ndetail-message');
@@ -70,6 +74,8 @@ describe('ErrorHandlerInterceptor', () => {
   it('no handling for status 404', () => {
     authServiceSpy.isAuthenticated.and.returnValue(false);
 
+    /* eslint-disable @typescript-eslint/no-empty-function */
+    /* eslint-disable @typescript-eslint/no-unused-vars */
     client.get('/test').subscribe(() => {
     }, err => {
       expect(window.alert).toHaveBeenCalledTimes(0);
@@ -84,6 +90,8 @@ describe('ErrorHandlerInterceptor', () => {
   it('authentication expired and redirected to login', () => {
     authServiceSpy.isAuthenticated.and.returnValue(true);
 
+    /* eslint-disable @typescript-eslint/no-empty-function */
+    /* eslint-disable @typescript-eslint/no-unused-vars */
     client.get('/test').subscribe(() => {
     }, err => {
       expect(authServiceSpy.redirectToLogin).toHaveBeenCalled();

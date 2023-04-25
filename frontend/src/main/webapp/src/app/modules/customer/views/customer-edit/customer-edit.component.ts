@@ -2,7 +2,7 @@ import {Component, OnInit, ViewChild} from '@angular/core';
 import {CustomerFormComponent} from '../customer-form/customer-form.component';
 import {CustomerApiService, CustomerData, ValidateCustomerResponse} from '../../../../api/customer-api.service';
 import {ActivatedRoute, Router} from '@angular/router';
-import {Colors} from "@coreui/angular";
+import {Colors} from '@coreui/angular';
 
 @Component({
   selector: 'tafel-customer-edit',
@@ -11,11 +11,11 @@ import {Colors} from "@coreui/angular";
 export class CustomerEditComponent implements OnInit {
   customerInput: CustomerData;
   customerUpdated: CustomerData;
-  editMode: boolean = false;
-  customerValidForSave: boolean = false;
+  editMode = false;
+  customerValidForSave = false;
   errorMessage: string;
   validationResult: ValidateCustomerResponse;
-  showValidationResultModal: boolean = false;
+  showValidationResultModal = false;
 
   @ViewChild(CustomerFormComponent) customerFormComponent: CustomerFormComponent;
 

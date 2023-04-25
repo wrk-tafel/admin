@@ -9,6 +9,7 @@ import {PerfectScrollbarComponent} from 'ngx-perfect-scrollbar';
 
 describe('DefaultLayoutComponent', () => {
   let authService: jasmine.SpyObj<AuthenticationService>;
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   let globalStateService: jasmine.SpyObj<GlobalStateService>;
 
   beforeEach(waitForAsync(() => {

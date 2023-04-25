@@ -48,6 +48,7 @@ export class PasswordChangeFormComponent {
 
     return this.userApiService.changePassword(passwordChangeRequest).pipe(
       map(
+        /* eslint-disable @typescript-eslint/no-unused-vars */
         (response: ChangePasswordResponse) => {
           this.errorMessage = null;
           this.errorMessageDetails = null;

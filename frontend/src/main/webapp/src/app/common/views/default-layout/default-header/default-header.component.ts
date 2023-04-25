@@ -12,9 +12,10 @@ export class DefaultHeaderComponent extends HeaderComponent {
     super();
   }
 
-  @Input() sidebarId: string = 'sidebar';
+  @Input() sidebarId = 'sidebar';
 
   public logout() {
+    /* eslint-disable @typescript-eslint/no-unused-vars */
     this.auth.logout().subscribe(_ => {
       this.auth.redirectToLogin();
     });
