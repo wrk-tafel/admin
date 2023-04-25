@@ -170,6 +170,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
   it('new customer validated successfully', () => {
     const fixture = TestBed.createComponent(CustomerEditComponent);
     const component = fixture.componentInstance;
+    fixture.detectChanges();
 
     const customerFormComponent = jasmine.createSpyObj('CustomerFormComponent', ['markAllAsTouched', 'isValid']);
     customerFormComponent.isValid.and.returnValue(true);
