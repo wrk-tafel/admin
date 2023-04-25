@@ -4,6 +4,7 @@ import {PasswordChangeFormComponent} from '../../../common/views/passwordchange-
 import {of} from 'rxjs';
 import {HttpClientTestingModule} from '@angular/common/http/testing';
 import {CardModule} from '@coreui/angular';
+import {TafelCommonModule} from '../../../common/tafel-common.module';
 
 describe('UserPasswordChangeComponent', () => {
   beforeEach(waitForAsync(() => {
@@ -11,7 +12,7 @@ describe('UserPasswordChangeComponent', () => {
       imports: [
         HttpClientTestingModule,
         CardModule,
-        PasswordChangeFormComponent
+        TafelCommonModule
       ],
       declarations: [
         UserPasswordChangeComponent
