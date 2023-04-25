@@ -60,6 +60,7 @@ export class PasswordChangeFormComponent {
           const errorBody = error.error as ChangePasswordResponse;
           this.errorMessage = errorBody.message;
           this.errorMessageDetails = errorBody.details;
+          this.successMessage = null;
           return throwError(false);
         }
       )
