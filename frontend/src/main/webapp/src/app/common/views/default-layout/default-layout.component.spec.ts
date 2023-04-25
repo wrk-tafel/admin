@@ -228,11 +228,11 @@ describe('DefaultLayoutComponent', () => {
 
     const fixture = TestBed.createComponent(DefaultLayoutComponent);
     const component = fixture.componentInstance;
+    fixture.detectChanges();
     component.navItems = testMenuItems;
 
     const editedItems = component.editNavItemsForDistributionState(testMenuItems, null);
 
-    fixture.detectChanges();
     expect(editedItems).toEqual([
       testMenuItem1, {
         ...testMenuItem2,
@@ -280,6 +280,7 @@ describe('DefaultLayoutComponent', () => {
 
     const fixture = TestBed.createComponent(DefaultLayoutComponent);
     const component = fixture.componentInstance;
+    fixture.detectChanges();
     component.navItems = testMenuItems;
 
     const editedItems = component.editNavItemsForDistributionState(testMenuItems, testDistribution);
