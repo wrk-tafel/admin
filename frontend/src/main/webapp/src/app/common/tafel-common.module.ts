@@ -4,6 +4,13 @@ import {PasswordChangeFormComponent} from './views/passwordchange-form/passwordc
 import {ReactiveFormsModule} from '@angular/forms';
 import {CommonModule} from '@angular/common';
 import {ErrorToastComponent} from './views/default-layout/errortoast/error-toast.component';
+import {
+  BgColorDirective,
+  ToastBodyComponent,
+  ToastComponent,
+  ToasterComponent,
+  ToastHeaderComponent
+} from "@coreui/angular";
 
 @NgModule({
   declarations: [
@@ -13,11 +20,17 @@ import {ErrorToastComponent} from './views/default-layout/errortoast/error-toast
   ],
   imports: [
     ReactiveFormsModule,
-    CommonModule
+    CommonModule,
+    ToasterComponent,
+    ToastComponent,
+    ToastHeaderComponent,
+    ToastBodyComponent,
+    BgColorDirective
   ],
   exports: [
     TafelIfPermissionDirective,
-    PasswordChangeFormComponent
+    PasswordChangeFormComponent,
+    ErrorToastComponent
   ]
 })
 // TODO add also views, services, etc?
