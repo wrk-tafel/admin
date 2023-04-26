@@ -255,7 +255,7 @@
           <div class="col fw-bold" testid="note-title">{{noteItem.timestamp | date : 'dd.MM.yyyy HH:mm' }}&nbsp;{{noteItem.author}}</div>
         </div>
         <div class="row">
-          <div class="col" testid="note-text" [innerHtml]="noteItem.note"></div>
+          <div class="col" [innerHtml]="noteItem.note"></div>
         </div>
       </div>
     </div>
