@@ -15,27 +15,22 @@
             "index": "src/index.html",
             "main": "src/main.ts",
             "tsConfig": "src/tsconfig.app.json",
-            "polyfills": "src/polyfills.ts",
+            "polyfills": [
+              "zone.js"
+            ],
             "preserveSymlinks": true,
             "assets": [
               "src/assets"
             ],
             "styles": [
-              "node_modules/@coreui/icons/css/free.css",
-              "node_modules/flag-icon-css/css/flag-icons.css",
-              "node_modules/font-awesome/css/font-awesome.css",
-              "node_modules/simple-line-icons/dist/styles/simple-line-icons.css",
-              "src/scss/style.scss"
+              "src/scss/styles.scss"
             ],
-            "stylePreprocessorOptions": {
-              "includePaths": [
-                "./node_modules"
-              ]
-            },
             "scripts": [],
             "allowedCommonJsDependencies": [
               "chart.js",
-              "classnames"
+              "@coreui/chartjs/dist/js/coreui-chartjs.js",
+              "angular2-uuid",
+              "moment"
             ]
           },
           "configurations": {
@@ -46,7 +41,14 @@
                   "maximumWarning": "6kb"
                 }
               ],
-              "optimization": true,
+              "optimization": {
+                "scripts": true,
+                "styles": {
+                  "minify": true,
+                  "inlineCritical": false
+                },
+                "fonts": true
+              },
               "outputHashing": "all",
               "sourceMap": false,
               "namedChunks": false,
@@ -60,13 +62,20 @@
                   "with": "src/environments/environment.prod.ts"
                 }
               ]
+            },
+            "development": {
+              "optimization": {
+                "styles": {
+                  "inlineCritical": false
+                }
+              }
             }
-          }
+          },
+          "defaultConfiguration": "production"
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "browserTarget": "ng:build",
             "proxyConfig": "proxy.conf.json"
           },
           "configurations": {
@@ -75,8 +84,12 @@
             },
             "test": {
               "browserTarget": "ng:build:test"
+            },
+            "development": {
+              "browserTarget": "ng:build:development"
             }
-          }
+          },
+          "defaultConfiguration": "development"
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
@@ -89,22 +102,16 @@
           "options": {
             "main": "src/test.ts",
             "karmaConfig": "./karma.conf.js",
-            "polyfills": "src/polyfills.ts",
+            "polyfills": [
+              "zone.js",
+              "zone.js/testing"
+            ],
             "tsConfig": "src/tsconfig.spec.json",
             "preserveSymlinks": true,
             "scripts": [],
             "styles": [
-              "node_modules/@coreui/icons/css/free.css",
-              "node_modules/flag-icon-css/css/flag-icons.css",
-              "node_modules/font-awesome/css/font-awesome.css",
-              "node_modules/simple-line-icons/dist/styles/simple-line-icons.css",
-              "src/scss/style.scss"
+              "src/scss/styles.scss"
             ],
-            "stylePreprocessorOptions": {
-              "includePaths": [
-                "./node_modules"
-              ]
-            },
             "assets": [
               "src/assets",
               "src/favicon.ico"
@@ -112,21 +119,17 @@
           }
         },
         "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
+          "builder": "@angular-eslint/builder:lint",
           "options": {
-            "tsConfig": [
-              "src/tsconfig.app.json",
-              "src/tsconfig.spec.json"
-            ],
-            "exclude": [
-              "**/node_modules/**"
+            "lintFilePatterns": [
+              "src/**/*.ts",
+              "src/**/*.html"
             ]
           }
         }
       }
     }
   },
-  "defaultProject": "ng",
   "schematics": {
     "@schematics/angular:component": {
       "prefix": "tafel",
@@ -137,6 +140,9 @@
     }
   },
   "cli": {
-    "analytics": false
+    "analytics": false,
+    "schematicCollections": [
+      "@angular-eslint/schematics"
+    ]
   }
 }

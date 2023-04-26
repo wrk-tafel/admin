@@ -9,7 +9,7 @@ describe('CheckIn', () => {
     cy.finishDistribution();
   });
 
-  it('connection and webcam initialized successfully', () => {
+  it('customer added and counted on dashboard', () => {
     cy.visit('/#/anmeldung/annahme');
 
     cy.byTestId('customerIdText').type('100');
@@ -23,6 +23,10 @@ describe('CheckIn', () => {
     cy.byTestId('customerIdText').should('not.have.text');
     cy.byTestId('errorMessage').should('not.exist');
     cy.byTestId('customerDetailPanel').should('not.exist');
+
+    cy.visit('/#/uebersicht');
+
+    cy.byTestId('customers-count').should('have.text', '1');
   });
 
 });

@@ -10,13 +10,14 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "module": "es2020",
-    "target": "es2015",
+    "target": "ES2022",
     "typeRoots": [
       "node_modules/@types"
     ],
     "lib": [
       "esnext",
       "dom"
-    ]
+    ],
+    "useDefineForClassFields": false
   }
 }

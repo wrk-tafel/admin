@@ -1,8 +1,6 @@
 describe('FileHelperService', () => {
 
-  beforeEach(() => {
-  });
-
+  /* eslint-disable @typescript-eslint/no-empty-function */
   it('openFile', () => {
     // TODO
   });

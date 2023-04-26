@@ -43,7 +43,7 @@ describe('Customer Edit', () => {
       .should('be.visible')
       .within(() => {
         cy.byTestId('title').contains('Kein Anspruch vorhanden');
-        cy.byTestId('validationresult-modal-dialog').should('have.class', 'modal-danger');
+        cy.byTestId('header').should('have.class', 'bg-danger');
         cy.byTestId('ok-button').click();
       });
 

@@ -2,16 +2,16 @@ import {TestBed, waitForAsync} from '@angular/core/testing';
 import {RouterTestingModule} from '@angular/router/testing';
 import {DefaultLayoutComponent} from './default-layout.component';
 import {AuthenticationService} from '../../security/authentication.service';
-import {
-  AppHeaderComponent,
-  AppSidebarComponent,
-  AppSidebarMinimizerComponent,
-  AppSidebarNavComponent
-} from '@coreui/angular';
+import {ContainerComponent, HeaderNavComponent, SidebarModule} from '@coreui/angular';
 import {GlobalStateService} from '../../state/global-state.service';
+import {DefaultHeaderComponent} from './default-header/default-header.component';
+import {PerfectScrollbarComponent} from 'ngx-perfect-scrollbar';
+import {DistributionItem} from "../../../api/distribution-api.service";
+import {BehaviorSubject} from "rxjs";
 
 describe('DefaultLayoutComponent', () => {
   let authService: jasmine.SpyObj<AuthenticationService>;
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   let globalStateService: jasmine.SpyObj<GlobalStateService>;
 
   beforeEach(waitForAsync(() => {
@@ -19,12 +19,16 @@ describe('DefaultLayoutComponent', () => {
     const globalStateServiceSpy = jasmine.createSpyObj('GlobalStateService', ['getCurrentDistribution']);
 
     TestBed.configureTestingModule({
+      imports: [
+        SidebarModule,
+        RouterTestingModule,
+        ContainerComponent,
+        HeaderNavComponent
+      ],
       declarations: [
-        AppHeaderComponent,
-        AppSidebarComponent,
-        AppSidebarNavComponent,
-        AppSidebarMinimizerComponent,
-        DefaultLayoutComponent
+        DefaultLayoutComponent,
+        DefaultHeaderComponent,
+        PerfectScrollbarComponent
       ],
       providers: [
         {
@@ -35,12 +39,13 @@ describe('DefaultLayoutComponent', () => {
           provide: GlobalStateService,
           useValue: globalStateServiceSpy
         }
-      ],
-      imports: [RouterTestingModule]
+      ]
     }).compileComponents();
 
     authService = TestBed.inject(AuthenticationService) as jasmine.SpyObj<AuthenticationService>;
     globalStateService = TestBed.inject(GlobalStateService) as jasmine.SpyObj<GlobalStateService>;
+
+    globalStateService.getCurrentDistribution.and.returnValue(new BehaviorSubject<DistributionItem>(null));
   }));
 
   it('should create the component', waitForAsync(() => {
@@ -48,10 +53,10 @@ describe('DefaultLayoutComponent', () => {
 
     const fixture = TestBed.createComponent(DefaultLayoutComponent);
     const component = fixture.componentInstance;
+    fixture.detectChanges();
+
     expect(component).toBeTruthy();
   }));
-
-  // TODO add test for sideBarMinimize
 
   it('navItems are filtered by permissions - permissions undefined', () => {
     const fixture = TestBed.createComponent(DefaultLayoutComponent);
@@ -69,6 +74,7 @@ describe('DefaultLayoutComponent', () => {
 
     const filteredItems = component.filterNavItemsByPermissions(testMenuItems);
 
+    fixture.detectChanges();
     expect(filteredItems).toEqual([]);
   });
 
@@ -78,6 +84,7 @@ describe('DefaultLayoutComponent', () => {
 
     const filteredItems = component.filterNavItemsByPermissions(null);
 
+    fixture.detectChanges();
     expect(filteredItems).toEqual([]);
   });
 
@@ -89,6 +96,7 @@ describe('DefaultLayoutComponent', () => {
 
     const filteredItems = component.filterNavItemsByPermissions([]);
 
+    fixture.detectChanges();
     expect(filteredItems).toEqual([]);
   });
 
@@ -105,6 +113,7 @@ describe('DefaultLayoutComponent', () => {
       }
     ]);
 
+    fixture.detectChanges();
     expect(filteredItems).toEqual([]);
   });
 
@@ -121,6 +130,7 @@ describe('DefaultLayoutComponent', () => {
 
     const filteredItems = component.filterNavItemsByPermissions(testMenuItems);
 
+    fixture.detectChanges();
     expect(filteredItems).toEqual(testMenuItems);
   });
 
@@ -138,6 +148,7 @@ describe('DefaultLayoutComponent', () => {
 
     const filteredItems = component.filterNavItemsByPermissions(testMenuItems);
 
+    fixture.detectChanges();
     expect(filteredItems).toEqual(testMenuItems);
   });
 
@@ -161,6 +172,7 @@ describe('DefaultLayoutComponent', () => {
 
     const filteredItems = component.filterNavItemsByPermissions(testMenuItems);
 
+    fixture.detectChanges();
     expect(filteredItems).toEqual([testMenuItem2]);
   }));
 
@@ -197,6 +209,7 @@ describe('DefaultLayoutComponent', () => {
 
     const filteredItems = component.filterEmptyTitleItems(testMenuItems);
 
+    fixture.detectChanges();
     expect(filteredItems).toEqual([testMenuItem1, testMenuItem2, testMenuItem3, testMenuItem5, testMenuItem6]);
   }));
 
@@ -215,6 +228,7 @@ describe('DefaultLayoutComponent', () => {
 
     const fixture = TestBed.createComponent(DefaultLayoutComponent);
     const component = fixture.componentInstance;
+    fixture.detectChanges();
     component.navItems = testMenuItems;
 
     const editedItems = component.editNavItemsForDistributionState(testMenuItems, null);
@@ -223,8 +237,8 @@ describe('DefaultLayoutComponent', () => {
       testMenuItem1, {
         ...testMenuItem2,
         badge: {
-          variant: 'danger',
-          text: 'INAKTIV'
+          text: 'INAKTIV',
+          color: 'danger'
         },
         attributes: {disabled: true}
       }, testMenuItem3
@@ -266,6 +280,7 @@ describe('DefaultLayoutComponent', () => {
 
     const fixture = TestBed.createComponent(DefaultLayoutComponent);
     const component = fixture.componentInstance;
+    fixture.detectChanges();
     component.navItems = testMenuItems;
 
     const editedItems = component.editNavItemsForDistributionState(testMenuItems, testDistribution);

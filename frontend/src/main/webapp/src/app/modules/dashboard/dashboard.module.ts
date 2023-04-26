@@ -1,26 +1,45 @@
 import {NgModule} from '@angular/core';
-import {ButtonsModule} from 'ngx-bootstrap/buttons';
-
 import {DashboardComponent} from './dashboard.component';
 import {DashboardRoutingModule} from './dashboard-routing.module';
 import {CommonModule} from '@angular/common';
-import {ModalModule} from 'ngx-bootstrap/modal';
+import {DistributionStateComponent} from './components/distribution-state/distribution-state.component';
+import {RegisteredCustomersComponent} from './components/registered-customers/registered-customers.component';
+import {
+  ButtonModule,
+  CardBodyComponent,
+  CardComponent,
+  CardGroupComponent,
+  CardHeaderComponent,
+  ColComponent,
+  ModalModule,
+  ProgressBarComponent,
+  ProgressComponent,
+  ProgressModule,
+  RowComponent
+} from '@coreui/angular';
 import {TafelCommonModule} from '../../common/tafel-common.module';
-import {DistributionStateComponent} from './components/distribution-state.component';
-import {ProgressbarModule} from 'ngx-bootstrap/progressbar';
 
 @NgModule({
-    imports: [
-        CommonModule,
-        TafelCommonModule,
-        DashboardRoutingModule,
-        ButtonsModule.forRoot(),
-        ModalModule,
-        ProgressbarModule
-    ],
+  imports: [
+    CommonModule,
+    TafelCommonModule,
+    DashboardRoutingModule,
+    ButtonModule,
+    ModalModule,
+    ProgressModule,
+    ProgressBarComponent,
+    ProgressComponent,
+    CardComponent,
+    CardBodyComponent,
+    CardHeaderComponent,
+    CardGroupComponent,
+    ColComponent,
+    RowComponent
+  ],
   declarations: [
     DashboardComponent,
-    DistributionStateComponent
+    DistributionStateComponent,
+    RegisteredCustomersComponent
   ]
 })
 export class DashboardModule {

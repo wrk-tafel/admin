@@ -1,5 +1,4 @@
 import {TafelIfPermissionDirective} from './tafel-if-permission.directive';
-import {AuthenticationService} from './authentication.service';
 
 describe('TafelIfPermissionDirective', () => {
   function setup() {

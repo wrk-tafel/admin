@@ -4,8 +4,4 @@ import {Component} from '@angular/core';
   templateUrl: '404.component.html'
 })
 export class P404Component {
-
-  constructor() {
-  }
-
 }

@@ -1,4 +1,4 @@
-import {Component, OnInit, ViewChild} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import * as moment from 'moment';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
@@ -9,7 +9,6 @@ import {
   CustomerIssuer
 } from '../../../../api/customer-api.service';
 import {HttpResponse} from '@angular/common/http';
-import {ModalDirective} from 'ngx-bootstrap/modal';
 import {CustomerNoteApiService, CustomerNoteItem} from '../../../../api/customer-note-api.service';
 
 @Component({
@@ -20,9 +19,10 @@ export class CustomerDetailComponent implements OnInit {
   customerData: CustomerData;
   customerNotes: CustomerNoteItem[];
   errorMessage: string;
-  @ViewChild('deleteCustomerModal') public deleteCustomerModal: ModalDirective;
-  @ViewChild('addNewNoteModal') public addNewNoteModal: ModalDirective;
   newNoteText: string;
+  showDeleteCustomerModal = false;
+  showAddNewNoteModal = false;
+  showAllNotesModal = false;
 
   constructor(
     private activatedRoute: ActivatedRoute,
@@ -86,8 +86,8 @@ export class CustomerDetailComponent implements OnInit {
     this.router.navigate(['/kunden/bearbeiten', this.customerData.id]);
   }
 
-  isValid(): Boolean {
-    return !moment(this.customerData.validUntil).isBefore(moment().startOf('day'));
+  isValid(): boolean {
+    return !moment(this.customerData.validUntil).startOf('day').isBefore(moment().startOf('day'));
   }
 
   private processPdfResponse(response: HttpResponse<ArrayBuffer>) {
@@ -98,11 +98,12 @@ export class CustomerDetailComponent implements OnInit {
   }
 
   deleteCustomer() {
+    /* eslint-disable @typescript-eslint/no-unused-vars */
     this.customerApiService.deleteCustomer(this.customerData.id).subscribe(response => {
         this.router.navigate(['/kunden/suchen']);
       },
       error => {
-        this.deleteCustomerModal.hide();
+        this.showDeleteCustomerModal = false;
         this.errorMessage = 'Löschen fehlgeschlagen!';
       });
   }
@@ -135,7 +136,7 @@ export class CustomerDetailComponent implements OnInit {
     this.customerNoteApiService.createNewNote(this.customerData.id, sanitizedText).subscribe(newNoteItem => {
       this.customerNotes.unshift(newNoteItem);
       this.newNoteText = undefined;
-      this.addNewNoteModal.hide();
+      this.showAddNewNoteModal = false;
     });
   }
 

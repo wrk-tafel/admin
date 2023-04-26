@@ -5,7 +5,9 @@ import {AuthenticationService} from './authentication.service';
   selector: '[tafelIfPermission]'
 })
 export class TafelIfPermissionDirective {
+
   constructor(
+    /* eslint-disable @typescript-eslint/no-explicit-any */
     private templateRef: TemplateRef<any>,
     private viewContainer: ViewContainerRef,
     private authenticationService: AuthenticationService) {

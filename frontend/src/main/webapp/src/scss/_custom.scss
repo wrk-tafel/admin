@@ -1,11 +1,7 @@
-.tafel,
-tafel-dashboard,
-tafel-login,
-tafel-login-passwordchange,
-tafel-root {
-  display: -ms-flexbox;
-  display: flex;
-  -ms-flex-direction: column;
-  flex-direction: column;
-  min-height: 100vh;
-}
+// Font Awesome
+@import "@fortawesome/fontawesome-free/scss/fontawesome";
+@import "@fortawesome/fontawesome-free/scss/solid";
+@import "@fortawesome/fontawesome-free/scss/brands";
+
+// Bootstrap
+@import "bootstrap";

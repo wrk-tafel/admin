@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {ActivatedRouteSnapshot, CanActivateChild, Router, RouterStateSnapshot} from '@angular/router';
+import {ActivatedRouteSnapshot, CanActivateChild, RouterStateSnapshot} from '@angular/router';
 import {AuthenticationService} from './authentication.service';
 
 @Injectable({
@@ -12,6 +12,7 @@ export class AuthGuardService implements CanActivateChild {
   ) {
   }
 
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   canActivateChild(childRoute: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean {
     if (!this.auth.hasAnyPermission()) {
       this.auth.redirectToLogin('fehlgeschlagen');

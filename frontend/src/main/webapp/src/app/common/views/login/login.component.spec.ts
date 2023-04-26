@@ -4,6 +4,7 @@ import {AuthenticationService} from '../../security/authentication.service';
 import {LoginComponent} from './login.component';
 import {ReactiveFormsModule} from '@angular/forms';
 import {of} from 'rxjs';
+import {CardModule, ColComponent, ContainerComponent, InputGroupComponent, RowComponent} from '@coreui/angular';
 
 describe('LoginComponent', () => {
   let authService: jasmine.SpyObj<AuthenticationService>;
@@ -14,7 +15,14 @@ describe('LoginComponent', () => {
     const routerSpy = jasmine.createSpyObj('Router', ['navigate', 'getCurrentNavigation']);
 
     TestBed.configureTestingModule({
-      imports: [ReactiveFormsModule],
+      imports: [
+        ReactiveFormsModule,
+        ContainerComponent,
+        RowComponent,
+        ColComponent,
+        CardModule,
+        InputGroupComponent
+      ],
       providers: [
         {
           provide: AuthenticationService,

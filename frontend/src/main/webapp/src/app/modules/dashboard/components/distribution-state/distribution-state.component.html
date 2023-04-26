@@ -1,0 +1,61 @@
+<c-card class="dashboard-panel">
+  <c-card-header>
+    <div class="fw-bold">Status</div>
+  </c-card-header>
+  <c-card-body>
+    <c-row>
+      <c-col testid="distribution-state-text" class="fw-bold">
+        <h4>{{distribution?.state.stateLabel ? distribution?.state.stateLabel : 'Inaktiv'}}</h4>
+      </c-col>
+    </c-row>
+    <c-row class="mb-3">
+      <c-col>
+        <c-progress>
+          <c-progress-bar [value]="progressCurrent" [max]="progressMax"></c-progress-bar>
+        </c-progress>
+      </c-col>
+    </c-row>
+    <c-row>
+      <c-col>
+        <button *ngIf="!distribution" cButton
+                testid="distribution-start-button"
+                color="info"
+                class="text-white"
+                (click)="createNewDistribution()">--> Ausgabe öffnen
+        </button>
+        <button *ngIf="distribution" cButton
+                testid="distribution-nextstep-button"
+                color="info"
+                class="text-white"
+                (click)="showNextDistributionStateModal = true">--> {{distribution?.state.actionLabel}}
+        </button>
+      </c-col>
+    </c-row>
+  </c-card-body>
+</c-card>
+<c-modal id="nextDistributionStateModal" #nextDistributionStateModal testid="distributionstate-next-modal"
+         [(visible)]="showNextDistributionStateModal">
+  <c-modal-header class="bg-warning">
+    <h4 testid="title" class="text-white">
+      Weiter zum nächsten Schritt?
+    </h4>
+    <button [cModalToggle]="nextDistributionStateModal.id" cButtonClose></button>
+  </c-modal-header>
+  <c-modal-body>
+    <div class="row mb-3">
+      <div class="col">Achtung: Dieser Schritt kann nicht rückgängig gemacht werden!</div>
+    </div>
+    <div class="row">
+      <div class="col-6">
+        <button testid="ok-button" cButton color="primary" class="me-2 text-white"
+                testid="distributionstate-next-modal-ok-button"
+                (click)="switchToNextState()">OK
+        </button>
+        <button testid="cancel-button" cButton color="secondary"
+                testid="distributionstate-next-modal-cancel-button"
+                (click)="showNextDistributionStateModal = false">Abbrechen
+        </button>
+      </div>
+    </div>
+  </c-modal-body>
+</c-modal>

@@ -4,6 +4,7 @@ import {RxStompState} from '@stomp/rx-stomp';
 import {WebsocketService} from '../../../common/websocket/websocket.service';
 import {CameraDevice} from 'html5-qrcode/esm/camera/core';
 import {Html5QrcodeResult} from 'html5-qrcode/core';
+import {Colors} from '@coreui/angular';
 
 @Component({
   selector: 'tafel-scanner',
@@ -15,8 +16,8 @@ export class ScannerComponent implements OnInit, OnDestroy {
   availableCameras: CameraDevice[] = [];
   currentCamera: CameraDevice;
 
-  qrCodeReaderReady: boolean = false;
-  apiClientReady: boolean = false;
+  qrCodeReaderReady = false;
+  apiClientReady = false;
 
   lastSentText: string;
 
@@ -56,6 +57,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
     );
   }
 
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   qrCodeReaderSuccessCallback = (decodedText: string, result: Html5QrcodeResult) => {
     if (this.apiClientReady && (!this.lastSentText || this.lastSentText !== decodedText)) {
       const scanResult: ScanResult = {value: +decodedText};
@@ -100,6 +102,14 @@ export class ScannerComponent implements OnInit, OnDestroy {
 
     const promise = this.qrCodeReaderService.restart(camera.id);
     this.processQrCodeReaderPromise(promise);
+  }
+
+  get apiConnectionStateColor(): Colors {
+    return this.apiClientReady ? 'success' : 'danger';
+  }
+
+  get webcamStateColor(): Colors {
+    return this.qrCodeReaderReady ? 'success' : 'danger';
   }
 
 }

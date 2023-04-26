@@ -7,6 +7,7 @@ import * as moment from 'moment';
 import {of, throwError} from 'rxjs';
 import {CustomerApiService} from '../../../../api/customer-api.service';
 import {CustomerSearchComponent} from './customer-search.component';
+import {CardModule, ColComponent, RowComponent} from '@coreui/angular';
 
 describe('CustomerSearchComponent', () => {
   let apiService: jasmine.SpyObj<CustomerApiService>;
@@ -35,7 +36,10 @@ describe('CustomerSearchComponent', () => {
     TestBed.configureTestingModule({
       imports: [
         RouterTestingModule,
-        ReactiveFormsModule
+        ReactiveFormsModule,
+        CardModule,
+        RowComponent,
+        ColComponent
       ],
       declarations: [
         CustomerSearchComponent,

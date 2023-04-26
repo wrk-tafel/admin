@@ -1,5 +1,5 @@
 import {Component} from '@angular/core';
-import {FormControl, FormGroup, ValidatorFn, Validators} from '@angular/forms';
+import {UntypedFormControl, UntypedFormGroup, ValidatorFn, Validators} from '@angular/forms';
 import {ChangePasswordRequest, ChangePasswordResponse, UserApiService} from '../../../api/user-api.service';
 import {catchError, map} from 'rxjs/operators';
 import {Observable, throwError} from 'rxjs';
@@ -7,23 +7,23 @@ import {HttpErrorResponse} from '@angular/common/http';
 
 @Component({
   selector: 'tafel-passwordchange-form',
-  templateUrl: './passwordchange-form.component.html'
+  templateUrl: 'passwordchange-form.component.html'
 })
 export class PasswordChangeFormComponent {
   successMessage: string;
   errorMessage: string;
   errorMessageDetails: string[];
 
-  form = new FormGroup({
-      currentPassword: new FormControl('', [
+  form = new UntypedFormGroup({
+      currentPassword: new UntypedFormControl('', [
         Validators.required
       ]),
-      newPassword: new FormControl('', [
+      newPassword: new UntypedFormControl('', [
         Validators.required,
         Validators.minLength(8),
         Validators.maxLength(50)
       ]),
-      newRepeatedPassword: new FormControl('', [
+      newRepeatedPassword: new UntypedFormControl('', [
         Validators.required,
         Validators.minLength(8),
         Validators.maxLength(50)
@@ -48,6 +48,7 @@ export class PasswordChangeFormComponent {
 
     return this.userApiService.changePassword(passwordChangeRequest).pipe(
       map(
+        /* eslint-disable @typescript-eslint/no-unused-vars */
         (response: ChangePasswordResponse) => {
           this.errorMessage = null;
           this.errorMessageDetails = null;
@@ -60,6 +61,7 @@ export class PasswordChangeFormComponent {
           const errorBody = error.error as ChangePasswordResponse;
           this.errorMessage = errorBody.message;
           this.errorMessageDetails = errorBody.details;
+          this.successMessage = null;
           return throwError(false);
         }
       )
@@ -74,7 +76,7 @@ export class PasswordChangeFormComponent {
   }
 
   validateNewAndRepeatedPasswords(): ValidatorFn {
-    return (formGroup: FormGroup) => {
+    return (formGroup: UntypedFormGroup) => {
       const newPassword = formGroup.get('newPassword').value;
       const newRepeatedPassword = formGroup.get('newRepeatedPassword').value;
 

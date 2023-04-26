@@ -4,14 +4,23 @@ import {ReactiveFormsModule} from '@angular/forms';
 import {ActivatedRoute, Router} from '@angular/router';
 import {RouterTestingModule} from '@angular/router/testing';
 import * as moment from 'moment';
-import {ModalModule} from 'ngx-bootstrap/modal';
 import {of} from 'rxjs';
 import {CustomerApiService, CustomerData} from '../../../../api/customer-api.service';
 import {CustomerFormComponent} from '../customer-form/customer-form.component';
 import {CustomerEditComponent} from './customer-edit.component';
 import {By} from '@angular/platform-browser';
+import {
+  BgColorDirective,
+  CardModule,
+  ColComponent,
+  InputGroupComponent,
+  ModalModule,
+  RowComponent
+} from '@coreui/angular';
+import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 
 describe('CustomerEditComponent - Creating a new customer', () => {
+
   const testCountry = {
     id: 0,
     code: 'AT',
@@ -64,15 +73,22 @@ describe('CustomerEditComponent - Creating a new customer', () => {
 
   let router: jasmine.SpyObj<Router>;
   let apiService: jasmine.SpyObj<CustomerApiService>;
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   let activatedRoute: ActivatedRoute;
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       imports: [
+        NoopAnimationsModule,
         HttpClientTestingModule,
         RouterTestingModule,
         ReactiveFormsModule,
-        ModalModule.forRoot()
+        ModalModule,
+        InputGroupComponent,
+        CardModule,
+        RowComponent,
+        ColComponent,
+        BgColorDirective
       ],
       declarations: [
         CustomerEditComponent,
@@ -127,6 +143,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
 
     component.save();
 
+    fixture.detectChanges();
     expect(customerFormComponent.markAllAsTouched).toHaveBeenCalled();
     expect(apiService.createCustomer).toHaveBeenCalledWith(jasmine.objectContaining(testCustomerData));
     expect(router.navigate).toHaveBeenCalledWith(['/kunden/detail', testCustomerData.id]);
@@ -151,10 +168,16 @@ describe('CustomerEditComponent - Creating a new customer', () => {
   });
 
   it('new customer validated successfully', () => {
+    const fixture = TestBed.createComponent(CustomerEditComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
     const customerFormComponent = jasmine.createSpyObj('CustomerFormComponent', ['markAllAsTouched', 'isValid']);
     customerFormComponent.isValid.and.returnValue(true);
 
-    const validationResultModal = jasmine.createSpyObj('ValidationResultModal', ['show']);
+    component.customerFormComponent = customerFormComponent;
+    component.showValidationResultModal = false;
+    component.customerUpdated = testCustomerData;
 
     apiService.validate.and.returnValue(of({
       valid: true,
@@ -164,25 +187,18 @@ describe('CustomerEditComponent - Creating a new customer', () => {
       totalSum: 1000
     }));
 
-    const fixture = TestBed.createComponent(CustomerEditComponent);
-    const component = fixture.componentInstance;
-    component.customerFormComponent = customerFormComponent;
-    component.validationResultModal = validationResultModal;
-    component.customerUpdated = testCustomerData;
-
     component.validate();
 
+    fixture.detectChanges();
     expect(customerFormComponent.markAllAsTouched).toHaveBeenCalled();
     expect(apiService.validate).toHaveBeenCalledWith(jasmine.objectContaining(testCustomerData));
     expect(component.customerValidForSave).toBeTrue();
-    expect(validationResultModal.show).toHaveBeenCalled();
+    expect(component.showValidationResultModal).toBeTruthy();
   });
 
   it('new customer validation failed', () => {
     const customerFormComponent = jasmine.createSpyObj('CustomerFormComponent', ['markAllAsTouched', 'isValid']);
     customerFormComponent.isValid.and.returnValue(true);
-
-    const validationResultModal = jasmine.createSpyObj('ValidationResultModal', ['show']);
 
     apiService.validate.and.returnValue(of({
       valid: false,
@@ -195,15 +211,16 @@ describe('CustomerEditComponent - Creating a new customer', () => {
     const fixture = TestBed.createComponent(CustomerEditComponent);
     const component = fixture.componentInstance;
     component.customerFormComponent = customerFormComponent;
-    component.validationResultModal = validationResultModal;
+    component.showValidationResultModal = false;
     component.customerUpdated = testCustomerData;
 
     component.validate();
 
+    fixture.detectChanges();
     expect(customerFormComponent.markAllAsTouched).toHaveBeenCalled();
     expect(apiService.validate).toHaveBeenCalledWith(jasmine.objectContaining(testCustomerData));
     expect(component.customerValidForSave).toBeFalse();
-    expect(validationResultModal.show).toHaveBeenCalled();
+    expect(component.showValidationResultModal).toBeTruthy();
   });
 
 });

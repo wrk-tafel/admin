@@ -11,8 +11,8 @@ import {CustomerNoteApiService, CustomerNotesResponse} from '../../../api/custom
 import {GlobalStateService} from '../../../common/state/global-state.service';
 import {Router} from '@angular/router';
 import {DistributionApiService, DistributionItem} from '../../../api/distribution-api.service';
-import {ModalModule} from 'ngx-bootstrap/modal';
 import {RouterTestingModule} from '@angular/router/testing';
+import {BadgeModule, CardModule, ColComponent, ModalModule, RowComponent} from '@coreui/angular';
 
 describe('CheckinComponent', () => {
   let customerApiService: jasmine.SpyObj<CustomerApiService>;
@@ -33,7 +33,15 @@ describe('CheckinComponent', () => {
     const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
 
     TestBed.configureTestingModule({
-      imports: [CommonModule, RouterTestingModule, ModalModule],
+      imports: [
+        CommonModule,
+        RouterTestingModule,
+        ModalModule,
+        RowComponent,
+        ColComponent,
+        CardModule,
+        BadgeModule
+      ],
       declarations: [CheckinComponent],
       providers: [
         {
@@ -505,6 +513,38 @@ describe('CheckinComponent', () => {
     expect(distributionApiService.assignCustomer).toHaveBeenCalledWith(mockCustomer.id, ticketNumber);
 
     expect(component.errorMessage).toBe('Kunde konnte nicht zugewiesen werden!');
+  });
+
+  it('assign customer ignored without proper value', () => {
+    const fixture = TestBed.createComponent(CheckinComponent);
+    const component = fixture.componentInstance;
+
+    const mockCustomer = {
+      id: 133,
+      lastname: 'Mustermann',
+      firstname: 'Max',
+      birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
+
+      address: {
+        street: 'Teststraße',
+        houseNumber: '123A',
+        door: '21',
+        postalCode: 1020,
+        city: 'Wien',
+      },
+
+      employer: 'test employer',
+      income: 1000,
+
+      validUntil: moment().add(3, 'months').startOf('day').utc().toDate()
+    };
+    component.processCustomer(mockCustomer);
+
+    component.ticketNumber = undefined;
+
+    component.assignCustomer();
+
+    expect(distributionApiService.assignCustomer).not.toHaveBeenCalled();
   });
 
 });

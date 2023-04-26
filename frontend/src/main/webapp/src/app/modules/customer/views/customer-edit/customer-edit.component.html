@@ -3,48 +3,39 @@
         <div testid="errorMessageContent">{{errorMessage}}</div>
     </div>
     <tafel-customer-form [customerData]="customerInput" (customerDataChange)="customerDataUpdated($event)" [editMode]="editMode"></tafel-customer-form>
-    <button testid="validate-button" class="btn btn-primary px-4 mb-3" (click)="validate()">Anspruch prüfen</button>
-    <button testid="save-button" class="btn px-4 mb-3 ml-2" (click)="save()" [disabled]="isSaveDisabled()"
+    <button testid="validate-button" class="btn btn-primary px-4 mt-3 text-white" (click)="validate()">Anspruch prüfen</button>
+    <button testid="save-button" class="btn px-4 mt-3 ms-2 text-white" (click)="save()" [disabled]="isSaveDisabled()"
         [ngClass]="{'btn-danger': isSaveDisabled(), 'btn-success': !isSaveDisabled()}">Speichern</button>
 </div>
-<div testid="validationresult-modal" bsModal #validationResultModal="bs-modal" class="modal fade" tabindex="-1"
-    role="dialog" aria-labelledby="validationResultModalLabel" aria-hidden="true">
-    <div testid="validationresult-modal-dialog" class="modal-dialog" role="document"
-        [ngClass]="{'modal-danger': validationResult?.valid === false, 'modal-success': validationResult?.valid === true}">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h4 testid="title" class="modal-title">
-                    {{validationResult?.valid === true ? "Anspruch vorhanden" : "Kein Anspruch vorhanden"}}
-                </h4>
-                <button type="button" class="close" (click)="validationResultModal.hide()" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div class="row">
-                    <div class="col-6 font-weight-bold">Limit (inkl. Toleranz von
-                        {{validationResult?.toleranceValue}}&nbsp;&euro;):</div>
-                    <div class="col-2">{{validationResult?.limit}}&nbsp;&euro;</div>
-                </div>
-                <div class="row">
-                    <div class="col-6 font-weight-bold">Einkommen gesamt:</div>
-                    <div class="col-2">{{validationResult?.totalSum}}&nbsp;&euro;</div>
-                </div>
-                <div class="row">
-                    <div class="col-8">
-                        <hr>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-6 font-weight-bold">Einkommen über Limit:</div>
-                    <div class="col-2" [ngClass]="{'text-danger': validationResult?.valid === false}">
-                        {{validationResult?.amountExceededLimit}}&nbsp;&euro;</div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button testid="ok-button" type="button" class="btn btn-primary"
-                    (click)="validationResultModal.hide()">OK</button>
-            </div>
-        </div>
+<c-modal id="validationResultModal" #validationResultModal testid="validationresult-modal" [(visible)]="showValidationResultModal">
+  <c-modal-header [cBgColor]="getValidationResultColor()" testid="header">
+    <h4 testid="title" class="text-white">
+      {{validationResult?.valid === true ? "Anspruch vorhanden" : "Kein Anspruch vorhanden"}}
+    </h4>
+    <button [cModalToggle]="validationResultModal.id" cButtonClose></button>
+  </c-modal-header>
+  <c-modal-body>
+    <div class="row">
+      <div class="col-6 fw-bold">Limit (inkl. Toleranz von {{validationResult?.toleranceValue}}&nbsp;&euro;):</div>
+      <div class="col-2">{{validationResult?.limit}}&nbsp;&euro;</div>
     </div>
-</div>
+    <div class="row">
+      <div class="col-6 fw-bold">Einkommen gesamt:</div>
+      <div class="col-2">{{validationResult?.totalSum}}&nbsp;&euro;</div>
+    </div>
+    <div class="row">
+      <div class="col-8">
+        <hr>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-6 fw-bold">Einkommen über Limit:</div>
+      <div class="col-2" [ngClass]="{'text-danger': validationResult?.valid === false}">
+        {{validationResult?.amountExceededLimit}}&nbsp;&euro;</div>
+    </div>
+  </c-modal-body>
+  <c-modal-footer>
+    <button testid="ok-button" cButton color="primary" class="text-white"
+            (click)="showValidationResultModal = false">OK</button>
+  </c-modal-footer>
+</c-modal>

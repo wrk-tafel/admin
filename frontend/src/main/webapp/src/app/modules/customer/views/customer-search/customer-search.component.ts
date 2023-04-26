@@ -1,5 +1,5 @@
 import {Component} from '@angular/core';
-import {FormControl, FormGroup} from '@angular/forms';
+import {UntypedFormControl, UntypedFormGroup} from '@angular/forms';
 import {Router} from '@angular/router';
 import {CustomerAddressData, CustomerApiService, CustomerSearchResult} from '../../../../api/customer-api.service';
 
@@ -10,10 +10,10 @@ import {CustomerAddressData, CustomerApiService, CustomerSearchResult} from '../
 export class CustomerSearchComponent {
   errorMessage: string;
   searchResult: CustomerSearchResult;
-  customerSearchForm = new FormGroup({
-    customerId: new FormControl(''),
-    lastname: new FormControl(''),
-    firstname: new FormControl('')
+  customerSearchForm = new UntypedFormGroup({
+    customerId: new UntypedFormControl(''),
+    lastname: new UntypedFormControl(''),
+    firstname: new UntypedFormControl('')
   });
 
   constructor(

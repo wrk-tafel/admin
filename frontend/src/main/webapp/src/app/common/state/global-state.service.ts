@@ -14,10 +14,12 @@ export class GlobalStateService {
   ) {
   }
 
+  /* eslint-disable @typescript-eslint/no-explicit-any */
   init(): Promise<any> {
     return this.getCurrentDistributionPromise();
   }
 
+  /* eslint-disable @typescript-eslint/no-explicit-any */
   private getCurrentDistributionPromise(): Promise<any> {
     return new Promise((resolve, reject) => {
       this.distributionApiService.getCurrentDistribution()

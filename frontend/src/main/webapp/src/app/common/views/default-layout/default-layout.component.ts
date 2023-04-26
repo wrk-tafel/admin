@@ -1,20 +1,19 @@
-import {Component, OnInit, ViewChild} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {AuthenticationService} from '../../security/authentication.service';
 import {ITafelNavData, navigationMenuItems} from '../../../modules/dashboard/navigation-menuItems';
-import {PasswordChangeModalComponent} from '../passwordchange-modal/passwordchange-modal.component';
 import {DistributionItem} from '../../../api/distribution-api.service';
 import {GlobalStateService} from '../../state/global-state.service';
 
 @Component({
   selector: 'tafel-default-layout',
-  templateUrl: './default-layout.component.html'
+  templateUrl: 'default-layout.component.html'
 })
 export class DefaultLayoutComponent implements OnInit {
-  public sidebarMinimized = false;
-  public navItems: ITafelNavData[] = navigationMenuItems;
+  public perfectScrollbarConfig = {
+    suppressScrollX: true,
+  };
 
-  @ViewChild(PasswordChangeModalComponent)
-  private passwordChangeModalComponent: PasswordChangeModalComponent;
+  public navItems: ITafelNavData[] = navigationMenuItems;
 
   constructor(
     private auth: AuthenticationService,
@@ -30,20 +29,6 @@ export class DefaultLayoutComponent implements OnInit {
       }
       this.navItems = this.editNavItemsForDistributionState(this.navItems, distribution);
     });
-  }
-
-  toggleMinimize(e) {
-    this.sidebarMinimized = e;
-  }
-
-  public onLogout() {
-    this.auth.logout().subscribe(_ => {
-      this.auth.redirectToLogin();
-    });
-  }
-
-  public changePassword() {
-    this.passwordChangeModalComponent.showDialog();
   }
 
   public filterNavItemsByPermissions(navItems: ITafelNavData[]): ITafelNavData[] {
@@ -90,8 +75,8 @@ export class DefaultLayoutComponent implements OnInit {
         const modifiedNavItem = {
           ...navItem,
           badge: {
-            variant: 'danger',
-            text: 'INAKTIV'
+            text: 'INAKTIV',
+            color: 'danger'
           },
           attributes: {disabled: true}
         };

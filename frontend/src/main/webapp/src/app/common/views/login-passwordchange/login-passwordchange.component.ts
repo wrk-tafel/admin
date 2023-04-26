@@ -34,7 +34,7 @@ export class LoginPasswordChangeComponent {
     this.router.navigate(['login']);
   }
 
-  isSaveDisabled(): Boolean {
+  isSaveDisabled(): boolean {
     return !this.form?.isValid();
   }
 
