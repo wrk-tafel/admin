@@ -14,6 +14,7 @@ export class CustomerNotesResolver implements Resolve<CustomerNoteItem[]> {
   ) {
   }
 
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   public resolve(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<CustomerNoteItem[]> {
     const customerId = +route.params['id'];
     return this.customerNoteApiService.getNotesForCustomer(customerId).pipe(map(response => response.notes));

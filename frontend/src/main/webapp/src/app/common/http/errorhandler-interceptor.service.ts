@@ -15,6 +15,7 @@ export class ErrorHandlerInterceptor implements HttpInterceptor {
 
   private ERRORCODES_WHITELIST = [401, 404, 422];
 
+  /* eslint-disable @typescript-eslint/no-explicit-any */
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     return next.handle(req)
       .pipe(catchError((error) => this.handleAuthError(error)))

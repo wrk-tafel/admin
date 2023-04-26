@@ -1,31 +1,24 @@
 import {TestBed, waitForAsync} from '@angular/core/testing';
-import {DistributionApiService} from '../../../../api/distribution-api.service';
-import {ModalModule} from 'ngx-bootstrap/modal';
 import {RouterTestingModule} from '@angular/router/testing';
 import {RegisteredCustomersComponent} from './registered-customers.component';
 import {By} from '@angular/platform-browser';
+import {CardModule, ColComponent, ModalModule, RowComponent} from '@coreui/angular';
 
 describe('RegisteredCustomersComponent', () => {
-  let distributionApiService: jasmine.SpyObj<DistributionApiService>;
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       imports: [
         RouterTestingModule,
-        ModalModule.forRoot()
+        ModalModule,
+        CardModule,
+        ColComponent,
+        RowComponent
       ],
       declarations: [
         RegisteredCustomersComponent
-      ],
-      providers: [
-        {
-          provide: DistributionApiService,
-          useValue: jasmine.createSpyObj('DistributionApiService', [''])
-        }
       ]
     }).compileComponents();
-
-    distributionApiService = TestBed.inject(DistributionApiService) as jasmine.SpyObj<DistributionApiService>;
   }));
 
   it('component can be created', () => {

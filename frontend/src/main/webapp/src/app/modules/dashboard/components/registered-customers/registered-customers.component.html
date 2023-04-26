@@ -1,15 +1,14 @@
-<div class="card dashboard-panel bg-primary">
-  <div class="card-body pb-0">
-    <div class="row">
-      <div class="col-sm-12">
-        <h4 class="card-title">Kunden angemeldet</h4>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col mb-5">
-        <div *ngIf="count" testid="customers-count" class="text-value text-right dashboard-number-huge">{{count}}</div>
-        <div *ngIf="!count" testid="customers-count" class="text-value text-right dashboard-number-huge">-</div>
-      </div>
-    </div>
-  </div>
-</div>
+<c-card class="dashboard-panel" color="primary">
+  <c-card-body>
+    <c-row>
+      <c-col sm="12">
+        <h4 class="card-title text-white">Kunden angemeldet</h4>
+      </c-col>
+    </c-row>
+    <c-row>
+      <c-col class="mb-5">
+        <div testid="customers-count" class="text-white text-end dashboard-number-huge">{{count ?? '-'}}</div>
+      </c-col>
+    </c-row>
+  </c-card-body>
+</c-card>

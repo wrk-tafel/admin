@@ -1,8 +1,8 @@
 import {ComponentFixture, TestBed, waitForAsync} from '@angular/core/testing';
-import {ModalModule} from 'ngx-bootstrap/modal';
 import {HttpClientTestingModule, HttpTestingController} from '@angular/common/http/testing';
 import {FormControl, FormGroup} from '@angular/forms';
 import {PasswordChangeFormComponent} from './passwordchange-form.component';
+import {ModalModule} from '@coreui/angular';
 
 describe('PasswordChangeFormComponent', () => {
   let httpMock: HttpTestingController;
@@ -12,7 +12,7 @@ describe('PasswordChangeFormComponent', () => {
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       imports: [
-        ModalModule.forRoot(),
+        ModalModule,
         HttpClientTestingModule
       ],
       declarations: [

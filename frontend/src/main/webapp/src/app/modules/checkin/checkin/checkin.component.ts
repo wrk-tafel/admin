@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {Component, OnDestroy, OnInit} from '@angular/core';
 import {CustomerApiService, CustomerData} from '../../../api/customer-api.service';
 import {WebsocketService} from '../../../common/websocket/websocket.service';
 import {Subscription} from 'rxjs';
@@ -8,8 +8,8 @@ import {ScannerList} from '../scanner/scanner.component';
 import {CustomerNoteApiService, CustomerNoteItem} from '../../../api/customer-note-api.service';
 import {GlobalStateService} from '../../../common/state/global-state.service';
 import {Router} from '@angular/router';
-import {ModalDirective} from 'ngx-bootstrap/modal';
 import {DistributionApiService} from '../../../api/distribution-api.service';
+import {Colors} from '@coreui/angular';
 
 @Component({
   selector: 'tafel-checkin',
@@ -29,8 +29,6 @@ export class CheckinComponent implements OnInit, OnDestroy {
 
   private VALID_UNTIL_WARNLIMIT_WEEKS = 8;
 
-  @ViewChild('assignCustomerModal') public assignCustomerModal: ModalDirective;
-
   errorMessage: string;
 
   scannerIds: number[];
@@ -46,8 +44,7 @@ export class CheckinComponent implements OnInit, OnDestroy {
   customerNotes: CustomerNoteItem[];
   ticketNumber: number;
   focusTicketNumberInput: boolean;
-  focusCustomerIdInput: boolean = true;
-  focusResetButton: boolean = false;
+  focusResetButton = false;
 
   ngOnInit(): void {
     if (this.globalStateService.getCurrentDistribution().value === null) {
@@ -168,6 +165,7 @@ export class CheckinComponent implements OnInit, OnDestroy {
 
   assignCustomer() {
     if (this.ticketNumber > 0) {
+      /* eslint-disable @typescript-eslint/no-unused-vars */
       this.distributionApiService.assignCustomer(this.customer.id, this.ticketNumber).subscribe(
         response => {
           this.reset();
@@ -179,6 +177,20 @@ export class CheckinComponent implements OnInit, OnDestroy {
     }
   }
 
+  get scannerReadyStateColor(): Colors {
+    return this.scannerReadyState ? 'success' : 'danger';
+  }
+
+  get customerStateColor(): Colors {
+    switch (this.customerState) {
+      case CustomerState.RED:
+        return 'danger';
+      case CustomerState.YELLOW:
+        return 'warning';
+      case CustomerState.GREEN:
+        return 'success';
+    }
+  }
 }
 
 export enum CustomerState {

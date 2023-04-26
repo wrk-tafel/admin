@@ -1,45 +1,38 @@
-<div class="app-body">
-  <main class="main d-flex align-items-center">
-    <div class="container">
-      <div class="row">
-        <div class="col-md-8 mx-auto">
-          <div class="card-group">
-            <div class="card p-4">
-              <div class="card-body">
-                <form [formGroup]="loginForm" (ngSubmit)="login()">
-                  <div class="mb-4 text-center">
-                    <img src="./assets/img/brand/logo.svg" width="200px" class="mb-2" />
-                    <h1>Tafel Admin</h1>
-                  </div>
-                  <div testid="errorMessage" *ngIf="errorMessage" class="alert alert-danger">
-                    <div>{{errorMessage}}</div>
-                  </div>
-                  <div class="input-group mb-3">
-                    <div class="input-group-prepend">
-                      <span class="input-group-text"><i class="icon-user"></i></span>
-                    </div>
-                    <input formControlName="username" testid="username" name="username" type="text" class="form-control"
-                      placeholder="Benutzername" autocomplete="username" required autofocus>
-                  </div>
-                  <div class="input-group mb-4">
-                    <div class="input-group-prepend">
-                      <span class="input-group-text"><i class="icon-lock"></i></span>
-                    </div>
-                    <input formControlName="password" testid="password" name="password" type="password"
-                      class="form-control" placeholder="Passwort" autocomplete="current-password" required>
-                  </div>
-                  <div class="row">
-                    <div class="col-6">
-                      <button testid="loginButton" class="btn btn-primary px-4" type="submit"
-                        [disabled]="!loginForm.valid">Anmelden</button>
-                    </div>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </main>
+<div class="bg-light min-vh-100 d-flex flex-row align-items-center">
+  <c-container>
+    <c-row class="justify-content-center">
+      <c-col md="8">
+        <c-card-group>
+          <c-card class="p-4">
+            <c-card-body>
+              <form cForm [formGroup]="loginForm" (ngSubmit)="login()">
+                <div class="mb-4 text-center">
+                  <img ngSrc="./assets/img/brand/logo.svg" width="200px" class="mb-2" height="54"/>
+                  <h1>Tafel Admin</h1>
+                </div>
+                <div testid="errorMessage" *ngIf="errorMessage" class="alert alert-danger">
+                  <div>{{errorMessage}}</div>
+                </div>
+                <c-input-group class="mb-3">
+                  <span cInputGroupText>
+                    <svg cIcon name="cilUser"></svg>
+                  </span>
+                  <input formControlName="username" testid="username" name="username" type="text" class="form-control"
+                         placeholder="Benutzername" autocomplete="username" required autofocus>
+                </c-input-group>
+                <c-input-group class="mb-4">
+                  <span cInputGroupText>
+                    <svg cIcon name="cilLockLocked"></svg>
+                  </span>
+                  <input formControlName="password" testid="password" name="password" type="password"
+                         class="form-control" placeholder="Passwort" autocomplete="current-password" required>
+                </c-input-group>
+                <button testid="loginButton" class="btn btn-primary px-4 text-white" type="submit" [disabled]="!loginForm.valid">Anmelden</button>
+              </form>
+            </c-card-body>
+          </c-card>
+        </c-card-group>
+      </c-col>
+    </c-row>
+  </c-container>
 </div>

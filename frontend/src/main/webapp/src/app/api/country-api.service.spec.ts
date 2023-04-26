@@ -1,10 +1,8 @@
-import {HttpClient} from '@angular/common/http';
 import {HttpClientTestingModule, HttpTestingController} from '@angular/common/http/testing';
 import {TestBed} from '@angular/core/testing';
 import {CountryApiService, CountryData} from './country-api.service';
 
 describe('CountryApiService', () => {
-  let client: HttpClient;
   let httpMock: HttpTestingController;
   let apiService: CountryApiService;
 
@@ -14,7 +12,6 @@ describe('CountryApiService', () => {
       providers: [CountryApiService]
     });
 
-    client = TestBed.inject(HttpClient);
     httpMock = TestBed.inject(HttpTestingController);
     apiService = TestBed.inject(CountryApiService);
   });

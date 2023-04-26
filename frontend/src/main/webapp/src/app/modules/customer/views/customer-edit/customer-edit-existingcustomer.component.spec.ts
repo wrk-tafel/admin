@@ -4,11 +4,19 @@ import {ReactiveFormsModule} from '@angular/forms';
 import {ActivatedRoute, Router} from '@angular/router';
 import {RouterTestingModule} from '@angular/router/testing';
 import * as moment from 'moment';
-import {ModalModule} from 'ngx-bootstrap/modal';
 import {of} from 'rxjs';
 import {CustomerApiService, CustomerData} from '../../../../api/customer-api.service';
 import {CustomerFormComponent} from '../customer-form/customer-form.component';
 import {CustomerEditComponent} from './customer-edit.component';
+import {
+  BgColorDirective,
+  CardModule,
+  ColComponent,
+  InputGroupComponent,
+  ModalModule,
+  RowComponent
+} from '@coreui/angular';
+import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 
 describe('CustomerEditComponent - Editing an existing customer', () => {
   const testCountry = {
@@ -75,7 +83,13 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
         HttpClientTestingModule,
         RouterTestingModule,
         ReactiveFormsModule,
-        ModalModule.forRoot()
+        ModalModule,
+        NoopAnimationsModule,
+        CardModule,
+        InputGroupComponent,
+        RowComponent,
+        ColComponent,
+        BgColorDirective
       ],
       declarations: [
         CustomerEditComponent,
@@ -84,7 +98,7 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
       providers: [
         {
           provide: CustomerApiService,
-          useValue: jasmine.createSpyObj('CustomerApiService', ['validate', 'getCustomer', 'updateCustomer'])
+          useValue: jasmine.createSpyObj('CustomerApiService', ['validate', 'getCustomer', 'createCustomer', 'updateCustomer'])
         },
         {
           provide: Router,
@@ -137,6 +151,7 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
 
     component.save();
 
+    fixture.detectChanges();
     expect(component.editMode).toBeTrue();
     expect(component.customerInput).toEqual(testCustomerData);
     expect(customerFormComponent.markAllAsTouched).toHaveBeenCalled();
@@ -159,6 +174,7 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
 
     component.save();
 
+    fixture.detectChanges();
     expect(component.editMode).toBeTrue();
     expect(component.customerInput).toEqual(testCustomerData);
     expect(customerFormComponent.markAllAsTouched).toHaveBeenCalled();
@@ -169,7 +185,7 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
   it('existing customer save failed when form is invalid', () => {
     const customerFormComponent = jasmine.createSpyObj('CustomerFormComponent', ['markAllAsTouched', 'isValid']);
     customerFormComponent.isValid.and.returnValue(false);
-    apiService.getCustomer.withArgs(testCustomerData.id).and.returnValue(of(testCustomerData));
+    apiService.updateCustomer.withArgs(testCustomerData).and.returnValue(of(testCustomerData));
 
     const fixture = TestBed.createComponent(CustomerEditComponent);
     const component = fixture.componentInstance;
@@ -179,6 +195,7 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
 
     component.save();
 
+    fixture.detectChanges();
     expect(component.editMode).toBeTrue();
     expect(component.customerInput).toEqual(testCustomerData);
     expect(customerFormComponent.markAllAsTouched).toHaveBeenCalled();

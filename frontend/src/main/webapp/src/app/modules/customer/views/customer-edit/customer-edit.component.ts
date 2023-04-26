@@ -1,8 +1,8 @@
 import {Component, OnInit, ViewChild} from '@angular/core';
 import {CustomerFormComponent} from '../customer-form/customer-form.component';
 import {CustomerApiService, CustomerData, ValidateCustomerResponse} from '../../../../api/customer-api.service';
-import {ModalDirective} from 'ngx-bootstrap/modal';
 import {ActivatedRoute, Router} from '@angular/router';
+import {Colors} from '@coreui/angular';
 
 @Component({
   selector: 'tafel-customer-edit',
@@ -11,12 +11,13 @@ import {ActivatedRoute, Router} from '@angular/router';
 export class CustomerEditComponent implements OnInit {
   customerInput: CustomerData;
   customerUpdated: CustomerData;
-  editMode: boolean = false;
-  customerValidForSave: boolean = false;
+  editMode = false;
+  customerValidForSave = false;
   errorMessage: string;
-  @ViewChild(CustomerFormComponent) customerFormComponent: CustomerFormComponent;
-  @ViewChild('validationResultModal') validationResultModal: ModalDirective;
   validationResult: ValidateCustomerResponse;
+  showValidationResultModal = false;
+
+  @ViewChild(CustomerFormComponent) customerFormComponent: CustomerFormComponent;
 
   constructor(
     private customerApiService: CustomerApiService,
@@ -58,7 +59,7 @@ export class CustomerEditComponent implements OnInit {
         this.validationResult = result;
 
         this.customerValidForSave = result.valid;
-        this.validationResultModal.show();
+        this.showValidationResultModal = true;
       });
     }
   }
@@ -83,6 +84,13 @@ export class CustomerEditComponent implements OnInit {
 
   isSaveDisabled(): boolean {
     return !this.formIsValid() || !this.customerValidForSave;
+  }
+
+  getValidationResultColor(): Colors {
+    if (this.validationResult?.valid === false) {
+      return 'danger';
+    }
+    return 'success';
   }
 
   private formIsValid() {

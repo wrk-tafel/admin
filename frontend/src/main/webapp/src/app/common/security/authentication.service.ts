@@ -1,7 +1,7 @@
 import {HttpClient, HttpHeaders} from '@angular/common/http';
 import {Injectable} from '@angular/core';
 import {Router} from '@angular/router';
-import {combineLatest, Observable, of} from 'rxjs';
+import {Observable, of} from 'rxjs';
 import {catchError, map, tap} from 'rxjs/operators';
 
 @Injectable({
@@ -23,6 +23,7 @@ export class AuthenticationService {
           await this.loadUserInfo();
           return {successful: true, passwordChangeRequired: response.passwordChangeRequired};
         }),
+        /* eslint-disable @typescript-eslint/no-unused-vars */
         catchError(_ => {
           this.userInfo = null;
           return of({successful: false, passwordChangeRequired: false});
@@ -30,7 +31,7 @@ export class AuthenticationService {
       .toPromise();
   }
 
-  public isAuthenticated(): Boolean {
+  public isAuthenticated(): boolean {
     return this.userInfo !== null;
   }
 
@@ -75,6 +76,7 @@ export class AuthenticationService {
           this.userInfo = userInfo;
           return of(userInfo);
         }),
+        /* eslint-disable @typescript-eslint/no-unused-vars */
         catchError(_ => {
           return of(null);
         })

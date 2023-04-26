@@ -64,6 +64,10 @@ export const routes: Routes = [
         data: {
           permission: 'CUSTOMER'
         }
+      },
+      {
+        path: 'benutzer',
+        loadChildren: () => import('./modules/user/user.module').then(m => m.UserModule)
       }
     ]
   },

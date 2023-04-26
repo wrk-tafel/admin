@@ -174,6 +174,7 @@ describe('AuthenticationService', () => {
   it('logout', () => {
     service.userInfo = {username: 'test-user', permissions: ['PERM1']};
 
+    /* eslint-disable @typescript-eslint/no-unused-vars */
     service.logout().subscribe(response => {
       expect(service.userInfo).toBeNull();
     });

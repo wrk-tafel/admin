@@ -1,14 +1,23 @@
 import {NgModule} from '@angular/core';
 import {TafelIfPermissionDirective} from './security/tafel-if-permission.directive';
+import {PasswordChangeFormComponent} from './views/passwordchange-form/passwordchange-form.component';
+import {ReactiveFormsModule} from '@angular/forms';
+import {CommonModule} from '@angular/common';
 
 @NgModule({
   declarations: [
-    TafelIfPermissionDirective
+    TafelIfPermissionDirective,
+    PasswordChangeFormComponent
+  ],
+  imports: [
+    ReactiveFormsModule,
+    CommonModule
   ],
   exports: [
-    TafelIfPermissionDirective
+    TafelIfPermissionDirective,
+    PasswordChangeFormComponent
   ]
 })
-// TODO adding also views, services, etc?
+// TODO add also views, services, etc?
 export class TafelCommonModule {
 }
