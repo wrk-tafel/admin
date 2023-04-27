@@ -48,10 +48,10 @@ export class TafelToasterComponent implements OnInit {
         return 'danger';
       case ToastType.INFO:
         return 'info';
+      case ToastType.SUCCESS:
+        return 'success';
       case ToastType.WARN:
         return 'warning';
-      case ToastType.ERROR:
-        return 'danger';
     }
   }
 
