@@ -1,8 +1,11 @@
 import {Component, OnInit, ViewChild} from '@angular/core';
 import {ToastOptions, ToastService, ToastType} from './toast.service';
 import {ToasterComponent} from '@coreui/angular';
-import {TafelToastErrorComponent} from './variants/tafel-toast-error.component';
+import {TafelToastErrorComponent} from './variants/error/tafel-toast-error.component';
 import {TafelToastComponent} from './variants/tafel-toast-component';
+import {TafelToastInfoComponent} from "./variants/info/tafel-toast-info.component";
+import {TafelToastSuccessComponent} from "./variants/success/tafel-toast-success.component";
+import {TafelToastWarnComponent} from "./variants/warn/tafel-toast-warn.component";
 
 @Component({
   selector: 'tafel-toaster',
@@ -28,11 +31,11 @@ export class TafelToasterComponent implements OnInit {
       case ToastType.ERROR:
         return TafelToastErrorComponent;
       case ToastType.INFO:
-        // TODO create info component
-        return TafelToastErrorComponent;
+        return TafelToastInfoComponent;
       case ToastType.SUCCESS:
-        // TODO create success component
-        return TafelToastErrorComponent;
+        return TafelToastSuccessComponent;
+      case ToastType.WARN:
+        return TafelToastWarnComponent;
     }
   }
 

@@ -1,8 +1,8 @@
 import {Component} from '@angular/core';
-import {TafelToastComponent} from './tafel-toast-component';
+import {TafelToastComponent} from '../tafel-toast-component';
 
 @Component({
-  selector: 'tafel-error-toast',
+  selector: 'tafel-toast-error',
   templateUrl: 'tafel-toast-error.component.html'
 })
 export class TafelToastErrorComponent implements TafelToastComponent {

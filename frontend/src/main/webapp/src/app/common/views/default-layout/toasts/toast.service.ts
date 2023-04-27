@@ -15,7 +15,7 @@ export class ToastService {
 }
 
 export enum ToastType {
-  ERROR, SUCCESS, INFO
+  ERROR, INFO, SUCCESS, WARN
 }
 
 export interface ToastOptions {
