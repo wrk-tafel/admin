@@ -1,8 +1,8 @@
 import {TestBed, waitForAsync} from '@angular/core/testing';
-import {ErrorToastComponent} from './error-toast.component';
 import {CommonModule} from '@angular/common';
+import {TafelToastErrorComponent} from './tafel-toast-error.component';
 
-describe('ErrorToastComponent', () => {
+describe('ToastErrorComponent', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
@@ -10,13 +10,13 @@ describe('ErrorToastComponent', () => {
         CommonModule
       ],
       declarations: [
-        ErrorToastComponent
+        TafelToastErrorComponent
       ],
     }).compileComponents();
   }));
 
   it('should create the component', waitForAsync(() => {
-    const fixture = TestBed.createComponent(ErrorToastComponent);
+    const fixture = TestBed.createComponent(TafelToastErrorComponent);
     const component = fixture.componentInstance;
     fixture.detectChanges();
 
