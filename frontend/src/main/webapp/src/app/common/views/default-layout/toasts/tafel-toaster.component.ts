@@ -1,11 +1,7 @@
 import {Component, OnInit, ViewChild} from '@angular/core';
 import {ToastOptions, ToastService, ToastType} from './toast.service';
 import {ToasterComponent} from '@coreui/angular';
-import {TafelToastErrorComponent} from './variants/error/tafel-toast-error.component';
-import {TafelToastComponent} from './variants/tafel-toast-component';
-import {TafelToastInfoComponent} from "./variants/info/tafel-toast-info.component";
-import {TafelToastSuccessComponent} from "./variants/success/tafel-toast-success.component";
-import {TafelToastWarnComponent} from "./variants/warn/tafel-toast-warn.component";
+import {TafelToastComponent} from "./toast/tafel-toast.component";
 
 @Component({
   selector: 'tafel-toaster',
@@ -20,22 +16,42 @@ export class TafelToasterComponent implements OnInit {
 
   ngOnInit(): void {
     this.toastService.addToastSubject.subscribe((options: ToastOptions) => {
-      const type = this.getToastTypeClass(options);
-      const props = {title: options.title, message: options.message};
-      this.toaster.addToast(type, props);
+      const type = options.type;
+
+      const props = {
+        titlePrefix: this.getPrefixForType(type),
+        title: options.title,
+        message: options.message,
+        bgColorClass: this.getBgColorClassForType(type)
+      };
+
+      this.toaster.addToast(TafelToastComponent, props);
     });
   }
 
-  getToastTypeClass(options: ToastOptions): TafelToastComponent {
-    switch (options.type) {
+  private getPrefixForType(type: ToastType) {
+    switch (type) {
       case ToastType.ERROR:
-        return TafelToastErrorComponent;
+        return 'Fehler:';
       case ToastType.INFO:
-        return TafelToastInfoComponent;
+        return 'Info:';
       case ToastType.SUCCESS:
-        return TafelToastSuccessComponent;
+        return undefined;
       case ToastType.WARN:
-        return TafelToastWarnComponent;
+        return 'Achtung!';
+    }
+  }
+
+  private getBgColorClassForType(type: ToastType): string {
+    switch (type) {
+      case ToastType.ERROR:
+        return 'danger';
+      case ToastType.INFO:
+        return 'info';
+      case ToastType.WARN:
+        return 'warning';
+      case ToastType.ERROR:
+        return 'danger';
     }
   }
 

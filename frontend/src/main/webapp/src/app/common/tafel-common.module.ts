@@ -11,20 +11,14 @@ import {
   ToastHeaderComponent
 } from '@coreui/angular';
 import {TafelToasterComponent} from './views/default-layout/toasts/tafel-toaster.component';
-import {TafelToastErrorComponent} from './views/default-layout/toasts/variants/error/tafel-toast-error.component';
-import {TafelToastInfoComponent} from "./views/default-layout/toasts/variants/info/tafel-toast-info.component";
-import {TafelToastWarnComponent} from "./views/default-layout/toasts/variants/warn/tafel-toast-warn.component";
-import {TafelToastSuccessComponent} from "./views/default-layout/toasts/variants/success/tafel-toast-success.component";
+import {TafelToastComponent} from './views/default-layout/toasts/toast/tafel-toast.component';
 
 @NgModule({
   declarations: [
     TafelIfPermissionDirective,
     PasswordChangeFormComponent,
     TafelToasterComponent,
-    TafelToastErrorComponent,
-    TafelToastInfoComponent,
-    TafelToastWarnComponent,
-    TafelToastSuccessComponent
+    TafelToastComponent
   ],
   imports: [
     ReactiveFormsModule,
