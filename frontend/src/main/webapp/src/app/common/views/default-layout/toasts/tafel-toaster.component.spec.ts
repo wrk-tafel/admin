@@ -23,4 +23,8 @@ describe('TafelToasterComponent', () => {
     expect(component).toBeTruthy();
   }));
 
+  it('TODO', () => {
+    expect(true).toBeFalse();
+  });
+
 });
