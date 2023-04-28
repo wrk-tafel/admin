@@ -58,7 +58,7 @@
     "ng2-charts": "4.1.1",
     "ngx-cookie-service": "15.0.0",
     "ngx-perfect-scrollbar": "10.1.1",
-    "rxjs": "7.8.0",
+    "rxjs": "7.8.1",
     "simple-line-icons": "2.5.5",
     "ts-helpers": "1.1.2",
     "tslib": "2.5.0",
