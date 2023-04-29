@@ -27,7 +27,9 @@ export class TafelToasterComponent implements OnInit {
       const props = {
         title: options.title,
         message: options.message,
-        autohide: false,
+        autohide: true,
+        delay: 10000,
+        fade: true,
         ...typeSpecificOptions
       };
 
