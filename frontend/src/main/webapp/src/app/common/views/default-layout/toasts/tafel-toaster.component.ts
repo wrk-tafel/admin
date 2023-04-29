@@ -37,13 +37,13 @@ export class TafelToasterComponent implements OnInit {
   private getTypeSpecificOptions(type: ToastType) {
     switch (type) {
       case ToastType.ERROR:
-        return {titlePrefix: 'Fehler:', bgColorClass: 'danger'};
+        return {titlePrefix: 'Fehler:', bgColor: 'danger'};
       case ToastType.INFO:
-        return {titlePrefix: 'Info:', bgColorClass: 'info'};
+        return {titlePrefix: 'Info:', bgColor: 'info'};
       case ToastType.SUCCESS:
-        return {titlePrefix: undefined, bgColorClass: 'success'};
+        return {titlePrefix: undefined, bgColor: 'success'};
       case ToastType.WARN:
-        return {titlePrefix: 'Achtung!', bgColorClass: 'warning'};
+        return {titlePrefix: 'Achtung!', bgColor: 'warning'};
     }
   }
 

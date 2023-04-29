@@ -52,7 +52,7 @@ describe('TafelToasterComponent', () => {
     const toastOptions: ToastOptions = {type: ToastType.ERROR, title: 'test-title', message: 'test-message'};
     subject.next(toastOptions);
 
-    const toastProps = {titlePrefix: 'Fehler:', title: 'test-title', message: 'test-message', bgColorClass: 'danger'};
+    const toastProps = {titlePrefix: 'Fehler:', title: 'test-title', message: 'test-message', bgColor: 'danger'};
     expect(component.toaster.addToast).toHaveBeenCalledWith(TafelToastComponent, toastProps);
   });
 

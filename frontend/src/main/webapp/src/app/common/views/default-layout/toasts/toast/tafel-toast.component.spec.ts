@@ -63,11 +63,11 @@ describe('TafelToastComponent', () => {
     const fixture = TestBed.createComponent(TafelToastComponent);
     const component = fixture.componentInstance;
 
-    const bgColorClass = 'bgcolor-class';
-    component.bgColorClass = bgColorClass;
+    const bgColor = 'bgcolor-test';
+    component.bgColor = bgColor;
     fixture.detectChanges();
 
-    expect(fixture.debugElement.query(By.css(`[testid="header"]`)).nativeElement.getAttribute('class')).toContain(bgColorClass);
+    expect(fixture.debugElement.query(By.css(`[testid="header"]`)).nativeElement.getAttribute('class')).toContain(bgColor);
   }));
 
 });
