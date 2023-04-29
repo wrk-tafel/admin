@@ -1,6 +1,6 @@
-<c-toast [autohide]="false" visible="true">
-  <c-toast-header [cBgColor]="bgColorClass" testid="header">
-    <strong class="me-auto text-white" testid="title">{{titlePrefix ? titlePrefix + ' ' : ''}}{{title}}</strong>
+<c-toast [autohide]="true" [visible]="true" [fade]="false">
+  <c-toast-header testid="header" [cBgColor]="bgColorClass">
+    <strong testid="title" class="me-auto text-white">{{titlePrefix ? titlePrefix + ' ' : ''}}{{title}}</strong>
   </c-toast-header>
   <c-toast-body testid="message">{{message}}</c-toast-body>
 </c-toast>
