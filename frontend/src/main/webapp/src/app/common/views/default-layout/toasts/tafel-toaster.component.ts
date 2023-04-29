@@ -1,7 +1,8 @@
 import {Component, OnInit, ViewChild} from '@angular/core';
 import {ToastOptions, ToastService, ToastType} from './toast.service';
 import {ToasterComponent} from '@coreui/angular';
-import {TafelToastComponent} from "./toast/tafel-toast.component";
+import {TafelToastComponent} from './toast/tafel-toast.component';
+import {Subject} from 'rxjs';
 
 @Component({
   selector: 'tafel-toaster',
@@ -15,7 +16,11 @@ export class TafelToasterComponent implements OnInit {
   @ViewChild(ToasterComponent) toaster: ToasterComponent;
 
   ngOnInit(): void {
-    this.toastService.addToastSubject.subscribe((options: ToastOptions) => {
+    this.subscribeToastSubject(this.toastService.addToastSubject);
+  }
+
+  subscribeToastSubject(subject: Subject<ToastOptions>) {
+    subject.subscribe((options: ToastOptions) => {
       const type = options.type;
 
       const props = {
