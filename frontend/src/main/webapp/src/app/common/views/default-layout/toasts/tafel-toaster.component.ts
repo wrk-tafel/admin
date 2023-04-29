@@ -22,41 +22,28 @@ export class TafelToasterComponent implements OnInit {
   subscribeToastSubject(subject: Subject<ToastOptions>) {
     subject.subscribe((options: ToastOptions) => {
       const type = options.type;
+      const typeSpecificOptions = this.getTypeSpecificOptions(type);
 
       const props = {
-        titlePrefix: this.getPrefixForType(type),
         title: options.title,
         message: options.message,
-        bgColorClass: this.getBgColorClassForType(type)
+        ...typeSpecificOptions
       };
 
       this.toaster.addToast(TafelToastComponent, props);
     });
   }
 
-  private getPrefixForType(type: ToastType) {
+  private getTypeSpecificOptions(type: ToastType) {
     switch (type) {
       case ToastType.ERROR:
-        return 'Fehler:';
+        return {titlePrefix: 'Fehler:', bgColorClass: 'danger'};
       case ToastType.INFO:
-        return 'Info:';
+        return {titlePrefix: 'Info:', bgColorClass: 'info'};
       case ToastType.SUCCESS:
-        return undefined;
+        return {titlePrefix: undefined, bgColorClass: 'success'};
       case ToastType.WARN:
-        return 'Achtung!';
-    }
-  }
-
-  private getBgColorClassForType(type: ToastType): string {
-    switch (type) {
-      case ToastType.ERROR:
-        return 'danger';
-      case ToastType.INFO:
-        return 'info';
-      case ToastType.SUCCESS:
-        return 'success';
-      case ToastType.WARN:
-        return 'warning';
+        return {titlePrefix: 'Achtung!', bgColorClass: 'warning'};
     }
   }
 
