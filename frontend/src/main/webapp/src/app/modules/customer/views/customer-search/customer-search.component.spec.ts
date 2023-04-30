@@ -4,7 +4,7 @@ import {By} from '@angular/platform-browser';
 import {Router} from '@angular/router';
 import {RouterTestingModule} from '@angular/router/testing';
 import * as moment from 'moment';
-import {of, throwError} from 'rxjs';
+import {EMPTY, of, throwError} from 'rxjs';
 import {CustomerApiService} from '../../../../api/customer-api.service';
 import {CustomerSearchComponent} from './customer-search.component';
 import {CardModule, ColComponent, RowComponent} from '@coreui/angular';
@@ -121,7 +121,7 @@ describe('CustomerSearchComponent', () => {
     const fixture = TestBed.createComponent(CustomerSearchComponent);
     const component = fixture.componentInstance;
     component.firstname.setValue('firstname');
-    apiService.searchCustomer.and.returnValue(of());
+    apiService.searchCustomer.and.returnValue(EMPTY);
 
     component.searchForDetails();
 
@@ -132,7 +132,7 @@ describe('CustomerSearchComponent', () => {
     const fixture = TestBed.createComponent(CustomerSearchComponent);
     const component = fixture.componentInstance;
     component.lastname.setValue('lastname');
-    apiService.searchCustomer.and.returnValue(of());
+    apiService.searchCustomer.and.returnValue(EMPTY);
 
     component.searchForDetails();
 

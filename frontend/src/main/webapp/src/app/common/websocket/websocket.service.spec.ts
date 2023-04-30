@@ -40,7 +40,7 @@ describe('WebsocketService', () => {
 
   it('watch called', () => {
     const {service, clientSpy} = setup();
-    const mockResult: Observable<IMessage> = of();
+    const mockResult: Observable<IMessage> = EMPTY;
     clientSpy.watch.and.returnValue(mockResult);
 
     const destination = '/test123';
