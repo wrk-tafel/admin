@@ -2,7 +2,7 @@ package at.wrk.tafel.admin.backend.modules.distribution
 
 import at.wrk.tafel.admin.backend.common.model.DistributionState
 import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionEntity
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationFailedException
+import at.wrk.tafel.admin.backend.modules.base.exception.TafelException
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -57,7 +57,7 @@ internal class DistributionControllerTest {
     @Test
     fun `create new distribution with existing ongoing distribution`() {
         val message = "MSG"
-        every { service.createNewDistribution() } throws TafelValidationFailedException(message)
+        every { service.createNewDistribution() } throws TafelException(message)
 
         val exception = assertThrows(ResponseStatusException::class.java) {
             controller.createNewDistribution()
@@ -167,7 +167,7 @@ internal class DistributionControllerTest {
                 any(),
                 any()
             )
-        } throws TafelValidationFailedException("dummy error")
+        } throws TafelException("dummy error")
 
         val requestBody = AssignCustomerRequest(customerId = 1, ticketNumber = 100)
         val response = controller.assignCustomerToDistribution(requestBody)

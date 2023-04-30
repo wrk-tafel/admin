@@ -7,7 +7,7 @@ import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerRepository
 import at.wrk.tafel.admin.backend.database.repositories.distribution.DistributionCustomerRepository
 import at.wrk.tafel.admin.backend.database.repositories.distribution.DistributionRepository
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationFailedException
+import at.wrk.tafel.admin.backend.modules.base.exception.TafelException
 import at.wrk.tafel.admin.backend.modules.customer.testCustomerEntity1
 import at.wrk.tafel.admin.backend.security.testUser
 import at.wrk.tafel.admin.backend.security.testUserEntity
@@ -91,7 +91,7 @@ internal class DistributionServiceTest {
     fun `create new distribution with existing ongoing distribution`() {
         every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
 
-        assertThrows(TafelValidationFailedException::class.java) {
+        assertThrows(TafelException::class.java) {
             service.createNewDistribution()
         }
     }
@@ -169,7 +169,7 @@ internal class DistributionServiceTest {
         val ticketNumber = 200
         every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns null
 
-        assertThrows(TafelValidationFailedException::class.java) {
+        assertThrows(TafelException::class.java) {
             service.assignCustomerToDistribution(customerId = customerId, ticketNumber = ticketNumber)
         }
     }
@@ -182,7 +182,7 @@ internal class DistributionServiceTest {
         every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
         every { customerRepository.findByCustomerId(customerId) } returns null
 
-        assertThrows<TafelValidationFailedException> {
+        assertThrows<TafelException> {
             service.assignCustomerToDistribution(customerId = customerId, ticketNumber = ticketNumber)
         }
     }

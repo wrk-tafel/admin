@@ -32,10 +32,11 @@ export class ErrorHandlerInterceptor implements HttpInterceptor {
 
   private handleErrorMessage(error: HttpErrorResponse): Observable<any> {
     if (this.ERRORCODES_WHITELIST.indexOf(error.status) === -1) {
+      console.error('Error-Details', error);
       const toast: ToastOptions = {
         type: ToastType.ERROR,
         title: `HTTP ${error.status} - ${error.statusText}`,
-        message: error?.message ?? '-'
+        message: error.error?.message ?? '-'
       };
       this.toastService.showToast(toast);
     }

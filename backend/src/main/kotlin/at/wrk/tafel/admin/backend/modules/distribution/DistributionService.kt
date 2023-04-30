@@ -8,7 +8,7 @@ import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerRepository
 import at.wrk.tafel.admin.backend.database.repositories.distribution.DistributionCustomerRepository
 import at.wrk.tafel.admin.backend.database.repositories.distribution.DistributionRepository
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationFailedException
+import at.wrk.tafel.admin.backend.modules.base.exception.TafelException
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import java.time.ZonedDateTime
@@ -31,7 +31,7 @@ class DistributionService(
     fun createNewDistribution(): DistributionEntity {
         val currentDistribution = distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc()
         if (currentDistribution != null) {
-            throw TafelValidationFailedException("Ausgabe bereits gestartet!")
+            throw TafelException("Ausgabe bereits gestartet!")
         }
 
         val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
@@ -73,10 +73,10 @@ class DistributionService(
 
     fun assignCustomerToDistribution(customerId: Long, ticketNumber: Int) {
         val currentDistribution = distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc()
-            ?: throw TafelValidationFailedException("Ausgabe nicht gestartet!")
+            ?: throw TafelException("Ausgabe nicht gestartet!")
 
         val customer = customerRepository.findByCustomerId(customerId)
-            ?: throw TafelValidationFailedException("Kunde nicht vorhanden!")
+            ?: throw TafelException("Kunde nicht vorhanden!")
 
         val entry = DistributionCustomerEntity()
         entry.distribution = currentDistribution

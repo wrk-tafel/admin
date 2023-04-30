@@ -2,7 +2,7 @@ package at.wrk.tafel.admin.backend.modules.distribution
 
 import at.wrk.tafel.admin.backend.common.model.DistributionState
 import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionEntity
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationFailedException
+import at.wrk.tafel.admin.backend.modules.base.exception.TafelException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.messaging.handler.annotation.MessageMapping
@@ -30,7 +30,7 @@ class DistributionController(
                 "/topic/distributions",
                 DistributionItemResponse(distribution = mapDistribution(distribution))
             )
-        } catch (e: TafelValidationFailedException) {
+        } catch (e: TafelException) {
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, e.message)
         }
     }
@@ -66,7 +66,7 @@ class DistributionController(
 
             return ResponseEntity.ok().build()
         }
-        return ResponseEntity.badRequest().build()
+        throw TafelException("Ausgabe nicht gestartet!")
     }
 
     @PostMapping("/customers")
@@ -76,17 +76,13 @@ class DistributionController(
     ): ResponseEntity<Void> {
         val currentDistribution = service.getCurrentDistribution()
         if (currentDistribution != null) {
-            try {
-                service.assignCustomerToDistribution(
-                    assignCustomerRequest.customerId,
-                    assignCustomerRequest.ticketNumber
-                )
-            } catch (e: TafelValidationFailedException) {
-                return ResponseEntity.badRequest().build()
-            }
-            return ResponseEntity.ok().build()
+            service.assignCustomerToDistribution(
+                assignCustomerRequest.customerId,
+                assignCustomerRequest.ticketNumber
+            )
+            return ResponseEntity.noContent().build()
         }
-        return ResponseEntity.badRequest().build()
+        throw TafelException("Ausgabe nicht gestartet!")
     }
 
     private fun mapState(state: DistributionState): DistributionStateItem {
