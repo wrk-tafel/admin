@@ -27,7 +27,7 @@ export class ErrorHandlerInterceptor implements HttpInterceptor {
     if (this.auth.isAuthenticated() && error.status === 401) {
       this.auth.redirectToLogin('abgelaufen');
     }
-    return throwError(error);
+    return throwError(() => error);
   }
 
   private handleErrorMessage(error: HttpErrorResponse): Observable<any> {
@@ -39,7 +39,7 @@ export class ErrorHandlerInterceptor implements HttpInterceptor {
       };
       this.toastService.showToast(toast);
     }
-    return throwError(error);
+    return throwError(() => error);
   }
 
 }

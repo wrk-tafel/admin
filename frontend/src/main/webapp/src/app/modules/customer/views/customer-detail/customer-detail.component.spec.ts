@@ -364,7 +364,9 @@ describe('CustomerDetailComponent', () => {
     component.customerData = mockCustomer;
     fixture.detectChanges();
 
-    customerApiService.deleteCustomer.and.returnValue(throwError({status: 404}));
+    customerApiService.deleteCustomer.and.returnValue(throwError(() => {
+      return {status: 404};
+    }));
 
     component.deleteCustomer();
 

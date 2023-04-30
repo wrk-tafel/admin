@@ -82,7 +82,9 @@ describe('CustomerSearchComponent', () => {
   it('search with wrong customerId', () => {
     const fixture = TestBed.createComponent(CustomerSearchComponent);
     const component = fixture.componentInstance;
-    apiService.getCustomer.and.returnValue(throwError({status: 404}));
+    apiService.getCustomer.and.returnValue(throwError(() => {
+      return {status: 404};
+    }));
 
     const testCustomerId = 12345;
 

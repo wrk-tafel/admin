@@ -62,7 +62,7 @@ export class PasswordChangeFormComponent {
           this.errorMessage = errorBody.message;
           this.errorMessageDetails = errorBody.details;
           this.successMessage = null;
-          return throwError(false);
+          return throwError(() => false);
         }
       )
     );

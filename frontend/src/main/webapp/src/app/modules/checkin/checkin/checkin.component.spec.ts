@@ -342,7 +342,9 @@ describe('CheckinComponent', () => {
     const fixture = TestBed.createComponent(CheckinComponent);
     const component = fixture.componentInstance;
 
-    customerApiService.getCustomer.and.returnValue(throwError({status: 404}));
+    customerApiService.getCustomer.and.returnValue(throwError(() => {
+      return {status: 404};
+    }));
     const notesResponse: CustomerNotesResponse = {notes: []};
     customerNoteApiService.getNotesForCustomer.and.returnValue(of(notesResponse));
     const testCustomerId = 1234;
@@ -506,7 +508,9 @@ describe('CheckinComponent', () => {
     const ticketNumber = 55;
     component.ticketNumber = ticketNumber;
 
-    distributionApiService.assignCustomer.and.returnValue(throwError({status: 400}));
+    distributionApiService.assignCustomer.and.returnValue(throwError(() => {
+      return {status: 400};
+    }));
 
     component.assignCustomer();
 
