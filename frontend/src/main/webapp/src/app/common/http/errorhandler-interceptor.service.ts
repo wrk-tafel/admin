@@ -43,9 +43,3 @@ export class ErrorHandlerInterceptor implements HttpInterceptor {
   }
 
 }
-
-interface ErrorResponseData {
-  error: string;
-  message: string;
-  status: number;
-}
