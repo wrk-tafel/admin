@@ -14,7 +14,7 @@ export class ErrorHandlerInterceptor implements HttpInterceptor {
               private toastService: ToastService) {
   }
 
-  private ERRORCODES_WHITELIST = [401, 404, 422];
+  private ERRORCODES_WHITELIST = [401];
 
   /* eslint-disable @typescript-eslint/no-explicit-any */
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {

@@ -9,6 +9,7 @@ import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerReposit
 import at.wrk.tafel.admin.backend.database.repositories.distribution.DistributionCustomerRepository
 import at.wrk.tafel.admin.backend.database.repositories.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelException
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import java.time.ZonedDateTime
@@ -71,19 +72,20 @@ class DistributionService(
         }
     }
 
-    fun assignCustomerToDistribution(customerId: Long, ticketNumber: Int) {
-        val currentDistribution = distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc()
-            ?: throw TafelException("Ausgabe nicht gestartet!")
-
+    fun assignCustomerToDistribution(distribution: DistributionEntity, customerId: Long, ticketNumber: Int) {
         val customer = customerRepository.findByCustomerId(customerId)
             ?: throw TafelException("Kunde nicht vorhanden!")
 
         val entry = DistributionCustomerEntity()
-        entry.distribution = currentDistribution
+        entry.distribution = distribution
         entry.customer = customer
         entry.ticketNumber = ticketNumber
 
-        distributionCustomerRepository.save(entry)
+        try {
+            distributionCustomerRepository.save(entry)
+        } catch (e: DataIntegrityViolationException) {
+            throw TafelException("Kunde ist bereits zugewiesen!")
+        }
     }
 
 }

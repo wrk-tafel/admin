@@ -219,7 +219,6 @@ describe('CheckinComponent', () => {
   it('searchForCustomerId found valid customer', () => {
     const fixture = TestBed.createComponent(CheckinComponent);
     const component = fixture.componentInstance;
-    component.errorMessage = 'test msg to be purged';
     component.ticketNumber = 123;
 
     const mockCustomer = {
@@ -250,7 +249,6 @@ describe('CheckinComponent', () => {
 
     expect(component.customer).toEqual(mockCustomer);
     expect(customerApiService.getCustomer).toHaveBeenCalledWith(mockCustomer.id);
-    expect(component.errorMessage).toBeUndefined();
 
     expect(component.customerState).toBe(CustomerState.GREEN);
     expect(component.customerStateText).toBe('GÜLTIG');
@@ -354,7 +352,6 @@ describe('CheckinComponent', () => {
 
     expect(component.customer).toBeUndefined();
     expect(customerApiService.getCustomer).toHaveBeenCalledWith(testCustomerId);
-    expect(component.errorMessage).toBe(`Kundennummer ${testCustomerId} nicht gefunden!`);
   });
 
   it('searchForCustomerId found notes', () => {
@@ -515,8 +512,6 @@ describe('CheckinComponent', () => {
     component.assignCustomer();
 
     expect(distributionApiService.assignCustomer).toHaveBeenCalledWith(mockCustomer.id, ticketNumber);
-
-    expect(component.errorMessage).toBe('Kunde konnte nicht zugewiesen werden!');
   });
 
   it('assign customer ignored without proper value', () => {

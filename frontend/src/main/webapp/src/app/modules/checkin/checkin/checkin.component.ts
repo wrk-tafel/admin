@@ -29,8 +29,6 @@ export class CheckinComponent implements OnInit, OnDestroy {
 
   private VALID_UNTIL_WARNLIMIT_WEEKS = 8;
 
-  errorMessage: string;
-
   scannerIds: number[];
   currentScannerId: number;
   scannerReadyState: boolean;
@@ -67,7 +65,6 @@ export class CheckinComponent implements OnInit, OnDestroy {
     const observer = {
       next: (customerData: CustomerData) => {
         this.processCustomer(customerData);
-        this.errorMessage = undefined;
 
         this.customerNoteApiService.getNotesForCustomer(this.customerId).subscribe(notesResponse => {
           this.customerNotes = notesResponse.notes;
@@ -77,7 +74,6 @@ export class CheckinComponent implements OnInit, OnDestroy {
         if (error.status === 404) {
           this.processCustomer(undefined);
           this.customerNotes = [];
-          this.errorMessage = 'Kundennummer ' + this.customerId + ' nicht gefunden!';
         }
       },
     };
@@ -173,7 +169,6 @@ export class CheckinComponent implements OnInit, OnDestroy {
       const observer = {
         next: (response) => this.reset(),
         error: error => {
-          this.errorMessage = 'Kunde konnte nicht zugewiesen werden!';
         },
       };
       this.distributionApiService.assignCustomer(this.customer.id, this.ticketNumber).subscribe(observer);

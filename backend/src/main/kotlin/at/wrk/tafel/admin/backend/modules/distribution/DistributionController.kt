@@ -74,15 +74,15 @@ class DistributionController(
     fun assignCustomerToDistribution(
         @RequestBody assignCustomerRequest: AssignCustomerRequest
     ): ResponseEntity<Void> {
-        val currentDistribution = service.getCurrentDistribution()
-        if (currentDistribution != null) {
-            service.assignCustomerToDistribution(
-                assignCustomerRequest.customerId,
-                assignCustomerRequest.ticketNumber
-            )
-            return ResponseEntity.noContent().build()
-        }
-        throw TafelException("Ausgabe nicht gestartet!")
+        val currentDistribution = service.getCurrentDistribution() ?: throw TafelException("Ausgabe nicht gestartet!")
+
+        service.assignCustomerToDistribution(
+            currentDistribution,
+            assignCustomerRequest.customerId,
+            assignCustomerRequest.ticketNumber
+        )
+
+        return ResponseEntity.noContent().build()
     }
 
     private fun mapState(state: DistributionState): DistributionStateItem {
