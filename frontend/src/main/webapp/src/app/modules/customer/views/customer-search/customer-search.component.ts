@@ -1,7 +1,7 @@
 import {Component} from '@angular/core';
-import {UntypedFormControl, UntypedFormGroup} from '@angular/forms';
 import {Router} from '@angular/router';
 import {CustomerAddressData, CustomerApiService, CustomerSearchResult} from '../../../../api/customer-api.service';
+import {FormControl, FormGroup} from '@angular/forms';
 
 @Component({
   selector: 'tafel-customer-search',
@@ -10,10 +10,10 @@ import {CustomerAddressData, CustomerApiService, CustomerSearchResult} from '../
 export class CustomerSearchComponent {
   errorMessage: string;
   searchResult: CustomerSearchResult;
-  customerSearchForm = new UntypedFormGroup({
-    customerId: new UntypedFormControl(''),
-    lastname: new UntypedFormControl(''),
-    firstname: new UntypedFormControl('')
+  customerSearchForm = new FormGroup({
+    customerId: new FormControl<number>(null),
+    lastname: new FormControl<string>(null),
+    firstname: new FormControl<string>(null)
   });
 
   constructor(
@@ -81,4 +81,5 @@ export class CustomerSearchComponent {
     result += ' / ' + address.postalCode + ' ' + address.city;
     return result;
   }
+
 }

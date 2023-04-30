@@ -125,7 +125,7 @@ describe('CustomerSearchComponent', () => {
 
     component.searchForDetails();
 
-    expect(apiService.searchCustomer).toHaveBeenCalledWith('', 'firstname');
+    expect(apiService.searchCustomer).toHaveBeenCalledWith(null, 'firstname');
   });
 
   it('search with lastname only', () => {
@@ -136,7 +136,7 @@ describe('CustomerSearchComponent', () => {
 
     component.searchForDetails();
 
-    expect(apiService.searchCustomer).toHaveBeenCalledWith('lastname', '');
+    expect(apiService.searchCustomer).toHaveBeenCalledWith('lastname', null);
   });
 
   it('navigate to customer', () => {
