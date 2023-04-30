@@ -13,6 +13,7 @@ export class DefaultLayoutResolver {
   ) {
   }
 
+  /* eslint-disable @typescript-eslint/no-explicit-any */
   public resolve(): Promise<any[]> {
     return Promise.all([this.websocketService.connect(), this.globalStateService.init()]);
   }
