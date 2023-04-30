@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.customer
 
+import at.wrk.tafel.admin.backend.modules.base.exception.TafelException
 import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorResult
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
@@ -97,9 +98,9 @@ class CustomerControllerTest {
         every { service.findByCustomerId(testCustomer.id!!) } returns null
 
         val exception =
-            assertThrows<ResponseStatusException> { controller.getCustomer(testCustomer.id!!) }
+            assertThrows<TafelException> { controller.getCustomer(testCustomer.id!!) }
 
-        assertThat(exception.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
+        assertThat(exception.message).isEqualTo("Kunde Nr. ${testCustomer.id} nicht gefunden!")
         verify { service.findByCustomerId(testCustomer.id!!) }
     }
 

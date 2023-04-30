@@ -91,9 +91,11 @@ internal class DistributionServiceTest {
     fun `create new distribution with existing ongoing distribution`() {
         every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
 
-        assertThrows(TafelException::class.java) {
+        val exception = assertThrows(TafelException::class.java) {
             service.createNewDistribution()
         }
+
+        assertThat(exception.message).isEqualTo("Ausgabe bereits gestartet!")
     }
 
     @Test
@@ -164,31 +166,30 @@ internal class DistributionServiceTest {
     }
 
     @Test
-    fun `assign customer when distribution is not open`() {
-        val customerId = 1L
-        val ticketNumber = 200
-        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns null
-
-        assertThrows(TafelException::class.java) {
-            service.assignCustomerToDistribution(customerId = customerId, ticketNumber = ticketNumber)
-        }
-    }
-
-    @Test
     fun `assign customer when customer doesnt exist`() {
+        val distributionEntity = DistributionEntity()
+        distributionEntity.id = 123
         val customerId = 1L
         val ticketNumber = 200
 
         every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
         every { customerRepository.findByCustomerId(customerId) } returns null
 
-        assertThrows<TafelException> {
-            service.assignCustomerToDistribution(customerId = customerId, ticketNumber = ticketNumber)
+        val exception = assertThrows<TafelException> {
+            service.assignCustomerToDistribution(
+                distribution = distributionEntity,
+                customerId = customerId,
+                ticketNumber = ticketNumber
+            )
         }
+
+        assertThat(exception.message).isEqualTo("Kunde Nr. $customerId nicht vorhanden!")
     }
 
     @Test
     fun `assign customer successful`() {
+        val distributionEntity = DistributionEntity()
+        distributionEntity.id = 123
         val customerId = 1L
         val ticketNumber = 200
 
@@ -196,7 +197,11 @@ internal class DistributionServiceTest {
         every { customerRepository.findByCustomerId(customerId) } returns testCustomerEntity1
         every { distributionCustomerRepository.save(any()) } returns mockk()
 
-        service.assignCustomerToDistribution(customerId = customerId, ticketNumber = ticketNumber)
+        service.assignCustomerToDistribution(
+            distribution = distributionEntity,
+            customerId = customerId,
+            ticketNumber = ticketNumber
+        )
 
         verify {
             distributionCustomerRepository.save(withArg {

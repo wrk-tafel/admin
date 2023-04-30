@@ -74,7 +74,7 @@ class DistributionService(
 
     fun assignCustomerToDistribution(distribution: DistributionEntity, customerId: Long, ticketNumber: Int) {
         val customer = customerRepository.findByCustomerId(customerId)
-            ?: throw TafelException("Kunde nicht vorhanden!")
+            ?: throw TafelException("Kunde Nr. $customerId nicht vorhanden!")
 
         val entry = DistributionCustomerEntity()
         entry.distribution = distribution
