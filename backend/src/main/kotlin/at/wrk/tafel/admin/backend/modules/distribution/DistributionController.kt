@@ -21,7 +21,7 @@ class DistributionController(
 ) {
 
     @PostMapping("/new")
-    @PreAuthorize("hasAuthority('DISTRIBUTION')")
+    @PreAuthorize("hasAuthority('DISTRIBUTION_LCM')")
     fun createNewDistribution() {
         try {
             val distribution = service.createNewDistribution()
@@ -51,7 +51,7 @@ class DistributionController(
     }
 
     @PostMapping("/states/next")
-    @PreAuthorize("hasAuthority('DISTRIBUTION')")
+    @PreAuthorize("hasAuthority('DISTRIBUTION_LCM')")
     fun switchToNextDistributionState(): ResponseEntity<Void> {
         val currentDistribution = service.getCurrentDistribution()
         if (currentDistribution != null) {
@@ -70,7 +70,7 @@ class DistributionController(
     }
 
     @PostMapping("/customers")
-    @PreAuthorize("hasAuthority('DISTRIBUTION')")
+    @PreAuthorize("hasAuthority('CHECKIN')")
     fun assignCustomerToDistribution(
         @RequestBody assignCustomerRequest: AssignCustomerRequest
     ): ResponseEntity<Void> {
