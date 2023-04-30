@@ -1,6 +1,6 @@
 import {HttpClientTestingModule} from '@angular/common/http/testing';
 import {TestBed} from '@angular/core/testing';
-import {of} from 'rxjs';
+import {firstValueFrom, of} from 'rxjs';
 import {WebsocketService} from '../../../websocket/websocket.service';
 import {DefaultLayoutResolver} from './default-layout-resolver.component';
 import {GlobalStateService} from '../../../state/global-state.service';
@@ -33,9 +33,9 @@ describe('DefaultLayoutResolver', () => {
   });
 
   it('resolve', () => {
-    const mockWsConnect = of<RxStompState>(RxStompState.OPEN).toPromise();
+    const mockWsConnect = firstValueFrom(of<RxStompState>(RxStompState.OPEN));
     websocketService.connect.and.returnValue(mockWsConnect);
-    const mockGlobalStateInit = of('2').toPromise();
+    const mockGlobalStateInit = firstValueFrom(of('2'));
     globalStateService.init.and.returnValue(mockGlobalStateInit);
 
     /* eslint-disable @typescript-eslint/no-explicit-any */
