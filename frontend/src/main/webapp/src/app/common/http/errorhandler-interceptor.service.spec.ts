@@ -42,15 +42,19 @@ describe('ErrorHandlerInterceptor', () => {
 
     /* eslint-disable @typescript-eslint/no-empty-function */
     /* eslint-disable @typescript-eslint/no-unused-vars */
-    client.get('/test').subscribe(() => {
-    }, err => {
-      const expectedToast: ToastOptions = {
-        type: ToastType.ERROR,
-        title: 'HTTP 500 - Internal Server Error',
-        message: 'Http failure response for /test: 500 Internal Server Error'
-      };
-      expect(toastServiceSpy.showToast).toHaveBeenCalledWith(expectedToast);
-    });
+    const observer = {
+      next: (response) => {
+      },
+      error: error => {
+        const expectedToast: ToastOptions = {
+          type: ToastType.ERROR,
+          title: 'HTTP 500 - Internal Server Error',
+          message: 'Http failure response for /test: 500 Internal Server Error'
+        };
+        expect(toastServiceSpy.showToast).toHaveBeenCalledWith(expectedToast);
+      },
+    };
+    client.get('/test').subscribe(observer);
 
     const mockReq = httpMock.expectOne('/test');
     const mockErrorResponse = {status: 500, statusText: 'Internal Server Error'};
@@ -63,15 +67,19 @@ describe('ErrorHandlerInterceptor', () => {
 
     /* eslint-disable @typescript-eslint/no-empty-function */
     /* eslint-disable @typescript-eslint/no-unused-vars */
-    client.get('/test').subscribe(() => {
-    }, err => {
-      const expectedToast: ToastOptions = {
-        type: ToastType.ERROR,
-        title: 'HTTP 400 - Bad Request',
-        message: 'Http failure response for /test: 400 Bad Request'
-      };
-      expect(toastServiceSpy.showToast).toHaveBeenCalledWith(expectedToast);
-    });
+    const observer = {
+      next: (response) => {
+      },
+      error: error => {
+        const expectedToast: ToastOptions = {
+          type: ToastType.ERROR,
+          title: 'HTTP 400 - Bad Request',
+          message: 'Http failure response for /test: 400 Bad Request'
+        };
+        expect(toastServiceSpy.showToast).toHaveBeenCalledWith(expectedToast);
+      },
+    };
+    client.get('/test').subscribe(observer);
 
     const mockReq = httpMock.expectOne('/test');
     const mockErrorResponse = {status: 400, statusText: 'Bad Request'};
@@ -84,10 +92,14 @@ describe('ErrorHandlerInterceptor', () => {
 
     /* eslint-disable @typescript-eslint/no-empty-function */
     /* eslint-disable @typescript-eslint/no-unused-vars */
-    client.get('/test').subscribe(() => {
-    }, err => {
-      expect(toastServiceSpy.showToast).toHaveBeenCalledTimes(0);
-    });
+    const observer = {
+      next: (response) => {
+      },
+      error: error => {
+        expect(toastServiceSpy.showToast).toHaveBeenCalledTimes(0);
+      },
+    };
+    client.get('/test').subscribe(observer);
 
     const mockReq = httpMock.expectOne('/test');
     const mockErrorResponse = {status: 404, statusText: 'Not Found'};
@@ -100,10 +112,14 @@ describe('ErrorHandlerInterceptor', () => {
 
     /* eslint-disable @typescript-eslint/no-empty-function */
     /* eslint-disable @typescript-eslint/no-unused-vars */
-    client.get('/test').subscribe(() => {
-    }, err => {
-      expect(authServiceSpy.redirectToLogin).toHaveBeenCalled();
-    });
+    const observer = {
+      next: (response) => {
+      },
+      error: error => {
+        expect(authServiceSpy.redirectToLogin).toHaveBeenCalled();
+      },
+    };
+    client.get('/test').subscribe(observer);
 
     const mockReq = httpMock.expectOne('/test');
     const mockErrorResponse = {status: 401, statusText: 'Unauthorized'};

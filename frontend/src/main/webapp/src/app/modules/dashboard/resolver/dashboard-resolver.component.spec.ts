@@ -1,7 +1,7 @@
 import {HttpClientTestingModule} from '@angular/common/http/testing';
 import {TestBed} from '@angular/core/testing';
-import {DistributionApiService, DistributionStatesResponse} from '../../../api/distribution-api.service';
-import {of} from 'rxjs';
+import {DistributionApiService} from '../../../api/distribution-api.service';
+import {EMPTY} from 'rxjs';
 import {DashboardResolver} from './dashboard-resolver.component';
 
 describe('DashboardResolver', () => {
@@ -25,12 +25,11 @@ describe('DashboardResolver', () => {
   });
 
   it('resolve', () => {
-    const mockObservable = of<DistributionStatesResponse>();
-    apiService.getStates.and.returnValue(mockObservable);
+    apiService.getStates.and.returnValue(EMPTY);
 
     const result = resolver.resolve(undefined, undefined);
 
-    expect(result).toEqual(mockObservable);
+    expect(result).toEqual(EMPTY);
     expect(apiService.getStates).toHaveBeenCalled();
   });
 

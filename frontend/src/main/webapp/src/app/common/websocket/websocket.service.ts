@@ -59,16 +59,17 @@ export class WebsocketService implements OnDestroy {
   private getConnectPromise(): Promise<RxStompState> {
     return new Promise((resolve, reject) => {
       this.client.activate();
-      this.getConnectionState()
-        .subscribe(
-          connectionState => {
-            if (connectionState === RxStompState.OPEN) {
-              resolve(connectionState);
-            }
-          },
-          error => {
-            reject(error);
-          });
+
+      const observer = {
+        next: (connectionState: RxStompState) => {
+          if (connectionState === RxStompState.OPEN) {
+            resolve(connectionState);
+          }
+        },
+        error: error => reject(error),
+      };
+
+      this.getConnectionState().subscribe(observer);
     });
   }
 
