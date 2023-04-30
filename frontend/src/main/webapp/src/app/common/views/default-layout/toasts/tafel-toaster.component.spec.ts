@@ -58,7 +58,7 @@ describe('TafelToasterComponent', () => {
       message: 'test-message',
       bgColor: 'danger',
       autohide: true,
-      delay: 10000,
+      delay: 5000,
       fade: true
     };
     expect(component.toaster.addToast).toHaveBeenCalledWith(TafelToastComponent, toastProps);
