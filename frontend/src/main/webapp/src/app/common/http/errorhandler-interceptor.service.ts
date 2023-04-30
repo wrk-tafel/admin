@@ -10,8 +10,7 @@ import {ToastOptions, ToastService, ToastType} from '../views/default-layout/toa
 })
 export class ErrorHandlerInterceptor implements HttpInterceptor {
 
-  constructor(private window: Window,
-              private auth: AuthenticationService,
+  constructor(private auth: AuthenticationService,
               private toastService: ToastService) {
   }
 
