@@ -1,6 +1,6 @@
 import {WebsocketService} from './websocket.service';
 import {RxStomp, RxStompState} from '@stomp/rx-stomp';
-import {BehaviorSubject, Observable, of} from 'rxjs';
+import {BehaviorSubject, EMPTY, Observable} from 'rxjs';
 import {IMessage} from '@stomp/stompjs';
 import {UrlHelperService} from '../util/url-helper.service';
 
