@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.customer
 
+import at.wrk.tafel.admin.backend.modules.base.exception.TafelException
 import org.springframework.core.io.InputStreamResource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -53,7 +54,7 @@ class CustomerController(
 
     @GetMapping("/{customerId}")
     fun getCustomer(@PathVariable("customerId") customerId: Long): Customer {
-        return service.findByCustomerId(customerId) ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
+        return service.findByCustomerId(customerId) ?: throw TafelException("Kunde Nr. $customerId nicht gefunden!")
     }
 
     @GetMapping
