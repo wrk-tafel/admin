@@ -1,5 +1,5 @@
 import {inject, NgModule} from '@angular/core';
-import {ActivatedRouteSnapshot, CanActivateChildFn, RouterModule, Routes} from '@angular/router';
+import {ActivatedRouteSnapshot, CanActivateChildFn, ResolveFn, RouterModule, Routes} from '@angular/router';
 
 import {DefaultLayoutComponent} from './common/views/default-layout/default-layout.component';
 import {P404Component} from './common/views/error/404.component';
@@ -12,6 +12,10 @@ import {DefaultLayoutResolver} from './common/views/default-layout/resolver/defa
 
 const authGuard: CanActivateChildFn = (route: ActivatedRouteSnapshot) => {
   return inject(AuthGuardService).canActivateChild(route);
+};
+
+export const defaultLayoutResolver: ResolveFn<any[]> = () => {
+  return inject(DefaultLayoutResolver).resolve();
 };
 
 export const routes: Routes = [
@@ -45,7 +49,7 @@ export const routes: Routes = [
     component: DefaultLayoutComponent,
     canActivateChild: [authGuard],
     resolve: {
-      initialStates: DefaultLayoutResolver
+      initialStates: defaultLayoutResolver
     },
     children: [
       {

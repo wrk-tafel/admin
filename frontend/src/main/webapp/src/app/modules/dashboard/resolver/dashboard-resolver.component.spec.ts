@@ -27,7 +27,7 @@ describe('DashboardResolver', () => {
   it('resolve', () => {
     apiService.getStates.and.returnValue(EMPTY);
 
-    const result = resolver.resolve(undefined, undefined);
+    const result = resolver.resolve();
 
     expect(result).toEqual(EMPTY);
     expect(apiService.getStates).toHaveBeenCalled();

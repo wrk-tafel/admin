@@ -39,7 +39,7 @@ describe('DefaultLayoutResolver', () => {
     globalStateService.init.and.returnValue(mockGlobalStateInit);
 
     /* eslint-disable @typescript-eslint/no-explicit-any */
-    resolver.resolve(undefined, undefined).then((result: any[]) => {
+    resolver.resolve().then((result: any[]) => {
       expect(result[0]).toEqual(RxStompState.OPEN);
       expect(result[1]).toEqual('2');
     });
