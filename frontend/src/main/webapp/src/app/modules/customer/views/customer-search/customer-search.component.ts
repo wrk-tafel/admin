@@ -36,14 +36,17 @@ export class CustomerSearchComponent {
 
   searchForCustomerId() {
     const customerId = this.customerId.value;
-    this.customerApiService.getCustomer(customerId)
-      .subscribe(() => {
-        this.router.navigate(['/kunden/detail', customerId]);
-      }, error => {
+
+    /* eslint-disable @typescript-eslint/no-unused-vars */
+    const observer = {
+      next: (response) => this.router.navigate(['/kunden/detail', customerId]),
+      error: error => {
         if (error.status === 404) {
           this.errorMessage = 'Kundennummer ' + customerId + ' nicht gefunden!';
         }
-      });
+      },
+    };
+    this.customerApiService.getCustomer(customerId).subscribe(observer);
   }
 
   searchForDetails() {

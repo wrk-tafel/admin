@@ -99,13 +99,14 @@ export class CustomerDetailComponent implements OnInit {
 
   deleteCustomer() {
     /* eslint-disable @typescript-eslint/no-unused-vars */
-    this.customerApiService.deleteCustomer(this.customerData.id).subscribe(response => {
-        this.router.navigate(['/kunden/suchen']);
-      },
-      error => {
+    const observer = {
+      next: (response) => this.router.navigate(['/kunden/suchen']),
+      error: error => {
         this.showDeleteCustomerModal = false;
         this.errorMessage = 'Löschen fehlgeschlagen!';
-      });
+      },
+    };
+    this.customerApiService.deleteCustomer(this.customerData.id).subscribe(observer);
   }
 
   prolongCustomer(countMonths: number) {
