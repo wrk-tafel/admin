@@ -2,7 +2,7 @@ import {TestBed, waitForAsync} from '@angular/core/testing';
 import {CommonModule} from '@angular/common';
 import {TafelToastComponent} from './tafel-toast.component';
 import {By} from '@angular/platform-browser';
-import {BgColorDirective, ToastModule} from '@coreui/angular';
+import {BgColorDirective, ProgressModule, ToastModule} from '@coreui/angular';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 
 describe('TafelToastComponent', () => {
@@ -13,7 +13,8 @@ describe('TafelToastComponent', () => {
         CommonModule,
         ToastModule,
         BgColorDirective,
-        NoopAnimationsModule
+        NoopAnimationsModule,
+        ProgressModule
       ],
       declarations: [
         TafelToastComponent
@@ -44,7 +45,7 @@ describe('TafelToastComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.debugElement.query(By.css(`[testid="title"]`)).nativeElement.textContent).toBe(`${titlePrefix} ${title}`);
-    expect(fixture.debugElement.query(By.css(`[testid="message"]`)).nativeElement.textContent).toBe(message);
+    expect(fixture.debugElement.query(By.css(`[testid="message"]`)).nativeElement.textContent.trim()).toBe(message);
   }));
 
   it('should render without prefix', waitForAsync(() => {
@@ -58,7 +59,7 @@ describe('TafelToastComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.debugElement.query(By.css(`[testid="title"]`)).nativeElement.textContent).toBe(title);
-    expect(fixture.debugElement.query(By.css(`[testid="message"]`)).nativeElement.textContent).toBe(message);
+    expect(fixture.debugElement.query(By.css(`[testid="message"]`)).nativeElement.textContent.trim()).toBe(message);
   }));
 
   it('should render with correct background color', waitForAsync(() => {

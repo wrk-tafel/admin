@@ -28,7 +28,7 @@ export class TafelToasterComponent implements OnInit {
         title: options.title,
         message: options.message,
         autohide: true,
-        delay: 10000,
+        delay: 5000,
         fade: true,
         ...typeSpecificOptions
       };

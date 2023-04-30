@@ -5,6 +5,8 @@ import {ReactiveFormsModule} from '@angular/forms';
 import {CommonModule} from '@angular/common';
 import {
   BgColorDirective,
+  ProgressBarComponent,
+  ProgressComponent,
   ToastBodyComponent,
   ToastComponent,
   ToasterComponent,
@@ -27,7 +29,9 @@ import {TafelToastComponent} from './views/default-layout/toasts/toast/tafel-toa
     ToastHeaderComponent,
     ToastBodyComponent,
     BgColorDirective,
-    ToasterComponent
+    ToasterComponent,
+    ProgressComponent,
+    ProgressBarComponent
   ],
   exports: [
     TafelIfPermissionDirective,
