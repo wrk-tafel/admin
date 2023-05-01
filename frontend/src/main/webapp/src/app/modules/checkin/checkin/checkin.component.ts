@@ -167,9 +167,7 @@ export class CheckinComponent implements OnInit, OnDestroy {
     if (this.ticketNumber > 0) {
       /* eslint-disable @typescript-eslint/no-unused-vars */
       const observer = {
-        next: (response) => this.reset(),
-        error: error => {
-        },
+        next: (response) => this.reset()
       };
       this.distributionApiService.assignCustomer(this.customer.id, this.ticketNumber).subscribe(observer);
     }
