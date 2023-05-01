@@ -15,7 +15,6 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.http.HttpStatus
 import org.springframework.messaging.simp.SimpMessagingTemplate
-import org.springframework.web.server.ResponseStatusException
 import java.util.*
 
 @ExtendWith(MockKExtension::class)
@@ -60,12 +59,11 @@ internal class DistributionControllerTest {
         val message = "MSG"
         every { service.createNewDistribution() } throws TafelException(message)
 
-        val exception = assertThrows(ResponseStatusException::class.java) {
+        val exception = assertThrows(TafelException::class.java) {
             controller.createNewDistribution()
         }
 
-        assertThat(exception.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
-        assertThat(exception.reason).isEqualTo(message)
+        assertThat(exception.message).isEqualTo(message)
     }
 
     @Test
