@@ -17,6 +17,7 @@ import {
   RowComponent
 } from '@coreui/angular';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
+import {ToastService} from '../../../../common/views/default-layout/toasts/toast.service';
 
 describe('CustomerEditComponent - Editing an existing customer', () => {
   const testCountry = {
@@ -76,6 +77,7 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
 
   let router: jasmine.SpyObj<Router>;
   let apiService: jasmine.SpyObj<CustomerApiService>;
+  let toastService: jasmine.SpyObj<ToastService>;
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
@@ -105,6 +107,10 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
           useValue: jasmine.createSpyObj('Router', ['navigate'])
         },
         {
+          provide: ToastService,
+          useValue: jasmine.createSpyObj('ToastService', ['showToast'])
+        },
+        {
           provide: ActivatedRoute,
           useValue: {
             snapshot: {
@@ -119,6 +125,7 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
 
     router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
     apiService = TestBed.inject(CustomerApiService) as jasmine.SpyObj<CustomerApiService>;
+    toastService = TestBed.inject(ToastService) as jasmine.SpyObj<ToastService>;
   }));
 
   it('initial checks', waitForAsync(() => {
@@ -133,7 +140,6 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
 
     expect(component.editMode).toBeTrue();
     expect(component.customerValidForSave).toBeFalse();
-    expect(component.errorMessage).toBeUndefined();
   }));
 
   it('existing customer saved successfully', () => {

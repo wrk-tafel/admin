@@ -3,6 +3,7 @@ import {CustomerFormComponent} from '../customer-form/customer-form.component';
 import {CustomerApiService, CustomerData, ValidateCustomerResponse} from '../../../../api/customer-api.service';
 import {ActivatedRoute, Router} from '@angular/router';
 import {Colors} from '@coreui/angular';
+import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
 
 @Component({
   selector: 'tafel-customer-edit',
@@ -13,7 +14,6 @@ export class CustomerEditComponent implements OnInit {
   customerUpdated: CustomerData;
   editMode = false;
   customerValidForSave = false;
-  errorMessage: string;
   validationResult: ValidateCustomerResponse;
   showValidationResultModal = false;
 
@@ -22,7 +22,8 @@ export class CustomerEditComponent implements OnInit {
   constructor(
     private customerApiService: CustomerApiService,
     private router: Router,
-    private activatedRoute: ActivatedRoute
+    private activatedRoute: ActivatedRoute,
+    private toastService: ToastService
   ) {
   }
 
@@ -51,10 +52,8 @@ export class CustomerEditComponent implements OnInit {
     this.customerFormComponent.markAllAsTouched();
 
     if (!this.formIsValid()) {
-      this.errorMessage = 'Bitte Eingaben überprüfen!';
+      this.toastService.showToast({type: ToastType.ERROR, title: 'Bitte Eingaben überprüfen!'});
     } else {
-      this.errorMessage = null;
-
       this.customerApiService.validate(this.customerUpdated).subscribe((result) => {
         this.validationResult = result;
 
@@ -68,10 +67,8 @@ export class CustomerEditComponent implements OnInit {
     this.customerFormComponent.markAllAsTouched();
 
     if (!this.formIsValid()) {
-      this.errorMessage = 'Bitte Eingaben überprüfen!';
+      this.toastService.showToast({type: ToastType.ERROR, title: 'Bitte Eingaben überprüfen!'});
     } else {
-      this.errorMessage = null;
-
       if (!this.editMode) {
         this.customerApiService.createCustomer(this.customerUpdated)
           .subscribe(customer => this.router.navigate(['/kunden/detail', customer.id]));
