@@ -10,6 +10,7 @@ import {
 } from '../../../../api/customer-api.service';
 import {HttpResponse} from '@angular/common/http';
 import {CustomerNoteApiService, CustomerNoteItem} from '../../../../api/customer-note-api.service';
+import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
 
 @Component({
   selector: 'tafel-customer-detail',
@@ -18,7 +19,6 @@ import {CustomerNoteApiService, CustomerNoteItem} from '../../../../api/customer
 export class CustomerDetailComponent implements OnInit {
   customerData: CustomerData;
   customerNotes: CustomerNoteItem[];
-  errorMessage: string;
   newNoteText: string;
   showDeleteCustomerModal = false;
   showAddNewNoteModal = false;
@@ -29,7 +29,9 @@ export class CustomerDetailComponent implements OnInit {
     private customerApiService: CustomerApiService,
     private customerNoteApiService: CustomerNoteApiService,
     private fileHelperService: FileHelperService,
-    private router: Router) {
+    private router: Router,
+    private toastService: ToastService
+  ) {
   }
 
   ngOnInit(): void {
@@ -103,7 +105,7 @@ export class CustomerDetailComponent implements OnInit {
       next: (response) => this.router.navigate(['/kunden/suchen']),
       error: error => {
         this.showDeleteCustomerModal = false;
-        this.errorMessage = 'Löschen fehlgeschlagen!';
+        this.toastService.showToast({type: ToastType.ERROR, title: 'Löschen fehlgeschlagen!'});
       },
     };
     this.customerApiService.deleteCustomer(this.customerData.id).subscribe(observer);

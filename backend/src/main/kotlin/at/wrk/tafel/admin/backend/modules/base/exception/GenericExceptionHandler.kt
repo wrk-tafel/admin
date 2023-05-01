@@ -20,38 +20,29 @@ class GenericExceptionHandler(
     }
 
     @ExceptionHandler(TafelException::class)
-    fun handle(exception: TafelException, request: WebRequest, locale: Locale): ResponseEntity<TafelErrorResponse> {
-        logger.error(exception.message, exception)
-
-        return createErrorResponse(
-            exception = exception,
-            status = HttpStatus.BAD_REQUEST.value(),
-            request = request,
-            locale = locale
-        )
-    }
-
-    @ExceptionHandler(TafelValidationFailedException::class)
-    fun handle(
-        exception: TafelValidationFailedException,
-        request: WebRequest,
-        locale: Locale
+    fun handleTafelException(
+        exception: TafelException, request: WebRequest, locale: Locale
     ): ResponseEntity<TafelErrorResponse> {
         logger.error(exception.message, exception)
 
         return createErrorResponse(
-            exception = exception,
-            status = HttpStatus.UNPROCESSABLE_ENTITY.value(),
-            request = request,
-            locale = locale
+            exception = exception, status = HttpStatus.BAD_REQUEST.value(), request = request, locale = locale
+        )
+    }
+
+    @ExceptionHandler(TafelValidationFailedException::class)
+    fun handleTafelValidationFailedException(
+        exception: TafelValidationFailedException, request: WebRequest, locale: Locale
+    ): ResponseEntity<TafelErrorResponse> {
+        logger.error(exception.message, exception)
+
+        return createErrorResponse(
+            exception = exception, status = HttpStatus.UNPROCESSABLE_ENTITY.value(), request = request, locale = locale
         )
     }
 
     private fun createErrorResponse(
-        exception: Exception,
-        status: Int,
-        request: WebRequest,
-        locale: Locale
+        exception: Exception, status: Int, request: WebRequest, locale: Locale
     ): ResponseEntity<TafelErrorResponse> {
         val localizedErrorTitle: String = messageSource.getMessage(
             "http-error.$status.title", arrayOf<Any>(), locale
@@ -67,6 +58,17 @@ class GenericExceptionHandler(
         )
 
         return ResponseEntity.badRequest().body(error)
+    }
+
+    @ExceptionHandler(Exception::class)
+    fun handleException(
+        exception: TafelException, request: WebRequest, locale: Locale
+    ): ResponseEntity<TafelErrorResponse> {
+        logger.error(exception.message, exception)
+
+        return createErrorResponse(
+            exception = exception, status = HttpStatus.INTERNAL_SERVER_ERROR.value(), request = request, locale = locale
+        )
     }
 
 }

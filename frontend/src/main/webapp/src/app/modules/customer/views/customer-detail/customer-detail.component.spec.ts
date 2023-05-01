@@ -21,12 +21,14 @@ import {
   TabsModule
 } from '@coreui/angular';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
+import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
 
 describe('CustomerDetailComponent', () => {
   let customerApiService: jasmine.SpyObj<CustomerApiService>;
   let customerNoteApiService: jasmine.SpyObj<CustomerNoteApiService>;
   let fileHelperService: jasmine.SpyObj<FileHelperService>;
   let router: jasmine.SpyObj<Router>;
+  let toastService: jasmine.SpyObj<ToastService>;
 
   const mockCountry = {
     id: 0,
@@ -103,6 +105,7 @@ describe('CustomerDetailComponent', () => {
     const customerNoteApiServiceSpy = jasmine.createSpyObj('CustomerNoteApiService', ['createNewNote']);
     const fileHelperServiceSpy = jasmine.createSpyObj('FileHelperService', ['downloadFile']);
     const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
+    const toastServiceSpy = jasmine.createSpyObj('ToastService', ['showToast']);
 
     TestBed.configureTestingModule({
       imports: [
@@ -155,6 +158,10 @@ describe('CustomerDetailComponent', () => {
         {
           provide: Router,
           useValue: routerSpy
+        },
+        {
+          provide: ToastService,
+          useValue: toastServiceSpy
         }
       ]
     }).compileComponents();
@@ -163,6 +170,7 @@ describe('CustomerDetailComponent', () => {
     customerNoteApiService = TestBed.inject(CustomerNoteApiService) as jasmine.SpyObj<CustomerNoteApiService>;
     fileHelperService = TestBed.inject(FileHelperService) as jasmine.SpyObj<FileHelperService>;
     router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
+    toastService = TestBed.inject(ToastService) as jasmine.SpyObj<ToastService>;
   }));
 
   it('component can be created', () => {
@@ -373,7 +381,7 @@ describe('CustomerDetailComponent', () => {
     expect(customerApiService.deleteCustomer).toHaveBeenCalled();
     expect(router.navigate).not.toHaveBeenCalledWith(['/kunden/suchen']);
     expect(component.showDeleteCustomerModal).toBeFalsy();
-    expect(component.errorMessage).toBe('Löschen fehlgeschlagen!');
+    expect(toastService.showToast).toHaveBeenCalledWith({type: ToastType.ERROR, title: 'Löschen fehlgeschlagen!'});
   });
 
   it('prolong customer', () => {
