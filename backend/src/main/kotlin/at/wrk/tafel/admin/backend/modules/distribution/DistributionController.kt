@@ -3,14 +3,12 @@ package at.wrk.tafel.admin.backend.modules.distribution
 import at.wrk.tafel.admin.backend.common.model.DistributionState
 import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelException
-import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.messaging.handler.annotation.MessageMapping
 import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.messaging.simp.annotation.SubscribeMapping
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
-import org.springframework.web.server.ResponseStatusException
 
 @RestController
 @RequestMapping("/api/distributions")
@@ -23,16 +21,12 @@ class DistributionController(
     @PostMapping("/new")
     @PreAuthorize("hasAuthority('DISTRIBUTION_LCM')")
     fun createNewDistribution() {
-        try {
-            val distribution = service.createNewDistribution()
+        val distribution = service.createNewDistribution()
 
-            simpMessagingTemplate.convertAndSend(
-                "/topic/distributions",
-                DistributionItemResponse(distribution = mapDistribution(distribution))
-            )
-        } catch (e: TafelException) {
-            throw ResponseStatusException(HttpStatus.BAD_REQUEST, e.message)
-        }
+        simpMessagingTemplate.convertAndSend(
+            "/topic/distributions",
+            DistributionItemResponse(distribution = mapDistribution(distribution))
+        )
     }
 
     @SubscribeMapping
@@ -66,6 +60,7 @@ class DistributionController(
 
             return ResponseEntity.ok().build()
         }
+
         throw TafelException("Ausgabe nicht gestartet!")
     }
 

@@ -54,6 +54,7 @@ class GenericExceptionHandler(
             status = HttpStatus.BAD_REQUEST.value(),
             error = localizedErrorTitle,
             message = exception.message,
+            trace = exception.stackTraceToString(),
             path = (request as ServletWebRequest).request.requestURI
         )
 
@@ -67,5 +68,6 @@ data class TafelErrorResponse(
     val status: Int,
     val error: String,
     val message: String?,
+    val trace: String?,
     val path: String
 )
