@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.base.exception
 
+import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import org.slf4j.LoggerFactory
 import org.springframework.context.MessageSource
 import org.springframework.http.HttpStatus
@@ -15,6 +16,7 @@ import java.util.*
 class GenericExceptionHandler(
     private val messageSource: MessageSource
 ) {
+
     companion object {
         private val logger = LoggerFactory.getLogger(GenericExceptionHandler::class.java)
     }
@@ -26,7 +28,7 @@ class GenericExceptionHandler(
         logger.error(exception.message, exception)
 
         return createErrorResponse(
-            exception = exception, status = HttpStatus.BAD_REQUEST.value(), request = request, locale = locale
+            exception = exception, status = HttpStatus.BAD_REQUEST, request = request, locale = locale
         )
     }
 
@@ -37,42 +39,43 @@ class GenericExceptionHandler(
         logger.error(exception.message, exception)
 
         return createErrorResponse(
-            exception = exception, status = HttpStatus.UNPROCESSABLE_ENTITY.value(), request = request, locale = locale
+            exception = exception, status = HttpStatus.UNPROCESSABLE_ENTITY, request = request, locale = locale
+        )
+    }
+
+    @ExceptionHandler(Exception::class)
+    fun handleException(
+        exception: Exception, request: WebRequest, locale: Locale
+    ): ResponseEntity<TafelErrorResponse> {
+        logger.error(exception.message, exception)
+
+        return createErrorResponse(
+            exception = exception, status = HttpStatus.INTERNAL_SERVER_ERROR, request = request, locale = locale
         )
     }
 
     private fun createErrorResponse(
-        exception: Exception, status: Int, request: WebRequest, locale: Locale
+        exception: Exception, status: HttpStatus, request: WebRequest, locale: Locale
     ): ResponseEntity<TafelErrorResponse> {
         val localizedErrorTitle: String = messageSource.getMessage(
-            "http-error.$status.title", arrayOf<Any>(), locale
+            "http-error.${status.value()}.title", arrayOf<Any>(), locale
         )
 
         val error = TafelErrorResponse(
             timestamp = LocalDateTime.now(),
-            status = HttpStatus.BAD_REQUEST.value(),
+            status = status.value(),
             error = localizedErrorTitle,
             message = exception.message,
             trace = exception.stackTraceToString(),
             path = (request as ServletWebRequest).request.requestURI
         )
 
-        return ResponseEntity.badRequest().body(error)
-    }
-
-    @ExceptionHandler(Exception::class)
-    fun handleException(
-        exception: TafelException, request: WebRequest, locale: Locale
-    ): ResponseEntity<TafelErrorResponse> {
-        logger.error(exception.message, exception)
-
-        return createErrorResponse(
-            exception = exception, status = HttpStatus.INTERNAL_SERVER_ERROR.value(), request = request, locale = locale
-        )
+        return ResponseEntity.status(status).body(error)
     }
 
 }
 
+@ExcludeFromTestCoverage
 data class TafelErrorResponse(
     val timestamp: LocalDateTime,
     val status: Int,
