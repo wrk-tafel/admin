@@ -1,10 +1,6 @@
 # TODO
-* General
-    * Unify errormsg handling (panel on top) ?
-    * Toast messages?
 * customer-detail
     * add document upload
-* Fix autofocus: https://davidmcintosh.medium.com/auto-focusing-an-angular-input-the-easy-way-part-1-dcb1799e025f
 * Centralize testdata / mocks
 
 ### Open things (to be discussed)

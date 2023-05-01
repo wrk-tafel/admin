@@ -1,0 +1,12 @@
+<c-toast #toast="cToast" [visible]="true" class="mt-3">
+  <c-toast-header testid="header" [cBgColor]="bgColor" [closeButton]="false">
+    <strong testid="title" class="me-auto text-white">{{titlePrefix ? titlePrefix + ' ' : ''}}{{title}}</strong>
+    <button aria-label="close" cButton class="btn btn-close" (click)="toast.visible = false"></button>
+  </c-toast-header>
+  <c-toast-body testid="message">
+    {{message}}
+    <c-progress class="mt-3">
+      <c-progress-bar [value]="25*(toast.clock ?? 1)"></c-progress-bar>
+    </c-progress>
+  </c-toast-body>
+</c-toast>

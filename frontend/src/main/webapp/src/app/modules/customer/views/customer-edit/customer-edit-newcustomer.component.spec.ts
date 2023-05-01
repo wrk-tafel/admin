@@ -18,6 +18,7 @@ import {
   RowComponent
 } from '@coreui/angular';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
+import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
 
 describe('CustomerEditComponent - Creating a new customer', () => {
 
@@ -75,6 +76,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
   let apiService: jasmine.SpyObj<CustomerApiService>;
   /* eslint-disable @typescript-eslint/no-unused-vars */
   let activatedRoute: ActivatedRoute;
+  let toastService: jasmine.SpyObj<ToastService>;
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
@@ -104,6 +106,10 @@ describe('CustomerEditComponent - Creating a new customer', () => {
           useValue: jasmine.createSpyObj('Router', ['navigate'])
         },
         {
+          provide: ToastService,
+          useValue: jasmine.createSpyObj('ToastService', ['showToast'])
+        },
+        {
           provide: ActivatedRoute,
           useValue: {
             snapshot: {
@@ -117,6 +123,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
     router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
     apiService = TestBed.inject(CustomerApiService) as jasmine.SpyObj<CustomerApiService>;
     activatedRoute = TestBed.inject(ActivatedRoute);
+    toastService = TestBed.inject(ToastService) as jasmine.SpyObj<ToastService>;
   }));
 
   it('initial checks', () => {
@@ -128,7 +135,6 @@ describe('CustomerEditComponent - Creating a new customer', () => {
     expect(fixture.debugElement.query(By.css('[testid="nopersons-label"]'))).toBeTruthy();
     expect(component.editMode).toBeFalse();
     expect(component.customerValidForSave).toBeFalse();
-    expect(component.errorMessage).toBeUndefined();
   });
 
   it('new customer saved successfully', () => {
@@ -162,7 +168,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
 
     fixture.detectChanges();
     expect(customerFormComponent.markAllAsTouched).toHaveBeenCalled();
-    expect(component.errorMessage).toBe('Bitte Eingaben überprüfen!');
+    expect(toastService.showToast).toHaveBeenCalledWith({type: ToastType.ERROR, title: 'Bitte Eingaben überprüfen!'});
     expect(apiService.createCustomer).not.toHaveBeenCalledWith(jasmine.objectContaining(testCustomerData));
     expect(router.navigate).not.toHaveBeenCalledWith(['/kunden/detail', testCustomerData.id]);
   });

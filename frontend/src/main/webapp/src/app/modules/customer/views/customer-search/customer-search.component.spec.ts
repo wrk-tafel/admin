@@ -1,17 +1,19 @@
 import {TestBed, waitForAsync} from '@angular/core/testing';
 import {ReactiveFormsModule} from '@angular/forms';
-import {By} from '@angular/platform-browser';
 import {Router} from '@angular/router';
 import {RouterTestingModule} from '@angular/router/testing';
 import * as moment from 'moment';
-import {of, throwError} from 'rxjs';
-import {CustomerApiService} from '../../../../api/customer-api.service';
+import {EMPTY, of} from 'rxjs';
+import {CustomerApiService, CustomerSearchResult} from '../../../../api/customer-api.service';
 import {CustomerSearchComponent} from './customer-search.component';
 import {CardModule, ColComponent, RowComponent} from '@coreui/angular';
+import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
+import {By} from '@angular/platform-browser';
 
 describe('CustomerSearchComponent', () => {
   let apiService: jasmine.SpyObj<CustomerApiService>;
   let router: jasmine.SpyObj<Router>;
+  let toastService: jasmine.SpyObj<ToastService>;
 
   const searchCustomerMockResponse = {
     items: [
@@ -52,12 +54,17 @@ describe('CustomerSearchComponent', () => {
         {
           provide: Router,
           useValue: jasmine.createSpyObj('Router', ['navigate'])
+        },
+        {
+          provide: ToastService,
+          useValue: jasmine.createSpyObj('ToastService', ['showToast'])
         }
       ]
     }).compileComponents();
 
     apiService = TestBed.inject(CustomerApiService) as jasmine.SpyObj<CustomerApiService>;
     router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
+    toastService = TestBed.inject(ToastService) as jasmine.SpyObj<ToastService>;
   }));
 
   it('component can be created', () => {
@@ -65,6 +72,7 @@ describe('CustomerSearchComponent', () => {
     const component = fixture.componentInstance;
     expect(component).toBeTruthy();
   });
+
 
   it('search with existing customerId', () => {
     const fixture = TestBed.createComponent(CustomerSearchComponent);
@@ -77,20 +85,6 @@ describe('CustomerSearchComponent', () => {
     component.searchForCustomerId();
 
     expect(router.navigate).toHaveBeenCalledWith(['/kunden/detail', testCustomerId]);
-  });
-
-  it('search with wrong customerId', () => {
-    const fixture = TestBed.createComponent(CustomerSearchComponent);
-    const component = fixture.componentInstance;
-    apiService.getCustomer.and.returnValue(throwError({status: 404}));
-
-    const testCustomerId = 12345;
-
-    component.customerId.setValue(testCustomerId);
-    component.searchForCustomerId();
-
-    expect(router.navigate).toHaveBeenCalledTimes(0);
-    expect(component.errorMessage).toBe('Kundennummer ' + testCustomerId + ' nicht gefunden!');
   });
 
   it('search with firstname and lastname', () => {
@@ -119,22 +113,35 @@ describe('CustomerSearchComponent', () => {
     const fixture = TestBed.createComponent(CustomerSearchComponent);
     const component = fixture.componentInstance;
     component.firstname.setValue('firstname');
-    apiService.searchCustomer.and.returnValue(of());
+    apiService.searchCustomer.and.returnValue(EMPTY);
 
     component.searchForDetails();
 
-    expect(apiService.searchCustomer).toHaveBeenCalledWith('', 'firstname');
+    expect(apiService.searchCustomer).toHaveBeenCalledWith(null, 'firstname');
+  });
+
+  it('search with firstname no results', () => {
+    const fixture = TestBed.createComponent(CustomerSearchComponent);
+    const component = fixture.componentInstance;
+    component.firstname.setValue('firstname');
+    const response: CustomerSearchResult = {items: []};
+    apiService.searchCustomer.and.returnValue(of(response));
+
+    component.searchForDetails();
+
+    expect(apiService.searchCustomer).toHaveBeenCalledWith(null, 'firstname');
+    expect(toastService.showToast).toHaveBeenCalledWith({type: ToastType.INFO, title: 'Keine Kunden gefunden!'});
   });
 
   it('search with lastname only', () => {
     const fixture = TestBed.createComponent(CustomerSearchComponent);
     const component = fixture.componentInstance;
     component.lastname.setValue('lastname');
-    apiService.searchCustomer.and.returnValue(of());
+    apiService.searchCustomer.and.returnValue(EMPTY);
 
     component.searchForDetails();
 
-    expect(apiService.searchCustomer).toHaveBeenCalledWith('lastname', '');
+    expect(apiService.searchCustomer).toHaveBeenCalledWith('lastname', null);
   });
 
   it('navigate to customer', () => {

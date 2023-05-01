@@ -1,7 +1,7 @@
 import {HttpClient, HttpHeaders} from '@angular/common/http';
 import {Injectable} from '@angular/core';
 import {Router} from '@angular/router';
-import {Observable, of} from 'rxjs';
+import {firstValueFrom, Observable, of} from 'rxjs';
 import {catchError, map, tap} from 'rxjs/operators';
 
 @Injectable({
@@ -18,7 +18,7 @@ export class AuthenticationService {
   userInfo: UserInfo = null;
 
   public async login(username: string, password: string): Promise<LoginResult> {
-    return this.executeLoginRequest(username, password)
+    return firstValueFrom(this.executeLoginRequest(username, password)
       .pipe(map(async response => {
           await this.loadUserInfo();
           return {successful: true, passwordChangeRequired: response.passwordChangeRequired};
@@ -27,8 +27,7 @@ export class AuthenticationService {
         catchError(_ => {
           this.userInfo = null;
           return of({successful: false, passwordChangeRequired: false});
-        }))
-      .toPromise();
+        })));
   }
 
   public isAuthenticated(): boolean {
@@ -71,7 +70,7 @@ export class AuthenticationService {
   }
 
   public loadUserInfo(): Promise<UserInfo> {
-    return this.http.get<UserInfo>('/users/info')
+    return firstValueFrom(this.http.get<UserInfo>('/users/info')
       .pipe(tap(userInfo => {
           this.userInfo = userInfo;
           return of(userInfo);
@@ -80,7 +79,7 @@ export class AuthenticationService {
         catchError(_ => {
           return of(null);
         })
-      ).toPromise();
+      ));
   }
 
 }

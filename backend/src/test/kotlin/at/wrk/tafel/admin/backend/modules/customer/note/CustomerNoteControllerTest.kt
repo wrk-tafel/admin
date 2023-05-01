@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.customer.note
 
+import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationFailedException
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -7,6 +8,7 @@ import io.mockk.junit5.MockKExtension
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.http.HttpStatus
 import java.time.ZonedDateTime
@@ -58,12 +60,14 @@ internal class CustomerNoteControllerTest {
     fun `create new note - empty text`() {
         val customerId = 123L
 
-        val response = controller.createNewNote(
-            customerId = customerId,
-            request = CreateCustomerNoteRequest(note = "")
-        )
+        val exception = assertThrows<TafelValidationFailedException> {
+            controller.createNewNote(
+                customerId = customerId,
+                request = CreateCustomerNoteRequest(note = "")
+            )
+        }
 
-        assertThat(response.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
+        assertThat(exception.message).isEqualTo("Notiz darf nicht leer sein!")
     }
 
     @Test

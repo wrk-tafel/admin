@@ -133,7 +133,6 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
 
     expect(component.editMode).toBeTrue();
     expect(component.customerValidForSave).toBeFalse();
-    expect(component.errorMessage).toBeUndefined();
   }));
 
   it('existing customer saved successfully', () => {

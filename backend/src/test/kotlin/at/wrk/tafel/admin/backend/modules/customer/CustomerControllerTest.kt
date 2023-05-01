@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.customer
 
+import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationFailedException
 import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorResult
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
@@ -14,7 +15,6 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.HttpStatusCode
 import org.springframework.http.MediaType
-import org.springframework.web.server.ResponseStatusException
 import java.math.BigDecimal
 import java.util.*
 
@@ -58,10 +58,9 @@ class CustomerControllerTest {
     fun `create customer - given id and exists already`() {
         every { service.existsByCustomerId(testCustomer.id!!) } returns true
 
-        val exception = assertThrows<ResponseStatusException> { controller.createCustomer(testCustomer) }
+        val exception = assertThrows<TafelValidationFailedException> { controller.createCustomer(testCustomer) }
 
-        assertThat(exception.statusCode).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY)
-        assertThat(exception.reason).isEqualTo("Kunde Nr. 100 bereits vorhanden!")
+        assertThat(exception.message).isEqualTo("Kunde Nr. 100 bereits vorhanden!")
     }
 
     @Test
@@ -78,10 +77,9 @@ class CustomerControllerTest {
         every { service.existsByCustomerId(testCustomer.id!!) } returns false
 
         val exception =
-            assertThrows<ResponseStatusException> { controller.updateCustomer(testCustomer.id!!, testCustomer) }
+            assertThrows<TafelValidationFailedException> { controller.updateCustomer(testCustomer.id!!, testCustomer) }
 
-        assertThat(exception.statusCode).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY)
-        assertThat(exception.reason).isEqualTo("Kunde Nr. 100 nicht vorhanden!")
+        assertThat(exception.message).isEqualTo("Kunde Nr. 100 nicht vorhanden!")
     }
 
     @Test
@@ -98,9 +96,9 @@ class CustomerControllerTest {
         every { service.findByCustomerId(testCustomer.id!!) } returns null
 
         val exception =
-            assertThrows<ResponseStatusException> { controller.getCustomer(testCustomer.id!!) }
+            assertThrows<TafelValidationFailedException> { controller.getCustomer(testCustomer.id!!) }
 
-        assertThat(exception.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
+        assertThat(exception.message).isEqualTo("Kunde Nr. ${testCustomer.id} nicht gefunden!")
         verify { service.findByCustomerId(testCustomer.id!!) }
     }
 
@@ -119,9 +117,9 @@ class CustomerControllerTest {
         every { service.existsByCustomerId(testCustomer.id!!) } returns false
 
         val exception =
-            assertThrows<ResponseStatusException> { controller.deleteCustomer(testCustomer.id!!) }
+            assertThrows<TafelValidationFailedException> { controller.deleteCustomer(testCustomer.id!!) }
 
-        assertThat(exception.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
+        assertThat(exception.message).isEqualTo("Kunde Nr. 100 nicht vorhanden!")
         verify { service.existsByCustomerId(testCustomer.id!!) }
     }
 

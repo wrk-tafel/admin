@@ -71,7 +71,7 @@ describe('CustomerDataResolver', () => {
     apiService.getCustomer.withArgs(mockCustomer.id).and.returnValue(of(mockCustomer));
 
     const activatedRoute = <ActivatedRouteSnapshot><unknown>{params: {id: mockCustomer.id}};
-    resolver.resolve(activatedRoute, undefined).subscribe((customer: CustomerData) => {
+    resolver.resolve(activatedRoute).subscribe((customer: CustomerData) => {
       expect(customer).toEqual(mockCustomer);
     });
 

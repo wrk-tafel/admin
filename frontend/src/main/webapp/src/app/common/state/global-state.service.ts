@@ -22,15 +22,18 @@ export class GlobalStateService {
   /* eslint-disable @typescript-eslint/no-explicit-any */
   private getCurrentDistributionPromise(): Promise<any> {
     return new Promise((resolve, reject) => {
-      this.distributionApiService.getCurrentDistribution()
-        .subscribe(
-          distributionItem => {
-            this.currentDistribution.next(distributionItem);
-            resolve(distributionItem);
-          },
-          error => {
-            reject(error);
-          });
+
+      /* eslint-disable @typescript-eslint/no-empty-function */
+      /* eslint-disable @typescript-eslint/no-unused-vars */
+      const observer = {
+        next: (distributionItem: DistributionItem) => {
+          this.currentDistribution.next(distributionItem);
+          resolve(distributionItem);
+        },
+        error: error => reject(error),
+      };
+
+      this.distributionApiService.getCurrentDistribution().subscribe(observer);
     });
   }
 

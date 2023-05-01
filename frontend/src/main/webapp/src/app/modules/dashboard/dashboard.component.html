@@ -1,5 +1,5 @@
-<c-row *tafelIfPermission="'DISTRIBUTION'">
-  <c-col sm="6" lg="3">
+<c-row>
+  <c-col sm="6" lg="3" *tafelIfPermission="'DISTRIBUTION_LCM'">
     <tafel-distribution-state></tafel-distribution-state>
   </c-col>
   <c-col sm="6" lg="3" class="mt-4 mt-sm-0">

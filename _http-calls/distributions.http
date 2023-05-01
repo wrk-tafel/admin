@@ -1,14 +1,17 @@
 ### Create a new distribution
 POST {{baseApiPath}}/distributions/new
 
-### Get active distribution
-GET {{baseApiPath}}/distributions/current
-
 ### List states
 GET {{baseApiPath}}/distributions/states
 
 ### Switch to next state
 POST {{baseApiPath}}/distributions/states/next
 
-### Get state visualization
-GET {{baseApiPath}}/distributions/states/visualize
+### Assign customer to distribution
+POST {{baseApiPath}}/distributions/customers
+Content-Type: application/json
+
+{
+  "customerId": 100,
+  "ticketNumber": 100
+}

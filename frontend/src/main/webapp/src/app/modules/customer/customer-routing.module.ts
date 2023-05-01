@@ -1,11 +1,21 @@
-import {NgModule} from '@angular/core';
-import {RouterModule, Routes} from '@angular/router';
+import {inject, NgModule} from '@angular/core';
+import {ActivatedRouteSnapshot, ResolveFn, RouterModule, Routes} from '@angular/router';
 import {CustomerDetailComponent} from './views/customer-detail/customer-detail.component';
 
 import {CustomerEditComponent} from './views/customer-edit/customer-edit.component';
 import {CustomerSearchComponent} from './views/customer-search/customer-search.component';
 import {CustomerDataResolver} from './resolver/customerdata-resolver.component';
 import {CustomerNotesResolver} from './resolver/customernotes-resolver.component';
+import {CustomerData} from '../../api/customer-api.service';
+import {CustomerNoteItem} from '../../api/customer-note-api.service';
+
+export const customerDataResolver: ResolveFn<CustomerData> = (route: ActivatedRouteSnapshot) => {
+  return inject(CustomerDataResolver).resolve(route);
+};
+
+export const customerNotesResolver: ResolveFn<CustomerNoteItem[]> = (route: ActivatedRouteSnapshot) => {
+  return inject(CustomerNotesResolver).resolve(route);
+};
 
 const routes: Routes = [
   {
@@ -16,15 +26,15 @@ const routes: Routes = [
     path: 'detail/:id',
     component: CustomerDetailComponent,
     resolve: {
-      customerData: CustomerDataResolver,
-      customerNotes: CustomerNotesResolver,
+      customerData: customerDataResolver,
+      customerNotes: customerNotesResolver,
     }
   },
   {
     path: 'bearbeiten/:id',
     component: CustomerEditComponent,
     resolve: {
-      customerData: CustomerDataResolver
+      customerData: customerDataResolver
     }
   },
   {

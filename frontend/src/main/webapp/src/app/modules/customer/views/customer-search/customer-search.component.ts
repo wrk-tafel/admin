@@ -1,24 +1,25 @@
 import {Component} from '@angular/core';
-import {UntypedFormControl, UntypedFormGroup} from '@angular/forms';
 import {Router} from '@angular/router';
 import {CustomerAddressData, CustomerApiService, CustomerSearchResult} from '../../../../api/customer-api.service';
+import {FormControl, FormGroup} from '@angular/forms';
+import {ToastService, ToastType} from "../../../../common/views/default-layout/toasts/toast.service";
 
 @Component({
   selector: 'tafel-customer-search',
   templateUrl: 'customer-search.component.html'
 })
 export class CustomerSearchComponent {
-  errorMessage: string;
   searchResult: CustomerSearchResult;
-  customerSearchForm = new UntypedFormGroup({
-    customerId: new UntypedFormControl(''),
-    lastname: new UntypedFormControl(''),
-    firstname: new UntypedFormControl('')
+  customerSearchForm = new FormGroup({
+    customerId: new FormControl<number>(null),
+    lastname: new FormControl<string>(null),
+    firstname: new FormControl<string>(null)
   });
 
   constructor(
     private customerApiService: CustomerApiService,
-    private router: Router
+    private router: Router,
+    private toastService: ToastService
   ) {
   }
 
@@ -36,21 +37,19 @@ export class CustomerSearchComponent {
 
   searchForCustomerId() {
     const customerId = this.customerId.value;
-    this.customerApiService.getCustomer(customerId)
-      .subscribe(() => {
-        this.router.navigate(['/kunden/detail', customerId]);
-      }, error => {
-        if (error.status === 404) {
-          this.errorMessage = 'Kundennummer ' + customerId + ' nicht gefunden!';
-        }
-      });
+
+    /* eslint-disable @typescript-eslint/no-unused-vars */
+    const observer = {
+      next: (response) => this.router.navigate(['/kunden/detail', customerId])
+    };
+    this.customerApiService.getCustomer(customerId).subscribe(observer);
   }
 
   searchForDetails() {
     this.customerApiService.searchCustomer(this.lastname.value, this.firstname.value)
       .subscribe((response: CustomerSearchResult) => {
         if (response.items.length === 0) {
-          this.errorMessage = 'Keine Kunden gefunden!';
+          this.toastService.showToast({type: ToastType.INFO, title: 'Keine Kunden gefunden!'});
           this.searchResult = null;
         } else {
           this.searchResult = response;
@@ -78,4 +77,5 @@ export class CustomerSearchComponent {
     result += ' / ' + address.postalCode + ' ' + address.city;
     return result;
   }
+
 }
