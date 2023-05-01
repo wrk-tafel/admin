@@ -73,6 +73,27 @@ internal class GenericExceptionHandlerTest {
     }
 
     @Test
+    fun `handles TafelException and status overrides defaultvalue`() {
+        every {
+            messageSource.getMessage(
+                "http-error.${HttpStatus.NOT_FOUND.value()}.title", arrayOf<Any>(), any()
+            )
+        } returns "localized-title"
+        val exception = TafelException(message = "tafelexception-msg", status = HttpStatus.NOT_FOUND)
+
+        val response = exceptionHandler.handleTafelException(exception, request, Locale.GERMAN)
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
+        val errorBody = response.body
+        assertThat(errorBody?.timestamp).isNotNull()
+        assertThat(errorBody?.status).isEqualTo(HttpStatus.NOT_FOUND.value())
+        assertThat(errorBody?.error).isEqualTo("localized-title")
+        assertThat(errorBody?.message).isEqualTo("tafelexception-msg")
+        assertThat(errorBody?.trace).startsWith("at.wrk.tafel.admin.backend.modules.base.exception.TafelException: tafelexception-msg")
+        assertThat(errorBody?.path).isEqualTo("/dummy-path")
+    }
+
+    @Test
     fun `handles TafelValidationException properly`() {
         every {
             messageSource.getMessage(

@@ -3,6 +3,7 @@ package at.wrk.tafel.admin.backend.modules.customer
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import org.springframework.core.io.InputStreamResource
 import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -68,7 +69,10 @@ class CustomerController(
     @DeleteMapping("/{customerId}")
     fun deleteCustomer(@PathVariable("customerId") customerId: Long) {
         if (!service.existsByCustomerId(customerId)) {
-            throw TafelValidationException("Kunde Nr. $customerId nicht vorhanden!")
+            throw TafelValidationException(
+                message = "Kunde Nr. $customerId nicht vorhanden!",
+                status = HttpStatus.NOT_FOUND
+            )
         }
 
         service.deleteCustomerByCustomerId(customerId)

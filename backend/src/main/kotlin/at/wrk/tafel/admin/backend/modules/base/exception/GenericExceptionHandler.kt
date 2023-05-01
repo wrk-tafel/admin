@@ -27,8 +27,9 @@ class GenericExceptionHandler(
     ): ResponseEntity<TafelErrorResponse> {
         logger.warn(exception.message, exception)
 
+        val status = exception.status ?: HttpStatus.BAD_REQUEST
         return createErrorResponse(
-            exception = exception, status = HttpStatus.BAD_REQUEST, request = request, locale = locale
+            exception = exception, status = status, request = request, locale = locale
         )
     }
 
@@ -38,8 +39,9 @@ class GenericExceptionHandler(
     ): ResponseEntity<TafelErrorResponse> {
         logger.debug(exception.message, exception)
 
+        val status = exception.status ?: HttpStatus.BAD_REQUEST
         return createErrorResponse(
-            exception = exception, status = HttpStatus.BAD_REQUEST, request = request, locale = locale
+            exception = exception, status = status, request = request, locale = locale
         )
     }
 
