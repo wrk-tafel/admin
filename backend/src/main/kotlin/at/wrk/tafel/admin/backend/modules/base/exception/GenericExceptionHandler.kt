@@ -36,8 +36,6 @@ class GenericExceptionHandler(
     fun handleTafelValidationFailedException(
         exception: TafelValidationFailedException, request: WebRequest, locale: Locale
     ): ResponseEntity<TafelErrorResponse> {
-        logger.error(exception.message, exception)
-
         return createErrorResponse(
             exception = exception, status = HttpStatus.UNPROCESSABLE_ENTITY, request = request, locale = locale
         )
