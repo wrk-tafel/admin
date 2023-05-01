@@ -1,6 +1,6 @@
 import {AfterViewInit, Directive, TemplateRef, ViewContainerRef} from '@angular/core';
 import {GlobalStateService} from '../state/global-state.service';
-import {DistributionItem} from "../../api/distribution-api.service";
+import {DistributionItem} from '../../api/distribution-api.service';
 
 @Directive({
   selector: '[tafelIfDistributionActive]'
