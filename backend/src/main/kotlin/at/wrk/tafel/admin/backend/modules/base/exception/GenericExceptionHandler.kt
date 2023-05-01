@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.base.exception
 
+import org.slf4j.LoggerFactory
 import org.springframework.context.MessageSource
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -14,9 +15,14 @@ import java.util.*
 class GenericExceptionHandler(
     private val messageSource: MessageSource
 ) {
+    companion object {
+        private val logger = LoggerFactory.getLogger(GenericExceptionHandler::class.java)
+    }
 
     @ExceptionHandler(TafelException::class)
     fun handle(exception: TafelException, request: WebRequest, locale: Locale): ResponseEntity<TafelErrorResponse> {
+        logger.error(exception.message, exception)
+
         return createErrorResponse(
             exception = exception,
             status = HttpStatus.BAD_REQUEST.value(),
@@ -31,6 +37,8 @@ class GenericExceptionHandler(
         request: WebRequest,
         locale: Locale
     ): ResponseEntity<TafelErrorResponse> {
+        logger.error(exception.message, exception)
+
         return createErrorResponse(
             exception = exception,
             status = HttpStatus.UNPROCESSABLE_ENTITY.value(),
