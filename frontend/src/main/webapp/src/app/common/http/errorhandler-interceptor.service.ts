@@ -33,14 +33,41 @@ export class ErrorHandlerInterceptor implements HttpInterceptor {
   private handleErrorMessage(error: HttpErrorResponse): Observable<any> {
     if (this.ERRORCODES_WHITELIST.indexOf(error.status) === -1) {
       console.error('Error-Details', error);
-      const toast: ToastOptions = {
-        type: ToastType.ERROR,
-        title: `HTTP ${error.status} - ${error.statusText}`,
-        message: error.error?.message ?? '-'
-      };
-      this.toastService.showToast(toast);
+
+      if (error.error) {
+        const errorBody: TafelErrorResponse = error.error;
+        const toastOptions = this.createToastFromErrorBody(errorBody);
+        this.toastService.showToast(toastOptions);
+      } else {
+        const toastOptions = this.createToastFromGenericHttpError(error);
+        this.toastService.showToast(toastOptions);
+      }
     }
     return throwError(() => error);
   }
 
+  private createToastFromGenericHttpError(error: HttpErrorResponse): ToastOptions {
+    const toastOptions: ToastOptions = {
+      type: ToastType.ERROR,
+      title: `HTTP ${error.status} - ${error.statusText}`,
+      message: error.message
+    };
+    return toastOptions;
+  }
+
+  private createToastFromErrorBody(errorBody: TafelErrorResponse): ToastOptions {
+    const toastOptions: ToastOptions = {
+      type: ToastType.ERROR,
+      title: `HTTP ${errorBody.status} - ${errorBody.error}`,
+      message: errorBody.message
+    };
+    return toastOptions;
+  }
+
+}
+
+export interface TafelErrorResponse {
+  status: number;
+  error: string;
+  message: string;
 }

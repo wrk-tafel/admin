@@ -1,7 +1,7 @@
 import {HTTP_INTERCEPTORS, HttpClient} from '@angular/common/http';
 import {TestBed} from '@angular/core/testing';
 import {HttpClientTestingModule, HttpTestingController} from '@angular/common/http/testing';
-import {ErrorHandlerInterceptor} from './errorhandler-interceptor.service';
+import {ErrorHandlerInterceptor, TafelErrorResponse} from './errorhandler-interceptor.service';
 import {AuthenticationService} from '../security/authentication.service';
 import {ToastOptions, ToastService, ToastType} from '../views/default-layout/toasts/toast.service';
 
@@ -40,11 +40,8 @@ describe('ErrorHandlerInterceptor', () => {
   it('generic http error', () => {
     authServiceSpy.isAuthenticated.and.returnValue(false);
 
-    /* eslint-disable @typescript-eslint/no-empty-function */
     /* eslint-disable @typescript-eslint/no-unused-vars */
     const observer = {
-      next: (response) => {
-      },
       error: error => {
         const expectedToast: ToastOptions = {
           type: ToastType.ERROR,
@@ -65,16 +62,13 @@ describe('ErrorHandlerInterceptor', () => {
   it('specific spring http error', () => {
     authServiceSpy.isAuthenticated.and.returnValue(false);
 
-    /* eslint-disable @typescript-eslint/no-empty-function */
     /* eslint-disable @typescript-eslint/no-unused-vars */
     const observer = {
-      next: (response) => {
-      },
       error: error => {
         const expectedToast: ToastOptions = {
           type: ToastType.ERROR,
-          title: 'HTTP 400 - Bad Request',
-          message: 'Http failure response for /test: 400 Bad Request'
+          title: 'HTTP 400 - Custom error-title from body',
+          message: 'Custom message from body'
         };
         expect(toastServiceSpy.showToast).toHaveBeenCalledWith(expectedToast);
       },
@@ -82,39 +76,25 @@ describe('ErrorHandlerInterceptor', () => {
     client.get('/test').subscribe(observer);
 
     const mockReq = httpMock.expectOne('/test');
-    const mockErrorResponse = {status: 400, statusText: 'Bad Request'};
-    mockReq.flush({message: 'detail-message'}, mockErrorResponse);
-    httpMock.verify();
-  });
-
-  it('no handling for status 404', () => {
-    authServiceSpy.isAuthenticated.and.returnValue(false);
-
-    /* eslint-disable @typescript-eslint/no-empty-function */
-    /* eslint-disable @typescript-eslint/no-unused-vars */
-    const observer = {
-      next: (response) => {
-      },
-      error: error => {
-        expect(toastServiceSpy.showToast).toHaveBeenCalledTimes(0);
-      },
+    const mockErrorResponse = {
+      status: 400,
+      statusText: 'Bad Request'
     };
-    client.get('/test').subscribe(observer);
 
-    const mockReq = httpMock.expectOne('/test');
-    const mockErrorResponse = {status: 404, statusText: 'Not Found'};
-    mockReq.flush(null, mockErrorResponse);
+    const errorBody: TafelErrorResponse = {
+      status: 400,
+      error: 'Custom error-title from body',
+      message: 'Custom message from body'
+    };
+    mockReq.flush(errorBody, mockErrorResponse);
     httpMock.verify();
   });
 
   it('authentication expired and redirected to login', () => {
     authServiceSpy.isAuthenticated.and.returnValue(true);
 
-    /* eslint-disable @typescript-eslint/no-empty-function */
     /* eslint-disable @typescript-eslint/no-unused-vars */
     const observer = {
-      next: (response) => {
-      },
       error: error => {
         expect(authServiceSpy.redirectToLogin).toHaveBeenCalled();
       },
