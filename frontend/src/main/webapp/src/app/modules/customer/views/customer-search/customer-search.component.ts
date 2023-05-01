@@ -2,13 +2,13 @@ import {Component} from '@angular/core';
 import {Router} from '@angular/router';
 import {CustomerAddressData, CustomerApiService, CustomerSearchResult} from '../../../../api/customer-api.service';
 import {FormControl, FormGroup} from '@angular/forms';
+import {ToastService, ToastType} from "../../../../common/views/default-layout/toasts/toast.service";
 
 @Component({
   selector: 'tafel-customer-search',
   templateUrl: 'customer-search.component.html'
 })
 export class CustomerSearchComponent {
-  errorMessage: string;
   searchResult: CustomerSearchResult;
   customerSearchForm = new FormGroup({
     customerId: new FormControl<number>(null),
@@ -18,7 +18,8 @@ export class CustomerSearchComponent {
 
   constructor(
     private customerApiService: CustomerApiService,
-    private router: Router
+    private router: Router,
+    private toastService: ToastService
   ) {
   }
 
@@ -39,12 +40,7 @@ export class CustomerSearchComponent {
 
     /* eslint-disable @typescript-eslint/no-unused-vars */
     const observer = {
-      next: (response) => this.router.navigate(['/kunden/detail', customerId]),
-      error: error => {
-        if (error.status === 404) {
-          this.errorMessage = 'Kundennummer ' + customerId + ' nicht gefunden!';
-        }
-      },
+      next: (response) => this.router.navigate(['/kunden/detail', customerId])
     };
     this.customerApiService.getCustomer(customerId).subscribe(observer);
   }
@@ -53,7 +49,7 @@ export class CustomerSearchComponent {
     this.customerApiService.searchCustomer(this.lastname.value, this.firstname.value)
       .subscribe((response: CustomerSearchResult) => {
         if (response.items.length === 0) {
-          this.errorMessage = 'Keine Kunden gefunden!';
+          this.toastService.showToast({type: ToastType.INFO, title: 'Keine Kunden gefunden!'});
           this.searchResult = null;
         } else {
           this.searchResult = response;
