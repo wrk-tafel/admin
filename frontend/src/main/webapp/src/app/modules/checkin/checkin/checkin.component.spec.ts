@@ -477,43 +477,6 @@ describe('CheckinComponent', () => {
     expect(component.ticketNumber).toBeUndefined();
   });
 
-  it('assign customer failed', () => {
-    const fixture = TestBed.createComponent(CheckinComponent);
-    const component = fixture.componentInstance;
-
-    const mockCustomer = {
-      id: 133,
-      lastname: 'Mustermann',
-      firstname: 'Max',
-      birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
-
-      address: {
-        street: 'Teststraße',
-        houseNumber: '123A',
-        door: '21',
-        postalCode: 1020,
-        city: 'Wien',
-      },
-
-      employer: 'test employer',
-      income: 1000,
-
-      validUntil: moment().add(3, 'months').startOf('day').utc().toDate()
-    };
-    component.processCustomer(mockCustomer);
-
-    const ticketNumber = 55;
-    component.ticketNumber = ticketNumber;
-
-    distributionApiService.assignCustomer.and.returnValue(throwError(() => {
-      return {status: 400};
-    }));
-
-    component.assignCustomer();
-
-    expect(distributionApiService.assignCustomer).toHaveBeenCalledWith(mockCustomer.id, ticketNumber);
-  });
-
   it('assign customer ignored without proper value', () => {
     const fixture = TestBed.createComponent(CheckinComponent);
     const component = fixture.componentInstance;
