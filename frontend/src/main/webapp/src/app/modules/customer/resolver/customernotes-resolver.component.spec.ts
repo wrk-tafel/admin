@@ -45,7 +45,7 @@ describe('CustomerNotesResolver', () => {
     apiService.getNotesForCustomer.withArgs(customerId).and.returnValue(of(mockNotes));
 
     const activatedRoute = <ActivatedRouteSnapshot><unknown>{params: {id: customerId}};
-    resolver.resolve(activatedRoute, undefined).subscribe((notes: CustomerNoteItem[]) => {
+    resolver.resolve(activatedRoute).subscribe((notes: CustomerNoteItem[]) => {
       expect(notes).toEqual(mockNotes.notes);
     });
 

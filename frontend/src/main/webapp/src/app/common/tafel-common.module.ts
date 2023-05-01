@@ -3,21 +3,41 @@ import {TafelIfPermissionDirective} from './security/tafel-if-permission.directi
 import {PasswordChangeFormComponent} from './views/passwordchange-form/passwordchange-form.component';
 import {ReactiveFormsModule} from '@angular/forms';
 import {CommonModule} from '@angular/common';
+import {
+  BgColorDirective,
+  ProgressBarComponent,
+  ProgressComponent,
+  ToastBodyComponent,
+  ToastComponent,
+  ToasterComponent,
+  ToastHeaderComponent
+} from '@coreui/angular';
+import {TafelToasterComponent} from './views/default-layout/toasts/tafel-toaster.component';
+import {TafelToastComponent} from './views/default-layout/toasts/toast/tafel-toast.component';
 
 @NgModule({
   declarations: [
     TafelIfPermissionDirective,
-    PasswordChangeFormComponent
+    PasswordChangeFormComponent,
+    TafelToasterComponent,
+    TafelToastComponent
   ],
   imports: [
     ReactiveFormsModule,
-    CommonModule
+    CommonModule,
+    ToastComponent,
+    ToastHeaderComponent,
+    ToastBodyComponent,
+    BgColorDirective,
+    ToasterComponent,
+    ProgressComponent,
+    ProgressBarComponent
   ],
   exports: [
     TafelIfPermissionDirective,
-    PasswordChangeFormComponent
+    PasswordChangeFormComponent,
+    TafelToasterComponent
   ]
 })
-// TODO add also views, services, etc?
 export class TafelCommonModule {
 }

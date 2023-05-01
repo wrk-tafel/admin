@@ -3,7 +3,7 @@ import {CheckinComponent, CustomerState} from './checkin.component';
 import {WebsocketService} from '../../../common/websocket/websocket.service';
 import {CommonModule} from '@angular/common';
 import {CustomerApiService} from '../../../api/customer-api.service';
-import {BehaviorSubject, of, throwError} from 'rxjs';
+import {BehaviorSubject, EMPTY, of, throwError} from 'rxjs';
 import {IMessage} from '@stomp/stompjs';
 import * as moment from 'moment/moment';
 import {ScannerList, ScanResult} from '../scanner/scanner.component';
@@ -122,7 +122,7 @@ describe('CheckinComponent', () => {
     const fixture = TestBed.createComponent(CheckinComponent);
     const component = fixture.componentInstance;
 
-    wsService.watch.and.returnValue(of());
+    wsService.watch.and.returnValue(EMPTY);
     globalStateService.getCurrentDistribution.and.returnValue(new BehaviorSubject<DistributionItem>(null));
 
     component.ngOnInit();
@@ -143,8 +143,8 @@ describe('CheckinComponent', () => {
   });
 
   it('selectedScannerId first time selected', () => {
-    customerApiService.getCustomer.and.returnValue(of());
-    customerNoteApiService.getNotesForCustomer.and.returnValue(of());
+    customerApiService.getCustomer.and.returnValue(EMPTY);
+    customerNoteApiService.getNotesForCustomer.and.returnValue(EMPTY);
 
     const customerId = 11111;
     const scanResult: ScanResult = {value: customerId};
@@ -198,7 +198,7 @@ describe('CheckinComponent', () => {
 
   it('selectedScannerId switch to another scanner', () => {
     const testSubscription = jasmine.createSpyObj('Subscription', ['unsubscribe']);
-    wsService.watch.and.returnValue(of());
+    wsService.watch.and.returnValue(EMPTY);
 
     const fixture = TestBed.createComponent(CheckinComponent);
     const component = fixture.componentInstance;
@@ -219,7 +219,6 @@ describe('CheckinComponent', () => {
   it('searchForCustomerId found valid customer', () => {
     const fixture = TestBed.createComponent(CheckinComponent);
     const component = fixture.componentInstance;
-    component.errorMessage = 'test msg to be purged';
     component.ticketNumber = 123;
 
     const mockCustomer = {
@@ -250,7 +249,6 @@ describe('CheckinComponent', () => {
 
     expect(component.customer).toEqual(mockCustomer);
     expect(customerApiService.getCustomer).toHaveBeenCalledWith(mockCustomer.id);
-    expect(component.errorMessage).toBeUndefined();
 
     expect(component.customerState).toBe(CustomerState.GREEN);
     expect(component.customerStateText).toBe('GÜLTIG');
@@ -342,7 +340,9 @@ describe('CheckinComponent', () => {
     const fixture = TestBed.createComponent(CheckinComponent);
     const component = fixture.componentInstance;
 
-    customerApiService.getCustomer.and.returnValue(throwError({status: 404}));
+    customerApiService.getCustomer.and.returnValue(throwError(() => {
+      return {status: 404};
+    }));
     const notesResponse: CustomerNotesResponse = {notes: []};
     customerNoteApiService.getNotesForCustomer.and.returnValue(of(notesResponse));
     const testCustomerId = 1234;
@@ -352,7 +352,6 @@ describe('CheckinComponent', () => {
 
     expect(component.customer).toBeUndefined();
     expect(customerApiService.getCustomer).toHaveBeenCalledWith(testCustomerId);
-    expect(component.errorMessage).toBe(`Kundennummer ${testCustomerId} nicht gefunden!`);
   });
 
   it('searchForCustomerId found notes', () => {
@@ -476,43 +475,6 @@ describe('CheckinComponent', () => {
     expect(component.customerNotes).toBeDefined();
     expect(component.customerNotes.length).toBe(0);
     expect(component.ticketNumber).toBeUndefined();
-  });
-
-  it('assign customer failed', () => {
-    const fixture = TestBed.createComponent(CheckinComponent);
-    const component = fixture.componentInstance;
-
-    const mockCustomer = {
-      id: 133,
-      lastname: 'Mustermann',
-      firstname: 'Max',
-      birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
-
-      address: {
-        street: 'Teststraße',
-        houseNumber: '123A',
-        door: '21',
-        postalCode: 1020,
-        city: 'Wien',
-      },
-
-      employer: 'test employer',
-      income: 1000,
-
-      validUntil: moment().add(3, 'months').startOf('day').utc().toDate()
-    };
-    component.processCustomer(mockCustomer);
-
-    const ticketNumber = 55;
-    component.ticketNumber = ticketNumber;
-
-    distributionApiService.assignCustomer.and.returnValue(throwError({status: 400}));
-
-    component.assignCustomer();
-
-    expect(distributionApiService.assignCustomer).toHaveBeenCalledWith(mockCustomer.id, ticketNumber);
-
-    expect(component.errorMessage).toBe('Kunde konnte nicht zugewiesen werden!');
   });
 
   it('assign customer ignored without proper value', () => {

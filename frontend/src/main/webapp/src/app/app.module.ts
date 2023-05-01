@@ -139,7 +139,7 @@ registerLocaleData(localeDeAt);
     ColComponent,
     ContainerComponent,
     FormControlDirective,
-    IconDirective,
+    IconModule,
     InputGroupComponent,
     InputGroupTextDirective,
     RowComponent,

@@ -3,7 +3,7 @@ import {AbstractControl, ReactiveFormsModule} from '@angular/forms';
 import {LoginPasswordChangeComponent} from './login-passwordchange.component';
 import {AuthenticationService, LoginResult} from '../../security/authentication.service';
 import {Router} from '@angular/router';
-import {of} from 'rxjs';
+import {firstValueFrom, of} from 'rxjs';
 import {PasswordChangeFormComponent} from '../passwordchange-form/passwordchange-form.component';
 import {HttpClientTestingModule} from '@angular/common/http/testing';
 import {CardModule, ColComponent, ContainerComponent, RowComponent} from '@coreui/angular';
@@ -84,7 +84,7 @@ describe('LoginPasswordChangeComponent', () => {
     authServiceSpy.getUsername.and.returnValue(testUsername);
 
     const loginResult: LoginResult = {successful: true, passwordChangeRequired: false};
-    authServiceSpy.login.and.returnValue(of(loginResult).toPromise());
+    authServiceSpy.login.and.returnValue(firstValueFrom(of(loginResult)));
 
     component.changePassword();
 

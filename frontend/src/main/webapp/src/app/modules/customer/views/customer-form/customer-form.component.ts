@@ -19,6 +19,7 @@ export class CustomerFormComponent implements OnInit {
   ) {
   }
 
+  // TODO migrate to typed form
   form = new UntypedFormGroup({
     id: new UntypedFormControl(null),
     lastname: new UntypedFormControl(null, [Validators.required, Validators.maxLength(50)]),

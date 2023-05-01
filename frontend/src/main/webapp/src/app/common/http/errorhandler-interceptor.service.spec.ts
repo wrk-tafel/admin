@@ -1,18 +1,17 @@
 import {HTTP_INTERCEPTORS, HttpClient} from '@angular/common/http';
 import {TestBed} from '@angular/core/testing';
 import {HttpClientTestingModule, HttpTestingController} from '@angular/common/http/testing';
-import {ErrorHandlerInterceptor} from './errorhandler-interceptor.service';
+import {ErrorHandlerInterceptor, TafelErrorResponse} from './errorhandler-interceptor.service';
 import {AuthenticationService} from '../security/authentication.service';
+import {ToastOptions, ToastService, ToastType} from '../views/default-layout/toasts/toast.service';
 
 describe('ErrorHandlerInterceptor', () => {
   let client: HttpClient;
   let httpMock: HttpTestingController;
-  let window: jasmine.SpyObj<Window>;
   let authServiceSpy: jasmine.SpyObj<AuthenticationService>;
+  let toastServiceSpy: jasmine.SpyObj<ToastService>;
 
   beforeEach(() => {
-    const windowSpy = jasmine.createSpyObj('window', ['alert']);
-
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
       providers: [
@@ -22,31 +21,37 @@ describe('ErrorHandlerInterceptor', () => {
           multi: true
         },
         {
-          provide: Window,
-          useValue: windowSpy
-        },
-        {
           provide: AuthenticationService,
           useValue: jasmine.createSpyObj('AuthenticationService', ['redirectToLogin', 'isAuthenticated'])
+        },
+        {
+          provide: ToastService,
+          useValue: jasmine.createSpyObj('ToastService', ['showToast'])
         }
       ]
     });
 
     client = TestBed.inject(HttpClient);
     httpMock = TestBed.inject(HttpTestingController);
-    window = TestBed.inject(Window) as jasmine.SpyObj<Window>;
     authServiceSpy = TestBed.inject(AuthenticationService) as jasmine.SpyObj<AuthenticationService>;
+    toastServiceSpy = TestBed.inject(ToastService) as jasmine.SpyObj<ToastService>;
   });
 
   it('generic http error', () => {
     authServiceSpy.isAuthenticated.and.returnValue(false);
 
-    /* eslint-disable @typescript-eslint/no-empty-function */
     /* eslint-disable @typescript-eslint/no-unused-vars */
-    client.get('/test').subscribe(() => {
-    }, err => {
-      expect(window.alert).toHaveBeenCalledWith('FEHLER:\nHTTP - 500 - Internal Server Error\nMESSAGE:\nHttp failure response for /test: 500 Internal Server Error\nDETAILS:\nundefined');
-    });
+    const observer = {
+      error: error => {
+        const expectedToast: ToastOptions = {
+          type: ToastType.ERROR,
+          title: 'HTTP 500 - Internal Server Error',
+          message: 'Http failure response for /test: 500 Internal Server Error'
+        };
+        expect(toastServiceSpy.showToast).toHaveBeenCalledWith(expectedToast);
+      },
+    };
+    client.get('/test').subscribe(observer);
 
     const mockReq = httpMock.expectOne('/test');
     const mockErrorResponse = {status: 500, statusText: 'Internal Server Error'};
@@ -57,45 +62,44 @@ describe('ErrorHandlerInterceptor', () => {
   it('specific spring http error', () => {
     authServiceSpy.isAuthenticated.and.returnValue(false);
 
-    /* eslint-disable @typescript-eslint/no-empty-function */
     /* eslint-disable @typescript-eslint/no-unused-vars */
-    client.get('/test').subscribe(() => {
-    }, err => {
-      expect(window.alert).toHaveBeenCalledWith('FEHLER:\nHTTP - 400 - Bad Request\nMESSAGE:\nHttp failure response for /test: 400 Bad Request\nDETAILS:\ndetail-message');
-    });
+    const observer = {
+      error: error => {
+        const expectedToast: ToastOptions = {
+          type: ToastType.ERROR,
+          title: 'HTTP 400 - Custom error-title from body',
+          message: 'Custom message from body'
+        };
+        expect(toastServiceSpy.showToast).toHaveBeenCalledWith(expectedToast);
+      },
+    };
+    client.get('/test').subscribe(observer);
 
     const mockReq = httpMock.expectOne('/test');
-    const mockErrorResponse = {status: 400, statusText: 'Bad Request'};
-    mockReq.flush({message: 'detail-message'}, mockErrorResponse);
-    httpMock.verify();
-  });
+    const mockErrorResponse = {
+      status: 400,
+      statusText: 'Bad Request'
+    };
 
-  // TODO CHECK
-  it('no handling for status 404', () => {
-    authServiceSpy.isAuthenticated.and.returnValue(false);
-
-    /* eslint-disable @typescript-eslint/no-empty-function */
-    /* eslint-disable @typescript-eslint/no-unused-vars */
-    client.get('/test').subscribe(() => {
-    }, err => {
-      expect(window.alert).toHaveBeenCalledTimes(0);
-    });
-
-    const mockReq = httpMock.expectOne('/test');
-    const mockErrorResponse = {status: 404, statusText: 'Not Found'};
-    mockReq.flush(null, mockErrorResponse);
+    const errorBody: TafelErrorResponse = {
+      status: 400,
+      error: 'Custom error-title from body',
+      message: 'Custom message from body'
+    };
+    mockReq.flush(errorBody, mockErrorResponse);
     httpMock.verify();
   });
 
   it('authentication expired and redirected to login', () => {
     authServiceSpy.isAuthenticated.and.returnValue(true);
 
-    /* eslint-disable @typescript-eslint/no-empty-function */
     /* eslint-disable @typescript-eslint/no-unused-vars */
-    client.get('/test').subscribe(() => {
-    }, err => {
-      expect(authServiceSpy.redirectToLogin).toHaveBeenCalled();
-    });
+    const observer = {
+      error: error => {
+        expect(authServiceSpy.redirectToLogin).toHaveBeenCalled();
+      },
+    };
+    client.get('/test').subscribe(observer);
 
     const mockReq = httpMock.expectOne('/test');
     const mockErrorResponse = {status: 401, statusText: 'Unauthorized'};

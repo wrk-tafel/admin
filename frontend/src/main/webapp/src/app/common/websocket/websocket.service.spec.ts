@@ -1,6 +1,6 @@
 import {WebsocketService} from './websocket.service';
 import {RxStomp, RxStompState} from '@stomp/rx-stomp';
-import {BehaviorSubject, Observable, of} from 'rxjs';
+import {BehaviorSubject, EMPTY, Observable} from 'rxjs';
 import {IMessage} from '@stomp/stompjs';
 import {UrlHelperService} from '../util/url-helper.service';
 
@@ -40,7 +40,7 @@ describe('WebsocketService', () => {
 
   it('watch called', () => {
     const {service, clientSpy} = setup();
-    const mockResult: Observable<IMessage> = of();
+    const mockResult: Observable<IMessage> = EMPTY;
     clientSpy.watch.and.returnValue(mockResult);
 
     const destination = '/test123';

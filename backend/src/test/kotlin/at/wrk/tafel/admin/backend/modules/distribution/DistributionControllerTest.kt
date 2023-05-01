@@ -2,7 +2,7 @@ package at.wrk.tafel.admin.backend.modules.distribution
 
 import at.wrk.tafel.admin.backend.common.model.DistributionState
 import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionEntity
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationFailedException
+import at.wrk.tafel.admin.backend.modules.base.exception.TafelException
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -11,10 +11,10 @@ import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.http.HttpStatus
 import org.springframework.messaging.simp.SimpMessagingTemplate
-import org.springframework.web.server.ResponseStatusException
 import java.util.*
 
 @ExtendWith(MockKExtension::class)
@@ -57,13 +57,13 @@ internal class DistributionControllerTest {
     @Test
     fun `create new distribution with existing ongoing distribution`() {
         val message = "MSG"
-        every { service.createNewDistribution() } throws TafelValidationFailedException(message)
+        every { service.createNewDistribution() } throws TafelException(message)
 
-        val exception = assertThrows(ResponseStatusException::class.java) {
+        val exception = assertThrows(TafelException::class.java) {
             controller.createNewDistribution()
         }
-        assertThat(exception.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
-        assertThat(exception.reason).isEqualTo(message)
+
+        assertThat(exception.message).isEqualTo(message)
     }
 
     @Test
@@ -124,10 +124,11 @@ internal class DistributionControllerTest {
     fun `switch to next distribution state without open distribution`() {
         every { service.getCurrentDistribution() } returns null
 
-        val response = controller.switchToNextDistributionState()
+        val exception = assertThrows<TafelException> {
+            controller.switchToNextDistributionState()
+        }
 
-        assertThat(response.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
-        assertThat(response.body).isNull()
+        assertThat(exception.message).isEqualTo("Ausgabe nicht gestartet!")
     }
 
     @Test
@@ -165,15 +166,18 @@ internal class DistributionControllerTest {
         every {
             service.assignCustomerToDistribution(
                 any(),
+                any(),
                 any()
             )
-        } throws TafelValidationFailedException("dummy error")
+        } throws TafelException("dummy error")
 
         val requestBody = AssignCustomerRequest(customerId = 1, ticketNumber = 100)
-        val response = controller.assignCustomerToDistribution(requestBody)
 
-        assertThat(response.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
-        assertThat(response.body).isNull()
+        val exception = assertThrows<TafelException> {
+            controller.assignCustomerToDistribution(requestBody)
+        }
+
+        assertThat(exception.message).isEqualTo("dummy error")
     }
 
     @Test
@@ -181,7 +185,7 @@ internal class DistributionControllerTest {
         val requestBody = AssignCustomerRequest(customerId = 1, ticketNumber = 100)
         val response = controller.assignCustomerToDistribution(requestBody)
 
-        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(response.statusCode).isEqualTo(HttpStatus.NO_CONTENT)
         assertThat(response.body).isNull()
     }
 

@@ -1,13 +1,12 @@
 package at.wrk.tafel.admin.backend.modules.customer
 
+import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationFailedException
 import org.springframework.core.io.InputStreamResource
 import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
-import org.springframework.web.server.ResponseStatusException
 import java.io.ByteArrayInputStream
 
 @RestController
@@ -32,7 +31,7 @@ class CustomerController(
     fun createCustomer(@RequestBody customer: Customer): Customer {
         customer.id?.let {
             if (service.existsByCustomerId(it)) {
-                throw ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Kunde Nr. $it bereits vorhanden!")
+                throw TafelValidationFailedException("Kunde Nr. $it bereits vorhanden!")
             }
         }
 
@@ -45,7 +44,7 @@ class CustomerController(
         @RequestBody customer: Customer
     ): Customer {
         if (!service.existsByCustomerId(customerId)) {
-            throw ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Kunde Nr. $customerId nicht vorhanden!")
+            throw TafelValidationFailedException("Kunde Nr. $customerId nicht vorhanden!")
         }
 
         return service.updateCustomer(customerId, customer)
@@ -53,7 +52,8 @@ class CustomerController(
 
     @GetMapping("/{customerId}")
     fun getCustomer(@PathVariable("customerId") customerId: Long): Customer {
-        return service.findByCustomerId(customerId) ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
+        return service.findByCustomerId(customerId)
+            ?: throw TafelValidationFailedException("Kunde Nr. $customerId nicht gefunden!")
     }
 
     @GetMapping
@@ -68,7 +68,7 @@ class CustomerController(
     @DeleteMapping("/{customerId}")
     fun deleteCustomer(@PathVariable("customerId") customerId: Long) {
         if (!service.existsByCustomerId(customerId)) {
-            throw ResponseStatusException(HttpStatus.NOT_FOUND)
+            throw TafelValidationFailedException("Kunde Nr. $customerId nicht vorhanden!")
         }
 
         service.deleteCustomerByCustomerId(customerId)

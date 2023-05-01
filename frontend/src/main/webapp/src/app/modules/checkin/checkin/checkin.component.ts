@@ -29,8 +29,6 @@ export class CheckinComponent implements OnInit, OnDestroy {
 
   private VALID_UNTIL_WARNLIMIT_WEEKS = 8;
 
-  errorMessage: string;
-
   scannerIds: number[];
   currentScannerId: number;
   scannerReadyState: boolean;
@@ -64,20 +62,22 @@ export class CheckinComponent implements OnInit, OnDestroy {
   }
 
   searchForCustomerId() {
-    this.customerApiService.getCustomer(this.customerId).subscribe(customerData => {
-      this.processCustomer(customerData);
-      this.errorMessage = undefined;
+    const observer = {
+      next: (customerData: CustomerData) => {
+        this.processCustomer(customerData);
 
-      this.customerNoteApiService.getNotesForCustomer(this.customerId).subscribe(notesResponse => {
-        this.customerNotes = notesResponse.notes;
-      });
-    }, error => {
-      if (error.status === 404) {
-        this.processCustomer(undefined);
-        this.customerNotes = [];
-        this.errorMessage = 'Kundennummer ' + this.customerId + ' nicht gefunden!';
-      }
-    });
+        this.customerNoteApiService.getNotesForCustomer(this.customerId).subscribe(notesResponse => {
+          this.customerNotes = notesResponse.notes;
+        });
+      },
+      error: error => {
+        if (error.status === 404) {
+          this.processCustomer(undefined);
+          this.customerNotes = [];
+        }
+      },
+    };
+    this.customerApiService.getCustomer(this.customerId).subscribe(observer);
   }
 
   processCustomer(customer: CustomerData) {
@@ -166,14 +166,10 @@ export class CheckinComponent implements OnInit, OnDestroy {
   assignCustomer() {
     if (this.ticketNumber > 0) {
       /* eslint-disable @typescript-eslint/no-unused-vars */
-      this.distributionApiService.assignCustomer(this.customer.id, this.ticketNumber).subscribe(
-        response => {
-          this.reset();
-        },
-        error => {
-          this.errorMessage = 'Kunde konnte nicht zugewiesen werden!';
-        }
-      );
+      const observer = {
+        next: (response) => this.reset()
+      };
+      this.distributionApiService.assignCustomer(this.customer.id, this.ticketNumber).subscribe(observer);
     }
   }
 

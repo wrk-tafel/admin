@@ -3,17 +3,18 @@ import {Injectable} from '@angular/core';
 import {Observable, throwError} from 'rxjs';
 import {catchError} from 'rxjs/operators';
 import {AuthenticationService} from '../security/authentication.service';
+import {ToastOptions, ToastService, ToastType} from '../views/default-layout/toasts/toast.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ErrorHandlerInterceptor implements HttpInterceptor {
 
-  constructor(private window: Window,
-              private auth: AuthenticationService) {
+  constructor(private auth: AuthenticationService,
+              private toastService: ToastService) {
   }
 
-  private ERRORCODES_WHITELIST = [401, 404, 422];
+  private ERRORCODES_WHITELIST = [401];
 
   /* eslint-disable @typescript-eslint/no-explicit-any */
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
@@ -26,29 +27,47 @@ export class ErrorHandlerInterceptor implements HttpInterceptor {
     if (this.auth.isAuthenticated() && error.status === 401) {
       this.auth.redirectToLogin('abgelaufen');
     }
-    return throwError(error);
+    return throwError(() => error);
   }
 
   private handleErrorMessage(error: HttpErrorResponse): Observable<any> {
     if (this.ERRORCODES_WHITELIST.indexOf(error.status) === -1) {
-      // TODO better ui element to show
-      const errorDetail = error.error as ErrorResponseData;
+      console.error('Error-Details', error);
 
-      const msg = 'FEHLER:\nHTTP - ' + error.status
-        + ' - ' + error.statusText
-        + '\nMESSAGE:\n'
-        + error?.message
-        + '\nDETAILS:\n'
-        + errorDetail?.message;
-      this.window.alert(msg);
+      if (error.error) {
+        const errorBody: TafelErrorResponse = error.error;
+        const toastOptions = this.createToastFromErrorBody(errorBody);
+        this.toastService.showToast(toastOptions);
+      } else {
+        const toastOptions = this.createToastFromGenericHttpError(error);
+        this.toastService.showToast(toastOptions);
+      }
     }
-    return throwError(error);
+    return throwError(() => error);
+  }
+
+  private createToastFromGenericHttpError(error: HttpErrorResponse): ToastOptions {
+    const toastOptions: ToastOptions = {
+      type: ToastType.ERROR,
+      title: `HTTP ${error.status} - ${error.statusText}`,
+      message: error.message
+    };
+    return toastOptions;
+  }
+
+  private createToastFromErrorBody(errorBody: TafelErrorResponse): ToastOptions {
+    const toastOptions: ToastOptions = {
+      type: ToastType.ERROR,
+      title: `HTTP ${errorBody.status} - ${errorBody.error}`,
+      message: errorBody.message
+    };
+    return toastOptions;
   }
 
 }
 
-interface ErrorResponseData {
+export interface TafelErrorResponse {
+  status: number;
   error: string;
   message: string;
-  status: number;
 }

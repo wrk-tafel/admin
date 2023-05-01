@@ -1,14 +1,23 @@
-import {NgModule} from '@angular/core';
-import {RouterModule, Routes} from '@angular/router';
+import {inject, NgModule} from '@angular/core';
+import {ActivatedRouteSnapshot, CanActivateChildFn, ResolveFn, RouterModule, Routes} from '@angular/router';
 
 import {DefaultLayoutComponent} from './common/views/default-layout/default-layout.component';
 import {P404Component} from './common/views/error/404.component';
 import {P500Component} from './common/views/error/500.component';
 import {LoginComponent} from './common/views/login/login.component';
 
-import {AuthGuardService as AuthGuard} from './common/security/authguard.service';
+import {AuthGuardService} from './common/security/authguard.service';
 import {LoginPasswordChangeComponent} from './common/views/login-passwordchange/login-passwordchange.component';
 import {DefaultLayoutResolver} from './common/views/default-layout/resolver/default-layout-resolver.component';
+
+const authGuard: CanActivateChildFn = (route: ActivatedRouteSnapshot) => {
+  return inject(AuthGuardService).canActivateChild(route);
+};
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+export const defaultLayoutResolver: ResolveFn<any[]> = () => {
+  return inject(DefaultLayoutResolver).resolve();
+};
 
 export const routes: Routes = [
   {
@@ -39,9 +48,9 @@ export const routes: Routes = [
   {
     path: '',
     component: DefaultLayoutComponent,
-    canActivateChild: [AuthGuard],
+    canActivateChild: [authGuard],
     resolve: {
-      initialStates: DefaultLayoutResolver
+      initialStates: defaultLayoutResolver
     },
     children: [
       {
