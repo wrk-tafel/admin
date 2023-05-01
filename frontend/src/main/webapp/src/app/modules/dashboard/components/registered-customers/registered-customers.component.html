@@ -6,8 +6,9 @@
       </c-col>
     </c-row>
     <c-row>
-      <c-col class="mt-3 mb-5">
+      <c-col class="mb-5">
         <div testid="customers-count" class="text-white text-end dashboard-number-huge">{{count ?? '-'}}</div>
+        <button *tafelIfDistributionActive cButton color="light" (click)="downloadCustomerList()"><i class="fa fa-download"></i> Kundenliste</button>
       </c-col>
     </c-row>
   </c-card-body>
