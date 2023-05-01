@@ -45,7 +45,10 @@ class CustomerController(
         @RequestBody customer: Customer
     ): Customer {
         if (!service.existsByCustomerId(customerId)) {
-            throw TafelValidationException("Kunde Nr. $customerId nicht vorhanden!")
+            throw TafelValidationException(
+                message = "Kunde Nr. $customerId nicht vorhanden!",
+                status = HttpStatus.NOT_FOUND
+            )
         }
 
         return service.updateCustomer(customerId, customer)
@@ -54,7 +57,10 @@ class CustomerController(
     @GetMapping("/{customerId}")
     fun getCustomer(@PathVariable("customerId") customerId: Long): Customer {
         return service.findByCustomerId(customerId)
-            ?: throw TafelValidationException("Kunde Nr. $customerId nicht gefunden!")
+            ?: throw TafelValidationException(
+                message = "Kunde Nr. $customerId nicht gefunden!",
+                status = HttpStatus.NOT_FOUND
+            )
     }
 
     @GetMapping
@@ -97,7 +103,11 @@ class CustomerController(
                 .contentType(MediaType.APPLICATION_PDF)
                 .body(InputStreamResource(ByteArrayInputStream(pdfResult.bytes)))
         }
-        return ResponseEntity.notFound().build()
+
+        throw TafelValidationException(
+            message = "Kunde Nr. $customerId nicht vorhanden!",
+            status = HttpStatus.NOT_FOUND
+        )
     }
 
 }

@@ -79,6 +79,7 @@ class CustomerControllerTest {
             assertThrows<TafelValidationException> { controller.updateCustomer(testCustomer.id!!, testCustomer) }
 
         assertThat(exception.message).isEqualTo("Kunde Nr. 100 nicht vorhanden!")
+        assertThat(exception.status).isEqualTo(HttpStatus.NOT_FOUND)
     }
 
     @Test
@@ -98,6 +99,7 @@ class CustomerControllerTest {
             assertThrows<TafelValidationException> { controller.getCustomer(testCustomer.id!!) }
 
         assertThat(exception.message).isEqualTo("Kunde Nr. ${testCustomer.id} nicht gefunden!")
+        assertThat(exception.status).isEqualTo(HttpStatus.NOT_FOUND)
         verify { service.findByCustomerId(testCustomer.id!!) }
     }
 
@@ -119,6 +121,7 @@ class CustomerControllerTest {
             assertThrows<TafelValidationException> { controller.deleteCustomer(testCustomer.id!!) }
 
         assertThat(exception.message).isEqualTo("Kunde Nr. 100 nicht vorhanden!")
+        assertThat(exception.status).isEqualTo(HttpStatus.NOT_FOUND)
         verify { service.existsByCustomerId(testCustomer.id!!) }
     }
 
@@ -145,9 +148,10 @@ class CustomerControllerTest {
     fun `generate pdf - no result`() {
         every { service.generatePdf(any(), any()) } returns null
 
-        val response = controller.generatePdf(123, CustomerPdfType.COMBINED)
+        val exception = assertThrows<TafelValidationException> { controller.generatePdf(123, CustomerPdfType.COMBINED) }
 
-        assertThat(response.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
+        assertThat(exception.status).isEqualTo(HttpStatus.NOT_FOUND)
+        assertThat(exception.message).isEqualTo("Kunde Nr. 123 nicht vorhanden!")
     }
 
     @Test
