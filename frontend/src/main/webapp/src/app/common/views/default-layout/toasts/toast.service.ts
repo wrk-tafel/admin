@@ -21,5 +21,5 @@ export enum ToastType {
 export interface ToastOptions {
   type: ToastType;
   title: string;
-  message: string;
+  message?: string;
 }
