@@ -1,6 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.customer
 
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationFailedException
+import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import org.springframework.core.io.InputStreamResource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
@@ -31,7 +31,7 @@ class CustomerController(
     fun createCustomer(@RequestBody customer: Customer): Customer {
         customer.id?.let {
             if (service.existsByCustomerId(it)) {
-                throw TafelValidationFailedException("Kunde Nr. $it bereits vorhanden!")
+                throw TafelValidationException("Kunde Nr. $it bereits vorhanden!")
             }
         }
 
@@ -44,7 +44,7 @@ class CustomerController(
         @RequestBody customer: Customer
     ): Customer {
         if (!service.existsByCustomerId(customerId)) {
-            throw TafelValidationFailedException("Kunde Nr. $customerId nicht vorhanden!")
+            throw TafelValidationException("Kunde Nr. $customerId nicht vorhanden!")
         }
 
         return service.updateCustomer(customerId, customer)
@@ -53,7 +53,7 @@ class CustomerController(
     @GetMapping("/{customerId}")
     fun getCustomer(@PathVariable("customerId") customerId: Long): Customer {
         return service.findByCustomerId(customerId)
-            ?: throw TafelValidationFailedException("Kunde Nr. $customerId nicht gefunden!")
+            ?: throw TafelValidationException("Kunde Nr. $customerId nicht gefunden!")
     }
 
     @GetMapping
@@ -68,7 +68,7 @@ class CustomerController(
     @DeleteMapping("/{customerId}")
     fun deleteCustomer(@PathVariable("customerId") customerId: Long) {
         if (!service.existsByCustomerId(customerId)) {
-            throw TafelValidationFailedException("Kunde Nr. $customerId nicht vorhanden!")
+            throw TafelValidationException("Kunde Nr. $customerId nicht vorhanden!")
         }
 
         service.deleteCustomerByCustomerId(customerId)

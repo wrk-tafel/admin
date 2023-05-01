@@ -3,6 +3,7 @@ package at.wrk.tafel.admin.backend.modules.distribution
 import at.wrk.tafel.admin.backend.common.model.DistributionState
 import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelException
+import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -124,7 +125,7 @@ internal class DistributionControllerTest {
     fun `switch to next distribution state without open distribution`() {
         every { service.getCurrentDistribution() } returns null
 
-        val exception = assertThrows<TafelException> {
+        val exception = assertThrows<TafelValidationException> {
             controller.switchToNextDistributionState()
         }
 

@@ -6,5 +6,5 @@ import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 class TafelException(override val message: String?, override val cause: Throwable? = null) : RuntimeException()
 
 @ExcludeFromTestCoverage
-class TafelValidationFailedException(override val message: String?, override val cause: Throwable? = null) :
+class TafelValidationException(override val message: String?, override val cause: Throwable? = null) :
     RuntimeException()

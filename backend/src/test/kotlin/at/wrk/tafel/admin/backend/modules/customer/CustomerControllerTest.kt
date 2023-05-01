@@ -1,6 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.customer
 
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationFailedException
+import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorResult
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
@@ -57,7 +57,7 @@ class CustomerControllerTest {
     fun `create customer - given id and exists already`() {
         every { service.existsByCustomerId(testCustomer.id!!) } returns true
 
-        val exception = assertThrows<TafelValidationFailedException> { controller.createCustomer(testCustomer) }
+        val exception = assertThrows<TafelValidationException> { controller.createCustomer(testCustomer) }
 
         assertThat(exception.message).isEqualTo("Kunde Nr. 100 bereits vorhanden!")
     }
@@ -76,7 +76,7 @@ class CustomerControllerTest {
         every { service.existsByCustomerId(testCustomer.id!!) } returns false
 
         val exception =
-            assertThrows<TafelValidationFailedException> { controller.updateCustomer(testCustomer.id!!, testCustomer) }
+            assertThrows<TafelValidationException> { controller.updateCustomer(testCustomer.id!!, testCustomer) }
 
         assertThat(exception.message).isEqualTo("Kunde Nr. 100 nicht vorhanden!")
     }
@@ -95,7 +95,7 @@ class CustomerControllerTest {
         every { service.findByCustomerId(testCustomer.id!!) } returns null
 
         val exception =
-            assertThrows<TafelValidationFailedException> { controller.getCustomer(testCustomer.id!!) }
+            assertThrows<TafelValidationException> { controller.getCustomer(testCustomer.id!!) }
 
         assertThat(exception.message).isEqualTo("Kunde Nr. ${testCustomer.id} nicht gefunden!")
         verify { service.findByCustomerId(testCustomer.id!!) }
@@ -116,7 +116,7 @@ class CustomerControllerTest {
         every { service.existsByCustomerId(testCustomer.id!!) } returns false
 
         val exception =
-            assertThrows<TafelValidationFailedException> { controller.deleteCustomer(testCustomer.id!!) }
+            assertThrows<TafelValidationException> { controller.deleteCustomer(testCustomer.id!!) }
 
         assertThat(exception.message).isEqualTo("Kunde Nr. 100 nicht vorhanden!")
         verify { service.existsByCustomerId(testCustomer.id!!) }

@@ -2,7 +2,7 @@ package at.wrk.tafel.admin.backend.modules.distribution
 
 import at.wrk.tafel.admin.backend.common.model.DistributionState
 import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionEntity
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelException
+import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import org.springframework.http.ResponseEntity
 import org.springframework.messaging.handler.annotation.MessageMapping
 import org.springframework.messaging.simp.SimpMessagingTemplate
@@ -61,7 +61,7 @@ class DistributionController(
             return ResponseEntity.ok().build()
         }
 
-        throw TafelException("Ausgabe nicht gestartet!")
+        throw TafelValidationException("Ausgabe nicht gestartet!")
     }
 
     @PostMapping("/customers")
@@ -69,7 +69,8 @@ class DistributionController(
     fun assignCustomerToDistribution(
         @RequestBody assignCustomerRequest: AssignCustomerRequest
     ): ResponseEntity<Void> {
-        val currentDistribution = service.getCurrentDistribution() ?: throw TafelException("Ausgabe nicht gestartet!")
+        val currentDistribution =
+            service.getCurrentDistribution() ?: throw TafelValidationException("Ausgabe nicht gestartet!")
 
         service.assignCustomerToDistribution(
             currentDistribution,
