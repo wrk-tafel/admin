@@ -11,17 +11,19 @@ management:
 
 server:
   port: 8080
-  servlet.session.cookie.path: ${tafeladmin.server.relativeBaseUrl}
+  servlet:
+    session.cookie.path: ${tafeladmin.server.relativeBaseUrl}
   error:
     include-message: always
     include-stacktrace: always
-  tomcat.accesslog:
-    enabled: true
-    directory: ${user.dir}/logs
-    buffered: false
-    prefix: access
-    suffix: .log
-    rotate: false
+  tomcat:
+    accesslog:
+      enabled: true
+      directory: ${user.dir}/logs
+      buffered: false
+      prefix: access
+      suffix: .log
+      rotate: false
 
 spring:
   datasource:
