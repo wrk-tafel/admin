@@ -16,17 +16,44 @@ class GenericExceptionHandler(
 ) {
 
     @ExceptionHandler(TafelException::class)
-    fun handle(ex: TafelException, request: WebRequest, locale: Locale): ResponseEntity<TafelErrorResponse> {
-        val errorStatus = HttpStatus.BAD_REQUEST.value()
+    fun handle(exception: TafelException, request: WebRequest, locale: Locale): ResponseEntity<TafelErrorResponse> {
+        return createErrorResponse(
+            exception = exception,
+            status = HttpStatus.BAD_REQUEST.value(),
+            request = request,
+            locale = locale
+        )
+    }
+
+    @ExceptionHandler(TafelValidationFailedException::class)
+    fun handle(
+        exception: TafelValidationFailedException,
+        request: WebRequest,
+        locale: Locale
+    ): ResponseEntity<TafelErrorResponse> {
+        return createErrorResponse(
+            exception = exception,
+            status = HttpStatus.UNPROCESSABLE_ENTITY.value(),
+            request = request,
+            locale = locale
+        )
+    }
+
+    private fun createErrorResponse(
+        exception: Exception,
+        status: Int,
+        request: WebRequest,
+        locale: Locale
+    ): ResponseEntity<TafelErrorResponse> {
         val localizedErrorTitle: String = messageSource.getMessage(
-            "http-error.$errorStatus.title", arrayOf<Any>(), locale
+            "http-error.$status.title", arrayOf<Any>(), locale
         )
 
         val error = TafelErrorResponse(
             timestamp = LocalDateTime.now(),
             status = HttpStatus.BAD_REQUEST.value(),
             error = localizedErrorTitle,
-            message = ex.message,
+            message = exception.message,
             path = (request as ServletWebRequest).request.requestURI
         )
 

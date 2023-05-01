@@ -9,6 +9,7 @@ import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerReposit
 import at.wrk.tafel.admin.backend.database.repositories.distribution.DistributionCustomerRepository
 import at.wrk.tafel.admin.backend.database.repositories.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelException
+import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationFailedException
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
@@ -74,7 +75,7 @@ class DistributionService(
 
     fun assignCustomerToDistribution(distribution: DistributionEntity, customerId: Long, ticketNumber: Int) {
         val customer = customerRepository.findByCustomerId(customerId)
-            ?: throw TafelException("Kunde Nr. $customerId nicht vorhanden!")
+            ?: throw TafelValidationFailedException("Kunde Nr. $customerId nicht vorhanden!")
 
         val entry = DistributionCustomerEntity()
         entry.distribution = distribution
@@ -84,7 +85,7 @@ class DistributionService(
         try {
             distributionCustomerRepository.save(entry)
         } catch (e: DataIntegrityViolationException) {
-            throw TafelException("Kunde ist bereits zugewiesen!")
+            throw TafelValidationFailedException("Kunde ist bereits zugewiesen!")
         }
     }
 
