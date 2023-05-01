@@ -32,8 +32,6 @@ export class ErrorHandlerInterceptor implements HttpInterceptor {
 
   private handleErrorMessage(error: HttpErrorResponse): Observable<any> {
     if (this.ERRORCODES_WHITELIST.indexOf(error.status) === -1) {
-      console.error('Error-Details', error);
-
       if (error.error) {
         const errorBody: TafelErrorResponse = error.error;
         const toastOptions = this.createToastFromErrorBody(errorBody);
