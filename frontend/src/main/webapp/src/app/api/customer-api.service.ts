@@ -54,6 +54,7 @@ export class CustomerApiService {
     }
     return this.http.get<CustomerSearchResult>('/customers', {params: queryParams});
   }
+
 }
 
 export interface ValidateCustomerResponse {
