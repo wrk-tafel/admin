@@ -14,7 +14,7 @@ export class ErrorHandlerInterceptor implements HttpInterceptor {
               private toastService: ToastService) {
   }
 
-  private ERRORCODES_WHITELIST = [401];
+  private ERROR_CODES_WHITELIST = [401];
 
   /* eslint-disable @typescript-eslint/no-explicit-any */
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
@@ -31,7 +31,7 @@ export class ErrorHandlerInterceptor implements HttpInterceptor {
   }
 
   private handleErrorMessage(error: HttpErrorResponse): Observable<any> {
-    if (this.ERRORCODES_WHITELIST.indexOf(error.status) === -1) {
+    if (this.ERROR_CODES_WHITELIST.indexOf(error.status) === -1) {
       if (error.error) {
         const errorBody: TafelErrorResponse = error.error;
         const toastOptions = this.createToastFromErrorBody(errorBody);
