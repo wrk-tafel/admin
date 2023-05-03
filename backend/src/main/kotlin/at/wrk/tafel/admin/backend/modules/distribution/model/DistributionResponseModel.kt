@@ -1,4 +1,4 @@
-package at.wrk.tafel.admin.backend.modules.distribution
+package at.wrk.tafel.admin.backend.modules.distribution.model
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 

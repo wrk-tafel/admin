@@ -1,8 +1,8 @@
 package at.wrk.tafel.admin.backend.modules.distribution
 
-import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.common.model.DistributionState
+import at.wrk.tafel.admin.backend.common.pdf.PDFService
 import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionCustomerEntity
 import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
@@ -10,25 +10,33 @@ import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerReposit
 import at.wrk.tafel.admin.backend.database.repositories.distribution.DistributionCustomerRepository
 import at.wrk.tafel.admin.backend.database.repositories.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
+import at.wrk.tafel.admin.backend.modules.distribution.model.CustomerListPdfModel
+import at.wrk.tafel.admin.backend.modules.distribution.model.CustomerListPdfResult
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
+import java.time.LocalDate
 import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 
 @Service
 class DistributionService(
     private val distributionRepository: DistributionRepository,
     private val userRepository: UserRepository,
     private val distributionCustomerRepository: DistributionCustomerRepository,
-    private val customerRepository: CustomerRepository
+    private val customerRepository: CustomerRepository,
+    private val pdfService: PDFService
 ) {
-    private val STATES_LIST = listOf(
-        DistributionState.OPEN,
-        DistributionState.CHECKIN,
-        DistributionState.PAUSE,
-        DistributionState.DISTRIBUTION,
-        DistributionState.CLOSED
-    )
+    companion object {
+        private val STATES_LIST = listOf(
+            DistributionState.OPEN,
+            DistributionState.CHECKIN,
+            DistributionState.PAUSE,
+            DistributionState.DISTRIBUTION,
+            DistributionState.CLOSED
+        )
+        private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+    }
 
     fun createNewDistribution(): DistributionEntity {
         val currentDistribution = distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc()
@@ -76,8 +84,11 @@ class DistributionService(
     }
 
     fun generateCustomerListPdf(): CustomerListPdfResult? {
-        // TODO
-        return CustomerListPdfResult(filename = "test.pdf", bytes = ByteArray(0))
+        // TODO impl
+        val data = CustomerListPdfModel(test = "test123")
+        val bytes = pdfService.generatePdf(data, "/pdf-templates/distribution-customerlist/customerlist.xsl")
+        val filename = "kundenliste-ausgabe-${DATE_FORMATTER.format(LocalDate.now())}.pdf"
+        return CustomerListPdfResult(filename = filename, bytes = bytes)
     }
 
     private fun saveStateToDistribution(nextState: DistributionState) {
@@ -94,26 +105,4 @@ class DistributionService(
         }
     }
 
-}
-
-@ExcludeFromTestCoverage
-data class CustomerListPdfResult(
-    val filename: String,
-    val bytes: ByteArray
-) {
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as CustomerListPdfResult
-
-        if (filename != other.filename) return false
-        return bytes.contentEquals(other.bytes)
-    }
-
-    override fun hashCode(): Int {
-        var result = filename.hashCode()
-        result = 31 * result + bytes.contentHashCode()
-        return result
-    }
 }

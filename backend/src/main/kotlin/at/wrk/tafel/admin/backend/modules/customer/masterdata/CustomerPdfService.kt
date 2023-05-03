@@ -24,17 +24,17 @@ class CustomerPdfService(
 
     fun generateMasterdataPdf(customer: CustomerEntity): ByteArray {
         val data = createCustomerPdfData(customer)
-        return pdfService.generatePdf(data, "/pdf-templates/masterdata-document.xsl")
+        return pdfService.generatePdf(data, "/pdf-templates/customer-pdf/masterdata-document.xsl")
     }
 
     fun generateIdCardPdf(customer: CustomerEntity): ByteArray {
         val data = createCustomerPdfData(customer)
-        return pdfService.generatePdf(data, "/pdf-templates/idcard-document.xsl")
+        return pdfService.generatePdf(data, "/pdf-templates/customer-pdf/idcard-document.xsl")
     }
 
     fun generateCombinedPdf(customer: CustomerEntity): ByteArray {
         val data = createCustomerPdfData(customer)
-        return pdfService.generatePdf(data, "/pdf-templates/masterdata-idcard-document.xsl")
+        return pdfService.generatePdf(data, "/pdf-templates/customer-pdf/masterdata-idcard-document.xsl")
     }
 
     private fun createCustomerPdfData(customer: CustomerEntity): PdfData {
@@ -46,7 +46,7 @@ class CustomerPdfService(
             customer.additionalPersons.count { Period.between(it.birthDate, LocalDate.now()).years <= 3 }
 
         val logoBytes =
-            IOUtils.toByteArray(CustomerPdfService::class.java.getResourceAsStream("/pdf-templates/img/toet-logo.png"))
+            IOUtils.toByteArray(CustomerPdfService::class.java.getResourceAsStream("/pdf-templates/customer-pdf/img/toet-logo.png"))
         return PdfData(
             logoContentType = MimeTypeUtils.IMAGE_PNG_VALUE,
             logoBytes = logoBytes,
