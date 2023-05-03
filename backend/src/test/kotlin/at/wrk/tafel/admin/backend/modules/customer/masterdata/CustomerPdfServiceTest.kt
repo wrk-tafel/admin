@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.customer.masterdata
 
+import at.wrk.tafel.admin.backend.common.pdf.PDFService
 import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerAddPersonEntity
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity
@@ -111,7 +112,7 @@ class CustomerPdfServiceTest {
 
         testCustomer.additionalPersons = mutableListOf(addPers1, addPers2, addPers3)
 
-        service = CustomerPdfService()
+        service = CustomerPdfService(PDFService())
     }
 
     @Test

@@ -1,19 +1,11 @@
 package at.wrk.tafel.admin.backend.modules.customer.masterdata
 
-import at.wrk.tafel.admin.backend.common.pdf.ClasspathResourceURIResolver
+import at.wrk.tafel.admin.backend.common.pdf.PDFService
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.dataformat.xml.XmlMapper
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import io.github.g0dkar.qrcode.QRCode
 import org.apache.commons.io.IOUtils
-import org.apache.fop.apps.FopFactoryBuilder
-import org.apache.fop.apps.MimeConstants
 import org.springframework.stereotype.Service
 import org.springframework.util.MimeTypeUtils
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
-import java.io.File
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.text.NumberFormat
@@ -21,35 +13,28 @@ import java.time.LocalDate
 import java.time.Period
 import java.time.format.DateTimeFormatter
 import java.util.*
-import javax.xml.transform.TransformerFactory
-import javax.xml.transform.sax.SAXResult
-import javax.xml.transform.stream.StreamSource
 
 @Service
-class CustomerPdfService {
+class CustomerPdfService(
+    private val pdfService: PDFService
+) {
     companion object {
         private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
-
-        private val xmlMapper = XmlMapper().registerModule(JavaTimeModule())
-            .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
     }
 
     fun generateMasterdataPdf(customer: CustomerEntity): ByteArray {
         val data = createCustomerPdfData(customer)
-        val xmlBytes = generateXmlData(data)
-        return generatePdf(xmlBytes, "/pdf-templates/masterdata-document.xsl")
+        return pdfService.generatePdf(data, "/pdf-templates/masterdata-document.xsl")
     }
 
     fun generateIdCardPdf(customer: CustomerEntity): ByteArray {
         val data = createCustomerPdfData(customer)
-        val xmlBytes = generateXmlData(data)
-        return generatePdf(xmlBytes, "/pdf-templates/idcard-document.xsl")
+        return pdfService.generatePdf(data, "/pdf-templates/idcard-document.xsl")
     }
 
     fun generateCombinedPdf(customer: CustomerEntity): ByteArray {
         val data = createCustomerPdfData(customer)
-        val xmlBytes = generateXmlData(data)
-        return generatePdf(xmlBytes, "/pdf-templates/masterdata-idcard-document.xsl")
+        return pdfService.generatePdf(data, "/pdf-templates/masterdata-idcard-document.xsl")
     }
 
     private fun createCustomerPdfData(customer: CustomerEntity): PdfData {
@@ -117,43 +102,6 @@ class CustomerPdfService {
             countPersons = countPersons,
             countInfants = countInfants
         )
-    }
-
-    private fun generateXmlData(data: PdfData): ByteArray {
-        val xmlOutStream = ByteArrayOutputStream()
-        xmlOutStream.use {
-            xmlMapper.writeValue(it, data)
-        }
-        return xmlOutStream.toByteArray()
-    }
-
-    private fun generatePdf(xmlBytes: ByteArray, stylesheetPath: String): ByteArray {
-        ByteArrayInputStream(xmlBytes).use { xmlStream ->
-            val xmlSource = StreamSource(xmlStream)
-
-            val fopBuilder = FopFactoryBuilder(File(".").toURI())
-            val fopFactory = fopBuilder.build()
-            val foUserAgent = fopFactory.newFOUserAgent()
-            val outStream = ByteArrayOutputStream()
-
-            outStream.use { out ->
-                val fop = fopFactory.newFop(MimeConstants.MIME_PDF, foUserAgent, out)
-
-                val factory = TransformerFactory.newInstance()
-                factory.uriResolver = ClasspathResourceURIResolver()
-
-                val transformer = factory.newTransformer(
-                    StreamSource(
-                        CustomerPdfService::class.java.getResourceAsStream(stylesheetPath)
-                    )
-                )
-
-                val res = SAXResult(fop.defaultHandler)
-                transformer.transform(xmlSource, res)
-            }
-
-            return outStream.toByteArray()
-        }
     }
 
 }
