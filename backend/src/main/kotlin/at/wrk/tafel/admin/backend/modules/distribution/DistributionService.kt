@@ -76,6 +76,7 @@ class DistributionService(
     }
 
     fun generateCustomerListPdf(): CustomerListPdfResult? {
+        // TODO
         return CustomerListPdfResult(filename = "test.pdf", bytes = ByteArray(0))
     }
 
