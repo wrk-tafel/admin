@@ -15,3 +15,6 @@ Content-Type: application/json
   "customerId": 100,
   "ticketNumber": 100
 }
+
+### Get customer list (pdf)
+GET {{baseApiPath}}/distributions/customers/generate-pdf
