@@ -32,14 +32,14 @@ export class CustomerApiService {
     return this.http.get<CustomerData>('/customers/' + id);
   }
 
-  generatePdf(id: number, type: PdfType): Observable<HttpResponse<ArrayBuffer>> {
+  generatePdf(id: number, type: PdfType): Observable<HttpResponse<Blob>> {
     let queryParams = new HttpParams();
     queryParams = queryParams.append('type', type);
 
     return this.http.get('/customers/' + id + '/generate-pdf',
       {
         params: queryParams,
-        responseType: 'arraybuffer',
+        responseType: 'blob',
         observe: 'response'
       });
   }
