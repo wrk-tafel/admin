@@ -232,9 +232,7 @@ data class CustomerPdfResult(
         other as CustomerPdfResult
 
         if (filename != other.filename) return false
-        if (!bytes.contentEquals(other.bytes)) return false
-
-        return true
+        return bytes.contentEquals(other.bytes)
     }
 
     override fun hashCode(): Int {
