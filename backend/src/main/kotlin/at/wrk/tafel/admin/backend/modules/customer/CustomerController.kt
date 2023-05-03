@@ -90,7 +90,7 @@ class CustomerController(
         @RequestParam("type") type: CustomerPdfType
     ): ResponseEntity<InputStreamResource> {
         val pdfResult = service.generatePdf(customerId, type)
-        if (pdfResult != null) {
+        pdfResult?.let {
             val headers = HttpHeaders()
             headers.add(
                 HttpHeaders.CONTENT_DISPOSITION,
@@ -102,9 +102,7 @@ class CustomerController(
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_PDF)
                 .body(InputStreamResource(ByteArrayInputStream(pdfResult.bytes)))
-        }
-
-        throw TafelValidationException(
+        } ?: throw TafelValidationException(
             message = "Kunde Nr. $customerId nicht vorhanden!",
             status = HttpStatus.NOT_FOUND
         )
