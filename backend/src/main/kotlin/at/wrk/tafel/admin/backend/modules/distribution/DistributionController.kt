@@ -3,12 +3,16 @@ package at.wrk.tafel.admin.backend.modules.distribution
 import at.wrk.tafel.admin.backend.common.model.DistributionState
 import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
+import org.springframework.core.io.InputStreamResource
+import org.springframework.http.HttpHeaders
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.messaging.handler.annotation.MessageMapping
 import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.messaging.simp.annotation.SubscribeMapping
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
+import java.io.ByteArrayInputStream
 
 @RestController
 @RequestMapping("/api/distributions")
@@ -78,6 +82,25 @@ class DistributionController(
             assignCustomerRequest.ticketNumber
         )
 
+        return ResponseEntity.noContent().build()
+    }
+
+    @GetMapping("/customers/generate-pdf", produces = [MediaType.APPLICATION_PDF_VALUE])
+    fun generateCustomerListPdf(): ResponseEntity<InputStreamResource> {
+        val pdfResult = service.generateCustomerListPdf()
+        pdfResult?.let {
+            val headers = HttpHeaders()
+            headers.add(
+                HttpHeaders.CONTENT_DISPOSITION,
+                "inline; filename=${pdfResult.filename}"
+            )
+
+            return ResponseEntity
+                .ok()
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(InputStreamResource(ByteArrayInputStream(pdfResult.bytes)))
+        }
         return ResponseEntity.noContent().build()
     }
 

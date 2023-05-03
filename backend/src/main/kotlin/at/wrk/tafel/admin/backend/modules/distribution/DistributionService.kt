@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.distribution
 
+import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.common.model.DistributionState
 import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionCustomerEntity
@@ -58,20 +59,6 @@ class DistributionService(
         saveStateToDistribution(nextState)
     }
 
-    private fun saveStateToDistribution(nextState: DistributionState) {
-        val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
-
-        val distribution = distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc()
-        if (distribution != null) {
-            distribution.state = nextState
-            if (nextState == DistributionState.CLOSED) {
-                distribution.endedAt = ZonedDateTime.now()
-                distribution.endedByUser = userRepository.findByUsername(authenticatedUser.username!!).get()
-            }
-            distributionRepository.save(distribution)
-        }
-    }
-
     fun assignCustomerToDistribution(distribution: DistributionEntity, customerId: Long, ticketNumber: Int) {
         val customer = customerRepository.findByCustomerId(customerId)
             ?: throw TafelValidationException("Kunde Nr. $customerId nicht vorhanden!")
@@ -88,4 +75,44 @@ class DistributionService(
         }
     }
 
+    fun generateCustomerListPdf(): CustomerListPdfResult? {
+        return CustomerListPdfResult(filename = "test.pdf", bytes = ByteArray(0))
+    }
+
+    private fun saveStateToDistribution(nextState: DistributionState) {
+        val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
+
+        val distribution = distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc()
+        if (distribution != null) {
+            distribution.state = nextState
+            if (nextState == DistributionState.CLOSED) {
+                distribution.endedAt = ZonedDateTime.now()
+                distribution.endedByUser = userRepository.findByUsername(authenticatedUser.username!!).get()
+            }
+            distributionRepository.save(distribution)
+        }
+    }
+
+}
+
+@ExcludeFromTestCoverage
+data class CustomerListPdfResult(
+    val filename: String,
+    val bytes: ByteArray
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as CustomerListPdfResult
+
+        if (filename != other.filename) return false
+        return bytes.contentEquals(other.bytes)
+    }
+
+    override fun hashCode(): Int {
+        var result = filename.hashCode()
+        result = 31 * result + bytes.contentHashCode()
+        return result
+    }
 }

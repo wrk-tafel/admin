@@ -169,6 +169,7 @@ class CustomerControllerTest {
             response.headers.filter { it.key === HttpHeaders.CONTENT_TYPE }
                 .map { it.value.first().toString() }.first()
         ).isEqualTo(MediaType.APPLICATION_PDF_VALUE)
+
         assertThat(
             response.headers.filter { it.key === HttpHeaders.CONTENT_DISPOSITION }
                 .map { it.value.first().toString() }.first()

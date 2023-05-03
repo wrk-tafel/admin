@@ -14,7 +14,9 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.messaging.simp.SimpMessagingTemplate
 import java.util.*
 
@@ -188,6 +190,41 @@ internal class DistributionControllerTest {
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.NO_CONTENT)
         assertThat(response.body).isNull()
+    }
+
+    @Test
+    fun `generate customerlist pdf - no result`() {
+        every { service.generateCustomerListPdf() } returns null
+
+        val response = controller.generateCustomerListPdf()
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.NO_CONTENT)
+        assertThat(response.body).isNull()
+    }
+
+    @Test
+    fun `generate customerlist pdf - result mapped`() {
+        val testFilename = "file.pdf"
+        every { service.generateCustomerListPdf() } returns CustomerListPdfResult(
+            filename = testFilename,
+            bytes = testFilename.toByteArray()
+        )
+
+        val response = controller.generateCustomerListPdf()
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(
+            response.headers.filter { it.key === HttpHeaders.CONTENT_TYPE }
+                .map { it.value.first().toString() }.first()
+        ).isEqualTo(MediaType.APPLICATION_PDF_VALUE)
+
+        assertThat(
+            response.headers.filter { it.key === HttpHeaders.CONTENT_DISPOSITION }
+                .map { it.value.first().toString() }.first()
+        ).isEqualTo("inline; filename=$testFilename")
+
+        val bodyBytes = response.body?.inputStream?.readAllBytes()!!
+        assertThat(String(bodyBytes)).isEqualTo(testFilename)
     }
 
 }
