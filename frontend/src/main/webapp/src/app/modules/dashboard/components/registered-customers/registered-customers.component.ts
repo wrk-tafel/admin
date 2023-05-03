@@ -22,11 +22,10 @@ export class RegisteredCustomersComponent {
     this.distributionApiService.downloadCustomerList().subscribe(response => this.processPdfResponse(response));
   }
 
-  private processPdfResponse(response: HttpResponse<ArrayBuffer>) {
+  private processPdfResponse(response: HttpResponse<Blob>) {
     const contentDisposition = response.headers.get('content-disposition');
     const filename = contentDisposition.split(';')[1].split('filename')[1].split('=')[1].trim();
-    const data = new Blob([response.body], {type: 'application/pdf'});
-    this.fileHelperService.downloadFile(filename, data);
+    this.fileHelperService.downloadFile(filename, response.body);
   }
 
 }

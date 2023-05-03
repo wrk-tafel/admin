@@ -45,10 +45,10 @@ export class DistributionApiService {
     return this.http.post<void>('/distributions/customers', body);
   }
 
-  downloadCustomerList(): Observable<HttpResponse<ArrayBuffer>> {
+  downloadCustomerList(): Observable<HttpResponse<Blob>> {
     return this.http.get('/distributions/customers/generate-pdf',
       {
-        responseType: 'arraybuffer',
+        responseType: 'blob',
         observe: 'response'
       });
   }
