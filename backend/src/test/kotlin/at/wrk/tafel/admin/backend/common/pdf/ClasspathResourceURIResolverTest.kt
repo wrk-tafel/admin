@@ -1,4 +1,4 @@
-package at.wrk.tafel.admin.backend.common.fop
+package at.wrk.tafel.admin.backend.common.pdf
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test

@@ -1,4 +1,4 @@
-package at.wrk.tafel.admin.backend.common.fop
+package at.wrk.tafel.admin.backend.common.pdf
 
 import javax.xml.transform.Source
 import javax.xml.transform.URIResolver
