@@ -23,9 +23,9 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 import javax.imageio.ImageIO
 
-class CustomerPdfServiceImplTest {
+class CustomerPdfServiceTest {
 
-    private lateinit var service: CustomerPdfServiceImpl
+    private lateinit var service: CustomerPdfService
     private lateinit var testCustomer: CustomerEntity
 
     companion object {
@@ -111,7 +111,7 @@ class CustomerPdfServiceImplTest {
 
         testCustomer.additionalPersons = mutableListOf(addPers1, addPers2, addPers3)
 
-        service = CustomerPdfServiceImpl()
+        service = CustomerPdfService()
     }
 
     @Test
