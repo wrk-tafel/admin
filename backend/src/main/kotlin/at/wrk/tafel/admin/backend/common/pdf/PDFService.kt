@@ -4,14 +4,12 @@ import at.wrk.tafel.admin.backend.modules.customer.masterdata.CustomerPdfService
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import org.apache.commons.io.IOUtils
 import org.apache.fop.apps.FopFactoryBuilder
 import org.apache.fop.apps.MimeConstants
 import org.springframework.stereotype.Service
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
-import java.io.FileOutputStream
 import javax.xml.transform.TransformerFactory
 import javax.xml.transform.sax.SAXResult
 import javax.xml.transform.stream.StreamSource
@@ -30,10 +28,6 @@ class PDFService {
             xmlMapper.writeValue(it, data)
         }
         val xmlBytes = xmlOutStream.toByteArray()
-
-        // TODO REMOVE
-        IOUtils.write(xmlBytes, FileOutputStream(File("D:\\development\\pdf.xml")))
-        // TODO REMOVE
 
         ByteArrayInputStream(xmlBytes).use { xmlStream ->
             val xmlSource = StreamSource(xmlStream)
