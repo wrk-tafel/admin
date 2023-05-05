@@ -1,6 +1,5 @@
 package at.wrk.tafel.admin.backend.common.pdf
 
-import at.wrk.tafel.admin.backend.modules.customer.masterdata.CustomerPdfService
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
@@ -45,7 +44,7 @@ class PDFService {
 
                 val transformer = factory.newTransformer(
                     StreamSource(
-                        CustomerPdfService::class.java.getResourceAsStream(stylesheetPath)
+                        PDFService::class.java.getResourceAsStream(stylesheetPath)
                     )
                 )
 
