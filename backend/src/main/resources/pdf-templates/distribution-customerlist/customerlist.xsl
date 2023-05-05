@@ -56,22 +56,22 @@
                 <fo:table-body>
                     <xsl:for-each select="customers/customers">
                         <fo:table-row border-width="1pt" border-style="solid">
-                            <fo:table-cell text-align="center" border-right="solid 1pt #000000">
+                            <fo:table-cell text-align="center" display-align="center" border-right="solid 1pt #000000">
                                 <fo:block>
                                     <xsl:value-of select="ticketNumber"/>
                                 </fo:block>
                             </fo:table-cell>
-                            <fo:table-cell text-align="center" border-right="solid 1pt #000000">
+                            <fo:table-cell text-align="center" display-align="center" border-right="solid 1pt #000000">
                                 <fo:block>
                                     <xsl:value-of select="name"/>
                                 </fo:block>
                             </fo:table-cell>
-                            <fo:table-cell text-align="center" border-right="solid 1pt #000000">
+                            <fo:table-cell text-align="center" display-align="center" border-right="solid 1pt #000000">
                                 <fo:block>
                                     <xsl:value-of select="countPersons"/>
                                 </fo:block>
                             </fo:table-cell>
-                            <fo:table-cell text-align="center">
+                            <fo:table-cell text-align="center" display-align="center">
                                 <fo:block>
                                     <xsl:value-of select="countInfants"/>
                                 </fo:block>
