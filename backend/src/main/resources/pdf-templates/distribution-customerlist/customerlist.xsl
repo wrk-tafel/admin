@@ -12,7 +12,7 @@
             </fo:layout-master-set>
             <fo:page-sequence master-reference="simpleA4">
                 <fo:static-content flow-name="xsl-region-after">
-                    <fo:block font-size="10pt" text-align="right">
+                    <fo:block font-size="10pt" text-align="right" padding-top="0.25cm" padding-bottom="0.25cm">
                         Seite <fo:page-number/> von <fo:page-number-citation-last ref-id="main"/>
                     </fo:block>
                 </fo:static-content>
@@ -43,7 +43,7 @@
                             <fo:block>Ticket</fo:block>
                         </fo:table-cell>
                         <fo:table-cell font-weight="bold" text-align="center" border-right="solid 1pt #000000" padding="5pt">
-                            <fo:block>Name</fo:block>
+                            <fo:block>Name (Hauptbezieher)</fo:block>
                         </fo:table-cell>
                         <fo:table-cell font-weight="bold" text-align="center" border-right="solid 1pt #000000" padding="5pt">
                             <fo:block>Personen insgesamt</fo:block>
