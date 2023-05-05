@@ -15,7 +15,6 @@ import at.wrk.tafel.admin.backend.modules.distribution.model.CustomerListPdfResu
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
-import java.time.LocalDate
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
@@ -84,10 +83,12 @@ class DistributionService(
     }
 
     fun generateCustomerListPdf(): CustomerListPdfResult? {
-        // TODO impl
+        val currentDistribution = distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc()
+            ?: throw TafelValidationException("Ausgabe nicht gestartet!")
+
         val data = CustomerListPdfModel(test = "test123")
         val bytes = pdfService.generatePdf(data, "/pdf-templates/distribution-customerlist/customerlist.xsl")
-        val filename = "kundenliste-ausgabe-${DATE_FORMATTER.format(LocalDate.now())}.pdf"
+        val filename = "kundenliste-ausgabe-${DATE_FORMATTER.format(currentDistribution?.startedAt)}.pdf"
         return CustomerListPdfResult(filename = filename, bytes = bytes)
     }
 
