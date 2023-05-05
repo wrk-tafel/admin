@@ -250,8 +250,6 @@ internal class DistributionServiceTest {
         assertThat(result?.filename).isEqualTo("kundenliste-ausgabe-$expectedFormattedDate.pdf")
         assertThat(result?.bytes).isEqualTo(bytes)
 
-
-
         verify {
             pdfService.generatePdf(
                 withArg {
