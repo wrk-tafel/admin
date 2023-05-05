@@ -5,10 +5,14 @@
         <h4 class="card-title text-white">Kunden angemeldet</h4>
       </c-col>
     </c-row>
+    <c-row *tafelIfDistributionActive>
+      <c-col sm="12">
+        <button cButton color="light" (click)="downloadCustomerList()"><i class="fa fa-download"></i> Kundenliste</button>
+      </c-col>
+    </c-row>
     <c-row>
-      <c-col class="mb-5">
+      <c-col>
         <div testid="customers-count" class="text-white text-end" style="font-size: 50pt;">{{count ?? '-'}}</div>
-        <button *tafelIfDistributionActive cButton color="light" (click)="downloadCustomerList()"><i class="fa fa-download"></i> Kundenliste</button>
       </c-col>
     </c-row>
   </c-card-body>
