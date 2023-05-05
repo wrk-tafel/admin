@@ -5,8 +5,7 @@ import {FileHelperService} from '../../../../common/util/file-helper.service';
 
 @Component({
   selector: 'tafel-registered-customers',
-  templateUrl: 'registered-customers.component.html',
-  styleUrls: ['../../dashboard.component.css']
+  templateUrl: 'registered-customers.component.html'
 })
 export class RegisteredCustomersComponent {
 
