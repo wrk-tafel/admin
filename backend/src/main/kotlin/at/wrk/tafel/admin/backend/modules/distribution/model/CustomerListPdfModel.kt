@@ -28,5 +28,14 @@ data class CustomerListPdfResult(
 @JacksonXmlRootElement(localName = "data")
 @ExcludeFromTestCoverage
 data class CustomerListPdfModel(
-    val test: String
+    val title: String,
+    val customers: List<CustomerListItem>
+)
+
+@ExcludeFromTestCoverage
+data class CustomerListItem(
+    val ticketNumber: Int,
+    val name: String,
+    val countPersons: Int,
+    val countInfants: Int
 )

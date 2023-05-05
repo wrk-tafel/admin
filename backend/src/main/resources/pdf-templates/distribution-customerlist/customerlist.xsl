@@ -11,11 +11,53 @@
             </fo:layout-master-set>
             <fo:page-sequence master-reference="simpleA4">
                 <fo:flow flow-name="xsl-region-body">
-                    <fo:block>
-                        <xsl:value-of select="./test"/>
+                    <fo:block font-family="Helvetica">
+                        <fo:block font-size="20pt" font-weight="bold" space-after="0.5cm">
+                            <xsl:value-of select="title"/>
+                        </fo:block>
+                        <fo:block>
+                            <xsl:call-template name="customerlist"/>
+                        </fo:block>
                     </fo:block>
                 </fo:flow>
             </fo:page-sequence>
         </fo:root>
+    </xsl:template>
+
+    <xsl:template name="customerlist">
+        <fo:block start-indent="0pt" end-indent="0pt">
+            <fo:table table-layout="fixed" width="100%">
+                <fo:table-column column-width="10%"/>
+                <fo:table-column column-width="40%"/>
+                <fo:table-column column-width="25%"/>
+                <fo:table-column column-width="25%"/>
+                <fo:table-body>
+                    <xsl:for-each select="customers/customers">
+                        <fo:table-row>
+                            <fo:table-cell>
+                                <fo:block>
+                                    <xsl:value-of select="ticketNumber"/>
+                                </fo:block>
+                            </fo:table-cell>
+                            <fo:table-cell>
+                                <fo:block>
+                                    <xsl:value-of select="name"/>
+                                </fo:block>
+                            </fo:table-cell>
+                            <fo:table-cell>
+                                <fo:block>
+                                    <xsl:value-of select="countPersons"/>
+                                </fo:block>
+                            </fo:table-cell>
+                            <fo:table-cell>
+                                <fo:block>
+                                    <xsl:value-of select="countInfants"/>
+                                </fo:block>
+                            </fo:table-cell>
+                        </fo:table-row>
+                    </xsl:for-each>
+                </fo:table-body>
+            </fo:table>
+        </fo:block>
     </xsl:template>
 </xsl:stylesheet>

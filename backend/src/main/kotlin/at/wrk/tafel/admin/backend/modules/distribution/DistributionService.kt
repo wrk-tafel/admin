@@ -10,11 +10,14 @@ import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerReposit
 import at.wrk.tafel.admin.backend.database.repositories.distribution.DistributionCustomerRepository
 import at.wrk.tafel.admin.backend.database.repositories.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
+import at.wrk.tafel.admin.backend.modules.distribution.model.CustomerListItem
 import at.wrk.tafel.admin.backend.modules.distribution.model.CustomerListPdfModel
 import at.wrk.tafel.admin.backend.modules.distribution.model.CustomerListPdfResult
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
+import java.time.LocalDate
+import java.time.Period
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
@@ -86,10 +89,39 @@ class DistributionService(
         val currentDistribution = distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc()
             ?: throw TafelValidationException("Ausgabe nicht gestartet!")
 
-        val data = CustomerListPdfModel(test = "test123")
+        val formattedDate = DATE_FORMATTER.format(currentDistribution?.startedAt)
+        val sortedCustomers = currentDistribution.customers.sortedBy { it.ticketNumber }
+
+        // TODO REMOVE
+        val customers = mutableListOf<DistributionCustomerEntity>()
+        for (i: Int in 0..50) {
+            customers.addAll(sortedCustomers)
+        }
+        // TODO REMOVE
+
+        val data = CustomerListPdfModel(
+            title = "Kundenliste zur Ausgabe vom $formattedDate",
+            customers = mapCustomers(customers)
+        )
+
         val bytes = pdfService.generatePdf(data, "/pdf-templates/distribution-customerlist/customerlist.xsl")
-        val filename = "kundenliste-ausgabe-${DATE_FORMATTER.format(currentDistribution?.startedAt)}.pdf"
+        val filename = "kundenliste-ausgabe-$formattedDate.pdf"
         return CustomerListPdfResult(filename = filename, bytes = bytes)
+    }
+
+    private fun mapCustomers(customers: List<DistributionCustomerEntity>): List<CustomerListItem> {
+        return customers.map { distributionCustomerEntity ->
+            val customer = distributionCustomerEntity.customer
+
+            CustomerListItem(
+                ticketNumber = distributionCustomerEntity.ticketNumber!!,
+                name = "${customer?.firstname} ${customer?.firstname}",
+                countPersons = customer?.additionalPersons?.size?.plus(1) ?: 0,
+                countInfants = customer?.additionalPersons?.count {
+                    Period.between(it.birthDate, LocalDate.now()).years < 3
+                } ?: 0
+            )
+        }
     }
 
     private fun saveStateToDistribution(nextState: DistributionState) {
