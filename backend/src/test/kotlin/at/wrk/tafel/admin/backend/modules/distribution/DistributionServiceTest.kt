@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.modules.distribution
 
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.common.model.DistributionState
+import at.wrk.tafel.admin.backend.common.pdf.PDFService
 import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerRepository
@@ -9,6 +10,10 @@ import at.wrk.tafel.admin.backend.database.repositories.distribution.Distributio
 import at.wrk.tafel.admin.backend.database.repositories.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.customer.testCustomerEntity1
+import at.wrk.tafel.admin.backend.modules.customer.testDistributionCustomerEntity1
+import at.wrk.tafel.admin.backend.modules.customer.testDistributionCustomerEntity2
+import at.wrk.tafel.admin.backend.modules.distribution.model.CustomerListItem
+import at.wrk.tafel.admin.backend.modules.distribution.model.CustomerListPdfModel
 import at.wrk.tafel.admin.backend.security.testUser
 import at.wrk.tafel.admin.backend.security.testUserEntity
 import at.wrk.tafel.admin.backend.security.testUserPermissions
@@ -29,6 +34,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.context.SecurityContextImpl
 import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 import java.util.*
 
 @ExtendWith(MockKExtension::class)
@@ -45,6 +51,9 @@ internal class DistributionServiceTest {
 
     @RelaxedMockK
     private lateinit var customerRepository: CustomerRepository
+
+    @RelaxedMockK
+    private lateinit var pdfService: PDFService
 
     @InjectMockKs
     private lateinit var service: DistributionService
@@ -209,6 +218,67 @@ internal class DistributionServiceTest {
                 assertThat(it.distribution).isEqualTo(testDistributionEntity)
                 assertThat(it.ticketNumber).isEqualTo(ticketNumber)
             })
+        }
+    }
+
+    @Test
+    fun `generate customerlist pdf - no active distribution`() {
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns null
+
+        val exception = assertThrows<TafelValidationException> { service.generateCustomerListPdf() }
+
+        assertThat(exception.message).isEqualTo("Ausgabe nicht gestartet!")
+    }
+
+    @Test
+    fun `generate customerlist pdf - successful`() {
+        val date = ZonedDateTime.now()
+        val testDistributionEntity = DistributionEntity().apply {
+            id = 123
+            state = DistributionState.DISTRIBUTION
+            startedAt = date
+            customers = listOf(testDistributionCustomerEntity1, testDistributionCustomerEntity2)
+        }
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
+
+        val bytes = ByteArray(0)
+        every { pdfService.generatePdf(any(), any()) } returns bytes
+
+        val result = service.generateCustomerListPdf()
+
+        val expectedFormattedDate = DateTimeFormatter.ofPattern("dd.MM.yyyy").format(date)
+        assertThat(result?.filename).isEqualTo("kundenliste-ausgabe-$expectedFormattedDate.pdf")
+        assertThat(result?.bytes).isEqualTo(bytes)
+
+
+
+        verify {
+            pdfService.generatePdf(
+                withArg {
+                    assertThat(it).isEqualTo(
+                        CustomerListPdfModel(
+                            title = "Kundenliste zur Ausgabe vom $expectedFormattedDate",
+                            customers = listOf(
+                                CustomerListItem(
+                                    ticketNumber = 1,
+                                    name = "Mustermann Max",
+                                    countPersons = 3,
+                                    countInfants = 1
+                                ),
+                                CustomerListItem(
+                                    ticketNumber = 2,
+                                    name = "Mustermann Max 2",
+                                    countPersons = 1,
+                                    countInfants = 0
+                                )
+                            )
+                        )
+                    )
+                },
+                withArg {
+                    assertThat(it).isEqualTo("/pdf-templates/distribution-customerlist/customerlist.xsl")
+                }
+            )
         }
     }
 
