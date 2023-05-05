@@ -93,15 +93,17 @@ class DistributionService(
         val sortedCustomers = currentDistribution.customers.sortedBy { it.ticketNumber }
 
         // TODO REMOVE
-        val customers = mutableListOf<DistributionCustomerEntity>()
-        for (i: Int in 0..50) {
-            customers.addAll(sortedCustomers)
+        val customers = mutableListOf<CustomerListItem>()
+        for (i: Int in 0..250) {
+            val newCustomer = mapCustomers(listOf(sortedCustomers[1])).first().copy(ticketNumber = i)
+            customers.add(newCustomer)
         }
         // TODO REMOVE
 
         val data = CustomerListPdfModel(
             title = "Kundenliste zur Ausgabe vom $formattedDate",
-            customers = mapCustomers(customers)
+            customers = customers
+            // TODO ENABLE mapCustomers(customers)
         )
 
         val bytes = pdfService.generatePdf(data, "/pdf-templates/distribution-customerlist/customerlist.xsl")
@@ -115,7 +117,7 @@ class DistributionService(
 
             CustomerListItem(
                 ticketNumber = distributionCustomerEntity.ticketNumber!!,
-                name = "${customer?.firstname} ${customer?.firstname}",
+                name = "${customer?.lastname} ${customer?.firstname}",
                 countPersons = customer?.additionalPersons?.size?.plus(1) ?: 0,
                 countInfants = customer?.additionalPersons?.count {
                     Period.between(it.birthDate, LocalDate.now()).years < 3

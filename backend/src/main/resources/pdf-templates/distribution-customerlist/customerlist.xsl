@@ -7,11 +7,17 @@
                 <fo:simple-page-master master-name="simpleA4" page-height="29.7cm" page-width="21cm"
                                        margin-top="1cm" margin-bottom="1cm" margin-left="1cm" margin-right="1cm">
                     <fo:region-body/>
+                    <fo:region-after/>
                 </fo:simple-page-master>
             </fo:layout-master-set>
             <fo:page-sequence master-reference="simpleA4">
+                <fo:static-content flow-name="xsl-region-after">
+                    <fo:block font-size="10pt" text-align="right">
+                        Seite <fo:page-number/> von <fo:page-number-citation-last ref-id="main"/>
+                    </fo:block>
+                </fo:static-content>
                 <fo:flow flow-name="xsl-region-body">
-                    <fo:block font-family="Helvetica">
+                    <fo:block font-family="Helvetica" id="main">
                         <fo:block font-size="20pt" font-weight="bold" space-after="0.5cm">
                             <xsl:value-of select="title"/>
                         </fo:block>
