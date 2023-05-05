@@ -20,6 +20,7 @@ import java.time.LocalDate
 import java.time.Period
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
+import kotlin.random.Random
 
 @Service
 class DistributionService(
@@ -95,7 +96,12 @@ class DistributionService(
         // TODO REMOVE
         val customers = mutableListOf<CustomerListItem>()
         for (i: Int in 0..250) {
-            val newCustomer = mapCustomers(listOf(sortedCustomers[1])).first().copy(ticketNumber = i)
+            val name = sortedCustomers[1].customer?.lastname + " " + sortedCustomers[1].customer?.firstname
+            val randomNumber = Random.nextInt(1, 4)
+            val newCustomer = mapCustomers(listOf(sortedCustomers[1])).first().copy(
+                ticketNumber = i,
+                name = name.repeat(randomNumber)
+            )
             customers.add(newCustomer)
         }
         // TODO REMOVE
