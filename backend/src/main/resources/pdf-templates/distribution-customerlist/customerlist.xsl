@@ -54,30 +54,41 @@
                     </fo:table-row>
                 </fo:table-header>
                 <fo:table-body>
-                    <xsl:for-each select="customers/customers">
+                    <xsl:choose>
+                        <xsl:when test="customers/customers">
+                            <xsl:for-each select="customers/customers">
+                                <fo:table-row border-width="1pt" border-style="solid">
+                                    <fo:table-cell text-align="center" display-align="center" border-right="solid 1pt #000000" padding="5pt">
+                                        <fo:block>
+                                            <xsl:value-of select="ticketNumber"/>
+                                        </fo:block>
+                                    </fo:table-cell>
+                                    <fo:table-cell text-align="center" display-align="center" border-right="solid 1pt #000000" padding="5pt">
+                                        <fo:block>
+                                            <xsl:value-of select="name"/>
+                                        </fo:block>
+                                    </fo:table-cell>
+                                    <fo:table-cell text-align="center" display-align="center" border-right="solid 1pt #000000" padding="5pt">
+                                        <fo:block>
+                                            <xsl:value-of select="countPersons"/>
+                                        </fo:block>
+                                    </fo:table-cell>
+                                    <fo:table-cell text-align="center" display-align="center" padding="5pt">
+                                        <fo:block>
+                                            <xsl:value-of select="countInfants"/>
+                                        </fo:block>
+                                    </fo:table-cell>
+                                </fo:table-row>
+                            </xsl:for-each>
+                        </xsl:when>
+                    <xsl:otherwise>
                         <fo:table-row border-width="1pt" border-style="solid">
-                            <fo:table-cell text-align="center" display-align="center" border-right="solid 1pt #000000" padding="5pt">
-                                <fo:block>
-                                    <xsl:value-of select="ticketNumber"/>
-                                </fo:block>
-                            </fo:table-cell>
-                            <fo:table-cell text-align="center" display-align="center" border-right="solid 1pt #000000" padding="5pt">
-                                <fo:block>
-                                    <xsl:value-of select="name"/>
-                                </fo:block>
-                            </fo:table-cell>
-                            <fo:table-cell text-align="center" display-align="center" border-right="solid 1pt #000000" padding="5pt">
-                                <fo:block>
-                                    <xsl:value-of select="countPersons"/>
-                                </fo:block>
-                            </fo:table-cell>
-                            <fo:table-cell text-align="center" display-align="center" padding="5pt">
-                                <fo:block>
-                                    <xsl:value-of select="countInfants"/>
-                                </fo:block>
+                            <fo:table-cell number-columns-spanned="4" text-align="center" font-weight="bold" display-align="center" border-right="solid 1pt #000000" padding="5pt">
+                                <fo:block>Keine Kunden angemeldet</fo:block>
                             </fo:table-cell>
                         </fo:table-row>
-                    </xsl:for-each>
+                    </xsl:otherwise>
+                    </xsl:choose>
                 </fo:table-body>
             </fo:table>
         </fo:block>
