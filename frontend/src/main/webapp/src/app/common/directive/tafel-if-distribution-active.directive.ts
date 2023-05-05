@@ -16,6 +16,7 @@ export class TafelIfDistributionActiveDirective implements AfterViewInit {
   ngAfterViewInit(): void {
     this.globalStateService.getCurrentDistribution().subscribe((distributionItem: DistributionItem) => {
       if (distributionItem) {
+        this.viewContainer.clear();
         this.viewContainer.createEmbeddedView(this.templateRef);
       } else {
         this.viewContainer.clear();

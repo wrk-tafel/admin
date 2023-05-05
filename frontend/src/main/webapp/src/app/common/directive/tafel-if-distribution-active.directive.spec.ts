@@ -27,6 +27,7 @@ describe('TafelIfDistributionActiveDirective', () => {
 
     directive.ngAfterViewInit();
 
+    expect(viewContainerSpy.clear).toHaveBeenCalled();
     expect(viewContainerSpy.createEmbeddedView).toHaveBeenCalled();
   });
 

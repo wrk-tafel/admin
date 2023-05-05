@@ -16,6 +16,7 @@ describe('TafelIfPermissionDirective', () => {
 
     directive.tafelIfPermission = 'PERM1';
 
+    expect(viewContainerSpy.clear).toHaveBeenCalled();
     expect(viewContainerSpy.createEmbeddedView).toHaveBeenCalled();
   });
 
