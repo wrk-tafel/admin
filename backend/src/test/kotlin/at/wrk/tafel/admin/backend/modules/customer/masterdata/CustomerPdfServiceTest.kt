@@ -34,7 +34,7 @@ class CustomerPdfServiceTest {
             System.getProperty("user.dir"), "target/custom-test-results/customerpdf-comparison-results"
         )
 
-        private var masterReferencesPath = "/pdf/master-references/"
+        private var masterReferencesPath = "/pdf-references/master-references/"
 
         @JvmStatic
         @BeforeAll
