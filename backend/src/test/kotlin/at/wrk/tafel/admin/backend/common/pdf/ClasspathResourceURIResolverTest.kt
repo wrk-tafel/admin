@@ -10,7 +10,7 @@ class ClasspathResourceURIResolverTest {
 
     @Test
     fun `getResource from classpath`() {
-        val source = resolver.resolve("/pdf-references/test.txt", null)
+        val source = resolver.resolve("/pdf-references/customer/test.txt", null)
 
         assertThat(String((source as StreamSource).inputStream.readAllBytes())).isEqualTo("12345")
     }
