@@ -24,11 +24,8 @@ import io.mockk.junit5.MockKExtension
 import io.mockk.mockk
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
@@ -278,6 +275,12 @@ internal class DistributionServiceTest {
                 }
             )
         }
+    }
+
+    @Test
+    @Disabled
+    // TODO maybe also add a pdf comparison (probably after OS problems fixed)
+    fun `generate customerlist pdf - compare`() {
     }
 
 }
