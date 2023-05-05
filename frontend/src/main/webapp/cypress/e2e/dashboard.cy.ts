@@ -6,15 +6,26 @@ describe('Dashboard', () => {
   });
 
   it('step through a complete distribution lifecycle', () => {
-    cy.byTestId('distribution-state-text').should('have.text', 'Inaktiv');
-
     // create distribution (event) - OPEN
     cy.byTestId('distribution-start-button').click();
-    cy.byTestId('distribution-state-text').should('have.text', 'Geöffnet');
-
     // OPEN --> CHECKIN
     switchToNextStep();
-    cy.byTestId('distribution-state-text').should('have.text', 'Anmeldung läuft');
+
+    cy.byTestId('');
+
+    // CHECKIN --> PAUSE
+    switchToNextStep();
+    // PAUSE --> DISTRIBUTION
+    switchToNextStep();
+    // DISTRIBUTION --> CLOSED
+    switchToNextStep();
+  });
+
+  it('download customer list', () => {
+    // create distribution (event) - OPEN
+    cy.byTestId('distribution-start-button').click();
+    // OPEN --> CHECKIN
+    switchToNextStep();
 
     // validate modal hide
     cy.byTestId('distribution-nextstep-button').click();

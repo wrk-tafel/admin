@@ -1,6 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {AuthenticationService} from '../../security/authentication.service';
-import {ITafelNavData, navigationMenuItems} from '../../../modules/dashboard/navigation-menuItems';
+import {ITafelNavData, navigationMenuItems} from './navigation-menuItems';
 import {DistributionItem} from '../../../api/distribution-api.service';
 import {GlobalStateService} from '../../state/global-state.service';
 
