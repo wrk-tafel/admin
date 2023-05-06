@@ -3,6 +3,8 @@ package at.wrk.tafel.admin.backend.modules.distribution
 import at.wrk.tafel.admin.backend.common.model.DistributionState
 import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelException
+import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
+import at.wrk.tafel.admin.backend.modules.distribution.model.*
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -13,7 +15,9 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.messaging.simp.SimpMessagingTemplate
 import java.util.*
 
@@ -124,7 +128,7 @@ internal class DistributionControllerTest {
     fun `switch to next distribution state without open distribution`() {
         every { service.getCurrentDistribution() } returns null
 
-        val exception = assertThrows<TafelException> {
+        val exception = assertThrows<TafelValidationException> {
             controller.switchToNextDistributionState()
         }
 
@@ -187,6 +191,41 @@ internal class DistributionControllerTest {
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.NO_CONTENT)
         assertThat(response.body).isNull()
+    }
+
+    @Test
+    fun `generate customerlist pdf - no result`() {
+        every { service.generateCustomerListPdf() } returns null
+
+        val response = controller.generateCustomerListPdf()
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.NO_CONTENT)
+        assertThat(response.body).isNull()
+    }
+
+    @Test
+    fun `generate customerlist pdf - result mapped`() {
+        val testFilename = "file.pdf"
+        every { service.generateCustomerListPdf() } returns CustomerListPdfResult(
+            filename = testFilename,
+            bytes = testFilename.toByteArray()
+        )
+
+        val response = controller.generateCustomerListPdf()
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(
+            response.headers.filter { it.key === HttpHeaders.CONTENT_TYPE }
+                .map { it.value.first().toString() }.first()
+        ).isEqualTo(MediaType.APPLICATION_PDF_VALUE)
+
+        assertThat(
+            response.headers.filter { it.key === HttpHeaders.CONTENT_DISPOSITION }
+                .map { it.value.first().toString() }.first()
+        ).isEqualTo("inline; filename=$testFilename")
+
+        val bodyBytes = response.body?.inputStream?.readAllBytes()!!
+        assertThat(String(bodyBytes)).isEqualTo(testFilename)
     }
 
 }

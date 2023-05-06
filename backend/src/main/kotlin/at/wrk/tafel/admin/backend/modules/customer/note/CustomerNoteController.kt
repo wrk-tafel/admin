@@ -1,6 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.customer.note
 
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationFailedException
+import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
@@ -23,7 +23,7 @@ class CustomerNoteController(
         @PathVariable("customerId") customerId: Long,
         @RequestBody request: CreateCustomerNoteRequest
     ): ResponseEntity<CustomerNoteItem> {
-        val note = request.note.ifBlank { throw TafelValidationFailedException("Notiz darf nicht leer sein!") }
+        val note = request.note.ifBlank { throw TafelValidationException("Notiz darf nicht leer sein!") }
         val persistedNote = service.createNewNote(customerId, note)
         return ResponseEntity.ok(persistedNote)
     }

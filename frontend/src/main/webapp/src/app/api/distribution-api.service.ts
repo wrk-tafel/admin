@@ -1,4 +1,4 @@
-import {HttpClient} from '@angular/common/http';
+import {HttpClient, HttpResponse} from '@angular/common/http';
 import {Injectable} from '@angular/core';
 import {Observable} from 'rxjs';
 import {WebsocketService} from '../common/websocket/websocket.service';
@@ -43,6 +43,14 @@ export class DistributionApiService {
       ticketNumber: ticketNumber
     };
     return this.http.post<void>('/distributions/customers', body);
+  }
+
+  downloadCustomerList(): Observable<HttpResponse<Blob>> {
+    return this.http.get('/distributions/customers/generate-pdf',
+      {
+        responseType: 'blob',
+        observe: 'response'
+      });
   }
 
 }

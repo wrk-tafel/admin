@@ -14,10 +14,12 @@ import {
 } from '@coreui/angular';
 import {TafelToasterComponent} from './views/default-layout/toasts/tafel-toaster.component';
 import {TafelToastComponent} from './views/default-layout/toasts/toast/tafel-toast.component';
+import {TafelIfDistributionActiveDirective} from './directive/tafel-if-distribution-active.directive';
 
 @NgModule({
   declarations: [
     TafelIfPermissionDirective,
+    TafelIfDistributionActiveDirective,
     PasswordChangeFormComponent,
     TafelToasterComponent,
     TafelToastComponent
@@ -35,6 +37,7 @@ import {TafelToastComponent} from './views/default-layout/toasts/toast/tafel-toa
   ],
   exports: [
     TafelIfPermissionDirective,
+    TafelIfDistributionActiveDirective,
     PasswordChangeFormComponent,
     TafelToasterComponent
   ]

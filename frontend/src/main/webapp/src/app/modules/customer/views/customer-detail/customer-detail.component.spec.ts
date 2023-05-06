@@ -243,7 +243,7 @@ describe('CustomerDetailComponent', () => {
       headers: new HttpHeaders(
         {'Content-Disposition': 'inline; filename=test-name-1.pdf'}
       ),
-      body: new ArrayBuffer(10)
+      body: new Blob()
     });
     customerApiService.generatePdf.withArgs(mockCustomer.id, 'MASTERDATA').and.returnValue(of(response));
 
@@ -254,7 +254,7 @@ describe('CustomerDetailComponent', () => {
 
     component.printMasterdata();
 
-    expect(fileHelperService.downloadFile).toHaveBeenCalledWith('test-name-1.pdf', new Blob([response.body], {type: 'application/pdf'}));
+    expect(fileHelperService.downloadFile).toHaveBeenCalledWith('test-name-1.pdf', response.body);
   });
 
   it('printIdCard', () => {
@@ -263,7 +263,7 @@ describe('CustomerDetailComponent', () => {
       headers: new HttpHeaders(
         {'Content-Disposition': 'inline; filename=test-name-1.pdf'}
       ),
-      body: new ArrayBuffer(10)
+      body: new Blob()
     });
     customerApiService.generatePdf.withArgs(mockCustomer.id, 'IDCARD').and.returnValue(of(response));
 
@@ -274,7 +274,7 @@ describe('CustomerDetailComponent', () => {
 
     component.printIdCard();
 
-    expect(fileHelperService.downloadFile).toHaveBeenCalledWith('test-name-1.pdf', new Blob([response.body], {type: 'application/pdf'}));
+    expect(fileHelperService.downloadFile).toHaveBeenCalledWith('test-name-1.pdf', response.body);
   });
 
   it('printCombined', () => {
@@ -283,7 +283,7 @@ describe('CustomerDetailComponent', () => {
       headers: new HttpHeaders(
         {'Content-Disposition': 'inline; filename=test-name-1.pdf'}
       ),
-      body: new ArrayBuffer(10)
+      body: new Blob()
     });
     customerApiService.generatePdf.withArgs(mockCustomer.id, 'COMBINED').and.returnValue(of(response));
 
@@ -294,7 +294,7 @@ describe('CustomerDetailComponent', () => {
 
     component.printCombined();
 
-    expect(fileHelperService.downloadFile).toHaveBeenCalledWith('test-name-1.pdf', new Blob([response.body], {type: 'application/pdf'}));
+    expect(fileHelperService.downloadFile).toHaveBeenCalledWith('test-name-1.pdf', response.body);
   });
 
   it('editCustomer', () => {

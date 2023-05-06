@@ -7,7 +7,7 @@ import {freeSet} from '@coreui/icons';
 @Component({
   // tslint:disable-next-line
   selector: 'body',
-  template: '<router-outlet></router-outlet>',
+  templateUrl: 'app.component.html',
   providers: [IconSetService],
 })
 export class AppComponent implements OnInit {
@@ -27,4 +27,5 @@ export class AppComponent implements OnInit {
       window.scrollTo(0, 0);
     });
   }
+
 }

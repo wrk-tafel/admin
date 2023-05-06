@@ -1,3 +1,6 @@
+import * as path from 'path';
+import * as moment from 'moment';
+
 describe('Dashboard', () => {
 
   beforeEach(() => {
@@ -33,6 +36,33 @@ describe('Dashboard', () => {
     // DISTRIBUTION --> CLOSED
     switchToNextStep();
     cy.byTestId('distribution-state-text').should('have.text', 'Inaktiv');
+  });
+
+  it('download customer list', () => {
+    cy.byTestId('download-customerlist-button').should('not.exist');
+
+    // create distribution (event) - OPEN
+    cy.byTestId('distribution-start-button').click();
+    // OPEN --> CHECKIN
+    switchToNextStep();
+
+    const downloadCustomerListButton = cy.byTestId('download-customerlist-button');
+    downloadCustomerListButton.should('be.visible');
+    downloadCustomerListButton.click();
+
+    const downloadsFolder = Cypress.config('downloadsFolder');
+    const formattedDate = moment().format('DD.MM.YYYY');
+    const downloadedFilename = path.join(downloadsFolder, `kundenliste-ausgabe-${formattedDate}.pdf`);
+
+    cy.readFile(downloadedFilename, 'binary', {timeout: 15000})
+      .should((buffer: string | any[]) => expect(buffer.length).to.be.gt(5000));
+
+    // CHECKIN --> PAUSE
+    switchToNextStep();
+    // PAUSE --> DISTRIBUTION
+    switchToNextStep();
+    // DISTRIBUTION --> CLOSED
+    switchToNextStep();
   });
 
   function switchToNextStep() {

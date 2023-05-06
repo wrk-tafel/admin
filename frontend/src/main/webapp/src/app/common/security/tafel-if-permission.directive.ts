@@ -15,6 +15,7 @@ export class TafelIfPermissionDirective {
 
   @Input() set tafelIfPermission(permission: string) {
     if (this.authenticationService.hasPermission(permission)) {
+      this.viewContainer.clear();
       this.viewContainer.createEmbeddedView(this.templateRef);
     } else {
       this.viewContainer.clear();

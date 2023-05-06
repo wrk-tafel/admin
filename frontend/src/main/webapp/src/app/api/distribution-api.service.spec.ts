@@ -102,4 +102,12 @@ describe('DistributionApiService', () => {
     expect(req.request.body).toEqual(requestBody);
   });
 
+  it('download customer list', () => {
+    apiService.downloadCustomerList().subscribe();
+
+    const req = httpMock.expectOne({method: 'GET', url: '/distributions/customers/generate-pdf'});
+    req.flush(null);
+    httpMock.verify();
+  });
+
 });

@@ -1,6 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.customer.note
 
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationFailedException
+import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -60,7 +60,7 @@ internal class CustomerNoteControllerTest {
     fun `create new note - empty text`() {
         val customerId = 123L
 
-        val exception = assertThrows<TafelValidationFailedException> {
+        val exception = assertThrows<TafelValidationException> {
             controller.createNewNote(
                 customerId = customerId,
                 request = CreateCustomerNoteRequest(note = "")
