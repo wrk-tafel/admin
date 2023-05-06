@@ -33,8 +33,7 @@ export const navigationMenuItems: ITafelNavData[] = [
   {
     name: 'Ticket-Monitor',
     url: '/anmeldung/ticketmonitor',
-    icon: 'fa fa-ticket-simple',
-    activeDistributionRequired: true
+    icon: 'fa fa-ticket-simple'
   },
   {
     name: 'Kundenverwaltung',
