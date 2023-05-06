@@ -2,6 +2,7 @@ import {NgModule} from '@angular/core';
 import {RouterModule, Routes} from '@angular/router';
 import {ScannerComponent} from './scanner/scanner.component';
 import {CheckinComponent} from './checkin/checkin.component';
+import {TicketScreenComponent} from './ticket-screen/ticket-screen.component';
 
 const routes: Routes = [
   {
@@ -11,6 +12,10 @@ const routes: Routes = [
   {
     path: 'annahme',
     component: CheckinComponent
+  },
+  {
+    path: 'ticketmonitor',
+    component: TicketScreenComponent
   }
 ];
 
