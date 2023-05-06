@@ -1,5 +1,7 @@
 package at.wrk.tafel.admin.backend.common.pdf
 
+import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
 import org.apache.commons.io.IOUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -12,8 +14,10 @@ internal class PDFServiceTest {
     fun `sample pdf generated successfully`() {
         val pdfService = PDFService()
 
-        val resultBytes =
-            pdfService.generatePdf(DummyData(text = "Test 123"), "/pdf-references/distribution/sample.xsl")
+        val resultBytes = pdfService.generatePdf(
+            data = DummyData(text = "Test 123"),
+            stylesheetPath = "/pdf-references/distribution/sample.xsl"
+        )
 
         // TODO REMOVE
         IOUtils.write(resultBytes, FileOutputStream(File("D:\\development\\sample.pdf")))
@@ -21,7 +25,7 @@ internal class PDFServiceTest {
 
         val expectedBytes = ByteArray(0)
         IOUtils.readFully(
-            ClassLoader.getSystemClassLoader().getResourceAsStream("/pdf-references/distribution/sample.pdf"),
+            javaClass.getResourceAsStream("/pdf-references/distribution/sample.pdf"),
             expectedBytes
         )
         assertThat(resultBytes).isEqualTo(expectedBytes)
@@ -29,6 +33,8 @@ internal class PDFServiceTest {
 
 }
 
+@JacksonXmlRootElement(localName = "data")
+@ExcludeFromTestCoverage
 data class DummyData(
     val text: String
 )

@@ -46,7 +46,7 @@ class CustomerPdfService(
             customer.additionalPersons.count { Period.between(it.birthDate, LocalDate.now()).years <= 3 }
 
         val logoBytes =
-            IOUtils.toByteArray(CustomerPdfService::class.java.getResourceAsStream("/pdf-templates/customer-pdf/img/toet-logo.png"))
+            IOUtils.toByteArray(javaClass.getResourceAsStream("/pdf-templates/customer-pdf/img/toet-logo.png"))
         return PdfData(
             logoContentType = MimeTypeUtils.IMAGE_PNG_VALUE,
             logoBytes = logoBytes,

@@ -3,12 +3,14 @@ package at.wrk.tafel.admin.backend.common.pdf
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import org.apache.commons.io.IOUtils
 import org.apache.fop.apps.FopFactoryBuilder
 import org.apache.fop.apps.MimeConstants
 import org.springframework.stereotype.Service
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.FileOutputStream
 import javax.xml.transform.TransformerFactory
 import javax.xml.transform.sax.SAXResult
 import javax.xml.transform.stream.StreamSource
@@ -44,9 +46,15 @@ class PDFService {
 
                 val transformer = factory.newTransformer(
                     StreamSource(
-                        PDFService::class.java.getResourceAsStream(stylesheetPath)
+                        javaClass.getResourceAsStream(stylesheetPath)
                     )
                 )
+
+                // TODO REMOVE
+                val bytes = ByteArray(0)
+                IOUtils.readFully(javaClass.getResourceAsStream(stylesheetPath), bytes)
+                IOUtils.write(bytes, FileOutputStream(File("D:\\development\\sample.xsl")))
+                // TODO REMOVE
 
                 val res = SAXResult(fop.defaultHandler)
                 transformer.transform(xmlSource, res)
