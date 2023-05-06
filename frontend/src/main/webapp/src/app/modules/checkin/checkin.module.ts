@@ -19,6 +19,7 @@ import {
   RowComponent
 } from '@coreui/angular';
 import {TicketScreenComponent} from './ticket-screen/ticket-screen.component';
+import {TicketScreenControlComponent} from './ticket-screen-control/ticket-screen-control.component';
 
 @NgModule({
   imports: [
@@ -41,7 +42,8 @@ import {TicketScreenComponent} from './ticket-screen/ticket-screen.component';
   declarations: [
     ScannerComponent,
     CheckinComponent,
-    TicketScreenComponent
+    TicketScreenComponent,
+    TicketScreenControlComponent
   ],
   providers: [
     QRCodeReaderService
