@@ -18,7 +18,7 @@ import {
   ModalModule,
   RowComponent
 } from '@coreui/angular';
-import {TicketScreenComponent} from "./ticket-screen/ticket-screen.component";
+import {TicketScreenComponent} from './ticket-screen/ticket-screen.component';
 
 @NgModule({
   imports: [
