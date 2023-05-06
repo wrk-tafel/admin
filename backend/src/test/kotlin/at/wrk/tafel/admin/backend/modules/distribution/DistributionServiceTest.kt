@@ -258,7 +258,7 @@ internal class DistributionServiceTest {
                     assertThat(it).isEqualTo(
                         CustomerListPdfModel(
                             title = "Kundenliste zur Ausgabe vom $expectedFormattedDate",
-                            halftimeTicketNumber = 50,
+                            halftimeTicketNumber = 51,
                             customers = listOf(
                                 CustomerListItem(
                                     ticketNumber = 50,
