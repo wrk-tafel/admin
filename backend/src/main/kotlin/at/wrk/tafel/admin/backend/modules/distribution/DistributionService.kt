@@ -20,7 +20,6 @@ import java.time.LocalDate
 import java.time.Period
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
-import kotlin.math.min
 
 @Service
 class DistributionService(
@@ -93,8 +92,8 @@ class DistributionService(
         val formattedDate = DATE_FORMATTER.format(currentDistribution?.startedAt)
         val sortedCustomers = currentDistribution.customers.sortedBy { it.ticketNumber }
 
-        val halftimeIndex = min(1, sortedCustomers.size.div(2))
-        val halftimeTicketNumber = sortedCustomers[halftimeIndex].ticketNumber!!
+        val halftimeIndex = sortedCustomers.size.floorDiv(2)
+        val halftimeTicketNumber = if (sortedCustomers.size > 2) sortedCustomers[halftimeIndex].ticketNumber!! else null
         val data = CustomerListPdfModel(
             title = "Kundenliste zur Ausgabe vom $formattedDate",
             halftimeTicketNumber = halftimeTicketNumber,

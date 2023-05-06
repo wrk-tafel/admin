@@ -21,9 +21,11 @@
                         <fo:block font-size="20pt" font-weight="bold" space-after="0.5cm">
                             <xsl:value-of select="title"/>
                         </fo:block>
-                        <fo:block font-size="14pt" font-weight="bold" space-after="0.5cm">
-                            <xsl:value-of select="'Halbzeit - nach Ticketnummer: '"/><xsl:value-of select="halftimeTicketNumber"/>
-                        </fo:block>
+                        <xsl:if test="halftimeTicketNumber">
+                            <fo:block font-size="14pt" font-weight="bold" space-after="0.5cm">
+                                <xsl:value-of select="'Halbzeit - nach Ticketnummer: '"/><xsl:value-of select="halftimeTicketNumber"/>
+                            </fo:block>
+                        </xsl:if>
                         <fo:block>
                             <xsl:call-template name="customerlist"/>
                         </fo:block>
