@@ -92,7 +92,7 @@ class DistributionService(
         val formattedDate = DATE_FORMATTER.format(currentDistribution?.startedAt)
         val sortedCustomers = currentDistribution.customers.sortedBy { it.ticketNumber }
 
-        val halftimeIndex = sortedCustomers.size.floorDiv(2)
+        val halftimeIndex = sortedCustomers.size.div(2)
         val halftimeTicketNumber = if (sortedCustomers.size > 2) sortedCustomers[halftimeIndex].ticketNumber!! else null
         val data = CustomerListPdfModel(
             title = "Kundenliste zur Ausgabe vom $formattedDate",
