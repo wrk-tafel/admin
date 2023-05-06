@@ -21,6 +21,9 @@
                         <fo:block font-size="20pt" font-weight="bold" space-after="0.5cm">
                             <xsl:value-of select="title"/>
                         </fo:block>
+                        <fo:block font-size="14pt" font-weight="bold" space-after="0.5cm">
+                            <xsl:value-of select="'Halbzeit - nach Ticketnummer: '"/><xsl:value-of select="halftimeTicketNumber"/>
+                        </fo:block>
                         <fo:block>
                             <xsl:call-template name="customerlist"/>
                         </fo:block>
@@ -88,11 +91,18 @@
                                         </fo:block>
                                     </fo:table-cell>
                                 </fo:table-row>
+                                <xsl:if test="ticketNumber = ../../halftimeTicketNumber">
+                                    <fo:table-row border-width="1pt" border-style="solid">
+                                        <fo:table-cell number-columns-spanned="5" font-weight="bold" display-align="center" border-right="solid 1pt #000000" padding="5pt" font-size="14pt">
+                                            <fo:block>HALBZEIT</fo:block>
+                                        </fo:table-cell>
+                                    </fo:table-row>
+                                </xsl:if>
                             </xsl:for-each>
                         </xsl:when>
                     <xsl:otherwise>
                         <fo:table-row border-width="1pt" border-style="solid">
-                            <fo:table-cell number-columns-spanned="4" text-align="center" font-weight="bold" display-align="center" border-right="solid 1pt #000000" padding="5pt">
+                            <fo:table-cell number-columns-spanned="5" text-align="center" font-weight="bold" display-align="center" border-right="solid 1pt #000000" padding="5pt">
                                 <fo:block>Keine Kunden angemeldet</fo:block>
                             </fo:table-cell>
                         </fo:table-row>

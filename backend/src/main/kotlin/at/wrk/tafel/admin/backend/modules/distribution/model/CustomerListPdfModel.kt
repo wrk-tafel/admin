@@ -29,6 +29,7 @@ data class CustomerListPdfResult(
 @ExcludeFromTestCoverage
 data class CustomerListPdfModel(
     val title: String,
+    val halftimeTicketNumber: Int,
     val customers: List<CustomerListItem>
 )
 
