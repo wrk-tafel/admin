@@ -256,12 +256,14 @@ internal class DistributionServiceTest {
                             customers = listOf(
                                 CustomerListItem(
                                     ticketNumber = 1,
+                                    customerId = 100,
                                     name = "Mustermann Max",
                                     countPersons = 3,
                                     countInfants = 1
                                 ),
                                 CustomerListItem(
                                     ticketNumber = 2,
+                                    customerId = 200,
                                     name = "Mustermann Max 2",
                                     countPersons = 1,
                                     countInfants = 0

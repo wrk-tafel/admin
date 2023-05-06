@@ -34,13 +34,17 @@
         <fo:block start-indent="0pt" end-indent="0pt">
             <fo:table table-layout="fixed" width="100%" border-width="1pt" border-style="solid">
                 <fo:table-column column-width="10%"/>
+                <fo:table-column column-width="20%"/>
                 <fo:table-column column-width="40%"/>
-                <fo:table-column column-width="25%"/>
-                <fo:table-column column-width="25%"/>
+                <fo:table-column column-width="15%"/>
+                <fo:table-column column-width="15%"/>
                 <fo:table-header background-color="#D3D3D3">
                     <fo:table-row>
                         <fo:table-cell font-weight="bold" text-align="center" border-right="solid 1pt #000000" padding="5pt">
                             <fo:block>Ticket</fo:block>
+                        </fo:table-cell>
+                        <fo:table-cell font-weight="bold" text-align="center" border-right="solid 1pt #000000" padding="5pt">
+                            <fo:block>Kundennummer</fo:block>
                         </fo:table-cell>
                         <fo:table-cell font-weight="bold" text-align="center" border-right="solid 1pt #000000" padding="5pt">
                             <fo:block>Name (Hauptbezieher)</fo:block>
@@ -61,6 +65,11 @@
                                     <fo:table-cell text-align="center" display-align="center" border-right="solid 1pt #000000" padding="5pt">
                                         <fo:block>
                                             <xsl:value-of select="ticketNumber"/>
+                                        </fo:block>
+                                    </fo:table-cell>
+                                    <fo:table-cell text-align="center" display-align="center" border-right="solid 1pt #000000" padding="5pt">
+                                        <fo:block>
+                                            <xsl:value-of select="customerId"/>
                                         </fo:block>
                                     </fo:table-cell>
                                     <fo:table-cell text-align="center" display-align="center" border-right="solid 1pt #000000" padding="5pt">

@@ -108,6 +108,7 @@ class DistributionService(
 
             CustomerListItem(
                 ticketNumber = distributionCustomerEntity.ticketNumber!!,
+                customerId = customer?.customerId!!,
                 name = "${customer?.lastname} ${customer?.firstname}",
                 countPersons = customer?.additionalPersons?.size?.plus(1) ?: 0,
                 countInfants = customer?.additionalPersons?.count {
