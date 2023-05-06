@@ -81,7 +81,7 @@ class DistributionService(
         try {
             distributionCustomerRepository.save(entry)
         } catch (e: DataIntegrityViolationException) {
-            throw TafelValidationException("Kunde ist bereits zugewiesen!")
+            throw TafelValidationException("Kunde oder Ticketnummer wurde bereits zugewiesen!")
         }
     }
 
