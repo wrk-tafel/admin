@@ -30,4 +30,7 @@ class DistributionEntity : BaseChangeTrackingEntity() {
     @Enumerated(value = EnumType.STRING)
     var state: DistributionState? = null
 
+    @OneToMany(mappedBy = "distribution")
+    var customers: List<DistributionCustomerEntity> = emptyList()
+
 }

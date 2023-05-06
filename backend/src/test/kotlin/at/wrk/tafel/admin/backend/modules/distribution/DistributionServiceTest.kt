@@ -2,14 +2,18 @@ package at.wrk.tafel.admin.backend.modules.distribution
 
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.common.model.DistributionState
+import at.wrk.tafel.admin.backend.common.pdf.PDFService
 import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerRepository
 import at.wrk.tafel.admin.backend.database.repositories.distribution.DistributionCustomerRepository
 import at.wrk.tafel.admin.backend.database.repositories.distribution.DistributionRepository
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelException
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationFailedException
+import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.customer.testCustomerEntity1
+import at.wrk.tafel.admin.backend.modules.customer.testDistributionCustomerEntity1
+import at.wrk.tafel.admin.backend.modules.customer.testDistributionCustomerEntity2
+import at.wrk.tafel.admin.backend.modules.distribution.model.CustomerListItem
+import at.wrk.tafel.admin.backend.modules.distribution.model.CustomerListPdfModel
 import at.wrk.tafel.admin.backend.security.testUser
 import at.wrk.tafel.admin.backend.security.testUserEntity
 import at.wrk.tafel.admin.backend.security.testUserPermissions
@@ -20,16 +24,14 @@ import io.mockk.junit5.MockKExtension
 import io.mockk.mockk
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.context.SecurityContextImpl
 import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 import java.util.*
 
 @ExtendWith(MockKExtension::class)
@@ -46,6 +48,9 @@ internal class DistributionServiceTest {
 
     @RelaxedMockK
     private lateinit var customerRepository: CustomerRepository
+
+    @RelaxedMockK
+    private lateinit var pdfService: PDFService
 
     @InjectMockKs
     private lateinit var service: DistributionService
@@ -92,7 +97,7 @@ internal class DistributionServiceTest {
     fun `create new distribution with existing ongoing distribution`() {
         every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
 
-        val exception = assertThrows(TafelException::class.java) {
+        val exception = assertThrows(TafelValidationException::class.java) {
             service.createNewDistribution()
         }
 
@@ -176,7 +181,7 @@ internal class DistributionServiceTest {
         every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
         every { customerRepository.findByCustomerId(customerId) } returns null
 
-        val exception = assertThrows<TafelValidationFailedException> {
+        val exception = assertThrows<TafelValidationException> {
             service.assignCustomerToDistribution(
                 distribution = distributionEntity,
                 customerId = customerId,
@@ -211,6 +216,71 @@ internal class DistributionServiceTest {
                 assertThat(it.ticketNumber).isEqualTo(ticketNumber)
             })
         }
+    }
+
+    @Test
+    fun `generate customerlist pdf - no active distribution`() {
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns null
+
+        val exception = assertThrows<TafelValidationException> { service.generateCustomerListPdf() }
+
+        assertThat(exception.message).isEqualTo("Ausgabe nicht gestartet!")
+    }
+
+    @Test
+    fun `generate customerlist pdf - successful`() {
+        val date = ZonedDateTime.now()
+        val testDistributionEntity = DistributionEntity().apply {
+            id = 123
+            state = DistributionState.DISTRIBUTION
+            startedAt = date
+            customers = listOf(testDistributionCustomerEntity1, testDistributionCustomerEntity2)
+        }
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
+
+        val bytes = ByteArray(0)
+        every { pdfService.generatePdf(any(), any()) } returns bytes
+
+        val result = service.generateCustomerListPdf()
+
+        val expectedFormattedDate = DateTimeFormatter.ofPattern("dd.MM.yyyy").format(date)
+        assertThat(result?.filename).isEqualTo("kundenliste-ausgabe-$expectedFormattedDate.pdf")
+        assertThat(result?.bytes).isEqualTo(bytes)
+
+        verify {
+            pdfService.generatePdf(
+                withArg {
+                    assertThat(it).isEqualTo(
+                        CustomerListPdfModel(
+                            title = "Kundenliste zur Ausgabe vom $expectedFormattedDate",
+                            customers = listOf(
+                                CustomerListItem(
+                                    ticketNumber = 1,
+                                    name = "Mustermann Max",
+                                    countPersons = 3,
+                                    countInfants = 1
+                                ),
+                                CustomerListItem(
+                                    ticketNumber = 2,
+                                    name = "Mustermann Max 2",
+                                    countPersons = 1,
+                                    countInfants = 0
+                                )
+                            )
+                        )
+                    )
+                },
+                withArg {
+                    assertThat(it).isEqualTo("/pdf-templates/distribution-customerlist/customerlist.xsl")
+                }
+            )
+        }
+    }
+
+    @Test
+    @Disabled
+    // TODO maybe also add a pdf comparison (probably after OS problems fixed)
+    fun `generate customerlist pdf - compare`() {
     }
 
 }

@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.customer.masterdata
 
+import at.wrk.tafel.admin.backend.common.pdf.PDFService
 import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerAddPersonEntity
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity
@@ -23,9 +24,9 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 import javax.imageio.ImageIO
 
-class CustomerPdfServiceImplTest {
+class CustomerPdfServiceTest {
 
-    private lateinit var service: CustomerPdfServiceImpl
+    private lateinit var service: CustomerPdfService
     private lateinit var testCustomer: CustomerEntity
 
     companion object {
@@ -33,7 +34,7 @@ class CustomerPdfServiceImplTest {
             System.getProperty("user.dir"), "target/custom-test-results/customerpdf-comparison-results"
         )
 
-        private var masterReferencesPath = "/pdf/master-references/"
+        private var masterReferencesPath = "/pdf-references/customer/master-references/"
 
         @JvmStatic
         @BeforeAll
@@ -111,7 +112,7 @@ class CustomerPdfServiceImplTest {
 
         testCustomer.additionalPersons = mutableListOf(addPers1, addPers2, addPers3)
 
-        service = CustomerPdfServiceImpl()
+        service = CustomerPdfService(PDFService())
     }
 
     @Test
@@ -202,4 +203,5 @@ class CustomerPdfServiceImplTest {
 
         document.close()
     }
+
 }

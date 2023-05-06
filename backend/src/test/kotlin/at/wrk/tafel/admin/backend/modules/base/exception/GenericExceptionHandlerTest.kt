@@ -73,23 +73,44 @@ internal class GenericExceptionHandlerTest {
     }
 
     @Test
-    fun `handles TafelValidationFailedException properly`() {
+    fun `handles TafelException and status overrides defaultvalue`() {
         every {
             messageSource.getMessage(
-                "http-error.${HttpStatus.UNPROCESSABLE_ENTITY.value()}.title", arrayOf<Any>(), any()
+                "http-error.${HttpStatus.NOT_FOUND.value()}.title", arrayOf<Any>(), any()
+            )
+        } returns "localized-title"
+        val exception = TafelException(message = "tafelexception-msg", status = HttpStatus.NOT_FOUND)
+
+        val response = exceptionHandler.handleTafelException(exception, request, Locale.GERMAN)
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
+        val errorBody = response.body
+        assertThat(errorBody?.timestamp).isNotNull()
+        assertThat(errorBody?.status).isEqualTo(HttpStatus.NOT_FOUND.value())
+        assertThat(errorBody?.error).isEqualTo("localized-title")
+        assertThat(errorBody?.message).isEqualTo("tafelexception-msg")
+        assertThat(errorBody?.trace).startsWith("at.wrk.tafel.admin.backend.modules.base.exception.TafelException: tafelexception-msg")
+        assertThat(errorBody?.path).isEqualTo("/dummy-path")
+    }
+
+    @Test
+    fun `handles TafelValidationException properly`() {
+        every {
+            messageSource.getMessage(
+                "http-error.${HttpStatus.BAD_REQUEST.value()}.title", arrayOf<Any>(), any()
             )
         } returns "localized-title"
 
-        val exception = TafelValidationFailedException("tafelvalidationfailedexception-msg")
-        val response = exceptionHandler.handleTafelValidationFailedException(exception, request, Locale.GERMAN)
+        val exception = TafelValidationException("tafelvalidationexception-msg")
+        val response = exceptionHandler.handleTafelValidationException(exception, request, Locale.GERMAN)
 
-        assertThat(response.statusCode).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY)
+        assertThat(response.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
         val errorBody = response.body
         assertThat(errorBody?.timestamp).isNotNull()
-        assertThat(errorBody?.status).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY.value())
+        assertThat(errorBody?.status).isEqualTo(HttpStatus.BAD_REQUEST.value())
         assertThat(errorBody?.error).isEqualTo("localized-title")
-        assertThat(errorBody?.message).isEqualTo("tafelvalidationfailedexception-msg")
-        assertThat(errorBody?.trace).startsWith("at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationFailedException: tafelvalidationfailedexception-msg")
+        assertThat(errorBody?.message).isEqualTo("tafelvalidationexception-msg")
+        assertThat(errorBody?.trace).startsWith("at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException: tafelvalidationexception-msg")
         assertThat(errorBody?.path).isEqualTo("/dummy-path")
     }
 

@@ -1,8 +1,9 @@
 package at.wrk.tafel.admin.backend.modules.customer
 
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationFailedException
+import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import org.springframework.core.io.InputStreamResource
 import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -31,7 +32,7 @@ class CustomerController(
     fun createCustomer(@RequestBody customer: Customer): Customer {
         customer.id?.let {
             if (service.existsByCustomerId(it)) {
-                throw TafelValidationFailedException("Kunde Nr. $it bereits vorhanden!")
+                throw TafelValidationException("Kunde Nr. $it bereits vorhanden!")
             }
         }
 
@@ -44,7 +45,10 @@ class CustomerController(
         @RequestBody customer: Customer
     ): Customer {
         if (!service.existsByCustomerId(customerId)) {
-            throw TafelValidationFailedException("Kunde Nr. $customerId nicht vorhanden!")
+            throw TafelValidationException(
+                message = "Kunde Nr. $customerId nicht vorhanden!",
+                status = HttpStatus.NOT_FOUND
+            )
         }
 
         return service.updateCustomer(customerId, customer)
@@ -53,7 +57,10 @@ class CustomerController(
     @GetMapping("/{customerId}")
     fun getCustomer(@PathVariable("customerId") customerId: Long): Customer {
         return service.findByCustomerId(customerId)
-            ?: throw TafelValidationFailedException("Kunde Nr. $customerId nicht gefunden!")
+            ?: throw TafelValidationException(
+                message = "Kunde Nr. $customerId nicht gefunden!",
+                status = HttpStatus.NOT_FOUND
+            )
     }
 
     @GetMapping
@@ -68,7 +75,10 @@ class CustomerController(
     @DeleteMapping("/{customerId}")
     fun deleteCustomer(@PathVariable("customerId") customerId: Long) {
         if (!service.existsByCustomerId(customerId)) {
-            throw TafelValidationFailedException("Kunde Nr. $customerId nicht vorhanden!")
+            throw TafelValidationException(
+                message = "Kunde Nr. $customerId nicht vorhanden!",
+                status = HttpStatus.NOT_FOUND
+            )
         }
 
         service.deleteCustomerByCustomerId(customerId)
@@ -80,7 +90,7 @@ class CustomerController(
         @RequestParam("type") type: CustomerPdfType
     ): ResponseEntity<InputStreamResource> {
         val pdfResult = service.generatePdf(customerId, type)
-        if (pdfResult != null) {
+        pdfResult?.let {
             val headers = HttpHeaders()
             headers.add(
                 HttpHeaders.CONTENT_DISPOSITION,
@@ -92,8 +102,10 @@ class CustomerController(
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_PDF)
                 .body(InputStreamResource(ByteArrayInputStream(pdfResult.bytes)))
-        }
-        return ResponseEntity.notFound().build()
+        } ?: throw TafelValidationException(
+            message = "Kunde Nr. $customerId nicht vorhanden!",
+            status = HttpStatus.NOT_FOUND
+        )
     }
 
 }

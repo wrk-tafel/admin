@@ -10,8 +10,7 @@ import {GlobalStateService} from '../../../../common/state/global-state.service'
 
 @Component({
   selector: 'tafel-distribution-state',
-  templateUrl: 'distribution-state.component.html',
-  styleUrls: ['../../dashboard.component.css']
+  templateUrl: 'distribution-state.component.html'
 })
 export class DistributionStateComponent implements OnInit {
 

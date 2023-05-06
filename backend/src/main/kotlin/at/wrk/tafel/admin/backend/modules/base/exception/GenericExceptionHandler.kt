@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.context.request.ServletWebRequest
 import org.springframework.web.context.request.WebRequest
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 import java.util.*
 
 @ControllerAdvice
@@ -25,21 +25,23 @@ class GenericExceptionHandler(
     fun handleTafelException(
         exception: TafelException, request: WebRequest, locale: Locale
     ): ResponseEntity<TafelErrorResponse> {
-        logger.error(exception.message, exception)
+        logger.warn(exception.message, exception)
 
+        val status = exception.status ?: HttpStatus.BAD_REQUEST
         return createErrorResponse(
-            exception = exception, status = HttpStatus.BAD_REQUEST, request = request, locale = locale
+            exception = exception, status = status, request = request, locale = locale
         )
     }
 
-    @ExceptionHandler(TafelValidationFailedException::class)
-    fun handleTafelValidationFailedException(
-        exception: TafelValidationFailedException, request: WebRequest, locale: Locale
+    @ExceptionHandler(TafelValidationException::class)
+    fun handleTafelValidationException(
+        exception: TafelValidationException, request: WebRequest, locale: Locale
     ): ResponseEntity<TafelErrorResponse> {
-        logger.error(exception.message, exception)
+        logger.debug(exception.message, exception)
 
+        val status = exception.status ?: HttpStatus.BAD_REQUEST
         return createErrorResponse(
-            exception = exception, status = HttpStatus.UNPROCESSABLE_ENTITY, request = request, locale = locale
+            exception = exception, status = status, request = request, locale = locale
         )
     }
 
@@ -62,7 +64,7 @@ class GenericExceptionHandler(
         )
 
         val error = TafelErrorResponse(
-            timestamp = LocalDateTime.now(),
+            timestamp = ZonedDateTime.now(),
             status = status.value(),
             error = localizedErrorTitle,
             message = exception.message,
@@ -77,10 +79,10 @@ class GenericExceptionHandler(
 
 @ExcludeFromTestCoverage
 data class TafelErrorResponse(
-    val timestamp: LocalDateTime,
+    val timestamp: ZonedDateTime,
     val status: Int,
     val error: String,
     val message: String?,
     val trace: String?,
-    val path: String
+    val path: String?
 )
