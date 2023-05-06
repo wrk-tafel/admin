@@ -138,12 +138,34 @@ val testCustomerEntity2 = CustomerEntity().apply {
     validUntil = LocalDate.now()
 }
 
+val testCustomerEntity3 = CustomerEntity().apply {
+    id = 3
+    createdAt = ZonedDateTime.now()
+    customerId = 300
+    lastname = "Mustermann"
+    firstname = "Max 3"
+    birthDate = LocalDate.now().minusYears(22)
+    country = testCountry
+    addressStreet = "Test-Straße 3"
+    addressHouseNumber = "300"
+    addressStairway = "1-3"
+    addressPostalCode = 1010
+    addressDoor = "21-3"
+    addressCity = "Wien 3"
+    telephoneNumber = "0043660123123"
+    email = "test3@mail.com"
+    employer = "Employer 123-3"
+    income = BigDecimal("3000")
+    incomeDue = LocalDate.now()
+    validUntil = LocalDate.now()
+}
+
 val testDistributionCustomerEntity1 = DistributionCustomerEntity().apply {
     id = 1
     createdAt = ZonedDateTime.now()
     distribution = testDistributionEntity
     customer = testCustomerEntity1
-    ticketNumber = 1
+    ticketNumber = 50
 }
 
 val testDistributionCustomerEntity2 = DistributionCustomerEntity().apply {
@@ -151,5 +173,13 @@ val testDistributionCustomerEntity2 = DistributionCustomerEntity().apply {
     createdAt = ZonedDateTime.now()
     distribution = testDistributionEntity
     customer = testCustomerEntity2
-    ticketNumber = 2
+    ticketNumber = 51
+}
+
+val testDistributionCustomerEntity3 = DistributionCustomerEntity().apply {
+    id = 3
+    createdAt = ZonedDateTime.now()
+    distribution = testDistributionEntity
+    customer = testCustomerEntity3
+    ticketNumber = 52
 }

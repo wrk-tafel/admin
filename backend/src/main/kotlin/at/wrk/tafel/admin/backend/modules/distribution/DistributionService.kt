@@ -81,7 +81,7 @@ class DistributionService(
         try {
             distributionCustomerRepository.save(entry)
         } catch (e: DataIntegrityViolationException) {
-            throw TafelValidationException("Kunde ist bereits zugewiesen!")
+            throw TafelValidationException("Kunde oder Ticketnummer wurde bereits zugewiesen!")
         }
     }
 
@@ -92,8 +92,11 @@ class DistributionService(
         val formattedDate = DATE_FORMATTER.format(currentDistribution?.startedAt)
         val sortedCustomers = currentDistribution.customers.sortedBy { it.ticketNumber }
 
+        val halftimeIndex = sortedCustomers.size.div(2)
+        val halftimeTicketNumber = if (sortedCustomers.size > 2) sortedCustomers[halftimeIndex].ticketNumber!! else null
         val data = CustomerListPdfModel(
             title = "Kundenliste zur Ausgabe vom $formattedDate",
+            halftimeTicketNumber = halftimeTicketNumber,
             customers = mapCustomers(sortedCustomers)
         )
 
@@ -108,6 +111,7 @@ class DistributionService(
 
             CustomerListItem(
                 ticketNumber = distributionCustomerEntity.ticketNumber!!,
+                customerId = customer?.customerId!!,
                 name = "${customer?.lastname} ${customer?.firstname}",
                 countPersons = customer?.additionalPersons?.size?.plus(1) ?: 0,
                 countInfants = customer?.additionalPersons?.count {

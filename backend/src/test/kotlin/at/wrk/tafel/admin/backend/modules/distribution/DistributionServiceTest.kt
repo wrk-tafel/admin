@@ -12,6 +12,7 @@ import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationExceptio
 import at.wrk.tafel.admin.backend.modules.customer.testCustomerEntity1
 import at.wrk.tafel.admin.backend.modules.customer.testDistributionCustomerEntity1
 import at.wrk.tafel.admin.backend.modules.customer.testDistributionCustomerEntity2
+import at.wrk.tafel.admin.backend.modules.customer.testDistributionCustomerEntity3
 import at.wrk.tafel.admin.backend.modules.distribution.model.CustomerListItem
 import at.wrk.tafel.admin.backend.modules.distribution.model.CustomerListPdfModel
 import at.wrk.tafel.admin.backend.security.testUser
@@ -234,7 +235,11 @@ internal class DistributionServiceTest {
             id = 123
             state = DistributionState.DISTRIBUTION
             startedAt = date
-            customers = listOf(testDistributionCustomerEntity1, testDistributionCustomerEntity2)
+            customers = listOf(
+                testDistributionCustomerEntity1,
+                testDistributionCustomerEntity2,
+                testDistributionCustomerEntity3
+            )
         }
         every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
 
@@ -253,16 +258,26 @@ internal class DistributionServiceTest {
                     assertThat(it).isEqualTo(
                         CustomerListPdfModel(
                             title = "Kundenliste zur Ausgabe vom $expectedFormattedDate",
+                            halftimeTicketNumber = 51,
                             customers = listOf(
                                 CustomerListItem(
-                                    ticketNumber = 1,
+                                    ticketNumber = 50,
+                                    customerId = 100,
                                     name = "Mustermann Max",
                                     countPersons = 3,
                                     countInfants = 1
                                 ),
                                 CustomerListItem(
-                                    ticketNumber = 2,
+                                    ticketNumber = 51,
+                                    customerId = 200,
                                     name = "Mustermann Max 2",
+                                    countPersons = 1,
+                                    countInfants = 0
+                                ),
+                                CustomerListItem(
+                                    ticketNumber = 52,
+                                    customerId = 300,
+                                    name = "Mustermann Max 3",
                                     countPersons = 1,
                                     countInfants = 0
                                 )
