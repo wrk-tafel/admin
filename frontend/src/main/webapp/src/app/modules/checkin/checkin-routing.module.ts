@@ -14,7 +14,7 @@ const routes: Routes = [
     component: CheckinComponent
   },
   {
-    path: 'ticketmonitor',
+    path: 'ticketmonitor-steuerung',
     component: TicketScreenControlComponent
   }
 ];

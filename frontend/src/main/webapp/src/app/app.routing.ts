@@ -1,5 +1,12 @@
 import {inject, NgModule} from '@angular/core';
-import {ActivatedRouteSnapshot, CanActivateChildFn, ResolveFn, RouterModule, Routes} from '@angular/router';
+import {
+  ActivatedRouteSnapshot,
+  CanActivateChildFn,
+  CanActivateFn,
+  ResolveFn,
+  RouterModule,
+  Routes
+} from '@angular/router';
 
 import {DefaultLayoutComponent} from './common/views/default-layout/default-layout.component';
 import {P404Component} from './common/views/error/404.component';
@@ -9,9 +16,14 @@ import {LoginComponent} from './common/views/login/login.component';
 import {AuthGuardService} from './common/security/authguard.service';
 import {LoginPasswordChangeComponent} from './common/views/login-passwordchange/login-passwordchange.component';
 import {DefaultLayoutResolver} from './common/views/default-layout/resolver/default-layout-resolver.component';
+import {TicketScreenComponent} from './modules/checkin/ticket-screen/ticket-screen.component';
 
-const authGuard: CanActivateChildFn = (route: ActivatedRouteSnapshot) => {
-  return inject(AuthGuardService).canActivateChild(route);
+const authGuard: CanActivateFn = (route: ActivatedRouteSnapshot) => {
+  return inject(AuthGuardService).canActivate(route);
+};
+
+const authGuardChild: CanActivateChildFn = (route: ActivatedRouteSnapshot) => {
+  return inject(AuthGuardService).canActivate(route);
 };
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -28,6 +40,11 @@ export const routes: Routes = [
   {
     path: '404',
     component: P404Component
+  },
+  {
+    path: 'anmeldung/ticketmonitor',
+    component: TicketScreenComponent,
+    canActivate: [authGuard]
   },
   {
     path: '500',
@@ -48,7 +65,7 @@ export const routes: Routes = [
   {
     path: '',
     component: DefaultLayoutComponent,
-    canActivateChild: [authGuard],
+    canActivateChild: [authGuardChild],
     resolve: {
       initialStates: defaultLayoutResolver
     },

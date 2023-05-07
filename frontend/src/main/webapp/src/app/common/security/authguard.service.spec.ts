@@ -17,7 +17,7 @@ describe('AuthGuardService', () => {
     authServiceSpy.hasAnyPermission.and.returnValue(true);
 
     const activatedRoute = <ActivatedRouteSnapshot>{data: {}};
-    const canActivate = service.canActivateChild(activatedRoute);
+    const canActivate = service.canActivate(activatedRoute);
 
     expect(canActivate).toBeTrue();
   });
@@ -28,7 +28,7 @@ describe('AuthGuardService', () => {
     authServiceSpy.hasAnyPermission.and.returnValue(false);
 
     const activatedRoute = <ActivatedRouteSnapshot>{data: {}};
-    const canActivate = service.canActivateChild(activatedRoute);
+    const canActivate = service.canActivate(activatedRoute);
 
     expect(canActivate).toBeFalse();
     expect(authServiceSpy.redirectToLogin).toHaveBeenCalledWith('fehlgeschlagen');
@@ -41,7 +41,7 @@ describe('AuthGuardService', () => {
     authServiceSpy.hasPermission.and.returnValue(false);
 
     const activatedRoute = <ActivatedRouteSnapshot><unknown>{data: {permission: 'PERM2'}};
-    const canActivate = service.canActivateChild(activatedRoute);
+    const canActivate = service.canActivate(activatedRoute);
 
     expect(canActivate).toBeFalse();
     expect(authServiceSpy.redirectToLogin).toHaveBeenCalledWith('fehlgeschlagen');
@@ -54,7 +54,7 @@ describe('AuthGuardService', () => {
     authServiceSpy.hasPermission.and.returnValue(true);
 
     const activatedRoute = <ActivatedRouteSnapshot><unknown>{data: {permission: 'PERM1'}};
-    const canActivate = service.canActivateChild(activatedRoute);
+    const canActivate = service.canActivate(activatedRoute);
 
     expect(canActivate).toBeTruthy();
     expect(authServiceSpy.redirectToLogin).not.toHaveBeenCalled();

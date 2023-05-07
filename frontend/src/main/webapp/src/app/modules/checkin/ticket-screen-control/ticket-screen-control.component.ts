@@ -1,5 +1,4 @@
-import {Component, ComponentRef, ViewChild, ViewContainerRef} from '@angular/core';
-import {TicketScreenWindowComponent} from '../ticket-screen-window/ticket-screen-window.component';
+import {Component} from '@angular/core';
 
 @Component({
   selector: 'tafel-ticket-screen-control',
@@ -7,12 +6,8 @@ import {TicketScreenWindowComponent} from '../ticket-screen-window/ticket-screen
 })
 export class TicketScreenControlComponent {
 
-  @ViewChild('windowContainer', {read: ViewContainerRef}) windowContainer;
-  componentRef: ComponentRef<TicketScreenWindowComponent>;
-
   openScreenInNewTab() {
-    this.windowContainer.clear();
-    this.componentRef = this.windowContainer.createComponent(TicketScreenWindowComponent);
+    window.open('/#/anmeldung/ticketmonitor', '_blank');
   }
 
 }
