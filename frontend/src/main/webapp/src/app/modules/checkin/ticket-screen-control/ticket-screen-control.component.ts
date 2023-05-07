@@ -6,8 +6,10 @@ import {Component} from '@angular/core';
 })
 export class TicketScreenControlComponent {
 
-  openScreenInNewTab() {
+  showWindow: boolean = false;
 
+  openScreenInNewTab() {
+    this.showWindow = true;
   }
 
 }

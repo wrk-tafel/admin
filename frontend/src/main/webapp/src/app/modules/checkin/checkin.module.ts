@@ -8,7 +8,6 @@ import {CheckinComponent} from './checkin/checkin.component';
 import {A11yModule} from '@angular/cdk/a11y';
 import {
   BadgeComponent,
-  BgColorDirective,
   ButtonDirective,
   CardBodyComponent,
   CardComponent,
@@ -41,7 +40,6 @@ import {PortalModule} from '@angular/cdk/portal';
     CardHeaderComponent,
     CardFooterComponent,
     ButtonDirective,
-    BgColorDirective,
     PortalModule
   ],
   declarations: [

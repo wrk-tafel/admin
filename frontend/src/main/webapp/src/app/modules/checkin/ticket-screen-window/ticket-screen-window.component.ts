@@ -17,7 +17,7 @@ import {CdkPortal, DomPortalOutlet} from '@angular/cdk/portal';
 export class TicketScreenWindowComponent implements OnInit, AfterViewInit, OnDestroy {
 
   @ViewChild(CdkPortal) portal: CdkPortal;
-  private externalWindow = null;
+  private externalWindow: Window = null;
 
   constructor(
     private componentFactoryResolver: ComponentFactoryResolver,
