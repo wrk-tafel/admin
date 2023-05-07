@@ -8,18 +8,21 @@ import {CheckinComponent} from './checkin/checkin.component';
 import {A11yModule} from '@angular/cdk/a11y';
 import {
   BadgeComponent,
+  BgColorDirective,
   ButtonDirective,
   CardBodyComponent,
   CardComponent,
   CardFooterComponent,
   CardHeaderComponent,
   ColComponent,
+  ContainerComponent,
   FormSelectDirective,
   ModalModule,
   RowComponent
 } from '@coreui/angular';
 import {TicketScreenComponent} from './ticket-screen/ticket-screen.component';
 import {TicketScreenControlComponent} from './ticket-screen-control/ticket-screen-control.component';
+import {TicketScreenFullscreenComponent} from './ticket-screen-fullscreen/ticket-screen-fullscreen.component';
 
 @NgModule({
   imports: [
@@ -37,13 +40,16 @@ import {TicketScreenControlComponent} from './ticket-screen-control/ticket-scree
     BadgeComponent,
     CardHeaderComponent,
     CardFooterComponent,
-    ButtonDirective
+    ButtonDirective,
+    ContainerComponent,
+    BgColorDirective
   ],
   declarations: [
     ScannerComponent,
     CheckinComponent,
     TicketScreenComponent,
-    TicketScreenControlComponent
+    TicketScreenControlComponent,
+    TicketScreenFullscreenComponent
   ],
   providers: [
     QRCodeReaderService

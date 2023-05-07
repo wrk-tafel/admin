@@ -16,7 +16,9 @@ import {LoginComponent} from './common/views/login/login.component';
 import {AuthGuardService} from './common/security/authguard.service';
 import {LoginPasswordChangeComponent} from './common/views/login-passwordchange/login-passwordchange.component';
 import {DefaultLayoutResolver} from './common/views/default-layout/resolver/default-layout-resolver.component';
-import {TicketScreenComponent} from './modules/checkin/ticket-screen/ticket-screen.component';
+import {
+  TicketScreenFullscreenComponent
+} from './modules/checkin/ticket-screen-fullscreen/ticket-screen-fullscreen.component';
 
 const authGuard: CanActivateFn = (route: ActivatedRouteSnapshot) => {
   return inject(AuthGuardService).canActivate(route);
@@ -43,7 +45,7 @@ export const routes: Routes = [
   },
   {
     path: 'anmeldung/ticketmonitor',
-    component: TicketScreenComponent,
+    component: TicketScreenFullscreenComponent,
     canActivate: [authGuard]
   },
   {
