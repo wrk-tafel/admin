@@ -4,8 +4,8 @@
       <c-col>
         <h3>Ticket-Monitor - Steuerung</h3>
       </c-col>
-      <c-col>
-        BUTTON
+      <c-col class="text-end">
+        <button cButton class="text-white" (click)="openScreen()">Ticket-Monitor öffnen</button>
       </c-col>
     </c-row>
     <c-row>
@@ -15,7 +15,28 @@
     </c-row>
     <c-row>
       <c-col>
-        TODO
+        BUTTON PREVIOUS / BUTTON NEXT
+      </c-col>
+    </c-row>
+    <c-row>
+      <c-col>
+        <hr>
+      </c-col>
+    </c-row>
+    <c-row class="text-center">
+      <c-col>
+        <h4>Live-Ansicht</h4>
+      </c-col>
+    </c-row>
+    <c-row>
+      <c-col>
+        <c-card>
+          <c-card-body>
+            <div style="height: 65vh;">
+              <tafel-ticket-screen></tafel-ticket-screen>
+            </div>
+          </c-card-body>
+        </c-card>
       </c-col>
     </c-row>
   </c-card-body>

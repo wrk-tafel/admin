@@ -8,6 +8,7 @@ import {CheckinComponent} from './checkin/checkin.component';
 import {A11yModule} from '@angular/cdk/a11y';
 import {
   BadgeComponent,
+  BgColorDirective,
   ButtonDirective,
   CardBodyComponent,
   CardComponent,
@@ -37,7 +38,8 @@ import {TicketScreenControlComponent} from './ticket-screen-control/ticket-scree
     BadgeComponent,
     CardHeaderComponent,
     CardFooterComponent,
-    ButtonDirective
+    ButtonDirective,
+    BgColorDirective
   ],
   declarations: [
     ScannerComponent,

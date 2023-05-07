@@ -5,4 +5,8 @@ import {Component} from '@angular/core';
   templateUrl: 'ticket-screen-control.component.html'
 })
 export class TicketScreenControlComponent {
+  openScreen() {
+
+  }
+
 }
