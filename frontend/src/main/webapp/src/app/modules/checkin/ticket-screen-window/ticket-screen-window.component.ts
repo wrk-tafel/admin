@@ -1,13 +1,4 @@
-import {
-  AfterViewInit,
-  ApplicationRef,
-  Component,
-  ComponentFactoryResolver,
-  Injector,
-  OnDestroy,
-  OnInit,
-  ViewChild
-} from '@angular/core';
+import {AfterViewInit, Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {CdkPortal, DomPortalOutlet} from '@angular/cdk/portal';
 
 @Component({
@@ -18,13 +9,6 @@ export class TicketScreenWindowComponent implements OnInit, AfterViewInit, OnDes
 
   @ViewChild(CdkPortal) portal: CdkPortal;
   private externalWindow: Window = null;
-
-  constructor(
-    private componentFactoryResolver: ComponentFactoryResolver,
-    private applicationRef: ApplicationRef,
-    private injector: Injector
-  ) {
-  }
 
   ngOnInit() {
   }
@@ -37,10 +21,7 @@ export class TicketScreenWindowComponent implements OnInit, AfterViewInit, OnDes
     );
 
     const host = new DomPortalOutlet(
-      this.externalWindow.document.body,
-      this.componentFactoryResolver,
-      this.applicationRef,
-      this.injector
+      this.externalWindow.document.body
     );
 
     host.attach(this.portal);
