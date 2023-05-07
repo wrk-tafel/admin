@@ -21,6 +21,8 @@ import {
 } from '@coreui/angular';
 import {TicketScreenComponent} from './ticket-screen/ticket-screen.component';
 import {TicketScreenControlComponent} from './ticket-screen-control/ticket-screen-control.component';
+import {TicketScreenWindowComponent} from './ticket-screen-window/ticket-screen-window.component';
+import {PortalModule} from '@angular/cdk/portal';
 
 @NgModule({
   imports: [
@@ -39,13 +41,15 @@ import {TicketScreenControlComponent} from './ticket-screen-control/ticket-scree
     CardHeaderComponent,
     CardFooterComponent,
     ButtonDirective,
-    BgColorDirective
+    BgColorDirective,
+    PortalModule
   ],
   declarations: [
     ScannerComponent,
     CheckinComponent,
     TicketScreenComponent,
-    TicketScreenControlComponent
+    TicketScreenControlComponent,
+    TicketScreenWindowComponent
   ],
   providers: [
     QRCodeReaderService
