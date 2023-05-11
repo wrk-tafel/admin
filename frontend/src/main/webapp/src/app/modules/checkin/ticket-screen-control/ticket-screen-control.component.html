@@ -5,7 +5,7 @@
         <h3>Ticket-Monitor - Steuerung</h3>
       </c-col>
       <c-col class="text-end">
-        <button cButton class="text-white" (click)="openScreenInNewTab()">Ticket-Monitor öffnen</button>
+        <button cButton class="text-white" (click)="openScreenInNewTab()">Monitor öffnen</button>
       </c-col>
     </c-row>
     <c-row>
@@ -13,11 +13,17 @@
         <hr>
       </c-col>
     </c-row>
-    <c-row>
-      <c-col>
-        BUTTON PREVIOUS / BUTTON NEXT
-      </c-col>
-    </c-row>
+    <form [formGroup]="form">
+      <c-row class="align-items-end">
+        <c-col sm="3">
+          <label class="form-label">Ausgabestart (Uhrzeit):</label>
+          <input testid="startDateInput" type="time" formControlName="startDate" class="form-control">
+        </c-col>
+        <c-col sm="1" class="mt-3 mt-lg-0">
+          <button cButton color="primary" class="text-white">Anzeigen</button>
+        </c-col>
+      </c-row>
+    </form>
     <c-row>
       <c-col>
         <hr>
@@ -29,8 +35,16 @@
       </c-col>
     </c-row>
     <c-row>
-      <c-col>
-        <div style="height: 70vh;">
+      <c-col sm="12" md="2">
+        <button cButton color="primary" class="text-white">Aktuelles Ticket anzeigen</button>
+      </c-col>
+      <c-col sm="12" md="2">
+        <button cButton color="primary" class="text-white mt-3 mt-sm-0">Weiter zum nächsten Ticket</button>
+      </c-col>
+    </c-row>
+    <c-row>
+      <c-col class="mt-3">
+        <div style="height: 60vh;">
           <tafel-ticket-screen></tafel-ticket-screen>
         </div>
       </c-col>
