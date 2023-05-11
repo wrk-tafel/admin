@@ -57,4 +57,17 @@ internal class TafelWebSocketCloseHandlerDecoratorTest {
         }
     }
 
+    @Test
+    fun `session close immediately when unauthenticated`() {
+        every { session.principal } returns null
+
+        handler.afterConnectionEstablished(session)
+
+        verify {
+            timer.schedule(any(), withArg<Long> {
+                assertThat(it).isZero()
+            })
+        }
+    }
+
 }
