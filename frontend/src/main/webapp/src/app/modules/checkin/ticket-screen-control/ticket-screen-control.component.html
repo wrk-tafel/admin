@@ -17,7 +17,8 @@
       <c-row class="align-items-end">
         <c-col sm="3">
           <label class="form-label">Ausgabestart (Uhrzeit):</label>
-          <input testid="startTimeInput" type="time" formControlName="startTime" class="form-control">
+          <input testid="startTimeInput" type="time" formControlName="startTime" class="form-control"
+                 (keydown.enter)="showStartTime()">
         </c-col>
         <c-col sm="1" class="mt-3 mt-lg-0">
           <button cButton color="primary" class="text-white" (click)="showStartTime()">Anzeigen</button>
