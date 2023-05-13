@@ -1,12 +1,12 @@
 <c-container fluid="true" cBgColor="black" class="d-flex flex-column h-100 w-100">
   <c-row>
     <c-col class="d-flex justify-content-center mt-3">
-      <h1 class="text-white">Ticketnummer</h1>
+      <h1 class="text-white">Ticketnummer (Time {{startTime | date : 'HH:mm'}})</h1>
     </c-col>
   </c-row>
   <c-row>
     <c-col class="d-flex justify-content-center">
-      <div class="text-white" style="font-size: 285pt;">1234</div>
+      <div class="text-white" style="font-size: 285pt;">{{ticketNumber}}</div>
     </c-col>
   </c-row>
 </c-container>

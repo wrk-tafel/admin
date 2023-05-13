@@ -64,6 +64,7 @@ class WebSocketAndSecurityConfig(
         return messages
             .simpDestMatchers("/app/scanners/**", "/user/queue/scanners/**").hasAuthority("SCANNER")
             .simpDestMatchers("/topic/scanners/**").hasAnyAuthority("SCANNER", "CHECKIN")
+            .simpDestMatchers("/topic/ticket-screen/**").hasAuthority("CHECKIN")
             .simpTypeMatchers(SimpMessageType.CONNECT).authenticated()
             .simpTypeMatchers(SimpMessageType.DISCONNECT).permitAll()
             .anyMessage().authenticated()
