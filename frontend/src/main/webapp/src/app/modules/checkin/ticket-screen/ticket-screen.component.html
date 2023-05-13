@@ -1,12 +1,26 @@
 <c-container fluid="true" cBgColor="black" class="d-flex flex-column h-100 w-100">
-  <c-row>
-    <c-col class="d-flex justify-content-center mt-3">
-      <h1 class="text-white">Ticketnummer (Time {{startTime | date : 'HH:mm'}})</h1>
-    </c-col>
-  </c-row>
-  <c-row>
-    <c-col class="d-flex justify-content-center">
-      <div class="text-white" style="font-size: 285pt;">{{ticketNumber}}</div>
-    </c-col>
-  </c-row>
+  <c-container *ngIf="startTime">
+    <c-row>
+      <c-col class="d-flex justify-content-center mt-3">
+        <h1 class="text-white" style="font-size: 80pt;">Start um</h1>
+      </c-col>
+    </c-row>
+    <c-row>
+      <c-col class="d-flex justify-content-center">
+        <div class="text-white" style="font-size: 285pt;">{{startTime | date : 'HH:mm'}}</div>
+      </c-col>
+    </c-row>
+  </c-container>
+  <c-container *ngIf="ticketNumber">
+    <c-row>
+      <c-col class="d-flex justify-content-center mt-3">
+        <h1 class="text-white" style="font-size: 80pt;">Ticketnummer</h1>
+      </c-col>
+    </c-row>
+    <c-row>
+      <c-col class="d-flex justify-content-center">
+        <div class="text-white" style="font-size: 285pt;">{{ticketNumber}}</div>
+      </c-col>
+    </c-row>
+  </c-container>
 </c-container>
