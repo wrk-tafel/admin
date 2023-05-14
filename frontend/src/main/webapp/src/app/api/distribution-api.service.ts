@@ -57,6 +57,10 @@ export class DistributionApiService {
     return this.http.get<TicketNumberResponse>('/distributions/tickets/current');
   }
 
+  getNextTicket(): Observable<TicketNumberResponse> {
+    return this.http.get<TicketNumberResponse>('/distributions/tickets/next');
+  }
+
 }
 
 export interface DistributionItemResponse {

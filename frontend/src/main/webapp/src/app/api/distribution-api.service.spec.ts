@@ -118,4 +118,12 @@ describe('DistributionApiService', () => {
     httpMock.verify();
   });
 
+  it('get next ticket', () => {
+    apiService.getNextTicket().subscribe();
+
+    const req = httpMock.expectOne('/distributions/tickets/next');
+    req.flush(null);
+    httpMock.verify();
+  });
+
 });

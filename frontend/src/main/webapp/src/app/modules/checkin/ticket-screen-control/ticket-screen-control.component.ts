@@ -42,8 +42,9 @@ export class TicketScreenControlComponent {
   }
 
   showNextTicket() {
-    this.currentTicketNumber = this.currentTicketNumber + 1;
-    this.sendToTicketScreen({ticketNumber: this.currentTicketNumber});
+    this.distributionApiService.getNextTicket().subscribe((response: TicketNumberResponse) => {
+      this.sendToTicketScreen({ticketNumber: response.ticketNumber});
+    });
   }
 
   private sendToTicketScreen(message: TicketScreenMessage) {
