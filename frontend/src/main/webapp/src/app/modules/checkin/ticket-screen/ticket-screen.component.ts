@@ -18,7 +18,7 @@ export class TicketScreenComponent implements OnInit {
 
   ngOnInit(): void {
     this.websocketService.connect();
-    this.websocketService.watch('/topic/ticket-screen').subscribe(message => {
+    this.websocketService.watch('/topic/ticket-screen').subscribe((message: IMessage) => {
       this.processMessage(message);
     });
   }
