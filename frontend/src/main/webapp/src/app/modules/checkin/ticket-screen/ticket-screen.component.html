@@ -1,12 +1,12 @@
-<c-container fluid="true" cBgColor="black" class="d-flex flex-column h-100 w-100">
+<c-container fluid="true" cBgColor="black" class="h-100 w-100">
   <c-row>
-    <c-col class="d-flex justify-content-center mt-5">
+    <c-col class="text-center mt-5">
       <h1 *ngIf="startTime" class="text-white" style="font-size: 10rem;">Startzeit</h1>
       <h1 *ngIf="!startTime" class="text-white" style="font-size: 10rem;">Ticketnummer</h1>
     </c-col>
   </c-row>
   <c-row>
-    <c-col class="d-flex justify-content-center">
+    <c-col class="text-center">
       <div *ngIf="startTime" class="text-white" style="font-size: 30rem;">{{startTime | date : 'HH:mm'}}</div>
       <div *ngIf="!startTime" class="text-white" style="font-size: 30rem;">{{ticketNumber ?? '-'}}</div>
     </c-col>
