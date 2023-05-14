@@ -50,7 +50,7 @@ export class ErrorHandlerInterceptor implements HttpInterceptor {
 
   private handleErrorMessage(error: HttpErrorResponse): Observable<any> {
     if (this.ERROR_CODES_WHITELIST.indexOf(error.status) === -1) {
-      if (error.error) {
+      if (error.error?.constructor === Object) {
         const errorBody: TafelErrorResponse = error.error;
         const toastOptions = this.createToastFromErrorBody(errorBody);
         this.toastService.showToast(toastOptions);
@@ -63,10 +63,15 @@ export class ErrorHandlerInterceptor implements HttpInterceptor {
   }
 
   private createToastFromGenericHttpError(error: HttpErrorResponse): ToastOptions {
+    let message = error.message;
+    if (error.status === 504) {
+      message = 'Server nicht verfügbar!';
+    }
+
     const toastOptions: ToastOptions = {
       type: ToastType.ERROR,
       title: `HTTP ${error.status} - ${error.statusText}`,
-      message: error.message
+      message: message
     };
     return toastOptions;
   }

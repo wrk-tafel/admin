@@ -24,6 +24,8 @@
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
 
+import AddCustomerToDistributionRequest = Cypress.AddCustomerToDistributionRequest;
+
 Cypress.Commands.add('byTestId', (id) => cy.get(`[testid="${id}"]`));
 
 Cypress.Commands.add('loginDefault', () => {
@@ -55,6 +57,14 @@ Cypress.Commands.add('createDistribution', () => {
   cy.request({
     method: 'POST',
     url: '/api/distributions/new'
+  });
+});
+
+Cypress.Commands.add('addCustomerToDistribution', (request: AddCustomerToDistributionRequest) => {
+  cy.request({
+    method: 'POST',
+    url: '/api/distributions/customers',
+    body: request
   });
 });
 

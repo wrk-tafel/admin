@@ -59,6 +59,28 @@ describe('ErrorHandlerInterceptor', () => {
     httpMock.verify();
   });
 
+  it('generic http 504 error', () => {
+    authServiceSpy.isAuthenticated.and.returnValue(false);
+
+    /* eslint-disable @typescript-eslint/no-unused-vars */
+    const observer = {
+      error: error => {
+        const expectedToast: ToastOptions = {
+          type: ToastType.ERROR,
+          title: 'HTTP 504 - Bad Gateway',
+          message: 'Server nicht verfügbar!'
+        };
+        expect(toastServiceSpy.showToast).toHaveBeenCalledWith(expectedToast);
+      },
+    };
+    client.get('/test').subscribe(observer);
+
+    const mockReq = httpMock.expectOne('/test');
+    const mockErrorResponse = {status: 504, statusText: 'Bad Gateway'};
+    mockReq.flush(null, mockErrorResponse);
+    httpMock.verify();
+  });
+
   it('specific spring http error', () => {
     authServiceSpy.isAuthenticated.and.returnValue(false);
 
