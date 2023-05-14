@@ -1,4 +1,4 @@
-import {Component, Inject, LOCALE_ID, OnInit} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {WebsocketService} from '../../../common/websocket/websocket.service';
 
 @Component({
@@ -8,15 +8,15 @@ import {WebsocketService} from '../../../common/websocket/websocket.service';
 export class TicketScreenComponent implements OnInit {
 
   constructor(
-    private websocketService: WebsocketService,
-    @Inject(LOCALE_ID) public locale: string
+    private websocketService: WebsocketService
   ) {
   }
 
-  startTime: Date;
-  ticketNumber: number = 111;
+  startTime;
+  ticketNumber: number = 1;
 
   ngOnInit(): void {
+    this.websocketService.connect();
     this.websocketService.watch('/topic/ticket-screen').subscribe(message => {
       const screenMessage: TicketScreenMessage = JSON.parse(message.body);
 
