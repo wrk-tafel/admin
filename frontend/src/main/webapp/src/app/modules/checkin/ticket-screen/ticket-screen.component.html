@@ -2,13 +2,13 @@
   <c-row>
     <c-col class="d-flex justify-content-center mt-5">
       <h1 *ngIf="startTime" class="text-white" style="font-size: 15vh;">Startzeit</h1>
-      <h1 *ngIf="ticketNumber" class="text-white" style="font-size: 15vh;">Ticketnummer</h1>
+      <h1 *ngIf="!startTime" class="text-white" style="font-size: 15vh;">Ticketnummer</h1>
     </c-col>
   </c-row>
   <c-row>
     <c-col class="d-flex justify-content-center">
       <div *ngIf="startTime" class="text-white" style="font-size: 45vh;">{{startTime | date : 'HH:mm'}}</div>
-      <div *ngIf="ticketNumber" class="text-white" style="font-size: 45vh;">{{ticketNumber}}</div>
+      <div *ngIf="!startTime" class="text-white" style="font-size: 45vh;">{{ticketNumber ?? '-'}}</div>
     </c-col>
   </c-row>
 </c-container>
