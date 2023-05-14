@@ -1,5 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {WebsocketService} from '../../../common/websocket/websocket.service';
+import {IMessage} from '@stomp/stompjs';
 
 @Component({
   selector: 'tafel-ticket-screen',
@@ -12,17 +13,21 @@ export class TicketScreenComponent implements OnInit {
   ) {
   }
 
-  startTime;
-  ticketNumber: number = 1;
+  startTime: Date;
+  ticketNumber: number;
 
   ngOnInit(): void {
     this.websocketService.connect();
     this.websocketService.watch('/topic/ticket-screen').subscribe(message => {
-      const screenMessage: TicketScreenMessage = JSON.parse(message.body);
-
-      this.startTime = screenMessage.startTime;
-      this.ticketNumber = screenMessage.ticketNumber;
+      this.processMessage(message);
     });
+  }
+
+  processMessage(message: IMessage) {
+    const screenMessage: TicketScreenMessage = JSON.parse(message.body);
+
+    this.startTime = screenMessage.startTime;
+    this.ticketNumber = screenMessage.ticketNumber;
   }
 
 }
