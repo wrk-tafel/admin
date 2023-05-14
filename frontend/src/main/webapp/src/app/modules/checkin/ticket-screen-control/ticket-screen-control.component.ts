@@ -18,6 +18,8 @@ export class TicketScreenControlComponent {
     startTime: new FormControl<string>(null)
   });
 
+  currentTicketNumber: number = 100;
+
   openScreenInNewTab() {
     window.open('/#/anmeldung/ticketmonitor', '_blank');
   }
@@ -28,7 +30,19 @@ export class TicketScreenControlComponent {
     startTime.setHours(Number(time.split(':')[0]));
     startTime.setMinutes(Number(time.split(':')[1]));
 
-    const message: TicketScreenMessage = {startTime: startTime};
+    this.sendToTicketScreen({startTime: startTime});
+  }
+
+  showCurrentTicket() {
+    this.sendToTicketScreen({ticketNumber: this.currentTicketNumber});
+  }
+
+  showNextTicket() {
+    this.currentTicketNumber = this.currentTicketNumber + 1;
+    this.sendToTicketScreen({ticketNumber: this.currentTicketNumber});
+  }
+
+  private sendToTicketScreen(message: TicketScreenMessage) {
     this.websocketService.publish({destination: '/topic/ticket-screen', body: JSON.stringify(message)});
   }
 
