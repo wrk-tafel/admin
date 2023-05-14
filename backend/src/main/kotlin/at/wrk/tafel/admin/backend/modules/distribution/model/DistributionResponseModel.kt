@@ -30,3 +30,8 @@ data class AssignCustomerRequest(
     val customerId: Long,
     val ticketNumber: Int
 )
+
+@ExcludeFromTestCoverage
+data class TicketNumberResponse(
+    val ticketNumber: Int?
+)

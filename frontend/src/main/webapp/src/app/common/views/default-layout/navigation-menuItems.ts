@@ -31,6 +31,12 @@ export const navigationMenuItems: ITafelNavData[] = [
     permissions: ['SCANNER']
   },
   {
+    name: 'Ticket-Monitor',
+    url: '/anmeldung/ticketmonitor-steuerung',
+    icon: 'fa fa-ticket-simple',
+    permissions: ['CHECKIN']
+  },
+  {
     name: 'Kundenverwaltung',
     title: true
   },

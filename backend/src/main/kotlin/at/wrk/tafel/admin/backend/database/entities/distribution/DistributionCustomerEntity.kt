@@ -21,4 +21,7 @@ class DistributionCustomerEntity : BaseChangeTrackingEntity() {
     @Column(name = "ticket_number")
     var ticketNumber: Int? = null
 
+    @Column(name = "processed")
+    var processed: Boolean? = null
+
 }

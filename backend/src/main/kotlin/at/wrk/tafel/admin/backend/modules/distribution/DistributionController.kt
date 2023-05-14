@@ -105,6 +105,24 @@ class DistributionController(
         return ResponseEntity.noContent().build()
     }
 
+    @GetMapping("/tickets/current")
+    fun getCurrentTicket(): TicketNumberResponse {
+        val distribution = service.getCurrentDistribution()
+            ?: throw TafelValidationException("Ausgabe nicht gestartet!")
+
+        val currentTicket = service.getCurrentTicket(distribution)
+        return TicketNumberResponse(ticketNumber = currentTicket)
+    }
+
+    @GetMapping("/tickets/next")
+    fun getNextTicket(): TicketNumberResponse {
+        val distribution = service.getCurrentDistribution()
+            ?: throw TafelValidationException("Ausgabe nicht gestartet!")
+
+        val nextTicket = service.closeCurrentTicketAndGetNext(distribution)
+        return TicketNumberResponse(ticketNumber = nextTicket)
+    }
+
     private fun mapState(state: DistributionState): DistributionStateItem {
         val name = state.name
         val stateLabel = mapStateToStateLabel(state)
