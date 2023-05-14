@@ -2,10 +2,8 @@ package at.wrk.tafel.admin.backend.modules.customer
 
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerAddPersonEntity
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity
-import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionCustomerEntity
 import at.wrk.tafel.admin.backend.database.entities.staticdata.CountryEntity
 import at.wrk.tafel.admin.backend.modules.base.Country
-import at.wrk.tafel.admin.backend.modules.distribution.testDistributionEntity
 import at.wrk.tafel.admin.backend.security.testUserEntity
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -136,20 +134,4 @@ val testCustomerEntity2 = CustomerEntity().apply {
     income = BigDecimal("2000")
     incomeDue = LocalDate.now()
     validUntil = LocalDate.now()
-}
-
-val testDistributionCustomerEntity1 = DistributionCustomerEntity().apply {
-    id = 1
-    createdAt = ZonedDateTime.now()
-    distribution = testDistributionEntity
-    customer = testCustomerEntity1
-    ticketNumber = 1
-}
-
-val testDistributionCustomerEntity2 = DistributionCustomerEntity().apply {
-    id = 2
-    createdAt = ZonedDateTime.now()
-    distribution = testDistributionEntity
-    customer = testCustomerEntity2
-    ticketNumber = 2
 }

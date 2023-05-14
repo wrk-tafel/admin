@@ -32,6 +32,6 @@ data class AssignCustomerRequest(
 )
 
 @ExcludeFromTestCoverage
-data class CurrentTicketResponse(
+data class TicketNumberResponse(
     val ticketNumber: Int?
 )

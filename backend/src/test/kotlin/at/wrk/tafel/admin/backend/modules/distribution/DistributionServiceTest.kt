@@ -3,6 +3,7 @@ package at.wrk.tafel.admin.backend.modules.distribution
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.common.model.DistributionState
 import at.wrk.tafel.admin.backend.common.pdf.PDFService
+import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionCustomerEntity
 import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerRepository
@@ -10,8 +11,7 @@ import at.wrk.tafel.admin.backend.database.repositories.distribution.Distributio
 import at.wrk.tafel.admin.backend.database.repositories.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.customer.testCustomerEntity1
-import at.wrk.tafel.admin.backend.modules.customer.testDistributionCustomerEntity1
-import at.wrk.tafel.admin.backend.modules.customer.testDistributionCustomerEntity2
+import at.wrk.tafel.admin.backend.modules.customer.testCustomerEntity2
 import at.wrk.tafel.admin.backend.modules.distribution.model.CustomerListItem
 import at.wrk.tafel.admin.backend.modules.distribution.model.CustomerListPdfModel
 import at.wrk.tafel.admin.backend.security.testUser
@@ -276,6 +276,125 @@ internal class DistributionServiceTest {
                 }
             )
         }
+    }
+
+    @Test
+    fun `get current ticket without registered customers`() {
+        val ticket = service.getCurrentTicket(testDistributionEntity)
+
+        assertThat(ticket).isNull()
+    }
+
+    @Test
+    fun `get current ticket with open tickets left`() {
+        val testDistributionEntity = DistributionEntity().apply {
+            id = 123
+            state = DistributionState.DISTRIBUTION
+            customers = listOf(
+                testDistributionCustomerEntity1,
+                testDistributionCustomerEntity2
+            )
+        }
+
+        val ticket = service.getCurrentTicket(testDistributionEntity)
+
+        assertThat(ticket).isEqualTo(1)
+    }
+
+    @Test
+    fun `get current ticket with all tickets resolved`() {
+        val testDistributionCustomerEntity1 = DistributionCustomerEntity().apply {
+            id = 1
+            createdAt = ZonedDateTime.now()
+            distribution = testDistributionEntity
+            customer = testCustomerEntity1
+            ticketNumber = 1
+            processed = true
+        }
+
+        val testDistributionEntity = DistributionEntity().apply {
+            id = 123
+            state = DistributionState.DISTRIBUTION
+            customers = listOf(
+                testDistributionCustomerEntity1
+            )
+        }
+
+        val ticket = service.getCurrentTicket(testDistributionEntity)
+
+        assertThat(ticket).isNull()
+    }
+
+    @Test
+    fun `close ticket and next without registered customers`() {
+        val ticket = service.closeCurrentTicketAndGetNext(testDistributionEntity)
+
+        assertThat(ticket).isNull()
+    }
+
+    @Test
+    fun `close ticket and next with open tickets left`() {
+        every { distributionCustomerRepository.save(any()) } returns mockk<DistributionCustomerEntity>()
+
+        val testDistributionCustomerEntity1 = DistributionCustomerEntity().apply {
+            id = 1
+            createdAt = ZonedDateTime.now()
+            distribution = testDistributionEntity
+            customer = testCustomerEntity1
+            ticketNumber = 1
+            processed = false
+        }
+
+        val testDistributionCustomerEntity2 = DistributionCustomerEntity().apply {
+            id = 2
+            createdAt = ZonedDateTime.now()
+            distribution = testDistributionEntity
+            customer = testCustomerEntity2
+            ticketNumber = 2
+            processed = false
+        }
+
+        val testDistributionEntity = DistributionEntity().apply {
+            id = 123
+            state = DistributionState.DISTRIBUTION
+            customers = listOf(
+                testDistributionCustomerEntity1,
+                testDistributionCustomerEntity2
+            )
+        }
+
+        val ticket = service.closeCurrentTicketAndGetNext(testDistributionEntity)
+
+        assertThat(ticket).isEqualTo(2)
+        verify {
+            distributionCustomerRepository.save(withArg {
+                assertThat(it.processed).isTrue()
+            })
+        }
+    }
+
+    @Test
+    fun `close ticket and next with all tickets resolved`() {
+        val testDistributionCustomerEntity1 = DistributionCustomerEntity().apply {
+            id = 1
+            createdAt = ZonedDateTime.now()
+            distribution = testDistributionEntity
+            customer = testCustomerEntity1
+            ticketNumber = 1
+            processed = true
+        }
+
+        val testDistributionEntity = DistributionEntity().apply {
+            id = 123
+            state = DistributionState.DISTRIBUTION
+            customers = listOf(
+                testDistributionCustomerEntity1
+            )
+        }
+
+        val ticket = service.closeCurrentTicketAndGetNext(testDistributionEntity)
+
+        assertThat(ticket).isNull()
     }
 
     @Test

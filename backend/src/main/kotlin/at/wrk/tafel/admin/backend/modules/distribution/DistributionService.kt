@@ -103,6 +103,28 @@ class DistributionService(
         return CustomerListPdfResult(filename = filename, bytes = bytes)
     }
 
+    fun getCurrentTicket(distribution: DistributionEntity): Int? {
+        return distribution.customers
+            .filter { it.processed == false }
+            .sortedBy { it.ticketNumber }
+            .map { it.ticketNumber }
+            .firstOrNull()
+    }
+
+    fun closeCurrentTicketAndGetNext(distribution: DistributionEntity): Int? {
+        val currentTicket = getCurrentTicket(distribution)
+
+        val currentTicketEntry = distribution.customers.firstOrNull { it.ticketNumber == currentTicket }
+        if (currentTicketEntry != null) {
+            currentTicketEntry.processed = true
+            distributionCustomerRepository.save(currentTicketEntry)
+
+            return getCurrentTicket(distribution)
+        }
+
+        return null
+    }
+
     private fun mapCustomers(customers: List<DistributionCustomerEntity>): List<CustomerListItem> {
         return customers.map { distributionCustomerEntity ->
             val customer = distributionCustomerEntity.customer

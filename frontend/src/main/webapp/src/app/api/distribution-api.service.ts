@@ -53,8 +53,8 @@ export class DistributionApiService {
       });
   }
 
-  getCurrentTicket(): Observable<CurrentTicketResponse> {
-    return this.http.get<CurrentTicketResponse>('/distributions/tickets/current');
+  getCurrentTicket(): Observable<TicketNumberResponse> {
+    return this.http.get<TicketNumberResponse>('/distributions/tickets/current');
   }
 
 }
@@ -84,6 +84,6 @@ export interface AssignCustomerRequest {
   ticketNumber: number;
 }
 
-export interface CurrentTicketResponse {
+export interface TicketNumberResponse {
   ticketNumber: number;
 }
