@@ -77,6 +77,7 @@ class DistributionService(
         entry.distribution = distribution
         entry.customer = customer
         entry.ticketNumber = ticketNumber
+        entry.processed = false
 
         try {
             distributionCustomerRepository.save(entry)

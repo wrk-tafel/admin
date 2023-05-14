@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.modules.distribution
 
 import at.wrk.tafel.admin.backend.common.model.DistributionState
 import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionEntity
+import at.wrk.tafel.admin.backend.database.repositories.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.distribution.model.*
 import org.springframework.core.io.InputStreamResource
@@ -20,7 +21,7 @@ import java.io.ByteArrayInputStream
 @MessageMapping("/distributions")
 class DistributionController(
     private val service: DistributionService,
-    private val simpMessagingTemplate: SimpMessagingTemplate
+    private val simpMessagingTemplate: SimpMessagingTemplate, private val distributionRepository: DistributionRepository
 ) {
 
     @PostMapping("/new")
@@ -103,6 +104,20 @@ class DistributionController(
                 .body(InputStreamResource(ByteArrayInputStream(pdfResult.bytes)))
         }
         return ResponseEntity.noContent().build()
+    }
+
+    @GetMapping("/tickets/current")
+    fun getCurrentTicket(): CurrentTicketResponse {
+        val distribution = distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc()
+            ?: throw TafelValidationException("Ausgabe nicht gestartet!")
+
+        val currentTicket = distribution.customers
+            .filter { it.processed == false }
+            .sortedBy { it.ticketNumber }
+            .map { it.ticketNumber }
+            .firstOrNull()
+
+        return CurrentTicketResponse(ticketNumber = currentTicket)
     }
 
     private fun mapState(state: DistributionState): DistributionStateItem {

@@ -2,6 +2,7 @@ import {Component} from '@angular/core';
 import {FormControl, FormGroup} from '@angular/forms';
 import {WebsocketService} from '../../../common/websocket/websocket.service';
 import {TicketScreenMessage} from '../ticket-screen/ticket-screen.component';
+import {CurrentTicketResponse, DistributionApiService} from "../../../api/distribution-api.service";
 
 @Component({
   selector: 'tafel-ticket-screen-control',
@@ -10,7 +11,8 @@ import {TicketScreenMessage} from '../ticket-screen/ticket-screen.component';
 export class TicketScreenControlComponent {
 
   constructor(
-    private websocketService: WebsocketService
+    private websocketService: WebsocketService,
+    private distributionApiService: DistributionApiService
   ) {
   }
 
@@ -34,7 +36,9 @@ export class TicketScreenControlComponent {
   }
 
   showCurrentTicket() {
-    this.sendToTicketScreen({ticketNumber: this.currentTicketNumber});
+    this.distributionApiService.getCurrentTicket().subscribe((response: CurrentTicketResponse) => {
+      this.sendToTicketScreen({ticketNumber: response.ticketNumber});
+    });
   }
 
   showNextTicket() {

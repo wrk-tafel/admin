@@ -53,6 +53,10 @@ export class DistributionApiService {
       });
   }
 
+  getCurrentTicket(): Observable<CurrentTicketResponse> {
+    return this.http.get<CurrentTicketResponse>('/distributions/tickets/current');
+  }
+
 }
 
 export interface DistributionItemResponse {
@@ -77,5 +81,9 @@ export interface DistributionStateItem {
 
 export interface AssignCustomerRequest {
   customerId: number;
+  ticketNumber: number;
+}
+
+export interface CurrentTicketResponse {
   ticketNumber: number;
 }

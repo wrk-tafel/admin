@@ -214,6 +214,7 @@ internal class DistributionServiceTest {
                 assertThat(it.customer).isEqualTo(testCustomerEntity1)
                 assertThat(it.distribution).isEqualTo(testDistributionEntity)
                 assertThat(it.ticketNumber).isEqualTo(ticketNumber)
+                assertThat(it.processed).isFalse()
             })
         }
     }
