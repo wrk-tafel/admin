@@ -311,7 +311,7 @@ internal class DistributionServiceTest {
 
         val ticket = service.getCurrentTicket(testDistributionEntity)
 
-        assertThat(ticket).isEqualTo(1)
+        assertThat(ticket).isEqualTo(50)
     }
 
     @Test

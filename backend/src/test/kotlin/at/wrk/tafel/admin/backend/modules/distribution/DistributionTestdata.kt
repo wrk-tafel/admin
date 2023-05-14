@@ -18,7 +18,7 @@ val testDistributionCustomerEntity1 = DistributionCustomerEntity().apply {
     createdAt = ZonedDateTime.now()
     distribution = testDistributionEntity
     customer = testCustomerEntity1
-    ticketNumber = 1
+    ticketNumber = 50
     processed = false
 }
 
@@ -27,7 +27,7 @@ val testDistributionCustomerEntity2 = DistributionCustomerEntity().apply {
     createdAt = ZonedDateTime.now()
     distribution = testDistributionEntity
     customer = testCustomerEntity2
-    ticketNumber = 2
+    ticketNumber = 51
     processed = false
 }
 
@@ -37,4 +37,5 @@ val testDistributionCustomerEntity3 = DistributionCustomerEntity().apply {
     distribution = testDistributionEntity
     customer = testCustomerEntity3
     ticketNumber = 52
+    processed = false
 }
