@@ -36,10 +36,22 @@ declare namespace Cypress {
     createDistribution();
 
     /**
+     * Custom command to add a customer to an existing distribution.
+     * @example cy.addCustomerToDistribution();
+     */
+    addCustomerToDistribution(request: AddCustomerToDistributionRequest);
+
+    /**
      * Custom command to finish a distribution (switches states from OPEN to CLOSED).
      * Assumes that the distribution is in state OPEN.
      * @example cy.finishDistribution();
      */
     finishDistribution();
   }
+
+  export interface AddCustomerToDistributionRequest {
+    customerId: number;
+    ticketNumber: number;
+  }
+
 }
