@@ -20,8 +20,6 @@ export class TicketScreenControlComponent {
     startTime: new FormControl<string>(null)
   });
 
-  currentTicketNumber: number = 100;
-
   openScreenInNewTab() {
     window.open('/#/anmeldung/ticketmonitor', '_blank');
   }
