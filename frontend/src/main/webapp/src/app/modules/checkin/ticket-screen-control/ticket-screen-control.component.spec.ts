@@ -4,7 +4,7 @@ import {TicketScreenControlComponent} from './ticket-screen-control.component';
 import {WebsocketService} from '../../../common/websocket/websocket.service';
 import {DistributionApiService, TicketNumberResponse} from '../../../api/distribution-api.service';
 import {TicketScreenMessage} from '../ticket-screen/ticket-screen.component';
-import {of} from "rxjs";
+import {of} from 'rxjs';
 
 describe('TicketScreenControlComponent', () => {
   let websocketService: jasmine.SpyObj<WebsocketService>;
