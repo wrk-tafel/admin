@@ -22,5 +22,5 @@ GET {{baseApiPath}}/distributions/customers/generate-pdf
 ### Get current ticket
 GET {{baseApiPath}}/distributions/tickets/current
 
-### Close current ticket and get next one
+### Close current ticket and get the next one
 GET {{baseApiPath}}/distributions/tickets/next
