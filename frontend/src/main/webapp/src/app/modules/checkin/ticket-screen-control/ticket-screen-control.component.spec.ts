@@ -55,6 +55,8 @@ describe('TicketScreenControlComponent', () => {
     const expectedStartTime = new Date();
     expectedStartTime.setHours(19);
     expectedStartTime.setMinutes(0);
+    expectedStartTime.setSeconds(0);
+    expectedStartTime.setMilliseconds(0);
     const expectedMessage: TicketScreenMessage = {startTime: expectedStartTime};
 
     expect(websocketService.publish).toHaveBeenCalledWith({

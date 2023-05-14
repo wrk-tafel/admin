@@ -29,6 +29,8 @@ export class TicketScreenControlComponent {
     const startTime = new Date();
     startTime.setHours(Number(time.split(':')[0]));
     startTime.setMinutes(Number(time.split(':')[1]));
+    startTime.setSeconds(0);
+    startTime.setMilliseconds(0);
 
     this.sendToTicketScreen({startTime: startTime});
   }
