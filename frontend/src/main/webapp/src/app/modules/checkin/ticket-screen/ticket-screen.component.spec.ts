@@ -2,8 +2,8 @@ import {TestBed, waitForAsync} from '@angular/core/testing';
 import {CommonModule} from '@angular/common';
 import {TicketScreenComponent, TicketScreenMessage} from './ticket-screen.component';
 import {WebsocketService} from '../../../common/websocket/websocket.service';
-import {EMPTY} from "rxjs";
-import {IMessage} from "@stomp/stompjs";
+import {EMPTY} from 'rxjs';
+import {IMessage} from '@stomp/stompjs';
 
 describe('TicketScreenComponent', () => {
   let websocketService: jasmine.SpyObj<WebsocketService>;
