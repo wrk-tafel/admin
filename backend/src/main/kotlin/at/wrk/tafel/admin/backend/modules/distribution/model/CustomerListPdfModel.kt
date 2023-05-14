@@ -1,6 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.distribution.model
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
+import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
 
 @ExcludeFromTestCoverage
@@ -26,15 +27,18 @@ data class CustomerListPdfResult(
 }
 
 @JacksonXmlRootElement(localName = "data")
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 @ExcludeFromTestCoverage
 data class CustomerListPdfModel(
     val title: String,
+    val halftimeTicketNumber: Int?,
     val customers: List<CustomerListItem>
 )
 
 @ExcludeFromTestCoverage
 data class CustomerListItem(
     val ticketNumber: Int,
+    val customerId: Long,
     val name: String,
     val countPersons: Int,
     val countInfants: Int

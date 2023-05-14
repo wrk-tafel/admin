@@ -26,14 +26,14 @@
         <passay.version>1.6.3</passay.version>
 
         <!-- Maven plugin version -->
-        <maven.surefire.plugin.version>3.0.0</maven.surefire.plugin.version>
+        <maven.surefire.plugin.version>3.1.0</maven.surefire.plugin.version>
         <maven.resources.plugin.version>3.3.1</maven.resources.plugin.version>
         <jacoco.maven.plugin.version>0.8.10</jacoco.maven.plugin.version>
 
         <!-- Test dependency versions -->
         <archunit.version>1.0.1</archunit.version>
         <mockk.version>1.13.5</mockk.version>
-        <testcontainers.version>1.18.0</testcontainers.version>
+        <testcontainers.version>1.18.1</testcontainers.version>
         <apache.pdfbox.version>2.0.28</apache.pdfbox.version>
         <image.comparison.version>4.4.0</image.comparison.version>
     </properties>

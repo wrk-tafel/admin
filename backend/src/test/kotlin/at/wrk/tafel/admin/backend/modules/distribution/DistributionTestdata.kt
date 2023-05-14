@@ -5,6 +5,7 @@ import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionCus
 import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.modules.customer.testCustomerEntity1
 import at.wrk.tafel.admin.backend.modules.customer.testCustomerEntity2
+import at.wrk.tafel.admin.backend.modules.customer.testCustomerEntity3
 import java.time.ZonedDateTime
 
 val testDistributionEntity = DistributionEntity().apply {
@@ -28,4 +29,12 @@ val testDistributionCustomerEntity2 = DistributionCustomerEntity().apply {
     customer = testCustomerEntity2
     ticketNumber = 2
     processed = false
+}
+
+val testDistributionCustomerEntity3 = DistributionCustomerEntity().apply {
+    id = 3
+    createdAt = ZonedDateTime.now()
+    distribution = testDistributionEntity
+    customer = testCustomerEntity3
+    ticketNumber = 52
 }

@@ -21,6 +21,11 @@
                         <fo:block font-size="20pt" font-weight="bold" space-after="0.5cm">
                             <xsl:value-of select="title"/>
                         </fo:block>
+                        <xsl:if test="halftimeTicketNumber">
+                            <fo:block font-size="14pt" font-weight="bold" space-after="0.5cm">
+                                <xsl:value-of select="'Halbzeit - nach Ticketnummer: '"/><xsl:value-of select="halftimeTicketNumber"/>
+                            </fo:block>
+                        </xsl:if>
                         <fo:block>
                             <xsl:call-template name="customerlist"/>
                         </fo:block>
@@ -34,13 +39,17 @@
         <fo:block start-indent="0pt" end-indent="0pt">
             <fo:table table-layout="fixed" width="100%" border-width="1pt" border-style="solid">
                 <fo:table-column column-width="10%"/>
+                <fo:table-column column-width="20%"/>
                 <fo:table-column column-width="40%"/>
-                <fo:table-column column-width="25%"/>
-                <fo:table-column column-width="25%"/>
+                <fo:table-column column-width="15%"/>
+                <fo:table-column column-width="15%"/>
                 <fo:table-header background-color="#D3D3D3">
                     <fo:table-row>
                         <fo:table-cell font-weight="bold" text-align="center" border-right="solid 1pt #000000" padding="5pt">
                             <fo:block>Ticket</fo:block>
+                        </fo:table-cell>
+                        <fo:table-cell font-weight="bold" text-align="center" border-right="solid 1pt #000000" padding="5pt">
+                            <fo:block>Kundennummer</fo:block>
                         </fo:table-cell>
                         <fo:table-cell font-weight="bold" text-align="center" border-right="solid 1pt #000000" padding="5pt">
                             <fo:block>Name (Hauptbezieher)</fo:block>
@@ -65,6 +74,11 @@
                                     </fo:table-cell>
                                     <fo:table-cell text-align="center" display-align="center" border-right="solid 1pt #000000" padding="5pt">
                                         <fo:block>
+                                            <xsl:value-of select="customerId"/>
+                                        </fo:block>
+                                    </fo:table-cell>
+                                    <fo:table-cell text-align="center" display-align="center" border-right="solid 1pt #000000" padding="5pt">
+                                        <fo:block>
                                             <xsl:value-of select="name"/>
                                         </fo:block>
                                     </fo:table-cell>
@@ -79,11 +93,18 @@
                                         </fo:block>
                                     </fo:table-cell>
                                 </fo:table-row>
+                                <xsl:if test="ticketNumber = ../../halftimeTicketNumber">
+                                    <fo:table-row border-width="1pt" border-style="solid">
+                                        <fo:table-cell number-columns-spanned="5" font-weight="bold" display-align="center" border-right="solid 1pt #000000" padding="5pt" font-size="14pt">
+                                            <fo:block>HALBZEIT</fo:block>
+                                        </fo:table-cell>
+                                    </fo:table-row>
+                                </xsl:if>
                             </xsl:for-each>
                         </xsl:when>
                     <xsl:otherwise>
                         <fo:table-row border-width="1pt" border-style="solid">
-                            <fo:table-cell number-columns-spanned="4" text-align="center" font-weight="bold" display-align="center" border-right="solid 1pt #000000" padding="5pt">
+                            <fo:table-cell number-columns-spanned="5" text-align="center" font-weight="bold" display-align="center" border-right="solid 1pt #000000" padding="5pt">
                                 <fo:block>Keine Kunden angemeldet</fo:block>
                             </fo:table-cell>
                         </fo:table-row>
