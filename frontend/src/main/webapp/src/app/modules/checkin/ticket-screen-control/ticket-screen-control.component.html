@@ -14,11 +14,13 @@
       </c-col>
     </c-row>
     <form [formGroup]="form">
-      <c-row class="align-items-end">
-        <c-col sm="4" class="d-flex flex-row align-items-end">
+      <c-row class="align-items-end text-end">
+        <c-col sm="3" class="d-flex flex-row align-items-end">
           <label class="form-label">Ausgabestart:</label>
           <input testid="starttime-input" type="time" formControlName="startTime" class="form-control ms-3" (keydown.enter)="showStartTime()">
-          <button testid="show-starttime-button" cButton color="primary" class="text-white ms-3" (click)="showStartTime()">Anzeigen</button>
+        </c-col>
+        <c-col sm="1">
+          <button testid="show-starttime-button" cButton color="primary" class="text-white mt-3 mt-sm-0" (click)="showStartTime()">Anzeigen</button>
         </c-col>
         <c-col sm="8" class="text-end">
           <button testid="show-currentticket-button" cButton color="primary" class="text-white" (click)="showCurrentTicket()">Aktuelles Ticket anzeigen</button>
