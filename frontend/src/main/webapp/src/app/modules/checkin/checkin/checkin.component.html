@@ -101,9 +101,8 @@
                 <c-row>
                   <c-col size="12" md="2" class="fw-bold">Ticket-Nummer: *</c-col>
                   <c-col size="12" md="2" class="align-middle">
-                    <input testid="ticketNumberText" type="number" name="ticketNumberText" [(ngModel)]="ticketNumber"
-                           class="form-control" required (keydown.enter)="assignCustomer()" tabindex="3"
-                           [cdkTrapFocusAutoCapture]="focusTicketNumberInput" [cdkTrapFocus]="focusTicketNumberInput">
+                    <input testid="ticketNumberInput" #ticketNumberInput type="number" name="ticketNumberInput" [(ngModel)]="ticketNumber"
+                           class="form-control" required (keydown.enter)="assignCustomer()" tabindex="3">
                   </c-col>
                 </c-row>
               </div>
@@ -113,11 +112,9 @@
       </c-card-body>
       <c-card-footer>
         <c-row>
-          <c-col size="1">
+          <c-col>
             <button [disabled]="customerState === 0 || !ticketForm.valid" testid="assignCustomerButton" class="btn btn-success text-white" (click)="assignCustomer()" tabindex="4">Annehmen</button>
-          </c-col>
-          <c-col size="1">
-            <button testid="resetButton" class="btn btn-primary text-white" (click)="reset()" [cdkTrapFocusAutoCapture]="focusResetButton" [cdkTrapFocus]="focusResetButton" tabindex="5">Zurücksetzen</button>
+            <button testid="resetButton" #resetButton class="btn btn-primary text-white ms-3" (click)="reset()" tabindex="5">Zurücksetzen</button>
           </c-col>
         </c-row>
       </c-card-footer>

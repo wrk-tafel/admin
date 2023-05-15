@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
+import {ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {CustomerApiService, CustomerData} from '../../../api/customer-api.service';
 import {WebsocketService} from '../../../common/websocket/websocket.service';
 import {Subscription} from 'rxjs';
@@ -24,6 +24,7 @@ export class CheckinComponent implements OnInit, OnDestroy {
     private globalStateService: GlobalStateService,
     private distributionApiService: DistributionApiService,
     private router: Router,
+    private changeDetectorRef: ChangeDetectorRef
   ) {
   }
 
@@ -41,8 +42,9 @@ export class CheckinComponent implements OnInit, OnDestroy {
 
   customerNotes: CustomerNoteItem[];
   ticketNumber: number;
-  focusTicketNumberInput: boolean;
-  focusResetButton = false;
+
+  @ViewChild('ticketNumberInput') ticketNumberInputRef: ElementRef;
+  @ViewChild('resetButton') resetButtonRef: ElementRef;
 
   ngOnInit(): void {
     if (this.globalStateService.getCurrentDistribution().value === null) {
@@ -91,7 +93,9 @@ export class CheckinComponent implements OnInit, OnDestroy {
       if (validUntil.isBefore(now)) {
         this.customerState = CustomerState.RED;
         this.customerStateText = 'UNGÜLTIG';
-        this.focusResetButton = true;
+
+        this.changeDetectorRef.detectChanges();
+        this.resetButtonRef.nativeElement.focus();
       } else {
         const warnLimit = now.add(this.VALID_UNTIL_WARNLIMIT_WEEKS, 'weeks');
         if (!validUntil.isAfter(warnLimit)) {
@@ -102,7 +106,8 @@ export class CheckinComponent implements OnInit, OnDestroy {
           this.customerStateText = 'GÜLTIG';
         }
 
-        this.focusTicketNumberInput = true;
+        this.changeDetectorRef.detectChanges();
+        this.ticketNumberInputRef.nativeElement.focus();
       }
     } else {
       this.customerState = undefined;
@@ -144,7 +149,6 @@ export class CheckinComponent implements OnInit, OnDestroy {
     this.customerNotes = [];
     this.customerId = undefined;
     this.ticketNumber = undefined;
-    this.focusResetButton = false;
   }
 
   formatAddress(): string {

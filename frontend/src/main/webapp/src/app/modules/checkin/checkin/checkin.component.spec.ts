@@ -13,6 +13,8 @@ import {Router} from '@angular/router';
 import {DistributionApiService, DistributionItem} from '../../../api/distribution-api.service';
 import {RouterTestingModule} from '@angular/router/testing';
 import {BadgeModule, CardModule, ColComponent, ModalModule, RowComponent} from '@coreui/angular';
+import {FormsModule} from '@angular/forms';
+import {ChangeDetectorRef, ElementRef} from '@angular/core';
 
 describe('CheckinComponent', () => {
   let customerApiService: jasmine.SpyObj<CustomerApiService>;
@@ -36,6 +38,7 @@ describe('CheckinComponent', () => {
       imports: [
         CommonModule,
         RouterTestingModule,
+        FormsModule,
         ModalModule,
         RowComponent,
         ColComponent,
@@ -220,6 +223,14 @@ describe('CheckinComponent', () => {
     const fixture = TestBed.createComponent(CheckinComponent);
     const component = fixture.componentInstance;
     component.ticketNumber = 123;
+    component.ticketNumberInputRef = new ElementRef({
+      focus() {
+      }
+    });
+    spyOn(component.ticketNumberInputRef.nativeElement, 'focus');
+
+    const changeDetectorRef = fixture.debugElement.injector.get(ChangeDetectorRef);
+    spyOn(changeDetectorRef.constructor.prototype, 'detectChanges');
 
     const mockCustomer = {
       id: 133,
@@ -254,12 +265,20 @@ describe('CheckinComponent', () => {
     expect(component.customerStateText).toBe('GÜLTIG');
 
     expect(component.ticketNumber).toBeUndefined();
-    expect(component.focusTicketNumberInput).toBeTruthy();
+    expect(component.ticketNumberInputRef.nativeElement.focus).toHaveBeenCalled();
   });
 
   it('searchForCustomerId found valid customer but expires soon', () => {
     const fixture = TestBed.createComponent(CheckinComponent);
     const component = fixture.componentInstance;
+    component.ticketNumberInputRef = new ElementRef({
+      focus() {
+      }
+    });
+    spyOn(component.ticketNumberInputRef.nativeElement, 'focus');
+
+    const changeDetectorRef = fixture.debugElement.injector.get(ChangeDetectorRef);
+    spyOn(changeDetectorRef.constructor.prototype, 'detectChanges');
 
     const mockCustomer = {
       id: 133,
@@ -292,13 +311,25 @@ describe('CheckinComponent', () => {
 
     expect(component.customerState).toBe(CustomerState.YELLOW);
     expect(component.customerStateText).toBe('GÜLTIG - läuft bald ab');
-
-    expect(component.focusTicketNumberInput).toBeTruthy();
+    expect(component.ticketNumberInputRef.nativeElement.focus).toHaveBeenCalled();
   });
 
   it('searchForCustomerId found invalid customer', () => {
     const fixture = TestBed.createComponent(CheckinComponent);
     const component = fixture.componentInstance;
+    component.ticketNumberInputRef = new ElementRef({
+      focus() {
+      }
+    });
+    spyOn(component.ticketNumberInputRef.nativeElement, 'focus');
+    component.resetButtonRef = new ElementRef({
+      focus() {
+      }
+    });
+    spyOn(component.resetButtonRef.nativeElement, 'focus');
+
+    const changeDetectorRef = fixture.debugElement.injector.get(ChangeDetectorRef);
+    spyOn(changeDetectorRef.constructor.prototype, 'detectChanges');
 
     const mockCustomer = {
       id: 133,
@@ -331,9 +362,8 @@ describe('CheckinComponent', () => {
 
     expect(component.customerState).toBe(CustomerState.RED);
     expect(component.customerStateText).toBe('UNGÜLTIG');
-
-    expect(component.focusTicketNumberInput).toBeFalsy();
-    expect(component.focusResetButton).toBeTruthy();
+    expect(component.ticketNumberInputRef.nativeElement.focus).not.toHaveBeenCalled();
+    expect(component.resetButtonRef.nativeElement.focus).toHaveBeenCalled();
   });
 
   it('searchForCustomerId customer not found', () => {
@@ -357,6 +387,14 @@ describe('CheckinComponent', () => {
   it('searchForCustomerId found notes', () => {
     const fixture = TestBed.createComponent(CheckinComponent);
     const component = fixture.componentInstance;
+    component.ticketNumberInputRef = new ElementRef({
+      focus() {
+      }
+    });
+    spyOn(component.ticketNumberInputRef.nativeElement, 'focus');
+
+    const changeDetectorRef = fixture.debugElement.injector.get(ChangeDetectorRef);
+    spyOn(changeDetectorRef.constructor.prototype, 'detectChanges');
 
     const mockCustomer = {
       id: 133,
@@ -402,6 +440,14 @@ describe('CheckinComponent', () => {
   it('reset customer', () => {
     const fixture = TestBed.createComponent(CheckinComponent);
     const component = fixture.componentInstance;
+    component.ticketNumberInputRef = new ElementRef({
+      focus() {
+      }
+    });
+    spyOn(component.ticketNumberInputRef.nativeElement, 'focus');
+
+    const changeDetectorRef = fixture.debugElement.injector.get(ChangeDetectorRef);
+    spyOn(changeDetectorRef.constructor.prototype, 'detectChanges');
 
     const mockCustomer = {
       id: 133,
@@ -423,7 +469,6 @@ describe('CheckinComponent', () => {
       validUntil: moment().add(3, 'months').startOf('day').utc().toDate()
     };
     component.processCustomer(mockCustomer);
-    component.focusResetButton = true;
 
     component.reset();
 
@@ -432,12 +477,19 @@ describe('CheckinComponent', () => {
     expect(component.customerStateText).toBeUndefined();
     expect(component.customerNotes).toBeDefined();
     expect(component.customerNotes.length).toBe(0);
-    expect(component.focusResetButton).toBeFalsy();
   });
 
   it('assign customer', () => {
     const fixture = TestBed.createComponent(CheckinComponent);
     const component = fixture.componentInstance;
+    component.ticketNumberInputRef = new ElementRef({
+      focus() {
+      }
+    });
+    spyOn(component.ticketNumberInputRef.nativeElement, 'focus');
+
+    const changeDetectorRef = fixture.debugElement.injector.get(ChangeDetectorRef);
+    spyOn(changeDetectorRef.constructor.prototype, 'detectChanges');
 
     const mockCustomer = {
       id: 133,
@@ -480,6 +532,14 @@ describe('CheckinComponent', () => {
   it('assign customer ignored without proper value', () => {
     const fixture = TestBed.createComponent(CheckinComponent);
     const component = fixture.componentInstance;
+    component.ticketNumberInputRef = new ElementRef({
+      focus() {
+      }
+    });
+    spyOn(component.ticketNumberInputRef.nativeElement, 'focus');
+
+    const changeDetectorRef = fixture.debugElement.injector.get(ChangeDetectorRef);
+    spyOn(changeDetectorRef.constructor.prototype, 'detectChanges');
 
     const mockCustomer = {
       id: 133,

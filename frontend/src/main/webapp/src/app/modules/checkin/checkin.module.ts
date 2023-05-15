@@ -5,7 +5,6 @@ import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {CommonModule} from '@angular/common';
 import {QRCodeReaderService} from './qrcode-reader/qrcode-reader.service';
 import {CheckinComponent} from './checkin/checkin.component';
-import {A11yModule} from '@angular/cdk/a11y';
 import {
   BadgeComponent,
   BgColorDirective,
@@ -31,7 +30,6 @@ import {TicketScreenFullscreenComponent} from './ticket-screen-fullscreen/ticket
     CommonModule,
     FormsModule,
     ModalModule,
-    A11yModule,
     FormSelectDirective,
     RowComponent,
     ColComponent,

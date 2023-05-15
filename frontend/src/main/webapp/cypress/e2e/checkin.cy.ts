@@ -17,7 +17,7 @@ describe('CheckIn', () => {
 
     cy.byTestId('customerDetailPanel').should('be.visible');
 
-    cy.byTestId('ticketNumberText').type('10');
+    cy.byTestId('ticketNumberInput').type('10');
     cy.byTestId('assignCustomerButton').click();
 
     cy.byTestId('customerIdText').should('not.have.text');
