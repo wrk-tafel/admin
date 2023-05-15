@@ -224,6 +224,7 @@ describe('CheckinComponent', () => {
     const component = fixture.componentInstance;
     component.ticketNumber = 123;
     component.ticketNumberInputRef = new ElementRef({
+      /* eslint-disable @typescript-eslint/no-empty-function */
       focus() {
       }
     });
@@ -272,6 +273,7 @@ describe('CheckinComponent', () => {
     const fixture = TestBed.createComponent(CheckinComponent);
     const component = fixture.componentInstance;
     component.ticketNumberInputRef = new ElementRef({
+      /* eslint-disable @typescript-eslint/no-empty-function */
       focus() {
       }
     });
@@ -318,11 +320,13 @@ describe('CheckinComponent', () => {
     const fixture = TestBed.createComponent(CheckinComponent);
     const component = fixture.componentInstance;
     component.ticketNumberInputRef = new ElementRef({
+      /* eslint-disable @typescript-eslint/no-empty-function */
       focus() {
       }
     });
     spyOn(component.ticketNumberInputRef.nativeElement, 'focus');
     component.resetButtonRef = new ElementRef({
+      /* eslint-disable @typescript-eslint/no-empty-function */
       focus() {
       }
     });
@@ -388,6 +392,7 @@ describe('CheckinComponent', () => {
     const fixture = TestBed.createComponent(CheckinComponent);
     const component = fixture.componentInstance;
     component.ticketNumberInputRef = new ElementRef({
+      /* eslint-disable @typescript-eslint/no-empty-function */
       focus() {
       }
     });
@@ -441,6 +446,7 @@ describe('CheckinComponent', () => {
     const fixture = TestBed.createComponent(CheckinComponent);
     const component = fixture.componentInstance;
     component.ticketNumberInputRef = new ElementRef({
+      /* eslint-disable @typescript-eslint/no-empty-function */
       focus() {
       }
     });
@@ -483,6 +489,7 @@ describe('CheckinComponent', () => {
     const fixture = TestBed.createComponent(CheckinComponent);
     const component = fixture.componentInstance;
     component.ticketNumberInputRef = new ElementRef({
+      /* eslint-disable @typescript-eslint/no-empty-function */
       focus() {
       }
     });
@@ -533,6 +540,7 @@ describe('CheckinComponent', () => {
     const fixture = TestBed.createComponent(CheckinComponent);
     const component = fixture.componentInstance;
     component.ticketNumberInputRef = new ElementRef({
+      /* eslint-disable @typescript-eslint/no-empty-function */
       focus() {
       }
     });
