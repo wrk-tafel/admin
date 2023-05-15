@@ -26,6 +26,7 @@ describe('TicketScreen', () => {
     cy.byTestId('open-screen-button').click();
 
     cy.get('@open').should('be.called');
+    cy.byTestId('title').should('have.text', 'Ticketnummer');
     cy.url().should('eq', Cypress.config().baseUrl + '#/anmeldung/ticketmonitor');
   });
 
