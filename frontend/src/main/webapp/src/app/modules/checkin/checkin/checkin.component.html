@@ -8,10 +8,10 @@
           </c-col>
         </c-row>
         <c-row>
-          <c-col size="3" class="align-self-center">
+          <c-col sm="3" class="align-self-center">
             <label class="form-label">Scanner</label>
           </c-col>
-          <c-col size="3" class="align-self-center">
+          <c-col sm="3" class="align-self-center">
             <select testid="scannerIdInput" class="form-control" cSelect [(ngModel)]="selectedScannerId" tabindex="0">
               <option [ngValue]="undefined">Nicht aktiv</option>
               <option *ngFor="let scannerId of scannerIds" [ngValue]="scannerId">Nr. {{scannerId}}</option>
@@ -27,15 +27,15 @@
         </c-row>
         <hr>
         <c-row>
-          <c-col size="3">
+          <c-col sm="3">
             <label class="form-label">Kundennummer</label>
           </c-col>
-          <c-col size="3" class="mb-3">
+          <c-col sm="3" class="mb-3">
             <input testid="customerIdText" type="number" name="customerIdInput" [(ngModel)]="customerId"
                    class="form-control" (keydown.enter)="searchForCustomerId()" tabindex="1"
                    cdkTrapFocusAutoCapture="focusCustomerIdInput" cdkTrapFocus="focusCustomerIdInput">
           </c-col>
-          <c-col size="3">
+          <c-col sm="3">
             <button testid="showCustomerButton" cButton color="primary" class="text-white"
                     tabindex="2" [disabled]="!customerId" (click)="searchForCustomerId()">Anzeigen
             </button>

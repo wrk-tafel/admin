@@ -14,8 +14,8 @@
       </c-col>
     </c-row>
     <form [formGroup]="form">
-      <c-row class="align-items-end text-end">
-        <c-col sm="3" class="d-flex flex-row align-items-end">
+      <c-row>
+        <c-col sm="3" class="d-flex flex-row">
           <label class="form-label">Ausgabestart:</label>
           <input testid="starttime-input" type="time" formControlName="startTime" class="form-control ms-3" (keydown.enter)="showStartTime()"
                  [ngClass]="{'is-invalid': startTime.invalid && (startTime.dirty || startTime.touched), 'is-valid': startTime.valid && (startTime.dirty || startTime.touched)}">
