@@ -1,0 +1,112 @@
+package at.wrk.tafel.admin.backend.database.migration.migrator
+
+import org.springframework.security.crypto.argon2.Argon2PasswordEncoder
+import java.sql.Connection
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import kotlin.random.Random
+
+class UserMigrator {
+
+    fun migrate(newConn: Connection, oldConn: Connection): List<String> {
+        val users = readUsers(oldConn)
+        return users
+            .mapIndexed { index, user -> mapToNewUser(user, index) }
+            .flatMap { generateInserts(it) }
+    }
+
+    private fun readUsers(
+        conn: Connection
+    ): List<User> {
+        val userList = mutableListOf<User>()
+
+        val selectUsersSql = "select dnr, aktiv, vorname, zuname, kennwort from mitarbeiter"
+        val stmt = conn.createStatement()
+        val result = stmt.executeQuery(selectUsersSql)
+
+        while (result.next()) {
+            val user = User(
+                personnelNumber = result.getLong("dnr"),
+                firstname = result.getString("vorname").trim().ifBlank { null },
+                lastname = result.getString("zuname").trim().ifBlank { null },
+                active = result.getString("aktiv").trim() == "J",
+                password = result.getString("kennwort").trim().ifBlank { null }
+            )
+            userList.add(user)
+        }
+
+        return userList
+
+        result.close()
+        stmt.close()
+    }
+
+    private fun mapToNewUser(user: User, index: Int): UserNew {
+        val argon2PasswordEncoder = Argon2PasswordEncoder(16, 32, 1, 16384, 2)
+        val defaultTime = LocalDateTime.of(1900, 1, 1, 0, 0, 0)
+
+        var password = user.password?.trim()?.ifBlank { null }
+        if (password == null) {
+            val charPool: List<Char> = ('a'..'z') + ('A'..'Z') + ('0'..'9')
+            password = (1..10)
+                .map { Random.nextInt(0, charPool.size).let { charPool[it] } }
+                .joinToString("")
+
+            println("Generated password for ${user.personnelNumber} ${user.firstname} ${user.lastname} - $password")
+        }
+
+        return UserNew(
+            id = 600 + index.toLong(),
+            createdAt = defaultTime,
+            updatedAt = defaultTime,
+            username = user.personnelNumber.toString(),
+            password = "{argon2}" + argon2PasswordEncoder.encode(password),
+            enabled = user.active,
+            personnelNumber = user.personnelNumber,
+            firstname = user.firstname,
+            lastname = user.lastname,
+            passwordChangeRequired = true
+        )
+    }
+
+    private fun generateInserts(user: UserNew): List<String> {
+        val userSql =
+            """INSERT INTO users (id, created_at, updated_at, username, password, enabled, personnel_number, firstname, lastname, passwordchange_required)
+                VALUES (${user.id}, '${user.createdAt.format(DateTimeFormatter.ISO_DATE)}', '${
+                user.updatedAt.format(
+                    DateTimeFormatter.ISO_DATE
+                )
+            }', '${user.username}', '${user.password}', ${user.enabled}, '${user.personnelNumber}', '${user.firstname}', '${user.lastname}', ${user.passwordChangeRequired});
+            """.trimIndent()
+        val authoritiesSql = """INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
+                VALUES (${5000 + user.id}, '${user.createdAt.format(DateTimeFormatter.ISO_DATE)}', '${
+            user.updatedAt.format(
+                DateTimeFormatter.ISO_DATE
+            )
+        }', ${user.id}, 'DASHBOARD');""".trimIndent()
+
+        return listOf(userSql, authoritiesSql)
+    }
+
+}
+
+data class User(
+    val personnelNumber: Long,
+    val firstname: String?,
+    val lastname: String?,
+    val active: Boolean,
+    val password: String?
+)
+
+data class UserNew(
+    val id: Long,
+    val createdAt: LocalDateTime,
+    val updatedAt: LocalDateTime,
+    val username: String,
+    val password: String?,
+    val enabled: Boolean,
+    val personnelNumber: Long,
+    val firstname: String?,
+    val lastname: String?,
+    val passwordChangeRequired: Boolean
+)
