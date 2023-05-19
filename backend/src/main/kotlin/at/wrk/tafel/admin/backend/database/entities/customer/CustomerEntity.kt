@@ -5,8 +5,10 @@ import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.entities.base.BaseChangeTrackingEntity
 import at.wrk.tafel.admin.backend.database.entities.staticdata.CountryEntity
 import jakarta.persistence.*
+import org.hibernate.annotations.CreationTimestamp
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.ZonedDateTime
 
 @Entity(name = "Customer")
 @Table(name = "customers")
@@ -69,6 +71,9 @@ class CustomerEntity : BaseChangeTrackingEntity() {
 
     @Column(name = "locked")
     var locked: Boolean? = null
+
+    @Column(name = "locked_at")
+    var lockedAt: ZonedDateTime? = null
 
     @ManyToOne
     @JoinColumn(name = "locked_by")

@@ -298,6 +298,7 @@ class CustomerServiceTest {
         verify(exactly = 1) {
             customerRepository.save(withArg {
                 assertThat(it.locked).isTrue()
+                assertThat(it.lockedAt).isNotNull()
                 assertThat(it.lockReason).isEqualTo(updatedCustomer.lockReason)
                 assertThat(it.lockedBy).isEqualTo(testUserEntity)
             })
@@ -328,6 +329,7 @@ class CustomerServiceTest {
             incomeDue = LocalDate.now()
             validUntil = LocalDate.now()
             locked = true
+            lockedAt = ZonedDateTime.now()
             lockedBy = testUserEntity
             lockReason = "locked due to lorem ipsum"
 
@@ -366,6 +368,7 @@ class CustomerServiceTest {
         verify(exactly = 1) {
             customerRepository.save(withArg {
                 assertThat(it.locked).isFalse()
+                assertThat(it.lockedAt).isNull()
                 assertThat(it.lockReason).isNull()
                 assertThat(it.lockedBy).isNull()
             })

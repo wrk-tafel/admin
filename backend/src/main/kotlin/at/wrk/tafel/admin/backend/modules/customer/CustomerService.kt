@@ -17,6 +17,7 @@ import at.wrk.tafel.admin.backend.modules.customer.masterdata.CustomerPdfService
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.ZonedDateTime
 
 @Service
 class CustomerService(
@@ -146,10 +147,12 @@ class CustomerService(
 
         if (customer.locked == true) {
             customerEntity.locked = true
+            customerEntity.lockedAt = ZonedDateTime.now()
             customerEntity.lockedBy = userEntity
             customerEntity.lockReason = customer.lockReason
         } else {
             customerEntity.locked = false
+            customerEntity.lockedAt = null
             customerEntity.lockedBy = null
             customerEntity.lockReason = null
         }
@@ -203,6 +206,7 @@ class CustomerService(
         incomeDue = customerEntity.incomeDue,
         validUntil = customerEntity.validUntil,
         locked = customerEntity.locked,
+        lockedAt = customerEntity.lockedAt,
         lockedBy = customerEntity.lockedBy?.let { "${it.personnelNumber} ${it.firstname} ${it.lastname}" },
         lockReason = customerEntity.lockReason,
         additionalPersons = customerEntity.additionalPersons.map {

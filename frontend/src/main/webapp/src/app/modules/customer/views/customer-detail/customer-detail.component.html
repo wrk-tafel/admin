@@ -1,3 +1,8 @@
+<div testid="lock-info-banner" *ngIf="customerData.locked" class="alert alert-danger">
+  <div><strong>Kunde ist gesperrt!</strong></div>
+  <div *ngIf="customerData.lockedBy">Gesperrt am {{customerData.lockedAt | date : 'dd.MM.yyyy HH:mm' }} von {{customerData.lockedBy}}</div>
+  <div><strong>Sperrgrund:</strong> {{customerData.lockReason}}</div>
+</div>
 <div class="d-flex flex-column-reverse flex-lg-column">
   <div class="d-flex flex-column flex-lg-row mt-3 mt-lg-0 mb-4 mb-lg-0">
     <c-dropdown variant="dropdown">
