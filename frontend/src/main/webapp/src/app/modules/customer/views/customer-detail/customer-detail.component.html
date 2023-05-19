@@ -38,8 +38,12 @@
         <li>
           <button cDropdownItem testid="invalidateCustomerButton" (click)="invalidateCustomer()" [disabled]="!customerData">Kunden deaktivieren</button>
         </li>
+        <li><hr cDropdownDivider></li>
         <li>
           <button cDropdownItem testid="lockCustomerButton" (click)="showLockCustomerModal = true" [disabled]="!customerData">Kunden sperren</button>
+        </li>
+        <li>
+          <button cDropdownItem testid="lockCustomerButton" (click)="unlockCustomer()" [disabled]="!customerData">Kunden entsperren</button>
         </li>
         <li><hr cDropdownDivider></li>
         <li>

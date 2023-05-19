@@ -150,6 +150,17 @@ export class CustomerDetailComponent implements OnInit {
     });
   }
 
+  unlockCustomer() {
+    const updatedCustomerData: CustomerData = {
+      ...this.customerData,
+      locked: false
+    };
+
+    this.customerApiService.updateCustomer(updatedCustomerData).subscribe(customerData => {
+      this.customerData = customerData;
+    });
+  }
+
   addNewNote() {
     const sanitizedText = this.newNoteText.replace(/\n/g, '<br/>');
     this.customerNoteApiService.createNewNote(this.customerData.id, sanitizedText).subscribe(newNoteItem => {
