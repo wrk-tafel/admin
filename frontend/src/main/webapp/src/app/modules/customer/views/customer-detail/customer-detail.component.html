@@ -5,10 +5,10 @@
         Daten ausdrucken
       </button>
       <ul cDropdownMenu>
-        <li><a cDropdownItem style="cursor: pointer;" testid="printCombinedButton" (click)="printCombined()">Stammdaten + Ausweis</a></li>
+        <li><button cDropdownItem style="cursor: pointer;" testid="printCombinedButton" (click)="printCombined()">Stammdaten + Ausweis</button></li>
         <li><hr cDropdownDivider></li>
-        <li><a cDropdownItem style="cursor: pointer;" testid="printMasterdataButton" (click)="printMasterdata()">Nur Stammdaten</a></li>
-        <li><a cDropdownItem style="cursor: pointer;" testid="printIdCardButton" (click)="printIdCard()">Nur Ausweis</a></li>
+        <li><button cDropdownItem style="cursor: pointer;" testid="printMasterdataButton" (click)="printMasterdata()">Nur Stammdaten</button></li>
+        <li><button cDropdownItem style="cursor: pointer;" testid="printIdCardButton" (click)="printIdCard()">Nur Ausweis</button></li>
       </ul>
     </c-dropdown>
     <c-dropdown
@@ -18,11 +18,11 @@
         Bezug verlängern
       </button>
       <ul cDropdownMenu>
-        <li><a cDropdownItem style="cursor: pointer;" testid="prolongOneMonthButton" (click)="prolongCustomer(1)">1 Monat</a></li>
-        <li><a cDropdownItem style="cursor: pointer;" testid="prolongTwoMonthsButton" (click)="prolongCustomer(2)">2 Monate</a></li>
-        <li><a cDropdownItem style="cursor: pointer;" testid="prolongThreeMonthsButton" (click)="prolongCustomer(3)">3 Monate</a></li>
-        <li><a cDropdownItem style="cursor: pointer;" testid="prolongSixMonthsButton" (click)="prolongCustomer(6)">6 Monate</a></li>
-        <li><a cDropdownItem style="cursor: pointer;" testid="prolongTwelveMonthsButton" (click)="prolongCustomer(12)">12 Monate</a></li>
+        <li><button cDropdownItem style="cursor: pointer;" testid="prolongOneMonthButton" (click)="prolongCustomer(1)">1 Monat</button></li>
+        <li><button cDropdownItem style="cursor: pointer;" testid="prolongTwoMonthsButton" (click)="prolongCustomer(2)">2 Monate</button></li>
+        <li><button cDropdownItem style="cursor: pointer;" testid="prolongThreeMonthsButton" (click)="prolongCustomer(3)">3 Monate</button></li>
+        <li><button cDropdownItem style="cursor: pointer;" testid="prolongSixMonthsButton" (click)="prolongCustomer(6)">6 Monate</button></li>
+        <li><button cDropdownItem style="cursor: pointer;" testid="prolongTwelveMonthsButton" (click)="prolongCustomer(12)">12 Monate</button></li>
       </ul>
     </c-dropdown>
     <c-dropdown
