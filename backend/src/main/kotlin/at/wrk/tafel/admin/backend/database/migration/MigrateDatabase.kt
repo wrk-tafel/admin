@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.database.migration
 
+import at.wrk.tafel.admin.backend.database.migration.migrator.CustomerMigrator
 import at.wrk.tafel.admin.backend.database.migration.migrator.UserMigrator
 import java.sql.Connection
 import java.sql.DriverManager
@@ -11,12 +12,15 @@ fun main() {
     val newConn = DriverManager.getConnection("jdbc:postgresql://localhost:5432/tafeladmin", "tafeladmin", "admin")
     val oldConn = DriverManager.getConnection("jdbc:mysql://localhost:3306/tafel", "root", "admin")
 
-    val sqlStatements = UserMigrator().migrate(newConn, oldConn)
+    val userStatements = UserMigrator().migrate(oldConn)
+    val customerStatements = CustomerMigrator().migrate(oldConn)
 
-    sqlStatements.forEach { println(it) }
+    val statements = userStatements + customerStatements
+    statements.forEach { println(it) }
+
     val executeToDb = true
     if (executeToDb) {
-        executeStatements(newConn, sqlStatements)
+        executeStatements(newConn, statements)
     }
 
     oldConn.close()

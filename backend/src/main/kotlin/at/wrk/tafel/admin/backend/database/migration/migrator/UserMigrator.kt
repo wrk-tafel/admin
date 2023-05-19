@@ -8,8 +8,8 @@ import kotlin.random.Random
 
 class UserMigrator {
 
-    fun migrate(newConn: Connection, oldConn: Connection): List<String> {
-        val users = readUsers(oldConn)
+    fun migrate(conn: Connection): List<String> {
+        val users = readUsers(conn)
         return users
             .mapIndexed { index, user -> mapToNewUser(user, index) }
             .flatMap { generateInserts(it) }
