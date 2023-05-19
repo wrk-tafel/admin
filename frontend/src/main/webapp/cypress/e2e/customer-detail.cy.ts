@@ -51,6 +51,7 @@ describe('Customer Detail', () => {
   it('delete customer', () => {
     cy.visit('/#/kunden/detail/300');
 
+    cy.byTestId('editCustomerToggleButton').click();
     cy.byTestId('deleteCustomerButton').click();
 
     cy.byTestId('deletecustomer-modal').should('be.visible');
@@ -60,6 +61,7 @@ describe('Customer Detail', () => {
 
     cy.byTestId('deletecustomer-modal').should('not.be.visible');
 
+    cy.byTestId('editCustomerToggleButton').click();
     cy.byTestId('deleteCustomerButton').click();
     cy.byTestId('deletecustomer-modal').within(() => {
       cy.byTestId('okButton').click();
@@ -76,6 +78,7 @@ describe('Customer Detail', () => {
       validDateString = $value.text();
       const expectedValidDate = moment(validDateString, 'DD.MM.YYYY').add(3, 'months').endOf('day').format('DD.MM.YYYY');
 
+      cy.byTestId('editCustomerToggleButton').click();
       cy.byTestId('prolongButton').click();
       cy.byTestId('prolongThreeMonthsButton').click();
 
@@ -86,6 +89,7 @@ describe('Customer Detail', () => {
   it('invalidate customer', () => {
     cy.visit('/#/kunden/detail/101');
 
+    cy.byTestId('editCustomerToggleButton').click();
     cy.byTestId('invalidateCustomerButton').click();
 
     cy.byTestId('validUntilText').should('have.text', moment().subtract(1, 'day').endOf('day').format('DD.MM.YYYY'));

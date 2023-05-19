@@ -36,7 +36,7 @@
       <button cButton color="danger" class="text-white" testid="editCustomerButton" (click)="editCustomer()"
               [disabled]="!customerData || customerData.locked">Kunden bearbeiten
       </button>
-      <button color="danger" class="text-white" cButton cDropdownToggle split>
+      <button testid="editCustomerToggleButton" color="danger" class="text-white" cButton cDropdownToggle split>
         <span class="visually-hidden">Toggle Dropdown</span>
       </button>
       <ul cDropdownMenu>
