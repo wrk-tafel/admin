@@ -67,6 +67,16 @@ class CustomerEntity : BaseChangeTrackingEntity() {
     @Column(name = "valid_until")
     var validUntil: LocalDate? = null
 
+    @Column(name = "locked")
+    var locked: Boolean? = null
+
+    @ManyToOne
+    @JoinColumn(name = "locked_by")
+    var lockedBy: UserEntity? = null
+
+    @Column(name = "lock_reason")
+    var lockReason: String? = null
+
     @OneToMany(mappedBy = "customer", cascade = [CascadeType.ALL], orphanRemoval = true)
     var additionalPersons: MutableList<CustomerAddPersonEntity> = mutableListOf()
 

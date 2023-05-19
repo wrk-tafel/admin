@@ -191,6 +191,9 @@ class CustomerService(
         income = customerEntity.income,
         incomeDue = customerEntity.incomeDue,
         validUntil = customerEntity.validUntil,
+        locked = customerEntity.locked,
+        lockedBy = customerEntity.lockedBy?.let { "${it.personnelNumber} ${it.firstname} ${it.lastname}" },
+        lockReason = customerEntity.lockReason,
         additionalPersons = customerEntity.additionalPersons.map {
             CustomerAdditionalPerson(
                 id = it.id!!,

@@ -26,6 +26,9 @@ data class Customer(
     val income: BigDecimal? = null,
     val incomeDue: LocalDate? = null,
     val validUntil: LocalDate? = null,
+    val locked: Boolean? = null,
+    val lockedBy: String? = null,
+    val lockReason: String? = null,
     val additionalPersons: List<CustomerAdditionalPerson> = emptyList()
 )
 
