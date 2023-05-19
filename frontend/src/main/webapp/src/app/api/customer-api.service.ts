@@ -84,6 +84,10 @@ export interface CustomerData {
   income?: number;
   incomeDue?: Date;
   validUntil?: Date;
+  locked?: boolean;
+  lockedAt?: Date;
+  lockedBy?: string;
+  lockReason?: string;
   additionalPersons?: CustomerAddPersonData[];
 }
 

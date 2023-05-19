@@ -90,7 +90,13 @@ export class CheckinComponent implements OnInit, OnDestroy {
       const validUntil = moment(customer.validUntil).startOf('day');
       const now = moment().startOf('day');
 
-      if (validUntil.isBefore(now)) {
+      if (customer.locked) {
+        this.customerState = CustomerState.RED;
+        this.customerStateText = 'GESPERRT';
+
+        this.changeDetectorRef.detectChanges();
+        this.resetButtonRef.nativeElement.focus();
+      } else if (validUntil.isBefore(now)) {
         this.customerState = CustomerState.RED;
         this.customerStateText = 'UNGÜLTIG';
 

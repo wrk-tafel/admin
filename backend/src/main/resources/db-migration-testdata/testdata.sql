@@ -120,8 +120,13 @@ values (103, NOW(), NOW(), 103, 100, 'John Doe', 'EXPIRES SOON', '1980-01-01', 1
 INSERT INTO customers (id, created_at, updated_at, customer_id, user_id, firstname, lastname, birth_date, country_id,
                        address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
                        address_city, telephone_number, email, employer, income, income_due, valid_until)
-values (104, NOW(), NOW(), 104, 100, 'Jane Doe', 'INVALID', '1980-01-01', 1, 'Erdberg', 1, null, null, '1030', 'Wien',
+values (104, NOW(), NOW(), 104, 100, 'Jane Doe', 'EXPIRED', '1980-01-01', 1, 'Erdberg', 1, null, null, '1030', 'Wien',
         null, null, 'Stadt Wien', 123.00, '2000-12-31', '2000-12-31');
+INSERT INTO customers (id, created_at, updated_at, customer_id, user_id, firstname, lastname, birth_date, country_id,
+                       address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
+                       address_city, telephone_number, email, employer, income, income_due, valid_until, locked, locked_at, locked_by, lock_reason)
+values (105, NOW(), NOW(), 105, 100, 'Jane Doe', 'LOCKED', '1980-01-01', 1, 'Erdberg', 1, null, null, '1030', 'Wien',
+        null, null, 'Stadt Wien', 123.00, '2999-12-31', '2999-12-31', true, NOW(), 100, 'Lock-Reason: Lorem ipsum dolor sit amet');
 
 INSERT INTO customers (id, created_at, updated_at, customer_id, user_id, firstname, lastname, birth_date, country_id,
                        address_street, address_houseNumber, address_stairway, address_door, address_postalCode,

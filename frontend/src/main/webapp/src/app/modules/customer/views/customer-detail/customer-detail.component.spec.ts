@@ -420,6 +420,50 @@ describe('CustomerDetailComponent', () => {
     expect(component.customerData).toEqual(expectedCustomerData);
   });
 
+  it('lock customer', () => {
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    const component = fixture.componentInstance;
+    component.customerData = mockCustomer;
+    const lockReasonText = 'locked due to lorem ipsum';
+    component.lockReasonText = lockReasonText;
+    fixture.detectChanges();
+
+    const expectedCustomerData = {
+      ...mockCustomer,
+      locked: true,
+      lockReason: lockReasonText
+    };
+    customerApiService.updateCustomer.and.returnValue(of(expectedCustomerData));
+
+    component.lockCustomer();
+
+    expect(customerApiService.updateCustomer).toHaveBeenCalledWith(expectedCustomerData);
+    expect(component.customerData).toEqual(expectedCustomerData);
+  });
+
+  it('unlock customer', () => {
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    const component = fixture.componentInstance;
+    component.customerData = {
+      ...mockCustomer,
+      locked: true,
+      lockedBy: 'whoever',
+      lockReason: 'lock-text'
+    };
+    fixture.detectChanges();
+
+    const expectedCustomerData = {
+      ...mockCustomer,
+      locked: false
+    };
+    customerApiService.updateCustomer.and.returnValue(of(expectedCustomerData));
+
+    component.unlockCustomer();
+
+    expect(customerApiService.updateCustomer).toHaveBeenCalledWith(expectedCustomerData);
+    expect(component.customerData).toEqual(expectedCustomerData);
+  });
+
   it('add new note to customer', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;

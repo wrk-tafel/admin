@@ -180,6 +180,7 @@ class CustomerServiceTest {
             income = BigDecimal("1000")
             incomeDue = LocalDate.now()
             validUntil = LocalDate.now()
+            locked = false
 
             val addPerson1 = CustomerAddPersonEntity()
             addPerson1.id = 2
@@ -229,6 +230,141 @@ class CustomerServiceTest {
             customerRepository.save(withArg {
                 // issuer shouldn't be updated
                 assertThat(it.issuer?.personnelNumber).isEqualTo(testCustomer.issuer?.personnelNumber)
+            })
+        }
+    }
+
+    @Test
+    fun `update customer and lock`() {
+        val testCustomerEntity1 = CustomerEntity().apply {
+            id = 1
+            issuer = testUserEntity
+            createdAt = ZonedDateTime.now()
+            customerId = 100
+            lastname = "Mustermann"
+            firstname = "Max"
+            birthDate = LocalDate.now().minusYears(30)
+            country = testCountry
+            addressStreet = "Test-Straße"
+            addressHouseNumber = "100"
+            addressStairway = "1"
+            addressPostalCode = 1010
+            addressDoor = "21"
+            addressCity = "Wien"
+            telephoneNumber = "0043660123123"
+            email = "test@mail.com"
+            employer = "Employer 123"
+            income = BigDecimal("1000")
+            incomeDue = LocalDate.now()
+            validUntil = LocalDate.now()
+
+            val addPerson1 = CustomerAddPersonEntity()
+            addPerson1.id = 2
+            addPerson1.lastname = "Add pers 1"
+            addPerson1.firstname = "Add pers 1"
+            addPerson1.birthDate = LocalDate.now().minusYears(5)
+            addPerson1.income = BigDecimal("100")
+            addPerson1.incomeDue = LocalDate.now()
+            addPerson1.country = testCountry
+
+            val addPerson2 = CustomerAddPersonEntity()
+            addPerson2.id = 3
+            addPerson2.lastname = "Add pers 2"
+            addPerson2.firstname = "Add pers 2"
+            addPerson2.birthDate = LocalDate.now().minusYears(2)
+            addPerson2.country = testCountry
+
+            additionalPersons = mutableListOf()
+        }
+
+        every { customerRepository.existsByCustomerId(any()) } returns true
+        every { customerRepository.save(any()) } returns testCustomerEntity1
+
+        val updatedCustomer = testCustomer.copy(
+            locked = true,
+            lockReason = "locked due to lorem ipsum",
+            additionalPersons = emptyList()
+        )
+        every { customerRepository.getReferenceByCustomerId(testCustomer.id!!) } returns testCustomerEntity1
+
+        service.updateCustomer(testCustomer.id!!, updatedCustomer)
+
+        verify(exactly = 1) {
+            customerRepository.save(withArg {
+                assertThat(it.locked).isTrue()
+                assertThat(it.lockedAt).isNotNull()
+                assertThat(it.lockReason).isEqualTo(updatedCustomer.lockReason)
+                assertThat(it.lockedBy).isEqualTo(testUserEntity)
+            })
+        }
+    }
+
+    @Test
+    fun `update customer and unlock`() {
+        val testCustomerEntity1 = CustomerEntity().apply {
+            id = 1
+            issuer = testUserEntity
+            createdAt = ZonedDateTime.now()
+            customerId = 100
+            lastname = "Mustermann"
+            firstname = "Max"
+            birthDate = LocalDate.now().minusYears(30)
+            country = testCountry
+            addressStreet = "Test-Straße"
+            addressHouseNumber = "100"
+            addressStairway = "1"
+            addressPostalCode = 1010
+            addressDoor = "21"
+            addressCity = "Wien"
+            telephoneNumber = "0043660123123"
+            email = "test@mail.com"
+            employer = "Employer 123"
+            income = BigDecimal("1000")
+            incomeDue = LocalDate.now()
+            validUntil = LocalDate.now()
+            locked = true
+            lockedAt = ZonedDateTime.now()
+            lockedBy = testUserEntity
+            lockReason = "locked due to lorem ipsum"
+
+            val addPerson1 = CustomerAddPersonEntity()
+            addPerson1.id = 2
+            addPerson1.lastname = "Add pers 1"
+            addPerson1.firstname = "Add pers 1"
+            addPerson1.birthDate = LocalDate.now().minusYears(5)
+            addPerson1.income = BigDecimal("100")
+            addPerson1.incomeDue = LocalDate.now()
+            addPerson1.country = testCountry
+
+            val addPerson2 = CustomerAddPersonEntity()
+            addPerson2.id = 3
+            addPerson2.lastname = "Add pers 2"
+            addPerson2.firstname = "Add pers 2"
+            addPerson2.birthDate = LocalDate.now().minusYears(2)
+            addPerson2.country = testCountry
+
+            additionalPersons = mutableListOf()
+        }
+
+        every { customerRepository.existsByCustomerId(any()) } returns true
+        every { customerRepository.save(any()) } returns testCustomerEntity1
+
+        val updatedCustomer = testCustomer.copy(
+            locked = false,
+            additionalPersons = emptyList()
+        )
+        every { customerRepository.getReferenceByCustomerId(testCustomer.id!!) } returns testCustomerEntity1
+
+        val result = service.updateCustomer(testCustomer.id!!, updatedCustomer)
+
+        assertThat(result).isEqualTo(updatedCustomer)
+
+        verify(exactly = 1) {
+            customerRepository.save(withArg {
+                assertThat(it.locked).isFalse()
+                assertThat(it.lockedAt).isNull()
+                assertThat(it.lockReason).isNull()
+                assertThat(it.lockedBy).isNull()
             })
         }
     }

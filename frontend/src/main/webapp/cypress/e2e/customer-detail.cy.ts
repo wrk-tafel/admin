@@ -51,6 +51,7 @@ describe('Customer Detail', () => {
   it('delete customer', () => {
     cy.visit('/#/kunden/detail/300');
 
+    cy.byTestId('editCustomerToggleButton').click();
     cy.byTestId('deleteCustomerButton').click();
 
     cy.byTestId('deletecustomer-modal').should('be.visible');
@@ -60,6 +61,7 @@ describe('Customer Detail', () => {
 
     cy.byTestId('deletecustomer-modal').should('not.be.visible');
 
+    cy.byTestId('editCustomerToggleButton').click();
     cy.byTestId('deleteCustomerButton').click();
     cy.byTestId('deletecustomer-modal').within(() => {
       cy.byTestId('okButton').click();
@@ -76,6 +78,7 @@ describe('Customer Detail', () => {
       validDateString = $value.text();
       const expectedValidDate = moment(validDateString, 'DD.MM.YYYY').add(3, 'months').endOf('day').format('DD.MM.YYYY');
 
+      cy.byTestId('editCustomerToggleButton').click();
       cy.byTestId('prolongButton').click();
       cy.byTestId('prolongThreeMonthsButton').click();
 
@@ -86,9 +89,30 @@ describe('Customer Detail', () => {
   it('invalidate customer', () => {
     cy.visit('/#/kunden/detail/101');
 
+    cy.byTestId('editCustomerToggleButton').click();
     cy.byTestId('invalidateCustomerButton').click();
 
     cy.byTestId('validUntilText').should('have.text', moment().subtract(1, 'day').endOf('day').format('DD.MM.YYYY'));
+  });
+
+  it('lock and unlock customer', () => {
+    cy.visit('/#/kunden/detail/101');
+
+    cy.byTestId('lock-info-banner').should('not.exist');
+
+    cy.byTestId('editCustomerToggleButton').click();
+    cy.byTestId('lockCustomerButton').click();
+    cy.byTestId('lockreason-input-text').type('dummy lockreason');
+    cy.byTestId('lock-customer-modal').within(() => {
+      cy.byTestId('okButton').click();
+    });
+
+    cy.byTestId('lock-info-banner').should('exist');
+
+    cy.byTestId('editCustomerToggleButton').click();
+    cy.byTestId('unlockCustomerButton').click();
+
+    cy.byTestId('lock-info-banner').should('not.exist');
   });
 
 });

@@ -39,6 +39,7 @@ val testCustomer = Customer(
     income = BigDecimal("1000"),
     incomeDue = LocalDate.now(),
     validUntil = LocalDate.now(),
+    locked = false,
     additionalPersons = listOf(
         CustomerAdditionalPerson(
             id = 2,
@@ -94,6 +95,7 @@ val testCustomerEntity1 = CustomerEntity().apply {
     income = BigDecimal("1000")
     incomeDue = LocalDate.now()
     validUntil = LocalDate.now()
+    locked = false
 
     val addPerson1 = CustomerAddPersonEntity()
     addPerson1.id = 2
@@ -134,6 +136,7 @@ val testCustomerEntity2 = CustomerEntity().apply {
     income = BigDecimal("2000")
     incomeDue = LocalDate.now()
     validUntil = LocalDate.now()
+    locked = false
 }
 
 val testCustomerEntity3 = CustomerEntity().apply {
@@ -156,4 +159,5 @@ val testCustomerEntity3 = CustomerEntity().apply {
     income = BigDecimal("3000")
     incomeDue = LocalDate.now()
     validUntil = LocalDate.now()
+    locked = false
 }

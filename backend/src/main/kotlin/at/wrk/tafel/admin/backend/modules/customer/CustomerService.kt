@@ -17,6 +17,7 @@ import at.wrk.tafel.admin.backend.modules.customer.masterdata.CustomerPdfService
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.ZonedDateTime
 
 @Service
 class CustomerService(
@@ -122,10 +123,11 @@ class CustomerService(
 
     private fun mapRequestToEntity(customer: Customer, entity: CustomerEntity? = null): CustomerEntity {
         val user = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
+        val userEntity = userRepository.findByUsername(user.username!!).get()
         val customerEntity = entity ?: CustomerEntity()
 
         customerEntity.customerId = customer.id ?: customerRepository.getNextCustomerSequenceValue()
-        customerEntity.issuer = customerEntity.issuer ?: userRepository.findByUsername(user.username!!).get()
+        customerEntity.issuer = customerEntity.issuer ?: userEntity
         customerEntity.lastname = customer.lastname.trim()
         customerEntity.firstname = customer.firstname.trim()
         customerEntity.birthDate = customer.birthDate
@@ -142,6 +144,18 @@ class CustomerService(
         customerEntity.income = customer.income
         customerEntity.incomeDue = customer.incomeDue
         customerEntity.validUntil = customer.validUntil
+
+        if (customer.locked == true) {
+            customerEntity.locked = true
+            customerEntity.lockedAt = ZonedDateTime.now()
+            customerEntity.lockedBy = userEntity
+            customerEntity.lockReason = customer.lockReason
+        } else {
+            customerEntity.locked = false
+            customerEntity.lockedAt = null
+            customerEntity.lockedBy = null
+            customerEntity.lockReason = null
+        }
 
         customerEntity.additionalPersons.clear()
         customerEntity.additionalPersons.addAll(
@@ -191,6 +205,10 @@ class CustomerService(
         income = customerEntity.income,
         incomeDue = customerEntity.incomeDue,
         validUntil = customerEntity.validUntil,
+        locked = customerEntity.locked,
+        lockedAt = customerEntity.lockedAt,
+        lockedBy = customerEntity.lockedBy?.let { "${it.personnelNumber} ${it.firstname} ${it.lastname}" },
+        lockReason = customerEntity.lockReason,
         additionalPersons = customerEntity.additionalPersons.map {
             CustomerAdditionalPerson(
                 id = it.id!!,
