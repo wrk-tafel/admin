@@ -95,4 +95,24 @@ describe('Customer Detail', () => {
     cy.byTestId('validUntilText').should('have.text', moment().subtract(1, 'day').endOf('day').format('DD.MM.YYYY'));
   });
 
+  it('lock and unlock customer', () => {
+    cy.visit('/#/kunden/detail/101');
+
+    cy.byTestId('lock-info-banner').should('not.exist');
+
+    cy.byTestId('editCustomerToggleButton').click();
+    cy.byTestId('lockCustomerButton').click();
+    cy.byTestId('lockreason-input-text').type('dummy lockreason');
+    cy.byTestId('lock-customer-modal').within(() => {
+      cy.byTestId('okButton').click();
+    });
+
+    cy.byTestId('lock-info-banner').should('exist');
+
+    cy.byTestId('editCustomerToggleButton').click();
+    cy.byTestId('unlockCustomerButton').click();
+
+    cy.byTestId('lock-info-banner').should('not.exist');
+  });
+
 });

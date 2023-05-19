@@ -48,7 +48,7 @@
           <button cDropdownItem testid="lockCustomerButton" (click)="showLockCustomerModal = true" [disabled]="!customerData" [disabled]="customerData.locked">Kunden sperren</button>
         </li>
         <li>
-          <button cDropdownItem testid="lockCustomerButton" (click)="unlockCustomer()" [disabled]="!customerData" [disabled]="!customerData.locked">Kunden entsperren</button>
+          <button cDropdownItem testid="unlockCustomerButton" (click)="unlockCustomer()" [disabled]="!customerData" [disabled]="!customerData.locked">Kunden entsperren</button>
         </li>
         <li><hr cDropdownDivider></li>
         <li>
@@ -311,7 +311,7 @@
   </c-modal-header>
   <c-modal-body>
     <div class="fw-bold">Sperrgrund:</div>
-    <textarea id="textarea-input" name="textarea-input" rows="9" class="form-control"
+    <textarea testid="lockreason-input-text" id="textarea-input" name="textarea-input" rows="9" class="form-control"
               [(ngModel)]="lockReasonText"></textarea>
   </c-modal-body>
   <c-modal-footer>
