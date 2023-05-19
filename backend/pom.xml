@@ -20,6 +20,7 @@
         <spring.boot.version>3.0.6</spring.boot.version>
         <jjwt.version>0.11.5</jjwt.version>
         <postgresql.driver.version>42.6.0</postgresql.driver.version>
+        <mysql.driver.version>8.0.33</mysql.driver.version>
         <bouncycastle.version>1.70</bouncycastle.version>
         <apache.fop.version>2.8</apache.fop.version>
         <qrcode.kotlin.version>3.3.0</qrcode.kotlin.version>
@@ -130,6 +131,11 @@
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <version>${postgresql.driver.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>${mysql.driver.version}</version>
         </dependency>
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
