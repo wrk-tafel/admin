@@ -1,7 +1,7 @@
 <div class="d-flex flex-column-reverse flex-lg-column">
   <div class="d-flex flex-column flex-lg-row mt-3 mt-lg-0 mb-4 mb-lg-0">
     <c-dropdown variant="dropdown">
-      <button testid="printMenuButton" cButton cDropdownToggle color="primary" class="text-white">
+      <button testid="printMenuButton" cButton cDropdownToggle color="primary" class="text-white" [disabled]="customerData.locked">
         Daten ausdrucken
       </button>
       <ul cDropdownMenu>
@@ -14,7 +14,7 @@
     <c-dropdown
       variant="dropdown"
       class="mt-3 mt-lg-0 ms-lg-3">
-      <button testid="prolongButton" cButton cDropdownToggle color="primary" class="text-white">
+      <button testid="prolongButton" cButton cDropdownToggle color="primary" class="text-white" [disabled]="customerData.locked">
         Bezug verlängern
       </button>
       <ul cDropdownMenu>
@@ -36,18 +36,18 @@
       </button>
       <ul cDropdownMenu>
         <li>
-          <button cDropdownItem testid="invalidateCustomerButton" (click)="invalidateCustomer()" [disabled]="!customerData">Kunden deaktivieren</button>
+          <button cDropdownItem testid="invalidateCustomerButton" (click)="invalidateCustomer()" [disabled]="!customerData" [disabled]="customerData.locked">Kunden deaktivieren</button>
         </li>
         <li><hr cDropdownDivider></li>
         <li>
-          <button cDropdownItem testid="lockCustomerButton" (click)="showLockCustomerModal = true" [disabled]="!customerData">Kunden sperren</button>
+          <button cDropdownItem testid="lockCustomerButton" (click)="showLockCustomerModal = true" [disabled]="!customerData" [disabled]="customerData.locked">Kunden sperren</button>
         </li>
         <li>
-          <button cDropdownItem testid="lockCustomerButton" (click)="unlockCustomer()" [disabled]="!customerData">Kunden entsperren</button>
+          <button cDropdownItem testid="lockCustomerButton" (click)="unlockCustomer()" [disabled]="!customerData" [disabled]="!customerData.locked">Kunden entsperren</button>
         </li>
         <li><hr cDropdownDivider></li>
         <li>
-          <button cDropdownItem testid="deleteCustomerButton" (click)="showDeleteCustomerModal = true" [disabled]="!customerData">Kunden löschen</button>
+          <button cDropdownItem testid="deleteCustomerButton" (click)="showDeleteCustomerModal = true" [disabled]="!customerData" [disabled]="customerData.locked">Kunden löschen</button>
         </li>
       </ul>
     </c-dropdown>
