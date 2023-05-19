@@ -27,18 +27,17 @@ class UserMigrator {
         while (result.next()) {
             val user = User(
                 personnelNumber = result.getLong("dnr"),
-                firstname = result.getString("vorname").trim().ifBlank { null },
-                lastname = result.getString("zuname").trim().ifBlank { null },
+                firstname = result.getString("vorname").trim().ifBlank { "unbekannt" },
+                lastname = result.getString("zuname").trim().ifBlank { "unbekannt" },
                 active = result.getString("aktiv").trim() == "J",
                 password = result.getString("kennwort").trim().ifBlank { null }
             )
             userList.add(user)
         }
 
-        return userList
-
         result.close()
         stmt.close()
+        return userList
     }
 
     private fun mapToNewUser(user: User, index: Int): UserNew {
@@ -92,8 +91,8 @@ class UserMigrator {
 
 data class User(
     val personnelNumber: Long,
-    val firstname: String?,
-    val lastname: String?,
+    val firstname: String,
+    val lastname: String,
     val active: Boolean,
     val password: String?
 )
@@ -103,10 +102,10 @@ data class UserNew(
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime,
     val username: String,
-    val password: String?,
+    val password: String,
     val enabled: Boolean,
     val personnelNumber: Long,
-    val firstname: String?,
-    val lastname: String?,
+    val firstname: String,
+    val lastname: String,
     val passwordChangeRequired: Boolean
 )
