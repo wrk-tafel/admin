@@ -60,7 +60,8 @@ data class CustomerAdditionalPerson(
     val employer: String? = null,
     val income: BigDecimal? = null,
     val incomeDue: LocalDate? = null,
-    val country: Country
+    val country: Country,
+    val excludeFromHousehold: Boolean = false
 )
 
 @ExcludeFromTestCoverage

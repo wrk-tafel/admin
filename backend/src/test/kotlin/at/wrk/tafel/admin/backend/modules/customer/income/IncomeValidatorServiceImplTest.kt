@@ -446,6 +446,28 @@ class IncomeValidatorServiceImplTest {
         assertThat(result.valid).isTrue
     }
 
+    @Test
+    fun `two persons below limit cause one is excluded from calculation`() {
+        val persons = listOf(
+            IncomeValidatorPerson(
+                monthlyIncome = BigDecimal("1000"),
+                birthDate = LocalDate.now().minusYears(35)
+            ),
+            IncomeValidatorPerson(
+                monthlyIncome = BigDecimal("1000"),
+                birthDate = LocalDate.now().minusYears(30),
+                excludeFromIncomeCalculation = true
+            )
+        )
+
+        val result = incomeValidatorService.validate(persons)
+
+        assertThat(result.totalSum).isEqualTo(BigDecimal("1000"))
+        assertThat(result.limit).isEqualTo(BigDecimal("1000"))
+        assertThat(result.amountExceededLimit).isEqualTo(BigDecimal.ZERO)
+        assertThat(result.valid).isTrue()
+    }
+
     private fun createIncomeLimitEntity(value: BigDecimal): IncomeLimitEntity {
         val entity = IncomeLimitEntity()
         entity.amount = value

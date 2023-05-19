@@ -89,20 +89,23 @@ class CustomerServiceTest {
                         .isEqualTo(
                             IncomeValidatorPerson(
                                 birthDate = LocalDate.now().minusYears(30),
-                                monthlyIncome = BigDecimal("1000")
+                                monthlyIncome = BigDecimal("1000"),
+                                excludeFromIncomeCalculation = false
                             )
                         )
                     assertThat(it[1])
                         .isEqualTo(
                             IncomeValidatorPerson(
                                 birthDate = LocalDate.now().minusYears(5),
-                                monthlyIncome = BigDecimal("100")
+                                monthlyIncome = BigDecimal("100"),
+                                excludeFromIncomeCalculation = false
                             )
                         )
                     assertThat(it[2])
                         .isEqualTo(
                             IncomeValidatorPerson(
-                                birthDate = LocalDate.now().minusYears(2)
+                                birthDate = LocalDate.now().minusYears(2),
+                                excludeFromIncomeCalculation = true
                             )
                         )
                 }
@@ -158,6 +161,7 @@ class CustomerServiceTest {
     }
 
     @Test
+    // TODO improve test (asserts)
     fun `update customer`() {
         val testCustomerEntity1 = CustomerEntity().apply {
             id = 1
@@ -190,6 +194,7 @@ class CustomerServiceTest {
             addPerson1.income = BigDecimal("100")
             addPerson1.incomeDue = LocalDate.now()
             addPerson1.country = testCountry
+            addPerson1.excludeFromHousehold = false
 
             val addPerson2 = CustomerAddPersonEntity()
             addPerson2.id = 3
@@ -197,12 +202,16 @@ class CustomerServiceTest {
             addPerson2.firstname = "Add pers 2"
             addPerson2.birthDate = LocalDate.now().minusYears(2)
             addPerson2.country = testCountry
+            addPerson2.excludeFromHousehold = false
 
             additionalPersons = mutableListOf(addPerson1, addPerson2)
         }
 
         every { customerRepository.existsByCustomerId(any()) } returns true
         every { customerRepository.save(any()) } returns testCustomerEntity1
+        every { customerAddPersonRepository.findById(testCustomerEntity1.additionalPersons[0].id!!) } returns Optional.of(
+            testCustomerEntity1.additionalPersons[0]
+        )
 
         val updatedCustomer = testCustomer.copy(
             lastname = "updated-lastname",
@@ -210,7 +219,11 @@ class CustomerServiceTest {
             birthDate = LocalDate.now(),
             employer = "updated-employer",
             income = BigDecimal.TEN,
-            additionalPersons = emptyList()
+            additionalPersons = listOf(
+                testCustomer.additionalPersons[0].copy(
+                    excludeFromHousehold = true
+                )
+            )
         )
         every { customerRepository.getReferenceByCustomerId(testCustomer.id!!) } returns testCustomerEntity1
 
