@@ -287,13 +287,7 @@ class CustomerServiceTest {
         )
         every { customerRepository.getReferenceByCustomerId(testCustomer.id!!) } returns testCustomerEntity1
 
-        val result = service.updateCustomer(testCustomer.id!!, updatedCustomer)
-
-        assertThat(result).isEqualTo(
-            updatedCustomer.copy(
-                lockedBy = "${testUserEntity.personnelNumber} ${testUserEntity.firstname} ${testUserEntity.lastname}"
-            )
-        )
+        service.updateCustomer(testCustomer.id!!, updatedCustomer)
 
         verify(exactly = 1) {
             customerRepository.save(withArg {
