@@ -29,7 +29,7 @@
       variant="btn-group"
       class="mt-3 mt-lg-0 ms-lg-3">
       <button cButton color="danger" class="text-white" testid="editCustomerButton" (click)="editCustomer()"
-              [disabled]="!customerData">Kunden bearbeiten
+              [disabled]="!customerData || customerData.locked">Kunden bearbeiten
       </button>
       <button color="danger" class="text-white" cButton cDropdownToggle split>
         <span class="visually-hidden">Toggle Dropdown</span>
