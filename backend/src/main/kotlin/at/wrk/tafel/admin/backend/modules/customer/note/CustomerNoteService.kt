@@ -16,7 +16,7 @@ class CustomerNoteService(
 ) {
 
     fun getNotes(customerId: Long): List<CustomerNoteItem> {
-        val notes = customerNoteRepository.findByCustomerIdOrderByCreatedAtDesc(customerId)
+        val notes = customerNoteRepository.findByCustomerCustomerIdOrderByCreatedAtDesc(customerId)
         return notes.map { mapNote(it) }
     }
 
