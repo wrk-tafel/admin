@@ -20,9 +20,12 @@ export class CustomerDetailComponent implements OnInit {
   customerData: CustomerData;
   customerNotes: CustomerNoteItem[];
   newNoteText: string;
+  lockReasonText: string;
+
   showDeleteCustomerModal = false;
   showAddNewNoteModal = false;
   showAllNotesModal = false;
+  showLockCustomerModal = false;
 
   constructor(
     private activatedRoute: ActivatedRoute,
@@ -130,6 +133,20 @@ export class CustomerDetailComponent implements OnInit {
 
     this.customerApiService.updateCustomer(updatedCustomerData).subscribe(customerData => {
       this.customerData = customerData;
+    });
+  }
+
+  lockCustomer() {
+    const updatedCustomerData: CustomerData = {
+      ...this.customerData,
+      locked: true,
+      lockReason: this.lockReasonText
+    };
+
+    this.customerApiService.updateCustomer(updatedCustomerData).subscribe(customerData => {
+      this.customerData = customerData;
+      this.lockReasonText = undefined;
+      this.showLockCustomerModal = false;
     });
   }
 

@@ -36,14 +36,14 @@
       </button>
       <ul cDropdownMenu>
         <li>
-          <button cDropdownItem testid="invalidateCustomerButton" (click)="invalidateCustomer()"
-                  [disabled]="!customerData">Kunden deaktivieren
-          </button>
+          <button cDropdownItem testid="invalidateCustomerButton" (click)="invalidateCustomer()" [disabled]="!customerData">Kunden deaktivieren</button>
         </li>
         <li>
-          <button cDropdownItem testid="deleteCustomerButton" (click)="showDeleteCustomerModal = true"
-                  [disabled]="!customerData">Kunden löschen
-          </button>
+          <button cDropdownItem testid="lockCustomerButton" (click)="showLockCustomerModal = true" [disabled]="!customerData">Kunden sperren</button>
+        </li>
+        <li><hr cDropdownDivider></li>
+        <li>
+          <button cDropdownItem testid="deleteCustomerButton" (click)="showDeleteCustomerModal = true" [disabled]="!customerData">Kunden löschen</button>
         </li>
       </ul>
     </c-dropdown>
@@ -233,7 +233,7 @@
 </div>
 <c-modal id="deleteCustomerModal" #deleteCustomerModal testid="deletecustomer-modal" [(visible)]="showDeleteCustomerModal">
   <c-modal-header cBgColor="warning">
-    <h4 class="text-white">Kunde löschen</h4>
+    <h4 class="text-white">Kunden löschen</h4>
     <button [cModalToggle]="deleteCustomerModal.id" cButtonClose></button>
   </c-modal-header>
   <c-modal-body>
@@ -279,7 +279,7 @@
 <c-modal id="addNewNoteModal" #addNewNoteModal testid="addnew-note-modal" [(visible)]="showAddNewNoteModal">
   <c-modal-header cBgColor="info">
     <h4>Neue Notiz hinzufügen</h4>
-    <button [cModalToggle]="addNewNoteModal.id" cButtonClose></button>
+    <button [cModalToggle]="addNewNoteModal.id" (click)="newNoteText = undefined" cButtonClose></button>
   </c-modal-header>
   <c-modal-body>
     <textarea id="textarea-input" name="textarea-input" rows="9" class="form-control"
@@ -291,6 +291,25 @@
     </button>
     <button testid="cancelButton" cButton color="secondary"
             (click)="newNoteText = undefined; showAddNewNoteModal = false;">
+      Abbrechen
+    </button>
+  </c-modal-footer>
+</c-modal>
+<c-modal id="lockCustomerModal" #lockCustomerModal testid="lock-customer-modal" [(visible)]="showLockCustomerModal">
+  <c-modal-header cBgColor="info">
+    <h4>Kunden sperren</h4>
+    <button [cModalToggle]="lockCustomerModal.id" (click)="lockReasonText = undefined" cButtonClose></button>
+  </c-modal-header>
+  <c-modal-body>
+    <div class="fw-bold">Sperrgrund:</div>
+    <textarea id="textarea-input" name="textarea-input" rows="9" class="form-control"
+              [(ngModel)]="lockReasonText"></textarea>
+  </c-modal-body>
+  <c-modal-footer>
+    <button testid="okButton" cButton color="primary" class="text-white" (click)="lockCustomer()"
+            [disabled]="!lockReasonText || lockReasonText.trim().length === 0">Speichern
+    </button>
+    <button testid="cancelButton" cButton color="secondary" (click)="lockReasonText = undefined; showLockCustomerModal = false;">
       Abbrechen
     </button>
   </c-modal-footer>
