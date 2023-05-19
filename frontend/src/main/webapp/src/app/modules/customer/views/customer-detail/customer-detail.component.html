@@ -29,7 +29,7 @@
       variant="btn-group"
       class="mt-3 mt-lg-0 ms-lg-3">
       <button cButton color="danger" class="text-white" testid="editCustomerButton" (click)="editCustomer()"
-              [disabled]="!customerData">Kunde bearbeiten
+              [disabled]="!customerData">Kunden bearbeiten
       </button>
       <button color="danger" class="text-white" cButton cDropdownToggle split>
         <span class="visually-hidden">Toggle Dropdown</span>
@@ -37,12 +37,12 @@
       <ul cDropdownMenu>
         <li>
           <button cDropdownItem testid="invalidateCustomerButton" (click)="invalidateCustomer()"
-                  [disabled]="!customerData">Kunde deaktivieren
+                  [disabled]="!customerData">Kunden deaktivieren
           </button>
         </li>
         <li>
           <button cDropdownItem testid="deleteCustomerButton" (click)="showDeleteCustomerModal = true"
-                  [disabled]="!customerData">Kunde löschen
+                  [disabled]="!customerData">Kunden löschen
           </button>
         </li>
       </ul>
