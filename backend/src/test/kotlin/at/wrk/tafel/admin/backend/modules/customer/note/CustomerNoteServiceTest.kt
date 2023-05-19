@@ -47,12 +47,12 @@ internal class CustomerNoteServiceTest {
     fun `get notes - empty`() {
         val customerId = 123L
 
-        every { customerNoteRepository.findByCustomerIdOrderByCreatedAtDesc(customerId) } returns emptyList()
+        every { customerNoteRepository.findByCustomerCustomerIdOrderByCreatedAtDesc(customerId) } returns emptyList()
 
         val mappedNotes = service.getNotes(customerId)
 
         assertThat(mappedNotes).isEmpty()
-        verify { customerNoteRepository.findByCustomerIdOrderByCreatedAtDesc(customerId) }
+        verify { customerNoteRepository.findByCustomerCustomerIdOrderByCreatedAtDesc(customerId) }
     }
 
     @Test
@@ -83,12 +83,12 @@ internal class CustomerNoteServiceTest {
             )
         )
 
-        every { customerNoteRepository.findByCustomerIdOrderByCreatedAtDesc(customerId) } returns noteEntities
+        every { customerNoteRepository.findByCustomerCustomerIdOrderByCreatedAtDesc(customerId) } returns noteEntities
 
         val mappedNotes = service.getNotes(customerId)
 
         assertThat(mappedNotes).isEqualTo(notes)
-        verify { customerNoteRepository.findByCustomerIdOrderByCreatedAtDesc(customerId) }
+        verify { customerNoteRepository.findByCustomerCustomerIdOrderByCreatedAtDesc(customerId) }
     }
 
     @Test
