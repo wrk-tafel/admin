@@ -122,10 +122,11 @@ class CustomerService(
 
     private fun mapRequestToEntity(customer: Customer, entity: CustomerEntity? = null): CustomerEntity {
         val user = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
+        val userEntity = userRepository.findByUsername(user.username!!).get()
         val customerEntity = entity ?: CustomerEntity()
 
         customerEntity.customerId = customer.id ?: customerRepository.getNextCustomerSequenceValue()
-        customerEntity.issuer = customerEntity.issuer ?: userRepository.findByUsername(user.username!!).get()
+        customerEntity.issuer = customerEntity.issuer ?: userEntity
         customerEntity.lastname = customer.lastname.trim()
         customerEntity.firstname = customer.firstname.trim()
         customerEntity.birthDate = customer.birthDate
@@ -142,6 +143,16 @@ class CustomerService(
         customerEntity.income = customer.income
         customerEntity.incomeDue = customer.incomeDue
         customerEntity.validUntil = customer.validUntil
+
+        if (customer.locked == true) {
+            customerEntity.locked = true
+            customerEntity.lockedBy = userEntity
+            customerEntity.lockReason = customer.lockReason
+        } else {
+            customerEntity.locked = false
+            customerEntity.lockedBy = null
+            customerEntity.lockReason = null
+        }
 
         customerEntity.additionalPersons.clear()
         customerEntity.additionalPersons.addAll(
