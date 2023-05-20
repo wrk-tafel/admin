@@ -13,7 +13,8 @@ import {
   ButtonCloseDirective,
   ButtonDirective,
   CardBodyComponent,
-  CardComponent, CardFooterComponent,
+  CardComponent,
+  CardFooterComponent,
   CardHeaderComponent,
   ColComponent,
   DropdownComponent,
@@ -21,7 +22,9 @@ import {
   DropdownHeaderDirective,
   DropdownItemDirective,
   DropdownMenuDirective,
-  DropdownModule, DropdownToggleDirective,
+  DropdownModule,
+  DropdownToggleDirective,
+  FormCheckComponent,
   FormControlDirective,
   InputGroupComponent,
   InputGroupTextDirective,
@@ -29,7 +32,10 @@ import {
   ModalComponent,
   ModalFooterComponent,
   ModalHeaderComponent,
-  ModalModule, NavComponent, NavItemComponent, NavLinkDirective,
+  ModalModule,
+  NavComponent,
+  NavItemComponent,
+  NavLinkDirective,
   RoundedDirective,
   RowComponent,
   TabContentComponent,
@@ -37,8 +43,8 @@ import {
   TabPaneComponent,
   TabsModule
 } from '@coreui/angular';
-import {RouterLink} from "@angular/router";
-import {IconDirective} from "@coreui/icons-angular";
+import {RouterLink} from '@angular/router';
+import {IconDirective} from '@coreui/icons-angular';
 
 @NgModule({
   imports: [
@@ -86,7 +92,8 @@ import {IconDirective} from "@coreui/icons-angular";
     NavLinkDirective,
     ButtonCloseDirective,
     ButtonCloseDirective,
-    BgColorDirective
+    BgColorDirective,
+    FormCheckComponent
   ],
   declarations: [
     CustomerDetailComponent,
