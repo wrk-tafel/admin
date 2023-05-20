@@ -116,7 +116,7 @@ export interface CustomerAddPersonData {
   employer?: string;
   income?: number;
   incomeDue?: Date;
-  excludeFromHousehold: Boolean;
+  excludeFromHousehold: boolean;
 }
 
 type PdfType = 'MASTERDATA' | 'IDCARD' | 'COMBINED';
