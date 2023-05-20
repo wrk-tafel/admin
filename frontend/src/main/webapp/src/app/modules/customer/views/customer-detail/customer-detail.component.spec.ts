@@ -75,7 +75,8 @@ describe('CustomerDetailComponent', () => {
         employer: 'test employer 2',
         income: 50,
         incomeDue: moment().add(1, 'years').startOf('day').utc().toDate(),
-        country: mockCountry
+        country: mockCountry,
+        excludeFromHousehold: false
       },
       {
         key: 1,
@@ -83,7 +84,8 @@ describe('CustomerDetailComponent', () => {
         lastname: 'Add',
         firstname: 'Pers 2',
         birthDate: moment().subtract(10, 'years').startOf('day').utc().toDate(),
-        country: mockCountry
+        country: mockCountry,
+        excludeFromHousehold: true
       }
     ]
   };
