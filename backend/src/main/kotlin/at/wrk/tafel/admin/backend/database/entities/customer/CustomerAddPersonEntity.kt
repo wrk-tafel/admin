@@ -35,4 +35,7 @@ class CustomerAddPersonEntity : BaseChangeTrackingEntity() {
 
     @ManyToOne
     var country: CountryEntity? = null
+
+    @Column(name = "exclude_household")
+    var excludeFromHousehold: Boolean? = null
 }

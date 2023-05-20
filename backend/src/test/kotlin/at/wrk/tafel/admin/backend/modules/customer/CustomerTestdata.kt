@@ -52,7 +52,8 @@ val testCustomer = Customer(
                 id = 1,
                 code = "AT",
                 name = "Österreich"
-            )
+            ),
+            excludeFromHousehold = false
         ),
         CustomerAdditionalPerson(
             id = 3,
@@ -63,7 +64,8 @@ val testCustomer = Customer(
                 id = 1,
                 code = "AT",
                 name = "Österreich"
-            )
+            ),
+            excludeFromHousehold = true
         )
     )
 )
@@ -105,6 +107,7 @@ val testCustomerEntity1 = CustomerEntity().apply {
     addPerson1.income = BigDecimal("100")
     addPerson1.incomeDue = LocalDate.now()
     addPerson1.country = testCountry
+    addPerson1.excludeFromHousehold = false
 
     val addPerson2 = CustomerAddPersonEntity()
     addPerson2.id = 3
@@ -112,6 +115,7 @@ val testCustomerEntity1 = CustomerEntity().apply {
     addPerson2.firstname = "Add pers 2"
     addPerson2.birthDate = LocalDate.now().minusYears(2)
     addPerson2.country = testCountry
+    addPerson2.excludeFromHousehold = true
 
     additionalPersons = mutableListOf(addPerson1, addPerson2)
 }

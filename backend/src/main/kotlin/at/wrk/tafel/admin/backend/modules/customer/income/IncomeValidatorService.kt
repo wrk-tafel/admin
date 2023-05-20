@@ -12,7 +12,8 @@ interface IncomeValidatorService {
 @ExcludeFromTestCoverage
 data class IncomeValidatorPerson(
     val monthlyIncome: BigDecimal? = null,
-    val birthDate: LocalDate
+    val birthDate: LocalDate,
+    val excludeFromIncomeCalculation: Boolean = false
 ) {
     fun isChild(): Boolean {
         return getAge() <= 24

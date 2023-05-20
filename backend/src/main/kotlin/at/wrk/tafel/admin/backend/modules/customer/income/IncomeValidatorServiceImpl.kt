@@ -19,8 +19,10 @@ class IncomeValidatorServiceImpl(
             throw IllegalArgumentException("No persons given")
         }
 
+        val filteredPersons = persons.filterNot { it.excludeFromIncomeCalculation }
+
         var monthlySum = BigDecimal.ZERO
-        for (person in persons) {
+        for (person in filteredPersons) {
             monthlySum = monthlySum.add(person.monthlyIncome ?: BigDecimal.ZERO)
 
             if (person.isChild()) {
@@ -32,8 +34,8 @@ class IncomeValidatorServiceImpl(
             }
         }
 
-        monthlySum = monthlySum.add(calculateSiblingAddition(persons))
-        return calculateResult(persons, monthlySum)
+        monthlySum = monthlySum.add(calculateSiblingAddition(filteredPersons))
+        return calculateResult(filteredPersons, monthlySum)
     }
 
     private fun calculateSiblingAddition(

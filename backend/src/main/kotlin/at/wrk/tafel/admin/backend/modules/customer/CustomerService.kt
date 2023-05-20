@@ -106,14 +106,18 @@ class CustomerService(
         val personList = mutableListOf<IncomeValidatorPerson>()
         personList.add(
             IncomeValidatorPerson(
-                monthlyIncome = customer.income, birthDate = customer.birthDate
+                monthlyIncome = customer.income,
+                birthDate = customer.birthDate,
+                excludeFromIncomeCalculation = false
             )
         )
 
         customer.additionalPersons.forEach {
             personList.add(
                 IncomeValidatorPerson(
-                    monthlyIncome = it.income, birthDate = it.birthDate
+                    monthlyIncome = it.income,
+                    birthDate = it.birthDate,
+                    excludeFromIncomeCalculation = it.excludeFromHousehold
                 )
             )
         }
@@ -170,6 +174,7 @@ class CustomerService(
                 addPersonEntity.income = it.income
                 addPersonEntity.incomeDue = it.incomeDue
                 addPersonEntity.country = countryRepository.findById(it.country.id).get()
+                addPersonEntity.excludeFromHousehold = it.excludeFromHousehold
                 addPersonEntity
             }.toList()
         )
@@ -218,7 +223,8 @@ class CustomerService(
                 employer = it.employer,
                 income = it.income,
                 incomeDue = it.incomeDue,
-                country = mapCountryToResponse(it.country!!)
+                country = mapCountryToResponse(it.country!!),
+                excludeFromHousehold = it.excludeFromHousehold!!
             )
         }
     )
