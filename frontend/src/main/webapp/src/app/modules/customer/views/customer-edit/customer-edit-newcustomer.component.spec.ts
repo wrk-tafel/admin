@@ -59,7 +59,8 @@ describe('CustomerEditComponent - Creating a new customer', () => {
         birthDate: moment().subtract(5, 'years').startOf('day').utc().toDate(),
         country: testCountry,
         income: 50,
-        incomeDue: moment().add(1, 'years').startOf('day').utc().toDate()
+        incomeDue: moment().add(1, 'years').startOf('day').utc().toDate(),
+        excludeFromHousehold: false
       },
       {
         key: 1,
@@ -67,7 +68,8 @@ describe('CustomerEditComponent - Creating a new customer', () => {
         lastname: 'Add',
         firstname: 'Pers 2',
         birthDate: moment().subtract(2, 'years').startOf('day').utc().toDate(),
-        country: testCountry
+        country: testCountry,
+        excludeFromHousehold: true
       }
     ]
   };

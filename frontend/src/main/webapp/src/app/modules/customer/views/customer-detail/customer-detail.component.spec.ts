@@ -75,7 +75,8 @@ describe('CustomerDetailComponent', () => {
         employer: 'test employer 2',
         income: 50,
         incomeDue: moment().add(1, 'years').startOf('day').utc().toDate(),
-        country: mockCountry
+        country: mockCountry,
+        excludeFromHousehold: false
       },
       {
         key: 1,
@@ -83,7 +84,8 @@ describe('CustomerDetailComponent', () => {
         lastname: 'Add',
         firstname: 'Pers 2',
         birthDate: moment().subtract(10, 'years').startOf('day').utc().toDate(),
-        country: mockCountry
+        country: mockCountry,
+        excludeFromHousehold: true
       }
     ]
   };
@@ -415,6 +417,50 @@ describe('CustomerDetailComponent', () => {
     customerApiService.updateCustomer.and.returnValue(of(expectedCustomerData));
 
     component.invalidateCustomer();
+
+    expect(customerApiService.updateCustomer).toHaveBeenCalledWith(expectedCustomerData);
+    expect(component.customerData).toEqual(expectedCustomerData);
+  });
+
+  it('lock customer', () => {
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    const component = fixture.componentInstance;
+    component.customerData = mockCustomer;
+    const lockReasonText = 'locked due to lorem ipsum';
+    component.lockReasonText = lockReasonText;
+    fixture.detectChanges();
+
+    const expectedCustomerData = {
+      ...mockCustomer,
+      locked: true,
+      lockReason: lockReasonText
+    };
+    customerApiService.updateCustomer.and.returnValue(of(expectedCustomerData));
+
+    component.lockCustomer();
+
+    expect(customerApiService.updateCustomer).toHaveBeenCalledWith(expectedCustomerData);
+    expect(component.customerData).toEqual(expectedCustomerData);
+  });
+
+  it('unlock customer', () => {
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    const component = fixture.componentInstance;
+    component.customerData = {
+      ...mockCustomer,
+      locked: true,
+      lockedBy: 'whoever',
+      lockReason: 'lock-text'
+    };
+    fixture.detectChanges();
+
+    const expectedCustomerData = {
+      ...mockCustomer,
+      locked: false
+    };
+    customerApiService.updateCustomer.and.returnValue(of(expectedCustomerData));
+
+    component.unlockCustomer();
 
     expect(customerApiService.updateCustomer).toHaveBeenCalledWith(expectedCustomerData);
     expect(component.customerData).toEqual(expectedCustomerData);

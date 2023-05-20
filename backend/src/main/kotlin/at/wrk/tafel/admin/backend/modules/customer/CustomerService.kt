@@ -17,6 +17,7 @@ import at.wrk.tafel.admin.backend.modules.customer.masterdata.CustomerPdfService
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.ZonedDateTime
 
 @Service
 class CustomerService(
@@ -105,14 +106,18 @@ class CustomerService(
         val personList = mutableListOf<IncomeValidatorPerson>()
         personList.add(
             IncomeValidatorPerson(
-                monthlyIncome = customer.income, birthDate = customer.birthDate
+                monthlyIncome = customer.income,
+                birthDate = customer.birthDate,
+                excludeFromIncomeCalculation = false
             )
         )
 
         customer.additionalPersons.forEach {
             personList.add(
                 IncomeValidatorPerson(
-                    monthlyIncome = it.income, birthDate = it.birthDate
+                    monthlyIncome = it.income,
+                    birthDate = it.birthDate,
+                    excludeFromIncomeCalculation = it.excludeFromHousehold
                 )
             )
         }
@@ -122,10 +127,11 @@ class CustomerService(
 
     private fun mapRequestToEntity(customer: Customer, entity: CustomerEntity? = null): CustomerEntity {
         val user = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
+        val userEntity = userRepository.findByUsername(user.username!!).get()
         val customerEntity = entity ?: CustomerEntity()
 
         customerEntity.customerId = customer.id ?: customerRepository.getNextCustomerSequenceValue()
-        customerEntity.issuer = customerEntity.issuer ?: userRepository.findByUsername(user.username!!).get()
+        customerEntity.issuer = customerEntity.issuer ?: userEntity
         customerEntity.lastname = customer.lastname.trim()
         customerEntity.firstname = customer.firstname.trim()
         customerEntity.birthDate = customer.birthDate
@@ -143,6 +149,18 @@ class CustomerService(
         customerEntity.incomeDue = customer.incomeDue
         customerEntity.validUntil = customer.validUntil
 
+        if (customer.locked == true) {
+            customerEntity.locked = true
+            customerEntity.lockedAt = ZonedDateTime.now()
+            customerEntity.lockedBy = userEntity
+            customerEntity.lockReason = customer.lockReason
+        } else {
+            customerEntity.locked = false
+            customerEntity.lockedAt = null
+            customerEntity.lockedBy = null
+            customerEntity.lockReason = null
+        }
+
         customerEntity.additionalPersons.clear()
         customerEntity.additionalPersons.addAll(
             customer.additionalPersons.map {
@@ -156,6 +174,7 @@ class CustomerService(
                 addPersonEntity.income = it.income
                 addPersonEntity.incomeDue = it.incomeDue
                 addPersonEntity.country = countryRepository.findById(it.country.id).get()
+                addPersonEntity.excludeFromHousehold = it.excludeFromHousehold
                 addPersonEntity
             }.toList()
         )
@@ -191,6 +210,10 @@ class CustomerService(
         income = customerEntity.income,
         incomeDue = customerEntity.incomeDue,
         validUntil = customerEntity.validUntil,
+        locked = customerEntity.locked,
+        lockedAt = customerEntity.lockedAt,
+        lockedBy = customerEntity.lockedBy?.let { "${it.personnelNumber} ${it.firstname} ${it.lastname}" },
+        lockReason = customerEntity.lockReason,
         additionalPersons = customerEntity.additionalPersons.map {
             CustomerAdditionalPerson(
                 id = it.id!!,
@@ -200,7 +223,8 @@ class CustomerService(
                 employer = it.employer,
                 income = it.income,
                 incomeDue = it.incomeDue,
-                country = mapCountryToResponse(it.country!!)
+                country = mapCountryToResponse(it.country!!),
+                excludeFromHousehold = it.excludeFromHousehold!!
             )
         }
     )

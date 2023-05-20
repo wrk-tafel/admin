@@ -39,6 +39,7 @@ val testCustomer = Customer(
     income = BigDecimal("1000"),
     incomeDue = LocalDate.now(),
     validUntil = LocalDate.now(),
+    locked = false,
     additionalPersons = listOf(
         CustomerAdditionalPerson(
             id = 2,
@@ -51,7 +52,8 @@ val testCustomer = Customer(
                 id = 1,
                 code = "AT",
                 name = "Österreich"
-            )
+            ),
+            excludeFromHousehold = false
         ),
         CustomerAdditionalPerson(
             id = 3,
@@ -62,7 +64,8 @@ val testCustomer = Customer(
                 id = 1,
                 code = "AT",
                 name = "Österreich"
-            )
+            ),
+            excludeFromHousehold = true
         )
     )
 )
@@ -94,6 +97,7 @@ val testCustomerEntity1 = CustomerEntity().apply {
     income = BigDecimal("1000")
     incomeDue = LocalDate.now()
     validUntil = LocalDate.now()
+    locked = false
 
     val addPerson1 = CustomerAddPersonEntity()
     addPerson1.id = 2
@@ -103,6 +107,7 @@ val testCustomerEntity1 = CustomerEntity().apply {
     addPerson1.income = BigDecimal("100")
     addPerson1.incomeDue = LocalDate.now()
     addPerson1.country = testCountry
+    addPerson1.excludeFromHousehold = false
 
     val addPerson2 = CustomerAddPersonEntity()
     addPerson2.id = 3
@@ -110,6 +115,7 @@ val testCustomerEntity1 = CustomerEntity().apply {
     addPerson2.firstname = "Add pers 2"
     addPerson2.birthDate = LocalDate.now().minusYears(2)
     addPerson2.country = testCountry
+    addPerson2.excludeFromHousehold = true
 
     additionalPersons = mutableListOf(addPerson1, addPerson2)
 }
@@ -134,6 +140,7 @@ val testCustomerEntity2 = CustomerEntity().apply {
     income = BigDecimal("2000")
     incomeDue = LocalDate.now()
     validUntil = LocalDate.now()
+    locked = false
 }
 
 val testCustomerEntity3 = CustomerEntity().apply {
@@ -156,4 +163,5 @@ val testCustomerEntity3 = CustomerEntity().apply {
     income = BigDecimal("3000")
     incomeDue = LocalDate.now()
     validUntil = LocalDate.now()
+    locked = false
 }

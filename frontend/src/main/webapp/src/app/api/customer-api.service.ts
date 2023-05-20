@@ -84,6 +84,10 @@ export interface CustomerData {
   income?: number;
   incomeDue?: Date;
   validUntil?: Date;
+  locked?: boolean;
+  lockedAt?: Date;
+  lockedBy?: string;
+  lockReason?: string;
   additionalPersons?: CustomerAddPersonData[];
 }
 
@@ -112,6 +116,7 @@ export interface CustomerAddPersonData {
   employer?: string;
   income?: number;
   incomeDue?: Date;
+  excludeFromHousehold: boolean;
 }
 
 type PdfType = 'MASTERDATA' | 'IDCARD' | 'COMBINED';
