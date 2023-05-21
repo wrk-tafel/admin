@@ -73,20 +73,23 @@ describe('Customer Creation', () => {
       age: 30,
       employer: 'test employer',
       income: 500,
-      country: 'Österreich'
+      country: 'Österreich',
+      excludeFromHousehold: false
     });
     enterAdditionalPersonData(1, {
       lastname: 'Add',
       firstname: 'Child 1',
       age: 3,
       income: 0,
-      country: 'Deutschland'
+      country: 'Deutschland',
+      excludeFromHousehold: false
     });
     enterAdditionalPersonData(2, {
       lastname: 'Add',
       firstname: 'Child 2',
       age: 8,
-      country: 'Schweiz'
+      country: 'Schweiz',
+      excludeFromHousehold: true
     });
 
     cy.byTestId('save-button').should('be.disabled');
@@ -126,6 +129,9 @@ describe('Customer Creation', () => {
       if (data.income) {
         cy.byTestId('incomeInput').type(data.income.toString());
       }
+      if (data.excludeFromHousehold) {
+        cy.byTestId('excludeFromHouseholdInput').check();
+      }
     });
   }
 
@@ -136,6 +142,7 @@ describe('Customer Creation', () => {
     employer?: string;
     income?: number;
     country: string;
+    excludeFromHousehold: boolean;
   }
 
   function getRandomNumber(min, max) {

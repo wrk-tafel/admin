@@ -370,6 +370,61 @@ describe('CheckinComponent', () => {
     expect(component.resetButtonRef.nativeElement.focus).toHaveBeenCalled();
   });
 
+  it('searchForCustomerId found locked customer', () => {
+    const fixture = TestBed.createComponent(CheckinComponent);
+    const component = fixture.componentInstance;
+    component.ticketNumberInputRef = new ElementRef({
+      /* eslint-disable @typescript-eslint/no-empty-function */
+      focus() {
+      }
+    });
+    spyOn(component.ticketNumberInputRef.nativeElement, 'focus');
+    component.resetButtonRef = new ElementRef({
+      /* eslint-disable @typescript-eslint/no-empty-function */
+      focus() {
+      }
+    });
+    spyOn(component.resetButtonRef.nativeElement, 'focus');
+
+    const changeDetectorRef = fixture.debugElement.injector.get(ChangeDetectorRef);
+    spyOn(changeDetectorRef.constructor.prototype, 'detectChanges');
+
+    const mockCustomer = {
+      id: 133,
+      lastname: 'Mustermann',
+      firstname: 'Max',
+      birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
+
+      address: {
+        street: 'Teststraße',
+        houseNumber: '123A',
+        door: '21',
+        postalCode: 1020,
+        city: 'Wien',
+      },
+
+      employer: 'test employer',
+      income: 1000,
+      locked: true,
+
+      validUntil: moment().subtract(2, 'weeks').startOf('day').utc().toDate()
+    };
+    customerApiService.getCustomer.and.returnValue(of(mockCustomer));
+    const notesResponse: CustomerNotesResponse = {notes: []};
+    customerNoteApiService.getNotesForCustomer.and.returnValue(of(notesResponse));
+    component.customerId = mockCustomer.id;
+
+    component.searchForCustomerId();
+
+    expect(component.customer).toEqual(mockCustomer);
+    expect(customerApiService.getCustomer).toHaveBeenCalledWith(mockCustomer.id);
+
+    expect(component.customerState).toBe(CustomerState.RED);
+    expect(component.customerStateText).toBe('GESPERRT');
+    expect(component.ticketNumberInputRef.nativeElement.focus).not.toHaveBeenCalled();
+    expect(component.resetButtonRef.nativeElement.focus).toHaveBeenCalled();
+  });
+
   it('searchForCustomerId customer not found', () => {
     const fixture = TestBed.createComponent(CheckinComponent);
     const component = fixture.componentInstance;

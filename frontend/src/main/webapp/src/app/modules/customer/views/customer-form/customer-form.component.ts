@@ -134,7 +134,8 @@ export class CustomerFormComponent implements OnInit {
       country: null,
       employer: null,
       income: null,
-      incomeDue: null
+      incomeDue: null,
+      excludeFromHousehold: false
     });
 
     if (this.editMode) {
@@ -171,7 +172,8 @@ export class CustomerFormComponent implements OnInit {
       income: new UntypedFormControl(additionalPerson.income),
       incomeDue: new UntypedFormControl(additionalPerson.incomeDue, [
         CustomValidator.minDate(new Date())
-      ])
+      ]),
+      excludeFromHousehold: new UntypedFormControl(additionalPerson.excludeFromHousehold)
     });
 
     control.get('incomeDue').valueChanges.subscribe(() => {
