@@ -54,6 +54,7 @@ class UserMigrator {
         }
 
         return UserNew(
+            // TODO adapt id start
             id = 600 + index.toLong(),
             createdAt = LocalDateTime.now(),
             updatedAt = LocalDateTime.now(),

@@ -13,7 +13,7 @@ fun main() {
     val oldConn = DriverManager.getConnection("jdbc:mysql://localhost:3306/tafel", "root", "admin")
 
     val userStatements = UserMigrator().migrate(oldConn)
-    val customerStatements = CustomerMigrator().migrate(oldConn)
+    val customerStatements = CustomerMigrator().migrate(oldConn, newConn)
 
     val statements = userStatements + customerStatements
     statements.forEach { println(it) }

@@ -1257,3 +1257,8 @@ VALUES ('Zypern', 'CY')
 ON CONFLICT (code) DO UPDATE
     SET name = excluded.name,
         code = excluded.code;
+INSERT INTO static_countries(name, code)
+VALUES ('Staatenlos', 'S0')
+ON CONFLICT (code) DO UPDATE
+    SET name = excluded.name,
+        code = excluded.code;
