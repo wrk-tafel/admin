@@ -17,16 +17,19 @@ class CustomerMigrator {
     private fun readCustomers(conn: Connection): List<Customer> {
         val customerList = mutableListOf<Customer>()
 
-        val selectUsersSql = "select  from kunden"
+        val selectUsersSql = "select *  from kunden"
         val stmt = conn.createStatement()
         val result = stmt.executeQuery(selectUsersSql)
 
         while (result.next()) {
+            // TODO
+            /*
             val customer = Customer(
                 firstname = result.getString("vorname").trim().ifBlank { null },
                 lastname = result.getString("zuname").trim().ifBlank { null },
             )
             customerList.add(customer)
+             */
         }
 
         result.close()
@@ -34,12 +37,14 @@ class CustomerMigrator {
         return customerList
     }
 
-    private fun mapToNewCustomer(customer: Customer, index: Int): CustomerNew {
-
+    private fun mapToNewCustomer(customer: Customer, index: Int): CustomerNew? {
+        // TODO
+        return null
     }
 
-    private fun generateInserts(customer: CustomerNew): List<String> {
-
+    private fun generateInserts(customer: CustomerNew?): List<String> {
+        // TODO
+        return emptyList()
     }
 
 }

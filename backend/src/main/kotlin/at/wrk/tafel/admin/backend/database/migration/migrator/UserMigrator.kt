@@ -42,7 +42,6 @@ class UserMigrator {
 
     private fun mapToNewUser(user: User, index: Int): UserNew {
         val argon2PasswordEncoder = Argon2PasswordEncoder(16, 32, 1, 16384, 2)
-        val defaultTime = LocalDateTime.of(1900, 1, 1, 0, 0, 0)
 
         var password = user.password?.trim()?.ifBlank { null }
         if (password == null) {
@@ -56,33 +55,33 @@ class UserMigrator {
 
         return UserNew(
             id = 600 + index.toLong(),
-            createdAt = defaultTime,
-            updatedAt = defaultTime,
+            createdAt = LocalDateTime.now(),
+            updatedAt = LocalDateTime.now(),
             username = user.personnelNumber.toString(),
             password = "{argon2}" + argon2PasswordEncoder.encode(password),
             enabled = user.active,
             personnelNumber = user.personnelNumber,
             firstname = user.firstname,
             lastname = user.lastname,
-            passwordChangeRequired = true
+            passwordChangeRequired = true,
+            migrated = true,
+            migrationDate = LocalDateTime.now()
         )
     }
 
     private fun generateInserts(user: UserNew): List<String> {
         val userSql =
-            """INSERT INTO users (id, created_at, updated_at, username, password, enabled, personnel_number, firstname, lastname, passwordchange_required)
-                VALUES (${user.id}, '${user.createdAt.format(DateTimeFormatter.ISO_DATE)}', '${
-                user.updatedAt.format(
-                    DateTimeFormatter.ISO_DATE
-                )
-            }', '${user.username}', '${user.password}', ${user.enabled}, '${user.personnelNumber}', '${user.firstname}', '${user.lastname}', ${user.passwordChangeRequired});
+            """INSERT INTO users (id, created_at, updated_at, username, password, enabled, personnel_number, firstname, lastname, passwordchange_required, migrated, migration_date)
+                VALUES (${user.id}, '${user.createdAt.format(DateTimeFormatter.ISO_DATE_TIME)}',
+                '${user.updatedAt.format(DateTimeFormatter.ISO_DATE_TIME)}',
+                '${user.username}', '${user.password}', ${user.enabled}, '${user.personnelNumber}', '${user.firstname}', '${user.lastname}', ${user.passwordChangeRequired}, ${user.migrated},
+                '${user.migrationDate.format(DateTimeFormatter.ISO_DATE_TIME)}');
             """.trimIndent()
         val authoritiesSql = """INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
-                VALUES (${5000 + user.id}, '${user.createdAt.format(DateTimeFormatter.ISO_DATE)}', '${
-            user.updatedAt.format(
-                DateTimeFormatter.ISO_DATE
-            )
-        }', ${user.id}, 'DASHBOARD');""".trimIndent()
+                VALUES (${5000 + user.id},
+                '${user.createdAt.format(DateTimeFormatter.ISO_DATE_TIME)}',
+                '${user.updatedAt.format(DateTimeFormatter.ISO_DATE_TIME)}',
+                ${user.id}, 'DASHBOARD');""".trimIndent()
 
         return listOf(userSql, authoritiesSql)
     }
@@ -107,5 +106,7 @@ data class UserNew(
     val personnelNumber: Long,
     val firstname: String,
     val lastname: String,
-    val passwordChangeRequired: Boolean
+    val passwordChangeRequired: Boolean,
+    val migrated: Boolean,
+    val migrationDate: LocalDateTime
 )
