@@ -102,7 +102,7 @@ class CustomerMigrator {
     }
 
     private fun getUserIdForDnr(conn: Connection, dnr: Long): Long? {
-        val sql = "select id from users where users.username = '$dnr'"
+        val sql = "select id from users where username = '$dnr'"
         val stmt = conn.createStatement()
         val result = stmt.executeQuery(sql)
 
@@ -117,7 +117,7 @@ class CustomerMigrator {
     }
 
     private fun getCountryIdForName(conn: Connection, name: String): Long? {
-        val sql = "select id from static_countries where static_countries.name = '$name'"
+        val sql = "select id from static_countries where name = '$name'"
         val stmt = conn.createStatement()
         val result = stmt.executeQuery(sql)
 
