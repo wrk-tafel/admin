@@ -623,7 +623,7 @@ ON CONFLICT (code) DO UPDATE
     SET name = excluded.name,
         code = excluded.code;
 INSERT INTO static_countries(name, code)
-VALUES ('Libysch-Arabische Dschamahirija', 'LY')
+VALUES ('Libyen', 'LY')
 ON CONFLICT (code) DO UPDATE
     SET name = excluded.name,
         code = excluded.code;

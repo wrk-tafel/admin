@@ -12,7 +12,18 @@ class CustomerMigrator {
         "Tschetschenien" to "Russische Föderation",
         "Russ.Föderation" to "Russische Föderation",
         "Russland" to "Russische Föderation",
-        "Serbien" to "Serbien (exkl. Kosovo)"
+        "Serbien" to "Serbien (exkl. Kosovo)",
+        "staatenlos" to "Staatenlos",
+        "Bosnien-Herzogowina" to "Bosnien und Herzegowina",
+        "Aserbaidschan" to "Aserbeidschan",
+        "Tibet" to "China",
+        "Mazedonien" to "Republik Nordmazedonien",
+        "Jugoslawien (alt)" to "Staatenlos",
+        "_neues Land" to "Staatenlos",
+        "USA" to "USA - Vereinigte Staaten",
+        "Belarus" to "Belarus (Weissrussland)",
+        "Tschechische Republik" to "Tschechien",
+        "Latvia" to "Lettland"
     )
 
     fun migrate(oldConn: Connection, newConn: Connection): List<String> {
@@ -25,7 +36,8 @@ class CustomerMigrator {
     private fun readCustomers(oldConn: Connection, newConn: Connection): List<Customer> {
         val customerList = mutableListOf<Customer>()
 
-        val selectCustomersSql = "select * from kunden"
+        val selectCustomersSql =
+            "select * from kunden where kunden.kunr not in ('44a', '45a', '158a', '381a')" // skip invalid ids cause they are anyways very old
         val stmt = oldConn.createStatement()
         val result = stmt.executeQuery(selectCustomersSql)
 
@@ -59,18 +71,20 @@ class CustomerMigrator {
                 incomeDue = defaultDate
             }
 
+            var birthDate: LocalDate? = result.getDate("geboren")?.toLocalDate()
+            if (birthDate == null) {
+                birthDate = defaultDate
+            }
+
             val customer = Customer(
                 customerId = result.getLong("kunr"),
                 userId = userId,
                 firstname = result.getString("vorname").trim().ifBlank { "unbekannt" },
                 lastname = result.getString("zuname").trim().ifBlank { "unbekannt" },
-                birthDate = result.getDate("geboren").toLocalDate(),
+                birthDate = birthDate!!,
                 countryId = countryId!!,
                 addressStreet = result.getString("adresse").trim().ifBlank { "unbekannt" },
-                addressHouseNumber = result.getString("adresse").trim().ifBlank { "unbekannt" },
-                addressStairway = result.getString("adresse").trim().ifBlank { "unbekannt" },
-                addressPostalCode = result.getString("plz").toInt(),
-                addressDoor = null,
+                addressPostalCode = result.getString("plz")?.toInt(),
                 addressCity = result.getString("ort").trim().ifBlank { "unbekannt" },
                 telephoneNumber = result.getString("telefon").trim().ifBlank { null },
                 email = result.getString("email").trim().ifBlank { null },
@@ -130,10 +144,7 @@ class CustomerMigrator {
             birthDate = customer.birthDate,
             countryId = customer.countryId,
             addressStreet = customer.addressStreet,
-            addressHouseNumber = customer.addressHouseNumber,
-            addressStairway = customer.addressStairway,
             addressPostalCode = customer.addressPostalCode,
-            addressDoor = customer.addressDoor,
             addressCity = customer.addressCity,
             telephoneNumber = customer.telephoneNumber,
             email = customer.email,
@@ -149,26 +160,18 @@ class CustomerMigrator {
 
     private fun generateInserts(customer: CustomerNew): List<String> {
         val customerSql =
-            """INSERT INTO customers (id, created_at, updated_at, customer_id, user_id, firstname, lastname, birth_date, country_id, address_street, address_housenumber, address_stairway, address_postalcode, address_city, address_door, telephone_number, email, employer, income, income_due, valid_until, migrated, migration_date)
-                VALUES (${customer.id}, ${customer.createdAt.format(DateTimeFormatter.ISO_DATE_TIME)}, ${
-                customer.updatedAt.format(
-                    DateTimeFormatter.ISO_DATE_TIME
-                )
-            },
-                ${customer.customerId}, ${customer.userId}, ${customer.firstname}, ${customer.lastname},
-                ${customer.birthDate.format(DateTimeFormatter.ISO_DATE_TIME)}, ${customer.countryId}, ${customer.addressStreet},
-                ${customer.addressHouseNumber}, ${customer.addressStairway}, ${customer.addressPostalCode},
-                ${customer.addressCity}, ${customer.addressDoor}, ${customer.telephoneNumber},
-                ${customer.email}, ${customer.employer}, ${customer.income}, ${
-                customer.incomeDue.format(
-                    DateTimeFormatter.ISO_DATE_TIME
-                )
-            },
-                ${customer.validUntil.format(DateTimeFormatter.ISO_DATE_TIME)}, ${customer.migrated}, ${
-                customer.migrationDate.format(
-                    DateTimeFormatter.ISO_DATE_TIME
-                )
-            });
+            """INSERT INTO customers (id, created_at, updated_at, customer_id, user_id, firstname, lastname, birth_date, country_id, address_street, address_postalcode, address_city, telephone_number, email, employer, income, income_due, valid_until, migrated, migration_date)
+                VALUES (${customer.id},
+                '${customer.createdAt.format(DateTimeFormatter.ISO_DATE_TIME)}',
+                '${customer.updatedAt.format(DateTimeFormatter.ISO_DATE_TIME)}',
+                ${customer.customerId}, ${customer.userId}, '${customer.firstname}', '${customer.lastname}',
+                '${customer.birthDate.format(DateTimeFormatter.ISO_DATE)}', ${customer.countryId},
+                '${customer.addressStreet}', '${customer.addressPostalCode}', '${customer.addressCity}',
+                '${customer.telephoneNumber}', '${customer.email}',
+                '${customer.employer}', ${customer.income},
+                '${customer.incomeDue.format(DateTimeFormatter.ISO_DATE)}',
+                '${customer.validUntil.format(DateTimeFormatter.ISO_DATE)}',
+                ${customer.migrated}, '${customer.migrationDate.format(DateTimeFormatter.ISO_DATE_TIME)}');
             """.trimIndent()
 
         return listOf(customerSql)
@@ -184,10 +187,7 @@ data class Customer(
     val birthDate: LocalDate,
     val countryId: Long,
     val addressStreet: String,
-    val addressHouseNumber: String,
-    val addressStairway: String?,
-    val addressPostalCode: Int,
-    val addressDoor: String?,
+    val addressPostalCode: Int?,
     val addressCity: String,
     val telephoneNumber: String?,
     val email: String?,
@@ -208,10 +208,7 @@ data class CustomerNew(
     val birthDate: LocalDate,
     val countryId: Long,
     val addressStreet: String,
-    val addressHouseNumber: String,
-    val addressStairway: String?,
-    val addressPostalCode: Int,
-    val addressDoor: String?,
+    val addressPostalCode: Int?,
     val addressCity: String,
     val telephoneNumber: String?,
     val email: String?,
