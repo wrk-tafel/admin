@@ -171,7 +171,7 @@ class CustomerMigrator {
                 '${customer.employer}', ${customer.income},
                 '${customer.incomeDue.format(DateTimeFormatter.ISO_DATE)}',
                 '${customer.validUntil.format(DateTimeFormatter.ISO_DATE)}',
-                ${customer.migrated}, '${customer.migrationDate.format(DateTimeFormatter.ISO_DATE_TIME)}');
+                ${customer.migrated}, '${customer.migrationDate.format(DateTimeFormatter.ISO_DATE_TIME)}') ON CONFLICT DO NOTHING;
             """.trimIndent()
 
         return listOf(customerSql)
