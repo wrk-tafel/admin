@@ -161,6 +161,10 @@ class CustomerService(
             customerEntity.lockReason = null
         }
 
+        // TODO remove after some time
+        // once the customer was updated/fixed the required fields - migration is done
+        customerEntity.migrated = false
+
         customerEntity.additionalPersons.clear()
         customerEntity.additionalPersons.addAll(
             customer.additionalPersons.map {
