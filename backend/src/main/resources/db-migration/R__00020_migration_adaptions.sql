@@ -13,3 +13,9 @@ alter table customers
 
 alter table customers
     alter column user_id drop not null;
+
+alter table customers
+    alter column address_postalcode drop not null;
+
+alter table customers
+    alter column address_city drop not null;

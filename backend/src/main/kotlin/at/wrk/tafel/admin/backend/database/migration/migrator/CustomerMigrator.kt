@@ -164,14 +164,24 @@ class CustomerMigrator {
                 VALUES (${customer.id},
                 '${customer.createdAt.format(DateTimeFormatter.ISO_DATE_TIME)}',
                 '${customer.updatedAt.format(DateTimeFormatter.ISO_DATE_TIME)}',
-                ${customer.customerId}, ${customer.userId}, '${customer.firstname}', '${customer.lastname}',
-                '${customer.birthDate.format(DateTimeFormatter.ISO_DATE)}', ${customer.countryId},
-                '${customer.addressStreet}', '${customer.addressPostalCode}', '${customer.addressCity}',
-                '${customer.telephoneNumber}', '${customer.email}',
-                '${customer.employer}', ${customer.income},
+                ${customer.customerId},
+                ${customer.userId},
+                '${customer.firstname}',
+                '${customer.lastname}',
+                '${customer.birthDate.format(DateTimeFormatter.ISO_DATE)}',
+                ${customer.countryId},
+                '${customer.addressStreet}',
+                ${ if (customer.addressPostalCode != null) "'" + customer.addressPostalCode + "'" else "null" },
+                ${ if (customer.addressCity != null) "'" + customer.addressCity + "'" else "null" },
+                ${ if (customer.telephoneNumber != null) "'" + customer.telephoneNumber + "'" else "null" },
+                ${ if (customer.email != null) "'" + customer.email + "'" else "null" },
+                ${ if (customer.employer != null) "'" + customer.employer + "'" else "null" },
+                ${customer.income},
                 '${customer.incomeDue.format(DateTimeFormatter.ISO_DATE)}',
                 '${customer.validUntil.format(DateTimeFormatter.ISO_DATE)}',
-                ${customer.migrated}, '${customer.migrationDate.format(DateTimeFormatter.ISO_DATE_TIME)}') ON CONFLICT DO NOTHING;
+                ${customer.migrated},
+                '${customer.migrationDate.format(DateTimeFormatter.ISO_DATE_TIME)}'
+                ) ON CONFLICT DO NOTHING;
             """.trimIndent()
 
         return listOf(customerSql)
@@ -188,7 +198,7 @@ data class Customer(
     val countryId: Long,
     val addressStreet: String,
     val addressPostalCode: Int?,
-    val addressCity: String,
+    val addressCity: String?,
     val telephoneNumber: String?,
     val email: String?,
     val employer: String,
@@ -209,7 +219,7 @@ data class CustomerNew(
     val countryId: Long,
     val addressStreet: String,
     val addressPostalCode: Int?,
-    val addressCity: String,
+    val addressCity: String?,
     val telephoneNumber: String?,
     val email: String?,
     val employer: String,

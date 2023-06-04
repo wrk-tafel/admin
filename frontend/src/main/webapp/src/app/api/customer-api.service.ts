@@ -102,8 +102,8 @@ export interface CustomerAddressData {
   houseNumber?: string;
   stairway?: string;
   door?: string;
-  postalCode: number;
-  city: string;
+  postalCode?: number;
+  city?: string;
 }
 
 export interface CustomerAddPersonData {
