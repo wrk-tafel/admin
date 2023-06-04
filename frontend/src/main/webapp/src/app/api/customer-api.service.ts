@@ -99,9 +99,9 @@ export interface CustomerIssuer {
 
 export interface CustomerAddressData {
   street: string;
-  houseNumber: string;
+  houseNumber?: string;
   stairway?: string;
-  door: string;
+  door?: string;
   postalCode: number;
   city: string;
 }
