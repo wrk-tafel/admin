@@ -25,7 +25,10 @@ fun main() {
 fun executeStatements(conn: Connection, sqlStatements: List<String>) {
     val stmt = conn.createStatement()
     println("Executing statements to database ...")
-    sqlStatements.forEach { stmt.execute(it) }
+    sqlStatements.forEach {
+        println(it)
+        stmt.execute(it)
+    }
     println("Executing statements to database ... Finished")
     stmt.close()
 }

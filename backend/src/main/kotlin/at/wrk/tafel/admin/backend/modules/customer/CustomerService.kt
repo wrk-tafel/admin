@@ -137,7 +137,7 @@ class CustomerService(
         customerEntity.birthDate = customer.birthDate
         customerEntity.country = countryRepository.findById(customer.country.id).get()
         customerEntity.addressStreet = customer.address.street.trim()
-        customerEntity.addressHouseNumber = customer.address.houseNumber.trim()
+        customerEntity.addressHouseNumber = customer.address.houseNumber?.trim()
         customerEntity.addressStairway = customer.address.stairway?.trim()
         customerEntity.addressDoor = customer.address.door?.trim()
         customerEntity.addressPostalCode = customer.address.postalCode
@@ -198,7 +198,7 @@ class CustomerService(
         country = mapCountryToResponse(customerEntity.country!!),
         address = CustomerAddress(
             street = customerEntity.addressStreet!!,
-            houseNumber = customerEntity.addressHouseNumber!!,
+            houseNumber = customerEntity.addressHouseNumber,
             stairway = customerEntity.addressStairway,
             door = customerEntity.addressDoor,
             postalCode = customerEntity.addressPostalCode!!,
