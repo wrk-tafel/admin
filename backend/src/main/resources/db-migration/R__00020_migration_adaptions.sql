@@ -10,3 +10,6 @@ alter table if exists customers
 
 alter table customers
     alter column address_housenumber drop not null;
+
+alter table customers
+    alter column user_id drop not null;
