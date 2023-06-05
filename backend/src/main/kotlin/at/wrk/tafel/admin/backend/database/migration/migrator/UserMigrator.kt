@@ -76,13 +76,13 @@ class UserMigrator {
                 VALUES (${user.id}, '${user.createdAt.format(DateTimeFormatter.ISO_DATE_TIME)}',
                 '${user.updatedAt.format(DateTimeFormatter.ISO_DATE_TIME)}',
                 '${user.username}', '${user.password}', ${user.enabled}, '${user.personnelNumber}', '${user.firstname}', '${user.lastname}', ${user.passwordChangeRequired}, ${user.migrated},
-                '${user.migrationDate.format(DateTimeFormatter.ISO_DATE_TIME)}') ON CONFLICT DO NOTHING;
+                '${user.migrationDate.format(DateTimeFormatter.ISO_DATE_TIME)}');
             """.trimIndent()
         val authoritiesSql = """INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
                 VALUES (${5000 + user.id},
                 '${user.createdAt.format(DateTimeFormatter.ISO_DATE_TIME)}',
                 '${user.updatedAt.format(DateTimeFormatter.ISO_DATE_TIME)}',
-                ${user.id}, 'DASHBOARD') ON CONFLICT DO NOTHING;
+                ${user.id}, 'DASHBOARD');
             """.trimIndent()
 
         return listOf(userSql, authoritiesSql)

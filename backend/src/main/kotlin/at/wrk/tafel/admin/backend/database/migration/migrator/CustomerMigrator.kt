@@ -251,7 +251,7 @@ class CustomerMigrator {
                 '${customer.validUntil.format(DateTimeFormatter.ISO_DATE)}',
                 ${customer.migrated},
                 '${customer.migrationDate.format(DateTimeFormatter.ISO_DATE_TIME)}'
-                ) ON CONFLICT DO NOTHING;
+                );
             """.trimIndent()
 
         val persInserts = customer.additionalPersons.map {
@@ -269,8 +269,7 @@ class CustomerMigrator {
                 '${it.incomeDue.format(DateTimeFormatter.ISO_DATE)}',
                 ${it.countryId},
                 ${if (it.employer != null) "'" + it.employer.replace("'", "''") + "'" else "null"}
-                )
-                ON CONFLICT DO NOTHING;
+                );
             """.trimIndent()
         }
 
