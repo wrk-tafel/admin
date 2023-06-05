@@ -207,7 +207,18 @@ class CustomerMigrator {
             income = customer.income,
             incomeDue = customer.incomeDue,
             validUntil = customer.validUntil,
-            additionalPersons = emptyList(), // TODO
+            additionalPersons = customer.additionalPersons.map {
+                CustomerNewAddPerson(
+                    customerId = it.customerId,
+                    firstname = it.firstname,
+                    lastname = it.lastname,
+                    birthDate = it.birthDate,
+                    employer = it.employer,
+                    income = it.income,
+                    incomeDue = it.incomeDue,
+                    countryId = it.countryId
+                )
+            },
             migrated = true,
             migrationDate = LocalDateTime.now()
         )
@@ -303,7 +314,7 @@ data class CustomerNewAddPerson(
     val firstname: String,
     val lastname: String,
     val birthDate: LocalDate,
-    val employer: String,
+    val employer: String?,
     val income: BigDecimal,
     val incomeDue: LocalDate,
     val countryId: Long
