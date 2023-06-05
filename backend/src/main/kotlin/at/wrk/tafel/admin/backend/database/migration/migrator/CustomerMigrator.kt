@@ -120,7 +120,7 @@ class CustomerMigrator {
     private fun readAddPersonsForKunr(conn: Connection, newConn: Connection, kunr: Long): List<CustomerAddPerson> {
         val persList = mutableListOf<CustomerAddPerson>()
 
-        val sql = "select * from kunden_personen where kunr = $kunr"
+        val sql = "select * from kunden_personen where kunr = '$kunr'"
         val stmt = conn.createStatement()
         val result = stmt.executeQuery(sql)
 
@@ -210,11 +210,9 @@ class CustomerMigrator {
             incomeDue = customer.incomeDue,
             validUntil = customer.validUntil,
             additionalPersons = customer.additionalPersons.mapIndexed { persIndex, pers ->
-                // TODO adapt id start
-                addPersId += persIndex.toLong()
-
                 CustomerNewAddPerson(
-                    id = addPersId,
+                    // TODO adapt id start
+                    id = addPersId++,
                     customerId = pers.customerId,
                     firstname = pers.firstname,
                     lastname = pers.lastname,
@@ -266,11 +264,11 @@ class CustomerMigrator {
                 ${it.customerId},
                 '${it.firstname}',
                 '${it.lastname}',
-                '${customer.birthDate.format(DateTimeFormatter.ISO_DATE)}',
+                '${it.birthDate.format(DateTimeFormatter.ISO_DATE)}',
                 ${it.income},
-                '${customer.incomeDue.format(DateTimeFormatter.ISO_DATE)}',
+                '${it.incomeDue.format(DateTimeFormatter.ISO_DATE)}',
                 ${it.countryId},
-                ${if (customer.employer != null) "'" + customer.employer + "'" else "null"}
+                ${if (it.employer != null) "'" + it.employer.replace("'", "''") + "'" else "null"}
                 )
                 ON CONFLICT DO NOTHING;
             """.trimIndent()
