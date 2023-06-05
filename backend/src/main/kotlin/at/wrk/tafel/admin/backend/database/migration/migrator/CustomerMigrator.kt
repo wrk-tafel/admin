@@ -26,6 +26,8 @@ class CustomerMigrator {
         "Latvia" to "Lettland"
     )
 
+    val defaultDate = LocalDate.of(1900, 1, 1)
+
     fun migrate(oldConn: Connection, newConn: Connection): List<String> {
         val customers = readCustomers(oldConn, newConn)
         return customers
@@ -41,30 +43,14 @@ class CustomerMigrator {
         val stmt = oldConn.createStatement()
         val result = stmt.executeQuery(selectCustomersSql)
 
-        val defaultDate = LocalDate.of(1900, 1, 1)
-
         while (result.next()) {
             val dnr = result.getLong("dnr1")
+            val kunr = result.getLong("kunr")
             val userId = getUserIdForDnr(newConn, dnr)
             var countryId: Long?
 
             val countryName = result.getString("nationale")?.trim()?.ifBlank { null }
-            if (countryName != null) {
-                countryId = getCountryIdForName(newConn, countryName)
-                if (countryId == null) {
-                    val replacement = COUNTRY_REMAPPING[countryName]
-                    if (replacement != null) {
-                        countryId = getCountryIdForName(newConn, replacement)
-                        if (countryId == null) {
-                            println("COUNTRY REPLACEMENT '$replacement' NOT FOUND, record: ${result.getLong("kunr")}")
-                        }
-                    } else {
-                        println("NO COUNTRY REPLACEMENT FOR '$countryName', record: ${result.getLong("kunr")}")
-                    }
-                }
-            } else {
-                countryId = getCountryIdForName(newConn, "Staatenlos")
-            }
+            countryId = migrateCountryName(kunr, countryName, newConn)
 
             var incomeDue: LocalDate? = result.getDate("einkommen_bis")?.toLocalDate()
             if (incomeDue == null) {
@@ -76,13 +62,15 @@ class CustomerMigrator {
                 birthDate = defaultDate
             }
 
+            val addPersons = readAddPersonsForKunr(oldConn, newConn, kunr)
+
             val customer = Customer(
-                customerId = result.getLong("kunr"),
+                customerId = kunr,
                 userId = userId,
                 firstname = result.getString("vorname").trim().ifBlank { "unbekannt" },
                 lastname = result.getString("zuname").trim().ifBlank { "unbekannt" },
                 birthDate = birthDate!!,
-                countryId = countryId!!,
+                countryId = countryId,
                 addressStreet = result.getString("adresse").trim().ifBlank { "unbekannt" },
                 addressPostalCode = result.getString("plz")?.toInt(),
                 addressCity = result.getString("ort").trim().ifBlank { "unbekannt" },
@@ -91,7 +79,8 @@ class CustomerMigrator {
                 employer = result.getString("arbeitgeber").trim().ifBlank { "unbekannt" },
                 income = result.getBigDecimal("einkommen"),
                 incomeDue = incomeDue!!,
-                validUntil = result.getDate("gueltig_bis").toLocalDate()
+                validUntil = result.getDate("gueltig_bis").toLocalDate(),
+                additionalPersons = addPersons
             )
             customerList.add(customer)
         }
@@ -99,6 +88,72 @@ class CustomerMigrator {
         result.close()
         stmt.close()
         return customerList
+    }
+
+    private fun migrateCountryName(
+        kunr: Long,
+        countryName: String?,
+        newConn: Connection
+    ): Long {
+        var countryId: Long?
+        if (countryName != null) {
+            countryId = getCountryIdForName(newConn, countryName)
+            if (countryId == null) {
+                val replacement = COUNTRY_REMAPPING[countryName]
+                if (replacement != null) {
+                    countryId = getCountryIdForName(newConn, replacement)
+                    if (countryId == null) {
+                        println("COUNTRY REPLACEMENT '$replacement' NOT FOUND, record: $kunr")
+                    }
+                } else {
+                    println("NO COUNTRY REPLACEMENT FOR '$countryName', record: $kunr")
+                }
+            }
+        } else {
+            countryId = getCountryIdForName(newConn, "Staatenlos")
+        }
+        return countryId!!
+    }
+
+    private fun readAddPersonsForKunr(conn: Connection, newConn: Connection, kunr: Long): List<CustomerAddPerson> {
+        val persList = mutableListOf<CustomerAddPerson>()
+
+        val sql = "select * from kunden_personen where kunr = $kunr"
+        val stmt = conn.createStatement()
+        val result = stmt.executeQuery(sql)
+
+        var birthDate: LocalDate? = result.getDate("geboren")?.toLocalDate()
+        if (birthDate == null) {
+            birthDate = defaultDate
+        }
+
+        var incomeDue: LocalDate? = result.getDate("einkommen_vom")?.toLocalDate()
+        if (incomeDue == null) {
+            incomeDue = defaultDate
+        }
+
+        while (result.next()) {
+            val countryName = result.getString("nationale")?.trim()?.ifBlank { null }
+            val countryId = migrateCountryName(kunr, countryName, newConn)
+
+            val person = CustomerAddPerson(
+                customerId = kunr,
+                firstname = result.getString("vorname"),
+                lastname = result.getString("zuname"),
+                birthDate = birthDate!!,
+                employer = result.getString("arbeitgeber")?.trim()?.ifBlank { null },
+                income = result.getBigDecimal("einkommen"),
+                incomeDue = incomeDue!!,
+                countryId = countryId
+            )
+
+            persList.add(person)
+        }
+
+        result.close()
+        stmt.close()
+
+        return persList
     }
 
     private fun getUserIdForDnr(conn: Connection, dnr: Long): Long? {
@@ -171,11 +226,11 @@ class CustomerMigrator {
                 '${customer.birthDate.format(DateTimeFormatter.ISO_DATE)}',
                 ${customer.countryId},
                 '${customer.addressStreet}',
-                ${ if (customer.addressPostalCode != null) "'" + customer.addressPostalCode + "'" else "null" },
-                ${ if (customer.addressCity != null) "'" + customer.addressCity + "'" else "null" },
-                ${ if (customer.telephoneNumber != null) "'" + customer.telephoneNumber + "'" else "null" },
-                ${ if (customer.email != null) "'" + customer.email + "'" else "null" },
-                ${ if (customer.employer != null) "'" + customer.employer + "'" else "null" },
+                ${if (customer.addressPostalCode != null) "'" + customer.addressPostalCode + "'" else "null"},
+                ${if (customer.addressCity != null) "'" + customer.addressCity + "'" else "null"},
+                ${if (customer.telephoneNumber != null) "'" + customer.telephoneNumber + "'" else "null"},
+                ${if (customer.email != null) "'" + customer.email + "'" else "null"},
+                ${if (customer.employer != null) "'" + customer.employer + "'" else "null"},
                 ${customer.income},
                 '${customer.incomeDue.format(DateTimeFormatter.ISO_DATE)}',
                 '${customer.validUntil.format(DateTimeFormatter.ISO_DATE)}',
@@ -205,6 +260,18 @@ data class Customer(
     val income: BigDecimal,
     val incomeDue: LocalDate,
     val validUntil: LocalDate,
+    val additionalPersons: List<CustomerAddPerson>
+)
+
+data class CustomerAddPerson(
+    val customerId: Long,
+    val firstname: String,
+    val lastname: String,
+    val birthDate: LocalDate,
+    val employer: String?,
+    val income: BigDecimal,
+    val incomeDue: LocalDate,
+    val countryId: Long
 )
 
 data class CustomerNew(
