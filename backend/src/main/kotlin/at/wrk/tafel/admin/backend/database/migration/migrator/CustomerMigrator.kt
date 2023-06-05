@@ -28,6 +28,8 @@ class CustomerMigrator {
 
     val defaultDate = LocalDate.of(1900, 1, 1)
 
+    var addPersId = 1000L
+
     fun migrate(oldConn: Connection, newConn: Connection): List<String> {
         val customers = readCustomers(oldConn, newConn)
         return customers
@@ -122,17 +124,17 @@ class CustomerMigrator {
         val stmt = conn.createStatement()
         val result = stmt.executeQuery(sql)
 
-        var birthDate: LocalDate? = result.getDate("geboren")?.toLocalDate()
-        if (birthDate == null) {
-            birthDate = defaultDate
-        }
-
-        var incomeDue: LocalDate? = result.getDate("einkommen_vom")?.toLocalDate()
-        if (incomeDue == null) {
-            incomeDue = defaultDate
-        }
-
         while (result.next()) {
+            var birthDate: LocalDate? = result.getDate("geboren")?.toLocalDate()
+            if (birthDate == null) {
+                birthDate = defaultDate
+            }
+
+            var incomeDue: LocalDate? = result.getDate("einkommen_vom")?.toLocalDate()
+            if (incomeDue == null) {
+                incomeDue = defaultDate
+            }
+
             val countryName = result.getString("nationale")?.trim()?.ifBlank { null }
             val countryId = migrateCountryName(kunr, countryName, newConn)
 
@@ -207,16 +209,20 @@ class CustomerMigrator {
             income = customer.income,
             incomeDue = customer.incomeDue,
             validUntil = customer.validUntil,
-            additionalPersons = customer.additionalPersons.map {
+            additionalPersons = customer.additionalPersons.mapIndexed { persIndex, pers ->
+                // TODO adapt id start
+                addPersId += persIndex.toLong()
+
                 CustomerNewAddPerson(
-                    customerId = it.customerId,
-                    firstname = it.firstname,
-                    lastname = it.lastname,
-                    birthDate = it.birthDate,
-                    employer = it.employer,
-                    income = it.income,
-                    incomeDue = it.incomeDue,
-                    countryId = it.countryId
+                    id = addPersId,
+                    customerId = pers.customerId,
+                    firstname = pers.firstname,
+                    lastname = pers.lastname,
+                    birthDate = pers.birthDate,
+                    employer = pers.employer,
+                    income = pers.income,
+                    incomeDue = pers.incomeDue,
+                    countryId = pers.countryId
                 )
             },
             migrated = true,
@@ -250,9 +256,28 @@ class CustomerMigrator {
                 ) ON CONFLICT DO NOTHING;
             """.trimIndent()
 
-        return listOf(customerSql)
-    }
+        val persInserts = customer.additionalPersons.map {
+            """
+                INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, income, income_due, country_id, employer)
+                VALUES (
+                ${it.id},
+                NOW(),
+                NOW(),
+                ${it.customerId},
+                '${it.firstname}',
+                '${it.lastname}',
+                '${customer.birthDate.format(DateTimeFormatter.ISO_DATE)}',
+                ${it.income},
+                '${customer.incomeDue.format(DateTimeFormatter.ISO_DATE)}',
+                ${it.countryId},
+                ${if (customer.employer != null) "'" + customer.employer + "'" else "null"}
+                )
+                ON CONFLICT DO NOTHING;
+            """.trimIndent()
+        }
 
+        return listOf(customerSql) + persInserts
+    }
 }
 
 data class Customer(
@@ -310,6 +335,7 @@ data class CustomerNew(
 )
 
 data class CustomerNewAddPerson(
+    val id: Long,
     val customerId: Long,
     val firstname: String,
     val lastname: String,
