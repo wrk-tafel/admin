@@ -279,6 +279,7 @@ class CustomerMigrator {
     }
 }
 
+@ExcludeFromTestCoverage
 data class Customer(
     val customerId: Long,
     val userId: Long?,
@@ -298,6 +299,7 @@ data class Customer(
     val additionalPersons: List<CustomerAddPerson>
 )
 
+@ExcludeFromTestCoverage
 data class CustomerAddPerson(
     val customerId: Long,
     val firstname: String,
@@ -309,6 +311,7 @@ data class CustomerAddPerson(
     val countryId: Long
 )
 
+@ExcludeFromTestCoverage
 data class CustomerNew(
     val id: Long,
     val createdAt: LocalDateTime,
@@ -333,6 +336,7 @@ data class CustomerNew(
     val migrationDate: LocalDateTime
 )
 
+@ExcludeFromTestCoverage
 data class CustomerNewAddPerson(
     val id: Long,
     val customerId: Long,

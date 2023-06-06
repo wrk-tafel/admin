@@ -92,6 +92,7 @@ class UserMigrator {
 
 }
 
+@ExcludeFromTestCoverage
 data class User(
     val personnelNumber: Long,
     val firstname: String,
@@ -100,6 +101,7 @@ data class User(
     val password: String?
 )
 
+@ExcludeFromTestCoverage
 data class UserNew(
     val id: Long,
     val createdAt: LocalDateTime,
