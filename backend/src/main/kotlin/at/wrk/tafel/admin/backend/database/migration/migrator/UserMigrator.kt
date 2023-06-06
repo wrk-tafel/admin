@@ -1,11 +1,13 @@
 package at.wrk.tafel.admin.backend.database.migration.migrator
 
+import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder
 import java.sql.Connection
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import kotlin.random.Random
 
+@ExcludeFromTestCoverage
 class UserMigrator {
 
     fun migrate(conn: Connection): List<String> {

@@ -1,11 +1,13 @@
 package at.wrk.tafel.admin.backend.database.migration.migrator
 
+import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import java.math.BigDecimal
 import java.sql.Connection
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
+@ExcludeFromTestCoverage
 class CustomerMigrator {
 
     val COUNTRY_REMAPPING = mapOf(
