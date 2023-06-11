@@ -18,15 +18,11 @@ fun main() {
 
     val userStatements = UserMigrator().migrate(oldConn, newConn)
     FileUtils.writeLines(File("D:\\development", "users.sql"), userStatements)
-
     executeStatements(newConn, userStatements)
 
-    /*
     val customerStatements = CustomerMigrator().migrate(oldConn, newConn)
     FileUtils.writeLines(File("D:\\development", "customers.sql"), customerStatements)
-
     executeStatements(newConn, customerStatements)
-     */
 
     oldConn.close()
     newConn.close()

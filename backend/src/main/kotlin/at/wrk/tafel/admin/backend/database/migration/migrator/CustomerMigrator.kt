@@ -36,7 +36,7 @@ class CustomerMigrator {
         val customers = readCustomers(oldConn, newConn)
         return customers
             .mapIndexed { index, user -> mapToNewCustomer(user, index) }
-            .flatMap { generateInserts(it) }
+            .flatMap { generateInserts(it, newConn) }
     }
 
     private fun readCustomers(oldConn: Connection, newConn: Connection): List<Customer> {
@@ -192,8 +192,6 @@ class CustomerMigrator {
 
     private fun mapToNewCustomer(customer: Customer, index: Int): CustomerNew {
         return CustomerNew(
-            // TODO adapt id start
-            id = 1000 + index.toLong(),
             createdAt = LocalDateTime.now(),
             updatedAt = LocalDateTime.now(),
             customerId = customer.customerId,
@@ -213,9 +211,6 @@ class CustomerMigrator {
             validUntil = customer.validUntil,
             additionalPersons = customer.additionalPersons.mapIndexed { persIndex, pers ->
                 CustomerNewAddPerson(
-                    // TODO adapt id start
-                    id = addPersId++,
-                    customerId = pers.customerId,
                     firstname = pers.firstname,
                     lastname = pers.lastname,
                     birthDate = pers.birthDate,
@@ -230,10 +225,12 @@ class CustomerMigrator {
         )
     }
 
-    private fun generateInserts(customer: CustomerNew): List<String> {
+    private fun generateInserts(customer: CustomerNew, conn: Connection): List<String> {
+        val newCustomerId = getIdFromSequence(conn)
+
         val customerSql =
             """INSERT INTO customers (id, created_at, updated_at, customer_id, user_id, firstname, lastname, birth_date, country_id, address_street, address_postalcode, address_city, telephone_number, email, employer, income, income_due, valid_until, migrated, migration_date)
-                VALUES (${customer.id},
+                VALUES ($newCustomerId,
                 '${customer.createdAt.format(DateTimeFormatter.ISO_DATE_TIME)}',
                 '${customer.updatedAt.format(DateTimeFormatter.ISO_DATE_TIME)}',
                 ${customer.customerId},
@@ -257,13 +254,15 @@ class CustomerMigrator {
             """.trimIndent()
 
         val persInserts = customer.additionalPersons.map {
+            val newAddPersId = getIdFromSequence(conn)
+
             """
                 INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, income, income_due, country_id, employer)
                 VALUES (
-                ${it.id},
+                $newAddPersId,
                 NOW(),
                 NOW(),
-                ${it.customerId},
+                $newCustomerId,
                 '${it.firstname}',
                 '${it.lastname}',
                 '${it.birthDate.format(DateTimeFormatter.ISO_DATE)}',
@@ -276,6 +275,21 @@ class CustomerMigrator {
         }
 
         return listOf(customerSql) + persInserts
+    }
+
+    private fun getIdFromSequence(conn: Connection): Long {
+        val sql = "select nextval('hibernate_sequence') as id"
+        val stmt = conn.createStatement()
+        val result = stmt.executeQuery(sql)
+
+        var newId: Long? = null
+        if (result.next()) {
+            newId = result.getLong("id")
+        }
+        result.close()
+        stmt.close()
+
+        return newId!!
     }
 }
 
@@ -313,7 +327,6 @@ data class CustomerAddPerson(
 
 @ExcludeFromTestCoverage
 data class CustomerNew(
-    val id: Long,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime,
     val customerId: Long,
@@ -338,8 +351,6 @@ data class CustomerNew(
 
 @ExcludeFromTestCoverage
 data class CustomerNewAddPerson(
-    val id: Long,
-    val customerId: Long,
     val firstname: String,
     val lastname: String,
     val birthDate: LocalDate,
