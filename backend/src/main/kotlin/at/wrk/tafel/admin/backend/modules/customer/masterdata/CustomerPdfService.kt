@@ -38,8 +38,7 @@ class CustomerPdfService(
     }
 
     private fun createCustomerPdfData(customer: CustomerEntity): PdfData {
-        val user = customer.issuer!!
-        val issuer = "${user.personnelNumber} ${user.firstname} ${user.lastname}"
+        val issuer = customer.issuer?.let { "${it.personnelNumber} ${it.firstname} ${it.lastname}" }
 
         val countPersons = 1 + customer.additionalPersons.size
         val countInfants =
@@ -58,14 +57,14 @@ class CustomerPdfService(
                 firstname = customer.firstname!!,
                 birthDate = customer.birthDate!!.format(DATE_FORMATTER),
                 country = customer.country!!.name!!,
-                telephoneNumber = customer.telephoneNumber,
-                email = customer.email,
+                telephoneNumber = customer.telephoneNumber ?: "-",
+                email = customer.email ?: "-",
                 address = PdfAddressData(
                     street = customer.addressStreet!!,
-                    houseNumber = customer.addressHouseNumber!!,
+                    houseNumber = customer.addressHouseNumber,
                     door = customer.addressDoor,
                     stairway = customer.addressStairway,
-                    postalCode = customer.addressPostalCode!!,
+                    postalCode = customer.addressPostalCode,
                     city = customer.addressCity!!
                 ),
                 employer = customer.employer!!,

@@ -59,7 +59,9 @@ export class CustomerDetailComponent implements OnInit {
 
   formatAddressLine1(address: CustomerAddressData): string {
     let addressLine = address.street;
-    addressLine += ' ' + address.houseNumber;
+    if (address.houseNumber) {
+      addressLine += ' ' + address.houseNumber;
+    }
     if (address.stairway) {
       addressLine += ', Stiege ' + address.stairway;
     }
@@ -82,7 +84,7 @@ export class CustomerDetailComponent implements OnInit {
 
   formatIssuer(issuer: CustomerIssuer): string {
     if (issuer) {
-      return issuer.personnelNumber + ' ' + issuer.firstname + ' ' + issuer.lastname;
+      return 'von ' + issuer.personnelNumber + ' ' + issuer.firstname + ' ' + issuer.lastname;
     }
     return '';
   }

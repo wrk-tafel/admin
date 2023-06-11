@@ -1,12 +1,13 @@
 package at.wrk.tafel.admin.backend.architecture
 
+import at.wrk.tafel.admin.backend.architecture.options.ExcludeDbMigrationImportOption
 import com.tngtech.archunit.junit.AnalyzeClasses
 import com.tngtech.archunit.junit.ArchTest
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noFields
 import com.tngtech.archunit.library.GeneralCodingRules
 import com.tngtech.archunit.library.GeneralCodingRules.BE_ANNOTATED_WITH_AN_INJECTION_ANNOTATION
 
-@AnalyzeClasses(packages = ["at.wrk.tafel.admin.backend"])
+@AnalyzeClasses(packages = ["at.wrk.tafel.admin.backend"], importOptions = [ExcludeDbMigrationImportOption::class])
 class GeneralCodingRulesTest {
 
     @ArchTest

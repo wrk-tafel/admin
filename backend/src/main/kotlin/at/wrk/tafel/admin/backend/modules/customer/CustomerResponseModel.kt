@@ -44,11 +44,11 @@ data class CustomerIssuer(
 @ExcludeFromTestCoverage
 data class CustomerAddress(
     val street: String,
-    val houseNumber: String,
+    val houseNumber: String?,
     val stairway: String? = null,
     val door: String? = null,
-    val postalCode: Int,
-    val city: String
+    val postalCode: Int?,
+    val city: String?
 )
 
 @ExcludeFromTestCoverage

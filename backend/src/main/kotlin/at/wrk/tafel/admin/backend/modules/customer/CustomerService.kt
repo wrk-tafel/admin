@@ -137,11 +137,11 @@ class CustomerService(
         customerEntity.birthDate = customer.birthDate
         customerEntity.country = countryRepository.findById(customer.country.id).get()
         customerEntity.addressStreet = customer.address.street.trim()
-        customerEntity.addressHouseNumber = customer.address.houseNumber.trim()
+        customerEntity.addressHouseNumber = customer.address.houseNumber?.trim()
         customerEntity.addressStairway = customer.address.stairway?.trim()
         customerEntity.addressDoor = customer.address.door?.trim()
         customerEntity.addressPostalCode = customer.address.postalCode
-        customerEntity.addressCity = customer.address.city.trim()
+        customerEntity.addressCity = customer.address.city?.trim()
         customerEntity.telephoneNumber = customer.telephoneNumber
         customerEntity.email = customer.email?.takeIf { it.isNotBlank() }?.trim()
         customerEntity.employer = customer.employer.trim()
@@ -160,6 +160,10 @@ class CustomerService(
             customerEntity.lockedBy = null
             customerEntity.lockReason = null
         }
+
+        // TODO revisit on 01.01.2024 if still necessary
+        // once the customer was updated/fixed the required fields - migration is done
+        customerEntity.migrated = false
 
         customerEntity.additionalPersons.clear()
         customerEntity.additionalPersons.addAll(
@@ -198,11 +202,11 @@ class CustomerService(
         country = mapCountryToResponse(customerEntity.country!!),
         address = CustomerAddress(
             street = customerEntity.addressStreet!!,
-            houseNumber = customerEntity.addressHouseNumber!!,
+            houseNumber = customerEntity.addressHouseNumber,
             stairway = customerEntity.addressStairway,
             door = customerEntity.addressDoor,
-            postalCode = customerEntity.addressPostalCode!!,
-            city = customerEntity.addressCity!!
+            postalCode = customerEntity.addressPostalCode,
+            city = customerEntity.addressCity
         ),
         telephoneNumber = customerEntity.telephoneNumber,
         email = customerEntity.email,

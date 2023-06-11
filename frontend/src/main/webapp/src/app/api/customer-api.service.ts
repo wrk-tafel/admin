@@ -99,11 +99,11 @@ export interface CustomerIssuer {
 
 export interface CustomerAddressData {
   street: string;
-  houseNumber: string;
+  houseNumber?: string;
   stairway?: string;
-  door: string;
-  postalCode: number;
-  city: string;
+  door?: string;
+  postalCode?: number;
+  city?: string;
 }
 
 export interface CustomerAddPersonData {

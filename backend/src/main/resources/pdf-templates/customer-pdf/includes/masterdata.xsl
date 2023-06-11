@@ -118,23 +118,40 @@
                                         </fo:table-cell>
                                         <fo:table-cell>
                                             <fo:block linefeed-treatment="preserve">
-                                                <xsl:variable name="addressData">
+                                                <xsl:variable name="addressDataLine1">
                                                     <xsl:value-of select="$data/address/street"/>
-                                                    <xsl:value-of select="' '"/>
-                                                    <xsl:value-of select="$data/address/houseNumber"/>
-                                                    <xsl:value-of select="'&#xA;'"/>
+                                                    <xsl:if test="$data/address/houseNumber != ''">
+                                                        <xsl:value-of select="' '"/>
+                                                        <xsl:value-of select="$data/address/houseNumber"/>
+                                                    </xsl:if>
+                                                </xsl:variable>
+                                                <xsl:variable name="addressDataLine2">
                                                     <xsl:if test="$data/address/stairway != ''">
-                                                        <xsl:value-of select="' Stiege '"/>
+                                                        <xsl:value-of select="'Stiege '"/>
                                                         <xsl:value-of select="$data/address/stairway"/>
                                                     </xsl:if>
-                                                    <xsl:value-of select="' Top '"/>
-                                                    <xsl:value-of select="$data/address/door"/>
-                                                    <xsl:value-of select="'&#xA;'"/>
-                                                    <xsl:value-of select="$data/address/postalCode"/>
-                                                    <xsl:value-of select="' '"/>
+                                                    <xsl:if test="$data/address/door != ''">
+                                                        <xsl:if test="$data/address/stairway != ''">
+                                                            <xsl:value-of select="' '"/>
+                                                        </xsl:if>
+                                                        <xsl:value-of select="'Top '"/>
+                                                        <xsl:value-of select="$data/address/door"/>
+                                                    </xsl:if>
+                                                </xsl:variable>
+                                                <xsl:variable name="addressDataLine3">
+                                                    <xsl:if test="$data/address/postalCode != ''">
+                                                        <xsl:value-of select="$data/address/postalCode"/>
+                                                    </xsl:if>
+                                                    <xsl:if test="$data/address/postalCode != ''">
+                                                        <xsl:value-of select="' '"/>
+                                                    </xsl:if>
                                                     <xsl:value-of select="$data/address/city"/>
                                                 </xsl:variable>
-                                                <xsl:value-of select="$addressData"/>
+                                                <xsl:value-of select="$addressDataLine1"/>
+                                                <xsl:value-of select="'&#xA;'"/>
+                                                <xsl:value-of select="$addressDataLine2"/>
+                                                <xsl:value-of select="'&#xA;'"/>
+                                                <xsl:value-of select="$addressDataLine3"/>
                                             </fo:block>
                                         </fo:table-cell>
                                     </fo:table-row>
