@@ -117,7 +117,7 @@ class CustomerPdfServiceTest {
         testCustomerMinimal.createdAt = ZonedDateTime.of(
             LocalDate.of(2022, 10, 3), LocalTime.of(10, 10), ZoneId.systemDefault()
         )
-        testCustomerMinimal.customerId = 123
+        testCustomerMinimal.customerId = 456
         testCustomerMinimal.lastname = "Mustermann"
         testCustomerMinimal.firstname = "Max"
         testCustomerMinimal.birthDate = LocalDate.of(1980, 6, 10)
