@@ -35,7 +35,7 @@ class CustomerMigrator {
     fun migrate(oldConn: Connection, newConn: Connection): List<String> {
         val customers = readCustomers(oldConn, newConn)
         return customers
-            .mapIndexed { index, user -> mapToNewCustomer(user, index) }
+            .map { user -> mapToNewCustomer(user) }
             .flatMap { generateInserts(it, newConn) }
     }
 
@@ -190,7 +190,7 @@ class CustomerMigrator {
         return userId
     }
 
-    private fun mapToNewCustomer(customer: Customer, index: Int): CustomerNew {
+    private fun mapToNewCustomer(customer: Customer): CustomerNew {
         return CustomerNew(
             createdAt = LocalDateTime.now(),
             updatedAt = LocalDateTime.now(),

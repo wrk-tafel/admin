@@ -13,7 +13,7 @@ class UserMigrator {
     fun migrate(oldConn: Connection, newConn: Connection): List<String> {
         val users = readUsers(oldConn)
         return users
-            .mapIndexed { index, user -> mapToNewUser(user, index) }
+            .map { user -> mapToNewUser(user) }
             .flatMap { generateInserts(it, newConn) }
     }
 
@@ -42,7 +42,7 @@ class UserMigrator {
         return userList
     }
 
-    private fun mapToNewUser(user: User, index: Int): UserNew {
+    private fun mapToNewUser(user: User): UserNew {
         val argon2PasswordEncoder = Argon2PasswordEncoder(16, 32, 1, 16384, 2)
 
         var password = user.password?.trim()?.ifBlank { null }
