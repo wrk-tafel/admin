@@ -1,6 +1,6 @@
 -- adapt sequences
 SELECT setval('customer_id_sequence', 10000, false);
-SELECT setval('hibernate_sequence', 5000, false);
+SELECT setval('hibernate_sequence', 10000, false);
 
 -- user e2etest for cypress tests
 -- pwd: e2etest

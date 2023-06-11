@@ -10,11 +10,11 @@ import kotlin.random.Random
 @ExcludeFromTestCoverage
 class UserMigrator {
 
-    fun migrate(conn: Connection): List<String> {
-        val users = readUsers(conn)
+    fun migrate(oldConn: Connection, newConn: Connection): List<String> {
+        val users = readUsers(oldConn)
         return users
             .mapIndexed { index, user -> mapToNewUser(user, index) }
-            .flatMap { generateInserts(it) }
+            .flatMap { generateInserts(it, newConn) }
     }
 
     private fun readUsers(
@@ -55,8 +55,6 @@ class UserMigrator {
         }
 
         return UserNew(
-            // TODO adapt id start
-            id = 600 + index.toLong(),
             createdAt = LocalDateTime.now(),
             updatedAt = LocalDateTime.now(),
             username = user.personnelNumber.toString(),
@@ -72,23 +70,41 @@ class UserMigrator {
         )
     }
 
-    private fun generateInserts(user: UserNew): List<String> {
+    private fun generateInserts(user: UserNew, conn: Connection): List<String> {
+        val newUserId = getIdFromSequence(conn)
+        val newAuthorityId = getIdFromSequence(conn)
+
         val pwdComment = "-- generated pwd: ${user.generatedPasswordValue}"
         val userSql =
             """INSERT INTO users (id, created_at, updated_at, username, password, enabled, personnel_number, firstname, lastname, passwordchange_required, migrated, migration_date)
-                VALUES (${user.id}, '${user.createdAt.format(DateTimeFormatter.ISO_DATE_TIME)}',
+                VALUES ($newUserId, '${user.createdAt.format(DateTimeFormatter.ISO_DATE_TIME)}',
                 '${user.updatedAt.format(DateTimeFormatter.ISO_DATE_TIME)}',
                 '${user.username}', '${user.passwordHash}', ${user.enabled}, '${user.personnelNumber}', '${user.firstname}', '${user.lastname}', ${user.passwordChangeRequired}, ${user.migrated},
                 '${user.migrationDate.format(DateTimeFormatter.ISO_DATE_TIME)}');
             """.trimIndent()
         val authoritiesSql = """INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
-                VALUES (${5000 + user.id},
+                VALUES ($newAuthorityId,
                 '${user.createdAt.format(DateTimeFormatter.ISO_DATE_TIME)}',
                 '${user.updatedAt.format(DateTimeFormatter.ISO_DATE_TIME)}',
-                ${user.id}, 'DASHBOARD');
+                $newUserId, 'DASHBOARD');
             """.trimIndent()
 
         return listOf(pwdComment, userSql, authoritiesSql)
+    }
+
+    private fun getIdFromSequence(conn: Connection): Long {
+        val sql = "select nextval('hibernate_sequence') as id"
+        val stmt = conn.createStatement()
+        val result = stmt.executeQuery(sql)
+
+        var newId: Long? = null
+        if (result.next()) {
+            newId = result.getLong("id")
+        }
+        result.close()
+        stmt.close()
+
+        return newId!!
     }
 
 }
@@ -104,7 +120,6 @@ data class User(
 
 @ExcludeFromTestCoverage
 data class UserNew(
-    val id: Long,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime,
     val username: String,

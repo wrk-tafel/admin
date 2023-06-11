@@ -16,15 +16,17 @@ fun main() {
     val newConn = DriverManager.getConnection("jdbc:postgresql://localhost:5432/tafeladmin", "tafeladmin", "admin")
     val oldConn = DriverManager.getConnection("jdbc:mysql://localhost:3306/tafel", "root", "admin")
 
-    val userStatements = UserMigrator().migrate(oldConn)
+    val userStatements = UserMigrator().migrate(oldConn, newConn)
     FileUtils.writeLines(File("D:\\development", "users.sql"), userStatements)
 
     executeStatements(newConn, userStatements)
 
+    /*
     val customerStatements = CustomerMigrator().migrate(oldConn, newConn)
     FileUtils.writeLines(File("D:\\development", "customers.sql"), customerStatements)
 
     executeStatements(newConn, customerStatements)
+     */
 
     oldConn.close()
     newConn.close()
