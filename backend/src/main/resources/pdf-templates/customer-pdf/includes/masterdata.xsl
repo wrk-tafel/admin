@@ -120,16 +120,20 @@
                                             <fo:block linefeed-treatment="preserve">
                                                 <xsl:variable name="addressData">
                                                     <xsl:value-of select="$data/address/street"/>
-                                                    <xsl:value-of select="' '"/>
-                                                    <xsl:value-of select="$data/address/houseNumber"/>
-                                                    <xsl:value-of select="'&#xA;'"/>
+                                                    <xsl:if test="$data/address/houseNumber != ''">
+                                                        <xsl:value-of select="' '"/>
+                                                        <xsl:value-of select="$data/address/houseNumber"/>
+                                                        <xsl:value-of select="'&#xA;'"/>
+                                                    </xsl:if>
                                                     <xsl:if test="$data/address/stairway != ''">
                                                         <xsl:value-of select="' Stiege '"/>
                                                         <xsl:value-of select="$data/address/stairway"/>
                                                     </xsl:if>
-                                                    <xsl:value-of select="' Top '"/>
-                                                    <xsl:value-of select="$data/address/door"/>
-                                                    <xsl:value-of select="'&#xA;'"/>
+                                                    <xsl:if test="$data/address/door != ''">
+                                                        <xsl:value-of select="' Top '"/>
+                                                        <xsl:value-of select="$data/address/door"/>
+                                                        <xsl:value-of select="'&#xA;'"/>
+                                                    </xsl:if>
                                                     <xsl:value-of select="$data/address/postalCode"/>
                                                     <xsl:value-of select="' '"/>
                                                     <xsl:value-of select="$data/address/city"/>

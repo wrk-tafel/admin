@@ -28,6 +28,7 @@ class CustomerPdfServiceTest {
 
     private lateinit var service: CustomerPdfService
     private lateinit var testCustomer: CustomerEntity
+    private lateinit var testCustomerMinimal: CustomerEntity
 
     companion object {
         private val comparisonResultDirectory = File(
@@ -111,6 +112,22 @@ class CustomerPdfServiceTest {
         addPers3.country = testCountry
 
         testCustomer.additionalPersons = mutableListOf(addPers1, addPers2, addPers3)
+
+        testCustomerMinimal = CustomerEntity()
+        testCustomerMinimal.createdAt = ZonedDateTime.of(
+            LocalDate.of(2022, 10, 3), LocalTime.of(10, 10), ZoneId.systemDefault()
+        )
+        testCustomerMinimal.customerId = 123
+        testCustomerMinimal.lastname = "Mustermann"
+        testCustomerMinimal.firstname = "Max"
+        testCustomerMinimal.birthDate = LocalDate.of(1980, 6, 10)
+        testCustomerMinimal.addressStreet = "Karl-Schäfer-Straße"
+        testCustomerMinimal.addressCity = "Wien"
+        testCustomerMinimal.employer = "WRK Team Österreich Tafel"
+        testCustomerMinimal.income = BigDecimal("977.94587")
+        testCustomerMinimal.incomeDue = LocalDate.of(2030, 1, 1)
+        testCustomerMinimal.validUntil = LocalDate.of(2030, 3, 1)
+        testCustomerMinimal.country = testCountry
 
         service = CustomerPdfService(PDFService())
     }
@@ -201,6 +218,16 @@ class CustomerPdfServiceTest {
         assertThat(comparisonFirstPageResult.imageComparisonState).isEqualTo(ImageComparisonState.MATCH)
         assertThat(comparisonSecondPageResult.imageComparisonState).isEqualTo(ImageComparisonState.MATCH)
 
+        document.close()
+    }
+
+    @Test
+    fun `generate combined pdf with minimal data`() {
+        val pdfBytes = service.generateCombinedPdf(testCustomerMinimal)
+        FileUtils.writeByteArrayToFile(File(comparisonResultDirectory, "combined-result.pdf"), pdfBytes)
+
+        val document: PDDocument = PDDocument.load(pdfBytes)
+        assertThat(document.numberOfPages).isEqualTo(2)
         document.close()
     }
 
