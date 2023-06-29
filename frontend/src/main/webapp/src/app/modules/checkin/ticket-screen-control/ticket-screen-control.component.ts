@@ -3,7 +3,7 @@ import {FormControl, FormGroup, Validators} from '@angular/forms';
 import {WebsocketService} from '../../../common/websocket/websocket.service';
 import {TicketScreenMessage} from '../ticket-screen/ticket-screen.component';
 import {DistributionApiService, TicketNumberResponse} from '../../../api/distribution-api.service';
-import {UrlHelperService} from "../../../common/util/url-helper.service";
+import {UrlHelperService} from '../../../common/util/url-helper.service';
 
 @Component({
   selector: 'tafel-ticket-screen-control',
