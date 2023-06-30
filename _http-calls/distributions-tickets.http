@@ -1,0 +1,8 @@
+### Get current ticket
+GET {{baseApiPath}}/distributions/tickets/current
+
+### Get current ticket for customer
+GET {{baseApiPath}}/distributions/tickets/current?customerId=100
+
+### Close current ticket and get the next one
+GET {{baseApiPath}}/distributions/tickets/next
