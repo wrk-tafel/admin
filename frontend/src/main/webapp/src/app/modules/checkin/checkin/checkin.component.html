@@ -114,7 +114,7 @@
         <c-row>
           <c-col>
             <button [disabled]="customerState === 0 || !ticketForm.valid" testid="assignCustomerButton" class="btn btn-success text-white" (click)="assignCustomer()" tabindex="4">Annehmen</button>
-            <button testid="cancelButton" #resetButton class="btn btn-primary text-white ms-3" (click)="cancel()" tabindex="5">Abbrechen</button>
+            <button testid="cancelButton" #cancelButton class="btn btn-primary text-white ms-3" (click)="cancel()" tabindex="5">Abbrechen</button>
           </c-col>
         </c-row>
       </c-card-footer>
