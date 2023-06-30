@@ -325,12 +325,12 @@ describe('CheckinComponent', () => {
       }
     });
     spyOn(component.ticketNumberInputRef.nativeElement, 'focus');
-    component.resetButtonRef = new ElementRef({
+    component.cancelButtonRef = new ElementRef({
       /* eslint-disable @typescript-eslint/no-empty-function */
       focus() {
       }
     });
-    spyOn(component.resetButtonRef.nativeElement, 'focus');
+    spyOn(component.cancelButtonRef.nativeElement, 'focus');
 
     const changeDetectorRef = fixture.debugElement.injector.get(ChangeDetectorRef);
     spyOn(changeDetectorRef.constructor.prototype, 'detectChanges');
@@ -367,7 +367,7 @@ describe('CheckinComponent', () => {
     expect(component.customerState).toBe(CustomerState.RED);
     expect(component.customerStateText).toBe('UNGÜLTIG');
     expect(component.ticketNumberInputRef.nativeElement.focus).not.toHaveBeenCalled();
-    expect(component.resetButtonRef.nativeElement.focus).toHaveBeenCalled();
+    expect(component.cancelButtonRef.nativeElement.focus).toHaveBeenCalled();
   });
 
   it('searchForCustomerId found locked customer', () => {
@@ -379,12 +379,12 @@ describe('CheckinComponent', () => {
       }
     });
     spyOn(component.ticketNumberInputRef.nativeElement, 'focus');
-    component.resetButtonRef = new ElementRef({
+    component.cancelButtonRef = new ElementRef({
       /* eslint-disable @typescript-eslint/no-empty-function */
       focus() {
       }
     });
-    spyOn(component.resetButtonRef.nativeElement, 'focus');
+    spyOn(component.cancelButtonRef.nativeElement, 'focus');
 
     const changeDetectorRef = fixture.debugElement.injector.get(ChangeDetectorRef);
     spyOn(changeDetectorRef.constructor.prototype, 'detectChanges');
@@ -422,7 +422,7 @@ describe('CheckinComponent', () => {
     expect(component.customerState).toBe(CustomerState.RED);
     expect(component.customerStateText).toBe('GESPERRT');
     expect(component.ticketNumberInputRef.nativeElement.focus).not.toHaveBeenCalled();
-    expect(component.resetButtonRef.nativeElement.focus).toHaveBeenCalled();
+    expect(component.cancelButtonRef.nativeElement.focus).toHaveBeenCalled();
   });
 
   it('searchForCustomerId customer not found', () => {
