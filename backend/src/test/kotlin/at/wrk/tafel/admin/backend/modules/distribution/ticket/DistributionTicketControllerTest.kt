@@ -13,6 +13,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.http.HttpStatus
 
 @ExtendWith(MockKExtension::class)
 internal class DistributionTicketControllerTest {
@@ -119,10 +120,27 @@ internal class DistributionTicketControllerTest {
         distributionEntity.id = 123
         distributionEntity.state = DistributionState.DISTRIBUTION
         every { service.getCurrentDistribution() } returns distributionEntity
+        every { service.deleteCurrentTicket(any(), any()) } returns true
 
         val customerId = 123L
-        controller.deleteCurrentTicketForCustomer(customerId)
+        val response = controller.deleteCurrentTicketForCustomer(customerId)
 
+        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+        verify { service.deleteCurrentTicket(distributionEntity, customerId) }
+    }
+
+    @Test
+    fun `delete current ticket for customer failed`() {
+        val distributionEntity = DistributionEntity()
+        distributionEntity.id = 123
+        distributionEntity.state = DistributionState.DISTRIBUTION
+        every { service.getCurrentDistribution() } returns distributionEntity
+        every { service.deleteCurrentTicket(any(), any()) } returns false
+
+        val customerId = 123L
+        val response = controller.deleteCurrentTicketForCustomer(customerId)
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
         verify { service.deleteCurrentTicket(distributionEntity, customerId) }
     }
 

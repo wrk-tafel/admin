@@ -134,6 +134,14 @@ class DistributionService(
         return null
     }
 
+    fun deleteCurrentTicket(distribution: DistributionEntity, customerId: Long): Boolean {
+        val distributionCustomerEntity = getDistributionCustomerEntity(distribution, customerId)
+        return distributionCustomerEntity?.let {
+            distributionCustomerRepository.delete(it)
+            true
+        } ?: false
+    }
+
     private fun mapCustomers(customers: List<DistributionCustomerEntity>): List<CustomerListItem> {
         return customers.map { distributionCustomerEntity ->
             val customer = distributionCustomerEntity.customer
@@ -162,11 +170,6 @@ class DistributionService(
             }
             distributionRepository.save(distribution)
         }
-    }
-
-    fun deleteCurrentTicket(distribution: DistributionEntity, customerId: Long) {
-        val distributionCustomerEntity = getDistributionCustomerEntity(distribution, customerId)
-        distributionCustomerEntity?.let { distributionCustomerRepository.delete(it) }
     }
 
 }

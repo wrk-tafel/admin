@@ -3,6 +3,8 @@ package at.wrk.tafel.admin.backend.modules.distribution.ticket
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.distribution.DistributionService
 import at.wrk.tafel.admin.backend.modules.distribution.model.*
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -25,11 +27,13 @@ class DistributionTicketController(
     @DeleteMapping("/current")
     fun deleteCurrentTicketForCustomer(
         @RequestParam("customerId") customerId: Long
-    ) {
+    ): ResponseEntity<Void> {
         val distribution = service.getCurrentDistribution()
             ?: throw TafelValidationException("Ausgabe nicht gestartet!")
 
-        service.deleteCurrentTicket(distribution, customerId)
+        val deleted = service.deleteCurrentTicket(distribution, customerId)
+        val status = if (deleted) HttpStatus.OK else HttpStatus.BAD_REQUEST
+        return ResponseEntity.status(status).build()
     }
 
     @GetMapping("/next")

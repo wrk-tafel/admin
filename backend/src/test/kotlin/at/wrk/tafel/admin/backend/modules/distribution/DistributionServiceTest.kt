@@ -441,8 +441,10 @@ internal class DistributionServiceTest {
             )
         }
 
-        service.deleteCurrentTicket(testDistributionEntity, testDistributionCustomerEntity2.customer!!.customerId!!)
+        val result =
+            service.deleteCurrentTicket(testDistributionEntity, testDistributionCustomerEntity2.customer!!.customerId!!)
 
+        assertThat(result).isTrue()
         verify(exactly = 1) { distributionCustomerRepository.delete(testDistributionCustomerEntity2) }
     }
 
