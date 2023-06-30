@@ -10,6 +10,7 @@ import {GlobalStateService} from '../../../common/state/global-state.service';
 import {Router} from '@angular/router';
 import {DistributionApiService} from '../../../api/distribution-api.service';
 import {Colors} from '@coreui/angular';
+import {DistributionTicketApiService} from '../../../api/distribution-ticket-api.service';
 
 @Component({
   selector: 'tafel-checkin',
@@ -23,6 +24,7 @@ export class CheckinComponent implements OnInit, OnDestroy {
     private websocketService: WebsocketService,
     private globalStateService: GlobalStateService,
     private distributionApiService: DistributionApiService,
+    private distributionTicketApiService: DistributionTicketApiService,
     private router: Router,
     private changeDetectorRef: ChangeDetectorRef
   ) {
@@ -70,6 +72,10 @@ export class CheckinComponent implements OnInit, OnDestroy {
 
         this.customerNoteApiService.getNotesForCustomer(this.customerId).subscribe(notesResponse => {
           this.customerNotes = notesResponse.notes;
+        });
+
+        this.distributionTicketApiService.getCurrentTicketForCustomer(customerData.id).subscribe((ticketNumberResponse) => {
+          this.ticketNumber = ticketNumberResponse.ticketNumber;
         });
       },
       error: error => {
