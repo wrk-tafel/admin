@@ -106,8 +106,10 @@ class DistributionService(
         return CustomerListPdfResult(filename = filename, bytes = bytes)
     }
 
-    fun getCurrentTicket(distribution: DistributionEntity): Int? {
+    fun getCurrentTicket(distribution: DistributionEntity, customerId: Long? = null): Int? {
         return distribution.customers
+            .asSequence()
+            .filter { customerId == null || it.customer?.customerId == customerId }
             .filter { it.processed == false }
             .sortedBy { it.ticketNumber }
             .map { it.ticketNumber }

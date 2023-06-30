@@ -315,6 +315,23 @@ internal class DistributionServiceTest {
     }
 
     @Test
+    fun `get current ticket for customer`() {
+        val testDistributionEntity = DistributionEntity().apply {
+            id = 123
+            state = DistributionState.DISTRIBUTION
+            customers = listOf(
+                testDistributionCustomerEntity1,
+                testDistributionCustomerEntity2
+            )
+        }
+
+        val ticket =
+            service.getCurrentTicket(testDistributionEntity, testDistributionCustomerEntity2.customer!!.customerId)
+
+        assertThat(ticket).isEqualTo(51)
+    }
+
+    @Test
     fun `get current ticket with all tickets resolved`() {
         val testDistributionCustomerEntity1 = DistributionCustomerEntity().apply {
             id = 1

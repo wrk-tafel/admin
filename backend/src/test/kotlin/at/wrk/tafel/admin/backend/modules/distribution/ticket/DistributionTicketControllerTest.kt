@@ -46,6 +46,22 @@ internal class DistributionTicketControllerTest {
     }
 
     @Test
+    fun `get current ticket for customer`() {
+        val distributionEntity = DistributionEntity()
+        distributionEntity.id = 123
+        distributionEntity.state = DistributionState.DISTRIBUTION
+        every { service.getCurrentDistribution() } returns distributionEntity
+
+        val ticketNumber = 123
+        val customerId = 1L
+        every { service.getCurrentTicket(distributionEntity, customerId) } returns ticketNumber
+
+        val response = controller.getCurrentTicket(customerId)
+
+        assertThat(response.ticketNumber).isEqualTo(ticketNumber)
+    }
+
+    @Test
     fun `get current ticket when ticket is null`() {
         val distributionEntity = DistributionEntity()
         distributionEntity.id = 123

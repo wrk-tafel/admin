@@ -3,7 +3,6 @@ package at.wrk.tafel.admin.backend.modules.distribution.ticket
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.distribution.DistributionService
 import at.wrk.tafel.admin.backend.modules.distribution.model.*
-import org.springframework.messaging.handler.annotation.MessageMapping
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -13,11 +12,13 @@ class DistributionTicketController(
 ) {
 
     @GetMapping("/current")
-    fun getCurrentTicket(): TicketNumberResponse {
+    fun getCurrentTicket(
+        @RequestParam("customerId", required = false) customerId: Long? = null
+    ): TicketNumberResponse {
         val distribution = service.getCurrentDistribution()
             ?: throw TafelValidationException("Ausgabe nicht gestartet!")
 
-        val currentTicket = service.getCurrentTicket(distribution)
+        val currentTicket = service.getCurrentTicket(distribution, customerId)
         return TicketNumberResponse(ticketNumber = currentTicket)
     }
 
