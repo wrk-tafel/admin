@@ -70,7 +70,7 @@ describe('DistributionApiService', () => {
 
     apiService.createNewDistribution().subscribe();
 
-    const req = httpMock.expectOne('/distributions/new');
+    const req = httpMock.expectOne({method: 'POST', url: '/distributions/new'});
     req.flush(testResponse);
     httpMock.verify();
   });
@@ -78,7 +78,7 @@ describe('DistributionApiService', () => {
   it('get states', () => {
     apiService.getStates().subscribe();
 
-    const req = httpMock.expectOne('/distributions/states');
+    const req = httpMock.expectOne({method: 'GET', url: '/distributions/states'});
     req.flush(null);
     httpMock.verify();
   });
@@ -86,7 +86,7 @@ describe('DistributionApiService', () => {
   it('switch to next state', () => {
     apiService.switchToNextState().subscribe();
 
-    const req = httpMock.expectOne('/distributions/states/next');
+    const req = httpMock.expectOne({method: 'POST', url: '/distributions/states/next'});
     req.flush(null);
     httpMock.verify();
   });
