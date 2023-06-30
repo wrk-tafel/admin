@@ -11,6 +11,7 @@ import {Router} from '@angular/router';
 import {DistributionApiService} from '../../../api/distribution-api.service';
 import {Colors} from '@coreui/angular';
 import {DistributionTicketApiService} from '../../../api/distribution-ticket-api.service';
+import {ToastService, ToastType} from "../../../common/views/default-layout/toasts/toast.service";
 
 @Component({
   selector: 'tafel-checkin',
@@ -26,7 +27,8 @@ export class CheckinComponent implements OnInit, OnDestroy {
     private distributionApiService: DistributionApiService,
     private distributionTicketApiService: DistributionTicketApiService,
     private router: Router,
-    private changeDetectorRef: ChangeDetectorRef
+    private changeDetectorRef: ChangeDetectorRef,
+    private toastService: ToastService
   ) {
   }
 
@@ -208,7 +210,14 @@ export class CheckinComponent implements OnInit, OnDestroy {
   }
 
   deleteTicket() {
-
+    const observer = {
+      next: () => {
+        this.ticketNumber = undefined;
+        this.ticketNumberLoaded = undefined;
+        this.toastService.showToast({type: ToastType.SUCCESS, title: 'Ticket-Nummer gelöscht!'});
+      }
+    };
+    this.distributionTicketApiService.deleteCurrentTicketOfCustomer(this.customer.id).subscribe(observer);
   }
 
 }
