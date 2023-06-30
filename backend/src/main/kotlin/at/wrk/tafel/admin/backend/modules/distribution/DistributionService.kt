@@ -106,27 +106,31 @@ class DistributionService(
         return CustomerListPdfResult(filename = filename, bytes = bytes)
     }
 
-    fun getCurrentTicket(distribution: DistributionEntity, customerId: Long? = null): Int? {
+    fun getDistributionCustomerEntity(
+        distribution: DistributionEntity,
+        customerId: Long? = null
+    ): DistributionCustomerEntity? {
         return distribution.customers
             .asSequence()
             .filter { customerId == null || it.customer?.customerId == customerId }
             .filter { it.processed == false }
             .sortedBy { it.ticketNumber }
-            .map { it.ticketNumber }
             .firstOrNull()
     }
 
+    fun getCurrentTicketNumber(distribution: DistributionEntity, customerId: Long? = null): Int? {
+        return getDistributionCustomerEntity(distribution, customerId)?.ticketNumber
+    }
+
     fun closeCurrentTicketAndGetNext(distribution: DistributionEntity): Int? {
-        val currentTicket = getCurrentTicket(distribution)
+        val distributionCustomerEntity = getDistributionCustomerEntity(distribution)
 
-        val currentTicketEntry = distribution.customers.firstOrNull { it.ticketNumber == currentTicket }
-        if (currentTicketEntry != null) {
-            currentTicketEntry.processed = true
-            distributionCustomerRepository.save(currentTicketEntry)
+        if (distributionCustomerEntity != null) {
+            distributionCustomerEntity.processed = true
+            distributionCustomerRepository.save(distributionCustomerEntity)
 
-            return getCurrentTicket(distribution)
+            return getCurrentTicketNumber(distribution)
         }
-
         return null
     }
 
@@ -158,6 +162,11 @@ class DistributionService(
             }
             distributionRepository.save(distribution)
         }
+    }
+
+    fun deleteCurrentTicket(distribution: DistributionEntity, customerId: Long) {
+        val distributionCustomerEntity = getDistributionCustomerEntity(distribution, customerId)
+        distributionCustomerEntity?.let { distributionCustomerRepository.delete(it) }
     }
 
 }

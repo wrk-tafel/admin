@@ -18,8 +18,18 @@ class DistributionTicketController(
         val distribution = service.getCurrentDistribution()
             ?: throw TafelValidationException("Ausgabe nicht gestartet!")
 
-        val currentTicket = service.getCurrentTicket(distribution, customerId)
+        val currentTicket = service.getCurrentTicketNumber(distribution, customerId)
         return TicketNumberResponse(ticketNumber = currentTicket)
+    }
+
+    @DeleteMapping("/current")
+    fun deleteCurrentTicketForCustomer(
+        @RequestParam("customerId") customerId: Long
+    ) {
+        val distribution = service.getCurrentDistribution()
+            ?: throw TafelValidationException("Ausgabe nicht gestartet!")
+
+        service.deleteCurrentTicket(distribution, customerId)
     }
 
     @GetMapping("/next")

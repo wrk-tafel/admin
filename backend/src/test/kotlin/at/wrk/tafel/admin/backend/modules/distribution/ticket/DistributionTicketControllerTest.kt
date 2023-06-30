@@ -8,6 +8,7 @@ import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
+import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -31,14 +32,14 @@ internal class DistributionTicketControllerTest {
     }
 
     @Test
-    fun `get current ticket with open distribution`() {
+    fun `get current ticketNumber with open distribution`() {
         val distributionEntity = DistributionEntity()
         distributionEntity.id = 123
         distributionEntity.state = DistributionState.DISTRIBUTION
         every { service.getCurrentDistribution() } returns distributionEntity
 
         val ticketNumber = 123
-        every { service.getCurrentTicket(distributionEntity) } returns ticketNumber
+        every { service.getCurrentTicketNumber(distributionEntity) } returns ticketNumber
 
         val response = controller.getCurrentTicket()
 
@@ -46,7 +47,7 @@ internal class DistributionTicketControllerTest {
     }
 
     @Test
-    fun `get current ticket for customer`() {
+    fun `get current ticketNumber for customer`() {
         val distributionEntity = DistributionEntity()
         distributionEntity.id = 123
         distributionEntity.state = DistributionState.DISTRIBUTION
@@ -54,7 +55,7 @@ internal class DistributionTicketControllerTest {
 
         val ticketNumber = 123
         val customerId = 1L
-        every { service.getCurrentTicket(distributionEntity, customerId) } returns ticketNumber
+        every { service.getCurrentTicketNumber(distributionEntity, customerId) } returns ticketNumber
 
         val response = controller.getCurrentTicket(customerId)
 
@@ -62,13 +63,13 @@ internal class DistributionTicketControllerTest {
     }
 
     @Test
-    fun `get current ticket when ticket is null`() {
+    fun `get current ticketNumber when ticket is null`() {
         val distributionEntity = DistributionEntity()
         distributionEntity.id = 123
         distributionEntity.state = DistributionState.DISTRIBUTION
         every { service.getCurrentDistribution() } returns distributionEntity
 
-        every { service.getCurrentTicket(distributionEntity) } returns null
+        every { service.getCurrentTicketNumber(distributionEntity) } returns null
 
         val response = controller.getCurrentTicket()
 
@@ -110,6 +111,19 @@ internal class DistributionTicketControllerTest {
         val response = controller.getNextTicket()
 
         assertThat(response.ticketNumber).isNull()
+    }
+
+    @Test
+    fun `delete current ticket for customer`() {
+        val distributionEntity = DistributionEntity()
+        distributionEntity.id = 123
+        distributionEntity.state = DistributionState.DISTRIBUTION
+        every { service.getCurrentDistribution() } returns distributionEntity
+
+        val customerId = 123L
+        controller.deleteCurrentTicketForCustomer(customerId)
+
+        verify { service.deleteCurrentTicket(distributionEntity, customerId) }
     }
 
 }
