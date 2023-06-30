@@ -44,6 +44,7 @@ export class CheckinComponent implements OnInit, OnDestroy {
 
   customerNotes: CustomerNoteItem[];
   ticketNumber: number;
+  ticketNumberLoaded: boolean = false;
 
   @ViewChild('ticketNumberInput') ticketNumberInputRef: ElementRef;
   @ViewChild('cancelButton') cancelButtonRef: ElementRef;
@@ -76,6 +77,9 @@ export class CheckinComponent implements OnInit, OnDestroy {
 
         this.distributionTicketApiService.getCurrentTicketForCustomer(customerData.id).subscribe((ticketNumberResponse) => {
           this.ticketNumber = ticketNumberResponse.ticketNumber;
+          if (this.ticketNumber) {
+            this.ticketNumberLoaded = true;
+          }
         });
       },
       error: error => {
@@ -161,6 +165,7 @@ export class CheckinComponent implements OnInit, OnDestroy {
     this.customerNotes = [];
     this.customerId = undefined;
     this.ticketNumber = undefined;
+    this.ticketNumberLoaded = undefined;
   }
 
   formatAddress(): string {
@@ -203,6 +208,11 @@ export class CheckinComponent implements OnInit, OnDestroy {
         return 'success';
     }
   }
+
+  deleteTicket() {
+
+  }
+
 }
 
 export enum CustomerState {
