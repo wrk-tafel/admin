@@ -44,7 +44,7 @@ export class CheckinComponent implements OnInit, OnDestroy {
   ticketNumber: number;
 
   @ViewChild('ticketNumberInput') ticketNumberInputRef: ElementRef;
-  @ViewChild('resetButton') resetButtonRef: ElementRef;
+  @ViewChild('cancelButton') cancelButtonRef: ElementRef;
 
   ngOnInit(): void {
     if (this.globalStateService.getCurrentDistribution().value === null) {
@@ -95,13 +95,13 @@ export class CheckinComponent implements OnInit, OnDestroy {
         this.customerStateText = 'GESPERRT';
 
         this.changeDetectorRef.detectChanges();
-        this.resetButtonRef.nativeElement.focus();
+        this.cancelButtonRef.nativeElement.focus();
       } else if (validUntil.isBefore(now)) {
         this.customerState = CustomerState.RED;
         this.customerStateText = 'UNGÜLTIG';
 
         this.changeDetectorRef.detectChanges();
-        this.resetButtonRef.nativeElement.focus();
+        this.cancelButtonRef.nativeElement.focus();
       } else {
         const warnLimit = now.add(this.VALID_UNTIL_WARNLIMIT_WEEKS, 'weeks');
         if (!validUntil.isAfter(warnLimit)) {
@@ -150,7 +150,7 @@ export class CheckinComponent implements OnInit, OnDestroy {
     }
   }
 
-  reset() {
+  cancel() {
     this.processCustomer(undefined);
     this.customerNotes = [];
     this.customerId = undefined;
@@ -177,7 +177,7 @@ export class CheckinComponent implements OnInit, OnDestroy {
     if (this.ticketNumber > 0) {
       /* eslint-disable @typescript-eslint/no-unused-vars */
       const observer = {
-        next: (response) => this.reset()
+        next: (response) => this.cancel()
       };
       this.distributionApiService.assignCustomer(this.customer.id, this.ticketNumber).subscribe(observer);
     }

@@ -531,7 +531,7 @@ describe('CheckinComponent', () => {
     };
     component.processCustomer(mockCustomer);
 
-    component.reset();
+    component.cancel();
 
     expect(component.customerId).toBeUndefined();
     expect(component.customerState).toBeUndefined();
