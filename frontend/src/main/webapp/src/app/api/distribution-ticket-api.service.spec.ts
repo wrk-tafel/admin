@@ -33,6 +33,15 @@ describe('DistributionTicketApiService', () => {
     httpMock.verify();
   });
 
+  it('get current ticket for customer', () => {
+    const customerId = 123;
+    apiService.getCurrentTicketForCustomer(customerId).subscribe();
+
+    const req = httpMock.expectOne(`/distributions/tickets/current?customerId=${customerId}`);
+    req.flush(null);
+    httpMock.verify();
+  });
+
   it('get next ticket', () => {
     apiService.getNextTicket().subscribe();
 

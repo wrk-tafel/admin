@@ -1,4 +1,4 @@
-import {HttpClient} from '@angular/common/http';
+import {HttpClient, HttpParams} from '@angular/common/http';
 import {Injectable} from '@angular/core';
 import {Observable} from 'rxjs';
 
@@ -14,6 +14,12 @@ export class DistributionTicketApiService {
 
   getCurrentTicket(): Observable<TicketNumberResponse> {
     return this.http.get<TicketNumberResponse>('/distributions/tickets/current');
+  }
+
+  getCurrentTicketForCustomer(customerId: number): Observable<TicketNumberResponse> {
+    let queryParams = new HttpParams();
+    queryParams = queryParams.set('customerId', customerId);
+    return this.http.get<TicketNumberResponse>('/distributions/tickets/current', {params: queryParams});
   }
 
   getNextTicket(): Observable<TicketNumberResponse> {
