@@ -77,9 +77,7 @@ export class CheckinComponent implements OnInit, OnDestroy {
 
         this.distributionTicketApiService.getCurrentTicketForCustomer(customerData.id).subscribe((ticketNumberResponse) => {
           this.ticketNumber = ticketNumberResponse.ticketNumber;
-          if (this.ticketNumber) {
-            this.ticketNumberLoaded = true;
-          }
+          this.ticketNumberLoaded = this.ticketNumber !== null;
         });
       },
       error: error => {
