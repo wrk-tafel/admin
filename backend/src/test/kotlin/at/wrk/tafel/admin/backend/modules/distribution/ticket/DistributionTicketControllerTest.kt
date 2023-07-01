@@ -138,9 +138,10 @@ internal class DistributionTicketControllerTest {
         every { service.deleteCurrentTicket(any(), any()) } returns false
 
         val customerId = 123L
-        val response = controller.deleteCurrentTicketForCustomer(customerId)
 
-        assertThat(response.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
+        val exception = assertThrows<TafelValidationException> { controller.deleteCurrentTicketForCustomer(customerId) }
+        assertThat(exception.message).isEqualTo("Löschen des Tickets von Kunde Nr. 123 fehlgeschlagen!")
+
         verify { service.deleteCurrentTicket(distributionEntity, customerId) }
     }
 
