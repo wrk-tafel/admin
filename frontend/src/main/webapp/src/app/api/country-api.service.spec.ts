@@ -26,7 +26,7 @@ describe('CountryApiService', () => {
       expect(data).toEqual(mockCountries);
     });
 
-    const req = httpMock.expectOne('/countries');
+    const req = httpMock.expectOne({method: 'GET', url: '/countries'});
     req.flush({items: mockCountries});
     httpMock.verify();
   });

@@ -9,7 +9,7 @@ describe('CheckIn', () => {
     cy.finishDistribution();
   });
 
-  it('customer added and counted on dashboard', () => {
+  it('customer added, counted on dashboard and deleted again', () => {
     cy.visit('/#/anmeldung/annahme');
 
     cy.byTestId('customerIdText').type('100');
@@ -27,6 +27,18 @@ describe('CheckIn', () => {
     cy.visit('/#/uebersicht');
 
     cy.byTestId('customers-count').should('have.text', '1');
+
+    cy.visit('/#/anmeldung/annahme');
+
+    cy.byTestId('customerIdText').type('100');
+    cy.byTestId('showCustomerButton').click();
+
+    cy.byTestId('ticketNumberInput').should('have.value', '10');
+    cy.byTestId('deleteTicketButton').click();
+
+    cy.visit('/#/uebersicht');
+
+    cy.byTestId('customers-count').should('have.text', '0');
   });
 
 });

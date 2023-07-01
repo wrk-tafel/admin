@@ -292,14 +292,14 @@ internal class DistributionServiceTest {
     }
 
     @Test
-    fun `get current ticket without registered customers`() {
-        val ticket = service.getCurrentTicket(testDistributionEntity)
+    fun `get current ticketNumber without registered customers`() {
+        val ticket = service.getCurrentTicketNumber(testDistributionEntity)
 
         assertThat(ticket).isNull()
     }
 
     @Test
-    fun `get current ticket with open tickets left`() {
+    fun `get current ticketNumber with open tickets left`() {
         val testDistributionEntity = DistributionEntity().apply {
             id = 123
             state = DistributionState.DISTRIBUTION
@@ -309,13 +309,33 @@ internal class DistributionServiceTest {
             )
         }
 
-        val ticket = service.getCurrentTicket(testDistributionEntity)
+        val ticket = service.getCurrentTicketNumber(testDistributionEntity)
 
         assertThat(ticket).isEqualTo(50)
     }
 
     @Test
-    fun `get current ticket with all tickets resolved`() {
+    fun `get current ticketNumber for customer`() {
+        val testDistributionEntity = DistributionEntity().apply {
+            id = 123
+            state = DistributionState.DISTRIBUTION
+            customers = listOf(
+                testDistributionCustomerEntity1,
+                testDistributionCustomerEntity2
+            )
+        }
+
+        val ticket =
+            service.getCurrentTicketNumber(
+                testDistributionEntity,
+                testDistributionCustomerEntity2.customer!!.customerId
+            )
+
+        assertThat(ticket).isEqualTo(51)
+    }
+
+    @Test
+    fun `get current ticketNumber with all tickets resolved`() {
         val testDistributionCustomerEntity1 = DistributionCustomerEntity().apply {
             id = 1
             createdAt = ZonedDateTime.now()
@@ -333,7 +353,7 @@ internal class DistributionServiceTest {
             )
         }
 
-        val ticket = service.getCurrentTicket(testDistributionEntity)
+        val ticket = service.getCurrentTicketNumber(testDistributionEntity)
 
         assertThat(ticket).isNull()
     }
@@ -408,6 +428,24 @@ internal class DistributionServiceTest {
         val ticket = service.closeCurrentTicketAndGetNext(testDistributionEntity)
 
         assertThat(ticket).isNull()
+    }
+
+    @Test
+    fun `delete current ticket of customer`() {
+        val testDistributionEntity = DistributionEntity().apply {
+            id = 123
+            state = DistributionState.DISTRIBUTION
+            customers = listOf(
+                testDistributionCustomerEntity1,
+                testDistributionCustomerEntity2
+            )
+        }
+
+        val result =
+            service.deleteCurrentTicket(testDistributionEntity, testDistributionCustomerEntity2.customer!!.customerId!!)
+
+        assertThat(result).isTrue()
+        verify(exactly = 1) { distributionCustomerRepository.delete(testDistributionCustomerEntity2) }
     }
 
     @Test

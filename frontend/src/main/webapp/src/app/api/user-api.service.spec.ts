@@ -30,7 +30,7 @@ describe('UserApiService', () => {
       expect(response).toEqual(testResponse);
     });
 
-    const req = httpMock.expectOne('/users/change-password');
+    const req = httpMock.expectOne({method: 'POST', url: '/users/change-password'});
     req.flush(testResponse);
     httpMock.verify();
   });

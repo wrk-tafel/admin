@@ -2,14 +2,14 @@ import {TestBed, waitForAsync} from '@angular/core/testing';
 import {CommonModule} from '@angular/common';
 import {TicketScreenControlComponent} from './ticket-screen-control.component';
 import {WebsocketService} from '../../../common/websocket/websocket.service';
-import {DistributionApiService, TicketNumberResponse} from '../../../api/distribution-api.service';
+import {DistributionTicketApiService, TicketNumberResponse} from '../../../api/distribution-ticket-api.service';
 import {TicketScreenMessage} from '../ticket-screen/ticket-screen.component';
 import {of} from 'rxjs';
 import {UrlHelperService} from '../../../common/util/url-helper.service';
 
 describe('TicketScreenControlComponent', () => {
   let websocketService: jasmine.SpyObj<WebsocketService>;
-  let distributionApiService: jasmine.SpyObj<DistributionApiService>;
+  let distributionApiService: jasmine.SpyObj<DistributionTicketApiService>;
   let urlHelperSpy: jasmine.SpyObj<UrlHelperService>;
 
   beforeEach(waitForAsync(() => {
@@ -21,8 +21,8 @@ describe('TicketScreenControlComponent', () => {
           useValue: jasmine.createSpyObj('WebsocketService', ['publish'])
         },
         {
-          provide: DistributionApiService,
-          useValue: jasmine.createSpyObj('DistributionApiService', ['getCurrentTicket', 'getNextTicket'])
+          provide: DistributionTicketApiService,
+          useValue: jasmine.createSpyObj('DistributionTicketApiService', ['getCurrentTicket', 'getNextTicket'])
         },
         {
           provide: UrlHelperService,
@@ -32,7 +32,7 @@ describe('TicketScreenControlComponent', () => {
     }).compileComponents();
 
     websocketService = TestBed.inject(WebsocketService) as jasmine.SpyObj<WebsocketService>;
-    distributionApiService = TestBed.inject(DistributionApiService) as jasmine.SpyObj<DistributionApiService>;
+    distributionApiService = TestBed.inject(DistributionTicketApiService) as jasmine.SpyObj<DistributionTicketApiService>;
     urlHelperSpy = TestBed.inject(UrlHelperService) as jasmine.SpyObj<UrlHelperService>;
   }));
 
