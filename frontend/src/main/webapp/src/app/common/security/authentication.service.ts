@@ -1,7 +1,7 @@
 import {HttpClient, HttpHeaders} from '@angular/common/http';
 import {Injectable} from '@angular/core';
 import {Router} from '@angular/router';
-import {EMPTY, firstValueFrom, Observable, of} from 'rxjs';
+import {firstValueFrom, Observable, of} from 'rxjs';
 import {catchError, map, tap} from 'rxjs/operators';
 
 @Injectable({
@@ -77,7 +77,7 @@ export class AuthenticationService {
         }),
         /* eslint-disable @typescript-eslint/no-unused-vars */
         catchError(_ => {
-          return EMPTY;
+          return of(null);
         })
       ));
   }
