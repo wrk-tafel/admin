@@ -46,7 +46,7 @@ export class CheckinComponent implements OnInit, OnDestroy {
 
   customerNotes: CustomerNoteItem[];
   ticketNumber: number;
-  ticketNumberEdit: boolean = false;
+  ticketNumberEdit = false;
 
   @ViewChild('ticketNumberInput') ticketNumberInputRef: ElementRef;
   @ViewChild('cancelButton') cancelButtonRef: ElementRef;
