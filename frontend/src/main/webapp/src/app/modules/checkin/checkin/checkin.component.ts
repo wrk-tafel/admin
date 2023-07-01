@@ -46,7 +46,7 @@ export class CheckinComponent implements OnInit, OnDestroy {
 
   customerNotes: CustomerNoteItem[];
   ticketNumber: number;
-  ticketNumberLoaded: boolean = false;
+  ticketNumberEdit: boolean = false;
 
   @ViewChild('ticketNumberInput') ticketNumberInputRef: ElementRef;
   @ViewChild('cancelButton') cancelButtonRef: ElementRef;
@@ -78,8 +78,10 @@ export class CheckinComponent implements OnInit, OnDestroy {
         });
 
         this.distributionTicketApiService.getCurrentTicketForCustomer(customerData.id).subscribe((ticketNumberResponse) => {
-          this.ticketNumber = ticketNumberResponse.ticketNumber;
-          this.ticketNumberLoaded = this.ticketNumber !== null;
+          if (ticketNumberResponse.ticketNumber) {
+            this.ticketNumber = ticketNumberResponse.ticketNumber;
+          }
+          this.ticketNumberEdit = this.ticketNumber != null;
         });
       },
       error: error => {
@@ -165,7 +167,7 @@ export class CheckinComponent implements OnInit, OnDestroy {
     this.customerNotes = [];
     this.customerId = undefined;
     this.ticketNumber = undefined;
-    this.ticketNumberLoaded = undefined;
+    this.ticketNumberEdit = undefined;
   }
 
   formatAddress(): string {
@@ -213,7 +215,7 @@ export class CheckinComponent implements OnInit, OnDestroy {
     const observer = {
       next: () => {
         this.ticketNumber = undefined;
-        this.ticketNumberLoaded = undefined;
+        this.ticketNumberEdit = undefined;
         this.toastService.showToast({type: ToastType.SUCCESS, title: 'Ticket-Nummer gelöscht!'});
         this.ticketNumberInputRef.nativeElement.focus();
       }
