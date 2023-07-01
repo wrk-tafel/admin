@@ -15,7 +15,7 @@ import {RouterTestingModule} from '@angular/router/testing';
 import {BadgeModule, CardModule, ColComponent, ModalModule, RowComponent} from '@coreui/angular';
 import {FormsModule} from '@angular/forms';
 import {ChangeDetectorRef, ElementRef} from '@angular/core';
-import {ToastService} from '../../../common/views/default-layout/toasts/toast.service';
+import {ToastService, ToastType} from '../../../common/views/default-layout/toasts/toast.service';
 import {DistributionTicketApiService} from '../../../api/distribution-ticket-api.service';
 
 describe('CheckinComponent', () => {
@@ -36,7 +36,7 @@ describe('CheckinComponent', () => {
     );
     const globalStateServiceSpy = jasmine.createSpyObj('GlobalStateService', ['getCurrentDistribution']);
     const distributionApiServiceSpy = jasmine.createSpyObj('DistributionApiService', ['assignCustomer']);
-    const distributionTicketApiServiceSpy = jasmine.createSpyObj('DistributionTicketApiService', ['getCurrentTicketForCustomer']);
+    const distributionTicketApiServiceSpy = jasmine.createSpyObj('DistributionTicketApiService', ['getCurrentTicketForCustomer', 'deleteCurrentTicketOfCustomer']);
     const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
     const toastServiceSpy = jasmine.createSpyObj('ToastService', ['showToast']);
 
@@ -706,6 +706,50 @@ describe('CheckinComponent', () => {
     component.assignCustomer();
 
     expect(distributionApiService.assignCustomer).not.toHaveBeenCalled();
+  });
+
+  it('delete ticket successful', () => {
+    const fixture = TestBed.createComponent(CheckinComponent);
+    const component = fixture.componentInstance;
+    component.ticketNumberInputRef = new ElementRef({
+      /* eslint-disable @typescript-eslint/no-empty-function */
+      focus() {
+      }
+    });
+    spyOn(component.ticketNumberInputRef.nativeElement, 'focus');
+
+    const changeDetectorRef = fixture.debugElement.injector.get(ChangeDetectorRef);
+    spyOn(changeDetectorRef.constructor.prototype, 'detectChanges');
+
+    const mockCustomer = {
+      id: 133,
+      lastname: 'Mustermann',
+      firstname: 'Max',
+      birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
+
+      address: {
+        street: 'Teststraße',
+        houseNumber: '123A',
+        door: '21',
+        postalCode: 1020,
+        city: 'Wien',
+      },
+
+      employer: 'test employer',
+      income: 1000,
+
+      validUntil: moment().add(3, 'months').startOf('day').utc().toDate()
+    };
+    component.processCustomer(mockCustomer);
+    distributionTicketApiService.deleteCurrentTicketOfCustomer.and.returnValue(of(null));
+
+    component.deleteTicket();
+
+    expect(distributionTicketApiService.deleteCurrentTicketOfCustomer).toHaveBeenCalledWith(mockCustomer.id);
+    expect(component.ticketNumber).toBeUndefined();
+    expect(component.ticketNumberEdit).toBeUndefined();
+    expect(toastService.showToast).toHaveBeenCalledWith({type: ToastType.SUCCESS, title: 'Ticket-Nummer gelöscht!'});
+    expect(component.ticketNumberInputRef.nativeElement.focus).toHaveBeenCalled();
   });
 
 });
