@@ -224,6 +224,10 @@
                      class="invalid-feedback">
                   Pflichtfeld
                 </div>
+                <div *ngIf="income.errors?.min && (income.dirty || income.touched)"
+                     class="invalid-feedback">
+                  Muss größer als 0 sein
+                </div>
               </c-input-group>
             </div>
             <div class="col-sm">
@@ -380,6 +384,10 @@
                             <span cInputGroupText>
                               <i class="fa fa-euro-sign"></i>
                             </span>
+                            <div *ngIf="additionalPerson.get('income').errors?.min && (additionalPerson.get('income').dirty || additionalPerson.get('income').touched)"
+                                 class="invalid-feedback">
+                              Muss größer als 0 sein
+                            </div>
                           </c-input-group>
                         </div>
                       </div>
