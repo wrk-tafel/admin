@@ -17,6 +17,7 @@ import at.wrk.tafel.admin.backend.modules.customer.masterdata.CustomerPdfService
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.math.BigDecimal
 import java.time.ZonedDateTime
 
 @Service
@@ -145,7 +146,7 @@ class CustomerService(
         customerEntity.telephoneNumber = customer.telephoneNumber
         customerEntity.email = customer.email?.takeIf { it.isNotBlank() }?.trim()
         customerEntity.employer = customer.employer.trim()
-        customerEntity.income = customer.income
+        customerEntity.income = customer.income.takeIf { it != null && it > BigDecimal.ZERO }
         customerEntity.incomeDue = customer.incomeDue
         customerEntity.validUntil = customer.validUntil
 
@@ -175,7 +176,7 @@ class CustomerService(
                 addPersonEntity.firstname = it.firstname.trim()
                 addPersonEntity.birthDate = it.birthDate
                 addPersonEntity.employer = it.employer
-                addPersonEntity.income = it.income
+                addPersonEntity.income = it.income.takeIf { income -> income != null && income > BigDecimal.ZERO }
                 addPersonEntity.incomeDue = it.incomeDue
                 addPersonEntity.country = countryRepository.findById(it.country.id).get()
                 addPersonEntity.excludeFromHousehold = it.excludeFromHousehold

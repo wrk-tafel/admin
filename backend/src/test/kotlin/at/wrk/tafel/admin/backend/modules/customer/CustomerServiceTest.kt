@@ -7,6 +7,8 @@ import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerAddPersonRepository
 import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerRepository
 import at.wrk.tafel.admin.backend.database.repositories.staticdata.CountryRepository
+import at.wrk.tafel.admin.backend.modules.base.Country
+import at.wrk.tafel.admin.backend.modules.base.testCountry
 import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorPerson
 import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorResult
 import at.wrk.tafel.admin.backend.modules.customer.income.IncomeValidatorService
@@ -51,6 +53,10 @@ class CustomerServiceTest {
     @InjectMockKs
     private lateinit var service: CustomerService
 
+    private lateinit var testCustomer: Customer
+    private lateinit var testCustomerEntity1: CustomerEntity
+    private lateinit var testCustomerEntity2: CustomerEntity
+
     @BeforeEach
     fun beforeEach() {
         every { userRepository.findByUsername(any()) } returns Optional.of(testUserEntity)
@@ -58,6 +64,134 @@ class CustomerServiceTest {
             TafelJwtAuthentication("TOKEN", testUserEntity.username, true)
 
         every { countryRepository.findById(testCountry.id!!) } returns Optional.of(testCountry)
+
+        testCustomer = Customer(
+            id = 100,
+            issuer = CustomerIssuer(
+                personnelNumber = "test-personnelnumber",
+                firstname = "test-firstname",
+                lastname = "test-lastname"
+            ),
+            issuedAt = LocalDate.now(),
+            firstname = "Max",
+            lastname = "Mustermann",
+            birthDate = LocalDate.now().minusYears(30),
+            country = Country(
+                id = 1,
+                code = "AT",
+                name = "Österreich"
+            ),
+            telephoneNumber = "0043660123123",
+            email = "test@mail.com",
+            address = CustomerAddress(
+                street = "Test-Straße",
+                houseNumber = "100",
+                stairway = "1",
+                door = "21",
+                postalCode = 1010,
+                city = "Wien"
+            ),
+            employer = "Employer 123",
+            income = BigDecimal("1000"),
+            incomeDue = LocalDate.now(),
+            validUntil = LocalDate.now(),
+            locked = false,
+            additionalPersons = listOf(
+                CustomerAdditionalPerson(
+                    id = 2,
+                    firstname = "Add pers 1",
+                    lastname = "Add pers 1",
+                    birthDate = LocalDate.now().minusYears(5),
+                    income = BigDecimal("100"),
+                    incomeDue = LocalDate.now(),
+                    country = Country(
+                        id = 1,
+                        code = "AT",
+                        name = "Österreich"
+                    ),
+                    excludeFromHousehold = false
+                ),
+                CustomerAdditionalPerson(
+                    id = 3,
+                    firstname = "Add pers 2",
+                    lastname = "Add pers 2",
+                    birthDate = LocalDate.now().minusYears(2),
+                    country = Country(
+                        id = 1,
+                        code = "AT",
+                        name = "Österreich"
+                    ),
+                    excludeFromHousehold = true
+                )
+            )
+        )
+
+        testCustomerEntity1 = CustomerEntity().apply {
+            id = 1
+            issuer = testUserEntity
+            createdAt = ZonedDateTime.now()
+            customerId = 100
+            lastname = "Mustermann"
+            firstname = "Max"
+            birthDate = LocalDate.now().minusYears(30)
+            country = testCountry
+            addressStreet = "Test-Straße"
+            addressHouseNumber = "100"
+            addressStairway = "1"
+            addressPostalCode = 1010
+            addressDoor = "21"
+            addressCity = "Wien"
+            telephoneNumber = "0043660123123"
+            email = "test@mail.com"
+            employer = "Employer 123"
+            income = BigDecimal("1000")
+            incomeDue = LocalDate.now()
+            validUntil = LocalDate.now()
+            locked = false
+
+            val addPerson1 = CustomerAddPersonEntity()
+            addPerson1.id = 2
+            addPerson1.lastname = "Add pers 1"
+            addPerson1.firstname = "Add pers 1"
+            addPerson1.birthDate = LocalDate.now().minusYears(5)
+            addPerson1.income = BigDecimal("100")
+            addPerson1.incomeDue = LocalDate.now()
+            addPerson1.country = testCountry
+            addPerson1.excludeFromHousehold = false
+
+            val addPerson2 = CustomerAddPersonEntity()
+            addPerson2.id = 3
+            addPerson2.lastname = "Add pers 2"
+            addPerson2.firstname = "Add pers 2"
+            addPerson2.birthDate = LocalDate.now().minusYears(2)
+            addPerson2.country = testCountry
+            addPerson2.excludeFromHousehold = true
+
+            additionalPersons = mutableListOf(addPerson1, addPerson2)
+        }
+
+        testCustomerEntity2 = CustomerEntity().apply {
+            id = 2
+            createdAt = ZonedDateTime.now()
+            customerId = 200
+            lastname = "Mustermann"
+            firstname = "Max 2"
+            birthDate = LocalDate.now().minusYears(22)
+            country = testCountry
+            addressStreet = "Test-Straße 2"
+            addressHouseNumber = "200"
+            addressStairway = "1-2"
+            addressPostalCode = 1010
+            addressDoor = "21-2"
+            addressCity = "Wien 2"
+            telephoneNumber = "0043660123123"
+            email = "test2@mail.com"
+            employer = "Employer 123-2"
+            income = BigDecimal("2000")
+            incomeDue = LocalDate.now()
+            validUntil = LocalDate.now()
+            locked = false
+        }
     }
 
     @Test
@@ -157,6 +291,33 @@ class CustomerServiceTest {
 
         verify(exactly = 1) {
             customerRepository.save(any())
+        }
+    }
+
+    @Test
+    fun `create customer with income zero is set to null`() {
+        every { customerRepository.save(any()) } returns testCustomerEntity1
+        every { customerAddPersonRepository.findById(testCustomerEntity1.additionalPersons[0].id!!) } returns Optional.of(
+            testCustomerEntity1.additionalPersons[0]
+        )
+        every { customerAddPersonRepository.findById(testCustomerEntity1.additionalPersons[1].id!!) } returns Optional.of(
+            testCustomerEntity1.additionalPersons[1]
+        )
+
+        val customer = testCustomer.copy(
+            income = BigDecimal.ZERO, additionalPersons = listOf(
+                testCustomer.additionalPersons[0].copy(income = BigDecimal.ZERO),
+                testCustomer.additionalPersons[1]
+            )
+        )
+
+        service.createCustomer(customer)
+
+        verify(exactly = 1) {
+            customerRepository.save(withArg {
+                assertThat(it.income).isNull()
+                assertThat(it.additionalPersons[0].income).isNull()
+            })
         }
     }
 

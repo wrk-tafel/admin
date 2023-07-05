@@ -46,7 +46,7 @@ export class CustomerFormComponent implements OnInit {
     }),
 
     employer: new UntypedFormControl(null, Validators.required),
-    income: new UntypedFormControl(null, Validators.required),
+    income: new UntypedFormControl(null, [Validators.required, Validators.min(1)]),
     incomeDue: new UntypedFormControl(null, [CustomValidator.minDate(new Date())]),
 
     validUntil: new UntypedFormControl(null, [
@@ -169,7 +169,7 @@ export class CustomerFormComponent implements OnInit {
       ]),
       country: new UntypedFormControl(additionalPerson.country, Validators.required),
       employer: new UntypedFormControl(additionalPerson.employer),
-      income: new UntypedFormControl(additionalPerson.income),
+      income: new UntypedFormControl(additionalPerson.income, [Validators.min(1)]),
       incomeDue: new UntypedFormControl(additionalPerson.incomeDue, [
         CustomValidator.minDate(new Date())
       ]),
