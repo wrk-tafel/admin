@@ -25,7 +25,7 @@ class IncomeValidatorServiceImpl(
         for (person in filteredPersons) {
             monthlySum = monthlySum.add(person.monthlyIncome ?: BigDecimal.ZERO)
 
-            if (person.isChild()) {
+            if (person.isChildForFamilyBonus()) {
                 monthlySum = monthlySum.add(getFamilyBonusForAge(person.getAge()) ?: BigDecimal.ZERO)
 
                 val childTaxAllowanceValue =
@@ -41,7 +41,7 @@ class IncomeValidatorServiceImpl(
     private fun calculateSiblingAddition(
         persons: List<IncomeValidatorPerson>
     ): BigDecimal {
-        val countChild = persons.count { it.isChild() }
+        val countChild = persons.count { it.isChildForFamilyBonus() }
 
         var siblingAdditionValue: BigDecimal = if (countChild >= 7) {
             siblingAdditionRepository.findCurrentMaxAddition()
