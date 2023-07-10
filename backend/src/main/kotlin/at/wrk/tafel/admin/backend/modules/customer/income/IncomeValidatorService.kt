@@ -16,6 +16,10 @@ data class IncomeValidatorPerson(
     val excludeFromIncomeCalculation: Boolean = false
 ) {
     fun isChild(): Boolean {
+        return getAge() < 15
+    }
+
+    fun isChildForFamilyBonus(): Boolean {
         return getAge() <= 24
     }
 

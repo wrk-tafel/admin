@@ -441,7 +441,7 @@ class IncomeValidatorServiceImplTest {
         val result = incomeValidatorService.validate(persons)
 
         assertThat(result.totalSum).isEqualTo(BigDecimal("2300"))
-        assertThat(result.limit).isEqualTo(BigDecimal("2300"))
+        assertThat(result.limit).isEqualTo(BigDecimal("2600"))
         assertThat(result.amountExceededLimit).isEqualTo(BigDecimal.ZERO)
         assertThat(result.valid).isTrue
     }
