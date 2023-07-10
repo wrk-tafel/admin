@@ -16,7 +16,7 @@
                                     <fo:table-cell>
                                         <fo:block margin-left="0.5cm" margin-top="0.5cm" margin-right="0.5cm"
                                                   font-size="10pt">
-                                            Personen im Haushalt:
+                                            Personen im gemeinsamen Haushalt:
                                         </fo:block>
                                     </fo:table-cell>
                                     <fo:table-cell>
