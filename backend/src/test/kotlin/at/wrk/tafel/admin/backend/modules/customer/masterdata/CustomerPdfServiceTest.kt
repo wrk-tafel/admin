@@ -97,12 +97,14 @@ class CustomerPdfServiceTest {
         addPers1.birthDate = LocalDate.of(2000, 1, 1)
         addPers1.income = BigDecimal("1000")
         addPers1.country = testCountry
+        addPers1.excludeFromHousehold = false
 
         val addPers2 = CustomerAddPersonEntity()
         addPers2.lastname = "Mustermann"
         addPers2.firstname = "Max"
         addPers2.birthDate = LocalDate.of(2001, 12, 1)
         addPers2.country = testCountry
+        addPers2.excludeFromHousehold = false
 
         val addPers3 = CustomerAddPersonEntity()
         addPers3.lastname = "Mustermann"
@@ -110,6 +112,7 @@ class CustomerPdfServiceTest {
         addPers3.birthDate = LocalDate.of(2005, 2, 28)
         addPers3.income = BigDecimal("132")
         addPers3.country = testCountry
+        addPers3.excludeFromHousehold = true
 
         testCustomer.additionalPersons = mutableListOf(addPers1, addPers2, addPers3)
 
