@@ -95,6 +95,7 @@ class TafelLoginFilterTest {
                 assertThat(it.name).isEqualTo(TafelLoginFilter.jwtCookieName)
                 assertThat(it.value).isEqualTo(token)
                 assertThat(it.maxAge).isEqualTo(expirationTime)
+                assertThat(it.path).isEqualTo("/")
                 assertThat(it.attributes["SameSite"]).isEqualTo("strict")
             })
         }
@@ -123,6 +124,7 @@ class TafelLoginFilterTest {
                 assertThat(it.name).isEqualTo(TafelLoginFilter.jwtCookieName)
                 assertThat(it.value).isEqualTo(token)
                 assertThat(it.maxAge).isEqualTo(expirationTime)
+                assertThat(it.path).isEqualTo("/")
                 assertThat(it.attributes["SameSite"]).isEqualTo("strict")
             })
         }
