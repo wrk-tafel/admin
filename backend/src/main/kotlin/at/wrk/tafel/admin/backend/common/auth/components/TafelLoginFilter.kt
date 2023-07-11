@@ -29,13 +29,14 @@ class TafelLoginFilter(
 
     companion object {
         private val basicAuthConverter = BasicAuthenticationConverter()
-        const val jwtCookieName = "jwt"
+        const val jwtCookieName = "tafel-admin-jwt"
 
         fun createTokenCookie(token: String?, maxAge: Int, request: HttpServletRequest): Cookie {
             val cookie = Cookie(jwtCookieName, token)
             cookie.isHttpOnly = true
             cookie.secure = request.isSecure
             cookie.maxAge = maxAge
+            cookie.path = "/"
             cookie.setAttribute("SameSite", "strict")
             return cookie
         }
