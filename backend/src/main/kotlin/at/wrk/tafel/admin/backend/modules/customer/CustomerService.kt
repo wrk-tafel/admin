@@ -148,6 +148,7 @@ class CustomerService(
         customerEntity.employer = customer.employer.trim()
         customerEntity.income = customer.income.takeIf { it != null && it > BigDecimal.ZERO }
         customerEntity.incomeDue = customer.incomeDue
+        customerEntity.receivesFamilyBonus = customer.receivesFamilyBonus
         customerEntity.validUntil = customer.validUntil
 
         if (customer.locked == true) {
@@ -178,6 +179,7 @@ class CustomerService(
                 addPersonEntity.employer = it.employer
                 addPersonEntity.income = it.income.takeIf { income -> income != null && income > BigDecimal.ZERO }
                 addPersonEntity.incomeDue = it.incomeDue
+                addPersonEntity.receivesFamilyBonus = it.receivesFamilyBonus
                 addPersonEntity.country = countryRepository.findById(it.country.id).get()
                 addPersonEntity.excludeFromHousehold = it.excludeFromHousehold
                 addPersonEntity
@@ -214,6 +216,7 @@ class CustomerService(
         employer = customerEntity.employer!!,
         income = customerEntity.income,
         incomeDue = customerEntity.incomeDue,
+        receivesFamilyBonus = customerEntity.receivesFamilyBonus!!,
         validUntil = customerEntity.validUntil,
         locked = customerEntity.locked,
         lockedAt = customerEntity.lockedAt,
@@ -228,6 +231,7 @@ class CustomerService(
                 employer = it.employer,
                 income = it.income,
                 incomeDue = it.incomeDue,
+                receivesFamilyBonus = it.receivesFamilyBonus!!,
                 country = mapCountryToResponse(it.country!!),
                 excludeFromHousehold = it.excludeFromHousehold!!
             )
