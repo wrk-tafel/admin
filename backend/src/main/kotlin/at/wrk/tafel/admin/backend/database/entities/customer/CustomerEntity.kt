@@ -65,6 +65,9 @@ class CustomerEntity : BaseChangeTrackingEntity() {
     @Column(name = "incomeDue")
     var incomeDue: LocalDate? = null
 
+    @Column(name = "receives_familybonus")
+    var receivesFamilyBonus: Boolean? = null
+
     @Column(name = "valid_until")
     var validUntil: LocalDate? = null
 
