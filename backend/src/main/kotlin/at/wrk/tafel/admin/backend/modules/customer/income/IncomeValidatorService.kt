@@ -13,7 +13,8 @@ interface IncomeValidatorService {
 data class IncomeValidatorPerson(
     val monthlyIncome: BigDecimal? = null,
     val birthDate: LocalDate,
-    val excludeFromIncomeCalculation: Boolean = false
+    val excludeFromIncomeCalculation: Boolean = false,
+    val receivesFamilyBonus: Boolean = false
 ) {
     fun isChild(): Boolean {
         return getAge() < 15

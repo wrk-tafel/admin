@@ -21,10 +21,17 @@ class IncomeValidatorServiceImpl(
 
         val filteredPersons = persons.filterNot { it.excludeFromIncomeCalculation }
 
-        var monthlySum = BigDecimal.ZERO
-        for (person in filteredPersons) {
-            monthlySum = monthlySum.add(person.monthlyIncome ?: BigDecimal.ZERO)
+        val familyBonusSum = calculateFamilyBonus(filteredPersons)
+        val incomeSum = persons.sumOf { it.monthlyIncome ?: BigDecimal.ZERO }
 
+        val overallIncome = incomeSum + familyBonusSum
+        return calculateOverallResult(filteredPersons, overallIncome)
+    }
+
+    private fun calculateFamilyBonus(persons: List<IncomeValidatorPerson>): BigDecimal {
+        var monthlySum = BigDecimal.ZERO
+
+        persons.filter { it.receivesFamilyBonus }.forEach { person ->
             if (person.isChildForFamilyBonus()) {
                 monthlySum = monthlySum.add(getFamilyBonusForAge(person.getAge()) ?: BigDecimal.ZERO)
 
@@ -34,14 +41,14 @@ class IncomeValidatorServiceImpl(
             }
         }
 
-        monthlySum = monthlySum.add(calculateSiblingAddition(filteredPersons))
-        return calculateResult(filteredPersons, monthlySum)
+        monthlySum = monthlySum.add(calculateSiblingAddition(persons))
+        return monthlySum
     }
 
     private fun calculateSiblingAddition(
         persons: List<IncomeValidatorPerson>
     ): BigDecimal {
-        val countChild = persons.count { it.isChildForFamilyBonus() }
+        val countChild = persons.filter { it.receivesFamilyBonus }.count { it.isChildForFamilyBonus() }
 
         var siblingAdditionValue: BigDecimal = if (countChild >= 7) {
             siblingAdditionRepository.findCurrentMaxAddition()
@@ -69,7 +76,10 @@ class IncomeValidatorServiceImpl(
             .firstOrNull()
     }
 
-    private fun calculateResult(persons: List<IncomeValidatorPerson>, monthlySum: BigDecimal): IncomeValidatorResult {
+    private fun calculateOverallResult(
+        persons: List<IncomeValidatorPerson>,
+        monthlyIncomeSum: BigDecimal
+    ): IncomeValidatorResult {
         var valid = false
 
         var limit = determineLimit(persons)
@@ -77,14 +87,14 @@ class IncomeValidatorServiceImpl(
         val toleranceValueOptional = incomeToleranceRepository.findCurrentValue()
         limit = limit.add(toleranceValueOptional.map { it.amount }.orElse(BigDecimal.ZERO))
 
-        val differenceFromLimit = limit.subtract(monthlySum)
+        val differenceFromLimit = limit.subtract(monthlyIncomeSum)
         if (differenceFromLimit >= BigDecimal.ZERO) {
             valid = true
         }
 
         return IncomeValidatorResult(
             valid = valid,
-            totalSum = monthlySum,
+            totalSum = monthlyIncomeSum,
             limit = limit,
             toleranceValue = toleranceValueOptional.map { it.amount }.orElse(BigDecimal.ZERO)!!,
             amountExceededLimit = if (!valid) differenceFromLimit.abs() else BigDecimal.ZERO
