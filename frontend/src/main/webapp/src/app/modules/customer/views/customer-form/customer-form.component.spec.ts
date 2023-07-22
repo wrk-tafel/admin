@@ -47,7 +47,8 @@ describe('CustomerFormComponent', () => {
         employer: 'test employer 2',
         income: 200,
         incomeDue: moment().add(1, 'years').startOf('day').utc().toDate(),
-        excludeFromHousehold: false
+        excludeFromHousehold: false,
+        receivesFamilyBonus: true
       },
       {
         key: 1,
@@ -56,7 +57,8 @@ describe('CustomerFormComponent', () => {
         firstname: 'First 2',
         birthDate: moment().subtract(4, 'years').startOf('day').utc().toDate(),
         country: mockCountryList[0],
-        excludeFromHousehold: true
+        excludeFromHousehold: true,
+        receivesFamilyBonus: false
       }
     ]
   };

@@ -26,7 +26,6 @@ data class Customer(
     val employer: String,
     val income: BigDecimal? = null,
     val incomeDue: LocalDate? = null,
-    val receivesFamilyBonus: Boolean,
     val validUntil: LocalDate? = null,
     val locked: Boolean? = null,
     val lockedAt: ZonedDateTime? = null,

@@ -62,7 +62,6 @@ class CustomerControllerTest {
             employer = "Employer 123",
             income = BigDecimal("1000"),
             incomeDue = LocalDate.now(),
-            receivesFamilyBonus = true,
             validUntil = LocalDate.now(),
             locked = false,
             additionalPersons = listOf(

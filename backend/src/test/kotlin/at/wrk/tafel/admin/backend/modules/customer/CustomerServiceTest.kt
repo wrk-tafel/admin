@@ -94,7 +94,6 @@ class CustomerServiceTest {
             employer = "Employer 123",
             income = BigDecimal("1000"),
             incomeDue = LocalDate.now(),
-            receivesFamilyBonus = true,
             validUntil = LocalDate.now(),
             locked = false,
             additionalPersons = listOf(
@@ -149,7 +148,6 @@ class CustomerServiceTest {
             employer = "Employer 123"
             income = BigDecimal("1000")
             incomeDue = LocalDate.now()
-            receivesFamilyBonus = true
             validUntil = LocalDate.now()
             locked = false
 
@@ -195,7 +193,6 @@ class CustomerServiceTest {
             employer = "Employer 123-2"
             income = BigDecimal("2000")
             incomeDue = LocalDate.now()
-            receivesFamilyBonus = false
             validUntil = LocalDate.now()
             locked = false
         }
