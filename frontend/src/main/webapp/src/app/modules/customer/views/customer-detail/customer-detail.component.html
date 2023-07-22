@@ -229,6 +229,10 @@
                         <div class="col-6 align-bottom" [attr.testid]="'addperson-' + i + '-incomeDueText'" *ngIf="!addPerson?.incomeDue">-</div>
                       </div>
                       <div class="row align-items-end">
+                        <div class="col-6">Bezieht Familienbeihilfe:</div>
+                        <div class="col-6 align-bottom" [attr.testid]="'addperson-' + i + '-receivesFamilyBonus'">{{addPerson?.receivesFamilyBonus === true ? 'Ja' : 'Nein'}}</div>
+                      </div>
+                      <div class="row align-items-end">
                         <div class="col-6">Im selben Haushalt:</div>
                         <div class="col-6 align-bottom" [attr.testid]="'addperson-' + i + '-excludeFromHouseholdText'">{{addPerson?.excludeFromHousehold === true ? 'Nein' : 'Ja'}}</div>
                       </div>

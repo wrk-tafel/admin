@@ -19,23 +19,32 @@ class IncomeValidatorServiceImpl(
             throw IllegalArgumentException("No persons given")
         }
 
-        val filteredPersons = persons.filterNot { it.excludeFromIncomeCalculation }
+        val personsToInclude = persons.filterNot { it.excludeFromIncomeCalculation }
 
-        var monthlySum = BigDecimal.ZERO
-        for (person in filteredPersons) {
-            monthlySum = monthlySum.add(person.monthlyIncome ?: BigDecimal.ZERO)
+        val familyBonusSum = calculateFamilyBonus(persons.filter { it.receivesFamilyBonus })
+        val incomeSum = personsToInclude.sumOf { it.monthlyIncome ?: BigDecimal.ZERO }
+
+        val overallIncome = incomeSum + familyBonusSum
+        return calculateOverallResult(personsToInclude, overallIncome)
+    }
+
+    private fun calculateFamilyBonus(persons: List<IncomeValidatorPerson>): BigDecimal {
+        var monthlySum = persons.sumOf { person ->
+            var monthlySum = BigDecimal.ZERO
 
             if (person.isChildForFamilyBonus()) {
-                monthlySum = monthlySum.add(getFamilyBonusForAge(person.getAge()) ?: BigDecimal.ZERO)
+                monthlySum += getFamilyBonusForAge(person.getAge()) ?: BigDecimal.ZERO
 
                 val childTaxAllowanceValue =
                     childTaxAllowanceRepository.findCurrentValue().map { it.amount }.orElse(BigDecimal.ZERO)!!
-                monthlySum = monthlySum.add(childTaxAllowanceValue)
+                monthlySum += childTaxAllowanceValue
             }
+
+            monthlySum
         }
 
-        monthlySum = monthlySum.add(calculateSiblingAddition(filteredPersons))
-        return calculateResult(filteredPersons, monthlySum)
+        monthlySum += calculateSiblingAddition(persons)
+        return monthlySum
     }
 
     private fun calculateSiblingAddition(
@@ -69,7 +78,10 @@ class IncomeValidatorServiceImpl(
             .firstOrNull()
     }
 
-    private fun calculateResult(persons: List<IncomeValidatorPerson>, monthlySum: BigDecimal): IncomeValidatorResult {
+    private fun calculateOverallResult(
+        persons: List<IncomeValidatorPerson>,
+        monthlyIncomeSum: BigDecimal
+    ): IncomeValidatorResult {
         var valid = false
 
         var limit = determineLimit(persons)
@@ -77,14 +89,14 @@ class IncomeValidatorServiceImpl(
         val toleranceValueOptional = incomeToleranceRepository.findCurrentValue()
         limit = limit.add(toleranceValueOptional.map { it.amount }.orElse(BigDecimal.ZERO))
 
-        val differenceFromLimit = limit.subtract(monthlySum)
+        val differenceFromLimit = limit.subtract(monthlyIncomeSum)
         if (differenceFromLimit >= BigDecimal.ZERO) {
             valid = true
         }
 
         return IncomeValidatorResult(
             valid = valid,
-            totalSum = monthlySum,
+            totalSum = monthlyIncomeSum,
             limit = limit,
             toleranceValue = toleranceValueOptional.map { it.amount }.orElse(BigDecimal.ZERO)!!,
             amountExceededLimit = if (!valid) differenceFromLimit.abs() else BigDecimal.ZERO
@@ -116,4 +128,5 @@ class IncomeValidatorServiceImpl(
 
         return overallLimit
     }
+
 }

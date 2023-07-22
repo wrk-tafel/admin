@@ -65,7 +65,8 @@ describe('CustomerDataResolver', () => {
           birthDate: moment().subtract(5, 'years').startOf('day').utc().toDate(),
           income: 50,
           incomeDue: moment().add(1, 'years').startOf('day').utc().toDate(),
-          excludeFromHousehold: false
+          excludeFromHousehold: false,
+          receivesFamilyBonus: true
         }
       ]
     };

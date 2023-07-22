@@ -47,7 +47,8 @@ describe('CustomerFormComponent', () => {
         employer: 'test employer 2',
         income: 200,
         incomeDue: moment().add(1, 'years').startOf('day').utc().toDate(),
-        excludeFromHousehold: false
+        excludeFromHousehold: false,
+        receivesFamilyBonus: true
       },
       {
         key: 1,
@@ -56,7 +57,8 @@ describe('CustomerFormComponent', () => {
         firstname: 'First 2',
         birthDate: moment().subtract(4, 'years').startOf('day').utc().toDate(),
         country: mockCountryList[0],
-        excludeFromHousehold: true
+        excludeFromHousehold: true,
+        receivesFamilyBonus: false
       }
     ]
   };
@@ -143,7 +145,8 @@ describe('CustomerFormComponent', () => {
         country: testCustomerData.additionalPersons[0].country,
         employer: testCustomerData.additionalPersons[0].employer,
         income: testCustomerData.additionalPersons[0].income,
-        incomeDue: testCustomerData.additionalPersons[0].incomeDue
+        incomeDue: testCustomerData.additionalPersons[0].incomeDue,
+        receivesFamilyBonus: testCustomerData.additionalPersons[0].receivesFamilyBonus
       }));
     expect(component.additionalPersons.at(1).value)
       .toEqual(jasmine.objectContaining({
@@ -152,7 +155,8 @@ describe('CustomerFormComponent', () => {
         firstname: testCustomerData.additionalPersons[1].firstname,
         birthDate: testCustomerData.additionalPersons[1].birthDate,
         country: testCustomerData.additionalPersons[1].country,
-        excludeFromHousehold: testCustomerData.additionalPersons[1].excludeFromHousehold
+        excludeFromHousehold: testCustomerData.additionalPersons[1].excludeFromHousehold,
+        receivesFamilyBonus: testCustomerData.additionalPersons[1].receivesFamilyBonus
       }));
   }));
 

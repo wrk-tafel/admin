@@ -104,6 +104,7 @@ class CustomerServiceTest {
                     birthDate = LocalDate.now().minusYears(5),
                     income = BigDecimal("100"),
                     incomeDue = LocalDate.now(),
+                    receivesFamilyBonus = false,
                     country = Country(
                         id = 1,
                         code = "AT",
@@ -116,6 +117,7 @@ class CustomerServiceTest {
                     firstname = "Add pers 2",
                     lastname = "Add pers 2",
                     birthDate = LocalDate.now().minusYears(2),
+                    receivesFamilyBonus = true,
                     country = Country(
                         id = 1,
                         code = "AT",
@@ -156,6 +158,7 @@ class CustomerServiceTest {
             addPerson1.birthDate = LocalDate.now().minusYears(5)
             addPerson1.income = BigDecimal("100")
             addPerson1.incomeDue = LocalDate.now()
+            addPerson1.receivesFamilyBonus = false
             addPerson1.country = testCountry
             addPerson1.excludeFromHousehold = false
 
@@ -165,6 +168,7 @@ class CustomerServiceTest {
             addPerson2.firstname = "Add pers 2"
             addPerson2.birthDate = LocalDate.now().minusYears(2)
             addPerson2.country = testCountry
+            addPerson2.receivesFamilyBonus = true
             addPerson2.excludeFromHousehold = true
 
             additionalPersons = mutableListOf(addPerson1, addPerson2)
@@ -222,24 +226,26 @@ class CustomerServiceTest {
                     assertThat(it[0])
                         .isEqualTo(
                             IncomeValidatorPerson(
-                                birthDate = LocalDate.now().minusYears(30),
-                                monthlyIncome = BigDecimal("1000"),
-                                excludeFromIncomeCalculation = false
+                                birthDate = LocalDate.now().minusYears(5),
+                                monthlyIncome = BigDecimal("100"),
+                                excludeFromIncomeCalculation = false,
+                                receivesFamilyBonus = false
                             )
                         )
                     assertThat(it[1])
                         .isEqualTo(
                             IncomeValidatorPerson(
-                                birthDate = LocalDate.now().minusYears(5),
-                                monthlyIncome = BigDecimal("100"),
-                                excludeFromIncomeCalculation = false
+                                birthDate = LocalDate.now().minusYears(2),
+                                excludeFromIncomeCalculation = true,
+                                receivesFamilyBonus = true
                             )
                         )
                     assertThat(it[2])
                         .isEqualTo(
                             IncomeValidatorPerson(
-                                birthDate = LocalDate.now().minusYears(2),
-                                excludeFromIncomeCalculation = true
+                                birthDate = LocalDate.now().minusYears(30),
+                                monthlyIncome = BigDecimal("1000"),
+                                excludeFromIncomeCalculation = false
                             )
                         )
                 }

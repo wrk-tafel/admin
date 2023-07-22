@@ -72,6 +72,7 @@ class CustomerControllerTest {
                     birthDate = LocalDate.now().minusYears(5),
                     income = BigDecimal("100"),
                     incomeDue = LocalDate.now(),
+                    receivesFamilyBonus = false,
                     country = Country(
                         id = 1,
                         code = "AT",
@@ -84,6 +85,7 @@ class CustomerControllerTest {
                     firstname = "Add pers 2",
                     lastname = "Add pers 2",
                     birthDate = LocalDate.now().minusYears(2),
+                    receivesFamilyBonus = true,
                     country = Country(
                         id = 1,
                         code = "AT",

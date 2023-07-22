@@ -363,7 +363,10 @@ class IncomeValidatorServiceImplTest {
                 monthlyIncome = BigDecimal("500"),
                 birthDate = LocalDate.now().minusYears(30)
             ),
-            IncomeValidatorPerson(birthDate = LocalDate.now().minusYears(10))
+            IncomeValidatorPerson(
+                birthDate = LocalDate.now().minusYears(10),
+                receivesFamilyBonus = true
+            )
         )
 
         val result = incomeValidatorService.validate(persons)
@@ -385,7 +388,10 @@ class IncomeValidatorServiceImplTest {
                 monthlyIncome = BigDecimal("395"),
                 birthDate = LocalDate.now().minusYears(30)
             ),
-            IncomeValidatorPerson(birthDate = LocalDate.now().minusYears(10))
+            IncomeValidatorPerson(
+                birthDate = LocalDate.now().minusYears(10),
+                receivesFamilyBonus = true
+            )
         )
 
         val result = incomeValidatorService.validate(persons)
@@ -407,7 +413,10 @@ class IncomeValidatorServiceImplTest {
                 monthlyIncome = BigDecimal("600"),
                 birthDate = LocalDate.now().minusYears(30)
             ),
-            IncomeValidatorPerson(birthDate = LocalDate.now().minusYears(10))
+            IncomeValidatorPerson(
+                birthDate = LocalDate.now().minusYears(10),
+                receivesFamilyBonus = true
+            )
         )
 
         val result = incomeValidatorService.validate(persons)
@@ -428,14 +437,38 @@ class IncomeValidatorServiceImplTest {
             IncomeValidatorPerson(
                 birthDate = LocalDate.now().minusYears(30)
             ),
-            IncomeValidatorPerson(birthDate = LocalDate.now().minusYears(0)),
-            IncomeValidatorPerson(birthDate = LocalDate.now().minusYears(3)),
-            IncomeValidatorPerson(birthDate = LocalDate.now().minusYears(10)),
-            IncomeValidatorPerson(birthDate = LocalDate.now().minusYears(19)),
-            IncomeValidatorPerson(birthDate = LocalDate.now().minusYears(24)),
-            IncomeValidatorPerson(birthDate = LocalDate.now().minusYears(4)),
-            IncomeValidatorPerson(birthDate = LocalDate.now().minusYears(12)),
-            IncomeValidatorPerson(birthDate = LocalDate.now().minusYears(20))
+            IncomeValidatorPerson(
+                birthDate = LocalDate.now().minusYears(0),
+                receivesFamilyBonus = true
+            ),
+            IncomeValidatorPerson(
+                birthDate = LocalDate.now().minusYears(3),
+                receivesFamilyBonus = true
+            ),
+            IncomeValidatorPerson(
+                birthDate = LocalDate.now().minusYears(10),
+                receivesFamilyBonus = true
+            ),
+            IncomeValidatorPerson(
+                birthDate = LocalDate.now().minusYears(19),
+                receivesFamilyBonus = true
+            ),
+            IncomeValidatorPerson(
+                birthDate = LocalDate.now().minusYears(24),
+                receivesFamilyBonus = true
+            ),
+            IncomeValidatorPerson(
+                birthDate = LocalDate.now().minusYears(4),
+                receivesFamilyBonus = true
+            ),
+            IncomeValidatorPerson(
+                birthDate = LocalDate.now().minusYears(12),
+                receivesFamilyBonus = true
+            ),
+            IncomeValidatorPerson(
+                birthDate = LocalDate.now().minusYears(20),
+                receivesFamilyBonus = true
+            )
         )
 
         val result = incomeValidatorService.validate(persons)

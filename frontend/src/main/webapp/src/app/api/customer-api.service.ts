@@ -117,6 +117,7 @@ export interface CustomerAddPersonData {
   income?: number;
   incomeDue?: Date;
   excludeFromHousehold: boolean;
+  receivesFamilyBonus: boolean;
 }
 
 type PdfType = 'MASTERDATA' | 'IDCARD' | 'COMBINED';

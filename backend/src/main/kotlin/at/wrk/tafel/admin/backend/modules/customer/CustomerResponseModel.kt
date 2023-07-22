@@ -60,6 +60,7 @@ data class CustomerAdditionalPerson(
     val employer: String? = null,
     val income: BigDecimal? = null,
     val incomeDue: LocalDate? = null,
+    val receivesFamilyBonus: Boolean,
     val country: Country,
     val excludeFromHousehold: Boolean = false
 )

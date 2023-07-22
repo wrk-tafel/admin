@@ -104,26 +104,22 @@ class CustomerService(
     }
 
     private fun mapToValidationPersons(customer: Customer): List<IncomeValidatorPerson> {
-        val personList = mutableListOf<IncomeValidatorPerson>()
-        personList.add(
-            IncomeValidatorPerson(
-                monthlyIncome = customer.income,
-                birthDate = customer.birthDate,
-                excludeFromIncomeCalculation = false
-            )
+        val customerPerson = IncomeValidatorPerson(
+            monthlyIncome = customer.income,
+            birthDate = customer.birthDate,
+            excludeFromIncomeCalculation = false
         )
 
-        customer.additionalPersons.forEach {
-            personList.add(
-                IncomeValidatorPerson(
-                    monthlyIncome = it.income,
-                    birthDate = it.birthDate,
-                    excludeFromIncomeCalculation = it.excludeFromHousehold
-                )
+        val addPersonList = customer.additionalPersons.map {
+            IncomeValidatorPerson(
+                monthlyIncome = it.income,
+                birthDate = it.birthDate,
+                excludeFromIncomeCalculation = it.excludeFromHousehold,
+                receivesFamilyBonus = it.receivesFamilyBonus
             )
         }
 
-        return personList
+        return addPersonList + customerPerson
     }
 
     private fun mapRequestToEntity(customer: Customer, entity: CustomerEntity? = null): CustomerEntity {
@@ -178,6 +174,7 @@ class CustomerService(
                 addPersonEntity.employer = it.employer
                 addPersonEntity.income = it.income.takeIf { income -> income != null && income > BigDecimal.ZERO }
                 addPersonEntity.incomeDue = it.incomeDue
+                addPersonEntity.receivesFamilyBonus = it.receivesFamilyBonus
                 addPersonEntity.country = countryRepository.findById(it.country.id).get()
                 addPersonEntity.excludeFromHousehold = it.excludeFromHousehold
                 addPersonEntity
@@ -228,10 +225,11 @@ class CustomerService(
                 employer = it.employer,
                 income = it.income,
                 incomeDue = it.incomeDue,
+                receivesFamilyBonus = it.receivesFamilyBonus!!,
                 country = mapCountryToResponse(it.country!!),
                 excludeFromHousehold = it.excludeFromHousehold!!
             )
-        }
+        }.sortedBy { "${it.lastname} ${it.firstname}" }
     )
 
     private fun mapCountryToResponse(country: CountryEntity): Country {
