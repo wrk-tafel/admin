@@ -226,24 +226,26 @@ class CustomerServiceTest {
                     assertThat(it[0])
                         .isEqualTo(
                             IncomeValidatorPerson(
-                                birthDate = LocalDate.now().minusYears(30),
-                                monthlyIncome = BigDecimal("1000"),
-                                excludeFromIncomeCalculation = false
+                                birthDate = LocalDate.now().minusYears(5),
+                                monthlyIncome = BigDecimal("100"),
+                                excludeFromIncomeCalculation = false,
+                                receivesFamilyBonus = false
                             )
                         )
                     assertThat(it[1])
                         .isEqualTo(
                             IncomeValidatorPerson(
-                                birthDate = LocalDate.now().minusYears(5),
-                                monthlyIncome = BigDecimal("100"),
-                                excludeFromIncomeCalculation = false
+                                birthDate = LocalDate.now().minusYears(2),
+                                excludeFromIncomeCalculation = true,
+                                receivesFamilyBonus = true
                             )
                         )
                     assertThat(it[2])
                         .isEqualTo(
                             IncomeValidatorPerson(
-                                birthDate = LocalDate.now().minusYears(2),
-                                excludeFromIncomeCalculation = true
+                                birthDate = LocalDate.now().minusYears(30),
+                                monthlyIncome = BigDecimal("1000"),
+                                excludeFromIncomeCalculation = false
                             )
                         )
                 }
