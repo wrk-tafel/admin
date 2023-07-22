@@ -22,8 +22,7 @@ class IncomeValidatorServiceImpl(
         val personsToInclude = persons.filterNot { it.excludeFromIncomeCalculation }
 
         val familyBonusSum = calculateFamilyBonus(persons.filter { it.receivesFamilyBonus })
-        val incomeSum = personsToInclude
-            .sumOf { it.monthlyIncome ?: BigDecimal.ZERO }
+        val incomeSum = personsToInclude.sumOf { it.monthlyIncome ?: BigDecimal.ZERO }
 
         val overallIncome = incomeSum + familyBonusSum
         return calculateOverallResult(personsToInclude, overallIncome)
@@ -129,4 +128,5 @@ class IncomeValidatorServiceImpl(
 
         return overallLimit
     }
+
 }
