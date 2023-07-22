@@ -19,36 +19,39 @@ class IncomeValidatorServiceImpl(
             throw IllegalArgumentException("No persons given")
         }
 
-        val filteredPersons = persons.filterNot { it.excludeFromIncomeCalculation }
+        val personsToInclude = persons.filterNot { it.excludeFromIncomeCalculation }
 
-        val familyBonusSum = calculateFamilyBonus(filteredPersons)
-        val incomeSum = persons.sumOf { it.monthlyIncome ?: BigDecimal.ZERO }
+        val familyBonusSum = calculateFamilyBonus(persons.filter { it.receivesFamilyBonus })
+        val incomeSum = personsToInclude
+            .sumOf { it.monthlyIncome ?: BigDecimal.ZERO }
 
         val overallIncome = incomeSum + familyBonusSum
-        return calculateOverallResult(filteredPersons, overallIncome)
+        return calculateOverallResult(personsToInclude, overallIncome)
     }
 
     private fun calculateFamilyBonus(persons: List<IncomeValidatorPerson>): BigDecimal {
-        var monthlySum = BigDecimal.ZERO
+        var monthlySum = persons.sumOf { person ->
+            var monthlySum = BigDecimal.ZERO
 
-        persons.filter { it.receivesFamilyBonus }.forEach { person ->
             if (person.isChildForFamilyBonus()) {
-                monthlySum = monthlySum.add(getFamilyBonusForAge(person.getAge()) ?: BigDecimal.ZERO)
+                monthlySum += getFamilyBonusForAge(person.getAge()) ?: BigDecimal.ZERO
 
                 val childTaxAllowanceValue =
                     childTaxAllowanceRepository.findCurrentValue().map { it.amount }.orElse(BigDecimal.ZERO)!!
-                monthlySum = monthlySum.add(childTaxAllowanceValue)
+                monthlySum += childTaxAllowanceValue
             }
+
+            monthlySum
         }
 
-        monthlySum = monthlySum.add(calculateSiblingAddition(persons))
+        monthlySum += calculateSiblingAddition(persons)
         return monthlySum
     }
 
     private fun calculateSiblingAddition(
         persons: List<IncomeValidatorPerson>
     ): BigDecimal {
-        val countChild = persons.filter { it.receivesFamilyBonus }.count { it.isChildForFamilyBonus() }
+        val countChild = persons.count { it.isChildForFamilyBonus() }
 
         var siblingAdditionValue: BigDecimal = if (countChild >= 7) {
             siblingAdditionRepository.findCurrentMaxAddition()
