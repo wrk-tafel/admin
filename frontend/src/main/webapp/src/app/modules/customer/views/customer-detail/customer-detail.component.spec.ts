@@ -213,6 +213,7 @@ describe('CustomerDetailComponent', () => {
 
     expect(getTextByTestId(fixture, 'addperson-0-lastnameText')).toBe('Add');
     expect(getTextByTestId(fixture, 'addperson-0-firstnameText')).toBe('Pers 1');
+    expect(getTextByTestId(fixture, 'addperson-0-receivesFamilyBonus')).toBe('Ja');
 
     // TODO fix
     /*
