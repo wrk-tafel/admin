@@ -233,7 +233,7 @@ class CustomerService(
                 country = mapCountryToResponse(it.country!!),
                 excludeFromHousehold = it.excludeFromHousehold!!
             )
-        }
+        }.sortedBy { "${it.lastname} ${it.firstname}" }
     )
 
     private fun mapCountryToResponse(country: CountryEntity): Country {
