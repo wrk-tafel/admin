@@ -104,26 +104,22 @@ class CustomerService(
     }
 
     private fun mapToValidationPersons(customer: Customer): List<IncomeValidatorPerson> {
-        val personList = mutableListOf<IncomeValidatorPerson>()
-        personList.add(
-            IncomeValidatorPerson(
-                monthlyIncome = customer.income,
-                birthDate = customer.birthDate,
-                excludeFromIncomeCalculation = false
-            )
+        val customerPerson = IncomeValidatorPerson(
+            monthlyIncome = customer.income,
+            birthDate = customer.birthDate,
+            excludeFromIncomeCalculation = false
         )
 
-        customer.additionalPersons.forEach {
-            personList.add(
-                IncomeValidatorPerson(
-                    monthlyIncome = it.income,
-                    birthDate = it.birthDate,
-                    excludeFromIncomeCalculation = it.excludeFromHousehold
-                )
+        val addPersonList = customer.additionalPersons.map {
+            IncomeValidatorPerson(
+                monthlyIncome = it.income,
+                birthDate = it.birthDate,
+                excludeFromIncomeCalculation = it.excludeFromHousehold,
+                receivesFamilyBonus = it.receivesFamilyBonus
             )
         }
 
-        return personList
+        return addPersonList + customerPerson
     }
 
     private fun mapRequestToEntity(customer: Customer, entity: CustomerEntity? = null): CustomerEntity {
