@@ -222,14 +222,10 @@ describe('CustomerDetailComponent', () => {
     expect(getTextByTestId(fixture, 'addperson-0-countryText')).toBe('Österreich');
     expect(getTextByTestId(fixture, 'addperson-0-employerText')).toBe('test employer 2');
     expect(getTextByTestId(fixture, 'addperson-0-incomeText')).toBe('€ 50,00');
-
-    // TODO fix
-    /*
     expect(getTextByTestId(fixture, 'addperson-0-incomeDueText'))
       .toBe(moment(mockCustomer.additionalPersons[0].incomeDue).format('DD.MM.YYYY'));
     expect(getTextByTestId(fixture, 'addperson-1-incomeText')).toBe('-');
     expect(getTextByTestId(fixture, 'addperson-1-incomeDueText')).toBe('-');
-     */
 
     // validate note
     const expectedTimestamp = moment(mockNotes[0].timestamp).format('DD.MM.YYYY HH:mm');
