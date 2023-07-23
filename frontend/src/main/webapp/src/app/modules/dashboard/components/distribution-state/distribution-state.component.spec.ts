@@ -140,7 +140,7 @@ describe('DistributionStateComponent', () => {
   it('switch to next state', () => {
     const fixture = TestBed.createComponent(DistributionStateComponent);
     const component = fixture.componentInstance;
-    component.showNextDistributionStateModal = true;
+    component.showCloseDistributionModal = true;
 
     const distribution: DistributionItem = {
       id: 123,
@@ -157,7 +157,7 @@ describe('DistributionStateComponent', () => {
 
     fixture.detectChanges();
     expect(distributionApiService.switchToNextState).toHaveBeenCalled();
-    expect(component.showNextDistributionStateModal).toBeFalsy();
+    expect(component.showCloseDistributionModal).toBeFalsy();
   });
 
 });
