@@ -13,7 +13,9 @@ import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationExceptio
 import at.wrk.tafel.admin.backend.modules.distribution.model.CustomerListItem
 import at.wrk.tafel.admin.backend.modules.distribution.model.CustomerListPdfModel
 import at.wrk.tafel.admin.backend.modules.distribution.model.CustomerListPdfResult
+import org.slf4j.LoggerFactory
 import org.springframework.dao.DataIntegrityViolationException
+import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import java.time.LocalDate
@@ -38,7 +40,20 @@ class DistributionService(
             DistributionState.CLOSED
         )
         private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+
+        private val logger = LoggerFactory.getLogger(DistributionService::class.java)
     }
+
+    @Scheduled(cron = "50 23 * * *")
+    fun autoCloseDistribution() {
+        val currentDistribution = distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc()
+        if (currentDistribution != null) {
+            logger.info("Distribution still open - auto-closing it")
+
+            saveStateToDistribution(DistributionState.CLOSED)
+        }
+    }
+
 
     fun createNewDistribution(): DistributionEntity {
         val currentDistribution = distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc()
