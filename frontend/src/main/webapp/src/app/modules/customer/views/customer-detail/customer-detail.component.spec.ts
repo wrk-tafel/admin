@@ -215,12 +215,9 @@ describe('CustomerDetailComponent', () => {
     expect(getTextByTestId(fixture, 'addperson-0-firstnameText')).toBe('Pers 1');
     expect(getTextByTestId(fixture, 'addperson-0-receivesFamilyBonus')).toBe('Ja');
 
-    // TODO fix
-    /*
     const birthDateAgePers1 = moment(mockCustomer.additionalPersons[0].birthDate).format('DD.MM.YYYY') +
       ' (' + moment().diff(mockCustomer.additionalPersons[0].birthDate, 'years') + ')';
     expect(getTextByTestId(fixture, 'addperson-0-birthDateAgeText')).toBe(birthDateAgePers1);
-     */
 
     expect(getTextByTestId(fixture, 'addperson-0-countryText')).toBe('Österreich');
     expect(getTextByTestId(fixture, 'addperson-0-employerText')).toBe('test employer 2');
