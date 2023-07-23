@@ -44,7 +44,7 @@ class DistributionService(
         private val logger = LoggerFactory.getLogger(DistributionService::class.java)
     }
 
-    @Scheduled(cron = "50 23 * * *")
+    @Scheduled(cron = "50 23 * * * *")
     fun autoCloseDistribution() {
         val currentDistribution = distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc()
         if (currentDistribution != null) {
