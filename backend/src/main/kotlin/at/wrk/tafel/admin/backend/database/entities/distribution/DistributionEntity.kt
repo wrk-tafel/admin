@@ -1,7 +1,6 @@
 package at.wrk.tafel.admin.backend.database.entities.distribution
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
-import at.wrk.tafel.admin.backend.common.model.DistributionState
 import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.entities.base.BaseChangeTrackingEntity
 import jakarta.persistence.*
