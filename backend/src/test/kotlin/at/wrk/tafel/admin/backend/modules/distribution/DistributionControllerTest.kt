@@ -9,6 +9,7 @@ import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
+import io.mockk.slot
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.*
@@ -83,8 +84,8 @@ internal class DistributionControllerTest {
             DistributionItem(
                 id = distributionEntity.id!!,
                 state = DistributionStateItem(
-                    name = "DISTRIBUTION",
-                    stateLabel = "Verteilung läuft",
+                    name = "OPEN",
+                    stateLabel = "Geöffnet",
                     actionLabel = "Ausgabe schließen"
                 )
             )
@@ -148,21 +149,27 @@ internal class DistributionControllerTest {
         assertThat(response.body).isNull()
 
         verify { service.switchToNextState(distributionEntity.state!!) }
+
+        val distributionItemResponseSlot = slot<DistributionItemResponse>()
         verify {
             simpMessagingTemplate.convertAndSend(
                 "/topic/distributions",
-                DistributionItemResponse(
-                    distribution = DistributionItem(
-                        id = 123,
-                        state = DistributionStateItem(
-                            name = DistributionState.OPEN.name,
-                            stateLabel = "Ausgabe offen",
-                            actionLabel = "Ausgabe schließen"
-                        )
+                capture(distributionItemResponseSlot)
+            )
+        }
+
+        assertThat(distributionItemResponseSlot.captured).isEqualTo(
+            DistributionItemResponse(
+                distribution = DistributionItem(
+                    id = 123,
+                    state = DistributionStateItem(
+                        name = DistributionState.OPEN.name,
+                        stateLabel = "Geöffnet",
+                        actionLabel = "Ausgabe schließen"
                     )
                 )
             )
-        }
+        )
     }
 
     @Test
