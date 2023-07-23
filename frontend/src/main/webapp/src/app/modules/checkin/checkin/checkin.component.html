@@ -104,6 +104,9 @@
                     <input testid="ticketNumberInput" #ticketNumberInput type="number" name="ticketNumberInput" [(ngModel)]="ticketNumber"
                            class="form-control" required (keydown.enter)="assignCustomer()" tabindex="3">
                   </c-col>
+                  <c-col>
+                    <button testid="deleteTicketButton" *ngIf="ticketNumberEdit === true" class="btn btn-danger text-white ms-0 ms-md-3 mt-3 mt-md-0" (click)="deleteTicket()" tabindex="5">Ticket löschen</button>
+                  </c-col>
                 </c-row>
               </div>
             </form>
@@ -114,7 +117,7 @@
         <c-row>
           <c-col>
             <button [disabled]="customerState === 0 || !ticketForm.valid" testid="assignCustomerButton" class="btn btn-success text-white" (click)="assignCustomer()" tabindex="4">Annehmen</button>
-            <button testid="resetButton" #resetButton class="btn btn-primary text-white ms-3" (click)="reset()" tabindex="5">Zurücksetzen</button>
+            <button testid="cancelButton" #cancelButton class="btn btn-primary text-white ms-3" (click)="cancel()" tabindex="5">Abbrechen</button>
           </c-col>
         </c-row>
       </c-card-footer>

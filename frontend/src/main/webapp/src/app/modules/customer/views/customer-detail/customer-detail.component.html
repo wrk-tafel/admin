@@ -139,8 +139,7 @@
                   <hr>
                   <div class="row">
                     <div class="col fw-bold">Angelegt</div>
-                    <div testid="issuedInformation" class="col">am {{customerData?.issuedAt | date : 'dd.MM.yyyy'}}
-                      von {{formatIssuer(customerData?.issuer)}}</div>
+                    <div testid="issuedInformation" class="col">am {{customerData?.issuedAt | date : 'dd.MM.yyyy'}} {{formatIssuer(customerData?.issuer)}}</div>
                   </div>
                   <div class="row">
                     <div class="col fw-bold text-white"
@@ -228,6 +227,10 @@
                         <div class="col-6">Einkommen nachgewiesen bis:</div>
                         <div class="col-6 align-bottom" [attr.testid]="'addperson-' + i + '-incomeDueText'" *ngIf="addPerson?.incomeDue">{{addPerson?.incomeDue | date : 'dd.MM.yyyy'}}</div>
                         <div class="col-6 align-bottom" [attr.testid]="'addperson-' + i + '-incomeDueText'" *ngIf="!addPerson?.incomeDue">-</div>
+                      </div>
+                      <div class="row align-items-end">
+                        <div class="col-6">Bezieht Familienbeihilfe:</div>
+                        <div class="col-6 align-bottom" [attr.testid]="'addperson-' + i + '-receivesFamilyBonus'">{{addPerson?.receivesFamilyBonus === true ? 'Ja' : 'Nein'}}</div>
                       </div>
                       <div class="row align-items-end">
                         <div class="col-6">Im selben Haushalt:</div>

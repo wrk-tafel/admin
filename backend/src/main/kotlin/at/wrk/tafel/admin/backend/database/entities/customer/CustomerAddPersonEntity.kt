@@ -38,4 +38,7 @@ class CustomerAddPersonEntity : BaseChangeTrackingEntity() {
 
     @Column(name = "exclude_household")
     var excludeFromHousehold: Boolean? = null
+
+    @Column(name = "receives_familybonus")
+    var receivesFamilyBonus: Boolean? = null
 }

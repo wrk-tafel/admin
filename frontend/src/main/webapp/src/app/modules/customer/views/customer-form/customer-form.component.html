@@ -224,6 +224,10 @@
                      class="invalid-feedback">
                   Pflichtfeld
                 </div>
+                <div *ngIf="income.errors?.min && (income.dirty || income.touched)"
+                     class="invalid-feedback">
+                  Muss größer als 0 sein
+                </div>
               </c-input-group>
             </div>
             <div class="col-sm">
@@ -380,11 +384,15 @@
                             <span cInputGroupText>
                               <i class="fa fa-euro-sign"></i>
                             </span>
+                            <div *ngIf="additionalPerson.get('income').errors?.min && (additionalPerson.get('income').dirty || additionalPerson.get('income').touched)"
+                                 class="invalid-feedback">
+                              Muss größer als 0 sein
+                            </div>
                           </c-input-group>
                         </div>
                       </div>
                       <div class="row">
-                        <div class="col-lg-6">
+                        <div class="col-lg-12">
                           <label class="form-label">nachgewiesen bis</label>
                           <div class="input-group">
                             <input testid="incomeDueInput" type="date"
@@ -395,6 +403,14 @@
                               class="invalid-feedback">
                               Mind. Datum: {{additionalPerson.get('incomeDue').errors.mindate.minimumDate}}
                             </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="row mt-2">
+                        <div class="col-lg-6">
+                          <label class="form-label">Bezieht Familienbeihilfe</label>
+                          <div class="input-group">
+                            <input testid="receivesFamilyBonusInput" type="checkbox" formControlName="receivesFamilyBonus" class="form-check-input">
                           </div>
                         </div>
                         <div class="col-lg-6">

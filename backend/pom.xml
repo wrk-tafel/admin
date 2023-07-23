@@ -14,27 +14,28 @@
         <java.version>17</java.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
-        <kotlin.version>1.8.21</kotlin.version>
+        <kotlin.version>1.9.0</kotlin.version>
         <kotlin.compiler.jvmTarget>${java.version}</kotlin.compiler.jvmTarget>
 
-        <spring.boot.version>3.1.0</spring.boot.version>
+        <spring.boot.version>3.1.2</spring.boot.version>
         <jjwt.version>0.11.5</jjwt.version>
         <postgresql.driver.version>42.6.0</postgresql.driver.version>
+        <mysql.driver.version>8.0.33</mysql.driver.version>
         <bouncycastle.version>1.70</bouncycastle.version>
         <apache.fop.version>2.8</apache.fop.version>
         <qrcode.kotlin.version>3.3.0</qrcode.kotlin.version>
         <passay.version>1.6.3</passay.version>
 
         <!-- Maven plugin version -->
-        <maven.surefire.plugin.version>3.1.0</maven.surefire.plugin.version>
+        <maven.surefire.plugin.version>3.1.2</maven.surefire.plugin.version>
         <maven.resources.plugin.version>3.3.1</maven.resources.plugin.version>
         <jacoco.maven.plugin.version>0.8.10</jacoco.maven.plugin.version>
 
         <!-- Test dependency versions -->
         <archunit.version>1.0.1</archunit.version>
         <mockk.version>1.13.5</mockk.version>
-        <testcontainers.version>1.18.1</testcontainers.version>
-        <apache.pdfbox.version>2.0.28</apache.pdfbox.version>
+        <testcontainers.version>1.18.3</testcontainers.version>
+        <apache.pdfbox.version>2.0.29</apache.pdfbox.version>
         <image.comparison.version>4.4.0</image.comparison.version>
     </properties>
 
@@ -130,6 +131,11 @@
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <version>${postgresql.driver.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>${mysql.driver.version}</version>
         </dependency>
         <dependency>
             <groupId>io.jsonwebtoken</groupId>

@@ -99,11 +99,11 @@ export interface CustomerIssuer {
 
 export interface CustomerAddressData {
   street: string;
-  houseNumber: string;
+  houseNumber?: string;
   stairway?: string;
-  door: string;
-  postalCode: number;
-  city: string;
+  door?: string;
+  postalCode?: number;
+  city?: string;
 }
 
 export interface CustomerAddPersonData {
@@ -117,6 +117,7 @@ export interface CustomerAddPersonData {
   income?: number;
   incomeDue?: Date;
   excludeFromHousehold: boolean;
+  receivesFamilyBonus: boolean;
 }
 
 type PdfType = 'MASTERDATA' | 'IDCARD' | 'COMBINED';

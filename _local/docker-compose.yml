@@ -31,6 +31,16 @@ services:
     networks:
       - tafeladmin_net
 
+  mysql:
+    image: mysql:5.7
+    command: --default-authentication-plugin=mysql_native_password
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: admin
+    volumes:
+      - mysql-data:/var/lib/mysql
+
 #  ui-remote:
 #    image: ikt01toet1030/wrk-tafel-admin:latest
 #    restart: unless-stopped
@@ -67,6 +77,7 @@ services:
 volumes:
   database-data:
   pgadmin-data:
+  mysql-data:
 
 networks:
   tafeladmin_net:

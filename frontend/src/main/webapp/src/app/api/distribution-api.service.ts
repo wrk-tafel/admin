@@ -53,14 +53,6 @@ export class DistributionApiService {
       });
   }
 
-  getCurrentTicket(): Observable<TicketNumberResponse> {
-    return this.http.get<TicketNumberResponse>('/distributions/tickets/current');
-  }
-
-  getNextTicket(): Observable<TicketNumberResponse> {
-    return this.http.get<TicketNumberResponse>('/distributions/tickets/next');
-  }
-
 }
 
 export interface DistributionItemResponse {
@@ -85,9 +77,5 @@ export interface DistributionStateItem {
 
 export interface AssignCustomerRequest {
   customerId: number;
-  ticketNumber: number;
-}
-
-export interface TicketNumberResponse {
   ticketNumber: number;
 }

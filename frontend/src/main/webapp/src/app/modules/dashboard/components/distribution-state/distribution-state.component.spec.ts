@@ -5,7 +5,7 @@ import {
   DistributionStateItem
 } from '../../../../api/distribution-api.service';
 import {DistributionStateComponent} from './distribution-state.component';
-import {BehaviorSubject, of} from 'rxjs';
+import {BehaviorSubject, EMPTY, of} from 'rxjs';
 import {ActivatedRoute} from '@angular/router';
 import {RouterTestingModule} from '@angular/router/testing';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
@@ -129,7 +129,7 @@ describe('DistributionStateComponent', () => {
 
     const subject = new BehaviorSubject<DistributionItem>(null);
     globalStateService.getCurrentDistribution.and.returnValue(subject);
-    distributionApiService.createNewDistribution.and.returnValue(of(null));
+    distributionApiService.createNewDistribution.and.returnValue(EMPTY);
 
     component.createNewDistribution();
 

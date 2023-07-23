@@ -2,7 +2,8 @@ import {Component} from '@angular/core';
 import {FormControl, FormGroup, Validators} from '@angular/forms';
 import {WebsocketService} from '../../../common/websocket/websocket.service';
 import {TicketScreenMessage} from '../ticket-screen/ticket-screen.component';
-import {DistributionApiService, TicketNumberResponse} from '../../../api/distribution-api.service';
+import {DistributionTicketApiService, TicketNumberResponse} from '../../../api/distribution-ticket-api.service';
+import {UrlHelperService} from '../../../common/util/url-helper.service';
 
 @Component({
   selector: 'tafel-ticket-screen-control',
@@ -12,7 +13,8 @@ export class TicketScreenControlComponent {
 
   constructor(
     private websocketService: WebsocketService,
-    private distributionApiService: DistributionApiService
+    private distributionTicketApiService: DistributionTicketApiService,
+    private urlHelperService: UrlHelperService
   ) {
   }
 
@@ -21,7 +23,8 @@ export class TicketScreenControlComponent {
   });
 
   openScreenInNewTab() {
-    window.open('/#/anmeldung/ticketmonitor', '_blank');
+    const baseUrl = this.urlHelperService.getBaseUrl();
+    window.open(`${baseUrl}/#/anmeldung/ticketmonitor`, '_blank');
   }
 
   showStartTime() {
@@ -40,13 +43,13 @@ export class TicketScreenControlComponent {
   }
 
   showCurrentTicket() {
-    this.distributionApiService.getCurrentTicket().subscribe((response: TicketNumberResponse) => {
+    this.distributionTicketApiService.getCurrentTicket().subscribe((response: TicketNumberResponse) => {
       this.sendToTicketScreen({ticketNumber: response.ticketNumber});
     });
   }
 
   showNextTicket() {
-    this.distributionApiService.getNextTicket().subscribe((response: TicketNumberResponse) => {
+    this.distributionTicketApiService.getNextTicket().subscribe((response: TicketNumberResponse) => {
       this.sendToTicketScreen({ticketNumber: response.ticketNumber});
     });
   }

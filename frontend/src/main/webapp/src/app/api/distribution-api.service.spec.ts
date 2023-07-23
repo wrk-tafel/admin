@@ -70,7 +70,7 @@ describe('DistributionApiService', () => {
 
     apiService.createNewDistribution().subscribe();
 
-    const req = httpMock.expectOne('/distributions/new');
+    const req = httpMock.expectOne({method: 'POST', url: '/distributions/new'});
     req.flush(testResponse);
     httpMock.verify();
   });
@@ -78,7 +78,7 @@ describe('DistributionApiService', () => {
   it('get states', () => {
     apiService.getStates().subscribe();
 
-    const req = httpMock.expectOne('/distributions/states');
+    const req = httpMock.expectOne({method: 'GET', url: '/distributions/states'});
     req.flush(null);
     httpMock.verify();
   });
@@ -86,7 +86,7 @@ describe('DistributionApiService', () => {
   it('switch to next state', () => {
     apiService.switchToNextState().subscribe();
 
-    const req = httpMock.expectOne('/distributions/states/next');
+    const req = httpMock.expectOne({method: 'POST', url: '/distributions/states/next'});
     req.flush(null);
     httpMock.verify();
   });
@@ -106,22 +106,6 @@ describe('DistributionApiService', () => {
     apiService.downloadCustomerList().subscribe();
 
     const req = httpMock.expectOne({method: 'GET', url: '/distributions/customers/generate-pdf'});
-    req.flush(null);
-    httpMock.verify();
-  });
-
-  it('get current ticket', () => {
-    apiService.getCurrentTicket().subscribe();
-
-    const req = httpMock.expectOne('/distributions/tickets/current');
-    req.flush(null);
-    httpMock.verify();
-  });
-
-  it('get next ticket', () => {
-    apiService.getNextTicket().subscribe();
-
-    const req = httpMock.expectOne('/distributions/tickets/next');
     req.flush(null);
     httpMock.verify();
   });

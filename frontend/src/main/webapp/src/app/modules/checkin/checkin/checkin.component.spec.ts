@@ -15,6 +15,8 @@ import {RouterTestingModule} from '@angular/router/testing';
 import {BadgeModule, CardModule, ColComponent, ModalModule, RowComponent} from '@coreui/angular';
 import {FormsModule} from '@angular/forms';
 import {ChangeDetectorRef, ElementRef} from '@angular/core';
+import {ToastService, ToastType} from '../../../common/views/default-layout/toasts/toast.service';
+import {DistributionTicketApiService} from '../../../api/distribution-ticket-api.service';
 
 describe('CheckinComponent', () => {
   let customerApiService: jasmine.SpyObj<CustomerApiService>;
@@ -22,7 +24,9 @@ describe('CheckinComponent', () => {
   let wsService: jasmine.SpyObj<WebsocketService>;
   let globalStateService: jasmine.SpyObj<GlobalStateService>;
   let distributionApiService: jasmine.SpyObj<DistributionApiService>;
+  let distributionTicketApiService: jasmine.SpyObj<DistributionTicketApiService>;
   let router: jasmine.SpyObj<Router>;
+  let toastService: jasmine.SpyObj<ToastService>;
 
   beforeEach(waitForAsync(() => {
     const customerApiServiceSpy = jasmine.createSpyObj('CustomerApiService', ['getCustomer']);
@@ -32,7 +36,9 @@ describe('CheckinComponent', () => {
     );
     const globalStateServiceSpy = jasmine.createSpyObj('GlobalStateService', ['getCurrentDistribution']);
     const distributionApiServiceSpy = jasmine.createSpyObj('DistributionApiService', ['assignCustomer']);
+    const distributionTicketApiServiceSpy = jasmine.createSpyObj('DistributionTicketApiService', ['getCurrentTicketForCustomer', 'deleteCurrentTicketOfCustomer']);
     const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
+    const toastServiceSpy = jasmine.createSpyObj('ToastService', ['showToast']);
 
     TestBed.configureTestingModule({
       imports: [
@@ -68,8 +74,16 @@ describe('CheckinComponent', () => {
           useValue: distributionApiServiceSpy
         },
         {
+          provide: DistributionTicketApiService,
+          useValue: distributionTicketApiServiceSpy
+        },
+        {
           provide: Router,
           useValue: routerSpy
+        },
+        {
+          provide: ToastService,
+          useValue: toastServiceSpy
         }
       ]
     }).compileComponents();
@@ -79,7 +93,9 @@ describe('CheckinComponent', () => {
     wsService = TestBed.inject(WebsocketService) as jasmine.SpyObj<WebsocketService>;
     globalStateService = TestBed.inject(GlobalStateService) as jasmine.SpyObj<GlobalStateService>;
     distributionApiService = TestBed.inject(DistributionApiService) as jasmine.SpyObj<DistributionApiService>;
+    distributionTicketApiService = TestBed.inject(DistributionTicketApiService) as jasmine.SpyObj<DistributionTicketApiService>;
     router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
+    toastService = TestBed.inject(ToastService) as jasmine.SpyObj<ToastService>;
   }));
 
   it('component can be created', () => {
@@ -256,6 +272,7 @@ describe('CheckinComponent', () => {
     const notesResponse: CustomerNotesResponse = {notes: []};
     customerNoteApiService.getNotesForCustomer.and.returnValue(of(notesResponse));
     component.customerId = mockCustomer.id;
+    distributionTicketApiService.getCurrentTicketForCustomer.and.returnValue(of({ticketNumber: null}));
 
     component.searchForCustomerId();
 
@@ -266,6 +283,61 @@ describe('CheckinComponent', () => {
     expect(component.customerStateText).toBe('GÜLTIG');
 
     expect(component.ticketNumber).toBeUndefined();
+    expect(component.ticketNumberEdit).toBeFalse();
+    expect(component.ticketNumberInputRef.nativeElement.focus).toHaveBeenCalled();
+  });
+
+  it('searchForCustomerId found valid customer with assigned ticket', () => {
+    const fixture = TestBed.createComponent(CheckinComponent);
+    const component = fixture.componentInstance;
+    component.ticketNumber = 123;
+    component.ticketNumberInputRef = new ElementRef({
+      /* eslint-disable @typescript-eslint/no-empty-function */
+      focus() {
+      }
+    });
+    spyOn(component.ticketNumberInputRef.nativeElement, 'focus');
+
+    const changeDetectorRef = fixture.debugElement.injector.get(ChangeDetectorRef);
+    spyOn(changeDetectorRef.constructor.prototype, 'detectChanges');
+
+    const mockCustomer = {
+      id: 133,
+      lastname: 'Mustermann',
+      firstname: 'Max',
+      birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
+
+      address: {
+        street: 'Teststraße',
+        houseNumber: '123A',
+        door: '21',
+        postalCode: 1020,
+        city: 'Wien',
+      },
+
+      employer: 'test employer',
+      income: 1000,
+
+      validUntil: moment().add(3, 'months').startOf('day').utc().toDate()
+    };
+    customerApiService.getCustomer.and.returnValue(of(mockCustomer));
+    const notesResponse: CustomerNotesResponse = {notes: []};
+    customerNoteApiService.getNotesForCustomer.and.returnValue(of(notesResponse));
+    component.customerId = mockCustomer.id;
+
+    const testTicketNumber = 123;
+    distributionTicketApiService.getCurrentTicketForCustomer.and.returnValue(of({ticketNumber: testTicketNumber}));
+
+    component.searchForCustomerId();
+
+    expect(component.customer).toEqual(mockCustomer);
+    expect(customerApiService.getCustomer).toHaveBeenCalledWith(mockCustomer.id);
+
+    expect(component.customerState).toBe(CustomerState.GREEN);
+    expect(component.customerStateText).toBe('GÜLTIG');
+
+    expect(component.ticketNumber).toBe(testTicketNumber);
+    expect(component.ticketNumberEdit).toBeTrue();
     expect(component.ticketNumberInputRef.nativeElement.focus).toHaveBeenCalled();
   });
 
@@ -305,6 +377,7 @@ describe('CheckinComponent', () => {
     const notesResponse: CustomerNotesResponse = {notes: []};
     customerNoteApiService.getNotesForCustomer.and.returnValue(of(notesResponse));
     component.customerId = mockCustomer.id;
+    distributionTicketApiService.getCurrentTicketForCustomer.and.returnValue(of({ticketNumber: null}));
 
     component.searchForCustomerId();
 
@@ -325,12 +398,12 @@ describe('CheckinComponent', () => {
       }
     });
     spyOn(component.ticketNumberInputRef.nativeElement, 'focus');
-    component.resetButtonRef = new ElementRef({
+    component.cancelButtonRef = new ElementRef({
       /* eslint-disable @typescript-eslint/no-empty-function */
       focus() {
       }
     });
-    spyOn(component.resetButtonRef.nativeElement, 'focus');
+    spyOn(component.cancelButtonRef.nativeElement, 'focus');
 
     const changeDetectorRef = fixture.debugElement.injector.get(ChangeDetectorRef);
     spyOn(changeDetectorRef.constructor.prototype, 'detectChanges');
@@ -358,6 +431,7 @@ describe('CheckinComponent', () => {
     const notesResponse: CustomerNotesResponse = {notes: []};
     customerNoteApiService.getNotesForCustomer.and.returnValue(of(notesResponse));
     component.customerId = mockCustomer.id;
+    distributionTicketApiService.getCurrentTicketForCustomer.and.returnValue(of({ticketNumber: null}));
 
     component.searchForCustomerId();
 
@@ -367,7 +441,7 @@ describe('CheckinComponent', () => {
     expect(component.customerState).toBe(CustomerState.RED);
     expect(component.customerStateText).toBe('UNGÜLTIG');
     expect(component.ticketNumberInputRef.nativeElement.focus).not.toHaveBeenCalled();
-    expect(component.resetButtonRef.nativeElement.focus).toHaveBeenCalled();
+    expect(component.cancelButtonRef.nativeElement.focus).toHaveBeenCalled();
   });
 
   it('searchForCustomerId found locked customer', () => {
@@ -379,12 +453,12 @@ describe('CheckinComponent', () => {
       }
     });
     spyOn(component.ticketNumberInputRef.nativeElement, 'focus');
-    component.resetButtonRef = new ElementRef({
+    component.cancelButtonRef = new ElementRef({
       /* eslint-disable @typescript-eslint/no-empty-function */
       focus() {
       }
     });
-    spyOn(component.resetButtonRef.nativeElement, 'focus');
+    spyOn(component.cancelButtonRef.nativeElement, 'focus');
 
     const changeDetectorRef = fixture.debugElement.injector.get(ChangeDetectorRef);
     spyOn(changeDetectorRef.constructor.prototype, 'detectChanges');
@@ -413,6 +487,7 @@ describe('CheckinComponent', () => {
     const notesResponse: CustomerNotesResponse = {notes: []};
     customerNoteApiService.getNotesForCustomer.and.returnValue(of(notesResponse));
     component.customerId = mockCustomer.id;
+    distributionTicketApiService.getCurrentTicketForCustomer.and.returnValue(of({ticketNumber: null}));
 
     component.searchForCustomerId();
 
@@ -422,7 +497,7 @@ describe('CheckinComponent', () => {
     expect(component.customerState).toBe(CustomerState.RED);
     expect(component.customerStateText).toBe('GESPERRT');
     expect(component.ticketNumberInputRef.nativeElement.focus).not.toHaveBeenCalled();
-    expect(component.resetButtonRef.nativeElement.focus).toHaveBeenCalled();
+    expect(component.cancelButtonRef.nativeElement.focus).toHaveBeenCalled();
   });
 
   it('searchForCustomerId customer not found', () => {
@@ -491,6 +566,7 @@ describe('CheckinComponent', () => {
     ];
     const notesResponse: CustomerNotesResponse = {notes: mockNotes};
     customerNoteApiService.getNotesForCustomer.and.returnValue(of(notesResponse));
+    distributionTicketApiService.getCurrentTicketForCustomer.and.returnValue(of({ticketNumber: null}));
 
     component.searchForCustomerId();
 
@@ -531,7 +607,7 @@ describe('CheckinComponent', () => {
     };
     component.processCustomer(mockCustomer);
 
-    component.reset();
+    component.cancel();
 
     expect(component.customerId).toBeUndefined();
     expect(component.customerState).toBeUndefined();
@@ -630,6 +706,50 @@ describe('CheckinComponent', () => {
     component.assignCustomer();
 
     expect(distributionApiService.assignCustomer).not.toHaveBeenCalled();
+  });
+
+  it('delete ticket successful', () => {
+    const fixture = TestBed.createComponent(CheckinComponent);
+    const component = fixture.componentInstance;
+    component.ticketNumberInputRef = new ElementRef({
+      /* eslint-disable @typescript-eslint/no-empty-function */
+      focus() {
+      }
+    });
+    spyOn(component.ticketNumberInputRef.nativeElement, 'focus');
+
+    const changeDetectorRef = fixture.debugElement.injector.get(ChangeDetectorRef);
+    spyOn(changeDetectorRef.constructor.prototype, 'detectChanges');
+
+    const mockCustomer = {
+      id: 133,
+      lastname: 'Mustermann',
+      firstname: 'Max',
+      birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
+
+      address: {
+        street: 'Teststraße',
+        houseNumber: '123A',
+        door: '21',
+        postalCode: 1020,
+        city: 'Wien',
+      },
+
+      employer: 'test employer',
+      income: 1000,
+
+      validUntil: moment().add(3, 'months').startOf('day').utc().toDate()
+    };
+    component.processCustomer(mockCustomer);
+    distributionTicketApiService.deleteCurrentTicketOfCustomer.and.returnValue(of(null));
+
+    component.deleteTicket();
+
+    expect(distributionTicketApiService.deleteCurrentTicketOfCustomer).toHaveBeenCalledWith(mockCustomer.id);
+    expect(component.ticketNumber).toBeUndefined();
+    expect(component.ticketNumberEdit).toBeUndefined();
+    expect(toastService.showToast).toHaveBeenCalledWith({type: ToastType.SUCCESS, title: 'Ticket-Nummer gelöscht!'});
+    expect(component.ticketNumberInputRef.nativeElement.focus).toHaveBeenCalled();
   });
 
 });

@@ -76,7 +76,8 @@ describe('CustomerDetailComponent', () => {
         income: 50,
         incomeDue: moment().add(1, 'years').startOf('day').utc().toDate(),
         country: mockCountry,
-        excludeFromHousehold: false
+        excludeFromHousehold: false,
+        receivesFamilyBonus: true
       },
       {
         key: 1,
@@ -85,7 +86,8 @@ describe('CustomerDetailComponent', () => {
         firstname: 'Pers 2',
         birthDate: moment().subtract(10, 'years').startOf('day').utc().toDate(),
         country: mockCountry,
-        excludeFromHousehold: true
+        excludeFromHousehold: true,
+        receivesFamilyBonus: false
       }
     ]
   };
@@ -211,6 +213,7 @@ describe('CustomerDetailComponent', () => {
 
     expect(getTextByTestId(fixture, 'addperson-0-lastnameText')).toBe('Add');
     expect(getTextByTestId(fixture, 'addperson-0-firstnameText')).toBe('Pers 1');
+    expect(getTextByTestId(fixture, 'addperson-0-receivesFamilyBonus')).toBe('Ja');
 
     // TODO fix
     /*

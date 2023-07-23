@@ -2,13 +2,15 @@ import {TestBed, waitForAsync} from '@angular/core/testing';
 import {CommonModule} from '@angular/common';
 import {TicketScreenControlComponent} from './ticket-screen-control.component';
 import {WebsocketService} from '../../../common/websocket/websocket.service';
-import {DistributionApiService, TicketNumberResponse} from '../../../api/distribution-api.service';
+import {DistributionTicketApiService, TicketNumberResponse} from '../../../api/distribution-ticket-api.service';
 import {TicketScreenMessage} from '../ticket-screen/ticket-screen.component';
 import {of} from 'rxjs';
+import {UrlHelperService} from '../../../common/util/url-helper.service';
 
 describe('TicketScreenControlComponent', () => {
   let websocketService: jasmine.SpyObj<WebsocketService>;
-  let distributionApiService: jasmine.SpyObj<DistributionApiService>;
+  let distributionApiService: jasmine.SpyObj<DistributionTicketApiService>;
+  let urlHelperSpy: jasmine.SpyObj<UrlHelperService>;
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
@@ -19,14 +21,19 @@ describe('TicketScreenControlComponent', () => {
           useValue: jasmine.createSpyObj('WebsocketService', ['publish'])
         },
         {
-          provide: DistributionApiService,
-          useValue: jasmine.createSpyObj('DistributionApiService', ['getCurrentTicket', 'getNextTicket'])
+          provide: DistributionTicketApiService,
+          useValue: jasmine.createSpyObj('DistributionTicketApiService', ['getCurrentTicket', 'getNextTicket'])
+        },
+        {
+          provide: UrlHelperService,
+          useValue: jasmine.createSpyObj('UrlHelperService', ['getBaseUrl'])
         }
       ]
     }).compileComponents();
 
     websocketService = TestBed.inject(WebsocketService) as jasmine.SpyObj<WebsocketService>;
-    distributionApiService = TestBed.inject(DistributionApiService) as jasmine.SpyObj<DistributionApiService>;
+    distributionApiService = TestBed.inject(DistributionTicketApiService) as jasmine.SpyObj<DistributionTicketApiService>;
+    urlHelperSpy = TestBed.inject(UrlHelperService) as jasmine.SpyObj<UrlHelperService>;
   }));
 
   it('component can be created', () => {
@@ -38,11 +45,14 @@ describe('TicketScreenControlComponent', () => {
   it('openScreenInNewTab', () => {
     const fixture = TestBed.createComponent(TicketScreenControlComponent);
     const component = fixture.componentInstance;
+
+    const testBaseUrl = 'http://test:1234/testcontext';
+    urlHelperSpy.getBaseUrl.and.returnValue(testBaseUrl);
     spyOn(window, 'open');
 
     component.openScreenInNewTab();
 
-    expect(window.open).toHaveBeenCalledWith('/#/anmeldung/ticketmonitor', '_blank');
+    expect(window.open).toHaveBeenCalledWith(`${testBaseUrl}/#/anmeldung/ticketmonitor`, '_blank');
   });
 
   it('showStartTime', () => {

@@ -8,7 +8,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
 data class PdfData(
     val logoContentType: String,
     val logoBytes: ByteArray,
-    val issuer: String,
+    val issuer: String?,
     val issuedAtDate: String,
     val customer: PdfCustomerData,
     val countPersons: Int,
@@ -62,10 +62,10 @@ data class PdfCustomerData(
 @ExcludeFromTestCoverage
 data class PdfAddressData(
     val street: String,
-    val houseNumber: String,
+    val houseNumber: String?,
     val door: String? = null,
     val stairway: String? = null,
-    val postalCode: Int,
+    val postalCode: Int?,
     val city: String
 )
 

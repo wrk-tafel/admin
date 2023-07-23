@@ -3,6 +3,8 @@ package at.wrk.tafel.admin.backend.modules.distribution
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.common.model.DistributionState
 import at.wrk.tafel.admin.backend.common.pdf.PDFService
+import at.wrk.tafel.admin.backend.database.entities.customer.CustomerAddPersonEntity
+import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity
 import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionCustomerEntity
 import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
@@ -10,8 +12,7 @@ import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerReposit
 import at.wrk.tafel.admin.backend.database.repositories.distribution.DistributionCustomerRepository
 import at.wrk.tafel.admin.backend.database.repositories.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
-import at.wrk.tafel.admin.backend.modules.customer.testCustomerEntity1
-import at.wrk.tafel.admin.backend.modules.customer.testCustomerEntity2
+import at.wrk.tafel.admin.backend.modules.base.testCountry
 import at.wrk.tafel.admin.backend.modules.distribution.model.CustomerListItem
 import at.wrk.tafel.admin.backend.modules.distribution.model.CustomerListPdfModel
 import at.wrk.tafel.admin.backend.security.testUser
@@ -30,6 +31,8 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.context.SecurityContextImpl
+import java.math.BigDecimal
+import java.time.LocalDate
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
@@ -61,9 +64,79 @@ internal class DistributionServiceTest {
         authorities = testUserPermissions.map { SimpleGrantedAuthority(it) }
     )
 
+    private lateinit var testCustomerEntity1: CustomerEntity
+    private lateinit var testCustomerEntity2: CustomerEntity
+
     @BeforeEach
     fun beforeEach() {
         SecurityContextHolder.setContext(SecurityContextImpl(authentication))
+
+        testCustomerEntity1 = CustomerEntity().apply {
+            id = 1
+            issuer = testUserEntity
+            createdAt = ZonedDateTime.now()
+            customerId = 100
+            lastname = "Mustermann"
+            firstname = "Max"
+            birthDate = LocalDate.now().minusYears(30)
+            country = testCountry
+            addressStreet = "Test-Straße"
+            addressHouseNumber = "100"
+            addressStairway = "1"
+            addressPostalCode = 1010
+            addressDoor = "21"
+            addressCity = "Wien"
+            telephoneNumber = "0043660123123"
+            email = "test@mail.com"
+            employer = "Employer 123"
+            income = BigDecimal("1000")
+            incomeDue = LocalDate.now()
+            validUntil = LocalDate.now()
+            locked = false
+
+            val addPerson1 = CustomerAddPersonEntity()
+            addPerson1.id = 2
+            addPerson1.lastname = "Add pers 1"
+            addPerson1.firstname = "Add pers 1"
+            addPerson1.birthDate = LocalDate.now().minusYears(5)
+            addPerson1.income = BigDecimal("100")
+            addPerson1.incomeDue = LocalDate.now()
+            addPerson1.country = testCountry
+            addPerson1.excludeFromHousehold = false
+
+            val addPerson2 = CustomerAddPersonEntity()
+            addPerson2.id = 3
+            addPerson2.lastname = "Add pers 2"
+            addPerson2.firstname = "Add pers 2"
+            addPerson2.birthDate = LocalDate.now().minusYears(2)
+            addPerson2.country = testCountry
+            addPerson2.excludeFromHousehold = true
+
+            additionalPersons = mutableListOf(addPerson1, addPerson2)
+        }
+
+        testCustomerEntity2 = CustomerEntity().apply {
+            id = 2
+            createdAt = ZonedDateTime.now()
+            customerId = 200
+            lastname = "Mustermann"
+            firstname = "Max 2"
+            birthDate = LocalDate.now().minusYears(22)
+            country = testCountry
+            addressStreet = "Test-Straße 2"
+            addressHouseNumber = "200"
+            addressStairway = "1-2"
+            addressPostalCode = 1010
+            addressDoor = "21-2"
+            addressCity = "Wien 2"
+            telephoneNumber = "0043660123123"
+            email = "test2@mail.com"
+            employer = "Employer 123-2"
+            income = BigDecimal("2000")
+            incomeDue = LocalDate.now()
+            validUntil = LocalDate.now()
+            locked = false
+        }
     }
 
     @AfterEach
@@ -292,14 +365,14 @@ internal class DistributionServiceTest {
     }
 
     @Test
-    fun `get current ticket without registered customers`() {
-        val ticket = service.getCurrentTicket(testDistributionEntity)
+    fun `get current ticketNumber without registered customers`() {
+        val ticket = service.getCurrentTicketNumber(testDistributionEntity)
 
         assertThat(ticket).isNull()
     }
 
     @Test
-    fun `get current ticket with open tickets left`() {
+    fun `get current ticketNumber with open tickets left`() {
         val testDistributionEntity = DistributionEntity().apply {
             id = 123
             state = DistributionState.DISTRIBUTION
@@ -309,13 +382,33 @@ internal class DistributionServiceTest {
             )
         }
 
-        val ticket = service.getCurrentTicket(testDistributionEntity)
+        val ticket = service.getCurrentTicketNumber(testDistributionEntity)
 
         assertThat(ticket).isEqualTo(50)
     }
 
     @Test
-    fun `get current ticket with all tickets resolved`() {
+    fun `get current ticketNumber for customer`() {
+        val testDistributionEntity = DistributionEntity().apply {
+            id = 123
+            state = DistributionState.DISTRIBUTION
+            customers = listOf(
+                testDistributionCustomerEntity1,
+                testDistributionCustomerEntity2
+            )
+        }
+
+        val ticket =
+            service.getCurrentTicketNumber(
+                testDistributionEntity,
+                testDistributionCustomerEntity2.customer!!.customerId
+            )
+
+        assertThat(ticket).isEqualTo(51)
+    }
+
+    @Test
+    fun `get current ticketNumber with all tickets resolved`() {
         val testDistributionCustomerEntity1 = DistributionCustomerEntity().apply {
             id = 1
             createdAt = ZonedDateTime.now()
@@ -333,7 +426,7 @@ internal class DistributionServiceTest {
             )
         }
 
-        val ticket = service.getCurrentTicket(testDistributionEntity)
+        val ticket = service.getCurrentTicketNumber(testDistributionEntity)
 
         assertThat(ticket).isNull()
     }
@@ -408,6 +501,24 @@ internal class DistributionServiceTest {
         val ticket = service.closeCurrentTicketAndGetNext(testDistributionEntity)
 
         assertThat(ticket).isNull()
+    }
+
+    @Test
+    fun `delete current ticket of customer`() {
+        val testDistributionEntity = DistributionEntity().apply {
+            id = 123
+            state = DistributionState.DISTRIBUTION
+            customers = listOf(
+                testDistributionCustomerEntity1,
+                testDistributionCustomerEntity2
+            )
+        }
+
+        val result =
+            service.deleteCurrentTicket(testDistributionEntity, testDistributionCustomerEntity2.customer!!.customerId!!)
+
+        assertThat(result).isTrue()
+        verify(exactly = 1) { distributionCustomerRepository.delete(testDistributionCustomerEntity2) }
     }
 
     @Test

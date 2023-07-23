@@ -17,6 +17,7 @@ import at.wrk.tafel.admin.backend.modules.customer.masterdata.CustomerPdfService
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.math.BigDecimal
 import java.time.ZonedDateTime
 
 @Service
@@ -103,26 +104,22 @@ class CustomerService(
     }
 
     private fun mapToValidationPersons(customer: Customer): List<IncomeValidatorPerson> {
-        val personList = mutableListOf<IncomeValidatorPerson>()
-        personList.add(
-            IncomeValidatorPerson(
-                monthlyIncome = customer.income,
-                birthDate = customer.birthDate,
-                excludeFromIncomeCalculation = false
-            )
+        val customerPerson = IncomeValidatorPerson(
+            monthlyIncome = customer.income,
+            birthDate = customer.birthDate,
+            excludeFromIncomeCalculation = false
         )
 
-        customer.additionalPersons.forEach {
-            personList.add(
-                IncomeValidatorPerson(
-                    monthlyIncome = it.income,
-                    birthDate = it.birthDate,
-                    excludeFromIncomeCalculation = it.excludeFromHousehold
-                )
+        val addPersonList = customer.additionalPersons.map {
+            IncomeValidatorPerson(
+                monthlyIncome = it.income,
+                birthDate = it.birthDate,
+                excludeFromIncomeCalculation = it.excludeFromHousehold,
+                receivesFamilyBonus = it.receivesFamilyBonus
             )
         }
 
-        return personList
+        return addPersonList + customerPerson
     }
 
     private fun mapRequestToEntity(customer: Customer, entity: CustomerEntity? = null): CustomerEntity {
@@ -137,15 +134,15 @@ class CustomerService(
         customerEntity.birthDate = customer.birthDate
         customerEntity.country = countryRepository.findById(customer.country.id).get()
         customerEntity.addressStreet = customer.address.street.trim()
-        customerEntity.addressHouseNumber = customer.address.houseNumber.trim()
+        customerEntity.addressHouseNumber = customer.address.houseNumber?.trim()
         customerEntity.addressStairway = customer.address.stairway?.trim()
         customerEntity.addressDoor = customer.address.door?.trim()
         customerEntity.addressPostalCode = customer.address.postalCode
-        customerEntity.addressCity = customer.address.city.trim()
+        customerEntity.addressCity = customer.address.city?.trim()
         customerEntity.telephoneNumber = customer.telephoneNumber
         customerEntity.email = customer.email?.takeIf { it.isNotBlank() }?.trim()
         customerEntity.employer = customer.employer.trim()
-        customerEntity.income = customer.income
+        customerEntity.income = customer.income.takeIf { it != null && it > BigDecimal.ZERO }
         customerEntity.incomeDue = customer.incomeDue
         customerEntity.validUntil = customer.validUntil
 
@@ -161,6 +158,10 @@ class CustomerService(
             customerEntity.lockReason = null
         }
 
+        // TODO revisit on 01.01.2024 if still necessary
+        // once the customer was updated/fixed the required fields - migration is done
+        customerEntity.migrated = false
+
         customerEntity.additionalPersons.clear()
         customerEntity.additionalPersons.addAll(
             customer.additionalPersons.map {
@@ -171,8 +172,9 @@ class CustomerService(
                 addPersonEntity.firstname = it.firstname.trim()
                 addPersonEntity.birthDate = it.birthDate
                 addPersonEntity.employer = it.employer
-                addPersonEntity.income = it.income
+                addPersonEntity.income = it.income.takeIf { income -> income != null && income > BigDecimal.ZERO }
                 addPersonEntity.incomeDue = it.incomeDue
+                addPersonEntity.receivesFamilyBonus = it.receivesFamilyBonus
                 addPersonEntity.country = countryRepository.findById(it.country.id).get()
                 addPersonEntity.excludeFromHousehold = it.excludeFromHousehold
                 addPersonEntity
@@ -198,11 +200,11 @@ class CustomerService(
         country = mapCountryToResponse(customerEntity.country!!),
         address = CustomerAddress(
             street = customerEntity.addressStreet!!,
-            houseNumber = customerEntity.addressHouseNumber!!,
+            houseNumber = customerEntity.addressHouseNumber,
             stairway = customerEntity.addressStairway,
             door = customerEntity.addressDoor,
-            postalCode = customerEntity.addressPostalCode!!,
-            city = customerEntity.addressCity!!
+            postalCode = customerEntity.addressPostalCode,
+            city = customerEntity.addressCity
         ),
         telephoneNumber = customerEntity.telephoneNumber,
         email = customerEntity.email,
@@ -223,10 +225,11 @@ class CustomerService(
                 employer = it.employer,
                 income = it.income,
                 incomeDue = it.incomeDue,
+                receivesFamilyBonus = it.receivesFamilyBonus!!,
                 country = mapCountryToResponse(it.country!!),
                 excludeFromHousehold = it.excludeFromHousehold!!
             )
-        }
+        }.sortedBy { "${it.lastname} ${it.firstname}" }
     )
 
     private fun mapCountryToResponse(country: CountryEntity): Country {

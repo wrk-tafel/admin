@@ -1,6 +1,6 @@
 -- adapt sequences
 SELECT setval('customer_id_sequence', 10000, false);
-SELECT setval('hibernate_sequence', 5000, false);
+SELECT setval('hibernate_sequence', 10000, false);
 
 -- user e2etest for cypress tests
 -- pwd: e2etest
@@ -92,14 +92,14 @@ INSERT INTO customers (id, created_at, updated_at, customer_id, user_id, firstna
 values (101, NOW(), NOW(), 101, 100, 'Eva', 'Musterfrau', '1990-01-01', 2, 'Erdberg', 2, '1', '20', '1010', 'Wien',
         '00436645678953', 'eva.musterfrau@wrk.at', 'Rotes Kreuz Wien', 456.00, '2999-12-31', '2999-12-31');
 INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, income,
-                                  income_due, country_id)
-values (1011, NOW(), NOW(), 101, 'Child 1', 'Musterfrau', '2000-01-01', 500, '2999-12-31', 1);
+                                  income_due, country_id, receives_familybonus)
+values (1011, NOW(), NOW(), 101, 'Child 1', 'Musterfrau', '2000-01-01', 500, '2999-12-31', 1, false);
 INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, employer, income,
-                                  income_due, country_id)
-values (1012, NOW(), NOW(), 101, 'Child 2', 'Musterfrau', CURRENT_DATE - interval '8 year', 'Stadt Wien', 0, null, 1);
+                                  income_due, country_id, receives_familybonus)
+values (1012, NOW(), NOW(), 101, 'Child 2', 'Musterfrau', CURRENT_DATE - interval '8 year', 'Stadt Wien', null, null, 1, true);
 INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, employer, income,
-                                  income_due, country_id)
-values (1013, NOW(), NOW(), 101, 'Child 3', 'Musterfrau', CURRENT_DATE - interval '2 year', 'WRK', null, null, 1);
+                                  income_due, country_id, receives_familybonus)
+values (1013, NOW(), NOW(), 101, 'Child 3', 'Musterfrau', CURRENT_DATE - interval '2 year', 'WRK', null, null, 1, true);
 INSERT INTO customers_notes (id, created_at, updated_at, customer_id, user_id, note)
 VALUES (1003, NOW(), NOW(), 101, 100, 'Testnote 3.<br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.<br/><br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
 INSERT INTO customers_notes (id, created_at, updated_at, customer_id, user_id, note)
@@ -137,12 +137,12 @@ INSERT INTO customers (id, created_at, updated_at, customer_id, user_id, firstna
                        address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
                        address_city, telephone_number, email, employer, income, income_due, valid_until)
 values (202, NOW(), NOW(), 202, 100, '2', 'e2e-search', '1980-01-01', 1, 'Erdberg', 1, null, '10', '1030', 'Wien', null, null,
-        'Stadt Wien', 123.00, '2999-12-31', '2999-12-31');
+        'Stadt Wien', null, null, '2999-12-31');
 INSERT INTO customers (id, created_at, updated_at, customer_id, user_id, firstname, lastname, birth_date, country_id,
                        address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
                        address_city, telephone_number, email, employer, income, income_due, valid_until)
 values (300, NOW(), NOW(), 300, 100, 'e2e-delete', 'e2e-delete', '1980-01-01', 1, 'Erdberg', 1, null, '10', '1030', 'Wien', null, null,
-        'Stadt Wien', 123.00, '2999-12-31', '2999-12-31');
+        'Stadt Wien', null, null, '2999-12-31');
 
 -- static values
 DELETE FROM static_values;

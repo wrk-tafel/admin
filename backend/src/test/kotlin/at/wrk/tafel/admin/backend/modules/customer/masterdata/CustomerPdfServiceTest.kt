@@ -4,7 +4,7 @@ import at.wrk.tafel.admin.backend.common.pdf.PDFService
 import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerAddPersonEntity
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity
-import at.wrk.tafel.admin.backend.modules.customer.testCountry
+import at.wrk.tafel.admin.backend.modules.base.testCountry
 import com.github.romankh3.image.comparison.ImageComparison
 import com.github.romankh3.image.comparison.model.ImageComparisonState
 import org.apache.commons.io.FileUtils
@@ -28,6 +28,7 @@ class CustomerPdfServiceTest {
 
     private lateinit var service: CustomerPdfService
     private lateinit var testCustomer: CustomerEntity
+    private lateinit var testCustomerMinimal: CustomerEntity
 
     companion object {
         private val comparisonResultDirectory = File(
@@ -96,12 +97,14 @@ class CustomerPdfServiceTest {
         addPers1.birthDate = LocalDate.of(2000, 1, 1)
         addPers1.income = BigDecimal("1000")
         addPers1.country = testCountry
+        addPers1.excludeFromHousehold = false
 
         val addPers2 = CustomerAddPersonEntity()
         addPers2.lastname = "Mustermann"
         addPers2.firstname = "Max"
         addPers2.birthDate = LocalDate.of(2001, 12, 1)
         addPers2.country = testCountry
+        addPers2.excludeFromHousehold = false
 
         val addPers3 = CustomerAddPersonEntity()
         addPers3.lastname = "Mustermann"
@@ -109,8 +112,25 @@ class CustomerPdfServiceTest {
         addPers3.birthDate = LocalDate.of(2005, 2, 28)
         addPers3.income = BigDecimal("132")
         addPers3.country = testCountry
+        addPers3.excludeFromHousehold = true
 
         testCustomer.additionalPersons = mutableListOf(addPers1, addPers2, addPers3)
+
+        testCustomerMinimal = CustomerEntity()
+        testCustomerMinimal.createdAt = ZonedDateTime.of(
+            LocalDate.of(2022, 10, 3), LocalTime.of(10, 10), ZoneId.systemDefault()
+        )
+        testCustomerMinimal.customerId = 456
+        testCustomerMinimal.lastname = "Mustermann"
+        testCustomerMinimal.firstname = "Max"
+        testCustomerMinimal.birthDate = LocalDate.of(1980, 6, 10)
+        testCustomerMinimal.addressStreet = "Karl-Schäfer-Straße"
+        testCustomerMinimal.addressCity = "Wien"
+        testCustomerMinimal.employer = "WRK Team Österreich Tafel"
+        testCustomerMinimal.income = BigDecimal("977.94587")
+        testCustomerMinimal.incomeDue = LocalDate.of(2030, 1, 1)
+        testCustomerMinimal.validUntil = LocalDate.of(2030, 3, 1)
+        testCustomerMinimal.country = testCountry
 
         service = CustomerPdfService(PDFService())
     }
@@ -201,6 +221,16 @@ class CustomerPdfServiceTest {
         assertThat(comparisonFirstPageResult.imageComparisonState).isEqualTo(ImageComparisonState.MATCH)
         assertThat(comparisonSecondPageResult.imageComparisonState).isEqualTo(ImageComparisonState.MATCH)
 
+        document.close()
+    }
+
+    @Test
+    fun `generate combined pdf with minimal data`() {
+        val pdfBytes = service.generateCombinedPdf(testCustomerMinimal)
+        FileUtils.writeByteArrayToFile(File(comparisonResultDirectory, "combined-result.pdf"), pdfBytes)
+
+        val document: PDDocument = PDDocument.load(pdfBytes)
+        assertThat(document.numberOfPages).isEqualTo(2)
         document.close()
     }
 

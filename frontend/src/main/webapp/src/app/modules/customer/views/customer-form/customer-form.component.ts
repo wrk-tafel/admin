@@ -46,7 +46,7 @@ export class CustomerFormComponent implements OnInit {
     }),
 
     employer: new UntypedFormControl(null, Validators.required),
-    income: new UntypedFormControl(null, Validators.required),
+    income: new UntypedFormControl(null, [Validators.required, Validators.min(1)]),
     incomeDue: new UntypedFormControl(null, [CustomValidator.minDate(new Date())]),
 
     validUntil: new UntypedFormControl(null, [
@@ -135,7 +135,8 @@ export class CustomerFormComponent implements OnInit {
       employer: null,
       income: null,
       incomeDue: null,
-      excludeFromHousehold: false
+      excludeFromHousehold: false,
+      receivesFamilyBonus: false
     });
 
     if (this.editMode) {
@@ -169,11 +170,12 @@ export class CustomerFormComponent implements OnInit {
       ]),
       country: new UntypedFormControl(additionalPerson.country, Validators.required),
       employer: new UntypedFormControl(additionalPerson.employer),
-      income: new UntypedFormControl(additionalPerson.income),
+      income: new UntypedFormControl(additionalPerson.income, [Validators.min(1)]),
       incomeDue: new UntypedFormControl(additionalPerson.incomeDue, [
         CustomValidator.minDate(new Date())
       ]),
-      excludeFromHousehold: new UntypedFormControl(additionalPerson.excludeFromHousehold)
+      excludeFromHousehold: new UntypedFormControl(additionalPerson.excludeFromHousehold),
+      receivesFamilyBonus: new UntypedFormControl(additionalPerson.receivesFamilyBonus),
     });
 
     control.get('incomeDue').valueChanges.subscribe(() => {

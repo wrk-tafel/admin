@@ -10,6 +10,8 @@ import {GlobalStateService} from '../../../common/state/global-state.service';
 import {Router} from '@angular/router';
 import {DistributionApiService} from '../../../api/distribution-api.service';
 import {Colors} from '@coreui/angular';
+import {DistributionTicketApiService} from '../../../api/distribution-ticket-api.service';
+import {ToastService, ToastType} from '../../../common/views/default-layout/toasts/toast.service';
 
 @Component({
   selector: 'tafel-checkin',
@@ -23,8 +25,10 @@ export class CheckinComponent implements OnInit, OnDestroy {
     private websocketService: WebsocketService,
     private globalStateService: GlobalStateService,
     private distributionApiService: DistributionApiService,
+    private distributionTicketApiService: DistributionTicketApiService,
     private router: Router,
-    private changeDetectorRef: ChangeDetectorRef
+    private changeDetectorRef: ChangeDetectorRef,
+    private toastService: ToastService
   ) {
   }
 
@@ -42,9 +46,10 @@ export class CheckinComponent implements OnInit, OnDestroy {
 
   customerNotes: CustomerNoteItem[];
   ticketNumber: number;
+  ticketNumberEdit = false;
 
   @ViewChild('ticketNumberInput') ticketNumberInputRef: ElementRef;
-  @ViewChild('resetButton') resetButtonRef: ElementRef;
+  @ViewChild('cancelButton') cancelButtonRef: ElementRef;
 
   ngOnInit(): void {
     if (this.globalStateService.getCurrentDistribution().value === null) {
@@ -71,6 +76,13 @@ export class CheckinComponent implements OnInit, OnDestroy {
         this.customerNoteApiService.getNotesForCustomer(this.customerId).subscribe(notesResponse => {
           this.customerNotes = notesResponse.notes;
         });
+
+        this.distributionTicketApiService.getCurrentTicketForCustomer(customerData.id).subscribe((ticketNumberResponse) => {
+          if (ticketNumberResponse.ticketNumber) {
+            this.ticketNumber = ticketNumberResponse.ticketNumber;
+          }
+          this.ticketNumberEdit = this.ticketNumber != null;
+        });
       },
       error: error => {
         if (error.status === 404) {
@@ -95,13 +107,13 @@ export class CheckinComponent implements OnInit, OnDestroy {
         this.customerStateText = 'GESPERRT';
 
         this.changeDetectorRef.detectChanges();
-        this.resetButtonRef.nativeElement.focus();
+        this.cancelButtonRef.nativeElement.focus();
       } else if (validUntil.isBefore(now)) {
         this.customerState = CustomerState.RED;
         this.customerStateText = 'UNGÜLTIG';
 
         this.changeDetectorRef.detectChanges();
-        this.resetButtonRef.nativeElement.focus();
+        this.cancelButtonRef.nativeElement.focus();
       } else {
         const warnLimit = now.add(this.VALID_UNTIL_WARNLIMIT_WEEKS, 'weeks');
         if (!validUntil.isAfter(warnLimit)) {
@@ -150,11 +162,12 @@ export class CheckinComponent implements OnInit, OnDestroy {
     }
   }
 
-  reset() {
+  cancel() {
     this.processCustomer(undefined);
     this.customerNotes = [];
     this.customerId = undefined;
     this.ticketNumber = undefined;
+    this.ticketNumberEdit = undefined;
   }
 
   formatAddress(): string {
@@ -177,7 +190,7 @@ export class CheckinComponent implements OnInit, OnDestroy {
     if (this.ticketNumber > 0) {
       /* eslint-disable @typescript-eslint/no-unused-vars */
       const observer = {
-        next: (response) => this.reset()
+        next: (response) => this.cancel()
       };
       this.distributionApiService.assignCustomer(this.customer.id, this.ticketNumber).subscribe(observer);
     }
@@ -197,6 +210,19 @@ export class CheckinComponent implements OnInit, OnDestroy {
         return 'success';
     }
   }
+
+  deleteTicket() {
+    const observer = {
+      next: () => {
+        this.ticketNumber = undefined;
+        this.ticketNumberEdit = undefined;
+        this.toastService.showToast({type: ToastType.SUCCESS, title: 'Ticket-Nummer gelöscht!'});
+        this.ticketNumberInputRef.nativeElement.focus();
+      }
+    };
+    this.distributionTicketApiService.deleteCurrentTicketOfCustomer(this.customer.id).subscribe(observer);
+  }
+
 }
 
 export enum CustomerState {
