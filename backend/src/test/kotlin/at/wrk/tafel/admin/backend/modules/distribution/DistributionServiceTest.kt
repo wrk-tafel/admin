@@ -23,6 +23,7 @@ import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.mockk
+import io.mockk.slot
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
@@ -137,6 +138,8 @@ internal class DistributionServiceTest {
             validUntil = LocalDate.now()
             locked = false
         }
+
+        every { userRepository.findByUsername(authentication.username!!) } returns Optional.of(testUserEntity)
     }
 
     @AfterEach
@@ -519,6 +522,31 @@ internal class DistributionServiceTest {
 
         assertThat(result).isTrue()
         verify(exactly = 1) { distributionCustomerRepository.delete(testDistributionCustomerEntity2) }
+    }
+
+    @Test
+    fun `auto close current distribution`() {
+        val testDistributionEntity = DistributionEntity().apply {
+            id = 123
+            state = DistributionState.DISTRIBUTION
+            customers = listOf(
+                testDistributionCustomerEntity1,
+                testDistributionCustomerEntity2
+            )
+        }
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
+        every { distributionRepository.save(any()) } returns mockk()
+
+        service.autoCloseDistribution()
+
+        val savedDistributionSlot = slot<DistributionEntity>()
+        verify(exactly = 1) {
+            distributionRepository.save(capture(savedDistributionSlot))
+        }
+
+        val saveDistribution = savedDistributionSlot.captured
+        assertThat(saveDistribution.endedAt).isNotNull()
+        assertThat(saveDistribution.state).isEqualTo(DistributionState.CLOSED)
     }
 
     @Test
