@@ -53,7 +53,7 @@ describe('TicketScreen', () => {
     cy.byTestId('show-nextticket-button').click();
     cy.byTestId('ticketnumber-text').should('have.text', '-');
 
-    cy.finishDistribution();
+    cy.closeDistribution();
   });
 
 });

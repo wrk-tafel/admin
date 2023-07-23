@@ -1,7 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.distribution
 
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
-import at.wrk.tafel.admin.backend.common.model.DistributionState
 import at.wrk.tafel.admin.backend.common.pdf.PDFService
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerAddPersonEntity
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity
@@ -199,30 +198,25 @@ internal class DistributionServiceTest {
     }
 
     @Test
-    fun `get state list`() {
-        val states = service.getStates()
+    fun `close distribution when not open`() {
+        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns null
 
-        assertThat(states).isEqualTo(
-            listOf(
-                DistributionState.OPEN,
-                DistributionState.CLOSED
-            )
-        )
+        val exception = assertThrows<TafelValidationException> { service.closeDistribution() }
+        assertThat(exception.message).isEqualTo("Ausgabe nicht gestartet!")
     }
 
     @Test
-    fun `switch from open to closed state`() {
-        val distributionEntity = testDistributionEntity.apply { state = DistributionState.OPEN }
+    fun `close distribution when open`() {
+        val distributionEntity = testDistributionEntity
         every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns distributionEntity
         every { distributionRepository.save(any()) } returns mockk()
 
         every { userRepository.findByUsername(authentication.username!!) } returns Optional.of(testUserEntity)
 
-        service.switchToNextState(testDistributionEntity.state!!)
+        service.closeDistribution()
 
         verify {
             distributionRepository.save(withArg {
-                assertThat(it.state).isEqualTo(DistributionState.CLOSED)
                 assertThat(it.endedAt).isBetween(ZonedDateTime.now().minusSeconds(5), ZonedDateTime.now())
                 assertThat(it.endedByUser).isEqualTo(testUserEntity)
             })
@@ -290,7 +284,6 @@ internal class DistributionServiceTest {
         val date = ZonedDateTime.now()
         val testDistributionEntity = DistributionEntity().apply {
             id = 123
-            state = DistributionState.OPEN
             startedAt = date
             customers = listOf(
                 testDistributionCustomerEntity1,
@@ -363,7 +356,6 @@ internal class DistributionServiceTest {
     fun `get current ticketNumber with open tickets left`() {
         val testDistributionEntity = DistributionEntity().apply {
             id = 123
-            state = DistributionState.OPEN
             customers = listOf(
                 testDistributionCustomerEntity1,
                 testDistributionCustomerEntity2
@@ -379,7 +371,6 @@ internal class DistributionServiceTest {
     fun `get current ticketNumber for customer`() {
         val testDistributionEntity = DistributionEntity().apply {
             id = 123
-            state = DistributionState.OPEN
             customers = listOf(
                 testDistributionCustomerEntity1,
                 testDistributionCustomerEntity2
@@ -408,7 +399,6 @@ internal class DistributionServiceTest {
 
         val testDistributionEntity = DistributionEntity().apply {
             id = 123
-            state = DistributionState.OPEN
             customers = listOf(
                 testDistributionCustomerEntity1
             )
@@ -450,7 +440,6 @@ internal class DistributionServiceTest {
 
         val testDistributionEntity = DistributionEntity().apply {
             id = 123
-            state = DistributionState.OPEN
             customers = listOf(
                 testDistributionCustomerEntity1,
                 testDistributionCustomerEntity2
@@ -480,7 +469,6 @@ internal class DistributionServiceTest {
 
         val testDistributionEntity = DistributionEntity().apply {
             id = 123
-            state = DistributionState.OPEN
             customers = listOf(
                 testDistributionCustomerEntity1
             )
@@ -495,7 +483,6 @@ internal class DistributionServiceTest {
     fun `delete current ticket of customer`() {
         val testDistributionEntity = DistributionEntity().apply {
             id = 123
-            state = DistributionState.OPEN
             customers = listOf(
                 testDistributionCustomerEntity1,
                 testDistributionCustomerEntity2
@@ -513,7 +500,6 @@ internal class DistributionServiceTest {
     fun `auto close current distribution`() {
         val testDistributionEntity = DistributionEntity().apply {
             id = 123
-            state = DistributionState.OPEN
             customers = listOf(
                 testDistributionCustomerEntity1,
                 testDistributionCustomerEntity2
@@ -531,7 +517,6 @@ internal class DistributionServiceTest {
 
         val saveDistribution = savedDistributionSlot.captured
         assertThat(saveDistribution.endedAt).isNotNull()
-        assertThat(saveDistribution.state).isEqualTo(DistributionState.CLOSED)
     }
 
     @Test

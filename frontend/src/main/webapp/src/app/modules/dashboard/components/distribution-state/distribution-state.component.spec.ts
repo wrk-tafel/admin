@@ -1,12 +1,7 @@
 import {TestBed, waitForAsync} from '@angular/core/testing';
-import {
-  DistributionApiService,
-  DistributionItem,
-  DistributionStateItem
-} from '../../../../api/distribution-api.service';
+import {DistributionApiService, DistributionItem} from '../../../../api/distribution-api.service';
 import {DistributionStateComponent} from './distribution-state.component';
 import {BehaviorSubject, EMPTY, of} from 'rxjs';
-import {ActivatedRoute} from '@angular/router';
 import {RouterTestingModule} from '@angular/router/testing';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
 import {CardModule, ColComponent, ModalModule, ProgressModule, RowComponent} from '@coreui/angular';
@@ -15,23 +10,6 @@ import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 describe('DistributionStateComponent', () => {
   let distributionApiService: jasmine.SpyObj<DistributionApiService>;
   let globalStateService: jasmine.SpyObj<GlobalStateService>;
-
-  const mockDistributionStates: DistributionStateItem[] = [
-    {
-      name: 'OFFEN',
-      stateLabel: 'Opened',
-      actionLabel: 'Paused'
-    },
-    {
-      name: 'PAUSE',
-      stateLabel: 'Paused',
-      actionLabel: 'Finish'
-    },
-    {
-      name: 'CLOSED',
-      stateLabel: 'Closed'
-    }
-  ];
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
@@ -49,20 +27,8 @@ describe('DistributionStateComponent', () => {
       ],
       providers: [
         {
-          provide: ActivatedRoute,
-          useValue: {
-            snapshot: {
-              data: {
-                distributionStates: {
-                  states: mockDistributionStates
-                }
-              }
-            }
-          }
-        },
-        {
           provide: DistributionApiService,
-          useValue: jasmine.createSpyObj('DistributionApiService', ['createNewDistribution', 'switchToNextState'])
+          useValue: jasmine.createSpyObj('DistributionApiService', ['createNewDistribution', 'closeDistribution'])
         },
         {
           provide: GlobalStateService,
@@ -91,14 +57,7 @@ describe('DistributionStateComponent', () => {
     const fixture = TestBed.createComponent(DistributionStateComponent);
     const component = fixture.componentInstance;
 
-    const distribution: DistributionItem = {
-      id: 123,
-      state: {
-        name: 'OPEN',
-        stateLabel: 'Offen',
-        actionLabel: 'Offen'
-      }
-    };
+    const distribution: DistributionItem = {id: 123};
     const subject = new BehaviorSubject<DistributionItem>(distribution);
     globalStateService.getCurrentDistribution.and.returnValue(subject);
 
@@ -137,27 +96,20 @@ describe('DistributionStateComponent', () => {
     expect(distributionApiService.createNewDistribution).toHaveBeenCalled();
   });
 
-  it('switch to next state', () => {
+  it('close distribution', () => {
     const fixture = TestBed.createComponent(DistributionStateComponent);
     const component = fixture.componentInstance;
-    component.showNextDistributionStateModal = true;
+    component.showCloseDistributionModal = true;
 
-    const distribution: DistributionItem = {
-      id: 123,
-      state: {
-        name: 'OPEN',
-        stateLabel: 'Offen',
-        actionLabel: 'Offen'
-      }
-    };
+    const distribution: DistributionItem = {id: 123};
     globalStateService.getCurrentDistribution.and.returnValue(new BehaviorSubject<DistributionItem>(distribution));
-    distributionApiService.switchToNextState.and.returnValue(of(null));
+    distributionApiService.closeDistribution.and.returnValue(of(null));
 
-    component.switchToNextState();
+    component.closeDistribution();
 
     fixture.detectChanges();
-    expect(distributionApiService.switchToNextState).toHaveBeenCalled();
-    expect(component.showNextDistributionStateModal).toBeFalsy();
+    expect(distributionApiService.closeDistribution).toHaveBeenCalled();
+    expect(component.showCloseDistributionModal).toBeFalsy();
   });
 
 });

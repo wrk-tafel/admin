@@ -1,7 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.distribution
 
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
-import at.wrk.tafel.admin.backend.common.model.DistributionState
 import at.wrk.tafel.admin.backend.common.pdf.PDFService
 import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionCustomerEntity
 import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionEntity
@@ -32,13 +31,8 @@ class DistributionService(
     private val pdfService: PDFService
 ) {
     companion object {
-        private val STATES_LIST = listOf(
-            DistributionState.OPEN,
-            DistributionState.CLOSED
-        )
-        private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
-
         private val logger = LoggerFactory.getLogger(DistributionService::class.java)
+        private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
     }
 
     @Scheduled(cron = "50 23 * * * *")
@@ -46,11 +40,9 @@ class DistributionService(
         val currentDistribution = distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc()
         if (currentDistribution != null) {
             logger.info("Distribution still open - auto-closing it")
-
-            saveStateToDistribution(DistributionState.CLOSED)
+            closeDistribution()
         }
     }
-
 
     fun createNewDistribution(): DistributionEntity {
         val currentDistribution = distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc()
@@ -63,22 +55,12 @@ class DistributionService(
         val distribution = DistributionEntity()
         distribution.startedAt = ZonedDateTime.now()
         distribution.startedByUser = userRepository.findByUsername(authenticatedUser.username!!).get()
-        distribution.state = DistributionState.OPEN
 
         return distributionRepository.save(distribution)
     }
 
     fun getCurrentDistribution(): DistributionEntity? {
         return distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc()
-    }
-
-    fun getStates(): List<DistributionState> {
-        return STATES_LIST
-    }
-
-    fun switchToNextState(currentState: DistributionState) {
-        val nextState = STATES_LIST[STATES_LIST.indexOf(currentState) + 1]
-        saveStateToDistribution(nextState)
     }
 
     fun assignCustomerToDistribution(distribution: DistributionEntity, customerId: Long, ticketNumber: Int) {
@@ -183,17 +165,19 @@ class DistributionService(
         }
     }
 
-    private fun saveStateToDistribution(nextState: DistributionState) {
-        val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
+    fun closeDistribution() {
+        val currentDistribution = distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc()
+            ?: throw TafelValidationException("Ausgabe nicht gestartet!")
 
-        val distribution = distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc()
-        if (distribution != null) {
-            distribution.state = nextState
-            if (nextState == DistributionState.CLOSED) {
+        if (currentDistribution != null) {
+            val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
+
+            val distribution = distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc()
+            if (distribution != null) {
                 distribution.endedAt = ZonedDateTime.now()
                 distribution.endedByUser = userRepository.findByUsername(authenticatedUser.username!!).get()
+                distributionRepository.save(distribution)
             }
-            distributionRepository.save(distribution)
         }
     }
 

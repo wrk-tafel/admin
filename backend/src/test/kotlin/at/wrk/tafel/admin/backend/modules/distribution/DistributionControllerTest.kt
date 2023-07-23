@@ -1,9 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.distribution
 
-import at.wrk.tafel.admin.backend.common.model.DistributionState
 import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelException
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.distribution.model.*
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
@@ -38,19 +36,13 @@ internal class DistributionControllerTest {
     fun `create new distribution`() {
         val distributionEntity = DistributionEntity()
         distributionEntity.id = 123
-        distributionEntity.state = DistributionState.OPEN
         every { service.createNewDistribution() } returns distributionEntity
 
         controller.createNewDistribution()
 
         val distributionItemResponse = DistributionItemResponse(
             distribution = DistributionItem(
-                id = distributionEntity.id!!,
-                state = DistributionStateItem(
-                    name = distributionEntity.state!!.name,
-                    stateLabel = "Geöffnet",
-                    actionLabel = "Ausgabe schließen"
-                )
+                id = distributionEntity.id!!
             )
         )
 
@@ -75,19 +67,13 @@ internal class DistributionControllerTest {
     fun `current distribution found`() {
         val distributionEntity = DistributionEntity()
         distributionEntity.id = 123
-        distributionEntity.state = DistributionState.OPEN
         every { service.getCurrentDistribution() } returns distributionEntity
 
         val response = controller.getCurrentDistribution()
 
         assertThat(response.distribution).isEqualTo(
             DistributionItem(
-                id = distributionEntity.id!!,
-                state = DistributionStateItem(
-                    name = "OPEN",
-                    stateLabel = "Geöffnet",
-                    actionLabel = "Ausgabe schließen"
-                )
+                id = distributionEntity.id!!
             )
         )
     }
@@ -102,53 +88,17 @@ internal class DistributionControllerTest {
     }
 
     @Test
-    fun `get states`() {
-        every { service.getStates() } returns listOf(DistributionState.OPEN, DistributionState.CLOSED)
-
-        val response = controller.getDistributionStates()
-
-        assertThat(response).isEqualTo(
-            DistributionStatesResponse(
-                states = listOf(
-                    DistributionStateItem(
-                        name = "OPEN",
-                        stateLabel = "Geöffnet",
-                        actionLabel = "Ausgabe schließen"
-                    ),
-                    DistributionStateItem(
-                        name = "CLOSED",
-                        stateLabel = "Geschlossen",
-                        actionLabel = null
-                    )
-                )
-            )
-        )
-    }
-
-    @Test
-    fun `switch to next distribution state without open distribution`() {
-        every { service.getCurrentDistribution() } returns null
-
-        val exception = assertThrows<TafelValidationException> {
-            controller.switchToNextDistributionState()
-        }
-
-        assertThat(exception.message).isEqualTo("Ausgabe nicht gestartet!")
-    }
-
-    @Test
-    fun `switch to next distribution state with open distribution`() {
+    fun `close distribution`() {
         val distributionEntity = DistributionEntity()
         distributionEntity.id = 123
-        distributionEntity.state = DistributionState.OPEN
         every { service.getCurrentDistribution() } returns distributionEntity
 
-        val response = controller.switchToNextDistributionState()
+        val response = controller.closeDistribution()
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
         assertThat(response.body).isNull()
 
-        verify { service.switchToNextState(distributionEntity.state!!) }
+        verify { service.closeDistribution() }
 
         val distributionItemResponseSlot = slot<DistributionItemResponse>()
         verify {
@@ -160,14 +110,7 @@ internal class DistributionControllerTest {
 
         assertThat(distributionItemResponseSlot.captured).isEqualTo(
             DistributionItemResponse(
-                distribution = DistributionItem(
-                    id = 123,
-                    state = DistributionStateItem(
-                        name = DistributionState.OPEN.name,
-                        stateLabel = "Geöffnet",
-                        actionLabel = "Ausgabe schließen"
-                    )
-                )
+                distribution = null
             )
         )
     }

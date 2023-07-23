@@ -34,12 +34,7 @@ describe('DistributionApiService', () => {
   it('get current distribution', () => {
     const testResponse: DistributionItemResponse = {
       distribution: {
-        id: 123,
-        state: {
-          name: 'OPEN',
-          stateLabel: 'Offen',
-          actionLabel: 'Offen'
-        }
+        id: 123
       }
     };
     const testMessage: IMessage = {
@@ -60,12 +55,7 @@ describe('DistributionApiService', () => {
 
   it('create new distribution', () => {
     const testResponse: DistributionItem = {
-      id: 123,
-      state: {
-        name: 'OPEN',
-        stateLabel: 'Offen',
-        actionLabel: 'Offen'
-      }
+      id: 123
     };
 
     apiService.createNewDistribution().subscribe();
@@ -75,18 +65,10 @@ describe('DistributionApiService', () => {
     httpMock.verify();
   });
 
-  it('get states', () => {
-    apiService.getStates().subscribe();
+  it('close distribution', () => {
+    apiService.closeDistribution().subscribe();
 
-    const req = httpMock.expectOne({method: 'GET', url: '/distributions/states'});
-    req.flush(null);
-    httpMock.verify();
-  });
-
-  it('switch to next state', () => {
-    apiService.switchToNextState().subscribe();
-
-    const req = httpMock.expectOne({method: 'POST', url: '/distributions/states/next'});
+    const req = httpMock.expectOne({method: 'POST', url: '/distributions/close'});
     req.flush(null);
     httpMock.verify();
   });

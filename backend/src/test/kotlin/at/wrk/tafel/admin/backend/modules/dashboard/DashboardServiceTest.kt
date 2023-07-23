@@ -1,6 +1,5 @@
 package at.wrk.tafel.admin.backend.modules.dashboard
 
-import at.wrk.tafel.admin.backend.common.model.DistributionState
 import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.repositories.distribution.DistributionCustomerRepository
 import at.wrk.tafel.admin.backend.database.repositories.distribution.DistributionRepository
@@ -30,7 +29,6 @@ internal class DashboardServiceTest {
     fun `get registered customers`() {
         val testDistributionEntity = DistributionEntity().apply {
             id = 123
-            state = DistributionState.OPEN
         }
         every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
 

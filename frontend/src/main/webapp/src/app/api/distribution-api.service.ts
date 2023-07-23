@@ -20,12 +20,8 @@ export class DistributionApiService {
     return this.http.post<void>('/distributions/new', null);
   }
 
-  getStates(): Observable<DistributionStatesResponse> {
-    return this.http.get<DistributionStatesResponse>('/distributions/states');
-  }
-
-  switchToNextState(): Observable<void> {
-    return this.http.post<void>('/distributions/states/next', null);
+  closeDistribution(): Observable<void> {
+    return this.http.post<void>('/distributions/close', null);
   }
 
   getCurrentDistribution(): Observable<DistributionItem> {
@@ -61,18 +57,6 @@ export interface DistributionItemResponse {
 
 export interface DistributionItem {
   id: number;
-  state: DistributionStateItem;
-}
-
-export interface DistributionStatesResponse {
-  states: DistributionStateItem[];
-  currentState: DistributionStateItem;
-}
-
-export interface DistributionStateItem {
-  name: string;
-  stateLabel: string;
-  actionLabel?: string;
 }
 
 export interface AssignCustomerRequest {

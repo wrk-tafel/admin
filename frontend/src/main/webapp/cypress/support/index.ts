@@ -42,11 +42,10 @@ declare namespace Cypress {
     addCustomerToDistribution(request: AddCustomerToDistributionRequest);
 
     /**
-     * Custom command to finish a distribution (switches states from OPEN to CLOSED).
-     * Assumes that the distribution is in state OPEN.
-     * @example cy.finishDistribution();
+     * Custom command to close a distribution.
+     * @example cy.closeDistribution();
      */
-    finishDistribution();
+    closeDistribution();
   }
 
   export interface AddCustomerToDistributionRequest {

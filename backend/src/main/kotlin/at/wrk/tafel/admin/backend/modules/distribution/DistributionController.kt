@@ -1,6 +1,5 @@
 package at.wrk.tafel.admin.backend.modules.distribution
 
-import at.wrk.tafel.admin.backend.common.model.DistributionState
 import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.distribution.model.*
@@ -40,33 +39,18 @@ class DistributionController(
         return DistributionItemResponse(distribution = distribution?.let { mapDistribution(it) })
     }
 
-    @GetMapping("/states")
-    fun getDistributionStates(): DistributionStatesResponse {
-        val states = service.getStates()
-
-        return DistributionStatesResponse(
-            states = states.map { mapState(it) }
-        )
-    }
-
-    @PostMapping("/states/next")
+    @PostMapping("/close")
     @PreAuthorize("hasAuthority('DISTRIBUTION_LCM')")
-    fun switchToNextDistributionState(): ResponseEntity<Void> {
-        val currentDistribution = service.getCurrentDistribution()
-        if (currentDistribution != null) {
-            service.switchToNextState(currentDistribution.state!!)
+    fun closeDistribution(): ResponseEntity<Void> {
+        service.closeDistribution()
 
-            // update clients about new state
-            val updatedDistribution: DistributionItem? = service.getCurrentDistribution()?.let { mapDistribution(it) }
-            simpMessagingTemplate.convertAndSend(
-                "/topic/distributions",
-                DistributionItemResponse(distribution = updatedDistribution)
-            )
+        // update clients about new state
+        simpMessagingTemplate.convertAndSend(
+            "/topic/distributions",
+            DistributionItemResponse(distribution = null)
+        )
 
-            return ResponseEntity.ok().build()
-        }
-
-        throw TafelValidationException("Ausgabe nicht gestartet!")
+        return ResponseEntity.ok().build()
     }
 
     @PostMapping("/customers")
@@ -105,34 +89,8 @@ class DistributionController(
         return ResponseEntity.noContent().build()
     }
 
-    private fun mapState(state: DistributionState): DistributionStateItem {
-        val name = state.name
-        val stateLabel = mapStateToStateLabel(state)
-        val actionLabel = mapStateToActionLabel(state)
-
-        return DistributionStateItem(
-            name = name,
-            stateLabel = stateLabel,
-            actionLabel = actionLabel
-        )
-    }
-
-    private fun mapStateToStateLabel(state: DistributionState): String {
-        return when (state) {
-            DistributionState.OPEN -> "Geöffnet"
-            DistributionState.CLOSED -> "Geschlossen"
-        }
-    }
-
-    private fun mapStateToActionLabel(state: DistributionState): String? {
-        return when (state) {
-            DistributionState.OPEN -> "Ausgabe schließen"
-            DistributionState.CLOSED -> null
-        }
-    }
-
     private fun mapDistribution(distribution: DistributionEntity): DistributionItem {
-        return DistributionItem(id = distribution.id!!, state = mapState(distribution.state!!))
+        return DistributionItem(id = distribution.id!!)
     }
 
 }
