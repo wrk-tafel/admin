@@ -17,7 +17,7 @@
                 (click)="createNewDistribution()">--> Ausgabe öffnen
         </button>
         <button *ngIf="distribution" cButton
-                testid="distribution-nextstep-button"
+                testid="distribution-close-button"
                 color="info"
                 class="text-white"
                 (click)="showCloseDistributionModal = true">--> Ausgabe schließen
@@ -26,7 +26,7 @@
     </c-row>
   </c-card-body>
 </c-card>
-<c-modal id="closeDistributionModal" #closeDistributionModal testid="close-distribution-modal"
+<c-modal id="closeDistributionModal" #closeDistributionModal testid="distribution-close-modal"
          [(visible)]="showCloseDistributionModal">
   <c-modal-header class="bg-warning">
     <h4 testid="title" class="text-white">
@@ -41,11 +41,11 @@
     <div class="row">
       <div class="col-6">
         <button testid="ok-button" cButton color="primary" class="me-2 text-white"
-                testid="close-distribution-modal-ok-button"
+                testid="distribution-close-modal-ok-button"
                 (click)="closeDistribution()">OK
         </button>
         <button testid="cancel-button" cButton color="secondary"
-                testid="close-distribution-modal-cancel-button"
+                testid="distribution-close-modal-cancel-button"
                 (click)="showCloseDistributionModal = false">Abbrechen
         </button>
       </div>

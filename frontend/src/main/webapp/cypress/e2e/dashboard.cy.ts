@@ -16,15 +16,15 @@ describe('Dashboard', () => {
     cy.byTestId('distribution-state-text').should('have.text', 'Geöffnet');
 
     // --> CLOSED
-    cy.byTestId('distribution-nextstep-button').click();
-    cy.byTestId('distributionstate-next-modal-ok-button').click();
+    cy.byTestId('distribution-close-button').click();
+    cy.byTestId('distribution-close-modal-ok-button').click();
     cy.byTestId('distribution-state-text').should('have.text', 'Inaktiv');
   });
 
   it('download customer list', () => {
     cy.byTestId('download-customerlist-button').should('not.exist');
 
-    // create distribution (event) --> OPEN
+    // create a new distribution
     cy.byTestId('distribution-start-button').click();
 
     const downloadCustomerListButton = cy.byTestId('download-customerlist-button');
@@ -39,8 +39,8 @@ describe('Dashboard', () => {
       .should((buffer: string | any[]) => expect(buffer.length).to.be.gt(5000));
 
     // --> CLOSED
-    cy.byTestId('distribution-nextstep-button').click();
-    cy.byTestId('distributionstate-next-modal-ok-button').click();
+    cy.byTestId('distribution-close-button').click();
+    cy.byTestId('distribution-close-modal-ok-button').click();
   });
 
 });
