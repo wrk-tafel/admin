@@ -36,7 +36,7 @@ internal class DistributionTicketControllerTest {
     fun `get current ticketNumber with open distribution`() {
         val distributionEntity = DistributionEntity()
         distributionEntity.id = 123
-        distributionEntity.state = DistributionState.DISTRIBUTION
+        distributionEntity.state = DistributionState.OPEN
         every { service.getCurrentDistribution() } returns distributionEntity
 
         val ticketNumber = 123
@@ -51,7 +51,7 @@ internal class DistributionTicketControllerTest {
     fun `get current ticketNumber for customer`() {
         val distributionEntity = DistributionEntity()
         distributionEntity.id = 123
-        distributionEntity.state = DistributionState.DISTRIBUTION
+        distributionEntity.state = DistributionState.OPEN
         every { service.getCurrentDistribution() } returns distributionEntity
 
         val ticketNumber = 123
@@ -67,7 +67,7 @@ internal class DistributionTicketControllerTest {
     fun `get current ticketNumber when ticket is null`() {
         val distributionEntity = DistributionEntity()
         distributionEntity.id = 123
-        distributionEntity.state = DistributionState.DISTRIBUTION
+        distributionEntity.state = DistributionState.OPEN
         every { service.getCurrentDistribution() } returns distributionEntity
 
         every { service.getCurrentTicketNumber(distributionEntity) } returns null
@@ -89,7 +89,7 @@ internal class DistributionTicketControllerTest {
     fun `get next ticket with open distribution`() {
         val distributionEntity = DistributionEntity()
         distributionEntity.id = 123
-        distributionEntity.state = DistributionState.DISTRIBUTION
+        distributionEntity.state = DistributionState.OPEN
         every { service.getCurrentDistribution() } returns distributionEntity
 
         val ticketNumber = 123
@@ -104,7 +104,7 @@ internal class DistributionTicketControllerTest {
     fun `get next ticket when ticket is null`() {
         val distributionEntity = DistributionEntity()
         distributionEntity.id = 123
-        distributionEntity.state = DistributionState.DISTRIBUTION
+        distributionEntity.state = DistributionState.OPEN
         every { service.getCurrentDistribution() } returns distributionEntity
 
         every { service.closeCurrentTicketAndGetNext(distributionEntity) } returns null
@@ -118,7 +118,7 @@ internal class DistributionTicketControllerTest {
     fun `delete current ticket for customer`() {
         val distributionEntity = DistributionEntity()
         distributionEntity.id = 123
-        distributionEntity.state = DistributionState.DISTRIBUTION
+        distributionEntity.state = DistributionState.OPEN
         every { service.getCurrentDistribution() } returns distributionEntity
         every { service.deleteCurrentTicket(any(), any()) } returns true
 
@@ -133,7 +133,7 @@ internal class DistributionTicketControllerTest {
     fun `delete current ticket for customer failed`() {
         val distributionEntity = DistributionEntity()
         distributionEntity.id = 123
-        distributionEntity.state = DistributionState.DISTRIBUTION
+        distributionEntity.state = DistributionState.OPEN
         every { service.getCurrentDistribution() } returns distributionEntity
         every { service.deleteCurrentTicket(any(), any()) } returns false
 

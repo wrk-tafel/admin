@@ -30,7 +30,7 @@ internal class DashboardServiceTest {
     fun `get registered customers`() {
         val testDistributionEntity = DistributionEntity().apply {
             id = 123
-            state = DistributionState.DISTRIBUTION
+            state = DistributionState.OPEN
         }
         every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
 

@@ -120,19 +120,13 @@ class DistributionController(
     private fun mapStateToStateLabel(state: DistributionState): String {
         return when (state) {
             DistributionState.OPEN -> "Geöffnet"
-            DistributionState.CHECKIN -> "Anmeldung läuft"
-            DistributionState.PAUSE -> "Pausiert"
-            DistributionState.DISTRIBUTION -> "Verteilung läuft"
             DistributionState.CLOSED -> "Geschlossen"
         }
     }
 
     private fun mapStateToActionLabel(state: DistributionState): String? {
         return when (state) {
-            DistributionState.OPEN -> "Anmeldung starten"
-            DistributionState.CHECKIN -> "Pause"
-            DistributionState.PAUSE -> "Verteilung starten"
-            DistributionState.DISTRIBUTION -> "Ausgabe schließen"
+            DistributionState.OPEN -> "Ausgabe schließen"
             DistributionState.CLOSED -> null
         }
     }

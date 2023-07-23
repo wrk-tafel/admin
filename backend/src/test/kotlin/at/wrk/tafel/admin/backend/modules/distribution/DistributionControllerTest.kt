@@ -9,6 +9,7 @@ import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
+import io.mockk.slot
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.*
@@ -48,7 +49,7 @@ internal class DistributionControllerTest {
                 state = DistributionStateItem(
                     name = distributionEntity.state!!.name,
                     stateLabel = "Geöffnet",
-                    actionLabel = "Anmeldung starten"
+                    actionLabel = "Ausgabe schließen"
                 )
             )
         )
@@ -74,7 +75,7 @@ internal class DistributionControllerTest {
     fun `current distribution found`() {
         val distributionEntity = DistributionEntity()
         distributionEntity.id = 123
-        distributionEntity.state = DistributionState.DISTRIBUTION
+        distributionEntity.state = DistributionState.OPEN
         every { service.getCurrentDistribution() } returns distributionEntity
 
         val response = controller.getCurrentDistribution()
@@ -83,8 +84,8 @@ internal class DistributionControllerTest {
             DistributionItem(
                 id = distributionEntity.id!!,
                 state = DistributionStateItem(
-                    name = "DISTRIBUTION",
-                    stateLabel = "Verteilung läuft",
+                    name = "OPEN",
+                    stateLabel = "Geöffnet",
                     actionLabel = "Ausgabe schließen"
                 )
             )
@@ -112,7 +113,7 @@ internal class DistributionControllerTest {
                     DistributionStateItem(
                         name = "OPEN",
                         stateLabel = "Geöffnet",
-                        actionLabel = "Anmeldung starten"
+                        actionLabel = "Ausgabe schließen"
                     ),
                     DistributionStateItem(
                         name = "CLOSED",
@@ -139,7 +140,7 @@ internal class DistributionControllerTest {
     fun `switch to next distribution state with open distribution`() {
         val distributionEntity = DistributionEntity()
         distributionEntity.id = 123
-        distributionEntity.state = DistributionState.DISTRIBUTION
+        distributionEntity.state = DistributionState.OPEN
         every { service.getCurrentDistribution() } returns distributionEntity
 
         val response = controller.switchToNextDistributionState()
@@ -148,21 +149,27 @@ internal class DistributionControllerTest {
         assertThat(response.body).isNull()
 
         verify { service.switchToNextState(distributionEntity.state!!) }
+
+        val distributionItemResponseSlot = slot<DistributionItemResponse>()
         verify {
             simpMessagingTemplate.convertAndSend(
                 "/topic/distributions",
-                DistributionItemResponse(
-                    distribution = DistributionItem(
-                        id = 123,
-                        state = DistributionStateItem(
-                            name = DistributionState.DISTRIBUTION.name,
-                            stateLabel = "Verteilung läuft",
-                            actionLabel = "Ausgabe schließen"
-                        )
+                capture(distributionItemResponseSlot)
+            )
+        }
+
+        assertThat(distributionItemResponseSlot.captured).isEqualTo(
+            DistributionItemResponse(
+                distribution = DistributionItem(
+                    id = 123,
+                    state = DistributionStateItem(
+                        name = DistributionState.OPEN.name,
+                        stateLabel = "Geöffnet",
+                        actionLabel = "Ausgabe schließen"
                     )
                 )
             )
-        }
+        )
     }
 
     @Test
