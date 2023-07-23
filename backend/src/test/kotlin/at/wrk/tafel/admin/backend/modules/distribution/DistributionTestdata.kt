@@ -13,7 +13,7 @@ import java.time.ZonedDateTime
 
 val testDistributionEntity = DistributionEntity().apply {
     id = 123
-    state = DistributionState.DISTRIBUTION
+    state = DistributionState.OPEN
 }
 
 val testDistributionCustomerEntity1 = DistributionCustomerEntity().apply {

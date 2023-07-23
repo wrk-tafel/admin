@@ -205,33 +205,15 @@ internal class DistributionServiceTest {
         assertThat(states).isEqualTo(
             listOf(
                 DistributionState.OPEN,
-                DistributionState.CHECKIN,
-                DistributionState.PAUSE,
-                DistributionState.DISTRIBUTION,
                 DistributionState.CLOSED
             )
         )
     }
 
     @Test
-    fun `switch from open to next state`() {
+    fun `switch from open to closed state`() {
         val distributionEntity = testDistributionEntity.apply { state = DistributionState.OPEN }
         every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns distributionEntity
-
-        every { distributionRepository.save(any()) } returns mockk()
-
-        service.switchToNextState(distributionEntity.state!!)
-
-        verify {
-            distributionRepository.save(withArg {
-                assertThat(it.state).isEqualTo(DistributionState.CHECKIN)
-            })
-        }
-    }
-
-    @Test
-    fun `switch to closed state`() {
-        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
         every { distributionRepository.save(any()) } returns mockk()
 
         every { userRepository.findByUsername(authentication.username!!) } returns Optional.of(testUserEntity)
@@ -308,7 +290,7 @@ internal class DistributionServiceTest {
         val date = ZonedDateTime.now()
         val testDistributionEntity = DistributionEntity().apply {
             id = 123
-            state = DistributionState.DISTRIBUTION
+            state = DistributionState.OPEN
             startedAt = date
             customers = listOf(
                 testDistributionCustomerEntity1,
@@ -381,7 +363,7 @@ internal class DistributionServiceTest {
     fun `get current ticketNumber with open tickets left`() {
         val testDistributionEntity = DistributionEntity().apply {
             id = 123
-            state = DistributionState.DISTRIBUTION
+            state = DistributionState.OPEN
             customers = listOf(
                 testDistributionCustomerEntity1,
                 testDistributionCustomerEntity2
@@ -397,7 +379,7 @@ internal class DistributionServiceTest {
     fun `get current ticketNumber for customer`() {
         val testDistributionEntity = DistributionEntity().apply {
             id = 123
-            state = DistributionState.DISTRIBUTION
+            state = DistributionState.OPEN
             customers = listOf(
                 testDistributionCustomerEntity1,
                 testDistributionCustomerEntity2
@@ -426,7 +408,7 @@ internal class DistributionServiceTest {
 
         val testDistributionEntity = DistributionEntity().apply {
             id = 123
-            state = DistributionState.DISTRIBUTION
+            state = DistributionState.OPEN
             customers = listOf(
                 testDistributionCustomerEntity1
             )
@@ -468,7 +450,7 @@ internal class DistributionServiceTest {
 
         val testDistributionEntity = DistributionEntity().apply {
             id = 123
-            state = DistributionState.DISTRIBUTION
+            state = DistributionState.OPEN
             customers = listOf(
                 testDistributionCustomerEntity1,
                 testDistributionCustomerEntity2
@@ -498,7 +480,7 @@ internal class DistributionServiceTest {
 
         val testDistributionEntity = DistributionEntity().apply {
             id = 123
-            state = DistributionState.DISTRIBUTION
+            state = DistributionState.OPEN
             customers = listOf(
                 testDistributionCustomerEntity1
             )
@@ -513,7 +495,7 @@ internal class DistributionServiceTest {
     fun `delete current ticket of customer`() {
         val testDistributionEntity = DistributionEntity().apply {
             id = 123
-            state = DistributionState.DISTRIBUTION
+            state = DistributionState.OPEN
             customers = listOf(
                 testDistributionCustomerEntity1,
                 testDistributionCustomerEntity2
@@ -531,7 +513,7 @@ internal class DistributionServiceTest {
     fun `auto close current distribution`() {
         val testDistributionEntity = DistributionEntity().apply {
             id = 123
-            state = DistributionState.DISTRIBUTION
+            state = DistributionState.OPEN
             customers = listOf(
                 testDistributionCustomerEntity1,
                 testDistributionCustomerEntity2

@@ -48,7 +48,7 @@ internal class DistributionControllerTest {
                 state = DistributionStateItem(
                     name = distributionEntity.state!!.name,
                     stateLabel = "Geöffnet",
-                    actionLabel = "Anmeldung starten"
+                    actionLabel = "Ausgabe schließen"
                 )
             )
         )
@@ -74,7 +74,7 @@ internal class DistributionControllerTest {
     fun `current distribution found`() {
         val distributionEntity = DistributionEntity()
         distributionEntity.id = 123
-        distributionEntity.state = DistributionState.DISTRIBUTION
+        distributionEntity.state = DistributionState.OPEN
         every { service.getCurrentDistribution() } returns distributionEntity
 
         val response = controller.getCurrentDistribution()
@@ -112,7 +112,7 @@ internal class DistributionControllerTest {
                     DistributionStateItem(
                         name = "OPEN",
                         stateLabel = "Geöffnet",
-                        actionLabel = "Anmeldung starten"
+                        actionLabel = "Ausgabe schließen"
                     ),
                     DistributionStateItem(
                         name = "CLOSED",
@@ -139,7 +139,7 @@ internal class DistributionControllerTest {
     fun `switch to next distribution state with open distribution`() {
         val distributionEntity = DistributionEntity()
         distributionEntity.id = 123
-        distributionEntity.state = DistributionState.DISTRIBUTION
+        distributionEntity.state = DistributionState.OPEN
         every { service.getCurrentDistribution() } returns distributionEntity
 
         val response = controller.switchToNextDistributionState()
@@ -155,8 +155,8 @@ internal class DistributionControllerTest {
                     distribution = DistributionItem(
                         id = 123,
                         state = DistributionStateItem(
-                            name = DistributionState.DISTRIBUTION.name,
-                            stateLabel = "Verteilung läuft",
+                            name = DistributionState.OPEN.name,
+                            stateLabel = "Ausgabe offen",
                             actionLabel = "Ausgabe schließen"
                         )
                     )

@@ -34,9 +34,6 @@ class DistributionService(
     companion object {
         private val STATES_LIST = listOf(
             DistributionState.OPEN,
-            DistributionState.CHECKIN,
-            DistributionState.PAUSE,
-            DistributionState.DISTRIBUTION,
             DistributionState.CLOSED
         )
         private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
