@@ -73,16 +73,4 @@ Cypress.Commands.add('finishDistribution', () => {
     method: 'POST',
     url: '/api/distributions/states/next'
   });
-  cy.request({
-    method: 'POST',
-    url: '/api/distributions/states/next'
-  });
-  cy.request({
-    method: 'POST',
-    url: '/api/distributions/states/next'
-  });
-  cy.request({
-    method: 'POST',
-    url: '/api/distributions/states/next'
-  });
 });
