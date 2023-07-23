@@ -6,7 +6,7 @@ describe('CheckIn', () => {
   });
 
   afterEach(() => {
-    cy.finishDistribution();
+    cy.closeDistribution();
   });
 
   it('customer added, counted on dashboard and deleted again', () => {

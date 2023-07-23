@@ -5,14 +5,7 @@
   <c-card-body>
     <c-row>
       <c-col testid="distribution-state-text" class="fw-bold">
-        <h4>{{distribution?.state.stateLabel ? distribution?.state.stateLabel : 'Inaktiv'}}</h4>
-      </c-col>
-    </c-row>
-    <c-row class="mb-3">
-      <c-col>
-        <c-progress>
-          <c-progress-bar [value]="progressCurrent" [max]="progressMax"></c-progress-bar>
-        </c-progress>
+        <h4>{{distribution ? 'Geöffnet' : 'Inaktiv'}}</h4>
       </c-col>
     </c-row>
     <c-row>
@@ -24,22 +17,22 @@
                 (click)="createNewDistribution()">--> Ausgabe öffnen
         </button>
         <button *ngIf="distribution" cButton
-                testid="distribution-nextstep-button"
+                testid="distribution-close-button"
                 color="info"
                 class="text-white"
-                (click)="showNextDistributionStateModal = true">--> {{distribution?.state.actionLabel}}
+                (click)="showCloseDistributionModal = true">--> Ausgabe schließen
         </button>
       </c-col>
     </c-row>
   </c-card-body>
 </c-card>
-<c-modal id="nextDistributionStateModal" #nextDistributionStateModal testid="distributionstate-next-modal"
-         [(visible)]="showNextDistributionStateModal">
+<c-modal id="closeDistributionModal" #closeDistributionModal testid="distribution-close-modal"
+         [(visible)]="showCloseDistributionModal">
   <c-modal-header class="bg-warning">
     <h4 testid="title" class="text-white">
-      Weiter zum nächsten Schritt?
+      Ausgabe schließen?
     </h4>
-    <button [cModalToggle]="nextDistributionStateModal.id" cButtonClose></button>
+    <button [cModalToggle]="closeDistributionModal.id" cButtonClose></button>
   </c-modal-header>
   <c-modal-body>
     <div class="row mb-3">
@@ -48,12 +41,12 @@
     <div class="row">
       <div class="col-6">
         <button testid="ok-button" cButton color="primary" class="me-2 text-white"
-                testid="distributionstate-next-modal-ok-button"
-                (click)="switchToNextState()">OK
+                testid="distribution-close-modal-ok-button"
+                (click)="closeDistribution()">OK
         </button>
         <button testid="cancel-button" cButton color="secondary"
-                testid="distributionstate-next-modal-cancel-button"
-                (click)="showNextDistributionStateModal = false">Abbrechen
+                testid="distribution-close-modal-cancel-button"
+                (click)="showCloseDistributionModal = false">Abbrechen
         </button>
       </div>
     </div>

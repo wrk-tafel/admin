@@ -68,21 +68,9 @@ Cypress.Commands.add('addCustomerToDistribution', (request: AddCustomerToDistrib
   });
 });
 
-Cypress.Commands.add('finishDistribution', () => {
+Cypress.Commands.add('closeDistribution', () => {
   cy.request({
     method: 'POST',
-    url: '/api/distributions/states/next'
-  });
-  cy.request({
-    method: 'POST',
-    url: '/api/distributions/states/next'
-  });
-  cy.request({
-    method: 'POST',
-    url: '/api/distributions/states/next'
-  });
-  cy.request({
-    method: 'POST',
-    url: '/api/distributions/states/next'
+    url: '/api/distributions/close'
   });
 });

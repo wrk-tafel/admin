@@ -1,6 +1,5 @@
 package at.wrk.tafel.admin.backend.modules.distribution
 
-import at.wrk.tafel.admin.backend.common.model.DistributionState
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerAddPersonEntity
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity
 import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionCustomerEntity
@@ -13,7 +12,6 @@ import java.time.ZonedDateTime
 
 val testDistributionEntity = DistributionEntity().apply {
     id = 123
-    state = DistributionState.DISTRIBUTION
 }
 
 val testDistributionCustomerEntity1 = DistributionCustomerEntity().apply {

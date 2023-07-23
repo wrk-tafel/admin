@@ -209,7 +209,7 @@
                              [innerHTML]="addPerson?.firstname"></div>
                       </div>
                       <div class="row">
-                        <div class="col-6" [attr.testid]="'addperson-' + i + '-birthDateAgeText'">{{customerData?.birthDate | date : 'dd.MM.YYYY'}} ({{getAge(customerData?.birthDate)}})</div>
+                        <div class="col-6" [attr.testid]="'addperson-' + i + '-birthDateAgeText'">{{addPerson?.birthDate | date : 'dd.MM.YYYY'}} ({{getAge(addPerson?.birthDate)}})</div>
                         <div class="col-6" [attr.testid]="'addperson-' + i + '-countryText'">{{addPerson?.country.name}}</div>
                       </div>
                       <hr>

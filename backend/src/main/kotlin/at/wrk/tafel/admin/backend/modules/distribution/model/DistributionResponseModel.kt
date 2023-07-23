@@ -9,20 +9,7 @@ data class DistributionItemResponse(
 
 @ExcludeFromTestCoverage
 data class DistributionItem(
-    val id: Long,
-    val state: DistributionStateItem? = null
-)
-
-@ExcludeFromTestCoverage
-data class DistributionStatesResponse(
-    val states: List<DistributionStateItem>
-)
-
-@ExcludeFromTestCoverage
-data class DistributionStateItem(
-    val name: String,
-    val stateLabel: String,
-    val actionLabel: String?
+    val id: Long
 )
 
 @ExcludeFromTestCoverage
