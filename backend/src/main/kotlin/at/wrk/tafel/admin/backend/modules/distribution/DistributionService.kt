@@ -107,12 +107,21 @@ class DistributionService(
 
         val formattedDate = DATE_FORMATTER.format(currentDistribution?.startedAt)
         val sortedCustomers = currentDistribution.customers.sortedBy { it.ticketNumber }
+        val countCustomers = sortedCustomers.size
 
-        val halftimeIndex = sortedCustomers.size.div(2)
-        val halftimeTicketNumber = if (sortedCustomers.size > 2) sortedCustomers[halftimeIndex].ticketNumber!! else null
+        val halftimeIndex = (countCustomers - 1) / 2
+        val halftimeTicketNumber = if (countCustomers > 2) sortedCustomers[halftimeIndex].ticketNumber!! else null
+        val countAddPersons = sortedCustomers
+            .map { it.customer }
+            .flatMap {
+                it?.additionalPersons?.filterNot { addPerson -> addPerson.excludeFromHousehold!! } ?: emptyList()
+            }
+            .count()
+
         val data = CustomerListPdfModel(
             title = "Kundenliste zur Ausgabe vom $formattedDate",
             halftimeTicketNumber = halftimeTicketNumber,
+            countPersonsOverall = countAddPersons + countCustomers,
             customers = mapCustomers(sortedCustomers)
         )
 
@@ -160,15 +169,19 @@ class DistributionService(
     private fun mapCustomers(customers: List<DistributionCustomerEntity>): List<CustomerListItem> {
         return customers.map { distributionCustomerEntity ->
             val customer = distributionCustomerEntity.customer
+            val countPersons = customer?.additionalPersons
+                ?.filterNot { it.excludeFromHousehold!! }
+                ?.size?.plus(1) ?: 0
+            val countInfants = customer?.additionalPersons
+                ?.filterNot { it.excludeFromHousehold!! }
+                ?.count { Period.between(it.birthDate, LocalDate.now()).years < 3 } ?: 0
 
             CustomerListItem(
                 ticketNumber = distributionCustomerEntity.ticketNumber!!,
                 customerId = customer?.customerId!!,
                 name = "${customer?.lastname} ${customer?.firstname}",
-                countPersons = customer?.additionalPersons?.size?.plus(1) ?: 0,
-                countInfants = customer?.additionalPersons?.count {
-                    Period.between(it.birthDate, LocalDate.now()).years < 3
-                } ?: 0
+                countPersons = countPersons,
+                countInfants = countInfants
             )
         }
     }
