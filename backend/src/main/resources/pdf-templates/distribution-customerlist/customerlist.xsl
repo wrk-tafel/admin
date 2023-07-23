@@ -23,7 +23,24 @@
                         </fo:block>
                         <xsl:if test="halftimeTicketNumber">
                             <fo:block font-size="14pt" font-weight="bold" space-after="0.5cm">
-                                <xsl:value-of select="'Halbzeit - nach Ticketnummer: '"/><xsl:value-of select="halftimeTicketNumber"/>
+                                <fo:table table-layout="fixed" width="100%">
+                                    <fo:table-column column-width="50%"/>
+                                    <fo:table-column column-width="50%"/>
+                                    <fo:table-body>
+                                        <fo:table-row>
+                                            <fo:table-cell>
+                                                <fo:block>
+                                                    <xsl:value-of select="'Halbzeit - nach Ticketnummer: '"/><xsl:value-of select="halftimeTicketNumber"/>
+                                                </fo:block>
+                                            </fo:table-cell>
+                                            <fo:table-cell>
+                                                <fo:block>
+                                                    <xsl:value-of select="'Gesamtanzahl Personen: '"/><xsl:value-of select="countPersonsOverall"/>
+                                                </fo:block>
+                                            </fo:table-cell>
+                                        </fo:table-row>
+                                    </fo:table-body>
+                                </fo:table>
                             </fo:block>
                         </xsl:if>
                         <fo:block>
@@ -55,7 +72,7 @@
                             <fo:block>Name (Hauptbezieher)</fo:block>
                         </fo:table-cell>
                         <fo:table-cell font-weight="bold" text-align="center" border-right="solid 1pt #000000" padding="5pt">
-                            <fo:block>Personen insgesamt</fo:block>
+                            <fo:block>Personen im Haushalt</fo:block>
                         </fo:table-cell>
                         <fo:table-cell font-weight="bold" text-align="center" padding="5pt">
                             <fo:block>davon unter 3 Jahren</fo:block>
