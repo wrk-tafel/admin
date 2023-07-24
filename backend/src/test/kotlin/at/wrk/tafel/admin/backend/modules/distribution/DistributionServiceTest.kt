@@ -498,8 +498,12 @@ internal class DistributionServiceTest {
 
     @Test
     fun `auto close current distribution`() {
+        SecurityContextHolder.setContext(SecurityContextImpl(null))
+
         val testDistributionEntity = DistributionEntity().apply {
             id = 123
+            startedAt = ZonedDateTime.now()
+            startedByUser = testUserEntity
             customers = listOf(
                 testDistributionCustomerEntity1,
                 testDistributionCustomerEntity2
@@ -517,6 +521,7 @@ internal class DistributionServiceTest {
 
         val saveDistribution = savedDistributionSlot.captured
         assertThat(saveDistribution.endedAt).isNotNull()
+        assertThat(saveDistribution.endedByUser).isEqualTo(testUserEntity)
     }
 
     @Test
