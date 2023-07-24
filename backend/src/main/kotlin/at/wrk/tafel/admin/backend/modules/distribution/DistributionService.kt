@@ -35,7 +35,7 @@ class DistributionService(
         private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
     }
 
-    @Scheduled(cron = "50 23 * * * *")
+    @Scheduled(cron = "0 50 23 * * *")
     fun autoCloseDistribution() {
         val currentDistribution = distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc()
         if (currentDistribution != null) {
