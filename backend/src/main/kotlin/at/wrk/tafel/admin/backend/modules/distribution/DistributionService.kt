@@ -170,6 +170,7 @@ class DistributionService(
             ?: throw TafelValidationException("Ausgabe nicht gestartet!")
 
         if (currentDistribution != null) {
+            // TODO what to do in case of autoclose?
             val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
 
             val distribution = distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc()
