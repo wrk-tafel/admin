@@ -37,7 +37,7 @@ class DistributionService(
         private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
     }
 
-    @Scheduled(cron = "50 23 * * * *")
+    @Scheduled(cron = "0 50 23 * * *")
     fun autoCloseDistribution() {
         val currentDistribution = distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc()
         if (currentDistribution != null) {
@@ -172,12 +172,15 @@ class DistributionService(
             ?: throw TafelValidationException("Ausgabe nicht gestartet!")
 
         if (currentDistribution != null) {
-            val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
-
             val distribution = distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc()
+            val authenticatedUser = SecurityContextHolder.getContext().authentication as? TafelJwtAuthentication
+
             if (distribution != null) {
                 distribution.endedAt = ZonedDateTime.now()
-                distribution.endedByUser = userRepository.findByUsername(authenticatedUser.username!!).get()
+                distribution.endedByUser =
+                    authenticatedUser?.let { userRepository.findByUsername(authenticatedUser.username!!).get() }
+                        ?: distribution.startedByUser
+                distributionRepository.save(distribution)
 
                 val persistedDistribution = distributionRepository.save(distribution)
                 this.distributionStatisticService.createAndSaveStatistic(persistedDistribution)
