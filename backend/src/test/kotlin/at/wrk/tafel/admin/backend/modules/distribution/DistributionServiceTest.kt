@@ -12,7 +12,7 @@ import at.wrk.tafel.admin.backend.database.repositories.distribution.Distributio
 import at.wrk.tafel.admin.backend.database.repositories.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.base.testCountry
-import at.wrk.tafel.admin.backend.modules.distribution.statistic.model.CustomerListItem
+import at.wrk.tafel.admin.backend.modules.distribution.model.CustomerListItem
 import at.wrk.tafel.admin.backend.modules.distribution.model.CustomerListPdfModel
 import at.wrk.tafel.admin.backend.security.testUser
 import at.wrk.tafel.admin.backend.security.testUserEntity
