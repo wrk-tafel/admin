@@ -74,6 +74,9 @@ class CustomerEntity : BaseChangeTrackingEntity() {
     @Column(name = "locked_at")
     var lockedAt: ZonedDateTime? = null
 
+    @Column(name = "prolonged_at")
+    var prolongedAt: ZonedDateTime? = null
+
     @ManyToOne
     @JoinColumn(name = "locked_by")
     var lockedBy: UserEntity? = null

@@ -122,35 +122,42 @@ class CustomerService(
         return addPersonList + customerPerson
     }
 
-    private fun mapRequestToEntity(customer: Customer, entity: CustomerEntity? = null): CustomerEntity {
+    private fun mapRequestToEntity(customerUpdate: Customer, storedEntity: CustomerEntity? = null): CustomerEntity {
         val user = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
         val userEntity = userRepository.findByUsername(user.username!!).get()
-        val customerEntity = entity ?: CustomerEntity()
+        val customerEntity = storedEntity ?: CustomerEntity()
 
-        customerEntity.customerId = customer.id ?: customerRepository.getNextCustomerSequenceValue()
+        customerEntity.customerId = customerUpdate.id ?: customerRepository.getNextCustomerSequenceValue()
         customerEntity.issuer = customerEntity.issuer ?: userEntity
-        customerEntity.lastname = customer.lastname.trim()
-        customerEntity.firstname = customer.firstname.trim()
-        customerEntity.birthDate = customer.birthDate
-        customerEntity.country = countryRepository.findById(customer.country.id).get()
-        customerEntity.addressStreet = customer.address.street.trim()
-        customerEntity.addressHouseNumber = customer.address.houseNumber?.trim()
-        customerEntity.addressStairway = customer.address.stairway?.trim()
-        customerEntity.addressDoor = customer.address.door?.trim()
-        customerEntity.addressPostalCode = customer.address.postalCode
-        customerEntity.addressCity = customer.address.city?.trim()
-        customerEntity.telephoneNumber = customer.telephoneNumber
-        customerEntity.email = customer.email?.takeIf { it.isNotBlank() }?.trim()
-        customerEntity.employer = customer.employer.trim()
-        customerEntity.income = customer.income.takeIf { it != null && it > BigDecimal.ZERO }
-        customerEntity.incomeDue = customer.incomeDue
-        customerEntity.validUntil = customer.validUntil
+        customerEntity.lastname = customerUpdate.lastname.trim()
+        customerEntity.firstname = customerUpdate.firstname.trim()
+        customerEntity.birthDate = customerUpdate.birthDate
+        customerEntity.country = countryRepository.findById(customerUpdate.country.id).get()
+        customerEntity.addressStreet = customerUpdate.address.street.trim()
+        customerEntity.addressHouseNumber = customerUpdate.address.houseNumber?.trim()
+        customerEntity.addressStairway = customerUpdate.address.stairway?.trim()
+        customerEntity.addressDoor = customerUpdate.address.door?.trim()
+        customerEntity.addressPostalCode = customerUpdate.address.postalCode
+        customerEntity.addressCity = customerUpdate.address.city?.trim()
+        customerEntity.telephoneNumber = customerUpdate.telephoneNumber
+        customerEntity.email = customerUpdate.email?.takeIf { it.isNotBlank() }?.trim()
+        customerEntity.employer = customerUpdate.employer.trim()
+        customerEntity.income = customerUpdate.income.takeIf { it != null && it > BigDecimal.ZERO }
+        customerEntity.incomeDue = customerUpdate.incomeDue
 
-        if (customer.locked == true) {
+        val prolongedAt =
+            if (storedEntity?.validUntil != null
+                && customerUpdate.validUntil != null
+                && customerUpdate.validUntil.isAfter(storedEntity.validUntil)
+            ) ZonedDateTime.now() else null
+        customerEntity.prolongedAt = prolongedAt
+        customerEntity.validUntil = customerUpdate.validUntil
+
+        if (customerUpdate.locked == true) {
             customerEntity.locked = true
             customerEntity.lockedAt = ZonedDateTime.now()
             customerEntity.lockedBy = userEntity
-            customerEntity.lockReason = customer.lockReason
+            customerEntity.lockReason = customerUpdate.lockReason
         } else {
             customerEntity.locked = false
             customerEntity.lockedAt = null
@@ -164,7 +171,7 @@ class CustomerService(
 
         customerEntity.additionalPersons.clear()
         customerEntity.additionalPersons.addAll(
-            customer.additionalPersons.map {
+            customerUpdate.additionalPersons.map {
                 val addPersonEntity =
                     customerAddPersonRepository.findById(it.id).orElseGet { CustomerAddPersonEntity() }
                 addPersonEntity.customer = customerEntity
