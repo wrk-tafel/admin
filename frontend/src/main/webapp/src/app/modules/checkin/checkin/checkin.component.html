@@ -12,7 +12,7 @@
             <label class="form-label">Scanner</label>
           </c-col>
           <c-col sm="3" class="align-self-center">
-            <select testid="scannerIdInput" class="form-control" cSelect [(ngModel)]="selectedScannerId" tabindex="0">
+            <select testid="scannerIdInput" class="form-control" cSelect [(ngModel)]="selectedScannerId">
               <option [ngValue]="undefined">Nicht aktiv</option>
               <option *ngFor="let scannerId of scannerIds" [ngValue]="scannerId">Nr. {{scannerId}}</option>
             </select>
@@ -32,12 +32,11 @@
           </c-col>
           <c-col sm="3" class="mb-3">
             <input testid="customerIdText" type="number" name="customerIdInput" [(ngModel)]="customerId"
-                   class="form-control" (keydown.enter)="searchForCustomerId()" tabindex="1"
-                   cdkTrapFocusAutoCapture="focusCustomerIdInput" cdkTrapFocus="focusCustomerIdInput">
+                   class="form-control" (keydown.enter)="searchForCustomerId()">
           </c-col>
           <c-col sm="3">
             <button testid="showCustomerButton" cButton color="primary" class="text-white"
-                    tabindex="2" [disabled]="!customerId" (click)="searchForCustomerId()">Anzeigen
+                    [disabled]="!customerId" (click)="searchForCustomerId()">Anzeigen
             </button>
           </c-col>
         </c-row>
@@ -102,10 +101,10 @@
                   <c-col size="12" md="2" class="fw-bold">Ticket-Nummer: *</c-col>
                   <c-col size="12" md="2" class="align-middle">
                     <input testid="ticketNumberInput" #ticketNumberInput type="number" name="ticketNumberInput" [(ngModel)]="ticketNumber"
-                           class="form-control" required (keydown.enter)="assignCustomer()" tabindex="3">
+                           class="form-control" required (keydown.enter)="assignCustomer()">
                   </c-col>
                   <c-col>
-                    <button testid="deleteTicketButton" *ngIf="ticketNumberEdit === true" class="btn btn-danger text-white ms-0 ms-md-3 mt-3 mt-md-0" (click)="deleteTicket()" tabindex="5">Ticket löschen</button>
+                    <button testid="deleteTicketButton" *ngIf="ticketNumberEdit === true" class="btn btn-danger text-white ms-0 ms-md-3 mt-3 mt-md-0" (click)="deleteTicket()">Ticket löschen</button>
                   </c-col>
                 </c-row>
               </div>
@@ -116,8 +115,8 @@
       <c-card-footer>
         <c-row>
           <c-col>
-            <button [disabled]="customerState === 0 || !ticketForm.valid" testid="assignCustomerButton" class="btn btn-success text-white" (click)="assignCustomer()" tabindex="4">Annehmen</button>
-            <button testid="cancelButton" #cancelButton class="btn btn-primary text-white ms-3" (click)="cancel()" tabindex="5">Abbrechen</button>
+            <button [disabled]="customerState === 0 || !ticketForm.valid" testid="assignCustomerButton" class="btn btn-success text-white" (click)="assignCustomer()">Annehmen</button>
+            <button testid="cancelButton" #cancelButton class="btn btn-primary text-white ms-3" (click)="cancel()">Abbrechen</button>
           </c-col>
         </c-row>
       </c-card-footer>
