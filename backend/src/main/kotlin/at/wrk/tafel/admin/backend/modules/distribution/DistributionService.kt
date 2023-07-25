@@ -155,14 +155,14 @@ class DistributionService(
                 ?.size?.plus(1) ?: 0
             val countInfants = customer?.additionalPersons
                 ?.filterNot { it.excludeFromHousehold!! }
-                ?.count { Period.between(it.birthDate, LocalDate.now()).years < 3 } ?: 0
+                ?.count { Period.between(it.birthDate, LocalDate.now()).years < 3 }
 
             CustomerListItem(
                 ticketNumber = distributionCustomerEntity.ticketNumber!!,
                 customerId = customer?.customerId!!,
                 name = "${customer?.lastname} ${customer?.firstname}",
                 countPersons = countPersons,
-                countInfants = countInfants
+                countInfants = countInfants ?: 0
             )
         }
     }
@@ -180,7 +180,7 @@ class DistributionService(
                 distribution.endedByUser = userRepository.findByUsername(authenticatedUser.username!!).get()
 
                 val persistedDistribution = distributionRepository.save(distribution)
-                this.distributionStatisticService.generateStatistic(persistedDistribution)
+                this.distributionStatisticService.createAndSaveStatistic(persistedDistribution)
             }
         }
     }
