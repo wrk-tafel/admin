@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.modules.distribution.statistic
 
 import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionStatisticEntity
+import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerRepository
 import at.wrk.tafel.admin.backend.database.repositories.distribution.DistributionStatisticRepository
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
@@ -10,7 +11,8 @@ import java.time.Period
 
 @Service
 class DistributionStatisticService(
-    private val distributionStatisticRepository: DistributionStatisticRepository
+    private val distributionStatisticRepository: DistributionStatisticRepository,
+    private val customerRepository: CustomerRepository
 ) {
 
     fun createAndSaveStatistic(distribution: DistributionEntity) {
@@ -29,8 +31,10 @@ class DistributionStatisticService(
             .filterNot { it.excludeFromHousehold!! }
             .count { Period.between(it.birthDate, LocalDate.now()).years < 3 }
         val averagePersonsPerCustomer = BigDecimal(countPersons).setScale(2).div(BigDecimal(countCustomers))
-        val countCustomersNew = 0
-        val countCustomersUpdated = 0
+        val countCustomersNew =
+            customerRepository.countByCreatedAtBetween(distribution.startedAt!!, distribution.endedAt!!)
+        val countCustomersUpdated =
+            customerRepository.countByCreatedAtBetween(distribution.startedAt!!, distribution.endedAt!!)
 
         statistic.distribution = distribution
         statistic.countCustomers = countCustomers
