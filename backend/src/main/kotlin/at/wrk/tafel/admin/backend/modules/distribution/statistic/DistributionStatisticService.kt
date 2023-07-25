@@ -34,7 +34,7 @@ class DistributionStatisticService(
         val countCustomersNew =
             customerRepository.countByCreatedAtBetween(distribution.startedAt!!, distribution.endedAt!!)
         val countCustomersUpdated =
-            customerRepository.countByCreatedAtBetween(distribution.startedAt!!, distribution.endedAt!!)
+            customerRepository.countByUpdatedAtBetween(distribution.startedAt!!, distribution.endedAt!!)
 
         statistic.distribution = distribution
         statistic.countCustomers = countCustomers
