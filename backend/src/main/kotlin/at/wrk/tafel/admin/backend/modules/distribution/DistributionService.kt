@@ -180,10 +180,9 @@ class DistributionService(
                 distribution.endedByUser =
                     authenticatedUser?.let { userRepository.findByUsername(authenticatedUser.username!!).get() }
                         ?: distribution.startedByUser
-                distributionRepository.save(distribution)
 
                 val persistedDistribution = distributionRepository.save(distribution)
-                this.distributionStatisticService.createAndSaveStatistic(persistedDistribution)
+                distributionStatisticService.createAndSaveStatistic(persistedDistribution)
             }
         }
     }
