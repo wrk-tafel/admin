@@ -32,6 +32,8 @@ interface CustomerRepository : JpaRepository<CustomerEntity, Long> {
 
     fun countByCreatedAtBetween(fromDate: ZonedDateTime, toDate: ZonedDateTime): Int
 
+    fun countByProlongedAtBetween(fromDate: ZonedDateTime, toDate: ZonedDateTime): Int
+
     fun countByUpdatedAtBetween(fromDate: ZonedDateTime, toDate: ZonedDateTime): Int
 
 }

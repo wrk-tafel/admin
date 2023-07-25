@@ -9,5 +9,6 @@ create table if not exists distributions_statistics
     count_infants                integer   not null,
     average_persons_per_customer decimal   not null,
     count_customers_new          integer   not null,
+    count_customers_prolonged    integer   not null,
     count_customers_updated      integer   not null
 );

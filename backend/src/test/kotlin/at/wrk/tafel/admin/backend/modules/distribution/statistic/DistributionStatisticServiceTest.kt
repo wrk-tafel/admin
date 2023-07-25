@@ -54,6 +54,7 @@ internal class DistributionStatisticServiceTest {
                 testDistributionEntity.endedAt!!
             )
         } returns testCountCustomersNew
+
         val testCountCustomersUpdated = 456
         every {
             customerRepository.countByUpdatedAtBetween(
@@ -61,6 +62,14 @@ internal class DistributionStatisticServiceTest {
                 testDistributionEntity.endedAt!!
             )
         } returns testCountCustomersUpdated
+
+        val testCountCustomersProlonged = 456
+        every {
+            customerRepository.countByProlongedAtBetween(
+                testDistributionEntity.startedAt!!,
+                testDistributionEntity.endedAt!!
+            )
+        } returns testCountCustomersProlonged
 
         every { distributionStatisticRepository.save(any()) } returns mockk()
 
@@ -81,6 +90,7 @@ internal class DistributionStatisticServiceTest {
             )
         )
         assertThat(savedStatistic.countCustomersNew).isEqualTo(testCountCustomersNew)
+        assertThat(savedStatistic.countCustomersProlonged).isEqualTo(testCountCustomersProlonged)
         assertThat(savedStatistic.countCustomersUpdated).isEqualTo(testCountCustomersUpdated)
     }
 
