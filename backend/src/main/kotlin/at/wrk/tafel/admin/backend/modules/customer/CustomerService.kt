@@ -75,6 +75,7 @@ class CustomerService(
         return customerItems.map { mapEntityToResponse(it) }
     }
 
+    @Transactional
     fun generatePdf(customerId: Long, type: CustomerPdfType): CustomerPdfResult? {
         val customer = customerRepository.findByCustomerId(customerId)
         if (customer != null) {
