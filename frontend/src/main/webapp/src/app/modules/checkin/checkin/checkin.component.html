@@ -101,7 +101,8 @@
                   <c-col size="12" md="2" class="fw-bold">Ticket-Nummer: *</c-col>
                   <c-col size="12" md="2" class="align-middle">
                     <input testid="ticketNumberInput" #ticketNumberInput type="number" name="ticketNumberInput" [(ngModel)]="ticketNumber"
-                           class="form-control" required (keydown.enter)="assignCustomer()">
+                           class="form-control" required (keydown.enter)="assignCustomer()"
+                           [ngClass]="{'is-invalid': !ticketNumber, 'is-valid': ticketNumber}">
                   </c-col>
                   <c-col>
                     <button testid="deleteTicketButton" *ngIf="ticketNumberEdit === true" class="btn btn-danger text-white ms-0 ms-md-3 mt-3 mt-md-0" (click)="deleteTicket()">Ticket löschen</button>
