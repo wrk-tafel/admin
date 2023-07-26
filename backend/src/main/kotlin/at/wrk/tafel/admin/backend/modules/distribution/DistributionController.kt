@@ -3,6 +3,7 @@ package at.wrk.tafel.admin.backend.modules.distribution
 import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.distribution.model.*
+import org.slf4j.LoggerFactory
 import org.springframework.core.io.InputStreamResource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
@@ -10,6 +11,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.messaging.handler.annotation.MessageMapping
 import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.messaging.simp.annotation.SubscribeMapping
+import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import java.io.ByteArrayInputStream
@@ -21,6 +23,19 @@ class DistributionController(
     private val service: DistributionService,
     private val simpMessagingTemplate: SimpMessagingTemplate
 ) {
+
+    companion object {
+        private val logger = LoggerFactory.getLogger(DistributionController::class.java)
+    }
+
+    @Scheduled(cron = "0 50 23 * * *")
+    fun autoCloseDistribution() {
+        val currentDistribution = service.getCurrentDistribution()
+        if (currentDistribution != null) {
+            logger.info("Distribution still open - auto-closing it")
+            service.closeDistribution()
+        }
+    }
 
     @PostMapping("/new")
     @PreAuthorize("hasAuthority('DISTRIBUTION_LCM')")
