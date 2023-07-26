@@ -5,6 +5,7 @@ import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionSta
 import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerRepository
 import at.wrk.tafel.admin.backend.database.repositories.distribution.DistributionStatisticRepository
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
@@ -16,6 +17,7 @@ class DistributionStatisticService(
     private val customerRepository: CustomerRepository
 ) {
 
+    @Transactional
     fun createAndSaveStatistic(distribution: DistributionEntity) {
         val statistic = createStatisticEntry(distribution)
         distributionStatisticRepository.save(statistic)

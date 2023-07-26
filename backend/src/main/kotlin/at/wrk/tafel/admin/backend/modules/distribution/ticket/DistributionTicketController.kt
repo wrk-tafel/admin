@@ -16,10 +16,7 @@ class DistributionTicketController(
     fun getCurrentTicket(
         @RequestParam("customerId", required = false) customerId: Long? = null
     ): TicketNumberResponse {
-        val distribution = service.getCurrentDistribution()
-            ?: throw TafelValidationException("Ausgabe nicht gestartet!")
-
-        val currentTicket = service.getCurrentTicketNumber(distribution, customerId)
+        val currentTicket = service.getCurrentTicketNumber(customerId)
         return TicketNumberResponse(ticketNumber = currentTicket)
     }
 
@@ -27,10 +24,7 @@ class DistributionTicketController(
     fun deleteCurrentTicketForCustomer(
         @RequestParam("customerId") customerId: Long
     ): ResponseEntity<Void> {
-        val distribution = service.getCurrentDistribution()
-            ?: throw TafelValidationException("Ausgabe nicht gestartet!")
-
-        val deleted = service.deleteCurrentTicket(distribution, customerId)
+        val deleted = service.deleteCurrentTicket(customerId)
         if (!deleted) {
             throw TafelValidationException("Löschen des Tickets von Kunde Nr. $customerId fehlgeschlagen!")
         }
@@ -39,10 +33,7 @@ class DistributionTicketController(
 
     @GetMapping("/next")
     fun getNextTicket(): TicketNumberResponse {
-        val distribution = service.getCurrentDistribution()
-            ?: throw TafelValidationException("Ausgabe nicht gestartet!")
-
-        val nextTicket = service.closeCurrentTicketAndGetNext(distribution)
+        val nextTicket = service.closeCurrentTicketAndGetNext()
         return TicketNumberResponse(ticketNumber = nextTicket)
     }
 

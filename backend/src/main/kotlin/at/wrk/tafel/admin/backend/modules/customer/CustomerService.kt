@@ -29,6 +29,7 @@ class CustomerService(
     private val userRepository: UserRepository,
     private val customerPdfService: CustomerPdfService
 ) {
+
     fun validate(customer: Customer): IncomeValidatorResult {
         return incomeValidatorService.validate(mapToValidationPersons(customer))
     }
@@ -37,6 +38,7 @@ class CustomerService(
         return customerRepository.existsByCustomerId(customerId)
     }
 
+    @Transactional
     fun findByCustomerId(customerId: Long): Customer? {
         return customerRepository.findByCustomerId(customerId)?.let { mapEntityToResponse(it) }
     }
@@ -47,12 +49,14 @@ class CustomerService(
         return mapEntityToResponse(savedEntity)
     }
 
+    @Transactional
     fun updateCustomer(customerId: Long, customer: Customer): Customer {
         val entity = mapRequestToEntity(customer, customerRepository.getReferenceByCustomerId(customerId))
         val savedEntity = customerRepository.save(entity)
         return mapEntityToResponse(savedEntity)
     }
 
+    @Transactional
     fun getCustomers(firstname: String? = null, lastname: String? = null): List<Customer> {
         val customerItems: List<CustomerEntity> =
             if (firstname?.isNotBlank() == true && lastname?.isNotBlank() == true) {

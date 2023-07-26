@@ -7,9 +7,9 @@ import org.springframework.boot.runApplication
 import org.springframework.scheduling.annotation.EnableScheduling
 
 @ConfigurationPropertiesScan("at.wrk.tafel.admin.backend")
-@ExcludeFromTestCoverage
 @EnableScheduling
 @SpringBootApplication(scanBasePackages = ["at.wrk.tafel.admin.backend"])
+@ExcludeFromTestCoverage
 class AdminBackendApplication
 
 @ExcludeFromTestCoverage
