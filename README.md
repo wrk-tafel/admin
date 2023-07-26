@@ -2,6 +2,11 @@
 * Centralize testdata / mocks
 * Add checkbox to define if familyBonus is granted or not (main person as well additional persons)
 
+## Minor changes
+* Fix/suppress unique_key_constraint on double ticket
+* Checkin: Set focus on customerId after ticket assigned
+* Async stats generation
+
 ### Open things (to be discussed)
 * customer-detail
     * add document upload
