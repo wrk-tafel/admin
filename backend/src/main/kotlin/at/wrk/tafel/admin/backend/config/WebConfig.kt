@@ -1,15 +1,14 @@
 package at.wrk.tafel.admin.backend.config
 
-import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.scheduling.annotation.AsyncConfigurer
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 import java.util.concurrent.Executor
 
 @Configuration
-class WebConfig {
+class WebConfig : AsyncConfigurer {
 
-    @Bean
-    fun taskExecutor(): Executor {
+    override fun getAsyncExecutor(): Executor {
         val executor = ThreadPoolTaskExecutor()
         executor.corePoolSize = 2
         executor.maxPoolSize = 10
