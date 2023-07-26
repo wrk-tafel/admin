@@ -14,7 +14,6 @@ import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationExceptio
 import at.wrk.tafel.admin.backend.modules.base.testCountry
 import at.wrk.tafel.admin.backend.modules.distribution.model.CustomerListItem
 import at.wrk.tafel.admin.backend.modules.distribution.model.CustomerListPdfModel
-import at.wrk.tafel.admin.backend.modules.distribution.statistic.DistributionStatisticService
 import at.wrk.tafel.admin.backend.security.testUser
 import at.wrk.tafel.admin.backend.security.testUserEntity
 import at.wrk.tafel.admin.backend.security.testUserPermissions
@@ -57,7 +56,7 @@ internal class DistributionServiceTest {
     private lateinit var pdfService: PDFService
 
     @RelaxedMockK
-    private lateinit var distributionStatisticService: DistributionStatisticService
+    private lateinit var distributionPostProcessorService: DistributionPostProcessorService
 
     @InjectMockKs
     private lateinit var service: DistributionService
@@ -227,7 +226,7 @@ internal class DistributionServiceTest {
                 assertThat(it.endedByUser).isEqualTo(testUserEntity)
             })
         }
-        verify { distributionStatisticService.createAndSaveStatistic(savedDistribution) }
+        verify { distributionPostProcessorService.process(savedDistribution) }
     }
 
     @Test

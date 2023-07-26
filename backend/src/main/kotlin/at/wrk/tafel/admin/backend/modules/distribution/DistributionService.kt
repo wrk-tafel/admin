@@ -12,7 +12,6 @@ import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationExceptio
 import at.wrk.tafel.admin.backend.modules.distribution.model.CustomerListItem
 import at.wrk.tafel.admin.backend.modules.distribution.model.CustomerListPdfModel
 import at.wrk.tafel.admin.backend.modules.distribution.model.CustomerListPdfResult
-import at.wrk.tafel.admin.backend.modules.distribution.statistic.DistributionStatisticService
 import org.slf4j.LoggerFactory
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.scheduling.annotation.Scheduled
@@ -30,7 +29,7 @@ class DistributionService(
     private val distributionCustomerRepository: DistributionCustomerRepository,
     private val customerRepository: CustomerRepository,
     private val pdfService: PDFService,
-    private val distributionStatisticService: DistributionStatisticService
+    private val distributionPostProcessorService: DistributionPostProcessorService
 ) {
     companion object {
         private val logger = LoggerFactory.getLogger(DistributionService::class.java)
@@ -182,7 +181,7 @@ class DistributionService(
                         ?: distribution.startedByUser
 
                 val persistedDistribution = distributionRepository.save(distribution)
-                distributionStatisticService.createAndSaveStatistic(persistedDistribution)
+                distributionPostProcessorService.process(persistedDistribution)
             }
         }
     }
