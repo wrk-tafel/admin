@@ -31,8 +31,9 @@ class DistributionStatisticService(
         val countInfants = distribution.customers.flatMap { it.customer?.additionalPersons ?: emptyList() }
             .filterNot { it.excludeFromHousehold!! }
             .count { Period.between(it.birthDate, LocalDate.now()).years < 3 }
-        val averagePersonsPerCustomer =
-            BigDecimal(countPersons).setScale(2, RoundingMode.HALF_EVEN).div(BigDecimal(countCustomers))
+        val averagePersonsPerCustomer = if (countCustomers > 0)
+            BigDecimal(countPersons).setScale(2, RoundingMode.HALF_EVEN)
+                .div(BigDecimal(countCustomers)) else BigDecimal.ZERO
         val countCustomersNew =
             customerRepository.countByCreatedAtBetween(distribution.startedAt!!, distribution.endedAt!!)
         val countCustomersProlonged =

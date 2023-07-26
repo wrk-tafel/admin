@@ -84,14 +84,59 @@ internal class DistributionStatisticServiceTest {
         assertThat(savedStatistic.countPersons).isEqualTo(4)
         assertThat(savedStatistic.countInfants).isEqualTo(1)
         assertThat(savedStatistic.averagePersonsPerCustomer).isEqualTo(
-            BigDecimal(1.33).setScale(
-                2,
-                RoundingMode.HALF_EVEN
-            )
+            BigDecimal(1.33).setScale(2, RoundingMode.HALF_EVEN)
         )
         assertThat(savedStatistic.countCustomersNew).isEqualTo(testCountCustomersNew)
         assertThat(savedStatistic.countCustomersProlonged).isEqualTo(testCountCustomersProlonged)
         assertThat(savedStatistic.countCustomersUpdated).isEqualTo(testCountCustomersUpdated)
+    }
+
+    @Test
+    fun `create and save empty statistic without customers`() {
+        val testDistributionEntity = DistributionEntity().apply {
+            id = 123
+            startedAt = ZonedDateTime.now().minusHours(2)
+            endedAt = ZonedDateTime.now()
+            customers = emptyList()
+        }
+
+        every {
+            customerRepository.countByCreatedAtBetween(
+                testDistributionEntity.startedAt!!,
+                testDistributionEntity.endedAt!!
+            )
+        } returns 0
+
+        every {
+            customerRepository.countByUpdatedAtBetween(
+                testDistributionEntity.startedAt!!,
+                testDistributionEntity.endedAt!!
+            )
+        } returns 0
+
+        every {
+            customerRepository.countByProlongedAtBetween(
+                testDistributionEntity.startedAt!!,
+                testDistributionEntity.endedAt!!
+            )
+        } returns 0
+
+        every { distributionStatisticRepository.save(any()) } returns mockk()
+
+        service.createAndSaveStatistic(testDistributionEntity)
+
+        val savedStatisticSlot = slot<DistributionStatisticEntity>()
+        verify { distributionStatisticRepository.save(capture(savedStatisticSlot)) }
+
+        val savedStatistic = savedStatisticSlot.captured
+        assertThat(savedStatistic.distribution).isEqualTo(testDistributionEntity)
+        assertThat(savedStatistic.countCustomers).isEqualTo(0)
+        assertThat(savedStatistic.countPersons).isEqualTo(0)
+        assertThat(savedStatistic.countInfants).isEqualTo(0)
+        assertThat(savedStatistic.averagePersonsPerCustomer).isEqualTo(BigDecimal.ZERO)
+        assertThat(savedStatistic.countCustomersNew).isEqualTo(0)
+        assertThat(savedStatistic.countCustomersProlonged).isEqualTo(0)
+        assertThat(savedStatistic.countCustomersUpdated).isEqualTo(0)
     }
 
 }
