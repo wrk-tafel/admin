@@ -5,6 +5,7 @@ import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity
 import io.github.g0dkar.qrcode.QRCode
 import org.apache.commons.io.IOUtils
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.util.MimeTypeUtils
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -22,16 +23,19 @@ class CustomerPdfService(
         private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
     }
 
+    @Transactional
     fun generateMasterdataPdf(customer: CustomerEntity): ByteArray {
         val data = createCustomerPdfData(customer)
         return pdfService.generatePdf(data, "/pdf-templates/customer-pdf/masterdata-document.xsl")
     }
 
+    @Transactional
     fun generateIdCardPdf(customer: CustomerEntity): ByteArray {
         val data = createCustomerPdfData(customer)
         return pdfService.generatePdf(data, "/pdf-templates/customer-pdf/idcard-document.xsl")
     }
 
+    @Transactional
     fun generateCombinedPdf(customer: CustomerEntity): ByteArray {
         val data = createCustomerPdfData(customer)
         return pdfService.generatePdf(data, "/pdf-templates/customer-pdf/masterdata-idcard-document.xsl")
