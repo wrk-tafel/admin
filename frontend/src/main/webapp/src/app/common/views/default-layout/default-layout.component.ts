@@ -9,10 +9,6 @@ import {GlobalStateService} from '../../state/global-state.service';
   templateUrl: 'default-layout.component.html'
 })
 export class DefaultLayoutComponent implements OnInit {
-  public perfectScrollbarConfig = {
-    suppressScrollX: true,
-  };
-
   public navItems: ITafelNavData[] = navigationMenuItems;
 
   constructor(
