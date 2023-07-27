@@ -3,6 +3,7 @@ package at.wrk.tafel.admin.backend.modules.distribution
 import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelException
 import at.wrk.tafel.admin.backend.modules.distribution.model.*
+import at.wrk.tafel.admin.backend.security.testUserEntity
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -18,6 +19,7 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.messaging.simp.SimpMessagingTemplate
+import java.time.ZonedDateTime
 import java.util.*
 
 @ExtendWith(MockKExtension::class)
@@ -176,6 +178,38 @@ internal class DistributionControllerTest {
 
         val bodyBytes = response.body?.inputStream?.readAllBytes()!!
         assertThat(String(bodyBytes)).isEqualTo(testFilename)
+    }
+
+
+    @Test
+    fun `auto close when distribution is open`() {
+        val testDistributionEntity = DistributionEntity().apply {
+            id = 123
+            startedAt = ZonedDateTime.now()
+            startedByUser = testUserEntity
+            customers = listOf(
+                testDistributionCustomerEntity1,
+                testDistributionCustomerEntity2
+            )
+        }
+        every { service.getCurrentDistribution() } returns testDistributionEntity
+
+        controller.autoCloseDistribution()
+
+        verify(exactly = 1) {
+            service.closeDistribution()
+        }
+    }
+
+    @Test
+    fun `auto close when distribution is not open`() {
+        every { service.getCurrentDistribution() } returns null
+
+        controller.autoCloseDistribution()
+
+        verify(exactly = 0) {
+            service.closeDistribution()
+        }
     }
 
 }

@@ -12,11 +12,10 @@ import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationExceptio
 import at.wrk.tafel.admin.backend.modules.distribution.model.CustomerListItem
 import at.wrk.tafel.admin.backend.modules.distribution.model.CustomerListPdfModel
 import at.wrk.tafel.admin.backend.modules.distribution.model.CustomerListPdfResult
-import org.slf4j.LoggerFactory
 import org.springframework.dao.DataIntegrityViolationException
-import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 import java.time.Period
 import java.time.ZonedDateTime
@@ -28,20 +27,11 @@ class DistributionService(
     private val userRepository: UserRepository,
     private val distributionCustomerRepository: DistributionCustomerRepository,
     private val customerRepository: CustomerRepository,
-    private val pdfService: PDFService
+    private val pdfService: PDFService,
+    private val distributionPostProcessorService: DistributionPostProcessorService
 ) {
     companion object {
-        private val logger = LoggerFactory.getLogger(DistributionService::class.java)
         private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
-    }
-
-    @Scheduled(cron = "0 50 23 * * *")
-    fun autoCloseDistribution() {
-        val currentDistribution = distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc()
-        if (currentDistribution != null) {
-            logger.info("Distribution still open - auto-closing it")
-            closeDistribution()
-        }
     }
 
     fun createNewDistribution(): DistributionEntity {
@@ -59,6 +49,7 @@ class DistributionService(
         return distributionRepository.save(distribution)
     }
 
+    @Transactional
     fun getCurrentDistribution(): DistributionEntity? {
         return distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc()
     }
@@ -80,6 +71,7 @@ class DistributionService(
         }
     }
 
+    @Transactional
     fun generateCustomerListPdf(): CustomerListPdfResult? {
         val currentDistribution = distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc()
             ?: throw TafelValidationException("Ausgabe nicht gestartet!")
@@ -109,35 +101,35 @@ class DistributionService(
         return CustomerListPdfResult(filename = filename, bytes = bytes)
     }
 
-    fun getDistributionCustomerEntity(
-        distribution: DistributionEntity,
-        customerId: Long? = null
-    ): DistributionCustomerEntity? {
-        return distribution.customers
-            .asSequence()
-            .filter { customerId == null || it.customer?.customerId == customerId }
-            .filter { it.processed == false }
-            .sortedBy { it.ticketNumber }
-            .firstOrNull()
-    }
+    @Transactional
+    fun getCurrentTicketNumber(customerId: Long? = null): Int? {
+        val distribution = getCurrentDistribution()
+            ?: throw TafelValidationException("Ausgabe nicht gestartet!")
 
-    fun getCurrentTicketNumber(distribution: DistributionEntity, customerId: Long? = null): Int? {
         return getDistributionCustomerEntity(distribution, customerId)?.ticketNumber
     }
 
-    fun closeCurrentTicketAndGetNext(distribution: DistributionEntity): Int? {
+    @Transactional
+    fun closeCurrentTicketAndGetNext(): Int? {
+        val distribution = getCurrentDistribution()
+            ?: throw TafelValidationException("Ausgabe nicht gestartet!")
+
         val distributionCustomerEntity = getDistributionCustomerEntity(distribution)
 
         if (distributionCustomerEntity != null) {
             distributionCustomerEntity.processed = true
             distributionCustomerRepository.save(distributionCustomerEntity)
 
-            return getCurrentTicketNumber(distribution)
+            return getCurrentTicketNumber()
         }
         return null
     }
 
-    fun deleteCurrentTicket(distribution: DistributionEntity, customerId: Long): Boolean {
+    @Transactional
+    fun deleteCurrentTicket(customerId: Long): Boolean {
+        val distribution = getCurrentDistribution()
+            ?: throw TafelValidationException("Ausgabe nicht gestartet!")
+
         val distributionCustomerEntity = getDistributionCustomerEntity(distribution, customerId)
         return distributionCustomerEntity?.let {
             distributionCustomerRepository.delete(it)
@@ -145,26 +137,7 @@ class DistributionService(
         } ?: false
     }
 
-    private fun mapCustomers(customers: List<DistributionCustomerEntity>): List<CustomerListItem> {
-        return customers.map { distributionCustomerEntity ->
-            val customer = distributionCustomerEntity.customer
-            val countPersons = customer?.additionalPersons
-                ?.filterNot { it.excludeFromHousehold!! }
-                ?.size?.plus(1) ?: 0
-            val countInfants = customer?.additionalPersons
-                ?.filterNot { it.excludeFromHousehold!! }
-                ?.count { Period.between(it.birthDate, LocalDate.now()).years < 3 } ?: 0
-
-            CustomerListItem(
-                ticketNumber = distributionCustomerEntity.ticketNumber!!,
-                customerId = customer?.customerId!!,
-                name = "${customer?.lastname} ${customer?.firstname}",
-                countPersons = countPersons,
-                countInfants = countInfants
-            )
-        }
-    }
-
+    @Transactional
     fun closeDistribution() {
         val currentDistribution = distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc()
             ?: throw TafelValidationException("Ausgabe nicht gestartet!")
@@ -178,8 +151,42 @@ class DistributionService(
                 distribution.endedByUser =
                     authenticatedUser?.let { userRepository.findByUsername(authenticatedUser.username!!).get() }
                         ?: distribution.startedByUser
-                distributionRepository.save(distribution)
+
+                val persistedDistribution = distributionRepository.save(distribution)
+                distributionPostProcessorService.process(persistedDistribution)
             }
+        }
+    }
+
+    private fun getDistributionCustomerEntity(
+        distribution: DistributionEntity,
+        customerId: Long? = null
+    ): DistributionCustomerEntity? {
+        return distribution.customers
+            .asSequence()
+            .filter { customerId == null || it.customer?.customerId == customerId }
+            .filter { it.processed == false }
+            .sortedBy { it.ticketNumber }
+            .firstOrNull()
+    }
+
+    private fun mapCustomers(customers: List<DistributionCustomerEntity>): List<CustomerListItem> {
+        return customers.map { distributionCustomerEntity ->
+            val customer = distributionCustomerEntity.customer
+            val countPersons = customer?.additionalPersons
+                ?.filterNot { it.excludeFromHousehold!! }
+                ?.size?.plus(1) ?: 0
+            val countInfants = customer?.additionalPersons
+                ?.filterNot { it.excludeFromHousehold!! }
+                ?.count { Period.between(it.birthDate, LocalDate.now()).years < 3 }
+
+            CustomerListItem(
+                ticketNumber = distributionCustomerEntity.ticketNumber!!,
+                customerId = customer?.customerId!!,
+                name = "${customer?.lastname} ${customer?.firstname}",
+                countPersons = countPersons,
+                countInfants = countInfants ?: 0
+            )
         }
     }
 

@@ -4,6 +4,7 @@ import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
+import java.time.ZonedDateTime
 import java.util.*
 
 interface CustomerRepository : JpaRepository<CustomerEntity, Long> {
@@ -28,4 +29,11 @@ interface CustomerRepository : JpaRepository<CustomerEntity, Long> {
     ): List<CustomerEntity>
 
     fun deleteByCustomerId(customerId: Long)
+
+    fun countByCreatedAtBetween(fromDate: ZonedDateTime, toDate: ZonedDateTime): Int
+
+    fun countByProlongedAtBetween(fromDate: ZonedDateTime, toDate: ZonedDateTime): Int
+
+    fun countByUpdatedAtBetween(fromDate: ZonedDateTime, toDate: ZonedDateTime): Int
+
 }

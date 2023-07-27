@@ -17,6 +17,12 @@ describe('Customer Detail', () => {
   it('generate pdf and opens for download', () => {
     cy.visit('/#/kunden/detail/101');
 
+    cy.intercept('/api/customers/*/generate-pdf**', request => {
+      request.on('response', function (response) {
+        expect(response.statusCode).is.lessThan(500); // Test will fail if an 500 error happen
+      });
+    });
+
     cy.byTestId('printMenuButton').click();
     cy.byTestId('printMasterdataButton').click();
 
@@ -29,6 +35,12 @@ describe('Customer Detail', () => {
 
   it('generate pdf and opens for download with less data from customer', () => {
     cy.visit('/#/kunden/detail/100');
+
+    cy.intercept('/api/customers/*/generate-pdf**', request => {
+      request.on('response', function (response) {
+        expect(response.statusCode).is.lessThan(500); // Test will fail if an 500 error happen
+      });
+    });
 
     cy.byTestId('printMenuButton').click();
     cy.byTestId('printMasterdataButton').click();

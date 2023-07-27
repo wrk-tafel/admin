@@ -18,6 +18,7 @@ import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
+import io.mockk.slot
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -328,7 +329,6 @@ class CustomerServiceTest {
     }
 
     @Test
-    // TODO improve test (asserts)
     fun `update customer`() {
         val testCustomerEntity1 = CustomerEntity().apply {
             id = 1
@@ -350,7 +350,8 @@ class CustomerServiceTest {
             employer = "Employer 123"
             income = BigDecimal("1000")
             incomeDue = LocalDate.now()
-            validUntil = LocalDate.now()
+            validUntil = LocalDate.now().minusDays(30)
+            prolongedAt = null
             locked = false
 
             val addPerson1 = CustomerAddPersonEntity()
@@ -386,6 +387,7 @@ class CustomerServiceTest {
             birthDate = LocalDate.now(),
             employer = "updated-employer",
             income = BigDecimal.TEN,
+            validUntil = LocalDate.now().plusYears(1),
             additionalPersons = listOf(
                 testCustomer.additionalPersons[0].copy(
                     excludeFromHousehold = true
@@ -410,6 +412,7 @@ class CustomerServiceTest {
             customerRepository.save(withArg {
                 // issuer shouldn't be updated
                 assertThat(it.issuer?.personnelNumber).isEqualTo(testCustomer.issuer?.personnelNumber)
+                assertThat(it.prolongedAt).isEqualTo(testCustomerEntity1.prolongedAt)
             })
         }
     }
@@ -481,6 +484,7 @@ class CustomerServiceTest {
 
     @Test
     fun `update customer and unlock`() {
+        val testValidUntil = LocalDate.now()
         val testCustomerEntity1 = CustomerEntity().apply {
             id = 1
             issuer = testUserEntity
@@ -501,7 +505,8 @@ class CustomerServiceTest {
             employer = "Employer 123"
             income = BigDecimal("1000")
             incomeDue = LocalDate.now()
-            validUntil = LocalDate.now()
+            validUntil = testValidUntil
+            prolongedAt = null
             locked = true
             lockedAt = ZonedDateTime.now()
             lockedBy = testUserEntity
@@ -545,8 +550,55 @@ class CustomerServiceTest {
                 assertThat(it.lockedAt).isNull()
                 assertThat(it.lockReason).isNull()
                 assertThat(it.lockedBy).isNull()
+                assertThat(it.prolongedAt).isNull()
             })
         }
+    }
+
+    @Test
+    fun `update customer and prolongedAt is filled`() {
+        val testCustomerEntity1 = CustomerEntity().apply {
+            id = 1
+            issuer = testUserEntity
+            createdAt = ZonedDateTime.now()
+            customerId = 100
+            lastname = "Mustermann"
+            firstname = "Max"
+            birthDate = LocalDate.now().minusYears(30)
+            country = testCountry
+            addressStreet = "Test-Straße"
+            addressHouseNumber = "100"
+            addressStairway = "1"
+            addressPostalCode = 1010
+            addressDoor = "21"
+            addressCity = "Wien"
+            telephoneNumber = "0043660123123"
+            email = "test@mail.com"
+            employer = "Employer 123"
+            income = BigDecimal("1000")
+            incomeDue = LocalDate.now()
+            validUntil = LocalDate.now().minusDays(5)
+            prolongedAt = null
+            additionalPersons = mutableListOf()
+        }
+
+        every { customerRepository.existsByCustomerId(any()) } returns true
+        every { customerRepository.save(any()) } returns testCustomerEntity1
+
+        val updatedCustomer = testCustomer.copy(
+            validUntil = LocalDate.now().plusYears(1),
+            additionalPersons = emptyList()
+        )
+
+        every { customerRepository.getReferenceByCustomerId(testCustomer.id!!) } returns testCustomerEntity1
+
+        service.updateCustomer(testCustomer.id!!, updatedCustomer)
+
+        val updatedCustomerSlot = slot<CustomerEntity>()
+        verify(exactly = 1) {
+            customerRepository.save(capture(updatedCustomerSlot))
+        }
+        assertThat(updatedCustomerSlot.captured.prolongedAt).isNotNull()
     }
 
     @Test

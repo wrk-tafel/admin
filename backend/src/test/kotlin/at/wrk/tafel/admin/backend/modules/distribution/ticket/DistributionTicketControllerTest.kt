@@ -24,21 +24,13 @@ internal class DistributionTicketControllerTest {
     private lateinit var controller: DistributionTicketController
 
     @Test
-    fun `get current ticket without open distribution`() {
-        every { service.getCurrentDistribution() } returns null
-
-        val exception = assertThrows<TafelValidationException> { controller.getCurrentTicket() }
-        assertThat(exception.message).isEqualTo("Ausgabe nicht gestartet!")
-    }
-
-    @Test
     fun `get current ticketNumber with open distribution`() {
         val distributionEntity = DistributionEntity()
         distributionEntity.id = 123
         every { service.getCurrentDistribution() } returns distributionEntity
 
         val ticketNumber = 123
-        every { service.getCurrentTicketNumber(distributionEntity) } returns ticketNumber
+        every { service.getCurrentTicketNumber() } returns ticketNumber
 
         val response = controller.getCurrentTicket()
 
@@ -53,7 +45,7 @@ internal class DistributionTicketControllerTest {
 
         val ticketNumber = 123
         val customerId = 1L
-        every { service.getCurrentTicketNumber(distributionEntity, customerId) } returns ticketNumber
+        every { service.getCurrentTicketNumber(customerId) } returns ticketNumber
 
         val response = controller.getCurrentTicket(customerId)
 
@@ -66,19 +58,11 @@ internal class DistributionTicketControllerTest {
         distributionEntity.id = 123
         every { service.getCurrentDistribution() } returns distributionEntity
 
-        every { service.getCurrentTicketNumber(distributionEntity) } returns null
+        every { service.getCurrentTicketNumber() } returns null
 
         val response = controller.getCurrentTicket()
 
         assertThat(response.ticketNumber).isNull()
-    }
-
-    @Test
-    fun `get next ticket without open distribution`() {
-        every { service.getCurrentDistribution() } returns null
-
-        val exception = assertThrows<TafelValidationException> { controller.getNextTicket() }
-        assertThat(exception.message).isEqualTo("Ausgabe nicht gestartet!")
     }
 
     @Test
@@ -88,7 +72,7 @@ internal class DistributionTicketControllerTest {
         every { service.getCurrentDistribution() } returns distributionEntity
 
         val ticketNumber = 123
-        every { service.closeCurrentTicketAndGetNext(distributionEntity) } returns ticketNumber
+        every { service.closeCurrentTicketAndGetNext() } returns ticketNumber
 
         val response = controller.getNextTicket()
 
@@ -101,7 +85,7 @@ internal class DistributionTicketControllerTest {
         distributionEntity.id = 123
         every { service.getCurrentDistribution() } returns distributionEntity
 
-        every { service.closeCurrentTicketAndGetNext(distributionEntity) } returns null
+        every { service.closeCurrentTicketAndGetNext() } returns null
 
         val response = controller.getNextTicket()
 
@@ -113,13 +97,13 @@ internal class DistributionTicketControllerTest {
         val distributionEntity = DistributionEntity()
         distributionEntity.id = 123
         every { service.getCurrentDistribution() } returns distributionEntity
-        every { service.deleteCurrentTicket(any(), any()) } returns true
+        every { service.deleteCurrentTicket(any()) } returns true
 
         val customerId = 123L
         val response = controller.deleteCurrentTicketForCustomer(customerId)
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
-        verify { service.deleteCurrentTicket(distributionEntity, customerId) }
+        verify { service.deleteCurrentTicket(customerId) }
     }
 
     @Test
@@ -127,14 +111,14 @@ internal class DistributionTicketControllerTest {
         val distributionEntity = DistributionEntity()
         distributionEntity.id = 123
         every { service.getCurrentDistribution() } returns distributionEntity
-        every { service.deleteCurrentTicket(any(), any()) } returns false
+        every { service.deleteCurrentTicket(any()) } returns false
 
         val customerId = 123L
 
         val exception = assertThrows<TafelValidationException> { controller.deleteCurrentTicketForCustomer(customerId) }
         assertThat(exception.message).isEqualTo("Löschen des Tickets von Kunde Nr. 123 fehlgeschlagen!")
 
-        verify { service.deleteCurrentTicket(distributionEntity, customerId) }
+        verify { service.deleteCurrentTicket(customerId) }
     }
 
 }
