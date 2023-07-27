@@ -5,9 +5,9 @@ import {AuthenticationService} from '../../security/authentication.service';
 import {ContainerComponent, HeaderNavComponent, SidebarModule} from '@coreui/angular';
 import {GlobalStateService} from '../../state/global-state.service';
 import {DefaultHeaderComponent} from './default-header/default-header.component';
-import {PerfectScrollbarComponent} from 'ngx-perfect-scrollbar';
-import {DistributionItem} from "../../../api/distribution-api.service";
-import {BehaviorSubject} from "rxjs";
+import {NgScrollbar} from 'ngx-scrollbar';
+import {DistributionItem} from '../../../api/distribution-api.service';
+import {BehaviorSubject} from 'rxjs';
 
 describe('DefaultLayoutComponent', () => {
   let authService: jasmine.SpyObj<AuthenticationService>;
@@ -28,7 +28,7 @@ describe('DefaultLayoutComponent', () => {
       declarations: [
         DefaultLayoutComponent,
         DefaultHeaderComponent,
-        PerfectScrollbarComponent
+        NgScrollbar
       ],
       providers: [
         {
