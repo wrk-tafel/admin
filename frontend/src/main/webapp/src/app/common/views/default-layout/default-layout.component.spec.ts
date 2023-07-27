@@ -5,7 +5,6 @@ import {AuthenticationService} from '../../security/authentication.service';
 import {ContainerComponent, HeaderNavComponent, SidebarModule} from '@coreui/angular';
 import {GlobalStateService} from '../../state/global-state.service';
 import {DefaultHeaderComponent} from './default-header/default-header.component';
-import {NgScrollbar} from 'ngx-scrollbar';
 import {DistributionItem} from '../../../api/distribution-api.service';
 import {BehaviorSubject} from 'rxjs';
 
@@ -27,8 +26,7 @@ describe('DefaultLayoutComponent', () => {
       ],
       declarations: [
         DefaultLayoutComponent,
-        DefaultHeaderComponent,
-        NgScrollbar
+        DefaultHeaderComponent
       ],
       providers: [
         {
