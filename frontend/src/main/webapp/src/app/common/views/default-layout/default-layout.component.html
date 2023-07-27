@@ -11,14 +11,14 @@
     cBgColor="white"
   >
   </c-sidebar-brand>
-  <perfect-scrollbar [config]="perfectScrollbarConfig">
+  <ng-scrollbar>
     <!--  [perfectScrollbar]="perfectScrollbarConfig"-->
     <c-sidebar-nav
       [navItems]="navItems"
       dropdownMode="close"
     >
     </c-sidebar-nav>
-  </perfect-scrollbar>
+  </ng-scrollbar>
   <c-sidebar-toggler
     *ngIf="!sidebar.narrow"
     toggle="unfoldable"

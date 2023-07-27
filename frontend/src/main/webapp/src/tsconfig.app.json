@@ -3,7 +3,7 @@
   "compilerOptions": {
     "outDir": "../out-tsc/app",
     "baseUrl": "./",
-    "module": "es2020",
+    "module": "es2022",
     "types": [],
     "paths": {
       "@angular/*": [

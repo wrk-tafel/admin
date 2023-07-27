@@ -12,7 +12,7 @@ import {
 } from '@angular/common';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import localeDeAt from '@angular/common/locales/de-AT';
-import {PerfectScrollbarModule} from 'ngx-perfect-scrollbar';
+import {NgScrollbarModule} from 'ngx-scrollbar';
 
 import {IconDirective, IconModule, IconSetService} from '@coreui/icons-angular';
 import {AppComponent} from './app.component';
@@ -86,13 +86,12 @@ registerLocaleData(localeDeAt);
     IconModule,
     ModalModule,
     NgChartsModule,
-    PerfectScrollbarModule,
+    NgScrollbarModule,
     ReactiveFormsModule,
     SidebarModule,
     TabsModule,
     ContainerComponent,
     NgIf,
-    PerfectScrollbarModule,
     RouterLink,
     RouterOutlet,
     SidebarBrandComponent,
