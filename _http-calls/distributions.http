@@ -1,11 +1,8 @@
 ### Create a new distribution
 POST {{baseApiPath}}/distributions/new
 
-### List states
-GET {{baseApiPath}}/distributions/states
-
-### Switch to next state
-POST {{baseApiPath}}/distributions/states/next
+### Close currently open distribution
+POST {{baseApiPath}}/distributions/close
 
 ### Assign customer to distribution
 POST {{baseApiPath}}/distributions/customers
