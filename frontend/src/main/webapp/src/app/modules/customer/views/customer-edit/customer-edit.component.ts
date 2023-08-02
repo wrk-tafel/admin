@@ -80,7 +80,7 @@ export class CustomerEditComponent implements OnInit {
   }
 
   isSaveDisabled(): boolean {
-    return !this.formIsValid() || !this.customerValidForSave;
+    return !this.formIsValid() || this.editMode || !this.customerValidForSave;
   }
 
   getValidationResultColor(): Colors {
