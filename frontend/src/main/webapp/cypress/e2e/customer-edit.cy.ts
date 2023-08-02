@@ -12,7 +12,7 @@ describe('Customer Edit', () => {
   it('customer updated', () => {
     cy.visit('/#/kunden/bearbeiten/102');
 
-    cy.byTestId('save-button').should('be.disabled');
+    cy.byTestId('save-button').should('be.enabled');
 
     cy.byTestId('validate-button').click();
 
@@ -28,10 +28,10 @@ describe('Customer Edit', () => {
     // TODO change actual data (but for that create a new dedicated customer beforehand)
   });
 
-  it('customer invalid after update', () => {
+  it('customer invalid but still updatable', () => {
     cy.visit('/#/kunden/bearbeiten/102');
 
-    cy.byTestId('save-button').should('be.disabled');
+    cy.byTestId('save-button').should('be.enabled');
 
     const incomeInput = cy.byTestId('incomeInput');
     incomeInput.clear();
@@ -47,9 +47,9 @@ describe('Customer Edit', () => {
         cy.byTestId('ok-button').click();
       });
 
-    cy.byTestId('save-button').should('be.disabled');
+    cy.byTestId('save-button').click();
 
-    cy.url().should('not.contain', '/kunden/detail/102');
+    cy.url().should('contain', '/kunden/detail/102');
 
     // TODO change actual data (but for that create a new dedicated customer beforehand)
   });
