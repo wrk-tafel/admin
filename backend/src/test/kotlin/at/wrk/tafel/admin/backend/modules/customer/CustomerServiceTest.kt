@@ -380,6 +380,13 @@ class CustomerServiceTest {
         every { customerAddPersonRepository.findById(testCustomerEntity1.additionalPersons[0].id!!) } returns Optional.of(
             testCustomerEntity1.additionalPersons[0]
         )
+        every { incomeValidatorService.validate(any()) } returns IncomeValidatorResult(
+            valid = true,
+            totalSum = BigDecimal("1"),
+            limit = BigDecimal("2"),
+            toleranceValue = BigDecimal("3"),
+            amountExceededLimit = BigDecimal("4")
+        )
 
         val updatedCustomer = testCustomer.copy(
             lastname = "updated-lastname",
@@ -540,6 +547,14 @@ class CustomerServiceTest {
         )
         every { customerRepository.getReferenceByCustomerId(testCustomer.id!!) } returns testCustomerEntity1
 
+        every { incomeValidatorService.validate(any()) } returns IncomeValidatorResult(
+            valid = true,
+            totalSum = BigDecimal("1"),
+            limit = BigDecimal("2"),
+            toleranceValue = BigDecimal("3"),
+            amountExceededLimit = BigDecimal("4")
+        )
+
         val result = service.updateCustomer(testCustomer.id!!, updatedCustomer)
 
         assertThat(result).isEqualTo(updatedCustomer)
@@ -599,6 +614,52 @@ class CustomerServiceTest {
             customerRepository.save(capture(updatedCustomerSlot))
         }
         assertThat(updatedCustomerSlot.captured.prolongedAt).isNotNull()
+    }
+
+    @Test
+    fun `update customer exceeding limit`() {
+        val testCustomerEntity1 = CustomerEntity().apply {
+            id = 1
+            issuer = testUserEntity
+            createdAt = ZonedDateTime.now()
+            customerId = 100
+            lastname = "Mustermann"
+            firstname = "Max"
+            birthDate = LocalDate.now().minusYears(30)
+            country = testCountry
+            addressStreet = "Test-Straße"
+            addressHouseNumber = "100"
+            addressStairway = "1"
+            addressPostalCode = 1010
+            addressDoor = "21"
+            addressCity = "Wien"
+            telephoneNumber = "0043660123123"
+            email = "test@mail.com"
+            employer = "Employer 123"
+            income = BigDecimal("7777")
+            incomeDue = LocalDate.now()
+            validUntil = LocalDate.now().minusDays(5)
+            prolongedAt = null
+            additionalPersons = mutableListOf()
+        }
+
+        every { customerRepository.existsByCustomerId(any()) } returns true
+        every { customerRepository.save(any()) } returns testCustomerEntity1
+
+        val updatedCustomer = testCustomer.copy(
+            validUntil = LocalDate.now().plusYears(1),
+            additionalPersons = emptyList()
+        )
+
+        every { customerRepository.getReferenceByCustomerId(testCustomer.id!!) } returns testCustomerEntity1
+
+        service.updateCustomer(testCustomer.id!!, updatedCustomer)
+
+        val updatedCustomerSlot = slot<CustomerEntity>()
+        verify(exactly = 1) {
+            customerRepository.save(capture(updatedCustomerSlot))
+        }
+        assertThat(updatedCustomerSlot.captured.validUntil).isEqualTo(LocalDate.now().minusDays(1))
     }
 
     @Test

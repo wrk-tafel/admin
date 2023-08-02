@@ -18,6 +18,7 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
+import java.time.LocalDate
 import java.time.ZonedDateTime
 
 @Service
@@ -52,6 +53,13 @@ class CustomerService(
     @Transactional
     fun updateCustomer(customerId: Long, customer: Customer): Customer {
         val entity = mapRequestToEntity(customer, customerRepository.getReferenceByCustomerId(customerId))
+
+        // When a customer is updated with an invalid income - force set him invalid
+        val validationResult = incomeValidatorService.validate(mapToValidationPersons(customer))
+        if (!validationResult.valid) {
+            entity.validUntil = LocalDate.now().minusDays(1)
+        }
+
         val savedEntity = customerRepository.save(entity)
         return mapEntityToResponse(savedEntity)
     }
