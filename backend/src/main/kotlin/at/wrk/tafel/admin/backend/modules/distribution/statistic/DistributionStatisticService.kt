@@ -48,7 +48,7 @@ class DistributionStatisticService(
         statistic.averagePersonsPerCustomer = averagePersonsPerCustomer
         statistic.countCustomersNew = countCustomersNew
         statistic.countCustomersProlonged = countCustomersProlonged
-        statistic.countCustomersUpdated = countCustomersUpdated
+        statistic.countCustomersUpdated = countCustomersUpdated - countCustomersProlonged
 
         return statistic
     }

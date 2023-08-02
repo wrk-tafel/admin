@@ -88,7 +88,7 @@ internal class DistributionStatisticServiceTest {
         )
         assertThat(savedStatistic.countCustomersNew).isEqualTo(testCountCustomersNew)
         assertThat(savedStatistic.countCustomersProlonged).isEqualTo(testCountCustomersProlonged)
-        assertThat(savedStatistic.countCustomersUpdated).isEqualTo(testCountCustomersUpdated)
+        assertThat(savedStatistic.countCustomersUpdated).isEqualTo(testCountCustomersUpdated - testCountCustomersProlonged)
     }
 
     @Test
