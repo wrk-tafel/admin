@@ -13,6 +13,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 @Service
@@ -22,6 +23,7 @@ class DailyReportService(
 ) {
     companion object {
         private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+        private val DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:MM")
     }
 
     fun generateDailyReportPdf(): ByteArray {
@@ -34,21 +36,28 @@ class DailyReportService(
         return pdfService.generatePdf(pdfModel, "/pdf-templates/daily-report/dailyreport-document.xsl")
     }
 
-    private fun createPdfModel(currentStatistic: DistributionStatisticEntity): DailyReportPdfModel {
+    private fun createPdfModel(statistic: DistributionStatisticEntity): DailyReportPdfModel {
         val logoBytes =
             IOUtils.toByteArray(javaClass.getResourceAsStream("/pdf-templates/common/img/toet-logo.png"))
         return DailyReportPdfModel(
             logoContentType = MimeTypeUtils.IMAGE_PNG_VALUE,
             logoBytes = logoBytes,
-            date = LocalDate.now().format(DATE_FORMATTER),
-            countCustomers = currentStatistic.countCustomers!!,
-            countPersons = currentStatistic.countPersons!!,
-            countInfants = currentStatistic.countInfants!!,
-            averagePersonsPerCustomer = currentStatistic.averagePersonsPerCustomer!!,
-            countCustomersNew = currentStatistic.countCustomersNew!!,
-            countCustomersProlonged = currentStatistic.countCustomersProlonged!!,
-            countCustomersUpdated = currentStatistic.countCustomersUpdated!!
+            date = formatDate(statistic),
+            countCustomers = statistic.countCustomers!!,
+            countPersons = statistic.countPersons!!,
+            countInfants = statistic.countInfants!!,
+            averagePersonsPerCustomer = statistic.averagePersonsPerCustomer!!,
+            countCustomersNew = statistic.countCustomersNew!!,
+            countCustomersProlonged = statistic.countCustomersProlonged!!,
+            countCustomersUpdated = statistic.countCustomersUpdated!!
         )
+    }
+
+    private fun formatDate(statistic: DistributionStatisticEntity): String {
+        val date = LocalDate.now().format(DATE_FORMATTER)
+        val startTime = statistic.distribution?.startedAt?.format(DATE_TIME_FORMATTER)
+        val endTime = statistic.distribution?.endedAt?.format(DATE_TIME_FORMATTER)
+        return "$date $startTime - $endTime"
     }
 
 }
@@ -104,12 +113,19 @@ data class DailyReportPdfModel(
 fun main() {
     val pdfService = PDFService()
 
+    val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+    val DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:MM")
+
+    val date = LocalDate.now().format(DATE_FORMATTER)
+    val startTime = LocalDateTime.now().minusHours(5).format(DATE_TIME_FORMATTER)
+    val endTime = LocalDateTime.now().minusHours(1).format(DATE_TIME_FORMATTER)
+
     val logoBytes =
         IOUtils.toByteArray(DailyReportService::class.java.getResourceAsStream("/pdf-templates/common/img/toet-logo.png"))
     val model = DailyReportPdfModel(
         logoContentType = MimeTypeUtils.IMAGE_PNG_VALUE,
         logoBytes = logoBytes,
-        date = LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")),
+        date = "$date $startTime - $endTime",
         countCustomers = 50,
         countPersons = 125,
         countInfants = 40,

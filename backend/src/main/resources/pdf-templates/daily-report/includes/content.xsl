@@ -6,6 +6,9 @@
             <fo:block space-after="1cm">
                 <xsl:call-template name="title"/>
             </fo:block>
+            <fo:block space-after="1cm">
+                <xsl:call-template name="title"/>
+            </fo:block>
         </fo:block>
     </xsl:template>
     <xsl:template name="title">
