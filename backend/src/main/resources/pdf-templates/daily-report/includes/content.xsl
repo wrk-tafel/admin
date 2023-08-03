@@ -3,7 +3,15 @@
                 version="1.1" exclude-result-prefixes="fo">
     <xsl:template name="report-content">
         <fo:block font-family="Helvetica" start-indent="0pt" end-indent="0pt">
-            TEST
+            <fo:external-graphic content-width="4.7cm">
+                <xsl:attribute name="src">
+                    <xsl:text>url('data:</xsl:text>
+                    <xsl:value-of select="logoContentType"/>
+                    <xsl:text>;base64,</xsl:text>
+                    <xsl:value-of select="logoBytes"/>
+                    <xsl:text>')</xsl:text>
+                </xsl:attribute>
+            </fo:external-graphic>
         </fo:block>
     </xsl:template>
 </xsl:stylesheet>
