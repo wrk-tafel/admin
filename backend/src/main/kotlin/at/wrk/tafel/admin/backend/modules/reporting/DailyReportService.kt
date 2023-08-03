@@ -14,8 +14,9 @@ class DailyReportService(
 ) {
 
     fun generateDailyReportPdf(): ByteArray {
+        // TODO add query
         val currentStatistic =
-            distributionStatisticRepository.findFirstByDistributionEndedAtIsNullOrderByStartedAtDesc()
+            distributionStatisticRepository.findAll().firstOrNull()
                 ?: throw TafelValidationException("Keine Statistik gefunden!")
 
         val pdfModel = createPdfModel(currentStatistic)

@@ -4,7 +4,4 @@ import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionSta
 import org.springframework.data.jpa.repository.JpaRepository
 
 interface DistributionStatisticRepository : JpaRepository<DistributionStatisticEntity, Long> {
-
-    fun findFirstByDistributionEndedAtIsNullOrderByStartedAtDesc(): DistributionStatisticEntity?
-
 }
