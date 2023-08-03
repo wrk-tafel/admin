@@ -5,7 +5,7 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {RouterTestingModule} from '@angular/router/testing';
 import * as moment from 'moment';
 import {of} from 'rxjs';
-import {CustomerApiService, CustomerData} from '../../../../api/customer-api.service';
+import {CustomerApiService, CustomerData, ValidateCustomerResponse} from '../../../../api/customer-api.service';
 import {CustomerFormComponent} from '../customer-form/customer-form.component';
 import {CustomerEditComponent} from './customer-edit.component';
 import {By} from '@angular/platform-browser';
@@ -150,10 +150,19 @@ describe('CustomerEditComponent - Creating a new customer', () => {
     const component = fixture.componentInstance;
     component.customerFormComponent = customerFormComponent;
     component.customerUpdated = testCustomerData;
+    component.customerValidForSave = true;
+    const validationResult: ValidateCustomerResponse = {
+      valid: true,
+      limit: 1000,
+      amountExceededLimit: 0,
+      toleranceValue: 10,
+      totalSum: 1000
+    };
+    component.validationResult = validationResult;
 
     component.save();
 
-    fixture.detectChanges();
+    expect(component.isSaveEnabled()).toBeTrue();
     expect(customerFormComponent.markAllAsTouched).toHaveBeenCalled();
     expect(apiService.createCustomer).toHaveBeenCalledWith(jasmine.objectContaining(testCustomerData));
     expect(router.navigate).toHaveBeenCalledWith(['/kunden/detail', testCustomerData.id]);
@@ -169,8 +178,9 @@ describe('CustomerEditComponent - Creating a new customer', () => {
     component.customerUpdated = testCustomerData;
 
     component.save();
-
     fixture.detectChanges();
+
+    expect(component.isSaveEnabled()).toBeFalse();
     expect(customerFormComponent.markAllAsTouched).toHaveBeenCalled();
     expect(toastService.showToast).toHaveBeenCalledWith({type: ToastType.ERROR, title: 'Bitte Eingaben überprüfen!'});
     expect(apiService.createCustomer).not.toHaveBeenCalledWith(jasmine.objectContaining(testCustomerData));
@@ -198,8 +208,9 @@ describe('CustomerEditComponent - Creating a new customer', () => {
     }));
 
     component.validate();
-
     fixture.detectChanges();
+
+    expect(component.isSaveEnabled()).toBeTrue();
     expect(customerFormComponent.markAllAsTouched).toHaveBeenCalled();
     expect(apiService.validate).toHaveBeenCalledWith(jasmine.objectContaining(testCustomerData));
     expect(component.customerValidForSave).toBeTrue();
@@ -225,8 +236,9 @@ describe('CustomerEditComponent - Creating a new customer', () => {
     component.customerUpdated = testCustomerData;
 
     component.validate();
-
     fixture.detectChanges();
+
+    expect(component.isSaveEnabled()).toBeFalse();
     expect(customerFormComponent.markAllAsTouched).toHaveBeenCalled();
     expect(apiService.validate).toHaveBeenCalledWith(jasmine.objectContaining(testCustomerData));
     expect(component.customerValidForSave).toBeFalse();

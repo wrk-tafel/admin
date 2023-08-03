@@ -1,11 +1,11 @@
 <div>
     <tafel-customer-form [customerData]="customerInput" (customerDataChange)="customerDataUpdated($event)" [editMode]="editMode"></tafel-customer-form>
     <button testid="validate-button" class="btn btn-primary px-4 mt-3 text-white" (click)="validate()">Anspruch prüfen</button>
-    <button testid="save-button" class="btn px-4 mt-3 ms-2 text-white" (click)="save()" [disabled]="isSaveDisabled()"
-        [ngClass]="{'btn-danger': isSaveDisabled(), 'btn-success': !isSaveDisabled()}">Speichern</button>
+    <button testid="save-button" class="btn px-4 mt-3 ms-2 text-white" (click)="save()" [disabled]="!isSaveEnabled()"
+        [ngClass]="{'btn-danger': !isSaveEnabled(), 'btn-success': isSaveEnabled()}">Speichern</button>
 </div>
 <c-modal id="validationResultModal" #validationResultModal testid="validationresult-modal" [(visible)]="showValidationResultModal">
-  <c-modal-header [cBgColor]="getValidationResultColor()" testid="header">
+  <c-modal-header [cBgColor]="validationResultColor" testid="header">
     <h4 testid="title" class="text-white">
       {{validationResult?.valid === true ? "Anspruch vorhanden" : "Kein Anspruch vorhanden"}}
     </h4>
