@@ -9,6 +9,9 @@
             <fo:block space-after="1cm">
                 <xsl:call-template name="customers"/>
             </fo:block>
+            <fo:block space-after="0.5cm">
+                <xsl:call-template name="administration"/>
+            </fo:block>
         </fo:block>
     </xsl:template>
     <xsl:template name="title">
@@ -80,6 +83,53 @@
                         <fo:table-cell>
                             <fo:block>
                                 <xsl:value-of select="averagePersonsPerCustomer"/>
+                            </fo:block>
+                        </fo:table-cell>
+                    </fo:table-row>
+                </fo:table-body>
+            </fo:table>
+        </fo:block>
+    </xsl:template>
+    <xsl:template name="administration">
+        <fo:block font-weight="bold" margin-bottom="0.2cm">
+            Administration
+        </fo:block>
+        <fo:block margin-left="2cm">
+            <fo:table table-layout="fixed" width="100%">
+                <fo:table-column column-width="50%"/>
+                <fo:table-column column-width="50%"/>
+                <fo:table-body>
+                    <fo:table-row>
+                        <fo:table-cell>
+                            <fo:block>neue Kunden / Personen:</fo:block>
+                        </fo:table-cell>
+                        <fo:table-cell>
+                            <fo:block>
+                                <xsl:value-of select="countCustomersNew"/>
+                                <xsl:value-of select="' / '"/>
+                                <xsl:value-of select="'TODO'"/>
+                            </fo:block>
+                        </fo:table-cell>
+                    </fo:table-row>
+                    <fo:table-row>
+                        <fo:table-cell>
+                            <fo:block>verlängert / Personen:</fo:block>
+                        </fo:table-cell>
+                        <fo:table-cell>
+                            <fo:block>
+                                <xsl:value-of select="countCustomersProlonged"/>
+                                <xsl:value-of select="' / '"/>
+                                <xsl:value-of select="'TODO'"/>
+                            </fo:block>
+                        </fo:table-cell>
+                    </fo:table-row>
+                    <fo:table-row>
+                        <fo:table-cell>
+                            <fo:block>sonstige Aktualisierungen:</fo:block>
+                        </fo:table-cell>
+                        <fo:table-cell>
+                            <fo:block>
+                                <xsl:value-of select="countCustomersUpdated"/>
                             </fo:block>
                         </fo:table-cell>
                     </fo:table-row>
