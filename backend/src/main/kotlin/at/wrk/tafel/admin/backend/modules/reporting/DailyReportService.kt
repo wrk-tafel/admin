@@ -12,12 +12,17 @@ import org.springframework.util.MimeTypeUtils
 import java.io.File
 import java.io.FileOutputStream
 import java.math.BigDecimal
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 @Service
 class DailyReportService(
     private val pdfService: PDFService,
     private val distributionStatisticRepository: DistributionStatisticRepository
 ) {
+    companion object {
+        private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+    }
 
     fun generateDailyReportPdf(): ByteArray {
         // TODO add query
@@ -35,6 +40,7 @@ class DailyReportService(
         return DailyReportPdfModel(
             logoContentType = MimeTypeUtils.IMAGE_PNG_VALUE,
             logoBytes = logoBytes,
+            date = LocalDate.now().format(DATE_FORMATTER),
             countCustomers = currentStatistic.countCustomers!!,
             countPersons = currentStatistic.countPersons!!,
             countInfants = currentStatistic.countInfants!!,
@@ -52,6 +58,7 @@ class DailyReportService(
 data class DailyReportPdfModel(
     val logoContentType: String,
     val logoBytes: ByteArray,
+    val date: String,
     val countCustomers: Int,
     val countPersons: Int,
     val countInfants: Int,
@@ -102,6 +109,7 @@ fun main() {
     val model = DailyReportPdfModel(
         logoContentType = MimeTypeUtils.IMAGE_PNG_VALUE,
         logoBytes = logoBytes,
+        date = LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")),
         countCustomers = 50,
         countPersons = 125,
         countInfants = 40,
