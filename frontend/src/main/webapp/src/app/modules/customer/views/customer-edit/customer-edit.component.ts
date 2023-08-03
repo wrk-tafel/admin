@@ -15,6 +15,7 @@ export class CustomerEditComponent implements OnInit {
   editMode = false;
   customerValidForSave = false;
   validationResult: ValidateCustomerResponse;
+  validationResultColor: Colors;
   showValidationResultModal = false;
 
   @ViewChild(CustomerFormComponent) customerFormComponent: CustomerFormComponent;
@@ -56,6 +57,7 @@ export class CustomerEditComponent implements OnInit {
     } else {
       this.customerApiService.validate(this.customerUpdated).subscribe((result) => {
         this.validationResult = result;
+        this.validationResultColor = result.valid ? 'success' : 'danger';
 
         this.customerValidForSave = result.valid;
         this.showValidationResultModal = true;
@@ -81,13 +83,6 @@ export class CustomerEditComponent implements OnInit {
 
   isSaveEnabled(): boolean {
     return this.formIsValid() && (this.customerValidForSave || this.editMode);
-  }
-
-  getValidationResultColor(): Colors {
-    if (this.validationResult?.valid === false) {
-      return 'danger';
-    }
-    return 'success';
   }
 
   private formIsValid() {

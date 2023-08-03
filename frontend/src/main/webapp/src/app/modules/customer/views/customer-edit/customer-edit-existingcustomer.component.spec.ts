@@ -155,6 +155,7 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
     component.save();
 
     fixture.detectChanges();
+    expect(component.isSaveEnabled()).toBeTrue();
     expect(component.editMode).toBeTrue();
     expect(component.customerInput).toEqual(testCustomerData);
     expect(customerFormComponent.markAllAsTouched).toHaveBeenCalled();
@@ -176,8 +177,9 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
     component.customerValidForSave = false;
 
     component.save();
-
     fixture.detectChanges();
+
+    expect(component.isSaveEnabled()).toBeTrue();
     expect(component.editMode).toBeTrue();
     expect(component.customerInput).toEqual(testCustomerData);
     expect(customerFormComponent.markAllAsTouched).toHaveBeenCalled();
@@ -193,12 +195,12 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
     const fixture = TestBed.createComponent(CustomerEditComponent);
     const component = fixture.componentInstance;
     component.customerFormComponent = customerFormComponent;
-    component.ngOnInit();
     component.customerUpdated = component.customerInput;
+    component.ngOnInit();
 
     component.save();
 
-    fixture.detectChanges();
+    expect(component.isSaveEnabled()).toBeFalse();
     expect(component.editMode).toBeTrue();
     expect(component.customerInput).toEqual(testCustomerData);
     expect(customerFormComponent.markAllAsTouched).toHaveBeenCalled();
