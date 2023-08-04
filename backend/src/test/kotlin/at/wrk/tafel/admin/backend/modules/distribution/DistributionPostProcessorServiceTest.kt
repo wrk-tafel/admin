@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.distribution
 
+import at.wrk.tafel.admin.backend.common.mail.MailSenderService
 import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionStatisticEntity
 import at.wrk.tafel.admin.backend.modules.distribution.statistic.DistributionStatisticService
@@ -12,6 +13,8 @@ import io.mockk.mockk
 import io.mockk.verify
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 @ExtendWith(MockKExtension::class)
 internal class DistributionPostProcessorServiceTest {
@@ -21,6 +24,9 @@ internal class DistributionPostProcessorServiceTest {
 
     @RelaxedMockK
     private lateinit var dailyReportService: DailyReportService
+
+    @RelaxedMockK
+    private lateinit var mailSenderService: MailSenderService
 
     @InjectMockKs
     private lateinit var service: DistributionPostProcessorService
@@ -35,6 +41,10 @@ internal class DistributionPostProcessorServiceTest {
 
         verify { distributionStatisticService.createAndSaveStatistic(distribution) }
         verify { dailyReportService.generateDailyReportPdf(distributionStatistic) }
+
+        val mailSubject = "Tage-Report ${LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))}"
+        val mailText = "TEST"
+        verify { mailSenderService.sendTextMail(mailSubject, mailText) }
     }
 
 }
