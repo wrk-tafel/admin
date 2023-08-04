@@ -42,8 +42,8 @@ internal class DistributionPostProcessorServiceTest {
         verify { distributionStatisticService.createAndSaveStatistic(distribution) }
         verify { dailyReportService.generateDailyReportPdf(distributionStatistic) }
 
-        val mailSubject = "Tage-Report ${LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))}"
-        val mailText = "TEST"
+        val mailSubject = "Tages-Report vom ${LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))}"
+        val mailText = "Details im Anhang"
         verify { mailSenderService.sendTextMail(mailSubject, mailText) }
     }
 

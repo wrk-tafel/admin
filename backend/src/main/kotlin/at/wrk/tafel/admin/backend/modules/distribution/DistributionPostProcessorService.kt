@@ -24,8 +24,8 @@ class DistributionPostProcessorService(
 
     private fun sendDailyReportMail(pdfReportBytes: ByteArray) {
         // TODO attach file
-        val mailSubject = "Tage-Report ${LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))}"
-        val mailText = "TEST"
+        val mailSubject = "Tages-Report vom ${LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))}"
+        val mailText = "Details im Anhang"
         mailSenderService.sendTextMail(mailSubject, mailText)
     }
 
