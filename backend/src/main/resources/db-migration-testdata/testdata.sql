@@ -231,5 +231,7 @@ INSERT INTO distributions (id, created_at, updated_at, started_at, ended_at, sta
 VALUES (100, NOW(), NOW(), '2023-07-01 14:00:00.000000', '2023-07-01 23:00:00.000000', 300, 300);
 INSERT INTO distributions_statistics (id, created_at, updated_at, distribution_id, count_customers,
                                       count_persons, count_infants, average_persons_per_customer,
-                                      count_customers_new, count_customers_prolonged, count_customers_updated)
-VALUES (100, NOW(), NOW(), 100, 50, 125, 40, 2.5, 4, 6, 8);
+                                      count_customers_new, count_persons_new,
+                                      count_customers_prolonged, count_persons_prolonged,
+                                      count_customers_updated)
+VALUES (100, NOW(), NOW(), 100, 50, 125, 40, 2.5, 4, 5, 6, 7, 8);

@@ -3,8 +3,6 @@ package at.wrk.tafel.admin.backend.modules.reporting
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.common.pdf.PDFService
 import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionStatisticEntity
-import at.wrk.tafel.admin.backend.database.repositories.distribution.DistributionStatisticRepository
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
 import org.apache.commons.io.IOUtils
 import org.springframework.stereotype.Service
@@ -18,21 +16,15 @@ import java.time.format.DateTimeFormatter
 
 @Service
 class DailyReportService(
-    private val pdfService: PDFService,
-    private val distributionStatisticRepository: DistributionStatisticRepository
+    private val pdfService: PDFService
 ) {
     companion object {
         private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
         private val DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:MM")
     }
 
-    fun generateDailyReportPdf(): ByteArray {
-        // TODO add query
-        val currentStatistic =
-            distributionStatisticRepository.findAll().firstOrNull()
-                ?: throw TafelValidationException("Keine Statistik gefunden!")
-
-        val pdfModel = createPdfModel(currentStatistic)
+    fun generateDailyReportPdf(distributionStatistic: DistributionStatisticEntity): ByteArray {
+        val pdfModel = createPdfModel(distributionStatistic)
         return pdfService.generatePdf(pdfModel, "/pdf-templates/daily-report/dailyreport-document.xsl")
     }
 

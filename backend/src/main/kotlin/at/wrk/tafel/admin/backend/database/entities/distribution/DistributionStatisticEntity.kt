@@ -10,7 +10,7 @@ import java.math.BigDecimal
 @ExcludeFromTestCoverage
 class DistributionStatisticEntity : BaseChangeTrackingEntity() {
 
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "distribution_id")
     var distribution: DistributionEntity? = null
 
