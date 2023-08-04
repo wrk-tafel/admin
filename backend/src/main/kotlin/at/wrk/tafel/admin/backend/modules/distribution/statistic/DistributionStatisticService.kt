@@ -34,10 +34,19 @@ class DistributionStatisticService(
         val averagePersonsPerCustomer = if (countCustomers > 0)
             BigDecimal(countPersons).setScale(2, RoundingMode.HALF_EVEN)
                 .div(BigDecimal(countCustomers)) else BigDecimal.ZERO
-        val countCustomersNew =
-            customerRepository.countByCreatedAtBetween(distribution.startedAt!!, distribution.endedAt!!)
-        val countCustomersProlonged =
-            customerRepository.countByProlongedAtBetween(distribution.startedAt!!, distribution.endedAt!!)
+
+        val customersNew =
+            customerRepository.findAllByCreatedAtBetween(distribution.startedAt!!, distribution.endedAt!!)
+        val countCustomersNew = customersNew.size
+        val countPersonsNew =
+            customersNew.flatMap { it.additionalPersons }.filterNot { it.excludeFromHousehold ?: true }.size
+
+        val customersProlonged =
+            customerRepository.findAllByProlongedAtBetween(distribution.startedAt!!, distribution.endedAt!!)
+        val countCustomersProlonged = customersProlonged.size
+        val countPersonsProlonged =
+            customersProlonged.flatMap { it.additionalPersons }.filterNot { it.excludeFromHousehold ?: true }.size
+
         val countCustomersUpdated =
             customerRepository.countByUpdatedAtBetween(distribution.startedAt!!, distribution.endedAt!!)
 
@@ -47,7 +56,9 @@ class DistributionStatisticService(
         statistic.countInfants = countInfants
         statistic.averagePersonsPerCustomer = averagePersonsPerCustomer
         statistic.countCustomersNew = countCustomersNew
+        statistic.countPersonsNew = countPersonsNew
         statistic.countCustomersProlonged = countCustomersProlonged
+        statistic.countPersonsProlonged = countPersonsProlonged
         statistic.countCustomersUpdated = countCustomersUpdated - countCustomersProlonged
 
         return statistic

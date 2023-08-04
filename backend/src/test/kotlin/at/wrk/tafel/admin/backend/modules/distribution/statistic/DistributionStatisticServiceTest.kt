@@ -15,7 +15,6 @@ import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import java.math.BigDecimal
@@ -47,13 +46,14 @@ internal class DistributionStatisticServiceTest {
             )
         }
 
-        val testCountCustomersNew = 123
+        val testCustomersNew =
+            listOfNotNull(testDistributionCustomerEntity1.customer, testDistributionCustomerEntity2.customer)
         every {
-            customerRepository.countByCreatedAtBetween(
+            customerRepository.findAllByCreatedAtBetween(
                 testDistributionEntity.startedAt!!,
                 testDistributionEntity.endedAt!!
             )
-        } returns testCountCustomersNew
+        } returns testCustomersNew
 
         val testCountCustomersUpdated = 456
         every {
@@ -63,13 +63,14 @@ internal class DistributionStatisticServiceTest {
             )
         } returns testCountCustomersUpdated
 
-        val testCountCustomersProlonged = 456
+        val testCustomersProlonged =
+            listOfNotNull(testDistributionCustomerEntity1.customer, testDistributionCustomerEntity2.customer)
         every {
-            customerRepository.countByProlongedAtBetween(
+            customerRepository.findAllByProlongedAtBetween(
                 testDistributionEntity.startedAt!!,
                 testDistributionEntity.endedAt!!
             )
-        } returns testCountCustomersProlonged
+        } returns testCustomersProlonged
 
         every { distributionStatisticRepository.save(any()) } returns mockk()
 
@@ -86,9 +87,11 @@ internal class DistributionStatisticServiceTest {
         assertThat(savedStatistic.averagePersonsPerCustomer).isEqualTo(
             BigDecimal(1.33).setScale(2, RoundingMode.HALF_EVEN)
         )
-        assertThat(savedStatistic.countCustomersNew).isEqualTo(testCountCustomersNew)
-        assertThat(savedStatistic.countCustomersProlonged).isEqualTo(testCountCustomersProlonged)
-        assertThat(savedStatistic.countCustomersUpdated).isEqualTo(testCountCustomersUpdated - testCountCustomersProlonged)
+        assertThat(savedStatistic.countCustomersNew).isEqualTo(testCustomersNew.size)
+        assertThat(savedStatistic.countPersonsNew).isEqualTo(1)
+        assertThat(savedStatistic.countCustomersProlonged).isEqualTo(testCustomersProlonged.size)
+        assertThat(savedStatistic.countPersonsProlonged).isEqualTo(1)
+        assertThat(savedStatistic.countCustomersUpdated).isEqualTo(testCountCustomersUpdated - testCustomersProlonged.size)
     }
 
     @Test
@@ -101,11 +104,11 @@ internal class DistributionStatisticServiceTest {
         }
 
         every {
-            customerRepository.countByCreatedAtBetween(
+            customerRepository.findAllByCreatedAtBetween(
                 testDistributionEntity.startedAt!!,
                 testDistributionEntity.endedAt!!
             )
-        } returns 0
+        } returns emptyList()
 
         every {
             customerRepository.countByUpdatedAtBetween(
@@ -115,11 +118,11 @@ internal class DistributionStatisticServiceTest {
         } returns 0
 
         every {
-            customerRepository.countByProlongedAtBetween(
+            customerRepository.findAllByProlongedAtBetween(
                 testDistributionEntity.startedAt!!,
                 testDistributionEntity.endedAt!!
             )
-        } returns 0
+        } returns emptyList()
 
         every { distributionStatisticRepository.save(any()) } returns mockk()
 
@@ -135,7 +138,9 @@ internal class DistributionStatisticServiceTest {
         assertThat(savedStatistic.countInfants).isEqualTo(0)
         assertThat(savedStatistic.averagePersonsPerCustomer).isEqualTo(BigDecimal.ZERO)
         assertThat(savedStatistic.countCustomersNew).isEqualTo(0)
+        assertThat(savedStatistic.countPersonsNew).isEqualTo(0)
         assertThat(savedStatistic.countCustomersProlonged).isEqualTo(0)
+        assertThat(savedStatistic.countPersonsProlonged).isEqualTo(0)
         assertThat(savedStatistic.countCustomersUpdated).isEqualTo(0)
     }
 

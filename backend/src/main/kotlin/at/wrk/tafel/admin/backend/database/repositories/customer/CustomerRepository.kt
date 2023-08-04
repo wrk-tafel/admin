@@ -30,9 +30,9 @@ interface CustomerRepository : JpaRepository<CustomerEntity, Long> {
 
     fun deleteByCustomerId(customerId: Long)
 
-    fun countByCreatedAtBetween(fromDate: ZonedDateTime, toDate: ZonedDateTime): Int
+    fun findAllByCreatedAtBetween(fromDate: ZonedDateTime, toDate: ZonedDateTime): List<CustomerEntity>
 
-    fun countByProlongedAtBetween(fromDate: ZonedDateTime, toDate: ZonedDateTime): Int
+    fun findAllByProlongedAtBetween(fromDate: ZonedDateTime, toDate: ZonedDateTime): List<CustomerEntity>
 
     fun countByUpdatedAtBetween(fromDate: ZonedDateTime, toDate: ZonedDateTime): Int
 

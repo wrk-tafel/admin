@@ -29,8 +29,14 @@ class DistributionStatisticEntity : BaseChangeTrackingEntity() {
     @Column(name = "count_customers_new")
     var countCustomersNew: Int? = null
 
+    @Column(name = "count_persons_new")
+    var countPersonsNew: Int? = null
+
     @Column(name = "count_customers_prolonged")
     var countCustomersProlonged: Int? = null
+
+    @Column(name = "count_persons_prolonged")
+    var countPersonsProlonged: Int? = null
 
     @Column(name = "count_customers_updated")
     var countCustomersUpdated: Int? = null
