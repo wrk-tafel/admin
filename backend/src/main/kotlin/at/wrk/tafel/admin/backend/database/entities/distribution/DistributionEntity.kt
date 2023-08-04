@@ -25,6 +25,9 @@ class DistributionEntity : BaseChangeTrackingEntity() {
     @JoinColumn(name = "endedby_userid")
     var endedByUser: UserEntity? = null
 
+    @OneToOne(mappedBy = "distribution")
+    var statistic: DistributionStatisticEntity? = null
+
     @OneToMany(mappedBy = "distribution")
     var customers: List<DistributionCustomerEntity> = emptyList()
 

@@ -34,6 +34,10 @@ spring:
     ignore-migration-patterns: "*:missing"
     baseline-on-migrate: true
     clean-disabled: false
+  mail:
+    properties.mail.smtp:
+      auth: true
+      starttls.enable: true
   jpa:
     properties:
       hibernate:

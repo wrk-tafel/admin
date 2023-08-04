@@ -5,7 +5,9 @@ SELECT setval('hibernate_sequence', 10000, false);
 -- user e2etest for cypress tests
 -- pwd: e2etest
 INSERT INTO users (id, created_at, updated_at, username, password, enabled, personnel_number, firstname, lastname)
-VALUES (100, NOW(), NOW(), 'e2etest', '{argon2}$argon2id$v=19$m=4096,t=3,p=1$Cnj0ayQKhOPbkomIRV5tnQ$BfU/uOr20/vg9ie0CQcWhCD00DqjPDf6UI0pRvz1/gg', true, '00000', 'E2E', 'Test');
+VALUES (100, NOW(), NOW(), 'e2etest',
+        '{argon2}$argon2id$v=19$m=4096,t=3,p=1$Cnj0ayQKhOPbkomIRV5tnQ$BfU/uOr20/vg9ie0CQcWhCD00DqjPDf6UI0pRvz1/gg',
+        true, '00000', 'E2E', 'Test');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (1000, NOW(), NOW(), 100, 'DASHBOARD');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
@@ -20,21 +22,28 @@ VALUES (1004, NOW(), NOW(), 100, 'DISTRIBUTION_LCM');
 -- user e2etest2 for cypress test (password change)
 -- pwd: e2etest
 INSERT INTO users (id, created_at, updated_at, username, password, enabled, personnel_number, firstname, lastname)
-VALUES (101, NOW(), NOW(), 'e2etest2', '{argon2}$argon2id$v=19$m=4096,t=3,p=1$Cnj0ayQKhOPbkomIRV5tnQ$BfU/uOr20/vg9ie0CQcWhCD00DqjPDf6UI0pRvz1/gg', true, '00000-0', 'E2E', 'Test');
+VALUES (101, NOW(), NOW(), 'e2etest2',
+        '{argon2}$argon2id$v=19$m=4096,t=3,p=1$Cnj0ayQKhOPbkomIRV5tnQ$BfU/uOr20/vg9ie0CQcWhCD00DqjPDf6UI0pRvz1/gg',
+        true, '00000-0', 'E2E', 'Test');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (1010, NOW(), NOW(), 101, 'DASHBOARD');
 
 -- user e2etest3 for cypress test (forced password change on login)
 -- pwd: e2etest
-INSERT INTO users (id, created_at, updated_at, username, password, enabled, personnel_number, firstname, lastname, passwordchange_required)
-VALUES (102, NOW(), NOW(), 'e2etest3', '{argon2}$argon2id$v=19$m=4096,t=3,p=1$Cnj0ayQKhOPbkomIRV5tnQ$BfU/uOr20/vg9ie0CQcWhCD00DqjPDf6UI0pRvz1/gg', true, '00000-3', 'E2E', 'Test 3', true);
+INSERT INTO users (id, created_at, updated_at, username, password, enabled, personnel_number, firstname, lastname,
+                   passwordchange_required)
+VALUES (102, NOW(), NOW(), 'e2etest3',
+        '{argon2}$argon2id$v=19$m=4096,t=3,p=1$Cnj0ayQKhOPbkomIRV5tnQ$BfU/uOr20/vg9ie0CQcWhCD00DqjPDf6UI0pRvz1/gg',
+        true, '00000-3', 'E2E', 'Test 3', true);
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (1020, NOW(), NOW(), 102, 'DASHBOARD');
 
 -- user: testuser
 -- pwd: 35bc40681124f412c5d052366edb9eb9
 INSERT INTO users (id, created_at, updated_at, username, password, enabled, personnel_number, firstname, lastname)
-VALUES (200, NOW(), NOW(), 'testuser', '{argon2}$argon2id$v=19$m=4096,t=3,p=1$DZTJhKdC4/5fzGDI2CtozA$ELfBRSqAKes7ThqkzL7AN6JkEq7wzWgKejhLQ02XD6c', true, '0200', 'Test', 'User');
+VALUES (200, NOW(), NOW(), 'testuser',
+        '{argon2}$argon2id$v=19$m=4096,t=3,p=1$DZTJhKdC4/5fzGDI2CtozA$ELfBRSqAKes7ThqkzL7AN6JkEq7wzWgKejhLQ02XD6c',
+        true, '0200', 'Test', 'User');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (2000, NOW(), NOW(), 200, 'DASHBOARD');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
@@ -50,7 +59,9 @@ VALUES (2004, NOW(), NOW(), 200, 'DISTRIBUTION_LCM');
 -- user: admin
 -- pwd: 12345
 INSERT INTO users (id, created_at, updated_at, username, password, enabled, personnel_number, firstname, lastname)
-VALUES (300, NOW(), NOW(), 'admin', '{argon2}$argon2id$v=19$m=4096,t=3,p=1$RXn6Xt/0q/Wtrvdns6NUnw$X3xWUjENAbNSJNckeVFXWrjkoFSowwlu3xHx1/zb40w', true, '0300', 'AD', 'min');
+VALUES (300, NOW(), NOW(), 'admin',
+        '{argon2}$argon2id$v=19$m=4096,t=3,p=1$RXn6Xt/0q/Wtrvdns6NUnw$X3xWUjENAbNSJNckeVFXWrjkoFSowwlu3xHx1/zb40w',
+        true, '0300', 'AD', 'min');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (3000, NOW(), NOW(), 300, 'DASHBOARD');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
@@ -65,7 +76,9 @@ VALUES (3004, NOW(), NOW(), 300, 'DISTRIBUTION_LCM');
 -- user: scanner1
 -- pwd: 12345
 INSERT INTO users (id, created_at, updated_at, username, password, enabled, personnel_number, firstname, lastname)
-VALUES (400, NOW(), NOW(), 'scanner1', '{argon2}$argon2id$v=19$m=4096,t=3,p=1$RXn6Xt/0q/Wtrvdns6NUnw$X3xWUjENAbNSJNckeVFXWrjkoFSowwlu3xHx1/zb40w', true, '0400', 'Scanner', '1');
+VALUES (400, NOW(), NOW(), 'scanner1',
+        '{argon2}$argon2id$v=19$m=4096,t=3,p=1$RXn6Xt/0q/Wtrvdns6NUnw$X3xWUjENAbNSJNckeVFXWrjkoFSowwlu3xHx1/zb40w',
+        true, '0400', 'Scanner', '1');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (4000, NOW(), NOW(), 400, 'DASHBOARD');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
@@ -74,7 +87,9 @@ VALUES (4001, NOW(), NOW(), 400, 'SCANNER');
 -- user: scanner2
 -- pwd: 12345
 INSERT INTO users (id, created_at, updated_at, username, password, enabled, personnel_number, firstname, lastname)
-VALUES (500, NOW(), NOW(), 'scanner2', '{argon2}$argon2id$v=19$m=4096,t=3,p=1$RXn6Xt/0q/Wtrvdns6NUnw$X3xWUjENAbNSJNckeVFXWrjkoFSowwlu3xHx1/zb40w', true, '0401', 'Scanner', '2');
+VALUES (500, NOW(), NOW(), 'scanner2',
+        '{argon2}$argon2id$v=19$m=4096,t=3,p=1$RXn6Xt/0q/Wtrvdns6NUnw$X3xWUjENAbNSJNckeVFXWrjkoFSowwlu3xHx1/zb40w',
+        true, '0401', 'Scanner', '2');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (5000, NOW(), NOW(), 500, 'DASHBOARD');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
@@ -84,7 +99,8 @@ VALUES (5001, NOW(), NOW(), 500, 'SCANNER');
 INSERT INTO customers (id, created_at, updated_at, customer_id, user_id, firstname, lastname, birth_date, country_id,
                        address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
                        address_city, telephone_number, email, employer, income, income_due, valid_until)
-values (100, NOW(), NOW(), 100, 100, 'Max Single', 'Mustermann', '1980-01-01', 1, 'Erdberg', 1, null, null, '1030', 'Wien',
+values (100, NOW(), NOW(), 100, 100, 'Max Single', 'Mustermann', '1980-01-01', 1, 'Erdberg', 1, null, null, '1030',
+        'Wien',
         null, null, 'Stadt Wien', 123.00, '2999-12-31', '2999-12-31');
 INSERT INTO customers (id, created_at, updated_at, customer_id, user_id, firstname, lastname, birth_date, country_id,
                        address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
@@ -94,14 +110,19 @@ values (101, NOW(), NOW(), 101, 100, 'Eva', 'Musterfrau', '1990-01-01', 2, 'Erdb
 INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, income,
                                   income_due, country_id, receives_familybonus)
 values (1011, NOW(), NOW(), 101, 'Child 1', 'Musterfrau', '2000-01-01', 500, '2999-12-31', 1, false);
-INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, employer, income,
+INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, employer,
+                                  income,
                                   income_due, country_id, receives_familybonus)
-values (1012, NOW(), NOW(), 101, 'Child 2', 'Musterfrau', CURRENT_DATE - interval '8 year', 'Stadt Wien', null, null, 1, true);
-INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, employer, income,
+values (1012, NOW(), NOW(), 101, 'Child 2', 'Musterfrau', CURRENT_DATE - interval '8 year', 'Stadt Wien', null, null, 1,
+        true);
+INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, employer,
+                                  income,
                                   income_due, country_id, receives_familybonus, exclude_household)
-values (1013, NOW(), NOW(), 101, 'Child 3', 'Musterfrau', CURRENT_DATE - interval '2 year', 'WRK', null, null, 1, true, true);
+values (1013, NOW(), NOW(), 101, 'Child 3', 'Musterfrau', CURRENT_DATE - interval '2 year', 'WRK', null, null, 1, true,
+        true);
 INSERT INTO customers_notes (id, created_at, updated_at, customer_id, user_id, note)
-VALUES (1003, NOW(), NOW(), 101, 100, 'Testnote 3.<br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.<br/><br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
+VALUES (1003, NOW(), NOW(), 101, 100,
+        'Testnote 3.<br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.<br/><br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
 INSERT INTO customers_notes (id, created_at, updated_at, customer_id, user_id, note)
 VALUES (1002, NOW(), NOW(), 101, 100, 'Testnote 2');
 INSERT INTO customers_notes (id, created_at, updated_at, customer_id, user_id, note)
@@ -115,7 +136,8 @@ values (102, NOW(), NOW(), 102, 100, 'John', 'Doe', '1980-01-01', 1, 'Erdberg', 
 INSERT INTO customers (id, created_at, updated_at, customer_id, user_id, firstname, lastname, birth_date, country_id,
                        address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
                        address_city, telephone_number, email, employer, income, income_due, valid_until)
-values (103, NOW(), NOW(), 103, 100, 'John Doe', 'EXPIRES SOON', '1980-01-01', 1, 'Erdberg', 1, null, null, '1030', 'Wien',
+values (103, NOW(), NOW(), 103, 100, 'John Doe', 'EXPIRES SOON', '1980-01-01', 1, 'Erdberg', 1, null, null, '1030',
+        'Wien',
         null, null, 'Stadt Wien', 123.00, NOW() + interval '1 month', NOW() + interval '1 month');
 INSERT INTO customers (id, created_at, updated_at, customer_id, user_id, firstname, lastname, birth_date, country_id,
                        address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
@@ -124,24 +146,29 @@ values (104, NOW(), NOW(), 104, 100, 'Jane Doe', 'EXPIRED', '1980-01-01', 1, 'Er
         null, null, 'Stadt Wien', 123.00, '2000-12-31', '2000-12-31');
 INSERT INTO customers (id, created_at, updated_at, customer_id, user_id, firstname, lastname, birth_date, country_id,
                        address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
-                       address_city, telephone_number, email, employer, income, income_due, valid_until, locked, locked_at, locked_by, lock_reason)
+                       address_city, telephone_number, email, employer, income, income_due, valid_until, locked,
+                       locked_at, locked_by, lock_reason)
 values (105, NOW(), NOW(), 105, 100, 'Jane Doe', 'LOCKED', '1980-01-01', 1, 'Erdberg', 1, null, null, '1030', 'Wien',
-        null, null, 'Stadt Wien', 123.00, '2999-12-31', '2999-12-31', true, NOW(), 100, 'Lock-Reason: Lorem ipsum dolor sit amet');
+        null, null, 'Stadt Wien', 123.00, '2999-12-31', '2999-12-31', true, NOW(), 100,
+        'Lock-Reason: Lorem ipsum dolor sit amet');
 
 INSERT INTO customers (id, created_at, updated_at, customer_id, user_id, firstname, lastname, birth_date, country_id,
                        address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
                        address_city, telephone_number, email, employer, income, income_due, valid_until)
-values (201, NOW(), NOW(), 201, 100, '1', 'e2e-search', '1980-01-01', 1, 'Erdberg', 1, null, '10', '1030', 'Wien', null, null,
+values (201, NOW(), NOW(), 201, 100, '1', 'e2e-search', '1980-01-01', 1, 'Erdberg', 1, null, '10', '1030', 'Wien', null,
+        null,
         'Stadt Wien', 123.00, '2999-12-31', '2999-12-31');
 INSERT INTO customers (id, created_at, updated_at, customer_id, user_id, firstname, lastname, birth_date, country_id,
                        address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
                        address_city, telephone_number, email, employer, income, income_due, valid_until)
-values (202, NOW(), NOW(), 202, 100, '2', 'e2e-search', '1980-01-01', 1, 'Erdberg', 1, null, '10', '1030', 'Wien', null, null,
+values (202, NOW(), NOW(), 202, 100, '2', 'e2e-search', '1980-01-01', 1, 'Erdberg', 1, null, '10', '1030', 'Wien', null,
+        null,
         'Stadt Wien', null, null, '2999-12-31');
 INSERT INTO customers (id, created_at, updated_at, customer_id, user_id, firstname, lastname, birth_date, country_id,
                        address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
                        address_city, telephone_number, email, employer, income, income_due, valid_until)
-values (300, NOW(), NOW(), 300, 100, 'e2e-delete', 'e2e-delete', '1980-01-01', 1, 'Erdberg', 1, null, '10', '1030', 'Wien', null, null,
+values (300, NOW(), NOW(), 300, 100, 'e2e-delete', 'e2e-delete', '1980-01-01', 1, 'Erdberg', 1, null, '10', '1030',
+        'Wien', null, null,
         'Stadt Wien', null, null, '2999-12-31');
 
 -- static values
@@ -198,3 +225,13 @@ INSERT INTO static_values(id, created_at, updated_at, type, valid_from, valid_to
 VALUES (20, NOW(), NOW(), 'SIBLING-ADDITION', '1900-01-01', '2999-12-31', 35.70, 6);
 INSERT INTO static_values(id, created_at, updated_at, type, valid_from, valid_to, amount, count_child)
 VALUES (21, NOW(), NOW(), 'SIBLING-ADDITION', '1900-01-01', '2999-12-31', 52.00, 7);
+
+-- distribution-related
+INSERT INTO distributions (id, created_at, updated_at, started_at, ended_at, startedby_userid, endedby_userid)
+VALUES (100, NOW(), NOW(), '2023-07-01 14:00:00.000000', '2023-07-01 23:00:00.000000', 300, 300);
+INSERT INTO distributions_statistics (id, created_at, updated_at, distribution_id, count_customers,
+                                      count_persons, count_infants, average_persons_per_customer,
+                                      count_customers_new, count_persons_new,
+                                      count_customers_prolonged, count_persons_prolonged,
+                                      count_customers_updated)
+VALUES (100, NOW(), NOW(), 100, 50, 125, 40, 2.5, 4, 5, 6, 7, 8);
