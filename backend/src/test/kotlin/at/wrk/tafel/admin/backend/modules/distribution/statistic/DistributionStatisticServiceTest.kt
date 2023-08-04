@@ -74,7 +74,8 @@ internal class DistributionStatisticServiceTest {
 
         every { distributionStatisticRepository.save(any()) } returns mockk()
 
-        service.createAndSaveStatistic(testDistributionEntity)
+        val createdStatistic = service.createAndSaveStatistic(testDistributionEntity)
+        assertThat(createdStatistic).isNotNull
 
         val savedStatisticSlot = slot<DistributionStatisticEntity>()
         verify { distributionStatisticRepository.save(capture(savedStatisticSlot)) }

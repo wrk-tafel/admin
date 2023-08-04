@@ -16,9 +16,9 @@ class DistributionStatisticService(
     private val customerRepository: CustomerRepository
 ) {
 
-    fun createAndSaveStatistic(distribution: DistributionEntity) {
+    fun createAndSaveStatistic(distribution: DistributionEntity): DistributionStatisticEntity {
         val statistic = createStatisticEntry(distribution)
-        distributionStatisticRepository.save(statistic)
+        return distributionStatisticRepository.save(statistic)
     }
 
     private fun createStatisticEntry(distribution: DistributionEntity): DistributionStatisticEntity {
