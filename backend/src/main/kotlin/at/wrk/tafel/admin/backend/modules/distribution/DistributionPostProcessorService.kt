@@ -1,9 +1,11 @@
 package at.wrk.tafel.admin.backend.modules.distribution
 
+import at.wrk.tafel.admin.backend.common.mail.MailAttachment
 import at.wrk.tafel.admin.backend.common.mail.MailSenderService
 import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.modules.distribution.statistic.DistributionStatisticService
 import at.wrk.tafel.admin.backend.modules.reporting.DailyReportService
+import org.springframework.core.io.ByteArrayResource
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -23,10 +25,19 @@ class DistributionPostProcessorService(
     }
 
     private fun sendDailyReportMail(pdfReportBytes: ByteArray) {
-        // TODO attach file
-        val mailSubject = "Tages-Report vom ${LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))}"
+        val dateTitleFormatted = LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
+        val dateFilenameFormatted = LocalDate.now().format(DateTimeFormatter.ofPattern("ddMMyyyy"))
+
+        val mailSubject = "TÖ Tafel 1030 - Tages-Report vom $dateTitleFormatted"
         val mailText = "Details im Anhang"
-        mailSenderService.sendTextMail(mailSubject, mailText)
+        val attachment = listOf(
+            MailAttachment(
+                filename = "tagesreport_${dateFilenameFormatted}.pdf",
+                inputStreamSource = ByteArrayResource(pdfReportBytes),
+                contentType = "application/pdf"
+            )
+        )
+        mailSenderService.sendMail(mailSubject, mailText, attachment)
     }
 
 }

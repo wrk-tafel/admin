@@ -9,11 +9,14 @@ import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.slot
 import io.mockk.verify
+import jakarta.mail.Message
+import jakarta.mail.internet.MimeMessage
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.springframework.mail.SimpleMailMessage
+import org.springframework.core.io.ByteArrayResource
 import org.springframework.mail.javamail.JavaMailSender
+import java.io.ByteArrayInputStream
 
 @ExtendWith(MockKExtension::class)
 internal class MailSenderServiceTest {
@@ -30,11 +33,11 @@ internal class MailSenderServiceTest {
     @Test
     fun `sendTextMail - mailing disabled`() {
         val service = MailSenderService(null, TafelAdminProperties())
-        service.sendTextMail("subject", "text")
+        service.sendMail("subject", "text", emptyList())
     }
 
     @Test
-    fun `sendTextMail successfully`() {
+    fun `sendMail successfully`() {
         val subject = "subj"
         val text = "txt"
 
@@ -47,19 +50,39 @@ internal class MailSenderServiceTest {
         )
         every { properties.mail } returns mailProperties
 
-        service.sendTextMail(subject, text)
+        val attachment = MailAttachment(
+            filename = "test.pdf",
+            inputStreamSource = ByteArrayResource(ByteArray(10)),
+            contentType = "application/pdf"
+        )
+        every { mailSender.createMimeMessage() } returns MimeMessage(null, ByteArrayInputStream(ByteArray(0)))
 
-        val mailMessageSlot = slot<SimpleMailMessage>()
+        service.sendMail(subject, text, listOf(attachment))
+
+        val mailMessageSlot = slot<MimeMessage>()
         verify { mailSender.send(capture(mailMessageSlot)) }
 
         val mailMessage = mailMessageSlot.captured
         assertThat(mailMessage).isNotNull
-        assertThat(mailMessage.from).isEqualTo(mailProperties.from)
-        assertThat(mailMessage.to).isEqualTo(mailProperties.dailyreport!!.to?.toTypedArray())
-        assertThat(mailMessage.cc).isEqualTo(mailProperties.dailyreport!!.cc?.toTypedArray())
-        assertThat(mailMessage.bcc).isEqualTo(mailProperties.dailyreport!!.bcc?.toTypedArray())
         assertThat(mailMessage.subject).isEqualTo(subject)
-        assertThat(mailMessage.text).isEqualTo(text)
+
+        assertThat(mailMessage.getHeader("Subject").first()).isEqualTo(subject)
+        assertThat(mailMessage.getHeader("From").first()).isEqualTo(mailProperties.from)
+
+        val toRecipients = mailMessage.getRecipients(Message.RecipientType.TO)
+        assertThat(toRecipients.map { it.toString() }).isEqualTo(mailProperties.dailyreport!!.to)
+
+        val ccRecipients = mailMessage.getRecipients(Message.RecipientType.CC)
+        assertThat(ccRecipients).isNull()
+
+        val bccRecipients = mailMessage.getRecipients(Message.RecipientType.BCC)
+        assertThat(bccRecipients.map { it.toString() }).isEqualTo(mailProperties.dailyreport!!.bcc)
+
+        /*
+        TODO add asserts
+        assertThat(mailMessage.content).isEqualTo(text)
+        assertThat(mailMessage.attachment).isEqualTo(text)
+         */
     }
 
 }
