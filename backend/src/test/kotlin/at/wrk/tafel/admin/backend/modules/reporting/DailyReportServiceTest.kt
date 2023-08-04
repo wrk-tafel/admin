@@ -11,7 +11,9 @@ import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.util.MimeTypeUtils
 import java.math.BigDecimal
+import java.time.format.DateTimeFormatter
 
 @ExtendWith(MockKExtension::class)
 internal class DailyReportServiceTest {
@@ -46,6 +48,14 @@ internal class DailyReportServiceTest {
 
         val pdfModel = pdfModelSlot.captured
         assertThat(pdfModel).isNotNull
+        assertThat(pdfModel.logoContentType).isEqualTo(MimeTypeUtils.IMAGE_PNG_VALUE)
+        assertThat(pdfModel.logoBytes).isNotNull()
+
+        val date = statistic.distribution?.startedAt?.toLocalDate()?.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
+        val startTime = statistic.distribution?.startedAt?.format(DateTimeFormatter.ofPattern("HH:mm"))
+        val endTime = statistic.distribution?.endedAt?.format(DateTimeFormatter.ofPattern("HH:mm"))
+        assertThat(pdfModel.date).isEqualTo("$date $startTime - $endTime")
+
         assertThat(pdfModel.countCustomers).isEqualTo(statistic.countCustomers)
         assertThat(pdfModel.countPersons).isEqualTo(statistic.countPersons)
         assertThat(pdfModel.countInfants).isEqualTo(statistic.countInfants)

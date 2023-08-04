@@ -17,7 +17,7 @@ class DailyReportService(
 ) {
     companion object {
         private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
-        private val DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:MM")
+        private val DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm")
     }
 
     fun generateDailyReportPdf(distributionStatistic: DistributionStatisticEntity): ByteArray {
@@ -45,7 +45,7 @@ class DailyReportService(
     }
 
     private fun formatDate(statistic: DistributionStatisticEntity): String {
-        val date = LocalDate.now().format(DATE_FORMATTER)
+        val date = statistic.distribution?.startedAt?.toLocalDate()?.format(DATE_FORMATTER)
         val startTime = statistic.distribution?.startedAt?.format(DATE_TIME_FORMATTER)
         val endTime = statistic.distribution?.endedAt?.format(DATE_TIME_FORMATTER)
         return "$date $startTime - $endTime"
