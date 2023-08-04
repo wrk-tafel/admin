@@ -7,11 +7,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
 import org.apache.commons.io.IOUtils
 import org.springframework.stereotype.Service
 import org.springframework.util.MimeTypeUtils
-import java.io.File
-import java.io.FileOutputStream
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 @Service
@@ -111,37 +108,3 @@ data class DailyReportPdfModel(
     }
 
 }
-
-// TODO REMOVE
-fun main() {
-    val pdfService = PDFService()
-
-    val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
-    val DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:MM")
-
-    val date = LocalDate.now().format(DATE_FORMATTER)
-    val startTime = LocalDateTime.now().minusHours(5).format(DATE_TIME_FORMATTER)
-    val endTime = LocalDateTime.now().minusHours(1).format(DATE_TIME_FORMATTER)
-
-    val logoBytes =
-        IOUtils.toByteArray(DailyReportService::class.java.getResourceAsStream("/pdf-templates/common/img/toet-logo.png"))
-    val model = DailyReportPdfModel(
-        logoContentType = MimeTypeUtils.IMAGE_PNG_VALUE,
-        logoBytes = logoBytes,
-        date = "$date $startTime - $endTime",
-        countCustomers = 50,
-        countPersons = 125,
-        countInfants = 40,
-        averagePersonsPerCustomer = BigDecimal("2.5"),
-        countCustomersNew = 4,
-        countPersonsNew = 5,
-        countCustomersProlonged = 6,
-        countPersonsProlonged = 7,
-        countCustomersUpdated = 8
-    )
-
-    val pdfBytes = pdfService.generatePdf(model, "/pdf-templates/daily-report/dailyreport-document.xsl")
-
-    IOUtils.write(pdfBytes, FileOutputStream(File("D:\\test.pdf")))
-}
-// TODO REMOVE
