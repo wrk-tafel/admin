@@ -41,6 +41,14 @@ services:
     volumes:
       - mysql-data:/var/lib/mysql
 
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: tafeladmin-mailhog
+    hostname: tafeladmin-mailhog
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
 #  ui-remote:
 #    image: ikt01toet1030/wrk-tafel-admin:latest
 #    restart: unless-stopped

@@ -11,6 +11,11 @@ spring:
     url: jdbc:postgresql://localhost:5432/tafeladmin
     username: tafeladmin
     password: admin
+  mail:
+    host: localhost
+    port: 1025
+    username: mailhog
+    password: mailhog
 
 security:
   jwtToken:
@@ -18,3 +23,17 @@ security:
     audience: wrk-tafel
     secret.value: 8a58255b49728fe758502948917ae98709b7cc502e4c7a0d3bc9d183b5be24378a58255b49728fe758502948917ae98709b7cc502e4c7a0d3bc9d183b5be24378a58255b49728fe758502948917ae98709b7cc502e4c7a0d3bc9d183b5be24378a58255b49728fe7585012
     expirationTimeInSeconds: 604800 # 1 week for local development
+
+tafeladmin:
+  mail:
+    from: "dummy@localhost"
+    dailyreport:
+      to:
+        - "to1@localhost"
+        - "to2@localhost"
+      cc:
+        - "cc1@localhost"
+        - "cc2@localhost"
+      bcc:
+        - "bcc1@localhost"
+        - "bcc2@localhost"
