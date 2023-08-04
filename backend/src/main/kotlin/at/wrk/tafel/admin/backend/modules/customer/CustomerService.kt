@@ -19,7 +19,8 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.time.ZonedDateTime
+import java.time.LocalDateTime
+
 
 @Service
 class CustomerService(
@@ -162,13 +163,13 @@ class CustomerService(
             if (storedEntity?.validUntil != null
                 && customerUpdate.validUntil != null
                 && customerUpdate.validUntil.isAfter(storedEntity.validUntil)
-            ) ZonedDateTime.now() else null
+            ) LocalDateTime.now() else null
         customerEntity.prolongedAt = prolongedAt
         customerEntity.validUntil = customerUpdate.validUntil
 
         if (customerUpdate.locked == true) {
             customerEntity.locked = true
-            customerEntity.lockedAt = ZonedDateTime.now()
+            customerEntity.lockedAt = LocalDateTime.now()
             customerEntity.lockedBy = userEntity
             customerEntity.lockReason = customerUpdate.lockReason
         } else {

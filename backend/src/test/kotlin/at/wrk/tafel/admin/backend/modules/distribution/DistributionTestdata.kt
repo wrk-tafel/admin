@@ -8,7 +8,8 @@ import at.wrk.tafel.admin.backend.modules.base.testCountry
 import at.wrk.tafel.admin.backend.security.testUserEntity
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.time.ZonedDateTime
+import java.time.LocalDateTime
+
 
 val testDistributionEntity = DistributionEntity().apply {
     id = 123
@@ -16,12 +17,12 @@ val testDistributionEntity = DistributionEntity().apply {
 
 val testDistributionCustomerEntity1 = DistributionCustomerEntity().apply {
     id = 1
-    createdAt = ZonedDateTime.now()
+    createdAt = LocalDateTime.now()
     distribution = testDistributionEntity
     customer = CustomerEntity().apply {
         id = 1
         issuer = testUserEntity
-        createdAt = ZonedDateTime.now()
+        createdAt = LocalDateTime.now()
         customerId = 100
         lastname = "Mustermann"
         firstname = "Max"
@@ -67,11 +68,11 @@ val testDistributionCustomerEntity1 = DistributionCustomerEntity().apply {
 
 val testDistributionCustomerEntity2 = DistributionCustomerEntity().apply {
     id = 2
-    createdAt = ZonedDateTime.now()
+    createdAt = LocalDateTime.now()
     distribution = testDistributionEntity
     customer = CustomerEntity().apply {
         id = 2
-        createdAt = ZonedDateTime.now()
+        createdAt = LocalDateTime.now()
         customerId = 200
         lastname = "Mustermann"
         firstname = "Max 2"
@@ -97,11 +98,11 @@ val testDistributionCustomerEntity2 = DistributionCustomerEntity().apply {
 
 val testDistributionCustomerEntity3 = DistributionCustomerEntity().apply {
     id = 3
-    createdAt = ZonedDateTime.now()
+    createdAt = LocalDateTime.now()
     distribution = testDistributionEntity
     customer = CustomerEntity().apply {
         id = 3
-        createdAt = ZonedDateTime.now()
+        createdAt = LocalDateTime.now()
         customerId = 300
         lastname = "Mustermann"
         firstname = "Max 3"

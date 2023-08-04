@@ -12,7 +12,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException
-import java.util.*
 
 @ExtendWith(MockKExtension::class)
 internal class TafelJwtAuthConverterTest {

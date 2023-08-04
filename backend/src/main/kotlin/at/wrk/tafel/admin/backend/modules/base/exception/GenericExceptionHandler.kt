@@ -9,7 +9,8 @@ import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.context.request.ServletWebRequest
 import org.springframework.web.context.request.WebRequest
-import java.time.ZonedDateTime
+import java.time.LocalDateTime
+
 import java.util.*
 
 @ControllerAdvice
@@ -64,7 +65,7 @@ class GenericExceptionHandler(
         )
 
         val error = TafelErrorResponse(
-            timestamp = ZonedDateTime.now(),
+            timestamp = LocalDateTime.now(),
             status = status.value(),
             error = localizedErrorTitle,
             message = exception.message,
@@ -79,7 +80,7 @@ class GenericExceptionHandler(
 
 @ExcludeFromTestCoverage
 data class TafelErrorResponse(
-    val timestamp: ZonedDateTime,
+    val timestamp: LocalDateTime,
     val status: Int,
     val error: String,
     val message: String?,

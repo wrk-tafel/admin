@@ -4,7 +4,8 @@ import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.entities.base.BaseChangeTrackingEntity
 import jakarta.persistence.*
-import java.time.ZonedDateTime
+import java.time.LocalDateTime
+
 
 @Entity(name = "Distribution")
 @Table(name = "distributions")
@@ -12,10 +13,10 @@ import java.time.ZonedDateTime
 class DistributionEntity : BaseChangeTrackingEntity() {
 
     @Column(name = "started_at", nullable = false)
-    var startedAt: ZonedDateTime? = null
+    var startedAt: LocalDateTime? = null
 
     @Column(name = "ended_at")
-    var endedAt: ZonedDateTime? = null
+    var endedAt: LocalDateTime? = null
 
     @ManyToOne
     @JoinColumn(name = "startedby_userid", nullable = false)

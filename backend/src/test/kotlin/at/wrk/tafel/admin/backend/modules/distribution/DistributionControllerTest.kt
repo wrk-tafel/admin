@@ -2,7 +2,10 @@ package at.wrk.tafel.admin.backend.modules.distribution
 
 import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelException
-import at.wrk.tafel.admin.backend.modules.distribution.model.*
+import at.wrk.tafel.admin.backend.modules.distribution.model.AssignCustomerRequest
+import at.wrk.tafel.admin.backend.modules.distribution.model.CustomerListPdfResult
+import at.wrk.tafel.admin.backend.modules.distribution.model.DistributionItem
+import at.wrk.tafel.admin.backend.modules.distribution.model.DistributionItemResponse
 import at.wrk.tafel.admin.backend.security.testUserEntity
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
@@ -11,7 +14,7 @@ import io.mockk.junit5.MockKExtension
 import io.mockk.slot
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
@@ -19,8 +22,7 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.messaging.simp.SimpMessagingTemplate
-import java.time.ZonedDateTime
-import java.util.*
+import java.time.LocalDateTime
 
 @ExtendWith(MockKExtension::class)
 internal class DistributionControllerTest {
@@ -185,7 +187,7 @@ internal class DistributionControllerTest {
     fun `auto close when distribution is open`() {
         val testDistributionEntity = DistributionEntity().apply {
             id = 123
-            startedAt = ZonedDateTime.now()
+            startedAt = LocalDateTime.now()
             startedByUser = testUserEntity
             customers = listOf(
                 testDistributionCustomerEntity1,

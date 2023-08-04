@@ -17,8 +17,9 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.Period
-import java.time.ZonedDateTime
+
 import java.time.format.DateTimeFormatter
 
 @Service
@@ -43,7 +44,7 @@ class DistributionService(
         val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
 
         val distribution = DistributionEntity()
-        distribution.startedAt = ZonedDateTime.now()
+        distribution.startedAt = LocalDateTime.now()
         distribution.startedByUser = userRepository.findByUsername(authenticatedUser.username!!).get()
 
         return distributionRepository.save(distribution)
@@ -147,7 +148,7 @@ class DistributionService(
             val authenticatedUser = SecurityContextHolder.getContext().authentication as? TafelJwtAuthentication
 
             if (distribution != null) {
-                distribution.endedAt = ZonedDateTime.now()
+                distribution.endedAt = LocalDateTime.now()
                 distribution.endedByUser =
                     authenticatedUser?.let { userRepository.findByUsername(authenticatedUser.username!!).get() }
                         ?: distribution.startedByUser

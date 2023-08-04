@@ -26,14 +26,14 @@ import io.mockk.slot
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.context.SecurityContextImpl
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.time.ZonedDateTime
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
 
@@ -77,7 +77,7 @@ internal class DistributionServiceTest {
         testCustomerEntity1 = CustomerEntity().apply {
             id = 1
             issuer = testUserEntity
-            createdAt = ZonedDateTime.now()
+            createdAt = LocalDateTime.now()
             customerId = 100
             lastname = "Mustermann"
             firstname = "Max"
@@ -120,7 +120,7 @@ internal class DistributionServiceTest {
 
         testCustomerEntity2 = CustomerEntity().apply {
             id = 2
-            createdAt = ZonedDateTime.now()
+            createdAt = LocalDateTime.now()
             customerId = 200
             lastname = "Mustermann"
             firstname = "Max 2"
@@ -164,7 +164,7 @@ internal class DistributionServiceTest {
 
         verify {
             distributionRepository.save(withArg {
-                assertThat(it.startedAt).isBetween(ZonedDateTime.now().minusSeconds(1), ZonedDateTime.now())
+                assertThat(it.startedAt).isBetween(LocalDateTime.now().minusSeconds(1), LocalDateTime.now())
                 assertThat(it.endedAt).isNull()
                 assertThat(it.startedByUser).isEqualTo(testUserEntity)
             })
@@ -222,7 +222,7 @@ internal class DistributionServiceTest {
 
         verify {
             distributionRepository.save(withArg {
-                assertThat(it.endedAt).isBetween(ZonedDateTime.now().minusSeconds(5), ZonedDateTime.now())
+                assertThat(it.endedAt).isBetween(LocalDateTime.now().minusSeconds(5), LocalDateTime.now())
                 assertThat(it.endedByUser).isEqualTo(testUserEntity)
             })
         }
@@ -287,7 +287,7 @@ internal class DistributionServiceTest {
 
     @Test
     fun `generate customerlist pdf - successful`() {
-        val date = ZonedDateTime.now()
+        val date = LocalDateTime.now()
         val testDistributionEntity = DistributionEntity().apply {
             id = 123
             startedAt = date
@@ -407,7 +407,7 @@ internal class DistributionServiceTest {
     fun `get current ticketNumber with all tickets resolved`() {
         val testDistributionCustomerEntity1 = DistributionCustomerEntity().apply {
             id = 1
-            createdAt = ZonedDateTime.now()
+            createdAt = LocalDateTime.now()
             distribution = testDistributionEntity
             customer = testCustomerEntity1
             ticketNumber = 1
@@ -450,7 +450,7 @@ internal class DistributionServiceTest {
 
         val testDistributionCustomerEntity1 = DistributionCustomerEntity().apply {
             id = 1
-            createdAt = ZonedDateTime.now()
+            createdAt = LocalDateTime.now()
             distribution = testDistributionEntity
             customer = testCustomerEntity1
             ticketNumber = 1
@@ -459,7 +459,7 @@ internal class DistributionServiceTest {
 
         val testDistributionCustomerEntity2 = DistributionCustomerEntity().apply {
             id = 2
-            createdAt = ZonedDateTime.now()
+            createdAt = LocalDateTime.now()
             distribution = testDistributionEntity
             customer = testCustomerEntity2
             ticketNumber = 2
@@ -489,7 +489,7 @@ internal class DistributionServiceTest {
     fun `close ticket and next with all tickets resolved`() {
         val testDistributionCustomerEntity1 = DistributionCustomerEntity().apply {
             id = 1
-            createdAt = ZonedDateTime.now()
+            createdAt = LocalDateTime.now()
             distribution = testDistributionEntity
             customer = testCustomerEntity1
             ticketNumber = 1

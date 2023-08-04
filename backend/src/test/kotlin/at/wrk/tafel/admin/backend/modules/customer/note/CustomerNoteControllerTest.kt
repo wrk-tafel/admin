@@ -11,7 +11,8 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.http.HttpStatus
-import java.time.ZonedDateTime
+import java.time.LocalDateTime
+
 
 @ExtendWith(MockKExtension::class)
 internal class CustomerNoteControllerTest {
@@ -38,12 +39,12 @@ internal class CustomerNoteControllerTest {
         val notes = listOf(
             CustomerNoteItem(
                 author = "author 2",
-                timestamp = ZonedDateTime.now().minusDays(1),
+                timestamp = LocalDateTime.now().minusDays(1),
                 note = "note 2"
             ),
             CustomerNoteItem(
                 author = "author 1",
-                timestamp = ZonedDateTime.now().minusDays(2),
+                timestamp = LocalDateTime.now().minusDays(2),
                 note = "note 1"
             )
         )
@@ -77,7 +78,7 @@ internal class CustomerNoteControllerTest {
 
         val noteItem = CustomerNoteItem(
             author = "author 2",
-            timestamp = ZonedDateTime.now().minusDays(1),
+            timestamp = LocalDateTime.now().minusDays(1),
             note = "note 2"
         )
         every { service.createNewNote(customerId, note) } returns noteItem

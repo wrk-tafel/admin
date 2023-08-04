@@ -1,10 +1,10 @@
 package at.wrk.tafel.admin.backend.database.entities.staticdata
 
+import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.database.entities.base.BaseEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.Table
-import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 
 @Entity(name = "Country")
 @Table(name = "static_countries")
