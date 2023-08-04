@@ -107,7 +107,7 @@
                             <fo:block>
                                 <xsl:value-of select="countCustomersNew"/>
                                 <xsl:value-of select="' / '"/>
-                                <xsl:value-of select="'TODO'"/>
+                                <xsl:value-of select="countPersonsNew"/>
                             </fo:block>
                         </fo:table-cell>
                     </fo:table-row>
@@ -119,7 +119,7 @@
                             <fo:block>
                                 <xsl:value-of select="countCustomersProlonged"/>
                                 <xsl:value-of select="' / '"/>
-                                <xsl:value-of select="'TODO'"/>
+                                <xsl:value-of select="countPersonsProlonged"/>
                             </fo:block>
                         </fo:table-cell>
                     </fo:table-row>
