@@ -27,7 +27,8 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.security.core.context.SecurityContextHolder
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.time.ZonedDateTime
+import java.time.LocalDateTime
+
 import java.util.*
 
 @ExtendWith(MockKExtension::class)
@@ -132,7 +133,7 @@ class CustomerServiceTest {
         testCustomerEntity1 = CustomerEntity().apply {
             id = 1
             issuer = testUserEntity
-            createdAt = ZonedDateTime.now()
+            createdAt = LocalDateTime.now()
             customerId = 100
             lastname = "Mustermann"
             firstname = "Max"
@@ -177,7 +178,7 @@ class CustomerServiceTest {
 
         testCustomerEntity2 = CustomerEntity().apply {
             id = 2
-            createdAt = ZonedDateTime.now()
+            createdAt = LocalDateTime.now()
             customerId = 200
             lastname = "Mustermann"
             firstname = "Max 2"
@@ -333,7 +334,7 @@ class CustomerServiceTest {
         val testCustomerEntity1 = CustomerEntity().apply {
             id = 1
             issuer = testUserEntity
-            createdAt = ZonedDateTime.now()
+            createdAt = LocalDateTime.now()
             customerId = 100
             lastname = "Mustermann"
             firstname = "Max"
@@ -429,7 +430,7 @@ class CustomerServiceTest {
         val testCustomerEntity1 = CustomerEntity().apply {
             id = 1
             issuer = testUserEntity
-            createdAt = ZonedDateTime.now()
+            createdAt = LocalDateTime.now()
             customerId = 100
             lastname = "Mustermann"
             firstname = "Max"
@@ -495,7 +496,7 @@ class CustomerServiceTest {
         val testCustomerEntity1 = CustomerEntity().apply {
             id = 1
             issuer = testUserEntity
-            createdAt = ZonedDateTime.now()
+            createdAt = LocalDateTime.now()
             customerId = 100
             lastname = "Mustermann"
             firstname = "Max"
@@ -515,7 +516,7 @@ class CustomerServiceTest {
             validUntil = testValidUntil
             prolongedAt = null
             locked = true
-            lockedAt = ZonedDateTime.now()
+            lockedAt = LocalDateTime.now()
             lockedBy = testUserEntity
             lockReason = "locked due to lorem ipsum"
 
@@ -575,7 +576,7 @@ class CustomerServiceTest {
         val testCustomerEntity1 = CustomerEntity().apply {
             id = 1
             issuer = testUserEntity
-            createdAt = ZonedDateTime.now()
+            createdAt = LocalDateTime.now()
             customerId = 100
             lastname = "Mustermann"
             firstname = "Max"
@@ -621,7 +622,7 @@ class CustomerServiceTest {
         val testCustomerEntity1 = CustomerEntity().apply {
             id = 1
             issuer = testUserEntity
-            createdAt = ZonedDateTime.now()
+            createdAt = LocalDateTime.now()
             customerId = 100
             lastname = "Mustermann"
             firstname = "Max"

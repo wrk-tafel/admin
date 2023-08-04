@@ -18,7 +18,6 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.util.*
 
 @ExtendWith(MockKExtension::class)
 class CustomerControllerTest {

@@ -4,8 +4,7 @@ import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
-import java.time.ZonedDateTime
-import java.util.*
+import java.time.LocalDateTime
 
 interface CustomerRepository : JpaRepository<CustomerEntity, Long> {
     @Query("SELECT nextval('customer_id_sequence')", nativeQuery = true)
@@ -30,10 +29,10 @@ interface CustomerRepository : JpaRepository<CustomerEntity, Long> {
 
     fun deleteByCustomerId(customerId: Long)
 
-    fun findAllByCreatedAtBetween(fromDate: ZonedDateTime, toDate: ZonedDateTime): List<CustomerEntity>
+    fun findAllByCreatedAtBetween(fromDate: LocalDateTime, toDate: LocalDateTime): List<CustomerEntity>
 
-    fun findAllByProlongedAtBetween(fromDate: ZonedDateTime, toDate: ZonedDateTime): List<CustomerEntity>
+    fun findAllByProlongedAtBetween(fromDate: LocalDateTime, toDate: LocalDateTime): List<CustomerEntity>
 
-    fun countByUpdatedAtBetween(fromDate: ZonedDateTime, toDate: ZonedDateTime): Int
+    fun countByUpdatedAtBetween(fromDate: LocalDateTime, toDate: LocalDateTime): Int
 
 }

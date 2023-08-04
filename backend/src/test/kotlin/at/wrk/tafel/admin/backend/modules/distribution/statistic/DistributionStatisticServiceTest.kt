@@ -19,7 +19,8 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import java.math.BigDecimal
 import java.math.RoundingMode
-import java.time.ZonedDateTime
+import java.time.LocalDateTime
+
 
 @ExtendWith(MockKExtension::class)
 internal class DistributionStatisticServiceTest {
@@ -37,8 +38,8 @@ internal class DistributionStatisticServiceTest {
     fun `create and save statistic`() {
         val testDistributionEntity = DistributionEntity().apply {
             id = 123
-            startedAt = ZonedDateTime.now().minusHours(2)
-            endedAt = ZonedDateTime.now()
+            startedAt = LocalDateTime.now().minusHours(2)
+            endedAt = LocalDateTime.now()
             customers = listOf(
                 testDistributionCustomerEntity1,
                 testDistributionCustomerEntity2,
@@ -99,8 +100,8 @@ internal class DistributionStatisticServiceTest {
     fun `create and save empty statistic without customers`() {
         val testDistributionEntity = DistributionEntity().apply {
             id = 123
-            startedAt = ZonedDateTime.now().minusHours(2)
-            endedAt = ZonedDateTime.now()
+            startedAt = LocalDateTime.now().minusHours(2)
+            endedAt = LocalDateTime.now()
             customers = emptyList()
         }
 

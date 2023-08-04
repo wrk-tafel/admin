@@ -1,7 +1,8 @@
 package at.wrk.tafel.admin.backend.modules.customer.note
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
-import java.time.ZonedDateTime
+import java.time.LocalDateTime
+
 
 @ExcludeFromTestCoverage
 data class CustomerNotesResponse(
@@ -11,7 +12,7 @@ data class CustomerNotesResponse(
 @ExcludeFromTestCoverage
 data class CustomerNoteItem(
     val author: String? = null,
-    val timestamp: ZonedDateTime,
+    val timestamp: LocalDateTime,
     val note: String
 )
 

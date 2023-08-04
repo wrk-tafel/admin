@@ -2,7 +2,7 @@ package at.wrk.tafel.admin.backend.modules.distribution.ticket
 
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.distribution.DistributionService
-import at.wrk.tafel.admin.backend.modules.distribution.model.*
+import at.wrk.tafel.admin.backend.modules.distribution.model.TicketNumberResponse
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 

@@ -19,9 +19,8 @@ import org.testcontainers.shaded.org.apache.commons.lang3.SystemUtils
 import java.io.File
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
-import java.time.ZoneId
-import java.time.ZonedDateTime
 import javax.imageio.ImageIO
 
 class CustomerPdfServiceTest {
@@ -71,8 +70,8 @@ class CustomerPdfServiceTest {
         testUserEntity.lastname = "Last"
 
         testCustomer = CustomerEntity()
-        testCustomer.createdAt = ZonedDateTime.of(
-            LocalDate.of(2022, 10, 3), LocalTime.of(10, 10), ZoneId.systemDefault()
+        testCustomer.createdAt = LocalDateTime.of(
+            LocalDate.of(2022, 10, 3), LocalTime.of(10, 10)
         )
         testCustomer.customerId = 123
         testCustomer.issuer = testUserEntity
@@ -117,8 +116,8 @@ class CustomerPdfServiceTest {
         testCustomer.additionalPersons = mutableListOf(addPers1, addPers2, addPers3)
 
         testCustomerMinimal = CustomerEntity()
-        testCustomerMinimal.createdAt = ZonedDateTime.of(
-            LocalDate.of(2022, 10, 3), LocalTime.of(10, 10), ZoneId.systemDefault()
+        testCustomerMinimal.createdAt = LocalDateTime.of(
+            LocalDate.of(2022, 10, 3), LocalTime.of(10, 10)
         )
         testCustomerMinimal.customerId = 456
         testCustomerMinimal.lastname = "Mustermann"

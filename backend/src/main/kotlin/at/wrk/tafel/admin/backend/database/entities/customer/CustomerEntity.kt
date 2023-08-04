@@ -7,7 +7,7 @@ import at.wrk.tafel.admin.backend.database.entities.staticdata.CountryEntity
 import jakarta.persistence.*
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.time.ZonedDateTime
+import java.time.LocalDateTime
 
 @Entity(name = "Customer")
 @Table(name = "customers")
@@ -72,10 +72,10 @@ class CustomerEntity : BaseChangeTrackingEntity() {
     var locked: Boolean? = null
 
     @Column(name = "locked_at")
-    var lockedAt: ZonedDateTime? = null
+    var lockedAt: LocalDateTime? = null
 
     @Column(name = "prolonged_at")
-    var prolongedAt: ZonedDateTime? = null
+    var prolongedAt: LocalDateTime? = null
 
     @ManyToOne
     @JoinColumn(name = "locked_by")

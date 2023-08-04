@@ -22,7 +22,8 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.security.core.context.SecurityContextHolder
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.time.ZonedDateTime
+import java.time.LocalDateTime
+
 import java.util.*
 
 @ExtendWith(MockKExtension::class)
@@ -51,7 +52,7 @@ internal class CustomerNoteServiceTest {
         testCustomerEntity1 = CustomerEntity().apply {
             id = 1
             issuer = testUserEntity
-            createdAt = ZonedDateTime.now()
+            createdAt = LocalDateTime.now()
             customerId = 100
             lastname = "Mustermann"
             firstname = "Max"
@@ -111,12 +112,12 @@ internal class CustomerNoteServiceTest {
         val noteEntities = listOf(
             CustomerNoteEntity().apply {
                 this.user = testUserEntity
-                this.createdAt = ZonedDateTime.now().minusDays(1)
+                this.createdAt = LocalDateTime.now().minusDays(1)
                 this.note = "note 2"
             },
             CustomerNoteEntity().apply {
                 this.user = testUserEntity
-                this.createdAt = ZonedDateTime.now().minusDays(2)
+                this.createdAt = LocalDateTime.now().minusDays(2)
                 this.note = "note 1"
             },
         )
@@ -147,7 +148,7 @@ internal class CustomerNoteServiceTest {
 
         val noteEntity = CustomerNoteEntity()
         noteEntity.customer = testCustomerEntity1
-        noteEntity.createdAt = ZonedDateTime.now()
+        noteEntity.createdAt = LocalDateTime.now()
         noteEntity.user = testUserEntity
         noteEntity.note = note
         every { customerNoteRepository.save(any()) } returns noteEntity

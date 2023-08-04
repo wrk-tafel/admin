@@ -8,7 +8,6 @@ import org.springframework.messaging.simp.annotation.SendToUser
 import org.springframework.messaging.simp.annotation.SubscribeMapping
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.stereotype.Controller
-import java.util.*
 
 @Controller
 class ScannerController(
