@@ -24,9 +24,9 @@
   "private": true,
   "dependencies": {
     "@angular-devkit/core": "16.1.7",
-    "@angular-devkit/schematics": "16.1.6",
+    "@angular-devkit/schematics": "16.1.7",
     "@angular/animations": "16.1.7",
-    "@angular/cdk": "16.1.6",
+    "@angular/cdk": "16.1.7",
     "@angular/common": "16.1.7",
     "@angular/compiler": "16.1.7",
     "@angular/core": "16.1.7",
