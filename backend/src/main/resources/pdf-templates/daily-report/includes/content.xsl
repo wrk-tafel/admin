@@ -82,7 +82,7 @@
                         </fo:table-cell>
                         <fo:table-cell>
                             <fo:block>
-                                <xsl:value-of select="averagePersonsPerCustomer"/>
+                                <xsl:value-of select="format-number(averagePersonsPerCustomer,'#.##0,00', 'decimal-format')"/>
                             </fo:block>
                         </fo:table-cell>
                     </fo:table-row>

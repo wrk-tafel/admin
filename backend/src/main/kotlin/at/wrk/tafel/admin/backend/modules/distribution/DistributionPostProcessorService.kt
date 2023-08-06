@@ -18,7 +18,6 @@ class DistributionPostProcessorService(
     private val mailSenderService: MailSenderService
 ) {
 
-    @Async
     fun process(distribution: DistributionEntity) {
         val statistic = distributionStatisticService.createAndSaveStatistic(distribution)
 

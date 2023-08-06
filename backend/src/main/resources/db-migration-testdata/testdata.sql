@@ -113,7 +113,7 @@ values (1011, NOW(), NOW(), 101, 'Child 1', 'Musterfrau', '2000-01-01', 500, '29
 INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, employer,
                                   income,
                                   income_due, country_id, receives_familybonus)
-values (1012, NOW(), NOW(), 101, 'Child 2', 'Musterfrau', CURRENT_DATE - interval '8 year', 'Stadt Wien', null, null, 1,
+values (1012, NOW(), NOW(), 101, 'Child 2', 'Musterfrau', CURRENT_DATE - interval '2 year', 'Stadt Wien', null, null, 1,
         true);
 INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, employer,
                                   income,
