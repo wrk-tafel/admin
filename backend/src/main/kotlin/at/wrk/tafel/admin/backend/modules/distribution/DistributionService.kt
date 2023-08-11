@@ -94,7 +94,7 @@ class DistributionService(
             title = "Kundenliste zur Ausgabe vom $formattedDate",
             halftimeTicketNumber = halftimeTicketNumber,
             countPersonsOverall = countAddPersons + countCustomers,
-            customers = mapCustomers(sortedCustomers)
+            customers = mapCustomersForPdf(sortedCustomers)
         )
 
         val bytes = pdfService.generatePdf(data, "/pdf-templates/distribution-customerlist/customerlist.xsl")
@@ -171,7 +171,7 @@ class DistributionService(
             .firstOrNull()
     }
 
-    private fun mapCustomers(customers: List<DistributionCustomerEntity>): List<CustomerListItem> {
+    private fun mapCustomersForPdf(customers: List<DistributionCustomerEntity>): List<CustomerListItem> {
         return customers.map { distributionCustomerEntity ->
             val customer = distributionCustomerEntity.customer
             val countPersons = customer?.additionalPersons
@@ -184,7 +184,6 @@ class DistributionService(
             CustomerListItem(
                 ticketNumber = distributionCustomerEntity.ticketNumber!!,
                 customerId = customer?.customerId!!,
-                name = "${customer?.lastname} ${customer?.firstname}",
                 countPersons = countPersons,
                 countInfants = countInfants ?: 0
             )

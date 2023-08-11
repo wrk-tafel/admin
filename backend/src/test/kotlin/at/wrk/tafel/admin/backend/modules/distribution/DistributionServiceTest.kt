@@ -328,21 +328,18 @@ internal class DistributionServiceTest {
                     CustomerListItem(
                         ticketNumber = 50,
                         customerId = 100,
-                        name = "Mustermann Max",
                         countPersons = 2,
                         countInfants = 1
                     ),
                     CustomerListItem(
                         ticketNumber = 51,
                         customerId = 200,
-                        name = "Mustermann Max 2",
                         countPersons = 1,
                         countInfants = 0
                     ),
                     CustomerListItem(
                         ticketNumber = 52,
                         customerId = 300,
-                        name = "Mustermann Max 3",
                         countPersons = 1,
                         countInfants = 0
                     )

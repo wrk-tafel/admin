@@ -40,7 +40,6 @@ data class CustomerListPdfModel(
 data class CustomerListItem(
     val ticketNumber: Int,
     val customerId: Long,
-    val name: String,
     val countPersons: Int,
     val countInfants: Int
 )
