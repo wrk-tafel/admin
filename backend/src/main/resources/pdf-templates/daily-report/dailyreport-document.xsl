@@ -2,6 +2,7 @@
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:fo="http://www.w3.org/1999/XSL/Format"
                 version="1.1" exclude-result-prefixes="fo">
     <xsl:include href="/pdf-templates/daily-report/includes/content.xsl"/>
+    <xsl:decimal-format name="decimal-format" decimal-separator="," grouping-separator="."/>
     <xsl:template match="data">
         <fo:root xmlns:fo="http://www.w3.org/1999/XSL/Format">
             <fo:layout-master-set>

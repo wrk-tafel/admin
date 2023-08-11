@@ -16,6 +16,8 @@ import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.math.BigDecimal
+import java.math.RoundingMode
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.Period
@@ -81,8 +83,8 @@ class DistributionService(
         val sortedCustomers = currentDistribution.customers.sortedBy { it.ticketNumber }
         val countCustomers = sortedCustomers.size
 
-        val halftimeIndex = (countCustomers - 1) / 2
-        val halftimeTicketNumber = if (countCustomers > 2) sortedCustomers[halftimeIndex].ticketNumber!! else null
+        val halftimeIndex = BigDecimal(countCustomers - 1).divide(BigDecimal("2"), RoundingMode.FLOOR).toInt()
+        val halftimeTicketNumber = if (countCustomers > 1) sortedCustomers[halftimeIndex].ticketNumber!! else null
         val countAddPersons = sortedCustomers
             .map { it.customer }
             .flatMap {
@@ -93,8 +95,9 @@ class DistributionService(
         val data = CustomerListPdfModel(
             title = "Kundenliste zur Ausgabe vom $formattedDate",
             halftimeTicketNumber = halftimeTicketNumber,
+            countCustomersOverall = countCustomers,
             countPersonsOverall = countAddPersons + countCustomers,
-            customers = mapCustomers(sortedCustomers)
+            customers = mapCustomersForPdf(sortedCustomers)
         )
 
         val bytes = pdfService.generatePdf(data, "/pdf-templates/distribution-customerlist/customerlist.xsl")
@@ -171,7 +174,7 @@ class DistributionService(
             .firstOrNull()
     }
 
-    private fun mapCustomers(customers: List<DistributionCustomerEntity>): List<CustomerListItem> {
+    private fun mapCustomersForPdf(customers: List<DistributionCustomerEntity>): List<CustomerListItem> {
         return customers.map { distributionCustomerEntity ->
             val customer = distributionCustomerEntity.customer
             val countPersons = customer?.additionalPersons
@@ -184,7 +187,6 @@ class DistributionService(
             CustomerListItem(
                 ticketNumber = distributionCustomerEntity.ticketNumber!!,
                 customerId = customer?.customerId!!,
-                name = "${customer?.lastname} ${customer?.firstname}",
                 countPersons = countPersons,
                 countInfants = countInfants ?: 0
             )

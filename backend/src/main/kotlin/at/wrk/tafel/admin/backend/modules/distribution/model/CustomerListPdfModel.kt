@@ -32,6 +32,7 @@ data class CustomerListPdfResult(
 data class CustomerListPdfModel(
     val title: String,
     val halftimeTicketNumber: Int?,
+    val countCustomersOverall: Int?,
     val countPersonsOverall: Int?,
     val customers: List<CustomerListItem>
 )
@@ -40,7 +41,6 @@ data class CustomerListPdfModel(
 data class CustomerListItem(
     val ticketNumber: Int,
     val customerId: Long,
-    val name: String,
     val countPersons: Int,
     val countInfants: Int
 )
