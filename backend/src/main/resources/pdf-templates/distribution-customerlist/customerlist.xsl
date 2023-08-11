@@ -23,6 +23,9 @@
                         </fo:block>
                         <xsl:if test="halftimeTicketNumber">
                             <fo:block font-size="14pt" font-weight="bold" space-after="0.5cm">
+                                <xsl:value-of select="'Halbzeit - nach Ticketnummer: '"/><xsl:value-of select="halftimeTicketNumber"/>
+                            </fo:block>
+                            <fo:block font-size="14pt" font-weight="bold" space-after="0.5cm">
                                 <fo:table table-layout="fixed" width="100%">
                                     <fo:table-column column-width="50%"/>
                                     <fo:table-column column-width="50%"/>
@@ -30,12 +33,12 @@
                                         <fo:table-row>
                                             <fo:table-cell>
                                                 <fo:block>
-                                                    <xsl:value-of select="'Halbzeit - nach Ticketnummer: '"/><xsl:value-of select="halftimeTicketNumber"/>
+                                                    <xsl:value-of select="'Anzahl Haushalte: '"/><xsl:value-of select="countCustomersOverall"/>
                                                 </fo:block>
                                             </fo:table-cell>
                                             <fo:table-cell>
                                                 <fo:block>
-                                                    <xsl:value-of select="'Gesamtanzahl Personen: '"/><xsl:value-of select="countPersonsOverall"/>
+                                                    <xsl:value-of select="'Anzahl Personen: '"/><xsl:value-of select="countPersonsOverall"/>
                                                 </fo:block>
                                             </fo:table-cell>
                                         </fo:table-row>

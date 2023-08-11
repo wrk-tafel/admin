@@ -95,6 +95,7 @@ class DistributionService(
         val data = CustomerListPdfModel(
             title = "Kundenliste zur Ausgabe vom $formattedDate",
             halftimeTicketNumber = halftimeTicketNumber,
+            countCustomersOverall = countCustomers,
             countPersonsOverall = countAddPersons + countCustomers,
             customers = mapCustomersForPdf(sortedCustomers)
         )

@@ -32,6 +32,7 @@ data class CustomerListPdfResult(
 data class CustomerListPdfModel(
     val title: String,
     val halftimeTicketNumber: Int?,
+    val countCustomersOverall: Int?,
     val countPersonsOverall: Int?,
     val customers: List<CustomerListItem>
 )

@@ -323,6 +323,7 @@ internal class DistributionServiceTest {
             CustomerListPdfModel(
                 title = "Kundenliste zur Ausgabe vom $expectedFormattedDate",
                 halftimeTicketNumber = 51,
+                countCustomersOverall = 3,
                 countPersonsOverall = 4,
                 customers = listOf(
                     CustomerListItem(
