@@ -16,6 +16,8 @@ import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.math.BigDecimal
+import java.math.RoundingMode
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.Period
@@ -81,8 +83,8 @@ class DistributionService(
         val sortedCustomers = currentDistribution.customers.sortedBy { it.ticketNumber }
         val countCustomers = sortedCustomers.size
 
-        val halftimeIndex = (countCustomers - 1) / 2
-        val halftimeTicketNumber = if (countCustomers > 2) sortedCustomers[halftimeIndex].ticketNumber!! else null
+        val halftimeIndex = BigDecimal(countCustomers - 1).divide(BigDecimal("2"), RoundingMode.FLOOR).toInt()
+        val halftimeTicketNumber = if (countCustomers > 1) sortedCustomers[halftimeIndex].ticketNumber!! else null
         val countAddPersons = sortedCustomers
             .map { it.customer }
             .flatMap {
