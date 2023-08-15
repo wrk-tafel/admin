@@ -220,11 +220,11 @@ describe('CustomerFormComponent', () => {
     const fixture = TestBed.createComponent(CustomerFormComponent);
     const component = fixture.componentInstance;
     component.ngOnInit();
-    component.incomeDue.setValue('2000-01-01');
+    component.incomeDue.setValue(moment('01.01.2000', 'DD.MM.YYYY').toDate());
 
     fixture.detectChanges();
 
-    expect(component.validUntil.value).toBe('2000-03-01');
+    expect(component.validUntil.value).toEqual(moment('01.03.2000', 'DD.MM.YYYY').toDate());
   });
 
   it('validUntil set when incomeDue is updated respects additional persons', () => {
@@ -233,7 +233,7 @@ describe('CustomerFormComponent', () => {
     const fixture = TestBed.createComponent(CustomerFormComponent);
     const component = fixture.componentInstance;
     component.ngOnInit();
-    component.incomeDue.setValue('2000-03-03');
+    component.incomeDue.setValue(moment('03.03.2000', 'DD.MM.YYYY').toDate());
     component.addNewPerson();
     component.addNewPerson();
     component.additionalPersons.at(0).get('incomeDue').setValue('2000-02-02');
@@ -243,7 +243,7 @@ describe('CustomerFormComponent', () => {
 
     fixture.detectChanges();
 
-    expect(component.validUntil.value).toBe('2000-04-02');
+    expect(component.validUntil.value).toEqual(moment('02.04.2000', 'DD.MM.YYYY').toDate());
   });
 
 });

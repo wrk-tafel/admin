@@ -1,5 +1,5 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {UntypedFormArray, UntypedFormControl, UntypedFormGroup, Validators} from '@angular/forms';
+import {FormArray, FormControl, FormGroup, Validators} from '@angular/forms';
 import {CountryApiService, CountryData} from '../../../../api/country-api.service';
 import {CustomValidator} from '../../../../common/validator/CustomValidator';
 import {CustomerAddPersonData, CustomerData} from '../../../../api/customer-api.service';
@@ -20,41 +20,39 @@ export class CustomerFormComponent implements OnInit {
   }
 
   // TODO migrate to typed form
-  form = new UntypedFormGroup({
-    id: new UntypedFormControl(null),
-    lastname: new UntypedFormControl(null, [Validators.required, Validators.maxLength(50)]),
-    firstname: new UntypedFormControl(null, [Validators.required, Validators.maxLength(50)]),
-    birthDate: new UntypedFormControl(null,
-      [
-        Validators.required,
-        CustomValidator.minDate(new Date(1900, 0, 1)),
-        CustomValidator.maxDate(new Date())
-      ]
-    ),
+  form = new FormGroup({
+    id: new FormControl<number>(null),
+    lastname: new FormControl<string>(null, [Validators.required, Validators.maxLength(50)]),
+    firstname: new FormControl<string>(null, [Validators.required, Validators.maxLength(50)]),
+    birthDate: new FormControl<Date>(null, [
+      Validators.required,
+      CustomValidator.minDate(new Date(1900, 0, 1)),
+      CustomValidator.maxDate(new Date())
+    ]),
 
-    country: new UntypedFormControl(null, Validators.required),
-    telephoneNumber: new UntypedFormControl(null, [Validators.pattern('^[0-9]*$')]),
-    email: new UntypedFormControl(null, [Validators.maxLength(100), Validators.email]),
+    country: new FormControl<CountryData>(null, Validators.required),
+    telephoneNumber: new FormControl<string>(null, [Validators.pattern('^[0-9]*$')]),
+    email: new FormControl<string>(null, [Validators.maxLength(100), Validators.email]),
 
-    address: new UntypedFormGroup({
-      street: new UntypedFormControl(null, [Validators.required, Validators.maxLength(100)]),
-      houseNumber: new UntypedFormControl(null, [Validators.required, Validators.maxLength(10)]),
-      stairway: new UntypedFormControl(null),
-      door: new UntypedFormControl(null),
-      postalCode: new UntypedFormControl(null, [Validators.required, Validators.pattern('^[0-9]{4}$')]),
-      city: new UntypedFormControl(null, [Validators.required, Validators.maxLength(50)]),
+    address: new FormGroup({
+      street: new FormControl<string>(null, [Validators.required, Validators.maxLength(100)]),
+      houseNumber: new FormControl<string>(null, [Validators.required, Validators.maxLength(10)]),
+      stairway: new FormControl<string>(null),
+      door: new FormControl<string>(null),
+      postalCode: new FormControl<number>(null, [Validators.required, Validators.pattern('^[0-9]{4}$')]),
+      city: new FormControl<string>(null, [Validators.required, Validators.maxLength(50)]),
     }),
 
-    employer: new UntypedFormControl(null, Validators.required),
-    income: new UntypedFormControl(null, [Validators.required, Validators.min(1)]),
-    incomeDue: new UntypedFormControl(null, [CustomValidator.minDate(new Date())]),
+    employer: new FormControl<string>(null, Validators.required),
+    income: new FormControl<number>(null, [Validators.required, Validators.min(1)]),
+    incomeDue: new FormControl<Date>(null, [CustomValidator.minDate(new Date())]),
 
-    validUntil: new UntypedFormControl(null, [
+    validUntil: new FormControl<Date>(null, [
       Validators.required,
       CustomValidator.minDate(new Date())
     ]),
 
-    additionalPersons: new UntypedFormArray([])
+    additionalPersons: new FormArray([])
   });
   countries: CountryData[];
 
@@ -86,7 +84,7 @@ export class CustomerFormComponent implements OnInit {
     });
 
     this.form.valueChanges.subscribe(() => {
-      this.customerDataChange.emit(this.form.value);
+      this.customerDataChange.emit(this.form.getRawValue());
     });
   }
 
@@ -108,9 +106,7 @@ export class CustomerFormComponent implements OnInit {
     if (incomeDueValues.length > 0) {
       const minIncomeDueValue = new Date(Math.min.apply(null, incomeDueValues));
 
-      const derivedValidUntilDate = moment(minIncomeDueValue)
-        .add(2, 'months')
-        .format('YYYY-MM-DD');
+      const derivedValidUntilDate = moment(minIncomeDueValue).add(2, 'months').toDate();
       this.validUntil.setValue(derivedValidUntilDate);
     }
   }
@@ -119,7 +115,7 @@ export class CustomerFormComponent implements OnInit {
     return c1 && c2 ? c1.id === c2.id : c1 === c2;
   }
 
-  trackBy(index: number, personDataControl: UntypedFormGroup) {
+  trackBy(index: number, personDataControl: FormGroup) {
     const personData = personDataControl.value;
     return personData.key;
   }
@@ -158,24 +154,24 @@ export class CustomerFormComponent implements OnInit {
   }
 
   private pushPersonGroupControl(additionalPerson: CustomerAddPersonData) {
-    const control = new UntypedFormGroup({
-      key: new UntypedFormControl(additionalPerson.key),
-      id: new UntypedFormControl(additionalPerson.id),
-      lastname: new UntypedFormControl(additionalPerson.lastname, [Validators.required, Validators.maxLength(50)]),
-      firstname: new UntypedFormControl(additionalPerson.firstname, [Validators.required, Validators.maxLength(50)]),
-      birthDate: new UntypedFormControl(additionalPerson.birthDate, [
+    const control = new FormGroup({
+      key: new FormControl<number>(additionalPerson.key),
+      id: new FormControl<number>(additionalPerson.id),
+      lastname: new FormControl<string>(additionalPerson.lastname, [Validators.required, Validators.maxLength(50)]),
+      firstname: new FormControl<string>(additionalPerson.firstname, [Validators.required, Validators.maxLength(50)]),
+      birthDate: new FormControl<Date>(additionalPerson.birthDate, [
         Validators.required,
         CustomValidator.minDate(new Date(1920, 0, 1)),
         CustomValidator.maxDate(new Date())
       ]),
-      country: new UntypedFormControl(additionalPerson.country, Validators.required),
-      employer: new UntypedFormControl(additionalPerson.employer),
-      income: new UntypedFormControl(additionalPerson.income, [Validators.min(1)]),
-      incomeDue: new UntypedFormControl(additionalPerson.incomeDue, [
+      country: new FormControl<CountryData>(additionalPerson.country, Validators.required),
+      employer: new FormControl<string>(additionalPerson.employer),
+      income: new FormControl<number>(additionalPerson.income, [Validators.min(1)]),
+      incomeDue: new FormControl<Date>(additionalPerson.incomeDue, [
         CustomValidator.minDate(new Date())
       ]),
-      excludeFromHousehold: new UntypedFormControl(additionalPerson.excludeFromHousehold),
-      receivesFamilyBonus: new UntypedFormControl(additionalPerson.receivesFamilyBonus),
+      excludeFromHousehold: new FormControl<boolean>(additionalPerson.excludeFromHousehold),
+      receivesFamilyBonus: new FormControl<boolean>(additionalPerson.receivesFamilyBonus),
     });
 
     control.get('incomeDue').valueChanges.subscribe(() => {
@@ -254,7 +250,7 @@ export class CustomerFormComponent implements OnInit {
   }
 
   get additionalPersons() {
-    return this.form.get('additionalPersons') as UntypedFormArray;
+    return this.form.get('additionalPersons') as FormArray;
   }
 
 }
