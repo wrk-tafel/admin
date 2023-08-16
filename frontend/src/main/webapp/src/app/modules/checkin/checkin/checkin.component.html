@@ -31,7 +31,7 @@
             <label class="form-label">Kundennummer</label>
           </c-col>
           <c-col sm="3" class="mb-3">
-            <input testid="customerIdText" type="number" name="customerIdInput" [(ngModel)]="customerId"
+            <input testid="customerIdInput" #customerIdInput type="number" name="customerIdInput" [(ngModel)]="customerId"
                    class="form-control" (keydown.enter)="searchForCustomerId()">
           </c-col>
           <c-col sm="3">

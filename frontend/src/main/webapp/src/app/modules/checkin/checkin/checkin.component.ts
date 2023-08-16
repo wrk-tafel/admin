@@ -48,6 +48,7 @@ export class CheckinComponent implements OnInit, OnDestroy {
   ticketNumber: number;
   ticketNumberEdit = false;
 
+  @ViewChild('customerIdInput') customerIdInputRef: ElementRef;
   @ViewChild('ticketNumberInput') ticketNumberInputRef: ElementRef;
   @ViewChild('cancelButton') cancelButtonRef: ElementRef;
 
@@ -168,6 +169,7 @@ export class CheckinComponent implements OnInit, OnDestroy {
     this.customerId = undefined;
     this.ticketNumber = undefined;
     this.ticketNumberEdit = undefined;
+    this.customerIdInputRef.nativeElement.focus();
   }
 
   formatAddress(): string {
@@ -193,6 +195,7 @@ export class CheckinComponent implements OnInit, OnDestroy {
         next: (response) => this.cancel()
       };
       this.distributionApiService.assignCustomer(this.customer.id, this.ticketNumber).subscribe(observer);
+      this.customerIdInputRef.nativeElement.focus();
     }
   }
 
