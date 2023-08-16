@@ -57,7 +57,6 @@ describe('DefaultHeaderComponent', () => {
 
     fixture = TestBed.createComponent(DefaultHeaderComponent);
     component = fixture.componentInstance;
-    fixture.detectChanges();
   });
 
   it('should create', () => {
