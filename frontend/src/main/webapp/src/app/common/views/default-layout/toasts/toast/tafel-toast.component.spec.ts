@@ -27,7 +27,6 @@ describe('TafelToastComponent', () => {
   it('should create the component', waitForAsync(() => {
     const fixture = TestBed.createComponent(TafelToastComponent);
     const component = fixture.componentInstance;
-    fixture.detectChanges();
 
     expect(component).toBeTruthy();
   }));
