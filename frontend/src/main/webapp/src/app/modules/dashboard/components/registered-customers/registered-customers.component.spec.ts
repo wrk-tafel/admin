@@ -62,7 +62,6 @@ describe('RegisteredCustomersComponent', () => {
   it('download customers list', () => {
     const fixture = TestBed.createComponent(RegisteredCustomersComponent);
     const component = fixture.componentInstance;
-    fixture.detectChanges();
 
     const response = new HttpResponse({
       status: 200,
