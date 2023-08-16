@@ -1,6 +1,5 @@
 # TODO
 * Centralize testdata / mocks
-* Add checkbox to define if familyBonus is granted or not (main person as well additional persons)
 
 ## Minor changes
 * Checkin: Set focus on customerId after ticket assigned
