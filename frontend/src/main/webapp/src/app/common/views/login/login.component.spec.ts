@@ -49,7 +49,6 @@ describe('LoginComponent', () => {
   it('should create the component', waitForAsync(() => {
     const fixture = TestBed.createComponent(LoginComponent);
     const component = fixture.componentInstance;
-    fixture.detectChanges();
 
     expect(component).toBeTruthy();
   }));
@@ -80,7 +79,6 @@ describe('LoginComponent', () => {
 
     const fixture = TestBed.createComponent(LoginComponent);
     const component = fixture.componentInstance;
-    fixture.detectChanges();
 
     component.loginForm.setValue({
       'username': 'user',
@@ -103,7 +101,6 @@ describe('LoginComponent', () => {
 
     const fixture = TestBed.createComponent(LoginComponent);
     const component = fixture.componentInstance;
-    fixture.detectChanges();
 
     component.loginForm.setValue({
       'username': 'user',
@@ -121,7 +118,6 @@ describe('LoginComponent', () => {
 
     const fixture = TestBed.createComponent(LoginComponent);
     const component = fixture.componentInstance;
-    fixture.detectChanges();
 
     component.loginForm.setValue({
       'username': 'user',

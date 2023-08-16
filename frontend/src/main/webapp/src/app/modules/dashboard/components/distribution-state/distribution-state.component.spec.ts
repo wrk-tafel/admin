@@ -48,8 +48,6 @@ describe('DistributionStateComponent', () => {
     const subject = new BehaviorSubject<DistributionItem>(null);
     globalStateService.getCurrentDistribution.and.returnValue(subject);
 
-    fixture.detectChanges();
-
     expect(component).toBeTruthy();
   });
 
@@ -63,7 +61,6 @@ describe('DistributionStateComponent', () => {
 
     component.ngOnInit();
 
-    fixture.detectChanges();
     expect(component.distribution).toEqual(distribution);
     expect(globalStateService.getCurrentDistribution).toHaveBeenCalled();
   });
@@ -77,7 +74,6 @@ describe('DistributionStateComponent', () => {
 
     component.ngOnInit();
 
-    fixture.detectChanges();
     expect(component.distribution).toBeNull();
     expect(globalStateService.getCurrentDistribution).toHaveBeenCalled();
   });
@@ -92,7 +88,6 @@ describe('DistributionStateComponent', () => {
 
     component.createNewDistribution();
 
-    fixture.detectChanges();
     expect(distributionApiService.createNewDistribution).toHaveBeenCalled();
   });
 
@@ -107,7 +102,6 @@ describe('DistributionStateComponent', () => {
 
     component.closeDistribution();
 
-    fixture.detectChanges();
     expect(distributionApiService.closeDistribution).toHaveBeenCalled();
     expect(component.showCloseDistributionModal).toBeFalsy();
   });

@@ -154,7 +154,6 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
 
     component.save();
 
-    fixture.detectChanges();
     expect(component.isSaveEnabled()).toBeTrue();
     expect(component.editMode).toBeTrue();
     expect(component.customerInput).toEqual(testCustomerData);

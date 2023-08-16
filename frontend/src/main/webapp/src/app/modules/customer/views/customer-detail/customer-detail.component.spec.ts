@@ -180,7 +180,6 @@ describe('CustomerDetailComponent', () => {
   it('component can be created', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
-    fixture.detectChanges();
 
     expect(component).toBeTruthy();
   });
@@ -248,7 +247,6 @@ describe('CustomerDetailComponent', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
     component.ngOnInit();
-    fixture.detectChanges();
 
     component.printMasterdata();
 
@@ -268,7 +266,6 @@ describe('CustomerDetailComponent', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
     component.ngOnInit();
-    fixture.detectChanges();
 
     component.printIdCard();
 
@@ -288,7 +285,6 @@ describe('CustomerDetailComponent', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
     component.ngOnInit();
-    fixture.detectChanges();
 
     component.printCombined();
 
@@ -299,7 +295,6 @@ describe('CustomerDetailComponent', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
     component.ngOnInit();
-    fixture.detectChanges();
 
     component.editCustomer();
 
@@ -316,7 +311,6 @@ describe('CustomerDetailComponent', () => {
 
     const valid = component.isValid();
 
-    fixture.detectChanges();
     expect(valid).toBeFalsy();
   });
 
@@ -327,7 +321,6 @@ describe('CustomerDetailComponent', () => {
       ...mockCustomer,
       validUntil: moment().toDate()
     };
-    fixture.detectChanges();
 
     const valid = component.isValid();
 
@@ -341,7 +334,6 @@ describe('CustomerDetailComponent', () => {
       ...mockCustomer,
       validUntil: moment().add(1, 'days').toDate()
     };
-    fixture.detectChanges();
 
     const valid = component.isValid();
     expect(valid).toBeTrue();
@@ -353,7 +345,6 @@ describe('CustomerDetailComponent', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
     component.customerData = mockCustomer;
-    fixture.detectChanges();
 
     customerApiService.deleteCustomer.and.returnValue(of(null));
 
@@ -368,7 +359,6 @@ describe('CustomerDetailComponent', () => {
     const component = fixture.componentInstance;
     component.showDeleteCustomerModal = true;
     component.customerData = mockCustomer;
-    fixture.detectChanges();
 
     customerApiService.deleteCustomer.and.returnValue(throwError(() => {
       return {status: 404};
@@ -386,7 +376,6 @@ describe('CustomerDetailComponent', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
     component.customerData = mockCustomer;
-    fixture.detectChanges();
 
     const expectedCustomerData = {
       ...mockCustomer,
@@ -404,7 +393,6 @@ describe('CustomerDetailComponent', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
     component.customerData = mockCustomer;
-    fixture.detectChanges();
 
     const expectedCustomerData = {
       ...mockCustomer,
@@ -424,7 +412,6 @@ describe('CustomerDetailComponent', () => {
     component.customerData = mockCustomer;
     const lockReasonText = 'locked due to lorem ipsum';
     component.lockReasonText = lockReasonText;
-    fixture.detectChanges();
 
     const expectedCustomerData = {
       ...mockCustomer,
@@ -471,7 +458,6 @@ describe('CustomerDetailComponent', () => {
     const noteText = 'new note\ntext';
     const sanitizedNoteText = 'new note<br/>text';
     component.newNoteText = noteText;
-    fixture.detectChanges();
 
     const resultNote: CustomerNoteItem = {
       author: 'author1',

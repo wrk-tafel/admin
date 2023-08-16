@@ -19,7 +19,6 @@ export class CustomerFormComponent implements OnInit {
   ) {
   }
 
-  // TODO migrate to typed form
   form = new FormGroup({
     id: new FormControl<number>(null),
     lastname: new FormControl<string>(null, [Validators.required, Validators.maxLength(50)]),

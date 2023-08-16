@@ -1,8 +1,6 @@
 import * as path from 'path';
 import * as moment from 'moment';
 
-// TODO optimize structure
-
 describe('Customer Detail', () => {
 
   beforeEach(() => {

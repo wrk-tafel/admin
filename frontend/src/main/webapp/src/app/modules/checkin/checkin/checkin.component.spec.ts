@@ -582,6 +582,12 @@ describe('CheckinComponent', () => {
       }
     });
     spyOn(component.ticketNumberInputRef.nativeElement, 'focus');
+    component.customerIdInputRef = new ElementRef({
+      /* eslint-disable @typescript-eslint/no-empty-function */
+      focus() {
+      }
+    });
+    spyOn(component.customerIdInputRef.nativeElement, 'focus');
 
     const changeDetectorRef = fixture.debugElement.injector.get(ChangeDetectorRef);
     spyOn(changeDetectorRef.constructor.prototype, 'detectChanges');
@@ -614,6 +620,7 @@ describe('CheckinComponent', () => {
     expect(component.customerStateText).toBeUndefined();
     expect(component.customerNotes).toBeDefined();
     expect(component.customerNotes.length).toBe(0);
+    expect(component.customerIdInputRef.nativeElement.focus).toHaveBeenCalled();
   });
 
   it('assign customer', () => {
@@ -625,6 +632,12 @@ describe('CheckinComponent', () => {
       }
     });
     spyOn(component.ticketNumberInputRef.nativeElement, 'focus');
+    component.customerIdInputRef = new ElementRef({
+      /* eslint-disable @typescript-eslint/no-empty-function */
+      focus() {
+      }
+    });
+    spyOn(component.customerIdInputRef.nativeElement, 'focus');
 
     const changeDetectorRef = fixture.debugElement.injector.get(ChangeDetectorRef);
     spyOn(changeDetectorRef.constructor.prototype, 'detectChanges');
@@ -665,6 +678,7 @@ describe('CheckinComponent', () => {
     expect(component.customerNotes).toBeDefined();
     expect(component.customerNotes.length).toBe(0);
     expect(component.ticketNumber).toBeUndefined();
+    expect(component.customerIdInputRef.nativeElement.focus).toHaveBeenCalled();
   });
 
   it('assign customer ignored without proper value', () => {

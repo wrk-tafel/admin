@@ -12,7 +12,7 @@ describe('CheckIn', () => {
   it('customer added, counted on dashboard and deleted again', () => {
     cy.visit('/#/anmeldung/annahme');
 
-    cy.byTestId('customerIdText').type('100');
+    cy.byTestId('customerIdInput').type('100');
     cy.byTestId('showCustomerButton').click();
 
     cy.byTestId('customerDetailPanel').should('be.visible');
@@ -20,7 +20,7 @@ describe('CheckIn', () => {
     cy.byTestId('ticketNumberInput').type('10');
     cy.byTestId('assignCustomerButton').click();
 
-    cy.byTestId('customerIdText').should('not.have.text');
+    cy.byTestId('customerIdInput').should('not.have.text');
     cy.byTestId('errorMessage').should('not.exist');
     cy.byTestId('customerDetailPanel').should('not.exist');
 
@@ -30,7 +30,7 @@ describe('CheckIn', () => {
 
     cy.visit('/#/anmeldung/annahme');
 
-    cy.byTestId('customerIdText').type('100');
+    cy.byTestId('customerIdInput').type('100');
     cy.byTestId('showCustomerButton').click();
 
     cy.byTestId('ticketNumberInput').should('have.value', '10');
