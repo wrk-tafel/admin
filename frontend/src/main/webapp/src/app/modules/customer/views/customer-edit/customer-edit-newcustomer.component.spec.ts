@@ -134,8 +134,8 @@ describe('CustomerEditComponent - Creating a new customer', () => {
     const fixture = TestBed.createComponent(CustomerEditComponent);
     const component = fixture.componentInstance;
     expect(component).toBeTruthy();
-
     fixture.detectChanges();
+
     expect(fixture.debugElement.query(By.css('[testid="nopersons-label"]'))).toBeTruthy();
     expect(component.editMode).toBeFalse();
     expect(component.customerValidForSave).toBeFalse();
@@ -178,7 +178,6 @@ describe('CustomerEditComponent - Creating a new customer', () => {
     component.customerUpdated = testCustomerData;
 
     component.save();
-    fixture.detectChanges();
 
     expect(component.isSaveEnabled()).toBeFalse();
     expect(customerFormComponent.markAllAsTouched).toHaveBeenCalled();
@@ -190,7 +189,6 @@ describe('CustomerEditComponent - Creating a new customer', () => {
   it('new customer validated successfully', () => {
     const fixture = TestBed.createComponent(CustomerEditComponent);
     const component = fixture.componentInstance;
-    fixture.detectChanges();
 
     const customerFormComponent = jasmine.createSpyObj('CustomerFormComponent', ['markAllAsTouched', 'isValid']);
     customerFormComponent.isValid.and.returnValue(true);
@@ -208,7 +206,6 @@ describe('CustomerEditComponent - Creating a new customer', () => {
     }));
 
     component.validate();
-    fixture.detectChanges();
 
     expect(component.isSaveEnabled()).toBeTrue();
     expect(customerFormComponent.markAllAsTouched).toHaveBeenCalled();
@@ -236,7 +233,6 @@ describe('CustomerEditComponent - Creating a new customer', () => {
     component.customerUpdated = testCustomerData;
 
     component.validate();
-    fixture.detectChanges();
 
     expect(component.isSaveEnabled()).toBeFalse();
     expect(customerFormComponent.markAllAsTouched).toHaveBeenCalled();
