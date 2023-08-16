@@ -51,7 +51,6 @@ describe('DefaultLayoutComponent', () => {
 
     const fixture = TestBed.createComponent(DefaultLayoutComponent);
     const component = fixture.componentInstance;
-    fixture.detectChanges();
 
     expect(component).toBeTruthy();
   }));
@@ -72,7 +71,6 @@ describe('DefaultLayoutComponent', () => {
 
     const filteredItems = component.filterNavItemsByPermissions(testMenuItems);
 
-    fixture.detectChanges();
     expect(filteredItems).toEqual([]);
   });
 
@@ -82,7 +80,6 @@ describe('DefaultLayoutComponent', () => {
 
     const filteredItems = component.filterNavItemsByPermissions(null);
 
-    fixture.detectChanges();
     expect(filteredItems).toEqual([]);
   });
 
@@ -94,7 +91,6 @@ describe('DefaultLayoutComponent', () => {
 
     const filteredItems = component.filterNavItemsByPermissions([]);
 
-    fixture.detectChanges();
     expect(filteredItems).toEqual([]);
   });
 
@@ -111,7 +107,6 @@ describe('DefaultLayoutComponent', () => {
       }
     ]);
 
-    fixture.detectChanges();
     expect(filteredItems).toEqual([]);
   });
 
@@ -128,7 +123,6 @@ describe('DefaultLayoutComponent', () => {
 
     const filteredItems = component.filterNavItemsByPermissions(testMenuItems);
 
-    fixture.detectChanges();
     expect(filteredItems).toEqual(testMenuItems);
   });
 
@@ -146,7 +140,6 @@ describe('DefaultLayoutComponent', () => {
 
     const filteredItems = component.filterNavItemsByPermissions(testMenuItems);
 
-    fixture.detectChanges();
     expect(filteredItems).toEqual(testMenuItems);
   });
 
@@ -170,7 +163,6 @@ describe('DefaultLayoutComponent', () => {
 
     const filteredItems = component.filterNavItemsByPermissions(testMenuItems);
 
-    fixture.detectChanges();
     expect(filteredItems).toEqual([testMenuItem2]);
   }));
 
@@ -207,7 +199,6 @@ describe('DefaultLayoutComponent', () => {
 
     const filteredItems = component.filterEmptyTitleItems(testMenuItems);
 
-    fixture.detectChanges();
     expect(filteredItems).toEqual([testMenuItem1, testMenuItem2, testMenuItem3, testMenuItem5, testMenuItem6]);
   }));
 
@@ -226,7 +217,6 @@ describe('DefaultLayoutComponent', () => {
 
     const fixture = TestBed.createComponent(DefaultLayoutComponent);
     const component = fixture.componentInstance;
-    fixture.detectChanges();
     component.navItems = testMenuItems;
 
     const editedItems = component.editNavItemsForDistributionState(testMenuItems, null);
@@ -278,7 +268,6 @@ describe('DefaultLayoutComponent', () => {
 
     const fixture = TestBed.createComponent(DefaultLayoutComponent);
     const component = fixture.componentInstance;
-    fixture.detectChanges();
     component.navItems = testMenuItems;
 
     const editedItems = component.editNavItemsForDistributionState(testMenuItems, testDistribution);
