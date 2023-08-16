@@ -45,7 +45,6 @@ describe('LoginPasswordChangeComponent', () => {
   it('should create the component', waitForAsync(() => {
     const fixture = TestBed.createComponent(LoginPasswordChangeComponent);
     const component = fixture.componentInstance;
-    fixture.detectChanges();
 
     expect(component).toBeTruthy();
   }));
@@ -53,7 +52,6 @@ describe('LoginPasswordChangeComponent', () => {
   it('cancel password change', waitForAsync(() => {
     const fixture = TestBed.createComponent(LoginPasswordChangeComponent);
     const component = fixture.componentInstance;
-    fixture.detectChanges();
 
     component.cancel();
 
@@ -64,7 +62,6 @@ describe('LoginPasswordChangeComponent', () => {
     const fixture = TestBed.createComponent(LoginPasswordChangeComponent);
     const component = fixture.componentInstance;
     component.form = undefined;
-    fixture.detectChanges();
 
     expect(component.isSaveDisabled()).toBeTrue();
   }));
