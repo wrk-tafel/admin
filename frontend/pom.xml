@@ -11,7 +11,7 @@
     <artifactId>frontend</artifactId>
 
     <properties>
-        <sonar.eslint.reportPaths>${project.basedir}/frontend/src/main/webapp/eslint-result.json</sonar.eslint.reportPaths>
+        <sonar.eslint.reportPaths>${project.basedir}/src/main/webapp/eslint-result.json</sonar.eslint.reportPaths>
     </properties>
 
     <build>
