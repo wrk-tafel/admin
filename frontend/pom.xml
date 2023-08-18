@@ -19,7 +19,7 @@
                 <executions>
                     <execution>
                         <id>npm install</id>
-                        <phase>install</phase>
+                        <phase>generate-resources</phase>
                         <goals>
                             <goal>exec</goal>
                         </goals>
