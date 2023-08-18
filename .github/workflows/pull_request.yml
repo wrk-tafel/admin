@@ -6,18 +6,14 @@ on:
 jobs:
   build:
     uses: ./.github/workflows/subflow_build.yml
-  analysis-lint:
-    uses: ./.github/workflows/subflow_analysis_lint.yml
-  analysis-sonar:
-    uses: ./.github/workflows/subflow_sonar.yml
-    needs:
-      - analysis-lint
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+  analysis-lint:
+    uses: ./.github/workflows/subflow_analysis_lint.yml
   test-backend:
     uses: ./.github/workflows/subflow_test-backend.yml
   test-frontend:
     uses: ./.github/workflows/subflow_test-frontend.yml
   e2e-test:
     uses: ./.github/workflows/subflow_e2e_test.yml
-    needs: build
+    needs: build-analysis

@@ -35,13 +35,6 @@ jobs:
       - run: npm run lint
         working-directory: frontend/src/main/webapp
         continue-on-error: true
-      - uses: actions/upload-artifact@v3
-        if: always()
-        with:
-          name: frontend-eslint-result
-          path: ./frontend/src/main/webapp/eslint-result.json
-          if-no-files-found: error
-          retention-days: 2
 
   # TODO tslint frontend
   # migrate: https://github.com/angular-eslint/angular-eslint#migrating-an-angular-cli-project-from-codelyzer-and-tslint

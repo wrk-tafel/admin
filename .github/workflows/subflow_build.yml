@@ -1,4 +1,4 @@
-name: Build and Test
+name: Build and Analyze
 
 env:
   JAVA_VERSION: '17'
@@ -7,10 +7,15 @@ env:
 on:
   workflow_dispatch:
   workflow_call:
+    secrets:
+      SONAR_TOKEN:
+        required: true
 
 jobs:
   run:
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read # allows SonarCloud to decorate PRs with analysis results
     steps:
       - uses: actions/checkout@v3
       - name: Set up JDK 17
@@ -19,8 +24,10 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: ${{ env.JAVA_DISTRIBUTION }}
           cache: 'maven'
-      - name: Execute maven build
+      - name: Build
         run: ./mvnw clean install -DskipTests
+      - name: Analyze
+        run: ./mvnw sonar:sonar
       - uses: actions/upload-artifact@v3
         with:
           name: admin-jarfile
