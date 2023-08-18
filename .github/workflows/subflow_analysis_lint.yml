@@ -10,7 +10,7 @@ on:
   workflow_call:
 
 jobs:
-  backend:
+  analysis-backend:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -21,7 +21,7 @@ jobs:
           ktlint --reporter=plain?group_by_file --disabled_rules=no-wildcard-imports, no-blank-line-before-rbrace, indent, filename, no-wildcard-imports
         continue-on-error: true
 
-  frontend:
+  analysis-frontend:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
