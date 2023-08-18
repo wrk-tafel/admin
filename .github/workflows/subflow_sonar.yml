@@ -57,10 +57,11 @@ jobs:
     permissions:
       pull-requests: read # allows SonarCloud to decorate PRs with analysis results
     steps:
+      - uses: actions/checkout@v3
       - uses: actions/download-artifact@v3
         with:
           name: frontend-eslint-result
-          path: ./eslint-result
+          path: ./artifacts
       - name: Analyze with SonarCloud
         uses: SonarSource/sonarcloud-github-action@v2.0.0
         env:
@@ -71,5 +72,5 @@ jobs:
           args: >
             -Dsonar.projectKey=wrk-tafel-admin
             -Dsonar.organization=wrk-tafel
-            -Dsonar.exclusions=frontend/src/main/template/**,./eslint-result/**
-            -Dsonar.eslint.reportPaths=./eslint-result/eslint-result.json
+            -Dsonar.exclusions=frontend/src/main/template/**,./artifacts/**
+            -Dsonar.eslint.reportPaths=./artifacts/eslint-result.json

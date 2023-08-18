@@ -27,7 +27,7 @@ jobs:
     needs: build
   docker-image:
     uses: ./.github/workflows/subflow_build_image.yml
-    needs: [test-backend, test-frontend, e2e-test]
+    needs: [test-backend, test-frontend, e2e-test, analysis-sonar]
   docker-hub:
     uses: ./.github/workflows/subflow_publish_image.yml
     needs: docker-image
