@@ -12,7 +12,7 @@ on:
         required: true
 
 jobs:
-  run:
+  build-and-analyze:
     runs-on: ubuntu-latest
     permissions:
       pull-requests: read # allows SonarCloud to decorate PRs with analysis results
