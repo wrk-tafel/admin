@@ -31,9 +31,9 @@ module.exports = function (config) {
       dir: require('path').join(__dirname, './coverage'),
       subdir: '.',
       reporters: [
-        {type: 'html', dir: 'html-report'},
-        {type: 'text-summary', file: 'coverage.txt'},
-        {type: 'lcov', file: 'coverage.lcov'}
+        {type: 'html'},
+        {type: 'text-summary'},
+        {type: 'lcovonly'}
       ]
     },
     angularCli: {
