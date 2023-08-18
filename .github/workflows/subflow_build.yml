@@ -30,6 +30,12 @@ jobs:
         run: npm run lint -- --format=json --output-file eslint-result.json
         working-directory: frontend/src/main/webapp
         continue-on-error: true
+      - uses: actions/upload-artifact@v3
+        with:
+          name: frontend-eslint-result
+          path: frontend/src/main/webapp/eslint-result.json
+          if-no-files-found: error
+          retention-days: 1
       - name: Linting backend
         run: ./mvnw -pl backend detekt:check
         continue-on-error: true
