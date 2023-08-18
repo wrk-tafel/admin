@@ -16,4 +16,4 @@ jobs:
     uses: ./.github/workflows/subflow_test-frontend.yml
   e2e-test:
     uses: ./.github/workflows/subflow_e2e_test.yml
-    needs: build-analysis
+    needs: build

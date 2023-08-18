@@ -20,10 +20,10 @@ jobs:
     uses: ./.github/workflows/subflow_test-frontend.yml
   e2e-test:
     uses: ./.github/workflows/subflow_e2e_test.yml
-    needs: build-analysis
+    needs: build
   docker-image:
     uses: ./.github/workflows/subflow_build_image.yml
-    needs: [build-analysis, test-backend, test-frontend, e2e-test]
+    needs: [build, test-backend, test-frontend, e2e-test]
   docker-hub:
     uses: ./.github/workflows/subflow_publish_image.yml
     needs: docker-image
