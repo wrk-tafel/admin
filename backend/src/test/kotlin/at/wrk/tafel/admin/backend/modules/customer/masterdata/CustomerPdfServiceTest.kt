@@ -8,6 +8,7 @@ import at.wrk.tafel.admin.backend.modules.base.testCountry
 import com.github.romankh3.image.comparison.ImageComparison
 import com.github.romankh3.image.comparison.model.ImageComparisonState
 import org.apache.commons.io.FileUtils
+import org.apache.pdfbox.Loader
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.rendering.ImageType
 import org.apache.pdfbox.rendering.PDFRenderer
@@ -139,7 +140,7 @@ class CustomerPdfServiceTest {
         val pdfBytes = service.generateMasterdataPdf(testCustomer)
         FileUtils.writeByteArrayToFile(File(comparisonResultDirectory, "masterdata-result.pdf"), pdfBytes)
 
-        val document: PDDocument = PDDocument.load(pdfBytes)
+        val document: PDDocument = Loader.loadPDF(pdfBytes)
         val pdfRenderer = PDFRenderer(document)
 
         assertThat(document.numberOfPages).isEqualTo(1)
@@ -162,7 +163,7 @@ class CustomerPdfServiceTest {
         val pdfBytes = service.generateIdCardPdf(testCustomer)
         FileUtils.writeByteArrayToFile(File(comparisonResultDirectory, "idcard-result.pdf"), pdfBytes)
 
-        val document: PDDocument = PDDocument.load(pdfBytes)
+        val document: PDDocument = Loader.loadPDF(pdfBytes)
         val pdfRenderer = PDFRenderer(document)
 
         assertThat(document.numberOfPages).isEqualTo(2)
@@ -195,7 +196,7 @@ class CustomerPdfServiceTest {
         val pdfBytes = service.generateCombinedPdf(testCustomer)
         FileUtils.writeByteArrayToFile(File(comparisonResultDirectory, "combined-result.pdf"), pdfBytes)
 
-        val document: PDDocument = PDDocument.load(pdfBytes)
+        val document: PDDocument = Loader.loadPDF(pdfBytes)
         val pdfRenderer = PDFRenderer(document)
 
         assertThat(document.numberOfPages).isEqualTo(2)
@@ -228,7 +229,7 @@ class CustomerPdfServiceTest {
         val pdfBytes = service.generateCombinedPdf(testCustomerMinimal)
         FileUtils.writeByteArrayToFile(File(comparisonResultDirectory, "combined-result.pdf"), pdfBytes)
 
-        val document: PDDocument = PDDocument.load(pdfBytes)
+        val document: PDDocument = Loader.loadPDF(pdfBytes)
         assertThat(document.numberOfPages).isEqualTo(2)
         document.close()
     }
