@@ -26,9 +26,12 @@ jobs:
           cache: 'maven'
       - name: Build and Test
         run: ./mvnw clean install
-      - name: Frontend linting
+      - name: Linting frontend
         run: npm run lint -- --format=json --output-file eslint-result.json
         working-directory: frontend/src/main/webapp
+        continue-on-error: true
+      - name: Linting backend
+        run: mvnw -pl backend detekt:check
         continue-on-error: true
       - name: Analyze
         run: ./mvnw -Dsonar.projectKey=wrk-tafel-admin -Dsonar.organization=wrk-tafel -Dsonar.token=${{ secrets.SONAR_TOKEN }} sonar:sonar

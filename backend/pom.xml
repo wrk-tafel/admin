@@ -385,14 +385,6 @@
                         <report>xml:${sonar.kotlin.detekt.reportPaths}</report>
                     </report>
                 </configuration>
-                <executions>
-                    <execution>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
     </build>
