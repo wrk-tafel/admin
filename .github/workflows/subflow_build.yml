@@ -27,7 +27,7 @@ jobs:
       - name: Build and Test
         run: ./mvnw clean install
       - name: Frontend linting
-        run: npm run lint --format=json --output-file eslint-result.json
+        run: npm run lint -- --format=json --output-file eslint-result.json
         working-directory: frontend/src/main/webapp
       - name: Analyze
         run: ./mvnw -Dsonar.projectKey=wrk-tafel-admin -Dsonar.organization=wrk-tafel sonar:sonar
