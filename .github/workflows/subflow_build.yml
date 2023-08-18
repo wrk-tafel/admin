@@ -29,6 +29,7 @@ jobs:
       - name: Frontend linting
         run: npm run lint -- --format=json --output-file eslint-result.json
         working-directory: frontend/src/main/webapp
+        continue-on-error: true
       - name: Analyze
         run: ./mvnw -Dsonar.projectKey=wrk-tafel-admin -Dsonar.organization=wrk-tafel sonar:sonar
       - uses: actions/upload-artifact@v3
