@@ -4,7 +4,7 @@ import {WebsocketService} from '../../../common/websocket/websocket.service';
 import {Subscription} from 'rxjs';
 import {IMessage} from '@stomp/stompjs';
 import * as moment from 'moment';
-import {ScannerList} from "../scanner/scanner.component";
+import {ScannerList} from '../scanner/scanner.component';
 import {CustomerNoteApiService, CustomerNoteItem} from '../../../api/customer-note-api.service';
 import {GlobalStateService} from '../../../common/state/global-state.service';
 import {Router} from '@angular/router';
@@ -46,7 +46,7 @@ export class CheckinComponent implements OnInit, OnDestroy {
 
   customerNotes: CustomerNoteItem[];
   ticketNumber: number;
-  ticketNumberEdit = false;
+  ticketNumberEdit: boolean = false;
 
   @ViewChild('customerIdInput') customerIdInputRef: ElementRef;
   @ViewChild('ticketNumberInput') ticketNumberInputRef: ElementRef;
