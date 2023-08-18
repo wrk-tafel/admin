@@ -36,6 +36,12 @@ jobs:
           path: frontend/src/main/webapp/eslint-result.json
           if-no-files-found: error
           retention-days: 1
+      - uses: actions/upload-artifact@v3
+        with:
+          name: frontend-coverage-result
+          path: frontend/src/main/webapp/coverage/
+          if-no-files-found: error
+          retention-days: 1
       - name: Linting backend
         run: ./mvnw -pl backend detekt:check
         continue-on-error: true
