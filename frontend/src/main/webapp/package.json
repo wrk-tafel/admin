@@ -14,7 +14,7 @@
     "build-local": "ng build --aot --build-optimizer --common-chunk --vendor-chunk --optimization --progress",
     "build-prod": "ng build --configuration=production --aot --build-optimizer --common-chunk --vendor-chunk --optimization --progress",
     "test": "ng test",
-    "test-ci": "ng test --source-map=false --browsers=ChromeHeadless --watch=false --code-coverage",
+    "test-ci": "ng test --source-map=false --browsers=ChromeHeadless --watch=false",
     "codecoverage": "ng test --source-map=false --watch=false --code-coverage",
     "lint": "ng lint",
     "cy:run-ci": "cypress run --browser chrome --config baseUrl=http://localhost:8080/",

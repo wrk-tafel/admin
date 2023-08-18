@@ -108,6 +108,7 @@
             ],
             "tsConfig": "src/tsconfig.spec.json",
             "preserveSymlinks": true,
+            "codeCoverage": true,
             "scripts": [],
             "styles": [
               "src/scss/styles.scss"
