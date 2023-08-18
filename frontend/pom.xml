@@ -12,6 +12,7 @@
 
     <properties>
         <sonar.eslint.reportPaths>${project.basedir}/src/main/webapp/eslint-result.json</sonar.eslint.reportPaths>
+        <sonar.javascript.lcov.reportPaths>${project.basedir}/src/main/webapp/coverage/coverage.lcov</sonar.javascript.lcov.reportPaths>
     </properties>
 
     <build>
