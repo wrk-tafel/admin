@@ -47,6 +47,9 @@ name: SonarCloud analysis
 
 on:
   workflow_call:
+    secrets:
+      SONAR_TOKEN:
+        required: true
 
 jobs:
   analysis-sonar:
