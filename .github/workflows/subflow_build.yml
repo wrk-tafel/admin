@@ -31,7 +31,7 @@ jobs:
         working-directory: frontend/src/main/webapp
         continue-on-error: true
       - name: Analyze
-        run: ./mvnw -Dsonar.projectKey=wrk-tafel-admin -Dsonar.organization=wrk-tafel sonar:sonar
+        run: ./mvnw -Dsonar.projectKey=wrk-tafel-admin -Dsonar.organization=wrk-tafel -Dsonar.token=${{ secrets.SONAR_TOKEN }} sonar:sonar
       - uses: actions/upload-artifact@v3
         with:
           name: admin-jarfile
