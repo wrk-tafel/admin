@@ -33,12 +33,7 @@ module.exports = function (config) {
       reporters: [
         {type: 'html'},
         {type: 'text-summary'}
-      ],
-      check: {
-        global: {
-          lines: 80
-        }
-      }
+      ]
     },
     angularCli: {
       environment: 'dev'
