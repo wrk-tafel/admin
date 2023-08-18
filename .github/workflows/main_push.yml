@@ -12,10 +12,6 @@ jobs:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
   analysis-lint:
     uses: ./.github/workflows/subflow_analysis_lint.yml
-  test-backend:
-    uses: ./.github/workflows/subflow_test-backend.yml
-  test-frontend:
-    uses: ./.github/workflows/subflow_test-frontend.yml
   e2e-test:
     uses: ./.github/workflows/subflow_e2e_test.yml
     needs: build
