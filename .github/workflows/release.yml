@@ -12,8 +12,10 @@ jobs:
     uses: ./.github/workflows/subflow_build.yml
   analysis-lint:
     uses: ./.github/workflows/subflow_analysis_lint.yml
-  analysis-codeql:
-    uses: ./.github/workflows/subflow_analysis_codeql.yml
+  analysis-sonar:
+    uses: ./.github/workflows/subflow_sonar.yml
+    secrets:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
   test-backend:
     uses: ./.github/workflows/subflow_test-backend.yml
     needs: build
