@@ -24,8 +24,11 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: ${{ env.JAVA_DISTRIBUTION }}
           cache: 'maven'
-      - name: Build
+      - name: Build and Test
         run: ./mvnw clean install
+      - name: Frontend linting
+        run: npm run lint --format=json --output-file eslint-result.json
+        working-directory: frontend/src/main/webapp
       - name: Analyze
         run: ./mvnw -Dsonar.projectKey=wrk-tafel-admin -Dsonar.organization=wrk-tafel sonar:sonar
       - uses: actions/upload-artifact@v3
