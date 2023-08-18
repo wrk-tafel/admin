@@ -19,6 +19,8 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: ${{ env.JAVA_DISTRIBUTION }}
           cache: 'maven'
+      - name: Basic build
+        run: ./mvnw clean install -DskipTests
       - name: Run tests
         run: ./mvnw -pl backend --fail-at-end test verify
       - uses: actions/upload-artifact@v3
