@@ -8,7 +8,7 @@ on:
     branches: [ 'release' ]
 
 jobs:
-  build-analysis:
+  build:
     uses: ./.github/workflows/subflow_build.yml
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -17,7 +17,7 @@ jobs:
     needs: build
   docker-image:
     uses: ./.github/workflows/subflow_build_image.yml
-    needs: [build, test-backend, test-frontend, e2e-test]
+    needs: [build, e2e-test]
   docker-hub:
     uses: ./.github/workflows/subflow_publish_image.yml
     needs: docker-image
