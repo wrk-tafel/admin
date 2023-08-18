@@ -25,7 +25,7 @@ jobs:
           distribution: ${{ env.JAVA_DISTRIBUTION }}
           cache: 'maven'
       - name: Build and Test
-        run: ./mvnw clean install
+        run: ./mvnw --fail-at-end clean install
       - name: Linting frontend
         run: npm run lint -- --format=json --output-file eslint-result.json
         working-directory: frontend/src/main/webapp
