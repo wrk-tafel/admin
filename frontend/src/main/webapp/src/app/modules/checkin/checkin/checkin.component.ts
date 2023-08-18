@@ -135,9 +135,10 @@ export class CheckinComponent implements OnInit, OnDestroy {
   }
 
   getInfantCount(): number {
-    return this.customer.additionalPersons.filter((person) => {
+    let length = this.customer.additionalPersons.filter((person) => {
       return moment().diff(person.birthDate, 'years') < 3;
     }).length;
+    return length;
   }
 
   get selectedScannerId(): number {

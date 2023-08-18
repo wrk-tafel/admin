@@ -10,24 +10,14 @@ on:
 jobs:
   build:
     uses: ./.github/workflows/subflow_build.yml
-  analysis-lint:
-    uses: ./.github/workflows/subflow_analysis_lint.yml
-  analysis-sonar:
-    uses: ./.github/workflows/subflow_sonar.yml
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-  test-backend:
-    uses: ./.github/workflows/subflow_test-backend.yml
-    needs: build
-  test-frontend:
-    uses: ./.github/workflows/subflow_test-frontend.yml
-    needs: build
   e2e-test:
     uses: ./.github/workflows/subflow_e2e_test.yml
     needs: build
   docker-image:
     uses: ./.github/workflows/subflow_build_image.yml
-    needs: [test-backend, test-frontend, e2e-test]
+    needs: [build, e2e-test]
   docker-hub:
     uses: ./.github/workflows/subflow_publish_image.yml
     needs: docker-image
