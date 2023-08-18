@@ -10,6 +10,10 @@
     </parent>
     <artifactId>frontend</artifactId>
 
+    <properties>
+        <sonar.eslint.reportPaths>src/main/webapp/eslint-result.json</sonar.eslint.reportPaths>
+    </properties>
+
     <build>
         <plugins>
             <plugin>
