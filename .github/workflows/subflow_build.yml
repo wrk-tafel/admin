@@ -36,6 +36,13 @@ jobs:
       - name: Analyze
         run: ./mvnw -Dsonar.projectKey=wrk-tafel-admin -Dsonar.organization=wrk-tafel -Dsonar.token=${{ secrets.SONAR_TOKEN }} sonar:sonar
       - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: backend-custom-test-results
+          path: ./backend/target/custom-test-results/
+          if-no-files-found: ignore
+          retention-days: 14
+      - uses: actions/upload-artifact@v3
         with:
           name: admin-jarfile
           path: ./backend/target/admin-backend.jar
