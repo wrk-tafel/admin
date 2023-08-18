@@ -27,7 +27,9 @@ jobs:
       - name: Build and Test
         run: ./mvnw --fail-at-end clean install
       - name: Linting frontend
-        run: npm run lint -- --format=json --output-file eslint-result.json
+        run: |
+          echo "WORKDIR: $GITHUB_WORKSPACE"
+          npm run lint -- --format=json --output-file eslint-result.json
         working-directory: frontend/src/main/webapp
         continue-on-error: true
 # TODO REMOVE
