@@ -19,7 +19,7 @@
                 <executions>
                     <execution>
                         <id>npm install</id>
-                        <phase>package</phase>
+                        <phase>install</phase>
                         <goals>
                             <goal>exec</goal>
                         </goals>
