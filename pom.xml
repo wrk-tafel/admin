@@ -17,7 +17,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
-        <sonar.exclusions>frontend/src/main/template/**,./artifacts/**</sonar.exclusions>
+        <sonar.exclusions>src/main/template/**</sonar.exclusions>
 
         <sonar.eslint.reportPaths>src/main/webapp/eslint-result.json</sonar.eslint.reportPaths>
         <sonar.coverage.jacoco.xmlReportPaths>target/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
