@@ -1,13 +1,10 @@
 {
   "root": true,
   "plugins": ["sonarjs"],
-  "ignorePatterns": [
-    "projects/**/*"
-  ],
   "overrides": [
     {
       "files": [
-        "*.ts"
+        "**/*.ts"
       ],
       "extends": [
         "eslint:recommended",
