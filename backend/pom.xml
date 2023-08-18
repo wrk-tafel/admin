@@ -379,17 +379,17 @@
                 <groupId>com.github.ozsie</groupId>
                 <artifactId>detekt-maven-plugin</artifactId>
                 <version>1.23.1</version>
+                <configuration>
+                    <report>
+                        <report>xml:${project.basedir}/backend/target/detekt.xml</report>
+                    </report>
+                </configuration>
                 <executions>
                     <execution>
                         <phase>verify</phase>
                         <goals>
                             <goal>check</goal>
                         </goals>
-                        <configuration>
-                            <report>
-                                <report>xml:${project.basedir}/backend/target/detekt.xml</report>
-                            </report>
-                        </configuration>
                     </execution>
                 </executions>
             </plugin>
