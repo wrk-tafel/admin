@@ -14,14 +14,15 @@ jobs:
     uses: ./.github/workflows/subflow_analysis_lint.yml
   analysis-sonar:
     uses: ./.github/workflows/subflow_sonar.yml
+    needs:
+      - test-backend
+      - test-frontend
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
   test-backend:
     uses: ./.github/workflows/subflow_test-backend.yml
-    needs: build
   test-frontend:
     uses: ./.github/workflows/subflow_test-frontend.yml
-    needs: build
   e2e-test:
     uses: ./.github/workflows/subflow_e2e_test.yml
     needs: build
