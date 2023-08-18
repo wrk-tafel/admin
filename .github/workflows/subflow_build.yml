@@ -25,9 +25,9 @@ jobs:
           distribution: ${{ env.JAVA_DISTRIBUTION }}
           cache: 'maven'
       - name: Build
-        run: ./mvnw clean install -DskipTests
+        run: ./mvnw clean install
       - name: Analyze
-        run: ./mvnw sonar:sonar
+        run: ./mvnw -Dsonar.projectKey=wrk-tafel-admin -Dsonar.organization=wrk-tafel sonar:sonar
       - uses: actions/upload-artifact@v3
         with:
           name: admin-jarfile
