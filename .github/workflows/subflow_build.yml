@@ -37,6 +37,7 @@ jobs:
           ls -lph /home/runner/work/admin/admin
           ls -lph /home/runner/work/admin/admin/frontend/src/main/webapp/src/app/api/distribution-ticket-api.service.ts
           cat /home/runner/work/admin/admin/frontend/src/main/webapp/src/app/api/distribution-ticket-api.service.ts
+          cat /home/runner/work/admin/admin/frontend/src/main/webapp/coverage/lcov.info
           npm run lint -- --format=json --output-file eslint-result.json
         working-directory: frontend/src/main/webapp
         continue-on-error: true
