@@ -25,9 +25,10 @@ class DistributionStatisticService(
         val statistic = DistributionStatisticEntity()
 
         val countCustomers = distribution.customers.size
-        val countPersons = distribution.customers.flatMap { it.customer?.additionalPersons ?: emptyList() }
-            .filterNot { it.excludeFromHousehold!! }
-            .count() + distribution.customers.size
+        val countPersons =
+            distribution.customers.flatMap { it.customer?.additionalPersons ?: emptyList() }
+                .filterNot { it.excludeFromHousehold!! }
+                .count() + distribution.customers.size
         val countInfants = distribution.customers.flatMap { it.customer?.additionalPersons ?: emptyList() }
             .filterNot { it.excludeFromHousehold!! }
             .count { Period.between(it.birthDate, LocalDate.now()).years < 3 }
@@ -39,13 +40,15 @@ class DistributionStatisticService(
             customerRepository.findAllByCreatedAtBetween(distribution.startedAt!!, distribution.endedAt!!)
         val countCustomersNew = customersNew.size
         val countPersonsNew =
-            customersNew.flatMap { it.additionalPersons }.filterNot { it.excludeFromHousehold ?: true }.size
+            customersNew.size + customersNew.flatMap { it.additionalPersons }
+                .filterNot { it.excludeFromHousehold ?: true }.size
 
         val customersProlonged =
             customerRepository.findAllByProlongedAtBetween(distribution.startedAt!!, distribution.endedAt!!)
         val countCustomersProlonged = customersProlonged.size
         val countPersonsProlonged =
-            customersProlonged.flatMap { it.additionalPersons }.filterNot { it.excludeFromHousehold ?: true }.size
+            customersProlonged.size + customersProlonged.flatMap { it.additionalPersons }
+                .filterNot { it.excludeFromHousehold ?: true }.size
 
         val countCustomersUpdated =
             customerRepository.countByUpdatedAtBetween(distribution.startedAt!!, distribution.endedAt!!)

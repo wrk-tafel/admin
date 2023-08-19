@@ -90,9 +90,9 @@ internal class DistributionStatisticServiceTest {
             BigDecimal(1.33).setScale(2, RoundingMode.HALF_EVEN)
         )
         assertThat(savedStatistic.countCustomersNew).isEqualTo(testCustomersNew.size)
-        assertThat(savedStatistic.countPersonsNew).isEqualTo(1)
+        assertThat(savedStatistic.countPersonsNew).isEqualTo(3)
         assertThat(savedStatistic.countCustomersProlonged).isEqualTo(testCustomersProlonged.size)
-        assertThat(savedStatistic.countPersonsProlonged).isEqualTo(1)
+        assertThat(savedStatistic.countPersonsProlonged).isEqualTo(3)
         assertThat(savedStatistic.countCustomersUpdated).isEqualTo(testCountCustomersUpdated - testCustomersProlonged.size)
     }
 
