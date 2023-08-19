@@ -18,8 +18,6 @@
 
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <sonar.qualitygate.wait>true</sonar.qualitygate.wait>
-        <sonar.verbose>true</sonar.verbose>
-        <sonar.log.level>TRACE</sonar.log.level>
     </properties>
 
     <build>
