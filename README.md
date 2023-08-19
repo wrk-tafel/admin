@@ -1,3 +1,9 @@
+[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=wrk-tafel-admin&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=wrk-tafel-admin)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=wrk-tafel-admin&metric=coverage)](https://sonarcloud.io/summary/new_code?id=wrk-tafel-admin)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wrk-tafel-admin&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wrk-tafel-admin)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=wrk-tafel-admin&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=wrk-tafel-admin)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=wrk-tafel-admin&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=wrk-tafel-admin)
+
 # TODO
 * Centralize testdata / mocks
 
