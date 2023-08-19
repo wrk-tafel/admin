@@ -12,10 +12,7 @@
 
     <properties>
         <sonar.exclusions>${project.basedir}/src/main/template/**</sonar.exclusions>
-        <!--
         <sonar.eslint.reportPaths>${project.basedir}/src/main/webapp/eslint-result.json</sonar.eslint.reportPaths>
-        -->
-        <sonar.typescript.tslint.reportPaths>${project.basedir}/src/main/webapp/eslint-result.json</sonar.typescript.tslint.reportPaths>
         <sonar.javascript.lcov.reportPaths>${project.basedir}/src/main/webapp/coverage/lcov.info</sonar.javascript.lcov.reportPaths>
         <sonar.typescript.tsconfigPaths>${project.basedir}/src/main/webapp/tsconfig.json,${project.basedir}/src/main/webapp/src/tsconfig.app.json</sonar.typescript.tsconfigPaths>
     </properties>
