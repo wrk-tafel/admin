@@ -19,6 +19,8 @@
 
         <sonar.kotlin.detekt.reportPaths>${project.basedir}/target/detekt-result.xml</sonar.kotlin.detekt.reportPaths>
         <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/target/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
+        <sonar.verbose>true</sonar.verbose>
+        <sonar.log.level>TRACE</sonar.log.level>
 
         <spring.boot.version>3.1.2</spring.boot.version>
         <jjwt.version>0.11.5</jjwt.version>

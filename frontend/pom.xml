@@ -15,6 +15,8 @@
         <sonar.eslint.reportPaths>${project.basedir}/src/main/webapp/eslint-result.json</sonar.eslint.reportPaths>
         <sonar.javascript.lcov.reportPaths>${project.basedir}/src/main/webapp/coverage/lcov.info</sonar.javascript.lcov.reportPaths>
         <sonar.typescript.tsconfigPaths>${project.basedir}/src/main/webapp/tsconfig.json,${project.basedir}/src/main/webapp/src/tsconfig.app.json</sonar.typescript.tsconfigPaths>
+        <sonar.verbose>true</sonar.verbose>
+        <sonar.log.level>TRACE</sonar.log.level>
     </properties>
 
     <build>
