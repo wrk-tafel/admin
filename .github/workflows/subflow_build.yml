@@ -28,11 +28,15 @@ jobs:
         run: ./mvnw --fail-at-end clean install
       - name: Linting frontend
         run: |
-          npm run lint -- --format=json --output-file eslint-result.json
           echo "***************** FILE "*****************"
+          du -hs
+          df -h
+          ls -lph /
+          ls -lph /home/runner/work/admin/admin
           ls -lph /home/runner/work/admin/admin/frontend/src/main/webapp/src/app/api/distribution-ticket-api.service.ts
           cat /home/runner/work/admin/admin/frontend/src/main/webapp/src/app/api/distribution-ticket-api.service.ts
           echo "***************** FILE "*****************"
+          npm run lint -- --format=json --output-file eslint-result.json
         working-directory: frontend/src/main/webapp
         continue-on-error: true
 # TODO REMOVE
