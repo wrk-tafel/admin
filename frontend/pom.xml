@@ -11,7 +11,7 @@
     <artifactId>frontend</artifactId>
 
     <properties>
-        <sonar.coverage.exclusions>**/*spec.ts,${project.basedir}/src/main/webapp/cypress/**,${project.basedir}/src/main/webapp/environments/**,${project.basedir}/src/main/webapp/main.ts,${project.basedir}/src/main/webapp/test.ts</sonar.coverage.exclusions>
+        <sonar.coverage.exclusions>**/*spec.ts,${project.basedir}/src/main/webapp/cypress/**,${project.basedir}/src/main/webapp/src/environments/**,${project.basedir}/src/main/webapp/src/main.ts,${project.basedir}/src/main/webapp/src/test.ts</sonar.coverage.exclusions>
         <sonar.eslint.reportPaths>${project.basedir}/src/main/webapp/eslint-result.json</sonar.eslint.reportPaths>
         <sonar.javascript.lcov.reportPaths>${project.basedir}/src/main/webapp/coverage/lcov.info</sonar.javascript.lcov.reportPaths>
     </properties>
