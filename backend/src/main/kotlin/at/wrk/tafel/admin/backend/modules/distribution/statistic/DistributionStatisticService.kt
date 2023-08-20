@@ -23,6 +23,8 @@ class DistributionStatisticService(
 
     private fun createStatisticEntry(distribution: DistributionEntity): DistributionStatisticEntity {
         val statistic = DistributionStatisticEntity()
+        val statisticStartTime = distribution.startedAt!!.toLocalDate().atStartOfDay()
+        val statisticEndTime = distribution.endedAt!!
 
         val countCustomers = distribution.customers.size
         val countPersons = distribution.customers.flatMap { it.customer?.additionalPersons ?: emptyList() }
@@ -36,19 +38,19 @@ class DistributionStatisticService(
                 .div(BigDecimal(countCustomers)) else BigDecimal.ZERO
 
         val customersNew =
-            customerRepository.findAllByCreatedAtBetween(distribution.startedAt!!, distribution.endedAt!!)
+            customerRepository.findAllByCreatedAtBetween(statisticStartTime, statisticEndTime)
         val countCustomersNew = customersNew.size
         val countPersonsNew =
-            customersNew.flatMap { it.additionalPersons }.filterNot { it.excludeFromHousehold ?: true }.size
+            customersNew.flatMap { it.additionalPersons }.filterNot { it.excludeFromHousehold ?: false }.size
 
         val customersProlonged =
-            customerRepository.findAllByProlongedAtBetween(distribution.startedAt!!, distribution.endedAt!!)
+            customerRepository.findAllByProlongedAtBetween(statisticStartTime, statisticEndTime)
         val countCustomersProlonged = customersProlonged.size
         val countPersonsProlonged =
-            customersProlonged.flatMap { it.additionalPersons }.filterNot { it.excludeFromHousehold ?: true }.size
+            customersProlonged.flatMap { it.additionalPersons }.filterNot { it.excludeFromHousehold ?: false }.size
 
         val countCustomersUpdated =
-            customerRepository.countByUpdatedAtBetween(distribution.startedAt!!, distribution.endedAt!!)
+            customerRepository.countByUpdatedAtBetween(statisticStartTime, statisticEndTime)
 
         statistic.distribution = distribution
         statistic.countCustomers = countCustomers

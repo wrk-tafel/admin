@@ -46,21 +46,23 @@ internal class DistributionStatisticServiceTest {
                 testDistributionCustomerEntity3
             )
         }
+        val statisticStartTime = testDistributionEntity.startedAt!!.toLocalDate().atStartOfDay()
+        val statisticEndTime = testDistributionEntity.endedAt!!
 
         val testCustomersNew =
             listOfNotNull(testDistributionCustomerEntity1.customer, testDistributionCustomerEntity2.customer)
         every {
             customerRepository.findAllByCreatedAtBetween(
-                testDistributionEntity.startedAt!!,
-                testDistributionEntity.endedAt!!
+                statisticStartTime,
+                statisticEndTime
             )
         } returns testCustomersNew
 
         val testCountCustomersUpdated = 456
         every {
             customerRepository.countByUpdatedAtBetween(
-                testDistributionEntity.startedAt!!,
-                testDistributionEntity.endedAt!!
+                statisticStartTime,
+                statisticEndTime
             )
         } returns testCountCustomersUpdated
 
@@ -68,8 +70,8 @@ internal class DistributionStatisticServiceTest {
             listOfNotNull(testDistributionCustomerEntity1.customer, testDistributionCustomerEntity2.customer)
         every {
             customerRepository.findAllByProlongedAtBetween(
-                testDistributionEntity.startedAt!!,
-                testDistributionEntity.endedAt!!
+                statisticStartTime,
+                statisticEndTime
             )
         } returns testCustomersProlonged
 
@@ -105,27 +107,9 @@ internal class DistributionStatisticServiceTest {
             customers = emptyList()
         }
 
-        every {
-            customerRepository.findAllByCreatedAtBetween(
-                testDistributionEntity.startedAt!!,
-                testDistributionEntity.endedAt!!
-            )
-        } returns emptyList()
-
-        every {
-            customerRepository.countByUpdatedAtBetween(
-                testDistributionEntity.startedAt!!,
-                testDistributionEntity.endedAt!!
-            )
-        } returns 0
-
-        every {
-            customerRepository.findAllByProlongedAtBetween(
-                testDistributionEntity.startedAt!!,
-                testDistributionEntity.endedAt!!
-            )
-        } returns emptyList()
-
+        every { customerRepository.findAllByCreatedAtBetween(any(), any()) } returns emptyList()
+        every { customerRepository.countByUpdatedAtBetween(any(), any()) } returns 0
+        every { customerRepository.findAllByProlongedAtBetween(any(), any()) } returns emptyList()
         every { distributionStatisticRepository.save(any()) } returns mockk()
 
         service.createAndSaveStatistic(testDistributionEntity)
