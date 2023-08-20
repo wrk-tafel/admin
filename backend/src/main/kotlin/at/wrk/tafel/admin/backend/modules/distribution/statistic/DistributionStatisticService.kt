@@ -55,13 +55,15 @@ class DistributionStatisticService(
             customerRepository.findAllByCreatedAtBetween(statisticStartTime, statisticEndTime)
         val countCustomersNew = customersNew.size
         val countPersonsNew =
-            customersNew.flatMap { it.additionalPersons }.filterNot { it.excludeFromHousehold ?: false }.size
+            customersNew.flatMap { it.additionalPersons }
+                .filterNot { it.excludeFromHousehold ?: false }.size + countCustomersNew
 
         val customersProlonged =
             customerRepository.findAllByProlongedAtBetween(statisticStartTime, statisticEndTime)
         val countCustomersProlonged = customersProlonged.size
         val countPersonsProlonged =
-            customersProlonged.flatMap { it.additionalPersons }.filterNot { it.excludeFromHousehold ?: false }.size
+            customersProlonged.flatMap { it.additionalPersons }
+                .filterNot { it.excludeFromHousehold ?: false }.size + countCustomersProlonged
 
         val countCustomersUpdated =
             customerRepository.countByUpdatedAtBetween(statisticStartTime, statisticEndTime)
@@ -75,7 +77,7 @@ class DistributionStatisticService(
         statistic.countPersonsNew = countPersonsNew
         statistic.countCustomersProlonged = countCustomersProlonged
         statistic.countPersonsProlonged = countPersonsProlonged
-        statistic.countCustomersUpdated = countCustomersUpdated - countCustomersProlonged
+        statistic.countCustomersUpdated = countCustomersUpdated - countCustomersNew - countCustomersProlonged
 
         return statistic
     }
