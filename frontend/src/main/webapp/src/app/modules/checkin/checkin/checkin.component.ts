@@ -204,7 +204,7 @@ export class CheckinComponent implements OnInit, OnDestroy {
     return this.scannerReadyState ? 'success' : 'danger';
   }
 
-  get customerStateColor(): Colors {
+  private getCustomerStateColor(): Colors {
     switch (this.customerState) {
       case CustomerState.RED:
         return 'danger';
@@ -212,6 +212,8 @@ export class CheckinComponent implements OnInit, OnDestroy {
         return 'warning';
       case CustomerState.GREEN:
         return 'success';
+      default:
+        return null;
     }
   }
 

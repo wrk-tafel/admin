@@ -47,7 +47,7 @@
         <c-row>
           <c-col class="mb-2">
             <h4>
-              <c-badge [color]="customerStateColor">
+              <c-badge [color]="getCustomerStateColor()">
                 {{customerStateText}}
               </c-badge>
               {{customer.id}} - {{customer.lastname}} {{customer.firstname}}
