@@ -55,7 +55,7 @@ class UserController(
     }
 
     @PostMapping("/logout")
-    fun logout(request: HttpServletRequest, response: HttpServletResponse): ResponseEntity<Void> {
+    fun logout(request: HttpServletRequest, response: HttpServletResponse): ResponseEntity<Unit> {
         val user = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
 
         val cookie = TafelLoginFilter.createTokenCookie(null, 0, request)

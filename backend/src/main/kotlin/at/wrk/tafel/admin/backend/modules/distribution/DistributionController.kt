@@ -62,7 +62,7 @@ class DistributionController(
 
     @PostMapping("/close")
     @PreAuthorize("hasAuthority('DISTRIBUTION_LCM')")
-    fun closeDistribution(): ResponseEntity<Void> {
+    fun closeDistribution(): ResponseEntity<Unit> {
         service.closeDistribution()
 
         // update clients about new state
@@ -78,7 +78,7 @@ class DistributionController(
     @PreAuthorize("hasAuthority('CHECKIN')")
     fun assignCustomerToDistribution(
         @RequestBody assignCustomerRequest: AssignCustomerRequest
-    ): ResponseEntity<Void> {
+    ): ResponseEntity<Unit> {
         val currentDistribution =
             service.getCurrentDistribution() ?: throw TafelValidationException("Ausgabe nicht gestartet!")
 

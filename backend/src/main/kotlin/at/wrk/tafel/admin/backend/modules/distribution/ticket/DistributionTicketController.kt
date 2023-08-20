@@ -27,7 +27,7 @@ class DistributionTicketController(
     @DeleteMapping("/current")
     fun deleteCurrentTicketForCustomer(
         @RequestParam("customerId") customerId: Long
-    ): ResponseEntity<Void> {
+    ): ResponseEntity<Unit> {
         val deleted = service.deleteCurrentTicket(customerId)
         if (!deleted) {
             throw TafelValidationException("Löschen des Tickets von Kunde Nr. $customerId fehlgeschlagen!")
