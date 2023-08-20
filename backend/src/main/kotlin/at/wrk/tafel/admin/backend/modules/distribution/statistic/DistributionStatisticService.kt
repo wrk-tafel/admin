@@ -4,25 +4,41 @@ import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionEnt
 import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionStatisticEntity
 import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerRepository
 import at.wrk.tafel.admin.backend.database.repositories.distribution.DistributionStatisticRepository
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
 import java.time.Period
+import java.time.format.DateTimeFormatter
 
 @Service
 class DistributionStatisticService(
     private val distributionStatisticRepository: DistributionStatisticRepository,
     private val customerRepository: CustomerRepository
 ) {
+    companion object {
+        private val logger = LoggerFactory.getLogger(DistributionStatisticService::class.java)
+    }
 
     fun createAndSaveStatistic(distribution: DistributionEntity): DistributionStatisticEntity {
-        val statistic = createStatisticEntry(distribution)
-        return distributionStatisticRepository.save(statistic)
+        val statisticEntry = createStatisticEntry(distribution)
+        val savedStatisticEntry = distributionStatisticRepository.save(statisticEntry)
+
+        logger.info(
+            "Created statistic entry for distribution id: ${distribution.id}, end-date: ${
+                distribution.endedAt!!.format(
+                    DateTimeFormatter.ofPattern("dd.MM.yyyy")
+                )
+            }"
+        )
+        return savedStatisticEntry
     }
 
     private fun createStatisticEntry(distribution: DistributionEntity): DistributionStatisticEntity {
         val statistic = DistributionStatisticEntity()
+        val statisticStartTime = distribution.startedAt!!.toLocalDate().atStartOfDay()
+        val statisticEndTime = distribution.endedAt!!
 
         val countCustomers = distribution.customers.size
         val countPersons =
@@ -37,21 +53,24 @@ class DistributionStatisticService(
                 .div(BigDecimal(countCustomers)) else BigDecimal.ZERO
 
         val customersNew =
-            customerRepository.findAllByCreatedAtBetween(distribution.startedAt!!, distribution.endedAt!!)
+            customerRepository.findAllByCreatedAtBetween(statisticStartTime, statisticEndTime)
         val countCustomersNew = customersNew.size
         val countPersonsNew =
-            customersNew.size + customersNew.flatMap { it.additionalPersons }
-                .filterNot { it.excludeFromHousehold ?: false }.size
+            customersNew.flatMap { it.additionalPersons }
+                .filterNot { it.excludeFromHousehold ?: false }.size + countCustomersNew
 
         val customersProlonged =
-            customerRepository.findAllByProlongedAtBetween(distribution.startedAt!!, distribution.endedAt!!)
+            customerRepository.findAllByProlongedAtBetween(statisticStartTime, statisticEndTime)
         val countCustomersProlonged = customersProlonged.size
         val countPersonsProlonged =
-            customersProlonged.size + customersProlonged.flatMap { it.additionalPersons }
-                .filterNot { it.excludeFromHousehold ?: false }.size
+            customersProlonged.flatMap { it.additionalPersons }
+                .filterNot { it.excludeFromHousehold ?: false }.size + countCustomersProlonged
 
         val countCustomersUpdated =
-            customerRepository.countByUpdatedAtBetween(distribution.startedAt!!, distribution.endedAt!!)
+            customerRepository.countByUpdatedAtBetween(
+                statisticStartTime,
+                statisticEndTime
+            )
 
         statistic.distribution = distribution
         statistic.countCustomers = countCustomers
@@ -62,7 +81,7 @@ class DistributionStatisticService(
         statistic.countPersonsNew = countPersonsNew
         statistic.countCustomersProlonged = countCustomersProlonged
         statistic.countPersonsProlonged = countPersonsProlonged
-        statistic.countCustomersUpdated = countCustomersUpdated - countCustomersProlonged
+        statistic.countCustomersUpdated = countCustomersUpdated - countCustomersNew - countCustomersProlonged
 
         return statistic
     }

@@ -5,6 +5,7 @@ import at.wrk.tafel.admin.backend.common.mail.MailSenderService
 import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.modules.distribution.statistic.DistributionStatisticService
 import at.wrk.tafel.admin.backend.modules.reporting.DailyReportService
+import org.slf4j.LoggerFactory
 import org.springframework.core.io.ByteArrayResource
 import org.springframework.stereotype.Service
 import java.time.LocalDate
@@ -16,6 +17,9 @@ class DistributionPostProcessorService(
     private val dailyReportService: DailyReportService,
     private val mailSenderService: MailSenderService
 ) {
+    companion object {
+        private val logger = LoggerFactory.getLogger(DistributionPostProcessorService::class.java)
+    }
 
     fun process(distribution: DistributionEntity) {
         val statistic = distributionStatisticService.createAndSaveStatistic(distribution)
@@ -30,15 +34,17 @@ class DistributionPostProcessorService(
 
         val mailSubject = "TÖ Tafel 1030 - Tages-Report vom $dateTitleFormatted"
         val mailText = "Details im Anhang"
+        val filename = "tagesreport_${dateFilenameFormatted}.pdf"
         val attachment = listOf(
             MailAttachment(
-                filename = "tagesreport_${dateFilenameFormatted}.pdf",
+                filename = filename,
                 inputStreamSource = ByteArrayResource(pdfReportBytes),
                 contentType = "application/pdf"
             )
         )
 
         mailSenderService.sendMail(mailSubject, mailText, attachment)
+        logger.info("Daily report '$mailSubject' - file: '$filename' sent!")
     }
 
 }
