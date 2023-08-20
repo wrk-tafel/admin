@@ -6,9 +6,10 @@
 
 # TODO
 * Centralize testdata / mocks
+* Add user-management
+* Add goods-input
 
 ## Minor changes
-* Checkin: Set focus on customerId after ticket assigned
 * Async stats generation
 
 ### Open things (to be discussed)
@@ -16,7 +17,6 @@
     * add document upload
 
 ### Lower prio
-
 * No validation-date on idcard (will be removed anyway when the checkin is ready)
 * Fix mobile layout in customer-search (result-table)
 
