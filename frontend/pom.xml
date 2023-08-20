@@ -18,7 +18,7 @@
     </properties>
 
     <build>
-        <sourceDirectory>${project.basedir}/src/main/webapp</sourceDirectory>
+        <sourceDirectory>src/main/webapp</sourceDirectory>
         <plugins>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
