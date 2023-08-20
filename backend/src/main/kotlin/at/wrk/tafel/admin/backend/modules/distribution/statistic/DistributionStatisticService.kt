@@ -4,21 +4,35 @@ import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionEnt
 import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionStatisticEntity
 import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerRepository
 import at.wrk.tafel.admin.backend.database.repositories.distribution.DistributionStatisticRepository
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
 import java.time.Period
+import java.time.format.DateTimeFormatter
 
 @Service
 class DistributionStatisticService(
     private val distributionStatisticRepository: DistributionStatisticRepository,
     private val customerRepository: CustomerRepository
 ) {
+    companion object {
+        private val logger = LoggerFactory.getLogger(DistributionStatisticService::class.java)
+    }
 
     fun createAndSaveStatistic(distribution: DistributionEntity): DistributionStatisticEntity {
-        val statistic = createStatisticEntry(distribution)
-        return distributionStatisticRepository.save(statistic)
+        val statisticEntry = createStatisticEntry(distribution)
+        val savedStatisticEntry = distributionStatisticRepository.save(statisticEntry)
+
+        logger.info(
+            "Created statistic entry for distribution id: ${distribution.id}, end-date: ${
+                distribution.endedAt!!.format(
+                    DateTimeFormatter.ofPattern("dd.MM.yyyy")
+                )
+            }"
+        )
+        return savedStatisticEntry
     }
 
     private fun createStatisticEntry(distribution: DistributionEntity): DistributionStatisticEntity {
