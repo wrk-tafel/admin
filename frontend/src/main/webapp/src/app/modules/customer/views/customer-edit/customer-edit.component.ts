@@ -73,10 +73,16 @@ export class CustomerEditComponent implements OnInit {
     } else {
       if (!this.editMode) {
         this.customerApiService.createCustomer(this.customerUpdated)
-          .subscribe(customer => this.router.navigate(['/kunden/detail', customer.id]));
+          .subscribe(customer => {
+              this.router.navigate(['/kunden/detail', customer.id]);
+            }
+          );
       } else {
         this.customerApiService.updateCustomer(this.customerUpdated)
-          .subscribe(customer => this.router.navigate(['/kunden/detail', customer.id]));
+          .subscribe(customer => {
+              this.router.navigate(['/kunden/detail', customer.id]);
+            }
+          );
       }
     }
   }
