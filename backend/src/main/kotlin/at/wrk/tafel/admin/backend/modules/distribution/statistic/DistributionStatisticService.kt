@@ -41,9 +41,10 @@ class DistributionStatisticService(
         val statisticEndTime = distribution.endedAt!!
 
         val countCustomers = distribution.customers.size
-        val countPersons = distribution.customers.flatMap { it.customer?.additionalPersons ?: emptyList() }
-            .filterNot { it.excludeFromHousehold!! }
-            .count() + distribution.customers.size
+        val countPersons =
+            distribution.customers.flatMap { it.customer?.additionalPersons ?: emptyList() }
+                .filterNot { it.excludeFromHousehold!! }
+                .count() + countCustomers
         val countInfants = distribution.customers.flatMap { it.customer?.additionalPersons ?: emptyList() }
             .filterNot { it.excludeFromHousehold!! }
             .count { Period.between(it.birthDate, LocalDate.now()).years < 3 }

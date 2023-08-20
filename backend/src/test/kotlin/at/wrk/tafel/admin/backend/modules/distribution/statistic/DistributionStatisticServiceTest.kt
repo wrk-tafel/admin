@@ -21,7 +21,6 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDateTime
 
-
 @ExtendWith(MockKExtension::class)
 internal class DistributionStatisticServiceTest {
 
