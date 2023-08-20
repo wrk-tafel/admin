@@ -17,6 +17,7 @@
     </properties>
 
     <build>
+        <sourceDirectory>src/main/webapp</sourceDirectory>
         <plugins>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
