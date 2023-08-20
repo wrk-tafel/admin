@@ -12,7 +12,6 @@
 
     <properties>
         <!--<sonar.coverage.exclusions>**/*spec.ts</sonar.coverage.exclusions>-->
-        <sonar.exclusions>${project.basedir}/src/main/template/**</sonar.exclusions>
         <sonar.eslint.reportPaths>${project.basedir}/src/main/webapp/eslint-result.json</sonar.eslint.reportPaths>
         <sonar.javascript.lcov.reportPaths>${project.basedir}/src/main/webapp/coverage/lcov.info</sonar.javascript.lcov.reportPaths>
     </properties>
