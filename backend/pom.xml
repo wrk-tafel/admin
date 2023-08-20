@@ -377,7 +377,7 @@
                 <configuration>
                     <config>${project.basedir}/detekt.yml</config>
                     <classPath>${generated.classpath}</classPath>
-                    <jvmTarget>17</jvmTarget>
+                    <jvmTarget>${java.version}</jvmTarget>
                     <report>
                         <report>xml:${sonar.kotlin.detekt.reportPaths}</report>
                     </report>
