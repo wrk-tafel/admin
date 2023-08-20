@@ -76,7 +76,7 @@ internal class MailSenderServiceTest {
         assertThat(ccRecipients).isNull()
 
         val bccRecipients = mailMessage.getRecipients(Message.RecipientType.BCC)
-        assertThat(bccRecipients.map { it.toString() }).isEqualTo(mailProperties.dailyreport.bcc)
+        assertThat(bccRecipients.map { it.toString() }).isEqualTo(mailProperties.dailyreport!!.bcc)
 
         /*
         TODO add asserts
