@@ -4,7 +4,11 @@ import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationExceptio
 import at.wrk.tafel.admin.backend.modules.distribution.DistributionService
 import at.wrk.tafel.admin.backend.modules.distribution.model.TicketNumberResponse
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/api/distributions/tickets")
@@ -23,7 +27,7 @@ class DistributionTicketController(
     @DeleteMapping("/current")
     fun deleteCurrentTicketForCustomer(
         @RequestParam("customerId") customerId: Long
-    ): ResponseEntity<Void> {
+    ): ResponseEntity<Unit> {
         val deleted = service.deleteCurrentTicket(customerId)
         if (!deleted) {
             throw TafelValidationException("Löschen des Tickets von Kunde Nr. $customerId fehlgeschlagen!")

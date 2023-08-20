@@ -79,7 +79,7 @@ class DistributionService(
         val currentDistribution = distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc()
             ?: throw TafelValidationException("Ausgabe nicht gestartet!")
 
-        val formattedDate = DATE_FORMATTER.format(currentDistribution?.startedAt)
+        val formattedDate = DATE_FORMATTER.format(currentDistribution.startedAt)
         val sortedCustomers = currentDistribution.customers.sortedBy { it.ticketNumber }
         val countCustomers = sortedCustomers.size
 

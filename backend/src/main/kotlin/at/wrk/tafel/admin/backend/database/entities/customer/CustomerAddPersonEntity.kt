@@ -3,7 +3,11 @@ package at.wrk.tafel.admin.backend.database.entities.customer
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.database.entities.base.BaseChangeTrackingEntity
 import at.wrk.tafel.admin.backend.database.entities.staticdata.CountryEntity
-import jakarta.persistence.*
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.JoinColumn
+import jakarta.persistence.ManyToOne
+import jakarta.persistence.Table
 import java.math.BigDecimal
 import java.time.LocalDate
 

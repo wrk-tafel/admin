@@ -14,6 +14,8 @@ class NoOpAuthenticationSuccessHandler : AuthenticationSuccessHandler {
         response: HttpServletResponse?,
         authentication: Authentication?
     ) {
+        // TODO maybe better to use a BasicAuthenticationFilter and write an entryPoint instead a provider
+        // TODO would make this empty handler obsolete
     }
 
 }

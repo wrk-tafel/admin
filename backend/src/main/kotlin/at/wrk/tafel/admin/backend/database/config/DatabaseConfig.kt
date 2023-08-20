@@ -9,5 +9,4 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 @EnableJpaRepositories("at.wrk.tafel.admin.backend.database.repositories")
 @EntityScan("at.wrk.tafel.admin.backend.database.entities")
 @ExcludeFromTestCoverage
-class DatabaseConfig {
-}
+class DatabaseConfig

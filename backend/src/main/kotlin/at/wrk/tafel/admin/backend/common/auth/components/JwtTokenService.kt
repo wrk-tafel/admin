@@ -6,6 +6,7 @@ import io.jsonwebtoken.Header
 import io.jsonwebtoken.Jwts
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.stereotype.Service
+import java.time.Duration
 import java.util.*
 import javax.crypto.spec.SecretKeySpec
 
@@ -28,7 +29,7 @@ class JwtTokenService(
         authorities: Collection<GrantedAuthority>,
         expirationSeconds: Int
     ): String {
-        val expirationMillis = expirationSeconds * 1000
+        val expirationMillis = Duration.ofSeconds(expirationSeconds.toLong()).toMillis()
         val expirationDate = Date(System.currentTimeMillis() + expirationMillis)
         val secretKeySpec = createSecretKeySpec()
 

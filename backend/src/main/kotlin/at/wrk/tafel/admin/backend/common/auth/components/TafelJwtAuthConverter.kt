@@ -10,7 +10,7 @@ class TafelJwtAuthConverter : AuthenticationConverter {
 
     override fun convert(request: HttpServletRequest): Authentication? {
         val authCookie = request.cookies?.toList()
-            ?.firstOrNull { it.name.equals(TafelLoginFilter.jwtCookieName) && it.value.isNotBlank() }
+            ?.firstOrNull { it.name == TafelLoginFilter.jwtCookieName && it.value.isNotBlank() }
             ?: throw AuthenticationCredentialsNotFoundException("Missing authentication credentials")
 
         return TafelJwtAuthentication(authCookie.value)

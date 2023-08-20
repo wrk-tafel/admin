@@ -17,8 +17,8 @@
         <kotlin.version>1.9.0</kotlin.version>
         <kotlin.compiler.jvmTarget>${java.version}</kotlin.compiler.jvmTarget>
 
-        <sonar.kotlin.detekt.reportPaths>${project.basedir}/target/detekt-result.xml</sonar.kotlin.detekt.reportPaths>
         <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/target/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
+        <sonar.kotlin.source.version>${kotlin.version}</sonar.kotlin.source.version>
 
         <spring.boot.version>3.1.2</spring.boot.version>
         <jjwt.version>0.11.5</jjwt.version>
@@ -351,17 +351,6 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin>
-            <plugin>
-                <groupId>com.github.ozsie</groupId>
-                <artifactId>detekt-maven-plugin</artifactId>
-                <version>1.23.1</version>
-                <configuration>
-                    <config>${project.basedir}/detekt.yml</config>
-                    <report>
-                        <report>xml:${sonar.kotlin.detekt.reportPaths}</report>
-                    </report>
-                </configuration>
             </plugin>
         </plugins>
     </build>

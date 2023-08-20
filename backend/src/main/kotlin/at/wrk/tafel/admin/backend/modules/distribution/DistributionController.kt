@@ -15,7 +15,11 @@ import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.messaging.simp.annotation.SubscribeMapping
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 import java.io.ByteArrayInputStream
 
 @RestController
@@ -58,7 +62,7 @@ class DistributionController(
 
     @PostMapping("/close")
     @PreAuthorize("hasAuthority('DISTRIBUTION_LCM')")
-    fun closeDistribution(): ResponseEntity<Void> {
+    fun closeDistribution(): ResponseEntity<Unit> {
         service.closeDistribution()
 
         // update clients about new state
@@ -74,7 +78,7 @@ class DistributionController(
     @PreAuthorize("hasAuthority('CHECKIN')")
     fun assignCustomerToDistribution(
         @RequestBody assignCustomerRequest: AssignCustomerRequest
-    ): ResponseEntity<Void> {
+    ): ResponseEntity<Unit> {
         val currentDistribution =
             service.getCurrentDistribution() ?: throw TafelValidationException("Ausgabe nicht gestartet!")
 
