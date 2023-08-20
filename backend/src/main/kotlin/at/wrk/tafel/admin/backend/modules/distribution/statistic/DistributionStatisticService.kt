@@ -66,7 +66,10 @@ class DistributionStatisticService(
                 .filterNot { it.excludeFromHousehold ?: false }.size + countCustomersProlonged
 
         val countCustomersUpdated =
-            customerRepository.countByUpdatedAtBetween(statisticStartTime, statisticEndTime)
+            customerRepository.countByUpdatedAtBetween(
+                statisticStartTime,
+                statisticEndTime
+            )
 
         statistic.distribution = distribution
         statistic.countCustomers = countCustomers
