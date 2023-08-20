@@ -34,9 +34,7 @@ jobs:
         run: ./mvnw -pl backend detekt:check
         continue-on-error: true
       - name: Analyze
-        run: |
-          git fetch --unshallow || git fetch --all
-          ./mvnw -Dsonar.projectKey=wrk-tafel-admin -Dsonar.organization=wrk-tafel -Dsonar.token=${{ secrets.SONAR_TOKEN }} sonar:sonar
+        run: ./mvnw -Dsonar.projectKey=wrk-tafel-admin -Dsonar.organization=wrk-tafel -Dsonar.token=${{ secrets.SONAR_TOKEN }} sonar:sonar
       - uses: actions/upload-artifact@v3
         if: always()
         with:
