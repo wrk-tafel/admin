@@ -353,11 +353,31 @@
                 </executions>
             </plugin>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.6.0</version>
+                <executions>
+                    <execution>
+                        <id>generate-classpath-var</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>build-classpath</goal>
+                        </goals>
+                        <configuration>
+                            <outputProperty>generated.classpath</outputProperty>
+                            <silent>true</silent>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <groupId>com.github.ozsie</groupId>
                 <artifactId>detekt-maven-plugin</artifactId>
                 <version>1.23.1</version>
                 <configuration>
                     <config>${project.basedir}/detekt.yml</config>
+                    <classPath>${generated.classpath}</classPath>
+                    <jvmTarget>17</jvmTarget>
                     <report>
                         <report>xml:${sonar.kotlin.detekt.reportPaths}</report>
                     </report>
