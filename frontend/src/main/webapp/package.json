@@ -85,7 +85,6 @@
     "cypress": "12.17.4",
     "cypress-browser-permissions": "1.1.0",
     "eslint": "8.47.0",
-    "eslint-plugin-sonarjs": "0.20.0",
     "jasmine-core": "5.1.0",
     "jasmine-spec-reporter": "7.0.0",
     "karma": "6.4.2",

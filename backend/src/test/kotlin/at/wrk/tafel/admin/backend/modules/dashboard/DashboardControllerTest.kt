@@ -29,7 +29,7 @@ internal class DashboardControllerTest {
 
         val response = controller.getInitialMessage()
 
-        assertThat(response).isEqualTo(data);
+        assertThat(response).isEqualTo(data)
         verify { service.getData() }
     }
 

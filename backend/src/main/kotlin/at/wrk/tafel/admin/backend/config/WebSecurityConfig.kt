@@ -1,10 +1,20 @@
 package at.wrk.tafel.admin.backend.config
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
-import at.wrk.tafel.admin.backend.common.auth.components.*
+import at.wrk.tafel.admin.backend.common.auth.components.JwtTokenService
+import at.wrk.tafel.admin.backend.common.auth.components.NoOpAuthenticationSuccessHandler
+import at.wrk.tafel.admin.backend.common.auth.components.TafelJwtAuthConverter
+import at.wrk.tafel.admin.backend.common.auth.components.TafelJwtAuthProvider
+import at.wrk.tafel.admin.backend.common.auth.components.TafelLoginFilter
+import at.wrk.tafel.admin.backend.common.auth.components.TafelLoginProvider
+import at.wrk.tafel.admin.backend.common.auth.components.TafelUserDetailsManager
 import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
 import com.fasterxml.jackson.databind.ObjectMapper
-import org.passay.*
+import org.passay.DictionarySubstringRule
+import org.passay.LengthRule
+import org.passay.PasswordValidator
+import org.passay.UsernameRule
+import org.passay.WhitespaceRule
 import org.passay.dictionary.ArrayWordList
 import org.passay.dictionary.WordListDictionary
 import org.passay.dictionary.sort.ArraysSort
@@ -72,8 +82,6 @@ class WebSecurityConfig(
                 )
             )
         )
-        // TODO maybe better to use a BasicAuthenticationFilter and write an entryPoint instead a provider
-        // TODO would make this empty handler obsolete
         authFilter.successHandler = NoOpAuthenticationSuccessHandler()
 
         http

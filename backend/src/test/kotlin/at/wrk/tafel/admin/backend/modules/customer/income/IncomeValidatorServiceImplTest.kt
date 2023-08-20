@@ -1,7 +1,15 @@
 package at.wrk.tafel.admin.backend.modules.customer.income
 
-import at.wrk.tafel.admin.backend.database.entities.staticdata.*
-import at.wrk.tafel.admin.backend.database.repositories.staticdata.*
+import at.wrk.tafel.admin.backend.database.entities.staticdata.ChildTaxAllowanceEntity
+import at.wrk.tafel.admin.backend.database.entities.staticdata.FamilyBonusEntity
+import at.wrk.tafel.admin.backend.database.entities.staticdata.IncomeLimitEntity
+import at.wrk.tafel.admin.backend.database.entities.staticdata.IncomeToleranceEntity
+import at.wrk.tafel.admin.backend.database.entities.staticdata.SiblingAdditionEntity
+import at.wrk.tafel.admin.backend.database.repositories.staticdata.ChildTaxAllowanceRepository
+import at.wrk.tafel.admin.backend.database.repositories.staticdata.FamilyBonusRepository
+import at.wrk.tafel.admin.backend.database.repositories.staticdata.IncomeLimitRepository
+import at.wrk.tafel.admin.backend.database.repositories.staticdata.IncomeToleranceRepository
+import at.wrk.tafel.admin.backend.database.repositories.staticdata.SiblingAdditionRepository
 import io.mockk.every
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension

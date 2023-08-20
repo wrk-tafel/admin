@@ -2,7 +2,11 @@ package at.wrk.tafel.admin.backend.database.entities.distribution
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.database.entities.base.BaseChangeTrackingEntity
-import jakarta.persistence.*
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.JoinColumn
+import jakarta.persistence.OneToOne
+import jakarta.persistence.Table
 import java.math.BigDecimal
 
 @Entity(name = "DistributionStatistic")

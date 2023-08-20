@@ -13,6 +13,7 @@ import org.springframework.scheduling.annotation.EnableScheduling
 class AdminBackendApplication
 
 @ExcludeFromTestCoverage
+@Suppress("SpreadOperator")
 fun main(args: Array<String>) {
     runApplication<AdminBackendApplication>(*args)
 }

@@ -2,7 +2,13 @@ package at.wrk.tafel.admin.backend.database.entities.staticdata
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.database.entities.base.BaseChangeTrackingEntity
-import jakarta.persistence.*
+import jakarta.persistence.Column
+import jakarta.persistence.DiscriminatorColumn
+import jakarta.persistence.DiscriminatorType
+import jakarta.persistence.Entity
+import jakarta.persistence.Inheritance
+import jakarta.persistence.InheritanceType
+import jakarta.persistence.Table
 import java.math.BigDecimal
 import java.time.LocalDate
 

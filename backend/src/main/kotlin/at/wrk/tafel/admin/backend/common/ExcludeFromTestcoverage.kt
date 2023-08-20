@@ -5,5 +5,6 @@ package at.wrk.tafel.admin.backend.common
  * from jacoco test coverage
  */
 @Retention(AnnotationRetention.BINARY)
+@Suppress("MatchingDeclarationName") // class itself needs to be named *Generated to be handled by jacoco
 annotation class NoCoverageGenerated
 typealias ExcludeFromTestCoverage = NoCoverageGenerated
