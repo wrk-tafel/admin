@@ -113,7 +113,7 @@
                     </fo:table-row>
                     <fo:table-row>
                         <fo:table-cell>
-                            <fo:block>verlängert / Personen:</fo:block>
+                            <fo:block>verlängerte Kunden / Personen:</fo:block>
                         </fo:table-cell>
                         <fo:table-cell>
                             <fo:block>
