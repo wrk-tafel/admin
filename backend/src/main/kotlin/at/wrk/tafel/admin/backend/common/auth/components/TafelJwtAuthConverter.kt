@@ -8,7 +8,7 @@ import org.springframework.security.web.authentication.AuthenticationConverter
 
 class TafelJwtAuthConverter : AuthenticationConverter {
 
-    override fun convert(request: HttpServletRequest): Authentication {
+    override fun convert(request: HttpServletRequest): Authentication? {
         val authCookie = request.cookies?.toList()
             ?.firstOrNull { it.name == TafelLoginFilter.jwtCookieName && it.value.isNotBlank() }
             ?: throw AuthenticationCredentialsNotFoundException("Missing authentication credentials")

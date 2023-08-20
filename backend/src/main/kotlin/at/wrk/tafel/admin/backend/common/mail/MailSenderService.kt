@@ -22,13 +22,13 @@ class MailSenderService(
             messageHelper.setText(text)
 
             messageHelper.setFrom(tafelAdminProperties.mail?.from!!)
-            tafelAdminProperties.mail.dailyreport?.to?.forEach {
+            tafelAdminProperties.mail?.dailyreport?.to?.forEach {
                 messageHelper.addTo(it)
             }
-            tafelAdminProperties.mail.dailyreport?.cc?.forEach {
+            tafelAdminProperties.mail?.dailyreport?.cc?.forEach {
                 messageHelper.addCc(it)
             }
-            tafelAdminProperties.mail.dailyreport?.bcc?.forEach {
+            tafelAdminProperties.mail?.dailyreport?.bcc?.forEach {
                 messageHelper.addBcc(it)
             }
             attachments.forEach {
