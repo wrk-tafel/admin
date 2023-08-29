@@ -8,7 +8,6 @@
 * Centralize testdata / mocks
 * Add user-management
 * Add goods-input
-* try/refactor to spring moduliths
 
 ## Minor changes
 * Async stats generation
