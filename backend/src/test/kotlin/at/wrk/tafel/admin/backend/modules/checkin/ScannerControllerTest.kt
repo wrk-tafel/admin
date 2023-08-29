@@ -1,6 +1,9 @@
-package at.wrk.tafel.admin.backend.modules.checkin.scanner
+package at.wrk.tafel.admin.backend.modules.checkin
 
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.modules.checkin.ScannerController
+import at.wrk.tafel.admin.backend.modules.checkin.ScannerService
+import at.wrk.tafel.admin.backend.modules.checkin.ScannersResponse
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK

@@ -1,5 +1,6 @@
-package at.wrk.tafel.admin.backend.modules.checkin.scanner
+package at.wrk.tafel.admin.backend.modules.checkin
 
+import at.wrk.tafel.admin.backend.modules.checkin.ScannerService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test

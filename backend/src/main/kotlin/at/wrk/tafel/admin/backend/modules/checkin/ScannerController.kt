@@ -1,4 +1,4 @@
-package at.wrk.tafel.admin.backend.modules.checkin.scanner
+package at.wrk.tafel.admin.backend.modules.checkin
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication

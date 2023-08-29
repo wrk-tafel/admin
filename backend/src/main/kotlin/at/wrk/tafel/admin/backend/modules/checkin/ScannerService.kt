@@ -1,4 +1,4 @@
-package at.wrk.tafel.admin.backend.modules.checkin.scanner
+package at.wrk.tafel.admin.backend.modules.checkin
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
