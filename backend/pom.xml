@@ -322,7 +322,7 @@
                 <version>${spring.boot.version}</version>
                 <configuration>
                     <finalName>admin-backend</finalName>
-                    <mainClass>at.wrk.tafel.admin.backend.AdminBackendApplicationKt</mainClass>
+                    <mainClass>at.wrk.tafel.admin.backend.AdminBackendApplication</mainClass>
                 </configuration>
                 <executions>
                     <execution>
