@@ -1,13 +1,12 @@
 package at.wrk.tafel.admin.backend.architecture;
 
-import at.wrk.tafel.admin.backend.AdminBackendApplication;
 import org.junit.jupiter.api.Test;
 import org.springframework.modulith.core.ApplicationModules;
 import org.springframework.modulith.docs.Documenter;
 
 class ModularityTests {
 
-    ApplicationModules modules = ApplicationModules.of(AdminBackendApplication.class);
+    ApplicationModules modules = ApplicationModules.of("at.wrk.tafel.admin.backend.modules");
 
     @Test
     void verifiesModularStructure() {
