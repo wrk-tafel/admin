@@ -16,7 +16,7 @@
     "test": "ng test",
     "test-ci": "ng test --source-map=false --browsers=ChromeHeadless --watch=false",
     "lint": "ng lint",
-    "cy:run-ci": "wait-on http://localhost:8080 -d 10000 && cypress run --browser chrome --config baseUrl=http://localhost:8080/",
+    "cy:run-ci": "wait-on -l -d 10000 tcp:8080 && cypress run --browser chrome --config baseUrl=http://localhost:8080/",
     "cy:open-ci": "cypress open --browser chrome --config baseUrl=http://localhost:8080/",
     "cy:open-local": "cypress open --browser chrome"
   },
