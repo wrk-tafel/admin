@@ -8,10 +8,11 @@
 * Centralize testdata / mocks
 * Add user-management
 * Add goods-input
-* try/refactor to spring moduliths
 
 ## Minor changes
 * Async stats generation
+* Move statistics package into reporting?
+* Improve module communication by using async events (https://docs.spring.io/spring-modulith/docs/current/reference/html/#events)
 
 ### Open things (to be discussed)
 * customer-detail
