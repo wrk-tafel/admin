@@ -16,7 +16,7 @@
     "test": "ng test",
     "test-ci": "ng test --source-map=false --browsers=ChromeHeadless --watch=false",
     "lint": "ng lint",
-    "cy:run-ci": "cypress run --browser chrome --config baseUrl=http://localhost:8080/",
+    "cy:run-ci": "wait-on http://localhost:8080 -d 10000 && cypress run --browser chrome --config baseUrl=http://localhost:8080/",
     "cy:open-ci": "cypress open --browser chrome --config baseUrl=http://localhost:8080/",
     "cy:open-local": "cypress open --browser chrome"
   },
@@ -96,7 +96,8 @@
     "protractor": "7.0.0",
     "ts-node": "10.9.1",
     "tslint": "6.1.3",
-    "typescript": "5.1.6"
+    "typescript": "5.1.6",
+    "wait-on": "7.0.1"
   },
   "engines": {
     "node": ">= 18.17.0",
