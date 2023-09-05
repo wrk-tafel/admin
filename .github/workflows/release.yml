@@ -15,18 +15,14 @@ jobs:
   e2e-test:
     uses: ./.github/workflows/subflow_e2e_test.yml
     needs: build
-  docker-image:
-    uses: ./.github/workflows/subflow_build_image.yml
+  build-push-image:
+    uses: ./.github/workflows/subflow_docker_image.yml
     needs: [build, e2e-test]
-  docker-hub:
-    uses: ./.github/workflows/subflow_publish_image.yml
-    needs: docker-image
     secrets:
-      dockerHubUsername: ${{ secrets.DOCKERHUB_USERNAME }}
-      dockerHubToken: ${{ secrets.DOCKERHUB_TOKEN }}
+      githubToken: ${{ secrets.GITHUB_TOKEN }}
   deploy:
     uses: ./.github/workflows/subflow_deploy.yml
-    needs: docker-hub
+    needs: build-push-image
     secrets:
       sshKey: ${{ secrets.SSH_DEPLOY_KEY }}
       sshKnownHosts: ${{ secrets.SSH_KNOWN_HOSTS }}
