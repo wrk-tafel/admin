@@ -1,7 +1,7 @@
 name: Build and push the docker image
 
 env:
-  IMAGE_NAME: 'wrk-tafel/admin:latest'
+  IMAGE_NAME: 'admin:latest'
 
 on:
   workflow_call:
