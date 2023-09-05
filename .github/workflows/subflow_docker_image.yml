@@ -36,3 +36,5 @@ jobs:
           file: _build/Dockerfile
           tags: ${{ env.IMAGE_NAME }}
           push: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
