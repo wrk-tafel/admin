@@ -1,8 +1,5 @@
 name: Build and push the docker image
 
-env:
-  IMAGE_NAME: 'admin:latest'
-
 on:
   workflow_call:
     secrets:
@@ -34,7 +31,7 @@ jobs:
         with:
           context: .
           file: _build/Dockerfile
-          tags: ${{ env.IMAGE_NAME }}
+          tags: wrk-tafel/admin:latest
           push: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
