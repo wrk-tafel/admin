@@ -15,9 +15,11 @@
 * Move statistics package into reporting?
 * Improve module communication by using async events (https://docs.spring.io/spring-modulith/docs/current/reference/html/#events)
 
-### Open things (to be discussed)
+### Open things (to be decided)
 * customer-detail
     * add document upload
+* use semantic versioning ?
+* provide jar-file releases via github ?
 
 ### Lower prio
 * No validation-date on idcard (will be removed anyway when the checkin is ready)
