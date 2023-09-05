@@ -1,5 +1,8 @@
 name: Build and push the docker image
 
+env:
+  REGISTRY: ghcr.io
+
 on:
   workflow_call:
     secrets:
@@ -23,15 +26,15 @@ jobs:
       - name: Log in to the Container registry
         uses: docker/login-action@v2
         with:
-          registry: ghcr.io
+          registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.githubToken }}
-      - name: Build docker image
+      - name: Build and push docker image
         uses: docker/build-push-action@v4
         with:
           context: .
           file: _build/Dockerfile
-          tags: wrk-tafel/admin:latest
+          tags: ${{ env.REGISTRY }}/wrk-tafel/admin:latest
           push: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
