@@ -8,6 +8,7 @@
 * Centralize testdata / mocks
 * Add user-management
 * Add goods-input
+* tech: switch to spring boot layered build: https://www.baeldung.com/docker-layers-spring-boot
 
 ## Minor changes
 * Async stats generation
