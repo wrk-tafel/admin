@@ -693,7 +693,7 @@ class CustomerServiceTest {
     }
 
     @Test
-    fun `find customer by firstname and lastname`() {
+    fun `get customer by firstname and lastname`() {
         every {
             customerRepository.findAllByFirstnameContainingIgnoreCaseOrLastnameContainingIgnoreCase(any(), any())
         } returns listOf(testCustomerEntity1, testCustomerEntity2)

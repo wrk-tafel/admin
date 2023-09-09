@@ -105,20 +105,24 @@ class UserControllerTest {
     }
 
     @Test
-    fun `get user not found`() {
-        every { userDetailsManager.loadUserById(any()) } throws UsernameNotFoundException("user not found")
-
-        assertThrows<UsernameNotFoundException> { controller.getUser(1) }
-    }
-
-    @Test
-    fun `get user found`() {
+    fun `get user`() {
         every { userDetailsManager.loadUserById(any()) } returns testUser
 
         val response = controller.getUser(1)
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
         assertThat(response.body).isEqualTo(testUserApiResponse)
+    }
+
+    @Test
+    fun `get users filtered by parameters`() {
+        val firstname = "test-firstname"
+        val lastname = "test-lastname"
+        every { userDetailsManager.loadUsers(firstname, lastname) } returns listOf(testUser)
+
+        val response = controller.getUsers(firstname = firstname, lastname = lastname)
+
+        assertThat(response.items).isEqualTo(listOf(testUserApiResponse))
     }
 
 }

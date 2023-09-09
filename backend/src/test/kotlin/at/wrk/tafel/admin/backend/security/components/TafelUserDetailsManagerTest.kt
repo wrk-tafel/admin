@@ -302,4 +302,45 @@ class TafelUserDetailsManagerTest {
         }
     }
 
+    @Test
+    fun `loadUserById - user not found`() {
+        every { userRepository.findById(any()) } returns Optional.empty()
+
+        assertThrows<UsernameNotFoundException> {
+            manager.loadUserById(1)
+        }
+
+        verify(exactly = 1) {
+            userRepository.findById(1)
+        }
+    }
+
+    @Test
+    fun `loadUserById - user found and mapped`() {
+        val userEntity = UserEntity()
+        userEntity.username = "test-username"
+        userEntity.password = "test-password"
+        userEntity.enabled = true
+        userEntity.id = 0
+        userEntity.personnelNumber = "test-personnelnumber"
+        userEntity.firstname = "test-firstname"
+        userEntity.lastname = "test-lastname"
+        userEntity.passwordChangeRequired = true
+
+        every { userRepository.findById(any()) } returns Optional.of(userEntity)
+
+        val userDetails = manager.loadUserById(userEntity.id!!) as TafelUser
+
+        assertThat(userDetails).isNotNull
+        assertThat(userDetails.id).isEqualTo(userEntity.id)
+        assertThat(userDetails.username).isEqualTo(userEntity.username)
+        assertThat(userDetails.personnelNumber).isEqualTo(userEntity.personnelNumber)
+        assertThat(userDetails.firstname).isEqualTo(userEntity.firstname)
+        assertThat(userDetails.lastname).isEqualTo(userEntity.lastname)
+
+        verify(exactly = 1) {
+            userRepository.findById(userEntity.id!!)
+        }
+    }
+
 }

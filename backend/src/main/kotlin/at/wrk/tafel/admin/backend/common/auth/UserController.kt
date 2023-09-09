@@ -78,8 +78,9 @@ class UserController(
         return ResponseEntity.ok(user)
     }
 
+    // TODO add personnelNumber for search
     @GetMapping
-    fun getCustomers(
+    fun getUsers(
         @RequestParam firstname: String? = null,
         @RequestParam lastname: String? = null
     ): UserListResponse {
