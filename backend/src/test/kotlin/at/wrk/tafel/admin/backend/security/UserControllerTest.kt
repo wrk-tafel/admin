@@ -15,13 +15,11 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.context.SecurityContextImpl
-import org.springframework.security.core.userdetails.UsernameNotFoundException
 
 @ExtendWith(MockKExtension::class)
 class UserControllerTest {
@@ -115,7 +113,16 @@ class UserControllerTest {
     }
 
     @Test
-    fun `get users filtered by parameters`() {
+    fun `get users filtered by personnel number`() {
+        every { userDetailsManager.loadUserByPersonnelNumber(testUser.personnelNumber) } returns testUser
+
+        val response = controller.getUsers(personnelNumber = testUser.personnelNumber)
+
+        assertThat(response.items).isEqualTo(listOf(testUserApiResponse))
+    }
+
+    @Test
+    fun `get users filtered by other parameters`() {
         val firstname = "test-firstname"
         val lastname = "test-lastname"
         every { userDetailsManager.loadUsers(firstname, lastname) } returns listOf(testUser)

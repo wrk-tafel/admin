@@ -32,6 +32,9 @@ GET {{baseApiPath}}/users?lastname=x
 ### Search for users (firstname and lastname)
 GET {{baseApiPath}}/users?firstname=x&lastname=x
 
+### Search for users (personnelNumber)
+GET {{baseApiPath}}/users?personnelnumber=x
+
 ### Get user 300
 GET {{baseApiPath}}/users/300
 Content-Type: application/json

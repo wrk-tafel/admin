@@ -78,13 +78,19 @@ class UserController(
         return ResponseEntity.ok(user)
     }
 
-    // TODO add personnelNumber for search
     @GetMapping
     fun getUsers(
+        @RequestParam("personnelnumber") personnelNumber: String? = null,
         @RequestParam firstname: String? = null,
         @RequestParam lastname: String? = null
     ): UserListResponse {
-        val users = userDetailsManager.loadUsers(firstname, lastname).map { mapToResponse(it) }
+        if (personnelNumber != null) {
+            val user = userDetailsManager.loadUserByPersonnelNumber(personnelNumber)
+            return UserListResponse(items = listOf(mapToResponse(user)))
+        }
+
+        val users = userDetailsManager.loadUsers(firstname, lastname)
+            .map { mapToResponse(it) }
         return UserListResponse(items = users)
     }
 

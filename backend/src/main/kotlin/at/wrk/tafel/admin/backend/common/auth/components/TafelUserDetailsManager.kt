@@ -36,6 +36,12 @@ class TafelUserDetailsManager(
             .orElseThrow { UsernameNotFoundException("Username not found") }
     }
 
+    fun loadUserByPersonnelNumber(personnelNumber: String): TafelUser {
+        return userRepository.findByPersonnelNumber(personnelNumber)
+            .map { userEntity -> mapToUserDetails(userEntity) }
+            .orElseThrow { UsernameNotFoundException("PersonnelNumber not found") }
+    }
+
     fun loadUsers(firstname: String?, lastname: String?): List<TafelUser> {
         val users = if (firstname?.isNotBlank() == true && lastname?.isNotBlank() == true) {
             userRepository.findAllByFirstnameContainingIgnoreCaseOrLastnameContainingIgnoreCase(

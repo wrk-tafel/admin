@@ -9,6 +9,8 @@ interface UserRepository : JpaRepository<UserEntity, Long> {
 
     fun findByUsername(username: String): Optional<UserEntity>
 
+    fun findByPersonnelNumber(personnelNumber: String): Optional<UserEntity>
+
     fun existsByUsername(username: String): Boolean
 
     fun findAllByFirstnameContainingIgnoreCase(
