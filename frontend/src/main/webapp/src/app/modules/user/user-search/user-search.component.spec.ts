@@ -41,7 +41,7 @@ describe('UserSearchComponent', () => {
       providers: [
         {
           provide: UserApiService,
-          useValue: jasmine.createSpyObj('UserApiService', ['getUser', 'searchUser'])
+          useValue: jasmine.createSpyObj('UserApiService', ['getUserForPersonnelNumber', 'searchUser'])
         },
         {
           provide: Router,
@@ -69,9 +69,9 @@ describe('UserSearchComponent', () => {
   it('search with existing personnelNumber', () => {
     const fixture = TestBed.createComponent(UserSearchComponent);
     const component = fixture.componentInstance;
-    apiService.getUser.and.returnValue(of(searchUserMockResponse.items[0]));
+    apiService.getUserForPersonnelNumber.and.returnValue(of(searchUserMockResponse.items[0]));
 
-    const testPersonnelNumber = 12345;
+    const testPersonnelNumber = '12345';
 
     component.personnelNumber.setValue(testPersonnelNumber);
     component.searchForPersonnelNumber();
