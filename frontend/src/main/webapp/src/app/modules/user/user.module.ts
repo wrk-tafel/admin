@@ -6,11 +6,15 @@ import {
   CardBodyComponent,
   CardComponent,
   CardFooterComponent,
-  CardHeaderComponent
+  CardHeaderComponent,
+  ColComponent,
+  RowComponent,
+  TableDirective
 } from '@coreui/angular';
 import {TafelCommonModule} from '../../common/tafel-common.module';
 import {CommonModule} from '@angular/common';
 import {UserSearchComponent} from './user-search/user-search.component';
+import {ReactiveFormsModule} from '@angular/forms';
 
 @NgModule({
   imports: [
@@ -21,7 +25,11 @@ import {UserSearchComponent} from './user-search/user-search.component';
     CardHeaderComponent,
     CardComponent,
     CardBodyComponent,
-    ButtonDirective
+    ButtonDirective,
+    ColComponent,
+    ReactiveFormsModule,
+    RowComponent,
+    TableDirective
   ],
   declarations: [
     UserPasswordChangeComponent,
