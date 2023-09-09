@@ -12,7 +12,7 @@ export class UserSearchComponent {
 
   searchResult: UserSearchResult;
   userSearchForm = new FormGroup({
-    personnelNumber: new FormControl<number>(null),
+    personnelNumber: new FormControl<string>(null),
     lastname: new FormControl<string>(null),
     firstname: new FormControl<string>(null)
   });
@@ -43,7 +43,7 @@ export class UserSearchComponent {
     const observer = {
       next: (response) => this.router.navigate(['/benutzer/detail', personnelNumber])
     };
-    this.userApiService.getUser(personnelNumber).subscribe(observer);
+    this.userApiService.getUserForPersonnelNumber(personnelNumber).subscribe(observer);
   }
 
   searchForDetails() {
