@@ -24,7 +24,13 @@ class TafelUserDetailsManager(
     private val passwordValidator: PasswordValidator
 ) : UserDetailsManager {
 
-    override fun loadUserByUsername(username: String): UserDetails? {
+    fun loadUserById(userId: Long): TafelUser {
+        return userRepository.findById(userId)
+            .map { userEntity -> mapToUserDetails(userEntity) }
+            .orElseThrow { UsernameNotFoundException("Username not found") }
+    }
+
+    override fun loadUserByUsername(username: String): TafelUser {
         return userRepository.findByUsername(username)
             .map { userEntity -> mapToUserDetails(userEntity) }
             .orElseThrow { UsernameNotFoundException("Username not found") }
@@ -79,10 +85,10 @@ class TafelUserDetailsManager(
     // TODO after the new security mechanism this could be reduced
     private fun mapToUserDetails(userEntity: UserEntity): TafelUser {
         return TafelUser(
+            id = userEntity.id!!,
             username = userEntity.username!!,
             password = userEntity.password!!,
             enabled = userEntity.enabled!!,
-            id = userEntity.id!!,
             personnelNumber = userEntity.personnelNumber!!,
             firstname = userEntity.firstname!!,
             lastname = userEntity.lastname!!,

@@ -13,3 +13,12 @@ data class ChangePasswordResponse(
     val message: String,
     val details: List<String>? = emptyList()
 )
+
+@ExcludeFromTestCoverage
+data class User(
+    val id: Long,
+    val personnelNumber: String,
+    val username: String,
+    val firstname: String,
+    val lastname: String
+)

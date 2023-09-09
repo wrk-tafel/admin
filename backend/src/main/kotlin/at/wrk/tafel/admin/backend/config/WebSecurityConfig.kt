@@ -114,6 +114,11 @@ class WebSecurityConfig(
 
     @Bean
     fun userDetailsManager(): UserDetailsManager {
+        return tafelUserDetailsManager()
+    }
+
+    @Bean
+    fun tafelUserDetailsManager(): TafelUserDetailsManager {
         return TafelUserDetailsManager(userRepository, passwordEncoder(), passwordValidator)
     }
 

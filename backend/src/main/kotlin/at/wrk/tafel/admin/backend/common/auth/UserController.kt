@@ -3,9 +3,12 @@ package at.wrk.tafel.admin.backend.common.auth
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.common.auth.components.PasswordChangeException
 import at.wrk.tafel.admin.backend.common.auth.components.TafelLoginFilter
+import at.wrk.tafel.admin.backend.common.auth.components.TafelUserDetailsManager
 import at.wrk.tafel.admin.backend.common.auth.model.ChangePasswordRequest
 import at.wrk.tafel.admin.backend.common.auth.model.ChangePasswordResponse
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
+import at.wrk.tafel.admin.backend.common.auth.model.User
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.slf4j.LoggerFactory
@@ -13,8 +16,8 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.security.provisioning.UserDetailsManager
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -24,7 +27,7 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/users")
 @PreAuthorize("isAuthenticated()")
 class UserController(
-    private val userDetailsManager: UserDetailsManager
+    private val userDetailsManager: TafelUserDetailsManager
 ) {
 
     companion object {
@@ -63,6 +66,24 @@ class UserController(
 
         logger.info("User ${user.username} logged out!")
         return ResponseEntity.ok().build()
+    }
+
+    @GetMapping("/{userId}")
+    @PreAuthorize("hasAuthority('USER-MANAGEMENT')")
+    fun getUser(@PathVariable("userId") userId: Long): ResponseEntity<User> {
+        val userDetails = userDetailsManager.loadUserById(userId)
+        val user = mapToResponse(userDetails)
+        return ResponseEntity.ok(user)
+    }
+
+    private fun mapToResponse(user: TafelUser): User {
+        return User(
+            id = user.id,
+            username = user.username,
+            personnelNumber = user.personnelNumber,
+            firstname = user.firstname,
+            lastname = user.lastname
+        )
     }
 
 }

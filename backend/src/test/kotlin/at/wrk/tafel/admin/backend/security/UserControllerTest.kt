@@ -3,6 +3,7 @@ package at.wrk.tafel.admin.backend.security
 import at.wrk.tafel.admin.backend.common.auth.UserController
 import at.wrk.tafel.admin.backend.common.auth.components.PasswordChangeException
 import at.wrk.tafel.admin.backend.common.auth.components.TafelLoginFilter
+import at.wrk.tafel.admin.backend.common.auth.components.TafelUserDetailsManager
 import at.wrk.tafel.admin.backend.common.auth.model.ChangePasswordRequest
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import io.mockk.every
@@ -19,13 +20,12 @@ import org.springframework.http.HttpStatus
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.context.SecurityContextImpl
-import org.springframework.security.provisioning.UserDetailsManager
 
 @ExtendWith(MockKExtension::class)
 class UserControllerTest {
 
     @RelaxedMockK
-    private lateinit var userDetailsManager: UserDetailsManager
+    private lateinit var userDetailsManager: TafelUserDetailsManager
 
     @RelaxedMockK
     private lateinit var request: HttpServletRequest
