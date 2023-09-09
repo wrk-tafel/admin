@@ -55,7 +55,6 @@ VALUES (2003, NOW(), NOW(), 200, 'CHECKIN');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (2004, NOW(), NOW(), 200, 'DISTRIBUTION_LCM');
 
--- TODO remove | fake user with weak password to gain some intrusion insights
 -- user: admin
 -- pwd: 12345
 INSERT INTO users (id, created_at, updated_at, username, password, enabled, personnel_number, firstname, lastname)
@@ -72,6 +71,8 @@ INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (3003, NOW(), NOW(), 300, 'CHECKIN');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (3004, NOW(), NOW(), 300, 'DISTRIBUTION_LCM');
+INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
+VALUES (3005, NOW(), NOW(), 300, 'USER-MANAGEMENT');
 
 -- user: scanner1
 -- pwd: 12345

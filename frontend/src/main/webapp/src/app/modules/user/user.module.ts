@@ -10,6 +10,7 @@ import {
 } from '@coreui/angular';
 import {TafelCommonModule} from '../../common/tafel-common.module';
 import {CommonModule} from '@angular/common';
+import {UserSearchComponent} from './user-search/user-search.component';
 
 @NgModule({
   imports: [
@@ -23,7 +24,8 @@ import {CommonModule} from '@angular/common';
     ButtonDirective
   ],
   declarations: [
-    UserPasswordChangeComponent
+    UserPasswordChangeComponent,
+    UserSearchComponent
   ]
 })
 export class UserModule {
