@@ -1,15 +1,16 @@
 import {Component} from '@angular/core';
 import {Router} from '@angular/router';
-import {CustomerApiService, CustomerSearchResult} from '../../../../api/customer-api.service';
 import {FormControl, FormGroup} from '@angular/forms';
-import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
+import {UserApiService, UserSearchResult} from '../../../api/user-api.service';
+import {ToastService, ToastType} from '../../../common/views/default-layout/toasts/toast.service';
 
 @Component({
   selector: 'tafel-user-search',
   templateUrl: 'user-search.component.html'
 })
 export class UserSearchComponent {
-  searchResult: CustomerSearchResult;
+
+  searchResult: UserSearchResult;
   userSearchForm = new FormGroup({
     personnelNumber: new FormControl<number>(null),
     lastname: new FormControl<string>(null),
@@ -17,7 +18,7 @@ export class UserSearchComponent {
   });
 
   constructor(
-    private customerApiService: CustomerApiService,
+    private userApiService: UserApiService,
     private router: Router,
     private toastService: ToastService
   ) {
@@ -42,12 +43,12 @@ export class UserSearchComponent {
     const observer = {
       next: (response) => this.router.navigate(['/benutzer/detail', personnelNumber])
     };
-    this.customerApiService.getCustomer(personnelNumber).subscribe(observer);
+    this.userApiService.getUser(personnelNumber).subscribe(observer);
   }
 
   searchForDetails() {
-    this.customerApiService.searchCustomer(this.lastname.value, this.firstname.value)
-      .subscribe((response: CustomerSearchResult) => {
+    this.userApiService.searchUser(this.lastname.value, this.firstname.value)
+      .subscribe((response: UserSearchResult) => {
         if (response.items.length === 0) {
           this.toastService.showToast({type: ToastType.INFO, title: 'Keine Benutzer gefunden!'});
           this.searchResult = null;

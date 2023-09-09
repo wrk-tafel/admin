@@ -50,7 +50,7 @@ export interface UserSearchResult {
 export interface UserData {
   id?: number;
   personnelNumber: string;
+  username: string;
   firstname: string;
   lastname: string;
-  birthDate: Date;
 }
