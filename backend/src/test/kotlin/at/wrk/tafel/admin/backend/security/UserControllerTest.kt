@@ -15,11 +15,13 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.context.SecurityContextImpl
+import org.springframework.security.core.userdetails.UsernameNotFoundException
 
 @ExtendWith(MockKExtension::class)
 class UserControllerTest {
@@ -100,6 +102,23 @@ class UserControllerTest {
                 assertThat(it.attributes["SameSite"]).isEqualTo("strict")
             })
         }
+    }
+
+    @Test
+    fun `get user not found`() {
+        every { userDetailsManager.loadUserById(any()) } throws UsernameNotFoundException("user not found")
+
+        assertThrows<UsernameNotFoundException> { controller.getUser(1) }
+    }
+
+    @Test
+    fun `get user found`() {
+        every { userDetailsManager.loadUserById(any()) } returns testUser
+
+        val response = controller.getUser(1)
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(response.body).isEqualTo(testUserApiResponse)
     }
 
 }
