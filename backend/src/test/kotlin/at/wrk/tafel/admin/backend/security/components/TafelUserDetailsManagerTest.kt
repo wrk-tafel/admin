@@ -383,4 +383,63 @@ class TafelUserDetailsManagerTest {
         }
     }
 
+    @Test
+    fun `loadUsers with firstname and lastname found and mapped properly`() {
+        val firstname = "test-firstname"
+        val lastname = "test-lastname"
+
+        val userEntity = UserEntity()
+        userEntity.username = "test-username"
+        userEntity.password = "test-password"
+        userEntity.enabled = true
+        userEntity.id = 0
+        userEntity.personnelNumber = "test-personnelnumber"
+        userEntity.firstname = "test-firstname"
+        userEntity.lastname = "test-lastname"
+        userEntity.passwordChangeRequired = true
+
+        every {
+            userRepository.findAllByFirstnameContainingIgnoreCaseOrLastnameContainingIgnoreCase(firstname, lastname)
+        } returns listOf(userEntity)
+
+        val userDetails = manager.loadUsers(firstname = firstname, lastname = lastname)
+
+        assertThat(userDetails).isNotNull
+
+        val user = userDetails.first()
+        assertThat(user.id).isEqualTo(userEntity.id)
+        assertThat(user.username).isEqualTo(userEntity.username)
+        assertThat(user.personnelNumber).isEqualTo(userEntity.personnelNumber)
+        assertThat(user.firstname).isEqualTo(userEntity.firstname)
+        assertThat(user.lastname).isEqualTo(userEntity.lastname)
+
+        verify(exactly = 1) {
+            userRepository.findAllByFirstnameContainingIgnoreCaseOrLastnameContainingIgnoreCase(firstname, lastname)
+        }
+    }
+
+    @Test
+    fun `loadUsers with firstname only`() {
+        val firstname = "test-firstname"
+        every { userRepository.findAllByFirstnameContainingIgnoreCase(any()) } returns emptyList()
+
+        manager.loadUsers(firstname = firstname, lastname = null)
+
+        verify(exactly = 1) {
+            userRepository.findAllByFirstnameContainingIgnoreCase(firstname)
+        }
+    }
+
+    @Test
+    fun `loadUsers with lastname only`() {
+        val lastname = "test-lastname"
+        every { userRepository.findAllByLastnameContainingIgnoreCase(any()) } returns emptyList()
+
+        manager.loadUsers(firstname = null, lastname = lastname)
+
+        verify(exactly = 1) {
+            userRepository.findAllByLastnameContainingIgnoreCase(lastname)
+        }
+    }
+
 }
