@@ -10,6 +10,7 @@ import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
 import at.wrk.tafel.admin.backend.common.auth.model.User
 import at.wrk.tafel.admin.backend.common.auth.model.UserListResponse
+import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.slf4j.LoggerFactory
@@ -86,6 +87,7 @@ class UserController(
     ): UserListResponse {
         if (personnelNumber != null) {
             val user = userDetailsManager.loadUserByPersonnelNumber(personnelNumber)
+                ?: throw TafelValidationException("Benutzer $personnelNumber nicht gefunden!")
             return UserListResponse(items = listOf(mapToResponse(user)))
         }
 

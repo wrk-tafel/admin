@@ -39,7 +39,6 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.util.*
 
 @ExtendWith(MockKExtension::class)
 internal class DistributionServiceTest {
@@ -145,7 +144,7 @@ internal class DistributionServiceTest {
             locked = false
         }
 
-        every { userRepository.findByUsername(authentication.username!!) } returns Optional.of(testUserEntity)
+        every { userRepository.findByUsername(authentication.username!!) } returns testUserEntity
     }
 
     @AfterEach
@@ -155,7 +154,7 @@ internal class DistributionServiceTest {
 
     @Test
     fun `create new distribution`() {
-        every { userRepository.findByUsername(authentication.username!!) } returns Optional.of(testUserEntity)
+        every { userRepository.findByUsername(authentication.username!!) } returns testUserEntity
         every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns null
 
         val distributionEntity = DistributionEntity()
@@ -220,7 +219,7 @@ internal class DistributionServiceTest {
         val savedDistribution = mockk<DistributionEntity>()
         every { distributionRepository.save(any()) } returns savedDistribution
 
-        every { userRepository.findByUsername(authentication.username!!) } returns Optional.of(testUserEntity)
+        every { userRepository.findByUsername(authentication.username!!) } returns testUserEntity
 
         service.closeDistribution()
 

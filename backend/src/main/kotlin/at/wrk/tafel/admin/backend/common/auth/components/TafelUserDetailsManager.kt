@@ -31,15 +31,13 @@ class TafelUserDetailsManager(
     }
 
     override fun loadUserByUsername(username: String): TafelUser {
-        return userRepository.findByUsername(username)
-            .map { userEntity -> mapToUserDetails(userEntity) }
-            .orElseThrow { UsernameNotFoundException("Username not found") }
+        val user = userRepository.findByUsername(username) ?: throw UsernameNotFoundException("Username not found")
+        return mapToUserDetails(user)
     }
 
-    fun loadUserByPersonnelNumber(personnelNumber: String): TafelUser {
-        return userRepository.findByPersonnelNumber(personnelNumber)
-            .map { userEntity -> mapToUserDetails(userEntity) }
-            .orElseThrow { UsernameNotFoundException("PersonnelNumber not found") }
+    fun loadUserByPersonnelNumber(personnelNumber: String): TafelUser? {
+        val user = userRepository.findByPersonnelNumber(personnelNumber)
+        return user?.let { mapToUserDetails(user) }
     }
 
     fun loadUsers(firstname: String?, lastname: String?): List<TafelUser> {
@@ -72,7 +70,7 @@ class TafelUserDetailsManager(
 
     override fun changePassword(currentPassword: String, newPassword: String) {
         val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
-        var storedUser = userRepository.findByUsername(authenticatedUser.username!!).get()
+        var storedUser = userRepository.findByUsername(authenticatedUser.username!!)!!
 
         if (!passwordEncoder.matches(currentPassword, storedUser.password)) {
             throw PasswordChangeException("Aktuelles Passwort ist falsch!")

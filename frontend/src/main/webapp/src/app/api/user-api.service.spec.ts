@@ -35,10 +35,10 @@ describe('UserApiService', () => {
     httpMock.verify();
   });
 
-  it('get user', () => {
-    apiService.getUser(1).subscribe();
+  it('get user for personnel number', () => {
+    apiService.getUserForPersonnelNumber('p1a2').subscribe();
 
-    const req = httpMock.expectOne({method: 'GET', url: '/users/1'});
+    const req = httpMock.expectOne({method: 'GET', url: '/users?personnelnumber=p1a2'});
     req.flush(null);
     httpMock.verify();
   });

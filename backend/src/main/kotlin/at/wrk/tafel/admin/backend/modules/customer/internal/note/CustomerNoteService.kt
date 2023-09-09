@@ -38,7 +38,7 @@ class CustomerNoteService(
 
         val noteEntity = CustomerNoteEntity()
         noteEntity.customer = customerRepository.findByCustomerId(customerId)
-        noteEntity.user = userRepository.findByUsername(authenticatedUser.username!!).get()
+        noteEntity.user = userRepository.findByUsername(authenticatedUser.username!!)
         noteEntity.note = note
 
         val savedEntity = customerNoteRepository.save(noteEntity)

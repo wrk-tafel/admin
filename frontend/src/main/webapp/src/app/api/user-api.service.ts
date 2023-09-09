@@ -12,12 +12,12 @@ export class UserApiService {
   ) {
   }
 
-  getUser(id: number): Observable<UserData> {
-    return this.http.get<UserData>('/users/' + id);
-  }
-
   changePassword(request: ChangePasswordRequest): Observable<ChangePasswordResponse> {
     return this.http.post<ChangePasswordResponse>('/users/change-password', request);
+  }
+
+  getUserForPersonnelNumber(personnelNumber: string): Observable<UserData> {
+    return this.http.get<UserData>('/users', {params: {personnelnumber: personnelNumber}});
   }
 
   searchUser(lastname?: string, firstname?: string): Observable<UserSearchResult> {

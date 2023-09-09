@@ -60,7 +60,7 @@ class CustomerServiceTest {
 
     @BeforeEach
     fun beforeEach() {
-        every { userRepository.findByUsername(any()) } returns Optional.of(testUserEntity)
+        every { userRepository.findByUsername(any()) } returns testUserEntity
         SecurityContextHolder.getContext().authentication =
             TafelJwtAuthentication("TOKEN", testUserEntity.username, true)
 

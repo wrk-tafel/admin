@@ -54,7 +54,7 @@ class TafelUserDetailsManagerTest {
     fun beforeEach() {
         SecurityContextHolder.getContext().authentication =
             TafelJwtAuthentication(tokenValue = "TOKEN", testUser.username)
-        every { userRepository.findByUsername(testUser.username) } returns Optional.of(testUserEntity)
+        every { userRepository.findByUsername(testUser.username) } returns testUserEntity
         testUserEntityPassword = testUserEntity.password!!
     }
 
@@ -65,7 +65,7 @@ class TafelUserDetailsManagerTest {
 
     @Test
     fun `loadUserByUsername - user not found`() {
-        every { userRepository.findByUsername(any()) } returns Optional.empty()
+        every { userRepository.findByUsername(any()) } returns null
 
         assertThrows<UsernameNotFoundException> {
             manager.loadUserByUsername("test")
@@ -95,7 +95,7 @@ class TafelUserDetailsManagerTest {
         userEntity.authorities = mutableListOf(userAuthorityEntity1, userAuthorityEntity2)
         userEntity.passwordChangeRequired = true
 
-        every { userRepository.findByUsername(any()) } returns Optional.of(userEntity)
+        every { userRepository.findByUsername(any()) } returns userEntity
 
         val userDetails = manager.loadUserByUsername("test") as TafelUser
 
@@ -345,12 +345,11 @@ class TafelUserDetailsManagerTest {
 
     @Test
     fun `loadUserByPersonnelNumber - user not found`() {
-        every { userRepository.findByPersonnelNumber(any()) } returns Optional.empty()
+        every { userRepository.findByPersonnelNumber(any()) } returns null
 
-        assertThrows<UsernameNotFoundException> {
-            manager.loadUserByPersonnelNumber("1")
-        }
+        val user = manager.loadUserByPersonnelNumber("1")
 
+        assertThat(user).isNull()
         verify(exactly = 1) {
             userRepository.findByPersonnelNumber("1")
         }
@@ -368,7 +367,7 @@ class TafelUserDetailsManagerTest {
         userEntity.lastname = "test-lastname"
         userEntity.passwordChangeRequired = true
 
-        every { userRepository.findByPersonnelNumber(any()) } returns Optional.of(userEntity)
+        every { userRepository.findByPersonnelNumber(any()) } returns userEntity
 
         val userDetails = manager.loadUserByPersonnelNumber(userEntity.personnelNumber!!) as TafelUser
 

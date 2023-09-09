@@ -24,8 +24,6 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-import java.util.*
-
 @ExtendWith(MockKExtension::class)
 internal class CustomerNoteServiceTest {
 
@@ -45,7 +43,7 @@ internal class CustomerNoteServiceTest {
 
     @BeforeEach
     fun beforeEach() {
-        every { userRepository.findByUsername(any()) } returns Optional.of(testUserEntity)
+        every { userRepository.findByUsername(any()) } returns testUserEntity
         SecurityContextHolder.getContext().authentication =
             TafelJwtAuthentication("TOKEN", testUserEntity.username, true)
 

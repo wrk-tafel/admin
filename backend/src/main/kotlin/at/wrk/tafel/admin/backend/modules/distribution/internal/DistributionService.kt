@@ -47,7 +47,7 @@ class DistributionService(
 
         val distribution = DistributionEntity()
         distribution.startedAt = LocalDateTime.now()
-        distribution.startedByUser = userRepository.findByUsername(authenticatedUser.username!!).get()
+        distribution.startedByUser = userRepository.findByUsername(authenticatedUser.username!!)
 
         return distributionRepository.save(distribution)
     }
@@ -145,20 +145,16 @@ class DistributionService(
     fun closeDistribution() {
         val currentDistribution = distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc()
             ?: throw TafelValidationException("Ausgabe nicht gestartet!")
+        val authenticatedUser = SecurityContextHolder.getContext().authentication as? TafelJwtAuthentication
 
         if (currentDistribution != null) {
-            val distribution = distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc()
-            val authenticatedUser = SecurityContextHolder.getContext().authentication as? TafelJwtAuthentication
+            currentDistribution.endedAt = LocalDateTime.now()
+            currentDistribution.endedByUser =
+                authenticatedUser?.let { userRepository.findByUsername(authenticatedUser.username!!) }
+                    ?: currentDistribution.startedByUser
 
-            if (distribution != null) {
-                distribution.endedAt = LocalDateTime.now()
-                distribution.endedByUser =
-                    authenticatedUser?.let { userRepository.findByUsername(authenticatedUser.username!!).get() }
-                        ?: distribution.startedByUser
-
-                val persistedDistribution = distributionRepository.save(distribution)
-                distributionPostProcessorService.process(persistedDistribution)
-            }
+            val persistedDistribution = distributionRepository.save(currentDistribution)
+            distributionPostProcessorService.process(persistedDistribution)
         }
     }
 
