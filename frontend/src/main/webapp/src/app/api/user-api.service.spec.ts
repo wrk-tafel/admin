@@ -35,4 +35,36 @@ describe('UserApiService', () => {
     httpMock.verify();
   });
 
+  it('get user', () => {
+    apiService.getUser(1).subscribe();
+
+    const req = httpMock.expectOne({method: 'GET', url: '/users/1'});
+    req.flush(null);
+    httpMock.verify();
+  });
+
+  it('search user with firstname and lastname', () => {
+    apiService.searchUser('mustermann', 'max').subscribe();
+
+    const req = httpMock.expectOne({method: 'GET', url: '/users?lastname=mustermann&firstname=max'});
+    req.flush(null);
+    httpMock.verify();
+  });
+
+  it('search user with lastname only', () => {
+    apiService.searchUser('mustermann').subscribe();
+
+    const req = httpMock.expectOne({method: 'GET', url: '/users?lastname=mustermann'});
+    req.flush(null);
+    httpMock.verify();
+  });
+
+  it('search user with firstname only', () => {
+    apiService.searchUser(null, 'max').subscribe();
+
+    const req = httpMock.expectOne({method: 'GET', url: '/users?firstname=max'});
+    req.flush(null);
+    httpMock.verify();
+  });
+
 });
