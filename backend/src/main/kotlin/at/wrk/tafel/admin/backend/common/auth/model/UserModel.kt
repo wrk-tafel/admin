@@ -22,3 +22,8 @@ data class User(
     val firstname: String,
     val lastname: String
 )
+
+@ExcludeFromTestCoverage
+data class UserListResponse(
+    val items: List<User>
+)

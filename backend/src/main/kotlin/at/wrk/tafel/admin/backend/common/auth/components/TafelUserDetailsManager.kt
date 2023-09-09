@@ -36,6 +36,22 @@ class TafelUserDetailsManager(
             .orElseThrow { UsernameNotFoundException("Username not found") }
     }
 
+    fun loadUsers(firstname: String?, lastname: String?): List<TafelUser> {
+        val users = if (firstname?.isNotBlank() == true && lastname?.isNotBlank() == true) {
+            userRepository.findAllByFirstnameContainingIgnoreCaseOrLastnameContainingIgnoreCase(
+                firstname,
+                lastname
+            )
+        } else if (firstname?.isNotBlank() == true) {
+            userRepository.findAllByFirstnameContainingIgnoreCase(firstname)
+        } else if (lastname?.isNotBlank() == true) {
+            userRepository.findAllByLastnameContainingIgnoreCase(lastname)
+        } else {
+            userRepository.findAll()
+        }
+        return users.map { mapToUserDetails(it) }
+    }
+
     override fun createUser(user: UserDetails?) {
         TODO("Not yet implemented")
     }
