@@ -1,0 +1,42 @@
+<form [formGroup]="form">
+  <div class="row">
+    <div class="col-md">
+      <div class="card">
+        <div class="card-header text-center h5">
+          Benutzerdaten
+        </div>
+        <div class="card-body">
+          <!-- TODO add more fields -->
+          <div class="row">
+            <div class="col-sm">
+              <label class="form-label">Familienname *</label>
+              <input testid="lastnameInput" type="text" formControlName="lastname" class="form-control"
+                     [ngClass]="{'is-invalid': lastname.invalid && (lastname.dirty || lastname.touched), 'is-valid': lastname.valid && (lastname.dirty || lastname.touched)}">
+              <div *ngIf="lastname.errors?.required && (lastname.dirty || lastname.touched)"
+                   class="invalid-feedback">
+                Pflichtfeld
+              </div>
+              <div *ngIf="lastname.errors?.maxlength && (lastname.dirty || lastname.touched)"
+                   class="invalid-feedback">
+                Familienname zu lang (Limit: {{lastname.errors.maxlength.requiredLength}})
+              </div>
+            </div>
+            <div class="col-sm">
+              <label class="form-label">Vorname *</label>
+              <input testid="firstnameInput" type="text" formControlName="firstname" class="form-control"
+                     [ngClass]="{'is-invalid': firstname.invalid && (firstname.dirty || firstname.touched), 'is-valid': firstname.valid && (firstname.dirty || firstname.touched)}">
+              <div *ngIf="firstname.errors?.required && (firstname.dirty || firstname.touched)"
+                   class="invalid-feedback">
+                Pflichtfeld
+              </div>
+              <div *ngIf="firstname.errors?.maxlength && (firstname.dirty || firstname.touched)"
+                   class="invalid-feedback">
+                Vorname zu lang (Limit: {{firstname.errors.maxlength.requiredLength}})
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
