@@ -32,10 +32,12 @@
           </c-col>
         </c-row>
         <c-row>
-          <c-col class="fw-bold">
+          <c-col class="fw-bold text-white"
+                 [ngClass]="{'bg-success': userData?.enabled == true, 'bg-danger': userData?.enabled == false}">
             Aktiv
           </c-col>
-          <c-col testid="enabledText">
+          <c-col testid="enabledText" class="text-white"
+                 [ngClass]="{'bg-success': userData?.enabled == true, 'bg-danger': userData?.enabled == false}">
             {{userData?.enabled == true ? 'Ja' : 'Nein'}}
           </c-col>
         </c-row>

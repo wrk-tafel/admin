@@ -1,6 +1,6 @@
 import {Component, OnInit} from '@angular/core';
-import {UserData} from "../../../api/user-api.service";
-import {ActivatedRoute} from "@angular/router";
+import {UserData} from '../../../api/user-api.service';
+import {ActivatedRoute} from '@angular/router';
 
 @Component({
   selector: 'tafel-user-detail',
