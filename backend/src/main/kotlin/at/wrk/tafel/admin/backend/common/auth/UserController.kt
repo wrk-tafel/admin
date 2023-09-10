@@ -92,7 +92,7 @@ class UserController(
         @RequestParam lastname: String? = null
     ): UserListResponse {
         if (personnelNumber != null) {
-            val user = userDetailsManager.loadUserByPersonnelNumber(personnelNumber)
+            val user = userDetailsManager.loadUserByPersonnelNumber(personnelNumber.trim())
                 ?: throw TafelValidationException(
                     message = "Benutzer (Personalnummer: $personnelNumber) nicht gefunden!",
                     status = HttpStatus.NOT_FOUND
@@ -100,7 +100,7 @@ class UserController(
             return UserListResponse(items = listOf(mapToResponse(user)))
         }
 
-        val users = userDetailsManager.loadUsers(firstname, lastname)
+        val users = userDetailsManager.loadUsers(firstname?.trim(), lastname?.trim())
             .map { mapToResponse(it) }
         return UserListResponse(items = users)
     }

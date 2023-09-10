@@ -75,7 +75,7 @@ class CustomerController(
         @RequestParam firstname: String? = null,
         @RequestParam lastname: String? = null
     ): CustomerListResponse {
-        val customerItems = service.getCustomers(firstname, lastname)
+        val customerItems = service.getCustomers(firstname?.trim(), lastname?.trim())
         return CustomerListResponse(items = customerItems)
     }
 

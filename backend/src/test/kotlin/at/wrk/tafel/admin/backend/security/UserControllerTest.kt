@@ -127,9 +127,11 @@ class UserControllerTest {
     fun `get users found when filtered by personnel number`() {
         every { userDetailsManager.loadUserByPersonnelNumber(testUser.personnelNumber) } returns testUser
 
-        val response = controller.getUsers(personnelNumber = testUser.personnelNumber)
+        val response = controller.getUsers(personnelNumber = " ${testUser.personnelNumber} ")
 
         assertThat(response.items).isEqualTo(listOf(testUserApiResponse))
+
+        verify(exactly = 1) { userDetailsManager.loadUserByPersonnelNumber(testUser.personnelNumber) }
     }
 
     @Test
@@ -144,13 +146,15 @@ class UserControllerTest {
 
     @Test
     fun `get users filtered by other parameters`() {
-        val firstname = "test-firstname"
-        val lastname = "test-lastname"
-        every { userDetailsManager.loadUsers(firstname, lastname) } returns listOf(testUser)
+        val firstname = " test-firstname "
+        val lastname = " test-lastname "
+        every { userDetailsManager.loadUsers(firstname.trim(), lastname.trim()) } returns listOf(testUser)
 
         val response = controller.getUsers(firstname = firstname, lastname = lastname)
 
         assertThat(response.items).isEqualTo(listOf(testUserApiResponse))
+
+        verify(exactly = 1) { userDetailsManager.loadUsers(firstname.trim(), lastname.trim()) }
     }
 
     @Test

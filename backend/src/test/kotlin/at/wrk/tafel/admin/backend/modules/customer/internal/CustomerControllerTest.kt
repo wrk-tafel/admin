@@ -208,9 +208,9 @@ class CustomerControllerTest {
     fun `get customers - mapped correctly`() {
         every { service.getCustomers(any(), any()) } returns listOf(testCustomer)
 
-        val response = controller.getCustomers("first", "last")
+        val response = controller.getCustomers(" first ", " last ")
 
-        verify { service.getCustomers(any(), any()) }
+        verify { service.getCustomers("first", "last") }
         assertThat(response.items).hasSize(1)
     }
 
