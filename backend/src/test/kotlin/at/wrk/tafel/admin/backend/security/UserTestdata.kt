@@ -24,7 +24,7 @@ val testUserEntity = UserEntity().apply {
         entity.name = it
         entity
     }.toMutableList()
-    passwordChangeRequired = true
+    passwordChangeRequired = false
 }
 
 val testUser = TafelUser(
@@ -36,7 +36,7 @@ val testUser = TafelUser(
     firstname = testUserEntity.firstname!!,
     lastname = testUserEntity.lastname!!,
     authorities = testUserPermissions.map { SimpleGrantedAuthority(it) },
-    passwordChangeRequired = true
+    passwordChangeRequired = false
 )
 
 val testUserApiResponse = User(
