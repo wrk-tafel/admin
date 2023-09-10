@@ -11,10 +11,10 @@ describe('User Search', () => {
   });
 
   it('search by personnelNumber', () => {
-    cy.byTestId('personnelNumberText').type('100');
+    cy.byTestId('personnelNumberText').type('300');
     cy.byTestId('showuser-button').click();
 
-    cy.url().should('include', '/kunden/detail/100');
+    cy.url().should('include', '/benutzer/detail/300');
   });
 
   it('search by lastname and firstname', () => {
@@ -28,7 +28,7 @@ describe('User Search', () => {
     cy.byTestId('searchresult-showuser-button-0').should('be.visible');
 
     cy.byTestId('searchresult-showuser-button-0').click();
-    cy.url().should('include', '/kunden/detail/201');
+    cy.url().should('include', '/benutzer/detail/201');
   });
 
   it('search by lastname only', () => {

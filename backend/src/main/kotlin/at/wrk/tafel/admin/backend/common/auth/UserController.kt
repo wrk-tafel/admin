@@ -105,6 +105,7 @@ class UserController(
     }
 
     @PostMapping("/{userId}")
+    @PreAuthorize("hasAuthority('USER-MANAGEMENT')")
     fun updateUser(
         @PathVariable("userId") userId: Long,
         @RequestBody user: User
