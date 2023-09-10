@@ -9,7 +9,7 @@ import org.springframework.security.core.userdetails.UserDetails
 data class TafelUser(
     private val username: String,
     private var password: String?,
-    private val enabled: Boolean,
+    val enabled: Boolean,
     val id: Long,
     val personnelNumber: String,
     val firstname: String,

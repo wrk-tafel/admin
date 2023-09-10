@@ -75,7 +75,10 @@ class UserController(
     @PreAuthorize("hasAuthority('USER-MANAGEMENT')")
     fun getUser(@PathVariable("userId") userId: Long): ResponseEntity<User> {
         val userDetails = userDetailsManager.loadUserById(userId)
-            ?: throw TafelValidationException("Benutzer (ID: $userId) nicht gefunden!")
+            ?: throw TafelValidationException(
+                message = "Benutzer (ID: $userId) nicht gefunden!",
+                status = HttpStatus.NOT_FOUND
+            )
         val user = mapToResponse(userDetails)
         return ResponseEntity.ok(user)
     }
@@ -89,13 +92,44 @@ class UserController(
     ): UserListResponse {
         if (personnelNumber != null) {
             val user = userDetailsManager.loadUserByPersonnelNumber(personnelNumber)
-                ?: throw TafelValidationException("Benutzer (Personalnummer: $personnelNumber) nicht gefunden!")
+                ?: throw TafelValidationException(
+                    message = "Benutzer (Personalnummer: $personnelNumber) nicht gefunden!",
+                    status = HttpStatus.NOT_FOUND
+                )
             return UserListResponse(items = listOf(mapToResponse(user)))
         }
 
         val users = userDetailsManager.loadUsers(firstname, lastname)
             .map { mapToResponse(it) }
         return UserListResponse(items = users)
+    }
+
+    @PostMapping("/{userId}")
+    fun updateUser(
+        @PathVariable("userId") userId: Long,
+        @RequestBody user: User
+    ): User? {
+        val tafelUser = userDetailsManager.loadUserById(userId)
+            ?: throw TafelValidationException(
+                message = "Benutzer (ID: $userId) nicht vorhanden!",
+                status = HttpStatus.NOT_FOUND
+            )
+
+        val updatedTafelUser = mapToTafelUser(tafelUser, user)
+        userDetailsManager.updateUser(updatedTafelUser)
+
+        return mapToResponse(userDetailsManager.loadUserById(userId)!!)
+    }
+
+    private fun mapToTafelUser(tafelUser: TafelUser, userUpdate: User): TafelUser {
+        return tafelUser.copy(
+            id = userUpdate.id,
+            username = userUpdate.username,
+            firstname = userUpdate.firstname,
+            lastname = userUpdate.lastname,
+            enabled = userUpdate.enabled,
+            passwordChangeRequired = userUpdate.passwordChangeRequired
+        )
     }
 
     private fun mapToResponse(user: TafelUser): User {

@@ -108,7 +108,9 @@ class UserControllerTest {
     fun `get user not found`() {
         every { userDetailsManager.loadUserById(any()) } returns null
 
-        assertThrows<TafelValidationException> { controller.getUser(1) }
+        val exception = assertThrows<TafelValidationException> { controller.getUser(1) }
+        assertThat(exception.status).isEqualTo(HttpStatus.NOT_FOUND)
+        assertThat(exception.message).isEqualTo("Benutzer (ID: 1) nicht gefunden!")
     }
 
     @Test
@@ -122,12 +124,22 @@ class UserControllerTest {
     }
 
     @Test
-    fun `get users filtered by personnel number`() {
+    fun `get users found when filtered by personnel number`() {
         every { userDetailsManager.loadUserByPersonnelNumber(testUser.personnelNumber) } returns testUser
 
         val response = controller.getUsers(personnelNumber = testUser.personnelNumber)
 
         assertThat(response.items).isEqualTo(listOf(testUserApiResponse))
+    }
+
+    @Test
+    fun `get users not found when filtered by personnel number`() {
+        every { userDetailsManager.loadUserByPersonnelNumber(testUser.personnelNumber) } returns null
+
+        val exception =
+            assertThrows<TafelValidationException> { controller.getUsers(personnelNumber = testUser.personnelNumber) }
+        assertThat(exception.status).isEqualTo(HttpStatus.NOT_FOUND)
+        assertThat(exception.message).isEqualTo("Benutzer (Personalnummer: test-personnelnumber) nicht gefunden!")
     }
 
     @Test
@@ -139,6 +151,26 @@ class UserControllerTest {
         val response = controller.getUsers(firstname = firstname, lastname = lastname)
 
         assertThat(response.items).isEqualTo(listOf(testUserApiResponse))
+    }
+
+    @Test
+    fun `update user not found`() {
+        every { userDetailsManager.loadUserById(any()) } returns null
+
+        val exception =
+            assertThrows<TafelValidationException> { controller.updateUser(userId = 123, user = testUserApiResponse) }
+        assertThat(exception.status).isEqualTo(HttpStatus.NOT_FOUND)
+        assertThat(exception.message).isEqualTo("Benutzer (ID: 123) nicht vorhanden!")
+    }
+
+    @Test
+    fun `update user found`() {
+        every { userDetailsManager.loadUserById(any()) } returns testUser
+
+        val updatedUser = controller.updateUser(userId = 123, user = testUserApiResponse)
+
+        assertThat(updatedUser).isEqualTo(testUserApiResponse)
+        verify(exactly = 1) { userDetailsManager.updateUser(testUser) }
     }
 
 }

@@ -38,3 +38,17 @@ GET {{baseApiPath}}/users?personnelnumber=x
 ### Get user 300
 GET {{baseApiPath}}/users/300
 Content-Type: application/json
+
+### Update user
+POST {{baseApiPath}}/users/300
+Content-Type: application/json
+
+{
+  "id": 300,
+  "personnelNumber": "0300",
+  "username": "admin",
+  "firstname": "AD",
+  "lastname": "min",
+  "enabled": false,
+  "passwordChangeRequired": true
+}
