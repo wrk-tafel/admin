@@ -17,6 +17,8 @@ export class UserFormComponent implements OnInit {
     lastname: new FormControl<string>(null, [Validators.required, Validators.maxLength(50)]),
     firstname: new FormControl<string>(null, [Validators.required, Validators.maxLength(50)]),
     enabled: new FormControl<boolean>(null, Validators.required),
+    password: new FormControl<string>(null, Validators.required),
+    passwordRepeat: new FormControl<string>(null, Validators.required),
     passwordChangeRequired: new FormControl<boolean>(null, Validators.required)
   });
 
@@ -59,6 +61,14 @@ export class UserFormComponent implements OnInit {
 
   get enabled() {
     return this.form.get('enabled');
+  }
+
+  get password() {
+    return this.form.get('password');
+  }
+
+  get passwordRepeat() {
+    return this.form.get('passwordRepeat');
   }
 
   get passwordChangeRequired() {

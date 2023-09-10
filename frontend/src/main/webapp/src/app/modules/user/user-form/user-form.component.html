@@ -6,7 +6,34 @@
           Benutzerdaten
         </div>
         <div class="card-body">
-          <!-- TODO add more fields -->
+          <div class="row">
+            <div class="col-sm">
+              <label class="form-label">Benutzername *</label>
+              <input testid="usernameInput" type="text" formControlName="username" class="form-control"
+                     [ngClass]="{'is-invalid': username.invalid && (username.dirty || username.touched), 'is-valid': username.valid && (username.dirty || username.touched)}">
+              <div *ngIf="username.errors?.required && (username.dirty || username.touched)"
+                   class="invalid-feedback">
+                Pflichtfeld
+              </div>
+              <div *ngIf="username.errors?.maxlength && (username.dirty || username.touched)"
+                   class="invalid-feedback">
+                Benutzername zu lang (Limit: {{username.errors.maxlength.requiredLength}})
+              </div>
+            </div>
+            <div class="col-sm">
+              <label class="form-label">Personalnummer *</label>
+              <input testid="personnelNumberInput" type="text" formControlName="personnelNumber" class="form-control"
+                     [ngClass]="{'is-invalid': personnelNumber.invalid && (personnelNumber.dirty || personnelNumber.touched), 'is-valid': personnelNumber.valid && (personnelNumber.dirty || personnelNumber.touched)}">
+              <div *ngIf="personnelNumber.errors?.required && (personnelNumber.dirty || personnelNumber.touched)"
+                   class="invalid-feedback">
+                Pflichtfeld
+              </div>
+              <div *ngIf="personnelNumber.errors?.maxlength && (personnelNumber.dirty || personnelNumber.touched)"
+                   class="invalid-feedback">
+                Personalnummer zu lang (Limit: {{personnelNumber.errors.maxlength.requiredLength}})
+              </div>
+            </div>
+          </div>
           <div class="row">
             <div class="col-sm">
               <label class="form-label">Familienname *</label>
@@ -32,6 +59,35 @@
               <div *ngIf="firstname.errors?.maxlength && (firstname.dirty || firstname.touched)"
                    class="invalid-feedback">
                 Vorname zu lang (Limit: {{firstname.errors.maxlength.requiredLength}})
+              </div>
+            </div>
+          </div>
+          <hr>
+          <div class="row">
+            <div class="col-sm">
+              <label class="form-label">Passwort *</label>
+              <input testid="passwordInput" type="text" formControlName="password" class="form-control"
+                     [ngClass]="{'is-invalid': password.invalid && (password.dirty || password.touched), 'is-valid': password.valid && (password.dirty || password.touched)}">
+              <div *ngIf="password.errors?.required && (password.dirty || password.touched)"
+                   class="invalid-feedback">
+                Pflichtfeld
+              </div>
+            </div>
+            <div class="col-sm">
+              <label class="form-label">Passwort (Wiederholung) *</label>
+              <input testid="passwordRepeatInput" type="text" formControlName="passwordRepeat" class="form-control"
+                     [ngClass]="{'is-invalid': passwordRepeat.invalid && (passwordRepeat.dirty || passwordRepeat.touched), 'is-valid': passwordRepeat.valid && (passwordRepeat.dirty || passwordRepeat.touched)}">
+              <div *ngIf="passwordRepeat.errors?.required && (passwordRepeat.dirty || passwordRepeat.touched)"
+                   class="invalid-feedback">
+                Pflichtfeld
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-sm">
+              <label class="form-label">Passwort-Änderung erforderlich *</label>
+              <div class="input-group">
+                <input testid="passwordChangeRequiredInput" type="checkbox" formControlName="passwordChangeRequired" class="form-check-input">
               </div>
             </div>
           </div>
