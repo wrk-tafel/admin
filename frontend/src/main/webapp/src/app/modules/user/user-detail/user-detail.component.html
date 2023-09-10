@@ -1,51 +1,55 @@
 <div class="d-flex flex-column-reverse flex-lg-column mb-3">
   <div class="d-flex flex-column flex-lg-row mt-3 mt-lg-0 mb-4 mb-lg-0">
-    <button *ngIf="userData.enabled" cButton color="danger" class="text-white" (click)="disableUser()">Benutzer deaktivieren</button>
-    <button *ngIf="!userData.enabled" cButton color="primary" class="text-white" (click)="enableUser()">Benutzer aktivieren</button>
+    <button *ngIf="userData.enabled" cButton color="danger" class="text-white" (click)="disableUser()">Benutzer
+      deaktivieren
+    </button>
+    <button *ngIf="!userData.enabled" cButton color="primary" class="text-white" (click)="enableUser()">Benutzer
+      aktivieren
+    </button>
   </div>
+  <c-card class="col-lg-6 col-sm-12 mt-0 mt-lg-3 mb-0 mb-lg-3">
+    <c-card-body>
+      <c-row class="mb-3">
+        <c-col>
+          <h3>Benutzerdetails</h3>
+        </c-col>
+      </c-row>
+      <c-row>
+        <c-col class="col-lg-6 col-sm-12">
+          <c-row>
+            <c-col class="fw-bold">
+              Name
+            </c-col>
+            <c-col testid="nameText">{{userData?.firstname}} {{userData?.lastname}}</c-col>
+          </c-row>
+          <c-row>
+            <c-col class="fw-bold">
+              Benutzername
+            </c-col>
+            <c-col testid="usernameText">{{userData?.username}}</c-col>
+          </c-row>
+          <c-row>
+            <c-col class="fw-bold">
+              Personal-Nummer
+            </c-col>
+            <c-col testid="personnelNumberText">{{userData?.personnelNumber}}</c-col>
+          </c-row>
+          <c-row>
+            <c-col class="fw-bold">
+              Passwortänderung notwendig
+            </c-col>
+            <c-col
+              testid="passwordChangeRequiredText">{{userData?.passwordChangeRequired == true ? 'Ja' : 'Nein'}}</c-col>
+          </c-row>
+          <c-row>
+            <c-col class="fw-bold text-white"
+                   [ngClass]="{'bg-success': userData?.enabled == true, 'bg-danger': userData?.enabled == false}">Aktiv
+            </c-col>
+            <c-col testid="enabledText" class="text-white"
+                   [ngClass]="{'bg-success': userData?.enabled == true, 'bg-danger': userData?.enabled == false}">{{userData?.enabled == true ? 'Ja' : 'Nein'}}</c-col>
+          </c-row>
+        </c-col>
+      </c-row>
+    </c-card-body>
+  </c-card>
 </div>
-<c-card class="col-lg-6 col-sm-12">
-  <c-card-body>
-    <c-row class="mb-3">
-      <c-col>
-        <h3>Benutzerdetails</h3>
-      </c-col>
-    </c-row>
-    <c-row>
-      <c-col class="col-lg-6 col-sm-12">
-        <c-row>
-          <c-col class="fw-bold">
-            Name
-          </c-col>
-          <c-col testid="nameText">{{userData?.firstname}} {{userData?.lastname}}</c-col>
-        </c-row>
-        <c-row>
-          <c-col class="fw-bold">
-            Benutzername
-          </c-col>
-          <c-col testid="usernameText">{{userData?.username}}</c-col>
-        </c-row>
-        <c-row>
-          <c-col class="fw-bold">
-            Personal-Nummer
-          </c-col>
-          <c-col testid="personnelNumberText">{{userData?.personnelNumber}}</c-col>
-        </c-row>
-        <c-row>
-          <c-col class="fw-bold">
-            Passwortänderung notwendig
-          </c-col>
-          <c-col
-            testid="passwordChangeRequiredText">{{userData?.passwordChangeRequired == true ? 'Ja' : 'Nein'}}</c-col>
-        </c-row>
-        <c-row>
-          <c-col class="fw-bold text-white"
-                 [ngClass]="{'bg-success': userData?.enabled == true, 'bg-danger': userData?.enabled == false}">Aktiv
-          </c-col>
-          <c-col testid="enabledText" class="text-white"
-                 [ngClass]="{'bg-success': userData?.enabled == true, 'bg-danger': userData?.enabled == false}">{{userData?.enabled == true ? 'Ja' : 'Nein'}}</c-col>
-        </c-row>
-      </c-col>
-    </c-row>
-  </c-card-body>
-</c-card>
