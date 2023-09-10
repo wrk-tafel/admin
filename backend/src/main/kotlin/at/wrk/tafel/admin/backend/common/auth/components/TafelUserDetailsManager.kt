@@ -68,8 +68,10 @@ class TafelUserDetailsManager(
         userRepository.save(userEntity)
     }
 
-    override fun deleteUser(username: String?) {
-        TODO("Not yet implemented")
+    override fun deleteUser(username: String) {
+        val userEntity =
+            userRepository.findByUsername(username) ?: throw UsernameNotFoundException("Username not found")
+        userRepository.delete(userEntity)
     }
 
     override fun changePassword(currentPassword: String, newPassword: String) {

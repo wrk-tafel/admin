@@ -132,11 +132,6 @@ class TafelUserDetailsManagerTest {
     }
 
     @Test
-    fun `deleteUser - not implemented`() {
-        assertThrows<NotImplementedError> { manager.deleteUser(null) }
-    }
-
-    @Test
     fun `changePassword - passwords matching`() {
         val currentPassword = "12345"
         val newPassword = "67890"
@@ -486,6 +481,24 @@ class TafelUserDetailsManagerTest {
         assertThat(updatedUser.lastname).isEqualTo(userUpdate.lastname)
         assertThat(updatedUser.enabled).isEqualTo(userUpdate.enabled)
         assertThat(updatedUser.passwordChangeRequired).isEqualTo(userUpdate.passwordChangeRequired)
+    }
+
+    @Test
+    fun `deleteUser not found`() {
+        every { userRepository.findByUsername(any()) } returns null
+
+        val exception = assertThrows<UsernameNotFoundException> { manager.deleteUser("username") }
+
+        assertThat(exception.message).isEqualTo("Username not found")
+    }
+
+    @Test
+    fun `deleteUser found`() {
+        every { userRepository.findByUsername(any()) } returns testUserEntity
+
+        manager.deleteUser(testUserEntity.username!!)
+
+        verify { userRepository.delete(testUserEntity) }
     }
 
 }
