@@ -18,6 +18,8 @@ INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (1003, NOW(), NOW(), 100, 'CHECKIN');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (1004, NOW(), NOW(), 100, 'DISTRIBUTION_LCM');
+INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
+VALUES (1005, NOW(), NOW(), 100, 'USER-MANAGEMENT');
 
 -- user e2etest2 for cypress test (password change)
 -- pwd: e2etest
