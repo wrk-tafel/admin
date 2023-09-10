@@ -26,7 +26,7 @@ VALUES (1005, NOW(), NOW(), 100, 'USER-MANAGEMENT');
 INSERT INTO users (id, created_at, updated_at, username, password, enabled, personnel_number, firstname, lastname)
 VALUES (101, NOW(), NOW(), 'e2etest2',
         '{argon2}$argon2id$v=19$m=4096,t=3,p=1$Cnj0ayQKhOPbkomIRV5tnQ$BfU/uOr20/vg9ie0CQcWhCD00DqjPDf6UI0pRvz1/gg',
-        true, '00000-0', 'E2E', 'Test');
+        true, '00000-0', 'E2E', 'Test 2');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (1010, NOW(), NOW(), 101, 'DASHBOARD');
 
@@ -62,7 +62,7 @@ VALUES (2004, NOW(), NOW(), 200, 'DISTRIBUTION_LCM');
 INSERT INTO users (id, created_at, updated_at, username, password, enabled, personnel_number, firstname, lastname)
 VALUES (300, NOW(), NOW(), 'admin',
         '{argon2}$argon2id$v=19$m=4096,t=3,p=1$RXn6Xt/0q/Wtrvdns6NUnw$X3xWUjENAbNSJNckeVFXWrjkoFSowwlu3xHx1/zb40w',
-        true, '0300', 'AD', 'min');
+        true, 'admin-persnr', 'AD', 'min');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (3000, NOW(), NOW(), 300, 'DASHBOARD');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)

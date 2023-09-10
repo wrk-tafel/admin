@@ -10,6 +10,7 @@ import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
 import at.wrk.tafel.admin.backend.security.testUser
 import at.wrk.tafel.admin.backend.security.testUserEntity
+import at.wrk.tafel.admin.backend.security.testUserPermissions
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -440,6 +441,25 @@ class TafelUserDetailsManagerTest {
 
     @Test
     fun `updateUser mapped properly`() {
+        val testUserEntity = UserEntity().apply {
+            id = 0
+            username = "test-username"
+            // pwd: 12345
+            password =
+                "{argon2}\$argon2id\$v=19\$m=4096,t=3,p=1\$RXn6Xt/0q/Wtrvdns6NUnw\$X3xWUjENAbNSJNckeVFXWrjkoFSowwlu3xHx1/zb40w"
+            enabled = true
+            personnelNumber = "test-personnelnumber"
+            firstname = "test-firstname"
+            lastname = "test-lastname"
+            authorities = testUserPermissions.map {
+                val entity = UserAuthorityEntity()
+                entity.user = this
+                entity.name = it
+                entity
+            }.toMutableList()
+            passwordChangeRequired = false
+        }
+
         every { userRepository.findById(testUser.id) } returns Optional.of(testUserEntity)
         every { userRepository.save(any()) } returns mockk(relaxed = true)
 

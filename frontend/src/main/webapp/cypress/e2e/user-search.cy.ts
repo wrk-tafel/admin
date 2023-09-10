@@ -11,7 +11,7 @@ describe('User Search', () => {
   });
 
   it('search by personnelNumber', () => {
-    cy.byTestId('personnelNumberText').type('300');
+    cy.byTestId('personnelNumberText').type('admin-persnr');
     cy.byTestId('showuser-button').click();
 
     cy.url().should('include', '/benutzer/detail/300');
