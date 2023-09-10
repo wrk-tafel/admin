@@ -37,13 +37,11 @@ export class UserSearchComponent {
   }
 
   searchForPersonnelNumber() {
-    const personnelNumber = this.personnelNumber.value;
-
     /* eslint-disable @typescript-eslint/no-unused-vars */
     const observer = {
-      next: (response) => this.router.navigate(['/benutzer/detail', personnelNumber])
+      next: (userData) => this.router.navigate(['/benutzer/detail', userData.id])
     };
-    this.userApiService.getUserForPersonnelNumber(personnelNumber).subscribe(observer);
+    this.userApiService.getUserForPersonnelNumber(this.personnelNumber.value).subscribe(observer);
   }
 
   searchForDetails() {
