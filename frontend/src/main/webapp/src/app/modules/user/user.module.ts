@@ -36,6 +36,7 @@ import {UserSearchComponent} from './user-search/user-search.component';
 import {ReactiveFormsModule} from '@angular/forms';
 import {UserDetailComponent} from "./user-detail/user-detail.component";
 import {UserFormComponent} from "./user-form/user-form.component";
+import {UserEditComponent} from "./user-edit/user-edit.component";
 
 @NgModule({
   imports: [
@@ -76,7 +77,8 @@ import {UserFormComponent} from "./user-form/user-form.component";
     UserPasswordChangeComponent,
     UserDetailComponent,
     UserSearchComponent,
-    UserFormComponent
+    UserFormComponent,
+    UserEditComponent
   ]
 })
 export class UserModule {

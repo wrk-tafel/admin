@@ -26,6 +26,14 @@ export class UserFormComponent implements OnInit {
     });
   }
 
+  public markAllAsTouched() {
+    this.form.markAllAsTouched();
+  }
+
+  public isValid(): boolean {
+    return this.form.valid;
+  }
+
   get id() {
     return this.form.get('id');
   }

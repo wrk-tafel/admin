@@ -51,6 +51,10 @@ export class UserApiService {
     return this.http.delete<void>(`/users/${userId}`);
   }
 
+  createUser(data: UserData): Observable<UserData> {
+    return this.http.post<UserData>('/users', data);
+  }
+
 }
 
 export interface ChangePasswordRequest {

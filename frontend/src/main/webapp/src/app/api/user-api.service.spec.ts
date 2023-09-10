@@ -124,4 +124,13 @@ describe('UserApiService', () => {
     httpMock.verify();
   });
 
+  it('create user', () => {
+    apiService.createUser(mockUser).subscribe();
+
+    const req = httpMock.expectOne({method: 'POST', url: '/users'});
+    expect(req.request.body).toEqual(mockUser);
+    req.flush(null);
+    httpMock.verify();
+  });
+
 });
