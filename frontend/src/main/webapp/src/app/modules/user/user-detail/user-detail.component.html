@@ -1,3 +1,8 @@
+<div class="d-flex flex-column-reverse flex-lg-column mb-3">
+  <div class="d-flex flex-column flex-lg-row mt-3 mt-lg-0 mb-4 mb-lg-0">
+    <button cButton color="danger" class="text-white" (click)="disableUser()">Benutzer deaktivieren</button>
+  </div>
+</div>
 <c-card class="col-lg-6 col-sm-12">
   <c-card-body>
     <c-row class="mb-3">
@@ -29,11 +34,13 @@
           <c-col class="fw-bold">
             Passwortänderung notwendig
           </c-col>
-          <c-col testid="passwordChangeRequiredText">{{userData?.passwordChangeRequired == true ? 'Ja' : 'Nein'}}</c-col>
+          <c-col
+            testid="passwordChangeRequiredText">{{userData?.passwordChangeRequired == true ? 'Ja' : 'Nein'}}</c-col>
         </c-row>
         <c-row>
           <c-col class="fw-bold text-white"
-                 [ngClass]="{'bg-success': userData?.enabled == true, 'bg-danger': userData?.enabled == false}">Aktiv</c-col>
+                 [ngClass]="{'bg-success': userData?.enabled == true, 'bg-danger': userData?.enabled == false}">Aktiv
+          </c-col>
           <c-col testid="enabledText" class="text-white"
                  [ngClass]="{'bg-success': userData?.enabled == true, 'bg-danger': userData?.enabled == false}">{{userData?.enabled == true ? 'Ja' : 'Nein'}}</c-col>
         </c-row>

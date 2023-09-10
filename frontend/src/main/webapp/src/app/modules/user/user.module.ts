@@ -62,7 +62,8 @@ import {UserDetailComponent} from "./user-detail/user-detail.component";
         TabContentComponent,
         TabPaneComponent,
         BadgeComponent,
-        FormSelectDirective
+        FormSelectDirective,
+        ButtonDirective
     ],
   declarations: [
     UserPasswordChangeComponent,

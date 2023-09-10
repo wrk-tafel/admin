@@ -1,6 +1,7 @@
 import {HttpClient, HttpParams} from '@angular/common/http';
 import {Injectable} from '@angular/core';
 import {Observable} from 'rxjs';
+import {CustomerData} from "./customer-api.service";
 
 @Injectable({
   providedIn: 'root'
@@ -33,6 +34,10 @@ export class UserApiService {
       queryParams = queryParams.set('firstname', firstname);
     }
     return this.http.get<UserSearchResult>('/users', {params: queryParams});
+  }
+
+  updateUser(data: UserData) {
+    return this.http.post<CustomerData>(`/users/${data.id}`, data);
   }
 
 }
