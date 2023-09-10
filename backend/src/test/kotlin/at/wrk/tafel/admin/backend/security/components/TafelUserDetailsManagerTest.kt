@@ -15,6 +15,8 @@ import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.impl.annotations.SpyK
 import io.mockk.junit5.MockKExtension
+import io.mockk.mockk
+import io.mockk.slot
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
@@ -126,11 +128,6 @@ class TafelUserDetailsManagerTest {
     @Test
     fun `createUser - not implemented`() {
         assertThrows<NotImplementedError> { manager.createUser(null) }
-    }
-
-    @Test
-    fun `updateUser - not implemented`() {
-        assertThrows<NotImplementedError> { manager.updateUser(null) }
     }
 
     @Test
@@ -439,6 +436,36 @@ class TafelUserDetailsManagerTest {
         verify(exactly = 1) {
             userRepository.findAllByLastnameContainingIgnoreCase(lastname)
         }
+    }
+
+    @Test
+    fun `updateUser mapped properly`() {
+        every { userRepository.findById(testUser.id) } returns Optional.of(testUserEntity)
+        every { userRepository.save(any()) } returns mockk(relaxed = true)
+
+        val userUpdate = testUser.copy(
+            personnelNumber = "new-persnr",
+            username = "new-username",
+            firstname = "new-firstname",
+            lastname = "new-lastname",
+            enabled = false,
+            passwordChangeRequired = true
+        )
+        manager.updateUser(userUpdate)
+
+        val updatedUserSlot = slot<UserEntity>()
+        verify(exactly = 1) {
+            userRepository.save(capture<UserEntity>(updatedUserSlot))
+        }
+
+        val updatedUser = updatedUserSlot.captured
+        assertThat(updatedUser.id).isEqualTo(userUpdate.id)
+        assertThat(updatedUser.personnelNumber).isEqualTo(userUpdate.personnelNumber)
+        assertThat(updatedUser.username).isEqualTo(userUpdate.username)
+        assertThat(updatedUser.firstname).isEqualTo(userUpdate.firstname)
+        assertThat(updatedUser.lastname).isEqualTo(userUpdate.lastname)
+        assertThat(updatedUser.enabled).isEqualTo(userUpdate.enabled)
+        assertThat(updatedUser.passwordChangeRequired).isEqualTo(userUpdate.passwordChangeRequired)
     }
 
 }

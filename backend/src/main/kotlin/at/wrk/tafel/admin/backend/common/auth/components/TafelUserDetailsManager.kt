@@ -60,8 +60,12 @@ class TafelUserDetailsManager(
         TODO("Not yet implemented")
     }
 
-    override fun updateUser(user: UserDetails?) {
-        TODO("Not yet implemented")
+    override fun updateUser(user: UserDetails) {
+        val tafelUser = user as TafelUser
+
+        val userEntity: UserEntity = userRepository.findById(user.id).get()
+        updateUserEntity(userEntity, tafelUser)
+        userRepository.save(userEntity)
     }
 
     override fun deleteUser(username: String?) {
@@ -115,6 +119,15 @@ class TafelUserDetailsManager(
             authorities = userEntity.authorities.map { SimpleGrantedAuthority(it.name) },
             passwordChangeRequired = userEntity.passwordChangeRequired!!
         )
+    }
+
+    private fun updateUserEntity(userEntity: UserEntity, tafelUser: TafelUser) {
+        userEntity.personnelNumber = tafelUser.personnelNumber
+        userEntity.username = tafelUser.username
+        userEntity.firstname = tafelUser.firstname
+        userEntity.lastname = tafelUser.lastname
+        userEntity.enabled = tafelUser.enabled
+        userEntity.passwordChangeRequired = tafelUser.passwordChangeRequired
     }
 
 }
