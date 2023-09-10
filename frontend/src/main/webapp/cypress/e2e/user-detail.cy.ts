@@ -25,4 +25,13 @@ describe('User Detail', () => {
     cy.byTestId('enabledText').should('have.text', 'Ja');
   });
 
+  it('delete user', () => {
+    cy.visit('/#/benutzer/detail/103');
+
+    cy.byTestId('changeUserStateButton').click();
+    cy.byTestId('deleteUserButton').click();
+
+    cy.url().should('include', '/uebersicht');
+  });
+
 });
