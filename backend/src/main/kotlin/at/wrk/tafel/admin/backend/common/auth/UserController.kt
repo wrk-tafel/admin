@@ -18,6 +18,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -120,6 +121,20 @@ class UserController(
         userDetailsManager.updateUser(updatedTafelUser)
 
         return mapToResponse(userDetailsManager.loadUserById(userId)!!)
+    }
+
+    @DeleteMapping("/{userId}")
+    @PreAuthorize("hasAuthority('USER-MANAGEMENT')")
+    fun deleteUser(
+        @PathVariable("userId") userId: Long
+    ) {
+        val tafelUser = userDetailsManager.loadUserById(userId)
+            ?: throw TafelValidationException(
+                message = "Benutzer (ID: $userId) nicht vorhanden!",
+                status = HttpStatus.NOT_FOUND
+            )
+
+        userDetailsManager.deleteUser(tafelUser.username)
     }
 
     private fun mapToTafelUser(tafelUser: TafelUser, userUpdate: User): TafelUser {

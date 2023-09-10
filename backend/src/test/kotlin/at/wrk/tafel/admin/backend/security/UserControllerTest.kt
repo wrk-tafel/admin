@@ -159,6 +159,7 @@ class UserControllerTest {
 
         val exception =
             assertThrows<TafelValidationException> { controller.updateUser(userId = 123, user = testUserApiResponse) }
+
         assertThat(exception.status).isEqualTo(HttpStatus.NOT_FOUND)
         assertThat(exception.message).isEqualTo("Benutzer (ID: 123) nicht vorhanden!")
     }
@@ -171,6 +172,26 @@ class UserControllerTest {
 
         assertThat(updatedUser).isEqualTo(testUserApiResponse)
         verify(exactly = 1) { userDetailsManager.updateUser(testUser) }
+    }
+
+    @Test
+    fun `delete user not found`() {
+        every { userDetailsManager.loadUserById(any()) } returns null
+
+        val exception =
+            assertThrows<TafelValidationException> { controller.deleteUser(userId = 123) }
+
+        assertThat(exception.status).isEqualTo(HttpStatus.NOT_FOUND)
+        assertThat(exception.message).isEqualTo("Benutzer (ID: 123) nicht vorhanden!")
+    }
+
+    @Test
+    fun `delete user found`() {
+        every { userDetailsManager.loadUserById(any()) } returns testUser
+
+        controller.deleteUser(userId = 123)
+
+        verify(exactly = 1) { userDetailsManager.deleteUser(testUser.username) }
     }
 
 }
