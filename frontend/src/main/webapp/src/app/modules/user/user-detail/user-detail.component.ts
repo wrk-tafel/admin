@@ -20,11 +20,22 @@ export class UserDetailComponent implements OnInit {
   }
 
   disableUser() {
-    const updatedUser = {
+    this.changeUserState(false);
+  }
+
+  enableUser() {
+    this.changeUserState(true);
+  }
+
+  private changeUserState(enabled: boolean) {
+    const modifiedUser = {
       ...this.userData,
-      enabled: false
+      enabled: enabled
     };
-    this.userApiService.updateUser(updatedUser);
+
+    this.userApiService.updateUser(modifiedUser).subscribe(updatedUser => {
+      this.userData = updatedUser;
+    });
   }
 
 }

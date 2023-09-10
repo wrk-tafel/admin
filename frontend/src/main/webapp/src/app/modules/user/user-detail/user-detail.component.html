@@ -1,6 +1,7 @@
 <div class="d-flex flex-column-reverse flex-lg-column mb-3">
   <div class="d-flex flex-column flex-lg-row mt-3 mt-lg-0 mb-4 mb-lg-0">
-    <button cButton color="danger" class="text-white" (click)="disableUser()">Benutzer deaktivieren</button>
+    <button *ngIf="userData.enabled" cButton color="danger" class="text-white" (click)="disableUser()">Benutzer deaktivieren</button>
+    <button *ngIf="!userData.enabled" cButton color="primary" class="text-white" (click)="enableUser()">Benutzer aktivieren</button>
   </div>
 </div>
 <c-card class="col-lg-6 col-sm-12">
