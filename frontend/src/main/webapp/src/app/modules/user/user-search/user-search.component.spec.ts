@@ -70,14 +70,16 @@ describe('UserSearchComponent', () => {
   it('search with existing personnelNumber', () => {
     const fixture = TestBed.createComponent(UserSearchComponent);
     const component = fixture.componentInstance;
-    apiService.getUserForPersonnelNumber.and.returnValue(of(searchUserMockResponse.items[0]));
+
+    const mockUser = searchUserMockResponse.items[0];
+    apiService.getUserForPersonnelNumber.and.returnValue(of(mockUser));
 
     const testPersonnelNumber = '12345';
 
     component.personnelNumber.setValue(testPersonnelNumber);
     component.searchForPersonnelNumber();
 
-    expect(router.navigate).toHaveBeenCalledWith(['/benutzer/detail', testPersonnelNumber]);
+    expect(router.navigate).toHaveBeenCalledWith(['/benutzer/detail', mockUser.id]);
   });
 
   it('search with firstname and lastname', () => {
