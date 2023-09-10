@@ -67,4 +67,12 @@ describe('UserApiService', () => {
     httpMock.verify();
   });
 
+  it('get user for id', () => {
+    apiService.getUserForId(1234).subscribe();
+
+    const req = httpMock.expectOne({method: 'GET', url: '/users/1234'});
+    req.flush(null);
+    httpMock.verify();
+  });
+
 });

@@ -16,6 +16,10 @@ export class UserApiService {
     return this.http.post<ChangePasswordResponse>('/users/change-password', request);
   }
 
+  getUserForId(userId: number): Observable<UserData> {
+    return this.http.get<UserData>('/users/' + userId);
+  }
+
   getUserForPersonnelNumber(personnelNumber: string): Observable<UserData> {
     return this.http.get<UserData>('/users', {params: {personnelnumber: personnelNumber}});
   }

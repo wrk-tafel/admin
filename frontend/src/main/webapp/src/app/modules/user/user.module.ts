@@ -15,6 +15,7 @@ import {TafelCommonModule} from '../../common/tafel-common.module';
 import {CommonModule} from '@angular/common';
 import {UserSearchComponent} from './user-search/user-search.component';
 import {ReactiveFormsModule} from '@angular/forms';
+import {UserDetailComponent} from "./user-detail/user-detail.component";
 
 @NgModule({
   imports: [
@@ -33,6 +34,7 @@ import {ReactiveFormsModule} from '@angular/forms';
   ],
   declarations: [
     UserPasswordChangeComponent,
+    UserDetailComponent,
     UserSearchComponent
   ]
 })

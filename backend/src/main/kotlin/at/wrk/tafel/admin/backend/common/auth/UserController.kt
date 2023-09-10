@@ -75,11 +75,13 @@ class UserController(
     @PreAuthorize("hasAuthority('USER-MANAGEMENT')")
     fun getUser(@PathVariable("userId") userId: Long): ResponseEntity<User> {
         val userDetails = userDetailsManager.loadUserById(userId)
+            ?: throw TafelValidationException("Benutzer (ID: $userId) nicht gefunden!")
         val user = mapToResponse(userDetails)
         return ResponseEntity.ok(user)
     }
 
     @GetMapping
+    @PreAuthorize("hasAuthority('USER-MANAGEMENT')")
     fun getUsers(
         @RequestParam("personnelnumber") personnelNumber: String? = null,
         @RequestParam firstname: String? = null,
@@ -87,7 +89,7 @@ class UserController(
     ): UserListResponse {
         if (personnelNumber != null) {
             val user = userDetailsManager.loadUserByPersonnelNumber(personnelNumber)
-                ?: throw TafelValidationException("Benutzer $personnelNumber nicht gefunden!")
+                ?: throw TafelValidationException("Benutzer (Personalnummer: $personnelNumber) nicht gefunden!")
             return UserListResponse(items = listOf(mapToResponse(user)))
         }
 

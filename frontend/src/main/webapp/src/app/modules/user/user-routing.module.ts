@@ -1,12 +1,26 @@
-import {NgModule} from '@angular/core';
-import {RouterModule, Routes} from '@angular/router';
+import {inject, NgModule} from '@angular/core';
+import {ActivatedRouteSnapshot, ResolveFn, RouterModule, Routes} from '@angular/router';
 import {UserPasswordChangeComponent} from './user-passwordchange/user-passwordchange.component';
 import {UserSearchComponent} from './user-search/user-search.component';
+import {UserDetailComponent} from './user-detail/user-detail.component';
+import {UserDataResolver} from './resolver/userdata-resolver.component';
+import {UserData} from '../../api/user-api.service';
+
+export const userDataResolver: ResolveFn<UserData> = (route: ActivatedRouteSnapshot) => {
+  return inject(UserDataResolver).resolve(route);
+};
 
 const routes: Routes = [
   {
     path: 'passwortaendern',
     component: UserPasswordChangeComponent
+  },
+  {
+    path: 'detail/:id',
+    component: UserDetailComponent,
+    resolve: {
+      userData: userDataResolver,
+    }
   },
   {
     path: 'suchen',

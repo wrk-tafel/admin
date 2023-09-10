@@ -306,10 +306,9 @@ class TafelUserDetailsManagerTest {
     fun `loadUserById - user not found`() {
         every { userRepository.findById(any()) } returns Optional.empty()
 
-        assertThrows<UsernameNotFoundException> {
-            manager.loadUserById(1)
-        }
+        val user = manager.loadUserById(1)
 
+        assertThat(user).isNull()
         verify(exactly = 1) {
             userRepository.findById(1)
         }

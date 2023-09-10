@@ -65,7 +65,6 @@ describe('UserSearchComponent', () => {
     expect(component).toBeTruthy();
   });
 
-
   it('search with existing personnelNumber', () => {
     const fixture = TestBed.createComponent(UserSearchComponent);
     const component = fixture.componentInstance;

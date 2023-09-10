@@ -6,6 +6,7 @@ import at.wrk.tafel.admin.backend.common.auth.components.TafelLoginFilter
 import at.wrk.tafel.admin.backend.common.auth.components.TafelUserDetailsManager
 import at.wrk.tafel.admin.backend.common.auth.model.ChangePasswordRequest
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -15,6 +16,7 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.authority.SimpleGrantedAuthority
@@ -103,7 +105,14 @@ class UserControllerTest {
     }
 
     @Test
-    fun `get user`() {
+    fun `get user not found`() {
+        every { userDetailsManager.loadUserById(any()) } returns null
+
+        assertThrows<TafelValidationException> { controller.getUser(1) }
+    }
+
+    @Test
+    fun `get user found and mapped properly`() {
         every { userDetailsManager.loadUserById(any()) } returns testUser
 
         val response = controller.getUser(1)

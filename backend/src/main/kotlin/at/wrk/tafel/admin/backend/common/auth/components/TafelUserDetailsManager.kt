@@ -24,10 +24,10 @@ class TafelUserDetailsManager(
     private val passwordValidator: PasswordValidator
 ) : UserDetailsManager {
 
-    fun loadUserById(userId: Long): TafelUser {
+    fun loadUserById(userId: Long): TafelUser? {
         return userRepository.findById(userId)
             .map { userEntity -> mapToUserDetails(userEntity) }
-            .orElseThrow { UsernameNotFoundException("Username not found") }
+            .orElse(null)
     }
 
     override fun loadUserByUsername(username: String): TafelUser {
