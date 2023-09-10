@@ -116,4 +116,12 @@ describe('UserApiService', () => {
     expect(req.request.body).toEqual(mockUserUpdate);
   });
 
+  it('delete user', () => {
+    apiService.deleteUser(1).subscribe();
+
+    const req = httpMock.expectOne({method: 'DELETE', url: '/users/1'});
+    req.flush(null);
+    httpMock.verify();
+  });
+
 });

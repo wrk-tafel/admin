@@ -1,6 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {UserApiService, UserData} from '../../../api/user-api.service';
-import {ActivatedRoute} from '@angular/router';
+import {ActivatedRoute, Router} from '@angular/router';
 
 @Component({
   selector: 'tafel-user-detail',
@@ -11,7 +11,8 @@ export class UserDetailComponent implements OnInit {
 
   constructor(
     private activatedRoute: ActivatedRoute,
-    private userApiService: UserApiService
+    private userApiService: UserApiService,
+    private router: Router
   ) {
   }
 
@@ -35,6 +36,12 @@ export class UserDetailComponent implements OnInit {
 
     this.userApiService.updateUser(modifiedUser).subscribe(updatedUser => {
       this.userData = updatedUser;
+    });
+  }
+
+  deleteUser() {
+    this.userApiService.deleteUser(this.userData.id).subscribe(updatedUser => {
+      this.router.navigate(['uebersicht']);
     });
   }
 

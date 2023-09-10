@@ -47,6 +47,10 @@ export class UserApiService {
     return this.http.post<UserData>(`/users/${data.id}`, data);
   }
 
+  deleteUser(userId: number): Observable<void> {
+    return this.http.delete<void>(`/users/${userId}`);
+  }
+
 }
 
 export interface ChangePasswordRequest {
