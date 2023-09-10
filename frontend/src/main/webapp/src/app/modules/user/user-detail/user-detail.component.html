@@ -39,6 +39,14 @@
             {{userData?.enabled == true ? 'Ja' : 'Nein'}}
           </c-col>
         </c-row>
+        <c-row>
+          <c-col class="fw-bold">
+            Passwortänderung notwendig
+          </c-col>
+          <c-col testid="passwordChangeRequiredText">
+            {{userData?.passwordChangeRequired == true ? 'Ja' : 'Nein'}}
+          </c-col>
+        </c-row>
       </c-col>
     </c-row>
   </c-card-body>
