@@ -31,7 +31,10 @@ export class UserFormComponent implements OnInit {
   }
 
   public isValid(): boolean {
-    return this.form.valid;
+    if (this.form) {
+      return this.form.valid;
+    }
+    return false;
   }
 
   get id() {

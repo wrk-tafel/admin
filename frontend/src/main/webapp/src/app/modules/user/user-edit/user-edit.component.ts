@@ -59,7 +59,10 @@ export class UserEditComponent implements OnInit {
   }
 
   isSaveEnabled(): boolean {
-    return this.userFormComponent.isValid();
+    if (this.userFormComponent) {
+      return this.userFormComponent.isValid();
+    }
+    return false;
   }
 
 }
