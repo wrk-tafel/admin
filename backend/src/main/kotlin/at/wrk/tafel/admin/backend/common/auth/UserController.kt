@@ -104,7 +104,9 @@ class UserController(
             username = user.username,
             personnelNumber = user.personnelNumber,
             firstname = user.firstname,
-            lastname = user.lastname
+            lastname = user.lastname,
+            enabled = user.isEnabled,
+            passwordChangeRequired = user.passwordChangeRequired
         )
     }
 

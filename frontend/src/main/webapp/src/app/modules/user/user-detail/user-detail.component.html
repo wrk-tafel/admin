@@ -6,11 +6,39 @@
       </c-col>
     </c-row>
     <c-row>
-      <c-col class="fw-bold">
-        ID
-      </c-col>
-      <c-col testid="userIdText">
-        {{userData?.id}}
+      <c-col class="col-lg-6 col-sm-12">
+        <c-row>
+          <c-col class="fw-bold">
+            Name
+          </c-col>
+          <c-col testid="nameText">
+            {{userData?.firstname}} {{userData?.lastname}}
+          </c-col>
+        </c-row>
+        <c-row>
+          <c-col class="fw-bold">
+            Benutzername
+          </c-col>
+          <c-col testid="usernameText">
+            {{userData?.username}}
+          </c-col>
+        </c-row>
+        <c-row>
+          <c-col class="fw-bold">
+            Personal-Nummer
+          </c-col>
+          <c-col testid="personnelNumberText">
+            {{userData?.personnelNumber}}
+          </c-col>
+        </c-row>
+        <c-row>
+          <c-col class="fw-bold">
+            Aktiv
+          </c-col>
+          <c-col testid="enabledText">
+            {{userData?.enabled == true ? 'Ja' : 'Nein'}}
+          </c-col>
+        </c-row>
       </c-col>
     </c-row>
   </c-card-body>

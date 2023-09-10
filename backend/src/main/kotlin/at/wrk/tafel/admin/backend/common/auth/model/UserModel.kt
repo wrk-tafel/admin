@@ -20,7 +20,9 @@ data class User(
     val personnelNumber: String,
     val username: String,
     val firstname: String,
-    val lastname: String
+    val lastname: String,
+    val enabled: Boolean,
+    val passwordChangeRequired: Boolean
 )
 
 @ExcludeFromTestCoverage

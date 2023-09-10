@@ -36,7 +36,7 @@ val testUser = TafelUser(
     firstname = testUserEntity.firstname!!,
     lastname = testUserEntity.lastname!!,
     authorities = testUserPermissions.map { SimpleGrantedAuthority(it) },
-    passwordChangeRequired = false
+    passwordChangeRequired = true
 )
 
 val testUserApiResponse = User(
@@ -45,4 +45,6 @@ val testUserApiResponse = User(
     personnelNumber = testUserEntity.personnelNumber!!,
     firstname = testUserEntity.firstname!!,
     lastname = testUserEntity.lastname!!,
+    enabled = testUserEntity.enabled!!,
+    passwordChangeRequired = testUserEntity.passwordChangeRequired!!
 )
