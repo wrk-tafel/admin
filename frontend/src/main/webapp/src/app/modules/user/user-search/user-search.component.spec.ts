@@ -14,14 +14,16 @@ describe('UserSearchComponent', () => {
   let router: jasmine.SpyObj<Router>;
   let toastService: jasmine.SpyObj<ToastService>;
 
-  const searchUserMockResponse = {
+  const searchUserMockResponse: UserSearchResult = {
     items: [
       {
         id: 0,
         personnelNumber: '0',
         username: '0',
         firstname: 'first',
-        lastname: 'last'
+        lastname: 'last',
+        enabled: true,
+        passwordChangeRequired: true
       }
     ]
   };

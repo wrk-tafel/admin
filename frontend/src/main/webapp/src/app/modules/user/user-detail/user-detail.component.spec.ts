@@ -1,27 +1,21 @@
-import {TestBed, waitForAsync} from '@angular/core/testing';
+import {ComponentFixture, TestBed, waitForAsync} from '@angular/core/testing';
 import {ReactiveFormsModule} from '@angular/forms';
-import {Router} from '@angular/router';
+import {ActivatedRoute} from '@angular/router';
 import {RouterTestingModule} from '@angular/router/testing';
 import {UserDetailComponent} from './user-detail.component';
 import {CardModule, ColComponent, RowComponent} from '@coreui/angular';
-import {UserApiService} from '../../../api/user-api.service';
-import {ToastService} from '../../../common/views/default-layout/toasts/toast.service';
+import {UserApiService, UserData} from '../../../api/user-api.service';
+import {By} from '@angular/platform-browser';
 
 describe('UserDetailComponent', () => {
-  let apiService: jasmine.SpyObj<UserApiService>;
-  let router: jasmine.SpyObj<Router>;
-  let toastService: jasmine.SpyObj<ToastService>;
-
-  const searchUserMockResponse = {
-    items: [
-      {
-        id: 0,
-        personnelNumber: '0',
-        username: '0',
-        firstname: 'first',
-        lastname: 'last'
-      }
-    ]
+  const mockUser: UserData = {
+    id: 0,
+    personnelNumber: '0000',
+    username: 'username',
+    firstname: 'first',
+    lastname: 'last',
+    enabled: true,
+    passwordChangeRequired: true
   };
 
   beforeEach(waitForAsync(() => {
@@ -42,19 +36,17 @@ describe('UserDetailComponent', () => {
           useValue: jasmine.createSpyObj('UserApiService', ['getUserForPersonnelNumber', 'searchUser'])
         },
         {
-          provide: Router,
-          useValue: jasmine.createSpyObj('Router', ['navigate'])
-        },
-        {
-          provide: ToastService,
-          useValue: jasmine.createSpyObj('ToastService', ['showToast'])
+          provide: ActivatedRoute,
+          useValue: {
+            snapshot: {
+              data: {
+                userData: mockUser
+              }
+            }
+          }
         }
       ]
     }).compileComponents();
-
-    apiService = TestBed.inject(UserApiService) as jasmine.SpyObj<UserApiService>;
-    router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
-    toastService = TestBed.inject(ToastService) as jasmine.SpyObj<ToastService>;
   }));
 
   it('component can be created', () => {
@@ -62,5 +54,24 @@ describe('UserDetailComponent', () => {
     const component = fixture.componentInstance;
     expect(component).toBeTruthy();
   });
+
+  it('initial data loaded and shown correctly', () => {
+    const fixture = TestBed.createComponent(UserDetailComponent);
+    const component = fixture.componentInstance;
+    component.ngOnInit();
+    fixture.detectChanges();
+
+    expect(component.userData).toEqual(mockUser);
+
+    expect(getTextByTestId(fixture, 'nameText')).toBe(`${mockUser.firstname} ${mockUser.lastname}`);
+    expect(getTextByTestId(fixture, 'usernameText')).toBe(mockUser.username);
+    expect(getTextByTestId(fixture, 'personnelNumberText')).toBe(mockUser.personnelNumber);
+    expect(getTextByTestId(fixture, 'passwordChangeRequiredText')).toBe('Ja');
+    expect(getTextByTestId(fixture, 'enabledText')).toBe('Ja');
+  });
+
+  function getTextByTestId(fixture: ComponentFixture<UserDetailComponent>, testId: string): string {
+    return fixture.debugElement.query(By.css(`[testid="${testId}"]`)).nativeElement.textContent;
+  }
 
 });

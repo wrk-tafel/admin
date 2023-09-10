@@ -11,43 +11,31 @@
           <c-col class="fw-bold">
             Name
           </c-col>
-          <c-col testid="nameText">
-            {{userData?.firstname}} {{userData?.lastname}}
-          </c-col>
+          <c-col testid="nameText">{{userData?.firstname}} {{userData?.lastname}}</c-col>
         </c-row>
         <c-row>
           <c-col class="fw-bold">
             Benutzername
           </c-col>
-          <c-col testid="usernameText">
-            {{userData?.username}}
-          </c-col>
+          <c-col testid="usernameText">{{userData?.username}}</c-col>
         </c-row>
         <c-row>
           <c-col class="fw-bold">
             Personal-Nummer
           </c-col>
-          <c-col testid="personnelNumberText">
-            {{userData?.personnelNumber}}
-          </c-col>
+          <c-col testid="personnelNumberText">{{userData?.personnelNumber}}</c-col>
         </c-row>
         <c-row>
           <c-col class="fw-bold">
             Passwortänderung notwendig
           </c-col>
-          <c-col testid="passwordChangeRequiredText">
-            {{userData?.passwordChangeRequired == true ? 'Ja' : 'Nein'}}
-          </c-col>
+          <c-col testid="passwordChangeRequiredText">{{userData?.passwordChangeRequired == true ? 'Ja' : 'Nein'}}</c-col>
         </c-row>
         <c-row>
           <c-col class="fw-bold text-white"
-                 [ngClass]="{'bg-success': userData?.enabled == true, 'bg-danger': userData?.enabled == false}">
-            Aktiv
-          </c-col>
+                 [ngClass]="{'bg-success': userData?.enabled == true, 'bg-danger': userData?.enabled == false}">Aktiv</c-col>
           <c-col testid="enabledText" class="text-white"
-                 [ngClass]="{'bg-success': userData?.enabled == true, 'bg-danger': userData?.enabled == false}">
-            {{userData?.enabled == true ? 'Ja' : 'Nein'}}
-          </c-col>
+                 [ngClass]="{'bg-success': userData?.enabled == true, 'bg-danger': userData?.enabled == false}">{{userData?.enabled == true ? 'Ja' : 'Nein'}}</c-col>
         </c-row>
       </c-col>
     </c-row>
