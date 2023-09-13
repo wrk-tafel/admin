@@ -82,7 +82,7 @@
     "@typescript-eslint/eslint-plugin": "6.6.0",
     "@typescript-eslint/parser": "6.6.0",
     "codelyzer": "6.0.2",
-    "cypress": "13.1.0",
+    "cypress": "13.2.0",
     "cypress-browser-permissions": "1.1.0",
     "eslint": "8.48.0",
     "jasmine-core": "5.1.1",
