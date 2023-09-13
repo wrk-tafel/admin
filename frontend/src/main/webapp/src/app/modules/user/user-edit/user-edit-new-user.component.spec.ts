@@ -52,7 +52,7 @@ describe('UserEditComponent - Creating a new user', () => {
       providers: [
         {
           provide: UserApiService,
-          useValue: jasmine.createSpyObj('UserApiService', ['createUser'])
+          useValue: jasmine.createSpyObj('UserApiService', ['createUser', 'updateUser'])
         },
         {
           provide: ActivatedRoute,
