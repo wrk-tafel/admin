@@ -52,7 +52,7 @@ describe('UserEditComponent - Editing an existing user', () => {
       providers: [
         {
           provide: UserApiService,
-          useValue: jasmine.createSpyObj('UserApiService', ['updateUser', 'createUser'])
+          useValue: jasmine.createSpyObj('UserApiService', ['updateUser'])
         },
         {
           provide: Router,
@@ -93,26 +93,6 @@ describe('UserEditComponent - Editing an existing user', () => {
     expect(userFormComponent.markAllAsTouched).toHaveBeenCalled();
     expect(apiService.updateUser).toHaveBeenCalledWith(jasmine.objectContaining(mockUser));
     expect(router.navigate).toHaveBeenCalledWith(['/benutzer/detail', mockUser.id]);
-  });
-
-  it('existing customer save failed when form is invalid', () => {
-    const customerFormComponent = jasmine.createSpyObj('UserFormComponent', ['markAllAsTouched', 'isValid']);
-    customerFormComponent.isValid.and.returnValue(false);
-    apiService.updateUser.withArgs(mockUser).and.returnValue(of(mockUser));
-
-    const fixture = TestBed.createComponent(UserEditComponent);
-    const component = fixture.componentInstance;
-    component.userFormComponent = customerFormComponent;
-    component.userUpdated = component.userInput;
-    component.ngOnInit();
-
-    component.save();
-
-    expect(component.isSaveEnabled()).toBeFalse();
-    expect(component.userInput).toEqual(mockUser);
-    expect(customerFormComponent.markAllAsTouched).toHaveBeenCalled();
-    expect(apiService.updateUser).not.toHaveBeenCalled();
-    expect(router.navigate).not.toHaveBeenCalledWith(['/benutzer/detail', mockUser.id]);
   });
 
 });

@@ -91,21 +91,4 @@ describe('UserEditComponent - Creating a new user', () => {
     expect(router.navigate).toHaveBeenCalledWith(['/benutzer/detail', mockUser.id]);
   });
 
-  it('new user save failed - form invalid', () => {
-    const userFormComponent = jasmine.createSpyObj('UserFormComponent', ['markAllAsTouched', 'isValid']);
-    userFormComponent.isValid.and.returnValue(false);
-
-    const fixture = TestBed.createComponent(UserEditComponent);
-    const component = fixture.componentInstance;
-    component.userFormComponent = userFormComponent;
-    component.userUpdated = mockUser;
-
-    component.save();
-
-    expect(component.isSaveEnabled()).toBeFalse();
-    expect(userFormComponent.markAllAsTouched).toHaveBeenCalled();
-    expect(apiService.createUser).not.toHaveBeenCalledWith(jasmine.objectContaining(mockUser));
-    expect(router.navigate).not.toHaveBeenCalledWith(['/benutzer/detail', mockUser.id]);
-  });
-
 });

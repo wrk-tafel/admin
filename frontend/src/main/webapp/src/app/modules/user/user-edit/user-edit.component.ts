@@ -22,11 +22,11 @@ export class UserEditComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    const customerData = this.activatedRoute.snapshot.data.customerData;
-    if (customerData) {
+    const userData = this.activatedRoute.snapshot.data.userData;
+    if (userData) {
       // Load data into forms
-      this.userInput = customerData;
-      this.userUpdated = customerData;
+      this.userInput = userData;
+      this.userUpdated = userData;
 
       // Mark forms as touched to show the validation state (postponed to next makrotask after angular finished)
       setTimeout(() => {
@@ -43,7 +43,7 @@ export class UserEditComponent implements OnInit {
   save() {
     this.userFormComponent.markAllAsTouched();
 
-    if (this.userInput) {
+    if (!this.userInput) {
       this.userApiService.createUser(this.userUpdated)
         .subscribe(user => {
             this.router.navigate(['/benutzer/detail', user.id]);
