@@ -24,6 +24,13 @@ const routes: Routes = [
     }
   },
   {
+    path: 'bearbeiten/:id',
+    component: UserEditComponent,
+    resolve: {
+      userData: userDataResolver,
+    }
+  },
+  {
     path: 'suchen',
     component: UserSearchComponent
   },

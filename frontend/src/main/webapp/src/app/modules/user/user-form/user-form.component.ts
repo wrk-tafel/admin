@@ -19,10 +19,14 @@ export class UserFormComponent implements OnInit {
     enabled: new FormControl<boolean>(null, Validators.required),
     password: new FormControl<string>(null, Validators.required),
     passwordRepeat: new FormControl<string>(null, Validators.required),
-    passwordChangeRequired: new FormControl<boolean>(null, Validators.required)
+    passwordChangeRequired: new FormControl<boolean>(true, Validators.required)
   });
 
   ngOnInit(): void {
+    if (this.userData) {
+      this.form.patchValue(this.userData);
+    }
+
     this.form.valueChanges.subscribe(() => {
       this.userDataChange.emit(this.form.getRawValue());
     });

@@ -22,11 +22,11 @@ export class UserEditComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    const userData = this.activatedRoute.snapshot.data.userData;
-    if (userData) {
+    const editUserData = this.activatedRoute.snapshot.data.userData;
+    if (editUserData) {
       // Load data into forms
-      this.userInput = userData;
-      this.userUpdated = userData;
+      this.userInput = editUserData;
+      this.userUpdated = editUserData;
 
       // Mark forms as touched to show the validation state (postponed to next makrotask after angular finished)
       setTimeout(() => {
