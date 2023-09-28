@@ -25,7 +25,7 @@
     "@angular-devkit/core": "16.2.4",
     "@angular-devkit/schematics": "16.2.3",
     "@angular/animations": "16.1.7",
-    "@angular/cdk": "16.2.5",
+    "@angular/cdk": "16.2.6",
     "@angular/common": "16.1.7",
     "@angular/compiler": "16.1.7",
     "@angular/core": "16.1.7",
