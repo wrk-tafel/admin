@@ -47,6 +47,8 @@ describe('UserFormComponent', () => {
     component.ngOnInit();
     component.userData = mockUser;
 
+    fixture.detectChanges();
+
     // TODO check dom elements - makes more sense
     /*
     fixture.detectChanges();
