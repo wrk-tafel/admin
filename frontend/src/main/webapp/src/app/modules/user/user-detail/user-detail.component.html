@@ -15,7 +15,7 @@
       </ul>
     </c-dropdown>
   </div>
-  <c-card class="col-lg-6 col-sm-12 mt-0 mt-lg-3 mb-0 mb-lg-3">
+  <c-card class="col mt-0 mt-lg-3 mb-0 mb-lg-3">
     <c-card-body>
       <c-row class="mb-3">
         <c-col>
@@ -23,7 +23,7 @@
         </c-col>
       </c-row>
       <c-row>
-        <c-col class="col-lg-6 col-sm-12">
+        <c-col class="col-lg-9 col-sm-12">
           <c-row>
             <c-col class="fw-bold">
               Name
@@ -48,6 +48,13 @@
             </c-col>
             <c-col
               testid="passwordChangeRequiredText">{{userData?.passwordChangeRequired == true ? 'Ja' : 'Nein'}}</c-col>
+          </c-row>
+          <c-row>
+            <c-col class="fw-bold">
+              Berechtigungen
+            </c-col>
+            <c-col
+              testid="permissionsText">{{formatPermissions()}}</c-col>
           </c-row>
           <c-row>
             <c-col class="fw-bold text-white"

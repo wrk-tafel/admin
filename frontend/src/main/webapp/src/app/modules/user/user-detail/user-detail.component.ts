@@ -49,4 +49,9 @@ export class UserDetailComponent implements OnInit {
     this.router.navigate(['/benutzer/bearbeiten', this.userData.id]);
   }
 
+  formatPermissions(): string {
+    // TODO add label in backend and show title instead
+    return this.userData?.permissions.join(', ');
+  }
+
 }
