@@ -56,6 +56,9 @@ export class UserFormComponent implements OnInit {
         const password = response.password;
         this.password.setValue(password);
         this.passwordRepeat.setValue(password);
+
+        this.passwordTextVisible = true;
+        this.passwordRepeatTextVisible = true;
       },
       error: error => {
       },

@@ -81,7 +81,7 @@ describe('UserDetailComponent', () => {
   it('editUser should navigate properly', () => {
     const fixture = TestBed.createComponent(UserDetailComponent);
     const component = fixture.componentInstance;
-    component.userData = mockUser
+    component.userData = mockUser;
 
     component.editUser();
 
