@@ -17,6 +17,8 @@ import {
   DropdownMenuDirective,
   DropdownToggleDirective,
   FormSelectDirective,
+  InputGroupComponent,
+  InputGroupTextDirective,
   ModalBodyComponent,
   ModalComponent,
   ModalFooterComponent,
@@ -34,9 +36,9 @@ import {TafelCommonModule} from '../../common/tafel-common.module';
 import {CommonModule} from '@angular/common';
 import {UserSearchComponent} from './user-search/user-search.component';
 import {ReactiveFormsModule} from '@angular/forms';
-import {UserDetailComponent} from "./user-detail/user-detail.component";
-import {UserFormComponent} from "./user-form/user-form.component";
-import {UserEditComponent} from "./user-edit/user-edit.component";
+import {UserDetailComponent} from './user-detail/user-detail.component';
+import {UserFormComponent} from './user-form/user-form.component';
+import {UserEditComponent} from './user-edit/user-edit.component';
 
 @NgModule({
   imports: [
@@ -71,7 +73,9 @@ import {UserEditComponent} from "./user-edit/user-edit.component";
     TabPaneComponent,
     BadgeComponent,
     FormSelectDirective,
-    ButtonDirective
+    ButtonDirective,
+    InputGroupComponent,
+    InputGroupTextDirective
   ],
   declarations: [
     UserPasswordChangeComponent,

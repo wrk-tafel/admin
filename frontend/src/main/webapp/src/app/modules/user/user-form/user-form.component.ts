@@ -22,6 +22,8 @@ export class UserFormComponent implements OnInit {
     passwordChangeRequired: new FormControl<boolean>(true, Validators.required)
   }, [passwordRepeatValidator]);
 
+  passwordTextVisible: boolean;
+
   constructor(private userApiService: UserApiService) {
   }
 
@@ -44,6 +46,25 @@ export class UserFormComponent implements OnInit {
       return this.form.valid;
     }
     return false;
+  }
+
+  public generatePassword() {
+    /* eslint-disable @typescript-eslint/no-empty-function */
+    const observer = {
+      next: (response: GeneratedPasswordResponse) => {
+        const password = response.password;
+        this.password.setValue(password);
+        this.passwordRepeat.setValue(password);
+      },
+      error: error => {
+      },
+    };
+
+    this.userApiService.generatePassword().subscribe(observer);
+  }
+
+  public togglePasswordVisibility() {
+    this.passwordTextVisible = !this.passwordTextVisible;
   }
 
   get id() {
@@ -80,21 +101,6 @@ export class UserFormComponent implements OnInit {
 
   get passwordChangeRequired() {
     return this.form.get('passwordChangeRequired');
-  }
-
-  generatePassword() {
-    /* eslint-disable @typescript-eslint/no-empty-function */
-    const observer = {
-      next: (response: GeneratedPasswordResponse) => {
-        const password = response.password;
-        this.password.setValue(password);
-        this.passwordRepeat.setValue(password);
-      },
-      error: error => {
-      },
-    };
-
-    this.userApiService.generatePassword().subscribe(observer);
   }
 
 }

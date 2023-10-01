@@ -66,12 +66,24 @@
           <div class="row">
             <div class="col-sm">
               <label class="form-label">Passwort</label>
-              <input testid="passwordInput" type="password" formControlName="password" class="form-control"
-                     [ngClass]="{'is-invalid': form.errors?.['passwordRepeatInvalid'] && (password.dirty || password.touched), 'is-valid': password.valid && (password.dirty || password.touched)}">
-              <div *ngIf="form.errors?.['passwordRepeatInvalid'] && (password.dirty || password.touched)"
-                   class="invalid-feedback">
-                Passwort stimmt nicht mit der Wiederholung überein!
-              </div>
+              <c-input-group>
+                <input testid="passwordInput"
+                       [type]="passwordTextVisible ? 'text' : 'password'"
+                       formControlName="password" class="form-control"
+                       [ngClass]="{'is-invalid': form.errors?.['passwordRepeatInvalid'] && (password.dirty || password.touched), 'is-valid': password.valid && (password.dirty || password.touched)}">
+                <span cInputGroupText
+                      (click)="togglePasswordVisibility()">
+                  <i class="fa"
+                     [ngClass]="{
+                        'fa-eye-slash': !passwordTextVisible,
+                        'fa-eye': passwordTextVisible
+                      }"></i>
+                </span>
+                <div *ngIf="form.errors?.['passwordRepeatInvalid'] && (password.dirty || password.touched)"
+                     class="invalid-feedback">
+                  Passwort stimmt nicht mit der Wiederholung überein!
+                </div>
+              </c-input-group>
             </div>
             <div class="col-sm">
               <label class="form-label">Passwort (Wiederholung)</label>
