@@ -3,9 +3,16 @@ package at.wrk.tafel.admin.backend.common.auth
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.common.auth.components.PasswordChangeException
 import at.wrk.tafel.admin.backend.common.auth.components.TafelLoginFilter
+import at.wrk.tafel.admin.backend.common.auth.components.TafelPasswordGenerator
+import at.wrk.tafel.admin.backend.common.auth.components.TafelUserDetailsManager
 import at.wrk.tafel.admin.backend.common.auth.model.ChangePasswordRequest
 import at.wrk.tafel.admin.backend.common.auth.model.ChangePasswordResponse
+import at.wrk.tafel.admin.backend.common.auth.model.GeneratedPasswordResponse
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
+import at.wrk.tafel.admin.backend.common.auth.model.User
+import at.wrk.tafel.admin.backend.common.auth.model.UserListResponse
+import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.slf4j.LoggerFactory
@@ -13,18 +20,21 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.security.provisioning.UserDetailsManager
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/api/users")
 @PreAuthorize("isAuthenticated()")
 class UserController(
-    private val userDetailsManager: UserDetailsManager
+    private val userDetailsManager: TafelUserDetailsManager,
+    private val tafelPasswordGenerator: TafelPasswordGenerator
 ) {
 
     companion object {
@@ -43,13 +53,20 @@ class UserController(
         return ResponseEntity.ok(userInfo)
     }
 
+    @GetMapping("/generate-password")
+    fun generatePassword(): ResponseEntity<GeneratedPasswordResponse> {
+        val generatedPassword = tafelPasswordGenerator.generatePassword()
+        val response = GeneratedPasswordResponse(password = generatedPassword)
+        return ResponseEntity.ok(response)
+    }
+
     @PostMapping("/change-password")
     fun changePassword(@RequestBody request: ChangePasswordRequest): ResponseEntity<ChangePasswordResponse> {
         try {
             userDetailsManager.changePassword(request.passwordCurrent, request.passwordNew)
         } catch (e: PasswordChangeException) {
             val validationResult = ChangePasswordResponse(message = e.message, details = e.validationDetails)
-            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(validationResult)
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(validationResult)
         }
         return ResponseEntity.ok().build()
     }
@@ -63,6 +80,109 @@ class UserController(
 
         logger.info("User ${user.username} logged out!")
         return ResponseEntity.ok().build()
+    }
+
+    @GetMapping("/{userId}")
+    @PreAuthorize("hasAuthority('USER-MANAGEMENT')")
+    fun getUser(@PathVariable("userId") userId: Long): ResponseEntity<User> {
+        val userDetails = userDetailsManager.loadUserById(userId)
+            ?: throw TafelValidationException(
+                message = "Benutzer (ID: $userId) nicht gefunden!",
+                status = HttpStatus.NOT_FOUND
+            )
+        val user = mapToResponse(userDetails)
+        return ResponseEntity.ok(user)
+    }
+
+    @GetMapping
+    @PreAuthorize("hasAuthority('USER-MANAGEMENT')")
+    fun getUsers(
+        @RequestParam("personnelnumber") personnelNumber: String? = null,
+        @RequestParam firstname: String? = null,
+        @RequestParam lastname: String? = null
+    ): UserListResponse {
+        if (personnelNumber != null) {
+            val user = userDetailsManager.loadUserByPersonnelNumber(personnelNumber.trim())
+                ?: throw TafelValidationException(
+                    message = "Benutzer (Personalnummer: $personnelNumber) nicht gefunden!",
+                    status = HttpStatus.NOT_FOUND
+                )
+            return UserListResponse(items = listOf(mapToResponse(user)))
+        }
+
+        val users = userDetailsManager.loadUsers(firstname?.trim(), lastname?.trim())
+            .map { mapToResponse(it) }
+        return UserListResponse(items = users)
+    }
+
+    @PostMapping("/{userId}")
+    @PreAuthorize("hasAuthority('USER-MANAGEMENT')")
+    fun updateUser(
+        @PathVariable("userId") userId: Long,
+        @RequestBody user: User
+    ): ResponseEntity<User> {
+        val tafelUser = userDetailsManager.loadUserById(userId)
+            ?: throw TafelValidationException(
+                message = "Benutzer (ID: $userId) nicht vorhanden!",
+                status = HttpStatus.NOT_FOUND
+            )
+
+        if (user.password != user.passwordRepeat) {
+            throw TafelValidationException(
+                message = "Passwörter stimmen nicht überein!",
+                status = HttpStatus.BAD_REQUEST
+            )
+        }
+
+        try {
+            val updatedTafelUser = mapToTafelUser(tafelUser, user)
+            userDetailsManager.updateUser(updatedTafelUser)
+
+            val userResponse = mapToResponse(userDetailsManager.loadUserById(userId)!!)
+            return ResponseEntity.ok(userResponse)
+        } catch (e: PasswordChangeException) {
+            throw TafelValidationException(e.message)
+        }
+    }
+
+    @DeleteMapping("/{userId}")
+    @PreAuthorize("hasAuthority('USER-MANAGEMENT')")
+    fun deleteUser(
+        @PathVariable("userId") userId: Long
+    ) {
+        val tafelUser = userDetailsManager.loadUserById(userId)
+            ?: throw TafelValidationException(
+                message = "Benutzer (ID: $userId) nicht vorhanden!",
+                status = HttpStatus.NOT_FOUND
+            )
+
+        userDetailsManager.deleteUser(tafelUser.username)
+    }
+
+    private fun mapToTafelUser(tafelUser: TafelUser, userUpdate: User): TafelUser {
+        return tafelUser.copy(
+            id = userUpdate.id,
+            username = userUpdate.username,
+            firstname = userUpdate.firstname,
+            lastname = userUpdate.lastname,
+            enabled = userUpdate.enabled,
+            password = userUpdate.password,
+            passwordChangeRequired = userUpdate.passwordChangeRequired
+        )
+    }
+
+    private fun mapToResponse(user: TafelUser): User {
+        return User(
+            id = user.id,
+            username = user.username,
+            personnelNumber = user.personnelNumber,
+            firstname = user.firstname,
+            lastname = user.lastname,
+            enabled = user.isEnabled,
+            password = null,
+            passwordRepeat = null,
+            passwordChangeRequired = user.passwordChangeRequired
+        )
     }
 
 }

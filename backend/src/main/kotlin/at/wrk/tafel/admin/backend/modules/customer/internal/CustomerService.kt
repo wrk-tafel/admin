@@ -138,7 +138,7 @@ class CustomerService(
 
     private fun mapRequestToEntity(customerUpdate: Customer, storedEntity: CustomerEntity? = null): CustomerEntity {
         val user = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
-        val userEntity = userRepository.findByUsername(user.username!!).get()
+        val userEntity = userRepository.findByUsername(user.username!!)
         val customerEntity = storedEntity ?: CustomerEntity()
 
         customerEntity.customerId = customerUpdate.id ?: customerRepository.getNextCustomerSequenceValue()

@@ -1,24 +1,24 @@
-<form cForm [formGroup]="customerSearchForm">
+<form cForm [formGroup]="userSearchForm">
   <c-card>
     <c-card-body>
       <c-row>
         <c-col class="mb-3">
-          <h4>Kunden-Suche</h4>
+          <h4>Benutzer-Suche</h4>
         </c-col>
       </c-row>
       <c-row>
         <c-col sm="3">
-          <label class="form-label">Kundennummer</label>
+          <label class="form-label">Personalnummer</label>
         </c-col>
       </c-row>
       <c-row>
         <c-col sm="3" class="mb-3">
-          <input testid="customerIdText" type="number" formControlName="customerId" name="customerId"
-                 class="form-control" autofocus (keydown.enter)="searchForCustomerId()">
+          <input testid="personnelNumberText" type="text" formControlName="personnelNumber" name="personnelNumber"
+                 class="form-control" autofocus (keydown.enter)="searchForPersonnelNumber()">
         </c-col>
         <c-col sm="3">
-          <button testid="showcustomer-button" type="button" class="btn btn-primary text-white"
-                  [disabled]="!customerId.value" (click)="searchForCustomerId()">Anzeigen</button>
+          <button testid="showuser-button" type="button" class="btn btn-primary text-white"
+                  [disabled]="!personnelNumber.value" (click)="searchForPersonnelNumber()">Anzeigen</button>
         </c-col>
       </c-row>
       <hr>
@@ -54,39 +54,37 @@
             <c-row>
               <c-col sm="12">
                 <!-- TODO fix mobile layout -->
-                <table cTable striped="true" aria-label="Liste der gefundenen Kunden">
+                <table cTable striped="true" aria-label="Liste der gefundenen Benutzer">
                   <thead>
                     <tr>
                       <th scope="col"></th>
                       <th scope="col">Nr.</th>
+                      <th scope="col">Personalnummer</th>
                       <th scope="col">Nachname</th>
                       <th scope="col">Vorname</th>
-                      <th scope="col">Geb. Datum</th>
-                      <th scope="col">Adresse</th>
                       <th scope="col">Aktionen</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr testid="searchresult-row" scope="row"
-                        *ngFor="let customer of searchResult.items; let i = index">
+                        *ngFor="let user of searchResult.items; let i = index">
                       <td><i class="fa fa-user"></i></td>
-                      <td [attr.testid]="'searchresult-id-' + i">{{customer.id}}</td>
-                      <td [attr.testid]="'searchresult-lastname-' + i">{{customer.lastname}}</td>
-                      <td [attr.testid]="'searchresult-firstname-' + i">{{customer.firstname}}</td>
-                      <td [attr.testid]="'searchresult-birthDate-' + i">{{customer.birthDate | date : 'dd.MM.yyyy'}}</td>
-                      <td [attr.testid]="'searchresult-address-' + i">{{formatAddress(customer.address)}}</td>
+                      <td [attr.testid]="'searchresult-id-' + i">{{user.id}}</td>
+                      <td [attr.testid]="'searchresult-personnelnumber-' + i">{{user.personnelNumber}}</td>
+                      <td [attr.testid]="'searchresult-lastname-' + i">{{user.lastname}}</td>
+                      <td [attr.testid]="'searchresult-firstname-' + i">{{user.firstname}}</td>
                       <td>
                         <div class="row">
                           <div class="col-3">
-                            <button [attr.testid]="'searchresult-showcustomer-button-' + i"
+                            <button [attr.testid]="'searchresult-showuser-button-' + i"
                                     type="button" class="btn btn-primary text-white"
-                                    (click)="navigateToCustomer(customer.id)"><i
+                                    (click)="navigateToUser(user.id)"><i
                               class="fa fa-search"></i></button>
                           </div>
                           <div class="col-3 ms-2">
-                            <button [attr.testid]="'searchresult-editcustomer-button-' + i"
+                            <button [attr.testid]="'searchresult-edituser-button-' + i"
                                     type="button" class="btn btn-danger text-white"
-                                    (click)="editCustomer(customer.id)"><i
+                                    (click)="editUser(user.id)"><i
                               class="fa fa-pencil"></i></button>
                           </div>
                         </div>

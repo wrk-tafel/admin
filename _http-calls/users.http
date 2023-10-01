@@ -1,0 +1,60 @@
+### Login
+POST {{baseApiPath}}/login
+Authorization: Basic {{encodedCredentials}}
+
+### Login fails - user not found
+POST {{baseApiPath}}/login
+Authorization: Basic d3Jvbmc6d3Jvbmc=
+
+### Login fails - wrong password
+POST {{baseApiPath}}/login
+Authorization: Basic YWRtaW46d3Jvbmc=
+
+### Change password
+POST {{baseApiPath}}/users/change-password
+Authorization: Bearer {{jwt}}
+Content-Type: application/json
+
+{
+  "passwordCurrent": "12345",
+  "passwordNew": "wrk-tafel"
+}
+
+### Logout
+POST {{baseApiPath}}/users/logout
+
+### Search for users (only firstname)
+GET {{baseApiPath}}/users?firstname=x
+
+### Search for users (only lastname)
+GET {{baseApiPath}}/users?lastname=x
+
+### Search for users (firstname and lastname)
+GET {{baseApiPath}}/users?firstname=x&lastname=x
+
+### Search for users (personnelNumber)
+GET {{baseApiPath}}/users?personnelnumber=x
+
+### Get user 300
+GET {{baseApiPath}}/users/300
+Content-Type: application/json
+
+### Update user
+POST {{baseApiPath}}/users/300
+Content-Type: application/json
+
+{
+  "id": 300,
+  "personnelNumber": "0300",
+  "username": "admin",
+  "firstname": "AD",
+  "lastname": "min",
+  "enabled": false,
+  "password": "12345",
+  "passwordRepeat": "12345",
+  "passwordChangeRequired": true
+}
+
+### Generate a random password
+GET {{baseApiPath}}/users/generate-password
+Content-Type: application/json

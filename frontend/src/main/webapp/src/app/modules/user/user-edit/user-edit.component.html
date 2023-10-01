@@ -1,0 +1,6 @@
+<div>
+  <tafel-user-form [userData]="userInput" (userDataChange)="userDataUpdated($event)"></tafel-user-form>
+  <button testid="save-button" class="btn px-4 mt-3 ms-2 text-white" (click)="save()" [disabled]="!isSaveEnabled()"
+          [ngClass]="{'btn-danger': !isSaveEnabled(), 'btn-success': isSaveEnabled()}">Speichern
+  </button>
+</div>

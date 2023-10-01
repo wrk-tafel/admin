@@ -37,7 +37,7 @@ export const navigationMenuItems: ITafelNavData[] = [
     permissions: ['CHECKIN']
   },
   {
-    name: 'Kundenverwaltung',
+    name: 'Kunden',
     title: true
   },
   {
@@ -51,5 +51,21 @@ export const navigationMenuItems: ITafelNavData[] = [
     url: '/kunden/anlegen',
     icon: 'fa fa-plus',
     permissions: ['CUSTOMER']
+  },
+  {
+    name: 'Benutzer',
+    title: true
+  },
+  {
+    name: 'Benutzer suchen',
+    url: '/benutzer/suchen',
+    icon: 'fa fa-search',
+    permissions: ['USER-MANAGEMENT']
+  },
+  {
+    name: 'Benutzer anlegen',
+    url: '/benutzer/erstellen',
+    icon: 'fa fa-plus',
+    permissions: ['USER-MANAGEMENT']
   }
 ];

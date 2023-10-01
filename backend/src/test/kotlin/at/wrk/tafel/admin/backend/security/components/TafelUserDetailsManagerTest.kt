@@ -10,11 +10,14 @@ import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
 import at.wrk.tafel.admin.backend.security.testUser
 import at.wrk.tafel.admin.backend.security.testUserEntity
+import at.wrk.tafel.admin.backend.security.testUserPermissions
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.impl.annotations.SpyK
 import io.mockk.junit5.MockKExtension
+import io.mockk.mockk
+import io.mockk.slot
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
@@ -22,6 +25,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
+import org.passay.PasswordData
 import org.passay.PasswordValidator
 import org.passay.RuleResult
 import org.springframework.security.core.authority.SimpleGrantedAuthority
@@ -54,7 +58,7 @@ class TafelUserDetailsManagerTest {
     fun beforeEach() {
         SecurityContextHolder.getContext().authentication =
             TafelJwtAuthentication(tokenValue = "TOKEN", testUser.username)
-        every { userRepository.findByUsername(testUser.username) } returns Optional.of(testUserEntity)
+        every { userRepository.findByUsername(testUser.username) } returns testUserEntity
         testUserEntityPassword = testUserEntity.password!!
     }
 
@@ -65,7 +69,7 @@ class TafelUserDetailsManagerTest {
 
     @Test
     fun `loadUserByUsername - user not found`() {
-        every { userRepository.findByUsername(any()) } returns Optional.empty()
+        every { userRepository.findByUsername(any()) } returns null
 
         assertThrows<UsernameNotFoundException> {
             manager.loadUserByUsername("test")
@@ -95,7 +99,7 @@ class TafelUserDetailsManagerTest {
         userEntity.authorities = mutableListOf(userAuthorityEntity1, userAuthorityEntity2)
         userEntity.passwordChangeRequired = true
 
-        every { userRepository.findByUsername(any()) } returns Optional.of(userEntity)
+        every { userRepository.findByUsername(any()) } returns userEntity
 
         val userDetails = manager.loadUserByUsername("test") as TafelUser
 
@@ -126,16 +130,6 @@ class TafelUserDetailsManagerTest {
     @Test
     fun `createUser - not implemented`() {
         assertThrows<NotImplementedError> { manager.createUser(null) }
-    }
-
-    @Test
-    fun `updateUser - not implemented`() {
-        assertThrows<NotImplementedError> { manager.updateUser(null) }
-    }
-
-    @Test
-    fun `deleteUser - not implemented`() {
-        assertThrows<NotImplementedError> { manager.deleteUser(null) }
     }
 
     @Test
@@ -300,6 +294,315 @@ class TafelUserDetailsManagerTest {
         verify(exactly = 1) {
             userRepository.existsByUsername("test")
         }
+    }
+
+    @Test
+    fun `loadUserById - user not found`() {
+        every { userRepository.findById(any()) } returns Optional.empty()
+
+        val user = manager.loadUserById(1)
+
+        assertThat(user).isNull()
+        verify(exactly = 1) {
+            userRepository.findById(1)
+        }
+    }
+
+    @Test
+    fun `loadUserById - user found and mapped`() {
+        val userEntity = UserEntity()
+        userEntity.username = "test-username"
+        userEntity.password = "test-password"
+        userEntity.enabled = true
+        userEntity.id = 0
+        userEntity.personnelNumber = "test-personnelnumber"
+        userEntity.firstname = "test-firstname"
+        userEntity.lastname = "test-lastname"
+        userEntity.passwordChangeRequired = true
+
+        every { userRepository.findById(any()) } returns Optional.of(userEntity)
+
+        val userDetails = manager.loadUserById(userEntity.id!!) as TafelUser
+
+        assertThat(userDetails).isNotNull
+        assertThat(userDetails.id).isEqualTo(userEntity.id)
+        assertThat(userDetails.username).isEqualTo(userEntity.username)
+        assertThat(userDetails.personnelNumber).isEqualTo(userEntity.personnelNumber)
+        assertThat(userDetails.firstname).isEqualTo(userEntity.firstname)
+        assertThat(userDetails.lastname).isEqualTo(userEntity.lastname)
+
+        verify(exactly = 1) {
+            userRepository.findById(userEntity.id!!)
+        }
+    }
+
+    @Test
+    fun `loadUserByPersonnelNumber - user not found`() {
+        every { userRepository.findByPersonnelNumber(any()) } returns null
+
+        val user = manager.loadUserByPersonnelNumber("1")
+
+        assertThat(user).isNull()
+        verify(exactly = 1) {
+            userRepository.findByPersonnelNumber("1")
+        }
+    }
+
+    @Test
+    fun `loadUserByPersonnelNumber - user found and mapped`() {
+        val userEntity = UserEntity()
+        userEntity.username = "test-username"
+        userEntity.password = "test-password"
+        userEntity.enabled = true
+        userEntity.id = 0
+        userEntity.personnelNumber = "test-personnelnumber"
+        userEntity.firstname = "test-firstname"
+        userEntity.lastname = "test-lastname"
+        userEntity.passwordChangeRequired = true
+
+        every { userRepository.findByPersonnelNumber(any()) } returns userEntity
+
+        val userDetails = manager.loadUserByPersonnelNumber(userEntity.personnelNumber!!) as TafelUser
+
+        assertThat(userDetails).isNotNull
+        assertThat(userDetails.id).isEqualTo(userEntity.id)
+        assertThat(userDetails.username).isEqualTo(userEntity.username)
+        assertThat(userDetails.personnelNumber).isEqualTo(userEntity.personnelNumber)
+        assertThat(userDetails.firstname).isEqualTo(userEntity.firstname)
+        assertThat(userDetails.lastname).isEqualTo(userEntity.lastname)
+
+        verify(exactly = 1) {
+            userRepository.findByPersonnelNumber(userEntity.personnelNumber!!)
+        }
+    }
+
+    @Test
+    fun `loadUsers with firstname and lastname found and mapped properly`() {
+        val firstname = "test-firstname"
+        val lastname = "test-lastname"
+
+        val userEntity = UserEntity()
+        userEntity.username = "test-username"
+        userEntity.password = "test-password"
+        userEntity.enabled = true
+        userEntity.id = 0
+        userEntity.personnelNumber = "test-personnelnumber"
+        userEntity.firstname = "test-firstname"
+        userEntity.lastname = "test-lastname"
+        userEntity.passwordChangeRequired = true
+
+        every {
+            userRepository.findAllByFirstnameContainingIgnoreCaseOrLastnameContainingIgnoreCase(firstname, lastname)
+        } returns listOf(userEntity)
+
+        val userDetails = manager.loadUsers(firstname = firstname, lastname = lastname)
+
+        assertThat(userDetails).isNotNull
+
+        val user = userDetails.first()
+        assertThat(user.id).isEqualTo(userEntity.id)
+        assertThat(user.username).isEqualTo(userEntity.username)
+        assertThat(user.personnelNumber).isEqualTo(userEntity.personnelNumber)
+        assertThat(user.firstname).isEqualTo(userEntity.firstname)
+        assertThat(user.lastname).isEqualTo(userEntity.lastname)
+
+        verify(exactly = 1) {
+            userRepository.findAllByFirstnameContainingIgnoreCaseOrLastnameContainingIgnoreCase(firstname, lastname)
+        }
+    }
+
+    @Test
+    fun `loadUsers with firstname only`() {
+        val firstname = "test-firstname"
+        every { userRepository.findAllByFirstnameContainingIgnoreCase(any()) } returns emptyList()
+
+        manager.loadUsers(firstname = firstname, lastname = null)
+
+        verify(exactly = 1) {
+            userRepository.findAllByFirstnameContainingIgnoreCase(firstname)
+        }
+    }
+
+    @Test
+    fun `loadUsers with lastname only`() {
+        val lastname = "test-lastname"
+        every { userRepository.findAllByLastnameContainingIgnoreCase(any()) } returns emptyList()
+
+        manager.loadUsers(firstname = null, lastname = lastname)
+
+        verify(exactly = 1) {
+            userRepository.findAllByLastnameContainingIgnoreCase(lastname)
+        }
+    }
+
+    @Test
+    fun `updateUser mapped properly`() {
+        val testUserEntity = UserEntity().apply {
+            id = 0
+            username = "test-username"
+            // pwd: 12345
+            password =
+                "{argon2}\$argon2id\$v=19\$m=4096,t=3,p=1\$RXn6Xt/0q/Wtrvdns6NUnw\$X3xWUjENAbNSJNckeVFXWrjkoFSowwlu3xHx1/zb40w"
+            enabled = true
+            personnelNumber = "test-personnelnumber"
+            firstname = "test-firstname"
+            lastname = "test-lastname"
+            authorities = testUserPermissions.map {
+                val entity = UserAuthorityEntity()
+                entity.user = this
+                entity.name = it
+                entity
+            }.toMutableList()
+            passwordChangeRequired = false
+        }
+
+        every { userRepository.findById(testUser.id) } returns Optional.of(testUserEntity)
+        every { userRepository.save(any()) } returns mockk(relaxed = true)
+
+        val userUpdate = testUser.copy(
+            personnelNumber = "new-persnr",
+            username = "new-username",
+            firstname = "new-firstname",
+            lastname = "new-lastname",
+            enabled = false,
+            passwordChangeRequired = true
+        )
+        manager.updateUser(userUpdate)
+
+        val updatedUserSlot = slot<UserEntity>()
+        verify(exactly = 1) {
+            userRepository.save(capture<UserEntity>(updatedUserSlot))
+        }
+
+        val updatedUser = updatedUserSlot.captured
+        assertThat(updatedUser.id).isEqualTo(userUpdate.id)
+        assertThat(updatedUser.personnelNumber).isEqualTo(userUpdate.personnelNumber)
+        assertThat(updatedUser.username).isEqualTo(userUpdate.username)
+        assertThat(updatedUser.firstname).isEqualTo(userUpdate.firstname)
+        assertThat(updatedUser.lastname).isEqualTo(userUpdate.lastname)
+        assertThat(updatedUser.enabled).isEqualTo(userUpdate.enabled)
+        assertThat(updatedUser.passwordChangeRequired).isEqualTo(userUpdate.passwordChangeRequired)
+    }
+
+    @Test
+    fun `updateUser including password change successful`() {
+        val testUserEntity = UserEntity().apply {
+            id = 0
+            username = "test-username"
+            // pwd: 12345
+            password =
+                "{argon2}\$argon2id\$v=19\$m=4096,t=3,p=1\$RXn6Xt/0q/Wtrvdns6NUnw\$X3xWUjENAbNSJNckeVFXWrjkoFSowwlu3xHx1/zb40w"
+            enabled = true
+            personnelNumber = "test-personnelnumber"
+            firstname = "test-firstname"
+            lastname = "test-lastname"
+            authorities = testUserPermissions.map {
+                val entity = UserAuthorityEntity()
+                entity.user = this
+                entity.name = it
+                entity
+            }.toMutableList()
+            passwordChangeRequired = false
+        }
+
+        every { userRepository.findById(testUser.id) } returns Optional.of(testUserEntity)
+        every { userRepository.save(any()) } returns mockk(relaxed = true)
+
+        val encodedPassword = "dummy-encoded-pwd"
+        every { passwordEncoder.encode(any()) } returns encodedPassword
+
+        val newPassword = "new-pwd1234"
+        val userUpdate = testUser.copy(
+            personnelNumber = "new-persnr",
+            username = "new-username",
+            firstname = "new-firstname",
+            lastname = "new-lastname",
+            enabled = false,
+            password = newPassword,
+            passwordChangeRequired = true
+        )
+        manager.updateUser(userUpdate)
+
+        val updatedUserSlot = slot<UserEntity>()
+        verify(exactly = 1) {
+            userRepository.save(capture<UserEntity>(updatedUserSlot))
+        }
+        verify(exactly = 1) { passwordEncoder.encode(newPassword) }
+
+        val passwordValidationDataSlot = slot<PasswordData>()
+        verify(exactly = 1) { passwordValidator.validate(capture(passwordValidationDataSlot)) }
+        assertThat(passwordValidationDataSlot.captured.username).isEqualTo(userUpdate.username)
+        assertThat(passwordValidationDataSlot.captured.password).isEqualTo(newPassword)
+
+        val updatedUser = updatedUserSlot.captured
+        assertThat(updatedUser.password).isEqualTo(encodedPassword)
+        assertThat(updatedUser.passwordChangeRequired).isEqualTo(userUpdate.passwordChangeRequired)
+    }
+
+    @Test
+    fun `updateUser including password change failed`() {
+        val testUserEntity = UserEntity().apply {
+            id = 0
+            username = "test-username"
+            // pwd: 12345
+            password =
+                "{argon2}\$argon2id\$v=19\$m=4096,t=3,p=1\$RXn6Xt/0q/Wtrvdns6NUnw\$X3xWUjENAbNSJNckeVFXWrjkoFSowwlu3xHx1/zb40w"
+            enabled = true
+            personnelNumber = "test-personnelnumber"
+            firstname = "test-firstname"
+            lastname = "test-lastname"
+            authorities = testUserPermissions.map {
+                val entity = UserAuthorityEntity()
+                entity.user = this
+                entity.name = it
+                entity
+            }.toMutableList()
+            passwordChangeRequired = false
+        }
+
+        every { userRepository.findById(testUser.id) } returns Optional.of(testUserEntity)
+        every { userRepository.save(any()) } returns mockk(relaxed = true)
+        every { passwordValidator.validate(any()) } returns RuleResult(false)
+
+        val newPassword = "new-pwd1234"
+        val userUpdate = testUser.copy(
+            personnelNumber = "new-persnr",
+            username = "new-username",
+            firstname = "new-firstname",
+            lastname = "new-lastname",
+            enabled = false,
+            password = newPassword,
+            passwordChangeRequired = true
+        )
+
+        val exception = assertThrows<PasswordChangeException> { manager.updateUser(userUpdate) }
+        assertThat(exception.message).isEqualTo("Das neue Passwort ist ungültig!")
+
+        verify(exactly = 0) { userRepository.save(any()) }
+        verify(exactly = 0) { passwordEncoder.encode(newPassword) }
+
+        val passwordValidationDataSlot = slot<PasswordData>()
+        verify(exactly = 1) { passwordValidator.validate(capture(passwordValidationDataSlot)) }
+        assertThat(passwordValidationDataSlot.captured.username).isEqualTo(userUpdate.username)
+        assertThat(passwordValidationDataSlot.captured.password).isEqualTo(newPassword)
+    }
+
+    @Test
+    fun `deleteUser not found`() {
+        every { userRepository.findByUsername(any()) } returns null
+
+        val exception = assertThrows<UsernameNotFoundException> { manager.deleteUser("username") }
+
+        assertThat(exception.message).isEqualTo("Username not found")
+    }
+
+    @Test
+    fun `deleteUser found`() {
+        every { userRepository.findByUsername(any()) } returns testUserEntity
+
+        manager.deleteUser(testUserEntity.username!!)
+
+        verify { userRepository.delete(testUserEntity) }
     }
 
 }

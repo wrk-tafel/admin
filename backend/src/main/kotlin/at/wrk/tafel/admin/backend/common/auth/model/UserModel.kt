@@ -13,3 +13,26 @@ data class ChangePasswordResponse(
     val message: String,
     val details: List<String>? = emptyList()
 )
+
+@ExcludeFromTestCoverage
+data class User(
+    val id: Long,
+    val personnelNumber: String,
+    val username: String,
+    val firstname: String,
+    val lastname: String,
+    val enabled: Boolean,
+    val password: String? = null,
+    val passwordRepeat: String? = null,
+    val passwordChangeRequired: Boolean
+)
+
+@ExcludeFromTestCoverage
+data class UserListResponse(
+    val items: List<User>
+)
+
+@ExcludeFromTestCoverage
+data class GeneratedPasswordResponse(
+    val password: String
+)

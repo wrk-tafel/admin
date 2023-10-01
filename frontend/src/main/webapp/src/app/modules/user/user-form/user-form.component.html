@@ -1,0 +1,126 @@
+<form [formGroup]="form">
+  <div class="row">
+    <div class="col-md">
+      <div class="card">
+        <div class="card-header text-center h5">
+          Benutzerdaten
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-sm">
+              <label class="form-label">Benutzername *</label>
+              <input testid="usernameInput" type="text" formControlName="username" class="form-control"
+                     [ngClass]="{'is-invalid': username.invalid && (username.dirty || username.touched), 'is-valid': username.valid && (username.dirty || username.touched)}">
+              <div *ngIf="username.errors?.required && (username.dirty || username.touched)"
+                   class="invalid-feedback">
+                Pflichtfeld
+              </div>
+              <div *ngIf="username.errors?.maxlength && (username.dirty || username.touched)"
+                   class="invalid-feedback">
+                Benutzername zu lang (Limit: {{username.errors.maxlength.requiredLength}})
+              </div>
+            </div>
+            <div class="col-sm">
+              <label class="form-label">Personalnummer *</label>
+              <input testid="personnelNumberInput" type="text" formControlName="personnelNumber" class="form-control"
+                     [ngClass]="{'is-invalid': personnelNumber.invalid && (personnelNumber.dirty || personnelNumber.touched), 'is-valid': personnelNumber.valid && (personnelNumber.dirty || personnelNumber.touched)}">
+              <div *ngIf="personnelNumber.errors?.required && (personnelNumber.dirty || personnelNumber.touched)"
+                   class="invalid-feedback">
+                Pflichtfeld
+              </div>
+              <div *ngIf="personnelNumber.errors?.maxlength && (personnelNumber.dirty || personnelNumber.touched)"
+                   class="invalid-feedback">
+                Personalnummer zu lang (Limit: {{personnelNumber.errors.maxlength.requiredLength}})
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-sm">
+              <label class="form-label">Familienname *</label>
+              <input testid="lastnameInput" type="text" formControlName="lastname" class="form-control"
+                     [ngClass]="{'is-invalid': lastname.invalid && (lastname.dirty || lastname.touched), 'is-valid': lastname.valid && (lastname.dirty || lastname.touched)}">
+              <div *ngIf="lastname.errors?.required && (lastname.dirty || lastname.touched)"
+                   class="invalid-feedback">
+                Pflichtfeld
+              </div>
+              <div *ngIf="lastname.errors?.maxlength && (lastname.dirty || lastname.touched)"
+                   class="invalid-feedback">
+                Familienname zu lang (Limit: {{lastname.errors.maxlength.requiredLength}})
+              </div>
+            </div>
+            <div class="col-sm">
+              <label class="form-label">Vorname *</label>
+              <input testid="firstnameInput" type="text" formControlName="firstname" class="form-control"
+                     [ngClass]="{'is-invalid': firstname.invalid && (firstname.dirty || firstname.touched), 'is-valid': firstname.valid && (firstname.dirty || firstname.touched)}">
+              <div *ngIf="firstname.errors?.required && (firstname.dirty || firstname.touched)"
+                   class="invalid-feedback">
+                Pflichtfeld
+              </div>
+              <div *ngIf="firstname.errors?.maxlength && (firstname.dirty || firstname.touched)"
+                   class="invalid-feedback">
+                Vorname zu lang (Limit: {{firstname.errors.maxlength.requiredLength}})
+              </div>
+            </div>
+          </div>
+          <hr>
+          <div class="row">
+            <div class="col-sm">
+              <label class="form-label">Passwort</label>
+              <c-input-group>
+                <input testid="passwordInput"
+                       [type]="passwordTextVisible ? 'text' : 'password'"
+                       formControlName="password" class="form-control"
+                       [ngClass]="{'is-invalid': form.errors?.['passwordRepeatInvalid'] && (password.dirty || password.touched), 'is-valid': password.valid && (password.dirty || password.touched)}">
+                <span cInputGroupText
+                      (click)="togglePasswordVisibility()">
+                  <i class="fa"
+                     [ngClass]="{
+                        'fa-eye-slash': !passwordTextVisible,
+                        'fa-eye': passwordTextVisible
+                      }"></i>
+                </span>
+                <div *ngIf="form.errors?.['passwordRepeatInvalid'] && (password.dirty || password.touched)"
+                     class="invalid-feedback">
+                  Passwort stimmt nicht mit der Wiederholung überein!
+                </div>
+              </c-input-group>
+            </div>
+            <div class="col-sm">
+              <label class="form-label">Passwort (Wiederholung)</label>
+              <c-input-group>
+                <input testid="passwordRepeatInput"
+                       [type]="passwordRepeatTextVisible ? 'text' : 'password'"
+                       formControlName="passwordRepeat" class="form-control"
+                       [ngClass]="{'is-invalid': form.errors?.['passwordRepeatInvalid'] && (passwordRepeat.dirty || passwordRepeat.touched), 'is-valid': passwordRepeat.valid && (passwordRepeat.dirty || passwordRepeat.touched)}">
+                <span cInputGroupText
+                      (click)="togglePasswordRepeatVisibility()">
+                  <i class="fa"
+                     [ngClass]="{
+                        'fa-eye-slash': !passwordRepeatTextVisible,
+                        'fa-eye': passwordRepeatTextVisible
+                      }"></i>
+                </span>
+                <div *ngIf="form.errors?.['passwordRepeatInvalid'] && (passwordRepeat.dirty || passwordRepeat.touched)"
+                     class="invalid-feedback">
+                  Passwort stimmt nicht mit der Wiederholung überein!
+                </div>
+              </c-input-group>
+            </div>
+            <div class="col-sm-2 mt-lg-auto mt-3">
+              <button testid="generate-password-button" type="button" class="btn btn-primary text-white" (click)="generatePassword()">Passwort generieren</button>
+            </div>
+          </div>
+          <hr>
+          <div class="row">
+            <div class="col-sm">
+              <label class="form-label">Passwort-Änderung erforderlich</label>
+              <div class="input-group">
+                <input testid="passwordChangeRequiredInput" type="checkbox" formControlName="passwordChangeRequired" class="form-check-input">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>

@@ -78,8 +78,6 @@ describe('CustomerEditComponent - Creating a new customer', () => {
 
   let router: jasmine.SpyObj<Router>;
   let apiService: jasmine.SpyObj<CustomerApiService>;
-  /* eslint-disable @typescript-eslint/no-unused-vars */
-  let activatedRoute: ActivatedRoute;
   let toastService: jasmine.SpyObj<ToastService>;
 
   beforeEach(waitForAsync(() => {
@@ -126,7 +124,6 @@ describe('CustomerEditComponent - Creating a new customer', () => {
 
     router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
     apiService = TestBed.inject(CustomerApiService) as jasmine.SpyObj<CustomerApiService>;
-    activatedRoute = TestBed.inject(ActivatedRoute);
     toastService = TestBed.inject(ToastService) as jasmine.SpyObj<ToastService>;
   }));
 

@@ -24,38 +24,76 @@ class TafelUserDetailsManager(
     private val passwordValidator: PasswordValidator
 ) : UserDetailsManager {
 
-    override fun loadUserByUsername(username: String): UserDetails? {
-        return userRepository.findByUsername(username)
+    fun loadUserById(userId: Long): TafelUser? {
+        return userRepository.findById(userId)
             .map { userEntity -> mapToUserDetails(userEntity) }
-            .orElseThrow { UsernameNotFoundException("Username not found") }
+            .orElse(null)
+    }
+
+    override fun loadUserByUsername(username: String): TafelUser {
+        val user = userRepository.findByUsername(username) ?: throw UsernameNotFoundException("Username not found")
+        return mapToUserDetails(user)
+    }
+
+    fun loadUserByPersonnelNumber(personnelNumber: String): TafelUser? {
+        val user = userRepository.findByPersonnelNumber(personnelNumber)
+        return user?.let { mapToUserDetails(user) }
+    }
+
+    fun loadUsers(firstname: String?, lastname: String?): List<TafelUser> {
+        val users = if (firstname?.isNotBlank() == true && lastname?.isNotBlank() == true) {
+            userRepository.findAllByFirstnameContainingIgnoreCaseOrLastnameContainingIgnoreCase(
+                firstname,
+                lastname
+            )
+        } else if (firstname?.isNotBlank() == true) {
+            userRepository.findAllByFirstnameContainingIgnoreCase(firstname)
+        } else if (lastname?.isNotBlank() == true) {
+            userRepository.findAllByLastnameContainingIgnoreCase(lastname)
+        } else {
+            userRepository.findAll()
+        }
+        return users.map { mapToUserDetails(it) }
     }
 
     override fun createUser(user: UserDetails?) {
         TODO("Not yet implemented")
     }
 
-    override fun updateUser(user: UserDetails?) {
-        TODO("Not yet implemented")
+    override fun updateUser(user: UserDetails) {
+        val tafelUser = user as TafelUser
+
+        val userEntity: UserEntity = userRepository.findById(user.id).get()
+        updateUserEntity(userEntity, tafelUser)
+        userRepository.save(userEntity)
     }
 
-    override fun deleteUser(username: String?) {
-        TODO("Not yet implemented")
+    override fun deleteUser(username: String) {
+        val userEntity =
+            userRepository.findByUsername(username) ?: throw UsernameNotFoundException("Username not found")
+        userRepository.delete(userEntity)
     }
 
     override fun changePassword(currentPassword: String, newPassword: String) {
         val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
-        var storedUser = userRepository.findByUsername(authenticatedUser.username!!).get()
+        var storedUser = userRepository.findByUsername(authenticatedUser.username!!)!!
 
         if (!passwordEncoder.matches(currentPassword, storedUser.password)) {
             throw PasswordChangeException("Aktuelles Passwort ist falsch!")
         }
 
-        val data = PasswordData(storedUser.username, newPassword)
-        val result = passwordValidator.validate(data)
-        if (result.isValid) {
+        if (isPasswordValid(storedUser.username!!, newPassword)) {
             storedUser.password = passwordEncoder.encode(newPassword)
             storedUser.passwordChangeRequired = false
             userRepository.save(storedUser)
+        }
+    }
+
+    private fun isPasswordValid(username: String, newPassword: String): Boolean {
+        val data = PasswordData(username, newPassword)
+        val result = passwordValidator.validate(data)
+        if (result.isValid) {
+            return true
         } else {
             throw PasswordChangeException("Das neue Passwort ist ungültig!", translateViolationsToMessages(result))
         }
@@ -79,16 +117,30 @@ class TafelUserDetailsManager(
     // TODO after the new security mechanism this could be reduced
     private fun mapToUserDetails(userEntity: UserEntity): TafelUser {
         return TafelUser(
+            id = userEntity.id!!,
             username = userEntity.username!!,
             password = userEntity.password!!,
             enabled = userEntity.enabled!!,
-            id = userEntity.id!!,
             personnelNumber = userEntity.personnelNumber!!,
             firstname = userEntity.firstname!!,
             lastname = userEntity.lastname!!,
             authorities = userEntity.authorities.map { SimpleGrantedAuthority(it.name) },
             passwordChangeRequired = userEntity.passwordChangeRequired!!
         )
+    }
+
+    private fun updateUserEntity(userEntity: UserEntity, tafelUser: TafelUser) {
+        val newPassword = tafelUser.password
+        if (newPassword != null && isPasswordValid(tafelUser.username, newPassword)) {
+            userEntity.password = passwordEncoder.encode(newPassword)
+        }
+
+        userEntity.personnelNumber = tafelUser.personnelNumber
+        userEntity.username = tafelUser.username
+        userEntity.firstname = tafelUser.firstname
+        userEntity.lastname = tafelUser.lastname
+        userEntity.enabled = tafelUser.enabled
+        userEntity.passwordChangeRequired = tafelUser.passwordChangeRequired
     }
 
 }
