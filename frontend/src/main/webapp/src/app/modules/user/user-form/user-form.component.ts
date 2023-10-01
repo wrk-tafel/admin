@@ -1,5 +1,13 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {AbstractControl, FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators} from '@angular/forms';
+import {
+  AbstractControl,
+  FormArray,
+  FormControl,
+  FormGroup,
+  ValidationErrors,
+  ValidatorFn,
+  Validators
+} from '@angular/forms';
 import {GeneratedPasswordResponse, UserApiService, UserData} from '../../../api/user-api.service';
 
 @Component({
@@ -19,7 +27,8 @@ export class UserFormComponent implements OnInit {
     enabled: new FormControl<boolean>(null, Validators.required),
     password: new FormControl<string>(null),
     passwordRepeat: new FormControl<string>(null),
-    passwordChangeRequired: new FormControl<boolean>(true, Validators.required)
+    passwordChangeRequired: new FormControl<boolean>(true, Validators.required),
+    permissions: new FormArray([])
   }, [passwordRepeatValidator]);
 
   passwordTextVisible: boolean;

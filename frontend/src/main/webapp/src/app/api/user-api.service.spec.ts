@@ -19,7 +19,8 @@ describe('UserApiService', () => {
     firstname: 'first',
     lastname: 'last',
     enabled: true,
-    passwordChangeRequired: true
+    passwordChangeRequired: true,
+    permissions: []
   };
 
   beforeEach(() => {
@@ -105,7 +106,8 @@ describe('UserApiService', () => {
       lastname: 'Mustermann',
       firstname: 'Max',
       enabled: true,
-      passwordChangeRequired: true
+      passwordChangeRequired: true,
+      permissions: []
     };
     apiService.updateUser(mockUserUpdate).subscribe();
 

@@ -25,7 +25,8 @@ describe('UserEditComponent - Creating a new user', () => {
     firstname: 'first',
     lastname: 'last',
     enabled: true,
-    passwordChangeRequired: true
+    passwordChangeRequired: true,
+    permissions: []
   };
 
   let apiService: jasmine.SpyObj<UserApiService>;

@@ -181,7 +181,8 @@ class UserController(
             enabled = user.isEnabled,
             password = null,
             passwordRepeat = null,
-            passwordChangeRequired = user.passwordChangeRequired
+            passwordChangeRequired = user.passwordChangeRequired,
+            permissions = user.authorities.map { it.authority }
         )
     }
 

@@ -23,7 +23,8 @@ describe('UserSearchComponent', () => {
         firstname: 'first',
         lastname: 'last',
         enabled: true,
-        passwordChangeRequired: true
+        passwordChangeRequired: true,
+        permissions: []
       }
     ]
   };

@@ -25,7 +25,8 @@ describe('UserEditComponent - Editing an existing user', () => {
     firstname: 'first',
     lastname: 'last',
     enabled: true,
-    passwordChangeRequired: true
+    passwordChangeRequired: true,
+    permissions: []
   };
 
   let router: jasmine.SpyObj<Router>;

@@ -14,7 +14,8 @@ describe('UserFormComponent', () => {
     firstname: 'first',
     lastname: 'last',
     enabled: true,
-    passwordChangeRequired: false
+    passwordChangeRequired: false,
+    permissions: []
   };
 
   let userApiService: jasmine.SpyObj<UserApiService>;
