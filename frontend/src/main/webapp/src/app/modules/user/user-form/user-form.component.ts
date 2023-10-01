@@ -1,6 +1,6 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {AbstractControl, FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators} from '@angular/forms';
-import {UserData} from '../../../api/user-api.service';
+import {GeneratedPasswordResponse, UserApiService, UserData} from '../../../api/user-api.service';
 
 @Component({
   selector: 'tafel-user-form',
@@ -21,6 +21,9 @@ export class UserFormComponent implements OnInit {
     passwordRepeat: new FormControl<string>(null),
     passwordChangeRequired: new FormControl<boolean>(true, Validators.required)
   }, [passwordRepeatValidator]);
+
+  constructor(private userApiService: UserApiService) {
+  }
 
   ngOnInit(): void {
     if (this.userData) {
@@ -77,6 +80,21 @@ export class UserFormComponent implements OnInit {
 
   get passwordChangeRequired() {
     return this.form.get('passwordChangeRequired');
+  }
+
+  generatePassword() {
+    /* eslint-disable @typescript-eslint/no-empty-function */
+    const observer = {
+      next: (response: GeneratedPasswordResponse) => {
+        const password = response.password;
+        this.password.setValue(password);
+        this.passwordRepeat.setValue(password);
+      },
+      error: error => {
+      },
+    };
+
+    this.userApiService.generatePassword().subscribe(observer);
   }
 
 }

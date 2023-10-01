@@ -7,6 +7,7 @@ import at.wrk.tafel.admin.backend.common.auth.components.TafelPasswordGenerator
 import at.wrk.tafel.admin.backend.common.auth.components.TafelUserDetailsManager
 import at.wrk.tafel.admin.backend.common.auth.model.ChangePasswordRequest
 import at.wrk.tafel.admin.backend.common.auth.model.ChangePasswordResponse
+import at.wrk.tafel.admin.backend.common.auth.model.GeneratedPasswordResponse
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
 import at.wrk.tafel.admin.backend.common.auth.model.User
@@ -53,8 +54,10 @@ class UserController(
     }
 
     @GetMapping("/generate-password")
-    fun generatePassword(): ResponseEntity<String> {
-        return ResponseEntity.ok(tafelPasswordGenerator.generatePassword())
+    fun generatePassword(): ResponseEntity<GeneratedPasswordResponse> {
+        val generatedPassword = tafelPasswordGenerator.generatePassword()
+        val response = GeneratedPasswordResponse(password = generatedPassword)
+        return ResponseEntity.ok(response)
     }
 
     @PostMapping("/change-password")

@@ -31,3 +31,8 @@ data class User(
 data class UserListResponse(
     val items: List<User>
 )
+
+@ExcludeFromTestCoverage
+data class GeneratedPasswordResponse(
+    val password: String
+)

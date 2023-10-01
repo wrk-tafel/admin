@@ -55,6 +55,10 @@ export class UserApiService {
     return this.http.post<UserData>('/users', data);
   }
 
+  generatePassword(): Observable<GeneratedPasswordResponse> {
+    return this.http.get<GeneratedPasswordResponse>('/users/generate-password');
+  }
+
 }
 
 export interface ChangePasswordRequest {
@@ -81,4 +85,8 @@ export interface UserData {
   password?: string;
   passwordRepeat?: string;
   passwordChangeRequired: boolean;
+}
+
+export interface GeneratedPasswordResponse {
+  password: string;
 }
