@@ -61,5 +61,11 @@ export const navigationMenuItems: ITafelNavData[] = [
     url: '/benutzer/suchen',
     icon: 'fa fa-search',
     permissions: ['USER-MANAGEMENT']
+  },
+  {
+    name: 'Benutzer anlegen',
+    url: '/benutzer/erstellen',
+    icon: 'fa fa-plus',
+    permissions: ['USER-MANAGEMENT']
   }
 ];
