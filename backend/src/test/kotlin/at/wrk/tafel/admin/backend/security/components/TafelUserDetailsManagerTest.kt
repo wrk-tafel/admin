@@ -25,6 +25,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
+import org.passay.PasswordData
 import org.passay.PasswordValidator
 import org.passay.RuleResult
 import org.springframework.security.core.authority.SimpleGrantedAuthority
@@ -481,6 +482,109 @@ class TafelUserDetailsManagerTest {
         assertThat(updatedUser.lastname).isEqualTo(userUpdate.lastname)
         assertThat(updatedUser.enabled).isEqualTo(userUpdate.enabled)
         assertThat(updatedUser.passwordChangeRequired).isEqualTo(userUpdate.passwordChangeRequired)
+    }
+
+    @Test
+    fun `updateUser including password change successful`() {
+        val testUserEntity = UserEntity().apply {
+            id = 0
+            username = "test-username"
+            // pwd: 12345
+            password =
+                "{argon2}\$argon2id\$v=19\$m=4096,t=3,p=1\$RXn6Xt/0q/Wtrvdns6NUnw\$X3xWUjENAbNSJNckeVFXWrjkoFSowwlu3xHx1/zb40w"
+            enabled = true
+            personnelNumber = "test-personnelnumber"
+            firstname = "test-firstname"
+            lastname = "test-lastname"
+            authorities = testUserPermissions.map {
+                val entity = UserAuthorityEntity()
+                entity.user = this
+                entity.name = it
+                entity
+            }.toMutableList()
+            passwordChangeRequired = false
+        }
+
+        every { userRepository.findById(testUser.id) } returns Optional.of(testUserEntity)
+        every { userRepository.save(any()) } returns mockk(relaxed = true)
+
+        val encodedPassword = "dummy-encoded-pwd"
+        every { passwordEncoder.encode(any()) } returns encodedPassword
+
+        val newPassword = "new-pwd1234"
+        val userUpdate = testUser.copy(
+            personnelNumber = "new-persnr",
+            username = "new-username",
+            firstname = "new-firstname",
+            lastname = "new-lastname",
+            enabled = false,
+            password = newPassword,
+            passwordChangeRequired = true
+        )
+        manager.updateUser(userUpdate)
+
+        val updatedUserSlot = slot<UserEntity>()
+        verify(exactly = 1) {
+            userRepository.save(capture<UserEntity>(updatedUserSlot))
+        }
+        verify(exactly = 1) { passwordEncoder.encode(newPassword) }
+
+        val passwordValidationDataSlot = slot<PasswordData>()
+        verify(exactly = 1) { passwordValidator.validate(capture(passwordValidationDataSlot)) }
+        assertThat(passwordValidationDataSlot.captured.username).isEqualTo(userUpdate.username)
+        assertThat(passwordValidationDataSlot.captured.password).isEqualTo(newPassword)
+
+        val updatedUser = updatedUserSlot.captured
+        assertThat(updatedUser.password).isEqualTo(encodedPassword)
+        assertThat(updatedUser.passwordChangeRequired).isEqualTo(userUpdate.passwordChangeRequired)
+    }
+
+    @Test
+    fun `updateUser including password change failed`() {
+        val testUserEntity = UserEntity().apply {
+            id = 0
+            username = "test-username"
+            // pwd: 12345
+            password =
+                "{argon2}\$argon2id\$v=19\$m=4096,t=3,p=1\$RXn6Xt/0q/Wtrvdns6NUnw\$X3xWUjENAbNSJNckeVFXWrjkoFSowwlu3xHx1/zb40w"
+            enabled = true
+            personnelNumber = "test-personnelnumber"
+            firstname = "test-firstname"
+            lastname = "test-lastname"
+            authorities = testUserPermissions.map {
+                val entity = UserAuthorityEntity()
+                entity.user = this
+                entity.name = it
+                entity
+            }.toMutableList()
+            passwordChangeRequired = false
+        }
+
+        every { userRepository.findById(testUser.id) } returns Optional.of(testUserEntity)
+        every { userRepository.save(any()) } returns mockk(relaxed = true)
+        every { passwordValidator.validate(any()) } returns RuleResult(false)
+
+        val newPassword = "new-pwd1234"
+        val userUpdate = testUser.copy(
+            personnelNumber = "new-persnr",
+            username = "new-username",
+            firstname = "new-firstname",
+            lastname = "new-lastname",
+            enabled = false,
+            password = newPassword,
+            passwordChangeRequired = true
+        )
+
+        val exception = assertThrows<PasswordChangeException> { manager.updateUser(userUpdate) }
+        assertThat(exception.message).isEqualTo("Das neue Passwort ist ungültig!")
+
+        verify(exactly = 0) { userRepository.save(any()) }
+        verify(exactly = 0) { passwordEncoder.encode(newPassword) }
+
+        val passwordValidationDataSlot = slot<PasswordData>()
+        verify(exactly = 1) { passwordValidator.validate(capture(passwordValidationDataSlot)) }
+        assertThat(passwordValidationDataSlot.captured.username).isEqualTo(userUpdate.username)
+        assertThat(passwordValidationDataSlot.captured.password).isEqualTo(newPassword)
     }
 
     @Test

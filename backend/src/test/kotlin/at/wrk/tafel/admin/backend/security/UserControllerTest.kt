@@ -74,7 +74,7 @@ class UserControllerTest {
 
         val response = controller.changePassword(request)
 
-        assertThat(response.statusCode).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY)
+        assertThat(response.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
         assertThat(response.body?.message).isEqualTo(errMsg)
         assertThat(response.body?.details).hasSameElementsAs(errDetails)
 
@@ -172,10 +172,41 @@ class UserControllerTest {
     fun `update user found`() {
         every { userDetailsManager.loadUserById(any()) } returns testUser
 
-        val updatedUser = controller.updateUser(userId = 123, user = testUserApiResponse)
+        val updatedUserResponse = controller.updateUser(userId = 123, user = testUserApiResponse)
 
-        assertThat(updatedUser).isEqualTo(testUserApiResponse)
+        assertThat(updatedUserResponse.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(updatedUserResponse.body).isEqualTo(testUserApiResponse)
         verify(exactly = 1) { userDetailsManager.updateUser(testUser) }
+    }
+
+    @Test
+    fun `update user including password change`() {
+        every { userDetailsManager.loadUserById(any()) } returns testUser
+
+        val newPassword = "123"
+        val updatedUserResponse = controller.updateUser(
+            userId = 123,
+            user = testUserApiResponse.copy(password = newPassword, passwordRepeat = newPassword)
+        )
+
+        assertThat(updatedUserResponse.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(updatedUserResponse.body).isEqualTo(testUserApiResponse)
+        verify(exactly = 1) { userDetailsManager.updateUser(testUser.copy(password = newPassword)) }
+    }
+
+    @Test
+    fun `update user with passwords not matching`() {
+        every { userDetailsManager.loadUserById(any()) } returns testUser
+
+        val exception = assertThrows<TafelValidationException> {
+            controller.updateUser(
+                userId = 123,
+                user = testUserApiResponse.copy(password = "123", passwordRepeat = "456")
+            )
+        }
+
+        assertThat(exception.status).isEqualTo(HttpStatus.BAD_REQUEST)
+        assertThat(exception.message).isEqualTo("Passwörter stimmen nicht überein!")
     }
 
     @Test

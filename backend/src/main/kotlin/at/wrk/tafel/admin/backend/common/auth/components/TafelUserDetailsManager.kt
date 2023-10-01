@@ -82,12 +82,18 @@ class TafelUserDetailsManager(
             throw PasswordChangeException("Aktuelles Passwort ist falsch!")
         }
 
-        val data = PasswordData(storedUser.username, newPassword)
-        val result = passwordValidator.validate(data)
-        if (result.isValid) {
+        if (isPasswordValid(storedUser.username!!, newPassword)) {
             storedUser.password = passwordEncoder.encode(newPassword)
             storedUser.passwordChangeRequired = false
             userRepository.save(storedUser)
+        }
+    }
+
+    private fun isPasswordValid(username: String, newPassword: String): Boolean {
+        val data = PasswordData(username, newPassword)
+        val result = passwordValidator.validate(data)
+        if (result.isValid) {
+            return true
         } else {
             throw PasswordChangeException("Das neue Passwort ist ungültig!", translateViolationsToMessages(result))
         }
@@ -124,6 +130,11 @@ class TafelUserDetailsManager(
     }
 
     private fun updateUserEntity(userEntity: UserEntity, tafelUser: TafelUser) {
+        val newPassword = tafelUser.password
+        if (newPassword != null && isPasswordValid(tafelUser.username, newPassword)) {
+            userEntity.password = passwordEncoder.encode(newPassword)
+        }
+
         userEntity.personnelNumber = tafelUser.personnelNumber
         userEntity.username = tafelUser.username
         userEntity.firstname = tafelUser.firstname

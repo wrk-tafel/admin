@@ -17,8 +17,8 @@ export class UserFormComponent implements OnInit {
     lastname: new FormControl<string>(null, [Validators.required, Validators.maxLength(50)]),
     firstname: new FormControl<string>(null, [Validators.required, Validators.maxLength(50)]),
     enabled: new FormControl<boolean>(null, Validators.required),
-    password: new FormControl<string>(null, Validators.required),
-    passwordRepeat: new FormControl<string>(null, Validators.required),
+    password: new FormControl<string>(null),
+    passwordRepeat: new FormControl<string>(null),
     passwordChangeRequired: new FormControl<boolean>(true, Validators.required)
   });
 

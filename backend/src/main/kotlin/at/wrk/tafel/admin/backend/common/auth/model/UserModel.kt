@@ -22,6 +22,8 @@ data class User(
     val firstname: String,
     val lastname: String,
     val enabled: Boolean,
+    val password: String? = null,
+    val passwordRepeat: String? = null,
     val passwordChangeRequired: Boolean
 )
 

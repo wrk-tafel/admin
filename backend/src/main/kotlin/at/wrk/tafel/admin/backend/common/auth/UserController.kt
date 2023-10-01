@@ -56,7 +56,7 @@ class UserController(
             userDetailsManager.changePassword(request.passwordCurrent, request.passwordNew)
         } catch (e: PasswordChangeException) {
             val validationResult = ChangePasswordResponse(message = e.message, details = e.validationDetails)
-            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(validationResult)
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(validationResult)
         }
         return ResponseEntity.ok().build()
     }
@@ -110,17 +110,29 @@ class UserController(
     fun updateUser(
         @PathVariable("userId") userId: Long,
         @RequestBody user: User
-    ): User? {
+    ): ResponseEntity<User> {
         val tafelUser = userDetailsManager.loadUserById(userId)
             ?: throw TafelValidationException(
                 message = "Benutzer (ID: $userId) nicht vorhanden!",
                 status = HttpStatus.NOT_FOUND
             )
 
-        val updatedTafelUser = mapToTafelUser(tafelUser, user)
-        userDetailsManager.updateUser(updatedTafelUser)
+        if (user.password != user.passwordRepeat) {
+            throw TafelValidationException(
+                message = "Passwörter stimmen nicht überein!",
+                status = HttpStatus.BAD_REQUEST
+            )
+        }
 
-        return mapToResponse(userDetailsManager.loadUserById(userId)!!)
+        try {
+            val updatedTafelUser = mapToTafelUser(tafelUser, user)
+            userDetailsManager.updateUser(updatedTafelUser)
+
+            val userResponse = mapToResponse(userDetailsManager.loadUserById(userId)!!)
+            return ResponseEntity.ok(userResponse)
+        } catch (e: PasswordChangeException) {
+            throw TafelValidationException(e.message)
+        }
     }
 
     @DeleteMapping("/{userId}")
@@ -144,6 +156,7 @@ class UserController(
             firstname = userUpdate.firstname,
             lastname = userUpdate.lastname,
             enabled = userUpdate.enabled,
+            password = userUpdate.password,
             passwordChangeRequired = userUpdate.passwordChangeRequired
         )
     }
@@ -156,6 +169,8 @@ class UserController(
             firstname = user.firstname,
             lastname = user.lastname,
             enabled = user.isEnabled,
+            password = null,
+            passwordRepeat = null,
             passwordChangeRequired = user.passwordChangeRequired
         )
     }
