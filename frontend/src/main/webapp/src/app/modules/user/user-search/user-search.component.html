@@ -59,9 +59,9 @@
                     <tr>
                       <th scope="col"></th>
                       <th scope="col">Nr.</th>
+                      <th scope="col">Personalnummer</th>
                       <th scope="col">Nachname</th>
                       <th scope="col">Vorname</th>
-                      <th scope="col">Geb. Datum</th>
                       <th scope="col">Aktionen</th>
                     </tr>
                   </thead>
@@ -70,9 +70,9 @@
                         *ngFor="let user of searchResult.items; let i = index">
                       <td><i class="fa fa-user"></i></td>
                       <td [attr.testid]="'searchresult-id-' + i">{{user.id}}</td>
+                      <td [attr.testid]="'searchresult-personnelnumber-' + i">{{user.personnelNumber}}</td>
                       <td [attr.testid]="'searchresult-lastname-' + i">{{user.lastname}}</td>
                       <td [attr.testid]="'searchresult-firstname-' + i">{{user.firstname}}</td>
-                      <td [attr.testid]="'searchresult-birthDate-' + i">{{user.birthDate | date : 'dd.MM.yyyy'}}</td>
                       <td>
                         <div class="row">
                           <div class="col-3">
