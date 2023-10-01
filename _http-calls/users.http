@@ -54,3 +54,7 @@ Content-Type: application/json
   "passwordRepeat": "12345",
   "passwordChangeRequired": true
 }
+
+### Generate a random password
+GET {{baseApiPath}}/users/generate-password
+Content-Type: application/json

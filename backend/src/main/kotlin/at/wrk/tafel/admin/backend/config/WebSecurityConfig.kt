@@ -7,10 +7,14 @@ import at.wrk.tafel.admin.backend.common.auth.components.TafelJwtAuthConverter
 import at.wrk.tafel.admin.backend.common.auth.components.TafelJwtAuthProvider
 import at.wrk.tafel.admin.backend.common.auth.components.TafelLoginFilter
 import at.wrk.tafel.admin.backend.common.auth.components.TafelLoginProvider
+import at.wrk.tafel.admin.backend.common.auth.components.TafelPasswordGenerator
 import at.wrk.tafel.admin.backend.common.auth.components.TafelUserDetailsManager
 import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
 import com.fasterxml.jackson.databind.ObjectMapper
+import org.passay.CharacterRule
 import org.passay.DictionarySubstringRule
+import org.passay.EnglishCharacterData
+import org.passay.GermanCharacterData
 import org.passay.LengthRule
 import org.passay.PasswordValidator
 import org.passay.UsernameRule
@@ -51,9 +55,10 @@ class WebSecurityConfig(
     companion object {
         private val publicEndpoints = listOf("/api/login", "/api/websockets")
 
+        val passwordLengthRule = LengthRule(8, 50)
         val passwordValidator = PasswordValidator(
             listOf(
-                LengthRule(8, 50),
+                passwordLengthRule,
                 UsernameRule(),
                 WhitespaceRule(),
                 DictionarySubstringRule(
@@ -67,6 +72,16 @@ class WebSecurityConfig(
                 )
             )
         )
+        val generatedPasswordCharactersRules = listOf(
+            CharacterRule(GermanCharacterData.LowerCase),
+            CharacterRule(GermanCharacterData.UpperCase),
+            CharacterRule(EnglishCharacterData.Digit)
+        )
+    }
+
+    @Bean
+    fun tafelPasswordGenerator(): TafelPasswordGenerator {
+        return TafelPasswordGenerator(passwordLengthRule.minimumLength + 2, generatedPasswordCharactersRules)
     }
 
     @Bean

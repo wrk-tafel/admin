@@ -3,6 +3,7 @@ package at.wrk.tafel.admin.backend.security
 import at.wrk.tafel.admin.backend.common.auth.UserController
 import at.wrk.tafel.admin.backend.common.auth.components.PasswordChangeException
 import at.wrk.tafel.admin.backend.common.auth.components.TafelLoginFilter
+import at.wrk.tafel.admin.backend.common.auth.components.TafelPasswordGenerator
 import at.wrk.tafel.admin.backend.common.auth.components.TafelUserDetailsManager
 import at.wrk.tafel.admin.backend.common.auth.model.ChangePasswordRequest
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
@@ -30,6 +31,9 @@ class UserControllerTest {
     private lateinit var userDetailsManager: TafelUserDetailsManager
 
     @RelaxedMockK
+    private lateinit var tafelPasswordGenerator: TafelPasswordGenerator
+
+    @RelaxedMockK
     private lateinit var request: HttpServletRequest
 
     @RelaxedMockK
@@ -53,6 +57,17 @@ class UserControllerTest {
         assertThat(response.body?.permissions).isEqualTo(testUserPermissions)
 
         SecurityContextHolder.clearContext()
+    }
+
+    @Test
+    fun `generate password`() {
+        val generatedPassword = "pwd-generated"
+        every { tafelPasswordGenerator.generatePassword() } returns generatedPassword
+
+        val response = controller.generatePassword()
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(response.body).isEqualTo(generatedPassword)
     }
 
     @Test

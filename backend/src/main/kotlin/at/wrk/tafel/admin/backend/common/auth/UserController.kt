@@ -3,6 +3,7 @@ package at.wrk.tafel.admin.backend.common.auth
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.common.auth.components.PasswordChangeException
 import at.wrk.tafel.admin.backend.common.auth.components.TafelLoginFilter
+import at.wrk.tafel.admin.backend.common.auth.components.TafelPasswordGenerator
 import at.wrk.tafel.admin.backend.common.auth.components.TafelUserDetailsManager
 import at.wrk.tafel.admin.backend.common.auth.model.ChangePasswordRequest
 import at.wrk.tafel.admin.backend.common.auth.model.ChangePasswordResponse
@@ -31,7 +32,8 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/users")
 @PreAuthorize("isAuthenticated()")
 class UserController(
-    private val userDetailsManager: TafelUserDetailsManager
+    private val userDetailsManager: TafelUserDetailsManager,
+    private val tafelPasswordGenerator: TafelPasswordGenerator
 ) {
 
     companion object {
@@ -48,6 +50,11 @@ class UserController(
         )
 
         return ResponseEntity.ok(userInfo)
+    }
+
+    @GetMapping("/generate-password")
+    fun generatePassword(): ResponseEntity<String> {
+        return ResponseEntity.ok(tafelPasswordGenerator.generatePassword())
     }
 
     @PostMapping("/change-password")
