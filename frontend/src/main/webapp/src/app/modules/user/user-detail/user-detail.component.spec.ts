@@ -6,6 +6,7 @@ import {UserDetailComponent} from './user-detail.component';
 import {CardModule, ColComponent, RowComponent} from '@coreui/angular';
 import {UserApiService, UserData} from '../../../api/user-api.service';
 import {By} from '@angular/platform-browser';
+import {of} from "rxjs";
 
 describe('UserDetailComponent', () => {
   const mockUser: UserData = {
@@ -18,6 +19,7 @@ describe('UserDetailComponent', () => {
     passwordChangeRequired: true
   };
 
+  let userApiService: jasmine.SpyObj<UserApiService>;
   let router: jasmine.SpyObj<Router>;
 
   beforeEach(waitForAsync(() => {
@@ -35,7 +37,7 @@ describe('UserDetailComponent', () => {
       providers: [
         {
           provide: UserApiService,
-          useValue: jasmine.createSpyObj('UserApiService', ['getUserForPersonnelNumber', 'searchUser'])
+          useValue: jasmine.createSpyObj('UserApiService', ['updateUser', 'deleteUser'])
         },
         {
           provide: ActivatedRoute,
@@ -54,6 +56,7 @@ describe('UserDetailComponent', () => {
       ]
     }).compileComponents();
 
+    userApiService = TestBed.inject(UserApiService) as jasmine.SpyObj<UserApiService>;
     router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
   }));
 
@@ -76,6 +79,46 @@ describe('UserDetailComponent', () => {
     expect(getTextByTestId(fixture, 'personnelNumberText')).toBe(mockUser.personnelNumber);
     expect(getTextByTestId(fixture, 'passwordChangeRequiredText')).toBe('Ja');
     expect(getTextByTestId(fixture, 'enabledText')).toBe('Ja');
+  });
+
+  it('enable user', () => {
+    const fixture = TestBed.createComponent(UserDetailComponent);
+    const component = fixture.componentInstance;
+    component.userData = {...mockUser, enabled: false};
+
+    const updatedUserData = mockUser;
+    userApiService.updateUser.and.returnValues(of(updatedUserData));
+
+    component.enableUser();
+
+    expect(userApiService.updateUser).toHaveBeenCalledWith({...mockUser, enabled: true});
+    expect(component.userData).toEqual(updatedUserData);
+  });
+
+  it('disable user', () => {
+    const fixture = TestBed.createComponent(UserDetailComponent);
+    const component = fixture.componentInstance;
+    component.userData = {...mockUser, enabled: true};
+
+    const updatedUserData = mockUser;
+    userApiService.updateUser.and.returnValues(of(updatedUserData));
+
+    component.enableUser();
+
+    expect(userApiService.updateUser).toHaveBeenCalledWith({...mockUser, enabled: false});
+    expect(component.userData).toEqual(updatedUserData);
+  });
+
+  it('delete user', () => {
+    const fixture = TestBed.createComponent(UserDetailComponent);
+    const component = fixture.componentInstance;
+    component.userData = mockUser;
+    userApiService.deleteUser.and.returnValues(of(null));
+
+    component.deleteUser();
+
+    expect(userApiService.deleteUser).toHaveBeenCalledWith(mockUser.id);
+    expect(router.navigate).toHaveBeenCalledWith(['uebersicht']);
   });
 
   it('editUser should navigate properly', () => {
