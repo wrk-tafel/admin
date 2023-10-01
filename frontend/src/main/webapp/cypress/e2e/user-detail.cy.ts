@@ -25,6 +25,14 @@ describe('User Detail', () => {
     cy.byTestId('enabledText').should('have.text', 'Ja');
   });
 
+  it('edit user', () => {
+    cy.visit('/#/benutzer/detail/100');
+
+    cy.byTestId('editUserButton').click();
+
+    cy.url().should('include', '/benutzer/bearbeiten/100');
+  });
+
   it('delete user', () => {
     cy.visit('/#/benutzer/detail/103');
 
