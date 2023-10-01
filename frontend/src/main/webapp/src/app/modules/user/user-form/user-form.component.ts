@@ -23,6 +23,7 @@ export class UserFormComponent implements OnInit {
   }, [passwordRepeatValidator]);
 
   passwordTextVisible: boolean;
+  passwordRepeatTextVisible: boolean;
 
   constructor(private userApiService: UserApiService) {
   }
@@ -65,6 +66,10 @@ export class UserFormComponent implements OnInit {
 
   public togglePasswordVisibility() {
     this.passwordTextVisible = !this.passwordTextVisible;
+  }
+
+  public togglePasswordRepeatVisibility() {
+    this.passwordRepeatTextVisible = !this.passwordRepeatTextVisible;
   }
 
   get id() {

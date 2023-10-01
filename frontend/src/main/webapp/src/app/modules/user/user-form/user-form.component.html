@@ -87,12 +87,24 @@
             </div>
             <div class="col-sm">
               <label class="form-label">Passwort (Wiederholung)</label>
-              <input testid="passwordRepeatInput" type="password" formControlName="passwordRepeat" class="form-control"
-                     [ngClass]="{'is-invalid': form.errors?.['passwordRepeatInvalid'] && (passwordRepeat.dirty || passwordRepeat.touched), 'is-valid': passwordRepeat.valid && (passwordRepeat.dirty || passwordRepeat.touched)}">
-              <div *ngIf="form.errors?.['passwordRepeatInvalid'] && (passwordRepeat.dirty || passwordRepeat.touched)"
-                   class="invalid-feedback">
-                Passwort stimmt nicht mit der Wiederholung überein!
-              </div>
+              <c-input-group>
+                <input testid="passwordRepeatInput"
+                       [type]="passwordRepeatTextVisible ? 'text' : 'password'"
+                       formControlName="passwordRepeat" class="form-control"
+                       [ngClass]="{'is-invalid': form.errors?.['passwordRepeatInvalid'] && (passwordRepeat.dirty || passwordRepeat.touched), 'is-valid': passwordRepeat.valid && (passwordRepeat.dirty || passwordRepeat.touched)}">
+                <span cInputGroupText
+                      (click)="togglePasswordRepeatVisibility()">
+                  <i class="fa"
+                     [ngClass]="{
+                        'fa-eye-slash': !passwordRepeatTextVisible,
+                        'fa-eye': passwordRepeatTextVisible
+                      }"></i>
+                </span>
+                <div *ngIf="form.errors?.['passwordRepeatInvalid'] && (passwordRepeat.dirty || passwordRepeat.touched)"
+                     class="invalid-feedback">
+                  Passwort stimmt nicht mit der Wiederholung überein!
+                </div>
+              </c-input-group>
             </div>
             <div class="col-sm-2 mt-lg-auto mt-3">
               <button testid="generate-password-button" type="button" class="btn btn-primary text-white" (click)="generatePassword()">Passwort generieren</button>
