@@ -103,7 +103,7 @@ describe('UserDetailComponent', () => {
     const updatedUserData = mockUser;
     userApiService.updateUser.and.returnValues(of(updatedUserData));
 
-    component.enableUser();
+    component.disableUser();
 
     expect(userApiService.updateUser).toHaveBeenCalledWith({...mockUser, enabled: false});
     expect(component.userData).toEqual(updatedUserData);
