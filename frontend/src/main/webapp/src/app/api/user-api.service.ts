@@ -78,7 +78,7 @@ export interface UserData {
   firstname: string;
   lastname: string;
   enabled: boolean;
-  password: boolean;
-  passwordRepeat: boolean;
+  password: string;
+  passwordRepeat: string;
   passwordChangeRequired: boolean;
 }
