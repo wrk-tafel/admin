@@ -1,6 +1,6 @@
 import {ComponentFixture, TestBed, waitForAsync} from '@angular/core/testing';
 import {ReactiveFormsModule} from '@angular/forms';
-import {ActivatedRoute} from '@angular/router';
+import {ActivatedRoute, Router} from '@angular/router';
 import {RouterTestingModule} from '@angular/router/testing';
 import {UserDetailComponent} from './user-detail.component';
 import {CardModule, ColComponent, RowComponent} from '@coreui/angular';
@@ -17,6 +17,8 @@ describe('UserDetailComponent', () => {
     enabled: true,
     passwordChangeRequired: true
   };
+
+  let router: jasmine.SpyObj<Router>;
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
@@ -44,9 +46,15 @@ describe('UserDetailComponent', () => {
               }
             }
           }
+        },
+        {
+          provide: Router,
+          useValue: jasmine.createSpyObj('Router', ['navigate'])
         }
       ]
     }).compileComponents();
+
+    router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
   }));
 
   it('component can be created', () => {
@@ -68,6 +76,16 @@ describe('UserDetailComponent', () => {
     expect(getTextByTestId(fixture, 'personnelNumberText')).toBe(mockUser.personnelNumber);
     expect(getTextByTestId(fixture, 'passwordChangeRequiredText')).toBe('Ja');
     expect(getTextByTestId(fixture, 'enabledText')).toBe('Ja');
+  });
+
+  it('editUser should navigate properly', () => {
+    const fixture = TestBed.createComponent(UserDetailComponent);
+    const component = fixture.componentInstance;
+    component.userData = mockUser
+
+    component.editUser();
+
+    expect(router.navigate).toHaveBeenCalledWith(['/benutzer/bearbeiten', mockUser.id]);
   });
 
   function getTextByTestId(fixture: ComponentFixture<UserDetailComponent>, testId: string): string {

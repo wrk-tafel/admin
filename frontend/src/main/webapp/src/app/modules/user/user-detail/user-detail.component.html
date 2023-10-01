@@ -1,5 +1,8 @@
 <div class="d-flex flex-column-reverse flex-lg-column mb-3">
-  <div class="d-flex flex-column flex-lg-row mt-3 mt-lg-0 mb-4 mb-lg-0">
+  <div class="d-flex flex-column flex-lg-row mt-3 mt-lg-0 mb-4 mb-lg-0 gap-3">
+    <button testid="editUserButton" cButton color="danger" class="text-white" (click)="editUser()">
+      Benutzer bearbeiten
+    </button>
     <c-dropdown variant="dropdown">
       <button testid="changeUserStateButton" cButton cDropdownToggle color="danger" class="text-white">
         Benutzer-Status ändern

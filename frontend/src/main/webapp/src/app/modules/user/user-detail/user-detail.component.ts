@@ -45,4 +45,8 @@ export class UserDetailComponent implements OnInit {
     });
   }
 
+  editUser() {
+    this.router.navigate(['/benutzer/bearbeiten', this.userData.id]);
+  }
+
 }
