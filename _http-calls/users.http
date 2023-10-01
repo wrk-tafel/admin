@@ -50,5 +50,7 @@ Content-Type: application/json
   "firstname": "AD",
   "lastname": "min",
   "enabled": false,
+  "password": "12345",
+  "passwordRepeat": "12345",
   "passwordChangeRequired": true
 }
