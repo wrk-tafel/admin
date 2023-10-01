@@ -65,26 +65,26 @@
           <hr>
           <div class="row">
             <div class="col-sm">
-              <label class="form-label">Passwort *</label>
+              <label class="form-label">Passwort</label>
               <input testid="passwordInput" type="text" formControlName="password" class="form-control"
-                     [ngClass]="{'is-invalid': password.invalid && (password.dirty || password.touched), 'is-valid': password.valid && (password.dirty || password.touched)}">
-              <div *ngIf="password.errors?.required && (password.dirty || password.touched)"
+                     [ngClass]="{'is-invalid': form.errors?.['passwordRepeatInvalid'] && (password.dirty || password.touched), 'is-valid': password.valid && (password.dirty || password.touched)}">
+              <div *ngIf="form.errors?.['passwordRepeatInvalid'] && (password.dirty || password.touched)"
                    class="invalid-feedback">
-                Pflichtfeld
+                Passwort stimmt nicht mit der Wiederholung überein!
               </div>
             </div>
             <div class="col-sm">
-              <label class="form-label">Passwort (Wiederholung) *</label>
+              <label class="form-label">Passwort (Wiederholung)</label>
               <input testid="passwordRepeatInput" type="text" formControlName="passwordRepeat" class="form-control"
-                     [ngClass]="{'is-invalid': passwordRepeat.invalid && (passwordRepeat.dirty || passwordRepeat.touched), 'is-valid': passwordRepeat.valid && (passwordRepeat.dirty || passwordRepeat.touched)}">
-              <div *ngIf="passwordRepeat.errors?.required && (passwordRepeat.dirty || passwordRepeat.touched)"
+                     [ngClass]="{'is-invalid': form.errors?.['passwordRepeatInvalid'] && (passwordRepeat.dirty || passwordRepeat.touched), 'is-valid': passwordRepeat.valid && (passwordRepeat.dirty || passwordRepeat.touched)}">
+              <div *ngIf="form.errors?.['passwordRepeatInvalid'] && (passwordRepeat.dirty || passwordRepeat.touched)"
                    class="invalid-feedback">
-                Pflichtfeld
+                Passwort stimmt nicht mit der Wiederholung überein!
               </div>
             </div>
           </div>
           <div class="row">
-            <div class="col-sm">
+            <div class="col-sm mt-3">
               <label class="form-label">Passwort-Änderung erforderlich</label>
               <div class="input-group">
                 <input testid="passwordChangeRequiredInput" type="checkbox" formControlName="passwordChangeRequired" class="form-check-input">

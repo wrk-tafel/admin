@@ -1,5 +1,5 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {FormControl, FormGroup, Validators} from '@angular/forms';
+import {AbstractControl, FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators} from '@angular/forms';
 import {UserData} from '../../../api/user-api.service';
 
 @Component({
@@ -20,7 +20,7 @@ export class UserFormComponent implements OnInit {
     password: new FormControl<string>(null),
     passwordRepeat: new FormControl<string>(null),
     passwordChangeRequired: new FormControl<boolean>(true, Validators.required)
-  });
+  }, [passwordRepeatValidator]);
 
   ngOnInit(): void {
     if (this.userData) {
@@ -80,3 +80,10 @@ export class UserFormComponent implements OnInit {
   }
 
 }
+
+export const passwordRepeatValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
+  const password = control.get('password');
+  const passwordRepeat = control.get('passwordRepeat');
+
+  return password && passwordRepeat && password.value !== passwordRepeat.value ? {passwordRepeatInvalid: true} : null;
+};

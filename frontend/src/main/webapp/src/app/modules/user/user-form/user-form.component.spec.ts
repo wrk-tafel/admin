@@ -1,7 +1,7 @@
 import {TestBed, waitForAsync} from '@angular/core/testing';
 import {RouterTestingModule} from '@angular/router/testing';
-import {UserFormComponent} from './user-form.component';
-import {ReactiveFormsModule} from '@angular/forms';
+import {passwordRepeatValidator, UserFormComponent} from './user-form.component';
+import {FormControl, FormGroup, ReactiveFormsModule} from '@angular/forms';
 import {CardModule, ColComponent, InputGroupComponent, RowComponent} from '@coreui/angular';
 import {UserData} from '../../../api/user-api.service';
 
@@ -99,6 +99,36 @@ describe('UserFormComponent', () => {
       enabled: updatedEnabled,
       passwordChangeRequired: updatedPasswordChangeRequired
     }));
+  }));
+
+  it('password-repeat validator passwords different', waitForAsync(() => {
+    const passwordControl = new FormControl();
+    passwordControl.setValue('pwd');
+    const passwordRepeatControl = new FormControl();
+    passwordRepeatControl.setValue('pwd-different');
+
+    const formGroup = new FormGroup({
+      password: passwordControl,
+      passwordRepeat: passwordRepeatControl
+    });
+
+    const result = passwordRepeatValidator(formGroup);
+    expect(result['passwordRepeatInvalid']).toBeTrue();
+  }));
+
+  it('password-repeat validator passwords same', waitForAsync(() => {
+    const passwordControl = new FormControl();
+    passwordControl.setValue('pwd');
+    const passwordRepeatControl = new FormControl();
+    passwordRepeatControl.setValue('pwd');
+
+    const formGroup = new FormGroup({
+      password: passwordControl,
+      passwordRepeat: passwordRepeatControl
+    });
+
+    const result = passwordRepeatValidator(formGroup);
+    expect(result).toBeNull();
   }));
 
 });
