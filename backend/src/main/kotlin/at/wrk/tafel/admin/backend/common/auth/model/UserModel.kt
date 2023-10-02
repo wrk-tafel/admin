@@ -48,7 +48,7 @@ data class GeneratedPasswordResponse(
 enum class UserPermissions(val key: String, val title: String) {
     CHECKIN("CHECKIN", "Anmeldung"),
     USER_MANAGEMENT("USER_MANAGEMENT", "Benutzerverwaltung"),
-    DISTRIBUTION_LCM("DISTRIBUTION_LCM", "Ausgabe-Steuerung (Eröffnen / Abschließen)"),
+    DISTRIBUTION_LCM("DISTRIBUTION_LCM", "Ausgabe-Steuerung"),
     CUSTOMER("CUSTOMER", "Kundenverwaltung");
 
     companion object {

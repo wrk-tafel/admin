@@ -55,7 +55,7 @@ class UserControllerTest {
         val response = controller.getUserInfo()
 
         assertThat(response.body?.username).isEqualTo(testUser.username)
-        assertThat(response.body?.permissions).isEqualTo(testUserPermissions)
+        assertThat(response.body?.permissions).isEqualTo(testUserPermissions.map { it.key })
 
         SecurityContextHolder.clearContext()
     }
