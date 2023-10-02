@@ -25,6 +25,8 @@ INSERT INTO users (id, created_at, updated_at, username, password, enabled, pers
 VALUES (101, NOW(), NOW(), 'e2etest2',
         '{argon2}$argon2id$v=19$m=4096,t=3,p=1$Cnj0ayQKhOPbkomIRV5tnQ$BfU/uOr20/vg9ie0CQcWhCD00DqjPDf6UI0pRvz1/gg',
         true, '00000-0', 'E2E PWD', 'Test 2');
+INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
+VALUES (1011, NOW(), NOW(), 101, 'DISTRIBUTION_LCM');
 
 -- user e2etest3 for cypress test (forced password change on login)
 -- pwd: e2etest
