@@ -1,6 +1,5 @@
 import {inject, NgModule} from '@angular/core';
 import {ActivatedRouteSnapshot, ResolveFn, RouterModule, Routes} from '@angular/router';
-import {UserPasswordChangeComponent} from './user-passwordchange/user-passwordchange.component';
 import {UserSearchComponent} from './user-search/user-search.component';
 import {UserDetailComponent} from './user-detail/user-detail.component';
 import {UserDataResolver} from './resolver/userdata-resolver.component';
@@ -12,10 +11,6 @@ export const userDataResolver: ResolveFn<UserData> = (route: ActivatedRouteSnaps
 };
 
 const routes: Routes = [
-  {
-    path: 'passwortaendern',
-    component: UserPasswordChangeComponent
-  },
   {
     path: 'detail/:id',
     component: UserDetailComponent,

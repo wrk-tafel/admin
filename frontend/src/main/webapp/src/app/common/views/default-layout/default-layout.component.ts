@@ -19,10 +19,8 @@ export class DefaultLayoutComponent implements OnInit {
 
   ngOnInit() {
     this.globalStateService.getCurrentDistribution().subscribe((distribution: DistributionItem) => {
-      if (this.auth.hasAnyPermission()) {
-        this.navItems = this.filterNavItemsByPermissions(this.navItems);
-        this.navItems = this.filterEmptyTitleItems(this.navItems);
-      }
+      this.navItems = this.filterNavItemsByPermissions(this.navItems);
+      this.navItems = this.filterEmptyTitleItems(this.navItems);
       this.navItems = this.editNavItemsForDistributionState(this.navItems, distribution);
     });
   }

@@ -40,7 +40,7 @@ export class LoginComponent implements OnInit {
     const loginResult = await this.auth.login(username, password);
     if (loginResult.successful) {
       if (loginResult.passwordChangeRequired) {
-        await this.router.navigate(['login/passwortaendern']);
+        await this.router.navigate(['/login/passwortaendern']);
       } else {
         await this.router.navigate(['uebersicht']);
       }

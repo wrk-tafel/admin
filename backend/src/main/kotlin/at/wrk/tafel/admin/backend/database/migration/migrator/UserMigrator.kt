@@ -72,7 +72,6 @@ class UserMigrator {
 
     private fun generateInserts(user: UserNew, conn: Connection): List<String> {
         val newUserId = getIdFromSequence(conn)
-        val newAuthorityId = getIdFromSequence(conn)
 
         val pwdComment = "-- generated pwd: ${user.generatedPasswordValue}"
         val userSql =
@@ -82,14 +81,8 @@ class UserMigrator {
                 '${user.username}', '${user.passwordHash}', ${user.enabled}, '${user.personnelNumber}', '${user.firstname}', '${user.lastname}', ${user.passwordChangeRequired}, ${user.migrated},
                 '${user.migrationDate.format(DateTimeFormatter.ISO_DATE_TIME)}');
             """.trimIndent()
-        val authoritiesSql = """INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
-                VALUES ($newAuthorityId,
-                '${user.createdAt.format(DateTimeFormatter.ISO_DATE_TIME)}',
-                '${user.updatedAt.format(DateTimeFormatter.ISO_DATE_TIME)}',
-                $newUserId, 'DASHBOARD');
-            """.trimIndent()
 
-        return listOf(pwdComment, userSql, authoritiesSql)
+        return listOf(pwdComment, userSql)
     }
 
     private fun getIdFromSequence(conn: Connection): Long {

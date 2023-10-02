@@ -55,7 +55,7 @@ describe('AuthenticationService', () => {
 
     httpMock.verify();
 
-    expect(router.navigate).not.toHaveBeenCalledWith(['login/passwortaendern']);
+    expect(router.navigate).not.toHaveBeenCalledWith(['/login/passwortaendern']);
   });
 
   it('login successful but passwordchange is required', async () => {

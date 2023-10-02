@@ -10,8 +10,7 @@ export const navigationMenuItems: ITafelNavData[] = [
   {
     name: 'Übersicht',
     url: '/uebersicht',
-    icon: 'fa fa-gauge',
-    permissions: ['DASHBOARD']
+    icon: 'fa fa-gauge'
   },
   {
     name: 'Anmeldung',

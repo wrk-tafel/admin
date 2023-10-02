@@ -13,12 +13,18 @@ export class AuthGuardService {
   }
 
   canActivate(childRoute: ActivatedRouteSnapshot): boolean {
-    if (!this.auth.hasAnyPermission()) {
+    const routeData: AuthGuardData = childRoute.data;
+
+    const authenticated = this.auth.isAuthenticated();
+    const needsAnyPermission = routeData.anyPermission;
+    const hasAnyPermission = this.auth.hasAnyPermission();
+
+    if (!authenticated || (needsAnyPermission && !hasAnyPermission)) {
       this.auth.redirectToLogin('fehlgeschlagen');
       return false;
     }
 
-    const permission = childRoute.data.permission;
+    const permission = routeData.permission;
     if (permission == null || this.auth.hasPermission(permission)) {
       return true;
     }
@@ -27,4 +33,9 @@ export class AuthGuardService {
     return false;
   }
 
+}
+
+export interface AuthGuardData {
+  anyPermission?: boolean;
+  permission?: string;
 }
