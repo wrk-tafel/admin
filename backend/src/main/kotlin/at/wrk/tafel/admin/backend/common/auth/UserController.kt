@@ -1,6 +1,5 @@
 package at.wrk.tafel.admin.backend.common.auth
 
-import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.common.auth.components.PasswordChangeException
 import at.wrk.tafel.admin.backend.common.auth.components.TafelLoginFilter
 import at.wrk.tafel.admin.backend.common.auth.components.TafelPasswordGenerator
@@ -8,9 +7,11 @@ import at.wrk.tafel.admin.backend.common.auth.components.TafelUserDetailsManager
 import at.wrk.tafel.admin.backend.common.auth.model.ChangePasswordRequest
 import at.wrk.tafel.admin.backend.common.auth.model.ChangePasswordResponse
 import at.wrk.tafel.admin.backend.common.auth.model.GeneratedPasswordResponse
+import at.wrk.tafel.admin.backend.common.auth.model.PermissionsListResponse
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
 import at.wrk.tafel.admin.backend.common.auth.model.User
+import at.wrk.tafel.admin.backend.common.auth.model.UserInfo
 import at.wrk.tafel.admin.backend.common.auth.model.UserListResponse
 import at.wrk.tafel.admin.backend.common.auth.model.UserPermission
 import at.wrk.tafel.admin.backend.common.auth.model.UserPermissions
@@ -161,6 +162,13 @@ class UserController(
         userDetailsManager.deleteUser(tafelUser.username)
     }
 
+    @GetMapping("/permissions")
+    @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
+    fun getPermissions(): ResponseEntity<PermissionsListResponse> {
+        val permissions = UserPermissions.values().mapNotNull { mapToUserPermission(it.key) }
+        return ResponseEntity.ok(PermissionsListResponse(permissions = permissions))
+    }
+
     private fun mapToTafelUser(tafelUser: TafelUser, userUpdate: User): TafelUser {
         return tafelUser.copy(
             id = userUpdate.id,
@@ -200,9 +208,3 @@ class UserController(
     }
 
 }
-
-@ExcludeFromTestCoverage
-data class UserInfo(
-    val username: String,
-    val permissions: List<String>
-)

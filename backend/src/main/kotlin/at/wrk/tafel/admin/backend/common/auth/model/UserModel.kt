@@ -45,6 +45,17 @@ data class GeneratedPasswordResponse(
 )
 
 @ExcludeFromTestCoverage
+data class UserInfo(
+    val username: String,
+    val permissions: List<String>
+)
+
+@ExcludeFromTestCoverage
+data class PermissionsListResponse(
+    val permissions: List<UserPermission>
+)
+
+@ExcludeFromTestCoverage
 enum class UserPermissions(val key: String, val title: String) {
     CHECKIN("CHECKIN", "Anmeldung"),
     USER_MANAGEMENT("USER_MANAGEMENT", "Benutzerverwaltung"),

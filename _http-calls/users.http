@@ -58,3 +58,7 @@ Content-Type: application/json
 ### Generate a random password
 GET {{baseApiPath}}/users/generate-password
 Content-Type: application/json
+
+### Get all available permissions
+GET {{baseApiPath}}/users/permissions
+Content-Type: application/json

@@ -8,6 +8,8 @@ import at.wrk.tafel.admin.backend.common.auth.components.TafelUserDetailsManager
 import at.wrk.tafel.admin.backend.common.auth.model.ChangePasswordRequest
 import at.wrk.tafel.admin.backend.common.auth.model.GeneratedPasswordResponse
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.common.auth.model.UserPermission
+import at.wrk.tafel.admin.backend.common.auth.model.UserPermissions
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
@@ -243,6 +245,24 @@ class UserControllerTest {
         controller.deleteUser(userId = 123)
 
         verify(exactly = 1) { userDetailsManager.deleteUser(testUser.username) }
+    }
+
+    @Test
+    fun `get permissions`() {
+        every { userDetailsManager.loadUserById(any()) } returns testUser
+
+        val response = controller.getPermissions()
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+
+        val permissions = response.body?.permissions
+        assertThat(permissions).hasSize(UserPermissions.values().size)
+        assertThat(permissions?.first()).isEqualTo(
+            UserPermission(
+                key = UserPermissions.values().first().key,
+                title = UserPermissions.values().first().title
+            )
+        )
     }
 
 }
