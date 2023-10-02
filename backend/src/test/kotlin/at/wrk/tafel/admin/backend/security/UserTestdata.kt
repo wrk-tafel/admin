@@ -46,5 +46,6 @@ val testUserApiResponse = User(
     firstname = testUserEntity.firstname!!,
     lastname = testUserEntity.lastname!!,
     enabled = testUserEntity.enabled!!,
-    passwordChangeRequired = testUserEntity.passwordChangeRequired!!
+    passwordChangeRequired = testUserEntity.passwordChangeRequired!!,
+    permissions = emptyList()
 )
