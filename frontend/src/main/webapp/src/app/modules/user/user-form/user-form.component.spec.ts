@@ -3,7 +3,7 @@ import {RouterTestingModule} from '@angular/router/testing';
 import {passwordRepeatValidator, UserFormComponent} from './user-form.component';
 import {FormControl, FormGroup, ReactiveFormsModule} from '@angular/forms';
 import {CardModule, ColComponent, InputGroupComponent, RowComponent} from '@coreui/angular';
-import {UserApiService, UserData} from '../../../api/user-api.service';
+import {UserApiService, UserData, UserPermission} from '../../../api/user-api.service';
 import {of} from 'rxjs';
 
 describe('UserFormComponent', () => {
@@ -17,6 +17,10 @@ describe('UserFormComponent', () => {
     passwordChangeRequired: false,
     permissions: []
   };
+  const mockPermissions: UserPermission[] = [
+    {key: 'PERM1', title: 'Permission 1'},
+    {key: 'PERM2', title: 'Permission 2'}
+  ];
 
   let userApiService: jasmine.SpyObj<UserApiService>;
 
@@ -36,7 +40,7 @@ describe('UserFormComponent', () => {
       providers: [
         {
           provide: UserApiService,
-          useValue: jasmine.createSpyObj('UserApiService', ['generatePassword'])
+          useValue: jasmine.createSpyObj('UserApiService', ['generatePassword', 'getPermissions'])
         }
       ]
     }).compileComponents();
@@ -53,6 +57,7 @@ describe('UserFormComponent', () => {
   it('data filling works', waitForAsync(() => {
     const fixture = TestBed.createComponent(UserFormComponent);
     const component = fixture.componentInstance;
+    userApiService.getPermissions.and.returnValue(of({permissions: mockPermissions}));
 
     spyOn(component.userDataChange, 'emit');
     component.ngOnInit();
@@ -69,6 +74,8 @@ describe('UserFormComponent', () => {
     });
     */
 
+    expect(component.availablePermissions).toEqual(mockPermissions);
+
     expect(component.id.value).toBe(mockUser.id);
     expect(component.username.value).toBe(mockUser.username);
     expect(component.personnelNumber.value).toBe(mockUser.personnelNumber);
@@ -81,6 +88,7 @@ describe('UserFormComponent', () => {
   it('data update works', waitForAsync(() => {
     const fixture = TestBed.createComponent(UserFormComponent);
     const component = fixture.componentInstance;
+    userApiService.getPermissions.and.returnValue(of({permissions: mockPermissions}));
 
     spyOn(component.userDataChange, 'emit');
     component.ngOnInit();
