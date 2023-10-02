@@ -12,6 +12,8 @@ import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
 import at.wrk.tafel.admin.backend.common.auth.model.User
 import at.wrk.tafel.admin.backend.common.auth.model.UserListResponse
+import at.wrk.tafel.admin.backend.common.auth.model.UserPermission
+import at.wrk.tafel.admin.backend.common.auth.model.UserPermissions
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -83,7 +85,7 @@ class UserController(
     }
 
     @GetMapping("/{userId}")
-    @PreAuthorize("hasAuthority('USER-MANAGEMENT')")
+    @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
     fun getUser(@PathVariable("userId") userId: Long): ResponseEntity<User> {
         val userDetails = userDetailsManager.loadUserById(userId)
             ?: throw TafelValidationException(
@@ -95,7 +97,7 @@ class UserController(
     }
 
     @GetMapping
-    @PreAuthorize("hasAuthority('USER-MANAGEMENT')")
+    @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
     fun getUsers(
         @RequestParam("personnelnumber") personnelNumber: String? = null,
         @RequestParam firstname: String? = null,
@@ -116,7 +118,7 @@ class UserController(
     }
 
     @PostMapping("/{userId}")
-    @PreAuthorize("hasAuthority('USER-MANAGEMENT')")
+    @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
     fun updateUser(
         @PathVariable("userId") userId: Long,
         @RequestBody user: User
@@ -146,7 +148,7 @@ class UserController(
     }
 
     @DeleteMapping("/{userId}")
-    @PreAuthorize("hasAuthority('USER-MANAGEMENT')")
+    @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
     fun deleteUser(
         @PathVariable("userId") userId: Long
     ) {
@@ -182,8 +184,19 @@ class UserController(
             password = null,
             passwordRepeat = null,
             passwordChangeRequired = user.passwordChangeRequired,
-            permissions = user.authorities.map { it.authority }
+            permissions = user.authorities.mapNotNull { mapToUserPermission(it.authority) }
         )
+    }
+
+    private fun mapToUserPermission(key: String): UserPermission? {
+        val permissionEnum = UserPermissions.valueOfKey(key)
+        permissionEnum?.let {
+            return UserPermission(
+                key = it.key,
+                title = it.title
+            )
+        }
+        return null
     }
 
 }

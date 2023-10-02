@@ -101,7 +101,7 @@ class TafelUserDetailsManagerTest {
 
         every { userRepository.findByUsername(any()) } returns userEntity
 
-        val userDetails = manager.loadUserByUsername("test") as TafelUser
+        val userDetails = manager.loadUserByUsername("test")
 
         assertThat(userDetails).isNotNull
         assertThat(userDetails.username).isEqualTo(userEntity.username)
@@ -450,7 +450,7 @@ class TafelUserDetailsManagerTest {
             authorities = testUserPermissions.map {
                 val entity = UserAuthorityEntity()
                 entity.user = this
-                entity.name = it
+                entity.name = it.key
                 entity
             }.toMutableList()
             passwordChangeRequired = false
@@ -499,7 +499,7 @@ class TafelUserDetailsManagerTest {
             authorities = testUserPermissions.map {
                 val entity = UserAuthorityEntity()
                 entity.user = this
-                entity.name = it
+                entity.name = it.key
                 entity
             }.toMutableList()
             passwordChangeRequired = false
@@ -554,7 +554,7 @@ class TafelUserDetailsManagerTest {
             authorities = testUserPermissions.map {
                 val entity = UserAuthorityEntity()
                 entity.user = this
-                entity.name = it
+                entity.name = it.key
                 entity
             }.toMutableList()
             passwordChangeRequired = false

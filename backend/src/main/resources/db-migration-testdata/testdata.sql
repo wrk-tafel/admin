@@ -19,7 +19,7 @@ VALUES (1003, NOW(), NOW(), 100, 'CHECKIN');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (1004, NOW(), NOW(), 100, 'DISTRIBUTION_LCM');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
-VALUES (1005, NOW(), NOW(), 100, 'USER-MANAGEMENT');
+VALUES (1005, NOW(), NOW(), 100, 'USER_MANAGEMENT');
 
 -- user e2etest2 for cypress test (password change)
 -- pwd: e2etest
@@ -84,7 +84,7 @@ VALUES (3003, NOW(), NOW(), 300, 'CHECKIN');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (3004, NOW(), NOW(), 300, 'DISTRIBUTION_LCM');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
-VALUES (3005, NOW(), NOW(), 300, 'USER-MANAGEMENT');
+VALUES (3005, NOW(), NOW(), 300, 'USER_MANAGEMENT');
 
 -- user: scanner1
 -- pwd: 12345

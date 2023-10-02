@@ -25,7 +25,13 @@ data class User(
     val password: String? = null,
     val passwordRepeat: String? = null,
     val passwordChangeRequired: Boolean,
-    val permissions: List<String>
+    val permissions: List<UserPermission>
+)
+
+@ExcludeFromTestCoverage
+data class UserPermission(
+    val key: String,
+    val title: String
 )
 
 @ExcludeFromTestCoverage
@@ -37,3 +43,18 @@ data class UserListResponse(
 data class GeneratedPasswordResponse(
     val password: String
 )
+
+@ExcludeFromTestCoverage
+enum class UserPermissions(val key: String, val title: String) {
+    CHECKIN("CHECKIN", "Anmeldung"),
+    USER_MANAGEMENT("USER_MANAGEMENT", "Benutzerverwaltung"),
+    DISTRIBUTION_LCM("DISTRIBUTION_LCM", "Ausgabe-Steuerung (Eröffnen / Abschließen)"),
+    CUSTOMER("CUSTOMER", "Kundenverwaltung");
+
+    companion object {
+        fun valueOfKey(key: String): UserPermissions? {
+            return values().firstOrNull { it.key == key }
+        }
+    }
+
+}
