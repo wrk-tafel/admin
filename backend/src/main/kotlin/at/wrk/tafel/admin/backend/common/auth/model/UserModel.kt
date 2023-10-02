@@ -46,6 +46,7 @@ data class GeneratedPasswordResponse(
 
 @ExcludeFromTestCoverage
 enum class UserPermissions(val key: String, val title: String) {
+    DASHBOARD("DASHBOARD", "Login möglich / Übersichts-Dashboard"),
     CHECKIN("CHECKIN", "Anmeldung"),
     USER_MANAGEMENT("USER_MANAGEMENT", "Benutzerverwaltung"),
     DISTRIBUTION_LCM("DISTRIBUTION_LCM", "Ausgabe-Steuerung"),
