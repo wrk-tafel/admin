@@ -33,6 +33,8 @@ INSERT INTO users (id, created_at, updated_at, username, password, enabled, pers
 VALUES (102, NOW(), NOW(), 'e2etest3',
         '{argon2}$argon2id$v=19$m=4096,t=3,p=1$Cnj0ayQKhOPbkomIRV5tnQ$BfU/uOr20/vg9ie0CQcWhCD00DqjPDf6UI0pRvz1/gg',
         true, '00000-3', 'E2E', 'Test 3', true);
+INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
+VALUES (1021, NOW(), NOW(), 102, 'DISTRIBUTION_LCM');
 
 -- user e2etest4 for cypress test (delete user from detail page)
 -- pwd: e2etest
