@@ -85,7 +85,12 @@ export interface UserData {
   password?: string;
   passwordRepeat?: string;
   passwordChangeRequired: boolean;
-  permissions: string[];
+  permissions: UserPermission[];
+}
+
+export interface UserPermission {
+  key: string;
+  title: string;
 }
 
 export interface GeneratedPasswordResponse {

@@ -50,8 +50,9 @@ export class UserDetailComponent implements OnInit {
   }
 
   formatPermissions(): string {
-    // TODO add label in backend and show title instead
-    return this.userData?.permissions.join(', ');
+    return this.userData?.permissions
+      .map(permission => permission.title)
+      .join(', ');
   }
 
 }
