@@ -8,7 +8,7 @@ import {
   ValidatorFn,
   Validators
 } from '@angular/forms';
-import {GeneratedPasswordResponse, UserApiService, UserData} from '../../../api/user-api.service';
+import {GeneratedPasswordResponse, UserApiService, UserData, UserPermission} from '../../../api/user-api.service';
 
 @Component({
   selector: 'tafel-user-form',
@@ -34,10 +34,16 @@ export class UserFormComponent implements OnInit {
   passwordTextVisible: boolean;
   passwordRepeatTextVisible: boolean;
 
+  availablePermissions: UserPermission[];
+
   constructor(private userApiService: UserApiService) {
   }
 
   ngOnInit(): void {
+    this.userApiService.getPermissions().subscribe((response) => {
+      this.availablePermissions = response.permissions;
+    });
+
     if (this.userData) {
       this.form.patchValue(this.userData);
     }

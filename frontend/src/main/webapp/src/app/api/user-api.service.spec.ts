@@ -135,4 +135,12 @@ describe('UserApiService', () => {
     httpMock.verify();
   });
 
+  it('get permissions', () => {
+    apiService.getPermissions().subscribe();
+
+    const req = httpMock.expectOne({method: 'GET', url: '/users/permissions'});
+    req.flush(null);
+    httpMock.verify();
+  });
+
 });

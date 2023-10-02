@@ -109,7 +109,9 @@
           </div>
           <div class="row">
             <div class="col mt-3">
-              <button testid="generate-password-button" type="button" class="btn btn-primary text-white" (click)="generatePassword()">Passwort generieren</button>
+              <button testid="generate-password-button" type="button" class="btn btn-primary text-white"
+                      (click)="generatePassword()">Passwort generieren
+              </button>
             </div>
           </div>
           <hr>
@@ -117,7 +119,8 @@
             <div class="col-sm">
               <label class="form-label">Passwort-Änderung beim nächsten Login erforderlich</label>
               <div class="input-group">
-                <input testid="passwordChangeRequiredInput" type="checkbox" formControlName="passwordChangeRequired" class="form-check-input">
+                <input testid="passwordChangeRequiredInput" type="checkbox" formControlName="passwordChangeRequired"
+                       class="form-check-input">
               </div>
             </div>
           </div>
@@ -125,7 +128,7 @@
       </div>
     </div>
   </div>
-  <div class="row mt-3">
+  <div class="row mt-4">
     <div class="col-md">
       <div class="card">
         <div class="card-header text-center h5">
@@ -133,8 +136,10 @@
         </div>
         <div class="card-body">
           <div class="row">
-            <div class="col-sm">
-              DUMMY
+            <div class="col-3">
+              <div *ngFor="let permission of availablePermissions">
+                {{permission.title}}
+              </div>
             </div>
           </div>
         </div>

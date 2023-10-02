@@ -59,6 +59,10 @@ export class UserApiService {
     return this.http.get<GeneratedPasswordResponse>('/users/generate-password');
   }
 
+  getPermissions(): Observable<PermissionsListResponse> {
+    return this.http.get<PermissionsListResponse>('/users/permissions');
+  }
+
 }
 
 export interface ChangePasswordRequest {
@@ -85,6 +89,10 @@ export interface UserData {
   password?: string;
   passwordRepeat?: string;
   passwordChangeRequired: boolean;
+  permissions: UserPermission[];
+}
+
+export interface PermissionsListResponse {
   permissions: UserPermission[];
 }
 
