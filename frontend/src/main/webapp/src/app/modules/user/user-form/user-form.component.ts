@@ -144,10 +144,6 @@ export class UserFormComponent implements OnInit {
     return this.form.get('permissions') as FormArray;
   }
 
-  showFormValue() {
-    console.log(this.form.value);
-  }
-
 }
 
 export const passwordRepeatValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
