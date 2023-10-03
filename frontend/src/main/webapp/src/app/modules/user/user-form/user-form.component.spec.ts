@@ -7,6 +7,11 @@ import {UserApiService, UserData, UserPermission} from '../../../api/user-api.se
 import {of} from 'rxjs';
 
 describe('UserFormComponent', () => {
+  const mockPermissions: UserPermission[] = [
+    {key: 'PERM1', title: 'Permission 1', enabled: true},
+    {key: 'PERM2', title: 'Permission 2', enabled: false}
+  ];
+
   const mockUser: UserData = {
     id: 0,
     personnelNumber: '0000',
@@ -15,12 +20,8 @@ describe('UserFormComponent', () => {
     lastname: 'last',
     enabled: true,
     passwordChangeRequired: false,
-    permissions: []
+    permissions: mockPermissions
   };
-  const mockPermissions: UserPermission[] = [
-    {key: 'PERM1', title: 'Permission 1'},
-    {key: 'PERM2', title: 'Permission 2'}
-  ];
 
   let userApiService: jasmine.SpyObj<UserApiService>;
 
@@ -57,11 +58,11 @@ describe('UserFormComponent', () => {
   it('data filling works', waitForAsync(() => {
     const fixture = TestBed.createComponent(UserFormComponent);
     const component = fixture.componentInstance;
-    userApiService.getPermissions.and.returnValue(of({permissions: mockPermissions}));
 
     spyOn(component.userDataChange, 'emit');
-    component.ngOnInit();
     component.userData = mockUser;
+    component.permissionsData = mockPermissions;
+    component.ngOnInit();
 
     fixture.detectChanges();
 
@@ -74,14 +75,13 @@ describe('UserFormComponent', () => {
     });
     */
 
-    expect(component.availablePermissions).toEqual(mockPermissions);
-
     expect(component.id.value).toBe(mockUser.id);
     expect(component.username.value).toBe(mockUser.username);
     expect(component.personnelNumber.value).toBe(mockUser.personnelNumber);
     expect(component.lastname.value).toBe(mockUser.lastname);
     expect(component.firstname.value).toBe(mockUser.firstname);
     expect(component.enabled.value).toBe(mockUser.enabled);
+    expect(component.permissions.value).toEqual(mockPermissions);
     expect(component.passwordChangeRequired.value).toBe(mockUser.passwordChangeRequired);
   }));
 
@@ -91,8 +91,9 @@ describe('UserFormComponent', () => {
     userApiService.getPermissions.and.returnValue(of({permissions: mockPermissions}));
 
     spyOn(component.userDataChange, 'emit');
-    component.ngOnInit();
     component.userData = mockUser;
+    component.permissionsData = mockPermissions;
+    component.ngOnInit();
 
     const updatedUsername = 'updated';
     const updatedPersonnelNumber = 'updated';
@@ -107,6 +108,7 @@ describe('UserFormComponent', () => {
     component.firstname.setValue(updatedFirstname);
     component.enabled.setValue(updatedEnabled);
     component.passwordChangeRequired.setValue(updatedPasswordChangeRequired);
+    component.permissions.clear();
 
     fixture.detectChanges();
 
@@ -116,7 +118,8 @@ describe('UserFormComponent', () => {
       lastname: updatedLastname,
       firstname: updatedFirstname,
       enabled: updatedEnabled,
-      passwordChangeRequired: updatedPasswordChangeRequired
+      passwordChangeRequired: updatedPasswordChangeRequired,
+      permissions: []
     }));
   }));
 

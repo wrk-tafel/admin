@@ -56,7 +56,7 @@ export class UserFormComponent implements OnInit {
     const control = new FormGroup({
       key: new FormControl<string>(userPermission.key),
       title: new FormControl<string>(userPermission.title),
-      enabled: new FormControl<boolean>(userPermission.enabled),
+      enabled: new FormControl<boolean>(userPermission.enabled)
     });
 
     this.permissions.push(control);
