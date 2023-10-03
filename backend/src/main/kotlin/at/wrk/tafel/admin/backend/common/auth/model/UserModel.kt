@@ -31,7 +31,8 @@ data class User(
 @ExcludeFromTestCoverage
 data class UserPermission(
     val key: String,
-    val title: String
+    val title: String,
+    val enabled: Boolean?
 )
 
 @ExcludeFromTestCoverage

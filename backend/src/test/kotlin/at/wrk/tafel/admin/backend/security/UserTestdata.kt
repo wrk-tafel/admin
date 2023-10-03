@@ -49,7 +49,7 @@ val testUserApiResponse = User(
     lastname = testUserEntity.lastname!!,
     enabled = testUserEntity.enabled!!,
     passwordChangeRequired = testUserEntity.passwordChangeRequired!!,
-    permissions = testUserPermissions.map {
-        UserPermission(key = it.key, title = it.title)
+    permissions = UserPermissions.values().map {
+        UserPermission(key = it.key, title = it.title, enabled = testUserPermissions.contains(it))
     }
 )

@@ -16,6 +16,7 @@ import {GeneratedPasswordResponse, UserApiService, UserData, UserPermission} fro
 })
 export class UserFormComponent implements OnInit {
   @Input() userData: UserData;
+  @Input() permissionsData: UserPermission[];
   @Output() userDataChange = new EventEmitter<UserData>();
 
   form = new FormGroup({
@@ -28,29 +29,37 @@ export class UserFormComponent implements OnInit {
     password: new FormControl<string>(null),
     passwordRepeat: new FormControl<string>(null),
     passwordChangeRequired: new FormControl<boolean>(true, Validators.required),
-    permissions: new FormArray([])
+    permissions: new FormArray<FormControl<UserPermission>>([])
   }, [passwordRepeatValidator]);
 
   passwordTextVisible: boolean;
   passwordRepeatTextVisible: boolean;
 
-  availablePermissions: UserPermission[];
-
   constructor(private userApiService: UserApiService) {
   }
 
   ngOnInit(): void {
-    this.userApiService.getPermissions().subscribe((response) => {
-      this.availablePermissions = response.permissions;
-    });
-
     if (this.userData) {
       this.form.patchValue(this.userData);
+      this.permissions.clear();
+      this.userData.permissions.forEach((permission) => this.pushUserPermissionControl(permission));
+    } else {
+      this.permissionsData.forEach((permission) => this.pushUserPermissionControl(permission));
     }
 
     this.form.valueChanges.subscribe(() => {
       this.userDataChange.emit(this.form.getRawValue());
     });
+  }
+
+  private pushUserPermissionControl(userPermission: UserPermission) {
+    const control = new FormGroup({
+      key: new FormControl<string>(userPermission.key),
+      title: new FormControl<string>(userPermission.title),
+      enabled: new FormControl<boolean>(userPermission.enabled),
+    });
+
+    this.permissions.push(control);
   }
 
   public markAllAsTouched() {
@@ -90,6 +99,11 @@ export class UserFormComponent implements OnInit {
     this.passwordRepeatTextVisible = !this.passwordRepeatTextVisible;
   }
 
+  public trackBy(index: number, permissionDataControl: FormGroup) {
+    const permissionData: UserPermission = permissionDataControl.value;
+    return permissionData.key;
+  }
+
   get id() {
     return this.form.get('id');
   }
@@ -124,6 +138,14 @@ export class UserFormComponent implements OnInit {
 
   get passwordChangeRequired() {
     return this.form.get('passwordChangeRequired');
+  }
+
+  get permissions(): FormArray {
+    return this.form.get('permissions') as FormArray;
+  }
+
+  showFormValue() {
+    console.log(this.form.value);
   }
 
 }

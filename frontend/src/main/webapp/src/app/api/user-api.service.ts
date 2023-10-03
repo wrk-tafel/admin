@@ -99,6 +99,7 @@ export interface PermissionsListResponse {
 export interface UserPermission {
   key: string;
   title: string;
+  enabled?: boolean;
 }
 
 export interface GeneratedPasswordResponse {

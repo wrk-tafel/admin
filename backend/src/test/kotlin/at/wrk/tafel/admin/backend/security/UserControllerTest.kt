@@ -260,7 +260,8 @@ class UserControllerTest {
         assertThat(permissions?.first()).isEqualTo(
             UserPermission(
                 key = UserPermissions.values().first().key,
-                title = UserPermissions.values().first().title
+                title = UserPermissions.values().first().title,
+                enabled = null
             )
         )
     }

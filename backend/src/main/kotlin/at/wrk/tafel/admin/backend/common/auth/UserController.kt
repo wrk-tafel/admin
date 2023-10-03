@@ -182,6 +182,13 @@ class UserController(
     }
 
     private fun mapToResponse(user: TafelUser): User {
+        val permissions = UserPermissions.values()
+            .mapNotNull { permission ->
+                val key = permission.key
+                val enabled = user.authorities.map { it.authority }.contains(key)
+                mapToUserPermission(key = key, enabled = enabled)
+            }
+
         return User(
             id = user.id,
             username = user.username,
@@ -192,16 +199,17 @@ class UserController(
             password = null,
             passwordRepeat = null,
             passwordChangeRequired = user.passwordChangeRequired,
-            permissions = user.authorities.mapNotNull { mapToUserPermission(it.authority) }
+            permissions = permissions
         )
     }
 
-    private fun mapToUserPermission(key: String): UserPermission? {
+    private fun mapToUserPermission(key: String, enabled: Boolean? = null): UserPermission? {
         val permissionEnum = UserPermissions.valueOfKey(key)
         permissionEnum?.let {
             return UserPermission(
                 key = it.key,
-                title = it.title
+                title = it.title,
+                enabled = enabled
             )
         }
         return null

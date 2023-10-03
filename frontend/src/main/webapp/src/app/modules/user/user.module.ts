@@ -15,7 +15,7 @@ import {
   DropdownDividerDirective,
   DropdownItemDirective,
   DropdownMenuDirective,
-  DropdownToggleDirective,
+  DropdownToggleDirective, FormCheckInputDirective, FormControlDirective, FormLabelDirective,
   FormSelectDirective,
   InputGroupComponent,
   InputGroupTextDirective,
@@ -75,7 +75,10 @@ import {UserEditComponent} from './user-edit/user-edit.component';
     FormSelectDirective,
     ButtonDirective,
     InputGroupComponent,
-    InputGroupTextDirective
+    InputGroupTextDirective,
+    FormLabelDirective,
+    FormCheckInputDirective,
+    FormControlDirective
   ],
   declarations: [
     UserPasswordChangeComponent,
