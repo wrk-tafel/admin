@@ -1,16 +1,16 @@
 import {TestBed, waitForAsync} from '@angular/core/testing';
 import {RouterTestingModule} from '@angular/router/testing';
-import {passwordRepeatValidator, UserFormComponent} from './user-form.component';
+import {passwordRepeatValidator, UserFormComponent, UserPermissionFormItem} from './user-form.component';
 import {FormControl, FormGroup, ReactiveFormsModule} from '@angular/forms';
 import {CardModule, ColComponent, InputGroupComponent, RowComponent} from '@coreui/angular';
 import {UserApiService, UserData, UserPermission} from '../../../api/user-api.service';
 import {of, throwError} from 'rxjs';
-import {ToastService, ToastType} from "../../../common/views/default-layout/toasts/toast.service";
+import {ToastService, ToastType} from '../../../common/views/default-layout/toasts/toast.service';
 
 describe('UserFormComponent', () => {
   const mockPermissions: UserPermission[] = [
-    {key: 'PERM1', title: 'Permission 1', enabled: true},
-    {key: 'PERM2', title: 'Permission 2', enabled: false}
+    {key: 'PERM1', title: 'Permission 1'},
+    {key: 'PERM2', title: 'Permission 2'}
   ];
 
   const mockUser: UserData = {
@@ -43,7 +43,7 @@ describe('UserFormComponent', () => {
       providers: [
         {
           provide: UserApiService,
-          useValue: jasmine.createSpyObj('UserApiService', ['generatePassword', 'getPermissions'])
+          useValue: jasmine.createSpyObj('UserApiService', ['generatePassword'])
         },
         {
           provide: ToastService,
@@ -88,18 +88,22 @@ describe('UserFormComponent', () => {
     expect(component.lastname.value).toBe(mockUser.lastname);
     expect(component.firstname.value).toBe(mockUser.firstname);
     expect(component.enabled.value).toBe(mockUser.enabled);
-    expect(component.permissions.value).toEqual(mockPermissions);
     expect(component.passwordChangeRequired.value).toBe(mockUser.passwordChangeRequired);
 
+    expect(component.permissions.value).toEqual(
+      mockPermissions.map((permission) => {
+        const mapped: UserPermissionFormItem = {...permission, enabled: true};
+        return mapped;
+      })
+    );
     expect(component.permissions.controls.length).toBe(2);
-    expect(component.permissions.controls[0].get('key').value).toBe(mockPermissions[0].key);
-    expect(component.permissions.controls[1].get('key').value).toBe(mockPermissions[1].key);
+    expect(component.permissions.controls[0].value).toEqual({...mockPermissions[0], enabled: true});
+    expect(component.permissions.controls[1].value).toEqual({...mockPermissions[1], enabled: true});
   }));
 
   it('data update works', waitForAsync(() => {
     const fixture = TestBed.createComponent(UserFormComponent);
     const component = fixture.componentInstance;
-    userApiService.getPermissions.and.returnValue(of({permissions: mockPermissions}));
 
     spyOn(component.userDataChange, 'emit');
     component.userData = mockUser;

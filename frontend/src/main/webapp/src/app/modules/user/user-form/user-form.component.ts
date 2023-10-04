@@ -49,11 +49,12 @@ export class UserFormComponent implements OnInit {
         return {...availablePermission, enabled: enabled};
       });
 
-      const data = {
+      const data: UserFormData = {
         ...this.userData,
-        permissions: formPermissions
+        permissions: undefined
       };
       this.form.patchValue(data);
+      this.permissions.clear();
       formPermissions.forEach((permission) => this.pushUserPermissionControl(permission, permission.enabled));
     } else {
       this.permissionsData.forEach((permission) => this.pushUserPermissionControl(permission, false));
