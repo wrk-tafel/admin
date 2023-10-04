@@ -119,7 +119,17 @@ class UserController(
         return UserListResponse(items = users)
     }
 
-    // TODO add createUser
+    @PostMapping
+    @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
+    fun createUser(
+        @RequestBody user: User
+    ): ResponseEntity<User> {
+        val tafelUser = mapToTafelUser(user)
+        userDetailsManager.createUser(tafelUser)
+
+        val userResponse = mapToResponse(userDetailsManager.loadUserByUsername(user.username))
+        return ResponseEntity.ok(userResponse)
+    }
 
     @PostMapping("/{userId}")
     @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
@@ -127,7 +137,7 @@ class UserController(
         @PathVariable("userId") userId: Long,
         @RequestBody user: User
     ): ResponseEntity<User> {
-        val tafelUser = userDetailsManager.loadUserById(userId)
+        userDetailsManager.loadUserById(userId)
             ?: throw TafelValidationException(
                 message = "Benutzer (ID: $userId) nicht vorhanden!",
                 status = HttpStatus.NOT_FOUND
@@ -141,7 +151,7 @@ class UserController(
         }
 
         try {
-            val updatedTafelUser = mapToTafelUser(tafelUser, user)
+            val updatedTafelUser = mapToTafelUser(user)
             userDetailsManager.updateUser(updatedTafelUser)
 
             val userResponse = mapToResponse(userDetailsManager.loadUserById(userId)!!)
@@ -172,17 +182,17 @@ class UserController(
         return ResponseEntity.ok(PermissionsListResponse(permissions = permissions))
     }
 
-    private fun mapToTafelUser(tafelUser: TafelUser, userUpdate: User): TafelUser {
-        return tafelUser.copy(
-            id = userUpdate.id,
-            username = userUpdate.username,
-            personnelNumber = userUpdate.personnelNumber,
-            firstname = userUpdate.firstname,
-            lastname = userUpdate.lastname,
-            enabled = userUpdate.enabled,
-            password = userUpdate.password,
-            passwordChangeRequired = userUpdate.passwordChangeRequired,
-            authorities = userUpdate.permissions
+    private fun mapToTafelUser(user: User): TafelUser {
+        return TafelUser(
+            id = user.id,
+            username = user.username,
+            personnelNumber = user.personnelNumber,
+            firstname = user.firstname,
+            lastname = user.lastname,
+            enabled = user.enabled,
+            password = user.password,
+            passwordChangeRequired = user.passwordChangeRequired,
+            authorities = user.permissions
                 .filter { it.enabled == true }
                 .map { SimpleGrantedAuthority(it.key) }
         )

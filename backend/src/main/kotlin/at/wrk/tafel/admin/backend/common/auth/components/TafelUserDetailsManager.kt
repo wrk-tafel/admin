@@ -58,14 +58,18 @@ class TafelUserDetailsManager(
     }
 
     override fun createUser(user: UserDetails?) {
-        TODO("Not yet implemented")
+        val tafelUser = user as TafelUser
+
+        val userEntity = UserEntity()
+        mapToUserEntity(userEntity, tafelUser)
+        userRepository.save(userEntity)
     }
 
     override fun updateUser(user: UserDetails) {
         val tafelUser = user as TafelUser
 
         val userEntity: UserEntity = userRepository.findById(user.id).get()
-        updateUserEntity(userEntity, tafelUser)
+        mapToUserEntity(userEntity, tafelUser)
         userRepository.save(userEntity)
     }
 
@@ -115,7 +119,7 @@ class TafelUserDetailsManager(
 
     override fun userExists(username: String): Boolean = userRepository.existsByUsername(username)
 
-    // TODO after the new security mechanism this could be reduced
+    // TODO this could be reduced after the new security mechanism is implemented
     private fun mapToUserDetails(userEntity: UserEntity): TafelUser {
         return TafelUser(
             id = userEntity.id!!,
@@ -130,17 +134,16 @@ class TafelUserDetailsManager(
         )
     }
 
-    private fun updateUserEntity(userEntity: UserEntity, tafelUser: TafelUser) {
-        val newPassword = tafelUser.password
-        if (newPassword != null && isPasswordValid(tafelUser.username, newPassword)) {
-            userEntity.password = passwordEncoder.encode(newPassword)
-        }
-
+    private fun mapToUserEntity(userEntity: UserEntity, tafelUser: TafelUser) {
         userEntity.personnelNumber = tafelUser.personnelNumber
         userEntity.username = tafelUser.username
         userEntity.firstname = tafelUser.firstname
         userEntity.lastname = tafelUser.lastname
         userEntity.enabled = tafelUser.enabled
+        val newPassword = tafelUser.password
+        if (newPassword != null && isPasswordValid(tafelUser.username, newPassword)) {
+            userEntity.password = passwordEncoder.encode(newPassword)
+        }
         userEntity.passwordChangeRequired = tafelUser.passwordChangeRequired
 
         userEntity.authorities.clear()

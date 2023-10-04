@@ -129,8 +129,17 @@ class TafelUserDetailsManagerTest {
     }
 
     @Test
-    fun `createUser - not implemented`() {
-        assertThrows<NotImplementedError> { manager.createUser(null) }
+    fun `createUser`() {
+        every { userRepository.save(any()) } returns mockk(relaxed = true)
+
+        manager.createUser(testUser)
+
+        val entitySlot = slot<UserEntity>()
+        verify(exactly = 1) { userRepository.save(capture(entitySlot)) }
+
+        val entity = entitySlot.captured
+        assertThat(entity.id).isEqualTo(entity.id)
+        // detailed mapping tested in updateUser test
     }
 
     @Test

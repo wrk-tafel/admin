@@ -179,6 +179,18 @@ class UserControllerTest {
     }
 
     @Test
+    fun `create user`() {
+        every { userDetailsManager.loadUserByUsername(any()) } returns testUser
+
+        val response = controller.createUser(user = testUserApiResponse)
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(response.body).isEqualTo(testUserApiResponse)
+
+        verify(exactly = 1) { userDetailsManager.createUser(testUser) }
+    }
+
+    @Test
     fun `update user not found`() {
         every { userDetailsManager.loadUserById(any()) } returns null
 
