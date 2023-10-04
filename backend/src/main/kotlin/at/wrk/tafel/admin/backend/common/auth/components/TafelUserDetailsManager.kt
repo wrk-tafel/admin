@@ -4,6 +4,7 @@ import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
 import at.wrk.tafel.admin.backend.database.entities.auth.UserAuthorityEntity
 import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
+import at.wrk.tafel.admin.backend.database.repositories.auth.UserAuthorityRepository
 import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
 import org.passay.DictionarySubstringRule
 import org.passay.LengthRule
@@ -21,6 +22,7 @@ import org.springframework.security.provisioning.UserDetailsManager
 
 class TafelUserDetailsManager(
     private val userRepository: UserRepository,
+    private val userAuthorityRepository: UserAuthorityRepository,
     private val passwordEncoder: PasswordEncoder,
     private val passwordValidator: PasswordValidator
 ) : UserDetailsManager {
@@ -68,7 +70,7 @@ class TafelUserDetailsManager(
     override fun updateUser(user: UserDetails) {
         val tafelUser = user as TafelUser
 
-        val userEntity: UserEntity = userRepository.findById(user.id).get()
+        val userEntity: UserEntity = userRepository.getReferenceById(user.id)
         mapToUserEntity(userEntity, tafelUser)
         userRepository.save(userEntity)
     }
@@ -149,10 +151,11 @@ class TafelUserDetailsManager(
         userEntity.authorities.clear()
         userEntity.authorities.addAll(
             tafelUser.authorities.map {
-                val authorityEntity = UserAuthorityEntity()
-                authorityEntity.user = userEntity
-                authorityEntity.name = it.authority
-                authorityEntity
+                val userAuthorityEntity =
+                    userAuthorityRepository.findByUserAndName(userEntity, it.authority) ?: UserAuthorityEntity()
+                userAuthorityEntity.user = userEntity
+                userAuthorityEntity.name = it.authority
+                userAuthorityEntity
             }.toMutableList()
         )
     }

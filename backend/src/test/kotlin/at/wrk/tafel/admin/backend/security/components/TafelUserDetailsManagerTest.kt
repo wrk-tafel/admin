@@ -8,6 +8,7 @@ import at.wrk.tafel.admin.backend.common.auth.model.UserPermissions
 import at.wrk.tafel.admin.backend.config.WebSecurityConfig
 import at.wrk.tafel.admin.backend.database.entities.auth.UserAuthorityEntity
 import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
+import at.wrk.tafel.admin.backend.database.repositories.auth.UserAuthorityRepository
 import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
 import at.wrk.tafel.admin.backend.security.testUser
 import at.wrk.tafel.admin.backend.security.testUserEntity
@@ -42,6 +43,9 @@ class TafelUserDetailsManagerTest {
 
     @RelaxedMockK
     private lateinit var userRepository: UserRepository
+
+    @RelaxedMockK
+    private lateinit var userAuthorityRepository: UserAuthorityRepository
 
     @SpyK
     private var passwordEncoder: PasswordEncoder =
@@ -476,7 +480,19 @@ class TafelUserDetailsManagerTest {
             )
         }
 
-        every { userRepository.findById(testUser.id) } returns Optional.of(testUserEntity)
+        every { userRepository.getReferenceById(testUser.id) } returns testUserEntity
+        every {
+            userAuthorityRepository.findByUserAndName(
+                testUserEntity,
+                UserPermissions.CHECKIN.key
+            )
+        } returns testUserEntity.authorities[0]
+        every {
+            userAuthorityRepository.findByUserAndName(
+                testUserEntity,
+                UserPermissions.DISTRIBUTION_LCM.key
+            )
+        } returns testUserEntity.authorities[1]
         every { userRepository.save(any()) } returns mockk(relaxed = true)
 
         val userUpdate = testUser.copy(
@@ -530,7 +546,7 @@ class TafelUserDetailsManagerTest {
             passwordChangeRequired = false
         }
 
-        every { userRepository.findById(testUser.id) } returns Optional.of(testUserEntity)
+        every { userRepository.getReferenceById(testUser.id) } returns testUserEntity
         every { userRepository.save(any()) } returns mockk(relaxed = true)
 
         val encodedPassword = "dummy-encoded-pwd"
@@ -585,7 +601,7 @@ class TafelUserDetailsManagerTest {
             passwordChangeRequired = false
         }
 
-        every { userRepository.findById(testUser.id) } returns Optional.of(testUserEntity)
+        every { userRepository.getReferenceById(testUser.id) } returns testUserEntity
         every { userRepository.save(any()) } returns mockk(relaxed = true)
         every { passwordValidator.validate(any()) } returns RuleResult(false)
 
