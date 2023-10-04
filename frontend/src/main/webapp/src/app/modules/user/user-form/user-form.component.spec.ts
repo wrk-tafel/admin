@@ -190,8 +190,6 @@ describe('UserFormComponent', () => {
     const component = fixture.componentInstance;
     component.passwordTextVisible = false;
     component.passwordRepeatTextVisible = false;
-
-    const generatedPassword = 'random-pwd';
     userApiService.generatePassword.and.returnValues(throwError(() => 'generation failed'));
 
     component.generatePassword();
