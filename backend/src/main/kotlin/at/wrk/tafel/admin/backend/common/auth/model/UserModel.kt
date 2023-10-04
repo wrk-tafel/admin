@@ -31,8 +31,7 @@ data class User(
 @ExcludeFromTestCoverage
 data class UserPermission(
     val key: String,
-    val title: String,
-    val enabled: Boolean?
+    val title: String
 )
 
 @ExcludeFromTestCoverage
@@ -65,8 +64,8 @@ enum class UserPermissions(val key: String, val title: String) {
     SCANNER("SCANNER", "Scanner");
 
     companion object {
-        fun valueOfKey(key: String): UserPermissions? {
-            return values().firstOrNull { it.key == key }
+        fun valueOfKey(key: String): UserPermissions {
+            return values().first { it.key == key }
         }
     }
 

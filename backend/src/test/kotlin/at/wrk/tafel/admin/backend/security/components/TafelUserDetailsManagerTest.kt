@@ -8,7 +8,6 @@ import at.wrk.tafel.admin.backend.common.auth.model.UserPermissions
 import at.wrk.tafel.admin.backend.config.WebSecurityConfig
 import at.wrk.tafel.admin.backend.database.entities.auth.UserAuthorityEntity
 import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
-import at.wrk.tafel.admin.backend.database.repositories.auth.UserAuthorityRepository
 import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
 import at.wrk.tafel.admin.backend.security.testUser
 import at.wrk.tafel.admin.backend.security.testUserEntity
@@ -43,9 +42,6 @@ class TafelUserDetailsManagerTest {
 
     @RelaxedMockK
     private lateinit var userRepository: UserRepository
-
-    @RelaxedMockK
-    private lateinit var userAuthorityRepository: UserAuthorityRepository
 
     @SpyK
     private var passwordEncoder: PasswordEncoder =

@@ -30,7 +30,7 @@ export class UserFormComponent implements OnInit {
     passwordRepeat: new FormControl<string>(null),
     enabled: new FormControl<boolean>(true, Validators.required),
     passwordChangeRequired: new FormControl<boolean>(true, Validators.required),
-    permissions: new FormArray<FormControl<UserPermission>>([])
+    permissions: new FormArray<FormControl<UserPermissionFormItem>>([])
   }, [passwordRepeatValidator]);
 
   passwordTextVisible: boolean;
@@ -44,23 +44,36 @@ export class UserFormComponent implements OnInit {
 
   ngOnInit(): void {
     if (this.userData) {
-      this.form.patchValue(this.userData);
-      this.permissions.clear();
-      this.userData.permissions.forEach((permission) => this.pushUserPermissionControl(permission));
+      const formPermissions: UserPermissionFormItem[] = this.permissionsData.map((availablePermission) => {
+        const enabled = this.userData.permissions.findIndex((userPermission) => userPermission.key === availablePermission.key) !== -1;
+        return {...availablePermission, enabled: enabled};
+      });
+
+      const data = {
+        ...this.userData,
+        permissions: formPermissions
+      };
+      this.form.patchValue(data);
+      formPermissions.forEach((permission) => this.pushUserPermissionControl(permission, permission.enabled));
     } else {
-      this.permissionsData.forEach((permission) => this.pushUserPermissionControl(permission));
+      this.permissionsData.forEach((permission) => this.pushUserPermissionControl(permission, false));
     }
 
     this.form.valueChanges.subscribe(() => {
-      this.userDataChange.emit(this.form.getRawValue());
+      const rawValue: UserFormData = this.form.getRawValue();
+      const mappedUserData: UserData = {
+        ...rawValue,
+        permissions: rawValue.permissions.filter((permission) => permission.enabled === true)
+      };
+      this.userDataChange.emit(mappedUserData);
     });
   }
 
-  private pushUserPermissionControl(userPermission: UserPermission) {
+  private pushUserPermissionControl(userPermission: UserPermission, enabled: boolean) {
     const control = new FormGroup({
       key: new FormControl<string>(userPermission.key),
       title: new FormControl<string>(userPermission.title),
-      enabled: new FormControl<boolean>(userPermission.enabled)
+      enabled: new FormControl<boolean>(enabled)
     });
 
     this.permissions.push(control);
@@ -161,3 +174,11 @@ export const passwordRepeatValidator: ValidatorFn = (control: AbstractControl): 
 
   return password && passwordRepeat && password.value !== passwordRepeat.value ? {passwordRepeatInvalid: true} : null;
 };
+
+export interface UserFormData extends UserData {
+  permissions: UserPermissionFormItem[];
+}
+
+export interface UserPermissionFormItem extends UserPermission {
+  enabled: boolean;
+}

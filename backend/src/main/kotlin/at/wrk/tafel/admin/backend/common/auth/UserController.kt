@@ -178,7 +178,10 @@ class UserController(
     @GetMapping("/permissions")
     @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
     fun getPermissions(): ResponseEntity<PermissionsListResponse> {
-        val permissions = UserPermissions.values().mapNotNull { mapToUserPermission(it.key) }
+        val permissions = UserPermissions.values()
+            .toList()
+            .sortedBy { it.title }
+            .mapNotNull { mapToUserPermission(it.key) }
         return ResponseEntity.ok(PermissionsListResponse(permissions = permissions))
     }
 
@@ -192,20 +195,11 @@ class UserController(
             enabled = user.enabled,
             password = user.password,
             passwordChangeRequired = user.passwordChangeRequired,
-            authorities = user.permissions
-                .filter { it.enabled == true }
-                .map { SimpleGrantedAuthority(it.key) }
+            authorities = user.permissions.map { SimpleGrantedAuthority(it.key) }
         )
     }
 
     private fun mapToResponse(user: TafelUser): User {
-        val permissions = UserPermissions.values()
-            .mapNotNull { permission ->
-                val key = permission.key
-                val enabled = user.authorities.map { it.authority }.contains(key)
-                mapToUserPermission(key = key, enabled = enabled)
-            }
-
         return User(
             id = user.id,
             username = user.username,
@@ -216,20 +210,18 @@ class UserController(
             password = null,
             passwordRepeat = null,
             passwordChangeRequired = user.passwordChangeRequired,
-            permissions = permissions
+            permissions = user.authorities
+                .mapNotNull { authority -> mapToUserPermission(authority.authority) }
+                .sortedBy { it.title }
         )
     }
 
-    private fun mapToUserPermission(key: String, enabled: Boolean? = null): UserPermission? {
+    private fun mapToUserPermission(key: String): UserPermission {
         val permissionEnum = UserPermissions.valueOfKey(key)
-        permissionEnum?.let {
-            return UserPermission(
-                key = it.key,
-                title = it.title,
-                enabled = enabled
-            )
-        }
-        return null
+        return UserPermission(
+            key = permissionEnum.key,
+            title = permissionEnum.title
+        )
     }
 
 }

@@ -207,13 +207,7 @@ class UserControllerTest {
 
         val newPermission = UserPermission(
             key = UserPermissions.CHECKIN.key,
-            title = UserPermissions.CHECKIN.title,
-            enabled = true
-        )
-        val disabledPermission = UserPermission(
-            key = UserPermissions.USER_MANAGEMENT.key,
-            title = UserPermissions.USER_MANAGEMENT.title,
-            enabled = false
+            title = UserPermissions.CHECKIN.title
         )
         val updatedUser = User(
             id = 123,
@@ -221,7 +215,7 @@ class UserControllerTest {
             personnelNumber = "updated-personnelnumber",
             firstname = "updated-firstname",
             lastname = "updated-lastname",
-            permissions = listOf(disabledPermission, newPermission),
+            permissions = listOf(newPermission),
             passwordChangeRequired = true,
             enabled = false
         )
@@ -309,8 +303,7 @@ class UserControllerTest {
         assertThat(permissions?.first()).isEqualTo(
             UserPermission(
                 key = UserPermissions.values().first().key,
-                title = UserPermissions.values().first().title,
-                enabled = null
+                title = UserPermissions.values().first().title
             )
         )
     }

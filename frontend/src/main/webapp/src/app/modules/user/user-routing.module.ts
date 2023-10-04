@@ -24,6 +24,7 @@ const routes: Routes = [
     component: UserEditComponent,
     resolve: {
       userData: userDataResolver,
+      permissionsData: PermissionsDataResolver
     }
   },
   {
