@@ -90,6 +90,10 @@ describe('UserFormComponent', () => {
     expect(component.enabled.value).toBe(mockUser.enabled);
     expect(component.permissions.value).toEqual(mockPermissions);
     expect(component.passwordChangeRequired.value).toBe(mockUser.passwordChangeRequired);
+
+    expect(component.permissions.controls.length).toBe(2);
+    expect(component.permissions.controls[0].get('key').value).toBe(mockPermissions[0].key);
+    expect(component.permissions.controls[1].get('key').value).toBe(mockPermissions[1].key);
   }));
 
   it('data update works', waitForAsync(() => {
