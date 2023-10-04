@@ -148,15 +148,23 @@ class TafelUserDetailsManager(
         }
         userEntity.passwordChangeRequired = tafelUser.passwordChangeRequired
 
-        userEntity.authorities.clear()
+        // remove old permissions
+        userEntity.authorities.removeIf { authorityEntity ->
+            !tafelUser.authorities.map { it.authority }.contains(authorityEntity.name)
+        }
+
+        // add new permissions
+        val currentAuthorities = userEntity.authorities.map { it.name }
+        val newAuthorities = tafelUser.authorities
+            .takeWhile { !currentAuthorities.contains(it.authority) }
         userEntity.authorities.addAll(
-            tafelUser.authorities.map {
-                val userAuthorityEntity =
-                    userAuthorityRepository.findByUserAndName(userEntity, it.authority) ?: UserAuthorityEntity()
-                userAuthorityEntity.user = userEntity
-                userAuthorityEntity.name = it.authority
-                userAuthorityEntity
-            }.toMutableList()
+            newAuthorities
+                .map { authorityEntity ->
+                    val userAuthorityEntity = UserAuthorityEntity()
+                    userAuthorityEntity.user = userEntity
+                    userAuthorityEntity.name = authorityEntity.authority
+                    userAuthorityEntity
+                }.toMutableList()
         )
     }
 

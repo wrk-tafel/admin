@@ -7,8 +7,10 @@ describe('User Create', () => {
   it('create new user', () => {
     cy.visit('/#/benutzer/erstellen');
 
-    cy.byTestId('usernameInput').type('test-username');
-    cy.byTestId('personnelNumberInput').type('test-username');
+    const userRandomId = getRandomNumber(30000, 30999);
+
+    cy.byTestId('usernameInput').type('test-username-' + userRandomId);
+    cy.byTestId('personnelNumberInput').type('test-personnelNumber-' + userRandomId);
     cy.byTestId('lastnameInput').type('test-lastname');
     cy.byTestId('firstnameInput').type('test-firstname');
 
@@ -25,3 +27,9 @@ describe('User Create', () => {
   });
 
 });
+
+function getRandomNumber(min: number, max: number): number {
+  const minCeil = Math.ceil(min);
+  const maxFloor = Math.floor(max);
+  return Math.floor(Math.random() * (maxFloor - minCeil + 1)) + minCeil;
+}

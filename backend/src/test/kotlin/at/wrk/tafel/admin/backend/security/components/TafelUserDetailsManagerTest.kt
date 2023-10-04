@@ -481,18 +481,6 @@ class TafelUserDetailsManagerTest {
         }
 
         every { userRepository.getReferenceById(testUser.id) } returns testUserEntity
-        every {
-            userAuthorityRepository.findByUserAndName(
-                testUserEntity,
-                UserPermissions.CHECKIN.key
-            )
-        } returns testUserEntity.authorities[0]
-        every {
-            userAuthorityRepository.findByUserAndName(
-                testUserEntity,
-                UserPermissions.DISTRIBUTION_LCM.key
-            )
-        } returns testUserEntity.authorities[1]
         every { userRepository.save(any()) } returns mockk(relaxed = true)
 
         val userUpdate = testUser.copy(
