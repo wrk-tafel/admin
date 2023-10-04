@@ -9,6 +9,7 @@ import {
   Validators
 } from '@angular/forms';
 import {GeneratedPasswordResponse, UserApiService, UserData, UserPermission} from '../../../api/user-api.service';
+import {ToastService, ToastType} from '../../../common/views/default-layout/toasts/toast.service';
 
 @Component({
   selector: 'tafel-user-form',
@@ -35,7 +36,10 @@ export class UserFormComponent implements OnInit {
   passwordTextVisible: boolean;
   passwordRepeatTextVisible: boolean;
 
-  constructor(private userApiService: UserApiService) {
+  constructor(
+    private userApiService: UserApiService,
+    private toastService: ToastService
+  ) {
   }
 
   ngOnInit(): void {
@@ -85,7 +89,11 @@ export class UserFormComponent implements OnInit {
         this.passwordRepeatTextVisible = true;
       },
       error: error => {
-        // TODO toast?
+        this.toastService.showToast({
+          type: ToastType.ERROR,
+          title: 'Fehler',
+          message: 'Passwort-Generierung fehlgeschlagen!'
+        });
       },
     };
 

@@ -4,7 +4,8 @@ import {passwordRepeatValidator, UserFormComponent} from './user-form.component'
 import {FormControl, FormGroup, ReactiveFormsModule} from '@angular/forms';
 import {CardModule, ColComponent, InputGroupComponent, RowComponent} from '@coreui/angular';
 import {UserApiService, UserData, UserPermission} from '../../../api/user-api.service';
-import {of} from 'rxjs';
+import {of, throwError} from 'rxjs';
+import {ToastService, ToastType} from "../../../common/views/default-layout/toasts/toast.service";
 
 describe('UserFormComponent', () => {
   const mockPermissions: UserPermission[] = [
@@ -24,6 +25,7 @@ describe('UserFormComponent', () => {
   };
 
   let userApiService: jasmine.SpyObj<UserApiService>;
+  let toastService: jasmine.SpyObj<ToastService>;
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
@@ -42,11 +44,16 @@ describe('UserFormComponent', () => {
         {
           provide: UserApiService,
           useValue: jasmine.createSpyObj('UserApiService', ['generatePassword', 'getPermissions'])
+        },
+        {
+          provide: ToastService,
+          useValue: jasmine.createSpyObj('ToastService', ['showToast'])
         }
       ]
     }).compileComponents();
 
     userApiService = TestBed.inject(UserApiService) as jasmine.SpyObj<UserApiService>;
+    toastService = TestBed.inject(ToastService) as jasmine.SpyObj<ToastService>;
   }));
 
   it('should create the component', waitForAsync(() => {
@@ -168,6 +175,29 @@ describe('UserFormComponent', () => {
     expect(component.passwordRepeat.value).toEqual(generatedPassword);
     expect(component.passwordTextVisible).toBeTrue();
     expect(component.passwordRepeatTextVisible).toBeTrue();
+  }));
+
+  it('generate password failed', waitForAsync(() => {
+    const fixture = TestBed.createComponent(UserFormComponent);
+    const component = fixture.componentInstance;
+    component.passwordTextVisible = false;
+    component.passwordRepeatTextVisible = false;
+
+    const generatedPassword = 'random-pwd';
+    userApiService.generatePassword.and.returnValues(throwError(() => 'generation failed'));
+
+    component.generatePassword();
+
+    expect(component.password.value).toBeNull();
+    expect(component.passwordRepeat.value).toBeNull();
+    expect(component.passwordTextVisible).toBeFalse();
+    expect(component.passwordRepeatTextVisible).toBeFalse();
+
+    expect(toastService.showToast).toHaveBeenCalledWith({
+      type: ToastType.ERROR,
+      title: 'Fehler',
+      message: 'Passwort-Generierung fehlgeschlagen!'
+    });
   }));
 
 });
