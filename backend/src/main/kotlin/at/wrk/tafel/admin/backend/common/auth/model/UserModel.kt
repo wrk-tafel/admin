@@ -59,9 +59,10 @@ data class PermissionsListResponse(
 @ExcludeFromTestCoverage
 enum class UserPermissions(val key: String, val title: String) {
     CHECKIN("CHECKIN", "Anmeldung"),
+    DISTRIBUTION_LCM("DISTRIBUTION_LCM", "Ausgabe-Ablauf"),
     USER_MANAGEMENT("USER_MANAGEMENT", "Benutzerverwaltung"),
-    DISTRIBUTION_LCM("DISTRIBUTION_LCM", "Ausgabe-Steuerung"),
-    CUSTOMER("CUSTOMER", "Kundenverwaltung");
+    CUSTOMER("CUSTOMER", "Kundenverwaltung"),
+    SCANNER("SCANNER", "Scanner");
 
     companion object {
         fun valueOfKey(key: String): UserPermissions? {

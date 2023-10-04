@@ -85,6 +85,7 @@ export class UserFormComponent implements OnInit {
         this.passwordRepeatTextVisible = true;
       },
       error: error => {
+        // TODO toast?
       },
     };
 

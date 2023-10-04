@@ -4,6 +4,7 @@ import at.wrk.tafel.admin.backend.common.auth.components.PasswordChangeException
 import at.wrk.tafel.admin.backend.common.auth.components.TafelUserDetailsManager
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
+import at.wrk.tafel.admin.backend.common.auth.model.UserPermissions
 import at.wrk.tafel.admin.backend.config.WebSecurityConfig
 import at.wrk.tafel.admin.backend.database.entities.auth.UserAuthorityEntity
 import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
@@ -454,6 +455,16 @@ class TafelUserDetailsManagerTest {
                 entity
             }.toMutableList()
             passwordChangeRequired = false
+            authorities = mutableListOf(
+                UserAuthorityEntity().apply {
+                    user = testUserEntity
+                    name = UserPermissions.CHECKIN.key
+                },
+                UserAuthorityEntity().apply {
+                    user = testUserEntity
+                    name = UserPermissions.DISTRIBUTION_LCM.key
+                }
+            )
         }
 
         every { userRepository.findById(testUser.id) } returns Optional.of(testUserEntity)
@@ -465,7 +476,10 @@ class TafelUserDetailsManagerTest {
             firstname = "new-firstname",
             lastname = "new-lastname",
             enabled = false,
-            passwordChangeRequired = true
+            passwordChangeRequired = true,
+            authorities = listOf(
+                SimpleGrantedAuthority(UserPermissions.CHECKIN.key)
+            )
         )
         manager.updateUser(userUpdate)
 
@@ -482,6 +496,8 @@ class TafelUserDetailsManagerTest {
         assertThat(updatedUser.lastname).isEqualTo(userUpdate.lastname)
         assertThat(updatedUser.enabled).isEqualTo(userUpdate.enabled)
         assertThat(updatedUser.passwordChangeRequired).isEqualTo(userUpdate.passwordChangeRequired)
+        assertThat(updatedUser.authorities).hasSize(1)
+        assertThat(updatedUser.authorities.first().name).isEqualTo(UserPermissions.CHECKIN.key)
     }
 
     @Test

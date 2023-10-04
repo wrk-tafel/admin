@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.common.auth.components
 
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
+import at.wrk.tafel.admin.backend.database.entities.auth.UserAuthorityEntity
 import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
 import org.passay.DictionarySubstringRule
@@ -141,6 +142,16 @@ class TafelUserDetailsManager(
         userEntity.lastname = tafelUser.lastname
         userEntity.enabled = tafelUser.enabled
         userEntity.passwordChangeRequired = tafelUser.passwordChangeRequired
+
+        userEntity.authorities.clear()
+        userEntity.authorities.addAll(
+            tafelUser.authorities.map {
+                val authorityEntity = UserAuthorityEntity()
+                authorityEntity.user = userEntity
+                authorityEntity.name = it.authority
+                authorityEntity
+            }.toMutableList()
+        )
     }
 
 }

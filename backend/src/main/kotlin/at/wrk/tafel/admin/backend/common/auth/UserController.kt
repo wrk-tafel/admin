@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -118,6 +119,8 @@ class UserController(
         return UserListResponse(items = users)
     }
 
+    // TODO add createUser
+
     @PostMapping("/{userId}")
     @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
     fun updateUser(
@@ -173,11 +176,15 @@ class UserController(
         return tafelUser.copy(
             id = userUpdate.id,
             username = userUpdate.username,
+            personnelNumber = userUpdate.personnelNumber,
             firstname = userUpdate.firstname,
             lastname = userUpdate.lastname,
             enabled = userUpdate.enabled,
             password = userUpdate.password,
-            passwordChangeRequired = userUpdate.passwordChangeRequired
+            passwordChangeRequired = userUpdate.passwordChangeRequired,
+            authorities = userUpdate.permissions
+                .filter { it.enabled == true }
+                .map { SimpleGrantedAuthority(it.key) }
         )
     }
 

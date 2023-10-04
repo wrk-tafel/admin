@@ -8,6 +8,8 @@ import at.wrk.tafel.admin.backend.common.auth.components.TafelUserDetailsManager
 import at.wrk.tafel.admin.backend.common.auth.model.ChangePasswordRequest
 import at.wrk.tafel.admin.backend.common.auth.model.GeneratedPasswordResponse
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
+import at.wrk.tafel.admin.backend.common.auth.model.User
 import at.wrk.tafel.admin.backend.common.auth.model.UserPermission
 import at.wrk.tafel.admin.backend.common.auth.model.UserPermissions
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
@@ -15,6 +17,7 @@ import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
+import io.mockk.slot
 import io.mockk.verify
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -190,11 +193,45 @@ class UserControllerTest {
     fun `update user found`() {
         every { userDetailsManager.loadUserById(any()) } returns testUser
 
-        val updatedUserResponse = controller.updateUser(userId = 123, user = testUserApiResponse)
+        val newPermission = UserPermission(
+            key = UserPermissions.CHECKIN.key,
+            title = UserPermissions.CHECKIN.title,
+            enabled = true
+        )
+        val disabledPermission = UserPermission(
+            key = UserPermissions.USER_MANAGEMENT.key,
+            title = UserPermissions.USER_MANAGEMENT.title,
+            enabled = false
+        )
+        val updatedUser = User(
+            id = 123,
+            username = "updated-username",
+            personnelNumber = "updated-personnelnumber",
+            firstname = "updated-firstname",
+            lastname = "updated-lastname",
+            permissions = listOf(disabledPermission, newPermission),
+            passwordChangeRequired = true,
+            enabled = false
+        )
+
+        val updatedUserResponse = controller.updateUser(userId = testUser.id, user = updatedUser)
 
         assertThat(updatedUserResponse.statusCode).isEqualTo(HttpStatus.OK)
         assertThat(updatedUserResponse.body).isEqualTo(testUserApiResponse)
-        verify(exactly = 1) { userDetailsManager.updateUser(testUser) }
+
+        val updatedUserDetailsSlot = slot<TafelUser>()
+        verify(exactly = 1) { userDetailsManager.updateUser(capture(updatedUserDetailsSlot)) }
+
+        val userDetails = updatedUserDetailsSlot.captured
+        assertThat(userDetails.id).isEqualTo(updatedUser.id)
+        assertThat(userDetails.username).isEqualTo(updatedUser.username)
+        assertThat(userDetails.personnelNumber).isEqualTo(updatedUser.personnelNumber)
+        assertThat(userDetails.firstname).isEqualTo(updatedUser.firstname)
+        assertThat(userDetails.lastname).isEqualTo(updatedUser.lastname)
+        assertThat(userDetails.authorities).isEqualTo(listOf(SimpleGrantedAuthority(UserPermissions.CHECKIN.key)))
+        assertThat(userDetails.password).isEqualTo(updatedUser.password)
+        assertThat(userDetails.passwordChangeRequired).isEqualTo(updatedUser.passwordChangeRequired)
+        assertThat(userDetails.enabled).isEqualTo(updatedUser.enabled)
     }
 
     @Test
