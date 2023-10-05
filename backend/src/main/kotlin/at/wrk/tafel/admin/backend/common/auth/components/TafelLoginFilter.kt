@@ -74,7 +74,7 @@ class TafelLoginFilter(
                 expirationSeconds = expirationTimeInSeconds
             )
 
-            logger.info("Login successful via user '${user.username}' from IP '${getIpAddress(request)}' on '${request.requestURL}' (password-change required: ${user.passwordChangeRequired})")
+            logger.info("Login successful via user '${user.username}' on '${request.requestURL}' (password-change required: ${user.passwordChangeRequired})")
 
             val cookie = createTokenCookie(token, expirationTimeInSeconds, request)
             response.addCookie(cookie)
@@ -94,16 +94,7 @@ class TafelLoginFilter(
         failed: AuthenticationException
     ) {
         response.status = HttpStatus.FORBIDDEN.value()
-        logger.info("Login failed - ${failed.message} (from IP: ${getIpAddress(request)})")
-    }
-
-    // TODO find a different solution
-    private fun getIpAddress(request: HttpServletRequest): String {
-        var ipAddress = request.getHeader("X-Real-IP")
-        if (ipAddress == null) {
-            ipAddress = request.remoteAddr
-        }
-        return ipAddress
+        logger.info("Login failed - ${failed.message}")
     }
 
 }

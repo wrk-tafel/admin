@@ -16,7 +16,11 @@ describe('UserDetailComponent', () => {
     firstname: 'first',
     lastname: 'last',
     enabled: true,
-    passwordChangeRequired: true
+    passwordChangeRequired: true,
+    permissions: [
+      {key: 'PERM1', title: 'Permission 1'},
+      {key: 'PERM2', title: 'Permission 2'}
+    ]
   };
 
   let userApiService: jasmine.SpyObj<UserApiService>;
@@ -129,6 +133,16 @@ describe('UserDetailComponent', () => {
     component.editUser();
 
     expect(router.navigate).toHaveBeenCalledWith(['/benutzer/bearbeiten', mockUser.id]);
+  });
+
+  it('formatted permissions', () => {
+    const fixture = TestBed.createComponent(UserDetailComponent);
+    const component = fixture.componentInstance;
+    component.userData = mockUser;
+
+    const permissions = component.formatPermissions();
+
+    expect(permissions).toEqual(`${mockUser.permissions[0].title}, ${mockUser.permissions[1].title}`);
   });
 
   function getTextByTestId(fixture: ComponentFixture<UserDetailComponent>, testId: string): string {

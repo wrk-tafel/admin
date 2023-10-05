@@ -19,7 +19,8 @@ describe('UserApiService', () => {
     firstname: 'first',
     lastname: 'last',
     enabled: true,
-    passwordChangeRequired: true
+    passwordChangeRequired: true,
+    permissions: []
   };
 
   beforeEach(() => {
@@ -105,7 +106,8 @@ describe('UserApiService', () => {
       lastname: 'Mustermann',
       firstname: 'Max',
       enabled: true,
-      passwordChangeRequired: true
+      passwordChangeRequired: true,
+      permissions: []
     };
     apiService.updateUser(mockUserUpdate).subscribe();
 
@@ -129,6 +131,14 @@ describe('UserApiService', () => {
 
     const req = httpMock.expectOne({method: 'POST', url: '/users'});
     expect(req.request.body).toEqual(mockUser);
+    req.flush(null);
+    httpMock.verify();
+  });
+
+  it('get permissions', () => {
+    apiService.getPermissions().subscribe();
+
+    const req = httpMock.expectOne({method: 'GET', url: '/users/permissions'});
     req.flush(null);
     httpMock.verify();
   });

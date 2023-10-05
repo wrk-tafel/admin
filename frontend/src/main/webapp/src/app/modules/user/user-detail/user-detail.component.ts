@@ -49,4 +49,10 @@ export class UserDetailComponent implements OnInit {
     this.router.navigate(['/benutzer/bearbeiten', this.userData.id]);
   }
 
+  formatPermissions(): string {
+    return this.userData?.permissions
+      .map(permission => permission.title)
+      .join(', ');
+  }
+
 }

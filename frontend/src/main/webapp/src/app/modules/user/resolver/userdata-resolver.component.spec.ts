@@ -33,7 +33,8 @@ describe('UserDataResolver', () => {
       firstname: 'first',
       lastname: 'last',
       enabled: true,
-      passwordChangeRequired: true
+      passwordChangeRequired: true,
+      permissions: []
     };
     apiService.getUserForId.withArgs(mockUser.id).and.returnValue(of(mockUser));
 

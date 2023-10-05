@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.common.auth.components
 
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
+import at.wrk.tafel.admin.backend.database.entities.auth.UserAuthorityEntity
 import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
 import org.passay.DictionarySubstringRule
@@ -57,14 +58,18 @@ class TafelUserDetailsManager(
     }
 
     override fun createUser(user: UserDetails?) {
-        TODO("Not yet implemented")
+        val tafelUser = user as TafelUser
+
+        val userEntity = UserEntity()
+        mapToUserEntity(userEntity, tafelUser)
+        userRepository.save(userEntity)
     }
 
     override fun updateUser(user: UserDetails) {
         val tafelUser = user as TafelUser
 
-        val userEntity: UserEntity = userRepository.findById(user.id).get()
-        updateUserEntity(userEntity, tafelUser)
+        val userEntity: UserEntity = userRepository.getReferenceById(user.id)
+        mapToUserEntity(userEntity, tafelUser)
         userRepository.save(userEntity)
     }
 
@@ -114,7 +119,7 @@ class TafelUserDetailsManager(
 
     override fun userExists(username: String): Boolean = userRepository.existsByUsername(username)
 
-    // TODO after the new security mechanism this could be reduced
+    // TODO this could be reduced after the new security mechanism is implemented
     private fun mapToUserDetails(userEntity: UserEntity): TafelUser {
         return TafelUser(
             id = userEntity.id!!,
@@ -129,18 +134,34 @@ class TafelUserDetailsManager(
         )
     }
 
-    private fun updateUserEntity(userEntity: UserEntity, tafelUser: TafelUser) {
-        val newPassword = tafelUser.password
-        if (newPassword != null && isPasswordValid(tafelUser.username, newPassword)) {
-            userEntity.password = passwordEncoder.encode(newPassword)
-        }
-
+    private fun mapToUserEntity(userEntity: UserEntity, tafelUser: TafelUser) {
         userEntity.personnelNumber = tafelUser.personnelNumber
         userEntity.username = tafelUser.username
         userEntity.firstname = tafelUser.firstname
         userEntity.lastname = tafelUser.lastname
         userEntity.enabled = tafelUser.enabled
+        val newPassword = tafelUser.password
+        if (newPassword != null && isPasswordValid(tafelUser.username, newPassword)) {
+            userEntity.password = passwordEncoder.encode(newPassword)
+        }
         userEntity.passwordChangeRequired = tafelUser.passwordChangeRequired
+
+        // remove old permissions
+        userEntity.authorities.removeIf { authorityEntity ->
+            !tafelUser.authorities.map { it.authority }.contains(authorityEntity.name)
+        }
+
+        // add new permissions
+        val currentAuthorities = userEntity.authorities.map { it.name }
+        val newAuthorities = tafelUser.authorities.map { it.authority } - currentAuthorities.toSet()
+        userEntity.authorities.addAll(
+            newAuthorities.map { name ->
+                val userAuthorityEntity = UserAuthorityEntity()
+                userAuthorityEntity.user = userEntity
+                userAuthorityEntity.name = name
+                userAuthorityEntity
+            }.toMutableList()
+        )
     }
 
 }

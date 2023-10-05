@@ -19,6 +19,7 @@ import {DefaultLayoutResolver} from './common/views/default-layout/resolver/defa
 import {
   TicketScreenFullscreenComponent
 } from './modules/checkin/ticket-screen-fullscreen/ticket-screen-fullscreen.component';
+import {UserPasswordChangeComponent} from "./modules/user/user-passwordchange/user-passwordchange.component";
 
 const authGuard: CanActivateFn = (route: ActivatedRouteSnapshot) => {
   return inject(AuthGuardService).canActivate(route);
@@ -76,7 +77,7 @@ export const routes: Routes = [
         path: 'uebersicht',
         loadChildren: () => import('./modules/dashboard/dashboard.module').then(m => m.DashboardModule),
         data: {
-          permission: 'DASHBOARD'
+          anyPermission: true
         }
       },
       {
@@ -95,7 +96,14 @@ export const routes: Routes = [
       },
       {
         path: 'benutzer',
-        loadChildren: () => import('./modules/user/user.module').then(m => m.UserModule)
+        loadChildren: () => import('./modules/user/user.module').then(m => m.UserModule),
+        data: {
+          permission: 'USER_MANAGEMENT'
+        }
+      },
+      {
+        path: 'passwortaendern',
+        component: UserPasswordChangeComponent
       }
     ]
   },

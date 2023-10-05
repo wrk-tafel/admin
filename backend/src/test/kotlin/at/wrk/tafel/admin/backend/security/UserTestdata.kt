@@ -2,11 +2,13 @@ package at.wrk.tafel.admin.backend.security
 
 import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
 import at.wrk.tafel.admin.backend.common.auth.model.User
+import at.wrk.tafel.admin.backend.common.auth.model.UserPermission
+import at.wrk.tafel.admin.backend.common.auth.model.UserPermissions
 import at.wrk.tafel.admin.backend.database.entities.auth.UserAuthorityEntity
 import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 
-val testUserPermissions = listOf("TEST1", "TEST2")
+val testUserPermissions = listOf(UserPermissions.CHECKIN, UserPermissions.USER_MANAGEMENT)
 
 val testUserEntity = UserEntity().apply {
     id = 0
@@ -21,7 +23,7 @@ val testUserEntity = UserEntity().apply {
     authorities = testUserPermissions.map {
         val entity = UserAuthorityEntity()
         entity.user = this
-        entity.name = it
+        entity.name = it.key
         entity
     }.toMutableList()
     passwordChangeRequired = false
@@ -35,7 +37,7 @@ val testUser = TafelUser(
     personnelNumber = testUserEntity.personnelNumber!!,
     firstname = testUserEntity.firstname!!,
     lastname = testUserEntity.lastname!!,
-    authorities = testUserPermissions.map { SimpleGrantedAuthority(it) },
+    authorities = testUserPermissions.map { SimpleGrantedAuthority(it.key) },
     passwordChangeRequired = false
 )
 
@@ -46,5 +48,8 @@ val testUserApiResponse = User(
     firstname = testUserEntity.firstname!!,
     lastname = testUserEntity.lastname!!,
     enabled = testUserEntity.enabled!!,
-    passwordChangeRequired = testUserEntity.passwordChangeRequired!!
+    passwordChangeRequired = testUserEntity.passwordChangeRequired!!,
+    permissions = testUserPermissions.map {
+        UserPermission(key = it.key, title = it.title)
+    }
 )

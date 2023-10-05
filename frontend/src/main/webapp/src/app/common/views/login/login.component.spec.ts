@@ -126,7 +126,7 @@ describe('LoginComponent', () => {
 
     await component.login();
 
-    expect(router.navigate).toHaveBeenCalledWith(['login/passwortaendern']);
+    expect(router.navigate).toHaveBeenCalledWith(['/login/passwortaendern']);
   });
 
 });

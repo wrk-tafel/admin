@@ -9,8 +9,6 @@ VALUES (100, NOW(), NOW(), 'e2etest',
         '{argon2}$argon2id$v=19$m=4096,t=3,p=1$Cnj0ayQKhOPbkomIRV5tnQ$BfU/uOr20/vg9ie0CQcWhCD00DqjPDf6UI0pRvz1/gg',
         true, '00000', 'E2E', 'Test');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
-VALUES (1000, NOW(), NOW(), 100, 'DASHBOARD');
-INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (1001, NOW(), NOW(), 100, 'CUSTOMER');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (1002, NOW(), NOW(), 100, 'SCANNER');
@@ -19,7 +17,7 @@ VALUES (1003, NOW(), NOW(), 100, 'CHECKIN');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (1004, NOW(), NOW(), 100, 'DISTRIBUTION_LCM');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
-VALUES (1005, NOW(), NOW(), 100, 'USER-MANAGEMENT');
+VALUES (1005, NOW(), NOW(), 100, 'USER_MANAGEMENT');
 
 -- user e2etest2 for cypress test (password change)
 -- pwd: e2etest
@@ -28,7 +26,7 @@ VALUES (101, NOW(), NOW(), 'e2etest2',
         '{argon2}$argon2id$v=19$m=4096,t=3,p=1$Cnj0ayQKhOPbkomIRV5tnQ$BfU/uOr20/vg9ie0CQcWhCD00DqjPDf6UI0pRvz1/gg',
         true, '00000-0', 'E2E PWD', 'Test 2');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
-VALUES (1010, NOW(), NOW(), 101, 'DASHBOARD');
+VALUES (1011, NOW(), NOW(), 101, 'DISTRIBUTION_LCM');
 
 -- user e2etest3 for cypress test (forced password change on login)
 -- pwd: e2etest
@@ -38,7 +36,7 @@ VALUES (102, NOW(), NOW(), 'e2etest3',
         '{argon2}$argon2id$v=19$m=4096,t=3,p=1$Cnj0ayQKhOPbkomIRV5tnQ$BfU/uOr20/vg9ie0CQcWhCD00DqjPDf6UI0pRvz1/gg',
         true, '00000-3', 'E2E', 'Test 3', true);
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
-VALUES (1020, NOW(), NOW(), 102, 'DASHBOARD');
+VALUES (1021, NOW(), NOW(), 102, 'DISTRIBUTION_LCM');
 
 -- user e2etest4 for cypress test (delete user from detail page)
 -- pwd: e2etest
@@ -47,8 +45,6 @@ INSERT INTO users (id, created_at, updated_at, username, password, enabled, pers
 VALUES (103, NOW(), NOW(), 'e2etest4',
         '{argon2}$argon2id$v=19$m=4096,t=3,p=1$Cnj0ayQKhOPbkomIRV5tnQ$BfU/uOr20/vg9ie0CQcWhCD00DqjPDf6UI0pRvz1/gg',
         true, '00000-4', 'E2E', 'Test 4', true);
-INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
-VALUES (1030, NOW(), NOW(), 103, 'DASHBOARD');
 
 -- user: testuser
 -- pwd: 35bc40681124f412c5d052366edb9eb9
@@ -56,8 +52,6 @@ INSERT INTO users (id, created_at, updated_at, username, password, enabled, pers
 VALUES (200, NOW(), NOW(), 'testuser',
         '{argon2}$argon2id$v=19$m=4096,t=3,p=1$DZTJhKdC4/5fzGDI2CtozA$ELfBRSqAKes7ThqkzL7AN6JkEq7wzWgKejhLQ02XD6c',
         true, '0200', 'Test', 'User');
-INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
-VALUES (2000, NOW(), NOW(), 200, 'DASHBOARD');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (2001, NOW(), NOW(), 200, 'CUSTOMER');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
@@ -74,8 +68,6 @@ VALUES (300, NOW(), NOW(), 'admin',
         '{argon2}$argon2id$v=19$m=4096,t=3,p=1$RXn6Xt/0q/Wtrvdns6NUnw$X3xWUjENAbNSJNckeVFXWrjkoFSowwlu3xHx1/zb40w',
         true, 'admin-persnr', 'AD', 'min');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
-VALUES (3000, NOW(), NOW(), 300, 'DASHBOARD');
-INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (3001, NOW(), NOW(), 300, 'CUSTOMER');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (3002, NOW(), NOW(), 300, 'SCANNER');
@@ -84,7 +76,7 @@ VALUES (3003, NOW(), NOW(), 300, 'CHECKIN');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (3004, NOW(), NOW(), 300, 'DISTRIBUTION_LCM');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
-VALUES (3005, NOW(), NOW(), 300, 'USER-MANAGEMENT');
+VALUES (3005, NOW(), NOW(), 300, 'USER_MANAGEMENT');
 
 -- user: scanner1
 -- pwd: 12345
@@ -92,8 +84,6 @@ INSERT INTO users (id, created_at, updated_at, username, password, enabled, pers
 VALUES (400, NOW(), NOW(), 'scanner1',
         '{argon2}$argon2id$v=19$m=4096,t=3,p=1$RXn6Xt/0q/Wtrvdns6NUnw$X3xWUjENAbNSJNckeVFXWrjkoFSowwlu3xHx1/zb40w',
         true, '0400', 'Scanner', '1');
-INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
-VALUES (4000, NOW(), NOW(), 400, 'DASHBOARD');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (4001, NOW(), NOW(), 400, 'SCANNER');
 
@@ -103,8 +93,6 @@ INSERT INTO users (id, created_at, updated_at, username, password, enabled, pers
 VALUES (500, NOW(), NOW(), 'scanner2',
         '{argon2}$argon2id$v=19$m=4096,t=3,p=1$RXn6Xt/0q/Wtrvdns6NUnw$X3xWUjENAbNSJNckeVFXWrjkoFSowwlu3xHx1/zb40w',
         true, '0401', 'Scanner', '2');
-INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
-VALUES (5000, NOW(), NOW(), 500, 'DASHBOARD');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (5001, NOW(), NOW(), 500, 'SCANNER');
 

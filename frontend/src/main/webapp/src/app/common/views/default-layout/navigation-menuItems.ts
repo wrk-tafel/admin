@@ -10,8 +10,7 @@ export const navigationMenuItems: ITafelNavData[] = [
   {
     name: 'Übersicht',
     url: '/uebersicht',
-    icon: 'fa fa-gauge',
-    permissions: ['DASHBOARD']
+    icon: 'fa fa-gauge'
   },
   {
     name: 'Anmeldung',
@@ -53,19 +52,24 @@ export const navigationMenuItems: ITafelNavData[] = [
     permissions: ['CUSTOMER']
   },
   {
-    name: 'Benutzer',
+    name: 'Sonstige',
     title: true
   },
   {
-    name: 'Benutzer suchen',
-    url: '/benutzer/suchen',
-    icon: 'fa fa-search',
-    permissions: ['USER-MANAGEMENT']
-  },
-  {
-    name: 'Benutzer anlegen',
-    url: '/benutzer/erstellen',
-    icon: 'fa fa-plus',
-    permissions: ['USER-MANAGEMENT']
+    name: 'Benutzer',
+    iconComponent: {name: 'cil-user'},
+    permissions: ['USER_MANAGEMENT'],
+    children: [
+      {
+        name: 'Benutzer suchen',
+        url: '/benutzer/suchen',
+        icon: 'fa fa-search'
+      },
+      {
+        name: 'Benutzer anlegen',
+        url: '/benutzer/erstellen',
+        icon: 'fa fa-plus'
+      }
+    ]
   }
 ];

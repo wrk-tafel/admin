@@ -1,6 +1,5 @@
 package at.wrk.tafel.admin.backend.common.auth
 
-import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.common.auth.components.PasswordChangeException
 import at.wrk.tafel.admin.backend.common.auth.components.TafelLoginFilter
 import at.wrk.tafel.admin.backend.common.auth.components.TafelPasswordGenerator
@@ -8,10 +7,14 @@ import at.wrk.tafel.admin.backend.common.auth.components.TafelUserDetailsManager
 import at.wrk.tafel.admin.backend.common.auth.model.ChangePasswordRequest
 import at.wrk.tafel.admin.backend.common.auth.model.ChangePasswordResponse
 import at.wrk.tafel.admin.backend.common.auth.model.GeneratedPasswordResponse
+import at.wrk.tafel.admin.backend.common.auth.model.PermissionsListResponse
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
 import at.wrk.tafel.admin.backend.common.auth.model.User
+import at.wrk.tafel.admin.backend.common.auth.model.UserInfo
 import at.wrk.tafel.admin.backend.common.auth.model.UserListResponse
+import at.wrk.tafel.admin.backend.common.auth.model.UserPermission
+import at.wrk.tafel.admin.backend.common.auth.model.UserPermissions
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -19,6 +22,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -83,7 +87,7 @@ class UserController(
     }
 
     @GetMapping("/{userId}")
-    @PreAuthorize("hasAuthority('USER-MANAGEMENT')")
+    @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
     fun getUser(@PathVariable("userId") userId: Long): ResponseEntity<User> {
         val userDetails = userDetailsManager.loadUserById(userId)
             ?: throw TafelValidationException(
@@ -95,7 +99,7 @@ class UserController(
     }
 
     @GetMapping
-    @PreAuthorize("hasAuthority('USER-MANAGEMENT')")
+    @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
     fun getUsers(
         @RequestParam("personnelnumber") personnelNumber: String? = null,
         @RequestParam firstname: String? = null,
@@ -115,13 +119,25 @@ class UserController(
         return UserListResponse(items = users)
     }
 
+    @PostMapping
+    @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
+    fun createUser(
+        @RequestBody user: User
+    ): ResponseEntity<User> {
+        val tafelUser = mapToTafelUser(user)
+        userDetailsManager.createUser(tafelUser)
+
+        val userResponse = mapToResponse(userDetailsManager.loadUserByUsername(user.username))
+        return ResponseEntity.ok(userResponse)
+    }
+
     @PostMapping("/{userId}")
-    @PreAuthorize("hasAuthority('USER-MANAGEMENT')")
+    @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
     fun updateUser(
         @PathVariable("userId") userId: Long,
         @RequestBody user: User
     ): ResponseEntity<User> {
-        val tafelUser = userDetailsManager.loadUserById(userId)
+        userDetailsManager.loadUserById(userId)
             ?: throw TafelValidationException(
                 message = "Benutzer (ID: $userId) nicht vorhanden!",
                 status = HttpStatus.NOT_FOUND
@@ -135,7 +151,7 @@ class UserController(
         }
 
         try {
-            val updatedTafelUser = mapToTafelUser(tafelUser, user)
+            val updatedTafelUser = mapToTafelUser(user)
             userDetailsManager.updateUser(updatedTafelUser)
 
             val userResponse = mapToResponse(userDetailsManager.loadUserById(userId)!!)
@@ -146,7 +162,7 @@ class UserController(
     }
 
     @DeleteMapping("/{userId}")
-    @PreAuthorize("hasAuthority('USER-MANAGEMENT')")
+    @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
     fun deleteUser(
         @PathVariable("userId") userId: Long
     ) {
@@ -159,15 +175,27 @@ class UserController(
         userDetailsManager.deleteUser(tafelUser.username)
     }
 
-    private fun mapToTafelUser(tafelUser: TafelUser, userUpdate: User): TafelUser {
-        return tafelUser.copy(
-            id = userUpdate.id,
-            username = userUpdate.username,
-            firstname = userUpdate.firstname,
-            lastname = userUpdate.lastname,
-            enabled = userUpdate.enabled,
-            password = userUpdate.password,
-            passwordChangeRequired = userUpdate.passwordChangeRequired
+    @GetMapping("/permissions")
+    @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
+    fun getPermissions(): ResponseEntity<PermissionsListResponse> {
+        val permissions = UserPermissions.values()
+            .toList()
+            .sortedBy { it.title }
+            .mapNotNull { mapToUserPermission(it.key) }
+        return ResponseEntity.ok(PermissionsListResponse(permissions = permissions))
+    }
+
+    private fun mapToTafelUser(user: User): TafelUser {
+        return TafelUser(
+            id = user.id,
+            username = user.username,
+            personnelNumber = user.personnelNumber,
+            firstname = user.firstname,
+            lastname = user.lastname,
+            enabled = user.enabled,
+            password = user.password,
+            passwordChangeRequired = user.passwordChangeRequired,
+            authorities = user.permissions.map { SimpleGrantedAuthority(it.key) }
         )
     }
 
@@ -181,14 +209,19 @@ class UserController(
             enabled = user.isEnabled,
             password = null,
             passwordRepeat = null,
-            passwordChangeRequired = user.passwordChangeRequired
+            passwordChangeRequired = user.passwordChangeRequired,
+            permissions = user.authorities
+                .mapNotNull { authority -> mapToUserPermission(authority.authority) }
+                .sortedBy { it.title }
+        )
+    }
+
+    private fun mapToUserPermission(key: String): UserPermission {
+        val permissionEnum = UserPermissions.valueOfKey(key)
+        return UserPermission(
+            key = permissionEnum.key,
+            title = permissionEnum.title
         )
     }
 
 }
-
-@ExcludeFromTestCoverage
-data class UserInfo(
-    val username: String,
-    val permissions: List<String>
-)

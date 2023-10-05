@@ -26,7 +26,7 @@ describe('Customer Creation', () => {
   });
 
   it('create existing qualified customer', () => {
-    const customerId = getRandomNumber(20000, 500000);
+    const customerId = getRandomNumber(20000, 20999);
     createCustomer(customerId);
 
     cy.byTestId('validationresult-modal')
@@ -145,10 +145,10 @@ describe('Customer Creation', () => {
     excludeFromHousehold: boolean;
   }
 
-  function getRandomNumber(min, max) {
-    min = Math.ceil(min);
-    max = Math.floor(max);
-    return Math.floor(Math.random() * (max - min + 1)) + min;
+  function getRandomNumber(min: number, max: number): number {
+    const minCeil = Math.ceil(min);
+    const maxFloor = Math.floor(max);
+    return Math.floor(Math.random() * (maxFloor - minCeil + 1)) + minCeil;
   }
 
 });

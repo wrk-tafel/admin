@@ -1,4 +1,4 @@
-import {AuthGuardService} from './authguard.service';
+import {AuthGuardData, AuthGuardService} from './authguard.service';
 import {ActivatedRouteSnapshot} from '@angular/router';
 
 describe('AuthGuardService', () => {
@@ -25,9 +25,20 @@ describe('AuthGuardService', () => {
   it('canActivate when authenticated without permissions', () => {
     const {service, authServiceSpy} = setup();
     authServiceSpy.isAuthenticated.and.returnValue(true);
+
+    const activatedRoute = <ActivatedRouteSnapshot><AuthGuardData>{data: {}};
+    const canActivate = service.canActivate(activatedRoute);
+
+    expect(canActivate).toBeTrue();
+    expect(authServiceSpy.redirectToLogin).not.toHaveBeenCalled();
+  });
+
+  it('canActivate when authenticated without permissions but anyPermission is necessary', () => {
+    const {service, authServiceSpy} = setup();
+    authServiceSpy.isAuthenticated.and.returnValue(true);
     authServiceSpy.hasAnyPermission.and.returnValue(false);
 
-    const activatedRoute = <ActivatedRouteSnapshot>{data: {}};
+    const activatedRoute = <ActivatedRouteSnapshot><AuthGuardData>{data: {anyPermission: true}};
     const canActivate = service.canActivate(activatedRoute);
 
     expect(canActivate).toBeFalse();
@@ -40,7 +51,7 @@ describe('AuthGuardService', () => {
     authServiceSpy.hasAnyPermission.and.returnValue(true);
     authServiceSpy.hasPermission.and.returnValue(false);
 
-    const activatedRoute = <ActivatedRouteSnapshot><unknown>{data: {permission: 'PERM2'}};
+    const activatedRoute = <ActivatedRouteSnapshot><AuthGuardData>{data: {permission: 'PERM2'}};
     const canActivate = service.canActivate(activatedRoute);
 
     expect(canActivate).toBeFalse();
@@ -53,7 +64,7 @@ describe('AuthGuardService', () => {
     authServiceSpy.hasAnyPermission.and.returnValue(true);
     authServiceSpy.hasPermission.and.returnValue(true);
 
-    const activatedRoute = <ActivatedRouteSnapshot><unknown>{data: {permission: 'PERM1'}};
+    const activatedRoute = <ActivatedRouteSnapshot><AuthGuardData>{data: {permission: 'PERM1'}};
     const canActivate = service.canActivate(activatedRoute);
 
     expect(canActivate).toBeTruthy();

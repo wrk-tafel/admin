@@ -37,7 +37,7 @@ export class CustomerEditComponent implements OnInit {
       this.customerInput = customerData;
       this.customerUpdated = customerData;
 
-      // Mark forms as touched to show the validation state (postponed to next makrotask after angular finished)
+      // Mark forms as touched to show the validation state (postponed to next macrotask after angular finished)
       setTimeout(() => {
         this.customerFormComponent.markAllAsTouched();
       });

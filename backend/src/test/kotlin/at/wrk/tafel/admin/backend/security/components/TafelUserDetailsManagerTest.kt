@@ -4,6 +4,7 @@ import at.wrk.tafel.admin.backend.common.auth.components.PasswordChangeException
 import at.wrk.tafel.admin.backend.common.auth.components.TafelUserDetailsManager
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
+import at.wrk.tafel.admin.backend.common.auth.model.UserPermissions
 import at.wrk.tafel.admin.backend.config.WebSecurityConfig
 import at.wrk.tafel.admin.backend.database.entities.auth.UserAuthorityEntity
 import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
@@ -101,7 +102,7 @@ class TafelUserDetailsManagerTest {
 
         every { userRepository.findByUsername(any()) } returns userEntity
 
-        val userDetails = manager.loadUserByUsername("test") as TafelUser
+        val userDetails = manager.loadUserByUsername("test")
 
         assertThat(userDetails).isNotNull
         assertThat(userDetails.username).isEqualTo(userEntity.username)
@@ -128,8 +129,17 @@ class TafelUserDetailsManagerTest {
     }
 
     @Test
-    fun `createUser - not implemented`() {
-        assertThrows<NotImplementedError> { manager.createUser(null) }
+    fun `createUser`() {
+        every { userRepository.save(any()) } returns mockk(relaxed = true)
+
+        manager.createUser(testUser)
+
+        val entitySlot = slot<UserEntity>()
+        verify(exactly = 1) { userRepository.save(capture(entitySlot)) }
+
+        val entity = entitySlot.captured
+        assertThat(entity.id).isEqualTo(entity.id)
+        // detailed mapping tested in updateUser test
     }
 
     @Test
@@ -450,13 +460,23 @@ class TafelUserDetailsManagerTest {
             authorities = testUserPermissions.map {
                 val entity = UserAuthorityEntity()
                 entity.user = this
-                entity.name = it
+                entity.name = it.key
                 entity
             }.toMutableList()
             passwordChangeRequired = false
+            authorities = mutableListOf(
+                UserAuthorityEntity().apply {
+                    user = testUserEntity
+                    name = UserPermissions.CHECKIN.key
+                },
+                UserAuthorityEntity().apply {
+                    user = testUserEntity
+                    name = UserPermissions.DISTRIBUTION_LCM.key
+                }
+            )
         }
 
-        every { userRepository.findById(testUser.id) } returns Optional.of(testUserEntity)
+        every { userRepository.getReferenceById(testUser.id) } returns testUserEntity
         every { userRepository.save(any()) } returns mockk(relaxed = true)
 
         val userUpdate = testUser.copy(
@@ -465,7 +485,10 @@ class TafelUserDetailsManagerTest {
             firstname = "new-firstname",
             lastname = "new-lastname",
             enabled = false,
-            passwordChangeRequired = true
+            passwordChangeRequired = true,
+            authorities = listOf(
+                SimpleGrantedAuthority(UserPermissions.CHECKIN.key)
+            )
         )
         manager.updateUser(userUpdate)
 
@@ -482,6 +505,8 @@ class TafelUserDetailsManagerTest {
         assertThat(updatedUser.lastname).isEqualTo(userUpdate.lastname)
         assertThat(updatedUser.enabled).isEqualTo(userUpdate.enabled)
         assertThat(updatedUser.passwordChangeRequired).isEqualTo(userUpdate.passwordChangeRequired)
+        assertThat(updatedUser.authorities).hasSize(1)
+        assertThat(updatedUser.authorities.first().name).isEqualTo(UserPermissions.CHECKIN.key)
     }
 
     @Test
@@ -499,13 +524,13 @@ class TafelUserDetailsManagerTest {
             authorities = testUserPermissions.map {
                 val entity = UserAuthorityEntity()
                 entity.user = this
-                entity.name = it
+                entity.name = it.key
                 entity
             }.toMutableList()
             passwordChangeRequired = false
         }
 
-        every { userRepository.findById(testUser.id) } returns Optional.of(testUserEntity)
+        every { userRepository.getReferenceById(testUser.id) } returns testUserEntity
         every { userRepository.save(any()) } returns mockk(relaxed = true)
 
         val encodedPassword = "dummy-encoded-pwd"
@@ -554,13 +579,13 @@ class TafelUserDetailsManagerTest {
             authorities = testUserPermissions.map {
                 val entity = UserAuthorityEntity()
                 entity.user = this
-                entity.name = it
+                entity.name = it.key
                 entity
             }.toMutableList()
             passwordChangeRequired = false
         }
 
-        every { userRepository.findById(testUser.id) } returns Optional.of(testUserEntity)
+        every { userRepository.getReferenceById(testUser.id) } returns testUserEntity
         every { userRepository.save(any()) } returns mockk(relaxed = true)
         every { passwordValidator.validate(any()) } returns RuleResult(false)
 

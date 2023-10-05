@@ -8,11 +8,16 @@ import at.wrk.tafel.admin.backend.common.auth.components.TafelUserDetailsManager
 import at.wrk.tafel.admin.backend.common.auth.model.ChangePasswordRequest
 import at.wrk.tafel.admin.backend.common.auth.model.GeneratedPasswordResponse
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
+import at.wrk.tafel.admin.backend.common.auth.model.User
+import at.wrk.tafel.admin.backend.common.auth.model.UserPermission
+import at.wrk.tafel.admin.backend.common.auth.model.UserPermissions
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
+import io.mockk.slot
 import io.mockk.verify
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -48,14 +53,14 @@ class UserControllerTest {
         val authentication = TafelJwtAuthentication(
             tokenValue = "TOKEN",
             username = testUser.username,
-            authorities = testUserPermissions.map { SimpleGrantedAuthority(it) }
+            authorities = testUserPermissions.map { SimpleGrantedAuthority(it.key) }
         )
         SecurityContextHolder.setContext(SecurityContextImpl(authentication))
 
         val response = controller.getUserInfo()
 
         assertThat(response.body?.username).isEqualTo(testUser.username)
-        assertThat(response.body?.permissions).isEqualTo(testUserPermissions)
+        assertThat(response.body?.permissions).isEqualTo(testUserPermissions.map { it.key })
 
         SecurityContextHolder.clearContext()
     }
@@ -102,7 +107,7 @@ class UserControllerTest {
         val authentication = TafelJwtAuthentication(
             tokenValue = "TOKEN",
             username = testUser.username,
-            authorities = testUserPermissions.map { SimpleGrantedAuthority(it) }
+            authorities = testUserPermissions.map { SimpleGrantedAuthority(it.key) }
         )
         SecurityContextHolder.setContext(SecurityContextImpl(authentication))
 
@@ -174,6 +179,18 @@ class UserControllerTest {
     }
 
     @Test
+    fun `create user`() {
+        every { userDetailsManager.loadUserByUsername(any()) } returns testUser
+
+        val response = controller.createUser(user = testUserApiResponse)
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(response.body).isEqualTo(testUserApiResponse)
+
+        verify(exactly = 1) { userDetailsManager.createUser(testUser) }
+    }
+
+    @Test
     fun `update user not found`() {
         every { userDetailsManager.loadUserById(any()) } returns null
 
@@ -188,11 +205,39 @@ class UserControllerTest {
     fun `update user found`() {
         every { userDetailsManager.loadUserById(any()) } returns testUser
 
-        val updatedUserResponse = controller.updateUser(userId = 123, user = testUserApiResponse)
+        val newPermission = UserPermission(
+            key = UserPermissions.CHECKIN.key,
+            title = UserPermissions.CHECKIN.title
+        )
+        val updatedUser = User(
+            id = 123,
+            username = "updated-username",
+            personnelNumber = "updated-personnelnumber",
+            firstname = "updated-firstname",
+            lastname = "updated-lastname",
+            permissions = listOf(newPermission),
+            passwordChangeRequired = true,
+            enabled = false
+        )
+
+        val updatedUserResponse = controller.updateUser(userId = testUser.id, user = updatedUser)
 
         assertThat(updatedUserResponse.statusCode).isEqualTo(HttpStatus.OK)
         assertThat(updatedUserResponse.body).isEqualTo(testUserApiResponse)
-        verify(exactly = 1) { userDetailsManager.updateUser(testUser) }
+
+        val updatedUserDetailsSlot = slot<TafelUser>()
+        verify(exactly = 1) { userDetailsManager.updateUser(capture(updatedUserDetailsSlot)) }
+
+        val userDetails = updatedUserDetailsSlot.captured
+        assertThat(userDetails.id).isEqualTo(updatedUser.id)
+        assertThat(userDetails.username).isEqualTo(updatedUser.username)
+        assertThat(userDetails.personnelNumber).isEqualTo(updatedUser.personnelNumber)
+        assertThat(userDetails.firstname).isEqualTo(updatedUser.firstname)
+        assertThat(userDetails.lastname).isEqualTo(updatedUser.lastname)
+        assertThat(userDetails.authorities).isEqualTo(listOf(SimpleGrantedAuthority(UserPermissions.CHECKIN.key)))
+        assertThat(userDetails.password).isEqualTo(updatedUser.password)
+        assertThat(userDetails.passwordChangeRequired).isEqualTo(updatedUser.passwordChangeRequired)
+        assertThat(userDetails.enabled).isEqualTo(updatedUser.enabled)
     }
 
     @Test
@@ -243,6 +288,24 @@ class UserControllerTest {
         controller.deleteUser(userId = 123)
 
         verify(exactly = 1) { userDetailsManager.deleteUser(testUser.username) }
+    }
+
+    @Test
+    fun `get permissions`() {
+        every { userDetailsManager.loadUserById(any()) } returns testUser
+
+        val response = controller.getPermissions()
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+
+        val permissions = response.body?.permissions
+        assertThat(permissions).hasSize(UserPermissions.values().size)
+        assertThat(permissions?.first()).isEqualTo(
+            UserPermission(
+                key = UserPermissions.values().first().key,
+                title = UserPermissions.values().first().title
+            )
+        )
     }
 
 }
