@@ -71,18 +71,14 @@
               <td [attr.testid]="'searchresult-address-' + i">{{formatAddress(customer.address)}}</td>
               <td>
                 <div class="d-flex flex-fill gap-2">
-                  <div>
-                    <button [attr.testid]="'searchresult-showcustomer-button-' + i"
-                            type="button" class="btn btn-primary text-white"
-                            (click)="navigateToCustomer(customer.id)"><i
-                      class="fa fa-search"></i></button>
-                  </div>
-                  <div>
-                    <button [attr.testid]="'searchresult-editcustomer-button-' + i"
-                            type="button" class="btn btn-danger text-white"
-                            (click)="editCustomer(customer.id)"><i
-                      class="fa fa-pencil"></i></button>
-                  </div>
+                  <button [attr.testid]="'searchresult-showcustomer-button-' + i"
+                          type="button" class="btn btn-primary text-white"
+                          (click)="navigateToCustomer(customer.id)"><i
+                    class="fa fa-search"></i></button>
+                  <button [attr.testid]="'searchresult-editcustomer-button-' + i"
+                          type="button" class="btn btn-danger text-white"
+                          (click)="editCustomer(customer.id)"><i
+                    class="fa fa-pencil"></i></button>
                 </div>
               </td>
             </tr>
