@@ -52,8 +52,7 @@
           </c-card-header>
           <c-card-body>
             <c-row>
-              <c-col sm="12">
-                <!-- TODO fix mobile layout -->
+              <c-col sm="12" class="table-responsive">
                 <table cTable striped="true" aria-label="Liste der gefundenen Kunden">
                   <thead>
                     <tr>
@@ -76,14 +75,14 @@
                       <td [attr.testid]="'searchresult-birthDate-' + i">{{customer.birthDate | date : 'dd.MM.yyyy'}}</td>
                       <td [attr.testid]="'searchresult-address-' + i">{{formatAddress(customer.address)}}</td>
                       <td>
-                        <div class="row">
-                          <div class="col-3">
+                        <div class="d-flex flex-fill gap-2">
+                          <div>
                             <button [attr.testid]="'searchresult-showcustomer-button-' + i"
                                     type="button" class="btn btn-primary text-white"
                                     (click)="navigateToCustomer(customer.id)"><i
                               class="fa fa-search"></i></button>
                           </div>
-                          <div class="col-3 ms-2">
+                          <div>
                             <button [attr.testid]="'searchresult-editcustomer-button-' + i"
                                     type="button" class="btn btn-danger text-white"
                                     (click)="editCustomer(customer.id)"><i
