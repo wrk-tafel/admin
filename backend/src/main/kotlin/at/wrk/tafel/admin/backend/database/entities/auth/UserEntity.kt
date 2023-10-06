@@ -44,6 +44,17 @@ class UserEntity : BaseChangeTrackingEntity() {
     @ExcludeFromTestCoverage
     interface Specs {
         companion object {
+            fun usernameContains(username: String?): Specification<UserEntity>? {
+                return username?.let {
+                    Specification { customer: Root<UserEntity>, cq: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                        cb.like(
+                            cb.lower(customer.get("username")),
+                            "%${username.lowercase()}%"
+                        )
+                    }
+                }
+            }
+
             fun firstnameContains(firstname: String?): Specification<UserEntity>? {
                 return firstname?.let {
                     Specification { customer: Root<UserEntity>, cq: CriteriaQuery<*>, cb: CriteriaBuilder ->

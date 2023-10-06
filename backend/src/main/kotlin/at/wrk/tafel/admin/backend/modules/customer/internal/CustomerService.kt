@@ -4,6 +4,8 @@ import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerAddPersonEntity
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity
+import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity.Specs.Companion.firstnameContains
+import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity.Specs.Companion.lastnameContains
 import at.wrk.tafel.admin.backend.database.entities.staticdata.CountryEntity
 import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerAddPersonRepository
@@ -69,8 +71,8 @@ class CustomerService(
     @Transactional
     fun getCustomers(firstname: String? = null, lastname: String? = null): List<Customer> {
         return customerRepository.findAll(
-            where(CustomerEntity.Specs.firstnameContains(firstname))
-                .or(CustomerEntity.Specs.lastnameContains(lastname))
+            where(firstnameContains(firstname))
+                .or(lastnameContains(lastname))
         ).map { mapEntityToResponse(it) }
     }
 

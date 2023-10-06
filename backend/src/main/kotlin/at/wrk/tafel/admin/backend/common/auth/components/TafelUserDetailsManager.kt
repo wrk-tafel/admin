@@ -4,6 +4,9 @@ import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
 import at.wrk.tafel.admin.backend.database.entities.auth.UserAuthorityEntity
 import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
+import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity.Specs.Companion.firstnameContains
+import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity.Specs.Companion.lastnameContains
+import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity.Specs.Companion.usernameContains
 import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
 import org.passay.DictionarySubstringRule
 import org.passay.LengthRule
@@ -42,10 +45,11 @@ class TafelUserDetailsManager(
         return user?.let { mapToUserDetails(user) }
     }
 
-    fun loadUsers(firstname: String?, lastname: String?): List<TafelUser> {
+    fun loadUsers(username: String?, firstname: String?, lastname: String?): List<TafelUser> {
         return userRepository.findAll(
-            where(UserEntity.Specs.firstnameContains(firstname))
-                .or(UserEntity.Specs.lastnameContains(lastname))
+            where(usernameContains(username))
+                .or(firstnameContains(firstname))
+                .or(lastnameContains(lastname))
         ).map { mapToUserDetails(it) }
     }
 

@@ -102,6 +102,7 @@ class UserController(
     @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
     fun getUsers(
         @RequestParam("personnelnumber") personnelNumber: String? = null,
+        @RequestParam username: String? = null,
         @RequestParam firstname: String? = null,
         @RequestParam lastname: String? = null
     ): UserListResponse {
@@ -114,8 +115,11 @@ class UserController(
             return UserListResponse(items = listOf(mapToResponse(user)))
         }
 
-        val users = userDetailsManager.loadUsers(firstname?.trim(), lastname?.trim())
-            .map { mapToResponse(it) }
+        val users = userDetailsManager.loadUsers(
+            username = username?.trim(),
+            firstname = firstname?.trim(),
+            lastname = lastname?.trim()
+        ).map { mapToResponse(it) }
         return UserListResponse(items = users)
     }
 
