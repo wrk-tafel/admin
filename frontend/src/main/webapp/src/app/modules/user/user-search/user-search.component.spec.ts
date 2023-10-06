@@ -83,10 +83,12 @@ describe('UserSearchComponent', () => {
     expect(router.navigate).toHaveBeenCalledWith(['/benutzer/detail', mockUser.id]);
   });
 
-  it('search with firstname and lastname', () => {
+  it('search with all parameters', () => {
     const fixture = TestBed.createComponent(UserSearchComponent);
     const component = fixture.componentInstance;
 
+    component.username.setValue('username');
+    component.enabled.setValue(false);
     component.firstname.setValue('firstname');
     component.lastname.setValue('lastname');
 
@@ -94,7 +96,7 @@ describe('UserSearchComponent', () => {
 
     component.searchForDetails();
 
-    expect(apiService.searchUser).toHaveBeenCalledWith('lastname', 'firstname');
+    expect(apiService.searchUser).toHaveBeenCalledWith('username', false, 'lastname', 'firstname');
 
     fixture.detectChanges();
     expect(fixture.debugElement.query(By.css('[testid="searchresult-id-0"]')).nativeElement.textContent).toBe('0');
@@ -106,35 +108,26 @@ describe('UserSearchComponent', () => {
     const fixture = TestBed.createComponent(UserSearchComponent);
     const component = fixture.componentInstance;
     component.firstname.setValue('firstname');
+    component.enabled.setValue(null);
     apiService.searchUser.and.returnValue(EMPTY);
 
     component.searchForDetails();
 
-    expect(apiService.searchUser).toHaveBeenCalledWith(null, 'firstname');
+    expect(apiService.searchUser).toHaveBeenCalledWith(null, null, null, 'firstname');
   });
 
   it('search with firstname no results', () => {
     const fixture = TestBed.createComponent(UserSearchComponent);
     const component = fixture.componentInstance;
     component.firstname.setValue('firstname');
+    component.enabled.setValue(null);
     const response: UserSearchResult = {items: []};
     apiService.searchUser.and.returnValue(of(response));
 
     component.searchForDetails();
 
-    expect(apiService.searchUser).toHaveBeenCalledWith(null, 'firstname');
+    expect(apiService.searchUser).toHaveBeenCalledWith(null, null, null, 'firstname');
     expect(toastService.showToast).toHaveBeenCalledWith({type: ToastType.INFO, title: 'Keine Benutzer gefunden!'});
-  });
-
-  it('search with lastname only', () => {
-    const fixture = TestBed.createComponent(UserSearchComponent);
-    const component = fixture.componentInstance;
-    component.lastname.setValue('lastname');
-    apiService.searchUser.and.returnValue(EMPTY);
-
-    component.searchForDetails();
-
-    expect(apiService.searchUser).toHaveBeenCalledWith('lastname', null);
   });
 
   it('navigate to user', () => {

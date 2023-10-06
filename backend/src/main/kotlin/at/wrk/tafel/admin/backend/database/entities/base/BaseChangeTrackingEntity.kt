@@ -23,4 +23,5 @@ abstract class BaseChangeTrackingEntity : BaseEntity() {
     override fun toString(): String {
         return "BaseChangeTrackingEntity(id=$id, createdAt=$createdAt, updatedAt=$updatedAt)"
     }
+
 }

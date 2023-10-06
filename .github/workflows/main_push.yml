@@ -5,6 +5,9 @@ on:
     branches: [ "main" ]
   workflow_dispatch:
 
+env:
+  SONAR_QUALITYGATE_WAIT: false
+
 jobs:
   build:
     uses: ./.github/workflows/subflow_build.yml

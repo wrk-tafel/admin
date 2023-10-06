@@ -32,8 +32,14 @@ export class UserApiService {
       );
   }
 
-  searchUser(lastname?: string, firstname?: string): Observable<UserSearchResult> {
+  searchUser(username?: string, enabled?: boolean, lastname?: string, firstname?: string): Observable<UserSearchResult> {
     let queryParams = new HttpParams();
+    if (username) {
+      queryParams = queryParams.set('username', username);
+    }
+    if (enabled !== null) {
+      queryParams = queryParams.set('enabled', enabled);
+    }
     if (lastname) {
       queryParams = queryParams.set('lastname', lastname);
     }

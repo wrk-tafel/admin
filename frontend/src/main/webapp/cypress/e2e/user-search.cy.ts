@@ -5,11 +5,6 @@ describe('User Search', () => {
     cy.visit('/#/benutzer/suchen');
   });
 
-  it('buttons disabled by default', () => {
-    cy.byTestId('showuser-button').should('be.disabled');
-    cy.byTestId('search-button').should('be.disabled');
-  });
-
   it('search by personnelNumber', () => {
     cy.byTestId('personnelNumberText').type('admin-persnr');
     cy.byTestId('showuser-button').click();
@@ -23,12 +18,12 @@ describe('User Search', () => {
     cy.byTestId('search-button').click();
 
     cy.byTestId('searchresult-table').should('be.visible');
-    cy.byTestId('searchresult-row').should('have.length', 4);
+    cy.byTestId('searchresult-row').should('have.length', 3);
 
     cy.byTestId('searchresult-showuser-button-0').should('be.visible');
 
     cy.byTestId('searchresult-showuser-button-0').click();
-    cy.url().should('include', '/benutzer/detail/100');
+    cy.url().should('include', '/benutzer/detail/101');
   });
 
   it('search by lastname only', () => {

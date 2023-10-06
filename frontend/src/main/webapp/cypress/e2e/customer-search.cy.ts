@@ -5,11 +5,6 @@ describe('Customer Search', () => {
     cy.visit('/#/kunden/suchen');
   });
 
-  it('buttons disabled by default', () => {
-    cy.byTestId('showcustomer-button').should('be.disabled');
-    cy.byTestId('search-button').should('be.disabled');
-  });
-
   it('search by customerId', () => {
     cy.byTestId('customerIdText').type('100');
     cy.byTestId('showcustomer-button').click();
@@ -18,12 +13,12 @@ describe('Customer Search', () => {
   });
 
   it('search by lastname and firstname', () => {
-    cy.byTestId('lastnameText').type('e2e-search');
+    cy.byTestId('lastnameText').type('endtoend-test-search');
     cy.byTestId('firstnameText').type('1');
     cy.byTestId('search-button').click();
 
     cy.byTestId('searchresult-table').should('be.visible');
-    cy.byTestId('searchresult-row').should('have.length', 2);
+    cy.byTestId('searchresult-row').should('have.length', 1);
 
     cy.byTestId('searchresult-showcustomer-button-0').should('be.visible');
 
@@ -32,7 +27,7 @@ describe('Customer Search', () => {
   });
 
   it('search by lastname only', () => {
-    cy.byTestId('lastnameText').type('e2e-search');
+    cy.byTestId('lastnameText').type('endtoend-test-search');
     cy.byTestId('search-button').click();
 
     cy.byTestId('searchresult-table').should('be.visible');

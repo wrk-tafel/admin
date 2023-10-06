@@ -4,6 +4,11 @@ import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
 import at.wrk.tafel.admin.backend.database.entities.auth.UserAuthorityEntity
 import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
+import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity.Specs.Companion.enabledEquals
+import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity.Specs.Companion.firstnameContains
+import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity.Specs.Companion.lastnameContains
+import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity.Specs.Companion.orderByUpdatedAtDesc
+import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity.Specs.Companion.usernameContains
 import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
 import org.passay.DictionarySubstringRule
 import org.passay.LengthRule
@@ -12,6 +17,8 @@ import org.passay.PasswordValidator
 import org.passay.RuleResult
 import org.passay.UsernameRule
 import org.passay.WhitespaceRule
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.jpa.domain.Specification.where
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.UserDetails
@@ -41,20 +48,17 @@ class TafelUserDetailsManager(
         return user?.let { mapToUserDetails(user) }
     }
 
-    fun loadUsers(firstname: String?, lastname: String?): List<TafelUser> {
-        val users = if (firstname?.isNotBlank() == true && lastname?.isNotBlank() == true) {
-            userRepository.findAllByFirstnameContainingIgnoreCaseOrLastnameContainingIgnoreCase(
-                firstname,
-                lastname
-            )
-        } else if (firstname?.isNotBlank() == true) {
-            userRepository.findAllByFirstnameContainingIgnoreCase(firstname)
-        } else if (lastname?.isNotBlank() == true) {
-            userRepository.findAllByLastnameContainingIgnoreCase(lastname)
-        } else {
-            userRepository.findAll()
-        }
-        return users.map { mapToUserDetails(it) }
+    fun loadUsers(username: String?, firstname: String?, lastname: String?, enabled: Boolean?): List<TafelUser> {
+        val pageRequest = PageRequest.of(0, 25)
+
+        val spec = orderByUpdatedAtDesc(
+            where(usernameContains(username))
+                .and(firstnameContains(firstname))
+                .and(lastnameContains(lastname))
+                .and(enabledEquals(enabled))
+        )
+
+        return userRepository.findAll(spec, pageRequest).map { mapToUserDetails(it) }.toList()
     }
 
     override fun createUser(user: UserDetails?) {

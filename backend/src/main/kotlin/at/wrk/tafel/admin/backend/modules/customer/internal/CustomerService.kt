@@ -4,6 +4,9 @@ import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerAddPersonEntity
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity
+import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity.Specs.Companion.firstnameContains
+import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity.Specs.Companion.lastnameContains
+import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity.Specs.Companion.orderByUpdatedAtDesc
 import at.wrk.tafel.admin.backend.database.entities.staticdata.CountryEntity
 import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerAddPersonRepository
@@ -14,6 +17,8 @@ import at.wrk.tafel.admin.backend.modules.customer.internal.income.IncomeValidat
 import at.wrk.tafel.admin.backend.modules.customer.internal.income.IncomeValidatorResult
 import at.wrk.tafel.admin.backend.modules.customer.internal.income.IncomeValidatorService
 import at.wrk.tafel.admin.backend.modules.customer.internal.masterdata.CustomerPdfService
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.jpa.domain.Specification.where
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -67,21 +72,10 @@ class CustomerService(
 
     @Transactional
     fun getCustomers(firstname: String? = null, lastname: String? = null): List<Customer> {
-        val customerItems: List<CustomerEntity> =
-            if (firstname?.isNotBlank() == true && lastname?.isNotBlank() == true) {
-                customerRepository.findAllByFirstnameContainingIgnoreCaseOrLastnameContainingIgnoreCase(
-                    firstname,
-                    lastname
-                )
-            } else if (firstname?.isNotBlank() == true) {
-                customerRepository.findAllByFirstnameContainingIgnoreCase(firstname)
-            } else if (lastname?.isNotBlank() == true) {
-                customerRepository.findAllByLastnameContainingIgnoreCase(lastname)
-            } else {
-                customerRepository.findAll()
-            }
+        val pageRequest = PageRequest.of(0, 25)
+        val spec = orderByUpdatedAtDesc(where(firstnameContains(firstname)).and(lastnameContains(lastname)))
 
-        return customerItems.map { mapEntityToResponse(it) }
+        return customerRepository.findAll(spec, pageRequest).map { mapEntityToResponse(it) }.toList()
     }
 
     @Transactional

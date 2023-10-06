@@ -13,8 +13,10 @@ export class UserSearchComponent {
   searchResult: UserSearchResult;
   userSearchForm = new FormGroup({
     personnelNumber: new FormControl<string>(null),
+    username: new FormControl<string>(null),
     lastname: new FormControl<string>(null),
-    firstname: new FormControl<string>(null)
+    firstname: new FormControl<string>(null),
+    enabled: new FormControl<boolean>(true)
   });
 
   constructor(
@@ -26,6 +28,14 @@ export class UserSearchComponent {
 
   get personnelNumber() {
     return this.userSearchForm.get('personnelNumber');
+  }
+
+  get username() {
+    return this.userSearchForm.get('username');
+  }
+
+  get enabled() {
+    return this.userSearchForm.get('enabled');
   }
 
   get lastname() {
@@ -45,7 +55,7 @@ export class UserSearchComponent {
   }
 
   searchForDetails() {
-    this.userApiService.searchUser(this.lastname.value, this.firstname.value)
+    this.userApiService.searchUser(this.username.value, this.enabled.value, this.lastname.value, this.firstname.value)
       .subscribe((response: UserSearchResult) => {
         if (response.items.length === 0) {
           this.toastService.showToast({type: ToastType.INFO, title: 'Keine Benutzer gefunden!'});

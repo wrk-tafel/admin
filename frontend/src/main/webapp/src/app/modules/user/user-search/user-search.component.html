@@ -24,6 +24,19 @@
       <hr>
       <c-row>
         <c-col sm="3">
+          <label class="form-label">Benutzername</label>
+          <input testid="usernameText" type="text" formControlName="username" name="username"
+                 class="form-control">
+        </c-col>
+        <c-col sm="3">
+          <label cLabel>Aktiv</label>
+          <c-input-group>
+            <input cFormCheckInput type="checkbox" formControlName="enabled" testid="enabledInput">
+          </c-input-group>
+        </c-col>
+      </c-row>
+      <c-row class="mt-0 mt-sm-3">
+        <c-col sm="3">
           <label class="form-label">Familienname</label>
           <input testid="lastnameText" type="text" formControlName="lastname" name="lastname"
                  class="form-control">
@@ -37,7 +50,7 @@
       <c-row>
         <c-col sm="3" class="mt-3">
           <button testid="search-button" type="button" class="btn btn-primary text-white"
-                  [disabled]="!firstname.value && !lastname.value" (click)="searchForDetails()">Suchen</button>
+                  (click)="searchForDetails()">Suchen</button>
         </c-col>
       </c-row>
       <c-row *ngIf="searchResult" testid="searchresult-table">
