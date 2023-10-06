@@ -13,7 +13,7 @@ describe('Customer Search', () => {
   });
 
   it('search by lastname and firstname', () => {
-    cy.byTestId('lastnameText').type('e2e-search');
+    cy.byTestId('lastnameText').type('endtoend-test-search');
     cy.byTestId('firstnameText').type('1');
     cy.byTestId('search-button').click();
 
@@ -27,7 +27,7 @@ describe('Customer Search', () => {
   });
 
   it('search by lastname only', () => {
-    cy.byTestId('lastnameText').type('e2e-search');
+    cy.byTestId('lastnameText').type('endtoend-test-search');
     cy.byTestId('search-button').click();
 
     cy.byTestId('searchresult-table').should('be.visible');
