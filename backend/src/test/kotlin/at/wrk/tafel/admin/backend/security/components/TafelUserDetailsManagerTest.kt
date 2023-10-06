@@ -391,6 +391,8 @@ class TafelUserDetailsManagerTest {
     fun `loadUsers found and mapped properly`() {
         val firstname = "test-firstname"
         val lastname = "test-lastname"
+        val username = "test-username"
+        val enabled = false
 
         val userEntity = UserEntity()
         userEntity.username = "test-username"
@@ -404,7 +406,12 @@ class TafelUserDetailsManagerTest {
 
         every { userRepository.findAll(any<Specification<UserEntity>>()) } returns listOf(userEntity)
 
-        val userDetails = manager.loadUsers(firstname = firstname, lastname = lastname)
+        val userDetails = manager.loadUsers(
+            firstname = firstname,
+            lastname = lastname,
+            username = username,
+            enabled = enabled
+        )
 
         assertThat(userDetails).isNotNull
 

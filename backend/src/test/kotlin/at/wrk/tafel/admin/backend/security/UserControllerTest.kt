@@ -169,13 +169,31 @@ class UserControllerTest {
     fun `get users filtered by other parameters`() {
         val firstname = " test-firstname "
         val lastname = " test-lastname "
-        every { userDetailsManager.loadUsers(firstname.trim(), lastname.trim()) } returns listOf(testUser)
+        val username = " test-username "
+        val enabled = true
 
-        val response = controller.getUsers(firstname = firstname, lastname = lastname)
+        every {
+            userDetailsManager.loadUsers(
+                firstname = firstname.trim(),
+                lastname = lastname.trim(),
+                username = username.trim(),
+                enabled = enabled
+            )
+        } returns listOf(testUser)
+
+        val response =
+            controller.getUsers(firstname = firstname, lastname = lastname, username = username, enabled = enabled)
 
         assertThat(response.items).isEqualTo(listOf(testUserApiResponse))
 
-        verify(exactly = 1) { userDetailsManager.loadUsers(firstname.trim(), lastname.trim()) }
+        verify(exactly = 1) {
+            userDetailsManager.loadUsers(
+                firstname = firstname.trim(),
+                lastname = lastname.trim(),
+                username = username.trim(),
+                enabled = enabled
+            )
+        }
     }
 
     @Test

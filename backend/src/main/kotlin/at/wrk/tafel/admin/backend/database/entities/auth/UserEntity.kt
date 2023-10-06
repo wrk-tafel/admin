@@ -57,9 +57,9 @@ class UserEntity : BaseChangeTrackingEntity() {
 
             fun firstnameContains(firstname: String?): Specification<UserEntity>? {
                 return firstname?.let {
-                    Specification { customer: Root<UserEntity>, cq: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                    Specification { user: Root<UserEntity>, cq: CriteriaQuery<*>, cb: CriteriaBuilder ->
                         cb.like(
-                            cb.lower(customer.get("firstname")),
+                            cb.lower(user.get("firstname")),
                             "%${firstname.lowercase()}%"
                         )
                     }
@@ -68,11 +68,19 @@ class UserEntity : BaseChangeTrackingEntity() {
 
             fun lastnameContains(lastname: String?): Specification<UserEntity>? {
                 return lastname?.let {
-                    Specification { customer: Root<UserEntity>, cq: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                    Specification { user: Root<UserEntity>, cq: CriteriaQuery<*>, cb: CriteriaBuilder ->
                         cb.like(
-                            cb.lower(customer.get("lastname")),
+                            cb.lower(user.get("lastname")),
                             "%${lastname.lowercase()}%"
                         )
+                    }
+                }
+            }
+
+            fun enabledEquals(enabled: Boolean?): Specification<UserEntity>? {
+                return enabled?.let {
+                    Specification { user: Root<UserEntity>, cq: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                        cb.equal(user.get<Boolean>("enabled"), enabled)
                     }
                 }
             }

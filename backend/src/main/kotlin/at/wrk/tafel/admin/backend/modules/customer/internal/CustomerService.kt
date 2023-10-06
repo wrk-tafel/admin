@@ -72,7 +72,7 @@ class CustomerService(
     fun getCustomers(firstname: String? = null, lastname: String? = null): List<Customer> {
         return customerRepository.findAll(
             where(firstnameContains(firstname))
-                .or(lastnameContains(lastname))
+                .and(lastnameContains(lastname))
         ).map { mapEntityToResponse(it) }
     }
 

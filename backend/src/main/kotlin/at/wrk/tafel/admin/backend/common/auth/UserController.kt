@@ -104,7 +104,8 @@ class UserController(
         @RequestParam("personnelnumber") personnelNumber: String? = null,
         @RequestParam username: String? = null,
         @RequestParam firstname: String? = null,
-        @RequestParam lastname: String? = null
+        @RequestParam lastname: String? = null,
+        @RequestParam enabled: Boolean? = null,
     ): UserListResponse {
         if (personnelNumber != null) {
             val user = userDetailsManager.loadUserByPersonnelNumber(personnelNumber.trim())
@@ -118,7 +119,8 @@ class UserController(
         val users = userDetailsManager.loadUsers(
             username = username?.trim(),
             firstname = firstname?.trim(),
-            lastname = lastname?.trim()
+            lastname = lastname?.trim(),
+            enabled = enabled
         ).map { mapToResponse(it) }
         return UserListResponse(items = users)
     }

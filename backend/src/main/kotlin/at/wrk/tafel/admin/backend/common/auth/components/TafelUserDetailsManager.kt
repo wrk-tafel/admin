@@ -4,6 +4,7 @@ import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
 import at.wrk.tafel.admin.backend.database.entities.auth.UserAuthorityEntity
 import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
+import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity.Specs.Companion.enabledEquals
 import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity.Specs.Companion.firstnameContains
 import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity.Specs.Companion.lastnameContains
 import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity.Specs.Companion.usernameContains
@@ -45,11 +46,12 @@ class TafelUserDetailsManager(
         return user?.let { mapToUserDetails(user) }
     }
 
-    fun loadUsers(username: String?, firstname: String?, lastname: String?): List<TafelUser> {
+    fun loadUsers(username: String?, firstname: String?, lastname: String?, enabled: Boolean?): List<TafelUser> {
         return userRepository.findAll(
             where(usernameContains(username))
-                .or(firstnameContains(firstname))
-                .or(lastnameContains(lastname))
+                .and(firstnameContains(firstname))
+                .and(lastnameContains(lastname))
+                .and(enabledEquals(enabled))
         ).map { mapToUserDetails(it) }
     }
 
