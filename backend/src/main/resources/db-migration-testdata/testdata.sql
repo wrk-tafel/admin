@@ -44,7 +44,7 @@ INSERT INTO users (id, created_at, updated_at, username, password, enabled, pers
                    passwordchange_required)
 VALUES (103, NOW(), NOW(), 'e2etest4',
         '{argon2}$argon2id$v=19$m=4096,t=3,p=1$Cnj0ayQKhOPbkomIRV5tnQ$BfU/uOr20/vg9ie0CQcWhCD00DqjPDf6UI0pRvz1/gg',
-        true, '00000-4', 'E2E', 'Test 4', true);
+        true, '00000-4', 'endtoend', 'test 4', true);
 
 -- user: testuser
 -- pwd: 35bc40681124f412c5d052366edb9eb9
