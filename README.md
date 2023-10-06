@@ -5,30 +5,36 @@
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=wrk-tafel-admin&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=wrk-tafel-admin)
 
 # TODO
+
 * Centralize testdata / mocks
 * Add gender for customers and addpersons
 * Add goods-input
 * tech: switch to spring boot layered build: https://www.baeldung.com/docker-layers-spring-boot
 
 ## Minor changes
+
 * Async stats generation
 * Move statistics package into reporting?
-* Improve module communication by using async events (https://docs.spring.io/spring-modulith/docs/current/reference/html/#events)
+* Improve module communication by using async
+  events (https://docs.spring.io/spring-modulith/docs/current/reference/html/#events)
 * Improve search pages
-  * Replace result-table by e.g. cards (in mobile layouts)
-  * Add pagination
-  * Improve search-query in backend (criteria builder)
+    * Replace result-table by e.g. cards (in mobile layouts)
+    * Add pagination
+    * Improve search-query in backend (criteria builder)
+    * Enable generated jpa metamodel
 * Data-Migration
-  * Remove migration-code
-  * Remove default-values / set values to null and optional
+    * Remove migration-code
+    * Remove default-values / set values to null and optional
 
 ### Open things (to be decided)
+
 * customer-detail
     * add document upload
 * use semantic versioning ?
 * provide jar-file releases via github ?
 
 ### Lower prio
+
 * No validation-date on idcard (will be removed anyway when the checkin is ready)
 
 # Frontend #

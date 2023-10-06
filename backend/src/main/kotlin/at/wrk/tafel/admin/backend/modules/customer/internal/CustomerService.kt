@@ -14,6 +14,7 @@ import at.wrk.tafel.admin.backend.modules.customer.internal.income.IncomeValidat
 import at.wrk.tafel.admin.backend.modules.customer.internal.income.IncomeValidatorResult
 import at.wrk.tafel.admin.backend.modules.customer.internal.income.IncomeValidatorService
 import at.wrk.tafel.admin.backend.modules.customer.internal.masterdata.CustomerPdfService
+import org.springframework.data.jpa.domain.Specification.where
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -67,20 +68,10 @@ class CustomerService(
 
     @Transactional
     fun getCustomers(firstname: String? = null, lastname: String? = null): List<Customer> {
-        val customerItems: List<CustomerEntity> =
-            if (firstname?.isNotBlank() == true && lastname?.isNotBlank() == true) {
-                customerRepository.findAllByFirstnameContainingIgnoreCaseOrLastnameContainingIgnoreCase(
-                    firstname,
-                    lastname
-                )
-            } else if (firstname?.isNotBlank() == true) {
-                customerRepository.findAllByFirstnameContainingIgnoreCase(firstname)
-            } else if (lastname?.isNotBlank() == true) {
-                customerRepository.findAllByLastnameContainingIgnoreCase(lastname)
-            } else {
-                customerRepository.findAll()
-            }
-
+        val customerItems: List<CustomerEntity> = customerRepository.findAll(
+            where(CustomerEntity.Specs.firstnameContains(firstname))
+                .or(CustomerEntity.Specs.lastnameContains(lastname))
+        )
         return customerItems.map { mapEntityToResponse(it) }
     }
 

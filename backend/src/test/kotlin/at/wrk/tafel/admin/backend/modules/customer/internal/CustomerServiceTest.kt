@@ -24,6 +24,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.data.jpa.domain.Specification
 import org.springframework.security.core.context.SecurityContextHolder
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -663,42 +664,13 @@ class CustomerServiceTest {
     }
 
     @Test
-    fun `get all customers`() {
-        every { customerRepository.findAll() } returns listOf(testCustomerEntity1, testCustomerEntity2)
+    fun `get customers`() {
+        every { customerRepository.findAll(any<Specification<CustomerEntity>>()) } returns listOf(
+            testCustomerEntity1,
+            testCustomerEntity2
+        )
 
         val customers = service.getCustomers()
-
-        assertThat(customers).hasSize(2)
-        assertThat(customers[0]).isEqualTo(testCustomer)
-    }
-
-    @Test
-    fun `get customer by firstname`() {
-        every { customerRepository.findAllByFirstnameContainingIgnoreCase(any()) } returns listOf(testCustomerEntity1)
-
-        val customers = service.getCustomers(firstname = "firstname")
-
-        assertThat(customers).hasSize(1)
-        assertThat(customers[0]).isEqualTo(testCustomer)
-    }
-
-    @Test
-    fun `get customer by lastname`() {
-        every { customerRepository.findAllByLastnameContainingIgnoreCase(any()) } returns listOf(testCustomerEntity1)
-
-        val customers = service.getCustomers(lastname = "lastname")
-
-        assertThat(customers).hasSize(1)
-        assertThat(customers[0]).isEqualTo(testCustomer)
-    }
-
-    @Test
-    fun `get customer by firstname and lastname`() {
-        every {
-            customerRepository.findAllByFirstnameContainingIgnoreCaseOrLastnameContainingIgnoreCase(any(), any())
-        } returns listOf(testCustomerEntity1, testCustomerEntity2)
-
-        val customers = service.getCustomers(firstname = "firstname", lastname = "lastname")
 
         assertThat(customers).hasSize(2)
         assertThat(customers[0]).isEqualTo(testCustomer)

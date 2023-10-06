@@ -11,14 +11,20 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
+import jakarta.persistence.criteria.CriteriaBuilder
+import jakarta.persistence.criteria.CriteriaQuery
+import jakarta.persistence.criteria.Root
+import org.springframework.data.jpa.domain.Specification
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
+
 
 @Entity(name = "Customer")
 @Table(name = "customers")
 @ExcludeFromTestCoverage
 class CustomerEntity : BaseChangeTrackingEntity() {
+
     @Column(name = "customer_id")
     var customerId: Long? = null
 
@@ -95,5 +101,31 @@ class CustomerEntity : BaseChangeTrackingEntity() {
 
     @OneToMany(mappedBy = "customer", cascade = [CascadeType.ALL], orphanRemoval = true)
     var additionalPersons: MutableList<CustomerAddPersonEntity> = mutableListOf()
+
+    interface Specs {
+        companion object {
+            fun firstnameContains(firstname: String?): Specification<CustomerEntity>? {
+                return firstname?.let {
+                    Specification { customer: Root<CustomerEntity>, cq: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                        cb.like(
+                            cb.lower(customer.get("firstname")),
+                            "%${firstname.lowercase()}%"
+                        )
+                    }
+                }
+            }
+
+            fun lastnameContains(lastname: String?): Specification<CustomerEntity>? {
+                return lastname?.let {
+                    Specification { customer: Root<CustomerEntity>, cq: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                        cb.like(
+                            cb.lower(customer.get("lastname")),
+                            "%${lastname.lowercase()}%"
+                        )
+                    }
+                }
+            }
+        }
+    }
 
 }
