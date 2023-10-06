@@ -14,6 +14,10 @@
 * Async stats generation
 * Move statistics package into reporting?
 * Improve module communication by using async events (https://docs.spring.io/spring-modulith/docs/current/reference/html/#events)
+* Improve search pages
+  * Replace result-table by e.g. cards (in mobile layouts)
+  * Add pagination
+  * Improve search-query in backend (criteria builder)
 
 ### Open things (to be decided)
 * customer-detail
