@@ -24,6 +24,19 @@
       <hr>
       <c-row>
         <c-col sm="3">
+          <label class="form-label">Benutzername</label>
+          <input testid="usernameText" type="text" formControlName="username" name="username"
+                 class="form-control">
+        </c-col>
+        <c-col sm="3">
+          <label cLabel>Aktiv</label>
+          <c-input-group>
+            <input cFormCheckInput type="checkbox" formControlName="enabled" testid="enabledInput">
+          </c-input-group>
+        </c-col>
+      </c-row>
+      <c-row>
+        <c-col sm="3">
           <label class="form-label">Familienname</label>
           <input testid="lastnameText" type="text" formControlName="lastname" name="lastname"
                  class="form-control">
