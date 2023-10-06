@@ -92,9 +92,16 @@ VALUES (4001, NOW(), NOW(), 400, 'SCANNER');
 INSERT INTO users (id, created_at, updated_at, username, password, enabled, personnel_number, firstname, lastname)
 VALUES (500, NOW(), NOW(), 'scanner2',
         '{argon2}$argon2id$v=19$m=4096,t=3,p=1$RXn6Xt/0q/Wtrvdns6NUnw$X3xWUjENAbNSJNckeVFXWrjkoFSowwlu3xHx1/zb40w',
-        true, '0401', 'Scanner', '2');
+        true, '0500', 'Scanner', '2');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (5001, NOW(), NOW(), 500, 'SCANNER');
+
+-- user: disabled1
+-- pwd: 12345
+INSERT INTO users (id, created_at, updated_at, username, password, enabled, personnel_number, firstname, lastname)
+VALUES (600, NOW(), NOW(), 'disabled1',
+        '{argon2}$argon2id$v=19$m=4096,t=3,p=1$RXn6Xt/0q/Wtrvdns6NUnw$X3xWUjENAbNSJNckeVFXWrjkoFSowwlu3xHx1/zb40w',
+        false, '0600', 'Disabled', '1');
 
 -- customers
 INSERT INTO customers (id, created_at, updated_at, customer_id, user_id, firstname, lastname, birth_date, country_id,

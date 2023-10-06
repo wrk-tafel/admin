@@ -16,6 +16,7 @@ import org.passay.PasswordValidator
 import org.passay.RuleResult
 import org.passay.UsernameRule
 import org.passay.WhitespaceRule
+import org.springframework.data.domain.PageRequest
 import org.springframework.data.jpa.domain.Specification.where
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
@@ -47,12 +48,14 @@ class TafelUserDetailsManager(
     }
 
     fun loadUsers(username: String?, firstname: String?, lastname: String?, enabled: Boolean?): List<TafelUser> {
-        return userRepository.findAll(
-            where(usernameContains(username))
-                .and(firstnameContains(firstname))
-                .and(lastnameContains(lastname))
-                .and(enabledEquals(enabled))
-        ).map { mapToUserDetails(it) }
+        val pageRequest = PageRequest.of(0, 25)
+
+        val spec = where(usernameContains(username))
+            .and(firstnameContains(firstname))
+            .and(lastnameContains(lastname))
+            .and(enabledEquals(enabled))
+
+        return userRepository.findAll(spec, pageRequest).map { mapToUserDetails(it) }.toList()
     }
 
     override fun createUser(user: UserDetails?) {
