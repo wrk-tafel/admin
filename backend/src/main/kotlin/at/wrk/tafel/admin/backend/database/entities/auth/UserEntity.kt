@@ -12,6 +12,7 @@ import jakarta.persistence.criteria.CriteriaBuilder
 import jakarta.persistence.criteria.CriteriaQuery
 import jakarta.persistence.criteria.Root
 import org.springframework.data.jpa.domain.Specification
+import java.time.LocalDateTime
 
 @Entity(name = "User")
 @Table(name = "users")
@@ -46,9 +47,9 @@ class UserEntity : BaseChangeTrackingEntity() {
         companion object {
             fun usernameContains(username: String?): Specification<UserEntity>? {
                 return username?.let {
-                    Specification { customer: Root<UserEntity>, cq: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                    Specification { root: Root<UserEntity>, cq: CriteriaQuery<*>, cb: CriteriaBuilder ->
                         cb.like(
-                            cb.lower(customer.get("username")),
+                            cb.lower(root.get("username")),
                             "%${username.lowercase()}%"
                         )
                     }
@@ -57,9 +58,9 @@ class UserEntity : BaseChangeTrackingEntity() {
 
             fun firstnameContains(firstname: String?): Specification<UserEntity>? {
                 return firstname?.let {
-                    Specification { user: Root<UserEntity>, cq: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                    Specification { root: Root<UserEntity>, cq: CriteriaQuery<*>, cb: CriteriaBuilder ->
                         cb.like(
-                            cb.lower(user.get("firstname")),
+                            cb.lower(root.get("firstname")),
                             "%${firstname.lowercase()}%"
                         )
                     }
@@ -68,9 +69,9 @@ class UserEntity : BaseChangeTrackingEntity() {
 
             fun lastnameContains(lastname: String?): Specification<UserEntity>? {
                 return lastname?.let {
-                    Specification { user: Root<UserEntity>, cq: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                    Specification { root: Root<UserEntity>, cq: CriteriaQuery<*>, cb: CriteriaBuilder ->
                         cb.like(
-                            cb.lower(user.get("lastname")),
+                            cb.lower(root.get("lastname")),
                             "%${lastname.lowercase()}%"
                         )
                     }
@@ -79,11 +80,19 @@ class UserEntity : BaseChangeTrackingEntity() {
 
             fun enabledEquals(enabled: Boolean?): Specification<UserEntity>? {
                 return enabled?.let {
-                    Specification { user: Root<UserEntity>, cq: CriteriaQuery<*>, cb: CriteriaBuilder ->
-                        cb.equal(user.get<Boolean>("enabled"), enabled)
+                    Specification { root: Root<UserEntity>, cq: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                        cb.equal(root.get<Boolean>("enabled"), enabled)
                     }
                 }
             }
+
+            fun orderByUpdatedAtDesc(spec: Specification<UserEntity>): Specification<UserEntity> {
+                return Specification { root: Root<UserEntity>, cq: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                    cq.orderBy(cb.desc(root.get<LocalDateTime>("updatedAt")))
+                    spec.toPredicate(root, cq, cb)
+                }
+            }
+
         }
     }
 

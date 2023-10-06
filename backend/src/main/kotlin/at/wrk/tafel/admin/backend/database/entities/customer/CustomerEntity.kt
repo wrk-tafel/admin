@@ -106,9 +106,9 @@ class CustomerEntity : BaseChangeTrackingEntity() {
         companion object {
             fun firstnameContains(firstname: String?): Specification<CustomerEntity>? {
                 return firstname?.let {
-                    Specification { customer: Root<CustomerEntity>, cq: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                    Specification { root: Root<CustomerEntity>, cq: CriteriaQuery<*>, cb: CriteriaBuilder ->
                         cb.like(
-                            cb.lower(customer.get("firstname")),
+                            cb.lower(root.get("firstname")),
                             "%${firstname.lowercase()}%"
                         )
                     }
@@ -117,9 +117,9 @@ class CustomerEntity : BaseChangeTrackingEntity() {
 
             fun lastnameContains(lastname: String?): Specification<CustomerEntity>? {
                 return lastname?.let {
-                    Specification { customer: Root<CustomerEntity>, cq: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                    Specification { root: Root<CustomerEntity>, cq: CriteriaQuery<*>, cb: CriteriaBuilder ->
                         cb.like(
-                            cb.lower(customer.get("lastname")),
+                            cb.lower(root.get("lastname")),
                             "%${lastname.lowercase()}%"
                         )
                     }

@@ -7,6 +7,7 @@ import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity.Specs.Companion.enabledEquals
 import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity.Specs.Companion.firstnameContains
 import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity.Specs.Companion.lastnameContains
+import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity.Specs.Companion.orderByUpdatedAtDesc
 import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity.Specs.Companion.usernameContains
 import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
 import org.passay.DictionarySubstringRule
@@ -50,10 +51,12 @@ class TafelUserDetailsManager(
     fun loadUsers(username: String?, firstname: String?, lastname: String?, enabled: Boolean?): List<TafelUser> {
         val pageRequest = PageRequest.of(0, 25)
 
-        val spec = where(usernameContains(username))
-            .and(firstnameContains(firstname))
-            .and(lastnameContains(lastname))
-            .and(enabledEquals(enabled))
+        val spec = orderByUpdatedAtDesc(
+            where(usernameContains(username))
+                .and(firstnameContains(firstname))
+                .and(lastnameContains(lastname))
+                .and(enabledEquals(enabled))
+        )
 
         return userRepository.findAll(spec, pageRequest).map { mapToUserDetails(it) }.toList()
     }
