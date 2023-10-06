@@ -7,6 +7,9 @@ on:
   push:
     branches: [ 'release' ]
 
+env:
+  SONAR_QUALITYGATE_WAIT: true
+
 jobs:
   build:
     uses: ./.github/workflows/subflow_build.yml

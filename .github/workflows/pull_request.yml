@@ -3,6 +3,9 @@ name: Pull Request
 on:
   pull_request:
 
+env:
+  SONAR_QUALITYGATE_WAIT: false
+
 jobs:
   build:
     uses: ./.github/workflows/subflow_build.yml
