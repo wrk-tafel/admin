@@ -16,6 +16,7 @@ import at.wrk.tafel.admin.backend.modules.customer.internal.income.IncomeValidat
 import at.wrk.tafel.admin.backend.modules.customer.internal.income.IncomeValidatorResult
 import at.wrk.tafel.admin.backend.modules.customer.internal.income.IncomeValidatorService
 import at.wrk.tafel.admin.backend.modules.customer.internal.masterdata.CustomerPdfService
+import org.springframework.data.domain.PageRequest
 import org.springframework.data.jpa.domain.Specification.where
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
@@ -70,10 +71,10 @@ class CustomerService(
 
     @Transactional
     fun getCustomers(firstname: String? = null, lastname: String? = null): List<Customer> {
-        return customerRepository.findAll(
-            where(firstnameContains(firstname))
-                .and(lastnameContains(lastname))
-        ).map { mapEntityToResponse(it) }
+        val pageRequest = PageRequest.of(0, 25)
+        val spec = where(firstnameContains(firstname)).and(lastnameContains(lastname))
+
+        return customerRepository.findAll(spec, pageRequest).map { mapEntityToResponse(it) }.toList()
     }
 
     @Transactional

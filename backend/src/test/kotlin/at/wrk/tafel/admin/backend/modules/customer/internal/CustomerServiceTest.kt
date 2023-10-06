@@ -24,6 +24,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.PageRequest
 import org.springframework.data.jpa.domain.Specification
 import org.springframework.security.core.context.SecurityContextHolder
 import java.math.BigDecimal
@@ -665,17 +667,16 @@ class CustomerServiceTest {
 
     @Test
     fun `get customers`() {
-        every { customerRepository.findAll(any<Specification<CustomerEntity>>()) } returns listOf(
-            testCustomerEntity1,
-            testCustomerEntity2
-        )
+        val pageRequest = PageRequest.of(0, 25)
+        val page = PageImpl(listOf(testCustomerEntity1, testCustomerEntity2))
+        every { customerRepository.findAll(any<Specification<CustomerEntity>>(), pageRequest) } returns page
 
         val customers = service.getCustomers()
 
         assertThat(customers).hasSize(2)
         assertThat(customers[0]).isEqualTo(testCustomer)
 
-        verify(exactly = 1) { customerRepository.findAll(any<Specification<CustomerEntity>>()) }
+        verify(exactly = 1) { customerRepository.findAll(any<Specification<CustomerEntity>>(), pageRequest) }
     }
 
     @Test
