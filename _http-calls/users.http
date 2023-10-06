@@ -46,7 +46,8 @@ Content-Type: application/json
   "enabled": false,
   "password": "12345",
   "passwordRepeat": "12345",
-  "passwordChangeRequired": true
+  "passwordChangeRequired": true,
+  "permissions": []
 }
 
 ### Generate a random password
