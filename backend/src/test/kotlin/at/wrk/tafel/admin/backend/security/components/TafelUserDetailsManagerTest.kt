@@ -29,6 +29,8 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.passay.PasswordData
 import org.passay.PasswordValidator
 import org.passay.RuleResult
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.PageRequest
 import org.springframework.data.jpa.domain.Specification
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
@@ -404,12 +406,14 @@ class TafelUserDetailsManagerTest {
         userEntity.lastname = "test-lastname"
         userEntity.passwordChangeRequired = true
 
-        every { userRepository.findAll(any<Specification<UserEntity>>()) } returns listOf(userEntity)
+        val pageRequest = PageRequest.of(0, 25)
+        val page = PageImpl(listOf(userEntity))
+        every { userRepository.findAll(any<Specification<UserEntity>>(), pageRequest) } returns page
 
         val userDetails = manager.loadUsers(
+            username = username,
             firstname = firstname,
             lastname = lastname,
-            username = username,
             enabled = enabled
         )
 
@@ -422,7 +426,7 @@ class TafelUserDetailsManagerTest {
         assertThat(user.firstname).isEqualTo(userEntity.firstname)
         assertThat(user.lastname).isEqualTo(userEntity.lastname)
 
-        verify(exactly = 1) { userRepository.findAll(any<Specification<UserEntity>>()) }
+        verify(exactly = 1) { userRepository.findAll(any<Specification<UserEntity>>(), pageRequest) }
     }
 
     @Test
