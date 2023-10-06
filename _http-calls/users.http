@@ -23,17 +23,11 @@ Content-Type: application/json
 ### Logout
 POST {{baseApiPath}}/users/logout
 
-### Search for users (only firstname)
-GET {{baseApiPath}}/users?firstname=x
-
-### Search for users (only lastname)
-GET {{baseApiPath}}/users?lastname=x
-
-### Search for users (firstname and lastname)
-GET {{baseApiPath}}/users?firstname=x&lastname=x
-
 ### Search for users (personnelNumber)
 GET {{baseApiPath}}/users?personnelnumber=x
+
+### Search for users (all other parameters)
+GET {{baseApiPath}}/users?firstname=x&lastname=x&username=x&enabled=true
 
 ### Get user 300
 GET {{baseApiPath}}/users/300
