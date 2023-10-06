@@ -18,6 +18,9 @@
   * Replace result-table by e.g. cards (in mobile layouts)
   * Add pagination
   * Improve search-query in backend (criteria builder)
+* Data-Migration
+  * Remove migration-code
+  * Remove default-values / set values to null and optional
 
 ### Open things (to be decided)
 * customer-detail
