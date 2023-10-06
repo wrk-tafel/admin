@@ -674,6 +674,8 @@ class CustomerServiceTest {
 
         assertThat(customers).hasSize(2)
         assertThat(customers[0]).isEqualTo(testCustomer)
+
+        verify(exactly = 1) { customerRepository.findAll(any<Specification<CustomerEntity>>()) }
     }
 
     @Test

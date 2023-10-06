@@ -29,6 +29,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.passay.PasswordData
 import org.passay.PasswordValidator
 import org.passay.RuleResult
+import org.springframework.data.jpa.domain.Specification
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.UsernameNotFoundException
@@ -387,7 +388,7 @@ class TafelUserDetailsManagerTest {
     }
 
     @Test
-    fun `loadUsers with firstname and lastname found and mapped properly`() {
+    fun `loadUsers found and mapped properly`() {
         val firstname = "test-firstname"
         val lastname = "test-lastname"
 
@@ -401,9 +402,7 @@ class TafelUserDetailsManagerTest {
         userEntity.lastname = "test-lastname"
         userEntity.passwordChangeRequired = true
 
-        every {
-            userRepository.findAllByFirstnameContainingIgnoreCaseOrLastnameContainingIgnoreCase(firstname, lastname)
-        } returns listOf(userEntity)
+        every { userRepository.findAll(any<Specification<UserEntity>>()) } returns listOf(userEntity)
 
         val userDetails = manager.loadUsers(firstname = firstname, lastname = lastname)
 
@@ -416,33 +415,7 @@ class TafelUserDetailsManagerTest {
         assertThat(user.firstname).isEqualTo(userEntity.firstname)
         assertThat(user.lastname).isEqualTo(userEntity.lastname)
 
-        verify(exactly = 1) {
-            userRepository.findAllByFirstnameContainingIgnoreCaseOrLastnameContainingIgnoreCase(firstname, lastname)
-        }
-    }
-
-    @Test
-    fun `loadUsers with firstname only`() {
-        val firstname = "test-firstname"
-        every { userRepository.findAllByFirstnameContainingIgnoreCase(any()) } returns emptyList()
-
-        manager.loadUsers(firstname = firstname, lastname = null)
-
-        verify(exactly = 1) {
-            userRepository.findAllByFirstnameContainingIgnoreCase(firstname)
-        }
-    }
-
-    @Test
-    fun `loadUsers with lastname only`() {
-        val lastname = "test-lastname"
-        every { userRepository.findAllByLastnameContainingIgnoreCase(any()) } returns emptyList()
-
-        manager.loadUsers(firstname = null, lastname = lastname)
-
-        verify(exactly = 1) {
-            userRepository.findAllByLastnameContainingIgnoreCase(lastname)
-        }
+        verify(exactly = 1) { userRepository.findAll(any<Specification<UserEntity>>()) }
     }
 
     @Test

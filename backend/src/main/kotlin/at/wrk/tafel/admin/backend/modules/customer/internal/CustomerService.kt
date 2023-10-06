@@ -68,11 +68,10 @@ class CustomerService(
 
     @Transactional
     fun getCustomers(firstname: String? = null, lastname: String? = null): List<Customer> {
-        val customerItems: List<CustomerEntity> = customerRepository.findAll(
+        return customerRepository.findAll(
             where(CustomerEntity.Specs.firstnameContains(firstname))
                 .or(CustomerEntity.Specs.lastnameContains(lastname))
-        )
-        return customerItems.map { mapEntityToResponse(it) }
+        ).map { mapEntityToResponse(it) }
     }
 
     @Transactional
