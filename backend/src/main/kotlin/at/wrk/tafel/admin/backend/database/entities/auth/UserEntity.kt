@@ -42,7 +42,6 @@ class UserEntity : BaseChangeTrackingEntity() {
     @OneToMany(mappedBy = "user", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
     var authorities: MutableList<UserAuthorityEntity> = mutableListOf()
 
-    @ExcludeFromTestCoverage
     interface Specs {
         companion object {
             fun usernameContains(username: String?): Specification<UserEntity>? {

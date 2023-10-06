@@ -101,7 +101,6 @@ class CustomerEntity : BaseChangeTrackingEntity() {
     @OneToMany(mappedBy = "customer", cascade = [CascadeType.ALL], orphanRemoval = true)
     var additionalPersons: MutableList<CustomerAddPersonEntity> = mutableListOf()
 
-    @ExcludeFromTestCoverage
     interface Specs {
         companion object {
             fun firstnameContains(firstname: String?): Specification<CustomerEntity>? {
