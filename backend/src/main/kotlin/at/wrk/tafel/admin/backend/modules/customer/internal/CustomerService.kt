@@ -6,6 +6,7 @@ import at.wrk.tafel.admin.backend.database.entities.customer.CustomerAddPersonEn
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity.Specs.Companion.firstnameContains
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity.Specs.Companion.lastnameContains
+import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity.Specs.Companion.orderByUpdatedAtDesc
 import at.wrk.tafel.admin.backend.database.entities.staticdata.CountryEntity
 import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerAddPersonRepository
@@ -72,7 +73,7 @@ class CustomerService(
     @Transactional
     fun getCustomers(firstname: String? = null, lastname: String? = null): List<Customer> {
         val pageRequest = PageRequest.of(0, 25)
-        val spec = where(firstnameContains(firstname)).and(lastnameContains(lastname))
+        val spec = orderByUpdatedAtDesc(where(firstnameContains(firstname)).and(lastnameContains(lastname)))
 
         return customerRepository.findAll(spec, pageRequest).map { mapEntityToResponse(it) }.toList()
     }

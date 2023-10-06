@@ -125,6 +125,13 @@ class CustomerEntity : BaseChangeTrackingEntity() {
                     }
                 }
             }
+
+            fun orderByUpdatedAtDesc(spec: Specification<CustomerEntity>): Specification<CustomerEntity> {
+                return Specification { root: Root<CustomerEntity>, cq: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                    cq.orderBy(cb.desc(root.get<LocalDateTime>("updatedAt")))
+                    spec.toPredicate(root, cq, cb)
+                }
+            }
         }
     }
 

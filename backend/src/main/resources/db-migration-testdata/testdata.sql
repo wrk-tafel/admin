@@ -175,7 +175,7 @@ values (202, NOW(), NOW(), 202, 100, '2', 'e2e-search', '1980-01-01', 1, 'Erdber
 INSERT INTO customers (id, created_at, updated_at, customer_id, user_id, firstname, lastname, birth_date, country_id,
                        address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
                        address_city, telephone_number, email, employer, income, income_due, valid_until)
-values (300, NOW(), NOW(), 300, 100, 'endtoend-test-delete', 'endtoend-test-delete', '1980-01-01', 1, 'Erdberg', 1, null, '10', '1030',
+values (300, NOW(), NOW(), 300, 100, 'e2e-delete', 'e2e-delete', '1980-01-01', 1, 'Erdberg', 1, null, '10', '1030',
         'Wien', null, null,
         'Stadt Wien', null, null, '2999-12-31');
 

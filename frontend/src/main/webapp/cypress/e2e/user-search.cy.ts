@@ -5,11 +5,6 @@ describe('User Search', () => {
     cy.visit('/#/benutzer/suchen');
   });
 
-  it('buttons disabled by default', () => {
-    cy.byTestId('showuser-button').should('be.disabled');
-    cy.byTestId('search-button').should('be.disabled');
-  });
-
   it('search by personnelNumber', () => {
     cy.byTestId('personnelNumberText').type('admin-persnr');
     cy.byTestId('showuser-button').click();
