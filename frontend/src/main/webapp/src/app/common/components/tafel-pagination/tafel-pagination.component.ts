@@ -10,10 +10,12 @@ export class TafelPaginationComponent {
   @Output() pageChanged = new EventEmitter<number>();
 
   pages: number[];
+  maxPage: number;
   currentPage: number;
 
   @Input() set paginationData(paginationData: TafelPaginationData) {
     this.currentPage = paginationData.currentPage + 1;
+    this.maxPage = paginationData.totalPages;
     this.pages = Array.from({length: paginationData.totalPages}, (value, key) => key + 1);
   }
 
