@@ -1,17 +1,17 @@
 <c-pagination [align]="align" [size]="size" style="cursor: pointer;">
-  <li cPageItem [disabled]="currentPage <= 2" (click)="emitPageChange(1)">
+  <li cPageItem [disabled]="currentPage <= 2" (click)="selectFirstPage()">
     <a cPageLink><span aria-hidden="true">&lt;&lt;</span></a>
   </li>
-  <li cPageItem [disabled]="currentPage === 1" (click)="emitPageChange(Math.max(1, currentPage - 1))">
+  <li cPageItem [disabled]="currentPage === 1" (click)="selectPreviousPage()">
     <a cPageLink><span aria-hidden="true">&lt;</span></a>
   </li>
-  <li cPageItem *ngFor="let pageIdx of pages; let i = index" [active]="i === currentPage - 1" (click)="emitPageChange(i + 1)">
+  <li cPageItem *ngFor="let pageIdx of pages; let i = index" [active]="i === currentPage - 1" (click)="selectPage(i)">
     <a cPageLink>{{pageIdx}}</a>
   </li>
-  <li cPageItem [disabled]="currentPage == maxPage" (click)="emitPageChange(Math.min(maxPage, currentPage + 1))">
+  <li cPageItem [disabled]="currentPage == maxPage" (click)="selectNextPage()">
     <a cPageLink><span aria-hidden="true">&gt;</span></a>
   </li>
-  <li cPageItem [disabled]="currentPage >= (maxPage - 1)" (click)="emitPageChange(maxPage)">
+  <li cPageItem [disabled]="currentPage >= (maxPage - 1)" (click)="selectLastPage()">
     <a cPageLink><span aria-hidden="true">&gt;&gt;</span></a>
   </li>
 </c-pagination>

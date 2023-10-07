@@ -5,6 +5,13 @@ import {Component, EventEmitter, Input, Output} from '@angular/core';
   templateUrl: 'tafel-pagination.component.html'
 })
 export class TafelPaginationComponent {
+
+  @Input() set paginationData(paginationData: TafelPaginationData) {
+    this.currentPage = paginationData.currentPage + 1;
+    this.maxPage = paginationData.totalPages;
+    this.pages = Array.from({length: paginationData.totalPages}, (value, key) => key + 1);
+  }
+
   @Input() align: 'start' | 'center' | 'end' | '' = '';
   @Input() size?: 'sm' | 'lg';
   @Output() pageChanged = new EventEmitter<number>();
@@ -13,17 +20,30 @@ export class TafelPaginationComponent {
   maxPage: number;
   currentPage: number;
 
-  @Input() set paginationData(paginationData: TafelPaginationData) {
-    this.currentPage = paginationData.currentPage + 1;
-    this.maxPage = paginationData.totalPages;
-    this.pages = Array.from({length: paginationData.totalPages}, (value, key) => key + 1);
-  }
-
   emitPageChange(pageIndex: number) {
     this.pageChanged.emit(pageIndex - 1);
   }
 
-  protected readonly Math = Math;
+  selectFirstPage() {
+    this.emitPageChange(1);
+  }
+
+  selectPreviousPage() {
+    this.emitPageChange(Math.max(1, this.currentPage - 1));
+  }
+
+  selectPage(index: number) {
+    this.emitPageChange(index + 1);
+  }
+
+  selectNextPage() {
+    this.emitPageChange(Math.min(this.maxPage, this.currentPage + 1));
+  }
+
+  selectLastPage() {
+    this.emitPageChange(this.maxPage);
+  }
+
 }
 
 export interface TafelPaginationData {
