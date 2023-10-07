@@ -673,7 +673,7 @@ class CustomerServiceTest {
 
         val searchResult = service.getCustomers(pageIndex = pageRequest.pageNumber)
 
-        assertThat(searchResult.pageIndex).isEqualTo(pageRequest.pageNumber)
+        assertThat(searchResult.currentPage).isEqualTo(pageRequest.pageNumber)
         assertThat(searchResult.totalPages).isEqualTo(5)
         assertThat(searchResult.totalCount).isEqualTo(page.totalElements)
 

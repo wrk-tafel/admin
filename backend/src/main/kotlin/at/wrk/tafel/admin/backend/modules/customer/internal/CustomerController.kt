@@ -84,7 +84,7 @@ class CustomerController(
         return CustomerListResponse(
             items = customerSearchResult.items,
             totalCount = customerSearchResult.totalCount,
-            pageIndex = customerSearchResult.pageIndex,
+            currentPage = customerSearchResult.currentPage,
             totalPages = customerSearchResult.totalPages
         )
     }

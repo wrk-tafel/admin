@@ -11,7 +11,7 @@ import java.time.LocalDateTime
 data class CustomerListResponse(
     val items: List<Customer>,
     val totalCount: Long,
-    val pageIndex: Int,
+    val currentPage: Int,
     val totalPages: Int
 )
 

@@ -47,7 +47,7 @@
       </c-row>
       <c-row *ngIf="searchResult">
         <c-col sm="12" class="table-responsive">
-          <h5>Suchergebnis</h5>
+          <h5>Suchergebnis ({{this.searchResult.totalCount}} Kunden gefunden)</h5>
           <tafel-pagination class="d-none d-md-block" align="end" [paginationData]="paginationData"></tafel-pagination>
           <tafel-pagination class="d-sm-block d-md-none" align="center" size="sm" [paginationData]="paginationData"></tafel-pagination>
           <table cTable striped="true" aria-label="Liste der gefundenen Kunden" class="mt-3">
