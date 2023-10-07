@@ -73,10 +73,20 @@ class CustomerController(
     @GetMapping
     fun getCustomers(
         @RequestParam firstname: String? = null,
-        @RequestParam lastname: String? = null
+        @RequestParam lastname: String? = null,
+        @RequestParam pageIndex: Int? = null
     ): CustomerListResponse {
-        val customerItems = service.getCustomers(firstname?.trim(), lastname?.trim())
-        return CustomerListResponse(items = customerItems)
+        val customerSearchResult = service.getCustomers(
+            firstname = firstname?.trim(),
+            lastname = lastname?.trim(),
+            pageIndex = pageIndex
+        )
+        return CustomerListResponse(
+            items = customerSearchResult.items,
+            totalCount = customerSearchResult.totalCount,
+            pageIndex = customerSearchResult.pageIndex,
+            totalPages = customerSearchResult.totalPages
+        )
     }
 
     @DeleteMapping("/{customerId}")

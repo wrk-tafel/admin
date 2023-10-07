@@ -71,11 +71,18 @@ class CustomerService(
     }
 
     @Transactional
-    fun getCustomers(firstname: String? = null, lastname: String? = null): List<Customer> {
-        val pageRequest = PageRequest.of(0, 25)
+    fun getCustomers(firstname: String? = null, lastname: String? = null, pageIndex: Int?): CustomerSearchResult {
+        val usedPageIndex = pageIndex ?: 0
+        val pageRequest = PageRequest.of(usedPageIndex, 25)
         val spec = orderByUpdatedAtDesc(where(firstnameContains(firstname)).and(lastnameContains(lastname)))
+        val pagedResult = customerRepository.findAll(spec, pageRequest)
 
-        return customerRepository.findAll(spec, pageRequest).map { mapEntityToResponse(it) }.toList()
+        return CustomerSearchResult(
+            items = pagedResult.map { mapEntityToResponse(it) }.toList(),
+            totalCount = pagedResult.totalElements,
+            pageIndex = usedPageIndex,
+            totalPages = pagedResult.totalPages
+        )
     }
 
     @Transactional
@@ -261,6 +268,13 @@ class CustomerService(
     }
 
 }
+
+data class CustomerSearchResult(
+    val items: List<Customer>,
+    val totalCount: Long,
+    val pageIndex: Int,
+    val totalPages: Int
+)
 
 @ExcludeFromTestCoverage
 data class CustomerPdfResult(

@@ -9,7 +9,10 @@ import java.time.LocalDateTime
 
 @ExcludeFromTestCoverage
 data class CustomerListResponse(
-    val items: List<Customer>
+    val items: List<Customer>,
+    val totalCount: Long,
+    val pageIndex: Int,
+    val totalPages: Int
 )
 
 @ExcludeFromTestCoverage
