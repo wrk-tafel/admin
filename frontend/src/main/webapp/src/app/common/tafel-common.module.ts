@@ -4,7 +4,7 @@ import {PasswordChangeFormComponent} from './views/passwordchange-form/passwordc
 import {ReactiveFormsModule} from '@angular/forms';
 import {CommonModule} from '@angular/common';
 import {
-  BgColorDirective,
+  BgColorDirective, PaginationModule,
   ProgressBarComponent,
   ProgressComponent,
   ToastBodyComponent,
@@ -16,6 +16,7 @@ import {TafelToasterComponent} from './views/default-layout/toasts/tafel-toaster
 import {TafelToastComponent} from './views/default-layout/toasts/toast/tafel-toast.component';
 import {TafelIfDistributionActiveDirective} from './directive/tafel-if-distribution-active.directive';
 import {TafelPaginationComponent} from "./components/tafel-pagination/tafel-pagination.component";
+import {RouterLink} from "@angular/router";
 
 @NgModule({
   declarations: [
@@ -35,7 +36,9 @@ import {TafelPaginationComponent} from "./components/tafel-pagination/tafel-pagi
     BgColorDirective,
     ToasterComponent,
     ProgressComponent,
-    ProgressBarComponent
+    ProgressBarComponent,
+    PaginationModule,
+    RouterLink
   ],
   exports: [
     TafelIfPermissionDirective,
