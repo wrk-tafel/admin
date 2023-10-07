@@ -48,7 +48,6 @@ export class CustomerSearchComponent {
   }
 
   searchForDetails(pageIndex?: number) {
-    console.log("REQ PAGE", pageIndex)
     this.customerApiService.searchCustomer(this.lastname.value, this.firstname.value, pageIndex)
       .subscribe((response: CustomerSearchResult) => {
         if (response.items.length === 0) {
