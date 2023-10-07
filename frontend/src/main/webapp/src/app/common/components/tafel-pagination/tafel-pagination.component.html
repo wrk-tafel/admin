@@ -2,13 +2,13 @@
   <li cPageItem [disabled]="currentPage <= 2" (click)="emitPageChange(1)">
     <a cPageLink><span aria-hidden="true">&lt;&lt;</span></a>
   </li>
-  <li cPageItem [disabled]="currentPage === 1" (click)="emitPageChange(currentPage - 1)">
+  <li cPageItem [disabled]="currentPage === 1" (click)="emitPageChange(Math.max(1, currentPage - 1))">
     <a cPageLink><span aria-hidden="true">&lt;</span></a>
   </li>
   <li cPageItem *ngFor="let pageIdx of pages; let i = index" [active]="i === currentPage - 1" (click)="emitPageChange(i + 1)">
     <a cPageLink>{{pageIdx}}</a>
   </li>
-  <li cPageItem [disabled]="currentPage == maxPage" (click)="emitPageChange(currentPage + 1)">
+  <li cPageItem [disabled]="currentPage == maxPage" (click)="emitPageChange(Math.min(maxPage, currentPage + 1))">
     <a cPageLink><span aria-hidden="true">&gt;</span></a>
   </li>
   <li cPageItem [disabled]="currentPage >= (maxPage - 1)" (click)="emitPageChange(maxPage)">

@@ -23,6 +23,7 @@ export class TafelPaginationComponent {
     this.pageChanged.emit(pageIndex - 1);
   }
 
+  protected readonly Math = Math;
 }
 
 export interface TafelPaginationData {
