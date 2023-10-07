@@ -12,21 +12,9 @@ export class TafelPaginationComponent {
   currentPage: number;
 
   @Input() set paginationData(paginationData: TafelPaginationData) {
+    const currentPage = paginationData.currentPage;
+    this.currentPage = currentPage;
     this.pages = Array.from({length: paginationData.totalPages}, (value, key) => key + 1);
-    this.currentPage = paginationData.currentPage;
-
-    console.log("DATA", paginationData)
-  }
-
-  private AMOUNT_PAGES_TO_CURRENTPAGE = 2;
-
-  public getPages(): number[] {
-    if (!this.paginationData) {
-      const totalPages = this.paginationData.totalPages;
-
-      // const minPage = Math.min(this.currentPage(), this.currentPage() - this.AMOUNT_PAGES_TO_CURRENTPAGE);
-    }
-    return [];
   }
 
 }
