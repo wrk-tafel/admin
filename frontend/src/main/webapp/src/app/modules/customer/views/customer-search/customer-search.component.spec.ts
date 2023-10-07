@@ -31,7 +31,10 @@ describe('CustomerSearchComponent', () => {
           city: 'city'
         }
       }
-    ]
+    ],
+    totalCount: 1,
+    currentPage: 0,
+    totalPages: 1
   };
 
   beforeEach(waitForAsync(() => {
@@ -124,7 +127,7 @@ describe('CustomerSearchComponent', () => {
     const fixture = TestBed.createComponent(CustomerSearchComponent);
     const component = fixture.componentInstance;
     component.firstname.setValue('firstname');
-    const response: CustomerSearchResult = {items: []};
+    const response: CustomerSearchResult = {items: [], currentPage: 0, totalCount: 0, totalPages: 0};
     apiService.searchCustomer.and.returnValue(of(response));
 
     component.searchForDetails();
