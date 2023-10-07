@@ -1,17 +1,17 @@
 <c-pagination [align]="align" [size]="size" style="cursor: pointer;">
   <li cPageItem [disabled]="currentPage <= 2" (click)="emitPageChange(1)">
-    <a cPageLink [routerLink]><span aria-hidden="true">&lt;&lt;</span></a>
+    <a cPageLink><span aria-hidden="true">&lt;&lt;</span></a>
   </li>
   <li cPageItem [disabled]="currentPage === 1" (click)="emitPageChange(currentPage - 1)">
-    <a cPageLink [routerLink]><span aria-hidden="true">&lt;</span></a>
+    <a cPageLink><span aria-hidden="true">&lt;</span></a>
   </li>
   <li cPageItem *ngFor="let pageIdx of pages; let i = index" [active]="i === currentPage - 1" (click)="emitPageChange(i + 1)">
-    <a cPageLink [routerLink]>{{pageIdx}}</a>
+    <a cPageLink>{{pageIdx}}</a>
   </li>
   <li cPageItem [disabled]="currentPage == maxPage" (click)="emitPageChange(currentPage + 1)">
-    <a cPageLink [routerLink]><span aria-hidden="true">&gt;</span></a>
+    <a cPageLink><span aria-hidden="true">&gt;</span></a>
   </li>
   <li cPageItem [disabled]="currentPage >= (maxPage - 1)" (click)="emitPageChange(maxPage)">
-    <a cPageLink [routerLink]><span aria-hidden="true">&gt;&gt;</span></a>
+    <a cPageLink><span aria-hidden="true">&gt;&gt;</span></a>
   </li>
 </c-pagination>
