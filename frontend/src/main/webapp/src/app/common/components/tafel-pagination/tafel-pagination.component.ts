@@ -7,20 +7,18 @@ import {Component, EventEmitter, Input, Output} from '@angular/core';
 export class TafelPaginationComponent {
   @Input() align: 'start' | 'center' | 'end' | '' = '';
   @Input() size?: 'sm' | 'lg';
-
   @Output() pageChanged = new EventEmitter<number>();
 
   pages: number[];
   currentPage: number;
 
   @Input() set paginationData(paginationData: TafelPaginationData) {
-    const currentPage = paginationData.currentPage;
-    this.currentPage = currentPage;
+    this.currentPage = paginationData.currentPage + 1;
     this.pages = Array.from({length: paginationData.totalPages}, (value, key) => key + 1);
   }
 
   emitPageChange(pageIndex: number) {
-    this.pageChanged.emit(pageIndex);
+    this.pageChanged.emit(pageIndex - 1);
   }
 
 }
