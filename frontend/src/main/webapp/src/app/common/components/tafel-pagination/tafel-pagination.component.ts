@@ -5,6 +5,9 @@ import {Component, EventEmitter, Input, Output} from '@angular/core';
   templateUrl: 'tafel-pagination.component.html'
 })
 export class TafelPaginationComponent {
+  @Input() align: 'start' | 'center' | 'end' | '' = '';
+  @Input() size?: 'sm' | 'lg';
+  @Output() pageChanged = new EventEmitter<number>();
 
   @Input() set paginationData(paginationData: TafelPaginationData) {
     this.currentPage = paginationData.currentPage + 1;
@@ -12,17 +15,9 @@ export class TafelPaginationComponent {
     this.pages = Array.from({length: paginationData.totalPages}, (value, key) => key + 1);
   }
 
-  @Input() align: 'start' | 'center' | 'end' | '' = '';
-  @Input() size?: 'sm' | 'lg';
-  @Output() pageChanged = new EventEmitter<number>();
-
   pages: number[];
   maxPage: number;
   currentPage: number;
-
-  emitPageChange(pageIndex: number) {
-    this.pageChanged.emit(pageIndex - 1);
-  }
 
   selectFirstPage() {
     this.emitPageChange(1);
@@ -42,6 +37,10 @@ export class TafelPaginationComponent {
 
   selectLastPage() {
     this.emitPageChange(this.maxPage);
+  }
+
+  private emitPageChange(pageIndex: number) {
+    this.pageChanged.emit(pageIndex - 1);
   }
 
 }
