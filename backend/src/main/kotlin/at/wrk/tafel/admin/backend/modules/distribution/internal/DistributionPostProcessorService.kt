@@ -27,7 +27,7 @@ class DistributionPostProcessorService(
 
     @Async
     fun process(distributionId: Long) {
-        transactionTemplate.execute {
+        transactionTemplate.executeWithoutResult {
             val distribution = distributionRepository.findById(distributionId).get()
             val statistic = distributionStatisticService.createAndSaveStatistic(distribution)
             val pdfReportBytes = dailyReportService.generateDailyReportPdf(statistic)

@@ -148,7 +148,7 @@ class DistributionService(
             ?: throw TafelValidationException("Ausgabe nicht gestartet!")
         val authenticatedUser = SecurityContextHolder.getContext().authentication as? TafelJwtAuthentication
 
-        transactionTemplate.execute {
+        transactionTemplate.executeWithoutResult {
             if (currentDistribution != null) {
                 currentDistribution.endedAt = LocalDateTime.now()
                 currentDistribution.endedByUser =
