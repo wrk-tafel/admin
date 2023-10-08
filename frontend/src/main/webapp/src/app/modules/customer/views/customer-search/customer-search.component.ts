@@ -47,8 +47,8 @@ export class CustomerSearchComponent {
     this.customerApiService.getCustomer(customerId).subscribe(observer);
   }
 
-  searchForDetails(pageIndex?: number) {
-    this.customerApiService.searchCustomer(this.lastname.value, this.firstname.value, pageIndex)
+  searchForDetails(page?: number) {
+    this.customerApiService.searchCustomer(this.lastname.value, this.firstname.value, page)
       .subscribe((response: CustomerSearchResult) => {
         if (response.items.length === 0) {
           this.toastService.showToast({type: ToastType.INFO, title: 'Keine Kunden gefunden!'});

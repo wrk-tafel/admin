@@ -219,14 +219,14 @@ class CustomerControllerTest {
             controller.getCustomers(
                 firstname = " first ",
                 lastname = " last ",
-                pageIndex = testSearchResult.currentPage
+                page = testSearchResult.currentPage
             )
 
         verify {
             service.getCustomers(
                 firstname = "first",
                 lastname = "last",
-                pageIndex = testSearchResult.currentPage
+                page = testSearchResult.currentPage
             )
         }
         assertThat(response.items).hasSize(1)

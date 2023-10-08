@@ -120,7 +120,7 @@ describe('CustomerApiService', () => {
   it('search customer including page parameter', () => {
     apiService.searchCustomer(null, 'max', 3).subscribe();
 
-    const req = httpMock.expectOne({method: 'GET', url: '/customers?firstname=max&pageIndex=3'});
+    const req = httpMock.expectOne({method: 'GET', url: '/customers?firstname=max&page=3'});
     req.flush(null);
     httpMock.verify();
   });

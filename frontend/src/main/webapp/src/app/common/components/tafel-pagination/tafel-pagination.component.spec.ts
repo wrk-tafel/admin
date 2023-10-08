@@ -27,7 +27,7 @@ describe('TafelPaginationComponent', () => {
     component.paginationData = {
       count: 5,
       totalCount: 5,
-      currentPage: 0,
+      currentPage: 1,
       totalPages: 1,
       pageSize: 10
     };
@@ -43,7 +43,7 @@ describe('TafelPaginationComponent', () => {
     component.paginationData = {
       count: 5,
       totalCount: 50,
-      currentPage: 0,
+      currentPage: 1,
       totalPages: 10,
       pageSize: 10
     };
@@ -59,7 +59,7 @@ describe('TafelPaginationComponent', () => {
     component.paginationData = {
       count: 10,
       totalCount: 30,
-      currentPage: 1,
+      currentPage: 2,
       totalPages: 2,
       pageSize: 10
     };
@@ -75,7 +75,7 @@ describe('TafelPaginationComponent', () => {
     component.paginationData = {
       count: 8,
       totalCount: 28,
-      currentPage: 2,
+      currentPage: 3,
       totalPages: 3,
       pageSize: 10
     };
@@ -92,7 +92,7 @@ describe('TafelPaginationComponent', () => {
 
     component.selectFirstPage();
 
-    expect(component.pageChanged.emit).toHaveBeenCalledWith(0);
+    expect(component.pageChanged.emit).toHaveBeenCalledWith(1);
   }));
 
   it('selectPreviousPage', waitForAsync(() => {
@@ -103,7 +103,7 @@ describe('TafelPaginationComponent', () => {
 
     component.selectPreviousPage();
 
-    expect(component.pageChanged.emit).toHaveBeenCalledWith(3);
+    expect(component.pageChanged.emit).toHaveBeenCalledWith(4);
   }));
 
   it('selectPreviousPage on first page', waitForAsync(() => {
@@ -114,7 +114,7 @@ describe('TafelPaginationComponent', () => {
 
     component.selectPreviousPage();
 
-    expect(component.pageChanged.emit).toHaveBeenCalledWith(0);
+    expect(component.pageChanged.emit).toHaveBeenCalledWith(1);
   }));
 
   it('selectNextPage', waitForAsync(() => {
@@ -126,7 +126,7 @@ describe('TafelPaginationComponent', () => {
 
     component.selectNextPage();
 
-    expect(component.pageChanged.emit).toHaveBeenCalledWith(4);
+    expect(component.pageChanged.emit).toHaveBeenCalledWith(5);
   }));
 
   it('selectNextPage on last page', waitForAsync(() => {
@@ -138,7 +138,7 @@ describe('TafelPaginationComponent', () => {
 
     component.selectNextPage();
 
-    expect(component.pageChanged.emit).toHaveBeenCalledWith(9);
+    expect(component.pageChanged.emit).toHaveBeenCalledWith(10);
   }));
 
   it('selectLastPage', waitForAsync(() => {
@@ -149,7 +149,7 @@ describe('TafelPaginationComponent', () => {
 
     component.selectLastPage();
 
-    expect(component.pageChanged.emit).toHaveBeenCalledWith(6);
+    expect(component.pageChanged.emit).toHaveBeenCalledWith(7);
   }));
 
 });

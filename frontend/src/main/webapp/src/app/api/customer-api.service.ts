@@ -44,7 +44,7 @@ export class CustomerApiService {
       });
   }
 
-  searchCustomer(lastname?: string, firstname?: string, pageIndex?: number): Observable<CustomerSearchResult> {
+  searchCustomer(lastname?: string, firstname?: string, page?: number): Observable<CustomerSearchResult> {
     let queryParams = new HttpParams();
     if (lastname) {
       queryParams = queryParams.set('lastname', lastname);
@@ -52,8 +52,8 @@ export class CustomerApiService {
     if (firstname) {
       queryParams = queryParams.set('firstname', firstname);
     }
-    if (pageIndex) {
-      queryParams = queryParams.set('pageIndex', pageIndex);
+    if (page) {
+      queryParams = queryParams.set('page', page);
     }
     return this.http.get<CustomerSearchResult>('/customers', {params: queryParams});
   }
