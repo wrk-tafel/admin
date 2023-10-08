@@ -42,10 +42,16 @@ export class UserDetailComponent implements OnInit {
   }
 
   deleteUser() {
-    this.userApiService.deleteUser(this.userData.id).subscribe(updatedUser => {
-      this.toastService.showToast({type: ToastType.SUCCESS, title: 'Benutzer wurde gelöscht!'});
-      this.router.navigate(['/benutzer/suchen']);
-    });
+    const observer = {
+      next: (response) => {
+        this.toastService.showToast({type: ToastType.SUCCESS, title: 'Benutzer wurde gelöscht!'});
+        this.router.navigate(['/benutzer/suchen']);
+      },
+      error: error => {
+        this.toastService.showToast({type: ToastType.ERROR, title: 'Löschen fehlgeschlagen!'});
+      },
+    };
+    this.userApiService.deleteUser(this.userData.id).subscribe(observer);
   }
 
   editUser() {

@@ -6,7 +6,7 @@ import {UserDetailComponent} from './user-detail.component';
 import {CardModule, ColComponent, RowComponent} from '@coreui/angular';
 import {UserApiService, UserData} from '../../../api/user-api.service';
 import {By} from '@angular/platform-browser';
-import {of} from 'rxjs';
+import {of, throwError} from 'rxjs';
 import {ToastService, ToastType} from '../../../common/views/default-layout/toasts/toast.service';
 
 describe('UserDetailComponent', () => {
@@ -120,7 +120,7 @@ describe('UserDetailComponent', () => {
     expect(component.userData).toEqual(updatedUserData);
   });
 
-  it('delete user', () => {
+  it('deleted user successfully', () => {
     const fixture = TestBed.createComponent(UserDetailComponent);
     const component = fixture.componentInstance;
     component.userData = mockUser;
@@ -131,6 +131,21 @@ describe('UserDetailComponent', () => {
     expect(userApiService.deleteUser).toHaveBeenCalledWith(mockUser.id);
     expect(router.navigate).toHaveBeenCalledWith(['/benutzer/suchen']);
     expect(toastService.showToast).toHaveBeenCalledWith({type: ToastType.SUCCESS, title: 'Benutzer wurde gelöscht!'});
+  });
+
+  it('delete user failed', () => {
+    const fixture = TestBed.createComponent(UserDetailComponent);
+    const component = fixture.componentInstance;
+    component.userData = mockUser;
+    userApiService.deleteUser.and.returnValues(throwError(() => {
+      return {status: 404};
+    }));
+
+    component.deleteUser();
+
+    expect(userApiService.deleteUser).toHaveBeenCalledWith(mockUser.id);
+    expect(router.navigate).not.toHaveBeenCalled();
+    expect(toastService.showToast).toHaveBeenCalledWith({type: ToastType.ERROR, title: 'Löschen fehlgeschlagen!'});
   });
 
   it('editUser should navigate properly', () => {
