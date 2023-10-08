@@ -1,7 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {UserApiService, UserData} from '../../../api/user-api.service';
 import {ActivatedRoute, Router} from '@angular/router';
-import {ToastService, ToastType} from "../../../common/views/default-layout/toasts/toast.service";
+import {ToastService, ToastType} from '../../../common/views/default-layout/toasts/toast.service';
 
 @Component({
   selector: 'tafel-user-detail',

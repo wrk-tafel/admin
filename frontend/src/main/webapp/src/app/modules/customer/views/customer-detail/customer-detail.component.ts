@@ -106,7 +106,10 @@ export class CustomerDetailComponent implements OnInit {
   deleteCustomer() {
     /* eslint-disable @typescript-eslint/no-unused-vars */
     const observer = {
-      next: (response) => this.router.navigate(['/kunden/suchen']),
+      next: (response) => {
+        this.toastService.showToast({type: ToastType.SUCCESS, title: 'Kunde wurde gelöscht!'});
+        this.router.navigate(['/kunden/suchen']);
+      },
       error: error => {
         this.showDeleteCustomerModal = false;
         this.toastService.showToast({type: ToastType.ERROR, title: 'Löschen fehlgeschlagen!'});
