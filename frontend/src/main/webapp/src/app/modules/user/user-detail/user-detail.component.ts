@@ -44,7 +44,7 @@ export class UserDetailComponent implements OnInit {
   deleteUser() {
     this.userApiService.deleteUser(this.userData.id).subscribe(updatedUser => {
       this.toastService.showToast({type: ToastType.SUCCESS, title: 'Benutzer wurde gelöscht!'});
-      this.router.navigate(['uebersicht']);
+      this.router.navigate(['/benutzer/suchen']);
     });
   }
 

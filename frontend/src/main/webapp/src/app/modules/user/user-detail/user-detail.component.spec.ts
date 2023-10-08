@@ -129,7 +129,7 @@ describe('UserDetailComponent', () => {
     component.deleteUser();
 
     expect(userApiService.deleteUser).toHaveBeenCalledWith(mockUser.id);
-    expect(router.navigate).toHaveBeenCalledWith(['uebersicht']);
+    expect(router.navigate).toHaveBeenCalledWith(['/benutzer/suchen']);
     expect(toastService.showToast).toHaveBeenCalledWith({type: ToastType.SUCCESS, title: 'Benutzer wurde gelöscht!'});
   });
 
