@@ -76,6 +76,8 @@ internal class DistributionPostProcessorServiceTest {
         assertThat(attachment.filename).isEqualTo("tagesreport_${dateFormatted}.pdf")
         assertThat(attachment.inputStreamSource).isNotNull
         assertThat(attachment.contentType).isEqualTo("application/pdf")
+
+        verify(exactly = 1) { transactionTemplate.executeWithoutResult(any()) }
     }
 
 }

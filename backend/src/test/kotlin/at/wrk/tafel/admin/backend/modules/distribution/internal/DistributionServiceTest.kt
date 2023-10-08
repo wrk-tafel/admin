@@ -237,6 +237,7 @@ internal class DistributionServiceTest {
             })
         }
         verify { distributionPostProcessorService.process(savedDistributionId) }
+        verify(exactly = 1) { transactionTemplate.executeWithoutResult(any()) }
     }
 
     @Test
