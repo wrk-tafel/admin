@@ -39,11 +39,11 @@ describe('User Detail', () => {
     cy.byTestId('changeUserStateButton').click();
     cy.byTestId('deleteUserButton').click();
 
-    cy.url().should('include', '/uebersicht');
+    cy.url().should('include', '/benutzer/suchen');
 
-    // delete fails- UI stays on dashboard and shows toast
+    // delete fails, UI stays on user-search and shows toast
     cy.visit('/#/benutzer/detail/103');
-    cy.url().should('include', '/uebersicht');
+    cy.url().should('include', '/benutzer/suchen');
   });
 
 });
