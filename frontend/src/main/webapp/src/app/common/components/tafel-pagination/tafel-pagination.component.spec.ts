@@ -85,4 +85,71 @@ describe('TafelPaginationComponent', () => {
     expect(component.text).toBe('21 - 28 von 28');
   }));
 
+  it('selectFirstPage', waitForAsync(() => {
+    const fixture = TestBed.createComponent(TafelPaginationComponent);
+    const component = fixture.componentInstance;
+    spyOn(component.pageChanged, 'emit');
+
+    component.selectFirstPage();
+
+    expect(component.pageChanged.emit).toHaveBeenCalledWith(0);
+  }));
+
+  it('selectPreviousPage', waitForAsync(() => {
+    const fixture = TestBed.createComponent(TafelPaginationComponent);
+    const component = fixture.componentInstance;
+    spyOn(component.pageChanged, 'emit');
+    component.currentPage = 5;
+
+    component.selectPreviousPage();
+
+    expect(component.pageChanged.emit).toHaveBeenCalledWith(3);
+  }));
+
+  it('selectPreviousPage on first page', waitForAsync(() => {
+    const fixture = TestBed.createComponent(TafelPaginationComponent);
+    const component = fixture.componentInstance;
+    spyOn(component.pageChanged, 'emit');
+    component.currentPage = 1;
+
+    component.selectPreviousPage();
+
+    expect(component.pageChanged.emit).toHaveBeenCalledWith(0);
+  }));
+
+  it('selectNextPage', waitForAsync(() => {
+    const fixture = TestBed.createComponent(TafelPaginationComponent);
+    const component = fixture.componentInstance;
+    spyOn(component.pageChanged, 'emit');
+    component.maxPage = 10;
+    component.currentPage = 4;
+
+    component.selectNextPage();
+
+    expect(component.pageChanged.emit).toHaveBeenCalledWith(4);
+  }));
+
+  it('selectNextPage on last page', waitForAsync(() => {
+    const fixture = TestBed.createComponent(TafelPaginationComponent);
+    const component = fixture.componentInstance;
+    spyOn(component.pageChanged, 'emit');
+    component.maxPage = 10;
+    component.currentPage = 10;
+
+    component.selectNextPage();
+
+    expect(component.pageChanged.emit).toHaveBeenCalledWith(9);
+  }));
+
+  it('selectLastPage', waitForAsync(() => {
+    const fixture = TestBed.createComponent(TafelPaginationComponent);
+    const component = fixture.componentInstance;
+    spyOn(component.pageChanged, 'emit');
+    component.maxPage = 7;
+
+    component.selectLastPage();
+
+    expect(component.pageChanged.emit).toHaveBeenCalledWith(6);
+  }));
+
 });
