@@ -4,8 +4,8 @@ import {UserSearchComponent} from './user-search/user-search.component';
 import {UserDetailComponent} from './user-detail/user-detail.component';
 import {UserDataResolver} from './resolver/userdata-resolver.component';
 import {UserData} from '../../api/user-api.service';
-import {UserEditComponent} from "./user-edit/user-edit.component";
-import {PermissionsDataResolver} from "./resolver/permissionsdata-resolver.component";
+import {UserEditComponent} from './user-edit/user-edit.component';
+import {PermissionsDataResolver} from './resolver/permissionsdata-resolver.component';
 
 export const userDataResolver: ResolveFn<UserData> = (route: ActivatedRouteSnapshot) => {
   return inject(UserDataResolver).resolve(route);

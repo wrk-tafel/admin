@@ -19,7 +19,7 @@ import {DefaultLayoutResolver} from './common/views/default-layout/resolver/defa
 import {
   TicketScreenFullscreenComponent
 } from './modules/checkin/ticket-screen-fullscreen/ticket-screen-fullscreen.component';
-import {UserPasswordChangeComponent} from "./modules/user/user-passwordchange/user-passwordchange.component";
+import {UserPasswordChangeComponent} from './modules/user/user-passwordchange/user-passwordchange.component';
 
 const authGuard: CanActivateFn = (route: ActivatedRouteSnapshot) => {
   return inject(AuthGuardService).canActivate(route);

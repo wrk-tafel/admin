@@ -15,8 +15,8 @@ import {
 import {TafelToasterComponent} from './views/default-layout/toasts/tafel-toaster.component';
 import {TafelToastComponent} from './views/default-layout/toasts/toast/tafel-toast.component';
 import {TafelIfDistributionActiveDirective} from './directive/tafel-if-distribution-active.directive';
-import {TafelPaginationComponent} from "./components/tafel-pagination/tafel-pagination.component";
-import {RouterLink} from "@angular/router";
+import {TafelPaginationComponent} from './components/tafel-pagination/tafel-pagination.component';
+import {RouterLink} from '@angular/router';
 
 @NgModule({
   declarations: [
