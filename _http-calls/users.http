@@ -36,6 +36,10 @@ GET {{baseApiPath}}/users?enabled=true
 GET {{baseApiPath}}/users/300
 Content-Type: application/json
 
+### Get user admin by personnel-number
+GET {{baseApiPath}}/users/personnel-number/admin-persnr
+Content-Type: application/json
+
 ### Update user
 POST {{baseApiPath}}/users/300
 Content-Type: application/json

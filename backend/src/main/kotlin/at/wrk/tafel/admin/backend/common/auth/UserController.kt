@@ -98,32 +98,27 @@ class UserController(
         return ResponseEntity.ok(user)
     }
 
+    @GetMapping("/personnel-number/{personnelNumber}")
+    @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
+    fun getUserByPersonnelNumber(@PathVariable("personnelNumber") personnelNumber: String): ResponseEntity<User> {
+        val userDetails = userDetailsManager.loadUserByPersonnelNumber(personnelNumber.trim())
+            ?: throw TafelValidationException(
+                message = "Benutzer (Personalnummer: $personnelNumber) nicht gefunden!",
+                status = HttpStatus.NOT_FOUND
+            )
+        val user = mapToResponse(userDetails)
+        return ResponseEntity.ok(user)
+    }
+
     @GetMapping
     @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
     fun getUsers(
-        @RequestParam("personnelnumber") personnelNumber: String? = null,
         @RequestParam username: String? = null,
         @RequestParam firstname: String? = null,
         @RequestParam lastname: String? = null,
         @RequestParam enabled: Boolean? = null,
         @RequestParam page: Int? = null,
     ): UserListResponse {
-        if (personnelNumber != null) {
-            val user = userDetailsManager.loadUserByPersonnelNumber(personnelNumber.trim())
-                ?: throw TafelValidationException(
-                    message = "Benutzer (Personalnummer: $personnelNumber) nicht gefunden!",
-                    status = HttpStatus.NOT_FOUND
-                )
-            return UserListResponse(
-                items = listOf(mapToResponse(user)),
-                // TODO separate personnelNumber search from this endpoint or integrate it better
-                totalCount = 1,
-                currentPage = 1,
-                totalPages = 1,
-                pageSize = 1
-            )
-        }
-
         val userSearchResult = userDetailsManager.loadUsers(
             username = username?.trim(),
             firstname = firstname?.trim(),

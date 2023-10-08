@@ -1,12 +1,6 @@
 import {HttpClientTestingModule, HttpTestingController} from '@angular/common/http/testing';
 import {TestBed} from '@angular/core/testing';
-import {
-  ChangePasswordRequest,
-  ChangePasswordResponse,
-  UserApiService,
-  UserData,
-  UserSearchResult
-} from './user-api.service';
+import {ChangePasswordRequest, ChangePasswordResponse, UserApiService, UserData} from './user-api.service';
 
 describe('UserApiService', () => {
   let httpMock: HttpTestingController;
@@ -57,16 +51,8 @@ describe('UserApiService', () => {
       expect(userData).toEqual(mockUser);
     });
 
-    const searchResult: UserSearchResult = {
-      items: [mockUser],
-      totalCount: 0,
-      currentPage: 0,
-      totalPages: 0,
-      pageSize: 0
-    };
-
-    const req = httpMock.expectOne({method: 'GET', url: '/users?personnelnumber=p1a2'});
-    req.flush(searchResult);
+    const req = httpMock.expectOne({method: 'GET', url: '/users/personnel-number/p1a2'});
+    req.flush(mockUser);
     httpMock.verify();
   });
 

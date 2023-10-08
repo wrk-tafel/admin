@@ -1,7 +1,6 @@
 import {HttpClient, HttpParams} from '@angular/common/http';
 import {Injectable} from '@angular/core';
 import {Observable} from 'rxjs';
-import {map} from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -22,14 +21,7 @@ export class UserApiService {
   }
 
   getUserForPersonnelNumber(personnelNumber: string): Observable<UserData> {
-    return this.http.get<UserSearchResult>('/users', {params: {personnelnumber: personnelNumber}})
-      .pipe(map(searchResult => {
-          if (searchResult.items.length > 0) {
-            return searchResult.items[0];
-          }
-          return null;
-        })
-      );
+    return this.http.get<UserData>('/users/personnel-number/' + personnelNumber);
   }
 
   searchUser(username?: string, enabled?: boolean, lastname?: string, firstname?: string, page?: number): Observable<UserSearchResult> {

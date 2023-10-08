@@ -149,9 +149,10 @@ class UserControllerTest {
     fun `get users found when filtered by personnel number`() {
         every { userDetailsManager.loadUserByPersonnelNumber(testUser.personnelNumber) } returns testUser
 
-        val response = controller.getUsers(personnelNumber = " ${testUser.personnelNumber} ")
+        val response = controller.getUserByPersonnelNumber(" ${testUser.personnelNumber} ")
 
-        assertThat(response.items).isEqualTo(listOf(testUserApiResponse))
+        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(response.body).isEqualTo(testUserApiResponse)
 
         verify(exactly = 1) { userDetailsManager.loadUserByPersonnelNumber(testUser.personnelNumber) }
     }
@@ -161,7 +162,7 @@ class UserControllerTest {
         every { userDetailsManager.loadUserByPersonnelNumber(testUser.personnelNumber) } returns null
 
         val exception =
-            assertThrows<TafelValidationException> { controller.getUsers(personnelNumber = testUser.personnelNumber) }
+            assertThrows<TafelValidationException> { controller.getUserByPersonnelNumber(testUser.personnelNumber) }
         assertThat(exception.status).isEqualTo(HttpStatus.NOT_FOUND)
         assertThat(exception.message).isEqualTo("Benutzer (Personalnummer: test-personnelnumber) nicht gefunden!")
     }
