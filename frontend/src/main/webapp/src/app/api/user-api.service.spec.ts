@@ -58,7 +58,11 @@ describe('UserApiService', () => {
     });
 
     const searchResult: UserSearchResult = {
-      items: [mockUser]
+      items: [mockUser],
+      totalCount: 0,
+      currentPage: 0,
+      totalPages: 0,
+      pageSize: 0
     };
 
     const req = httpMock.expectOne({method: 'GET', url: '/users?personnelnumber=p1a2'});
@@ -67,11 +71,11 @@ describe('UserApiService', () => {
   });
 
   it('search user with all parameters', () => {
-    apiService.searchUser('maxl-username', false, 'mustermann', 'max').subscribe();
+    apiService.searchUser('maxl-username', false, 'mustermann', 'max', 3).subscribe();
 
     const req = httpMock.expectOne({
       method: 'GET',
-      url: '/users?username=maxl-username&enabled=false&lastname=mustermann&firstname=max'
+      url: '/users?username=maxl-username&enabled=false&lastname=mustermann&firstname=max&page=3'
     });
     req.flush(null);
     httpMock.verify();

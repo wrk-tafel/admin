@@ -26,7 +26,11 @@ describe('UserSearchComponent', () => {
         passwordChangeRequired: true,
         permissions: []
       }
-    ]
+    ],
+    totalCount: 1,
+    currentPage: 0,
+    totalPages: 1,
+    pageSize: 10
   };
 
   beforeEach(waitForAsync(() => {
@@ -121,7 +125,7 @@ describe('UserSearchComponent', () => {
     const component = fixture.componentInstance;
     component.firstname.setValue('firstname');
     component.enabled.setValue(null);
-    const response: UserSearchResult = {items: []};
+    const response: UserSearchResult = {items: [], totalCount: 0, currentPage: 0, totalPages: 0, pageSize: 0};
     apiService.searchUser.and.returnValue(of(response));
 
     component.searchForDetails();

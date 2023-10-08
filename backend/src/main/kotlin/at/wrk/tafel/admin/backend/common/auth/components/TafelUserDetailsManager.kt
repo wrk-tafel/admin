@@ -56,7 +56,7 @@ class TafelUserDetailsManager(
         enabled: Boolean?,
         page: Int?
     ): UserSearchResult {
-        val pageRequest = PageRequest.of(page?.minus(1) ?: 0, 25)
+        val pageRequest = PageRequest.of(page?.minus(1) ?: 0, 2)
         val spec = orderByUpdatedAtDesc(
             where(usernameContains(username))
                 .and(firstnameContains(firstname))

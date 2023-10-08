@@ -3,7 +3,7 @@ import {Router} from '@angular/router';
 import {CustomerAddressData, CustomerApiService, CustomerSearchResult} from '../../../../api/customer-api.service';
 import {FormControl, FormGroup} from '@angular/forms';
 import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
-import {TafelPaginationData} from "../../../../common/components/tafel-pagination/tafel-pagination.component";
+import {TafelPaginationData} from '../../../../common/components/tafel-pagination/tafel-pagination.component';
 
 @Component({
   selector: 'tafel-customer-search',

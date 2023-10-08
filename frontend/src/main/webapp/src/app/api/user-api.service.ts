@@ -32,7 +32,7 @@ export class UserApiService {
       );
   }
 
-  searchUser(username?: string, enabled?: boolean, lastname?: string, firstname?: string): Observable<UserSearchResult> {
+  searchUser(username?: string, enabled?: boolean, lastname?: string, firstname?: string, page?: number): Observable<UserSearchResult> {
     let queryParams = new HttpParams();
     if (username) {
       queryParams = queryParams.set('username', username);
@@ -45,6 +45,9 @@ export class UserApiService {
     }
     if (firstname) {
       queryParams = queryParams.set('firstname', firstname);
+    }
+    if (page) {
+      queryParams = queryParams.set('page', page);
     }
     return this.http.get<UserSearchResult>('/users', {params: queryParams});
   }
@@ -83,6 +86,10 @@ export interface ChangePasswordResponse {
 
 export interface UserSearchResult {
   items: UserData[];
+  totalCount: number;
+  currentPage: number;
+  totalPages: number;
+  pageSize: number;
 }
 
 export interface UserData {
