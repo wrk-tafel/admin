@@ -85,7 +85,8 @@ class CustomerController(
             items = customerSearchResult.items,
             totalCount = customerSearchResult.totalCount,
             currentPage = customerSearchResult.currentPage,
-            totalPages = customerSearchResult.totalPages
+            totalPages = customerSearchResult.totalPages,
+            pageSize = customerSearchResult.pageSize
         )
     }
 

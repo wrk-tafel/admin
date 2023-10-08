@@ -9,15 +9,18 @@ export class TafelPaginationComponent {
   @Input() size?: 'sm' | 'lg';
   @Output() pageChanged = new EventEmitter<number>();
 
+  maxPage: number;
+  currentPage: number;
+  text: string;
+
   @Input() set paginationData(paginationData: TafelPaginationData) {
     this.currentPage = paginationData.currentPage + 1;
     this.maxPage = paginationData.totalPages;
-    this.pages = Array.from({length: paginationData.totalPages}, (value, key) => key + 1);
-  }
 
-  pages: number[];
-  maxPage: number;
-  currentPage: number;
+    const start = (paginationData.currentPage * paginationData.pageSize) + 1;
+    const end = (start - 1) + paginationData.count;
+    this.text = `${start} - ${end} von ${paginationData.totalCount}`;
+  }
 
   selectFirstPage() {
     this.emitPageChange(1);
@@ -25,10 +28,6 @@ export class TafelPaginationComponent {
 
   selectPreviousPage() {
     this.emitPageChange(Math.max(1, this.currentPage - 1));
-  }
-
-  selectPage(index: number) {
-    this.emitPageChange(index + 1);
   }
 
   selectNextPage() {
@@ -46,6 +45,9 @@ export class TafelPaginationComponent {
 }
 
 export interface TafelPaginationData {
+  count: number;
+  totalCount: number;
   currentPage: number;
   totalPages: number;
+  pageSize: number;
 }

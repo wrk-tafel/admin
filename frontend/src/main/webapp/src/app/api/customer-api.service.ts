@@ -73,6 +73,7 @@ export interface CustomerSearchResult {
   totalCount: number;
   currentPage: number;
   totalPages: number;
+  pageSize: number;
 }
 
 export interface CustomerData {

@@ -56,7 +56,13 @@ export class CustomerSearchComponent {
           this.paginationData = null;
         } else {
           this.searchResult = response;
-          this.paginationData = {currentPage: response.currentPage, totalPages: response.totalPages};
+          this.paginationData = {
+            count: response.items.length,
+            totalCount: response.totalCount,
+            currentPage: response.currentPage,
+            totalPages: response.totalPages,
+            pageSize: response.pageSize
+          };
         }
       });
   }

@@ -73,7 +73,7 @@ class CustomerService(
     @Transactional
     fun getCustomers(firstname: String? = null, lastname: String? = null, pageIndex: Int?): CustomerSearchResult {
         val currentPage = pageIndex ?: 0
-        val pageRequest = PageRequest.of(currentPage, 1) // TODO reset size to 25
+        val pageRequest = PageRequest.of(currentPage, 25)
         val spec = orderByUpdatedAtDesc(where(firstnameContains(firstname)).and(lastnameContains(lastname)))
         val pagedResult = customerRepository.findAll(spec, pageRequest)
 
@@ -81,7 +81,8 @@ class CustomerService(
             items = pagedResult.map { mapEntityToResponse(it) }.toList(),
             totalCount = pagedResult.totalElements,
             currentPage = currentPage,
-            totalPages = pagedResult.totalPages
+            totalPages = pagedResult.totalPages,
+            pageSize = pageRequest.pageSize
         )
     }
 
@@ -273,7 +274,8 @@ data class CustomerSearchResult(
     val items: List<Customer>,
     val totalCount: Long,
     val currentPage: Int,
-    val totalPages: Int
+    val totalPages: Int,
+    val pageSize: Int
 )
 
 @ExcludeFromTestCoverage

@@ -5,9 +5,7 @@
   <li cPageItem [disabled]="currentPage === 1" (click)="selectPreviousPage()">
     <a cPageLink><span aria-hidden="true">&lt;</span></a>
   </li>
-  <li cPageItem *ngFor="let pageIdx of pages; let i = index" [active]="i === currentPage - 1" (click)="selectPage(i)">
-    <a cPageLink>{{pageIdx}}</a>
-  </li>
+  <div class="align-self-center ms-3 me-3">{{text}}</div>
   <li cPageItem [disabled]="currentPage == maxPage" (click)="selectNextPage()">
     <a cPageLink><span aria-hidden="true">&gt;</span></a>
   </li>

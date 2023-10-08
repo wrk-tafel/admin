@@ -12,7 +12,8 @@ data class CustomerListResponse(
     val items: List<Customer>,
     val totalCount: Long,
     val currentPage: Int,
-    val totalPages: Int
+    val totalPages: Int,
+    val pageSize: Int
 )
 
 @ExcludeFromTestCoverage
