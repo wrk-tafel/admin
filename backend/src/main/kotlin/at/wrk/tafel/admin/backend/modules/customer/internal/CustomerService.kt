@@ -269,6 +269,7 @@ class CustomerService(
 
 }
 
+@ExcludeFromTestCoverage
 data class CustomerSearchResult(
     val items: List<Customer>,
     val totalCount: Long,

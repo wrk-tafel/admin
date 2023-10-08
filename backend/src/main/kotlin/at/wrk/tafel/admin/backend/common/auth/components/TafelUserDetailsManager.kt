@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.common.auth.components
 
+import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
 import at.wrk.tafel.admin.backend.database.entities.auth.UserAuthorityEntity
@@ -48,17 +49,29 @@ class TafelUserDetailsManager(
         return user?.let { mapToUserDetails(user) }
     }
 
-    fun loadUsers(username: String?, firstname: String?, lastname: String?, enabled: Boolean?): List<TafelUser> {
-        val pageRequest = PageRequest.of(0, 25)
-
+    fun loadUsers(
+        username: String?,
+        firstname: String?,
+        lastname: String?,
+        enabled: Boolean?,
+        page: Int?
+    ): UserSearchResult {
+        val pageRequest = PageRequest.of(page?.minus(1) ?: 0, 25)
         val spec = orderByUpdatedAtDesc(
             where(usernameContains(username))
                 .and(firstnameContains(firstname))
                 .and(lastnameContains(lastname))
                 .and(enabledEquals(enabled))
         )
+        val pagedResult = userRepository.findAll(spec, pageRequest)
 
-        return userRepository.findAll(spec, pageRequest).map { mapToUserDetails(it) }.toList()
+        return UserSearchResult(
+            items = pagedResult.map { mapToUserDetails(it) }.toList(),
+            totalCount = pagedResult.totalElements,
+            currentPage = page ?: 1,
+            totalPages = pagedResult.totalPages,
+            pageSize = pageRequest.pageSize
+        )
     }
 
     override fun createUser(user: UserDetails?) {
@@ -172,3 +185,12 @@ class TafelUserDetailsManager(
 
 class PasswordChangeException(override val message: String, val validationDetails: List<String>? = emptyList()) :
     RuntimeException(message)
+
+@ExcludeFromTestCoverage
+data class UserSearchResult(
+    val items: List<TafelUser>,
+    val totalCount: Long,
+    val currentPage: Int,
+    val totalPages: Int,
+    val pageSize: Int
+)

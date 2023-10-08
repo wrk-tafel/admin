@@ -5,6 +5,7 @@ import at.wrk.tafel.admin.backend.common.auth.components.PasswordChangeException
 import at.wrk.tafel.admin.backend.common.auth.components.TafelLoginFilter
 import at.wrk.tafel.admin.backend.common.auth.components.TafelPasswordGenerator
 import at.wrk.tafel.admin.backend.common.auth.components.TafelUserDetailsManager
+import at.wrk.tafel.admin.backend.common.auth.components.UserSearchResult
 import at.wrk.tafel.admin.backend.common.auth.model.ChangePasswordRequest
 import at.wrk.tafel.admin.backend.common.auth.model.GeneratedPasswordResponse
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
@@ -171,27 +172,47 @@ class UserControllerTest {
         val lastname = " test-lastname "
         val username = " test-username "
         val enabled = true
+        val page = 5
+        val userSearchResult = UserSearchResult(
+            items = listOf(testUser),
+            totalCount = 20,
+            currentPage = page,
+            totalPages = 10,
+            pageSize = 2
+        )
 
         every {
             userDetailsManager.loadUsers(
+                username = username.trim(),
                 firstname = firstname.trim(),
                 lastname = lastname.trim(),
-                username = username.trim(),
-                enabled = enabled
+                enabled = enabled,
+                page = page
             )
-        } returns listOf(testUser)
+        } returns userSearchResult
 
         val response =
-            controller.getUsers(firstname = firstname, lastname = lastname, username = username, enabled = enabled)
+            controller.getUsers(
+                firstname = firstname,
+                lastname = lastname,
+                username = username,
+                enabled = enabled,
+                page = page
+            )
 
         assertThat(response.items).isEqualTo(listOf(testUserApiResponse))
+        assertThat(response.totalCount).isEqualTo(userSearchResult.totalCount)
+        assertThat(response.currentPage).isEqualTo(userSearchResult.currentPage)
+        assertThat(response.totalPages).isEqualTo(userSearchResult.totalPages)
+        assertThat(response.pageSize).isEqualTo(userSearchResult.pageSize)
 
         verify(exactly = 1) {
             userDetailsManager.loadUsers(
+                username = username.trim(),
                 firstname = firstname.trim(),
                 lastname = lastname.trim(),
-                username = username.trim(),
-                enabled = enabled
+                enabled = enabled,
+                page = page
             )
         }
     }

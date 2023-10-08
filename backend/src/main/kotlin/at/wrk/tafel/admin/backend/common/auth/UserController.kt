@@ -106,6 +106,7 @@ class UserController(
         @RequestParam firstname: String? = null,
         @RequestParam lastname: String? = null,
         @RequestParam enabled: Boolean? = null,
+        @RequestParam page: Int? = null,
     ): UserListResponse {
         if (personnelNumber != null) {
             val user = userDetailsManager.loadUserByPersonnelNumber(personnelNumber.trim())
@@ -113,16 +114,30 @@ class UserController(
                     message = "Benutzer (Personalnummer: $personnelNumber) nicht gefunden!",
                     status = HttpStatus.NOT_FOUND
                 )
-            return UserListResponse(items = listOf(mapToResponse(user)))
+            return UserListResponse(
+                items = listOf(mapToResponse(user)),
+                // TODO separate personnelNumber search from this endpoint or integrate it better
+                totalCount = 1,
+                currentPage = 1,
+                totalPages = 1,
+                pageSize = 1
+            )
         }
 
-        val users = userDetailsManager.loadUsers(
+        val userSearchResult = userDetailsManager.loadUsers(
             username = username?.trim(),
             firstname = firstname?.trim(),
             lastname = lastname?.trim(),
-            enabled = enabled
-        ).map { mapToResponse(it) }
-        return UserListResponse(items = users)
+            enabled = enabled,
+            page = page
+        )
+        return UserListResponse(
+            items = userSearchResult.items.map { mapToResponse(it) },
+            totalCount = userSearchResult.totalCount,
+            currentPage = userSearchResult.currentPage,
+            totalPages = userSearchResult.totalPages,
+            pageSize = userSearchResult.pageSize
+        )
     }
 
     @PostMapping

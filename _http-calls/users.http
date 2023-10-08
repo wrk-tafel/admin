@@ -29,6 +29,9 @@ GET {{baseApiPath}}/users?personnelnumber=x
 ### Search for users (all other parameters)
 GET {{baseApiPath}}/users?firstname=x&lastname=x&username=x&enabled=true
 
+### Search for users (enabled)
+GET {{baseApiPath}}/users?enabled=true
+
 ### Get user 300
 GET {{baseApiPath}}/users/300
 Content-Type: application/json
