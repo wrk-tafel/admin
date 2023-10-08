@@ -210,14 +210,25 @@ class CustomerControllerTest {
             items = listOf(testCustomer),
             totalCount = 123,
             currentPage = 2,
-            totalPages = 10
+            totalPages = 10,
+            pageSize = 10
         )
         every { service.getCustomers(any(), any(), testSearchResult.currentPage) } returns testSearchResult
 
         val response =
-            controller.getCustomers(firstname = " first ", lastname = " last ", pageIndex = testSearchResult.currentPage)
+            controller.getCustomers(
+                firstname = " first ",
+                lastname = " last ",
+                pageIndex = testSearchResult.currentPage
+            )
 
-        verify { service.getCustomers(firstname = "first", lastname = "last", pageIndex = testSearchResult.currentPage) }
+        verify {
+            service.getCustomers(
+                firstname = "first",
+                lastname = "last",
+                pageIndex = testSearchResult.currentPage
+            )
+        }
         assertThat(response.items).hasSize(1)
     }
 
