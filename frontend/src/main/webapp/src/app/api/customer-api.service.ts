@@ -44,13 +44,16 @@ export class CustomerApiService {
       });
   }
 
-  searchCustomer(lastname?: string, firstname?: string): Observable<CustomerSearchResult> {
+  searchCustomer(lastname?: string, firstname?: string, page?: number): Observable<CustomerSearchResult> {
     let queryParams = new HttpParams();
     if (lastname) {
       queryParams = queryParams.set('lastname', lastname);
     }
     if (firstname) {
       queryParams = queryParams.set('firstname', firstname);
+    }
+    if (page) {
+      queryParams = queryParams.set('page', page);
     }
     return this.http.get<CustomerSearchResult>('/customers', {params: queryParams});
   }
@@ -67,6 +70,10 @@ export interface ValidateCustomerResponse {
 
 export interface CustomerSearchResult {
   items: CustomerData[];
+  totalCount: number;
+  currentPage: number;
+  totalPages: number;
+  pageSize: number;
 }
 
 export interface CustomerData {

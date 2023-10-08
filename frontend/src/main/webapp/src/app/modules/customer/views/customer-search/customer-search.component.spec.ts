@@ -6,9 +6,10 @@ import * as moment from 'moment';
 import {EMPTY, of} from 'rxjs';
 import {CustomerApiService, CustomerSearchResult} from '../../../../api/customer-api.service';
 import {CustomerSearchComponent} from './customer-search.component';
-import {CardModule, ColComponent, RowComponent} from '@coreui/angular';
+import {CardModule, ColComponent, PaginationModule, RowComponent} from '@coreui/angular';
 import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
 import {By} from '@angular/platform-browser';
+import {TafelPaginationComponent} from "../../../../common/components/tafel-pagination/tafel-pagination.component";
 
 describe('CustomerSearchComponent', () => {
   let apiService: jasmine.SpyObj<CustomerApiService>;
@@ -31,7 +32,11 @@ describe('CustomerSearchComponent', () => {
           city: 'city'
         }
       }
-    ]
+    ],
+    totalCount: 1,
+    currentPage: 0,
+    totalPages: 1,
+    pageSize: 10
   };
 
   beforeEach(waitForAsync(() => {
@@ -41,10 +46,12 @@ describe('CustomerSearchComponent', () => {
         ReactiveFormsModule,
         CardModule,
         RowComponent,
-        ColComponent
+        ColComponent,
+        PaginationModule
       ],
       declarations: [
         CustomerSearchComponent,
+        TafelPaginationComponent
       ],
       providers: [
         {
@@ -98,7 +105,7 @@ describe('CustomerSearchComponent', () => {
 
     component.searchForDetails();
 
-    expect(apiService.searchCustomer).toHaveBeenCalledWith('lastname', 'firstname');
+    expect(apiService.searchCustomer).toHaveBeenCalledWith('lastname', 'firstname', undefined);
 
     fixture.detectChanges();
     expect(fixture.debugElement.query(By.css('[testid="searchresult-id-0"]')).nativeElement.textContent).toBe('0');
@@ -117,19 +124,19 @@ describe('CustomerSearchComponent', () => {
 
     component.searchForDetails();
 
-    expect(apiService.searchCustomer).toHaveBeenCalledWith(null, 'firstname');
+    expect(apiService.searchCustomer).toHaveBeenCalledWith(null, 'firstname', undefined);
   });
 
   it('search with firstname no results', () => {
     const fixture = TestBed.createComponent(CustomerSearchComponent);
     const component = fixture.componentInstance;
     component.firstname.setValue('firstname');
-    const response: CustomerSearchResult = {items: []};
+    const response: CustomerSearchResult = {items: [], currentPage: 0, totalCount: 0, totalPages: 0, pageSize: 5};
     apiService.searchCustomer.and.returnValue(of(response));
 
     component.searchForDetails();
 
-    expect(apiService.searchCustomer).toHaveBeenCalledWith(null, 'firstname');
+    expect(apiService.searchCustomer).toHaveBeenCalledWith(null, 'firstname', undefined);
     expect(toastService.showToast).toHaveBeenCalledWith({type: ToastType.INFO, title: 'Keine Kunden gefunden!'});
   });
 
@@ -141,7 +148,7 @@ describe('CustomerSearchComponent', () => {
 
     component.searchForDetails();
 
-    expect(apiService.searchCustomer).toHaveBeenCalledWith('lastname', null);
+    expect(apiService.searchCustomer).toHaveBeenCalledWith('lastname', null, undefined);
   });
 
   it('navigate to customer', () => {

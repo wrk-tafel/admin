@@ -36,7 +36,11 @@ data class UserPermission(
 
 @ExcludeFromTestCoverage
 data class UserListResponse(
-    val items: List<User>
+    val items: List<User>,
+    val totalCount: Long,
+    val currentPage: Int,
+    val totalPages: Int,
+    val pageSize: Int
 )
 
 @ExcludeFromTestCoverage

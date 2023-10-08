@@ -4,7 +4,7 @@ import {PasswordChangeFormComponent} from './views/passwordchange-form/passwordc
 import {ReactiveFormsModule} from '@angular/forms';
 import {CommonModule} from '@angular/common';
 import {
-  BgColorDirective,
+  BgColorDirective, PaginationModule,
   ProgressBarComponent,
   ProgressComponent,
   ToastBodyComponent,
@@ -15,6 +15,8 @@ import {
 import {TafelToasterComponent} from './views/default-layout/toasts/tafel-toaster.component';
 import {TafelToastComponent} from './views/default-layout/toasts/toast/tafel-toast.component';
 import {TafelIfDistributionActiveDirective} from './directive/tafel-if-distribution-active.directive';
+import {TafelPaginationComponent} from "./components/tafel-pagination/tafel-pagination.component";
+import {RouterLink} from "@angular/router";
 
 @NgModule({
   declarations: [
@@ -22,7 +24,8 @@ import {TafelIfDistributionActiveDirective} from './directive/tafel-if-distribut
     TafelIfDistributionActiveDirective,
     PasswordChangeFormComponent,
     TafelToasterComponent,
-    TafelToastComponent
+    TafelToastComponent,
+    TafelPaginationComponent
   ],
   imports: [
     ReactiveFormsModule,
@@ -33,13 +36,16 @@ import {TafelIfDistributionActiveDirective} from './directive/tafel-if-distribut
     BgColorDirective,
     ToasterComponent,
     ProgressComponent,
-    ProgressBarComponent
+    ProgressBarComponent,
+    PaginationModule,
+    RouterLink
   ],
   exports: [
     TafelIfPermissionDirective,
     TafelIfDistributionActiveDirective,
     PasswordChangeFormComponent,
-    TafelToasterComponent
+    TafelToasterComponent,
+    TafelPaginationComponent
   ]
 })
 export class TafelCommonModule {

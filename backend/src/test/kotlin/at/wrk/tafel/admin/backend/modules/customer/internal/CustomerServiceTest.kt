@@ -667,12 +667,19 @@ class CustomerServiceTest {
 
     @Test
     fun `get customers`() {
-        val pageRequest = PageRequest.of(0, 25)
-        val page = PageImpl(listOf(testCustomerEntity1, testCustomerEntity2))
+        val selectedPage = 3
+        val pageRequest = PageRequest.of(selectedPage - 1, 25)
+        val page = PageImpl(listOf(testCustomerEntity1, testCustomerEntity2), pageRequest, 123)
         every { customerRepository.findAll(any<Specification<CustomerEntity>>(), pageRequest) } returns page
 
-        val customers = service.getCustomers()
+        val searchResult = service.getCustomers(page = selectedPage)
 
+        assertThat(searchResult.currentPage).isEqualTo(selectedPage)
+        assertThat(searchResult.totalPages).isEqualTo(5)
+        assertThat(searchResult.totalCount).isEqualTo(page.totalElements)
+        assertThat(searchResult.pageSize).isEqualTo(pageRequest.pageSize)
+
+        val customers = searchResult.items
         assertThat(customers).hasSize(2)
         assertThat(customers[0]).isEqualTo(testCustomer)
 

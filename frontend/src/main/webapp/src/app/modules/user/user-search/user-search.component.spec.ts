@@ -26,7 +26,11 @@ describe('UserSearchComponent', () => {
         passwordChangeRequired: true,
         permissions: []
       }
-    ]
+    ],
+    totalCount: 1,
+    currentPage: 2,
+    totalPages: 1,
+    pageSize: 10
   };
 
   beforeEach(waitForAsync(() => {
@@ -96,7 +100,7 @@ describe('UserSearchComponent', () => {
 
     component.searchForDetails();
 
-    expect(apiService.searchUser).toHaveBeenCalledWith('username', false, 'lastname', 'firstname');
+    expect(apiService.searchUser).toHaveBeenCalledWith('username', false, 'lastname', 'firstname', undefined);
 
     fixture.detectChanges();
     expect(fixture.debugElement.query(By.css('[testid="searchresult-id-0"]')).nativeElement.textContent).toBe('0');
@@ -113,7 +117,7 @@ describe('UserSearchComponent', () => {
 
     component.searchForDetails();
 
-    expect(apiService.searchUser).toHaveBeenCalledWith(null, null, null, 'firstname');
+    expect(apiService.searchUser).toHaveBeenCalledWith(null, null, null, 'firstname', undefined);
   });
 
   it('search with firstname no results', () => {
@@ -121,12 +125,12 @@ describe('UserSearchComponent', () => {
     const component = fixture.componentInstance;
     component.firstname.setValue('firstname');
     component.enabled.setValue(null);
-    const response: UserSearchResult = {items: []};
+    const response: UserSearchResult = {items: [], totalCount: 0, currentPage: 3, totalPages: 0, pageSize: 0};
     apiService.searchUser.and.returnValue(of(response));
 
     component.searchForDetails();
 
-    expect(apiService.searchUser).toHaveBeenCalledWith(null, null, null, 'firstname');
+    expect(apiService.searchUser).toHaveBeenCalledWith(null, null, null, 'firstname', undefined);
     expect(toastService.showToast).toHaveBeenCalledWith({type: ToastType.INFO, title: 'Keine Benutzer gefunden!'});
   });
 

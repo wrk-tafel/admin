@@ -1,5 +1,5 @@
 ### List customers
-GET {{baseApiPath}}/customers
+GET {{baseApiPath}}/customers?pageIndex=3
 
 ### Search for customers (only firstname)
 GET {{baseApiPath}}/customers?firstname=x

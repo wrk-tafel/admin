@@ -98,31 +98,41 @@ class UserController(
         return ResponseEntity.ok(user)
     }
 
+    @GetMapping("/personnel-number/{personnelNumber}")
+    @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
+    fun getUserByPersonnelNumber(@PathVariable("personnelNumber") personnelNumber: String): ResponseEntity<User> {
+        val userDetails = userDetailsManager.loadUserByPersonnelNumber(personnelNumber.trim())
+            ?: throw TafelValidationException(
+                message = "Benutzer (Personalnummer: $personnelNumber) nicht gefunden!",
+                status = HttpStatus.NOT_FOUND
+            )
+        val user = mapToResponse(userDetails)
+        return ResponseEntity.ok(user)
+    }
+
     @GetMapping
     @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
     fun getUsers(
-        @RequestParam("personnelnumber") personnelNumber: String? = null,
         @RequestParam username: String? = null,
         @RequestParam firstname: String? = null,
         @RequestParam lastname: String? = null,
         @RequestParam enabled: Boolean? = null,
+        @RequestParam page: Int? = null,
     ): UserListResponse {
-        if (personnelNumber != null) {
-            val user = userDetailsManager.loadUserByPersonnelNumber(personnelNumber.trim())
-                ?: throw TafelValidationException(
-                    message = "Benutzer (Personalnummer: $personnelNumber) nicht gefunden!",
-                    status = HttpStatus.NOT_FOUND
-                )
-            return UserListResponse(items = listOf(mapToResponse(user)))
-        }
-
-        val users = userDetailsManager.loadUsers(
+        val userSearchResult = userDetailsManager.loadUsers(
             username = username?.trim(),
             firstname = firstname?.trim(),
             lastname = lastname?.trim(),
-            enabled = enabled
-        ).map { mapToResponse(it) }
-        return UserListResponse(items = users)
+            enabled = enabled,
+            page = page
+        )
+        return UserListResponse(
+            items = userSearchResult.items.map { mapToResponse(it) },
+            totalCount = userSearchResult.totalCount,
+            currentPage = userSearchResult.currentPage,
+            totalPages = userSearchResult.totalPages,
+            pageSize = userSearchResult.pageSize
+        )
     }
 
     @PostMapping

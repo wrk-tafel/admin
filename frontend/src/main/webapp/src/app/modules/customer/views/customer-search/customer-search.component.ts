@@ -3,6 +3,7 @@ import {Router} from '@angular/router';
 import {CustomerAddressData, CustomerApiService, CustomerSearchResult} from '../../../../api/customer-api.service';
 import {FormControl, FormGroup} from '@angular/forms';
 import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
+import {TafelPaginationData} from '../../../../common/components/tafel-pagination/tafel-pagination.component';
 
 @Component({
   selector: 'tafel-customer-search',
@@ -15,6 +16,7 @@ export class CustomerSearchComponent {
     lastname: new FormControl<string>(null),
     firstname: new FormControl<string>(null)
   });
+  paginationData: TafelPaginationData;
 
   constructor(
     private customerApiService: CustomerApiService,
@@ -45,14 +47,22 @@ export class CustomerSearchComponent {
     this.customerApiService.getCustomer(customerId).subscribe(observer);
   }
 
-  searchForDetails() {
-    this.customerApiService.searchCustomer(this.lastname.value, this.firstname.value)
+  searchForDetails(page?: number) {
+    this.customerApiService.searchCustomer(this.lastname.value, this.firstname.value, page)
       .subscribe((response: CustomerSearchResult) => {
         if (response.items.length === 0) {
           this.toastService.showToast({type: ToastType.INFO, title: 'Keine Kunden gefunden!'});
           this.searchResult = null;
+          this.paginationData = null;
         } else {
           this.searchResult = response;
+          this.paginationData = {
+            count: response.items.length,
+            totalCount: response.totalCount,
+            currentPage: response.currentPage,
+            totalPages: response.totalPages,
+            pageSize: response.pageSize
+          };
         }
       });
   }

@@ -406,20 +406,27 @@ class TafelUserDetailsManagerTest {
         userEntity.lastname = "test-lastname"
         userEntity.passwordChangeRequired = true
 
-        val pageRequest = PageRequest.of(0, 25)
-        val page = PageImpl(listOf(userEntity))
+        val selectedPage = 3
+        val pageRequest = PageRequest.of(selectedPage - 1, 25)
+        val page = PageImpl(listOf(userEntity), pageRequest, 123)
         every { userRepository.findAll(any<Specification<UserEntity>>(), pageRequest) } returns page
 
-        val userDetails = manager.loadUsers(
+        val searchResult = manager.loadUsers(
             username = username,
             firstname = firstname,
             lastname = lastname,
-            enabled = enabled
+            enabled = enabled,
+            page = selectedPage
         )
 
-        assertThat(userDetails).isNotNull
+        assertThat(searchResult).isNotNull
 
-        val user = userDetails.first()
+        assertThat(searchResult.currentPage).isEqualTo(selectedPage)
+        assertThat(searchResult.totalPages).isEqualTo(5)
+        assertThat(searchResult.totalCount).isEqualTo(page.totalElements)
+        assertThat(searchResult.pageSize).isEqualTo(pageRequest.pageSize)
+
+        val user = searchResult.items.first()
         assertThat(user.id).isEqualTo(userEntity.id)
         assertThat(user.username).isEqualTo(userEntity.username)
         assertThat(user.personnelNumber).isEqualTo(userEntity.personnelNumber)

@@ -1,12 +1,6 @@
 import {HttpClientTestingModule, HttpTestingController} from '@angular/common/http/testing';
 import {TestBed} from '@angular/core/testing';
-import {
-  ChangePasswordRequest,
-  ChangePasswordResponse,
-  UserApiService,
-  UserData,
-  UserSearchResult
-} from './user-api.service';
+import {ChangePasswordRequest, ChangePasswordResponse, UserApiService, UserData} from './user-api.service';
 
 describe('UserApiService', () => {
   let httpMock: HttpTestingController;
@@ -57,21 +51,17 @@ describe('UserApiService', () => {
       expect(userData).toEqual(mockUser);
     });
 
-    const searchResult: UserSearchResult = {
-      items: [mockUser]
-    };
-
-    const req = httpMock.expectOne({method: 'GET', url: '/users?personnelnumber=p1a2'});
-    req.flush(searchResult);
+    const req = httpMock.expectOne({method: 'GET', url: '/users/personnel-number/p1a2'});
+    req.flush(mockUser);
     httpMock.verify();
   });
 
   it('search user with all parameters', () => {
-    apiService.searchUser('maxl-username', false, 'mustermann', 'max').subscribe();
+    apiService.searchUser('maxl-username', false, 'mustermann', 'max', 3).subscribe();
 
     const req = httpMock.expectOne({
       method: 'GET',
-      url: '/users?username=maxl-username&enabled=false&lastname=mustermann&firstname=max'
+      url: '/users?username=maxl-username&enabled=false&lastname=mustermann&firstname=max&page=3'
     });
     req.flush(null);
     httpMock.verify();

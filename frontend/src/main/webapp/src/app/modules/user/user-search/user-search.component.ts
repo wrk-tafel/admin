@@ -3,13 +3,13 @@ import {Router} from '@angular/router';
 import {FormControl, FormGroup} from '@angular/forms';
 import {UserApiService, UserSearchResult} from '../../../api/user-api.service';
 import {ToastService, ToastType} from '../../../common/views/default-layout/toasts/toast.service';
+import {TafelPaginationData} from '../../../common/components/tafel-pagination/tafel-pagination.component';
 
 @Component({
   selector: 'tafel-user-search',
   templateUrl: 'user-search.component.html'
 })
 export class UserSearchComponent {
-
   searchResult: UserSearchResult;
   userSearchForm = new FormGroup({
     personnelNumber: new FormControl<string>(null),
@@ -18,6 +18,7 @@ export class UserSearchComponent {
     firstname: new FormControl<string>(null),
     enabled: new FormControl<boolean>(true)
   });
+  paginationData: TafelPaginationData;
 
   constructor(
     private userApiService: UserApiService,
@@ -54,14 +55,22 @@ export class UserSearchComponent {
     this.userApiService.getUserForPersonnelNumber(this.personnelNumber.value).subscribe(observer);
   }
 
-  searchForDetails() {
-    this.userApiService.searchUser(this.username.value, this.enabled.value, this.lastname.value, this.firstname.value)
+  searchForDetails(page?: number) {
+    this.userApiService.searchUser(this.username.value, this.enabled.value, this.lastname.value, this.firstname.value, page)
       .subscribe((response: UserSearchResult) => {
         if (response.items.length === 0) {
           this.toastService.showToast({type: ToastType.INFO, title: 'Keine Benutzer gefunden!'});
           this.searchResult = null;
+          this.paginationData = null;
         } else {
           this.searchResult = response;
+          this.paginationData = {
+            count: response.items.length,
+            totalCount: response.totalCount,
+            currentPage: response.currentPage,
+            totalPages: response.totalPages,
+            pageSize: response.pageSize
+          };
         }
       });
   }

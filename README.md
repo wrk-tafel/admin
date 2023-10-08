@@ -19,7 +19,6 @@
   events (https://docs.spring.io/spring-modulith/docs/current/reference/html/#events)
 * Improve search pages
     * Replace result-table by e.g. cards (in mobile layouts)
-    * Add pagination
 * Data-Migration
     * Remove migration-code
     * Remove default-values / set values to null and optional

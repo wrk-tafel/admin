@@ -206,11 +206,29 @@ class CustomerControllerTest {
 
     @Test
     fun `get customers - mapped correctly`() {
-        every { service.getCustomers(any(), any()) } returns listOf(testCustomer)
+        val testSearchResult = CustomerSearchResult(
+            items = listOf(testCustomer),
+            totalCount = 123,
+            currentPage = 2,
+            totalPages = 10,
+            pageSize = 10
+        )
+        every { service.getCustomers(any(), any(), testSearchResult.currentPage) } returns testSearchResult
 
-        val response = controller.getCustomers(" first ", " last ")
+        val response =
+            controller.getCustomers(
+                firstname = " first ",
+                lastname = " last ",
+                page = testSearchResult.currentPage
+            )
 
-        verify { service.getCustomers("first", "last") }
+        verify {
+            service.getCustomers(
+                firstname = "first",
+                lastname = "last",
+                page = testSearchResult.currentPage
+            )
+        }
         assertThat(response.items).hasSize(1)
     }
 

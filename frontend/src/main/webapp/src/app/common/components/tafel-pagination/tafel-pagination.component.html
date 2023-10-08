@@ -1,0 +1,15 @@
+<c-pagination [align]="align" [size]="size" style="cursor: pointer;">
+  <li cPageItem [disabled]="currentPage === 1" (click)="selectFirstPage()">
+    <a cPageLink><span aria-hidden="true">&lt;&lt;</span></a>
+  </li>
+  <li cPageItem [disabled]="currentPage === 1" (click)="selectPreviousPage()">
+    <a cPageLink><span aria-hidden="true">&lt;</span></a>
+  </li>
+  <div class="align-self-center ms-3 me-3">{{text}}</div>
+  <li cPageItem [disabled]="currentPage === maxPage" (click)="selectNextPage()">
+    <a cPageLink><span aria-hidden="true">&gt;</span></a>
+  </li>
+  <li cPageItem [disabled]="currentPage === maxPage" (click)="selectLastPage()">
+    <a cPageLink><span aria-hidden="true">&gt;&gt;</span></a>
+  </li>
+</c-pagination>
