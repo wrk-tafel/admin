@@ -149,14 +149,12 @@ class DistributionService(
         val authenticatedUser = SecurityContextHolder.getContext().authentication as? TafelJwtAuthentication
 
         transactionTemplate.executeWithoutResult {
-            if (currentDistribution != null) {
-                currentDistribution.endedAt = LocalDateTime.now()
-                currentDistribution.endedByUser =
-                    authenticatedUser?.let { userRepository.findByUsername(authenticatedUser.username!!) }
-                        ?: currentDistribution.startedByUser
+            currentDistribution.endedAt = LocalDateTime.now()
+            currentDistribution.endedByUser =
+                authenticatedUser?.let { userRepository.findByUsername(authenticatedUser.username!!) }
+                    ?: currentDistribution.startedByUser
 
-                distributionRepository.save(currentDistribution)
-            }
+            distributionRepository.save(currentDistribution)
         }
 
         distributionPostProcessorService.process(currentDistribution.id!!)
