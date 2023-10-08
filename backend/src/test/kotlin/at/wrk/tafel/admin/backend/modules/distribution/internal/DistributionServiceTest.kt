@@ -20,6 +20,7 @@ import at.wrk.tafel.admin.backend.security.testUserPermissions
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
+import io.mockk.impl.annotations.SpyK
 import io.mockk.junit5.MockKExtension
 import io.mockk.mockk
 import io.mockk.slot
@@ -35,6 +36,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.context.SecurityContextImpl
+import org.springframework.transaction.support.TransactionTemplate
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -60,6 +62,9 @@ internal class DistributionServiceTest {
 
     @RelaxedMockK
     private lateinit var distributionPostProcessorService: DistributionPostProcessorService
+
+    @SpyK
+    private var transactionTemplate: TransactionTemplate = TransactionTemplate(mockk(relaxed = true))
 
     @InjectMockKs
     private lateinit var service: DistributionService
@@ -216,7 +221,9 @@ internal class DistributionServiceTest {
         val distributionEntity = testDistributionEntity
         every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns distributionEntity
 
+        val savedDistributionId = 123L
         val savedDistribution = mockk<DistributionEntity>()
+        every { savedDistribution.id } returns savedDistributionId
         every { distributionRepository.save(any()) } returns savedDistribution
 
         every { userRepository.findByUsername(authentication.username!!) } returns testUserEntity
@@ -229,7 +236,7 @@ internal class DistributionServiceTest {
                 assertThat(it.endedByUser).isEqualTo(testUserEntity)
             })
         }
-        verify { distributionPostProcessorService.process(savedDistribution) }
+        verify { distributionPostProcessorService.process(savedDistributionId) }
     }
 
     @Test

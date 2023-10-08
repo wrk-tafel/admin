@@ -16,6 +16,7 @@ import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.support.TransactionTemplate
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
@@ -31,7 +32,8 @@ class DistributionService(
     private val distributionCustomerRepository: DistributionCustomerRepository,
     private val customerRepository: CustomerRepository,
     private val pdfService: PDFService,
-    private val distributionPostProcessorService: DistributionPostProcessorService
+    private val distributionPostProcessorService: DistributionPostProcessorService,
+    private val transactionTemplate: TransactionTemplate
 ) {
     companion object {
         private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
@@ -141,21 +143,23 @@ class DistributionService(
         } ?: false
     }
 
-    @Transactional
     fun closeDistribution() {
         val currentDistribution = distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc()
             ?: throw TafelValidationException("Ausgabe nicht gestartet!")
         val authenticatedUser = SecurityContextHolder.getContext().authentication as? TafelJwtAuthentication
 
-        if (currentDistribution != null) {
-            currentDistribution.endedAt = LocalDateTime.now()
-            currentDistribution.endedByUser =
-                authenticatedUser?.let { userRepository.findByUsername(authenticatedUser.username!!) }
-                    ?: currentDistribution.startedByUser
+        transactionTemplate.execute {
+            if (currentDistribution != null) {
+                currentDistribution.endedAt = LocalDateTime.now()
+                currentDistribution.endedByUser =
+                    authenticatedUser?.let { userRepository.findByUsername(authenticatedUser.username!!) }
+                        ?: currentDistribution.startedByUser
 
-            val persistedDistribution = distributionRepository.save(currentDistribution)
-            distributionPostProcessorService.process(persistedDistribution)
+                distributionRepository.save(currentDistribution)
+            }
         }
+
+        distributionPostProcessorService.process(currentDistribution.id!!)
     }
 
     private fun getDistributionCustomerEntity(
