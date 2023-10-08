@@ -72,15 +72,14 @@ class CustomerService(
 
     @Transactional
     fun getCustomers(firstname: String? = null, lastname: String? = null, page: Int?): CustomerSearchResult {
-        val currentPage = page?.minus(1) ?: 0
-        val pageRequest = PageRequest.of(currentPage, 25)
+        val pageRequest = PageRequest.of(page?.minus(1) ?: 0, 25)
         val spec = orderByUpdatedAtDesc(where(firstnameContains(firstname)).and(lastnameContains(lastname)))
         val pagedResult = customerRepository.findAll(spec, pageRequest)
 
         return CustomerSearchResult(
             items = pagedResult.map { mapEntityToResponse(it) }.toList(),
             totalCount = pagedResult.totalElements,
-            currentPage = currentPage + 1,
+            currentPage = page ?: 1,
             totalPages = pagedResult.totalPages,
             pageSize = pageRequest.pageSize
         )
