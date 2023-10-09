@@ -24,6 +24,12 @@ declare namespace Cypress {
     login(username: string, password: string): void;
 
     /**
+     * Custom command to logout.
+     * @example cy.logout();
+     */
+    logout(): void;
+
+    /**
      * Custom command to select DOM element by testId attribute.
      * @example cy.byTestId('saveButton');
      */

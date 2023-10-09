@@ -27,8 +27,8 @@
 import AddCustomerToDistributionRequest = Cypress.AddCustomerToDistributionRequest;
 import CustomerData = Cypress.CustomerData;
 import Chainable = Cypress.Chainable;
-import * as moment from 'moment/moment';
 import UserData = Cypress.UserData;
+import * as moment from 'moment/moment';
 
 Cypress.Commands.add('byTestId', (id) => cy.get(`[testid="${id}"]`));
 
@@ -43,9 +43,16 @@ Cypress.Commands.add('login', (username: string, password: string) => {
   cy.createLoginRequest(username, password);
 });
 
+Cypress.Commands.add('logout', () => {
+  cy.request({
+    method: 'POST',
+    url: '/api/logout',
+  });
+});
+
 // tslint:disable-next-line:max-line-length
 Cypress.Commands.add('createLoginRequest', (username: string, password: string, failOnStatusCode?: boolean): Cypress.Chainable<Cypress.Response<any>> => {
-  const encodedCredentials = btoa(username + ':' + password);
+  const encodedCredentials = Buffer.from(username + ':' + password).toString('base64');
 
   return cy.request({
     method: 'POST',

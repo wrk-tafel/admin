@@ -1,3 +1,5 @@
+import UserData = Cypress.UserData;
+
 describe('Login', () => {
 
   beforeEach(() => {
@@ -26,32 +28,95 @@ describe('Login', () => {
   });
 
   it('login with required password change cannot access the dashboard', () => {
-    enterLoginData('e2etest3', 'e2etest');
-    cy.url().should('contain', '/login/passwortaendern');
+    cy.getAnyRandomNumber().then(randomNumber => {
+      const testUser: UserData = {
+        username: 'username-' + randomNumber,
+        personnelNumber: 'personnelnumber-' + randomNumber,
+        firstname: 'firstname-' + randomNumber,
+        lastname: 'lastname-' + randomNumber,
+        enabled: true,
+        password: 'dummy-' + randomNumber,
+        passwordRepeat: 'dummy-' + randomNumber,
+        passwordChangeRequired: true,
+        permissions: []
+      };
 
-    cy.visit('/#/uebersicht');
-    cy.url().should('contain', '/login');
-    cy.byTestId('errorMessage').should('exist');
+      cy.loginDefault();
+      cy.createUser(testUser).then(response => {
+        const user = response.body;
+
+        cy.visit('/#/login');
+
+        enterLoginData(user.username, testUser.password);
+        cy.url().should('contain', '/login/passwortaendern');
+
+        cy.visit('/#/uebersicht');
+        cy.url().should('contain', '/login');
+        cy.byTestId('errorMessage').should('exist');
+      });
+    });
   });
 
   it('login with required password change cancelled', () => {
-    enterLoginData('e2etest3', 'e2etest');
+    cy.getAnyRandomNumber().then(randomNumber => {
+      const testUser: UserData = {
+        username: 'username-' + randomNumber,
+        personnelNumber: 'personnelnumber-' + randomNumber,
+        firstname: 'firstname-' + randomNumber,
+        lastname: 'lastname-' + randomNumber,
+        enabled: true,
+        password: 'dummy-' + randomNumber,
+        passwordRepeat: 'dummy-' + randomNumber,
+        passwordChangeRequired: true,
+        permissions: []
+      };
 
-    cy.url().should('contain', '/login/passwortaendern');
-    cy.byTestId('cancelButton').click();
-    cy.url().should('contain', '/login');
+      cy.loginDefault();
+      cy.createUser(testUser).then(response => {
+        const user = response.body;
+
+        enterLoginData(user.username, testUser.password);
+
+        cy.url().should('contain', '/login/passwortaendern');
+        cy.byTestId('cancelButton').click();
+        cy.url().should('contain', '/login');
+      });
+    });
   });
 
   it('login with required password change and password changed', () => {
-    enterLoginData('e2etest3', 'e2etest');
-    cy.url().should('contain', '/login/passwortaendern');
+    cy.getAnyRandomNumber().then(randomNumber => {
+      const testUser: UserData = {
+        username: 'username-' + randomNumber,
+        personnelNumber: 'personnelnumber-' + randomNumber,
+        firstname: 'firstname-' + randomNumber,
+        lastname: 'lastname-' + randomNumber,
+        enabled: true,
+        password: 'dummy-' + randomNumber,
+        passwordRepeat: 'dummy-' + randomNumber,
+        passwordChangeRequired: true,
+        permissions: [
+          {key: 'CHECKIN', title: 'Anmeldung'}
+        ]
+      };
 
-    cy.byTestId('currentPasswordText').type('e2etest');
-    cy.byTestId('newPasswordText').type('11111111');
-    cy.byTestId('newRepeatedPasswordText').type('11111111');
+      cy.loginDefault();
+      cy.createUser(testUser).then(response => {
+        const user = response.body;
 
-    cy.byTestId('saveButton').click();
-    cy.url().should('contain', '/uebersicht');
+        cy.visit('/#/login');
+
+        enterLoginData(user.username, testUser.password);
+        cy.url().should('contain', '/login/passwortaendern');
+
+        cy.byTestId('currentPasswordText').type(testUser.password);
+        cy.byTestId('newPasswordText').type('11111111');
+        cy.byTestId('newRepeatedPasswordText').type('11111111');
+
+        cy.byTestId('saveButton').click();
+        cy.url().should('contain', '/uebersicht');
+      });
+    });
   });
 
   function enterLoginData(username: string, password: string) {
