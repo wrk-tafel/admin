@@ -34,16 +34,20 @@ describe('User Detail', () => {
   });
 
   it('delete user', () => {
-    cy.visit('/#/benutzer/detail/103');
+    cy.createDummyUser().then(response => {
+      const userId = response.body.id;
 
-    cy.byTestId('changeUserStateButton').click();
-    cy.byTestId('deleteUserButton').click();
+      cy.visit('/#/benutzer/detail/' + userId);
 
-    cy.url().should('include', '/benutzer/suchen');
+      cy.byTestId('changeUserStateButton').click();
+      cy.byTestId('deleteUserButton').click();
 
-    // delete fails, UI stays on user-search and shows toast
-    cy.visit('/#/benutzer/detail/103');
-    cy.url().should('include', '/benutzer/suchen');
+      cy.url().should('include', '/benutzer/suchen');
+
+      // delete fails, UI stays on user-search and shows toast
+      cy.visit('/#/benutzer/detail/' + userId);
+      cy.url().should('include', '/benutzer/suchen');
+    });
   });
 
 });

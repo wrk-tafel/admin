@@ -28,6 +28,7 @@ import AddCustomerToDistributionRequest = Cypress.AddCustomerToDistributionReque
 import CustomerData = Cypress.CustomerData;
 import Chainable = Cypress.Chainable;
 import * as moment from 'moment/moment';
+import UserData = Cypress.UserData;
 
 Cypress.Commands.add('byTestId', (id) => cy.get(`[testid="${id}"]`));
 
@@ -109,6 +110,30 @@ Cypress.Commands.add('createDummyCustomer', (): Cypress.Chainable<Cypress.Respon
       validUntil: moment().toDate()
     };
     return cy.createCustomer(data);
+  });
+});
+
+Cypress.Commands.add('createUser', (data: UserData): Cypress.Chainable<Cypress.Response<UserData>> => {
+  return cy.request({
+    method: 'POST',
+    url: '/api/users',
+    body: data
+  });
+});
+
+Cypress.Commands.add('createDummyUser', (): Cypress.Chainable<Cypress.Response<UserData>> => {
+  return cy.getAnyRandomNumber().then(randomNumber => {
+    const data: UserData = {
+      username: 'username-' + randomNumber,
+      personnelNumber: randomNumber.toString(),
+      firstname: 'firstname-' + randomNumber,
+      lastname: 'lastname-' + randomNumber,
+      enabled: true,
+      password: 'dummy-pwd-' + randomNumber,
+      passwordChangeRequired: false,
+      permissions: []
+    };
+    return cy.createUser(data);
   });
 });
 

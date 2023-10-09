@@ -54,6 +54,18 @@ declare namespace Cypress {
     createDummyCustomer(): Cypress.Chainable<Cypress.Response<CustomerData>>;
 
     /**
+     * Custom command to create a new user.
+     * @example cy.createUser(userData);
+     */
+    createUser(data: UserData): Cypress.Chainable<Cypress.Response<UserData>>;
+
+    /**
+     * Create a test user with fixed data.
+     * @example cy.createDummyUser();
+     */
+    createDummyUser(): Cypress.Chainable<Cypress.Response<UserData>>;
+
+    /**
      * Custom command to close a distribution.
      * @example cy.closeDistribution();
      */
@@ -132,6 +144,24 @@ declare namespace Cypress {
     incomeDue?: Date;
     excludeFromHousehold: boolean;
     receivesFamilyBonus: boolean;
+  }
+
+  export interface UserData {
+    id?: number;
+    personnelNumber: string;
+    username: string;
+    firstname: string;
+    lastname: string;
+    enabled: boolean;
+    password?: string;
+    passwordRepeat?: string;
+    passwordChangeRequired: boolean;
+    permissions: UserPermission[];
+  }
+
+  export interface UserPermission {
+    key: string;
+    title: string;
   }
 
 }
