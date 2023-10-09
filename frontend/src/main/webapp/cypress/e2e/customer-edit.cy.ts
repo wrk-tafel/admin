@@ -1,5 +1,4 @@
-import CustomerData = Cypress.CustomerData;
-import Response = Cypress.Response;
+
 
 describe('Customer Edit', () => {
 
@@ -32,7 +31,7 @@ describe('Customer Edit', () => {
   });
 
   it('customer invalid but still updatable', () => {
-    cy.createDummyCustomer().then((response: Response<CustomerData>) => {
+    cy.createDummyCustomer().then((response) => {
       const customerId = response.body.id;
       cy.visit('/#/kunden/bearbeiten/' + customerId);
 

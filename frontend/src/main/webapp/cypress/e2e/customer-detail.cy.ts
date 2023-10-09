@@ -61,7 +61,7 @@ describe('Customer Detail', () => {
   });
 
   it('delete customer', () => {
-    cy.createDummyCustomer().then((response: Response<CustomerData>) => {
+    cy.createDummyCustomer().then((response) => {
       cy.visit('/#/kunden/detail/' + response.body.id);
 
       cy.byTestId('editCustomerToggleButton').click();
