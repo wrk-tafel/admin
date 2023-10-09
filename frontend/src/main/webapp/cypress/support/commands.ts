@@ -137,6 +137,13 @@ Cypress.Commands.add('createDummyUser', (): Cypress.Chainable<Cypress.Response<U
   });
 });
 
+Cypress.Commands.add('deleteUser', (userId: number): Cypress.Chainable<Cypress.Response<void>> => {
+  return cy.request({
+    method: 'DELETE',
+    url: '/api/users/' + userId
+  });
+});
+
 Cypress.Commands.add('getRandomNumber', (min: number, max: number): Chainable<number> => {
   const minCeil = Math.ceil(min);
   const maxFloor = Math.floor(max);

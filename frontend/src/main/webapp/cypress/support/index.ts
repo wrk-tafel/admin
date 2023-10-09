@@ -66,6 +66,12 @@ declare namespace Cypress {
     createDummyUser(): Cypress.Chainable<Cypress.Response<UserData>>;
 
     /**
+     * Delete a user with a certain id.
+     * @example cy.deleteUser(userId);
+     */
+    deleteUser(userId: number): Cypress.Chainable<Cypress.Response<void>>;
+
+    /**
      * Custom command to close a distribution.
      * @example cy.closeDistribution();
      */

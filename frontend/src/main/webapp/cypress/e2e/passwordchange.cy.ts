@@ -1,51 +1,73 @@
 import {recurse} from 'cypress-recurse';
+import UserData = Cypress.UserData;
 
 describe('PasswordChange', () => {
 
   beforeEach(() => {
-    cy.login('e2etest2', 'e2etest');
+    cy.loginDefault();
     cy.visit('/#');
   });
 
   it('change password', () => {
-    cy.byTestId('usermenu').click();
-    cy.byTestId('usermenu-changepassword').click();
+    const testUser: UserData = {
+      username: 'username-changepwd',
+      personnelNumber: 'personnelnumber-changepwd',
+      firstname: 'firstname-changepwd',
+      lastname: 'lastname-changepwd',
+      enabled: true,
+      password: 'dummy-changepwd',
+      passwordRepeat: 'dummy-changepwd',
+      passwordChangeRequired: false,
+      permissions: []
+    };
+    cy.createUser(testUser).then(response => {
+      const user = response.body;
 
-    const currentPassword = 'e2etest';
-    recurse(
-      () => cy.byTestId('currentPasswordText').type(currentPassword),
-      ($input) => $input.val() === currentPassword,
-      {timeout: 30000}
-    ).should('have.value', currentPassword);
+      cy.login(user.username, testUser.password);
+      cy.visit('/#');
 
-    const newPassword = '4wtouCcWWqDJsP';
-    recurse(
-      () => cy.byTestId('newPasswordText').type(newPassword),
-      ($input) => $input.val() === newPassword,
-      {timeout: 30000}
-    ).should('have.value', newPassword);
+      cy.byTestId('usermenu').click();
+      cy.byTestId('usermenu-changepassword').click();
 
-    recurse(
-      () => cy.byTestId('newRepeatedPasswordText').type(newPassword),
-      ($input) => $input.val() === newPassword,
-      {timeout: 30000}
-    ).should('have.value', newPassword);
+      const currentPassword = testUser.password;
+      recurse(
+        () => cy.byTestId('currentPasswordText').type(currentPassword),
+        ($input) => $input.val() === currentPassword,
+        {timeout: 30000}
+      ).should('have.value', currentPassword);
 
-    cy.byTestId('saveButton').click();
+      const newPassword = '4wtouCcWWqDJsP';
+      recurse(
+        () => cy.byTestId('newPasswordText').type(newPassword),
+        ($input) => $input.val() === newPassword,
+        {timeout: 30000}
+      ).should('have.value', newPassword);
 
-    cy.byTestId('usermenu').click();
-    cy.byTestId('usermenu-logout').click();
+      recurse(
+        () => cy.byTestId('newRepeatedPasswordText').type(newPassword),
+        ($input) => $input.val() === newPassword,
+        {timeout: 30000}
+      ).should('have.value', newPassword);
 
-    cy.url().should('contain', '/login');
+      cy.byTestId('saveButton').click();
 
-    cy.login('e2etest2', '4wtouCcWWqDJsP');
-    cy.visit('/#');
+      cy.byTestId('usermenu').click();
+      cy.byTestId('usermenu-logout').click();
 
-    cy.url().should('contain', '/#');
+      cy.url().should('contain', '/login');
 
-    // expect error for old password
-    cy.createLoginRequest('e2etest2', 'e2etest', false).then((resp) => {
-      expect(resp.status).to.eq(403);
+      cy.login(user.username, '4wtouCcWWqDJsP');
+      cy.visit('/#');
+
+      cy.url().should('contain', '/#');
+
+      // expect error for old password
+      cy.createLoginRequest(user.username, 'e2etest', false).then((resp) => {
+        expect(resp.status).to.eq(403);
+      });
+
+      cy.loginDefault();
+      cy.deleteUser(user.id);
     });
   });
 
