@@ -7,7 +7,6 @@
 # TODO
 
 * Centralize testdata / mocks
-* Add gender for customers and addpersons
 * Add goods-input
 * tech: switch to spring boot layered build: https://www.baeldung.com/docker-layers-spring-boot
 
