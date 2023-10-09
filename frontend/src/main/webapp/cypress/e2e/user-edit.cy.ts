@@ -5,16 +5,23 @@ describe('User Edit', () => {
   });
 
   it('edit user', () => {
-    cy.visit('/#/benutzer/bearbeiten/300');
+    cy.createDummyUser().then(response => {
+      const user = response.body;
 
-    cy.byTestId('firstnameInput').type('updated');
-    cy.byTestId('permission-checkbox-0').click();
-    cy.byTestId('save-button').click();
+      cy.visit('/#/benutzer/detail/' + user.id);
+      cy.byTestId('permissionsText').should('not.contain.text', 'Anmeldung');
 
-    cy.url().should('contain', '/benutzer/detail');
+      cy.visit('/#/benutzer/bearbeiten/' + user.id);
 
-    cy.byTestId('permissionsText').should('not.contain.text', 'Anmeldung');
-    cy.byTestId('nameText').should('contain.text', 'updated');
+      cy.byTestId('firstnameInput').type('updated');
+      cy.byTestId('permission-checkbox-0').click();
+      cy.byTestId('save-button').click();
+
+      cy.url().should('contain', '/benutzer/detail/' + user.id);
+
+      cy.byTestId('permissionsText').should('contain.text', 'Anmeldung');
+      cy.byTestId('nameText').should('contain.text', 'updated');
+    });
   });
 
 });
