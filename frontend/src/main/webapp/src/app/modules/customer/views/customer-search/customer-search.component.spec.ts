@@ -9,7 +9,7 @@ import {CustomerSearchComponent} from './customer-search.component';
 import {CardModule, ColComponent, PaginationModule, RowComponent} from '@coreui/angular';
 import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
 import {By} from '@angular/platform-browser';
-import {TafelPaginationComponent} from "../../../../common/components/tafel-pagination/tafel-pagination.component";
+import {TafelPaginationComponent} from '../../../../common/components/tafel-pagination/tafel-pagination.component';
 
 describe('CustomerSearchComponent', () => {
   let apiService: jasmine.SpyObj<CustomerApiService>;

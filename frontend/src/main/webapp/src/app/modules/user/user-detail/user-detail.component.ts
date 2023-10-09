@@ -1,6 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {UserApiService, UserData} from '../../../api/user-api.service';
 import {ActivatedRoute, Router} from '@angular/router';
+import {ToastService, ToastType} from '../../../common/views/default-layout/toasts/toast.service';
 
 @Component({
   selector: 'tafel-user-detail',
@@ -12,7 +13,8 @@ export class UserDetailComponent implements OnInit {
   constructor(
     private activatedRoute: ActivatedRoute,
     private userApiService: UserApiService,
-    private router: Router
+    private router: Router,
+    private toastService: ToastService
   ) {
   }
 
@@ -40,9 +42,16 @@ export class UserDetailComponent implements OnInit {
   }
 
   deleteUser() {
-    this.userApiService.deleteUser(this.userData.id).subscribe(updatedUser => {
-      this.router.navigate(['uebersicht']);
-    });
+    const observer = {
+      next: (response) => {
+        this.toastService.showToast({type: ToastType.SUCCESS, title: 'Benutzer wurde gelöscht!'});
+        this.router.navigate(['/benutzer/suchen']);
+      },
+      error: error => {
+        this.toastService.showToast({type: ToastType.ERROR, title: 'Löschen fehlgeschlagen!'});
+      },
+    };
+    this.userApiService.deleteUser(this.userData.id).subscribe(observer);
   }
 
   editUser() {

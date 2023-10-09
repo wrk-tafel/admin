@@ -20,6 +20,7 @@ import at.wrk.tafel.admin.backend.security.testUserPermissions
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
+import io.mockk.impl.annotations.SpyK
 import io.mockk.junit5.MockKExtension
 import io.mockk.mockk
 import io.mockk.slot
@@ -35,6 +36,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.context.SecurityContextImpl
+import org.springframework.transaction.support.TransactionTemplate
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -60,6 +62,9 @@ internal class DistributionServiceTest {
 
     @RelaxedMockK
     private lateinit var distributionPostProcessorService: DistributionPostProcessorService
+
+    @SpyK
+    private var transactionTemplate: TransactionTemplate = TransactionTemplate(mockk(relaxed = true))
 
     @InjectMockKs
     private lateinit var service: DistributionService
@@ -155,7 +160,7 @@ internal class DistributionServiceTest {
     @Test
     fun `create new distribution`() {
         every { userRepository.findByUsername(authentication.username!!) } returns testUserEntity
-        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns null
+        every { distributionRepository.getCurrentDistribution() } returns null
 
         val distributionEntity = DistributionEntity()
         distributionEntity.id = 123
@@ -176,7 +181,7 @@ internal class DistributionServiceTest {
 
     @Test
     fun `create new distribution with existing ongoing distribution`() {
-        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
+        every { distributionRepository.getCurrentDistribution() } returns testDistributionEntity
 
         val exception = assertThrows(TafelValidationException::class.java) {
             service.createNewDistribution()
@@ -187,7 +192,7 @@ internal class DistributionServiceTest {
 
     @Test
     fun `current distribution found`() {
-        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
+        every { distributionRepository.getCurrentDistribution() } returns testDistributionEntity
 
         val distribution = service.getCurrentDistribution()
 
@@ -196,7 +201,7 @@ internal class DistributionServiceTest {
 
     @Test
     fun `current distribution not found`() {
-        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns null
+        every { distributionRepository.getCurrentDistribution() } returns null
 
         val distribution = service.getCurrentDistribution()
 
@@ -205,7 +210,7 @@ internal class DistributionServiceTest {
 
     @Test
     fun `close distribution when not open`() {
-        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns null
+        every { distributionRepository.getCurrentDistribution() } returns null
 
         val exception = assertThrows<TafelValidationException> { service.closeDistribution() }
         assertThat(exception.message).isEqualTo("Ausgabe nicht gestartet!")
@@ -214,9 +219,11 @@ internal class DistributionServiceTest {
     @Test
     fun `close distribution when open`() {
         val distributionEntity = testDistributionEntity
-        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns distributionEntity
+        every { distributionRepository.getCurrentDistribution() } returns distributionEntity
 
+        val savedDistributionId = 123L
         val savedDistribution = mockk<DistributionEntity>()
+        every { savedDistribution.id } returns savedDistributionId
         every { distributionRepository.save(any()) } returns savedDistribution
 
         every { userRepository.findByUsername(authentication.username!!) } returns testUserEntity
@@ -229,7 +236,8 @@ internal class DistributionServiceTest {
                 assertThat(it.endedByUser).isEqualTo(testUserEntity)
             })
         }
-        verify { distributionPostProcessorService.process(savedDistribution) }
+        verify { distributionPostProcessorService.process(savedDistributionId) }
+        verify(exactly = 1) { transactionTemplate.executeWithoutResult(any()) }
     }
 
     @Test
@@ -239,7 +247,7 @@ internal class DistributionServiceTest {
         val customerId = 1L
         val ticketNumber = 200
 
-        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
+        every { distributionRepository.getCurrentDistribution() } returns testDistributionEntity
         every { customerRepository.findByCustomerId(customerId) } returns null
 
         val exception = assertThrows<TafelValidationException> {
@@ -260,7 +268,7 @@ internal class DistributionServiceTest {
         val customerId = 1L
         val ticketNumber = 200
 
-        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
+        every { distributionRepository.getCurrentDistribution() } returns testDistributionEntity
         every { customerRepository.findByCustomerId(customerId) } returns testCustomerEntity1
         every { distributionCustomerRepository.save(any()) } returns mockk()
 
@@ -281,7 +289,7 @@ internal class DistributionServiceTest {
 
     @Test
     fun `generate customerlist pdf - no active distribution`() {
-        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns null
+        every { distributionRepository.getCurrentDistribution() } returns null
 
         val exception = assertThrows<TafelValidationException> { service.generateCustomerListPdf() }
 
@@ -300,7 +308,7 @@ internal class DistributionServiceTest {
                 testDistributionCustomerEntity3
             )
         }
-        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
+        every { distributionRepository.getCurrentDistribution() } returns testDistributionEntity
 
         val bytes = ByteArray(0)
         every { pdfService.generatePdf(any(), any()) } returns bytes
@@ -362,7 +370,7 @@ internal class DistributionServiceTest {
 
     @Test
     fun `get current ticketNumber without registered customers`() {
-        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
+        every { distributionRepository.getCurrentDistribution() } returns testDistributionEntity
 
         val ticket = service.getCurrentTicketNumber()
 
@@ -378,7 +386,7 @@ internal class DistributionServiceTest {
                 testDistributionCustomerEntity2
             )
         }
-        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
+        every { distributionRepository.getCurrentDistribution() } returns testDistributionEntity
 
         val ticket = service.getCurrentTicketNumber()
 
@@ -394,7 +402,7 @@ internal class DistributionServiceTest {
                 testDistributionCustomerEntity2
             )
         }
-        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
+        every { distributionRepository.getCurrentDistribution() } returns testDistributionEntity
 
         val ticket =
             service.getCurrentTicketNumber(
@@ -421,7 +429,7 @@ internal class DistributionServiceTest {
                 testDistributionCustomerEntity1
             )
         }
-        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
+        every { distributionRepository.getCurrentDistribution() } returns testDistributionEntity
 
         val ticket = service.getCurrentTicketNumber()
 
@@ -438,7 +446,7 @@ internal class DistributionServiceTest {
 
     @Test
     fun `close ticket and next without registered customers`() {
-        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
+        every { distributionRepository.getCurrentDistribution() } returns testDistributionEntity
 
         val ticket = service.closeCurrentTicketAndGetNext()
 
@@ -474,7 +482,7 @@ internal class DistributionServiceTest {
                 testDistributionCustomerEntity2
             )
         }
-        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
+        every { distributionRepository.getCurrentDistribution() } returns testDistributionEntity
 
         val ticket = service.closeCurrentTicketAndGetNext()
 
@@ -503,7 +511,7 @@ internal class DistributionServiceTest {
                 testDistributionCustomerEntity1
             )
         }
-        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
+        every { distributionRepository.getCurrentDistribution() } returns testDistributionEntity
 
         val ticket = service.closeCurrentTicketAndGetNext()
 
@@ -528,7 +536,7 @@ internal class DistributionServiceTest {
                 testDistributionCustomerEntity2
             )
         }
-        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
+        every { distributionRepository.getCurrentDistribution() } returns testDistributionEntity
 
         val result =
             service.deleteCurrentTicket(testDistributionCustomerEntity2.customer!!.customerId!!)

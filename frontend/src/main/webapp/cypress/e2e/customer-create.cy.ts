@@ -1,4 +1,5 @@
 import * as moment from 'moment';
+import CustomerAddPersonData = Cypress.CustomerAddPersonData;
 
 // TODO optimize structure
 
@@ -26,20 +27,21 @@ describe('Customer Creation', () => {
   });
 
   it('create existing qualified customer', () => {
-    const customerId = getRandomNumber(20000, 20999);
-    createCustomer(customerId);
+    cy.getAnyRandomNumber().then((customerId: number) => {
+      createCustomer(customerId);
 
-    cy.byTestId('validationresult-modal')
-      .should('be.visible')
-      .within(() => {
-        cy.byTestId('title').contains('Anspruch vorhanden');
-        cy.byTestId('header').should('have.class', 'bg-success');
-        cy.byTestId('ok-button').click();
-      });
+      cy.byTestId('validationresult-modal')
+        .should('be.visible')
+        .within(() => {
+          cy.byTestId('title').contains('Anspruch vorhanden');
+          cy.byTestId('header').should('have.class', 'bg-success');
+          cy.byTestId('ok-button').click();
+        });
 
-    cy.byTestId('save-button').click();
+      cy.byTestId('save-button').click();
 
-    cy.url().should('include', '/kunden/detail/' + customerId);
+      cy.url().should('include', '/kunden/detail/' + customerId);
+    });
   });
 
   it('create new customer not qualified', () => {
@@ -68,27 +70,36 @@ describe('Customer Creation', () => {
     }
 
     enterAdditionalPersonData(0, {
+      id: 0,
+      key: 0,
+      receivesFamilyBonus: false,
       lastname: 'Add',
       firstname: 'Adult 1',
-      age: 30,
+      birthDate: getBirthDateForAge(30),
       employer: 'test employer',
       income: 500,
-      country: 'Österreich',
+      country: {id: 0, code: 'AT', name: 'Österreich'},
       excludeFromHousehold: false
     });
     enterAdditionalPersonData(1, {
+      id: 1,
+      key: 1,
+      receivesFamilyBonus: false,
       lastname: 'Add',
       firstname: 'Child 1',
-      age: 3,
+      birthDate: getBirthDateForAge(3),
       income: 0,
-      country: 'Deutschland',
+      country: {id: 1, code: 'DE', name: 'Deutschland'},
       excludeFromHousehold: false
     });
     enterAdditionalPersonData(2, {
+      id: 2,
+      key: 2,
+      receivesFamilyBonus: true,
       lastname: 'Add',
       firstname: 'Child 2',
-      age: 8,
-      country: 'Schweiz',
+      birthDate: getBirthDateForAge(8),
+      country: {id: 2, code: 'CH', name: 'Schweiz'},
       excludeFromHousehold: true
     });
 
@@ -101,7 +112,7 @@ describe('Customer Creation', () => {
   function enterCustomerData() {
     cy.byTestId('lastnameInput').type('Mustermann');
     cy.byTestId('firstnameInput').type('Max');
-    cy.byTestId('birthDateInput').type(moment().subtract(25, 'years').startOf('day').format('YYYY-MM-DD'));
+    cy.byTestId('birthDateInput').type(moment(getBirthDateForAge(25)).format('YYYY-MM-DD'));
     cy.byTestId('countryInput').select('Österreich');
     cy.byTestId('telephoneNumberInput').type('0664123132123');
     cy.byTestId('emailInput').type('test@gmail.com');
@@ -115,14 +126,14 @@ describe('Customer Creation', () => {
     cy.byTestId('validUntilInput').type(moment().add(2, 'years').startOf('day').format('YYYY-MM-DD'));
   }
 
-  function enterAdditionalPersonData(index: number, data: AddPersonInputData) {
+  function enterAdditionalPersonData(index: number, data: CustomerAddPersonData) {
     cy.byTestId('addperson-button-bottom').click();
 
     cy.byTestId('personform-' + index).within(() => {
       cy.byTestId('lastnameInput').type(data.lastname);
       cy.byTestId('firstnameInput').type(data.firstname);
-      cy.byTestId('birthDateInput').type(moment().subtract(data.age, 'years').startOf('day').format('YYYY-MM-DD'));
-      cy.byTestId('countryInput').select(data.country);
+      cy.byTestId('birthDateInput').type(moment(data.birthDate).format('YYYY-MM-DD'));
+      cy.byTestId('countryInput').select(data.country.name);
       if (data.employer) {
         cy.byTestId('employerInput').type(data.employer);
       }
@@ -135,20 +146,8 @@ describe('Customer Creation', () => {
     });
   }
 
-  interface AddPersonInputData {
-    lastname: string;
-    firstname: string;
-    age: number;
-    employer?: string;
-    income?: number;
-    country: string;
-    excludeFromHousehold: boolean;
-  }
-
-  function getRandomNumber(min: number, max: number): number {
-    const minCeil = Math.ceil(min);
-    const maxFloor = Math.floor(max);
-    return Math.floor(Math.random() * (maxFloor - minCeil + 1)) + minCeil;
+  function getBirthDateForAge(age: number): Date {
+    return moment().subtract(age, 'years').startOf('day').toDate();
   }
 
 });

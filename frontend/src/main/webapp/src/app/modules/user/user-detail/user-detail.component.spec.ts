@@ -6,7 +6,8 @@ import {UserDetailComponent} from './user-detail.component';
 import {CardModule, ColComponent, RowComponent} from '@coreui/angular';
 import {UserApiService, UserData} from '../../../api/user-api.service';
 import {By} from '@angular/platform-browser';
-import {of} from "rxjs";
+import {of, throwError} from 'rxjs';
+import {ToastService, ToastType} from '../../../common/views/default-layout/toasts/toast.service';
 
 describe('UserDetailComponent', () => {
   const mockUser: UserData = {
@@ -25,6 +26,7 @@ describe('UserDetailComponent', () => {
 
   let userApiService: jasmine.SpyObj<UserApiService>;
   let router: jasmine.SpyObj<Router>;
+  let toastService: jasmine.SpyObj<ToastService>;
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
@@ -42,6 +44,10 @@ describe('UserDetailComponent', () => {
         {
           provide: UserApiService,
           useValue: jasmine.createSpyObj('UserApiService', ['updateUser', 'deleteUser'])
+        },
+        {
+          provide: ToastService,
+          useValue: jasmine.createSpyObj('ToastService', ['showToast'])
         },
         {
           provide: ActivatedRoute,
@@ -62,6 +68,7 @@ describe('UserDetailComponent', () => {
 
     userApiService = TestBed.inject(UserApiService) as jasmine.SpyObj<UserApiService>;
     router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
+    toastService = TestBed.inject(ToastService) as jasmine.SpyObj<ToastService>;
   }));
 
   it('component can be created', () => {
@@ -113,7 +120,7 @@ describe('UserDetailComponent', () => {
     expect(component.userData).toEqual(updatedUserData);
   });
 
-  it('delete user', () => {
+  it('deleted user successfully', () => {
     const fixture = TestBed.createComponent(UserDetailComponent);
     const component = fixture.componentInstance;
     component.userData = mockUser;
@@ -122,7 +129,23 @@ describe('UserDetailComponent', () => {
     component.deleteUser();
 
     expect(userApiService.deleteUser).toHaveBeenCalledWith(mockUser.id);
-    expect(router.navigate).toHaveBeenCalledWith(['uebersicht']);
+    expect(router.navigate).toHaveBeenCalledWith(['/benutzer/suchen']);
+    expect(toastService.showToast).toHaveBeenCalledWith({type: ToastType.SUCCESS, title: 'Benutzer wurde gelöscht!'});
+  });
+
+  it('delete user failed', () => {
+    const fixture = TestBed.createComponent(UserDetailComponent);
+    const component = fixture.componentInstance;
+    component.userData = mockUser;
+    userApiService.deleteUser.and.returnValues(throwError(() => {
+      return {status: 404};
+    }));
+
+    component.deleteUser();
+
+    expect(userApiService.deleteUser).toHaveBeenCalledWith(mockUser.id);
+    expect(router.navigate).not.toHaveBeenCalled();
+    expect(toastService.showToast).toHaveBeenCalledWith({type: ToastType.ERROR, title: 'Löschen fehlgeschlagen!'});
   });
 
   it('editUser should navigate properly', () => {

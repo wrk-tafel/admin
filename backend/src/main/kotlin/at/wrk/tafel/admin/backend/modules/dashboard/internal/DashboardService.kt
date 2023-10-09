@@ -16,7 +16,7 @@ class DashboardService(
     }
 
     private fun getRegisteredCustomers(): Int? {
-        val currentDistribution = distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc()
+        val currentDistribution = distributionRepository.getCurrentDistribution()
         currentDistribution?.let {
             return distributionCustomerRepository.countAllByDistributionId(it.id!!)
         }

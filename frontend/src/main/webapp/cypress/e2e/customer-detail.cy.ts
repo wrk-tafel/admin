@@ -1,5 +1,7 @@
 import * as path from 'path';
 import * as moment from 'moment';
+import Response = Cypress.Response;
+import CustomerData = Cypress.CustomerData;
 
 describe('Customer Detail', () => {
 
@@ -59,25 +61,27 @@ describe('Customer Detail', () => {
   });
 
   it('delete customer', () => {
-    cy.visit('/#/kunden/detail/300');
+    cy.createDummyCustomer().then((response) => {
+      cy.visit('/#/kunden/detail/' + response.body.id);
 
-    cy.byTestId('editCustomerToggleButton').click();
-    cy.byTestId('deleteCustomerButton').click();
+      cy.byTestId('editCustomerToggleButton').click();
+      cy.byTestId('deleteCustomerButton').click();
 
-    cy.byTestId('deletecustomer-modal').should('be.visible');
-    cy.byTestId('deletecustomer-modal').within(() => {
-      cy.byTestId('cancelButton').click();
+      cy.byTestId('deletecustomer-modal').should('be.visible');
+      cy.byTestId('deletecustomer-modal').within(() => {
+        cy.byTestId('cancelButton').click();
+      });
+
+      cy.byTestId('deletecustomer-modal').should('not.be.visible');
+
+      cy.byTestId('editCustomerToggleButton').click();
+      cy.byTestId('deleteCustomerButton').click();
+      cy.byTestId('deletecustomer-modal').within(() => {
+        cy.byTestId('okButton').click();
+      });
+
+      cy.url({timeout: 10000}).should('include', '/kunden/suchen');
     });
-
-    cy.byTestId('deletecustomer-modal').should('not.be.visible');
-
-    cy.byTestId('editCustomerToggleButton').click();
-    cy.byTestId('deleteCustomerButton').click();
-    cy.byTestId('deletecustomer-modal').within(() => {
-      cy.byTestId('okButton').click();
-    });
-
-    cy.url({timeout: 10000}).should('include', '/kunden/suchen');
   });
 
   it('prolong customer', () => {

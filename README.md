@@ -13,7 +13,6 @@
 
 ## Minor changes
 
-* Async stats generation
 * Move statistics package into reporting?
 * Improve module communication by using async
   events (https://docs.spring.io/spring-modulith/docs/current/reference/html/#events)
@@ -33,6 +32,7 @@
 ### Lower prio
 
 * No validation-date on idcard (will be removed anyway when the checkin is ready)
+* Fix: Errorhandling in DataResolver (no toast shown currently by error-interceptor)
 
 # Frontend #
 

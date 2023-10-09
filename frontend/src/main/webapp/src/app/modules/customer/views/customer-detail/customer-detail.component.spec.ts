@@ -352,6 +352,7 @@ describe('CustomerDetailComponent', () => {
 
     expect(customerApiService.deleteCustomer).toHaveBeenCalled();
     expect(router.navigate).toHaveBeenCalledWith(['/kunden/suchen']);
+    expect(toastService.showToast).toHaveBeenCalledWith({type: ToastType.SUCCESS, title: 'Kunde wurde gelöscht!'});
   });
 
   it('delete customer failed', () => {

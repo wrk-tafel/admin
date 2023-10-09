@@ -25,6 +25,10 @@
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
 
 import AddCustomerToDistributionRequest = Cypress.AddCustomerToDistributionRequest;
+import CustomerData = Cypress.CustomerData;
+import Chainable = Cypress.Chainable;
+import UserData = Cypress.UserData;
+import * as moment from 'moment/moment';
 
 Cypress.Commands.add('byTestId', (id) => cy.get(`[testid="${id}"]`));
 
@@ -39,9 +43,16 @@ Cypress.Commands.add('login', (username: string, password: string) => {
   cy.createLoginRequest(username, password);
 });
 
+Cypress.Commands.add('logout', () => {
+  cy.request({
+    method: 'POST',
+    url: '/api/logout',
+  });
+});
+
 // tslint:disable-next-line:max-line-length
 Cypress.Commands.add('createLoginRequest', (username: string, password: string, failOnStatusCode?: boolean): Cypress.Chainable<Cypress.Response<any>> => {
-  const encodedCredentials = btoa(username + ':' + password);
+  const encodedCredentials = Buffer.from(username + ':' + password).toString('base64');
 
   return cy.request({
     method: 'POST',
@@ -73,4 +84,79 @@ Cypress.Commands.add('closeDistribution', () => {
     method: 'POST',
     url: '/api/distributions/close'
   });
+});
+
+Cypress.Commands.add('createCustomer', (data: CustomerData): Cypress.Chainable<Cypress.Response<CustomerData>> => {
+  return cy.request({
+    method: 'POST',
+    url: '/api/customers',
+    body: data
+  });
+});
+
+Cypress.Commands.add('createDummyCustomer', (): Cypress.Chainable<Cypress.Response<CustomerData>> => {
+  return cy.getAnyRandomNumber().then(randomNumber => {
+    const data: CustomerData = {
+      firstname: 'firstname-' + randomNumber,
+      lastname: 'lastname-' + randomNumber,
+      birthDate: moment().toDate(),
+      employer: 'employer-' + randomNumber,
+      country: {
+        id: 165,
+        code: 'AT',
+        name: 'Österreich'
+      },
+      income: 100,
+      incomeDue: moment().toDate(),
+      address: {
+        street: 'street-' + randomNumber,
+        houseNumber: '1A',
+        city: 'city-' + randomNumber,
+        postalCode: 1234
+      },
+      validUntil: moment().toDate()
+    };
+    return cy.createCustomer(data);
+  });
+});
+
+Cypress.Commands.add('createUser', (data: UserData): Cypress.Chainable<Cypress.Response<UserData>> => {
+  return cy.request({
+    method: 'POST',
+    url: '/api/users',
+    body: data
+  });
+});
+
+Cypress.Commands.add('createDummyUser', (): Cypress.Chainable<Cypress.Response<UserData>> => {
+  return cy.getAnyRandomNumber().then(randomNumber => {
+    const data: UserData = {
+      username: 'username-' + randomNumber,
+      personnelNumber: randomNumber.toString(),
+      firstname: 'firstname-' + randomNumber,
+      lastname: 'lastname-' + randomNumber,
+      enabled: true,
+      password: 'dummy-pwd-' + randomNumber,
+      passwordChangeRequired: false,
+      permissions: []
+    };
+    return cy.createUser(data);
+  });
+});
+
+Cypress.Commands.add('deleteUser', (userId: number): Cypress.Chainable<Cypress.Response<void>> => {
+  return cy.request({
+    method: 'DELETE',
+    url: '/api/users/' + userId
+  });
+});
+
+Cypress.Commands.add('getRandomNumber', (min: number, max: number): Chainable<number> => {
+  const minCeil = Math.ceil(min);
+  const maxFloor = Math.floor(max);
+  return cy.wrap(Math.floor(Math.random() * (maxFloor - minCeil + 1)) + minCeil);
+});
+
+Cypress.Commands.add('getAnyRandomNumber', (): Chainable<number> => {
+  return cy.getRandomNumber(50000, 100000);
 });

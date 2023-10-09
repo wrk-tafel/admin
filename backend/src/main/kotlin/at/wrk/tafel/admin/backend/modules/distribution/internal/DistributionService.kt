@@ -16,6 +16,7 @@ import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.support.TransactionTemplate
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
@@ -31,14 +32,15 @@ class DistributionService(
     private val distributionCustomerRepository: DistributionCustomerRepository,
     private val customerRepository: CustomerRepository,
     private val pdfService: PDFService,
-    private val distributionPostProcessorService: DistributionPostProcessorService
+    private val distributionPostProcessorService: DistributionPostProcessorService,
+    private val transactionTemplate: TransactionTemplate
 ) {
     companion object {
         private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
     }
 
     fun createNewDistribution(): DistributionEntity {
-        val currentDistribution = distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc()
+        val currentDistribution = distributionRepository.getCurrentDistribution()
         if (currentDistribution != null) {
             throw TafelValidationException("Ausgabe bereits gestartet!")
         }
@@ -54,7 +56,7 @@ class DistributionService(
 
     @Transactional
     fun getCurrentDistribution(): DistributionEntity? {
-        return distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc()
+        return distributionRepository.getCurrentDistribution()
     }
 
     fun assignCustomerToDistribution(distribution: DistributionEntity, customerId: Long, ticketNumber: Int) {
@@ -76,7 +78,7 @@ class DistributionService(
 
     @Transactional
     fun generateCustomerListPdf(): CustomerListPdfResult? {
-        val currentDistribution = distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc()
+        val currentDistribution = distributionRepository.getCurrentDistribution()
             ?: throw TafelValidationException("Ausgabe nicht gestartet!")
 
         val formattedDate = DATE_FORMATTER.format(currentDistribution.startedAt)
@@ -141,21 +143,21 @@ class DistributionService(
         } ?: false
     }
 
-    @Transactional
     fun closeDistribution() {
-        val currentDistribution = distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc()
+        val currentDistribution = distributionRepository.getCurrentDistribution()
             ?: throw TafelValidationException("Ausgabe nicht gestartet!")
         val authenticatedUser = SecurityContextHolder.getContext().authentication as? TafelJwtAuthentication
 
-        if (currentDistribution != null) {
+        transactionTemplate.executeWithoutResult {
             currentDistribution.endedAt = LocalDateTime.now()
             currentDistribution.endedByUser =
                 authenticatedUser?.let { userRepository.findByUsername(authenticatedUser.username!!) }
                     ?: currentDistribution.startedByUser
 
-            val persistedDistribution = distributionRepository.save(currentDistribution)
-            distributionPostProcessorService.process(persistedDistribution)
+            distributionRepository.save(currentDistribution)
         }
+
+        distributionPostProcessorService.process(currentDistribution.id!!)
     }
 
     private fun getDistributionCustomerEntity(

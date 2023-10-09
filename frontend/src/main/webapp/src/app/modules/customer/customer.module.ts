@@ -45,7 +45,7 @@ import {
 } from '@coreui/angular';
 import {RouterLink} from '@angular/router';
 import {IconDirective} from '@coreui/icons-angular';
-import {TafelCommonModule} from "../../common/tafel-common.module";
+import {TafelCommonModule} from '../../common/tafel-common.module';
 
 @NgModule({
     imports: [

@@ -2,9 +2,11 @@ package at.wrk.tafel.admin.backend.database.repositories.distribution
 
 import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionEntity
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Query
 
 interface DistributionRepository : JpaRepository<DistributionEntity, Long> {
 
-    fun findFirstByEndedAtIsNullOrderByStartedAtDesc(): DistributionEntity?
+    @Query("SELECT d from Distribution d where d.endedAt is null order by d.startedAt desc")
+    fun getCurrentDistribution(): DistributionEntity?
 
 }
