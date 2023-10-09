@@ -13,7 +13,6 @@
 
 ## Minor changes
 
-* Async stats generation
 * Move statistics package into reporting?
 * Improve module communication by using async
   events (https://docs.spring.io/spring-modulith/docs/current/reference/html/#events)
