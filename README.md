@@ -12,6 +12,7 @@
 
 * Fix difference in header (only local development)
 * Fix: Errorhandling in DataResolver (no toast shown currently by error-interceptor) - only on local development!
+
 ## Minor changes
 
 * Move statistics package into reporting?
