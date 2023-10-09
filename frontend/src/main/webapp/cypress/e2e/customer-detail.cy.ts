@@ -1,6 +1,5 @@
 import * as path from 'path';
 import * as moment from 'moment';
-import CustomerData from '$GLOBAL$';
 import Response = Cypress.Response;
 
 describe('Customer Detail', () => {
