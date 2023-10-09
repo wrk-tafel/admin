@@ -64,6 +64,12 @@ declare namespace Cypress {
      * @example cy.getRandomNumber(min, max);
      */
     getRandomNumber(min: number, max: number): Chainable<number>;
+
+    /**
+     * Custom command to generate any random number in a fixed range of 50_000 to 100_000.
+     * @example cy.getAnyRandomNumber();
+     */
+    getAnyRandomNumber(): Chainable<number>;
   }
 
   export interface AddCustomerToDistributionRequest {

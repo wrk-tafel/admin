@@ -27,7 +27,7 @@ describe('Customer Creation', () => {
   });
 
   it('create existing qualified customer', () => {
-    cy.getRandomNumber(20000, 20999).then((customerId: number) => {
+    cy.getAnyRandomNumber().then((customerId: number) => {
       createCustomer(customerId);
 
       cy.byTestId('validationresult-modal')

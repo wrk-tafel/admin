@@ -115,3 +115,7 @@ Cypress.Commands.add('getRandomNumber', (min: number, max: number): Chainable<nu
   const maxFloor = Math.floor(max);
   return cy.wrap(Math.floor(Math.random() * (maxFloor - minCeil + 1)) + minCeil);
 });
+
+Cypress.Commands.add('getAnyRandomNumber', (): Chainable<number> => {
+  return cy.getRandomNumber(50000, 100000);
+});

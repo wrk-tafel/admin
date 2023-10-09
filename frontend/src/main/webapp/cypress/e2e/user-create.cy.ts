@@ -7,7 +7,7 @@ describe('User Create', () => {
   it('create new user', () => {
     cy.visit('/#/benutzer/erstellen');
 
-    cy.getRandomNumber(30000, 30999).then((userRandomId) => {
+    cy.getAnyRandomNumber().then((userRandomId) => {
       cy.byTestId('usernameInput').type('test-username-' + userRandomId);
       cy.byTestId('personnelNumberInput').type('test-personnelNumber-' + userRandomId);
       cy.byTestId('lastnameInput').type('test-lastname');
