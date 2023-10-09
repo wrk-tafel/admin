@@ -27,20 +27,21 @@ describe('Customer Creation', () => {
   });
 
   it('create existing qualified customer', () => {
-    const customerId = getRandomNumber(20000, 20999);
-    createCustomer(customerId);
+    cy.getRandomNumber(20000, 20999).then((customerId: number) => {
+      createCustomer(customerId);
 
-    cy.byTestId('validationresult-modal')
-      .should('be.visible')
-      .within(() => {
-        cy.byTestId('title').contains('Anspruch vorhanden');
-        cy.byTestId('header').should('have.class', 'bg-success');
-        cy.byTestId('ok-button').click();
-      });
+      cy.byTestId('validationresult-modal')
+        .should('be.visible')
+        .within(() => {
+          cy.byTestId('title').contains('Anspruch vorhanden');
+          cy.byTestId('header').should('have.class', 'bg-success');
+          cy.byTestId('ok-button').click();
+        });
 
-    cy.byTestId('save-button').click();
+      cy.byTestId('save-button').click();
 
-    cy.url().should('include', '/kunden/detail/' + customerId);
+      cy.url().should('include', '/kunden/detail/' + customerId);
+    });
   });
 
   it('create new customer not qualified', () => {
@@ -143,12 +144,6 @@ describe('Customer Creation', () => {
         cy.byTestId('excludeFromHouseholdInput').check();
       }
     });
-  }
-
-  function getRandomNumber(min: number, max: number): number {
-    const minCeil = Math.ceil(min);
-    const maxFloor = Math.floor(max);
-    return Math.floor(Math.random() * (maxFloor - minCeil + 1)) + minCeil;
   }
 
   function getBirthDateForAge(age: number): Date {

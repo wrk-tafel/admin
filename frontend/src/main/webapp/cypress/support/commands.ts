@@ -26,6 +26,7 @@
 
 import AddCustomerToDistributionRequest = Cypress.AddCustomerToDistributionRequest;
 import CustomerData = Cypress.CustomerData;
+import Chainable = Cypress.Chainable;
 import * as moment from "moment/moment";
 
 Cypress.Commands.add('byTestId', (id) => cy.get(`[testid="${id}"]`));
@@ -107,4 +108,10 @@ Cypress.Commands.add('createDummyCustomer', (): Cypress.Chainable<Cypress.Respon
     validUntil: moment().toDate()
   };
   return cy.createCustomer(data);
+});
+
+Cypress.Commands.add('getRandomNumber', (min: number, max: number): Chainable<number> => {
+  const minCeil = Math.ceil(min);
+  const maxFloor = Math.floor(max);
+  return cy.wrap(Math.floor(Math.random() * (maxFloor - minCeil + 1)) + minCeil);
 });

@@ -58,6 +58,12 @@ declare namespace Cypress {
      * @example cy.closeDistribution();
      */
     closeDistribution(): void;
+
+    /**
+     * Custom command to generate a random number in a given range.
+     * @example cy.getRandomNumber(min, max);
+     */
+    getRandomNumber(min: number, max: number): Chainable<number>;
   }
 
   export interface AddCustomerToDistributionRequest {
