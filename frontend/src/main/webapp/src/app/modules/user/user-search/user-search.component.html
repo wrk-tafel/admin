@@ -70,6 +70,7 @@
               <th scope="col">Personalnummer</th>
               <th scope="col">Nachname</th>
               <th scope="col">Vorname</th>
+              <th scope="col">Aktiv</th>
               <th scope="col">Aktionen</th>
             </tr>
             </thead>
@@ -81,6 +82,7 @@
               <td [attr.testid]="'searchresult-personnelnumber-' + i">{{user.personnelNumber}}</td>
               <td [attr.testid]="'searchresult-lastname-' + i">{{user.lastname}}</td>
               <td [attr.testid]="'searchresult-firstname-' + i">{{user.firstname}}</td>
+              <td [attr.testid]="'searchresult-enabled-' + i">{{user.enabled ? 'Ja' : 'Nein'}}</td>
               <td>
                 <div class="d-flex flex-fill gap-2">
                   <button [attr.testid]="'searchresult-showuser-button-' + i"
@@ -110,6 +112,10 @@
                 <c-row>
                   <c-col class="fw-bold">Personalnummer:</c-col>
                   <c-col>{{user.personnelNumber}}</c-col>
+                </c-row>
+                <c-row>
+                  <c-col class="fw-bold">Aktiv:</c-col>
+                  <c-col>{{user.enabled ? 'Ja' : 'Nein'}}</c-col>
                 </c-row>
               </c-card-body>
               <c-card-footer class="d-flex flex-fill gap-2">
