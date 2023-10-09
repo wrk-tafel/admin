@@ -1,5 +1,7 @@
 import * as path from 'path';
 import * as moment from 'moment';
+import CustomerData from '$GLOBAL$';
+import Response = Cypress.Response;
 
 describe('Customer Detail', () => {
 
@@ -59,27 +61,43 @@ describe('Customer Detail', () => {
   });
 
   it('delete customer', () => {
-    // TODO cy.createCustomer();
+    cy.createCustomer({
+      firstname: 'firstname',
+      lastname: 'lastname',
+      birthDate: moment().toDate(),
+      employer: 'Employer 1',
+      country: {
+        id: 165,
+        code: 'AT',
+        name: 'Österreich'
+      },
+      address: {
+        street: 'street',
+        city: 'city',
+        postalCode: 1234
+      },
+      validUntil: moment().toDate()
+    }).then((response: Response<CustomerData>) => {
+      cy.visit('/#/kunden/detail/' + response.body.id);
 
-    cy.visit('/#/kunden/detail/300');
+      cy.byTestId('editCustomerToggleButton').click();
+      cy.byTestId('deleteCustomerButton').click();
 
-    cy.byTestId('editCustomerToggleButton').click();
-    cy.byTestId('deleteCustomerButton').click();
+      cy.byTestId('deletecustomer-modal').should('be.visible');
+      cy.byTestId('deletecustomer-modal').within(() => {
+        cy.byTestId('cancelButton').click();
+      });
 
-    cy.byTestId('deletecustomer-modal').should('be.visible');
-    cy.byTestId('deletecustomer-modal').within(() => {
-      cy.byTestId('cancelButton').click();
+      cy.byTestId('deletecustomer-modal').should('not.be.visible');
+
+      cy.byTestId('editCustomerToggleButton').click();
+      cy.byTestId('deleteCustomerButton').click();
+      cy.byTestId('deletecustomer-modal').within(() => {
+        cy.byTestId('okButton').click();
+      });
+
+      cy.url({timeout: 10000}).should('include', '/kunden/suchen');
     });
-
-    cy.byTestId('deletecustomer-modal').should('not.be.visible');
-
-    cy.byTestId('editCustomerToggleButton').click();
-    cy.byTestId('deleteCustomerButton').click();
-    cy.byTestId('deletecustomer-modal').within(() => {
-      cy.byTestId('okButton').click();
-    });
-
-    cy.url({timeout: 10000}).should('include', '/kunden/suchen');
   });
 
   it('prolong customer', () => {
