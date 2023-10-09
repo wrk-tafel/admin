@@ -1,6 +1,7 @@
 import * as path from 'path';
 import * as moment from 'moment';
 import Response = Cypress.Response;
+import CustomerData = Cypress.CustomerData;
 
 describe('Customer Detail', () => {
 
@@ -60,23 +61,7 @@ describe('Customer Detail', () => {
   });
 
   it('delete customer', () => {
-    cy.createCustomer({
-      firstname: 'firstname',
-      lastname: 'lastname',
-      birthDate: moment().toDate(),
-      employer: 'Employer 1',
-      country: {
-        id: 165,
-        code: 'AT',
-        name: 'Österreich'
-      },
-      address: {
-        street: 'street',
-        city: 'city',
-        postalCode: 1234
-      },
-      validUntil: moment().toDate()
-    }).then((response: Response<CustomerData>) => {
+    cy.createDummyCustomer().then((response: Response<CustomerData>) => {
       cy.visit('/#/kunden/detail/' + response.body.id);
 
       cy.byTestId('editCustomerToggleButton').click();

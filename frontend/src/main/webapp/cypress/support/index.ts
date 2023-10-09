@@ -48,6 +48,12 @@ declare namespace Cypress {
     createCustomer(data: CustomerData): Cypress.Chainable<Cypress.Response<CustomerData>>;
 
     /**
+     * Create a test customer with fixed data.
+     * @example cy.createDummyCustomer();
+     */
+    createDummyCustomer(): Cypress.Chainable<Cypress.Response<CustomerData>>;
+
+    /**
      * Custom command to close a distribution.
      * @example cy.closeDistribution();
      */

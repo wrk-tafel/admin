@@ -26,6 +26,7 @@
 
 import AddCustomerToDistributionRequest = Cypress.AddCustomerToDistributionRequest;
 import CustomerData = Cypress.CustomerData;
+import * as moment from "moment/moment";
 
 Cypress.Commands.add('byTestId', (id) => cy.get(`[testid="${id}"]`));
 
@@ -82,4 +83,28 @@ Cypress.Commands.add('createCustomer', (data: CustomerData): Cypress.Chainable<C
     url: '/api/customers',
     body: data
   });
+});
+
+Cypress.Commands.add('createDummyCustomer', (): Cypress.Chainable<Cypress.Response<CustomerData>> => {
+  const data: CustomerData = {
+    firstname: 'firstname',
+    lastname: 'lastname',
+    birthDate: moment().toDate(),
+    employer: 'Employer 1',
+    country: {
+      id: 165,
+      code: 'AT',
+      name: 'Österreich'
+    },
+    income: 100,
+    incomeDue: moment().toDate(),
+    address: {
+      street: 'street',
+      houseNumber: '1A',
+      city: 'city',
+      postalCode: 1234
+    },
+    validUntil: moment().toDate()
+  };
+  return cy.createCustomer(data);
 });
