@@ -27,9 +27,9 @@ describe('Customer Search', () => {
       cy.byTestId('searchresult-table').should('be.visible');
       cy.byTestId('searchresult-row').should('have.length', 1);
 
-      cy.byTestId('searchresult-showcustomer-button-0').should('be.visible');
+      cy.byTestId('searchresult-showcustomer-button-0').first().should('be.visible');
 
-      cy.byTestId('searchresult-showcustomer-button-0').click();
+      cy.byTestId('searchresult-showcustomer-button-0').first().click();
       cy.url().should('include', '/kunden/detail/' + customer.id);
     });
   });
@@ -44,9 +44,9 @@ describe('Customer Search', () => {
       cy.byTestId('searchresult-table').should('be.visible');
       cy.byTestId('searchresult-row').should('have.length', 1);
 
-      cy.byTestId('searchresult-showcustomer-button-0').should('be.visible');
+      cy.byTestId('searchresult-showcustomer-button-0').first().should('be.visible');
 
-      cy.byTestId('searchresult-showcustomer-button-0').click();
+      cy.byTestId('searchresult-showcustomer-button-0').first().click();
       cy.url().should('include', '/kunden/detail/' + customer.id);
     });
   });
@@ -61,9 +61,9 @@ describe('Customer Search', () => {
       cy.byTestId('searchresult-table').should('be.visible');
       cy.byTestId('searchresult-row').should('have.length', 1);
 
-      cy.byTestId('searchresult-showcustomer-button-0').should('be.visible');
+      cy.byTestId('searchresult-showcustomer-button-0').first().should('be.visible');
 
-      cy.byTestId('searchresult-showcustomer-button-0').click();
+      cy.byTestId('searchresult-showcustomer-button-0').first().click();
       cy.url().should('include', '/kunden/detail/' + customer.id);
     });
   });
