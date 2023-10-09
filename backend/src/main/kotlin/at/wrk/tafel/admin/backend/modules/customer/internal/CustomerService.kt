@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.modules.customer.internal
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.database.entities.base.Gender
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerAddPersonEntity
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity.Specs.Companion.firstnameContains
@@ -219,6 +220,7 @@ class CustomerService(
         firstname = customerEntity.firstname!!,
         lastname = customerEntity.lastname!!,
         birthDate = customerEntity.birthDate!!,
+        gender = mapGender(customerEntity.gender),
         country = mapCountryToResponse(customerEntity.country!!),
         address = CustomerAddress(
             street = customerEntity.addressStreet!!,
@@ -244,6 +246,7 @@ class CustomerService(
                 firstname = it.firstname!!,
                 lastname = it.lastname!!,
                 birthDate = it.birthDate!!,
+                gender = mapGender(it.gender),
                 employer = it.employer,
                 income = it.income,
                 incomeDue = it.incomeDue,
@@ -253,6 +256,10 @@ class CustomerService(
             )
         }.sortedBy { "${it.lastname} ${it.firstname}" }
     )
+
+    private fun mapGender(gender: Gender?): CustomerGender? {
+        return gender?.let { CustomerGender.valueOf(it.name) }
+    }
 
     private fun mapCountryToResponse(country: CountryEntity): Country {
         return Country(

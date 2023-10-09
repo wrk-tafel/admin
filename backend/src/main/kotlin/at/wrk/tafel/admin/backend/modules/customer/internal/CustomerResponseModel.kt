@@ -1,11 +1,11 @@
 package at.wrk.tafel.admin.backend.modules.customer.internal
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
+import at.wrk.tafel.admin.backend.database.entities.base.Gender
 import at.wrk.tafel.admin.backend.modules.base.Country
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
-
 
 @ExcludeFromTestCoverage
 data class CustomerListResponse(
@@ -24,6 +24,7 @@ data class Customer(
     val firstname: String,
     val lastname: String,
     val birthDate: LocalDate,
+    val gender: CustomerGender?,
     val country: Country,
     val address: CustomerAddress,
     val telephoneNumber: String? = null,
@@ -62,6 +63,7 @@ data class CustomerAdditionalPerson(
     val firstname: String,
     val lastname: String,
     val birthDate: LocalDate,
+    val gender: CustomerGender?,
     val employer: String? = null,
     val income: BigDecimal? = null,
     val incomeDue: LocalDate? = null,
@@ -79,6 +81,12 @@ data class ValidateCustomerResponse(
     val amountExceededLimit: BigDecimal
 )
 
+@ExcludeFromTestCoverage
 enum class CustomerPdfType {
     MASTERDATA, IDCARD, COMBINED;
+}
+
+@ExcludeFromTestCoverage
+enum class CustomerGender {
+    MALE, FEMALE;
 }
