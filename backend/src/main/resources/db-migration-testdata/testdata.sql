@@ -38,14 +38,6 @@ VALUES (102, NOW(), NOW(), 'e2etest3',
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (1021, NOW(), NOW(), 102, 'DISTRIBUTION_LCM');
 
--- user e2etest4 for cypress test (delete user from detail page)
--- pwd: e2etest
-INSERT INTO users (id, created_at, updated_at, username, password, enabled, personnel_number, firstname, lastname,
-                   passwordchange_required)
-VALUES (103, NOW(), NOW(), 'e2etest4',
-        '{argon2}$argon2id$v=19$m=4096,t=3,p=1$Cnj0ayQKhOPbkomIRV5tnQ$BfU/uOr20/vg9ie0CQcWhCD00DqjPDf6UI0pRvz1/gg',
-        true, '00000-4', 'endtoend', 'test 4', true);
-
 -- user: testuser
 -- pwd: 35bc40681124f412c5d052366edb9eb9
 INSERT INTO users (id, created_at, updated_at, username, password, enabled, personnel_number, firstname, lastname)
@@ -159,19 +151,6 @@ INSERT INTO customers (id, created_at, updated_at, customer_id, user_id, firstna
 values (105, NOW(), NOW(), 105, 100, 'Jane Doe', 'LOCKED', '1980-01-01', 1, 'Erdberg', 1, null, null, '1030', 'Wien',
         null, null, 'Stadt Wien', 123.00, '2999-12-31', '2999-12-31', true, NOW(), 100,
         'Lock-Reason: Lorem ipsum dolor sit amet');
-
-INSERT INTO customers (id, created_at, updated_at, customer_id, user_id, firstname, lastname, birth_date, country_id,
-                       address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
-                       address_city, telephone_number, email, employer, income, income_due, valid_until)
-values (201, NOW(), NOW(), 201, 100, '1', 'endtoend-test-search', '1980-01-01', 1, 'Erdberg', 1, null, '10', '1030', 'Wien', null,
-        null,
-        'Stadt Wien', 123.00, '2999-12-31', '2999-12-31');
-INSERT INTO customers (id, created_at, updated_at, customer_id, user_id, firstname, lastname, birth_date, country_id,
-                       address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
-                       address_city, telephone_number, email, employer, income, income_due, valid_until)
-values (202, NOW(), NOW(), 202, 100, '2', 'endtoend-test-search', '1980-01-01', 1, 'Erdberg', 1, null, '10', '1030', 'Wien', null,
-        null,
-        'Stadt Wien', null, null, '2999-12-31');
 
 -- static values
 DELETE FROM static_values;
