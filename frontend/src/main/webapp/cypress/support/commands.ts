@@ -27,7 +27,7 @@
 import AddCustomerToDistributionRequest = Cypress.AddCustomerToDistributionRequest;
 import CustomerData = Cypress.CustomerData;
 import Chainable = Cypress.Chainable;
-import * as moment from "moment/moment";
+import * as moment from 'moment/moment';
 
 Cypress.Commands.add('byTestId', (id) => cy.get(`[testid="${id}"]`));
 
@@ -87,27 +87,29 @@ Cypress.Commands.add('createCustomer', (data: CustomerData): Cypress.Chainable<C
 });
 
 Cypress.Commands.add('createDummyCustomer', (): Cypress.Chainable<Cypress.Response<CustomerData>> => {
-  const data: CustomerData = {
-    firstname: 'firstname',
-    lastname: 'lastname',
-    birthDate: moment().toDate(),
-    employer: 'Employer 1',
-    country: {
-      id: 165,
-      code: 'AT',
-      name: 'Österreich'
-    },
-    income: 100,
-    incomeDue: moment().toDate(),
-    address: {
-      street: 'street',
-      houseNumber: '1A',
-      city: 'city',
-      postalCode: 1234
-    },
-    validUntil: moment().toDate()
-  };
-  return cy.createCustomer(data);
+  return cy.getAnyRandomNumber().then(randomNumber => {
+    const data: CustomerData = {
+      firstname: 'firstname-' + randomNumber,
+      lastname: 'lastname-' + randomNumber,
+      birthDate: moment().toDate(),
+      employer: 'employer-' + randomNumber,
+      country: {
+        id: 165,
+        code: 'AT',
+        name: 'Österreich'
+      },
+      income: 100,
+      incomeDue: moment().toDate(),
+      address: {
+        street: 'street-' + randomNumber,
+        houseNumber: '1A',
+        city: 'city-' + randomNumber,
+        postalCode: 1234
+      },
+      validUntil: moment().toDate()
+    };
+    return cy.createCustomer(data);
+  });
 });
 
 Cypress.Commands.add('getRandomNumber', (min: number, max: number): Chainable<number> => {

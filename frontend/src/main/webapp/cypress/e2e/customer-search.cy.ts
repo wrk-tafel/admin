@@ -6,50 +6,66 @@ describe('Customer Search', () => {
   });
 
   it('search by customerId', () => {
-    cy.byTestId('customerIdText').type('100');
-    cy.byTestId('showcustomer-button').click();
+    cy.createDummyCustomer().then((response) => {
+      const customerId = response.body.id;
 
-    cy.url().should('include', '/kunden/detail/100');
+      cy.byTestId('customerIdText').type(customerId.toString());
+      cy.byTestId('showcustomer-button').click();
+
+      cy.url().should('include', '/kunden/detail/' + customerId);
+    });
   });
 
   it('search by lastname and firstname', () => {
-    cy.byTestId('lastnameText').type('endtoend-test-search');
-    cy.byTestId('firstnameText').type('1');
-    cy.byTestId('search-button').click();
+    cy.createDummyCustomer().then((response) => {
+      const customer = response.body;
 
-    cy.byTestId('searchresult-table').should('be.visible');
-    cy.byTestId('searchresult-row').should('have.length', 1);
+      cy.byTestId('lastnameText').type(customer.lastname);
+      cy.byTestId('firstnameText').type(customer.firstname);
+      cy.byTestId('search-button').click();
 
-    cy.byTestId('searchresult-showcustomer-button-0').should('be.visible');
+      cy.byTestId('searchresult-table').should('be.visible');
+      cy.byTestId('searchresult-row').should('have.length', 1);
 
-    cy.byTestId('searchresult-showcustomer-button-0').click();
-    cy.url().should('include', '/kunden/detail/201');
+      cy.byTestId('searchresult-showcustomer-button-0').should('be.visible');
+
+      cy.byTestId('searchresult-showcustomer-button-0').click();
+      cy.url().should('include', '/kunden/detail/' + customer.id);
+    });
   });
 
   it('search by lastname only', () => {
-    cy.byTestId('lastnameText').type('endtoend-test-search');
-    cy.byTestId('search-button').click();
+    cy.createDummyCustomer().then((response) => {
+      const customer = response.body;
 
-    cy.byTestId('searchresult-table').should('be.visible');
-    cy.byTestId('searchresult-row').should('have.length', 2);
+      cy.byTestId('lastnameText').type(customer.lastname);
+      cy.byTestId('search-button').click();
 
-    cy.byTestId('searchresult-showcustomer-button-0').should('be.visible');
+      cy.byTestId('searchresult-table').should('be.visible');
+      cy.byTestId('searchresult-row').should('have.length', 1);
 
-    cy.byTestId('searchresult-showcustomer-button-0').click();
-    cy.url().should('include', '/kunden/detail/201');
+      cy.byTestId('searchresult-showcustomer-button-0').should('be.visible');
+
+      cy.byTestId('searchresult-showcustomer-button-0').click();
+      cy.url().should('include', '/kunden/detail/' + customer.id);
+    });
   });
 
   it('search by firstname only', () => {
-    cy.byTestId('firstnameText').type('2');
-    cy.byTestId('search-button').click();
+    cy.createDummyCustomer().then((response) => {
+      const customer = response.body;
 
-    cy.byTestId('searchresult-table').should('be.visible');
-    cy.byTestId('searchresult-row').should('have.length', 1);
+      cy.byTestId('firstnameText').type(customer.firstname);
+      cy.byTestId('search-button').click();
 
-    cy.byTestId('searchresult-showcustomer-button-0').should('be.visible');
+      cy.byTestId('searchresult-table').should('be.visible');
+      cy.byTestId('searchresult-row').should('have.length', 1);
 
-    cy.byTestId('searchresult-showcustomer-button-0').click();
-    cy.url().should('include', '/kunden/detail/202');
+      cy.byTestId('searchresult-showcustomer-button-0').should('be.visible');
+
+      cy.byTestId('searchresult-showcustomer-button-0').click();
+      cy.url().should('include', '/kunden/detail/' + customer.id);
+    });
   });
 
 });
