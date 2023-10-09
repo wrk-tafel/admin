@@ -47,7 +47,7 @@
       </c-row>
       <c-row *ngIf="searchResult" class="d-none d-sm-block">
         <c-col sm="12" class="table-responsive">
-          <h5 class="mb-4">Suchergebnis ({{this.searchResult.totalCount}} Kunden gefunden)</h5>
+          <h5 class="mb-4">Suchergebnis ({{this.searchResult.totalCount}} Kunden)</h5>
           <tafel-pagination align="end" [paginationData]="paginationData" (pageChanged)="searchForDetails($event)"></tafel-pagination>
           <table cTable striped="true" aria-label="Liste der gefundenen Kunden" class="mt-3">
             <thead>
@@ -90,7 +90,7 @@
       </c-row>
       <c-row *ngIf="searchResult" class="d-block d-sm-none">
         <c-col sm="12" class="table-responsive">
-          <h5 class="mb-4">Suchergebnis ({{this.searchResult.totalCount}} Kunden gefunden)</h5>
+          <h5 class="mb-4">Suchergebnis ({{this.searchResult.totalCount}} Kunden)</h5>
           <tafel-pagination align="center" size="sm" [paginationData]="paginationData" (pageChanged)="searchForDetails($event)"></tafel-pagination>
           <div class="d-flex flex-column gap-3 mb-3">
             <c-card *ngFor="let customer of this.searchResult.items; let i = index">
