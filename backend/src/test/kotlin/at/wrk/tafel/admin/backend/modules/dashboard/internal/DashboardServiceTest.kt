@@ -29,7 +29,7 @@ internal class DashboardServiceTest {
         val testDistributionEntity = DistributionEntity().apply {
             id = 123
         }
-        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns testDistributionEntity
+        every { distributionRepository.getCurrentDistribution() } returns testDistributionEntity
 
         val countRegisteredCustomers = 5
         every { distributionCustomerRepository.countAllByDistributionId(testDistributionEntity.id!!) } returns countRegisteredCustomers
@@ -41,13 +41,13 @@ internal class DashboardServiceTest {
 
     @Test
     fun `get registered customers without active distribution`() {
-        every { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() } returns null
+        every { distributionRepository.getCurrentDistribution() } returns null
 
         val data = service.getData()
 
         assertThat(data.registeredCustomers).isNull()
 
-        verify { distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc() }
+        verify { distributionRepository.getCurrentDistribution() }
         verify(exactly = 0) { distributionCustomerRepository.countAllByDistributionId(any()) }
     }
 

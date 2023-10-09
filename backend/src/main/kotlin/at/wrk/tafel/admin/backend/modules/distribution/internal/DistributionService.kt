@@ -40,7 +40,7 @@ class DistributionService(
     }
 
     fun createNewDistribution(): DistributionEntity {
-        val currentDistribution = distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc()
+        val currentDistribution = distributionRepository.getCurrentDistribution()
         if (currentDistribution != null) {
             throw TafelValidationException("Ausgabe bereits gestartet!")
         }
@@ -56,7 +56,7 @@ class DistributionService(
 
     @Transactional
     fun getCurrentDistribution(): DistributionEntity? {
-        return distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc()
+        return distributionRepository.getCurrentDistribution()
     }
 
     fun assignCustomerToDistribution(distribution: DistributionEntity, customerId: Long, ticketNumber: Int) {
@@ -78,7 +78,7 @@ class DistributionService(
 
     @Transactional
     fun generateCustomerListPdf(): CustomerListPdfResult? {
-        val currentDistribution = distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc()
+        val currentDistribution = distributionRepository.getCurrentDistribution()
             ?: throw TafelValidationException("Ausgabe nicht gestartet!")
 
         val formattedDate = DATE_FORMATTER.format(currentDistribution.startedAt)
@@ -144,7 +144,7 @@ class DistributionService(
     }
 
     fun closeDistribution() {
-        val currentDistribution = distributionRepository.findFirstByEndedAtIsNullOrderByStartedAtDesc()
+        val currentDistribution = distributionRepository.getCurrentDistribution()
             ?: throw TafelValidationException("Ausgabe nicht gestartet!")
         val authenticatedUser = SecurityContextHolder.getContext().authentication as? TafelJwtAuthentication
 
