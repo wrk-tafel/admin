@@ -10,6 +10,8 @@
 * Add goods-input
 * tech: switch to spring boot layered build: https://www.baeldung.com/docker-layers-spring-boot
 
+* Fix difference in header (only local development)
+* Fix: Errorhandling in DataResolver (no toast shown currently by error-interceptor) - only on local development!
 ## Minor changes
 
 * Move statistics package into reporting?
@@ -29,7 +31,6 @@
 ### Lower prio
 
 * No validation-date on idcard (will be removed anyway when the checkin is ready)
-* Fix: Errorhandling in DataResolver (no toast shown currently by error-interceptor) - only on local development!
 
 # Frontend #
 
