@@ -2,9 +2,12 @@ package at.wrk.tafel.admin.backend.database.entities.customer
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.database.entities.base.BaseChangeTrackingEntity
+import at.wrk.tafel.admin.backend.database.entities.base.Gender
 import at.wrk.tafel.admin.backend.database.entities.staticdata.CountryEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
@@ -27,6 +30,10 @@ class CustomerAddPersonEntity : BaseChangeTrackingEntity() {
 
     @Column(name = "birth_date")
     var birthDate: LocalDate? = null
+
+    @Column(name = "gender")
+    @Enumerated(EnumType.STRING)
+    var gender: Gender? = null
 
     @Column(name = "employer")
     var employer: String? = null
