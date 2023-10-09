@@ -25,6 +25,7 @@
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
 
 import AddCustomerToDistributionRequest = Cypress.AddCustomerToDistributionRequest;
+import CustomerData = Cypress.CustomerData;
 
 Cypress.Commands.add('byTestId', (id) => cy.get(`[testid="${id}"]`));
 
@@ -72,5 +73,13 @@ Cypress.Commands.add('closeDistribution', () => {
   cy.request({
     method: 'POST',
     url: '/api/distributions/close'
+  });
+});
+
+Cypress.Commands.add('createCustomer', (data: CustomerData): Cypress.Chainable<Cypress.Response<CustomerData>> => {
+  return cy.request({
+    method: 'POST',
+    url: '/api/customers',
+    body: data
   });
 });

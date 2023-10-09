@@ -59,6 +59,8 @@ describe('Customer Detail', () => {
   });
 
   it('delete customer', () => {
+    // TODO cy.createCustomer();
+
     cy.visit('/#/kunden/detail/300');
 
     cy.byTestId('editCustomerToggleButton').click();
