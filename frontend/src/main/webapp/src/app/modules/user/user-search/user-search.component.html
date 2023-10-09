@@ -58,11 +58,10 @@
           <hr>
         </c-col>
       </c-row>
-      <c-row *ngIf="searchResult">
+      <c-row *ngIf="searchResult" class="d-none d-sm-block">
         <c-col sm="12" class="table-responsive">
-          <h5 class="mb-4">Suchergebnis ({{this.searchResult.totalCount}} Benutzer gefunden)</h5>
-          <tafel-pagination class="d-none d-md-block" align="end" [paginationData]="paginationData" (pageChanged)="searchForDetails($event)"></tafel-pagination>
-          <tafel-pagination class="d-sm-block d-md-none" align="center" size="sm" [paginationData]="paginationData" (pageChanged)="searchForDetails($event)"></tafel-pagination>
+          <h5 class="mb-4">Suchergebnis ({{this.searchResult.totalCount}} gefunden)</h5>
+          <tafel-pagination align="end" [paginationData]="paginationData" (pageChanged)="searchForDetails($event)"></tafel-pagination>
           <table cTable striped="true" aria-label="Liste der gefundenen Benutzer" class="mt-3">
             <thead>
             <tr>
@@ -71,6 +70,7 @@
               <th scope="col">Personalnummer</th>
               <th scope="col">Nachname</th>
               <th scope="col">Vorname</th>
+              <th scope="col">Aktiv</th>
               <th scope="col">Aktionen</th>
             </tr>
             </thead>
@@ -82,6 +82,7 @@
               <td [attr.testid]="'searchresult-personnelnumber-' + i">{{user.personnelNumber}}</td>
               <td [attr.testid]="'searchresult-lastname-' + i">{{user.lastname}}</td>
               <td [attr.testid]="'searchresult-firstname-' + i">{{user.firstname}}</td>
+              <td [attr.testid]="'searchresult-enabled-' + i">{{user.enabled ? 'Ja' : 'Nein'}}</td>
               <td>
                 <div class="d-flex flex-fill gap-2">
                   <button [attr.testid]="'searchresult-showuser-button-' + i"
@@ -97,8 +98,39 @@
             </tr>
             </tbody>
           </table>
-          <tafel-pagination class="d-none d-md-block" align="end" [paginationData]="paginationData" (pageChanged)="searchForDetails($event)"></tafel-pagination>
-          <tafel-pagination class="d-sm-block d-md-none" align="center" size="sm" [paginationData]="paginationData" (pageChanged)="searchForDetails($event)"></tafel-pagination>
+          <tafel-pagination align="end" [paginationData]="paginationData" (pageChanged)="searchForDetails($event)"></tafel-pagination>
+        </c-col>
+      </c-row>
+      <c-row *ngIf="searchResult" class="d-block d-sm-none">
+        <c-col sm="12" class="table-responsive">
+          <h5 class="mb-4">Suchergebnis ({{this.searchResult.totalCount}} gefunden)</h5>
+          <tafel-pagination align="center" size="sm" [paginationData]="paginationData" (pageChanged)="searchForDetails($event)"></tafel-pagination>
+          <div class="d-flex flex-column gap-3 mb-3">
+            <c-card *ngFor="let user of this.searchResult.items; let i = index">
+              <c-card-header class="fw-bold">{{user.id}} - {{user.lastname}} {{user.firstname}}</c-card-header>
+              <c-card-body>
+                <c-row>
+                  <c-col class="fw-bold">Personalnummer:</c-col>
+                  <c-col>{{user.personnelNumber}}</c-col>
+                </c-row>
+                <c-row>
+                  <c-col class="fw-bold">Aktiv:</c-col>
+                  <c-col>{{user.enabled ? 'Ja' : 'Nein'}}</c-col>
+                </c-row>
+              </c-card-body>
+              <c-card-footer class="d-flex flex-fill gap-2">
+                <button [attr.testid]="'searchresult-showuser-button-' + i"
+                        type="button" class="btn btn-primary text-white"
+                        (click)="navigateToUser(user.id)"><i
+                  class="fa fa-search"></i></button>
+                <button [attr.testid]="'searchresult-edituser-button-' + i"
+                        type="button" class="btn btn-danger text-white"
+                        (click)="editUser(user.id)"><i
+                  class="fa fa-pencil"></i></button>
+              </c-card-footer>
+            </c-card>
+          </div>
+          <tafel-pagination align="center" size="sm" [paginationData]="paginationData" (pageChanged)="searchForDetails($event)"></tafel-pagination>
         </c-col>
       </c-row>
     </c-card-body>

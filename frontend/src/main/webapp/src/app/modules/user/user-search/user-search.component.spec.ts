@@ -106,6 +106,7 @@ describe('UserSearchComponent', () => {
     expect(fixture.debugElement.query(By.css('[testid="searchresult-id-0"]')).nativeElement.textContent).toBe('0');
     expect(fixture.debugElement.query(By.css('[testid="searchresult-lastname-0"]')).nativeElement.textContent).toBe('last');
     expect(fixture.debugElement.query(By.css('[testid="searchresult-firstname-0"]')).nativeElement.textContent).toBe('first');
+    expect(fixture.debugElement.query(By.css('[testid="searchresult-enabled-0"]')).nativeElement.textContent).toBe('Ja');
   });
 
   it('search with firstname only', () => {
