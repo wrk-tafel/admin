@@ -24,12 +24,17 @@ export class CustomerFormComponent implements OnInit {
   @Input()
   set customerData(customerData: CustomerData) {
     if (customerData) {
-      this.form.patchValue(customerData);
+      this.form.patchValue({
+        ...customerData,
+        gender: Gender[customerData.gender.toString()]
+      });
+
       this.additionalPersons.clear();
       customerData.additionalPersons.forEach((person) => this.pushPersonGroupControl(
         {
           ...person,
-          key: person.key ? person.key : uuidv4()
+          key: person.key ? person.key : uuidv4(),
+          gender: Gender[person.gender.toString()]
         }
       ));
     }
