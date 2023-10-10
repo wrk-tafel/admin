@@ -83,6 +83,7 @@ export interface CustomerData {
   firstname: string;
   lastname: string;
   birthDate: Date;
+  gender: Gender;
   country?: CountryData;
   address: CustomerAddressData;
   telephoneNumber?: string;
@@ -119,12 +120,17 @@ export interface CustomerAddPersonData {
   firstname: string;
   lastname: string;
   birthDate: Date;
+  gender: Gender;
   country?: CountryData;
   employer?: string;
   income?: number;
   incomeDue?: Date;
   excludeFromHousehold: boolean;
   receivesFamilyBonus: boolean;
+}
+
+export enum Gender {
+  MALE = 0, FEMALE = 1
 }
 
 type PdfType = 'MASTERDATA' | 'IDCARD' | 'COMBINED';

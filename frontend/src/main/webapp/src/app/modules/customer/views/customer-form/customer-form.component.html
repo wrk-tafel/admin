@@ -14,7 +14,7 @@
                      autofocus>
             </div>
           </div>
-          <div class="row">
+          <div class="row mb-2">
             <div class="col-sm">
               <label class="form-label">Familienname *</label>
               <input testid="lastnameInput" type="text" formControlName="lastname" class="form-control"
@@ -61,6 +61,25 @@
               </div>
             </div>
             <div class="col-sm">
+              <label class="form-label">Geschlecht *</label>
+              <c-input-group>
+                <select testid="genderInput" formControlName="gender" class="form-control" cSelect
+                        [ngClass]="{'is-invalid': gender.invalid && (gender.dirty || gender.touched), 'is-valid': gender.valid && (gender.dirty || gender.touched)}">
+                  <option *ngFor="let gender of allGender" [ngValue]="gender">
+                    {{GenderLabel[gender]}}</option>
+                </select>
+                <span cInputGroupText>
+                  <i class="fa fa-venus-mars"></i>
+                </span>
+                <div *ngIf="gender.errors?.required && (gender.dirty || gender.touched)"
+                     class="invalid-feedback">
+                  Pflichtfeld
+                </div>
+              </c-input-group>
+            </div>
+          </div>
+          <div class="row mb-2">
+            <div class="col">
               <label class="form-label">Nationalität *</label>
               <c-input-group>
                 <select testid="countryInput" formControlName="country" class="form-control" cSelect
@@ -344,6 +363,26 @@
                           </div>
                         </div>
                         <div class="col-lg-6">
+                          <label class="form-label">Geschlecht *</label>
+                          <c-input-group>
+                            <select testid="genderInput" formControlName="gender" cSelect class="form-control"
+                                    [ngClass]="{'is-invalid': additionalPerson.get('gender').invalid && (additionalPerson.get('gender').dirty || additionalPerson.get('gender').touched), 'is-valid': additionalPerson.get('gender').valid && (additionalPerson.get('gender').dirty || additionalPerson.get('gender').touched)}">
+                              <option *ngFor="let gender of allGender" [ngValue]="gender">
+                                {{GenderLabel[gender]}}</option>
+                            </select>
+                            <span cInputGroupText>
+                              <i class="fa fa-venus-mars"></i>
+                            </span>
+                            <div
+                              *ngIf="additionalPerson.get('gender').errors?.required && (additionalPerson.get('gender').dirty || additionalPerson.get('gender').touched)"
+                              class="invalid-feedback">
+                              Pflichtfeld
+                            </div>
+                          </c-input-group>
+                        </div>
+                      </div>
+                      <div class="row">
+                        <div class="col">
                           <label class="form-label">Nationalität *</label>
                           <c-input-group>
                             <select testid="countryInput" formControlName="country" cSelect class="form-control"
@@ -384,8 +423,9 @@
                             <span cInputGroupText>
                               <i class="fa fa-euro-sign"></i>
                             </span>
-                            <div *ngIf="additionalPerson.get('income').errors?.min && (additionalPerson.get('income').dirty || additionalPerson.get('income').touched)"
-                                 class="invalid-feedback">
+                            <div
+                              *ngIf="additionalPerson.get('income').errors?.min && (additionalPerson.get('income').dirty || additionalPerson.get('income').touched)"
+                              class="invalid-feedback">
                               Muss größer als 0 sein
                             </div>
                           </c-input-group>
@@ -410,13 +450,15 @@
                         <div class="col-lg-6">
                           <label class="form-label">Bezieht Familienbeihilfe</label>
                           <div class="input-group">
-                            <input testid="receivesFamilyBonusInput" type="checkbox" formControlName="receivesFamilyBonus" class="form-check-input">
+                            <input testid="receivesFamilyBonusInput" type="checkbox"
+                                   formControlName="receivesFamilyBonus" class="form-check-input">
                           </div>
                         </div>
                         <div class="col-lg-6">
                           <label class="form-label">Nicht im selben Haushalt (keine Berechnung)</label>
                           <div class="input-group">
-                            <input testid="excludeFromHouseholdInput" type="checkbox" formControlName="excludeFromHousehold" class="form-check-input">
+                            <input testid="excludeFromHouseholdInput" type="checkbox"
+                                   formControlName="excludeFromHousehold" class="form-check-input">
                           </div>
                         </div>
                       </div>
@@ -436,7 +478,9 @@
           </div>
         </c-card-body>
         <c-card-footer class="text-end">
-          <button testid="addperson-button-bottom" cButton color="success" class="text-white" (click)="addNewPerson()">Hinzufügen</button>
+          <button testid="addperson-button-bottom" cButton color="success" class="text-white" (click)="addNewPerson()">
+            Hinzufügen
+          </button>
         </c-card-footer>
       </c-card>
     </div>
