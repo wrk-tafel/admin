@@ -515,6 +515,7 @@ class CustomerServiceTest {
             lastname = "Mustermann"
             firstname = "Max"
             birthDate = LocalDate.now().minusYears(30)
+            gender = Gender.FEMALE
             country = testCountry
             addressStreet = "Test-Straße"
             addressHouseNumber = "100"

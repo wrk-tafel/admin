@@ -148,6 +148,7 @@ class CustomerService(
         customerEntity.lastname = customerUpdate.lastname.trim()
         customerEntity.firstname = customerUpdate.firstname.trim()
         customerEntity.birthDate = customerUpdate.birthDate
+        customerEntity.gender = customerUpdate.gender?.let { Gender.valueOf(it.name) }
         customerEntity.country = countryRepository.findById(customerUpdate.country.id).get()
         customerEntity.addressStreet = customerUpdate.address.street.trim()
         customerEntity.addressHouseNumber = customerUpdate.address.houseNumber?.trim()
@@ -187,19 +188,21 @@ class CustomerService(
 
         customerEntity.additionalPersons.clear()
         customerEntity.additionalPersons.addAll(
-            customerUpdate.additionalPersons.map {
+            customerUpdate.additionalPersons.map { addPerson ->
                 val addPersonEntity =
-                    customerAddPersonRepository.findById(it.id).orElseGet { CustomerAddPersonEntity() }
+                    customerAddPersonRepository.findById(addPerson.id).orElseGet { CustomerAddPersonEntity() }
                 addPersonEntity.customer = customerEntity
-                addPersonEntity.lastname = it.lastname.trim()
-                addPersonEntity.firstname = it.firstname.trim()
-                addPersonEntity.birthDate = it.birthDate
-                addPersonEntity.employer = it.employer
-                addPersonEntity.income = it.income.takeIf { income -> income != null && income > BigDecimal.ZERO }
-                addPersonEntity.incomeDue = it.incomeDue
-                addPersonEntity.receivesFamilyBonus = it.receivesFamilyBonus
-                addPersonEntity.country = countryRepository.findById(it.country.id).get()
-                addPersonEntity.excludeFromHousehold = it.excludeFromHousehold
+                addPersonEntity.lastname = addPerson.lastname.trim()
+                addPersonEntity.firstname = addPerson.firstname.trim()
+                addPersonEntity.birthDate = addPerson.birthDate
+                addPersonEntity.gender = addPerson.gender?.let { Gender.valueOf(it.name) }
+                addPersonEntity.employer = addPerson.employer
+                addPersonEntity.income =
+                    addPerson.income.takeIf { income -> income != null && income > BigDecimal.ZERO }
+                addPersonEntity.incomeDue = addPerson.incomeDue
+                addPersonEntity.receivesFamilyBonus = addPerson.receivesFamilyBonus
+                addPersonEntity.country = countryRepository.findById(addPerson.country.id).get()
+                addPersonEntity.excludeFromHousehold = addPerson.excludeFromHousehold
                 addPersonEntity
             }.toList()
         )
