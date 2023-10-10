@@ -1,5 +1,5 @@
 import * as moment from 'moment';
-import {CustomerAddPersonData, Gender} from "../support/commands";
+import {CustomerAddPersonData, Gender} from '../support/commands';
 
 // TODO optimize structure
 

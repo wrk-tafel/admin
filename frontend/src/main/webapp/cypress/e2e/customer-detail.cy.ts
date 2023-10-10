@@ -1,7 +1,5 @@
 import * as path from 'path';
 import * as moment from 'moment';
-import Response = Cypress.Response;
-import CustomerData = Cypress.CustomerData;
 
 describe('Customer Detail', () => {
 

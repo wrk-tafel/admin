@@ -1,4 +1,4 @@
-import UserData = Cypress.UserData;
+import {UserData} from '../support/commands';
 
 describe('Login', () => {
 
