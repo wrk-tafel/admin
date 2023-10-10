@@ -5,7 +5,7 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {RouterTestingModule} from '@angular/router/testing';
 import * as moment from 'moment';
 import {of} from 'rxjs';
-import {CustomerApiService, CustomerData, ValidateCustomerResponse} from '../../../../api/customer-api.service';
+import {CustomerApiService, CustomerData, Gender, ValidateCustomerResponse} from '../../../../api/customer-api.service';
 import {CustomerFormComponent} from '../customer-form/customer-form.component';
 import {CustomerEditComponent} from './customer-edit.component';
 import {By} from '@angular/platform-browser';
@@ -32,10 +32,10 @@ describe('CustomerEditComponent - Creating a new customer', () => {
     lastname: 'Mustermann',
     firstname: 'Max',
     birthDate: moment().subtract(40, 'years').startOf('day').utc().toDate(),
+    gender: Gender.MALE,
     country: testCountry,
     telephoneNumber: '00436641231231',
     email: 'max.mustermann@gmail.com',
-
     address: {
       street: 'Teststraße',
       houseNumber: '123A',
@@ -44,12 +44,10 @@ describe('CustomerEditComponent - Creating a new customer', () => {
       postalCode: 1020,
       city: 'Wien',
     },
-
     employer: 'test employer',
     income: 1000,
     incomeDue: moment().add(1, 'years').startOf('day').utc().toDate(),
     validUntil: moment().add(1, 'years').startOf('day').utc().toDate(),
-
     additionalPersons: [
       {
         key: 0,
@@ -57,6 +55,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
         lastname: 'Add',
         firstname: 'Pers 1',
         birthDate: moment().subtract(5, 'years').startOf('day').utc().toDate(),
+        gender: Gender.FEMALE,
         country: testCountry,
         income: 50,
         incomeDue: moment().add(1, 'years').startOf('day').utc().toDate(),
@@ -69,6 +68,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
         lastname: 'Add',
         firstname: 'Pers 2',
         birthDate: moment().subtract(2, 'years').startOf('day').utc().toDate(),
+        gender: Gender.MALE,
         country: testCountry,
         excludeFromHousehold: true,
         receivesFamilyBonus: false

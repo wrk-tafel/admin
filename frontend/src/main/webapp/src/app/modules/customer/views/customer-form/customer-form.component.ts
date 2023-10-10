@@ -150,7 +150,7 @@ export class CustomerFormComponent implements OnInit {
     additionalPersons: new FormArray([])
   });
   countries: CountryData[];
-  allGender: Gender[] = [Gender.FEMALE, Gender.MALE];
+  genders: Gender[] = [Gender.FEMALE, Gender.MALE];
   GenderLabel: { [key in Gender]: string } = {
     [Gender.FEMALE]: 'Weiblich',
     [Gender.MALE]: 'Männlich'

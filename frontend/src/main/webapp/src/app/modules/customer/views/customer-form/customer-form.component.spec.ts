@@ -3,7 +3,7 @@ import {RouterTestingModule} from '@angular/router/testing';
 import * as moment from 'moment';
 import {of} from 'rxjs';
 import {CountryApiService} from '../../../../api/country-api.service';
-import {CustomerData} from '../../../../api/customer-api.service';
+import {CustomerData, Gender} from '../../../../api/customer-api.service';
 import {CustomerFormComponent} from './customer-form.component';
 import {FormControl, FormGroup, ReactiveFormsModule} from '@angular/forms';
 import {CardModule, ColComponent, InputGroupComponent, RowComponent} from '@coreui/angular';
@@ -21,6 +21,7 @@ describe('CustomerFormComponent', () => {
     lastname: 'Mustermann',
     firstname: 'Max',
     birthDate: moment().subtract(20, 'years').startOf('day').utc().toDate(),
+    gender: Gender.MALE,
     country: mockCountryList[0],
     telephoneNumber: '0043660123123',
     email: 'test@mail.com',
@@ -43,6 +44,7 @@ describe('CustomerFormComponent', () => {
         lastname: 'Last 1',
         firstname: 'First 1',
         birthDate: moment().subtract(1, 'years').startOf('day').utc().toDate(),
+        gender: Gender.FEMALE,
         country: mockCountryList[0],
         employer: 'test employer 2',
         income: 200,
@@ -56,6 +58,7 @@ describe('CustomerFormComponent', () => {
         lastname: 'Last 2',
         firstname: 'First 2',
         birthDate: moment().subtract(4, 'years').startOf('day').utc().toDate(),
+        gender: Gender.MALE,
         country: mockCountryList[0],
         excludeFromHousehold: true,
         receivesFamilyBonus: false
@@ -118,6 +121,7 @@ describe('CustomerFormComponent', () => {
     expect(component.lastname.value).toBe(testCustomerData.lastname);
     expect(component.firstname.value).toBe(testCustomerData.firstname);
     expect(component.birthDate.value).toBe(testCustomerData.birthDate);
+    expect(component.gender.value).toBe(testCustomerData.gender);
     expect(component.country.value).toBe(testCustomerData.country);
     expect(component.telephoneNumber.value).toBe(testCustomerData.telephoneNumber);
     expect(component.email.value).toBe(testCustomerData.email);
@@ -142,6 +146,7 @@ describe('CustomerFormComponent', () => {
         lastname: testCustomerData.additionalPersons[0].lastname,
         firstname: testCustomerData.additionalPersons[0].firstname,
         birthDate: testCustomerData.additionalPersons[0].birthDate,
+        gender: testCustomerData.additionalPersons[0].gender,
         country: testCustomerData.additionalPersons[0].country,
         employer: testCustomerData.additionalPersons[0].employer,
         income: testCustomerData.additionalPersons[0].income,
@@ -154,6 +159,7 @@ describe('CustomerFormComponent', () => {
         lastname: testCustomerData.additionalPersons[1].lastname,
         firstname: testCustomerData.additionalPersons[1].firstname,
         birthDate: testCustomerData.additionalPersons[1].birthDate,
+        gender: testCustomerData.additionalPersons[1].gender,
         country: testCustomerData.additionalPersons[1].country,
         excludeFromHousehold: testCustomerData.additionalPersons[1].excludeFromHousehold,
         receivesFamilyBonus: testCustomerData.additionalPersons[1].receivesFamilyBonus
@@ -172,11 +178,13 @@ describe('CustomerFormComponent', () => {
 
     const updatedLastname = 'updated';
     const updatedBirthDate = moment().subtract(30, 'years').startOf('day').utc().toDate();
+    const updatedGender = Gender.FEMALE;
     const updatedIncome = 54321;
     const updatedIncomeDue = moment().add(2, 'years').startOf('day').utc().toDate();
 
     component.lastname.setValue(updatedLastname);
     component.birthDate.setValue(updatedBirthDate);
+    component.gender.setValue(updatedGender);
     component.income.setValue(updatedIncome);
     component.incomeDue.setValue(updatedIncomeDue);
 
@@ -187,6 +195,7 @@ describe('CustomerFormComponent', () => {
     expect(component.customerDataChange.emit).toHaveBeenCalledWith(jasmine.objectContaining({
       lastname: updatedLastname,
       birthDate: updatedBirthDate,
+      gender: updatedGender,
       income: updatedIncome
     }));
 

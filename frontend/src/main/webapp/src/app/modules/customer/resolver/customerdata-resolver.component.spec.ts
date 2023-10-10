@@ -1,6 +1,6 @@
 import {HttpClientTestingModule} from '@angular/common/http/testing';
 import {TestBed} from '@angular/core/testing';
-import {CustomerApiService, CustomerData} from '../../../api/customer-api.service';
+import {CustomerApiService, CustomerData, Gender} from '../../../api/customer-api.service';
 import * as moment from 'moment/moment';
 import {of} from 'rxjs';
 import {CustomerDataResolver} from './customerdata-resolver.component';
@@ -38,6 +38,7 @@ describe('CustomerDataResolver', () => {
       lastname: 'Mustermann',
       firstname: 'Max',
       birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
+      gender: Gender.MALE,
       telephoneNumber: '00436644123123123',
       email: 'max.mustermann@gmail.com',
 
@@ -63,6 +64,7 @@ describe('CustomerDataResolver', () => {
           lastname: 'Add',
           firstname: 'Pers 1',
           birthDate: moment().subtract(5, 'years').startOf('day').utc().toDate(),
+          gender: Gender.FEMALE,
           income: 50,
           incomeDue: moment().add(1, 'years').startOf('day').utc().toDate(),
           excludeFromHousehold: false,

@@ -1,7 +1,7 @@
 import {HttpClientTestingModule, HttpTestingController} from '@angular/common/http/testing';
 import {TestBed} from '@angular/core/testing';
 import * as moment from 'moment';
-import {CustomerApiService} from './customer-api.service';
+import {CustomerApiService, Gender} from './customer-api.service';
 import {ReactiveFormsModule} from '@angular/forms';
 
 describe('CustomerApiService', () => {
@@ -40,7 +40,7 @@ describe('CustomerApiService', () => {
       lastname: 'Mustermann',
       firstname: 'Max',
       birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
-
+      gender: Gender.MALE,
       address: {
         street: 'Teststraße',
         houseNumber: '123A',
@@ -48,7 +48,6 @@ describe('CustomerApiService', () => {
         postalCode: 1020,
         city: 'Wien',
       },
-
       employer: 'test employer',
       income: 1000
     };

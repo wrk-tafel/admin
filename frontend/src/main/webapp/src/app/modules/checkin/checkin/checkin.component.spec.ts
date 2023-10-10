@@ -2,7 +2,7 @@ import {TestBed, waitForAsync} from '@angular/core/testing';
 import {CheckinComponent, CustomerState} from './checkin.component';
 import {WebsocketService} from '../../../common/websocket/websocket.service';
 import {CommonModule} from '@angular/common';
-import {CustomerApiService} from '../../../api/customer-api.service';
+import {CustomerApiService, Gender} from '../../../api/customer-api.service';
 import {BehaviorSubject, EMPTY, of, throwError} from 'rxjs';
 import {IMessage} from '@stomp/stompjs';
 import * as moment from 'moment/moment';
@@ -254,6 +254,7 @@ describe('CheckinComponent', () => {
       lastname: 'Mustermann',
       firstname: 'Max',
       birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
+      gender: Gender.MALE,
 
       address: {
         street: 'Teststraße',
@@ -306,6 +307,7 @@ describe('CheckinComponent', () => {
       lastname: 'Mustermann',
       firstname: 'Max',
       birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
+      gender: Gender.MALE,
 
       address: {
         street: 'Teststraße',
@@ -359,6 +361,7 @@ describe('CheckinComponent', () => {
       lastname: 'Mustermann',
       firstname: 'Max',
       birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
+      gender: Gender.MALE,
 
       address: {
         street: 'Teststraße',
@@ -413,6 +416,7 @@ describe('CheckinComponent', () => {
       lastname: 'Mustermann',
       firstname: 'Max',
       birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
+      gender: Gender.MALE,
 
       address: {
         street: 'Teststraße',
@@ -468,6 +472,7 @@ describe('CheckinComponent', () => {
       lastname: 'Mustermann',
       firstname: 'Max',
       birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
+      gender: Gender.MALE,
 
       address: {
         street: 'Teststraße',
@@ -536,6 +541,7 @@ describe('CheckinComponent', () => {
       lastname: 'Mustermann',
       firstname: 'Max',
       birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
+      gender: Gender.MALE,
 
       address: {
         street: 'Teststraße',
@@ -597,6 +603,7 @@ describe('CheckinComponent', () => {
       lastname: 'Mustermann',
       firstname: 'Max',
       birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
+      gender: Gender.MALE,
 
       address: {
         street: 'Teststraße',
@@ -647,6 +654,7 @@ describe('CheckinComponent', () => {
       lastname: 'Mustermann',
       firstname: 'Max',
       birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
+      gender: Gender.MALE,
 
       address: {
         street: 'Teststraße',
@@ -699,6 +707,7 @@ describe('CheckinComponent', () => {
       lastname: 'Mustermann',
       firstname: 'Max',
       birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
+      gender: Gender.MALE,
 
       address: {
         street: 'Teststraße',
@@ -740,6 +749,7 @@ describe('CheckinComponent', () => {
       lastname: 'Mustermann',
       firstname: 'Max',
       birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
+      gender: Gender.MALE,
 
       address: {
         street: 'Teststraße',

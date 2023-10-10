@@ -65,7 +65,7 @@
               <c-input-group>
                 <select testid="genderInput" formControlName="gender" class="form-control" cSelect
                         [ngClass]="{'is-invalid': gender.invalid && (gender.dirty || gender.touched), 'is-valid': gender.valid && (gender.dirty || gender.touched)}">
-                  <option *ngFor="let gender of allGender" [ngValue]="gender">
+                  <option *ngFor="let gender of genders" [ngValue]="gender">
                     {{GenderLabel[gender]}}</option>
                 </select>
                 <span cInputGroupText>
@@ -367,7 +367,7 @@
                           <c-input-group>
                             <select testid="genderInput" formControlName="gender" cSelect class="form-control"
                                     [ngClass]="{'is-invalid': additionalPerson.get('gender').invalid && (additionalPerson.get('gender').dirty || additionalPerson.get('gender').touched), 'is-valid': additionalPerson.get('gender').valid && (additionalPerson.get('gender').dirty || additionalPerson.get('gender').touched)}">
-                              <option *ngFor="let gender of allGender" [ngValue]="gender">
+                              <option *ngFor="let gender of genders" [ngValue]="gender">
                                 {{GenderLabel[gender]}}</option>
                             </select>
                             <span cInputGroupText>
