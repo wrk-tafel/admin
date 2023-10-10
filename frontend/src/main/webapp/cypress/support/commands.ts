@@ -24,10 +24,7 @@
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
 
-import AddCustomerToDistributionRequest = Cypress.AddCustomerToDistributionRequest;
-import CustomerData = Cypress.CustomerData;
 import Chainable = Cypress.Chainable;
-import UserData = Cypress.UserData;
 import * as moment from 'moment/moment';
 
 Cypress.Commands.add('byTestId', (id) => cy.get(`[testid="${id}"]`));
@@ -100,6 +97,7 @@ Cypress.Commands.add('createDummyCustomer', (): Cypress.Chainable<Cypress.Respon
       firstname: 'firstname-' + randomNumber,
       lastname: 'lastname-' + randomNumber,
       birthDate: moment().toDate(),
+      gender: Gender.MALE,
       employer: 'employer-' + randomNumber,
       country: {
         id: 165,
@@ -160,3 +158,90 @@ Cypress.Commands.add('getRandomNumber', (min: number, max: number): Chainable<nu
 Cypress.Commands.add('getAnyRandomNumber', (): Chainable<number> => {
   return cy.getRandomNumber(50000, 100000);
 });
+
+
+export interface AddCustomerToDistributionRequest {
+  customerId: number;
+  ticketNumber: number;
+}
+
+export interface CountryData {
+  id: number;
+  code: string;
+  name: string;
+}
+
+export interface CustomerData {
+  id?: number;
+  issuer?: CustomerIssuer;
+  issuedAt?: Date;
+  firstname: string;
+  lastname: string;
+  birthDate: Date;
+  gender: Gender;
+  country?: CountryData;
+  address: CustomerAddressData;
+  telephoneNumber?: string;
+  email?: string;
+  employer?: string;
+  income?: number;
+  incomeDue?: Date;
+  validUntil?: Date;
+  locked?: boolean;
+  lockedAt?: Date;
+  lockedBy?: string;
+  lockReason?: string;
+  additionalPersons?: CustomerAddPersonData[];
+}
+
+export interface CustomerIssuer {
+  personnelNumber: string;
+  firstname: string;
+  lastname: string;
+}
+
+export interface CustomerAddressData {
+  street: string;
+  houseNumber?: string;
+  stairway?: string;
+  door?: string;
+  postalCode?: number;
+  city?: string;
+}
+
+export interface CustomerAddPersonData {
+  key: number;
+  id: number;
+  firstname: string;
+  lastname: string;
+  birthDate: Date;
+  gender: Gender;
+  country?: CountryData;
+  employer?: string;
+  income?: number;
+  incomeDue?: Date;
+  excludeFromHousehold: boolean;
+  receivesFamilyBonus: boolean;
+}
+
+export interface UserData {
+  id?: number;
+  personnelNumber: string;
+  username: string;
+  firstname: string;
+  lastname: string;
+  enabled: boolean;
+  password?: string;
+  passwordRepeat?: string;
+  passwordChangeRequired: boolean;
+  permissions: UserPermission[];
+}
+
+export interface UserPermission {
+  key: string;
+  title: string;
+}
+
+export enum Gender {
+  MALE = 0, FEMALE = 1
+}
