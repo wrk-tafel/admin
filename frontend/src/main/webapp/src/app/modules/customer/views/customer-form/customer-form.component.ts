@@ -156,10 +156,6 @@ export class CustomerFormComponent implements OnInit {
   });
   countries: CountryData[];
   genders: Gender[] = [Gender.FEMALE, Gender.MALE];
-  GenderLabel: { [key in Gender]: string } = {
-    [Gender.FEMALE]: 'Weiblich',
-    [Gender.MALE]: 'Männlich'
-  };
 
   ngOnInit(): void {
     this.countryApiService.getCountries().subscribe((countries) => {

@@ -201,6 +201,7 @@ describe('CustomerDetailComponent', () => {
 
     const birthDateAge = moment(mockCustomer.birthDate).format('DD.MM.YYYY') + ' (' + moment().diff(mockCustomer.birthDate, 'years') + ')';
     expect(getTextByTestId(fixture, 'birthDateAgeText')).toBe(birthDateAge);
+    expect(getTextByTestId(fixture, 'genderText')).toBe('Männlich');
     expect(getTextByTestId(fixture, 'countryText')).toBe('Österreich');
     expect(getTextByTestId(fixture, 'telephoneNumberText')).toBe('00436644123123123');
     expect(getTextByTestId(fixture, 'emailText')).toBe('max.mustermann@gmail.com');
@@ -220,12 +221,14 @@ describe('CustomerDetailComponent', () => {
     const birthDateAgePers1 = moment(mockCustomer.additionalPersons[0].birthDate).format('DD.MM.YYYY') +
       ' (' + moment().diff(mockCustomer.additionalPersons[0].birthDate, 'years') + ')';
     expect(getTextByTestId(fixture, 'addperson-0-birthDateAgeText')).toBe(birthDateAgePers1);
+    expect(getTextByTestId(fixture, 'addperson-0-genderText')).toBe('Weiblich');
 
     expect(getTextByTestId(fixture, 'addperson-0-countryText')).toBe('Österreich');
     expect(getTextByTestId(fixture, 'addperson-0-employerText')).toBe('test employer 2');
     expect(getTextByTestId(fixture, 'addperson-0-incomeText')).toBe('€ 50,00');
     expect(getTextByTestId(fixture, 'addperson-0-incomeDueText'))
       .toBe(moment(mockCustomer.additionalPersons[0].incomeDue).format('DD.MM.YYYY'));
+
     expect(getTextByTestId(fixture, 'addperson-1-incomeText')).toBe('-');
     expect(getTextByTestId(fixture, 'addperson-1-incomeDueText')).toBe('-');
 
