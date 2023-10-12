@@ -5,6 +5,7 @@
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=wrk-tafel-admin&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=wrk-tafel-admin)
 
 # TODO
+* Pagination for Note-Listing (customer-detail page)
 * No validation-date on idcard (will be removed anyway when the checkin is ready)
 * Data-Migration
     * Remove migration-code
