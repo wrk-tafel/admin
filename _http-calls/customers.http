@@ -18,6 +18,7 @@ Content-Type: application/json
   "firstname": "Eva",
   "lastname": "Musterfrau",
   "birthDate": "1990-01-01",
+  "gender": "FEMALE",
   "country": {
     "id": 2,
     "code": "EG",
@@ -43,6 +44,7 @@ Content-Type: application/json
       "firstname": "Child 1",
       "lastname": "Musterfrau",
       "birthDate": "2000-01-01",
+      "gender": "MALE",
       "income": 500,
       "country": {
         "id": 2,
@@ -85,6 +87,7 @@ Content-Type: application/json
   "firstname": "Test",
   "lastname": "Example",
   "birthDate": "1990-01-01",
+  "gender": "FEMALE",
   "country": {
     "id": 2,
     "code": "AT",

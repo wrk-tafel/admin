@@ -1,6 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.customer.internal
 
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.database.entities.base.Gender
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerAddPersonEntity
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity
 import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
@@ -80,6 +81,7 @@ class CustomerServiceTest {
             firstname = "Max",
             lastname = "Mustermann",
             birthDate = LocalDate.now().minusYears(30),
+            gender = CustomerGender.FEMALE,
             country = Country(
                 id = 1,
                 code = "AT",
@@ -106,6 +108,7 @@ class CustomerServiceTest {
                     firstname = "Add pers 1",
                     lastname = "Add pers 1",
                     birthDate = LocalDate.now().minusYears(5),
+                    gender = CustomerGender.MALE,
                     income = BigDecimal("100"),
                     incomeDue = LocalDate.now(),
                     receivesFamilyBonus = false,
@@ -121,6 +124,7 @@ class CustomerServiceTest {
                     firstname = "Add pers 2",
                     lastname = "Add pers 2",
                     birthDate = LocalDate.now().minusYears(2),
+                    gender = CustomerGender.FEMALE,
                     receivesFamilyBonus = true,
                     country = Country(
                         id = 1,
@@ -140,6 +144,7 @@ class CustomerServiceTest {
             lastname = "Mustermann"
             firstname = "Max"
             birthDate = LocalDate.now().minusYears(30)
+            gender = Gender.FEMALE
             country = testCountry
             addressStreet = "Test-Straße"
             addressHouseNumber = "100"
@@ -160,6 +165,7 @@ class CustomerServiceTest {
             addPerson1.lastname = "Add pers 1"
             addPerson1.firstname = "Add pers 1"
             addPerson1.birthDate = LocalDate.now().minusYears(5)
+            addPerson1.gender = Gender.MALE
             addPerson1.income = BigDecimal("100")
             addPerson1.incomeDue = LocalDate.now()
             addPerson1.receivesFamilyBonus = false
@@ -171,6 +177,7 @@ class CustomerServiceTest {
             addPerson2.lastname = "Add pers 2"
             addPerson2.firstname = "Add pers 2"
             addPerson2.birthDate = LocalDate.now().minusYears(2)
+            addPerson2.gender = Gender.FEMALE
             addPerson2.country = testCountry
             addPerson2.receivesFamilyBonus = true
             addPerson2.excludeFromHousehold = true
@@ -341,6 +348,7 @@ class CustomerServiceTest {
             lastname = "Mustermann"
             firstname = "Max"
             birthDate = LocalDate.now().minusYears(30)
+            gender = Gender.FEMALE
             country = testCountry
             addressStreet = "Test-Straße"
             addressHouseNumber = "100"
@@ -362,6 +370,7 @@ class CustomerServiceTest {
             addPerson1.lastname = "Add pers 1"
             addPerson1.firstname = "Add pers 1"
             addPerson1.birthDate = LocalDate.now().minusYears(5)
+            addPerson1.gender = Gender.MALE
             addPerson1.income = BigDecimal("100")
             addPerson1.incomeDue = LocalDate.now()
             addPerson1.country = testCountry
@@ -372,6 +381,7 @@ class CustomerServiceTest {
             addPerson2.lastname = "Add pers 2"
             addPerson2.firstname = "Add pers 2"
             addPerson2.birthDate = LocalDate.now().minusYears(2)
+            addPerson2.gender = Gender.FEMALE
             addPerson2.country = testCountry
             addPerson2.excludeFromHousehold = false
 
@@ -395,11 +405,13 @@ class CustomerServiceTest {
             lastname = "updated-lastname",
             firstname = "updated-firstname",
             birthDate = LocalDate.now(),
+            gender = CustomerGender.MALE,
             employer = "updated-employer",
             income = BigDecimal.TEN,
             validUntil = LocalDate.now().plusYears(1),
             additionalPersons = listOf(
                 testCustomer.additionalPersons[0].copy(
+                    gender = CustomerGender.FEMALE,
                     excludeFromHousehold = true
                 )
             )
@@ -503,6 +515,7 @@ class CustomerServiceTest {
             lastname = "Mustermann"
             firstname = "Max"
             birthDate = LocalDate.now().minusYears(30)
+            gender = Gender.FEMALE
             country = testCountry
             addressStreet = "Test-Straße"
             addressHouseNumber = "100"

@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.modules.customer.internal
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.database.entities.base.Gender
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerAddPersonEntity
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity.Specs.Companion.firstnameContains
@@ -147,6 +148,7 @@ class CustomerService(
         customerEntity.lastname = customerUpdate.lastname.trim()
         customerEntity.firstname = customerUpdate.firstname.trim()
         customerEntity.birthDate = customerUpdate.birthDate
+        customerEntity.gender = customerUpdate.gender?.let { Gender.valueOf(it.name) }
         customerEntity.country = countryRepository.findById(customerUpdate.country.id).get()
         customerEntity.addressStreet = customerUpdate.address.street.trim()
         customerEntity.addressHouseNumber = customerUpdate.address.houseNumber?.trim()
@@ -186,19 +188,21 @@ class CustomerService(
 
         customerEntity.additionalPersons.clear()
         customerEntity.additionalPersons.addAll(
-            customerUpdate.additionalPersons.map {
+            customerUpdate.additionalPersons.map { addPerson ->
                 val addPersonEntity =
-                    customerAddPersonRepository.findById(it.id).orElseGet { CustomerAddPersonEntity() }
+                    customerAddPersonRepository.findById(addPerson.id).orElseGet { CustomerAddPersonEntity() }
                 addPersonEntity.customer = customerEntity
-                addPersonEntity.lastname = it.lastname.trim()
-                addPersonEntity.firstname = it.firstname.trim()
-                addPersonEntity.birthDate = it.birthDate
-                addPersonEntity.employer = it.employer
-                addPersonEntity.income = it.income.takeIf { income -> income != null && income > BigDecimal.ZERO }
-                addPersonEntity.incomeDue = it.incomeDue
-                addPersonEntity.receivesFamilyBonus = it.receivesFamilyBonus
-                addPersonEntity.country = countryRepository.findById(it.country.id).get()
-                addPersonEntity.excludeFromHousehold = it.excludeFromHousehold
+                addPersonEntity.lastname = addPerson.lastname.trim()
+                addPersonEntity.firstname = addPerson.firstname.trim()
+                addPersonEntity.birthDate = addPerson.birthDate
+                addPersonEntity.gender = addPerson.gender?.let { Gender.valueOf(it.name) }
+                addPersonEntity.employer = addPerson.employer
+                addPersonEntity.income =
+                    addPerson.income.takeIf { income -> income != null && income > BigDecimal.ZERO }
+                addPersonEntity.incomeDue = addPerson.incomeDue
+                addPersonEntity.receivesFamilyBonus = addPerson.receivesFamilyBonus
+                addPersonEntity.country = countryRepository.findById(addPerson.country.id).get()
+                addPersonEntity.excludeFromHousehold = addPerson.excludeFromHousehold
                 addPersonEntity
             }.toList()
         )
@@ -219,6 +223,7 @@ class CustomerService(
         firstname = customerEntity.firstname!!,
         lastname = customerEntity.lastname!!,
         birthDate = customerEntity.birthDate!!,
+        gender = mapGender(customerEntity.gender),
         country = mapCountryToResponse(customerEntity.country!!),
         address = CustomerAddress(
             street = customerEntity.addressStreet!!,
@@ -244,6 +249,7 @@ class CustomerService(
                 firstname = it.firstname!!,
                 lastname = it.lastname!!,
                 birthDate = it.birthDate!!,
+                gender = mapGender(it.gender),
                 employer = it.employer,
                 income = it.income,
                 incomeDue = it.incomeDue,
@@ -253,6 +259,10 @@ class CustomerService(
             )
         }.sortedBy { "${it.lastname} ${it.firstname}" }
     )
+
+    private fun mapGender(gender: Gender?): CustomerGender? {
+        return gender?.let { CustomerGender.valueOf(it.name) }
+    }
 
     private fun mapCountryToResponse(country: CountryEntity): Country {
         return Country(

@@ -4,7 +4,7 @@ import {Router} from '@angular/router';
 import {RouterTestingModule} from '@angular/router/testing';
 import * as moment from 'moment';
 import {EMPTY, of} from 'rxjs';
-import {CustomerApiService, CustomerSearchResult} from '../../../../api/customer-api.service';
+import {CustomerApiService, CustomerSearchResult, Gender} from '../../../../api/customer-api.service';
 import {CustomerSearchComponent} from './customer-search.component';
 import {CardModule, ColComponent, PaginationModule, RowComponent} from '@coreui/angular';
 import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
@@ -23,6 +23,7 @@ describe('CustomerSearchComponent', () => {
         firstname: 'first',
         lastname: 'last',
         birthDate: moment('10.05.2000', 'DD.MM.YYYY').toDate(),
+        gender: Gender.MALE,
         address: {
           street: 'street',
           houseNumber: '1',

@@ -1,5 +1,5 @@
 import * as moment from 'moment';
-import CustomerAddPersonData = Cypress.CustomerAddPersonData;
+import {CustomerAddPersonData, Gender} from '../support/commands';
 
 // TODO optimize structure
 
@@ -76,6 +76,7 @@ describe('Customer Creation', () => {
       lastname: 'Add',
       firstname: 'Adult 1',
       birthDate: getBirthDateForAge(30),
+      gender: Gender.MALE,
       employer: 'test employer',
       income: 500,
       country: {id: 0, code: 'AT', name: 'Österreich'},
@@ -88,6 +89,7 @@ describe('Customer Creation', () => {
       lastname: 'Add',
       firstname: 'Child 1',
       birthDate: getBirthDateForAge(3),
+      gender: Gender.FEMALE,
       income: 0,
       country: {id: 1, code: 'DE', name: 'Deutschland'},
       excludeFromHousehold: false
@@ -99,6 +101,7 @@ describe('Customer Creation', () => {
       lastname: 'Add',
       firstname: 'Child 2',
       birthDate: getBirthDateForAge(8),
+      gender: Gender.MALE,
       country: {id: 2, code: 'CH', name: 'Schweiz'},
       excludeFromHousehold: true
     });
@@ -113,6 +116,7 @@ describe('Customer Creation', () => {
     cy.byTestId('lastnameInput').type('Mustermann');
     cy.byTestId('firstnameInput').type('Max');
     cy.byTestId('birthDateInput').type(moment(getBirthDateForAge(25)).format('YYYY-MM-DD'));
+    cy.byTestId('genderInput').select('Männlich');
     cy.byTestId('countryInput').select('Österreich');
     cy.byTestId('telephoneNumberInput').type('0664123132123');
     cy.byTestId('emailInput').type('test@gmail.com');
@@ -133,6 +137,7 @@ describe('Customer Creation', () => {
       cy.byTestId('lastnameInput').type(data.lastname);
       cy.byTestId('firstnameInput').type(data.firstname);
       cy.byTestId('birthDateInput').type(moment(data.birthDate).format('YYYY-MM-DD'));
+      cy.byTestId('genderInput').select(data.gender);
       cy.byTestId('countryInput').select(data.country.name);
       if (data.employer) {
         cy.byTestId('employerInput').type(data.employer);

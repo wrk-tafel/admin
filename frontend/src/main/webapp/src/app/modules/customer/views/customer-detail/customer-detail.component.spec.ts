@@ -5,7 +5,7 @@ import {ActivatedRoute, Router} from '@angular/router';
 import * as moment from 'moment';
 import {of, throwError} from 'rxjs';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
-import {CustomerApiService, CustomerData} from '../../../../api/customer-api.service';
+import {CustomerApiService, CustomerData, Gender} from '../../../../api/customer-api.service';
 import {CustomerDetailComponent} from './customer-detail.component';
 import {CommonModule} from '@angular/common';
 import {DEFAULT_CURRENCY_CODE, LOCALE_ID} from '@angular/core';
@@ -46,6 +46,7 @@ describe('CustomerDetailComponent', () => {
     lastname: 'Mustermann',
     firstname: 'Max',
     birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
+    gender: Gender.MALE,
     country: mockCountry,
     telephoneNumber: '00436644123123123',
     email: 'max.mustermann@gmail.com',
@@ -72,6 +73,7 @@ describe('CustomerDetailComponent', () => {
         lastname: 'Add',
         firstname: 'Pers 1',
         birthDate: moment().subtract(5, 'years').startOf('day').utc().toDate(),
+        gender: Gender.FEMALE,
         employer: 'test employer 2',
         income: 50,
         incomeDue: moment().add(1, 'years').startOf('day').utc().toDate(),
@@ -85,6 +87,7 @@ describe('CustomerDetailComponent', () => {
         lastname: 'Add',
         firstname: 'Pers 2',
         birthDate: moment().subtract(10, 'years').startOf('day').utc().toDate(),
+        gender: Gender.MALE,
         country: mockCountry,
         excludeFromHousehold: true,
         receivesFamilyBonus: false
@@ -198,6 +201,7 @@ describe('CustomerDetailComponent', () => {
 
     const birthDateAge = moment(mockCustomer.birthDate).format('DD.MM.YYYY') + ' (' + moment().diff(mockCustomer.birthDate, 'years') + ')';
     expect(getTextByTestId(fixture, 'birthDateAgeText')).toBe(birthDateAge);
+    expect(getTextByTestId(fixture, 'genderText')).toBe('Männlich');
     expect(getTextByTestId(fixture, 'countryText')).toBe('Österreich');
     expect(getTextByTestId(fixture, 'telephoneNumberText')).toBe('00436644123123123');
     expect(getTextByTestId(fixture, 'emailText')).toBe('max.mustermann@gmail.com');
@@ -217,12 +221,14 @@ describe('CustomerDetailComponent', () => {
     const birthDateAgePers1 = moment(mockCustomer.additionalPersons[0].birthDate).format('DD.MM.YYYY') +
       ' (' + moment().diff(mockCustomer.additionalPersons[0].birthDate, 'years') + ')';
     expect(getTextByTestId(fixture, 'addperson-0-birthDateAgeText')).toBe(birthDateAgePers1);
+    expect(getTextByTestId(fixture, 'addperson-0-genderText')).toBe('Weiblich');
 
     expect(getTextByTestId(fixture, 'addperson-0-countryText')).toBe('Österreich');
     expect(getTextByTestId(fixture, 'addperson-0-employerText')).toBe('test employer 2');
     expect(getTextByTestId(fixture, 'addperson-0-incomeText')).toBe('€ 50,00');
     expect(getTextByTestId(fixture, 'addperson-0-incomeDueText'))
       .toBe(moment(mockCustomer.additionalPersons[0].incomeDue).format('DD.MM.YYYY'));
+
     expect(getTextByTestId(fixture, 'addperson-1-incomeText')).toBe('-');
     expect(getTextByTestId(fixture, 'addperson-1-incomeDueText')).toBe('-');
 

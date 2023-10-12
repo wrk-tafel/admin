@@ -1,5 +1,5 @@
 import {recurse} from 'cypress-recurse';
-import UserData = Cypress.UserData;
+import {UserData} from '../support/commands';
 
 describe('PasswordChange', () => {
 
