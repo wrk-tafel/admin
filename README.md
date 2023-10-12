@@ -5,22 +5,15 @@
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=wrk-tafel-admin&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=wrk-tafel-admin)
 
 # TODO
-
-* Centralize testdata / mocks
-* Add goods-input
-* tech: switch to spring boot layered build: https://www.baeldung.com/docker-layers-spring-boot
-
-* Fix difference in header (only local development)
-* Fix: Errorhandling in DataResolver (no toast shown currently by error-interceptor) - only on local development!
-
-## Minor changes
-
-* Move statistics package into reporting?
-* Improve module communication by using async
-  events (https://docs.spring.io/spring-modulith/docs/current/reference/html/#events)
+* No validation-date on idcard (will be removed anyway when the checkin is ready)
 * Data-Migration
     * Remove migration-code
     * Remove default-values / set values to null and optional
+* Add goods-input
+* Centralize testdata / mocks
+
+* Fix: Difference in header (only local development)
+* Fix: Errorhandling in DataResolver (no toast shown currently by error-interceptor) - only on local development!
 
 ### Open things (to be decided)
 
@@ -31,7 +24,10 @@
 
 ### Lower prio
 
-* No validation-date on idcard (will be removed anyway when the checkin is ready)
+* tech: switch to spring boot layered build: https://www.baeldung.com/docker-layers-spring-boot
+* Move statistics package into reporting?
+* Improve module communication by using async
+  events (https://docs.spring.io/spring-modulith/docs/current/reference/html/#events)
 
 # Frontend #
 
