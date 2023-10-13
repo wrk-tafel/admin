@@ -56,6 +56,7 @@ class CustomerPdfService(
                 lastname = customer.lastname!!,
                 firstname = customer.firstname!!,
                 birthDate = customer.birthDate!!.format(DATE_FORMATTER),
+                gender = customer.gender?.title,
                 country = customer.country!!.name!!,
                 telephoneNumber = customer.telephoneNumber ?: "-",
                 email = customer.email ?: "-",

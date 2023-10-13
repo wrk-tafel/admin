@@ -104,6 +104,16 @@
                                     </fo:table-row>
                                     <fo:table-row>
                                         <fo:table-cell>
+                                            <fo:block font-weight="bold">Geschlecht:</fo:block>
+                                        </fo:table-cell>
+                                        <fo:table-cell>
+                                            <fo:block>
+                                                <xsl:value-of select="$data/gender"/>
+                                            </fo:block>
+                                        </fo:table-cell>
+                                    </fo:table-row>
+                                    <fo:table-row>
+                                        <fo:table-cell>
                                             <fo:block font-weight="bold">Nationalität:</fo:block>
                                         </fo:table-cell>
                                         <fo:table-cell>
