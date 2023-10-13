@@ -61,8 +61,8 @@ internal class CustomerNoteControllerTest {
             items = notes,
             totalCount = 2,
             currentPage = selectedPage,
-            totalPages = 3,
-            pageSize = 10
+            totalPages = 1,
+            pageSize = 5
         )
         every { service.getNotes(customerId, any()) } returns testSearchResult
 
@@ -70,9 +70,9 @@ internal class CustomerNoteControllerTest {
 
         assertThat(response.notes).hasSize(notes.size)
         assertThat(response.notes).isEqualTo(notes)
-        assertThat(response.currentPage).isEqualTo(1)
-        assertThat(response.pageSize).isEqualTo(1)
-        assertThat(response.totalCount).isEqualTo(1)
+        assertThat(response.currentPage).isEqualTo(selectedPage)
+        assertThat(response.pageSize).isEqualTo(5)
+        assertThat(response.totalCount).isEqualTo(2)
         assertThat(response.totalPages).isEqualTo(1)
 
 
