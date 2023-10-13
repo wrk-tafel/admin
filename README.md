@@ -6,7 +6,6 @@
 
 # TODO
 
-* No validation-date on idcard (will be removed anyway when the checkin is ready)
 * Data-Migration
     * Remove migration-code
     * Remove default-values / set values to null and optional
