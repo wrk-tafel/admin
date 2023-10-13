@@ -19,6 +19,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.PageRequest
 import org.springframework.security.core.context.SecurityContextHolder
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -96,12 +98,22 @@ internal class CustomerNoteServiceTest {
     fun `get notes - empty`() {
         val customerId = 123L
 
-        every { customerNoteRepository.findByCustomerCustomerIdOrderByCreatedAtDesc(customerId) } returns emptyList()
+        val selectedPage = 3
+        val pageRequest = PageRequest.of(selectedPage - 1, 5)
+        val page = PageImpl(emptyList<CustomerNoteEntity>(), pageRequest, 0)
+        every {
+            customerNoteRepository.findByCustomerCustomerIdOrderByCreatedAtDesc(customerId, pageRequest)
+        } returns page
 
-        val mappedNotes = service.getNotes(customerId)
+        val searchResult = service.getNotes(customerId, selectedPage)
 
-        assertThat(mappedNotes).isEmpty()
-        verify { customerNoteRepository.findByCustomerCustomerIdOrderByCreatedAtDesc(customerId) }
+        assertThat(searchResult.items).isEmpty()
+        assertThat(searchResult.currentPage).isEqualTo(selectedPage)
+        assertThat(searchResult.totalPages).isEqualTo(0)
+        assertThat(searchResult.totalCount).isEqualTo(page.totalElements)
+        assertThat(searchResult.pageSize).isEqualTo(pageRequest.pageSize)
+
+        verify { customerNoteRepository.findByCustomerCustomerIdOrderByCreatedAtDesc(customerId, pageRequest) }
     }
 
     @Test
@@ -132,12 +144,22 @@ internal class CustomerNoteServiceTest {
             )
         )
 
-        every { customerNoteRepository.findByCustomerCustomerIdOrderByCreatedAtDesc(customerId) } returns noteEntities
+        val selectedPage = 1
+        val pageRequest = PageRequest.of(selectedPage - 1, 5)
+        val pagedResult = PageImpl(noteEntities, pageRequest, 2)
+        every {
+            customerNoteRepository.findByCustomerCustomerIdOrderByCreatedAtDesc(customerId, pageRequest)
+        } returns pagedResult
 
-        val mappedNotes = service.getNotes(customerId)
+        val searchResult = service.getNotes(customerId, selectedPage)
 
-        assertThat(mappedNotes).isEqualTo(notes)
-        verify { customerNoteRepository.findByCustomerCustomerIdOrderByCreatedAtDesc(customerId) }
+        assertThat(searchResult.items).isEqualTo(notes)
+        assertThat(searchResult.currentPage).isEqualTo(selectedPage)
+        assertThat(searchResult.totalPages).isEqualTo(1)
+        assertThat(searchResult.totalCount).isEqualTo(pagedResult.totalElements)
+        assertThat(searchResult.pageSize).isEqualTo(pageRequest.pageSize)
+
+        verify { customerNoteRepository.findByCustomerCustomerIdOrderByCreatedAtDesc(customerId, pageRequest) }
     }
 
     @Test

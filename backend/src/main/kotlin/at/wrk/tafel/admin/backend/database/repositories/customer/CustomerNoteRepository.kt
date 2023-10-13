@@ -6,6 +6,10 @@ import org.springframework.data.domain.PageRequest
 import org.springframework.data.jpa.repository.JpaRepository
 
 interface CustomerNoteRepository : JpaRepository<CustomerNoteEntity, Long> {
-    fun findByCustomerCustomerIdOrderByCreatedAtDesc(customerId: Long, pageRequest: PageRequest): Page<CustomerNoteEntity>
+
+    fun findByCustomerCustomerIdOrderByCreatedAtDesc(
+        customerId: Long,
+        pageRequest: PageRequest
+    ): Page<CustomerNoteEntity>
 
 }

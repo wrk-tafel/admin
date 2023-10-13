@@ -1,10 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.customer.internal.note
 
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
-import at.wrk.tafel.admin.backend.modules.customer.internal.note.CreateCustomerNoteRequest
-import at.wrk.tafel.admin.backend.modules.customer.internal.note.CustomerNoteController
-import at.wrk.tafel.admin.backend.modules.customer.internal.note.CustomerNoteItem
-import at.wrk.tafel.admin.backend.modules.customer.internal.note.CustomerNoteService
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -30,9 +26,16 @@ internal class CustomerNoteControllerTest {
     @Test
     fun `get notes - empty`() {
         val customerId = 123L
-        every { service.getNotes(customerId) } returns emptyList()
+        val testSearchResult = CustomerNoteSearchResult(
+            items = emptyList(),
+            totalCount = 0,
+            currentPage = 1,
+            totalPages = 1,
+            pageSize = 10
+        )
+        every { service.getNotes(customerId, any()) } returns testSearchResult
 
-        val response = controller.getNotes(customerId)
+        val response = controller.getNotes(customerId, null)
 
         assertThat(response.notes).isEmpty()
     }
@@ -40,6 +43,7 @@ internal class CustomerNoteControllerTest {
     @Test
     fun `get notes - found`() {
         val customerId = 123L
+        val selectedPage = 3
         val notes = listOf(
             CustomerNoteItem(
                 author = "author 2",
@@ -52,13 +56,27 @@ internal class CustomerNoteControllerTest {
                 note = "note 1"
             )
         )
-        every { service.getNotes(customerId) } returns notes
 
-        val response = controller.getNotes(customerId)
+        val testSearchResult = CustomerNoteSearchResult(
+            items = notes,
+            totalCount = 2,
+            currentPage = selectedPage,
+            totalPages = 3,
+            pageSize = 10
+        )
+        every { service.getNotes(customerId, any()) } returns testSearchResult
+
+        val response = controller.getNotes(customerId, selectedPage)
 
         assertThat(response.notes).hasSize(notes.size)
         assertThat(response.notes).isEqualTo(notes)
-        verify { service.getNotes(customerId) }
+        assertThat(response.currentPage).isEqualTo(1)
+        assertThat(response.pageSize).isEqualTo(1)
+        assertThat(response.totalCount).isEqualTo(1)
+        assertThat(response.totalPages).isEqualTo(1)
+
+
+        verify { service.getNotes(customerId, selectedPage) }
     }
 
     @Test
