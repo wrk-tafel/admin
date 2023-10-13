@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.modules.customer.internal.masterdata
 
 import at.wrk.tafel.admin.backend.common.pdf.PDFService
 import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
+import at.wrk.tafel.admin.backend.database.entities.base.Gender
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerAddPersonEntity
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity
 import at.wrk.tafel.admin.backend.modules.base.testCountry
@@ -79,6 +80,7 @@ class CustomerPdfServiceTest {
         testCustomer.lastname = "Mustermann"
         testCustomer.firstname = "Max"
         testCustomer.birthDate = LocalDate.of(1980, 6, 10)
+        testCustomer.gender = Gender.FEMALE
         testCustomer.addressStreet = "Karl-Schäfer-Straße"
         testCustomer.addressHouseNumber = "8"
         testCustomer.addressStairway = "1"
@@ -95,6 +97,7 @@ class CustomerPdfServiceTest {
         addPers1.lastname = "Mustermann"
         addPers1.firstname = "Eva-Maria Magdalena"
         addPers1.birthDate = LocalDate.of(2000, 1, 1)
+        addPers1.gender = Gender.MALE
         addPers1.income = BigDecimal("1000")
         addPers1.country = testCountry
         addPers1.excludeFromHousehold = false
