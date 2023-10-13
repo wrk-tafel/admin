@@ -1,5 +1,9 @@
 ### Get notes
-GET {{baseApiPath}}/customers/101/notes
+GET {{baseApiPath}}/customers/103/notes
+Content-Type: application/json
+
+### Get notes from page 2
+GET {{baseApiPath}}/customers/103/notes?page=2
 Content-Type: application/json
 
 ### Create new note

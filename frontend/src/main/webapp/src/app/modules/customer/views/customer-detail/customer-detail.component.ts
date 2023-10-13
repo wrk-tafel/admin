@@ -11,8 +11,13 @@ import {
     GenderLabel
 } from '../../../../api/customer-api.service';
 import {HttpResponse} from '@angular/common/http';
-import {CustomerNoteApiService, CustomerNoteItem} from '../../../../api/customer-note-api.service';
+import {
+    CustomerNoteApiService,
+    CustomerNoteItem,
+    CustomerNotesResponse
+} from '../../../../api/customer-note-api.service';
 import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
+import {TafelPaginationData} from '../../../../common/components/tafel-pagination/tafel-pagination.component';
 
 @Component({
     selector: 'tafel-customer-detail',
@@ -21,6 +26,8 @@ import {ToastService, ToastType} from '../../../../common/views/default-layout/t
 export class CustomerDetailComponent implements OnInit {
     customerData: CustomerData;
     customerNotes: CustomerNoteItem[];
+    customerNotesPaginationData: TafelPaginationData;
+
     newNoteText: string;
     lockReasonText: string;
 
@@ -41,7 +48,8 @@ export class CustomerDetailComponent implements OnInit {
 
     ngOnInit(): void {
         this.customerData = this.activatedRoute.snapshot.data.customerData;
-        this.customerNotes = this.activatedRoute.snapshot.data.customerNotes;
+        const customerNotesResponse: CustomerNotesResponse = this.activatedRoute.snapshot.data.customerNotes;
+        this.processCustomerNoteResponse(customerNotesResponse);
     }
 
     printMasterdata() {
@@ -97,12 +105,6 @@ export class CustomerDetailComponent implements OnInit {
 
     isValid(): boolean {
         return !moment(this.customerData.validUntil).startOf('day').isBefore(moment().startOf('day'));
-    }
-
-    private processPdfResponse(response: HttpResponse<Blob>) {
-        const contentDisposition = response.headers.get('content-disposition');
-        const filename = contentDisposition.split(';')[1].split('filename')[1].split('=')[1].trim();
-        this.fileHelperService.downloadFile(filename, response.body);
     }
 
     deleteCustomer() {
@@ -182,6 +184,29 @@ export class CustomerDetailComponent implements OnInit {
             return GenderLabel[gender];
         }
         return '-';
+    }
+
+    getCustomerNotes(page: number) {
+        this.customerNoteApiService.getNotesForCustomer(this.customerData.id, page).subscribe((response) => {
+            this.processCustomerNoteResponse(response);
+        });
+    }
+
+    private processCustomerNoteResponse(response: CustomerNotesResponse) {
+        this.customerNotes = response.items;
+        this.customerNotesPaginationData = {
+            count: response.items.length,
+            totalCount: response.totalCount,
+            currentPage: response.currentPage,
+            totalPages: response.totalPages,
+            pageSize: response.pageSize
+        };
+    }
+
+    private processPdfResponse(response: HttpResponse<Blob>) {
+        const contentDisposition = response.headers.get('content-disposition');
+        const filename = contentDisposition.split(';')[1].split('filename')[1].split('=')[1].trim();
+        this.fileHelperService.downloadFile(filename, response.body);
     }
 
 }

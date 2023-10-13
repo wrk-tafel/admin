@@ -56,6 +56,7 @@ class CustomerPdfService(
                 lastname = customer.lastname!!,
                 firstname = customer.firstname!!,
                 birthDate = customer.birthDate!!.format(DATE_FORMATTER),
+                gender = customer.gender?.title,
                 country = customer.country!!.name!!,
                 telephoneNumber = customer.telephoneNumber ?: "-",
                 email = customer.email ?: "-",
@@ -75,12 +76,12 @@ class CustomerPdfService(
                     }
                     ?: "-",
                 incomeDueDate = customer.incomeDue?.format(DATE_FORMATTER) ?: "-",
-                validUntilDate = customer.validUntil!!.format(DATE_FORMATTER),
                 additionalPersons = customer.additionalPersons.map {
                     PdfAdditionalPersonData(
                         lastname = it.lastname!!,
                         firstname = it.firstname!!,
                         birthDate = it.birthDate!!.format(DATE_FORMATTER),
+                        gender = it.gender?.title ?: "-",
                         country = it.country!!.name!!,
                         employer = it.employer ?: "-",
                         income = it.income

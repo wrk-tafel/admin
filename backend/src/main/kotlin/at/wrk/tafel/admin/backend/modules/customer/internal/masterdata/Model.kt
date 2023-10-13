@@ -47,6 +47,7 @@ data class PdfCustomerData(
     val lastname: String,
     val firstname: String,
     val birthDate: String,
+    val gender: String?,
     val country: String,
     val telephoneNumber: String? = null,
     val email: String? = null,
@@ -54,7 +55,6 @@ data class PdfCustomerData(
     val employer: String,
     val income: String? = null,
     val incomeDueDate: String? = null,
-    val validUntilDate: String? = null,
     val additionalPersons: List<PdfAdditionalPersonData> = emptyList(),
     val idCard: PdfIdCardData? = null
 )
@@ -74,6 +74,7 @@ data class PdfAdditionalPersonData(
     val lastname: String,
     val firstname: String,
     val birthDate: String,
+    val gender: String?,
     val country: String,
     val employer: String? = null,
     val income: String? = null,

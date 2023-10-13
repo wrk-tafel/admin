@@ -162,8 +162,8 @@
               <c-card>
                 <c-card-header>
                   <c-row>
-                    <c-col>
-                      <h5>Aktuellste Notiz</h5>
+                    <c-col class="align-self-center">
+                      <h5 class="m-0">Aktuellste Notiz</h5>
                     </c-col>
                     <c-col class="text-end">
                       <button testid="addnote-button" cButton color="success" (click)="showAddNewNoteModal = true">
@@ -276,12 +276,14 @@
     </button>
   </c-modal-footer>
 </c-modal>
-<c-modal id="allNotesModal" #allNotesModal testid="showallnotes-modal" [(visible)]="showAllNotesModal">
+<c-modal id="allNotesModal" #allNotesModal testid="showallnotes-modal" [(visible)]="showAllNotesModal" scrollable="true">
   <c-modal-header cBgColor="info">
     <h4>Alle Notizen</h4>
     <button [cModalToggle]="allNotesModal.id" cButtonClose></button>
   </c-modal-header>
   <c-modal-body>
+    <tafel-pagination class="d-none d-sm-block" align="center" [paginationData]="customerNotesPaginationData" (pageChanged)="getCustomerNotes($event)"></tafel-pagination>
+    <tafel-pagination class="d-block d-sm-none" align="center" size="sm" [paginationData]="customerNotesPaginationData" (pageChanged)="getCustomerNotes($event)"></tafel-pagination>
     <div class="row" *ngFor="let noteItem of customerNotes; let i = index">
       <div class="col" *ngIf="customerNotes?.length !== 0">
         <hr *ngIf="i > 0">
@@ -293,6 +295,8 @@
         </div>
       </div>
     </div>
+    <tafel-pagination class="d-none d-sm-block mt-4" align="center" [paginationData]="customerNotesPaginationData" (pageChanged)="getCustomerNotes($event)"></tafel-pagination>
+    <tafel-pagination class="d-block d-sm-none mt-4" align="center" size="sm" [paginationData]="customerNotesPaginationData" (pageChanged)="getCustomerNotes($event)"></tafel-pagination>
   </c-modal-body>
   <c-modal-footer>
     <button testid="cancelButton" cButton class="text-white" (click)="showAllNotesModal = false">

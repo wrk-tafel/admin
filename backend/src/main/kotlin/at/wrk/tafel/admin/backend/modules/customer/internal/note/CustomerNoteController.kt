@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
@@ -18,9 +19,18 @@ class CustomerNoteController(
 ) {
 
     @GetMapping
-    fun getNotes(@PathVariable("customerId") customerId: Long): CustomerNotesResponse {
-        val notes = service.getNotes(customerId)
-        return CustomerNotesResponse(notes = notes)
+    fun getNotes(
+        @PathVariable("customerId") customerId: Long,
+        @RequestParam("page") page: Int?
+    ): CustomerNotesResponse {
+        val searchResult = service.getNotes(customerId = customerId, page = page)
+        return CustomerNotesResponse(
+            items = searchResult.items,
+            totalCount = searchResult.totalCount,
+            currentPage = searchResult.currentPage,
+            totalPages = searchResult.totalPages,
+            pageSize = searchResult.pageSize
+        )
     }
 
     @PostMapping

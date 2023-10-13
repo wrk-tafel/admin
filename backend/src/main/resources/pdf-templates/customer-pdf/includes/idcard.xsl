@@ -51,19 +51,6 @@
                                     </fo:table-cell>
                                 </fo:table-row>
                                 <fo:table-row>
-                                    <fo:table-cell>
-                                        <fo:block margin-left="0.5cm" margin-right="0.5cm" font-size="10pt"
-                                                  font-weight="bold">
-                                            Gültig bis:
-                                        </fo:block>
-                                    </fo:table-cell>
-                                    <fo:table-cell>
-                                        <fo:block margin-left="0.25cm" margin-right="0.5cm" font-size="10pt">
-                                            <xsl:value-of select="customer/validUntilDate"/>
-                                        </fo:block>
-                                    </fo:table-cell>
-                                </fo:table-row>
-                                <fo:table-row>
                                     <fo:table-cell number-columns-spanned="2">
                                         <fo:block font-size="10pt" margin-top="3.70cm" margin-left="0.5cm">
                                             Wiener Rotes Kreuz - Team Österreich Tafel

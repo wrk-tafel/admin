@@ -26,6 +26,14 @@ describe('CustomerNoteApiService', () => {
     httpMock.verify();
   });
 
+  it('get notes for customer including page parameter', () => {
+    apiService.getNotesForCustomer(1, 2).subscribe();
+
+    const req = httpMock.expectOne({method: 'GET', url: '/customers/1/notes?page=2'});
+    req.flush(null);
+    httpMock.verify();
+  });
+
   it('create new note for customer', () => {
     const note = 'test note';
     const noteRequest: CreateCustomerNoteRequest = {
