@@ -211,6 +211,12 @@ INSERT INTO customers (id, created_at, updated_at, customer_id, user_id, firstna
 values (105, NOW(), NOW(), 105, 100, 'Jane Doe', 'LOCKED', '1980-01-01', 'FEMALE', 1, 'Erdberg', 1, null, null, '1030', 'Wien',
         null, null, 'Stadt Wien', 123.00, '2999-12-31', '2999-12-31', true, NOW(), 100,
         'Lock-Reason: Lorem ipsum dolor sit amet');
+INSERT INTO customers (id, created_at, updated_at, customer_id, user_id, firstname, lastname, birth_date, gender, country_id,
+                       address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
+                       address_city, telephone_number, email, employer, income, income_due, valid_until, locked,
+                       locked_at, locked_by, lock_reason)
+values (106, NOW(), NOW(), 106, null, null, null, null, null, 1, null, null, null, null, null, null,
+        null, null, null, null, null, NOW(), false, null, null, null);
 
 -- static values
 DELETE FROM static_values;
