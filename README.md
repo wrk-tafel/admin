@@ -6,7 +6,6 @@
 
 # TODO
 
-* Pagination for Note-Listing (customer-detail page)
 * No validation-date on idcard (will be removed anyway when the checkin is ready)
 * Data-Migration
     * Remove migration-code
