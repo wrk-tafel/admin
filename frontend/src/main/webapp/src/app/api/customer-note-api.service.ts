@@ -1,4 +1,4 @@
-import {HttpClient} from '@angular/common/http';
+import {HttpClient, HttpParams} from '@angular/common/http';
 import {Injectable} from '@angular/core';
 import {Observable} from 'rxjs';
 
@@ -11,8 +11,12 @@ export class CustomerNoteApiService {
   ) {
   }
 
-  getNotesForCustomer(customerId: number): Observable<CustomerNotesResponse> {
-    return this.http.get<CustomerNotesResponse>(`/customers/${customerId}/notes`);
+  getNotesForCustomer(customerId: number, page?: number): Observable<CustomerNotesResponse> {
+    let queryParams = new HttpParams();
+    if (page) {
+      queryParams = queryParams.set('page', page);
+    }
+    return this.http.get<CustomerNotesResponse>(`/customers/${customerId}/notes`, {params: queryParams});
   }
 
   createNewNote(customerId: number, note: string): Observable<CustomerNoteItem> {
