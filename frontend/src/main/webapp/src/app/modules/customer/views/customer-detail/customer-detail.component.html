@@ -276,7 +276,7 @@
     </button>
   </c-modal-footer>
 </c-modal>
-<c-modal id="allNotesModal" #allNotesModal testid="showallnotes-modal" [(visible)]="showAllNotesModal">
+<c-modal id="allNotesModal" #allNotesModal testid="showallnotes-modal" [(visible)]="showAllNotesModal" scrollable="true">
   <c-modal-header cBgColor="info">
     <h4>Alle Notizen</h4>
     <button [cModalToggle]="allNotesModal.id" cButtonClose></button>
