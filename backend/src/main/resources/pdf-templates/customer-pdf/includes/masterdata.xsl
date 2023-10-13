@@ -273,6 +273,16 @@
                                                                     </fo:table-cell>
                                                                     <fo:table-cell>
                                                                         <fo:block>
+                                                                            <xsl:value-of select="./gender"/>
+                                                                        </fo:block>
+                                                                    </fo:table-cell>
+                                                                </fo:table-row>
+                                                                <fo:table-row>
+                                                                    <fo:table-cell>
+                                                                        <fo:block>Nationalität:</fo:block>
+                                                                    </fo:table-cell>
+                                                                    <fo:table-cell>
+                                                                        <fo:block>
                                                                             <xsl:value-of select="./country"/>
                                                                         </fo:block>
                                                                     </fo:table-cell>

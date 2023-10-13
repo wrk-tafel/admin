@@ -82,6 +82,7 @@ class CustomerPdfService(
                         lastname = it.lastname!!,
                         firstname = it.firstname!!,
                         birthDate = it.birthDate!!.format(DATE_FORMATTER),
+                        gender = it.gender?.title ?: "-",
                         country = it.country!!.name!!,
                         employer = it.employer ?: "-",
                         income = it.income
