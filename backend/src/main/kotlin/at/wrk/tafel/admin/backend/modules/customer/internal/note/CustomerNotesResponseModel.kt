@@ -6,7 +6,11 @@ import java.time.LocalDateTime
 
 @ExcludeFromTestCoverage
 data class CustomerNotesResponse(
-    val notes: List<CustomerNoteItem> = emptyList()
+    val notes: List<CustomerNoteItem> = emptyList(),
+    val totalCount: Long,
+    val currentPage: Int,
+    val totalPages: Int,
+    val pageSize: Int
 )
 
 @ExcludeFromTestCoverage
@@ -19,4 +23,13 @@ data class CustomerNoteItem(
 @ExcludeFromTestCoverage
 data class CreateCustomerNoteRequest(
     val note: String
+)
+
+@ExcludeFromTestCoverage
+data class CustomerNoteSearchResult(
+    val items: List<CustomerNoteItem>,
+    val totalCount: Long,
+    val currentPage: Int,
+    val totalPages: Int,
+    val pageSize: Int
 )

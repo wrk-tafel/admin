@@ -18,9 +18,18 @@ class CustomerNoteController(
 ) {
 
     @GetMapping
-    fun getNotes(@PathVariable("customerId") customerId: Long): CustomerNotesResponse {
-        val notes = service.getNotes(customerId)
-        return CustomerNotesResponse(notes = notes)
+    fun getNotes(
+        @PathVariable("customerId") customerId: Long,
+        @PathVariable("page") page: Int?
+    ): CustomerNotesResponse {
+        val searchResult = service.getNotes(customerId = customerId, page = page)
+        return CustomerNotesResponse(
+            notes = searchResult.items,
+            totalCount = searchResult.totalCount,
+            currentPage = searchResult.currentPage,
+            totalPages = searchResult.totalPages,
+            pageSize = searchResult.pageSize
+        )
     }
 
     @PostMapping

@@ -5,6 +5,7 @@ import at.wrk.tafel.admin.backend.database.entities.customer.CustomerNoteEntity
 import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerNoteRepository
 import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerRepository
+import org.springframework.data.domain.PageRequest
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 
@@ -15,9 +16,17 @@ class CustomerNoteService(
     private val userRepository: UserRepository
 ) {
 
-    fun getNotes(customerId: Long): List<CustomerNoteItem> {
-        val notes = customerNoteRepository.findByCustomerCustomerIdOrderByCreatedAtDesc(customerId)
-        return notes.map { mapNote(it) }
+    fun getNotes(customerId: Long, page: Int?): CustomerNoteSearchResult {
+        val pageRequest = PageRequest.of(page?.minus(1) ?: 0, 5)
+        val pagedResult = customerNoteRepository.findByCustomerCustomerIdOrderByCreatedAtDesc(customerId, pageRequest)
+
+        return CustomerNoteSearchResult(
+            items = pagedResult.map { mapNote(it) }.toList(),
+            totalCount = pagedResult.totalElements,
+            currentPage = page ?: 1,
+            totalPages = pagedResult.totalPages,
+            pageSize = pageRequest.pageSize
+        )
     }
 
     private fun mapNote(entity: CustomerNoteEntity): CustomerNoteItem {
