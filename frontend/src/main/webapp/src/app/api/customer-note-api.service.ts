@@ -28,6 +28,10 @@ export class CustomerNoteApiService {
 
 export interface CustomerNotesResponse {
   notes: CustomerNoteItem[];
+  totalCount: number;
+  currentPage: number;
+  totalPages: number;
+  pageSize: number;
 }
 
 export interface CustomerNoteItem {

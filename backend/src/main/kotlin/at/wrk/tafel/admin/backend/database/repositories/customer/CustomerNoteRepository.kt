@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository
 
 interface CustomerNoteRepository : JpaRepository<CustomerNoteEntity, Long> {
 
-    fun findByCustomerCustomerIdOrderByCreatedAtDesc(
+    fun findAllByCustomerCustomerIdOrderByCreatedAtDesc(
         customerId: Long,
         pageRequest: PageRequest
     ): Page<CustomerNoteEntity>

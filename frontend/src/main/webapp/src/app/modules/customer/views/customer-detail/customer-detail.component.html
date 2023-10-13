@@ -282,6 +282,8 @@
     <button [cModalToggle]="allNotesModal.id" cButtonClose></button>
   </c-modal-header>
   <c-modal-body>
+    <tafel-pagination class="d-none d-sm-block" align="center" [paginationData]="customerNotesPaginationData" (pageChanged)="getCustomerNotes($event)"></tafel-pagination>
+    <tafel-pagination class="d-block d-sm-none" align="center" size="sm" [paginationData]="customerNotesPaginationData" (pageChanged)="getCustomerNotes($event)"></tafel-pagination>
     <div class="row" *ngFor="let noteItem of customerNotes; let i = index">
       <div class="col" *ngIf="customerNotes?.length !== 0">
         <hr *ngIf="i > 0">
@@ -293,6 +295,8 @@
         </div>
       </div>
     </div>
+    <tafel-pagination class="d-none d-sm-block mt-4" align="center" [paginationData]="customerNotesPaginationData" (pageChanged)="getCustomerNotes($event)"></tafel-pagination>
+    <tafel-pagination class="d-block d-sm-none mt-4" align="center" size="sm" [paginationData]="customerNotesPaginationData" (pageChanged)="getCustomerNotes($event)"></tafel-pagination>
   </c-modal-body>
   <c-modal-footer>
     <button testid="cancelButton" cButton class="text-white" (click)="showAllNotesModal = false">

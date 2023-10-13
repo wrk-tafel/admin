@@ -102,7 +102,7 @@ internal class CustomerNoteServiceTest {
         val pageRequest = PageRequest.of(selectedPage - 1, 5)
         val page = PageImpl(emptyList<CustomerNoteEntity>(), pageRequest, 0)
         every {
-            customerNoteRepository.findByCustomerCustomerIdOrderByCreatedAtDesc(customerId, pageRequest)
+            customerNoteRepository.findAllByCustomerCustomerIdOrderByCreatedAtDesc(customerId, pageRequest)
         } returns page
 
         val searchResult = service.getNotes(customerId, selectedPage)
@@ -113,7 +113,7 @@ internal class CustomerNoteServiceTest {
         assertThat(searchResult.totalCount).isEqualTo(page.totalElements)
         assertThat(searchResult.pageSize).isEqualTo(pageRequest.pageSize)
 
-        verify { customerNoteRepository.findByCustomerCustomerIdOrderByCreatedAtDesc(customerId, pageRequest) }
+        verify { customerNoteRepository.findAllByCustomerCustomerIdOrderByCreatedAtDesc(customerId, pageRequest) }
     }
 
     @Test
@@ -148,7 +148,7 @@ internal class CustomerNoteServiceTest {
         val pageRequest = PageRequest.of(selectedPage - 1, 5)
         val pagedResult = PageImpl(noteEntities, pageRequest, 2)
         every {
-            customerNoteRepository.findByCustomerCustomerIdOrderByCreatedAtDesc(customerId, pageRequest)
+            customerNoteRepository.findAllByCustomerCustomerIdOrderByCreatedAtDesc(customerId, pageRequest)
         } returns pagedResult
 
         val searchResult = service.getNotes(customerId, selectedPage)
@@ -159,7 +159,7 @@ internal class CustomerNoteServiceTest {
         assertThat(searchResult.totalCount).isEqualTo(pagedResult.totalElements)
         assertThat(searchResult.pageSize).isEqualTo(pageRequest.pageSize)
 
-        verify { customerNoteRepository.findByCustomerCustomerIdOrderByCreatedAtDesc(customerId, pageRequest) }
+        verify { customerNoteRepository.findAllByCustomerCustomerIdOrderByCreatedAtDesc(customerId, pageRequest) }
     }
 
     @Test
