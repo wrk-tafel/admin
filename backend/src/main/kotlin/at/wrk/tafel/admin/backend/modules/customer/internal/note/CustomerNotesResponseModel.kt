@@ -6,7 +6,7 @@ import java.time.LocalDateTime
 
 @ExcludeFromTestCoverage
 data class CustomerNotesResponse(
-    val notes: List<CustomerNoteItem> = emptyList(),
+    val items: List<CustomerNoteItem> = emptyList(),
     val totalCount: Long,
     val currentPage: Int,
     val totalPages: Int,

@@ -25,7 +25,7 @@ class CustomerNoteController(
     ): CustomerNotesResponse {
         val searchResult = service.getNotes(customerId = customerId, page = page)
         return CustomerNotesResponse(
-            notes = searchResult.items,
+            items = searchResult.items,
             totalCount = searchResult.totalCount,
             currentPage = searchResult.currentPage,
             totalPages = searchResult.totalPages,

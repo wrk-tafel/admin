@@ -193,9 +193,11 @@ export class CustomerDetailComponent implements OnInit {
     }
 
     private processCustomerNoteResponse(response: CustomerNotesResponse) {
-        this.customerNotes = response.notes;
+        console.log("RESPONSE", response)
+
+        this.customerNotes = response.items;
         this.customerNotesPaginationData = {
-            count: this.customerNotes.length,
+            count: response.items.length,
             totalCount: response.totalCount,
             currentPage: response.currentPage,
             totalPages: response.totalPages,

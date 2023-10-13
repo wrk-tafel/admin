@@ -27,7 +27,7 @@ export class CustomerNoteApiService {
 }
 
 export interface CustomerNotesResponse {
-  notes: CustomerNoteItem[];
+  items: CustomerNoteItem[];
   totalCount: number;
   currentPage: number;
   totalPages: number;

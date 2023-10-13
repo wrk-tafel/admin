@@ -37,7 +37,7 @@ internal class CustomerNoteControllerTest {
 
         val response = controller.getNotes(customerId, null)
 
-        assertThat(response.notes).isEmpty()
+        assertThat(response.items).isEmpty()
     }
 
     @Test
@@ -68,8 +68,8 @@ internal class CustomerNoteControllerTest {
 
         val response = controller.getNotes(customerId, selectedPage)
 
-        assertThat(response.notes).hasSize(notes.size)
-        assertThat(response.notes).isEqualTo(notes)
+        assertThat(response.items).hasSize(notes.size)
+        assertThat(response.items).isEqualTo(notes)
         assertThat(response.currentPage).isEqualTo(selectedPage)
         assertThat(response.pageSize).isEqualTo(5)
         assertThat(response.totalCount).isEqualTo(2)

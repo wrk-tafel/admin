@@ -75,7 +75,7 @@ export class CheckinComponent implements OnInit, OnDestroy {
         this.processCustomer(customerData);
 
         this.customerNoteApiService.getNotesForCustomer(this.customerId).subscribe(notesResponse => {
-          this.customerNotes = notesResponse.notes;
+          this.customerNotes = notesResponse.items;
         });
 
         this.distributionTicketApiService.getCurrentTicketForCustomer(customerData.id).subscribe((ticketNumberResponse) => {
