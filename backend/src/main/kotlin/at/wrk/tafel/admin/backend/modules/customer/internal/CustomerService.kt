@@ -20,6 +20,7 @@ import at.wrk.tafel.admin.backend.modules.customer.internal.income.IncomeValidat
 import at.wrk.tafel.admin.backend.modules.customer.internal.income.IncomeValidatorService
 import at.wrk.tafel.admin.backend.modules.customer.internal.masterdata.CustomerPdfService
 import org.springframework.data.domain.PageRequest
+import org.springframework.data.jpa.domain.Specification
 import org.springframework.data.jpa.domain.Specification.where
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
@@ -81,11 +82,13 @@ class CustomerService(
     ): CustomerSearchResult {
         val pageRequest = PageRequest.of(page?.minus(1) ?: 0, 25)
 
-        val where = where(firstnameContains(firstname))
-            .and(lastnameContains(lastname))
-        if (postProcessing != null) {
-            where.and(postProcessingNecessary())
-        }
+        val where = where(
+            Specification.allOf(
+                firstnameContains(firstname),
+                lastnameContains(lastname),
+                if (postProcessing != null) postProcessingNecessary() else null
+            )
+        )
 
         val spec = orderByUpdatedAtDesc(where)
         val pagedResult = customerRepository.findAll(spec, pageRequest)

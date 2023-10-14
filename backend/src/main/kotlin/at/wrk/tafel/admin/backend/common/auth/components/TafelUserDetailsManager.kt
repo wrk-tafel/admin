@@ -19,6 +19,7 @@ import org.passay.RuleResult
 import org.passay.UsernameRule
 import org.passay.WhitespaceRule
 import org.springframework.data.domain.PageRequest
+import org.springframework.data.jpa.domain.Specification
 import org.springframework.data.jpa.domain.Specification.where
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
@@ -57,11 +58,16 @@ class TafelUserDetailsManager(
         page: Int?
     ): UserSearchResult {
         val pageRequest = PageRequest.of(page?.minus(1) ?: 0, 25)
+
         val spec = orderByUpdatedAtDesc(
-            where(usernameContains(username))
-                .and(firstnameContains(firstname))
-                .and(lastnameContains(lastname))
-                .and(enabledEquals(enabled))
+            where(
+                Specification.allOf(
+                    usernameContains(username),
+                    firstnameContains(firstname),
+                    lastnameContains(lastname),
+                    enabledEquals(enabled)
+                )
+            )
         )
         val pagedResult = userRepository.findAll(spec, pageRequest)
 
