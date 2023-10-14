@@ -79,9 +79,7 @@ export class CustomerDetailComponent implements OnInit {
     }
 
     formatAddressLine2(address: CustomerAddressData): string {
-        const formatted = [address.postalCode?.toString(), address.city]
-            .filter(value => value?.trim().length > 0)
-            .join(', ');
+        const formatted = [address.postalCode?.toString(), address.city].join(' ');
         return formatted?.trim().length > 0 ? formatted : '-';
     }
 
@@ -95,7 +93,7 @@ export class CustomerDetailComponent implements OnInit {
     getBirthDateAndAge(birthDate?: Date): string {
         if (birthDate) {
             const age = moment().diff(birthDate, 'years');
-            return moment(birthDate).format('dd.MM.yyyy') + '(' + age + ')';
+            return moment(birthDate).format('DD.MM.YYYY') + ' (' + age + ')';
         }
         return '-';
     }

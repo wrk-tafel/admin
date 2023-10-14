@@ -114,7 +114,7 @@ describe('CustomerSearchComponent', () => {
         expect(fixture.debugElement.query(By.css('[testid="searchresult-firstname-0"]')).nativeElement.textContent).toBe('first');
         expect(fixture.debugElement.query(By.css('[testid="searchresult-birthDate-0"]')).nativeElement.textContent).toBe('10.05.2000');
         expect(fixture.debugElement.query(By.css('[testid="searchresult-address-0"]')).nativeElement.textContent)
-            .toBe('street 1, Stiege stairway1, Top 20 / 1010 city');
+            .toBe('street 1, Stiege stairway1, Top 20, 1010 city');
     });
 
     it('search with firstname only', () => {
