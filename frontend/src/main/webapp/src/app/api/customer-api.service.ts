@@ -1,5 +1,5 @@
 import {HttpClient, HttpParams, HttpResponse} from '@angular/common/http';
-import {Injectable} from '@angular/core';
+import {inject, Injectable} from '@angular/core';
 import {Observable} from 'rxjs';
 import {CountryData} from './country-api.service';
 
@@ -7,10 +7,7 @@ import {CountryData} from './country-api.service';
     providedIn: 'root'
 })
 export class CustomerApiService {
-    constructor(
-        private http: HttpClient
-    ) {
-    }
+    private http = inject(HttpClient);
 
     validate(data: CustomerData): Observable<ValidateCustomerResponse> {
         return this.http.post<ValidateCustomerResponse>('/customers/validate', data);

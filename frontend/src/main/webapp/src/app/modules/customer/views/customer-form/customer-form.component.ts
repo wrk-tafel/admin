@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
+import {Component, EventEmitter, inject, Input, OnInit, Output} from '@angular/core';
 import {FormArray, FormControl, FormGroup, Validators} from '@angular/forms';
 import {CountryApiService, CountryData} from '../../../../api/country-api.service';
 import {CustomValidator} from '../../../../common/validator/CustomValidator';
@@ -11,11 +11,7 @@ import * as moment from 'moment';
     templateUrl: 'customer-form.component.html'
 })
 export class CustomerFormComponent implements OnInit {
-
-    constructor(
-        private countryApiService: CountryApiService
-    ) {
-    }
+    private countryApiService = inject(CountryApiService);
 
     get customerData() {
         return this.customerData;
