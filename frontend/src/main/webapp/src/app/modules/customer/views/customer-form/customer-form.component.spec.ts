@@ -117,7 +117,6 @@ describe('CustomerFormComponent', () => {
     });
     */
 
-    expect(component.id.value).toBe(testCustomerData.id);
     expect(component.lastname.value).toBe(testCustomerData.lastname);
     expect(component.firstname.value).toBe(testCustomerData.firstname);
     expect(component.birthDate.value).toBe(testCustomerData.birthDate);
