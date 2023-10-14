@@ -84,11 +84,11 @@
                   </div>
                   <div class="row">
                     <div class="col fw-bold">Name</div>
-                    <div testid="nameText" class="col">{{customerData?.lastname}} {{customerData?.firstname}}</div>
+                    <div testid="nameText" class="col">{{getFormattedName()}}</div>
                   </div>
                   <div class="row">
                     <div class="col fw-bold">Geburtsdatum (Alter)</div>
-                    <div testid="birthDateAgeText" class="col">{{customerData?.birthDate | date : 'dd.MM.yyyy'}} ({{getAge(customerData?.birthDate)}})</div>
+                    <div testid="birthDateAgeText" class="col">{{getBirthDateAndAge(this.customerData?.birthDate)}}</div>
                   </div>
                   <div class="row">
                     <div class="col fw-bold">Geschlecht</div>
@@ -126,19 +126,19 @@
                   <hr>
                   <div class="row">
                     <div class="col fw-bold">Arbeitgeber</div>
-                    <div testid="employerText" class="col">{{customerData?.employer}}</div>
+                    <div testid="employerText" class="col">{{customerData?.employer ? customerData?.employer : '-'}}</div>
                   </div>
                   <div class="row mt-2 align-items-end">
                     <div class="col fw-bold">
                       Einkommen (monatlich)
                     </div>
-                    <div testid="incomeText" class="col">{{customerData?.income | currency}}</div>
+                    <div testid="incomeText" class="col">{{!customerData?.income ? '-' : customerData?.income | currency}}</div>
                   </div>
                   <div class="row align-items-end">
                     <div class="col">
                       nachgewiesen bis:
                     </div>
-                    <div testid="incomeDueText" class="col">{{customerData?.incomeDue | date : 'dd.MM.yyyy'}}</div>
+                    <div testid="incomeDueText" class="col">{{!customerData?.incomeDue ? '-' : customerData?.incomeDue | date : 'dd.MM.yyyy'}}</div>
                   </div>
                   <hr>
                   <div class="row">
@@ -213,7 +213,7 @@
                              [innerHTML]="addPerson?.firstname"></div>
                       </div>
                       <div class="row">
-                        <div class="col-6" [attr.testid]="'addperson-' + i + '-birthDateAgeText'">{{addPerson?.birthDate | date : 'dd.MM.YYYY'}} ({{getAge(addPerson?.birthDate)}})</div>
+                        <div class="col-6" [attr.testid]="'addperson-' + i + '-birthDateAgeText'">{{getBirthDateAndAge(addPerson?.birthDate)}})</div>
                         <div class="col-6" [attr.testid]="'addperson-' + i + '-genderText'">{{getGenderLabel(addPerson?.gender)}}</div>
                       </div>
                       <div class="row">

@@ -82,14 +82,30 @@ export class CustomerDetailComponent implements OnInit {
     }
 
     formatAddressLine2(address: CustomerAddressData): string {
-        return address.postalCode + ' ' + address.city;
+        const postalCode = address.postalCode ? address.postalCode : '';
+        const city = address.city ? address.city : '';
+
+        if (city) {
+            return postalCode + ' ' + city;
+        } else if (postalCode) {
+            return postalCode.toString();
+        }
+        return '-';
     }
 
-    getAge(birthDate: Date): number {
-        if (birthDate) {
-            return moment().diff(birthDate, 'years');
+    getFormattedName() {
+        if (!this.customerData?.lastname && !this.customerData?.firstname) {
+            return '-';
         }
-        return null;
+        return this.customerData?.lastname + ' ' + this.customerData?.firstname;
+    }
+
+    getBirthDateAndAge(birthDate?: Date): string {
+        if (birthDate) {
+            const age = moment().diff(birthDate, 'years');
+            return moment(birthDate).format('dd.MM.yyyy') + '(' + age + ')';
+        }
+        return '-';
     }
 
     formatIssuer(issuer: CustomerIssuer): string {
