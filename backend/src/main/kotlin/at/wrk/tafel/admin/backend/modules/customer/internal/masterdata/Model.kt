@@ -44,8 +44,8 @@ data class PdfData(
 @ExcludeFromTestCoverage
 data class PdfCustomerData(
     val id: Long,
-    val lastname: String,
-    val firstname: String,
+    val lastname: String?,
+    val firstname: String?,
     val birthDate: String,
     val gender: String?,
     val country: String,
