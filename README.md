@@ -6,11 +6,6 @@
 
 # TODO
 
-* Data-Migration
-    * Remove migration-code
-    * Remove default-values / set values to null and optional
-    * Add filter "postprocessing" in customer-search page (filters for customers with missing required fields or invalid fields)
-      * Also filter for "Erwachsener" oder "Kind" within firstname and lastname fields
 * Add goods-input
 * Centralize testdata / mocks
 
