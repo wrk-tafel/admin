@@ -46,7 +46,7 @@ class UserEntity : BaseChangeTrackingEntity() {
         companion object {
             fun usernameContains(username: String?): Specification<UserEntity>? {
                 return username?.let {
-                    Specification { root: Root<UserEntity>, cq: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                    Specification { root: Root<UserEntity>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
                         cb.like(
                             cb.lower(root.get("username")),
                             "%${username.lowercase()}%"
@@ -57,7 +57,7 @@ class UserEntity : BaseChangeTrackingEntity() {
 
             fun firstnameContains(firstname: String?): Specification<UserEntity>? {
                 return firstname?.let {
-                    Specification { root: Root<UserEntity>, cq: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                    Specification { root: Root<UserEntity>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
                         cb.like(
                             cb.lower(root.get("firstname")),
                             "%${firstname.lowercase()}%"
@@ -68,7 +68,7 @@ class UserEntity : BaseChangeTrackingEntity() {
 
             fun lastnameContains(lastname: String?): Specification<UserEntity>? {
                 return lastname?.let {
-                    Specification { root: Root<UserEntity>, cq: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                    Specification { root: Root<UserEntity>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
                         cb.like(
                             cb.lower(root.get("lastname")),
                             "%${lastname.lowercase()}%"
@@ -79,7 +79,7 @@ class UserEntity : BaseChangeTrackingEntity() {
 
             fun enabledEquals(enabled: Boolean?): Specification<UserEntity>? {
                 return enabled?.let {
-                    Specification { root: Root<UserEntity>, cq: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                    Specification { root: Root<UserEntity>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
                         cb.equal(root.get<Boolean>("enabled"), enabled)
                     }
                 }
