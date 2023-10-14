@@ -68,36 +68,28 @@ export class CustomerDetailComponent implements OnInit {
     }
 
     formatAddressLine1(address: CustomerAddressData): string {
-        let addressLine = address.street;
-        if (address.houseNumber) {
-            addressLine += ' ' + address.houseNumber;
-        }
-        if (address.stairway) {
-            addressLine += ', Stiege ' + address.stairway;
-        }
-        if (address.door) {
-            addressLine += ', Top ' + address.door;
-        }
-        return addressLine;
+        const formatted = [
+            [address.street, address.houseNumber].join(' '),
+            address.stairway ? 'Stiege ' + address.stairway : undefined,
+            address.door ? 'Top ' + address.door : undefined
+        ]
+            .filter(value => value?.trim().length > 0)
+            .join(', ');
+        return formatted?.trim().length > 0 ? formatted : '-';
     }
 
     formatAddressLine2(address: CustomerAddressData): string {
-        const postalCode = address.postalCode ? address.postalCode : '';
-        const city = address.city ? address.city : '';
-
-        if (city) {
-            return postalCode + ' ' + city;
-        } else if (postalCode) {
-            return postalCode.toString();
-        }
-        return '-';
+        const formatted = [address.postalCode?.toString(), address.city]
+            .filter(value => value?.trim().length > 0)
+            .join(', ');
+        return formatted?.trim().length > 0 ? formatted : '-';
     }
 
     getFormattedName() {
         if (!this.customerData?.lastname && !this.customerData?.firstname) {
             return '-';
         }
-        return this.customerData?.lastname + ' ' + this.customerData?.firstname;
+        return [this.customerData?.lastname, this.customerData?.firstname].join(' ');
     }
 
     getBirthDateAndAge(birthDate?: Date): string {

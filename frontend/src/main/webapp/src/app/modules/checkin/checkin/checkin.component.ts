@@ -14,227 +14,233 @@ import {DistributionTicketApiService} from '../../../api/distribution-ticket-api
 import {ToastService, ToastType} from '../../../common/views/default-layout/toasts/toast.service';
 
 @Component({
-  selector: 'tafel-checkin',
-  templateUrl: 'checkin.component.html'
+    selector: 'tafel-checkin',
+    templateUrl: 'checkin.component.html'
 })
 export class CheckinComponent implements OnInit, OnDestroy {
 
-  constructor(
-    private customerApiService: CustomerApiService,
-    private customerNoteApiService: CustomerNoteApiService,
-    private websocketService: WebsocketService,
-    private globalStateService: GlobalStateService,
-    private distributionApiService: DistributionApiService,
-    private distributionTicketApiService: DistributionTicketApiService,
-    private router: Router,
-    private changeDetectorRef: ChangeDetectorRef,
-    private toastService: ToastService
-  ) {
-  }
-
-  private VALID_UNTIL_WARNLIMIT_WEEKS = 8;
-
-  scannerIds: number[];
-  currentScannerId: number;
-  scannerReadyState: boolean;
-  scannerSubscription: Subscription;
-
-  customerId: number;
-  customer: CustomerData;
-  customerState: CustomerState;
-  customerStateText: string;
-
-  customerNotes: CustomerNoteItem[];
-  ticketNumber: number;
-  ticketNumberEdit = false;
-
-  @ViewChild('customerIdInput') customerIdInputRef: ElementRef;
-  @ViewChild('ticketNumberInput') ticketNumberInputRef: ElementRef;
-  @ViewChild('cancelButton') cancelButtonRef: ElementRef;
-
-  ngOnInit(): void {
-    if (this.globalStateService.getCurrentDistribution().value === null) {
-      this.router.navigate(['uebersicht']);
+    constructor(
+        private customerApiService: CustomerApiService,
+        private customerNoteApiService: CustomerNoteApiService,
+        private websocketService: WebsocketService,
+        private globalStateService: GlobalStateService,
+        private distributionApiService: DistributionApiService,
+        private distributionTicketApiService: DistributionTicketApiService,
+        private router: Router,
+        private changeDetectorRef: ChangeDetectorRef,
+        private toastService: ToastService
+    ) {
     }
 
-    this.websocketService.watch('/topic/scanners').subscribe((message: IMessage) => {
-      const scanners: ScannerList = JSON.parse(message.body);
-      this.scannerIds = scanners.scannerIds;
-    });
-  }
+    private VALID_UNTIL_WARNLIMIT_WEEKS = 8;
 
-  ngOnDestroy(): void {
-    if (this.scannerSubscription) {
-      this.scannerSubscription.unsubscribe();
-    }
-  }
+    scannerIds: number[];
+    currentScannerId: number;
+    scannerReadyState: boolean;
+    scannerSubscription: Subscription;
 
-  searchForCustomerId() {
-    const observer = {
-      next: (customerData: CustomerData) => {
-        this.processCustomer(customerData);
+    customerId: number;
+    customer: CustomerData;
+    customerState: CustomerState;
+    customerStateText: string;
 
-        this.customerNoteApiService.getNotesForCustomer(this.customerId).subscribe(notesResponse => {
-          this.customerNotes = notesResponse.items;
-        });
+    customerNotes: CustomerNoteItem[];
+    ticketNumber: number;
+    ticketNumberEdit = false;
 
-        this.distributionTicketApiService.getCurrentTicketForCustomer(customerData.id).subscribe((ticketNumberResponse) => {
-          if (ticketNumberResponse.ticketNumber) {
-            this.ticketNumber = ticketNumberResponse.ticketNumber;
-          }
-          this.ticketNumberEdit = this.ticketNumber != null;
-        });
-      },
-      error: error => {
-        if (error.status === 404) {
-          this.processCustomer(undefined);
-          this.customerNotes = [];
+    @ViewChild('customerIdInput') customerIdInputRef: ElementRef;
+    @ViewChild('ticketNumberInput') ticketNumberInputRef: ElementRef;
+    @ViewChild('cancelButton') cancelButtonRef: ElementRef;
+
+    ngOnInit(): void {
+        if (this.globalStateService.getCurrentDistribution().value === null) {
+            this.router.navigate(['uebersicht']);
         }
-      },
-    };
-    this.customerApiService.getCustomer(this.customerId).subscribe(observer);
-  }
 
-  processCustomer(customer: CustomerData) {
-    this.ticketNumber = undefined;
-    this.customer = customer;
+        this.websocketService.watch('/topic/scanners').subscribe((message: IMessage) => {
+            const scanners: ScannerList = JSON.parse(message.body);
+            this.scannerIds = scanners.scannerIds;
+        });
+    }
 
-    if (customer) {
-      const validUntil = moment(customer.validUntil).startOf('day');
-      const now = moment().startOf('day');
+    ngOnDestroy(): void {
+        if (this.scannerSubscription) {
+            this.scannerSubscription.unsubscribe();
+        }
+    }
 
-      if (customer.locked) {
-        this.customerState = CustomerState.RED;
-        this.customerStateText = 'GESPERRT';
+    searchForCustomerId() {
+        const observer = {
+            next: (customerData: CustomerData) => {
+                this.processCustomer(customerData);
 
-        this.changeDetectorRef.detectChanges();
-        this.cancelButtonRef.nativeElement.focus();
-      } else if (validUntil.isBefore(now)) {
-        this.customerState = CustomerState.RED;
-        this.customerStateText = 'UNGÜLTIG';
+                this.customerNoteApiService.getNotesForCustomer(this.customerId).subscribe(notesResponse => {
+                    this.customerNotes = notesResponse.items;
+                });
 
-        this.changeDetectorRef.detectChanges();
-        this.cancelButtonRef.nativeElement.focus();
-      } else {
-        const warnLimit = now.add(this.VALID_UNTIL_WARNLIMIT_WEEKS, 'weeks');
-        if (!validUntil.isAfter(warnLimit)) {
-          this.customerState = CustomerState.YELLOW;
-          this.customerStateText = 'GÜLTIG - läuft bald ab';
+                this.distributionTicketApiService.getCurrentTicketForCustomer(customerData.id).subscribe((ticketNumberResponse) => {
+                    if (ticketNumberResponse.ticketNumber) {
+                        this.ticketNumber = ticketNumberResponse.ticketNumber;
+                    }
+                    this.ticketNumberEdit = this.ticketNumber != null;
+                });
+            },
+            error: error => {
+                if (error.status === 404) {
+                    this.processCustomer(undefined);
+                    this.customerNotes = [];
+                }
+            },
+        };
+        this.customerApiService.getCustomer(this.customerId).subscribe(observer);
+    }
+
+    processCustomer(customer: CustomerData) {
+        this.ticketNumber = undefined;
+        this.customer = customer;
+
+        if (customer) {
+            const validUntil = moment(customer.validUntil).startOf('day');
+            const now = moment().startOf('day');
+
+            if (customer.locked) {
+                this.customerState = CustomerState.RED;
+                this.customerStateText = 'GESPERRT';
+
+                this.changeDetectorRef.detectChanges();
+                this.cancelButtonRef.nativeElement.focus();
+            } else if (validUntil.isBefore(now)) {
+                this.customerState = CustomerState.RED;
+                this.customerStateText = 'UNGÜLTIG';
+
+                this.changeDetectorRef.detectChanges();
+                this.cancelButtonRef.nativeElement.focus();
+            } else {
+                const warnLimit = now.add(this.VALID_UNTIL_WARNLIMIT_WEEKS, 'weeks');
+                if (!validUntil.isAfter(warnLimit)) {
+                    this.customerState = CustomerState.YELLOW;
+                    this.customerStateText = 'GÜLTIG - läuft bald ab';
+                } else {
+                    this.customerState = CustomerState.GREEN;
+                    this.customerStateText = 'GÜLTIG';
+                }
+
+                this.changeDetectorRef.detectChanges();
+                this.ticketNumberInputRef.nativeElement.focus();
+            }
         } else {
-          this.customerState = CustomerState.GREEN;
-          this.customerStateText = 'GÜLTIG';
+            this.customerState = undefined;
+            this.customerStateText = undefined;
         }
-
-        this.changeDetectorRef.detectChanges();
-        this.ticketNumberInputRef.nativeElement.focus();
-      }
-    } else {
-      this.customerState = undefined;
-      this.customerStateText = undefined;
     }
-  }
 
-  getInfantCount(): number {
-    let length = this.customer.additionalPersons.filter((person) => {
-      return moment().diff(person.birthDate, 'years') < 3;
-    }).length;
-    return length;
-  }
-
-  get selectedScannerId(): number {
-    return this.currentScannerId;
-  }
-
-  set selectedScannerId(scannerId: number) {
-    this.currentScannerId = scannerId;
-    if (this.scannerSubscription) {
-      this.scannerSubscription.unsubscribe();
+    getInfantCount(): number {
+        let length = this.customer.additionalPersons.filter((person) => {
+            return moment().diff(person.birthDate, 'years') < 3;
+        }).length;
+        return length;
     }
-    this.scannerReadyState = false;
 
-    if (scannerId) {
-      this.scannerSubscription = this.websocketService.watch(`/topic/scanners/${this.currentScannerId}/results`)
-        .subscribe((message: IMessage) => {
-          const result: ScanResult = JSON.parse(message.body);
-          this.customerId = result.value;
-          this.searchForCustomerId();
-        });
-
-      this.scannerReadyState = true;
+    get selectedScannerId(): number {
+        return this.currentScannerId;
     }
-  }
 
-  cancel() {
-    this.processCustomer(undefined);
-    this.customerNotes = [];
-    this.customerId = undefined;
-    this.ticketNumber = undefined;
-    this.ticketNumberEdit = undefined;
-    this.customerIdInputRef.nativeElement.focus();
-  }
+    set selectedScannerId(scannerId: number) {
+        this.currentScannerId = scannerId;
+        if (this.scannerSubscription) {
+            this.scannerSubscription.unsubscribe();
+        }
+        this.scannerReadyState = false;
 
-  formatAddress(): string {
-    if (this.customer) {
-      const address = this.customer.address;
-      let result = '';
-      result += address.street + ' ' + address.houseNumber;
-      if (address.stairway) {
-        result += ', Stiege ' + address.stairway;
-      }
-      if (address.stairway) {
-        result += ', Top ' + address.door;
-      }
-      result += ' / ' + address.postalCode + ' ' + address.city;
-      return result;
+        if (scannerId) {
+            this.scannerSubscription = this.websocketService.watch(`/topic/scanners/${this.currentScannerId}/results`)
+                .subscribe((message: IMessage) => {
+                    const result: ScanResult = JSON.parse(message.body);
+                    this.customerId = result.value;
+                    this.searchForCustomerId();
+                });
+
+            this.scannerReadyState = true;
+        }
     }
-  }
 
-  assignCustomer() {
-    if (this.ticketNumber > 0) {
-      /* eslint-disable @typescript-eslint/no-unused-vars */
-      const observer = {
-        next: (response) => this.cancel()
-      };
-      this.distributionApiService.assignCustomer(this.customer.id, this.ticketNumber).subscribe(observer);
-      this.customerIdInputRef.nativeElement.focus();
-    }
-  }
-
-  get scannerReadyStateColor(): Colors {
-    return this.scannerReadyState ? 'success' : 'danger';
-  }
-
-  private getCustomerStateColor(): Colors {
-    switch (this.customerState) {
-      case CustomerState.RED:
-        return 'danger';
-      case CustomerState.YELLOW:
-        return 'warning';
-      case CustomerState.GREEN:
-        return 'success';
-      default:
-        return null;
-    }
-  }
-
-  deleteTicket() {
-    const observer = {
-      next: () => {
+    cancel() {
+        this.processCustomer(undefined);
+        this.customerNotes = [];
+        this.customerId = undefined;
         this.ticketNumber = undefined;
         this.ticketNumberEdit = undefined;
-        this.toastService.showToast({type: ToastType.SUCCESS, title: 'Ticket-Nummer gelöscht!'});
-        this.ticketNumberInputRef.nativeElement.focus();
-      }
-    };
-    this.distributionTicketApiService.deleteCurrentTicketOfCustomer(this.customer.id).subscribe(observer);
-  }
+        this.customerIdInputRef.nativeElement.focus();
+    }
+
+    formatAddress(): string {
+        if (this.customer) {
+            const formatted = [
+                [this.customer.address.street, this.customer.address.houseNumber].join(' '),
+                this.customer.address.stairway ? 'Stiege ' + this.customer.address.stairway : undefined,
+                this.customer.address.door ? 'Top ' + this.customer.address.door : undefined,
+                [this.customer.address.postalCode, this.customer.address.city].join(' ')
+            ]
+                .filter(value => value?.trim().length > 0)
+                .join(', ');
+            return formatted?.trim().length > 0 ? formatted : '-';
+        }
+    }
+
+    formatName(): string {
+        if (this.customer) {
+            const formatted = [this.customer.lastname, this.customer.firstname].join(' ');
+            return formatted?.trim().length > 0 ? formatted : undefined;
+        }
+        return undefined;
+    }
+
+    assignCustomer() {
+        if (this.ticketNumber > 0) {
+            /* eslint-disable @typescript-eslint/no-unused-vars */
+            const observer = {
+                next: (response) => this.cancel()
+            };
+            this.distributionApiService.assignCustomer(this.customer.id, this.ticketNumber).subscribe(observer);
+            this.customerIdInputRef.nativeElement.focus();
+        }
+    }
+
+    get scannerReadyStateColor(): Colors {
+        return this.scannerReadyState ? 'success' : 'danger';
+    }
+
+    private getCustomerStateColor(): Colors {
+        switch (this.customerState) {
+            case CustomerState.RED:
+                return 'danger';
+            case CustomerState.YELLOW:
+                return 'warning';
+            case CustomerState.GREEN:
+                return 'success';
+            default:
+                return null;
+        }
+    }
+
+    deleteTicket() {
+        const observer = {
+            next: () => {
+                this.ticketNumber = undefined;
+                this.ticketNumberEdit = undefined;
+                this.toastService.showToast({type: ToastType.SUCCESS, title: 'Ticket-Nummer gelöscht!'});
+                this.ticketNumberInputRef.nativeElement.focus();
+            }
+        };
+        this.distributionTicketApiService.deleteCurrentTicketOfCustomer(this.customer.id).subscribe(observer);
+    }
 
 }
 
 export enum CustomerState {
-  RED, YELLOW, GREEN
+    RED, YELLOW, GREEN
 }
 
 export interface ScanResult {
-  value: number;
+    value: number;
 }
