@@ -23,10 +23,6 @@ alter table customers
 update customers set address_street = null where address_street = 'unbekannt' or LENGTH(TRIM(address_street)) = 0;
 
 alter table customers
-    alter column lastname drop not null;
-update customers set lastname = null where lastname = 'unbekannt' or LENGTH(TRIM(lastname)) = 0;
-
-alter table customers
     alter column address_city drop not null;
 update customers set address_city = null where address_city = 'unbekannt' or LENGTH(TRIM(address_city)) = 0;
 

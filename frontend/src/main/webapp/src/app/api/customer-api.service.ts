@@ -80,9 +80,9 @@ export interface CustomerData {
     id?: number;
     issuer?: CustomerIssuer;
     issuedAt?: Date;
-    firstname: string;
-    lastname: string;
-    birthDate: Date;
+    firstname?: string;
+    lastname?: string;
+    birthDate?: Date;
     gender: Gender;
     country?: CountryData;
     address: CustomerAddressData;
@@ -106,7 +106,7 @@ export interface CustomerIssuer {
 }
 
 export interface CustomerAddressData {
-    street: string;
+    street?: string;
     houseNumber?: string;
     stairway?: string;
     door?: string;

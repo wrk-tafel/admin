@@ -122,7 +122,7 @@ class CustomerService(
     private fun mapToValidationPersons(customer: Customer): List<IncomeValidatorPerson> {
         val customerPerson = IncomeValidatorPerson(
             monthlyIncome = customer.income,
-            birthDate = customer.birthDate,
+            birthDate = customer.birthDate!!,
             excludeFromIncomeCalculation = false
         )
 
@@ -145,12 +145,12 @@ class CustomerService(
 
         customerEntity.customerId = customerUpdate.id ?: customerRepository.getNextCustomerSequenceValue()
         customerEntity.issuer = customerEntity.issuer ?: userEntity
-        customerEntity.lastname = customerUpdate.lastname.trim()
-        customerEntity.firstname = customerUpdate.firstname.trim()
+        customerEntity.lastname = customerUpdate.lastname?.trim()
+        customerEntity.firstname = customerUpdate.firstname?.trim()
         customerEntity.birthDate = customerUpdate.birthDate
         customerEntity.gender = customerUpdate.gender?.let { Gender.valueOf(it.name) }
         customerEntity.country = countryRepository.findById(customerUpdate.country.id).get()
-        customerEntity.addressStreet = customerUpdate.address.street.trim()
+        customerEntity.addressStreet = customerUpdate.address.street?.trim()
         customerEntity.addressHouseNumber = customerUpdate.address.houseNumber?.trim()
         customerEntity.addressStairway = customerUpdate.address.stairway?.trim()
         customerEntity.addressDoor = customerUpdate.address.door?.trim()
@@ -158,7 +158,7 @@ class CustomerService(
         customerEntity.addressCity = customerUpdate.address.city?.trim()
         customerEntity.telephoneNumber = customerUpdate.telephoneNumber
         customerEntity.email = customerUpdate.email?.takeIf { it.isNotBlank() }?.trim()
-        customerEntity.employer = customerUpdate.employer.trim()
+        customerEntity.employer = customerUpdate.employer?.trim()
         customerEntity.income = customerUpdate.income.takeIf { it != null && it > BigDecimal.ZERO }
         customerEntity.incomeDue = customerUpdate.incomeDue
 
@@ -220,13 +220,13 @@ class CustomerService(
             )
         },
         issuedAt = customerEntity.createdAt!!.toLocalDate(),
-        firstname = customerEntity.firstname!!,
-        lastname = customerEntity.lastname!!,
-        birthDate = customerEntity.birthDate!!,
+        firstname = customerEntity.firstname,
+        lastname = customerEntity.lastname,
+        birthDate = customerEntity.birthDate,
         gender = mapGender(customerEntity.gender),
         country = mapCountryToResponse(customerEntity.country!!),
         address = CustomerAddress(
-            street = customerEntity.addressStreet!!,
+            street = customerEntity.addressStreet,
             houseNumber = customerEntity.addressHouseNumber,
             stairway = customerEntity.addressStairway,
             door = customerEntity.addressDoor,
@@ -235,7 +235,7 @@ class CustomerService(
         ),
         telephoneNumber = customerEntity.telephoneNumber,
         email = customerEntity.email,
-        employer = customerEntity.employer!!,
+        employer = customerEntity.employer,
         income = customerEntity.income,
         incomeDue = customerEntity.incomeDue,
         validUntil = customerEntity.validUntil,
@@ -248,7 +248,7 @@ class CustomerService(
                 id = it.id!!,
                 firstname = it.firstname!!,
                 lastname = it.lastname!!,
-                birthDate = it.birthDate!!,
+                birthDate = it.birthDate,
                 gender = mapGender(it.gender),
                 employer = it.employer,
                 income = it.income,

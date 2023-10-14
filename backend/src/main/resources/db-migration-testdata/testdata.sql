@@ -217,6 +217,21 @@ INSERT INTO customers (id, created_at, updated_at, customer_id, user_id, firstna
                        locked_at, locked_by, lock_reason)
 values (106, NOW(), NOW(), 106, null, null, null, null, null, 1, null, null, null, null, null, null,
         null, null, null, null, null, NOW(), false, null, null, null);
+INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender, employer,
+                                  income, income_due, country_id, receives_familybonus, exclude_household)
+values (1060, NOW(), NOW(), 106, 'Firstname 1', 'Lastname 1', null, null, null, null, null, 1, true, true);
+INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender, employer,
+                                  income, income_due, country_id, receives_familybonus, exclude_household)
+values (1061, NOW(), NOW(), 106, 'Firstname 2', 'Lastname 2', null, null, null, null, null, 1, false, false);
+INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender, employer,
+                                  income, income_due, country_id, receives_familybonus, exclude_household)
+values (1062, NOW(), NOW(), 106, 'Firstname 3', 'Lastname 3', null, null, null, null, null, 1, true, false);
+INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender, employer,
+                                  income, income_due, country_id, receives_familybonus, exclude_household)
+values (1063, NOW(), NOW(), 106, 'Firstname 4', 'Lastname 4', null, null, null, null, null, 1, false, true);
+INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender, employer,
+                                  income, income_due, country_id, receives_familybonus, exclude_household)
+values (1064, NOW(), NOW(), 106, 'Firstname 5', 'Lastname 5', null, null, null, null, null, 1, false, false);
 
 -- static values
 DELETE FROM static_values;
