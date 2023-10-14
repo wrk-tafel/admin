@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, inject} from '@angular/core';
 import {Router} from '@angular/router';
 import {CustomerAddressData, CustomerApiService, CustomerSearchResult} from '../../../../api/customer-api.service';
 import {FormControl, FormGroup} from '@angular/forms';
@@ -10,6 +10,10 @@ import {TafelPaginationData} from '../../../../common/components/tafel-paginatio
     templateUrl: 'customer-search.component.html'
 })
 export class CustomerSearchComponent {
+    private customerApiService = inject(CustomerApiService);
+    private router = inject(Router);
+    private toastService = inject(ToastService);
+
     searchResult: CustomerSearchResult;
     customerSearchForm = new FormGroup({
         customerId: new FormControl<number>(null),
@@ -18,13 +22,6 @@ export class CustomerSearchComponent {
         postProcessing: new FormControl<boolean>(null),
     });
     paginationData: TafelPaginationData;
-
-    constructor(
-        private customerApiService: CustomerApiService,
-        private router: Router,
-        private toastService: ToastService
-    ) {
-    }
 
     get customerId() {
         return this.customerSearchForm.get('customerId');

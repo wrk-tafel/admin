@@ -1,21 +1,17 @@
-import {Injectable} from '@angular/core';
+import {inject, Injectable} from '@angular/core';
 import {ActivatedRouteSnapshot} from '@angular/router';
 import {Observable} from 'rxjs';
 import {UserApiService, UserData} from '../../../api/user-api.service';
 
 @Injectable({
-  providedIn: 'root'
+    providedIn: 'root'
 })
 export class UserDataResolver {
+    private userApiService = inject(UserApiService);
 
-  constructor(
-    private userApiService: UserApiService
-  ) {
-  }
-
-  public resolve(route: ActivatedRouteSnapshot): Observable<UserData> {
-    const userId = +route.params['id'];
-    return this.userApiService.getUserForId(userId);
-  }
+    public resolve(route: ActivatedRouteSnapshot): Observable<UserData> {
+        const userId = +route.params['id'];
+        return this.userApiService.getUserForId(userId);
+    }
 
 }

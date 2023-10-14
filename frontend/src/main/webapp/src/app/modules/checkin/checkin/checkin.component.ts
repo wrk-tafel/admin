@@ -1,6 +1,5 @@
-import {ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {ChangeDetectorRef, Component, ElementRef, inject, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {CustomerApiService, CustomerData} from '../../../api/customer-api.service';
-import {WebsocketService} from '../../../common/websocket/websocket.service';
 import {Subscription} from 'rxjs';
 import {IMessage} from '@stomp/stompjs';
 import * as moment from 'moment';
@@ -12,25 +11,22 @@ import {DistributionApiService} from '../../../api/distribution-api.service';
 import {Colors} from '@coreui/angular';
 import {DistributionTicketApiService} from '../../../api/distribution-ticket-api.service';
 import {ToastService, ToastType} from '../../../common/views/default-layout/toasts/toast.service';
+import {WebsocketService} from "../../../common/websocket/websocket.service";
 
 @Component({
     selector: 'tafel-checkin',
     templateUrl: 'checkin.component.html'
 })
 export class CheckinComponent implements OnInit, OnDestroy {
-
-    constructor(
-        private customerApiService: CustomerApiService,
-        private customerNoteApiService: CustomerNoteApiService,
-        private websocketService: WebsocketService,
-        private globalStateService: GlobalStateService,
-        private distributionApiService: DistributionApiService,
-        private distributionTicketApiService: DistributionTicketApiService,
-        private router: Router,
-        private changeDetectorRef: ChangeDetectorRef,
-        private toastService: ToastService
-    ) {
-    }
+    private customerApiService = inject(CustomerApiService);
+    private customerNoteApiService = inject(CustomerNoteApiService);
+    private websocketService = inject(WebsocketService);
+    private globalStateService = inject(GlobalStateService);
+    private distributionApiService = inject(DistributionApiService);
+    private distributionTicketApiService = inject(DistributionTicketApiService);
+    private router = inject(Router);
+    private changeDetectorRef = inject(ChangeDetectorRef);
+    private toastService = inject(ToastService);
 
     private VALID_UNTIL_WARNLIMIT_WEEKS = 8;
 

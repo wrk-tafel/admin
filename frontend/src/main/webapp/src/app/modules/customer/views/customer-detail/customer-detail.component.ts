@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, inject, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import * as moment from 'moment';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
@@ -24,6 +24,13 @@ import {TafelPaginationData} from '../../../../common/components/tafel-paginatio
     templateUrl: 'customer-detail.component.html'
 })
 export class CustomerDetailComponent implements OnInit {
+    private activatedRoute = inject(ActivatedRoute);
+    private customerApiService = inject(CustomerApiService);
+    private customerNoteApiService = inject(CustomerNoteApiService);
+    private fileHelperService = inject(FileHelperService);
+    private router = inject(Router);
+    private toastService = inject(ToastService);
+
     customerData: CustomerData;
     customerNotes: CustomerNoteItem[];
     customerNotesPaginationData: TafelPaginationData;
@@ -35,16 +42,6 @@ export class CustomerDetailComponent implements OnInit {
     showAddNewNoteModal = false;
     showAllNotesModal = false;
     showLockCustomerModal = false;
-
-    constructor(
-        private activatedRoute: ActivatedRoute,
-        private customerApiService: CustomerApiService,
-        private customerNoteApiService: CustomerNoteApiService,
-        private fileHelperService: FileHelperService,
-        private router: Router,
-        private toastService: ToastService
-    ) {
-    }
 
     ngOnInit(): void {
         this.customerData = this.activatedRoute.snapshot.data.customerData;
