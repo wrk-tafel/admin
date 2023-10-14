@@ -74,12 +74,14 @@ class CustomerController(
     fun getCustomers(
         @RequestParam firstname: String? = null,
         @RequestParam lastname: String? = null,
-        @RequestParam page: Int? = null
+        @RequestParam page: Int? = null,
+        @RequestParam postProcessing: Boolean? = null
     ): CustomerListResponse {
         val customerSearchResult = service.getCustomers(
             firstname = firstname?.trim(),
             lastname = lastname?.trim(),
-            page = page
+            page = page,
+            postProcessing = postProcessing
         )
         return CustomerListResponse(
             items = customerSearchResult.items,

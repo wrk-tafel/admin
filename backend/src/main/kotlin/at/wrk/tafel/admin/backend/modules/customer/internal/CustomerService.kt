@@ -8,6 +8,7 @@ import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity.Specs.Companion.firstnameContains
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity.Specs.Companion.lastnameContains
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity.Specs.Companion.orderByUpdatedAtDesc
+import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity.Specs.Companion.postProcessingNecessary
 import at.wrk.tafel.admin.backend.database.entities.staticdata.CountryEntity
 import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerAddPersonRepository
@@ -72,9 +73,21 @@ class CustomerService(
     }
 
     @Transactional
-    fun getCustomers(firstname: String? = null, lastname: String? = null, page: Int?): CustomerSearchResult {
+    fun getCustomers(
+        firstname: String? = null,
+        lastname: String? = null,
+        page: Int?,
+        postProcessing: Boolean?
+    ): CustomerSearchResult {
         val pageRequest = PageRequest.of(page?.minus(1) ?: 0, 25)
-        val spec = orderByUpdatedAtDesc(where(firstnameContains(firstname)).and(lastnameContains(lastname)))
+
+        val where = where(firstnameContains(firstname))
+            .and(lastnameContains(lastname))
+        if (postProcessing != null) {
+            where.and(postProcessingNecessary())
+        }
+
+        val spec = orderByUpdatedAtDesc(where)
         val pagedResult = customerRepository.findAll(spec, pageRequest)
 
         return CustomerSearchResult(

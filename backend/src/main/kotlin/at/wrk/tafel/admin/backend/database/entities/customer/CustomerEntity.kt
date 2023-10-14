@@ -16,11 +16,13 @@ import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import jakarta.persistence.criteria.CriteriaBuilder
 import jakarta.persistence.criteria.CriteriaQuery
+import jakarta.persistence.criteria.Join
 import jakarta.persistence.criteria.Root
 import org.springframework.data.jpa.domain.Specification
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
+
 
 @Entity(name = "Customer")
 @Table(name = "customers")
@@ -129,6 +131,28 @@ class CustomerEntity : BaseChangeTrackingEntity() {
                             "%${lastname.lowercase()}%"
                         )
                     }
+                }
+            }
+
+            fun postProcessingNecessary(): Specification<CustomerEntity>? {
+                return Specification { root: Root<CustomerEntity>, cq: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                    val additionalPersons: Join<CustomerEntity, CustomerAddPersonEntity> =
+                        root.join("additionalPersons")
+                    cb.or(
+                        cb.isNull(root.get<String>("lastname")),
+                        cb.isNull(root.get<String>("firstname")),
+                        cb.isNull(root.get<LocalDate>("birthDate")),
+                        cb.isNull(root.get<Gender>("gender")),
+                        cb.isNull(root.get<CountryEntity>("country")),
+                        cb.isNull(root.get<String>("addressStreet")),
+                        cb.isNull(root.get<String>("addressHouseNumber")),
+                        cb.isNull(root.get<String>("addressPostalCode")),
+                        cb.isNull(root.get<String>("addressCity")),
+                        cb.isNull(root.get<String>("employer")),
+                        cb.isNull(root.get<BigDecimal>("income")),
+                        cb.isNull(additionalPersons.get<LocalDate>("birthDate")),
+                        cb.isNull(additionalPersons.get<Gender>("gender"))
+                    )
                 }
             }
 
