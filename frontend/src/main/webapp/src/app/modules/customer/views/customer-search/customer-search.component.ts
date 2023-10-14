@@ -14,7 +14,8 @@ export class CustomerSearchComponent {
   customerSearchForm = new FormGroup({
     customerId: new FormControl<number>(null),
     lastname: new FormControl<string>(null),
-    firstname: new FormControl<string>(null)
+    firstname: new FormControl<string>(null),
+    postProcessing: new FormControl<boolean>(null),
   });
   paginationData: TafelPaginationData;
 
@@ -37,6 +38,10 @@ export class CustomerSearchComponent {
     return this.customerSearchForm.get('firstname');
   }
 
+  get postProcessing() {
+    return this.customerSearchForm.get('postProcessing');
+  }
+
   searchForCustomerId() {
     const customerId = this.customerId.value;
 
@@ -48,7 +53,7 @@ export class CustomerSearchComponent {
   }
 
   searchForDetails(page?: number) {
-    this.customerApiService.searchCustomer(this.lastname.value, this.firstname.value, page)
+    this.customerApiService.searchCustomer(this.lastname.value, this.firstname.value, this.postProcessing.value, page)
       .subscribe((response: CustomerSearchResult) => {
         if (response.items.length === 0) {
           this.toastService.showToast({type: ToastType.INFO, title: 'Keine Kunden gefunden!'});

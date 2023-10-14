@@ -116,8 +116,16 @@ describe('CustomerApiService', () => {
     httpMock.verify();
   });
 
+  it('search customer including postProcessing parameter', () => {
+    apiService.searchCustomer(null, null, true, null).subscribe();
+
+    const req = httpMock.expectOne({method: 'GET', url: '/customers?postProcessing=true'});
+    req.flush(null);
+    httpMock.verify();
+  });
+
   it('search customer including page parameter', () => {
-    apiService.searchCustomer(null, 'max', 3).subscribe();
+    apiService.searchCustomer(null, 'max', null, 3).subscribe();
 
     const req = httpMock.expectOne({method: 'GET', url: '/customers?firstname=max&page=3'});
     req.flush(null);

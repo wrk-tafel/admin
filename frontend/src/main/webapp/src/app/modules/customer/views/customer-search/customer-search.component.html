@@ -35,6 +35,14 @@
         </c-col>
       </c-row>
       <c-row>
+        <c-col sm="3">
+          <label cLabel>Nachbearbeitung notwendig?</label>
+          <c-input-group>
+            <input cFormCheckInput type="checkbox" formControlName="postProcessing" testid="postProcessingInput">
+          </c-input-group>
+        </c-col>
+      </c-row>
+      <c-row>
         <c-col sm="3" class="mt-3">
           <button testid="search-button" type="button" class="btn btn-primary text-white"
                   (click)="searchForDetails()">Suchen</button>

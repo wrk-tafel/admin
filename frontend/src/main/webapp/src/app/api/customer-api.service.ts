@@ -44,13 +44,16 @@ export class CustomerApiService {
             });
     }
 
-    searchCustomer(lastname?: string, firstname?: string, page?: number): Observable<CustomerSearchResult> {
+    searchCustomer(lastname?: string, firstname?: string, postProcessing?: boolean, page?: number): Observable<CustomerSearchResult> {
         let queryParams = new HttpParams();
         if (lastname) {
             queryParams = queryParams.set('lastname', lastname);
         }
         if (firstname) {
             queryParams = queryParams.set('firstname', firstname);
+        }
+        if (postProcessing) {
+            queryParams = queryParams.set('postProcessing', postProcessing);
         }
         if (page) {
             queryParams = queryParams.set('page', page);
