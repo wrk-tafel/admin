@@ -1,4 +1,4 @@
-import {inject, Injectable} from '@angular/core';
+import {Injectable} from '@angular/core';
 import {ActivatedRouteSnapshot} from '@angular/router';
 import {AuthenticationService} from './authentication.service';
 
@@ -6,7 +6,9 @@ import {AuthenticationService} from './authentication.service';
     providedIn: 'root'
 })
 export class AuthGuardService {
-    private authenticationService = inject(AuthenticationService);
+
+    constructor(private authenticationService: AuthenticationService) {
+    }
 
     canActivate(childRoute: ActivatedRouteSnapshot): boolean {
         const routeData: AuthGuardData = childRoute.data;

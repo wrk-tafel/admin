@@ -1,4 +1,4 @@
-import {inject, Injectable} from '@angular/core';
+import {Injectable} from '@angular/core';
 import {DistributionApiService, DistributionItem} from '../../api/distribution-api.service';
 import {BehaviorSubject} from 'rxjs';
 
@@ -6,9 +6,10 @@ import {BehaviorSubject} from 'rxjs';
     providedIn: 'root'
 })
 export class GlobalStateService {
-    private distributionApiService = inject(DistributionApiService);
-
     private currentDistribution: BehaviorSubject<DistributionItem> = new BehaviorSubject(null);
+
+    constructor(private distributionApiService: DistributionApiService) {
+    }
 
     /* eslint-disable @typescript-eslint/no-explicit-any */
     init(): Promise<any> {
