@@ -16,6 +16,21 @@ services:
     networks:
       - tafeladmin_net
 
+  database-2:
+    image: "postgres:14.0-alpine3.14"
+    container_name: tafeladmin-postgres2
+    hostname: tafeladmin-postgres2
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: tafeladmin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: tafeladmin
+    volumes:
+      - database2-data:/var/lib/postgresql/data/
+    networks:
+      - tafeladmin_net
+
   pgadmin:
     image: "dpage/pgadmin4:latest"
     container_name: tafeladmin-pgadmin
@@ -84,6 +99,7 @@ services:
 
 volumes:
   database-data:
+  database2-data:
   pgadmin-data:
   mysql-data:
 
