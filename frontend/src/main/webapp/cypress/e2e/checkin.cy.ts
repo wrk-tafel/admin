@@ -1,44 +1,44 @@
 describe('CheckIn', () => {
 
-  beforeEach(() => {
-    cy.loginDefault();
-    cy.createDistribution();
-  });
+    beforeEach(() => {
+        cy.loginDefault();
+        cy.createDistribution();
+    });
 
-  afterEach(() => {
-    cy.closeDistribution();
-  });
+    afterEach(() => {
+        cy.closeDistribution();
+    });
 
-  it('customer added, counted on dashboard and deleted again', () => {
-    cy.visit('/#/anmeldung/annahme');
+    it('customer added, counted on dashboard and deleted again', () => {
+        cy.visit('/#/anmeldung/annahme');
 
-    cy.byTestId('customerIdInput').type('100');
-    cy.byTestId('showCustomerButton').click();
+        cy.byTestId('customerIdInput').type('100');
+        cy.byTestId('showCustomerButton').click();
 
-    cy.byTestId('customerDetailPanel').should('be.visible');
+        cy.byTestId('customerDetailPanel').should('be.visible');
 
-    cy.byTestId('ticketNumberInput').type('10');
-    cy.byTestId('assignCustomerButton').click();
+        cy.byTestId('ticketNumberInput').type('10');
+        cy.byTestId('assignCustomerButton').click();
 
-    cy.byTestId('customerIdInput').should('not.have.text');
-    cy.byTestId('errorMessage').should('not.exist');
-    cy.byTestId('customerDetailPanel').should('not.exist');
+        cy.byTestId('customerIdInput').should('not.have.text');
+        cy.byTestId('errorMessage').should('not.exist');
+        cy.byTestId('customerDetailPanel').should('not.exist');
 
-    cy.visit('/#/uebersicht');
+        cy.visit('/#/uebersicht');
 
-    cy.byTestId('customers-count').should('have.text', '1');
+        cy.byTestId('customers-count').should('have.text', '1');
 
-    cy.visit('/#/anmeldung/annahme');
+        cy.visit('/#/anmeldung/annahme');
 
-    cy.byTestId('customerIdInput').type('100');
-    cy.byTestId('showCustomerButton').click();
+        cy.byTestId('customerIdInput').type('100');
+        cy.byTestId('showCustomerButton').click();
 
-    cy.byTestId('ticketNumberInput').should('have.value', '10');
-    cy.byTestId('deleteTicketButton').click();
+        cy.byTestId('ticketNumberInput').should('have.value', '10');
+        cy.byTestId('deleteTicketButton').click();
 
-    cy.visit('/#/uebersicht');
+        cy.visit('/#/uebersicht');
 
-    cy.byTestId('customers-count').should('have.text', '0');
-  });
+        cy.byTestId('customers-count').should('have.text', '0');
+    });
 
 });
