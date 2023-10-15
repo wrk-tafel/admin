@@ -11,7 +11,7 @@ import {DistributionApiService} from '../../../api/distribution-api.service';
 import {Colors} from '@coreui/angular';
 import {DistributionTicketApiService} from '../../../api/distribution-ticket-api.service';
 import {ToastService, ToastType} from '../../../common/views/default-layout/toasts/toast.service';
-import {WebsocketService} from "../../../common/websocket/websocket.service";
+import {WebsocketService} from '../../../common/websocket/websocket.service';
 
 @Component({
     selector: 'tafel-checkin',
@@ -153,7 +153,7 @@ export class CheckinComponent implements OnInit, OnDestroy {
     }
 
     getInfantCount(): number {
-        let length = this.customer.additionalPersons.filter((person) => {
+        const length = this.customer.additionalPersons.filter((person) => {
             return moment().diff(person.birthDate, 'years') < 3;
         }).length;
         return length;
