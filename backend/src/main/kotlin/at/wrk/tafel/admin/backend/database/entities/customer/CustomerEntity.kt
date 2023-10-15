@@ -17,6 +17,7 @@ import jakarta.persistence.Table
 import jakarta.persistence.criteria.CriteriaBuilder
 import jakarta.persistence.criteria.CriteriaQuery
 import jakarta.persistence.criteria.Join
+import jakarta.persistence.criteria.JoinType
 import jakarta.persistence.criteria.Root
 import org.springframework.data.jpa.domain.Specification
 import java.math.BigDecimal
@@ -137,7 +138,7 @@ class CustomerEntity : BaseChangeTrackingEntity() {
             fun postProcessingNecessary(): Specification<CustomerEntity>? {
                 return Specification { root: Root<CustomerEntity>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
                     val additionalPersons: Join<CustomerEntity, CustomerAddPersonEntity> =
-                        root.join("additionalPersons")
+                        root.join("additionalPersons", JoinType.LEFT)
                     cb.or(
                         cb.isNull(root.get<String>("lastname")),
                         cb.isNull(root.get<String>("firstname")),
