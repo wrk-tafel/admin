@@ -12,162 +12,173 @@ import {By} from '@angular/platform-browser';
 import {TafelPaginationComponent} from '../../../../common/components/tafel-pagination/tafel-pagination.component';
 
 describe('CustomerSearchComponent', () => {
-  let apiService: jasmine.SpyObj<CustomerApiService>;
-  let router: jasmine.SpyObj<Router>;
-  let toastService: jasmine.SpyObj<ToastService>;
+    let apiService: jasmine.SpyObj<CustomerApiService>;
+    let router: jasmine.SpyObj<Router>;
+    let toastService: jasmine.SpyObj<ToastService>;
 
-  const searchCustomerMockResponse = {
-    items: [
-      {
-        id: 0,
-        firstname: 'first',
-        lastname: 'last',
-        birthDate: moment('10.05.2000', 'DD.MM.YYYY').toDate(),
-        gender: Gender.MALE,
-        address: {
-          street: 'street',
-          houseNumber: '1',
-          stairway: 'stairway1',
-          door: '20',
-          postalCode: 1010,
-          city: 'city'
-        }
-      }
-    ],
-    totalCount: 1,
-    currentPage: 0,
-    totalPages: 1,
-    pageSize: 10
-  };
+    const searchCustomerMockResponse = {
+        items: [
+            {
+                id: 0,
+                firstname: 'first',
+                lastname: 'last',
+                birthDate: moment('10.05.2000', 'DD.MM.YYYY').toDate(),
+                gender: Gender.MALE,
+                address: {
+                    street: 'street',
+                    houseNumber: '1',
+                    stairway: 'stairway1',
+                    door: '20',
+                    postalCode: 1010,
+                    city: 'city'
+                }
+            }
+        ],
+        totalCount: 1,
+        currentPage: 0,
+        totalPages: 1,
+        pageSize: 10
+    };
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      imports: [
-        RouterTestingModule,
-        ReactiveFormsModule,
-        CardModule,
-        RowComponent,
-        ColComponent,
-        PaginationModule
-      ],
-      declarations: [
-        CustomerSearchComponent,
-        TafelPaginationComponent
-      ],
-      providers: [
-        {
-          provide: CustomerApiService,
-          useValue: jasmine.createSpyObj('CustomerApiService', ['getCustomer', 'searchCustomer'])
-        },
-        {
-          provide: Router,
-          useValue: jasmine.createSpyObj('Router', ['navigate'])
-        },
-        {
-          provide: ToastService,
-          useValue: jasmine.createSpyObj('ToastService', ['showToast'])
-        }
-      ]
-    }).compileComponents();
+    beforeEach(waitForAsync(() => {
+        TestBed.configureTestingModule({
+            imports: [
+                RouterTestingModule,
+                ReactiveFormsModule,
+                CardModule,
+                RowComponent,
+                ColComponent,
+                PaginationModule
+            ],
+            declarations: [
+                CustomerSearchComponent,
+                TafelPaginationComponent
+            ],
+            providers: [
+                {
+                    provide: CustomerApiService,
+                    useValue: jasmine.createSpyObj('CustomerApiService', ['getCustomer', 'searchCustomer'])
+                },
+                {
+                    provide: Router,
+                    useValue: jasmine.createSpyObj('Router', ['navigate'])
+                },
+                {
+                    provide: ToastService,
+                    useValue: jasmine.createSpyObj('ToastService', ['showToast'])
+                }
+            ]
+        }).compileComponents();
 
-    apiService = TestBed.inject(CustomerApiService) as jasmine.SpyObj<CustomerApiService>;
-    router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
-    toastService = TestBed.inject(ToastService) as jasmine.SpyObj<ToastService>;
-  }));
+        apiService = TestBed.inject(CustomerApiService) as jasmine.SpyObj<CustomerApiService>;
+        router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
+        toastService = TestBed.inject(ToastService) as jasmine.SpyObj<ToastService>;
+    }));
 
-  it('component can be created', () => {
-    const fixture = TestBed.createComponent(CustomerSearchComponent);
-    const component = fixture.componentInstance;
-    expect(component).toBeTruthy();
-  });
+    it('component can be created', () => {
+        const fixture = TestBed.createComponent(CustomerSearchComponent);
+        const component = fixture.componentInstance;
+        expect(component).toBeTruthy();
+    });
 
 
-  it('search with existing customerId', () => {
-    const fixture = TestBed.createComponent(CustomerSearchComponent);
-    const component = fixture.componentInstance;
-    apiService.getCustomer.and.returnValue(of(searchCustomerMockResponse.items[0]));
+    it('search with existing customerId', () => {
+        const fixture = TestBed.createComponent(CustomerSearchComponent);
+        const component = fixture.componentInstance;
+        apiService.getCustomer.and.returnValue(of(searchCustomerMockResponse.items[0]));
 
-    const testCustomerId = 12345;
+        const testCustomerId = 12345;
 
-    component.customerId.setValue(testCustomerId);
-    component.searchForCustomerId();
+        component.customerId.setValue(testCustomerId);
+        component.searchForCustomerId();
 
-    expect(router.navigate).toHaveBeenCalledWith(['/kunden/detail', testCustomerId]);
-  });
+        expect(router.navigate).toHaveBeenCalledWith(['/kunden/detail', testCustomerId]);
+    });
 
-  it('search with firstname and lastname', () => {
-    const fixture = TestBed.createComponent(CustomerSearchComponent);
-    const component = fixture.componentInstance;
+    it('search with firstname and lastname', () => {
+        const fixture = TestBed.createComponent(CustomerSearchComponent);
+        const component = fixture.componentInstance;
 
-    component.firstname.setValue('firstname');
-    component.lastname.setValue('lastname');
+        component.firstname.setValue('firstname');
+        component.lastname.setValue('lastname');
 
-    apiService.searchCustomer.and.returnValue(of(searchCustomerMockResponse));
+        apiService.searchCustomer.and.returnValue(of(searchCustomerMockResponse));
 
-    component.searchForDetails();
+        component.searchForDetails();
 
-    expect(apiService.searchCustomer).toHaveBeenCalledWith('lastname', 'firstname', undefined);
+        expect(apiService.searchCustomer).toHaveBeenCalledWith('lastname', 'firstname', null, undefined);
 
-    fixture.detectChanges();
-    expect(fixture.debugElement.query(By.css('[testid="searchresult-id-0"]')).nativeElement.textContent).toBe('0');
-    expect(fixture.debugElement.query(By.css('[testid="searchresult-lastname-0"]')).nativeElement.textContent).toBe('last');
-    expect(fixture.debugElement.query(By.css('[testid="searchresult-firstname-0"]')).nativeElement.textContent).toBe('first');
-    expect(fixture.debugElement.query(By.css('[testid="searchresult-birthDate-0"]')).nativeElement.textContent).toBe('10.05.2000');
-    expect(fixture.debugElement.query(By.css('[testid="searchresult-address-0"]')).nativeElement.textContent)
-      .toBe('street 1, Stiege stairway1, Top 20 / 1010 city');
-  });
+        fixture.detectChanges();
+        expect(fixture.debugElement.query(By.css('[testid="searchresult-id-0"]')).nativeElement.textContent).toBe('0');
+        expect(fixture.debugElement.query(By.css('[testid="searchresult-lastname-0"]')).nativeElement.textContent).toBe('last');
+        expect(fixture.debugElement.query(By.css('[testid="searchresult-firstname-0"]')).nativeElement.textContent).toBe('first');
+        expect(fixture.debugElement.query(By.css('[testid="searchresult-birthDate-0"]')).nativeElement.textContent).toBe('10.05.2000');
+        expect(fixture.debugElement.query(By.css('[testid="searchresult-address-0"]')).nativeElement.textContent)
+            .toBe('street 1, Stiege stairway1, Top 20, 1010 city');
+    });
 
-  it('search with firstname only', () => {
-    const fixture = TestBed.createComponent(CustomerSearchComponent);
-    const component = fixture.componentInstance;
-    component.firstname.setValue('firstname');
-    apiService.searchCustomer.and.returnValue(EMPTY);
+    it('search with firstname only', () => {
+        const fixture = TestBed.createComponent(CustomerSearchComponent);
+        const component = fixture.componentInstance;
+        component.firstname.setValue('firstname');
+        apiService.searchCustomer.and.returnValue(EMPTY);
 
-    component.searchForDetails();
+        component.searchForDetails();
 
-    expect(apiService.searchCustomer).toHaveBeenCalledWith(null, 'firstname', undefined);
-  });
+        expect(apiService.searchCustomer).toHaveBeenCalledWith(null, 'firstname', null, undefined);
+    });
 
-  it('search with firstname no results', () => {
-    const fixture = TestBed.createComponent(CustomerSearchComponent);
-    const component = fixture.componentInstance;
-    component.firstname.setValue('firstname');
-    const response: CustomerSearchResult = {items: [], currentPage: 0, totalCount: 0, totalPages: 0, pageSize: 5};
-    apiService.searchCustomer.and.returnValue(of(response));
+    it('search with firstname no results', () => {
+        const fixture = TestBed.createComponent(CustomerSearchComponent);
+        const component = fixture.componentInstance;
+        component.firstname.setValue('firstname');
+        const response: CustomerSearchResult = {items: [], currentPage: 0, totalCount: 0, totalPages: 0, pageSize: 5};
+        apiService.searchCustomer.and.returnValue(of(response));
 
-    component.searchForDetails();
+        component.searchForDetails();
 
-    expect(apiService.searchCustomer).toHaveBeenCalledWith(null, 'firstname', undefined);
-    expect(toastService.showToast).toHaveBeenCalledWith({type: ToastType.INFO, title: 'Keine Kunden gefunden!'});
-  });
+        expect(apiService.searchCustomer).toHaveBeenCalledWith(null, 'firstname', null, undefined);
+        expect(toastService.showToast).toHaveBeenCalledWith({type: ToastType.INFO, title: 'Keine Kunden gefunden!'});
+    });
 
-  it('search with lastname only', () => {
-    const fixture = TestBed.createComponent(CustomerSearchComponent);
-    const component = fixture.componentInstance;
-    component.lastname.setValue('lastname');
-    apiService.searchCustomer.and.returnValue(EMPTY);
+    it('search with lastname only', () => {
+        const fixture = TestBed.createComponent(CustomerSearchComponent);
+        const component = fixture.componentInstance;
+        component.lastname.setValue('lastname');
+        apiService.searchCustomer.and.returnValue(EMPTY);
 
-    component.searchForDetails();
+        component.searchForDetails();
 
-    expect(apiService.searchCustomer).toHaveBeenCalledWith('lastname', null, undefined);
-  });
+        expect(apiService.searchCustomer).toHaveBeenCalledWith('lastname', null, null, undefined);
+    });
 
-  it('navigate to customer', () => {
-    const fixture = TestBed.createComponent(CustomerSearchComponent);
-    const component = fixture.componentInstance;
+    it('search with postProcessing enabled', () => {
+        const fixture = TestBed.createComponent(CustomerSearchComponent);
+        const component = fixture.componentInstance;
+        component.postProcessing.setValue(true);
+        apiService.searchCustomer.and.returnValue(EMPTY);
 
-    component.navigateToCustomer(1);
+        component.searchForDetails();
 
-    expect(router.navigate).toHaveBeenCalledWith(['/kunden/detail', 1]);
-  });
+        expect(apiService.searchCustomer).toHaveBeenCalledWith(null, null, true, undefined);
+    });
 
-  it('edit customer', () => {
-    const fixture = TestBed.createComponent(CustomerSearchComponent);
-    const component = fixture.componentInstance;
+    it('navigate to customer', () => {
+        const fixture = TestBed.createComponent(CustomerSearchComponent);
+        const component = fixture.componentInstance;
 
-    component.editCustomer(1);
+        component.navigateToCustomer(1);
 
-    expect(router.navigate).toHaveBeenCalledWith(['/kunden/bearbeiten', 1]);
-  });
+        expect(router.navigate).toHaveBeenCalledWith(['/kunden/detail', 1]);
+    });
+
+    it('edit customer', () => {
+        const fixture = TestBed.createComponent(CustomerSearchComponent);
+        const component = fixture.componentInstance;
+
+        component.editCustomer(1);
+
+        expect(router.navigate).toHaveBeenCalledWith(['/kunden/bearbeiten', 1]);
+    });
 
 });

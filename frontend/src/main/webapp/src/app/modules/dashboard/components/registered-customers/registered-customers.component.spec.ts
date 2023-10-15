@@ -10,72 +10,72 @@ import {HttpHeaders, HttpResponse} from '@angular/common/http';
 import {of} from 'rxjs';
 
 describe('RegisteredCustomersComponent', () => {
-  let distributionApiService: jasmine.SpyObj<DistributionApiService>;
-  let fileHelperService: jasmine.SpyObj<FileHelperService>;
+    let distributionApiService: jasmine.SpyObj<DistributionApiService>;
+    let fileHelperService: jasmine.SpyObj<FileHelperService>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      imports: [
-        HttpClientTestingModule,
-        RouterTestingModule,
-        ModalModule,
-        CardModule,
-        ColComponent,
-        RowComponent
-      ],
-      declarations: [
-        RegisteredCustomersComponent
-      ],
-      providers: [
-        {
-          provide: DistributionApiService,
-          useValue: jasmine.createSpyObj('DistributionApiService', ['downloadCustomerList'])
-        },
-        {
-          provide: FileHelperService,
-          useValue: jasmine.createSpyObj('FileHelperService', ['downloadFile'])
-        },
-      ]
-    }).compileComponents();
+    beforeEach(waitForAsync(() => {
+        TestBed.configureTestingModule({
+            imports: [
+                HttpClientTestingModule,
+                RouterTestingModule,
+                ModalModule,
+                CardModule,
+                ColComponent,
+                RowComponent
+            ],
+            declarations: [
+                RegisteredCustomersComponent
+            ],
+            providers: [
+                {
+                    provide: DistributionApiService,
+                    useValue: jasmine.createSpyObj('DistributionApiService', ['downloadCustomerList'])
+                },
+                {
+                    provide: FileHelperService,
+                    useValue: jasmine.createSpyObj('FileHelperService', ['downloadFile'])
+                },
+            ]
+        }).compileComponents();
 
-    distributionApiService = TestBed.inject(DistributionApiService) as jasmine.SpyObj<DistributionApiService>;
-    fileHelperService = TestBed.inject(FileHelperService) as jasmine.SpyObj<FileHelperService>;
-  }));
+        distributionApiService = TestBed.inject(DistributionApiService) as jasmine.SpyObj<DistributionApiService>;
+        fileHelperService = TestBed.inject(FileHelperService) as jasmine.SpyObj<FileHelperService>;
+    }));
 
-  it('component can be created', () => {
-    const fixture = TestBed.createComponent(RegisteredCustomersComponent);
-    const component = fixture.componentInstance;
-    expect(component).toBeTruthy();
-  });
-
-  it('customers count rendered', () => {
-    const fixture = TestBed.createComponent(RegisteredCustomersComponent);
-    const component = fixture.componentInstance;
-
-    const count = 123;
-    component.count = count;
-
-    fixture.detectChanges();
-    expect(fixture.debugElement.query(By.css('[testid="customers-count"]')).nativeElement.textContent).toBe(`${count}`);
-  });
-
-  it('download customers list', () => {
-    const fixture = TestBed.createComponent(RegisteredCustomersComponent);
-    const component = fixture.componentInstance;
-
-    const response = new HttpResponse({
-      status: 200,
-      headers: new HttpHeaders(
-        {'Content-Disposition': 'inline; filename=test-1.pdf'}
-      ),
-      body: new Blob()
+    it('component can be created', () => {
+        const fixture = TestBed.createComponent(RegisteredCustomersComponent);
+        const component = fixture.componentInstance;
+        expect(component).toBeTruthy();
     });
-    distributionApiService.downloadCustomerList.and.returnValue(of(response));
 
-    component.downloadCustomerList();
+    it('customers count rendered', () => {
+        const fixture = TestBed.createComponent(RegisteredCustomersComponent);
+        const component = fixture.componentInstance;
 
-    expect(distributionApiService.downloadCustomerList).toHaveBeenCalled();
-    expect(fileHelperService.downloadFile).toHaveBeenCalledWith('test-1.pdf', response.body);
-  });
+        const count = 123;
+        component.count = count;
+
+        fixture.detectChanges();
+        expect(fixture.debugElement.query(By.css('[testid="customers-count"]')).nativeElement.textContent).toBe(`${count}`);
+    });
+
+    it('download customers list', () => {
+        const fixture = TestBed.createComponent(RegisteredCustomersComponent);
+        const component = fixture.componentInstance;
+
+        const response = new HttpResponse({
+            status: 200,
+            headers: new HttpHeaders(
+                {'Content-Disposition': 'inline; filename=test-1.pdf'}
+            ),
+            body: new Blob()
+        });
+        distributionApiService.downloadCustomerList.and.returnValue(of(response));
+
+        component.downloadCustomerList();
+
+        expect(distributionApiService.downloadCustomerList).toHaveBeenCalled();
+        expect(fileHelperService.downloadFile).toHaveBeenCalledWith('test-1.pdf', response.body);
+    });
 
 });

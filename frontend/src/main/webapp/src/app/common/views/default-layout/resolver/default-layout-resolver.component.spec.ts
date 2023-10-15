@@ -7,45 +7,45 @@ import {GlobalStateService} from '../../../state/global-state.service';
 import {RxStompState} from '@stomp/rx-stomp';
 
 describe('DefaultLayoutResolver', () => {
-  let websocketService: jasmine.SpyObj<WebsocketService>;
-  let globalStateService: jasmine.SpyObj<GlobalStateService>;
-  let resolver: DefaultLayoutResolver;
+    let websocketService: jasmine.SpyObj<WebsocketService>;
+    let globalStateService: jasmine.SpyObj<GlobalStateService>;
+    let resolver: DefaultLayoutResolver;
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
-      providers: [
-        {
-          provide: WebsocketService,
-          useValue: jasmine.createSpyObj('WebsocketService', ['connect'])
-        },
-        {
-          provide: GlobalStateService,
-          useValue: jasmine.createSpyObj('GlobalStateService', ['init'])
-        },
-        DefaultLayoutResolver
-      ]
+    beforeEach(() => {
+        TestBed.configureTestingModule({
+            imports: [HttpClientTestingModule],
+            providers: [
+                {
+                    provide: WebsocketService,
+                    useValue: jasmine.createSpyObj('WebsocketService', ['connect'])
+                },
+                {
+                    provide: GlobalStateService,
+                    useValue: jasmine.createSpyObj('GlobalStateService', ['init'])
+                },
+                DefaultLayoutResolver
+            ]
+        });
+
+        websocketService = TestBed.inject(WebsocketService) as jasmine.SpyObj<WebsocketService>;
+        globalStateService = TestBed.inject(GlobalStateService) as jasmine.SpyObj<GlobalStateService>;
+        resolver = TestBed.inject(DefaultLayoutResolver);
     });
 
-    websocketService = TestBed.inject(WebsocketService) as jasmine.SpyObj<WebsocketService>;
-    globalStateService = TestBed.inject(GlobalStateService) as jasmine.SpyObj<GlobalStateService>;
-    resolver = TestBed.inject(DefaultLayoutResolver);
-  });
+    it('resolve', () => {
+        const mockWsConnect = firstValueFrom(of<RxStompState>(RxStompState.OPEN));
+        websocketService.connect.and.returnValue(mockWsConnect);
+        const mockGlobalStateInit = firstValueFrom(of('2'));
+        globalStateService.init.and.returnValue(mockGlobalStateInit);
 
-  it('resolve', () => {
-    const mockWsConnect = firstValueFrom(of<RxStompState>(RxStompState.OPEN));
-    websocketService.connect.and.returnValue(mockWsConnect);
-    const mockGlobalStateInit = firstValueFrom(of('2'));
-    globalStateService.init.and.returnValue(mockGlobalStateInit);
+        /* eslint-disable @typescript-eslint/no-explicit-any */
+        resolver.resolve().then((result: any[]) => {
+            expect(result[0]).toEqual(RxStompState.OPEN);
+            expect(result[1]).toEqual('2');
+        });
 
-    /* eslint-disable @typescript-eslint/no-explicit-any */
-    resolver.resolve().then((result: any[]) => {
-      expect(result[0]).toEqual(RxStompState.OPEN);
-      expect(result[1]).toEqual('2');
+        expect(websocketService.connect).toHaveBeenCalled();
+        expect(globalStateService.init).toHaveBeenCalled();
     });
-
-    expect(websocketService.connect).toHaveBeenCalled();
-    expect(globalStateService.init).toHaveBeenCalled();
-  });
 
 });

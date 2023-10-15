@@ -1,31 +1,31 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, inject, OnInit} from '@angular/core';
 import {NavigationEnd, Router} from '@angular/router';
 
 import {IconSetService} from '@coreui/icons-angular';
 import {freeSet} from '@coreui/icons';
 
 @Component({
-  // tslint:disable-next-line
-  selector: 'body',
-  templateUrl: 'app.component.html',
-  providers: [IconSetService],
+    // tslint:disable-next-line
+    selector: 'body',
+    templateUrl: 'app.component.html',
+    providers: [IconSetService],
 })
 export class AppComponent implements OnInit {
-  constructor(
-    private router: Router,
-    public iconSet: IconSetService
-  ) {
-    // iconSet singleton
-    iconSet.icons = {...freeSet};
-  }
+    private router = inject(Router);
+    private iconSetService = inject(IconSetService);
 
-  ngOnInit() {
-    this.router.events.subscribe((evt) => {
-      if (!(evt instanceof NavigationEnd)) {
-        return;
-      }
-      window.scrollTo(0, 0);
-    });
-  }
+    constructor() {
+        // iconSet singleton
+        this.iconSetService.icons = {...freeSet};
+    }
+
+    ngOnInit() {
+        this.router.events.subscribe((evt) => {
+            if (!(evt instanceof NavigationEnd)) {
+                return;
+            }
+            window.scrollTo(0, 0);
+        });
+    }
 
 }

@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, inject, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import * as moment from 'moment';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
@@ -27,24 +27,18 @@ export class CustomerDetailComponent implements OnInit {
     customerData: CustomerData;
     customerNotes: CustomerNoteItem[];
     customerNotesPaginationData: TafelPaginationData;
-
     newNoteText: string;
     lockReasonText: string;
-
     showDeleteCustomerModal = false;
     showAddNewNoteModal = false;
     showAllNotesModal = false;
     showLockCustomerModal = false;
-
-    constructor(
-        private activatedRoute: ActivatedRoute,
-        private customerApiService: CustomerApiService,
-        private customerNoteApiService: CustomerNoteApiService,
-        private fileHelperService: FileHelperService,
-        private router: Router,
-        private toastService: ToastService
-    ) {
-    }
+    private activatedRoute = inject(ActivatedRoute);
+    private customerApiService = inject(CustomerApiService);
+    private customerNoteApiService = inject(CustomerNoteApiService);
+    private fileHelperService = inject(FileHelperService);
+    private router = inject(Router);
+    private toastService = inject(ToastService);
 
     ngOnInit(): void {
         this.customerData = this.activatedRoute.snapshot.data.customerData;
@@ -68,28 +62,34 @@ export class CustomerDetailComponent implements OnInit {
     }
 
     formatAddressLine1(address: CustomerAddressData): string {
-        let addressLine = address.street;
-        if (address.houseNumber) {
-            addressLine += ' ' + address.houseNumber;
-        }
-        if (address.stairway) {
-            addressLine += ', Stiege ' + address.stairway;
-        }
-        if (address.door) {
-            addressLine += ', Top ' + address.door;
-        }
-        return addressLine;
+        const formatted = [
+            [address.street, address.houseNumber].join(' '),
+            address.stairway ? 'Stiege ' + address.stairway : undefined,
+            address.door ? 'Top ' + address.door : undefined
+        ]
+            .filter(value => value?.trim().length > 0)
+            .join(', ');
+        return formatted?.trim().length > 0 ? formatted : '-';
     }
 
     formatAddressLine2(address: CustomerAddressData): string {
-        return address.postalCode + ' ' + address.city;
+        const formatted = [address.postalCode?.toString(), address.city].join(' ');
+        return formatted?.trim().length > 0 ? formatted : '-';
     }
 
-    getAge(birthDate: Date): number {
-        if (birthDate) {
-            return moment().diff(birthDate, 'years');
+    getFormattedName() {
+        if (!this.customerData?.lastname && !this.customerData?.firstname) {
+            return '-';
         }
-        return null;
+        return [this.customerData?.lastname, this.customerData?.firstname].join(' ');
+    }
+
+    getBirthDateAndAge(birthDate?: Date): string {
+        if (birthDate) {
+            const age = moment().diff(birthDate, 'years');
+            return moment(birthDate).format('DD.MM.YYYY') + ' (' + age + ')';
+        }
+        return '-';
     }
 
     formatIssuer(issuer: CustomerIssuer): string {

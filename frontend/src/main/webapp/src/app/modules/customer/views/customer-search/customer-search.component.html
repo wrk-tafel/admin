@@ -1,125 +1,141 @@
 <form cForm [formGroup]="customerSearchForm">
-  <c-card>
-    <c-card-body>
-      <c-row>
-        <c-col class="mb-3">
-          <h4>Kunden-Suche</h4>
-        </c-col>
-      </c-row>
-      <c-row>
-        <c-col sm="3">
-          <label class="form-label">Kundennummer</label>
-        </c-col>
-      </c-row>
-      <c-row>
-        <c-col sm="3" class="mb-3">
-          <input testid="customerIdText" type="number" formControlName="customerId" name="customerId"
-                 class="form-control" autofocus (keydown.enter)="searchForCustomerId()">
-        </c-col>
-        <c-col sm="3">
-          <button testid="showcustomer-button" type="button" class="btn btn-primary text-white"
-                  [disabled]="!customerId.value" (click)="searchForCustomerId()">Anzeigen</button>
-        </c-col>
-      </c-row>
-      <hr>
-      <c-row>
-        <c-col sm="3">
-          <label class="form-label">Familienname</label>
-          <input testid="lastnameText" type="text" formControlName="lastname" name="lastname"
-                 class="form-control">
-        </c-col>
-        <c-col sm="3">
-          <label class="form-label">Vorname</label>
-          <input testid="firstnameText" type="text" formControlName="firstname" name="firstname"
-                 class="form-control">
-        </c-col>
-      </c-row>
-      <c-row>
-        <c-col sm="3" class="mt-3">
-          <button testid="search-button" type="button" class="btn btn-primary text-white"
-                  (click)="searchForDetails()">Suchen</button>
-        </c-col>
-      </c-row>
-      <c-row *ngIf="searchResult" testid="searchresult-table">
-        <c-col>
-          <hr>
-        </c-col>
-      </c-row>
-      <c-row *ngIf="searchResult" class="d-none d-sm-block">
-        <c-col sm="12" class="table-responsive">
-          <h5 class="mb-4">Suchergebnis ({{this.searchResult.totalCount}} Kunden)</h5>
-          <tafel-pagination align="end" [paginationData]="paginationData" (pageChanged)="searchForDetails($event)"></tafel-pagination>
-          <table cTable striped="true" aria-label="Liste der gefundenen Kunden" class="mt-3">
-            <thead>
-            <tr>
-              <th scope="col"></th>
-              <th scope="col">Nr.</th>
-              <th scope="col">Nachname</th>
-              <th scope="col">Vorname</th>
-              <th scope="col">Geb. Datum</th>
-              <th scope="col">Adresse</th>
-              <th scope="col">Aktionen</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr testid="searchresult-row" scope="row"
-                *ngFor="let customer of searchResult.items; let i = index">
-              <td><i class="fa fa-user"></i></td>
-              <td [attr.testid]="'searchresult-id-' + i">{{customer.id}}</td>
-              <td [attr.testid]="'searchresult-lastname-' + i">{{customer.lastname}}</td>
-              <td [attr.testid]="'searchresult-firstname-' + i">{{customer.firstname}}</td>
-              <td [attr.testid]="'searchresult-birthDate-' + i">{{customer.birthDate | date : 'dd.MM.yyyy'}}</td>
-              <td [attr.testid]="'searchresult-address-' + i">{{formatAddress(customer.address)}}</td>
-              <td>
-                <div class="d-flex flex-fill gap-2">
-                  <button [attr.testid]="'searchresult-showcustomer-button-' + i"
-                          type="button" class="btn btn-primary text-white"
-                          (click)="navigateToCustomer(customer.id)"><i
-                    class="fa fa-search"></i></button>
-                  <button [attr.testid]="'searchresult-editcustomer-button-' + i"
-                          type="button" class="btn btn-danger text-white"
-                          (click)="editCustomer(customer.id)"><i
-                    class="fa fa-pencil"></i></button>
-                </div>
-              </td>
-            </tr>
-            </tbody>
-          </table>
-          <tafel-pagination align="end" [paginationData]="paginationData" (pageChanged)="searchForDetails($event)"></tafel-pagination>
-        </c-col>
-      </c-row>
-      <c-row *ngIf="searchResult" class="d-block d-sm-none">
-        <c-col sm="12" class="table-responsive">
-          <h5 class="mb-4">Suchergebnis ({{this.searchResult.totalCount}} Kunden)</h5>
-          <tafel-pagination align="center" size="sm" [paginationData]="paginationData" (pageChanged)="searchForDetails($event)"></tafel-pagination>
-          <div class="d-flex flex-column gap-3 mb-3">
-            <c-card *ngFor="let customer of this.searchResult.items; let i = index">
-              <c-card-header class="fw-bold">{{customer.id}} - {{customer.lastname}} {{customer.firstname}}</c-card-header>
-              <c-card-body>
-                <c-row>
-                  <c-col class="fw-bold">Geburtsdatum:</c-col>
-                  <c-col>{{customer.birthDate | date : 'dd.MM.yyyy'}}</c-col>
-                </c-row>
-                <c-row>
-                  <c-col class="fw-bold">Addresse:</c-col>
-                  <c-col>{{formatAddress(customer.address)}}</c-col>
-                </c-row>
-              </c-card-body>
-              <c-card-footer class="d-flex flex-fill gap-2">
-                <button [attr.testid]="'searchresult-showcustomer-button-' + i"
-                        type="button" class="btn btn-primary text-white"
-                        (click)="navigateToCustomer(customer.id)"><i
-                  class="fa fa-search"></i></button>
-                <button [attr.testid]="'searchresult-editcustomer-button-' + i"
-                        type="button" class="btn btn-danger text-white"
-                        (click)="editCustomer(customer.id)"><i
-                  class="fa fa-pencil"></i></button>
-              </c-card-footer>
-            </c-card>
-          </div>
-          <tafel-pagination align="center" size="sm" [paginationData]="paginationData" (pageChanged)="searchForDetails($event)"></tafel-pagination>
-        </c-col>
-      </c-row>
-    </c-card-body>
-  </c-card>
+    <c-card>
+        <c-card-body>
+            <c-row>
+                <c-col class="mb-3">
+                    <h4>Kunden-Suche</h4>
+                </c-col>
+            </c-row>
+            <c-row>
+                <c-col sm="3">
+                    <label class="form-label">Kundennummer</label>
+                </c-col>
+            </c-row>
+            <c-row>
+                <c-col sm="3" class="mb-3">
+                    <input testid="customerIdText" type="number" formControlName="customerId" name="customerId"
+                           class="form-control" autofocus (keydown.enter)="searchForCustomerId()">
+                </c-col>
+                <c-col sm="3">
+                    <button testid="showcustomer-button" type="button" class="btn btn-primary text-white"
+                            [disabled]="!customerId.value" (click)="searchForCustomerId()">Anzeigen
+                    </button>
+                </c-col>
+            </c-row>
+            <hr>
+            <c-row>
+                <c-col sm="3">
+                    <label class="form-label">Familienname</label>
+                    <input testid="lastnameText" type="text" formControlName="lastname" name="lastname"
+                           class="form-control">
+                </c-col>
+                <c-col sm="3">
+                    <label class="form-label">Vorname</label>
+                    <input testid="firstnameText" type="text" formControlName="firstname" name="firstname"
+                           class="form-control">
+                </c-col>
+            </c-row>
+            <c-row>
+                <c-col sm="3" class="mt-sm-2">
+                    <label cLabel>Nachbearbeitung notwendig</label>
+                    <c-input-group>
+                        <input cFormCheckInput type="checkbox" formControlName="postProcessing"
+                               testid="postProcessingInput">
+                    </c-input-group>
+                </c-col>
+            </c-row>
+            <c-row>
+                <c-col sm="3" class="mt-3">
+                    <button testid="search-button" type="button" class="btn btn-primary text-white"
+                            (click)="searchForDetails()">Suchen
+                    </button>
+                </c-col>
+            </c-row>
+            <c-row *ngIf="searchResult" testid="searchresult-table">
+                <c-col>
+                    <hr>
+                </c-col>
+            </c-row>
+            <c-row *ngIf="searchResult" class="d-none d-sm-block">
+                <c-col sm="12" class="table-responsive">
+                    <h5 class="mb-4">Suchergebnis ({{this.searchResult.totalCount}} Kunden)</h5>
+                    <tafel-pagination align="end" [paginationData]="paginationData"
+                                      (pageChanged)="searchForDetails($event)"></tafel-pagination>
+                    <table cTable striped="true" aria-label="Liste der gefundenen Kunden" class="mt-3">
+                        <thead>
+                        <tr>
+                            <th scope="col"></th>
+                            <th scope="col">Nr.</th>
+                            <th scope="col">Nachname</th>
+                            <th scope="col">Vorname</th>
+                            <th scope="col">Geb. Datum</th>
+                            <th scope="col">Adresse</th>
+                            <th scope="col">Aktionen</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr testid="searchresult-row" scope="row"
+                            *ngFor="let customer of searchResult.items; let i = index">
+                            <td><i class="fa fa-user"></i></td>
+                            <td [attr.testid]="'searchresult-id-' + i">{{customer.id}}</td>
+                            <td [attr.testid]="'searchresult-lastname-' + i">{{customer.lastname ? customer.lastname : '-'}}</td>
+                            <td [attr.testid]="'searchresult-firstname-' + i">{{customer.firstname ? customer.firstname : '-'}}</td>
+                            <td [attr.testid]="'searchresult-birthDate-' + i">{{!customer.birthDate ? '-' : customer.birthDate | date : 'dd.MM.yyyy'}}</td>
+                            <td [attr.testid]="'searchresult-address-' + i">{{formatAddress(customer.address)}}</td>
+                            <td>
+                                <div class="d-flex flex-fill gap-2">
+                                    <button [attr.testid]="'searchresult-showcustomer-button-' + i"
+                                            type="button" class="btn btn-primary text-white"
+                                            (click)="navigateToCustomer(customer.id)"><i
+                                            class="fa fa-search"></i></button>
+                                    <button [attr.testid]="'searchresult-editcustomer-button-' + i"
+                                            type="button" class="btn btn-danger text-white"
+                                            (click)="editCustomer(customer.id)"><i
+                                            class="fa fa-pencil"></i></button>
+                                </div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <tafel-pagination align="end" [paginationData]="paginationData"
+                                      (pageChanged)="searchForDetails($event)"></tafel-pagination>
+                </c-col>
+            </c-row>
+            <c-row *ngIf="searchResult" class="d-block d-sm-none">
+                <c-col sm="12" class="table-responsive">
+                    <h5 class="mb-4">Suchergebnis ({{this.searchResult.totalCount}} Kunden)</h5>
+                    <tafel-pagination align="center" size="sm" [paginationData]="paginationData"
+                                      (pageChanged)="searchForDetails($event)"></tafel-pagination>
+                    <div class="d-flex flex-column gap-3 mb-3">
+                        <c-card *ngFor="let customer of this.searchResult.items; let i = index">
+                            <c-card-header class="fw-bold">{{customer.id}}
+                                - {{customer.lastname}} {{customer.firstname}}</c-card-header>
+                            <c-card-body>
+                                <c-row>
+                                    <c-col class="fw-bold">Geburtsdatum:</c-col>
+                                    <c-col>{{customer.birthDate | date : 'dd.MM.yyyy'}}</c-col>
+                                </c-row>
+                                <c-row>
+                                    <c-col class="fw-bold">Addresse:</c-col>
+                                    <c-col>{{formatAddress(customer.address)}}</c-col>
+                                </c-row>
+                            </c-card-body>
+                            <c-card-footer class="d-flex flex-fill gap-2">
+                                <button [attr.testid]="'searchresult-showcustomer-button-' + i"
+                                        type="button" class="btn btn-primary text-white"
+                                        (click)="navigateToCustomer(customer.id)"><i
+                                        class="fa fa-search"></i></button>
+                                <button [attr.testid]="'searchresult-editcustomer-button-' + i"
+                                        type="button" class="btn btn-danger text-white"
+                                        (click)="editCustomer(customer.id)"><i
+                                        class="fa fa-pencil"></i></button>
+                            </c-card-footer>
+                        </c-card>
+                    </div>
+                    <tafel-pagination align="center" size="sm" [paginationData]="paginationData"
+                                      (pageChanged)="searchForDetails($event)"></tafel-pagination>
+                </c-col>
+            </c-row>
+        </c-card-body>
+    </c-card>
 </form>

@@ -9,39 +9,41 @@ import {CustomerDetailComponent} from './views/customer-detail/customer-detail.c
 import {CustomerSearchComponent} from './views/customer-search/customer-search.component';
 import {CustomerApiService} from '../../api/customer-api.service';
 import {
-  BgColorDirective,
-  ButtonCloseDirective,
-  ButtonDirective,
-  CardBodyComponent,
-  CardComponent,
-  CardFooterComponent,
-  CardHeaderComponent,
-  ColComponent,
-  DropdownComponent,
-  DropdownDividerDirective,
-  DropdownHeaderDirective,
-  DropdownItemDirective,
-  DropdownMenuDirective,
-  DropdownModule,
-  DropdownToggleDirective,
-  FormCheckComponent,
-  FormControlDirective,
-  InputGroupComponent,
-  InputGroupTextDirective,
-  ModalBodyComponent,
-  ModalComponent,
-  ModalFooterComponent,
-  ModalHeaderComponent,
-  ModalModule,
-  NavComponent,
-  NavItemComponent,
-  NavLinkDirective,
-  RoundedDirective,
-  RowComponent,
-  TabContentComponent,
-  TableDirective,
-  TabPaneComponent,
-  TabsModule
+    BgColorDirective,
+    ButtonCloseDirective,
+    ButtonDirective,
+    CardBodyComponent,
+    CardComponent,
+    CardFooterComponent,
+    CardHeaderComponent,
+    ColComponent,
+    DropdownComponent,
+    DropdownDividerDirective,
+    DropdownHeaderDirective,
+    DropdownItemDirective,
+    DropdownMenuDirective,
+    DropdownModule,
+    DropdownToggleDirective,
+    FormCheckComponent,
+    FormCheckInputDirective,
+    FormControlDirective,
+    FormLabelDirective,
+    InputGroupComponent,
+    InputGroupTextDirective,
+    ModalBodyComponent,
+    ModalComponent,
+    ModalFooterComponent,
+    ModalHeaderComponent,
+    ModalModule,
+    NavComponent,
+    NavItemComponent,
+    NavLinkDirective,
+    RoundedDirective,
+    RowComponent,
+    TabContentComponent,
+    TableDirective,
+    TabPaneComponent,
+    TabsModule
 } from '@coreui/angular';
 import {RouterLink} from '@angular/router';
 import {IconDirective} from '@coreui/icons-angular';
@@ -95,17 +97,19 @@ import {TafelCommonModule} from '../../common/tafel-common.module';
         ButtonCloseDirective,
         BgColorDirective,
         FormCheckComponent,
-        TafelCommonModule
+        TafelCommonModule,
+        FormCheckInputDirective,
+        FormLabelDirective
     ],
-  declarations: [
-    CustomerDetailComponent,
-    CustomerEditComponent,
-    CustomerFormComponent,
-    CustomerSearchComponent
-  ],
-  providers: [
-    CustomerApiService
-  ]
+    declarations: [
+        CustomerDetailComponent,
+        CustomerEditComponent,
+        CustomerFormComponent,
+        CustomerSearchComponent
+    ],
+    providers: [
+        CustomerApiService
+    ]
 })
 export class CustomerModule {
 }

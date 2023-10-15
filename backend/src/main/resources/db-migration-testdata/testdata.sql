@@ -114,10 +114,10 @@ INSERT INTO customers (id, created_at, updated_at, customer_id, user_id, firstna
                        address_city, telephone_number, email, employer, income, income_due, valid_until)
 values (102, NOW(), NOW(), 102, 100, 'John', 'Doe', '1980-01-01', 'MALE', 1, 'Erdberg', 1, null, null, '1030', 'Wien',
         null, null, 'Stadt Wien', 123.00, '2999-12-31', '2999-12-31');
-INSERT INTO customers (id, created_at, updated_at, customer_id, user_id, firstname, lastname, birth_date, country_id,
+INSERT INTO customers (id, created_at, updated_at, customer_id, user_id, firstname, lastname, birth_date, gender, country_id,
                        address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
                        address_city, telephone_number, email, employer, income, income_due, valid_until)
-values (103, NOW(), NOW(), 103, 100, 'John Doe', 'EXPIRES SOON', '1980-01-01', 1, 'Erdberg', 1, null, null, '1030',
+values (103, NOW(), NOW(), 103, 100, 'John Doe', 'EXPIRES SOON', '1980-01-01', 'MALE', 1, 'Erdberg', 1, null, null, '1030',
         'Wien',
         null, null, 'Stadt Wien', 123.00, NOW() + interval '1 month', NOW() + interval '1 month');
 INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender, income,
@@ -211,6 +211,27 @@ INSERT INTO customers (id, created_at, updated_at, customer_id, user_id, firstna
 values (105, NOW(), NOW(), 105, 100, 'Jane Doe', 'LOCKED', '1980-01-01', 'FEMALE', 1, 'Erdberg', 1, null, null, '1030', 'Wien',
         null, null, 'Stadt Wien', 123.00, '2999-12-31', '2999-12-31', true, NOW(), 100,
         'Lock-Reason: Lorem ipsum dolor sit amet');
+INSERT INTO customers (id, created_at, updated_at, customer_id, user_id, firstname, lastname, birth_date, gender, country_id,
+                       address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
+                       address_city, telephone_number, email, employer, income, income_due, valid_until, locked,
+                       locked_at, locked_by, lock_reason)
+values (106, NOW(), NOW(), 106, null, null, null, null, null, 1, null, null, null, null, null, null,
+        null, null, null, null, null, NOW(), false, null, null, null);
+INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender, employer,
+                                  income, income_due, country_id, receives_familybonus, exclude_household)
+values (1060, NOW(), NOW(), 106, 'Firstname 1', 'Lastname 1', null, null, null, null, null, 1, true, true);
+INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender, employer,
+                                  income, income_due, country_id, receives_familybonus, exclude_household)
+values (1061, NOW(), NOW(), 106, 'Firstname 2', 'Lastname 2', null, null, null, null, null, 1, false, false);
+INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender, employer,
+                                  income, income_due, country_id, receives_familybonus, exclude_household)
+values (1062, NOW(), NOW(), 106, 'Firstname 3', 'Lastname 3', null, null, null, null, null, 1, true, false);
+INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender, employer,
+                                  income, income_due, country_id, receives_familybonus, exclude_household)
+values (1063, NOW(), NOW(), 106, 'Firstname 4', 'Lastname 4', null, null, null, null, null, 1, false, true);
+INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender, employer,
+                                  income, income_due, country_id, receives_familybonus, exclude_household)
+values (1064, NOW(), NOW(), 106, 'Firstname 5', 'Lastname 5', null, null, null, null, null, 1, false, false);
 
 -- static values
 DELETE FROM static_values;

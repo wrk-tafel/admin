@@ -1,29 +1,24 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, inject, OnInit} from '@angular/core';
 import {WebsocketService} from '../../common/websocket/websocket.service';
 import {IMessage} from '@stomp/stompjs';
 
 @Component({
-  selector: 'tafel-dashboard',
-  templateUrl: 'dashboard.component.html'
+    selector: 'tafel-dashboard',
+    templateUrl: 'dashboard.component.html'
 })
 export class DashboardComponent implements OnInit {
+    data: DashboardData;
+    private websocketService = inject(WebsocketService);
 
-  constructor(
-    private websocketService: WebsocketService
-  ) {
-  }
-
-  data: DashboardData;
-
-  ngOnInit(): void {
-    this.websocketService.watch('/topic/dashboard').subscribe((message: IMessage) => {
-      const data: DashboardData = JSON.parse(message.body);
-      this.data = data;
-    });
-  }
+    ngOnInit(): void {
+        this.websocketService.watch('/topic/dashboard').subscribe((message: IMessage) => {
+            const data: DashboardData = JSON.parse(message.body);
+            this.data = data;
+        });
+    }
 
 }
 
 export interface DashboardData {
-  registeredCustomers?: number;
+    registeredCustomers?: number;
 }

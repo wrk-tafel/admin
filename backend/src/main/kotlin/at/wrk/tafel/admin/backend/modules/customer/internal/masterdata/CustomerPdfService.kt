@@ -42,7 +42,9 @@ class CustomerPdfService(
 
         val countPersons = 1 + customer.additionalPersons.count { !it.excludeFromHousehold!! }
         val countInfants =
-            customer.additionalPersons.count { Period.between(it.birthDate, LocalDate.now()).years <= 3 }
+            customer.additionalPersons
+                .filter { it.birthDate != null }
+                .count { Period.between(it.birthDate, LocalDate.now()).years <= 3 }
 
         val logoBytes =
             IOUtils.toByteArray(javaClass.getResourceAsStream("/pdf-templates/common/img/toet-logo.png"))
@@ -53,22 +55,22 @@ class CustomerPdfService(
             issuedAtDate = customer.createdAt!!.format(DATE_FORMATTER),
             customer = PdfCustomerData(
                 id = customer.customerId!!,
-                lastname = customer.lastname!!,
-                firstname = customer.firstname!!,
-                birthDate = customer.birthDate!!.format(DATE_FORMATTER),
-                gender = customer.gender?.title,
+                lastname = customer.lastname ?: "-",
+                firstname = customer.firstname ?: "-",
+                birthDate = customer.birthDate?.format(DATE_FORMATTER) ?: "-",
+                gender = customer.gender?.title ?: "-",
                 country = customer.country!!.name!!,
                 telephoneNumber = customer.telephoneNumber ?: "-",
                 email = customer.email ?: "-",
                 address = PdfAddressData(
-                    street = customer.addressStreet!!,
-                    houseNumber = customer.addressHouseNumber,
-                    door = customer.addressDoor,
-                    stairway = customer.addressStairway,
+                    street = customer.addressStreet ?: "-",
+                    houseNumber = customer.addressHouseNumber ?: "-",
+                    door = customer.addressDoor ?: "-",
+                    stairway = customer.addressStairway ?: "-",
                     postalCode = customer.addressPostalCode,
-                    city = customer.addressCity!!
+                    city = customer.addressCity ?: "-"
                 ),
-                employer = customer.employer!!,
+                employer = customer.employer ?: "-",
                 income = customer.income
                     ?.takeIf { it.compareTo(BigDecimal.ZERO) != 0 }
                     ?.let {
@@ -80,7 +82,7 @@ class CustomerPdfService(
                     PdfAdditionalPersonData(
                         lastname = it.lastname!!,
                         firstname = it.firstname!!,
-                        birthDate = it.birthDate!!.format(DATE_FORMATTER),
+                        birthDate = it.birthDate?.format(DATE_FORMATTER) ?: "-",
                         gender = it.gender?.title ?: "-",
                         country = it.country!!.name!!,
                         employer = it.employer ?: "-",

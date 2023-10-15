@@ -1,24 +1,20 @@
-import {Component, Input} from '@angular/core';
+import {Component, inject, Input} from '@angular/core';
 import {HeaderComponent} from '@coreui/angular';
 import {AuthenticationService} from '../../../security/authentication.service';
 
 @Component({
-  selector: 'app-default-header',
-  templateUrl: './default-header.component.html',
+    selector: 'app-default-header',
+    templateUrl: './default-header.component.html',
 })
 export class DefaultHeaderComponent extends HeaderComponent {
+    @Input() sidebarId = 'sidebar';
+    private authenticationService = inject(AuthenticationService);
 
-  constructor(private auth: AuthenticationService) {
-    super();
-  }
-
-  @Input() sidebarId = 'sidebar';
-
-  public logout() {
-    /* eslint-disable @typescript-eslint/no-unused-vars */
-    this.auth.logout().subscribe(_ => {
-      this.auth.redirectToLogin();
-    });
-  }
+    public logout() {
+        /* eslint-disable @typescript-eslint/no-unused-vars */
+        this.authenticationService.logout().subscribe(_ => {
+            this.authenticationService.redirectToLogin();
+        });
+    }
 
 }

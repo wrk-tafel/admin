@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, inject} from '@angular/core';
 import {FormControl, FormGroup, ValidatorFn, Validators} from '@angular/forms';
 import {ChangePasswordRequest, ChangePasswordResponse, UserApiService} from '../../../api/user-api.service';
 import {catchError, map} from 'rxjs/operators';
@@ -6,102 +6,97 @@ import {Observable, throwError} from 'rxjs';
 import {HttpErrorResponse} from '@angular/common/http';
 
 @Component({
-  selector: 'tafel-passwordchange-form',
-  templateUrl: 'passwordchange-form.component.html'
+    selector: 'tafel-passwordchange-form',
+    templateUrl: 'passwordchange-form.component.html'
 })
 export class PasswordChangeFormComponent {
-  successMessage: string;
-  errorMessage: string;
-  errorMessageDetails: string[];
-
-  form = new FormGroup({
-      currentPassword: new FormControl<string>(null, [
-        Validators.required
-      ]),
-      newPassword: new FormControl<string>(null, [
-        Validators.required,
-        Validators.minLength(8),
-        Validators.maxLength(50)
-      ]),
-      newRepeatedPassword: new FormControl<string>(null, [
-        Validators.required,
-        Validators.minLength(8),
-        Validators.maxLength(50)
-      ])
-    },
-    {
-      validators: [this.validateNewAndRepeatedPasswords()],
-      updateOn: 'change'
-    }
-  );
-
-  constructor(
-    private userApiService: UserApiService
-  ) {
-  }
-
-  changePassword(): Observable<boolean> {
-    const currentPassword = this.currentPassword.value;
-    const newPassword = this.newPassword.value;
-
-    const passwordChangeRequest: ChangePasswordRequest = {passwordCurrent: currentPassword, passwordNew: newPassword};
-
-    return this.userApiService.changePassword(passwordChangeRequest).pipe(
-      map(
-        /* eslint-disable @typescript-eslint/no-unused-vars */
-        (response: ChangePasswordResponse) => {
-          this.errorMessage = null;
-          this.errorMessageDetails = null;
-          this.successMessage = 'Passwort erfolgreich geändert!';
-          return true;
+    successMessage: string;
+    errorMessage: string;
+    errorMessageDetails: string[];
+    form = new FormGroup({
+            currentPassword: new FormControl<string>(null, [
+                Validators.required
+            ]),
+            newPassword: new FormControl<string>(null, [
+                Validators.required,
+                Validators.minLength(8),
+                Validators.maxLength(50)
+            ]),
+            newRepeatedPassword: new FormControl<string>(null, [
+                Validators.required,
+                Validators.minLength(8),
+                Validators.maxLength(50)
+            ])
+        },
+        {
+            validators: [this.validateNewAndRepeatedPasswords()],
+            updateOn: 'change'
         }
-      ),
-      catchError(
-        (error: HttpErrorResponse) => {
-          const errorBody = error.error as ChangePasswordResponse;
-          this.errorMessage = errorBody.message;
-          this.errorMessageDetails = errorBody.details;
-          this.successMessage = null;
-          return throwError(() => false);
-        }
-      )
     );
-  }
+    private userApiService = inject(UserApiService);
 
-  reset() {
-    this.successMessage = null;
-    this.errorMessage = null;
-    this.errorMessageDetails = null;
-    this.form.reset();
-  }
+    get currentPassword() {
+        return this.form.get('currentPassword');
+    }
 
-  validateNewAndRepeatedPasswords(): ValidatorFn {
-    return (formGroup: FormGroup) => {
-      const newPassword = formGroup.get('newPassword').value;
-      const newRepeatedPassword = formGroup.get('newRepeatedPassword').value;
+    get newPassword() {
+        return this.form.get('newPassword');
+    }
 
-      if (newPassword !== newRepeatedPassword) {
-        return {passwordsDontMatch: true};
-      }
+    get newRepeatedPassword() {
+        return this.form.get('newRepeatedPassword');
+    }
 
-      return null;
-    };
-  }
+    changePassword(): Observable<boolean> {
+        const currentPassword = this.currentPassword.value;
+        const newPassword = this.newPassword.value;
 
-  isValid() {
-    return this.form.valid;
-  }
+        const passwordChangeRequest: ChangePasswordRequest = {passwordCurrent: currentPassword, passwordNew: newPassword};
 
-  get currentPassword() {
-    return this.form.get('currentPassword');
-  }
+        return this.userApiService.changePassword(passwordChangeRequest).pipe(
+            map(
+                /* eslint-disable @typescript-eslint/no-unused-vars */
+                (response: ChangePasswordResponse) => {
+                    this.errorMessage = null;
+                    this.errorMessageDetails = null;
+                    this.successMessage = 'Passwort erfolgreich geändert!';
+                    return true;
+                }
+            ),
+            catchError(
+                (error: HttpErrorResponse) => {
+                    const errorBody = error.error as ChangePasswordResponse;
+                    this.errorMessage = errorBody.message;
+                    this.errorMessageDetails = errorBody.details;
+                    this.successMessage = null;
+                    return throwError(() => false);
+                }
+            )
+        );
+    }
 
-  get newPassword() {
-    return this.form.get('newPassword');
-  }
+    reset() {
+        this.successMessage = null;
+        this.errorMessage = null;
+        this.errorMessageDetails = null;
+        this.form.reset();
+    }
 
-  get newRepeatedPassword() {
-    return this.form.get('newRepeatedPassword');
-  }
+    validateNewAndRepeatedPasswords(): ValidatorFn {
+        return (formGroup: FormGroup) => {
+            const newPassword = formGroup.get('newPassword').value;
+            const newRepeatedPassword = formGroup.get('newRepeatedPassword').value;
+
+            if (newPassword !== newRepeatedPassword) {
+                return {passwordsDontMatch: true};
+            }
+
+            return null;
+        };
+    }
+
+    isValid() {
+        return this.form.valid;
+    }
 
 }

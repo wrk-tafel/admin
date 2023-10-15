@@ -1,5 +1,5 @@
 import {HttpClient, HttpParams, HttpResponse} from '@angular/common/http';
-import {Injectable} from '@angular/core';
+import {inject, Injectable} from '@angular/core';
 import {Observable} from 'rxjs';
 import {CountryData} from './country-api.service';
 
@@ -7,10 +7,7 @@ import {CountryData} from './country-api.service';
     providedIn: 'root'
 })
 export class CustomerApiService {
-    constructor(
-        private http: HttpClient
-    ) {
-    }
+    private http = inject(HttpClient);
 
     validate(data: CustomerData): Observable<ValidateCustomerResponse> {
         return this.http.post<ValidateCustomerResponse>('/customers/validate', data);
@@ -44,13 +41,16 @@ export class CustomerApiService {
             });
     }
 
-    searchCustomer(lastname?: string, firstname?: string, page?: number): Observable<CustomerSearchResult> {
+    searchCustomer(lastname?: string, firstname?: string, postProcessing?: boolean, page?: number): Observable<CustomerSearchResult> {
         let queryParams = new HttpParams();
         if (lastname) {
             queryParams = queryParams.set('lastname', lastname);
         }
         if (firstname) {
             queryParams = queryParams.set('firstname', firstname);
+        }
+        if (postProcessing) {
+            queryParams = queryParams.set('postProcessing', postProcessing);
         }
         if (page) {
             queryParams = queryParams.set('page', page);
@@ -80,9 +80,9 @@ export interface CustomerData {
     id?: number;
     issuer?: CustomerIssuer;
     issuedAt?: Date;
-    firstname: string;
-    lastname: string;
-    birthDate: Date;
+    firstname?: string;
+    lastname?: string;
+    birthDate?: Date;
     gender: Gender;
     country?: CountryData;
     address: CustomerAddressData;
@@ -106,7 +106,7 @@ export interface CustomerIssuer {
 }
 
 export interface CustomerAddressData {
-    street: string;
+    street?: string;
     houseNumber?: string;
     stairway?: string;
     door?: string;
@@ -119,8 +119,8 @@ export interface CustomerAddPersonData {
     id: number;
     firstname: string;
     lastname: string;
-    birthDate: Date;
-    gender: Gender;
+    birthDate?: Date;
+    gender?: Gender;
     country?: CountryData;
     employer?: string;
     income?: number;

@@ -3,39 +3,37 @@ import {ActivatedRouteSnapshot} from '@angular/router';
 import {AuthenticationService} from './authentication.service';
 
 @Injectable({
-  providedIn: 'root'
+    providedIn: 'root'
 })
 export class AuthGuardService {
 
-  constructor(
-    private auth: AuthenticationService
-  ) {
-  }
-
-  canActivate(childRoute: ActivatedRouteSnapshot): boolean {
-    const routeData: AuthGuardData = childRoute.data;
-
-    const authenticated = this.auth.isAuthenticated();
-    const needsAnyPermission = routeData.anyPermission;
-    const hasAnyPermission = this.auth.hasAnyPermission();
-
-    if (!authenticated || (needsAnyPermission && !hasAnyPermission)) {
-      this.auth.redirectToLogin('fehlgeschlagen');
-      return false;
+    constructor(private authenticationService: AuthenticationService) {
     }
 
-    const permission = routeData.permission;
-    if (permission == null || this.auth.hasPermission(permission)) {
-      return true;
-    }
+    canActivate(childRoute: ActivatedRouteSnapshot): boolean {
+        const routeData: AuthGuardData = childRoute.data;
 
-    this.auth.redirectToLogin('fehlgeschlagen');
-    return false;
-  }
+        const authenticated = this.authenticationService.isAuthenticated();
+        const needsAnyPermission = routeData.anyPermission;
+        const hasAnyPermission = this.authenticationService.hasAnyPermission();
+
+        if (!authenticated || (needsAnyPermission && !hasAnyPermission)) {
+            this.authenticationService.redirectToLogin('fehlgeschlagen');
+            return false;
+        }
+
+        const permission = routeData.permission;
+        if (permission == null || this.authenticationService.hasPermission(permission)) {
+            return true;
+        }
+
+        this.authenticationService.redirectToLogin('fehlgeschlagen');
+        return false;
+    }
 
 }
 
 export interface AuthGuardData {
-  anyPermission?: boolean;
-  permission?: string;
+    anyPermission?: boolean;
+    permission?: string;
 }
