@@ -7,10 +7,6 @@
 # TODO
 
 * Add goods-input
-* Centralize testdata / mocks
-
-* Fix: Difference in header (only local development)
-* Fix: Errorhandling in DataResolver (no toast shown currently by error-interceptor) - only on local development!
 
 ### Open things (to be decided)
 
