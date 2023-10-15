@@ -32,6 +32,10 @@ export class CustomerFormComponent implements OnInit {
         }
     }
 
+    get id() {
+        return this.form.get('id');
+    }
+
     get lastname() {
         return this.form.get('lastname');
     }
@@ -108,6 +112,7 @@ export class CustomerFormComponent implements OnInit {
     @Output() customerDataChange = new EventEmitter<CustomerData>();
 
     form = new FormGroup({
+        id: new FormControl<number>(null),
         lastname: new FormControl<string>(null, [Validators.required, Validators.maxLength(50)]),
         firstname: new FormControl<string>(null, [Validators.required, Validators.maxLength(50)]),
         birthDate: new FormControl<Date>(null, [

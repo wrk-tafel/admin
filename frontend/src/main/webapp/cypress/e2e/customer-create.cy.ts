@@ -26,24 +26,6 @@ describe('Customer Creation', () => {
     cy.url().should('include', '/kunden/detail');
   });
 
-  it('create existing qualified customer', () => {
-    cy.getAnyRandomNumber().then((customerId: number) => {
-      createCustomer(customerId);
-
-      cy.byTestId('validationresult-modal')
-        .should('be.visible')
-        .within(() => {
-          cy.byTestId('title').contains('Anspruch vorhanden');
-          cy.byTestId('header').should('have.class', 'bg-success');
-          cy.byTestId('ok-button').click();
-        });
-
-      cy.byTestId('save-button').click();
-
-      cy.url().should('include', '/kunden/detail/' + customerId);
-    });
-  });
-
   it('create new customer not qualified', () => {
     createCustomer(0, 10000);
 

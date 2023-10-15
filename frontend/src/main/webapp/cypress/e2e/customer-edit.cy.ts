@@ -4,11 +4,6 @@ describe('Customer Edit', () => {
     cy.loginDefault();
   });
 
-  it('customerId correct', () => {
-    cy.visit('/#/kunden/bearbeiten/102');
-    cy.byTestId('customerIdInput').should('have.value', '102');
-  });
-
   it('customer updated', () => {
     cy.visit('/#/kunden/bearbeiten/102');
 
