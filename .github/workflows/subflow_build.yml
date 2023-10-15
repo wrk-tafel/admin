@@ -1,7 +1,7 @@
 name: Build and Analyze
 
 env:
-  JAVA_VERSION: '17'
+  JAVA_VERSION: '21'
   JAVA_DISTRIBUTION: 'adopt'
 
 on:
@@ -18,7 +18,7 @@ jobs:
       pull-requests: read # allows SonarCloud to decorate PRs with analysis results
     steps:
       - uses: actions/checkout@v4
-      - name: Set up JDK 17
+      - name: Set up JDK
         uses: actions/setup-java@v3.13.0
         with:
           java-version: ${{ env.JAVA_VERSION }}

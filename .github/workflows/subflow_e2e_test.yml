@@ -1,7 +1,7 @@
 name: E2E Test
 
 env:
-  JAVA_VERSION: '17'
+  JAVA_VERSION: '21'
   JAVA_DISTRIBUTION: 'adopt'
 
 on:
