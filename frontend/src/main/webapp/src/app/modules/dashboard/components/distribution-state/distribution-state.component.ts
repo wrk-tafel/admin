@@ -7,11 +7,10 @@ import {GlobalStateService} from '../../../../common/state/global-state.service'
     templateUrl: 'distribution-state.component.html'
 })
 export class DistributionStateComponent implements OnInit {
-    private distributionApiService = inject(DistributionApiService);
-    private globalStateService = inject(GlobalStateService);
-
     distribution: DistributionItem;
     showCloseDistributionModal = false;
+    private distributionApiService = inject(DistributionApiService);
+    private globalStateService = inject(GlobalStateService);
 
     ngOnInit() {
         this.globalStateService.getCurrentDistribution().subscribe((distribution) => {

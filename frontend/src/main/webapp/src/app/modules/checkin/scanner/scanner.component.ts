@@ -11,17 +11,34 @@ import {Colors} from '@coreui/angular';
     templateUrl: 'scanner.component.html'
 })
 export class ScannerComponent implements OnInit, OnDestroy {
-    private qrCodeReaderService = inject(QRCodeReaderService);
-    private websocketService = inject(WebsocketService);
-
     scannerId: number;
     availableCameras: CameraDevice[] = [];
     currentCamera: CameraDevice;
-
     qrCodeReaderReady = false;
     apiClientReady = false;
-
     lastSentText: string;
+    private qrCodeReaderService = inject(QRCodeReaderService);
+    private websocketService = inject(WebsocketService);
+
+    get selectedCamera(): CameraDevice {
+        return this.currentCamera;
+    }
+
+    set selectedCamera(camera: CameraDevice) {
+        this.currentCamera = camera;
+        this.qrCodeReaderService.saveCurrentCamera(camera);
+
+        const promise = this.qrCodeReaderService.restart(camera.id);
+        this.processQrCodeReaderPromise(promise);
+    }
+
+    get apiConnectionStateColor(): Colors {
+        return this.apiClientReady ? 'success' : 'danger';
+    }
+
+    get webcamStateColor(): Colors {
+        return this.qrCodeReaderReady ? 'success' : 'danger';
+    }
 
     ngOnInit(): void {
         this.websocketService.getConnectionState().subscribe((state: RxStompState) => {
@@ -86,26 +103,6 @@ export class ScannerComponent implements OnInit, OnDestroy {
             }
         );
         this.websocketService.publish({destination: '/app/scanners/register'});
-    }
-
-    get selectedCamera(): CameraDevice {
-        return this.currentCamera;
-    }
-
-    set selectedCamera(camera: CameraDevice) {
-        this.currentCamera = camera;
-        this.qrCodeReaderService.saveCurrentCamera(camera);
-
-        const promise = this.qrCodeReaderService.restart(camera.id);
-        this.processQrCodeReaderPromise(promise);
-    }
-
-    get apiConnectionStateColor(): Colors {
-        return this.apiClientReady ? 'success' : 'danger';
-    }
-
-    get webcamStateColor(): Colors {
-        return this.qrCodeReaderReady ? 'success' : 'danger';
     }
 
 }

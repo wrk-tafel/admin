@@ -8,12 +8,11 @@ import {ToastService, ToastType} from '../../../common/views/default-layout/toas
     templateUrl: 'user-detail.component.html'
 })
 export class UserDetailComponent implements OnInit {
+    userData: UserData;
     private activatedRoute = inject(ActivatedRoute);
     private userApiService = inject(UserApiService);
     private router = inject(Router);
     private toastService = inject(ToastService);
-
-    userData: UserData;
 
     ngOnInit(): void {
         this.userData = this.activatedRoute.snapshot.data.userData;
@@ -25,17 +24,6 @@ export class UserDetailComponent implements OnInit {
 
     enableUser() {
         this.changeUserState(true);
-    }
-
-    private changeUserState(enabled: boolean) {
-        const modifiedUser = {
-            ...this.userData,
-            enabled: enabled
-        };
-
-        this.userApiService.updateUser(modifiedUser).subscribe(updatedUser => {
-            this.userData = updatedUser;
-        });
     }
 
     deleteUser() {
@@ -59,6 +47,17 @@ export class UserDetailComponent implements OnInit {
         return this.userData?.permissions
             .map(permission => permission.title)
             .join(', ');
+    }
+
+    private changeUserState(enabled: boolean) {
+        const modifiedUser = {
+            ...this.userData,
+            enabled: enabled
+        };
+
+        this.userApiService.updateUser(modifiedUser).subscribe(updatedUser => {
+            this.userData = updatedUser;
+        });
     }
 
 }

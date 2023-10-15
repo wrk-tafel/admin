@@ -8,16 +8,14 @@ import {AuthenticationService} from '../../security/authentication.service';
     templateUrl: 'login.component.html'
 })
 export class LoginComponent implements OnInit {
-    private authenticationService = inject(AuthenticationService);
-    private router = inject(Router);
-    private route = inject(ActivatedRoute);
-
     errorMessage: string;
-
     loginForm = new FormGroup({
         username: new FormControl<string>(null, Validators.required),
         password: new FormControl<string>(null, Validators.required)
     });
+    private authenticationService = inject(AuthenticationService);
+    private router = inject(Router);
+    private route = inject(ActivatedRoute);
 
     ngOnInit(): void {
         this.route.params.subscribe(params => {

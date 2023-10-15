@@ -10,11 +10,6 @@ import {ToastService, ToastType} from '../../../../common/views/default-layout/t
     templateUrl: 'customer-edit.component.html'
 })
 export class CustomerEditComponent implements OnInit {
-    private customerApiService = inject(CustomerApiService);
-    private router = inject(Router);
-    private activatedRoute = inject(ActivatedRoute);
-    private toastService = inject(ToastService);
-
     customerInput: CustomerData;
     customerUpdated: CustomerData;
     editMode = false;
@@ -22,8 +17,11 @@ export class CustomerEditComponent implements OnInit {
     validationResult: ValidateCustomerResponse;
     validationResultColor: Colors;
     showValidationResultModal = false;
-
     @ViewChild(CustomerFormComponent) customerFormComponent: CustomerFormComponent;
+    private customerApiService = inject(CustomerApiService);
+    private router = inject(Router);
+    private activatedRoute = inject(ActivatedRoute);
+    private toastService = inject(ToastService);
 
     ngOnInit(): void {
         const customerData = this.activatedRoute.snapshot.data.customerData;

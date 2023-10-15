@@ -4,13 +4,14 @@ import {PasswordChangeFormComponent} from './views/passwordchange-form/passwordc
 import {ReactiveFormsModule} from '@angular/forms';
 import {CommonModule} from '@angular/common';
 import {
-  BgColorDirective, PaginationModule,
-  ProgressBarComponent,
-  ProgressComponent,
-  ToastBodyComponent,
-  ToastComponent,
-  ToasterComponent,
-  ToastHeaderComponent
+    BgColorDirective,
+    PaginationModule,
+    ProgressBarComponent,
+    ProgressComponent,
+    ToastBodyComponent,
+    ToastComponent,
+    ToasterComponent,
+    ToastHeaderComponent
 } from '@coreui/angular';
 import {TafelToasterComponent} from './views/default-layout/toasts/tafel-toaster.component';
 import {TafelToastComponent} from './views/default-layout/toasts/toast/tafel-toast.component';
@@ -19,34 +20,34 @@ import {TafelPaginationComponent} from './components/tafel-pagination/tafel-pagi
 import {RouterLink} from '@angular/router';
 
 @NgModule({
-  declarations: [
-    TafelIfPermissionDirective,
-    TafelIfDistributionActiveDirective,
-    PasswordChangeFormComponent,
-    TafelToasterComponent,
-    TafelToastComponent,
-    TafelPaginationComponent
-  ],
-  imports: [
-    ReactiveFormsModule,
-    CommonModule,
-    ToastComponent,
-    ToastHeaderComponent,
-    ToastBodyComponent,
-    BgColorDirective,
-    ToasterComponent,
-    ProgressComponent,
-    ProgressBarComponent,
-    PaginationModule,
-    RouterLink
-  ],
-  exports: [
-    TafelIfPermissionDirective,
-    TafelIfDistributionActiveDirective,
-    PasswordChangeFormComponent,
-    TafelToasterComponent,
-    TafelPaginationComponent
-  ]
+    declarations: [
+        TafelIfPermissionDirective,
+        TafelIfDistributionActiveDirective,
+        PasswordChangeFormComponent,
+        TafelToasterComponent,
+        TafelToastComponent,
+        TafelPaginationComponent
+    ],
+    imports: [
+        ReactiveFormsModule,
+        CommonModule,
+        ToastComponent,
+        ToastHeaderComponent,
+        ToastBodyComponent,
+        BgColorDirective,
+        ToasterComponent,
+        ProgressComponent,
+        ProgressBarComponent,
+        PaginationModule,
+        RouterLink
+    ],
+    exports: [
+        TafelIfPermissionDirective,
+        TafelIfDistributionActiveDirective,
+        PasswordChangeFormComponent,
+        TafelToasterComponent,
+        TafelPaginationComponent
+    ]
 })
 export class TafelCommonModule {
 }

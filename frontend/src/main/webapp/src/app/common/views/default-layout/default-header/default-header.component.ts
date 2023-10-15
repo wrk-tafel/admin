@@ -7,9 +7,8 @@ import {AuthenticationService} from '../../../security/authentication.service';
     templateUrl: './default-header.component.html',
 })
 export class DefaultHeaderComponent extends HeaderComponent {
-    private authenticationService = inject(AuthenticationService);
-
     @Input() sidebarId = 'sidebar';
+    private authenticationService = inject(AuthenticationService);
 
     public logout() {
         /* eslint-disable @typescript-eslint/no-unused-vars */

@@ -10,13 +10,16 @@ import {UrlHelperService} from '../../../common/util/url-helper.service';
     templateUrl: 'ticket-screen-control.component.html'
 })
 export class TicketScreenControlComponent {
+    form = new FormGroup({
+        startTime: new FormControl<string>(null, Validators.required)
+    });
     private websocketService = inject(WebsocketService);
     private distributionTicketApiService = inject(DistributionTicketApiService);
     private urlHelperService = inject(UrlHelperService);
 
-    form = new FormGroup({
-        startTime: new FormControl<string>(null, Validators.required)
-    });
+    get startTime() {
+        return this.form.get('startTime');
+    }
 
     openScreenInNewTab() {
         const baseUrl = this.urlHelperService.getBaseUrl();
@@ -52,10 +55,6 @@ export class TicketScreenControlComponent {
 
     private sendToTicketScreen(message: TicketScreenMessage) {
         this.websocketService.publish({destination: '/topic/ticket-screen', body: JSON.stringify(message)});
-    }
-
-    get startTime() {
-        return this.form.get('startTime');
     }
 
 }

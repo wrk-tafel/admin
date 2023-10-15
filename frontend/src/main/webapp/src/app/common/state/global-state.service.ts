@@ -16,6 +16,10 @@ export class GlobalStateService {
         return this.getCurrentDistributionPromise();
     }
 
+    getCurrentDistribution(): BehaviorSubject<DistributionItem> {
+        return this.currentDistribution;
+    }
+
     /* eslint-disable @typescript-eslint/no-explicit-any */
     private getCurrentDistributionPromise(): Promise<any> {
         return new Promise((resolve, reject) => {
@@ -32,10 +36,6 @@ export class GlobalStateService {
 
             this.distributionApiService.getCurrentDistribution().subscribe(observer);
         });
-    }
-
-    getCurrentDistribution(): BehaviorSubject<DistributionItem> {
-        return this.currentDistribution;
     }
 
 }

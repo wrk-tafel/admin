@@ -9,8 +9,8 @@ import {Subject} from 'rxjs';
     templateUrl: 'tafel-toaster.component.html'
 })
 export class TafelToasterComponent implements OnInit {
-    private toastService = inject(ToastService);
     @ViewChild(ToasterComponent) toaster: ToasterComponent;
+    private toastService = inject(ToastService);
 
     ngOnInit(): void {
         this.subscribeToastSubject(this.toastService.addToastSubject);

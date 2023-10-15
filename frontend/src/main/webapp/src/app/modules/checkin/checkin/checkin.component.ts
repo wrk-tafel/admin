@@ -18,6 +18,20 @@ import {WebsocketService} from "../../../common/websocket/websocket.service";
     templateUrl: 'checkin.component.html'
 })
 export class CheckinComponent implements OnInit, OnDestroy {
+    scannerIds: number[];
+    currentScannerId: number;
+    scannerReadyState: boolean;
+    scannerSubscription: Subscription;
+    customerId: number;
+    customer: CustomerData;
+    customerState: CustomerState;
+    customerStateText: string;
+    customerNotes: CustomerNoteItem[];
+    ticketNumber: number;
+    ticketNumberEdit = false;
+    @ViewChild('customerIdInput') customerIdInputRef: ElementRef;
+    @ViewChild('ticketNumberInput') ticketNumberInputRef: ElementRef;
+    @ViewChild('cancelButton') cancelButtonRef: ElementRef;
     private customerApiService = inject(CustomerApiService);
     private customerNoteApiService = inject(CustomerNoteApiService);
     private websocketService = inject(WebsocketService);
@@ -27,26 +41,34 @@ export class CheckinComponent implements OnInit, OnDestroy {
     private router = inject(Router);
     private changeDetectorRef = inject(ChangeDetectorRef);
     private toastService = inject(ToastService);
-
     private VALID_UNTIL_WARNLIMIT_WEEKS = 8;
 
-    scannerIds: number[];
-    currentScannerId: number;
-    scannerReadyState: boolean;
-    scannerSubscription: Subscription;
+    get selectedScannerId(): number {
+        return this.currentScannerId;
+    }
 
-    customerId: number;
-    customer: CustomerData;
-    customerState: CustomerState;
-    customerStateText: string;
+    set selectedScannerId(scannerId: number) {
+        this.currentScannerId = scannerId;
+        if (this.scannerSubscription) {
+            this.scannerSubscription.unsubscribe();
+        }
+        this.scannerReadyState = false;
 
-    customerNotes: CustomerNoteItem[];
-    ticketNumber: number;
-    ticketNumberEdit = false;
+        if (scannerId) {
+            this.scannerSubscription = this.websocketService.watch(`/topic/scanners/${this.currentScannerId}/results`)
+                .subscribe((message: IMessage) => {
+                    const result: ScanResult = JSON.parse(message.body);
+                    this.customerId = result.value;
+                    this.searchForCustomerId();
+                });
 
-    @ViewChild('customerIdInput') customerIdInputRef: ElementRef;
-    @ViewChild('ticketNumberInput') ticketNumberInputRef: ElementRef;
-    @ViewChild('cancelButton') cancelButtonRef: ElementRef;
+            this.scannerReadyState = true;
+        }
+    }
+
+    get scannerReadyStateColor(): Colors {
+        return this.scannerReadyState ? 'success' : 'danger';
+    }
 
     ngOnInit(): void {
         if (this.globalStateService.getCurrentDistribution().value === null) {
@@ -137,29 +159,6 @@ export class CheckinComponent implements OnInit, OnDestroy {
         return length;
     }
 
-    get selectedScannerId(): number {
-        return this.currentScannerId;
-    }
-
-    set selectedScannerId(scannerId: number) {
-        this.currentScannerId = scannerId;
-        if (this.scannerSubscription) {
-            this.scannerSubscription.unsubscribe();
-        }
-        this.scannerReadyState = false;
-
-        if (scannerId) {
-            this.scannerSubscription = this.websocketService.watch(`/topic/scanners/${this.currentScannerId}/results`)
-                .subscribe((message: IMessage) => {
-                    const result: ScanResult = JSON.parse(message.body);
-                    this.customerId = result.value;
-                    this.searchForCustomerId();
-                });
-
-            this.scannerReadyState = true;
-        }
-    }
-
     cancel() {
         this.processCustomer(undefined);
         this.customerNotes = [];
@@ -202,8 +201,16 @@ export class CheckinComponent implements OnInit, OnDestroy {
         }
     }
 
-    get scannerReadyStateColor(): Colors {
-        return this.scannerReadyState ? 'success' : 'danger';
+    deleteTicket() {
+        const observer = {
+            next: () => {
+                this.ticketNumber = undefined;
+                this.ticketNumberEdit = undefined;
+                this.toastService.showToast({type: ToastType.SUCCESS, title: 'Ticket-Nummer gelöscht!'});
+                this.ticketNumberInputRef.nativeElement.focus();
+            }
+        };
+        this.distributionTicketApiService.deleteCurrentTicketOfCustomer(this.customer.id).subscribe(observer);
     }
 
     private getCustomerStateColor(): Colors {
@@ -217,18 +224,6 @@ export class CheckinComponent implements OnInit, OnDestroy {
             default:
                 return null;
         }
-    }
-
-    deleteTicket() {
-        const observer = {
-            next: () => {
-                this.ticketNumber = undefined;
-                this.ticketNumberEdit = undefined;
-                this.toastService.showToast({type: ToastType.SUCCESS, title: 'Ticket-Nummer gelöscht!'});
-                this.ticketNumberInputRef.nativeElement.focus();
-            }
-        };
-        this.distributionTicketApiService.deleteCurrentTicketOfCustomer(this.customer.id).subscribe(observer);
     }
 
 }

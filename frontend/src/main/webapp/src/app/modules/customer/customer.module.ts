@@ -24,8 +24,10 @@ import {
     DropdownMenuDirective,
     DropdownModule,
     DropdownToggleDirective,
-    FormCheckComponent, FormCheckInputDirective,
-    FormControlDirective, FormLabelDirective,
+    FormCheckComponent,
+    FormCheckInputDirective,
+    FormControlDirective,
+    FormLabelDirective,
     InputGroupComponent,
     InputGroupTextDirective,
     ModalBodyComponent,
@@ -99,15 +101,15 @@ import {TafelCommonModule} from '../../common/tafel-common.module';
         FormCheckInputDirective,
         FormLabelDirective
     ],
-  declarations: [
-    CustomerDetailComponent,
-    CustomerEditComponent,
-    CustomerFormComponent,
-    CustomerSearchComponent
-  ],
-  providers: [
-    CustomerApiService
-  ]
+    declarations: [
+        CustomerDetailComponent,
+        CustomerEditComponent,
+        CustomerFormComponent,
+        CustomerSearchComponent
+    ],
+    providers: [
+        CustomerApiService
+    ]
 })
 export class CustomerModule {
 }

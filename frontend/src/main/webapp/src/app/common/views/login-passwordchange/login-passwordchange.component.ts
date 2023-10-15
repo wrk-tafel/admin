@@ -8,10 +8,9 @@ import {AuthenticationService, LoginResult} from '../../security/authentication.
     templateUrl: 'login-passwordchange.component.html'
 })
 export class LoginPasswordChangeComponent {
+    @ViewChild(PasswordChangeFormComponent) public form: PasswordChangeFormComponent;
     private authenticationService = inject(AuthenticationService);
     private router = inject(Router);
-
-    @ViewChild(PasswordChangeFormComponent) public form: PasswordChangeFormComponent;
 
     changePassword() {
         this.form.changePassword().subscribe(successful => {

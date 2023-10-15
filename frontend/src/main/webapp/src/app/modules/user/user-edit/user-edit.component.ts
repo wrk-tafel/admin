@@ -8,16 +8,14 @@ import {UserFormComponent} from '../user-form/user-form.component';
     templateUrl: 'user-edit.component.html'
 })
 export class UserEditComponent implements OnInit {
-    private userApiService = inject(UserApiService);
-    private router = inject(Router);
-    private activatedRoute = inject(ActivatedRoute);
-
     userInput: UserData;
     userUpdated: UserData;
     userValidForSave = false;
     permissionsData: UserPermission[];
-
     @ViewChild(UserFormComponent) userFormComponent: UserFormComponent;
+    private userApiService = inject(UserApiService);
+    private router = inject(Router);
+    private activatedRoute = inject(ActivatedRoute);
 
     ngOnInit(): void {
         this.permissionsData = this.activatedRoute.snapshot.data.permissionsData;

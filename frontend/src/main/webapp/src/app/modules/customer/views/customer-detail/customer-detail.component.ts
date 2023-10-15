@@ -24,24 +24,21 @@ import {TafelPaginationData} from '../../../../common/components/tafel-paginatio
     templateUrl: 'customer-detail.component.html'
 })
 export class CustomerDetailComponent implements OnInit {
+    customerData: CustomerData;
+    customerNotes: CustomerNoteItem[];
+    customerNotesPaginationData: TafelPaginationData;
+    newNoteText: string;
+    lockReasonText: string;
+    showDeleteCustomerModal = false;
+    showAddNewNoteModal = false;
+    showAllNotesModal = false;
+    showLockCustomerModal = false;
     private activatedRoute = inject(ActivatedRoute);
     private customerApiService = inject(CustomerApiService);
     private customerNoteApiService = inject(CustomerNoteApiService);
     private fileHelperService = inject(FileHelperService);
     private router = inject(Router);
     private toastService = inject(ToastService);
-
-    customerData: CustomerData;
-    customerNotes: CustomerNoteItem[];
-    customerNotesPaginationData: TafelPaginationData;
-
-    newNoteText: string;
-    lockReasonText: string;
-
-    showDeleteCustomerModal = false;
-    showAddNewNoteModal = false;
-    showAllNotesModal = false;
-    showLockCustomerModal = false;
 
     ngOnInit(): void {
         this.customerData = this.activatedRoute.snapshot.data.customerData;

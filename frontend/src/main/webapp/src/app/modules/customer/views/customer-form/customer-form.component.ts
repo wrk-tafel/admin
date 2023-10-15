@@ -11,6 +11,45 @@ import * as moment from 'moment';
     templateUrl: 'customer-form.component.html'
 })
 export class CustomerFormComponent implements OnInit {
+    @Input() editMode = false;
+    @Output() customerDataChange = new EventEmitter<CustomerData>();
+    form = new FormGroup({
+        id: new FormControl<number>(null),
+        lastname: new FormControl<string>(null, [Validators.required, Validators.maxLength(50)]),
+        firstname: new FormControl<string>(null, [Validators.required, Validators.maxLength(50)]),
+        birthDate: new FormControl<Date>(null, [
+            Validators.required,
+            CustomValidator.minDate(new Date(1900, 0, 1)),
+            CustomValidator.maxDate(new Date())
+        ]),
+        gender: new FormControl<Gender>(null, [Validators.required]),
+
+        country: new FormControl<CountryData>(null, Validators.required),
+        telephoneNumber: new FormControl<string>(null, [Validators.pattern('^[0-9]*$')]),
+        email: new FormControl<string>(null, [Validators.maxLength(100), Validators.email]),
+
+        address: new FormGroup({
+            street: new FormControl<string>(null, [Validators.required, Validators.maxLength(100)]),
+            houseNumber: new FormControl<string>(null, [Validators.required, Validators.maxLength(10)]),
+            stairway: new FormControl<string>(null),
+            door: new FormControl<string>(null),
+            postalCode: new FormControl<number>(null, [Validators.required, Validators.pattern('^[0-9]{4}$')]),
+            city: new FormControl<string>(null, [Validators.required, Validators.maxLength(50)]),
+        }),
+
+        employer: new FormControl<string>(null, Validators.required),
+        income: new FormControl<number>(null, [Validators.required, Validators.min(1)]),
+        incomeDue: new FormControl<Date>(null, [CustomValidator.minDate(new Date())]),
+
+        validUntil: new FormControl<Date>(null, [
+            Validators.required,
+            CustomValidator.minDate(new Date())
+        ]),
+
+        additionalPersons: new FormArray([])
+    });
+    countries: CountryData[];
+    genders: Gender[] = [Gender.FEMALE, Gender.MALE];
     private countryApiService = inject(CountryApiService);
 
     get customerData() {
@@ -108,47 +147,6 @@ export class CustomerFormComponent implements OnInit {
         return this.form.get('additionalPersons') as FormArray;
     }
 
-    @Input() editMode = false;
-    @Output() customerDataChange = new EventEmitter<CustomerData>();
-
-    form = new FormGroup({
-        id: new FormControl<number>(null),
-        lastname: new FormControl<string>(null, [Validators.required, Validators.maxLength(50)]),
-        firstname: new FormControl<string>(null, [Validators.required, Validators.maxLength(50)]),
-        birthDate: new FormControl<Date>(null, [
-            Validators.required,
-            CustomValidator.minDate(new Date(1900, 0, 1)),
-            CustomValidator.maxDate(new Date())
-        ]),
-        gender: new FormControl<Gender>(null, [Validators.required]),
-
-        country: new FormControl<CountryData>(null, Validators.required),
-        telephoneNumber: new FormControl<string>(null, [Validators.pattern('^[0-9]*$')]),
-        email: new FormControl<string>(null, [Validators.maxLength(100), Validators.email]),
-
-        address: new FormGroup({
-            street: new FormControl<string>(null, [Validators.required, Validators.maxLength(100)]),
-            houseNumber: new FormControl<string>(null, [Validators.required, Validators.maxLength(10)]),
-            stairway: new FormControl<string>(null),
-            door: new FormControl<string>(null),
-            postalCode: new FormControl<number>(null, [Validators.required, Validators.pattern('^[0-9]{4}$')]),
-            city: new FormControl<string>(null, [Validators.required, Validators.maxLength(50)]),
-        }),
-
-        employer: new FormControl<string>(null, Validators.required),
-        income: new FormControl<number>(null, [Validators.required, Validators.min(1)]),
-        incomeDue: new FormControl<Date>(null, [CustomValidator.minDate(new Date())]),
-
-        validUntil: new FormControl<Date>(null, [
-            Validators.required,
-            CustomValidator.minDate(new Date())
-        ]),
-
-        additionalPersons: new FormArray([])
-    });
-    countries: CountryData[];
-    genders: Gender[] = [Gender.FEMALE, Gender.MALE];
-
     ngOnInit(): void {
         this.countryApiService.getCountries().subscribe((countries) => {
             this.countries = countries;
@@ -229,6 +227,10 @@ export class CustomerFormComponent implements OnInit {
         return this.form.valid;
     }
 
+    getGenderLabel(gender: Gender): string {
+        return GenderLabel[gender];
+    }
+
     private pushPersonGroupControl(additionalPerson: CustomerAddPersonData) {
         const control = new FormGroup({
             key: new FormControl<number>(additionalPerson.key),
@@ -256,10 +258,6 @@ export class CustomerFormComponent implements OnInit {
         });
 
         this.additionalPersons.push(control);
-    }
-
-    getGenderLabel(gender: Gender): string {
-        return GenderLabel[gender];
     }
 
 }

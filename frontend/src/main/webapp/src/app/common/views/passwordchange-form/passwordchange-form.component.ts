@@ -10,12 +10,9 @@ import {HttpErrorResponse} from '@angular/common/http';
     templateUrl: 'passwordchange-form.component.html'
 })
 export class PasswordChangeFormComponent {
-    private userApiService = inject(UserApiService);
-
     successMessage: string;
     errorMessage: string;
     errorMessageDetails: string[];
-
     form = new FormGroup({
             currentPassword: new FormControl<string>(null, [
                 Validators.required
@@ -36,6 +33,19 @@ export class PasswordChangeFormComponent {
             updateOn: 'change'
         }
     );
+    private userApiService = inject(UserApiService);
+
+    get currentPassword() {
+        return this.form.get('currentPassword');
+    }
+
+    get newPassword() {
+        return this.form.get('newPassword');
+    }
+
+    get newRepeatedPassword() {
+        return this.form.get('newRepeatedPassword');
+    }
 
     changePassword(): Observable<boolean> {
         const currentPassword = this.currentPassword.value;
@@ -87,18 +97,6 @@ export class PasswordChangeFormComponent {
 
     isValid() {
         return this.form.valid;
-    }
-
-    get currentPassword() {
-        return this.form.get('currentPassword');
-    }
-
-    get newPassword() {
-        return this.form.get('newPassword');
-    }
-
-    get newRepeatedPassword() {
-        return this.form.get('newRepeatedPassword');
     }
 
 }

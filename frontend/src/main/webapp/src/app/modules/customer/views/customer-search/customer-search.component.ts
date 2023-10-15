@@ -10,10 +10,6 @@ import {TafelPaginationData} from '../../../../common/components/tafel-paginatio
     templateUrl: 'customer-search.component.html'
 })
 export class CustomerSearchComponent {
-    private customerApiService = inject(CustomerApiService);
-    private router = inject(Router);
-    private toastService = inject(ToastService);
-
     searchResult: CustomerSearchResult;
     customerSearchForm = new FormGroup({
         customerId: new FormControl<number>(null),
@@ -22,6 +18,9 @@ export class CustomerSearchComponent {
         postProcessing: new FormControl<boolean>(null),
     });
     paginationData: TafelPaginationData;
+    private customerApiService = inject(CustomerApiService);
+    private router = inject(Router);
+    private toastService = inject(ToastService);
 
     get customerId() {
         return this.customerSearchForm.get('customerId');

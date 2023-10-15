@@ -9,10 +9,9 @@ import {GlobalStateService} from '../../state/global-state.service';
     templateUrl: 'default-layout.component.html'
 })
 export class DefaultLayoutComponent implements OnInit {
+    public navItems: ITafelNavData[] = navigationMenuItems;
     private authenticationService = inject(AuthenticationService);
     private globalStateService = inject(GlobalStateService);
-
-    public navItems: ITafelNavData[] = navigationMenuItems;
 
     ngOnInit() {
         this.globalStateService.getCurrentDistribution().subscribe((distribution: DistributionItem) => {

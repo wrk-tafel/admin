@@ -16,13 +16,9 @@ import {ToastService, ToastType} from '../../../common/views/default-layout/toas
     templateUrl: 'user-form.component.html'
 })
 export class UserFormComponent implements OnInit {
-    private userApiService = inject(UserApiService);
-    private toastService = inject(ToastService);
-
     @Input() userData: UserData;
     @Input() permissionsData: UserPermission[];
     @Output() userDataChange = new EventEmitter<UserData>();
-
     form = new FormGroup({
         id: new FormControl<number>(null),
         personnelNumber: new FormControl<string>(null, [Validators.required, Validators.maxLength(50)]),
@@ -35,9 +31,50 @@ export class UserFormComponent implements OnInit {
         passwordChangeRequired: new FormControl<boolean>(true, Validators.required),
         permissions: new FormArray<FormControl<UserPermissionFormItem>>([])
     }, [passwordRepeatValidator]);
-
     passwordTextVisible: boolean;
     passwordRepeatTextVisible: boolean;
+    private userApiService = inject(UserApiService);
+    private toastService = inject(ToastService);
+
+    get id() {
+        return this.form.get('id');
+    }
+
+    get username() {
+        return this.form.get('username');
+    }
+
+    get personnelNumber() {
+        return this.form.get('personnelNumber');
+    }
+
+    get lastname() {
+        return this.form.get('lastname');
+    }
+
+    get firstname() {
+        return this.form.get('firstname');
+    }
+
+    get enabled() {
+        return this.form.get('enabled');
+    }
+
+    get password() {
+        return this.form.get('password');
+    }
+
+    get passwordRepeat() {
+        return this.form.get('passwordRepeat');
+    }
+
+    get passwordChangeRequired() {
+        return this.form.get('passwordChangeRequired');
+    }
+
+    get permissions(): FormArray {
+        return this.form.get('permissions') as FormArray;
+    }
 
     ngOnInit(): void {
         if (this.userData) {
@@ -65,16 +102,6 @@ export class UserFormComponent implements OnInit {
             };
             this.userDataChange.emit(mappedUserData);
         });
-    }
-
-    private pushUserPermissionControl(userPermission: UserPermission, enabled: boolean) {
-        const control = new FormGroup({
-            key: new FormControl<string>(userPermission.key),
-            title: new FormControl<string>(userPermission.title),
-            enabled: new FormControl<boolean>(enabled)
-        });
-
-        this.permissions.push(control);
     }
 
     public markAllAsTouched() {
@@ -124,44 +151,14 @@ export class UserFormComponent implements OnInit {
         return permissionData.key;
     }
 
-    get id() {
-        return this.form.get('id');
-    }
+    private pushUserPermissionControl(userPermission: UserPermission, enabled: boolean) {
+        const control = new FormGroup({
+            key: new FormControl<string>(userPermission.key),
+            title: new FormControl<string>(userPermission.title),
+            enabled: new FormControl<boolean>(enabled)
+        });
 
-    get username() {
-        return this.form.get('username');
-    }
-
-    get personnelNumber() {
-        return this.form.get('personnelNumber');
-    }
-
-    get lastname() {
-        return this.form.get('lastname');
-    }
-
-    get firstname() {
-        return this.form.get('firstname');
-    }
-
-    get enabled() {
-        return this.form.get('enabled');
-    }
-
-    get password() {
-        return this.form.get('password');
-    }
-
-    get passwordRepeat() {
-        return this.form.get('passwordRepeat');
-    }
-
-    get passwordChangeRequired() {
-        return this.form.get('passwordChangeRequired');
-    }
-
-    get permissions(): FormArray {
-        return this.form.get('permissions') as FormArray;
+        this.permissions.push(control);
     }
 
 }

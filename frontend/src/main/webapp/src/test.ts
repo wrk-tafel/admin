@@ -8,9 +8,9 @@ import localeDeAt from '@angular/common/locales/de-AT';
 
 // First, initialize the Angular testing environment.
 getTestBed().initTestEnvironment(
-  BrowserDynamicTestingModule,
-  platformBrowserDynamicTesting(),
-  {teardown: {destroyAfterEach: true}},
+    BrowserDynamicTestingModule,
+    platformBrowserDynamicTesting(),
+    {teardown: {destroyAfterEach: true}},
 );
 
 registerLocaleData(localeDeAt);

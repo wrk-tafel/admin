@@ -8,10 +8,9 @@ import {catchError, map, tap} from 'rxjs/operators';
     providedIn: 'root'
 })
 export class AuthenticationService {
+    userInfo: UserInfo = null;
     private http = inject(HttpClient);
     private router = inject(Router);
-
-    userInfo: UserInfo = null;
 
     public async login(username: string, password: string): Promise<LoginResult> {
         return firstValueFrom(this.executeLoginRequest(username, password)
@@ -57,14 +56,6 @@ export class AuthenticationService {
         return this.http.post<void>('/users/logout', null);
     }
 
-    private executeLoginRequest(username: string, password: string): Observable<LoginResponse> {
-        const encodedCredentials = btoa(username + ':' + password);
-        const options = {
-            headers: new HttpHeaders().set('Authorization', 'Basic ' + encodedCredentials)
-        };
-        return this.http.post<LoginResponse>('/login', undefined, options);
-    }
-
     public loadUserInfo(): Promise<UserInfo> {
         return firstValueFrom(this.http.get<UserInfo>('/users/info')
             .pipe(tap(userInfo => {
@@ -76,6 +67,14 @@ export class AuthenticationService {
                     return of(null);
                 })
             ));
+    }
+
+    private executeLoginRequest(username: string, password: string): Observable<LoginResponse> {
+        const encodedCredentials = btoa(username + ':' + password);
+        const options = {
+            headers: new HttpHeaders().set('Authorization', 'Basic ' + encodedCredentials)
+        };
+        return this.http.post<LoginResponse>('/login', undefined, options);
     }
 
 }

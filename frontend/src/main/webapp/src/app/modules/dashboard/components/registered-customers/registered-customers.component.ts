@@ -8,10 +8,9 @@ import {FileHelperService} from '../../../../common/util/file-helper.service';
     templateUrl: 'registered-customers.component.html'
 })
 export class RegisteredCustomersComponent {
+    @Input() count?: number;
     private distributionApiService = inject(DistributionApiService);
     private fileHelperService = inject(FileHelperService);
-
-    @Input() count?: number;
 
     downloadCustomerList() {
         this.distributionApiService.downloadCustomerList().subscribe(response => this.processPdfResponse(response));

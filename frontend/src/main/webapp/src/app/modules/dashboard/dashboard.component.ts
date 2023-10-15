@@ -7,9 +7,8 @@ import {IMessage} from '@stomp/stompjs';
     templateUrl: 'dashboard.component.html'
 })
 export class DashboardComponent implements OnInit {
-    private websocketService = inject(WebsocketService);
-
     data: DashboardData;
+    private websocketService = inject(WebsocketService);
 
     ngOnInit(): void {
         this.websocketService.watch('/topic/dashboard').subscribe((message: IMessage) => {

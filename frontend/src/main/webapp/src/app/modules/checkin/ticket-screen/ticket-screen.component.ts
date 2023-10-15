@@ -7,10 +7,9 @@ import {IMessage} from '@stomp/stompjs';
     templateUrl: 'ticket-screen.component.html'
 })
 export class TicketScreenComponent implements OnInit {
-    private websocketService = inject(WebsocketService);
-
     startTime: Date;
     ticketNumber: number;
+    private websocketService = inject(WebsocketService);
 
     ngOnInit(): void {
         this.websocketService.connect();

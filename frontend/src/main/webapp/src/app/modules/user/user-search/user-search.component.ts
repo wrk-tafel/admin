@@ -10,10 +10,6 @@ import {TafelPaginationData} from '../../../common/components/tafel-pagination/t
     templateUrl: 'user-search.component.html'
 })
 export class UserSearchComponent {
-    private userApiService = inject(UserApiService);
-    private router = inject(Router);
-    private toastService = inject(ToastService);
-
     searchResult: UserSearchResult;
     userSearchForm = new FormGroup({
         personnelNumber: new FormControl<string>(null),
@@ -23,6 +19,9 @@ export class UserSearchComponent {
         enabled: new FormControl<boolean>(true)
     });
     paginationData: TafelPaginationData;
+    private userApiService = inject(UserApiService);
+    private router = inject(Router);
+    private toastService = inject(ToastService);
 
     get personnelNumber() {
         return this.userSearchForm.get('personnelNumber');
