@@ -150,7 +150,6 @@ class CustomerEntity : BaseChangeTrackingEntity() {
                         cb.isNull(root.get<String>("addressPostalCode")),
                         cb.isNull(root.get<String>("addressCity")),
                         cb.isNull(root.get<String>("employer")),
-                        cb.isNull(root.get<BigDecimal>("income")),
                         cb.isNull(additionalPersons.get<LocalDate>("birthDate")),
                         cb.isNull(additionalPersons.get<Gender>("gender"))
                     )
