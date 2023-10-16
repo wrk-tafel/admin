@@ -38,7 +38,7 @@ export class CustomerFormComponent implements OnInit {
         }),
 
         employer: new FormControl<string>(null, Validators.required),
-        income: new FormControl<number>(null, [Validators.required, Validators.min(1)]),
+        income: new FormControl<number>(null),
         incomeDue: new FormControl<Date>(null, [CustomValidator.minDate(new Date())]),
 
         validUntil: new FormControl<Date>(null, [
