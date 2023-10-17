@@ -126,10 +126,13 @@ class CustomerService(
                 }
             }
 
-            val filename =
-                "$filenamePrefix-${customer.customerId}-${customer.lastname}-${customer.firstname}"
-                    .lowercase()
-                    .replace("[^A-Za-z0-9]".toRegex(), "-") + ".pdf"
+            val customerName =
+                listOfNotNull(
+                    customer.customerId,
+                    customer.lastname,
+                    customer.firstname
+                ).joinToString("-") { it.toString() }
+            val filename = "$filenamePrefix-$customerName".lowercase().replace("[^A-Za-z0-9]".toRegex(), "-") + ".pdf"
             return CustomerPdfResult(filename = filename, bytes = bytes)
         }
         return null
