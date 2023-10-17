@@ -84,7 +84,6 @@ services:
 
 volumes:
   database-data:
-  database2-data:
   pgadmin-data:
   mysql-data:
 
