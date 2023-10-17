@@ -16,7 +16,9 @@ import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import jakarta.persistence.criteria.CriteriaBuilder
 import jakarta.persistence.criteria.CriteriaQuery
+import jakarta.persistence.criteria.Join
 import jakarta.persistence.criteria.Root
+import jakarta.persistence.criteria.Subquery
 import org.springframework.data.jpa.domain.Specification
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -134,17 +136,31 @@ class CustomerEntity : BaseChangeTrackingEntity() {
             }
 
             fun postProcessingNecessary(): Specification<CustomerEntity>? {
-                return Specification { root: Root<CustomerEntity>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                return Specification { root: Root<CustomerEntity>, cq: CriteriaQuery<*>, cb: CriteriaBuilder ->
+
+                    val subQuery: Subquery<Long> = cq.subquery(Long::class.java)
+                    val subRoot: Root<CustomerAddPersonEntity> = subQuery.from(CustomerAddPersonEntity::class.java)
+                    val subScopes: Join<CustomerAddPersonEntity, CustomerEntity> = subRoot.join("customer")
+                    subQuery.select(subScopes.get("id")).distinct(true)
+                        .where(
+                            cb.or(
+                                cb.isNull(subRoot.get<LocalDate>("birthDate")),
+                                cb.isNull(subRoot.get<Gender>("gender"))
+                            )
+                        )
+
                     cb.or(
                         cb.isNull(root.get<String>("lastname")),
                         cb.isNull(root.get<String>("firstname")),
                         cb.isNull(root.get<LocalDate>("birthDate")),
+                        cb.isNull(root.get<LocalDate>("gender")),
                         cb.isNull(root.get<CountryEntity>("country")),
                         cb.isNull(root.get<String>("addressStreet")),
                         cb.isNull(root.get<String>("addressHouseNumber")),
                         cb.isNull(root.get<String>("addressPostalCode")),
                         cb.isNull(root.get<String>("addressCity")),
-                        cb.isNull(root.get<String>("employer"))
+                        cb.isNull(root.get<String>("employer")),
+                        root.get<Long>("id").`in`(subQuery)
                     )
                 }
             }
