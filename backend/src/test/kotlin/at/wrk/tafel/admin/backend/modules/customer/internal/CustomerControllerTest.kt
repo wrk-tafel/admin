@@ -7,6 +7,7 @@ import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
+import io.mockk.mockk
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -269,6 +270,39 @@ class CustomerControllerTest {
 
         val bodyBytes = response.body?.inputStream?.readAllBytes()!!
         assertThat(String(bodyBytes)).isEqualTo(testFilename)
+    }
+
+    @Test
+    fun `get duplicates - result mapped`() {
+        val page = 4
+        val duplicationItem = CustomerDuplicateSearchResultItem(
+            customer = mockk(relaxed = true),
+            comparedCustomer = mockk(relaxed = true),
+            scoreName = 1,
+            scoreAddress = 2
+        )
+
+        val searchResult = CustomerDuplicateSearchResult(
+            items = listOf(duplicationItem),
+            totalCount = 100,
+            currentPage = page,
+            totalPages = 20,
+            pageSize = 5
+        )
+        every { service.findDuplicates(page) } returns searchResult
+
+        val duplicatesResponse = controller.getDuplicates(page)
+
+        assertThat(duplicatesResponse.items).hasSize(searchResult.items.size)
+        assertThat(duplicatesResponse.items.first.customer).isEqualTo(searchResult.items.first.customer)
+        assertThat(duplicatesResponse.items.first.comparedCustomer).isEqualTo(searchResult.items.first.comparedCustomer)
+        assertThat(duplicatesResponse.items.first.scoreName).isEqualTo(searchResult.items.first.scoreName)
+        assertThat(duplicatesResponse.items.first.scoreAddress).isEqualTo(searchResult.items.first.scoreAddress)
+
+        assertThat(duplicatesResponse.currentPage).isEqualTo(searchResult.currentPage)
+        assertThat(duplicatesResponse.pageSize).isEqualTo(searchResult.pageSize)
+        assertThat(duplicatesResponse.totalPages).isEqualTo(searchResult.totalPages)
+        assertThat(duplicatesResponse.totalCount).isEqualTo(searchResult.totalCount)
     }
 
 }

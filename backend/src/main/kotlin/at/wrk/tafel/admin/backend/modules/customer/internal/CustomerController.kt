@@ -128,4 +128,25 @@ class CustomerController(
         )
     }
 
+    @GetMapping("/duplicates")
+    fun getDuplicates(
+        @RequestParam page: Int? = null,
+    ): CustomerDuplicatesResponse {
+        val duplicateSearchResult = service.findDuplicates(page)
+        return CustomerDuplicatesResponse(
+            items = duplicateSearchResult.items.map {
+                CustomerDuplicationItem(
+                    customer = it.customer,
+                    comparedCustomer = it.comparedCustomer,
+                    scoreName = it.scoreName,
+                    scoreAddress = it.scoreAddress
+                )
+            },
+            totalCount = duplicateSearchResult.totalCount,
+            currentPage = duplicateSearchResult.currentPage,
+            totalPages = duplicateSearchResult.totalPages,
+            pageSize = duplicateSearchResult.pageSize
+        )
+    }
+
 }
