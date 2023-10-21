@@ -277,9 +277,7 @@ class CustomerControllerTest {
         val page = 4
         val duplicationItem = CustomerDuplicateSearchResultItem(
             customer = mockk(relaxed = true),
-            comparedCustomer = mockk(relaxed = true),
-            scoreName = 1,
-            scoreAddress = 2
+            similarCustomers = mockk(relaxed = true)
         )
 
         val searchResult = CustomerDuplicateSearchResult(
@@ -295,9 +293,7 @@ class CustomerControllerTest {
 
         assertThat(duplicatesResponse.items).hasSize(searchResult.items.size)
         assertThat(duplicatesResponse.items.first.customer).isEqualTo(searchResult.items.first.customer)
-        assertThat(duplicatesResponse.items.first.comparedCustomer).isEqualTo(searchResult.items.first.comparedCustomer)
-        assertThat(duplicatesResponse.items.first.scoreName).isEqualTo(searchResult.items.first.scoreName)
-        assertThat(duplicatesResponse.items.first.scoreAddress).isEqualTo(searchResult.items.first.scoreAddress)
+        assertThat(duplicatesResponse.items.first.similarCustomers).isEqualTo(searchResult.items.first.similarCustomers)
 
         assertThat(duplicatesResponse.currentPage).isEqualTo(searchResult.currentPage)
         assertThat(duplicatesResponse.pageSize).isEqualTo(searchResult.pageSize)

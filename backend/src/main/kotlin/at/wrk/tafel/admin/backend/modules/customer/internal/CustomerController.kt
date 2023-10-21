@@ -137,9 +137,7 @@ class CustomerController(
             items = duplicateSearchResult.items.map {
                 CustomerDuplicationItem(
                     customer = it.customer,
-                    comparedCustomer = it.comparedCustomer,
-                    scoreName = it.scoreName,
-                    scoreAddress = it.scoreAddress
+                    similarCustomers = it.similarCustomers
                 )
             },
             totalCount = duplicateSearchResult.totalCount,
