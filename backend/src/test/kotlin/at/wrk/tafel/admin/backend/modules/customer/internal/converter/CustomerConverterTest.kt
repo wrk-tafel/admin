@@ -119,6 +119,7 @@ internal class CustomerConverterTest {
     )
 
     private val testCustomerEntity1 = CustomerEntity().apply {
+        createdAt = LocalDateTime.now()
         issuer = testUserEntity
         customerId = 100
         lastname = "Mustermann"
@@ -213,36 +214,44 @@ internal class CustomerConverterTest {
 
     @Test
     fun `map entity to customer`() {
-        val entity = converter.mapCustomerToEntity(testCustomer)
+        val customer = converter.mapEntityToCustomer(testCustomerEntity1)
 
-        assertThat(entity.id).isEqualTo(testCustomerEntity1.id)
-        assertThat(entity.customerId).isEqualTo(testCustomerEntity1.customerId)
-        assertThat(entity.issuer).isEqualTo(testUserEntity)
-        assertThat(entity.lastname).isEqualTo(testCustomer.lastname)
-        assertThat(entity.firstname).isEqualTo(testCustomer.firstname)
-        assertThat(entity.birthDate).isEqualTo(testCustomer.birthDate)
-        assertThat(entity.gender!!.name).isEqualTo(testCustomer.gender!!.name)
-        assertThat(entity.country).isEqualTo(testCountry)
-        assertThat(entity.addressStreet).isEqualTo(testCustomer.address.street)
-        assertThat(entity.addressHouseNumber).isEqualTo(testCustomer.address.houseNumber)
-        assertThat(entity.addressStairway).isEqualTo(testCustomer.address.stairway)
-        assertThat(entity.addressDoor).isEqualTo(testCustomer.address.door)
-        assertThat(entity.addressPostalCode).isEqualTo(testCustomer.address.postalCode)
-        assertThat(entity.addressCity).isEqualTo(testCustomer.address.city)
-        assertThat(entity.telephoneNumber).isEqualTo(testCustomer.telephoneNumber)
-        assertThat(entity.email).isEqualTo(testCustomer.email)
-        assertThat(entity.employer).isEqualTo(testCustomer.employer)
-        assertThat(entity.income).isEqualTo(testCustomer.income)
-        assertThat(entity.incomeDue).isEqualTo(testCustomer.incomeDue)
-        assertThat(entity.validUntil).isEqualTo(testCustomer.validUntil)
-        assertThat(entity.prolongedAt).isNull()
+        assertThat(customer.id).isEqualTo(testCustomerEntity1.customerId)
+        assertThat(customer.issuer).isEqualTo(
+            CustomerIssuer(
+                personnelNumber = testUser.personnelNumber,
+                firstname = testUser.firstname,
+                lastname = testUser.lastname
+            )
+        )
+        assertThat(customer.lastname).isEqualTo(testCustomer.lastname)
+        assertThat(customer.firstname).isEqualTo(testCustomer.firstname)
+        assertThat(customer.birthDate).isEqualTo(testCustomer.birthDate)
+        assertThat(customer.gender!!.name).isEqualTo(testCustomer.gender!!.name)
+        assertThat(customer.country).isEqualTo(
+            Country(
+                id = testCountry.id!!,
+                code = testCountry.code!!,
+                name = testCountry.name!!
+            )
+        )
+        assertThat(customer.address.street).isEqualTo(testCustomer.address.street)
+        assertThat(customer.address.houseNumber).isEqualTo(testCustomer.address.houseNumber)
+        assertThat(customer.address.stairway).isEqualTo(testCustomer.address.stairway)
+        assertThat(customer.address.door).isEqualTo(testCustomer.address.door)
+        assertThat(customer.address.postalCode).isEqualTo(testCustomer.address.postalCode)
+        assertThat(customer.address.city).isEqualTo(testCustomer.address.city)
+        assertThat(customer.telephoneNumber).isEqualTo(testCustomer.telephoneNumber)
+        assertThat(customer.email).isEqualTo(testCustomer.email)
+        assertThat(customer.employer).isEqualTo(testCustomer.employer)
+        assertThat(customer.income).isEqualTo(testCustomer.income)
+        assertThat(customer.incomeDue).isEqualTo(testCustomer.incomeDue)
+        assertThat(customer.validUntil).isEqualTo(testCustomer.validUntil)
 
-        assertThat(entity.locked).isFalse()
-        assertThat(entity.lockedAt).isNull()
-        assertThat(entity.lockedBy).isNull()
-        assertThat(entity.lockReason).isNull()
-
-        assertThat(entity.migrated).isFalse()
+        assertThat(customer.locked).isFalse()
+        assertThat(customer.lockedAt).isNull()
+        assertThat(customer.lockedBy).isNull()
+        assertThat(customer.lockReason).isNull()
     }
 
     @Test
