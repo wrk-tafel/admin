@@ -3,9 +3,12 @@ package at.wrk.tafel.admin.backend.modules.customer.internal
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerRepository
 import at.wrk.tafel.admin.backend.modules.customer.internal.converter.CustomerConverter
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Pageable
 import org.springframework.jdbc.core.DataClassRowMapper
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
 @Service
 class CustomerDuplicationService(
@@ -14,10 +17,11 @@ class CustomerDuplicationService(
     private val jdbcTemplate: JdbcTemplate
 ) {
 
+    @Transactional
     fun findDuplicates(page: Int?): CustomerDuplicateSearchResult {
-        // TODO val pageRequest = PageRequest.of(page?.minus(1) ?: 0, 10)
+        val pageRequest = PageRequest.of(page?.minus(1) ?: 0, 10)
 
-        val duplicatesPage = loadDuplicates()
+        val duplicatesPage = loadDuplicates(pageRequest)
         val uniqueCustomers = duplicatesPage.map { it.customerId }.distinct()
 
         val mapping = uniqueCustomers.map { uniqueCustomerId ->
@@ -45,7 +49,7 @@ class CustomerDuplicationService(
         )
     }
 
-    private fun loadDuplicates(): List<CustomerDuplicateEntry> {
+    private fun loadDuplicates(pageable: Pageable): List<CustomerDuplicateEntry> {
         val sql = """
             WITH compare AS (SELECT id, customer_id, firstname, lastname, address_street, address_houseNumber, address_door
                  from customers)
@@ -101,7 +105,8 @@ class CustomerDuplicationService(
                                          compare.address_door)
                           )
                   ) < 10
-            order by scoreName asc, scoreAddress asc, customers.lastname asc, customers.firstname asc;
+            order by scoreName asc, scoreAddress asc, customers.lastname asc, customers.firstname asc
+            LIMIT ${pageable.pageSize} OFFSET ${pageable.offset}
         """.trimIndent()
 
         return jdbcTemplate.query(sql, DataClassRowMapper(CustomerDuplicateEntry::class.java))
