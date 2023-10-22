@@ -313,4 +313,13 @@ class CustomerServiceTest {
         assertThat(result?.bytes?.size).isEqualTo(pdfBytes.size.toLong())
     }
 
+    @Test
+    fun `delete customer by customerId`() {
+        val customerId = 123L
+
+        service.deleteCustomerByCustomerId(customerId)
+
+        verify(exactly = 1) { customerRepository.deleteByCustomerId(customerId) }
+    }
+
 }
