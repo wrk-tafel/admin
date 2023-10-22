@@ -25,26 +25,24 @@ class CustomerDuplicationService(
         val pageRequest = PageRequest.of(page?.minus(1) ?: 0, 10)
 
         val duplicatesPage = loadDuplicates(pageRequest)
-        val uniqueCustomers = duplicatesPage.map { it.customerId }.distinct()
 
-        val mapping = uniqueCustomers.map { uniqueCustomerId ->
-            val customer = customerRepository.findByCustomerId(uniqueCustomerId)!!
-            val duplicateEntries = duplicatesPage.filter { it.customerId == uniqueCustomerId }
-                .distinctBy { it.compareCustomerId }
+        val items = duplicatesPage.map { entry ->
+            val customerId = entry.customerId
+            val similarCustomers = entry.compareCustomerIdList.split(",")
 
-            customer to duplicateEntries
-        }
+            CustomerDuplicateSearchResultItem(
+                customer = customerConverter.mapEntityToCustomer(
+                    customerRepository.findByCustomerId(customerId)!!
+                ),
+                similarCustomers = similarCustomers.mapNotNull { similarCustomerId ->
+                    customerRepository.findByCustomerId(similarCustomerId.toLong())
+                        ?.let { customerConverter.mapEntityToCustomer(it) }
+                }
+            )
+        }.toList()
 
         return CustomerDuplicateSearchResult(
-            items = mapping.map { entry ->
-                CustomerDuplicateSearchResultItem(
-                    customer = customerConverter.mapEntityToCustomer(entry.first),
-                    similarCustomers = entry.second.mapNotNull { similarCustomer ->
-                        customerRepository.findByCustomerId(similarCustomer.compareCustomerId)
-                            ?.let { customerConverter.mapEntityToCustomer(it) }
-                    }
-                )
-            },
+            items = items,
             totalCount = duplicatesPage.totalElements,
             currentPage = page ?: 1,
             totalPages = duplicatesPage.totalPages,
@@ -55,7 +53,7 @@ class CustomerDuplicationService(
     private fun loadDuplicates(pageable: Pageable): Page<CustomerDuplicateEntry> {
         val rowCountSql = """
             WITH compare AS (SELECT id, customer_id, firstname, lastname, address_street, address_houseNumber, address_door
-                 from customers)
+                             from customers)
             SELECT count(customers.customer_id)
             FROM customers,
                  compare
@@ -85,36 +83,16 @@ class CustomerDuplicationService(
                                          compare.address_door)
                           )
                   ) < 10
+            group by customers.id
+            order by customers.customer_id desc;
         """.trimIndent()
         val totalCount = jdbcTemplate.query(rowCountSql, SingleColumnRowMapper<Long>()).first
 
         val sql = """
             WITH compare AS (SELECT id, customer_id, firstname, lastname, address_street, address_houseNumber, address_door
-                 from customers)
-            SELECT levenshtein(
-                           lower(
-                                   concat(customers.firstname,
-                                          customers.lastname)
-                           ),
-                           lower(
-                                   concat(compare.firstname,
-                                          compare.lastname)
-                           )
-                   )                             AS scoreName,
-                   levenshtein(
-                           lower(
-                                   concat(customers.address_street,
-                                          customers.address_houseNumber,
-                                          customers.address_door)
-                           ),
-                           lower(
-                                   concat(compare.address_street,
-                                          compare.address_houseNumber,
-                                          compare.address_door)
-                           )
-                   )                             AS scoreAddress,
-                   customers.customer_id         as customerId,
-                   compare.customer_id           as compareCustomerId
+                             from customers)
+            SELECT customers.customer_id                                                                     as customerId,
+                   string_agg(compare.customer_id::character varying, ',' order by compare.customer_id desc) as compareCustomerIdList
             FROM customers,
                  compare
             WHERE customers.customer_id <> compare.customer_id
@@ -143,7 +121,8 @@ class CustomerDuplicationService(
                                          compare.address_door)
                           )
                   ) < 10
-            order by scoreName asc, scoreAddress asc, customers.lastname asc, customers.firstname asc
+            group by customers.id
+            order by customers.customer_id desc
             LIMIT ${pageable.pageSize} OFFSET ${pageable.offset}
         """.trimIndent()
 
@@ -156,7 +135,7 @@ class CustomerDuplicationService(
 @ExcludeFromTestCoverage
 data class CustomerDuplicateEntry(
     val customerId: Long,
-    val compareCustomerId: Long
+    val compareCustomerIdList: String
 )
 
 @ExcludeFromTestCoverage
