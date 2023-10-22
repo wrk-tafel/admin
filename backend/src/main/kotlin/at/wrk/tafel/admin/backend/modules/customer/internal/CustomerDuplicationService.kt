@@ -3,10 +3,13 @@ package at.wrk.tafel.admin.backend.modules.customer.internal
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerRepository
 import at.wrk.tafel.admin.backend.modules.customer.internal.converter.CustomerConverter
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.jdbc.core.DataClassRowMapper
 import org.springframework.jdbc.core.JdbcTemplate
+import org.springframework.jdbc.core.SingleColumnRowMapper
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -42,40 +45,53 @@ class CustomerDuplicationService(
                     }
                 )
             },
-            totalCount = 0,
-            currentPage = 0,
-            totalPages = 0,
-            pageSize = 0
+            totalCount = duplicatesPage.totalElements,
+            currentPage = page ?: 1,
+            totalPages = duplicatesPage.totalPages,
+            pageSize = pageRequest.pageSize
         )
     }
 
-    private fun loadDuplicates(pageable: Pageable): List<CustomerDuplicateEntry> {
+    private fun loadDuplicates(pageable: Pageable): Page<CustomerDuplicateEntry> {
+        val rowCountSql = """
+            WITH compare AS (SELECT id, customer_id, firstname, lastname, address_street, address_houseNumber, address_door
+                 from customers)
+            SELECT count(customers.customer_id)
+            FROM customers,
+                 compare
+            WHERE customers.customer_id <> compare.customer_id
+              AND customers.id <> compare.id
+              AND soundex(customers.lastname) = soundex(compare.lastname)
+              AND soundex(customers.firstname) = soundex(compare.firstname)
+              AND levenshtein(
+                          lower(
+                                  concat(customers.firstname,
+                                         customers.lastname)
+                          ),
+                          lower(
+                                  concat(compare.firstname,
+                                         compare.lastname)
+                          )
+                  ) < 4
+              AND levenshtein(
+                          lower(
+                                  concat(customers.address_street,
+                                         customers.address_houseNumber,
+                                         customers.address_door)
+                          ),
+                          lower(
+                                  concat(compare.address_street,
+                                         compare.address_houseNumber,
+                                         compare.address_door)
+                          )
+                  ) < 10
+        """.trimIndent()
+        val totalCount = jdbcTemplate.query(rowCountSql, SingleColumnRowMapper<Long>()).first
+
         val sql = """
             WITH compare AS (SELECT id, customer_id, firstname, lastname, address_street, address_houseNumber, address_door
                  from customers)
-            SELECT levenshtein(
-                           lower(
-                                   concat(customers.firstname,
-                                          customers.lastname)
-                           ),
-                           lower(
-                                   concat(compare.firstname,
-                                          compare.lastname)
-                           )
-                   )                             AS scoreName,
-                   levenshtein(
-                           lower(
-                                   concat(customers.address_street,
-                                          customers.address_houseNumber,
-                                          customers.address_door)
-                           ),
-                           lower(
-                                   concat(compare.address_street,
-                                          compare.address_houseNumber,
-                                          compare.address_door)
-                           )
-                   )                             AS scoreAddress,
-                   customers.customer_id         as customerId,
+            SELECT customers.customer_id         as customerId,
                    compare.customer_id           as compareCustomerId
             FROM customers,
                  compare
@@ -109,7 +125,8 @@ class CustomerDuplicationService(
             LIMIT ${pageable.pageSize} OFFSET ${pageable.offset}
         """.trimIndent()
 
-        return jdbcTemplate.query(sql, DataClassRowMapper(CustomerDuplicateEntry::class.java))
+        val rows = jdbcTemplate.query(sql, DataClassRowMapper(CustomerDuplicateEntry::class.java))
+        return PageImpl(rows, pageable, totalCount)
     }
 
 }
