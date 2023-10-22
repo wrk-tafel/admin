@@ -292,8 +292,8 @@ class CustomerControllerTest {
         val duplicatesResponse = controller.getDuplicates(page)
 
         assertThat(duplicatesResponse.items).hasSize(searchResult.items.size)
-        assertThat(duplicatesResponse.items.first.customer).isEqualTo(searchResult.items.first.customer)
-        assertThat(duplicatesResponse.items.first.similarCustomers).isEqualTo(searchResult.items.first.similarCustomers)
+        assertThat(duplicatesResponse.items.first().customer).isEqualTo(searchResult.items.first().customer)
+        assertThat(duplicatesResponse.items.first().similarCustomers).isEqualTo(searchResult.items.first().similarCustomers)
 
         assertThat(duplicatesResponse.currentPage).isEqualTo(searchResult.currentPage)
         assertThat(duplicatesResponse.pageSize).isEqualTo(searchResult.pageSize)
