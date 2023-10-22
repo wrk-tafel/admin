@@ -91,7 +91,29 @@ class CustomerDuplicationService(
         val sql = """
             WITH compare AS (SELECT id, customer_id, firstname, lastname, address_street, address_houseNumber, address_door
                  from customers)
-            SELECT customers.customer_id         as customerId,
+            SELECT levenshtein(
+                           lower(
+                                   concat(customers.firstname,
+                                          customers.lastname)
+                           ),
+                           lower(
+                                   concat(compare.firstname,
+                                          compare.lastname)
+                           )
+                   )                             AS scoreName,
+                   levenshtein(
+                           lower(
+                                   concat(customers.address_street,
+                                          customers.address_houseNumber,
+                                          customers.address_door)
+                           ),
+                           lower(
+                                   concat(compare.address_street,
+                                          compare.address_houseNumber,
+                                          compare.address_door)
+                           )
+                   )                             AS scoreAddress,
+                   customers.customer_id         as customerId,
                    compare.customer_id           as compareCustomerId
             FROM customers,
                  compare
