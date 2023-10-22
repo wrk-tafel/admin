@@ -24,7 +24,10 @@ import java.time.LocalDate
 class CustomerControllerTest {
 
     @RelaxedMockK
-    private lateinit var service: CustomerService
+    private lateinit var customerService: CustomerService
+
+    @RelaxedMockK
+    private lateinit var customerDuplicationService: CustomerDuplicationService
 
     @InjectMockKs
     private lateinit var controller: CustomerController
@@ -102,7 +105,7 @@ class CustomerControllerTest {
 
     @Test
     fun `validate customer`() {
-        every { service.validate(any()) } returns IncomeValidatorResult(
+        every { customerService.validate(any()) } returns IncomeValidatorResult(
             valid = true,
             totalSum = BigDecimal("1"),
             limit = BigDecimal("2"),
@@ -123,13 +126,13 @@ class CustomerControllerTest {
         )
 
         verify {
-            service.validate(testCustomer)
+            customerService.validate(testCustomer)
         }
     }
 
     @Test
     fun `create customer - given id and exists already`() {
-        every { service.existsByCustomerId(testCustomer.id!!) } returns true
+        every { customerService.existsByCustomerId(testCustomer.id!!) } returns true
 
         val exception = assertThrows<TafelValidationException> { controller.createCustomer(testCustomer) }
 
@@ -138,16 +141,16 @@ class CustomerControllerTest {
 
     @Test
     fun `create customer - missing id so the customer should be created`() {
-        every { service.existsByCustomerId(testCustomer.id!!) } returns false
+        every { customerService.existsByCustomerId(testCustomer.id!!) } returns false
 
         controller.createCustomer(testCustomer)
 
-        verify { service.createCustomer(testCustomer) }
+        verify { customerService.createCustomer(testCustomer) }
     }
 
     @Test
     fun `update customer - doesnt exist`() {
-        every { service.existsByCustomerId(testCustomer.id!!) } returns false
+        every { customerService.existsByCustomerId(testCustomer.id!!) } returns false
 
         val exception =
             assertThrows<TafelValidationException> { controller.updateCustomer(testCustomer.id!!, testCustomer) }
@@ -158,54 +161,54 @@ class CustomerControllerTest {
 
     @Test
     fun `update customer - exists and should be updated`() {
-        every { service.existsByCustomerId(testCustomer.id!!) } returns true
+        every { customerService.existsByCustomerId(testCustomer.id!!) } returns true
 
         controller.updateCustomer(testCustomer.id!!, testCustomer)
 
-        verify { service.updateCustomer(testCustomer.id!!, testCustomer) }
+        verify { customerService.updateCustomer(testCustomer.id!!, testCustomer) }
     }
 
     @Test
     fun `get customer - doesnt exist`() {
-        every { service.findByCustomerId(testCustomer.id!!) } returns null
+        every { customerService.findByCustomerId(testCustomer.id!!) } returns null
 
         val exception =
             assertThrows<TafelValidationException> { controller.getCustomer(testCustomer.id!!) }
 
         assertThat(exception.message).isEqualTo("Kunde Nr. ${testCustomer.id} nicht gefunden!")
         assertThat(exception.status).isEqualTo(HttpStatus.NOT_FOUND)
-        verify { service.findByCustomerId(testCustomer.id!!) }
+        verify { customerService.findByCustomerId(testCustomer.id!!) }
     }
 
     @Test
     fun `get customer - exists`() {
-        every { service.findByCustomerId(testCustomer.id!!) } returns testCustomer
+        every { customerService.findByCustomerId(testCustomer.id!!) } returns testCustomer
 
         val customer = controller.getCustomer(testCustomer.id!!)
 
-        verify { service.findByCustomerId(testCustomer.id!!) }
+        verify { customerService.findByCustomerId(testCustomer.id!!) }
         assertThat(customer).isEqualTo(testCustomer)
     }
 
     @Test
     fun `delete customer - doesnt exist`() {
-        every { service.existsByCustomerId(testCustomer.id!!) } returns false
+        every { customerService.existsByCustomerId(testCustomer.id!!) } returns false
 
         val exception =
             assertThrows<TafelValidationException> { controller.deleteCustomer(testCustomer.id!!) }
 
         assertThat(exception.message).isEqualTo("Kunde Nr. 100 nicht vorhanden!")
         assertThat(exception.status).isEqualTo(HttpStatus.NOT_FOUND)
-        verify { service.existsByCustomerId(testCustomer.id!!) }
+        verify { customerService.existsByCustomerId(testCustomer.id!!) }
     }
 
     @Test
     fun `delete customer - exists`() {
-        every { service.existsByCustomerId(testCustomer.id!!) } returns true
+        every { customerService.existsByCustomerId(testCustomer.id!!) } returns true
 
         controller.deleteCustomer(testCustomer.id!!)
 
-        verify { service.existsByCustomerId(testCustomer.id!!) }
+        verify { customerService.existsByCustomerId(testCustomer.id!!) }
     }
 
     @Test
@@ -217,7 +220,14 @@ class CustomerControllerTest {
             totalPages = 10,
             pageSize = 10
         )
-        every { service.getCustomers(any(), any(), testSearchResult.currentPage, true) } returns testSearchResult
+        every {
+            customerService.getCustomers(
+                any(),
+                any(),
+                testSearchResult.currentPage,
+                true
+            )
+        } returns testSearchResult
 
         val response = controller.getCustomers(
             firstname = " first ",
@@ -227,7 +237,7 @@ class CustomerControllerTest {
         )
 
         verify {
-            service.getCustomers(
+            customerService.getCustomers(
                 firstname = "first",
                 lastname = "last",
                 page = testSearchResult.currentPage,
@@ -239,7 +249,7 @@ class CustomerControllerTest {
 
     @Test
     fun `generate pdf - no result`() {
-        every { service.generatePdf(any(), any()) } returns null
+        every { customerService.generatePdf(any(), any()) } returns null
 
         val exception = assertThrows<TafelValidationException> { controller.generatePdf(123, CustomerPdfType.COMBINED) }
 
@@ -250,7 +260,7 @@ class CustomerControllerTest {
     @Test
     fun `generate pdf - result mapped`() {
         val testFilename = "file.pdf"
-        every { service.generatePdf(any(), any()) } returns CustomerPdfResult(
+        every { customerService.generatePdf(any(), any()) } returns CustomerPdfResult(
             filename = testFilename,
             bytes = testFilename.toByteArray()
         )
@@ -287,7 +297,7 @@ class CustomerControllerTest {
             totalPages = 20,
             pageSize = 5
         )
-        every { service.findDuplicates(page) } returns searchResult
+        every { customerDuplicationService.findDuplicates(page) } returns searchResult
 
         val duplicatesResponse = controller.getDuplicates(page)
 
