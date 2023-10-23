@@ -32,7 +32,7 @@ internal class CustomerDuplicationServiceTest {
     @Test
     fun `fetch duplicates and data mapped properly`() {
         val page = 3
-        val pageSize = 10
+        val pageSize = 5
         val totalCount = 100L
 
         val customerEntity1 = mockk<CustomerEntity>(relaxed = true)
