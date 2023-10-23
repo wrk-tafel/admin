@@ -1,7 +1,16 @@
 <c-card>
   <c-card-header class="fs-4 fw-bold">Kunden-Duplikate</c-card-header>
   <c-card-body>
-    <tafel-pagination align="center" [paginationData]="paginationData"
+    <tafel-pagination class="d-none d-sm-block" align="end" [paginationData]="paginationData"
+                      (pageChanged)="getDuplicates($event)"></tafel-pagination>
+    <tafel-pagination class="d-block d-sm-none" align="center" size="sm" [paginationData]="paginationData"
+                      (pageChanged)="getDuplicates($event)"></tafel-pagination>
+
+    TABLE
+
+    <tafel-pagination class="d-none d-sm-block" align="end" [paginationData]="paginationData"
+                      (pageChanged)="getDuplicates($event)"></tafel-pagination>
+    <tafel-pagination class="d-block d-sm-none" align="center" size="sm" [paginationData]="paginationData"
                       (pageChanged)="getDuplicates($event)"></tafel-pagination>
   </c-card-body>
 </c-card>
