@@ -22,7 +22,7 @@ class CustomerDuplicationService(
 
     @Transactional
     fun findDuplicates(page: Int?): CustomerDuplicateSearchResult {
-        val pageRequest = PageRequest.of(page?.minus(1) ?: 0, 5)
+        val pageRequest = PageRequest.of(page?.minus(1) ?: 0, 1)
 
         val duplicatesPage = loadDuplicates(pageRequest)
 
