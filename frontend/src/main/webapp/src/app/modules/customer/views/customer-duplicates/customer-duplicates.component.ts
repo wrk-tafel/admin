@@ -15,7 +15,7 @@ export class CustomerDuplicatesComponent implements OnInit {
   ngOnInit(): void {
     this.customerDuplicatesData = this.activatedRoute.snapshot.data.customerDuplicatesData;
 
-    console.log("DATA", this.customerDuplicatesData);
+    console.log('DATA', this.customerDuplicatesData);
   }
 
 }
