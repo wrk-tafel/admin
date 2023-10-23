@@ -1,5 +1,5 @@
 import {Component, inject, OnInit} from '@angular/core';
-import {CustomerApiService} from '../../../../api/customer-api.service';
+import {CustomerApiService, CustomerDuplicatesResponse} from '../../../../api/customer-api.service';
 import {ActivatedRoute} from '@angular/router';
 
 @Component({
@@ -10,8 +10,12 @@ export class CustomerDuplicatesComponent implements OnInit {
   private customerApiService = inject(CustomerApiService);
   private activatedRoute = inject(ActivatedRoute);
 
-  ngOnInit(): void {
+  private customerDuplicatesData: CustomerDuplicatesResponse;
 
+  ngOnInit(): void {
+    this.customerDuplicatesData = this.activatedRoute.snapshot.data.customerDuplicatesData;
+
+    console.log("DATA", this.customerDuplicatesData);
   }
 
 }
