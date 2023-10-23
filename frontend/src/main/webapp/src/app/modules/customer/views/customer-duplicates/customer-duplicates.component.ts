@@ -23,8 +23,6 @@ export class CustomerDuplicatesComponent implements OnInit {
       totalPages: this.customerDuplicatesData.totalPages,
       pageSize: this.customerDuplicatesData.pageSize
     };
-
-    console.log('DATA', this.customerDuplicatesData);
   }
 
   getDuplicates(page?: number) {
