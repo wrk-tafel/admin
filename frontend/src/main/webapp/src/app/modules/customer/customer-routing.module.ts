@@ -8,44 +8,49 @@ import {CustomerDataResolver} from './resolver/customerdata-resolver.component';
 import {CustomerNotesResolver} from './resolver/customernotes-resolver.component';
 import {CustomerData} from '../../api/customer-api.service';
 import {CustomerNotesResponse} from '../../api/customer-note-api.service';
+import {CustomerDuplicatesComponent} from "./views/customer-duplicates/customer-duplicates.component";
 
 export const customerDataResolver: ResolveFn<CustomerData> = (route: ActivatedRouteSnapshot) => {
-    return inject(CustomerDataResolver).resolve(route);
+  return inject(CustomerDataResolver).resolve(route);
 };
 
 export const customerNotesResolver: ResolveFn<CustomerNotesResponse> = (route: ActivatedRouteSnapshot) => {
-    return inject(CustomerNotesResolver).resolve(route);
+  return inject(CustomerNotesResolver).resolve(route);
 };
 
 const routes: Routes = [
-    {
-        path: 'anlegen',
-        component: CustomerEditComponent
-    },
-    {
-        path: 'detail/:id',
-        component: CustomerDetailComponent,
-        resolve: {
-            customerData: customerDataResolver,
-            customerNotes: customerNotesResolver,
-        }
-    },
-    {
-        path: 'bearbeiten/:id',
-        component: CustomerEditComponent,
-        resolve: {
-            customerData: customerDataResolver
-        }
-    },
-    {
-        path: 'suchen',
-        component: CustomerSearchComponent
-    },
+  {
+    path: 'anlegen',
+    component: CustomerEditComponent
+  },
+  {
+    path: 'detail/:id',
+    component: CustomerDetailComponent,
+    resolve: {
+      customerData: customerDataResolver,
+      customerNotes: customerNotesResolver,
+    }
+  },
+  {
+    path: 'bearbeiten/:id',
+    component: CustomerEditComponent,
+    resolve: {
+      customerData: customerDataResolver
+    }
+  },
+  {
+    path: 'suchen',
+    component: CustomerSearchComponent
+  },
+  {
+    path: 'duplikate',
+    component: CustomerDuplicatesComponent
+  },
 ];
 
 @NgModule({
-    imports: [RouterModule.forChild(routes)],
-    exports: [RouterModule]
+  imports: [RouterModule.forChild(routes)],
+  exports: [RouterModule]
 })
 export class CustomerRoutingModule {
 }
