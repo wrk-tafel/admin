@@ -1,21 +1,34 @@
 <c-card>
   <c-card-header class="fs-4 fw-bold">Kunden-Duplikate</c-card-header>
   <c-card-body>
+    TODO LEGENDE
+
     <tafel-pagination class="d-none d-sm-block" align="end" [paginationData]="paginationData"
                       (pageChanged)="getDuplicates($event)"></tafel-pagination>
     <tafel-pagination class="d-block d-sm-none" align="center" size="sm" [paginationData]="paginationData"
                       (pageChanged)="getDuplicates($event)"></tafel-pagination>
 
     <div class="d-flex flex-column gap-3">
-      <c-row>
-        <c-col></c-col>
-        <c-col class="fw-bold">Ähnliche Kunden</c-col>
-      </c-row>
       <c-row *ngFor="let item of this.customerDuplicatesData.items">
         <c-col>
           <c-card>
             <c-card-header class="fw-bold">
-              {{item.customer.id + ' - ' + item.customer.lastname + ' ' + item.customer.firstname}}
+              <c-row>
+                <c-col class="align-self-center">
+                  {{item.customer.id + ' - ' + item.customer.lastname + ' ' + item.customer.firstname}}
+                </c-col>
+                <c-col class="text-end">
+                  <button cButton color="success" class="text-white me-2">
+                    <i class="fa fa-check text-white"></i>
+                  </button>
+                  <button cButton color="primary" class="text-white me-2">
+                    <i class="fa fa-magnifying-glass text-white"></i>
+                  </button>
+                  <button cButton color="danger" class="text-white">
+                    <i class="fa fa-trash-can text-white"></i>
+                  </button>
+                </c-col>
+              </c-row>
             </c-card-header>
             <c-card-body>
               <c-row>
@@ -45,7 +58,22 @@
           <div class="d-flex flex-column gap-3">
             <c-card *ngFor="let similarCustomer of item.similarCustomers">
               <c-card-header class="fw-bold">
-                {{similarCustomer.id + ' - ' + similarCustomer.lastname + ' ' + similarCustomer.firstname}}
+                <c-row>
+                  <c-col>
+                    {{similarCustomer.id + ' - ' + similarCustomer.lastname + ' ' + similarCustomer.firstname}}
+                  </c-col>
+                  <c-col class="text-end">
+                    <button cButton color="success" class="text-white me-2">
+                      <i class="fa fa-check text-white"></i>
+                    </button>
+                    <button cButton color="primary" class="text-white me-2">
+                      <i class="fa fa-magnifying-glass text-white"></i>
+                    </button>
+                    <button cButton color="danger" class="text-white">
+                      <i class="fa fa-trash-can text-white"></i>
+                    </button>
+                  </c-col>
+                </c-row>
               </c-card-header>
               <c-card-body>
                 <c-row>
