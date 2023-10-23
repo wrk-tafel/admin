@@ -2,10 +2,12 @@ import {Component, inject, OnInit} from '@angular/core';
 import {
   CustomerAddressData,
   CustomerApiService,
+  CustomerData,
   CustomerDuplicatesResponse
 } from '../../../../api/customer-api.service';
 import {ActivatedRoute} from '@angular/router';
 import {TafelPaginationData} from '../../../../common/components/tafel-pagination/tafel-pagination.component';
+import * as moment from "moment/moment";
 
 @Component({
   selector: 'tafel-customer-duplicates',
@@ -58,6 +60,10 @@ export class CustomerDuplicatesComponent implements OnInit {
       .filter(value => value?.trim().length > 0)
       .join(', ');
     return formatted?.trim().length > 0 ? formatted : '-';
+  }
+
+  isValid(customer: CustomerData) {
+    return !moment(customer.validUntil).startOf('day').isBefore(moment().startOf('day'));
   }
 
 }

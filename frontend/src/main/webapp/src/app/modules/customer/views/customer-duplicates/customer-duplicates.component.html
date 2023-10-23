@@ -30,6 +30,14 @@
                   {{formatAddress(item.customer.address)}}
                 </c-col>
               </c-row>
+              <c-row>
+                <c-col class="fw-bold text-white" [ngClass]="{'bg-success': isValid(item.customer), 'bg-danger': !isValid(item.customer)}">
+                  Gültig bis:
+                </c-col>
+                <c-col class="text-white" [ngClass]="{'bg-success': isValid(item.customer), 'bg-danger': !isValid(item.customer)}"
+                       [innerHTML]="item.customer.validUntil | date : 'dd.MM.yyyy'">
+                </c-col>
+              </c-row>
             </c-card-body>
           </c-card>
         </c-col>
@@ -50,6 +58,14 @@
                   <c-col class="fw-bold">Adresse:</c-col>
                   <c-col>
                     {{formatAddress(similarCustomer.address)}}
+                  </c-col>
+                </c-row>
+                <c-row>
+                  <c-col class="fw-bold text-white" [ngClass]="{'bg-success': isValid(similarCustomer), 'bg-danger': !isValid(similarCustomer)}">
+                    Gültig bis:
+                  </c-col>
+                  <c-col class="text-white" [ngClass]="{'bg-success': isValid(similarCustomer), 'bg-danger': !isValid(similarCustomer)}"
+                         [innerHTML]="similarCustomer.validUntil | date : 'dd.MM.yyyy'">
                   </c-col>
                 </c-row>
               </c-card-body>
