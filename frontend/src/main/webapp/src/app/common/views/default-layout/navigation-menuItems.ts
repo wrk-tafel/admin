@@ -52,6 +52,12 @@ export const navigationMenuItems: ITafelNavData[] = [
     permissions: ['CUSTOMER']
   },
   {
+    name: 'Kunden-Duplikate',
+    url: '/kunden/duplikate',
+    icon: 'fa fa-copy',
+    permissions: ['CUSTOMER']
+  },
+  {
     name: 'Sonstige',
     title: true
   },
@@ -71,11 +77,5 @@ export const navigationMenuItems: ITafelNavData[] = [
         icon: 'fa fa-plus'
       }
     ]
-  },
-  {
-    name: 'Kunden-Duplikate',
-    url: '/kunden/duplikate',
-    icon: 'fa fa-copy',
-    permissions: ['CUSTOMER']
   },
 ];
