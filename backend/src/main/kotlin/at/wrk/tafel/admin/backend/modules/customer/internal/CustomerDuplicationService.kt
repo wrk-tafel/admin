@@ -54,7 +54,7 @@ class CustomerDuplicationService(
         val rowCountSql = """
             WITH compare AS (SELECT id, customer_id, firstname, lastname, address_street, address_houseNumber, address_door
                              from customers)
-            SELECT count(customers.customer_id)
+            SELECT count(distinct customers.customer_id)
             FROM customers,
                  compare
             WHERE customers.customer_id <> compare.customer_id
@@ -82,9 +82,7 @@ class CustomerDuplicationService(
                                          compare.address_houseNumber,
                                          compare.address_door)
                           )
-                  ) < 10
-            group by customers.id
-            order by customers.customer_id desc;
+                  ) < 10;
         """.trimIndent()
         val totalCount = jdbcTemplate.query(rowCountSql, SingleColumnRowMapper<Long>()).first
 
