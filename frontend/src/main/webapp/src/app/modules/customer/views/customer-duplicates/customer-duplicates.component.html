@@ -7,6 +7,10 @@
                       (pageChanged)="getDuplicates($event)"></tafel-pagination>
 
     <div class="d-flex flex-column gap-3">
+      <c-row>
+        <c-col></c-col>
+        <c-col class="fw-bold">Ähnliche Kunden</c-col>
+      </c-row>
       <c-row *ngFor="let item of this.customerDuplicatesData.items">
         <c-col>
           <c-card>
@@ -30,7 +34,27 @@
           </c-card>
         </c-col>
         <c-col>
-          SIMILAR
+          <div class="d-flex flex-column gap-3">
+            <c-card *ngFor="let similarCustomer of item.similarCustomers">
+              <c-card-header class="fw-bold">
+                {{similarCustomer.id + ' - ' + similarCustomer.lastname + ' ' + similarCustomer.firstname}}
+              </c-card-header>
+              <c-card-body>
+                <c-row>
+                  <c-col class="fw-bold">Geburtsdatum:</c-col>
+                  <c-col>
+                    {{similarCustomer.birthDate | date : 'dd.MM.yyyy'}}
+                  </c-col>
+                </c-row>
+                <c-row>
+                  <c-col class="fw-bold">Adresse:</c-col>
+                  <c-col>
+                    {{formatAddress(similarCustomer.address)}}
+                  </c-col>
+                </c-row>
+              </c-card-body>
+            </c-card>
+          </div>
         </c-col>
       </c-row>
     </div>
