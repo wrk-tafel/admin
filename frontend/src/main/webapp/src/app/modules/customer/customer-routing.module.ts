@@ -6,9 +6,10 @@ import {CustomerEditComponent} from './views/customer-edit/customer-edit.compone
 import {CustomerSearchComponent} from './views/customer-search/customer-search.component';
 import {CustomerDataResolver} from './resolver/customerdata-resolver.component';
 import {CustomerNotesResolver} from './resolver/customernotes-resolver.component';
-import {CustomerData} from '../../api/customer-api.service';
+import {CustomerData, CustomerDuplicatesResponse} from '../../api/customer-api.service';
 import {CustomerNotesResponse} from '../../api/customer-note-api.service';
-import {CustomerDuplicatesComponent} from "./views/customer-duplicates/customer-duplicates.component";
+import {CustomerDuplicatesComponent} from './views/customer-duplicates/customer-duplicates.component';
+import {CustomerDuplicatesDataResolver} from './resolver/customer-duplicates-data-resolver.component';
 
 export const customerDataResolver: ResolveFn<CustomerData> = (route: ActivatedRouteSnapshot) => {
   return inject(CustomerDataResolver).resolve(route);
@@ -16,6 +17,10 @@ export const customerDataResolver: ResolveFn<CustomerData> = (route: ActivatedRo
 
 export const customerNotesResolver: ResolveFn<CustomerNotesResponse> = (route: ActivatedRouteSnapshot) => {
   return inject(CustomerNotesResolver).resolve(route);
+};
+
+export const customerDuplicatesDataResolver: ResolveFn<CustomerDuplicatesResponse> = (route: ActivatedRouteSnapshot) => {
+  return inject(CustomerDuplicatesDataResolver).resolve(route);
 };
 
 const routes: Routes = [
@@ -44,7 +49,10 @@ const routes: Routes = [
   },
   {
     path: 'duplikate',
-    component: CustomerDuplicatesComponent
+    component: CustomerDuplicatesComponent,
+    resolve: {
+      customerDuplicatesData: customerDuplicatesDataResolver
+    }
   },
 ];
 
