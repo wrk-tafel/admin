@@ -7,7 +7,7 @@ import {
 } from '../../../../api/customer-api.service';
 import {ActivatedRoute} from '@angular/router';
 import {TafelPaginationData} from '../../../../common/components/tafel-pagination/tafel-pagination.component';
-import * as moment from "moment/moment";
+import * as moment from 'moment/moment';
 
 @Component({
   selector: 'tafel-customer-duplicates',
@@ -52,10 +52,10 @@ export class CustomerDuplicatesComponent implements OnInit {
 
   formatAddress(address: CustomerAddressData) {
     const formatted = [
-      [address.street, address.houseNumber].join(' '),
+      [address.street, address.houseNumber].join(' ').trim(),
       address.stairway ? 'Stiege ' + address.stairway : undefined,
       address.door ? 'Top ' + address.door : undefined,
-      [address.postalCode, address.city].join(' ')
+      [address.postalCode, address.city].join(' ').trim()
     ]
       .filter(value => value?.trim().length > 0)
       .join(', ');
