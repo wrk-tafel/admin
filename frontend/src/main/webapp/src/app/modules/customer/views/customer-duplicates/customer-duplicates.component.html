@@ -1,1 +1,7 @@
-DUPL
+<c-card>
+  <c-card-header class="fs-4 fw-bold">Kunden-Duplikate</c-card-header>
+  <c-card-body>
+    <tafel-pagination align="center" [paginationData]="paginationData"
+                      (pageChanged)="getDuplicates($event)"></tafel-pagination>
+  </c-card-body>
+</c-card>

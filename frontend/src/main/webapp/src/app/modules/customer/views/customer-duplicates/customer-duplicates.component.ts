@@ -1,6 +1,7 @@
 import {Component, inject, OnInit} from '@angular/core';
 import {CustomerApiService, CustomerDuplicatesResponse} from '../../../../api/customer-api.service';
 import {ActivatedRoute} from '@angular/router';
+import {TafelPaginationData} from '../../../../common/components/tafel-pagination/tafel-pagination.component';
 
 @Component({
   selector: 'tafel-customer-duplicates',
@@ -10,12 +11,39 @@ export class CustomerDuplicatesComponent implements OnInit {
   private customerApiService = inject(CustomerApiService);
   private activatedRoute = inject(ActivatedRoute);
 
-  private customerDuplicatesData: CustomerDuplicatesResponse;
+  customerDuplicatesData: CustomerDuplicatesResponse;
+  paginationData: TafelPaginationData;
 
   ngOnInit(): void {
     this.customerDuplicatesData = this.activatedRoute.snapshot.data.customerDuplicatesData;
+    this.paginationData = {
+      count: this.customerDuplicatesData.items.length,
+      totalCount: this.customerDuplicatesData.totalCount,
+      currentPage: this.customerDuplicatesData.currentPage,
+      totalPages: this.customerDuplicatesData.totalPages,
+      pageSize: this.customerDuplicatesData.pageSize
+    };
 
     console.log('DATA', this.customerDuplicatesData);
+  }
+
+  getDuplicates(page?: number) {
+    this.customerApiService.getCustomerDuplicates(page)
+      .subscribe((response: CustomerDuplicatesResponse) => {
+        if (response.items.length === 0) {
+          this.customerDuplicatesData = null;
+          this.paginationData = null;
+        } else {
+          this.customerDuplicatesData = response;
+          this.paginationData = {
+            count: response.items.length,
+            totalCount: response.totalCount,
+            currentPage: response.currentPage,
+            totalPages: response.totalPages,
+            pageSize: response.pageSize
+          };
+        }
+      });
   }
 
 }
