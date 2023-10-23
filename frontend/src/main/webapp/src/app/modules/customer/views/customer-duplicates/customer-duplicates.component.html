@@ -10,16 +10,20 @@
       <c-row *ngFor="let item of this.customerDuplicatesData.items">
         <c-col>
           <c-card>
-            <c-card-header>{{item.customer.id + ' - ' + item.customer.lastname + ' ' + item.customer.firstname}}</c-card-header>
+            <c-card-header class="fw-bold">
+              {{item.customer.id + ' - ' + item.customer.lastname + ' ' + item.customer.firstname}}
+            </c-card-header>
             <c-card-body>
               <c-row>
+                <c-col class="fw-bold">Geburtsdatum:</c-col>
                 <c-col>
-                  LINE 1
+                  {{item.customer.birthDate | date : 'dd.MM.yyyy'}}
                 </c-col>
               </c-row>
               <c-row>
+                <c-col class="fw-bold">Adresse:</c-col>
                 <c-col>
-                  LINE 2
+                  {{formatAddress(item.customer.address)}}
                 </c-col>
               </c-row>
             </c-card-body>

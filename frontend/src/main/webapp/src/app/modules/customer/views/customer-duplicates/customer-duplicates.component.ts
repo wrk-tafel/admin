@@ -1,5 +1,9 @@
 import {Component, inject, OnInit} from '@angular/core';
-import {CustomerApiService, CustomerDuplicatesResponse} from '../../../../api/customer-api.service';
+import {
+  CustomerAddressData,
+  CustomerApiService,
+  CustomerDuplicatesResponse
+} from '../../../../api/customer-api.service';
 import {ActivatedRoute} from '@angular/router';
 import {TafelPaginationData} from '../../../../common/components/tafel-pagination/tafel-pagination.component';
 
@@ -42,6 +46,18 @@ export class CustomerDuplicatesComponent implements OnInit {
           };
         }
       });
+  }
+
+  formatAddress(address: CustomerAddressData) {
+    const formatted = [
+      [address.street, address.houseNumber].join(' '),
+      address.stairway ? 'Stiege ' + address.stairway : undefined,
+      address.door ? 'Top ' + address.door : undefined,
+      [address.postalCode, address.city].join(' ')
+    ]
+      .filter(value => value?.trim().length > 0)
+      .join(', ');
+    return formatted?.trim().length > 0 ? formatted : '-';
   }
 
 }
