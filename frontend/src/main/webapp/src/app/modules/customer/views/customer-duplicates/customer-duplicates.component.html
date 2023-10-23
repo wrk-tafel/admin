@@ -6,11 +6,34 @@
     <tafel-pagination class="d-block d-sm-none" align="center" size="sm" [paginationData]="paginationData"
                       (pageChanged)="getDuplicates($event)"></tafel-pagination>
 
-    TABLE
+    <div class="d-flex flex-column gap-3">
+      <c-row *ngFor="let item of this.customerDuplicatesData.items">
+        <c-col>
+          <c-card>
+            <c-card-header>{{item.customer.id + ' - ' + item.customer.lastname + ' ' + item.customer.firstname}}</c-card-header>
+            <c-card-body>
+              <c-row>
+                <c-col>
+                  LINE 1
+                </c-col>
+              </c-row>
+              <c-row>
+                <c-col>
+                  LINE 2
+                </c-col>
+              </c-row>
+            </c-card-body>
+          </c-card>
+        </c-col>
+        <c-col>
+          SIMILAR
+        </c-col>
+      </c-row>
+    </div>
 
-    <tafel-pagination class="d-none d-sm-block" align="end" [paginationData]="paginationData"
+    <tafel-pagination class="d-none d-sm-block mt-3" align="end" [paginationData]="paginationData"
                       (pageChanged)="getDuplicates($event)"></tafel-pagination>
-    <tafel-pagination class="d-block d-sm-none" align="center" size="sm" [paginationData]="paginationData"
+    <tafel-pagination class="d-block d-sm-none mt-3" align="center" size="sm" [paginationData]="paginationData"
                       (pageChanged)="getDuplicates($event)"></tafel-pagination>
   </c-card-body>
 </c-card>
