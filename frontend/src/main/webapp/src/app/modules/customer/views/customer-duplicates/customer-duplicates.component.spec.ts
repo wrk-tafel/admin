@@ -180,6 +180,7 @@ describe('CustomerDuplicatesComponent', () => {
 
     const customerId = 123;
     customerApiService.deleteCustomer.withArgs(customerId).and.returnValue(of(null));
+    customerApiService.getCustomerDuplicates.withArgs(1).and.returnValue(of(mockCustomerDuplicatesDataResponse));
 
     component.deleteCustomer(customerId);
 
