@@ -43,16 +43,16 @@
     <tafel-pagination class="d-block d-sm-none" align="center" size="sm" [paginationData]="paginationData"
                       (pageChanged)="getDuplicates($event)"></tafel-pagination>
 
-    <div class="d-flex flex-column gap-3">
+    <div class="d-grid gap-3">
       <c-row *ngFor="let item of this.customerDuplicatesData.items">
         <c-col>
           <c-card class="mb-3 mb-sm-0">
             <c-card-header class="fw-bold">
-              <c-row>
+              <c-row class="d-flex flex-column flex-sm-row">
                 <c-col class="align-self-center">
                   {{item.customer.id + ' - ' + item.customer.lastname + ' ' + item.customer.firstname}}
                 </c-col>
-                <c-col class="text-end">
+                <c-col class="text-end pt-2 pt-sm-0">
                   <button cButton color="success" class="text-white me-2">
                     <i class="fa fa-check text-white"></i>
                   </button>
@@ -95,11 +95,11 @@
           <div class="d-flex flex-column gap-3">
             <c-card *ngFor="let similarCustomer of item.similarCustomers">
               <c-card-header class="fw-bold">
-                <c-row>
+                <c-row class="d-flex flex-column flex-sm-row">
                   <c-col>
                     {{similarCustomer.id + ' - ' + similarCustomer.lastname + ' ' + similarCustomer.firstname}}
                   </c-col>
-                  <c-col class="text-end">
+                  <c-col class="text-end pt-2 pt-sm-0">
                     <button cButton color="success" class="text-white me-2">
                       <i class="fa fa-check text-white"></i>
                     </button>
