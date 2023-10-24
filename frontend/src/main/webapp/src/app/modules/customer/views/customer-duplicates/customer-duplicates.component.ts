@@ -8,6 +8,7 @@ import {
 import {ActivatedRoute, Router} from '@angular/router';
 import {TafelPaginationData} from '../../../../common/components/tafel-pagination/tafel-pagination.component';
 import * as moment from 'moment/moment';
+import {ToastService, ToastType} from "../../../../common/views/default-layout/toasts/toast.service";
 
 @Component({
   selector: 'tafel-customer-duplicates',
@@ -17,6 +18,7 @@ export class CustomerDuplicatesComponent implements OnInit {
   private customerApiService = inject(CustomerApiService);
   private activatedRoute = inject(ActivatedRoute);
   private router = inject(Router);
+  private toastService = inject(ToastService);
 
   customerDuplicatesData: CustomerDuplicatesResponse;
   paginationData: TafelPaginationData;
@@ -69,6 +71,19 @@ export class CustomerDuplicatesComponent implements OnInit {
 
   showCustomerDetail(customerId: number) {
     this.router.navigate(['/kunden/detail/' + customerId]);
+  }
+
+  deleteCustomer(customerId: number) {
+    const observer = {
+      next: () => {
+        this.toastService.showToast({type: ToastType.SUCCESS, title: 'Kunde wurde gelöscht!'});
+        this.getDuplicates(1);
+      },
+      error: error => {
+        this.toastService.showToast({type: ToastType.ERROR, title: 'Löschen fehlgeschlagen!'});
+      }
+    };
+    this.customerApiService.deleteCustomer(customerId).subscribe(observer);
   }
 
 }

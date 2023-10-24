@@ -3,11 +3,15 @@ import {CustomerApiService, CustomerDuplicatesResponse, Gender} from '../../../.
 import {CustomerDuplicatesComponent} from './customer-duplicates.component';
 import {ActivatedRoute, Router} from '@angular/router';
 import * as moment from 'moment/moment';
-import {of} from "rxjs";
+import {of, throwError} from 'rxjs';
+import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
+import {CardModule, ColComponent, PaginationModule, RowComponent} from '@coreui/angular';
+import {TafelPaginationComponent} from '../../../../common/components/tafel-pagination/tafel-pagination.component';
 
 describe('CustomerDuplicatesComponent', () => {
   let customerApiService: jasmine.SpyObj<CustomerApiService>;
   let router: jasmine.SpyObj<Router>;
+  let toastService: jasmine.SpyObj<ToastService>;
 
   const mockCustomer1 = {
     id: 133,
@@ -57,12 +61,19 @@ describe('CustomerDuplicatesComponent', () => {
   };
 
   beforeEach(waitForAsync(() => {
-    const customerApiServiceSpy = jasmine.createSpyObj('CustomerApiService', ['getCustomerDuplicates']);
+    const customerApiServiceSpy = jasmine.createSpyObj('CustomerApiService', ['getCustomerDuplicates', 'deleteCustomer']);
     const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
+    const toastServiceSpy = jasmine.createSpyObj('ToastService', ['showToast']);
 
     TestBed.configureTestingModule({
-      imports: [],
+      imports: [
+        CardModule,
+        ColComponent,
+        RowComponent,
+        PaginationModule
+      ],
       declarations: [
+        TafelPaginationComponent,
         CustomerDuplicatesComponent
       ],
       providers: [
@@ -84,11 +95,16 @@ describe('CustomerDuplicatesComponent', () => {
             }
           }
         },
+        {
+          provide: ToastService,
+          useValue: toastServiceSpy
+        }
       ]
     }).compileComponents();
 
     customerApiService = TestBed.inject(CustomerApiService) as jasmine.SpyObj<CustomerApiService>;
     router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
+    toastService = TestBed.inject(ToastService) as jasmine.SpyObj<ToastService>;
   }));
 
   it('component can be created', () => {
@@ -141,6 +157,35 @@ describe('CustomerDuplicatesComponent', () => {
     component.showCustomerDetail(customerId);
 
     expect(router.navigate).toHaveBeenCalledWith(['/kunden/detail/' + customerId]);
+  });
+
+  it('deleteCustomer failed', () => {
+    const fixture = TestBed.createComponent(CustomerDuplicatesComponent);
+    const component = fixture.componentInstance;
+
+    customerApiService.deleteCustomer.and.returnValue(throwError(() => {
+      return {status: 404};
+    }));
+
+    const customerId = 123;
+    component.deleteCustomer(customerId);
+
+    expect(customerApiService.deleteCustomer).toHaveBeenCalledWith(customerId);
+    expect(toastService.showToast).toHaveBeenCalledWith({type: ToastType.ERROR, title: 'Löschen fehlgeschlagen!'});
+  });
+
+  it('deleteCustomer successful', () => {
+    const fixture = TestBed.createComponent(CustomerDuplicatesComponent);
+    const component = fixture.componentInstance;
+
+    const customerId = 123;
+    customerApiService.deleteCustomer.withArgs(customerId).and.returnValue(of(null));
+
+    component.deleteCustomer(customerId);
+
+    expect(customerApiService.deleteCustomer).toHaveBeenCalledWith(customerId);
+    expect(customerApiService.getCustomerDuplicates).toHaveBeenCalledWith(1);
+    expect(toastService.showToast).toHaveBeenCalledWith({type: ToastType.SUCCESS, title: 'Kunde wurde gelöscht!'});
   });
 
 });
