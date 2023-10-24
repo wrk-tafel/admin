@@ -100,7 +100,7 @@
                     {{similarCustomer.id + ' - ' + similarCustomer.lastname + ' ' + similarCustomer.firstname}}
                   </c-col>
                   <c-col class="text-end pt-2 pt-sm-0">
-                    <button cButton color="success" class="text-white me-2" (click)="mergeCustomers(similarCustomers)">
+                    <button cButton color="success" class="text-white me-2" (click)="mergeCustomers(similarCustomer)">
                       <i class="fa fa-check text-white"></i>
                     </button>
                     <button cButton color="primary" class="text-white me-2" (click)="showCustomerDetail(similarCustomer.id)">
