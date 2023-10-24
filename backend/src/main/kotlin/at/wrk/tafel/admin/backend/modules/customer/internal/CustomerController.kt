@@ -148,4 +148,12 @@ class CustomerController(
         )
     }
 
+    @PostMapping("/{customerId}/merge")
+    fun mergeIntoCustomer(
+        @PathVariable("customerId") customerId: Long,
+        @RequestBody request: CustomerMergeRequest
+    ): ResponseEntity<Any> {
+        return ResponseEntity.ok().build()
+    }
+
 }

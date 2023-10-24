@@ -169,3 +169,14 @@ Content-Type: application/json
 ### Get duplicates
 GET {{baseApiPath}}/customers/duplicates
 Content-Type: application/json
+
+### Merge customers into another one
+GET {{baseApiPath}}/customers/100/merge
+Content-Type: application/json
+
+{
+  "customerIds": [
+    102,
+    103
+  ]
+}

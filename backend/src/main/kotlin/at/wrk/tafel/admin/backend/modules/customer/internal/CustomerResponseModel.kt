@@ -104,3 +104,8 @@ data class CustomerDuplicationItem(
     val customer: Customer,
     val similarCustomers: List<Customer>
 )
+
+@ExcludeFromTestCoverage
+data class CustomerMergeRequest(
+    val customerIds: List<Long>
+)
