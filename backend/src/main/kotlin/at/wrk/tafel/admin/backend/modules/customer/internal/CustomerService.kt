@@ -149,6 +149,7 @@ class CustomerService(
         return addPersonList + customerPerson
     }
 
+    @Transactional
     fun mergeCustomers(targetCustomer: Long, sourceCustomers: List<Long>) {
         TODO("IMPL")
     }
