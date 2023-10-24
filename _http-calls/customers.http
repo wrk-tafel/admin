@@ -175,7 +175,7 @@ GET {{baseApiPath}}/customers/100/merge
 Content-Type: application/json
 
 {
-  "customerIds": [
+  "sourceCustomerIds": [
     102,
     103
   ]

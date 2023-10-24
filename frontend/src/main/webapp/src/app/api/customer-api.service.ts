@@ -66,6 +66,11 @@ export class CustomerApiService {
     return this.http.get<CustomerDuplicatesResponse>('/customers/duplicates', {params: queryParams});
   }
 
+  mergeCustomers(targetCustomerId: number, sourceCustomerIds: number[]): Observable<void> {
+    const body: CustomerMergeRequest = {sourceCustomerIds: sourceCustomerIds};
+    return this.http.post<void>(`/customers/${targetCustomerId}/merge`, body);
+  }
+
 }
 
 export interface ValidateCustomerResponse {
@@ -159,4 +164,8 @@ export interface CustomerDuplicatesResponse {
 export interface CustomerDuplicatesItem {
   customer: CustomerData;
   similarCustomers: CustomerData[];
+}
+
+export interface CustomerMergeRequest {
+  sourceCustomerIds: number[];
 }

@@ -1,7 +1,7 @@
 import {HttpClientTestingModule, HttpTestingController} from '@angular/common/http/testing';
 import {TestBed} from '@angular/core/testing';
 import * as moment from 'moment';
-import {CustomerApiService, Gender} from './customer-api.service';
+import {CustomerApiService, CustomerMergeRequest, Gender} from './customer-api.service';
 import {ReactiveFormsModule} from '@angular/forms';
 
 describe('CustomerApiService', () => {
@@ -152,6 +152,20 @@ describe('CustomerApiService', () => {
     apiService.getCustomerDuplicates(3).subscribe();
 
     const req = httpMock.expectOne({method: 'GET', url: '/customers/duplicates?page=3'});
+    req.flush(null);
+    httpMock.verify();
+  });
+
+  it('merge customers', () => {
+    const targetCustomerId = 123;
+    const sourceCustomerIds = [456, 789];
+    apiService.mergeCustomers(targetCustomerId, sourceCustomerIds).subscribe();
+
+    const expectedMergeRequest: CustomerMergeRequest = {sourceCustomerIds: sourceCustomerIds};
+
+    const req = httpMock.expectOne({method: 'POST', url: `/customers/${targetCustomerId}/merge`});
+    expect(req.request.body).toEqual(expectedMergeRequest);
+
     req.flush(null);
     httpMock.verify();
   });
