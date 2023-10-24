@@ -3,6 +3,7 @@ import {CustomerApiService, CustomerDuplicatesResponse, Gender} from '../../../.
 import {CustomerDuplicatesComponent} from './customer-duplicates.component';
 import {ActivatedRoute, Router} from '@angular/router';
 import * as moment from 'moment/moment';
+import {of} from "rxjs";
 
 describe('CustomerDuplicatesComponent', () => {
   let customerApiService: jasmine.SpyObj<CustomerApiService>;
@@ -56,7 +57,7 @@ describe('CustomerDuplicatesComponent', () => {
   };
 
   beforeEach(waitForAsync(() => {
-    const customerApiServiceSpy = jasmine.createSpyObj('CustomerApiService', ['generatePdf', 'deleteCustomer', 'updateCustomer']);
+    const customerApiServiceSpy = jasmine.createSpyObj('CustomerApiService', ['getCustomerDuplicates']);
     const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
 
     TestBed.configureTestingModule({
@@ -102,6 +103,25 @@ describe('CustomerDuplicatesComponent', () => {
     const component = fixture.componentInstance;
 
     component.ngOnInit();
+
+    expect(component.customerDuplicatesData).toEqual(mockCustomerDuplicatesDataResponse);
+    expect(component.paginationData).toEqual({
+      count: mockCustomerDuplicatesDataResponse.items.length,
+      totalCount: mockCustomerDuplicatesDataResponse.totalCount,
+      currentPage: mockCustomerDuplicatesDataResponse.currentPage,
+      totalPages: mockCustomerDuplicatesDataResponse.totalPages,
+      pageSize: mockCustomerDuplicatesDataResponse.pageSize
+    });
+  });
+
+  it('get duplicates with page', () => {
+    const fixture = TestBed.createComponent(CustomerDuplicatesComponent);
+    const component = fixture.componentInstance;
+
+    const page = 5;
+    customerApiService.getCustomerDuplicates.withArgs(page).and.returnValue(of(mockCustomerDuplicatesDataResponse));
+
+    component.getDuplicates(page);
 
     expect(component.customerDuplicatesData).toEqual(mockCustomerDuplicatesDataResponse);
     expect(component.paginationData).toEqual({
