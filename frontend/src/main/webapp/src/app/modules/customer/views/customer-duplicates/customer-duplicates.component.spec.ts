@@ -47,6 +47,23 @@ describe('CustomerDuplicatesComponent', () => {
     income: 1000
   };
 
+  const mockCustomer3 = {
+    id: 333,
+    lastname: 'Mustermann',
+    firstname: 'Max',
+    birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
+    gender: Gender.MALE,
+    address: {
+      street: 'Teststraße',
+      houseNumber: '123A',
+      door: '21',
+      postalCode: 1020,
+      city: 'Wien',
+    },
+    employer: 'test employer',
+    income: 1000
+  };
+
   const mockCustomerDuplicatesDataResponse: CustomerDuplicatesResponse = {
     items: [
       {
@@ -61,7 +78,7 @@ describe('CustomerDuplicatesComponent', () => {
   };
 
   beforeEach(waitForAsync(() => {
-    const customerApiServiceSpy = jasmine.createSpyObj('CustomerApiService', ['getCustomerDuplicates', 'deleteCustomer']);
+    const customerApiServiceSpy = jasmine.createSpyObj('CustomerApiService', ['getCustomerDuplicates', 'deleteCustomer', 'mergeCustomers']);
     const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
     const toastServiceSpy = jasmine.createSpyObj('ToastService', ['showToast']);
 
@@ -149,7 +166,7 @@ describe('CustomerDuplicatesComponent', () => {
     });
   });
 
-  it('showCustomerDetail calls router navigation', () => {
+  it('show customer detail calls router navigation', () => {
     const fixture = TestBed.createComponent(CustomerDuplicatesComponent);
     const component = fixture.componentInstance;
 
@@ -159,7 +176,7 @@ describe('CustomerDuplicatesComponent', () => {
     expect(router.navigate).toHaveBeenCalledWith(['/kunden/detail/' + customerId]);
   });
 
-  it('deleteCustomer failed', () => {
+  it('delete customer failed', () => {
     const fixture = TestBed.createComponent(CustomerDuplicatesComponent);
     const component = fixture.componentInstance;
 
@@ -174,7 +191,7 @@ describe('CustomerDuplicatesComponent', () => {
     expect(toastService.showToast).toHaveBeenCalledWith({type: ToastType.ERROR, title: 'Löschen fehlgeschlagen!'});
   });
 
-  it('deleteCustomer successful', () => {
+  it('delete customer successful', () => {
     const fixture = TestBed.createComponent(CustomerDuplicatesComponent);
     const component = fixture.componentInstance;
 
@@ -196,6 +213,73 @@ describe('CustomerDuplicatesComponent', () => {
     expect(customerApiService.deleteCustomer).toHaveBeenCalledWith(customerId);
     expect(customerApiService.getCustomerDuplicates).toHaveBeenCalledWith(page);
     expect(toastService.showToast).toHaveBeenCalledWith({type: ToastType.SUCCESS, title: 'Kunde wurde gelöscht!'});
+  });
+
+  it('merge customer failed', () => {
+    const fixture = TestBed.createComponent(CustomerDuplicatesComponent);
+    const component = fixture.componentInstance;
+
+    const customerDuplicatesData: CustomerDuplicatesResponse = {
+      items: [
+        {
+          customer: mockCustomer1,
+          similarCustomers: [mockCustomer2, mockCustomer3]
+        }
+      ],
+      totalCount: 100,
+      currentPage: 3,
+      totalPages: 10,
+      pageSize: 10
+    };
+    component.customerDuplicatesData = customerDuplicatesData;
+
+    customerApiService.mergeCustomers.and.returnValue(throwError(() => {
+      return {status: 404};
+    }));
+
+    const customerId = 123;
+    component.mergeCustomers(customerDuplicatesData.items[0].customer);
+
+    expect(customerApiService.mergeCustomers).toHaveBeenCalledWith(
+      mockCustomer1.id, [mockCustomer2.id, mockCustomer3.id]
+    );
+    expect(toastService.showToast).toHaveBeenCalledWith({
+      type: ToastType.ERROR,
+      title: 'Zusammenführen der Kunden fehlgeschlagen!'
+    });
+  });
+
+  it('merge customers successful', () => {
+    const fixture = TestBed.createComponent(CustomerDuplicatesComponent);
+    const component = fixture.componentInstance;
+
+    const customerDuplicatesData: CustomerDuplicatesResponse = {
+      items: [
+        {
+          customer: mockCustomer1,
+          similarCustomers: [mockCustomer2, mockCustomer3]
+        }
+      ],
+      totalCount: 100,
+      currentPage: 3,
+      totalPages: 10,
+      pageSize: 10
+    };
+    component.customerDuplicatesData = customerDuplicatesData;
+
+    customerApiService.mergeCustomers.and.returnValue(of(null));
+    customerApiService.getCustomerDuplicates.withArgs(1).and.returnValue(of(mockCustomerDuplicatesDataResponse));
+
+    component.mergeCustomers(mockCustomer1);
+
+    expect(customerApiService.mergeCustomers).toHaveBeenCalledWith(
+      mockCustomer1.id, [mockCustomer2.id, mockCustomer3.id]
+    );
+    expect(customerApiService.getCustomerDuplicates).toHaveBeenCalledWith(1);
+    expect(toastService.showToast).toHaveBeenCalledWith({
+      type: ToastType.SUCCESS,
+      title: 'Kunden wurden zusammengeführt!'
+    });
   });
 
 });

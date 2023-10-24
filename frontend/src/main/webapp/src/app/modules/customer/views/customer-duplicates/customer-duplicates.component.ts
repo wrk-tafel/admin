@@ -86,4 +86,21 @@ export class CustomerDuplicatesComponent implements OnInit {
     this.customerApiService.deleteCustomer(customerId).subscribe(observer);
   }
 
+  mergeCustomers(customer: CustomerData) {
+    const sourceCustomerIds = [this.customerDuplicatesData.items[0].customer, ...this.customerDuplicatesData.items[0].similarCustomers]
+      .filter((filterCustomer) => filterCustomer.id !== customer.id)
+      .map(mapCustomer => mapCustomer.id);
+
+    const observer = {
+      next: () => {
+        this.toastService.showToast({type: ToastType.SUCCESS, title: 'Kunden wurden zusammengeführt!'});
+        this.getDuplicates(1);
+      },
+      error: error => {
+        this.toastService.showToast({type: ToastType.ERROR, title: 'Zusammenführen der Kunden fehlgeschlagen!'});
+      }
+    };
+    this.customerApiService.mergeCustomers(customer.id, sourceCustomerIds).subscribe(observer);
+  }
+
 }
