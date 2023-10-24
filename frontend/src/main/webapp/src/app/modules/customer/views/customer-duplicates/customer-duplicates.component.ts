@@ -5,7 +5,7 @@ import {
   CustomerData,
   CustomerDuplicatesResponse
 } from '../../../../api/customer-api.service';
-import {ActivatedRoute} from '@angular/router';
+import {ActivatedRoute, Router} from '@angular/router';
 import {TafelPaginationData} from '../../../../common/components/tafel-pagination/tafel-pagination.component';
 import * as moment from 'moment/moment';
 
@@ -16,6 +16,7 @@ import * as moment from 'moment/moment';
 export class CustomerDuplicatesComponent implements OnInit {
   private customerApiService = inject(CustomerApiService);
   private activatedRoute = inject(ActivatedRoute);
+  private router = inject(Router);
 
   customerDuplicatesData: CustomerDuplicatesResponse;
   paginationData: TafelPaginationData;
@@ -64,6 +65,10 @@ export class CustomerDuplicatesComponent implements OnInit {
 
   isValid(customer: CustomerData) {
     return !moment(customer.validUntil).startOf('day').isBefore(moment().startOf('day'));
+  }
+
+  showCustomerDetail(customerId: number) {
+    this.router.navigate(['/kunden/detail/' + customerId]);
   }
 
 }

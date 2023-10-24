@@ -56,7 +56,7 @@
                   <button cButton color="success" class="text-white me-2">
                     <i class="fa fa-check text-white"></i>
                   </button>
-                  <button cButton color="primary" class="text-white me-2">
+                  <button cButton color="primary" class="text-white me-2" (click)="showCustomerDetail(item.customer.id)">
                     <i class="fa fa-magnifying-glass text-white"></i>
                   </button>
                   <button cButton color="danger" class="text-white">
@@ -103,7 +103,7 @@
                     <button cButton color="success" class="text-white me-2">
                       <i class="fa fa-check text-white"></i>
                     </button>
-                    <button cButton color="primary" class="text-white me-2">
+                    <button cButton color="primary" class="text-white me-2" (click)="showCustomerDetail(similarCustomer.id)">
                       <i class="fa fa-magnifying-glass text-white"></i>
                     </button>
                     <button cButton color="danger" class="text-white">
