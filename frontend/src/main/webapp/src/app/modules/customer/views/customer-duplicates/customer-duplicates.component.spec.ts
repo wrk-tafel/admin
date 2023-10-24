@@ -1,11 +1,12 @@
 import {TestBed, waitForAsync} from '@angular/core/testing';
 import {CustomerApiService, CustomerDuplicatesResponse, Gender} from '../../../../api/customer-api.service';
 import {CustomerDuplicatesComponent} from './customer-duplicates.component';
-import {ActivatedRoute} from '@angular/router';
-import * as moment from "moment/moment";
+import {ActivatedRoute, Router} from '@angular/router';
+import * as moment from 'moment/moment';
 
 describe('CustomerDuplicatesComponent', () => {
   let customerApiService: jasmine.SpyObj<CustomerApiService>;
+  let router: jasmine.SpyObj<Router>;
 
   const mockCustomer1 = {
     id: 133,
@@ -56,6 +57,7 @@ describe('CustomerDuplicatesComponent', () => {
 
   beforeEach(waitForAsync(() => {
     const customerApiServiceSpy = jasmine.createSpyObj('CustomerApiService', ['generatePdf', 'deleteCustomer', 'updateCustomer']);
+    const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
 
     TestBed.configureTestingModule({
       imports: [],
@@ -66,6 +68,10 @@ describe('CustomerDuplicatesComponent', () => {
         {
           provide: CustomerApiService,
           useValue: customerApiServiceSpy
+        },
+        {
+          provide: Router,
+          useValue: routerSpy
         },
         {
           provide: ActivatedRoute,
@@ -81,6 +87,7 @@ describe('CustomerDuplicatesComponent', () => {
     }).compileComponents();
 
     customerApiService = TestBed.inject(CustomerApiService) as jasmine.SpyObj<CustomerApiService>;
+    router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
   }));
 
   it('component can be created', () => {
@@ -104,6 +111,16 @@ describe('CustomerDuplicatesComponent', () => {
       totalPages: mockCustomerDuplicatesDataResponse.totalPages,
       pageSize: mockCustomerDuplicatesDataResponse.pageSize
     });
+  });
+
+  it('showCustomerDetail calls router navigation', () => {
+    const fixture = TestBed.createComponent(CustomerDuplicatesComponent);
+    const component = fixture.componentInstance;
+
+    const customerId = 123;
+    component.showCustomerDetail(customerId);
+
+    expect(router.navigate).toHaveBeenCalledWith(['/kunden/detail/' + customerId]);
   });
 
 });
