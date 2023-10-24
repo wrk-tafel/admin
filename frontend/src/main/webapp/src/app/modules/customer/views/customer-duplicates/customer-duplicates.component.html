@@ -5,7 +5,7 @@
       <c-col class="d-flex flex-column gap-2">
         <c-row>
           <c-col>
-            <h6>Bedienhinweis / Legende:</h6>
+            <h6>Legende:</h6>
           </c-col>
         </c-row>
         <c-row>
@@ -13,8 +13,8 @@
             <button cButton color="success" class="text-white me-2" size="sm">
               <i class="fa fa-check text-white"></i>
             </button>
-            - Kunde übernehmen: Der ausgewählte Kunde bleibt als einziger Kunde bestehen. Andere angezeigte Kunden
-            werden integriert!
+            <strong>Kunde übernehmen:</strong> Der ausgewählte Kunde bleibt als einziger Kunde bestehen. Andere
+            angezeigte Kunden werden integriert!
           </c-col>
         </c-row>
         <c-row>
@@ -22,7 +22,7 @@
             <button cButton color="primary" class="text-white me-2" size="sm">
               <i class="fa fa-magnifying-glass text-white"></i>
             </button>
-            - Kunden-Details ansehen: Wechsel zur Detail-Ansicht des ausgewählten Kunden.
+            <strong>Kunden-Details ansehen:</strong> Wechsel zur Detail-Ansicht des ausgewählten Kunden.
           </c-col>
         </c-row>
         <c-row>
@@ -30,12 +30,14 @@
             <button cButton color="danger" class="text-white" size="sm">
               <i class="fa fa-trash-can text-white"></i>
             </button>
-            - Kunden löschen: Der ausgewählte Kunde wird gelöscht. Andere angezeigte Kunden bleiben bestehen.
+            <strong>Kunden löschen:</strong> Nur der ausgewählte Kunde wird gelöscht. Andere angezeigte Kunden bleiben bestehen.
           </c-col>
         </c-row>
       </c-col>
     </c-row>
+
     <hr/>
+
     <tafel-pagination class="d-none d-sm-block" align="end" [paginationData]="paginationData"
                       (pageChanged)="getDuplicates($event)"></tafel-pagination>
     <tafel-pagination class="d-block d-sm-none" align="center" size="sm" [paginationData]="paginationData"
