@@ -180,12 +180,21 @@ describe('CustomerDuplicatesComponent', () => {
 
     const customerId = 123;
     customerApiService.deleteCustomer.withArgs(customerId).and.returnValue(of(null));
-    customerApiService.getCustomerDuplicates.withArgs(1).and.returnValue(of(mockCustomerDuplicatesDataResponse));
+
+    const page = 3;
+    component.paginationData = {
+      count: 10,
+      totalCount: 100,
+      currentPage: page,
+      totalPages: 10,
+      pageSize: 10
+    };
+    customerApiService.getCustomerDuplicates.withArgs(page).and.returnValue(of(mockCustomerDuplicatesDataResponse));
 
     component.deleteCustomer(customerId);
 
     expect(customerApiService.deleteCustomer).toHaveBeenCalledWith(customerId);
-    expect(customerApiService.getCustomerDuplicates).toHaveBeenCalledWith(1);
+    expect(customerApiService.getCustomerDuplicates).toHaveBeenCalledWith(page);
     expect(toastService.showToast).toHaveBeenCalledWith({type: ToastType.SUCCESS, title: 'Kunde wurde gelöscht!'});
   });
 

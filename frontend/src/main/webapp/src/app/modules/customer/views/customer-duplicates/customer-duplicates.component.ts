@@ -8,7 +8,7 @@ import {
 import {ActivatedRoute, Router} from '@angular/router';
 import {TafelPaginationData} from '../../../../common/components/tafel-pagination/tafel-pagination.component';
 import * as moment from 'moment/moment';
-import {ToastService, ToastType} from "../../../../common/views/default-layout/toasts/toast.service";
+import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
 
 @Component({
   selector: 'tafel-customer-duplicates',
@@ -77,7 +77,7 @@ export class CustomerDuplicatesComponent implements OnInit {
     const observer = {
       next: () => {
         this.toastService.showToast({type: ToastType.SUCCESS, title: 'Kunde wurde gelöscht!'});
-        this.getDuplicates(1);
+        this.getDuplicates(this.paginationData.currentPage);
       },
       error: error => {
         this.toastService.showToast({type: ToastType.ERROR, title: 'Löschen fehlgeschlagen!'});
