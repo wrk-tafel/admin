@@ -153,6 +153,7 @@ class CustomerController(
         @PathVariable("customerId") customerId: Long,
         @RequestBody request: CustomerMergeRequest
     ): ResponseEntity<Any> {
+        customerService.mergeCustomers(customerId, request.customerIds)
         return ResponseEntity.ok().build()
     }
 

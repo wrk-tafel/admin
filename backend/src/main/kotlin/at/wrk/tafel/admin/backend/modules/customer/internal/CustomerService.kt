@@ -149,6 +149,10 @@ class CustomerService(
         return addPersonList + customerPerson
     }
 
+    fun mergeCustomers(targetCustomer: Long, sourceCustomers: List<Long>) {
+        TODO("IMPL")
+    }
+
 }
 
 @ExcludeFromTestCoverage
