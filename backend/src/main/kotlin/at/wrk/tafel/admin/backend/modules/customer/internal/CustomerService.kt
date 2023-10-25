@@ -6,6 +6,7 @@ import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity.Spec
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity.Specs.Companion.orderByUpdatedAtDesc
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity.Specs.Companion.postProcessingNecessary
 import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerRepository
+import at.wrk.tafel.admin.backend.database.repositories.distribution.DistributionCustomerRepository
 import at.wrk.tafel.admin.backend.modules.customer.internal.converter.CustomerConverter
 import at.wrk.tafel.admin.backend.modules.customer.internal.income.IncomeValidatorPerson
 import at.wrk.tafel.admin.backend.modules.customer.internal.income.IncomeValidatorResult
@@ -22,6 +23,7 @@ import java.time.LocalDate
 class CustomerService(
     private val incomeValidatorService: IncomeValidatorService,
     private val customerRepository: CustomerRepository,
+    private val distributionCustomerRepository: DistributionCustomerRepository,
     private val customerPdfService: CustomerPdfService,
     private val customerConverter: CustomerConverter
 ) {
@@ -151,7 +153,18 @@ class CustomerService(
 
     @Transactional
     fun mergeCustomers(targetCustomer: Long, sourceCustomers: List<Long>) {
-        TODO("IMPL")
+        val targetCustomer = customerRepository.findByCustomerId(targetCustomer)
+
+        sourceCustomers.forEach { customerId ->
+            // move visits of all distribution events from source customer to the target customer
+            val distributionCustomerEntries = distributionCustomerRepository.findByCustomerId(customerId)
+            distributionCustomerEntries.forEach {
+                it.customer = targetCustomer
+                distributionCustomerRepository.save(it)
+            }
+
+            customerRepository.deleteByCustomerId(customerId)
+        }
     }
 
 }
