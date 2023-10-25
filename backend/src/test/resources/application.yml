@@ -1,5 +1,21 @@
 server.port: 0 # Random port for each SpringBootTest
 
+spring:
+  datasource:
+    driverClassName: org.postgresql.Driver
+  flyway:
+    locations: classpath:/db-migration
+    group: true
+    ignore-migration-patterns: "*:missing"
+    baseline-on-migrate: true
+    clean-disabled: false
+  jpa:
+    properties:
+      hibernate:
+        id:
+          db_structure_naming_strategy: single # TODO migrate to new default strategy (sequence per table)
+    open-in-view: false
+
 security:
   jwtToken:
     issuer: test-issuer

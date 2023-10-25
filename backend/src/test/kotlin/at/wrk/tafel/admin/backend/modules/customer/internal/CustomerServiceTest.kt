@@ -349,7 +349,7 @@ class CustomerServiceTest {
 
         every { distributionCustomerRepository.save(any()) } returns mockk(relaxed = true)
 
-        every { distributionCustomerRepository.findByCustomerId(sourceCustomerId1) } returns listOf(
+        every { distributionCustomerRepository.findByCustomerCustomerId(sourceCustomerId1) } returns listOf(
             distributionCustomerEntity1,
             distributionCustomerEntity2
         )
@@ -358,7 +358,7 @@ class CustomerServiceTest {
         distributionCustomerEntity3.customer = sourceCustomer2
         distributionCustomerEntity3.distribution = distribution1
 
-        every { distributionCustomerRepository.findByCustomerId(sourceCustomerId2) } returns listOf(
+        every { distributionCustomerRepository.findByCustomerCustomerId(sourceCustomerId2) } returns listOf(
             distributionCustomerEntity3
         )
 

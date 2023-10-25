@@ -1,6 +1,6 @@
 package at.wrk.tafel.admin.backend.architecture
 
-import at.wrk.tafel.admin.backend.common.TafelSpringBootIT
+import at.wrk.tafel.admin.backend.TafelBaseIntegrationTest
 import com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.annotatedWith
 import com.tngtech.archunit.junit.AnalyzeClasses
 import com.tngtech.archunit.junit.ArchTest
@@ -15,12 +15,12 @@ class NamingConventionsTest {
     val `unittest classes are named properly` = classes().that()
         .containAnyMethodsThat(annotatedWith(Test::class.java))
         .and().areNotAnnotatedWith(SpringBootTest::class.java)
-        .and().areNotAssignableTo(TafelSpringBootIT::class.java)
+        .and().areNotAssignableTo(TafelBaseIntegrationTest::class.java)
         .should().haveSimpleNameEndingWith("Test")
 
     @ArchTest
     val `integrationtest classes are named properly` = classes().that()
         .areAnnotatedWith(SpringBootTest::class.java)
-        .or().areAssignableTo(TafelSpringBootIT::class.java)
+        .or().areAssignableTo(TafelBaseIntegrationTest::class.java)
         .should().haveSimpleNameEndingWith("IT")
 }
