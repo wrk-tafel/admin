@@ -161,14 +161,15 @@ class CustomerService(
             // move visits of all distribution events from source customer to the target customer
             val distributionCustomerEntries = distributionCustomerRepository.findByCustomerCustomerId(customerId)
 
-            distributionCustomerEntries.forEach { sourceDistributionCustomerEntity ->
-                val targetCustomerExistsAlreadyInDistribution =
-                    sourceDistributionCustomerEntity.distribution!!.customers.any { it.customer!!.customerId == targetCustomer!!.customerId }
+            val targetCustomerExistsAlreadyInDistribution =
+                distributionCustomerEntries.any { it.customer!!.customerId == targetCustomer!!.customerId }
 
-                distributionCustomerRepository.delete(sourceDistributionCustomerEntity)
-                distributionCustomerRepository.flush()
+            if (!targetCustomerExistsAlreadyInDistribution) {
+                distributionCustomerEntries.forEach { sourceDistributionCustomerEntity ->
 
-                if (!targetCustomerExistsAlreadyInDistribution) {
+                    distributionCustomerRepository.delete(sourceDistributionCustomerEntity)
+                    distributionCustomerRepository.flush()
+
                     val distributionCustomerEntity = DistributionCustomerEntity()
                     distributionCustomerEntity.distribution = sourceDistributionCustomerEntity.distribution
                     distributionCustomerEntity.customer = targetCustomer
