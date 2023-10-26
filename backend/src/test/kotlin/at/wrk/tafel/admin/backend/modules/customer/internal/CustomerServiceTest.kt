@@ -2,8 +2,6 @@ package at.wrk.tafel.admin.backend.modules.customer.internal
 
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity
-import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionCustomerEntity
-import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerRepository
 import at.wrk.tafel.admin.backend.database.repositories.distribution.DistributionCustomerRepository
@@ -22,7 +20,6 @@ import io.mockk.junit5.MockKExtension
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
-import io.mockk.verifyOrder
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -323,68 +320,6 @@ class CustomerServiceTest {
         service.deleteCustomerByCustomerId(customerId)
 
         verify(exactly = 1) { customerRepository.deleteByCustomerId(customerId) }
-    }
-
-    @Test
-    fun `merge customers`() {
-        val distribution1 = mockk<DistributionEntity>(relaxed = true)
-        val distribution2 = mockk<DistributionEntity>(relaxed = true)
-
-        val targetCustomerId = 123L
-        val targetCustomer = mockk<CustomerEntity>(relaxed = true)
-        every { customerRepository.findByCustomerId(targetCustomerId) } returns targetCustomer
-
-        val sourceCustomerId1 = 456L
-        val sourceCustomer1 = mockk<CustomerEntity>(relaxed = true)
-        val sourceCustomerId2 = 789L
-        val sourceCustomer2 = mockk<CustomerEntity>(relaxed = true)
-
-        val distributionCustomerEntity1 = DistributionCustomerEntity()
-        distributionCustomerEntity1.customer = sourceCustomer1
-        distributionCustomerEntity1.distribution = distribution1
-
-        val distributionCustomerEntity2 = DistributionCustomerEntity()
-        distributionCustomerEntity2.customer = sourceCustomer1
-        distributionCustomerEntity2.distribution = distribution2
-
-        every { distributionCustomerRepository.save(any()) } returns mockk(relaxed = true)
-
-        every { distributionCustomerRepository.findByCustomerCustomerId(sourceCustomerId1) } returns listOf(
-            distributionCustomerEntity1,
-            distributionCustomerEntity2
-        )
-
-        val distributionCustomerEntity3 = DistributionCustomerEntity()
-        distributionCustomerEntity3.customer = sourceCustomer2
-        distributionCustomerEntity3.distribution = distribution1
-
-        every { distributionCustomerRepository.findByCustomerCustomerId(sourceCustomerId2) } returns listOf(
-            distributionCustomerEntity3
-        )
-
-        service.mergeCustomers(targetCustomerId, listOf(sourceCustomerId1, sourceCustomerId2))
-
-        val savedDistributionCustomerSlot1 = slot<DistributionCustomerEntity>()
-        val savedDistributionCustomerSlot2 = slot<DistributionCustomerEntity>()
-        val savedDistributionCustomerSlot3 = slot<DistributionCustomerEntity>()
-
-        verifyOrder {
-            distributionCustomerRepository.save(capture(savedDistributionCustomerSlot1))
-            distributionCustomerRepository.save(capture(savedDistributionCustomerSlot2))
-            customerRepository.deleteByCustomerId(sourceCustomerId1)
-
-            distributionCustomerRepository.save(capture(savedDistributionCustomerSlot3))
-            customerRepository.deleteByCustomerId(sourceCustomerId2)
-        }
-
-        assertThat(savedDistributionCustomerSlot1.captured.customer).isEqualTo(targetCustomer)
-        assertThat(savedDistributionCustomerSlot1.captured.distribution).isEqualTo(distribution1)
-
-        assertThat(savedDistributionCustomerSlot2.captured.customer).isEqualTo(targetCustomer)
-        assertThat(savedDistributionCustomerSlot2.captured.distribution).isEqualTo(distribution2)
-
-        assertThat(savedDistributionCustomerSlot3.captured.customer).isEqualTo(targetCustomer)
-        assertThat(savedDistributionCustomerSlot3.captured.distribution).isEqualTo(distribution1)
     }
 
 }

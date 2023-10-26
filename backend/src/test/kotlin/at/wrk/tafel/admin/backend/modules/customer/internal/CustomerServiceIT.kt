@@ -82,7 +82,7 @@ class CustomerServiceIT : TafelBaseIntegrationTest() {
 
         // assignments to distributions are moved to targetCustomer
         val checkDistribution1 = testEntityManager.find(DistributionEntity::class.java, distribution1.id)
-        assertThat(checkDistribution1.customers).hasSize(4)
+        assertThat(checkDistribution1.customers).hasSize(2)
 
         val checkDistribution2 = testEntityManager.find(DistributionEntity::class.java, distribution1.id)
         assertThat(checkDistribution2.customers).isEmpty()

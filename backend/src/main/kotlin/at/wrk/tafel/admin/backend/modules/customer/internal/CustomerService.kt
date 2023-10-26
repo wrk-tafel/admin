@@ -165,16 +165,17 @@ class CustomerService(
                 val targetCustomerExistsAlreadyInDistribution =
                     sourceDistributionCustomerEntity.distribution!!.customers.any { it.customer!!.customerId == targetCustomer!!.customerId }
 
+                distributionCustomerRepository.delete(sourceDistributionCustomerEntity)
+                distributionCustomerRepository.flush()
+
                 if (!targetCustomerExistsAlreadyInDistribution) {
                     val distributionCustomerEntity = DistributionCustomerEntity()
                     distributionCustomerEntity.distribution = sourceDistributionCustomerEntity.distribution
                     distributionCustomerEntity.customer = targetCustomer
                     distributionCustomerEntity.ticketNumber = sourceDistributionCustomerEntity.ticketNumber
                     distributionCustomerEntity.processed = true
-                    distributionCustomerRepository.save(distributionCustomerEntity)
+                    distributionCustomerRepository.saveAndFlush(distributionCustomerEntity)
                 }
-
-                distributionCustomerRepository.delete(sourceDistributionCustomerEntity)
             }
 
             customerRepository.deleteByCustomerId(customerId)
