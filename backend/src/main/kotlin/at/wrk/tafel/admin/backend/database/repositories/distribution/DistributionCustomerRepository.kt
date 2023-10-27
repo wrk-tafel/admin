@@ -7,4 +7,6 @@ interface DistributionCustomerRepository : JpaRepository<DistributionCustomerEnt
 
     fun countAllByDistributionId(distributionId: Long): Int
 
+    fun findByCustomerCustomerId(customerId: Long): List<DistributionCustomerEntity>
+
 }

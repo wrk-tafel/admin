@@ -78,10 +78,10 @@ export class CustomerSearchComponent {
 
     formatAddress(address: CustomerAddressData): string {
         const formatted = [
-            [address.street, address.houseNumber].join(' '),
+            [address.street, address.houseNumber].join(' ').trim(),
             address.stairway ? 'Stiege ' + address.stairway : undefined,
             address.door ? 'Top ' + address.door : undefined,
-            [address.postalCode, address.city].join(' ')
+            [address.postalCode, address.city].join(' ').trim()
         ]
             .filter(value => value?.trim().length > 0)
             .join(', ');
