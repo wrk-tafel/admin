@@ -153,6 +153,9 @@ class CustomerService(
 
     @Transactional
     fun mergeCustomers(targetCustomer: Long, sourceCustomers: List<Long>) {
+        // TODO could be reduced to frontend-side delete calls
+        // TODO still keep it for now in case it needs some migration logic
+
         sourceCustomers.forEach { customerId ->
             customerRepository.deleteByCustomerId(customerId)
         }
