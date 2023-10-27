@@ -5,7 +5,6 @@ import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity.Spec
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity.Specs.Companion.lastnameContains
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity.Specs.Companion.orderByUpdatedAtDesc
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity.Specs.Companion.postProcessingNecessary
-import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionCustomerEntity
 import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerRepository
 import at.wrk.tafel.admin.backend.database.repositories.distribution.DistributionCustomerRepository
 import at.wrk.tafel.admin.backend.modules.customer.internal.converter.CustomerConverter
@@ -154,31 +153,7 @@ class CustomerService(
 
     @Transactional
     fun mergeCustomers(targetCustomer: Long, sourceCustomers: List<Long>) {
-        val targetCustomer = customerRepository.findByCustomerId(targetCustomer)
-
         sourceCustomers.forEach { customerId ->
-
-            // move visits of all distribution events from source customer to the target customer
-            val distributionCustomerEntries = distributionCustomerRepository.findByCustomerCustomerId(customerId)
-
-            val targetCustomerExistsAlreadyInDistribution =
-                distributionCustomerEntries.any { it.customer!!.customerId == targetCustomer!!.customerId }
-
-            if (!targetCustomerExistsAlreadyInDistribution) {
-                distributionCustomerEntries.forEach { sourceDistributionCustomerEntity ->
-
-                    distributionCustomerRepository.delete(sourceDistributionCustomerEntity)
-                    distributionCustomerRepository.flush()
-
-                    val distributionCustomerEntity = DistributionCustomerEntity()
-                    distributionCustomerEntity.distribution = sourceDistributionCustomerEntity.distribution
-                    distributionCustomerEntity.customer = targetCustomer
-                    distributionCustomerEntity.ticketNumber = sourceDistributionCustomerEntity.ticketNumber
-                    distributionCustomerEntity.processed = true
-                    distributionCustomerRepository.saveAndFlush(distributionCustomerEntity)
-                }
-            }
-
             customerRepository.deleteByCustomerId(customerId)
         }
     }

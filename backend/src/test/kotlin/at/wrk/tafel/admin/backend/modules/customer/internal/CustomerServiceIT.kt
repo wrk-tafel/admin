@@ -79,23 +79,6 @@ class CustomerServiceIT : TafelBaseIntegrationTest() {
         assertThat(testEntityManager.find(CustomerEntity::class.java, sourceCustomer1.id)).isNull()
         assertThat(testEntityManager.find(CustomerEntity::class.java, sourceCustomer2.id)).isNull()
         assertThat(testEntityManager.find(CustomerEntity::class.java, sourceCustomer3.id)).isNull()
-
-        // assignments to distributions are moved to targetCustomer
-        val checkDistribution1 = testEntityManager.find(DistributionEntity::class.java, distribution1.id)
-        assertThat(checkDistribution1.customers).hasSize(1)
-
-        val distributionCustomerEntity1 = checkDistribution1.customers.first()
-        assertThat(distributionCustomerEntity1.customer).isEqualTo(targetCustomer)
-        assertThat(distributionCustomerEntity1.distribution).isEqualTo(distribution1)
-        assertThat(distributionCustomerEntity1.ticketNumber).isEqualTo(1)
-
-        val checkDistribution2 = testEntityManager.find(DistributionEntity::class.java, distribution1.id)
-        assertThat(checkDistribution2.customers).hasSize(1)
-
-        val distributionCustomerEntity2 = checkDistribution2.customers.first()
-        assertThat(distributionCustomerEntity2.customer).isEqualTo(targetCustomer)
-        assertThat(distributionCustomerEntity2.distribution).isEqualTo(distribution2)
-        assertThat(distributionCustomerEntity2.ticketNumber).isEqualTo(1)
     }
 
     private fun createDistributionCustomerEntity(
