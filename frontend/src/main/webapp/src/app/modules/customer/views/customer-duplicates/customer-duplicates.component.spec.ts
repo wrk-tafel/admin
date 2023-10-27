@@ -278,7 +278,8 @@ describe('CustomerDuplicatesComponent', () => {
     expect(customerApiService.getCustomerDuplicates).toHaveBeenCalledWith(1);
     expect(toastService.showToast).toHaveBeenCalledWith({
       type: ToastType.SUCCESS,
-      title: 'Kunden wurden zusammengeführt!'
+      title: 'Kunden wurden zusammengeführt!',
+      message: `2 Kunde(n) wurden gelöscht.`
     });
   });
 

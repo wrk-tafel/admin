@@ -93,7 +93,11 @@ export class CustomerDuplicatesComponent implements OnInit {
 
     const observer = {
       next: () => {
-        this.toastService.showToast({type: ToastType.SUCCESS, title: 'Kunden wurden zusammengeführt!'});
+        this.toastService.showToast({
+          type: ToastType.SUCCESS,
+          title: 'Kunden wurden zusammengeführt!',
+          message: `${sourceCustomerIds.length} Kunde(n) wurden gelöscht.`
+        });
         this.getDuplicates(1);
       },
       error: error => {
