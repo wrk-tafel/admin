@@ -8,7 +8,7 @@ logging:
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5433/tafeladmin
+    url: jdbc:postgresql://localhost:5432/tafeladmin
     username: tafeladmin
     password: admin
   mail:
