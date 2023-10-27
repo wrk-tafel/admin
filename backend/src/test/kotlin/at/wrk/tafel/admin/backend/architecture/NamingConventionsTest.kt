@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest
 
 @AnalyzeClasses(packages = ["at.wrk.tafel.admin.backend"])
-class NamingConventionsTest {
+internal class NamingConventionsTest {
 
     @ArchTest
     val `unittest classes are named properly` = classes().that()
@@ -22,5 +22,7 @@ class NamingConventionsTest {
     val `integrationtest classes are named properly` = classes().that()
         .areAnnotatedWith(SpringBootTest::class.java)
         .or().areAssignableTo(TafelBaseIntegrationTest::class.java)
+        .and().doNotHaveSimpleName(TafelBaseIntegrationTest::class.java.simpleName)
         .should().haveSimpleNameEndingWith("IT")
+
 }
