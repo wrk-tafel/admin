@@ -5,7 +5,8 @@
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=wrk-tafel-admin&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=wrk-tafel-admin)
 
 # TODO
-
+* Separate permissons for duplication
+* Improve creation / enforce search before creating
 * Add goods-input
 
 ### Open things (to be decided)
