@@ -6,6 +6,7 @@
 
 # TODO
 * Separate permissons for duplication
+* customer-creation: Advanced postalCode validation (only numbers from 03. and 01. district / Vienna)
 * Improve creation / enforce search before creating
 * Add goods-input
 
