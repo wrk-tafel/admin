@@ -18,6 +18,8 @@ INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (1004, NOW(), NOW(), 100, 'DISTRIBUTION_LCM');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (1005, NOW(), NOW(), 100, 'USER_MANAGEMENT');
+INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
+VALUES (1006, NOW(), NOW(), 100, 'CUSTOMER_DUPLICATES');
 
 -- user: testuser
 -- pwd: 35bc40681124f412c5d052366edb9eb9
@@ -33,6 +35,8 @@ INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (2003, NOW(), NOW(), 200, 'CHECKIN');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (2004, NOW(), NOW(), 200, 'DISTRIBUTION_LCM');
+INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
+VALUES (2005, NOW(), NOW(), 200, 'CUSTOMER_DUPLICATES');
 
 -- user: admin
 -- pwd: 12345
@@ -50,6 +54,8 @@ INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (3004, NOW(), NOW(), 300, 'DISTRIBUTION_LCM');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (3005, NOW(), NOW(), 300, 'USER_MANAGEMENT');
+INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
+VALUES (3006, NOW(), NOW(), 300, 'CUSTOMER_DUPLICATES');
 
 -- user: scanner1
 -- pwd: 12345

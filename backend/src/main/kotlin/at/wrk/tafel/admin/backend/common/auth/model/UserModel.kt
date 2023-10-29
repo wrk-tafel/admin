@@ -65,6 +65,7 @@ enum class UserPermissions(val key: String, val title: String) {
     DISTRIBUTION_LCM("DISTRIBUTION_LCM", "Ausgabe-Ablauf"),
     USER_MANAGEMENT("USER_MANAGEMENT", "Benutzerverwaltung"),
     CUSTOMER("CUSTOMER", "Kundenverwaltung"),
+    CUSTOMER_DUPLICATES("CUSTOMER_DUPLICATES", "Kunden-Duplikate"),
     SCANNER("SCANNER", "Scanner");
 
     companion object {

@@ -19,12 +19,12 @@ import java.io.ByteArrayInputStream
 
 @RestController
 @RequestMapping("/api/customers")
-@PreAuthorize("hasAuthority('CUSTOMER')")
 class CustomerController(
     private val customerService: CustomerService,
     private val customerDuplicationService: CustomerDuplicationService
 ) {
     @PostMapping("/validate")
+    @PreAuthorize("hasAuthority('CUSTOMER')")
     fun validate(@RequestBody customer: Customer): ValidateCustomerResponse {
         val result = customerService.validate(customer)
         return ValidateCustomerResponse(
@@ -37,6 +37,7 @@ class CustomerController(
     }
 
     @PostMapping
+    @PreAuthorize("hasAuthority('CUSTOMER')")
     fun createCustomer(@RequestBody customer: Customer): Customer {
         customer.id?.let {
             if (customerService.existsByCustomerId(it)) {
@@ -48,6 +49,7 @@ class CustomerController(
     }
 
     @PostMapping("/{customerId}")
+    @PreAuthorize("hasAuthority('CUSTOMER')")
     fun updateCustomer(
         @PathVariable("customerId") customerId: Long,
         @RequestBody customer: Customer
@@ -63,6 +65,7 @@ class CustomerController(
     }
 
     @GetMapping("/{customerId}")
+    @PreAuthorize("hasAuthority('CUSTOMER')")
     fun getCustomer(@PathVariable("customerId") customerId: Long): Customer {
         return customerService.findByCustomerId(customerId)
             ?: throw TafelValidationException(
@@ -72,6 +75,7 @@ class CustomerController(
     }
 
     @GetMapping
+    @PreAuthorize("hasAuthority('CUSTOMER')")
     fun getCustomers(
         @RequestParam firstname: String? = null,
         @RequestParam lastname: String? = null,
@@ -94,6 +98,7 @@ class CustomerController(
     }
 
     @DeleteMapping("/{customerId}")
+    @PreAuthorize("hasAuthority('CUSTOMER')")
     fun deleteCustomer(@PathVariable("customerId") customerId: Long) {
         if (!customerService.existsByCustomerId(customerId)) {
             throw TafelValidationException(
@@ -106,6 +111,7 @@ class CustomerController(
     }
 
     @GetMapping("/{customerId}/generate-pdf", produces = [MediaType.APPLICATION_PDF_VALUE])
+    @PreAuthorize("hasAuthority('CUSTOMER')")
     fun generatePdf(
         @PathVariable("customerId") customerId: Long,
         @RequestParam("type") type: CustomerPdfType
@@ -130,6 +136,7 @@ class CustomerController(
     }
 
     @GetMapping("/duplicates")
+    @PreAuthorize("hasAuthority('CUSTOMER_DUPLICATES')")
     fun getDuplicates(
         @RequestParam page: Int? = null,
     ): CustomerDuplicatesResponse {
@@ -149,6 +156,7 @@ class CustomerController(
     }
 
     @PostMapping("/{customerId}/merge")
+    @PreAuthorize("hasAuthority('CUSTOMER_DUPLICATES')")
     fun mergeIntoCustomer(
         @PathVariable("customerId") customerId: Long,
         @RequestBody request: CustomerMergeRequest
