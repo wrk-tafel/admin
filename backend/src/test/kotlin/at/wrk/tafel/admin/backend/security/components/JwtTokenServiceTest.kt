@@ -156,11 +156,12 @@ class JwtTokenServiceTest {
         val audience = if (audienceNull == true) null else overrideAudience ?: tokenProperties.audience
 
         return Jwts.builder()
-            .setSubject("dummy-subject")
-            .setIssuer(issuer)
-            .setAudience(audience)
-            .setIssuedAt(Date(System.currentTimeMillis()))
-            .setExpiration(Date.from(expirationTime.atZone(ZoneId.systemDefault()).toInstant()))
+            .subject("dummy-subject")
+            .issuer(issuer)
+            .audience().add(audience)
+            .and()
+            .issuedAt(Date(System.currentTimeMillis()))
+            .expiration(Date.from(expirationTime.atZone(ZoneId.systemDefault()).toInstant()))
             .signWith(secretKeySpec)
             .compact()
     }
