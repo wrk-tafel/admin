@@ -47,7 +47,7 @@ spring:
 
 security:
   jwtToken:
-    secret.algorithm: HmacSHA512
+    secret.algorithm: HMACSHA256
     expirationTimeInSeconds: 36000 # 10 hours
     expirationTimePwdChangeInSeconds: 300 # 5 minutes
 

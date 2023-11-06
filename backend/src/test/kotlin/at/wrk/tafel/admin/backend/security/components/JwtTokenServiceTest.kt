@@ -36,7 +36,7 @@ class JwtTokenServiceTest {
                     expirationTimePwdChangeInSeconds = 100,
                     secret = SecurityJwtTokenSecretProperties(
                         value = "test-dummy".padEnd(50, 'A'),
-                        algorithm = "HmacSHA512"
+                        algorithm = "HMACSHA256"
                     )
                 )
             )
