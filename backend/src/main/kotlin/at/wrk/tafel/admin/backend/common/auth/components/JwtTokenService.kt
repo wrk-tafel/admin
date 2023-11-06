@@ -15,13 +15,13 @@ class JwtTokenService(
     private val applicationProperties: ApplicationProperties
 ) {
     companion object {
-        const val permissionsClaimKey = "permissions"
+        const val PERMISSIONS_CLAIM_KEY = "permissions"
     }
 
     fun getClaimsFromToken(token: String): Claims {
         return createJwtParser()
-            .parseClaimsJws(token)
-            .body
+            .parseSignedClaims(token)
+            .payload
     }
 
     fun generateToken(
@@ -34,19 +34,26 @@ class JwtTokenService(
         val secretKeySpec = createSecretKeySpec()
 
         return Jwts.builder()
-            .setHeaderParam(Header.TYPE, Header.JWT_TYPE)
-            .setSubject(username)
-            .setIssuer(applicationProperties.security.jwtToken.issuer)
-            .setAudience(applicationProperties.security.jwtToken.audience)
-            .setIssuedAt(Date(System.currentTimeMillis()))
-            .setExpiration(expirationDate)
+            /*
+            TODO
+            .header()
+            .add("typ", "jwt")
+            .and()
+             */
+            .subject(username)
+            .issuer(applicationProperties.security.jwtToken.issuer)
+            .audience().add(applicationProperties.security.jwtToken.audience)
+            .and()
+            .issuedAt(Date(System.currentTimeMillis()))
+            .expiration(expirationDate)
             .claim("permissions", authorities.map { it.authority })
             .signWith(secretKeySpec)
             .compact()
     }
 
-    private fun createJwtParser() = Jwts.parserBuilder()
-        .setSigningKey(createSecretKeySpec())
+    private fun createJwtParser() = Jwts.parser()
+        .decryptWith(createSecretKeySpec())
+        .verifyWith(createSecretKeySpec())
         .requireIssuer(applicationProperties.security.jwtToken.issuer)
         .requireAudience(applicationProperties.security.jwtToken.audience)
         .build()

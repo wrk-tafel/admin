@@ -28,7 +28,7 @@ class TafelJwtAuthProvider(
             }
 
             val mappedPermissions =
-                (claims[JwtTokenService.permissionsClaimKey] as List<String>).map { SimpleGrantedAuthority(it) }
+                (claims[JwtTokenService.PERMISSIONS_CLAIM_KEY] as List<String>).map { SimpleGrantedAuthority(it) }
             return TafelJwtAuthentication(tafelJwtAuthentication.tokenValue, claims.subject, true, mappedPermissions)
         } catch (e: JwtException) {
             throw BadCredentialsException(e.message, e)
