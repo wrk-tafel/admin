@@ -20,7 +20,7 @@ class JwtTokenService(
 
     fun getClaimsFromToken(token: String): Claims {
         return createJwtParser()
-            .parseUnsecuredClaims(token)
+            .parseSignedClaims(token)
             .payload
     }
 
