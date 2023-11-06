@@ -53,7 +53,7 @@ internal class TafelJwtAuthProviderTest {
             mapOf(
                 Claims.SUBJECT to username,
                 Claims.EXPIRATION to expiration,
-                JwtTokenService.permissionsClaimKey to listOf(perm1)
+                JwtTokenService.PERMISSIONS_CLAIM_KEY to listOf(perm1)
             )
         )
 
@@ -77,7 +77,7 @@ internal class TafelJwtAuthProviderTest {
             mapOf(
                 Claims.SUBJECT to username,
                 Claims.EXPIRATION to expiration,
-                JwtTokenService.permissionsClaimKey to listOf(perm1)
+                JwtTokenService.PERMISSIONS_CLAIM_KEY to listOf(perm1)
             )
         )
 
