@@ -35,3 +35,11 @@ jobs:
           older-than-seconds: 604800
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Delete main-push workflow runs (keep last week)
+        uses: MajorScruffy/delete-old-workflow-runs@v0.3.0
+        with:
+          repository: wrk-tafel/admin
+          workflow: ".github/workflows/main_push.yml"
+          older-than-seconds: 604800
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
