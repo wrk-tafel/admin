@@ -22,6 +22,6 @@ security:
     audience: test-audience
     secret:
       value: test-secret
-      algorithm: HmacSHA512
+      algorithm: HMACSHA256
     expirationTimeInSeconds: 300 # 5 minutes
     expirationTimePwdChangeInSeconds: 600 # 10 minutes

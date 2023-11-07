@@ -2,10 +2,10 @@ package at.wrk.tafel.admin.backend.modules.customer.internal.masterdata
 
 import at.wrk.tafel.admin.backend.common.pdf.PDFService
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity
-import io.github.g0dkar.qrcode.QRCode
 import org.apache.commons.io.IOUtils
 import org.springframework.stereotype.Service
 import org.springframework.util.MimeTypeUtils
+import qrcode.QRCode
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.text.NumberFormat
@@ -98,7 +98,7 @@ class CustomerPdfService(
                 },
                 idCard = PdfIdCardData(
                     qrCodeContentType = MimeTypeUtils.IMAGE_PNG_VALUE,
-                    qrCodeBytes = QRCode(customer.customerId.toString()).render().getBytes()
+                    qrCodeBytes = QRCode(customer.customerId.toString()).render()
                 )
             ),
             countPersons = countPersons,
