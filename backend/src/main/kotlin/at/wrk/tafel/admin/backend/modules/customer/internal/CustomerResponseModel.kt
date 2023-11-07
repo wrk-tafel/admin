@@ -89,3 +89,23 @@ enum class CustomerPdfType {
 enum class CustomerGender {
     MALE, FEMALE;
 }
+
+@ExcludeFromTestCoverage
+data class CustomerDuplicatesResponse(
+    val items: List<CustomerDuplicationItem>,
+    val totalCount: Long,
+    val currentPage: Int,
+    val totalPages: Int,
+    val pageSize: Int
+)
+
+@ExcludeFromTestCoverage
+data class CustomerDuplicationItem(
+    val customer: Customer,
+    val similarCustomers: List<Customer>
+)
+
+@ExcludeFromTestCoverage
+data class CustomerMergeRequest(
+    val sourceCustomerIds: List<Long>
+)

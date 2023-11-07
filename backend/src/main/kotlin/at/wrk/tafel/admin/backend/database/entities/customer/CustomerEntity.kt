@@ -34,7 +34,7 @@ class CustomerEntity : BaseChangeTrackingEntity() {
     var customerId: Long? = null
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id")
     var issuer: UserEntity? = null
 
     @Column(name = "firstname")

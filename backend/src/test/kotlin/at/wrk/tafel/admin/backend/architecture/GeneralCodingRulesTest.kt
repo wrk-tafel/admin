@@ -8,7 +8,7 @@ import com.tngtech.archunit.library.GeneralCodingRules
 import com.tngtech.archunit.library.GeneralCodingRules.BE_ANNOTATED_WITH_AN_INJECTION_ANNOTATION
 
 @AnalyzeClasses(packages = ["at.wrk.tafel.admin.backend"], importOptions = [ExcludeDbMigrationImportOption::class])
-class GeneralCodingRulesTest {
+internal class GeneralCodingRulesTest {
 
     @ArchTest
     val `stdout and stderr shouldn't be used` = GeneralCodingRules.NO_CLASSES_SHOULD_ACCESS_STANDARD_STREAMS
@@ -27,4 +27,5 @@ class GeneralCodingRulesTest {
 
     @ArchTest
     val `java-util-logging shouldn't be used anymore` = GeneralCodingRules.NO_CLASSES_SHOULD_USE_JAVA_UTIL_LOGGING
+
 }

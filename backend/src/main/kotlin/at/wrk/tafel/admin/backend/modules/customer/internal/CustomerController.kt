@@ -19,13 +19,14 @@ import java.io.ByteArrayInputStream
 
 @RestController
 @RequestMapping("/api/customers")
-@PreAuthorize("hasAuthority('CUSTOMER')")
 class CustomerController(
-    private val service: CustomerService
+    private val customerService: CustomerService,
+    private val customerDuplicationService: CustomerDuplicationService
 ) {
     @PostMapping("/validate")
+    @PreAuthorize("hasAuthority('CUSTOMER')")
     fun validate(@RequestBody customer: Customer): ValidateCustomerResponse {
-        val result = service.validate(customer)
+        val result = customerService.validate(customer)
         return ValidateCustomerResponse(
             valid = result.valid,
             totalSum = result.totalSum,
@@ -36,34 +37,37 @@ class CustomerController(
     }
 
     @PostMapping
+    @PreAuthorize("hasAuthority('CUSTOMER')")
     fun createCustomer(@RequestBody customer: Customer): Customer {
         customer.id?.let {
-            if (service.existsByCustomerId(it)) {
+            if (customerService.existsByCustomerId(it)) {
                 throw TafelValidationException("Kunde Nr. $it bereits vorhanden!")
             }
         }
 
-        return service.createCustomer(customer)
+        return customerService.createCustomer(customer)
     }
 
     @PostMapping("/{customerId}")
+    @PreAuthorize("hasAuthority('CUSTOMER')")
     fun updateCustomer(
         @PathVariable("customerId") customerId: Long,
         @RequestBody customer: Customer
     ): Customer {
-        if (!service.existsByCustomerId(customerId)) {
+        if (!customerService.existsByCustomerId(customerId)) {
             throw TafelValidationException(
                 message = "Kunde Nr. $customerId nicht vorhanden!",
                 status = HttpStatus.NOT_FOUND
             )
         }
 
-        return service.updateCustomer(customerId, customer)
+        return customerService.updateCustomer(customerId, customer)
     }
 
     @GetMapping("/{customerId}")
+    @PreAuthorize("hasAuthority('CUSTOMER')")
     fun getCustomer(@PathVariable("customerId") customerId: Long): Customer {
-        return service.findByCustomerId(customerId)
+        return customerService.findByCustomerId(customerId)
             ?: throw TafelValidationException(
                 message = "Kunde Nr. $customerId nicht gefunden!",
                 status = HttpStatus.NOT_FOUND
@@ -71,13 +75,14 @@ class CustomerController(
     }
 
     @GetMapping
+    @PreAuthorize("hasAuthority('CUSTOMER')")
     fun getCustomers(
         @RequestParam firstname: String? = null,
         @RequestParam lastname: String? = null,
         @RequestParam page: Int? = null,
         @RequestParam postProcessing: Boolean? = null
     ): CustomerListResponse {
-        val customerSearchResult = service.getCustomers(
+        val customerSearchResult = customerService.getCustomers(
             firstname = firstname?.trim(),
             lastname = lastname?.trim(),
             page = page,
@@ -93,23 +98,25 @@ class CustomerController(
     }
 
     @DeleteMapping("/{customerId}")
+    @PreAuthorize("hasAuthority('CUSTOMER')")
     fun deleteCustomer(@PathVariable("customerId") customerId: Long) {
-        if (!service.existsByCustomerId(customerId)) {
+        if (!customerService.existsByCustomerId(customerId)) {
             throw TafelValidationException(
                 message = "Kunde Nr. $customerId nicht vorhanden!",
                 status = HttpStatus.NOT_FOUND
             )
         }
 
-        service.deleteCustomerByCustomerId(customerId)
+        customerService.deleteCustomerByCustomerId(customerId)
     }
 
     @GetMapping("/{customerId}/generate-pdf", produces = [MediaType.APPLICATION_PDF_VALUE])
+    @PreAuthorize("hasAuthority('CUSTOMER')")
     fun generatePdf(
         @PathVariable("customerId") customerId: Long,
         @RequestParam("type") type: CustomerPdfType
     ): ResponseEntity<InputStreamResource> {
-        val pdfResult = service.generatePdf(customerId, type)
+        val pdfResult = customerService.generatePdf(customerId, type)
         pdfResult?.let {
             val headers = HttpHeaders()
             headers.add(
@@ -126,6 +133,36 @@ class CustomerController(
             message = "Kunde Nr. $customerId nicht vorhanden!",
             status = HttpStatus.NOT_FOUND
         )
+    }
+
+    @GetMapping("/duplicates")
+    @PreAuthorize("hasAuthority('CUSTOMER_DUPLICATES')")
+    fun getDuplicates(
+        @RequestParam page: Int? = null,
+    ): CustomerDuplicatesResponse {
+        val duplicateSearchResult = customerDuplicationService.findDuplicates(page)
+        return CustomerDuplicatesResponse(
+            items = duplicateSearchResult.items.map {
+                CustomerDuplicationItem(
+                    customer = it.customer,
+                    similarCustomers = it.similarCustomers
+                )
+            },
+            totalCount = duplicateSearchResult.totalCount,
+            currentPage = duplicateSearchResult.currentPage,
+            totalPages = duplicateSearchResult.totalPages,
+            pageSize = duplicateSearchResult.pageSize
+        )
+    }
+
+    @PostMapping("/{customerId}/merge")
+    @PreAuthorize("hasAuthority('CUSTOMER_DUPLICATES')")
+    fun mergeIntoCustomer(
+        @PathVariable("customerId") customerId: Long,
+        @RequestBody request: CustomerMergeRequest
+    ): ResponseEntity<Any> {
+        customerService.mergeCustomers(customerId, request.sourceCustomerIds)
+        return ResponseEntity.ok().build()
     }
 
 }

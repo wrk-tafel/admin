@@ -63,7 +63,7 @@ export class CustomerDetailComponent implements OnInit {
 
     formatAddressLine1(address: CustomerAddressData): string {
         const formatted = [
-            [address.street, address.houseNumber].join(' '),
+            [address.street, address.houseNumber].join(' ').trim(),
             address.stairway ? 'Stiege ' + address.stairway : undefined,
             address.door ? 'Top ' + address.door : undefined
         ]
@@ -73,7 +73,7 @@ export class CustomerDetailComponent implements OnInit {
     }
 
     formatAddressLine2(address: CustomerAddressData): string {
-        const formatted = [address.postalCode?.toString(), address.city].join(' ');
+        const formatted = [address.postalCode?.toString(), address.city].join(' ').trim();
         return formatted?.trim().length > 0 ? formatted : '-';
     }
 
