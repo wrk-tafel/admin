@@ -28,11 +28,11 @@
         <mysql.driver.version>8.2.0</mysql.driver.version>
         <bouncycastle.version>1.70</bouncycastle.version>
         <apache.fop.version>2.9</apache.fop.version>
-        <qrcode.kotlin.version>4.0.2</qrcode.kotlin.version>
+        <qrcode.kotlin.version>4.0.3</qrcode.kotlin.version>
         <passay.version>1.6.4</passay.version>
 
         <!-- Maven plugin version -->
-        <maven.surefire.plugin.version>3.2.1</maven.surefire.plugin.version>
+        <maven.surefire.plugin.version>3.2.2</maven.surefire.plugin.version>
         <maven.resources.plugin.version>3.3.1</maven.resources.plugin.version>
         <jacoco.maven.plugin.version>0.8.11</jacoco.maven.plugin.version>
 
