@@ -21,7 +21,7 @@
         </sonar.coverage.jacoco.xmlReportPaths>
         <sonar.kotlin.source.version>${kotlin.version}</sonar.kotlin.source.version>
 
-        <spring.boot.version>3.1.5</spring.boot.version>
+        <spring.boot.version>3.2.0</spring.boot.version>
         <spring.modulith.version>1.0.2</spring.modulith.version>
         <jjwt.version>0.12.3</jjwt.version>
         <postgresql.driver.version>42.7.0</postgresql.driver.version>
