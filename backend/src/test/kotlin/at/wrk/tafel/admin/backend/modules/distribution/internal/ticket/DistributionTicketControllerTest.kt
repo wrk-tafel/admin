@@ -3,7 +3,6 @@ package at.wrk.tafel.admin.backend.modules.distribution.internal.ticket
 import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.distribution.internal.DistributionService
-import at.wrk.tafel.admin.backend.modules.distribution.internal.ticket.DistributionTicketController
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
