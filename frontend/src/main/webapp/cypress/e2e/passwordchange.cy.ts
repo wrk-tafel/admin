@@ -3,72 +3,72 @@ import {UserData} from '../support/commands';
 
 describe('PasswordChange', () => {
 
-    beforeEach(() => {
-        cy.loginDefault();
+  beforeEach(() => {
+    cy.loginDefault();
+    cy.visit('/#');
+  });
+
+  it('change password', () => {
+    cy.getAnyRandomNumber().then(randomNumber => {
+      const testUser: UserData = {
+        username: 'username-' + randomNumber,
+        personnelNumber: 'personnelnumber-' + randomNumber,
+        firstname: 'firstname-' + randomNumber,
+        lastname: 'lastname-' + randomNumber,
+        enabled: true,
+        password: 'dummy-' + randomNumber,
+        passwordRepeat: 'dummy-' + randomNumber,
+        passwordChangeRequired: false,
+        permissions: []
+      };
+
+      cy.createUser(testUser).then(response => {
+        const user = response.body;
+
+        cy.login(user.username, testUser.password);
         cy.visit('/#');
-    });
 
-    it('change password', () => {
-        cy.getAnyRandomNumber().then(randomNumber => {
-            const testUser: UserData = {
-                username: 'username-' + randomNumber,
-                personnelNumber: 'personnelnumber-' + randomNumber,
-                firstname: 'firstname-' + randomNumber,
-                lastname: 'lastname-' + randomNumber,
-                enabled: true,
-                password: 'dummy-' + randomNumber,
-                passwordRepeat: 'dummy-' + randomNumber,
-                passwordChangeRequired: false,
-                permissions: []
-            };
+        cy.byTestId('usermenu').click();
+        cy.byTestId('usermenu-changepassword').click();
 
-            cy.createUser(testUser).then(response => {
-                const user = response.body;
+        const currentPassword = testUser.password;
+        recurse(
+          () => cy.byTestId('currentPasswordText').type(currentPassword),
+          ($input) => $input.val() === currentPassword,
+          {timeout: 30000}
+        ).should('have.value', currentPassword);
 
-                cy.login(user.username, testUser.password);
-                cy.visit('/#');
+        const newPassword = '4wtouCcWWqDJsP';
+        recurse(
+          () => cy.byTestId('newPasswordText').type(newPassword),
+          ($input) => $input.val() === newPassword,
+          {timeout: 30000}
+        ).should('have.value', newPassword);
 
-                cy.byTestId('usermenu').click();
-                cy.byTestId('usermenu-changepassword').click();
+        recurse(
+          () => cy.byTestId('newRepeatedPasswordText').type(newPassword),
+          ($input) => $input.val() === newPassword,
+          {timeout: 30000}
+        ).should('have.value', newPassword);
 
-                const currentPassword = testUser.password;
-                recurse(
-                    () => cy.byTestId('currentPasswordText').type(currentPassword),
-                    ($input) => $input.val() === currentPassword,
-                    {timeout: 30000}
-                ).should('have.value', currentPassword);
+        cy.byTestId('saveButton').click();
 
-                const newPassword = '4wtouCcWWqDJsP';
-                recurse(
-                    () => cy.byTestId('newPasswordText').type(newPassword),
-                    ($input) => $input.val() === newPassword,
-                    {timeout: 30000}
-                ).should('have.value', newPassword);
+        cy.byTestId('usermenu').click();
+        cy.byTestId('usermenu-logout').click();
 
-                recurse(
-                    () => cy.byTestId('newRepeatedPasswordText').type(newPassword),
-                    ($input) => $input.val() === newPassword,
-                    {timeout: 30000}
-                ).should('have.value', newPassword);
+        cy.url().should('contain', '/login');
 
-                cy.byTestId('saveButton').click();
+        cy.login(user.username, '4wtouCcWWqDJsP');
+        cy.visit('/#');
 
-                cy.byTestId('usermenu').click();
-                cy.byTestId('usermenu-logout').click();
+        cy.url().should('contain', '/#');
 
-                cy.url().should('contain', '/login');
-
-                cy.login(user.username, '4wtouCcWWqDJsP');
-                cy.visit('/#');
-
-                cy.url().should('contain', '/#');
-
-                // expect error for old password
-                cy.createLoginRequest(user.username, 'e2etest', false).then((resp) => {
-                    expect(resp.status).to.eq(403);
-                });
-            });
+        // expect error for old password
+        cy.createLoginRequest(user.username, 'e2etest', false).then((resp) => {
+          expect(resp.status).to.eq(403);
         });
+      });
     });
+  });
 
 });

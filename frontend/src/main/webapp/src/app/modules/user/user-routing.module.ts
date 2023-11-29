@@ -8,41 +8,41 @@ import {UserEditComponent} from './user-edit/user-edit.component';
 import {PermissionsDataResolver} from './resolver/permissionsdata-resolver.component';
 
 export const userDataResolver: ResolveFn<UserData> = (route: ActivatedRouteSnapshot) => {
-    return inject(UserDataResolver).resolve(route);
+  return inject(UserDataResolver).resolve(route);
 };
 
 const routes: Routes = [
-    {
-        path: 'detail/:id',
-        component: UserDetailComponent,
-        resolve: {
-            userData: userDataResolver,
-        }
-    },
-    {
-        path: 'bearbeiten/:id',
-        component: UserEditComponent,
-        resolve: {
-            userData: userDataResolver,
-            permissionsData: PermissionsDataResolver
-        }
-    },
-    {
-        path: 'suchen',
-        component: UserSearchComponent
-    },
-    {
-        path: 'erstellen',
-        component: UserEditComponent,
-        resolve: {
-            permissionsData: PermissionsDataResolver
-        }
+  {
+    path: 'detail/:id',
+    component: UserDetailComponent,
+    resolve: {
+      userData: userDataResolver,
     }
+  },
+  {
+    path: 'bearbeiten/:id',
+    component: UserEditComponent,
+    resolve: {
+      userData: userDataResolver,
+      permissionsData: PermissionsDataResolver
+    }
+  },
+  {
+    path: 'suchen',
+    component: UserSearchComponent
+  },
+  {
+    path: 'erstellen',
+    component: UserEditComponent,
+    resolve: {
+      permissionsData: PermissionsDataResolver
+    }
+  }
 ];
 
 @NgModule({
-    imports: [RouterModule.forChild(routes)],
-    exports: [RouterModule]
+  imports: [RouterModule.forChild(routes)],
+  exports: [RouterModule]
 })
 export class UserRoutingModule {
 }

@@ -5,14 +5,14 @@ import {CustomerNoteApiService, CustomerNotesResponse} from '../../../api/custom
 import {map} from 'rxjs/operators';
 
 @Injectable({
-    providedIn: 'root'
+  providedIn: 'root'
 })
 export class CustomerNotesResolver {
-    private customerNoteApiService = inject(CustomerNoteApiService);
+  private customerNoteApiService = inject(CustomerNoteApiService);
 
-    public resolve(route: ActivatedRouteSnapshot): Observable<CustomerNotesResponse> {
-        const customerId = +route.params['id'];
-        return this.customerNoteApiService.getNotesForCustomer(customerId).pipe(map(response => response));
-    }
+  public resolve(route: ActivatedRouteSnapshot): Observable<CustomerNotesResponse> {
+    const customerId = +route.params['id'];
+    return this.customerNoteApiService.getNotesForCustomer(customerId).pipe(map(response => response));
+  }
 
 }

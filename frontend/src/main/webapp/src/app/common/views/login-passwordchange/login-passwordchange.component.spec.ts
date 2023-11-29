@@ -9,87 +9,87 @@ import {HttpClientTestingModule} from '@angular/common/http/testing';
 import {CardModule, ColComponent, ContainerComponent, RowComponent} from '@coreui/angular';
 
 describe('LoginPasswordChangeComponent', () => {
-    let authServiceSpy: jasmine.SpyObj<AuthenticationService>;
-    let routerSpy: jasmine.SpyObj<Router>;
+  let authServiceSpy: jasmine.SpyObj<AuthenticationService>;
+  let routerSpy: jasmine.SpyObj<Router>;
 
-    beforeEach(waitForAsync(() => {
-        TestBed.configureTestingModule({
-            imports: [
-                ReactiveFormsModule,
-                HttpClientTestingModule,
-                CardModule,
-                ContainerComponent,
-                RowComponent,
-                ColComponent
-            ],
-            declarations: [
-                LoginPasswordChangeComponent,
-                PasswordChangeFormComponent
-            ],
-            providers: [
-                {
-                    provide: AuthenticationService,
-                    useValue: jasmine.createSpyObj('AuthenticationService', ['login', 'getUsername'])
-                },
-                {
-                    provide: Router,
-                    useValue: jasmine.createSpyObj('Router', ['navigate'])
-                }
-            ]
-        }).compileComponents();
+  beforeEach(waitForAsync(() => {
+    TestBed.configureTestingModule({
+      imports: [
+        ReactiveFormsModule,
+        HttpClientTestingModule,
+        CardModule,
+        ContainerComponent,
+        RowComponent,
+        ColComponent
+      ],
+      declarations: [
+        LoginPasswordChangeComponent,
+        PasswordChangeFormComponent
+      ],
+      providers: [
+        {
+          provide: AuthenticationService,
+          useValue: jasmine.createSpyObj('AuthenticationService', ['login', 'getUsername'])
+        },
+        {
+          provide: Router,
+          useValue: jasmine.createSpyObj('Router', ['navigate'])
+        }
+      ]
+    }).compileComponents();
 
-        authServiceSpy = TestBed.inject(AuthenticationService) as jasmine.SpyObj<AuthenticationService>;
-        routerSpy = TestBed.inject(Router) as jasmine.SpyObj<Router>;
-    }));
+    authServiceSpy = TestBed.inject(AuthenticationService) as jasmine.SpyObj<AuthenticationService>;
+    routerSpy = TestBed.inject(Router) as jasmine.SpyObj<Router>;
+  }));
 
-    it('should create the component', waitForAsync(() => {
-        const fixture = TestBed.createComponent(LoginPasswordChangeComponent);
-        const component = fixture.componentInstance;
+  it('should create the component', waitForAsync(() => {
+    const fixture = TestBed.createComponent(LoginPasswordChangeComponent);
+    const component = fixture.componentInstance;
 
-        expect(component).toBeTruthy();
-    }));
+    expect(component).toBeTruthy();
+  }));
 
-    it('cancel password change', waitForAsync(() => {
-        const fixture = TestBed.createComponent(LoginPasswordChangeComponent);
-        const component = fixture.componentInstance;
+  it('cancel password change', waitForAsync(() => {
+    const fixture = TestBed.createComponent(LoginPasswordChangeComponent);
+    const component = fixture.componentInstance;
 
-        component.cancel();
+    component.cancel();
 
-        expect(routerSpy.navigate).toHaveBeenCalledWith(['login']);
-    }));
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['login']);
+  }));
 
-    it('isSaveDisabled is true when form is undefined', waitForAsync(() => {
-        const fixture = TestBed.createComponent(LoginPasswordChangeComponent);
-        const component = fixture.componentInstance;
-        component.form = undefined;
+  it('isSaveDisabled is true when form is undefined', waitForAsync(() => {
+    const fixture = TestBed.createComponent(LoginPasswordChangeComponent);
+    const component = fixture.componentInstance;
+    component.form = undefined;
 
-        expect(component.isSaveDisabled()).toBeTrue();
-    }));
+    expect(component.isSaveDisabled()).toBeTrue();
+  }));
 
-    // TODO test: isSaveDisabled is false when form is valid
-    // TODO test: isSaveDisabled is true when form is invalid
+  // TODO test: isSaveDisabled is false when form is valid
+  // TODO test: isSaveDisabled is true when form is invalid
 
-    it('changePassword successful', fakeAsync(() => {
-        const testUsername = 'test-username';
-        const testNewPassword = 'test-new-password';
+  it('changePassword successful', fakeAsync(() => {
+    const testUsername = 'test-username';
+    const testNewPassword = 'test-new-password';
 
-        const fixture = TestBed.createComponent(LoginPasswordChangeComponent);
-        const component = fixture.componentInstance;
-        component.form = TestBed.createComponent(PasswordChangeFormComponent).componentInstance as PasswordChangeFormComponent;
-        spyOn(component.form, 'changePassword').and.returnValue(of(true));
-        spyOnProperty(component.form, 'newPassword', 'get').and.returnValue({value: testNewPassword} as AbstractControl);
-        authServiceSpy.getUsername.and.returnValue(testUsername);
+    const fixture = TestBed.createComponent(LoginPasswordChangeComponent);
+    const component = fixture.componentInstance;
+    component.form = TestBed.createComponent(PasswordChangeFormComponent).componentInstance as PasswordChangeFormComponent;
+    spyOn(component.form, 'changePassword').and.returnValue(of(true));
+    spyOnProperty(component.form, 'newPassword', 'get').and.returnValue({value: testNewPassword} as AbstractControl);
+    authServiceSpy.getUsername.and.returnValue(testUsername);
 
-        const loginResult: LoginResult = {successful: true, passwordChangeRequired: false};
-        authServiceSpy.login.and.returnValue(firstValueFrom(of(loginResult)));
+    const loginResult: LoginResult = {successful: true, passwordChangeRequired: false};
+    authServiceSpy.login.and.returnValue(firstValueFrom(of(loginResult)));
 
-        component.changePassword();
+    component.changePassword();
 
-        // TODO get rid of the wait
-        tick(1000);
+    // TODO get rid of the wait
+    tick(1000);
 
-        expect(authServiceSpy.login).toHaveBeenCalledWith(testUsername, testNewPassword);
-        expect(routerSpy.navigate).toHaveBeenCalledWith(['uebersicht']);
-    }));
+    expect(authServiceSpy.login).toHaveBeenCalledWith(testUsername, testNewPassword);
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['uebersicht']);
+  }));
 
 });

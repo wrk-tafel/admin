@@ -7,54 +7,54 @@ import {CardModule} from '@coreui/angular';
 import {TafelCommonModule} from '../../../common/tafel-common.module';
 
 describe('UserPasswordChangeComponent', () => {
-    beforeEach(waitForAsync(() => {
-        TestBed.configureTestingModule({
-            imports: [
-                HttpClientTestingModule,
-                CardModule,
-                TafelCommonModule
-            ],
-            declarations: [
-                UserPasswordChangeComponent
-            ]
-        }).compileComponents();
-    }));
+  beforeEach(waitForAsync(() => {
+    TestBed.configureTestingModule({
+      imports: [
+        HttpClientTestingModule,
+        CardModule,
+        TafelCommonModule
+      ],
+      declarations: [
+        UserPasswordChangeComponent
+      ]
+    }).compileComponents();
+  }));
 
-    it('component can be created', () => {
-        const fixture = TestBed.createComponent(UserPasswordChangeComponent);
-        const component = fixture.componentInstance;
-        expect(component).toBeTruthy();
-    });
+  it('component can be created', () => {
+    const fixture = TestBed.createComponent(UserPasswordChangeComponent);
+    const component = fixture.componentInstance;
+    expect(component).toBeTruthy();
+  });
 
-    it('changePassword', () => {
-        const fixture = TestBed.createComponent(UserPasswordChangeComponent);
-        const component = fixture.componentInstance;
-        component.form = TestBed.createComponent(PasswordChangeFormComponent).componentInstance as PasswordChangeFormComponent;
-        spyOn(component.form, 'changePassword').and.returnValue(of(true));
+  it('changePassword', () => {
+    const fixture = TestBed.createComponent(UserPasswordChangeComponent);
+    const component = fixture.componentInstance;
+    component.form = TestBed.createComponent(PasswordChangeFormComponent).componentInstance as PasswordChangeFormComponent;
+    spyOn(component.form, 'changePassword').and.returnValue(of(true));
 
-        component.changePassword();
+    component.changePassword();
 
-        expect(component.form.changePassword).toHaveBeenCalled();
-    });
+    expect(component.form.changePassword).toHaveBeenCalled();
+  });
 
-    it('isSaveDisabled - form valid', () => {
-        const fixture = TestBed.createComponent(UserPasswordChangeComponent);
-        const component = fixture.componentInstance;
-        component.form = TestBed.createComponent(PasswordChangeFormComponent).componentInstance as PasswordChangeFormComponent;
-        spyOn(component.form, 'isValid').and.returnValue(true);
-        spyOnProperty(component.form.form, 'valid', 'get').and.returnValue(true);
+  it('isSaveDisabled - form valid', () => {
+    const fixture = TestBed.createComponent(UserPasswordChangeComponent);
+    const component = fixture.componentInstance;
+    component.form = TestBed.createComponent(PasswordChangeFormComponent).componentInstance as PasswordChangeFormComponent;
+    spyOn(component.form, 'isValid').and.returnValue(true);
+    spyOnProperty(component.form.form, 'valid', 'get').and.returnValue(true);
 
-        expect(component.isSaveDisabled()).toBeFalsy();
-    });
+    expect(component.isSaveDisabled()).toBeFalsy();
+  });
 
-    it('isSaveDisabled - form invalid', () => {
-        const fixture = TestBed.createComponent(UserPasswordChangeComponent);
-        const component = fixture.componentInstance;
-        component.form = TestBed.createComponent(PasswordChangeFormComponent).componentInstance as PasswordChangeFormComponent;
-        spyOn(component.form, 'isValid').and.returnValue(false);
-        spyOnProperty(component.form.form, 'valid', 'get').and.returnValue(false);
+  it('isSaveDisabled - form invalid', () => {
+    const fixture = TestBed.createComponent(UserPasswordChangeComponent);
+    const component = fixture.componentInstance;
+    component.form = TestBed.createComponent(PasswordChangeFormComponent).componentInstance as PasswordChangeFormComponent;
+    spyOn(component.form, 'isValid').and.returnValue(false);
+    spyOnProperty(component.form.form, 'valid', 'get').and.returnValue(false);
 
-        expect(component.isSaveDisabled()).toBeTruthy();
-    });
+    expect(component.isSaveDisabled()).toBeTruthy();
+  });
 
 });
