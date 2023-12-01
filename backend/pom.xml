@@ -40,7 +40,7 @@
         <archunit.version>1.2.0</archunit.version>
         <mockk.version>1.13.8</mockk.version>
         <testcontainers.version>1.19.3</testcontainers.version>
-        <apache.pdfbox.version>3.0.0</apache.pdfbox.version>
+        <apache.pdfbox.version>3.0.1</apache.pdfbox.version>
         <image.comparison.version>4.4.0</image.comparison.version>
     </properties>
 
