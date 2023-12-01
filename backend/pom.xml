@@ -14,7 +14,7 @@
         <java.version>21</java.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
-        <kotlin.version>1.9.20</kotlin.version>
+        <kotlin.version>1.9.21</kotlin.version>
         <kotlin.compiler.jvmTarget>${java.version}</kotlin.compiler.jvmTarget>
 
         <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/target/site/jacoco/jacoco.xml
@@ -22,13 +22,13 @@
         <sonar.kotlin.source.version>${kotlin.version}</sonar.kotlin.source.version>
 
         <spring.boot.version>3.1.5</spring.boot.version>
-        <spring.modulith.version>1.0.2</spring.modulith.version>
+        <spring.modulith.version>1.1.0</spring.modulith.version>
         <jjwt.version>0.12.3</jjwt.version>
-        <postgresql.driver.version>42.6.0</postgresql.driver.version>
+        <postgresql.driver.version>42.7.0</postgresql.driver.version>
         <mysql.driver.version>8.2.0</mysql.driver.version>
         <bouncycastle.version>1.70</bouncycastle.version>
         <apache.fop.version>2.9</apache.fop.version>
-        <qrcode.kotlin.version>4.0.5</qrcode.kotlin.version>
+        <qrcode.kotlin.version>4.0.7</qrcode.kotlin.version>
         <passay.version>1.6.4</passay.version>
 
         <!-- Maven plugin version -->
@@ -39,8 +39,8 @@
         <!-- Test dependency versions -->
         <archunit.version>1.2.0</archunit.version>
         <mockk.version>1.13.8</mockk.version>
-        <testcontainers.version>1.19.1</testcontainers.version>
-        <apache.pdfbox.version>3.0.0</apache.pdfbox.version>
+        <testcontainers.version>1.19.3</testcontainers.version>
+        <apache.pdfbox.version>3.0.1</apache.pdfbox.version>
         <image.comparison.version>4.4.0</image.comparison.version>
     </properties>
 
