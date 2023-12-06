@@ -4,7 +4,7 @@
 [![@coreui coreui](https://img.shields.io/badge/@coreui%20-coreui-lightgrey.svg?style=flat-square)](https://github.com/coreui/coreui)
 [![npm package][npm-coreui-badge]][npm-coreui]
 [![NPM downloads][npm-coreui-download]][npm-coreui]  
-![angular](https://img.shields.io/badge/angular-^15.2.0-lightgrey.svg?style=flat-square&logo=angular)
+![angular](https://img.shields.io/badge/angular-^17.0.0-lightgrey.svg?style=flat-square&logo=angular)
 
 [npm-coreui-angular]: https://www.npmjs.com/package/@coreui/angular
 [npm-coreui-angular-badge]: https://img.shields.io/npm/v/@coreui/angular.png?style=flat-square
@@ -14,7 +14,7 @@
 [npm-coreui-badge]: https://img.shields.io/npm/v/@coreui/coreui.png?style=flat-square
 [npm-coreui-download]: https://img.shields.io/npm/dm/@coreui/coreui.svg?style=flat-square
 
-# CoreUI Free Admin Dashboard Template for Angular 15
+# CoreUI Free Admin Dashboard Template for Angular 17
 
 CoreUI is meant to be the UX game changer. Pure & transparent code is devoid of redundant components, so the app is light enough to offer ultimate user experience. This means mobile devices also, where the navigation is just as easy and intuitive as on a desktop or laptop. The CoreUI Layout API lets you customize your project for almost any device – be it Mobile, Web or WebApp – CoreUI covers them all!
 
@@ -62,7 +62,7 @@ CoreUI is meant to be the UX game changer. Pure & transparent code is devoid of 
 Before you begin, make sure your development environment includes `Node.js®` and an `npm` package manager.
 
 ###### Node.js
-[**Angular 15**](https://angular.io/guide/what-is-angular) requires `Node.js` LTS version `^14.20` or `^16.13` or `^18.10`.
+[**Angular 17**](https://angular.io/guide/what-is-angular) requires `Node.js` LTS version `^18.13` or `^20.09`.
 
 - To check your version, run `node -v` in a terminal/console window.
 - To get `Node.js`, go to [nodejs.org](https://nodejs.org/).
@@ -77,6 +77,7 @@ npm install -g @angular/cli
 
 ``` bash
 $ npm install
+$ npm update
 ```
 
 ### Basic usage
@@ -125,7 +126,7 @@ The documentation for the CoreUI Admin Template is hosted at our website [CoreUI
 
 ---
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 15.0.0.
+This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 17.0.0.
 
 ## Versioning
 
@@ -214,8 +215,8 @@ Thanks to all the backers and sponsors! Support this project by [becoming a back
 
 ## Copyright and License
 
-copyright 2022 creativeLabs Łukasz Holeczek.   
+copyright 2017-2023 creativeLabs Łukasz Holeczek.   
 
  
 Code released under [the MIT license](https://github.com/coreui/coreui-free-react-admin-template/blob/master/LICENSE).
-There is only one limitation you can't re-distribute the CoreUI as stock. You can’t do this if you modify the CoreUI. In past we faced some problems with persons who tried to sell CoreUI based templates.
+There is only one limitation you can't re-distribute the CoreUI as stock. You can’t do this if you modify the CoreUI. In the past, we faced some problems with persons who tried to sell CoreUI based templates.

@@ -2,6 +2,81 @@
 
 ---
 
+#### `4.7.0`
+
+- chore(dependencies): update to `Angular 17`
+  - `Angular 17`
+  - `TypeScript ~5.2`
+  - `zone.js ~0.14.2`
+  - `@coreui/angular ~4.7.0`
+  - `@coreui/angular-chartjs ~4.7.0`
+  - `@coreui/icons-angular ~4.7.0`
+
+```shell
+ng update @angular/core@17 @angular/cli@17 @angular/cdk@17 @coreui/angular@~4.7 @coreui/angular-chartjs@~4.7 @coreui/icons-angular@~4.7
+
+```
+
+---
+
+#### `4.5.28`
+
+- chore(dependencies): update
+
+---
+
+#### `4.5.27`
+
+- chore(dependencies): update
+
+see: [Babel vulnerable to arbitrary code execution when compiling specifically crafted malicious code](https://github.com/coreui/coreui-angular/security/dependabot/31)
+
+---
+
+#### `4.5.25`
+
+- chore(dependencies): update 
+
+---
+
+#### `4.5.16`
+
+- chore(dependencies): update to `Angular 16.2`
+- fix(carousels): remove routerLink directives from carousel controls
+- chore: add CoreUI links to the sidebar-nav, minor refactors
+- refactor(styles): scrollbar tweaks
+- refactor(styles): scss variables - disable deprecation messages
+
+---
+
+#### `4.5.2`
+
+- chore(dependencies): update to `Angular 16.1`
+
+---
+
+#### `4.5.0`
+
+- chore(dependencies): update to `Angular 16`
+- refactor: remove deprecated ngx-perfect-scrollbar, use `ngx-scrollbar` instead
+- fix: getStyle() add nullish check
+- refactor(toasters): use takeUntilDestroyed() operator
+
+---
+
+#### `4.3.13`
+
+- docs(LICENSE): add missing license info
+- chore(dependencies): update
+
+---
+
+#### `4.3.12`
+
+- chore(dependencies): update
+
+---
+
 #### `4.3.11`
 
 - chore(dependencies): update `@angular/*` to version `^15.2.7`
