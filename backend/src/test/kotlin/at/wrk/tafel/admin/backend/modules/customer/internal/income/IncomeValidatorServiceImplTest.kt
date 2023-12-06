@@ -75,11 +75,12 @@ class IncomeValidatorServiceImplTest {
         every {
             incomeLimitRepository.findLatestForPersonCount(
                 any(),
+                any(),
                 any()
             )
         } answers {
-            val countAdult = firstArg<Int>()
-            val countChild = secondArg<Int>()
+            val countAdult = secondArg<Int>()
+            val countChild = thirdArg<Int>()
             MOCK_INCOME_LIMITS
                 .filter { it.countAdult == countAdult }
                 .filter { it.countChild == countChild }
