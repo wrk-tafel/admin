@@ -7,6 +7,7 @@ import at.wrk.tafel.admin.backend.database.repositories.staticdata.IncomeToleran
 import at.wrk.tafel.admin.backend.database.repositories.staticdata.SiblingAdditionRepository
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
+import java.time.LocalDate
 import kotlin.math.max
 
 @Service
@@ -39,8 +40,9 @@ class IncomeValidatorServiceImpl(
             if (person.isChildForFamilyBonus()) {
                 monthlySum += getFamilyBonusForAge(person.getAge()) ?: BigDecimal.ZERO
 
-                val childTaxAllowanceValue =
-                    childTaxAllowanceRepository.findCurrentValue().map { it.amount }.orElse(BigDecimal.ZERO)!!
+                val childTaxAllowanceValue = childTaxAllowanceRepository.findCurrentValue(LocalDate.now())
+                    .map { it.amount }
+                    .orElse(BigDecimal.ZERO)!!
                 monthlySum += childTaxAllowanceValue
             }
 
@@ -57,12 +59,12 @@ class IncomeValidatorServiceImpl(
         val countChild = persons.count { it.isChildForFamilyBonus() }
 
         var siblingAdditionValue: BigDecimal = if (countChild >= 7) {
-            siblingAdditionRepository.findCurrentMaxAddition()
+            siblingAdditionRepository.findCurrentMaxAddition(LocalDate.now())
                 .map { it.amount }
                 .orElse(BigDecimal.ZERO)
                 ?: BigDecimal.ZERO
         } else {
-            siblingAdditionRepository.findCurrentValues()
+            siblingAdditionRepository.findCurrentValues(LocalDate.now())
                 .asSequence()
                 .filter { it.countChild == countChild }
                 .firstOrNull()
@@ -74,7 +76,7 @@ class IncomeValidatorServiceImpl(
     }
 
     private fun getFamilyBonusForAge(age: Int): BigDecimal? {
-        return familyBonusRepository.findCurrentValues()
+        return familyBonusRepository.findCurrentValues(LocalDate.now())
             .asSequence()
             .sortedByDescending { it.age }
             .filter { it.age!! >= age }
@@ -90,7 +92,7 @@ class IncomeValidatorServiceImpl(
 
         var limit = determineLimit(persons)
 
-        val toleranceValueOptional = incomeToleranceRepository.findCurrentValue()
+        val toleranceValueOptional = incomeToleranceRepository.findCurrentValue(LocalDate.now())
         limit = limit.add(toleranceValueOptional.map { it.amount }.orElse(BigDecimal.ZERO))
 
         val differenceFromLimit = limit.subtract(monthlyIncomeSum)
@@ -119,15 +121,18 @@ class IncomeValidatorServiceImpl(
 
         val staticValueType =
             incomeLimitRepository.findLatestForPersonCount(
+                LocalDate.now(),
                 (countPersons - countAdditionalPersons),
                 (countChildren - countAdditionalChildren)
             )
         staticValueType?.let { overallLimit = overallLimit.add(it.amount ?: BigDecimal.ZERO) }
 
-        val additionalAdultLimit = incomeLimitRepository.findLatestAdditionalAdult()?.amount ?: BigDecimal.ZERO
+        val additionalAdultLimit =
+            incomeLimitRepository.findLatestAdditionalAdult(LocalDate.now())?.amount ?: BigDecimal.ZERO
         overallLimit = overallLimit.add(additionalAdultLimit.multiply(countAdditionalPersons.toBigDecimal()))
 
-        val additionalChildrenLimit = incomeLimitRepository.findLatestAdditionalChild()?.amount ?: BigDecimal.ZERO
+        val additionalChildrenLimit =
+            incomeLimitRepository.findLatestAdditionalChild(LocalDate.now())?.amount ?: BigDecimal.ZERO
         overallLimit = overallLimit.add(additionalChildrenLimit.multiply(countAdditionalChildren.toBigDecimal()))
 
         return overallLimit

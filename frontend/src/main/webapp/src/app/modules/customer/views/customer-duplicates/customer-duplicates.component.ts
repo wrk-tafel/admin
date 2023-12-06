@@ -15,13 +15,12 @@ import {ToastService, ToastType} from '../../../../common/views/default-layout/t
   templateUrl: 'customer-duplicates.component.html'
 })
 export class CustomerDuplicatesComponent implements OnInit {
+  customerDuplicatesData: CustomerDuplicatesResponse;
+  paginationData: TafelPaginationData;
   private customerApiService = inject(CustomerApiService);
   private activatedRoute = inject(ActivatedRoute);
   private router = inject(Router);
   private toastService = inject(ToastService);
-
-  customerDuplicatesData: CustomerDuplicatesResponse;
-  paginationData: TafelPaginationData;
 
   ngOnInit(): void {
     this.customerDuplicatesData = this.activatedRoute.snapshot.data.customerDuplicatesData;

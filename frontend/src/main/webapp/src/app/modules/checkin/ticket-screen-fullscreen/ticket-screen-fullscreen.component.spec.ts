@@ -4,16 +4,16 @@ import {TicketScreenFullscreenComponent} from './ticket-screen-fullscreen.compon
 
 describe('TicketScreenFullscreenComponent', () => {
 
-    beforeEach(waitForAsync(() => {
-        TestBed.configureTestingModule({
-            imports: [CommonModule]
-        }).compileComponents();
-    }));
+  beforeEach(waitForAsync(() => {
+    TestBed.configureTestingModule({
+      imports: [CommonModule]
+    }).compileComponents();
+  }));
 
-    it('component can be created', () => {
-        const fixture = TestBed.createComponent(TicketScreenFullscreenComponent);
-        const component = fixture.componentInstance;
-        expect(component).toBeTruthy();
-    });
+  it('component can be created', () => {
+    const fixture = TestBed.createComponent(TicketScreenFullscreenComponent);
+    const component = fixture.componentInstance;
+    expect(component).toBeTruthy();
+  });
 
 });

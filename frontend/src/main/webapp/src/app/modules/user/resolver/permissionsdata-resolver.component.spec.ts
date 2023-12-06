@@ -6,40 +6,40 @@ import {PermissionsListResponse, UserApiService, UserPermission} from '../../../
 import {PermissionsDataResolver} from './permissionsdata-resolver.component';
 
 describe('PermissionsDataResolver', () => {
-    let apiService: jasmine.SpyObj<UserApiService>;
-    let resolver: PermissionsDataResolver;
+  let apiService: jasmine.SpyObj<UserApiService>;
+  let resolver: PermissionsDataResolver;
 
-    beforeEach(() => {
-        TestBed.configureTestingModule({
-            imports: [HttpClientTestingModule],
-            providers: [
-                {
-                    provide: UserApiService,
-                    useValue: jasmine.createSpyObj('UserApiService', ['getPermissions'])
-                },
-                PermissionsDataResolver
-            ]
-        });
-
-        apiService = TestBed.inject(UserApiService) as jasmine.SpyObj<UserApiService>;
-        resolver = TestBed.inject(PermissionsDataResolver);
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [HttpClientTestingModule],
+      providers: [
+        {
+          provide: UserApiService,
+          useValue: jasmine.createSpyObj('UserApiService', ['getPermissions'])
+        },
+        PermissionsDataResolver
+      ]
     });
 
-    it('resolve', () => {
-        const mockPermissionsResponse: PermissionsListResponse = {
-            permissions: [
-                {key: 'PERM1', title: 'Permission 1'},
-                {key: 'PERM2', title: 'Permission 2'}
-            ]
-        };
-        apiService.getPermissions.and.returnValue(of(mockPermissionsResponse));
+    apiService = TestBed.inject(UserApiService) as jasmine.SpyObj<UserApiService>;
+    resolver = TestBed.inject(PermissionsDataResolver);
+  });
 
-        const activatedRoute = <ActivatedRouteSnapshot>{};
-        resolver.resolve(activatedRoute).subscribe((permissions: UserPermission[]) => {
-            expect(permissions).toEqual(mockPermissionsResponse.permissions);
-        });
+  it('resolve', () => {
+    const mockPermissionsResponse: PermissionsListResponse = {
+      permissions: [
+        {key: 'PERM1', title: 'Permission 1'},
+        {key: 'PERM2', title: 'Permission 2'}
+      ]
+    };
+    apiService.getPermissions.and.returnValue(of(mockPermissionsResponse));
 
-        expect(apiService.getPermissions).toHaveBeenCalled();
+    const activatedRoute = <ActivatedRouteSnapshot>{};
+    resolver.resolve(activatedRoute).subscribe((permissions: UserPermission[]) => {
+      expect(permissions).toEqual(mockPermissionsResponse.permissions);
     });
+
+    expect(apiService.getPermissions).toHaveBeenCalled();
+  });
 
 });

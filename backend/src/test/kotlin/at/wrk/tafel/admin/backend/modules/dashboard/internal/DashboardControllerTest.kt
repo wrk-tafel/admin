@@ -1,8 +1,5 @@
 package at.wrk.tafel.admin.backend.modules.dashboard.internal
 
-import at.wrk.tafel.admin.backend.modules.dashboard.internal.DashboardController
-import at.wrk.tafel.admin.backend.modules.dashboard.internal.DashboardData
-import at.wrk.tafel.admin.backend.modules.dashboard.internal.DashboardService
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK

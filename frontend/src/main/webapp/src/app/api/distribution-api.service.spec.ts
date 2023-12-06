@@ -1,95 +1,95 @@
 import {HttpClientTestingModule, HttpTestingController} from '@angular/common/http/testing';
 import {TestBed} from '@angular/core/testing';
 import {
-    AssignCustomerRequest,
-    DistributionApiService,
-    DistributionItem,
-    DistributionItemResponse
+  AssignCustomerRequest,
+  DistributionApiService,
+  DistributionItem,
+  DistributionItemResponse
 } from './distribution-api.service';
 import {WebsocketService} from '../common/websocket/websocket.service';
 import {of} from 'rxjs';
 import {IMessage} from '@stomp/stompjs';
 
 describe('DistributionApiService', () => {
-    let httpMock: HttpTestingController;
-    let websocketService: jasmine.SpyObj<WebsocketService>;
-    let apiService: DistributionApiService;
+  let httpMock: HttpTestingController;
+  let websocketService: jasmine.SpyObj<WebsocketService>;
+  let apiService: DistributionApiService;
 
-    beforeEach(() => {
-        TestBed.configureTestingModule({
-            imports: [HttpClientTestingModule],
-            providers: [DistributionApiService,
-                {
-                    provide: WebsocketService,
-                    useValue: jasmine.createSpyObj('WebsocketService', ['watch'])
-                }
-            ]
-        });
-
-        httpMock = TestBed.inject(HttpTestingController);
-        websocketService = TestBed.inject(WebsocketService) as jasmine.SpyObj<WebsocketService>;
-        apiService = TestBed.inject(DistributionApiService);
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [HttpClientTestingModule],
+      providers: [DistributionApiService,
+        {
+          provide: WebsocketService,
+          useValue: jasmine.createSpyObj('WebsocketService', ['watch'])
+        }
+      ]
     });
 
-    it('get current distribution', () => {
-        const testResponse: DistributionItemResponse = {
-            distribution: {
-                id: 123
-            }
-        };
-        const testMessage: IMessage = {
-            body: JSON.stringify(testResponse),
-            ack: null,
-            nack: null,
-            headers: null,
-            command: null,
-            binaryBody: null,
-            isBinaryBody: false
-        };
-        websocketService.watch.and.returnValue(of(testMessage));
+    httpMock = TestBed.inject(HttpTestingController);
+    websocketService = TestBed.inject(WebsocketService) as jasmine.SpyObj<WebsocketService>;
+    apiService = TestBed.inject(DistributionApiService);
+  });
 
-        apiService.getCurrentDistribution().subscribe();
+  it('get current distribution', () => {
+    const testResponse: DistributionItemResponse = {
+      distribution: {
+        id: 123
+      }
+    };
+    const testMessage: IMessage = {
+      body: JSON.stringify(testResponse),
+      ack: null,
+      nack: null,
+      headers: null,
+      command: null,
+      binaryBody: null,
+      isBinaryBody: false
+    };
+    websocketService.watch.and.returnValue(of(testMessage));
 
-        expect(websocketService.watch).toHaveBeenCalledWith('/topic/distributions');
-    });
+    apiService.getCurrentDistribution().subscribe();
 
-    it('create new distribution', () => {
-        const testResponse: DistributionItem = {
-            id: 123
-        };
+    expect(websocketService.watch).toHaveBeenCalledWith('/topic/distributions');
+  });
 
-        apiService.createNewDistribution().subscribe();
+  it('create new distribution', () => {
+    const testResponse: DistributionItem = {
+      id: 123
+    };
 
-        const req = httpMock.expectOne({method: 'POST', url: '/distributions/new'});
-        req.flush(testResponse);
-        httpMock.verify();
-    });
+    apiService.createNewDistribution().subscribe();
 
-    it('close distribution', () => {
-        apiService.closeDistribution().subscribe();
+    const req = httpMock.expectOne({method: 'POST', url: '/distributions/new'});
+    req.flush(testResponse);
+    httpMock.verify();
+  });
 
-        const req = httpMock.expectOne({method: 'POST', url: '/distributions/close'});
-        req.flush(null);
-        httpMock.verify();
-    });
+  it('close distribution', () => {
+    apiService.closeDistribution().subscribe();
 
-    it('assign customer', () => {
-        const requestBody: AssignCustomerRequest = {customerId: 1, ticketNumber: 100};
-        apiService.assignCustomer(requestBody.customerId, requestBody.ticketNumber).subscribe();
+    const req = httpMock.expectOne({method: 'POST', url: '/distributions/close'});
+    req.flush(null);
+    httpMock.verify();
+  });
 
-        const req = httpMock.expectOne({method: 'POST', url: '/distributions/customers'});
-        req.flush(null);
-        httpMock.verify();
+  it('assign customer', () => {
+    const requestBody: AssignCustomerRequest = {customerId: 1, ticketNumber: 100};
+    apiService.assignCustomer(requestBody.customerId, requestBody.ticketNumber).subscribe();
 
-        expect(req.request.body).toEqual(requestBody);
-    });
+    const req = httpMock.expectOne({method: 'POST', url: '/distributions/customers'});
+    req.flush(null);
+    httpMock.verify();
 
-    it('download customer list', () => {
-        apiService.downloadCustomerList().subscribe();
+    expect(req.request.body).toEqual(requestBody);
+  });
 
-        const req = httpMock.expectOne({method: 'GET', url: '/distributions/customers/generate-pdf'});
-        req.flush(null);
-        httpMock.verify();
-    });
+  it('download customer list', () => {
+    apiService.downloadCustomerList().subscribe();
+
+    const req = httpMock.expectOne({method: 'GET', url: '/distributions/customers/generate-pdf'});
+    req.flush(null);
+    httpMock.verify();
+  });
 
 });

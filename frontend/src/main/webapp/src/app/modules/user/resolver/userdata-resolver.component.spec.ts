@@ -6,44 +6,44 @@ import {ActivatedRouteSnapshot} from '@angular/router';
 import {UserApiService, UserData} from '../../../api/user-api.service';
 
 describe('UserDataResolver', () => {
-    let apiService: jasmine.SpyObj<UserApiService>;
-    let resolver: UserDataResolver;
+  let apiService: jasmine.SpyObj<UserApiService>;
+  let resolver: UserDataResolver;
 
-    beforeEach(() => {
-        TestBed.configureTestingModule({
-            imports: [HttpClientTestingModule],
-            providers: [
-                {
-                    provide: UserApiService,
-                    useValue: jasmine.createSpyObj('UserApiService', ['getUserForId'])
-                },
-                UserDataResolver
-            ]
-        });
-
-        apiService = TestBed.inject(UserApiService) as jasmine.SpyObj<UserApiService>;
-        resolver = TestBed.inject(UserDataResolver);
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [HttpClientTestingModule],
+      providers: [
+        {
+          provide: UserApiService,
+          useValue: jasmine.createSpyObj('UserApiService', ['getUserForId'])
+        },
+        UserDataResolver
+      ]
     });
 
-    it('resolve', () => {
-        const mockUser: UserData = {
-            id: 0,
-            personnelNumber: '0000',
-            username: 'username',
-            firstname: 'first',
-            lastname: 'last',
-            enabled: true,
-            passwordChangeRequired: true,
-            permissions: []
-        };
-        apiService.getUserForId.withArgs(mockUser.id).and.returnValue(of(mockUser));
+    apiService = TestBed.inject(UserApiService) as jasmine.SpyObj<UserApiService>;
+    resolver = TestBed.inject(UserDataResolver);
+  });
 
-        const activatedRoute = <ActivatedRouteSnapshot><unknown>{params: {id: mockUser.id}};
-        resolver.resolve(activatedRoute).subscribe((user: UserData) => {
-            expect(user).toEqual(mockUser);
-        });
+  it('resolve', () => {
+    const mockUser: UserData = {
+      id: 0,
+      personnelNumber: '0000',
+      username: 'username',
+      firstname: 'first',
+      lastname: 'last',
+      enabled: true,
+      passwordChangeRequired: true,
+      permissions: []
+    };
+    apiService.getUserForId.withArgs(mockUser.id).and.returnValue(of(mockUser));
 
-        expect(apiService.getUserForId).toHaveBeenCalledWith(mockUser.id);
+    const activatedRoute = <ActivatedRouteSnapshot><unknown>{params: {id: mockUser.id}};
+    resolver.resolve(activatedRoute).subscribe((user: UserData) => {
+      expect(user).toEqual(mockUser);
     });
+
+    expect(apiService.getUserForId).toHaveBeenCalledWith(mockUser.id);
+  });
 
 });

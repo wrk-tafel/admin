@@ -135,7 +135,7 @@ class CustomerEntity : BaseChangeTrackingEntity() {
                 }
             }
 
-            fun postProcessingNecessary(): Specification<CustomerEntity>? {
+            fun postProcessingNecessary(): Specification<CustomerEntity> {
                 return Specification { root: Root<CustomerEntity>, cq: CriteriaQuery<*>, cb: CriteriaBuilder ->
 
                     val subQuery: Subquery<Long> = cq.subquery(Long::class.java)

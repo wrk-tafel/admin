@@ -5,13 +5,13 @@ import {UserApiService, UserPermission} from '../../../api/user-api.service';
 import {map} from 'rxjs/operators';
 
 @Injectable({
-    providedIn: 'root'
+  providedIn: 'root'
 })
 export class PermissionsDataResolver {
-    private userApiService = inject(UserApiService);
+  private userApiService = inject(UserApiService);
 
-    public resolve(route: ActivatedRouteSnapshot): Observable<UserPermission[]> {
-        return this.userApiService.getPermissions().pipe(map(response => response.permissions));
-    }
+  public resolve(route: ActivatedRouteSnapshot): Observable<UserPermission[]> {
+    return this.userApiService.getPermissions().pipe(map(response => response.permissions));
+  }
 
 }

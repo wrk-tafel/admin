@@ -7,114 +7,114 @@ import {Html5QrcodeResult} from 'html5-qrcode/core';
 import {Colors} from '@coreui/angular';
 
 @Component({
-    selector: 'tafel-scanner',
-    templateUrl: 'scanner.component.html'
+  selector: 'tafel-scanner',
+  templateUrl: 'scanner.component.html'
 })
 export class ScannerComponent implements OnInit, OnDestroy {
-    scannerId: number;
-    availableCameras: CameraDevice[] = [];
-    currentCamera: CameraDevice;
-    qrCodeReaderReady = false;
-    apiClientReady = false;
-    lastSentText: string;
-    private qrCodeReaderService = inject(QRCodeReaderService);
-    private websocketService = inject(WebsocketService);
+  scannerId: number;
+  availableCameras: CameraDevice[] = [];
+  currentCamera: CameraDevice;
+  qrCodeReaderReady = false;
+  apiClientReady = false;
+  lastSentText: string;
+  private qrCodeReaderService = inject(QRCodeReaderService);
+  private websocketService = inject(WebsocketService);
 
-    get selectedCamera(): CameraDevice {
-        return this.currentCamera;
+  get selectedCamera(): CameraDevice {
+    return this.currentCamera;
+  }
+
+  set selectedCamera(camera: CameraDevice) {
+    this.currentCamera = camera;
+    this.qrCodeReaderService.saveCurrentCamera(camera);
+
+    const promise = this.qrCodeReaderService.restart(camera.id);
+    this.processQrCodeReaderPromise(promise);
+  }
+
+  get apiConnectionStateColor(): Colors {
+    return this.apiClientReady ? 'success' : 'danger';
+  }
+
+  get webcamStateColor(): Colors {
+    return this.qrCodeReaderReady ? 'success' : 'danger';
+  }
+
+  ngOnInit(): void {
+    this.websocketService.getConnectionState().subscribe((state: RxStompState) => {
+      this.processApiConnectionState(state);
+    });
+
+    this.qrCodeReaderService.getCameras().then(cameras => {
+      this.availableCameras = cameras;
+      this.currentCamera = this.qrCodeReaderService.getCurrentCamera(cameras);
+
+      this.qrCodeReaderService.init('qrCodeReaderBox', this.qrCodeReaderSuccessCallback);
+      const promise = this.qrCodeReaderService.start(this.currentCamera.id);
+      this.processQrCodeReaderPromise(promise);
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.qrCodeReaderService.stop();
+  }
+
+  async processQrCodeReaderPromise(promise: Promise<null>) {
+    await promise.then(
+      () => {
+        this.qrCodeReaderReady = true;
+      },
+      () => {
+        this.qrCodeReaderReady = false;
+      }
+    );
+  }
+
+  /* eslint-disable @typescript-eslint/no-unused-vars */
+  qrCodeReaderSuccessCallback = (decodedText: string, result: Html5QrcodeResult) => {
+    if (this.apiClientReady && (!this.lastSentText || this.lastSentText !== decodedText)) {
+      const scanResult: ScanResult = {value: +decodedText};
+      this.websocketService.publish({
+        destination: `/topic/scanners/${this.scannerId}/results`,
+        body: JSON.stringify(scanResult)
+      });
+      this.lastSentText = decodedText;
+
+      // reset to retry in case of an error while transmitting/receiving
+      setTimeout(() => {
+        this.lastSentText = null;
+      }, 3000);
     }
+  }
 
-    set selectedCamera(camera: CameraDevice) {
-        this.currentCamera = camera;
-        this.qrCodeReaderService.saveCurrentCamera(camera);
-
-        const promise = this.qrCodeReaderService.restart(camera.id);
-        this.processQrCodeReaderPromise(promise);
+  processApiConnectionState(state: RxStompState) {
+    if (state === RxStompState.OPEN) {
+      this.processClientRegistration();
+    } else {
+      this.apiClientReady = false;
     }
+  }
 
-    get apiConnectionStateColor(): Colors {
-        return this.apiClientReady ? 'success' : 'danger';
-    }
-
-    get webcamStateColor(): Colors {
-        return this.qrCodeReaderReady ? 'success' : 'danger';
-    }
-
-    ngOnInit(): void {
-        this.websocketService.getConnectionState().subscribe((state: RxStompState) => {
-            this.processApiConnectionState(state);
-        });
-
-        this.qrCodeReaderService.getCameras().then(cameras => {
-            this.availableCameras = cameras;
-            this.currentCamera = this.qrCodeReaderService.getCurrentCamera(cameras);
-
-            this.qrCodeReaderService.init('qrCodeReaderBox', this.qrCodeReaderSuccessCallback);
-            const promise = this.qrCodeReaderService.start(this.currentCamera.id);
-            this.processQrCodeReaderPromise(promise);
-        });
-    }
-
-    ngOnDestroy(): void {
-        this.qrCodeReaderService.stop();
-    }
-
-    async processQrCodeReaderPromise(promise: Promise<null>) {
-        await promise.then(
-            () => {
-                this.qrCodeReaderReady = true;
-            },
-            () => {
-                this.qrCodeReaderReady = false;
-            }
-        );
-    }
-
-    /* eslint-disable @typescript-eslint/no-unused-vars */
-    qrCodeReaderSuccessCallback = (decodedText: string, result: Html5QrcodeResult) => {
-        if (this.apiClientReady && (!this.lastSentText || this.lastSentText !== decodedText)) {
-            const scanResult: ScanResult = {value: +decodedText};
-            this.websocketService.publish({
-                destination: `/topic/scanners/${this.scannerId}/results`,
-                body: JSON.stringify(scanResult)
-            });
-            this.lastSentText = decodedText;
-
-            // reset to retry in case of an error while transmitting/receiving
-            setTimeout(() => {
-                this.lastSentText = null;
-            }, 3000);
-        }
-    }
-
-    processApiConnectionState(state: RxStompState) {
-        if (state === RxStompState.OPEN) {
-            this.processClientRegistration();
-        } else {
-            this.apiClientReady = false;
-        }
-    }
-
-    processClientRegistration() {
-        this.websocketService.watch('/user/queue/scanners/registration').subscribe((message) => {
-                const registration: ScannerRegistration = JSON.parse(message.body);
-                this.scannerId = registration.scannerId;
-                this.apiClientReady = true;
-            }
-        );
-        this.websocketService.publish({destination: '/app/scanners/register'});
-    }
+  processClientRegistration() {
+    this.websocketService.watch('/user/queue/scanners/registration').subscribe((message) => {
+        const registration: ScannerRegistration = JSON.parse(message.body);
+        this.scannerId = registration.scannerId;
+        this.apiClientReady = true;
+      }
+    );
+    this.websocketService.publish({destination: '/app/scanners/register'});
+  }
 
 }
 
 export interface ScannerRegistration {
-    scannerId: number;
+  scannerId: number;
 }
 
 export interface ScannerList {
-    scannerIds: number[];
+  scannerIds: number[];
 }
 
 export interface ScanResult {
-    value: number;
+  value: number;
 }

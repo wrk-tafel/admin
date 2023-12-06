@@ -4,14 +4,14 @@ import {CustomerApiService, CustomerData} from '../../../api/customer-api.servic
 import {Observable} from 'rxjs';
 
 @Injectable({
-    providedIn: 'root'
+  providedIn: 'root'
 })
 export class CustomerDataResolver {
-    private customerApiService = inject(CustomerApiService);
+  private customerApiService = inject(CustomerApiService);
 
-    public resolve(route: ActivatedRouteSnapshot): Observable<CustomerData> {
-        const customerId = +route.params['id'];
-        return this.customerApiService.getCustomer(customerId);
-    }
+  public resolve(route: ActivatedRouteSnapshot): Observable<CustomerData> {
+    const customerId = +route.params['id'];
+    return this.customerApiService.getCustomer(customerId);
+  }
 
 }
