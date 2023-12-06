@@ -3,32 +3,32 @@ import {TestBed} from '@angular/core/testing';
 import {CountryApiService, CountryData} from './country-api.service';
 
 describe('CountryApiService', () => {
-    let httpMock: HttpTestingController;
-    let apiService: CountryApiService;
+  let httpMock: HttpTestingController;
+  let apiService: CountryApiService;
 
-    beforeEach(() => {
-        TestBed.configureTestingModule({
-            imports: [HttpClientTestingModule],
-            providers: [CountryApiService]
-        });
-
-        httpMock = TestBed.inject(HttpTestingController);
-        apiService = TestBed.inject(CountryApiService);
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [HttpClientTestingModule],
+      providers: [CountryApiService]
     });
 
-    it('fetch countries and map correctly', () => {
-        const mockCountries = [
-            {id: 0, code: 'AT', name: 'Österreich'},
-            {id: 1, code: 'DE', name: 'Deutschland'}
-        ];
+    httpMock = TestBed.inject(HttpTestingController);
+    apiService = TestBed.inject(CountryApiService);
+  });
 
-        apiService.getCountries().subscribe((data: CountryData[]) => {
-            expect(data).toEqual(mockCountries);
-        });
+  it('fetch countries and map correctly', () => {
+    const mockCountries = [
+      {id: 0, code: 'AT', name: 'Österreich'},
+      {id: 1, code: 'DE', name: 'Deutschland'}
+    ];
 
-        const req = httpMock.expectOne({method: 'GET', url: '/countries'});
-        req.flush({items: mockCountries});
-        httpMock.verify();
+    apiService.getCountries().subscribe((data: CountryData[]) => {
+      expect(data).toEqual(mockCountries);
     });
+
+    const req = httpMock.expectOne({method: 'GET', url: '/countries'});
+    req.flush({items: mockCountries});
+    httpMock.verify();
+  });
 
 });

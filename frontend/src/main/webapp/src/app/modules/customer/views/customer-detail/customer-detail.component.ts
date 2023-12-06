@@ -3,210 +3,210 @@ import {ActivatedRoute, Router} from '@angular/router';
 import * as moment from 'moment';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
 import {
-    CustomerAddressData,
-    CustomerApiService,
-    CustomerData,
-    CustomerIssuer,
-    Gender,
-    GenderLabel
+  CustomerAddressData,
+  CustomerApiService,
+  CustomerData,
+  CustomerIssuer,
+  Gender,
+  GenderLabel
 } from '../../../../api/customer-api.service';
 import {HttpResponse} from '@angular/common/http';
 import {
-    CustomerNoteApiService,
-    CustomerNoteItem,
-    CustomerNotesResponse
+  CustomerNoteApiService,
+  CustomerNoteItem,
+  CustomerNotesResponse
 } from '../../../../api/customer-note-api.service';
 import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
 import {TafelPaginationData} from '../../../../common/components/tafel-pagination/tafel-pagination.component';
 
 @Component({
-    selector: 'tafel-customer-detail',
-    templateUrl: 'customer-detail.component.html'
+  selector: 'tafel-customer-detail',
+  templateUrl: 'customer-detail.component.html'
 })
 export class CustomerDetailComponent implements OnInit {
-    customerData: CustomerData;
-    customerNotes: CustomerNoteItem[];
-    customerNotesPaginationData: TafelPaginationData;
-    newNoteText: string;
-    lockReasonText: string;
-    showDeleteCustomerModal = false;
-    showAddNewNoteModal = false;
-    showAllNotesModal = false;
-    showLockCustomerModal = false;
-    private activatedRoute = inject(ActivatedRoute);
-    private customerApiService = inject(CustomerApiService);
-    private customerNoteApiService = inject(CustomerNoteApiService);
-    private fileHelperService = inject(FileHelperService);
-    private router = inject(Router);
-    private toastService = inject(ToastService);
+  customerData: CustomerData;
+  customerNotes: CustomerNoteItem[];
+  customerNotesPaginationData: TafelPaginationData;
+  newNoteText: string;
+  lockReasonText: string;
+  showDeleteCustomerModal = false;
+  showAddNewNoteModal = false;
+  showAllNotesModal = false;
+  showLockCustomerModal = false;
+  private activatedRoute = inject(ActivatedRoute);
+  private customerApiService = inject(CustomerApiService);
+  private customerNoteApiService = inject(CustomerNoteApiService);
+  private fileHelperService = inject(FileHelperService);
+  private router = inject(Router);
+  private toastService = inject(ToastService);
 
-    ngOnInit(): void {
-        this.customerData = this.activatedRoute.snapshot.data.customerData;
-        const customerNotesResponse: CustomerNotesResponse = this.activatedRoute.snapshot.data.customerNotes;
-        this.processCustomerNoteResponse(customerNotesResponse);
+  ngOnInit(): void {
+    this.customerData = this.activatedRoute.snapshot.data.customerData;
+    const customerNotesResponse: CustomerNotesResponse = this.activatedRoute.snapshot.data.customerNotes;
+    this.processCustomerNoteResponse(customerNotesResponse);
+  }
+
+  printMasterdata() {
+    this.customerApiService.generatePdf(this.customerData.id, 'MASTERDATA')
+      .subscribe((response) => this.processPdfResponse(response));
+  }
+
+  printIdCard() {
+    this.customerApiService.generatePdf(this.customerData.id, 'IDCARD')
+      .subscribe((response) => this.processPdfResponse(response));
+  }
+
+  printCombined() {
+    this.customerApiService.generatePdf(this.customerData.id, 'COMBINED')
+      .subscribe((response) => this.processPdfResponse(response));
+  }
+
+  formatAddressLine1(address: CustomerAddressData): string {
+    const formatted = [
+      [address.street, address.houseNumber].join(' ').trim(),
+      address.stairway ? 'Stiege ' + address.stairway : undefined,
+      address.door ? 'Top ' + address.door : undefined
+    ]
+      .filter(value => value?.trim().length > 0)
+      .join(', ');
+    return formatted?.trim().length > 0 ? formatted : '-';
+  }
+
+  formatAddressLine2(address: CustomerAddressData): string {
+    const formatted = [address.postalCode?.toString(), address.city].join(' ').trim();
+    return formatted?.trim().length > 0 ? formatted : '-';
+  }
+
+  getFormattedName() {
+    if (!this.customerData?.lastname && !this.customerData?.firstname) {
+      return '-';
     }
+    return [this.customerData?.lastname, this.customerData?.firstname].join(' ');
+  }
 
-    printMasterdata() {
-        this.customerApiService.generatePdf(this.customerData.id, 'MASTERDATA')
-            .subscribe((response) => this.processPdfResponse(response));
+  getBirthDateAndAge(birthDate?: Date): string {
+    if (birthDate) {
+      const age = moment().diff(birthDate, 'years');
+      return moment(birthDate).format('DD.MM.YYYY') + ' (' + age + ')';
     }
+    return '-';
+  }
 
-    printIdCard() {
-        this.customerApiService.generatePdf(this.customerData.id, 'IDCARD')
-            .subscribe((response) => this.processPdfResponse(response));
+  formatIssuer(issuer: CustomerIssuer): string {
+    if (issuer) {
+      return 'von ' + issuer.personnelNumber + ' ' + issuer.firstname + ' ' + issuer.lastname;
     }
+    return '';
+  }
 
-    printCombined() {
-        this.customerApiService.generatePdf(this.customerData.id, 'COMBINED')
-            .subscribe((response) => this.processPdfResponse(response));
+  editCustomer() {
+    this.router.navigate(['/kunden/bearbeiten', this.customerData.id]);
+  }
+
+  isValid(): boolean {
+    return !moment(this.customerData.validUntil).startOf('day').isBefore(moment().startOf('day'));
+  }
+
+  deleteCustomer() {
+    /* eslint-disable @typescript-eslint/no-unused-vars */
+    const observer = {
+      next: (response) => {
+        this.toastService.showToast({type: ToastType.SUCCESS, title: 'Kunde wurde gelöscht!'});
+        this.router.navigate(['/kunden/suchen']);
+      },
+      error: error => {
+        this.showDeleteCustomerModal = false;
+        this.toastService.showToast({type: ToastType.ERROR, title: 'Löschen fehlgeschlagen!'});
+      },
+    };
+    this.customerApiService.deleteCustomer(this.customerData.id).subscribe(observer);
+  }
+
+  prolongCustomer(countMonths: number) {
+    const newValidUntilDate = moment(this.customerData.validUntil).add(countMonths, 'months').endOf('day').toDate();
+    const updatedCustomerData = {
+      ...this.customerData,
+      validUntil: newValidUntilDate
+    };
+
+    this.customerApiService.updateCustomer(updatedCustomerData).subscribe(customerData => {
+      this.customerData = customerData;
+    });
+  }
+
+  invalidateCustomer() {
+    const updatedCustomerData = {
+      ...this.customerData,
+      validUntil: moment().subtract(1, 'day').endOf('day').toDate()
+    };
+
+    this.customerApiService.updateCustomer(updatedCustomerData).subscribe(customerData => {
+      this.customerData = customerData;
+    });
+  }
+
+  lockCustomer() {
+    const updatedCustomerData: CustomerData = {
+      ...this.customerData,
+      locked: true,
+      lockReason: this.lockReasonText
+    };
+
+    this.customerApiService.updateCustomer(updatedCustomerData).subscribe(customerData => {
+      this.customerData = customerData;
+      this.lockReasonText = undefined;
+      this.showLockCustomerModal = false;
+    });
+  }
+
+  unlockCustomer() {
+    const updatedCustomerData: CustomerData = {
+      ...this.customerData,
+      locked: false
+    };
+
+    this.customerApiService.updateCustomer(updatedCustomerData).subscribe(customerData => {
+      this.customerData = customerData;
+    });
+  }
+
+  addNewNote() {
+    const sanitizedText = this.newNoteText.replace(/\n/g, '<br/>');
+    this.customerNoteApiService.createNewNote(this.customerData.id, sanitizedText).subscribe(newNoteItem => {
+      this.customerNotes.unshift(newNoteItem);
+      this.newNoteText = undefined;
+      this.showAddNewNoteModal = false;
+    });
+  }
+
+  getGenderLabel(gender?: Gender): string {
+    if (gender) {
+      return GenderLabel[gender];
     }
+    return '-';
+  }
 
-    formatAddressLine1(address: CustomerAddressData): string {
-        const formatted = [
-            [address.street, address.houseNumber].join(' ').trim(),
-            address.stairway ? 'Stiege ' + address.stairway : undefined,
-            address.door ? 'Top ' + address.door : undefined
-        ]
-            .filter(value => value?.trim().length > 0)
-            .join(', ');
-        return formatted?.trim().length > 0 ? formatted : '-';
-    }
+  getCustomerNotes(page: number) {
+    this.customerNoteApiService.getNotesForCustomer(this.customerData.id, page).subscribe((response) => {
+      this.processCustomerNoteResponse(response);
+    });
+  }
 
-    formatAddressLine2(address: CustomerAddressData): string {
-        const formatted = [address.postalCode?.toString(), address.city].join(' ').trim();
-        return formatted?.trim().length > 0 ? formatted : '-';
-    }
+  private processCustomerNoteResponse(response: CustomerNotesResponse) {
+    this.customerNotes = response.items;
+    this.customerNotesPaginationData = {
+      count: response.items.length,
+      totalCount: response.totalCount,
+      currentPage: response.currentPage,
+      totalPages: response.totalPages,
+      pageSize: response.pageSize
+    };
+  }
 
-    getFormattedName() {
-        if (!this.customerData?.lastname && !this.customerData?.firstname) {
-            return '-';
-        }
-        return [this.customerData?.lastname, this.customerData?.firstname].join(' ');
-    }
-
-    getBirthDateAndAge(birthDate?: Date): string {
-        if (birthDate) {
-            const age = moment().diff(birthDate, 'years');
-            return moment(birthDate).format('DD.MM.YYYY') + ' (' + age + ')';
-        }
-        return '-';
-    }
-
-    formatIssuer(issuer: CustomerIssuer): string {
-        if (issuer) {
-            return 'von ' + issuer.personnelNumber + ' ' + issuer.firstname + ' ' + issuer.lastname;
-        }
-        return '';
-    }
-
-    editCustomer() {
-        this.router.navigate(['/kunden/bearbeiten', this.customerData.id]);
-    }
-
-    isValid(): boolean {
-        return !moment(this.customerData.validUntil).startOf('day').isBefore(moment().startOf('day'));
-    }
-
-    deleteCustomer() {
-        /* eslint-disable @typescript-eslint/no-unused-vars */
-        const observer = {
-            next: (response) => {
-                this.toastService.showToast({type: ToastType.SUCCESS, title: 'Kunde wurde gelöscht!'});
-                this.router.navigate(['/kunden/suchen']);
-            },
-            error: error => {
-                this.showDeleteCustomerModal = false;
-                this.toastService.showToast({type: ToastType.ERROR, title: 'Löschen fehlgeschlagen!'});
-            },
-        };
-        this.customerApiService.deleteCustomer(this.customerData.id).subscribe(observer);
-    }
-
-    prolongCustomer(countMonths: number) {
-        const newValidUntilDate = moment(this.customerData.validUntil).add(countMonths, 'months').endOf('day').toDate();
-        const updatedCustomerData = {
-            ...this.customerData,
-            validUntil: newValidUntilDate
-        };
-
-        this.customerApiService.updateCustomer(updatedCustomerData).subscribe(customerData => {
-            this.customerData = customerData;
-        });
-    }
-
-    invalidateCustomer() {
-        const updatedCustomerData = {
-            ...this.customerData,
-            validUntil: moment().subtract(1, 'day').endOf('day').toDate()
-        };
-
-        this.customerApiService.updateCustomer(updatedCustomerData).subscribe(customerData => {
-            this.customerData = customerData;
-        });
-    }
-
-    lockCustomer() {
-        const updatedCustomerData: CustomerData = {
-            ...this.customerData,
-            locked: true,
-            lockReason: this.lockReasonText
-        };
-
-        this.customerApiService.updateCustomer(updatedCustomerData).subscribe(customerData => {
-            this.customerData = customerData;
-            this.lockReasonText = undefined;
-            this.showLockCustomerModal = false;
-        });
-    }
-
-    unlockCustomer() {
-        const updatedCustomerData: CustomerData = {
-            ...this.customerData,
-            locked: false
-        };
-
-        this.customerApiService.updateCustomer(updatedCustomerData).subscribe(customerData => {
-            this.customerData = customerData;
-        });
-    }
-
-    addNewNote() {
-        const sanitizedText = this.newNoteText.replace(/\n/g, '<br/>');
-        this.customerNoteApiService.createNewNote(this.customerData.id, sanitizedText).subscribe(newNoteItem => {
-            this.customerNotes.unshift(newNoteItem);
-            this.newNoteText = undefined;
-            this.showAddNewNoteModal = false;
-        });
-    }
-
-    getGenderLabel(gender?: Gender): string {
-        if (gender) {
-            return GenderLabel[gender];
-        }
-        return '-';
-    }
-
-    getCustomerNotes(page: number) {
-        this.customerNoteApiService.getNotesForCustomer(this.customerData.id, page).subscribe((response) => {
-            this.processCustomerNoteResponse(response);
-        });
-    }
-
-    private processCustomerNoteResponse(response: CustomerNotesResponse) {
-        this.customerNotes = response.items;
-        this.customerNotesPaginationData = {
-            count: response.items.length,
-            totalCount: response.totalCount,
-            currentPage: response.currentPage,
-            totalPages: response.totalPages,
-            pageSize: response.pageSize
-        };
-    }
-
-    private processPdfResponse(response: HttpResponse<Blob>) {
-        const contentDisposition = response.headers.get('content-disposition');
-        const filename = contentDisposition.split(';')[1].split('filename')[1].split('=')[1].trim();
-        this.fileHelperService.downloadFile(filename, response.body);
-    }
+  private processPdfResponse(response: HttpResponse<Blob>) {
+    const contentDisposition = response.headers.get('content-disposition');
+    const filename = contentDisposition.split(';')[1].split('filename')[1].split('=')[1].trim();
+    this.fileHelperService.downloadFile(filename, response.body);
+  }
 
 }

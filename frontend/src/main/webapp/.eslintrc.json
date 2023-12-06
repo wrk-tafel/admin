@@ -1,6 +1,8 @@
 {
   "root": true,
-  "plugins": ["sonarjs"],
+  "plugins": [
+    "sonarjs"
+  ],
   "overrides": [
     {
       "files": [

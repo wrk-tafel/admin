@@ -3,39 +3,39 @@ import {DistributionApiService, DistributionItem} from '../../api/distribution-a
 import {BehaviorSubject} from 'rxjs';
 
 @Injectable({
-    providedIn: 'root'
+  providedIn: 'root'
 })
 export class GlobalStateService {
-    private currentDistribution: BehaviorSubject<DistributionItem> = new BehaviorSubject(null);
+  private currentDistribution: BehaviorSubject<DistributionItem> = new BehaviorSubject(null);
 
-    constructor(private distributionApiService: DistributionApiService) {
-    }
+  constructor(private distributionApiService: DistributionApiService) {
+  }
 
-    /* eslint-disable @typescript-eslint/no-explicit-any */
-    init(): Promise<any> {
-        return this.getCurrentDistributionPromise();
-    }
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  init(): Promise<any> {
+    return this.getCurrentDistributionPromise();
+  }
 
-    getCurrentDistribution(): BehaviorSubject<DistributionItem> {
-        return this.currentDistribution;
-    }
+  getCurrentDistribution(): BehaviorSubject<DistributionItem> {
+    return this.currentDistribution;
+  }
 
-    /* eslint-disable @typescript-eslint/no-explicit-any */
-    private getCurrentDistributionPromise(): Promise<any> {
-        return new Promise((resolve, reject) => {
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  private getCurrentDistributionPromise(): Promise<any> {
+    return new Promise((resolve, reject) => {
 
-            /* eslint-disable @typescript-eslint/no-empty-function */
-            /* eslint-disable @typescript-eslint/no-unused-vars */
-            const observer = {
-                next: (distributionItem: DistributionItem) => {
-                    this.currentDistribution.next(distributionItem);
-                    resolve(distributionItem);
-                },
-                error: error => reject(error),
-            };
+      /* eslint-disable @typescript-eslint/no-empty-function */
+      /* eslint-disable @typescript-eslint/no-unused-vars */
+      const observer = {
+        next: (distributionItem: DistributionItem) => {
+          this.currentDistribution.next(distributionItem);
+          resolve(distributionItem);
+        },
+        error: error => reject(error),
+      };
 
-            this.distributionApiService.getCurrentDistribution().subscribe(observer);
-        });
-    }
+      this.distributionApiService.getCurrentDistribution().subscribe(observer);
+    });
+  }
 
 }

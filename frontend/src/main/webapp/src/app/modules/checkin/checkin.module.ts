@@ -6,52 +6,52 @@ import {CommonModule} from '@angular/common';
 import {QRCodeReaderService} from './qrcode-reader/qrcode-reader.service';
 import {CheckinComponent} from './checkin/checkin.component';
 import {
-    BadgeComponent,
-    BgColorDirective,
-    ButtonDirective,
-    CardBodyComponent,
-    CardComponent,
-    CardFooterComponent,
-    CardHeaderComponent,
-    ColComponent,
-    ContainerComponent,
-    FormSelectDirective,
-    ModalModule,
-    RowComponent
+  BadgeComponent,
+  BgColorDirective,
+  ButtonDirective,
+  CardBodyComponent,
+  CardComponent,
+  CardFooterComponent,
+  CardHeaderComponent,
+  ColComponent,
+  ContainerComponent,
+  FormSelectDirective,
+  ModalModule,
+  RowComponent
 } from '@coreui/angular';
 import {TicketScreenComponent} from './ticket-screen/ticket-screen.component';
 import {TicketScreenControlComponent} from './ticket-screen-control/ticket-screen-control.component';
 import {TicketScreenFullscreenComponent} from './ticket-screen-fullscreen/ticket-screen-fullscreen.component';
 
 @NgModule({
-    imports: [
-        CheckinRoutingModule,
-        ReactiveFormsModule,
-        CommonModule,
-        FormsModule,
-        ModalModule,
-        FormSelectDirective,
-        RowComponent,
-        ColComponent,
-        CardComponent,
-        CardBodyComponent,
-        BadgeComponent,
-        CardHeaderComponent,
-        CardFooterComponent,
-        ButtonDirective,
-        ContainerComponent,
-        BgColorDirective
-    ],
-    declarations: [
-        ScannerComponent,
-        CheckinComponent,
-        TicketScreenComponent,
-        TicketScreenControlComponent,
-        TicketScreenFullscreenComponent
-    ],
-    providers: [
-        QRCodeReaderService
-    ]
+  imports: [
+    CheckinRoutingModule,
+    ReactiveFormsModule,
+    CommonModule,
+    FormsModule,
+    ModalModule,
+    FormSelectDirective,
+    RowComponent,
+    ColComponent,
+    CardComponent,
+    CardBodyComponent,
+    BadgeComponent,
+    CardHeaderComponent,
+    CardFooterComponent,
+    ButtonDirective,
+    ContainerComponent,
+    BgColorDirective
+  ],
+  declarations: [
+    ScannerComponent,
+    CheckinComponent,
+    TicketScreenComponent,
+    TicketScreenControlComponent,
+    TicketScreenFullscreenComponent
+  ],
+  providers: [
+    QRCodeReaderService
+  ]
 })
 export class CheckinModule {
 }

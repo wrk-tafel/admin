@@ -2,7 +2,6 @@ package at.wrk.tafel.admin.backend.common.auth.components
 
 import at.wrk.tafel.admin.backend.config.ApplicationProperties
 import io.jsonwebtoken.Claims
-import io.jsonwebtoken.Header
 import io.jsonwebtoken.Jwts
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.stereotype.Service

@@ -3,18 +3,18 @@ import {HeaderComponent} from '@coreui/angular';
 import {AuthenticationService} from '../../../security/authentication.service';
 
 @Component({
-    selector: 'app-default-header',
-    templateUrl: './default-header.component.html',
+  selector: 'app-default-header',
+  templateUrl: './default-header.component.html',
 })
 export class DefaultHeaderComponent extends HeaderComponent {
-    @Input() sidebarId = 'sidebar';
-    private authenticationService = inject(AuthenticationService);
+  @Input() sidebarId = 'sidebar';
+  private authenticationService = inject(AuthenticationService);
 
-    public logout() {
-        /* eslint-disable @typescript-eslint/no-unused-vars */
-        this.authenticationService.logout().subscribe(_ => {
-            this.authenticationService.redirectToLogin();
-        });
-    }
+  public logout() {
+    /* eslint-disable @typescript-eslint/no-unused-vars */
+    this.authenticationService.logout().subscribe(_ => {
+      this.authenticationService.redirectToLogin();
+    });
+  }
 
 }

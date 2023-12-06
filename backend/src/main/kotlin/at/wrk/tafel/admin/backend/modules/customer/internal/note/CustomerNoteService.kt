@@ -18,7 +18,8 @@ class CustomerNoteService(
 
     fun getNotes(customerId: Long, page: Int?): CustomerNoteSearchResult {
         val pageRequest = PageRequest.of(page?.minus(1) ?: 0, 5)
-        val pagedResult = customerNoteRepository.findAllByCustomerCustomerIdOrderByCreatedAtDesc(customerId, pageRequest)
+        val pagedResult =
+            customerNoteRepository.findAllByCustomerCustomerIdOrderByCreatedAtDesc(customerId, pageRequest)
 
         return CustomerNoteSearchResult(
             items = pagedResult.map { mapNote(it) }.toList(),
