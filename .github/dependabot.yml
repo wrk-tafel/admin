@@ -13,13 +13,6 @@ updates:
     directory: "/frontend/src/main/webapp" # Location of package manifests
     schedule:
       interval: "daily"
-    ignore:
-      - dependency-name: "@angular/language-service"
-      - dependency-name: "@angular/cli"
-      - dependency-name: "@types/node"
-      - dependency-name: "@coreui/icons-angular"
-      - dependency-name: "@angular-devkit/build-angular"
-      - dependency-name: "ngx-cookie-service"
   # Maintain dependencies for GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/.github/workflows"
