@@ -16,7 +16,7 @@ describe('TicketScreen', () => {
 
   it('monitor opened correctly', () => {
     cy.on('window:before:load', (win) => {
-      cy.stub(win, 'open').callsFake(url => {
+      cy.stub(win, 'open').as('open').callsFake(url => {
         win.location.href = url;
       });
     });
