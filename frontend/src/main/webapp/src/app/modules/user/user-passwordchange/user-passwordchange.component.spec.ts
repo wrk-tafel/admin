@@ -29,7 +29,7 @@ describe('UserPasswordChangeComponent', () => {
   it('changePassword', () => {
     const fixture = TestBed.createComponent(UserPasswordChangeComponent);
     const component = fixture.componentInstance;
-    component.form = TestBed.createComponent(PasswordChangeFormComponent).componentInstance as PasswordChangeFormComponent;
+    component.form = TestBed.createComponent(PasswordChangeFormComponent).componentInstance;
     spyOn(component.form, 'changePassword').and.returnValue(of(true));
 
     component.changePassword();
@@ -40,7 +40,7 @@ describe('UserPasswordChangeComponent', () => {
   it('isSaveDisabled - form valid', () => {
     const fixture = TestBed.createComponent(UserPasswordChangeComponent);
     const component = fixture.componentInstance;
-    component.form = TestBed.createComponent(PasswordChangeFormComponent).componentInstance as PasswordChangeFormComponent;
+    component.form = TestBed.createComponent(PasswordChangeFormComponent).componentInstance;
     spyOn(component.form, 'isValid').and.returnValue(true);
     spyOnProperty(component.form.form, 'valid', 'get').and.returnValue(true);
 
@@ -50,7 +50,7 @@ describe('UserPasswordChangeComponent', () => {
   it('isSaveDisabled - form invalid', () => {
     const fixture = TestBed.createComponent(UserPasswordChangeComponent);
     const component = fixture.componentInstance;
-    component.form = TestBed.createComponent(PasswordChangeFormComponent).componentInstance as PasswordChangeFormComponent;
+    component.form = TestBed.createComponent(PasswordChangeFormComponent).componentInstance;
     spyOn(component.form, 'isValid').and.returnValue(false);
     spyOnProperty(component.form.form, 'valid', 'get').and.returnValue(false);
 

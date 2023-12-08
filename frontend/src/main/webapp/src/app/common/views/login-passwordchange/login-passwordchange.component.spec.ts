@@ -75,7 +75,7 @@ describe('LoginPasswordChangeComponent', () => {
 
     const fixture = TestBed.createComponent(LoginPasswordChangeComponent);
     const component = fixture.componentInstance;
-    component.form = TestBed.createComponent(PasswordChangeFormComponent).componentInstance as PasswordChangeFormComponent;
+    component.form = TestBed.createComponent(PasswordChangeFormComponent).componentInstance;
     spyOn(component.form, 'changePassword').and.returnValue(of(true));
     spyOnProperty(component.form, 'newPassword', 'get').and.returnValue({value: testNewPassword} as AbstractControl);
     authServiceSpy.getUsername.and.returnValue(testUsername);

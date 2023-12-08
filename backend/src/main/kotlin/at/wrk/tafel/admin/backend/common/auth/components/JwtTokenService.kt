@@ -33,12 +33,6 @@ class JwtTokenService(
         val secretKeySpec = createSecretKeySpec()
 
         return Jwts.builder()
-            /*
-            TODO
-            .header()
-            .add("typ", "jwt")
-            .and()
-             */
             .subject(username)
             .issuer(applicationProperties.security.jwtToken.issuer)
             .audience().add(applicationProperties.security.jwtToken.audience)
