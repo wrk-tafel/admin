@@ -237,7 +237,6 @@ describe('CustomerDuplicatesComponent', () => {
       return {status: 404};
     }));
 
-    const customerId = 123;
     component.mergeCustomers(customerDuplicatesData.items[0].customer);
 
     expect(customerApiService.mergeCustomers).toHaveBeenCalledWith(
