@@ -20,8 +20,6 @@ import {of} from 'rxjs';
 describe('DefaultHeaderComponent', () => {
   let component: DefaultHeaderComponent;
   let fixture: ComponentFixture<DefaultHeaderComponent>;
-  /* eslint-disable @typescript-eslint/no-unused-vars */
-  let iconSetService: IconSetService;
   let authenticationService: jasmine.SpyObj<AuthenticationService>;
 
   beforeEach(async () => {
@@ -53,8 +51,6 @@ describe('DefaultHeaderComponent', () => {
   });
 
   beforeEach(() => {
-    iconSetService = TestBed.inject(IconSetService);
-
     fixture = TestBed.createComponent(DefaultHeaderComponent);
     component = fixture.componentInstance;
   });
