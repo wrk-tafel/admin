@@ -16,6 +16,7 @@ import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import jakarta.persistence.criteria.CriteriaBuilder
 import jakarta.persistence.criteria.CriteriaQuery
+import jakarta.persistence.criteria.Expression
 import jakarta.persistence.criteria.Join
 import jakarta.persistence.criteria.Root
 import jakarta.persistence.criteria.Subquery
@@ -117,7 +118,7 @@ class CustomerEntity : BaseChangeTrackingEntity() {
                 return firstname?.let {
                     Specification { root: Root<CustomerEntity>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
                         cb.like(
-                            cb.lower(root.get("firstname")),
+                            cb.lower(root["firstname"]),
                             "%${firstname.lowercase()}%"
                         )
                     }
@@ -128,7 +129,7 @@ class CustomerEntity : BaseChangeTrackingEntity() {
                 return lastname?.let {
                     Specification { root: Root<CustomerEntity>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
                         cb.like(
-                            cb.lower(root.get("lastname")),
+                            cb.lower(root["lastname"]),
                             "%${lastname.lowercase()}%"
                         )
                     }
@@ -141,33 +142,52 @@ class CustomerEntity : BaseChangeTrackingEntity() {
                     val subQuery: Subquery<Long> = cq.subquery(Long::class.java)
                     val subRoot: Root<CustomerAddPersonEntity> = subQuery.from(CustomerAddPersonEntity::class.java)
                     val subScopes: Join<CustomerAddPersonEntity, CustomerEntity> = subRoot.join("customer")
-                    subQuery.select(subScopes.get("id")).distinct(true)
+
+                    val subBirthDate: Expression<LocalDate> = subRoot["birthDate"]
+                    val subGender: Expression<Gender> = subRoot["gender"]
+
+                    subQuery.select(subScopes["id"]).distinct(true)
                         .where(
                             cb.or(
-                                cb.isNull(subRoot.get<LocalDate>("birthDate")),
-                                cb.isNull(subRoot.get<Gender>("gender"))
+                                cb.isNull(subBirthDate),
+                                cb.isNull(subGender)
                             )
                         )
 
+                    val lastname: Expression<String> = root["lastname"]
+                    val firstname: Expression<String> = root["firstname"]
+                    val birthDate: Expression<LocalDate> = root["birthDate"]
+                    val gender: Expression<Gender> = root["gender"]
+                    val country: Expression<CountryEntity> = root["country"]
+
+                    val addressStreet: Expression<String> = root["addressStreet"]
+                    val addressHouseNumber: Expression<String> = root["addressHouseNumber"]
+                    val addressPostalCode: Expression<String> = root["addressPostalCode"]
+                    val addressCity: Expression<String> = root["addressCity"]
+                    val employer: Expression<String> = root["employer"]
+                    val id: Expression<Long> = root["id"]
+
                     cb.or(
-                        cb.isNull(root.get<String>("lastname")),
-                        cb.isNull(root.get<String>("firstname")),
-                        cb.isNull(root.get<LocalDate>("birthDate")),
-                        cb.isNull(root.get<LocalDate>("gender")),
-                        cb.isNull(root.get<CountryEntity>("country")),
-                        cb.isNull(root.get<String>("addressStreet")),
-                        cb.isNull(root.get<String>("addressHouseNumber")),
-                        cb.isNull(root.get<String>("addressPostalCode")),
-                        cb.isNull(root.get<String>("addressCity")),
-                        cb.isNull(root.get<String>("employer")),
-                        root.get<Long>("id").`in`(subQuery)
+                        cb.isNull(lastname),
+                        cb.isNull(firstname),
+                        cb.isNull(birthDate),
+                        cb.isNull(gender),
+                        cb.isNull(country),
+                        cb.isNull(addressStreet),
+                        cb.isNull(addressHouseNumber),
+                        cb.isNull(addressPostalCode),
+                        cb.isNull(addressCity),
+                        cb.isNull(employer),
+                        id.`in`(subQuery)
                     )
                 }
             }
 
             fun orderByUpdatedAtDesc(spec: Specification<CustomerEntity>): Specification<CustomerEntity> {
                 return Specification { root: Root<CustomerEntity>, cq: CriteriaQuery<*>, cb: CriteriaBuilder ->
-                    cq.orderBy(cb.desc(root.get<LocalDateTime>("updatedAt")))
+                    val updatedAt: Expression<LocalDate> = root["updatedAt"]
+
+                    cq.orderBy(cb.desc(updatedAt))
                     spec.toPredicate(root, cq, cb)
                 }
             }
