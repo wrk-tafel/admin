@@ -16,6 +16,7 @@ export class QRCodeReaderService {
     formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
     verbose: false
   };
+
   private cameraConfig: Html5QrcodeCameraScanConfig = {
     fps: 10,
     qrbox: (viewfinderWidth, viewfinderHeight) => {

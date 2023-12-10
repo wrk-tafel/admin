@@ -5,12 +5,12 @@
         <c-row>
           <c-col class="d-flex justify-content-center">
             <h5>
-              <c-badge [color]="apiConnectionStateColor" testid="state-server" class="me-3">
+              <c-badge [color]="apiClientReadyColor()" testid="state-server" class="me-3">
                 Verbindung
               </c-badge>
             </h5>
             <h5>
-              <c-badge [color]="webcamStateColor" testid="state-camera" class="me-3">
+              <c-badge [color]="qrCodeReaderReadyColor()" testid="state-camera" class="me-3">
                 Kamera
               </c-badge>
             </h5>
