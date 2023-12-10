@@ -114,9 +114,12 @@ class WebSecurityConfig(
                 auth.requestMatchers("/api/**").authenticated()
                 auth.anyRequest().permitAll()
             }
-            .sessionManagement()
-            .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            .and().csrf().disable()
+            .sessionManagement {
+                it.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            }
+            .csrf {
+                it.disable()
+            }
 
         return http.build()
     }
