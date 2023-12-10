@@ -10,8 +10,8 @@ describe('UrlHelperService', () => {
     const platformLocationSpy: jasmine.SpyObj<PlatformLocation> = jasmine.createSpyObj('PlatformLocation', [], {
       hostname: 'testhost',
       port: '1234',
-      pathname: overwriteTestPathname !== undefined ? overwriteTestPathname : '/subpath',
-      protocol: overwriteProtocol !== undefined ? overwriteProtocol : 'http:'
+      pathname: overwriteTestPathname ?? '/subpath',
+      protocol: overwriteProtocol ?? 'http:'
     });
 
     const service = new UrlHelperService(platformLocationSpy);
