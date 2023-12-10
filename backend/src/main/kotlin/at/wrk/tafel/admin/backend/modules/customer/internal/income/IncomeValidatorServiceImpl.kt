@@ -20,9 +20,7 @@ class IncomeValidatorServiceImpl(
 ) : IncomeValidatorService {
 
     override fun validate(persons: List<IncomeValidatorPerson>): IncomeValidatorResult {
-        if (persons.isEmpty()) {
-            throw IllegalArgumentException("No persons given")
-        }
+        require(persons.isNotEmpty()) { "No persons given" }
 
         val personsToInclude = persons.filterNot { it.excludeFromIncomeCalculation }
 

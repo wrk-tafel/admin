@@ -10,6 +10,7 @@ import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import jakarta.persistence.criteria.CriteriaBuilder
 import jakarta.persistence.criteria.CriteriaQuery
+import jakarta.persistence.criteria.Expression
 import jakarta.persistence.criteria.Root
 import org.springframework.data.jpa.domain.Specification
 import java.time.LocalDateTime
@@ -48,7 +49,7 @@ class UserEntity : BaseChangeTrackingEntity() {
                 return username?.let {
                     Specification { root: Root<UserEntity>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
                         cb.like(
-                            cb.lower(root.get("username")),
+                            cb.lower(root["username"]),
                             "%${username.lowercase()}%"
                         )
                     }
@@ -59,7 +60,7 @@ class UserEntity : BaseChangeTrackingEntity() {
                 return firstname?.let {
                     Specification { root: Root<UserEntity>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
                         cb.like(
-                            cb.lower(root.get("firstname")),
+                            cb.lower(root["firstname"]),
                             "%${firstname.lowercase()}%"
                         )
                     }
@@ -70,25 +71,31 @@ class UserEntity : BaseChangeTrackingEntity() {
                 return lastname?.let {
                     Specification { root: Root<UserEntity>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
                         cb.like(
-                            cb.lower(root.get("lastname")),
+                            cb.lower(root["lastname"]),
                             "%${lastname.lowercase()}%"
                         )
                     }
                 }
             }
 
-            fun enabledEquals(enabled: Boolean?): Specification<UserEntity>? {
-                return enabled?.let {
+            fun enabledEquals(paramEnabled: Boolean?): Specification<UserEntity>? {
+                return paramEnabled?.let {
                     Specification { root: Root<UserEntity>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
-                        cb.equal(root.get<Boolean>("enabled"), enabled)
+
+                        val enabled: Expression<Boolean> = root["enabled"]
+                        cb.equal(enabled, paramEnabled)
+
                     }
                 }
             }
 
             fun orderByUpdatedAtDesc(spec: Specification<UserEntity>): Specification<UserEntity> {
                 return Specification { root: Root<UserEntity>, cq: CriteriaQuery<*>, cb: CriteriaBuilder ->
-                    cq.orderBy(cb.desc(root.get<LocalDateTime>("updatedAt")))
+
+                    val updatedAt: Expression<LocalDateTime> = root["updatedAt"]
+                    cq.orderBy(cb.desc(updatedAt))
                     spec.toPredicate(root, cq, cb)
+
                 }
             }
 

@@ -5,7 +5,7 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.Period
 
-interface IncomeValidatorService {
+fun interface IncomeValidatorService {
     fun validate(persons: List<IncomeValidatorPerson>): IncomeValidatorResult
 }
 
