@@ -1,24 +1,32 @@
-import {Component, inject, OnDestroy, OnInit} from '@angular/core';
+import {Component, computed, inject, OnDestroy, OnInit, signal, WritableSignal} from '@angular/core';
 import {QRCodeReaderService} from '../qrcode-reader/qrcode-reader.service';
 import {RxStompState} from '@stomp/rx-stomp';
 import {WebsocketService} from '../../../common/websocket/websocket.service';
 import {CameraDevice} from 'html5-qrcode/esm/camera/core';
 import {Html5QrcodeResult} from 'html5-qrcode/core';
-import {Colors} from '@coreui/angular';
 
 @Component({
   selector: 'tafel-scanner',
   templateUrl: 'scanner.component.html'
 })
 export class ScannerComponent implements OnInit, OnDestroy {
+  private qrCodeReaderService = inject(QRCodeReaderService);
+  private websocketService = inject(WebsocketService);
+
   scannerId: number;
   availableCameras: CameraDevice[] = [];
   currentCamera: CameraDevice;
-  qrCodeReaderReady = false;
-  apiClientReady = false;
   lastSentText: string;
-  private qrCodeReaderService = inject(QRCodeReaderService);
-  private websocketService = inject(WebsocketService);
+
+  readonly qrCodeReaderReady: WritableSignal<boolean> = signal(false);
+  readonly qrCodeReaderReadyColor = computed(() => {
+    return this.qrCodeReaderReady() ? 'success' : 'danger';
+  });
+
+  readonly apiClientReady: WritableSignal<boolean> = signal(false);
+  readonly apiClientReadyColor = computed(() => {
+    return this.apiClientReady() ? 'success' : 'danger';
+  });
 
   get selectedCamera(): CameraDevice {
     return this.currentCamera;
@@ -30,14 +38,6 @@ export class ScannerComponent implements OnInit, OnDestroy {
 
     const promise = this.qrCodeReaderService.restart(camera.id);
     this.processQrCodeReaderPromise(promise);
-  }
-
-  get apiConnectionStateColor(): Colors {
-    return this.apiClientReady ? 'success' : 'danger';
-  }
-
-  get webcamStateColor(): Colors {
-    return this.qrCodeReaderReady ? 'success' : 'danger';
   }
 
   ngOnInit(): void {
@@ -62,17 +62,17 @@ export class ScannerComponent implements OnInit, OnDestroy {
   async processQrCodeReaderPromise(promise: Promise<null>) {
     await promise.then(
       () => {
-        this.qrCodeReaderReady = true;
+        this.qrCodeReaderReady.set(true);
       },
       () => {
-        this.qrCodeReaderReady = false;
+        this.qrCodeReaderReady.set(false);
       }
     );
   }
 
   /* eslint-disable @typescript-eslint/no-unused-vars */
   qrCodeReaderSuccessCallback = (decodedText: string, result: Html5QrcodeResult) => {
-    if (this.apiClientReady && (!this.lastSentText || this.lastSentText !== decodedText)) {
+    if (this.apiClientReady() && (!this.lastSentText || this.lastSentText !== decodedText)) {
       const scanResult: ScanResult = {value: +decodedText};
       this.websocketService.publish({
         destination: `/topic/scanners/${this.scannerId}/results`,
@@ -91,7 +91,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
     if (state === RxStompState.OPEN) {
       this.processClientRegistration();
     } else {
-      this.apiClientReady = false;
+      this.apiClientReady.set(false);
     }
   }
 
@@ -99,7 +99,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
     this.websocketService.watch('/user/queue/scanners/registration').subscribe((message) => {
         const registration: ScannerRegistration = JSON.parse(message.body);
         this.scannerId = registration.scannerId;
-        this.apiClientReady = true;
+        this.apiClientReady.set(true);
       }
     );
     this.websocketService.publish({destination: '/app/scanners/register'});

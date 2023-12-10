@@ -68,7 +68,7 @@ describe('ScannerComponent', () => {
     component.ngOnInit();
     tick(1000);
 
-    expect(component.apiClientReady).toBeTruthy();
+    expect(component.apiClientReady()).toBeTruthy();
     expect(component.scannerId).toBe(registration.scannerId);
 
     expect(component.availableCameras).toEqual(testCameraList);
@@ -92,21 +92,21 @@ describe('ScannerComponent', () => {
   it('processQrCodeReaderPromise fills state when successful', async () => {
     const fixture = TestBed.createComponent(ScannerComponent);
     const component = fixture.componentInstance;
-    component.qrCodeReaderReady = false;
+    component.qrCodeReaderReady.set(false);
 
     await component.processQrCodeReaderPromise(Promise.resolve(null));
 
-    expect(component.qrCodeReaderReady).toBe(true);
+    expect(component.qrCodeReaderReady()).toBe(true);
   });
 
   it('processQrCodeReaderPromise fills state when failed', async () => {
     const fixture = TestBed.createComponent(ScannerComponent);
     const component = fixture.componentInstance;
-    component.qrCodeReaderReady = true;
+    component.qrCodeReaderReady.set(true);
 
     await component.processQrCodeReaderPromise(Promise.reject());
 
-    expect(component.qrCodeReaderReady).toBe(false);
+    expect(component.qrCodeReaderReady()).toBe(false);
   });
 
   it('qrCodeReaderSuccessCallback received new text', () => {
@@ -115,7 +115,7 @@ describe('ScannerComponent', () => {
 
     const testValue = '12345';
     component.lastSentText = null;
-    component.apiClientReady = true;
+    component.apiClientReady.set(true);
     component.scannerId = 111;
 
     component.qrCodeReaderSuccessCallback(testValue, undefined);
@@ -133,7 +133,7 @@ describe('ScannerComponent', () => {
 
     const testText = 'test123';
     component.lastSentText = testText;
-    component.apiClientReady = true;
+    component.apiClientReady.set(true);
 
     component.qrCodeReaderSuccessCallback(testText, undefined);
 
@@ -147,7 +147,7 @@ describe('ScannerComponent', () => {
 
     const testText = '12345';
     component.lastSentText = 'old-12345';
-    component.apiClientReady = true;
+    component.apiClientReady.set(true);
     component.scannerId = 111;
 
     component.qrCodeReaderSuccessCallback(testText, undefined);
@@ -164,7 +164,7 @@ describe('ScannerComponent', () => {
     const component = fixture.componentInstance;
 
     const testText = 'test123';
-    component.apiClientReady = false;
+    component.apiClientReady.set(false);
 
     component.qrCodeReaderSuccessCallback(testText, undefined);
 
@@ -189,41 +189,41 @@ describe('ScannerComponent', () => {
 
     const fixture = TestBed.createComponent(ScannerComponent);
     const component = fixture.componentInstance;
-    component.apiClientReady = false;
+    component.apiClientReady.set(false);
 
     component.processApiConnectionState(RxStompState.OPEN);
 
-    expect(component.apiClientReady).toBe(true);
+    expect(component.apiClientReady()).toBe(true);
   });
 
   it('processApiConnectionState with state CONNECTING', async () => {
     const fixture = TestBed.createComponent(ScannerComponent);
     const component = fixture.componentInstance;
-    component.apiClientReady = true;
+    component.apiClientReady.set(true);
 
     component.processApiConnectionState(RxStompState.CONNECTING);
 
-    expect(component.apiClientReady).toBe(false);
+    expect(component.apiClientReady()).toBe(false);
   });
 
   it('processApiConnectionState with state CLOSING', async () => {
     const fixture = TestBed.createComponent(ScannerComponent);
     const component = fixture.componentInstance;
-    component.apiClientReady = true;
+    component.apiClientReady.set(true);
 
     component.processApiConnectionState(RxStompState.CLOSING);
 
-    expect(component.apiClientReady).toBe(false);
+    expect(component.apiClientReady()).toBe(false);
   });
 
   it('processApiConnectionState with state CLOSED', async () => {
     const fixture = TestBed.createComponent(ScannerComponent);
     const component = fixture.componentInstance;
-    component.apiClientReady = true;
+    component.apiClientReady.set(true);
 
     component.processApiConnectionState(RxStompState.CLOSED);
 
-    expect(component.apiClientReady).toBe(false);
+    expect(component.apiClientReady()).toBe(false);
   });
 
   it('setSelectedCamera', () => {
