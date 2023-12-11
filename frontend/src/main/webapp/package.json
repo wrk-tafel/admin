@@ -94,7 +94,7 @@
     "karma-jasmine-html-reporter": "2.1.0",
     "karma-spec-reporter": "0.0.36",
     "protractor": "7.0.0",
-    "ts-node": "10.9.1",
+    "ts-node": "10.9.2",
     "tslint": "6.1.3",
     "typescript": "5.2.2",
     "wait-on": "7.2.0"
