@@ -80,7 +80,7 @@
     "@types/jasminewd2": "2.0.13",
     "@types/node": "20.10.4",
     "@typescript-eslint/eslint-plugin": "6.14.0",
-    "@typescript-eslint/parser": "6.13.2",
+    "@typescript-eslint/parser": "6.14.0",
     "codelyzer": "6.0.2",
     "cypress": "13.6.1",
     "cypress-browser-permissions": "1.1.0",
