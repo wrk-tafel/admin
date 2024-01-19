@@ -9,6 +9,10 @@
 * Improve creation / enforce search before creating
 * Add goods-input
 
+statistic:
+* add alleinerzieher flag
+* 
+
 ### Open things (to be decided)
 
 * customer-detail
