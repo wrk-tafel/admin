@@ -8,10 +8,10 @@
 * customer-creation: Advanced postalCode validation (only numbers from 03. and 01. district / Vienna)
 * Improve creation / enforce search before creating
 * Add goods-input
+* Add "supervisor" role (can force-fully create customers even when exceeding the income limit)
 
 statistic:
 * add alleinerzieher flag
-* 
 
 ### Open things (to be decided)
 
