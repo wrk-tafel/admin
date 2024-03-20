@@ -45,7 +45,7 @@
     "@types/websocket": "1.0.10",
     "bootstrap": "5.3.3",
     "chart.js": "3.9.1",
-    "core-js": "3.36.0",
+    "core-js": "3.36.1",
     "cypress-recurse": "1.35.2",
     "flag-icon-css": "4.1.7",
     "follow-redirects": "1.15.6",
