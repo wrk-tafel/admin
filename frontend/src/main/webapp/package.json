@@ -23,7 +23,7 @@
   "private": true,
   "dependencies": {
     "@angular-devkit/core": "17.3.3",
-    "@angular-devkit/schematics": "17.3.2",
+    "@angular-devkit/schematics": "17.3.3",
     "@angular/animations": "17.0.5",
     "@angular/cdk": "17.3.2",
     "@angular/common": "17.0.5",
