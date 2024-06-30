@@ -39,9 +39,9 @@ import {
   TabContentComponent,
   TabContentRefDirective,
   TabPaneComponent
-} from "@coreui/angular";
-import {CurrencyPipe, DatePipe, NgClass} from "@angular/common";
-import {FormsModule} from "@angular/forms";
+} from '@coreui/angular';
+import {CurrencyPipe, DatePipe, NgClass} from '@angular/common';
+import {FormsModule} from '@angular/forms';
 
 @Component({
   selector: 'tafel-customer-detail',

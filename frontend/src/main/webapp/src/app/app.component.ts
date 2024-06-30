@@ -1,130 +1,21 @@
 import {APP_INITIALIZER, Component, DEFAULT_CURRENCY_CODE, inject, LOCALE_ID, OnInit} from '@angular/core';
-import {NavigationEnd, Router, RouterLink, RouterOutlet} from '@angular/router';
+import {NavigationEnd, Router, RouterOutlet} from '@angular/router';
 
-import {IconDirective, IconModule, IconSetService} from '@coreui/icons-angular';
+import {IconSetService} from '@coreui/icons-angular';
 import {freeSet} from '@coreui/icons';
-import {
-  AvatarComponent,
-  BadgeComponent,
-  BgColorDirective,
-  BreadcrumbModule,
-  ButtonCloseDirective,
-  ButtonDirective,
-  CardBodyComponent,
-  CardComponent,
-  CardGroupComponent,
-  ColComponent,
-  ContainerComponent,
-  DropdownModule,
-  FormControlDirective,
-  FormDirective,
-  HeaderModule,
-  InputGroupComponent,
-  InputGroupTextDirective,
-  ModalModule,
-  NavItemComponent,
-  RowComponent,
-  SidebarBrandComponent,
-  SidebarComponent,
-  SidebarModule,
-  SidebarNavComponent,
-  SidebarToggleDirective,
-  TabsModule
-} from '@coreui/angular';
-import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
-import {BrowserModule} from '@angular/platform-browser';
-import {
-  CommonModule,
-  HashLocationStrategy,
-  LocationStrategy,
-  NgIf,
-  NgOptimizedImage,
-  NgTemplateOutlet
-} from '@angular/common';
-import {HTTP_INTERCEPTORS, HttpClientModule, HttpClientXsrfModule} from '@angular/common/http';
-import {NgScrollbarModule} from 'ngx-scrollbar';
-import {ReactiveFormsModule} from '@angular/forms';
+import {HashLocationStrategy, LocationStrategy,} from '@angular/common';
+import {HTTP_INTERCEPTORS} from '@angular/common/http';
 import {CookieService} from 'ngx-cookie-service';
 import {ErrorHandlerInterceptor} from './common/http/errorhandler-interceptor.service';
 import {ApiPathInterceptor} from './common/http/apipath-interceptor.service';
 import {WebsocketService} from './common/websocket/websocket.service';
 import {AuthenticationService} from './common/security/authentication.service';
-import {TafelToasterComponent} from "./common/views/default-layout/toasts/tafel-toaster.component";
+import {TafelToasterComponent} from './common/views/default-layout/toasts/tafel-toaster.component';
 
 @Component({
   // tslint:disable-next-line
   selector: 'body',
   templateUrl: 'app.component.html',
-  imports: [
-    BreadcrumbModule,
-    BrowserAnimationsModule,
-    BrowserModule,
-    CommonModule,
-    DropdownModule,
-    HeaderModule,
-    HttpClientModule,
-    HttpClientXsrfModule,
-    IconModule,
-    ModalModule,
-    NgScrollbarModule,
-    ReactiveFormsModule,
-    SidebarModule,
-    TabsModule,
-    ContainerComponent,
-    NgIf,
-    RouterLink,
-    RouterOutlet,
-    SidebarBrandComponent,
-    SidebarComponent,
-    SidebarNavComponent,
-    SidebarToggleDirective,
-    NavItemComponent,
-    BadgeComponent,
-    AvatarComponent,
-    IconDirective,
-    BgColorDirective,
-    ButtonDirective,
-    CardBodyComponent,
-    CardComponent,
-    CardGroupComponent,
-    ColComponent,
-    ContainerComponent,
-    FormControlDirective,
-    FormDirective,
-    IconDirective,
-    InputGroupComponent,
-    InputGroupTextDirective,
-    RouterLink,
-    RowComponent,
-    NgOptimizedImage,
-    ButtonDirective,
-    ColComponent,
-    FormControlDirective,
-    FormDirective,
-    IconDirective,
-    InputGroupComponent,
-    InputGroupTextDirective,
-    RowComponent,
-    ButtonDirective,
-    ColComponent,
-    ContainerComponent,
-    FormControlDirective,
-    IconDirective,
-    InputGroupComponent,
-    InputGroupTextDirective,
-    RowComponent,
-    ButtonDirective,
-    ColComponent,
-    ContainerComponent,
-    FormControlDirective,
-    IconModule,
-    InputGroupComponent,
-    InputGroupTextDirective,
-    RowComponent,
-    ButtonCloseDirective,
-    NgTemplateOutlet,
-    TafelToasterComponent
-  ],
   providers: [
     {
       provide: LOCALE_ID,
@@ -167,6 +58,10 @@ import {TafelToasterComponent} from "./common/views/default-layout/toasts/tafel-
       multi: true
     },
     IconSetService
+  ],
+  imports: [
+    TafelToasterComponent,
+    RouterOutlet
   ],
   standalone: true
 })

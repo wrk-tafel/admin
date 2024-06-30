@@ -4,7 +4,7 @@ import {ChangePasswordRequest, ChangePasswordResponse, UserApiService} from '../
 import {catchError, map} from 'rxjs/operators';
 import {Observable, throwError} from 'rxjs';
 import {HttpErrorResponse} from '@angular/common/http';
-import {NgClass} from "@angular/common";
+import {NgClass} from '@angular/common';
 
 @Component({
   selector: 'tafel-passwordchange-form',

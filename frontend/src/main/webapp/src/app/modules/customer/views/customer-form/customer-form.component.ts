@@ -5,7 +5,7 @@ import {CustomValidator} from '../../../../common/validator/CustomValidator';
 import {CustomerAddPersonData, CustomerData, Gender, GenderLabel} from '../../../../api/customer-api.service';
 import {v4 as uuidv4} from 'uuid';
 import * as moment from 'moment';
-import {NgClass} from "@angular/common";
+import {NgClass} from '@angular/common';
 import {
   CardBodyComponent,
   CardComponent, CardFooterComponent,
@@ -13,7 +13,7 @@ import {
   ColComponent,
   InputGroupComponent,
   RowComponent
-} from "@coreui/angular";
+} from '@coreui/angular';
 
 @Component({
   selector: 'tafel-customer-form',

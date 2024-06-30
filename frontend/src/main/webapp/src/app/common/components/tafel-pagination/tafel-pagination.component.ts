@@ -1,5 +1,5 @@
 import {Component, EventEmitter, Input, Output} from '@angular/core';
-import {PageItemDirective, PaginationComponent} from "@coreui/angular";
+import {PageItemDirective, PaginationComponent} from '@coreui/angular';
 
 @Component({
   selector: 'tafel-pagination',

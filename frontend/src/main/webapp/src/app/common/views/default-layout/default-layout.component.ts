@@ -13,8 +13,8 @@ import {
   SidebarTogglerDirective
 } from '@coreui/angular';
 import {NgScrollbar} from 'ngx-scrollbar';
-import {DefaultHeaderComponent} from "./default-header/default-header.component";
-import {RouterOutlet} from "@angular/router";
+import {DefaultHeaderComponent} from './default-header/default-header.component';
+import {RouterOutlet} from '@angular/router';
 
 @Component({
   selector: 'tafel-default-layout',

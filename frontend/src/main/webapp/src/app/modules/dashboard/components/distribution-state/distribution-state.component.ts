@@ -8,7 +8,7 @@ import {
   ColComponent, ModalBodyComponent,
   ModalComponent, ModalHeaderComponent, ModalToggleDirective,
   RowComponent
-} from "@coreui/angular";
+} from '@coreui/angular';
 
 @Component({
   selector: 'tafel-distribution-state',

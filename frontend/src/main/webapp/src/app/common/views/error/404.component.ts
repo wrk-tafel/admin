@@ -1,5 +1,5 @@
 import {Component} from '@angular/core';
-import {ColComponent, ContainerComponent, RowComponent} from "@coreui/angular";
+import {ColComponent, ContainerComponent, RowComponent} from '@coreui/angular';
 
 @Component({
   templateUrl: '404.component.html',

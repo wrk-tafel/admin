@@ -9,7 +9,7 @@ import {
   ColComponent,
   ContainerComponent, InputGroupComponent,
   RowComponent
-} from "@coreui/angular";
+} from '@coreui/angular';
 
 @Component({
   selector: 'tafel-login',

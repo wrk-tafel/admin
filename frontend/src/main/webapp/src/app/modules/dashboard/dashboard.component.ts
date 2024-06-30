@@ -1,9 +1,9 @@
 import {Component, inject, OnInit} from '@angular/core';
 import {WebsocketService} from '../../common/websocket/websocket.service';
 import {IMessage} from '@stomp/stompjs';
-import {ColComponent, RowComponent} from "@coreui/angular";
-import {DistributionStateComponent} from "./components/distribution-state/distribution-state.component";
-import {RegisteredCustomersComponent} from "./components/registered-customers/registered-customers.component";
+import {ColComponent, RowComponent} from '@coreui/angular';
+import {DistributionStateComponent} from './components/distribution-state/distribution-state.component';
+import {RegisteredCustomersComponent} from './components/registered-customers/registered-customers.component';
 
 @Component({
   selector: 'tafel-dashboard',

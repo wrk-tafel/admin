@@ -2,8 +2,8 @@ import {Component, inject, OnInit} from '@angular/core';
 import {UserApiService, UserData} from '../../../api/user-api.service';
 import {ActivatedRoute, Router} from '@angular/router';
 import {ToastService, ToastType} from '../../../common/views/default-layout/toasts/toast.service';
-import {CardBodyComponent, CardComponent, ColComponent, DropdownComponent, RowComponent} from "@coreui/angular";
-import {NgClass} from "@angular/common";
+import {CardBodyComponent, CardComponent, ColComponent, DropdownComponent, RowComponent} from '@coreui/angular';
+import {NgClass} from '@angular/common';
 
 @Component({
   selector: 'tafel-user-detail',

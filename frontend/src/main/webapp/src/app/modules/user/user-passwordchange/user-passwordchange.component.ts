@@ -1,6 +1,6 @@
 import {Component, ViewChild} from '@angular/core';
 import {PasswordChangeFormComponent} from '../../../common/views/passwordchange-form/passwordchange-form.component';
-import {CardBodyComponent, CardComponent, CardFooterComponent, CardHeaderComponent} from "@coreui/angular";
+import {CardBodyComponent, CardComponent, CardFooterComponent, CardHeaderComponent} from '@coreui/angular';
 
 @Component({
   selector: 'tafel-user-passwordchange',

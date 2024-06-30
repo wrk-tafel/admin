@@ -4,8 +4,8 @@ import {WebsocketService} from '../../../common/websocket/websocket.service';
 import {TicketScreenComponent, TicketScreenMessage} from '../ticket-screen/ticket-screen.component';
 import {DistributionTicketApiService, TicketNumberResponse} from '../../../api/distribution-ticket-api.service';
 import {UrlHelperService} from '../../../common/util/url-helper.service';
-import {CardBodyComponent, CardComponent, ColComponent, RowComponent} from "@coreui/angular";
-import {NgClass} from "@angular/common";
+import {CardBodyComponent, CardComponent, ColComponent, RowComponent} from '@coreui/angular';
+import {NgClass} from '@angular/common';
 
 @Component({
   selector: 'tafel-ticket-screen-control',

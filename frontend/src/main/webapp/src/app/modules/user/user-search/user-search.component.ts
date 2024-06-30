@@ -15,7 +15,7 @@ import {
   ColComponent,
   InputGroupComponent,
   RowComponent
-} from "@coreui/angular";
+} from '@coreui/angular';
 
 @Component({
   selector: 'tafel-user-search',

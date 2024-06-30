@@ -10,8 +10,8 @@ import {
 } from '@angular/forms';
 import {GeneratedPasswordResponse, UserApiService, UserData, UserPermission} from '../../../api/user-api.service';
 import {ToastService, ToastType} from '../../../common/views/default-layout/toasts/toast.service';
-import {NgClass} from "@angular/common";
-import {InputGroupComponent} from "@coreui/angular";
+import {NgClass} from '@angular/common';
+import {InputGroupComponent} from '@coreui/angular';
 
 @Component({
   selector: 'tafel-user-form',

@@ -1,5 +1,5 @@
 import {Component} from '@angular/core';
-import {TicketScreenComponent} from "../ticket-screen/ticket-screen.component";
+import {TicketScreenComponent} from '../ticket-screen/ticket-screen.component';
 
 @Component({
   selector: 'tafel-ticket-screen-fullscreen',

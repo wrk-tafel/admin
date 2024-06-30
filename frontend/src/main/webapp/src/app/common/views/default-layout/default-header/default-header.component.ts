@@ -8,7 +8,7 @@ import {
   SidebarToggleDirective
 } from '@coreui/angular';
 import {AuthenticationService} from '../../../security/authentication.service';
-import {RouterLink} from "@angular/router";
+import {RouterLink} from '@angular/router';
 
 @Component({
   selector: 'app-default-header',

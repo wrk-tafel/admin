@@ -14,8 +14,8 @@ import {
   ColComponent,
   InputGroupComponent,
   RowComponent
-} from "@coreui/angular";
-import {DatePipe} from "@angular/common";
+} from '@coreui/angular';
+import {DatePipe} from '@angular/common';
 
 @Component({
   selector: 'tafel-customer-search',

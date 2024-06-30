@@ -20,8 +20,8 @@ import {
 import {DistributionTicketApiService} from '../../../api/distribution-ticket-api.service';
 import {ToastService, ToastType} from '../../../common/views/default-layout/toasts/toast.service';
 import {WebsocketService} from '../../../common/websocket/websocket.service';
-import {FormsModule} from "@angular/forms";
-import {DatePipe, NgClass} from "@angular/common";
+import {FormsModule} from '@angular/forms';
+import {DatePipe, NgClass} from '@angular/common';
 
 @Component({
   selector: 'tafel-checkin',
