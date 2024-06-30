@@ -1,14 +1,24 @@
 import {Component, inject, Input} from '@angular/core';
 import {
   AvatarComponent,
+  ButtonDirective,
   ContainerComponent,
-  DropdownComponent, DropdownToggleDirective,
+  DropdownComponent,
+  DropdownDividerDirective,
+  DropdownHeaderDirective,
+  DropdownItemDirective,
+  DropdownMenuDirective,
+  DropdownToggleDirective,
   HeaderComponent,
   HeaderNavComponent,
-  SidebarToggleDirective
+  HeaderTogglerDirective,
+  SidebarToggleDirective,
+  TextColorDirective
 } from '@coreui/angular';
 import {AuthenticationService} from '../../../security/authentication.service';
 import {RouterLink} from '@angular/router';
+import {IconDirective} from "@coreui/icons-angular";
+import {NgTemplateOutlet} from "@angular/common";
 
 @Component({
   selector: 'app-default-header',
@@ -20,7 +30,16 @@ import {RouterLink} from '@angular/router';
     DropdownComponent,
     DropdownToggleDirective,
     AvatarComponent,
-    RouterLink
+    RouterLink,
+    HeaderTogglerDirective,
+    IconDirective,
+    ButtonDirective,
+    TextColorDirective,
+    NgTemplateOutlet,
+    DropdownMenuDirective,
+    DropdownHeaderDirective,
+    DropdownItemDirective,
+    DropdownDividerDirective
   ],
   standalone: true
 })
