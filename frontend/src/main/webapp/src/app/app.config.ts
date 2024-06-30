@@ -12,13 +12,13 @@ import {
 import {DropdownModule, SidebarModule} from '@coreui/angular';
 import {IconSetService} from '@coreui/icons-angular';
 import {routes} from './app.routes';
-import {HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi} from "@angular/common/http";
-import {CookieService} from "ngx-cookie-service";
-import {HashLocationStrategy, LocationStrategy} from "@angular/common";
-import {ErrorHandlerInterceptor} from "./common/http/errorhandler-interceptor.service";
-import {ApiPathInterceptor} from "./common/http/apipath-interceptor.service";
-import {WebsocketService} from "./common/websocket/websocket.service";
-import {AuthenticationService} from "./common/security/authentication.service";
+import {HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi} from '@angular/common/http';
+import {CookieService} from 'ngx-cookie-service';
+import {HashLocationStrategy, LocationStrategy} from '@angular/common';
+import {ErrorHandlerInterceptor} from './common/http/errorhandler-interceptor.service';
+import {ApiPathInterceptor} from './common/http/apipath-interceptor.service';
+import {WebsocketService} from './common/websocket/websocket.service';
+import {AuthenticationService} from './common/security/authentication.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
