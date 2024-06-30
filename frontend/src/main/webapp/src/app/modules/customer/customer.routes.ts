@@ -23,7 +23,7 @@ export const customerDuplicatesDataResolver: ResolveFn<CustomerDuplicatesRespons
   return inject(CustomerDuplicatesDataResolver).resolve(route);
 };
 
-const routes: Routes = [
+export const routes: Routes = [
   {
     path: 'anlegen',
     component: CustomerEditComponent

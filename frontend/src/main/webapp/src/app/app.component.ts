@@ -3,7 +3,6 @@ import {NavigationEnd, provideRouter, Router, RouterLink, RouterOutlet} from '@a
 
 import {IconDirective, IconModule, IconSetService} from '@coreui/icons-angular';
 import {freeSet} from '@coreui/icons';
-import {TafelCommonModule} from './common/tafel-common.module';
 import {APP_ROUTES} from './app.routing';
 import {
   AvatarComponent,
@@ -58,8 +57,6 @@ import {AuthenticationService} from './common/security/authentication.service';
   selector: 'body',
   templateUrl: 'app.component.html',
   imports: [
-    TafelCommonModule,
-    AppRoutingModule,
     BreadcrumbModule,
     BrowserAnimationsModule,
     BrowserModule,

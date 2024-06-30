@@ -11,7 +11,7 @@ export const userDataResolver: ResolveFn<UserData> = (route: ActivatedRouteSnaps
   return inject(UserDataResolver).resolve(route);
 };
 
-const routes: Routes = [
+export const routes: Routes = [
   {
     path: 'detail/:id',
     component: UserDetailComponent,

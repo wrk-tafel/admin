@@ -3,7 +3,7 @@ import {ScannerComponent} from './scanner/scanner.component';
 import {CheckinComponent} from './checkin/checkin.component';
 import {TicketScreenControlComponent} from './ticket-screen-control/ticket-screen-control.component';
 
-const routes: Routes = [
+export const routes: Routes = [
   {
     path: 'scanner',
     component: ScannerComponent

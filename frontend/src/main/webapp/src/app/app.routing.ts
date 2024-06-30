@@ -68,28 +68,28 @@ export const APP_ROUTES: Routes = [
     children: [
       {
         path: 'uebersicht',
-        loadChildren: () => import('./modules/dashboard/dashboard.module').then(m => m.routes),
+        loadChildren: () => import('./modules/dashboard/dashboard.routes').then(m => m.routes),
         data: {
           anyPermission: true
         }
       },
       {
         path: 'anmeldung',
-        loadChildren: () => import('./modules/checkin/checkin.module').then(m => m.routes),
+        loadChildren: () => import('./modules/checkin/checkin.routes').then(m => m.routes),
         data: {
           permission: 'SCANNER'
         }
       },
       {
         path: 'kunden',
-        loadChildren: () => import('./modules/customer/customer.module').then(m => m.routes),
+        loadChildren: () => import('./modules/customer/customer.routes').then(m => m.routes),
         data: {
           permission: 'CUSTOMER'
         }
       },
       {
         path: 'benutzer',
-        loadChildren: () => import('./modules/user/user.module').then(m => m.routes),
+        loadChildren: () => import('./modules/user/user.routes').then(m => m.routes),
         data: {
           permission: 'USER_MANAGEMENT'
         }
