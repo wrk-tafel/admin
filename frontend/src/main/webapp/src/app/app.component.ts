@@ -3,7 +3,7 @@ import {NavigationEnd, provideRouter, Router, RouterLink, RouterOutlet} from '@a
 
 import {IconDirective, IconModule, IconSetService} from '@coreui/icons-angular';
 import {freeSet} from '@coreui/icons';
-import {APP_ROUTES} from './app.routes';
+import {routes} from './app.routes';
 import {
   AvatarComponent,
   BadgeComponent,
@@ -167,7 +167,7 @@ import {TafelToasterComponent} from "./common/views/default-layout/toasts/tafel-
       deps: [AuthenticationService],
       multi: true
     },
-    provideRouter(APP_ROUTES),
+    provideRouter(routes),
     IconSetService
   ],
   standalone: true

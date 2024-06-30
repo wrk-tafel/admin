@@ -27,7 +27,7 @@ export const defaultLayoutResolver: ResolveFn<any[]> = () => {
   return inject(DefaultLayoutResolver).resolve();
 };
 
-export const APP_ROUTES: Routes = [
+export const routes: Routes = [
   {
     path: '',
     redirectTo: 'uebersicht',
