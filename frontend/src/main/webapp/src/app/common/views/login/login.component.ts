@@ -7,9 +7,11 @@ import {
   CardComponent,
   CardGroupComponent,
   ColComponent,
-  ContainerComponent, InputGroupComponent,
+  ContainerComponent, FormDirective, InputGroupComponent, InputGroupTextDirective,
   RowComponent
 } from '@coreui/angular';
+import {IconDirective} from "@coreui/icons-angular";
+import {NgIf, NgOptimizedImage} from "@angular/common";
 
 @Component({
   selector: 'tafel-login',
@@ -22,7 +24,12 @@ import {
     CardComponent,
     CardBodyComponent,
     ReactiveFormsModule,
-    InputGroupComponent
+    InputGroupComponent,
+    InputGroupTextDirective,
+    IconDirective,
+    NgOptimizedImage,
+    FormDirective,
+    NgIf
   ],
   standalone: true
 })
