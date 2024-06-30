@@ -1,5 +1,5 @@
-import {inject, NgModule} from '@angular/core';
-import {ActivatedRouteSnapshot, ResolveFn, RouterModule, Routes} from '@angular/router';
+import {inject} from '@angular/core';
+import {ActivatedRouteSnapshot, ResolveFn, Routes} from '@angular/router';
 import {CustomerDetailComponent} from './views/customer-detail/customer-detail.component';
 
 import {CustomerEditComponent} from './views/customer-edit/customer-edit.component';
@@ -55,10 +55,3 @@ const routes: Routes = [
     }
   },
 ];
-
-@NgModule({
-  imports: [RouterModule.forChild(routes)],
-  exports: [RouterModule]
-})
-export class CustomerRoutingModule {
-}

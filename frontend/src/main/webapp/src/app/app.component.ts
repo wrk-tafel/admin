@@ -1,10 +1,10 @@
 import {APP_INITIALIZER, Component, DEFAULT_CURRENCY_CODE, inject, LOCALE_ID, OnInit} from '@angular/core';
-import {NavigationEnd, Router, RouterLink, RouterOutlet} from '@angular/router';
+import {NavigationEnd, provideRouter, Router, RouterLink, RouterOutlet} from '@angular/router';
 
 import {IconDirective, IconModule, IconSetService} from '@coreui/icons-angular';
 import {freeSet} from '@coreui/icons';
 import {TafelCommonModule} from './common/tafel-common.module';
-import {AppRoutingModule} from './app.routing';
+import {APP_ROUTES} from './app.routing';
 import {
   AvatarComponent,
   BadgeComponent,
@@ -170,6 +170,7 @@ import {AuthenticationService} from './common/security/authentication.service';
       deps: [AuthenticationService],
       multi: true
     },
+    provideRouter(APP_ROUTES),
     IconSetService
   ],
   standalone: true

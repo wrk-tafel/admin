@@ -1,12 +1,5 @@
-import {inject, NgModule} from '@angular/core';
-import {
-  ActivatedRouteSnapshot,
-  CanActivateChildFn,
-  CanActivateFn,
-  ResolveFn,
-  RouterModule,
-  Routes
-} from '@angular/router';
+import {inject} from '@angular/core';
+import {ActivatedRouteSnapshot, CanActivateChildFn, CanActivateFn, ResolveFn, Routes} from '@angular/router';
 
 import {DefaultLayoutComponent} from './common/views/default-layout/default-layout.component';
 import {P404Component} from './common/views/error/404.component';
@@ -34,7 +27,7 @@ export const defaultLayoutResolver: ResolveFn<any[]> = () => {
   return inject(DefaultLayoutResolver).resolve();
 };
 
-export const routes: Routes = [
+export const APP_ROUTES: Routes = [
   {
     path: '',
     redirectTo: 'uebersicht',
@@ -75,28 +68,28 @@ export const routes: Routes = [
     children: [
       {
         path: 'uebersicht',
-        loadChildren: () => import('./modules/dashboard/dashboard.module').then(m => m.DashboardModule),
+        loadChildren: () => import('./modules/dashboard/dashboard.module').then(m => m.routes),
         data: {
           anyPermission: true
         }
       },
       {
         path: 'anmeldung',
-        loadChildren: () => import('./modules/checkin/checkin.module').then(m => m.CheckinModule),
+        loadChildren: () => import('./modules/checkin/checkin.module').then(m => m.routes),
         data: {
           permission: 'SCANNER'
         }
       },
       {
         path: 'kunden',
-        loadChildren: () => import('./modules/customer/customer.module').then(m => m.CustomerModule),
+        loadChildren: () => import('./modules/customer/customer.module').then(m => m.routes),
         data: {
           permission: 'CUSTOMER'
         }
       },
       {
         path: 'benutzer',
-        loadChildren: () => import('./modules/user/user.module').then(m => m.UserModule),
+        loadChildren: () => import('./modules/user/user.module').then(m => m.routes),
         data: {
           permission: 'USER_MANAGEMENT'
         }
@@ -112,10 +105,3 @@ export const routes: Routes = [
     component: P404Component
   }
 ];
-
-@NgModule({
-  imports: [RouterModule.forRoot(routes, {useHash: true, onSameUrlNavigation: 'reload'})],
-  exports: [RouterModule]
-})
-export class AppRoutingModule {
-}
