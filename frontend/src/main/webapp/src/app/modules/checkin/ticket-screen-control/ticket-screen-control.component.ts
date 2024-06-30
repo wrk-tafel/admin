@@ -7,7 +7,8 @@ import {UrlHelperService} from '../../../common/util/url-helper.service';
 
 @Component({
   selector: 'tafel-ticket-screen-control',
-  templateUrl: 'ticket-screen-control.component.html'
+  templateUrl: 'ticket-screen-control.component.html',
+  standalone: true
 })
 export class TicketScreenControlComponent {
   form = new FormGroup({

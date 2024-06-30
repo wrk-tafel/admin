@@ -7,7 +7,8 @@ import {TafelPaginationData} from '../../../common/components/tafel-pagination/t
 
 @Component({
   selector: 'tafel-user-search',
-  templateUrl: 'user-search.component.html'
+  templateUrl: 'user-search.component.html',
+  standalone: true
 })
 export class UserSearchComponent {
   searchResult: UserSearchResult;

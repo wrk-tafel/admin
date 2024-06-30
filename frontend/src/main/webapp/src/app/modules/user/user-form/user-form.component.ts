@@ -13,7 +13,8 @@ import {ToastService, ToastType} from '../../../common/views/default-layout/toas
 
 @Component({
   selector: 'tafel-user-form',
-  templateUrl: 'user-form.component.html'
+  templateUrl: 'user-form.component.html',
+  standalone: true
 })
 export class UserFormComponent implements OnInit {
   @Input() userData: UserData;

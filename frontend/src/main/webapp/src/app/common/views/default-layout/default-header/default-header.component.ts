@@ -5,6 +5,7 @@ import {AuthenticationService} from '../../../security/authentication.service';
 @Component({
   selector: 'app-default-header',
   templateUrl: './default-header.component.html',
+  standalone: true
 })
 export class DefaultHeaderComponent extends HeaderComponent {
   @Input() sidebarId = 'sidebar';

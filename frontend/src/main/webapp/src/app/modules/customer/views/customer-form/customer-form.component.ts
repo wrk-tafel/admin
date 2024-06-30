@@ -8,7 +8,8 @@ import * as moment from 'moment';
 
 @Component({
   selector: 'tafel-customer-form',
-  templateUrl: 'customer-form.component.html'
+  templateUrl: 'customer-form.component.html',
+  standalone: true
 })
 export class CustomerFormComponent implements OnInit {
   @Input() editMode = false;

@@ -4,7 +4,8 @@ import {IMessage} from '@stomp/stompjs';
 
 @Component({
   selector: 'tafel-dashboard',
-  templateUrl: 'dashboard.component.html'
+  templateUrl: 'dashboard.component.html',
+  standalone: true
 })
 export class DashboardComponent implements OnInit {
   data: DashboardData;

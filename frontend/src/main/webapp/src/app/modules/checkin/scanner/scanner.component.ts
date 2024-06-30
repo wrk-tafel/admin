@@ -7,7 +7,8 @@ import {Html5QrcodeResult} from 'html5-qrcode/core';
 
 @Component({
   selector: 'tafel-scanner',
-  templateUrl: 'scanner.component.html'
+  templateUrl: 'scanner.component.html',
+  standalone: true
 })
 export class ScannerComponent implements OnInit, OnDestroy {
   private qrCodeReaderService = inject(QRCodeReaderService);

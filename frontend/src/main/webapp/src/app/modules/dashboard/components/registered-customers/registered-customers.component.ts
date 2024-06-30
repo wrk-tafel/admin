@@ -5,7 +5,8 @@ import {FileHelperService} from '../../../../common/util/file-helper.service';
 
 @Component({
   selector: 'tafel-registered-customers',
-  templateUrl: 'registered-customers.component.html'
+  templateUrl: 'registered-customers.component.html',
+  standalone: true
 })
 export class RegisteredCustomersComponent {
   @Input() count?: number;

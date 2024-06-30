@@ -7,7 +7,8 @@ import {ToastService, ToastType} from '../../../../common/views/default-layout/t
 
 @Component({
   selector: 'tafel-customer-edit',
-  templateUrl: 'customer-edit.component.html'
+  templateUrl: 'customer-edit.component.html',
+  standalone: true
 })
 export class CustomerEditComponent implements OnInit {
   customerInput: CustomerData;

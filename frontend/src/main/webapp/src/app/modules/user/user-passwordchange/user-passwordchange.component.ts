@@ -3,7 +3,8 @@ import {PasswordChangeFormComponent} from '../../../common/views/passwordchange-
 
 @Component({
   selector: 'tafel-user-passwordchange',
-  templateUrl: 'user-passwordchange.component.html'
+  templateUrl: 'user-passwordchange.component.html',
+  standalone: true
 })
 export class UserPasswordChangeComponent {
   @ViewChild(PasswordChangeFormComponent) public form: PasswordChangeFormComponent;

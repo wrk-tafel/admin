@@ -6,7 +6,8 @@ import {GlobalStateService} from '../../state/global-state.service';
 
 @Component({
   selector: 'tafel-default-layout',
-  templateUrl: 'default-layout.component.html'
+  templateUrl: 'default-layout.component.html',
+  standalone: true
 })
 export class DefaultLayoutComponent implements OnInit {
   public navItems: ITafelNavData[] = navigationMenuItems;

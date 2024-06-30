@@ -5,7 +5,8 @@ import {ToastService, ToastType} from '../../../common/views/default-layout/toas
 
 @Component({
   selector: 'tafel-user-detail',
-  templateUrl: 'user-detail.component.html'
+  templateUrl: 'user-detail.component.html',
+  standalone: true
 })
 export class UserDetailComponent implements OnInit {
   userData: UserData;

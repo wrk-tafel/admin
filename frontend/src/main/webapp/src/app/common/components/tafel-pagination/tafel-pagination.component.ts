@@ -2,7 +2,8 @@ import {Component, EventEmitter, Input, Output} from '@angular/core';
 
 @Component({
   selector: 'tafel-pagination',
-  templateUrl: 'tafel-pagination.component.html'
+  templateUrl: 'tafel-pagination.component.html',
+  standalone: true
 })
 export class TafelPaginationComponent {
   @Input() align: 'start' | 'center' | 'end' | '' = '';

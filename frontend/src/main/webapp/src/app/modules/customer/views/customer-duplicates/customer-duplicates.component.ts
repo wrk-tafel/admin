@@ -12,7 +12,8 @@ import {ToastService, ToastType} from '../../../../common/views/default-layout/t
 
 @Component({
   selector: 'tafel-customer-duplicates',
-  templateUrl: 'customer-duplicates.component.html'
+  templateUrl: 'customer-duplicates.component.html',
+  standalone: true
 })
 export class CustomerDuplicatesComponent implements OnInit {
   customerDuplicatesData: CustomerDuplicatesResponse;

@@ -21,7 +21,8 @@ import {TafelPaginationData} from '../../../../common/components/tafel-paginatio
 
 @Component({
   selector: 'tafel-customer-detail',
-  templateUrl: 'customer-detail.component.html'
+  templateUrl: 'customer-detail.component.html',
+  standalone: true
 })
 export class CustomerDetailComponent implements OnInit {
   customerData: CustomerData;

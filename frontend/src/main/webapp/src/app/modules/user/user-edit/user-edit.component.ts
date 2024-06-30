@@ -5,7 +5,8 @@ import {UserFormComponent} from '../user-form/user-form.component';
 
 @Component({
   selector: 'tafel-user-edit',
-  templateUrl: 'user-edit.component.html'
+  templateUrl: 'user-edit.component.html',
+  standalone: true
 })
 export class UserEditComponent implements OnInit {
   userInput: UserData;

@@ -4,7 +4,8 @@ import {IMessage} from '@stomp/stompjs';
 
 @Component({
   selector: 'tafel-ticket-screen',
-  templateUrl: 'ticket-screen.component.html'
+  templateUrl: 'ticket-screen.component.html',
+  standalone: true
 })
 export class TicketScreenComponent implements OnInit {
   startTime: Date;

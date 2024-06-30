@@ -5,7 +5,8 @@ import {AuthenticationService, LoginResult} from '../../security/authentication.
 
 @Component({
   selector: 'tafel-login-passwordchange',
-  templateUrl: 'login-passwordchange.component.html'
+  templateUrl: 'login-passwordchange.component.html',
+  standalone: true
 })
 export class LoginPasswordChangeComponent {
   @ViewChild(PasswordChangeFormComponent) public form: PasswordChangeFormComponent;

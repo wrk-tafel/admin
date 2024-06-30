@@ -15,7 +15,8 @@ import {WebsocketService} from '../../../common/websocket/websocket.service';
 
 @Component({
   selector: 'tafel-checkin',
-  templateUrl: 'checkin.component.html'
+  templateUrl: 'checkin.component.html',
+  standalone: true
 })
 export class CheckinComponent implements OnInit, OnDestroy {
   scannerIds: number[];

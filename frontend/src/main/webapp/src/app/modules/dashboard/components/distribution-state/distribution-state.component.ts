@@ -4,7 +4,8 @@ import {GlobalStateService} from '../../../../common/state/global-state.service'
 
 @Component({
   selector: 'tafel-distribution-state',
-  templateUrl: 'distribution-state.component.html'
+  templateUrl: 'distribution-state.component.html',
+  standalone: true
 })
 export class DistributionStateComponent implements OnInit {
   distribution: DistributionItem;

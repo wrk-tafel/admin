@@ -5,7 +5,8 @@ import {AuthenticationService} from '../../security/authentication.service';
 
 @Component({
   selector: 'tafel-login',
-  templateUrl: 'login.component.html'
+  templateUrl: 'login.component.html',
+  standalone: true
 })
 export class LoginComponent implements OnInit {
   errorMessage: string;
