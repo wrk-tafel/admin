@@ -12,8 +12,15 @@ import {
 } from '../../../../common/components/tafel-pagination/tafel-pagination.component';
 import * as moment from 'moment/moment';
 import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
-import {CardBodyComponent, CardComponent, CardHeaderComponent, ColComponent, RowComponent} from '@coreui/angular';
-import {DatePipe, NgClass} from '@angular/common';
+import {
+  ButtonDirective,
+  CardBodyComponent,
+  CardComponent,
+  CardHeaderComponent,
+  ColComponent,
+  RowComponent
+} from '@coreui/angular';
+import {DatePipe, NgClass, NgForOf, NgIf} from '@angular/common';
 
 @Component({
   selector: 'tafel-customer-duplicates',
@@ -26,7 +33,10 @@ import {DatePipe, NgClass} from '@angular/common';
     ColComponent,
     TafelPaginationComponent,
     DatePipe,
-    NgClass
+    NgClass,
+    ButtonDirective,
+    NgIf,
+    NgForOf
   ],
   standalone: true
 })

@@ -22,25 +22,26 @@ import {
   TafelPaginationData
 } from '../../../../common/components/tafel-pagination/tafel-pagination.component';
 import {
+  BgColorDirective, ButtonCloseDirective, ButtonDirective,
   CardBodyComponent,
   CardComponent,
   CardFooterComponent,
   CardHeaderComponent,
   ColComponent,
-  DropdownComponent,
+  DropdownComponent, DropdownDividerDirective, DropdownItemDirective, DropdownMenuDirective, DropdownToggleDirective,
   ModalBodyComponent,
   ModalComponent,
   ModalFooterComponent,
   ModalHeaderComponent,
   ModalToggleDirective,
   NavComponent,
-  NavItemComponent,
+  NavItemComponent, NavLinkDirective, RoundedDirective,
   RowComponent,
   TabContentComponent,
   TabContentRefDirective,
   TabPaneComponent
 } from '@coreui/angular';
-import {CurrencyPipe, DatePipe, NgClass} from '@angular/common';
+import {CurrencyPipe, DatePipe, NgClass, NgIf} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 
 @Component({
@@ -69,7 +70,17 @@ import {FormsModule} from '@angular/forms';
     ModalBodyComponent,
     ModalFooterComponent,
     TafelPaginationComponent,
-    FormsModule
+    FormsModule,
+    BgColorDirective,
+    ButtonCloseDirective,
+    ButtonDirective,
+    DropdownToggleDirective,
+    DropdownMenuDirective,
+    DropdownItemDirective,
+    DropdownDividerDirective,
+    NgIf,
+    NavLinkDirective,
+    RoundedDirective
   ],
   standalone: true
 })

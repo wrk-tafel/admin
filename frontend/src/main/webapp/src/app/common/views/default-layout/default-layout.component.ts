@@ -4,6 +4,7 @@ import {ITafelNavData, navigationMenuItems} from './navigation-menuItems';
 import {DistributionItem} from '../../../api/distribution-api.service';
 import {GlobalStateService} from '../../state/global-state.service';
 import {
+  BgColorDirective,
   ContainerComponent,
   SidebarBrandComponent,
   SidebarComponent,
@@ -30,7 +31,8 @@ import {RouterOutlet} from '@angular/router';
     SidebarToggleDirective,
     SidebarFooterComponent,
     SidebarToggleDirective,
-    SidebarTogglerDirective
+    SidebarTogglerDirective,
+    BgColorDirective
   ],
   standalone: true
 })

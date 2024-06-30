@@ -1,8 +1,8 @@
 import {Component, inject, OnInit} from '@angular/core';
 import {WebsocketService} from '../../../common/websocket/websocket.service';
 import {IMessage} from '@stomp/stompjs';
-import {ColComponent, ContainerComponent, RowComponent} from '@coreui/angular';
-import {DatePipe} from '@angular/common';
+import {BgColorDirective, ColComponent, ContainerComponent, RowComponent} from '@coreui/angular';
+import {DatePipe, NgIf} from '@angular/common';
 
 @Component({
   selector: 'tafel-ticket-screen',
@@ -11,7 +11,9 @@ import {DatePipe} from '@angular/common';
     ContainerComponent,
     RowComponent,
     ColComponent,
-    DatePipe
+    DatePipe,
+    BgColorDirective,
+    NgIf
   ],
   standalone: true
 })

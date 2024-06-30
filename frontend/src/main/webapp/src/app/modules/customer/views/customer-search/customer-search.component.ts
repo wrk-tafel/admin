@@ -8,14 +8,15 @@ import {
   TafelPaginationData
 } from '../../../../common/components/tafel-pagination/tafel-pagination.component';
 import {
+  ButtonDirective,
   CardBodyComponent,
   CardComponent, CardFooterComponent,
   CardHeaderComponent,
-  ColComponent,
+  ColComponent, FormCheckInputDirective, FormDirective,
   InputGroupComponent,
-  RowComponent
+  RowComponent, TableDirective
 } from '@coreui/angular';
-import {DatePipe} from '@angular/common';
+import {DatePipe, NgForOf, NgIf} from '@angular/common';
 
 @Component({
   selector: 'tafel-customer-search',
@@ -30,7 +31,13 @@ import {DatePipe} from '@angular/common';
     TafelPaginationComponent,
     DatePipe,
     CardHeaderComponent,
-    CardFooterComponent
+    CardFooterComponent,
+    FormDirective,
+    FormCheckInputDirective,
+    NgIf,
+    TableDirective,
+    NgForOf,
+    ButtonDirective
   ],
   standalone: true
 })
