@@ -6,7 +6,11 @@ import {Subject} from 'rxjs';
 
 @Component({
   selector: 'tafel-toaster',
-  templateUrl: 'tafel-toaster.component.html'
+  templateUrl: 'tafel-toaster.component.html',
+  imports: [
+    ToasterComponent
+  ],
+  standalone: true
 })
 export class TafelToasterComponent implements OnInit {
   @ViewChild(ToasterComponent) toaster: ToasterComponent;

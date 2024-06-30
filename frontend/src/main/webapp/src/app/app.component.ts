@@ -50,6 +50,7 @@ import {ErrorHandlerInterceptor} from './common/http/errorhandler-interceptor.se
 import {ApiPathInterceptor} from './common/http/apipath-interceptor.service';
 import {WebsocketService} from './common/websocket/websocket.service';
 import {AuthenticationService} from './common/security/authentication.service';
+import {TafelToasterComponent} from "./common/views/default-layout/toasts/tafel-toaster.component";
 
 @Component({
   // tslint:disable-next-line
@@ -122,7 +123,8 @@ import {AuthenticationService} from './common/security/authentication.service';
     InputGroupTextDirective,
     RowComponent,
     ButtonCloseDirective,
-    NgTemplateOutlet
+    NgTemplateOutlet,
+    TafelToasterComponent
   ],
   providers: [
     {
