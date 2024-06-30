@@ -1,14 +1,6 @@
-import {Component} from '@angular/core';
-import {IconDirective} from '@coreui/icons-angular';
-import {
-  ButtonDirective,
-  ColComponent,
-  ContainerComponent,
-  FormControlDirective,
-  InputGroupComponent,
-  InputGroupTextDirective,
-  RowComponent
-} from '@coreui/angular';
+import { Component } from '@angular/core';
+import { IconDirective } from '@coreui/icons-angular';
+import { ContainerComponent, RowComponent, ColComponent, InputGroupComponent, InputGroupTextDirective, FormControlDirective, ButtonDirective } from '@coreui/angular';
 
 @Component({
   selector: 'app-page404',
@@ -19,7 +11,6 @@ import {
 })
 export class Page404Component {
 
-  constructor() {
-  }
+  constructor() { }
 
 }

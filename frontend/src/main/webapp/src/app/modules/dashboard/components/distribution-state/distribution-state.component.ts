@@ -9,6 +9,7 @@ import {
   ModalComponent, ModalHeaderComponent, ModalToggleDirective,
   RowComponent
 } from '@coreui/angular';
+import {NgIf} from "@angular/common";
 
 @Component({
   selector: 'tafel-distribution-state',
@@ -22,7 +23,8 @@ import {
     ModalComponent,
     ModalHeaderComponent,
     ModalToggleDirective,
-    ModalBodyComponent
+    ModalBodyComponent,
+    NgIf
   ],
   standalone: true
 })
