@@ -8,6 +8,7 @@ import {
   SidebarBrandComponent,
   SidebarComponent,
   SidebarNavComponent,
+  SidebarToggleDirective,
   SidebarTogglerComponent
 } from '@coreui/angular';
 import {NgScrollbar} from 'ngx-scrollbar';
@@ -25,6 +26,7 @@ import {RouterOutlet} from "@angular/router";
     DefaultHeaderComponent,
     ContainerComponent,
     RouterOutlet,
+    SidebarToggleDirective,
     SidebarTogglerComponent
   ],
   standalone: true
