@@ -1,9 +1,8 @@
 import {APP_INITIALIZER, Component, DEFAULT_CURRENCY_CODE, inject, LOCALE_ID, OnInit} from '@angular/core';
-import {NavigationEnd, provideRouter, Router, RouterLink, RouterOutlet} from '@angular/router';
+import {NavigationEnd, Router, RouterLink, RouterOutlet} from '@angular/router';
 
 import {IconDirective, IconModule, IconSetService} from '@coreui/icons-angular';
 import {freeSet} from '@coreui/icons';
-import {routes} from './app.routes';
 import {
   AvatarComponent,
   BadgeComponent,
@@ -167,7 +166,6 @@ import {TafelToasterComponent} from "./common/views/default-layout/toasts/tafel-
       deps: [AuthenticationService],
       multi: true
     },
-    provideRouter(routes),
     IconSetService
   ],
   standalone: true
