@@ -1,11 +1,4 @@
-import {
-  HttpErrorResponse,
-  HttpEvent,
-  HttpHandler,
-  HttpInterceptor,
-  HttpInterceptorFn,
-  HttpRequest
-} from '@angular/common/http';
+import {HttpErrorResponse, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest} from '@angular/common/http';
 import {inject, Injectable} from '@angular/core';
 import {from, Observable, throwError} from 'rxjs';
 import {catchError} from 'rxjs/operators';
@@ -73,21 +66,19 @@ export class ErrorHandlerInterceptor implements HttpInterceptor {
       message = 'Server nicht verfügbar!';
     }
 
-    const toastOptions: ToastOptions = {
+    return {
       type: ToastType.ERROR,
       title: `HTTP ${error.status} - ${error.statusText}`,
       message: message
     };
-    return toastOptions;
   }
 
   private createToastFromErrorBody(errorBody: TafelErrorResponse): ToastOptions {
-    const toastOptions: ToastOptions = {
+    return {
       type: ToastType.ERROR,
       title: `HTTP ${errorBody.status} - ${errorBody.error}`,
       message: errorBody.message
     };
-    return toastOptions;
   }
 
 }
