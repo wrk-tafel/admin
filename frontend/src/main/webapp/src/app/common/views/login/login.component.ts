@@ -1,11 +1,29 @@
 import {Component, inject, OnInit} from '@angular/core';
-import {FormControl, FormGroup, Validators} from '@angular/forms';
+import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {ActivatedRoute, Router} from '@angular/router';
 import {AuthenticationService} from '../../security/authentication.service';
+import {
+  CardBodyComponent,
+  CardComponent,
+  CardGroupComponent,
+  ColComponent,
+  ContainerComponent, InputGroupComponent,
+  RowComponent
+} from "@coreui/angular";
 
 @Component({
   selector: 'tafel-login',
   templateUrl: 'login.component.html',
+  imports: [
+    ContainerComponent,
+    RowComponent,
+    ColComponent,
+    CardGroupComponent,
+    CardComponent,
+    CardBodyComponent,
+    ReactiveFormsModule,
+    InputGroupComponent
+  ],
   standalone: true
 })
 export class LoginComponent implements OnInit {

@@ -1,10 +1,29 @@
 import {Component, inject, OnInit} from '@angular/core';
 import {DistributionApiService, DistributionItem} from '../../../../api/distribution-api.service';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
+import {
+  CardBodyComponent,
+  CardComponent,
+  CardHeaderComponent,
+  ColComponent, ModalBodyComponent,
+  ModalComponent, ModalHeaderComponent, ModalToggleDirective,
+  RowComponent
+} from "@coreui/angular";
 
 @Component({
   selector: 'tafel-distribution-state',
   templateUrl: 'distribution-state.component.html',
+  imports: [
+    CardComponent,
+    CardHeaderComponent,
+    CardBodyComponent,
+    RowComponent,
+    ColComponent,
+    ModalComponent,
+    ModalHeaderComponent,
+    ModalToggleDirective,
+    ModalBodyComponent
+  ],
   standalone: true
 })
 export class DistributionStateComponent implements OnInit {

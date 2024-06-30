@@ -2,10 +2,17 @@ import {Component, inject, Input} from '@angular/core';
 import {DistributionApiService} from '../../../../api/distribution-api.service';
 import {HttpResponse} from '@angular/common/http';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
+import {CardBodyComponent, CardComponent, ColComponent, RowComponent} from "@coreui/angular";
 
 @Component({
   selector: 'tafel-registered-customers',
   templateUrl: 'registered-customers.component.html',
+  imports: [
+    CardComponent,
+    CardBodyComponent,
+    RowComponent,
+    ColComponent
+  ],
   standalone: true
 })
 export class RegisteredCustomersComponent {

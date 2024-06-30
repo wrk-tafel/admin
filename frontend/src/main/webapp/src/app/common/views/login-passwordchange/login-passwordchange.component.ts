@@ -2,10 +2,27 @@ import {Component, inject, ViewChild} from '@angular/core';
 import {PasswordChangeFormComponent} from '../passwordchange-form/passwordchange-form.component';
 import {Router} from '@angular/router';
 import {AuthenticationService, LoginResult} from '../../security/authentication.service';
+import {
+  CardBodyComponent,
+  CardComponent,
+  CardGroupComponent,
+  ColComponent,
+  ContainerComponent,
+  RowComponent
+} from "@coreui/angular";
 
 @Component({
   selector: 'tafel-login-passwordchange',
   templateUrl: 'login-passwordchange.component.html',
+  imports: [
+    ContainerComponent,
+    RowComponent,
+    ColComponent,
+    CardGroupComponent,
+    CardComponent,
+    CardBodyComponent,
+    PasswordChangeFormComponent
+  ],
   standalone: true
 })
 export class LoginPasswordChangeComponent {

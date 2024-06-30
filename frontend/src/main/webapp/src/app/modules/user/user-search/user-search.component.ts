@@ -1,13 +1,36 @@
 import {Component, inject} from '@angular/core';
 import {Router} from '@angular/router';
-import {FormControl, FormGroup} from '@angular/forms';
+import {FormControl, FormGroup, ReactiveFormsModule} from '@angular/forms';
 import {UserApiService, UserSearchResult} from '../../../api/user-api.service';
 import {ToastService, ToastType} from '../../../common/views/default-layout/toasts/toast.service';
-import {TafelPaginationData} from '../../../common/components/tafel-pagination/tafel-pagination.component';
+import {
+  TafelPaginationComponent,
+  TafelPaginationData
+} from '../../../common/components/tafel-pagination/tafel-pagination.component';
+import {
+  CardBodyComponent,
+  CardComponent,
+  CardFooterComponent,
+  CardHeaderComponent,
+  ColComponent,
+  InputGroupComponent,
+  RowComponent
+} from "@coreui/angular";
 
 @Component({
   selector: 'tafel-user-search',
   templateUrl: 'user-search.component.html',
+  imports: [
+    CardComponent,
+    CardBodyComponent,
+    RowComponent,
+    ColComponent,
+    ReactiveFormsModule,
+    TafelPaginationComponent,
+    CardFooterComponent,
+    CardHeaderComponent,
+    InputGroupComponent
+  ],
   standalone: true
 })
 export class UserSearchComponent {

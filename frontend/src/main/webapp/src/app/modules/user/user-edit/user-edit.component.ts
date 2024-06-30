@@ -2,10 +2,15 @@ import {Component, inject, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {UserApiService, UserData, UserPermission} from '../../../api/user-api.service';
 import {UserFormComponent} from '../user-form/user-form.component';
+import {NgClass} from "@angular/common";
 
 @Component({
   selector: 'tafel-user-edit',
   templateUrl: 'user-edit.component.html',
+  imports: [
+    UserFormComponent,
+    NgClass
+  ],
   standalone: true
 })
 export class UserEditComponent implements OnInit {

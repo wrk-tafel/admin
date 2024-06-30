@@ -1,8 +1,13 @@
 import {Component, EventEmitter, Input, Output} from '@angular/core';
+import {PageItemDirective, PaginationComponent} from "@coreui/angular";
 
 @Component({
   selector: 'tafel-pagination',
   templateUrl: 'tafel-pagination.component.html',
+  imports: [
+    PaginationComponent,
+    PageItemDirective
+  ],
   standalone: true
 })
 export class TafelPaginationComponent {

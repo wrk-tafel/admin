@@ -3,7 +3,7 @@ import {NavigationEnd, provideRouter, Router, RouterLink, RouterOutlet} from '@a
 
 import {IconDirective, IconModule, IconSetService} from '@coreui/icons-angular';
 import {freeSet} from '@coreui/icons';
-import {APP_ROUTES} from './app.routing';
+import {APP_ROUTES} from './app.routes';
 import {
   AvatarComponent,
   BadgeComponent,
@@ -43,7 +43,6 @@ import {
   NgTemplateOutlet
 } from '@angular/common';
 import {HTTP_INTERCEPTORS, HttpClientModule, HttpClientXsrfModule} from '@angular/common/http';
-import {NgChartsModule} from 'ng2-charts';
 import {NgScrollbarModule} from 'ngx-scrollbar';
 import {ReactiveFormsModule} from '@angular/forms';
 import {CookieService} from 'ngx-cookie-service';
@@ -67,7 +66,6 @@ import {AuthenticationService} from './common/security/authentication.service';
     HttpClientXsrfModule,
     IconModule,
     ModalModule,
-    NgChartsModule,
     NgScrollbarModule,
     ReactiveFormsModule,
     SidebarModule,
@@ -172,6 +170,7 @@ import {AuthenticationService} from './common/security/authentication.service';
   ],
   standalone: true
 })
+
 export class AppComponent implements OnInit {
   private router = inject(Router);
   private iconSetService = inject(IconSetService);
