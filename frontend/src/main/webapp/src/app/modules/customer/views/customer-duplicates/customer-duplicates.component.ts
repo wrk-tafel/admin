@@ -6,13 +6,39 @@ import {
   CustomerDuplicatesResponse
 } from '../../../../api/customer-api.service';
 import {ActivatedRoute, Router} from '@angular/router';
-import {TafelPaginationData} from '../../../../common/components/tafel-pagination/tafel-pagination.component';
+import {
+  TafelPaginationComponent,
+  TafelPaginationData
+} from '../../../../common/components/tafel-pagination/tafel-pagination.component';
 import * as moment from 'moment/moment';
 import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
+import {
+  ButtonDirective,
+  CardBodyComponent,
+  CardComponent,
+  CardHeaderComponent,
+  ColComponent,
+  RowComponent
+} from '@coreui/angular';
+import {DatePipe, NgClass, NgForOf, NgIf} from '@angular/common';
 
 @Component({
   selector: 'tafel-customer-duplicates',
-  templateUrl: 'customer-duplicates.component.html'
+  templateUrl: 'customer-duplicates.component.html',
+  imports: [
+    CardComponent,
+    CardHeaderComponent,
+    CardBodyComponent,
+    RowComponent,
+    ColComponent,
+    TafelPaginationComponent,
+    DatePipe,
+    NgClass,
+    ButtonDirective,
+    NgIf,
+    NgForOf
+  ],
+  standalone: true
 })
 export class CustomerDuplicatesComponent implements OnInit {
   customerDuplicatesData: CustomerDuplicatesResponse;

@@ -3,17 +3,25 @@ import {
   AbstractControl,
   FormArray,
   FormControl,
-  FormGroup,
+  FormGroup, ReactiveFormsModule,
   ValidationErrors,
   ValidatorFn,
   Validators
 } from '@angular/forms';
 import {GeneratedPasswordResponse, UserApiService, UserData, UserPermission} from '../../../api/user-api.service';
 import {ToastService, ToastType} from '../../../common/views/default-layout/toasts/toast.service';
+import {NgClass} from '@angular/common';
+import {InputGroupComponent} from '@coreui/angular';
 
 @Component({
   selector: 'tafel-user-form',
-  templateUrl: 'user-form.component.html'
+  templateUrl: 'user-form.component.html',
+  imports: [
+    ReactiveFormsModule,
+    NgClass,
+    InputGroupComponent
+  ],
+  standalone: true
 })
 export class UserFormComponent implements OnInit {
   @Input() userData: UserData;

@@ -1,9 +1,24 @@
 import {Component} from '@angular/core';
-import {ToastComponent} from '@coreui/angular';
+import {
+  BgColorDirective, ProgressBarComponent,
+  ProgressComponent,
+  ToastBodyComponent,
+  ToastComponent,
+  ToastHeaderComponent
+} from '@coreui/angular';
 
 @Component({
   selector: 'tafel-toast',
-  templateUrl: 'tafel-toast.component.html'
+  templateUrl: 'tafel-toast.component.html',
+  imports: [
+    ToastComponent,
+    ToastHeaderComponent,
+    BgColorDirective,
+    ToastBodyComponent,
+    ProgressComponent,
+    ProgressBarComponent
+  ],
+  standalone: true
 })
 export class TafelToastComponent extends ToastComponent {
   bgColor: string;

@@ -1,14 +1,35 @@
 import {Component, EventEmitter, inject, Input, OnInit, Output} from '@angular/core';
-import {FormArray, FormControl, FormGroup, Validators} from '@angular/forms';
+import {FormArray, FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {CountryApiService, CountryData} from '../../../../api/country-api.service';
 import {CustomValidator} from '../../../../common/validator/CustomValidator';
 import {CustomerAddPersonData, CustomerData, Gender, GenderLabel} from '../../../../api/customer-api.service';
 import {v4 as uuidv4} from 'uuid';
 import * as moment from 'moment';
+import {NgClass} from '@angular/common';
+import {
+  CardBodyComponent,
+  CardComponent, CardFooterComponent,
+  CardHeaderComponent,
+  ColComponent,
+  InputGroupComponent,
+  RowComponent
+} from '@coreui/angular';
 
 @Component({
   selector: 'tafel-customer-form',
-  templateUrl: 'customer-form.component.html'
+  templateUrl: 'customer-form.component.html',
+  imports: [
+    ReactiveFormsModule,
+    NgClass,
+    InputGroupComponent,
+    CardComponent,
+    CardHeaderComponent,
+    RowComponent,
+    ColComponent,
+    CardBodyComponent,
+    CardFooterComponent
+  ],
+  standalone: true
 })
 export class CustomerFormComponent implements OnInit {
   @Input() editMode = false;

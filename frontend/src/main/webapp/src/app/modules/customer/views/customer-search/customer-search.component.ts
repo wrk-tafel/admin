@@ -1,13 +1,45 @@
 import {Component, inject} from '@angular/core';
 import {Router} from '@angular/router';
 import {CustomerAddressData, CustomerApiService, CustomerSearchResult} from '../../../../api/customer-api.service';
-import {FormControl, FormGroup} from '@angular/forms';
+import {FormControl, FormGroup, ReactiveFormsModule} from '@angular/forms';
 import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
-import {TafelPaginationData} from '../../../../common/components/tafel-pagination/tafel-pagination.component';
+import {
+  TafelPaginationComponent,
+  TafelPaginationData
+} from '../../../../common/components/tafel-pagination/tafel-pagination.component';
+import {
+  ButtonDirective,
+  CardBodyComponent,
+  CardComponent, CardFooterComponent,
+  CardHeaderComponent,
+  ColComponent, FormCheckInputDirective, FormDirective,
+  InputGroupComponent,
+  RowComponent, TableDirective
+} from '@coreui/angular';
+import {DatePipe, NgForOf, NgIf} from '@angular/common';
 
 @Component({
   selector: 'tafel-customer-search',
-  templateUrl: 'customer-search.component.html'
+  templateUrl: 'customer-search.component.html',
+  imports: [
+    ReactiveFormsModule,
+    CardComponent,
+    CardBodyComponent,
+    RowComponent,
+    ColComponent,
+    InputGroupComponent,
+    TafelPaginationComponent,
+    DatePipe,
+    CardHeaderComponent,
+    CardFooterComponent,
+    FormDirective,
+    FormCheckInputDirective,
+    NgIf,
+    TableDirective,
+    NgForOf,
+    ButtonDirective
+  ],
+  standalone: true
 })
 export class CustomerSearchComponent {
   searchResult: CustomerSearchResult;

@@ -1,9 +1,18 @@
 import {Component, ViewChild} from '@angular/core';
 import {PasswordChangeFormComponent} from '../../../common/views/passwordchange-form/passwordchange-form.component';
+import {CardBodyComponent, CardComponent, CardFooterComponent, CardHeaderComponent} from '@coreui/angular';
 
 @Component({
   selector: 'tafel-user-passwordchange',
-  templateUrl: 'user-passwordchange.component.html'
+  templateUrl: 'user-passwordchange.component.html',
+  imports: [
+    CardComponent,
+    CardHeaderComponent,
+    CardBodyComponent,
+    PasswordChangeFormComponent,
+    CardFooterComponent
+  ],
+  standalone: true
 })
 export class UserPasswordChangeComponent {
   @ViewChild(PasswordChangeFormComponent) public form: PasswordChangeFormComponent;

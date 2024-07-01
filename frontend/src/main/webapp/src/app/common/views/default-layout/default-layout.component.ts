@@ -3,10 +3,38 @@ import {AuthenticationService} from '../../security/authentication.service';
 import {ITafelNavData, navigationMenuItems} from './navigation-menuItems';
 import {DistributionItem} from '../../../api/distribution-api.service';
 import {GlobalStateService} from '../../state/global-state.service';
+import {
+  BgColorDirective,
+  ContainerComponent,
+  SidebarBrandComponent,
+  SidebarComponent,
+  SidebarFooterComponent,
+  SidebarNavComponent,
+  SidebarToggleDirective,
+  SidebarTogglerDirective
+} from '@coreui/angular';
+import {NgScrollbar} from 'ngx-scrollbar';
+import {DefaultHeaderComponent} from './default-header/default-header.component';
+import {RouterOutlet} from '@angular/router';
 
 @Component({
   selector: 'tafel-default-layout',
-  templateUrl: 'default-layout.component.html'
+  templateUrl: 'default-layout.component.html',
+  imports: [
+    SidebarComponent,
+    SidebarBrandComponent,
+    NgScrollbar,
+    SidebarNavComponent,
+    DefaultHeaderComponent,
+    ContainerComponent,
+    RouterOutlet,
+    SidebarToggleDirective,
+    SidebarFooterComponent,
+    SidebarToggleDirective,
+    SidebarTogglerDirective,
+    BgColorDirective
+  ],
+  standalone: true
 })
 export class DefaultLayoutComponent implements OnInit {
   public navItems: ITafelNavData[] = navigationMenuItems;
