@@ -116,7 +116,7 @@ class CustomerEntity : BaseChangeTrackingEntity() {
         companion object {
             fun firstnameContains(firstname: String?): Specification<CustomerEntity>? {
                 return firstname?.let {
-                    Specification { root: Root<CustomerEntity>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                    Specification { root: Root<CustomerEntity>, _: CriteriaQuery<*>?, cb: CriteriaBuilder ->
                         cb.like(
                             cb.lower(root["firstname"]),
                             "%${firstname.lowercase()}%"
@@ -127,7 +127,7 @@ class CustomerEntity : BaseChangeTrackingEntity() {
 
             fun lastnameContains(lastname: String?): Specification<CustomerEntity>? {
                 return lastname?.let {
-                    Specification { root: Root<CustomerEntity>, _: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                    Specification { root: Root<CustomerEntity>, _: CriteriaQuery<*>?, cb: CriteriaBuilder ->
                         cb.like(
                             cb.lower(root["lastname"]),
                             "%${lastname.lowercase()}%"
@@ -137,9 +137,9 @@ class CustomerEntity : BaseChangeTrackingEntity() {
             }
 
             fun postProcessingNecessary(): Specification<CustomerEntity> {
-                return Specification { root: Root<CustomerEntity>, cq: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                return Specification { root: Root<CustomerEntity>, cq: CriteriaQuery<*>?, cb: CriteriaBuilder ->
 
-                    val subQuery: Subquery<Long> = cq.subquery(Long::class.java)
+                    val subQuery: Subquery<Long> = cq!!.subquery(Long::class.java)
                     val subRoot: Root<CustomerAddPersonEntity> = subQuery.from(CustomerAddPersonEntity::class.java)
                     val subScopes: Join<CustomerAddPersonEntity, CustomerEntity> = subRoot.join("customer")
 
@@ -184,10 +184,10 @@ class CustomerEntity : BaseChangeTrackingEntity() {
             }
 
             fun orderByUpdatedAtDesc(spec: Specification<CustomerEntity>): Specification<CustomerEntity> {
-                return Specification { root: Root<CustomerEntity>, cq: CriteriaQuery<*>, cb: CriteriaBuilder ->
+                return Specification { root: Root<CustomerEntity>, cq: CriteriaQuery<*>?, cb: CriteriaBuilder ->
                     val updatedAt: Expression<LocalDate> = root["updatedAt"]
 
-                    cq.orderBy(cb.desc(updatedAt))
+                    cq!!.orderBy(cb.desc(updatedAt))
                     spec.toPredicate(root, cq, cb)
                 }
             }

@@ -15,9 +15,6 @@ describe('TafelToasterComponent', () => {
         CommonModule,
         ToastModule
       ],
-      declarations: [
-        TafelToasterComponent
-      ],
       providers: [
         {
           provide: ToastService,

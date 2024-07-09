@@ -1,11 +1,39 @@
 import {Component, inject, OnInit} from '@angular/core';
-import {FormControl, FormGroup, Validators} from '@angular/forms';
+import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {ActivatedRoute, Router} from '@angular/router';
 import {AuthenticationService} from '../../security/authentication.service';
+import {
+  ButtonDirective,
+  CardBodyComponent,
+  CardComponent,
+  CardGroupComponent,
+  ColComponent,
+  ContainerComponent, FormDirective, InputGroupComponent, InputGroupTextDirective,
+  RowComponent
+} from '@coreui/angular';
+import {IconDirective} from "@coreui/icons-angular";
+import {NgIf, NgOptimizedImage} from "@angular/common";
 
 @Component({
   selector: 'tafel-login',
-  templateUrl: 'login.component.html'
+  templateUrl: 'login.component.html',
+  imports: [
+    ContainerComponent,
+    RowComponent,
+    ColComponent,
+    CardGroupComponent,
+    CardComponent,
+    CardBodyComponent,
+    ReactiveFormsModule,
+    InputGroupComponent,
+    InputGroupTextDirective,
+    IconDirective,
+    NgOptimizedImage,
+    FormDirective,
+    NgIf,
+    ButtonDirective
+  ],
+  standalone: true
 })
 export class LoginComponent implements OnInit {
   errorMessage: string;

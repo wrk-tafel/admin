@@ -1,8 +1,7 @@
 <div>
     <tafel-customer-form [customerData]="customerInput" (customerDataChange)="customerDataUpdated($event)" [editMode]="editMode"></tafel-customer-form>
-    <button testid="validate-button" class="btn btn-primary px-4 mt-3 text-white" (click)="validate()">Anspruch prüfen</button>
-    <button testid="save-button" class="btn px-4 mt-3 ms-2 text-white" (click)="save()" [disabled]="!isSaveEnabled()"
-        [ngClass]="{'btn-danger': !isSaveEnabled(), 'btn-success': isSaveEnabled()}">Speichern</button>
+    <button testid="validate-button" cButton class="px-4 mt-3" (click)="validate()">Anspruch prüfen</button>
+    <button testid="save-button" cButton [color]="isSaveEnabled() ? 'success' : 'danger'" class="text-white px-4 mt-3 ms-2" (click)="save()" [disabled]="!isSaveEnabled()">Speichern</button>
 </div>
 <c-modal id="validationResultModal" #validationResultModal testid="validationresult-modal" [(visible)]="showValidationResultModal">
   <c-modal-header [cBgColor]="validationResultColor" testid="header">
@@ -32,7 +31,6 @@
     </div>
   </c-modal-body>
   <c-modal-footer>
-    <button testid="ok-button" cButton color="primary" class="text-white"
-            (click)="showValidationResultModal = false">OK</button>
+    <button testid="ok-button" cButton (click)="showValidationResultModal = false">OK</button>
   </c-modal-footer>
 </c-modal>

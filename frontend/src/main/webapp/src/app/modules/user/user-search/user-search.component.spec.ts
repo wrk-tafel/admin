@@ -42,9 +42,6 @@ describe('UserSearchComponent', () => {
         RowComponent,
         ColComponent
       ],
-      declarations: [
-        UserSearchComponent,
-      ],
       providers: [
         {
           provide: UserApiService,

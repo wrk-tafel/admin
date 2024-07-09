@@ -38,7 +38,7 @@
                                class="form-control" (keydown.enter)="searchForCustomerId()">
                     </c-col>
                     <c-col sm="3">
-                        <button testid="showCustomerButton" cButton color="primary" class="text-white"
+                        <button testid="showCustomerButton" cButton
                                 [disabled]="!customerId" (click)="searchForCustomerId()">Anzeigen
                         </button>
                     </c-col>
@@ -110,7 +110,8 @@
                                 </c-col>
                                 <c-col>
                                     <button testid="deleteTicketButton" *ngIf="ticketNumberEdit === true"
-                                            class="btn btn-danger text-white ms-0 ms-md-3 mt-3 mt-md-0"
+                                            cButton color="danger"
+                                            class="ms-0 ms-md-3 mt-3 mt-md-0 text-white"
                                             (click)="deleteTicket()">Ticket löschen
                                     </button>
                                 </c-col>
@@ -123,9 +124,10 @@
                 <c-row>
                     <c-col>
                         <button [disabled]="customerState === 0 || !ticketNumber" testid="assignCustomerButton"
-                                class="btn btn-success text-white" (click)="assignCustomer()">Annehmen
+                                cButton color="success"
+                                (click)="assignCustomer()">Annehmen
                         </button>
-                        <button testid="cancelButton" #cancelButton class="btn btn-primary text-white ms-3"
+                        <button testid="cancelButton" #cancelButton cButton class="ms-3"
                                 (click)="cancel()">Abbrechen
                         </button>
                     </c-col>

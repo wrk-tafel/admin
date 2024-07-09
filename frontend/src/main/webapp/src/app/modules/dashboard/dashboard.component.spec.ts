@@ -3,14 +3,15 @@ import {DashboardComponent, DashboardData} from './dashboard.component';
 import {WebsocketService} from '../../common/websocket/websocket.service';
 import {IMessage} from '@stomp/stompjs';
 import {of} from 'rxjs';
+import {HttpClientTestingModule} from "@angular/common/http/testing";
 
 describe('DashboardComponent', () => {
   let websocketService: jasmine.SpyObj<WebsocketService>;
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      declarations: [
-        DashboardComponent
+      imports: [
+        HttpClientTestingModule
       ],
       providers: [
         {

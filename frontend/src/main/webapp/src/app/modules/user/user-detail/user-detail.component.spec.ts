@@ -37,9 +37,6 @@ describe('UserDetailComponent', () => {
         RowComponent,
         ColComponent
       ],
-      declarations: [
-        UserDetailComponent,
-      ],
       providers: [
         {
           provide: UserApiService,

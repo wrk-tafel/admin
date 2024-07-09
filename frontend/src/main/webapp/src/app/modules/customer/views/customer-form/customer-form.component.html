@@ -61,7 +61,7 @@
                     {{getGenderLabel(gender)}}</option>
                 </select>
                 <span cInputGroupText>
-                  <i class="fa fa-venus-mars"></i>
+                  <fa-icon [icon]="faVenusMars"></fa-icon>
                 </span>
                 <div *ngIf="gender.errors?.required && (gender.dirty || gender.touched)"
                      class="invalid-feedback">
@@ -81,7 +81,7 @@
                     {{countryItem.name}}</option>
                 </select>
                 <span cInputGroupText>
-                  <i class="fa fa-flag"></i>
+                  <fa-icon [icon]="faFlag"></fa-icon>
                 </span>
                 <div *ngIf="country.errors?.required && (country.dirty || country.touched)"
                      class="invalid-feedback">
@@ -98,7 +98,7 @@
                        class="form-control"
                        [ngClass]="{'is-invalid': telephoneNumber.invalid && (telephoneNumber.dirty || telephoneNumber.touched), 'is-valid': telephoneNumber.valid && (telephoneNumber.dirty || telephoneNumber.touched)}">
                 <span cInputGroupText>
-                  <i class="fa fa-phone"></i>
+                  <fa-icon [icon]="faPhone"></fa-icon>
                 </span>
               </c-input-group>
             </div>
@@ -108,7 +108,7 @@
                 <input testid="emailInput" type="text" formControlName="email" class="form-control"
                        [ngClass]="{'is-invalid': email.invalid && (email.dirty || email.touched), 'is-valid': email.valid && (email.dirty || email.touched)}">
                 <span cInputGroupText>
-                  <i class="fa fa-envelope"></i>
+                  <fa-icon [icon]="faEnvelope"></fa-icon>
                 </span>
                 <div *ngIf="email.errors?.maxlength && (email.dirty || email.touched)"
                      class="invalid-feedback">
@@ -175,7 +175,7 @@
                          class="form-control"
                          [ngClass]="{'is-invalid': postalCode.invalid && (postalCode.dirty || postalCode.touched), 'is-valid': postalCode.valid && (postalCode.dirty || postalCode.touched)}">
                   <span cInputGroupText>
-                    <i class="fa fa-location-dot"></i>
+                    <fa-icon [icon]="faLocationDot"></fa-icon>
                   </span>
                   <div *ngIf="postalCode.errors && (postalCode.dirty || postalCode.touched)"
                        class="invalid-feedback">
@@ -189,7 +189,7 @@
                   <input testid="cityInput" type="text" formControlName="city" class="form-control"
                          [ngClass]="{'is-invalid': city.invalid && (city.dirty || city.touched), 'is-valid': city.valid && (city.dirty || city.touched)}">
                   <span cInputGroupText>
-                    <i class="fa fa-location-dot"></i>
+                    <fa-icon [icon]="faLocationDot"></fa-icon>
                   </span>
                   <div *ngIf="city.errors?.required && (city.dirty || city.touched)"
                        class="invalid-feedback">
@@ -213,7 +213,7 @@
                        class="form-control"
                        [ngClass]="{'is-invalid': employer.invalid && (employer.dirty || employer.touched), 'is-valid': employer.valid && (employer.dirty || employer.touched)}">
                 <span cInputGroupText>
-                  <i class="fa fa-building"></i>
+                  <fa-icon [icon]="faBuilding"></fa-icon>
                 </span>
                 <div *ngIf="employer.errors?.required && (employer.dirty || employer.touched)"
                      class="invalid-feedback">
@@ -229,7 +229,7 @@
                 <input testid="incomeInput" type="number" formControlName="income" class="form-control"
                        [ngClass]="{'is-invalid': income.invalid && (income.dirty || income.touched), 'is-valid': income.valid && (income.dirty || income.touched)}">
                 <span cInputGroupText>
-                  <i class="fa fa-euro-sign"></i>
+                  <fa-icon [icon]="faEuroSign"></fa-icon>
                 </span>
               </c-input-group>
             </div>
@@ -272,7 +272,7 @@
               <h5>Weitere Personen</h5>
             </c-col>
             <c-col class="text-end">
-              <button cButton color="success" class="text-white" (click)="addNewPerson()">Hinzufügen</button>
+              <button cButton color="success" (click)="addNewPerson()">Hinzufügen</button>
             </c-col>
           </c-row>
         </c-card-header>
@@ -355,7 +355,7 @@
                                 {{getGenderLabel(gender)}}</option>
                             </select>
                             <span cInputGroupText>
-                              <i class="fa fa-venus-mars"></i>
+                              <fa-icon [icon]="faVenusMars"></fa-icon>
                             </span>
                             <div
                               *ngIf="additionalPerson.get('gender').errors?.required && (additionalPerson.get('gender').dirty || additionalPerson.get('gender').touched)"
@@ -376,7 +376,7 @@
                                 {{countryItem.name}}</option>
                             </select>
                             <span cInputGroupText>
-                              <i class="fa fa-flag"></i>
+                              <fa-icon [icon]="faFlag"></fa-icon>
                             </span>
                             <div
                               *ngIf="additionalPerson.get('country').errors?.required && (additionalPerson.get('country').dirty || additionalPerson.get('country').touched)"
@@ -394,7 +394,7 @@
                                    formControlName="employer" class="form-control"
                                    [ngClass]="{'is-invalid': additionalPerson.get('employer').invalid && (additionalPerson.get('employer').dirty || additionalPerson.get('employer').touched), 'is-valid': additionalPerson.get('employer').valid && (additionalPerson.get('employer').dirty || additionalPerson.get('employer').touched)}">
                             <span cInputGroupText>
-                              <i class="fa fa-building"></i>
+                              <fa-icon [icon]="faBuilding"></fa-icon>
                             </span>
                           </c-input-group>
                         </div>
@@ -405,7 +405,7 @@
                                    formControlName="income" class="form-control"
                                    [ngClass]="{'is-invalid': additionalPerson.get('income').invalid && (additionalPerson.get('income').dirty || additionalPerson.get('income').touched), 'is-valid': additionalPerson.get('income').valid && (additionalPerson.get('income').dirty || additionalPerson.get('income').touched)}">
                             <span cInputGroupText>
-                              <i class="fa fa-euro-sign"></i>
+                              <fa-icon [icon]="faEuroSign"></fa-icon>
                             </span>
                             <div
                               *ngIf="additionalPerson.get('income').errors?.min && (additionalPerson.get('income').dirty || additionalPerson.get('income').touched)"
@@ -450,8 +450,8 @@
                   </div>
                   <div class="row">
                     <div class="col-lg-5 col-xxl-2 mt-3">
-                      <button [attr.testid]="'remove-personform-' + i" type="button"
-                              class="btn btn-block btn-danger text-white"
+                      <button [attr.testid]="'remove-personform-' + i" cButton
+                              color="danger" class="text-white"
                               (click)="removePerson(i)">Löschen
                       </button>
                     </div>
@@ -462,7 +462,7 @@
           </div>
         </c-card-body>
         <c-card-footer class="text-end">
-          <button testid="addperson-button-bottom" cButton color="success" class="text-white" (click)="addNewPerson()">
+          <button testid="addperson-button-bottom" cButton color="success" (click)="addNewPerson()">
             Hinzufügen
           </button>
         </c-card-footer>

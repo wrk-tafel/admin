@@ -1,13 +1,46 @@
 import {Component, inject} from '@angular/core';
 import {Router} from '@angular/router';
 import {CustomerAddressData, CustomerApiService, CustomerSearchResult} from '../../../../api/customer-api.service';
-import {FormControl, FormGroup} from '@angular/forms';
+import {FormControl, FormGroup, ReactiveFormsModule} from '@angular/forms';
 import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
-import {TafelPaginationData} from '../../../../common/components/tafel-pagination/tafel-pagination.component';
+import {
+  TafelPaginationComponent,
+  TafelPaginationData
+} from '../../../../common/components/tafel-pagination/tafel-pagination.component';
+import {
+  ButtonDirective,
+  CardBodyComponent,
+  CardComponent, CardFooterComponent,
+  CardHeaderComponent,
+  ColComponent, FormCheckInputDirective, FormDirective,
+  InputGroupComponent,
+  RowComponent, TableDirective
+} from '@coreui/angular';
+import {CommonModule} from '@angular/common';
+import {faPencil, faSearch, faUser} from "@fortawesome/free-solid-svg-icons";
+import {FaIconComponent} from "@fortawesome/angular-fontawesome";
 
 @Component({
   selector: 'tafel-customer-search',
-  templateUrl: 'customer-search.component.html'
+  templateUrl: 'customer-search.component.html',
+  imports: [
+    ReactiveFormsModule,
+    CardComponent,
+    CardBodyComponent,
+    RowComponent,
+    ColComponent,
+    InputGroupComponent,
+    TafelPaginationComponent,
+    CardHeaderComponent,
+    CardFooterComponent,
+    FormDirective,
+    FormCheckInputDirective,
+    TableDirective,
+    ButtonDirective,
+    CommonModule,
+    FaIconComponent
+  ],
+  standalone: true
 })
 export class CustomerSearchComponent {
   searchResult: CustomerSearchResult;
@@ -88,4 +121,7 @@ export class CustomerSearchComponent {
     return formatted?.trim().length > 0 ? formatted : '-';
   }
 
+  protected readonly faPencil = faPencil;
+  protected readonly faUser = faUser;
+  protected readonly faSearch = faSearch;
 }

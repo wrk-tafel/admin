@@ -39,7 +39,6 @@ describe('LoginComponent', () => {
           }
         },
       ],
-      declarations: [LoginComponent]
     }).compileComponents();
 
     authService = TestBed.inject(AuthenticationService) as jasmine.SpyObj<AuthenticationService>;

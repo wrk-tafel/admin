@@ -46,10 +46,6 @@ describe('UserEditComponent - Creating a new user', () => {
         ColComponent,
         BgColorDirective
       ],
-      declarations: [
-        UserEditComponent,
-        UserFormComponent
-      ],
       providers: [
         {
           provide: UserApiService,

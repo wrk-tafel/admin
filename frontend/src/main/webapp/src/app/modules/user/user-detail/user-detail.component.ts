@@ -2,10 +2,35 @@ import {Component, inject, OnInit} from '@angular/core';
 import {UserApiService, UserData} from '../../../api/user-api.service';
 import {ActivatedRoute, Router} from '@angular/router';
 import {ToastService, ToastType} from '../../../common/views/default-layout/toasts/toast.service';
+import {
+  ButtonDirective,
+  CardBodyComponent,
+  CardComponent,
+  ColComponent,
+  DropdownComponent, DropdownDividerDirective,
+  DropdownItemDirective, DropdownMenuDirective, DropdownToggleDirective,
+  RowComponent
+} from '@coreui/angular';
+import {CommonModule, NgClass} from '@angular/common';
 
 @Component({
   selector: 'tafel-user-detail',
-  templateUrl: 'user-detail.component.html'
+  templateUrl: 'user-detail.component.html',
+  imports: [
+    DropdownComponent,
+    CardComponent,
+    CardBodyComponent,
+    RowComponent,
+    ColComponent,
+    NgClass,
+    DropdownItemDirective,
+    ButtonDirective,
+    DropdownToggleDirective,
+    DropdownMenuDirective,
+    DropdownDividerDirective,
+    CommonModule
+  ],
+  standalone: true
 })
 export class UserDetailComponent implements OnInit {
   userData: UserData;

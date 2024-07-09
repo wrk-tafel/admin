@@ -89,10 +89,6 @@ describe('CustomerDuplicatesComponent', () => {
         RowComponent,
         PaginationModule
       ],
-      declarations: [
-        TafelPaginationComponent,
-        CustomerDuplicatesComponent
-      ],
       providers: [
         {
           provide: CustomerApiService,

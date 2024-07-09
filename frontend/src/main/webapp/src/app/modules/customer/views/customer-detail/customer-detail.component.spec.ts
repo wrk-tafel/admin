@@ -138,9 +138,6 @@ describe('CustomerDetailComponent', () => {
         ColComponent,
         RowComponent
       ],
-      declarations: [
-        CustomerDetailComponent
-      ],
       providers: [
         {
           provide: LOCALE_ID,

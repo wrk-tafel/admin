@@ -1,13 +1,49 @@
 import {Component, inject} from '@angular/core';
 import {Router} from '@angular/router';
-import {FormControl, FormGroup} from '@angular/forms';
+import {FormControl, FormGroup, ReactiveFormsModule} from '@angular/forms';
 import {UserApiService, UserSearchResult} from '../../../api/user-api.service';
 import {ToastService, ToastType} from '../../../common/views/default-layout/toasts/toast.service';
-import {TafelPaginationData} from '../../../common/components/tafel-pagination/tafel-pagination.component';
+import {
+  TafelPaginationComponent,
+  TafelPaginationData
+} from '../../../common/components/tafel-pagination/tafel-pagination.component';
+import {
+  ButtonDirective,
+  CardBodyComponent,
+  CardComponent,
+  CardFooterComponent,
+  CardHeaderComponent,
+  ColComponent, FormCheckInputDirective, FormDirective, FormLabelDirective,
+  InputGroupComponent,
+  RowComponent, TableDirective, TextColorDirective
+} from '@coreui/angular';
+import {faPencil, faSearch, faUser} from '@fortawesome/free-solid-svg-icons';
+import {FaIconComponent} from '@fortawesome/angular-fontawesome';
+import {CommonModule} from "@angular/common";
 
 @Component({
   selector: 'tafel-user-search',
-  templateUrl: 'user-search.component.html'
+  templateUrl: 'user-search.component.html',
+  imports: [
+    CardComponent,
+    CardBodyComponent,
+    RowComponent,
+    ColComponent,
+    ReactiveFormsModule,
+    TafelPaginationComponent,
+    CardFooterComponent,
+    CardHeaderComponent,
+    InputGroupComponent,
+    FormDirective,
+    FormLabelDirective,
+    FormCheckInputDirective,
+    TableDirective,
+    ButtonDirective,
+    TextColorDirective,
+    FaIconComponent,
+    CommonModule
+  ],
+  standalone: true
 })
 export class UserSearchComponent {
   searchResult: UserSearchResult;
@@ -79,4 +115,7 @@ export class UserSearchComponent {
     this.router.navigate(['/benutzer/bearbeiten', personnelNumber]);
   }
 
+  protected readonly faSearch = faSearch;
+  protected readonly faPencil = faPencil;
+  protected readonly faUser = faUser;
 }

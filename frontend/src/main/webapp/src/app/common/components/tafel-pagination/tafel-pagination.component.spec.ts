@@ -9,8 +9,6 @@ describe('TafelPaginationComponent', () => {
         PaginationModule,
         PaginationComponent
       ],
-      providers: [],
-      declarations: [TafelPaginationComponent]
     }).compileComponents();
   }));
 
