@@ -51,7 +51,6 @@ describe('CheckinComponent', () => {
         CardModule,
         BadgeModule
       ],
-      declarations: [CheckinComponent],
       providers: [
         {
           provide: CustomerApiService,

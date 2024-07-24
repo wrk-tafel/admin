@@ -1,8 +1,15 @@
 import {Component, EventEmitter, Input, Output} from '@angular/core';
+import {PageItemDirective, PageLinkDirective, PaginationComponent} from '@coreui/angular';
 
 @Component({
   selector: 'tafel-pagination',
-  templateUrl: 'tafel-pagination.component.html'
+  templateUrl: 'tafel-pagination.component.html',
+  imports: [
+    PaginationComponent,
+    PageItemDirective,
+    PageLinkDirective
+  ],
+  standalone: true
 })
 export class TafelPaginationComponent {
   @Input() align: 'start' | 'center' | 'end' | '' = '';

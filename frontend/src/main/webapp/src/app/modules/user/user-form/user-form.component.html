@@ -75,11 +75,8 @@
                        [ngClass]="{'is-invalid': form.errors?.['passwordRepeatInvalid'] && (password.dirty || password.touched), 'is-valid': password.valid && (password.dirty || password.touched)}">
                 <span cInputGroupText
                       (click)="togglePasswordVisibility()">
-                  <i class="fa"
-                     [ngClass]="{
-                        'fa-eye-slash': !passwordTextVisible,
-                        'fa-eye': passwordTextVisible
-                      }"></i>
+                      <fa-icon [icon]="faEyeSlash" *ngIf="!passwordTextVisible"></fa-icon>
+                      <fa-icon [icon]="faEye" *ngIf="passwordTextVisible"></fa-icon>
                 </span>
                 <div *ngIf="form.errors?.['passwordRepeatInvalid'] && (password.dirty || password.touched)"
                      class="invalid-feedback">
@@ -97,11 +94,8 @@
                        [ngClass]="{'is-invalid': form.errors?.['passwordRepeatInvalid'] && (passwordRepeat.dirty || passwordRepeat.touched), 'is-valid': passwordRepeat.valid && (passwordRepeat.dirty || passwordRepeat.touched)}">
                 <span cInputGroupText
                       (click)="togglePasswordRepeatVisibility()">
-                  <i class="fa"
-                     [ngClass]="{
-                        'fa-eye-slash': !passwordRepeatTextVisible,
-                        'fa-eye': passwordRepeatTextVisible
-                      }"></i>
+                      <fa-icon [icon]="faEyeSlash" *ngIf="!passwordRepeatTextVisible"></fa-icon>
+                      <fa-icon [icon]="faEye" *ngIf="passwordRepeatTextVisible"></fa-icon>
                 </span>
                 <div *ngIf="form.errors?.['passwordRepeatInvalid'] && (passwordRepeat.dirty || passwordRepeat.touched)"
                      class="invalid-feedback">
@@ -112,7 +106,7 @@
           </div>
           <div class="row">
             <div class="col mt-3">
-              <button testid="generate-password-button" type="button" class="btn btn-primary text-white"
+              <button testid="generate-password-button" cButton
                       (click)="generatePassword()">Passwort generieren
               </button>
             </div>

@@ -1,15 +1,21 @@
 import {Component, inject, OnInit} from '@angular/core';
-import {NavigationEnd, Router} from '@angular/router';
+import {NavigationEnd, Router, RouterOutlet} from '@angular/router';
 
 import {IconSetService} from '@coreui/icons-angular';
 import {freeSet} from '@coreui/icons';
+import {TafelToasterComponent} from './common/views/default-layout/toasts/tafel-toaster.component';
 
 @Component({
   // tslint:disable-next-line
   selector: 'body',
   templateUrl: 'app.component.html',
-  providers: [IconSetService],
+  imports: [
+    TafelToasterComponent,
+    RouterOutlet,
+  ],
+  standalone: true
 })
+
 export class AppComponent implements OnInit {
   private router = inject(Router);
   private iconSetService = inject(IconSetService);

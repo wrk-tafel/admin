@@ -5,7 +5,7 @@
         <h3>Ticket-Monitor - Steuerung</h3>
       </c-col>
       <c-col class="text-end">
-        <button testid="open-screen-button" cButton class="text-white" (click)="openScreenInNewTab()">Monitor öffnen</button>
+        <button testid="open-screen-button" cButton (click)="openScreenInNewTab()">Monitor öffnen</button>
       </c-col>
     </c-row>
     <c-row>
@@ -21,11 +21,11 @@
                  [ngClass]="{'is-invalid': startTime.invalid && (startTime.dirty || startTime.touched), 'is-valid': startTime.valid && (startTime.dirty || startTime.touched)}">
         </c-col>
         <c-col sm="1">
-          <button testid="show-starttime-button" cButton color="primary" class="text-white mt-3 mt-sm-0" (click)="showStartTime()">Anzeigen</button>
+          <button testid="show-starttime-button" cButton class="mt-3 mt-sm-0" (click)="showStartTime()">Anzeigen</button>
         </c-col>
         <c-col sm="8" class="text-end">
-          <button testid="show-currentticket-button" cButton color="primary" class="text-white mt-3 mt-sm-0" (click)="showCurrentTicket()">Aktuelles Ticket anzeigen</button>
-          <button testid="show-nextticket-button" cButton color="primary" class="text-white ms-0 ms-sm-3 mt-3 mt-sm-0" (click)="showNextTicket()">Weiter zum nächsten Ticket</button>
+          <button testid="show-currentticket-button" cButton class="mt-3 mt-sm-0" (click)="showCurrentTicket()">Aktuelles Ticket anzeigen</button>
+          <button testid="show-nextticket-button" cButton class="ms-0 ms-sm-3 mt-3 mt-sm-0" (click)="showNextTicket()">Weiter zum nächsten Ticket</button>
         </c-col>
       </c-row>
     </form>

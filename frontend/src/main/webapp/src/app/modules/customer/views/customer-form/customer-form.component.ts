@@ -1,14 +1,52 @@
 import {Component, EventEmitter, inject, Input, OnInit, Output} from '@angular/core';
-import {FormArray, FormControl, FormGroup, Validators} from '@angular/forms';
+import {FormArray, FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {CountryApiService, CountryData} from '../../../../api/country-api.service';
 import {CustomValidator} from '../../../../common/validator/CustomValidator';
 import {CustomerAddPersonData, CustomerData, Gender, GenderLabel} from '../../../../api/customer-api.service';
 import {v4 as uuidv4} from 'uuid';
 import * as moment from 'moment';
+import {CommonModule} from '@angular/common';
+import {
+  ButtonDirective,
+  CardBodyComponent,
+  CardComponent,
+  CardFooterComponent,
+  CardHeaderComponent,
+  ColComponent,
+  FormSelectDirective,
+  InputGroupComponent,
+  InputGroupTextDirective,
+  RowComponent
+} from '@coreui/angular';
+import {
+  faBuilding,
+  faEnvelope,
+  faEuroSign,
+  faFlag,
+  faLocationDot, faPhone,
+  faVenusMars
+} from '@fortawesome/free-solid-svg-icons';
+import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 
 @Component({
   selector: 'tafel-customer-form',
-  templateUrl: 'customer-form.component.html'
+  templateUrl: 'customer-form.component.html',
+  imports: [
+    ReactiveFormsModule,
+    InputGroupComponent,
+    CardComponent,
+    CardHeaderComponent,
+    RowComponent,
+    ColComponent,
+    CardBodyComponent,
+    CardFooterComponent,
+    CommonModule,
+    InputGroupTextDirective,
+    FormSelectDirective,
+    ButtonDirective,
+    FaIconComponent
+  ],
+  standalone: true
 })
 export class CustomerFormComponent implements OnInit {
   @Input() editMode = false;
@@ -260,4 +298,11 @@ export class CustomerFormComponent implements OnInit {
     this.additionalPersons.push(control);
   }
 
+  protected readonly faVenusMars = faVenusMars;
+  protected readonly faFlag = faFlag;
+  protected readonly faEnvelope = faEnvelope;
+  protected readonly faLocationDot = faLocationDot;
+  protected readonly faBuilding = faBuilding;
+  protected readonly faEuroSign = faEuroSign;
+  protected readonly faPhone = faPhone;
 }

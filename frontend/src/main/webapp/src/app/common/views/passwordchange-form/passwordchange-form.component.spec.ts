@@ -15,9 +15,6 @@ describe('PasswordChangeFormComponent', () => {
         ModalModule,
         HttpClientTestingModule
       ],
-      declarations: [
-        PasswordChangeFormComponent
-      ]
     }).compileComponents();
 
     httpMock = TestBed.inject(HttpTestingController);

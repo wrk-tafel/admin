@@ -2,7 +2,8 @@ import {Directive, Input, TemplateRef, ViewContainerRef} from '@angular/core';
 import {AuthenticationService} from './authentication.service';
 
 @Directive({
-  selector: '[tafelIfPermission]'
+  selector: '[tafelIfPermission]',
+  standalone: true
 })
 export class TafelIfPermissionDirective {
 

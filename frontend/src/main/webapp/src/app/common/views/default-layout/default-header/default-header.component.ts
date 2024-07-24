@@ -1,10 +1,57 @@
 import {Component, inject, Input} from '@angular/core';
-import {HeaderComponent} from '@coreui/angular';
+import {
+  AvatarComponent,
+  BadgeComponent,
+  ButtonDirective,
+  ContainerComponent,
+  DropdownComponent,
+  DropdownDividerDirective,
+  DropdownHeaderDirective,
+  DropdownItemDirective,
+  DropdownMenuDirective,
+  DropdownToggleDirective,
+  HeaderComponent,
+  HeaderNavComponent,
+  HeaderTogglerDirective,
+  NavItemComponent,
+  NavLinkDirective,
+  SidebarToggleDirective,
+  TextColorDirective
+} from '@coreui/angular';
 import {AuthenticationService} from '../../../security/authentication.service';
+import {RouterLink, RouterLinkActive} from '@angular/router';
+import {IconDirective} from "@coreui/icons-angular";
+import {NgTemplateOutlet} from "@angular/common";
+import {FontAwesomeModule} from "@fortawesome/angular-fontawesome";
+import {faKey, faLock} from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'app-default-header',
   templateUrl: './default-header.component.html',
+  imports: [
+    ContainerComponent,
+    SidebarToggleDirective,
+    HeaderNavComponent,
+    DropdownComponent,
+    DropdownToggleDirective,
+    AvatarComponent,
+    RouterLink,
+    HeaderTogglerDirective,
+    IconDirective,
+    ButtonDirective,
+    TextColorDirective,
+    NgTemplateOutlet,
+    DropdownMenuDirective,
+    DropdownHeaderDirective,
+    DropdownItemDirective,
+    DropdownDividerDirective,
+    NavItemComponent,
+    BadgeComponent,
+    NavLinkDirective,
+    RouterLinkActive,
+    FontAwesomeModule
+  ],
+  standalone: true
 })
 export class DefaultHeaderComponent extends HeaderComponent {
   @Input() sidebarId = 'sidebar';
@@ -17,4 +64,6 @@ export class DefaultHeaderComponent extends HeaderComponent {
     });
   }
 
+  protected readonly faKey = faKey;
+  protected readonly faLock = faLock;
 }

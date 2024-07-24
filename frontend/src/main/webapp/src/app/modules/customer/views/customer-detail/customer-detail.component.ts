@@ -1,5 +1,5 @@
 import {Component, inject, OnInit} from '@angular/core';
-import {ActivatedRoute, Router} from '@angular/router';
+import {ActivatedRoute, Router, RouterLink} from '@angular/router';
 import * as moment from 'moment';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
 import {
@@ -17,11 +17,80 @@ import {
   CustomerNotesResponse
 } from '../../../../api/customer-note-api.service';
 import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
-import {TafelPaginationData} from '../../../../common/components/tafel-pagination/tafel-pagination.component';
+import {
+  TafelPaginationComponent,
+  TafelPaginationData
+} from '../../../../common/components/tafel-pagination/tafel-pagination.component';
+import {
+  BgColorDirective,
+  ButtonCloseDirective,
+  ButtonDirective,
+  CardBodyComponent,
+  CardComponent,
+  CardFooterComponent,
+  CardHeaderComponent,
+  ColComponent,
+  DropdownComponent,
+  DropdownDividerDirective,
+  DropdownItemDirective,
+  DropdownMenuDirective,
+  DropdownToggleDirective,
+  ModalBodyComponent,
+  ModalComponent,
+  ModalFooterComponent,
+  ModalHeaderComponent,
+  ModalToggleDirective,
+  NavComponent,
+  NavItemComponent,
+  NavLinkDirective,
+  RoundedDirective,
+  RowComponent,
+  TabContentComponent,
+  TabContentRefDirective,
+  TabPaneComponent
+} from '@coreui/angular';
+import {CommonModule} from '@angular/common';
+import {FormsModule} from '@angular/forms';
+import {faPlus, faUsers} from '@fortawesome/free-solid-svg-icons';
+import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 
 @Component({
   selector: 'tafel-customer-detail',
-  templateUrl: 'customer-detail.component.html'
+  templateUrl: 'customer-detail.component.html',
+  imports: [
+    CommonModule,
+    DropdownComponent,
+    NavComponent,
+    NavItemComponent,
+    TabContentRefDirective,
+    RouterLink,
+    TabContentComponent,
+    TabPaneComponent,
+    CardComponent,
+    CardHeaderComponent,
+    RowComponent,
+    ColComponent,
+    CardBodyComponent,
+    CardFooterComponent,
+    ModalComponent,
+    ModalHeaderComponent,
+    ModalToggleDirective,
+    ModalBodyComponent,
+    ModalFooterComponent,
+    TafelPaginationComponent,
+    FormsModule,
+    BgColorDirective,
+    ButtonCloseDirective,
+    ButtonDirective,
+    DropdownToggleDirective,
+    DropdownMenuDirective,
+    DropdownItemDirective,
+    DropdownDividerDirective,
+    NavLinkDirective,
+    RoundedDirective,
+    FaIconComponent,
+  ],
+  standalone: true
 })
 export class CustomerDetailComponent implements OnInit {
   customerData: CustomerData;
@@ -209,4 +278,6 @@ export class CustomerDetailComponent implements OnInit {
     this.fileHelperService.downloadFile(filename, response.body);
   }
 
+  protected readonly faUsers = faUsers;
+  protected readonly faPlus = faPlus;
 }

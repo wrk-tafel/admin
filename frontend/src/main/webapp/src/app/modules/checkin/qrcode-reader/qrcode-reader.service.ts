@@ -5,7 +5,6 @@ import {CameraDevice} from 'html5-qrcode/esm/camera/core';
 import {Html5QrcodeCameraScanConfig, Html5QrcodeFullConfig} from 'html5-qrcode/esm/html5-qrcode';
 import {Html5QrcodeScannerState} from 'html5-qrcode/esm/state-manager';
 
-@Injectable()
 export class QRCodeReaderService {
 
   qrCodeReader: Html5Qrcode;

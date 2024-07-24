@@ -16,9 +16,6 @@ describe('TafelToastComponent', () => {
         NoopAnimationsModule,
         ProgressModule
       ],
-      declarations: [
-        TafelToastComponent
-      ],
     }).compileComponents();
 
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000;

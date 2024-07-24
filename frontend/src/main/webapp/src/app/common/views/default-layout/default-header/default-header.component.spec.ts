@@ -24,7 +24,6 @@ describe('DefaultHeaderComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [DefaultHeaderComponent],
       imports: [
         GridModule,
         HeaderModule,

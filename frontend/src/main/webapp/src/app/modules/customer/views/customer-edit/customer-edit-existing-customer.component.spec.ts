@@ -95,10 +95,6 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
         ColComponent,
         BgColorDirective
       ],
-      declarations: [
-        CustomerEditComponent,
-        CustomerFormComponent
-      ],
       providers: [
         {
           provide: CustomerApiService,

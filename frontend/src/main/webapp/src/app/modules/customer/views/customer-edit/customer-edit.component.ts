@@ -2,12 +2,33 @@ import {Component, inject, OnInit, ViewChild} from '@angular/core';
 import {CustomerFormComponent} from '../customer-form/customer-form.component';
 import {CustomerApiService, CustomerData, ValidateCustomerResponse} from '../../../../api/customer-api.service';
 import {ActivatedRoute, Router} from '@angular/router';
-import {Colors} from '@coreui/angular';
+import {
+  BgColorDirective, ButtonCloseDirective, ButtonDirective,
+  Colors,
+  ModalBodyComponent,
+  ModalComponent, ModalFooterComponent,
+  ModalHeaderComponent,
+  ModalToggleDirective
+} from '@coreui/angular';
 import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
+import {NgClass} from '@angular/common';
 
 @Component({
   selector: 'tafel-customer-edit',
-  templateUrl: 'customer-edit.component.html'
+  templateUrl: 'customer-edit.component.html',
+  imports: [
+    CustomerFormComponent,
+    NgClass,
+    ModalComponent,
+    ModalHeaderComponent,
+    ModalToggleDirective,
+    BgColorDirective,
+    ModalBodyComponent,
+    ModalFooterComponent,
+    ButtonCloseDirective,
+    ButtonDirective
+  ],
+  standalone: true
 })
 export class CustomerEditComponent implements OnInit {
   customerInput: CustomerData;

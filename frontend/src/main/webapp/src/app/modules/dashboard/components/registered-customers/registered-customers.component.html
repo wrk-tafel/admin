@@ -7,7 +7,9 @@
     </c-row>
     <c-row *tafelIfDistributionActive>
       <c-col size="12">
-        <button testid="download-customerlist-button" cButton color="light" (click)="downloadCustomerList()"><i class="fa fa-download"></i> Kundenliste</button>
+        <button testid="download-customerlist-button" cButton color="light" (click)="downloadCustomerList()">
+          <fa-icon [icon]="faDownload"></fa-icon> Kundenliste
+        </button>
       </c-col>
     </c-row>
     <c-row>

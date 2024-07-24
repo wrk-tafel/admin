@@ -12,14 +12,10 @@
       <c-col>
         <button *ngIf="!distribution" cButton
                 testid="distribution-start-button"
-                color="info"
-                class="text-white"
                 (click)="createNewDistribution()">--> Ausgabe öffnen
         </button>
         <button *ngIf="distribution" cButton
                 testid="distribution-close-button"
-                color="info"
-                class="text-white"
                 (click)="showCloseDistributionModal = true">--> Ausgabe schließen
         </button>
       </c-col>
@@ -40,7 +36,7 @@
     </div>
     <div class="row">
       <div class="col-6">
-        <button testid="ok-button" cButton color="primary" class="me-2 text-white"
+        <button testid="ok-button" cButton class="me-2"
                 testid="distribution-close-modal-ok-button"
                 (click)="closeDistribution()">OK
         </button>

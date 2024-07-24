@@ -17,7 +17,7 @@
                            class="form-control" autofocus (keydown.enter)="searchForCustomerId()">
                 </c-col>
                 <c-col sm="3">
-                    <button testid="showcustomer-button" type="button" class="btn btn-primary text-white"
+                    <button testid="showcustomer-button" cButton
                             [disabled]="!customerId.value" (click)="searchForCustomerId()">Anzeigen
                     </button>
                 </c-col>
@@ -46,7 +46,7 @@
             </c-row>
             <c-row>
                 <c-col sm="3" class="mt-3">
-                    <button testid="search-button" type="button" class="btn btn-primary text-white"
+                    <button testid="search-button" cButton
                             (click)="searchForDetails()">Suchen
                     </button>
                 </c-col>
@@ -76,7 +76,7 @@
                         <tbody>
                         <tr testid="searchresult-row" scope="row"
                             *ngFor="let customer of searchResult.items; let i = index">
-                            <td><i class="fa fa-user"></i></td>
+                            <td><fa-icon [icon]="faUser"></fa-icon></td>
                             <td [attr.testid]="'searchresult-id-' + i">{{customer.id}}</td>
                             <td [attr.testid]="'searchresult-lastname-' + i">{{customer.lastname ? customer.lastname : '-'}}</td>
                             <td [attr.testid]="'searchresult-firstname-' + i">{{customer.firstname ? customer.firstname : '-'}}</td>
@@ -85,13 +85,15 @@
                             <td>
                                 <div class="d-flex flex-fill gap-2">
                                     <button [attr.testid]="'searchresult-showcustomer-button-' + i"
-                                            type="button" class="btn btn-primary text-white"
-                                            (click)="navigateToCustomer(customer.id)"><i
-                                            class="fa fa-search"></i></button>
+                                            cButton
+                                            (click)="navigateToCustomer(customer.id)">
+                                            <fa-icon [icon]="faSearch"></fa-icon>
+                                    </button>
                                     <button [attr.testid]="'searchresult-editcustomer-button-' + i"
-                                            type="button" class="btn btn-danger text-white"
-                                            (click)="editCustomer(customer.id)"><i
-                                            class="fa fa-pencil"></i></button>
+                                            cButton color="danger"
+                                            (click)="editCustomer(customer.id)">
+                                            <fa-icon [icon]="faPencil" inverse="true"></fa-icon>
+                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -122,13 +124,15 @@
                             </c-card-body>
                             <c-card-footer class="d-flex flex-fill gap-2">
                                 <button [attr.testid]="'searchresult-showcustomer-button-' + i"
-                                        type="button" class="btn btn-primary text-white"
-                                        (click)="navigateToCustomer(customer.id)"><i
-                                        class="fa fa-search"></i></button>
+                                        cButton
+                                        (click)="navigateToCustomer(customer.id)">
+                                        <fa-icon [icon]="faSearch"></fa-icon>
+                                </button>
                                 <button [attr.testid]="'searchresult-editcustomer-button-' + i"
-                                        type="button" class="btn btn-danger text-white"
-                                        (click)="editCustomer(customer.id)"><i
-                                        class="fa fa-pencil"></i></button>
+                                        cButton color="danger"
+                                        (click)="editCustomer(customer.id)">
+                                        <fa-icon [icon]="faPencil" inverse="true"></fa-icon>
+                                </button>
                             </c-card-footer>
                         </c-card>
                     </div>

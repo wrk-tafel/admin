@@ -22,10 +22,6 @@ describe('LoginPasswordChangeComponent', () => {
         RowComponent,
         ColComponent
       ],
-      declarations: [
-        LoginPasswordChangeComponent,
-        PasswordChangeFormComponent
-      ],
       providers: [
         {
           provide: AuthenticationService,
