@@ -7,7 +7,7 @@
       cButton
       toggle="visible"
       style="margin-inline-start: -14px;"
-      aria-label="Toggle sidebar navigation"
+      aria-label="Menü ein-/ausklappen"
     >
       <svg cIcon name="cilMenu" size="lg"></svg>
     </button>
@@ -19,7 +19,7 @@
 <!--</c-header>-->
 <ng-template #userDropdown>
   <c-dropdown [popperOptions]="{ placement: 'bottom-start' }" variant="nav-item">
-    <button [caret]="false" cDropdownToggle class="py-0 pe-0" aria-label="Open user menu">
+    <button [caret]="false" cDropdownToggle class="py-0 pe-0" aria-label="Öffne Benutzermenü">
       <c-avatar
         shape="rounded-1"
         [size]="'md'"
