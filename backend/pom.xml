@@ -23,7 +23,7 @@
 
         <spring.boot.version>3.3.1</spring.boot.version>
         <flyway.version>10.17.2</flyway.version>
-        <spring.modulith.version>1.2.2</spring.modulith.version>
+        <spring.modulith.version>1.2.3</spring.modulith.version>
         <jjwt.version>0.12.6</jjwt.version>
         <postgresql.driver.version>42.7.4</postgresql.driver.version>
         <mysql.driver.version>9.0.0</mysql.driver.version>
