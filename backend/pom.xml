@@ -30,7 +30,7 @@
         <bouncycastle.version>1.70</bouncycastle.version>
         <apache.fop.version>2.9</apache.fop.version>
         <qrcode.kotlin.version>4.2.0</qrcode.kotlin.version>
-        <passay.version>1.6.4</passay.version>
+        <passay.version>1.6.5</passay.version>
 
         <!-- Maven plugin version -->
         <maven.surefire.plugin.version>3.4.0</maven.surefire.plugin.version>
