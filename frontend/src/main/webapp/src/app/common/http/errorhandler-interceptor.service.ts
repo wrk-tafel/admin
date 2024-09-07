@@ -50,7 +50,7 @@ export class ErrorHandlerInterceptor implements HttpInterceptor {
     if (this.ERROR_CODES_WHITELIST.indexOf(error.status) === -1) {
       if (error.error?.constructor === Object) {
         const errorBody: TafelErrorResponse = error.error;
-        const toastOptions = this.createToastFromErrorBody(errorBody);
+        const toastOptions = this.createToastFromErrorBody(error, errorBody);
         this.toastService.showToast(toastOptions);
       } else {
         const toastOptions = this.createToastFromGenericHttpError(error);
@@ -73,10 +73,10 @@ export class ErrorHandlerInterceptor implements HttpInterceptor {
     };
   }
 
-  private createToastFromErrorBody(errorBody: TafelErrorResponse): ToastOptions {
+  private createToastFromErrorBody(error: HttpErrorResponse, errorBody: TafelErrorResponse): ToastOptions {
     return {
       type: ToastType.ERROR,
-      title: `HTTP ${errorBody.status} - ${errorBody.error}`,
+      title: `HTTP ${error.status} - ${error.statusText}`,
       message: errorBody.message
     };
   }
