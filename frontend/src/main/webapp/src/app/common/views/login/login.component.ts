@@ -8,11 +8,14 @@ import {
   CardComponent,
   CardGroupComponent,
   ColComponent,
-  ContainerComponent, FormDirective, InputGroupComponent, InputGroupTextDirective,
+  ContainerComponent,
+  FormDirective,
+  InputGroupComponent,
+  InputGroupTextDirective,
   RowComponent
 } from '@coreui/angular';
-import {IconDirective} from "@coreui/icons-angular";
-import {NgIf, NgOptimizedImage} from "@angular/common";
+import {IconDirective} from '@coreui/icons-angular';
+import {NgIf, NgOptimizedImage} from '@angular/common';
 
 @Component({
   selector: 'tafel-login',

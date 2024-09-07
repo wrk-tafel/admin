@@ -19,7 +19,7 @@ import {
 } from '@coreui/angular';
 import {faPencil, faSearch, faUser} from '@fortawesome/free-solid-svg-icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
-import {CommonModule} from "@angular/common";
+import {CommonModule} from '@angular/common';
 
 @Component({
   selector: 'tafel-user-search',

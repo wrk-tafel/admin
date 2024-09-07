@@ -19,8 +19,8 @@ import {
   InputGroupComponent,
   InputGroupTextDirective
 } from '@coreui/angular';
-import {FaIconComponent} from "@fortawesome/angular-fontawesome";
-import {faEye, faEyeSlash} from "@fortawesome/free-solid-svg-icons";
+import {FaIconComponent} from '@fortawesome/angular-fontawesome';
+import {faEye, faEyeSlash} from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'tafel-user-form',

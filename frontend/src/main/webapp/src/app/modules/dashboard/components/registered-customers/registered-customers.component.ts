@@ -5,7 +5,7 @@ import {FileHelperService} from '../../../../common/util/file-helper.service';
 import {ButtonDirective, CardBodyComponent, CardComponent, ColComponent, RowComponent} from '@coreui/angular';
 import {faDownload} from '@fortawesome/free-solid-svg-icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
-import {TafelIfDistributionActiveDirective} from "../../../../common/directive/tafel-if-distribution-active.directive";
+import {TafelIfDistributionActiveDirective} from '../../../../common/directive/tafel-if-distribution-active.directive';
 
 @Component({
   selector: 'tafel-registered-customers',

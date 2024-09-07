@@ -11,7 +11,7 @@ import {
   ContainerComponent,
   RowComponent
 } from '@coreui/angular';
-import {NgOptimizedImage} from "@angular/common";
+import {NgOptimizedImage} from '@angular/common';
 
 @Component({
   selector: 'tafel-login-passwordchange',

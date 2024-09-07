@@ -4,7 +4,7 @@ import {IMessage} from '@stomp/stompjs';
 import {ColComponent, RowComponent} from '@coreui/angular';
 import {DistributionStateComponent} from './components/distribution-state/distribution-state.component';
 import {RegisteredCustomersComponent} from './components/registered-customers/registered-customers.component';
-import {TafelIfPermissionDirective} from "../../common/security/tafel-if-permission.directive";
+import {TafelIfPermissionDirective} from '../../common/security/tafel-if-permission.directive';
 
 @Component({
   selector: 'tafel-dashboard',

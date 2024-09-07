@@ -3,7 +3,7 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {UserApiService, UserData, UserPermission} from '../../../api/user-api.service';
 import {UserFormComponent} from '../user-form/user-form.component';
 import {NgClass} from '@angular/common';
-import {ButtonDirective} from "@coreui/angular";
+import {ButtonDirective} from '@coreui/angular';
 
 @Component({
   selector: 'tafel-user-edit',

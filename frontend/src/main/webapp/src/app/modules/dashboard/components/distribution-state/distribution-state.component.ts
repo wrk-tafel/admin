@@ -11,7 +11,7 @@ import {
   ModalComponent, ModalHeaderComponent, ModalToggleDirective,
   RowComponent
 } from '@coreui/angular';
-import {NgIf} from "@angular/common";
+import {NgIf} from '@angular/common';
 
 @Component({
   selector: 'tafel-distribution-state',

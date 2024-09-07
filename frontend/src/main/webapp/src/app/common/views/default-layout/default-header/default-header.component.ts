@@ -20,9 +20,9 @@ import {
 } from '@coreui/angular';
 import {AuthenticationService} from '../../../security/authentication.service';
 import {RouterLink, RouterLinkActive} from '@angular/router';
-import {IconDirective} from "@coreui/icons-angular";
-import {NgTemplateOutlet} from "@angular/common";
-import {FontAwesomeModule} from "@fortawesome/angular-fontawesome";
+import {IconDirective} from '@coreui/icons-angular';
+import {NgTemplateOutlet} from '@angular/common';
+import {FontAwesomeModule} from '@fortawesome/angular-fontawesome';
 import {faKey, faLock} from '@fortawesome/free-solid-svg-icons';
 
 @Component({

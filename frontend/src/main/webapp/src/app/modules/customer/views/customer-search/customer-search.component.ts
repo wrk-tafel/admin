@@ -17,8 +17,8 @@ import {
   RowComponent, TableDirective
 } from '@coreui/angular';
 import {CommonModule} from '@angular/common';
-import {faPencil, faSearch, faUser} from "@fortawesome/free-solid-svg-icons";
-import {FaIconComponent} from "@fortawesome/angular-fontawesome";
+import {faPencil, faSearch, faUser} from '@fortawesome/free-solid-svg-icons';
+import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 
 @Component({
   selector: 'tafel-customer-search',

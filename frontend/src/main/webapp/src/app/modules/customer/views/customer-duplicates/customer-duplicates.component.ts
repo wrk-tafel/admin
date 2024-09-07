@@ -21,8 +21,8 @@ import {
   RowComponent
 } from '@coreui/angular';
 import {DatePipe, NgClass, NgForOf, NgIf} from '@angular/common';
-import {faCheck, faMagnifyingGlass, faTrashCan} from "@fortawesome/free-solid-svg-icons";
-import {FaIconComponent} from "@fortawesome/angular-fontawesome";
+import {faCheck, faMagnifyingGlass, faTrashCan} from '@fortawesome/free-solid-svg-icons';
+import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 
 @Component({
   selector: 'tafel-customer-duplicates',
