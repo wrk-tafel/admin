@@ -14,7 +14,7 @@
         <java.version>21</java.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
-        <kotlin.version>2.0.10</kotlin.version>
+        <kotlin.version>2.0.20</kotlin.version>
         <kotlin.compiler.jvmTarget>${java.version}</kotlin.compiler.jvmTarget>
 
         <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/target/site/jacoco/jacoco.xml
@@ -22,18 +22,18 @@
         <sonar.kotlin.source.version>${kotlin.version}</sonar.kotlin.source.version>
 
         <spring.boot.version>3.3.2</spring.boot.version>
-        <flyway.version>10.17.1</flyway.version>
-        <spring.modulith.version>1.2.2</spring.modulith.version>
+        <flyway.version>10.17.3</flyway.version>
+        <spring.modulith.version>1.2.3</spring.modulith.version>
         <jjwt.version>0.12.6</jjwt.version>
-        <postgresql.driver.version>42.7.3</postgresql.driver.version>
+        <postgresql.driver.version>42.7.4</postgresql.driver.version>
         <mysql.driver.version>9.0.0</mysql.driver.version>
         <bouncycastle.version>1.70</bouncycastle.version>
         <apache.fop.version>2.9</apache.fop.version>
         <qrcode.kotlin.version>4.2.0</qrcode.kotlin.version>
-        <passay.version>1.6.4</passay.version>
+        <passay.version>1.6.5</passay.version>
 
         <!-- Maven plugin version -->
-        <maven.surefire.plugin.version>3.3.1</maven.surefire.plugin.version>
+        <maven.surefire.plugin.version>3.5.0</maven.surefire.plugin.version>
         <maven.resources.plugin.version>3.3.1</maven.resources.plugin.version>
         <jacoco.maven.plugin.version>0.8.12</jacoco.maven.plugin.version>
 
