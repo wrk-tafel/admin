@@ -39,7 +39,9 @@ import {IconDirective} from '@coreui/icons-angular';
     ShadowOnScrollDirective,
     ContainerComponent,
     RouterOutlet,
-    BgColorDirective
+    BgColorDirective,
+    IconDirective,
+    SidebarBrandComponent
   ],
   standalone: true
 })
