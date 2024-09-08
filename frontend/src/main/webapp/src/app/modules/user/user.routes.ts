@@ -7,23 +7,19 @@ import {UserData} from '../../api/user-api.service';
 import {UserEditComponent} from './user-edit/user-edit.component';
 import {PermissionsDataResolver} from './resolver/permissionsdata-resolver.component';
 
-export const userDataResolver: ResolveFn<UserData> = (route: ActivatedRouteSnapshot) => {
-  return inject(UserDataResolver).resolve(route);
-};
-
 export const routes: Routes = [
   {
     path: 'detail/:id',
     component: UserDetailComponent,
     resolve: {
-      userData: userDataResolver,
+      userData: (route: ActivatedRouteSnapshot) => inject(UserDataResolver).resolve(route),
     }
   },
   {
     path: 'bearbeiten/:id',
     component: UserEditComponent,
     resolve: {
-      userData: userDataResolver,
+      userData: (route: ActivatedRouteSnapshot) => inject(UserDataResolver).resolve(route),
       permissionsData: PermissionsDataResolver
     }
   },

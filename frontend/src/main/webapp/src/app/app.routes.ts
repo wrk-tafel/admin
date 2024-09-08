@@ -22,11 +22,6 @@ const authGuardChild: CanActivateChildFn = (route: ActivatedRouteSnapshot) => {
   return inject(AuthGuardService).canActivate(route);
 };
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-export const defaultLayoutResolver: ResolveFn<any[]> = () => {
-  return inject(DefaultLayoutResolver).resolve();
-};
-
 export const routes: Routes = [
   {
     path: '',
@@ -63,7 +58,7 @@ export const routes: Routes = [
     component: DefaultLayoutComponent,
     canActivateChild: [authGuardChild],
     resolve: {
-      initialStates: defaultLayoutResolver
+      initialStates: () => inject(DefaultLayoutResolver).resolve()
     },
     children: [
       {
