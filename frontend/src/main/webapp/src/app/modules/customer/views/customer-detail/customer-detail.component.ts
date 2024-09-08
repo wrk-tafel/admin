@@ -1,5 +1,5 @@
-import {Component, inject, OnInit} from '@angular/core';
-import {ActivatedRoute, Router, RouterLink} from '@angular/router';
+import {Component, inject, Input, OnInit} from '@angular/core';
+import {Router, RouterLink} from '@angular/router';
 import * as moment from 'moment';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
 import {
@@ -12,8 +12,7 @@ import {
 } from '../../../../api/customer-api.service';
 import {HttpResponse} from '@angular/common/http';
 import {
-  CustomerNoteApiService,
-  CustomerNoteItem,
+  CustomerNoteApiService, CustomerNoteItem,
   CustomerNotesResponse
 } from '../../../../api/customer-note-api.service';
 import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
@@ -93,7 +92,9 @@ import {FaIconComponent} from '@fortawesome/angular-fontawesome';
   standalone: true
 })
 export class CustomerDetailComponent implements OnInit {
-  customerData: CustomerData;
+  @Input('customerData') customerData: CustomerData;
+  @Input('customerNotesResponse') customerNotesResponse: CustomerNotesResponse;
+
   customerNotes: CustomerNoteItem[];
   customerNotesPaginationData: TafelPaginationData;
   newNoteText: string;
@@ -102,7 +103,6 @@ export class CustomerDetailComponent implements OnInit {
   showAddNewNoteModal = false;
   showAllNotesModal = false;
   showLockCustomerModal = false;
-  private activatedRoute = inject(ActivatedRoute);
   private customerApiService = inject(CustomerApiService);
   private customerNoteApiService = inject(CustomerNoteApiService);
   private fileHelperService = inject(FileHelperService);
@@ -110,9 +110,7 @@ export class CustomerDetailComponent implements OnInit {
   private toastService = inject(ToastService);
 
   ngOnInit(): void {
-    this.customerData = this.activatedRoute.snapshot.data.customerData;
-    const customerNotesResponse: CustomerNotesResponse = this.activatedRoute.snapshot.data.customerNotes;
-    this.processCustomerNoteResponse(customerNotesResponse);
+    this.processCustomerNoteResponse(this.customerNotesResponse);
   }
 
   printMasterdata() {

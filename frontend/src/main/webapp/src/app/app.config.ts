@@ -1,7 +1,7 @@
 import {APP_INITIALIZER, ApplicationConfig, DEFAULT_CURRENCY_CODE, importProvidersFrom, LOCALE_ID} from '@angular/core';
 import {provideAnimations} from '@angular/platform-browser/animations';
 import {
-  provideRouter,
+  provideRouter, withComponentInputBinding,
   withEnabledBlockingInitialNavigation,
   withHashLocation,
   withInMemoryScrolling,
@@ -35,7 +35,8 @@ export const appConfig: ApplicationConfig = {
       }),
       withEnabledBlockingInitialNavigation(),
       withViewTransitions(),
-      withHashLocation()
+      withHashLocation(),
+      withComponentInputBinding()
     ),
     importProvidersFrom(SidebarModule, DropdownModule),
     IconSetService,
