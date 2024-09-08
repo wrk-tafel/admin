@@ -1,5 +1,5 @@
 <div>
-  <tafel-user-form [userData]="userInput" [permissionsData]="permissionsData" (userDataChange)="userDataUpdated($event)"></tafel-user-form>
+  <tafel-user-form [userData]="userData" [permissionsData]="permissionsData" (userDataChange)="userDataUpdated($event)"></tafel-user-form>
   <button testid="save-button" cButton class="px-4 mt-3" (click)="save()" [disabled]="!isSaveEnabled()"
           [color]="isSaveEnabled() ? 'success' : 'danger'">Speichern
   </button>

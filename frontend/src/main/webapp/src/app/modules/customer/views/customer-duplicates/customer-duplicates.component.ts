@@ -1,11 +1,11 @@
-import {Component, inject, OnInit} from '@angular/core';
+import {Component, inject, Input, OnInit} from '@angular/core';
 import {
   CustomerAddressData,
   CustomerApiService,
   CustomerData,
   CustomerDuplicatesResponse
 } from '../../../../api/customer-api.service';
-import {ActivatedRoute, Router} from '@angular/router';
+import {Router} from '@angular/router';
 import {
   TafelPaginationComponent,
   TafelPaginationData
@@ -44,15 +44,14 @@ import {FaIconComponent} from '@fortawesome/angular-fontawesome';
   standalone: true
 })
 export class CustomerDuplicatesComponent implements OnInit {
-  customerDuplicatesData: CustomerDuplicatesResponse;
+  @Input() customerDuplicatesData: CustomerDuplicatesResponse;
+
   paginationData: TafelPaginationData;
   private customerApiService = inject(CustomerApiService);
-  private activatedRoute = inject(ActivatedRoute);
   private router = inject(Router);
   private toastService = inject(ToastService);
 
   ngOnInit(): void {
-    this.customerDuplicatesData = this.activatedRoute.snapshot.data.customerDuplicatesData;
     this.paginationData = {
       count: this.customerDuplicatesData.items.length,
       totalCount: this.customerDuplicatesData.totalCount,

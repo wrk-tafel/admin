@@ -1,5 +1,5 @@
 <div>
-    <tafel-customer-form [customerData]="customerInput" (customerDataChange)="customerDataUpdated($event)" [editMode]="editMode"></tafel-customer-form>
+    <tafel-customer-form [customerData]="customerData" (customerDataChange)="customerDataUpdated($event)" [editMode]="editMode"></tafel-customer-form>
     <button testid="validate-button" cButton class="px-4 mt-3" (click)="validate()">Anspruch prüfen</button>
     <button testid="save-button" cButton [color]="isSaveEnabled() ? 'success' : 'danger'" class="text-white px-4 mt-3 ms-2" (click)="save()" [disabled]="!isSaveEnabled()">Speichern</button>
 </div>

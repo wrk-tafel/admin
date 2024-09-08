@@ -168,7 +168,10 @@ describe('CustomerDetailComponent', () => {
             {
               path: 'kunden/detail/:id',
               component: CustomerDetailComponent,
-              data: { customerData: mockCustomer, customerNotesResponse: mockNotesResponse }
+              data: {
+                customerData: mockCustomer,
+                customerNotesResponse: mockNotesResponse
+              }
             },
             {
               path: 'kunden/bearbeiten/:id',
