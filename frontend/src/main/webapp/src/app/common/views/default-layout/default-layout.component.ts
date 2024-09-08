@@ -1,10 +1,9 @@
 import {Component, inject, OnInit} from '@angular/core';
-import {AuthenticationService} from '../../security/authentication.service';
-import {ITafelNavData, navigationMenuItems} from './navigation-menuItems';
-import {DistributionItem} from '../../../api/distribution-api.service';
-import {GlobalStateService} from '../../state/global-state.service';
+import {RouterLink, RouterOutlet} from '@angular/router';
+import {NgScrollbar} from 'ngx-scrollbar';
+
+import {IconDirective} from '@coreui/icons-angular';
 import {
-  BgColorDirective,
   ContainerComponent,
   ShadowOnScrollDirective,
   SidebarBrandComponent,
@@ -15,10 +14,11 @@ import {
   SidebarToggleDirective,
   SidebarTogglerDirective
 } from '@coreui/angular';
-import {NgScrollbar} from 'ngx-scrollbar';
 import {DefaultHeaderComponent} from './default-header/default-header.component';
-import {RouterLink, RouterOutlet} from '@angular/router';
-import {IconDirective} from '@coreui/icons-angular';
+import {ITafelNavData, navigationMenuItems} from './navigation-menuItems';
+import {AuthenticationService} from '../../security/authentication.service';
+import {GlobalStateService} from '../../state/global-state.service';
+import {DistributionItem} from '../../../api/distribution-api.service';
 
 @Component({
   selector: 'tafel-default-layout',
@@ -38,10 +38,7 @@ import {IconDirective} from '@coreui/icons-angular';
     DefaultHeaderComponent,
     ShadowOnScrollDirective,
     ContainerComponent,
-    RouterOutlet,
-    BgColorDirective,
-    IconDirective,
-    SidebarBrandComponent
+    RouterOutlet
   ],
   standalone: true
 })
