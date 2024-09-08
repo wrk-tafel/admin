@@ -58,7 +58,7 @@ export const routes: Routes = [
     component: DefaultLayoutComponent,
     canActivateChild: [authGuardChild],
     resolve: {
-      initialStates: () => inject(DefaultLayoutResolver).resolve()
+      initialStates: DefaultLayoutResolver
     },
     children: [
       {
