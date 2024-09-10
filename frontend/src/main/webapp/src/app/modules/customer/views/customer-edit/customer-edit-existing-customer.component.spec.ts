@@ -121,11 +121,9 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
   }));
 
   it('initial checks', waitForAsync(() => {
-    apiService.getCustomer.withArgs(testCustomerData.id).and.returnValue(of(testCustomerData));
-
     const fixture = TestBed.createComponent(CustomerEditComponent);
     const component = fixture.componentInstance;
-    expect(component).toBeTruthy();
+    component.customerData = testCustomerData;
 
     component.ngOnInit();
     fixture.detectChanges();
@@ -143,10 +141,10 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
     const fixture = TestBed.createComponent(CustomerEditComponent);
     const component = fixture.componentInstance;
     component.customerFormComponent = customerFormComponent;
-    component.ngOnInit();
-    component.customerUpdated = component.customerData;
+    component.customerData = testCustomerData;
     component.customerValidForSave = true;
 
+    component.ngOnInit();
     component.save();
 
     expect(component.isSaveEnabled()).toBeTrue();
@@ -166,10 +164,10 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
     const fixture = TestBed.createComponent(CustomerEditComponent);
     const component = fixture.componentInstance;
     component.customerFormComponent = customerFormComponent;
-    component.ngOnInit();
-    component.customerUpdated = component.customerData;
+    component.customerData = testCustomerData;
     component.customerValidForSave = false;
 
+    component.ngOnInit();
     component.save();
     fixture.detectChanges();
 
@@ -189,9 +187,9 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
     const fixture = TestBed.createComponent(CustomerEditComponent);
     const component = fixture.componentInstance;
     component.customerFormComponent = customerFormComponent;
-    component.customerUpdated = component.customerData;
-    component.ngOnInit();
+    component.customerData = testCustomerData;
 
+    component.ngOnInit();
     component.save();
 
     expect(component.isSaveEnabled()).toBeFalse();
