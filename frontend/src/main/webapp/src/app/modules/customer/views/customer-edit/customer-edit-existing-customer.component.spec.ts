@@ -6,7 +6,6 @@ import {RouterTestingModule} from '@angular/router/testing';
 import * as moment from 'moment';
 import {of} from 'rxjs';
 import {CustomerApiService, CustomerData, Gender} from '../../../../api/customer-api.service';
-import {CustomerFormComponent} from '../customer-form/customer-form.component';
 import {CustomerEditComponent} from './customer-edit.component';
 import {
   BgColorDirective,
@@ -145,14 +144,14 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
     const component = fixture.componentInstance;
     component.customerFormComponent = customerFormComponent;
     component.ngOnInit();
-    component.customerUpdated = component.customerInput;
+    component.customerUpdated = component.customerData;
     component.customerValidForSave = true;
 
     component.save();
 
     expect(component.isSaveEnabled()).toBeTrue();
     expect(component.editMode).toBeTrue();
-    expect(component.customerInput).toEqual(testCustomerData);
+    expect(component.customerData).toEqual(testCustomerData);
     expect(customerFormComponent.markAllAsTouched).toHaveBeenCalled();
     expect(apiService.updateCustomer).toHaveBeenCalledWith(jasmine.objectContaining(testCustomerData));
     expect(router.navigate).toHaveBeenCalledWith(['/kunden/detail', testCustomerData.id]);
@@ -168,7 +167,7 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
     const component = fixture.componentInstance;
     component.customerFormComponent = customerFormComponent;
     component.ngOnInit();
-    component.customerUpdated = component.customerInput;
+    component.customerUpdated = component.customerData;
     component.customerValidForSave = false;
 
     component.save();
@@ -176,7 +175,7 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
 
     expect(component.isSaveEnabled()).toBeTrue();
     expect(component.editMode).toBeTrue();
-    expect(component.customerInput).toEqual(testCustomerData);
+    expect(component.customerData).toEqual(testCustomerData);
     expect(customerFormComponent.markAllAsTouched).toHaveBeenCalled();
     expect(apiService.updateCustomer).toHaveBeenCalledWith(jasmine.objectContaining(testCustomerData));
     expect(router.navigate).toHaveBeenCalledWith(['/kunden/detail', testCustomerData.id]);
@@ -190,14 +189,14 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
     const fixture = TestBed.createComponent(CustomerEditComponent);
     const component = fixture.componentInstance;
     component.customerFormComponent = customerFormComponent;
-    component.customerUpdated = component.customerInput;
+    component.customerUpdated = component.customerData;
     component.ngOnInit();
 
     component.save();
 
     expect(component.isSaveEnabled()).toBeFalse();
     expect(component.editMode).toBeTrue();
-    expect(component.customerInput).toEqual(testCustomerData);
+    expect(component.customerData).toEqual(testCustomerData);
     expect(customerFormComponent.markAllAsTouched).toHaveBeenCalled();
     expect(apiService.updateCustomer).not.toHaveBeenCalled();
     expect(router.navigate).not.toHaveBeenCalledWith(['/kunden/detail', testCustomerData.id]);

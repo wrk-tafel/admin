@@ -77,10 +77,8 @@ describe('UserDetailComponent', () => {
   it('initial data loaded and shown correctly', () => {
     const fixture = TestBed.createComponent(UserDetailComponent);
     const component = fixture.componentInstance;
-    component.ngOnInit();
+    component.userData = mockUser;
     fixture.detectChanges();
-
-    expect(component.userData).toEqual(mockUser);
 
     expect(getTextByTestId(fixture, 'nameText')).toBe(`${mockUser.firstname} ${mockUser.lastname}`);
     expect(getTextByTestId(fixture, 'usernameText')).toBe(mockUser.username);

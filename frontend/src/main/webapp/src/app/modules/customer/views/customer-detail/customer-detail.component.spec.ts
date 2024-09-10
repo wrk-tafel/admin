@@ -1,7 +1,6 @@
 import {HttpHeaders, HttpResponse} from '@angular/common/http';
 import {ComponentFixture, TestBed, waitForAsync} from '@angular/core/testing';
 import {By} from '@angular/platform-browser';
-import {provideRouter, withComponentInputBinding} from '@angular/router';
 import * as moment from 'moment';
 import {of, throwError} from 'rxjs';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
@@ -27,9 +26,6 @@ import {
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
 import {TafelPaginationData} from '../../../../common/components/tafel-pagination/tafel-pagination.component';
-import {CustomerEditComponent} from "../customer-edit/customer-edit.component";
-import {CustomerSearchComponent} from "../customer-search/customer-search.component";
-import {provideLocationMocks} from "@angular/common/testing";
 
 describe('CustomerDetailComponent', () => {
   let customerApiService: jasmine.SpyObj<CustomerApiService>;
@@ -164,27 +160,6 @@ describe('CustomerDetailComponent', () => {
           provide: ToastService,
           useValue: toastServiceSpy
         },
-        provideRouter([
-            {
-              path: 'kunden/detail/:id',
-              component: CustomerDetailComponent,
-              data: {
-                customerData: mockCustomer,
-                customerNotesResponse: mockNotesResponse
-              }
-            },
-            {
-              path: 'kunden/bearbeiten/:id',
-              component: CustomerEditComponent,
-            },
-            {
-              path: 'kunden/suchen',
-              component: CustomerSearchComponent,
-            },
-          ],
-          withComponentInputBinding()
-        ),
-        provideLocationMocks(),
       ]
     }).compileComponents();
 
@@ -204,6 +179,8 @@ describe('CustomerDetailComponent', () => {
   it('initial data loaded and shown correctly', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
+    component.customerData = mockCustomer;
+    component.customerNotesResponse = mockNotesResponse;
 
     component.ngOnInit();
     fixture.detectChanges();

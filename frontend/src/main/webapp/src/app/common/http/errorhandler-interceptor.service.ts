@@ -84,7 +84,5 @@ export class ErrorHandlerInterceptor implements HttpInterceptor {
 }
 
 export interface TafelErrorResponse {
-  status: number;
-  error: string;
   message: string;
 }
