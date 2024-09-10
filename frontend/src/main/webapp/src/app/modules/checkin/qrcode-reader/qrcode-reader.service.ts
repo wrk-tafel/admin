@@ -1,4 +1,3 @@
-import {Injectable} from '@angular/core';
 import {Html5Qrcode, Html5QrcodeSupportedFormats} from 'html5-qrcode';
 import {QrcodeSuccessCallback} from 'html5-qrcode/esm/core';
 import {CameraDevice} from 'html5-qrcode/esm/camera/core';

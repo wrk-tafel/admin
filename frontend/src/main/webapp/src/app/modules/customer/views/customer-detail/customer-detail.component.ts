@@ -229,7 +229,9 @@ export class CustomerDetailComponent implements OnInit {
   unlockCustomer() {
     const updatedCustomerData: CustomerData = {
       ...this.customerData,
-      locked: false
+      locked: false,
+      lockedBy: null,
+      lockReason: null
     };
 
     this.customerApiService.updateCustomer(updatedCustomerData).subscribe(customerData => {

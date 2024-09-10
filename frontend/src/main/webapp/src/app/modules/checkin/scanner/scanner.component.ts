@@ -69,8 +69,8 @@ export class ScannerComponent implements OnInit, OnDestroy {
     });
   }
 
-  ngOnDestroy(): void {
-    this.qrCodeReaderService.stop();
+  async ngOnDestroy(): Promise<void> {
+    await this.qrCodeReaderService.stop();
   }
 
   async processQrCodeReaderPromise(promise: Promise<null>) {

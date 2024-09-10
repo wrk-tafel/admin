@@ -26,6 +26,7 @@ import {
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
 import {TafelPaginationData} from '../../../../common/components/tafel-pagination/tafel-pagination.component';
+import {provideRouter} from '@angular/router';
 
 describe('CustomerDetailComponent', () => {
   let customerApiService: jasmine.SpyObj<CustomerApiService>;
@@ -97,7 +98,7 @@ describe('CustomerDetailComponent', () => {
       }
     ]
   };
-  const mockNotesResponse: CustomerNotesResponse = {
+  const mockCustomerNotesResponse: CustomerNotesResponse = {
     items: [
       {
         author: 'author1',
@@ -160,6 +161,7 @@ describe('CustomerDetailComponent', () => {
           provide: ToastService,
           useValue: toastServiceSpy
         },
+        provideRouter([]),
       ]
     }).compileComponents();
 
@@ -180,19 +182,19 @@ describe('CustomerDetailComponent', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
     component.customerData = mockCustomer;
-    component.customerNotesResponse = mockNotesResponse;
+    component.customerNotesResponse = mockCustomerNotesResponse;
 
     component.ngOnInit();
     fixture.detectChanges();
 
     expect(component.customerData).toEqual(mockCustomer);
-    expect(component.customerNotes).toEqual(mockNotesResponse.items);
+    expect(component.customerNotes).toEqual(mockCustomerNotesResponse.items);
     const expectedPaginationData: TafelPaginationData = {
-      count: mockNotesResponse.items.length,
-      currentPage: mockNotesResponse.currentPage,
-      totalCount: mockNotesResponse.totalCount,
-      totalPages: mockNotesResponse.totalPages,
-      pageSize: mockNotesResponse.pageSize
+      count: mockCustomerNotesResponse.items.length,
+      currentPage: mockCustomerNotesResponse.currentPage,
+      totalCount: mockCustomerNotesResponse.totalCount,
+      totalPages: mockCustomerNotesResponse.totalPages,
+      pageSize: mockCustomerNotesResponse.pageSize
     };
     expect(component.customerNotesPaginationData).toEqual(expectedPaginationData);
 
@@ -233,7 +235,7 @@ describe('CustomerDetailComponent', () => {
     expect(getTextByTestId(fixture, 'addperson-1-incomeDueText')).toBe('-');
 
     // validate note
-    const expectedTimestamp = moment(mockNotesResponse.items[0].timestamp).format('DD.MM.YYYY HH:mm');
+    const expectedTimestamp = moment(mockCustomerNotesResponse.items[0].timestamp).format('DD.MM.YYYY HH:mm');
     expect(getTextByTestId(fixture, 'note-title')).toBe(expectedTimestamp + ' author1');
 
     // TODO fix flaky assert
@@ -252,8 +254,10 @@ describe('CustomerDetailComponent', () => {
 
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
-    component.ngOnInit();
+    component.customerData = mockCustomer;
+    component.customerNotesResponse = mockCustomerNotesResponse;
 
+    component.ngOnInit();
     component.printMasterdata();
 
     expect(fileHelperService.downloadFile).toHaveBeenCalledWith('test-name-1.pdf', response.body);
@@ -271,8 +275,10 @@ describe('CustomerDetailComponent', () => {
 
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
-    component.ngOnInit();
+    component.customerData = mockCustomer;
+    component.customerNotesResponse = mockCustomerNotesResponse;
 
+    component.ngOnInit();
     component.printIdCard();
 
     expect(fileHelperService.downloadFile).toHaveBeenCalledWith('test-name-1.pdf', response.body);
@@ -290,6 +296,9 @@ describe('CustomerDetailComponent', () => {
 
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
+    component.customerData = mockCustomer;
+    component.customerNotesResponse = mockCustomerNotesResponse;
+
     component.ngOnInit();
 
     component.printCombined();
@@ -300,8 +309,10 @@ describe('CustomerDetailComponent', () => {
   it('editCustomer', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
-    component.ngOnInit();
+    component.customerData = mockCustomer;
+    component.customerNotesResponse = mockCustomerNotesResponse;
 
+    component.ngOnInit();
     component.editCustomer();
 
     // TODO expect(router.navigate).toHaveBeenCalledWith(['/kunden/bearbeiten', mockCustomer.id]);
@@ -443,11 +454,14 @@ describe('CustomerDetailComponent', () => {
       lockedBy: 'whoever',
       lockReason: 'lock-text'
     };
+    component.customerNotesResponse = mockCustomerNotesResponse;
     fixture.detectChanges();
 
     const expectedCustomerData = {
       ...mockCustomer,
-      locked: false
+      locked: false,
+      lockedBy: null,
+      lockReason: null
     };
     customerApiService.updateCustomer.and.returnValue(of(expectedCustomerData));
 
