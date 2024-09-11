@@ -174,19 +174,19 @@ export class CustomerDetailComponent implements OnInit {
     return !moment(this.customerData.validUntil).startOf('day').isBefore(moment().startOf('day'));
   }
 
-  deleteCustomer() {
+  async deleteCustomer() {
     /* eslint-disable @typescript-eslint/no-unused-vars */
     const observer = {
-      next: (response) => {
+      next: async (response) => {
         this.toastService.showToast({type: ToastType.SUCCESS, title: 'Kunde wurde gelöscht!'});
-        this.router.navigate(['/kunden/suchen']);
+        await this.router.navigate(['/kunden/suchen']);
       },
       error: error => {
         this.showDeleteCustomerModal = false;
         this.toastService.showToast({type: ToastType.ERROR, title: 'Löschen fehlgeschlagen!'});
       },
     };
-    this.customerApiService.deleteCustomer(this.customerData.id).subscribe(observer);
+    await this.customerApiService.deleteCustomer(this.customerData.id).subscribe(observer);
   }
 
   prolongCustomer(countMonths: number) {

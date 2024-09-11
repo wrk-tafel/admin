@@ -29,7 +29,7 @@ import {TafelPaginationData} from '../../../../common/components/tafel-paginatio
 import {provideRouter} from '@angular/router';
 import {CustomerEditComponent} from "../customer-edit/customer-edit.component";
 import {provideLocationMocks} from "@angular/common/testing";
-import {RouterTestingHarness} from "@angular/router/testing";
+import {CustomerSearchComponent} from "../customer-search/customer-search.component";
 
 describe('CustomerDetailComponent', () => {
   let customerApiService: jasmine.SpyObj<CustomerApiService>;
@@ -169,6 +169,10 @@ describe('CustomerDetailComponent', () => {
               path: 'kunden/bearbeiten/:id',
               component: CustomerEditComponent,
             },
+            {
+              path: 'kunden/suchen',
+              component: CustomerSearchComponent
+            }
           ],
         ),
         provideLocationMocks()
@@ -371,21 +375,25 @@ describe('CustomerDetailComponent', () => {
     // TODO expect(incomeDueText)-class success or danger
   });
 
-  it('delete customer successful', () => {
+  it('delete customer successful', waitForAsync(async () => {
+    const location = TestBed.inject(Location);
+
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
     component.customerData = mockCustomer;
 
     customerApiService.deleteCustomer.and.returnValue(of(null));
 
-    component.deleteCustomer();
+    await component.deleteCustomer();
 
     expect(customerApiService.deleteCustomer).toHaveBeenCalled();
-    // TODO expect(router.navigate).toHaveBeenCalledWith(['/kunden/suchen']);
+    expect(location.path()).toBe('/kunden/suchen');
     expect(toastService.showToast).toHaveBeenCalledWith({type: ToastType.SUCCESS, title: 'Kunde wurde gelöscht!'});
-  });
+  }));
 
   it('delete customer failed', () => {
+    const location = TestBed.inject(Location);
+
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
     component.showDeleteCustomerModal = true;
@@ -398,7 +406,7 @@ describe('CustomerDetailComponent', () => {
     component.deleteCustomer();
 
     expect(customerApiService.deleteCustomer).toHaveBeenCalled();
-    // TODO expect(router.navigate).not.toHaveBeenCalledWith(['/kunden/suchen']);
+    expect(location.path()).not.toBe('/kunden/suchen');
     expect(component.showDeleteCustomerModal).toBeFalsy();
     expect(toastService.showToast).toHaveBeenCalledWith({type: ToastType.ERROR, title: 'Löschen fehlgeschlagen!'});
   });
