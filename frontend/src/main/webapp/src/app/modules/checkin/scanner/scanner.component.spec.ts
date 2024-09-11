@@ -42,7 +42,7 @@ describe('ScannerComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('ngOnInit', fakeAsync(() => {
+  it('ngOnInit', waitForAsync(async () => {
     const fixture = TestBed.createComponent(ScannerComponent);
     const component = fixture.componentInstance;
 
@@ -65,8 +65,7 @@ describe('ScannerComponent', () => {
     };
     wsService.watch.and.returnValue(of(message));
 
-    component.ngOnInit();
-    tick(1000);
+    await component.ngOnInit();
 
     expect(component.apiClientReady()).toBeTruthy();
     expect(component.scannerId).toBe(registration.scannerId);

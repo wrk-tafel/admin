@@ -54,19 +54,21 @@ export class ScannerComponent implements OnInit, OnDestroy {
     this.processQrCodeReaderPromise(promise);
   }
 
-  ngOnInit(): void {
-    this.websocketService.getConnectionState().subscribe((state: RxStompState) => {
+  async ngOnInit(): Promise<void> {
+    const wsPromise = this.websocketService.getConnectionState().subscribe((state: RxStompState) => {
       this.processApiConnectionState(state);
     });
 
-    this.qrCodeReaderService.getCameras().then(cameras => {
+    const qrPromise = this.qrCodeReaderService.getCameras().then(async cameras => {
       this.availableCameras = cameras;
       this.currentCamera = this.qrCodeReaderService.getCurrentCamera(cameras);
 
       this.qrCodeReaderService.init('qrCodeReaderBox', this.qrCodeReaderSuccessCallback);
       const promise = this.qrCodeReaderService.start(this.currentCamera.id);
-      this.processQrCodeReaderPromise(promise);
+      await this.processQrCodeReaderPromise(promise);
     });
+
+    await Promise.all([wsPromise, qrPromise])
   }
 
   async ngOnDestroy(): Promise<void> {
