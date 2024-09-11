@@ -6,7 +6,7 @@ import {of, throwError} from 'rxjs';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
 import {CustomerApiService, CustomerData, Gender} from '../../../../api/customer-api.service';
 import {CustomerDetailComponent} from './customer-detail.component';
-import {CommonModule} from '@angular/common';
+import {CommonModule, Location} from '@angular/common';
 import {DEFAULT_CURRENCY_CODE, LOCALE_ID} from '@angular/core';
 import {
   CustomerNoteApiService,
@@ -27,6 +27,9 @@ import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
 import {TafelPaginationData} from '../../../../common/components/tafel-pagination/tafel-pagination.component';
 import {provideRouter} from '@angular/router';
+import {CustomerEditComponent} from "../customer-edit/customer-edit.component";
+import {provideLocationMocks} from "@angular/common/testing";
+import {RouterTestingHarness} from "@angular/router/testing";
 
 describe('CustomerDetailComponent', () => {
   let customerApiService: jasmine.SpyObj<CustomerApiService>;
@@ -161,7 +164,14 @@ describe('CustomerDetailComponent', () => {
           provide: ToastService,
           useValue: toastServiceSpy
         },
-        provideRouter([]),
+        provideRouter([
+            {
+              path: 'kunden/bearbeiten/:id',
+              component: CustomerEditComponent,
+            },
+          ],
+        ),
+        provideLocationMocks()
       ]
     }).compileComponents();
 
@@ -306,17 +316,20 @@ describe('CustomerDetailComponent', () => {
     expect(fileHelperService.downloadFile).toHaveBeenCalledWith('test-name-1.pdf', response.body);
   });
 
-  it('editCustomer', () => {
+  it('editCustomer', waitForAsync(async () => {
+    const location = TestBed.inject(Location);
+
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
     component.customerData = mockCustomer;
     component.customerNotesResponse = mockCustomerNotesResponse;
+    fixture.detectChanges();
 
     component.ngOnInit();
-    component.editCustomer();
+    await component.editCustomer();
 
-    // TODO expect(router.navigate).toHaveBeenCalledWith(['/kunden/bearbeiten', mockCustomer.id]);
-  });
+    expect(location.path()).toBe('/kunden/bearbeiten/' + mockCustomer.id);
+  }));
 
   it('isValid with date of yesterday results in false', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);

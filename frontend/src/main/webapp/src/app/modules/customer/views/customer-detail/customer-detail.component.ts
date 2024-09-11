@@ -166,8 +166,8 @@ export class CustomerDetailComponent implements OnInit {
     return '';
   }
 
-  editCustomer() {
-    this.router.navigate(['/kunden/bearbeiten', this.customerData.id]);
+  async editCustomer() {
+    await this.router.navigate(['/kunden/bearbeiten', this.customerData.id]);
   }
 
   isValid(): boolean {
