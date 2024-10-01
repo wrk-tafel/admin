@@ -9,6 +9,7 @@
 * Improve creation / enforce search before creating
 * Add goods-input
 * Add "supervisor" role (can force-fully create customers even when exceeding the income limit)
+* Fix menu when collapsed - first character of text is shown
 
 statistic:
 * add alleinerzieher flag
