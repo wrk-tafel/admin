@@ -1,30 +1,34 @@
-import {Component, inject, OnInit, ViewChild} from '@angular/core';
+import {Component, inject, Input, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {UserApiService, UserData, UserPermission} from '../../../api/user-api.service';
 import {UserFormComponent} from '../user-form/user-form.component';
+import {NgClass} from '@angular/common';
+import {ButtonDirective} from '@coreui/angular';
 
 @Component({
   selector: 'tafel-user-edit',
-  templateUrl: 'user-edit.component.html'
+  templateUrl: 'user-edit.component.html',
+  imports: [
+    UserFormComponent,
+    NgClass,
+    ButtonDirective
+  ],
+  standalone: true
 })
 export class UserEditComponent implements OnInit {
-  userInput: UserData;
+  @Input() permissionsData: UserPermission[];
+  @Input() userData: UserData;
+
   userUpdated: UserData;
   userValidForSave = false;
-  permissionsData: UserPermission[];
   @ViewChild(UserFormComponent) userFormComponent: UserFormComponent;
   private userApiService = inject(UserApiService);
   private router = inject(Router);
-  private activatedRoute = inject(ActivatedRoute);
 
   ngOnInit(): void {
-    this.permissionsData = this.activatedRoute.snapshot.data.permissionsData;
-    const editUserData = this.activatedRoute.snapshot.data.userData;
-
-    if (editUserData) {
+    if (this.userData) {
       // Load data into forms
-      this.userInput = editUserData;
-      this.userUpdated = editUserData;
+      this.userUpdated = this.userData;
 
       // Mark forms as touched to show the validation state (postponed to next macrotask after angular finished)
       setTimeout(() => {
@@ -41,7 +45,7 @@ export class UserEditComponent implements OnInit {
   save() {
     this.userFormComponent.markAllAsTouched();
 
-    if (!this.userInput) {
+    if (!this.userData) {
       this.userApiService.createUser(this.userUpdated)
         .subscribe(user => {
             this.router.navigate(['/benutzer/detail', user.id]);

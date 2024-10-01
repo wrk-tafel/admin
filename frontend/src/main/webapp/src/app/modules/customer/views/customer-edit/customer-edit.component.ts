@@ -1,16 +1,38 @@
-import {Component, inject, OnInit, ViewChild} from '@angular/core';
+import {Component, inject, Input, OnInit, ViewChild} from '@angular/core';
 import {CustomerFormComponent} from '../customer-form/customer-form.component';
 import {CustomerApiService, CustomerData, ValidateCustomerResponse} from '../../../../api/customer-api.service';
-import {ActivatedRoute, Router} from '@angular/router';
-import {Colors} from '@coreui/angular';
+import {Router} from '@angular/router';
+import {
+  BgColorDirective, ButtonCloseDirective, ButtonDirective,
+  Colors,
+  ModalBodyComponent,
+  ModalComponent, ModalFooterComponent,
+  ModalHeaderComponent,
+  ModalToggleDirective
+} from '@coreui/angular';
 import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
+import {NgClass} from '@angular/common';
 
 @Component({
   selector: 'tafel-customer-edit',
-  templateUrl: 'customer-edit.component.html'
+  templateUrl: 'customer-edit.component.html',
+  imports: [
+    CustomerFormComponent,
+    NgClass,
+    ModalComponent,
+    ModalHeaderComponent,
+    ModalToggleDirective,
+    BgColorDirective,
+    ModalBodyComponent,
+    ModalFooterComponent,
+    ButtonCloseDirective,
+    ButtonDirective
+  ],
+  standalone: true
 })
 export class CustomerEditComponent implements OnInit {
-  customerInput: CustomerData;
+  @Input('customerData') customerData: CustomerData;
+
   customerUpdated: CustomerData;
   editMode = false;
   customerValidForSave = false;
@@ -20,17 +42,14 @@ export class CustomerEditComponent implements OnInit {
   @ViewChild(CustomerFormComponent) customerFormComponent: CustomerFormComponent;
   private customerApiService = inject(CustomerApiService);
   private router = inject(Router);
-  private activatedRoute = inject(ActivatedRoute);
   private toastService = inject(ToastService);
 
   ngOnInit(): void {
-    const customerData = this.activatedRoute.snapshot.data.customerData;
-    if (customerData) {
+    if (this.customerData) {
       this.editMode = true;
 
       // Load data into forms
-      this.customerInput = customerData;
-      this.customerUpdated = customerData;
+      this.customerUpdated = this.customerData;
 
       // Mark forms as touched to show the validation state (postponed to next macrotask after angular finished)
       setTimeout(() => {

@@ -6,7 +6,6 @@ import {RouterTestingModule} from '@angular/router/testing';
 import * as moment from 'moment';
 import {of} from 'rxjs';
 import {CustomerApiService, CustomerData, Gender} from '../../../../api/customer-api.service';
-import {CustomerFormComponent} from '../customer-form/customer-form.component';
 import {CustomerEditComponent} from './customer-edit.component';
 import {
   BgColorDirective,
@@ -95,10 +94,6 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
         ColComponent,
         BgColorDirective
       ],
-      declarations: [
-        CustomerEditComponent,
-        CustomerFormComponent
-      ],
       providers: [
         {
           provide: CustomerApiService,
@@ -126,11 +121,9 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
   }));
 
   it('initial checks', waitForAsync(() => {
-    apiService.getCustomer.withArgs(testCustomerData.id).and.returnValue(of(testCustomerData));
-
     const fixture = TestBed.createComponent(CustomerEditComponent);
     const component = fixture.componentInstance;
-    expect(component).toBeTruthy();
+    component.customerData = testCustomerData;
 
     component.ngOnInit();
     fixture.detectChanges();
@@ -148,15 +141,15 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
     const fixture = TestBed.createComponent(CustomerEditComponent);
     const component = fixture.componentInstance;
     component.customerFormComponent = customerFormComponent;
-    component.ngOnInit();
-    component.customerUpdated = component.customerInput;
+    component.customerData = testCustomerData;
     component.customerValidForSave = true;
 
+    component.ngOnInit();
     component.save();
 
     expect(component.isSaveEnabled()).toBeTrue();
     expect(component.editMode).toBeTrue();
-    expect(component.customerInput).toEqual(testCustomerData);
+    expect(component.customerData).toEqual(testCustomerData);
     expect(customerFormComponent.markAllAsTouched).toHaveBeenCalled();
     expect(apiService.updateCustomer).toHaveBeenCalledWith(jasmine.objectContaining(testCustomerData));
     expect(router.navigate).toHaveBeenCalledWith(['/kunden/detail', testCustomerData.id]);
@@ -171,16 +164,16 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
     const fixture = TestBed.createComponent(CustomerEditComponent);
     const component = fixture.componentInstance;
     component.customerFormComponent = customerFormComponent;
-    component.ngOnInit();
-    component.customerUpdated = component.customerInput;
+    component.customerData = testCustomerData;
     component.customerValidForSave = false;
 
+    component.ngOnInit();
     component.save();
     fixture.detectChanges();
 
     expect(component.isSaveEnabled()).toBeTrue();
     expect(component.editMode).toBeTrue();
-    expect(component.customerInput).toEqual(testCustomerData);
+    expect(component.customerData).toEqual(testCustomerData);
     expect(customerFormComponent.markAllAsTouched).toHaveBeenCalled();
     expect(apiService.updateCustomer).toHaveBeenCalledWith(jasmine.objectContaining(testCustomerData));
     expect(router.navigate).toHaveBeenCalledWith(['/kunden/detail', testCustomerData.id]);
@@ -194,14 +187,14 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
     const fixture = TestBed.createComponent(CustomerEditComponent);
     const component = fixture.componentInstance;
     component.customerFormComponent = customerFormComponent;
-    component.customerUpdated = component.customerInput;
-    component.ngOnInit();
+    component.customerData = testCustomerData;
 
+    component.ngOnInit();
     component.save();
 
     expect(component.isSaveEnabled()).toBeFalse();
     expect(component.editMode).toBeTrue();
-    expect(component.customerInput).toEqual(testCustomerData);
+    expect(component.customerData).toEqual(testCustomerData);
     expect(customerFormComponent.markAllAsTouched).toHaveBeenCalled();
     expect(apiService.updateCustomer).not.toHaveBeenCalled();
     expect(router.navigate).not.toHaveBeenCalledWith(['/kunden/detail', testCustomerData.id]);

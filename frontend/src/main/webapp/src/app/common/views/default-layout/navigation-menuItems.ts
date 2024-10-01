@@ -10,7 +10,7 @@ export const navigationMenuItems: ITafelNavData[] = [
   {
     name: 'Übersicht',
     url: '/uebersicht',
-    icon: 'fa fa-gauge'
+    iconComponent: { name: 'cil-speedometer' }
   },
   {
     name: 'Anmeldung',
@@ -19,20 +19,20 @@ export const navigationMenuItems: ITafelNavData[] = [
   {
     name: 'Annahme',
     url: '/anmeldung/annahme',
-    icon: 'fa fa-check',
+    iconComponent: { name: 'cil-check-alt' },
     permissions: ['CHECKIN'],
     activeDistributionRequired: true
   },
   {
     name: 'Scanner',
     url: '/anmeldung/scanner',
-    icon: 'fa fa-barcode',
+    iconComponent: { name: 'cil-barcode' },
     permissions: ['SCANNER']
   },
   {
     name: 'Ticket-Monitor',
     url: '/anmeldung/ticketmonitor-steuerung',
-    icon: 'fa fa-ticket-simple',
+    iconComponent: { name: 'cil-screen-desktop' },
     permissions: ['CHECKIN']
   },
   {
@@ -42,19 +42,19 @@ export const navigationMenuItems: ITafelNavData[] = [
   {
     name: 'Kunden suchen',
     url: '/kunden/suchen',
-    icon: 'fa fa-search',
+    iconComponent: { name: 'cil-search' },
     permissions: ['CUSTOMER']
   },
   {
     name: 'Kunden anlegen',
     url: '/kunden/anlegen',
-    icon: 'fa fa-plus',
+    iconComponent: { name: 'cil-plus' },
     permissions: ['CUSTOMER']
   },
   {
     name: 'Kunden-Duplikate',
     url: '/kunden/duplikate',
-    icon: 'fa fa-copy',
+    iconComponent: { name: 'cil-copy' },
     permissions: ['CUSTOMER_DUPLICATES']
   },
   {
@@ -69,12 +69,12 @@ export const navigationMenuItems: ITafelNavData[] = [
       {
         name: 'Benutzer suchen',
         url: '/benutzer/suchen',
-        icon: 'fa fa-search'
+        iconComponent: { name: 'cil-search' }
       },
       {
         name: 'Benutzer anlegen',
         url: '/benutzer/erstellen',
-        icon: 'fa fa-plus'
+        iconComponent: { name: 'cil-plus' }
       }
     ]
   },

@@ -10,7 +10,7 @@ describe('TicketScreen', () => {
     cy.byTestId('starttime-input').type('12:34');
     cy.byTestId('show-starttime-button').click();
 
-    cy.byTestId('title').should('have.text', 'Startzeit');
+    cy.byTestId('title').should('have.text', 'Start-Zeit');
     cy.byTestId('starttime-text').should('have.text', '12:34');
   });
 

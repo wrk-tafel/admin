@@ -1,35 +1,40 @@
+<!--<c-header class="mb-4 d-print-none" position="sticky">-->
 <ng-container>
-  <c-container [fluid]="true">
+  <c-container [fluid]="true" class="border-bottom px-4">
     <button
-      toggle="visible"
-      cHeaderToggler
       [cSidebarToggle]="sidebarId"
+      cHeaderToggler
+      cButton
+      toggle="visible"
+      style="margin-inline-start: -14px;"
+      aria-label="Menü ein-/ausklappen"
     >
       <svg cIcon name="cilMenu" size="lg"></svg>
     </button>
-    <c-header-nav class="ms-3">
-      <ng-container *ngTemplateOutlet="userDropdown"></ng-container>
+    <c-header-nav class="mx-0">
+      <ng-container *ngTemplateOutlet="userDropdown"/>
     </c-header-nav>
   </c-container>
 </ng-container>
+<!--</c-header>-->
 <ng-template #userDropdown>
-  <c-dropdown alignment="end" variant="nav-item" testid="usermenu">
-    <button cButton color="" [caret]="false" cDropdownToggle class="py-0">
+  <c-dropdown [popperOptions]="{ placement: 'bottom-start' }" variant="nav-item" testid="usermenu">
+    <button [caret]="false" cDropdownToggle class="py-0 pe-0" aria-label="Öffne Benutzermenü">
       <c-avatar
-        cTextColor="primary"
         shape="rounded-1"
-        size="md"
+        [size]="'md'"
         src="./assets/img/user/user.svg"
-      >
-      </c-avatar>
+        textColor="primary"
+        alt="Benutzer-Avatar"
+      />
     </button>
-    <ul cDropdownMenu class="pt-0 pr-5 w-auto">
+    <ul cDropdownMenu class="pt-0 w-auto">
       <li>
-        <h6 cDropdownHeader class="bg-light fw-semibold py-2">Benutzer</h6>
+        <h6 cDropdownHeader class="bg-light fw-semibold py-2 rounded-top">Benutzer</h6>
       </li>
       <li>
         <a [routerLink]="['/passwortaendern']" cDropdownItem testid="usermenu-changepassword">
-          <i class="fa fa-key"></i> Passwort ändern
+          <fa-icon [icon]="faKey"></fa-icon> Passwort ändern
         </a>
       </li>
       <li>
@@ -37,7 +42,7 @@
       </li>
       <li>
         <a [routerLink]="[]" cDropdownItem testid="usermenu-logout" (click)="logout()">
-          <i class="fa fa-lock"></i> Abmelden
+          <fa-icon [icon]="faLock"></fa-icon> Abmelden
         </a>
       </li>
     </ul>

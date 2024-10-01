@@ -4,10 +4,34 @@ import {RxStompState} from '@stomp/rx-stomp';
 import {WebsocketService} from '../../../common/websocket/websocket.service';
 import {CameraDevice} from 'html5-qrcode/esm/camera/core';
 import {Html5QrcodeResult} from 'html5-qrcode/core';
+import {
+  BadgeComponent,
+  CardBodyComponent,
+  CardComponent,
+  ColComponent,
+  FormSelectDirective,
+  RowComponent
+} from '@coreui/angular';
+import {FormsModule} from '@angular/forms';
+import {CommonModule} from "@angular/common";
 
 @Component({
   selector: 'tafel-scanner',
-  templateUrl: 'scanner.component.html'
+  templateUrl: 'scanner.component.html',
+  imports: [
+    RowComponent,
+    ColComponent,
+    CardComponent,
+    CardBodyComponent,
+    BadgeComponent,
+    FormsModule,
+    FormSelectDirective,
+    CommonModule
+  ],
+  providers: [
+    QRCodeReaderService
+  ],
+  standalone: true
 })
 export class ScannerComponent implements OnInit, OnDestroy {
   private qrCodeReaderService = inject(QRCodeReaderService);
@@ -40,23 +64,25 @@ export class ScannerComponent implements OnInit, OnDestroy {
     this.processQrCodeReaderPromise(promise);
   }
 
-  ngOnInit(): void {
-    this.websocketService.getConnectionState().subscribe((state: RxStompState) => {
+  async ngOnInit(): Promise<void> {
+    const wsPromise = this.websocketService.getConnectionState().subscribe((state: RxStompState) => {
       this.processApiConnectionState(state);
     });
 
-    this.qrCodeReaderService.getCameras().then(cameras => {
+    const qrPromise = this.qrCodeReaderService.getCameras().then(async cameras => {
       this.availableCameras = cameras;
       this.currentCamera = this.qrCodeReaderService.getCurrentCamera(cameras);
 
       this.qrCodeReaderService.init('qrCodeReaderBox', this.qrCodeReaderSuccessCallback);
       const promise = this.qrCodeReaderService.start(this.currentCamera.id);
-      this.processQrCodeReaderPromise(promise);
+      await this.processQrCodeReaderPromise(promise);
     });
+
+    await Promise.all([wsPromise, qrPromise])
   }
 
-  ngOnDestroy(): void {
-    this.qrCodeReaderService.stop();
+  async ngOnDestroy(): Promise<void> {
+    await this.qrCodeReaderService.stop();
   }
 
   async processQrCodeReaderPromise(promise: Promise<null>) {

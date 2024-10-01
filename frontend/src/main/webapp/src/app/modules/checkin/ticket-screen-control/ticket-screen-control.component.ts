@@ -1,13 +1,26 @@
 import {Component, inject} from '@angular/core';
-import {FormControl, FormGroup, Validators} from '@angular/forms';
+import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {WebsocketService} from '../../../common/websocket/websocket.service';
-import {TicketScreenMessage} from '../ticket-screen/ticket-screen.component';
+import {TicketScreenComponent, TicketScreenMessage} from '../ticket-screen/ticket-screen.component';
 import {DistributionTicketApiService, TicketNumberResponse} from '../../../api/distribution-ticket-api.service';
 import {UrlHelperService} from '../../../common/util/url-helper.service';
+import {ButtonDirective, CardBodyComponent, CardComponent, ColComponent, RowComponent} from '@coreui/angular';
+import {NgClass} from '@angular/common';
 
 @Component({
   selector: 'tafel-ticket-screen-control',
-  templateUrl: 'ticket-screen-control.component.html'
+  templateUrl: 'ticket-screen-control.component.html',
+  imports: [
+    CardComponent,
+    CardBodyComponent,
+    RowComponent,
+    ColComponent,
+    ReactiveFormsModule,
+    NgClass,
+    TicketScreenComponent,
+    ButtonDirective
+  ],
+  standalone: true
 })
 export class TicketScreenControlComponent {
   form = new FormGroup({

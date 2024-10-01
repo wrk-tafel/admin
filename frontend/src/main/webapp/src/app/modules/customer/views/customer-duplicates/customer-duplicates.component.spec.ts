@@ -89,10 +89,6 @@ describe('CustomerDuplicatesComponent', () => {
         RowComponent,
         PaginationModule
       ],
-      declarations: [
-        TafelPaginationComponent,
-        CustomerDuplicatesComponent
-      ],
       providers: [
         {
           provide: CustomerApiService,
@@ -134,6 +130,7 @@ describe('CustomerDuplicatesComponent', () => {
   it('init fills data correctly', () => {
     const fixture = TestBed.createComponent(CustomerDuplicatesComponent);
     const component = fixture.componentInstance;
+    component.customerDuplicatesData = mockCustomerDuplicatesDataResponse;
 
     component.ngOnInit();
 

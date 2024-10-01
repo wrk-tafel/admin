@@ -1,13 +1,19 @@
 import {Component, inject} from '@angular/core';
-import {FormControl, FormGroup, ValidatorFn, Validators} from '@angular/forms';
+import {FormControl, FormGroup, ReactiveFormsModule, ValidatorFn, Validators} from '@angular/forms';
 import {ChangePasswordRequest, ChangePasswordResponse, UserApiService} from '../../../api/user-api.service';
 import {catchError, map} from 'rxjs/operators';
 import {Observable, throwError} from 'rxjs';
 import {HttpErrorResponse} from '@angular/common/http';
+import {NgClass} from '@angular/common';
 
 @Component({
   selector: 'tafel-passwordchange-form',
-  templateUrl: 'passwordchange-form.component.html'
+  templateUrl: 'passwordchange-form.component.html',
+  imports: [
+    ReactiveFormsModule,
+    NgClass
+  ],
+  standalone: true
 })
 export class PasswordChangeFormComponent {
   successMessage: string;

@@ -24,10 +24,6 @@ describe('DefaultLayoutComponent', () => {
         ContainerComponent,
         HeaderNavComponent
       ],
-      declarations: [
-        DefaultLayoutComponent,
-        DefaultHeaderComponent
-      ],
       providers: [
         {
           provide: AuthenticationService,

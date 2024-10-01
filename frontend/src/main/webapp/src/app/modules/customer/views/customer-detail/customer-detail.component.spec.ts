@@ -1,13 +1,12 @@
 import {HttpHeaders, HttpResponse} from '@angular/common/http';
 import {ComponentFixture, TestBed, waitForAsync} from '@angular/core/testing';
 import {By} from '@angular/platform-browser';
-import {ActivatedRoute, Router} from '@angular/router';
 import * as moment from 'moment';
 import {of, throwError} from 'rxjs';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
 import {CustomerApiService, CustomerData, Gender} from '../../../../api/customer-api.service';
 import {CustomerDetailComponent} from './customer-detail.component';
-import {CommonModule} from '@angular/common';
+import {CommonModule, Location} from '@angular/common';
 import {DEFAULT_CURRENCY_CODE, LOCALE_ID} from '@angular/core';
 import {
   CustomerNoteApiService,
@@ -27,12 +26,15 @@ import {
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
 import {TafelPaginationData} from '../../../../common/components/tafel-pagination/tafel-pagination.component';
+import {provideRouter} from '@angular/router';
+import {CustomerEditComponent} from "../customer-edit/customer-edit.component";
+import {provideLocationMocks} from "@angular/common/testing";
+import {CustomerSearchComponent} from "../customer-search/customer-search.component";
 
 describe('CustomerDetailComponent', () => {
   let customerApiService: jasmine.SpyObj<CustomerApiService>;
   let customerNoteApiService: jasmine.SpyObj<CustomerNoteApiService>;
   let fileHelperService: jasmine.SpyObj<FileHelperService>;
-  let router: jasmine.SpyObj<Router>;
   let toastService: jasmine.SpyObj<ToastService>;
 
   const mockCountry = {
@@ -99,7 +101,7 @@ describe('CustomerDetailComponent', () => {
       }
     ]
   };
-  const mockNotesResponse: CustomerNotesResponse = {
+  const mockCustomerNotesResponse: CustomerNotesResponse = {
     items: [
       {
         author: 'author1',
@@ -122,7 +124,6 @@ describe('CustomerDetailComponent', () => {
     const customerApiServiceSpy = jasmine.createSpyObj('CustomerApiService', ['generatePdf', 'deleteCustomer', 'updateCustomer']);
     const customerNoteApiServiceSpy = jasmine.createSpyObj('CustomerNoteApiService', ['createNewNote', 'getNotesForCustomer']);
     const fileHelperServiceSpy = jasmine.createSpyObj('FileHelperService', ['downloadFile']);
-    const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
     const toastServiceSpy = jasmine.createSpyObj('ToastService', ['showToast']);
 
     TestBed.configureTestingModule({
@@ -137,9 +138,6 @@ describe('CustomerDetailComponent', () => {
         CardModule,
         ColComponent,
         RowComponent
-      ],
-      declarations: [
-        CustomerDetailComponent
       ],
       providers: [
         {
@@ -163,31 +161,27 @@ describe('CustomerDetailComponent', () => {
           useValue: fileHelperServiceSpy
         },
         {
-          provide: ActivatedRoute,
-          useValue: {
-            snapshot: {
-              data: {
-                customerData: mockCustomer,
-                customerNotes: mockNotesResponse
-              }
-            }
-          }
-        },
-        {
-          provide: Router,
-          useValue: routerSpy
-        },
-        {
           provide: ToastService,
           useValue: toastServiceSpy
-        }
+        },
+        provideRouter([
+            {
+              path: 'kunden/bearbeiten/:id',
+              component: CustomerEditComponent,
+            },
+            {
+              path: 'kunden/suchen',
+              component: CustomerSearchComponent
+            }
+          ],
+        ),
+        provideLocationMocks()
       ]
     }).compileComponents();
 
     customerApiService = TestBed.inject(CustomerApiService) as jasmine.SpyObj<CustomerApiService>;
     customerNoteApiService = TestBed.inject(CustomerNoteApiService) as jasmine.SpyObj<CustomerNoteApiService>;
     fileHelperService = TestBed.inject(FileHelperService) as jasmine.SpyObj<FileHelperService>;
-    router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
     toastService = TestBed.inject(ToastService) as jasmine.SpyObj<ToastService>;
   }));
 
@@ -201,17 +195,20 @@ describe('CustomerDetailComponent', () => {
   it('initial data loaded and shown correctly', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
+    component.customerData = mockCustomer;
+    component.customerNotesResponse = mockCustomerNotesResponse;
+
     component.ngOnInit();
     fixture.detectChanges();
 
     expect(component.customerData).toEqual(mockCustomer);
-    expect(component.customerNotes).toEqual(mockNotesResponse.items);
+    expect(component.customerNotes).toEqual(mockCustomerNotesResponse.items);
     const expectedPaginationData: TafelPaginationData = {
-      count: mockNotesResponse.items.length,
-      currentPage: mockNotesResponse.currentPage,
-      totalCount: mockNotesResponse.totalCount,
-      totalPages: mockNotesResponse.totalPages,
-      pageSize: mockNotesResponse.pageSize
+      count: mockCustomerNotesResponse.items.length,
+      currentPage: mockCustomerNotesResponse.currentPage,
+      totalCount: mockCustomerNotesResponse.totalCount,
+      totalPages: mockCustomerNotesResponse.totalPages,
+      pageSize: mockCustomerNotesResponse.pageSize
     };
     expect(component.customerNotesPaginationData).toEqual(expectedPaginationData);
 
@@ -252,7 +249,7 @@ describe('CustomerDetailComponent', () => {
     expect(getTextByTestId(fixture, 'addperson-1-incomeDueText')).toBe('-');
 
     // validate note
-    const expectedTimestamp = moment(mockNotesResponse.items[0].timestamp).format('DD.MM.YYYY HH:mm');
+    const expectedTimestamp = moment(mockCustomerNotesResponse.items[0].timestamp).format('DD.MM.YYYY HH:mm');
     expect(getTextByTestId(fixture, 'note-title')).toBe(expectedTimestamp + ' author1');
 
     // TODO fix flaky assert
@@ -271,8 +268,10 @@ describe('CustomerDetailComponent', () => {
 
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
-    component.ngOnInit();
+    component.customerData = mockCustomer;
+    component.customerNotesResponse = mockCustomerNotesResponse;
 
+    component.ngOnInit();
     component.printMasterdata();
 
     expect(fileHelperService.downloadFile).toHaveBeenCalledWith('test-name-1.pdf', response.body);
@@ -290,8 +289,10 @@ describe('CustomerDetailComponent', () => {
 
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
-    component.ngOnInit();
+    component.customerData = mockCustomer;
+    component.customerNotesResponse = mockCustomerNotesResponse;
 
+    component.ngOnInit();
     component.printIdCard();
 
     expect(fileHelperService.downloadFile).toHaveBeenCalledWith('test-name-1.pdf', response.body);
@@ -309,6 +310,9 @@ describe('CustomerDetailComponent', () => {
 
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
+    component.customerData = mockCustomer;
+    component.customerNotesResponse = mockCustomerNotesResponse;
+
     component.ngOnInit();
 
     component.printCombined();
@@ -316,15 +320,20 @@ describe('CustomerDetailComponent', () => {
     expect(fileHelperService.downloadFile).toHaveBeenCalledWith('test-name-1.pdf', response.body);
   });
 
-  it('editCustomer', () => {
+  it('editCustomer', waitForAsync(async () => {
+    const location = TestBed.inject(Location);
+
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
+    component.customerData = mockCustomer;
+    component.customerNotesResponse = mockCustomerNotesResponse;
+    fixture.detectChanges();
+
     component.ngOnInit();
+    await component.editCustomer();
 
-    component.editCustomer();
-
-    expect(router.navigate).toHaveBeenCalledWith(['/kunden/bearbeiten', mockCustomer.id]);
-  });
+    expect(location.path()).toBe('/kunden/bearbeiten/' + mockCustomer.id);
+  }));
 
   it('isValid with date of yesterday results in false', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
@@ -366,21 +375,25 @@ describe('CustomerDetailComponent', () => {
     // TODO expect(incomeDueText)-class success or danger
   });
 
-  it('delete customer successful', () => {
+  it('delete customer successful', waitForAsync(async () => {
+    const location = TestBed.inject(Location);
+
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
     component.customerData = mockCustomer;
 
     customerApiService.deleteCustomer.and.returnValue(of(null));
 
-    component.deleteCustomer();
+    await component.deleteCustomer();
 
     expect(customerApiService.deleteCustomer).toHaveBeenCalled();
-    expect(router.navigate).toHaveBeenCalledWith(['/kunden/suchen']);
+    expect(location.path()).toBe('/kunden/suchen');
     expect(toastService.showToast).toHaveBeenCalledWith({type: ToastType.SUCCESS, title: 'Kunde wurde gelöscht!'});
-  });
+  }));
 
   it('delete customer failed', () => {
+    const location = TestBed.inject(Location);
+
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
     component.showDeleteCustomerModal = true;
@@ -393,7 +406,7 @@ describe('CustomerDetailComponent', () => {
     component.deleteCustomer();
 
     expect(customerApiService.deleteCustomer).toHaveBeenCalled();
-    expect(router.navigate).not.toHaveBeenCalledWith(['/kunden/suchen']);
+    expect(location.path()).not.toBe('/kunden/suchen');
     expect(component.showDeleteCustomerModal).toBeFalsy();
     expect(toastService.showToast).toHaveBeenCalledWith({type: ToastType.ERROR, title: 'Löschen fehlgeschlagen!'});
   });
@@ -462,11 +475,14 @@ describe('CustomerDetailComponent', () => {
       lockedBy: 'whoever',
       lockReason: 'lock-text'
     };
+    component.customerNotesResponse = mockCustomerNotesResponse;
     fixture.detectChanges();
 
     const expectedCustomerData = {
       ...mockCustomer,
-      locked: false
+      locked: false,
+      lockedBy: null,
+      lockReason: null
     };
     customerApiService.updateCustomer.and.returnValue(of(expectedCustomerData));
 

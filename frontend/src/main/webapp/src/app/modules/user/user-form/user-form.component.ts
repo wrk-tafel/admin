@@ -3,17 +3,41 @@ import {
   AbstractControl,
   FormArray,
   FormControl,
-  FormGroup,
+  FormGroup, ReactiveFormsModule,
   ValidationErrors,
   ValidatorFn,
   Validators
 } from '@angular/forms';
 import {GeneratedPasswordResponse, UserApiService, UserData, UserPermission} from '../../../api/user-api.service';
 import {ToastService, ToastType} from '../../../common/views/default-layout/toasts/toast.service';
+import {CommonModule, NgClass} from '@angular/common';
+import {
+  ButtonDirective,
+  FormCheckInputDirective,
+  FormControlDirective,
+  FormLabelDirective,
+  InputGroupComponent,
+  InputGroupTextDirective
+} from '@coreui/angular';
+import {FaIconComponent} from '@fortawesome/angular-fontawesome';
+import {faEye, faEyeSlash} from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'tafel-user-form',
-  templateUrl: 'user-form.component.html'
+  templateUrl: 'user-form.component.html',
+  imports: [
+    ReactiveFormsModule,
+    NgClass,
+    InputGroupComponent,
+    InputGroupTextDirective,
+    CommonModule,
+    FormControlDirective,
+    FormLabelDirective,
+    FormCheckInputDirective,
+    FaIconComponent,
+    ButtonDirective
+  ],
+  standalone: true
 })
 export class UserFormComponent implements OnInit {
   @Input() userData: UserData;
@@ -161,6 +185,8 @@ export class UserFormComponent implements OnInit {
     this.permissions.push(control);
   }
 
+  protected readonly faEyeSlash = faEyeSlash;
+  protected readonly faEye = faEye;
 }
 
 export const passwordRepeatValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {

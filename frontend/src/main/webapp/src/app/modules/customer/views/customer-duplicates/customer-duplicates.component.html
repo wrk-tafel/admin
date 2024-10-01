@@ -10,8 +10,8 @@
         </c-row>
         <c-row>
           <c-col>
-            <button cButton color="success" class="text-white me-2" size="sm">
-              <i class="fa fa-check text-white"></i>
+            <button cButton color="success" class="me-2" size="sm">
+              <fa-icon [icon]="faCheck" inverse="true"></fa-icon>
             </button>
             <strong>Kunde übernehmen:</strong> Der ausgewählte Kunde bleibt als einziger Kunde bestehen. Andere
             hier angezeigte Kunden werden gelöscht!
@@ -19,8 +19,8 @@
         </c-row>
         <c-row>
           <c-col>
-            <button cButton color="primary" class="text-white me-2" size="sm">
-              <i class="fa fa-magnifying-glass text-white"></i>
+            <button cButton class="me-2" size="sm">
+              <fa-icon [icon]="faMagnifyingGlass" inverse="true"></fa-icon>
             </button>
             <strong>Kunden-Details ansehen:</strong> Wechsel zur Detail-Ansicht des ausgewählten Kunden.
           </c-col>
@@ -28,7 +28,7 @@
         <c-row>
           <c-col>
             <button cButton color="danger" class="text-white me-2" size="sm">
-              <i class="fa fa-trash-can text-white"></i>
+              <fa-icon [icon]="faTrashCan" inverse="true"></fa-icon>
             </button>
             <strong>Kunden löschen:</strong> Nur der ausgewählte Kunde wird gelöscht. Andere hier angezeigte Kunden bleiben bestehen.
           </c-col>
@@ -63,14 +63,14 @@
                     {{item.customer.id + ' - ' + item.customer.lastname + ' ' + item.customer.firstname}}
                   </c-col>
                   <c-col class="text-end pt-2 pt-sm-0">
-                    <button cButton color="success" class="text-white me-2" (click)="mergeCustomers(item.customer)">
-                      <i class="fa fa-check text-white"></i>
+                    <button cButton color="success" class="me-2" (click)="mergeCustomers(item.customer)">
+                      <fa-icon [icon]="faCheck" inverse="true"></fa-icon>
                     </button>
-                    <button cButton color="primary" class="text-white me-2" (click)="showCustomerDetail(item.customer.id)">
-                      <i class="fa fa-magnifying-glass text-white"></i>
+                    <button cButton class="me-2" (click)="showCustomerDetail(item.customer.id)">
+                      <fa-icon [icon]="faMagnifyingGlass" inverse="true"></fa-icon>
                     </button>
-                    <button cButton color="danger" class="text-white" (click)="deleteCustomer(item.customer.id)">
-                      <i class="fa fa-trash-can text-white"></i>
+                    <button cButton color="danger" (click)="deleteCustomer(item.customer.id)">
+                      <fa-icon [icon]="faTrashCan" inverse="true"></fa-icon>
                     </button>
                   </c-col>
                 </c-row>
@@ -110,14 +110,14 @@
                       {{similarCustomer.id + ' - ' + similarCustomer.lastname + ' ' + similarCustomer.firstname}}
                     </c-col>
                     <c-col class="text-end pt-2 pt-sm-0">
-                      <button cButton color="success" class="text-white me-2" (click)="mergeCustomers(similarCustomer)">
-                        <i class="fa fa-check text-white"></i>
+                      <button cButton color="success" class="me-2" (click)="mergeCustomers(similarCustomer)">
+                        <fa-icon [icon]="faCheck" inverse="true"></fa-icon>
                       </button>
-                      <button cButton color="primary" class="text-white me-2" (click)="showCustomerDetail(similarCustomer.id)">
-                        <i class="fa fa-magnifying-glass text-white"></i>
+                      <button cButton class="me-2" (click)="showCustomerDetail(similarCustomer.id)">
+                        <fa-icon [icon]="faMagnifyingGlass" inverse="true"></fa-icon>
                       </button>
                       <button cButton color="danger" class="text-white" (click)="deleteCustomer(similarCustomer.id)">
-                        <i class="fa fa-trash-can text-white"></i>
+                        <fa-icon [icon]="faTrashCan" inverse="true"></fa-icon>
                       </button>
                     </c-col>
                   </c-row>

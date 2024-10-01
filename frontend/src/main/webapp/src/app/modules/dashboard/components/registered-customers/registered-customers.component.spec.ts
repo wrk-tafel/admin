@@ -23,9 +23,6 @@ describe('RegisteredCustomersComponent', () => {
         ColComponent,
         RowComponent
       ],
-      declarations: [
-        RegisteredCustomersComponent
-      ],
       providers: [
         {
           provide: DistributionApiService,

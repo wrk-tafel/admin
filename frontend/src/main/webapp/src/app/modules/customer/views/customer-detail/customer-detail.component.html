@@ -6,7 +6,7 @@
 <div class="d-flex flex-column-reverse flex-lg-column">
   <div class="d-flex flex-column flex-lg-row mt-3 mt-lg-0 mb-4 mb-lg-0">
     <c-dropdown variant="dropdown">
-      <button testid="printMenuButton" cButton cDropdownToggle color="primary" class="text-white" [disabled]="customerData.locked">
+      <button testid="printMenuButton" cButton cDropdownToggle [disabled]="customerData.locked">
         Daten ausdrucken
       </button>
       <ul cDropdownMenu>
@@ -19,7 +19,7 @@
     <c-dropdown
       variant="dropdown"
       class="mt-3 mt-lg-0 ms-lg-3">
-      <button testid="prolongButton" cButton cDropdownToggle color="primary" class="text-white" [disabled]="customerData.locked">
+      <button testid="prolongButton" cButton cDropdownToggle [disabled]="customerData.locked">
         Bezug verlängern
       </button>
       <ul cDropdownMenu>
@@ -67,7 +67,7 @@
         </c-nav-item>
         <c-nav-item>
           <a [cTabContent]="tabContent1" [routerLink] [tabPaneIdx]="1" cNavLink>
-            <i class="fa fa-users"></i> Weitere Personen ({{customerData?.additionalPersons.length}})
+            <fa-icon [icon]="faUsers"></fa-icon> Weitere Personen ({{customerData?.additionalPersons.length}})
           </a>
         </c-nav-item>
       </c-nav>
@@ -167,7 +167,7 @@
                     </c-col>
                     <c-col class="text-end">
                       <button testid="addnote-button" cButton color="success" (click)="showAddNewNoteModal = true">
-                        <i class="fa fa-plus text-white"></i>
+                        <fa-icon [icon]="faPlus" inverse="true"></fa-icon>
                       </button>
                     </c-col>
                   </c-row>
@@ -188,7 +188,7 @@
                   </c-row>
                 </c-card-body>
                 <c-card-footer *ngIf="customerNotes.length > 1">
-                  <button testid="showall-notes-button" cButton color="primary" class="text-white" (click)="showAllNotesModal = true">Alle Notizen anzeigen</button>
+                  <button testid="showall-notes-button" cButton (click)="showAllNotesModal = true">Alle Notizen anzeigen</button>
                 </c-card-footer>
               </c-card>
             </div>
@@ -269,7 +269,7 @@
     </div>
   </c-modal-body>
   <c-modal-footer>
-    <button testid="okButton" cButton color="primary" class="text-white" (click)="deleteCustomer()">Löschen
+    <button testid="okButton" cButton (click)="deleteCustomer()">Löschen
     </button>
     <button testid="cancelButton" cButton color="secondary" (click)="showDeleteCustomerModal = false">
       Abbrechen
@@ -278,7 +278,7 @@
 </c-modal>
 <c-modal id="allNotesModal" #allNotesModal testid="showallnotes-modal" [(visible)]="showAllNotesModal" scrollable="true">
   <c-modal-header cBgColor="info">
-    <h4>Alle Notizen</h4>
+    <h4 class="text-white">Alle Notizen</h4>
     <button [cModalToggle]="allNotesModal.id" cButtonClose></button>
   </c-modal-header>
   <c-modal-body>
@@ -299,14 +299,14 @@
     <tafel-pagination class="d-block d-sm-none mt-4" align="center" size="sm" [paginationData]="customerNotesPaginationData" (pageChanged)="getCustomerNotes($event)"></tafel-pagination>
   </c-modal-body>
   <c-modal-footer>
-    <button testid="cancelButton" cButton class="text-white" (click)="showAllNotesModal = false">
+    <button testid="cancelButton" cButton (click)="showAllNotesModal = false">
       OK
     </button>
   </c-modal-footer>
 </c-modal>
 <c-modal id="addNewNoteModal" #addNewNoteModal testid="addnew-note-modal" [(visible)]="showAddNewNoteModal">
   <c-modal-header cBgColor="info">
-    <h4>Neue Notiz hinzufügen</h4>
+    <h4 class="text-white">Neue Notiz hinzufügen</h4>
     <button [cModalToggle]="addNewNoteModal.id" (click)="newNoteText = undefined" cButtonClose></button>
   </c-modal-header>
   <c-modal-body>
@@ -314,7 +314,7 @@
               [(ngModel)]="newNoteText"></textarea>
   </c-modal-body>
   <c-modal-footer>
-    <button testid="okButton" cButton color="primary" class="text-white" (click)="addNewNote()"
+    <button testid="okButton" cButton (click)="addNewNote()"
             [disabled]="!newNoteText || newNoteText.trim().length === 0">Speichern
     </button>
     <button testid="cancelButton" cButton color="secondary"
@@ -325,7 +325,7 @@
 </c-modal>
 <c-modal id="lockCustomerModal" #lockCustomerModal testid="lock-customer-modal" [(visible)]="showLockCustomerModal">
   <c-modal-header cBgColor="info">
-    <h4>Kunden sperren</h4>
+    <h4 class="text-white">Kunden sperren</h4>
     <button [cModalToggle]="lockCustomerModal.id" (click)="lockReasonText = undefined" cButtonClose></button>
   </c-modal-header>
   <c-modal-body>
@@ -334,7 +334,7 @@
               [(ngModel)]="lockReasonText"></textarea>
   </c-modal-body>
   <c-modal-footer>
-    <button testid="okButton" cButton color="primary" class="text-white" (click)="lockCustomer()"
+    <button testid="okButton" cButton (click)="lockCustomer()"
             [disabled]="!lockReasonText || lockReasonText.trim().length === 0">Speichern
     </button>
     <button testid="cancelButton" cButton color="secondary" (click)="lockReasonText = undefined; showLockCustomerModal = false;">

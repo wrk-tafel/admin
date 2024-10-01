@@ -8,14 +8,40 @@ import {CustomerNoteApiService, CustomerNoteItem} from '../../../api/customer-no
 import {GlobalStateService} from '../../../common/state/global-state.service';
 import {Router} from '@angular/router';
 import {DistributionApiService} from '../../../api/distribution-api.service';
-import {Colors} from '@coreui/angular';
+import {
+  BadgeComponent, ButtonDirective,
+  CardBodyComponent,
+  CardComponent, CardFooterComponent,
+  CardHeaderComponent,
+  ColComponent,
+  Colors, FormSelectDirective,
+  RowComponent
+} from '@coreui/angular';
 import {DistributionTicketApiService} from '../../../api/distribution-ticket-api.service';
 import {ToastService, ToastType} from '../../../common/views/default-layout/toasts/toast.service';
 import {WebsocketService} from '../../../common/websocket/websocket.service';
+import {FormsModule} from '@angular/forms';
+import {CommonModule, DatePipe, NgClass} from '@angular/common';
 
 @Component({
   selector: 'tafel-checkin',
-  templateUrl: 'checkin.component.html'
+  templateUrl: 'checkin.component.html',
+  imports: [
+    RowComponent,
+    ColComponent,
+    CardComponent,
+    CardBodyComponent,
+    FormsModule,
+    BadgeComponent,
+    DatePipe,
+    CardHeaderComponent,
+    NgClass,
+    CardFooterComponent,
+    ButtonDirective,
+    FormSelectDirective,
+    CommonModule
+  ],
+  standalone: true
 })
 export class CheckinComponent implements OnInit, OnDestroy {
   scannerIds: number[];
@@ -213,7 +239,7 @@ export class CheckinComponent implements OnInit, OnDestroy {
     this.distributionTicketApiService.deleteCurrentTicketOfCustomer(this.customer.id).subscribe(observer);
   }
 
-  private getCustomerStateColor(): Colors {
+  protected getCustomerStateColor(): Colors {
     switch (this.customerState) {
       case CustomerState.RED:
         return 'danger';

@@ -1,22 +1,43 @@
-import {Component, inject, OnInit} from '@angular/core';
+import {Component, inject, Input} from '@angular/core';
 import {UserApiService, UserData} from '../../../api/user-api.service';
-import {ActivatedRoute, Router} from '@angular/router';
+import {Router} from '@angular/router';
 import {ToastService, ToastType} from '../../../common/views/default-layout/toasts/toast.service';
+import {
+  ButtonDirective,
+  CardBodyComponent,
+  CardComponent,
+  ColComponent,
+  DropdownComponent, DropdownDividerDirective,
+  DropdownItemDirective, DropdownMenuDirective, DropdownToggleDirective,
+  RowComponent
+} from '@coreui/angular';
+import {CommonModule, NgClass} from '@angular/common';
 
 @Component({
   selector: 'tafel-user-detail',
-  templateUrl: 'user-detail.component.html'
+  templateUrl: 'user-detail.component.html',
+  imports: [
+    DropdownComponent,
+    CardComponent,
+    CardBodyComponent,
+    RowComponent,
+    ColComponent,
+    NgClass,
+    DropdownItemDirective,
+    ButtonDirective,
+    DropdownToggleDirective,
+    DropdownMenuDirective,
+    DropdownDividerDirective,
+    CommonModule
+  ],
+  standalone: true
 })
-export class UserDetailComponent implements OnInit {
-  userData: UserData;
-  private activatedRoute = inject(ActivatedRoute);
+export class UserDetailComponent {
+  @Input() userData: UserData;
+
   private userApiService = inject(UserApiService);
   private router = inject(Router);
   private toastService = inject(ToastService);
-
-  ngOnInit(): void {
-    this.userData = this.activatedRoute.snapshot.data.userData;
-  }
 
   disableUser() {
     this.changeUserState(false);

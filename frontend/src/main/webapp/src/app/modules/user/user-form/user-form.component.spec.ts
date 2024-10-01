@@ -37,9 +37,6 @@ describe('UserFormComponent', () => {
         RowComponent,
         ColComponent
       ],
-      declarations: [
-        UserFormComponent
-      ],
       providers: [
         {
           provide: UserApiService,

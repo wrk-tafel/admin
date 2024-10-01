@@ -22,9 +22,6 @@ describe('DistributionStateComponent', () => {
         ColComponent,
         ProgressModule
       ],
-      declarations: [
-        DistributionStateComponent
-      ],
       providers: [
         {
           provide: DistributionApiService,

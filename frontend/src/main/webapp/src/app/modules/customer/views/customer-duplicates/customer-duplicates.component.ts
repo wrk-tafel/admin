@@ -1,29 +1,57 @@
-import {Component, inject, OnInit} from '@angular/core';
+import {Component, inject, Input, OnInit} from '@angular/core';
 import {
   CustomerAddressData,
   CustomerApiService,
   CustomerData,
   CustomerDuplicatesResponse
 } from '../../../../api/customer-api.service';
-import {ActivatedRoute, Router} from '@angular/router';
-import {TafelPaginationData} from '../../../../common/components/tafel-pagination/tafel-pagination.component';
+import {Router} from '@angular/router';
+import {
+  TafelPaginationComponent,
+  TafelPaginationData
+} from '../../../../common/components/tafel-pagination/tafel-pagination.component';
 import * as moment from 'moment/moment';
 import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
+import {
+  ButtonDirective,
+  CardBodyComponent,
+  CardComponent,
+  CardHeaderComponent,
+  ColComponent,
+  RowComponent
+} from '@coreui/angular';
+import {DatePipe, NgClass, NgForOf, NgIf} from '@angular/common';
+import {faCheck, faMagnifyingGlass, faTrashCan} from '@fortawesome/free-solid-svg-icons';
+import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 
 @Component({
   selector: 'tafel-customer-duplicates',
-  templateUrl: 'customer-duplicates.component.html'
+  templateUrl: 'customer-duplicates.component.html',
+  imports: [
+    CardComponent,
+    CardHeaderComponent,
+    CardBodyComponent,
+    RowComponent,
+    ColComponent,
+    TafelPaginationComponent,
+    DatePipe,
+    NgClass,
+    ButtonDirective,
+    NgIf,
+    NgForOf,
+    FaIconComponent
+  ],
+  standalone: true
 })
 export class CustomerDuplicatesComponent implements OnInit {
-  customerDuplicatesData: CustomerDuplicatesResponse;
+  @Input() customerDuplicatesData: CustomerDuplicatesResponse;
+
   paginationData: TafelPaginationData;
   private customerApiService = inject(CustomerApiService);
-  private activatedRoute = inject(ActivatedRoute);
   private router = inject(Router);
   private toastService = inject(ToastService);
 
   ngOnInit(): void {
-    this.customerDuplicatesData = this.activatedRoute.snapshot.data.customerDuplicatesData;
     this.paginationData = {
       count: this.customerDuplicatesData.items.length,
       totalCount: this.customerDuplicatesData.totalCount,
@@ -106,4 +134,7 @@ export class CustomerDuplicatesComponent implements OnInit {
     this.customerApiService.mergeCustomers(customer.id, sourceCustomerIds).subscribe(observer);
   }
 
+  protected readonly faCheck = faCheck;
+  protected readonly faMagnifyingGlass = faMagnifyingGlass;
+  protected readonly faTrashCan = faTrashCan;
 }

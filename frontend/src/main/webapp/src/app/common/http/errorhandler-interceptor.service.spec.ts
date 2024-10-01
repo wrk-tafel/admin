@@ -89,7 +89,7 @@ describe('ErrorHandlerInterceptor', () => {
       error: error => {
         const expectedToast: ToastOptions = {
           type: ToastType.ERROR,
-          title: 'HTTP 400 - Custom error-title from body',
+          title: 'HTTP 400 - Bad Request',
           message: 'Custom message from body'
         };
         expect(toastServiceSpy.showToast).toHaveBeenCalledWith(expectedToast);
@@ -104,8 +104,6 @@ describe('ErrorHandlerInterceptor', () => {
     };
 
     const errorBody: TafelErrorResponse = {
-      status: 400,
-      error: 'Custom error-title from body',
       message: 'Custom message from body'
     };
     mockReq.flush(errorBody, mockErrorResponse);

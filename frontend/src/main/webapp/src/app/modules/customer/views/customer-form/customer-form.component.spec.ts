@@ -78,9 +78,6 @@ describe('CustomerFormComponent', () => {
         RowComponent,
         ColComponent
       ],
-      declarations: [
-        CustomerFormComponent
-      ],
       providers: [
         {
           provide: CountryApiService,

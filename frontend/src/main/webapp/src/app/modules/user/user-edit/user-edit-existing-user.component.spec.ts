@@ -46,10 +46,6 @@ describe('UserEditComponent - Editing an existing user', () => {
         ColComponent,
         BgColorDirective
       ],
-      declarations: [
-        UserEditComponent,
-        UserFormComponent
-      ],
       providers: [
         {
           provide: UserApiService,
@@ -84,13 +80,13 @@ describe('UserEditComponent - Editing an existing user', () => {
     const fixture = TestBed.createComponent(UserEditComponent);
     const component = fixture.componentInstance;
     component.userFormComponent = userFormComponent;
-    component.ngOnInit();
-    component.userUpdated = component.userInput;
+    component.userData = mockUser;
 
+    component.ngOnInit();
     component.save();
 
     expect(component.isSaveEnabled()).toBeTrue();
-    expect(component.userInput).toEqual(mockUser);
+    expect(component.userData).toEqual(mockUser);
     expect(userFormComponent.markAllAsTouched).toHaveBeenCalled();
     expect(apiService.updateUser).toHaveBeenCalledWith(jasmine.objectContaining(mockUser));
     expect(router.navigate).toHaveBeenCalledWith(['/benutzer/detail', mockUser.id]);

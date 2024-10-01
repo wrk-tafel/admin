@@ -1,5 +1,5 @@
-import {Component, inject, OnInit} from '@angular/core';
-import {ActivatedRoute, Router} from '@angular/router';
+import {Component, inject, Input, OnInit} from '@angular/core';
+import {Router, RouterLink} from '@angular/router';
 import * as moment from 'moment';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
 import {
@@ -12,19 +12,89 @@ import {
 } from '../../../../api/customer-api.service';
 import {HttpResponse} from '@angular/common/http';
 import {
-  CustomerNoteApiService,
-  CustomerNoteItem,
+  CustomerNoteApiService, CustomerNoteItem,
   CustomerNotesResponse
 } from '../../../../api/customer-note-api.service';
 import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
-import {TafelPaginationData} from '../../../../common/components/tafel-pagination/tafel-pagination.component';
+import {
+  TafelPaginationComponent,
+  TafelPaginationData
+} from '../../../../common/components/tafel-pagination/tafel-pagination.component';
+import {
+  BgColorDirective,
+  ButtonCloseDirective,
+  ButtonDirective,
+  CardBodyComponent,
+  CardComponent,
+  CardFooterComponent,
+  CardHeaderComponent,
+  ColComponent,
+  DropdownComponent,
+  DropdownDividerDirective,
+  DropdownItemDirective,
+  DropdownMenuDirective,
+  DropdownToggleDirective,
+  ModalBodyComponent,
+  ModalComponent,
+  ModalFooterComponent,
+  ModalHeaderComponent,
+  ModalToggleDirective,
+  NavComponent,
+  NavItemComponent,
+  NavLinkDirective,
+  RoundedDirective,
+  RowComponent,
+  TabContentComponent,
+  TabContentRefDirective,
+  TabPaneComponent
+} from '@coreui/angular';
+import {CommonModule} from '@angular/common';
+import {FormsModule} from '@angular/forms';
+import {faPlus, faUsers} from '@fortawesome/free-solid-svg-icons';
+import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 
 @Component({
   selector: 'tafel-customer-detail',
-  templateUrl: 'customer-detail.component.html'
+  templateUrl: 'customer-detail.component.html',
+  imports: [
+    CommonModule,
+    DropdownComponent,
+    NavComponent,
+    NavItemComponent,
+    TabContentRefDirective,
+    RouterLink,
+    TabContentComponent,
+    TabPaneComponent,
+    CardComponent,
+    CardHeaderComponent,
+    RowComponent,
+    ColComponent,
+    CardBodyComponent,
+    CardFooterComponent,
+    ModalComponent,
+    ModalHeaderComponent,
+    ModalToggleDirective,
+    ModalBodyComponent,
+    ModalFooterComponent,
+    TafelPaginationComponent,
+    FormsModule,
+    BgColorDirective,
+    ButtonCloseDirective,
+    ButtonDirective,
+    DropdownToggleDirective,
+    DropdownMenuDirective,
+    DropdownItemDirective,
+    DropdownDividerDirective,
+    NavLinkDirective,
+    RoundedDirective,
+    FaIconComponent,
+  ],
+  standalone: true
 })
 export class CustomerDetailComponent implements OnInit {
-  customerData: CustomerData;
+  @Input('customerData') customerData: CustomerData;
+  @Input('customerNotesResponse') customerNotesResponse: CustomerNotesResponse;
+
   customerNotes: CustomerNoteItem[];
   customerNotesPaginationData: TafelPaginationData;
   newNoteText: string;
@@ -33,7 +103,6 @@ export class CustomerDetailComponent implements OnInit {
   showAddNewNoteModal = false;
   showAllNotesModal = false;
   showLockCustomerModal = false;
-  private activatedRoute = inject(ActivatedRoute);
   private customerApiService = inject(CustomerApiService);
   private customerNoteApiService = inject(CustomerNoteApiService);
   private fileHelperService = inject(FileHelperService);
@@ -41,9 +110,7 @@ export class CustomerDetailComponent implements OnInit {
   private toastService = inject(ToastService);
 
   ngOnInit(): void {
-    this.customerData = this.activatedRoute.snapshot.data.customerData;
-    const customerNotesResponse: CustomerNotesResponse = this.activatedRoute.snapshot.data.customerNotes;
-    this.processCustomerNoteResponse(customerNotesResponse);
+    this.processCustomerNoteResponse(this.customerNotesResponse);
   }
 
   printMasterdata() {
@@ -99,27 +166,27 @@ export class CustomerDetailComponent implements OnInit {
     return '';
   }
 
-  editCustomer() {
-    this.router.navigate(['/kunden/bearbeiten', this.customerData.id]);
+  async editCustomer() {
+    await this.router.navigate(['/kunden/bearbeiten', this.customerData.id]);
   }
 
   isValid(): boolean {
     return !moment(this.customerData.validUntil).startOf('day').isBefore(moment().startOf('day'));
   }
 
-  deleteCustomer() {
+  async deleteCustomer() {
     /* eslint-disable @typescript-eslint/no-unused-vars */
     const observer = {
-      next: (response) => {
+      next: async (response) => {
         this.toastService.showToast({type: ToastType.SUCCESS, title: 'Kunde wurde gelöscht!'});
-        this.router.navigate(['/kunden/suchen']);
+        await this.router.navigate(['/kunden/suchen']);
       },
       error: error => {
         this.showDeleteCustomerModal = false;
         this.toastService.showToast({type: ToastType.ERROR, title: 'Löschen fehlgeschlagen!'});
       },
     };
-    this.customerApiService.deleteCustomer(this.customerData.id).subscribe(observer);
+    await this.customerApiService.deleteCustomer(this.customerData.id).subscribe(observer);
   }
 
   prolongCustomer(countMonths: number) {
@@ -162,7 +229,9 @@ export class CustomerDetailComponent implements OnInit {
   unlockCustomer() {
     const updatedCustomerData: CustomerData = {
       ...this.customerData,
-      locked: false
+      locked: false,
+      lockedBy: null,
+      lockReason: null
     };
 
     this.customerApiService.updateCustomer(updatedCustomerData).subscribe(customerData => {
@@ -209,4 +278,6 @@ export class CustomerDetailComponent implements OnInit {
     this.fileHelperService.downloadFile(filename, response.body);
   }
 
+  protected readonly faUsers = faUsers;
+  protected readonly faPlus = faPlus;
 }
