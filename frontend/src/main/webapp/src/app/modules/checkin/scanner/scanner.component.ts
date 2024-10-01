@@ -4,8 +4,16 @@ import {RxStompState} from '@stomp/rx-stomp';
 import {WebsocketService} from '../../../common/websocket/websocket.service';
 import {CameraDevice} from 'html5-qrcode/esm/camera/core';
 import {Html5QrcodeResult} from 'html5-qrcode/core';
-import {BadgeComponent, CardBodyComponent, CardComponent, ColComponent, RowComponent} from '@coreui/angular';
+import {
+  BadgeComponent,
+  CardBodyComponent,
+  CardComponent,
+  ColComponent,
+  FormSelectDirective,
+  RowComponent
+} from '@coreui/angular';
 import {FormsModule} from '@angular/forms';
+import {CommonModule} from "@angular/common";
 
 @Component({
   selector: 'tafel-scanner',
@@ -16,7 +24,9 @@ import {FormsModule} from '@angular/forms';
     CardComponent,
     CardBodyComponent,
     BadgeComponent,
-    FormsModule
+    FormsModule,
+    FormSelectDirective,
+    CommonModule
   ],
   providers: [
     QRCodeReaderService
