@@ -69,15 +69,15 @@
     "zone.js": "0.14.10"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "18.2.0",
+    "@angular-devkit/build-angular": "18.2.6",
     "@angular-eslint/builder": "18.3.0",
     "@angular-eslint/eslint-plugin": "18.3.1",
     "@angular-eslint/eslint-plugin-template": "18.3.0",
-    "@angular-eslint/schematics": "18.3.0",
+    "@angular-eslint/schematics": "18.3.1",
     "@angular-eslint/template-parser": "18.3.0",
     "@angular/cli": "18.2.0",
     "@angular/compiler-cli": "18.2.0",
-    "@angular/language-service": "18.2.0",
+    "@angular/language-service": "18.2.6",
     "@cypress/schematic": "2.5.2",
     "@types/jasmine": "5.1.4",
     "@types/jasminewd2": "2.0.13",
@@ -102,7 +102,7 @@
     "protractor": "7.0.0",
     "ts-node": "10.9.2",
     "typescript": "5.4.5",
-    "wait-on": "7.2.0"
+    "wait-on": "8.0.1"
   },
   "engines": {
     "node": ">= 20.15.0",
