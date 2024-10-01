@@ -9,18 +9,22 @@ updates:
     directory: "/" # Location of package manifests
     schedule:
       interval: "daily"
+    open-pull-requests-limit: 50
   - package-ecosystem: "npm" # See documentation for possible values
     directory: "/frontend/src/main/webapp" # Location of package manifests
     schedule:
       interval: "daily"
+    open-pull-requests-limit: 50
   # Maintain dependencies for GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/.github/workflows"
     schedule:
       interval: "daily"
+    open-pull-requests-limit: 50
   - package-ecosystem: "docker"
     directory: "/_build"
     schedule:
       interval: "daily"
     ignore:
       - dependency-name: "openjdk"
+    open-pull-requests-limit: 50
