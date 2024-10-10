@@ -28,7 +28,7 @@
         <postgresql.driver.version>42.7.4</postgresql.driver.version>
         <mysql.driver.version>9.0.0</mysql.driver.version>
         <bouncycastle.version>1.70</bouncycastle.version>
-        <apache.fop.version>2.9</apache.fop.version>
+        <apache.fop.version>2.10</apache.fop.version>
         <qrcode.kotlin.version>4.2.0</qrcode.kotlin.version>
         <passay.version>1.6.5</passay.version>
 
