@@ -2,7 +2,7 @@ name: Build and Analyze
 
 env:
   JAVA_VERSION: '21'
-  JAVA_DISTRIBUTION: 'adopt'
+  JAVA_DISTRIBUTION: 'corretto'
 
 on:
   workflow_dispatch:
