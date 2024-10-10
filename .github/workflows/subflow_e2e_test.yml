@@ -2,7 +2,7 @@ name: E2E Test
 
 env:
   JAVA_VERSION: '21'
-  JAVA_DISTRIBUTION: 'adopt'
+  JAVA_DISTRIBUTION: 'corretto'
 
 on:
   workflow_dispatch:
