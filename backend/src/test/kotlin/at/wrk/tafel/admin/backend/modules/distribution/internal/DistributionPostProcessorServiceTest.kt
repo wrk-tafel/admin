@@ -49,6 +49,8 @@ internal class DistributionPostProcessorServiceTest {
         val distributionId = 123L
         val distribution = mockk<DistributionEntity>()
         every { distribution.id } returns distributionId
+        every { distribution.customers } returns listOf(testDistributionCustomerEntity1, testDistributionCustomerEntity2)
+
         val distributionStatistic = mockk<DistributionStatisticEntity>()
         every { distributionStatisticService.createAndSaveStatistic(distribution) } returns distributionStatistic
         every { distributionRepository.findById(distributionId) } returns Optional.of(distribution)
@@ -77,6 +79,24 @@ internal class DistributionPostProcessorServiceTest {
         assertThat(attachment.inputStreamSource).isNotNull
         assertThat(attachment.contentType).isEqualTo("application/pdf")
 
+        verify(exactly = 1) { transactionTemplate.executeWithoutResult(any()) }
+    }
+
+    @Test
+    fun `process skips report and generation and sending email without customers`() {
+        val distributionId = 123L
+        val distribution = mockk<DistributionEntity>()
+        every { distribution.id } returns distributionId
+        every { distribution.customers } returns emptyList()
+
+        val distributionStatistic = mockk<DistributionStatisticEntity>()
+        every { distributionStatisticService.createAndSaveStatistic(distribution) } returns distributionStatistic
+        every { distributionRepository.findById(distributionId) } returns Optional.of(distribution)
+
+        service.process(distributionId)
+
+        verify { distributionStatisticService.createAndSaveStatistic(distribution) }
+        verify(exactly = 0) { dailyReportService.generateDailyReportPdf(distributionStatistic) }
         verify(exactly = 1) { transactionTemplate.executeWithoutResult(any()) }
     }
 
