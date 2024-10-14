@@ -30,9 +30,13 @@ class DistributionPostProcessorService(
         transactionTemplate.executeWithoutResult {
             val distribution = distributionRepository.findById(distributionId).get()
             val statistic = distributionStatisticService.createAndSaveStatistic(distribution)
-            val pdfReportBytes = dailyReportService.generateDailyReportPdf(statistic)
 
-            sendDailyReportMail(pdfReportBytes)
+            if (distribution.customers.isNotEmpty()) {
+                val pdfReportBytes = dailyReportService.generateDailyReportPdf(statistic)
+                sendDailyReportMail(pdfReportBytes)
+            } else {
+                logger.warn("Skipped daily report because there are no customers registered!")
+            }
         }
     }
 
