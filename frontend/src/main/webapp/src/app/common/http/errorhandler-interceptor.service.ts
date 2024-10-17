@@ -9,10 +9,9 @@ import {ToastOptions, ToastService, ToastType} from '../views/default-layout/toa
   providedIn: 'root'
 })
 export class ErrorHandlerInterceptor implements HttpInterceptor {
-  private authenticationService = inject(AuthenticationService);
-  private toastService = inject(ToastService);
-
-  private ERROR_CODES_WHITELIST = [401];
+  private readonly authenticationService = inject(AuthenticationService);
+  private readonly toastService = inject(ToastService);
+  private readonly ERROR_CODES_WHITELIST = [401];
 
   /* eslint-disable @typescript-eslint/no-explicit-any */
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {

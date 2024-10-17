@@ -7,7 +7,7 @@ import {UrlHelperService} from '../util/url-helper.service';
   providedIn: 'root'
 })
 export class ApiPathInterceptor implements HttpInterceptor {
-  private urlHelper = inject(UrlHelperService);
+  private readonly urlHelper = inject(UrlHelperService);
 
   /* eslint-disable @typescript-eslint/no-explicit-any */
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {

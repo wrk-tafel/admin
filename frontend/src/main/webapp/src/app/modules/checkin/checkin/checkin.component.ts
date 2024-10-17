@@ -58,16 +58,16 @@ export class CheckinComponent implements OnInit, OnDestroy {
   @ViewChild('customerIdInput') customerIdInputRef: ElementRef;
   @ViewChild('ticketNumberInput') ticketNumberInputRef: ElementRef;
   @ViewChild('cancelButton') cancelButtonRef: ElementRef;
-  private customerApiService = inject(CustomerApiService);
-  private customerNoteApiService = inject(CustomerNoteApiService);
-  private websocketService = inject(WebsocketService);
-  private globalStateService = inject(GlobalStateService);
-  private distributionApiService = inject(DistributionApiService);
-  private distributionTicketApiService = inject(DistributionTicketApiService);
-  private router = inject(Router);
-  private changeDetectorRef = inject(ChangeDetectorRef);
-  private toastService = inject(ToastService);
-  private VALID_UNTIL_WARNLIMIT_WEEKS = 8;
+  private readonly customerApiService = inject(CustomerApiService);
+  private readonly customerNoteApiService = inject(CustomerNoteApiService);
+  private readonly websocketService = inject(WebsocketService);
+  private readonly globalStateService = inject(GlobalStateService);
+  private readonly distributionApiService = inject(DistributionApiService);
+  private readonly distributionTicketApiService = inject(DistributionTicketApiService);
+  private readonly router = inject(Router);
+  private readonly changeDetectorRef = inject(ChangeDetectorRef);
+  private readonly toastService = inject(ToastService);
+  private readonly VALID_UNTIL_WARNLIMIT_WEEKS = 8;
 
   get selectedScannerId(): number {
     return this.currentScannerId;

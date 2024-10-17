@@ -23,8 +23,8 @@ import {TafelIfDistributionActiveDirective} from '../../../../common/directive/t
 })
 export class RegisteredCustomersComponent {
   @Input() count?: number;
-  private distributionApiService = inject(DistributionApiService);
-  private fileHelperService = inject(FileHelperService);
+  private readonly distributionApiService = inject(DistributionApiService);
+  private readonly fileHelperService = inject(FileHelperService);
 
   downloadCustomerList() {
     this.distributionApiService.downloadCustomerList().subscribe(response => this.processPdfResponse(response));

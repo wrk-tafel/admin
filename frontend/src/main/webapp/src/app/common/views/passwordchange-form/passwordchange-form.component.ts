@@ -39,7 +39,7 @@ export class PasswordChangeFormComponent {
       updateOn: 'change'
     }
   );
-  private userApiService = inject(UserApiService);
+  private readonly userApiService = inject(UserApiService);
 
   get currentPassword() {
     return this.form.get('currentPassword');

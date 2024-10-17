@@ -3,12 +3,15 @@ import {ToastOptions, ToastService, ToastType} from './toast.service';
 import {ToasterComponent} from '@coreui/angular';
 import {TafelToastComponent} from './toast/tafel-toast.component';
 import {Subject} from 'rxjs';
+import {NgClass} from "@angular/common";
 
 @Component({
   selector: 'tafel-toaster',
   templateUrl: 'tafel-toaster.component.html',
   imports: [
-    ToasterComponent
+    ToasterComponent,
+    ToasterComponent,
+    NgClass
   ],
   standalone: true
 })

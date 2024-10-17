@@ -9,8 +9,8 @@ import {map} from 'rxjs/operators';
   providedIn: 'root'
 })
 export class DistributionApiService {
-  private http = inject(HttpClient);
-  private websocketService = inject(WebsocketService);
+  private readonly http = inject(HttpClient);
+  private readonly websocketService = inject(WebsocketService);
 
   createNewDistribution(): Observable<void> {
     return this.http.post<void>('/distributions/new', null);

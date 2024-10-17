@@ -1,10 +1,11 @@
-import {HttpClientTestingModule} from '@angular/common/http/testing';
 import {TestBed} from '@angular/core/testing';
 import {CustomerApiService, CustomerData, Gender} from '../../../api/customer-api.service';
 import * as moment from 'moment/moment';
 import {of} from 'rxjs';
 import {CustomerDataResolver} from './customerdata-resolver.component';
 import {ActivatedRouteSnapshot} from '@angular/router';
+import {provideHttpClient} from "@angular/common/http";
+import {provideHttpClientTesting} from "@angular/common/http/testing";
 
 describe('CustomerDataResolver', () => {
   let apiService: jasmine.SpyObj<CustomerApiService>;
@@ -12,8 +13,9 @@ describe('CustomerDataResolver', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
       providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
         {
           provide: CustomerApiService,
           useValue: jasmine.createSpyObj('CustomerApiService', ['getCustomer'])

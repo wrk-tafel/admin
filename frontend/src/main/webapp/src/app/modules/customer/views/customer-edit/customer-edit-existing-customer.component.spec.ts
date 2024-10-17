@@ -1,8 +1,6 @@
-import {HttpClientTestingModule} from '@angular/common/http/testing';
 import {TestBed, waitForAsync} from '@angular/core/testing';
 import {ReactiveFormsModule} from '@angular/forms';
 import {ActivatedRoute, Router} from '@angular/router';
-import {RouterTestingModule} from '@angular/router/testing';
 import * as moment from 'moment';
 import {of} from 'rxjs';
 import {CustomerApiService, CustomerData, Gender} from '../../../../api/customer-api.service';
@@ -16,6 +14,8 @@ import {
   RowComponent
 } from '@coreui/angular';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
+import {provideHttpClient} from "@angular/common/http";
+import {provideHttpClientTesting} from "@angular/common/http/testing";
 
 describe('CustomerEditComponent - Editing an existing customer', () => {
   const testCountry = {
@@ -83,8 +83,6 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       imports: [
-        HttpClientTestingModule,
-        RouterTestingModule,
         ReactiveFormsModule,
         ModalModule,
         NoopAnimationsModule,
@@ -95,6 +93,8 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
         BgColorDirective
       ],
       providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
         {
           provide: CustomerApiService,
           useValue: jasmine.createSpyObj('CustomerApiService', ['validate', 'getCustomer', 'createCustomer', 'updateCustomer'])

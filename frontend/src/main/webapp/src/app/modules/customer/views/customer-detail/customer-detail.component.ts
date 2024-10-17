@@ -103,11 +103,11 @@ export class CustomerDetailComponent implements OnInit {
   showAddNewNoteModal = false;
   showAllNotesModal = false;
   showLockCustomerModal = false;
-  private customerApiService = inject(CustomerApiService);
-  private customerNoteApiService = inject(CustomerNoteApiService);
-  private fileHelperService = inject(FileHelperService);
-  private router = inject(Router);
-  private toastService = inject(ToastService);
+  private readonly customerApiService = inject(CustomerApiService);
+  private readonly customerNoteApiService = inject(CustomerNoteApiService);
+  private readonly fileHelperService = inject(FileHelperService);
+  private readonly router = inject(Router);
+  private readonly toastService = inject(ToastService);
 
   ngOnInit(): void {
     this.processCustomerNoteResponse(this.customerNotesResponse);
