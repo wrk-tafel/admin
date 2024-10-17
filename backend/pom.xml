@@ -22,7 +22,7 @@
         <sonar.kotlin.source.version>${kotlin.version}</sonar.kotlin.source.version>
 
         <spring.boot.version>3.3.4</spring.boot.version>
-        <flyway.version>10.19.0</flyway.version>
+        <flyway.version>10.20.0</flyway.version>
         <spring.modulith.version>1.2.4</spring.modulith.version>
         <jjwt.version>0.12.6</jjwt.version>
         <postgresql.driver.version>42.7.4</postgresql.driver.version>
