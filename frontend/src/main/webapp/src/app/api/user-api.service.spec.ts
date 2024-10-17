@@ -1,6 +1,7 @@
-import {HttpClientTestingModule, HttpTestingController} from '@angular/common/http/testing';
+import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
 import {TestBed} from '@angular/core/testing';
 import {ChangePasswordRequest, ChangePasswordResponse, UserApiService, UserData} from './user-api.service';
+import {provideHttpClient} from "@angular/common/http";
 
 describe('UserApiService', () => {
   let httpMock: HttpTestingController;
@@ -19,8 +20,11 @@ describe('UserApiService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
-      providers: [UserApiService]
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        UserApiService
+      ]
     });
 
     httpMock = TestBed.inject(HttpTestingController);

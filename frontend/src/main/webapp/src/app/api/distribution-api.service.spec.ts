@@ -1,4 +1,4 @@
-import {HttpClientTestingModule, HttpTestingController} from '@angular/common/http/testing';
+import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
 import {TestBed} from '@angular/core/testing';
 import {
   AssignCustomerRequest,
@@ -9,6 +9,7 @@ import {
 import {WebsocketService} from '../common/websocket/websocket.service';
 import {of} from 'rxjs';
 import {IMessage} from '@stomp/stompjs';
+import {provideHttpClient} from "@angular/common/http";
 
 describe('DistributionApiService', () => {
   let httpMock: HttpTestingController;
@@ -17,8 +18,9 @@ describe('DistributionApiService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
-      providers: [DistributionApiService,
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
         {
           provide: WebsocketService,
           useValue: jasmine.createSpyObj('WebsocketService', ['watch'])

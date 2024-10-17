@@ -9,8 +9,8 @@ import {catchError, map, tap} from 'rxjs/operators';
 })
 export class AuthenticationService {
   userInfo: UserInfo = null;
-  private http = inject(HttpClient);
-  private router = inject(Router);
+  private readonly http = inject(HttpClient);
+  private readonly router = inject(Router);
 
   public async login(username: string, password: string): Promise<LoginResult> {
     return firstValueFrom(this.executeLoginRequest(username, password)

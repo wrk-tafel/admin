@@ -1,21 +1,18 @@
-import {HttpEvent, HttpHandler, HttpInterceptor, HttpRequest} from '@angular/common/http';
-import {inject, Injectable} from '@angular/core';
+import {HttpEvent, HttpHandlerFn, HttpInterceptorFn, HttpRequest} from '@angular/common/http';
+import {inject} from '@angular/core';
 import {Observable} from 'rxjs';
 import {UrlHelperService} from '../util/url-helper.service';
 
-@Injectable({
-  providedIn: 'root'
-})
-export class ApiPathInterceptor implements HttpInterceptor {
-  private urlHelper = inject(UrlHelperService);
+export const apiPathInterceptor: HttpInterceptorFn = (
+  request: HttpRequest<unknown>,
+  next: HttpHandlerFn
+): Observable<HttpEvent<unknown>> => {
+  const urlHelperService = inject(UrlHelperService);
 
-  /* eslint-disable @typescript-eslint/no-explicit-any */
-  intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    const baseUrl = this.urlHelper.getBaseUrl();
-    const apiPath = `/api/${req.url}`.replaceAll('//', '/');
-    const absoluteUrl = baseUrl + apiPath;
-    const modRequest = req.clone({url: absoluteUrl});
-    return next.handle(modRequest);
-  }
+  const baseUrl = urlHelperService.getBaseUrl();
+  const apiPath = `/api/${request.url}`.replaceAll('//', '/');
+  const absoluteUrl = baseUrl + apiPath;
+  const modRequest = request.clone({url: absoluteUrl});
 
-}
+  return next(modRequest);
+};

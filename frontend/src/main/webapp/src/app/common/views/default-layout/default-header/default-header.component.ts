@@ -55,7 +55,7 @@ import {faKey, faLock} from '@fortawesome/free-solid-svg-icons';
 })
 export class DefaultHeaderComponent extends HeaderComponent {
   @Input() sidebarId = 'sidebar';
-  private authenticationService = inject(AuthenticationService);
+  private readonly authenticationService = inject(AuthenticationService);
 
   public logout() {
     /* eslint-disable @typescript-eslint/no-unused-vars */

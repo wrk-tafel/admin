@@ -7,7 +7,7 @@ import {CountryData} from './country-api.service';
   providedIn: 'root'
 })
 export class CustomerApiService {
-  private http = inject(HttpClient);
+  private readonly http = inject(HttpClient);
 
   validate(data: CustomerData): Observable<ValidateCustomerResponse> {
     return this.http.post<ValidateCustomerResponse>('/customers/validate', data);

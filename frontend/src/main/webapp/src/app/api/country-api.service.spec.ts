@@ -1,6 +1,7 @@
-import {HttpClientTestingModule, HttpTestingController} from '@angular/common/http/testing';
+import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
 import {TestBed} from '@angular/core/testing';
 import {CountryApiService, CountryData} from './country-api.service';
+import {provideHttpClient} from "@angular/common/http";
 
 describe('CountryApiService', () => {
   let httpMock: HttpTestingController;
@@ -8,8 +9,11 @@ describe('CountryApiService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
-      providers: [CountryApiService]
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        CountryApiService
+      ]
     });
 
     httpMock = TestBed.inject(HttpTestingController);

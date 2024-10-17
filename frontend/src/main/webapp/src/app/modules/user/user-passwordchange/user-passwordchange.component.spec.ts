@@ -2,16 +2,20 @@ import {TestBed, waitForAsync} from '@angular/core/testing';
 import {UserPasswordChangeComponent} from './user-passwordchange.component';
 import {PasswordChangeFormComponent} from '../../../common/views/passwordchange-form/passwordchange-form.component';
 import {of} from 'rxjs';
-import {HttpClientTestingModule} from '@angular/common/http/testing';
 import {CardModule} from '@coreui/angular';
+import {provideHttpClient} from "@angular/common/http";
+import {provideHttpClientTesting} from "@angular/common/http/testing";
 
 describe('UserPasswordChangeComponent', () => {
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       imports: [
-        HttpClientTestingModule,
         CardModule
       ],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting()
+      ]
     }).compileComponents();
   }));
 

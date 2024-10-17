@@ -7,8 +7,11 @@ import {
   CardBodyComponent,
   CardComponent,
   ColComponent,
-  DropdownComponent, DropdownDividerDirective,
-  DropdownItemDirective, DropdownMenuDirective, DropdownToggleDirective,
+  DropdownComponent,
+  DropdownDividerDirective,
+  DropdownItemDirective,
+  DropdownMenuDirective,
+  DropdownToggleDirective,
   RowComponent
 } from '@coreui/angular';
 import {CommonModule, NgClass} from '@angular/common';
@@ -35,9 +38,9 @@ import {CommonModule, NgClass} from '@angular/common';
 export class UserDetailComponent {
   @Input() userData: UserData;
 
-  private userApiService = inject(UserApiService);
-  private router = inject(Router);
-  private toastService = inject(ToastService);
+  private readonly userApiService = inject(UserApiService);
+  private readonly router = inject(Router);
+  private readonly toastService = inject(ToastService);
 
   disableUser() {
     this.changeUserState(false);
@@ -49,11 +52,11 @@ export class UserDetailComponent {
 
   deleteUser() {
     const observer = {
-      next: (response) => {
+      next: (_: any) => {
         this.toastService.showToast({type: ToastType.SUCCESS, title: 'Benutzer wurde gelöscht!'});
         this.router.navigate(['/benutzer/suchen']);
       },
-      error: error => {
+      error: (_: any) => {
         this.toastService.showToast({type: ToastType.ERROR, title: 'Löschen fehlgeschlagen!'});
       },
     };

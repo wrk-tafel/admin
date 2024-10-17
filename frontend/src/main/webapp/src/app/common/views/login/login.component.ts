@@ -44,9 +44,9 @@ export class LoginComponent implements OnInit {
     username: new FormControl<string>(null, Validators.required),
     password: new FormControl<string>(null, Validators.required)
   });
-  private authenticationService = inject(AuthenticationService);
-  private router = inject(Router);
-  private route = inject(ActivatedRoute);
+  private readonly authenticationService = inject(AuthenticationService);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   ngOnInit(): void {
     this.route.params.subscribe(params => {

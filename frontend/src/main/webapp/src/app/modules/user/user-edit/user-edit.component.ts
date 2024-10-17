@@ -22,8 +22,8 @@ export class UserEditComponent implements OnInit {
   userUpdated: UserData;
   userValidForSave = false;
   @ViewChild(UserFormComponent) userFormComponent: UserFormComponent;
-  private userApiService = inject(UserApiService);
-  private router = inject(Router);
+  private readonly userApiService = inject(UserApiService);
+  private readonly router = inject(Router);
 
   ngOnInit(): void {
     if (this.userData) {

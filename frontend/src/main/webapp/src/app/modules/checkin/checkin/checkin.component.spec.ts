@@ -11,7 +11,6 @@ import {CustomerNoteApiService, CustomerNotesResponse} from '../../../api/custom
 import {GlobalStateService} from '../../../common/state/global-state.service';
 import {Router} from '@angular/router';
 import {DistributionApiService, DistributionItem} from '../../../api/distribution-api.service';
-import {RouterTestingModule} from '@angular/router/testing';
 import {BadgeModule, CardModule, ColComponent, ModalModule, RowComponent} from '@coreui/angular';
 import {FormsModule} from '@angular/forms';
 import {ChangeDetectorRef, ElementRef} from '@angular/core';
@@ -43,7 +42,6 @@ describe('CheckinComponent', () => {
     TestBed.configureTestingModule({
       imports: [
         CommonModule,
-        RouterTestingModule,
         FormsModule,
         ModalModule,
         RowComponent,

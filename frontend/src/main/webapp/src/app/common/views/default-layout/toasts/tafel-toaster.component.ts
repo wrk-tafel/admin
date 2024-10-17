@@ -1,20 +1,37 @@
 import {Component, inject, OnInit, ViewChild} from '@angular/core';
 import {ToastOptions, ToastService, ToastType} from './toast.service';
-import {ToasterComponent} from '@coreui/angular';
+import {
+  BgColorDirective,
+  TextColorDirective,
+  ToastBodyComponent,
+  ToastComponent,
+  ToasterComponent,
+  ToastHeaderComponent
+} from '@coreui/angular';
 import {TafelToastComponent} from './toast/tafel-toast.component';
 import {Subject} from 'rxjs';
+import {NgClass, NgStyle} from '@angular/common';
 
 @Component({
   selector: 'tafel-toaster',
   templateUrl: 'tafel-toaster.component.html',
   imports: [
-    ToasterComponent
+    ToasterComponent,
+    ToasterComponent,
+    NgClass,
+    ToasterComponent,
+    ToastBodyComponent,
+    ToastComponent,
+    ToastHeaderComponent,
+    BgColorDirective,
+    TextColorDirective,
+    NgStyle
   ],
   standalone: true
 })
 export class TafelToasterComponent implements OnInit {
   @ViewChild(ToasterComponent) toaster: ToasterComponent;
-  private toastService = inject(ToastService);
+  private readonly toastService = inject(ToastService);
 
   ngOnInit(): void {
     this.subscribeToastSubject(this.toastService.addToastSubject);
@@ -41,13 +58,13 @@ export class TafelToasterComponent implements OnInit {
   private getTypeSpecificOptions(type: ToastType) {
     switch (type) {
       case ToastType.ERROR:
-        return {titlePrefix: 'Fehler:', bgColor: 'danger'};
+        return {titlePrefix: 'Fehler:', bgColor: 'danger', headerTextColor: 'white'};
       case ToastType.INFO:
-        return {titlePrefix: 'Info:', bgColor: 'info'};
+        return {titlePrefix: 'Info:', bgColor: 'info', headerTextColor: 'white'};
       case ToastType.SUCCESS:
-        return {titlePrefix: undefined, bgColor: 'success'};
+        return {titlePrefix: undefined, bgColor: 'success', headerTextColor: 'white'};
       case ToastType.WARN:
-        return {titlePrefix: 'Achtung!', bgColor: 'warning'};
+        return {titlePrefix: 'Achtung!', bgColor: 'warning', headerTextColor: 'white'};
     }
   }
 

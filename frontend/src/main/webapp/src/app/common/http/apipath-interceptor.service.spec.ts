@@ -1,22 +1,21 @@
-import {HTTP_INTERCEPTORS, HttpClient} from '@angular/common/http';
+import {HttpClient, provideHttpClient, withInterceptors} from '@angular/common/http';
 import {TestBed} from '@angular/core/testing';
-import {HttpClientTestingModule, HttpTestingController} from '@angular/common/http/testing';
-import {ApiPathInterceptor} from './apipath-interceptor.service';
+import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
+import {apiPathInterceptor} from './apipath-interceptor.service';
 import {UrlHelperService} from '../util/url-helper.service';
 
 describe('ApiPathInterceptor', () => {
+  let httpTestingController: HttpTestingController;
+  let httpClient: HttpClient;
   let urlHelperSpy: jasmine.SpyObj<UrlHelperService>;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
       providers: [
-        ApiPathInterceptor,
-        {
-          provide: HTTP_INTERCEPTORS,
-          useClass: ApiPathInterceptor,
-          multi: true
-        },
+        provideHttpClient(
+          withInterceptors([apiPathInterceptor])
+        ),
+        provideHttpClientTesting(),
         {
           provide: UrlHelperService,
           useValue: jasmine.createSpyObj('UrlHelperService', ['getBaseUrl'])
@@ -24,29 +23,29 @@ describe('ApiPathInterceptor', () => {
       ],
     });
 
+    httpTestingController = TestBed.inject(HttpTestingController);
+    httpClient = TestBed.inject(HttpClient);
     urlHelperSpy = TestBed.inject(UrlHelperService) as jasmine.SpyObj<UrlHelperService>;
   });
 
+  afterEach(() => {
+    httpTestingController.verify();
+  });
+
   it('should add the api path with base root without subpath', () => {
-    const client = TestBed.inject(HttpClient);
-    const httpMock = TestBed.inject(HttpTestingController);
     urlHelperSpy.getBaseUrl.and.returnValue('http://test:1234');
 
-    client.get('/test').subscribe();
+    httpClient.get('/test').subscribe();
 
-    httpMock.expectOne('http://test:1234/api/test');
-    expect().nothing();
+    httpTestingController.expectOne('http://test:1234/api/test');
   });
 
   it('should add the api path with base root and with subpath', () => {
-    const client = TestBed.inject(HttpClient);
-    const httpMock = TestBed.inject(HttpTestingController);
     urlHelperSpy.getBaseUrl.and.returnValue('http://test:1234/subpath');
 
-    client.get('/test').subscribe();
+    httpClient.get('/test').subscribe();
 
-    httpMock.expectOne('http://test:1234/subpath/api/test');
-    expect().nothing();
+    httpTestingController.expectOne('http://test:1234/subpath/api/test');
   });
 
 });

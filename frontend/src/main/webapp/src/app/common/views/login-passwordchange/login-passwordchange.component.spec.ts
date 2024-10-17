@@ -5,8 +5,9 @@ import {AuthenticationService, LoginResult} from '../../security/authentication.
 import {Router} from '@angular/router';
 import {firstValueFrom, of} from 'rxjs';
 import {PasswordChangeFormComponent} from '../passwordchange-form/passwordchange-form.component';
-import {HttpClientTestingModule} from '@angular/common/http/testing';
 import {CardModule, ColComponent, ContainerComponent, RowComponent} from '@coreui/angular';
+import {provideHttpClient} from "@angular/common/http";
+import {provideHttpClientTesting} from "@angular/common/http/testing";
 
 describe('LoginPasswordChangeComponent', () => {
   let authServiceSpy: jasmine.SpyObj<AuthenticationService>;
@@ -16,13 +17,14 @@ describe('LoginPasswordChangeComponent', () => {
     TestBed.configureTestingModule({
       imports: [
         ReactiveFormsModule,
-        HttpClientTestingModule,
         CardModule,
         ContainerComponent,
         RowComponent,
         ColComponent
       ],
       providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
         {
           provide: AuthenticationService,
           useValue: jasmine.createSpyObj('AuthenticationService', ['login', 'getUsername'])

@@ -6,7 +6,7 @@ import {Observable} from 'rxjs';
   providedIn: 'root'
 })
 export class UserApiService {
-  private http = inject(HttpClient);
+  private readonly http = inject(HttpClient);
 
   changePassword(request: ChangePasswordRequest): Observable<ChangePasswordResponse> {
     return this.http.post<ChangePasswordResponse>('/users/change-password', request);

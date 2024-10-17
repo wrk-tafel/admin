@@ -1,7 +1,6 @@
 import {ComponentFixture, TestBed, waitForAsync} from '@angular/core/testing';
 import {ReactiveFormsModule} from '@angular/forms';
 import {ActivatedRoute, Router} from '@angular/router';
-import {RouterTestingModule} from '@angular/router/testing';
 import {UserDetailComponent} from './user-detail.component';
 import {CardModule, ColComponent, RowComponent} from '@coreui/angular';
 import {UserApiService, UserData} from '../../../api/user-api.service';
@@ -31,7 +30,6 @@ describe('UserDetailComponent', () => {
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       imports: [
-        RouterTestingModule,
         ReactiveFormsModule,
         CardModule,
         RowComponent,
