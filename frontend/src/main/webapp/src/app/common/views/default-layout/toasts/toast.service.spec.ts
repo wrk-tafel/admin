@@ -10,8 +10,7 @@ describe('ToastService', () => {
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(),
-        provideHttpClientTesting(),
-        ToastService
+        provideHttpClientTesting()
       ]
     });
 

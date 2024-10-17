@@ -1,7 +1,7 @@
-import {HTTP_INTERCEPTORS, HttpClient, provideHttpClient} from '@angular/common/http';
+import {HttpClient, provideHttpClient, withInterceptors} from '@angular/common/http';
 import {TestBed} from '@angular/core/testing';
 import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
-import {ApiPathInterceptor} from './apipath-interceptor.service';
+import {apiPathInterceptor} from './apipath-interceptor.service';
 import {UrlHelperService} from '../util/url-helper.service';
 
 describe('ApiPathInterceptor', () => {
@@ -12,16 +12,13 @@ describe('ApiPathInterceptor', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
-        provideHttpClient(),
+        provideHttpClient(
+          withInterceptors([apiPathInterceptor])
+        ),
         provideHttpClientTesting(),
         {
           provide: UrlHelperService,
           useValue: jasmine.createSpyObj('UrlHelperService', ['getBaseUrl'])
-        },
-        {
-          provide: HTTP_INTERCEPTORS,
-          useClass: ApiPathInterceptor,
-          multi: true
         }
       ],
     });

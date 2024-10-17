@@ -1,7 +1,8 @@
 import {APP_INITIALIZER, ApplicationConfig, DEFAULT_CURRENCY_CODE, importProvidersFrom, LOCALE_ID} from '@angular/core';
 import {provideAnimations} from '@angular/platform-browser/animations';
 import {
-  provideRouter, withComponentInputBinding,
+  provideRouter,
+  withComponentInputBinding,
   withEnabledBlockingInitialNavigation,
   withHashLocation,
   withInMemoryScrolling,
@@ -12,18 +13,20 @@ import {
 import {DropdownModule, SidebarModule} from '@coreui/angular';
 import {IconSetService} from '@coreui/icons-angular';
 import {routes} from './app.routes';
-import {HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi} from '@angular/common/http';
+import {HTTP_INTERCEPTORS, provideHttpClient, withInterceptors} from '@angular/common/http';
 import {CookieService} from 'ngx-cookie-service';
 import {HashLocationStrategy, LocationStrategy} from '@angular/common';
 import {ErrorHandlerInterceptor} from './common/http/errorhandler-interceptor.service';
-import {ApiPathInterceptor} from './common/http/apipath-interceptor.service';
+import {apiPathInterceptor} from './common/http/apipath-interceptor.service';
 import {WebsocketService} from './common/websocket/websocket.service';
 import {AuthenticationService} from './common/security/authentication.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideHttpClient(
-      withInterceptorsFromDi()
+      withInterceptors([
+        apiPathInterceptor
+      ])
     ),
     provideRouter(routes,
       withRouterConfig({
@@ -60,11 +63,6 @@ export const appConfig: ApplicationConfig = {
     {
       provide: HTTP_INTERCEPTORS,
       useClass: ErrorHandlerInterceptor,
-      multi: true
-    },
-    {
-      provide: HTTP_INTERCEPTORS,
-      useClass: ApiPathInterceptor,
       multi: true
     },
     {
