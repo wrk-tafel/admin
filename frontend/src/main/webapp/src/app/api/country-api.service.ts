@@ -7,7 +7,7 @@ import {map} from 'rxjs/operators';
   providedIn: 'root'
 })
 export class CountryApiService {
-  private http = inject(HttpClient);
+  private readonly http = inject(HttpClient);
 
   getCountries(): Observable<CountryData[]> {
     return this.http.get<CountryListResponse>('/countries').pipe(map(val => val.items));

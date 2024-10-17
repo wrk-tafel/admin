@@ -51,9 +51,9 @@ export class CustomerSearchComponent {
     postProcessing: new FormControl<boolean>(null),
   });
   paginationData: TafelPaginationData;
-  private customerApiService = inject(CustomerApiService);
-  private router = inject(Router);
-  private toastService = inject(ToastService);
+  private readonly customerApiService = inject(CustomerApiService);
+  private readonly router = inject(Router);
+  private readonly toastService = inject(ToastService);
 
   get customerId() {
     return this.customerSearchForm.get('customerId');

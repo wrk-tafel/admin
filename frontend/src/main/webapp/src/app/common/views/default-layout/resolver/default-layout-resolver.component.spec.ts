@@ -1,10 +1,11 @@
-import {HttpClientTestingModule} from '@angular/common/http/testing';
 import {TestBed} from '@angular/core/testing';
 import {firstValueFrom, of} from 'rxjs';
 import {WebsocketService} from '../../../websocket/websocket.service';
 import {DefaultLayoutResolver} from './default-layout-resolver.component';
 import {GlobalStateService} from '../../../state/global-state.service';
 import {RxStompState} from '@stomp/rx-stomp';
+import {provideHttpClient} from "@angular/common/http";
+import {provideHttpClientTesting} from "@angular/common/http/testing";
 
 describe('DefaultLayoutResolver', () => {
   let websocketService: jasmine.SpyObj<WebsocketService>;
@@ -13,8 +14,9 @@ describe('DefaultLayoutResolver', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
       providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
         {
           provide: WebsocketService,
           useValue: jasmine.createSpyObj('WebsocketService', ['connect'])

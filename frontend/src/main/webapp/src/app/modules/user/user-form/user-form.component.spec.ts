@@ -1,5 +1,4 @@
 import {TestBed, waitForAsync} from '@angular/core/testing';
-import {RouterTestingModule} from '@angular/router/testing';
 import {passwordRepeatValidator, UserFormComponent, UserPermissionFormItem} from './user-form.component';
 import {FormControl, FormGroup, ReactiveFormsModule} from '@angular/forms';
 import {CardModule, ColComponent, InputGroupComponent, RowComponent} from '@coreui/angular';
@@ -30,7 +29,6 @@ describe('UserFormComponent', () => {
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       imports: [
-        RouterTestingModule,
         ReactiveFormsModule,
         InputGroupComponent,
         CardModule,

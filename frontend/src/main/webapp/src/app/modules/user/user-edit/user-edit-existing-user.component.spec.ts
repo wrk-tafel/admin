@@ -1,8 +1,6 @@
-import {HttpClientTestingModule} from '@angular/common/http/testing';
 import {TestBed, waitForAsync} from '@angular/core/testing';
 import {ReactiveFormsModule} from '@angular/forms';
 import {ActivatedRoute, Router} from '@angular/router';
-import {RouterTestingModule} from '@angular/router/testing';
 import {of} from 'rxjs';
 import {UserEditComponent} from './user-edit.component';
 import {
@@ -15,7 +13,8 @@ import {
 } from '@coreui/angular';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 import {UserApiService, UserData} from '../../../api/user-api.service';
-import {UserFormComponent} from '../user-form/user-form.component';
+import {provideHttpClient} from "@angular/common/http";
+import {provideHttpClientTesting} from "@angular/common/http/testing";
 
 describe('UserEditComponent - Editing an existing user', () => {
   const mockUser: UserData = {
@@ -35,8 +34,6 @@ describe('UserEditComponent - Editing an existing user', () => {
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       imports: [
-        HttpClientTestingModule,
-        RouterTestingModule,
         ReactiveFormsModule,
         ModalModule,
         NoopAnimationsModule,
@@ -47,6 +44,8 @@ describe('UserEditComponent - Editing an existing user', () => {
         BgColorDirective
       ],
       providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
         {
           provide: UserApiService,
           useValue: jasmine.createSpyObj('UserApiService', ['updateUser'])

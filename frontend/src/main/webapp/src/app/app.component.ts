@@ -17,8 +17,8 @@ import {TafelToasterComponent} from './common/views/default-layout/toasts/tafel-
 })
 
 export class AppComponent implements OnInit {
-  private router = inject(Router);
-  private iconSetService = inject(IconSetService);
+  private readonly router = inject(Router);
+  private readonly iconSetService = inject(IconSetService);
 
   constructor() {
     // iconSet singleton

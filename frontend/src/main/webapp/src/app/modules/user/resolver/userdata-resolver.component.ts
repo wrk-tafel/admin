@@ -7,7 +7,7 @@ import {UserApiService, UserData} from '../../../api/user-api.service';
   providedIn: 'root'
 })
 export class UserDataResolver {
-  private userApiService = inject(UserApiService);
+  private readonly userApiService = inject(UserApiService);
 
   public resolve(route: ActivatedRouteSnapshot): Observable<UserData> {
     const userId = +route.params['id'];

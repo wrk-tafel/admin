@@ -1,7 +1,8 @@
-import {HttpClientTestingModule, HttpTestingController} from '@angular/common/http/testing';
+import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
 import {TestBed} from '@angular/core/testing';
 import {DistributionApiService} from './distribution-api.service';
 import {DistributionTicketApiService} from './distribution-ticket-api.service';
+import {provideHttpClient} from "@angular/common/http";
 
 describe('DistributionTicketApiService', () => {
   let httpMock: HttpTestingController;
@@ -9,8 +10,11 @@ describe('DistributionTicketApiService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
-      providers: [DistributionApiService]
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        DistributionApiService
+      ]
     });
 
     httpMock = TestBed.inject(HttpTestingController);

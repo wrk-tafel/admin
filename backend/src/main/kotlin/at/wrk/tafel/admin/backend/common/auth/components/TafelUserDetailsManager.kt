@@ -120,11 +120,10 @@ class TafelUserDetailsManager(
     private fun isPasswordValid(username: String, newPassword: String): Boolean {
         val data = PasswordData(username, newPassword)
         val result = passwordValidator.validate(data)
-        if (result.isValid) {
-            return true
-        } else {
+        if (!result.isValid) {
             throw PasswordChangeException("Das neue Passwort ist ungültig!", translateViolationsToMessages(result))
         }
+        return true
     }
 
     private fun translateViolationsToMessages(result: RuleResult): List<String> {

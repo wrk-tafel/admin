@@ -20,7 +20,7 @@ import {DatePipe, NgIf} from '@angular/common';
 export class TicketScreenComponent implements OnInit {
   startTime: Date;
   ticketNumber: number;
-  private websocketService = inject(WebsocketService);
+  private readonly websocketService = inject(WebsocketService);
 
   ngOnInit(): void {
     this.websocketService.connect();

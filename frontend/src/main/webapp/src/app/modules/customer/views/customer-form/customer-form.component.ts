@@ -88,7 +88,7 @@ export class CustomerFormComponent implements OnInit {
   });
   countries: CountryData[];
   genders: Gender[] = [Gender.FEMALE, Gender.MALE];
-  private countryApiService = inject(CountryApiService);
+  private readonly countryApiService = inject(CountryApiService);
 
   get customerData() {
     return this.customerData;

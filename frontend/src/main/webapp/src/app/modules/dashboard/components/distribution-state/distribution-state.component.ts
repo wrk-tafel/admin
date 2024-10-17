@@ -35,8 +35,8 @@ import {NgIf} from '@angular/common';
 export class DistributionStateComponent implements OnInit {
   distribution: DistributionItem;
   showCloseDistributionModal = false;
-  private distributionApiService = inject(DistributionApiService);
-  private globalStateService = inject(GlobalStateService);
+  private readonly distributionApiService = inject(DistributionApiService);
+  private readonly globalStateService = inject(GlobalStateService);
 
   ngOnInit() {
     this.globalStateService.getCurrentDistribution().subscribe((distribution) => {

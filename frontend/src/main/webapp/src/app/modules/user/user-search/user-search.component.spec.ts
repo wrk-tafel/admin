@@ -1,7 +1,6 @@
 import {TestBed, waitForAsync} from '@angular/core/testing';
 import {ReactiveFormsModule} from '@angular/forms';
 import {Router} from '@angular/router';
-import {RouterTestingModule} from '@angular/router/testing';
 import {EMPTY, of} from 'rxjs';
 import {UserSearchComponent} from './user-search.component';
 import {CardModule, ColComponent, RowComponent} from '@coreui/angular';
@@ -36,7 +35,6 @@ describe('UserSearchComponent', () => {
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       imports: [
-        RouterTestingModule,
         ReactiveFormsModule,
         CardModule,
         RowComponent,

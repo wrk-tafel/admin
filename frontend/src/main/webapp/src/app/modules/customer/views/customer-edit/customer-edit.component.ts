@@ -40,9 +40,9 @@ export class CustomerEditComponent implements OnInit {
   validationResultColor: Colors;
   showValidationResultModal = false;
   @ViewChild(CustomerFormComponent) customerFormComponent: CustomerFormComponent;
-  private customerApiService = inject(CustomerApiService);
-  private router = inject(Router);
-  private toastService = inject(ToastService);
+  private readonly customerApiService = inject(CustomerApiService);
+  private readonly router = inject(Router);
+  private readonly toastService = inject(ToastService);
 
   ngOnInit(): void {
     if (this.customerData) {

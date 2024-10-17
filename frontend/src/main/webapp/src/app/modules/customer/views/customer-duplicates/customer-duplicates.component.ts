@@ -47,9 +47,9 @@ export class CustomerDuplicatesComponent implements OnInit {
   @Input() customerDuplicatesData: CustomerDuplicatesResponse;
 
   paginationData: TafelPaginationData;
-  private customerApiService = inject(CustomerApiService);
-  private router = inject(Router);
-  private toastService = inject(ToastService);
+  private readonly customerApiService = inject(CustomerApiService);
+  private readonly router = inject(Router);
+  private readonly toastService = inject(ToastService);
 
   ngOnInit(): void {
     this.paginationData = {

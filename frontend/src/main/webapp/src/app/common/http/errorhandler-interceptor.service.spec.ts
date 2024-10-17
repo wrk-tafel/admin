@@ -1,25 +1,23 @@
-import {HTTP_INTERCEPTORS, HttpClient} from '@angular/common/http';
+import {HttpClient, provideHttpClient, withInterceptors} from '@angular/common/http';
 import {TestBed} from '@angular/core/testing';
-import {HttpClientTestingModule, HttpTestingController} from '@angular/common/http/testing';
-import {ErrorHandlerInterceptor, TafelErrorResponse} from './errorhandler-interceptor.service';
+import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
+import {errorHandlerInterceptor, TafelErrorResponse} from './errorhandler-interceptor.service';
 import {AuthenticationService} from '../security/authentication.service';
 import {ToastOptions, ToastService, ToastType} from '../views/default-layout/toasts/toast.service';
 
 describe('ErrorHandlerInterceptor', () => {
-  let client: HttpClient;
-  let httpMock: HttpTestingController;
+  let httpTestingController: HttpTestingController;
+  let httpClient: HttpClient;
   let authServiceSpy: jasmine.SpyObj<AuthenticationService>;
   let toastServiceSpy: jasmine.SpyObj<ToastService>;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
       providers: [
-        {
-          provide: HTTP_INTERCEPTORS,
-          useClass: ErrorHandlerInterceptor,
-          multi: true
-        },
+        provideHttpClient(
+          withInterceptors([errorHandlerInterceptor])
+        ),
+        provideHttpClientTesting(),
         {
           provide: AuthenticationService,
           useValue: jasmine.createSpyObj('AuthenticationService', ['redirectToLogin', 'isAuthenticated'])
@@ -31,10 +29,14 @@ describe('ErrorHandlerInterceptor', () => {
       ]
     });
 
-    client = TestBed.inject(HttpClient);
-    httpMock = TestBed.inject(HttpTestingController);
+    httpTestingController = TestBed.inject(HttpTestingController);
+    httpClient = TestBed.inject(HttpClient);
     authServiceSpy = TestBed.inject(AuthenticationService) as jasmine.SpyObj<AuthenticationService>;
     toastServiceSpy = TestBed.inject(ToastService) as jasmine.SpyObj<ToastService>;
+  });
+
+  afterEach(() => {
+    httpTestingController.verify();
   });
 
   it('generic http error', () => {
@@ -51,12 +53,12 @@ describe('ErrorHandlerInterceptor', () => {
         expect(toastServiceSpy.showToast).toHaveBeenCalledWith(expectedToast);
       },
     };
-    client.get('/test').subscribe(observer);
+    httpClient.get('/test').subscribe(observer);
 
-    const mockReq = httpMock.expectOne('/test');
+    const mockReq = httpTestingController.expectOne('/test');
     const mockErrorResponse = {status: 500, statusText: 'Internal Server Error'};
     mockReq.flush(null, mockErrorResponse);
-    httpMock.verify();
+    httpTestingController.verify();
   });
 
   it('generic http 504 error', () => {
@@ -73,12 +75,12 @@ describe('ErrorHandlerInterceptor', () => {
         expect(toastServiceSpy.showToast).toHaveBeenCalledWith(expectedToast);
       },
     };
-    client.get('/test').subscribe(observer);
+    httpClient.get('/test').subscribe(observer);
 
-    const mockReq = httpMock.expectOne('/test');
+    const mockReq = httpTestingController.expectOne('/test');
     const mockErrorResponse = {status: 504, statusText: 'Bad Gateway'};
     mockReq.flush(null, mockErrorResponse);
-    httpMock.verify();
+    httpTestingController.verify();
   });
 
   it('specific spring http error', () => {
@@ -86,7 +88,7 @@ describe('ErrorHandlerInterceptor', () => {
 
     /* eslint-disable @typescript-eslint/no-unused-vars */
     const observer = {
-      error: error => {
+      error: _ => {
         const expectedToast: ToastOptions = {
           type: ToastType.ERROR,
           title: 'HTTP 400 - Bad Request',
@@ -95,9 +97,9 @@ describe('ErrorHandlerInterceptor', () => {
         expect(toastServiceSpy.showToast).toHaveBeenCalledWith(expectedToast);
       },
     };
-    client.get('/test').subscribe(observer);
+    httpClient.get('/test').subscribe(observer);
 
-    const mockReq = httpMock.expectOne('/test');
+    const mockReq = httpTestingController.expectOne('/test');
     const mockErrorResponse = {
       status: 400,
       statusText: 'Bad Request'
@@ -107,7 +109,7 @@ describe('ErrorHandlerInterceptor', () => {
       message: 'Custom message from body'
     };
     mockReq.flush(errorBody, mockErrorResponse);
-    httpMock.verify();
+    httpTestingController.verify();
   });
 
   it('authentication expired and redirected to login', () => {
@@ -115,16 +117,16 @@ describe('ErrorHandlerInterceptor', () => {
 
     /* eslint-disable @typescript-eslint/no-unused-vars */
     const observer = {
-      error: error => {
+      error: _ => {
         expect(authServiceSpy.redirectToLogin).toHaveBeenCalled();
       },
     };
-    client.get('/test').subscribe(observer);
+    httpClient.get('/test').subscribe(observer);
 
-    const mockReq = httpMock.expectOne('/test');
+    const mockReq = httpTestingController.expectOne('/test');
     const mockErrorResponse = {status: 401, statusText: 'Unauthorized'};
     mockReq.flush(null, mockErrorResponse);
-    httpMock.verify();
+    httpTestingController.verify();
   });
 
 });

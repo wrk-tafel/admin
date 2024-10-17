@@ -1,5 +1,4 @@
 import {TestBed, waitForAsync} from '@angular/core/testing';
-import {RouterTestingModule} from '@angular/router/testing';
 import * as moment from 'moment';
 import {of} from 'rxjs';
 import {CountryApiService} from '../../../../api/country-api.service';
@@ -71,7 +70,6 @@ describe('CustomerFormComponent', () => {
 
     TestBed.configureTestingModule({
       imports: [
-        RouterTestingModule,
         ReactiveFormsModule,
         InputGroupComponent,
         CardModule,

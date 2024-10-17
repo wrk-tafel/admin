@@ -7,7 +7,7 @@ import {Observable} from 'rxjs';
   providedIn: 'root'
 })
 export class CustomerDuplicatesDataResolver {
-  private customerApiService = inject(CustomerApiService);
+  private readonly customerApiService = inject(CustomerApiService);
 
   public resolve(route: ActivatedRouteSnapshot): Observable<CustomerDuplicatesResponse> {
     return this.customerApiService.getCustomerDuplicates();
