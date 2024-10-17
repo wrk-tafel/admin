@@ -1,7 +1,7 @@
-import {HTTP_INTERCEPTORS, HttpClient, provideHttpClient} from '@angular/common/http';
+import {HttpClient, provideHttpClient, withInterceptors} from '@angular/common/http';
 import {TestBed} from '@angular/core/testing';
 import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
-import {ErrorHandlerInterceptor, TafelErrorResponse} from './errorhandler-interceptor.service';
+import {errorHandlerInterceptor, TafelErrorResponse} from './errorhandler-interceptor.service';
 import {AuthenticationService} from '../security/authentication.service';
 import {ToastOptions, ToastService, ToastType} from '../views/default-layout/toasts/toast.service';
 
@@ -14,13 +14,10 @@ describe('ErrorHandlerInterceptor', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
-        provideHttpClient(),
+        provideHttpClient(
+          withInterceptors([errorHandlerInterceptor])
+        ),
         provideHttpClientTesting(),
-        {
-          provide: HTTP_INTERCEPTORS,
-          useClass: ErrorHandlerInterceptor,
-          multi: true
-        },
         {
           provide: AuthenticationService,
           useValue: jasmine.createSpyObj('AuthenticationService', ['redirectToLogin', 'isAuthenticated'])
@@ -91,7 +88,7 @@ describe('ErrorHandlerInterceptor', () => {
 
     /* eslint-disable @typescript-eslint/no-unused-vars */
     const observer = {
-      error: error => {
+      error: _ => {
         const expectedToast: ToastOptions = {
           type: ToastType.ERROR,
           title: 'HTTP 400 - Bad Request',
@@ -120,7 +117,7 @@ describe('ErrorHandlerInterceptor', () => {
 
     /* eslint-disable @typescript-eslint/no-unused-vars */
     const observer = {
-      error: error => {
+      error: _ => {
         expect(authServiceSpy.redirectToLogin).toHaveBeenCalled();
       },
     };

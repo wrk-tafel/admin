@@ -8,9 +8,11 @@ export const apiPathInterceptor: HttpInterceptorFn = (
   next: HttpHandlerFn
 ): Observable<HttpEvent<unknown>> => {
   const urlHelperService = inject(UrlHelperService);
+
   const baseUrl = urlHelperService.getBaseUrl();
   const apiPath = `/api/${request.url}`.replaceAll('//', '/');
   const absoluteUrl = baseUrl + apiPath;
   const modRequest = request.clone({url: absoluteUrl});
+
   return next(modRequest);
 };

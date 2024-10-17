@@ -13,10 +13,10 @@ import {
 import {DropdownModule, SidebarModule} from '@coreui/angular';
 import {IconSetService} from '@coreui/icons-angular';
 import {routes} from './app.routes';
-import {HTTP_INTERCEPTORS, provideHttpClient, withInterceptors} from '@angular/common/http';
+import {provideHttpClient, withInterceptors} from '@angular/common/http';
 import {CookieService} from 'ngx-cookie-service';
 import {HashLocationStrategy, LocationStrategy} from '@angular/common';
-import {ErrorHandlerInterceptor} from './common/http/errorhandler-interceptor.service';
+import {errorHandlerInterceptor} from './common/http/errorhandler-interceptor.service';
 import {apiPathInterceptor} from './common/http/apipath-interceptor.service';
 import {WebsocketService} from './common/websocket/websocket.service';
 import {AuthenticationService} from './common/security/authentication.service';
@@ -25,7 +25,8 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideHttpClient(
       withInterceptors([
-        apiPathInterceptor
+        apiPathInterceptor,
+        errorHandlerInterceptor
       ])
     ),
     provideRouter(routes,
@@ -59,11 +60,6 @@ export const appConfig: ApplicationConfig = {
     {
       provide: LocationStrategy,
       useClass: HashLocationStrategy
-    },
-    {
-      provide: HTTP_INTERCEPTORS,
-      useClass: ErrorHandlerInterceptor,
-      multi: true
     },
     {
       provide: Window,
