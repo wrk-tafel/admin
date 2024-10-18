@@ -1,9 +1,10 @@
-import {HttpClientTestingModule} from '@angular/common/http/testing';
 import {TestBed} from '@angular/core/testing';
 import {of} from 'rxjs';
 import {ActivatedRouteSnapshot} from '@angular/router';
 import {PermissionsListResponse, UserApiService, UserPermission} from '../../../api/user-api.service';
 import {PermissionsDataResolver} from './permissionsdata-resolver.component';
+import {provideHttpClient} from "@angular/common/http";
+import {provideHttpClientTesting} from "@angular/common/http/testing";
 
 describe('PermissionsDataResolver', () => {
   let apiService: jasmine.SpyObj<UserApiService>;
@@ -11,8 +12,9 @@ describe('PermissionsDataResolver', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
       providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
         {
           provide: UserApiService,
           useValue: jasmine.createSpyObj('UserApiService', ['getPermissions'])

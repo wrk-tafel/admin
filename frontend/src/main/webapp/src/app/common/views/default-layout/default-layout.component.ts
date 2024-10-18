@@ -44,8 +44,8 @@ import {DistributionItem} from '../../../api/distribution-api.service';
 })
 export class DefaultLayoutComponent implements OnInit {
   public navItems: ITafelNavData[] = navigationMenuItems;
-  private authenticationService = inject(AuthenticationService);
-  private globalStateService = inject(GlobalStateService);
+  private readonly authenticationService = inject(AuthenticationService);
+  private readonly globalStateService = inject(GlobalStateService);
 
   ngOnInit() {
     this.globalStateService.getCurrentDistribution().subscribe((distribution: DistributionItem) => {

@@ -1,12 +1,12 @@
 import {TestBed, waitForAsync} from '@angular/core/testing';
-import {RouterTestingModule} from '@angular/router/testing';
 import {DefaultLayoutComponent} from './default-layout.component';
 import {AuthenticationService} from '../../security/authentication.service';
 import {ContainerComponent, HeaderNavComponent, SidebarModule} from '@coreui/angular';
 import {GlobalStateService} from '../../state/global-state.service';
-import {DefaultHeaderComponent} from './default-header/default-header.component';
 import {DistributionItem} from '../../../api/distribution-api.service';
 import {BehaviorSubject} from 'rxjs';
+import {provideLocationMocks} from "@angular/common/testing";
+import {provideRouter} from "@angular/router";
 
 describe('DefaultLayoutComponent', () => {
   let authService: jasmine.SpyObj<AuthenticationService>;
@@ -20,11 +20,12 @@ describe('DefaultLayoutComponent', () => {
     TestBed.configureTestingModule({
       imports: [
         SidebarModule,
-        RouterTestingModule,
         ContainerComponent,
         HeaderNavComponent
       ],
       providers: [
+        provideRouter([]),
+        provideLocationMocks(),
         {
           provide: AuthenticationService,
           useValue: authServiceSpy

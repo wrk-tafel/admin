@@ -1,10 +1,12 @@
-import {Component} from '@angular/core';
+import {Component, forwardRef, Input} from '@angular/core';
 import {
   BgColorDirective,
   ButtonCloseDirective,
   ProgressBarComponent,
   ProgressComponent,
+  TextColorDirective,
   ToastBodyComponent,
+  ToastCloseDirective,
   ToastComponent,
   ToastHeaderComponent
 } from '@coreui/angular';
@@ -15,17 +17,34 @@ import {
   imports: [
     ToastComponent,
     ToastHeaderComponent,
-    BgColorDirective,
     ToastBodyComponent,
+    BgColorDirective,
     ProgressComponent,
     ProgressBarComponent,
-    ButtonCloseDirective
+    ButtonCloseDirective,
+    TextColorDirective,
+    ToastCloseDirective,
+    ProgressComponent,
+    ToastBodyComponent,
+    ToastHeaderComponent,
+    ProgressComponent,
+    ToastBodyComponent,
+    ToastHeaderComponent,
+    ProgressComponent,
+    ToastBodyComponent,
+    ProgressComponent,
+    ToastBodyComponent,
+    ToastHeaderComponent,
+    ProgressComponent,
   ],
+  providers: [{ provide: ToastComponent, useExisting: forwardRef(() => TafelToastComponent) }],
   standalone: true
 })
 export class TafelToastComponent extends ToastComponent {
-  bgColor: string;
-  titlePrefix: string;
-  title: string;
-  message: string;
+  @Input() bgColor: string;
+  @Input() headerTextColor: string;
+  @Input() closeButton: boolean = true;
+  @Input() titlePrefix: string;
+  @Input() title: string;
+  @Input() message: string;
 }

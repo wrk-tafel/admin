@@ -55,9 +55,9 @@ export class UserSearchComponent {
     enabled: new FormControl<boolean>(true)
   });
   paginationData: TafelPaginationData;
-  private userApiService = inject(UserApiService);
-  private router = inject(Router);
-  private toastService = inject(ToastService);
+  private readonly userApiService = inject(UserApiService);
+  private readonly router = inject(Router);
+  private readonly toastService = inject(ToastService);
 
   get personnelNumber() {
     return this.userSearchForm.get('personnelNumber');

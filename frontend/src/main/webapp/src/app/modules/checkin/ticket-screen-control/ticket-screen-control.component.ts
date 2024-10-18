@@ -26,9 +26,9 @@ export class TicketScreenControlComponent {
   form = new FormGroup({
     startTime: new FormControl<string>(null, Validators.required)
   });
-  private websocketService = inject(WebsocketService);
-  private distributionTicketApiService = inject(DistributionTicketApiService);
-  private urlHelperService = inject(UrlHelperService);
+  private readonly websocketService = inject(WebsocketService);
+  private readonly distributionTicketApiService = inject(DistributionTicketApiService);
+  private readonly urlHelperService = inject(UrlHelperService);
 
   get startTime() {
     return this.form.get('startTime');

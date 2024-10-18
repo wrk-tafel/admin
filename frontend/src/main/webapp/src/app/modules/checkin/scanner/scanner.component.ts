@@ -34,8 +34,8 @@ import {CommonModule} from "@angular/common";
   standalone: true
 })
 export class ScannerComponent implements OnInit, OnDestroy {
-  private qrCodeReaderService = inject(QRCodeReaderService);
-  private websocketService = inject(WebsocketService);
+  private readonly qrCodeReaderService = inject(QRCodeReaderService);
+  private readonly websocketService = inject(WebsocketService);
 
   scannerId: number;
   availableCameras: CameraDevice[] = [];

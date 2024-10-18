@@ -57,8 +57,8 @@ export class UserFormComponent implements OnInit {
   }, [passwordRepeatValidator]);
   passwordTextVisible: boolean;
   passwordRepeatTextVisible: boolean;
-  private userApiService = inject(UserApiService);
-  private toastService = inject(ToastService);
+  private readonly userApiService = inject(UserApiService);
+  private readonly toastService = inject(ToastService);
 
   get id() {
     return this.form.get('id');

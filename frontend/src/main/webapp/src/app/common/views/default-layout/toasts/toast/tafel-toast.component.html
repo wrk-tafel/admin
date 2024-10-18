@@ -1,12 +1,9 @@
-<c-toast #toast="cToast" [visible]="true" class="mt-3">
-  <c-toast-header testid="header" [cBgColor]="bgColor" [closeButton]="false">
-    <strong testid="title" class="me-auto text-white">{{titlePrefix ? titlePrefix + ' ' : ''}}{{title}}</strong>
-    <button aria-label="Schließen" cButtonClose (click)="toast.visible = false"></button>
+<ng-container>
+  <c-toast-header [closeButton]="closeButton" [cBgColor]="bgColor" [cTextColor]="headerTextColor" testid="header">
+    <strong testid="title" class="me-3">{{ titlePrefix ? titlePrefix + ' ' : '' }}{{ title }}</strong>
   </c-toast-header>
-  <c-toast-body testid="message">
-    {{message}}
-    <c-progress class="mt-3">
-      <c-progress-bar [value]="25*(toast.clock ?? 1)"></c-progress-bar>
-    </c-progress>
+  <c-toast-body #toastBody [cToastClose]="toastBody.toast" cBgColor="white" testid="message">
+    <div class="mb-3">{{ message }}</div>
+    <c-progress [value]="25*(toastBody.toast?.clock ?? 1)" />
   </c-toast-body>
-</c-toast>
+</ng-container>

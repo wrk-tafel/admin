@@ -2,7 +2,6 @@ import {TestBed, waitForAsync} from '@angular/core/testing';
 import {DistributionApiService, DistributionItem} from '../../../../api/distribution-api.service';
 import {DistributionStateComponent} from './distribution-state.component';
 import {BehaviorSubject, EMPTY, of} from 'rxjs';
-import {RouterTestingModule} from '@angular/router/testing';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
 import {CardModule, ColComponent, ModalModule, ProgressModule, RowComponent} from '@coreui/angular';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
@@ -15,7 +14,6 @@ describe('DistributionStateComponent', () => {
     TestBed.configureTestingModule({
       imports: [
         NoopAnimationsModule,
-        RouterTestingModule,
         ModalModule,
         CardModule,
         RowComponent,

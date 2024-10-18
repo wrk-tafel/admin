@@ -1,36 +1,26 @@
-import {HttpErrorResponse, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest} from '@angular/common/http';
-import {inject, Injectable} from '@angular/core';
+import {HttpErrorResponse, HttpEvent, HttpHandlerFn, HttpInterceptorFn, HttpRequest} from '@angular/common/http';
+import {inject} from '@angular/core';
 import {from, Observable, throwError} from 'rxjs';
 import {catchError} from 'rxjs/operators';
 import {AuthenticationService} from '../security/authentication.service';
 import {ToastOptions, ToastService, ToastType} from '../views/default-layout/toasts/toast.service';
 
-@Injectable({
-  providedIn: 'root'
-})
-export class ErrorHandlerInterceptor implements HttpInterceptor {
-  private authenticationService = inject(AuthenticationService);
-  private toastService = inject(ToastService);
+export const errorHandlerInterceptor: HttpInterceptorFn = (
+  request: HttpRequest<unknown>,
+  next: HttpHandlerFn
+): Observable<HttpEvent<unknown>> => {
+  const authenticationService = inject(AuthenticationService);
+  const toastService = inject(ToastService);
+  const ERROR_CODES_WHITELIST = [401];
 
-  private ERROR_CODES_WHITELIST = [401];
-
-  /* eslint-disable @typescript-eslint/no-explicit-any */
-  intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    return next.handle(request)
-      .pipe(catchError((error) => this.handleAuthError(error)))
-      // Workaround for this open angular issue: https://github.com/angular/angular/issues/19148
-      .pipe(catchError((error: HttpErrorResponse) => this.remapErrorBodyOnByteArrayResponseType(request, error)))
-      .pipe(catchError((error) => this.handleErrorMessage(error)));
-  }
-
-  private handleAuthError(error: HttpErrorResponse): Observable<any> {
-    if (this.authenticationService.isAuthenticated() && error.status === 401) {
-      this.authenticationService.redirectToLogin('abgelaufen');
+  const handleAuthError = (error: HttpErrorResponse): Observable<any> => {
+    if (authenticationService.isAuthenticated() && error.status === 401) {
+      authenticationService.redirectToLogin('abgelaufen');
     }
     return throwError(() => error);
   }
 
-  private remapErrorBodyOnByteArrayResponseType(request: HttpRequest<any>, error: HttpErrorResponse): Observable<any> {
+  const remapErrorBodyOnByteArrayResponseType = (request: HttpRequest<any>, error: HttpErrorResponse): Observable<any> => {
     if (request.responseType === 'blob' && error.error instanceof Blob) {
       return from(Promise.resolve(error).then(async x => {
         const remappedData = {
@@ -46,21 +36,21 @@ export class ErrorHandlerInterceptor implements HttpInterceptor {
     return throwError(() => error);
   }
 
-  private handleErrorMessage(error: HttpErrorResponse): Observable<any> {
-    if (this.ERROR_CODES_WHITELIST.indexOf(error.status) === -1) {
+  const handleErrorMessage = (error: HttpErrorResponse): Observable<any> => {
+    if (ERROR_CODES_WHITELIST.indexOf(error.status) === -1) {
       if (error.error?.constructor === Object) {
         const errorBody: TafelErrorResponse = error.error;
-        const toastOptions = this.createToastFromErrorBody(error, errorBody);
-        this.toastService.showToast(toastOptions);
+        const toastOptions = createToastFromErrorBody(error, errorBody);
+        toastService.showToast(toastOptions);
       } else {
-        const toastOptions = this.createToastFromGenericHttpError(error);
-        this.toastService.showToast(toastOptions);
+        const toastOptions = createToastFromGenericHttpError(error);
+        toastService.showToast(toastOptions);
       }
     }
     return throwError(() => error);
   }
 
-  private createToastFromGenericHttpError(error: HttpErrorResponse): ToastOptions {
+  const createToastFromGenericHttpError = (error: HttpErrorResponse): ToastOptions => {
     let message = error.message;
     if (error.status === 504) {
       message = 'Server nicht verfügbar!';
@@ -73,7 +63,7 @@ export class ErrorHandlerInterceptor implements HttpInterceptor {
     };
   }
 
-  private createToastFromErrorBody(error: HttpErrorResponse, errorBody: TafelErrorResponse): ToastOptions {
+  const createToastFromErrorBody = (error: HttpErrorResponse, errorBody: TafelErrorResponse): ToastOptions => {
     return {
       type: ToastType.ERROR,
       title: `HTTP ${error.status} - ${error.statusText}`,
@@ -81,7 +71,12 @@ export class ErrorHandlerInterceptor implements HttpInterceptor {
     };
   }
 
-}
+  return next(request)
+    .pipe(catchError((error) => handleAuthError(error)))
+    // Workaround for this open angular issue: https://github.com/angular/angular/issues/19148
+    .pipe(catchError((error: HttpErrorResponse) => remapErrorBodyOnByteArrayResponseType(request, error)))
+    .pipe(catchError((error) => handleErrorMessage(error)));
+};
 
 export interface TafelErrorResponse {
   message: string;

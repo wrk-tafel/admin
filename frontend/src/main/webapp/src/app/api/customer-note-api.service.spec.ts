@@ -1,8 +1,9 @@
-import {HttpClientTestingModule, HttpTestingController} from '@angular/common/http/testing';
+import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
 import {TestBed} from '@angular/core/testing';
 import {ReactiveFormsModule} from '@angular/forms';
 import {CreateCustomerNoteRequest, CustomerNoteApiService, CustomerNoteItem} from './customer-note-api.service';
 import * as moment from 'moment';
+import {provideHttpClient} from "@angular/common/http";
 
 describe('CustomerNoteApiService', () => {
   let httpMock: HttpTestingController;
@@ -10,8 +11,12 @@ describe('CustomerNoteApiService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule, ReactiveFormsModule],
-      providers: [CustomerNoteApiService]
+      imports: [ReactiveFormsModule],
+      providers: [
+        CustomerNoteApiService,
+        provideHttpClient(),
+        provideHttpClientTesting()
+      ]
     });
 
     httpMock = TestBed.inject(HttpTestingController);

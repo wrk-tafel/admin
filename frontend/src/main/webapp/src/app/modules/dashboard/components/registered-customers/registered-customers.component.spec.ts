@@ -1,13 +1,12 @@
 import {TestBed, waitForAsync} from '@angular/core/testing';
-import {RouterTestingModule} from '@angular/router/testing';
 import {RegisteredCustomersComponent} from './registered-customers.component';
 import {By} from '@angular/platform-browser';
 import {CardModule, ColComponent, ModalModule, RowComponent} from '@coreui/angular';
-import {HttpClientTestingModule} from '@angular/common/http/testing';
 import {DistributionApiService} from '../../../../api/distribution-api.service';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
-import {HttpHeaders, HttpResponse} from '@angular/common/http';
+import {HttpHeaders, HttpResponse, provideHttpClient} from '@angular/common/http';
 import {of} from 'rxjs';
+import {provideHttpClientTesting} from "@angular/common/http/testing";
 
 describe('RegisteredCustomersComponent', () => {
   let distributionApiService: jasmine.SpyObj<DistributionApiService>;
@@ -16,14 +15,14 @@ describe('RegisteredCustomersComponent', () => {
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       imports: [
-        HttpClientTestingModule,
-        RouterTestingModule,
         ModalModule,
         CardModule,
         ColComponent,
         RowComponent
       ],
       providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
         {
           provide: DistributionApiService,
           useValue: jasmine.createSpyObj('DistributionApiService', ['downloadCustomerList'])

@@ -1,12 +1,9 @@
-import {HttpClientTestingModule} from '@angular/common/http/testing';
 import {TestBed, waitForAsync} from '@angular/core/testing';
 import {ReactiveFormsModule} from '@angular/forms';
 import {ActivatedRoute, Router} from '@angular/router';
-import {RouterTestingModule} from '@angular/router/testing';
 import * as moment from 'moment';
 import {of} from 'rxjs';
 import {CustomerApiService, CustomerData, Gender, ValidateCustomerResponse} from '../../../../api/customer-api.service';
-import {CustomerFormComponent} from '../customer-form/customer-form.component';
 import {CustomerEditComponent} from './customer-edit.component';
 import {By} from '@angular/platform-browser';
 import {
@@ -19,6 +16,8 @@ import {
 } from '@coreui/angular';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
+import {provideHttpClient} from "@angular/common/http";
+import {provideHttpClientTesting} from "@angular/common/http/testing";
 
 describe('CustomerEditComponent - Creating a new customer', () => {
 
@@ -84,8 +83,6 @@ describe('CustomerEditComponent - Creating a new customer', () => {
     TestBed.configureTestingModule({
       imports: [
         NoopAnimationsModule,
-        HttpClientTestingModule,
-        RouterTestingModule,
         ReactiveFormsModule,
         ModalModule,
         InputGroupComponent,
@@ -95,6 +92,8 @@ describe('CustomerEditComponent - Creating a new customer', () => {
         BgColorDirective
       ],
       providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
         {
           provide: CustomerApiService,
           useValue: jasmine.createSpyObj('CustomerApiService', ['validate', 'createCustomer'])

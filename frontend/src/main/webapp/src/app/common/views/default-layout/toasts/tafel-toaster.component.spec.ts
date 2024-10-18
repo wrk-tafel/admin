@@ -53,6 +53,7 @@ describe('TafelToasterComponent', () => {
       titlePrefix: 'Fehler:',
       title: 'test-title',
       message: 'test-message',
+      headerTextColor: 'white',
       bgColor: 'danger',
       autohide: true,
       delay: 5000,
