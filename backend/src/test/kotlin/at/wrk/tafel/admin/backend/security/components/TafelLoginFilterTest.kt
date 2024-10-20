@@ -4,7 +4,7 @@ import at.wrk.tafel.admin.backend.common.auth.components.JwtTokenService
 import at.wrk.tafel.admin.backend.common.auth.components.TafelLoginFilter
 import at.wrk.tafel.admin.backend.common.auth.model.LoginResponse
 import at.wrk.tafel.admin.backend.config.ApplicationProperties
-import at.wrk.tafel.admin.backend.security.testUser
+import at.wrk.tafel.admin.backend.common.testdata.testUser
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
