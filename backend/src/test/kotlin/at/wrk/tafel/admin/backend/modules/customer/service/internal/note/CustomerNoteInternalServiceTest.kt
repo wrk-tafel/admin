@@ -1,6 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.customer.service.internal.note
 
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.modules.base.security.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerAddPersonEntity
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerNoteEntity

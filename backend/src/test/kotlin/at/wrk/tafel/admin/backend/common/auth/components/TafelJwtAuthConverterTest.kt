@@ -1,6 +1,8 @@
 package at.wrk.tafel.admin.backend.common.auth.components
 
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.modules.base.security.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.modules.base.security.components.TafelJwtAuthConverter
+import at.wrk.tafel.admin.backend.modules.base.security.components.TafelLoginFilter
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK

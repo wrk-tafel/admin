@@ -1,6 +1,8 @@
 package at.wrk.tafel.admin.backend.common.auth.components
 
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.modules.base.security.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.modules.base.security.components.JwtTokenService
+import at.wrk.tafel.admin.backend.modules.base.security.components.TafelJwtAuthProvider
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.MalformedJwtException
 import io.jsonwebtoken.impl.DefaultClaims

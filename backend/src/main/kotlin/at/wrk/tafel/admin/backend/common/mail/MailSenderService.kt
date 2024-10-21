@@ -1,7 +1,7 @@
 package at.wrk.tafel.admin.backend.common.mail
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
-import at.wrk.tafel.admin.backend.config.TafelAdminProperties
+import at.wrk.tafel.admin.backend.common.config.TafelAdminProperties
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.InputStreamSource
 import org.springframework.mail.javamail.JavaMailSender

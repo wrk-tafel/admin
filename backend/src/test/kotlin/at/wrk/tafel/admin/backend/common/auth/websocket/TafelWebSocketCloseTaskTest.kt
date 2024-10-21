@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.common.auth.websocket
 
+import at.wrk.tafel.admin.backend.modules.base.security.websocket.TafelWebSocketCloseTask
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension

@@ -1,7 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.customer.api.model
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
-import at.wrk.tafel.admin.backend.common.api.model.Country
+import at.wrk.tafel.admin.backend.modules.staticdata.api.model.Country
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime

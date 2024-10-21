@@ -1,6 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.checkin.api
 
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.modules.base.security.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.modules.checkin.service.internal.ScannerInternalService
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs

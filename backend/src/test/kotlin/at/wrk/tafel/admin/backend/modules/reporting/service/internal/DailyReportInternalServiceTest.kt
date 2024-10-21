@@ -1,6 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.reporting.service.internal
 
-import at.wrk.tafel.admin.backend.common.events.DistributionClosedEvent
+import at.wrk.tafel.admin.backend.modules.base.events.DistributionClosedEvent
 import at.wrk.tafel.admin.backend.common.mail.MailAttachment
 import at.wrk.tafel.admin.backend.common.mail.MailSenderService
 import at.wrk.tafel.admin.backend.common.pdf.PDFService

@@ -1,6 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.customer.service.internal.converter
 
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.modules.base.security.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.database.entities.base.Gender
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerAddPersonEntity
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity
@@ -8,7 +8,7 @@ import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerAddPersonRepository
 import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerRepository
 import at.wrk.tafel.admin.backend.database.repositories.staticdata.CountryRepository
-import at.wrk.tafel.admin.backend.common.api.model.Country
+import at.wrk.tafel.admin.backend.modules.staticdata.api.model.Country
 import at.wrk.tafel.admin.backend.common.testdata.testCountry
 import at.wrk.tafel.admin.backend.modules.customer.api.model.Customer
 import at.wrk.tafel.admin.backend.modules.customer.api.model.CustomerAdditionalPerson

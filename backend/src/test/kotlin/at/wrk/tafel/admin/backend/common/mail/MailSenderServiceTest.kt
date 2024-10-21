@@ -1,8 +1,8 @@
 package at.wrk.tafel.admin.backend.common.mail
 
-import at.wrk.tafel.admin.backend.config.TafelAdminMailDailyReportProperties
-import at.wrk.tafel.admin.backend.config.TafelAdminMailProperties
-import at.wrk.tafel.admin.backend.config.TafelAdminProperties
+import at.wrk.tafel.admin.backend.common.config.TafelAdminMailDailyReportProperties
+import at.wrk.tafel.admin.backend.common.config.TafelAdminMailProperties
+import at.wrk.tafel.admin.backend.common.config.TafelAdminProperties
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK

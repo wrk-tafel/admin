@@ -1,9 +1,9 @@
 package at.wrk.tafel.admin.backend.modules.staticdata.api
 
-import at.wrk.tafel.admin.backend.common.api.CountryController
+import at.wrk.tafel.admin.backend.modules.staticdata.api.CountryController
 import at.wrk.tafel.admin.backend.database.entities.staticdata.CountryEntity
 import at.wrk.tafel.admin.backend.database.repositories.staticdata.CountryRepository
-import at.wrk.tafel.admin.backend.common.api.model.Country
+import at.wrk.tafel.admin.backend.modules.staticdata.api.model.Country
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK

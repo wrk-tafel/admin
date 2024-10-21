@@ -1,11 +1,11 @@
 package at.wrk.tafel.admin.backend.security.components
 
-import at.wrk.tafel.admin.backend.common.auth.components.PasswordChangeException
-import at.wrk.tafel.admin.backend.common.auth.components.TafelUserDetailsManager
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
-import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
-import at.wrk.tafel.admin.backend.common.auth.model.UserPermissions
-import at.wrk.tafel.admin.backend.config.WebSecurityConfig
+import at.wrk.tafel.admin.backend.modules.base.security.components.PasswordChangeException
+import at.wrk.tafel.admin.backend.modules.base.security.components.TafelUserDetailsManager
+import at.wrk.tafel.admin.backend.modules.base.security.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.modules.base.security.model.TafelUser
+import at.wrk.tafel.admin.backend.modules.base.security.model.UserPermissions
+import at.wrk.tafel.admin.backend.modules.base.security.config.WebSecurityConfig
 import at.wrk.tafel.admin.backend.database.entities.auth.UserAuthorityEntity
 import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository

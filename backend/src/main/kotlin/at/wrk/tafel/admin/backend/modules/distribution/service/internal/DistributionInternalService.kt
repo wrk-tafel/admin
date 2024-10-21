@@ -1,7 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.distribution.service.internal
 
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
-import at.wrk.tafel.admin.backend.common.events.DistributionClosedEvent
+import at.wrk.tafel.admin.backend.modules.base.security.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.modules.base.events.DistributionClosedEvent
 import at.wrk.tafel.admin.backend.common.pdf.PDFService
 import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionCustomerEntity
 import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionEntity
@@ -148,6 +148,7 @@ class DistributionInternalService(
         } ?: false
     }
 
+    @Transactional
     fun closeDistribution() {
         val currentDistribution = distributionRepository.getCurrentDistribution()
             ?: throw TafelValidationException("Ausgabe nicht gestartet!")

@@ -1,9 +1,9 @@
 package at.wrk.tafel.admin.backend.common.testdata
 
-import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
-import at.wrk.tafel.admin.backend.common.auth.model.User
-import at.wrk.tafel.admin.backend.common.auth.model.UserPermission
-import at.wrk.tafel.admin.backend.common.auth.model.UserPermissions
+import at.wrk.tafel.admin.backend.modules.base.security.model.TafelUser
+import at.wrk.tafel.admin.backend.modules.base.security.model.User
+import at.wrk.tafel.admin.backend.modules.base.security.model.UserPermission
+import at.wrk.tafel.admin.backend.modules.base.security.model.UserPermissions
 import at.wrk.tafel.admin.backend.database.entities.auth.UserAuthorityEntity
 import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
 import org.springframework.security.core.authority.SimpleGrantedAuthority

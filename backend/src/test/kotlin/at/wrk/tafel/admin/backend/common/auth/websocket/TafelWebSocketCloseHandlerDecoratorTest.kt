@@ -1,7 +1,8 @@
 package at.wrk.tafel.admin.backend.common.auth.websocket
 
-import at.wrk.tafel.admin.backend.common.auth.components.JwtTokenService
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.modules.base.security.components.JwtTokenService
+import at.wrk.tafel.admin.backend.modules.base.security.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.modules.base.security.websocket.TafelWebSocketCloseHandlerDecorator
 import io.jsonwebtoken.Claims
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs

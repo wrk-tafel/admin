@@ -1,7 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.checkin.api
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.modules.base.security.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.modules.checkin.service.internal.ScannerInternalService
 import org.springframework.messaging.handler.annotation.MessageMapping
 import org.springframework.messaging.simp.SimpMessagingTemplate

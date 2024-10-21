@@ -1,6 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.customer.api
 
-import at.wrk.tafel.admin.backend.common.api.model.Country
+import at.wrk.tafel.admin.backend.modules.staticdata.api.model.Country
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.customer.api.model.Customer
 import at.wrk.tafel.admin.backend.modules.customer.api.model.CustomerAdditionalPerson
