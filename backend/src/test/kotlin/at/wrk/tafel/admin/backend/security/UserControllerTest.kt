@@ -13,6 +13,9 @@ import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
 import at.wrk.tafel.admin.backend.common.auth.model.User
 import at.wrk.tafel.admin.backend.common.auth.model.UserPermission
 import at.wrk.tafel.admin.backend.common.auth.model.UserPermissions
+import at.wrk.tafel.admin.backend.common.testdata.testUser
+import at.wrk.tafel.admin.backend.common.testdata.testUserApiResponse
+import at.wrk.tafel.admin.backend.common.testdata.testUserPermissions
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
