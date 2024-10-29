@@ -82,7 +82,7 @@
     "@types/jasmine": "5.1.4",
     "@types/jasminewd2": "2.0.13",
     "@types/node": "20.16.0",
-    "@typescript-eslint/eslint-plugin": "8.11.0",
+    "@typescript-eslint/eslint-plugin": "8.12.1",
     "@typescript-eslint/eslint-plugin-tslint": "7.0.2",
     "@typescript-eslint/parser": "8.12.1",
     "codelyzer": "6.0.2",
