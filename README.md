@@ -5,6 +5,10 @@
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=wrk-tafel-admin&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=wrk-tafel-admin)
 
 # TODO
+* advanced logging monitor / ticket numbers
+* Open ticketmonitor fails due to login
+* ticketmonitor control shows nothing when loaded initially
+
 * customer-creation: Advanced postalCode validation (only numbers from 03. and 01. district / Vienna)
 * Improve creation / enforce search before creating
 * Add goods-input
