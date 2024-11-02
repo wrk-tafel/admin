@@ -47,7 +47,7 @@ internal class DistributionTicketControllerTest {
         val customerId = 1L
         every { service.getCurrentTicketNumber(customerId) } returns ticketNumber
 
-        val response = controller.getCurrentTicket(customerId)
+        val response = controller.getCurrentTicketForCustomerId(customerId)
 
         assertThat(response.ticketNumber).isEqualTo(ticketNumber)
     }

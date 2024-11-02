@@ -12,6 +12,8 @@ import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationExceptio
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.CustomerListItem
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.CustomerListPdfModel
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.CustomerListPdfResult
+import at.wrk.tafel.admin.backend.modules.distribution.internal.ticket.DistributionTicketController
+import org.slf4j.LoggerFactory
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
@@ -22,7 +24,6 @@ import java.math.RoundingMode
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.Period
-
 import java.time.format.DateTimeFormatter
 
 @Service
@@ -37,6 +38,7 @@ class DistributionService(
 ) {
     companion object {
         private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+        private val logger = LoggerFactory.getLogger(DistributionTicketController::class.java)
     }
 
     fun createNewDistribution(): DistributionEntity {
@@ -112,7 +114,9 @@ class DistributionService(
         val distribution = getCurrentDistribution()
             ?: throw TafelValidationException("Ausgabe nicht gestartet!")
 
-        return getDistributionCustomerEntity(distribution, customerId)?.ticketNumber
+        val ticketNumber = getDistributionCustomerEntity(distribution, customerId)?.ticketNumber
+        logger.info("Ticket-Log - Fetched current ticket-number (service): $ticketNumber")
+        return ticketNumber
     }
 
     @Transactional
@@ -126,7 +130,9 @@ class DistributionService(
             distributionCustomerEntity.processed = true
             distributionCustomerRepository.save(distributionCustomerEntity)
 
-            return getCurrentTicketNumber()
+            val currentTicketNumber = getCurrentTicketNumber()
+            logger.info("Ticket-Log - Processed ticket-number: ${distributionCustomerEntity.ticketNumber}, next one: $currentTicketNumber")
+            return currentTicketNumber
         }
         return null
     }
@@ -137,6 +143,8 @@ class DistributionService(
             ?: throw TafelValidationException("Ausgabe nicht gestartet!")
 
         val distributionCustomerEntity = getDistributionCustomerEntity(distribution, customerId)
+        logger.info("Ticket-Log - Deleted ticket-number: ${distributionCustomerEntity?.ticketNumber}, customer ${distributionCustomerEntity?.customer?.customerId}")
+
         return distributionCustomerEntity?.let {
             distributionCustomerRepository.delete(it)
             true
@@ -156,6 +164,12 @@ class DistributionService(
 
             distributionRepository.save(currentDistribution)
         }
+
+        logger.info(
+            "Closed distribution: ID ${currentDistribution.id} (started at: ${
+                currentDistribution.startedAt?.format(DateTimeFormatter.ISO_DATE_TIME)
+            }"
+        )
 
         distributionPostProcessorService.process(currentDistribution.id!!)
     }
