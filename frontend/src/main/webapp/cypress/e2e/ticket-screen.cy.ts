@@ -58,4 +58,49 @@ describe('TicketScreen', () => {
     cy.closeDistribution();
   });
 
+  it('tickets switched by double click', () => {
+    cy.visit('/#/anmeldung/ticketmonitor-steuerung');
+
+    cy.byTestId('title').should('have.text', 'Ticketnummer');
+    cy.byTestId('ticketnumber-text').should('have.text', '-');
+
+    cy.createDistribution();
+    cy.addCustomerToDistribution({customerId: 100, ticketNumber: 1});
+    cy.addCustomerToDistribution({customerId: 101, ticketNumber: 2});
+    cy.addCustomerToDistribution({customerId: 102, ticketNumber: 3});
+
+    cy.visit('/#/anmeldung/ticketmonitor-steuerung');
+
+    cy.byTestId('show-currentticket-button').click();
+    cy.byTestId('ticketnumber-text').should('have.text', '1');
+
+    cy.byTestId('show-nextticket-button').dblclick();
+    cy.byTestId('ticketnumber-text').should('have.text', '3');
+
+    cy.closeDistribution();
+  });
+
+  it('tickets switched by slow double click', () => {
+    cy.visit('/#/anmeldung/ticketmonitor-steuerung');
+
+    cy.byTestId('title').should('have.text', 'Ticketnummer');
+    cy.byTestId('ticketnumber-text').should('have.text', '-');
+
+    cy.createDistribution();
+    cy.addCustomerToDistribution({customerId: 100, ticketNumber: 1});
+    cy.addCustomerToDistribution({customerId: 101, ticketNumber: 2});
+    cy.addCustomerToDistribution({customerId: 102, ticketNumber: 3});
+
+    cy.visit('/#/anmeldung/ticketmonitor-steuerung');
+
+    cy.byTestId('show-currentticket-button').click();
+    cy.byTestId('ticketnumber-text').should('have.text', '1');
+
+    cy.byTestId('show-nextticket-button').click();
+    cy.byTestId('show-nextticket-button').click();
+    cy.byTestId('ticketnumber-text').should('have.text', '3');
+
+    cy.closeDistribution();
+  });
+
 });
