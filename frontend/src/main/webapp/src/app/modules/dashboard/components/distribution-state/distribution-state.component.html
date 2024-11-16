@@ -12,11 +12,11 @@
       <c-col>
         <button *ngIf="!distribution" cButton
                 testid="distribution-start-button"
-                (click)="createNewDistribution()">--> Ausgabe öffnen
+                (click)="createNewDistribution()">--> Tag starten
         </button>
         <button *ngIf="distribution" cButton
                 testid="distribution-close-button"
-                (click)="showCloseDistributionModal = true">--> Ausgabe schließen
+                (click)="showCloseDistributionModal = true">--> Tag beenden
         </button>
       </c-col>
     </c-row>
@@ -26,7 +26,7 @@
          [(visible)]="showCloseDistributionModal">
   <c-modal-header class="bg-warning">
     <h4 testid="title" class="text-white">
-      Ausgabe schließen?
+      Tag beenden?
     </h4>
     <button [cModalToggle]="closeDistributionModal.id" cButtonClose></button>
   </c-modal-header>

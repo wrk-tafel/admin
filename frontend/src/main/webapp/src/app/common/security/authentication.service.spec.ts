@@ -205,4 +205,36 @@ describe('AuthenticationService', () => {
     expect(isAuthenticated).toBeFalsy();
   });
 
+  it('hasAnyPermissionOf - single permission exists', () => {
+    service.userInfo = {username: 'test123', permissions: ['PERM1', 'PERM2']};
+
+    const hasPermission = service.hasAnyPermissionOf(['PERM1']);
+
+    expect(hasPermission).toBeTrue();
+  });
+
+  it('hasAnyPermissionOf - multiple permissions exist and one does not exist', () => {
+    service.userInfo = {username: 'test123', permissions: ['PERM1', 'PERM2']};
+
+    const hasPermission = service.hasAnyPermissionOf(['PERM1', 'PERM2', 'PERM3']);
+
+    expect(hasPermission).toBeTrue();
+  });
+
+  it('hasAnyPermissionOf - permission doesnt exist', () => {
+    service.userInfo = {username: 'test123', permissions: ['PERM2']};
+
+    const hasPermission = service.hasAnyPermissionOf(['PERM1']);
+
+    expect(hasPermission).toBeFalse();
+  });
+
+  it('hasAnyPermissionOf - no permissions given', () => {
+    service.userInfo = {username: 'test123', permissions: []};
+
+    const hasPermission = service.hasAnyPermissionOf(['PERM1']);
+
+    expect(hasPermission).toBeFalse();
+  });
+
 });

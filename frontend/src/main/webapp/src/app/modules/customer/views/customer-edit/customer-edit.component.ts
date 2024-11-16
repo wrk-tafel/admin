@@ -11,7 +11,7 @@ import {
   ModalToggleDirective
 } from '@coreui/angular';
 import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
-import {NgClass} from '@angular/common';
+import {DecimalPipe, NgClass} from '@angular/common';
 
 @Component({
   selector: 'tafel-customer-edit',
@@ -26,7 +26,8 @@ import {NgClass} from '@angular/common';
     ModalBodyComponent,
     ModalFooterComponent,
     ButtonCloseDirective,
-    ButtonDirective
+    ButtonDirective,
+    DecimalPipe
   ],
   standalone: true
 })

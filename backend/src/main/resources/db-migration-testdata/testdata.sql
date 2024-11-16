@@ -82,6 +82,15 @@ VALUES (600, NOW(), NOW(), 'disabled1',
         '{argon2}$argon2id$v=19$m=4096,t=3,p=1$RXn6Xt/0q/Wtrvdns6NUnw$X3xWUjENAbNSJNckeVFXWrjkoFSowwlu3xHx1/zb40w',
         false, '0600', 'Disabled', '1');
 
+-- user: checkin1
+-- pwd: 12345
+INSERT INTO users (id, created_at, updated_at, username, password, enabled, personnel_number, firstname, lastname)
+VALUES (700, NOW(), NOW(), 'checkin1',
+        '{argon2}$argon2id$v=19$m=4096,t=3,p=1$RXn6Xt/0q/Wtrvdns6NUnw$X3xWUjENAbNSJNckeVFXWrjkoFSowwlu3xHx1/zb40w',
+        true, '0700', 'Checkin', '1');
+INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
+VALUES (7001, NOW(), NOW(), 700, 'CHECKIN');
+
 -- customers
 INSERT INTO customers (id, created_at, updated_at, customer_id, user_id, firstname, lastname, birth_date, gender, country_id,
                        address_street, address_houseNumber, address_stairway, address_door, address_postalCode,

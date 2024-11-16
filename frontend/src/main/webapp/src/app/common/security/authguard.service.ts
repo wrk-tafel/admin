@@ -10,10 +10,11 @@ export class AuthGuardService {
   constructor(private authenticationService: AuthenticationService) {
   }
 
-  canActivate(childRoute: ActivatedRouteSnapshot): boolean {
+  async canActivate(childRoute: ActivatedRouteSnapshot): Promise<boolean> {
     const routeData: AuthGuardData = childRoute.data;
 
     const authenticated = this.authenticationService.isAuthenticated();
+
     const needsAnyPermission = routeData.anyPermission;
     const hasAnyPermission = this.authenticationService.hasAnyPermission();
 
@@ -22,8 +23,8 @@ export class AuthGuardService {
       return false;
     }
 
-    const permission = routeData.permission;
-    if (permission == null || this.authenticationService.hasPermission(permission)) {
+    const permissions = routeData.anyPermissionOf;
+    if (permissions == null || this.authenticationService.hasAnyPermissionOf(permissions)) {
       return true;
     }
 
@@ -35,5 +36,5 @@ export class AuthGuardService {
 
 export interface AuthGuardData {
   anyPermission?: boolean;
-  permission?: string;
+  anyPermissionOf?: string[];
 }

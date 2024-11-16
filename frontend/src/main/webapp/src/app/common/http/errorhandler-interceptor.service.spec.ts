@@ -83,6 +83,28 @@ describe('ErrorHandlerInterceptor', () => {
     httpTestingController.verify();
   });
 
+  it('generic http 403 error', () => {
+    authServiceSpy.isAuthenticated.and.returnValue(false);
+
+    /* eslint-disable @typescript-eslint/no-unused-vars */
+    const observer = {
+      error: error => {
+        const expectedToast: ToastOptions = {
+          type: ToastType.ERROR,
+          title: 'HTTP 403 - Forbidden',
+          message: 'Zugriff nicht erlaubt!'
+        };
+        expect(toastServiceSpy.showToast).toHaveBeenCalledWith(expectedToast);
+      },
+    };
+    httpClient.get('/test').subscribe(observer);
+
+    const mockReq = httpTestingController.expectOne('/test');
+    const mockErrorResponse = {status: 403, statusText: 'Forbidden'};
+    mockReq.flush(null, mockErrorResponse);
+    httpTestingController.verify();
+  });
+
   it('specific spring http error', () => {
     authServiceSpy.isAuthenticated.and.returnValue(false);
 
