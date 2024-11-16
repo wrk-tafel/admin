@@ -54,6 +54,8 @@ export const errorHandlerInterceptor: HttpInterceptorFn = (
     let message = error.message;
     if (error.status === 504) {
       message = 'Server nicht verfügbar!';
+    } else if (error.status == 403) {
+      message = 'Zugriff nicht erlaubt!';
     }
 
     return {

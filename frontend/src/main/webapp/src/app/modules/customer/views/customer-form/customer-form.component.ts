@@ -23,7 +23,8 @@ import {
   faEnvelope,
   faEuroSign,
   faFlag,
-  faLocationDot, faPhone,
+  faLocationDot,
+  faPhone,
   faVenusMars
 } from '@fortawesome/free-solid-svg-icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
@@ -76,7 +77,9 @@ export class CustomerFormComponent implements OnInit {
     }),
 
     employer: new FormControl<string>(null, Validators.required),
-    income: new FormControl<number>(null),
+    income: new FormControl<number>(null, [
+      Validators.min(1)
+    ]),
     incomeDue: new FormControl<Date>(null, [CustomValidator.minDate(new Date())]),
 
     validUntil: new FormControl<Date>(null, [

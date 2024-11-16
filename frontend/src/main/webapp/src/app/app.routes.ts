@@ -72,21 +72,21 @@ export const routes: Routes = [
         path: 'anmeldung',
         loadChildren: () => import('./modules/checkin/checkin.routes').then(m => m.routes),
         data: {
-          permission: 'SCANNER'
+          anyPermissionOf: ['SCANNER', 'CHECKIN']
         }
       },
       {
         path: 'kunden',
         loadChildren: () => import('./modules/customer/customer.routes').then(m => m.routes),
         data: {
-          permission: 'CUSTOMER'
+          anyPermissionOf: ['CUSTOMER']
         }
       },
       {
         path: 'benutzer',
         loadChildren: () => import('./modules/user/user.routes').then(m => m.routes),
         data: {
-          permission: 'USER_MANAGEMENT'
+          anyPermissionOf: ['USER_MANAGEMENT']
         }
       },
       {

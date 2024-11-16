@@ -37,14 +37,13 @@ export class AuthenticationService {
     return this.userInfo?.permissions.length > 0;
   }
 
-  public hasPermission(role: string): boolean {
-    if (this.hasAnyPermission()) {
-      const index = this.userInfo?.permissions.findIndex(element => {
-        return element.toLowerCase() === role.toLowerCase();
-      });
-      return index !== -1;
-    }
-    return false;
+  public hasPermission(permission: string): boolean {
+    return this.hasAnyPermissionOf([permission])
+  }
+
+  public hasAnyPermissionOf(permissions: string[]): boolean {
+    const foundPermissions = this.userInfo?.permissions.filter(permission => permissions.indexOf(permission) > -1)
+    return foundPermissions.length > 0
   }
 
   public getUsername(): string {

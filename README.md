@@ -5,18 +5,36 @@
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=wrk-tafel-admin&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=wrk-tafel-admin)
 
 # TODO
-* advanced logging monitor / ticket numbers
-* Open ticketmonitor fails due to login
-* ticketmonitor control shows nothing when loaded initially
+* impro 1: Ticket-Monitor layout-error when rendering the preview (order of tickets wrong sometimes)
+* impro 1: Show additional persons on checkin page (could reduce id-card details afterwards)
 
+* impro 4: Open detail page when clicking on name (customer and user)
+
+* impro 5: scanner-phones, 3d modeling table-holders
+* impro 5: Set initial focus on opening the pages (customer/user-search/creation)
+* impro 5: Maybe decouple reporting from closing? Favor auto-closing, how to deal with multiple distributions?
+
+* duplicates (customers) showing late? - current duplicate already longer there but only shown now
+* advanced logging monitor / ticket numbers
+* ticketmonitor control shows nothing when loaded initially
 * customer-creation: Advanced postalCode validation (only numbers from 03. and 01. district / Vienna)
 * Improve creation / enforce search before creating
 * Add goods-input
 * Add "supervisor" role (can force-fully create customers even when exceeding the income limit)
 * Fix menu when collapsed - first character of text is shown
+* MFA?
 
 statistic:
 * add alleinerzieher flag
+
+## LTL
+* Edit Route / also contact-person needs to be editable
+* Edit route - Person-select (Dropdown) incl. Search?
+* * Auto-create persons without dedicated maintenance
+* Route only needs a time and no separate order (sorting)
+* Validation necessary for KM Abfahrt < KM Ankunft
+* Recording of food: Unit = kg, only for input in boxes but stored in kg
+* Route: Model extra-stops in DB (needs to part of the route, comment is not enough)
 
 ### Open things (to be decided)
 
