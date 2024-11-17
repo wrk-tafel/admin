@@ -4,10 +4,12 @@ SELECT setval('hibernate_sequence', 10000, false);
 
 -- user e2etest for cypress tests
 -- pwd: e2etest
-INSERT INTO users (id, created_at, updated_at, username, password, enabled, personnel_number, firstname, lastname)
+INSERT INTO employees (id, created_at, updated_at, personnel_number, firstname, lastname)
+VALUES (100, NOW(), NOW(), '00000', 'E2E', 'Test');
+INSERT INTO users (id, created_at, updated_at, username, password, enabled, personnel_number, firstname, lastname, employee_id)
 VALUES (100, NOW(), NOW(), 'e2etest',
         '{argon2}$argon2id$v=19$m=4096,t=3,p=1$Cnj0ayQKhOPbkomIRV5tnQ$BfU/uOr20/vg9ie0CQcWhCD00DqjPDf6UI0pRvz1/gg',
-        true, '00000', 'E2E', 'Test');
+        true, '00000', 'E2E', 'Test', 100);
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (1001, NOW(), NOW(), 100, 'CUSTOMER');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
@@ -23,10 +25,12 @@ VALUES (1006, NOW(), NOW(), 100, 'CUSTOMER_DUPLICATES');
 
 -- user: testuser
 -- pwd: 35bc40681124f412c5d052366edb9eb9
-INSERT INTO users (id, created_at, updated_at, username, password, enabled, personnel_number, firstname, lastname)
+INSERT INTO employees (id, created_at, updated_at, personnel_number, firstname, lastname)
+VALUES (200, NOW(), NOW(), '0200', 'Test', 'User');
+INSERT INTO users (id, created_at, updated_at, username, password, enabled, personnel_number, firstname, lastname, employee_id)
 VALUES (200, NOW(), NOW(), 'testuser',
         '{argon2}$argon2id$v=19$m=4096,t=3,p=1$DZTJhKdC4/5fzGDI2CtozA$ELfBRSqAKes7ThqkzL7AN6JkEq7wzWgKejhLQ02XD6c',
-        true, '0200', 'Test', 'User');
+        true, '0200', 'Test', 'User', 200);
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (2001, NOW(), NOW(), 200, 'CUSTOMER');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
@@ -40,10 +44,12 @@ VALUES (2005, NOW(), NOW(), 200, 'CUSTOMER_DUPLICATES');
 
 -- user: admin
 -- pwd: 12345
-INSERT INTO users (id, created_at, updated_at, username, password, enabled, personnel_number, firstname, lastname)
+INSERT INTO employees (id, created_at, updated_at, personnel_number, firstname, lastname)
+VALUES (300, NOW(), NOW(), 'admin-persnr', 'AD', 'min');
+INSERT INTO users (id, created_at, updated_at, username, password, enabled, personnel_number, firstname, lastname, employee_id)
 VALUES (300, NOW(), NOW(), 'admin',
         '{argon2}$argon2id$v=19$m=4096,t=3,p=1$RXn6Xt/0q/Wtrvdns6NUnw$X3xWUjENAbNSJNckeVFXWrjkoFSowwlu3xHx1/zb40w',
-        true, 'admin-persnr', 'AD', 'min');
+        true, 'admin-persnr', 'AD', 'min', 300);
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (3001, NOW(), NOW(), 300, 'CUSTOMER');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
@@ -59,35 +65,43 @@ VALUES (3006, NOW(), NOW(), 300, 'CUSTOMER_DUPLICATES');
 
 -- user: scanner1
 -- pwd: 12345
-INSERT INTO users (id, created_at, updated_at, username, password, enabled, personnel_number, firstname, lastname)
+INSERT INTO employees (id, created_at, updated_at, personnel_number, firstname, lastname)
+VALUES (400, NOW(), NOW(), '0400', 'Scanner', '1');
+INSERT INTO users (id, created_at, updated_at, username, password, enabled, personnel_number, firstname, lastname, employee_id)
 VALUES (400, NOW(), NOW(), 'scanner1',
         '{argon2}$argon2id$v=19$m=4096,t=3,p=1$RXn6Xt/0q/Wtrvdns6NUnw$X3xWUjENAbNSJNckeVFXWrjkoFSowwlu3xHx1/zb40w',
-        true, '0400', 'Scanner', '1');
+        true, '0400', 'Scanner', '1', 400);
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (4001, NOW(), NOW(), 400, 'SCANNER');
 
 -- user: scanner2
 -- pwd: 12345
-INSERT INTO users (id, created_at, updated_at, username, password, enabled, personnel_number, firstname, lastname)
+INSERT INTO employees (id, created_at, updated_at, personnel_number, firstname, lastname)
+VALUES (500, NOW(), NOW(), '0500', 'Scanner', '2');
+INSERT INTO users (id, created_at, updated_at, username, password, enabled, personnel_number, firstname, lastname, employee_id)
 VALUES (500, NOW(), NOW(), 'scanner2',
         '{argon2}$argon2id$v=19$m=4096,t=3,p=1$RXn6Xt/0q/Wtrvdns6NUnw$X3xWUjENAbNSJNckeVFXWrjkoFSowwlu3xHx1/zb40w',
-        true, '0500', 'Scanner', '2');
+        true, '0500', 'Scanner', '2', 500);
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (5001, NOW(), NOW(), 500, 'SCANNER');
 
 -- user: disabled1
 -- pwd: 12345
-INSERT INTO users (id, created_at, updated_at, username, password, enabled, personnel_number, firstname, lastname)
+INSERT INTO employees (id, created_at, updated_at, personnel_number, firstname, lastname)
+VALUES (600, NOW(), NOW(), '0600', 'Disabled', '1');
+INSERT INTO users (id, created_at, updated_at, username, password, enabled, personnel_number, firstname, lastname, employee_id)
 VALUES (600, NOW(), NOW(), 'disabled1',
         '{argon2}$argon2id$v=19$m=4096,t=3,p=1$RXn6Xt/0q/Wtrvdns6NUnw$X3xWUjENAbNSJNckeVFXWrjkoFSowwlu3xHx1/zb40w',
-        false, '0600', 'Disabled', '1');
+        false, '0600', 'Disabled', '1', 600);
 
 -- user: checkin1
 -- pwd: 12345
-INSERT INTO users (id, created_at, updated_at, username, password, enabled, personnel_number, firstname, lastname)
+INSERT INTO employees (id, created_at, updated_at, personnel_number, firstname, lastname)
+VALUES (700, NOW(), NOW(), '0700', 'Checkin', '1');
+INSERT INTO users (id, created_at, updated_at, username, password, enabled, personnel_number, firstname, lastname, employee_id)
 VALUES (700, NOW(), NOW(), 'checkin1',
         '{argon2}$argon2id$v=19$m=4096,t=3,p=1$RXn6Xt/0q/Wtrvdns6NUnw$X3xWUjENAbNSJNckeVFXWrjkoFSowwlu3xHx1/zb40w',
-        true, '0700', 'Checkin', '1');
+        true, '0700', 'Checkin', '1', 700);
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (7001, NOW(), NOW(), 700, 'CHECKIN');
 
