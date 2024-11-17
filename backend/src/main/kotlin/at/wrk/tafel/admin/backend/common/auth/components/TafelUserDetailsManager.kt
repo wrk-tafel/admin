@@ -10,7 +10,9 @@ import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity.Specs.Compan
 import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity.Specs.Companion.lastnameContains
 import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity.Specs.Companion.orderByUpdatedAtDesc
 import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity.Specs.Companion.usernameContains
+import at.wrk.tafel.admin.backend.database.entities.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
+import at.wrk.tafel.admin.backend.database.repositories.base.EmployeeRepository
 import org.passay.DictionarySubstringRule
 import org.passay.LengthRule
 import org.passay.PasswordData
@@ -30,6 +32,7 @@ import org.springframework.security.provisioning.UserDetailsManager
 
 class TafelUserDetailsManager(
     private val userRepository: UserRepository,
+    private val employeeRepository: EmployeeRepository,
     private val passwordEncoder: PasswordEncoder,
     private val passwordValidator: PasswordValidator
 ) : UserDetailsManager {
@@ -46,7 +49,7 @@ class TafelUserDetailsManager(
     }
 
     fun loadUserByPersonnelNumber(personnelNumber: String): TafelUser? {
-        val user = userRepository.findByPersonnelNumber(personnelNumber)
+        val user = userRepository.findByEmployeePersonnelNumber(personnelNumber)
         return user?.let { mapToUserDetails(user) }
     }
 
@@ -148,19 +151,23 @@ class TafelUserDetailsManager(
             username = userEntity.username!!,
             password = userEntity.password!!,
             enabled = userEntity.enabled!!,
-            personnelNumber = userEntity.personnelNumber!!,
-            firstname = userEntity.firstname!!,
-            lastname = userEntity.lastname!!,
+            personnelNumber = userEntity.employee!!.personnelNumber!!,
+            firstname = userEntity.employee!!.firstname!!,
+            lastname = userEntity.employee!!.lastname!!,
             authorities = userEntity.authorities.map { SimpleGrantedAuthority(it.name) },
             passwordChangeRequired = userEntity.passwordChangeRequired!!
         )
     }
 
     private fun mapToUserEntity(userEntity: UserEntity, tafelUser: TafelUser) {
-        userEntity.personnelNumber = tafelUser.personnelNumber
+        val existingEmployee = employeeRepository.findByPersonnelNumber(tafelUser.personnelNumber) ?: EmployeeEntity()
+
+        userEntity.employee = existingEmployee.apply {
+            personnelNumber = tafelUser.personnelNumber
+            firstname = tafelUser.firstname
+            lastname = tafelUser.lastname
+        }
         userEntity.username = tafelUser.username
-        userEntity.firstname = tafelUser.firstname
-        userEntity.lastname = tafelUser.lastname
         userEntity.enabled = tafelUser.enabled
         val newPassword = tafelUser.password
         if (newPassword != null && isPasswordValid(tafelUser.username, newPassword)) {

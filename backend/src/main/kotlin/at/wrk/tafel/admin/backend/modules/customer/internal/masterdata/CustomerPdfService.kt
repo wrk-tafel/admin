@@ -38,7 +38,7 @@ class CustomerPdfService(
     }
 
     private fun createCustomerPdfData(customer: CustomerEntity): PdfData {
-        val issuer = customer.issuer?.let { "${it.personnelNumber} ${it.firstname} ${it.lastname}" }
+        val issuer = customer.issuer?.let { "${it.employee?.personnelNumber} ${it.employee?.firstname} ${it.employee?.lastname}" }
 
         val countPersons = 1 + customer.additionalPersons.count { !it.excludeFromHousehold!! }
         val countInfants =

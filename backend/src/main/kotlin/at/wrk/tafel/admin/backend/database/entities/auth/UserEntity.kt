@@ -2,18 +2,23 @@ package at.wrk.tafel.admin.backend.database.entities.auth
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.database.entities.base.BaseChangeTrackingEntity
+import at.wrk.tafel.admin.backend.database.entities.base.EmployeeEntity
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.FetchType
+import jakarta.persistence.JoinColumn
 import jakarta.persistence.OneToMany
+import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
 import jakarta.persistence.criteria.CriteriaBuilder
 import jakarta.persistence.criteria.CriteriaQuery
 import jakarta.persistence.criteria.Expression
+import jakarta.persistence.criteria.Join
 import jakarta.persistence.criteria.Root
 import org.springframework.data.jpa.domain.Specification
 import java.time.LocalDateTime
+
 
 @Entity(name = "User")
 @Table(name = "users")
@@ -28,14 +33,9 @@ class UserEntity : BaseChangeTrackingEntity() {
     @Column(name = "enabled")
     var enabled: Boolean? = false
 
-    @Column(name = "personnel_number")
-    var personnelNumber: String? = null
-
-    @Column(name = "firstname")
-    var firstname: String? = null
-
-    @Column(name = "lastname")
-    var lastname: String? = null
+    @OneToOne(cascade = [CascadeType.ALL])
+    @JoinColumn(name = "employee_id", referencedColumnName = "id")
+    var employee: EmployeeEntity? = null
 
     @Column(name = "passwordchange_required")
     var passwordChangeRequired: Boolean? = null
@@ -59,8 +59,9 @@ class UserEntity : BaseChangeTrackingEntity() {
             fun firstnameContains(firstname: String?): Specification<UserEntity>? {
                 return firstname?.let {
                     Specification { root: Root<UserEntity>, _: CriteriaQuery<*>?, cb: CriteriaBuilder ->
+                        val employee: Join<UserEntity, EmployeeEntity> = root.join("employee")
                         cb.like(
-                            cb.lower(root["firstname"]),
+                            cb.lower(employee["firstname"]),
                             "%${firstname.lowercase()}%"
                         )
                     }
@@ -70,8 +71,9 @@ class UserEntity : BaseChangeTrackingEntity() {
             fun lastnameContains(lastname: String?): Specification<UserEntity>? {
                 return lastname?.let {
                     Specification { root: Root<UserEntity>, _: CriteriaQuery<*>?, cb: CriteriaBuilder ->
+                        val employee: Join<UserEntity, EmployeeEntity> = root.join("employee")
                         cb.like(
-                            cb.lower(root["lastname"]),
+                            cb.lower(employee["lastname"]),
                             "%${lastname.lowercase()}%"
                         )
                     }

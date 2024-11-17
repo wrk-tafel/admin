@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.modules.customer.internal.masterdata
 
 import at.wrk.tafel.admin.backend.common.pdf.PDFService
 import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
+import at.wrk.tafel.admin.backend.database.entities.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.entities.base.Gender
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerAddPersonEntity
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity
@@ -67,9 +68,11 @@ class CustomerPdfServiceTest {
         testUserEntity.password = null
         testUserEntity.enabled = true
         testUserEntity.id = 0
-        testUserEntity.personnelNumber = "0000"
-        testUserEntity.firstname = "First"
-        testUserEntity.lastname = "Last"
+        testUserEntity.employee = EmployeeEntity().apply {
+            personnelNumber = "0000"
+            firstname = "First"
+            lastname = "Last"
+        }
 
         testCustomer = CustomerEntity()
         testCustomer.createdAt = LocalDateTime.of(

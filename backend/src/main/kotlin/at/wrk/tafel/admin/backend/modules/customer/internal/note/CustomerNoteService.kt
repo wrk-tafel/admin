@@ -32,7 +32,7 @@ class CustomerNoteService(
 
     private fun mapNote(entity: CustomerNoteEntity): CustomerNoteItem {
         val user = entity.user
-        val userDisplayString = listOfNotNull(user?.personnelNumber, user?.firstname, user?.lastname)
+        val userDisplayString = listOfNotNull(user?.employee?.personnelNumber, user?.employee?.firstname, user?.employee?.lastname)
             .joinToString(" ")
             .ifBlank { null }
 

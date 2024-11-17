@@ -104,9 +104,9 @@ class CustomerConverter(
         id = customerEntity.customerId,
         issuer = customerEntity.issuer?.let {
             CustomerIssuer(
-                personnelNumber = it.personnelNumber!!,
-                firstname = it.firstname!!,
-                lastname = it.lastname!!
+                personnelNumber = it.employee!!.personnelNumber!!,
+                firstname = it.employee!!.firstname!!,
+                lastname = it.employee!!.lastname!!
             )
         },
         issuedAt = customerEntity.createdAt!!.toLocalDate(),
@@ -131,7 +131,7 @@ class CustomerConverter(
         validUntil = customerEntity.validUntil,
         locked = customerEntity.locked,
         lockedAt = customerEntity.lockedAt,
-        lockedBy = customerEntity.lockedBy?.let { "${it.personnelNumber} ${it.firstname} ${it.lastname}" },
+        lockedBy = customerEntity.lockedBy?.let { "${it.employee!!.personnelNumber} ${it.employee!!.firstname} ${it.employee!!.lastname}" },
         lockReason = customerEntity.lockReason,
         additionalPersons = customerEntity.additionalPersons.map {
             CustomerAdditionalPerson(

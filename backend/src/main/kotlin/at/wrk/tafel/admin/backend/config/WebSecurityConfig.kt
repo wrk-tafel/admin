@@ -10,6 +10,7 @@ import at.wrk.tafel.admin.backend.common.auth.components.TafelLoginProvider
 import at.wrk.tafel.admin.backend.common.auth.components.TafelPasswordGenerator
 import at.wrk.tafel.admin.backend.common.auth.components.TafelUserDetailsManager
 import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
+import at.wrk.tafel.admin.backend.database.repositories.base.EmployeeRepository
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.passay.CharacterRule
 import org.passay.DictionarySubstringRule
@@ -48,6 +49,7 @@ import org.springframework.security.web.util.matcher.OrRequestMatcher
 class WebSecurityConfig(
     private val jwtTokenService: JwtTokenService,
     private val userRepository: UserRepository,
+    private val employeeRepository: EmployeeRepository,
     private val applicationProperties: ApplicationProperties,
     private val objectMapper: ObjectMapper
 ) {
@@ -137,7 +139,7 @@ class WebSecurityConfig(
 
     @Bean
     fun tafelUserDetailsManager(): TafelUserDetailsManager {
-        return TafelUserDetailsManager(userRepository, passwordEncoder(), passwordValidator)
+        return TafelUserDetailsManager(userRepository, employeeRepository, passwordEncoder(), passwordValidator)
     }
 
     @Bean

@@ -1,6 +1,7 @@
 package at.wrk.tafel.admin.backend.common.test
 
 import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
+import at.wrk.tafel.admin.backend.database.entities.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.entities.base.Gender
 import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity
 import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionEntity
@@ -21,9 +22,11 @@ object TestdataGenerator {
 
         val user = UserEntity()
         user.username = "testuser-$randomNumber"
-        user.personnelNumber = randomNumber.toString()
-        user.firstname = "firstname-$randomNumber"
-        user.lastname = "lastname-$randomNumber"
+        user.employee = EmployeeEntity().apply {
+            personnelNumber = randomNumber.toString()
+            firstname = "firstname-$randomNumber"
+            lastname = "lastname-$randomNumber"
+        }
         user.enabled = true
         user.password = "dummy"
         user.passwordChangeRequired = false
