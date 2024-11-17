@@ -8,7 +8,7 @@ interface UserRepository : JpaRepository<UserEntity, Long>, JpaSpecificationExec
 
     fun findByUsername(username: String): UserEntity?
 
-    fun findByPersonnelNumber(personnelNumber: String): UserEntity?
+    fun findByEmployeePersonnelNumber(personnelNumber: String): UserEntity?
 
     fun existsByUsername(username: String): Boolean
 
