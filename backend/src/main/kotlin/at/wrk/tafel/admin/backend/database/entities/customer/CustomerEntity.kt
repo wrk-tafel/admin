@@ -3,6 +3,7 @@ package at.wrk.tafel.admin.backend.database.entities.customer
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.entities.base.BaseChangeTrackingEntity
+import at.wrk.tafel.admin.backend.database.entities.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.entities.base.Gender
 import at.wrk.tafel.admin.backend.database.entities.staticdata.CountryEntity
 import jakarta.persistence.CascadeType
@@ -35,8 +36,8 @@ class CustomerEntity : BaseChangeTrackingEntity() {
     var customerId: Long? = null
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
-    var issuer: UserEntity? = null
+    @JoinColumn(name = "employee_id")
+    var issuer: EmployeeEntity? = null
 
     @Column(name = "firstname")
     var firstname: String? = null

@@ -34,7 +34,7 @@ class CustomerConverter(
         val customerEntity = storedEntity ?: CustomerEntity()
 
         customerEntity.customerId = customerUpdate.id ?: customerRepository.getNextCustomerSequenceValue()
-        customerEntity.issuer = customerEntity.issuer ?: userEntity
+        customerEntity.issuer = customerEntity.issuer ?: userEntity!!.employee
         customerEntity.lastname = customerUpdate.lastname?.trim()
         customerEntity.firstname = customerUpdate.firstname?.trim()
         customerEntity.birthDate = customerUpdate.birthDate
@@ -104,9 +104,9 @@ class CustomerConverter(
         id = customerEntity.customerId,
         issuer = customerEntity.issuer?.let {
             CustomerIssuer(
-                personnelNumber = it.employee!!.personnelNumber!!,
-                firstname = it.employee!!.firstname!!,
-                lastname = it.employee!!.lastname!!
+                personnelNumber = it.personnelNumber!!,
+                firstname = it.firstname!!,
+                lastname = it.lastname!!
             )
         },
         issuedAt = customerEntity.createdAt!!.toLocalDate(),

@@ -51,7 +51,7 @@ internal class CustomerNoteServiceTest {
 
         testCustomerEntity1 = CustomerEntity().apply {
             id = 1
-            issuer = testUserEntity
+            issuer = testUserEntity.employee
             createdAt = LocalDateTime.now()
             customerId = 100
             lastname = "Mustermann"

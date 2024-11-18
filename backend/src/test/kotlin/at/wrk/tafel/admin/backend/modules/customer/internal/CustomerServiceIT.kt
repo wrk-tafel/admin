@@ -48,13 +48,13 @@ class CustomerServiceIT : TafelBaseIntegrationTest() {
         val distribution2 = createDistribution(testUser)
         testEntityManager.persist(distribution2)
 
-        val targetCustomer = createCustomer(testUser, testCountry)
+        val targetCustomer = createCustomer(testUser.employee!!, testCountry)
         testEntityManager.persist(targetCustomer)
-        val sourceCustomer1 = createCustomer(testUser, testCountry)
+        val sourceCustomer1 = createCustomer(testUser.employee!!, testCountry)
         testEntityManager.persist(sourceCustomer1)
-        val sourceCustomer2 = createCustomer(testUser, testCountry)
+        val sourceCustomer2 = createCustomer(testUser.employee!!, testCountry)
         testEntityManager.persist(sourceCustomer2)
-        val sourceCustomer3 = createCustomer(testUser, testCountry)
+        val sourceCustomer3 = createCustomer(testUser.employee!!, testCountry)
         testEntityManager.persist(sourceCustomer3)
 
         createDistributionCustomerEntity(customer = targetCustomer, distribution = distribution1, ticketNumber = 1)
