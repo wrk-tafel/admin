@@ -120,7 +120,7 @@ internal class CustomerConverterTest {
 
     private val testCustomerEntity1 = CustomerEntity().apply {
         createdAt = LocalDateTime.now()
-        issuer = testUserEntity
+        issuer = testUserEntity.employee
         customerId = 100
         lastname = "Mustermann"
         firstname = "Max"
@@ -264,7 +264,7 @@ internal class CustomerConverterTest {
     @Test
     fun `map to existing entity`() {
         val updatedCustomerEntity = CustomerEntity().apply {
-            issuer = testUserEntity
+            issuer = testUserEntity.employee
             customerId = 100
             lastname = "Mustermann"
             firstname = "Max"

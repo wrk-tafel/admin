@@ -43,7 +43,7 @@ object TestdataGenerator {
         return distribution
     }
 
-    fun createCustomer(issuer: UserEntity, country: CountryEntity): CustomerEntity {
+    fun createCustomer(issuer: EmployeeEntity, country: CountryEntity): CustomerEntity {
         val randomNumber = generateRandomNumber()
 
         val customer = CustomerEntity()

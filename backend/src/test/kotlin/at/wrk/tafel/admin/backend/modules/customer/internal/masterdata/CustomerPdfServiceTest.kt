@@ -79,7 +79,7 @@ class CustomerPdfServiceTest {
             LocalDate.of(2022, 10, 3), LocalTime.of(10, 10)
         )
         testCustomer.customerId = 123
-        testCustomer.issuer = testUserEntity
+        testCustomer.issuer = testUserEntity.employee
         testCustomer.lastname = "Mustermann"
         testCustomer.firstname = "Max"
         testCustomer.birthDate = LocalDate.of(1980, 6, 10)
