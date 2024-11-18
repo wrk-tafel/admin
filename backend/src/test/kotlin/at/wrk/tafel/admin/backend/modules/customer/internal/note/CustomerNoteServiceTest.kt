@@ -121,12 +121,12 @@ internal class CustomerNoteServiceTest {
         val customerId = 123L
         val noteEntities = listOf(
             CustomerNoteEntity().apply {
-                this.user = testUserEntity
+                this.employee = testUserEntity.employee
                 this.createdAt = LocalDateTime.now().minusDays(1)
                 this.note = "note 2"
             },
             CustomerNoteEntity().apply {
-                this.user = testUserEntity
+                this.employee = testUserEntity.employee
                 this.createdAt = LocalDateTime.now().minusDays(2)
                 this.note = "note 1"
             },
@@ -169,7 +169,7 @@ internal class CustomerNoteServiceTest {
         val noteEntity = CustomerNoteEntity()
         noteEntity.customer = testCustomerEntity1
         noteEntity.createdAt = LocalDateTime.now()
-        noteEntity.user = testUserEntity
+        noteEntity.employee = testUserEntity.employee
         noteEntity.note = note
         every { customerNoteRepository.save(any()) } returns noteEntity
 
@@ -183,7 +183,7 @@ internal class CustomerNoteServiceTest {
 
         verify {
             customerNoteRepository.save(withArg {
-                assertThat(it.user).isEqualTo(testUserEntity)
+                assertThat(it.employee).isEqualTo(testUserEntity.employee)
                 assertThat(it.customer).isEqualTo(testCustomerEntity1)
                 assertThat(it.note).isEqualTo(note)
             })

@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service
 class CustomerNoteService(
     private val customerNoteRepository: CustomerNoteRepository,
     private val customerRepository: CustomerRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
 ) {
 
     fun getNotes(customerId: Long, page: Int?): CustomerNoteSearchResult {
@@ -31,8 +31,8 @@ class CustomerNoteService(
     }
 
     private fun mapNote(entity: CustomerNoteEntity): CustomerNoteItem {
-        val user = entity.user
-        val userDisplayString = listOfNotNull(user?.employee?.personnelNumber, user?.employee?.firstname, user?.employee?.lastname)
+        val employee = entity.employee
+        val userDisplayString = listOfNotNull(employee?.personnelNumber, employee?.firstname, employee?.lastname)
             .joinToString(" ")
             .ifBlank { null }
 
@@ -48,7 +48,7 @@ class CustomerNoteService(
 
         val noteEntity = CustomerNoteEntity()
         noteEntity.customer = customerRepository.findByCustomerId(customerId)
-        noteEntity.user = userRepository.findByUsername(authenticatedUser.username!!)
+        noteEntity.employee = userRepository.findByUsername(authenticatedUser.username!!)!!.employee
         noteEntity.note = note
 
         val savedEntity = customerNoteRepository.save(noteEntity)
