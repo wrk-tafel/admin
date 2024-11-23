@@ -44,6 +44,8 @@ statistic:
 * provide jar-file releases via github ?
 
 ### Lower prio
+* switch to signals
+* switch to control flow syntax @if, @for, @switch
 
 * tech: switch to spring boot layered build: https://www.baeldung.com/docker-layers-spring-boot
 * Move statistics package into reporting?
