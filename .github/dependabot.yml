@@ -19,6 +19,8 @@ updates:
       # Wait for coreui to be updated and support Angular 19
       - dependency-name: "@angular/*"
         versions: [ "19.x" ]
+      - dependency-name: "ngx-cookie-service"
+        versions: [ "19.x" ]
   # Maintain dependencies for GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/.github/workflows"
