@@ -1,7 +1,8 @@
 package at.wrk.tafel.admin.backend.modules.customer.internal
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
-import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerRepository
+import at.wrk.tafel.admin.backend.database.model.customer.CustomerRepository
+import at.wrk.tafel.admin.backend.modules.customer.Customer
 import at.wrk.tafel.admin.backend.modules.customer.internal.converter.CustomerConverter
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl

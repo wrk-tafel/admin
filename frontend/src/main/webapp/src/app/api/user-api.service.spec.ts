@@ -1,7 +1,7 @@
 import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
 import {TestBed} from '@angular/core/testing';
 import {ChangePasswordRequest, ChangePasswordResponse, UserApiService, UserData} from './user-api.service';
-import {provideHttpClient} from "@angular/common/http";
+import {provideHttpClient} from '@angular/common/http';
 
 describe('UserApiService', () => {
   let httpMock: HttpTestingController;

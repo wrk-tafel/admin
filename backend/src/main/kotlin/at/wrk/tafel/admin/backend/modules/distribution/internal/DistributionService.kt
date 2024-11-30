@@ -2,12 +2,12 @@ package at.wrk.tafel.admin.backend.modules.distribution.internal
 
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.common.pdf.PDFService
-import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionCustomerEntity
-import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionEntity
-import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
-import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerRepository
-import at.wrk.tafel.admin.backend.database.repositories.distribution.DistributionCustomerRepository
-import at.wrk.tafel.admin.backend.database.repositories.distribution.DistributionRepository
+import at.wrk.tafel.admin.backend.database.model.distribution.DistributionCustomerEntity
+import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
+import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
+import at.wrk.tafel.admin.backend.database.model.customer.CustomerRepository
+import at.wrk.tafel.admin.backend.database.model.distribution.DistributionCustomerRepository
+import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.CustomerListItem
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.CustomerListPdfModel

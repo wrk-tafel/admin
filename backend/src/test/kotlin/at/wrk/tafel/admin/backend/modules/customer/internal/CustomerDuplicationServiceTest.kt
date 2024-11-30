@@ -1,7 +1,8 @@
 package at.wrk.tafel.admin.backend.modules.customer.internal
 
-import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity
-import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerRepository
+import at.wrk.tafel.admin.backend.database.model.customer.CustomerEntity
+import at.wrk.tafel.admin.backend.database.model.customer.CustomerRepository
+import at.wrk.tafel.admin.backend.modules.customer.Customer
 import at.wrk.tafel.admin.backend.modules.customer.internal.converter.CustomerConverter
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs

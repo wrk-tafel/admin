@@ -3,7 +3,7 @@ import {TestBed} from '@angular/core/testing';
 import * as moment from 'moment';
 import {CustomerApiService, CustomerMergeRequest, Gender} from './customer-api.service';
 import {ReactiveFormsModule} from '@angular/forms';
-import {provideHttpClient} from "@angular/common/http";
+import {provideHttpClient} from '@angular/common/http';
 
 describe('CustomerApiService', () => {
   let httpMock: HttpTestingController;

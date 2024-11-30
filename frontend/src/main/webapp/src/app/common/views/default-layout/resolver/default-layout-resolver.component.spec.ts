@@ -4,8 +4,8 @@ import {WebsocketService} from '../../../websocket/websocket.service';
 import {DefaultLayoutResolver} from './default-layout-resolver.component';
 import {GlobalStateService} from '../../../state/global-state.service';
 import {RxStompState} from '@stomp/rx-stomp';
-import {provideHttpClient} from "@angular/common/http";
-import {provideHttpClientTesting} from "@angular/common/http/testing";
+import {provideHttpClient} from '@angular/common/http';
+import {provideHttpClientTesting} from '@angular/common/http/testing';
 
 describe('DefaultLayoutResolver', () => {
   let websocketService: jasmine.SpyObj<WebsocketService>;

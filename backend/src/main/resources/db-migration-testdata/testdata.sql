@@ -22,6 +22,8 @@ INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (1005, NOW(), NOW(), 100, 'USER_MANAGEMENT');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (1006, NOW(), NOW(), 100, 'CUSTOMER_DUPLICATES');
+INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
+VALUES (1007, NOW(), NOW(), 100, 'LOGISTICS');
 
 -- user: testuser
 -- pwd: 35bc40681124f412c5d052366edb9eb9
@@ -62,6 +64,8 @@ INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (3005, NOW(), NOW(), 300, 'USER_MANAGEMENT');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (3006, NOW(), NOW(), 300, 'CUSTOMER_DUPLICATES');
+INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
+VALUES (3007, NOW(), NOW(), 300, 'LOGISTICS');
 
 -- user: scanner1
 -- pwd: 12345
@@ -326,3 +330,203 @@ INSERT INTO distributions_statistics (id, created_at, updated_at, distribution_i
                                       count_customers_prolonged, count_persons_prolonged,
                                       count_customers_updated)
 VALUES (100, NOW(), NOW(), 100, 50, 125, 40, 2.5, 4, 5, 6, 7, 8);
+
+-- shops
+INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
+                   address_postal_code, address_city)
+VALUES (1, NOW(), NOW(), 100, 'Billa', '01 23 45 67 89', null,
+        'Fr. Musterfrau', 'Bloch-Bauer-promenade 1', 1100, 'Wien');
+INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
+                   address_postal_code, address_city)
+VALUES (2, NOW(), NOW(), 200, 'Billa Plus', '01 23 45 67 89',
+        'DW 123 od. 456', 'Hr. Mustermann', 'Herzgasse 2', 1110, 'Wien');
+INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
+                   address_postal_code, address_city)
+VALUES (3, NOW(), NOW(), 300, 'Hofer', '01 23 45 67 89', null,
+        'Fr. Musterfrau', 'Quellenstraße 3', 1120, 'Wien');
+INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
+                   address_postal_code, address_city)
+VALUES (4, NOW(), NOW(), 400, 'Hofer 2', '01 23 45 67 89', null,
+        'Fr. Musterfrau', 'Quellenstraße 3', 1120, 'Wien');
+INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
+                   address_postal_code, address_city)
+VALUES (5, NOW(), NOW(), 500, 'Hofer 3', '01 23 45 67 89', null,
+        'Fr. Musterfrau', 'Quellenstraße 3', 1120, 'Wien');
+INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
+                   address_postal_code, address_city)
+VALUES (6, NOW(), NOW(), 600, 'Hofer 4', '01 23 45 67 89', null,
+        'Fr. Musterfrau', 'Quellenstraße 3', 1120, 'Wien');
+INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
+                   address_postal_code, address_city)
+VALUES (7, NOW(), NOW(), 700, 'Hofer 5', '01 23 45 67 89', null,
+        'Fr. Musterfrau', 'Quellenstraße 3', 1120, 'Wien');
+INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
+                   address_postal_code, address_city)
+VALUES (8, NOW(), NOW(), 800, 'Hofer 6', '01 23 45 67 89', null,
+        'Fr. Musterfrau', 'Quellenstraße 3', 1120, 'Wien');
+INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
+                   address_postal_code, address_city)
+VALUES (9, NOW(), NOW(), 900, 'Hofer 7', '01 23 45 67 89', null,
+        'Fr. Musterfrau', 'Quellenstraße 3', 1120, 'Wien');
+INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
+                   address_postal_code, address_city)
+VALUES (10, NOW(), NOW(), 1000, 'Hofer 8', '01 23 45 67 89', null,
+        'Fr. Musterfrau', 'Quellenstraße 3', 1120, 'Wien');
+INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
+                   address_postal_code, address_city)
+VALUES (11, NOW(), NOW(), 1100, 'Hofer 9', '01 23 45 67 89', null,
+        'Fr. Musterfrau', 'Quellenstraße 3', 1120, 'Wien');
+INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
+                   address_postal_code, address_city)
+VALUES (12, NOW(), NOW(), 1200, 'Denns Biomarkt 10', '01 23 45 67 89', null,
+        'Fr. Musterfrau', 'Quellenstraße 3', 1120, 'Wien');
+INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
+                   address_postal_code, address_city)
+VALUES (13, NOW(), NOW(), 1300, 'Hofer 11', '01 23 45 67 89', null,
+        'Fr. Musterfrau', 'Quellenstraße 3', 1120, 'Wien');
+INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
+                   address_postal_code, address_city)
+VALUES (14, NOW(), NOW(), 1400, 'Hofer 12', '01 23 45 67 89', null,
+        'Fr. Musterfrau', 'Quellenstraße 3', 1120, 'Wien');
+INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
+                   address_postal_code, address_city)
+VALUES (15, NOW(), NOW(), 1500, 'Hofer 13', '01 23 45 67 89', null,
+        'Fr. Musterfrau', 'Quellenstraße 3', 1120, 'Wien');
+
+INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
+                   address_postal_code, address_city)
+VALUES (20, NOW(), NOW(), 2000, 'Lidl', '01 23 45 67 89', null,
+        'Hr. Mustermann', 'Kudlichgasse 4', 1130, 'Wien');
+INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
+                   address_postal_code, address_city)
+VALUES (21, NOW(), NOW(), 2100, 'Denns BioMarkt', '01 23 45 67 89', null,
+        'Fr. Musterfrau', 'Simmeringer Hauptstraße 5', 1140, 'Wien');
+
+-- routes
+INSERT INTO routes (id, created_at, updated_at, number, name, note)
+VALUES (1, NOW(), NOW(), 1, 'Route 1', 'Note 1');
+
+INSERT INTO routes (id, created_at, updated_at, number, name, note)
+VALUES (2, NOW(), NOW(), 2, 'Route 2', null);
+
+-- shops to routes
+INSERT INTO routes_stops (id, created_at, updated_at, route_id, shop_id, time)
+VALUES (1, NOW(), NOW(), 1, 1, '14:00:00');
+
+INSERT INTO routes_stops (id, created_at, updated_at, route_id, shop_id, time)
+VALUES (2, NOW(), NOW(), 1, 2, '14:15:00');
+
+INSERT INTO routes_stops (id, created_at, updated_at, route_id, shop_id, time)
+VALUES (3, NOW(), NOW(), 1, 3, '14:30:00');
+
+INSERT INTO routes_stops (id, created_at, updated_at, route_id, shop_id, time)
+VALUES (4, NOW(), NOW(), 1, 4, '14:45:00');
+
+INSERT INTO routes_stops (id, created_at, updated_at, route_id, shop_id, time)
+VALUES (5, NOW(), NOW(), 1, 5, '15:00:00');
+
+INSERT INTO routes_stops (id, created_at, updated_at, route_id, shop_id, time)
+VALUES (6, NOW(), NOW(), 1, 6, '15:15:00');
+
+INSERT INTO routes_stops (id, created_at, updated_at, route_id, shop_id, time)
+VALUES (7, NOW(), NOW(), 1, 7, '15:30:00');
+
+INSERT INTO routes_stops (id, created_at, updated_at, route_id, shop_id, time)
+VALUES (8, NOW(), NOW(), 1, 8, '15:45:00');
+
+INSERT INTO routes_stops (id, created_at, updated_at, route_id, shop_id, time)
+VALUES (9, NOW(), NOW(), 1, 9, '16:00:00');
+
+INSERT INTO routes_stops (id, created_at, updated_at, route_id, shop_id, time)
+VALUES (10, NOW(), NOW(), 1, 10, '16:15:00');
+
+INSERT INTO routes_stops (id, created_at, updated_at, route_id, shop_id, time)
+VALUES (11, NOW(), NOW(), 1, 11, '16:30:00');
+
+INSERT INTO routes_stops (id, created_at, updated_at, route_id, shop_id, time)
+VALUES (12, NOW(), NOW(), 1, 12, '16:45:00');
+
+INSERT INTO routes_stops (id, created_at, updated_at, route_id, shop_id, time)
+VALUES (13, NOW(), NOW(), 1, 13, '17:00:00');
+
+INSERT INTO routes_stops (id, created_at, updated_at, route_id, shop_id, time)
+VALUES (14, NOW(), NOW(), 1, 14, '17:15:00');
+
+INSERT INTO routes_stops (id, created_at, updated_at, route_id, shop_id, time)
+VALUES (15, NOW(), NOW(), 1, 15, '17:30:00');
+
+INSERT INTO routes_stops (id, created_at, updated_at, route_id, shop_id, time)
+VALUES (200, NOW(), NOW(), 2, 20, '12:00:00');
+
+INSERT INTO routes_stops (id, created_at, updated_at, route_id, shop_id, time)
+VALUES (210, NOW(), NOW(), 2, 21, '12:15:00');
+
+-- food categories
+INSERT INTO food_categories (id, created_at, updated_at, name)
+VALUES (1, NOW(), NOW(), 'Backwaren');
+INSERT INTO food_categories (id, created_at, updated_at, name)
+VALUES (2, NOW(), NOW(), 'Obst / Gemüse');
+INSERT INTO food_categories (id, created_at, updated_at, name)
+VALUES (3, NOW(), NOW(), 'Milchprodukte');
+INSERT INTO food_categories (id, created_at, updated_at, name)
+VALUES (4, NOW(), NOW(), 'Getränke');
+INSERT INTO food_categories (id, created_at, updated_at, name)
+VALUES (5, NOW(), NOW(), 'Fertiggerichte');
+INSERT INTO food_categories (id, created_at, updated_at, name)
+VALUES (6, NOW(), NOW(), 'Fleisch / Fisch');
+INSERT INTO food_categories (id, created_at, updated_at, name)
+VALUES (7, NOW(), NOW(), 'Konserven');
+INSERT INTO food_categories (id, created_at, updated_at, name)
+VALUES (8, NOW(), NOW(), 'Süßwaren');
+INSERT INTO food_categories (id, created_at, updated_at, name)
+VALUES (9, NOW(), NOW(), 'Tiefkühlprodukte');
+INSERT INTO food_categories (id, created_at, updated_at, name)
+VALUES (10, NOW(), NOW(), 'Sonstiges');
+INSERT INTO food_categories (id, created_at, updated_at, name)
+VALUES (11, NOW(), NOW(), 'Graue Kisten');
+INSERT INTO food_categories (id, created_at, updated_at, name)
+VALUES (12, NOW(), NOW(), 'Klappkisten schwarz');
+INSERT INTO food_categories (id, created_at, updated_at, name)
+VALUES (13, NOW(), NOW(), 'Grüne Kisten');
+INSERT INTO food_categories (id, created_at, updated_at, name)
+VALUES (14, NOW(), NOW(), 'Ströck Kisten');
+INSERT INTO food_categories (id, created_at, updated_at, name)
+VALUES (15, NOW(), NOW(), 'sonstige Kisten');
+
+-- distributions
+INSERT INTO distributions (id, created_at, updated_at, started_at, ended_at, startedby_userid, endedby_userid)
+VALUES (1, NOW(), NOW(), '2000-01-01 17:00:00.000000', '2000-01-01 22:00:00.000000', 300, 300);
+
+-- other employees
+INSERT INTO employees (id, created_at, updated_at, personnel_number, firstname, lastname)
+VALUES (2000, NOW(), NOW(), '02000', 'Driver', '1');
+INSERT INTO employees (id, created_at, updated_at, personnel_number, firstname, lastname)
+VALUES (2100, NOW(), NOW(), '02100', 'CoDriver', '1');
+
+-- food collections
+INSERT INTO food_collections (id, created_at, updated_at, distribution_id, route_id, car_license_plate,
+                              driver_employee_id, co_driver_employee_id, km_start, km_end)
+VALUES (1, NOW(), NOW(), 1, 1, 'W-NICECAR-123', 2000, 2100, 213000, 213500);
+
+-- food collections items for route 1
+WITH ShopCategories AS (
+    SELECT s.id AS shop_id, fc.id AS food_category_id
+    FROM shops s
+             CROSS JOIN food_categories fc
+),
+     RandomAmounts AS (
+         SELECT generate_series(1, 10) AS amount
+     )
+INSERT INTO food_collections_items (
+    food_collection_id,
+    shop_id,
+    food_category_id,
+    amount
+)
+SELECT
+    1,  -- fixed collection 1
+    sc.shop_id,
+    sc.food_category_id,
+    sc.shop_id -- using same as amount
+FROM
+    ShopCategories sc;

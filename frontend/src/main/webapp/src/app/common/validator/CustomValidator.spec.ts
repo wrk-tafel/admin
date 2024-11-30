@@ -137,4 +137,61 @@ describe('CustomValidator', () => {
     );
   });
 
+  it('hasValue with null value', () => {
+    const control = Object.defineProperties({} as AbstractControl, {
+      value: {
+        get: function get() {
+          return null;
+        }
+      }
+    });
+
+    const testCallback = () => null
+    const testMessage = 'todo test'
+
+    const result = CustomValidator.hasValue(testCallback, testMessage)(control);
+
+    expect(result).toBe(null);
+  });
+
+  it('hasValue with undefined value', () => {
+    const control = Object.defineProperties({} as AbstractControl, {
+      value: {
+        get: function get() {
+          return '12345';
+        }
+      }
+    });
+
+    const testCallback = () => undefined
+    const testMessage = 'todo test'
+
+    const result = CustomValidator.hasValue(testCallback, testMessage)(control);
+
+    expect(result).toEqual(
+      {
+        'hasValue': {
+          'message': testMessage
+        }
+      }
+    );
+  });
+
+  it('hasValue with any value', () => {
+    const control = Object.defineProperties({} as AbstractControl, {
+      value: {
+        get: function get() {
+          return '12345';
+        }
+      }
+    });
+
+    const testCallback = () => 'test123'
+    const testMessage = 'todo test'
+
+    const result = CustomValidator.hasValue(testCallback, testMessage)(control);
+
+    expect(result).toBe(null);
+  });
+
 });

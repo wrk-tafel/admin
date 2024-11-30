@@ -1,0 +1,81 @@
+<button cButton [attr.testid]="testId() + '-search-button'" (click)="triggerSearch()" [disabled]="buttonDisabled()">
+  <fa-icon [icon]="faSearch"/>
+</button>
+<c-modal id="createEmployeeModal" #createEmployeeModal [attr.testid]="testId() + '-modal'" [(visible)]="showCreateEmployeeModal">
+  <c-modal-header cBgColor="info">
+    <h4 class="text-white">Mitarbeiter nicht gefunden</h4>
+    <button [cModalToggle]="createEmployeeModal.id" cButtonClose></button>
+  </c-modal-header>
+  <c-modal-body>
+    <form [formGroup]="form">
+      <c-row class="mb-2">
+        <c-col>
+          <strong>Neuen Mitarbeiter anlegen</strong>
+        </c-col>
+      </c-row>
+      <c-row>
+        <c-col>
+          <label class="form-label">Personalnummer *</label>
+          <c-input-group>
+            <input [attr.testid]="testId() + '-personnelnumber-input'" type="text" formControlName="personnelNumber" class="form-control"
+                   [ngClass]="{'is-invalid': personnelNumber.invalid && (personnelNumber.dirty || personnelNumber.touched), 'is-valid': personnelNumber.valid && (personnelNumber.dirty || personnelNumber.touched)}">
+            @if (personnelNumber.errors?.required && (personnelNumber.dirty || personnelNumber.touched)) {
+              <div class="invalid-feedback">
+                Pflichtfeld
+              </div>
+            }
+            @if (personnelNumber.errors?.maxlength && (personnelNumber.dirty || personnelNumber.touched)) {
+              <div class="invalid-feedback">
+                Personalnummer zu lang (Limit: {{ personnelNumber.errors.maxlength.requiredLength }})
+              </div>
+            }
+          </c-input-group>
+        </c-col>
+      </c-row>
+      <c-row>
+        <c-col>
+          <label class="form-label">Vorname *</label>
+          <c-input-group>
+            <input [attr.testid]="testId() + '-firstname-input'" type="text" formControlName="firstname" class="form-control"
+                   [ngClass]="{'is-invalid': firstname.invalid && (firstname.dirty || firstname.touched), 'is-valid': firstname.valid && (firstname.dirty || firstname.touched)}">
+            @if (firstname.errors?.required && (firstname.dirty || firstname.touched)) {
+              <div class="invalid-feedback">
+                Pflichtfeld
+              </div>
+            }
+            @if (firstname.errors?.maxlength && (firstname.dirty || firstname.touched)) {
+              <div class="invalid-feedback">
+                Vorname zu lang (Limit: {{ firstname.errors.maxlength.requiredLength }})
+              </div>
+            }
+          </c-input-group>
+        </c-col>
+      </c-row>
+      <c-row>
+        <c-col>
+          <label class="form-label">Nachname *</label>
+          <c-input-group>
+            <input [attr.testid]="testId() + '-lastname-input'" type="text" formControlName="lastname" class="form-control"
+                   [ngClass]="{'is-invalid': lastname.invalid && (lastname.dirty || lastname.touched), 'is-valid': lastname.valid && (lastname.dirty || lastname.touched)}">
+            @if (lastname.errors?.required && (lastname.dirty || lastname.touched)) {
+              <div class="invalid-feedback">
+                Pflichtfeld
+              </div>
+            }
+            @if (lastname.errors?.maxlength && (lastname.dirty || lastname.touched)) {
+              <div class="invalid-feedback">
+                Nachname zu lang (Limit: {{ lastname.errors.maxlength.requiredLength }})
+              </div>
+            }
+          </c-input-group>
+        </c-col>
+      </c-row>
+    </form>
+  </c-modal-body>
+  <c-modal-footer>
+    <button [attr.testid]="testId() + '-save-button'" cButton (click)="saveNewEmployee()" [disabled]="this.form.invalid">Speichern</button>
+    <button [attr.testid]="testId() + '-cancel-button'" cButton color="secondary" (click)="showCreateEmployeeModal = false">
+      Abbrechen
+    </button>
+  </c-modal-footer>
+</c-modal>

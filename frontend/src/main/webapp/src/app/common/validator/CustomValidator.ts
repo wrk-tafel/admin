@@ -16,13 +16,12 @@ export class CustomValidator {
 
       const validationDate = moment(date).startOf('day');
 
-      const result = !controlDate.isBefore(validationDate) ? null : {
+      return !controlDate.isBefore(validationDate) ? null : {
         'mindate': {
           'minimumDate': validationDate.format('DD.MM.YYYY'),
           'actualDate': controlDate.format('DD.MM.YYYY')
         }
       };
-      return result;
     };
   }
 
@@ -39,13 +38,22 @@ export class CustomValidator {
 
       const validationDate = moment(date).startOf('day');
 
-      const result = !controlDate.isAfter(validationDate) ? null : {
+      return !controlDate.isAfter(validationDate) ? null : {
         'maxdate': {
           'maximumDate': validationDate.format('DD.MM.YYYY'),
           'actualDate': controlDate.format('DD.MM.YYYY')
         }
       };
-      return result;
+    };
+  }
+
+  static hasValue(callback: () => any, message: string): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      return !control.value || callback() ? null : {
+        'hasValue': {
+          'message': message
+        }
+      };
     };
   }
 

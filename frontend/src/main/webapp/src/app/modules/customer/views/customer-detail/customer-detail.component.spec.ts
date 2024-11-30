@@ -27,9 +27,9 @@ import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
 import {TafelPaginationData} from '../../../../common/components/tafel-pagination/tafel-pagination.component';
 import {provideRouter} from '@angular/router';
-import {CustomerEditComponent} from "../customer-edit/customer-edit.component";
-import {provideLocationMocks} from "@angular/common/testing";
-import {CustomerSearchComponent} from "../customer-search/customer-search.component";
+import {CustomerEditComponent} from '../customer-edit/customer-edit.component';
+import {provideLocationMocks} from '@angular/common/testing';
+import {CustomerSearchComponent} from '../customer-search/customer-search.component';
 
 describe('CustomerDetailComponent', () => {
   let customerApiService: jasmine.SpyObj<CustomerApiService>;

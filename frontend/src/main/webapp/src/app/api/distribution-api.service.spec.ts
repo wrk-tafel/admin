@@ -9,7 +9,7 @@ import {
 import {WebsocketService} from '../common/websocket/websocket.service';
 import {of} from 'rxjs';
 import {IMessage} from '@stomp/stompjs';
-import {provideHttpClient} from "@angular/common/http";
+import {provideHttpClient} from '@angular/common/http';
 
 describe('DistributionApiService', () => {
   let httpMock: HttpTestingController;

@@ -6,8 +6,8 @@ import {GlobalStateService} from '../../../state/global-state.service';
   providedIn: 'root'
 })
 export class DefaultLayoutResolver {
-  private websocketService = inject(WebsocketService);
-  private globalStateService = inject(GlobalStateService);
+  private readonly websocketService = inject(WebsocketService);
+  private readonly globalStateService = inject(GlobalStateService);
 
   /* eslint-disable @typescript-eslint/no-explicit-any */
   public resolve(): Promise<any[]> {

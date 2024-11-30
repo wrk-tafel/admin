@@ -5,8 +5,8 @@ import {ContainerComponent, HeaderNavComponent, SidebarModule} from '@coreui/ang
 import {GlobalStateService} from '../../state/global-state.service';
 import {DistributionItem} from '../../../api/distribution-api.service';
 import {BehaviorSubject} from 'rxjs';
-import {provideLocationMocks} from "@angular/common/testing";
-import {provideRouter} from "@angular/router";
+import {provideLocationMocks} from '@angular/common/testing';
+import {provideRouter} from '@angular/router';
 
 describe('DefaultLayoutComponent', () => {
   let authService: jasmine.SpyObj<AuthenticationService>;

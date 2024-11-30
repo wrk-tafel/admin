@@ -3,7 +3,7 @@ import {HttpTestingController, provideHttpClientTesting} from '@angular/common/h
 import {FormControl, FormGroup} from '@angular/forms';
 import {PasswordChangeFormComponent} from './passwordchange-form.component';
 import {ModalModule} from '@coreui/angular';
-import {provideHttpClient} from "@angular/common/http";
+import {provideHttpClient} from '@angular/common/http';
 
 describe('PasswordChangeFormComponent', () => {
   let httpMock: HttpTestingController;

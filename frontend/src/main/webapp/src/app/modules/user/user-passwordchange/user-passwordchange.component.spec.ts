@@ -3,8 +3,8 @@ import {UserPasswordChangeComponent} from './user-passwordchange.component';
 import {PasswordChangeFormComponent} from '../../../common/views/passwordchange-form/passwordchange-form.component';
 import {of} from 'rxjs';
 import {CardModule} from '@coreui/angular';
-import {provideHttpClient} from "@angular/common/http";
-import {provideHttpClientTesting} from "@angular/common/http/testing";
+import {provideHttpClient} from '@angular/common/http';
+import {provideHttpClientTesting} from '@angular/common/http/testing';
 
 describe('UserPasswordChangeComponent', () => {
   beforeEach(waitForAsync(() => {

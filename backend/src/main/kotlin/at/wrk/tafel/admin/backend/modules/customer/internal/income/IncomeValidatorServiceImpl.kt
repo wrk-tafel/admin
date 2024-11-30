@@ -1,10 +1,10 @@
 package at.wrk.tafel.admin.backend.modules.customer.internal.income
 
-import at.wrk.tafel.admin.backend.database.repositories.staticdata.ChildTaxAllowanceRepository
-import at.wrk.tafel.admin.backend.database.repositories.staticdata.FamilyBonusRepository
-import at.wrk.tafel.admin.backend.database.repositories.staticdata.IncomeLimitRepository
-import at.wrk.tafel.admin.backend.database.repositories.staticdata.IncomeToleranceRepository
-import at.wrk.tafel.admin.backend.database.repositories.staticdata.SiblingAdditionRepository
+import at.wrk.tafel.admin.backend.database.model.staticdata.ChildTaxAllowanceRepository
+import at.wrk.tafel.admin.backend.database.model.staticdata.FamilyBonusRepository
+import at.wrk.tafel.admin.backend.database.model.staticdata.IncomeLimitRepository
+import at.wrk.tafel.admin.backend.database.model.staticdata.IncomeToleranceRepository
+import at.wrk.tafel.admin.backend.database.model.staticdata.SiblingAdditionRepository
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.time.LocalDate

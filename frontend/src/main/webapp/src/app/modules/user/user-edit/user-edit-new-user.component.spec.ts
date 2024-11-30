@@ -13,8 +13,8 @@ import {
 } from '@coreui/angular';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 import {UserApiService, UserData} from '../../../api/user-api.service';
-import {provideHttpClient} from "@angular/common/http";
-import {provideHttpClientTesting} from "@angular/common/http/testing";
+import {provideHttpClient} from '@angular/common/http';
+import {provideHttpClientTesting} from '@angular/common/http/testing';
 
 describe('UserEditComponent - Creating a new user', () => {
   const mockUser: UserData = {
