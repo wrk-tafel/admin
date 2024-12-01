@@ -458,8 +458,11 @@ VALUES (15, NOW(), NOW(), 1, 15, '17:30:00');
 INSERT INTO routes_stops (id, created_at, updated_at, route_id, shop_id, time)
 VALUES (200, NOW(), NOW(), 2, 20, '12:00:00');
 
+INSERT INTO routes_stops (id, created_at, updated_at, route_id, shop_id, time, description)
+VALUES (210, NOW(), NOW(), 2, null, '12:30:00', 'Extra stop at home');
+
 INSERT INTO routes_stops (id, created_at, updated_at, route_id, shop_id, time)
-VALUES (210, NOW(), NOW(), 2, 21, '12:15:00');
+VALUES (220, NOW(), NOW(), 2, 21, '13:00:00');
 
 -- food categories
 INSERT INTO food_categories (id, created_at, updated_at, name)

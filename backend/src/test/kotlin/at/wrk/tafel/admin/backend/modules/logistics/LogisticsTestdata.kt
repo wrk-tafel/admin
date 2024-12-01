@@ -24,11 +24,17 @@ val testRoute1 = RouteEntity().apply {
     number = 1.0
     name = "Route 1"
     note = "Note 1"
-    shops = listOf(
+    stops = listOf(
         RouteStopEntity().apply {
             id = 11
             shop = testShop1
             time = LocalTime.now()
+        },
+        RouteStopEntity().apply {
+            id = 11
+            shop = null
+            time = LocalTime.now()
+            description = "Extra stop at home"
         },
         RouteStopEntity().apply {
             id = 22
@@ -42,7 +48,7 @@ val testRoute2 = RouteEntity().apply {
     id = 2
     name = "Route 2"
     note = null
-    shops = emptyList()
+    stops = emptyList()
 }
 
 val testFoodCategory1 = FoodCategoryEntity().apply {
