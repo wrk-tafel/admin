@@ -4,9 +4,9 @@ import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
 import at.wrk.tafel.admin.backend.common.auth.model.User
 import at.wrk.tafel.admin.backend.common.auth.model.UserPermission
 import at.wrk.tafel.admin.backend.common.auth.model.UserPermissions
-import at.wrk.tafel.admin.backend.database.entities.auth.UserAuthorityEntity
-import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
-import at.wrk.tafel.admin.backend.database.entities.base.EmployeeEntity
+import at.wrk.tafel.admin.backend.database.model.auth.UserAuthorityEntity
+import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
+import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 
 val testUserPermissions = listOf(UserPermissions.CHECKIN, UserPermissions.USER_MANAGEMENT)

@@ -3,7 +3,7 @@ import {TestBed} from '@angular/core/testing';
 import {Router} from '@angular/router';
 
 import {AuthenticationService} from './authentication.service';
-import {provideHttpClient} from "@angular/common/http";
+import {provideHttpClient} from '@angular/common/http';
 
 describe('AuthenticationService', () => {
   let httpMock: HttpTestingController;

@@ -1,12 +1,12 @@
 package at.wrk.tafel.admin.backend.modules.customer.internal.masterdata
 
 import at.wrk.tafel.admin.backend.common.pdf.PDFService
-import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
-import at.wrk.tafel.admin.backend.database.entities.base.EmployeeEntity
-import at.wrk.tafel.admin.backend.database.entities.base.Gender
-import at.wrk.tafel.admin.backend.database.entities.customer.CustomerAddPersonEntity
-import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity
-import at.wrk.tafel.admin.backend.modules.base.testCountry
+import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
+import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
+import at.wrk.tafel.admin.backend.database.model.base.Gender
+import at.wrk.tafel.admin.backend.database.model.customer.CustomerAddPersonEntity
+import at.wrk.tafel.admin.backend.database.model.customer.CustomerEntity
+import at.wrk.tafel.admin.backend.modules.base.country.testCountry
 import com.github.romankh3.image.comparison.ImageComparison
 import com.github.romankh3.image.comparison.model.ImageComparisonState
 import org.apache.commons.io.FileUtils

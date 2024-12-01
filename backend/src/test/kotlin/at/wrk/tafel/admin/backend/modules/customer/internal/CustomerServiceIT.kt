@@ -5,11 +5,11 @@ import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.createCountry
 import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.createCustomer
 import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.createDistribution
 import at.wrk.tafel.admin.backend.common.test.TestdataGenerator.createUser
-import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
-import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity
-import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionCustomerEntity
-import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionEntity
-import at.wrk.tafel.admin.backend.database.entities.staticdata.CountryEntity
+import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
+import at.wrk.tafel.admin.backend.database.model.customer.CustomerEntity
+import at.wrk.tafel.admin.backend.database.model.distribution.DistributionCustomerEntity
+import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
+import at.wrk.tafel.admin.backend.database.model.staticdata.CountryEntity
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled

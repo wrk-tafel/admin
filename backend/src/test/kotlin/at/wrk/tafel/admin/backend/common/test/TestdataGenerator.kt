@@ -1,11 +1,11 @@
 package at.wrk.tafel.admin.backend.common.test
 
-import at.wrk.tafel.admin.backend.database.entities.auth.UserEntity
-import at.wrk.tafel.admin.backend.database.entities.base.EmployeeEntity
-import at.wrk.tafel.admin.backend.database.entities.base.Gender
-import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity
-import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionEntity
-import at.wrk.tafel.admin.backend.database.entities.staticdata.CountryEntity
+import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
+import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
+import at.wrk.tafel.admin.backend.database.model.base.Gender
+import at.wrk.tafel.admin.backend.database.model.customer.CustomerEntity
+import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
+import at.wrk.tafel.admin.backend.database.model.staticdata.CountryEntity
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -13,12 +13,12 @@ import kotlin.random.Random
 
 object TestdataGenerator {
 
-    fun generateRandomNumber(): Int {
-        return Random.nextInt(0, 99999)
+    fun generateRandomLong(): Long {
+        return Random.nextLong(0, 9999999999999)
     }
 
     fun createUser(): UserEntity {
-        val randomNumber = generateRandomNumber()
+        val randomNumber = generateRandomLong()
 
         val user = UserEntity()
         user.username = "testuser-$randomNumber"
@@ -44,11 +44,11 @@ object TestdataGenerator {
     }
 
     fun createCustomer(issuer: EmployeeEntity, country: CountryEntity): CustomerEntity {
-        val randomNumber = generateRandomNumber()
+        val randomNumber = generateRandomLong()
 
         val customer = CustomerEntity()
 
-        customer.customerId = generateRandomNumber().toLong()
+        customer.customerId = generateRandomLong()
         customer.issuer = issuer
         customer.lastname = "lastname-$randomNumber"
         customer.firstname = "firstname-$randomNumber"
@@ -59,7 +59,7 @@ object TestdataGenerator {
         customer.addressHouseNumber = "${randomNumber}A"
         customer.addressStairway = "$randomNumber"
         customer.addressDoor = "$randomNumber"
-        customer.addressPostalCode = randomNumber
+        customer.addressPostalCode = Random.nextInt()
         customer.addressCity = "city-$randomNumber"
         customer.telephoneNumber = "telephoneNumber-$randomNumber"
         customer.email = "email-$randomNumber"
@@ -80,7 +80,7 @@ object TestdataGenerator {
     }
 
     fun createCountry(): CountryEntity {
-        val randomNumber = generateRandomNumber()
+        val randomNumber = generateRandomLong()
 
         val country = CountryEntity()
 

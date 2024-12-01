@@ -15,11 +15,14 @@
 * impro 5: Maybe decouple reporting from closing? Favor auto-closing, how to deal with multiple distributions?
 
 * duplicates (customers) showing late? - current duplicate already longer there but only shown now
+ 
 * advanced logging monitor / ticket numbers
 * ticketmonitor control shows nothing when loaded initially
+* dashboard: add current ticket as panel and show overall progress
+
 * customer-creation: Advanced postalCode validation (only numbers from 03. and 01. district / Vienna)
 * Improve creation / enforce search before creating
-* Add goods-input
+* Add food-input
 * Add "supervisor" role (can force-fully create customers even when exceeding the income limit)
 * Fix menu when collapsed - first character of text is shown
 * MFA?
@@ -28,15 +31,21 @@ statistic:
 * add alleinerzieher flag
 
 ## LTL
+* Goods recording - implement proper mobile view
+* Goods recording - show only routes for selection without existing data
+* Goods recording - tests in FoodCollectionRecordingComponent
+
 * Edit Route / also contact-person needs to be editable
 * Edit route - Person-select (Dropdown) incl. Search?
 * * Auto-create persons without dedicated maintenance
 * Route only needs a time and no separate order (sorting)
 * Validation necessary for KM Abfahrt < KM Ankunft
 * Recording of food: Unit = kg, only for input in boxes but stored in kg
+* * Shop needs unit-type (kg/box)
 * Route: Model extra-stops in DB (needs to part of the route, comment is not enough)
 
 ### Open things (to be decided)
+* All forms - change to  updateOn: 'blur'
 
 * customer-detail
     * add document upload

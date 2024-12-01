@@ -1,7 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.customer.internal.masterdata
 
 import at.wrk.tafel.admin.backend.common.pdf.PDFService
-import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity
+import at.wrk.tafel.admin.backend.database.model.customer.CustomerEntity
 import org.apache.commons.io.IOUtils
 import org.springframework.stereotype.Service
 import org.springframework.util.MimeTypeUtils

@@ -4,8 +4,8 @@ import {of} from 'rxjs';
 import {ActivatedRouteSnapshot} from '@angular/router';
 import {CustomerNotesResolver} from './customernotes-resolver.component';
 import {CustomerNoteApiService, CustomerNotesResponse} from '../../../api/customer-note-api.service';
-import {provideHttpClient} from "@angular/common/http";
-import {provideHttpClientTesting} from "@angular/common/http/testing";
+import {provideHttpClient} from '@angular/common/http';
+import {provideHttpClientTesting} from '@angular/common/http/testing';
 
 describe('CustomerNotesResolver', () => {
   let apiService: jasmine.SpyObj<CustomerNoteApiService>;

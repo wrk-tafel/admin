@@ -1,0 +1,24 @@
+### Store collected food
+POST {{baseApiPath}}/food-collections
+Content-Type: application/json
+
+{
+  "routeId": 1,
+  "carLicensePlate": "W-12345",
+  "driverId": 100,
+  "coDriverId": 100,
+  "kmStart": 100,
+  "kmEnd": 200,
+  "items": [
+    {
+      "categoryId": 1,
+      "shopId": 20,
+      "amount": 1
+    },
+    {
+      "categoryId": 1,
+      "shopId": 21,
+      "amount": 2
+    }
+  ]
+}

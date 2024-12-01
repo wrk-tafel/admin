@@ -1,13 +1,11 @@
 <form [formGroup]="form">
-  <div class="row">
-    <div class="col-md">
-      <div class="card">
-        <div class="card-header text-center h5">
-          Hauptbezieher
-        </div>
-        <div class="card-body">
-          <div class="row mb-2">
-            <div class="col-sm">
+  <c-row>
+    <c-col md>
+      <c-card>
+        <c-card-header class="fs-5 fw-bold">Hauptbezieher</c-card-header>
+        <c-card-body>
+          <c-row class="mb-2">
+            <c-col sm>
               <label class="form-label">Familienname *</label>
               <input testid="lastnameInput" type="text" formControlName="lastname" class="form-control"
                      [ngClass]="{'is-invalid': lastname.invalid && (lastname.dirty || lastname.touched), 'is-valid': lastname.valid && (lastname.dirty || lastname.touched)}">
@@ -19,8 +17,8 @@
                    class="invalid-feedback">
                 Familienname zu lang (Limit: {{lastname.errors.maxlength.requiredLength}})
               </div>
-            </div>
-            <div class="col-sm">
+            </c-col>
+            <c-col sm>
               <label class="form-label">Vorname *</label>
               <input testid="firstnameInput" type="text" formControlName="firstname" class="form-control"
                      [ngClass]="{'is-invalid': firstname.invalid && (firstname.dirty || firstname.touched), 'is-valid': firstname.valid && (firstname.dirty || firstname.touched)}">
@@ -32,10 +30,10 @@
                    class="invalid-feedback">
                 Vorname zu lang (Limit: {{firstname.errors.maxlength.requiredLength}})
               </div>
-            </div>
-          </div>
-          <div class="row mb-2">
-            <div class="col-sm">
+            </c-col>
+          </c-row>
+          <c-row class="mb-2">
+            <c-col sm>
               <label class="form-label">Geburtsdatum *</label>
               <input testid="birthDateInput" type="date" formControlName="birthDate" class="form-control"
                      [ngClass]="{'is-invalid': birthDate.invalid && (birthDate.dirty || birthDate.touched), 'is-valid': birthDate.valid && (birthDate.dirty || birthDate.touched)}">
@@ -51,8 +49,8 @@
                    class="invalid-feedback">
                 Max. Datum: {{birthDate.errors.maxdate.maximumDate}}
               </div>
-            </div>
-            <div class="col-sm">
+            </c-col>
+            <c-col sm>
               <label class="form-label">Geschlecht *</label>
               <c-input-group>
                 <select testid="genderInput" formControlName="gender" class="form-control" cSelect
@@ -68,10 +66,10 @@
                   Pflichtfeld
                 </div>
               </c-input-group>
-            </div>
-          </div>
-          <div class="row mb-2">
-            <div class="col">
+            </c-col>
+          </c-row>
+          <c-row class="mb-2">
+            <c-col>
               <label class="form-label">Nationalität *</label>
               <c-input-group>
                 <select testid="countryInput" formControlName="country" class="form-control" cSelect
@@ -88,10 +86,10 @@
                   Pflichtfeld
                 </div>
               </c-input-group>
-            </div>
-          </div>
-          <div class="row mb-2">
-            <div class="col-sm">
+            </c-col>
+          </c-row>
+          <c-row class="mb-2">
+            <c-col sm>
               <label class="form-label">Telefonnummer</label>
               <c-input-group>
                 <input testid="telephoneNumberInput" type="text" formControlName="telephoneNumber"
@@ -101,8 +99,8 @@
                   <fa-icon [icon]="faPhone"></fa-icon>
                 </span>
               </c-input-group>
-            </div>
-            <div class="col-sm">
+            </c-col>
+            <c-col sm>
               <label class="form-label">E-Mail</label>
               <c-input-group>
                 <input testid="emailInput" type="text" formControlName="email" class="form-control"
@@ -119,12 +117,12 @@
                   E-Mail-Format ungültig!
                 </div>
               </c-input-group>
-            </div>
-          </div>
+            </c-col>
+          </c-row>
           <hr>
           <div formGroupName="address">
-            <div class="row mb-2">
-              <div class="col-sm">
+            <c-row class="mb-2">
+              <c-col sm>
                 <label class="form-label">Straße *</label>
                 <input testid="streetInput" type="text" formControlName="street" class="form-control"
                        [ngClass]="{'is-invalid': street.invalid && (street.dirty || street.touched), 'is-valid': street.valid && (street.dirty || street.touched)}">
@@ -137,10 +135,10 @@
                   Straße zu lang (Limit:
                   {{street.errors.maxlength.requiredLength}})
                 </div>
-              </div>
-            </div>
-            <div class="row mb-2">
-              <div class="col-sm">
+              </c-col>
+            </c-row>
+            <c-row class="mb-2">
+              <c-col sm>
                 <label class="form-label">Hausnummer *</label>
                 <input testid="houseNumberInput" type="text" formControlName="houseNumber"
                        class="form-control"
@@ -154,21 +152,21 @@
                   Hausnummer zu lang (Limit:
                   {{houseNumber.errors.maxlength.requiredLength}})
                 </div>
-              </div>
-              <div class="col-sm">
+              </c-col>
+              <c-col sm>
                 <label class="form-label">Stiege</label>
                 <input testid="stairwayInput" type="number" formControlName="stairway"
                        class="form-control"
                        [ngClass]="{'is-invalid': stairway.invalid && (stairway.dirty || stairway.touched), 'is-valid': stairway.valid && (stairway.dirty || stairway.touched)}">
-              </div>
-              <div class="col-sm">
+              </c-col>
+              <c-col sm>
                 <label class="form-label">Top</label>
                 <input testid="doorInput" type="number" formControlName="door" class="form-control"
                        [ngClass]="{'is-invalid': door.invalid && (door.dirty || door.touched), 'is-valid': door.valid && (door.dirty || door.touched)}">
-              </div>
-            </div>
-            <div class="row mb-2">
-              <div class="col-sm">
+              </c-col>
+            </c-row>
+            <c-row class="mb-2">
+              <c-col sm>
                 <label class="form-label">PLZ *</label>
                 <c-input-group>
                   <input testid="postalCodeInput" type="number" formControlName="postalCode"
@@ -182,8 +180,8 @@
                     Pflichtfeld / 4-stellig
                   </div>
                 </c-input-group>
-              </div>
-              <div class="col-sm">
+              </c-col>
+              <c-col sm>
                 <label class="form-label">Ort *</label>
                 <c-input-group>
                   <input testid="cityInput" type="text" formControlName="city" class="form-control"
@@ -201,12 +199,12 @@
                     {{city.errors.maxlength.requiredLength}})
                   </div>
                 </c-input-group>
-              </div>
-            </div>
+              </c-col>
+            </c-row>
           </div>
           <hr>
-          <div class="row mb-2">
-            <div class="col-sm">
+          <c-row class="mb-2">
+            <c-col sm>
               <label class="form-label">Arbeitgeber *</label>
               <c-input-group>
                 <input testid="employerInput" type="text" formControlName="employer"
@@ -220,10 +218,10 @@
                   Pflichtfeld
                 </div>
               </c-input-group>
-            </div>
-          </div>
-          <div class="row mb-2">
-            <div class="col-sm">
+            </c-col>
+          </c-row>
+          <c-row class="mb-2">
+            <c-col sm>
               <label class="form-label">Einkommen (monatl.)</label>
               <c-input-group>
                 <input testid="incomeInput" type="number" formControlName="income" class="form-control"
@@ -232,8 +230,8 @@
                   <fa-icon [icon]="faEuroSign"></fa-icon>
                 </span>
               </c-input-group>
-            </div>
-            <div class="col-sm">
+            </c-col>
+            <c-col sm>
               <label class="form-label">nachgewiesen bis</label>
               <div class="input-group">
                 <input testid="incomeDueInput" type="date" formControlName="incomeDue" class="form-control"
@@ -243,11 +241,11 @@
                   Mind. Datum: {{incomeDue.errors.mindate.minimumDate}}
                 </div>
               </div>
-            </div>
-          </div>
+            </c-col>
+          </c-row>
           <hr/>
-          <div class="row mb-2">
-            <div class="col-sm">
+          <c-row class="mb-2">
+            <c-col sm>
               <label class="form-label">Gültig bis *</label>
               <input testid="validUntilInput" type="date" formControlName="validUntil" class="form-control"
                      [ngClass]="{'is-invalid': validUntil.invalid && (validUntil.dirty || validUntil.touched), 'is-valid': validUntil.valid && (validUntil.dirty || validUntil.touched)}">
@@ -259,18 +257,16 @@
                    class="invalid-feedback">
                 Mind. Datum: {{validUntil.errors.mindate.minimumDate}}
               </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+            </c-col>
+          </c-row>
+        </c-card-body>
+      </c-card>
+    </c-col>
     <div class="col-md mt-3 mt-md-0">
       <c-card>
         <c-card-header>
           <c-row>
-            <c-col>
-              <h5>Weitere Personen</h5>
-            </c-col>
+            <c-col class="fs-5 fw-bold">Weitere Personen</c-col>
             <c-col class="text-end">
               <button cButton color="success" (click)="addNewPerson()">Hinzufügen</button>
             </c-col>
@@ -282,13 +278,13 @@
           </div>
           <div formArrayName="additionalPersons" class="mt-3"
                *ngFor="let additionalPerson of additionalPersons.controls; trackBy: trackBy; let i = index">
-            <div class="col-12 p-0">
-              <div class="card">
-                <div class="card-body">
-                  <div class="row" [formGroupName]="i" [attr.testid]="'personform-' + i">
-                    <div class="col">
-                      <div class="row">
-                        <div class="col-lg-6">
+            <c-col size="12" class="p-0">
+              <c-card>
+                <c-card-body>
+                  <c-row [formGroupName]="i" [attr.testid]="'personform-' + i">
+                    <c-col>
+                      <c-row>
+                        <c-col lg size="6">
                           <input testid="idInput" type="hidden" formControlName="id" class="form-control"/>
                           <label class="form-label">Familienname *</label>
                           <input testid="lastnameInput" type="text" formControlName="lastname"
@@ -305,8 +301,8 @@
                             class="invalid-feedback">
                             Familienname zu lang (Limit: {{lastname.errors.maxlength.requiredLength}})
                           </div>
-                        </div>
-                        <div class="col-lg-6">
+                        </c-col>
+                        <c-col lg size="6">
                           <label class="form-label">Vorname *</label>
                           <input testid="firstnameInput" type="text"
                                  formControlName="firstname" class="form-control"
@@ -322,10 +318,10 @@
                             Vorname zu lang
                             (Limit: {{additionalPerson.get('firstname').errors.maxlength.requiredLength}})
                           </div>
-                        </div>
-                      </div>
-                      <div class="row">
-                        <div class="col-lg-6">
+                        </c-col>
+                      </c-row>
+                      <c-row>
+                        <c-col lg size="6">
                           <label class="form-label">Geburtsdatum *</label>
                           <input testid="birthDateInput" type="date"
                                  formControlName="birthDate" class="form-control"
@@ -345,8 +341,8 @@
                             class="invalid-feedback">
                             Max. Datum: {{additionalPerson.get('birthDate').errors.maxdate.maximumDate}}
                           </div>
-                        </div>
-                        <div class="col-lg-6">
+                        </c-col>
+                        <c-col lg size="6">
                           <label class="form-label">Geschlecht *</label>
                           <c-input-group>
                             <select testid="genderInput" formControlName="gender" cSelect class="form-control"
@@ -363,10 +359,10 @@
                               Pflichtfeld
                             </div>
                           </c-input-group>
-                        </div>
-                      </div>
-                      <div class="row">
-                        <div class="col">
+                        </c-col>
+                      </c-row>
+                      <c-row>
+                        <c-col>
                           <label class="form-label">Nationalität *</label>
                           <c-input-group>
                             <select testid="countryInput" formControlName="country" cSelect class="form-control"
@@ -384,10 +380,10 @@
                               Pflichtfeld
                             </div>
                           </c-input-group>
-                        </div>
-                      </div>
-                      <div class="row">
-                        <div class="col-lg-6">
+                        </c-col>
+                      </c-row>
+                      <c-row>
+                        <c-col lg size="6">
                           <label class="form-label">Arbeitgeber</label>
                           <c-input-group>
                             <input testid="employerInput" type="text"
@@ -397,8 +393,8 @@
                               <fa-icon [icon]="faBuilding"></fa-icon>
                             </span>
                           </c-input-group>
-                        </div>
-                        <div class="col-lg-6">
+                        </c-col>
+                        <c-col lg size="6">
                           <label class="form-label">Einkommen (monatl.)</label>
                           <c-input-group>
                             <input testid="incomeInput" type="number"
@@ -413,10 +409,10 @@
                               Muss größer als 0 sein
                             </div>
                           </c-input-group>
-                        </div>
-                      </div>
-                      <div class="row">
-                        <div class="col-lg-12">
+                        </c-col>
+                      </c-row>
+                      <c-row>
+                        <c-col lg size="12">
                           <label class="form-label">nachgewiesen bis</label>
                           <div class="input-group">
                             <input testid="incomeDueInput" type="date"
@@ -428,37 +424,37 @@
                               Mind. Datum: {{additionalPerson.get('incomeDue').errors.mindate.minimumDate}}
                             </div>
                           </div>
-                        </div>
-                      </div>
-                      <div class="row mt-2">
-                        <div class="col-lg-6">
+                        </c-col>
+                      </c-row>
+                      <c-row class="mt-2">
+                        <c-col lg size="6">
                           <label class="form-label">Bezieht Familienbeihilfe</label>
                           <div class="input-group">
                             <input testid="receivesFamilyBonusInput" type="checkbox"
                                    formControlName="receivesFamilyBonus" class="form-check-input">
                           </div>
-                        </div>
-                        <div class="col-lg-6">
+                        </c-col>
+                        <c-col lg size="6">
                           <label class="form-label">Nicht im selben Haushalt (keine Berechnung)</label>
                           <div class="input-group">
                             <input testid="excludeFromHouseholdInput" type="checkbox"
                                    formControlName="excludeFromHousehold" class="form-check-input">
                           </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="row">
+                        </c-col>
+                      </c-row>
+                    </c-col>
+                  </c-row>
+                  <c-row>
                     <div class="col-lg-5 col-xxl-2 mt-3">
                       <button [attr.testid]="'remove-personform-' + i" cButton
                               color="danger" class="text-white"
                               (click)="removePerson(i)">Löschen
                       </button>
                     </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+                  </c-row>
+                </c-card-body>
+              </c-card>
+            </c-col>
           </div>
         </c-card-body>
         <c-card-footer class="text-end">
@@ -468,5 +464,5 @@
         </c-card-footer>
       </c-card>
     </div>
-  </div>
+  </c-row>
 </form>

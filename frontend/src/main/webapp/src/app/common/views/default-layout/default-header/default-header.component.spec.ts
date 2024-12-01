@@ -14,8 +14,8 @@ import {IconSetService} from '@coreui/icons-angular';
 import {DefaultHeaderComponent} from './default-header.component';
 import {AuthenticationService} from '../../../security/authentication.service';
 import {of} from 'rxjs';
-import {provideHttpClient} from "@angular/common/http";
-import {provideHttpClientTesting} from "@angular/common/http/testing";
+import {provideHttpClient} from '@angular/common/http';
+import {provideHttpClientTesting} from '@angular/common/http/testing';
 
 describe('DefaultHeaderComponent', () => {
   let component: DefaultHeaderComponent;

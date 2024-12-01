@@ -14,8 +14,8 @@ import {
   RowComponent
 } from '@coreui/angular';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
-import {provideHttpClient} from "@angular/common/http";
-import {provideHttpClientTesting} from "@angular/common/http/testing";
+import {provideHttpClient} from '@angular/common/http';
+import {provideHttpClientTesting} from '@angular/common/http/testing';
 
 describe('CustomerEditComponent - Editing an existing customer', () => {
   const testCountry = {

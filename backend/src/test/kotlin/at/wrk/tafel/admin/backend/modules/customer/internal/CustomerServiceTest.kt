@@ -1,12 +1,14 @@
 package at.wrk.tafel.admin.backend.modules.customer.internal
 
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
-import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity
-import at.wrk.tafel.admin.backend.database.repositories.auth.UserRepository
-import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerRepository
-import at.wrk.tafel.admin.backend.database.repositories.distribution.DistributionCustomerRepository
-import at.wrk.tafel.admin.backend.database.repositories.staticdata.CountryRepository
-import at.wrk.tafel.admin.backend.modules.base.testCountry
+import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
+import at.wrk.tafel.admin.backend.database.model.customer.CustomerEntity
+import at.wrk.tafel.admin.backend.database.model.customer.CustomerRepository
+import at.wrk.tafel.admin.backend.database.model.staticdata.CountryRepository
+import at.wrk.tafel.admin.backend.modules.base.country.testCountry
+import at.wrk.tafel.admin.backend.modules.customer.Customer
+import at.wrk.tafel.admin.backend.modules.customer.CustomerAdditionalPerson
+import at.wrk.tafel.admin.backend.modules.customer.CustomerPdfType
 import at.wrk.tafel.admin.backend.modules.customer.internal.converter.CustomerConverter
 import at.wrk.tafel.admin.backend.modules.customer.internal.income.IncomeValidatorPerson
 import at.wrk.tafel.admin.backend.modules.customer.internal.income.IncomeValidatorResult
@@ -40,9 +42,6 @@ class CustomerServiceTest {
 
     @RelaxedMockK
     private lateinit var customerRepository: CustomerRepository
-
-    @RelaxedMockK
-    private lateinit var distributionCustomerRepository: DistributionCustomerRepository
 
     @RelaxedMockK
     private lateinit var countryRepository: CountryRepository

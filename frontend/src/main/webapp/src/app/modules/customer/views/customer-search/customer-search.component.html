@@ -1,11 +1,7 @@
 <form cForm [formGroup]="customerSearchForm">
     <c-card>
+        <c-card-header class="fs-4 fw-bold">Kunden-Suche</c-card-header>
         <c-card-body>
-            <c-row>
-                <c-col class="mb-3">
-                    <h4>Kunden-Suche</h4>
-                </c-col>
-            </c-row>
             <c-row>
                 <c-col sm="3">
                     <label class="form-label">Kundennummer</label>
@@ -110,8 +106,7 @@
                                       (pageChanged)="searchForDetails($event)"></tafel-pagination>
                     <div class="d-flex flex-column gap-3 mb-3">
                         <c-card *ngFor="let customer of this.searchResult.items; let i = index">
-                            <c-card-header class="fw-bold">{{customer.id}}
-                                - {{customer.lastname}} {{customer.firstname}}</c-card-header>
+                            <c-card-header class="fw-bold">{{customer.id}} - {{customer.lastname}} {{customer.firstname}}</c-card-header>
                             <c-card-body>
                                 <c-row>
                                     <c-col class="fw-bold">Geburtsdatum:</c-col>

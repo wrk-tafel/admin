@@ -13,7 +13,7 @@ import {
   RowComponent
 } from '@coreui/angular';
 import {FormsModule} from '@angular/forms';
-import {CommonModule} from "@angular/common";
+import {CommonModule} from '@angular/common';
 
 @Component({
   selector: 'tafel-scanner',

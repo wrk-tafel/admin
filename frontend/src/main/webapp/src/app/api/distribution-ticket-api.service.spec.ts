@@ -2,7 +2,7 @@ import {HttpTestingController, provideHttpClientTesting} from '@angular/common/h
 import {TestBed} from '@angular/core/testing';
 import {DistributionApiService} from './distribution-api.service';
 import {DistributionTicketApiService} from './distribution-ticket-api.service';
-import {provideHttpClient} from "@angular/common/http";
+import {provideHttpClient} from '@angular/common/http';
 
 describe('DistributionTicketApiService', () => {
   let httpMock: HttpTestingController;

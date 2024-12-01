@@ -1,7 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.reporting
 
 import at.wrk.tafel.admin.backend.common.pdf.PDFService
-import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionStatisticEntity
+import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
 import at.wrk.tafel.admin.backend.modules.reporting.internal.DailyReportPdfModel
 import org.apache.commons.io.IOUtils
 import org.springframework.stereotype.Service

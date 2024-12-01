@@ -6,7 +6,7 @@ import {DistributionApiService} from '../../../../api/distribution-api.service';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
 import {HttpHeaders, HttpResponse, provideHttpClient} from '@angular/common/http';
 import {of} from 'rxjs';
-import {provideHttpClientTesting} from "@angular/common/http/testing";
+import {provideHttpClientTesting} from '@angular/common/http/testing';
 
 describe('RegisteredCustomersComponent', () => {
   let distributionApiService: jasmine.SpyObj<DistributionApiService>;

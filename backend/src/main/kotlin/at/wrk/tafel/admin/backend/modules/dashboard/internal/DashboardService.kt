@@ -1,7 +1,8 @@
 package at.wrk.tafel.admin.backend.modules.dashboard.internal
 
-import at.wrk.tafel.admin.backend.database.repositories.distribution.DistributionCustomerRepository
-import at.wrk.tafel.admin.backend.database.repositories.distribution.DistributionRepository
+import at.wrk.tafel.admin.backend.database.model.distribution.DistributionCustomerRepository
+import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
+import at.wrk.tafel.admin.backend.modules.dashboard.DashboardData
 import org.springframework.stereotype.Service
 
 @Service

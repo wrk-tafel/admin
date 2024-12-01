@@ -1,10 +1,10 @@
 package at.wrk.tafel.admin.backend.modules.distribution.internal
 
-import at.wrk.tafel.admin.backend.database.entities.customer.CustomerAddPersonEntity
-import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity
-import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionCustomerEntity
-import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionEntity
-import at.wrk.tafel.admin.backend.modules.base.testCountry
+import at.wrk.tafel.admin.backend.database.model.customer.CustomerAddPersonEntity
+import at.wrk.tafel.admin.backend.database.model.customer.CustomerEntity
+import at.wrk.tafel.admin.backend.database.model.distribution.DistributionCustomerEntity
+import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
+import at.wrk.tafel.admin.backend.modules.base.country.testCountry
 import at.wrk.tafel.admin.backend.security.testUserEntity
 import java.math.BigDecimal
 import java.time.LocalDate

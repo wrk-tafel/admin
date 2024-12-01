@@ -66,7 +66,7 @@ describe('TafelToastComponent', () => {
     component.bgColor = bgColor;
     fixture.detectChanges();
 
-    expect(fixture.debugElement.query(By.css(`[testid="header"]`)).nativeElement.getAttribute('class')).toContain(bgColor);
+    expect(fixture.debugElement.query(By.css(`[testid="tafel-toast-header"]`)).nativeElement.getAttribute('class')).toContain(bgColor);
   }));
 
 });

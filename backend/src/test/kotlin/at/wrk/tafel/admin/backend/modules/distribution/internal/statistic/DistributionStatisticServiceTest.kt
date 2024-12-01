@@ -1,9 +1,9 @@
 package at.wrk.tafel.admin.backend.modules.distribution.internal.statistic
 
-import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionEntity
-import at.wrk.tafel.admin.backend.database.entities.distribution.DistributionStatisticEntity
-import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerRepository
-import at.wrk.tafel.admin.backend.database.repositories.distribution.DistributionStatisticRepository
+import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
+import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
+import at.wrk.tafel.admin.backend.database.model.customer.CustomerRepository
+import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticRepository
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionCustomerEntity1
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionCustomerEntity2
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionCustomerEntity3

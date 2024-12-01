@@ -3,8 +3,8 @@ import {of} from 'rxjs';
 import {ActivatedRouteSnapshot} from '@angular/router';
 import {PermissionsListResponse, UserApiService, UserPermission} from '../../../api/user-api.service';
 import {PermissionsDataResolver} from './permissionsdata-resolver.component';
-import {provideHttpClient} from "@angular/common/http";
-import {provideHttpClientTesting} from "@angular/common/http/testing";
+import {provideHttpClient} from '@angular/common/http';
+import {provideHttpClientTesting} from '@angular/common/http/testing';
 
 describe('PermissionsDataResolver', () => {
   let apiService: jasmine.SpyObj<UserApiService>;

@@ -1,5 +1,5 @@
 import {inject} from '@angular/core';
-import {ActivatedRouteSnapshot, CanActivateChildFn, CanActivateFn, ResolveFn, Routes} from '@angular/router';
+import {ActivatedRouteSnapshot, CanActivateChildFn, CanActivateFn, Routes} from '@angular/router';
 
 import {DefaultLayoutComponent} from './common/views/default-layout/default-layout.component';
 import {P404Component} from './common/views/error/404.component';
@@ -80,6 +80,13 @@ export const routes: Routes = [
         loadChildren: () => import('./modules/customer/customer.routes').then(m => m.routes),
         data: {
           anyPermissionOf: ['CUSTOMER']
+        }
+      },
+      {
+        path: 'logistik',
+        loadChildren: () => import('./modules/logistics/logistics.routes').then(m => m.routes),
+        data: {
+          anyPermissionOf: ['LOGISTICS']
         }
       },
       {

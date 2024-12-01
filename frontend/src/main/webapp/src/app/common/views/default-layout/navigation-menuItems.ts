@@ -58,6 +58,17 @@ export const navigationMenuItems: ITafelNavData[] = [
     permissions: ['CUSTOMER_DUPLICATES']
   },
   {
+    name: 'Logistik',
+    title: true
+  },
+  {
+    name: 'Warenerfassung',
+    url: '/logistik/warenerfassung',
+    iconComponent: { name: 'cil-bus-alt' },
+    permissions: ['LOGISTICS'],
+    activeDistributionRequired: true
+  },
+  {
     name: 'Sonstige',
     title: true
   },

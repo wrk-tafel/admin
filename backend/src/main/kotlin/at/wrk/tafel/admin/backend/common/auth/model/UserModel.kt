@@ -58,20 +58,3 @@ data class UserInfo(
 data class PermissionsListResponse(
     val permissions: List<UserPermission>
 )
-
-@ExcludeFromTestCoverage
-enum class UserPermissions(val key: String, val title: String) {
-    CHECKIN("CHECKIN", "Anmeldung"),
-    DISTRIBUTION_LCM("DISTRIBUTION_LCM", "Ausgabe-Ablauf"),
-    USER_MANAGEMENT("USER_MANAGEMENT", "Benutzerverwaltung"),
-    CUSTOMER("CUSTOMER", "Kundenverwaltung"),
-    CUSTOMER_DUPLICATES("CUSTOMER_DUPLICATES", "Kunden-Duplikate"),
-    SCANNER("SCANNER", "Scanner");
-
-    companion object {
-        fun valueOfKey(key: String): UserPermissions {
-            return values().first { it.key == key }
-        }
-    }
-
-}

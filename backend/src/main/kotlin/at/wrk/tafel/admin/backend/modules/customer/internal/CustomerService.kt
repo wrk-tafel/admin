@@ -1,12 +1,13 @@
 package at.wrk.tafel.admin.backend.modules.customer.internal
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
-import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity.Specs.Companion.firstnameContains
-import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity.Specs.Companion.lastnameContains
-import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity.Specs.Companion.orderByUpdatedAtDesc
-import at.wrk.tafel.admin.backend.database.entities.customer.CustomerEntity.Specs.Companion.postProcessingNecessary
-import at.wrk.tafel.admin.backend.database.repositories.customer.CustomerRepository
-import at.wrk.tafel.admin.backend.database.repositories.distribution.DistributionCustomerRepository
+import at.wrk.tafel.admin.backend.database.model.customer.CustomerEntity.Specs.Companion.firstnameContains
+import at.wrk.tafel.admin.backend.database.model.customer.CustomerEntity.Specs.Companion.lastnameContains
+import at.wrk.tafel.admin.backend.database.model.customer.CustomerEntity.Specs.Companion.orderByUpdatedAtDesc
+import at.wrk.tafel.admin.backend.database.model.customer.CustomerEntity.Specs.Companion.postProcessingNecessary
+import at.wrk.tafel.admin.backend.database.model.customer.CustomerRepository
+import at.wrk.tafel.admin.backend.modules.customer.Customer
+import at.wrk.tafel.admin.backend.modules.customer.CustomerPdfType
 import at.wrk.tafel.admin.backend.modules.customer.internal.converter.CustomerConverter
 import at.wrk.tafel.admin.backend.modules.customer.internal.income.IncomeValidatorPerson
 import at.wrk.tafel.admin.backend.modules.customer.internal.income.IncomeValidatorResult
@@ -23,7 +24,6 @@ import java.time.LocalDate
 class CustomerService(
     private val incomeValidatorService: IncomeValidatorService,
     private val customerRepository: CustomerRepository,
-    private val distributionCustomerRepository: DistributionCustomerRepository,
     private val customerPdfService: CustomerPdfService,
     private val customerConverter: CustomerConverter
 ) {
