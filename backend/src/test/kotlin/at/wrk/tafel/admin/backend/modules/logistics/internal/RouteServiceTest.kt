@@ -35,12 +35,14 @@ class RouteServiceTest {
                 Route(
                     id = route1.id!!,
                     name = route1.name!!,
-                    shops = route1.shops.map {
-                        Shop(
-                            id = it.shop!!.id!!,
-                            name = it.shop!!.name!!
-                        )
-                    }
+                    shops = route1.stops
+                        .filter { it.shop != null }
+                        .map {
+                            Shop(
+                                id = it.shop!!.id!!,
+                                name = it.shop!!.name!!
+                            )
+                        }
                 ),
                 Route(
                     id = route2.id!!,

@@ -22,11 +22,11 @@ class RouteService(
         return Route(
             id = routeEntity.id!!,
             name = routeEntity.name!!,
-            shops = routeEntity.shops
-                .map { it.shop }
+            shops = routeEntity.stops
+                .mapNotNull { it.shop }
                 .map { shop ->
                     Shop(
-                        id = shop!!.id!!,
+                        id = shop.id!!,
                         name = shop.name!!
                     )
                 }
