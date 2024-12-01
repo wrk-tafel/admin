@@ -36,10 +36,12 @@ describe('RouteDataResolver', () => {
           shops: [
             {
               id: 1,
+              number: 111,
               name: 'Shop 1'
             },
             {
               id: 2,
+              number: 222,
               name: 'Shop 2'
             }
           ]

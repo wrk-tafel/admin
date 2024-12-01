@@ -27,6 +27,7 @@ class RouteService(
                 .map { shop ->
                     Shop(
                         id = shop.id!!,
+                        number = shop.number!!,
                         name = shop.name!!
                     )
                 }

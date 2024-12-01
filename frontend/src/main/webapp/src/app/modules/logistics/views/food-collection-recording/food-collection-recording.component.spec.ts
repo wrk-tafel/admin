@@ -51,8 +51,8 @@ describe('FoodCollectionRecordingComponent', () => {
         id: 0,
         name: 'Route 1',
         shops: [
-          {id: 0, name: 'Shop 1'},
-          {id: 1, name: 'Shop 2'}
+          {id: 0, number: 111, name: 'Shop 1'},
+          {id: 1, number: 222, name: 'Shop 2'}
         ]
       }
     ]

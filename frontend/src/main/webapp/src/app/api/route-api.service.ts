@@ -25,5 +25,6 @@ export interface RouteData {
 
 export interface Shop {
   id: number;
+  number: number;
   name: string;
 }
