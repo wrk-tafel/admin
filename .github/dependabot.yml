@@ -17,7 +17,9 @@ updates:
     open-pull-requests-limit: 50
     ignore:
       # Wait for coreui to be updated and support Angular 19
-      - dependency-name: "@angular/*"
+      - dependency-name: "@angular*"
+        versions: [ "19.x" ]
+      - dependency-name: "@fortawesome*"
         versions: [ "19.x" ]
       - dependency-name: "ngx-cookie-service"
         versions: [ "19.x" ]
