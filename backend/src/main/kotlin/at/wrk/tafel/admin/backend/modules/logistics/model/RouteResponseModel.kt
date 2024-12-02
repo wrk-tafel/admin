@@ -17,5 +17,6 @@ data class Route(
 @ExcludeFromTestCoverage
 data class Shop(
     val id: Long,
+    val number: Int,
     val name: String
 )

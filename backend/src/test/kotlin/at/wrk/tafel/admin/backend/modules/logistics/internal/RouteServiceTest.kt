@@ -40,6 +40,7 @@ class RouteServiceTest {
                         .map {
                             Shop(
                                 id = it.shop!!.id!!,
+                                number = it.shop!!.number!!,
                                 name = it.shop!!.name!!
                             )
                         }

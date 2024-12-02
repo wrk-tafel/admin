@@ -27,8 +27,8 @@ class RouteControllerTest {
             id = 1,
             name = "Route 1",
             shops = listOf(
-                Shop(id = 1, name = "Billa"),
-                Shop(id = 2, name = "Hofer")
+                Shop(id = 1, number = 111, name = "Billa"),
+                Shop(id = 2, number = 222, name = "Hofer")
             )
         )
         val route2 = Route(
