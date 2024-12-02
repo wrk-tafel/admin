@@ -3,6 +3,7 @@ package at.wrk.tafel.admin.backend.database.model.distribution
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.base.BaseChangeTrackingEntity
+import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.JoinColumn
@@ -36,5 +37,8 @@ class DistributionEntity : BaseChangeTrackingEntity() {
 
     @OneToMany(mappedBy = "distribution")
     var customers: List<DistributionCustomerEntity> = emptyList()
+
+    @OneToMany(mappedBy = "distribution")
+    var foodCollections: List<FoodCollectionEntity> = emptyList()
 
 }

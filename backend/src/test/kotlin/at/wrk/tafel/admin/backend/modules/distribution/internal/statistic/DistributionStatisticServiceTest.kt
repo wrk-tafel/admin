@@ -1,12 +1,15 @@
 package at.wrk.tafel.admin.backend.modules.distribution.internal.statistic
 
+import at.wrk.tafel.admin.backend.database.model.customer.CustomerRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
-import at.wrk.tafel.admin.backend.database.model.customer.CustomerRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticRepository
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionCustomerEntity1
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionCustomerEntity2
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionCustomerEntity3
+import at.wrk.tafel.admin.backend.modules.logistics.testFoodCollectionRoute1Entity
+import at.wrk.tafel.admin.backend.modules.logistics.testFoodCollectionRoute2Entity
+import at.wrk.tafel.admin.backend.modules.logistics.testFoodCollectionRoute3Entity
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -43,6 +46,11 @@ internal class DistributionStatisticServiceTest {
                 testDistributionCustomerEntity1,
                 testDistributionCustomerEntity2,
                 testDistributionCustomerEntity3
+            )
+            foodCollections = listOf(
+                testFoodCollectionRoute1Entity,
+                testFoodCollectionRoute2Entity,
+                testFoodCollectionRoute3Entity
             )
         }
         val statisticStartTime = testDistributionEntity.startedAt!!.toLocalDate().atStartOfDay()
@@ -95,10 +103,16 @@ internal class DistributionStatisticServiceTest {
         assertThat(savedStatistic.countCustomersProlonged).isEqualTo(testCustomersProlonged.size)
         assertThat(savedStatistic.countPersonsProlonged).isEqualTo(3)
         assertThat(savedStatistic.countCustomersUpdated).isEqualTo(testCountCustomersUpdated - testCustomersNew.size - testCustomersProlonged.size)
+
+        assertThat(savedStatistic.shopsTotalCount).isEqualTo(3)
+        assertThat(savedStatistic.shopsWithFoodCount).isEqualTo(2)
+        assertThat(savedStatistic.foodTotalAmount).isEqualTo(BigDecimal(200))
+        assertThat(savedStatistic.foodPerShopAverage).isEqualTo(BigDecimal(100))
+        assertThat(savedStatistic.routesLengthKm).isEqualTo(11211)
     }
 
     @Test
-    fun `create and save empty statistic without customers`() {
+    fun `create and save empty statistic with empty distribution`() {
         val testDistributionEntity = DistributionEntity().apply {
             id = 123
             startedAt = LocalDateTime.now().minusHours(2)
@@ -127,6 +141,12 @@ internal class DistributionStatisticServiceTest {
         assertThat(savedStatistic.countCustomersProlonged).isEqualTo(0)
         assertThat(savedStatistic.countPersonsProlonged).isEqualTo(0)
         assertThat(savedStatistic.countCustomersUpdated).isEqualTo(0)
+
+        assertThat(savedStatistic.shopsTotalCount).isEqualTo(0)
+        assertThat(savedStatistic.shopsWithFoodCount).isEqualTo(0)
+        assertThat(savedStatistic.foodTotalAmount).isEqualTo(BigDecimal.ZERO)
+        assertThat(savedStatistic.foodPerShopAverage).isEqualTo(BigDecimal.ZERO)
+        assertThat(savedStatistic.routesLengthKm).isEqualTo(0)
     }
 
 }

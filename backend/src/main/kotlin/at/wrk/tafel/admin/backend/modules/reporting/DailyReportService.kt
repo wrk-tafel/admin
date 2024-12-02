@@ -29,6 +29,7 @@ class DailyReportService(
             logoContentType = MimeTypeUtils.IMAGE_PNG_VALUE,
             logoBytes = logoBytes,
             date = formatDate(statistic),
+
             countCustomers = statistic.countCustomers!!,
             countPersons = statistic.countPersons!!,
             countInfants = statistic.countInfants!!,
@@ -37,7 +38,13 @@ class DailyReportService(
             countPersonsNew = statistic.countPersonsNew!!,
             countCustomersProlonged = statistic.countCustomersProlonged!!,
             countPersonsProlonged = statistic.countPersonsProlonged!!,
-            countCustomersUpdated = statistic.countCustomersUpdated!!
+            countCustomersUpdated = statistic.countCustomersUpdated!!,
+
+            shopsTotalCount = statistic.shopsTotalCount!!,
+            shopsWithFoodCount = statistic.shopsWithFoodCount!!,
+            foodTotalAmount = statistic.foodTotalAmount!!,
+            foodPerShopAverage = statistic.foodPerShopAverage!!,
+            routesLengthKm = statistic.routesLengthKm!!
         )
     }
 
