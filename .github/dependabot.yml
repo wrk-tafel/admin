@@ -19,6 +19,8 @@ updates:
       # Wait for coreui to be updated and support Angular 19
       - dependency-name: "@angular*"
         versions: [ "19.x" ]
+      - dependency-name: "@coreui*"
+        versions: [ "5.3.x" ]
       - dependency-name: "@fortawesome*"
         versions: [ "19.x" ]
       - dependency-name: "ngx-cookie-service"
