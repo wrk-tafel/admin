@@ -45,4 +45,19 @@ class DistributionStatisticEntity : BaseChangeTrackingEntity() {
     @Column(name = "count_customers_updated")
     var countCustomersUpdated: Int? = null
 
+    @Column(name = "shops_total_count")
+    var shopsTotalCount: Int? = null
+
+    @Column(name = "shops_with_food_count")
+    var shopsWithFoodCount: Int? = null
+
+    @Column(name = "food_total_amount")
+    var foodTotalAmount: BigDecimal? = null
+
+    @Column(name = "food_per_shop_average")
+    var foodPerShopAverage: BigDecimal? = null
+
+    @Column(name = "routes_length_km")
+    var routesLengthKm: Int? = null
+
 }

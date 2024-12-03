@@ -9,8 +9,11 @@
             <fo:block space-after="1cm">
                 <xsl:call-template name="customers"/>
             </fo:block>
-            <fo:block space-after="0.5cm">
+            <fo:block space-after="1cm">
                 <xsl:call-template name="administration"/>
+            </fo:block>
+            <fo:block space-after="1cm">
+                <xsl:call-template name="logistics"/>
             </fo:block>
         </fo:block>
     </xsl:template>
@@ -49,7 +52,7 @@
         <fo:block font-weight="bold" margin-bottom="0.2cm">
             Lebensmittel erhalten
         </fo:block>
-        <fo:block margin-left="2cm">
+        <fo:block margin-left="1cm">
             <fo:table table-layout="fixed" width="100%">
                 <fo:table-column column-width="50%"/>
                 <fo:table-column column-width="50%"/>
@@ -94,7 +97,7 @@
         <fo:block font-weight="bold" margin-bottom="0.2cm">
             Administration
         </fo:block>
-        <fo:block margin-left="2cm">
+        <fo:block margin-left="1cm">
             <fo:table table-layout="fixed" width="100%">
                 <fo:table-column column-width="50%"/>
                 <fo:table-column column-width="50%"/>
@@ -130,6 +133,64 @@
                         <fo:table-cell>
                             <fo:block>
                                 <xsl:value-of select="countCustomersUpdated"/>
+                            </fo:block>
+                        </fo:table-cell>
+                    </fo:table-row>
+                </fo:table-body>
+            </fo:table>
+        </fo:block>
+    </xsl:template>
+    <xsl:template name="logistics">
+        <fo:block font-weight="bold" margin-bottom="0.2cm">
+            Transport-Logistik
+        </fo:block>
+        <fo:block margin-left="1cm">
+            <fo:table table-layout="fixed" width="100%">
+                <fo:table-column column-width="50%"/>
+                <fo:table-column column-width="50%"/>
+                <fo:table-body>
+                    <fo:table-row>
+                        <fo:table-cell>
+                            <fo:block>Spender gesamt / mit Ware:</fo:block>
+                        </fo:table-cell>
+                        <fo:table-cell>
+                            <fo:block>
+                                <xsl:value-of select="shopsTotalCount"/>
+                                <xsl:value-of select="' / '"/>
+                                <xsl:value-of select="shopsWithFoodCount"/>
+                            </fo:block>
+                        </fo:table-cell>
+                    </fo:table-row>
+                    <fo:table-row>
+                        <fo:table-cell>
+                            <fo:block>Waren-Menge:</fo:block>
+                        </fo:table-cell>
+                        <fo:table-cell>
+                            <fo:block>
+                                <xsl:value-of select="format-number(foodTotalAmount,'#.##0,00', 'decimal-format')"/>
+                                <xsl:value-of select="' kg'"/>
+                            </fo:block>
+                        </fo:table-cell>
+                    </fo:table-row>
+                    <fo:table-row>
+                        <fo:table-cell>
+                            <fo:block>durchschnittliche Menge / Spender:</fo:block>
+                        </fo:table-cell>
+                        <fo:table-cell>
+                            <fo:block>
+                                <xsl:value-of select="format-number(foodPerShopAverage,'#.##0,00', 'decimal-format')"/>
+                                <xsl:value-of select="' kg'"/>
+                            </fo:block>
+                        </fo:table-cell>
+                    </fo:table-row>
+                    <fo:table-row>
+                        <fo:table-cell>
+                            <fo:block>Routen-Länge:</fo:block>
+                        </fo:table-cell>
+                        <fo:table-cell>
+                            <fo:block>
+                                <xsl:value-of select="routesLengthKm"/>
+                                <xsl:value-of select="' km'"/>
                             </fo:block>
                         </fo:table-cell>
                     </fo:table-row>

@@ -10,6 +10,7 @@ data class DailyReportPdfModel(
     val logoContentType: String,
     val logoBytes: ByteArray,
     val date: String,
+
     val countCustomers: Int,
     val countPersons: Int,
     val countInfants: Int,
@@ -18,7 +19,13 @@ data class DailyReportPdfModel(
     val countPersonsNew: Int,
     val countCustomersProlonged: Int,
     val countPersonsProlonged: Int,
-    val countCustomersUpdated: Int
+    val countCustomersUpdated: Int,
+
+    val shopsTotalCount: Int,
+    val shopsWithFoodCount: Int,
+    val foodTotalAmount: BigDecimal,
+    val foodPerShopAverage: BigDecimal,
+    val routesLengthKm: Int,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -38,6 +45,11 @@ data class DailyReportPdfModel(
         if (countCustomersProlonged != other.countCustomersProlonged) return false
         if (countPersonsProlonged != other.countPersonsProlonged) return false
         if (countCustomersUpdated != other.countCustomersUpdated) return false
+        if (shopsTotalCount != other.shopsTotalCount) return false
+        if (shopsWithFoodCount != other.shopsWithFoodCount) return false
+        if (foodTotalAmount != other.foodTotalAmount) return false
+        if (foodPerShopAverage != other.foodPerShopAverage) return false
+        if (routesLengthKm != other.routesLengthKm) return false
 
         return true
     }
@@ -55,7 +67,11 @@ data class DailyReportPdfModel(
         result = 31 * result + countCustomersProlonged
         result = 31 * result + countPersonsProlonged
         result = 31 * result + countCustomersUpdated
+        result = 31 * result + shopsTotalCount
+        result = 31 * result + shopsWithFoodCount
+        result = 31 * result + foodTotalAmount.hashCode()
+        result = 31 * result + foodPerShopAverage.hashCode()
+        result = 31 * result + routesLengthKm
         return result
     }
-
 }

@@ -37,6 +37,12 @@ internal class DailyReportServiceTest {
             countCustomersProlonged = 7
             countPersonsProlonged = 8
             countCustomersUpdated = 9
+
+            shopsTotalCount = 10
+            shopsWithFoodCount = 11
+            foodTotalAmount = BigDecimal(12)
+            foodPerShopAverage = BigDecimal(13)
+            routesLengthKm = 14
         }
 
         every { pdfService.generatePdf(any(), any()) } returns ByteArray(0)
@@ -66,6 +72,12 @@ internal class DailyReportServiceTest {
         assertThat(pdfModel.countCustomersProlonged).isEqualTo(statistic.countCustomersProlonged)
         assertThat(pdfModel.countPersonsProlonged).isEqualTo(statistic.countPersonsProlonged)
         assertThat(pdfModel.countCustomersUpdated).isEqualTo(statistic.countCustomersUpdated)
+
+        assertThat(pdfModel.shopsTotalCount).isEqualTo(statistic.shopsTotalCount)
+        assertThat(pdfModel.shopsWithFoodCount).isEqualTo(statistic.shopsWithFoodCount)
+        assertThat(pdfModel.foodTotalAmount).isEqualTo(statistic.foodTotalAmount)
+        assertThat(pdfModel.foodPerShopAverage).isEqualTo(statistic.foodPerShopAverage)
+        assertThat(pdfModel.routesLengthKm).isEqualTo(statistic.routesLengthKm)
     }
 
 }
