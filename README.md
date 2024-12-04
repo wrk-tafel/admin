@@ -22,13 +22,15 @@
 
 * customer-creation: Advanced postalCode validation (only numbers from 03. and 01. district / Vienna)
 * Improve creation / enforce search before creating
-* Add food-input
 * Add "supervisor" role (can force-fully create customers even when exceeding the income limit)
 * Fix menu when collapsed - first character of text is shown
 * MFA?
 
 statistic:
 * add alleinerzieher flag
+* dailyreport
+  * Mitarbeiter Anzahl an diesem Samstag
+  * Summe der betreuten Personen in den Notschlafstellen (Wenn es geht eine Addition der beiden Personengruppe unter dem Titel "versorgte Personen")
 
 ## LTL
 * Goods recording - implement proper mobile view
