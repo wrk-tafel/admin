@@ -2,8 +2,10 @@ import {Component, EventEmitter, inject, Input, OnInit, Output} from '@angular/c
 import {
   AbstractControl,
   FormArray,
+  FormBuilder,
   FormControl,
-  FormGroup, ReactiveFormsModule,
+  FormGroup,
+  ReactiveFormsModule,
   ValidationErrors,
   ValidatorFn,
   Validators
@@ -43,62 +45,26 @@ export class UserFormComponent implements OnInit {
   @Input() userData: UserData;
   @Input() permissionsData: UserPermission[];
   @Output() userDataChange = new EventEmitter<UserData>();
-  form = new FormGroup({
-    id: new FormControl<number>(null),
-    personnelNumber: new FormControl<string>(null, [Validators.required, Validators.maxLength(50)]),
-    username: new FormControl<string>(null, [Validators.required, Validators.maxLength(50)]),
-    lastname: new FormControl<string>(null, [Validators.required, Validators.maxLength(50)]),
-    firstname: new FormControl<string>(null, [Validators.required, Validators.maxLength(50)]),
-    password: new FormControl<string>(null),
-    passwordRepeat: new FormControl<string>(null),
-    enabled: new FormControl<boolean>(true, Validators.required),
-    passwordChangeRequired: new FormControl<boolean>(true, Validators.required),
-    permissions: new FormArray<FormControl<UserPermissionFormItem>>([])
-  }, [passwordRepeatValidator]);
-  passwordTextVisible: boolean;
-  passwordRepeatTextVisible: boolean;
+
   private readonly userApiService = inject(UserApiService);
   private readonly toastService = inject(ToastService);
+  private readonly fb = inject(FormBuilder);
 
-  get id() {
-    return this.form.get('id');
-  }
+  form = this.fb.group({
+    id: this.fb.control<number>(null),
+    personnelNumber: this.fb.control<string>(null, [Validators.required, Validators.maxLength(50)]),
+    username: this.fb.control<string>(null, [Validators.required, Validators.maxLength(50)]),
+    lastname: this.fb.control<string>(null, [Validators.required, Validators.maxLength(50)]),
+    firstname: this.fb.control<string>(null, [Validators.required, Validators.maxLength(50)]),
+    password: this.fb.control<string>(null),
+    passwordRepeat: this.fb.control<string>(null),
+    enabled: this.fb.control<boolean>(true, Validators.required),
+    passwordChangeRequired: this.fb.control<boolean>(true, Validators.required),
+    permissions: this.fb.array<FormControl<UserPermissionFormItem>>([])
+  }, [passwordRepeatValidator]);
 
-  get username() {
-    return this.form.get('username');
-  }
-
-  get personnelNumber() {
-    return this.form.get('personnelNumber');
-  }
-
-  get lastname() {
-    return this.form.get('lastname');
-  }
-
-  get firstname() {
-    return this.form.get('firstname');
-  }
-
-  get enabled() {
-    return this.form.get('enabled');
-  }
-
-  get password() {
-    return this.form.get('password');
-  }
-
-  get passwordRepeat() {
-    return this.form.get('passwordRepeat');
-  }
-
-  get passwordChangeRequired() {
-    return this.form.get('passwordChangeRequired');
-  }
-
-  get permissions(): FormArray {
-    return this.form.get('permissions') as FormArray;
-  }
+  passwordTextVisible: boolean;
+  passwordRepeatTextVisible: boolean;
 
   ngOnInit(): void {
     if (this.userData) {
@@ -176,13 +142,53 @@ export class UserFormComponent implements OnInit {
   }
 
   private pushUserPermissionControl(userPermission: UserPermission, enabled: boolean) {
-    const control = new FormGroup({
-      key: new FormControl<string>(userPermission.key),
-      title: new FormControl<string>(userPermission.title),
-      enabled: new FormControl<boolean>(enabled)
+    const control = this.fb.group({
+      key: this.fb.control<string>(userPermission.key),
+      title: this.fb.control<string>(userPermission.title),
+      enabled: this.fb.control<boolean>(enabled)
     });
 
     this.permissions.push(control);
+  }
+
+  get id() {
+    return this.form.get('id');
+  }
+
+  get username() {
+    return this.form.get('username');
+  }
+
+  get personnelNumber() {
+    return this.form.get('personnelNumber');
+  }
+
+  get lastname() {
+    return this.form.get('lastname');
+  }
+
+  get firstname() {
+    return this.form.get('firstname');
+  }
+
+  get enabled() {
+    return this.form.get('enabled');
+  }
+
+  get password() {
+    return this.form.get('password');
+  }
+
+  get passwordRepeat() {
+    return this.form.get('passwordRepeat');
+  }
+
+  get passwordChangeRequired() {
+    return this.form.get('passwordChangeRequired');
+  }
+
+  get permissions(): FormArray {
+    return this.form.get('permissions') as FormArray;
   }
 
   protected readonly faEyeSlash = faEyeSlash;

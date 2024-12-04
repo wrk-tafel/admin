@@ -1,7 +1,7 @@
 import {Component, inject} from '@angular/core';
 import {Router} from '@angular/router';
 import {CustomerAddressData, CustomerApiService, CustomerSearchResult} from '../../../../api/customer-api.service';
-import {FormControl, FormGroup, ReactiveFormsModule} from '@angular/forms';
+import {FormBuilder, ReactiveFormsModule} from '@angular/forms';
 import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
 import {
   TafelPaginationComponent,
@@ -10,11 +10,15 @@ import {
 import {
   ButtonDirective,
   CardBodyComponent,
-  CardComponent, CardFooterComponent,
+  CardComponent,
+  CardFooterComponent,
   CardHeaderComponent,
-  ColComponent, FormCheckInputDirective, FormDirective,
+  ColComponent,
+  FormCheckInputDirective,
+  FormDirective,
   InputGroupComponent,
-  RowComponent, TableDirective
+  RowComponent,
+  TableDirective
 } from '@coreui/angular';
 import {CommonModule} from '@angular/common';
 import {faPencil, faSearch, faUser} from '@fortawesome/free-solid-svg-icons';
@@ -43,33 +47,20 @@ import {FaIconComponent} from '@fortawesome/angular-fontawesome';
   standalone: true
 })
 export class CustomerSearchComponent {
-  searchResult: CustomerSearchResult;
-  customerSearchForm = new FormGroup({
-    customerId: new FormControl<number>(null),
-    lastname: new FormControl<string>(null),
-    firstname: new FormControl<string>(null),
-    postProcessing: new FormControl<boolean>(null),
-  });
-  paginationData: TafelPaginationData;
   private readonly customerApiService = inject(CustomerApiService);
   private readonly router = inject(Router);
   private readonly toastService = inject(ToastService);
+  private readonly fb = inject(FormBuilder);
 
-  get customerId() {
-    return this.customerSearchForm.get('customerId');
-  }
+  form = this.fb.group({
+    customerId: this.fb.control<number>(null),
+    lastname: this.fb.control<string>(null),
+    firstname: this.fb.control<string>(null),
+    postProcessing: this.fb.control<boolean>(null),
+  });
 
-  get lastname() {
-    return this.customerSearchForm.get('lastname');
-  }
-
-  get firstname() {
-    return this.customerSearchForm.get('firstname');
-  }
-
-  get postProcessing() {
-    return this.customerSearchForm.get('postProcessing');
-  }
+  searchResult: CustomerSearchResult;
+  paginationData: TafelPaginationData;
 
   searchForCustomerId() {
     const customerId = this.customerId.value;
@@ -119,6 +110,22 @@ export class CustomerSearchComponent {
       .filter(value => value?.trim().length > 0)
       .join(', ');
     return formatted?.trim().length > 0 ? formatted : '-';
+  }
+
+  get customerId() {
+    return this.form.get('customerId');
+  }
+
+  get lastname() {
+    return this.form.get('lastname');
+  }
+
+  get firstname() {
+    return this.form.get('firstname');
+  }
+
+  get postProcessing() {
+    return this.form.get('postProcessing');
   }
 
   protected readonly faPencil = faPencil;

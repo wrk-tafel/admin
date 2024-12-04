@@ -1,7 +1,7 @@
 import {Component, inject} from '@angular/core';
 import {Router} from '@angular/router';
-import {FormControl, FormGroup, ReactiveFormsModule} from '@angular/forms';
-import {UserApiService, UserSearchResult} from '../../../api/user-api.service';
+import {FormBuilder, ReactiveFormsModule} from '@angular/forms';
+import {UserApiService, UserData, UserSearchResult} from '../../../api/user-api.service';
 import {ToastService, ToastType} from '../../../common/views/default-layout/toasts/toast.service';
 import {
   TafelPaginationComponent,
@@ -13,9 +13,14 @@ import {
   CardComponent,
   CardFooterComponent,
   CardHeaderComponent,
-  ColComponent, FormCheckInputDirective, FormDirective, FormLabelDirective,
+  ColComponent,
+  FormCheckInputDirective,
+  FormDirective,
+  FormLabelDirective,
   InputGroupComponent,
-  RowComponent, TableDirective, TextColorDirective
+  RowComponent,
+  TableDirective,
+  TextColorDirective
 } from '@coreui/angular';
 import {faPencil, faSearch, faUser} from '@fortawesome/free-solid-svg-icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
@@ -46,43 +51,25 @@ import {CommonModule} from '@angular/common';
   standalone: true
 })
 export class UserSearchComponent {
-  searchResult: UserSearchResult;
-  userSearchForm = new FormGroup({
-    personnelNumber: new FormControl<string>(null),
-    username: new FormControl<string>(null),
-    lastname: new FormControl<string>(null),
-    firstname: new FormControl<string>(null),
-    enabled: new FormControl<boolean>(true)
-  });
-  paginationData: TafelPaginationData;
   private readonly userApiService = inject(UserApiService);
   private readonly router = inject(Router);
   private readonly toastService = inject(ToastService);
+  private readonly fb = inject(FormBuilder);
 
-  get personnelNumber() {
-    return this.userSearchForm.get('personnelNumber');
-  }
-
-  get username() {
-    return this.userSearchForm.get('username');
-  }
-
-  get enabled() {
-    return this.userSearchForm.get('enabled');
-  }
-
-  get lastname() {
-    return this.userSearchForm.get('lastname');
-  }
-
-  get firstname() {
-    return this.userSearchForm.get('firstname');
-  }
+  form = this.fb.group({
+    personnelNumber: this.fb.control<string>(null),
+    username: this.fb.control<string>(null),
+    lastname: this.fb.control<string>(null),
+    firstname: this.fb.control<string>(null),
+    enabled: this.fb.control<boolean>(true)
+  });
+  searchResult: UserSearchResult;
+  paginationData: TafelPaginationData;
 
   searchForPersonnelNumber() {
     /* eslint-disable @typescript-eslint/no-unused-vars */
     const observer = {
-      next: (userData) => this.router.navigate(['/benutzer/detail', userData.id])
+      next: (userData: UserData) => this.router.navigate(['/benutzer/detail', userData.id])
     };
     this.userApiService.getUserForPersonnelNumber(this.personnelNumber.value).subscribe(observer);
   }
@@ -113,6 +100,26 @@ export class UserSearchComponent {
 
   editUser(personnelNumber: number) {
     this.router.navigate(['/benutzer/bearbeiten', personnelNumber]);
+  }
+
+  get personnelNumber() {
+    return this.form.get('personnelNumber');
+  }
+
+  get username() {
+    return this.form.get('username');
+  }
+
+  get enabled() {
+    return this.form.get('enabled');
+  }
+
+  get lastname() {
+    return this.form.get('lastname');
+  }
+
+  get firstname() {
+    return this.form.get('firstname');
   }
 
   protected readonly faSearch = faSearch;

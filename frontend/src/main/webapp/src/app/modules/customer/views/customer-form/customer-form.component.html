@@ -6,7 +6,7 @@
         <c-card-body>
           <c-row class="mb-2">
             <c-col sm>
-              <label class="form-label">Familienname *</label>
+              <label class="form-label">Nachname *</label>
               <input testid="lastnameInput" type="text" formControlName="lastname" class="form-control"
                      [ngClass]="{'is-invalid': lastname.invalid && (lastname.dirty || lastname.touched), 'is-valid': lastname.valid && (lastname.dirty || lastname.touched)}">
               <div *ngIf="lastname.errors?.required && (lastname.dirty || lastname.touched)"
@@ -15,7 +15,7 @@
               </div>
               <div *ngIf="lastname.errors?.maxlength && (lastname.dirty || lastname.touched)"
                    class="invalid-feedback">
-                Familienname zu lang (Limit: {{lastname.errors.maxlength.requiredLength}})
+                Nachname zu lang (Limit: {{lastname.errors.maxlength.requiredLength}})
               </div>
             </c-col>
             <c-col sm>
@@ -286,7 +286,7 @@
                       <c-row>
                         <c-col lg size="6">
                           <input testid="idInput" type="hidden" formControlName="id" class="form-control"/>
-                          <label class="form-label">Familienname *</label>
+                          <label class="form-label">Nachname *</label>
                           <input testid="lastnameInput" type="text" formControlName="lastname"
                                  class="form-control"
                                  [ngClass]="{'is-invalid': additionalPerson.get('lastname').invalid && (additionalPerson.get('lastname').dirty || additionalPerson.get('lastname').touched), 'is-valid': additionalPerson.get('lastname').valid && (additionalPerson.get('lastname').dirty || additionalPerson.get('lastname').touched)}"
@@ -299,7 +299,7 @@
                           <div
                             *ngIf="additionalPerson.get('lastname').errors?.maxlength && (additionalPerson.get('lastname').dirty || additionalPerson.get('lastname').touched)"
                             class="invalid-feedback">
-                            Familienname zu lang (Limit: {{lastname.errors.maxlength.requiredLength}})
+                            Nachname zu lang (Limit: {{lastname.errors.maxlength.requiredLength}})
                           </div>
                         </c-col>
                         <c-col lg size="6">

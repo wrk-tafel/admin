@@ -5,7 +5,7 @@
         <c-card-group>
           <c-card class="p-4">
             <c-card-body>
-              <form cForm [formGroup]="loginForm" (ngSubmit)="login()">
+              <form cForm [formGroup]="form" (ngSubmit)="login()">
                 <div class="mb-4 text-center">
                   <img ngSrc="./assets/img/brand/logo.svg" alt="ÖRK Logo" width="200" class="mb-2" height="54"/>
                   <h1>Tafel Admin</h1>
@@ -27,7 +27,7 @@
                   <input formControlName="password" testid="password" name="password" type="password"
                          class="form-control" placeholder="Passwort" autocomplete="current-password" required>
                 </c-input-group>
-                <button testid="loginButton" cButton class="px-4" type="submit" [disabled]="!loginForm.valid">Anmelden</button>
+                <button testid="loginButton" cButton class="px-4" type="submit" [disabled]="!form.valid">Anmelden</button>
               </form>
             </c-card-body>
           </c-card>
