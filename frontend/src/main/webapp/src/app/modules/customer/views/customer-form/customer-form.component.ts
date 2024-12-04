@@ -155,7 +155,7 @@ export class CustomerFormComponent implements OnInit {
       income: null,
       incomeDue: null,
       excludeFromHousehold: false,
-      receivesFamilyBonus: false
+      receivesFamilyBonus: true
     });
 
     if (this.editMode) {
