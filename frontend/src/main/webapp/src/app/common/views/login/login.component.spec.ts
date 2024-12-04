@@ -79,7 +79,7 @@ describe('LoginComponent', () => {
     const fixture = TestBed.createComponent(LoginComponent);
     const component = fixture.componentInstance;
 
-    component.loginForm.setValue({
+    component.form.setValue({
       'username': 'user',
       'password': 'pwd'
     });
@@ -101,7 +101,7 @@ describe('LoginComponent', () => {
     const fixture = TestBed.createComponent(LoginComponent);
     const component = fixture.componentInstance;
 
-    component.loginForm.setValue({
+    component.form.setValue({
       'username': 'user',
       'password': 'pwd'
     });
@@ -118,7 +118,7 @@ describe('LoginComponent', () => {
     const fixture = TestBed.createComponent(LoginComponent);
     const component = fixture.componentInstance;
 
-    component.loginForm.setValue({
+    component.form.setValue({
       'username': 'user',
       'password': 'pwd'
     });

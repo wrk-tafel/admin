@@ -1,5 +1,5 @@
 import {Component, inject} from '@angular/core';
-import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
+import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
 import {WebsocketService} from '../../../common/websocket/websocket.service';
 import {TicketScreenComponent, TicketScreenMessage} from '../ticket-screen/ticket-screen.component';
 import {DistributionTicketApiService, TicketNumberResponse} from '../../../api/distribution-ticket-api.service';
@@ -23,16 +23,14 @@ import {NgClass} from '@angular/common';
   standalone: true
 })
 export class TicketScreenControlComponent {
-  form = new FormGroup({
-    startTime: new FormControl<string>(null, Validators.required)
-  });
   private readonly websocketService = inject(WebsocketService);
   private readonly distributionTicketApiService = inject(DistributionTicketApiService);
   private readonly urlHelperService = inject(UrlHelperService);
+  private readonly fb = inject(FormBuilder);
 
-  get startTime() {
-    return this.form.get('startTime');
-  }
+  form = this.fb.group({
+    startTime: this.fb.control<string>(null, Validators.required)
+  });
 
   openScreenInNewTab() {
     const baseUrl = this.urlHelperService.getBaseUrl();
@@ -68,6 +66,10 @@ export class TicketScreenControlComponent {
 
   private sendToTicketScreen(message: TicketScreenMessage) {
     this.websocketService.publish({destination: '/topic/ticket-screen', body: JSON.stringify(message)});
+  }
+
+  get startTime() {
+    return this.form.get('startTime');
   }
 
 }

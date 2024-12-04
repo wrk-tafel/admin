@@ -52,6 +52,9 @@ import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 export class CustomerFormComponent implements OnInit {
   @Input() editMode = false;
   @Output() customerDataChange = new EventEmitter<CustomerData>();
+
+  private readonly countryApiService = inject(CountryApiService);
+
   form = new FormGroup({
     id: new FormControl<number>(null),
     lastname: new FormControl<string>(null, [Validators.required, Validators.maxLength(50)]),
@@ -89,104 +92,9 @@ export class CustomerFormComponent implements OnInit {
 
     additionalPersons: new FormArray([])
   });
+
   countries: CountryData[];
   genders: Gender[] = [Gender.FEMALE, Gender.MALE];
-  private readonly countryApiService = inject(CountryApiService);
-
-  get customerData() {
-    return this.customerData;
-  }
-
-  @Input()
-  set customerData(customerData: CustomerData) {
-    if (customerData) {
-      this.form.patchValue(customerData);
-
-      this.additionalPersons.clear();
-      customerData.additionalPersons.forEach((person) => this.pushPersonGroupControl(
-        {
-          ...person,
-          key: person.key ? person.key : uuidv4()
-        }
-      ));
-    }
-  }
-
-  get id() {
-    return this.form.get('id');
-  }
-
-  get lastname() {
-    return this.form.get('lastname');
-  }
-
-  get firstname() {
-    return this.form.get('firstname');
-  }
-
-  get birthDate() {
-    return this.form.get('birthDate');
-  }
-
-  get gender() {
-    return this.form.get('gender');
-  }
-
-  get country() {
-    return this.form.get('country');
-  }
-
-  get telephoneNumber() {
-    return this.form.get('telephoneNumber');
-  }
-
-  get email() {
-    return this.form.get('email');
-  }
-
-  get street() {
-    return this.form.get('address').get('street');
-  }
-
-  get houseNumber() {
-    return this.form.get('address').get('houseNumber');
-  }
-
-  get stairway() {
-    return this.form.get('address').get('stairway');
-  }
-
-  get door() {
-    return this.form.get('address').get('door');
-  }
-
-  get postalCode() {
-    return this.form.get('address').get('postalCode');
-  }
-
-  get city() {
-    return this.form.get('address').get('city');
-  }
-
-  get employer() {
-    return this.form.get('employer');
-  }
-
-  get income() {
-    return this.form.get('income');
-  }
-
-  get incomeDue() {
-    return this.form.get('incomeDue');
-  }
-
-  get validUntil() {
-    return this.form.get('validUntil');
-  }
-
-  get additionalPersons() {
-    return this.form.get('additionalPersons') as FormArray;
-  }
 
   ngOnInit(): void {
     this.countryApiService.getCountries().subscribe((countries) => {
@@ -299,6 +207,97 @@ export class CustomerFormComponent implements OnInit {
     });
 
     this.additionalPersons.push(control);
+  }
+
+  @Input()
+  set customerData(customerData: CustomerData) {
+    if (customerData) {
+      this.form.patchValue(customerData);
+
+      this.additionalPersons.clear();
+      customerData.additionalPersons.forEach((person) => this.pushPersonGroupControl(
+        {
+          ...person,
+          key: person.key ? person.key : uuidv4()
+        }
+      ));
+    }
+  }
+
+  get id() {
+    return this.form.get('id');
+  }
+
+  get lastname() {
+    return this.form.get('lastname');
+  }
+
+  get firstname() {
+    return this.form.get('firstname');
+  }
+
+  get birthDate() {
+    return this.form.get('birthDate');
+  }
+
+  get gender() {
+    return this.form.get('gender');
+  }
+
+  get country() {
+    return this.form.get('country');
+  }
+
+  get telephoneNumber() {
+    return this.form.get('telephoneNumber');
+  }
+
+  get email() {
+    return this.form.get('email');
+  }
+
+  get street() {
+    return this.form.get('address').get('street');
+  }
+
+  get houseNumber() {
+    return this.form.get('address').get('houseNumber');
+  }
+
+  get stairway() {
+    return this.form.get('address').get('stairway');
+  }
+
+  get door() {
+    return this.form.get('address').get('door');
+  }
+
+  get postalCode() {
+    return this.form.get('address').get('postalCode');
+  }
+
+  get city() {
+    return this.form.get('address').get('city');
+  }
+
+  get employer() {
+    return this.form.get('employer');
+  }
+
+  get income() {
+    return this.form.get('income');
+  }
+
+  get incomeDue() {
+    return this.form.get('incomeDue');
+  }
+
+  get validUntil() {
+    return this.form.get('validUntil');
+  }
+
+  get additionalPersons() {
+    return this.form.get('additionalPersons') as FormArray;
   }
 
   protected readonly faVenusMars = faVenusMars;

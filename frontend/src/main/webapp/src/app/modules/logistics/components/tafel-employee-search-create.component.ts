@@ -1,5 +1,5 @@
 import {Component, effect, inject, input, output} from '@angular/core';
-import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
+import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
 import {
   BgColorDirective,
   ButtonCloseDirective,
@@ -41,14 +41,16 @@ export class TafelEmployeeSearchCreateComponent {
   buttonDisabled = input<boolean>()
   selectedEmployee = output<EmployeeData>()
 
-  employeeApiService = inject(EmployeeApiService);
-  showCreateEmployeeModal: boolean = false;
+  private readonly employeeApiService = inject(EmployeeApiService);
+  private readonly fb = inject(FormBuilder);
 
-  form = new FormGroup({
-    personnelNumber: new FormControl<string>(null, [Validators.required, Validators.maxLength(50)]),
-    firstname: new FormControl<string>(null, [Validators.required, Validators.maxLength(50)]),
-    lastname: new FormControl<string>(null, [Validators.required, Validators.maxLength(50)]),
+  form = this.fb.group({
+    personnelNumber: this.fb.control<string>(null, [Validators.required, Validators.maxLength(50)]),
+    firstname: this.fb.control<string>(null, [Validators.required, Validators.maxLength(50)]),
+    lastname: this.fb.control<string>(null, [Validators.required, Validators.maxLength(50)]),
   });
+
+  showCreateEmployeeModal: boolean = false;
 
   searchInputEffect = effect(() => {
     const searchInput = this.searchInput();

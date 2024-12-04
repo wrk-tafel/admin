@@ -1,5 +1,5 @@
 import {Component, inject} from '@angular/core';
-import {FormControl, FormGroup, ReactiveFormsModule, ValidatorFn, Validators} from '@angular/forms';
+import {FormBuilder, FormGroup, ReactiveFormsModule, ValidatorFn, Validators} from '@angular/forms';
 import {ChangePasswordRequest, ChangePasswordResponse, UserApiService} from '../../../api/user-api.service';
 import {catchError, map} from 'rxjs/operators';
 import {Observable, throwError} from 'rxjs';
@@ -16,30 +16,31 @@ import {NgClass} from '@angular/common';
   standalone: true
 })
 export class PasswordChangeFormComponent {
-  successMessage: string;
-  errorMessage: string;
-  errorMessageDetails: string[];
-  form = new FormGroup({
-      currentPassword: new FormControl<string>(null, [
+  private readonly userApiService = inject(UserApiService);
+  private readonly fb = inject(FormBuilder);
+
+  form = this.fb.group({
+      currentPassword: this.fb.control<string>(null, [
         Validators.required
       ]),
-      newPassword: new FormControl<string>(null, [
+      newPassword: this.fb.control<string>(null, [
         Validators.required,
         Validators.minLength(8),
         Validators.maxLength(50)
       ]),
-      newRepeatedPassword: new FormControl<string>(null, [
+      newRepeatedPassword: this.fb.control<string>(null, [
         Validators.required,
         Validators.minLength(8),
         Validators.maxLength(50)
       ])
     },
     {
-      validators: [this.validateNewAndRepeatedPasswords()],
-      updateOn: 'change'
+      validators: [this.validateNewAndRepeatedPasswords()]
     }
   );
-  private readonly userApiService = inject(UserApiService);
+  successMessage: string;
+  errorMessage: string;
+  errorMessageDetails: string[];
 
   get currentPassword() {
     return this.form.get('currentPassword');
