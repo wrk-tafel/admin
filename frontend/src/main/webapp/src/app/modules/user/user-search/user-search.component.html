@@ -67,9 +67,8 @@
             <tr>
               <th scope="col"></th>
               <th scope="col">Nr.</th>
+              <th scope="col">Name</th>
               <th scope="col">Personalnummer</th>
-              <th scope="col">Nachname</th>
-              <th scope="col">Vorname</th>
               <th scope="col">Aktiv</th>
               <th scope="col">Aktionen</th>
             </tr>
@@ -79,9 +78,11 @@
                 *ngFor="let user of searchResult.items; let i = index">
               <td><fa-icon [icon]="faUser"></fa-icon></td>
               <td [attr.testid]="'searchresult-id-' + i">{{user.id}}</td>
+              <td [attr.testid]="'searchresult-name-' + i">
+                <a *ngIf="user.lastname || user.firstname" [href]="'/#/benutzer/detail/' + user.id">{{user.lastname ? user.lastname : '-'}} {{user.firstname ? user.firstname : '-'}}</a>
+                <div *ngIf="!user.lastname && !user.firstname">-</div>
+              </td>
               <td [attr.testid]="'searchresult-personnelnumber-' + i">{{user.personnelNumber}}</td>
-              <td [attr.testid]="'searchresult-lastname-' + i">{{user.lastname}}</td>
-              <td [attr.testid]="'searchresult-firstname-' + i">{{user.firstname}}</td>
               <td [attr.testid]="'searchresult-enabled-' + i">{{user.enabled ? 'Ja' : 'Nein'}}</td>
               <td>
                 <div class="d-flex flex-fill gap-2">

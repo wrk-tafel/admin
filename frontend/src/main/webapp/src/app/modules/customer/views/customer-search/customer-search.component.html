@@ -62,8 +62,7 @@
                         <tr>
                             <th scope="col"></th>
                             <th scope="col">Nr.</th>
-                            <th scope="col">Nachname</th>
-                            <th scope="col">Vorname</th>
+                            <th scope="col">Name</th>
                             <th scope="col">Geb. Datum</th>
                             <th scope="col">Adresse</th>
                             <th scope="col">Aktionen</th>
@@ -74,8 +73,10 @@
                             *ngFor="let customer of searchResult.items; let i = index">
                             <td><fa-icon [icon]="faUser"></fa-icon></td>
                             <td [attr.testid]="'searchresult-id-' + i">{{customer.id}}</td>
-                            <td [attr.testid]="'searchresult-lastname-' + i">{{customer.lastname ? customer.lastname : '-'}}</td>
-                            <td [attr.testid]="'searchresult-firstname-' + i">{{customer.firstname ? customer.firstname : '-'}}</td>
+                            <td [attr.testid]="'searchresult-name-' + i">
+                              <a *ngIf="customer.lastname || customer.firstname" [href]="'/#/kunden/detail/' + customer.id">{{customer.lastname ? customer.lastname : '-'}} {{customer.firstname ? customer.firstname : '-'}}</a>
+                              <div *ngIf="!customer.lastname && !customer.firstname">-</div>
+                            </td>
                             <td [attr.testid]="'searchresult-birthDate-' + i">{{!customer.birthDate ? '-' : customer.birthDate | date : 'dd.MM.yyyy'}}</td>
                             <td [attr.testid]="'searchresult-address-' + i">{{formatAddress(customer.address)}}</td>
                             <td>

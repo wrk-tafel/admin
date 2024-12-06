@@ -103,8 +103,7 @@ describe('CustomerSearchComponent', () => {
 
     fixture.detectChanges();
     expect(fixture.debugElement.query(By.css('[testid="searchresult-id-0"]')).nativeElement.textContent).toBe('0');
-    expect(fixture.debugElement.query(By.css('[testid="searchresult-lastname-0"]')).nativeElement.textContent).toBe('last');
-    expect(fixture.debugElement.query(By.css('[testid="searchresult-firstname-0"]')).nativeElement.textContent).toBe('first');
+    expect(fixture.debugElement.query(By.css('[testid="searchresult-name-0"]')).nativeElement.textContent).toBe('last first');
     expect(fixture.debugElement.query(By.css('[testid="searchresult-birthDate-0"]')).nativeElement.textContent).toBe('10.05.2000');
     expect(fixture.debugElement.query(By.css('[testid="searchresult-address-0"]')).nativeElement.textContent)
       .toBe('street 1, Stiege stairway1, Top 20, 1010 city');
