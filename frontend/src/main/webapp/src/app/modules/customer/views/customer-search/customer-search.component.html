@@ -10,7 +10,7 @@
             <c-row>
                 <c-col sm="3" class="mb-3">
                     <input testid="customerIdText" type="number" formControlName="customerId" name="customerId"
-                           class="form-control" autofocus (keydown.enter)="searchForCustomerId()">
+                           class="form-control" (keydown.enter)="searchForCustomerId()" tafelAutofocus>
                 </c-col>
                 <c-col sm="3">
                     <button testid="showcustomer-button" cButton

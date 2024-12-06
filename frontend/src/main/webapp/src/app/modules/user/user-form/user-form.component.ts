@@ -23,6 +23,7 @@ import {
 } from '@coreui/angular';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {faEye, faEyeSlash} from '@fortawesome/free-solid-svg-icons';
+import {TafelAutofocusDirective} from '../../../common/directive/tafel-autofocus.directive';
 
 @Component({
   selector: 'tafel-user-form',
@@ -37,7 +38,8 @@ import {faEye, faEyeSlash} from '@fortawesome/free-solid-svg-icons';
     FormLabelDirective,
     FormCheckInputDirective,
     FaIconComponent,
-    ButtonDirective
+    ButtonDirective,
+    TafelAutofocusDirective
   ],
   standalone: true
 })

@@ -25,6 +25,7 @@ import {
 import {faPencil, faSearch, faUser} from '@fortawesome/free-solid-svg-icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {CommonModule} from '@angular/common';
+import {TafelAutofocusDirective} from '../../../common/directive/tafel-autofocus.directive';
 
 @Component({
   selector: 'tafel-user-search',
@@ -46,7 +47,8 @@ import {CommonModule} from '@angular/common';
     ButtonDirective,
     TextColorDirective,
     FaIconComponent,
-    CommonModule
+    CommonModule,
+    TafelAutofocusDirective
   ],
   standalone: true
 })

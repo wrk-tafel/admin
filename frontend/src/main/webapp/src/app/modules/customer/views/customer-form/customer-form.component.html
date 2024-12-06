@@ -7,7 +7,7 @@
           <c-row class="mb-2">
             <c-col sm>
               <label class="form-label">Nachname *</label>
-              <input testid="lastnameInput" type="text" formControlName="lastname" class="form-control"
+              <input testid="lastnameInput" type="text" formControlName="lastname" class="form-control" tafelAutofocus
                      [ngClass]="{'is-invalid': lastname.invalid && (lastname.dirty || lastname.touched), 'is-valid': lastname.valid && (lastname.dirty || lastname.touched)}">
               <div *ngIf="lastname.errors?.required && (lastname.dirty || lastname.touched)"
                    class="invalid-feedback">
@@ -290,7 +290,7 @@
                           <input testid="lastnameInput" type="text" formControlName="lastname"
                                  class="form-control"
                                  [ngClass]="{'is-invalid': additionalPerson.get('lastname').invalid && (additionalPerson.get('lastname').dirty || additionalPerson.get('lastname').touched), 'is-valid': additionalPerson.get('lastname').valid && (additionalPerson.get('lastname').dirty || additionalPerson.get('lastname').touched)}"
-                                 autofocus>
+                                 tafelAutofocus>
                           <div
                             *ngIf="additionalPerson.get('lastname').errors?.required && (additionalPerson.get('lastname').dirty || additionalPerson.get('lastname').touched)"
                             class="invalid-feedback">

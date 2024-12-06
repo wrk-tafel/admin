@@ -23,6 +23,7 @@ import {
 import {CommonModule} from '@angular/common';
 import {faPencil, faSearch, faUser} from '@fortawesome/free-solid-svg-icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
+import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
 
 @Component({
   selector: 'tafel-customer-search',
@@ -42,7 +43,8 @@ import {FaIconComponent} from '@fortawesome/angular-fontawesome';
     TableDirective,
     ButtonDirective,
     CommonModule,
-    FaIconComponent
+    FaIconComponent,
+    TafelAutofocusDirective
   ],
   standalone: true
 })
