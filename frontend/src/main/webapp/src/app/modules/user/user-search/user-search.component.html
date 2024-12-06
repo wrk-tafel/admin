@@ -78,8 +78,8 @@
                 *ngFor="let user of searchResult.items; let i = index">
               <td><fa-icon [icon]="faUser"></fa-icon></td>
               <td [attr.testid]="'searchresult-id-' + i">{{user.id}}</td>
-              <td [attr.testid]="'searchresult-name-' + i">
-                <a *ngIf="user.lastname || user.firstname" [href]="'/#/benutzer/detail/' + user.id">{{user.lastname ? user.lastname : '-'}} {{user.firstname ? user.firstname : '-'}}</a>
+              <td [attr.testid]="'searchresult-name-' + i" (click)="navigateToUserDetail(user.id)" style="cursor: pointer;">
+                <a *ngIf="user.lastname || user.firstname">{{user.lastname ? user.lastname : '-'}} {{user.firstname ? user.firstname : '-'}}</a>
                 <div *ngIf="!user.lastname && !user.firstname">-</div>
               </td>
               <td [attr.testid]="'searchresult-personnelnumber-' + i">{{user.personnelNumber}}</td>
@@ -88,7 +88,7 @@
                 <div class="d-flex flex-fill gap-2">
                   <button [attr.testid]="'searchresult-showuser-button-' + i"
                           cButton
-                          (click)="navigateToUser(user.id)">
+                          (click)="navigateToUserDetail(user.id)">
                           <fa-icon [icon]="faSearch"></fa-icon>
                   </button>
                   <button [attr.testid]="'searchresult-edituser-button-' + i"
@@ -124,7 +124,7 @@
               <c-card-footer class="d-flex flex-fill gap-2">
                 <button [attr.testid]="'searchresult-showuser-button-' + i"
                         cButton
-                        (click)="navigateToUser(user.id)">
+                        (click)="navigateToUserDetail(user.id)">
                         <fa-icon [icon]="faSearch"></fa-icon>
                 </button>
                 <button [attr.testid]="'searchresult-edituser-button-' + i"

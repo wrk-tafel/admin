@@ -133,7 +133,7 @@ describe('UserSearchComponent', () => {
     const fixture = TestBed.createComponent(UserSearchComponent);
     const component = fixture.componentInstance;
 
-    component.navigateToUser(1);
+    component.navigateToUserDetail(1);
 
     expect(router.navigate).toHaveBeenCalledWith(['/benutzer/detail', 1]);
   });

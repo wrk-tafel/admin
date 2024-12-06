@@ -71,9 +71,13 @@ export class UserSearchComponent {
   searchForPersonnelNumber() {
     /* eslint-disable @typescript-eslint/no-unused-vars */
     const observer = {
-      next: (userData: UserData) => this.router.navigate(['/benutzer/detail', userData.id])
+      next: (userData: UserData) => this.navigateToUserDetail(userData.id)
     };
     this.userApiService.getUserForPersonnelNumber(this.personnelNumber.value).subscribe(observer);
+  }
+
+  navigateToUserDetail(userId: number) {
+    return this.router.navigate(['/benutzer/detail', userId]);
   }
 
   searchForDetails(page?: number) {
@@ -94,10 +98,6 @@ export class UserSearchComponent {
           };
         }
       });
-  }
-
-  navigateToUser(personnelNumber: number) {
-    this.router.navigate(['/benutzer/detail', personnelNumber]);
   }
 
   editUser(personnelNumber: number) {
