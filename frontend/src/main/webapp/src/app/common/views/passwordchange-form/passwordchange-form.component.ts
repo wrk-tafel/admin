@@ -8,14 +8,13 @@ import {NgClass} from '@angular/common';
 import {TafelAutofocusDirective} from '../../directive/tafel-autofocus.directive';
 
 @Component({
-  selector: 'tafel-passwordchange-form',
-  templateUrl: 'passwordchange-form.component.html',
-  imports: [
-    ReactiveFormsModule,
-    NgClass,
-    TafelAutofocusDirective
-  ],
-  standalone: true
+    selector: 'tafel-passwordchange-form',
+    templateUrl: 'passwordchange-form.component.html',
+    imports: [
+        ReactiveFormsModule,
+        NgClass,
+        TafelAutofocusDirective
+    ]
 })
 export class PasswordChangeFormComponent {
   private readonly userApiService = inject(UserApiService);

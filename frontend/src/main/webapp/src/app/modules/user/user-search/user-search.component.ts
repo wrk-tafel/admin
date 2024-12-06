@@ -28,29 +28,28 @@ import {CommonModule} from '@angular/common';
 import {TafelAutofocusDirective} from '../../../common/directive/tafel-autofocus.directive';
 
 @Component({
-  selector: 'tafel-user-search',
-  templateUrl: 'user-search.component.html',
-  imports: [
-    CardComponent,
-    CardBodyComponent,
-    RowComponent,
-    ColComponent,
-    ReactiveFormsModule,
-    TafelPaginationComponent,
-    CardFooterComponent,
-    CardHeaderComponent,
-    InputGroupComponent,
-    FormDirective,
-    FormLabelDirective,
-    FormCheckInputDirective,
-    TableDirective,
-    ButtonDirective,
-    TextColorDirective,
-    FaIconComponent,
-    CommonModule,
-    TafelAutofocusDirective
-  ],
-  standalone: true
+    selector: 'tafel-user-search',
+    templateUrl: 'user-search.component.html',
+    imports: [
+        CardComponent,
+        CardBodyComponent,
+        RowComponent,
+        ColComponent,
+        ReactiveFormsModule,
+        TafelPaginationComponent,
+        CardFooterComponent,
+        CardHeaderComponent,
+        InputGroupComponent,
+        FormDirective,
+        FormLabelDirective,
+        FormCheckInputDirective,
+        TableDirective,
+        ButtonDirective,
+        TextColorDirective,
+        FaIconComponent,
+        CommonModule,
+        TafelAutofocusDirective
+    ]
 })
 export class UserSearchComponent {
   private readonly userApiService = inject(UserApiService);

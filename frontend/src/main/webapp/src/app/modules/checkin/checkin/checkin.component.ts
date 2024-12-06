@@ -28,25 +28,24 @@ import {CommonModule, DatePipe, NgClass} from '@angular/common';
 import {TafelAutofocusDirective} from '../../../common/directive/tafel-autofocus.directive';
 
 @Component({
-  selector: 'tafel-checkin',
-  templateUrl: 'checkin.component.html',
-  imports: [
-    RowComponent,
-    ColComponent,
-    CardComponent,
-    CardBodyComponent,
-    FormsModule,
-    BadgeComponent,
-    DatePipe,
-    CardHeaderComponent,
-    NgClass,
-    CardFooterComponent,
-    ButtonDirective,
-    FormSelectDirective,
-    CommonModule,
-    TafelAutofocusDirective
-  ],
-  standalone: true
+    selector: 'tafel-checkin',
+    templateUrl: 'checkin.component.html',
+    imports: [
+        RowComponent,
+        ColComponent,
+        CardComponent,
+        CardBodyComponent,
+        FormsModule,
+        BadgeComponent,
+        DatePipe,
+        CardHeaderComponent,
+        NgClass,
+        CardFooterComponent,
+        ButtonDirective,
+        FormSelectDirective,
+        CommonModule,
+        TafelAutofocusDirective
+    ]
 })
 export class CheckinComponent implements OnInit, OnDestroy {
   scannerIds: number[];

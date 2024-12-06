@@ -21,26 +21,25 @@ import {GlobalStateService} from '../../state/global-state.service';
 import {DistributionItem} from '../../../api/distribution-api.service';
 
 @Component({
-  selector: 'tafel-default-layout',
-  templateUrl: 'default-layout.component.html',
-  styleUrls: ['default-layout.component.scss'],
-  imports: [
-    SidebarComponent,
-    SidebarHeaderComponent,
-    SidebarBrandComponent,
-    RouterLink,
-    IconDirective,
-    NgScrollbar,
-    SidebarNavComponent,
-    SidebarFooterComponent,
-    SidebarToggleDirective,
-    SidebarTogglerDirective,
-    DefaultHeaderComponent,
-    ShadowOnScrollDirective,
-    ContainerComponent,
-    RouterOutlet
-  ],
-  standalone: true
+    selector: 'tafel-default-layout',
+    templateUrl: 'default-layout.component.html',
+    styleUrls: ['default-layout.component.scss'],
+    imports: [
+        SidebarComponent,
+        SidebarHeaderComponent,
+        SidebarBrandComponent,
+        RouterLink,
+        IconDirective,
+        NgScrollbar,
+        SidebarNavComponent,
+        SidebarFooterComponent,
+        SidebarToggleDirective,
+        SidebarTogglerDirective,
+        DefaultHeaderComponent,
+        ShadowOnScrollDirective,
+        ContainerComponent,
+        RouterOutlet
+    ]
 })
 export class DefaultLayoutComponent implements OnInit {
   public navItems: ITafelNavData[] = navigationMenuItems;

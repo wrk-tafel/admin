@@ -26,32 +26,31 @@ import {FontAwesomeModule} from '@fortawesome/angular-fontawesome';
 import {faKey, faLock} from '@fortawesome/free-solid-svg-icons';
 
 @Component({
-  selector: 'app-default-header',
-  templateUrl: './default-header.component.html',
-  imports: [
-    ContainerComponent,
-    SidebarToggleDirective,
-    HeaderNavComponent,
-    DropdownComponent,
-    DropdownToggleDirective,
-    AvatarComponent,
-    RouterLink,
-    HeaderTogglerDirective,
-    IconDirective,
-    ButtonDirective,
-    TextColorDirective,
-    NgTemplateOutlet,
-    DropdownMenuDirective,
-    DropdownHeaderDirective,
-    DropdownItemDirective,
-    DropdownDividerDirective,
-    NavItemComponent,
-    BadgeComponent,
-    NavLinkDirective,
-    RouterLinkActive,
-    FontAwesomeModule
-  ],
-  standalone: true
+    selector: 'app-default-header',
+    templateUrl: './default-header.component.html',
+    imports: [
+        ContainerComponent,
+        SidebarToggleDirective,
+        HeaderNavComponent,
+        DropdownComponent,
+        DropdownToggleDirective,
+        AvatarComponent,
+        RouterLink,
+        HeaderTogglerDirective,
+        IconDirective,
+        ButtonDirective,
+        TextColorDirective,
+        NgTemplateOutlet,
+        DropdownMenuDirective,
+        DropdownHeaderDirective,
+        DropdownItemDirective,
+        DropdownDividerDirective,
+        NavItemComponent,
+        BadgeComponent,
+        NavLinkDirective,
+        RouterLinkActive,
+        FontAwesomeModule
+    ]
 })
 export class DefaultHeaderComponent extends HeaderComponent {
   @Input() sidebarId = 'sidebar';

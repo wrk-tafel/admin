@@ -8,19 +8,18 @@ import {ButtonDirective, CardBodyComponent, CardComponent, ColComponent, RowComp
 import {NgClass} from '@angular/common';
 
 @Component({
-  selector: 'tafel-ticket-screen-control',
-  templateUrl: 'ticket-screen-control.component.html',
-  imports: [
-    CardComponent,
-    CardBodyComponent,
-    RowComponent,
-    ColComponent,
-    ReactiveFormsModule,
-    NgClass,
-    TicketScreenComponent,
-    ButtonDirective
-  ],
-  standalone: true
+    selector: 'tafel-ticket-screen-control',
+    templateUrl: 'ticket-screen-control.component.html',
+    imports: [
+        CardComponent,
+        CardBodyComponent,
+        RowComponent,
+        ColComponent,
+        ReactiveFormsModule,
+        NgClass,
+        TicketScreenComponent,
+        ButtonDirective
+    ]
 })
 export class TicketScreenControlComponent {
   private readonly websocketService = inject(WebsocketService);

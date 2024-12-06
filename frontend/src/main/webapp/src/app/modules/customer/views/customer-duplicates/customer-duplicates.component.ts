@@ -25,23 +25,22 @@ import {faCheck, faMagnifyingGlass, faTrashCan} from '@fortawesome/free-solid-sv
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 
 @Component({
-  selector: 'tafel-customer-duplicates',
-  templateUrl: 'customer-duplicates.component.html',
-  imports: [
-    CardComponent,
-    CardHeaderComponent,
-    CardBodyComponent,
-    RowComponent,
-    ColComponent,
-    TafelPaginationComponent,
-    DatePipe,
-    NgClass,
-    ButtonDirective,
-    NgIf,
-    NgForOf,
-    FaIconComponent
-  ],
-  standalone: true
+    selector: 'tafel-customer-duplicates',
+    templateUrl: 'customer-duplicates.component.html',
+    imports: [
+        CardComponent,
+        CardHeaderComponent,
+        CardBodyComponent,
+        RowComponent,
+        ColComponent,
+        TafelPaginationComponent,
+        DatePipe,
+        NgClass,
+        ButtonDirective,
+        NgIf,
+        NgForOf,
+        FaIconComponent
+    ]
 })
 export class CustomerDuplicatesComponent implements OnInit {
   @Input() customerDuplicatesData: CustomerDuplicatesResponse;

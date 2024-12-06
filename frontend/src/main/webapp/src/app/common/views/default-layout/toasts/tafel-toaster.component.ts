@@ -13,21 +13,20 @@ import {Subject} from 'rxjs';
 import {NgClass, NgStyle} from '@angular/common';
 
 @Component({
-  selector: 'tafel-toaster',
-  templateUrl: 'tafel-toaster.component.html',
-  imports: [
-    ToasterComponent,
-    ToasterComponent,
-    NgClass,
-    ToasterComponent,
-    ToastBodyComponent,
-    ToastComponent,
-    ToastHeaderComponent,
-    BgColorDirective,
-    TextColorDirective,
-    NgStyle
-  ],
-  standalone: true
+    selector: 'tafel-toaster',
+    templateUrl: 'tafel-toaster.component.html',
+    imports: [
+        ToasterComponent,
+        ToasterComponent,
+        NgClass,
+        ToasterComponent,
+        ToastBodyComponent,
+        ToastComponent,
+        ToastHeaderComponent,
+        BgColorDirective,
+        TextColorDirective,
+        NgStyle
+    ]
 })
 export class TafelToasterComponent implements OnInit {
   @ViewChild(ToasterComponent) toaster: ToasterComponent;

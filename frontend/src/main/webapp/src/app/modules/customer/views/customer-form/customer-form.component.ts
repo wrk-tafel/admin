@@ -31,25 +31,24 @@ import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
 
 @Component({
-  selector: 'tafel-customer-form',
-  templateUrl: 'customer-form.component.html',
-  imports: [
-    ReactiveFormsModule,
-    InputGroupComponent,
-    CardComponent,
-    CardHeaderComponent,
-    RowComponent,
-    ColComponent,
-    CardBodyComponent,
-    CardFooterComponent,
-    CommonModule,
-    InputGroupTextDirective,
-    FormSelectDirective,
-    ButtonDirective,
-    FaIconComponent,
-    TafelAutofocusDirective
-  ],
-  standalone: true
+    selector: 'tafel-customer-form',
+    templateUrl: 'customer-form.component.html',
+    imports: [
+        ReactiveFormsModule,
+        InputGroupComponent,
+        CardComponent,
+        CardHeaderComponent,
+        RowComponent,
+        ColComponent,
+        CardBodyComponent,
+        CardFooterComponent,
+        CommonModule,
+        InputGroupTextDirective,
+        FormSelectDirective,
+        ButtonDirective,
+        FaIconComponent,
+        TafelAutofocusDirective
+    ]
 })
 export class CustomerFormComponent implements OnInit {
   @Input() editMode = false;

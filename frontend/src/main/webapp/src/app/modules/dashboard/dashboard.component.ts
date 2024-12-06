@@ -7,17 +7,16 @@ import {RegisteredCustomersComponent} from './components/registered-customers/re
 import {TafelIfPermissionDirective} from '../../common/security/tafel-if-permission.directive';
 
 @Component({
-  selector: 'tafel-dashboard',
-  templateUrl: 'dashboard.component.html',
-  imports: [
-    RowComponent,
-    ColComponent,
-    DistributionStateComponent,
-    RegisteredCustomersComponent,
-    TafelIfPermissionDirective,
-    ButtonDirective
-  ],
-  standalone: true
+    selector: 'tafel-dashboard',
+    templateUrl: 'dashboard.component.html',
+    imports: [
+        RowComponent,
+        ColComponent,
+        DistributionStateComponent,
+        RegisteredCustomersComponent,
+        TafelIfPermissionDirective,
+        ButtonDirective
+    ]
 })
 export class DashboardComponent implements OnInit {
   data: DashboardData;

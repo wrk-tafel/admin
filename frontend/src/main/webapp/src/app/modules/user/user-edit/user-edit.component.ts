@@ -6,14 +6,13 @@ import {NgClass} from '@angular/common';
 import {ButtonDirective} from '@coreui/angular';
 
 @Component({
-  selector: 'tafel-user-edit',
-  templateUrl: 'user-edit.component.html',
-  imports: [
-    UserFormComponent,
-    NgClass,
-    ButtonDirective
-  ],
-  standalone: true
+    selector: 'tafel-user-edit',
+    templateUrl: 'user-edit.component.html',
+    imports: [
+        UserFormComponent,
+        NgClass,
+        ButtonDirective
+    ]
 })
 export class UserEditComponent implements OnInit {
   @Input() permissionsData: UserPermission[];

@@ -14,23 +14,22 @@ import {
 import {NgIf} from '@angular/common';
 
 @Component({
-  selector: 'tafel-distribution-state',
-  templateUrl: 'distribution-state.component.html',
-  imports: [
-    CardComponent,
-    CardHeaderComponent,
-    CardBodyComponent,
-    RowComponent,
-    ColComponent,
-    ModalComponent,
-    ModalHeaderComponent,
-    ModalToggleDirective,
-    ModalBodyComponent,
-    NgIf,
-    ButtonDirective,
-    ButtonCloseDirective
-  ],
-  standalone: true
+    selector: 'tafel-distribution-state',
+    templateUrl: 'distribution-state.component.html',
+    imports: [
+        CardComponent,
+        CardHeaderComponent,
+        CardBodyComponent,
+        RowComponent,
+        ColComponent,
+        ModalComponent,
+        ModalHeaderComponent,
+        ModalToggleDirective,
+        ModalBodyComponent,
+        NgIf,
+        ButtonDirective,
+        ButtonCloseDirective
+    ]
 })
 export class DistributionStateComponent implements OnInit {
   distribution: DistributionItem;

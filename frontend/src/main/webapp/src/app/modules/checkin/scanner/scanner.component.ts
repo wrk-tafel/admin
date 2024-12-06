@@ -16,22 +16,21 @@ import {FormsModule} from '@angular/forms';
 import {CommonModule} from '@angular/common';
 
 @Component({
-  selector: 'tafel-scanner',
-  templateUrl: 'scanner.component.html',
-  imports: [
-    RowComponent,
-    ColComponent,
-    CardComponent,
-    CardBodyComponent,
-    BadgeComponent,
-    FormsModule,
-    FormSelectDirective,
-    CommonModule
-  ],
-  providers: [
-    QRCodeReaderService
-  ],
-  standalone: true
+    selector: 'tafel-scanner',
+    templateUrl: 'scanner.component.html',
+    imports: [
+        RowComponent,
+        ColComponent,
+        CardComponent,
+        CardBodyComponent,
+        BadgeComponent,
+        FormsModule,
+        FormSelectDirective,
+        CommonModule
+    ],
+    providers: [
+        QRCodeReaderService
+    ]
 })
 export class ScannerComponent implements OnInit, OnDestroy {
   private readonly qrCodeReaderService = inject(QRCodeReaderService);
