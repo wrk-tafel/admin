@@ -74,7 +74,7 @@
                             <td><fa-icon [icon]="faUser"></fa-icon></td>
                             <td [attr.testid]="'searchresult-id-' + i">{{customer.id}}</td>
                             <td [attr.testid]="'searchresult-name-' + i">
-                              <a *ngIf="customer.lastname || customer.firstname" [href]="'/#/kunden/detail/' + customer.id">{{customer.lastname ? customer.lastname : '-'}} {{customer.firstname ? customer.firstname : '-'}}</a>
+                              <a *ngIf="customer.lastname || customer.firstname" style="cursor: pointer;" (click)="navigateToCustomer(customer.id)">{{customer.lastname ? customer.lastname : '-'}} {{customer.firstname ? customer.firstname : '-'}}</a>
                               <div *ngIf="!customer.lastname && !customer.firstname">-</div>
                             </td>
                             <td [attr.testid]="'searchresult-birthDate-' + i">{{!customer.birthDate ? '-' : customer.birthDate | date : 'dd.MM.yyyy'}}</td>
