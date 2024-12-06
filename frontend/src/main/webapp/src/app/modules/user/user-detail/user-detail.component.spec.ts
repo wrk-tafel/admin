@@ -78,7 +78,7 @@ describe('UserDetailComponent', () => {
     component.userData = mockUser;
     fixture.detectChanges();
 
-    expect(getTextByTestId(fixture, 'nameText')).toBe(`${mockUser.firstname} ${mockUser.lastname}`);
+    expect(getTextByTestId(fixture, 'nameText')).toBe(`${mockUser.lastname} ${mockUser.firstname}`);
     expect(getTextByTestId(fixture, 'usernameText')).toBe(mockUser.username);
     expect(getTextByTestId(fixture, 'personnelNumberText')).toBe(mockUser.personnelNumber);
     expect(getTextByTestId(fixture, 'passwordChangeRequiredText')).toBe('Ja');

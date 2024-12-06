@@ -69,9 +69,13 @@ export class CustomerSearchComponent {
 
     /* eslint-disable @typescript-eslint/no-unused-vars */
     const observer = {
-      next: (response) => this.router.navigate(['/kunden/detail', customerId])
+      next: (response) => this.navigateToCustomerDetail(customerId)
     };
     this.customerApiService.getCustomer(customerId).subscribe(observer);
+  }
+
+  private navigateToCustomerDetail(customerId: number) {
+    return this.router.navigate(['/kunden/detail', customerId]);
   }
 
   searchForDetails(page?: number) {
@@ -95,7 +99,7 @@ export class CustomerSearchComponent {
   }
 
   navigateToCustomer(customerId: number) {
-    this.router.navigate(['/kunden/detail', customerId]);
+    this.navigateToCustomerDetail(customerId)
   }
 
   editCustomer(customerId: number) {
