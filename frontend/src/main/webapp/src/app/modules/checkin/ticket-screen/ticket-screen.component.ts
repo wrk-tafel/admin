@@ -1,21 +1,19 @@
 import {Component, inject, OnInit} from '@angular/core';
 import {WebsocketService} from '../../../common/websocket/websocket.service';
 import {IMessage} from '@stomp/stompjs';
-import {BgColorDirective, ColComponent, ContainerComponent, RowComponent} from '@coreui/angular';
-import {DatePipe, NgIf} from '@angular/common';
+import {ColComponent, ContainerComponent, RowComponent} from '@coreui/angular';
+import {CommonModule} from '@angular/common';
 
 @Component({
   selector: 'tafel-ticket-screen',
   templateUrl: 'ticket-screen.component.html',
+  standalone: true,
   imports: [
     ContainerComponent,
     RowComponent,
     ColComponent,
-    DatePipe,
-    BgColorDirective,
-    NgIf
-  ],
-  standalone: true
+    CommonModule
+  ]
 })
 export class TicketScreenComponent implements OnInit {
   startTime: Date;

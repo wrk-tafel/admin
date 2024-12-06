@@ -3,7 +3,6 @@ import {UserApiService, UserData} from '../../../api/user-api.service';
 import {Router} from '@angular/router';
 import {ToastService, ToastType} from '../../../common/views/default-layout/toasts/toast.service';
 import {
-  ButtonDirective,
   CardBodyComponent,
   CardComponent,
   ColComponent,
@@ -14,26 +13,24 @@ import {
   DropdownToggleDirective,
   RowComponent
 } from '@coreui/angular';
-import {CommonModule, NgClass} from '@angular/common';
+import {CommonModule} from '@angular/common';
 
 @Component({
   selector: 'tafel-user-detail',
   templateUrl: 'user-detail.component.html',
+  standalone: true,
   imports: [
     DropdownComponent,
     CardComponent,
     CardBodyComponent,
     RowComponent,
     ColComponent,
-    NgClass,
     DropdownItemDirective,
-    ButtonDirective,
     DropdownToggleDirective,
     DropdownMenuDirective,
     DropdownDividerDirective,
     CommonModule
-  ],
-  standalone: true
+  ]
 })
 export class UserDetailComponent {
   @Input() userData: UserData;

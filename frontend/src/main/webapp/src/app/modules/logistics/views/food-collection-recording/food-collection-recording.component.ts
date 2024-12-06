@@ -33,29 +33,28 @@ import {
 import {ToastService, ToastType} from "../../../../common/views/default-layout/toasts/toast.service";
 
 @Component({
-  selector: 'tafel-food-collection-recording',
-  templateUrl: 'food-collection-recording.component.html',
-  imports: [
-    CommonModule,
-    CardComponent,
-    CardBodyComponent,
-    CardHeaderComponent,
-    FormSelectDirective,
-    ReactiveFormsModule,
-    RowComponent,
-    ColComponent,
-    FormsModule,
-    ButtonDirective,
-    InputGroupComponent,
-    FaIconComponent,
-    InputGroupTextDirective,
-    TableDirective,
-    TafelEmployeeSearchCreateComponent,
-    TextColorDirective,
-    CardFooterComponent,
-    TableColorDirective
-  ],
-  standalone: true
+    selector: 'tafel-food-collection-recording',
+    templateUrl: 'food-collection-recording.component.html',
+    imports: [
+        CommonModule,
+        CardComponent,
+        CardBodyComponent,
+        CardHeaderComponent,
+        FormSelectDirective,
+        ReactiveFormsModule,
+        RowComponent,
+        ColComponent,
+        FormsModule,
+        ButtonDirective,
+        InputGroupComponent,
+        FaIconComponent,
+        InputGroupTextDirective,
+        TableDirective,
+        TafelEmployeeSearchCreateComponent,
+        TextColorDirective,
+        CardFooterComponent,
+        TableColorDirective
+    ]
 })
 export class FoodCollectionRecordingComponent implements OnInit {
   @ViewChild("driverEmployeeSearchCreate") driverEmployeeSearchCreate: TafelEmployeeSearchCreateComponent

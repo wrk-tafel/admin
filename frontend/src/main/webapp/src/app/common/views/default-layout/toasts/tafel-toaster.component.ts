@@ -1,33 +1,18 @@
 import {Component, inject, OnInit, ViewChild} from '@angular/core';
 import {ToastOptions, ToastService, ToastType} from './toast.service';
-import {
-  BgColorDirective,
-  TextColorDirective,
-  ToastBodyComponent,
-  ToastComponent,
-  ToasterComponent,
-  ToastHeaderComponent
-} from '@coreui/angular';
+import {ToasterComponent} from '@coreui/angular';
 import {TafelToastComponent} from './toast/tafel-toast.component';
 import {Subject} from 'rxjs';
-import {NgClass, NgStyle} from '@angular/common';
+import {CommonModule} from '@angular/common';
 
 @Component({
   selector: 'tafel-toaster',
   templateUrl: 'tafel-toaster.component.html',
+  standalone: true,
   imports: [
     ToasterComponent,
-    ToasterComponent,
-    NgClass,
-    ToasterComponent,
-    ToastBodyComponent,
-    ToastComponent,
-    ToastHeaderComponent,
-    BgColorDirective,
-    TextColorDirective,
-    NgStyle
-  ],
-  standalone: true
+    CommonModule,
+  ]
 })
 export class TafelToasterComponent implements OnInit {
   @ViewChild(ToasterComponent) toaster: ToasterComponent;

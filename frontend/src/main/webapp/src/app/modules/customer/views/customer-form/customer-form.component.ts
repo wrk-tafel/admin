@@ -4,7 +4,7 @@ import {CountryApiService, CountryData} from '../../../../api/country-api.servic
 import {CustomValidator} from '../../../../common/validator/CustomValidator';
 import {CustomerAddPersonData, CustomerData, Gender, GenderLabel} from '../../../../api/customer-api.service';
 import {v4 as uuidv4} from 'uuid';
-import * as moment from 'moment';
+import moment from 'moment';
 import {CommonModule} from '@angular/common';
 import {
   ButtonDirective,
@@ -33,6 +33,7 @@ import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofo
 @Component({
   selector: 'tafel-customer-form',
   templateUrl: 'customer-form.component.html',
+  standalone: true,
   imports: [
     ReactiveFormsModule,
     InputGroupComponent,
@@ -48,8 +49,7 @@ import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofo
     ButtonDirective,
     FaIconComponent,
     TafelAutofocusDirective
-  ],
-  standalone: true
+  ]
 })
 export class CustomerFormComponent implements OnInit {
   @Input() editMode = false;
