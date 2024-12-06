@@ -9,12 +9,15 @@ import {GlobalStateService} from '../../../common/state/global-state.service';
 import {Router} from '@angular/router';
 import {DistributionApiService} from '../../../api/distribution-api.service';
 import {
-  BadgeComponent, ButtonDirective,
+  BadgeComponent,
+  ButtonDirective,
   CardBodyComponent,
-  CardComponent, CardFooterComponent,
+  CardComponent,
+  CardFooterComponent,
   CardHeaderComponent,
   ColComponent,
-  Colors, FormSelectDirective,
+  Colors,
+  FormSelectDirective,
   RowComponent
 } from '@coreui/angular';
 import {DistributionTicketApiService} from '../../../api/distribution-ticket-api.service';
@@ -22,6 +25,7 @@ import {ToastService, ToastType} from '../../../common/views/default-layout/toas
 import {WebsocketService} from '../../../common/websocket/websocket.service';
 import {FormsModule} from '@angular/forms';
 import {CommonModule, DatePipe, NgClass} from '@angular/common';
+import {TafelAutofocusDirective} from '../../../common/directive/tafel-autofocus.directive';
 
 @Component({
   selector: 'tafel-checkin',
@@ -39,7 +43,8 @@ import {CommonModule, DatePipe, NgClass} from '@angular/common';
     CardFooterComponent,
     ButtonDirective,
     FormSelectDirective,
-    CommonModule
+    CommonModule,
+    TafelAutofocusDirective
   ],
   standalone: true
 })

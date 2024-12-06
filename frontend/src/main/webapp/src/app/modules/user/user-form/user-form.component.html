@@ -9,7 +9,7 @@
           <div class="row">
             <div class="col-sm">
               <label class="form-label">Benutzername *</label>
-              <input cFormControl formControlName="username" testid="usernameInput" type="text"
+              <input cFormControl formControlName="username" testid="usernameInput" type="text" tafelAutofocus
                      [ngClass]="{'is-invalid': username.invalid && (username.dirty || username.touched), 'is-valid': username.valid && (username.dirty || username.touched)}">
               <div *ngIf="username.errors?.required && (username.dirty || username.touched)"
                    class="invalid-feedback">

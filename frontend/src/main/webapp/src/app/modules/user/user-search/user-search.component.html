@@ -14,7 +14,7 @@
       <c-row>
         <c-col sm="3" class="mb-3">
           <input testid="personnelNumberText" type="text" formControlName="personnelNumber" name="personnelNumber"
-                 class="form-control" autofocus (keydown.enter)="searchForPersonnelNumber()">
+                 class="form-control" (keydown.enter)="searchForPersonnelNumber()" tafelAutofocus>
         </c-col>
         <c-col sm="3">
           <button testid="showuser-button" cButton

@@ -5,13 +5,15 @@ import {catchError, map} from 'rxjs/operators';
 import {Observable, throwError} from 'rxjs';
 import {HttpErrorResponse} from '@angular/common/http';
 import {NgClass} from '@angular/common';
+import {TafelAutofocusDirective} from '../../directive/tafel-autofocus.directive';
 
 @Component({
   selector: 'tafel-passwordchange-form',
   templateUrl: 'passwordchange-form.component.html',
   imports: [
     ReactiveFormsModule,
-    NgClass
+    NgClass,
+    TafelAutofocusDirective
   ],
   standalone: true
 })

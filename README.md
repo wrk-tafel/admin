@@ -14,7 +14,6 @@
 * impro 1: Show additional persons on checkin page (could reduce id-card details afterwards)
 * impro 4: Open detail page when clicking on name (customer and user)
 * impro 5: scanner-phones, 3d modeling table-holders
-* impro 5: Set initial focus on opening the pages (customer/user-search/creation)
 * impro 5: Maybe decouple reporting from closing? Favor auto-closing, how to deal with multiple distributions?
 
 * duplicates (customers) showing late? - current duplicate already longer there but only shown now

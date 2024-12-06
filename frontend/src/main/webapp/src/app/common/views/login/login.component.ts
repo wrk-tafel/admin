@@ -16,6 +16,7 @@ import {
 } from '@coreui/angular';
 import {IconDirective} from '@coreui/icons-angular';
 import {NgIf, NgOptimizedImage} from '@angular/common';
+import {TafelAutofocusDirective} from '../../directive/tafel-autofocus.directive';
 
 @Component({
   selector: 'tafel-login',
@@ -34,7 +35,8 @@ import {NgIf, NgOptimizedImage} from '@angular/common';
     NgOptimizedImage,
     FormDirective,
     NgIf,
-    ButtonDirective
+    ButtonDirective,
+    TafelAutofocusDirective
   ],
   standalone: true
 })

@@ -28,6 +28,7 @@ import {
   faVenusMars
 } from '@fortawesome/free-solid-svg-icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
+import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
 
 @Component({
   selector: 'tafel-customer-form',
@@ -45,7 +46,8 @@ import {FaIconComponent} from '@fortawesome/angular-fontawesome';
     InputGroupTextDirective,
     FormSelectDirective,
     ButtonDirective,
-    FaIconComponent
+    FaIconComponent,
+    TafelAutofocusDirective
   ],
   standalone: true
 })
