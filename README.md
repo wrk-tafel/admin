@@ -19,7 +19,6 @@
  
 * advanced logging monitor / ticket numbers
 * ticketmonitor control shows nothing when loaded initially
-* dashboard: add current ticket as panel and show overall progress
 
 * customer-creation: Advanced postalCode validation (only numbers from 03. and 01. district / Vienna)
 * Improve creation / enforce search before creating
