@@ -2,7 +2,7 @@ import {ChangeDetectorRef, Component, ElementRef, inject, OnDestroy, OnInit, Vie
 import {CustomerApiService, CustomerData} from '../../../api/customer-api.service';
 import {Subscription} from 'rxjs';
 import {IMessage} from '@stomp/stompjs';
-import * as moment from 'moment';
+import moment from 'moment';
 import {ScannerList} from '../scanner/scanner.component';
 import {CustomerNoteApiService, CustomerNoteItem} from '../../../api/customer-note-api.service';
 import {GlobalStateService} from '../../../common/state/global-state.service';
@@ -24,28 +24,29 @@ import {DistributionTicketApiService} from '../../../api/distribution-ticket-api
 import {ToastService, ToastType} from '../../../common/views/default-layout/toasts/toast.service';
 import {WebsocketService} from '../../../common/websocket/websocket.service';
 import {FormsModule} from '@angular/forms';
-import {CommonModule, DatePipe, NgClass} from '@angular/common';
+import {CommonModule, DatePipe} from '@angular/common';
 import {TafelAutofocusDirective} from '../../../common/directive/tafel-autofocus.directive';
 
 @Component({
-    selector: 'tafel-checkin',
-    templateUrl: 'checkin.component.html',
-    imports: [
-        RowComponent,
-        ColComponent,
-        CardComponent,
-        CardBodyComponent,
-        FormsModule,
-        BadgeComponent,
-        DatePipe,
-        CardHeaderComponent,
-        NgClass,
-        CardFooterComponent,
-        ButtonDirective,
-        FormSelectDirective,
-        CommonModule,
-        TafelAutofocusDirective
-    ]
+  selector: 'tafel-checkin',
+  templateUrl: 'checkin.component.html',
+  standalone: true,
+  imports: [
+    RowComponent,
+    ColComponent,
+    CardComponent,
+    CardBodyComponent,
+    FormsModule,
+    BadgeComponent,
+    DatePipe,
+    CardHeaderComponent,
+    CommonModule,
+    CardFooterComponent,
+    ButtonDirective,
+    FormSelectDirective,
+    CommonModule,
+    TafelAutofocusDirective
+  ]
 })
 export class CheckinComponent implements OnInit, OnDestroy {
   scannerIds: number[];

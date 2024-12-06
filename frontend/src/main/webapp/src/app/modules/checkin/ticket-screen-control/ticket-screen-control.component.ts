@@ -5,21 +5,22 @@ import {TicketScreenComponent, TicketScreenMessage} from '../ticket-screen/ticke
 import {DistributionTicketApiService, TicketNumberResponse} from '../../../api/distribution-ticket-api.service';
 import {UrlHelperService} from '../../../common/util/url-helper.service';
 import {ButtonDirective, CardBodyComponent, CardComponent, ColComponent, RowComponent} from '@coreui/angular';
-import {NgClass} from '@angular/common';
+import {CommonModule} from "@angular/common";
 
 @Component({
-    selector: 'tafel-ticket-screen-control',
-    templateUrl: 'ticket-screen-control.component.html',
-    imports: [
-        CardComponent,
-        CardBodyComponent,
-        RowComponent,
-        ColComponent,
-        ReactiveFormsModule,
-        NgClass,
-        TicketScreenComponent,
-        ButtonDirective
-    ]
+  selector: 'tafel-ticket-screen-control',
+  templateUrl: 'ticket-screen-control.component.html',
+  standalone: true,
+  imports: [
+    CardComponent,
+    CardBodyComponent,
+    RowComponent,
+    ColComponent,
+    ReactiveFormsModule,
+    CommonModule,
+    TicketScreenComponent,
+    ButtonDirective
+  ]
 })
 export class TicketScreenControlComponent {
   private readonly websocketService = inject(WebsocketService);

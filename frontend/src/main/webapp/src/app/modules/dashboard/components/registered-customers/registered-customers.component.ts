@@ -8,17 +8,18 @@ import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {TafelIfDistributionActiveDirective} from '../../../../common/directive/tafel-if-distribution-active.directive';
 
 @Component({
-    selector: 'tafel-registered-customers',
-    templateUrl: 'registered-customers.component.html',
-    imports: [
-        CardComponent,
-        CardBodyComponent,
-        RowComponent,
-        ColComponent,
-        FaIconComponent,
-        ButtonDirective,
-        TafelIfDistributionActiveDirective
-    ]
+  selector: 'tafel-registered-customers',
+  templateUrl: 'registered-customers.component.html',
+  standalone: true,
+  imports: [
+    CardComponent,
+    CardBodyComponent,
+    RowComponent,
+    ColComponent,
+    FaIconComponent,
+    ButtonDirective,
+    TafelIfDistributionActiveDirective
+  ]
 })
 export class RegisteredCustomersComponent {
   @Input() count?: number;

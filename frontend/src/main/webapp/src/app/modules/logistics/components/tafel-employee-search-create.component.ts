@@ -5,9 +5,7 @@ import {
   ButtonCloseDirective,
   ButtonDirective,
   ColComponent,
-  FormSelectDirective,
   InputGroupComponent,
-  InputGroupTextDirective,
   ModalModule,
   RowComponent
 } from '@coreui/angular';
@@ -17,22 +15,21 @@ import {faSearch} from '@fortawesome/free-solid-svg-icons';
 import {EmployeeApiService, EmployeeData} from '../../../api/employee-api.service';
 
 @Component({
-    selector: 'tafel-employee-search-create',
-    templateUrl: 'tafel-employee-search-create.component.html',
-    imports: [
-        ReactiveFormsModule,
-        InputGroupComponent,
-        CommonModule,
-        FaIconComponent,
-        ButtonDirective,
-        ColComponent,
-        FormSelectDirective,
-        InputGroupTextDirective,
-        RowComponent,
-        BgColorDirective,
-        ButtonCloseDirective,
-        ModalModule,
-    ]
+  selector: 'tafel-employee-search-create',
+  templateUrl: 'tafel-employee-search-create.component.html',
+  standalone: true,
+  imports: [
+    ReactiveFormsModule,
+    InputGroupComponent,
+    CommonModule,
+    FaIconComponent,
+    ButtonDirective,
+    ColComponent,
+    RowComponent,
+    BgColorDirective,
+    ButtonCloseDirective,
+    ModalModule,
+  ]
 })
 export class TafelEmployeeSearchCreateComponent {
   searchInput = input.required<string>()

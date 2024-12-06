@@ -1,11 +1,11 @@
 import {TestBed, waitForAsync} from '@angular/core/testing';
-import * as moment from 'moment';
 import {of} from 'rxjs';
 import {CountryApiService} from '../../../../api/country-api.service';
 import {CustomerData, Gender} from '../../../../api/customer-api.service';
 import {CustomerFormComponent} from './customer-form.component';
 import {FormControl, FormGroup, ReactiveFormsModule} from '@angular/forms';
 import {CardModule, ColComponent, InputGroupComponent, RowComponent} from '@coreui/angular';
+import moment from 'moment';
 
 describe('CustomerFormComponent', () => {
   let apiService: jasmine.SpyObj<CountryApiService>;
