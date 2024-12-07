@@ -10,6 +10,8 @@ on:
     secrets:
       SONAR_TOKEN:
         required: true
+      SENTRY_AUTH_TOKEN:
+        required: true
 
 jobs:
   build-test-analyze:
@@ -31,6 +33,8 @@ jobs:
           cache: 'maven'
       - name: Build and Test
         run: ./mvnw --fail-at-end clean install
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
       - name: Analyze
         run: ./mvnw -Dsonar.projectKey=wrk-tafel-admin -Dsonar.organization=wrk-tafel -Dsonar.token=${{ secrets.SONAR_TOKEN }} sonar:sonar
       - uses: actions/upload-artifact@v4

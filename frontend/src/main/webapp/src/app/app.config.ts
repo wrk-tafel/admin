@@ -1,7 +1,15 @@
-import {APP_INITIALIZER, ApplicationConfig, DEFAULT_CURRENCY_CODE, importProvidersFrom, LOCALE_ID} from '@angular/core';
+import {
+  APP_INITIALIZER,
+  ApplicationConfig,
+  DEFAULT_CURRENCY_CODE,
+  ErrorHandler,
+  importProvidersFrom,
+  LOCALE_ID
+} from '@angular/core';
 import {provideAnimations} from '@angular/platform-browser/animations';
 import {
   provideRouter,
+  Router,
   withComponentInputBinding,
   withHashLocation,
   withInMemoryScrolling,
@@ -19,9 +27,26 @@ import {errorHandlerInterceptor} from './common/http/errorhandler-interceptor.se
 import {apiPathInterceptor} from './common/http/apipath-interceptor.service';
 import {WebsocketService} from './common/websocket/websocket.service';
 import {AuthenticationService} from './common/security/authentication.service';
+import * as Sentry from "@sentry/angular";
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    // Sentry logging / tracing
+    {
+      provide: ErrorHandler,
+      useValue: Sentry.createErrorHandler(),
+    },
+    {
+      provide: Sentry.TraceService,
+      deps: [Router],
+    },
+    {
+      provide: APP_INITIALIZER,
+      useFactory: () => () => {},
+      deps: [Sentry.TraceService],
+      multi: true,
+    },
+    // Sentry logging / tracing
     provideHttpClient(
       withInterceptors([
         apiPathInterceptor,
