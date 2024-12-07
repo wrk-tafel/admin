@@ -10,6 +10,7 @@ jobs:
     uses: ./.github/workflows/subflow_build.yml
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
   e2e-test:
     uses: ./.github/workflows/subflow_e2e_test.yml
     needs: build
