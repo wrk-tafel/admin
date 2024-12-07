@@ -24,6 +24,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -140,11 +141,26 @@ class UserController(
     fun createUser(
         @RequestBody user: User
     ): ResponseEntity<User> {
+        validateIfUserExists(user)
+
         val tafelUser = mapToTafelUser(user)
         userDetailsManager.createUser(tafelUser)
 
         val userResponse = mapToResponse(userDetailsManager.loadUserByUsername(user.username))
         return ResponseEntity.ok(userResponse)
+    }
+
+    private fun validateIfUserExists(user: User) {
+        try {
+            userDetailsManager.loadUserByUsername(user.username)
+            throw TafelValidationException("Benutzer (Benutzername: ${user.username}) existiert bereits!")
+        } catch (_: UsernameNotFoundException) {
+            // ignore
+        }
+
+        userDetailsManager.loadUserByPersonnelNumber(user.personnelNumber)?.let {
+            throw TafelValidationException("Benutzer (Personalnummer: ${user.personnelNumber}) existiert bereits!")
+        }
     }
 
     @PostMapping("/{userId}")
