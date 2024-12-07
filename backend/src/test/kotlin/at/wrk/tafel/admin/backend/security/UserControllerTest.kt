@@ -30,6 +30,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.context.SecurityContextImpl
+import org.springframework.security.core.userdetails.UsernameNotFoundException
 
 @ExtendWith(MockKExtension::class)
 class UserControllerTest {
@@ -220,7 +221,8 @@ class UserControllerTest {
 
     @Test
     fun `create user`() {
-        every { userDetailsManager.loadUserByUsername(any()) } returns testUser
+        every { userDetailsManager.loadUserByUsername(any()) } throws UsernameNotFoundException("dummy") andThen testUser
+        every { userDetailsManager.loadUserByPersonnelNumber(any()) } returns null
 
         val response = controller.createUser(user = testUserApiResponse)
 
@@ -228,6 +230,23 @@ class UserControllerTest {
         assertThat(response.body).isEqualTo(testUserApiResponse)
 
         verify(exactly = 1) { userDetailsManager.createUser(testUser) }
+    }
+
+    @Test
+    fun `create user exists by username`() {
+        every { userDetailsManager.loadUserByUsername(any()) } returns testUser
+
+        val exception = assertThrows<TafelValidationException> { controller.createUser(user = testUserApiResponse) }
+        assertThat(exception.message).isEqualTo("Benutzer (Benutzername: test-username) existiert bereits!")
+    }
+
+    @Test
+    fun `create user exists by personnelNumber`() {
+        every { userDetailsManager.loadUserByUsername(any()) } throws UsernameNotFoundException("dummy")
+        every { userDetailsManager.loadUserByPersonnelNumber(any()) } returns testUser
+
+        val exception = assertThrows<TafelValidationException> { controller.createUser(user = testUserApiResponse) }
+        assertThat(exception.message).isEqualTo("Benutzer (Personalnummer: test-personnelnumber) existiert bereits!")
     }
 
     @Test
@@ -339,11 +358,13 @@ class UserControllerTest {
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
 
         val permissions = response.body?.permissions
-        assertThat(permissions).hasSize(UserPermissions.values().size)
+
+        val userPermissionEntries = UserPermissions.entries
+        assertThat(permissions).hasSize(userPermissionEntries.size)
         assertThat(permissions?.first()).isEqualTo(
             UserPermission(
-                key = UserPermissions.values().first().key,
-                title = UserPermissions.values().first().title
+                key = userPermissionEntries.first().key,
+                title = userPermissionEntries.first().title
             )
         )
     }
