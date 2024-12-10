@@ -32,6 +32,21 @@ statistic:
   * Mitarbeiter Anzahl an diesem Samstag
   * Summe der betreuten Personen in den Notschlafstellen (Wenn es geht eine Addition der beiden Personengruppe unter dem Titel "versorgte Personen")
 
+Christian - Statistik:
+* Anzahl Personen/Mitarbeiter pro Ausgabe
+* Anzahl Personen in NOST
+* Kinder < 3
+* Summe der Haushalte / Kunden (Hauptbezieher)
+* Warenmenge gesamt
+* Km gesamt pro Ausgabe
+
+* JA_TOeT_Spenden_Rohdaten - pro Filiale vor allem zum Filtern wo nichts herkommt
+* Anz. gültige Bezugskarten - Wichtig! Anzahl Personen auch wichtig, Anzahl Kinder
+
+* Extra-Mail Vorkomnisse an Christian (KFZ Hinweis)
+
+* Fixe Autos zur Auswahl
+
 ## LTL
 * Goods recording - implement proper mobile view
 * Goods recording - show only routes for selection without existing data
