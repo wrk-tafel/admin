@@ -5,6 +5,7 @@ import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionItemEntity
+import at.wrk.tafel.admin.backend.database.model.logistics.FoodUnit
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
@@ -126,7 +127,7 @@ class DistributionStatisticService(
         statistic.foodTotalAmount = foodTotalAmount
 
         val foodPerShopAverage =
-            if (shopsWithFoodCount > 0) foodTotalAmount.divide(BigDecimal(shopsWithFoodCount), RoundingMode.HALF_EVEN)
+            if (shopsWithFoodCount > 0) foodTotalAmount.divide(BigDecimal(shopsWithFoodCount), 2, RoundingMode.HALF_EVEN)
             else BigDecimal.ZERO
         statistic.foodPerShopAverage = foodPerShopAverage
 
@@ -137,8 +138,14 @@ class DistributionStatisticService(
 
     private fun calculateWeight(foodCollectionItem: FoodCollectionItemEntity): BigDecimal {
         val amount = foodCollectionItem.amount ?: 0
-        val weightPerUnit = foodCollectionItem.category?.weightPerUnit ?: BigDecimal.ZERO
-        return BigDecimal(amount) * weightPerUnit
+        val unit = foodCollectionItem.shop?.foodUnit ?: FoodUnit.BOX
+
+        return if (unit == FoodUnit.KG) {
+            BigDecimal(amount)
+        } else {
+            val weightPerUnit = foodCollectionItem.category?.weightPerUnit ?: BigDecimal.ZERO
+            BigDecimal(amount) * weightPerUnit
+        }
     }
 
 }

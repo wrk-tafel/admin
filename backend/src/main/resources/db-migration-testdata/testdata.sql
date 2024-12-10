@@ -333,74 +333,74 @@ VALUES (100, NOW(), NOW(), 100, 50, 125, 40, 2.5, 4, 5, 6, 7, 8);
 
 -- shops
 INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
-                   address_postal_code, address_city)
+                   address_postal_code, address_city, food_unit)
 VALUES (1, NOW(), NOW(), 100, 'Billa', '01 23 45 67 89', null,
-        'Fr. Musterfrau', 'Bloch-Bauer-promenade 1', 1100, 'Wien');
+        'Fr. Musterfrau', 'Bloch-Bauer-promenade 1', 1100, 'Wien', 'BOX');
 INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
-                   address_postal_code, address_city)
+                   address_postal_code, address_city, food_unit)
 VALUES (2, NOW(), NOW(), 200, 'Billa Plus', '01 23 45 67 89',
-        'DW 123 od. 456', 'Hr. Mustermann', 'Herzgasse 2', 1110, 'Wien');
+        'DW 123 od. 456', 'Hr. Mustermann', 'Herzgasse 2', 1110, 'Wien', 'BOX');
 INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
-                   address_postal_code, address_city)
+                   address_postal_code, address_city, food_unit)
 VALUES (3, NOW(), NOW(), 300, 'Hofer', '01 23 45 67 89', null,
-        'Fr. Musterfrau', 'Quellenstraße 3', 1120, 'Wien');
+        'Fr. Musterfrau', 'Quellenstraße 3', 1120, 'Wien', 'BOX');
 INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
-                   address_postal_code, address_city)
+                   address_postal_code, address_city, food_unit)
 VALUES (4, NOW(), NOW(), 400, 'Hofer 2', '01 23 45 67 89', null,
-        'Fr. Musterfrau', 'Quellenstraße 3', 1120, 'Wien');
+        'Fr. Musterfrau', 'Quellenstraße 3', 1120, 'Wien', 'BOX');
 INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
-                   address_postal_code, address_city)
+                   address_postal_code, address_city, food_unit)
 VALUES (5, NOW(), NOW(), 500, 'Hofer 3', '01 23 45 67 89', null,
-        'Fr. Musterfrau', 'Quellenstraße 3', 1120, 'Wien');
+        'Fr. Musterfrau', 'Quellenstraße 3', 1120, 'Wien', 'BOX');
 INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
-                   address_postal_code, address_city)
+                   address_postal_code, address_city, food_unit)
 VALUES (6, NOW(), NOW(), 600, 'Hofer 4', '01 23 45 67 89', null,
-        'Fr. Musterfrau', 'Quellenstraße 3', 1120, 'Wien');
+        'Fr. Musterfrau', 'Quellenstraße 3', 1120, 'Wien', 'BOX');
 INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
-                   address_postal_code, address_city)
+                   address_postal_code, address_city, food_unit)
 VALUES (7, NOW(), NOW(), 700, 'Hofer 5', '01 23 45 67 89', null,
-        'Fr. Musterfrau', 'Quellenstraße 3', 1120, 'Wien');
+        'Fr. Musterfrau', 'Quellenstraße 3', 1120, 'Wien', 'BOX');
 INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
-                   address_postal_code, address_city)
+                   address_postal_code, address_city, food_unit)
 VALUES (8, NOW(), NOW(), 800, 'Hofer 6', '01 23 45 67 89', null,
-        'Fr. Musterfrau', 'Quellenstraße 3', 1120, 'Wien');
+        'Fr. Musterfrau', 'Quellenstraße 3', 1120, 'Wien', 'BOX');
 INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
-                   address_postal_code, address_city)
+                   address_postal_code, address_city, food_unit)
 VALUES (9, NOW(), NOW(), 900, 'Hofer 7', '01 23 45 67 89', null,
-        'Fr. Musterfrau', 'Quellenstraße 3', 1120, 'Wien');
+        'Fr. Musterfrau', 'Quellenstraße 3', 1120, 'Wien', 'BOX');
 INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
-                   address_postal_code, address_city)
+                   address_postal_code, address_city, food_unit)
 VALUES (10, NOW(), NOW(), 1000, 'Hofer 8', '01 23 45 67 89', null,
-        'Fr. Musterfrau', 'Quellenstraße 3', 1120, 'Wien');
+        'Fr. Musterfrau', 'Quellenstraße 3', 1120, 'Wien', 'BOX');
 INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
-                   address_postal_code, address_city)
+                   address_postal_code, address_city, food_unit)
 VALUES (11, NOW(), NOW(), 1100, 'Hofer 9', '01 23 45 67 89', null,
-        'Fr. Musterfrau', 'Quellenstraße 3', 1120, 'Wien');
+        'Fr. Musterfrau', 'Quellenstraße 3', 1120, 'Wien', 'BOX');
 INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
-                   address_postal_code, address_city)
+                   address_postal_code, address_city, food_unit)
 VALUES (12, NOW(), NOW(), 1200, 'Denns Biomarkt 10', '01 23 45 67 89', null,
-        'Fr. Musterfrau', 'Quellenstraße 3', 1120, 'Wien');
+        'Fr. Musterfrau', 'Quellenstraße 3', 1120, 'Wien', 'BOX');
 INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
-                   address_postal_code, address_city)
+                   address_postal_code, address_city, food_unit)
 VALUES (13, NOW(), NOW(), 1300, 'Hofer 11', '01 23 45 67 89', null,
-        'Fr. Musterfrau', 'Quellenstraße 3', 1120, 'Wien');
+        'Fr. Musterfrau', 'Quellenstraße 3', 1120, 'Wien', 'BOX');
 INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
-                   address_postal_code, address_city)
+                   address_postal_code, address_city, food_unit)
 VALUES (14, NOW(), NOW(), 1400, 'Hofer 12', '01 23 45 67 89', null,
-        'Fr. Musterfrau', 'Quellenstraße 3', 1120, 'Wien');
+        'Fr. Musterfrau', 'Quellenstraße 3', 1120, 'Wien', 'BOX');
 INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
-                   address_postal_code, address_city)
+                   address_postal_code, address_city, food_unit)
 VALUES (15, NOW(), NOW(), 1500, 'Hofer 13', '01 23 45 67 89', null,
-        'Fr. Musterfrau', 'Quellenstraße 3', 1120, 'Wien');
+        'Fr. Musterfrau', 'Quellenstraße 3', 1120, 'Wien', 'BOX');
 
 INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
-                   address_postal_code, address_city)
+                   address_postal_code, address_city, food_unit)
 VALUES (20, NOW(), NOW(), 2000, 'Lidl', '01 23 45 67 89', null,
-        'Hr. Mustermann', 'Kudlichgasse 4', 1130, 'Wien');
+        'Hr. Mustermann', 'Kudlichgasse 4', 1130, 'Wien', 'BOX');
 INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
-                   address_postal_code, address_city)
+                   address_postal_code, address_city, food_unit)
 VALUES (21, NOW(), NOW(), 2100, 'Denns BioMarkt', '01 23 45 67 89', null,
-        'Fr. Musterfrau', 'Simmeringer Hauptstraße 5', 1140, 'Wien');
+        'Fr. Musterfrau', 'Simmeringer Hauptstraße 5', 1140, 'Wien', 'KG');
 
 -- routes
 INSERT INTO routes (id, created_at, updated_at, number, name, note)

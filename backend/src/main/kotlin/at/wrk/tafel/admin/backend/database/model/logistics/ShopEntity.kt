@@ -5,6 +5,8 @@ import at.wrk.tafel.admin.backend.database.model.base.BaseChangeTrackingEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Embedded
 import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
 import jakarta.persistence.Table
 
 @Entity(name = "Shop")
@@ -29,5 +31,9 @@ class ShopEntity : BaseChangeTrackingEntity() {
 
     @Column(name = "contact_person")
     var contactPerson: String? = null
+
+    @Column(name = "food_unit")
+    @Enumerated(EnumType.STRING)
+    var foodUnit: FoodUnit? = null
 
 }
