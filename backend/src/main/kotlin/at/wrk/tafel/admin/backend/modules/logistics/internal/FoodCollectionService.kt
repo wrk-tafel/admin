@@ -27,6 +27,15 @@ class FoodCollectionService(
 ) {
 
     @Transactional
+    fun getFoodCollectionItems(routeId: Long): List<FoodCollectionItem> {
+        val distribution = distributionRepository.getCurrentDistribution()
+            ?: throw TafelValidationException("Ausgabe nicht gestartet!")
+
+        val foodCollectionsForRoute = distribution.foodCollections.firstOrNull { it.route?.id == routeId }
+        return foodCollectionsForRoute?.let { mapItemsEntityToItems(it.items ?: emptyList()) } ?: emptyList()
+    }
+
+    @Transactional
     fun save(request: FoodCollectionsRequest) {
         val distribution = distributionRepository.getCurrentDistribution()
             ?: throw TafelValidationException("Ausgabe nicht gestartet!")
@@ -55,11 +64,11 @@ class FoodCollectionService(
                 ?: throw TafelValidationException("Ungültiger Beifahrer!")
             kmStart = request.kmStart
             kmEnd = request.kmEnd
-            items = mapItems(request.items)
+            items = mapItemsToEntity(request.items)
         }
     }
 
-    private fun mapItems(items: List<FoodCollectionItem>): List<FoodCollectionItemEntity> {
+    private fun mapItemsToEntity(items: List<FoodCollectionItem>): List<FoodCollectionItemEntity> {
         return items.map {
             FoodCollectionItemEntity().apply {
                 category = foodCategoryRepository.findByIdOrNull(it.categoryId)
@@ -68,6 +77,16 @@ class FoodCollectionService(
                     ?: throw TafelValidationException("Filiale ungültig!")
                 amount = it.amount
             }
+        }
+    }
+
+    private fun mapItemsEntityToItems(items: List<FoodCollectionItemEntity>): List<FoodCollectionItem> {
+        return items.map {
+            FoodCollectionItem(
+                categoryId = it.category!!.id!!,
+                shopId = it.shop!!.id!!,
+                amount = it.amount ?: 0
+            )
         }
     }
 

@@ -19,3 +19,8 @@ data class FoodCollectionItem(
     val shopId: Long,
     val amount: Int
 )
+
+@ExcludeFromTestCoverage
+data class FoodCollectionData(
+    val items: List<FoodCollectionItem>
+)

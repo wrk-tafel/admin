@@ -49,7 +49,6 @@ Christian - Statistik:
 
 ## LTL
 * Goods recording - implement proper mobile view
-* Goods recording - show only routes for selection without existing data
 * Goods recording - tests in FoodCollectionRecordingComponent
 
 * Edit Route / also contact-person needs to be editable
@@ -77,6 +76,10 @@ Christian - Statistik:
 * Move statistics package into reporting?
 * Improve module communication by using async
   events (https://docs.spring.io/spring-modulith/docs/current/reference/html/#events)
+
+### Tech
+* Change all with distribution direct-related apis to /distributions (eg. collections)
+* Create a central interceptor/aspect to handel distribution not active state
 
 # Frontend #
 

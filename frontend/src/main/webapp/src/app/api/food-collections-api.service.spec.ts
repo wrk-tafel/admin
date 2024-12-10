@@ -2,7 +2,7 @@ import {HttpTestingController, provideHttpClientTesting} from '@angular/common/h
 import {TestBed} from '@angular/core/testing';
 import {ReactiveFormsModule} from '@angular/forms';
 import {provideHttpClient} from '@angular/common/http';
-import {FoodCollectionData, FoodCollectionsApiService} from "./food-collections-api.service";
+import {FoodCollectionData, FoodCollectionsApiService, FoodCollectionSaveRequest} from "./food-collections-api.service";
 
 describe('FoodCollectionsApiService', () => {
   let httpMock: HttpTestingController;
@@ -22,8 +22,28 @@ describe('FoodCollectionsApiService', () => {
     apiService = TestBed.inject(FoodCollectionsApiService);
   });
 
+  it('get food collection', () => {
+    const routeId = 123
+    const mockFoodCollectionData: FoodCollectionData = {
+      items: [
+        {categoryId: 0, shopId: 0, amount: 0},
+        {categoryId: 1, shopId: 0, amount: 1},
+        {categoryId: 0, shopId: 1, amount: 2},
+        {categoryId: 1, shopId: 1, amount: 3},
+      ]
+    };
+
+    apiService.getFoodCollection(routeId).subscribe((data: FoodCollectionData) => {
+      expect(data).toEqual(mockFoodCollectionData);
+    });
+
+    const req = httpMock.expectOne({method: 'GET', url: `/food-collections/route/${routeId}`});
+    req.flush(mockFoodCollectionData);
+    httpMock.verify();
+  });
+
   it('save collection', () => {
-    const mockFoodCollection: FoodCollectionData = {
+    const mockFoodCollection: FoodCollectionSaveRequest = {
       routeId: 1,
       carLicensePlate: "W-X123-AB",
       driverId: 2,
