@@ -1,6 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.logistics.internal
 
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
+import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCategoryRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionEntity
@@ -16,6 +17,7 @@ import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCollectionItem
 import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCollectionsRequest
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCategory1
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCategory2
+import at.wrk.tafel.admin.backend.modules.logistics.testFoodCollectionRoute1Entity
 import at.wrk.tafel.admin.backend.modules.logistics.testRoute1
 import at.wrk.tafel.admin.backend.modules.logistics.testShop1
 import at.wrk.tafel.admin.backend.modules.logistics.testShop2
@@ -55,6 +57,42 @@ class FoodCollectionServiceTest {
 
     @InjectMockKs
     private lateinit var service: FoodCollectionService
+
+    @Test
+    fun `get food collection items`() {
+        val routeId = testFoodCollectionRoute1Entity.route!!.id!!
+
+        val distributionMock = mockk<DistributionEntity>()
+        every { distributionMock.foodCollections } returns listOf(testFoodCollectionRoute1Entity)
+        every { distributionRepository.getCurrentDistribution() } returns distributionMock
+
+        val items = service.getFoodCollectionItems(routeId)
+        assertThat(items).hasSize(testFoodCollectionRoute1Entity.items!!.size)
+
+        assertThat(items[1]).isEqualTo(
+            FoodCollectionItem(
+                categoryId = 1,
+                shopId = 2,
+                amount = 2
+            )
+        )
+        assertThat(items[2]).isEqualTo(
+            FoodCollectionItem(
+                categoryId = 2,
+                shopId = 1,
+                amount = 0
+            )
+        )
+    }
+
+    @Test
+    fun `get food collection items without open distribution`() {
+        val routeId = testFoodCollectionRoute1Entity.route!!.id!!
+        every { distributionRepository.getCurrentDistribution() } returns null
+
+        val exception = assertThrows<TafelValidationException> { service.getFoodCollectionItems(routeId) }
+        assertThat(exception.message).isEqualTo("Ausgabe nicht gestartet!")
+    }
 
     @Test
     fun `save without open distribution`() {

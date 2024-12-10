@@ -39,36 +39,36 @@ describe('Food Collection Recording', () => {
           cy.byTestId('codriver-search-create-save-button').click();
         });
 
-      cy.byTestId('category-1-shop-20-input').type('1');
-      cy.byTestId('category-1-shop-21-input').type('1');
-      cy.byTestId('category-2-shop-20-input').type('1');
-      cy.byTestId('category-2-shop-21-input').type('1');
-      cy.byTestId('category-3-shop-20-input').type('1');
-      cy.byTestId('category-3-shop-21-input').type('1');
-      cy.byTestId('category-4-shop-20-input').type('1');
-      cy.byTestId('category-4-shop-21-input').type('1');
-      cy.byTestId('category-5-shop-20-input').type('1');
-      cy.byTestId('category-5-shop-21-input').type('1');
-      cy.byTestId('category-6-shop-20-input').type('1');
-      cy.byTestId('category-6-shop-21-input').type('1');
-      cy.byTestId('category-7-shop-20-input').type('1');
-      cy.byTestId('category-7-shop-21-input').type('1');
-      cy.byTestId('category-8-shop-20-input').type('1');
-      cy.byTestId('category-8-shop-21-input').type('1');
-      cy.byTestId('category-9-shop-20-input').type('1');
-      cy.byTestId('category-9-shop-21-input').type('1');
-      cy.byTestId('category-10-shop-20-input').type('1');
-      cy.byTestId('category-10-shop-21-input').type('1');
-      cy.byTestId('category-11-shop-20-input').type('1');
-      cy.byTestId('category-11-shop-21-input').type('1');
-      cy.byTestId('category-12-shop-20-input').type('1');
-      cy.byTestId('category-12-shop-21-input').type('1');
-      cy.byTestId('category-13-shop-20-input').type('1');
-      cy.byTestId('category-13-shop-21-input').type('1');
-      cy.byTestId('category-14-shop-20-input').type('1');
-      cy.byTestId('category-14-shop-21-input').type('1');
-      cy.byTestId('category-15-shop-20-input').type('1');
-      cy.byTestId('category-15-shop-21-input').type('1');
+      cy.byTestId('category-1-shop-20-input').clear().type('12');
+      cy.byTestId('category-1-shop-21-input').clear().type('1');
+      cy.byTestId('category-2-shop-20-input').clear().type('1');
+      cy.byTestId('category-2-shop-21-input').clear().type('1');
+      cy.byTestId('category-3-shop-20-input').clear().type('1');
+      cy.byTestId('category-3-shop-21-input').clear().type('1');
+      cy.byTestId('category-4-shop-20-input').clear().type('1');
+      cy.byTestId('category-4-shop-21-input').clear().type('1');
+      cy.byTestId('category-5-shop-20-input').clear().type('1');
+      cy.byTestId('category-5-shop-21-input').clear().type('1');
+      cy.byTestId('category-6-shop-20-input').clear().type('1');
+      cy.byTestId('category-6-shop-21-input').clear().type('1');
+      cy.byTestId('category-7-shop-20-input').clear().type('1');
+      cy.byTestId('category-7-shop-21-input').clear().type('1');
+      cy.byTestId('category-8-shop-20-input').clear().type('1');
+      cy.byTestId('category-8-shop-21-input').clear().type('1');
+      cy.byTestId('category-9-shop-20-input').clear().type('1');
+      cy.byTestId('category-9-shop-21-input').clear().type('1');
+      cy.byTestId('category-10-shop-20-input').clear().type('1');
+      cy.byTestId('category-10-shop-21-input').clear().type('1');
+      cy.byTestId('category-11-shop-20-input').clear().type('1');
+      cy.byTestId('category-11-shop-21-input').clear().type('1');
+      cy.byTestId('category-12-shop-20-input').clear().type('1');
+      cy.byTestId('category-12-shop-21-input').clear().type('1');
+      cy.byTestId('category-13-shop-20-input').clear().type('1');
+      cy.byTestId('category-13-shop-21-input').clear().type('1');
+      cy.byTestId('category-14-shop-20-input').clear().type('1');
+      cy.byTestId('category-14-shop-21-input').clear().type('1');
+      cy.byTestId('category-15-shop-20-input').clear().type('1');
+      cy.byTestId('category-15-shop-21-input').clear().type('1');
 
       cy.byTestId('save-button').click();
 
@@ -79,6 +79,10 @@ describe('Food Collection Recording', () => {
         });
 
       cy.url().should('include', '/logistik/warenerfassung');
+
+      // check if existing data is filled again
+      cy.byTestId('routeInput').select('Route 2');
+      cy.byTestId('category-1-shop-20-input').should('have.value', '12');
     });
   });
 

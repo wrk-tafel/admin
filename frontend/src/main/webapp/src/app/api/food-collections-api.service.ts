@@ -8,13 +8,17 @@ import {Observable} from 'rxjs';
 export class FoodCollectionsApiService {
   private readonly http = inject(HttpClient);
 
-  saveFoodCollection(data: FoodCollectionData): Observable<void> {
+  getFoodCollection(routeId: number): Observable<FoodCollectionData> {
+    return this.http.get<FoodCollectionData>(`/food-collections/route/${routeId}`);
+  }
+
+  saveFoodCollection(data: FoodCollectionSaveRequest): Observable<void> {
     return this.http.post<void>('/food-collections', data);
   }
 
 }
 
-export interface FoodCollectionData {
+export interface FoodCollectionSaveRequest {
   routeId: number;
   carLicensePlate: string;
   driverId: number;
@@ -28,4 +32,8 @@ export interface FoodCollectionItem {
   categoryId: number;
   shopId: number;
   amount: number;
+}
+
+export interface FoodCollectionData {
+  items: FoodCollectionItem[];
 }

@@ -101,7 +101,7 @@ val testFoodCollectionRoute1Entity = FoodCollectionEntity().apply {
         FoodCollectionItemEntity().apply {
             category = testFoodCategory2
             shop = testShop1
-            amount = 0
+            amount = null
         },
         FoodCollectionItemEntity().apply {
             category = testFoodCategory2

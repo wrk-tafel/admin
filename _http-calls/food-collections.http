@@ -22,3 +22,6 @@ Content-Type: application/json
     }
   ]
 }
+
+### Get collected food for route X
+GET {{baseApiPath}}/food-collections/route/1
