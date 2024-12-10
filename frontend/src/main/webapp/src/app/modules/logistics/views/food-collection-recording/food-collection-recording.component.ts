@@ -30,7 +30,7 @@ import {
   FoodCollectionItem,
   FoodCollectionsApiService
 } from '../../../../api/food-collections-api.service';
-import {ToastService, ToastType} from "../../../../common/views/default-layout/toasts/toast.service";
+import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
 
 @Component({
   selector: 'tafel-food-collection-recording',
@@ -58,8 +58,8 @@ import {ToastService, ToastType} from "../../../../common/views/default-layout/t
   standalone: true
 })
 export class FoodCollectionRecordingComponent implements OnInit {
-  @ViewChild("driverEmployeeSearchCreate") driverEmployeeSearchCreate: TafelEmployeeSearchCreateComponent
-  @ViewChild("coDriverEmployeeSearchCreate") coDriverEmployeeSearchCreate: TafelEmployeeSearchCreateComponent
+  @ViewChild('driverEmployeeSearchCreate') driverEmployeeSearchCreate: TafelEmployeeSearchCreateComponent
+  @ViewChild('coDriverEmployeeSearchCreate') coDriverEmployeeSearchCreate: TafelEmployeeSearchCreateComponent
 
   routeList = model.required<RouteList>();
   foodCategories = model.required<FoodCategory[]>();
@@ -139,7 +139,7 @@ export class FoodCollectionRecordingComponent implements OnInit {
           selectedRoute.shops.map((shop) =>
             this.fb.group({
               shopId: this.fb.control<number>(shop.id, {nonNullable: true}),
-              amount: this.fb.control<number | null>(null, [Validators.required, Validators.min(0)]),
+              amount: this.fb.control<number>(0, [Validators.required, Validators.min(0)]),
             })
           )
         ),
@@ -200,13 +200,13 @@ export class FoodCollectionRecordingComponent implements OnInit {
 
   private mapItemsFromCategories(): FoodCollectionItem[] {
     return this.categories.controls.flatMap((formGroup) => {
-      const categoryId = formGroup.get('categoryId')!.value;
+      const categoryId = formGroup.get('categoryId').value;
       const shops = (formGroup.get('shops') as FormArray).controls;
 
       return shops.map((shopGroup) => ({
         categoryId,
-        shopId: shopGroup.get('shopId')!.value,
-        amount: shopGroup.get('amount')!.value!,
+        shopId: shopGroup.get('shopId').value,
+        amount: shopGroup.get('amount').value!,
       }));
     });
   }
