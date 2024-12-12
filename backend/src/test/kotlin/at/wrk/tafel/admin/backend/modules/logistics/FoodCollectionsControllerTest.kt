@@ -1,11 +1,15 @@
 package at.wrk.tafel.admin.backend.modules.logistics
 
 import at.wrk.tafel.admin.backend.modules.logistics.internal.FoodCollectionService
+import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCollectionData
+import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCollectionItem
 import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCollectionsRequest
+import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.verify
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 
@@ -13,10 +17,31 @@ import org.junit.jupiter.api.extension.ExtendWith
 class FoodCollectionsControllerTest {
 
     @RelaxedMockK
-    private lateinit var foodCollectionService: FoodCollectionService
+    private lateinit var service: FoodCollectionService
 
     @InjectMockKs
-    private lateinit var foodCollectionsController: FoodCollectionsController
+    private lateinit var controller: FoodCollectionsController
+
+    @Test
+    fun `get food collection`() {
+        val distributionId = 123L
+        val routeId = 456L
+        val foodCollectionItem = FoodCollectionItem(
+            categoryId = 1,
+            shopId = 2,
+            amount = 3
+        )
+
+        every { service.getFoodCollectionItems(routeId) } returns listOf(foodCollectionItem)
+
+        val foodCollectionData = controller.getFoodCollection(routeId)
+
+        assertThat(foodCollectionData).isEqualTo(
+            FoodCollectionData(
+                items = listOf(foodCollectionItem)
+            )
+        )
+    }
 
     @Test
     fun `saves food collection`() {
@@ -30,9 +55,9 @@ class FoodCollectionsControllerTest {
             items = emptyList()
         )
 
-        foodCollectionsController.saveFoodCollection(request)
+        controller.saveFoodCollection(request)
 
-        verify(exactly = 1) { foodCollectionService.save(request) }
+        verify(exactly = 1) { service.save(request) }
     }
 
 }

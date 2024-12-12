@@ -3,6 +3,7 @@ package at.wrk.tafel.admin.backend.modules.logistics
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCategoryEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionItemEntity
+import at.wrk.tafel.admin.backend.database.model.logistics.FoodUnit
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteStopEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.ShopEntity
@@ -27,6 +28,7 @@ val testShop3 = ShopEntity().apply {
     id = 3
     number = 3
     name = "Hofer 2"
+    foodUnit = FoodUnit.KG
 }
 
 val testRoute1 = RouteEntity().apply {
@@ -99,7 +101,7 @@ val testFoodCollectionRoute1Entity = FoodCollectionEntity().apply {
         FoodCollectionItemEntity().apply {
             category = testFoodCategory2
             shop = testShop1
-            amount = 0
+            amount = null
         },
         FoodCollectionItemEntity().apply {
             category = testFoodCategory2
