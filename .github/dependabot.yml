@@ -18,16 +18,18 @@ updates:
     ignore:
       # Wait for coreui to be updated and support Angular 19
       - dependency-name: "@angular*"
-        versions: [ "19.x" ]
+        versions: [ ">=19" ]
       - dependency-name: "@coreui*"
-        versions: [ "5.3.x" ]
+        versions: [ ">=5.3" ]
       - dependency-name: "@fortawesome*"
-        versions: [ "19.x" ]
+        versions: [ ">=19" ]
       - dependency-name: "ngx-cookie-service"
-        versions: [ "19.x" ]
+        versions: [ ">=19" ]
         # keep it matching the node version
       - dependency-name: "@types/node"
-        versions: [ "21.x" ]
+        versions: [ ">=21" ]
+      - dependency-name: "typescript"
+        versions: [ ">=5.5" ]
   # Maintain dependencies for GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/.github/workflows"
