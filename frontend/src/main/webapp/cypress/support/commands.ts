@@ -25,7 +25,7 @@
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
 
 import Chainable = Cypress.Chainable;
-import * as moment from 'moment/moment';
+import moment from 'moment';
 
 Cypress.Commands.add('byTestId', (id) => cy.get(`[testid="${id}"]`));
 

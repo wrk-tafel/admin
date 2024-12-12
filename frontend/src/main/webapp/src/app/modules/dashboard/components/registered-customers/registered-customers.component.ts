@@ -10,6 +10,7 @@ import {TafelIfDistributionActiveDirective} from '../../../../common/directive/t
 @Component({
   selector: 'tafel-registered-customers',
   templateUrl: 'registered-customers.component.html',
+  standalone: true,
   imports: [
     CardComponent,
     CardBodyComponent,
@@ -18,8 +19,7 @@ import {TafelIfDistributionActiveDirective} from '../../../../common/directive/t
     FaIconComponent,
     ButtonDirective,
     TafelIfDistributionActiveDirective
-  ],
-  standalone: true
+  ]
 })
 export class RegisteredCustomersComponent {
   @Input() count?: number;

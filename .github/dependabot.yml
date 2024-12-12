@@ -16,20 +16,9 @@ updates:
       interval: "daily"
     open-pull-requests-limit: 50
     ignore:
-      # Wait for coreui to be updated and support Angular 19
-      - dependency-name: "@angular*"
-        versions: [ ">=19" ]
-      - dependency-name: "@coreui*"
-        versions: [ ">=5.3" ]
-      - dependency-name: "@fortawesome*"
-        versions: [ ">=19" ]
-      - dependency-name: "ngx-cookie-service"
-        versions: [ ">=19" ]
-        # keep it matching the node version
-      - dependency-name: "@types/node"
-        versions: [ ">=21" ]
+      # Angular 19 supports only typescript 5.6.x
       - dependency-name: "typescript"
-        versions: [ ">=5.5" ]
+        versions: [ "5.7.x" ]
   # Maintain dependencies for GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/.github/workflows"

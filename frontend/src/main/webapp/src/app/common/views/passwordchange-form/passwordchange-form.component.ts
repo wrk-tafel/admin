@@ -4,18 +4,18 @@ import {ChangePasswordRequest, ChangePasswordResponse, UserApiService} from '../
 import {catchError, map} from 'rxjs/operators';
 import {Observable, throwError} from 'rxjs';
 import {HttpErrorResponse} from '@angular/common/http';
-import {NgClass} from '@angular/common';
+import {CommonModule} from '@angular/common';
 import {TafelAutofocusDirective} from '../../directive/tafel-autofocus.directive';
 
 @Component({
   selector: 'tafel-passwordchange-form',
   templateUrl: 'passwordchange-form.component.html',
+  standalone: true,
   imports: [
     ReactiveFormsModule,
-    NgClass,
+    CommonModule,
     TafelAutofocusDirective
-  ],
-  standalone: true
+  ]
 })
 export class PasswordChangeFormComponent {
   private readonly userApiService = inject(UserApiService);

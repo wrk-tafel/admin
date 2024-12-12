@@ -7,8 +7,11 @@ import {
   CardBodyComponent,
   CardComponent,
   CardHeaderComponent,
-  ColComponent, ModalBodyComponent,
-  ModalComponent, ModalHeaderComponent, ModalToggleDirective,
+  ColComponent,
+  ModalBodyComponent,
+  ModalComponent,
+  ModalHeaderComponent,
+  ModalToggleDirective,
   RowComponent
 } from '@coreui/angular';
 import {NgIf} from '@angular/common';
@@ -16,6 +19,7 @@ import {NgIf} from '@angular/common';
 @Component({
   selector: 'tafel-distribution-state',
   templateUrl: 'distribution-state.component.html',
+  standalone: true,
   imports: [
     CardComponent,
     CardHeaderComponent,
@@ -29,8 +33,7 @@ import {NgIf} from '@angular/common';
     NgIf,
     ButtonDirective,
     ButtonCloseDirective
-  ],
-  standalone: true
+  ]
 })
 export class DistributionStateComponent implements OnInit {
   distribution: DistributionItem;
