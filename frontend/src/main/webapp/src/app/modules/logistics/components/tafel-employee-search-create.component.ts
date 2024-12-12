@@ -5,9 +5,7 @@ import {
   ButtonCloseDirective,
   ButtonDirective,
   ColComponent,
-  FormSelectDirective,
   InputGroupComponent,
-  InputGroupTextDirective,
   ModalModule,
   RowComponent
 } from '@coreui/angular';
@@ -19,6 +17,7 @@ import {EmployeeApiService, EmployeeData} from '../../../api/employee-api.servic
 @Component({
   selector: 'tafel-employee-search-create',
   templateUrl: 'tafel-employee-search-create.component.html',
+  standalone: true,
   imports: [
     ReactiveFormsModule,
     InputGroupComponent,
@@ -26,14 +25,11 @@ import {EmployeeApiService, EmployeeData} from '../../../api/employee-api.servic
     FaIconComponent,
     ButtonDirective,
     ColComponent,
-    FormSelectDirective,
-    InputGroupTextDirective,
     RowComponent,
     BgColorDirective,
     ButtonCloseDirective,
     ModalModule,
-  ],
-  standalone: true
+  ]
 })
 export class TafelEmployeeSearchCreateComponent {
   searchInput = input.required<string>()

@@ -10,23 +10,17 @@ import {
   TafelPaginationComponent,
   TafelPaginationData
 } from '../../../../common/components/tafel-pagination/tafel-pagination.component';
-import * as moment from 'moment/moment';
+import moment from 'moment';
 import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
-import {
-  ButtonDirective,
-  CardBodyComponent,
-  CardComponent,
-  CardHeaderComponent,
-  ColComponent,
-  RowComponent
-} from '@coreui/angular';
-import {DatePipe, NgClass, NgForOf, NgIf} from '@angular/common';
+import {CardBodyComponent, CardComponent, CardHeaderComponent, ColComponent, RowComponent} from '@coreui/angular';
+import {CommonModule} from '@angular/common';
 import {faCheck, faMagnifyingGlass, faTrashCan} from '@fortawesome/free-solid-svg-icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 
 @Component({
   selector: 'tafel-customer-duplicates',
   templateUrl: 'customer-duplicates.component.html',
+  standalone: true,
   imports: [
     CardComponent,
     CardHeaderComponent,
@@ -34,14 +28,9 @@ import {FaIconComponent} from '@fortawesome/angular-fontawesome';
     RowComponent,
     ColComponent,
     TafelPaginationComponent,
-    DatePipe,
-    NgClass,
-    ButtonDirective,
-    NgIf,
-    NgForOf,
-    FaIconComponent
-  ],
-  standalone: true
+    FaIconComponent,
+    CommonModule
+  ]
 })
 export class CustomerDuplicatesComponent implements OnInit {
   @Input() customerDuplicatesData: CustomerDuplicatesResponse;

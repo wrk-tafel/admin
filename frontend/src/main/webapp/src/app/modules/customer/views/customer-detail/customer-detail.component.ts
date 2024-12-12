@@ -1,6 +1,6 @@
 import {Component, inject, Input, OnInit} from '@angular/core';
 import {Router, RouterLink} from '@angular/router';
-import * as moment from 'moment';
+import moment from 'moment';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
 import {
   CustomerAddressData,
@@ -12,7 +12,8 @@ import {
 } from '../../../../api/customer-api.service';
 import {HttpResponse} from '@angular/common/http';
 import {
-  CustomerNoteApiService, CustomerNoteItem,
+  CustomerNoteApiService,
+  CustomerNoteItem,
   CustomerNotesResponse
 } from '../../../../api/customer-note-api.service';
 import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
@@ -54,42 +55,41 @@ import {faPlus, faUsers} from '@fortawesome/free-solid-svg-icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 
 @Component({
-  selector: 'tafel-customer-detail',
-  templateUrl: 'customer-detail.component.html',
-  imports: [
-    CommonModule,
-    DropdownComponent,
-    NavComponent,
-    NavItemComponent,
-    TabContentRefDirective,
-    RouterLink,
-    TabContentComponent,
-    TabPaneComponent,
-    CardComponent,
-    CardHeaderComponent,
-    RowComponent,
-    ColComponent,
-    CardBodyComponent,
-    CardFooterComponent,
-    ModalComponent,
-    ModalHeaderComponent,
-    ModalToggleDirective,
-    ModalBodyComponent,
-    ModalFooterComponent,
-    TafelPaginationComponent,
-    FormsModule,
-    BgColorDirective,
-    ButtonCloseDirective,
-    ButtonDirective,
-    DropdownToggleDirective,
-    DropdownMenuDirective,
-    DropdownItemDirective,
-    DropdownDividerDirective,
-    NavLinkDirective,
-    RoundedDirective,
-    FaIconComponent,
-  ],
-  standalone: true
+    selector: 'tafel-customer-detail',
+    templateUrl: 'customer-detail.component.html',
+    imports: [
+        CommonModule,
+        DropdownComponent,
+        NavComponent,
+        NavItemComponent,
+        TabContentRefDirective,
+        RouterLink,
+        TabContentComponent,
+        TabPaneComponent,
+        CardComponent,
+        CardHeaderComponent,
+        RowComponent,
+        ColComponent,
+        CardBodyComponent,
+        CardFooterComponent,
+        ModalComponent,
+        ModalHeaderComponent,
+        ModalToggleDirective,
+        ModalBodyComponent,
+        ModalFooterComponent,
+        TafelPaginationComponent,
+        FormsModule,
+        BgColorDirective,
+        ButtonCloseDirective,
+        ButtonDirective,
+        DropdownToggleDirective,
+        DropdownMenuDirective,
+        DropdownItemDirective,
+        DropdownDividerDirective,
+        NavLinkDirective,
+        RoundedDirective,
+        FaIconComponent,
+    ]
 })
 export class CustomerDetailComponent implements OnInit {
   @Input('customerData') customerData: CustomerData;

@@ -1,8 +1,6 @@
 import {Component, inject, OnInit} from '@angular/core';
 import {RouterLink, RouterOutlet} from '@angular/router';
 import {NgScrollbar} from 'ngx-scrollbar';
-
-import {IconDirective} from '@coreui/icons-angular';
 import {
   ContainerComponent,
   ShadowOnScrollDirective,
@@ -24,12 +22,12 @@ import {DistributionItem} from '../../../api/distribution-api.service';
   selector: 'tafel-default-layout',
   templateUrl: 'default-layout.component.html',
   styleUrls: ['default-layout.component.scss'],
+  standalone: true,
   imports: [
     SidebarComponent,
     SidebarHeaderComponent,
     SidebarBrandComponent,
     RouterLink,
-    IconDirective,
     NgScrollbar,
     SidebarNavComponent,
     SidebarFooterComponent,
@@ -39,8 +37,7 @@ import {DistributionItem} from '../../../api/distribution-api.service';
     ShadowOnScrollDirective,
     ContainerComponent,
     RouterOutlet
-  ],
-  standalone: true
+  ]
 })
 export class DefaultLayoutComponent implements OnInit {
   public navItems: ITafelNavData[] = navigationMenuItems;

@@ -4,12 +4,12 @@ import {PageItemDirective, PageLinkDirective, PaginationComponent} from '@coreui
 @Component({
   selector: 'tafel-pagination',
   templateUrl: 'tafel-pagination.component.html',
+  standalone: true,
   imports: [
     PaginationComponent,
     PageItemDirective,
     PageLinkDirective
-  ],
-  standalone: true
+  ]
 })
 export class TafelPaginationComponent {
   @Input() align: 'start' | 'center' | 'end' | '' = '';
