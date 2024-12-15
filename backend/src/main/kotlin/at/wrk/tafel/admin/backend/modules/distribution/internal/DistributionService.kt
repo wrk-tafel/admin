@@ -2,11 +2,11 @@ package at.wrk.tafel.admin.backend.modules.distribution.internal
 
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.common.pdf.PDFService
-import at.wrk.tafel.admin.backend.database.model.distribution.DistributionCustomerEntity
-import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.customer.CustomerRepository
+import at.wrk.tafel.admin.backend.database.model.distribution.DistributionCustomerEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionCustomerRepository
+import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.CustomerListItem
@@ -154,6 +154,14 @@ class DistributionService(
     fun closeDistribution() {
         val currentDistribution = distributionRepository.getCurrentDistribution()
             ?: throw TafelValidationException("Ausgabe nicht gestartet!")
+
+        // validate if statistic data exists
+        val employeeCount = currentDistribution.employeeCount ?: 0
+        val personsInShelterCount = currentDistribution.personsInShelterCount ?: 0
+        if (employeeCount == 0 || personsInShelterCount == 0) {
+            throw TafelValidationException("Statistik-Daten fehlen!")
+        }
+
         val authenticatedUser = SecurityContextHolder.getContext().authentication as? TafelJwtAuthentication
 
         transactionTemplate.executeWithoutResult {
@@ -203,6 +211,16 @@ class DistributionService(
                 countInfants = countInfants ?: 0
             )
         }
+    }
+
+    fun updateDistributionStatisticData(employeeCount: Int, personsInShelterCount: Int) {
+        val currentDistribution = distributionRepository.getCurrentDistribution()
+            ?: throw TafelValidationException("Ausgabe nicht gestartet!")
+
+        currentDistribution.employeeCount = employeeCount
+        currentDistribution.personsInShelterCount = personsInShelterCount
+
+        distributionRepository.save(currentDistribution)
     }
 
 }

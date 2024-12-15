@@ -5,6 +5,10 @@ import {ButtonDirective, ColComponent, RowComponent} from '@coreui/angular';
 import {DistributionStateComponent} from './components/distribution-state/distribution-state.component';
 import {RegisteredCustomersComponent} from './components/registered-customers/registered-customers.component';
 import {TafelIfPermissionDirective} from '../../common/security/tafel-if-permission.directive';
+import {
+  DistributionStatisticsInputComponent
+} from './components/distribution-statistics-input/distribution-statistics-input.component';
+import {TafelIfDistributionActiveDirective} from '../../common/directive/tafel-if-distribution-active.directive';
 
 @Component({
   selector: 'tafel-dashboard',
@@ -15,7 +19,9 @@ import {TafelIfPermissionDirective} from '../../common/security/tafel-if-permiss
     DistributionStateComponent,
     RegisteredCustomersComponent,
     TafelIfPermissionDirective,
-    ButtonDirective
+    ButtonDirective,
+    DistributionStatisticsInputComponent,
+    TafelIfDistributionActiveDirective
   ],
   standalone: true
 })

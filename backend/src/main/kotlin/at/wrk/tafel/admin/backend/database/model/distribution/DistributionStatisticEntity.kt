@@ -60,4 +60,10 @@ class DistributionStatisticEntity : BaseChangeTrackingEntity() {
     @Column(name = "routes_length_km")
     var routesLengthKm: Int? = null
 
+    @Column(name = "employee_count")
+    var employeeCount: Int? = null
+
+    @Column(name = "persons_in_shelter_count")
+    var personsInShelterCount: Int? = null
+
 }

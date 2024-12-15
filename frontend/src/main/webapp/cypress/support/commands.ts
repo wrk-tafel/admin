@@ -79,6 +79,12 @@ Cypress.Commands.add('addCustomerToDistribution', (request: AddCustomerToDistrib
 Cypress.Commands.add('closeDistribution', () => {
   cy.request({
     method: 'POST',
+    url: '/api/distributions/statistics',
+    body: { employeeCount: 100, personsInShelterCount: 200 }
+  });
+
+  cy.request({
+    method: 'POST',
     url: '/api/distributions/close'
   });
 });

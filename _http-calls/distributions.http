@@ -13,5 +13,14 @@ Content-Type: application/json
   "ticketNumber": 100
 }
 
+### Save statistic data to distribution
+POST {{baseApiPath}}/distributions/statistics
+Content-Type: application/json
+
+{
+  "employeeCount": 100,
+  "personsInShelterCount": 200
+}
+
 ### Get customer list (pdf)
 GET {{baseApiPath}}/distributions/customers/generate-pdf

@@ -24,6 +24,12 @@ class DistributionEntity : BaseChangeTrackingEntity() {
     @Column(name = "ended_at")
     var endedAt: LocalDateTime? = null
 
+    @Column(name = "employee_count")
+    var employeeCount: Int? = null
+
+    @Column(name = "persons_in_shelter_count")
+    var personsInShelterCount: Int? = null
+
     @ManyToOne
     @JoinColumn(name = "startedby_userid", nullable = false)
     var startedByUser: UserEntity? = null

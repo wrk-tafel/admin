@@ -1,24 +1,26 @@
-<c-card class="h-100">
-  <c-card-header class="fw-bold">Status</c-card-header>
+<c-card class="h-100" [color]="distribution ? 'success' : 'primary'" textColor="white">
   <c-card-body>
     <c-row>
-      <c-col testid="distribution-state-text" class="fw-bold">
-        <h4>{{distribution ? 'Geöffnet' : 'Inaktiv'}}</h4>
+      <c-col class="fw-bold">
+        <h4>Status</h4>
       </c-col>
     </c-row>
     <c-row>
-      <c-col>
-        <button *ngIf="!distribution" cButton
-                testid="distribution-start-button"
-                (click)="createNewDistribution()">--> Tag starten
-        </button>
-        <button *ngIf="distribution" cButton
-                testid="distribution-close-button"
-                (click)="showCloseDistributionModal = true">--> Tag beenden
-        </button>
+      <c-col testid="distribution-state-text" class="fw-bold">
+        <h1>{{distribution ? 'Geöffnet' : 'Geschlossen'}}</h1>
       </c-col>
     </c-row>
   </c-card-body>
+  <c-card-footer>
+    <button *ngIf="!distribution" cButton color="light"
+            testid="distribution-start-button"
+            (click)="createNewDistribution()">Tag starten
+    </button>
+    <button *ngIf="distribution" cButton color="light"
+            testid="distribution-close-button"
+            (click)="showCloseDistributionModal = true">Tag beenden
+    </button>
+  </c-card-footer>
 </c-card>
 <c-modal id="closeDistributionModal" #closeDistributionModal testid="distribution-close-modal"
          [(visible)]="showCloseDistributionModal">

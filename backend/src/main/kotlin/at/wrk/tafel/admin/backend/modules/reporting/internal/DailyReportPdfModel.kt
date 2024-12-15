@@ -11,6 +11,9 @@ data class DailyReportPdfModel(
     val logoBytes: ByteArray,
     val date: String,
 
+    val employeeCount: Int,
+    val personsInShelterCount: Int,
+
     val countCustomers: Int,
     val countPersons: Int,
     val countInfants: Int,

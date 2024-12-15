@@ -6,6 +6,7 @@ import at.wrk.tafel.admin.backend.modules.distribution.internal.DistributionServ
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.AssignCustomerRequest
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionItem
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionItemResponse
+import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionStatisticData
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.InputStreamResource
 import org.springframework.http.HttpHeaders
@@ -14,7 +15,6 @@ import org.springframework.http.ResponseEntity
 import org.springframework.messaging.handler.annotation.MessageMapping
 import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.messaging.simp.annotation.SubscribeMapping
-import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
@@ -35,15 +35,6 @@ class DistributionController(
         private val logger = LoggerFactory.getLogger(DistributionController::class.java)
     }
 
-    @Scheduled(cron = "0 50 23 * * *")
-    fun autoCloseDistribution() {
-        val currentDistribution = service.getCurrentDistribution()
-        if (currentDistribution != null) {
-            logger.info("Distribution still open - auto-closing it")
-            service.closeDistribution()
-        }
-    }
-
     @PostMapping("/new")
     @PreAuthorize("hasAuthority('DISTRIBUTION_LCM')")
     fun createNewDistribution() {
@@ -59,6 +50,13 @@ class DistributionController(
     fun getCurrentDistribution(): DistributionItemResponse {
         val distribution = service.getCurrentDistribution()
         return DistributionItemResponse(distribution = distribution?.let { mapDistribution(it) })
+    }
+
+    @PostMapping("/statistics")
+    @PreAuthorize("hasAuthority('DISTRIBUTION_LCM')")
+    fun saveDistributionStatistic(@RequestBody statisticData: DistributionStatisticData): ResponseEntity<Unit> {
+        service.updateDistributionStatisticData(statisticData.employeeCount, statisticData.personsInShelterCount)
+        return ResponseEntity.ok().build()
     }
 
     @PostMapping("/close")

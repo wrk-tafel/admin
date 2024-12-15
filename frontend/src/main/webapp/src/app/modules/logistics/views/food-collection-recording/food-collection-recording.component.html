@@ -63,7 +63,7 @@
             }
             @if (kmStart.errors?.min && (kmStart.dirty || kmStart.touched)) {
               <div class="invalid-feedback">
-                Muss größer als 0 sein
+                Muss mindestens 1 sein
               </div>
             }
           </c-input-group>
@@ -83,7 +83,7 @@
             }
             @if (kmEnd.errors?.min && (kmEnd.dirty || kmEnd.touched)) {
               <div class="invalid-feedback">
-                Muss größer als 0 sein
+                Muss mindestens 1 sein
               </div>
             }
             @if (kmEnd.errors?.kmValidation && (kmEnd.dirty || kmEnd.touched)) {

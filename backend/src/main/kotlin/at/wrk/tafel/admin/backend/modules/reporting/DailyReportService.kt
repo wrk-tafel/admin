@@ -30,6 +30,9 @@ class DailyReportService(
             logoBytes = logoBytes,
             date = formatDate(statistic),
 
+            employeeCount = statistic.employeeCount!!,
+            personsInShelterCount = statistic.personsInShelterCount!!,
+
             countCustomers = statistic.countCustomers!!,
             countPersons = statistic.countPersons!!,
             countInfants = statistic.countInfants!!,

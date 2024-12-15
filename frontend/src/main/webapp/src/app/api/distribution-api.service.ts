@@ -37,6 +37,14 @@ export class DistributionApiService {
     return this.http.post<void>('/distributions/customers', body);
   }
 
+  saveStatisticData(employeeCount: number, personsInShelterCount: number): Observable<void> {
+    const body: SaveDistributionStatisticRequest = {
+      employeeCount: employeeCount,
+      personsInShelterCount: personsInShelterCount
+    };
+    return this.http.post<void>('/distributions/statistics', body);
+  }
+
   downloadCustomerList(): Observable<HttpResponse<Blob>> {
     return this.http.get('/distributions/customers/generate-pdf',
       {
@@ -58,4 +66,9 @@ export interface DistributionItem {
 export interface AssignCustomerRequest {
   customerId: number;
   ticketNumber: number;
+}
+
+export interface SaveDistributionStatisticRequest {
+  employeeCount: number;
+  personsInShelterCount: number;
 }

@@ -9,23 +9,26 @@ describe('Dashboard', () => {
   });
 
   it('create and stop distribution', () => {
-    cy.byTestId('distribution-state-text').should('have.text', 'Inaktiv');
+    cy.byTestId('distribution-state-text').should('have.text', 'Geschlossen');
 
     // create distribution (event) - OPEN
     cy.byTestId('distribution-start-button').click();
     cy.byTestId('distribution-state-text').should('have.text', 'Geöffnet');
 
+    // fill statistics
+    cy.byTestId('distribution-statistics-employee-count-input').type('100');
+    cy.byTestId('distribution-statistics-persons-in-shelter-input').type('200');
+    cy.byTestId('distribution-statistics-save-button').click();
+
     // --> CLOSED
     cy.byTestId('distribution-close-button').click();
     cy.byTestId('distribution-close-modal-ok-button').click();
-    cy.byTestId('distribution-state-text').should('have.text', 'Inaktiv');
+    cy.byTestId('distribution-state-text').should('have.text', 'Geschlossen');
   });
 
   it('download customer list', () => {
     cy.byTestId('download-customerlist-button').should('not.exist');
-
-    // create a new distribution
-    cy.byTestId('distribution-start-button').click();
+    cy.createDistribution();
 
     const downloadCustomerListButton = cy.byTestId('download-customerlist-button');
     downloadCustomerListButton.should('be.visible');
@@ -39,8 +42,7 @@ describe('Dashboard', () => {
       .should((buffer: string | any[]) => expect(buffer.length).to.be.gt(5000));
 
     // --> CLOSED
-    cy.byTestId('distribution-close-button').click();
-    cy.byTestId('distribution-close-modal-ok-button').click();
+    cy.closeDistribution();
   });
 
 });

@@ -322,14 +322,14 @@ INSERT INTO static_values(id, created_at, updated_at, type, valid_from, valid_to
 VALUES (21, NOW(), NOW(), 'SIBLING-ADDITION', '1900-01-01', '2999-12-31', 52.00, 7);
 
 -- distribution-related
-INSERT INTO distributions (id, created_at, updated_at, started_at, ended_at, startedby_userid, endedby_userid)
-VALUES (100, NOW(), NOW(), '2023-07-01 14:00:00.000000', '2023-07-01 23:00:00.000000', 300, 300);
+INSERT INTO distributions (id, created_at, updated_at, started_at, ended_at, startedby_userid, endedby_userid, employee_count, persons_in_shelter_count)
+VALUES (100, NOW(), NOW(), '2023-07-01 14:00:00.000000', '2023-07-01 23:00:00.000000', 300, 300, 100, 200);
 INSERT INTO distributions_statistics (id, created_at, updated_at, distribution_id, count_customers,
                                       count_persons, count_infants, average_persons_per_customer,
                                       count_customers_new, count_persons_new,
                                       count_customers_prolonged, count_persons_prolonged,
-                                      count_customers_updated)
-VALUES (100, NOW(), NOW(), 100, 50, 125, 40, 2.5, 4, 5, 6, 7, 8);
+                                      count_customers_updated, employee_count, persons_in_shelter_count)
+VALUES (100, NOW(), NOW(), 100, 50, 125, 40, 2.5, 4, 5, 6, 7, 8, 100, 200);
 
 -- shops
 INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
