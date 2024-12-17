@@ -43,7 +43,7 @@
     "@fortawesome/angular-fontawesome": "0.15.0",
     "@fortawesome/free-brands-svg-icons": "6.7.1",
     "@fortawesome/free-regular-svg-icons": "6.7.1",
-    "@fortawesome/free-solid-svg-icons": "6.7.1",
+    "@fortawesome/free-solid-svg-icons": "6.7.2",
     "@stomp/rx-stomp": "2.0.0",
     "@types/websocket": "1.0.10",
     "bootstrap": "5.3.3",
