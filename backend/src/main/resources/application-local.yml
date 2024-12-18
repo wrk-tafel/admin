@@ -38,7 +38,7 @@ tafeladmin:
       bcc:
         - "bcc1@localhost"
         - "bcc2@localhost"
-    statisticfiles:
+    statistic:
       to:
         - "to1@localhost"
         - "to2@localhost"

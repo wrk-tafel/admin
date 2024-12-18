@@ -25,7 +25,7 @@ class DistributionPostProcessorService(
     private val transactionTemplate: TransactionTemplate,
     private val distributionRepository: DistributionRepository,
     private val tafelAdminProperties: TafelAdminProperties,
-    private val statisticFilesExportService: StatisticExportService
+    private val statisticExportService: StatisticExportService
 ) {
     companion object {
         private val logger = LoggerFactory.getLogger(DistributionPostProcessorService::class.java)
@@ -46,8 +46,8 @@ class DistributionPostProcessorService(
             }
 
             // Export statistic files and send per mail
-            val statisticZipFile = statisticFilesExportService.exportStatisticZipFile(statistic)
-            sendStatisticFilesMail(statisticZipFile)
+            val statisticZipFile = statisticExportService.exportStatisticZipFile(statistic)
+            sendStatisticMail(statisticZipFile)
         }
     }
 
@@ -75,7 +75,7 @@ class DistributionPostProcessorService(
         logger.info("Daily report '$mailSubject' - file: '$filename' sent!")
     }
 
-    private fun sendStatisticFilesMail(statisticZipFile: StatisticZipFile) {
+    private fun sendStatisticMail(statisticZipFile: StatisticZipFile) {
         val dateFormatted = LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
 
         val mailSubject = "TÖ Tafel 1030 - Statistiken vom $dateFormatted"
@@ -87,7 +87,7 @@ class DistributionPostProcessorService(
         )
 
         mailSenderService.sendMail(
-            tafelAdminProperties.mail!!.statisticfiles!!,
+            tafelAdminProperties.mail!!.statistic!!,
             mailSubject,
             mailText,
             listOf(attachment)
