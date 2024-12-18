@@ -241,6 +241,14 @@ internal class DistributionServiceTest {
     }
 
     @Test
+    fun `close distribution when statistic data is missing`() {
+        every { distributionRepository.getCurrentDistribution() } returns DistributionEntity()
+
+        val exception = assertThrows<TafelValidationException> { service.closeDistribution() }
+        assertThat(exception.message).isEqualTo("Statistik-Daten fehlen!")
+    }
+
+    @Test
     fun `assign customer when customer doesnt exist`() {
         val distributionEntity = DistributionEntity()
         distributionEntity.id = 123
@@ -518,7 +526,6 @@ internal class DistributionServiceTest {
         assertThat(ticket).isNull()
     }
 
-
     @Test
     fun `delete current ticket without open distribution`() {
         every { service.getCurrentDistribution() } returns null
@@ -543,6 +550,25 @@ internal class DistributionServiceTest {
 
         assertThat(result).isTrue()
         verify(exactly = 1) { distributionCustomerRepository.delete(testDistributionCustomerEntity2) }
+    }
+
+    @Test
+    fun `update statistic data of distribution`() {
+        val employeeCount = 100
+        val personsInShelterCount = 200
+
+        val testDistributionEntity = DistributionEntity()
+        every { distributionRepository.getCurrentDistribution() } returns testDistributionEntity
+        every { distributionRepository.save(any()) } returns mockk()
+
+        service.updateDistributionStatisticData(employeeCount, personsInShelterCount)
+
+        val updatedDistributionEntitySlot = slot<DistributionEntity>()
+        verify(exactly = 1) { distributionRepository.save(capture(updatedDistributionEntitySlot)) }
+
+        val updatedDistributionEntity = updatedDistributionEntitySlot.captured
+        assertThat(updatedDistributionEntity.employeeCount).isEqualTo(employeeCount)
+        assertThat(updatedDistributionEntity.personsInShelterCount).isEqualTo(personsInShelterCount)
     }
 
     @Test

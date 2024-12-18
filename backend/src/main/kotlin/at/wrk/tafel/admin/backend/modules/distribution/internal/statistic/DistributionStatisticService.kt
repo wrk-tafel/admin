@@ -43,6 +43,8 @@ class DistributionStatisticService(
         val statisticStartTime = distribution.startedAt!!.toLocalDate().atStartOfDay()
         val statisticEndTime = distribution.endedAt!!
         statistic.distribution = distribution
+        statistic.employeeCount = distribution.employeeCount
+        statistic.personsInShelterCount = distribution.personsInShelterCount
 
         fillCustomerStatistics(distribution, statisticStartTime, statisticEndTime, statistic)
         fillLogisticsStatistics(distribution, statistic)
@@ -127,7 +129,11 @@ class DistributionStatisticService(
         statistic.foodTotalAmount = foodTotalAmount
 
         val foodPerShopAverage =
-            if (shopsWithFoodCount > 0) foodTotalAmount.divide(BigDecimal(shopsWithFoodCount), 2, RoundingMode.HALF_EVEN)
+            if (shopsWithFoodCount > 0) foodTotalAmount.divide(
+                BigDecimal(shopsWithFoodCount),
+                2,
+                RoundingMode.HALF_EVEN
+            )
             else BigDecimal.ZERO
         statistic.foodPerShopAverage = foodPerShopAverage
 

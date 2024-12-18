@@ -6,9 +6,13 @@ import {
   ButtonDirective,
   CardBodyComponent,
   CardComponent,
+  CardFooterComponent,
   CardHeaderComponent,
-  ColComponent, ModalBodyComponent,
-  ModalComponent, ModalHeaderComponent, ModalToggleDirective,
+  ColComponent,
+  ModalBodyComponent,
+  ModalComponent,
+  ModalHeaderComponent,
+  ModalToggleDirective,
   RowComponent
 } from '@coreui/angular';
 import {NgIf} from '@angular/common';
@@ -28,7 +32,8 @@ import {NgIf} from '@angular/common';
     ModalBodyComponent,
     NgIf,
     ButtonDirective,
-    ButtonCloseDirective
+    ButtonCloseDirective,
+    CardFooterComponent
   ],
   standalone: true
 })

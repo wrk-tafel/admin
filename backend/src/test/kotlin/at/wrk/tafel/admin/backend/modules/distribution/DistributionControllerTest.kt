@@ -7,9 +7,7 @@ import at.wrk.tafel.admin.backend.modules.distribution.internal.model.AssignCust
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.CustomerListPdfResult
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionItem
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionItemResponse
-import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionCustomerEntity1
-import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionCustomerEntity2
-import at.wrk.tafel.admin.backend.security.testUserEntity
+import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionStatisticData
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -25,7 +23,6 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.messaging.simp.SimpMessagingTemplate
-import java.time.LocalDateTime
 
 @ExtendWith(MockKExtension::class)
 internal class DistributionControllerTest {
@@ -92,6 +89,24 @@ internal class DistributionControllerTest {
         val response = controller.getCurrentDistribution()
 
         assertThat(response.distribution).isNull()
+    }
+
+    @Test
+    fun `save distribution statistic`() {
+        val statisticData = DistributionStatisticData(
+            employeeCount = 100,
+            personsInShelterCount = 200
+        )
+
+        val response = controller.saveDistributionStatistic(statisticData)
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+        verify(exactly = 1) {
+            service.updateDistributionStatisticData(
+                statisticData.employeeCount,
+                statisticData.personsInShelterCount
+            )
+        }
     }
 
     @Test
@@ -183,38 +198,6 @@ internal class DistributionControllerTest {
 
         val bodyBytes = response.body?.inputStream?.readAllBytes()!!
         assertThat(String(bodyBytes)).isEqualTo(testFilename)
-    }
-
-
-    @Test
-    fun `auto close when distribution is open`() {
-        val testDistributionEntity = DistributionEntity().apply {
-            id = 123
-            startedAt = LocalDateTime.now()
-            startedByUser = testUserEntity
-            customers = listOf(
-                testDistributionCustomerEntity1,
-                testDistributionCustomerEntity2
-            )
-        }
-        every { service.getCurrentDistribution() } returns testDistributionEntity
-
-        controller.autoCloseDistribution()
-
-        verify(exactly = 1) {
-            service.closeDistribution()
-        }
-    }
-
-    @Test
-    fun `auto close when distribution is not open`() {
-        every { service.getCurrentDistribution() } returns null
-
-        controller.autoCloseDistribution()
-
-        verify(exactly = 0) {
-            service.closeDistribution()
-        }
     }
 
 }

@@ -42,6 +42,8 @@ internal class DistributionStatisticServiceTest {
             id = 123
             startedAt = LocalDateTime.now().minusHours(2)
             endedAt = LocalDateTime.now()
+            employeeCount = 100
+            personsInShelterCount = 200
             customers = listOf(
                 testDistributionCustomerEntity1,
                 testDistributionCustomerEntity2,
@@ -92,6 +94,9 @@ internal class DistributionStatisticServiceTest {
 
         val savedStatistic = savedStatisticSlot.captured
         assertThat(savedStatistic.distribution).isEqualTo(testDistributionEntity)
+        assertThat(savedStatistic.employeeCount).isEqualTo(100)
+        assertThat(savedStatistic.personsInShelterCount).isEqualTo(200)
+
         assertThat(savedStatistic.countCustomers).isEqualTo(3)
         assertThat(savedStatistic.countPersons).isEqualTo(4)
         assertThat(savedStatistic.countInfants).isEqualTo(1)

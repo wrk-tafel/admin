@@ -2,6 +2,9 @@
   <c-col sm="6" lg="3" *tafelIfPermission="'DISTRIBUTION_LCM'">
     <tafel-distribution-state></tafel-distribution-state>
   </c-col>
+  <c-col sm="6" lg="3" *tafelIfDistributionActive>
+    <tafel-distribution-statistics-input *tafelIfPermission="'DISTRIBUTION_LCM'"></tafel-distribution-statistics-input>
+  </c-col>
   <c-col sm="6" lg="3" class="mt-4 mt-sm-0">
     <tafel-registered-customers [count]="data?.registeredCustomers"></tafel-registered-customers>
   </c-col>

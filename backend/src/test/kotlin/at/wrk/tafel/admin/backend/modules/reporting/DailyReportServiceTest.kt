@@ -28,6 +28,9 @@ internal class DailyReportServiceTest {
     @Test
     fun `generate daily report pdf`() {
         val statistic = DistributionStatisticEntity().apply {
+            employeeCount = 100
+            personsInShelterCount = 200
+
             countCustomers = 1
             countPersons = 2
             countInfants = 3
@@ -62,6 +65,9 @@ internal class DailyReportServiceTest {
         val startTime = statistic.distribution?.startedAt?.format(DateTimeFormatter.ofPattern("HH:mm"))
         val endTime = statistic.distribution?.endedAt?.format(DateTimeFormatter.ofPattern("HH:mm"))
         assertThat(pdfModel.date).isEqualTo("$date $startTime - $endTime")
+
+        assertThat(pdfModel.employeeCount).isEqualTo(statistic.employeeCount)
+        assertThat(pdfModel.personsInShelterCount).isEqualTo(statistic.personsInShelterCount)
 
         assertThat(pdfModel.countCustomers).isEqualTo(statistic.countCustomers)
         assertThat(pdfModel.countPersons).isEqualTo(statistic.countPersons)

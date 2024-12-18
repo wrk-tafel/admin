@@ -22,3 +22,9 @@ data class AssignCustomerRequest(
 data class TicketNumberResponse(
     val ticketNumber: Int?
 )
+
+@ExcludeFromTestCoverage
+data class DistributionStatisticData(
+    val employeeCount: Int,
+    val personsInShelterCount: Int,
+)

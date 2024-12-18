@@ -13,6 +13,8 @@ import java.time.LocalDateTime
 
 val testDistributionEntity = DistributionEntity().apply {
     id = 123
+    employeeCount = 100
+    personsInShelterCount = 200
 }
 
 val testDistributionCustomerEntity1 = DistributionCustomerEntity().apply {

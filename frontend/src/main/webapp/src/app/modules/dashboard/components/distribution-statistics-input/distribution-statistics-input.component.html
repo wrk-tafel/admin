@@ -1,0 +1,44 @@
+<c-card class="h-100" color="primary" textColor="white">
+  <c-card-body>
+    <form [formGroup]="form">
+      <c-row>
+        <c-col class="fw-bold">
+          <h4>Statistik</h4>
+        </c-col>
+      </c-row>
+      <c-row>
+        <c-col>
+          <label class="form-label">Anzahl der Mitarbeiter *</label>
+          <input testid="distribution-statistics-employee-count-input" type="number" formControlName="employeeCount" class="form-control"
+                 [ngClass]="{'is-invalid': employeeCount.invalid && (employeeCount.dirty || employeeCount.touched), 'is-valid': employeeCount.valid && (employeeCount.dirty || employeeCount.touched)}">
+          <div *ngIf="employeeCount.errors?.required && (employeeCount.dirty || employeeCount.touched)"
+               class="invalid-feedback">
+            Pflichtfeld
+          </div>
+          <div *ngIf="employeeCount.errors?.min && (employeeCount.dirty || employeeCount.touched)"
+               class="invalid-feedback">
+            Muss mindestens 1 sein
+          </div>
+        </c-col>
+      </c-row>
+      <c-row>
+        <c-col>
+          <label class="form-label">Anzahl Personen in Notschlafstellen *</label>
+          <input testid="distribution-statistics-persons-in-shelter-input" type="number" formControlName="personsInShelterCount" class="form-control"
+                 [ngClass]="{'is-invalid': personsInShelterCount.invalid && (personsInShelterCount.dirty || personsInShelterCount.touched), 'is-valid': personsInShelterCount.valid && (personsInShelterCount.dirty || personsInShelterCount.touched)}">
+          <div *ngIf="personsInShelterCount.errors?.required && (personsInShelterCount.dirty || personsInShelterCount.touched)"
+               class="invalid-feedback">
+            Pflichtfeld
+          </div>
+          <div *ngIf="personsInShelterCount.errors?.min && (personsInShelterCount.dirty || personsInShelterCount.touched)"
+               class="invalid-feedback">
+            Muss mindestens 1 sein
+          </div>
+        </c-col>
+      </c-row>
+    </form>
+  </c-card-body>
+  <c-card-footer>
+    <button cButton type="button" testid="distribution-statistics-save-button" (click)="save()" [disabled]="!form.valid" color="light">Speichern</button>
+  </c-card-footer>
+</c-card>

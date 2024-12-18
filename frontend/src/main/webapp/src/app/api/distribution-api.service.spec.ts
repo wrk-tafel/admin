@@ -4,7 +4,8 @@ import {
   AssignCustomerRequest,
   DistributionApiService,
   DistributionItem,
-  DistributionItemResponse
+  DistributionItemResponse,
+  SaveDistributionStatisticRequest
 } from './distribution-api.service';
 import {WebsocketService} from '../common/websocket/websocket.service';
 import {of} from 'rxjs';
@@ -80,6 +81,17 @@ describe('DistributionApiService', () => {
     apiService.assignCustomer(requestBody.customerId, requestBody.ticketNumber).subscribe();
 
     const req = httpMock.expectOne({method: 'POST', url: '/distributions/customers'});
+    req.flush(null);
+    httpMock.verify();
+
+    expect(req.request.body).toEqual(requestBody);
+  });
+
+  it('save statistics data', () => {
+    const requestBody: SaveDistributionStatisticRequest = {employeeCount: 100, personsInShelterCount: 200};
+    apiService.saveStatisticData(requestBody.employeeCount, requestBody.personsInShelterCount).subscribe();
+
+    const req = httpMock.expectOne({method: 'POST', url: '/distributions/statistics'});
     req.flush(null);
     httpMock.verify();
 
