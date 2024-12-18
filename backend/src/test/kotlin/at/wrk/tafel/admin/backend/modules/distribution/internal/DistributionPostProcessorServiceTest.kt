@@ -2,11 +2,14 @@ package at.wrk.tafel.admin.backend.modules.distribution.internal
 
 import at.wrk.tafel.admin.backend.common.mail.MailAttachment
 import at.wrk.tafel.admin.backend.common.mail.MailSenderService
+import at.wrk.tafel.admin.backend.config.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
-import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
+import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
 import at.wrk.tafel.admin.backend.modules.distribution.internal.statistic.DistributionStatisticService
 import at.wrk.tafel.admin.backend.modules.reporting.DailyReportService
+import at.wrk.tafel.admin.backend.modules.reporting.StatisticExportService
+import at.wrk.tafel.admin.backend.modules.reporting.StatisticZipFile
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -35,6 +38,12 @@ internal class DistributionPostProcessorServiceTest {
     @RelaxedMockK
     private lateinit var mailSenderService: MailSenderService
 
+    @RelaxedMockK
+    private lateinit var tafelAdminProperties: TafelAdminProperties
+
+    @RelaxedMockK
+    private lateinit var statisticFilesExportService: StatisticExportService
+
     @SpyK
     private var transactionTemplate: TransactionTemplate = TransactionTemplate(mockk(relaxed = true))
 
@@ -46,10 +55,15 @@ internal class DistributionPostProcessorServiceTest {
 
     @Test
     fun `process calls proper services`() {
+        val dateFormatted = LocalDate.now().format(DateTimeFormatter.ofPattern("ddMMyyyy"))
+
         val distributionId = 123L
         val distribution = mockk<DistributionEntity>()
         every { distribution.id } returns distributionId
-        every { distribution.customers } returns listOf(testDistributionCustomerEntity1, testDistributionCustomerEntity2)
+        every { distribution.customers } returns listOf(
+            testDistributionCustomerEntity1,
+            testDistributionCustomerEntity2
+        )
 
         val distributionStatistic = mockk<DistributionStatisticEntity>()
         every { distributionStatisticService.createAndSaveStatistic(distribution) } returns distributionStatistic
@@ -58,26 +72,74 @@ internal class DistributionPostProcessorServiceTest {
         val pdfBytes = ByteArray(10)
         every { dailyReportService.generateDailyReportPdf(any()) } returns pdfBytes
 
+        every { statisticFilesExportService.exportStatisticZipFile(any()) } returns StatisticZipFile(
+            filename = "statistics.zip",
+            content = ByteArray(0)
+        )
+
         service.process(distributionId)
 
         verify { distributionStatisticService.createAndSaveStatistic(distribution) }
+
+        assertDailyReport(distributionStatistic, dateFormatted)
+        assertStatisticFile(distributionStatistic)
+    }
+
+    private fun assertDailyReport(
+        distributionStatistic: DistributionStatisticEntity,
+        dateFormatted: String
+    ) {
         verify { dailyReportService.generateDailyReportPdf(distributionStatistic) }
 
-        val mailSubject =
+        val dailyReportMailSubject =
             "TÖ Tafel 1030 - Tages-Report vom ${LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))}"
-        val mailText = "Details im Anhang"
+        val dailyReportMailText = "Details im Anhang"
 
-        val mailAttachmentSlot = slot<List<MailAttachment>>()
-        verify { mailSenderService.sendMail(mailSubject, mailText, capture(mailAttachmentSlot)) }
+        val dailyReportMailAttachmentSlot = slot<List<MailAttachment>>()
+        verify {
+            mailSenderService.sendMail(
+                any(),
+                dailyReportMailSubject,
+                dailyReportMailText,
+                capture(dailyReportMailAttachmentSlot)
+            )
+        }
 
-        val attachmentList = mailAttachmentSlot.captured
-        assertThat(attachmentList).hasSize(1)
+        val dailyReportAttachmentList = dailyReportMailAttachmentSlot.captured
+        assertThat(dailyReportAttachmentList).hasSize(1)
 
-        val dateFormatted = LocalDate.now().format(DateTimeFormatter.ofPattern("ddMMyyyy"))
-        val attachment = attachmentList[0]
-        assertThat(attachment.filename).isEqualTo("tagesreport_${dateFormatted}.pdf")
-        assertThat(attachment.inputStreamSource).isNotNull
-        assertThat(attachment.contentType).isEqualTo("application/pdf")
+        val dailyReportAttachment = dailyReportAttachmentList[0]
+        assertThat(dailyReportAttachment.filename).isEqualTo("tagesreport_${dateFormatted}.pdf")
+        assertThat(dailyReportAttachment.inputStreamSource).isNotNull
+        assertThat(dailyReportAttachment.contentType).isEqualTo("application/pdf")
+    }
+
+    private fun assertStatisticFile(
+        distributionStatistic: DistributionStatisticEntity
+    ) {
+        verify { statisticFilesExportService.exportStatisticZipFile(distributionStatistic) }
+
+        val statisticFilesExportMailSubject =
+            "TÖ Tafel 1030 - Statistiken vom ${LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))}"
+        val statisticFilesExportMailText = "Details im Anhang"
+
+        val statisticFilesExportMailAttachmentSlot = slot<List<MailAttachment>>()
+        verify {
+            mailSenderService.sendMail(
+                any(),
+                statisticFilesExportMailSubject,
+                statisticFilesExportMailText,
+                capture(statisticFilesExportMailAttachmentSlot)
+            )
+        }
+
+        val statisticFilesExportAttachmentList = statisticFilesExportMailAttachmentSlot.captured
+        assertThat(statisticFilesExportAttachmentList).hasSize(1)
+
+        val statisticZipFileAttachment = statisticFilesExportAttachmentList[0]
+        assertThat(statisticZipFileAttachment.filename).isEqualTo("statistics.zip")
+        assertThat(statisticZipFileAttachment.inputStreamSource).isNotNull
+        assertThat(statisticZipFileAttachment.contentType).isEqualTo("application/zip")
 
         verify(exactly = 1) { transactionTemplate.executeWithoutResult(any()) }
     }
@@ -98,6 +160,12 @@ internal class DistributionPostProcessorServiceTest {
         verify { distributionStatisticService.createAndSaveStatistic(distribution) }
         verify(exactly = 0) { dailyReportService.generateDailyReportPdf(distributionStatistic) }
         verify(exactly = 1) { transactionTemplate.executeWithoutResult(any()) }
+
+        // still sends statistic files
+        verify { statisticFilesExportService.exportStatisticZipFile(distributionStatistic) }
+        val statisticFilesExportMailSubject =
+            "TÖ Tafel 1030 - Statistiken vom ${LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))}"
+        verify(exactly = 1) { mailSenderService.sendMail(any(), statisticFilesExportMailSubject, any(), any()) }
     }
 
 }

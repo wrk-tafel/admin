@@ -13,11 +13,12 @@ data class TafelAdminProperties(
 data class TafelAdminMailProperties(
     val from: String,
     val subjectPrefix: String? = null,
-    val dailyreport: TafelAdminMailDailyReportProperties? = null
+    val dailyreport: TafelAdminMailRecipientAddressesProperties? = null,
+    val statisticfiles: TafelAdminMailRecipientAddressesProperties? = null,
 )
 
 @ExcludeFromTestCoverage
-data class TafelAdminMailDailyReportProperties(
+data class TafelAdminMailRecipientAddressesProperties(
     val to: List<String>? = emptyList(),
     val cc: List<String>? = emptyList(),
     val bcc: List<String>? = emptyList()

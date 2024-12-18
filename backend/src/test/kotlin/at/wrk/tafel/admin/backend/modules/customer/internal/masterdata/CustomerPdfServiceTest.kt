@@ -6,7 +6,7 @@ import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.model.base.Gender
 import at.wrk.tafel.admin.backend.database.model.customer.CustomerAddPersonEntity
 import at.wrk.tafel.admin.backend.database.model.customer.CustomerEntity
-import at.wrk.tafel.admin.backend.modules.base.country.testCountry
+import at.wrk.tafel.admin.backend.modules.base.country.testCountry1
 import com.github.romankh3.image.comparison.ImageComparison
 import com.github.romankh3.image.comparison.model.ImageComparisonState
 import org.apache.commons.io.FileUtils
@@ -94,7 +94,7 @@ class CustomerPdfServiceTest {
         testCustomer.income = BigDecimal("977.94587")
         testCustomer.incomeDue = LocalDate.of(2030, 1, 1)
         testCustomer.validUntil = LocalDate.of(2030, 3, 1)
-        testCustomer.country = testCountry
+        testCustomer.country = testCountry1
 
         val addPers1 = CustomerAddPersonEntity()
         addPers1.lastname = "Mustermann"
@@ -102,14 +102,14 @@ class CustomerPdfServiceTest {
         addPers1.birthDate = LocalDate.of(2000, 1, 1)
         addPers1.gender = Gender.MALE
         addPers1.income = BigDecimal("1000")
-        addPers1.country = testCountry
+        addPers1.country = testCountry1
         addPers1.excludeFromHousehold = false
 
         val addPers2 = CustomerAddPersonEntity()
         addPers2.lastname = "Mustermann"
         addPers2.firstname = "Max"
         addPers2.birthDate = LocalDate.of(2001, 12, 1)
-        addPers2.country = testCountry
+        addPers2.country = testCountry1
         addPers2.excludeFromHousehold = false
 
         val addPers3 = CustomerAddPersonEntity()
@@ -117,7 +117,7 @@ class CustomerPdfServiceTest {
         addPers3.firstname = "Maria"
         addPers3.birthDate = LocalDate.of(2005, 2, 28)
         addPers3.income = BigDecimal("132")
-        addPers3.country = testCountry
+        addPers3.country = testCountry1
         addPers3.excludeFromHousehold = true
 
         testCustomer.additionalPersons = mutableListOf(addPers1, addPers2, addPers3)
@@ -136,7 +136,7 @@ class CustomerPdfServiceTest {
         testCustomerMinimal.income = BigDecimal("977.94587")
         testCustomerMinimal.incomeDue = LocalDate.of(2030, 1, 1)
         testCustomerMinimal.validUntil = LocalDate.of(2030, 3, 1)
-        testCustomerMinimal.country = testCountry
+        testCustomerMinimal.country = testCountry1
 
         service = CustomerPdfService(PDFService())
     }

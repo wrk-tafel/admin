@@ -38,3 +38,13 @@ tafeladmin:
       bcc:
         - "bcc1@localhost"
         - "bcc2@localhost"
+    statisticfiles:
+      to:
+        - "to1@localhost"
+        - "to2@localhost"
+      cc:
+        - "cc1@localhost"
+        - "cc2@localhost"
+      bcc:
+        - "bcc1@localhost"
+        - "bcc2@localhost"

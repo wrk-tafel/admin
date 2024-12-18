@@ -5,7 +5,7 @@ import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.customer.CustomerEntity
 import at.wrk.tafel.admin.backend.database.model.customer.CustomerRepository
 import at.wrk.tafel.admin.backend.database.model.staticdata.CountryRepository
-import at.wrk.tafel.admin.backend.modules.base.country.testCountry
+import at.wrk.tafel.admin.backend.modules.base.country.testCountry1
 import at.wrk.tafel.admin.backend.modules.customer.Customer
 import at.wrk.tafel.admin.backend.modules.customer.CustomerAdditionalPerson
 import at.wrk.tafel.admin.backend.modules.customer.CustomerPdfType
@@ -64,7 +64,7 @@ class CustomerServiceTest {
         SecurityContextHolder.getContext().authentication =
             TafelJwtAuthentication("TOKEN", testUserEntity.username, true)
 
-        every { countryRepository.findById(testCountry.id!!) } returns Optional.of(testCountry)
+        every { countryRepository.findById(testCountry1.id!!) } returns Optional.of(testCountry1)
         every { userRepository.findByUsername(testUserEntity.username!!) } returns testUserEntity
     }
 
