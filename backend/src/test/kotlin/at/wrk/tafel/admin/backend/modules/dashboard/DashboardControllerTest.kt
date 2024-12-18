@@ -25,7 +25,13 @@ internal class DashboardControllerTest {
 
     @Test
     fun `get initial message`() {
-        val data = DashboardData(registeredCustomers = 2)
+        val data = DashboardData(
+            registeredCustomers = 2,
+            statistics = DashboardStatisticsData(
+                employeeCount = 1,
+                personsInShelterCount = 2
+            )
+        )
         every { service.getData() } returns data
 
         val response = controller.getInitialMessage()
@@ -36,7 +42,13 @@ internal class DashboardControllerTest {
 
     @Test
     fun `refresh dashboard`() {
-        val data = DashboardData(registeredCustomers = 5)
+        val data = DashboardData(
+            registeredCustomers = 5,
+            statistics = DashboardStatisticsData(
+                employeeCount = 1,
+                personsInShelterCount = 2
+            )
+        )
         every { service.getData() } returns data
 
         controller.refreshDashboard()

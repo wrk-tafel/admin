@@ -26,8 +26,9 @@ import {TafelIfDistributionActiveDirective} from '../../common/directive/tafel-i
   standalone: true
 })
 export class DashboardComponent implements OnInit {
-  data: DashboardData;
   private readonly websocketService = inject(WebsocketService);
+
+  data: DashboardData;
 
   ngOnInit(): void {
     this.websocketService.watch('/topic/dashboard').subscribe((message: IMessage) => {
@@ -39,4 +40,10 @@ export class DashboardComponent implements OnInit {
 
 export interface DashboardData {
   registeredCustomers?: number;
+  statistics?: DashboardStatisticsData;
+}
+
+export interface DashboardStatisticsData {
+  employeeCount?: number;
+  personsInShelterCount?: number;
 }
