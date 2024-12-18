@@ -1,6 +1,7 @@
 package at.wrk.tafel.admin.backend.common.mail
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
+import at.wrk.tafel.admin.backend.config.TafelAdminMailRecipientAddressesProperties
 import at.wrk.tafel.admin.backend.config.TafelAdminProperties
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.InputStreamSource
@@ -15,7 +16,12 @@ class MailSenderService(
     private val tafelAdminProperties: TafelAdminProperties
 ) {
 
-    fun sendMail(subject: String, text: String, attachments: List<MailAttachment>) {
+    fun sendMail(
+        recipientAddresses: TafelAdminMailRecipientAddressesProperties,
+        subject: String,
+        text: String,
+        attachments: List<MailAttachment>
+    ) {
         if (mailSender != null) {
             val messageHelper = MimeMessageHelper(mailSender.createMimeMessage(), true)
 
@@ -23,14 +29,14 @@ class MailSenderService(
             messageHelper.setSubject(subjectPrefix + subject)
             messageHelper.setText(text)
 
-            messageHelper.setFrom(tafelAdminProperties.mail?.from!!)
-            tafelAdminProperties.mail.dailyreport?.to?.forEach {
+            messageHelper.setFrom(tafelAdminProperties.mail!!.from)
+            recipientAddresses.to?.forEach {
                 messageHelper.addTo(it)
             }
-            tafelAdminProperties.mail.dailyreport?.cc?.forEach {
+            recipientAddresses.cc?.forEach {
                 messageHelper.addCc(it)
             }
-            tafelAdminProperties.mail.dailyreport?.bcc?.forEach {
+            recipientAddresses.bcc?.forEach {
                 messageHelper.addBcc(it)
             }
             attachments.forEach {

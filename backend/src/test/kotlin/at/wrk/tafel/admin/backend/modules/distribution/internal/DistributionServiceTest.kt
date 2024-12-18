@@ -10,7 +10,7 @@ import at.wrk.tafel.admin.backend.database.model.distribution.DistributionCustom
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionCustomerRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
-import at.wrk.tafel.admin.backend.modules.base.country.testCountry
+import at.wrk.tafel.admin.backend.modules.base.country.testCountry1
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.CustomerListItem
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.CustomerListPdfModel
@@ -90,7 +90,7 @@ internal class DistributionServiceTest {
             lastname = "Mustermann"
             firstname = "Max"
             birthDate = LocalDate.now().minusYears(30)
-            country = testCountry
+            country = testCountry1
             addressStreet = "Test-Straße"
             addressHouseNumber = "100"
             addressStairway = "1"
@@ -112,7 +112,7 @@ internal class DistributionServiceTest {
             addPerson1.birthDate = LocalDate.now().minusYears(5)
             addPerson1.income = BigDecimal("100")
             addPerson1.incomeDue = LocalDate.now()
-            addPerson1.country = testCountry
+            addPerson1.country = testCountry1
             addPerson1.excludeFromHousehold = false
 
             val addPerson2 = CustomerAddPersonEntity()
@@ -120,7 +120,7 @@ internal class DistributionServiceTest {
             addPerson2.lastname = "Add pers 2"
             addPerson2.firstname = "Add pers 2"
             addPerson2.birthDate = LocalDate.now().minusYears(2)
-            addPerson2.country = testCountry
+            addPerson2.country = testCountry1
             addPerson2.excludeFromHousehold = true
 
             additionalPersons = mutableListOf(addPerson1, addPerson2)
@@ -133,7 +133,7 @@ internal class DistributionServiceTest {
             lastname = "Mustermann"
             firstname = "Max 2"
             birthDate = LocalDate.now().minusYears(22)
-            country = testCountry
+            country = testCountry1
             addressStreet = "Test-Straße 2"
             addressHouseNumber = "200"
             addressStairway = "1-2"

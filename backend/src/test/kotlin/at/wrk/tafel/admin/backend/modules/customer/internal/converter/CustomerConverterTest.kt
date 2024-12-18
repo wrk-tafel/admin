@@ -9,7 +9,7 @@ import at.wrk.tafel.admin.backend.database.model.customer.CustomerEntity
 import at.wrk.tafel.admin.backend.database.model.customer.CustomerRepository
 import at.wrk.tafel.admin.backend.database.model.staticdata.CountryRepository
 import at.wrk.tafel.admin.backend.modules.base.country.Country
-import at.wrk.tafel.admin.backend.modules.base.country.testCountry
+import at.wrk.tafel.admin.backend.modules.base.country.testCountry1
 import at.wrk.tafel.admin.backend.modules.customer.Customer
 import at.wrk.tafel.admin.backend.modules.customer.CustomerAdditionalPerson
 import at.wrk.tafel.admin.backend.modules.customer.CustomerAddress
@@ -126,7 +126,7 @@ internal class CustomerConverterTest {
         firstname = "Max"
         birthDate = LocalDate.now().minusYears(30)
         gender = Gender.FEMALE
-        country = testCountry
+        country = testCountry1
         addressStreet = "Test-Straße"
         addressHouseNumber = "100"
         addressStairway = "1"
@@ -151,7 +151,7 @@ internal class CustomerConverterTest {
         addPerson1.income = BigDecimal("100")
         addPerson1.incomeDue = LocalDate.now()
         addPerson1.receivesFamilyBonus = false
-        addPerson1.country = testCountry
+        addPerson1.country = testCountry1
         addPerson1.excludeFromHousehold = false
 
         val addPerson2 = CustomerAddPersonEntity()
@@ -160,7 +160,7 @@ internal class CustomerConverterTest {
         addPerson2.firstname = "Add pers 2"
         addPerson2.birthDate = LocalDate.now().minusYears(2)
         addPerson2.gender = Gender.FEMALE
-        addPerson2.country = testCountry
+        addPerson2.country = testCountry1
         addPerson2.receivesFamilyBonus = true
         addPerson2.excludeFromHousehold = true
 
@@ -174,7 +174,7 @@ internal class CustomerConverterTest {
         lastname = "Mustermann"
         firstname = "Max 2"
         birthDate = LocalDate.now().minusYears(22)
-        country = testCountry
+        country = testCountry1
         addressStreet = "Test-Straße 2"
         addressHouseNumber = "200"
         addressStairway = "1-2"
@@ -202,7 +202,7 @@ internal class CustomerConverterTest {
         SecurityContextHolder.setContext(SecurityContextImpl(authentication))
 
         every { userRepository.findByUsername(testUser.username) } returns testUserEntity
-        every { countryRepository.findById(testCustomer.country.id) } returns Optional.of(testCountry)
+        every { countryRepository.findById(testCustomer.country.id) } returns Optional.of(testCountry1)
 
         every { customerAddPersonRepository.findById(testCustomer.additionalPersons[0].id) } returns Optional.of(
             testCustomerEntity1.additionalPersons[0]
@@ -230,9 +230,9 @@ internal class CustomerConverterTest {
         assertThat(customer.gender!!.name).isEqualTo(testCustomer.gender!!.name)
         assertThat(customer.country).isEqualTo(
             Country(
-                id = testCountry.id!!,
-                code = testCountry.code!!,
-                name = testCountry.name!!
+                id = testCountry1.id!!,
+                code = testCountry1.code!!,
+                name = testCountry1.name!!
             )
         )
         assertThat(customer.address.street).isEqualTo(testCustomer.address.street)
@@ -270,7 +270,7 @@ internal class CustomerConverterTest {
             firstname = "Max"
             birthDate = LocalDate.now().minusYears(30)
             gender = Gender.FEMALE
-            country = testCountry
+            country = testCountry1
             addressStreet = "Test-Straße"
             addressHouseNumber = "100"
             addressStairway = "1"
@@ -294,7 +294,7 @@ internal class CustomerConverterTest {
             addPerson1.income = BigDecimal("100")
             addPerson1.incomeDue = LocalDate.now()
             addPerson1.receivesFamilyBonus = false
-            addPerson1.country = testCountry
+            addPerson1.country = testCountry1
             addPerson1.excludeFromHousehold = false
 
             val addPerson2 = CustomerAddPersonEntity()
@@ -303,7 +303,7 @@ internal class CustomerConverterTest {
             addPerson2.firstname = "Add pers 2"
             addPerson2.birthDate = LocalDate.now().minusYears(2)
             addPerson2.gender = Gender.FEMALE
-            addPerson2.country = testCountry
+            addPerson2.country = testCountry1
             addPerson2.receivesFamilyBonus = true
             addPerson2.excludeFromHousehold = true
 

@@ -7,7 +7,7 @@ import at.wrk.tafel.admin.backend.database.model.customer.CustomerEntity
 import at.wrk.tafel.admin.backend.database.model.customer.CustomerNoteEntity
 import at.wrk.tafel.admin.backend.database.model.customer.CustomerNoteRepository
 import at.wrk.tafel.admin.backend.database.model.customer.CustomerRepository
-import at.wrk.tafel.admin.backend.modules.base.country.testCountry
+import at.wrk.tafel.admin.backend.modules.base.country.testCountry1
 import at.wrk.tafel.admin.backend.security.testUser
 import at.wrk.tafel.admin.backend.security.testUserEntity
 import io.mockk.every
@@ -57,7 +57,7 @@ internal class CustomerNoteServiceTest {
             lastname = "Mustermann"
             firstname = "Max"
             birthDate = LocalDate.now().minusYears(30)
-            country = testCountry
+            country = testCountry1
             addressStreet = "Test-Straße"
             addressHouseNumber = "100"
             addressStairway = "1"
@@ -79,7 +79,7 @@ internal class CustomerNoteServiceTest {
             addPerson1.birthDate = LocalDate.now().minusYears(5)
             addPerson1.income = BigDecimal("100")
             addPerson1.incomeDue = LocalDate.now()
-            addPerson1.country = testCountry
+            addPerson1.country = testCountry1
             addPerson1.excludeFromHousehold = false
 
             val addPerson2 = CustomerAddPersonEntity()
@@ -87,7 +87,7 @@ internal class CustomerNoteServiceTest {
             addPerson2.lastname = "Add pers 2"
             addPerson2.firstname = "Add pers 2"
             addPerson2.birthDate = LocalDate.now().minusYears(2)
-            addPerson2.country = testCountry
+            addPerson2.country = testCountry1
             addPerson2.excludeFromHousehold = true
 
             additionalPersons = mutableListOf(addPerson1, addPerson2)
