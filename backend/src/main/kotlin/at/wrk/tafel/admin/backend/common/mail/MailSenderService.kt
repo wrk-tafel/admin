@@ -18,7 +18,9 @@ class MailSenderService(
     fun sendMail(subject: String, text: String, attachments: List<MailAttachment>) {
         if (mailSender != null) {
             val messageHelper = MimeMessageHelper(mailSender.createMimeMessage(), true)
-            messageHelper.setSubject(subject)
+
+            val subjectPrefix = tafelAdminProperties.mail?.subjectPrefix ?: ""
+            messageHelper.setSubject(subjectPrefix + subject)
             messageHelper.setText(text)
 
             messageHelper.setFrom(tafelAdminProperties.mail?.from!!)

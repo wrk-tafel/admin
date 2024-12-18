@@ -12,6 +12,7 @@ data class TafelAdminProperties(
 @ExcludeFromTestCoverage
 data class TafelAdminMailProperties(
     val from: String,
+    val subjectPrefix: String? = null,
     val dailyreport: TafelAdminMailDailyReportProperties? = null
 )
 
