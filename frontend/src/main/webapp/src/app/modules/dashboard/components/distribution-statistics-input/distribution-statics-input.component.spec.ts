@@ -54,7 +54,10 @@ describe('DistributionStatisticsInputComponent', () => {
     component.save();
 
     expect(distributionApiService.saveStatisticData).toHaveBeenCalledWith(100, 200);
-    expect(toastService.showToast).toHaveBeenCalledWith({type: ToastType.SUCCESS, title: 'Statistik-Daten gespeichert!'});
+    expect(toastService.showToast).toHaveBeenCalledWith({
+      type: ToastType.SUCCESS,
+      title: 'Statistik-Daten gespeichert!'
+    });
   });
 
   it('save data failed', () => {
@@ -72,6 +75,18 @@ describe('DistributionStatisticsInputComponent', () => {
 
     expect(distributionApiService.saveStatisticData).toHaveBeenCalledWith(100, 200);
     expect(toastService.showToast).toHaveBeenCalledWith({type: ToastType.ERROR, title: 'Speichern fehlgeschlagen!'});
+  });
+
+  it('inputs are reflected to form', () => {
+    const fixture = TestBed.createComponent(DistributionStatisticsInputComponent);
+    const componentRef = fixture.componentRef;
+    const component = fixture.componentInstance;
+    componentRef.setInput('employeeCountInput', 100);
+    componentRef.setInput('personsInShelterCountInput', 200);
+    fixture.detectChanges();
+
+    expect(component.employeeCount.value).toBe(100);
+    expect(component.personsInShelterCount.value).toBe(200);
   });
 
 });

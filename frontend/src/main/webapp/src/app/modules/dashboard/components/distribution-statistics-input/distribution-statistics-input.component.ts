@@ -1,4 +1,4 @@
-import {Component, inject} from '@angular/core';
+import {Component, effect, inject, input} from '@angular/core';
 import {
   BgColorDirective,
   ButtonCloseDirective,
@@ -49,10 +49,23 @@ export class DistributionStatisticsInputComponent {
   private readonly distributionApiService = inject(DistributionApiService);
   private readonly toastService = inject(ToastService);
 
+  employeeCountInput = input<number>();
+  personsInShelterCountInput = input<number>();
+
   form = this.fb.group({
     employeeCount: this.fb.control<number>(null, [Validators.required, Validators.min(1)]),
     personsInShelterCount: this.fb.control<number>(null, [Validators.required, Validators.min(1)])
   })
+
+  employeeCountInputEffect = effect(() => {
+    const employeeCount = this.employeeCountInput();
+    this.form.patchValue({'employeeCount': employeeCount});
+  });
+
+  personsInShelterCountInputEffect = effect(() => {
+    const personsInShelterCount = this.personsInShelterCountInput();
+    this.form.patchValue({'personsInShelterCount': personsInShelterCount});
+  });
 
   save() {
     const observer = {

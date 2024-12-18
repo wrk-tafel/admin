@@ -1,8 +1,10 @@
 package at.wrk.tafel.admin.backend.modules.dashboard.internal
 
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionCustomerRepository
+import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.modules.dashboard.DashboardData
+import at.wrk.tafel.admin.backend.modules.dashboard.DashboardStatisticsData
 import org.springframework.stereotype.Service
 
 @Service
@@ -12,16 +14,26 @@ class DashboardService(
 ) {
 
     fun getData(): DashboardData {
-        val registeredCustomers = getRegisteredCustomers()
-        return DashboardData(registeredCustomers = registeredCustomers)
+        val currentDistribution = distributionRepository.getCurrentDistribution()
+
+        return DashboardData(
+            registeredCustomers = currentDistribution?.let { getRegisteredCustomers(it) },
+            statistics = currentDistribution?.let { getStatisticsData(it) }
+        )
     }
 
-    private fun getRegisteredCustomers(): Int? {
-        val currentDistribution = distributionRepository.getCurrentDistribution()
+    private fun getRegisteredCustomers(currentDistribution: DistributionEntity?): Int? {
         currentDistribution?.let {
             return distributionCustomerRepository.countAllByDistributionId(it.id!!)
         }
         return null
+    }
+
+    private fun getStatisticsData(currentDistribution: DistributionEntity?): DashboardStatisticsData {
+        return DashboardStatisticsData(
+            employeeCount = currentDistribution?.employeeCount,
+            personsInShelterCount = currentDistribution?.personsInShelterCount
+        )
     }
 
 }
