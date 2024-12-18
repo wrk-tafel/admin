@@ -38,11 +38,13 @@ internal class MailSenderServiceTest {
 
     @Test
     fun `sendMail successfully`() {
+        val subjectPrefix = "PREFIX - "
         val subject = "subj"
         val text = "txt"
 
         val mailProperties = TafelAdminMailProperties(
             from = "from-address",
+            subjectPrefix = "PREFIX - ",
             dailyreport = TafelAdminMailDailyReportProperties(
                 to = listOf("to1@host.at", "to2@host.at"),
                 bcc = listOf("bcc1@host.at", "bcc2@host.at")
@@ -64,9 +66,9 @@ internal class MailSenderServiceTest {
 
         val mailMessage = mailMessageSlot.captured
         assertThat(mailMessage).isNotNull
-        assertThat(mailMessage.subject).isEqualTo(subject)
+        assertThat(mailMessage.subject).isEqualTo(subjectPrefix + subject)
 
-        assertThat(mailMessage.getHeader("Subject").first()).isEqualTo(subject)
+        assertThat(mailMessage.getHeader("Subject").first()).isEqualTo(subjectPrefix + subject)
         assertThat(mailMessage.getHeader("From").first()).isEqualTo(mailProperties.from)
 
         val toRecipients = mailMessage.getRecipients(Message.RecipientType.TO)
@@ -76,7 +78,7 @@ internal class MailSenderServiceTest {
         assertThat(ccRecipients).isNull()
 
         val bccRecipients = mailMessage.getRecipients(Message.RecipientType.BCC)
-        assertThat(bccRecipients.map { it.toString() }).isEqualTo(mailProperties.dailyreport!!.bcc)
+        assertThat(bccRecipients.map { it.toString() }).isEqualTo(mailProperties.dailyreport.bcc)
 
         /*
         TODO add asserts

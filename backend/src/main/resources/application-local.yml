@@ -27,6 +27,7 @@ security:
 tafeladmin:
   mail:
     from: "dummy@localhost"
+    subjectPrefix: "LOCAL-DEV-"
     dailyreport:
       to:
         - "to1@localhost"
