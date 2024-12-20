@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.logistics
 
+import at.wrk.tafel.admin.backend.database.model.logistics.CarEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCategoryEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionItemEntity
@@ -129,4 +130,16 @@ val testFoodCollectionRoute3Entity = FoodCollectionEntity().apply {
     distribution = testDistributionEntity
     route = testRoute3
     items = emptyList()
+}
+
+val testCar1 = CarEntity().apply {
+    id = 1
+    licensePlate = "W-123"
+    name = "Car 123"
+}
+
+val testCar2 = CarEntity().apply {
+    id = 2
+    licensePlate = "W-456"
+    name = "Car 456"
 }

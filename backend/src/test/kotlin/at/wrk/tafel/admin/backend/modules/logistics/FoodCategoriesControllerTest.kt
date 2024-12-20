@@ -1,6 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.logistics
 
-import at.wrk.tafel.admin.backend.modules.logistics.internal.FoodCategoriesService
+import at.wrk.tafel.admin.backend.modules.logistics.internal.FoodCategoryService
 import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCategoriesListResponse
 import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCategory
 import io.mockk.every
@@ -15,7 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 class FoodCategoriesControllerTest {
 
     @RelaxedMockK
-    private lateinit var foodCategoriesService: FoodCategoriesService
+    private lateinit var foodCategoriesService: FoodCategoryService
 
     @InjectMockKs
     private lateinit var controller: FoodCategoriesController

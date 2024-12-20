@@ -20,7 +20,7 @@ export class FoodCollectionsApiService {
 
 export interface FoodCollectionSaveRequest {
   routeId: number;
-  carLicensePlate: string;
+  carId: number;
   driverId: number;
   coDriverId: number;
   kmStart: number;

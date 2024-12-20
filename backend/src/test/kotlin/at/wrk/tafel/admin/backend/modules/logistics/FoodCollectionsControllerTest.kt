@@ -3,7 +3,7 @@ package at.wrk.tafel.admin.backend.modules.logistics
 import at.wrk.tafel.admin.backend.modules.logistics.internal.FoodCollectionService
 import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCollectionData
 import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCollectionItem
-import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCollectionsRequest
+import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCollectionSaveRequest
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -24,7 +24,6 @@ class FoodCollectionsControllerTest {
 
     @Test
     fun `get food collection`() {
-        val distributionId = 123L
         val routeId = 456L
         val foodCollectionItem = FoodCollectionItem(
             categoryId = 1,
@@ -45,9 +44,9 @@ class FoodCollectionsControllerTest {
 
     @Test
     fun `saves food collection`() {
-        val request = FoodCollectionsRequest(
+        val request = FoodCollectionSaveRequest(
             routeId = 123L,
-            carLicensePlate = "W-12345",
+            carId = 1,
             driverId = 1,
             coDriverId = 2,
             kmStart = 1000,

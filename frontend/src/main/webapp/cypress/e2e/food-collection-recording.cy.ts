@@ -13,7 +13,7 @@ describe('Food Collection Recording', () => {
   it('food collection recorded properly', () => {
     cy.getAnyRandomNumber().then((randomNumber) => {
       cy.byTestId('routeInput').select('Route 2');
-      cy.byTestId('carLicensePlateInput').type('W-12345');
+      cy.byTestId('carInput').select('W-NC-123 (Nice Car 123)');
       cy.byTestId('kmStartInput').type('1000');
       cy.byTestId('kmEndInput').type('2000');
 

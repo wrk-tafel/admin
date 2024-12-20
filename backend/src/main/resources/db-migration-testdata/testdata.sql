@@ -506,10 +506,18 @@ VALUES (2000, NOW(), NOW(), '02000', 'Driver', '1');
 INSERT INTO employees (id, created_at, updated_at, personnel_number, firstname, lastname)
 VALUES (2100, NOW(), NOW(), '02100', 'CoDriver', '1');
 
+-- cars
+INSERT INTO cars (id, created_at, updated_at, license_plate, name)
+VALUES (1, NOW(), NOW(), 'W-NC-123', 'Nice Car 123');
+INSERT INTO cars (id, created_at, updated_at, license_plate, name)
+VALUES (2, NOW(), NOW(), 'W-NC-456', 'Nice Car 456');
+INSERT INTO cars (id, created_at, updated_at, license_plate, name)
+VALUES (3, NOW(), NOW(), 'W-NC-789', 'Nice Car 789');
+
 -- food collections
-INSERT INTO food_collections (id, created_at, updated_at, distribution_id, route_id, car_license_plate,
+INSERT INTO food_collections (id, created_at, updated_at, distribution_id, route_id, car_id,
                               driver_employee_id, co_driver_employee_id, km_start, km_end)
-VALUES (1, NOW(), NOW(), 1, 1, 'W-NICECAR-123', 2000, 2100, 213000, 213500);
+VALUES (1, NOW(), NOW(), 1, 1, 1, 2000, 2100, 213000, 213500);
 
 -- food collections items for route 1
 WITH ShopCategories AS (

@@ -6,7 +6,7 @@ import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCategory
 import org.springframework.stereotype.Service
 
 @Service
-class FoodCategoriesService(
+class FoodCategoryService(
     private val foodCategoriesRepository: FoodCategoryRepository
 ) {
 
