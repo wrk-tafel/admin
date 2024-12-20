@@ -11,7 +11,7 @@ class CarService(
 ) {
 
     fun getCars(): List<Car> {
-        val routes = carRepository.findAll()
+        val routes = carRepository.findAll().toList()
         return routes.map { mapCar(it) }
     }
 

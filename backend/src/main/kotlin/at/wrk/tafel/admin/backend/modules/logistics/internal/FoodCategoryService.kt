@@ -11,8 +11,8 @@ class FoodCategoryService(
 ) {
 
     fun getFoodCategories(): List<FoodCategory> {
-        val routes = foodCategoriesRepository.findAll()
-        return routes.map { mapRoute(it) }
+        val categories = foodCategoriesRepository.findAll().toList()
+        return categories.map { mapRoute(it) }
     }
 
     private fun mapRoute(foodCategoryEntity: FoodCategoryEntity): FoodCategory {
