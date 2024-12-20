@@ -28,22 +28,22 @@
       </c-row>
       <hr>
       <c-row class="mt-2">
-        <c-col md="3">
+        <c-col md="5">
           <label class="form-label">KFZ *</label>
           <c-input-group>
-            <input testid="carLicensePlateInput" type="text" formControlName="carLicensePlate" class="form-control"
-                   [ngClass]="{'is-invalid': carLicensePlate.invalid && (carLicensePlate.dirty || carLicensePlate.touched), 'is-valid': carLicensePlate.valid && (carLicensePlate.dirty || carLicensePlate.touched)}">
+            <select testid="carInput" class="form-control" formControlName="car" cSelect>
+              @for (car of carList().cars; track car.id) {
+                <option [ngValue]="car">
+                  {{ car.licensePlate }} ({{ car.name }})
+                </option>
+              }
+            </select>
             <span cInputGroupText>
               <fa-icon [icon]="faTruck"></fa-icon>
             </span>
-            @if (carLicensePlate.errors?.required && (carLicensePlate.dirty || carLicensePlate.touched)) {
+            @if (car.errors?.required && (car.dirty || car.touched)) {
               <div class="invalid-feedback">
                 Pflichtfeld
-              </div>
-            }
-            @if (carLicensePlate.errors?.maxlength && (carLicensePlate.dirty || carLicensePlate.touched)) {
-              <div class="invalid-feedback">
-                KFZ zu lang (Limit: {{ carLicensePlate.errors.maxlength.requiredLength }})
               </div>
             }
           </c-input-group>

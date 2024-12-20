@@ -13,13 +13,13 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 
 @ExtendWith(MockKExtension::class)
-class FoodCategoriesServiceTest {
+class FoodCategoryServiceTest {
 
     @RelaxedMockK
     private lateinit var foodCategoryRepository: FoodCategoryRepository
 
     @InjectMockKs
-    private lateinit var service: FoodCategoriesService
+    private lateinit var service: FoodCategoryService
 
     @Test
     fun `get categories`() {

@@ -18,8 +18,9 @@ import jakarta.persistence.Table
 @ExcludeFromTestCoverage
 class FoodCollectionEntity : BaseChangeTrackingEntity() {
 
-    @Column(name = "car_license_plate")
-    var carLicensePlate: String? = null
+    @OneToOne
+    @JoinColumn(name = "car_id", referencedColumnName = "id")
+    var car: CarEntity? = null
 
     @OneToOne
     @JoinColumn(name = "driver_employee_id", referencedColumnName = "id")

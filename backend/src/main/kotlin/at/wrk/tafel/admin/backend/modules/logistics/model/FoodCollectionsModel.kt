@@ -3,9 +3,9 @@ package at.wrk.tafel.admin.backend.modules.logistics.model
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 
 @ExcludeFromTestCoverage
-data class FoodCollectionsRequest(
+data class FoodCollectionSaveRequest(
     val routeId: Long,
-    val carLicensePlate: String,
+    val carId: Long,
     val driverId: Long,
     val coDriverId: Long,
     val kmStart: Int,

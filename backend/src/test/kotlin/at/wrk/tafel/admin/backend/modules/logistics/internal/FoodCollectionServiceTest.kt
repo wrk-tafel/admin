@@ -3,6 +3,7 @@ package at.wrk.tafel.admin.backend.modules.logistics.internal
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
+import at.wrk.tafel.admin.backend.database.model.logistics.CarRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCategoryRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionRepository
@@ -14,7 +15,8 @@ import at.wrk.tafel.admin.backend.modules.base.employee.testEmployee2
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionEntity
 import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCollectionItem
-import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCollectionsRequest
+import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCollectionSaveRequest
+import at.wrk.tafel.admin.backend.modules.logistics.testCar1
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCategory1
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCategory2
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCollectionRoute1Entity
@@ -54,6 +56,9 @@ class FoodCollectionServiceTest {
 
     @RelaxedMockK
     private lateinit var foodCategoryRepository: FoodCategoryRepository
+
+    @RelaxedMockK
+    private lateinit var carRepository: CarRepository
 
     @InjectMockKs
     private lateinit var service: FoodCollectionService
@@ -96,14 +101,11 @@ class FoodCollectionServiceTest {
 
     @Test
     fun `save without open distribution`() {
-        val routeId = 123L
-        val driverId = 1L
-        val coDriverId = 2L
-        val request = FoodCollectionsRequest(
-            routeId = routeId,
-            carLicensePlate = "W-12345",
-            driverId = driverId,
-            coDriverId = coDriverId,
+        val request = FoodCollectionSaveRequest(
+            routeId = 123L,
+            carId = testCar1.id!!,
+            driverId = 1L,
+            coDriverId = 2L,
             kmStart = 1000,
             kmEnd = 2000,
             items = emptyList()
@@ -119,9 +121,9 @@ class FoodCollectionServiceTest {
         val routeId = 123L
         val driverId = 1L
         val coDriverId = 2L
-        val request = FoodCollectionsRequest(
+        val request = FoodCollectionSaveRequest(
             routeId = routeId,
-            carLicensePlate = "W-12345",
+            carId = testCar1.id!!,
             driverId = driverId,
             coDriverId = coDriverId,
             kmStart = 1000,
@@ -139,9 +141,9 @@ class FoodCollectionServiceTest {
         val routeId = 123L
         val driverId = 1L
         val coDriverId = 2L
-        val request = FoodCollectionsRequest(
+        val request = FoodCollectionSaveRequest(
             routeId = routeId,
-            carLicensePlate = "W-12345",
+            carId = testCar1.id!!,
             driverId = driverId,
             coDriverId = coDriverId,
             kmStart = 1000,
@@ -162,9 +164,9 @@ class FoodCollectionServiceTest {
         val routeId = 123L
         val driverId = 1L
         val coDriverId = 2L
-        val request = FoodCollectionsRequest(
+        val request = FoodCollectionSaveRequest(
             routeId = routeId,
-            carLicensePlate = "W-12345",
+            carId = testCar1.id!!,
             driverId = driverId,
             coDriverId = coDriverId,
             kmStart = 1000,
@@ -201,6 +203,7 @@ class FoodCollectionServiceTest {
         every { foodCategoryRepository.findByIdOrNull(testFoodCategory2.id) } returns testFoodCategory2
         every { shopRepository.findByIdOrNull(testShop1.id) } returns testShop1
         every { shopRepository.findByIdOrNull(testShop2.id) } returns testShop2
+        every { carRepository.findByIdOrNull(testCar1.id) } returns testCar1
 
         service.save(request)
 
@@ -211,7 +214,7 @@ class FoodCollectionServiceTest {
         assertThat(foodCollection).isNotNull
         assertThat(foodCollection.distribution!!.id).isEqualTo(testDistributionEntity.id)
         assertThat(foodCollection.route!!.id).isEqualTo(testRoute1.id)
-        assertThat(foodCollection.carLicensePlate).isEqualTo(request.carLicensePlate)
+        assertThat(foodCollection.car!!.id).isEqualTo(request.carId)
         assertThat(foodCollection.driver!!.id).isEqualTo(request.driverId)
         assertThat(foodCollection.coDriver!!.id).isEqualTo(request.coDriverId)
         assertThat(foodCollection.kmStart).isEqualTo(request.kmStart)

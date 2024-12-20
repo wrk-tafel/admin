@@ -45,7 +45,7 @@ describe('FoodCollectionsApiService', () => {
   it('save collection', () => {
     const mockFoodCollection: FoodCollectionSaveRequest = {
       routeId: 1,
-      carLicensePlate: "W-X123-AB",
+      carId: 1,
       driverId: 2,
       coDriverId: 3,
       kmStart: 1000,

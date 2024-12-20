@@ -32,7 +32,8 @@ import {
   FoodCollectionSaveRequest
 } from '../../../../api/food-collections-api.service';
 import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
-import {firstValueFrom} from "rxjs";
+import {firstValueFrom} from 'rxjs';
+import {CarData, CarList} from '../../../../api/car-api.service';
 
 @Component({
   selector: 'tafel-food-collection-recording',
@@ -64,6 +65,7 @@ export class FoodCollectionRecordingComponent implements OnInit {
   @ViewChild('coDriverEmployeeSearchCreate') coDriverEmployeeSearchCreate: TafelEmployeeSearchCreateComponent
 
   routeList = model.required<RouteList>();
+  carList = model.required<CarList>();
   foodCategories = model.required<FoodCategory[]>();
 
   private readonly globalStateService = inject(GlobalStateService);
@@ -77,7 +79,7 @@ export class FoodCollectionRecordingComponent implements OnInit {
 
   form = this.fb.group({
       route: this.fb.control<RouteData>(null, [Validators.required]),
-      carLicensePlate: this.fb.control<string>(null, [Validators.required, Validators.maxLength(50)]),
+      car: this.fb.control<CarData>(null, [Validators.required]),
       driverSearchInput: this.fb.control<string>(null,
         [
           Validators.required,
@@ -192,7 +194,7 @@ export class FoodCollectionRecordingComponent implements OnInit {
   save() {
     const collectionData: FoodCollectionSaveRequest = {
       routeId: this.route.value.id,
-      carLicensePlate: this.carLicensePlate.value,
+      carId: this.car.value.id,
       driverId: this.selectedDriver.id,
       coDriverId: this.selectedCoDriver.id,
       kmStart: this.kmStart.value,
@@ -237,8 +239,8 @@ export class FoodCollectionRecordingComponent implements OnInit {
     return this.form.get('route');
   }
 
-  get carLicensePlate() {
-    return this.form.get('carLicensePlate');
+  get car() {
+    return this.form.get('car');
   }
 
   get driverSearchInput() {
