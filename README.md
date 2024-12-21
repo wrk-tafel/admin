@@ -7,6 +7,7 @@
 # TODO
 # Prio 1
 * Bug: Customer in CustomerList(PDF) still visible after deletion of ticketNumber! - caching?
+* Improve password change: Add eye-button to temporarily show password
 
 * Statistics Module: Show charts / CSV Export
 * Statistics: Show live data on dashboard
