@@ -6,6 +6,8 @@
 
 # TODO
 # Prio 1
+* Bug: Customer in CustomerList(PDF) still visible after deletion of ticketNumber! - caching?
+
 * Statistics Module: Show charts / CSV Export
 * Statistics: Show live data on dashboard
 
