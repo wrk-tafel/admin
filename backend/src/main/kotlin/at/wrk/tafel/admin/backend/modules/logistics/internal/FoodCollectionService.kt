@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.logistics.internal
 
+import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
@@ -10,7 +11,9 @@ import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionItemEnt
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.ShopRepository
+import at.wrk.tafel.admin.backend.modules.base.employee.Employee
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
+import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCollectionData
 import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCollectionItem
 import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCollectionSaveRequest
 import org.springframework.data.repository.findByIdOrNull
@@ -29,24 +32,43 @@ class FoodCollectionService(
 ) {
 
     @Transactional
-    fun getFoodCollectionItems(routeId: Long): List<FoodCollectionItem> {
+    fun getFoodCollection(routeId: Long): FoodCollectionData? {
         val distribution = distributionRepository.getCurrentDistribution()
             ?: throw TafelValidationException("Ausgabe nicht gestartet!")
 
-        val foodCollectionsForRoute = distribution.foodCollections.firstOrNull { it.route?.id == routeId }
-        return foodCollectionsForRoute?.let { mapItemsEntityToItems(it.items ?: emptyList()) } ?: emptyList()
+        val foodCollection = distribution.foodCollections.firstOrNull { it.route?.id == routeId }
+
+        return foodCollection?.let {
+            val driverId = it.driver!!.id!!
+            val driverEmployee = employeeRepository.findByIdOrNull(driverId)!!
+
+            val coDriverId = it.coDriver!!.id!!
+            val coDriverEmployee = employeeRepository.findByIdOrNull(coDriverId)!!
+
+            FoodCollectionData(
+                carId = it.car!!.id!!,
+                driver = mapEmployee(driverEmployee),
+                coDriver = mapEmployee(coDriverEmployee),
+                kmStart = it.kmStart!!,
+                kmEnd = it.kmEnd!!,
+                items = mapItemsEntityToItems(it.items ?: emptyList())
+            )
+        }
+    }
+
+    private fun mapEmployee(employee: EmployeeEntity): Employee {
+        return Employee(
+            id = employee.id!!,
+            personnelNumber = employee.personnelNumber!!,
+            firstname = employee.firstname!!,
+            lastname = employee.lastname!!,
+        )
     }
 
     @Transactional
     fun save(request: FoodCollectionSaveRequest) {
         val distribution = distributionRepository.getCurrentDistribution()
             ?: throw TafelValidationException("Ausgabe nicht gestartet!")
-        val route = routeRepository.findByIdOrNull(request.routeId)
-            ?: throw TafelValidationException("Route ${request.routeId} nicht gefunden!")
-
-        if (foodCollectionRepository.existsByDistributionAndRoute(distribution = distribution, route = route)) {
-            throw TafelValidationException("Waren zur Route '${route.name}' sind bereits erfasst!")
-        }
 
         foodCollectionRepository.save(mapToEntity(distribution, request))
     }
@@ -55,10 +77,14 @@ class FoodCollectionService(
         distributionEntity: DistributionEntity,
         request: FoodCollectionSaveRequest
     ): FoodCollectionEntity {
-        return FoodCollectionEntity().apply {
+        val entity = distributionEntity.foodCollections.firstOrNull {
+            it.route?.id == request.routeId
+        } ?: FoodCollectionEntity()
+
+        return entity.apply {
             distribution = distributionEntity
             route = routeRepository.findByIdOrNull(request.routeId)
-                ?: throw TafelValidationException("Ungültige Route!")
+                ?: throw TafelValidationException("Route ${request.routeId} nicht gefunden!")
             car = carRepository.findByIdOrNull(request.carId)
                 ?: throw TafelValidationException("Ungültiges KFZ!")
             driver = employeeRepository.findByIdOrNull(request.driverId)

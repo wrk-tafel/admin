@@ -59,10 +59,11 @@ export class TafelEmployeeSearchCreateComponent {
 
   triggerSearch() {
     this.employeeApiService.getEmployees(this.searchInput()).subscribe((employees) => {
-      if (employees.length === 0) {
+      const employee = employees.filter((employee) => employee.personnelNumber === this.searchInput())[0];
+      if (!employee) {
         this.showCreateEmployeeModal = true;
       } else {
-        this.selectedEmployee.emit(employees[0]);
+        this.selectedEmployee.emit(employee);
       }
     });
   }

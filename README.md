@@ -5,10 +5,6 @@
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=wrk-tafel-admin&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=wrk-tafel-admin)
 
 # TODO
-# Prio 0
-* gesamtmenge
-* Update der routen beim speichern statt "Bereits erfasst"
-
 # Prio 1
 * Bug: Customer in CustomerList(PDF) still visible after deletion of ticketNumber! - caching?
 * Improve password change: Add eye-button to temporarily show password

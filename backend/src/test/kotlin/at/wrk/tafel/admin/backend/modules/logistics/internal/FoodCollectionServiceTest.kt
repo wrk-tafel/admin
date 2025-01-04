@@ -7,9 +7,9 @@ import at.wrk.tafel.admin.backend.database.model.logistics.CarRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCategoryRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionRepository
-import at.wrk.tafel.admin.backend.database.model.logistics.RouteEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.ShopRepository
+import at.wrk.tafel.admin.backend.modules.base.employee.Employee
 import at.wrk.tafel.admin.backend.modules.base.employee.testEmployee1
 import at.wrk.tafel.admin.backend.modules.base.employee.testEmployee2
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
@@ -64,24 +64,46 @@ class FoodCollectionServiceTest {
     private lateinit var service: FoodCollectionService
 
     @Test
-    fun `get food collection items`() {
+    fun `get food collection data`() {
         val routeId = testFoodCollectionRoute1Entity.route!!.id!!
+        every { employeeRepository.findByIdOrNull(testEmployee1.id) } returns testEmployee1
+        every { employeeRepository.findByIdOrNull(testEmployee2.id) } returns testEmployee2
 
         val distributionMock = mockk<DistributionEntity>()
         every { distributionMock.foodCollections } returns listOf(testFoodCollectionRoute1Entity)
         every { distributionRepository.getCurrentDistribution() } returns distributionMock
 
-        val items = service.getFoodCollectionItems(routeId)
-        assertThat(items).hasSize(testFoodCollectionRoute1Entity.items!!.size)
+        val data = service.getFoodCollection(routeId)!!
 
-        assertThat(items[1]).isEqualTo(
+        assertThat(data.carId).isEqualTo(testFoodCollectionRoute1Entity.car!!.id)
+        assertThat(data.driver).isEqualTo(
+            Employee(
+                id = testFoodCollectionRoute1Entity.driver!!.id!!,
+                personnelNumber = testEmployee1.personnelNumber!!,
+                firstname = testEmployee1.firstname!!,
+                lastname = testEmployee1.lastname!!
+            )
+        )
+        assertThat(data.coDriver).isEqualTo(
+            Employee(
+                id = testFoodCollectionRoute1Entity.coDriver!!.id!!,
+                personnelNumber = testEmployee2.personnelNumber!!,
+                firstname = testEmployee2.firstname!!,
+                lastname = testEmployee2.lastname!!
+            )
+        )
+        assertThat(data.kmStart).isEqualTo(testFoodCollectionRoute1Entity.kmStart)
+        assertThat(data.kmEnd).isEqualTo(testFoodCollectionRoute1Entity.kmEnd)
+        assertThat(data.items).hasSize(testFoodCollectionRoute1Entity.items!!.size)
+
+        assertThat(data.items[1]).isEqualTo(
             FoodCollectionItem(
                 categoryId = 1,
                 shopId = 2,
                 amount = 2
             )
         )
-        assertThat(items[2]).isEqualTo(
+        assertThat(data.items[2]).isEqualTo(
             FoodCollectionItem(
                 categoryId = 2,
                 shopId = 1,
@@ -91,11 +113,11 @@ class FoodCollectionServiceTest {
     }
 
     @Test
-    fun `get food collection items without open distribution`() {
+    fun `get food collection data without open distribution`() {
         val routeId = testFoodCollectionRoute1Entity.route!!.id!!
         every { distributionRepository.getCurrentDistribution() } returns null
 
-        val exception = assertThrows<TafelValidationException> { service.getFoodCollectionItems(routeId) }
+        val exception = assertThrows<TafelValidationException> { service.getFoodCollection(routeId) }
         assertThat(exception.message).isEqualTo("Ausgabe nicht gestartet!")
     }
 
@@ -134,29 +156,6 @@ class FoodCollectionServiceTest {
 
         val exception = assertThrows<TafelValidationException> { service.save(request) }
         assertThat(exception.message).isEqualTo("Route 123 nicht gefunden!")
-    }
-
-    @Test
-    fun `save data again for same route`() {
-        val routeId = 123L
-        val driverId = 1L
-        val coDriverId = 2L
-        val request = FoodCollectionSaveRequest(
-            routeId = routeId,
-            carId = testCar1.id!!,
-            driverId = driverId,
-            coDriverId = coDriverId,
-            kmStart = 1000,
-            kmEnd = 2000,
-            items = emptyList()
-        )
-        val route = mockk<RouteEntity>()
-        every { route.name } returns "route-name"
-        every { routeRepository.findByIdOrNull(routeId) } returns route
-        every { foodCollectionRepository.existsByDistributionAndRoute(any(), route) } returns true
-
-        val exception = assertThrows<TafelValidationException> { service.save(request) }
-        assertThat(exception.message).isEqualTo("Waren zur Route 'route-name' sind bereits erfasst!")
     }
 
     @Test
