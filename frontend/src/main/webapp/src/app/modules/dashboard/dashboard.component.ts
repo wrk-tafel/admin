@@ -12,6 +12,7 @@ import {TafelIfDistributionActiveDirective} from '../../common/directive/tafel-i
 import {
   RecordedFoodCollectionsComponent
 } from "./components/recorded-food-collections/recorded-food-collections.component";
+import {FoodAmountComponent} from "./components/food-amount/food-amount.component";
 
 @Component({
   selector: 'tafel-dashboard',
@@ -25,7 +26,8 @@ import {
     ButtonDirective,
     DistributionStatisticsInputComponent,
     TafelIfDistributionActiveDirective,
-    RecordedFoodCollectionsComponent
+    RecordedFoodCollectionsComponent,
+    FoodAmountComponent
   ],
   standalone: true
 })

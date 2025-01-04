@@ -1,11 +1,11 @@
 import {TestBed, waitForAsync} from '@angular/core/testing';
-import {RecordedFoodCollectionsComponent} from './recorded-food-collections.component';
+import {FoodAmountComponent} from './food-amount.component';
 import {By} from '@angular/platform-browser';
 import {CardModule, ColComponent, ModalModule, RowComponent} from '@coreui/angular';
 import {provideHttpClient} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
 
-describe('RecordedFoodCollectionsComponent', () => {
+describe('FoodAmountComponent', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
@@ -23,26 +23,25 @@ describe('RecordedFoodCollectionsComponent', () => {
   }));
 
   it('component can be created', () => {
-    const fixture = TestBed.createComponent(RecordedFoodCollectionsComponent);
+    const fixture = TestBed.createComponent(FoodAmountComponent);
     const component = fixture.componentInstance;
     expect(component).toBeTruthy();
   });
 
-  it('recorded food collections count rendered', () => {
-    const fixture = TestBed.createComponent(RecordedFoodCollectionsComponent);
+  it('food amount rendered', () => {
+    const fixture = TestBed.createComponent(FoodAmountComponent);
     const componentRef = fixture.componentRef;
-    componentRef.setInput('countRecorded', 2);
-    componentRef.setInput('countTotal', 5);
+    componentRef.setInput('amount', 1234);
 
     fixture.detectChanges();
-    expect(fixture.debugElement.query(By.css('[testid="recorded-food-collections-count"]')).nativeElement.textContent).toBe(`2 / 5`);
+    expect(fixture.debugElement.query(By.css('[testid="food-amount-total"]')).nativeElement.textContent).toBe(`1234 kg`);
   });
 
-  it('recorded food collections count rendered without active distribution', () => {
-    const fixture = TestBed.createComponent(RecordedFoodCollectionsComponent);
+  it('food amount rendered without active distribution', () => {
+    const fixture = TestBed.createComponent(FoodAmountComponent);
 
     fixture.detectChanges();
-    expect(fixture.debugElement.query(By.css('[testid="recorded-food-collections-count"]')).nativeElement.textContent).toBe(`-`);
+    expect(fixture.debugElement.query(By.css('[testid="food-amount-total"]')).nativeElement.textContent).toBe(`-`);
   });
 
 });

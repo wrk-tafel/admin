@@ -4,8 +4,8 @@ import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {TafelIfDistributionActiveDirective} from '../../../../common/directive/tafel-if-distribution-active.directive';
 
 @Component({
-  selector: 'tafel-recorded-food-collections',
-  templateUrl: 'recorded-food-collections.component.html',
+  selector: 'tafel-food-amount',
+  templateUrl: 'food-amount.component.html',
   imports: [
     CardComponent,
     CardBodyComponent,
@@ -13,11 +13,10 @@ import {TafelIfDistributionActiveDirective} from '../../../../common/directive/t
     ColComponent,
     FaIconComponent,
     ButtonDirective,
-    TafelIfDistributionActiveDirective
+    TafelIfDistributionActiveDirective,
   ],
   standalone: true
 })
-export class RecordedFoodCollectionsComponent {
-  countRecorded = input<number | null>(null);
-  countTotal = input<number | null>(null);
+export class FoodAmountComponent {
+  amount = input<number | null>(null);
 }

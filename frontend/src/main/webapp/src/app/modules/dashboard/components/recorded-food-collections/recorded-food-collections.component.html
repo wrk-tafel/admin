@@ -7,7 +7,11 @@
     </c-row>
     <c-row>
       <c-col>
-        <div testid="recorded-food-collections-count" class="text-white text-end" style="font-size: 50pt;">{{(countRecorded() ?? '-') + ' / ' + (countTotal() ?? '-')}}</div>
+        @if (countRecorded() !== null && countTotal() !== null) {
+          <div testid="recorded-food-collections-count" class="text-white text-end" style="font-size: 50pt;">{{ countRecorded() + ' / ' + countTotal() }}</div>
+        } @else {
+          <div testid="recorded-food-collections-count" class="text-white text-end" style="font-size: 50pt;">-</div>
+        }
       </c-col>
     </c-row>
   </c-card-body>
