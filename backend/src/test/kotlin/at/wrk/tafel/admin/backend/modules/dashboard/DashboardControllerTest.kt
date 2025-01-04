@@ -10,6 +10,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.messaging.simp.SimpMessagingTemplate
+import java.math.BigDecimal
 
 @ExtendWith(MockKExtension::class)
 internal class DashboardControllerTest {
@@ -30,6 +31,11 @@ internal class DashboardControllerTest {
             statistics = DashboardStatisticsData(
                 employeeCount = 1,
                 personsInShelterCount = 2
+            ),
+            logistics = DashboardLogisticsData(
+                foodCollectionsRecordedCount = 1,
+                foodCollectionsTotalCount = 2,
+                foodAmountTotal = BigDecimal(3)
             )
         )
         every { service.getData() } returns data
@@ -47,6 +53,11 @@ internal class DashboardControllerTest {
             statistics = DashboardStatisticsData(
                 employeeCount = 1,
                 personsInShelterCount = 2
+            ),
+            logistics = DashboardLogisticsData(
+                foodCollectionsRecordedCount = 1,
+                foodCollectionsTotalCount = 2,
+                foodAmountTotal = BigDecimal(3)
             )
         )
         every { service.getData() } returns data

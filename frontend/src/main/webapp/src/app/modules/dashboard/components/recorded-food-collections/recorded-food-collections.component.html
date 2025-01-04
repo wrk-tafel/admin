@@ -1,0 +1,18 @@
+<c-card class="h-100" color="primary">
+  <c-card-body>
+    <c-row>
+      <c-col size="12">
+        <h4 class="card-title text-white">Erfasste Routen</h4>
+      </c-col>
+    </c-row>
+    <c-row>
+      <c-col>
+        @if (countRecorded() !== null && countTotal() !== null) {
+          <div testid="recorded-food-collections-count" class="text-white text-end" style="font-size: 50pt;">{{ countRecorded() + ' / ' + countTotal() }}</div>
+        } @else {
+          <div testid="recorded-food-collections-count" class="text-white text-end" style="font-size: 50pt;">-</div>
+        }
+      </c-col>
+    </c-row>
+  </c-card-body>
+</c-card>

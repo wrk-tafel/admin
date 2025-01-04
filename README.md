@@ -6,7 +6,6 @@
 
 # TODO
 # Prio 0
-* anzahl erfasster routen
 * gesamtmenge
 * Update der routen beim speichern statt "Bereits erfasst"
 

@@ -9,6 +9,10 @@ import {
   DistributionStatisticsInputComponent
 } from './components/distribution-statistics-input/distribution-statistics-input.component';
 import {TafelIfDistributionActiveDirective} from '../../common/directive/tafel-if-distribution-active.directive';
+import {
+  RecordedFoodCollectionsComponent
+} from "./components/recorded-food-collections/recorded-food-collections.component";
+import {FoodAmountComponent} from "./components/food-amount/food-amount.component";
 
 @Component({
   selector: 'tafel-dashboard',
@@ -21,7 +25,9 @@ import {TafelIfDistributionActiveDirective} from '../../common/directive/tafel-i
     TafelIfPermissionDirective,
     ButtonDirective,
     DistributionStatisticsInputComponent,
-    TafelIfDistributionActiveDirective
+    TafelIfDistributionActiveDirective,
+    RecordedFoodCollectionsComponent,
+    FoodAmountComponent
   ],
   standalone: true
 })
@@ -41,9 +47,16 @@ export class DashboardComponent implements OnInit {
 export interface DashboardData {
   registeredCustomers?: number;
   statistics?: DashboardStatisticsData;
+  logistics?: DashboardLogisticsData;
 }
 
 export interface DashboardStatisticsData {
   employeeCount?: number;
   personsInShelterCount?: number;
+}
+
+export interface DashboardLogisticsData {
+  foodCollectionsRecordedCount?: number;
+  foodCollectionsTotalCount?: number;
+  foodAmountTotal?: number;
 }
