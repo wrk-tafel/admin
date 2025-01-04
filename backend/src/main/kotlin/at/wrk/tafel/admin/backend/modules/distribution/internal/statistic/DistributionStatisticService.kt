@@ -4,8 +4,6 @@ import at.wrk.tafel.admin.backend.database.model.customer.CustomerRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticRepository
-import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionItemEntity
-import at.wrk.tafel.admin.backend.database.model.logistics.FoodUnit
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
@@ -124,7 +122,7 @@ class DistributionStatisticService(
 
         val foodTotalAmount = distribution.foodCollections
             .flatMap { it.items ?: emptyList() }
-            .map { calculateWeight(it) }
+            .map { it.calculateWeight() }
             .sumOf { it }
         statistic.foodTotalAmount = foodTotalAmount
 
@@ -140,18 +138,6 @@ class DistributionStatisticService(
         val routesLengthKm = distribution.foodCollections
             .sumOf { (it.kmEnd ?: 0) - (it.kmStart ?: 0) }
         statistic.routesLengthKm = routesLengthKm
-    }
-
-    private fun calculateWeight(foodCollectionItem: FoodCollectionItemEntity): BigDecimal {
-        val amount = foodCollectionItem.amount ?: 0
-        val unit = foodCollectionItem.shop?.foodUnit ?: FoodUnit.BOX
-
-        return if (unit == FoodUnit.KG) {
-            BigDecimal(amount)
-        } else {
-            val weightPerUnit = foodCollectionItem.category?.weightPerUnit ?: BigDecimal.ZERO
-            BigDecimal(amount) * weightPerUnit
-        }
     }
 
 }

@@ -1,8 +1,8 @@
-<c-row style="height: 20vh;">
+<c-row>
   <c-col sm="6" lg="3" *tafelIfPermission="'DISTRIBUTION_LCM'">
     <tafel-distribution-state></tafel-distribution-state>
   </c-col>
-  <c-col sm="6" lg="3" *tafelIfDistributionActive>
+  <c-col sm="6" lg="3" class="mt-4 mt-sm-0" *tafelIfDistributionActive>
     <tafel-distribution-statistics-input *tafelIfPermission="'DISTRIBUTION_LCM'"
                                          [employeeCountInput]="data?.statistics?.employeeCount"
                                          [personsInShelterCountInput]="data?.statistics?.personsInShelterCount">
@@ -10,5 +10,12 @@
   </c-col>
   <c-col sm="6" lg="3" class="mt-4 mt-sm-0">
     <tafel-registered-customers [count]="data?.registeredCustomers"></tafel-registered-customers>
+  </c-col>
+</c-row>
+<c-row class="mt-4">
+  <c-col sm="6" lg="3">
+    <tafel-recorded-food-collections [countRecorded]="data?.logistics?.foodCollectionsRecordedCount"
+                                     [countTotal]="data?.logistics?.foodCollectionsTotalCount">
+    </tafel-recorded-food-collections>
   </c-col>
 </c-row>

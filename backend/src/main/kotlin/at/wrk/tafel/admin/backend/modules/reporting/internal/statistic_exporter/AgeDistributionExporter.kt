@@ -40,7 +40,7 @@ class AgeDistributionExporter : StatisticExporter {
 
         val countCustomers = customers.size
         val countPersons = countCustomers + persons.size
-        val averagePersonsPerHousehold = countPersons / countCustomers
+        val averagePersonsPerHousehold = if (countCustomers > 0) countPersons / countCustomers else 0
 
         val groupedCustomers = countByAgeRange(customersBirthDates)
         val groupedPersons = countByAgeRange(personsBirthDates + customersBirthDates)

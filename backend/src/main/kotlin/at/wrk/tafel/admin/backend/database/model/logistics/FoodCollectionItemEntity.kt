@@ -5,6 +5,7 @@ import jakarta.persistence.Column
 import jakarta.persistence.Embeddable
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
+import java.math.BigDecimal
 
 @Embeddable
 @ExcludeFromTestCoverage
@@ -20,5 +21,17 @@ class FoodCollectionItemEntity {
 
     @Column(name = "amount")
     var amount: Int? = null
+
+    fun calculateWeight(): BigDecimal {
+        val amount = amount ?: 0
+        val unit = shop?.foodUnit ?: FoodUnit.BOX
+
+        return if (unit == FoodUnit.KG) {
+            BigDecimal(amount)
+        } else {
+            val weightPerUnit = category?.weightPerUnit ?: BigDecimal.ZERO
+            BigDecimal(amount) * weightPerUnit
+        }
+    }
 
 }
