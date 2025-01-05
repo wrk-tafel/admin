@@ -4,16 +4,22 @@ import {ChangePasswordRequest, ChangePasswordResponse, UserApiService} from '../
 import {catchError, map} from 'rxjs/operators';
 import {Observable, throwError} from 'rxjs';
 import {HttpErrorResponse} from '@angular/common/http';
-import {NgClass} from '@angular/common';
+import {CommonModule} from '@angular/common';
 import {TafelAutofocusDirective} from '../../directive/tafel-autofocus.directive';
+import {InputGroupComponent, InputGroupTextDirective} from "@coreui/angular";
+import {faEye, faEyeSlash} from "@fortawesome/free-solid-svg-icons";
+import {FaIconComponent} from "@fortawesome/angular-fontawesome";
 
 @Component({
   selector: 'tafel-passwordchange-form',
   templateUrl: 'passwordchange-form.component.html',
   imports: [
     ReactiveFormsModule,
-    NgClass,
-    TafelAutofocusDirective
+    CommonModule,
+    TafelAutofocusDirective,
+    InputGroupComponent,
+    FaIconComponent,
+    InputGroupTextDirective
   ],
   standalone: true
 })
@@ -40,9 +46,26 @@ export class PasswordChangeFormComponent {
       validators: [this.validateNewAndRepeatedPasswords()]
     }
   );
+
+  currentPasswordTextVisible: boolean;
+  newPasswordTextVisible: boolean;
+  newRepeatedPasswordTextVisible: boolean;
+
   successMessage: string;
   errorMessage: string;
   errorMessageDetails: string[];
+
+  public toggleCurrentPasswordVisibility() {
+    this.currentPasswordTextVisible = !this.currentPasswordTextVisible;
+  }
+
+  public toggleNewPasswordVisibility() {
+    this.newPasswordTextVisible = !this.newPasswordTextVisible;
+  }
+
+  public toggleNewRepeatedPasswordTextVisible() {
+    this.newRepeatedPasswordTextVisible = !this.newRepeatedPasswordTextVisible;
+  }
 
   get currentPassword() {
     return this.form.get('currentPassword');
@@ -108,4 +131,6 @@ export class PasswordChangeFormComponent {
     return this.form.valid;
   }
 
+  protected readonly faEye = faEye;
+  protected readonly faEyeSlash = faEyeSlash;
 }
