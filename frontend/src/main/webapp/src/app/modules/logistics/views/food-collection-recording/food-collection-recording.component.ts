@@ -32,7 +32,6 @@ import {
   FoodCollectionSaveRequest
 } from '../../../../api/food-collections-api.service';
 import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
-import {firstValueFrom} from 'rxjs';
 import {CarData, CarList} from '../../../../api/car-api.service';
 
 @Component({
@@ -126,18 +125,41 @@ export class FoodCollectionRecordingComponent implements OnInit {
     }
 
     this.route.valueChanges.subscribe(async (selectedRoute) => {
+      // reset form without route to prevent an infinite loop
+      this.car.reset();
+      this.kmStart.reset();
+      this.kmEnd.reset();
+      this.driverSearchInput.reset();
+      this.selectedDriver = null;
+      this.coDriverSearchInput.reset();
+      this.selectedCoDriver = null;
+      this.categories.clear();
+
       if (selectedRoute) {
-        this.categories.clear();
-        await this.createInputs(selectedRoute);
-      } else {
-        this.categories.clear();
+        const observer = {
+          next: async (existingData: FoodCollectionData) => {
+            this.car.setValue(this.carList().cars.find(car => car.id === existingData.carId));
+
+            this.driverSearchInput.setValue(existingData.driver.personnelNumber);
+            this.driverEmployeeSearchCreate.triggerSearch();
+            this.coDriverSearchInput.setValue(existingData.coDriver.personnelNumber);
+            this.coDriverEmployeeSearchCreate.triggerSearch();
+
+            this.kmStart.setValue(existingData.kmStart);
+            this.kmEnd.setValue(existingData.kmEnd);
+
+            await this.createCategoryShopInputs(selectedRoute, existingData.items);
+          },
+          error: async (_: any) => {
+            await this.createCategoryShopInputs(selectedRoute, []);
+          },
+        };
+        this.foodCollectionsApiService.getFoodCollection(selectedRoute.id).subscribe(observer);
       }
     });
   }
 
-  async createInputs(selectedRoute: RouteData) {
-    const existingData = await firstValueFrom(this.foodCollectionsApiService.getFoodCollection(selectedRoute.id))
-
+  async createCategoryShopInputs(selectedRoute: RouteData, items?: FoodCollectionItem[]) {
     const categories: FormGroup[] = this.foodCategories().map((category) =>
       this.fb.group({
         categoryId: this.fb.control<number>(category.id, {nonNullable: true}),
@@ -145,7 +167,7 @@ export class FoodCollectionRecordingComponent implements OnInit {
           selectedRoute.shops.map((shop) =>
             this.fb.group({
               shopId: this.fb.control<number>(shop.id, {nonNullable: true}),
-              amount: this.fb.control<number>(this.getCurrentValue(existingData, category, shop), [Validators.required, Validators.min(0)]),
+              amount: this.fb.control<number>(this.getCurrentValue(items, category, shop), [Validators.required, Validators.min(0)]),
             })
           )
         ),
@@ -157,8 +179,8 @@ export class FoodCollectionRecordingComponent implements OnInit {
     });
   }
 
-  private getCurrentValue(existingData: FoodCollectionData, category: FoodCategory, shop: Shop) {
-    const filteredItems = existingData.items.filter(data => data.categoryId === category.id && data.shopId === shop.id);
+  private getCurrentValue(items: FoodCollectionItem[], category: FoodCategory, shop: Shop) {
+    const filteredItems = items.filter(data => data.categoryId === category.id && data.shopId === shop.id);
     if (filteredItems.length === 1) {
       return filteredItems[0].amount;
     }

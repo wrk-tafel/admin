@@ -8,6 +8,8 @@ import at.wrk.tafel.admin.backend.database.model.logistics.FoodUnit
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteStopEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.ShopEntity
+import at.wrk.tafel.admin.backend.modules.base.employee.testEmployee1
+import at.wrk.tafel.admin.backend.modules.base.employee.testEmployee2
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionEntity
 import java.math.BigDecimal
 import java.time.LocalTime
@@ -83,8 +85,23 @@ val testFoodCategory2 = FoodCategoryEntity().apply {
     weightPerUnit = BigDecimal("20")
 }
 
+val testCar1 = CarEntity().apply {
+    id = 1
+    licensePlate = "W-123"
+    name = "Car 123"
+}
+
+val testCar2 = CarEntity().apply {
+    id = 2
+    licensePlate = "W-456"
+    name = "Car 456"
+}
+
 val testFoodCollectionRoute1Entity = FoodCollectionEntity().apply {
     distribution = testDistributionEntity
+    car = testCar1
+    driver = testEmployee1
+    coDriver = testEmployee2
     route = testRoute1
     kmStart = 12345
     kmEnd = 23456
@@ -130,16 +147,4 @@ val testFoodCollectionRoute3Entity = FoodCollectionEntity().apply {
     distribution = testDistributionEntity
     route = testRoute3
     items = emptyList()
-}
-
-val testCar1 = CarEntity().apply {
-    id = 1
-    licensePlate = "W-123"
-    name = "Car 123"
-}
-
-val testCar2 = CarEntity().apply {
-    id = 2
-    licensePlate = "W-456"
-    name = "Car 456"
 }

@@ -22,10 +22,10 @@ class FoodCollectionsController(
     @PreAuthorize("hasAuthority('LOGISTICS')")
     fun getFoodCollection(
         @PathVariable("routeId") routeId: Long
-    ): FoodCollectionData {
-        return FoodCollectionData(
-            items = foodCollectionService.getFoodCollectionItems(routeId)
-        )
+    ): ResponseEntity<FoodCollectionData> {
+        val data = foodCollectionService.getFoodCollection(routeId)
+            ?: return ResponseEntity.notFound().build()
+        return ResponseEntity.ok(data)
     }
 
     @PostMapping

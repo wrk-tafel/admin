@@ -1,6 +1,7 @@
 import {HttpClient} from '@angular/common/http';
 import {inject, Injectable} from '@angular/core';
 import {Observable} from 'rxjs';
+import {EmployeeData} from "./employee-api.service";
 
 @Injectable({
   providedIn: 'root'
@@ -35,5 +36,11 @@ export interface FoodCollectionItem {
 }
 
 export interface FoodCollectionData {
+  routeId: number;
+  carId: number;
+  driver: EmployeeData;
+  coDriver: EmployeeData;
+  kmStart: number;
+  kmEnd: number;
   items: FoodCollectionItem[];
 }
