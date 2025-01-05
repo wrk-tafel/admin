@@ -8,7 +8,7 @@
     <c-row>
       <c-col>
         @if (amount() !== null) {
-          <div testid="food-amount-total" class="text-white text-end" style="font-size: 50pt;">{{ amount() + ' kg' }}</div>
+          <div testid="food-amount-total" class="text-white text-end" style="font-size: 50pt;">{{ (amount() | number: '1.2-2') + ' kg' }}</div>
         } @else {
           <div testid="food-amount-total" class="text-white text-end" style="font-size: 50pt;">-</div>
         }

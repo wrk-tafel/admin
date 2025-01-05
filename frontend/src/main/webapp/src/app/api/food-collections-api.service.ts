@@ -1,7 +1,7 @@
 import {HttpClient} from '@angular/common/http';
 import {inject, Injectable} from '@angular/core';
 import {Observable} from 'rxjs';
-import {EmployeeData} from "./employee-api.service";
+import {EmployeeData} from './employee-api.service';
 
 @Injectable({
   providedIn: 'root'

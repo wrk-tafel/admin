@@ -1,7 +1,7 @@
 import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
 import {TestBed} from '@angular/core/testing';
 import {provideHttpClient} from '@angular/common/http';
-import {CreateEmployeeRequest, EmployeeApiService, EmployeeData} from "./employee-api.service";
+import {CreateEmployeeRequest, EmployeeApiService, EmployeeData} from './employee-api.service';
 
 describe('EmployeeApiService', () => {
   let httpMock: HttpTestingController;

@@ -1,10 +1,10 @@
-import {TestBed, waitForAsync} from "@angular/core/testing";
-import {provideHttpClient} from "@angular/common/http";
-import {provideHttpClientTesting} from "@angular/common/http/testing";
-import {CreateEmployeeRequest, EmployeeApiService, EmployeeData} from "../../../api/employee-api.service";
-import {TafelEmployeeSearchCreateComponent} from "./tafel-employee-search-create.component";
-import {NoopAnimationsModule} from "@angular/platform-browser/animations";
-import {of} from "rxjs";
+import {TestBed, waitForAsync} from '@angular/core/testing';
+import {provideHttpClient} from '@angular/common/http';
+import {provideHttpClientTesting} from '@angular/common/http/testing';
+import {CreateEmployeeRequest, EmployeeApiService, EmployeeData} from '../../../api/employee-api.service';
+import {TafelEmployeeSearchCreateComponent} from './tafel-employee-search-create.component';
+import {NoopAnimationsModule} from '@angular/platform-browser/animations';
+import {of} from 'rxjs';
 
 describe('TafelEmployeeSearchCreate', () => {
   let employeeApiService: jasmine.SpyObj<EmployeeApiService>;

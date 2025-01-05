@@ -5,11 +5,10 @@ import {BrowserDynamicTestingModule, platformBrowserDynamicTesting} from '@angul
 import {registerLocaleData} from '@angular/common';
 import localeDeAt from '@angular/common/locales/de-AT';
 
-// First, initialize the Angular testing environment.
+registerLocaleData(localeDeAt);
+
 getTestBed().initTestEnvironment(
   BrowserDynamicTestingModule,
   platformBrowserDynamicTesting(),
   {teardown: {destroyAfterEach: true}},
 );
-
-registerLocaleData(localeDeAt);

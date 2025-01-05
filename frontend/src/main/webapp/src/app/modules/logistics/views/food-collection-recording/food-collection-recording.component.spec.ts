@@ -1,14 +1,14 @@
-import {TestBed, waitForAsync} from "@angular/core/testing";
-import {NoopAnimationsModule} from "@angular/platform-browser/animations";
-import {provideHttpClient} from "@angular/common/http";
-import {provideHttpClientTesting} from "@angular/common/http/testing";
-import {FoodCollectionRecordingComponent} from "./food-collection-recording.component";
-import {BehaviorSubject} from "rxjs";
-import {Router} from "@angular/router";
-import {GlobalStateService} from "../../../../common/state/global-state.service";
-import {DistributionItem} from "../../../../api/distribution-api.service";
-import {RouteList} from "../../../../api/route-api.service";
-import {FoodCategory} from "../../../../api/food-categories-api.service";
+import {TestBed, waitForAsync} from '@angular/core/testing';
+import {NoopAnimationsModule} from '@angular/platform-browser/animations';
+import {provideHttpClient} from '@angular/common/http';
+import {provideHttpClientTesting} from '@angular/common/http/testing';
+import {FoodCollectionRecordingComponent} from './food-collection-recording.component';
+import {BehaviorSubject} from 'rxjs';
+import {Router} from '@angular/router';
+import {GlobalStateService} from '../../../../common/state/global-state.service';
+import {DistributionItem} from '../../../../api/distribution-api.service';
+import {RouteList} from '../../../../api/route-api.service';
+import {FoodCategory} from '../../../../api/food-categories-api.service';
 
 describe('FoodCollectionRecordingComponent', () => {
   let router: jasmine.SpyObj<Router>;

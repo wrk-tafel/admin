@@ -3,8 +3,8 @@ import {DistributionApiService} from '../../../../api/distribution-api.service';
 import {DistributionStatisticsInputComponent} from './distribution-statistics-input.component';
 import {CardModule, ColComponent, ModalModule, ProgressModule, RowComponent} from '@coreui/angular';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
-import {ToastService, ToastType} from "../../../../common/views/default-layout/toasts/toast.service";
-import {of, throwError} from "rxjs";
+import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
+import {of, throwError} from 'rxjs';
 
 describe('DistributionStatisticsInputComponent', () => {
   let distributionApiService: jasmine.SpyObj<DistributionApiService>;
