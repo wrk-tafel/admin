@@ -20,7 +20,7 @@ class HouseholdSizeDistributionExporter : StatisticExporter {
 
     override fun getRows(statistic: DistributionStatisticEntity): List<List<String>> {
         val headerRows = listOf(
-            listOf("TÖT Auswertung Stand: ${DATE_FORMATTER.format(LocalDateTime.now())} - Haushaltsgrößen"),
+            listOf("TOeT Auswertung Stand: ${DATE_FORMATTER.format(LocalDateTime.now())} - Haushaltsgrößen"),
             listOf("Personen", "Haushalte", "Prozent")
         )
         val dataRows = calculateDistribution(statistic)
@@ -38,7 +38,7 @@ class HouseholdSizeDistributionExporter : StatisticExporter {
             val percentage =
                 if (customersCount > 0) (personCountPerSize.toDouble() / customersCount) * 100 else 0
 
-            rows.add(listOf(personSize.toString(), personCountPerSize.toString(), String.format(Locale.GERMAN,"%.2f", percentage)))
+            rows.add(listOf(personSize.toString(), personCountPerSize.toString(), String.format(Locale.GERMAN,"%.2f", percentage.toFloat())))
         }
 
         return rows

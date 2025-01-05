@@ -41,7 +41,7 @@ class HouseholdSizeDistributionExporterTest {
         assertThat(rows).isEqualTo(
             listOf(
                 listOf(
-                    "TÖT Auswertung Stand: ${
+                    "TOeT Auswertung Stand: ${
                         DateTimeFormatter.ofPattern("dd.MM.yyyy").format(LocalDateTime.now())
                     } - Haushaltsgrößen"
                 ),
@@ -50,6 +50,42 @@ class HouseholdSizeDistributionExporterTest {
                 listOf("2", "0", "0,00"),
                 listOf("3", "1", "25,00"),
                 listOf("4", "1", "25,00"),
+                listOf("5", "0", "0,00"),
+                listOf("6", "0", "0,00"),
+                listOf("7", "0", "0,00"),
+                listOf("8", "0", "0,00"),
+                listOf("9", "0", "0,00"),
+                listOf("10", "0", "0,00"),
+            )
+        )
+    }
+
+    @Test
+    fun `exported properly without data`() {
+        val statistic = mockk<DistributionStatisticEntity>()
+        every { statistic.distribution } returns DistributionEntity().apply {
+            id = 123
+            employeeCount = 1
+            personsInShelterCount = 2
+        }
+        val exporter = HouseholdSizeDistributionExporter()
+
+        val filename = exporter.getName()
+        assertThat(filename).isEqualTo("TOeT_Verteilung_Haushaltsgroesse")
+
+        val rows = exporter.getRows(statistic)
+        assertThat(rows).isEqualTo(
+            listOf(
+                listOf(
+                    "TOeT Auswertung Stand: ${
+                        DateTimeFormatter.ofPattern("dd.MM.yyyy").format(LocalDateTime.now())
+                    } - Haushaltsgrößen"
+                ),
+                listOf("Personen", "Haushalte", "Prozent"),
+                listOf("1", "0", "0,00"),
+                listOf("2", "0", "0,00"),
+                listOf("3", "0", "0,00"),
+                listOf("4", "0", "0,00"),
                 listOf("5", "0", "0,00"),
                 listOf("6", "0", "0,00"),
                 listOf("7", "0", "0,00"),

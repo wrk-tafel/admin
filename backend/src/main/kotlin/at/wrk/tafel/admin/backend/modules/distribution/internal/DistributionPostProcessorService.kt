@@ -6,8 +6,8 @@ import at.wrk.tafel.admin.backend.config.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.modules.distribution.internal.statistic.DistributionStatisticService
 import at.wrk.tafel.admin.backend.modules.reporting.DailyReportService
+import at.wrk.tafel.admin.backend.modules.reporting.StatisticExportFile
 import at.wrk.tafel.admin.backend.modules.reporting.StatisticExportService
-import at.wrk.tafel.admin.backend.modules.reporting.StatisticZipFile
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.ByteArrayResource
 import org.springframework.http.MediaType
@@ -46,8 +46,8 @@ class DistributionPostProcessorService(
             }
 
             // Export statistic files and send per mail
-            val statisticZipFile = statisticExportService.exportStatisticZipFile(statistic)
-            sendStatisticMail(statisticZipFile)
+            val statisticExportFiles = statisticExportService.exportStatisticFiles(statistic)
+            sendStatisticMail(statisticExportFiles)
         }
     }
 
@@ -75,22 +75,24 @@ class DistributionPostProcessorService(
         logger.info("Daily report '$mailSubject' - file: '$filename' sent!")
     }
 
-    private fun sendStatisticMail(statisticZipFile: StatisticZipFile) {
+    private fun sendStatisticMail(statisticExportFiles: List<StatisticExportFile>) {
         val dateFormatted = LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
 
         val mailSubject = "TÖ Tafel 1030 - Statistiken vom $dateFormatted"
         val mailText = "Details im Anhang"
-        val attachment = MailAttachment(
-            filename = statisticZipFile.filename,
-            inputStreamSource = ByteArrayResource(statisticZipFile.content),
-            contentType = "application/zip"
-        )
+        val attachments = statisticExportFiles.map {
+            MailAttachment(
+                filename = it.name,
+                inputStreamSource = ByteArrayResource(it.content),
+                contentType = "text/csv"
+            )
+        }
 
         mailSenderService.sendMail(
             tafelAdminProperties.mail!!.statistic!!,
             mailSubject,
             mailText,
-            listOf(attachment)
+            attachments
         )
         logger.info("Statistic-Files '$mailSubject' sent!")
     }

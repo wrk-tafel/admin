@@ -8,8 +8,8 @@ import at.wrk.tafel.admin.backend.database.model.distribution.DistributionReposi
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
 import at.wrk.tafel.admin.backend.modules.distribution.internal.statistic.DistributionStatisticService
 import at.wrk.tafel.admin.backend.modules.reporting.DailyReportService
+import at.wrk.tafel.admin.backend.modules.reporting.StatisticExportFile
 import at.wrk.tafel.admin.backend.modules.reporting.StatisticExportService
-import at.wrk.tafel.admin.backend.modules.reporting.StatisticZipFile
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -72,9 +72,8 @@ internal class DistributionPostProcessorServiceTest {
         val pdfBytes = ByteArray(10)
         every { dailyReportService.generateDailyReportPdf(any()) } returns pdfBytes
 
-        every { statisticExportService.exportStatisticZipFile(any()) } returns StatisticZipFile(
-            filename = "statistics.zip",
-            content = ByteArray(0)
+        every { statisticExportService.exportStatisticFiles(any()) } returns listOf(
+            StatisticExportFile("file1.csv", ByteArray(10)),
         )
 
         service.process(distributionId)
@@ -82,7 +81,7 @@ internal class DistributionPostProcessorServiceTest {
         verify { distributionStatisticService.createAndSaveStatistic(distribution) }
 
         assertDailyReport(distributionStatistic, dateFormatted)
-        assertStatisticFile(distributionStatistic)
+        assertStatisticExportFiles(distributionStatistic)
     }
 
     private fun assertDailyReport(
@@ -114,10 +113,10 @@ internal class DistributionPostProcessorServiceTest {
         assertThat(dailyReportAttachment.contentType).isEqualTo("application/pdf")
     }
 
-    private fun assertStatisticFile(
+    private fun assertStatisticExportFiles(
         distributionStatistic: DistributionStatisticEntity
     ) {
-        verify { statisticExportService.exportStatisticZipFile(distributionStatistic) }
+        verify { statisticExportService.exportStatisticFiles(distributionStatistic) }
 
         val statisticExportMailSubject =
             "TÖ Tafel 1030 - Statistiken vom ${LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))}"
@@ -137,9 +136,9 @@ internal class DistributionPostProcessorServiceTest {
         assertThat(statisticExportAttachmentList).hasSize(1)
 
         val statisticZipFileAttachment = statisticExportAttachmentList[0]
-        assertThat(statisticZipFileAttachment.filename).isEqualTo("statistics.zip")
+        assertThat(statisticZipFileAttachment.filename).isEqualTo("file1.csv")
         assertThat(statisticZipFileAttachment.inputStreamSource).isNotNull
-        assertThat(statisticZipFileAttachment.contentType).isEqualTo("application/zip")
+        assertThat(statisticZipFileAttachment.contentType).isEqualTo("text/csv")
 
         verify(exactly = 1) { transactionTemplate.executeWithoutResult(any()) }
     }
@@ -162,7 +161,7 @@ internal class DistributionPostProcessorServiceTest {
         verify(exactly = 1) { transactionTemplate.executeWithoutResult(any()) }
 
         // still sends statistic files
-        verify { statisticExportService.exportStatisticZipFile(distributionStatistic) }
+        verify { statisticExportService.exportStatisticFiles(distributionStatistic) }
         val statisticExportMailSubject =
             "TÖ Tafel 1030 - Statistiken vom ${LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))}"
         verify(exactly = 1) { mailSenderService.sendMail(any(), statisticExportMailSubject, any(), any()) }

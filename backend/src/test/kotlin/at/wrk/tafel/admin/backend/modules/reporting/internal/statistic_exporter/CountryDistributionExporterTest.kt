@@ -40,12 +40,34 @@ class CountryDistributionExporterTest {
         val rows = exporter.getRows(statistic)
         assertThat(rows).isEqualTo(
             listOf(
-                listOf("TÖT Auswertung Stand: ${DateTimeFormatter.ofPattern("dd.MM.yyyy").format(LocalDateTime.now())} - Verteilung Nationalitäten"),
+                listOf("TOeT Auswertung Stand: ${DateTimeFormatter.ofPattern("dd.MM.yyyy").format(LocalDateTime.now())} - Verteilung Nationalitäten"),
                 listOf("Nationalität", "Haushalte", "Prozent"),
                 listOf("Österreich", "4", "44,44"),
                 listOf("Deutschland", "2", "22,22"),
                 listOf("Schweiz", "2", "22,22"),
                 listOf("Frankreich", "1", "11,11"),
+            )
+        )
+    }
+
+    @Test
+    fun `exported properly without data`() {
+        val statistic = mockk<DistributionStatisticEntity>()
+        every { statistic.distribution } returns DistributionEntity().apply {
+            id = 123
+            employeeCount = 1
+            personsInShelterCount = 2
+        }
+        val exporter = CountryDistributionExporter()
+
+        val filename = exporter.getName()
+        assertThat(filename).isEqualTo("TOeT_Verteilung_Nationalitaeten")
+
+        val rows = exporter.getRows(statistic)
+        assertThat(rows).isEqualTo(
+            listOf(
+                listOf("TOeT Auswertung Stand: ${DateTimeFormatter.ofPattern("dd.MM.yyyy").format(LocalDateTime.now())} - Verteilung Nationalitäten"),
+                listOf("Nationalität", "Haushalte", "Prozent"),
             )
         )
     }
