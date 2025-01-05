@@ -2,7 +2,7 @@ import {HttpTestingController, provideHttpClientTesting} from '@angular/common/h
 import {TestBed} from '@angular/core/testing';
 import {ReactiveFormsModule} from '@angular/forms';
 import {provideHttpClient} from '@angular/common/http';
-import {FoodCollectionData, FoodCollectionsApiService, FoodCollectionSaveRequest} from "./food-collections-api.service";
+import {FoodCollectionData, FoodCollectionsApiService, FoodCollectionSaveRequest} from './food-collections-api.service';
 
 describe('FoodCollectionsApiService', () => {
   let httpMock: HttpTestingController;

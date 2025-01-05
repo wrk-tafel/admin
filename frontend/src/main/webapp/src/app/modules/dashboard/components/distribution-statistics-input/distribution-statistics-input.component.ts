@@ -17,8 +17,8 @@ import {
 import {CommonModule, NgIf} from '@angular/common';
 import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
 import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
-import {DistributionApiService} from "../../../../api/distribution-api.service";
-import {ToastService, ToastType} from "../../../../common/views/default-layout/toasts/toast.service";
+import {DistributionApiService} from '../../../../api/distribution-api.service';
+import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
 
 @Component({
   selector: 'tafel-distribution-statistics-input',

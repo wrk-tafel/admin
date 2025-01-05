@@ -11,8 +11,8 @@ import {
 import {TafelIfDistributionActiveDirective} from '../../common/directive/tafel-if-distribution-active.directive';
 import {
   RecordedFoodCollectionsComponent
-} from "./components/recorded-food-collections/recorded-food-collections.component";
-import {FoodAmountComponent} from "./components/food-amount/food-amount.component";
+} from './components/recorded-food-collections/recorded-food-collections.component';
+import {FoodAmountComponent} from './components/food-amount/food-amount.component';
 
 @Component({
   selector: 'tafel-dashboard',
