@@ -19,20 +19,29 @@ class StatisticExportServiceTest {
 
         val exporter1 = mockk<StatisticExporter>()
         every { exporter1.getName() } returns "test1"
-        every { exporter1.getRows(statistic) } returns emptyList()
+        every { exporter1.getRows(statistic) } returns listOf(
+            listOf("a", "b", "c"),
+        )
 
         val exporter2 = mockk<StatisticExporter>()
         every { exporter2.getName() } returns "test2"
-        every { exporter2.getRows(statistic) } returns emptyList()
+        every { exporter2.getRows(statistic) } returns listOf(
+            listOf("a", "b", "c"),
+        )
 
         val service = StatisticExportService(
             statisticExporter = listOf(exporter1, exporter2)
         )
 
-        val statisticZipFile = service.exportStatisticZipFile(statistic)
+        val statisticExportFiles = service.exportStatisticFiles(statistic)
 
-        assertThat(statisticZipFile.filename).isEqualTo("statistik.zip")
-        assertThat(statisticZipFile.content.size).isGreaterThan(0)
+        assertThat(statisticExportFiles).hasSize(2)
+
+        assertThat(statisticExportFiles[0].name).isEqualTo("test1.csv")
+        assertThat(statisticExportFiles[0].content.size).isGreaterThan(0)
+
+        assertThat(statisticExportFiles[1].name).isEqualTo("test2.csv")
+        assertThat(statisticExportFiles[1].content.size).isGreaterThan(0)
 
         verifySequence {
             exporter1.getName()

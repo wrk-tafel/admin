@@ -19,7 +19,7 @@ class CountryDistributionExporter : StatisticExporter {
 
     override fun getRows(statistic: DistributionStatisticEntity): List<List<String>> {
         val headerRows = listOf(
-            listOf("TÖT Auswertung Stand: ${DATE_FORMATTER.format(LocalDateTime.now())} - Verteilung Nationalitäten"),
+            listOf("TOeT Auswertung Stand: ${DATE_FORMATTER.format(LocalDateTime.now())} - Verteilung Nationalitäten"),
             listOf("Nationalität", "Haushalte", "Prozent")
         )
         val dataRows = calculateDistribution(statistic)
