@@ -1,0 +1,96 @@
+package at.wrk.tafel.admin.backend.modules.reporting.internal.statistic_exporter
+
+import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
+import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
+import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
+import org.springframework.stereotype.Component
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.time.temporal.IsoFields
+
+@Component
+class DailyReportsExporter(
+    private val distributionRepository: DistributionRepository
+) : StatisticExporter {
+
+    companion object {
+        private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+    }
+
+    override fun getName(): String {
+        return "TOeT_Tages-Reports"
+    }
+
+    override fun getRows(statistic: DistributionStatisticEntity): List<List<String>> {
+        val descriptionHeaderRow =
+            listOf("TOeT Auswertung Stand: ${LocalDateTime.now().format(DATE_FORMATTER)} - Tages-Reports")
+        val columnsHeaderRow = listOf(
+            "Datum",
+            "KW",
+            "Versorgte Personen",
+            "davon in NOST",
+            "davon in Ausgabestelle",
+            "davon Kinder < 3 Jahre",
+            "Haushalte",
+            "Verlängert (Haushalte)",
+            "Verlängert (Personen)",
+            "Neue Kunden",
+            "Neue Personen",
+            "Ges. Spender",
+            "Spender mit Ware",
+            "Warenmenge",
+            "Kilometerleistung",
+            "Anz. MitarbeiterInnen"
+        )
+
+        val distributions = distributionRepository.getDistributionsForYear(LocalDateTime.now().year)
+            .sortedBy { it.startedAt }
+
+        val dataRows = distributions.mapNotNull { distribution ->
+            val distributionStatistic = distribution.statistic
+            if (distributionStatistic != null) {
+                generateStatisticColumns(distribution, distributionStatistic)
+            } else {
+                null
+            }
+        }
+
+        val result = mutableListOf(descriptionHeaderRow, columnsHeaderRow)
+        if (dataRows.isNotEmpty()) {
+            result += dataRows
+        }
+        return result
+    }
+
+    private fun generateStatisticColumns(
+        distribution: DistributionEntity, statistic: DistributionStatisticEntity
+    ): List<String> {
+        val columns = mutableListOf<String>()
+
+        val startedAt = distribution.startedAt!!
+        columns.add(startedAt.format(DATE_FORMATTER))
+        columns.add(startedAt[IsoFields.WEEK_OF_WEEK_BASED_YEAR].toString())
+
+        val countPeopleTotal =
+            statistic.countCustomers?.plus(statistic.countPersons ?: 0)?.plus(statistic.personsInShelterCount ?: 0) ?: 0
+        columns.add(countPeopleTotal.toString())
+        columns.add(statistic.personsInShelterCount.toString())
+
+        val countCustomerPersonsTotal = statistic.countCustomers?.plus(statistic.countPersons ?: 0) ?: 0
+        columns.add(countCustomerPersonsTotal.toString())
+        columns.add(statistic.countInfants.toString())
+        columns.add(statistic.countCustomers.toString())
+        columns.add(statistic.countCustomersProlonged.toString())
+        columns.add(statistic.countPersonsProlonged.toString())
+        columns.add(statistic.countCustomersNew.toString())
+        columns.add(statistic.countPersonsNew.toString())
+        columns.add(statistic.shopsTotalCount.toString())
+        columns.add(statistic.shopsWithFoodCount.toString())
+        columns.add(statistic.foodTotalAmount.toString())
+        columns.add(statistic.routesLengthKm.toString())
+        columns.add(statistic.employeeCount.toString())
+
+        return columns
+    }
+
+}
