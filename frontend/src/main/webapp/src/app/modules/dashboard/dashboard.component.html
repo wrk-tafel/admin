@@ -3,7 +3,7 @@
     <tafel-distribution-state></tafel-distribution-state>
   </c-col>
   <c-col sm="6" lg="4" class="mt-4 mt-sm-0" *tafelIfDistributionActive>
-    <tafel-distribution-statistics-input *tafelIfPermission="'DISTRIBUTION_LCM'"
+    <tafel-distribution-statistics-input *tafelIfPermission="'LOGISTICS'"
                                          [employeeCountInput]="data?.statistics?.employeeCount"
                                          [personsInShelterCountInput]="data?.statistics?.personsInShelterCount">
     </tafel-distribution-statistics-input>
