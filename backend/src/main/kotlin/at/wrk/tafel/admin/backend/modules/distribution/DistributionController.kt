@@ -53,7 +53,7 @@ class DistributionController(
     }
 
     @PostMapping("/statistics")
-    @PreAuthorize("hasAuthority('DISTRIBUTION_LCM')")
+    @PreAuthorize("hasAuthority('LOGISTICS')")
     fun saveDistributionStatistic(@RequestBody statisticData: DistributionStatisticData): ResponseEntity<Unit> {
         service.updateDistributionStatisticData(statisticData.employeeCount, statisticData.personsInShelterCount)
         return ResponseEntity.ok().build()
