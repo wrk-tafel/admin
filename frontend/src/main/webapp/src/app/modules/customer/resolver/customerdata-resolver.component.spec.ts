@@ -1,6 +1,6 @@
 import {TestBed} from '@angular/core/testing';
 import {CustomerApiService, CustomerData, Gender} from '../../../api/customer-api.service';
-import * as moment from 'moment/moment';
+import moment from 'moment';
 import {of} from 'rxjs';
 import {CustomerDataResolver} from './customerdata-resolver.component';
 import {ActivatedRouteSnapshot} from '@angular/router';

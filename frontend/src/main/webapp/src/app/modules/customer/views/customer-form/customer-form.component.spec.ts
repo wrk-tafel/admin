@@ -1,5 +1,5 @@
 import {TestBed, waitForAsync} from '@angular/core/testing';
-import * as moment from 'moment';
+import moment from 'moment';
 import {of} from 'rxjs';
 import {CountryApiService} from '../../../../api/country-api.service';
 import {CustomerData, Gender} from '../../../../api/customer-api.service';

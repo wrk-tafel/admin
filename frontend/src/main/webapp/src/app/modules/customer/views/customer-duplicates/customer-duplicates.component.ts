@@ -10,7 +10,7 @@ import {
   TafelPaginationComponent,
   TafelPaginationData
 } from '../../../../common/components/tafel-pagination/tafel-pagination.component';
-import * as moment from 'moment/moment';
+import moment from 'moment';
 import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
 import {
   ButtonDirective,
@@ -40,8 +40,7 @@ import {FaIconComponent} from '@fortawesome/angular-fontawesome';
     NgIf,
     NgForOf,
     FaIconComponent
-  ],
-  standalone: true
+  ]
 })
 export class CustomerDuplicatesComponent implements OnInit {
   @Input() customerDuplicatesData: CustomerDuplicatesResponse;

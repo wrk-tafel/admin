@@ -1,4 +1,4 @@
-import {APP_INITIALIZER, ApplicationConfig, DEFAULT_CURRENCY_CODE, importProvidersFrom, LOCALE_ID} from '@angular/core';
+import { ApplicationConfig, DEFAULT_CURRENCY_CODE, importProvidersFrom, LOCALE_ID, inject, provideAppInitializer } from '@angular/core';
 import {provideAnimations} from '@angular/platform-browser/animations';
 import {
   provideRouter,
@@ -67,11 +67,9 @@ export const appConfig: ApplicationConfig = {
       provide: WebsocketService,
       useClass: WebsocketService
     },
-    {
-      provide: APP_INITIALIZER,
-      useFactory: (authService: AuthenticationService) => () => authService.loadUserInfo(),
-      deps: [AuthenticationService],
-      multi: true
-    }
+    provideAppInitializer(() => {
+        const initializerFn = ((authService: AuthenticationService) => () => authService.loadUserInfo())(inject(AuthenticationService));
+        return initializerFn();
+      })
   ]
 };
