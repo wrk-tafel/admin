@@ -43,11 +43,10 @@ export enum Colors {
 }
 
 @Component({
-  selector: 'app-toasters',
-  templateUrl: './toasters.component.html',
-  styleUrls: ['./toasters.component.scss'],
-  standalone: true,
-  imports: [RowComponent, ColComponent, ToasterComponent, NgClass, TextColorDirective, CardComponent, CardHeaderComponent, CardBodyComponent, ContainerComponent, ReactiveFormsModule, FormDirective, FormCheckComponent, FormCheckInputDirective, FormCheckLabelDirective, InputGroupComponent, InputGroupTextDirective, FormControlDirective, FormSelectDirective, ButtonDirective, NgStyle, ToastComponent, ToastHeaderComponent, ToastBodyComponent, AppToastComponent, JsonPipe, SlicePipe, TextColorDirective]
+    selector: 'app-toasters',
+    templateUrl: './toasters.component.html',
+    styleUrls: ['./toasters.component.scss'],
+    imports: [RowComponent, ColComponent, ToasterComponent, NgClass, TextColorDirective, CardComponent, CardHeaderComponent, CardBodyComponent, ContainerComponent, ReactiveFormsModule, FormDirective, FormCheckComponent, FormCheckInputDirective, FormCheckLabelDirective, InputGroupComponent, InputGroupTextDirective, FormControlDirective, FormSelectDirective, ButtonDirective, NgStyle, ToastComponent, ToastHeaderComponent, ToastBodyComponent, AppToastComponent, JsonPipe, SlicePipe, TextColorDirective]
 })
 export class ToastersComponent implements OnInit {
 
@@ -91,7 +90,7 @@ export class ToastersComponent implements OnInit {
     const toasterPosition = this.viewChildren.filter(item => item.placement === this.toasterForm.value.position);
     toasterPosition.forEach((item) => {
       const title = `Toast ${formValues.color} ${formValues.position}`;
-      const { ...props } = { ...formValues, title };
+      const { position, ...props } = { ...formValues, title, position: formValues.position };
       const componentRef = item.addToast(AppToastComponent, props, {});
       componentRef.instance['closeButton'] = props.closeButton;
     });

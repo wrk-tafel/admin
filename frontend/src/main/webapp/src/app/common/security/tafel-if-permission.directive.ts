@@ -3,7 +3,6 @@ import {AuthenticationService} from './authentication.service';
 
 @Directive({
   selector: '[tafelIfPermission]',
-  standalone: true
 })
 export class TafelIfPermissionDirective {
 

@@ -17,23 +17,22 @@ import {
 import {CommonModule, NgClass} from '@angular/common';
 
 @Component({
-  selector: 'tafel-user-detail',
-  templateUrl: 'user-detail.component.html',
-  imports: [
-    DropdownComponent,
-    CardComponent,
-    CardBodyComponent,
-    RowComponent,
-    ColComponent,
-    NgClass,
-    DropdownItemDirective,
-    ButtonDirective,
-    DropdownToggleDirective,
-    DropdownMenuDirective,
-    DropdownDividerDirective,
-    CommonModule
-  ],
-  standalone: true
+    selector: 'tafel-user-detail',
+    templateUrl: 'user-detail.component.html',
+    imports: [
+        DropdownComponent,
+        CardComponent,
+        CardBodyComponent,
+        RowComponent,
+        ColComponent,
+        NgClass,
+        DropdownItemDirective,
+        ButtonDirective,
+        DropdownToggleDirective,
+        DropdownMenuDirective,
+        DropdownDividerDirective,
+        CommonModule
+    ]
 })
 export class UserDetailComponent {
   @Input() userData: UserData;

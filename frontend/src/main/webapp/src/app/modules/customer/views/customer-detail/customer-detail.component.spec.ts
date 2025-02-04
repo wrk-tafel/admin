@@ -1,7 +1,7 @@
 import {HttpHeaders, HttpResponse} from '@angular/common/http';
 import {ComponentFixture, TestBed, waitForAsync} from '@angular/core/testing';
 import {By} from '@angular/platform-browser';
-import * as moment from 'moment';
+import moment from 'moment';
 import {of, throwError} from 'rxjs';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
 import {CustomerApiService, CustomerData, Gender} from '../../../../api/customer-api.service';

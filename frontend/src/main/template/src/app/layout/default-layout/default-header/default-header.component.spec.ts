@@ -1,6 +1,6 @@
-import {ComponentFixture, TestBed} from '@angular/core/testing';
-import {ReactiveFormsModule} from '@angular/forms';
-import {RouterTestingModule} from '@angular/router/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ReactiveFormsModule } from '@angular/forms';
+import { RouterTestingModule } from '@angular/router/testing';
 import {
   AvatarModule,
   BadgeModule,
@@ -13,9 +13,9 @@ import {
   ProgressModule,
   SidebarModule
 } from '@coreui/angular';
-import {IconModule, IconSetService} from '@coreui/icons-angular';
-import {iconSubset} from '../../../icons/icon-subset';
-import {DefaultHeaderComponent} from './default-header.component';
+import { IconModule, IconSetService } from '@coreui/icons-angular';
+import { iconSubset } from '../../../icons/icon-subset';
+import { DefaultHeaderComponent } from './default-header.component';
 
 describe('DefaultHeaderComponent', () => {
   let component: DefaultHeaderComponent;
@@ -24,14 +24,15 @@ describe('DefaultHeaderComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [GridModule, HeaderModule, IconModule, NavModule, BadgeModule, AvatarModule, DropdownModule, BreadcrumbModule, RouterTestingModule, SidebarModule, ProgressModule, ButtonGroupModule, ReactiveFormsModule],
-      providers: [IconSetService]
-    }).compileComponents();
+    imports: [GridModule, HeaderModule, IconModule, NavModule, BadgeModule, AvatarModule, DropdownModule, BreadcrumbModule, RouterTestingModule, SidebarModule, ProgressModule, ButtonGroupModule, ReactiveFormsModule, DefaultHeaderComponent],
+    providers: [IconSetService]
+})
+      .compileComponents();
   });
 
   beforeEach(() => {
     iconSetService = TestBed.inject(IconSetService);
-    iconSetService.icons = {...iconSubset};
+    iconSetService.icons = { ...iconSubset };
 
     fixture = TestBed.createComponent(DefaultHeaderComponent);
     component = fixture.componentInstance;

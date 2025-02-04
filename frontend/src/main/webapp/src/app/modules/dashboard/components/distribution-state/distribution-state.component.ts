@@ -7,7 +7,6 @@ import {
   CardBodyComponent,
   CardComponent,
   CardFooterComponent,
-  CardHeaderComponent,
   ColComponent,
   ModalBodyComponent,
   ModalComponent,
@@ -22,7 +21,6 @@ import {NgIf} from '@angular/common';
   templateUrl: 'distribution-state.component.html',
   imports: [
     CardComponent,
-    CardHeaderComponent,
     CardBodyComponent,
     RowComponent,
     ColComponent,
@@ -34,8 +32,7 @@ import {NgIf} from '@angular/common';
     ButtonDirective,
     ButtonCloseDirective,
     CardFooterComponent
-  ],
-  standalone: true
+  ]
 })
 export class DistributionStateComponent implements OnInit {
   distribution: DistributionItem;

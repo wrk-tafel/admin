@@ -1,8 +1,6 @@
 import {Component, inject, OnInit} from '@angular/core';
 import {RouterLink, RouterOutlet} from '@angular/router';
 import {NgScrollbar} from 'ngx-scrollbar';
-
-import {IconDirective} from '@coreui/icons-angular';
 import {
   ContainerComponent,
   ShadowOnScrollDirective,
@@ -29,7 +27,6 @@ import {DistributionItem} from '../../../api/distribution-api.service';
     SidebarHeaderComponent,
     SidebarBrandComponent,
     RouterLink,
-    IconDirective,
     NgScrollbar,
     SidebarNavComponent,
     SidebarFooterComponent,
@@ -39,8 +36,7 @@ import {DistributionItem} from '../../../api/distribution-api.service';
     ShadowOnScrollDirective,
     ContainerComponent,
     RouterOutlet
-  ],
-  standalone: true
+  ]
 })
 export class DefaultLayoutComponent implements OnInit {
   public navItems: ITafelNavData[] = navigationMenuItems;

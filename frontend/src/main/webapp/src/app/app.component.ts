@@ -6,14 +6,13 @@ import {freeSet} from '@coreui/icons';
 import {TafelToasterComponent} from './common/views/default-layout/toasts/tafel-toaster.component';
 
 @Component({
-  // tslint:disable-next-line
-  selector: 'body',
-  templateUrl: 'app.component.html',
-  imports: [
-    TafelToasterComponent,
-    RouterOutlet,
-  ],
-  standalone: true
+    // tslint:disable-next-line
+    selector: 'body',
+    templateUrl: 'app.component.html',
+    imports: [
+        TafelToasterComponent,
+        RouterOutlet,
+    ]
 })
 
 export class AppComponent implements OnInit {

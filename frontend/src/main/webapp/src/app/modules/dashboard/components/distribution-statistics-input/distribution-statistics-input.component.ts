@@ -1,22 +1,14 @@
 import {Component, effect, inject, input} from '@angular/core';
 import {
-  BgColorDirective,
-  ButtonCloseDirective,
   ButtonDirective,
   CardBodyComponent,
   CardComponent,
   CardFooterComponent,
-  CardHeaderComponent,
   ColComponent,
-  ModalBodyComponent,
-  ModalComponent,
-  ModalHeaderComponent,
-  ModalToggleDirective,
   RowComponent
 } from '@coreui/angular';
-import {CommonModule, NgIf} from '@angular/common';
+import {CommonModule} from '@angular/common';
 import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
-import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
 import {DistributionApiService} from '../../../../api/distribution-api.service';
 import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
 
@@ -25,24 +17,14 @@ import {ToastService, ToastType} from '../../../../common/views/default-layout/t
   templateUrl: 'distribution-statistics-input.component.html',
   imports: [
     CardComponent,
-    CardHeaderComponent,
     CardBodyComponent,
     RowComponent,
     ColComponent,
-    ModalComponent,
-    ModalHeaderComponent,
-    ModalToggleDirective,
-    ModalBodyComponent,
-    NgIf,
     ButtonDirective,
-    ButtonCloseDirective,
     ReactiveFormsModule,
-    TafelAutofocusDirective,
     CommonModule,
-    CardFooterComponent,
-    BgColorDirective
-  ],
-  standalone: true
+    CardFooterComponent
+  ]
 })
 export class DistributionStatisticsInputComponent {
   private readonly fb = inject(FormBuilder);

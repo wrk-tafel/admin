@@ -14,22 +14,21 @@ import {ToastService, ToastType} from '../../../../common/views/default-layout/t
 import {DecimalPipe, NgClass} from '@angular/common';
 
 @Component({
-  selector: 'tafel-customer-edit',
-  templateUrl: 'customer-edit.component.html',
-  imports: [
-    CustomerFormComponent,
-    NgClass,
-    ModalComponent,
-    ModalHeaderComponent,
-    ModalToggleDirective,
-    BgColorDirective,
-    ModalBodyComponent,
-    ModalFooterComponent,
-    ButtonCloseDirective,
-    ButtonDirective,
-    DecimalPipe
-  ],
-  standalone: true
+    selector: 'tafel-customer-edit',
+    templateUrl: 'customer-edit.component.html',
+    imports: [
+        CustomerFormComponent,
+        NgClass,
+        ModalComponent,
+        ModalHeaderComponent,
+        ModalToggleDirective,
+        BgColorDirective,
+        ModalBodyComponent,
+        ModalFooterComponent,
+        ButtonCloseDirective,
+        ButtonDirective,
+        DecimalPipe
+    ]
 })
 export class CustomerEditComponent implements OnInit {
   @Input('customerData') customerData: CustomerData;

@@ -2,7 +2,7 @@ import {ChangeDetectorRef, Component, ElementRef, inject, OnDestroy, OnInit, Vie
 import {CustomerApiService, CustomerData} from '../../../api/customer-api.service';
 import {Subscription} from 'rxjs';
 import {IMessage} from '@stomp/stompjs';
-import * as moment from 'moment';
+import moment from 'moment';
 import {ScannerList} from '../scanner/scanner.component';
 import {CustomerNoteApiService, CustomerNoteItem} from '../../../api/customer-note-api.service';
 import {GlobalStateService} from '../../../common/state/global-state.service';
@@ -45,8 +45,7 @@ import {TafelAutofocusDirective} from '../../../common/directive/tafel-autofocus
     FormSelectDirective,
     CommonModule,
     TafelAutofocusDirective
-  ],
-  standalone: true
+  ]
 })
 export class CheckinComponent implements OnInit, OnDestroy {
   scannerIds: number[];

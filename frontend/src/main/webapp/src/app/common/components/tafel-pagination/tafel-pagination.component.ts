@@ -8,8 +8,7 @@ import {PageItemDirective, PageLinkDirective, PaginationComponent} from '@coreui
     PaginationComponent,
     PageItemDirective,
     PageLinkDirective
-  ],
-  standalone: true
+  ]
 })
 export class TafelPaginationComponent {
   @Input() align: 'start' | 'center' | 'end' | '' = '';

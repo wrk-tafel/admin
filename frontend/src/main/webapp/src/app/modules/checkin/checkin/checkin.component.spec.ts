@@ -5,7 +5,7 @@ import {CommonModule} from '@angular/common';
 import {CustomerApiService, Gender} from '../../../api/customer-api.service';
 import {BehaviorSubject, EMPTY, of, throwError} from 'rxjs';
 import {IMessage} from '@stomp/stompjs';
-import * as moment from 'moment/moment';
+import moment from 'moment';
 import {ScannerList, ScanResult} from '../scanner/scanner.component';
 import {CustomerNoteApiService, CustomerNotesResponse} from '../../../api/customer-note-api.service';
 import {GlobalStateService} from '../../../common/state/global-state.service';
