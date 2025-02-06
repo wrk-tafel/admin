@@ -5,17 +5,16 @@ import {BgColorDirective, ColComponent, ContainerComponent, RowComponent} from '
 import {DatePipe, NgIf} from '@angular/common';
 
 @Component({
-  selector: 'tafel-ticket-screen',
-  templateUrl: 'ticket-screen.component.html',
-  imports: [
-    ContainerComponent,
-    RowComponent,
-    ColComponent,
-    DatePipe,
-    BgColorDirective,
-    NgIf
-  ],
-  standalone: true
+    selector: 'tafel-ticket-screen',
+    templateUrl: 'ticket-screen.component.html',
+    imports: [
+        ContainerComponent,
+        RowComponent,
+        ColComponent,
+        DatePipe,
+        BgColorDirective,
+        NgIf
+    ]
 })
 export class TicketScreenComponent implements OnInit {
   startTime: Date;

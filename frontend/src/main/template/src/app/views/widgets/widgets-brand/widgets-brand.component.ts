@@ -14,12 +14,11 @@ type BrandData = {
 }
 
 @Component({
-  selector: 'app-widgets-brand',
-  templateUrl: './widgets-brand.component.html',
-  styleUrls: ['./widgets-brand.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Default,
-  standalone: true,
-  imports: [RowComponent, ColComponent, WidgetStatDComponent, IconDirective, ChartjsComponent]
+    selector: 'app-widgets-brand',
+    templateUrl: './widgets-brand.component.html',
+    styleUrls: ['./widgets-brand.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Default,
+    imports: [RowComponent, ColComponent, WidgetStatDComponent, IconDirective, ChartjsComponent]
 })
 export class WidgetsBrandComponent implements AfterContentInit {
 
@@ -99,7 +98,7 @@ export class WidgetsBrandComponent implements AfterContentInit {
     {
       icon: 'cilCalendar',
       values: [{ title: 'events', value: '12+' }, { title: 'meetings', value: '4' }],
-      color: 'warning',
+      capBg: { '--cui-card-cap-bg': 'var(--cui-warning)' },
       data: {
         labels: [...this.labels],
         datasets: [{ ...this.datasets, data: [35, 23, 56, 22, 97, 23, 64], label: 'Events', ...this.colors }]

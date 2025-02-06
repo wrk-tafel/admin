@@ -1,18 +1,18 @@
 import {Component, inject, OnInit} from '@angular/core';
 import {WebsocketService} from '../../common/websocket/websocket.service';
 import {IMessage} from '@stomp/stompjs';
-import {ButtonDirective, ColComponent, RowComponent} from '@coreui/angular';
+import {ColComponent, RowComponent} from '@coreui/angular';
 import {DistributionStateComponent} from './components/distribution-state/distribution-state.component';
 import {RegisteredCustomersComponent} from './components/registered-customers/registered-customers.component';
 import {TafelIfPermissionDirective} from '../../common/security/tafel-if-permission.directive';
 import {
   DistributionStatisticsInputComponent
 } from './components/distribution-statistics-input/distribution-statistics-input.component';
-import {TafelIfDistributionActiveDirective} from '../../common/directive/tafel-if-distribution-active.directive';
 import {
   RecordedFoodCollectionsComponent
 } from './components/recorded-food-collections/recorded-food-collections.component';
 import {FoodAmountComponent} from './components/food-amount/food-amount.component';
+import {TafelIfDistributionActiveDirective} from '../../common/directive/tafel-if-distribution-active.directive';
 
 @Component({
   selector: 'tafel-dashboard',
@@ -23,13 +23,11 @@ import {FoodAmountComponent} from './components/food-amount/food-amount.componen
     DistributionStateComponent,
     RegisteredCustomersComponent,
     TafelIfPermissionDirective,
-    ButtonDirective,
     DistributionStatisticsInputComponent,
-    TafelIfDistributionActiveDirective,
     RecordedFoodCollectionsComponent,
-    FoodAmountComponent
-  ],
-  standalone: true
+    FoodAmountComponent,
+    TafelIfDistributionActiveDirective
+  ]
 })
 export class DashboardComponent implements OnInit {
   private readonly websocketService = inject(WebsocketService);
