@@ -9,6 +9,7 @@ import {
 import {
   provideRouter,
   withComponentInputBinding,
+  withEnabledBlockingInitialNavigation,
   withHashLocation,
   withInMemoryScrolling,
   withRouterConfig,
@@ -43,6 +44,7 @@ export const appConfig: ApplicationConfig = {
         scrollPositionRestoration: 'top',
         anchorScrolling: 'enabled'
       }),
+      withEnabledBlockingInitialNavigation(),
       withViewTransitions(),
       withHashLocation(),
       withComponentInputBinding()
