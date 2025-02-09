@@ -30,9 +30,9 @@ import {TafelIfDistributionActiveDirective} from '../../common/directive/tafel-i
   ]
 })
 export class DashboardComponent implements OnInit {
-  private readonly websocketService = inject(WebsocketService);
-
   data: DashboardData;
+
+  private readonly websocketService = inject(WebsocketService);
 
   ngOnInit(): void {
     this.websocketService.watch('/topic/dashboard').subscribe((message: IMessage) => {

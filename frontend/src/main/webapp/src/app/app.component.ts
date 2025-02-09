@@ -7,7 +7,7 @@ import {TafelToasterComponent} from './common/views/default-layout/toasts/tafel-
 
 @Component({
     // tslint:disable-next-line
-    selector: 'body',
+    selector: 'tafel-app-root',
     templateUrl: 'app.component.html',
     imports: [
         TafelToasterComponent,

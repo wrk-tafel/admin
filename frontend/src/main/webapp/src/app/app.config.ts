@@ -1,5 +1,11 @@
-import { ApplicationConfig, DEFAULT_CURRENCY_CODE, importProvidersFrom, LOCALE_ID, inject, provideAppInitializer } from '@angular/core';
-import {provideAnimations} from '@angular/platform-browser/animations';
+import {
+  ApplicationConfig,
+  DEFAULT_CURRENCY_CODE,
+  importProvidersFrom,
+  inject,
+  LOCALE_ID,
+  provideAppInitializer
+} from '@angular/core';
 import {
   provideRouter,
   withComponentInputBinding,
@@ -19,6 +25,7 @@ import {errorHandlerInterceptor} from './common/http/errorhandler-interceptor.se
 import {apiPathInterceptor} from './common/http/apipath-interceptor.service';
 import {WebsocketService} from './common/websocket/websocket.service';
 import {AuthenticationService} from './common/security/authentication.service';
+import {provideAnimationsAsync} from '@angular/platform-browser/animations/async';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -42,7 +49,7 @@ export const appConfig: ApplicationConfig = {
     ),
     importProvidersFrom(SidebarModule, DropdownModule),
     IconSetService,
-    provideAnimations(),
+    provideAnimationsAsync(),
     {
       provide: LOCALE_ID,
       useValue: 'de-AT'
@@ -68,8 +75,8 @@ export const appConfig: ApplicationConfig = {
       useClass: WebsocketService
     },
     provideAppInitializer(() => {
-        const initializerFn = ((authService: AuthenticationService) => () => authService.loadUserInfo())(inject(AuthenticationService));
-        return initializerFn();
-      })
+      const initializerFn = ((authService: AuthenticationService) => () => authService.loadUserInfo())(inject(AuthenticationService));
+      return initializerFn();
+    })
   ]
 };

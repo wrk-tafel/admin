@@ -14,13 +14,8 @@ import {
 } from './modules/checkin/ticket-screen-fullscreen/ticket-screen-fullscreen.component';
 import {UserPasswordChangeComponent} from './modules/user/user-passwordchange/user-passwordchange.component';
 
-const authGuard: CanActivateFn = (route: ActivatedRouteSnapshot) => {
-  return inject(AuthGuardService).canActivate(route);
-};
-
-const authGuardChild: CanActivateChildFn = (route: ActivatedRouteSnapshot) => {
-  return inject(AuthGuardService).canActivate(route);
-};
+const authGuard: CanActivateFn = (route: ActivatedRouteSnapshot) => inject(AuthGuardService).canActivate(route);
+const authGuardChild: CanActivateChildFn = (route: ActivatedRouteSnapshot) => inject(AuthGuardService).canActivate(route);
 
 export const routes: Routes = [
   {
