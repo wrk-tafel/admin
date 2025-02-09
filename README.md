@@ -6,9 +6,11 @@
 
 # TODO
 # Prio 1
+* Bug: customer creation - field birthDate form control validation not working (red/green border)
 * Bug: Customer in CustomerList(PDF) still visible after deletion of ticketNumber! - caching?
-* Improve password change: Add eye-button to temporarily show password
-* Change statistics zip file to separate files (zip blocked by exchange)
+
+* Impro: Add shelters (with count persons) - dashboard select shelters instead input of overall persons
+* Impro: Send mail with boxes to put back (list with amount of boxes per type and per shop)
 
 * Statistics Module: Show charts / CSV Export
 * Statistics: Show live data on dashboard
