@@ -79,7 +79,7 @@
     "@angular/compiler-cli": "18.2.13",
     "@angular/language-service": "18.2.13",
     "@cypress/schematic": "3.0.0",
-    "@types/jasmine": "5.1.5",
+    "@types/jasmine": "5.1.6",
     "@types/jasminewd2": "2.0.13",
     "@types/node": "20.17.18",
     "@typescript-eslint/eslint-plugin": "8.24.0",
