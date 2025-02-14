@@ -2,12 +2,9 @@ import {Component, effect, inject, input, output} from '@angular/core';
 import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
 import {
   BgColorDirective,
-  ButtonCloseDirective,
   ButtonDirective,
   ColComponent,
-  FormSelectDirective,
   InputGroupComponent,
-  InputGroupTextDirective,
   ModalModule,
   RowComponent
 } from '@coreui/angular';
@@ -24,16 +21,12 @@ import {EmployeeApiService, EmployeeData} from '../../../api/employee-api.servic
     InputGroupComponent,
     CommonModule,
     FaIconComponent,
-    ButtonDirective,
     ColComponent,
-    FormSelectDirective,
-    InputGroupTextDirective,
     RowComponent,
-    BgColorDirective,
-    ButtonCloseDirective,
     ModalModule,
-  ],
-  standalone: true
+    ButtonDirective,
+    BgColorDirective,
+  ]
 })
 export class TafelEmployeeSearchCreateComponent {
   searchInput = input.required<string>()

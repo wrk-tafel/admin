@@ -1,8 +1,15 @@
-import {APP_INITIALIZER, ApplicationConfig, DEFAULT_CURRENCY_CODE, importProvidersFrom, LOCALE_ID} from '@angular/core';
-import {provideAnimations} from '@angular/platform-browser/animations';
+import {
+  ApplicationConfig,
+  DEFAULT_CURRENCY_CODE,
+  importProvidersFrom,
+  inject,
+  LOCALE_ID,
+  provideAppInitializer
+} from '@angular/core';
 import {
   provideRouter,
   withComponentInputBinding,
+  withEnabledBlockingInitialNavigation,
   withHashLocation,
   withInMemoryScrolling,
   withRouterConfig,
@@ -19,6 +26,7 @@ import {errorHandlerInterceptor} from './common/http/errorhandler-interceptor.se
 import {apiPathInterceptor} from './common/http/apipath-interceptor.service';
 import {WebsocketService} from './common/websocket/websocket.service';
 import {AuthenticationService} from './common/security/authentication.service';
+import {provideAnimationsAsync} from '@angular/platform-browser/animations/async';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -36,13 +44,14 @@ export const appConfig: ApplicationConfig = {
         scrollPositionRestoration: 'top',
         anchorScrolling: 'enabled'
       }),
+      withEnabledBlockingInitialNavigation(),
       withViewTransitions(),
       withHashLocation(),
       withComponentInputBinding()
     ),
     importProvidersFrom(SidebarModule, DropdownModule),
     IconSetService,
-    provideAnimations(),
+    provideAnimationsAsync(),
     {
       provide: LOCALE_ID,
       useValue: 'de-AT'
@@ -67,11 +76,9 @@ export const appConfig: ApplicationConfig = {
       provide: WebsocketService,
       useClass: WebsocketService
     },
-    {
-      provide: APP_INITIALIZER,
-      useFactory: (authService: AuthenticationService) => () => authService.loadUserInfo(),
-      deps: [AuthenticationService],
-      multi: true
-    }
+    provideAppInitializer(() => {
+      const initializerFn = ((authService: AuthenticationService) => () => authService.loadUserInfo())(inject(AuthenticationService));
+      return initializerFn();
+    })
   ]
 };

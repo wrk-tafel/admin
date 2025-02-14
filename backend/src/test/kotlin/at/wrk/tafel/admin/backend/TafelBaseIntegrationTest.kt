@@ -18,7 +18,7 @@ class TafelBaseIntegrationTest {
     companion object {
         @Container
         @JvmStatic
-        private val postgreSQLContainer: PostgreSQLContainer<*> = PostgreSQLContainer("postgres:14.0")
+        private val postgreSQLContainer: PostgreSQLContainer<*> = PostgreSQLContainer("postgres:16.1-bullseye")
             .withDatabaseName("tafeladmin")
             .withUsername("admin")
             .withPassword("admin")
@@ -26,9 +26,9 @@ class TafelBaseIntegrationTest {
         @DynamicPropertySource
         @JvmStatic
         fun dynamicDataSourceProperties(registry: DynamicPropertyRegistry) {
-            registry.add("spring.datasource.url", postgreSQLContainer::getJdbcUrl)
-            registry.add("spring.datasource.username", postgreSQLContainer::getUsername)
-            registry.add("spring.datasource.password", postgreSQLContainer::getPassword)
+            registry.add("spring.datasource.url", postgreSQLContainer::jdbcUrl)
+            registry.add("spring.datasource.username", postgreSQLContainer::username)
+            registry.add("spring.datasource.password", postgreSQLContainer::password)
         }
     }
 

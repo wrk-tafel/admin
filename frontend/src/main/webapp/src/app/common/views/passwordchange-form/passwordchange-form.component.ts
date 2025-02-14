@@ -11,17 +11,16 @@ import {faEye, faEyeSlash} from "@fortawesome/free-solid-svg-icons";
 import {FaIconComponent} from "@fortawesome/angular-fontawesome";
 
 @Component({
-  selector: 'tafel-passwordchange-form',
-  templateUrl: 'passwordchange-form.component.html',
-  imports: [
-    ReactiveFormsModule,
-    CommonModule,
-    TafelAutofocusDirective,
-    InputGroupComponent,
-    FaIconComponent,
-    InputGroupTextDirective
-  ],
-  standalone: true
+    selector: 'tafel-passwordchange-form',
+    templateUrl: 'passwordchange-form.component.html',
+    imports: [
+        ReactiveFormsModule,
+        CommonModule,
+        TafelAutofocusDirective,
+        InputGroupComponent,
+        FaIconComponent,
+        InputGroupTextDirective
+    ]
 })
 export class PasswordChangeFormComponent {
   private readonly userApiService = inject(UserApiService);

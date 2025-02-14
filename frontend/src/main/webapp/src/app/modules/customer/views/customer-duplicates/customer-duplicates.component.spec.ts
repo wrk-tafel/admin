@@ -2,11 +2,10 @@ import {TestBed, waitForAsync} from '@angular/core/testing';
 import {CustomerApiService, CustomerDuplicatesResponse, Gender} from '../../../../api/customer-api.service';
 import {CustomerDuplicatesComponent} from './customer-duplicates.component';
 import {ActivatedRoute, Router} from '@angular/router';
-import * as moment from 'moment/moment';
+import moment from 'moment';
 import {of, throwError} from 'rxjs';
 import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
 import {CardModule, ColComponent, PaginationModule, RowComponent} from '@coreui/angular';
-import {TafelPaginationComponent} from '../../../../common/components/tafel-pagination/tafel-pagination.component';
 
 describe('CustomerDuplicatesComponent', () => {
   let customerApiService: jasmine.SpyObj<CustomerApiService>;

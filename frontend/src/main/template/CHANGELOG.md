@@ -2,9 +2,97 @@
 
 ---
 
+#### `5.3.9`
+
+- chore(dependencies): update
+- refactor(carousels): cleanup, add config
+- refactor(app.config): use provideAnimationAsync
+- chore(modals): remove @.disabled animations
+
+---
+
+#### `5.3.8`
+
+- chore(dependencies): update to `Angular 19.1`
+- fix(toast): narrow type for cToastClose
+
+---
+
+#### `5.3.4`
+
+- chore(dependencies): update
+- chore(dependencies): security patch for `path-to-regexp` ReDoS in 0.1.x
+- fix(toast.component): remove constructor-based dependency injection
+
+---
+
+#### `5.3.3`
+
+- chore(dependencies): update
+- chore(workflows): update node-version to 22.x
+
+---
+
+#### `5.3.2`
+
+- chore(dependencies): update 
+- chore(workflows): update with npm ci
+- fix(package-lock): rebuild
+
+---
+
+#### `5.3.1`
+ 
+- chore(dependencies): update to Angular 19
+- refactor: directives, components and pipes are now standalone by default
+- fix(dashboard-charts-data): brandInfoBg rgb is not a valid hex color
+- chore(build): silence sass import deprecation warnings
+- fix(toasters): remove position from props for AppToastComponent
+
+---
+
+#### `5.2.22`
+
+- chore(dependencies): update to `Angular 18.2.9`
+- fix(widgets-brand): use capBg instead of color
+- fix(toasters): toast.index is a signal
+
+---
+
+#### `5.2.16`
+
+- chore(dependencies): update
+  - `tslib` to `^2.7.0`
+  - `micromatch` to `4.0.8`
+    - see vulnerability [Regular Expression Denial of Service (ReDoS) in micromatch](https://github.com/advisories/GHSA-952p-6rrq-rcjv)
+
+---
+
+#### `5.2.15`
+
+- chore(dependencies): update to `Angular 18.2`
+- refactor: move ColorModeService setup from default-header to app component
+- chore(karma.conf): add custom chrome launcher with `--disable-search-engine-choice-screen` flag
+
+---
+
+#### `5.2.5`
+
+- chore(dependencies): update to `Angular 18.1`
+- refactor(cards): card navigation update to the latest `tabs` api
+
+---
+
+#### `5.2.3`
+
+- chore(dependencies): update
+- fix(widgets): c-progress white with inverse()
+
+---
+
 #### `5.2.0`
 
-- chore(dependencies): update ta Angular 18
+- chore(dependencies): update to Angular 18
 - refactor(tabs): update to the latest api
 
 ---
@@ -25,7 +113,7 @@
 
 #### `5.0.2`
 
-- chore(dependencies): update 
+- chore(dependencies): update
 - refactor(default-header): color modes dropdown
 
 ---
@@ -50,36 +138,36 @@ CoreUI v5 for Angular 17
 
 - chore: move to `application` builder
 - chore(dependencies): update to `Angular 17.2`
-  - `Angular 17.2`
-  - `TypeScript ~5.3`
-  - `zone.js ~0.14.4`
-  - `@coreui/angular ~4.7.15`
-  - `@coreui/angular-chartjs ~4.7.14`
-  - `@coreui/icons-angular ~4.7.14`
+    - `Angular 17.2`
+    - `TypeScript ~5.3`
+    - `zone.js ~0.14.4`
+    - `@coreui/angular ~4.7.15`
+    - `@coreui/angular-chartjs ~4.7.14`
+    - `@coreui/icons-angular ~4.7.14`
 
 ---
 
 #### `4.7.13`
 
 - chore(dependencies): update to `Angular 17.1`
-  - `Angular 17.1`
-  - `TypeScript ~5.2`
-  - `zone.js ~0.14.3`
-  - `@coreui/angular ~4.7.13`
-  - `@coreui/angular-chartjs ~4.7.13`
-  - `@coreui/icons-angular ~4.7.13`
+    - `Angular 17.1`
+    - `TypeScript ~5.2`
+    - `zone.js ~0.14.3`
+    - `@coreui/angular ~4.7.13`
+    - `@coreui/angular-chartjs ~4.7.13`
+    - `@coreui/icons-angular ~4.7.13`
 
 ---
 
 #### `4.7.0`
 
 - chore(dependencies): update to `Angular 17`
-  - `Angular 17`
-  - `TypeScript ~5.2`
-  - `zone.js ~0.14.2`
-  - `@coreui/angular ~4.7.0`
-  - `@coreui/angular-chartjs ~4.7.0`
-  - `@coreui/icons-angular ~4.7.0`
+    - `Angular 17`
+    - `TypeScript ~5.2`
+    - `zone.js ~0.14.2`
+    - `@coreui/angular ~4.7.0`
+    - `@coreui/angular-chartjs ~4.7.0`
+    - `@coreui/icons-angular ~4.7.0`
 
 ```shell
 ng update @angular/core@17 @angular/cli@17 @angular/cdk@17 @coreui/angular@~4.7 @coreui/angular-chartjs@~4.7 @coreui/icons-angular@~4.7
@@ -104,7 +192,7 @@ see: [Babel vulnerable to arbitrary code execution when compiling specifically c
 
 #### `4.5.25`
 
-- chore(dependencies): update 
+- chore(dependencies): update
 
 ---
 
@@ -150,9 +238,9 @@ see: [Babel vulnerable to arbitrary code execution when compiling specifically c
 
 - chore(dependencies): update `@angular/*` to version `^15.2.7`
 - standalone components:
-  - chore(dependencies): update `@coreui/angular` to version `~4.4.1`
-  - chore(dependencies): update `@coreui/angular-chartjs` to version `~4.4.1`
-  - chore(dependencies): update `@coreui/icons-angular` to version `~4.4.1`
+    - chore(dependencies): update `@coreui/angular` to version `~4.4.1`
+    - chore(dependencies): update `@coreui/angular-chartjs` to version `~4.4.1`
+    - chore(dependencies): update `@coreui/icons-angular` to version `~4.4.1`
 - fix(widgets): breakpoints
 
 ---
@@ -168,8 +256,9 @@ see: [Babel vulnerable to arbitrary code execution when compiling specifically c
 - chore(dependencies): update `@coreui/utils` to version `^2.0.1`
 
 imports update required :boom: :exclamation:
+
 - from `import {getStyle, ...} from '@coreui/utils/src`
-- to `import  {getStyle, ...} from '@coreui/utils` 
+- to `import {getStyle, ...} from '@coreui/utils`
 
 ---
 
@@ -183,11 +272,13 @@ imports update required :boom: :exclamation:
 #### `4.3.0`
 
 update to:
+
 - `Angular 15`
 - `TypeScript 4.8`
 - `RxJS 7.5`
 
-refactor: 
+refactor:
+
 - refactor(AppComponent): change selector to `app-root`
 
 ---

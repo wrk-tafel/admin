@@ -47,7 +47,6 @@ import {CarData, CarList} from '../../../../api/car-api.service';
     RowComponent,
     ColComponent,
     FormsModule,
-    ButtonDirective,
     InputGroupComponent,
     FaIconComponent,
     InputGroupTextDirective,
@@ -55,9 +54,9 @@ import {CarData, CarList} from '../../../../api/car-api.service';
     TafelEmployeeSearchCreateComponent,
     TextColorDirective,
     CardFooterComponent,
-    TableColorDirective
-  ],
-  standalone: true
+    TableColorDirective,
+    ButtonDirective
+  ]
 })
 export class FoodCollectionRecordingComponent implements OnInit {
   @ViewChild('driverEmployeeSearchCreate') driverEmployeeSearchCreate: TafelEmployeeSearchCreateComponent

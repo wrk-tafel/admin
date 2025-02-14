@@ -1,6 +1,6 @@
 import {Component, inject, Input, OnInit} from '@angular/core';
 import {Router, RouterLink} from '@angular/router';
-import * as moment from 'moment';
+import moment from 'moment';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
 import {
   CustomerAddressData,
@@ -12,7 +12,8 @@ import {
 } from '../../../../api/customer-api.service';
 import {HttpResponse} from '@angular/common/http';
 import {
-  CustomerNoteApiService, CustomerNoteItem,
+  CustomerNoteApiService,
+  CustomerNoteItem,
   CustomerNotesResponse
 } from '../../../../api/customer-note-api.service';
 import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
@@ -88,8 +89,7 @@ import {FaIconComponent} from '@fortawesome/angular-fontawesome';
     NavLinkDirective,
     RoundedDirective,
     FaIconComponent,
-  ],
-  standalone: true
+  ]
 })
 export class CustomerDetailComponent implements OnInit {
   @Input('customerData') customerData: CustomerData;
