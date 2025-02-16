@@ -18,6 +18,10 @@ import java.time.format.DateTimeFormatter
 @ExtendWith(MockKExtension::class)
 class AgeDistributionExporterTest {
 
+    companion object {
+        private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+    }
+
     @Test
     fun `exported properly`() {
         val statistic = mockk<DistributionStatisticEntity>()
@@ -40,7 +44,7 @@ class AgeDistributionExporterTest {
         val rows = exporter.getRows(statistic)
         assertThat(rows).isEqualTo(
             listOf(
-                listOf("TOeT Auswertung Stand: ${DateTimeFormatter.ofPattern("dd.MM.yyyy").format(LocalDateTime.now())} - Altersverteilung"),
+                listOf("TOeT Auswertung Stand: ${LocalDateTime.now().format(DATE_FORMATTER)} - Altersverteilung"),
                 listOf("Gruppe", "Haushalte", "Prozent", "Personen", "Personen/Haushalt"),
                 listOf("0-20", "0", "0,00", "1", "0"),
                 listOf("21-30", "1", "25,00", "3", "3"),
@@ -72,7 +76,7 @@ class AgeDistributionExporterTest {
         val rows = exporter.getRows(statistic)
         assertThat(rows).isEqualTo(
             listOf(
-                listOf("TOeT Auswertung Stand: ${DateTimeFormatter.ofPattern("dd.MM.yyyy").format(LocalDateTime.now())} - Altersverteilung"),
+                listOf("TOeT Auswertung Stand: ${LocalDateTime.now().format(DATE_FORMATTER)} - Altersverteilung"),
                 listOf("Gruppe", "Haushalte", "Prozent", "Personen", "Personen/Haushalt"),
                 listOf("0-20", "0", "0,00", "0", "0"),
                 listOf("21-30", "0", "0,00", "0", "0"),

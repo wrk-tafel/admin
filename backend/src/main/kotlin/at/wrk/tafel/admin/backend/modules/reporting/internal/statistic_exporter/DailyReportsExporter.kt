@@ -21,7 +21,7 @@ class DailyReportsExporter(
         return "TOeT_Tages-Reports"
     }
 
-    override fun getRows(statistic: DistributionStatisticEntity): List<List<String>> {
+    override fun getRows(currentStatistic: DistributionStatisticEntity): List<List<String>> {
         val descriptionHeaderRow =
             listOf("TOeT Auswertung Stand: ${LocalDateTime.now().format(DATE_FORMATTER)} - Tages-Reports")
         val columnsHeaderRow = listOf(
@@ -43,10 +43,10 @@ class DailyReportsExporter(
             "Anz. MitarbeiterInnen"
         )
 
-        val distributions = distributionRepository.getDistributionsForYear(LocalDateTime.now().year)
+        val previousDistributions = distributionRepository.getDistributionsForYear(LocalDateTime.now().year)
             .sortedBy { it.startedAt }
 
-        val dataRows = distributions.mapNotNull { distribution ->
+        val previousRows = previousDistributions.mapNotNull { distribution ->
             val distributionStatistic = distribution.statistic
             if (distributionStatistic != null) {
                 generateStatisticColumns(distribution, distributionStatistic)
@@ -54,11 +54,13 @@ class DailyReportsExporter(
                 null
             }
         }
+        val currentRows = generateStatisticColumns(currentStatistic.distribution!!, currentStatistic)
 
         val result = mutableListOf(descriptionHeaderRow, columnsHeaderRow)
-        if (dataRows.isNotEmpty()) {
-            result += dataRows
+        if (previousRows.isNotEmpty()) {
+            result += previousRows
         }
+        result += currentRows
         return result
     }
 
