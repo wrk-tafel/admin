@@ -16,6 +16,7 @@ import java.time.LocalDateTime
 
 val testDistributionEntity = DistributionEntity().apply {
     id = 123
+    startedAt = LocalDateTime.now()
     employeeCount = 100
     personsInShelterCount = 200
 }

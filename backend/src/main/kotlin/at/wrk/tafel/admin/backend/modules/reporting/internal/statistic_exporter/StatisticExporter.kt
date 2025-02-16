@@ -5,6 +5,6 @@ import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatis
 interface StatisticExporter {
 
     fun getName(): String
-    fun getRows(statistic: DistributionStatisticEntity): List<List<String>>
+    fun getRows(currentStatistic: DistributionStatisticEntity): List<List<String>>
 
 }

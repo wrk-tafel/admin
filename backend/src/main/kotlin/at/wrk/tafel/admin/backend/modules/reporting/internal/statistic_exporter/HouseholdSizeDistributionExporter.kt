@@ -18,12 +18,12 @@ class HouseholdSizeDistributionExporter : StatisticExporter {
         return "TOeT_Verteilung_Haushaltsgroesse"
     }
 
-    override fun getRows(statistic: DistributionStatisticEntity): List<List<String>> {
+    override fun getRows(currentStatistic: DistributionStatisticEntity): List<List<String>> {
         val headerRows = listOf(
             listOf("TOeT Auswertung Stand: ${LocalDateTime.now().format(DATE_FORMATTER)} - Haushaltsgrößen"),
             listOf("Personen", "Haushalte", "Prozent")
         )
-        val dataRows = calculateDistribution(statistic)
+        val dataRows = calculateDistribution(currentStatistic)
 
         return headerRows + dataRows
     }

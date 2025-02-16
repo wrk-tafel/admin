@@ -10,7 +10,6 @@ import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
-import io.mockk.mockk
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -34,8 +33,28 @@ class DailyReportsExporterTest {
 
     @Test
     fun `exported properly`() {
-        val statisticMock = mockk<DistributionStatisticEntity>()
-        val distribution1 = DistributionEntity().apply {
+        val currentDistribution = DistributionEntity().apply {
+            id = 123
+            startedAt = LocalDateTime.now()
+        }
+        val currentStatistic = DistributionStatisticEntity().apply {
+            distribution = currentDistribution
+            personsInShelterCount = 13
+            countPersons = 12
+            countInfants = 11
+            countCustomers = 10
+            countCustomersProlonged = 9
+            countPersonsProlonged = 8
+            countCustomersNew = 7
+            countPersonsNew = 6
+            shopsTotalCount = 5
+            shopsWithFoodCount = 4
+            foodTotalAmount = BigDecimal("3.1")
+            routesLengthKm = 2
+            employeeCount = 1
+        }
+
+        val previousDistribution1 = DistributionEntity().apply {
             id = 111
             startedAt = LocalDateTime.now()
             foodCollections = listOf(
@@ -59,7 +78,7 @@ class DailyReportsExporterTest {
                 employeeCount = 13
             }
         }
-        val distribution2 = DistributionEntity().apply {
+        val previousDistribution2 = DistributionEntity().apply {
             id = 222
             startedAt = LocalDateTime.now().minusDays(7)
             foodCollections = listOf(
@@ -83,14 +102,14 @@ class DailyReportsExporterTest {
         }
 
         every { distributionRepository.getDistributionsForYear(LocalDateTime.now().year) } returns listOf(
-            distribution1,
-            distribution2
+            previousDistribution1,
+            previousDistribution2
         )
 
         val filename = exporter.getName()
         assertThat(filename).isEqualTo("TOeT_Tages-Reports")
 
-        val rows = exporter.getRows(statisticMock)
+        val rows = exporter.getRows(currentStatistic)
 
         assertThat(rows).isEqualTo(
             listOf(
@@ -114,8 +133,8 @@ class DailyReportsExporterTest {
                     "Anz. MitarbeiterInnen"
                 ),
                 listOf(
-                    distribution2.startedAt!!.format(DATE_FORMATTER),
-                    distribution2.startedAt!![IsoFields.WEEK_OF_WEEK_BASED_YEAR].toString(),
+                    previousDistribution2.startedAt!!.format(DATE_FORMATTER),
+                    previousDistribution2.startedAt!![IsoFields.WEEK_OF_WEEK_BASED_YEAR].toString(),
                     "35",
                     "13",
                     "22",
@@ -132,8 +151,8 @@ class DailyReportsExporterTest {
                     "1"
                 ),
                 listOf(
-                    distribution1.startedAt!!.format(DATE_FORMATTER),
-                    distribution1.startedAt!![IsoFields.WEEK_OF_WEEK_BASED_YEAR].toString(),
+                    previousDistribution1.startedAt!!.format(DATE_FORMATTER),
+                    previousDistribution1.startedAt!![IsoFields.WEEK_OF_WEEK_BASED_YEAR].toString(),
                     "7",
                     "1",
                     "6",
@@ -149,24 +168,58 @@ class DailyReportsExporterTest {
                     "12",
                     "13",
                 ),
+                listOf(
+                    currentDistribution.startedAt!!.format(DATE_FORMATTER),
+                    currentDistribution.startedAt!![IsoFields.WEEK_OF_WEEK_BASED_YEAR].toString(),
+                    "35",
+                    "13",
+                    "22",
+                    "11",
+                    "10",
+                    "9",
+                    "8",
+                    "7",
+                    "6",
+                    "5",
+                    "4",
+                    "3.1",
+                    "2",
+                    "1",
+                ),
             )
         )
     }
 
     @Test
-    fun `exported properly without data`() {
-        val statistic = DistributionStatisticEntity()
+    fun `exported properly without previous data`() {
+        val currentDistribution = DistributionEntity().apply {
+            id = 123
+            startedAt = LocalDateTime.now()
+        }
+        val currentStatistic = DistributionStatisticEntity().apply {
+            distribution = currentDistribution
+            personsInShelterCount = 13
+            countPersons = 12
+            countInfants = 11
+            countCustomers = 10
+            countCustomersProlonged = 9
+            countPersonsProlonged = 8
+            countCustomersNew = 7
+            countPersonsNew = 6
+            shopsTotalCount = 5
+            shopsWithFoodCount = 4
+            foodTotalAmount = BigDecimal("3.1")
+            routesLengthKm = 2
+            employeeCount = 1
+        }
         every { distributionRepository.getDistributionsForYear(LocalDateTime.now().year) } returns listOf(
-            DistributionEntity().apply {
-                id = 123
-                startedAt = LocalDateTime.now()
-            }
+            currentDistribution
         )
 
         val filename = exporter.getName()
         assertThat(filename).isEqualTo("TOeT_Tages-Reports")
 
-        val rows = exporter.getRows(statistic)
+        val rows = exporter.getRows(currentStatistic)
         assertThat(rows).isEqualTo(
             listOf(
                 listOf("TOeT Auswertung Stand: ${LocalDateTime.now().format(DATE_FORMATTER)} - Tages-Reports"),
@@ -187,7 +240,25 @@ class DailyReportsExporterTest {
                     "Warenmenge",
                     "Kilometerleistung",
                     "Anz. MitarbeiterInnen"
-                )
+                ),
+                listOf(
+                    currentDistribution.startedAt!!.format(DATE_FORMATTER),
+                    currentDistribution.startedAt!![IsoFields.WEEK_OF_WEEK_BASED_YEAR].toString(),
+                    "35",
+                    "13",
+                    "22",
+                    "11",
+                    "10",
+                    "9",
+                    "8",
+                    "7",
+                    "6",
+                    "5",
+                    "4",
+                    "3.1",
+                    "2",
+                    "1",
+                ),
             )
         )
     }

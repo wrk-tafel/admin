@@ -61,6 +61,7 @@ val testRoute1 = RouteEntity().apply {
 
 val testRoute2 = RouteEntity().apply {
     id = 2
+    number = 2.0
     name = "Route 2"
     note = null
     stops = emptyList()
@@ -68,6 +69,7 @@ val testRoute2 = RouteEntity().apply {
 
 val testRoute3 = RouteEntity().apply {
     id = 3
+    number = 3.0
     name = "Route 3"
     note = null
     stops = emptyList()

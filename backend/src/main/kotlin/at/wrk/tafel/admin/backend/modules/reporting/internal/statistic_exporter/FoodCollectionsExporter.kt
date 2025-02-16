@@ -23,7 +23,7 @@ class FoodCollectionsExporter(
         return "TOeT_Spenden"
     }
 
-    override fun getRows(statistic: DistributionStatisticEntity): List<List<String>> {
+    override fun getRows(currentStatistic: DistributionStatisticEntity): List<List<String>> {
         val descriptionHeaderRow =
             listOf("TOeT Auswertung Stand: ${LocalDateTime.now().format(DATE_FORMATTER)} - Spenden")
 
@@ -33,11 +33,12 @@ class FoodCollectionsExporter(
         val distributions = distributionRepository.getDistributionsForYear(LocalDateTime.now().year)
             .sortedBy { it.startedAt }
 
-        val dataRows = distributions.flatMap { distribution ->
+        val previousRows = distributions.flatMap { distribution ->
             calculateFoodCollections(sortedFoodCategories, distribution)
         }
+        val currentRows = calculateFoodCollections(sortedFoodCategories, currentStatistic.distribution!!)
 
-        return listOf(descriptionHeaderRow, columnsHeaderRow) + dataRows
+        return listOf(descriptionHeaderRow, columnsHeaderRow) + previousRows + currentRows
     }
 
     private fun generateHeaderFromCategories(sortedFoodCategories: List<FoodCategoryEntity>): List<String> {
@@ -63,7 +64,7 @@ class FoodCollectionsExporter(
                 shops.forEach { shop ->
                     val columns = mutableListOf<String>()
                     columns.add(distribution.startedAt!!.format(DATE_FORMATTER))
-                    columns.add(foodCollection.route?.number?.toString() ?: "-")
+                    columns.add(foodCollection.route!!.number!!.toString())
                     columns.add(shop.number.toString())
 
                     sortedFoodCategories.forEach { category ->

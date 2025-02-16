@@ -13,7 +13,6 @@ import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
-import io.mockk.mockk
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -32,11 +31,14 @@ class FoodCollectionsExporterTest {
     @InjectMockKs
     private lateinit var exporter: FoodCollectionsExporter
 
+    companion object {
+        private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+    }
+
     @Test
     fun `exported properly`() {
         every { foodCategoryRepository.findAll() } returns listOf(testFoodCategory1, testFoodCategory2)
 
-        val statistic = mockk<DistributionStatisticEntity>()
         val distribution1 = DistributionEntity().apply {
             id = 111
             startedAt = LocalDateTime.now()
@@ -54,6 +56,17 @@ class FoodCollectionsExporterTest {
             )
         }
 
+        val currentDistribution = DistributionEntity().apply {
+            id = 123
+            startedAt = LocalDateTime.now()
+            foodCollections = listOf(
+                testFoodCollectionRoute2Entity
+            )
+        }
+        val currentStatistic = DistributionStatisticEntity().apply {
+            distribution = currentDistribution
+        }
+
         every { distributionRepository.getDistributionsForYear(LocalDateTime.now().year) } returns listOf(
             distribution1,
             distribution2
@@ -62,43 +75,44 @@ class FoodCollectionsExporterTest {
         val filename = exporter.getName()
         assertThat(filename).isEqualTo("TOeT_Spenden")
 
-        val rows = exporter.getRows(statistic)
+        val rows = exporter.getRows(currentStatistic)
 
-        val dateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
         assertThat(rows).isEqualTo(
             listOf(
-                listOf("TOeT Auswertung Stand: ${LocalDateTime.now().format(dateTimeFormatter)} - Spenden"),
+                listOf("TOeT Auswertung Stand: ${LocalDateTime.now().format(DATE_FORMATTER)} - Spenden"),
                 listOf("Datum", "Route", "Spender", "Category 1", "Category 2"),
-                listOf(distribution2.startedAt!!.format(dateTimeFormatter), "-", "3", "0", "5"),
-                listOf(distribution1.startedAt!!.format(dateTimeFormatter), "-", "3", "0", "5"),
-                listOf(distribution1.startedAt!!.format(dateTimeFormatter), "1.0", "1", "0", "0"),
-                listOf(distribution1.startedAt!!.format(dateTimeFormatter), "1.0", "2", "2", "4"),
+                listOf(distribution2.startedAt!!.format(DATE_FORMATTER), "2.0", "3", "0", "5"),
+                listOf(distribution1.startedAt!!.format(DATE_FORMATTER), "1.0", "1", "0", "0"),
+                listOf(distribution1.startedAt!!.format(DATE_FORMATTER), "1.0", "2", "2", "4"),
+                listOf(distribution1.startedAt!!.format(DATE_FORMATTER), "2.0", "3", "0", "5"),
+                listOf(currentDistribution.startedAt!!.format(DATE_FORMATTER), "2.0", "3", "0", "5"),
             )
         )
     }
 
     @Test
-    fun `exported properly without data`() {
+    fun `exported properly without previous data`() {
         every { foodCategoryRepository.findAll() } returns listOf(testFoodCategory1, testFoodCategory2)
 
-        val statistic = mockk<DistributionStatisticEntity>()
+        val currentDistribution = DistributionEntity().apply {
+            id = 123
+            startedAt = LocalDateTime.now()
+        }
+        val currentStatistic = DistributionStatisticEntity().apply {
+            distribution = currentDistribution
+        }
         every { distributionRepository.getDistributionsForYear(LocalDateTime.now().year) } returns listOf(
-            DistributionEntity().apply {
-                id = 123
-                startedAt = LocalDateTime.now()
-            }
+            currentDistribution
         )
 
         val filename = exporter.getName()
         assertThat(filename).isEqualTo("TOeT_Spenden")
 
-        val rows = exporter.getRows(statistic)
+        val rows = exporter.getRows(currentStatistic)
         assertThat(rows).isEqualTo(
             listOf(
                 listOf(
-                    "TOeT Auswertung Stand: ${
-                        DateTimeFormatter.ofPattern("dd.MM.yyyy").format(LocalDateTime.now())
-                    } - Spenden"
+                    "TOeT Auswertung Stand: ${LocalDateTime.now().format(DATE_FORMATTER)} - Spenden"
                 ),
                 listOf("Datum", "Route", "Spender", "Category 1", "Category 2"),
             )
