@@ -21,7 +21,7 @@ class AgeDistributionExporter : StatisticExporter {
 
     override fun getRows(statistic: DistributionStatisticEntity): List<List<String>> {
         val headerRows = listOf(
-            listOf("TOeT Auswertung Stand: ${DATE_FORMATTER.format(LocalDateTime.now())} - Altersverteilung"),
+            listOf("TOeT Auswertung Stand: ${LocalDateTime.now().format(DATE_FORMATTER)} - Altersverteilung"),
             listOf("Gruppe", "Haushalte", "Prozent", "Personen", "Personen/Haushalt")
         )
         val dataRows = calculateDistribution(statistic)
