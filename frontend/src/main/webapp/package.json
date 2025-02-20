@@ -47,7 +47,7 @@
     "@stomp/rx-stomp": "2.0.0",
     "@types/websocket": "1.0.10",
     "bootstrap": "5.3.3",
-    "chart.js": "4.4.7",
+    "chart.js": "4.4.8",
     "core-js": "3.40.0",
     "cypress-recurse": "1.35.3",
     "flag-icon-css": "4.1.7",
