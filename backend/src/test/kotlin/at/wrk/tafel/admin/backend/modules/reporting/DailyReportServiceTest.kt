@@ -2,7 +2,11 @@ package at.wrk.tafel.admin.backend.modules.reporting
 
 import at.wrk.tafel.admin.backend.common.pdf.PDFService
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
+import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticShelterEntity
+import at.wrk.tafel.admin.backend.modules.logistics.testDistributionStatisticShelterEntity1
+import at.wrk.tafel.admin.backend.modules.logistics.testDistributionStatisticShelterEntity2
 import at.wrk.tafel.admin.backend.modules.reporting.internal.DailyReportPdfModel
+import at.wrk.tafel.admin.backend.modules.reporting.internal.DailyReportShelterPdfModel
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -29,7 +33,6 @@ internal class DailyReportServiceTest {
     fun `generate daily report pdf`() {
         val statistic = DistributionStatisticEntity().apply {
             employeeCount = 100
-            personsInShelterCount = 200
 
             countCustomers = 1
             countPersons = 2
@@ -46,7 +49,35 @@ internal class DailyReportServiceTest {
             foodTotalAmount = BigDecimal(12)
             foodPerShopAverage = BigDecimal(13)
             routesLengthKm = 14
+
+            shelters = listOf(
+                testDistributionStatisticShelterEntity1,
+                testDistributionStatisticShelterEntity2
+            ).toMutableList()
         }
+
+        statistic.shelters.addAll(
+            listOf(
+                DistributionStatisticShelterEntity().apply {
+                    name = "Shelter 1"
+                    addressStreet = "Teststraße"
+                    addressHouseNumber = "10"
+                    addressStairway = "1"
+                    addressPostalCode = 1030
+                    addressCity = "Wien"
+                    personsCount = 100
+                },
+                DistributionStatisticShelterEntity().apply {
+                    name = "Shelter 2"
+                    addressStreet = "Teststraße"
+                    addressHouseNumber = "11"
+                    addressStairway = "2"
+                    addressPostalCode = 1030
+                    addressCity = "Wien"
+                    personsCount = 50
+                }
+            )
+        )
 
         every { pdfService.generatePdf(any(), any()) } returns ByteArray(0)
 
@@ -67,7 +98,6 @@ internal class DailyReportServiceTest {
         assertThat(pdfModel.date).isEqualTo("$date $startTime - $endTime")
 
         assertThat(pdfModel.employeeCount).isEqualTo(statistic.employeeCount)
-        assertThat(pdfModel.personsInShelterCount).isEqualTo(statistic.personsInShelterCount)
 
         assertThat(pdfModel.countCustomers).isEqualTo(statistic.countCustomers)
         assertThat(pdfModel.countPersons).isEqualTo(statistic.countPersons)
@@ -84,6 +114,22 @@ internal class DailyReportServiceTest {
         assertThat(pdfModel.foodTotalAmount).isEqualTo(statistic.foodTotalAmount)
         assertThat(pdfModel.foodPerShopAverage).isEqualTo(statistic.foodPerShopAverage)
         assertThat(pdfModel.routesLengthKm).isEqualTo(statistic.routesLengthKm)
+
+        assertThat(pdfModel.personsInSheltersTotalCount).isEqualTo(statistic.shelters.sumOf { it.personsCount ?: 0 })
+        assertThat(pdfModel.shelters).hasSameElementsAs(
+            statistic.shelters.map {
+                DailyReportShelterPdfModel(
+                    name = it.name!!,
+                    addressStreet = it.addressStreet!!,
+                    addressHouseNumber = it.addressHouseNumber!!,
+                    addressStairway = it.addressStairway,
+                    addressPostalCode = it.addressPostalCode!!,
+                    addressCity = it.addressCity!!,
+                    addressDoor = it.addressDoor,
+                    personsCount = it.personsCount!!
+                )
+            }
+        )
     }
 
 }

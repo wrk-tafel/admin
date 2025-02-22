@@ -4,6 +4,7 @@ import at.wrk.tafel.admin.backend.database.model.customer.CustomerRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticRepository
+import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionCustomerEntity1
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionCustomerEntity2
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionCustomerEntity3
@@ -19,6 +20,7 @@ import io.mockk.slot
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -42,8 +44,9 @@ internal class DistributionStatisticServiceTest {
             id = 123
             startedAt = LocalDateTime.now().minusHours(2)
             endedAt = LocalDateTime.now()
-            employeeCount = 100
-            personsInShelterCount = 200
+            statistic = DistributionStatisticEntity().apply {
+                employeeCount = 100
+            }
             customers = listOf(
                 testDistributionCustomerEntity1,
                 testDistributionCustomerEntity2,
@@ -95,7 +98,6 @@ internal class DistributionStatisticServiceTest {
         val savedStatistic = savedStatisticSlot.captured
         assertThat(savedStatistic.distribution).isEqualTo(testDistributionEntity)
         assertThat(savedStatistic.employeeCount).isEqualTo(100)
-        assertThat(savedStatistic.personsInShelterCount).isEqualTo(200)
 
         assertThat(savedStatistic.countCustomers).isEqualTo(3)
         assertThat(savedStatistic.countPersons).isEqualTo(4)
@@ -117,12 +119,12 @@ internal class DistributionStatisticServiceTest {
     }
 
     @Test
-    fun `create and save empty statistic with empty distribution`() {
+    fun `create and save empty statistic with empty distribution including empty statistic`() {
         val testDistributionEntity = DistributionEntity().apply {
             id = 123
             startedAt = LocalDateTime.now().minusHours(2)
             endedAt = LocalDateTime.now()
-            customers = emptyList()
+            statistic = DistributionStatisticEntity()
         }
 
         every { customerRepository.findAllByCreatedAtBetween(any(), any()) } returns emptyList()
@@ -152,6 +154,18 @@ internal class DistributionStatisticServiceTest {
         assertThat(savedStatistic.foodTotalAmount).isEqualTo(BigDecimal.ZERO)
         assertThat(savedStatistic.foodPerShopAverage).isEqualTo(BigDecimal.ZERO)
         assertThat(savedStatistic.routesLengthKm).isEqualTo(0)
+    }
+
+    @Test
+    fun `create and save empty statistic with empty distribution missing statistic`() {
+        val testDistributionEntity = DistributionEntity().apply {
+            id = 123
+            startedAt = LocalDateTime.now().minusHours(2)
+            endedAt = LocalDateTime.now()
+        }
+
+        val message = assertThrows<TafelValidationException> { service.createAndSaveStatistic(testDistributionEntity) }
+        assertThat(message.message).isEqualTo("Statistik-Daten nicht vorhanden!")
     }
 
 }

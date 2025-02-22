@@ -6,9 +6,9 @@ import {BehaviorSubject} from 'rxjs';
   providedIn: 'root'
 })
 export class GlobalStateService {
-  private currentDistribution: BehaviorSubject<DistributionItem> = new BehaviorSubject(null);
+  private readonly currentDistribution: BehaviorSubject<DistributionItem> = new BehaviorSubject(null);
 
-  constructor(private distributionApiService: DistributionApiService) {
+  constructor(private readonly distributionApiService: DistributionApiService) {
   }
 
   /* eslint-disable @typescript-eslint/no-explicit-any */

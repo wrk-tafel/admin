@@ -37,10 +37,10 @@ export class DistributionApiService {
     return this.http.post<void>('/distributions/customers', body);
   }
 
-  saveStatisticData(employeeCount: number, personsInShelterCount: number): Observable<void> {
+  saveStatisticData(employeeCount: number, selectedShelterIds: number[]): Observable<void> {
     const body: SaveDistributionStatisticRequest = {
       employeeCount: employeeCount,
-      personsInShelterCount: personsInShelterCount
+      selectedShelterIds: selectedShelterIds
     };
     return this.http.post<void>('/distributions/statistics', body);
   }
@@ -70,5 +70,5 @@ export interface AssignCustomerRequest {
 
 export interface SaveDistributionStatisticRequest {
   employeeCount: number;
-  personsInShelterCount: number;
+  selectedShelterIds: number[];
 }

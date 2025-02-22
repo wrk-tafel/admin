@@ -19,7 +19,7 @@ Content-Type: application/json
 
 {
   "employeeCount": 100,
-  "personsInShelterCount": 200
+  "selectedShelterIds": [1, 2, 3]
 }
 
 ### Get customer list (pdf)

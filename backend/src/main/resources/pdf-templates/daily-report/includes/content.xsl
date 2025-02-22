@@ -15,6 +15,9 @@
             <fo:block space-after="1cm">
                 <xsl:call-template name="logistics"/>
             </fo:block>
+            <fo:block space-after="1cm">
+                <xsl:call-template name="shelters"/>
+            </fo:block>
         </fo:block>
     </xsl:template>
     <xsl:template name="title">
@@ -212,6 +215,32 @@
                                 <fo:block>
                                     <xsl:value-of select="routesLengthKm"/>
                                     <xsl:value-of select="' km'"/>
+                                </fo:block>
+                            </fo:table-cell>
+                        </fo:table-row>
+                    </fo:table-body>
+                </fo:table>
+            </fo:block>
+        </xsl:if>
+    </xsl:template>
+    <xsl:template name="shelters">
+        <xsl:if test="personsInSheltersTotalCount > 0">
+            <fo:block font-weight="bold" margin-bottom="0.2cm">
+                An Nächtigungsquartiere (Personen)
+            </fo:block>
+            <fo:block margin-left="1cm">
+                <fo:table table-layout="fixed" width="100%">
+                    <fo:table-column column-width="50%"/>
+                    <fo:table-column column-width="50%"/>
+                    <fo:table-body>
+                        <fo:table-row>
+                            <fo:table-cell>
+                                <fo:block>Personen gesamt:</fo:block>
+                            </fo:table-cell>
+                            <!-- TODO FINISH -->
+                            <fo:table-cell>
+                                <fo:block>
+                                    <xsl:value-of select="personsInSheltersTotalCount"/>
                                 </fo:block>
                             </fo:table-cell>
                         </fo:table-row>

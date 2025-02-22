@@ -4,10 +4,13 @@ import at.wrk.tafel.admin.backend.database.model.customer.CustomerAddPersonEntit
 import at.wrk.tafel.admin.backend.database.model.customer.CustomerEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionCustomerEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
+import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
 import at.wrk.tafel.admin.backend.modules.base.country.testCountry1
 import at.wrk.tafel.admin.backend.modules.base.country.testCountry2
 import at.wrk.tafel.admin.backend.modules.base.country.testCountry3
 import at.wrk.tafel.admin.backend.modules.base.country.testCountry4
+import at.wrk.tafel.admin.backend.modules.logistics.testDistributionStatisticShelterEntity1
+import at.wrk.tafel.admin.backend.modules.logistics.testDistributionStatisticShelterEntity2
 import at.wrk.tafel.admin.backend.security.testUserEntity
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -17,8 +20,13 @@ import java.time.LocalDateTime
 val testDistributionEntity = DistributionEntity().apply {
     id = 123
     startedAt = LocalDateTime.now()
-    employeeCount = 100
-    personsInShelterCount = 200
+    statistic = DistributionStatisticEntity().apply {
+        employeeCount = 100
+        shelters = listOf(
+            testDistributionStatisticShelterEntity1,
+            testDistributionStatisticShelterEntity2
+        ).toMutableList()
+    }
 }
 
 val testDistributionCustomerEntity1 = DistributionCustomerEntity().apply {

@@ -95,7 +95,7 @@ internal class DistributionControllerTest {
     fun `save distribution statistic`() {
         val statisticData = DistributionStatisticData(
             employeeCount = 100,
-            personsInShelterCount = 200
+            selectedShelterIds = listOf(1, 2, 3)
         )
 
         val response = controller.saveDistributionStatistic(statisticData)
@@ -104,7 +104,7 @@ internal class DistributionControllerTest {
         verify(exactly = 1) {
             service.updateDistributionStatisticData(
                 statisticData.employeeCount,
-                statisticData.personsInShelterCount
+                statisticData.selectedShelterIds
             )
         }
     }

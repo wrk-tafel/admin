@@ -4,6 +4,7 @@ import at.wrk.tafel.admin.backend.database.model.customer.CustomerRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticRepository
+import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
@@ -16,14 +17,14 @@ import java.time.format.DateTimeFormatter
 @Service
 class DistributionStatisticService(
     private val distributionStatisticRepository: DistributionStatisticRepository,
-    private val customerRepository: CustomerRepository
+    private val customerRepository: CustomerRepository,
 ) {
     companion object {
         private val logger = LoggerFactory.getLogger(DistributionStatisticService::class.java)
     }
 
     fun createAndSaveStatistic(distribution: DistributionEntity): DistributionStatisticEntity {
-        val statisticEntry = createStatisticEntry(distribution)
+        val statisticEntry = getOrCreateStatisticEntry(distribution)
         val savedStatisticEntry = distributionStatisticRepository.save(statisticEntry)
 
         logger.info(
@@ -36,13 +37,11 @@ class DistributionStatisticService(
         return savedStatisticEntry
     }
 
-    private fun createStatisticEntry(distribution: DistributionEntity): DistributionStatisticEntity {
-        val statistic = DistributionStatisticEntity()
+    private fun getOrCreateStatisticEntry(distribution: DistributionEntity): DistributionStatisticEntity {
+        val statistic = distribution.statistic ?: throw TafelValidationException("Statistik-Daten nicht vorhanden!")
         val statisticStartTime = distribution.startedAt!!.toLocalDate().atStartOfDay()
         val statisticEndTime = distribution.endedAt!!
         statistic.distribution = distribution
-        statistic.employeeCount = distribution.employeeCount
-        statistic.personsInShelterCount = distribution.personsInShelterCount
 
         fillCustomerStatistics(distribution, statisticStartTime, statisticEndTime, statistic)
         fillLogisticsStatistics(distribution, statistic)
@@ -54,7 +53,7 @@ class DistributionStatisticService(
         distribution: DistributionEntity,
         statisticStartTime: LocalDateTime,
         statisticEndTime: LocalDateTime,
-        statistic: DistributionStatisticEntity
+        statistic: DistributionStatisticEntity,
     ) {
         val countCustomers = distribution.customers.size
         statistic.countCustomers = countCustomers

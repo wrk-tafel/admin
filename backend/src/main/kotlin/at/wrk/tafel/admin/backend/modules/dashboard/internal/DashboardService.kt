@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional
 class DashboardService(
     private val distributionRepository: DistributionRepository,
     private val distributionCustomerRepository: DistributionCustomerRepository,
-    private val routeRepository: RouteRepository
+    private val routeRepository: RouteRepository,
 ) {
 
     @Transactional(readOnly = true)
@@ -37,8 +37,8 @@ class DashboardService(
 
     private fun getStatisticsData(currentDistribution: DistributionEntity?): DashboardStatisticsData {
         return DashboardStatisticsData(
-            employeeCount = currentDistribution?.employeeCount,
-            personsInShelterCount = currentDistribution?.personsInShelterCount
+            employeeCount = currentDistribution?.statistic?.employeeCount.takeIf { it != 0 },
+            selectedShelterIds = currentDistribution?.statistic?.shelters?.mapNotNull { it.id } ?: emptyList()
         )
     }
 

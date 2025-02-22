@@ -3,6 +3,7 @@ package at.wrk.tafel.admin.backend.modules.reporting
 import at.wrk.tafel.admin.backend.common.pdf.PDFService
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
 import at.wrk.tafel.admin.backend.modules.reporting.internal.DailyReportPdfModel
+import at.wrk.tafel.admin.backend.modules.reporting.internal.DailyReportShelterPdfModel
 import org.apache.commons.io.IOUtils
 import org.springframework.stereotype.Service
 import org.springframework.util.MimeTypeUtils
@@ -10,7 +11,7 @@ import java.time.format.DateTimeFormatter
 
 @Service
 class DailyReportService(
-    private val pdfService: PDFService
+    private val pdfService: PDFService,
 ) {
     companion object {
         private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
@@ -30,24 +31,37 @@ class DailyReportService(
             logoBytes = logoBytes,
             date = formatDate(statistic),
 
-            employeeCount = statistic.employeeCount!!,
-            personsInShelterCount = statistic.personsInShelterCount!!,
+            employeeCount = statistic.employeeCount,
 
-            countCustomers = statistic.countCustomers!!,
-            countPersons = statistic.countPersons!!,
-            countInfants = statistic.countInfants!!,
-            averagePersonsPerCustomer = statistic.averagePersonsPerCustomer!!,
-            countCustomersNew = statistic.countCustomersNew!!,
-            countPersonsNew = statistic.countPersonsNew!!,
-            countCustomersProlonged = statistic.countCustomersProlonged!!,
-            countPersonsProlonged = statistic.countPersonsProlonged!!,
-            countCustomersUpdated = statistic.countCustomersUpdated!!,
+            countCustomers = statistic.countCustomers,
+            countPersons = statistic.countPersons,
+            countInfants = statistic.countInfants,
+            averagePersonsPerCustomer = statistic.averagePersonsPerCustomer,
+            countCustomersNew = statistic.countCustomersNew,
+            countPersonsNew = statistic.countPersonsNew,
+            countCustomersProlonged = statistic.countCustomersProlonged,
+            countPersonsProlonged = statistic.countPersonsProlonged,
+            countCustomersUpdated = statistic.countCustomersUpdated,
 
-            shopsTotalCount = statistic.shopsTotalCount!!,
-            shopsWithFoodCount = statistic.shopsWithFoodCount!!,
-            foodTotalAmount = statistic.foodTotalAmount!!,
-            foodPerShopAverage = statistic.foodPerShopAverage!!,
-            routesLengthKm = statistic.routesLengthKm!!
+            shopsTotalCount = statistic.shopsTotalCount,
+            shopsWithFoodCount = statistic.shopsWithFoodCount,
+            foodTotalAmount = statistic.foodTotalAmount,
+            foodPerShopAverage = statistic.foodPerShopAverage,
+            routesLengthKm = statistic.routesLengthKm,
+
+            personsInSheltersTotalCount = statistic.shelters.sumOf { it.personsCount ?: 0 },
+            shelters = statistic.shelters.map {
+                DailyReportShelterPdfModel(
+                    name = it.name!!,
+                    addressStreet = it.addressStreet!!,
+                    addressHouseNumber = it.addressHouseNumber!!,
+                    addressStairway = it.addressStairway,
+                    addressPostalCode = it.addressPostalCode!!,
+                    addressCity = it.addressCity!!,
+                    addressDoor = it.addressDoor,
+                    personsCount = it.personsCount!!
+                )
+            }
         )
     }
 
