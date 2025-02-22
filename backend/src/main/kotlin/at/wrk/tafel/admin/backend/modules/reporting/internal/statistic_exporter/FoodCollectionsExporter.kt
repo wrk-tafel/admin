@@ -6,17 +6,21 @@ import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatis
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCategoryEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCategoryRepository
 import org.springframework.stereotype.Component
+import java.math.BigDecimal
+import java.text.NumberFormat
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.*
 
 @Component
 class FoodCollectionsExporter(
     private val distributionRepository: DistributionRepository,
-    private val foodCategoryRepository: FoodCategoryRepository
+    private val foodCategoryRepository: FoodCategoryRepository,
 ) : StatisticExporter {
 
     companion object {
         private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+        private val NUMBER_FORMATTER = NumberFormat.getNumberInstance(Locale.GERMANY)
     }
 
     override fun getName(): String {
@@ -25,9 +29,13 @@ class FoodCollectionsExporter(
 
     override fun getRows(currentStatistic: DistributionStatisticEntity): List<List<String>> {
         val descriptionHeaderRow =
-            listOf("TOeT Auswertung Stand: ${LocalDateTime.now().format(DATE_FORMATTER)} - Spenden")
+            listOf("TOeT Auswertung Stand: ${LocalDateTime.now().format(DATE_FORMATTER)} - Spenden (in kg)")
 
-        val sortedFoodCategories = foodCategoryRepository.findAll().sortedBy { it.name }
+        val sortedFoodCategories = foodCategoryRepository.findAll()
+            .sortedWith(
+                compareBy<FoodCategoryEntity> { it.back ?: false }
+                    .thenBy { it.name }
+            )
         val columnsHeaderRow = generateHeaderFromCategories(sortedFoodCategories)
 
         val distributions = distributionRepository.getDistributionsForYear(LocalDateTime.now().year)
@@ -42,14 +50,12 @@ class FoodCollectionsExporter(
     }
 
     private fun generateHeaderFromCategories(sortedFoodCategories: List<FoodCategoryEntity>): List<String> {
-        val fixedHeaders = listOf("Datum", "Route", "Spender")
-        val categoryHeaders = sortedFoodCategories.mapNotNull { it.name }.sorted()
-        return fixedHeaders + categoryHeaders
+        return listOf("Datum", "Route", "Spender") + sortedFoodCategories.mapNotNull { it.name }
     }
 
     private fun calculateFoodCollections(
         sortedFoodCategories: List<FoodCategoryEntity>,
-        distribution: DistributionEntity
+        distribution: DistributionEntity,
     ): List<List<String>> {
         val rows = mutableListOf<List<String>>()
 
@@ -70,11 +76,8 @@ class FoodCollectionsExporter(
                     sortedFoodCategories.forEach { category ->
                         val itemPerCategory =
                             items.firstOrNull { it.category!!.id == category.id && it.shop!!.id == shop.id }
-                        if (itemPerCategory != null) {
-                            columns.add(itemPerCategory.amount?.toString() ?: "0")
-                        } else {
-                            columns.add("0")
-                        }
+                        val weight = itemPerCategory?.calculateWeight() ?: BigDecimal.ZERO
+                        columns.add(NUMBER_FORMATTER.format(weight))
                     }
 
                     rows.add(columns)
