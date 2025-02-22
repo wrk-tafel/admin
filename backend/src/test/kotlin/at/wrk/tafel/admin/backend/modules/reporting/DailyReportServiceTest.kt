@@ -2,7 +2,10 @@ package at.wrk.tafel.admin.backend.modules.reporting
 
 import at.wrk.tafel.admin.backend.common.pdf.PDFService
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
+import at.wrk.tafel.admin.backend.modules.logistics.testDistributionStatisticShelterEntity1
+import at.wrk.tafel.admin.backend.modules.logistics.testDistributionStatisticShelterEntity2
 import at.wrk.tafel.admin.backend.modules.reporting.internal.DailyReportPdfModel
+import at.wrk.tafel.admin.backend.modules.reporting.internal.DailyReportShelterPdfModel
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -29,7 +32,6 @@ internal class DailyReportServiceTest {
     fun `generate daily report pdf`() {
         val statistic = DistributionStatisticEntity().apply {
             employeeCount = 100
-            personsInShelterCount = 200
 
             countCustomers = 1
             countPersons = 2
@@ -46,6 +48,11 @@ internal class DailyReportServiceTest {
             foodTotalAmount = BigDecimal(12)
             foodPerShopAverage = BigDecimal(13)
             routesLengthKm = 14
+
+            shelters = listOf(
+                testDistributionStatisticShelterEntity1,
+                testDistributionStatisticShelterEntity2
+            ).toMutableList()
         }
 
         every { pdfService.generatePdf(any(), any()) } returns ByteArray(0)
@@ -67,7 +74,6 @@ internal class DailyReportServiceTest {
         assertThat(pdfModel.date).isEqualTo("$date $startTime - $endTime")
 
         assertThat(pdfModel.employeeCount).isEqualTo(statistic.employeeCount)
-        assertThat(pdfModel.personsInShelterCount).isEqualTo(statistic.personsInShelterCount)
 
         assertThat(pdfModel.countCustomers).isEqualTo(statistic.countCustomers)
         assertThat(pdfModel.countPersons).isEqualTo(statistic.countPersons)
@@ -84,6 +90,26 @@ internal class DailyReportServiceTest {
         assertThat(pdfModel.foodTotalAmount).isEqualTo(statistic.foodTotalAmount)
         assertThat(pdfModel.foodPerShopAverage).isEqualTo(statistic.foodPerShopAverage)
         assertThat(pdfModel.routesLengthKm).isEqualTo(statistic.routesLengthKm)
+
+        assertThat(pdfModel.personsInSheltersTotalCount).isEqualTo(3)
+
+        val firstShelter = pdfModel.shelters[0]
+        assertThat(firstShelter).isEqualTo(
+            DailyReportShelterPdfModel(
+                name = "Shelter 1",
+                addressFormatted = "Street 1, Stiege A, Top 1, 1234 City 1",
+                personCount = 1
+            )
+        )
+
+        val secondShelter = pdfModel.shelters[1]
+        assertThat(secondShelter).isEqualTo(
+            DailyReportShelterPdfModel(
+                name = "Shelter 2",
+                addressFormatted = "Street 2, Stiege A, Top 2, 4321 City 2",
+                personCount = 2
+            )
+        )
     }
 
 }

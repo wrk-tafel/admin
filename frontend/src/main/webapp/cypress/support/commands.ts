@@ -80,7 +80,7 @@ Cypress.Commands.add('closeDistribution', () => {
   cy.request({
     method: 'POST',
     url: '/api/distributions/statistics',
-    body: { employeeCount: 100, personsInShelterCount: 200 }
+    body: {employeeCount: 100, selectedShelterIds: [1, 2]}
   });
 
   cy.request({

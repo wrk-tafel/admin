@@ -4,8 +4,9 @@
   </c-col>
   <c-col sm="6" lg="4" class="mt-4 mt-sm-0" *tafelIfDistributionActive>
     <tafel-distribution-statistics-input *tafelIfPermission="'LOGISTICS'"
+                                         [sheltersData]="sheltersData"
                                          [employeeCountInput]="data?.statistics?.employeeCount"
-                                         [personsInShelterCountInput]="data?.statistics?.personsInShelterCount">
+                                         [initialSelectedShelterIds]="data?.statistics?.selectedShelterIds">
     </tafel-distribution-statistics-input>
   </c-col>
   <c-col sm="6" lg="4" class="mt-4 mt-sm-0">

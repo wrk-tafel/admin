@@ -4,6 +4,7 @@ import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
 import at.wrk.tafel.admin.backend.database.model.base.BaseChangeTrackingEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionEntity
+import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.JoinColumn
@@ -24,12 +25,6 @@ class DistributionEntity : BaseChangeTrackingEntity() {
     @Column(name = "ended_at")
     var endedAt: LocalDateTime? = null
 
-    @Column(name = "employee_count")
-    var employeeCount: Int? = null
-
-    @Column(name = "persons_in_shelter_count")
-    var personsInShelterCount: Int? = null
-
     @ManyToOne
     @JoinColumn(name = "startedby_userid", nullable = false)
     var startedByUser: UserEntity? = null
@@ -38,7 +33,7 @@ class DistributionEntity : BaseChangeTrackingEntity() {
     @JoinColumn(name = "endedby_userid")
     var endedByUser: UserEntity? = null
 
-    @OneToOne(mappedBy = "distribution")
+    @OneToOne(mappedBy = "distribution", cascade = [CascadeType.ALL])
     var statistic: DistributionStatisticEntity? = null
 
     @OneToMany(mappedBy = "distribution")

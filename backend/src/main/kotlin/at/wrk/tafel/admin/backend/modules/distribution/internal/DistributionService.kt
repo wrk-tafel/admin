@@ -8,6 +8,9 @@ import at.wrk.tafel.admin.backend.database.model.distribution.DistributionCustom
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionCustomerRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
+import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
+import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticShelterEntity
+import at.wrk.tafel.admin.backend.database.model.logistics.ShelterRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.CustomerListItem
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.CustomerListPdfModel
@@ -34,7 +37,8 @@ class DistributionService(
     private val customerRepository: CustomerRepository,
     private val pdfService: PDFService,
     private val distributionPostProcessorService: DistributionPostProcessorService,
-    private val transactionTemplate: TransactionTemplate
+    private val transactionTemplate: TransactionTemplate,
+    private val shelterRepository: ShelterRepository,
 ) {
     companion object {
         private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
@@ -49,11 +53,16 @@ class DistributionService(
 
         val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
 
-        val distribution = DistributionEntity()
-        distribution.startedAt = LocalDateTime.now()
-        distribution.startedByUser = userRepository.findByUsername(authenticatedUser.username!!)
+        val newDistribution = DistributionEntity()
+        newDistribution.startedAt = LocalDateTime.now()
+        newDistribution.startedByUser = userRepository.findByUsername(authenticatedUser.username!!)
 
-        return distributionRepository.save(distribution)
+        val statisticEntity = DistributionStatisticEntity().apply {
+            distribution = newDistribution
+        }
+        newDistribution.statistic = statisticEntity
+
+        return distributionRepository.save(newDistribution)
     }
 
     @Transactional
@@ -156,9 +165,7 @@ class DistributionService(
             ?: throw TafelValidationException("Ausgabe nicht gestartet!")
 
         // validate if statistic data exists
-        val employeeCount = currentDistribution.employeeCount ?: 0
-        val personsInShelterCount = currentDistribution.personsInShelterCount ?: 0
-        if (employeeCount == 0 || personsInShelterCount == 0) {
+        if (currentDistribution.statistic == null || currentDistribution.statistic?.isEmpty() == true) {
             throw TafelValidationException("Statistik-Daten fehlen!")
         }
 
@@ -184,7 +191,7 @@ class DistributionService(
 
     private fun getDistributionCustomerEntity(
         distribution: DistributionEntity,
-        customerId: Long? = null
+        customerId: Long? = null,
     ): DistributionCustomerEntity? {
         return distribution.customers
             .asSequence()
@@ -213,14 +220,40 @@ class DistributionService(
         }
     }
 
-    fun updateDistributionStatisticData(employeeCount: Int, personsInShelterCount: Int) {
+    fun updateDistributionStatisticData(
+        employeeCount: Int,
+        selectedShelterIds: List<Long>,
+    ) {
         val currentDistribution = distributionRepository.getCurrentDistribution()
             ?: throw TafelValidationException("Ausgabe nicht gestartet!")
 
-        currentDistribution.employeeCount = employeeCount
-        currentDistribution.personsInShelterCount = personsInShelterCount
+        val currentStatistic = currentDistribution.statistic
+        if (currentStatistic == null) {
+            throw TafelValidationException("Statistik-Daten nicht vorhanden!")
+        } else {
+            currentStatistic.employeeCount = employeeCount
 
-        distributionRepository.save(currentDistribution)
+            val selectedShelters = shelterRepository.findAllById(selectedShelterIds).toList()
+            currentStatistic.shelters.clear()
+            currentStatistic.shelters = selectedShelters.map {
+                DistributionStatisticShelterEntity().apply {
+                    id = it.id
+                    createdAt = LocalDateTime.now()
+                    updatedAt = LocalDateTime.now()
+                    statistic = currentStatistic
+                    name = it.name
+                    addressStreet = it.addressStreet
+                    addressHouseNumber = it.addressHouseNumber
+                    addressStairway = it.addressStairway
+                    addressPostalCode = it.addressPostalCode
+                    addressCity = it.addressCity
+                    addressDoor = it.addressDoor
+                    personsCount = it.personsCount
+                }
+            }.toMutableList()
+
+            distributionRepository.save(currentDistribution)
+        }
     }
 
 }

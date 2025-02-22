@@ -12,8 +12,6 @@ data class DailyReportPdfModel(
     val date: String,
 
     val employeeCount: Int,
-    val personsInShelterCount: Int,
-
     val countCustomers: Int,
     val countPersons: Int,
     val countInfants: Int,
@@ -29,6 +27,9 @@ data class DailyReportPdfModel(
     val foodTotalAmount: BigDecimal,
     val foodPerShopAverage: BigDecimal,
     val routesLengthKm: Int,
+
+    val shelters: List<DailyReportShelterPdfModel>,
+    val personsInSheltersTotalCount: Int,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -39,6 +40,7 @@ data class DailyReportPdfModel(
         if (logoContentType != other.logoContentType) return false
         if (!logoBytes.contentEquals(other.logoBytes)) return false
         if (date != other.date) return false
+        if (employeeCount != other.employeeCount) return false
         if (countCustomers != other.countCustomers) return false
         if (countPersons != other.countPersons) return false
         if (countInfants != other.countInfants) return false
@@ -53,6 +55,8 @@ data class DailyReportPdfModel(
         if (foodTotalAmount != other.foodTotalAmount) return false
         if (foodPerShopAverage != other.foodPerShopAverage) return false
         if (routesLengthKm != other.routesLengthKm) return false
+        if (shelters != other.shelters) return false
+        if (personsInSheltersTotalCount != other.personsInSheltersTotalCount) return false
 
         return true
     }
@@ -61,6 +65,7 @@ data class DailyReportPdfModel(
         var result = logoContentType.hashCode()
         result = 31 * result + logoBytes.contentHashCode()
         result = 31 * result + date.hashCode()
+        result = 31 * result + employeeCount
         result = 31 * result + countCustomers
         result = 31 * result + countPersons
         result = 31 * result + countInfants
@@ -75,6 +80,15 @@ data class DailyReportPdfModel(
         result = 31 * result + foodTotalAmount.hashCode()
         result = 31 * result + foodPerShopAverage.hashCode()
         result = 31 * result + routesLengthKm
+        result = 31 * result + shelters.hashCode()
+        result = 31 * result + personsInSheltersTotalCount
         return result
     }
 }
+
+@ExcludeFromTestCoverage
+data class DailyReportShelterPdfModel(
+    val name: String,
+    val addressFormatted: String,
+    val personCount: Int,
+)

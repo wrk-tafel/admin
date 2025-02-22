@@ -35,7 +35,16 @@ describe('DashboardComponent', () => {
     const component = fixture.componentInstance;
 
     const mockData: DashboardData = {
-      registeredCustomers: 123
+      registeredCustomers: 123,
+      logistics: {
+        foodAmountTotal: 456,
+        foodCollectionsRecordedCount: 789,
+        foodCollectionsTotalCount: 654
+      },
+      statistics: {
+        employeeCount: 10,
+        selectedShelterIds: [1, 2, 3],
+      }
     };
     const testMessage: IMessage = {
       body: JSON.stringify(mockData),

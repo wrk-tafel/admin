@@ -110,29 +110,38 @@ INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (7001, NOW(), NOW(), 700, 'CHECKIN');
 
 -- customers
-INSERT INTO customers (id, created_at, updated_at, customer_id, employee_id, firstname, lastname, birth_date, gender, country_id,
+INSERT INTO customers (id, created_at, updated_at, customer_id, employee_id, firstname, lastname, birth_date, gender,
+                       country_id,
                        address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
                        address_city, telephone_number, email, employer, income, income_due, valid_until)
-values (100, NOW(), NOW(), 100, 100, 'Max Single', 'Mustermann', '1980-01-01', 'MALE', 1, 'Erdberg', 1, null, null, '1030',
+values (100, NOW(), NOW(), 100, 100, 'Max Single', 'Mustermann', '1980-01-01', 'MALE', 1, 'Erdberg', 1, null, null,
+        '1030',
         'Wien',
         null, null, 'Stadt Wien', 123.00, '2999-12-31', '2999-12-31');
-INSERT INTO customers (id, created_at, updated_at, customer_id, employee_id, firstname, lastname, birth_date, gender, country_id,
+INSERT INTO customers (id, created_at, updated_at, customer_id, employee_id, firstname, lastname, birth_date, gender,
+                       country_id,
                        address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
                        address_city, telephone_number, email, employer, income, income_due, valid_until)
-values (101, NOW(), NOW(), 101, 100, 'Eva', 'Musterfrau', '1990-01-01', 'FEMALE', 2, 'Erdberg', 2, '1', '20', '1010', 'Wien',
+values (101, NOW(), NOW(), 101, 100, 'Eva', 'Musterfrau', '1990-01-01', 'FEMALE', 2, 'Erdberg', 2, '1', '20', '1010',
+        'Wien',
         '00436645678953', 'eva.musterfrau@wrk.at', 'Rotes Kreuz Wien', 456.00, '2999-12-31', '2999-12-31');
-INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender, income,
+INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender,
+                                  income,
                                   income_due, country_id, receives_familybonus)
 values (1011, NOW(), NOW(), 101, 'Child 1', 'Musterfrau', '2000-01-01', 'FEMALE', 500, '2999-12-31', 1, false);
-INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender, employer,
+INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender,
+                                  employer,
                                   income,
                                   income_due, country_id, receives_familybonus)
-values (1012, NOW(), NOW(), 101, 'Child 2', 'Musterfrau', CURRENT_DATE - interval '2 year', 'FEMALE', 'Stadt Wien', null, null, 1,
+values (1012, NOW(), NOW(), 101, 'Child 2', 'Musterfrau', CURRENT_DATE - interval '2 year', 'FEMALE', 'Stadt Wien',
+        null, null, 1,
         true);
-INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender, employer,
+INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender,
+                                  employer,
                                   income,
                                   income_due, country_id, receives_familybonus, exclude_household)
-values (1013, NOW(), NOW(), 101, 'Child 3', 'Musterfrau', CURRENT_DATE - interval '2 year', 'MALE', 'WRK', null, null, 1, true,
+values (1013, NOW(), NOW(), 101, 'Child 3', 'Musterfrau', CURRENT_DATE - interval '2 year', 'MALE', 'WRK', null, null,
+        1, true,
         true);
 INSERT INTO customers_notes (id, created_at, updated_at, customer_id, employee_id, note)
 VALUES (1003, NOW(), NOW(), 101, 100,
@@ -142,64 +151,87 @@ VALUES (1002, NOW(), NOW(), 101, 100, 'Testnote 2');
 INSERT INTO customers_notes (id, created_at, updated_at, customer_id, employee_id, note)
 VALUES (1001, NOW(), NOW(), 101, null, 'Testnote 1');
 
-INSERT INTO customers (id, created_at, updated_at, customer_id, employee_id, firstname, lastname, birth_date, gender, country_id,
+INSERT INTO customers (id, created_at, updated_at, customer_id, employee_id, firstname, lastname, birth_date, gender,
+                       country_id,
                        address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
                        address_city, telephone_number, email, employer, income, income_due, valid_until)
 values (102, NOW(), NOW(), 102, 100, 'John', 'Doe', '1980-01-01', 'MALE', 1, 'Erdberg', 1, null, null, '1030', 'Wien',
         null, null, 'Stadt Wien', 123.00, '2999-12-31', '2999-12-31');
-INSERT INTO customers (id, created_at, updated_at, customer_id, employee_id, firstname, lastname, birth_date, gender, country_id,
+INSERT INTO customers (id, created_at, updated_at, customer_id, employee_id, firstname, lastname, birth_date, gender,
+                       country_id,
                        address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
                        address_city, telephone_number, email, employer, income, income_due, valid_until)
-values (103, NOW(), NOW(), 103, 100, 'John Doe', 'EXPIRES SOON', '1980-01-01', 'MALE', 1, 'Erdberg', 1, null, null, '1030',
+values (103, NOW(), NOW(), 103, 100, 'John Doe', 'EXPIRES SOON', '1980-01-01', 'MALE', 1, 'Erdberg', 1, null, null,
+        '1030',
         'Wien',
         null, null, 'Stadt Wien', 123.00, NOW() + interval '1 month', NOW() + interval '1 month');
-INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender, income,
-                                  income_due, country_id, receives_familybonus)
-values (1031, NOW(), NOW(), 103, 'Child 1', 'Musterfrau', CURRENT_DATE - interval '1 year', null, 500, '2999-12-31', 1, false);
-INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender, employer,
+INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender,
                                   income,
                                   income_due, country_id, receives_familybonus)
-values (1032, NOW(), NOW(), 103, 'Child 2', 'Musterfrau', CURRENT_DATE - interval '2 year', null, 'Stadt Wien', null, null, 1,
+values (1031, NOW(), NOW(), 103, 'Child 1', 'Musterfrau', CURRENT_DATE - interval '1 year', null, 500, '2999-12-31', 1,
+        false);
+INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender,
+                                  employer,
+                                  income,
+                                  income_due, country_id, receives_familybonus)
+values (1032, NOW(), NOW(), 103, 'Child 2', 'Musterfrau', CURRENT_DATE - interval '2 year', null, 'Stadt Wien', null,
+        null, 1,
         true);
-INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender, employer,
+INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender,
+                                  employer,
                                   income,
                                   income_due, country_id, receives_familybonus, exclude_household)
-values (1033, NOW(), NOW(), 103, 'Child 3', 'Musterfrau', CURRENT_DATE - interval '3 year', 'FEMALE', 'WRK', null, null, 1, true,
+values (1033, NOW(), NOW(), 103, 'Child 3', 'Musterfrau', CURRENT_DATE - interval '3 year', 'FEMALE', 'WRK', null, null,
+        1, true,
         true);
-INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender, employer,
+INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender,
+                                  employer,
                                   income,
                                   income_due, country_id, receives_familybonus, exclude_household)
-values (1034, NOW(), NOW(), 103, 'Child 4', 'Musterfrau', CURRENT_DATE - interval '4 year', 'FEMALE', 'WRK', null, null, 1, true,
+values (1034, NOW(), NOW(), 103, 'Child 4', 'Musterfrau', CURRENT_DATE - interval '4 year', 'FEMALE', 'WRK', null, null,
+        1, true,
         true);
-INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender, employer,
+INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender,
+                                  employer,
                                   income,
                                   income_due, country_id, receives_familybonus, exclude_household)
-values (1035, NOW(), NOW(), 103, 'Child 5', 'Musterfrau', CURRENT_DATE - interval '5 year', 'MALE', 'WRK', null, null, 1, true,
+values (1035, NOW(), NOW(), 103, 'Child 5', 'Musterfrau', CURRENT_DATE - interval '5 year', 'MALE', 'WRK', null, null,
+        1, true,
         true);
-INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender, employer,
+INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender,
+                                  employer,
                                   income,
                                   income_due, country_id, receives_familybonus, exclude_household)
-values (1036, NOW(), NOW(), 103, 'Child 6', 'Musterfrau', CURRENT_DATE - interval '6 year', 'MALE', 'WRK', null, null, 1, true,
+values (1036, NOW(), NOW(), 103, 'Child 6', 'Musterfrau', CURRENT_DATE - interval '6 year', 'MALE', 'WRK', null, null,
+        1, true,
         true);
-INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender, employer,
+INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender,
+                                  employer,
                                   income,
                                   income_due, country_id, receives_familybonus, exclude_household)
-values (1037, NOW(), NOW(), 103, 'Child 7', 'Musterfrau', CURRENT_DATE - interval '7 year', 'MALE', 'WRK', null, null, 1, true,
+values (1037, NOW(), NOW(), 103, 'Child 7', 'Musterfrau', CURRENT_DATE - interval '7 year', 'MALE', 'WRK', null, null,
+        1, true,
         true);
-INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender, employer,
+INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender,
+                                  employer,
                                   income,
                                   income_due, country_id, receives_familybonus, exclude_household)
-values (1038, NOW(), NOW(), 103, 'Child 8', 'Musterfrau', CURRENT_DATE - interval '8 year', 'MALE', 'WRK', null, null, 1, true,
+values (1038, NOW(), NOW(), 103, 'Child 8', 'Musterfrau', CURRENT_DATE - interval '8 year', 'MALE', 'WRK', null, null,
+        1, true,
         true);
-INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender, employer,
+INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender,
+                                  employer,
                                   income,
                                   income_due, country_id, receives_familybonus, exclude_household)
-values (1039, NOW(), NOW(), 103, 'Child 9', 'Musterfrau', CURRENT_DATE - interval '9 year', 'MALE', 'WRK', null, null, 1, true,
+values (1039, NOW(), NOW(), 103, 'Child 9', 'Musterfrau', CURRENT_DATE - interval '9 year', 'MALE', 'WRK', null, null,
+        1, true,
         true);
-INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender, employer,
+INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender,
+                                  employer,
                                   income,
                                   income_due, country_id, receives_familybonus, exclude_household)
-values (1040, NOW(), NOW(), 103, 'Child 10', 'Musterfrau', CURRENT_DATE - interval '10 year', 'MALE', 'WRK', null, null, 1, true,
+values (1040, NOW(), NOW(), 103, 'Child 10', 'Musterfrau', CURRENT_DATE - interval '10 year', 'MALE', 'WRK', null, null,
+        1, true,
         true);
 INSERT INTO customers_notes (id, created_at, updated_at, customer_id, employee_id, note)
 VALUES (1041, NOW(), NOW(), 103, 100,
@@ -232,37 +264,47 @@ INSERT INTO customers_notes (id, created_at, updated_at, customer_id, employee_i
 VALUES (1050, NOW(), NOW(), 103, 100,
         'Testnote 10.<br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.<br/><br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
 
-INSERT INTO customers (id, created_at, updated_at, customer_id, employee_id, firstname, lastname, birth_date, gender, country_id,
+INSERT INTO customers (id, created_at, updated_at, customer_id, employee_id, firstname, lastname, birth_date, gender,
+                       country_id,
                        address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
                        address_city, telephone_number, email, employer, income, income_due, valid_until)
-values (104, NOW(), NOW(), 104, 100, 'Jane Doe', 'EXPIRED', '1980-01-01', 'FEMALE', 1, 'Erdberg', 1, null, null, '1030', 'Wien',
+values (104, NOW(), NOW(), 104, 100, 'Jane Doe', 'EXPIRED', '1980-01-01', 'FEMALE', 1, 'Erdberg', 1, null, null, '1030',
+        'Wien',
         null, null, 'Stadt Wien', 123.00, '2000-12-31', '2000-12-31');
-INSERT INTO customers (id, created_at, updated_at, customer_id, employee_id, firstname, lastname, birth_date, gender, country_id,
+INSERT INTO customers (id, created_at, updated_at, customer_id, employee_id, firstname, lastname, birth_date, gender,
+                       country_id,
                        address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
                        address_city, telephone_number, email, employer, income, income_due, valid_until, locked,
                        locked_at, locked_by, lock_reason)
-values (105, NOW(), NOW(), 105, 100, 'Jane Doe', 'LOCKED', '1980-01-01', 'FEMALE', 1, 'Erdberg', 1, null, null, '1030', 'Wien',
+values (105, NOW(), NOW(), 105, 100, 'Jane Doe', 'LOCKED', '1980-01-01', 'FEMALE', 1, 'Erdberg', 1, null, null, '1030',
+        'Wien',
         null, null, 'Stadt Wien', 123.00, '2999-12-31', '2999-12-31', true, NOW(), 100,
         'Lock-Reason: Lorem ipsum dolor sit amet');
-INSERT INTO customers (id, created_at, updated_at, customer_id, employee_id, firstname, lastname, birth_date, gender, country_id,
+INSERT INTO customers (id, created_at, updated_at, customer_id, employee_id, firstname, lastname, birth_date, gender,
+                       country_id,
                        address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
                        address_city, telephone_number, email, employer, income, income_due, valid_until, locked,
                        locked_at, locked_by, lock_reason)
 values (106, NOW(), NOW(), 106, null, null, null, null, null, 1, null, null, null, null, null, null,
         null, null, null, null, null, NOW(), false, null, null, null);
-INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender, employer,
+INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender,
+                                  employer,
                                   income, income_due, country_id, receives_familybonus, exclude_household)
 values (1060, NOW(), NOW(), 106, 'Firstname 1', 'Lastname 1', null, null, null, null, null, 1, true, true);
-INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender, employer,
+INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender,
+                                  employer,
                                   income, income_due, country_id, receives_familybonus, exclude_household)
 values (1061, NOW(), NOW(), 106, 'Firstname 2', 'Lastname 2', null, null, null, null, null, 1, false, false);
-INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender, employer,
+INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender,
+                                  employer,
                                   income, income_due, country_id, receives_familybonus, exclude_household)
 values (1062, NOW(), NOW(), 106, 'Firstname 3', 'Lastname 3', null, null, null, null, null, 1, true, false);
-INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender, employer,
+INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender,
+                                  employer,
                                   income, income_due, country_id, receives_familybonus, exclude_household)
 values (1063, NOW(), NOW(), 106, 'Firstname 4', 'Lastname 4', null, null, null, null, null, 1, false, true);
-INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender, employer,
+INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender,
+                                  employer,
                                   income, income_due, country_id, receives_familybonus, exclude_household)
 values (1064, NOW(), NOW(), 106, 'Firstname 5', 'Lastname 5', null, null, null, null, null, 1, false, false);
 
@@ -322,14 +364,22 @@ INSERT INTO static_values(id, created_at, updated_at, type, valid_from, valid_to
 VALUES (21, NOW(), NOW(), 'SIBLING-ADDITION', '1900-01-01', '2999-12-31', 52.00, 7);
 
 -- distribution-related
-INSERT INTO distributions (id, created_at, updated_at, started_at, ended_at, startedby_userid, endedby_userid, employee_count, persons_in_shelter_count)
-VALUES (100, NOW(), NOW(), '2023-07-01 14:00:00.000000', '2023-07-01 23:00:00.000000', 300, 300, 100, 200);
+INSERT INTO distributions (id, created_at, updated_at, started_at, ended_at, startedby_userid, endedby_userid)
+VALUES (100, NOW(), NOW(), '2023-07-01 14:00:00.000000', '2023-07-01 23:00:00.000000', 300, 300);
 INSERT INTO distributions_statistics (id, created_at, updated_at, distribution_id, count_customers,
                                       count_persons, count_infants, average_persons_per_customer,
                                       count_customers_new, count_persons_new,
                                       count_customers_prolonged, count_persons_prolonged,
                                       count_customers_updated, employee_count, persons_in_shelter_count)
 VALUES (100, NOW(), NOW(), 100, 50, 125, 40, 2.5, 4, 5, 6, 7, 8, 100, 200);
+
+-- register customers to distribution
+INSERT INTO distributions_customers (id, created_at, updated_at, distribution_id, customer_id, ticket_number, processed)
+VALUES (1, NOW(), NOW(), 100, 101, 1, true);
+INSERT INTO distributions_customers (id, created_at, updated_at, distribution_id, customer_id, ticket_number, processed)
+VALUES (2, NOW(), NOW(), 100, 102, 2, true);
+INSERT INTO distributions_customers (id, created_at, updated_at, distribution_id, customer_id, ticket_number, processed)
+VALUES (3, NOW(), NOW(), 100, 103, 3, true);
 
 -- shops
 INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
@@ -517,27 +567,49 @@ VALUES (3, NOW(), NOW(), 'W-NC-789', 'Nice Car 789');
 -- food collections
 INSERT INTO food_collections (id, created_at, updated_at, distribution_id, route_id, car_id,
                               driver_employee_id, co_driver_employee_id, km_start, km_end)
-VALUES (1, NOW(), NOW(), 1, 1, 1, 2000, 2100, 213000, 213500);
+VALUES (1, NOW(), NOW(), 100, 1, 1, 2000, 2100, 213000, 213500);
 
 -- food collections items for route 1
-WITH ShopCategories AS (
-    SELECT s.id AS shop_id, fc.id AS food_category_id
-    FROM shops s
-             CROSS JOIN food_categories fc
-),
-     RandomAmounts AS (
-         SELECT generate_series(1, 10) AS amount
-     )
-INSERT INTO food_collections_items (
-    food_collection_id,
-    shop_id,
-    food_category_id,
-    amount
-)
-SELECT
-    1,  -- fixed collection 1
-    sc.shop_id,
-    sc.food_category_id,
-    sc.shop_id -- using same as amount
-FROM
-    ShopCategories sc;
+WITH ShopCategories AS (SELECT s.id AS shop_id, fc.id AS food_category_id
+                        FROM shops s
+                                 CROSS JOIN food_categories fc),
+     RandomAmounts AS (SELECT generate_series(1, 10) AS amount)
+INSERT
+INTO food_collections_items (food_collection_id,
+                             shop_id,
+                             food_category_id,
+                             amount)
+SELECT 1,         -- fixed collection 1
+       sc.shop_id,
+       sc.food_category_id,
+       sc.shop_id -- using same as amount
+FROM ShopCategories sc;
+
+-- shelters
+INSERT INTO shelters (id, created_at, updated_at, name, address_street, address_houseNumber, address_stairway,
+                      address_door, address_postalCode, address_city, note, persons_count)
+values (1, NOW(), NOW(), 'Shelter 1', 'Erdberg', 1, null, null, '1030', 'Wien', 'Right around the corner', 100);
+INSERT INTO shelters (id, created_at, updated_at, name, address_street, address_houseNumber, address_stairway,
+                      address_door, address_postalCode, address_city, note, persons_count)
+values (2, NOW(), NOW(), 'Shelter 2', 'Erdberg', 2, null, null, '1030', 'Wien', null, 50);
+INSERT INTO shelters (id, created_at, updated_at, name, address_street, address_houseNumber, address_stairway,
+                      address_door, address_postalCode, address_city, note, persons_count)
+values (3, NOW(), NOW(), 'Shelter 3', 'Erdberg', 3, null, null, '1030', 'Wien', null, 0);
+
+INSERT INTO shelters_contacts (id, created_at, updated_at, shelter_id, firstname, lastname, phone)
+values (1, NOW(), NOW(), 1, 'Max', 'Mustermann', '01 23 45 67 89');
+INSERT INTO shelters_contacts (id, created_at, updated_at, shelter_id, firstname, lastname, phone)
+values (2, NOW(), NOW(), 1, 'Eva', 'Musterfrau', '01 23 45 67 89');
+
+INSERT INTO shelters_contacts (id, created_at, updated_at, shelter_id, firstname, lastname, phone)
+values (3, NOW(), NOW(), 2, 'Eva 2', 'Musterfrau 2', '01 23 45 67 89');
+
+-- shelters in statistics of distributions
+INSERT INTO distributions_statistics_shelters (id, created_at, updated_at, distribution_statistic_id, name, address_street, address_houseNumber,
+                                               address_stairway,
+                                               address_door, address_postalCode, address_city, persons_count)
+values (1, NOW(), NOW(), 100, 'Shelter 1', 'Erdberg', 1, null, null, '1030', 'Wien', 100);
+INSERT INTO distributions_statistics_shelters (id, created_at, updated_at, distribution_statistic_id, name, address_street, address_houseNumber,
+                                               address_stairway,
+                                               address_door, address_postalCode, address_city, persons_count)
+values (2, NOW(), NOW(), 100, 'Shelter 2', 'Erdberg', 1, null, null, '1030', 'Wien', 50);
