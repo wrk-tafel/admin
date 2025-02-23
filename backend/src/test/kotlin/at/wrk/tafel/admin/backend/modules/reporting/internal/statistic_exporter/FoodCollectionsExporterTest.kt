@@ -6,6 +6,7 @@ import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatis
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCategoryRepository
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCategory1
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCategory2
+import at.wrk.tafel.admin.backend.modules.logistics.testFoodCategory3
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCollectionRoute1Entity
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCollectionRoute2Entity
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCollectionRoute3Entity
@@ -37,7 +38,11 @@ class FoodCollectionsExporterTest {
 
     @Test
     fun `exported properly`() {
-        every { foodCategoryRepository.findAll() } returns listOf(testFoodCategory1, testFoodCategory2)
+        every { foodCategoryRepository.findAll() } returns listOf(
+            testFoodCategory3,
+            testFoodCategory2,
+            testFoodCategory1
+        )
 
         val distribution1 = DistributionEntity().apply {
             id = 111
@@ -79,20 +84,24 @@ class FoodCollectionsExporterTest {
 
         assertThat(rows).isEqualTo(
             listOf(
-                listOf("TOeT Auswertung Stand: ${LocalDateTime.now().format(DATE_FORMATTER)} - Spenden"),
-                listOf("Datum", "Route", "Spender", "Category 1", "Category 2"),
-                listOf(distribution2.startedAt!!.format(DATE_FORMATTER), "2.0", "3", "0", "5"),
-                listOf(distribution1.startedAt!!.format(DATE_FORMATTER), "1.0", "1", "0", "0"),
-                listOf(distribution1.startedAt!!.format(DATE_FORMATTER), "1.0", "2", "2", "4"),
-                listOf(distribution1.startedAt!!.format(DATE_FORMATTER), "2.0", "3", "0", "5"),
-                listOf(currentDistribution.startedAt!!.format(DATE_FORMATTER), "2.0", "3", "0", "5"),
+                listOf("TOeT Auswertung Stand: ${LocalDateTime.now().format(DATE_FORMATTER)} - Spenden (in kg)"),
+                listOf("Datum", "Route", "Spender", "Category 1", "Category 3", "Category 2"),
+                listOf(distribution2.startedAt!!.format(DATE_FORMATTER), "2.0", "3", "0", "0", "5"),
+                listOf(distribution1.startedAt!!.format(DATE_FORMATTER), "1.0", "1", "0", "0", "0"),
+                listOf(distribution1.startedAt!!.format(DATE_FORMATTER), "1.0", "2", "20", "0", "80"),
+                listOf(distribution1.startedAt!!.format(DATE_FORMATTER), "2.0", "3", "0", "0", "5"),
+                listOf(currentDistribution.startedAt!!.format(DATE_FORMATTER), "2.0", "3", "0", "0", "5"),
             )
         )
     }
 
     @Test
     fun `exported properly without previous data`() {
-        every { foodCategoryRepository.findAll() } returns listOf(testFoodCategory1, testFoodCategory2)
+        every { foodCategoryRepository.findAll() } returns listOf(
+            testFoodCategory3,
+            testFoodCategory2,
+            testFoodCategory1
+        )
 
         val currentDistribution = DistributionEntity().apply {
             id = 123
@@ -112,9 +121,9 @@ class FoodCollectionsExporterTest {
         assertThat(rows).isEqualTo(
             listOf(
                 listOf(
-                    "TOeT Auswertung Stand: ${LocalDateTime.now().format(DATE_FORMATTER)} - Spenden"
+                    "TOeT Auswertung Stand: ${LocalDateTime.now().format(DATE_FORMATTER)} - Spenden (in kg)"
                 ),
-                listOf("Datum", "Route", "Spender", "Category 1", "Category 2"),
+                listOf("Datum", "Route", "Spender", "Category 1", "Category 3", "Category 2"),
             )
         )
     }

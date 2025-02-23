@@ -79,12 +79,21 @@ val testFoodCategory1 = FoodCategoryEntity().apply {
     id = 1
     name = "Category 1"
     weightPerUnit = BigDecimal.TEN
+    back = false
 }
 
 val testFoodCategory2 = FoodCategoryEntity().apply {
     id = 2
     name = "Category 2"
     weightPerUnit = BigDecimal("20")
+    back = true
+}
+
+val testFoodCategory3 = FoodCategoryEntity().apply {
+    id = 3
+    name = "Category 3"
+    weightPerUnit = BigDecimal("30")
+    back = false
 }
 
 val testCar1 = CarEntity().apply {
