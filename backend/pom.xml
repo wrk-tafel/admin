@@ -39,7 +39,7 @@
 
         <!-- Test dependency versions -->
         <archunit.version>1.4.0</archunit.version>
-        <mockk.version>1.13.16</mockk.version>
+        <mockk.version>1.13.17</mockk.version>
         <testcontainers.version>1.20.5</testcontainers.version>
         <apache.pdfbox.version>3.0.4</apache.pdfbox.version>
         <image.comparison.version>4.4.0</image.comparison.version>
