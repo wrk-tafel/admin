@@ -10,7 +10,7 @@ import java.time.temporal.IsoFields
 
 @Component
 class DailyReportsExporter(
-    private val distributionRepository: DistributionRepository
+    private val distributionRepository: DistributionRepository,
 ) : StatisticExporter {
 
     companion object {
@@ -65,7 +65,7 @@ class DailyReportsExporter(
     }
 
     private fun generateStatisticColumns(
-        distribution: DistributionEntity, statistic: DistributionStatisticEntity
+        distribution: DistributionEntity, statistic: DistributionStatisticEntity,
     ): List<String> {
         val columns = mutableListOf<String>()
 
@@ -73,12 +73,14 @@ class DailyReportsExporter(
         columns.add(startedAt.format(DATE_FORMATTER))
         columns.add(startedAt[IsoFields.WEEK_OF_WEEK_BASED_YEAR].toString())
 
-        val countPeopleTotal =
-            statistic.countCustomers?.plus(statistic.countPersons ?: 0)?.plus(statistic.personsInShelterCount ?: 0) ?: 0
+        val countPersonsInShelter = statistic.shelters.sumOf { it.personsCount ?: 0 }
+        val countPeopleTotal = statistic.countCustomers
+            .plus(statistic.countPersons)
+            .plus(countPersonsInShelter)
         columns.add(countPeopleTotal.toString())
-        columns.add(statistic.personsInShelterCount.toString())
+        columns.add(countPersonsInShelter.toString())
 
-        val countCustomerPersonsTotal = statistic.countCustomers?.plus(statistic.countPersons ?: 0) ?: 0
+        val countCustomerPersonsTotal = statistic.countCustomers.plus(statistic.countPersons)
         columns.add(countCustomerPersonsTotal.toString())
         columns.add(statistic.countInfants.toString())
         columns.add(statistic.countCustomers.toString())

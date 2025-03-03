@@ -6,9 +6,7 @@ import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistribution
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionCustomerEntity2
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionCustomerEntity3
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionCustomerEntity4
-import io.mockk.every
 import io.mockk.junit5.MockKExtension
-import io.mockk.mockk
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -24,11 +22,12 @@ class HouseholdSizeDistributionExporterTest {
 
     @Test
     fun `exported properly`() {
-        val statistic = mockk<DistributionStatisticEntity>()
-        every { statistic.distribution } returns DistributionEntity().apply {
-            id = 123
+        val testStatistic = DistributionStatisticEntity().apply {
             employeeCount = 100
-            personsInShelterCount = 200
+        }
+        testStatistic.distribution = DistributionEntity().apply {
+            id = 123
+            statistic = testStatistic
             customers = listOf(
                 testDistributionCustomerEntity1,
                 testDistributionCustomerEntity2,
@@ -41,7 +40,7 @@ class HouseholdSizeDistributionExporterTest {
         val filename = exporter.getName()
         assertThat(filename).isEqualTo("TOeT_Verteilung_Haushaltsgroesse")
 
-        val rows = exporter.getRows(statistic)
+        val rows = exporter.getRows(testStatistic)
         assertThat(rows).isEqualTo(
             listOf(
                 listOf(
@@ -64,18 +63,19 @@ class HouseholdSizeDistributionExporterTest {
 
     @Test
     fun `exported properly without data`() {
-        val statistic = mockk<DistributionStatisticEntity>()
-        every { statistic.distribution } returns DistributionEntity().apply {
+        val testStatistic = DistributionStatisticEntity().apply {
+            employeeCount = 100
+        }
+        testStatistic.distribution = DistributionEntity().apply {
             id = 123
-            employeeCount = 1
-            personsInShelterCount = 2
+            statistic = testStatistic
         }
         val exporter = HouseholdSizeDistributionExporter()
 
         val filename = exporter.getName()
         assertThat(filename).isEqualTo("TOeT_Verteilung_Haushaltsgroesse")
 
-        val rows = exporter.getRows(statistic)
+        val rows = exporter.getRows(testStatistic)
         assertThat(rows).isEqualTo(
             listOf(
                 listOf(

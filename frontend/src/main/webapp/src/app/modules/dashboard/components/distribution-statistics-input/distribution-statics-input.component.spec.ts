@@ -53,7 +53,7 @@ describe('DistributionStatisticsInputComponent', () => {
 
     component.save();
 
-    expect(distributionApiService.saveStatisticData).toHaveBeenCalledWith(100, 200);
+    expect(distributionApiService.saveStatisticData).toHaveBeenCalledWith(100, [1, 2]);
     expect(toastService.showToast).toHaveBeenCalledWith({
       type: ToastType.SUCCESS,
       title: 'Statistik-Daten gespeichert!'
@@ -73,7 +73,7 @@ describe('DistributionStatisticsInputComponent', () => {
 
     component.save();
 
-    expect(distributionApiService.saveStatisticData).toHaveBeenCalledWith(100, 200);
+    expect(distributionApiService.saveStatisticData).toHaveBeenCalledWith(100, [1, 2]);
     expect(toastService.showToast).toHaveBeenCalledWith({type: ToastType.ERROR, title: 'Speichern fehlgeschlagen!'});
   });
 
