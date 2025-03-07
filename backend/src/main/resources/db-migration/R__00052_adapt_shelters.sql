@@ -1,0 +1,2 @@
+alter table distributions_statistics_shelters
+    drop constraint distributions_statistics_shelters_name_key;
