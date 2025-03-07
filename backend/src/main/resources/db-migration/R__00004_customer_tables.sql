@@ -1,3 +1,4 @@
+/*
 DROP TABLE IF EXISTS customers_addpersons;
 DROP TABLE IF EXISTS customers;
 
@@ -40,3 +41,4 @@ create table customers_addpersons
     income      decimal     null,
     income_due  date        null
 );
+*/
