@@ -3,10 +3,14 @@ package at.wrk.tafel.admin.backend.modules.dashboard.internal
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionCustomerRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
+import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
+import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticShelterEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteRepository
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCollectionRoute1Entity
 import at.wrk.tafel.admin.backend.modules.logistics.testRoute1
 import at.wrk.tafel.admin.backend.modules.logistics.testRoute2
+import at.wrk.tafel.admin.backend.modules.logistics.testShelter1
+import at.wrk.tafel.admin.backend.modules.logistics.testShelter2
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -63,8 +67,17 @@ internal class DashboardServiceTest {
     fun `get statistics`() {
         val testDistributionEntity = DistributionEntity().apply {
             id = 123
-            employeeCount = 100
-            personsInShelterCount = 200
+            statistic = DistributionStatisticEntity().apply {
+                employeeCount = 100
+                shelters = mutableListOf(
+                    DistributionStatisticShelterEntity().apply {
+                        id = testShelter1.id
+                    },
+                    DistributionStatisticShelterEntity().apply {
+                        id = testShelter2.id
+                    },
+                )
+            }
         }
         every { distributionRepository.getCurrentDistribution() } returns testDistributionEntity
 
@@ -74,7 +87,9 @@ internal class DashboardServiceTest {
         val data = service.getData()
 
         assertThat(data.statistics!!.employeeCount).isEqualTo(100)
-        assertThat(data.statistics.personsInShelterCount).isEqualTo(200)
+        assertThat(data.statistics.selectedShelterIds).hasSameElementsAs(
+            listOf(testShelter1.id, testShelter2.id)
+        )
     }
 
     @Test

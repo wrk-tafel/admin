@@ -15,9 +15,16 @@ describe('Dashboard', () => {
     cy.byTestId('distribution-start-button').click();
     cy.byTestId('distribution-state-text').should('have.text', 'Geöffnet');
 
-    // fill statistics
+    // fill employee count
     cy.byTestId('distribution-statistics-employee-count-input').type('100');
-    cy.byTestId('distribution-statistics-persons-in-shelter-input').type('200');
+
+    // select shelters to calculate person count
+    cy.byTestId('dashboard-select-shelters-button').click();
+    cy.byTestId('selectable-shelter-row-0').click();
+    cy.byTestId('selectable-shelter-row-1').click();
+    cy.byTestId('selectshelters-save-button').click();
+    cy.byTestId('distribution-statistics-persons-in-shelter-input').should('have.value', '150');
+
     cy.byTestId('distribution-statistics-save-button').click();
 
     // --> CLOSED

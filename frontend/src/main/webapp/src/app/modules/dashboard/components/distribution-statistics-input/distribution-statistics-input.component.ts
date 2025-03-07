@@ -8,17 +8,22 @@ import {
   CardFooterComponent,
   CardHeaderComponent,
   ColComponent,
+  InputGroupComponent,
+  InputGroupTextDirective,
   ModalBodyComponent,
   ModalComponent,
+  ModalFooterComponent,
   ModalHeaderComponent,
   ModalToggleDirective,
   RowComponent
 } from '@coreui/angular';
-import {CommonModule, NgIf} from '@angular/common';
+import {CommonModule} from '@angular/common';
 import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
 import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
 import {DistributionApiService} from '../../../../api/distribution-api.service';
 import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
+import {SelectSheltersComponent} from '../select-shelters/select-shelters.component';
+import {ShelterItem, ShelterListResponse} from '../../../../api/shelter-api.service';
 
 @Component({
   selector: 'tafel-distribution-statistics-input',
@@ -33,14 +38,17 @@ import {ToastService, ToastType} from '../../../../common/views/default-layout/t
     ModalHeaderComponent,
     ModalToggleDirective,
     ModalBodyComponent,
-    NgIf,
     ButtonDirective,
     ButtonCloseDirective,
     ReactiveFormsModule,
     TafelAutofocusDirective,
     CommonModule,
     CardFooterComponent,
-    BgColorDirective
+    BgColorDirective,
+    InputGroupComponent,
+    InputGroupTextDirective,
+    ModalFooterComponent,
+    SelectSheltersComponent
   ],
   standalone: true
 })
@@ -49,23 +57,45 @@ export class DistributionStatisticsInputComponent {
   private readonly distributionApiService = inject(DistributionApiService);
   private readonly toastService = inject(ToastService);
 
+  sheltersData = input<ShelterListResponse>();
   employeeCountInput = input<number>();
-  personsInShelterCountInput = input<number>();
+  initialSelectedShelterIds = input<number[]>([]);
+  initialIdsProcessed = false;
 
   form = this.fb.group({
     employeeCount: this.fb.control<number>(null, [Validators.required, Validators.min(1)]),
-    personsInShelterCount: this.fb.control<number>(null, [Validators.required, Validators.min(1)])
+    personsInShelterCount: this.fb.control<number>({
+      value: null,
+      disabled: true
+    }, [Validators.required, Validators.min(1)]),
   })
+  selectedShelters: ShelterItem[] = [];
+
+  initialSelectedShelterIdsEffect = effect(() => {
+    const initialSelectedShelterIds = this.initialSelectedShelterIds() ?? [];
+    if (!this.initialIdsProcessed && initialSelectedShelterIds.length > 0) {
+      this.selectedShelters = initialSelectedShelterIds.map(id => this.sheltersData().shelters.find(shelter => shelter.id === id));
+      this.calculatePersonsInShelterCount();
+
+      this.initialIdsProcessed = true;
+    }
+  });
 
   employeeCountInputEffect = effect(() => {
     const employeeCount = this.employeeCountInput();
     this.form.patchValue({'employeeCount': employeeCount});
   });
 
-  personsInShelterCountInputEffect = effect(() => {
-    const personsInShelterCount = this.personsInShelterCountInput();
+  onUpdateSelectedShelters(selectedShelters: ShelterItem[]) {
+    this.selectedShelters = selectedShelters;
+    this.calculatePersonsInShelterCount();
+  }
+
+  calculatePersonsInShelterCount() {
+    const countPersons = this.selectedShelters.map(shelter => shelter.personsCount).reduce((a, b) => a + b, 0);
+    const personsInShelterCount = countPersons > 0 ? countPersons : null;
     this.form.patchValue({'personsInShelterCount': personsInShelterCount});
-  });
+  }
 
   save() {
     const observer = {
@@ -77,7 +107,8 @@ export class DistributionStatisticsInputComponent {
       },
     };
 
-    this.distributionApiService.saveStatisticData(this.employeeCount.value, this.personsInShelterCount.value).subscribe(observer);
+    const selectedShelterIds = this.selectedShelters.map(shelter => shelter.id);
+    this.distributionApiService.saveStatisticData(this.employeeCount.value, selectedShelterIds).subscribe(observer);
   }
 
   get employeeCount() {
@@ -88,4 +119,7 @@ export class DistributionStatisticsInputComponent {
     return this.form.get('personsInShelterCount');
   }
 
+  isSaveDisabled() {
+    return !this.form.valid;
+  }
 }

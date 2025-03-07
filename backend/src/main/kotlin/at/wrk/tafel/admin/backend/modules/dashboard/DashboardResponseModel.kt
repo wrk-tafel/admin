@@ -7,18 +7,18 @@ import java.math.BigDecimal
 data class DashboardData(
     val registeredCustomers: Int?,
     val statistics: DashboardStatisticsData?,
-    val logistics: DashboardLogisticsData?
+    val logistics: DashboardLogisticsData?,
 )
 
 @ExcludeFromTestCoverage
 data class DashboardStatisticsData(
     val employeeCount: Int?,
-    val personsInShelterCount: Int?,
+    val selectedShelterIds: List<Long>,
 )
 
 @ExcludeFromTestCoverage
 data class DashboardLogisticsData(
     val foodCollectionsRecordedCount: Int?,
     val foodCollectionsTotalCount: Int?,
-    val foodAmountTotal: BigDecimal?
+    val foodAmountTotal: BigDecimal?,
 )

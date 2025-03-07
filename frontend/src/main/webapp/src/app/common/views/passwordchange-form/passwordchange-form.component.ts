@@ -6,9 +6,9 @@ import {Observable, throwError} from 'rxjs';
 import {HttpErrorResponse} from '@angular/common/http';
 import {CommonModule} from '@angular/common';
 import {TafelAutofocusDirective} from '../../directive/tafel-autofocus.directive';
-import {InputGroupComponent, InputGroupTextDirective} from "@coreui/angular";
-import {faEye, faEyeSlash} from "@fortawesome/free-solid-svg-icons";
-import {FaIconComponent} from "@fortawesome/angular-fontawesome";
+import {InputGroupComponent, InputGroupTextDirective} from '@coreui/angular';
+import {faEye, faEyeSlash} from '@fortawesome/free-solid-svg-icons';
+import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 
 @Component({
   selector: 'tafel-passwordchange-form',

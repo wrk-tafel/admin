@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.logistics
 
+import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticShelterEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.CarEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCategoryEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionEntity
@@ -7,6 +8,7 @@ import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionItemEnt
 import at.wrk.tafel.admin.backend.database.model.logistics.FoodUnit
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteStopEntity
+import at.wrk.tafel.admin.backend.database.model.logistics.ShelterEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.ShopEntity
 import at.wrk.tafel.admin.backend.modules.base.employee.testEmployee1
 import at.wrk.tafel.admin.backend.modules.base.employee.testEmployee2
@@ -158,4 +160,54 @@ val testFoodCollectionRoute3Entity = FoodCollectionEntity().apply {
     distribution = testDistributionEntity
     route = testRoute3
     items = emptyList()
+}
+
+val testShelter1 = ShelterEntity().apply {
+    id = 1
+    name = "Shelter 1"
+    addressStreet = "Street"
+    addressHouseNumber = "1"
+    addressStairway = "A"
+    addressPostalCode = 1234
+    addressDoor = "1"
+    addressCity = "City 1"
+    note = "Note 1"
+    personsCount = 1
+}
+
+val testDistributionStatisticShelterEntity1 = DistributionStatisticShelterEntity().apply {
+    id = 1
+    name = testShelter1.name
+    addressStreet = testShelter1.addressStreet
+    addressHouseNumber = testShelter1.addressHouseNumber
+    addressStairway = testShelter1.addressStairway
+    addressPostalCode = testShelter1.addressPostalCode
+    addressDoor = testShelter1.addressDoor
+    addressCity = testShelter1.addressCity
+    personsCount = testShelter1.personsCount
+}
+
+val testShelter2 = ShelterEntity().apply {
+    id = 2
+    name = "Shelter 2"
+    addressStreet = "Street"
+    addressHouseNumber = "2"
+    addressStairway = "A"
+    addressPostalCode = 4321
+    addressDoor = "2"
+    addressCity = "City 2"
+    note = "Note 2"
+    personsCount = 2
+}
+
+val testDistributionStatisticShelterEntity2 = DistributionStatisticShelterEntity().apply {
+    id = 1
+    name = testShelter2.name
+    addressStreet = testShelter2.addressStreet
+    addressHouseNumber = testShelter2.addressHouseNumber
+    addressStairway = testShelter2.addressStairway
+    addressPostalCode = testShelter2.addressPostalCode
+    addressDoor = testShelter2.addressDoor
+    addressCity = testShelter2.addressCity
+    personsCount = testShelter2.personsCount
 }

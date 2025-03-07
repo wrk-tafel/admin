@@ -1,4 +1,4 @@
-import {Component, inject, OnInit} from '@angular/core';
+import {Component, inject, Input, OnInit} from '@angular/core';
 import {WebsocketService} from '../../common/websocket/websocket.service';
 import {IMessage} from '@stomp/stompjs';
 import {ButtonDirective, ColComponent, RowComponent} from '@coreui/angular';
@@ -13,6 +13,7 @@ import {
   RecordedFoodCollectionsComponent
 } from './components/recorded-food-collections/recorded-food-collections.component';
 import {FoodAmountComponent} from './components/food-amount/food-amount.component';
+import {ShelterListResponse} from '../../api/shelter-api.service';
 
 @Component({
   selector: 'tafel-dashboard',
@@ -34,6 +35,7 @@ import {FoodAmountComponent} from './components/food-amount/food-amount.componen
 export class DashboardComponent implements OnInit {
   private readonly websocketService = inject(WebsocketService);
 
+  @Input() sheltersData: ShelterListResponse;
   data: DashboardData;
 
   ngOnInit(): void {
@@ -52,7 +54,7 @@ export interface DashboardData {
 
 export interface DashboardStatisticsData {
   employeeCount?: number;
-  personsInShelterCount?: number;
+  selectedShelterIds?: number[];
 }
 
 export interface DashboardLogisticsData {

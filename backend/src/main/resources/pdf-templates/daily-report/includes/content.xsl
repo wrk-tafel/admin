@@ -3,17 +3,20 @@
                 version="1.1" exclude-result-prefixes="fo">
     <xsl:template name="report-content">
         <fo:block font-family="Helvetica" start-indent="0pt" end-indent="0pt">
-            <fo:block space-after="1cm">
+            <fo:block>
                 <xsl:call-template name="title"/>
             </fo:block>
-            <fo:block space-after="1cm">
+            <fo:block>
                 <xsl:call-template name="customers"/>
             </fo:block>
-            <fo:block space-after="1cm">
+            <fo:block>
                 <xsl:call-template name="administration"/>
             </fo:block>
-            <fo:block space-after="1cm">
+            <fo:block>
                 <xsl:call-template name="logistics"/>
+            </fo:block>
+            <fo:block>
+                <xsl:call-template name="shelters"/>
             </fo:block>
         </fo:block>
     </xsl:template>
@@ -49,7 +52,7 @@
         </fo:table>
     </xsl:template>
     <xsl:template name="customers">
-        <fo:block font-weight="bold" margin-bottom="0.2cm">
+        <fo:block font-weight="bold" margin-bottom="0.2cm" space-before="1cm">
             Lebensmittel erhalten
         </fo:block>
         <fo:block margin-left="1cm">
@@ -104,7 +107,7 @@
         </fo:block>
     </xsl:template>
     <xsl:template name="administration">
-        <fo:block font-weight="bold" margin-bottom="0.2cm">
+        <fo:block font-weight="bold" margin-bottom="0.2cm" space-before="1cm">
             Administration
         </fo:block>
         <fo:block margin-left="1cm">
@@ -162,7 +165,7 @@
     </xsl:template>
     <xsl:template name="logistics">
         <xsl:if test="shopsTotalCount > 0">
-            <fo:block font-weight="bold" margin-bottom="0.2cm">
+            <fo:block font-weight="bold" margin-bottom="0.2cm" space-before="1cm">
                 Transport-Logistik
             </fo:block>
             <fo:block margin-left="1cm">
@@ -212,6 +215,59 @@
                                 <fo:block>
                                     <xsl:value-of select="routesLengthKm"/>
                                     <xsl:value-of select="' km'"/>
+                                </fo:block>
+                            </fo:table-cell>
+                        </fo:table-row>
+                    </fo:table-body>
+                </fo:table>
+            </fo:block>
+        </xsl:if>
+    </xsl:template>
+    <xsl:template name="shelters">
+        <xsl:if test="personsInSheltersTotalCount > 0">
+            <fo:block font-weight="bold" margin-bottom="0.2cm" space-before="1cm">
+                An Nächtigungsquartiere (Personen)
+            </fo:block>
+            <fo:block margin-left="1cm">
+                <fo:table table-layout="fixed" width="100%">
+                    <fo:table-column column-width="50%"/>
+                    <fo:table-column column-width="50%"/>
+                    <fo:table-body>
+                        <xsl:for-each select="shelters/shelters">
+                            <fo:table-row space-before="0.1cm">
+                                <fo:table-cell>
+                                    <fo:block font-weight="bold">
+                                        <xsl:value-of select="name"/>
+                                    </fo:block>
+                                </fo:table-cell>
+                                <fo:table-cell>
+                                    <fo:block>
+                                        <xsl:value-of select="personCount"/>
+                                    </fo:block>
+                                </fo:table-cell>
+                            </fo:table-row>
+                            <fo:table-row>
+                                <fo:table-cell>
+                                    <fo:block>
+                                        <xsl:value-of select="addressFormatted"/>
+                                    </fo:block>
+                                </fo:table-cell>
+                            </fo:table-row>
+                        </xsl:for-each>
+                        <fo:table-row>
+                            <fo:table-cell number-columns-spanned="2">
+                                <fo:block>
+                                    <fo:leader leader-pattern="rule" leader-length="70%" rule-thickness="1pt" color="black"/>
+                                </fo:block>
+                            </fo:table-cell>
+                        </fo:table-row>
+                        <fo:table-row space-before="0.1cm">
+                            <fo:table-cell>
+                                <fo:block>Personen gesamt:</fo:block>
+                            </fo:table-cell>
+                            <fo:table-cell>
+                                <fo:block>
+                                    <xsl:value-of select="personsInSheltersTotalCount"/>
                                 </fo:block>
                             </fo:table-cell>
                         </fo:table-row>

@@ -10,10 +10,14 @@ import at.wrk.tafel.admin.backend.database.model.distribution.DistributionCustom
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionCustomerRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
+import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
+import at.wrk.tafel.admin.backend.database.model.logistics.ShelterRepository
 import at.wrk.tafel.admin.backend.modules.base.country.testCountry1
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.CustomerListItem
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.CustomerListPdfModel
+import at.wrk.tafel.admin.backend.modules.logistics.testShelter1
+import at.wrk.tafel.admin.backend.modules.logistics.testShelter2
 import at.wrk.tafel.admin.backend.security.testUser
 import at.wrk.tafel.admin.backend.security.testUserEntity
 import at.wrk.tafel.admin.backend.security.testUserPermissions
@@ -65,6 +69,9 @@ internal class DistributionServiceTest {
 
     @SpyK
     private var transactionTemplate: TransactionTemplate = TransactionTemplate(mockk(relaxed = true))
+
+    @RelaxedMockK
+    private lateinit var shelterRepository: ShelterRepository
 
     @InjectMockKs
     private lateinit var service: DistributionService
@@ -554,21 +561,45 @@ internal class DistributionServiceTest {
 
     @Test
     fun `update statistic data of distribution`() {
-        val employeeCount = 100
-        val personsInShelterCount = 200
+        val updatedEmployeeCount = 100
+        val selectedShelters = listOf(testShelter1, testShelter2)
+        val selectedShelterIds = selectedShelters.mapNotNull { it.id }
 
-        val testDistributionEntity = DistributionEntity()
+        val testDistributionEntity = DistributionEntity().apply {
+            statistic = DistributionStatisticEntity().apply {
+                employeeCount = 1
+            }
+        }
         every { distributionRepository.getCurrentDistribution() } returns testDistributionEntity
         every { distributionRepository.save(any()) } returns mockk()
+        every { shelterRepository.findAllById(selectedShelterIds) } returns listOf(testShelter1, testShelter2)
 
-        service.updateDistributionStatisticData(employeeCount, personsInShelterCount)
+        service.updateDistributionStatisticData(
+            updatedEmployeeCount,
+            selectedShelterIds
+        )
 
         val updatedDistributionEntitySlot = slot<DistributionEntity>()
         verify(exactly = 1) { distributionRepository.save(capture(updatedDistributionEntitySlot)) }
 
         val updatedDistributionEntity = updatedDistributionEntitySlot.captured
-        assertThat(updatedDistributionEntity.employeeCount).isEqualTo(employeeCount)
-        assertThat(updatedDistributionEntity.personsInShelterCount).isEqualTo(personsInShelterCount)
+        assertThat(updatedDistributionEntity.statistic!!.employeeCount).isEqualTo(updatedEmployeeCount)
+
+        val firstShelter = updatedDistributionEntity.statistic!!.shelters.first()
+        assertThat(firstShelter.id).isEqualTo(testShelter1.id)
+        assertThat(firstShelter.createdAt).isNotNull()
+        assertThat(firstShelter.updatedAt).isNotNull()
+        assertThat(firstShelter.name).isEqualTo(testShelter1.name)
+        assertThat(firstShelter.addressStreet).isEqualTo(testShelter1.addressStreet)
+        assertThat(firstShelter.addressHouseNumber).isEqualTo(testShelter1.addressHouseNumber)
+        assertThat(firstShelter.addressStairway).isEqualTo(testShelter1.addressStairway)
+        assertThat(firstShelter.addressPostalCode).isEqualTo(testShelter1.addressPostalCode)
+        assertThat(firstShelter.addressDoor).isEqualTo(testShelter1.addressDoor)
+        assertThat(firstShelter.addressCity).isEqualTo(testShelter1.addressCity)
+        assertThat(firstShelter.personsCount).isEqualTo(testShelter1.personsCount)
+
+        val secondShelter = updatedDistributionEntity.statistic!!.shelters[1]
+        assertThat(secondShelter.id).isEqualTo(testShelter2.id)
     }
 
     @Test

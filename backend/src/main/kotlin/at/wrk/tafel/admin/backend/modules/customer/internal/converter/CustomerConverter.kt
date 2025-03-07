@@ -72,7 +72,7 @@ class CustomerConverter(
             customerEntity.lockReason = null
         }
 
-        // TODO revisit on 01.01.2024 if still necessary
+        // TODO revisit on 01.01.2026 if still necessary
         // once the customer was updated/fixed the required fields - migration is done
         customerEntity.migrated = false
 
