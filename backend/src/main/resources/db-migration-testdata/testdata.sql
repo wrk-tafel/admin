@@ -597,7 +597,7 @@ INSERT INTO shelters (id, created_at, updated_at, name, address_street, address_
 values (3, NOW(), NOW(), 'Shelter 3', 'Erdberg', 3, null, null, '1030', 'Wien', null, 0);
 
 INSERT INTO shelters_contacts (id, created_at, updated_at, shelter_id, firstname, lastname, phone)
-values (1, NOW(), NOW(), 1, 'Max', 'Mustermann', '01 23 45 67 89');
+values (1, NOW(), NOW(), 1, null, null, '01 23 45 67 89');
 INSERT INTO shelters_contacts (id, created_at, updated_at, shelter_id, firstname, lastname, phone)
 values (2, NOW(), NOW(), 1, 'Eva', 'Musterfrau', '01 23 45 67 89');
 
