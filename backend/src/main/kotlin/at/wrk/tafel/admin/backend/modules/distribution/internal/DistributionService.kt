@@ -227,6 +227,10 @@ class DistributionService(
         val currentDistribution = distributionRepository.getCurrentDistribution()
             ?: throw TafelValidationException("Ausgabe nicht gestartet!")
 
+        if (selectedShelterIds.isEmpty()) {
+            throw TafelValidationException("Daten der Notschlafstellen fehlen!")
+        }
+
         val currentStatistic = currentDistribution.statistic
         if (currentStatistic == null) {
             throw TafelValidationException("Statistik-Daten nicht vorhanden!")
@@ -237,7 +241,6 @@ class DistributionService(
             currentStatistic.shelters.clear()
             currentStatistic.shelters = selectedShelters.map {
                 DistributionStatisticShelterEntity().apply {
-                    id = it.id
                     createdAt = LocalDateTime.now()
                     updatedAt = LocalDateTime.now()
                     statistic = currentStatistic

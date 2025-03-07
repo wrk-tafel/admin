@@ -574,10 +574,7 @@ internal class DistributionServiceTest {
         every { distributionRepository.save(any()) } returns mockk()
         every { shelterRepository.findAllById(selectedShelterIds) } returns listOf(testShelter1, testShelter2)
 
-        service.updateDistributionStatisticData(
-            updatedEmployeeCount,
-            selectedShelterIds
-        )
+        service.updateDistributionStatisticData(updatedEmployeeCount, selectedShelterIds)
 
         val updatedDistributionEntitySlot = slot<DistributionEntity>()
         verify(exactly = 1) { distributionRepository.save(capture(updatedDistributionEntitySlot)) }
@@ -586,7 +583,8 @@ internal class DistributionServiceTest {
         assertThat(updatedDistributionEntity.statistic!!.employeeCount).isEqualTo(updatedEmployeeCount)
 
         val firstShelter = updatedDistributionEntity.statistic!!.shelters.first()
-        assertThat(firstShelter.id).isEqualTo(testShelter1.id)
+        assertThat(firstShelter).isNotNull
+        assertThat(firstShelter.id).isNull()
         assertThat(firstShelter.createdAt).isNotNull()
         assertThat(firstShelter.updatedAt).isNotNull()
         assertThat(firstShelter.name).isEqualTo(testShelter1.name)
@@ -599,7 +597,28 @@ internal class DistributionServiceTest {
         assertThat(firstShelter.personsCount).isEqualTo(testShelter1.personsCount)
 
         val secondShelter = updatedDistributionEntity.statistic!!.shelters[1]
-        assertThat(secondShelter.id).isEqualTo(testShelter2.id)
+        assertThat(secondShelter).isNotNull
+    }
+
+    @Test
+    fun `update statistic data of distribution with missing shelter data`() {
+        val updatedEmployeeCount = 100
+        val selectedShelterIds = emptyList<Long>()
+
+        val testDistributionEntity = DistributionEntity().apply {
+            statistic = DistributionStatisticEntity().apply {
+                employeeCount = 1
+            }
+        }
+        every { distributionRepository.getCurrentDistribution() } returns testDistributionEntity
+        every { distributionRepository.save(any()) } returns mockk()
+        every { shelterRepository.findAllById(selectedShelterIds) } returns listOf(testShelter1, testShelter2)
+
+        val exception = assertThrows<TafelValidationException> {
+            service.updateDistributionStatisticData(updatedEmployeeCount, selectedShelterIds)
+        }
+
+        assertThat(exception.message).isEqualTo("Daten der Notschlafstellen fehlen!")
     }
 
     @Test

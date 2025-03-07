@@ -22,6 +22,7 @@ describe('Dashboard', () => {
     cy.byTestId('dashboard-select-shelters-button').click();
     cy.byTestId('selectable-shelter-row-0').click();
     cy.byTestId('selectable-shelter-row-1').click();
+    cy.byTestId('selectable-shelter-row-2').click();
     cy.byTestId('selectshelters-save-button').click();
     cy.byTestId('distribution-statistics-persons-in-shelter-input').should('have.value', '150');
 
