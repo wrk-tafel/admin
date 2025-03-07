@@ -3,7 +3,7 @@ DROP TABLE IF EXISTS customers;
 
 create sequence if not exists customer_id_sequence;
 
-create table if not exists customers
+create table customers
 (
     id                  bigint primary key,
     created_at          timestamp    not null,
@@ -28,7 +28,7 @@ create table if not exists customers
     valid_until         date         not null
 );
 
-create table if not exists customers_addpersons
+create table customers_addpersons
 (
     id          bigint primary key,
     created_at  timestamp   not null,
