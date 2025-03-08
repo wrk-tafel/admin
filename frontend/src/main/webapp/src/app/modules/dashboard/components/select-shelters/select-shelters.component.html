@@ -29,13 +29,17 @@
                 </c-col>
                 <c-col class="col-5 text-start">
                   <c-row>
-                    <c-col class="text-start">
+                    <c-col class="text-start text-wrap">
                       <strong>{{shelter.name}}</strong>
                     </c-col>
                   </c-row>
                   <c-row>
                     <c-col class="text-start text-wrap">
-                      <label cFormCheckLabel [for]="'shelter-' + shelter.id">{{ formatShelterAddress(shelter) }}</label>
+                      <label cFormCheckLabel [for]="'shelter-' + shelter.id">
+                        {{ formatStreet(shelter) }}
+                        <br>
+                        {{ shelter.addressPostalCode }} {{ shelter.addressCity }}
+                      </label>
                     </c-col>
                   </c-row>
                 </c-col>

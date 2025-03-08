@@ -96,12 +96,11 @@ export class SelectSheltersComponent implements OnInit {
     this.showSelectSheltersModal = false;
   }
 
-  formatShelterAddress(shelter: ShelterItem): string {
+  formatStreet(shelter: ShelterItem): string {
     const addressFormatted = [
       [shelter.addressStreet, shelter.addressHouseNumber].join(' ').trim(),
       shelter.addressStairway ? 'Stiege ' + shelter.addressStairway : undefined,
-      shelter.addressDoor ? 'Top ' + shelter.addressDoor : undefined,
-      [shelter.addressPostalCode, shelter.addressCity].join(' ').trim()
+      shelter.addressDoor ? 'Top ' + shelter.addressDoor : undefined
     ]
       .filter(value => value?.trim().length > 0)
       .join(', ');
