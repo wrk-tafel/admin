@@ -92,16 +92,6 @@
                             </fo:block>
                         </fo:table-cell>
                     </fo:table-row>
-                    <fo:table-row>
-                        <fo:table-cell>
-                            <fo:block>Personen in Nächtigungsquartiere:</fo:block>
-                        </fo:table-cell>
-                        <fo:table-cell>
-                            <fo:block>
-                                <xsl:value-of select="personsInShelterCount"/>
-                            </fo:block>
-                        </fo:table-cell>
-                    </fo:table-row>
                 </fo:table-body>
             </fo:table>
         </fo:block>
