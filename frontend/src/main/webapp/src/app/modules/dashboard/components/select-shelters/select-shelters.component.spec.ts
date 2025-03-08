@@ -84,13 +84,13 @@ describe('SelectSheltersComponent', () => {
     expect(component.showSelectSheltersModal).toBeFalse();
   });
 
-  it('format shelter address', () => {
+  it('format street', () => {
     const fixture = TestBed.createComponent(SelectSheltersComponent);
     const component = fixture.componentInstance;
 
-    const address = component.formatShelterAddress(testShelters[0]);
+    const address = component.formatStreet(testShelters[0]);
 
-    expect(address).toBe('Test Street 1, Stiege A, Top B, 12345 Test City');
+    expect(address).toBe('Test Street 1, Stiege A, Top B');
   });
 
 });

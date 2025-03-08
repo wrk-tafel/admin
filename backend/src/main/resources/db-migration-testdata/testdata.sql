@@ -591,7 +591,7 @@ INSERT INTO shelters (id, created_at, updated_at, name, address_street, address_
 values (1, NOW(), NOW(), 'Shelter 1', 'Erdberg', 1, null, null, '1030', 'Wien', 'Right around the corner', 100);
 INSERT INTO shelters (id, created_at, updated_at, name, address_street, address_houseNumber, address_stairway,
                       address_door, address_postalCode, address_city, note, persons_count)
-values (2, NOW(), NOW(), 'Shelter 2', 'Erdberg', 2, null, null, '1030', 'Wien', null, 50);
+values (2, NOW(), NOW(), 'Shelter 2 with a very long name', 'Erdberg', 2, '1', '10', '1030', 'Wien', null, 50);
 INSERT INTO shelters (id, created_at, updated_at, name, address_street, address_houseNumber, address_stairway,
                       address_door, address_postalCode, address_city, note, persons_count)
 values (3, NOW(), NOW(), 'Shelter 3', 'Erdberg', 3, null, null, '1030', 'Wien', null, 0);
