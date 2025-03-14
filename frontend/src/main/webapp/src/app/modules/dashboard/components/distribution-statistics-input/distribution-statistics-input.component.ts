@@ -59,7 +59,7 @@ export class DistributionStatisticsInputComponent {
 
   sheltersData = input<ShelterListResponse>();
   employeeCountInput = input<number>();
-  initialSelectedShelterIds = input<number[]>([]);
+  initialSelectedShelterNames = input<string[]>([]);
   initialIdsProcessed = false;
 
   form = this.fb.group({
@@ -72,9 +72,9 @@ export class DistributionStatisticsInputComponent {
   selectedShelters: ShelterItem[] = [];
 
   initialSelectedShelterIdsEffect = effect(() => {
-    const initialSelectedShelterIds = this.initialSelectedShelterIds() ?? [];
+    const initialSelectedShelterIds = this.initialSelectedShelterNames() ?? [];
     if (!this.initialIdsProcessed && initialSelectedShelterIds.length > 0) {
-      this.selectedShelters = initialSelectedShelterIds.map(id => this.sheltersData().shelters.find(shelter => shelter.id === id));
+      this.selectedShelters = initialSelectedShelterIds.map(name => this.sheltersData().shelters.find(shelter => shelter.name === name));
       this.calculatePersonsInShelterCount();
 
       this.initialIdsProcessed = true;

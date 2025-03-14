@@ -72,9 +72,11 @@ internal class DashboardServiceTest {
                 shelters = mutableListOf(
                     DistributionStatisticShelterEntity().apply {
                         id = testShelter1.id
+                        name = testShelter1.name
                     },
                     DistributionStatisticShelterEntity().apply {
                         id = testShelter2.id
+                        name = testShelter2.name
                     },
                 )
             }
@@ -87,8 +89,8 @@ internal class DashboardServiceTest {
         val data = service.getData()
 
         assertThat(data.statistics!!.employeeCount).isEqualTo(100)
-        assertThat(data.statistics.selectedShelterIds).hasSameElementsAs(
-            listOf(testShelter1.id, testShelter2.id)
+        assertThat(data.statistics.selectedShelterNames).hasSameElementsAs(
+            listOf(testShelter1.name, testShelter2.name)
         )
     }
 

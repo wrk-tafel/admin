@@ -43,7 +43,7 @@ describe('DashboardComponent', () => {
       },
       statistics: {
         employeeCount: 10,
-        selectedShelterIds: [1, 2, 3],
+        selectedShelterNames: ['Shelter 1', 'Shelter 2', 'Shelter 3'],
       }
     };
     const testMessage: IMessage = {

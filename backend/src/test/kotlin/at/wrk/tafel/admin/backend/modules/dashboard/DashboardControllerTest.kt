@@ -30,7 +30,7 @@ internal class DashboardControllerTest {
             registeredCustomers = 2,
             statistics = DashboardStatisticsData(
                 employeeCount = 1,
-                selectedShelterIds = listOf(3L, 4L)
+                selectedShelterNames = listOf("Shelter 1", "Shelter 2")
             ),
             logistics = DashboardLogisticsData(
                 foodCollectionsRecordedCount = 1,
@@ -52,7 +52,7 @@ internal class DashboardControllerTest {
             registeredCustomers = 5,
             statistics = DashboardStatisticsData(
                 employeeCount = 1,
-                selectedShelterIds = listOf(3L, 4L)
+                selectedShelterNames = listOf("Shelter 1", "Shelter 2")
             ),
             logistics = DashboardLogisticsData(
                 foodCollectionsRecordedCount = 1,

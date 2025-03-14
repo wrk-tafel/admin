@@ -13,7 +13,7 @@ data class DashboardData(
 @ExcludeFromTestCoverage
 data class DashboardStatisticsData(
     val employeeCount: Int?,
-    val selectedShelterIds: List<Long>,
+    val selectedShelterNames: List<String>,
 )
 
 @ExcludeFromTestCoverage
