@@ -28,3 +28,8 @@ data class DistributionStatisticData(
     val employeeCount: Int,
     val selectedShelterIds: List<Long>,
 )
+
+@ExcludeFromTestCoverage
+data class DistributionNoteData(
+    val notes: String,
+)

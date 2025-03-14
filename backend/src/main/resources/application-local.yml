@@ -28,7 +28,7 @@ tafeladmin:
   mail:
     from: "dummy@localhost"
     subjectPrefix: "LOCAL-DEV-"
-    dailyreport:
+    dailyReport:
       to:
         - "to1@localhost"
         - "to2@localhost"
@@ -42,9 +42,7 @@ tafeladmin:
       to:
         - "to1@localhost"
         - "to2@localhost"
-      cc:
-        - "cc1@localhost"
-        - "cc2@localhost"
-      bcc:
-        - "bcc1@localhost"
-        - "bcc2@localhost"
+    summaryMail:
+      to:
+        - "to1@localhost"
+        - "to2@localhost"

@@ -1,4 +1,4 @@
-import {Component, effect, inject, input} from '@angular/core';
+import {Component, effect, inject, input, OnInit, signal} from '@angular/core';
 import {
   BgColorDirective,
   ButtonCloseDirective,
@@ -24,6 +24,7 @@ import {DistributionApiService} from '../../../../api/distribution-api.service';
 import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
 import {SelectSheltersComponent} from '../select-shelters/select-shelters.component';
 import {ShelterItem, ShelterListResponse} from '../../../../api/shelter-api.service';
+import {GlobalStateService} from '../../../../common/state/global-state.service';
 
 @Component({
   selector: 'tafel-distribution-statistics-input',
@@ -52,10 +53,11 @@ import {ShelterItem, ShelterListResponse} from '../../../../api/shelter-api.serv
   ],
   standalone: true
 })
-export class DistributionStatisticsInputComponent {
+export class DistributionStatisticsInputComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly distributionApiService = inject(DistributionApiService);
   private readonly toastService = inject(ToastService);
+  private readonly globalStateService = inject(GlobalStateService);
 
   sheltersData = input<ShelterListResponse>();
   employeeCountInput = input<number>();
@@ -69,7 +71,26 @@ export class DistributionStatisticsInputComponent {
       disabled: true
     }, [Validators.required, Validators.min(1)]),
   })
+
+  panelDisabled = signal<boolean>(true);
   selectedShelters: ShelterItem[] = [];
+
+  ngOnInit(): void {
+    this.globalStateService.getCurrentDistribution().subscribe(distribution => {
+      if (distribution) {
+        this.employeeCount.enable();
+        this.panelDisabled.set(false);
+      } else {
+        this.employeeCount.disable();
+        this.panelDisabled.set(true);
+
+        // reset form
+        this.employeeCount.reset();
+        this.personsInShelterCount.reset();
+        this.selectedShelters = [];
+      }
+    });
+  }
 
   initialSelectedShelterIdsEffect = effect(() => {
     const initialSelectedShelterIds = this.initialSelectedShelterNames() ?? [];
@@ -108,7 +129,7 @@ export class DistributionStatisticsInputComponent {
     };
 
     const selectedShelterIds = this.selectedShelters.map(shelter => shelter.id);
-    this.distributionApiService.saveStatisticData(this.employeeCount.value, selectedShelterIds).subscribe(observer);
+    this.distributionApiService.saveStatistic(this.employeeCount.value, selectedShelterIds).subscribe(observer);
   }
 
   get employeeCount() {

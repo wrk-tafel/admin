@@ -33,7 +33,7 @@ class FoodCollectionsExporter(
 
         val sortedFoodCategories = foodCategoryRepository.findAll()
             .sortedWith(
-                compareBy<FoodCategoryEntity> { it.back ?: false }
+                compareBy<FoodCategoryEntity> { it.returnItem ?: false }
                     .thenBy { it.name }
             )
         val columnsHeaderRow = generateHeaderFromCategories(sortedFoodCategories)

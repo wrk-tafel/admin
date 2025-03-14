@@ -1,6 +1,6 @@
 package at.wrk.tafel.admin.backend.common.auth.components
 
-import at.wrk.tafel.admin.backend.config.ApplicationProperties
+import at.wrk.tafel.admin.backend.config.properties.ApplicationProperties
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
 import org.springframework.security.core.GrantedAuthority

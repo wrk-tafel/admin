@@ -515,35 +515,35 @@ INSERT INTO routes_stops (id, created_at, updated_at, route_id, shop_id, time)
 VALUES (220, NOW(), NOW(), 2, 21, '13:00:00');
 
 -- food categories
-INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, back)
+INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, return_item)
 VALUES (1, NOW(), NOW(), 'Backwaren', 9, false);
-INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, back)
+INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, return_item)
 VALUES (2, NOW(), NOW(), 'Obst / Gemüse', 17, false);
-INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, back)
+INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, return_item)
 VALUES (3, NOW(), NOW(), 'Milchprodukte', 18, false);
-INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, back)
+INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, return_item)
 VALUES (4, NOW(), NOW(), 'Getränke', 10, false);
-INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, back)
+INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, return_item)
 VALUES (5, NOW(), NOW(), 'Fertiggerichte', 8, false);
-INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, back)
+INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, return_item)
 VALUES (6, NOW(), NOW(), 'Fleisch / Fisch', 20, false);
-INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, back)
+INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, return_item)
 VALUES (7, NOW(), NOW(), 'Konserven', 25, false);
-INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, back)
+INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, return_item)
 VALUES (8, NOW(), NOW(), 'Süßwaren', 9, false);
-INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, back)
+INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, return_item)
 VALUES (9, NOW(), NOW(), 'Tiefkühlprodukte', 20, false);
-INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, back)
+INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, return_item)
 VALUES (10, NOW(), NOW(), 'Sonstiges', 15, false);
-INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, back)
+INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, return_item)
 VALUES (11, NOW(), NOW(), 'Graue Kisten', null, true);
-INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, back)
+INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, return_item)
 VALUES (12, NOW(), NOW(), 'Klappkisten schwarz', null, true);
-INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, back)
+INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, return_item)
 VALUES (13, NOW(), NOW(), 'Grüne Kisten', null, true);
-INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, back)
+INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, return_item)
 VALUES (14, NOW(), NOW(), 'Ströck Kisten', null, true);
-INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, back)
+INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, return_item)
 VALUES (15, NOW(), NOW(), 'sonstige Kisten', null, true);
 
 -- distributions
@@ -612,4 +612,4 @@ values (1, NOW(), NOW(), 100, 'Shelter 1', 'Erdberg', 1, null, null, '1030', 'Wi
 INSERT INTO distributions_statistics_shelters (id, created_at, updated_at, distribution_statistic_id, name, address_street, address_houseNumber,
                                                address_stairway,
                                                address_door, address_postalCode, address_city, persons_count)
-values (2, NOW(), NOW(), 100, 'Shelter 2', 'Erdberg', 1, null, null, '1030', 'Wien', 50);
+values (2, NOW(), NOW(), 100, 'Shelter 2 with a very long name', 'Erdberg', 1, null, null, '1030', 'Wien', 50);

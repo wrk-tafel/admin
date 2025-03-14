@@ -1,15 +1,8 @@
-<c-card class="h-100" color="primary">
+<c-card class="h-100" color="primary" textColor="white">
   <c-card-body>
     <c-row>
       <c-col size="12">
-        <h4 class="card-title text-white">Kunden angemeldet</h4>
-      </c-col>
-    </c-row>
-    <c-row *tafelIfDistributionActive>
-      <c-col size="12">
-        <button testid="download-customerlist-button" cButton color="light" (click)="downloadCustomerList()">
-          <fa-icon [icon]="faDownload"></fa-icon> Kundenliste
-        </button>
+        <h4>Kunden angemeldet</h4>
       </c-col>
     </c-row>
     <c-row>
@@ -18,4 +11,9 @@
       </c-col>
     </c-row>
   </c-card-body>
+  <c-card-footer *tafelIfDistributionActive>
+    <button testid="download-customerlist-button" cButton color="light" (click)="downloadCustomerList()">
+      <fa-icon [icon]="faDownload"></fa-icon> Kundenliste
+    </button>
+  </c-card-footer>
 </c-card>

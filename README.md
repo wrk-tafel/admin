@@ -9,8 +9,6 @@
 * Bug: customer creation - field birthDate form control validation not working (red/green border)
 * Bug: Customer in CustomerList(PDF) still visible after deletion of ticketNumber! - caching?
 
-* Impro: Send mail with boxes to put back (list with amount of boxes per type and per shop)
-
 * Statistics Module: Show charts / CSV Export
 * Statistics: Show live data on dashboard
 
@@ -28,29 +26,11 @@
 * customer-creation: Advanced postalCode validation (only numbers from 03. and 01. district / Vienna)
 * Improve creation / enforce search before creating
 * Add "supervisor" role (can force-fully create customers even when exceeding the income limit)
-* Fix menu when collapsed - first character of text is shown
+* Menu/navigation: Fix menu when collapsed - first character of text is shown
 * MFA?
 
 statistic:
 * add alleinerzieher flag
-* dailyreport
-  * Mitarbeiter Anzahl an diesem Samstag
-  * Summe der betreuten Personen in den Notschlafstellen (Wenn es geht eine Addition der beiden Personengruppe unter dem Titel "versorgte Personen")
-
-Christian - Statistik:
-* Anzahl Personen/Mitarbeiter pro Ausgabe
-* Anzahl Personen in NOST
-* Kinder < 3
-* Summe der Haushalte / Kunden (Hauptbezieher)
-* Warenmenge gesamt
-* Km gesamt pro Ausgabe
-
-* JA_TOeT_Spenden_Rohdaten - pro Filiale vor allem zum Filtern wo nichts herkommt
-* Anz. gültige Bezugskarten - Wichtig! Anzahl Personen auch wichtig, Anzahl Kinder
-
-* Extra-Mail Vorkomnisse an Christian (KFZ Hinweis)
-
-* Fixe Autos zur Auswahl
 
 ## LTL
 * Goods recording - implement proper mobile view
@@ -61,8 +41,6 @@ Christian - Statistik:
 * * Auto-create persons without dedicated maintenance
 * Route only needs a time and no separate order (sorting)
 * Validation necessary for KM Abfahrt < KM Ankunft
-* Recording of food: Unit = kg, only for input in boxes but stored in kg
-* * Shop needs unit-type (kg/box)
 * Route: Model extra-stops in DB (needs to part of the route, comment is not enough)
 
 ### Open things (to be decided)

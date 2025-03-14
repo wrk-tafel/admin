@@ -14,6 +14,9 @@ import {
 } from './components/recorded-food-collections/recorded-food-collections.component';
 import {FoodAmountComponent} from './components/food-amount/food-amount.component';
 import {ShelterListResponse} from '../../api/shelter-api.service';
+import {
+  DistributionNotesInputComponent
+} from './components/distribution-notes-input/distribution-notes-input.component';
 
 @Component({
   selector: 'tafel-dashboard',
@@ -28,7 +31,8 @@ import {ShelterListResponse} from '../../api/shelter-api.service';
     DistributionStatisticsInputComponent,
     TafelIfDistributionActiveDirective,
     RecordedFoodCollectionsComponent,
-    FoodAmountComponent
+    FoodAmountComponent,
+    DistributionNotesInputComponent
   ],
   standalone: true
 })
@@ -50,6 +54,7 @@ export interface DashboardData {
   registeredCustomers?: number;
   statistics?: DashboardStatisticsData;
   logistics?: DashboardLogisticsData;
+  notes?: string;
 }
 
 export interface DashboardStatisticsData {
