@@ -149,9 +149,11 @@ export class FoodCollectionRecordingComponent implements OnInit {
             this.kmEnd.setValue(existingData.kmEnd);
 
             await this.createCategoryShopInputs(selectedRoute, existingData.items);
+            this.categories.markAllAsTouched();
           },
           error: async (_: any) => {
             await this.createCategoryShopInputs(selectedRoute, []);
+            this.categories.markAllAsTouched();
           },
         };
         this.foodCollectionsApiService.getFoodCollection(selectedRoute.id).subscribe(observer);
