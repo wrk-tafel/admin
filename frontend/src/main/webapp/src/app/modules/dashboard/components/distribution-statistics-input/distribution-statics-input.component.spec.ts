@@ -133,7 +133,7 @@ describe('DistributionStatisticsInputComponent', () => {
     );
     componentRef.setInput('sheltersData', {shelters: testShelters});
     componentRef.setInput('employeeCountInput', 100);
-    componentRef.setInput('initialSelectedShelterIds', testShelters.map(shelter => shelter.id));
+    componentRef.setInput('initialSelectedShelterNames', testShelters.map(shelter => shelter.name));
     fixture.detectChanges();
 
     component.save();
@@ -149,7 +149,7 @@ describe('DistributionStatisticsInputComponent', () => {
 
     componentRef.setInput('sheltersData', {shelters: testShelters});
     componentRef.setInput('employeeCountInput', 100);
-    componentRef.setInput('initialSelectedShelterIds', testShelters.map(shelter => shelter.id));
+    componentRef.setInput('initialSelectedShelterNames', testShelters.map(shelter => shelter.name));
     fixture.detectChanges();
 
     expect(component.employeeCount.value).toBe(100);

@@ -54,7 +54,7 @@ export interface DashboardData {
 
 export interface DashboardStatisticsData {
   employeeCount?: number;
-  selectedShelterIds?: number[];
+  selectedShelterNames?: string[];
 }
 
 export interface DashboardLogisticsData {
