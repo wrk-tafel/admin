@@ -18,7 +18,7 @@ class FoodCategoryEntity : BaseChangeTrackingEntity() {
     @Column(name = "weight_per_unit")
     var weightPerUnit: BigDecimal? = null
 
-    @Column(name = "back")
-    var back: Boolean? = null
+    @Column(name = "return_item")
+    var returnItem: Boolean? = null
 
 }

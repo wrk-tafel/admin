@@ -3,7 +3,7 @@ package at.wrk.tafel.admin.backend.common.auth.components
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.common.auth.model.LoginResponse
 import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
-import at.wrk.tafel.admin.backend.config.ApplicationProperties
+import at.wrk.tafel.admin.backend.config.properties.ApplicationProperties
 import com.fasterxml.jackson.databind.ObjectMapper
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.Cookie

@@ -8,6 +8,7 @@ data class DashboardData(
     val registeredCustomers: Int?,
     val statistics: DashboardStatisticsData?,
     val logistics: DashboardLogisticsData?,
+    val notes: String?
 )
 
 @ExcludeFromTestCoverage

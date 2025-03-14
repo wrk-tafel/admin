@@ -37,12 +37,19 @@ export class DistributionApiService {
     return this.http.post<void>('/distributions/customers', body);
   }
 
-  saveStatisticData(employeeCount: number, selectedShelterIds: number[]): Observable<void> {
+  saveStatistic(employeeCount: number, selectedShelterIds: number[]): Observable<void> {
     const body: SaveDistributionStatisticRequest = {
       employeeCount: employeeCount,
       selectedShelterIds: selectedShelterIds
     };
     return this.http.post<void>('/distributions/statistics', body);
+  }
+
+  saveNotes(notes: string): Observable<void> {
+    const body: SaveDistributionNotesRequest = {
+      notes: notes
+    };
+    return this.http.post<void>('/distributions/notes', body);
   }
 
   downloadCustomerList(): Observable<HttpResponse<Blob>> {
@@ -71,4 +78,8 @@ export interface AssignCustomerRequest {
 export interface SaveDistributionStatisticRequest {
   employeeCount: number;
   selectedShelterIds: number[];
+}
+
+export interface SaveDistributionNotesRequest {
+  notes: string;
 }

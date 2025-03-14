@@ -36,7 +36,8 @@ internal class DashboardControllerTest {
                 foodCollectionsRecordedCount = 1,
                 foodCollectionsTotalCount = 2,
                 foodAmountTotal = BigDecimal(3)
-            )
+            ),
+            notes = "test-notes"
         )
         every { service.getData() } returns data
 
@@ -58,7 +59,8 @@ internal class DashboardControllerTest {
                 foodCollectionsRecordedCount = 1,
                 foodCollectionsTotalCount = 2,
                 foodAmountTotal = BigDecimal(3)
-            )
+            ),
+            notes = "test-notes"
         )
         every { service.getData() } returns data
 

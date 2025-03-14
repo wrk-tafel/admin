@@ -1,15 +1,17 @@
 import {TestBed, waitForAsync} from '@angular/core/testing';
-import {DistributionApiService} from '../../../../api/distribution-api.service';
+import {DistributionApiService, DistributionItem} from '../../../../api/distribution-api.service';
 import {DistributionStatisticsInputComponent} from './distribution-statistics-input.component';
 import {CardModule, ColComponent, ModalModule, ProgressModule, RowComponent} from '@coreui/angular';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
-import {of, throwError} from 'rxjs';
+import {BehaviorSubject, of, throwError} from 'rxjs';
 import {ShelterItem} from '../../../../api/shelter-api.service';
+import {GlobalStateService} from '../../../../common/state/global-state.service';
 
 describe('DistributionStatisticsInputComponent', () => {
   let distributionApiService: jasmine.SpyObj<DistributionApiService>;
   let toastService: jasmine.SpyObj<ToastService>;
+  let globalStateService: jasmine.SpyObj<GlobalStateService>;
 
   const testShelters: ShelterItem[] = [
     {
@@ -37,6 +39,14 @@ describe('DistributionStatisticsInputComponent', () => {
       personsCount: 200
     }
   ];
+  const testDistribution = {
+    id: 123,
+    state: {
+      name: 'OPEN',
+      stateLabel: 'Offen',
+      actionLabel: 'Offen'
+    }
+  };
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
@@ -51,17 +61,22 @@ describe('DistributionStatisticsInputComponent', () => {
       providers: [
         {
           provide: DistributionApiService,
-          useValue: jasmine.createSpyObj('DistributionApiService', ['saveStatisticData'])
+          useValue: jasmine.createSpyObj('DistributionApiService', ['saveStatistic'])
         },
         {
           provide: ToastService,
           useValue: jasmine.createSpyObj('ToastService', ['showToast'])
+        },
+        {
+          provide: GlobalStateService,
+          useValue: jasmine.createSpyObj('GlobalStateService', ['getCurrentDistribution'])
         }
       ]
     }).compileComponents();
 
     distributionApiService = TestBed.inject(DistributionApiService) as jasmine.SpyObj<DistributionApiService>;
     toastService = TestBed.inject(ToastService) as jasmine.SpyObj<ToastService>;
+    globalStateService = TestBed.inject(GlobalStateService) as jasmine.SpyObj<GlobalStateService>;
   }));
 
   it('component can be created', () => {
@@ -74,7 +89,7 @@ describe('DistributionStatisticsInputComponent', () => {
   it('save data successful', () => {
     const fixture = TestBed.createComponent(DistributionStatisticsInputComponent);
     const component = fixture.componentInstance;
-    distributionApiService.saveStatisticData.and.returnValue(of(null));
+    distributionApiService.saveStatistic.and.returnValue(of(null));
 
     component.employeeCount.setValue(100);
     component.personsInShelterCount.setValue(200);
@@ -103,7 +118,7 @@ describe('DistributionStatisticsInputComponent', () => {
 
     component.save();
 
-    expect(distributionApiService.saveStatisticData).toHaveBeenCalledWith(100, [1, 2]);
+    expect(distributionApiService.saveStatistic).toHaveBeenCalledWith(100, [1, 2]);
     expect(toastService.showToast).toHaveBeenCalledWith({
       type: ToastType.SUCCESS,
       title: 'Statistik-Daten gespeichert!'
@@ -114,6 +129,7 @@ describe('DistributionStatisticsInputComponent', () => {
     const fixture = TestBed.createComponent(DistributionStatisticsInputComponent);
     const component = fixture.componentInstance;
     const componentRef = fixture.componentRef;
+    globalStateService.getCurrentDistribution.and.returnValue(new BehaviorSubject<DistributionItem>(testDistribution));
     componentRef.setInput('sheltersData', {shelters: testShelters});
     componentRef.setInput('initialSelectedShelterIds', testShelters[0].id);
     fixture.detectChanges();
@@ -127,10 +143,12 @@ describe('DistributionStatisticsInputComponent', () => {
     const fixture = TestBed.createComponent(DistributionStatisticsInputComponent);
     const component = fixture.componentInstance;
     const componentRef = fixture.componentRef;
-    distributionApiService.saveStatisticData.and.returnValue(throwError(() => {
+    distributionApiService.saveStatistic.and.returnValue(throwError(() => {
         return {status: 500};
       })
     );
+    globalStateService.getCurrentDistribution.and.returnValue(new BehaviorSubject<DistributionItem>(testDistribution));
+
     componentRef.setInput('sheltersData', {shelters: testShelters});
     componentRef.setInput('employeeCountInput', 100);
     componentRef.setInput('initialSelectedShelterNames', testShelters.map(shelter => shelter.name));
@@ -138,7 +156,7 @@ describe('DistributionStatisticsInputComponent', () => {
 
     component.save();
 
-    expect(distributionApiService.saveStatisticData).toHaveBeenCalledWith(100, [1, 2]);
+    expect(distributionApiService.saveStatistic).toHaveBeenCalledWith(100, [1, 2]);
     expect(toastService.showToast).toHaveBeenCalledWith({type: ToastType.ERROR, title: 'Speichern fehlgeschlagen!'});
   });
 
@@ -146,6 +164,7 @@ describe('DistributionStatisticsInputComponent', () => {
     const fixture = TestBed.createComponent(DistributionStatisticsInputComponent);
     const componentRef = fixture.componentRef;
     const component = fixture.componentInstance;
+    globalStateService.getCurrentDistribution.and.returnValue(new BehaviorSubject<DistributionItem>(testDistribution));
 
     componentRef.setInput('sheltersData', {shelters: testShelters});
     componentRef.setInput('employeeCountInput', 100);
@@ -154,6 +173,25 @@ describe('DistributionStatisticsInputComponent', () => {
 
     expect(component.employeeCount.value).toBe(100);
     expect(component.personsInShelterCount.value).toBe(300);
+  });
+
+  it('employeeCount disabled and data reset without active distribution', () => {
+    const fixture = TestBed.createComponent(DistributionStatisticsInputComponent);
+    const componentRef = fixture.componentRef;
+    const component = fixture.componentInstance;
+    globalStateService.getCurrentDistribution.and.returnValue(new BehaviorSubject<DistributionItem>(null));
+
+    componentRef.setInput('sheltersData', {shelters: testShelters});
+    componentRef.setInput('employeeCountInput', 100);
+    componentRef.setInput('initialSelectedShelterNames', testShelters.map(shelter => shelter.name));
+    fixture.detectChanges();
+
+    component.ngOnInit();
+
+    expect(component.employeeCount.disabled).toBeTrue();
+    expect(component.panelDisabled()).toBeTrue();
+    expect(component.employeeCount.value).toBeNull();
+    expect(component.personsInShelterCount.value).toBeNull();
   });
 
 });

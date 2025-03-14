@@ -6,7 +6,7 @@
           <h4>Statistik</h4>
         </c-col>
       </c-row>
-      <c-row>
+      <c-row class="mt-2">
         <c-col>
           <label class="form-label">Anzahl der Mitarbeiter *</label>
           <input testid="distribution-statistics-employee-count-input" type="number" formControlName="employeeCount" class="form-control"
@@ -21,14 +21,14 @@
           </div>
         </c-col>
       </c-row>
-      <c-row>
+      <c-row class="mt-4">
         <c-col>
-          <label class="form-label">Anzahl Personen in Notschlafstellen *</label>
+          <label class="form-label">Anzahl Personen in Notschlafstellen</label>
           <c-input-group>
             <input testid="distribution-statistics-persons-in-shelter-input" type="number" formControlName="personsInShelterCount" class="form-control"
                    [ngClass]="{'is-invalid': personsInShelterCount.invalid && (personsInShelterCount.dirty || personsInShelterCount.touched), 'is-valid': personsInShelterCount.valid && (personsInShelterCount.dirty || personsInShelterCount.touched)}">
             <span cInputGroupText>
-                <tafel-select-shelters (updateSelectedShelters)="onUpdateSelectedShelters($event)" [shelters]="sheltersData().shelters" [initialSelectedShelters]="selectedShelters"></tafel-select-shelters>
+                <tafel-select-shelters (updateSelectedShelters)="onUpdateSelectedShelters($event)" [shelters]="sheltersData().shelters" [initialSelectedShelters]="selectedShelters" [disabled]="panelDisabled()"></tafel-select-shelters>
             </span>
             <div *ngIf="personsInShelterCount.errors?.required && (personsInShelterCount.dirty || personsInShelterCount.touched)"
                  class="invalid-feedback">

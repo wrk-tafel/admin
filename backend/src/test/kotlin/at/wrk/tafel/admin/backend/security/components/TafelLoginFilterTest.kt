@@ -3,7 +3,7 @@ package at.wrk.tafel.admin.backend.security.components
 import at.wrk.tafel.admin.backend.common.auth.components.JwtTokenService
 import at.wrk.tafel.admin.backend.common.auth.components.TafelLoginFilter
 import at.wrk.tafel.admin.backend.common.auth.model.LoginResponse
-import at.wrk.tafel.admin.backend.config.ApplicationProperties
+import at.wrk.tafel.admin.backend.config.properties.ApplicationProperties
 import at.wrk.tafel.admin.backend.security.testUser
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.mockk.every

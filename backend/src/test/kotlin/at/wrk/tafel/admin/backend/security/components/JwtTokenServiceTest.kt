@@ -1,10 +1,10 @@
 package at.wrk.tafel.admin.backend.security.components
 
 import at.wrk.tafel.admin.backend.common.auth.components.JwtTokenService
-import at.wrk.tafel.admin.backend.config.ApplicationProperties
-import at.wrk.tafel.admin.backend.config.SecurityJwtTokenProperties
-import at.wrk.tafel.admin.backend.config.SecurityJwtTokenSecretProperties
-import at.wrk.tafel.admin.backend.config.SecurityProperties
+import at.wrk.tafel.admin.backend.config.properties.ApplicationProperties
+import at.wrk.tafel.admin.backend.config.properties.SecurityJwtTokenProperties
+import at.wrk.tafel.admin.backend.config.properties.SecurityJwtTokenSecretProperties
+import at.wrk.tafel.admin.backend.config.properties.SecurityProperties
 import io.jsonwebtoken.ExpiredJwtException
 import io.jsonwebtoken.IncorrectClaimException
 import io.jsonwebtoken.Jwts
