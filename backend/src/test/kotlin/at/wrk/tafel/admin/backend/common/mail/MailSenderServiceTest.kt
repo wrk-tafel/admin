@@ -1,7 +1,7 @@
 package at.wrk.tafel.admin.backend.common.mail
 
-import at.wrk.tafel.admin.backend.config.TafelAdminMailRecipientAddressesProperties
-import at.wrk.tafel.admin.backend.config.TafelAdminProperties
+import at.wrk.tafel.admin.backend.config.properties.TafelAdminMailRecipientAddressesProperties
+import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -83,6 +83,7 @@ internal class MailSenderServiceTest {
 
         /*
         TODO add asserts
+        // TODO assert html type
         assertThat(mailMessage.content).isEqualTo(text)
         assertThat(mailMessage.attachment).isEqualTo(text)
          */

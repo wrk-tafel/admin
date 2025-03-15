@@ -236,7 +236,7 @@
                                     </fo:block>
                                 </fo:table-cell>
                             </fo:table-row>
-                            <fo:table-row>
+                            <fo:table-row  keep-with-previous="always">
                                 <fo:table-cell>
                                     <fo:block>
                                         <xsl:value-of select="addressFormatted"/>

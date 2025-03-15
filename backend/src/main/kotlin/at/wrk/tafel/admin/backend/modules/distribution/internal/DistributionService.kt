@@ -227,10 +227,6 @@ class DistributionService(
         val currentDistribution = distributionRepository.getCurrentDistribution()
             ?: throw TafelValidationException("Ausgabe nicht gestartet!")
 
-        if (selectedShelterIds.isEmpty()) {
-            throw TafelValidationException("Daten der Notschlafstellen fehlen!")
-        }
-
         val currentStatistic = currentDistribution.statistic
         if (currentStatistic == null) {
             throw TafelValidationException("Statistik-Daten nicht vorhanden!")
@@ -257,6 +253,15 @@ class DistributionService(
 
             distributionRepository.save(currentDistribution)
         }
+    }
+
+    fun updateDistributionNoteData(notes: String) {
+        val currentDistribution = distributionRepository.getCurrentDistribution()
+            ?: throw TafelValidationException("Ausgabe nicht gestartet!")
+
+        currentDistribution.notes = notes.trim().ifBlank { null }
+
+        distributionRepository.save(currentDistribution)
     }
 
 }

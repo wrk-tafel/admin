@@ -1,4 +1,4 @@
-package at.wrk.tafel.admin.backend.config
+package at.wrk.tafel.admin.backend.config.properties
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import org.springframework.boot.context.properties.ConfigurationProperties
@@ -13,8 +13,9 @@ data class TafelAdminProperties(
 data class TafelAdminMailProperties(
     val from: String,
     val subjectPrefix: String? = null,
-    val dailyreport: TafelAdminMailRecipientAddressesProperties? = null,
+    val dailyReport: TafelAdminMailRecipientAddressesProperties? = null,
     val statistic: TafelAdminMailRecipientAddressesProperties? = null,
+    val summaryMail: TafelAdminMailRecipientAddressesProperties? = null,
 )
 
 @ExcludeFromTestCoverage

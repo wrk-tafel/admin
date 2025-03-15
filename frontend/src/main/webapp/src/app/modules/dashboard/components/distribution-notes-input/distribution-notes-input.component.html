@@ -1,0 +1,20 @@
+<c-card class="h-100" color="primary" textColor="white">
+  <c-card-body>
+    <c-row>
+      <c-col class="fw-bold">
+        <h4>Anmerkungen</h4>
+      </c-col>
+    </c-row>
+    <c-row>
+      <c-col>
+        <textarea testid="distribution-notes-textarea" type="text" class="form-control" [(ngModel)]="notes" rows="4" [disabled]="inputIsDisabled">
+        </textarea>
+      </c-col>
+    </c-row>
+  </c-card-body>
+  <c-card-footer>
+    <button cButton type="button" testid="distribution-notes-save-button" (click)="save()" [disabled]="isSaveDisabled()" color="light">
+      Speichern
+    </button>
+  </c-card-footer>
+</c-card>

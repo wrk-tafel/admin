@@ -107,6 +107,31 @@ internal class DashboardServiceTest {
     }
 
     @Test
+    fun `get notes`() {
+        val testNotes = "dummy-notes"
+        val testDistributionEntity = DistributionEntity().apply {
+            id = 123
+            notes = testNotes
+        }
+        every { distributionRepository.getCurrentDistribution() } returns testDistributionEntity
+
+        val data = service.getData()
+
+        assertThat(data.notes).isEqualTo(testNotes)
+    }
+
+    @Test
+    fun `get notes without active distribution`() {
+        every { distributionRepository.getCurrentDistribution() } returns null
+
+        val data = service.getData()
+
+        assertThat(data.notes).isNull()
+
+        verify { distributionRepository.getCurrentDistribution() }
+    }
+
+    @Test
     fun `get logistics`() {
         val testDistributionEntity = DistributionEntity().apply {
             id = 123

@@ -1,4 +1,4 @@
-package at.wrk.tafel.admin.backend.config
+package at.wrk.tafel.admin.backend.config.properties
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 

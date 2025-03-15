@@ -601,24 +601,37 @@ internal class DistributionServiceTest {
     }
 
     @Test
-    fun `update statistic data of distribution with missing shelter data`() {
-        val updatedEmployeeCount = 100
-        val selectedShelterIds = emptyList<Long>()
+    fun `update notes data of distribution`() {
+        val notes = "  test notes, easy peasy  "
 
-        val testDistributionEntity = DistributionEntity().apply {
-            statistic = DistributionStatisticEntity().apply {
-                employeeCount = 1
-            }
-        }
+        val testDistributionEntity = DistributionEntity()
         every { distributionRepository.getCurrentDistribution() } returns testDistributionEntity
         every { distributionRepository.save(any()) } returns mockk()
-        every { shelterRepository.findAllById(selectedShelterIds) } returns listOf(testShelter1, testShelter2)
 
-        val exception = assertThrows<TafelValidationException> {
-            service.updateDistributionStatisticData(updatedEmployeeCount, selectedShelterIds)
-        }
+        service.updateDistributionNoteData(notes)
 
-        assertThat(exception.message).isEqualTo("Daten der Notschlafstellen fehlen!")
+        val updatedDistributionEntitySlot = slot<DistributionEntity>()
+        verify(exactly = 1) { distributionRepository.save(capture(updatedDistributionEntitySlot)) }
+
+        val updatedDistributionEntity = updatedDistributionEntitySlot.captured
+        assertThat(updatedDistributionEntity.notes).isEqualTo(notes.trim())
+    }
+
+    @Test
+    fun `update sanitized notes data of distribution`() {
+        val notes = "   "
+
+        val testDistributionEntity = DistributionEntity()
+        every { distributionRepository.getCurrentDistribution() } returns testDistributionEntity
+        every { distributionRepository.save(any()) } returns mockk()
+
+        service.updateDistributionNoteData(notes)
+
+        val updatedDistributionEntitySlot = slot<DistributionEntity>()
+        verify(exactly = 1) { distributionRepository.save(capture(updatedDistributionEntitySlot)) }
+
+        val updatedDistributionEntity = updatedDistributionEntitySlot.captured
+        assertThat(updatedDistributionEntity.notes).isNull()
     }
 
     @Test

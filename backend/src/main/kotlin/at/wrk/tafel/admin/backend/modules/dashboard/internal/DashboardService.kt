@@ -25,6 +25,7 @@ class DashboardService(
             registeredCustomers = currentDistribution?.let { getRegisteredCustomers(it) },
             statistics = currentDistribution?.let { getStatisticsData(it) },
             logistics = currentDistribution?.let { getLogisticsData(it) },
+            notes = currentDistribution?.notes
         )
     }
 
