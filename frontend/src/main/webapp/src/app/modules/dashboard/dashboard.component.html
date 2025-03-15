@@ -6,8 +6,8 @@
     <tafel-registered-customers [count]="data?.registeredCustomers"></tafel-registered-customers>
   </c-col>
   <c-col sm="12" lg="4" class="mt-4 mt-sm-0">
-    <tafel-distribution-notes-input [initialNotesData]="data?.notes">
-    </tafel-distribution-notes-input>
+    <tafel-tickets-processed [countProcessedTickets]="data?.tickets?.countProcessedTickets" [countTotalTickets]="data?.tickets?.countTotalTickets">
+    </tafel-tickets-processed>
   </c-col>
 </c-row>
 <c-row class="mt-0 mt-md-4" *tafelIfPermission="'LOGISTICS'">
@@ -18,8 +18,12 @@
     </tafel-distribution-statistics-input>
   </c-col>
   <c-col sm="12" lg="8">
-    <c-row class="mt-4 mt-md-0">
-      <c-col sm="12" lg="12">
+    <c-row>
+      <c-col sm="12" lg="6" class="mt-4 mt-sm-0">
+        <tafel-distribution-notes-input [initialNotesData]="data?.notes">
+        </tafel-distribution-notes-input>
+      </c-col>
+      <c-col sm="12" lg="6" class="mt-4 mt-sm-0">
         <tafel-recorded-food-collections [countRecorded]="data?.logistics?.foodCollectionsRecordedCount"
                                          [countTotal]="data?.logistics?.foodCollectionsTotalCount">
         </tafel-recorded-food-collections>

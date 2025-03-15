@@ -1,0 +1,18 @@
+<c-card class="h-100" [color]="getPanelColor()" textColor="white">
+  <c-card-body>
+    <c-row>
+      <c-col size="12">
+        <h4>Tickets abgearbeitet</h4>
+      </c-col>
+    </c-row>
+    <c-row>
+      <c-col>
+        @if (countProcessedTickets() !== null && countTotalTickets() !== null) {
+          <div testid="tickets-processed-count" class="text-end" style="font-size: 50pt;">{{ countProcessedTickets() + ' / ' + countTotalTickets() }}</div>
+        } @else {
+          <div testid="tickets-processed-count" class="text-end" style="font-size: 50pt;">-</div>
+        }
+      </c-col>
+    </c-row>
+  </c-card-body>
+</c-card>

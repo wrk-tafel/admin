@@ -6,9 +6,16 @@ import java.math.BigDecimal
 @ExcludeFromTestCoverage
 data class DashboardData(
     val registeredCustomers: Int?,
+    val tickets: DashboardTicketsData?,
     val statistics: DashboardStatisticsData?,
     val logistics: DashboardLogisticsData?,
-    val notes: String?
+    val notes: String?,
+)
+
+@ExcludeFromTestCoverage
+data class DashboardTicketsData(
+    val countProcessedTickets: Int?,
+    val countTotalTickets: Int?,
 )
 
 @ExcludeFromTestCoverage

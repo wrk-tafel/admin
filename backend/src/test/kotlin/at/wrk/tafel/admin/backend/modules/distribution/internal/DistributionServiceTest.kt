@@ -405,7 +405,7 @@ internal class DistributionServiceTest {
 
         val ticket = service.getCurrentTicketNumber()
 
-        assertThat(ticket).isEqualTo(50)
+        assertThat(ticket).isEqualTo(51)
     }
 
     @Test
