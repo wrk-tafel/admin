@@ -1,4 +1,4 @@
-import {Component, inject, Input} from '@angular/core';
+import {Component, inject, input} from '@angular/core';
 import {DistributionApiService} from '../../../../api/distribution-api.service';
 import {HttpResponse} from '@angular/common/http';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
@@ -30,9 +30,10 @@ import {TafelIfDistributionActiveDirective} from '../../../../common/directive/t
   standalone: true
 })
 export class RegisteredCustomersComponent {
-  @Input() count?: number;
   private readonly distributionApiService = inject(DistributionApiService);
   private readonly fileHelperService = inject(FileHelperService);
+
+  count? = input<number>();
 
   downloadCustomerList() {
     this.distributionApiService.downloadCustomerList().subscribe(response => this.processPdfResponse(response));

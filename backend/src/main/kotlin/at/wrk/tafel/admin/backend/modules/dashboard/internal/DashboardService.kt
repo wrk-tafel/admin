@@ -7,6 +7,7 @@ import at.wrk.tafel.admin.backend.database.model.logistics.RouteRepository
 import at.wrk.tafel.admin.backend.modules.dashboard.DashboardData
 import at.wrk.tafel.admin.backend.modules.dashboard.DashboardLogisticsData
 import at.wrk.tafel.admin.backend.modules.dashboard.DashboardStatisticsData
+import at.wrk.tafel.admin.backend.modules.dashboard.DashboardTicketsData
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -21,19 +22,35 @@ class DashboardService(
     fun getData(): DashboardData {
         val currentDistribution = distributionRepository.getCurrentDistribution()
 
-        return DashboardData(
-            registeredCustomers = currentDistribution?.let { getRegisteredCustomers(it) },
-            statistics = currentDistribution?.let { getStatisticsData(it) },
-            logistics = currentDistribution?.let { getLogisticsData(it) },
-            notes = currentDistribution?.notes
+        return currentDistribution?.let {
+            DashboardData(
+                registeredCustomers = getRegisteredCustomers(currentDistribution),
+                tickets = getTicketsData(currentDistribution),
+                statistics = getStatisticsData(currentDistribution),
+                logistics = getLogisticsData(currentDistribution),
+                notes = currentDistribution.notes
+            )
+        } ?: DashboardData(
+            registeredCustomers = null,
+            tickets = null,
+            statistics = null,
+            logistics = null,
+            notes = null
         )
     }
 
-    private fun getRegisteredCustomers(currentDistribution: DistributionEntity?): Int? {
-        currentDistribution?.let {
-            return distributionCustomerRepository.countAllByDistributionId(it.id!!)
-        }
-        return null
+    private fun getTicketsData(currentDistribution: DistributionEntity): DashboardTicketsData {
+        val countProcessedTickets = currentDistribution.customers.count { it.processed == true }
+        val countTotalTickets = currentDistribution.customers.size
+
+        return DashboardTicketsData(
+            countProcessedTickets = countProcessedTickets,
+            countTotalTickets = countTotalTickets
+        )
+    }
+
+    private fun getRegisteredCustomers(currentDistribution: DistributionEntity): Int {
+        return distributionCustomerRepository.countAllByDistributionId(currentDistribution.id!!)
     }
 
     private fun getStatisticsData(currentDistribution: DistributionEntity?): DashboardStatisticsData {

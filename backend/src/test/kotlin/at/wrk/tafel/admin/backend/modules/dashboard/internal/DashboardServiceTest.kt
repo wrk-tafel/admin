@@ -6,6 +6,9 @@ import at.wrk.tafel.admin.backend.database.model.distribution.DistributionReposi
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticShelterEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteRepository
+import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionCustomerEntity1
+import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionCustomerEntity2
+import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionCustomerEntity3
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCollectionRoute1Entity
 import at.wrk.tafel.admin.backend.modules.logistics.testRoute1
 import at.wrk.tafel.admin.backend.modules.logistics.testRoute2
@@ -52,15 +55,21 @@ internal class DashboardServiceTest {
     }
 
     @Test
-    fun `get registered customers without active distribution`() {
-        every { distributionRepository.getCurrentDistribution() } returns null
+    fun `get tickets`() {
+        val testDistributionEntity = DistributionEntity().apply {
+            id = 123
+            customers = listOf(
+                testDistributionCustomerEntity1,
+                testDistributionCustomerEntity2,
+                testDistributionCustomerEntity3,
+            )
+        }
+        every { distributionRepository.getCurrentDistribution() } returns testDistributionEntity
 
         val data = service.getData()
 
-        assertThat(data.registeredCustomers).isNull()
-
-        verify { distributionRepository.getCurrentDistribution() }
-        verify(exactly = 0) { distributionCustomerRepository.countAllByDistributionId(any()) }
+        assertThat(data.tickets!!.countProcessedTickets).isEqualTo(1)
+        assertThat(data.tickets.countTotalTickets).isEqualTo(3)
     }
 
     @Test
@@ -95,18 +104,6 @@ internal class DashboardServiceTest {
     }
 
     @Test
-    fun `get statistics without active distribution`() {
-        every { distributionRepository.getCurrentDistribution() } returns null
-
-        val data = service.getData()
-
-        assertThat(data.statistics).isNull()
-
-        verify { distributionRepository.getCurrentDistribution() }
-        verify(exactly = 0) { distributionCustomerRepository.countAllByDistributionId(any()) }
-    }
-
-    @Test
     fun `get notes`() {
         val testNotes = "dummy-notes"
         val testDistributionEntity = DistributionEntity().apply {
@@ -118,17 +115,6 @@ internal class DashboardServiceTest {
         val data = service.getData()
 
         assertThat(data.notes).isEqualTo(testNotes)
-    }
-
-    @Test
-    fun `get notes without active distribution`() {
-        every { distributionRepository.getCurrentDistribution() } returns null
-
-        val data = service.getData()
-
-        assertThat(data.notes).isNull()
-
-        verify { distributionRepository.getCurrentDistribution() }
     }
 
     @Test
@@ -154,12 +140,17 @@ internal class DashboardServiceTest {
     }
 
     @Test
-    fun `get logistics without active distribution`() {
+    fun `get data without active distribution`() {
         every { distributionRepository.getCurrentDistribution() } returns null
 
         val data = service.getData()
 
+        assertThat(data).isNotNull
+        assertThat(data.registeredCustomers).isNull()
+        assertThat(data.tickets).isNull()
+        assertThat(data.statistics).isNull()
         assertThat(data.logistics).isNull()
+        assertThat(data.notes).isNull()
 
         verify { distributionRepository.getCurrentDistribution() }
         verify(exactly = 0) { distributionCustomerRepository.countAllByDistributionId(any()) }

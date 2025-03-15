@@ -77,7 +77,7 @@ val testDistributionCustomerEntity1 = DistributionCustomerEntity().apply {
         additionalPersons = mutableListOf(addPerson1, addPerson2)
     }
     ticketNumber = 50
-    processed = false
+    processed = true
 }
 
 val testDistributionCustomerEntity2 = DistributionCustomerEntity().apply {

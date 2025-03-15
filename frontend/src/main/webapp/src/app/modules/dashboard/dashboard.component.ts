@@ -17,6 +17,7 @@ import {ShelterListResponse} from '../../api/shelter-api.service';
 import {
   DistributionNotesInputComponent
 } from './components/distribution-notes-input/distribution-notes-input.component';
+import {TicketsProcessedComponent} from './components/tickets-processed/tickets-processed.component';
 
 @Component({
   selector: 'tafel-dashboard',
@@ -32,7 +33,8 @@ import {
     TafelIfDistributionActiveDirective,
     RecordedFoodCollectionsComponent,
     FoodAmountComponent,
-    DistributionNotesInputComponent
+    DistributionNotesInputComponent,
+    TicketsProcessedComponent
   ],
   standalone: true
 })
@@ -52,9 +54,15 @@ export class DashboardComponent implements OnInit {
 
 export interface DashboardData {
   registeredCustomers?: number;
+  tickets?: DashboardTicketsData;
   statistics?: DashboardStatisticsData;
   logistics?: DashboardLogisticsData;
   notes?: string;
+}
+
+export interface DashboardTicketsData {
+  countProcessedTickets?: number;
+  countTotalTickets?: number;
 }
 
 export interface DashboardStatisticsData {

@@ -28,6 +28,10 @@ internal class DashboardControllerTest {
     fun `get initial message`() {
         val data = DashboardData(
             registeredCustomers = 2,
+            tickets = DashboardTicketsData(
+                countProcessedTickets = 10,
+                countTotalTickets = 123
+            ),
             statistics = DashboardStatisticsData(
                 employeeCount = 1,
                 selectedShelterNames = listOf("Shelter 1", "Shelter 2")
@@ -51,6 +55,10 @@ internal class DashboardControllerTest {
     fun `refresh dashboard`() {
         val data = DashboardData(
             registeredCustomers = 5,
+            tickets = DashboardTicketsData(
+                countProcessedTickets = 10,
+                countTotalTickets = 123
+            ),
             statistics = DashboardStatisticsData(
                 employeeCount = 1,
                 selectedShelterNames = listOf("Shelter 1", "Shelter 2")

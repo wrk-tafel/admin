@@ -46,10 +46,10 @@ describe('RegisteredCustomersComponent', () => {
 
   it('customers count rendered', () => {
     const fixture = TestBed.createComponent(RegisteredCustomersComponent);
-    const component = fixture.componentInstance;
+    const componentRef = fixture.componentRef;
 
     const count = 123;
-    component.count = count;
+    componentRef.setInput('count', count);
 
     fixture.detectChanges();
     expect(fixture.debugElement.query(By.css('[testid="customers-count"]')).nativeElement.textContent).toBe(`${count}`);
