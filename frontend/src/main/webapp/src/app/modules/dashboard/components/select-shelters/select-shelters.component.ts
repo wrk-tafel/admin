@@ -66,6 +66,7 @@ export class SelectSheltersComponent implements OnInit {
   public readonly shelters = input<ShelterItem[]>();
   public readonly initialSelectedShelters = input<ShelterItem[]>();
   public readonly updateSelectedShelters = output<ShelterItem[]>();
+  public readonly disabled = input<boolean>();
 
   form = this.fb.group({
     selectedShelters: this.fb.array<FormControl<boolean>>([]),

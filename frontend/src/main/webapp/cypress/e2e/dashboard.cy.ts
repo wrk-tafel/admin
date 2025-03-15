@@ -28,6 +28,16 @@ describe('Dashboard', () => {
 
     cy.byTestId('distribution-statistics-save-button').click();
 
+    // fill notes
+    cy.byTestId('distribution-notes-textarea').type('Test note - everything went well!');
+    cy.byTestId('distribution-notes-save-button').click();
+
+    // check if data is filled after reload
+    cy.reload();
+    cy.byTestId('distribution-statistics-employee-count-input').should('have.value', '100');
+    cy.byTestId('distribution-statistics-persons-in-shelter-input').should('have.value', '150');
+    cy.byTestId('distribution-notes-textarea').should('have.value', 'Test note - everything went well!');
+
     // --> CLOSED
     cy.byTestId('distribution-close-button').click();
     cy.byTestId('distribution-close-modal-ok-button').click();

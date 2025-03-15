@@ -5,6 +5,7 @@ import {
   DistributionApiService,
   DistributionItem,
   DistributionItemResponse,
+  SaveDistributionNotesRequest,
   SaveDistributionStatisticRequest
 } from './distribution-api.service';
 import {WebsocketService} from '../common/websocket/websocket.service';
@@ -87,11 +88,22 @@ describe('DistributionApiService', () => {
     expect(req.request.body).toEqual(requestBody);
   });
 
-  it('save statistics data', () => {
+  it('save statistics', () => {
     const requestBody: SaveDistributionStatisticRequest = {employeeCount: 100, selectedShelterIds: [1, 2, 3]};
-    apiService.saveStatisticData(requestBody.employeeCount, requestBody.selectedShelterIds).subscribe();
+    apiService.saveStatistic(requestBody.employeeCount, requestBody.selectedShelterIds).subscribe();
 
     const req = httpMock.expectOne({method: 'POST', url: '/distributions/statistics'});
+    req.flush(null);
+    httpMock.verify();
+
+    expect(req.request.body).toEqual(requestBody);
+  });
+
+  it('save notes', () => {
+    const requestBody: SaveDistributionNotesRequest = {notes: 'test notes'};
+    apiService.saveNotes(requestBody.notes).subscribe();
+
+    const req = httpMock.expectOne({method: 'POST', url: '/distributions/notes'});
     req.flush(null);
     httpMock.verify();
 

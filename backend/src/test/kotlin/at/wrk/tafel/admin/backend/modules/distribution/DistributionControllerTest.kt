@@ -7,6 +7,7 @@ import at.wrk.tafel.admin.backend.modules.distribution.internal.model.AssignCust
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.CustomerListPdfResult
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionItem
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionItemResponse
+import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionNoteData
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionStatisticData
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
@@ -105,6 +106,22 @@ internal class DistributionControllerTest {
             service.updateDistributionStatisticData(
                 statisticData.employeeCount,
                 statisticData.selectedShelterIds
+            )
+        }
+    }
+
+    @Test
+    fun `save distribution note`() {
+        val noteData = DistributionNoteData(
+            notes = "dummy notes"
+        )
+
+        val response = controller.saveDistributionNotes(noteData)
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+        verify(exactly = 1) {
+            service.updateDistributionNoteData(
+                noteData.notes
             )
         }
     }

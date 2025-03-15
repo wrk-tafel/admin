@@ -1,5 +1,5 @@
 <form [formGroup]="form">
-  <button cButton (click)="showSelectSheltersModal = true" testid="dashboard-select-shelters-button">
+  <button cButton (click)="showSelectSheltersModal = true" testid="dashboard-select-shelters-button" [disabled]="disabled()">
     <fa-icon [icon]="faCalculator"></fa-icon>
   </button>
 </form>

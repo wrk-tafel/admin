@@ -6,6 +6,7 @@ import at.wrk.tafel.admin.backend.modules.distribution.internal.DistributionServ
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.AssignCustomerRequest
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionItem
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionItemResponse
+import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionNoteData
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionStatisticData
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.InputStreamResource
@@ -56,6 +57,13 @@ class DistributionController(
     @PreAuthorize("hasAuthority('LOGISTICS')")
     fun saveDistributionStatistic(@RequestBody statisticData: DistributionStatisticData): ResponseEntity<Unit> {
         service.updateDistributionStatisticData(statisticData.employeeCount, statisticData.selectedShelterIds)
+        return ResponseEntity.ok().build()
+    }
+
+    @PostMapping("/notes")
+    @PreAuthorize("isAuthenticated()")
+    fun saveDistributionNotes(@RequestBody noteData: DistributionNoteData): ResponseEntity<Unit> {
+        service.updateDistributionNoteData(noteData.notes)
         return ResponseEntity.ok().build()
     }
 
