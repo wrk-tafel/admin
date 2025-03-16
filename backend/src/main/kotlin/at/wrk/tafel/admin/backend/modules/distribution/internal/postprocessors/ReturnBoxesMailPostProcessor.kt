@@ -7,50 +7,40 @@ import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
-import org.thymeleaf.TemplateEngine
 import org.thymeleaf.context.Context
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 @Component
-class SummaryMailPostProcessor(
+class ReturnBoxesMailPostProcessor(
     private val tafelAdminProperties: TafelAdminProperties,
     private val mailSenderService: MailSenderService,
-    private val templateEngine: TemplateEngine,
 ) : DistributionPostProcessor {
 
     companion object {
-        private val logger = LoggerFactory.getLogger(SummaryMailPostProcessor::class.java)
+        private val logger = LoggerFactory.getLogger(ReturnBoxesMailPostProcessor::class.java)
         private val DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
     }
 
     override fun process(distribution: DistributionEntity, statistic: DistributionStatisticEntity) {
         val dateFormatted = LocalDate.now().format(DATE_TIME_FORMATTER)
 
-        val mailSubject = "TÖ Tafel 1030 - Zusammenfassung vom $dateFormatted"
-        val mailContent = generateMailContent(distribution, statistic)
-
-        mailSenderService.sendMail(
-            recipientAddresses = tafelAdminProperties.mail!!.summaryMail!!,
-            subject = mailSubject,
-            content = mailContent,
-            attachments = emptyList(),
-            isHtmlMail = true
-        )
-        logger.info("Mail summary '$mailSubject' sent!")
-    }
-
-    private fun generateMailContent(distribution: DistributionEntity, statistic: DistributionStatisticEntity): String {
-        val shelters = statistic.shelters.map { it.name }.sortedBy { it }
+        val mailSubject = "TÖ Tafel 1030 - Retourkisten vom $dateFormatted"
         val returnBoxes = createReturnBoxesData(distribution)
 
         val ctx = Context()
         ctx.setVariable("distributionDate", distribution.startedAt!!.format(DATE_TIME_FORMATTER))
-        ctx.setVariable("notes", distribution.notes)
         ctx.setVariable("returnBoxes", returnBoxes)
-        ctx.setVariable("shelters", shelters)
 
-        return templateEngine.process("summary-mail.html", ctx)
+        mailSenderService.sendHtmlMail(
+            recipientAddresses = tafelAdminProperties.mail!!.returnBoxes!!,
+            subject = mailSubject,
+            attachments = emptyList(),
+            templateName = "mails/return-boxes-mail",
+            context = ctx
+
+        )
+        logger.info("Mail for return boxes '$mailSubject' sent!")
     }
 
     private fun createReturnBoxesData(distribution: DistributionEntity): ReturnBoxesDataModel {

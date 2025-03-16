@@ -17,7 +17,9 @@ import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.thymeleaf.context.Context
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 @ExtendWith(MockKExtension::class)
@@ -40,6 +42,7 @@ class StatisticMailPostProcessorTest {
         val distributionId = 123L
         val distribution = mockk<DistributionEntity>()
         every { distribution.id } returns distributionId
+        every { distribution.startedAt } returns LocalDateTime.now()
         val distributionStatistic = mockk<DistributionStatisticEntity>()
 
         every { statisticExportService.exportStatisticFiles(any()) } returns listOf(
@@ -58,17 +61,23 @@ class StatisticMailPostProcessorTest {
 
         val statisticExportMailSubject =
             "TÖ Tafel 1030 - Statistiken vom ${LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))}"
-        val statisticExportMailText = "Details im Anhang"
 
         val statisticExportMailAttachmentSlot = slot<List<MailAttachment>>()
+        val contextSlot = slot<Context>()
         verify {
-            mailSenderService.sendMail(
+            mailSenderService.sendHtmlMail(
                 tafelAdminProperties.mail!!.statistic!!,
                 statisticExportMailSubject,
-                statisticExportMailText,
-                capture(statisticExportMailAttachmentSlot)
+                capture(statisticExportMailAttachmentSlot),
+                "mails/statistic-mail",
+                capture(contextSlot)
             )
         }
+
+        val context = contextSlot.captured
+        assertThat(context.getVariable("distributionDate")).isEqualTo(
+            LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
+        )
 
         val statisticExportAttachmentList = statisticExportMailAttachmentSlot.captured
         assertThat(statisticExportAttachmentList).hasSize(1)

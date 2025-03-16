@@ -42,7 +42,7 @@ tafeladmin:
       to:
         - "to1@localhost"
         - "to2@localhost"
-    summaryMail:
+    returnBoxes:
       to:
         - "to1@localhost"
         - "to2@localhost"

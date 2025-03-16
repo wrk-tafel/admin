@@ -1,0 +1,12 @@
+<div th:fragment="content">
+    Der Tages-Report zur Ausgabe vom [( ${distributionDate} )].
+    <br/>
+    <br/>
+    <p><strong>Anmerkungen:</strong></p>
+    <div th:if="${notes}">
+        <p>[( ${notes} )]</p>
+    </div>
+    <div th:unless="${notes}">
+        <p>Keine</p>
+    </div>
+</div>
