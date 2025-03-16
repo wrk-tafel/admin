@@ -15,7 +15,7 @@ data class TafelAdminMailProperties(
     val subjectPrefix: String? = null,
     val dailyReport: TafelAdminMailRecipientAddressesProperties? = null,
     val statistic: TafelAdminMailRecipientAddressesProperties? = null,
-    val summaryMail: TafelAdminMailRecipientAddressesProperties? = null,
+    val returnBoxes: TafelAdminMailRecipientAddressesProperties? = null,
 )
 
 @ExcludeFromTestCoverage

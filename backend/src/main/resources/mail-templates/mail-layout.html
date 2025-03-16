@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="de">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+        <style>
+            body {
+                font-family: 'Arial', sans-serif;
+            }
+        </style>
+    </head>
+    <body>
+        <img th:src="|cid:toet-logo|" alt="TÖ Tafel Logo"/>
+        <br/>
+        <p>Liebe Kolleginnen und Kollegen,</p>
+        <br/>
+        <div th:replace="~{${subTemplate} :: content}"></div>
+        <br/>
+        <p>Liebe Grüße,<br>
+        TÖ Tafel 1030</p>
+    </body>
+</html>

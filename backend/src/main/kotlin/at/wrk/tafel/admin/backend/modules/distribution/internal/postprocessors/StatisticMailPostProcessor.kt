@@ -10,6 +10,7 @@ import at.wrk.tafel.admin.backend.modules.reporting.StatisticExportService
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.ByteArrayResource
 import org.springframework.stereotype.Component
+import org.thymeleaf.context.Context
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -27,14 +28,13 @@ class StatisticMailPostProcessor(
 
     override fun process(distribution: DistributionEntity, statistic: DistributionStatisticEntity) {
         val statisticExportFiles = statisticExportService.exportStatisticFiles(statistic)
-        sendStatisticMail(statisticExportFiles)
+        sendStatisticMail(distribution, statisticExportFiles)
     }
 
-    private fun sendStatisticMail(statisticExportFiles: List<StatisticExportFile>) {
+    private fun sendStatisticMail(distribution: DistributionEntity, statisticExportFiles: List<StatisticExportFile>) {
         val dateFormatted = LocalDate.now().format(DATE_TIME_FORMATTER)
 
         val mailSubject = "TÖ Tafel 1030 - Statistiken vom $dateFormatted"
-        val mailText = "Details im Anhang"
         val attachments = statisticExportFiles.map {
             MailAttachment(
                 filename = it.name,
@@ -43,13 +43,18 @@ class StatisticMailPostProcessor(
             )
         }
 
-        mailSenderService.sendMail(
+        val ctx = Context()
+        ctx.setVariable("distributionDate", distribution.startedAt!!.format(DATE_TIME_FORMATTER))
+
+        mailSenderService.sendHtmlMail(
             tafelAdminProperties.mail!!.statistic!!,
             mailSubject,
-            mailText,
-            attachments
+            attachments,
+            "mails/statistic-mail",
+            ctx
         )
-        logger.info("Mail with Statistic-Files '$mailSubject' sent!")
+
+        logger.info("Mail with statistic files '$mailSubject' sent!")
     }
 
 }

@@ -41,7 +41,7 @@
                     </fo:table-cell>
                     <fo:table-cell>
                         <fo:block font-size="30pt" font-weight="bold" margin-left="1cm" margin-top="0.2cm">
-                            Tagesreport Tafel 1030
+                            Tagesreport TÖ Tafel 1030
                         </fo:block>
                         <fo:block font-size="25pt" margin-left="1cm">
                             <xsl:value-of select="date"/>

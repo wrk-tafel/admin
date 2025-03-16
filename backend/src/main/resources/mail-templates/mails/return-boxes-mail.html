@@ -1,0 +1,17 @@
+<div th:fragment="content">
+    Infos zur Ausgabe vom [( ${distributionDate} )].
+    <br/>
+    <br/>
+    <p><strong>Retourkisten:</strong></p>
+    <div th:if="${!#lists.isEmpty(returnBoxes.routes)}">
+        <div th:each="route : ${returnBoxes.routes}">
+            <p>[( ${route.name} )]</p>
+            <div th:each="shop : ${route.shops}">
+                <p>- [( ${shop.name} )]: [( ${shop.returnBoxes} )]</p>
+            </div>
+        </div>
+    </div>
+    <div th:if="${#lists.isEmpty(returnBoxes.routes)}">
+        <p>Keine</p>
+    </div>
+</div>

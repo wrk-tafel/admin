@@ -4,8 +4,6 @@ import at.wrk.tafel.admin.backend.common.mail.MailSenderService
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
-import at.wrk.tafel.admin.backend.modules.logistics.testDistributionStatisticShelterEntity1
-import at.wrk.tafel.admin.backend.modules.logistics.testDistributionStatisticShelterEntity2
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCollectionRoute1Entity
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCollectionRoute2Entity
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCollectionRoute3Entity
@@ -19,14 +17,13 @@ import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.thymeleaf.TemplateEngine
 import org.thymeleaf.context.Context
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 @ExtendWith(MockKExtension::class)
-class SummaryMailPostProcessorTest {
+class ReturnBoxesMailPostProcessorTest {
 
     @RelaxedMockK
     private lateinit var tafelAdminProperties: TafelAdminProperties
@@ -34,13 +31,8 @@ class SummaryMailPostProcessorTest {
     @RelaxedMockK
     private lateinit var mailSenderService: MailSenderService
 
-    @RelaxedMockK
-    private lateinit var templateEngine: TemplateEngine
-
     @InjectMockKs
-    private lateinit var postProcessor: SummaryMailPostProcessor
-
-    // TODO add a rendering test (maybe as a seperate integration-test)
+    private lateinit var postProcessor: ReturnBoxesMailPostProcessor
 
     @Test
     fun `proper postprocessing done`() {
@@ -58,32 +50,30 @@ class SummaryMailPostProcessorTest {
         )
 
         val distributionStatistic = mockk<DistributionStatisticEntity>()
-        every { distributionStatistic.shelters } returns listOf(
-            testDistributionStatisticShelterEntity1, testDistributionStatisticShelterEntity2
-        ).toMutableList()
-
         postProcessor.process(distribution, distributionStatistic)
 
-        assertSummaryMail(distribution, distributionStatistic)
+        assertMail()
     }
 
-    private fun assertSummaryMail(
-        distribution: DistributionEntity,
-        distributionStatistic: DistributionStatisticEntity,
-    ) {
+    private fun assertMail() {
         val mailSubject =
-            "TÖ Tafel 1030 - Zusammenfassung vom ${LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))}"
-        val renderedMailContent = "rendered content"
-        every { templateEngine.process("summary-mail.html", any()) } returns renderedMailContent
+            "TÖ Tafel 1030 - Retourkisten vom ${LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))}"
 
         val contextSlot = slot<Context>()
-        verify { templateEngine.process("summary-mail.html", capture(contextSlot)) }
+        verify {
+            mailSenderService.sendHtmlMail(
+                tafelAdminProperties.mail!!.returnBoxes!!,
+                mailSubject,
+                emptyList(),
+                "mails/return-boxes-mail",
+                capture(contextSlot)
+            )
+        }
 
         val context = contextSlot.captured
         assertThat(context.getVariable("distributionDate")).isEqualTo(
             LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
         )
-        assertThat(context.getVariable("notes")).isEqualTo(distribution.notes)
 
         val returnBoxes = context.getVariable("returnBoxes") as ReturnBoxesDataModel
         val firstReturnBox = returnBoxes.routes.first()
@@ -98,19 +88,6 @@ class SummaryMailPostProcessorTest {
                 )
             )
         )
-        assertThat(context.getVariable("shelters") as List<*>).hasSameElementsAs(
-            distributionStatistic.shelters.map { it.name }.sortedBy { it }
-        )
-
-        verify {
-            mailSenderService.sendMail(
-                tafelAdminProperties.mail!!.summaryMail!!,
-                mailSubject,
-                "", // TODO renderedMailContent
-                emptyList(),
-                true
-            )
-        }
     }
 
 }

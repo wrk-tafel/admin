@@ -3,7 +3,7 @@ package at.wrk.tafel.admin.backend.modules.distribution.internal
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
-import at.wrk.tafel.admin.backend.modules.distribution.internal.postprocessors.DailyReportPostProcessor
+import at.wrk.tafel.admin.backend.modules.distribution.internal.postprocessors.DailyReportMailPostProcessor
 import at.wrk.tafel.admin.backend.modules.distribution.internal.postprocessors.DistributionPostProcessor
 import at.wrk.tafel.admin.backend.modules.distribution.internal.postprocessors.StatisticMailPostProcessor
 import at.wrk.tafel.admin.backend.modules.distribution.internal.statistic.DistributionStatisticService
@@ -32,7 +32,7 @@ internal class DistributionPostProcessorServiceTest {
     private lateinit var distributionRepository: DistributionRepository
 
     @RelaxedMockK
-    private lateinit var postProcessor1: DailyReportPostProcessor
+    private lateinit var postProcessor1: DailyReportMailPostProcessor
 
     @RelaxedMockK
     private lateinit var postProcessor2: StatisticMailPostProcessor

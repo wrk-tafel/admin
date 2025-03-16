@@ -364,8 +364,8 @@ INSERT INTO static_values(id, created_at, updated_at, type, valid_from, valid_to
 VALUES (21, NOW(), NOW(), 'SIBLING-ADDITION', '1900-01-01', '2999-12-31', 52.00, 7);
 
 -- distribution-related
-INSERT INTO distributions (id, created_at, updated_at, started_at, ended_at, startedby_userid, endedby_userid)
-VALUES (100, NOW(), NOW(), '2023-07-01 14:00:00.000000', '2023-07-01 23:00:00.000000', 300, 300);
+INSERT INTO distributions (id, created_at, updated_at, started_at, ended_at, startedby_userid, endedby_userid, notes)
+VALUES (100, NOW(), NOW(), '2023-07-01 14:00:00.000000', '2023-07-01 23:00:00.000000', 300, 300, 'Everything went well!');
 INSERT INTO distributions_statistics (id, created_at, updated_at, distribution_id, count_customers,
                                       count_persons, count_infants, average_persons_per_customer,
                                       count_customers_new, count_persons_new,
