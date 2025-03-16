@@ -10,6 +10,7 @@
     </tafel-tickets-processed>
   </c-col>
 </c-row>
+<hr>
 <c-row class="mt-0 mt-md-4" *tafelIfPermission="'LOGISTICS'">
   <c-col sm="12" lg="4" class="mt-4 mt-sm-0">
     <tafel-distribution-statistics-input [sheltersData]="sheltersData"
@@ -29,6 +30,7 @@
         </tafel-recorded-food-collections>
       </c-col>
     </c-row>
+    <hr>
     <c-row class="mt-4">
       <c-col sm="12" lg="12">
         <tafel-food-amount [amount]="data?.logistics?.foodAmountTotal">
