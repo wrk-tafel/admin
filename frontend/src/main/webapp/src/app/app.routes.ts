@@ -11,8 +11,8 @@ import {LoginPasswordChangeComponent} from './common/views/login-passwordchange/
 import {DefaultLayoutResolver} from './common/views/default-layout/resolver/default-layout-resolver.component';
 import {
   TicketScreenFullscreenComponent
-} from './modules/checkin/ticket-screen-fullscreen/ticket-screen-fullscreen.component';
-import {UserPasswordChangeComponent} from './modules/user/user-passwordchange/user-passwordchange.component';
+} from './modules/checkin/views/ticket-screen-fullscreen/ticket-screen-fullscreen.component';
+import {UserPasswordChangeComponent} from './modules/user/components/user-passwordchange/user-passwordchange.component';
 
 const authGuard: CanActivateFn = (route: ActivatedRouteSnapshot) => {
   return inject(AuthGuardService).canActivate(route);
@@ -94,6 +94,13 @@ export const routes: Routes = [
         loadChildren: () => import('./modules/user/user.routes').then(m => m.routes),
         data: {
           anyPermissionOf: ['USER_MANAGEMENT']
+        }
+      },
+      {
+        path: 'einstellungen',
+        loadChildren: () => import('./modules/settings/settings.routes').then(m => m.routes),
+        data: {
+          anyPermissionOf: ['SETTINGS']
         }
       },
       {

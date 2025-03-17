@@ -3,6 +3,7 @@ package at.wrk.tafel.admin.backend.modules.distribution.internal.postprocessors
 import at.wrk.tafel.admin.backend.common.mail.MailAttachment
 import at.wrk.tafel.admin.backend.common.mail.MailSenderService
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
+import at.wrk.tafel.admin.backend.database.model.base.MailType
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionCustomerEntity1
@@ -84,18 +85,18 @@ class DailyReportMailPostProcessorTest {
         verify { dailyReportService.generateDailyReportPdf(distributionStatistic) }
 
         val dailyReportMailSubject =
-            "TÖ Tafel 1030 - Tages-Report vom ${LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))}"
+            "TÖ Tafel 1030 - Tagesreport vom ${LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))}"
 
         val contextSlot = slot<Context>()
 
         val dailyReportMailAttachmentSlot = slot<List<MailAttachment>>()
         verify {
             mailSenderService.sendHtmlMail(
-                tafelAdminProperties.mail!!.dailyReport!!,
-                dailyReportMailSubject,
-                capture(dailyReportMailAttachmentSlot),
-                "mails/daily-report-mail",
-                capture(contextSlot)
+                mailType = MailType.DAILY_REPORT,
+                subject = dailyReportMailSubject,
+                attachments = capture(dailyReportMailAttachmentSlot),
+                templateName = "mails/daily-report-mail",
+                context = capture(contextSlot)
             )
         }
 

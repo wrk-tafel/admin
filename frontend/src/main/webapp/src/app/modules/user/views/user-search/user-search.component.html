@@ -1,0 +1,143 @@
+<form cForm [formGroup]="form">
+  <c-card>
+    <c-card-body>
+      <c-row>
+        <c-col class="mb-3">
+          <h5>Benutzer-Suche</h5>
+        </c-col>
+      </c-row>
+      <c-row>
+        <c-col sm="3">
+          <label class="form-label">Personalnummer</label>
+        </c-col>
+      </c-row>
+      <c-row>
+        <c-col sm="3" class="mb-3">
+          <input testid="personnelNumberText" type="text" formControlName="personnelNumber" name="personnelNumber"
+                 class="form-control" (keydown.enter)="searchForPersonnelNumber()" tafelAutofocus>
+        </c-col>
+        <c-col sm="3">
+          <button testid="showuser-button" cButton
+                  [disabled]="!personnelNumber.value" (click)="searchForPersonnelNumber()">Anzeigen</button>
+        </c-col>
+      </c-row>
+      <hr>
+      <c-row>
+        <c-col sm="3">
+          <label class="form-label">Benutzername</label>
+          <input testid="usernameText" type="text" formControlName="username" name="username"
+                 class="form-control">
+        </c-col>
+        <c-col sm="3">
+          <label cLabel>Aktiv</label>
+          <c-input-group>
+            <input cFormCheckInput type="checkbox" formControlName="enabled" testid="enabledInput">
+          </c-input-group>
+        </c-col>
+      </c-row>
+      <c-row class="mt-0 mt-sm-3">
+        <c-col sm="3">
+          <label class="form-label">Nachname</label>
+          <input testid="lastnameText" type="text" formControlName="lastname" name="lastname"
+                 class="form-control">
+        </c-col>
+        <c-col sm="3">
+          <label class="form-label">Vorname</label>
+          <input testid="firstnameText" type="text" formControlName="firstname" name="firstname"
+                 class="form-control">
+        </c-col>
+      </c-row>
+      <c-row>
+        <c-col sm="3" class="mt-3">
+          <button testid="search-button" cButton
+                  (click)="searchForDetails()">Suchen</button>
+        </c-col>
+      </c-row>
+      <c-row *ngIf="searchResult" testid="searchresult-table">
+        <c-col>
+          <hr>
+        </c-col>
+      </c-row>
+      <c-row *ngIf="searchResult" class="d-none d-sm-block">
+        <c-col sm="12" class="table-responsive">
+          <h5 class="mb-4">Suchergebnis ({{this.searchResult.totalCount}} gefunden)</h5>
+          <tafel-pagination align="end" [paginationData]="paginationData" (pageChanged)="searchForDetails($event)"></tafel-pagination>
+          <table cTable striped="true" aria-label="Liste der gefundenen Benutzer" class="mt-3">
+            <thead>
+            <tr>
+              <th scope="col"></th>
+              <th scope="col">Nr.</th>
+              <th scope="col">Name</th>
+              <th scope="col">Personalnummer</th>
+              <th scope="col">Aktiv</th>
+              <th scope="col">Aktionen</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr testid="searchresult-row" scope="row"
+                *ngFor="let user of searchResult.items; let i = index">
+              <td><fa-icon [icon]="faUser"></fa-icon></td>
+              <td [attr.testid]="'searchresult-id-' + i">{{user.id}}</td>
+              <td [attr.testid]="'searchresult-name-' + i" (click)="navigateToUserDetail(user.id)" style="cursor: pointer;">
+                <a *ngIf="user.lastname || user.firstname">{{user.lastname ? user.lastname : '-'}} {{user.firstname ? user.firstname : '-'}}</a>
+                <div *ngIf="!user.lastname && !user.firstname">-</div>
+              </td>
+              <td [attr.testid]="'searchresult-personnelnumber-' + i">{{user.personnelNumber}}</td>
+              <td [attr.testid]="'searchresult-enabled-' + i">{{user.enabled ? 'Ja' : 'Nein'}}</td>
+              <td>
+                <div class="d-flex flex-fill gap-2">
+                  <button [attr.testid]="'searchresult-showuser-button-' + i"
+                          cButton
+                          (click)="navigateToUserDetail(user.id)">
+                          <fa-icon [icon]="faSearch"></fa-icon>
+                  </button>
+                  <button [attr.testid]="'searchresult-edituser-button-' + i"
+                          cButton color="danger"
+                          (click)="editUser(user.id)">
+                          <fa-icon [icon]="faPencil" inverse="true"></fa-icon>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            </tbody>
+          </table>
+          <tafel-pagination align="end" [paginationData]="paginationData" (pageChanged)="searchForDetails($event)"></tafel-pagination>
+        </c-col>
+      </c-row>
+      <c-row *ngIf="searchResult" class="d-block d-sm-none">
+        <c-col sm="12" class="table-responsive">
+          <h5 class="mb-4">Suchergebnis ({{this.searchResult.totalCount}} gefunden)</h5>
+          <tafel-pagination align="center" size="sm" [paginationData]="paginationData" (pageChanged)="searchForDetails($event)"></tafel-pagination>
+          <div class="d-flex flex-column gap-3 mb-3">
+            <c-card *ngFor="let user of this.searchResult.items; let i = index">
+              <c-card-header class="fw-bold">{{user.id}} - {{user.lastname}} {{user.firstname}}</c-card-header>
+              <c-card-body>
+                <c-row>
+                  <c-col class="fw-bold">Personalnummer:</c-col>
+                  <c-col>{{user.personnelNumber}}</c-col>
+                </c-row>
+                <c-row>
+                  <c-col class="fw-bold">Aktiv:</c-col>
+                  <c-col>{{user.enabled ? 'Ja' : 'Nein'}}</c-col>
+                </c-row>
+              </c-card-body>
+              <c-card-footer class="d-flex flex-fill gap-2">
+                <button [attr.testid]="'searchresult-showuser-button-' + i"
+                        cButton
+                        (click)="navigateToUserDetail(user.id)">
+                        <fa-icon [icon]="faSearch"></fa-icon>
+                </button>
+                <button [attr.testid]="'searchresult-edituser-button-' + i"
+                        cButton color="danger"
+                        (click)="editUser(user.id)">
+                        <fa-icon [icon]="faPencil" inverse="true"></fa-icon>
+                </button>
+              </c-card-footer>
+            </c-card>
+          </div>
+          <tafel-pagination align="center" size="sm" [paginationData]="paginationData" (pageChanged)="searchForDetails($event)"></tafel-pagination>
+        </c-col>
+      </c-row>
+    </c-card-body>
+  </c-card>
+</form>

@@ -3,7 +3,7 @@ import {TestBed} from '@angular/core/testing';
 import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
 import {errorHandlerInterceptor, TafelErrorResponse} from './errorhandler-interceptor.service';
 import {AuthenticationService} from '../security/authentication.service';
-import {ToastOptions, ToastService, ToastType} from '../views/default-layout/toasts/toast.service';
+import {ToastOptions, ToastService, ToastType} from '../components/toasts/toast.service';
 
 describe('ErrorHandlerInterceptor', () => {
   let httpTestingController: HttpTestingController;

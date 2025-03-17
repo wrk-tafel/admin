@@ -15,7 +15,7 @@ import {
   CustomerNoteApiService, CustomerNoteItem,
   CustomerNotesResponse
 } from '../../../../api/customer-note-api.service';
-import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
+import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
 import {
   TafelPaginationComponent,
   TafelPaginationData

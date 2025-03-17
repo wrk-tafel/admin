@@ -31,7 +31,7 @@ import {
   FoodCollectionsApiService,
   FoodCollectionSaveRequest
 } from '../../../../api/food-collections-api.service';
-import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
+import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
 import {CarData, CarList} from '../../../../api/car-api.service';
 
 @Component({

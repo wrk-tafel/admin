@@ -24,7 +24,7 @@ import {
   TabsModule
 } from '@coreui/angular';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
-import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
+import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
 import {TafelPaginationData} from '../../../../common/components/tafel-pagination/tafel-pagination.component';
 import {provideRouter} from '@angular/router';
 import {CustomerEditComponent} from '../customer-edit/customer-edit.component';

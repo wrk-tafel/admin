@@ -1,16 +1,19 @@
 import {Component, inject, Input, OnInit, ViewChild} from '@angular/core';
-import {CustomerFormComponent} from '../customer-form/customer-form.component';
+import {CustomerFormComponent} from '../../components/customer-form/customer-form.component';
 import {CustomerApiService, CustomerData, ValidateCustomerResponse} from '../../../../api/customer-api.service';
 import {Router} from '@angular/router';
 import {
-  BgColorDirective, ButtonCloseDirective, ButtonDirective,
+  BgColorDirective,
+  ButtonCloseDirective,
+  ButtonDirective,
   Colors,
   ModalBodyComponent,
-  ModalComponent, ModalFooterComponent,
+  ModalComponent,
+  ModalFooterComponent,
   ModalHeaderComponent,
   ModalToggleDirective
 } from '@coreui/angular';
-import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
+import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
 import {DecimalPipe, NgClass} from '@angular/common';
 
 @Component({
