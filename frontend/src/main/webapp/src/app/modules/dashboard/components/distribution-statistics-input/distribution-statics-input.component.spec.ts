@@ -3,7 +3,7 @@ import {DistributionApiService, DistributionItem} from '../../../../api/distribu
 import {DistributionStatisticsInputComponent} from './distribution-statistics-input.component';
 import {CardModule, ColComponent, ModalModule, ProgressModule, RowComponent} from '@coreui/angular';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
-import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
+import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
 import {BehaviorSubject, of, throwError} from 'rxjs';
 import {ShelterItem} from '../../../../api/shelter-api.service';
 import {GlobalStateService} from '../../../../common/state/global-state.service';

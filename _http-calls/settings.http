@@ -1,0 +1,51 @@
+### Get mail-recipient settings
+GET {{baseApiPath}}/settings/mail-recipients
+
+### Update mail-recipient settings
+POST {{baseApiPath}}/settings/mail-recipients
+Content-Type: application/json
+
+{
+  "settings": [
+    {
+      "mailType": {
+        "name": "DAILY_REPORT",
+        "label": "Tagesreport"
+      },
+      "recipients": {
+        "to": [
+          "dailyreport-to1@domain.com",
+          "dailyreport-to2@domain.com"
+        ],
+        "cc": [
+          "dailyreport-cc@domain.com"
+        ],
+        "bcc": [
+          "dailyreport-bcc@domain.com"
+        ]
+      }
+    },
+    {
+      "mailType": {
+        "name": "STATISTICS",
+        "label": "Statistiken"
+      },
+      "recipients": {
+        "to": [
+          "statistics-to@domain.com"
+        ]
+      }
+    },
+    {
+      "mailType": {
+        "name": "RETURN_BOXES",
+        "label": "Retourkisten"
+      },
+      "recipients": {
+        "to": [
+          "returnboxes-to@domain.com"
+        ]
+      }
+    }
+  ]
+}

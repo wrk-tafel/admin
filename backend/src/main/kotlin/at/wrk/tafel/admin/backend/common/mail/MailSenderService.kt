@@ -1,8 +1,10 @@
 package at.wrk.tafel.admin.backend.common.mail
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
-import at.wrk.tafel.admin.backend.config.properties.TafelAdminMailRecipientAddressesProperties
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
+import at.wrk.tafel.admin.backend.database.model.base.MailRecipientRepository
+import at.wrk.tafel.admin.backend.database.model.base.MailType
+import at.wrk.tafel.admin.backend.database.model.base.RecipientType
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.ClassPathResource
 import org.springframework.core.io.InputStreamSource
@@ -18,20 +20,21 @@ class MailSenderService(
     @Autowired(required = false)
     private val mailSender: JavaMailSender?,
     private val tafelAdminProperties: TafelAdminProperties,
+    private val mailRecipientRepository: MailRecipientRepository,
     private val templateEngine: TemplateEngine,
 ) {
 
     fun sendTextMail(
-        recipientAddresses: TafelAdminMailRecipientAddressesProperties,
+        mailType: MailType,
         subject: String,
         content: String,
         attachments: List<MailAttachment>,
     ) {
-        sendMail(recipientAddresses, subject, content, attachments, isHtmlMail = false)
+        sendMail(mailType, subject, content, attachments, isHtmlMail = false)
     }
 
     fun sendHtmlMail(
-        recipientAddresses: TafelAdminMailRecipientAddressesProperties,
+        mailType: MailType,
         subject: String,
         attachments: List<MailAttachment>,
         templateName: String,
@@ -40,11 +43,11 @@ class MailSenderService(
         context.setVariable("subTemplate", templateName)
         val content = templateEngine.process("mail-layout", context)
 
-        sendMail(recipientAddresses, subject, content, attachments, isHtmlMail = true)
+        sendMail(mailType, subject, content, attachments, isHtmlMail = true)
     }
 
     private fun sendMail(
-        recipientAddresses: TafelAdminMailRecipientAddressesProperties,
+        mailType: MailType,
         subject: String,
         content: String,
         attachments: List<MailAttachment>,
@@ -58,15 +61,8 @@ class MailSenderService(
             messageHelper.setText(content, isHtmlMail)
 
             messageHelper.setFrom(tafelAdminProperties.mail!!.from)
-            recipientAddresses.to?.forEach {
-                messageHelper.addTo(it)
-            }
-            recipientAddresses.cc?.forEach {
-                messageHelper.addCc(it)
-            }
-            recipientAddresses.bcc?.forEach {
-                messageHelper.addBcc(it)
-            }
+            configureRecipientAddresses(mailType, messageHelper)
+
             attachments.forEach {
                 messageHelper.addAttachment(it.filename, it.inputStreamSource, it.contentType)
             }
@@ -75,6 +71,17 @@ class MailSenderService(
 
             mailSender.send(messageHelper.mimeMessage)
         }
+    }
+
+    private fun configureRecipientAddresses(mailType: MailType, messageHelper: MimeMessageHelper) {
+        val mailAddresses = mailRecipientRepository.findAllByMailType(mailType)
+
+        mailAddresses.filter { it.recipientType == RecipientType.TO }
+            .forEach { messageHelper.addTo(it.address!!) }
+        mailAddresses.filter { it.recipientType == RecipientType.CC }
+            .forEach { messageHelper.addCc(it.address!!) }
+        mailAddresses.filter { it.recipientType == RecipientType.BCC }
+            .forEach { messageHelper.addBcc(it.address!!) }
     }
 
 }

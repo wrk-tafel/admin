@@ -18,12 +18,12 @@ class DailyReportsExporter(
     }
 
     override fun getName(): String {
-        return "TOeT_Tages-Reports"
+        return "TOeT_Tagesreports"
     }
 
     override fun getRows(currentStatistic: DistributionStatisticEntity): List<List<String>> {
         val descriptionHeaderRow =
-            listOf("TOeT Auswertung Stand: ${LocalDateTime.now().format(DATE_FORMATTER)} - Tages-Reports")
+            listOf("TOeT Auswertung Stand: ${LocalDateTime.now().format(DATE_FORMATTER)} - Tagesreports")
         val columnsHeaderRow = listOf(
             "Datum",
             "KW",

@@ -12,10 +12,11 @@ import {
 } from '../../../../api/customer-api.service';
 import {HttpResponse} from '@angular/common/http';
 import {
-  CustomerNoteApiService, CustomerNoteItem,
+  CustomerNoteApiService,
+  CustomerNoteItem,
   CustomerNotesResponse
 } from '../../../../api/customer-note-api.service';
-import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
+import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
 import {
   TafelPaginationComponent,
   TafelPaginationData
@@ -46,10 +47,15 @@ import {
   RowComponent,
   TabContentComponent,
   TabContentRefDirective,
-  TabPaneComponent
+  TabDirective,
+  TabPaneComponent,
+  TabPanelComponent,
+  TabsComponent,
+  TabsContentComponent,
+  TabsListComponent
 } from '@coreui/angular';
 import {CommonModule} from '@angular/common';
-import {FormsModule} from '@angular/forms';
+import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {faPlus, faUsers} from '@fortawesome/free-solid-svg-icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 
@@ -88,6 +94,12 @@ import {FaIconComponent} from '@fortawesome/angular-fontawesome';
     NavLinkDirective,
     RoundedDirective,
     FaIconComponent,
+    ReactiveFormsModule,
+    TabDirective,
+    TabPanelComponent,
+    TabsComponent,
+    TabsContentComponent,
+    TabsListComponent,
   ],
   standalone: true
 })

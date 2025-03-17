@@ -3,7 +3,7 @@ import {NavigationEnd, Router, RouterOutlet} from '@angular/router';
 
 import {IconSetService} from '@coreui/icons-angular';
 import {freeSet} from '@coreui/icons';
-import {TafelToasterComponent} from './common/views/default-layout/toasts/tafel-toaster.component';
+import {TafelToasterComponent} from './common/components/toasts/tafel-toaster.component';
 
 @Component({
   // tslint:disable-next-line

@@ -1,7 +1,13 @@
 package at.wrk.tafel.admin.backend.common.mail
 
-import at.wrk.tafel.admin.backend.config.properties.TafelAdminMailRecipientAddressesProperties
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
+import at.wrk.tafel.admin.backend.database.model.base.MailRecipientRepository
+import at.wrk.tafel.admin.backend.database.model.base.MailType
+import at.wrk.tafel.admin.backend.database.model.base.RecipientType
+import at.wrk.tafel.admin.backend.database.model.base.testMailRecipient_DR_BCC1
+import at.wrk.tafel.admin.backend.database.model.base.testMailRecipient_DR_BCC2
+import at.wrk.tafel.admin.backend.database.model.base.testMailRecipient_DR_TO1
+import at.wrk.tafel.admin.backend.database.model.base.testMailRecipient_DR_TO2
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -29,6 +35,9 @@ internal class MailSenderServiceTest {
     private lateinit var properties: TafelAdminProperties
 
     @RelaxedMockK
+    private lateinit var mailRecipientRepository: MailRecipientRepository
+
+    @RelaxedMockK
     private lateinit var templateEngine: TemplateEngine
 
     @InjectMockKs
@@ -38,10 +47,10 @@ internal class MailSenderServiceTest {
 
     @Test
     fun `sendTextMail - mailing disabled`() {
-        val service = MailSenderService(null, properties, templateEngine)
+        val service = MailSenderService(null, properties, mailRecipientRepository, templateEngine)
         every { properties.mail!!.from } returns "from-address"
 
-        service.sendTextMail(TafelAdminMailRecipientAddressesProperties(), "subject", "text", emptyList())
+        service.sendTextMail(MailType.DAILY_REPORT, "subject", "text", emptyList())
 
         verify(exactly = 0) { mailSender.send(any<MimeMessage>()) }
     }
@@ -54,13 +63,16 @@ internal class MailSenderServiceTest {
         val subjectPrefix = "PREFIX - "
         every { properties.mail!!.subjectPrefix } returns subjectPrefix
 
+        val recipientAddresses = listOf(
+            testMailRecipient_DR_TO1,
+            testMailRecipient_DR_TO2,
+            testMailRecipient_DR_BCC1,
+            testMailRecipient_DR_BCC2,
+        )
+        every { mailRecipientRepository.findAllByMailType(MailType.DAILY_REPORT) } returns recipientAddresses
+
         val subject = "subj"
         val text = "txt"
-
-        val recipientAddresses = TafelAdminMailRecipientAddressesProperties(
-            to = listOf("to1@host.at", "to2@host.at"),
-            bcc = listOf("bcc1@host.at", "bcc2@host.at")
-        )
 
         val attachment = MailAttachment(
             filename = "test.pdf",
@@ -69,7 +81,7 @@ internal class MailSenderServiceTest {
         )
         every { mailSender.createMimeMessage() } returns MimeMessage(null, ByteArrayInputStream(ByteArray(0)))
 
-        service.sendTextMail(recipientAddresses, subject, text, listOf(attachment))
+        service.sendTextMail(MailType.DAILY_REPORT, subject, text, listOf(attachment))
 
         val mailMessageSlot = slot<MimeMessage>()
         verify { mailSender.send(capture(mailMessageSlot)) }
@@ -82,26 +94,34 @@ internal class MailSenderServiceTest {
         assertThat(mailMessage.getHeader("From").first()).isEqualTo(fromAddress)
 
         val toRecipients = mailMessage.getRecipients(Message.RecipientType.TO)
-        assertThat(toRecipients.map { it.toString() }).isEqualTo(recipientAddresses.to)
+        assertThat(toRecipients.map { it.toString() }).hasSameElementsAs(
+            recipientAddresses
+                .filter { it.recipientType == RecipientType.TO }
+                .map { it.address }
+        )
 
         val ccRecipients = mailMessage.getRecipients(Message.RecipientType.CC)
         assertThat(ccRecipients).isNull()
 
         val bccRecipients = mailMessage.getRecipients(Message.RecipientType.BCC)
-        assertThat(bccRecipients.map { it.toString() }).isEqualTo(recipientAddresses.bcc)
+        assertThat(bccRecipients.map { it.toString() }).hasSameElementsAs(
+            recipientAddresses
+                .filter { it.recipientType == RecipientType.BCC }
+                .map { it.address }
+        )
     }
 
     @Test
     fun `sendHtmlMail - mailing disabled`() {
-        val service = MailSenderService(null, properties, templateEngine)
+        val service = MailSenderService(null, properties, mailRecipientRepository, templateEngine)
         every { properties.mail!!.from } returns "from-address"
 
         service.sendHtmlMail(
-            TafelAdminMailRecipientAddressesProperties(),
-            "subject",
-            emptyList(),
-            "templateName",
-            Context()
+            mailType = MailType.DAILY_REPORT,
+            subject = "subject",
+            attachments = emptyList(),
+            templateName = "templateName",
+            context = Context()
         )
 
         verify(exactly = 0) { mailSender.send(any<MimeMessage>()) }
@@ -115,6 +135,14 @@ internal class MailSenderServiceTest {
         val subjectPrefix = "PREFIX - "
         every { properties.mail!!.subjectPrefix } returns subjectPrefix
 
+        val recipientAddresses = listOf(
+            testMailRecipient_DR_TO1,
+            testMailRecipient_DR_TO2,
+            testMailRecipient_DR_BCC1,
+            testMailRecipient_DR_BCC2,
+        )
+        every { mailRecipientRepository.findAllByMailType(MailType.DAILY_REPORT) } returns recipientAddresses
+
         val subject = "subj"
         val subTemplateName = "sub-template-name"
         val context = Context()
@@ -123,11 +151,6 @@ internal class MailSenderServiceTest {
         val renderedContent = "rendered content"
         every { templateEngine.process(any<String>(), any<Context>()) } returns renderedContent
 
-        val recipientAddresses = TafelAdminMailRecipientAddressesProperties(
-            to = listOf("to1@host.at", "to2@host.at"),
-            bcc = listOf("bcc1@host.at", "bcc2@host.at")
-        )
-
         val attachment = MailAttachment(
             filename = "test.pdf",
             inputStreamSource = ByteArrayResource(ByteArray(10)),
@@ -135,7 +158,7 @@ internal class MailSenderServiceTest {
         )
         every { mailSender.createMimeMessage() } returns MimeMessage(null, ByteArrayInputStream(ByteArray(0)))
 
-        service.sendHtmlMail(recipientAddresses, subject, listOf(attachment), subTemplateName, context)
+        service.sendHtmlMail(MailType.DAILY_REPORT, subject, listOf(attachment), subTemplateName, context)
 
         verify { templateEngine.process("mail-layout", context) }
         assertThat(context.getVariable("subTemplate")).isEqualTo(subTemplateName)
@@ -151,13 +174,21 @@ internal class MailSenderServiceTest {
         assertThat(mailMessage.getHeader("From").first()).isEqualTo(fromAddress)
 
         val toRecipients = mailMessage.getRecipients(Message.RecipientType.TO)
-        assertThat(toRecipients.map { it.toString() }).isEqualTo(recipientAddresses.to)
+        assertThat(toRecipients.map { it.toString() }).hasSameElementsAs(
+            recipientAddresses
+                .filter { it.recipientType == RecipientType.TO }
+                .map { it.address }
+        )
 
         val ccRecipients = mailMessage.getRecipients(Message.RecipientType.CC)
         assertThat(ccRecipients).isNull()
 
         val bccRecipients = mailMessage.getRecipients(Message.RecipientType.BCC)
-        assertThat(bccRecipients.map { it.toString() }).isEqualTo(recipientAddresses.bcc)
+        assertThat(bccRecipients.map { it.toString() }).hasSameElementsAs(
+            recipientAddresses
+                .filter { it.recipientType == RecipientType.BCC }
+                .map { it.address }
+        )
 
         /*
         TODO add asserts

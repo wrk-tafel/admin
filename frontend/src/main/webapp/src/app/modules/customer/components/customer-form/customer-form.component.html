@@ -1,0 +1,472 @@
+<form [formGroup]="form">
+  <c-row>
+    <c-col md>
+      <c-card>
+        <c-card-header>
+          <h5>Hauptbezieher</h5>
+        </c-card-header>
+        <c-card-body>
+          <c-row class="mb-2">
+            <c-col sm>
+              <label class="form-label">Nachname *</label>
+              <input testid="lastnameInput" type="text" formControlName="lastname" class="form-control" tafelAutofocus
+                     [ngClass]="{'is-invalid': lastname.invalid && (lastname.dirty || lastname.touched), 'is-valid': lastname.valid && (lastname.dirty || lastname.touched)}">
+              <div *ngIf="lastname.errors?.required && (lastname.dirty || lastname.touched)"
+                   class="invalid-feedback">
+                Pflichtfeld
+              </div>
+              <div *ngIf="lastname.errors?.maxlength && (lastname.dirty || lastname.touched)"
+                   class="invalid-feedback">
+                Nachname zu lang (Limit: {{lastname.errors.maxlength.requiredLength}})
+              </div>
+            </c-col>
+            <c-col sm>
+              <label class="form-label">Vorname *</label>
+              <input testid="firstnameInput" type="text" formControlName="firstname" class="form-control"
+                     [ngClass]="{'is-invalid': firstname.invalid && (firstname.dirty || firstname.touched), 'is-valid': firstname.valid && (firstname.dirty || firstname.touched)}">
+              <div *ngIf="firstname.errors?.required && (firstname.dirty || firstname.touched)"
+                   class="invalid-feedback">
+                Pflichtfeld
+              </div>
+              <div *ngIf="firstname.errors?.maxlength && (firstname.dirty || firstname.touched)"
+                   class="invalid-feedback">
+                Vorname zu lang (Limit: {{firstname.errors.maxlength.requiredLength}})
+              </div>
+            </c-col>
+          </c-row>
+          <c-row class="mb-2">
+            <c-col sm>
+              <label class="form-label">Geburtsdatum *</label>
+              <input testid="birthDateInput" type="date" formControlName="birthDate" class="form-control"
+                     [ngClass]="{'is-invalid': birthDate.invalid && (birthDate.dirty || birthDate.touched), 'is-valid': birthDate.valid && (birthDate.dirty || birthDate.touched)}">
+              <div *ngIf="birthDate.errors?.required && (birthDate.dirty || birthDate.touched)"
+                   class="invalid-feedback">
+                Pflichtfeld
+              </div>
+              <div *ngIf="birthDate.errors?.mindate && (birthDate.dirty || birthDate.touched)"
+                   class="invalid-feedback">
+                Mind. Datum: {{birthDate.errors.mindate.minimumDate}}
+              </div>
+              <div *ngIf="birthDate.errors?.maxdate && (birthDate.dirty || birthDate.touched)"
+                   class="invalid-feedback">
+                Max. Datum: {{birthDate.errors.maxdate.maximumDate}}
+              </div>
+            </c-col>
+            <c-col sm>
+              <label class="form-label">Geschlecht *</label>
+              <c-input-group>
+                <select testid="genderInput" formControlName="gender" class="form-control" cSelect
+                        [ngClass]="{'is-invalid': gender.invalid && (gender.dirty || gender.touched), 'is-valid': gender.valid && (gender.dirty || gender.touched)}">
+                  <option *ngFor="let gender of genders" [ngValue]="gender">
+                    {{getGenderLabel(gender)}}</option>
+                </select>
+                <span cInputGroupText>
+                  <fa-icon [icon]="faVenusMars"></fa-icon>
+                </span>
+                <div *ngIf="gender.errors?.required && (gender.dirty || gender.touched)"
+                     class="invalid-feedback">
+                  Pflichtfeld
+                </div>
+              </c-input-group>
+            </c-col>
+          </c-row>
+          <c-row class="mb-2">
+            <c-col>
+              <label class="form-label">Nationalität *</label>
+              <c-input-group>
+                <select testid="countryInput" formControlName="country" class="form-control" cSelect
+                        [compareWith]="compareCountry"
+                        [ngClass]="{'is-invalid': country.invalid && (country.dirty || country.touched), 'is-valid': country.valid && (country.dirty || country.touched)}">
+                  <option *ngFor="let countryItem of countries" [ngValue]="countryItem">
+                    {{countryItem.name}}</option>
+                </select>
+                <span cInputGroupText>
+                  <fa-icon [icon]="faFlag"></fa-icon>
+                </span>
+                <div *ngIf="country.errors?.required && (country.dirty || country.touched)"
+                     class="invalid-feedback">
+                  Pflichtfeld
+                </div>
+              </c-input-group>
+            </c-col>
+          </c-row>
+          <c-row class="mb-2">
+            <c-col sm>
+              <label class="form-label">Telefonnummer</label>
+              <c-input-group>
+                <input testid="telephoneNumberInput" type="text" formControlName="telephoneNumber"
+                       class="form-control"
+                       [ngClass]="{'is-invalid': telephoneNumber.invalid && (telephoneNumber.dirty || telephoneNumber.touched), 'is-valid': telephoneNumber.valid && (telephoneNumber.dirty || telephoneNumber.touched)}">
+                <span cInputGroupText>
+                  <fa-icon [icon]="faPhone"></fa-icon>
+                </span>
+              </c-input-group>
+            </c-col>
+            <c-col sm>
+              <label class="form-label">E-Mail</label>
+              <c-input-group>
+                <input testid="emailInput" type="text" formControlName="email" class="form-control"
+                       [ngClass]="{'is-invalid': email.invalid && (email.dirty || email.touched), 'is-valid': email.valid && (email.dirty || email.touched)}">
+                <span cInputGroupText>
+                  <fa-icon [icon]="faEnvelope"></fa-icon>
+                </span>
+                <div *ngIf="email.errors?.maxlength && (email.dirty || email.touched)"
+                     class="invalid-feedback">
+                  E-Mail zu lang (Limit: {{email.errors.maxlength.requiredLength}})
+                </div>
+                <div *ngIf="email.errors?.email && (email.dirty || email.touched)"
+                     class="invalid-feedback">
+                  E-Mail-Format ungültig!
+                </div>
+              </c-input-group>
+            </c-col>
+          </c-row>
+          <hr>
+          <div formGroupName="address">
+            <c-row class="mb-2">
+              <c-col sm>
+                <label class="form-label">Straße *</label>
+                <input testid="streetInput" type="text" formControlName="street" class="form-control"
+                       [ngClass]="{'is-invalid': street.invalid && (street.dirty || street.touched), 'is-valid': street.valid && (street.dirty || street.touched)}">
+                <div *ngIf="street.errors?.required && (street.dirty || street.touched)"
+                     class="invalid-feedback">
+                  Pflichtfeld
+                </div>
+                <div *ngIf="street.errors?.maxlength && (street.dirty || street.touched)"
+                     class="invalid-feedback">
+                  Straße zu lang (Limit:
+                  {{street.errors.maxlength.requiredLength}})
+                </div>
+              </c-col>
+            </c-row>
+            <c-row class="mb-2">
+              <c-col sm>
+                <label class="form-label">Hausnummer *</label>
+                <input testid="houseNumberInput" type="text" formControlName="houseNumber"
+                       class="form-control"
+                       [ngClass]="{'is-invalid': houseNumber.invalid && (houseNumber.dirty || houseNumber.touched), 'is-valid': houseNumber.valid && (houseNumber.dirty || houseNumber.touched)}">
+                <div *ngIf="houseNumber.errors?.required && (houseNumber.dirty || houseNumber.touched)"
+                     class="invalid-feedback">
+                  Pflichtfeld
+                </div>
+                <div *ngIf="houseNumber.errors?.maxlength && (houseNumber.dirty || houseNumber.touched)"
+                     class="invalid-feedback">
+                  Hausnummer zu lang (Limit:
+                  {{houseNumber.errors.maxlength.requiredLength}})
+                </div>
+              </c-col>
+              <c-col sm>
+                <label class="form-label">Stiege</label>
+                <input testid="stairwayInput" type="number" formControlName="stairway"
+                       class="form-control"
+                       [ngClass]="{'is-invalid': stairway.invalid && (stairway.dirty || stairway.touched), 'is-valid': stairway.valid && (stairway.dirty || stairway.touched)}">
+              </c-col>
+              <c-col sm>
+                <label class="form-label">Top</label>
+                <input testid="doorInput" type="number" formControlName="door" class="form-control"
+                       [ngClass]="{'is-invalid': door.invalid && (door.dirty || door.touched), 'is-valid': door.valid && (door.dirty || door.touched)}">
+              </c-col>
+            </c-row>
+            <c-row class="mb-2">
+              <c-col sm>
+                <label class="form-label">PLZ *</label>
+                <c-input-group>
+                  <input testid="postalCodeInput" type="number" formControlName="postalCode"
+                         class="form-control"
+                         [ngClass]="{'is-invalid': postalCode.invalid && (postalCode.dirty || postalCode.touched), 'is-valid': postalCode.valid && (postalCode.dirty || postalCode.touched)}">
+                  <span cInputGroupText>
+                    <fa-icon [icon]="faLocationDot"></fa-icon>
+                  </span>
+                  <div *ngIf="postalCode.errors && (postalCode.dirty || postalCode.touched)"
+                       class="invalid-feedback">
+                    Pflichtfeld / 4-stellig
+                  </div>
+                </c-input-group>
+              </c-col>
+              <c-col sm>
+                <label class="form-label">Ort *</label>
+                <c-input-group>
+                  <input testid="cityInput" type="text" formControlName="city" class="form-control"
+                         [ngClass]="{'is-invalid': city.invalid && (city.dirty || city.touched), 'is-valid': city.valid && (city.dirty || city.touched)}">
+                  <span cInputGroupText>
+                    <fa-icon [icon]="faLocationDot"></fa-icon>
+                  </span>
+                  <div *ngIf="city.errors?.required && (city.dirty || city.touched)"
+                       class="invalid-feedback">
+                    Pflichtfeld
+                  </div>
+                  <div *ngIf="city.errors?.maxlength && (city.dirty || city.touched)"
+                       class="invalid-feedback">
+                    Ort zu lang (Limit:
+                    {{city.errors.maxlength.requiredLength}})
+                  </div>
+                </c-input-group>
+              </c-col>
+            </c-row>
+          </div>
+          <hr>
+          <c-row class="mb-2">
+            <c-col sm>
+              <label class="form-label">Arbeitgeber *</label>
+              <c-input-group>
+                <input testid="employerInput" type="text" formControlName="employer"
+                       class="form-control"
+                       [ngClass]="{'is-invalid': employer.invalid && (employer.dirty || employer.touched), 'is-valid': employer.valid && (employer.dirty || employer.touched)}">
+                <span cInputGroupText>
+                  <fa-icon [icon]="faBuilding"></fa-icon>
+                </span>
+                <div *ngIf="employer.errors?.required && (employer.dirty || employer.touched)"
+                     class="invalid-feedback">
+                  Pflichtfeld
+                </div>
+              </c-input-group>
+            </c-col>
+          </c-row>
+          <c-row class="mb-2">
+            <c-col sm>
+              <label class="form-label">Einkommen (monatl.)</label>
+              <c-input-group>
+                <input testid="incomeInput" type="number" formControlName="income" class="form-control"
+                       [ngClass]="{'is-invalid': income.invalid && (income.dirty || income.touched), 'is-valid': income.valid && (income.dirty || income.touched)}">
+                <span cInputGroupText>
+                  <fa-icon [icon]="faEuroSign"></fa-icon>
+                </span>
+              </c-input-group>
+            </c-col>
+            <c-col sm>
+              <label class="form-label">nachgewiesen bis</label>
+              <div class="input-group">
+                <input testid="incomeDueInput" type="date" formControlName="incomeDue" class="form-control"
+                       [ngClass]="{'is-invalid': incomeDue.invalid && (incomeDue.dirty || incomeDue.touched), 'is-valid': incomeDue.valid && (incomeDue.dirty || incomeDue.touched)}">
+                <div *ngIf="incomeDue.errors?.mindate && (incomeDue.dirty || incomeDue.touched)"
+                     class="invalid-feedback">
+                  Mind. Datum: {{incomeDue.errors.mindate.minimumDate}}
+                </div>
+              </div>
+            </c-col>
+          </c-row>
+          <hr/>
+          <c-row class="mb-2">
+            <c-col sm>
+              <label class="form-label">Gültig bis *</label>
+              <input testid="validUntilInput" type="date" formControlName="validUntil" class="form-control"
+                     [ngClass]="{'is-invalid': validUntil.invalid && (validUntil.dirty || validUntil.touched), 'is-valid': validUntil.valid && (validUntil.dirty || validUntil.touched)}">
+              <div *ngIf="validUntil.errors?.required && (validUntil.dirty || validUntil.touched)"
+                   class="invalid-feedback">
+                Pflichtfeld
+              </div>
+              <div *ngIf="validUntil.errors?.mindate && (validUntil.dirty || validUntil.touched)"
+                   class="invalid-feedback">
+                Mind. Datum: {{validUntil.errors.mindate.minimumDate}}
+              </div>
+            </c-col>
+          </c-row>
+        </c-card-body>
+      </c-card>
+    </c-col>
+    <div class="col-md mt-3 mt-md-0">
+      <c-card>
+        <c-card-header>
+          <c-row>
+            <c-col>
+              <h5>Weitere Personen</h5>
+            </c-col>
+            <c-col class="text-end">
+              <button cButton color="success" (click)="addNewPerson()">Hinzufügen</button>
+            </c-col>
+          </c-row>
+        </c-card-header>
+        <c-card-body>
+          <div *ngIf="!additionalPersons || additionalPersons?.length === 0">
+            <h6 testid="nopersons-label" class="mb-3">Keine Personen vorhanden</h6>
+          </div>
+          <div formArrayName="additionalPersons" class="mt-3"
+               *ngFor="let additionalPerson of additionalPersons.controls; trackBy: trackBy; let i = index">
+            <c-col size="12" class="p-0">
+              <c-card>
+                <c-card-body>
+                  <c-row [formGroupName]="i" [attr.testid]="'personform-' + i">
+                    <c-col>
+                      <c-row>
+                        <c-col lg size="6">
+                          <input testid="idInput" type="hidden" formControlName="id" class="form-control"/>
+                          <label class="form-label">Nachname *</label>
+                          <input testid="lastnameInput" type="text" formControlName="lastname"
+                                 class="form-control"
+                                 [ngClass]="{'is-invalid': additionalPerson.get('lastname').invalid && (additionalPerson.get('lastname').dirty || additionalPerson.get('lastname').touched), 'is-valid': additionalPerson.get('lastname').valid && (additionalPerson.get('lastname').dirty || additionalPerson.get('lastname').touched)}"
+                                 tafelAutofocus>
+                          <div
+                            *ngIf="additionalPerson.get('lastname').errors?.required && (additionalPerson.get('lastname').dirty || additionalPerson.get('lastname').touched)"
+                            class="invalid-feedback">
+                            Pflichtfeld
+                          </div>
+                          <div
+                            *ngIf="additionalPerson.get('lastname').errors?.maxlength && (additionalPerson.get('lastname').dirty || additionalPerson.get('lastname').touched)"
+                            class="invalid-feedback">
+                            Nachname zu lang (Limit: {{lastname.errors.maxlength.requiredLength}})
+                          </div>
+                        </c-col>
+                        <c-col lg size="6">
+                          <label class="form-label">Vorname *</label>
+                          <input testid="firstnameInput" type="text"
+                                 formControlName="firstname" class="form-control"
+                                 [ngClass]="{'is-invalid': additionalPerson.get('firstname').invalid && (additionalPerson.get('firstname').dirty || additionalPerson.get('firstname').touched), 'is-valid': additionalPerson.get('firstname').valid && (additionalPerson.get('firstname').dirty || additionalPerson.get('firstname').touched)}">
+                          <div
+                            *ngIf="additionalPerson.get('firstname').errors?.required && (additionalPerson.get('firstname').dirty || additionalPerson.get('firstname').touched)"
+                            class="invalid-feedback">
+                            Pflichtfeld
+                          </div>
+                          <div
+                            *ngIf="additionalPerson.get('firstname').errors?.maxlength && (additionalPerson.get('firstname').dirty || additionalPerson.get('firstname').touched)"
+                            class="invalid-feedback">
+                            Vorname zu lang
+                            (Limit: {{additionalPerson.get('firstname').errors.maxlength.requiredLength}})
+                          </div>
+                        </c-col>
+                      </c-row>
+                      <c-row>
+                        <c-col lg size="6">
+                          <label class="form-label">Geburtsdatum *</label>
+                          <input testid="birthDateInput" type="date"
+                                 formControlName="birthDate" class="form-control"
+                                 [ngClass]="{'is-invalid': additionalPerson.get('birthDate').invalid && (additionalPerson.get('birthDate').dirty || additionalPerson.get('birthDate').touched), 'is-valid': additionalPerson.get('birthDate').valid && (additionalPerson.get('birthDate').dirty || additionalPerson.get('birthDate').touched)}">
+                          <div
+                            *ngIf="additionalPerson.get('birthDate').errors?.required && (additionalPerson.get('birthDate').dirty || additionalPerson.get('birthDate').touched)"
+                            class="invalid-feedback">
+                            Pflichtfeld
+                          </div>
+                          <div
+                            *ngIf="additionalPerson.get('birthDate').errors?.mindate && (additionalPerson.get('birthDate').dirty || additionalPerson.get('birthDate').touched)"
+                            class="invalid-feedback">
+                            Mind. Datum: {{additionalPerson.get('birthDate').errors.mindate.minimumDate}}
+                          </div>
+                          <div
+                            *ngIf="additionalPerson.get('birthDate').errors?.maxdate && (additionalPerson.get('birthDate').dirty || additionalPerson.get('birthDate').touched)"
+                            class="invalid-feedback">
+                            Max. Datum: {{additionalPerson.get('birthDate').errors.maxdate.maximumDate}}
+                          </div>
+                        </c-col>
+                        <c-col lg size="6">
+                          <label class="form-label">Geschlecht *</label>
+                          <c-input-group>
+                            <select testid="genderInput" formControlName="gender" cSelect class="form-control"
+                                    [ngClass]="{'is-invalid': additionalPerson.get('gender').invalid && (additionalPerson.get('gender').dirty || additionalPerson.get('gender').touched), 'is-valid': additionalPerson.get('gender').valid && (additionalPerson.get('gender').dirty || additionalPerson.get('gender').touched)}">
+                              <option *ngFor="let gender of genders" [ngValue]="gender">
+                                {{getGenderLabel(gender)}}</option>
+                            </select>
+                            <span cInputGroupText>
+                              <fa-icon [icon]="faVenusMars"></fa-icon>
+                            </span>
+                            <div
+                              *ngIf="additionalPerson.get('gender').errors?.required && (additionalPerson.get('gender').dirty || additionalPerson.get('gender').touched)"
+                              class="invalid-feedback">
+                              Pflichtfeld
+                            </div>
+                          </c-input-group>
+                        </c-col>
+                      </c-row>
+                      <c-row>
+                        <c-col>
+                          <label class="form-label">Nationalität *</label>
+                          <c-input-group>
+                            <select testid="countryInput" formControlName="country" cSelect class="form-control"
+                                    [compareWith]="compareCountry"
+                                    [ngClass]="{'is-invalid': additionalPerson.get('country').invalid && (additionalPerson.get('country').dirty || additionalPerson.get('country').touched), 'is-valid': additionalPerson.get('country').valid && (additionalPerson.get('country').dirty || additionalPerson.get('country').touched)}">
+                              <option *ngFor="let countryItem of countries" [ngValue]="countryItem">
+                                {{countryItem.name}}</option>
+                            </select>
+                            <span cInputGroupText>
+                              <fa-icon [icon]="faFlag"></fa-icon>
+                            </span>
+                            <div
+                              *ngIf="additionalPerson.get('country').errors?.required && (additionalPerson.get('country').dirty || additionalPerson.get('country').touched)"
+                              class="invalid-feedback">
+                              Pflichtfeld
+                            </div>
+                          </c-input-group>
+                        </c-col>
+                      </c-row>
+                      <c-row>
+                        <c-col lg size="6">
+                          <label class="form-label">Arbeitgeber</label>
+                          <c-input-group>
+                            <input testid="employerInput" type="text"
+                                   formControlName="employer" class="form-control"
+                                   [ngClass]="{'is-invalid': additionalPerson.get('employer').invalid && (additionalPerson.get('employer').dirty || additionalPerson.get('employer').touched), 'is-valid': additionalPerson.get('employer').valid && (additionalPerson.get('employer').dirty || additionalPerson.get('employer').touched)}">
+                            <span cInputGroupText>
+                              <fa-icon [icon]="faBuilding"></fa-icon>
+                            </span>
+                          </c-input-group>
+                        </c-col>
+                        <c-col lg size="6">
+                          <label class="form-label">Einkommen (monatl.)</label>
+                          <c-input-group>
+                            <input testid="incomeInput" type="number"
+                                   formControlName="income" class="form-control"
+                                   [ngClass]="{'is-invalid': additionalPerson.get('income').invalid && (additionalPerson.get('income').dirty || additionalPerson.get('income').touched), 'is-valid': additionalPerson.get('income').valid && (additionalPerson.get('income').dirty || additionalPerson.get('income').touched)}">
+                            <span cInputGroupText>
+                              <fa-icon [icon]="faEuroSign"></fa-icon>
+                            </span>
+                            <div
+                              *ngIf="additionalPerson.get('income').errors?.min && (additionalPerson.get('income').dirty || additionalPerson.get('income').touched)"
+                              class="invalid-feedback">
+                              Muss mindestens 1 sein
+                            </div>
+                          </c-input-group>
+                        </c-col>
+                      </c-row>
+                      <c-row>
+                        <c-col lg size="12">
+                          <label class="form-label">nachgewiesen bis</label>
+                          <div class="input-group">
+                            <input testid="incomeDueInput" type="date"
+                                   formControlName="incomeDue" class="form-control"
+                                   [ngClass]="{'is-invalid': additionalPerson.get('incomeDue').invalid && (additionalPerson.get('incomeDue').dirty || additionalPerson.get('incomeDue').touched), 'is-valid': additionalPerson.get('incomeDue').valid && (additionalPerson.get('incomeDue').dirty || additionalPerson.get('incomeDue').touched)}">
+                            <div
+                              *ngIf="additionalPerson.get('incomeDue').errors?.mindate && (additionalPerson.get('incomeDue').dirty || additionalPerson.get('incomeDue').touched)"
+                              class="invalid-feedback">
+                              Mind. Datum: {{additionalPerson.get('incomeDue').errors.mindate.minimumDate}}
+                            </div>
+                          </div>
+                        </c-col>
+                      </c-row>
+                      <c-row class="mt-2">
+                        <c-col lg size="6">
+                          <label class="form-label">Bezieht Familienbeihilfe</label>
+                          <div class="input-group">
+                            <input testid="receivesFamilyBonusInput" type="checkbox"
+                                   formControlName="receivesFamilyBonus" class="form-check-input">
+                          </div>
+                        </c-col>
+                        <c-col lg size="6">
+                          <label class="form-label">Nicht im selben Haushalt (keine Berechnung)</label>
+                          <div class="input-group">
+                            <input testid="excludeFromHouseholdInput" type="checkbox"
+                                   formControlName="excludeFromHousehold" class="form-check-input">
+                          </div>
+                        </c-col>
+                      </c-row>
+                    </c-col>
+                  </c-row>
+                  <c-row>
+                    <div class="col-lg-5 col-xxl-2 mt-3">
+                      <button [attr.testid]="'remove-personform-' + i" cButton
+                              color="danger" class="text-white"
+                              (click)="removePerson(i)">Löschen
+                      </button>
+                    </div>
+                  </c-row>
+                </c-card-body>
+              </c-card>
+            </c-col>
+          </div>
+        </c-card-body>
+        <c-card-footer class="text-end">
+          <button testid="addperson-button-bottom" cButton color="success" (click)="addNewPerson()">
+            Hinzufügen
+          </button>
+        </c-card-footer>
+      </c-card>
+    </div>
+  </c-row>
+</form>
