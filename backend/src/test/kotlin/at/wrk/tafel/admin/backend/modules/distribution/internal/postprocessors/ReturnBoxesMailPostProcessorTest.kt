@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.modules.distribution.internal.postprocessors
 
 import at.wrk.tafel.admin.backend.common.mail.MailSenderService
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
+import at.wrk.tafel.admin.backend.database.model.base.MailType
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCollectionRoute1Entity
@@ -62,11 +63,11 @@ class ReturnBoxesMailPostProcessorTest {
         val contextSlot = slot<Context>()
         verify {
             mailSenderService.sendHtmlMail(
-                tafelAdminProperties.mail!!.returnBoxes!!,
-                mailSubject,
-                emptyList(),
-                "mails/return-boxes-mail",
-                capture(contextSlot)
+                mailType = MailType.RETURN_BOXES,
+                subject = mailSubject,
+                attachments = emptyList(),
+                templateName = "mails/return-boxes-mail",
+                context = capture(contextSlot)
             )
         }
 

@@ -3,6 +3,7 @@ package at.wrk.tafel.admin.backend.modules.distribution.internal.postprocessors
 import at.wrk.tafel.admin.backend.common.mail.MailAttachment
 import at.wrk.tafel.admin.backend.common.mail.MailSenderService
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
+import at.wrk.tafel.admin.backend.database.model.base.MailType
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
 import at.wrk.tafel.admin.backend.modules.reporting.DailyReportService
@@ -40,7 +41,7 @@ class DailyReportMailPostProcessor(
         val dateTitleFormatted = LocalDate.now().format(DATE_TIME_FORMATTER)
         val dateFilenameFormatted = LocalDate.now().format(DATE_FILENAME_FORMATTER)
 
-        val mailSubject = "TÖ Tafel 1030 - Tages-Report vom $dateTitleFormatted"
+        val mailSubject = "TÖ Tafel 1030 - Tagesreport vom $dateTitleFormatted"
         val filename = "tagesreport_${dateFilenameFormatted}.pdf"
         val attachment = listOf(
             MailAttachment(
@@ -55,7 +56,7 @@ class DailyReportMailPostProcessor(
         ctx.setVariable("notes", distribution.notes)
 
         mailSenderService.sendHtmlMail(
-            tafelAdminProperties.mail!!.dailyReport!!,
+            MailType.DAILY_REPORT,
             mailSubject,
             attachment,
             "mails/daily-report-mail",

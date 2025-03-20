@@ -114,13 +114,13 @@ class DailyReportsExporterTest {
         )
 
         val filename = exporter.getName()
-        assertThat(filename).isEqualTo("TOeT_Tages-Reports")
+        assertThat(filename).isEqualTo("TOeT_Tagesreports")
 
         val rows = exporter.getRows(currentStatistic)
 
         assertThat(rows).isEqualTo(
             listOf(
-                listOf("TOeT Auswertung Stand: ${LocalDateTime.now().format(DATE_FORMATTER)} - Tages-Reports"),
+                listOf("TOeT Auswertung Stand: ${LocalDateTime.now().format(DATE_FORMATTER)} - Tagesreports"),
                 listOf(
                     "Datum", "KW", "Versorgte Personen", "davon in NOST", "davon in Ausgabestelle", "davon Kinder < 3 Jahre", "Haushalte",
                     "Verlängert (Haushalte)", "Verlängert (Personen)", "Neue Kunden", "Neue Personen", "Ges. Spender", "Spender mit Ware",
@@ -176,12 +176,12 @@ class DailyReportsExporterTest {
         )
 
         val filename = exporter.getName()
-        assertThat(filename).isEqualTo("TOeT_Tages-Reports")
+        assertThat(filename).isEqualTo("TOeT_Tagesreports")
 
         val rows = exporter.getRows(currentStatistic)
         assertThat(rows).isEqualTo(
             listOf(
-                listOf("TOeT Auswertung Stand: ${LocalDateTime.now().format(DATE_FORMATTER)} - Tages-Reports"),
+                listOf("TOeT Auswertung Stand: ${LocalDateTime.now().format(DATE_FORMATTER)} - Tagesreports"),
                 listOf(
                     "Datum", "KW", "Versorgte Personen", "davon in NOST", "davon in Ausgabestelle", "davon Kinder < 3 Jahre", "Haushalte",
                     "Verlängert (Haushalte)", "Verlängert (Personen)", "Neue Kunden", "Neue Personen", "Ges. Spender", "Spender mit Ware",

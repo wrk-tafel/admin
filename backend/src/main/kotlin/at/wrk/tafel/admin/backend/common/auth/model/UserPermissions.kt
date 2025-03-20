@@ -10,7 +10,8 @@ enum class UserPermissions(val key: String, val title: String) {
     CUSTOMER("CUSTOMER", "Kundenverwaltung"),
     CUSTOMER_DUPLICATES("CUSTOMER_DUPLICATES", "Kunden-Duplikate"),
     LOGISTICS("LOGISTICS", "Transport/Logistik"),
-    SCANNER("SCANNER", "Scanner");
+    SCANNER("SCANNER", "Scanner"),
+    SETTINGS("SETTINGS", "Einstellungen");
 
     companion object {
         fun valueOfKey(key: String): UserPermissions {

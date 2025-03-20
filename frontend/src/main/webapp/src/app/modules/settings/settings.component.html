@@ -1,0 +1,31 @@
+<c-row>
+  <c-col sm="12" md="6">
+    <c-card>
+      <c-card-header>
+        <c-row class="d-flex align-items-center">
+          <c-col class="d-flex align-items-center gap-2">
+            <svg [cIcon]="cilEnvelopeClosed" size="xl" title="E-Mail Icon"></svg>
+            <h5 class="mb-0 mt-1 align-self-center">E-Mail</h5>
+          </c-col>
+        </c-row>
+      </c-card-header>
+      <c-card-body>
+        <c-nav variant="tabs">
+          <c-nav-item *ngFor="let setting of mailRecipientSettings; let i = index">
+            <a [cTabContent]="mailSettingsTabs" [routerLink] [tabPaneIdx]="i" cNavLink>
+              {{setting.mailType.label}}
+            </a>
+          </c-nav-item>
+        </c-nav>
+        <c-tab-content #mailSettingsTabs="cTabContent" [activeTabPaneIdx]="0" cRounded="bottom">
+          <c-tab-pane *ngFor="let setting of mailRecipientSettings; let i = index" class="p-3 preview" role="tabpanel">
+            {{setting.mailType.label}}
+          </c-tab-pane>
+        </c-tab-content>
+      </c-card-body>
+      <c-card-footer>
+        <button cButton color="primary" (click)="save()">Speichern</button>
+      </c-card-footer>
+    </c-card>
+  </c-col>
+</c-row>

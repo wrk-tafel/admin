@@ -4,7 +4,7 @@ import {CustomerDuplicatesComponent} from './customer-duplicates.component';
 import {ActivatedRoute, Router} from '@angular/router';
 import * as moment from 'moment/moment';
 import {of, throwError} from 'rxjs';
-import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
+import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
 import {CardModule, ColComponent, PaginationModule, RowComponent} from '@coreui/angular';
 import {TafelPaginationComponent} from '../../../../common/components/tafel-pagination/tafel-pagination.component';
 

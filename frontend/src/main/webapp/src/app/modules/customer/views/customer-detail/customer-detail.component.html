@@ -61,17 +61,17 @@
     <div class="col">
       <c-nav variant="tabs">
         <c-nav-item>
-          <a [cTabContent]="tabContent1" [routerLink] [tabPaneIdx]="0" cNavLink>
+          <a [cTabContent]="customerDetailTabs" [routerLink] [tabPaneIdx]="0" cNavLink>
             Allgemeine Daten
           </a>
         </c-nav-item>
         <c-nav-item>
-          <a [cTabContent]="tabContent1" [routerLink] [tabPaneIdx]="1" cNavLink>
+          <a [cTabContent]="customerDetailTabs" [routerLink] [tabPaneIdx]="1" cNavLink>
             <fa-icon [icon]="faUsers"></fa-icon> Weitere Personen ({{customerData?.additionalPersons.length}})
           </a>
         </c-nav-item>
       </c-nav>
-      <c-tab-content #tabContent1="cTabContent" [activeTabPaneIdx]="0" cRounded="bottom">
+      <c-tab-content #customerDetailTabs="cTabContent" [activeTabPaneIdx]="0" cRounded="bottom">
         <c-tab-pane class="p-3 preview" role="tabpanel">
           <div class="row">
             <div class="col-lg-6 col-sm-12">
