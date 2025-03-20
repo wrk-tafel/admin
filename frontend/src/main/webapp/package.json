@@ -84,7 +84,7 @@
     "@types/node": "20.17.24",
     "@typescript-eslint/eslint-plugin": "8.26.1",
     "@typescript-eslint/eslint-plugin-tslint": "7.0.2",
-    "@typescript-eslint/parser": "8.26.1",
+    "@typescript-eslint/parser": "8.27.0",
     "codelyzer": "6.0.2",
     "cypress": "14.2.0",
     "cypress-browser-permissions": "1.1.0",
