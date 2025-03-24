@@ -28,7 +28,7 @@ class MailSenderService(
         mailType: MailType,
         subject: String,
         content: String,
-        attachments: List<MailAttachment>,
+        attachments: List<MailAttachment> = emptyList(),
     ) {
         sendMail(mailType, subject, content, attachments, isHtmlMail = false)
     }
@@ -36,7 +36,7 @@ class MailSenderService(
     fun sendHtmlMail(
         mailType: MailType,
         subject: String,
-        attachments: List<MailAttachment>,
+        attachments: List<MailAttachment> = emptyList(),
         templateName: String,
         context: Context,
     ) {
@@ -62,6 +62,7 @@ class MailSenderService(
 
             messageHelper.setFrom(tafelAdminProperties.mail!!.from)
             configureRecipientAddresses(mailType, messageHelper)
+            tafelAdminProperties.mail.defaultRecipientsBcc?.forEach { messageHelper.addBcc(it) }
 
             attachments.forEach {
                 messageHelper.addAttachment(it.filename, it.inputStreamSource, it.contentType)

@@ -146,4 +146,41 @@ class SettingsServiceTest {
         )
     }
 
+    @Test
+    fun `update, filter and sanitize mail recipients`() {
+        val updatedSettings = MailRecipients(
+            mailRecipients = listOf(
+                MailRecipientsPerMailType(
+                    mailType = MailType.DAILY_REPORT.name,
+                    recipients = listOf(
+                        MailRecipientAdresses(
+                            recipientType = MailRecipientType.TO,
+                            addresses = listOf("     ")
+                        ),
+                        MailRecipientAdresses(
+                            recipientType = MailRecipientType.CC,
+                            addresses = listOf("      c  c1         ")
+                        )
+                    )
+                )
+            )
+        )
+
+        service.updateMailRecipients(updatedSettings)
+
+        val recipientsSlot = slot<List<MailRecipientEntity>>()
+        verifyOrder {
+            mailRecipientRepository.deleteAll()
+            mailRecipientRepository.saveAll(capture(recipientsSlot))
+        }
+
+        assertThat(recipientsSlot.captured).containsExactly(
+            MailRecipientEntity().apply {
+                mailType = MailType.DAILY_REPORT
+                recipientType = RecipientType.CC
+                address = "c c1"
+            }
+        )
+    }
+
 }

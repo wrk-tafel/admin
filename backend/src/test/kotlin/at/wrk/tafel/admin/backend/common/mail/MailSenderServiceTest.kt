@@ -198,4 +198,43 @@ internal class MailSenderServiceTest {
          */
     }
 
+    @Test
+    fun `sendMail in addition to default recipients`() {
+        val fromAddress = "from-address"
+        every { properties.mail!!.from } returns fromAddress
+
+        val defaultRecipients = listOf(
+            "default1", "default2"
+        )
+        every { properties.mail?.defaultRecipientsBcc } returns defaultRecipients
+
+        every { mailRecipientRepository.findAllByMailType(MailType.DAILY_REPORT) } returns listOf(
+            testMailRecipient_DR_TO1,
+            testMailRecipient_DR_TO2,
+        )
+        every { mailSender.createMimeMessage() } returns MimeMessage(null, ByteArrayInputStream(ByteArray(0)))
+
+        service.sendTextMail(MailType.DAILY_REPORT, "", "")
+
+        val mailMessageSlot = slot<MimeMessage>()
+        verify { mailSender.send(capture(mailMessageSlot)) }
+
+        val mailMessage = mailMessageSlot.captured
+        assertThat(mailMessage).isNotNull
+
+        val toRecipients = mailMessage.getRecipients(Message.RecipientType.TO)
+        assertThat(toRecipients.map { it.toString() }).hasSameElementsAs(
+            listOf(
+                testMailRecipient_DR_TO1,
+                testMailRecipient_DR_TO2,
+            ).map { it.address }
+        )
+
+        val ccRecipients = mailMessage.getRecipients(Message.RecipientType.CC)
+        assertThat(ccRecipients).isNull()
+
+        val bccRecipients = mailMessage.getRecipients(Message.RecipientType.BCC)
+        assertThat(bccRecipients.map { it.toString() }).hasSameElementsAs(defaultRecipients)
+    }
+
 }
