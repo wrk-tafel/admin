@@ -3,7 +3,7 @@ import {inject} from '@angular/core';
 import {from, Observable, throwError} from 'rxjs';
 import {catchError} from 'rxjs/operators';
 import {AuthenticationService} from '../security/authentication.service';
-import {ToastOptions, ToastService, ToastType} from '../views/default-layout/toasts/toast.service';
+import {ToastOptions, ToastService, ToastType} from '../components/toasts/toast.service';
 
 export const errorHandlerInterceptor: HttpInterceptorFn = (
   request: HttpRequest<unknown>,

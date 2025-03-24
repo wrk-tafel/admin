@@ -21,7 +21,7 @@ import {CommonModule} from '@angular/common';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
 import {DistributionApiService} from '../../../../api/distribution-api.service';
-import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
+import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
 import {SelectSheltersComponent} from '../select-shelters/select-shelters.component';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
 

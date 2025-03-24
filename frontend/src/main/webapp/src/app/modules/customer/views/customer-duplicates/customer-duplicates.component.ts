@@ -11,7 +11,7 @@ import {
   TafelPaginationData
 } from '../../../../common/components/tafel-pagination/tafel-pagination.component';
 import * as moment from 'moment/moment';
-import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
+import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
 import {
   ButtonDirective,
   CardBodyComponent,

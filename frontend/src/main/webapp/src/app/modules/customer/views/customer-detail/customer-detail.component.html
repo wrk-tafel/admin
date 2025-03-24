@@ -59,199 +59,197 @@
   </div>
   <div class="row mt-0 mt-lg-3 mb-0 mb-lg-3">
     <div class="col">
-      <c-nav variant="tabs">
-        <c-nav-item>
-          <a [cTabContent]="tabContent1" [routerLink] [tabPaneIdx]="0" cNavLink>
+      <c-tabs [activeItemKey]="0">
+        <c-tabs-list variant="underline-border">
+          <button cTab [itemKey]="0">
             Allgemeine Daten
-          </a>
-        </c-nav-item>
-        <c-nav-item>
-          <a [cTabContent]="tabContent1" [routerLink] [tabPaneIdx]="1" cNavLink>
+          </button>
+          <button cTab [itemKey]="1">
             <fa-icon [icon]="faUsers"></fa-icon> Weitere Personen ({{customerData?.additionalPersons.length}})
-          </a>
-        </c-nav-item>
-      </c-nav>
-      <c-tab-content #tabContent1="cTabContent" [activeTabPaneIdx]="0" cRounded="bottom">
-        <c-tab-pane class="p-3 preview" role="tabpanel">
-          <div class="row">
-            <div class="col-lg-6 col-sm-12">
-              <div class="card">
-                <div class="card-header text-center h5">Hauptbezieher</div>
-                <div class="card-body">
-                  <div class="row">
-                    <div class="col fw-bold">Kundennummer</div>
-                    <div testid="customerIdText" class="col">{{customerData?.id}}</div>
-                  </div>
-                  <div class="row">
-                    <div class="col fw-bold">Name</div>
-                    <div testid="nameText" class="col">{{getFormattedName()}}</div>
-                  </div>
-                  <div class="row">
-                    <div class="col fw-bold">Geburtsdatum (Alter)</div>
-                    <div testid="birthDateAgeText" class="col">{{getBirthDateAndAge(this.customerData?.birthDate)}}</div>
-                  </div>
-                  <div class="row">
-                    <div class="col fw-bold">Geschlecht</div>
-                    <div testid="genderText" class="col">{{getGenderLabel(customerData?.gender)}}</div>
-                  </div>
-                  <div class="row">
-                    <div class="col fw-bold">Nationalität</div>
-                    <div testid="countryText" class="col">{{customerData?.country?.name}}</div>
-                  </div>
-                  <div class="row">
-                    <div class="col fw-bold">Telefon</div>
-                    <div testid="telephoneNumberText" class="col"
-                         [innerHTML]="customerData?.telephoneNumber ? customerData?.telephoneNumber : '-'"></div>
-                  </div>
-                  <div class="row">
-                    <div class="col fw-bold">E-Mail</div>
-                    <div testid="emailText" class="col" [innerHTML]="customerData?.email ? customerData?.email : '-'">
+          </button>
+        </c-tabs-list>
+        <c-tabs-content>
+          <c-tab-panel [itemKey]="0" class="p-3 preview">
+            <div class="row">
+              <div class="col-lg-6 col-sm-12">
+                <div class="card">
+                  <div class="card-header text-center h5">Hauptbezieher</div>
+                  <div class="card-body">
+                    <div class="row">
+                      <div class="col fw-bold">Kundennummer</div>
+                      <div testid="customerIdText" class="col">{{customerData?.id}}</div>
+                    </div>
+                    <div class="row">
+                      <div class="col fw-bold">Name</div>
+                      <div testid="nameText" class="col">{{getFormattedName()}}</div>
+                    </div>
+                    <div class="row">
+                      <div class="col fw-bold">Geburtsdatum (Alter)</div>
+                      <div testid="birthDateAgeText" class="col">{{getBirthDateAndAge(this.customerData?.birthDate)}}</div>
+                    </div>
+                    <div class="row">
+                      <div class="col fw-bold">Geschlecht</div>
+                      <div testid="genderText" class="col">{{getGenderLabel(customerData?.gender)}}</div>
+                    </div>
+                    <div class="row">
+                      <div class="col fw-bold">Nationalität</div>
+                      <div testid="countryText" class="col">{{customerData?.country?.name}}</div>
+                    </div>
+                    <div class="row">
+                      <div class="col fw-bold">Telefon</div>
+                      <div testid="telephoneNumberText" class="col"
+                           [innerHTML]="customerData?.telephoneNumber ? customerData?.telephoneNumber : '-'"></div>
+                    </div>
+                    <div class="row">
+                      <div class="col fw-bold">E-Mail</div>
+                      <div testid="emailText" class="col" [innerHTML]="customerData?.email ? customerData?.email : '-'">
+                      </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                      <div class="col fw-bold">Adresse</div>
+                      <div class="col">
+                        <div class="row">
+                          <div testid="addressLine1Text" class="col">{{customerData?.address ?
+                            formatAddressLine1(customerData?.address) : ''}}</div>
+                        </div>
+                        <div class="row">
+                          <div testid="addressLine2Text" class="col"
+                               [innerHTML]="customerData?.address ? formatAddressLine2(customerData?.address) : ''">
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                      <div class="col fw-bold">Arbeitgeber</div>
+                      <div testid="employerText" class="col">{{customerData?.employer ? customerData?.employer : '-'}}</div>
+                    </div>
+                    <div class="row mt-2 align-items-end">
+                      <div class="col fw-bold">
+                        Einkommen (monatlich)
+                      </div>
+                      <div testid="incomeText" class="col">{{!customerData?.income ? '-' : customerData?.income | currency}}</div>
+                    </div>
+                    <div class="row align-items-end">
+                      <div class="col">
+                        nachgewiesen bis:
+                      </div>
+                      <div testid="incomeDueText" class="col">{{!customerData?.incomeDue ? '-' : customerData?.incomeDue | date : 'dd.MM.yyyy'}}</div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                      <div class="col fw-bold">Angelegt</div>
+                      <div testid="issuedInformation" class="col">am {{customerData?.issuedAt | date : 'dd.MM.yyyy'}} {{formatIssuer(customerData?.issuer)}}</div>
+                    </div>
+                    <div class="row">
+                      <div class="col fw-bold text-white"
+                           [ngClass]="{'bg-success': customerData?.validUntil && isValid(), 'bg-danger': customerData?.validUntil && !isValid()}">
+                        Gültig bis:
+                      </div>
+                      <div testid="validUntilText"
+                           class="col text-white"
+                           [ngClass]="{'bg-success': customerData?.validUntil && isValid(), 'bg-danger': customerData?.validUntil && !isValid()}"
+                           [innerHTML]="customerData?.validUntil | date : 'dd.MM.yyyy'"></div>
                     </div>
                   </div>
-                  <hr>
-                  <div class="row">
-                    <div class="col fw-bold">Adresse</div>
-                    <div class="col">
-                      <div class="row">
-                        <div testid="addressLine1Text" class="col">{{customerData?.address ?
-                          formatAddressLine1(customerData?.address) : ''}}</div>
-                      </div>
-                      <div class="row">
-                        <div testid="addressLine2Text" class="col"
-                             [innerHTML]="customerData?.address ? formatAddressLine2(customerData?.address) : ''">
+                </div>
+              </div>
+              <div class="col-lg-6 col-sm-12 mt-4 mt-sm-0">
+                <c-card>
+                  <c-card-header>
+                    <c-row>
+                      <c-col class="align-self-center">
+                        <h5 class="m-0">Aktuellste Notiz</h5>
+                      </c-col>
+                      <c-col class="text-end">
+                        <button testid="addnote-button" cButton color="success" (click)="showAddNewNoteModal = true">
+                          <fa-icon [icon]="faPlus" inverse="true"></fa-icon>
+                        </button>
+                      </c-col>
+                    </c-row>
+                  </c-card-header>
+                  <c-card-body>
+                    <c-row>
+                      <c-col class="fw-bold" *ngIf="customerNotes?.length === 0">
+                        <h6 testid="nonotes-label">Keine Notiz vorhanden</h6>
+                      </c-col>
+                      <c-col *ngIf="customerNotes?.length !== 0">
+                        <c-row class="mb-2">
+                          <c-col class="fw-bold" testid="note-title">{{customerNotes[0].timestamp | date : 'dd.MM.yyyy HH:mm' }}&nbsp;{{customerNotes[0].author}}</c-col>
+                        </c-row>
+                        <c-row>
+                          <c-col testid="note-text" [innerHtml]="customerNotes[0].note"></c-col>
+                        </c-row>
+                      </c-col>
+                    </c-row>
+                  </c-card-body>
+                  <c-card-footer *ngIf="customerNotes.length > 1">
+                    <button testid="showall-notes-button" cButton (click)="showAllNotesModal = true">Alle Notizen anzeigen</button>
+                  </c-card-footer>
+                </c-card>
+              </div>
+            </div>
+          </c-tab-panel>
+          <c-tab-panel [itemKey]="1" class="p-3 preview" role="tabpanel">
+            <div class="row" *ngIf="customerData?.additionalPersons.length === 0">
+              <div class="col mt-3">
+                <h6 testid="nopersons-label">Keine Personen vorhanden</h6>
+              </div>
+            </div>
+            <div *ngIf="customerData?.additionalPersons.length > 0">
+              <div class="row mt-4">
+                <ng-container *ngFor="let addPerson of customerData?.additionalPersons; let i = index">
+                  <div class="col-12 col-lg-6" [ngClass]="{'mt-4 mt-sm-0' : i % 2 === 1}">
+                    <div class="card">
+                      <div class="card-body">
+                        <div class="row">
+                          <div class="col fw-bold" [attr.testid]="'addperson-' + i + '-lastnameText'"
+                               [innerHTML]="addPerson?.lastname"></div>
+                          <div class="col fw-bold" [attr.testid]="'addperson-' + i + '-firstnameText'"
+                               [innerHTML]="addPerson?.firstname"></div>
+                        </div>
+                        <div class="row">
+                          <div class="col-6" [attr.testid]="'addperson-' + i + '-birthDateAgeText'">{{getBirthDateAndAge(addPerson?.birthDate)}}</div>
+                          <div class="col-6" [attr.testid]="'addperson-' + i + '-genderText'">{{getGenderLabel(addPerson?.gender)}}</div>
+                        </div>
+                        <div class="row">
+                          <div class="col" [attr.testid]="'addperson-' + i + '-countryText'">{{addPerson?.country.name}}</div>
+                        </div>
+                        <hr>
+                        <div class="row mt-1">
+                          <div class="col-6">Arbeitgeber</div>
+                          <div class="col-6" [attr.testid]="'addperson-' + i + '-employerText'" *ngIf="addPerson?.employer !== null">{{addPerson?.employer}}</div>
+                          <div class="col-6" [attr.testid]="'addperson-' + i + '-employerText'" *ngIf="addPerson?.employer === null">-</div>
+                        </div>
+                        <div class="row mt-1 align-items-end">
+                          <div class="col-6">Einkommen (monatl.)</div>
+                          <div class="col-6" [attr.testid]="'addperson-' + i + '-incomeText'" *ngIf="addPerson?.income">{{addPerson?.income | currency}}</div>
+                          <div class="col-6" [attr.testid]="'addperson-' + i + '-incomeText'" *ngIf="!addPerson?.income">-</div>
+                        </div>
+                        <div class="row align-items-end">
+                          <div class="col-6">Einkommen nachgewiesen bis:</div>
+                          <div class="col-6 align-bottom" [attr.testid]="'addperson-' + i + '-incomeDueText'" *ngIf="addPerson?.incomeDue">{{addPerson?.incomeDue | date : 'dd.MM.yyyy'}}</div>
+                          <div class="col-6 align-bottom" [attr.testid]="'addperson-' + i + '-incomeDueText'" *ngIf="!addPerson?.incomeDue">-</div>
+                        </div>
+                        <div class="row align-items-end">
+                          <div class="col-6">Bezieht Familienbeihilfe:</div>
+                          <div class="col-6 align-bottom" [attr.testid]="'addperson-' + i + '-receivesFamilyBonus'">{{addPerson?.receivesFamilyBonus === true ? 'Ja' : 'Nein'}}</div>
+                        </div>
+                        <div class="row align-items-end">
+                          <div class="col-6">Im selben Haushalt:</div>
+                          <div class="col-6 align-bottom" [attr.testid]="'addperson-' + i + '-excludeFromHouseholdText'">{{addPerson?.excludeFromHousehold === true ? 'Nein' : 'Ja'}}</div>
                         </div>
                       </div>
                     </div>
                   </div>
-                  <hr>
-                  <div class="row">
-                    <div class="col fw-bold">Arbeitgeber</div>
-                    <div testid="employerText" class="col">{{customerData?.employer ? customerData?.employer : '-'}}</div>
-                  </div>
-                  <div class="row mt-2 align-items-end">
-                    <div class="col fw-bold">
-                      Einkommen (monatlich)
-                    </div>
-                    <div testid="incomeText" class="col">{{!customerData?.income ? '-' : customerData?.income | currency}}</div>
-                  </div>
-                  <div class="row align-items-end">
-                    <div class="col">
-                      nachgewiesen bis:
-                    </div>
-                    <div testid="incomeDueText" class="col">{{!customerData?.incomeDue ? '-' : customerData?.incomeDue | date : 'dd.MM.yyyy'}}</div>
-                  </div>
-                  <hr>
-                  <div class="row">
-                    <div class="col fw-bold">Angelegt</div>
-                    <div testid="issuedInformation" class="col">am {{customerData?.issuedAt | date : 'dd.MM.yyyy'}} {{formatIssuer(customerData?.issuer)}}</div>
-                  </div>
-                  <div class="row">
-                    <div class="col fw-bold text-white"
-                         [ngClass]="{'bg-success': customerData?.validUntil && isValid(), 'bg-danger': customerData?.validUntil && !isValid()}">
-                      Gültig bis:
-                    </div>
-                    <div testid="validUntilText"
-                         class="col text-white"
-                         [ngClass]="{'bg-success': customerData?.validUntil && isValid(), 'bg-danger': customerData?.validUntil && !isValid()}"
-                         [innerHTML]="customerData?.validUntil | date : 'dd.MM.yyyy'"></div>
-                  </div>
-                </div>
+                  <div *ngIf="i % 2 !== 0" class="w-100 mt-4"></div>
+                </ng-container>
               </div>
             </div>
-            <div class="col-lg-6 col-sm-12 mt-4 mt-sm-0">
-              <c-card>
-                <c-card-header>
-                  <c-row>
-                    <c-col class="align-self-center">
-                      <h5 class="m-0">Aktuellste Notiz</h5>
-                    </c-col>
-                    <c-col class="text-end">
-                      <button testid="addnote-button" cButton color="success" (click)="showAddNewNoteModal = true">
-                        <fa-icon [icon]="faPlus" inverse="true"></fa-icon>
-                      </button>
-                    </c-col>
-                  </c-row>
-                </c-card-header>
-                <c-card-body>
-                  <c-row>
-                    <c-col class="fw-bold" *ngIf="customerNotes?.length === 0">
-                      <h6 testid="nonotes-label">Keine Notiz vorhanden</h6>
-                    </c-col>
-                    <c-col *ngIf="customerNotes?.length !== 0">
-                      <c-row class="mb-2">
-                        <c-col class="fw-bold" testid="note-title">{{customerNotes[0].timestamp | date : 'dd.MM.yyyy HH:mm' }}&nbsp;{{customerNotes[0].author}}</c-col>
-                      </c-row>
-                      <c-row>
-                        <c-col testid="note-text" [innerHtml]="customerNotes[0].note"></c-col>
-                      </c-row>
-                    </c-col>
-                  </c-row>
-                </c-card-body>
-                <c-card-footer *ngIf="customerNotes.length > 1">
-                  <button testid="showall-notes-button" cButton (click)="showAllNotesModal = true">Alle Notizen anzeigen</button>
-                </c-card-footer>
-              </c-card>
-            </div>
-          </div>
-        </c-tab-pane>
-        <c-tab-pane class="p-3 preview" role="tabpanel">
-          <div class="row" *ngIf="customerData?.additionalPersons.length === 0">
-            <div class="col mt-3">
-              <h6 testid="nopersons-label">Keine Personen vorhanden</h6>
-            </div>
-          </div>
-          <div *ngIf="customerData?.additionalPersons.length > 0">
-            <div class="row mt-4">
-              <ng-container *ngFor="let addPerson of customerData?.additionalPersons; let i = index">
-                <div class="col-12 col-lg-6" [ngClass]="{'mt-4 mt-sm-0' : i % 2 === 1}">
-                  <div class="card">
-                    <div class="card-body">
-                      <div class="row">
-                        <div class="col fw-bold" [attr.testid]="'addperson-' + i + '-lastnameText'"
-                             [innerHTML]="addPerson?.lastname"></div>
-                        <div class="col fw-bold" [attr.testid]="'addperson-' + i + '-firstnameText'"
-                             [innerHTML]="addPerson?.firstname"></div>
-                      </div>
-                      <div class="row">
-                        <div class="col-6" [attr.testid]="'addperson-' + i + '-birthDateAgeText'">{{getBirthDateAndAge(addPerson?.birthDate)}}</div>
-                        <div class="col-6" [attr.testid]="'addperson-' + i + '-genderText'">{{getGenderLabel(addPerson?.gender)}}</div>
-                      </div>
-                      <div class="row">
-                        <div class="col" [attr.testid]="'addperson-' + i + '-countryText'">{{addPerson?.country.name}}</div>
-                      </div>
-                      <hr>
-                      <div class="row mt-1">
-                        <div class="col-6">Arbeitgeber</div>
-                        <div class="col-6" [attr.testid]="'addperson-' + i + '-employerText'" *ngIf="addPerson?.employer !== null">{{addPerson?.employer}}</div>
-                        <div class="col-6" [attr.testid]="'addperson-' + i + '-employerText'" *ngIf="addPerson?.employer === null">-</div>
-                      </div>
-                      <div class="row mt-1 align-items-end">
-                        <div class="col-6">Einkommen (monatl.)</div>
-                        <div class="col-6" [attr.testid]="'addperson-' + i + '-incomeText'" *ngIf="addPerson?.income">{{addPerson?.income | currency}}</div>
-                        <div class="col-6" [attr.testid]="'addperson-' + i + '-incomeText'" *ngIf="!addPerson?.income">-</div>
-                      </div>
-                      <div class="row align-items-end">
-                        <div class="col-6">Einkommen nachgewiesen bis:</div>
-                        <div class="col-6 align-bottom" [attr.testid]="'addperson-' + i + '-incomeDueText'" *ngIf="addPerson?.incomeDue">{{addPerson?.incomeDue | date : 'dd.MM.yyyy'}}</div>
-                        <div class="col-6 align-bottom" [attr.testid]="'addperson-' + i + '-incomeDueText'" *ngIf="!addPerson?.incomeDue">-</div>
-                      </div>
-                      <div class="row align-items-end">
-                        <div class="col-6">Bezieht Familienbeihilfe:</div>
-                        <div class="col-6 align-bottom" [attr.testid]="'addperson-' + i + '-receivesFamilyBonus'">{{addPerson?.receivesFamilyBonus === true ? 'Ja' : 'Nein'}}</div>
-                      </div>
-                      <div class="row align-items-end">
-                        <div class="col-6">Im selben Haushalt:</div>
-                        <div class="col-6 align-bottom" [attr.testid]="'addperson-' + i + '-excludeFromHouseholdText'">{{addPerson?.excludeFromHousehold === true ? 'Nein' : 'Ja'}}</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div *ngIf="i % 2 !== 0" class="w-100 mt-4"></div>
-              </ng-container>
-            </div>
-          </div>
-        </c-tab-pane>
-      </c-tab-content>
+          </c-tab-panel>
+        </c-tabs-content>
+      </c-tabs>
     </div>
   </div>
 </div>

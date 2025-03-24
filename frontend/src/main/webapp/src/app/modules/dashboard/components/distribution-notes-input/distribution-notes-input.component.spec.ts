@@ -3,7 +3,7 @@ import {DistributionApiService} from '../../../../api/distribution-api.service';
 import {DistributionNotesInputComponent} from './distribution-notes-input.component';
 import {CardModule, ColComponent, ModalModule, ProgressModule, RowComponent} from '@coreui/angular';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
-import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
+import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
 import {of, throwError} from 'rxjs';
 
 describe('DistributionNotesInputComponent', () => {

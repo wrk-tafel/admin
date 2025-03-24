@@ -6,7 +6,7 @@ import {EMPTY, of} from 'rxjs';
 import {CustomerApiService, CustomerSearchResult, Gender} from '../../../../api/customer-api.service';
 import {CustomerSearchComponent} from './customer-search.component';
 import {CardModule, ColComponent, PaginationModule, RowComponent} from '@coreui/angular';
-import {ToastService, ToastType} from '../../../../common/views/default-layout/toasts/toast.service';
+import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
 import {By} from '@angular/platform-browser';
 
 describe('CustomerSearchComponent', () => {

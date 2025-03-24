@@ -24,6 +24,8 @@ INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (1006, NOW(), NOW(), 100, 'CUSTOMER_DUPLICATES');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (1007, NOW(), NOW(), 100, 'LOGISTICS');
+INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
+VALUES (1008, NOW(), NOW(), 100, 'SETTINGS');
 
 -- user: testuser
 -- pwd: 35bc40681124f412c5d052366edb9eb9
@@ -66,6 +68,8 @@ INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (3006, NOW(), NOW(), 300, 'CUSTOMER_DUPLICATES');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (3007, NOW(), NOW(), 300, 'LOGISTICS');
+INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
+VALUES (3008, NOW(), NOW(), 300, 'SETTINGS');
 
 -- user: scanner1
 -- pwd: 12345
@@ -613,3 +617,13 @@ INSERT INTO distributions_statistics_shelters (id, created_at, updated_at, distr
                                                address_stairway,
                                                address_door, address_postalCode, address_city, persons_count)
 values (2, NOW(), NOW(), 100, 'Shelter 2 with a very long name', 'Erdberg', 1, null, null, '1030', 'Wien', 50);
+
+-- mail recipients
+INSERT INTO mail_recipients (id, mail_type, recipient_type, address)
+VALUES (1, 'DAILY_REPORT', 'TO', 'dailyreport-to1@domain.com');
+INSERT INTO mail_recipients (id, mail_type, recipient_type, address)
+VALUES (2, 'DAILY_REPORT', 'TO', 'dailyreport-to2@domain.com');
+INSERT INTO mail_recipients (id, mail_type, recipient_type, address)
+VALUES (4, 'DAILY_REPORT', 'BCC', 'dailyreport-bcc@domain.com');
+INSERT INTO mail_recipients (id, mail_type, recipient_type, address)
+VALUES (5, 'STATISTICS', 'TO', 'statistics-to@domain.com');

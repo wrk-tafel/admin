@@ -3,6 +3,7 @@ package at.wrk.tafel.admin.backend.modules.distribution.internal.postprocessors
 import at.wrk.tafel.admin.backend.common.mail.MailAttachment
 import at.wrk.tafel.admin.backend.common.mail.MailSenderService
 import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
+import at.wrk.tafel.admin.backend.database.model.base.MailType
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
 import at.wrk.tafel.admin.backend.modules.reporting.StatisticExportFile
@@ -47,11 +48,11 @@ class StatisticMailPostProcessor(
         ctx.setVariable("distributionDate", distribution.startedAt!!.format(DATE_TIME_FORMATTER))
 
         mailSenderService.sendHtmlMail(
-            tafelAdminProperties.mail!!.statistic!!,
-            mailSubject,
-            attachments,
-            "mails/statistic-mail",
-            ctx
+            mailType = MailType.STATISTICS,
+            subject = mailSubject,
+            attachments = attachments,
+            templateName = "mails/statistic-mail",
+            context = ctx
         )
 
         logger.info("Mail with statistic files '$mailSubject' sent!")

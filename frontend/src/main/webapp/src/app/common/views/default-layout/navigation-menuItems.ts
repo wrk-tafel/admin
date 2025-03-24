@@ -10,7 +10,7 @@ export const navigationMenuItems: ITafelNavData[] = [
   {
     name: 'Übersicht',
     url: '/uebersicht',
-    iconComponent: { name: 'cil-speedometer' }
+    iconComponent: {name: 'cil-speedometer'}
   },
   {
     name: 'Anmeldung',
@@ -19,20 +19,20 @@ export const navigationMenuItems: ITafelNavData[] = [
   {
     name: 'Annahme',
     url: '/anmeldung/annahme',
-    iconComponent: { name: 'cil-check-alt' },
+    iconComponent: {name: 'cil-check-alt'},
     permissions: ['CHECKIN'],
     activeDistributionRequired: true
   },
   {
     name: 'Scanner',
     url: '/anmeldung/scanner',
-    iconComponent: { name: 'cil-barcode' },
+    iconComponent: {name: 'cil-barcode'},
     permissions: ['SCANNER']
   },
   {
     name: 'Ticket-Monitor',
     url: '/anmeldung/ticketmonitor-steuerung',
-    iconComponent: { name: 'cil-screen-desktop' },
+    iconComponent: {name: 'cil-screen-desktop'},
     permissions: ['CHECKIN']
   },
   {
@@ -42,19 +42,19 @@ export const navigationMenuItems: ITafelNavData[] = [
   {
     name: 'Kunden suchen',
     url: '/kunden/suchen',
-    iconComponent: { name: 'cil-search' },
+    iconComponent: {name: 'cil-search'},
     permissions: ['CUSTOMER']
   },
   {
     name: 'Kunden anlegen',
     url: '/kunden/anlegen',
-    iconComponent: { name: 'cil-plus' },
+    iconComponent: {name: 'cil-plus'},
     permissions: ['CUSTOMER']
   },
   {
     name: 'Kunden-Duplikate',
     url: '/kunden/duplikate',
-    iconComponent: { name: 'cil-copy' },
+    iconComponent: {name: 'cil-copy'},
     permissions: ['CUSTOMER_DUPLICATES']
   },
   {
@@ -64,7 +64,7 @@ export const navigationMenuItems: ITafelNavData[] = [
   {
     name: 'Warenerfassung',
     url: '/logistik/warenerfassung',
-    iconComponent: { name: 'cil-bus-alt' },
+    iconComponent: {name: 'cil-bus-alt'},
     permissions: ['LOGISTICS'],
     activeDistributionRequired: true
   },
@@ -80,13 +80,19 @@ export const navigationMenuItems: ITafelNavData[] = [
       {
         name: 'Benutzer suchen',
         url: '/benutzer/suchen',
-        iconComponent: { name: 'cil-search' }
+        iconComponent: {name: 'cil-search'}
       },
       {
         name: 'Benutzer anlegen',
         url: '/benutzer/erstellen',
-        iconComponent: { name: 'cil-plus' }
+        iconComponent: {name: 'cil-plus'}
       }
     ]
+  },
+  {
+    name: 'Einstellungen',
+    iconComponent: {name: 'cil-settings'},
+    url: '/einstellungen',
+    permissions: ['SETTINGS'],
   },
 ];
