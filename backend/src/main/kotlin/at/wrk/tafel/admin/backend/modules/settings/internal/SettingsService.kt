@@ -49,13 +49,15 @@ class SettingsService(
     fun updateMailRecipients(settings: MailRecipients) {
         val recipients = settings.mailRecipients.flatMap { mailRecipient ->
             mailRecipient.recipients.flatMap { (updatedRecipientType, updatedRecipients) ->
-                updatedRecipients.map { updatedRecipient ->
-                    MailRecipientEntity().apply {
-                        mailType = MailType.valueOf(mailRecipient.mailType)
-                        recipientType = RecipientType.valueOf(updatedRecipientType.name.uppercase())
-                        address = updatedRecipient
+                updatedRecipients
+                    .filter { it.trim().isNotBlank() }
+                    .map { updatedRecipient ->
+                        MailRecipientEntity().apply {
+                            mailType = MailType.valueOf(mailRecipient.mailType)
+                            recipientType = RecipientType.valueOf(updatedRecipientType.name.uppercase())
+                            address = updatedRecipient
+                        }
                     }
-                }
             }
         }
 

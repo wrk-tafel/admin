@@ -13,4 +13,5 @@ data class TafelAdminProperties(
 data class TafelAdminMailProperties(
     val from: String,
     val subjectPrefix: String? = null,
+    val defaultRecipientsBcc: List<String>? = emptyList(),
 )
