@@ -25,13 +25,13 @@ VALUES (10, NOW(), NOW(), 'INCOME-TOLERANCE', '2022-01-01', '2999-12-31', 100.00
 
 -- family bonus
 INSERT INTO static_values(id, created_at, updated_at, type, valid_from, valid_to, amount, age)
-VALUES (11, NOW(), NOW(), 'FAMILY-BONUS', '2022-01-01', '2999-12-31', 114.00, 0);
+VALUES (11, NOW(), NOW(), 'FAMILY_BONUS', '2022-01-01', '2999-12-31', 114.00, 0);
 INSERT INTO static_values(id, created_at, updated_at, type, valid_from, valid_to, amount, age)
-VALUES (12, NOW(), NOW(), 'FAMILY-BONUS', '2022-01-01', '2999-12-31', 121.90, 3);
+VALUES (12, NOW(), NOW(), 'FAMILY_BONUS', '2022-01-01', '2999-12-31', 121.90, 3);
 INSERT INTO static_values(id, created_at, updated_at, type, valid_from, valid_to, amount, age)
-VALUES (13, NOW(), NOW(), 'FAMILY-BONUS', '2022-01-01', '2999-12-31', 141.50, 10);
+VALUES (13, NOW(), NOW(), 'FAMILY_BONUS', '2022-01-01', '2999-12-31', 141.50, 10);
 INSERT INTO static_values(id, created_at, updated_at, type, valid_from, valid_to, amount, age)
-VALUES (14, NOW(), NOW(), 'FAMILY-BONUS', '2022-01-01', '2999-12-31', 165.10, 19);
+VALUES (14, NOW(), NOW(), 'FAMILY_BONUS', '2022-01-01', '2999-12-31', 165.10, 19);
 
 -- child tax allowance
 INSERT INTO static_values(id, created_at, updated_at, type, valid_from, valid_to, amount)
