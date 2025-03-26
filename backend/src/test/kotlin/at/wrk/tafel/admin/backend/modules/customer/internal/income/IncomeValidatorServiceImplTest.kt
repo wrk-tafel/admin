@@ -1,15 +1,8 @@
 package at.wrk.tafel.admin.backend.modules.customer.internal.income
 
-import at.wrk.tafel.admin.backend.database.model.staticdata.ChildTaxAllowanceEntity
-import at.wrk.tafel.admin.backend.database.model.staticdata.FamilyBonusEntity
 import at.wrk.tafel.admin.backend.database.model.staticdata.IncomeLimitEntity
-import at.wrk.tafel.admin.backend.database.model.staticdata.IncomeToleranceEntity
-import at.wrk.tafel.admin.backend.database.model.staticdata.SiblingAdditionEntity
-import at.wrk.tafel.admin.backend.database.model.staticdata.ChildTaxAllowanceRepository
-import at.wrk.tafel.admin.backend.database.model.staticdata.FamilyBonusRepository
 import at.wrk.tafel.admin.backend.database.model.staticdata.IncomeLimitRepository
-import at.wrk.tafel.admin.backend.database.model.staticdata.IncomeToleranceRepository
-import at.wrk.tafel.admin.backend.database.model.staticdata.SiblingAdditionRepository
+import at.wrk.tafel.admin.backend.database.model.staticdata.IncomeLimitType
 import io.mockk.every
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
@@ -20,7 +13,6 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.util.*
 
 @ExtendWith(MockKExtension::class)
 class IncomeValidatorServiceImplTest {
@@ -54,83 +46,54 @@ class IncomeValidatorServiceImplTest {
     @RelaxedMockK
     private lateinit var incomeLimitRepository: IncomeLimitRepository
 
-    @RelaxedMockK
-    private lateinit var incomeToleranceRepository: IncomeToleranceRepository
-
-    @RelaxedMockK
-    private lateinit var familyBonusRepository: FamilyBonusRepository
-
-    @RelaxedMockK
-    private lateinit var childTaxAllowanceRepository: ChildTaxAllowanceRepository
-
-    @RelaxedMockK
-    private lateinit var siblingAdditionRepository: SiblingAdditionRepository
+    private lateinit var incomeTolerance100Entity: IncomeLimitEntity
 
     private lateinit var incomeValidatorService: IncomeValidatorService
-
-    private lateinit var incomeTolerance100Entity: IncomeToleranceEntity
 
     @BeforeEach
     fun beforeEach() {
         every {
             incomeLimitRepository.findLatestForPersonCount(
-                any(),
-                any(),
-                any()
+                currentDate = any(),
+                countAdults = any(),
+                countChildren = any()
             )
         } answers {
-            val countAdult = secondArg<Int>()
-            val countChild = thirdArg<Int>()
+            val countAdult = arg<Int>(2)
+            val countChild = arg<Int>(3)
             MOCK_INCOME_LIMITS
                 .filter { it.countAdult == countAdult }
                 .filter { it.countChild == countChild }
                 .map { createIncomeLimitEntity(it.value) }
                 .first()
         }
-        every { incomeLimitRepository.findLatestAdditionalAdult(any()) } returns createAdditionalAdultLimitEntity()
-        every { incomeLimitRepository.findLatestAdditionalChild(any()) } returns createAdditionalChildLimitEntity()
-        every { familyBonusRepository.findCurrentValues(any()) } returns MOCK_FAMILY_BONUS.map {
-            val entity = FamilyBonusEntity()
-            entity.amount = it.value
-            entity.age = it.age
-            entity
+        every { incomeLimitRepository.findSingleValueOfType(type = IncomeLimitType.ADDITIONAL_ADULT, currentDate = any()) } returns createAdditionalAdultLimitEntity()
+        every { incomeLimitRepository.findSingleValueOfType(type = IncomeLimitType.ADDITIONAL_CHILD, currentDate = any()) } returns createAdditionalChildLimitEntity()
+        every { incomeLimitRepository.findValuesOfType(type = IncomeLimitType.FAMILY_BONUS, currentDate = any()) } returns MOCK_FAMILY_BONUS.map {
+            IncomeLimitEntity().apply {
+                amount = it.value
+                age = it.age
+            }
         }
 
-        incomeTolerance100Entity = IncomeToleranceEntity()
+        incomeTolerance100Entity = IncomeLimitEntity()
         incomeTolerance100Entity.amount = BigDecimal("100")
-        every { incomeToleranceRepository.findCurrentValue(any()) } returns Optional.empty()
+        every { incomeLimitRepository.findSingleValueOfType(type = IncomeLimitType.TOLERANCE, currentDate = any()) } returns null
 
-        val childTaxAllowanceEntity = ChildTaxAllowanceEntity()
+        val childTaxAllowanceEntity = IncomeLimitEntity()
         childTaxAllowanceEntity.amount = BigDecimal("15")
-        every { childTaxAllowanceRepository.findCurrentValue(any()) } returns Optional.of(childTaxAllowanceEntity)
+        every { incomeLimitRepository.findSingleValueOfType(type = IncomeLimitType.CHILD_TAX_ALLOWANCE, currentDate = any()) } returns childTaxAllowanceEntity
 
         every {
-            siblingAdditionRepository.findCurrentValues(any())
+            incomeLimitRepository.findValuesOfType(type = IncomeLimitType.SIBLING_ADDITION, currentDate = any())
         } returns MOCK_SIBLING_ADDITION.map {
-            var siblingAdditionEntity = SiblingAdditionEntity()
-            siblingAdditionEntity.amount = it.value
-            siblingAdditionEntity.countChild = it.countChild
-            siblingAdditionEntity
+            IncomeLimitEntity().apply {
+                amount = it.value
+                countChildren = it.countChild
+            }
         }
 
-        every {
-            siblingAdditionRepository.findCurrentMaxAddition(any())
-        } answers {
-            val mockAddition = MOCK_SIBLING_ADDITION.last()
-            var siblingAdditionEntity = SiblingAdditionEntity()
-            siblingAdditionEntity.amount = mockAddition.value
-            siblingAdditionEntity.countChild = mockAddition.countChild
-            Optional.of(siblingAdditionEntity)
-        }
-
-        incomeValidatorService =
-            IncomeValidatorServiceImpl(
-                incomeLimitRepository,
-                incomeToleranceRepository,
-                familyBonusRepository,
-                childTaxAllowanceRepository,
-                siblingAdditionRepository
-            )
+        incomeValidatorService = IncomeValidatorServiceImpl(incomeLimitRepository)
     }
 
     @Test
@@ -191,7 +154,7 @@ class IncomeValidatorServiceImplTest {
 
     @Test
     fun `single person above limit within tolerance`() {
-        every { incomeToleranceRepository.findCurrentValue(any()) } returns Optional.of(incomeTolerance100Entity)
+        every { incomeLimitRepository.findSingleValueOfType(type = IncomeLimitType.TOLERANCE, currentDate = any()) } returns incomeTolerance100Entity
 
         val persons = listOf(
             IncomeValidatorPerson(
@@ -210,7 +173,7 @@ class IncomeValidatorServiceImplTest {
 
     @Test
     fun `single person above limit exactly on tolerance`() {
-        every { incomeToleranceRepository.findCurrentValue(any()) } returns Optional.of(incomeTolerance100Entity)
+        every { incomeLimitRepository.findSingleValueOfType(type = IncomeLimitType.TOLERANCE, currentDate = any()) } returns incomeTolerance100Entity
 
         val persons = listOf(
             IncomeValidatorPerson(
@@ -532,15 +495,15 @@ class IncomeValidatorServiceImplTest {
 data class IncomeLimitMockData(
     val value: BigDecimal,
     val countAdult: Int,
-    val countChild: Int? = 0
+    val countChild: Int? = 0,
 )
 
 data class FamilyBonusMockData(
     val value: BigDecimal,
-    val age: Int
+    val age: Int,
 )
 
 data class SiblingAdditionMockData(
     val value: BigDecimal,
-    val countChild: Int
+    val countChild: Int,
 )
