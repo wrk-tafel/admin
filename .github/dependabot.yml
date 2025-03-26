@@ -19,6 +19,8 @@ updates:
       # Wait for Angular 19
       - dependency-name: "@angular*"
         versions: [ ">=19" ]
+      - dependency-name: "@angular-devkit/build-angular"
+        versions: [ ">=19" ]
       - dependency-name: "@coreui*"
         versions: [ ">=5.3" ]
       - dependency-name: "@fortawesome*"
