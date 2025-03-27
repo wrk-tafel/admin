@@ -24,7 +24,7 @@ class TafelLoginFilter(
     authenticationManager: AuthenticationManager,
     private val jwtTokenService: JwtTokenService,
     private val applicationProperties: ApplicationProperties,
-    private val objectMapper: ObjectMapper
+    private val objectMapper: ObjectMapper,
 ) : UsernamePasswordAuthenticationFilter(authenticationManager) {
 
     companion object {
@@ -58,7 +58,7 @@ class TafelLoginFilter(
         request: HttpServletRequest,
         response: HttpServletResponse,
         chain: FilterChain,
-        authResult: Authentication
+        authResult: Authentication,
     ) {
         val principal = authResult.principal
         if (principal is TafelUser) {
@@ -70,6 +70,7 @@ class TafelLoginFilter(
 
             val token: String = jwtTokenService.generateToken(
                 username = user.username,
+                fullName = "${user.personnelNumber} ${user.firstname} ${user.lastname}",
                 authorities = authorities,
                 expirationSeconds = expirationTimeInSeconds
             )
@@ -91,7 +92,7 @@ class TafelLoginFilter(
     override fun unsuccessfulAuthentication(
         request: HttpServletRequest,
         response: HttpServletResponse,
-        failed: AuthenticationException
+        failed: AuthenticationException,
     ) {
         response.status = HttpStatus.FORBIDDEN.value()
         logger.info("Login failed - ${failed.message}")

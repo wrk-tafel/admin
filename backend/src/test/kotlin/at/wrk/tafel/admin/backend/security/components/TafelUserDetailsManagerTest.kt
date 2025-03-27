@@ -66,7 +66,8 @@ class TafelUserDetailsManagerTest {
     @BeforeEach
     fun beforeEach() {
         SecurityContextHolder.getContext().authentication =
-            TafelJwtAuthentication(tokenValue = "TOKEN", testUser.username)
+                // TODO FULLNAME
+            TafelJwtAuthentication(tokenValue = "TOKEN", username = testUser.username, fullName = "")
         every { userRepository.findByUsername(testUser.username) } returns testUserEntity
         testUserEntityPassword = testUserEntity.password!!
     }

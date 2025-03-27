@@ -52,7 +52,7 @@ class WebSecurityConfig(
     private val userRepository: UserRepository,
     private val employeeRepository: EmployeeRepository,
     private val applicationProperties: ApplicationProperties,
-    private val objectMapper: ObjectMapper
+    private val objectMapper: ObjectMapper,
 ) {
 
     companion object {

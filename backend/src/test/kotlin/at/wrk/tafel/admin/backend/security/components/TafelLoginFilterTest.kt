@@ -74,15 +74,23 @@ class TafelLoginFilterTest {
     @Test
     fun `successfulAuthentication when login is successful`() {
         val token = "TOKEN"
-        val expirationTime = 10000
+        val expirationSeconds = 10000
 
         every { authResult.principal } returns testUser
-        every { jwtTokenService.generateToken(any(), any(), any()) } returns token
-        every { applicationProperties.security.jwtToken.expirationTimeInSeconds } returns expirationTime
+        every {
+            jwtTokenService.generateToken(
+                username = any(),
+                fullName = any(),
+                authorities = any(),
+                expirationSeconds = any()
+            )
+        } returns token
+        every { applicationProperties.security.jwtToken.expirationTimeInSeconds } returns expirationSeconds
 
         tafelLoginFilter.successfulAuthentication(request, response, filterChain, authResult)
 
-        verify(exactly = 1) { jwtTokenService.generateToken(testUser.username, testUser.authorities, expirationTime) }
+        // TODO FULLNAME
+        verify(exactly = 1) { jwtTokenService.generateToken(testUser.username, "", testUser.authorities, expirationSeconds) }
 
         verify {
             objectMapper.writeValueAsString(withArg<LoginResponse> { response ->
@@ -94,7 +102,7 @@ class TafelLoginFilterTest {
             response.addCookie(withArg {
                 assertThat(it.name).isEqualTo(TafelLoginFilter.jwtCookieName)
                 assertThat(it.value).isEqualTo(token)
-                assertThat(it.maxAge).isEqualTo(expirationTime)
+                assertThat(it.maxAge).isEqualTo(expirationSeconds)
                 assertThat(it.path).isEqualTo("/")
                 assertThat(it.attributes["SameSite"]).isEqualTo("strict")
             })
@@ -104,15 +112,16 @@ class TafelLoginFilterTest {
     @Test
     fun `successfulAuthentication when passwordChange is required`() {
         val token = "TOKEN"
-        val expirationTime = 5000
+        val expirationSeconds = 5000
 
         every { authResult.principal } returns testUser.copy(passwordChangeRequired = true)
-        every { jwtTokenService.generateToken(any(), any(), any()) } returns token
-        every { applicationProperties.security.jwtToken.expirationTimePwdChangeInSeconds } returns expirationTime
+        every { jwtTokenService.generateToken(username = any(), fullName = any(), authorities = any(), expirationSeconds = any()) } returns token
+        every { applicationProperties.security.jwtToken.expirationTimePwdChangeInSeconds } returns expirationSeconds
 
         tafelLoginFilter.successfulAuthentication(request, response, filterChain, authResult)
 
-        verify(exactly = 1) { jwtTokenService.generateToken(testUser.username, emptyList(), expirationTime) }
+        // TODO FULLNAME
+        verify(exactly = 1) { jwtTokenService.generateToken(username = testUser.username, fullName = "", authorities = emptyList(), expirationSeconds = expirationSeconds) }
         verify {
             objectMapper.writeValueAsString(withArg<LoginResponse> { response ->
                 assertThat(response.passwordChangeRequired).isTrue()
@@ -123,7 +132,7 @@ class TafelLoginFilterTest {
             response.addCookie(withArg {
                 assertThat(it.name).isEqualTo(TafelLoginFilter.jwtCookieName)
                 assertThat(it.value).isEqualTo(token)
-                assertThat(it.maxAge).isEqualTo(expirationTime)
+                assertThat(it.maxAge).isEqualTo(expirationSeconds)
                 assertThat(it.path).isEqualTo("/")
                 assertThat(it.attributes["SameSite"]).isEqualTo("strict")
             })

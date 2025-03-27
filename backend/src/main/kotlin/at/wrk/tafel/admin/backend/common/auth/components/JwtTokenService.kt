@@ -11,10 +11,11 @@ import javax.crypto.spec.SecretKeySpec
 
 @Service
 class JwtTokenService(
-    private val applicationProperties: ApplicationProperties
+    private val applicationProperties: ApplicationProperties,
 ) {
     companion object {
-        const val PERMISSIONS_CLAIM_KEY = "permissions"
+        const val CLAIM_KEY_PERMISSIONS = "permissions"
+        const val CLAIM_KEY_FULLNAME = "full_name"
     }
 
     fun getClaimsFromToken(token: String): Claims {
@@ -25,8 +26,9 @@ class JwtTokenService(
 
     fun generateToken(
         username: String,
+        fullName: String,
         authorities: Collection<GrantedAuthority>,
-        expirationSeconds: Int
+        expirationSeconds: Int,
     ): String {
         val expirationMillis = Duration.ofSeconds(expirationSeconds.toLong()).toMillis()
         val expirationDate = Date(System.currentTimeMillis() + expirationMillis)
@@ -39,7 +41,8 @@ class JwtTokenService(
             .and()
             .issuedAt(Date(System.currentTimeMillis()))
             .expiration(expirationDate)
-            .claim("permissions", authorities.map { it.authority })
+            .claim(CLAIM_KEY_PERMISSIONS, authorities.map { it.authority })
+            .claim(CLAIM_KEY_FULLNAME, fullName)
             .signWith(secretKeySpec)
             .compact()
     }

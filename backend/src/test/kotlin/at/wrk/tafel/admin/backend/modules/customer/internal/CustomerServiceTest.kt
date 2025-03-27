@@ -62,7 +62,8 @@ class CustomerServiceTest {
     fun beforeEach() {
         every { userRepository.findByUsername(any()) } returns testUserEntity
         SecurityContextHolder.getContext().authentication =
-            TafelJwtAuthentication("TOKEN", testUserEntity.username, true)
+            // TODO FULLNAME
+            TafelJwtAuthentication(tokenValue = "TOKEN", username = testUserEntity.username, fullName = "", authenticated = true)
 
         every { countryRepository.findById(testCountry1.id!!) } returns Optional.of(testCountry1)
         every { userRepository.findByUsername(testUserEntity.username!!) } returns testUserEntity

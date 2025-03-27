@@ -47,7 +47,8 @@ internal class CustomerNoteServiceTest {
     fun beforeEach() {
         every { userRepository.findByUsername(any()) } returns testUserEntity
         SecurityContextHolder.getContext().authentication =
-            TafelJwtAuthentication("TOKEN", testUserEntity.username, true)
+            // TODO FULLNAME
+            TafelJwtAuthentication(tokenValue = "TOKEN", username = testUserEntity.username, fullName = "", authenticated = true)
 
         testCustomerEntity1 = CustomerEntity().apply {
             id = 1

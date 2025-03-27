@@ -1,6 +1,8 @@
 package at.wrk.tafel.admin.backend.security.components
 
 import at.wrk.tafel.admin.backend.common.auth.components.JwtTokenService
+import at.wrk.tafel.admin.backend.common.auth.components.JwtTokenService.Companion.CLAIM_KEY_FULLNAME
+import at.wrk.tafel.admin.backend.common.auth.components.JwtTokenService.Companion.CLAIM_KEY_PERMISSIONS
 import at.wrk.tafel.admin.backend.config.properties.ApplicationProperties
 import at.wrk.tafel.admin.backend.config.properties.SecurityJwtTokenProperties
 import at.wrk.tafel.admin.backend.config.properties.SecurityJwtTokenSecretProperties
@@ -47,8 +49,9 @@ class JwtTokenServiceTest {
     @Test
     fun `getClaimsFromToken - valid token generated and parsed`() {
         val token = jwtTokenService.generateToken(
-            "test-user",
-            listOf(
+            username = "test-user",
+            fullName = "test-fullname",
+            authorities = listOf(
                 SimpleGrantedAuthority("dummy-role")
             ),
             expirationSeconds = 100
@@ -56,7 +59,8 @@ class JwtTokenServiceTest {
 
         val claims = jwtTokenService.getClaimsFromToken(token)
 
-        assertThat(claims["permissions"] as List<*>).contains("dummy-role")
+        assertThat(claims[CLAIM_KEY_FULLNAME]).isEqualTo("test-fullname")
+        assertThat(claims[CLAIM_KEY_PERMISSIONS] as List<*>).contains("dummy-role")
     }
 
     @Test
@@ -142,7 +146,7 @@ class JwtTokenServiceTest {
         overrideIssuer: String? = null,
         issuerNull: Boolean? = false,
         overrideAudience: String? = null,
-        audienceNull: Boolean? = false
+        audienceNull: Boolean? = false,
     ): String {
         val tokenProperties = properties.security.jwtToken
 

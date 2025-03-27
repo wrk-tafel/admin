@@ -55,6 +55,7 @@ class UserControllerTest {
         val authentication = TafelJwtAuthentication(
             tokenValue = "TOKEN",
             username = testUser.username,
+            fullName = "", // TODO FULLNAME
             authorities = testUserPermissions.map { SimpleGrantedAuthority(it.key) }
         )
         SecurityContextHolder.setContext(SecurityContextImpl(authentication))
@@ -109,6 +110,7 @@ class UserControllerTest {
         val authentication = TafelJwtAuthentication(
             tokenValue = "TOKEN",
             username = testUser.username,
+            fullName = "", // TODO FULLNAME
             authorities = testUserPermissions.map { SimpleGrantedAuthority(it.key) }
         )
         SecurityContextHolder.setContext(SecurityContextImpl(authentication))

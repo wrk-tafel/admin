@@ -8,9 +8,11 @@ import org.springframework.security.core.GrantedAuthority
 class TafelJwtAuthentication(
     val tokenValue: String,
     val username: String? = null,
+    val fullName: String? = null,
     private var authenticated: Boolean = false,
-    private val authorities: List<GrantedAuthority> = emptyList()
+    private val authorities: List<GrantedAuthority> = emptyList(),
 ) : Authentication {
+
     override fun getName(): String? {
         return username
     }
@@ -42,5 +44,5 @@ class TafelJwtAuthentication(
 
 @ExcludeFromTestCoverage
 data class LoginResponse(
-    val passwordChangeRequired: Boolean? = false
+    val passwordChangeRequired: Boolean? = false,
 )

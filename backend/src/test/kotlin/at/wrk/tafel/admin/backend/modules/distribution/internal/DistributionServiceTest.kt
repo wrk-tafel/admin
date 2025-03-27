@@ -79,6 +79,7 @@ internal class DistributionServiceTest {
     private val authentication = TafelJwtAuthentication(
         tokenValue = "TOKEN",
         username = testUser.username,
+        fullName = "", // TODO FULLNAME
         authorities = testUserPermissions.map { SimpleGrantedAuthority(it.key) }
     )
 

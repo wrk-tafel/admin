@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.common.auth.components
 
+import at.wrk.tafel.admin.backend.common.auth.components.JwtTokenService.Companion.CLAIM_KEY_FULLNAME
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.MalformedJwtException
@@ -44,6 +45,7 @@ internal class TafelJwtAuthProviderTest {
     @Test
     fun `authenticate successful`() {
         val username = "SUBJ"
+        val fullName = "FULL_NAME"
         val tokenValue = "TOKEN"
         val perm1 = "PERM1"
         val expiration = Date.from(LocalDateTime.now().plusDays(1).toInstant(ZoneOffset.MIN))
@@ -52,8 +54,9 @@ internal class TafelJwtAuthProviderTest {
         every { jwtTokenService.getClaimsFromToken(authentication.tokenValue) } returns DefaultClaims(
             mapOf(
                 Claims.SUBJECT to username,
+                CLAIM_KEY_FULLNAME to fullName,
                 Claims.EXPIRATION to expiration,
-                JwtTokenService.PERMISSIONS_CLAIM_KEY to listOf(perm1)
+                JwtTokenService.CLAIM_KEY_PERMISSIONS to listOf(perm1)
             )
         )
 
@@ -61,7 +64,8 @@ internal class TafelJwtAuthProviderTest {
 
         assertThat(resultingAuthentication).isNotNull
         assertThat(resultingAuthentication.isAuthenticated).isTrue
-        assertThat(resultingAuthentication.name).isEqualTo("SUBJ")
+        assertThat(resultingAuthentication.name).isEqualTo(username)
+        assertThat(resultingAuthentication.fullName).isEqualTo(fullName)
         assertThat(resultingAuthentication.authorities.joinToString(",")).isEqualTo(perm1)
     }
 
@@ -77,7 +81,7 @@ internal class TafelJwtAuthProviderTest {
             mapOf(
                 Claims.SUBJECT to username,
                 Claims.EXPIRATION to expiration,
-                JwtTokenService.PERMISSIONS_CLAIM_KEY to listOf(perm1)
+                JwtTokenService.CLAIM_KEY_PERMISSIONS to listOf(perm1)
             )
         )
 
