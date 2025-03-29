@@ -456,12 +456,25 @@ INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contac
 VALUES (21, NOW(), NOW(), 2100, 'Denns BioMarkt', '01 23 45 67 89', null,
         'Fr. Musterfrau', 'Simmeringer Hauptstraße 5', 1140, 'Wien', 'KG');
 
+INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
+                   address_postal_code, address_city, food_unit)
+VALUES (30, NOW(), NOW(), 3000, 'Denns BioMarkt', '01 23 45 67 89', null,
+        'Fr. Musterfrau', 'Simmeringer Hauptstraße 5', 1140, 'Wien', 'KG');
+
+INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
+                   address_postal_code, address_city, food_unit)
+VALUES (31, NOW(), NOW(), 3100, 'Denns BioMarkt', '01 23 45 67 89', null,
+        'Fr. Musterfrau', 'Simmeringer Hauptstraße 5', 1140, 'Wien', 'KG');
+
 -- routes
 INSERT INTO routes (id, created_at, updated_at, number, name, note)
 VALUES (1, NOW(), NOW(), 1, 'Route 1', 'Note 1');
 
 INSERT INTO routes (id, created_at, updated_at, number, name, note)
 VALUES (2, NOW(), NOW(), 2, 'Route 2', null);
+
+INSERT INTO routes (id, created_at, updated_at, number, name, note)
+VALUES (3, NOW(), NOW(), 3, 'Route 3', null);
 
 -- shops to routes
 INSERT INTO routes_stops (id, created_at, updated_at, route_id, shop_id, time)
@@ -518,6 +531,12 @@ VALUES (210, NOW(), NOW(), 2, null, '12:30:00', 'Extra stop at home');
 INSERT INTO routes_stops (id, created_at, updated_at, route_id, shop_id, time)
 VALUES (220, NOW(), NOW(), 2, 21, '13:00:00');
 
+INSERT INTO routes_stops (id, created_at, updated_at, route_id, shop_id, time)
+VALUES (300, NOW(), NOW(), 3, 30, '13:00:00');
+
+INSERT INTO routes_stops (id, created_at, updated_at, route_id, shop_id, time)
+VALUES (310, NOW(), NOW(), 3, 31, '13:30:00');
+
 -- food categories
 INSERT INTO food_categories (id, created_at, updated_at, name, weight_per_unit, return_item)
 VALUES (1, NOW(), NOW(), 'Backwaren', 9, false);
@@ -568,16 +587,20 @@ VALUES (2, NOW(), NOW(), 'W-NC-456', 'Nice Car 456');
 INSERT INTO cars (id, created_at, updated_at, license_plate, name)
 VALUES (3, NOW(), NOW(), 'W-NC-789', 'Nice Car 789');
 
--- food collections
+-- food collection for route 1
 INSERT INTO food_collections (id, created_at, updated_at, distribution_id, route_id, car_id,
                               driver_employee_id, co_driver_employee_id, km_start, km_end)
 VALUES (1, NOW(), NOW(), 100, 1, 1, 2000, 2100, 213000, 213500);
 
 -- food collections items for route 1
-WITH ShopCategories AS (SELECT s.id AS shop_id, fc.id AS food_category_id
+WITH ShopCategories AS (
+                        SELECT s.id AS shop_id, fc.id AS food_category_id
                         FROM shops s
-                                 CROSS JOIN food_categories fc),
-     RandomAmounts AS (SELECT generate_series(1, 10) AS amount)
+                        JOIN routes_stops rs ON rs.shop_id = s.id
+                        JOIN routes r ON rs.route_id = r.id
+                        CROSS JOIN food_categories fc
+                        WHERE r.id = 1
+                        )
 INSERT
 INTO food_collections_items (food_collection_id,
                              shop_id,
@@ -587,6 +610,31 @@ SELECT 1,         -- fixed collection 1
        sc.shop_id,
        sc.food_category_id,
        sc.shop_id -- using same as amount
+FROM ShopCategories sc;
+
+-- food collection for route 2
+INSERT INTO food_collections (id, created_at, updated_at, distribution_id, route_id, car_id,
+                              driver_employee_id, co_driver_employee_id, km_start, km_end)
+VALUES (2, NOW(), NOW(), 100, 2, 2, 2000, 2100, 213000, 213500);
+
+-- food collections items for route 2 (all empty)
+WITH ShopCategories AS (
+                        SELECT s.id AS shop_id, fc.id AS food_category_id
+                        FROM shops s
+                        JOIN routes_stops rs ON rs.shop_id = s.id
+                        JOIN routes r ON rs.route_id = r.id
+                        CROSS JOIN food_categories fc
+                        WHERE r.id = 2
+                        )
+INSERT
+INTO food_collections_items (food_collection_id,
+                             shop_id,
+                             food_category_id,
+                             amount)
+SELECT 2,         -- fixed collection 2
+       sc.shop_id,
+       sc.food_category_id,
+       0 -- amount
 FROM ShopCategories sc;
 
 -- shelters
@@ -627,3 +675,5 @@ INSERT INTO mail_recipients (id, mail_type, recipient_type, address)
 VALUES (4, 'DAILY_REPORT', 'BCC', 'dailyreport-bcc@domain.com');
 INSERT INTO mail_recipients (id, mail_type, recipient_type, address)
 VALUES (5, 'STATISTICS', 'TO', 'statistics-to@domain.com');
+INSERT INTO mail_recipients (id, mail_type, recipient_type, address)
+VALUES (6, 'RETURN_BOXES', 'TO', 'returnboxes-to@domain.com');

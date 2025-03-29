@@ -3,15 +3,18 @@
     <br/>
     <br/>
     <p><strong>Retourkisten:</strong></p>
+    <br/>
     <div th:if="${!#lists.isEmpty(returnBoxes.routes)}">
         <div th:each="route : ${returnBoxes.routes}">
             <p>[( ${route.name} )]</p>
             <div th:each="shop : ${route.shops}">
                 <p>- [( ${shop.name} )]: [( ${shop.returnBoxes} )]</p>
             </div>
+            <br/>
         </div>
     </div>
     <div th:if="${#lists.isEmpty(returnBoxes.routes)}">
         <p>Keine</p>
+        <br/>
     </div>
 </div>

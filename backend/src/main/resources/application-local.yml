@@ -27,22 +27,5 @@ security:
 tafeladmin:
   mail:
     from: "dummy@localhost"
-    subjectPrefix: "LOCAL-DEV-"
-    dailyReport:
-      to:
-        - "to1@localhost"
-        - "to2@localhost"
-      cc:
-        - "cc1@localhost"
-        - "cc2@localhost"
-      bcc:
-        - "bcc1@localhost"
-        - "bcc2@localhost"
-    statistic:
-      to:
-        - "to1@localhost"
-        - "to2@localhost"
-    returnBoxes:
-      to:
-        - "to1@localhost"
-        - "to2@localhost"
+    defaultRecipientsBcc:
+      - "bcc1@localhost"
