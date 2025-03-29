@@ -1,13 +1,13 @@
-<button cButton [attr.testid]="testId() + '-search-button'" (click)="triggerSearch()" [disabled]="buttonDisabled()">
+<button cButton [attr.testid]="testIdPrefix() + '-employee-search-button'" (click)="triggerSearch()">
   <fa-icon [icon]="faSearch"/>
 </button>
-<c-modal id="createEmployeeModal" #createEmployeeModal [attr.testid]="testId() + '-modal'" [(visible)]="showCreateEmployeeModal">
+<c-modal id="createEmployeeModal" [attr.testid]="testIdPrefix() + '-search-create-modal'" [(visible)]="showCreateEmployeeModal">
   <c-modal-header cBgColor="info">
     <h4 class="text-white">Mitarbeiter nicht gefunden</h4>
-    <button [cModalToggle]="createEmployeeModal.id" cButtonClose></button>
+    <button cButtonClose (click)="showCreateEmployeeModal = false"></button>
   </c-modal-header>
   <c-modal-body>
-    <form [formGroup]="form">
+    <form [formGroup]="createEmployeeForm">
       <c-row class="mb-2">
         <c-col>
           <strong>Neuen Mitarbeiter anlegen</strong>
@@ -17,7 +17,7 @@
         <c-col>
           <label class="form-label">Personalnummer *</label>
           <c-input-group>
-            <input [attr.testid]="testId() + '-personnelnumber-input'" type="text" formControlName="personnelNumber" class="form-control"
+            <input [attr.testid]="testIdPrefix() + '-create-personnelnumber-input'" type="text" formControlName="personnelNumber" class="form-control"
                    [ngClass]="{'is-invalid': personnelNumber.invalid && (personnelNumber.dirty || personnelNumber.touched), 'is-valid': personnelNumber.valid && (personnelNumber.dirty || personnelNumber.touched)}">
             @if (personnelNumber.errors?.required && (personnelNumber.dirty || personnelNumber.touched)) {
               <div class="invalid-feedback">
@@ -36,7 +36,7 @@
         <c-col>
           <label class="form-label">Vorname *</label>
           <c-input-group>
-            <input [attr.testid]="testId() + '-firstname-input'" type="text" formControlName="firstname" class="form-control"
+            <input [attr.testid]="testIdPrefix() + '-create-firstname-input'" type="text" formControlName="firstname" class="form-control"
                    [ngClass]="{'is-invalid': firstname.invalid && (firstname.dirty || firstname.touched), 'is-valid': firstname.valid && (firstname.dirty || firstname.touched)}">
             @if (firstname.errors?.required && (firstname.dirty || firstname.touched)) {
               <div class="invalid-feedback">
@@ -55,7 +55,7 @@
         <c-col>
           <label class="form-label">Nachname *</label>
           <c-input-group>
-            <input [attr.testid]="testId() + '-lastname-input'" type="text" formControlName="lastname" class="form-control"
+            <input [attr.testid]="testIdPrefix() + '-create-lastname-input'" type="text" formControlName="lastname" class="form-control"
                    [ngClass]="{'is-invalid': lastname.invalid && (lastname.dirty || lastname.touched), 'is-valid': lastname.valid && (lastname.dirty || lastname.touched)}">
             @if (lastname.errors?.required && (lastname.dirty || lastname.touched)) {
               <div class="invalid-feedback">
@@ -73,8 +73,47 @@
     </form>
   </c-modal-body>
   <c-modal-footer>
-    <button [attr.testid]="testId() + '-save-button'" cButton (click)="saveNewEmployee()" [disabled]="this.form.invalid">Speichern</button>
-    <button [attr.testid]="testId() + '-cancel-button'" cButton color="secondary" (click)="showCreateEmployeeModal = false">
+    <button [attr.testid]="testIdPrefix() + '-save-button'" cButton (click)="saveNewEmployee()" [disabled]="this.createEmployeeForm.invalid">Speichern</button>
+    <button [attr.testid]="testIdPrefix() + '-cancel-button'" cButton color="secondary" (click)="showCreateEmployeeModal = false">
+      Abbrechen
+    </button>
+  </c-modal-footer>
+</c-modal>
+<c-modal id="selectEmployeeModal" [attr.testid]="testIdPrefix() + '-select-employee-modal'" [(visible)]="showSelectEmployeeModal">
+  <c-modal-header cBgColor="info">
+    <h4 class="text-white">Mitarbeiter auswählen</h4>
+    <button cButtonClose (click)="showSelectEmployeeModal = false"></button>
+  </c-modal-header>
+  @if (employeeSearchResponse) {
+    <c-modal-body>
+      <c-row>
+        <c-col>
+          <tafel-pagination align="center" size="sm" [paginationData]="paginationData"
+                            (pageChanged)="triggerSearch($event)"></tafel-pagination>
+        </c-col>
+      </c-row>
+      <c-row>
+        <c-col>
+          @for (employee of employeeSearchResponse?.items; track employee.id; let i = $index) {
+            <c-card class="mb-2">
+              <c-card-body>
+                <c-row [attr.testid]="testIdPrefix() + '-select-employee-row-' + i">
+                  <c-col>{{employee.personnelNumber}} {{employee.firstname}} {{employee.lastname}}</c-col>
+                  <c-col class="text-end">
+                    <button cButton (click)="selectEmployee(employee)" [attr.testid]="testIdPrefix() + '-select-employee-button-' + i">
+                      <fa-icon [icon]="faHandPointer"></fa-icon>
+                    </button>
+                  </c-col>
+                </c-row>
+              </c-card-body>
+            </c-card>
+          }
+        </c-col>
+      </c-row>
+    </c-modal-body>
+  }
+  <c-modal-footer>
+    <button [attr.testid]="testIdPrefix() + '-cancel-button'" cButton color="secondary" (click)="showSelectEmployeeModal = false">
       Abbrechen
     </button>
   </c-modal-footer>

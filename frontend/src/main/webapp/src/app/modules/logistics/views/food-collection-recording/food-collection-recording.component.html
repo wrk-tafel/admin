@@ -99,9 +99,9 @@
           @if (!selectedDriver) {
             <label class="form-label">Fahrer *</label>
             <c-input-group>
-              <input testid="driverSearchInput" type="text" formControlName="driverSearchInput" class="form-control" placeholder="Personalnummer" (keyup.enter)="triggerSearchDriver()"
+              <input testid="driverSearchInput" type="text" formControlName="driverSearchInput" class="form-control" placeholder="Personalnummer / Name" (keyup.enter)="triggerSearchDriver()"
                      [ngClass]="{'is-invalid': driverSearchInput.invalid && (driverSearchInput.dirty || driverSearchInput.touched), 'is-valid': driverSearchInput.valid && (driverSearchInput.dirty || driverSearchInput.touched)}">
-              <tafel-employee-search-create #driverEmployeeSearchCreate [testId]="'driver-search-create'" [searchInput]="driverSearchInput.value" (selectedEmployee)="setSelectedDriver($event)" [buttonDisabled]="!driverSearchInput.value" />
+              <tafel-employee-search-create #driverEmployeeSearchCreate [testIdPrefix]="'driver'" [searchInput]="driverSearchInput.value" (selectedEmployee)="setSelectedDriver($event)" />
               @if (driverSearchInput.errors?.required && (driverSearchInput.dirty || driverSearchInput.touched)) {
                 <div class="invalid-feedback">
                   Pflichtfeld
@@ -121,11 +121,7 @@
           } @else {
             <label class="form-label">Fahrer *</label>
             <c-row>
-              <c-col testid="selectedDriverDescription" sm="10">
-                {{ selectedDriver.personnelNumber }}
-                {{ selectedDriver.firstname }}
-                {{ selectedDriver.lastname }}
-              </c-col>
+              <c-col testid="selectedDriverDescription" sm="10">{{ selectedDriver.personnelNumber }} {{ selectedDriver.firstname }} {{ selectedDriver.lastname }}</c-col>
               <c-col sm="2">
                 <button cButton testid="selectedDriverRemoveButton" class="float-end" color="danger" (click)="resetDriver()"><fa-icon [icon]="faRemove"></fa-icon></button>
               </c-col>
@@ -136,9 +132,9 @@
           @if (!selectedCoDriver) {
             <label class="form-label">Beifahrer *</label>
             <c-input-group>
-              <input testid="coDriverSearchInput" type="text" formControlName="coDriverSearchInput" class="form-control" placeholder="Personalnummer" (keyup.enter)="triggerSearchCoDriver()"
+              <input testid="coDriverSearchInput" type="text" formControlName="coDriverSearchInput" class="form-control" placeholder="Personalnummer / Name" (keyup.enter)="triggerSearchCoDriver()"
                      [ngClass]="{'is-invalid': coDriverSearchInput.invalid && (coDriverSearchInput.dirty || coDriverSearchInput.touched), 'is-valid': coDriverSearchInput.valid && (coDriverSearchInput.dirty || coDriverSearchInput.touched)}">
-              <tafel-employee-search-create #coDriverEmployeeSearchCreate [testId]="'codriver-search-create'" [searchInput]="coDriverSearchInput.value" (selectedEmployee)="setSelectedCoDriver($event)" [buttonDisabled]="!coDriverSearchInput.value" />
+              <tafel-employee-search-create #coDriverEmployeeSearchCreate [testIdPrefix]="'codriver'" [searchInput]="coDriverSearchInput.value" (selectedEmployee)="setSelectedCoDriver($event)" />
               @if (coDriverSearchInput.errors?.required && (coDriverSearchInput.dirty || coDriverSearchInput.touched)) {
                 <div class="invalid-feedback">
                   Pflichtfeld
@@ -158,11 +154,7 @@
           } @else {
             <label class="form-label">Beifahrer *</label>
             <c-row>
-              <c-col testid="selectedCoDriverDescription" sm="10">
-                {{ selectedCoDriver.personnelNumber }}
-                {{ selectedCoDriver.firstname }}
-                {{ selectedCoDriver.lastname }}
-              </c-col>
+              <c-col testid="selectedCoDriverDescription" sm="10">{{ selectedCoDriver.personnelNumber }} {{ selectedCoDriver.firstname }} {{ selectedCoDriver.lastname }}</c-col>
               <c-col sm="2">
                 <button cButton testid="selectedCoDriverRemoveButton" class="float-end" color="danger" (click)="resetCoDriver()"><fa-icon [icon]="faRemove"></fa-icon></button>
               </c-col>

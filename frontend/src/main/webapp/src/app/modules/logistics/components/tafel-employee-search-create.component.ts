@@ -1,9 +1,11 @@
-import {Component, effect, inject, input, output} from '@angular/core';
+import {Component, inject, input, output} from '@angular/core';
 import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
 import {
   BgColorDirective,
   ButtonCloseDirective,
   ButtonDirective,
+  CardBodyComponent,
+  CardComponent,
   ColComponent,
   FormSelectDirective,
   InputGroupComponent,
@@ -13,8 +15,12 @@ import {
 } from '@coreui/angular';
 import {CommonModule} from '@angular/common';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
-import {faSearch} from '@fortawesome/free-solid-svg-icons';
-import {EmployeeApiService, EmployeeData} from '../../../api/employee-api.service';
+import {faHandPointer, faSearch} from '@fortawesome/free-solid-svg-icons';
+import {EmployeeApiService, EmployeeData, EmployeeListResponse} from '../../../api/employee-api.service';
+import {
+  TafelPaginationComponent,
+  TafelPaginationData
+} from '../../../common/components/tafel-pagination/tafel-pagination.component';
 
 @Component({
   selector: 'tafel-employee-search-create',
@@ -32,19 +38,21 @@ import {EmployeeApiService, EmployeeData} from '../../../api/employee-api.servic
     BgColorDirective,
     ButtonCloseDirective,
     ModalModule,
+    CardBodyComponent,
+    CardComponent,
+    TafelPaginationComponent,
   ],
   standalone: true
 })
 export class TafelEmployeeSearchCreateComponent {
   searchInput = input.required<string>()
-  testId = input<string>()
-  buttonDisabled = input<boolean>()
+  testIdPrefix = input<string>()
   selectedEmployee = output<EmployeeData>()
 
   private readonly employeeApiService = inject(EmployeeApiService);
   private readonly fb = inject(FormBuilder);
 
-  form = this.fb.group({
+  createEmployeeForm = this.fb.group({
     personnelNumber: this.fb.control<string>(null, [Validators.required, Validators.maxLength(50)]),
     firstname: this.fb.control<string>(null, [Validators.required, Validators.maxLength(50)]),
     lastname: this.fb.control<string>(null, [Validators.required, Validators.maxLength(50)]),
@@ -52,42 +60,63 @@ export class TafelEmployeeSearchCreateComponent {
 
   showCreateEmployeeModal: boolean = false;
 
-  searchInputEffect = effect(() => {
-    const searchInput = this.searchInput();
-    this.personnelNumber.setValue(searchInput);
-  });
+  paginationData: TafelPaginationData;
+  employeeSearchResponse: EmployeeListResponse;
+  showSelectEmployeeModal: boolean = false;
 
-  triggerSearch() {
-    this.employeeApiService.getEmployees(this.searchInput()).subscribe((employees) => {
-      const employee = employees.filter((employee) => employee.personnelNumber === this.searchInput())[0];
-      if (!employee) {
-        this.showCreateEmployeeModal = true;
+  triggerSearch(page?: number) {
+    this.employeeApiService.findEmployees(this.searchInput(), page).subscribe((response) => {
+      this.employeeSearchResponse = null;
+      this.paginationData = null;
+      this.showCreateEmployeeModal = false;
+      this.showSelectEmployeeModal = false;
+
+      const employees = response.items;
+      if (employees.length == 1) {
+        this.selectedEmployee.emit(employees[0]);
+      } else if (employees.length > 1) {
+        this.employeeSearchResponse = response;
+        this.paginationData = {
+          count: response.items.length,
+          totalCount: response.totalCount,
+          currentPage: response.currentPage,
+          totalPages: response.totalPages,
+          pageSize: response.pageSize
+        };
+        this.showSelectEmployeeModal = true;
       } else {
-        this.selectedEmployee.emit(employee);
+        this.showCreateEmployeeModal = true;
       }
     });
   }
 
+  selectEmployee(employee: EmployeeData) {
+    this.employeeSearchResponse = undefined;
+    this.selectedEmployee.emit(employee);
+    this.showSelectEmployeeModal = false;
+  }
+
   saveNewEmployee() {
-    this.employeeApiService.saveEmployee(this.form.getRawValue()).subscribe((savedEmployee) => {
+    this.employeeApiService.saveEmployee(this.createEmployeeForm.getRawValue()).subscribe((savedEmployee) => {
       this.selectedEmployee.emit(savedEmployee);
 
-      this.form.reset();
+      this.createEmployeeForm.reset();
       this.showCreateEmployeeModal = false;
     });
   }
 
   get personnelNumber() {
-    return this.form.get('personnelNumber');
+    return this.createEmployeeForm.get('personnelNumber');
   }
 
   get firstname() {
-    return this.form.get('firstname');
+    return this.createEmployeeForm.get('firstname');
   }
 
   get lastname() {
-    return this.form.get('lastname');
+    return this.createEmployeeForm.get('lastname');
   }
 
   protected readonly faSearch = faSearch;
+  protected readonly faHandPointer = faHandPointer;
 }
