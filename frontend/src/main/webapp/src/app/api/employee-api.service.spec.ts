@@ -1,7 +1,7 @@
 import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
 import {TestBed} from '@angular/core/testing';
 import {provideHttpClient} from '@angular/common/http';
-import {CreateEmployeeRequest, EmployeeApiService, EmployeeData} from './employee-api.service';
+import {CreateEmployeeRequest, EmployeeApiService, EmployeeListResponse} from './employee-api.service';
 
 describe('EmployeeApiService', () => {
   let httpMock: HttpTestingController;
@@ -21,25 +21,32 @@ describe('EmployeeApiService', () => {
   });
 
   it('fetch employees and map correctly', () => {
-    const mockEmployees = [
-      {id: 1, personnelNumber: '00001', firstname: 'first 1', lastname: 'last 1'},
-      {id: 2, personnelNumber: '00002', firstname: 'first 2', lastname: 'last 2'},
-    ];
+    const mockResponse: EmployeeListResponse = {
+      items: [
+        {id: 1, personnelNumber: '00001', firstname: 'first 1', lastname: 'last 1'},
+        {id: 2, personnelNumber: '00002', firstname: 'first 2', lastname: 'last 2'},
+      ],
+      currentPage: 0,
+      pageSize: 10,
+      totalCount: 100,
+      totalPages: 1
+    };
 
-    apiService.getEmployees().subscribe((data: EmployeeData[]) => {
-      expect(data).toEqual(mockEmployees);
+    apiService.findEmployees().subscribe((data: EmployeeListResponse) => {
+      expect(data).toEqual(mockResponse);
     });
 
     const req = httpMock.expectOne({method: 'GET', url: '/employees'});
-    req.flush({items: mockEmployees});
+    req.flush(mockResponse);
     httpMock.verify();
   });
 
-  it('fetch employees with personnelNumber', () => {
-    const personnelNumber = "000123"
-    apiService.getEmployees(personnelNumber).subscribe();
+  it('find employees with searchInput', () => {
+    const searchInput = '000123'
+    const page = 5;
+    apiService.findEmployees(searchInput, page).subscribe();
 
-    const req = httpMock.expectOne({method: 'GET', url: `/employees?personnelNumber=${personnelNumber}`});
+    const req = httpMock.expectOne({method: 'GET', url: `/employees?searchInput=${searchInput}&page=${page}`});
     req.flush({items: []});
     httpMock.verify();
   });

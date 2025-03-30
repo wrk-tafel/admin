@@ -1,8 +1,14 @@
 ### Get employees
 GET {{baseApiPath}}/employees
 
-### Get employee by personnelNumber
-GET {{baseApiPath}}/employees?personnelNumber=00000
+### Find employees by searchInput (personnelNumber)
+GET {{baseApiPath}}/employees?searchInput=00000
+
+### Find employees by searchInput (firstname)
+GET {{baseApiPath}}/employees?searchInput=scan
+
+### Find employees by searchInput (lastname)
+GET {{baseApiPath}}/employees?searchInput=User
 
 ### Save new employee
 POST {{baseApiPath}}/employees

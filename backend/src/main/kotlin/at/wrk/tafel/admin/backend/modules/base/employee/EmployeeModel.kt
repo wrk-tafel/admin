@@ -1,7 +1,11 @@
 package at.wrk.tafel.admin.backend.modules.base.employee
 
 data class EmployeeListResponse(
-    val items: List<Employee>
+    val items: List<Employee>,
+    val totalCount: Long,
+    val currentPage: Int,
+    val totalPages: Int,
+    val pageSize: Int
 )
 
 data class Employee(

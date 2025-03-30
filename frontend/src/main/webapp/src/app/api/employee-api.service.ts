@@ -1,7 +1,6 @@
 import {HttpClient, HttpParams} from '@angular/common/http';
 import {inject, Injectable} from '@angular/core';
 import {Observable} from 'rxjs';
-import {map} from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -9,12 +8,15 @@ import {map} from 'rxjs/operators';
 export class EmployeeApiService {
   private readonly http = inject(HttpClient);
 
-  getEmployees(personnelNumber?: string): Observable<EmployeeData[]> {
+  findEmployees(searchInput?: string, page?: number): Observable<EmployeeListResponse> {
     let queryParams = new HttpParams();
-    if (personnelNumber) {
-      queryParams = queryParams.set('personnelNumber', personnelNumber);
+    if (searchInput) {
+      queryParams = queryParams.set('searchInput', searchInput);
     }
-    return this.http.get<EmployeeListResponse>('/employees', {params: queryParams}).pipe(map(val => val.items));
+    if (page) {
+      queryParams = queryParams.set('page', page);
+    }
+    return this.http.get<EmployeeListResponse>('/employees', {params: queryParams});
   }
 
   saveEmployee(createEmployeeRequest: CreateEmployeeRequest): Observable<EmployeeData> {
@@ -23,8 +25,12 @@ export class EmployeeApiService {
 
 }
 
-interface EmployeeListResponse {
+export interface EmployeeListResponse {
   items: EmployeeData[];
+  totalCount: number;
+  currentPage: number;
+  totalPages: number;
+  pageSize: number;
 }
 
 export interface CreateEmployeeRequest {

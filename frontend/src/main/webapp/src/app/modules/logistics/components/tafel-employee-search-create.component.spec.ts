@@ -1,7 +1,12 @@
 import {TestBed, waitForAsync} from '@angular/core/testing';
 import {provideHttpClient} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
-import {CreateEmployeeRequest, EmployeeApiService, EmployeeData} from '../../../api/employee-api.service';
+import {
+  CreateEmployeeRequest,
+  EmployeeApiService,
+  EmployeeData,
+  EmployeeListResponse
+} from '../../../api/employee-api.service';
 import {TafelEmployeeSearchCreateComponent} from './tafel-employee-search-create.component';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 import {of} from 'rxjs';
@@ -19,7 +24,7 @@ describe('TafelEmployeeSearchCreate', () => {
         provideHttpClientTesting(),
         {
           provide: EmployeeApiService,
-          useValue: jasmine.createSpyObj('EmployeeApiService', ['getEmployees', 'saveEmployee'])
+          useValue: jasmine.createSpyObj('EmployeeApiService', ['findEmployees', 'saveEmployee'])
         }
       ]
     }).compileComponents();
@@ -27,34 +32,35 @@ describe('TafelEmployeeSearchCreate', () => {
     employeeApiService = TestBed.inject(EmployeeApiService) as jasmine.SpyObj<EmployeeApiService>;
   }));
 
+  const mockEmployeeResponse: EmployeeListResponse = {
+    items: [
+      {id: 1, personnelNumber: '00001', firstname: 'first 1', lastname: 'last 1'},
+      {id: 2, personnelNumber: '00002', firstname: 'first 2', lastname: 'last 2'},
+    ],
+    totalPages: 1,
+    totalCount: 2,
+    pageSize: 1,
+    currentPage: 1
+  };
+
   it('component can be created', () => {
     const fixture = TestBed.createComponent(TafelEmployeeSearchCreateComponent);
     const component = fixture.componentInstance;
     expect(component).toBeTruthy();
   });
 
-  it('searchInput prefilled as personnelNumber', () => {
-    const fixture = TestBed.createComponent(TafelEmployeeSearchCreateComponent);
-    const component = fixture.componentInstance;
-    const componentRef = fixture.componentRef;
-    const personnelNumber = '00001'
-    componentRef.setInput('searchInput', personnelNumber);
-    fixture.detectChanges();
-
-    expect(component.personnelNumber.getRawValue()).toEqual(personnelNumber);
-  });
-
-  it('employee found', () => {
+  it('single employee found', () => {
     const fixture = TestBed.createComponent(TafelEmployeeSearchCreateComponent);
     const component = fixture.componentInstance;
     const componentRef = fixture.componentRef;
     const personnelNumber = '00001'
     componentRef.setInput('searchInput', personnelNumber);
 
-    const mockEmployees = [
-      {id: 1, personnelNumber: '00001', firstname: 'first 1', lastname: 'last 1'}
-    ];
-    employeeApiService.getEmployees.and.returnValues(of(mockEmployees));
+    const mockResponse = {
+      ...mockEmployeeResponse,
+      items: [mockEmployeeResponse.items[0]]
+    };
+    employeeApiService.findEmployees.and.returnValues(of(mockResponse));
 
     let emittedEmployee: EmployeeData;
     component.selectedEmployee.subscribe((employee) => {
@@ -63,7 +69,28 @@ describe('TafelEmployeeSearchCreate', () => {
 
     component.triggerSearch();
 
-    expect(emittedEmployee).toEqual(mockEmployees[0]);
+    expect(emittedEmployee).toEqual(mockEmployeeResponse.items[0]);
+  });
+
+  it('multiple employees found', () => {
+    const fixture = TestBed.createComponent(TafelEmployeeSearchCreateComponent);
+    const component = fixture.componentInstance;
+    const componentRef = fixture.componentRef;
+    const personnelNumber = '00001'
+    componentRef.setInput('searchInput', personnelNumber);
+
+    employeeApiService.findEmployees.and.returnValues(of(mockEmployeeResponse));
+
+    let emitted = false;
+    component.selectedEmployee.subscribe((employee) => {
+      emitted = true;
+    });
+
+    component.triggerSearch();
+
+    expect(component.showSelectEmployeeModal).toBeTrue();
+    expect(component.showCreateEmployeeModal).toBeFalse();
+    expect(emitted).toBeFalse();
   });
 
   it('employee not found', () => {
@@ -73,7 +100,14 @@ describe('TafelEmployeeSearchCreate', () => {
     const personnelNumber = '00001'
     componentRef.setInput('searchInput', personnelNumber);
 
-    employeeApiService.getEmployees.and.returnValues(of([]));
+    const emptyResponse: EmployeeListResponse = {
+      items: [],
+      currentPage: 1,
+      pageSize: 1,
+      totalCount: 1,
+      totalPages: 1
+    };
+    employeeApiService.findEmployees.and.returnValues(of(emptyResponse));
 
     let emitted = false;
     component.selectedEmployee.subscribe((employee) => {
@@ -83,7 +117,26 @@ describe('TafelEmployeeSearchCreate', () => {
     component.triggerSearch();
 
     expect(component.showCreateEmployeeModal).toBeTrue();
+    expect(component.showSelectEmployeeModal).toBeFalse();
     expect(emitted).toBeFalse();
+  });
+
+  it('selected employee', () => {
+    const fixture = TestBed.createComponent(TafelEmployeeSearchCreateComponent);
+    const component = fixture.componentInstance;
+    component.showSelectEmployeeModal = true;
+
+    const mockEmployee: EmployeeData = {id: 1, personnelNumber: '00001', firstname: 'first 1', lastname: 'last 1'};
+
+    let emittedEmployee: EmployeeData;
+    component.selectedEmployee.subscribe((employee) => {
+      emittedEmployee = employee;
+    });
+
+    component.selectEmployee(mockEmployee)
+
+    expect(component.showSelectEmployeeModal).toBeFalse();
+    expect(emittedEmployee).toEqual(mockEmployee);
   });
 
   it('save new employee', () => {
