@@ -64,6 +64,7 @@ statistic:
 * Switch websocket to long-polling
 * Change all with distribution direct-related apis to /distributions (eg. collections)
 * Create a central interceptor/aspect to handel distribution not active state
+* Exclude mail from health check
 
 # Frontend #
 
