@@ -1,16 +1,16 @@
 package at.wrk.tafel.admin.backend.modules.checkin
 
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.modules.checkin.internal.ScannerService
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
+import io.mockk.slot
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.springframework.messaging.simp.SimpMessagingTemplate
 
 @ExtendWith(MockKExtension::class)
 internal class ScannerControllerTest {
@@ -19,24 +19,10 @@ internal class ScannerControllerTest {
     private lateinit var service: ScannerService
 
     @RelaxedMockK
-    private lateinit var messagingTemplate: SimpMessagingTemplate
-
-    @RelaxedMockK
-    private lateinit var authentication: TafelJwtAuthentication
+    private lateinit var objectMapper: ObjectMapper
 
     @InjectMockKs
     private lateinit var controller: ScannerController
-
-    @Test
-    fun `scanner registration successful`() {
-        val authentication = TafelJwtAuthentication(tokenValue = "TOKEN", username = "USER")
-        val id = 1
-        every { service.registerScanner(authentication.username!!) } returns id
-
-        val registration = controller.registerScanner(authentication)
-
-        assertThat(registration.scannerId).isEqualTo(id)
-    }
 
     @Test
     fun `get scanners`() {
@@ -59,17 +45,50 @@ internal class ScannerControllerTest {
 
     @Test
     fun `register scanner`() {
-        val username = "USER"
         val scannerId = 123
 
-        every { authentication.username } returns username
-        every { service.registerScanner(username) } returns scannerId
+        every { service.registerScanner(scannerId) } returns scannerId
         every { service.getScannerIds() } returns listOf(scannerId)
 
-        val response = controller.registerScanner(authentication)
+        val response = controller.registerScanner(scannerId)
 
         assertThat(response.scannerId).isEqualTo(scannerId)
-        verify { messagingTemplate.convertAndSend("/topic/scanners", ScannersResponse(scannerIds = listOf(scannerId))) }
+    }
+
+    @Test
+    fun `send result`() {
+        val scannerId = 123
+        val scanResult = 100L
+
+        every { service.registerScanner(scannerId) } returns scannerId
+        every { service.getScannerIds() } returns listOf(scannerId)
+
+        controller.sendResult(scannerId = scannerId, scanResult = scanResult)
+
+        verify {
+            service.saveScanResult(sentScannerId = scannerId, sentScanResult = scanResult)
+        }
+    }
+
+    @Test
+    fun `listen for results via SseEmitter`() {
+        val scannerId = 123
+        val jsonResult = "dummy-json"
+        every { objectMapper.writeValueAsString(any()) } returns jsonResult
+
+        val emitter = controller.listenForResults(scannerId = scannerId)
+
+        val callbackSlot = slot<(Long) -> Unit>()
+        verify { service.listenForResults(any(), capture(callbackSlot)) }
+
+        callbackSlot.captured(777)
+
+        val responseSlot = slot<ScanResult>()
+        verify { objectMapper.writeValueAsString(capture(responseSlot)) }
+
+        assertThat(responseSlot.captured).isEqualTo(ScanResult(value = 777))
+
+        assertThat(emitter).isNotNull
     }
 
 }
