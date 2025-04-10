@@ -1,54 +1,68 @@
 package at.wrk.tafel.admin.backend.modules.checkin
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.modules.checkin.internal.ScannerService
-import org.springframework.messaging.handler.annotation.MessageMapping
-import org.springframework.messaging.simp.SimpMessagingTemplate
-import org.springframework.messaging.simp.annotation.SendToUser
-import org.springframework.messaging.simp.annotation.SubscribeMapping
-import org.springframework.security.core.annotation.AuthenticationPrincipal
-import org.springframework.stereotype.Controller
+import com.fasterxml.jackson.databind.ObjectMapper
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 
-@Controller
+
+@RestController
+@RequestMapping("/api/scanners")
 class ScannerController(
     private val scannerService: ScannerService,
-    private val messagingTemplate: SimpMessagingTemplate
+    private val objectMapper: ObjectMapper,
 ) {
 
-    @SubscribeMapping("/scanners")
+    @GetMapping
     fun getScanners(): ScannersResponse {
-        return createCurrentScannersResponse()
+        return ScannersResponse(scannerIds = scannerService.getScannerIds())
     }
 
-    @MessageMapping("/scanners/register")
-    @SendToUser("/queue/scanners/registration")
-    fun registerScanner(
-        @AuthenticationPrincipal authentication: TafelJwtAuthentication
-    ): ScannerRegistration {
-        val id = scannerService.registerScanner(authentication.username!!)
-
-        // publish new scanner to clients
-        messagingTemplate.convertAndSend("/topic/scanners", createCurrentScannersResponse())
-
-        return ScannerRegistration(scannerId = id)
+    @PostMapping("/register")
+    fun registerScanner(@RequestParam("scannerId") existingScannerId: Int?): ScannerRegistration {
+        val scannerId = scannerService.registerScanner(existingScannerId)
+        return ScannerRegistration(scannerId = scannerId)
     }
 
-    private fun createCurrentScannersResponse() = ScannersResponse(scannerIds = scannerService.getScannerIds())
+    @PostMapping("/{scannerId}/results")
+    fun sendResult(@PathVariable("scannerId") scannerId: Int, @RequestParam("scanResult") scanResult: Long) {
+        scannerService.saveScanResult(scannerId, scanResult)
+    }
+
+    @GetMapping("/{scannerId}/results")
+    fun listenForResults(@PathVariable("scannerId") scannerId: Int): SseEmitter {
+        val emitter = SseEmitter()
+
+        scannerService.listenForResults(scannerId) { scannedCustomerId ->
+            val response = ScanResult(value = scannedCustomerId)
+
+            val event = SseEmitter.event()
+                .data(objectMapper.writeValueAsString(response))
+            emitter.send(event)
+        }
+
+        return emitter
+    }
 
 }
 
 @ExcludeFromTestCoverage
 data class ScanResult(
-    val value: Int
+    val value: Long,
 )
 
 @ExcludeFromTestCoverage
 data class ScannerRegistration(
-    val scannerId: Int
+    val scannerId: Int,
 )
 
 @ExcludeFromTestCoverage
 data class ScannersResponse(
-    val scannerIds: List<Int>
+    val scannerIds: List<Int>,
 )
