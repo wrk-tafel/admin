@@ -9,6 +9,7 @@ import at.wrk.tafel.admin.backend.database.model.logistics.FoodUnit
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteStopEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.ShelterEntity
+import at.wrk.tafel.admin.backend.database.model.logistics.ShopAddress
 import at.wrk.tafel.admin.backend.database.model.logistics.ShopEntity
 import at.wrk.tafel.admin.backend.modules.base.employee.testEmployee1
 import at.wrk.tafel.admin.backend.modules.base.employee.testEmployee2
@@ -27,6 +28,11 @@ val testShop2 = ShopEntity().apply {
     id = 2
     number = 2
     name = "Hofer"
+    address = ShopAddress().apply {
+        street = "Street 1"
+        postalCode = 1234
+        city = "City"
+    }
 }
 
 val testShop3 = ShopEntity().apply {
@@ -76,6 +82,15 @@ val testRoute3 = RouteEntity().apply {
     note = null
     stops = emptyList()
 }
+
+val testRoute4 = RouteEntity().apply {
+    id = 4
+    number = 4.0
+    name = "Route 4"
+    note = null
+    stops = emptyList()
+}
+
 
 val testFoodCategory1 = FoodCategoryEntity().apply {
     id = 1
@@ -160,6 +175,20 @@ val testFoodCollectionRoute3Entity = FoodCollectionEntity().apply {
     distribution = testDistributionEntity
     route = testRoute3
     items = emptyList()
+}
+
+val testFoodCollectionRoute4Entity = FoodCollectionEntity().apply {
+    distribution = testDistributionEntity
+    route = testRoute4
+    kmStart = 10
+    kmEnd = 20
+    items = listOf(
+        FoodCollectionItemEntity().apply {
+            category = testFoodCategory1
+            shop = testShop3
+            amount = 5
+        }
+    )
 }
 
 val testShelter1 = ShelterEntity().apply {

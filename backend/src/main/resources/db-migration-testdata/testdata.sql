@@ -617,15 +617,15 @@ INSERT INTO food_collections (id, created_at, updated_at, distribution_id, route
                               driver_employee_id, co_driver_employee_id, km_start, km_end)
 VALUES (2, NOW(), NOW(), 100, 2, 2, 2000, 2100, 213000, 213500);
 
--- food collections items for route 2 (all empty)
+-- food collections items for route 2
 WITH ShopCategories AS (
-                        SELECT s.id AS shop_id, fc.id AS food_category_id
-                        FROM shops s
-                        JOIN routes_stops rs ON rs.shop_id = s.id
-                        JOIN routes r ON rs.route_id = r.id
-                        CROSS JOIN food_categories fc
-                        WHERE r.id = 2
-                        )
+    SELECT s.id AS shop_id, fc.id AS food_category_id
+    FROM shops s
+             JOIN routes_stops rs ON rs.shop_id = s.id
+             JOIN routes r ON rs.route_id = r.id
+             CROSS JOIN food_categories fc
+    WHERE r.id = 2
+)
 INSERT
 INTO food_collections_items (food_collection_id,
                              shop_id,
@@ -635,6 +635,31 @@ SELECT 2,         -- fixed collection 2
        sc.shop_id,
        sc.food_category_id,
        0 -- amount
+FROM ShopCategories sc;
+
+-- food collection for route 3 (empty)
+INSERT INTO food_collections (id, created_at, updated_at, distribution_id, route_id, car_id,
+                              driver_employee_id, co_driver_employee_id, km_start, km_end)
+VALUES (3, NOW(), NOW(), 100, 3, 3, 2000, 2100, 1000, 1200);
+
+-- food collections items for route 3 (all empty)
+WITH ShopCategories AS (
+    SELECT s.id AS shop_id, fc.id AS food_category_id
+    FROM shops s
+             JOIN routes_stops rs ON rs.shop_id = s.id
+             JOIN routes r ON rs.route_id = r.id
+             CROSS JOIN food_categories fc
+    WHERE r.id = 3
+)
+INSERT
+INTO food_collections_items (food_collection_id,
+                             shop_id,
+                             food_category_id,
+                             amount)
+SELECT 3,         -- fixed collection 3
+       sc.shop_id,
+       sc.food_category_id,
+       1 -- amount
 FROM ShopCategories sc;
 
 -- shelters

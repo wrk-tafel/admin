@@ -48,7 +48,7 @@ class ReturnBoxesMailPostProcessor(
             .sortedBy { it.name }
 
         val routes = uniqueRoutes.mapNotNull { route ->
-            val uniqueShops = distribution.foodCollections.asSequence()
+            val uniqueShopsPerRoute = distribution.foodCollections.asSequence()
                 .filter { it.route!!.id == route.id }
                 .flatMap { it.items ?: emptyList() }
                 .mapNotNull { it.shop }
@@ -56,9 +56,10 @@ class ReturnBoxesMailPostProcessor(
                 .sortedBy { it.name }
                 .toList()
 
-            val shops = uniqueShops.mapNotNull { shop ->
+            val shops = uniqueShopsPerRoute.mapNotNull { shop ->
                 val uniqueReturnCategories = distribution.foodCollections
                     .asSequence()
+                    .filter { it.route!!.id == route.id }
                     .flatMap { it.items ?: emptyList() }
                     .mapNotNull { it.category }
                     .filter { it.returnItem == true }
@@ -76,8 +77,17 @@ class ReturnBoxesMailPostProcessor(
                 }.joinToString(", ")
 
                 if (returnBoxes.trim().isNotEmpty()) {
+                    val address = listOfNotNull(
+                        shop.address?.street,
+                        shop.address?.postalCode,
+                        shop.address?.city
+                    )
+                        .joinToString(", ")
+                        .ifEmpty { "" }
+
                     ReturnBoxesShop(
-                        name = "${shop.number} (${shop.name})",
+                        name = "${shop.number} ${shop.name}",
+                        address = address,
                         returnBoxes = returnBoxes
                     )
                 } else null
@@ -112,5 +122,6 @@ data class ReturnBoxesRoute(
 @ExcludeFromTestCoverage
 data class ReturnBoxesShop(
     val name: String,
+    val address: String,
     val returnBoxes: String,
 )
