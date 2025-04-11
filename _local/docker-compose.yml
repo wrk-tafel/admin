@@ -54,10 +54,10 @@ services:
     volumes:
       - mysql-data:/var/lib/mysql
 
-  mailhog:
-    image: mailhog/mailhog:latest
-    container_name: tafeladmin-mailhog
-    hostname: tafeladmin-mailhog
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: tafeladmin-mailpit
+    hostname: tafeladmin-mailpit
     ports:
       - "1025:1025"
       - "8025:8025"

@@ -14,8 +14,8 @@ spring:
   mail:
     host: localhost
     port: 1025
-    username: mailhog
-    password: mailhog
+    username: test
+    password: test
 
 security:
   jwtToken:
