@@ -2,13 +2,14 @@
     Infos zur Ausgabe vom [( ${distributionDate} )].
     <br/>
     <br/>
-    <p><strong>Retourkisten:</strong></p>
+    <p><h3>Retourkisten</h3></p>
     <br/>
     <div th:if="${!#lists.isEmpty(returnBoxes.routes)}">
         <div th:each="route : ${returnBoxes.routes}">
-            <p>[( ${route.name} )]</p>
+            <p><h4>[( ${route.name} )]</h4></p>
             <div th:each="shop : ${route.shops}">
-                <p>- [( ${shop.name} )]: [( ${shop.returnBoxes} )]</p>
+                <p><strong>[( ${shop.name} )]</strong>&nbsp;[( ${shop.address} )]</p>
+                <p>- [( ${shop.returnBoxes} )]</p>
             </div>
             <br/>
         </div>

@@ -8,6 +8,7 @@ import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatis
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCollectionRoute1Entity
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCollectionRoute2Entity
 import at.wrk.tafel.admin.backend.modules.logistics.testFoodCollectionRoute3Entity
+import at.wrk.tafel.admin.backend.modules.logistics.testFoodCollectionRoute4Entity
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -48,6 +49,7 @@ class ReturnBoxesMailPostProcessorTest {
             testFoodCollectionRoute1Entity,
             testFoodCollectionRoute2Entity,
             testFoodCollectionRoute3Entity,
+            testFoodCollectionRoute4Entity
         )
 
         val distributionStatistic = mockk<DistributionStatisticEntity>()
@@ -77,14 +79,31 @@ class ReturnBoxesMailPostProcessorTest {
         )
 
         val returnBoxes = context.getVariable("returnBoxes") as ReturnBoxesDataModel
+        assertThat(returnBoxes.routes).hasSize(2)
+
         val firstReturnBox = returnBoxes.routes.first()
         assertThat(firstReturnBox).isEqualTo(
             ReturnBoxesRoute(
                 name = "Route 1",
                 shops = listOf(
                     ReturnBoxesShop(
-                        name = "2 (Hofer)",
+                        name = "2 Hofer",
+                        address = "Street 1, 1234, City",
                         returnBoxes = "4x Category 2"
+                    )
+                )
+            )
+        )
+
+        val secondReturnBox = returnBoxes.routes[1]
+        assertThat(secondReturnBox).isEqualTo(
+            ReturnBoxesRoute(
+                name = "Route 2",
+                shops = listOf(
+                    ReturnBoxesShop(
+                        name = "3 Hofer 2",
+                        address = "",
+                        returnBoxes = "5x Category 2"
                     )
                 )
             )
