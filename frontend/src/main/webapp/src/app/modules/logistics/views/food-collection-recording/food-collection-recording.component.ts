@@ -1,4 +1,4 @@
-import {Component, inject, model, OnInit, ViewChild} from '@angular/core';
+import {Component, inject, model, NgZone, OnInit, ViewChild} from '@angular/core';
 import {RouteData, RouteList, Shop} from '../../../../api/route-api.service';
 import {CommonModule} from '@angular/common';
 import {
@@ -33,6 +33,7 @@ import {
 } from '../../../../api/food-collections-api.service';
 import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
 import {CarData, CarList} from '../../../../api/car-api.service';
+import {take} from "rxjs";
 
 @Component({
   selector: 'tafel-food-collection-recording',
@@ -72,6 +73,7 @@ export class FoodCollectionRecordingComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
   private readonly toastService = inject(ToastService);
+  private readonly ngZone = inject(NgZone);
 
   selectedDriver: EmployeeData;
   selectedCoDriver: EmployeeData;
@@ -140,10 +142,18 @@ export class FoodCollectionRecordingComponent implements OnInit {
           next: async (existingData: FoodCollectionData) => {
             this.car.setValue(this.carList().cars.find(car => car.id === existingData.carId));
 
+            if (existingData.driver) {
             this.driverSearchInput.setValue(existingData.driver.personnelNumber);
-            this.driverEmployeeSearchCreate.triggerSearch();
-            this.coDriverSearchInput.setValue(existingData.coDriver.personnelNumber);
-            this.coDriverEmployeeSearchCreate.triggerSearch();
+              this.ngZone.onStable.pipe(take(1)).subscribe(() => {
+                this.driverEmployeeSearchCreate.triggerSearch();
+              });
+            }
+            if (existingData.coDriver) {
+              this.coDriverSearchInput.setValue(existingData.coDriver.personnelNumber);
+              this.ngZone.onStable.pipe(take(1)).subscribe(() => {
+                this.coDriverEmployeeSearchCreate.triggerSearch();
+              });
+            }
 
             this.kmStart.setValue(existingData.kmStart);
             this.kmEnd.setValue(existingData.kmEnd);

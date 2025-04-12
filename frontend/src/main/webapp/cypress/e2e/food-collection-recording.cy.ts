@@ -71,8 +71,15 @@ describe('Food Collection Recording', () => {
       cy.url().should('include', '/logistik/warenerfassung');
 
       // check if existing data is filled again
+      cy.byTestId('routeInput').select('Route 1');
       cy.byTestId('routeInput').select('Route 2');
       cy.byTestId('category-1-shop-20-input').should('have.value', '12');
+
+      cy.byTestId('driver-search-create-modal').should('not.exist');
+      cy.byTestId('codriver-search-create-modal').should('not.exist');
+
+      cy.byTestId('driver-select-employee-modal').should('not.exist');
+      cy.byTestId('codriver-select-employee-modal').should('not.exist');
     });
   });
 
