@@ -2,7 +2,6 @@ logging:
   level:
     root: INFO
     org.apache: WARN
-    org.springframework.web.socket.config.WebSocketMessageBrokerStats: WARN
 
 management:
   server:
