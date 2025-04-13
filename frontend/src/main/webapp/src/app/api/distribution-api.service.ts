@@ -1,16 +1,12 @@
 import {HttpClient, HttpResponse} from '@angular/common/http';
 import {inject, Injectable} from '@angular/core';
 import {Observable} from 'rxjs';
-import {WebsocketService} from '../common/websocket/websocket.service';
-import {IMessage} from '@stomp/stompjs';
-import {map} from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
 })
 export class DistributionApiService {
   private readonly http = inject(HttpClient);
-  private readonly websocketService = inject(WebsocketService);
 
   createNewDistribution(): Observable<void> {
     return this.http.post<void>('/distributions/new', null);
@@ -18,15 +14,6 @@ export class DistributionApiService {
 
   closeDistribution(): Observable<void> {
     return this.http.post<void>('/distributions/close', null);
-  }
-
-  getCurrentDistribution(): Observable<DistributionItem> {
-    return this.websocketService.watch('/topic/distributions').pipe(map(
-      (message: IMessage) => {
-        const response: DistributionItemResponse = JSON.parse(message.body);
-        return response.distribution;
-      }
-    ));
   }
 
   assignCustomer(customerId: number, ticketNumber: number): Observable<void> {
@@ -62,7 +49,7 @@ export class DistributionApiService {
 
 }
 
-export interface DistributionItemResponse {
+export interface DistributionItemUpdate {
   distribution: DistributionItem;
 }
 
