@@ -1,7 +1,9 @@
 import {ChangeDetectorRef, Component, ElementRef, inject, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {CustomerApiService, CustomerData} from '../../../../api/customer-api.service';
 import {Subscription} from 'rxjs';
+import {IMessage} from '@stomp/stompjs';
 import * as moment from 'moment';
+import {ScannerList} from '../scanner/scanner.component';
 import {CustomerNoteApiService, CustomerNoteItem} from '../../../../api/customer-note-api.service';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
 import {Router} from '@angular/router';
@@ -20,11 +22,10 @@ import {
 } from '@coreui/angular';
 import {DistributionTicketApiService} from '../../../../api/distribution-ticket-api.service';
 import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
+import {WebsocketService} from '../../../../common/websocket/websocket.service';
 import {FormsModule} from '@angular/forms';
 import {CommonModule, DatePipe, NgClass} from '@angular/common';
 import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
-import {SseService} from '../../../../common/sse/sse.service';
-import {ScannerApiService, ScannerList} from '../../../../api/scanner-api.service';
 
 @Component({
   selector: 'tafel-checkin',
@@ -64,11 +65,10 @@ export class CheckinComponent implements OnInit, OnDestroy {
   @ViewChild('cancelButton') cancelButtonRef: ElementRef;
   private readonly customerApiService = inject(CustomerApiService);
   private readonly customerNoteApiService = inject(CustomerNoteApiService);
+  private readonly websocketService = inject(WebsocketService);
   private readonly globalStateService = inject(GlobalStateService);
   private readonly distributionApiService = inject(DistributionApiService);
   private readonly distributionTicketApiService = inject(DistributionTicketApiService);
-  private readonly scannerApiService = inject(ScannerApiService);
-  private readonly sseService = inject(SseService);
   private readonly router = inject(Router);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
   private readonly toastService = inject(ToastService);
@@ -86,8 +86,9 @@ export class CheckinComponent implements OnInit, OnDestroy {
     this.scannerReadyState = false;
 
     if (scannerId) {
-      this.scannerSubscription = this.sseService.listen<ScanResult>(`/scanners/${this.currentScannerId}/results`)
-        .subscribe((result: ScanResult) => {
+      this.scannerSubscription = this.websocketService.watch(`/topic/scanners/${this.currentScannerId}/results`)
+        .subscribe((message: IMessage) => {
+          const result: ScanResult = JSON.parse(message.body);
           this.customerId = result.value;
           this.searchForCustomerId();
         });
@@ -105,8 +106,9 @@ export class CheckinComponent implements OnInit, OnDestroy {
       this.router.navigate(['uebersicht']);
     }
 
-    this.scannerApiService.getScanners().subscribe((response: ScannerList) => {
-      this.scannerIds = response.scannerIds;
+    this.websocketService.watch('/topic/scanners').subscribe((message: IMessage) => {
+      const scanners: ScannerList = JSON.parse(message.body);
+      this.scannerIds = scanners.scannerIds;
     });
   }
 

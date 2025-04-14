@@ -1,41 +1,28 @@
 package at.wrk.tafel.admin.backend.modules.dashboard
 
-import at.wrk.tafel.admin.backend.common.sse.SseUtil
-import at.wrk.tafel.admin.backend.database.common.sse_outbox.SseOutboxService
 import at.wrk.tafel.admin.backend.modules.dashboard.internal.DashboardService
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
+import org.springframework.messaging.handler.annotation.MessageMapping
+import org.springframework.messaging.simp.SimpMessagingTemplate
+import org.springframework.messaging.simp.annotation.SubscribeMapping
+import org.springframework.scheduling.annotation.Scheduled
+import org.springframework.stereotype.Controller
 
-@RestController
-@RequestMapping("/api/dashboard")
+@Controller
+@MessageMapping("/dashboard")
 class DashboardController(
-    private val dashboardService: DashboardService,
-    private val sseOutboxService: SseOutboxService,
+    private val simpMessagingTemplate: SimpMessagingTemplate,
+    private val dashboardService: DashboardService
 ) {
 
-    companion object {
-        const val DASHBOARD_UPDATE_NOTIFICATION_NAME = "dashboard_update"
+    @SubscribeMapping
+    fun getInitialMessage(): DashboardData {
+        return dashboardService.getData()
     }
 
-    @GetMapping
-    fun listenForDashboardData(): SseEmitter {
-        val sseEmitter = SseUtil.createSseEmitter()
-
-        // Initial data
+    @Scheduled(fixedDelay = 2000)
+    fun refreshDashboard() {
         val data = dashboardService.getData()
-        sseOutboxService.sendEvent(sseEmitter, data)
-
-        sseOutboxService.listenForNotificationEvents<Unit>(
-            sseEmitter = sseEmitter,
-            notificationName = DASHBOARD_UPDATE_NOTIFICATION_NAME,
-            resultType = null
-        ) {
-            sseOutboxService.sendEvent(sseEmitter, dashboardService.getData())
-        }
-
-        return sseEmitter
+        simpMessagingTemplate.convertAndSend("/topic/dashboard", data)
     }
 
 }

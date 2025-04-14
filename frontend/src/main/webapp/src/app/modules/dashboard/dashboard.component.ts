@@ -1,4 +1,6 @@
 import {Component, inject, Input, OnInit} from '@angular/core';
+import {WebsocketService} from '../../common/websocket/websocket.service';
+import {IMessage} from '@stomp/stompjs';
 import {ButtonDirective, ColComponent, RowComponent} from '@coreui/angular';
 import {DistributionStateComponent} from './components/distribution-state/distribution-state.component';
 import {RegisteredCustomersComponent} from './components/registered-customers/registered-customers.component';
@@ -16,7 +18,6 @@ import {
   DistributionNotesInputComponent
 } from './components/distribution-notes-input/distribution-notes-input.component';
 import {TicketsProcessedComponent} from './components/tickets-processed/tickets-processed.component';
-import {SseService} from '../../common/sse/sse.service';
 
 @Component({
   selector: 'tafel-dashboard',
@@ -38,14 +39,14 @@ import {SseService} from '../../common/sse/sse.service';
   standalone: true
 })
 export class DashboardComponent implements OnInit {
-  private readonly sseService = inject(SseService);
+  private readonly websocketService = inject(WebsocketService);
 
   @Input() sheltersData: ShelterListResponse;
   data: DashboardData;
 
   ngOnInit(): void {
-    this.sseService.listen('/dashboard').subscribe((data: DashboardData) => {
-      this.data = data;
+    this.websocketService.watch('/topic/dashboard').subscribe((message: IMessage) => {
+      this.data = JSON.parse(message.body);
     });
   }
 

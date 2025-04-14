@@ -1,3 +1,0 @@
-### Listen for dashboard changes
-GET {{baseApiPath}}/dashboard
-Accept: text/event-stream

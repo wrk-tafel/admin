@@ -1,7 +1,8 @@
 import {Component, inject, OnInit} from '@angular/core';
+import {WebsocketService} from '../../../../common/websocket/websocket.service';
+import {IMessage} from '@stomp/stompjs';
 import {BgColorDirective, ColComponent, ContainerComponent, RowComponent} from '@coreui/angular';
 import {DatePipe, NgIf} from '@angular/common';
-import {SseService} from '../../../../common/sse/sse.service';
 
 @Component({
   selector: 'tafel-ticket-screen',
@@ -17,21 +18,27 @@ import {SseService} from '../../../../common/sse/sse.service';
   standalone: true
 })
 export class TicketScreenComponent implements OnInit {
-  private readonly sseService = inject(SseService);
-
-  text: string;
-  value: string;
+  startTime: Date;
+  ticketNumber: number;
+  private readonly websocketService = inject(WebsocketService);
 
   ngOnInit(): void {
-    this.sseService.listen('/distributions/ticket-screen/current').subscribe((response: TicketScreenText) => {
-      this.text = response.text;
-      this.value = response.value;
+    this.websocketService.connect();
+    this.websocketService.watch('/topic/ticket-screen').subscribe((message: IMessage) => {
+      this.processMessage(message);
     });
+  }
+
+  processMessage(message: IMessage) {
+    const screenMessage: TicketScreenMessage = JSON.parse(message.body);
+
+    this.startTime = screenMessage.startTime;
+    this.ticketNumber = screenMessage.ticketNumber;
   }
 
 }
 
-export interface TicketScreenText {
-  text: string;
-  value: string;
+export interface TicketScreenMessage {
+  startTime?: Date;
+  ticketNumber?: number;
 }

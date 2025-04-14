@@ -3,6 +3,7 @@ package at.wrk.tafel.admin.backend.modules.base.employee
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
+import jakarta.websocket.server.PathParam
 import org.springframework.data.domain.PageRequest
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.GetMapping
@@ -20,7 +21,7 @@ class EmployeeController(
 
     @GetMapping
     fun findEmployees(
-        @RequestParam searchInput: String? = null,
+        @PathParam("searchInput") searchInput: String? = null,
         @RequestParam page: Int? = null,
     ): EmployeeListResponse {
         val pageRequest = PageRequest.of(page?.minus(1) ?: 0, 5)

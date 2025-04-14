@@ -1,5 +1,7 @@
 import {Component, computed, inject, OnDestroy, OnInit, signal, WritableSignal} from '@angular/core';
 import {QRCodeReaderService} from '../../services/qrcode-reader/qrcode-reader.service';
+import {RxStompState} from '@stomp/rx-stomp';
+import {WebsocketService} from '../../../../common/websocket/websocket.service';
 import {CameraDevice} from 'html5-qrcode/esm/camera/core';
 import {Html5QrcodeResult} from 'html5-qrcode/core';
 import {
@@ -12,9 +14,6 @@ import {
 } from '@coreui/angular';
 import {FormsModule} from '@angular/forms';
 import {CommonModule} from '@angular/common';
-import {ScannerApiService, ScannerRegistration} from '../../../../api/scanner-api.service';
-import {firstValueFrom} from 'rxjs';
-import {tap} from 'rxjs/operators';
 
 @Component({
   selector: 'tafel-scanner',
@@ -29,23 +28,28 @@ import {tap} from 'rxjs/operators';
     FormSelectDirective,
     CommonModule
   ],
+  providers: [
+    QRCodeReaderService
+  ],
   standalone: true
 })
 export class ScannerComponent implements OnInit, OnDestroy {
   private readonly qrCodeReaderService = inject(QRCodeReaderService);
-  private readonly scannerApiService = inject(ScannerApiService);
+  private readonly websocketService = inject(WebsocketService);
 
   scannerId: number;
-  lastScanResult: number;
   availableCameras: CameraDevice[] = [];
   currentCamera: CameraDevice;
+  lastSentText: string;
 
-  readonly ready: WritableSignal<boolean> = signal(false);
-  readonly readyColor = computed(() => {
-    return this.ready() ? 'success' : 'danger';
+  readonly qrCodeReaderReady: WritableSignal<boolean> = signal(false);
+  readonly qrCodeReaderReadyColor = computed(() => {
+    return this.qrCodeReaderReady() ? 'success' : 'danger';
   });
-  readonly readyText = computed(() => {
-    return this.ready() ? 'Bereit' : 'Nicht bereit';
+
+  readonly apiClientReady: WritableSignal<boolean> = signal(false);
+  readonly apiClientReadyColor = computed(() => {
+    return this.apiClientReady() ? 'success' : 'danger';
   });
 
   get selectedCamera(): CameraDevice {
@@ -61,7 +65,9 @@ export class ScannerComponent implements OnInit, OnDestroy {
   }
 
   async ngOnInit(): Promise<void> {
-    const registrationPromise = this.registerScanner();
+    const wsPromise = this.websocketService.getConnectionState().subscribe((state: RxStompState) => {
+      this.processApiConnectionState(state);
+    });
 
     const qrPromise = this.qrCodeReaderService.getCameras().then(async cameras => {
       this.availableCameras = cameras;
@@ -72,24 +78,7 @@ export class ScannerComponent implements OnInit, OnDestroy {
       await this.processQrCodeReaderPromise(promise);
     });
 
-    await Promise.all([registrationPromise, qrPromise])
-  }
-
-  private registerScanner(): Promise<ScannerRegistration> {
-    const storageKey = 'scanner-id';
-    const storageValue = localStorage.getItem(storageKey);
-
-    let existingScannerId = undefined;
-    if (storageValue) {
-      existingScannerId = Number(storageValue);
-    }
-
-    return firstValueFrom(this.scannerApiService.registerScanner(existingScannerId)
-      .pipe(tap(response => {
-        this.scannerId = response.scannerId;
-        localStorage.setItem(storageKey, response.scannerId.toString());
-      }))
-    );
+    await Promise.all([wsPromise, qrPromise])
   }
 
   async ngOnDestroy(): Promise<void> {
@@ -99,23 +88,57 @@ export class ScannerComponent implements OnInit, OnDestroy {
   async processQrCodeReaderPromise(promise: Promise<null>) {
     await promise.then(
       () => {
-        this.ready.set(true);
+        this.qrCodeReaderReady.set(true);
       },
       () => {
-        this.ready.set(false);
+        this.qrCodeReaderReady.set(false);
       }
     );
   }
 
-  qrCodeReaderSuccessCallback = (decodedText: string, _: Html5QrcodeResult) => {
-    const scanResult: ScanResult = {value: +decodedText};
-    const scannedValue = scanResult.value;
-    if (!this.lastScanResult || this.lastScanResult !== scannedValue) {
-      this.lastScanResult = scanResult.value;
-      this.scannerApiService.sendScanResult(this.scannerId, scanResult.value).subscribe();
+  /* eslint-disable @typescript-eslint/no-unused-vars */
+  qrCodeReaderSuccessCallback = (decodedText: string, result: Html5QrcodeResult) => {
+    if (this.apiClientReady() && (!this.lastSentText || this.lastSentText !== decodedText)) {
+      const scanResult: ScanResult = {value: +decodedText};
+      this.websocketService.publish({
+        destination: `/topic/scanners/${this.scannerId}/results`,
+        body: JSON.stringify(scanResult)
+      });
+      this.lastSentText = decodedText;
+
+      // reset to retry in case of an error while transmitting/receiving
+      setTimeout(() => {
+        this.lastSentText = null;
+      }, 3000);
     }
   }
 
+  processApiConnectionState(state: RxStompState) {
+    if (state === RxStompState.OPEN) {
+      this.processClientRegistration();
+    } else {
+      this.apiClientReady.set(false);
+    }
+  }
+
+  processClientRegistration() {
+    this.websocketService.watch('/user/queue/scanners/registration').subscribe((message) => {
+        const registration: ScannerRegistration = JSON.parse(message.body);
+        this.scannerId = registration.scannerId;
+        this.apiClientReady.set(true);
+      }
+    );
+    this.websocketService.publish({destination: '/app/scanners/register'});
+  }
+
+}
+
+export interface ScannerRegistration {
+  scannerId: number;
+}
+
+export interface ScannerList {
+  scannerIds: number[];
 }
 
 export interface ScanResult {
