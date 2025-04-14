@@ -4,6 +4,10 @@ POST {{baseApiPath}}/distributions/new
 ### Close currently open distribution
 POST {{baseApiPath}}/distributions/close
 
+### Listen for distribution changes
+GET {{baseApiPath}}/sse/distributions
+Accept: text/event-stream
+
 ### Assign customer to distribution
 POST {{baseApiPath}}/distributions/customers
 Content-Type: application/json

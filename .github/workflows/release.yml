@@ -23,7 +23,7 @@ jobs:
       imageTag: latest
     secrets:
       githubToken: ${{ secrets.GITHUB_TOKEN }}
-  deploy:
+  deploy-prod:
     uses: ./.github/workflows/subflow_deploy.yml
     needs: build-push-image
     secrets:

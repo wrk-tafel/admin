@@ -17,7 +17,6 @@ import {CookieService} from 'ngx-cookie-service';
 import {HashLocationStrategy, LocationStrategy} from '@angular/common';
 import {errorHandlerInterceptor} from './common/http/errorhandler-interceptor.service';
 import {apiPathInterceptor} from './common/http/apipath-interceptor.service';
-import {WebsocketService} from './common/websocket/websocket.service';
 import {AuthenticationService} from './common/security/authentication.service';
 
 export const appConfig: ApplicationConfig = {
@@ -62,10 +61,6 @@ export const appConfig: ApplicationConfig = {
     {
       provide: Window,
       useValue: window
-    },
-    {
-      provide: WebsocketService,
-      useClass: WebsocketService
     },
     {
       provide: APP_INITIALIZER,

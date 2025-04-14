@@ -1,11 +1,10 @@
 import {Component, inject} from '@angular/core';
 import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
-import {WebsocketService} from '../../../../common/websocket/websocket.service';
-import {TicketScreenComponent, TicketScreenMessage} from '../../components/ticket-screen/ticket-screen.component';
-import {DistributionTicketApiService, TicketNumberResponse} from '../../../../api/distribution-ticket-api.service';
+import {TicketScreenComponent} from '../../components/ticket-screen/ticket-screen.component';
 import {UrlHelperService} from '../../../../common/util/url-helper.service';
 import {ButtonDirective, CardBodyComponent, CardComponent, ColComponent, RowComponent} from '@coreui/angular';
 import {NgClass} from '@angular/common';
+import {DistributionTicketScreenApiService} from '../../../../api/distribution-ticket-screen-api.service';
 
 @Component({
   selector: 'tafel-ticket-screen-control',
@@ -23,8 +22,7 @@ import {NgClass} from '@angular/common';
   standalone: true
 })
 export class TicketScreenControlComponent {
-  private readonly websocketService = inject(WebsocketService);
-  private readonly distributionTicketApiService = inject(DistributionTicketApiService);
+  private readonly distributionTicketScreenApiService = inject(DistributionTicketScreenApiService);
   private readonly urlHelperService = inject(UrlHelperService);
   private readonly fb = inject(FormBuilder);
 
@@ -42,30 +40,19 @@ export class TicketScreenControlComponent {
 
     const time = this.startTime.value;
     if (time) {
-      const startTime = new Date();
-      startTime.setHours(Number(time.split(':')[0]));
-      startTime.setMinutes(Number(time.split(':')[1]));
-      startTime.setSeconds(0);
-      startTime.setMilliseconds(0);
-
-      this.sendToTicketScreen({startTime: startTime});
+      // TODO error toast?
+      this.distributionTicketScreenApiService.showText('Startzeit', time).subscribe()
     }
   }
 
   showCurrentTicket() {
-    this.distributionTicketApiService.getCurrentTicket().subscribe((response: TicketNumberResponse) => {
-      this.sendToTicketScreen({ticketNumber: response.ticketNumber});
-    });
+    // TODO error toast?
+    this.distributionTicketScreenApiService.showCurrentTicket().subscribe();
   }
 
   showNextTicket() {
-    this.distributionTicketApiService.getNextTicket().subscribe((response: TicketNumberResponse) => {
-      this.sendToTicketScreen({ticketNumber: response.ticketNumber});
-    });
-  }
-
-  private sendToTicketScreen(message: TicketScreenMessage) {
-    this.websocketService.publish({destination: '/topic/ticket-screen', body: JSON.stringify(message)});
+    // TODO error toast?
+    this.distributionTicketScreenApiService.showNextTicket().subscribe();
   }
 
   get startTime() {

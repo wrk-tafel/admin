@@ -33,7 +33,7 @@ import {
 } from '../../../../api/food-collections-api.service';
 import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
 import {CarData, CarList} from '../../../../api/car-api.service';
-import {take} from "rxjs";
+import {take} from 'rxjs';
 
 @Component({
   selector: 'tafel-food-collection-recording',
