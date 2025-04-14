@@ -3,6 +3,7 @@ import {CheckinComponent, CustomerState, ScanResult} from './checkin.component';
 import {CommonModule} from '@angular/common';
 import {CustomerApiService, Gender} from '../../../../api/customer-api.service';
 import {BehaviorSubject, EMPTY, of, throwError} from 'rxjs';
+import {IMessage} from '@stomp/stompjs';
 import * as moment from 'moment/moment';
 import {CustomerNoteApiService, CustomerNotesResponse} from '../../../../api/customer-note-api.service';
 import {Router} from '@angular/router';
@@ -11,16 +12,15 @@ import {BadgeModule, CardModule, ColComponent, ModalModule, RowComponent} from '
 import {FormsModule} from '@angular/forms';
 import {ChangeDetectorRef, ElementRef} from '@angular/core';
 import {DistributionTicketApiService} from '../../../../api/distribution-ticket-api.service';
+import {WebsocketService} from '../../../../common/websocket/websocket.service';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
 import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
-import {ScannerApiService, ScannerList} from '../../../../api/scanner-api.service';
-import {SseService} from '../../../../common/sse/sse.service';
+import {ScannerList} from '../scanner/scanner.component';
 
 describe('CheckinComponent', () => {
   let customerApiService: jasmine.SpyObj<CustomerApiService>;
   let customerNoteApiService: jasmine.SpyObj<CustomerNoteApiService>;
-  let scannerApiService: jasmine.SpyObj<ScannerApiService>;
-  let sseService: jasmine.SpyObj<SseService>;
+  let wsService: jasmine.SpyObj<WebsocketService>;
   let globalStateService: jasmine.SpyObj<GlobalStateService>;
   let distributionApiService: jasmine.SpyObj<DistributionApiService>;
   let distributionTicketApiService: jasmine.SpyObj<DistributionTicketApiService>;
@@ -30,8 +30,9 @@ describe('CheckinComponent', () => {
   beforeEach(waitForAsync(() => {
     const customerApiServiceSpy = jasmine.createSpyObj('CustomerApiService', ['getCustomer']);
     const customerNoteApiServiceSpy = jasmine.createSpyObj('CustomerNoteApiService', ['getNotesForCustomer']);
-    const scannerApiServiceSpy = jasmine.createSpyObj('ScannerApiService', ['getScanners']);
-    const sseServiceSpy = jasmine.createSpyObj('SseService', ['listen']);
+    const wsServiceSpy = jasmine.createSpyObj('WebsocketService',
+      ['init', 'connect', 'watch', 'close']
+    );
     const globalStateServiceSpy = jasmine.createSpyObj('GlobalStateService', ['getCurrentDistribution']);
     const distributionApiServiceSpy = jasmine.createSpyObj('DistributionApiService', ['assignCustomer']);
     const distributionTicketApiServiceSpy = jasmine.createSpyObj('DistributionTicketApiService', ['getCurrentTicketForCustomer', 'deleteCurrentTicketOfCustomer']);
@@ -58,12 +59,8 @@ describe('CheckinComponent', () => {
           useValue: customerNoteApiServiceSpy
         },
         {
-          provide: ScannerApiService,
-          useValue: scannerApiServiceSpy
-        },
-        {
-          provide: SseService,
-          useValue: sseServiceSpy
+          provide: WebsocketService,
+          useValue: wsServiceSpy
         },
         {
           provide: GlobalStateService,
@@ -90,8 +87,7 @@ describe('CheckinComponent', () => {
 
     customerApiService = TestBed.inject(CustomerApiService) as jasmine.SpyObj<CustomerApiService>;
     customerNoteApiService = TestBed.inject(CustomerNoteApiService) as jasmine.SpyObj<CustomerNoteApiService>;
-    scannerApiService = TestBed.inject(ScannerApiService) as jasmine.SpyObj<ScannerApiService>;
-    sseService = TestBed.inject(SseService) as jasmine.SpyObj<SseService>;
+    wsService = TestBed.inject(WebsocketService) as jasmine.SpyObj<WebsocketService>;
     globalStateService = TestBed.inject(GlobalStateService) as jasmine.SpyObj<GlobalStateService>;
     distributionApiService = TestBed.inject(DistributionApiService) as jasmine.SpyObj<DistributionApiService>;
     distributionTicketApiService = TestBed.inject(DistributionTicketApiService) as jasmine.SpyObj<DistributionTicketApiService>;
@@ -111,7 +107,16 @@ describe('CheckinComponent', () => {
     const component = fixture.componentInstance;
 
     const scannersResponse: ScannerList = {scannerIds: [1, 2, 3]};
-    scannerApiService.getScanners.and.returnValue(of(scannersResponse));
+    const scannersMessage: IMessage = {
+      body: JSON.stringify(scannersResponse),
+      ack: null,
+      nack: null,
+      headers: null,
+      command: null,
+      binaryBody: null,
+      isBinaryBody: false
+    };
+    wsService.watch.and.returnValue(of(scannersMessage));
 
     const testDistribution = {
       id: 123,
@@ -125,6 +130,7 @@ describe('CheckinComponent', () => {
 
     component.ngOnInit();
 
+    expect(wsService.watch).toHaveBeenCalledWith('/topic/scanners');
     expect(component.scannerIds).toEqual(scannersResponse.scannerIds);
   });
 
@@ -132,7 +138,7 @@ describe('CheckinComponent', () => {
     const fixture = TestBed.createComponent(CheckinComponent);
     const component = fixture.componentInstance;
 
-    scannerApiService.getScanners.and.returnValue(EMPTY);
+    wsService.watch.and.returnValue(EMPTY);
     globalStateService.getCurrentDistribution.and.returnValue(new BehaviorSubject<DistributionItem>(null));
 
     component.ngOnInit();
@@ -158,7 +164,16 @@ describe('CheckinComponent', () => {
 
     const customerId = 11111;
     const scanResult: ScanResult = {value: customerId};
-    sseService.listen.and.returnValue(of(scanResult));
+    const scanResultMessage: IMessage = {
+      body: JSON.stringify(scanResult),
+      ack: null,
+      nack: null,
+      headers: null,
+      command: null,
+      binaryBody: null,
+      isBinaryBody: false
+    };
+    wsService.watch.and.returnValue(of(scanResultMessage));
 
     const fixture = TestBed.createComponent(CheckinComponent);
     const component = fixture.componentInstance;
@@ -173,7 +188,7 @@ describe('CheckinComponent', () => {
     expect(component.currentScannerId).toBe(newScannerId);
     expect(component.customerId).toBe(customerId);
     expect(component.scannerReadyState).toBeTruthy();
-    expect(sseService.listen).toHaveBeenCalledWith(`/scanners/${newScannerId}/results`);
+    expect(wsService.watch).toHaveBeenCalledWith(`/topic/scanners/${newScannerId}/results`);
     expect(customerApiService.getCustomer).toHaveBeenCalled();
   });
 
@@ -193,13 +208,13 @@ describe('CheckinComponent', () => {
     expect(component.customerId).not.toBeUndefined();
     expect(component.scannerReadyState).toBeFalsy();
     expect(testSubscription.unsubscribe).toHaveBeenCalled();
-    expect(sseService.listen).not.toHaveBeenCalled();
+    expect(wsService.watch).not.toHaveBeenCalled();
     expect(customerApiService.getCustomer).not.toHaveBeenCalled();
   });
 
   it('selectedScannerId switch to another scanner', () => {
     const testSubscription = jasmine.createSpyObj('Subscription', ['unsubscribe']);
-    sseService.listen.and.returnValue(EMPTY);
+    wsService.watch.and.returnValue(EMPTY);
 
     const fixture = TestBed.createComponent(CheckinComponent);
     const component = fixture.componentInstance;
@@ -214,7 +229,7 @@ describe('CheckinComponent', () => {
     expect(component.currentScannerId).toBe(newScannerId);
     expect(component.scannerReadyState).toBeTruthy();
     expect(testSubscription.unsubscribe).toHaveBeenCalled();
-    expect(sseService.listen).toHaveBeenCalledWith(`/scanners/${newScannerId}/results`);
+    expect(wsService.watch).toHaveBeenCalled();
   });
 
   it('searchForCustomerId found valid customer', () => {

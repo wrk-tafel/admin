@@ -21,11 +21,19 @@ describe('DistributionTicketApiService', () => {
     apiService = TestBed.inject(DistributionTicketApiService);
   });
 
+  it('get current ticket', () => {
+    apiService.getCurrentTicket().subscribe();
+
+    const req = httpMock.expectOne({method: 'GET', url: '/distributions/tickets/current'});
+    req.flush(null);
+    httpMock.verify();
+  });
+
   it('get current ticket for customer', () => {
     const customerId = 123;
     apiService.getCurrentTicketForCustomer(customerId).subscribe();
 
-    const req = httpMock.expectOne({method: 'GET', url: `/distributions/tickets/customers/${customerId}`});
+    const req = httpMock.expectOne({method: 'GET', url: `/distributions/tickets/current?customerId=${customerId}`});
     req.flush(null);
     httpMock.verify();
   });
@@ -34,7 +42,15 @@ describe('DistributionTicketApiService', () => {
     const customerId = 123;
     apiService.deleteCurrentTicketOfCustomer(customerId).subscribe();
 
-    const req = httpMock.expectOne({method: 'DELETE', url: `/distributions/tickets/customers/${customerId}`});
+    const req = httpMock.expectOne({method: 'DELETE', url: `/distributions/tickets/current?customerId=${customerId}`});
+    req.flush(null);
+    httpMock.verify();
+  });
+
+  it('get next ticket', () => {
+    apiService.getNextTicket().subscribe();
+
+    const req = httpMock.expectOne({method: 'GET', url: '/distributions/tickets/next'});
     req.flush(null);
     httpMock.verify();
   });

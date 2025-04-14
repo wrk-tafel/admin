@@ -1,12 +1,15 @@
 import {TestBed, waitForAsync} from '@angular/core/testing';
 import {CommonModule} from '@angular/common';
 import {TicketScreenControlComponent} from './ticket-screen-control.component';
-import {UrlHelperService} from '../../../../common/util/url-helper.service';
-import {DistributionTicketScreenApiService} from '../../../../api/distribution-ticket-screen-api.service';
+import {WebsocketService} from '../../../../common/websocket/websocket.service';
+import {DistributionTicketApiService, TicketNumberResponse} from '../../../../api/distribution-ticket-api.service';
+import {TicketScreenMessage} from '../../components/ticket-screen/ticket-screen.component';
 import {of} from 'rxjs';
+import {UrlHelperService} from '../../../../common/util/url-helper.service';
 
 describe('TicketScreenControlComponent', () => {
-  let distributionTicketScreenApiService: jasmine.SpyObj<DistributionTicketScreenApiService>;
+  let websocketService: jasmine.SpyObj<WebsocketService>;
+  let distributionTicketApiService: jasmine.SpyObj<DistributionTicketApiService>;
   let urlHelperSpy: jasmine.SpyObj<UrlHelperService>;
 
   beforeEach(waitForAsync(() => {
@@ -14,8 +17,12 @@ describe('TicketScreenControlComponent', () => {
       imports: [CommonModule],
       providers: [
         {
-          provide: DistributionTicketScreenApiService,
-          useValue: jasmine.createSpyObj('DistributionTicketScreenApiService', ['showText', 'showCurrentTicket', 'showNextTicket'])
+          provide: WebsocketService,
+          useValue: jasmine.createSpyObj('WebsocketService', ['publish'])
+        },
+        {
+          provide: DistributionTicketApiService,
+          useValue: jasmine.createSpyObj('DistributionTicketApiService', ['getCurrentTicket', 'getNextTicket'])
         },
         {
           provide: UrlHelperService,
@@ -24,7 +31,8 @@ describe('TicketScreenControlComponent', () => {
       ]
     }).compileComponents();
 
-    distributionTicketScreenApiService = TestBed.inject(DistributionTicketScreenApiService) as jasmine.SpyObj<DistributionTicketScreenApiService>;
+    websocketService = TestBed.inject(WebsocketService) as jasmine.SpyObj<WebsocketService>;
+    distributionTicketApiService = TestBed.inject(DistributionTicketApiService) as jasmine.SpyObj<DistributionTicketApiService>;
     urlHelperSpy = TestBed.inject(UrlHelperService) as jasmine.SpyObj<UrlHelperService>;
   }));
 
@@ -50,34 +58,55 @@ describe('TicketScreenControlComponent', () => {
   it('showStartTime', () => {
     const fixture = TestBed.createComponent(TicketScreenControlComponent);
     const component = fixture.componentInstance;
-    distributionTicketScreenApiService.showText.and.returnValue(of(null));
-
-    const startTime = '19:00';
-    component.form.get('startTime').setValue(startTime);
+    component.form.get('startTime').setValue('19:00');
 
     component.showStartTime();
 
-    expect(distributionTicketScreenApiService.showText).toHaveBeenCalledWith('Startzeit', startTime);
+    const expectedStartTime = new Date();
+    expectedStartTime.setHours(19);
+    expectedStartTime.setMinutes(0);
+    expectedStartTime.setSeconds(0);
+    expectedStartTime.setMilliseconds(0);
+    const expectedMessage: TicketScreenMessage = {startTime: expectedStartTime};
+
+    expect(websocketService.publish).toHaveBeenCalledWith({
+      destination: '/topic/ticket-screen',
+      body: JSON.stringify(expectedMessage)
+    });
   });
 
   it('showCurrentTicket', () => {
     const fixture = TestBed.createComponent(TicketScreenControlComponent);
     const component = fixture.componentInstance;
-    distributionTicketScreenApiService.showCurrentTicket.and.returnValue(of(null));
+    const testTicket = 123;
+
+    const response: TicketNumberResponse = {ticketNumber: testTicket};
+    distributionTicketApiService.getCurrentTicket.and.returnValue(of(response));
 
     component.showCurrentTicket();
 
-    expect(distributionTicketScreenApiService.showCurrentTicket).toHaveBeenCalled();
+    const expectedMessage: TicketScreenMessage = {ticketNumber: testTicket};
+    expect(websocketService.publish).toHaveBeenCalledWith({
+      destination: '/topic/ticket-screen',
+      body: JSON.stringify(expectedMessage)
+    });
   });
 
   it('showNextTicket', () => {
     const fixture = TestBed.createComponent(TicketScreenControlComponent);
     const component = fixture.componentInstance;
-    distributionTicketScreenApiService.showNextTicket.and.returnValue(of(null));
+    const testTicket = 456;
+
+    const response: TicketNumberResponse = {ticketNumber: testTicket};
+    distributionTicketApiService.getNextTicket.and.returnValue(of(response));
 
     component.showNextTicket();
 
-    expect(distributionTicketScreenApiService.showNextTicket).toHaveBeenCalled();
+    const expectedMessage: TicketScreenMessage = {ticketNumber: testTicket};
+    expect(websocketService.publish).toHaveBeenCalledWith({
+      destination: '/topic/ticket-screen',
+      body: JSON.stringify(expectedMessage)
+    });
   });
 
 });

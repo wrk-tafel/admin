@@ -10,8 +10,8 @@ describe('TicketScreen', () => {
     cy.byTestId('starttime-input').type('12:34');
     cy.byTestId('show-starttime-button').click();
 
-    cy.byTestId('title').should('have.text', 'Startzeit');
-    cy.byTestId('text').should('have.text', '12:34');
+    cy.byTestId('title').should('have.text', 'Start-Zeit');
+    cy.byTestId('starttime-text').should('have.text', '12:34');
   });
 
   it('monitor opened correctly', () => {
@@ -34,7 +34,7 @@ describe('TicketScreen', () => {
     cy.visit('/#/anmeldung/ticketmonitor-steuerung');
 
     cy.byTestId('title').should('have.text', 'Ticketnummer');
-    cy.byTestId('text').should('have.text', '-');
+    cy.byTestId('ticketnumber-text').should('have.text', '-');
 
     cy.createDistribution();
     cy.addCustomerToDistribution({customerId: 100, ticketNumber: 1});
@@ -44,16 +44,16 @@ describe('TicketScreen', () => {
     cy.visit('/#/anmeldung/ticketmonitor-steuerung');
 
     cy.byTestId('show-currentticket-button').click();
-    cy.byTestId('text').should('have.text', '1');
+    cy.byTestId('ticketnumber-text').should('have.text', '1');
 
     cy.byTestId('show-nextticket-button').click();
-    cy.byTestId('text').should('have.text', '2');
+    cy.byTestId('ticketnumber-text').should('have.text', '2');
 
     cy.byTestId('show-nextticket-button').click();
-    cy.byTestId('text').should('have.text', '3');
+    cy.byTestId('ticketnumber-text').should('have.text', '3');
 
     cy.byTestId('show-nextticket-button').click();
-    cy.byTestId('text').should('have.text', '-');
+    cy.byTestId('ticketnumber-text').should('have.text', '-');
 
     cy.closeDistribution();
   });
@@ -62,7 +62,7 @@ describe('TicketScreen', () => {
     cy.visit('/#/anmeldung/ticketmonitor-steuerung');
 
     cy.byTestId('title').should('have.text', 'Ticketnummer');
-    cy.byTestId('text').should('have.text', '-');
+    cy.byTestId('ticketnumber-text').should('have.text', '-');
 
     cy.createDistribution();
     cy.addCustomerToDistribution({customerId: 100, ticketNumber: 1});
@@ -72,10 +72,10 @@ describe('TicketScreen', () => {
     cy.visit('/#/anmeldung/ticketmonitor-steuerung');
 
     cy.byTestId('show-currentticket-button').click();
-    cy.byTestId('text').should('have.text', '1');
+    cy.byTestId('ticketnumber-text').should('have.text', '1');
 
     cy.byTestId('show-nextticket-button').dblclick();
-    cy.byTestId('text').should('have.text', '2');
+    cy.byTestId('ticketnumber-text').should('have.text', '3');
 
     cy.closeDistribution();
   });
@@ -84,7 +84,7 @@ describe('TicketScreen', () => {
     cy.visit('/#/anmeldung/ticketmonitor-steuerung');
 
     cy.byTestId('title').should('have.text', 'Ticketnummer');
-    cy.byTestId('text').should('have.text', '-');
+    cy.byTestId('ticketnumber-text').should('have.text', '-');
 
     cy.createDistribution();
     cy.addCustomerToDistribution({customerId: 100, ticketNumber: 1});
@@ -94,11 +94,11 @@ describe('TicketScreen', () => {
     cy.visit('/#/anmeldung/ticketmonitor-steuerung');
 
     cy.byTestId('show-currentticket-button').click();
-    cy.byTestId('text').should('have.text', '1');
+    cy.byTestId('ticketnumber-text').should('have.text', '1');
 
     cy.byTestId('show-nextticket-button').click();
     cy.byTestId('show-nextticket-button').click();
-    cy.byTestId('text').should('have.text', '3');
+    cy.byTestId('ticketnumber-text').should('have.text', '3');
 
     cy.closeDistribution();
   });

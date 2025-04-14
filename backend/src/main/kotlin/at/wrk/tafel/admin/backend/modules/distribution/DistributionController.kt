@@ -1,71 +1,56 @@
 package at.wrk.tafel.admin.backend.modules.distribution
 
-import at.wrk.tafel.admin.backend.common.sse.SseUtil
-import at.wrk.tafel.admin.backend.database.common.sse_outbox.SseOutboxService
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.distribution.internal.DistributionService
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.AssignCustomerRequest
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionItem
-import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionItemUpdate
+import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionItemResponse
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionNoteData
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionStatisticData
+import org.slf4j.LoggerFactory
 import org.springframework.core.io.InputStreamResource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
+import org.springframework.messaging.handler.annotation.MessageMapping
+import org.springframework.messaging.simp.SimpMessagingTemplate
+import org.springframework.messaging.simp.annotation.SubscribeMapping
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 import java.io.ByteArrayInputStream
 
 @RestController
 @RequestMapping("/api/distributions")
+@MessageMapping("/distributions")
 class DistributionController(
     private val service: DistributionService,
-    private val sseOutboxService: SseOutboxService,
+    private val simpMessagingTemplate: SimpMessagingTemplate
 ) {
 
     companion object {
-        const val DISTRIBUTION_UPDATE_NOTIFICATION_NAME = "distribution_update"
+        private val logger = LoggerFactory.getLogger(DistributionController::class.java)
     }
 
     @PostMapping("/new")
     @PreAuthorize("hasAuthority('DISTRIBUTION_LCM')")
-    fun createNewDistribution(): DistributionItemUpdate {
+    fun createNewDistribution() {
         val distribution = service.createNewDistribution()
-        val update = DistributionItemUpdate(distribution = mapDistribution(distribution))
 
-        sseOutboxService.saveOutboxEntry(
-            notificationName = DISTRIBUTION_UPDATE_NOTIFICATION_NAME,
-            payload = update
+        simpMessagingTemplate.convertAndSend(
+            "/topic/distributions",
+            DistributionItemResponse(distribution = mapDistribution(distribution))
         )
-
-        return update
     }
 
-    @GetMapping
-    fun listenForDistributionUpdates(): SseEmitter {
-        val sseEmitter = SseUtil.createSseEmitter()
-
-        // initial data
+    @SubscribeMapping
+    fun getCurrentDistribution(): DistributionItemResponse {
         val distribution = service.getCurrentDistribution()
-        sseOutboxService.sendEvent(
-            sseEmitter,
-            DistributionItemUpdate(distribution = distribution?.let { mapDistribution(it) })
-        )
-
-        sseOutboxService.forwardNotificationEventsToSse(
-            sseEmitter = sseEmitter,
-            notificationName = DISTRIBUTION_UPDATE_NOTIFICATION_NAME,
-            resultType = DistributionItemUpdate::class.java
-        )
-
-        return sseEmitter
+        return DistributionItemResponse(distribution = distribution?.let { mapDistribution(it) })
     }
 
     @PostMapping("/statistics")
@@ -88,9 +73,9 @@ class DistributionController(
         service.closeDistribution()
 
         // update clients about new state
-        sseOutboxService.saveOutboxEntry(
-            notificationName = DISTRIBUTION_UPDATE_NOTIFICATION_NAME,
-            payload = DistributionItemUpdate(distribution = null)
+        simpMessagingTemplate.convertAndSend(
+            "/topic/distributions",
+            DistributionItemResponse(distribution = null)
         )
 
         return ResponseEntity.ok().build()
@@ -99,7 +84,7 @@ class DistributionController(
     @PostMapping("/customers")
     @PreAuthorize("hasAuthority('CHECKIN')")
     fun assignCustomerToDistribution(
-        @RequestBody assignCustomerRequest: AssignCustomerRequest,
+        @RequestBody assignCustomerRequest: AssignCustomerRequest
     ): ResponseEntity<Unit> {
         val currentDistribution =
             service.getCurrentDistribution() ?: throw TafelValidationException("Ausgabe nicht gestartet!")

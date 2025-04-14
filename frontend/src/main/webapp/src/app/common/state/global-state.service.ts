@@ -1,7 +1,6 @@
 import {Injectable} from '@angular/core';
-import {DistributionItem, DistributionItemUpdate} from '../../api/distribution-api.service';
+import {DistributionApiService, DistributionItem} from '../../api/distribution-api.service';
 import {BehaviorSubject} from 'rxjs';
-import {SseService} from '../sse/sse.service';
 
 @Injectable({
   providedIn: 'root'
@@ -9,9 +8,7 @@ import {SseService} from '../sse/sse.service';
 export class GlobalStateService {
   private readonly currentDistribution: BehaviorSubject<DistributionItem> = new BehaviorSubject(null);
 
-  constructor(
-    private readonly sseService: SseService
-  ) {
+  constructor(private readonly distributionApiService: DistributionApiService) {
   }
 
   /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -30,15 +27,14 @@ export class GlobalStateService {
       /* eslint-disable @typescript-eslint/no-empty-function */
       /* eslint-disable @typescript-eslint/no-unused-vars */
       const observer = {
-        next: (distributionUpdate: DistributionItemUpdate) => {
-          const distributionItem = distributionUpdate.distribution;
+        next: (distributionItem: DistributionItem) => {
           this.currentDistribution.next(distributionItem);
           resolve(distributionItem);
         },
         error: error => reject(error),
       };
 
-      return this.sseService.listen('/distributions').subscribe(observer);
+      this.distributionApiService.getCurrentDistribution().subscribe(observer);
     });
   }
 

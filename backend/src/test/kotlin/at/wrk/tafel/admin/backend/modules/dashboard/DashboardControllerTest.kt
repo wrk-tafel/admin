@@ -1,33 +1,31 @@
 package at.wrk.tafel.admin.backend.modules.dashboard
 
-import at.wrk.tafel.admin.backend.database.common.sse_outbox.SseOutboxService
-import at.wrk.tafel.admin.backend.modules.dashboard.DashboardController.Companion.DASHBOARD_UPDATE_NOTIFICATION_NAME
 import at.wrk.tafel.admin.backend.modules.dashboard.internal.DashboardService
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
-import io.mockk.slot
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.messaging.simp.SimpMessagingTemplate
 import java.math.BigDecimal
 
 @ExtendWith(MockKExtension::class)
 internal class DashboardControllerTest {
 
     @RelaxedMockK
-    private lateinit var service: DashboardService
+    private lateinit var simpMessagingTemplate: SimpMessagingTemplate
 
     @RelaxedMockK
-    private lateinit var sseOutboxService: SseOutboxService
+    private lateinit var service: DashboardService
 
     @InjectMockKs
     private lateinit var controller: DashboardController
 
     @Test
-    fun `listen for dashboard data`() {
+    fun `get initial message`() {
         val data = DashboardData(
             registeredCustomers = 2,
             tickets = DashboardTicketsData(
@@ -47,25 +45,36 @@ internal class DashboardControllerTest {
         )
         every { service.getData() } returns data
 
-        val sseEmitter = controller.listenForDashboardData()
-        assertThat(sseEmitter).isNotNull
+        val response = controller.getInitialMessage()
 
-        verify { sseOutboxService.sendEvent(sseEmitter, data) }
+        assertThat(response).isEqualTo(data)
+        verify { service.getData() }
+    }
 
-        val callbackSlot = slot<(Void?) -> Unit>()
-        verify {
-            sseOutboxService.listenForNotificationEvents(
-                sseEmitter = sseEmitter,
-                notificationName = DASHBOARD_UPDATE_NOTIFICATION_NAME,
-                resultType = null,
-                resultCallback = capture(callbackSlot)
-            )
-        }
+    @Test
+    fun `refresh dashboard`() {
+        val data = DashboardData(
+            registeredCustomers = 5,
+            tickets = DashboardTicketsData(
+                countProcessedTickets = 10,
+                countTotalTickets = 123
+            ),
+            statistics = DashboardStatisticsData(
+                employeeCount = 1,
+                selectedShelterNames = listOf("Shelter 1", "Shelter 2")
+            ),
+            logistics = DashboardLogisticsData(
+                foodCollectionsRecordedCount = 1,
+                foodCollectionsTotalCount = 2,
+                foodAmountTotal = BigDecimal(3)
+            ),
+            notes = "test-notes"
+        )
+        every { service.getData() } returns data
 
-        val callback = callbackSlot.captured
-        callback(null)
+        controller.refreshDashboard()
 
-        verify { sseOutboxService.sendEvent(sseEmitter, data) }
+        verify { simpMessagingTemplate.convertAndSend("/topic/dashboard", data) }
     }
 
 }

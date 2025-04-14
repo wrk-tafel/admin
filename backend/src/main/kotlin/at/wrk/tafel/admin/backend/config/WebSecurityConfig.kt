@@ -56,7 +56,7 @@ class WebSecurityConfig(
 ) {
 
     companion object {
-        private val publicEndpoints = listOf("/api/login", "/api/logout")
+        private val publicEndpoints = listOf("/api/login", "/api/logout", "/api/websockets")
 
         val passwordLengthRule = LengthRule(8, 50)
         val passwordValidator = PasswordValidator(
