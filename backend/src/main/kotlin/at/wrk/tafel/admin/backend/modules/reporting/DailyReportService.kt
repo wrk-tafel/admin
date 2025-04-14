@@ -26,7 +26,7 @@ class DailyReportService(
 
     private fun createPdfModel(statistic: DistributionStatisticEntity): DailyReportPdfModel {
         val logoBytes =
-            IOUtils.toByteArray(javaClass.getResourceAsStream("/pdf-templates/common/img/toet-logo.png"))
+            IOUtils.toByteArray(javaClass.getResourceAsStream("/assets/logo.png"))
         return DailyReportPdfModel(
             logoContentType = MimeTypeUtils.IMAGE_PNG_VALUE,
             logoBytes = logoBytes,
