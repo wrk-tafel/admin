@@ -6,6 +6,7 @@ import org.apache.commons.io.IOUtils
 import org.springframework.stereotype.Service
 import org.springframework.util.MimeTypeUtils
 import qrcode.QRCode
+import qrcode.raw.ErrorCorrectionLevel
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.text.NumberFormat
@@ -16,7 +17,7 @@ import java.util.*
 
 @Service
 class CustomerPdfService(
-    private val pdfService: PDFService
+    private val pdfService: PDFService,
 ) {
     companion object {
         private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
@@ -47,7 +48,7 @@ class CustomerPdfService(
                 .count { Period.between(it.birthDate, LocalDate.now()).years <= 3 }
 
         val logoBytes =
-            IOUtils.toByteArray(javaClass.getResourceAsStream("/pdf-templates/common/img/toet-logo.png"))
+            IOUtils.toByteArray(javaClass.getResourceAsStream("/assets/logo.png"))
         return PdfData(
             logoContentType = MimeTypeUtils.IMAGE_PNG_VALUE,
             logoBytes = logoBytes,
@@ -98,12 +99,24 @@ class CustomerPdfService(
                 },
                 idCard = PdfIdCardData(
                     qrCodeContentType = MimeTypeUtils.IMAGE_PNG_VALUE,
-                    qrCodeBytes = QRCode(customer.customerId.toString()).render().getBytes()
+                    qrCodeBytes = generateQRCode(customer.customerId.toString())
                 )
             ),
             countPersons = countPersons,
             countInfants = countInfants
         )
+    }
+
+    private fun generateQRCode(data: String): ByteArray {
+        val logoBytes =
+            IOUtils.toByteArray(javaClass.getResourceAsStream("/assets/logo.png"))
+
+        val qrCode = QRCode.ofSquares()
+            .withErrorCorrectionLevel(ErrorCorrectionLevel.MEDIUM)
+            .withInformationDensity(6)
+            .withLogo(logoBytes, 250, 119)
+            .build(data)
+        return qrCode.renderToBytes()
     }
 
 }

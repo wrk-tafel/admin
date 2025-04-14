@@ -388,7 +388,7 @@
                 </fo:table-body>
             </fo:table>
         </fo:block>
-        <fo:block margin-top="2cm">
+        <fo:block margin-top="0.2cm">
             <fo:table table-layout="fixed" width="100%">
                 <fo:table-column column-width="50%"/>
                 <fo:table-column column-width="50%"/>

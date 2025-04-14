@@ -68,7 +68,7 @@ class MailSenderService(
                 messageHelper.addAttachment(it.filename, it.inputStreamSource, it.contentType)
             }
 
-            messageHelper.addInline("toet-logo", ClassPathResource("mail-templates/assets/toet-logo.png"))
+            messageHelper.addInline("logo", ClassPathResource("/assets/logo.png"))
 
             mailSender.send(messageHelper.mimeMessage)
         }
