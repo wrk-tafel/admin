@@ -1,11 +1,5 @@
 ### Get current ticket
-GET {{baseApiPath}}/distributions/tickets/current
-
-### Get current ticket for customer
-GET {{baseApiPath}}/distributions/tickets/current?customerId=100
+GET {{baseApiPath}}/distributions/tickets/customers/100
 
 ### Delete current ticket of customer
-DELETE {{baseApiPath}}/distributions/tickets/current?customerId=100
-
-### Close current ticket and get the next one
-GET {{baseApiPath}}/distributions/tickets/next
+DELETE {{baseApiPath}}/distributions/tickets/customers/100

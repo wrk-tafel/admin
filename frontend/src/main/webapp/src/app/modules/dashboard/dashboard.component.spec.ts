@@ -1,13 +1,12 @@
 import {TestBed, waitForAsync} from '@angular/core/testing';
 import {DashboardComponent, DashboardData} from './dashboard.component';
-import {WebsocketService} from '../../common/websocket/websocket.service';
-import {IMessage} from '@stomp/stompjs';
 import {of} from 'rxjs';
 import {provideHttpClient} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
+import {SseService} from '../../common/sse/sse.service';
 
 describe('DashboardComponent', () => {
-  let websocketService: jasmine.SpyObj<WebsocketService>;
+  let sseService: jasmine.SpyObj<SseService>;
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
@@ -15,13 +14,13 @@ describe('DashboardComponent', () => {
         provideHttpClient(),
         provideHttpClientTesting(),
         {
-          provide: WebsocketService,
-          useValue: jasmine.createSpyObj('WebsocketService', ['watch'])
+          provide: SseService,
+          useValue: jasmine.createSpyObj('SseService', ['listen'])
         }
       ]
     }).compileComponents();
 
-    websocketService = TestBed.inject(WebsocketService) as jasmine.SpyObj<WebsocketService>;
+    sseService = TestBed.inject(SseService) as jasmine.SpyObj<SseService>;
   }));
 
   it('component can be created', () => {
@@ -46,20 +45,12 @@ describe('DashboardComponent', () => {
         selectedShelterNames: ['Shelter 1', 'Shelter 2', 'Shelter 3'],
       }
     };
-    const testMessage: IMessage = {
-      body: JSON.stringify(mockData),
-      ack: null,
-      nack: null,
-      headers: null,
-      command: null,
-      binaryBody: null,
-      isBinaryBody: false
-    };
-    websocketService.watch.and.returnValues(of(testMessage));
+    sseService.listen.and.returnValues(of(mockData));
 
     component.ngOnInit();
 
     expect(component.data).toEqual(mockData);
+    expect(sseService.listen).toHaveBeenCalledWith('/dashboard/sse');
   });
 
 });

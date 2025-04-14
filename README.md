@@ -61,9 +61,10 @@ statistic:
   events (https://docs.spring.io/spring-modulith/docs/current/reference/html/#events)
 
 ### Tech
-* Switch websocket to long-polling
 * Change all with distribution direct-related apis to /distributions (eg. collections)
 * Create a central interceptor/aspect to handel distribution not active state
+* Exclude mail from health check
+* Test if mails are properly received with mailpit rest api
 
 # Frontend #
 

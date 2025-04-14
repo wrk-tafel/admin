@@ -1,34 +1,32 @@
 import {GlobalStateService} from './global-state.service';
-import {DistributionApiService} from '../../api/distribution-api.service';
+import {DistributionItemUpdate} from '../../api/distribution-api.service';
 import {of} from 'rxjs';
+import {SseService} from '../sse/sse.service';
 
 describe('GlobalStateService', () => {
   function setup() {
-    const distributionApiServiceSpy: jasmine.SpyObj<DistributionApiService> = jasmine.createSpyObj('DistributionApiService', ['getCurrentDistribution']);
+    const sseServiceSpy: jasmine.SpyObj<SseService> = jasmine.createSpyObj('SseService', ['listen']);
 
-    const service = new GlobalStateService(distributionApiServiceSpy);
+    const service = new GlobalStateService(sseServiceSpy);
 
-    return {service, distributionApiServiceSpy};
+    return {service, sseServiceSpy};
   }
 
   it('init calls services correctly', () => {
-    const {service, distributionApiServiceSpy} = setup();
+    const {service, sseServiceSpy} = setup();
     expect(service.getCurrentDistribution().value).toBeNull();
 
-    const testDistribution = {
-      id: 123,
-      state: {
-        name: 'OPEN',
-        stateLabel: 'Offen',
-        actionLabel: 'Offen'
+    const testDistributionUpdate: DistributionItemUpdate = {
+      distribution: {
+        id: 123
       }
     };
-    distributionApiServiceSpy.getCurrentDistribution.and.returnValue(of(testDistribution));
+    sseServiceSpy.listen.and.returnValue(of(testDistributionUpdate));
 
     service.init();
 
-    expect(service.getCurrentDistribution().value).toEqual(testDistribution);
-    expect(distributionApiServiceSpy.getCurrentDistribution).toHaveBeenCalled();
+    expect(service.getCurrentDistribution().value).toEqual(testDistributionUpdate.distribution);
+    expect(sseServiceSpy.listen).toHaveBeenCalledWith('/distributions/sse');
   });
 
 });

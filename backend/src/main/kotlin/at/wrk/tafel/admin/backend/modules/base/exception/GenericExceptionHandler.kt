@@ -1,9 +1,11 @@
 package at.wrk.tafel.admin.backend.modules.base.exception
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
 import org.springframework.context.MessageSource
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
@@ -15,7 +17,8 @@ import java.util.*
 
 @ControllerAdvice
 class GenericExceptionHandler(
-    private val messageSource: MessageSource
+    private val messageSource: MessageSource,
+    private val objectMapper: ObjectMapper,
 ) {
 
     companion object {
@@ -24,8 +27,8 @@ class GenericExceptionHandler(
 
     @ExceptionHandler(TafelException::class)
     fun handleTafelException(
-        exception: TafelException, request: WebRequest, locale: Locale
-    ): ResponseEntity<TafelErrorResponse> {
+        exception: TafelException, request: WebRequest, locale: Locale,
+    ): ResponseEntity<Any> {
         logger.warn(exception.message, exception)
 
         val status = exception.status ?: HttpStatus.BAD_REQUEST
@@ -36,8 +39,8 @@ class GenericExceptionHandler(
 
     @ExceptionHandler(TafelValidationException::class)
     fun handleTafelValidationException(
-        exception: TafelValidationException, request: WebRequest, locale: Locale
-    ): ResponseEntity<TafelErrorResponse> {
+        exception: TafelValidationException, request: WebRequest, locale: Locale,
+    ): ResponseEntity<Any> {
         logger.debug(exception.message, exception)
 
         val status = exception.status ?: HttpStatus.BAD_REQUEST
@@ -48,8 +51,8 @@ class GenericExceptionHandler(
 
     @ExceptionHandler(Exception::class)
     fun handleException(
-        exception: Exception, request: WebRequest, locale: Locale
-    ): ResponseEntity<TafelErrorResponse> {
+        exception: Exception, request: WebRequest, locale: Locale,
+    ): ResponseEntity<Any> {
         logger.error(exception.message, exception)
 
         return createErrorResponse(
@@ -58,8 +61,8 @@ class GenericExceptionHandler(
     }
 
     private fun createErrorResponse(
-        exception: Exception, status: HttpStatus, request: WebRequest, locale: Locale
-    ): ResponseEntity<TafelErrorResponse> {
+        exception: Exception, status: HttpStatus, request: WebRequest, locale: Locale,
+    ): ResponseEntity<Any> {
         val localizedErrorTitle: String = messageSource.getMessage(
             "http-error.${status.value()}.title", arrayOf<Any>(), locale
         )
@@ -73,7 +76,16 @@ class GenericExceptionHandler(
             path = (request as ServletWebRequest).request.requestURI
         )
 
-        return ResponseEntity.status(status).body(error)
+        val isSseRequest = request.getHeader("Accept")?.contains("text/event-stream") == true
+        return if (isSseRequest) {
+            val errorMessage = objectMapper.writeValueAsString(error)
+            ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .contentType(MediaType.TEXT_EVENT_STREAM)
+                .body("event: error\ndata: $errorMessage\n\n")
+        } else {
+            ResponseEntity.status(status).body(error)
+        }
     }
 
 }
@@ -85,5 +97,5 @@ data class TafelErrorResponse(
     val error: String,
     val message: String?,
     val trace: String?,
-    val path: String?
+    val path: String?,
 )

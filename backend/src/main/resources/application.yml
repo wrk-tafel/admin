@@ -2,7 +2,6 @@ logging:
   level:
     root: INFO
     org.apache: WARN
-    org.springframework.web.socket.config.WebSocketMessageBrokerStats: WARN
 
 management:
   server:
@@ -28,6 +27,8 @@ server:
 spring:
   datasource:
     driverClassName: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 50
   flyway:
     locations: classpath:/db-migration
     group: true
@@ -46,6 +47,9 @@ spring:
     open-in-view: false
   thymeleaf:
     prefix: classpath:/mail-templates/
+  mvc:
+    async:
+      request-timeout: 3600000 # 1 hour
 
 security:
   jwtToken:

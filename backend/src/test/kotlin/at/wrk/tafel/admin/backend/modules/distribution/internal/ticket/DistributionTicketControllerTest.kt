@@ -3,6 +3,7 @@ package at.wrk.tafel.admin.backend.modules.distribution.internal.ticket
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.distribution.internal.DistributionService
+import at.wrk.tafel.admin.backend.modules.distribution.internal.model.TicketNumberResponse
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -24,72 +25,16 @@ internal class DistributionTicketControllerTest {
     private lateinit var controller: DistributionTicketController
 
     @Test
-    fun `get current ticketNumber with open distribution`() {
-        val distributionEntity = DistributionEntity()
-        distributionEntity.id = 123
-        every { service.getCurrentDistribution() } returns distributionEntity
-
-        val ticketNumber = 123
-        every { service.getCurrentTicketNumber() } returns ticketNumber
-
-        val response = controller.getCurrentTicket()
-
-        assertThat(response.ticketNumber).isEqualTo(ticketNumber)
-    }
-
-    @Test
-    fun `get current ticketNumber for customer`() {
-        val distributionEntity = DistributionEntity()
-        distributionEntity.id = 123
-        every { service.getCurrentDistribution() } returns distributionEntity
-
-        val ticketNumber = 123
-        val customerId = 1L
+    fun `get current ticket for customer`() {
+        val customerId = 123L
+        val ticketNumber = 456
         every { service.getCurrentTicketNumber(customerId) } returns ticketNumber
 
         val response = controller.getCurrentTicketForCustomerId(customerId)
 
-        assertThat(response.ticketNumber).isEqualTo(ticketNumber)
-    }
-
-    @Test
-    fun `get current ticketNumber when ticket is null`() {
-        val distributionEntity = DistributionEntity()
-        distributionEntity.id = 123
-        every { service.getCurrentDistribution() } returns distributionEntity
-
-        every { service.getCurrentTicketNumber() } returns null
-
-        val response = controller.getCurrentTicket()
-
-        assertThat(response.ticketNumber).isNull()
-    }
-
-    @Test
-    fun `get next ticket with open distribution`() {
-        val distributionEntity = DistributionEntity()
-        distributionEntity.id = 123
-        every { service.getCurrentDistribution() } returns distributionEntity
-
-        val ticketNumber = 123
-        every { service.closeCurrentTicketAndGetNext() } returns ticketNumber
-
-        val response = controller.getNextTicket()
-
-        assertThat(response.ticketNumber).isEqualTo(ticketNumber)
-    }
-
-    @Test
-    fun `get next ticket when ticket is null`() {
-        val distributionEntity = DistributionEntity()
-        distributionEntity.id = 123
-        every { service.getCurrentDistribution() } returns distributionEntity
-
-        every { service.closeCurrentTicketAndGetNext() } returns null
-
-        val response = controller.getNextTicket()
-
-        assertThat(response.ticketNumber).isNull()
+        assertThat(response).isEqualTo(
+            TicketNumberResponse(ticketNumber = ticketNumber)
+        )
     }
 
     @Test

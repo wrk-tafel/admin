@@ -3,7 +3,7 @@ package at.wrk.tafel.admin.backend.modules.distribution.internal.model
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 
 @ExcludeFromTestCoverage
-data class DistributionItemResponse(
+data class DistributionItemUpdate(
     val distribution: DistributionItem?,
 )
 

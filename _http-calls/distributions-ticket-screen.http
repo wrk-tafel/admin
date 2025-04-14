@@ -1,0 +1,18 @@
+### Show text on ticket screen
+POST {{baseApiPath}}/distributions/ticket-screen/show-text
+Content-Type: application/json
+
+{
+  "text": "Hello world",
+  "value": "123"
+}
+
+### Show current ticket on ticket screen
+POST {{baseApiPath}}/distributions/ticket-screen/show-current
+
+### Show next ticket on ticket screen
+POST {{baseApiPath}}/distributions/ticket-screen/show-next
+
+### Listen for ticket screen changes
+GET {{baseApiPath}}/distributions/ticket-screen/sse/current
+Accept: text/event-stream
