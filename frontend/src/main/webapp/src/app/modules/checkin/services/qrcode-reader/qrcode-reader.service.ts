@@ -3,19 +3,23 @@ import {QrcodeSuccessCallback} from 'html5-qrcode/esm/core';
 import {CameraDevice} from 'html5-qrcode/esm/camera/core';
 import {Html5QrcodeCameraScanConfig, Html5QrcodeFullConfig} from 'html5-qrcode/esm/html5-qrcode';
 import {Html5QrcodeScannerState} from 'html5-qrcode/esm/state-manager';
+import {Injectable} from '@angular/core';
 
+@Injectable({
+  providedIn: 'root'
+})
 export class QRCodeReaderService {
 
   qrCodeReader: Html5Qrcode;
-  private LOCAL_STORAGE_LAST_CAMERA_ID_KEY = 'TAFEL_LAST_CAMERA_ID';
+  private readonly LOCAL_STORAGE_LAST_CAMERA_ID_KEY = 'TAFEL_LAST_CAMERA_ID';
   private successCallback: QrcodeSuccessCallback;
 
-  private basicConfig: Html5QrcodeFullConfig = {
+  private readonly basicConfig: Html5QrcodeFullConfig = {
     formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
     verbose: false
   };
 
-  private cameraConfig: Html5QrcodeCameraScanConfig = {
+  private readonly cameraConfig: Html5QrcodeCameraScanConfig = {
     fps: 10,
     qrbox: (viewfinderWidth, viewfinderHeight) => {
       return {
@@ -25,15 +29,16 @@ export class QRCodeReaderService {
     }
   };
 
-  getCameras(): Promise<CameraDevice[]> {
-    return Html5Qrcode.getCameras()
-      .then((cameras: CameraDevice[]) => {
-        const sorted = Object.assign([], cameras).sort((c1: CameraDevice, c2: CameraDevice) => {
-          return c1.label.localeCompare(c2.label);
-        });
-        return Promise.resolve(sorted);
-      })
-      .catch(reason => Promise.reject(reason));
+  async getCameras(): Promise<CameraDevice[]> {
+    try {
+      let cameras = await Html5Qrcode.getCameras();
+      const sorted = Object.assign([], cameras).sort((c1: CameraDevice, c2: CameraDevice) => {
+        return c1.label.localeCompare(c2.label);
+      });
+      return Promise.resolve(sorted);
+    } catch (reason) {
+      return await Promise.reject(reason);
+    }
   }
 
   getCurrentCamera(cameras: CameraDevice[]) {

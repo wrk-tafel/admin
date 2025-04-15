@@ -1,90 +1,105 @@
 package at.wrk.tafel.admin.backend.modules.distribution
 
+import at.wrk.tafel.admin.backend.common.sse.SseUtil
+import at.wrk.tafel.admin.backend.database.common.sse_outbox.SseOutboxService
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.distribution.internal.DistributionService
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.AssignCustomerRequest
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionItem
-import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionItemResponse
+import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionItemUpdate
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionNoteData
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionStatisticData
-import org.slf4j.LoggerFactory
 import org.springframework.core.io.InputStreamResource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
-import org.springframework.messaging.handler.annotation.MessageMapping
-import org.springframework.messaging.simp.SimpMessagingTemplate
-import org.springframework.messaging.simp.annotation.SubscribeMapping
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 import java.io.ByteArrayInputStream
 
 @RestController
-@RequestMapping("/api/distributions")
-@MessageMapping("/distributions")
+@RequestMapping("/api")
 class DistributionController(
     private val service: DistributionService,
-    private val simpMessagingTemplate: SimpMessagingTemplate
+    private val sseOutboxService: SseOutboxService,
 ) {
 
     companion object {
-        private val logger = LoggerFactory.getLogger(DistributionController::class.java)
+        const val DISTRIBUTION_UPDATE_NOTIFICATION_NAME = "distribution_update"
     }
 
-    @PostMapping("/new")
+    @PostMapping("/distributions/new")
     @PreAuthorize("hasAuthority('DISTRIBUTION_LCM')")
-    fun createNewDistribution() {
+    fun createNewDistribution(): DistributionItemUpdate {
         val distribution = service.createNewDistribution()
+        val update = DistributionItemUpdate(distribution = mapDistribution(distribution))
 
-        simpMessagingTemplate.convertAndSend(
-            "/topic/distributions",
-            DistributionItemResponse(distribution = mapDistribution(distribution))
+        sseOutboxService.saveOutboxEntry(
+            notificationName = DISTRIBUTION_UPDATE_NOTIFICATION_NAME,
+            payload = update
         )
+
+        return update
     }
 
-    @SubscribeMapping
-    fun getCurrentDistribution(): DistributionItemResponse {
+    @GetMapping("/sse/distributions")
+    fun listenForDistributionUpdates(): SseEmitter {
+        val sseEmitter = SseUtil.createSseEmitter()
+
+        // initial data
         val distribution = service.getCurrentDistribution()
-        return DistributionItemResponse(distribution = distribution?.let { mapDistribution(it) })
+        sseOutboxService.sendEvent(
+            sseEmitter,
+            DistributionItemUpdate(distribution = distribution?.let { mapDistribution(it) })
+        )
+
+        sseOutboxService.forwardNotificationEventsToSse(
+            sseEmitter = sseEmitter,
+            notificationName = DISTRIBUTION_UPDATE_NOTIFICATION_NAME,
+            resultType = DistributionItemUpdate::class.java
+        )
+
+        return sseEmitter
     }
 
-    @PostMapping("/statistics")
+    @PostMapping("/distributions/statistics")
     @PreAuthorize("hasAuthority('LOGISTICS')")
     fun saveDistributionStatistic(@RequestBody statisticData: DistributionStatisticData): ResponseEntity<Unit> {
         service.updateDistributionStatisticData(statisticData.employeeCount, statisticData.selectedShelterIds)
         return ResponseEntity.ok().build()
     }
 
-    @PostMapping("/notes")
+    @PostMapping("/distributions/notes")
     @PreAuthorize("isAuthenticated()")
     fun saveDistributionNotes(@RequestBody noteData: DistributionNoteData): ResponseEntity<Unit> {
         service.updateDistributionNoteData(noteData.notes)
         return ResponseEntity.ok().build()
     }
 
-    @PostMapping("/close")
+    @PostMapping("/distributions/close")
     @PreAuthorize("hasAuthority('DISTRIBUTION_LCM')")
     fun closeDistribution(): ResponseEntity<Unit> {
         service.closeDistribution()
 
         // update clients about new state
-        simpMessagingTemplate.convertAndSend(
-            "/topic/distributions",
-            DistributionItemResponse(distribution = null)
+        sseOutboxService.saveOutboxEntry(
+            notificationName = DISTRIBUTION_UPDATE_NOTIFICATION_NAME,
+            payload = DistributionItemUpdate(distribution = null)
         )
 
         return ResponseEntity.ok().build()
     }
 
-    @PostMapping("/customers")
+    @PostMapping("/distributions/customers")
     @PreAuthorize("hasAuthority('CHECKIN')")
     fun assignCustomerToDistribution(
-        @RequestBody assignCustomerRequest: AssignCustomerRequest
+        @RequestBody assignCustomerRequest: AssignCustomerRequest,
     ): ResponseEntity<Unit> {
         val currentDistribution =
             service.getCurrentDistribution() ?: throw TafelValidationException("Ausgabe nicht gestartet!")
@@ -98,7 +113,7 @@ class DistributionController(
         return ResponseEntity.noContent().build()
     }
 
-    @GetMapping("/customers/generate-pdf", produces = [MediaType.APPLICATION_PDF_VALUE])
+    @GetMapping("/distributions/customers/generate-pdf", produces = [MediaType.APPLICATION_PDF_VALUE])
     fun generateCustomerListPdf(): ResponseEntity<InputStreamResource> {
         val pdfResult = service.generateCustomerListPdf()
         pdfResult?.let {

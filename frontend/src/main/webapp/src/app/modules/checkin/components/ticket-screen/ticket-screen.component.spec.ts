@@ -1,25 +1,24 @@
 import {TestBed, waitForAsync} from '@angular/core/testing';
 import {CommonModule} from '@angular/common';
-import {TicketScreenComponent, TicketScreenMessage} from './ticket-screen.component';
-import {EMPTY} from 'rxjs';
-import {IMessage} from '@stomp/stompjs';
-import {WebsocketService} from '../../../../common/websocket/websocket.service';
+import {TicketScreenComponent, TicketScreenText} from './ticket-screen.component';
+import {of} from 'rxjs';
+import {SseService} from '../../../../common/sse/sse.service';
 
 describe('TicketScreenComponent', () => {
-  let websocketService: jasmine.SpyObj<WebsocketService>;
+  let sseService: jasmine.SpyObj<SseService>;
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       imports: [CommonModule],
       providers: [
         {
-          provide: WebsocketService,
-          useValue: jasmine.createSpyObj('WebsocketService', ['connect', 'watch'])
+          provide: SseService,
+          useValue: jasmine.createSpyObj('SseService', ['listen'])
         }
       ]
     }).compileComponents();
 
-    websocketService = TestBed.inject(WebsocketService) as jasmine.SpyObj<WebsocketService>;
+    sseService = TestBed.inject(SseService) as jasmine.SpyObj<SseService>;
   }));
 
   it('component can be created', () => {
@@ -28,35 +27,18 @@ describe('TicketScreenComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('init subscribes to topic', () => {
+  it('data change fills states correctly', () => {
     const fixture = TestBed.createComponent(TicketScreenComponent);
     const component = fixture.componentInstance;
-    websocketService.watch.and.returnValue(EMPTY);
+
+    const testData: TicketScreenText = {text: 'Test Text', value: 'Test Value'};
+    sseService.listen.and.returnValue(of(testData));
 
     component.ngOnInit();
 
-    expect(websocketService.connect).toHaveBeenCalled();
-    expect(websocketService.watch).toHaveBeenCalledWith('/topic/ticket-screen');
-  });
-
-  it('process message fills data correctly', () => {
-    const fixture = TestBed.createComponent(TicketScreenComponent);
-    const component = fixture.componentInstance;
-
-    const ticketMessage: TicketScreenMessage = {startTime: new Date(), ticketNumber: 123};
-    const testMessage: IMessage = {
-      body: JSON.stringify(ticketMessage),
-      ack: null,
-      nack: null,
-      headers: null,
-      command: null,
-      binaryBody: null,
-      isBinaryBody: false
-    };
-    component.processMessage(testMessage);
-
-    expect(new Date(component.startTime)).toEqual(ticketMessage.startTime);
-    expect(component.ticketNumber).toBe(ticketMessage.ticketNumber);
+    expect(sseService.listen).toHaveBeenCalledWith('/sse/distributions/ticket-screen/current');
+    expect(component.text).toBe(testData.text);
+    expect(component.value).toBe(testData.value);
   });
 
 });

@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.base.exception
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -22,6 +23,9 @@ internal class GenericExceptionHandlerTest {
     @RelaxedMockK
     private lateinit var request: ServletWebRequest
 
+    @RelaxedMockK
+    private lateinit var objectMapper: ObjectMapper
+
     @InjectMockKs
     private lateinit var exceptionHandler: GenericExceptionHandler
 
@@ -42,13 +46,13 @@ internal class GenericExceptionHandlerTest {
         val response = exceptionHandler.handleException(exception, request, Locale.GERMAN)
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR)
-        val errorBody = response.body
-        assertThat(errorBody?.timestamp).isNotNull()
-        assertThat(errorBody?.status).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR.value())
-        assertThat(errorBody?.error).isEqualTo("localized-title")
-        assertThat(errorBody?.message).isEqualTo("test-msg")
-        assertThat(errorBody?.trace).startsWith("java.lang.IllegalArgumentException: test-msg")
-        assertThat(errorBody?.path).isEqualTo("/dummy-path")
+        val errorBody = response.body as TafelErrorResponse
+        assertThat(errorBody.timestamp).isNotNull()
+        assertThat(errorBody.status).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR.value())
+        assertThat(errorBody.error).isEqualTo("localized-title")
+        assertThat(errorBody.message).isEqualTo("test-msg")
+        assertThat(errorBody.trace).startsWith("java.lang.IllegalArgumentException: test-msg")
+        assertThat(errorBody.path).isEqualTo("/dummy-path")
     }
 
     @Test
@@ -63,13 +67,13 @@ internal class GenericExceptionHandlerTest {
         val response = exceptionHandler.handleTafelException(exception, request, Locale.GERMAN)
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
-        val errorBody = response.body
-        assertThat(errorBody?.timestamp).isNotNull()
-        assertThat(errorBody?.status).isEqualTo(HttpStatus.BAD_REQUEST.value())
-        assertThat(errorBody?.error).isEqualTo("localized-title")
-        assertThat(errorBody?.message).isEqualTo("tafelexception-msg")
-        assertThat(errorBody?.trace).startsWith("at.wrk.tafel.admin.backend.modules.base.exception.TafelException: tafelexception-msg")
-        assertThat(errorBody?.path).isEqualTo("/dummy-path")
+        val errorBody = response.body as TafelErrorResponse
+        assertThat(errorBody.timestamp).isNotNull()
+        assertThat(errorBody.status).isEqualTo(HttpStatus.BAD_REQUEST.value())
+        assertThat(errorBody.error).isEqualTo("localized-title")
+        assertThat(errorBody.message).isEqualTo("tafelexception-msg")
+        assertThat(errorBody.trace).startsWith("at.wrk.tafel.admin.backend.modules.base.exception.TafelException: tafelexception-msg")
+        assertThat(errorBody.path).isEqualTo("/dummy-path")
     }
 
     @Test
@@ -84,13 +88,13 @@ internal class GenericExceptionHandlerTest {
         val response = exceptionHandler.handleTafelException(exception, request, Locale.GERMAN)
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
-        val errorBody = response.body
-        assertThat(errorBody?.timestamp).isNotNull()
-        assertThat(errorBody?.status).isEqualTo(HttpStatus.NOT_FOUND.value())
-        assertThat(errorBody?.error).isEqualTo("localized-title")
-        assertThat(errorBody?.message).isEqualTo("tafelexception-msg")
-        assertThat(errorBody?.trace).startsWith("at.wrk.tafel.admin.backend.modules.base.exception.TafelException: tafelexception-msg")
-        assertThat(errorBody?.path).isEqualTo("/dummy-path")
+        val errorBody = response.body as TafelErrorResponse
+        assertThat(errorBody.timestamp).isNotNull()
+        assertThat(errorBody.status).isEqualTo(HttpStatus.NOT_FOUND.value())
+        assertThat(errorBody.error).isEqualTo("localized-title")
+        assertThat(errorBody.message).isEqualTo("tafelexception-msg")
+        assertThat(errorBody.trace).startsWith("at.wrk.tafel.admin.backend.modules.base.exception.TafelException: tafelexception-msg")
+        assertThat(errorBody.path).isEqualTo("/dummy-path")
     }
 
     @Test
@@ -105,13 +109,31 @@ internal class GenericExceptionHandlerTest {
         val response = exceptionHandler.handleTafelValidationException(exception, request, Locale.GERMAN)
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
-        val errorBody = response.body
-        assertThat(errorBody?.timestamp).isNotNull()
-        assertThat(errorBody?.status).isEqualTo(HttpStatus.BAD_REQUEST.value())
-        assertThat(errorBody?.error).isEqualTo("localized-title")
-        assertThat(errorBody?.message).isEqualTo("tafelvalidationexception-msg")
-        assertThat(errorBody?.trace).startsWith("at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException: tafelvalidationexception-msg")
-        assertThat(errorBody?.path).isEqualTo("/dummy-path")
+        val errorBody = response.body as TafelErrorResponse
+        assertThat(errorBody.timestamp).isNotNull()
+        assertThat(errorBody.status).isEqualTo(HttpStatus.BAD_REQUEST.value())
+        assertThat(errorBody.error).isEqualTo("localized-title")
+        assertThat(errorBody.message).isEqualTo("tafelvalidationexception-msg")
+        assertThat(errorBody.trace).startsWith("at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException: tafelvalidationexception-msg")
+        assertThat(errorBody.path).isEqualTo("/dummy-path")
+    }
+
+    @Test
+    fun `handles exception in SSE properly`() {
+        every { request.getHeader("Accept") } returns "text/event-stream"
+        every {
+            messageSource.getMessage(
+                "http-error.${HttpStatus.INTERNAL_SERVER_ERROR.value()}.title", arrayOf<Any>(), any()
+            )
+        } returns "localized-title"
+        val exception = IllegalArgumentException("test-msg")
+        every { objectMapper.writeValueAsString(any()) } returns exception.message
+
+        val response = exceptionHandler.handleException(exception, request, Locale.GERMAN)
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR)
+        val errorBody = response.body as String
+        assertThat(errorBody).isEqualTo("event: error\ndata: ${exception.message}\n\n")
     }
 
 }

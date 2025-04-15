@@ -1,12 +1,14 @@
 package at.wrk.tafel.admin.backend.modules.distribution
 
+import at.wrk.tafel.admin.backend.database.common.sse_outbox.SseOutboxService
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelException
+import at.wrk.tafel.admin.backend.modules.distribution.DistributionController.Companion.DISTRIBUTION_UPDATE_NOTIFICATION_NAME
 import at.wrk.tafel.admin.backend.modules.distribution.internal.DistributionService
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.AssignCustomerRequest
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.CustomerListPdfResult
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionItem
-import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionItemResponse
+import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionItemUpdate
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionNoteData
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionStatisticData
 import io.mockk.every
@@ -15,6 +17,7 @@ import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.slot
 import io.mockk.verify
+import io.mockk.verifySequence
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
@@ -23,7 +26,6 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
-import org.springframework.messaging.simp.SimpMessagingTemplate
 
 @ExtendWith(MockKExtension::class)
 internal class DistributionControllerTest {
@@ -32,7 +34,7 @@ internal class DistributionControllerTest {
     private lateinit var service: DistributionService
 
     @RelaxedMockK
-    private lateinit var simpMessagingTemplate: SimpMessagingTemplate
+    private lateinit var sseOutboxService: SseOutboxService
 
     @InjectMockKs
     private lateinit var controller: DistributionController
@@ -45,14 +47,17 @@ internal class DistributionControllerTest {
 
         controller.createNewDistribution()
 
-        val distributionItemResponse = DistributionItemResponse(
+        val distributionItemResponse = DistributionItemUpdate(
             distribution = DistributionItem(
                 id = distributionEntity.id!!
             )
         )
 
         verify {
-            simpMessagingTemplate.convertAndSend("/topic/distributions", distributionItemResponse)
+            sseOutboxService.saveOutboxEntry(
+                notificationName = DISTRIBUTION_UPDATE_NOTIFICATION_NAME,
+                payload = distributionItemResponse
+            )
         }
     }
 
@@ -69,27 +74,53 @@ internal class DistributionControllerTest {
     }
 
     @Test
-    fun `current distribution found`() {
+    fun `listen for distribution updates with active distribution`() {
         val distributionEntity = DistributionEntity()
         distributionEntity.id = 123
         every { service.getCurrentDistribution() } returns distributionEntity
 
-        val response = controller.getCurrentDistribution()
+        val sseEmitter = controller.listenForDistributionUpdates()
+        assertThat(sseEmitter).isNotNull
 
-        assertThat(response.distribution).isEqualTo(
-            DistributionItem(
-                id = distributionEntity.id!!
+        verifySequence {
+            sseOutboxService.sendEvent(
+                sseEmitter,
+                DistributionItemUpdate(
+                    distribution = DistributionItem(
+                        id = distributionEntity.id!!
+                    )
+                )
             )
-        )
+
+            sseOutboxService.forwardNotificationEventsToSse(
+                sseEmitter = sseEmitter,
+                notificationName = DISTRIBUTION_UPDATE_NOTIFICATION_NAME,
+                resultType = DistributionItemUpdate::class.java
+            )
+        }
     }
 
     @Test
-    fun `current distribution not found`() {
+    fun `listen for distribution updates without active distribution`() {
         every { service.getCurrentDistribution() } returns null
 
-        val response = controller.getCurrentDistribution()
+        val sseEmitter = controller.listenForDistributionUpdates()
+        assertThat(sseEmitter).isNotNull
 
-        assertThat(response.distribution).isNull()
+        verifySequence {
+            sseOutboxService.sendEvent(
+                sseEmitter,
+                DistributionItemUpdate(
+                    distribution = null
+                )
+            )
+
+            sseOutboxService.forwardNotificationEventsToSse(
+                sseEmitter = sseEmitter,
+                notificationName = DISTRIBUTION_UPDATE_NOTIFICATION_NAME,
+                resultType = DistributionItemUpdate::class.java
+            )
+        }
     }
 
     @Test
@@ -139,16 +170,16 @@ internal class DistributionControllerTest {
 
         verify { service.closeDistribution() }
 
-        val distributionItemResponseSlot = slot<DistributionItemResponse>()
+        val distributionItemResponseSlot = slot<DistributionItemUpdate>()
         verify {
-            simpMessagingTemplate.convertAndSend(
-                "/topic/distributions",
-                capture(distributionItemResponseSlot)
+            sseOutboxService.saveOutboxEntry(
+                notificationName = DISTRIBUTION_UPDATE_NOTIFICATION_NAME,
+                payload = capture(distributionItemResponseSlot)
             )
         }
 
         assertThat(distributionItemResponseSlot.captured).isEqualTo(
-            DistributionItemResponse(
+            DistributionItemUpdate(
                 distribution = null
             )
         )

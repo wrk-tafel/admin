@@ -55,15 +55,18 @@ statistic:
 * switch to signals
 * switch to control flow syntax @if, @for, @switch
 
-* tech: switch to spring boot layered build: https://www.baeldung.com/docker-layers-spring-boot
+* tech: switch to spring boot layered build (^ deployment speed): https://www.baeldung.com/docker-layers-spring-boot
 * Move statistics package into reporting?
 * Improve module communication by using async
   events (https://docs.spring.io/spring-modulith/docs/current/reference/html/#events)
 
 ### Tech
-* Switch websocket to long-polling
+* Separate compile from the rest to have a faster deploy 
 * Change all with distribution direct-related apis to /distributions (eg. collections)
 * Create a central interceptor/aspect to handel distribution not active state
+* Exclude mail from health check
+* Test if mails are properly received with mailpit rest api
+* Sec: Set cookie path to seperate prod/env (even when the token is not accepted)
 
 # Frontend #
 
