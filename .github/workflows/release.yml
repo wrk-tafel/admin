@@ -1,6 +1,7 @@
 name: Push on main branch
 
-concurrency: release
+concurrency:
+  group: prod-release
 
 on:
   workflow_dispatch:
@@ -18,12 +19,14 @@ jobs:
   build-push-image:
     uses: ./.github/workflows/subflow_docker_image.yml
     needs: [build, e2e-test]
+    with:
+      imageTag: latest
     secrets:
       githubToken: ${{ secrets.GITHUB_TOKEN }}
   deploy:
     uses: ./.github/workflows/subflow_deploy.yml
     needs: build-push-image
     secrets:
-      sshKey: ${{ secrets.SSH_DEPLOY_KEY }}
+      sshKey: ${{ secrets.SSH_PRIVATE_KEY }}
       sshKnownHosts: ${{ secrets.SSH_KNOWN_HOSTS }}
-      sshDeployCommand: ${{ secrets.SSH_DEPLOY_COMMAND }}
+      sshDeployCommand: ${{ secrets.SSH_DEPLOY_PROD_COMMAND }}

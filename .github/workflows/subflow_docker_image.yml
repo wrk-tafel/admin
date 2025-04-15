@@ -5,6 +5,10 @@ env:
 
 on:
   workflow_call:
+    inputs:
+      imageTag:
+        type: string
+        required: true
     secrets:
       githubToken:
         required: true
@@ -34,7 +38,7 @@ jobs:
         with:
           context: .
           file: _build/Dockerfile
-          tags: ${{ env.REGISTRY }}/wrk-tafel/admin:latest
+          tags: "${{ env.REGISTRY }}/wrk-tafel/admin:${{ inputs.imageTag }}"
           push: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
