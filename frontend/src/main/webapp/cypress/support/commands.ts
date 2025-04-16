@@ -104,6 +104,8 @@ Cypress.Commands.add('createDummyCustomer', (): Cypress.Chainable<Cypress.Respon
       lastname: 'lastname-' + randomNumber,
       birthDate: moment().toDate(),
       gender: Gender.MALE,
+      telephoneNumber: '0123456789',
+      email: 'firstname.lastname@test.com',
       employer: 'employer-' + randomNumber,
       country: {
         id: 165,

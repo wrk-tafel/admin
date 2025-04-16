@@ -92,7 +92,7 @@
           </c-row>
           <c-row class="mb-2">
             <c-col sm>
-              <label class="form-label">Telefonnummer</label>
+              <label class="form-label">Telefonnummer *</label>
               <c-input-group>
                 <input testid="telephoneNumberInput" type="text" formControlName="telephoneNumber"
                        class="form-control"
@@ -100,10 +100,14 @@
                 <span cInputGroupText>
                   <fa-icon [icon]="faPhone"></fa-icon>
                 </span>
+                <div *ngIf="telephoneNumber.errors?.required && (telephoneNumber.dirty || telephoneNumber.touched)"
+                     class="invalid-feedback">
+                  Pflichtfeld
+                </div>
               </c-input-group>
             </c-col>
             <c-col sm>
-              <label class="form-label">E-Mail</label>
+              <label class="form-label">E-Mail *</label>
               <c-input-group>
                 <input testid="emailInput" type="text" formControlName="email" class="form-control"
                        [ngClass]="{'is-invalid': email.invalid && (email.dirty || email.touched), 'is-valid': email.valid && (email.dirty || email.touched)}">
@@ -117,6 +121,10 @@
                 <div *ngIf="email.errors?.email && (email.dirty || email.touched)"
                      class="invalid-feedback">
                   E-Mail-Format ungültig!
+                </div>
+                <div *ngIf="email.errors?.required && (email.dirty || email.touched)"
+                     class="invalid-feedback">
+                  Pflichtfeld
                 </div>
               </c-input-group>
             </c-col>

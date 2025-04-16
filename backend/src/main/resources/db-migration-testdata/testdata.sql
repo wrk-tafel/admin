@@ -119,16 +119,13 @@ INSERT INTO customers (id, created_at, updated_at, customer_id, employee_id, fir
                        address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
                        address_city, telephone_number, email, employer, income, income_due, valid_until)
 values (100, NOW(), NOW(), 100, 100, 'Max Single', 'Mustermann', '1980-01-01', 'MALE', 1, 'Erdberg', 1, null, null,
-        '1030',
-        'Wien',
-        null, null, 'Stadt Wien', 123.00, '2999-12-31', '2999-12-31');
+        '1030', 'Wien', '00436645678953', 'max.single.mustermann@wrk.at', 'Stadt Wien', 123.00, '2999-12-31', '2999-12-31');
 INSERT INTO customers (id, created_at, updated_at, customer_id, employee_id, firstname, lastname, birth_date, gender,
                        country_id,
                        address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
                        address_city, telephone_number, email, employer, income, income_due, valid_until)
 values (101, NOW(), NOW(), 101, 100, 'Eva', 'Musterfrau', '1990-01-01', 'FEMALE', 2, 'Erdberg', 2, '1', '20', '1010',
-        'Wien',
-        '00436645678953', 'eva.musterfrau@wrk.at', 'Rotes Kreuz Wien', 456.00, '2999-12-31', '2999-12-31');
+        'Wien', '00436645678953', 'eva.musterfrau@wrk.at', 'Rotes Kreuz Wien', 456.00, '2999-12-31', '2999-12-31');
 INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender,
                                   income,
                                   income_due, country_id, receives_familybonus)
@@ -160,15 +157,13 @@ INSERT INTO customers (id, created_at, updated_at, customer_id, employee_id, fir
                        address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
                        address_city, telephone_number, email, employer, income, income_due, valid_until)
 values (102, NOW(), NOW(), 102, 100, 'John', 'Doe', '1980-01-01', 'MALE', 1, 'Erdberg', 1, null, null, '1030', 'Wien',
-        null, null, 'Stadt Wien', 123.00, '2999-12-31', '2999-12-31');
+        '00436645678953', 'john.doe@wrk.at', 'Stadt Wien', 123.00, '2999-12-31', '2999-12-31');
 INSERT INTO customers (id, created_at, updated_at, customer_id, employee_id, firstname, lastname, birth_date, gender,
                        country_id,
                        address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
                        address_city, telephone_number, email, employer, income, income_due, valid_until)
 values (103, NOW(), NOW(), 103, 100, 'John Doe', 'EXPIRES SOON', '1980-01-01', 'MALE', 1, 'Erdberg', 1, null, null,
-        '1030',
-        'Wien',
-        null, null, 'Stadt Wien', 123.00, NOW() + interval '1 month', NOW() + interval '1 month');
+        '1030', 'Wien', null, null, 'Stadt Wien', 123.00, NOW() + interval '1 month', NOW() + interval '1 month');
 INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender,
                                   income,
                                   income_due, country_id, receives_familybonus)
@@ -273,17 +268,14 @@ INSERT INTO customers (id, created_at, updated_at, customer_id, employee_id, fir
                        address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
                        address_city, telephone_number, email, employer, income, income_due, valid_until)
 values (104, NOW(), NOW(), 104, 100, 'Jane Doe', 'EXPIRED', '1980-01-01', 'FEMALE', 1, 'Erdberg', 1, null, null, '1030',
-        'Wien',
-        null, null, 'Stadt Wien', 123.00, '2000-12-31', '2000-12-31');
+        'Wien', null, null, 'Stadt Wien', 123.00, '2000-12-31', '2000-12-31');
 INSERT INTO customers (id, created_at, updated_at, customer_id, employee_id, firstname, lastname, birth_date, gender,
                        country_id,
                        address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
                        address_city, telephone_number, email, employer, income, income_due, valid_until, locked,
                        locked_at, locked_by, lock_reason)
 values (105, NOW(), NOW(), 105, 100, 'Jane Doe', 'LOCKED', '1980-01-01', 'FEMALE', 1, 'Erdberg', 1, null, null, '1030',
-        'Wien',
-        null, null, 'Stadt Wien', 123.00, '2999-12-31', '2999-12-31', true, NOW(), 100,
-        'Lock-Reason: Lorem ipsum dolor sit amet');
+        'Wien', null, null, 'Stadt Wien', 123.00, '2999-12-31', '2999-12-31', true, NOW(), 100, 'Lock-Reason: Lorem ipsum dolor sit amet');
 INSERT INTO customers (id, created_at, updated_at, customer_id, employee_id, firstname, lastname, birth_date, gender,
                        country_id,
                        address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
