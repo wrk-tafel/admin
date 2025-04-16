@@ -114,7 +114,7 @@ class SseOutboxService(
             logger.warn("SSE client disconnected", e)
             sseEmitter.complete()
         } catch (e: Exception) {
-            logger.error("Unexpected error during SSE send", e)
+            logger.warn("Unexpected error during SSE send", e)
             sseEmitter.completeWithError(e)
         }
     }
