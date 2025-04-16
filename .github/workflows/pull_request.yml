@@ -27,3 +27,4 @@ jobs:
       sshKey: ${{ secrets.SSH_PRIVATE_KEY }}
       sshKnownHosts: ${{ secrets.SSH_KNOWN_HOSTS }}
       sshDeployCommand: ${{ secrets.SSH_DEPLOY_TEST_COMMAND }}
+    if: github.actor != 'dependabot[bot]'

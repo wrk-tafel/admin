@@ -1,7 +1,7 @@
 name: Push on main branch
 
 concurrency:
-  group: prod-release
+  group: release
 
 on:
   workflow_dispatch:
@@ -23,9 +23,20 @@ jobs:
       imageTag: latest
     secrets:
       githubToken: ${{ secrets.GITHUB_TOKEN }}
+  deploy-test:
+    uses: ./.github/workflows/subflow_deploy.yml
+    needs: build-push-image
+    concurrency:
+      group: test-environment
+    secrets:
+      sshKey: ${{ secrets.SSH_PRIVATE_KEY }}
+      sshKnownHosts: ${{ secrets.SSH_KNOWN_HOSTS }}
+      sshDeployCommand: ${{ secrets.SSH_DEPLOY_TEST_COMMAND }}
   deploy-prod:
     uses: ./.github/workflows/subflow_deploy.yml
     needs: build-push-image
+    concurrency:
+      group: prod-environment
     secrets:
       sshKey: ${{ secrets.SSH_PRIVATE_KEY }}
       sshKnownHosts: ${{ secrets.SSH_KNOWN_HOSTS }}

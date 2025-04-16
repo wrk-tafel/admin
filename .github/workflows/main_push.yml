@@ -10,6 +10,22 @@ jobs:
     uses: ./.github/workflows/subflow_build.yml
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+  build-push-image:
+    uses: ./.github/workflows/subflow_docker_image.yml
+    needs: build
+    with:
+      imageTag: test
+    secrets:
+      githubToken: ${{ secrets.GITHUB_TOKEN }}
   e2e-test:
     uses: ./.github/workflows/subflow_e2e_test.yml
     needs: build
+  deploy-test:
+    uses: ./.github/workflows/subflow_deploy.yml
+    needs: build-push-image
+    concurrency:
+      group: test-environment
+    secrets:
+      sshKey: ${{ secrets.SSH_PRIVATE_KEY }}
+      sshKnownHosts: ${{ secrets.SSH_KNOWN_HOSTS }}
+      sshDeployCommand: ${{ secrets.SSH_DEPLOY_TEST_COMMAND }}
