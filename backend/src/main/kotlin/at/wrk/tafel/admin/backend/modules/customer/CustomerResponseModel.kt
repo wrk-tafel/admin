@@ -36,6 +36,7 @@ data class Customer(
     val lockedAt: LocalDateTime? = null,
     val lockedBy: String? = null,
     val lockReason: String? = null,
+    val pendingCostContribution: BigDecimal? = null,
     val additionalPersons: List<CustomerAdditionalPerson> = emptyList()
 )
 

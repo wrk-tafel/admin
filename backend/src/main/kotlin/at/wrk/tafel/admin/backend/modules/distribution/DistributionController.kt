@@ -3,7 +3,6 @@ package at.wrk.tafel.admin.backend.modules.distribution
 import at.wrk.tafel.admin.backend.common.sse.SseUtil
 import at.wrk.tafel.admin.backend.database.common.sse_outbox.SseOutboxService
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
-import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.distribution.internal.DistributionService
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.AssignCustomerRequest
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionItem
@@ -101,13 +100,10 @@ class DistributionController(
     fun assignCustomerToDistribution(
         @RequestBody assignCustomerRequest: AssignCustomerRequest,
     ): ResponseEntity<Unit> {
-        val currentDistribution =
-            service.getCurrentDistribution() ?: throw TafelValidationException("Ausgabe nicht gestartet!")
-
         service.assignCustomerToDistribution(
-            currentDistribution,
             assignCustomerRequest.customerId,
-            assignCustomerRequest.ticketNumber
+            assignCustomerRequest.ticketNumber,
+            assignCustomerRequest.costContributionPaid
         )
 
         return ResponseEntity.noContent().build()

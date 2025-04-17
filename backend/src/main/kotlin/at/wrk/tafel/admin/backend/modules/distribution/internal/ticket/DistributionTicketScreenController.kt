@@ -34,7 +34,7 @@ class DistributionTicketScreenController(
         val distribution = service.getCurrentDistribution()
 
         val response = distribution?.let {
-            val ticketNumber = service.getCurrentTicketNumber(null)
+            val ticketNumber = service.getCurrentTicketNumber(null)?.ticketNumber
             logger.info("Ticket-Log - Fetched current ticket-number: $ticketNumber")
             ticketNumber
         }
@@ -57,7 +57,7 @@ class DistributionTicketScreenController(
         // send initial state
         var currentTicketNumber: Int? = null
         service.getCurrentDistribution()?.let {
-            currentTicketNumber = service.getCurrentTicketNumber()
+            currentTicketNumber = service.getCurrentTicketNumber()?.ticketNumber
         }
         val payload = TicketScreenShowText("Ticketnummer", currentTicketNumber?.toString())
         sseOutboxService.sendEvent(sseEmitter, payload)

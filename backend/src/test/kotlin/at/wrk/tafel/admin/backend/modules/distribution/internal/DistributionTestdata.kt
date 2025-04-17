@@ -55,6 +55,7 @@ val testDistributionCustomerEntity1 = DistributionCustomerEntity().apply {
         incomeDue = LocalDate.now()
         validUntil = LocalDate.now()
         locked = false
+        pendingCostContribution = BigDecimal("12")
 
         val addPerson1 = CustomerAddPersonEntity()
         addPerson1.id = 2
@@ -78,6 +79,7 @@ val testDistributionCustomerEntity1 = DistributionCustomerEntity().apply {
     }
     ticketNumber = 50
     processed = true
+    costContributionPaid = false
 }
 
 val testDistributionCustomerEntity2 = DistributionCustomerEntity().apply {
@@ -105,9 +107,11 @@ val testDistributionCustomerEntity2 = DistributionCustomerEntity().apply {
         incomeDue = LocalDate.now()
         validUntil = LocalDate.now()
         locked = false
+        pendingCostContribution = BigDecimal.ZERO
     }
     ticketNumber = 51
     processed = false
+    costContributionPaid = false
 }
 
 val testDistributionCustomerEntity3 = DistributionCustomerEntity().apply {
@@ -138,6 +142,7 @@ val testDistributionCustomerEntity3 = DistributionCustomerEntity().apply {
     }
     ticketNumber = 52
     processed = false
+    costContributionPaid = true
 }
 
 val testDistributionCustomerEntity4 = DistributionCustomerEntity().apply {
@@ -196,4 +201,5 @@ val testDistributionCustomerEntity4 = DistributionCustomerEntity().apply {
     }
     ticketNumber = 52
     processed = false
+    costContributionPaid = true
 }

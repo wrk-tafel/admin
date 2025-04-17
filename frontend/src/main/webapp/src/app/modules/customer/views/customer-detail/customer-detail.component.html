@@ -152,6 +152,16 @@
                            [ngClass]="{'bg-success': customerData?.validUntil && isValid(), 'bg-danger': customerData?.validUntil && !isValid()}"
                            [innerHTML]="customerData?.validUntil | date : 'dd.MM.yyyy'"></div>
                     </div>
+                    <div class="row">
+                      <div class="col fw-bold"
+                           [ngClass]="{'bg-danger': customerData?.pendingCostContribution > 0, 'text-white': customerData?.pendingCostContribution > 0}">
+                           Unkostenbeitrag ausstehend:
+                      </div>
+                      <div testid="pendingCostContributionText" class="col"
+                           [ngClass]="{'bg-danger': customerData?.pendingCostContribution > 0, 'text-white': customerData?.pendingCostContribution > 0}">
+                           {{customerData?.pendingCostContribution | currency}}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

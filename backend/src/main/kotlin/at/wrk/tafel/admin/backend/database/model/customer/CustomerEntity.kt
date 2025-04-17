@@ -110,6 +110,9 @@ class CustomerEntity : BaseChangeTrackingEntity() {
     @Column(name = "migrated")
     var migrated: Boolean? = null
 
+    @Column(name = "pending_cost_contribution")
+    var pendingCostContribution: BigDecimal = BigDecimal.ZERO
+
     @OneToMany(mappedBy = "customer", cascade = [CascadeType.ALL], orphanRemoval = true)
     var additionalPersons: MutableList<CustomerAddPersonEntity> = mutableListOf()
 

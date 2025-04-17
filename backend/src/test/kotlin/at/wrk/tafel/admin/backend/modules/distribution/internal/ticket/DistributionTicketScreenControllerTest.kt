@@ -3,6 +3,8 @@ package at.wrk.tafel.admin.backend.modules.distribution.internal.ticket
 import at.wrk.tafel.admin.backend.database.common.sse_outbox.SseOutboxService
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.modules.distribution.internal.DistributionService
+import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionCustomerEntity1
+import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionEntity
 import at.wrk.tafel.admin.backend.modules.distribution.internal.ticket.DistributionTicketScreenController.Companion.TICKET_SCREEN_SHOW_VALUE_NOTIFICATION_NAME
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
@@ -50,11 +52,8 @@ internal class DistributionTicketScreenControllerTest {
 
     @Test
     fun `show current ticketNumber with active distribution`() {
-        val ticketNumber = 123
-        val distributionEntity = DistributionEntity()
-        distributionEntity.id = 123
-        every { service.getCurrentDistribution() } returns distributionEntity
-        every { service.getCurrentTicketNumber(null) } returns ticketNumber
+        every { service.getCurrentDistribution() } returns testDistributionEntity
+        every { service.getCurrentTicketNumber(null) } returns testDistributionCustomerEntity1
 
         controller.showCurrentTicket()
 
@@ -63,7 +62,7 @@ internal class DistributionTicketScreenControllerTest {
                 TICKET_SCREEN_SHOW_VALUE_NOTIFICATION_NAME,
                 TicketScreenShowText(
                     text = "Ticketnummer",
-                    value = ticketNumber.toString()
+                    value = "50"
                 )
             )
         }
@@ -71,10 +70,8 @@ internal class DistributionTicketScreenControllerTest {
 
     @Test
     fun `show current ticketNumber without active distribution`() {
-        val ticketNumber = 123
-
         every { service.getCurrentDistribution() } returns null
-        every { service.getCurrentTicketNumber(null) } returns ticketNumber
+        every { service.getCurrentTicketNumber(null) } returns testDistributionCustomerEntity1
 
         controller.showCurrentTicket()
 
@@ -130,11 +127,10 @@ internal class DistributionTicketScreenControllerTest {
 
     @Test
     fun `listen for changes with active distribution`() {
-        val currentTicketNumber = 123
-        val testValue = TicketScreenShowText(text = "Ticketnummer", value = currentTicketNumber.toString())
+        val testValue = TicketScreenShowText(text = "Ticketnummer", value = "50")
 
         every { service.getCurrentDistribution() } returns DistributionEntity()
-        every { service.getCurrentTicketNumber() } returns currentTicketNumber
+        every { service.getCurrentTicketNumber() } returns testDistributionCustomerEntity1
 
         val emitter = controller.listenForChanges()
         assertThat(emitter).isNotNull

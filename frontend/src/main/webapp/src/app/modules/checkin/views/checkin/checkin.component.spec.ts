@@ -261,7 +261,7 @@ describe('CheckinComponent', () => {
     };
     customerNoteApiService.getNotesForCustomer.and.returnValue(of(notesResponse));
     component.customerId = mockCustomer.id;
-    distributionTicketApiService.getCurrentTicketForCustomer.and.returnValue(of({ticketNumber: null}));
+    distributionTicketApiService.getCurrentTicketForCustomer.and.returnValue(of({ticketNumber: null, costContributionPaid: false}));
 
     component.searchForCustomerId();
 
@@ -274,6 +274,7 @@ describe('CheckinComponent', () => {
     expect(component.ticketNumber).toBeUndefined();
     expect(component.ticketNumberEdit).toBeFalse();
     expect(component.ticketNumberInputRef.nativeElement.focus).toHaveBeenCalled();
+    expect(component.costContributionPaid).toBeTrue();
   });
 
   it('searchForCustomerId found valid customer with assigned ticket', () => {
@@ -322,7 +323,7 @@ describe('CheckinComponent', () => {
     component.customerId = mockCustomer.id;
 
     const testTicketNumber = 123;
-    distributionTicketApiService.getCurrentTicketForCustomer.and.returnValue(of({ticketNumber: testTicketNumber}));
+    distributionTicketApiService.getCurrentTicketForCustomer.and.returnValue(of({ticketNumber: testTicketNumber, costContributionPaid: true}));
 
     component.searchForCustomerId();
 
@@ -335,6 +336,7 @@ describe('CheckinComponent', () => {
     expect(component.ticketNumber).toBe(testTicketNumber);
     expect(component.ticketNumberEdit).toBeTrue();
     expect(component.ticketNumberInputRef.nativeElement.focus).toHaveBeenCalled();
+    expect(component.costContributionPaid).toBeTrue();
   });
 
   it('searchForCustomerId found valid customer but expires soon', () => {
@@ -380,7 +382,7 @@ describe('CheckinComponent', () => {
     };
     customerNoteApiService.getNotesForCustomer.and.returnValue(of(notesResponse));
     component.customerId = mockCustomer.id;
-    distributionTicketApiService.getCurrentTicketForCustomer.and.returnValue(of({ticketNumber: null}));
+    distributionTicketApiService.getCurrentTicketForCustomer.and.returnValue(of({ticketNumber: null, costContributionPaid: false}));
 
     component.searchForCustomerId();
 
@@ -441,7 +443,7 @@ describe('CheckinComponent', () => {
     };
     customerNoteApiService.getNotesForCustomer.and.returnValue(of(notesResponse));
     component.customerId = mockCustomer.id;
-    distributionTicketApiService.getCurrentTicketForCustomer.and.returnValue(of({ticketNumber: null}));
+    distributionTicketApiService.getCurrentTicketForCustomer.and.returnValue(of({ticketNumber: null, costContributionPaid: false}));
 
     component.searchForCustomerId();
 
@@ -504,7 +506,7 @@ describe('CheckinComponent', () => {
     };
     customerNoteApiService.getNotesForCustomer.and.returnValue(of(notesResponse));
     component.customerId = mockCustomer.id;
-    distributionTicketApiService.getCurrentTicketForCustomer.and.returnValue(of({ticketNumber: null}));
+    distributionTicketApiService.getCurrentTicketForCustomer.and.returnValue(of({ticketNumber: null, costContributionPaid: true}));
 
     component.searchForCustomerId();
 
@@ -595,7 +597,7 @@ describe('CheckinComponent', () => {
       pageSize: 5
     };
     customerNoteApiService.getNotesForCustomer.and.returnValue(of(mockNotesResponse));
-    distributionTicketApiService.getCurrentTicketForCustomer.and.returnValue(of({ticketNumber: null}));
+    distributionTicketApiService.getCurrentTicketForCustomer.and.returnValue(of({ticketNumber: null, costContributionPaid: true}));
 
     component.searchForCustomerId();
 
@@ -695,13 +697,15 @@ describe('CheckinComponent', () => {
     component.processCustomer(mockCustomer);
 
     const ticketNumber = 55;
+    const costContributionPaid = true;
     component.ticketNumber = ticketNumber;
+    component.costContributionPaid = costContributionPaid;
 
     distributionApiService.assignCustomer.and.returnValue(of(null));
 
     component.assignCustomer();
 
-    expect(distributionApiService.assignCustomer).toHaveBeenCalledWith(mockCustomer.id, ticketNumber);
+    expect(distributionApiService.assignCustomer).toHaveBeenCalledWith(mockCustomer.id, ticketNumber, costContributionPaid);
 
     expect(component.customerId).toBeUndefined();
     expect(component.customerState).toBeUndefined();

@@ -26,9 +26,14 @@ class DistributionPostProcessorService(
             val statistic = distributionStatisticService.createAndSaveStatistic(distribution)
 
             postProcessors.forEach {
-                logger.info("Postprocessing - ${it.javaClass.simpleName} ... started")
-                it.process(distribution, statistic)
-                logger.info("Postprocessing - ${it.javaClass.simpleName} ... done")
+                val postProcessorName = it.javaClass.simpleName
+                try {
+                    logger.info("Postprocessing - $postProcessorName ... started")
+                    it.process(distribution, statistic)
+                    logger.info("Postprocessing - $postProcessorName ... done")
+                } catch (e: Exception) {
+                    logger.error("Postprocessing - $postProcessorName ... failed", e)
+                }
             }
         }
     }

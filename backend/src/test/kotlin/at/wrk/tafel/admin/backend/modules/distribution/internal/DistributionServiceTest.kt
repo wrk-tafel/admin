@@ -256,20 +256,19 @@ internal class DistributionServiceTest {
     }
 
     @Test
-    fun `assign customer when customer doesnt exist`() {
-        val distributionEntity = DistributionEntity()
-        distributionEntity.id = 123
+    fun `assign customer without existing customer`() {
         val customerId = 1L
         val ticketNumber = 200
+        val costContributionPaid = true
 
         every { distributionRepository.getCurrentDistribution() } returns testDistributionEntity
         every { customerRepository.findByCustomerId(customerId) } returns null
 
         val exception = assertThrows<TafelValidationException> {
             service.assignCustomerToDistribution(
-                distribution = distributionEntity,
                 customerId = customerId,
-                ticketNumber = ticketNumber
+                ticketNumber = ticketNumber,
+                costContributionPaid = costContributionPaid
             )
         }
 
@@ -278,19 +277,18 @@ internal class DistributionServiceTest {
 
     @Test
     fun `assign customer successful`() {
-        val distributionEntity = DistributionEntity()
-        distributionEntity.id = 123
         val customerId = 1L
         val ticketNumber = 200
+        val costContributionPaid = true
 
         every { distributionRepository.getCurrentDistribution() } returns testDistributionEntity
         every { customerRepository.findByCustomerId(customerId) } returns testCustomerEntity1
         every { distributionCustomerRepository.save(any()) } returns mockk()
 
         service.assignCustomerToDistribution(
-            distribution = distributionEntity,
             customerId = customerId,
-            ticketNumber = ticketNumber
+            ticketNumber = ticketNumber,
+            costContributionPaid = costContributionPaid
         )
 
         verify {
@@ -300,6 +298,63 @@ internal class DistributionServiceTest {
                 assertThat(it.ticketNumber).isEqualTo(ticketNumber)
             })
         }
+    }
+
+    @Test
+    fun `assign customer with existing entry (update)`() {
+        val testDistributionEntity = DistributionEntity().apply {
+            id = 123
+            customers = listOf(
+                testDistributionCustomerEntity1
+            )
+        }
+        val customerId = 1L
+        val updatedTicketNumber = 300
+        val updatedCostContributionPaid = true
+
+        every { distributionRepository.getCurrentDistribution() } returns testDistributionEntity
+        every { customerRepository.findByCustomerId(customerId) } returns testCustomerEntity1
+        every { distributionCustomerRepository.save(any()) } returns mockk()
+
+        service.assignCustomerToDistribution(
+            customerId = customerId,
+            ticketNumber = updatedTicketNumber,
+            costContributionPaid = updatedCostContributionPaid
+        )
+
+        verify {
+            distributionCustomerRepository.save(withArg {
+                assertThat(it.customer).isEqualTo(testCustomerEntity1)
+                assertThat(it.distribution).isEqualTo(testDistributionEntity)
+                assertThat(it.ticketNumber).isEqualTo(updatedTicketNumber)
+                assertThat(it.costContributionPaid).isEqualTo(updatedCostContributionPaid)
+            })
+        }
+    }
+
+    @Test
+    fun `assign existing ticketnumber to another customer`() {
+        val testDistributionEntity = DistributionEntity().apply {
+            id = 123
+            customers = listOf(
+                testDistributionCustomerEntity1
+            )
+        }
+        val customerId = 2L
+        val ticketNumber = 50
+        val costContributionPaid = true
+
+        every { distributionRepository.getCurrentDistribution() } returns testDistributionEntity
+        every { customerRepository.findByCustomerId(customerId) } returns testCustomerEntity1
+
+        val exception = assertThrows<TafelValidationException> {
+            service.assignCustomerToDistribution(
+                customerId = customerId,
+                ticketNumber = ticketNumber,
+                costContributionPaid = costContributionPaid
+            )
+        }
+        assertThat(exception.message).isEqualTo("Ticketnummer $ticketNumber bereits vergeben!")
     }
 
     @Test
@@ -403,9 +458,9 @@ internal class DistributionServiceTest {
         }
         every { distributionRepository.getCurrentDistribution() } returns testDistributionEntity
 
-        val ticket = service.getCurrentTicketNumber()
+        val distributionCustomerEntity = service.getCurrentTicketNumber()
 
-        assertThat(ticket).isEqualTo(51)
+        assertThat(distributionCustomerEntity?.ticketNumber).isEqualTo(51)
     }
 
     @Test
@@ -419,12 +474,11 @@ internal class DistributionServiceTest {
         }
         every { distributionRepository.getCurrentDistribution() } returns testDistributionEntity
 
-        val ticket =
-            service.getCurrentTicketNumber(
-                testDistributionCustomerEntity2.customer!!.customerId
-            )
+        val distributionCustomerEntity = service.getCurrentTicketNumber(
+            testDistributionCustomerEntity2.customer!!.customerId
+        )
 
-        assertThat(ticket).isEqualTo(51)
+        assertThat(distributionCustomerEntity?.ticketNumber).isEqualTo(51)
     }
 
     @Test

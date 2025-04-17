@@ -3,9 +3,8 @@ package at.wrk.tafel.admin.backend.modules.distribution.internal
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
-import at.wrk.tafel.admin.backend.modules.distribution.internal.postprocessors.DailyReportMailPostProcessor
+import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.distribution.internal.postprocessors.DistributionPostProcessor
-import at.wrk.tafel.admin.backend.modules.distribution.internal.postprocessors.StatisticMailPostProcessor
 import at.wrk.tafel.admin.backend.modules.distribution.internal.statistic.DistributionStatisticService
 import io.mockk.every
 import io.mockk.impl.annotations.RelaxedMockK
@@ -31,29 +30,26 @@ internal class DistributionPostProcessorServiceTest {
     @RelaxedMockK
     private lateinit var distributionRepository: DistributionRepository
 
-    @RelaxedMockK
-    private lateinit var postProcessor1: DailyReportMailPostProcessor
-
-    @RelaxedMockK
-    private lateinit var postProcessor2: StatisticMailPostProcessor
-
-    private lateinit var postProcessors: List<DistributionPostProcessor>
-    private lateinit var service: DistributionPostProcessorService
+    private val failingPostProcessor = mockk<DistributionPostProcessor>()
+    private val successfulPostProcessor = mockk<DistributionPostProcessor>()
 
     @BeforeEach
     fun beforeEach() {
-        postProcessors = listOf(postProcessor1, postProcessor2)
-
-        service = DistributionPostProcessorService(
-            distributionStatisticService,
-            transactionTemplate,
-            distributionRepository,
-            postProcessors
-        )
+        every { failingPostProcessor.process(any(), any()) } throws TafelValidationException("Test exception")
     }
 
     @Test
     fun `creates statistic and calls proper postprocessors`() {
+        val service = DistributionPostProcessorService(
+            distributionStatisticService,
+            transactionTemplate,
+            distributionRepository,
+            listOf(
+                successfulPostProcessor,
+                successfulPostProcessor
+            )
+        )
+
         val distributionId = 123L
         val distribution = mockk<DistributionEntity>()
         every { distribution.id } returns distributionId
@@ -70,8 +66,37 @@ internal class DistributionPostProcessorServiceTest {
 
         verify(exactly = 1) { transactionTemplate.executeWithoutResult(any()) }
         verify(exactly = 1) { distributionStatisticService.createAndSaveStatistic(distribution) }
-        verify(exactly = 1) { postProcessors[0].process(distribution, distributionStatistic) }
-        verify(exactly = 1) { postProcessors[1].process(distribution, distributionStatistic) }
+        verify(exactly = 2) { successfulPostProcessor.process(distribution, distributionStatistic) }
+    }
+
+    @Test
+    fun `still proceeds when one process fails`() {
+        val service = DistributionPostProcessorService(
+            distributionStatisticService,
+            transactionTemplate,
+            distributionRepository,
+            listOf(
+                failingPostProcessor,
+                successfulPostProcessor
+            )
+        )
+
+        val distributionId = 123L
+        val distribution = mockk<DistributionEntity>()
+        every { distribution.id } returns distributionId
+        every { distribution.customers } returns listOf(
+            testDistributionCustomerEntity1,
+            testDistributionCustomerEntity2
+        )
+
+        val distributionStatistic = mockk<DistributionStatisticEntity>()
+        every { distributionStatisticService.createAndSaveStatistic(distribution) } returns distributionStatistic
+        every { distributionRepository.findById(distributionId) } returns Optional.of(distribution)
+
+        service.process(distributionId)
+
+        verify(exactly = 1) { failingPostProcessor.process(distribution, distributionStatistic) }
+        verify(exactly = 1) { successfulPostProcessor.process(distribution, distributionStatistic) }
     }
 
 }

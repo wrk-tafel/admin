@@ -25,9 +25,12 @@ class DistributionTicketController(
     fun getCurrentTicketForCustomerId(
         @PathVariable("customerId") customerId: Long,
     ): TicketNumberResponse {
-        val currentTicket = service.getCurrentTicketNumber(customerId)
-        logger.info("Ticket-Log - Fetched current ticket-number: $currentTicket")
-        return TicketNumberResponse(ticketNumber = currentTicket)
+        val distributionCustomerEntity = service.getCurrentTicketNumber(customerId)
+        logger.info("Ticket-Log - Fetched current ticket-number: $distributionCustomerEntity")
+        return TicketNumberResponse(
+            ticketNumber = distributionCustomerEntity?.ticketNumber,
+            costContributionPaid = distributionCustomerEntity?.costContributionPaid ?: true,
+        )
     }
 
     @DeleteMapping("/customers/{customerId}")

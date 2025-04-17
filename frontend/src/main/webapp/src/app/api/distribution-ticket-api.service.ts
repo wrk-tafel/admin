@@ -6,7 +6,7 @@ import {Observable} from 'rxjs';
   providedIn: 'root'
 })
 export class DistributionTicketApiService {
-  private http = inject(HttpClient);
+  private readonly http = inject(HttpClient);
 
   getCurrentTicketForCustomer(customerId: number): Observable<TicketNumberResponse> {
     return this.http.get<TicketNumberResponse>('/distributions/tickets/customers/' + customerId);
@@ -20,4 +20,5 @@ export class DistributionTicketApiService {
 
 export interface TicketNumberResponse {
   ticketNumber: number;
+  costContributionPaid: boolean;
 }

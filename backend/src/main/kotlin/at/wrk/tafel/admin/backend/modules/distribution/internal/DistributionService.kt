@@ -17,7 +17,6 @@ import at.wrk.tafel.admin.backend.modules.distribution.internal.model.CustomerLi
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.CustomerListPdfResult
 import at.wrk.tafel.admin.backend.modules.distribution.internal.ticket.DistributionTicketController
 import org.slf4j.LoggerFactory
-import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -70,21 +69,32 @@ class DistributionService(
         return distributionRepository.getCurrentDistribution()
     }
 
-    fun assignCustomerToDistribution(distribution: DistributionEntity, customerId: Long, ticketNumber: Int) {
+    @Transactional
+    fun assignCustomerToDistribution(
+        customerId: Long,
+        ticketNumber: Int,
+        costContributionPaid: Boolean,
+    ) {
+        val distribution = getCurrentDistribution()
+            ?: throw TafelValidationException("Ausgabe nicht gestartet!")
+
         val customer = customerRepository.findByCustomerId(customerId)
             ?: throw TafelValidationException("Kunde Nr. $customerId nicht vorhanden!")
+        val distributionCustomerEntity = distribution.customers.firstOrNull { it.ticketNumber == ticketNumber }
 
-        val entry = DistributionCustomerEntity()
+        // Can't assign to another customer if already assigned but ok if it's the same customer (update costContributionPaid flag)
+        if (distributionCustomerEntity != null && distributionCustomerEntity.customer?.id != customerId) {
+            throw TafelValidationException("Ticketnummer $ticketNumber bereits vergeben!")
+        }
+
+        val entry = distributionCustomerEntity ?: DistributionCustomerEntity()
         entry.distribution = distribution
         entry.customer = customer
         entry.ticketNumber = ticketNumber
+        entry.costContributionPaid = costContributionPaid
         entry.processed = false
 
-        try {
-            distributionCustomerRepository.save(entry)
-        } catch (e: DataIntegrityViolationException) {
-            throw TafelValidationException("Kunde oder Ticketnummer wurde bereits zugewiesen!")
-        }
+        distributionCustomerRepository.save(entry)
     }
 
     @Transactional
@@ -119,13 +129,13 @@ class DistributionService(
     }
 
     @Transactional
-    fun getCurrentTicketNumber(customerId: Long? = null): Int? {
+    fun getCurrentTicketNumber(customerId: Long? = null): DistributionCustomerEntity? {
         val distribution = getCurrentDistribution()
             ?: throw TafelValidationException("Ausgabe nicht gestartet!")
 
-        val ticketNumber = getDistributionCustomerEntity(distribution, customerId)?.ticketNumber
-        logger.info("Ticket-Log - Fetched current ticket-number (service): $ticketNumber")
-        return ticketNumber
+        val distributionCustomerEntity = getDistributionCustomerEntity(distribution, customerId)
+        logger.info("Ticket-Log - Fetched current ticket-number (service): ${distributionCustomerEntity?.ticketNumber}")
+        return distributionCustomerEntity
     }
 
     @Transactional
@@ -139,7 +149,7 @@ class DistributionService(
             distributionCustomerEntity.processed = true
             distributionCustomerRepository.save(distributionCustomerEntity)
 
-            val currentTicketNumber = getCurrentTicketNumber()
+            val currentTicketNumber = getCurrentTicketNumber()?.ticketNumber
             logger.info("Ticket-Log - Processed ticket-number: ${distributionCustomerEntity.ticketNumber}, next one: $currentTicketNumber")
             return currentTicketNumber
         }
