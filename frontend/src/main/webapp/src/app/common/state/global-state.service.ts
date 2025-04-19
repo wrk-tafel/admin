@@ -16,15 +16,6 @@ export class GlobalStateService {
 
   /* eslint-disable @typescript-eslint/no-explicit-any */
   init(): Promise<any> {
-    return this.getCurrentDistributionPromise();
-  }
-
-  getCurrentDistribution(): BehaviorSubject<DistributionItem> {
-    return this.currentDistribution;
-  }
-
-  /* eslint-disable @typescript-eslint/no-explicit-any */
-  private getCurrentDistributionPromise(): Promise<any> {
     return new Promise((resolve, reject) => {
 
       /* eslint-disable @typescript-eslint/no-empty-function */
@@ -38,8 +29,12 @@ export class GlobalStateService {
         error: error => reject(error),
       };
 
-      return this.sseService.listen('/sse/distributions').subscribe(observer);
+      return this.sseService.listen('/sse/distributions', 2).subscribe(observer);
     });
+  }
+
+  getCurrentDistribution(): BehaviorSubject<DistributionItem> {
+    return this.currentDistribution;
   }
 
 }
