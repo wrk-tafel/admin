@@ -12,19 +12,19 @@ jobs:
     uses: ./.github/workflows/subflow_docker_image.yml
     needs: build
     with:
-      imageTag: test
+      imageTag: dev
     secrets:
       githubToken: ${{ secrets.GITHUB_TOKEN }}
   e2e-test:
     uses: ./.github/workflows/subflow_e2e_test.yml
     needs: build
-  deploy-test:
+  deploy-dev:
     uses: ./.github/workflows/subflow_deploy.yml
     needs: build-push-image
     concurrency:
-      group: test-environment
+      group: dev-environment
     secrets:
       sshKey: ${{ secrets.SSH_PRIVATE_KEY }}
       sshKnownHosts: ${{ secrets.SSH_KNOWN_HOSTS }}
-      sshDeployCommand: ${{ secrets.SSH_DEPLOY_TEST_COMMAND }}
+      sshDeployCommand: ${{ secrets.SSH_DEPLOY_DEV_COMMAND }}
     if: github.actor != 'dependabot[bot]'

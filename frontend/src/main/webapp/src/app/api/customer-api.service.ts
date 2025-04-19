@@ -109,6 +109,7 @@ export interface CustomerData {
   lockedAt?: Date;
   lockedBy?: string;
   lockReason?: string;
+  pendingCostContribution?: number;
   additionalPersons?: CustomerAddPersonData[];
 }
 

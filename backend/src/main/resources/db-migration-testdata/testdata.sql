@@ -115,32 +115,25 @@ VALUES (7001, NOW(), NOW(), 700, 'CHECKIN');
 
 -- customers
 INSERT INTO customers (id, created_at, updated_at, customer_id, employee_id, firstname, lastname, birth_date, gender,
-                       country_id,
-                       address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
-                       address_city, telephone_number, email, employer, income, income_due, valid_until)
+                       country_id, address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
+                       address_city, telephone_number, email, employer, income, income_due, valid_until, pending_cost_contribution)
 values (100, NOW(), NOW(), 100, 100, 'Max Single', 'Mustermann', '1980-01-01', 'MALE', 1, 'Erdberg', 1, null, null,
-        '1030', 'Wien', '00436645678953', 'max.single.mustermann@wrk.at', 'Stadt Wien', 123.00, '2999-12-31', '2999-12-31');
+        '1030', 'Wien', '00436645678953', 'max.single.mustermann@wrk.at', 'Stadt Wien', 123.00, '2999-12-31', '2999-12-31', 25);
 INSERT INTO customers (id, created_at, updated_at, customer_id, employee_id, firstname, lastname, birth_date, gender,
-                       country_id,
-                       address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
-                       address_city, telephone_number, email, employer, income, income_due, valid_until)
+                       country_id, address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
+                       address_city, telephone_number, email, employer, income, income_due, valid_until, pending_cost_contribution)
 values (101, NOW(), NOW(), 101, 100, 'Eva', 'Musterfrau', '1990-01-01', 'FEMALE', 2, 'Erdberg', 2, '1', '20', '1010',
-        'Wien', '00436645678953', 'eva.musterfrau@wrk.at', 'Rotes Kreuz Wien', 456.00, '2999-12-31', '2999-12-31');
+        'Wien', '00436645678953', 'eva.musterfrau@wrk.at', 'Rotes Kreuz Wien', 456.00, '2999-12-31', '2999-12-31', 0);
 INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender,
-                                  income,
-                                  income_due, country_id, receives_familybonus)
+                                  income, income_due, country_id, receives_familybonus)
 values (1011, NOW(), NOW(), 101, 'Child 1', 'Musterfrau', '2000-01-01', 'FEMALE', 500, '2999-12-31', 1, false);
 INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender,
-                                  employer,
-                                  income,
-                                  income_due, country_id, receives_familybonus)
+                                  employer, income, income_due, country_id, receives_familybonus)
 values (1012, NOW(), NOW(), 101, 'Child 2', 'Musterfrau', CURRENT_DATE - interval '2 year', 'FEMALE', 'Stadt Wien',
         null, null, 1,
         true);
 INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender,
-                                  employer,
-                                  income,
-                                  income_due, country_id, receives_familybonus, exclude_household)
+                                  employer, income, income_due, country_id, receives_familybonus, exclude_household)
 values (1013, NOW(), NOW(), 101, 'Child 3', 'Musterfrau', CURRENT_DATE - interval '2 year', 'MALE', 'WRK', null, null,
         1, true,
         true);
@@ -153,85 +146,45 @@ INSERT INTO customers_notes (id, created_at, updated_at, customer_id, employee_i
 VALUES (1001, NOW(), NOW(), 101, null, 'Testnote 1');
 
 INSERT INTO customers (id, created_at, updated_at, customer_id, employee_id, firstname, lastname, birth_date, gender,
-                       country_id,
-                       address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
-                       address_city, telephone_number, email, employer, income, income_due, valid_until)
+                       country_id, address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
+                       address_city, telephone_number, email, employer, income, income_due, valid_until, pending_cost_contribution)
 values (102, NOW(), NOW(), 102, 100, 'John', 'Doe', '1980-01-01', 'MALE', 1, 'Erdberg', 1, null, null, '1030', 'Wien',
-        '00436645678953', 'john.doe@wrk.at', 'Stadt Wien', 123.00, '2999-12-31', '2999-12-31');
+        '00436645678953', 'john.doe@wrk.at', 'Stadt Wien', 123.00, '2999-12-31', '2999-12-31', 0);
 INSERT INTO customers (id, created_at, updated_at, customer_id, employee_id, firstname, lastname, birth_date, gender,
-                       country_id,
-                       address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
-                       address_city, telephone_number, email, employer, income, income_due, valid_until)
+                       country_id, address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
+                       address_city, telephone_number, email, employer, income, income_due, valid_until, pending_cost_contribution)
 values (103, NOW(), NOW(), 103, 100, 'John Doe', 'EXPIRES SOON', '1980-01-01', 'MALE', 1, 'Erdberg', 1, null, null,
-        '1030', 'Wien', null, null, 'Stadt Wien', 123.00, NOW() + interval '1 month', NOW() + interval '1 month');
+        '1030', 'Wien', null, null, 'Stadt Wien', 123.00, NOW() + interval '1 month', NOW() + interval '1 month', 0);
 INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender,
-                                  income,
-                                  income_due, country_id, receives_familybonus)
-values (1031, NOW(), NOW(), 103, 'Child 1', 'Musterfrau', CURRENT_DATE - interval '1 year', null, 500, '2999-12-31', 1,
-        false);
+                                  income, income_due, country_id, receives_familybonus)
+values (1031, NOW(), NOW(), 103, 'Child 1', 'Musterfrau', CURRENT_DATE - interval '1 year', null, 500, '2999-12-31', 1, false);
 INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender,
-                                  employer,
-                                  income,
-                                  income_due, country_id, receives_familybonus)
-values (1032, NOW(), NOW(), 103, 'Child 2', 'Musterfrau', CURRENT_DATE - interval '2 year', null, 'Stadt Wien', null,
-        null, 1,
-        true);
+                                  employer, income, income_due, country_id, receives_familybonus)
+values (1032, NOW(), NOW(), 103, 'Child 2', 'Musterfrau', CURRENT_DATE - interval '2 year', null, 'Stadt Wien', null, null, 1, true);
 INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender,
-                                  employer,
-                                  income,
-                                  income_due, country_id, receives_familybonus, exclude_household)
-values (1033, NOW(), NOW(), 103, 'Child 3', 'Musterfrau', CURRENT_DATE - interval '3 year', 'FEMALE', 'WRK', null, null,
-        1, true,
-        true);
+                                  employer, income, income_due, country_id, receives_familybonus, exclude_household)
+values (1033, NOW(), NOW(), 103, 'Child 3', 'Musterfrau', CURRENT_DATE - interval '3 year', 'FEMALE', 'WRK', null, null, 1, true, true);
 INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender,
-                                  employer,
-                                  income,
-                                  income_due, country_id, receives_familybonus, exclude_household)
-values (1034, NOW(), NOW(), 103, 'Child 4', 'Musterfrau', CURRENT_DATE - interval '4 year', 'FEMALE', 'WRK', null, null,
-        1, true,
-        true);
+                                  employer, income, income_due, country_id, receives_familybonus, exclude_household)
+values (1034, NOW(), NOW(), 103, 'Child 4', 'Musterfrau', CURRENT_DATE - interval '4 year', 'FEMALE', 'WRK', null, null, 1, true, true);
 INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender,
-                                  employer,
-                                  income,
-                                  income_due, country_id, receives_familybonus, exclude_household)
-values (1035, NOW(), NOW(), 103, 'Child 5', 'Musterfrau', CURRENT_DATE - interval '5 year', 'MALE', 'WRK', null, null,
-        1, true,
-        true);
+                                  employer, income, income_due, country_id, receives_familybonus, exclude_household)
+values (1035, NOW(), NOW(), 103, 'Child 5', 'Musterfrau', CURRENT_DATE - interval '5 year', 'MALE', 'WRK', null, null, 1, true, true);
 INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender,
-                                  employer,
-                                  income,
-                                  income_due, country_id, receives_familybonus, exclude_household)
-values (1036, NOW(), NOW(), 103, 'Child 6', 'Musterfrau', CURRENT_DATE - interval '6 year', 'MALE', 'WRK', null, null,
-        1, true,
-        true);
+                                  employer, income, income_due, country_id, receives_familybonus, exclude_household)
+values (1036, NOW(), NOW(), 103, 'Child 6', 'Musterfrau', CURRENT_DATE - interval '6 year', 'MALE', 'WRK', null, null, 1, true, true);
 INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender,
-                                  employer,
-                                  income,
-                                  income_due, country_id, receives_familybonus, exclude_household)
-values (1037, NOW(), NOW(), 103, 'Child 7', 'Musterfrau', CURRENT_DATE - interval '7 year', 'MALE', 'WRK', null, null,
-        1, true,
-        true);
+                                  employer, income, income_due, country_id, receives_familybonus, exclude_household)
+values (1037, NOW(), NOW(), 103, 'Child 7', 'Musterfrau', CURRENT_DATE - interval '7 year', 'MALE', 'WRK', null, null, 1, true, true);
 INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender,
-                                  employer,
-                                  income,
-                                  income_due, country_id, receives_familybonus, exclude_household)
-values (1038, NOW(), NOW(), 103, 'Child 8', 'Musterfrau', CURRENT_DATE - interval '8 year', 'MALE', 'WRK', null, null,
-        1, true,
-        true);
+                                  employer, income, income_due, country_id, receives_familybonus, exclude_household)
+values (1038, NOW(), NOW(), 103, 'Child 8', 'Musterfrau', CURRENT_DATE - interval '8 year', 'MALE', 'WRK', null, null, 1, true, true);
 INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender,
-                                  employer,
-                                  income,
-                                  income_due, country_id, receives_familybonus, exclude_household)
-values (1039, NOW(), NOW(), 103, 'Child 9', 'Musterfrau', CURRENT_DATE - interval '9 year', 'MALE', 'WRK', null, null,
-        1, true,
-        true);
+                                  employer, income, income_due, country_id, receives_familybonus, exclude_household)
+values (1039, NOW(), NOW(), 103, 'Child 9', 'Musterfrau', CURRENT_DATE - interval '9 year', 'MALE', 'WRK', null, null, 1, true, true);
 INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender,
-                                  employer,
-                                  income,
-                                  income_due, country_id, receives_familybonus, exclude_household)
-values (1040, NOW(), NOW(), 103, 'Child 10', 'Musterfrau', CURRENT_DATE - interval '10 year', 'MALE', 'WRK', null, null,
-        1, true,
-        true);
+                                  employer, income, income_due, country_id, receives_familybonus, exclude_household)
+values (1040, NOW(), NOW(), 103, 'Child 10', 'Musterfrau', CURRENT_DATE - interval '10 year', 'MALE', 'WRK', null, null, 1, true, true);
 INSERT INTO customers_notes (id, created_at, updated_at, customer_id, employee_id, note)
 VALUES (1041, NOW(), NOW(), 103, 100,
         'Testnote 1.<br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.<br/><br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
@@ -264,25 +217,22 @@ VALUES (1050, NOW(), NOW(), 103, 100,
         'Testnote 10.<br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.<br/><br/>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.');
 
 INSERT INTO customers (id, created_at, updated_at, customer_id, employee_id, firstname, lastname, birth_date, gender,
-                       country_id,
-                       address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
-                       address_city, telephone_number, email, employer, income, income_due, valid_until)
+                       country_id, address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
+                       address_city, telephone_number, email, employer, income, income_due, valid_until, pending_cost_contribution)
 values (104, NOW(), NOW(), 104, 100, 'Jane Doe', 'EXPIRED', '1980-01-01', 'FEMALE', 1, 'Erdberg', 1, null, null, '1030',
-        'Wien', null, null, 'Stadt Wien', 123.00, '2000-12-31', '2000-12-31');
+        'Wien', null, null, 'Stadt Wien', 123.00, '2000-12-31', '2000-12-31', 0);
 INSERT INTO customers (id, created_at, updated_at, customer_id, employee_id, firstname, lastname, birth_date, gender,
-                       country_id,
-                       address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
+                       country_id, address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
                        address_city, telephone_number, email, employer, income, income_due, valid_until, locked,
-                       locked_at, locked_by, lock_reason)
+                       locked_at, locked_by, lock_reason, pending_cost_contribution)
 values (105, NOW(), NOW(), 105, 100, 'Jane Doe', 'LOCKED', '1980-01-01', 'FEMALE', 1, 'Erdberg', 1, null, null, '1030',
-        'Wien', null, null, 'Stadt Wien', 123.00, '2999-12-31', '2999-12-31', true, NOW(), 100, 'Lock-Reason: Lorem ipsum dolor sit amet');
+        'Wien', null, null, 'Stadt Wien', 123.00, '2999-12-31', '2999-12-31', true, NOW(), 100, 'Lock-Reason: Lorem ipsum dolor sit amet', 0);
 INSERT INTO customers (id, created_at, updated_at, customer_id, employee_id, firstname, lastname, birth_date, gender,
-                       country_id,
-                       address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
+                       country_id, address_street, address_houseNumber, address_stairway, address_door, address_postalCode,
                        address_city, telephone_number, email, employer, income, income_due, valid_until, locked,
-                       locked_at, locked_by, lock_reason)
+                       locked_at, locked_by, lock_reason, pending_cost_contribution)
 values (106, NOW(), NOW(), 106, null, null, null, null, null, 1, null, null, null, null, null, null,
-        null, null, null, null, null, NOW(), false, null, null, null);
+        null, null, null, null, null, NOW(), false, null, null, null, 0);
 INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, firstname, lastname, birth_date, gender,
                                   employer,
                                   income, income_due, country_id, receives_familybonus, exclude_household)
@@ -305,59 +255,63 @@ INSERT INTO customers_addpersons (id, created_at, updated_at, customer_id, first
 values (1064, NOW(), NOW(), 106, 'Firstname 5', 'Lastname 5', null, null, null, null, null, 1, false, false);
 
 -- static values
-DELETE FROM static_income_limits;
+DELETE FROM static_values;
 
 -- income limits
-INSERT INTO static_income_limits(id, type, valid_from, valid_to, amount, count_adults, count_children)
+INSERT INTO static_values(id, type, valid_from, valid_to, amount, count_adults, count_children)
 VALUES (1, 'INCOME_LIMIT', '1900-01-01', '2999-12-31', 1328.00, 1, 0);
-INSERT INTO static_income_limits(id, type, valid_from, valid_to, amount, count_adults, count_children)
+INSERT INTO static_values(id, type, valid_from, valid_to, amount, count_adults, count_children)
 VALUES (2, 'INCOME_LIMIT', '1900-01-01', '2999-12-31', 1726.00, 1, 1);
-INSERT INTO static_income_limits(id, type, valid_from, valid_to, amount, count_adults, count_children)
+INSERT INTO static_values(id, type, valid_from, valid_to, amount, count_adults, count_children)
 VALUES (3, 'INCOME_LIMIT', '1900-01-01', '2999-12-31', 2124.00, 1, 2);
-INSERT INTO static_income_limits(id, type, valid_from, valid_to, amount, count_adults, count_children)
+INSERT INTO static_values(id, type, valid_from, valid_to, amount, count_adults, count_children)
 VALUES (4, 'INCOME_LIMIT', '1900-01-01', '2999-12-31', 1992.00, 2, 0);
-INSERT INTO static_income_limits(id, type, valid_from, valid_to, amount, count_adults, count_children)
+INSERT INTO static_values(id, type, valid_from, valid_to, amount, count_adults, count_children)
 VALUES (5, 'INCOME_LIMIT', '1900-01-01', '2999-12-31', 2390.00, 2, 1);
-INSERT INTO static_income_limits(id, type, valid_from, valid_to, amount, count_adults, count_children)
+INSERT INTO static_values(id, type, valid_from, valid_to, amount, count_adults, count_children)
 VALUES (6, 'INCOME_LIMIT', '1900-01-01', '2999-12-31', 2788.00, 2, 2);
-INSERT INTO static_income_limits(id, type, valid_from, valid_to, amount, count_adults, count_children)
+INSERT INTO static_values(id, type, valid_from, valid_to, amount, count_adults, count_children)
 VALUES (7, 'INCOME_LIMIT', '1900-01-01', '2999-12-31', 3187.00, 2, 3);
-INSERT INTO static_income_limits(id, type, valid_from, valid_to, amount)
+INSERT INTO static_values(id, type, valid_from, valid_to, amount)
 VALUES (8, 'ADDITIONAL_ADULT', '1900-01-01', '2999-12-31', 664.00);
-INSERT INTO static_income_limits(id, type, valid_from, valid_to, amount)
+INSERT INTO static_values(id, type, valid_from, valid_to, amount)
 VALUES (9, 'ADDITIONAL_CHILD', '1900-01-01', '2999-12-31', 398.00);
 
 -- income tolerance
-INSERT INTO static_income_limits(id, type, valid_from, valid_to, amount)
+INSERT INTO static_values(id, type, valid_from, valid_to, amount)
 VALUES (10, 'INCOME_TOLERANCE', '1900-01-01', '2999-12-31', 100.00);
 
 -- family bonus
-INSERT INTO static_income_limits(id, type, valid_from, valid_to, amount, age)
+INSERT INTO static_values(id, type, valid_from, valid_to, amount, age)
 VALUES (11, 'FAMILY_BONUS', '1900-01-01', '2999-12-31', 114.00, 0);
-INSERT INTO static_income_limits(id, type, valid_from, valid_to, amount, age)
+INSERT INTO static_values(id, type, valid_from, valid_to, amount, age)
 VALUES (12, 'FAMILY_BONUS', '1900-01-01', '2999-12-31', 121.90, 3);
-INSERT INTO static_income_limits(id, type, valid_from, valid_to, amount, age)
+INSERT INTO static_values(id, type, valid_from, valid_to, amount, age)
 VALUES (13, 'FAMILY_BONUS', '1900-01-01', '2999-12-31', 141.50, 10);
-INSERT INTO static_income_limits(id, type, valid_from, valid_to, amount, age)
+INSERT INTO static_values(id, type, valid_from, valid_to, amount, age)
 VALUES (14, 'FAMILY_BONUS', '1900-01-01', '2999-12-31', 165.10, 19);
 
 -- child tax allowance
-INSERT INTO static_income_limits(id, type, valid_from, valid_to, amount)
+INSERT INTO static_values(id, type, valid_from, valid_to, amount)
 VALUES (15, 'CHILD_TAX_ALLOWANCE', '1900-01-01', '2999-12-31', 58.40);
 
 -- sibling addition
-INSERT INTO static_income_limits(id, type, valid_from, valid_to, amount, count_children)
+INSERT INTO static_values(id, type, valid_from, valid_to, amount, count_children)
 VALUES (16, 'SIBLING_ADDITION', '1900-01-01', '2999-12-31', 7.10, 2);
-INSERT INTO static_income_limits(id, type, valid_from, valid_to, amount, count_children)
+INSERT INTO static_values(id, type, valid_from, valid_to, amount, count_children)
 VALUES (17, 'SIBLING_ADDITION', '1900-01-01', '2999-12-31', 17.40, 3);
-INSERT INTO static_income_limits(id, type, valid_from, valid_to, amount, count_children)
+INSERT INTO static_values(id, type, valid_from, valid_to, amount, count_children)
 VALUES (18, 'SIBLING_ADDITION', '1900-01-01', '2999-12-31', 26.50, 4);
-INSERT INTO static_income_limits(id, type, valid_from, valid_to, amount, count_children)
+INSERT INTO static_values(id, type, valid_from, valid_to, amount, count_children)
 VALUES (19, 'SIBLING_ADDITION', '1900-01-01', '2999-12-31', 32.00, 5);
-INSERT INTO static_income_limits(id, type, valid_from, valid_to, amount, count_children)
+INSERT INTO static_values(id, type, valid_from, valid_to, amount, count_children)
 VALUES (20, 'SIBLING_ADDITION', '1900-01-01', '2999-12-31', 35.70, 6);
-INSERT INTO static_income_limits(id, type, valid_from, valid_to, amount, count_children)
+INSERT INTO static_values(id, type, valid_from, valid_to, amount, count_children)
 VALUES (21, 'SIBLING_ADDITION', '1900-01-01', '2999-12-31', 52.00, 7);
+
+-- cost contribution
+INSERT INTO static_values(id, type, valid_from, valid_to, amount)
+VALUES (22, 'COST_CONTRIBUTION', '1900-01-01', '2999-12-31', 4.00);
 
 -- distribution-related
 INSERT INTO distributions (id, created_at, updated_at, started_at, ended_at, startedby_userid, endedby_userid, notes)
@@ -370,12 +324,14 @@ INSERT INTO distributions_statistics (id, created_at, updated_at, distribution_i
 VALUES (100, NOW(), NOW(), 100, 50, 125, 40, 2.5, 4, 5, 6, 7, 8, 100, 200);
 
 -- register customers to distribution
-INSERT INTO distributions_customers (id, created_at, updated_at, distribution_id, customer_id, ticket_number, processed)
-VALUES (1, NOW(), NOW(), 100, 101, 1, true);
-INSERT INTO distributions_customers (id, created_at, updated_at, distribution_id, customer_id, ticket_number, processed)
-VALUES (2, NOW(), NOW(), 100, 102, 2, true);
-INSERT INTO distributions_customers (id, created_at, updated_at, distribution_id, customer_id, ticket_number, processed)
-VALUES (3, NOW(), NOW(), 100, 103, 3, true);
+INSERT INTO distributions_customers (id, created_at, updated_at, distribution_id, customer_id, ticket_number, processed, cost_contribution_paid)
+VALUES (1, NOW(), NOW(), 100, 100, 1, true, false);
+INSERT INTO distributions_customers (id, created_at, updated_at, distribution_id, customer_id, ticket_number, processed, cost_contribution_paid)
+VALUES (2, NOW(), NOW(), 100, 101, 2, true, true);
+INSERT INTO distributions_customers (id, created_at, updated_at, distribution_id, customer_id, ticket_number, processed, cost_contribution_paid)
+VALUES (3, NOW(), NOW(), 100, 102, 3, true, true);
+INSERT INTO distributions_customers (id, created_at, updated_at, distribution_id, customer_id, ticket_number, processed, cost_contribution_paid)
+VALUES (4, NOW(), NOW(), 100, 103, 4, true, true);
 
 -- shops
 INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,

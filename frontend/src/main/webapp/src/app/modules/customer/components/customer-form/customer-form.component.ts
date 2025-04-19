@@ -13,6 +13,7 @@ import {
   CardFooterComponent,
   CardHeaderComponent,
   ColComponent,
+  FormCheckInputDirective,
   FormSelectDirective,
   InputGroupComponent,
   InputGroupTextDirective,
@@ -47,7 +48,8 @@ import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofo
     FormSelectDirective,
     ButtonDirective,
     FaIconComponent,
-    TafelAutofocusDirective
+    TafelAutofocusDirective,
+    FormCheckInputDirective
   ],
   standalone: true
 })

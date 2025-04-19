@@ -84,6 +84,7 @@ internal class CustomerConverterTest {
         incomeDue = LocalDate.now(),
         validUntil = LocalDate.now(),
         locked = false,
+        pendingCostContribution = null,
         additionalPersons = listOf(
             CustomerAdditionalPerson(
                 id = 2,
@@ -141,6 +142,7 @@ internal class CustomerConverterTest {
         validUntil = LocalDate.now()
         locked = false
         prolongedAt = null
+        pendingCostContribution = BigDecimal.TEN
 
         val addPerson1 = CustomerAddPersonEntity()
         addPerson1.id = 2
@@ -190,6 +192,7 @@ internal class CustomerConverterTest {
         locked = true
         lockReason = "dummy reason"
         lockedBy = testUserEntity
+        pendingCostContribution = BigDecimal.ZERO
     }
 
     @BeforeEach
@@ -247,6 +250,7 @@ internal class CustomerConverterTest {
         assertThat(customer.income).isEqualTo(testCustomer.income)
         assertThat(customer.incomeDue).isEqualTo(testCustomer.incomeDue)
         assertThat(customer.validUntil).isEqualTo(testCustomer.validUntil)
+        assertThat(customer.pendingCostContribution).isEqualTo(BigDecimal.TEN)
 
         assertThat(customer.locked).isFalse()
         assertThat(customer.lockedAt).isNull()
@@ -318,6 +322,7 @@ internal class CustomerConverterTest {
             employer = "updated-employer",
             income = BigDecimal.TEN,
             validUntil = LocalDate.now().plusYears(1),
+            pendingCostContribution = BigDecimal.TEN,
             additionalPersons = listOf(
                 testCustomer.additionalPersons[0].copy(
                     gender = CustomerGender.FEMALE,

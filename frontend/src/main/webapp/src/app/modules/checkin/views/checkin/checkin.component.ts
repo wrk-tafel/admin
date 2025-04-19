@@ -15,12 +15,13 @@ import {
   CardHeaderComponent,
   ColComponent,
   Colors,
+  FormCheckInputDirective,
   FormSelectDirective,
   RowComponent
 } from '@coreui/angular';
-import {DistributionTicketApiService} from '../../../../api/distribution-ticket-api.service';
+import {DistributionTicketApiService, TicketNumberResponse} from '../../../../api/distribution-ticket-api.service';
 import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
-import {FormsModule} from '@angular/forms';
+import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {CommonModule, DatePipe, NgClass} from '@angular/common';
 import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
 import {SseService} from '../../../../common/sse/sse.service';
@@ -43,25 +44,13 @@ import {ScannerApiService, ScannerList} from '../../../../api/scanner-api.servic
     ButtonDirective,
     FormSelectDirective,
     CommonModule,
-    TafelAutofocusDirective
+    TafelAutofocusDirective,
+    FormCheckInputDirective,
+    ReactiveFormsModule
   ],
   standalone: true
 })
 export class CheckinComponent implements OnInit, OnDestroy {
-  scannerIds: number[];
-  currentScannerId: number;
-  scannerReadyState: boolean;
-  scannerSubscription: Subscription;
-  customerId: number;
-  customer: CustomerData;
-  customerState: CustomerState;
-  customerStateText: string;
-  customerNotes: CustomerNoteItem[];
-  ticketNumber: number;
-  ticketNumberEdit = false;
-  @ViewChild('customerIdInput') customerIdInputRef: ElementRef;
-  @ViewChild('ticketNumberInput') ticketNumberInputRef: ElementRef;
-  @ViewChild('cancelButton') cancelButtonRef: ElementRef;
   private readonly customerApiService = inject(CustomerApiService);
   private readonly customerNoteApiService = inject(CustomerNoteApiService);
   private readonly globalStateService = inject(GlobalStateService);
@@ -73,6 +62,23 @@ export class CheckinComponent implements OnInit, OnDestroy {
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
   private readonly toastService = inject(ToastService);
   private readonly VALID_UNTIL_WARNLIMIT_WEEKS = 8;
+
+  @ViewChild('customerIdInput') customerIdInputRef: ElementRef;
+  @ViewChild('ticketNumberInput') ticketNumberInputRef: ElementRef;
+  @ViewChild('cancelButton') cancelButtonRef: ElementRef;
+
+  scannerIds: number[];
+  currentScannerId: number;
+  scannerReadyState: boolean;
+  scannerSubscription: Subscription;
+  customerId: number;
+  customer: CustomerData;
+  customerState: CustomerState;
+  customerStateText: string;
+  customerNotes: CustomerNoteItem[];
+  ticketNumber: number;
+  ticketNumberEdit = false;
+  costContributionPaid: boolean = true;
 
   get selectedScannerId(): number {
     return this.currentScannerId;
@@ -125,9 +131,10 @@ export class CheckinComponent implements OnInit, OnDestroy {
           this.customerNotes = notesResponse.items;
         });
 
-        this.distributionTicketApiService.getCurrentTicketForCustomer(customerData.id).subscribe((ticketNumberResponse) => {
+        this.distributionTicketApiService.getCurrentTicketForCustomer(customerData.id).subscribe((ticketNumberResponse: TicketNumberResponse) => {
           if (ticketNumberResponse.ticketNumber) {
             this.ticketNumber = ticketNumberResponse.ticketNumber;
+            this.costContributionPaid = ticketNumberResponse.costContributionPaid;
           }
           this.ticketNumberEdit = this.ticketNumber != null;
         });
@@ -144,6 +151,7 @@ export class CheckinComponent implements OnInit, OnDestroy {
 
   processCustomer(customer: CustomerData) {
     this.ticketNumber = undefined;
+    this.costContributionPaid = true;
     this.customer = customer;
 
     if (customer) {
@@ -194,6 +202,7 @@ export class CheckinComponent implements OnInit, OnDestroy {
     this.customerId = undefined;
     this.ticketNumber = undefined;
     this.ticketNumberEdit = undefined;
+    this.costContributionPaid = true;
     this.customerIdInputRef.nativeElement.focus();
   }
 
@@ -225,7 +234,7 @@ export class CheckinComponent implements OnInit, OnDestroy {
       const observer = {
         next: (response) => this.cancel()
       };
-      this.distributionApiService.assignCustomer(this.customer.id, this.ticketNumber).subscribe(observer);
+      this.distributionApiService.assignCustomer(this.customer.id, this.ticketNumber, this.costContributionPaid).subscribe(observer);
       this.customerIdInputRef.nativeElement.focus();
     }
   }
@@ -235,6 +244,7 @@ export class CheckinComponent implements OnInit, OnDestroy {
       next: () => {
         this.ticketNumber = undefined;
         this.ticketNumberEdit = undefined;
+        this.costContributionPaid = true;
         this.toastService.showToast({type: ToastType.SUCCESS, title: 'Ticket-Nummer gelöscht!'});
         this.ticketNumberInputRef.nativeElement.focus();
       }

@@ -133,6 +133,7 @@ class CustomerConverter(
         lockedAt = customerEntity.lockedAt,
         lockedBy = customerEntity.lockedBy?.let { "${it.employee!!.personnelNumber} ${it.employee!!.firstname} ${it.employee!!.lastname}" },
         lockReason = customerEntity.lockReason,
+        pendingCostContribution = customerEntity.pendingCostContribution,
         additionalPersons = customerEntity.additionalPersons.map {
             CustomerAdditionalPerson(
                 id = it.id!!,

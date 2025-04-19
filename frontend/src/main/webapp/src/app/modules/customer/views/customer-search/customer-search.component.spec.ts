@@ -29,7 +29,7 @@ describe('CustomerSearchComponent', () => {
           door: '20',
           postalCode: 1010,
           city: 'city'
-        }
+        },
       }
     ],
     totalCount: 1,

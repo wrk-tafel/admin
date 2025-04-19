@@ -16,7 +16,14 @@ jobs:
   e2e-test:
     uses: ./.github/workflows/subflow_e2e_test.yml
     needs: build
-  build-push-image:
+  build-push-image-test:
+    uses: ./.github/workflows/subflow_docker_image.yml
+    needs: [build, e2e-test]
+    with:
+      imageTag: test
+    secrets:
+      githubToken: ${{ secrets.GITHUB_TOKEN }}
+  build-push-image-prod:
     uses: ./.github/workflows/subflow_docker_image.yml
     needs: [build, e2e-test]
     with:
@@ -25,7 +32,7 @@ jobs:
       githubToken: ${{ secrets.GITHUB_TOKEN }}
   deploy-test:
     uses: ./.github/workflows/subflow_deploy.yml
-    needs: build-push-image
+    needs: build-push-image-test
     concurrency:
       group: test-environment
     secrets:
@@ -34,7 +41,7 @@ jobs:
       sshDeployCommand: ${{ secrets.SSH_DEPLOY_TEST_COMMAND }}
   deploy-prod:
     uses: ./.github/workflows/subflow_deploy.yml
-    needs: build-push-image
+    needs: build-push-image-prod
     concurrency:
       group: prod-environment
     secrets:

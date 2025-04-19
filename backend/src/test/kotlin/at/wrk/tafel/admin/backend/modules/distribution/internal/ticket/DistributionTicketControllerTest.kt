@@ -4,6 +4,8 @@ import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.distribution.internal.DistributionService
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.TicketNumberResponse
+import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionCustomerEntity1
+import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionCustomerEntity3
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -25,15 +27,26 @@ internal class DistributionTicketControllerTest {
     private lateinit var controller: DistributionTicketController
 
     @Test
-    fun `get current ticket for customer`() {
+    fun `get current ticket for customer 1`() {
         val customerId = 123L
-        val ticketNumber = 456
-        every { service.getCurrentTicketNumber(customerId) } returns ticketNumber
+        every { service.getCurrentTicketNumber(customerId) } returns testDistributionCustomerEntity1
 
         val response = controller.getCurrentTicketForCustomerId(customerId)
 
         assertThat(response).isEqualTo(
-            TicketNumberResponse(ticketNumber = ticketNumber)
+            TicketNumberResponse(ticketNumber = 50, costContributionPaid = false),
+        )
+    }
+
+    @Test
+    fun `get current ticket for customer 2`() {
+        val customerId = 123L
+        every { service.getCurrentTicketNumber(customerId) } returns testDistributionCustomerEntity3
+
+        val response = controller.getCurrentTicketForCustomerId(customerId)
+
+        assertThat(response).isEqualTo(
+            TicketNumberResponse(ticketNumber = 52, costContributionPaid = true),
         )
     }
 

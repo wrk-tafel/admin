@@ -28,4 +28,7 @@ class DistributionCustomerEntity : BaseChangeTrackingEntity() {
     @Column(name = "processed")
     var processed: Boolean? = null
 
+    @Column(name = "cost_contribution_paid")
+    var costContributionPaid: Boolean? = true
+
 }

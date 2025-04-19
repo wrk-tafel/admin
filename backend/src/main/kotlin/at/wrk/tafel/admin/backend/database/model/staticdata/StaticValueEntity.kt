@@ -10,10 +10,10 @@ import jakarta.persistence.Table
 import java.math.BigDecimal
 import java.time.LocalDate
 
-@Entity(name = "IncomeLimit")
-@Table(name = "static_income_limits")
+@Entity(name = "StaticValue")
+@Table(name = "static_values")
 @ExcludeFromTestCoverage
-class IncomeLimitEntity : BaseEntity() {
+class StaticValueEntity : BaseEntity() {
     @Column(name = "valid_from")
     var validFrom: LocalDate? = null
 
@@ -22,7 +22,7 @@ class IncomeLimitEntity : BaseEntity() {
 
     @Column(name = "type")
     @Enumerated(EnumType.STRING)
-    var type: IncomeLimitType? = null
+    var type: StaticValueType? = null
 
     @Column(name = "amount")
     var amount: BigDecimal? = null
@@ -37,12 +37,13 @@ class IncomeLimitEntity : BaseEntity() {
     var age: Int? = null
 }
 
-enum class IncomeLimitType {
+enum class StaticValueType {
     INCOME_LIMIT,
     ADDITIONAL_ADULT,
     ADDITIONAL_CHILD,
     TOLERANCE,
     FAMILY_BONUS,
     CHILD_TAX_ALLOWANCE,
-    SIBLING_ADDITION
+    SIBLING_ADDITION,
+    COST_CONTRIBUTION,
 }

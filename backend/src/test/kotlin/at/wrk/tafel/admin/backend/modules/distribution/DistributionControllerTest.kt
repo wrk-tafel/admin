@@ -191,11 +191,11 @@ internal class DistributionControllerTest {
             service.assignCustomerToDistribution(
                 any(),
                 any(),
-                any()
+                any(),
             )
         } throws TafelException("dummy error")
 
-        val requestBody = AssignCustomerRequest(customerId = 1, ticketNumber = 100)
+        val requestBody = AssignCustomerRequest(customerId = 1, ticketNumber = 100, costContributionPaid = true)
 
         val exception = assertThrows<TafelException> {
             controller.assignCustomerToDistribution(requestBody)
@@ -206,7 +206,7 @@ internal class DistributionControllerTest {
 
     @Test
     fun `assign customer with valid data`() {
-        val requestBody = AssignCustomerRequest(customerId = 1, ticketNumber = 100)
+        val requestBody = AssignCustomerRequest(customerId = 1, ticketNumber = 100, costContributionPaid = true)
         val response = controller.assignCustomerToDistribution(requestBody)
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.NO_CONTENT)

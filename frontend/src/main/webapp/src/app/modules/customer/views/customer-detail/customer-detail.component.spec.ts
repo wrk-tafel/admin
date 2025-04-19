@@ -70,6 +70,7 @@ describe('CustomerDetailComponent', () => {
     employer: 'test employer',
     income: 1000,
     incomeDue: moment().add(1, 'years').startOf('day').utc().toDate(),
+    pendingCostContribution: 123,
 
     validUntil: moment().add(1, 'years').startOf('day').utc().toDate(),
 
@@ -229,6 +230,7 @@ describe('CustomerDetailComponent', () => {
     expect(getTextByTestId(fixture, 'incomeDueText')).toBe(moment(mockCustomer.incomeDue).format('DD.MM.YYYY'));
     expect(getTextByTestId(fixture, 'validUntilText')).toBe(moment(mockCustomer.validUntil).format('DD.MM.yyyy'));
     expect(getTextByTestId(fixture, 'issuedInformation')).toBe('am ' + moment(mockCustomer.issuedAt).format('DD.MM.YYYY') + ' von 12345 first last');
+    expect(getTextByTestId(fixture, 'pendingCostContributionText').trim()).toBe('€ 123,00');
 
     expect(getTextByTestId(fixture, 'addperson-0-lastnameText')).toBe('Add');
     expect(getTextByTestId(fixture, 'addperson-0-firstnameText')).toBe('Pers 1');
