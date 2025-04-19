@@ -1,4 +1,4 @@
-import {Component, inject, Input} from '@angular/core';
+import {Component, inject, Input, OnInit} from '@angular/core';
 import {
   AvatarComponent,
   BadgeComponent,
@@ -24,6 +24,7 @@ import {IconDirective} from '@coreui/icons-angular';
 import {NgTemplateOutlet} from '@angular/common';
 import {FontAwesomeModule} from '@fortawesome/angular-fontawesome';
 import {faKey, faLock} from '@fortawesome/free-solid-svg-icons';
+import {GlobalStateService} from '../../../state/global-state.service';
 
 @Component({
   selector: 'app-default-header',
@@ -53,9 +54,22 @@ import {faKey, faLock} from '@fortawesome/free-solid-svg-icons';
   ],
   standalone: true
 })
-export class DefaultHeaderComponent extends HeaderComponent {
+export class DefaultHeaderComponent extends HeaderComponent implements OnInit {
   @Input() sidebarId = 'sidebar';
+
   private readonly authenticationService = inject(AuthenticationService);
+  private readonly globalStateService = inject(GlobalStateService);
+
+  sseConnected = false;
+
+  ngOnInit(): void {
+    const connectionStateObserver = {
+      next: (connected: boolean) => {
+        this.sseConnected = connected;
+      }
+    };
+    this.globalStateService.getConnectionState().subscribe(connectionStateObserver);
+  }
 
   public logout() {
     /* eslint-disable @typescript-eslint/no-unused-vars */

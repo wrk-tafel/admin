@@ -26,7 +26,15 @@ describe('GlobalStateService', () => {
     service.init();
 
     expect(service.getCurrentDistribution().value).toEqual(testDistributionUpdate.distribution);
-    expect(sseServiceSpy.listen).toHaveBeenCalledWith('/sse/distributions');
+
+    const args = sseServiceSpy.listen.calls.mostRecent().args;
+    expect(args[0]).toBe('/sse/distributions');
+
+    const connectionStateCallback = args[1];
+    connectionStateCallback(false);
+    expect(service.getConnectionState().value).toBeFalse();
+    connectionStateCallback(true);
+    expect(service.getConnectionState().value).toBeTrue();
   });
 
 });

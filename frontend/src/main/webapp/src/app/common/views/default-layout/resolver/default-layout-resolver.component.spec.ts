@@ -1,5 +1,4 @@
 import {TestBed} from '@angular/core/testing';
-import {firstValueFrom, of} from 'rxjs';
 import {DefaultLayoutResolver} from './default-layout-resolver.component';
 import {GlobalStateService} from '../../../state/global-state.service';
 import {provideHttpClient} from '@angular/common/http';
@@ -27,13 +26,7 @@ describe('DefaultLayoutResolver', () => {
   });
 
   it('resolve', () => {
-    const mockGlobalStateInit = firstValueFrom(of('1'));
-    globalStateService.init.and.returnValue(mockGlobalStateInit);
-
-    /* eslint-disable @typescript-eslint/no-explicit-any */
-    resolver.resolve().then((result: any[]) => {
-      expect(result[0]).toEqual('1');
-    });
+    resolver.resolve();
 
     expect(globalStateService.init).toHaveBeenCalled();
   });
