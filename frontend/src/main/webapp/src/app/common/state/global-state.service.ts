@@ -8,6 +8,7 @@ import {SseService} from '../sse/sse.service';
 })
 export class GlobalStateService {
   private readonly currentDistribution: BehaviorSubject<DistributionItem> = new BehaviorSubject(null);
+  private readonly connectionState: BehaviorSubject<boolean> = new BehaviorSubject(false);
 
   constructor(
     private readonly sseService: SseService
@@ -15,31 +16,28 @@ export class GlobalStateService {
   }
 
   /* eslint-disable @typescript-eslint/no-explicit-any */
-  init(): Promise<any> {
-    return this.getCurrentDistributionPromise();
+  init() {
+    /* eslint-disable @typescript-eslint/no-empty-function */
+    /* eslint-disable @typescript-eslint/no-unused-vars */
+    const observer = {
+      next: (distributionUpdate: DistributionItemUpdate) => {
+        const distributionItem = distributionUpdate.distribution;
+        this.currentDistribution.next(distributionItem);
+      }
+    };
+
+    const connectionStateCallback = (connected: boolean) => {
+      this.connectionState.next(connected);
+    };
+    this.sseService.listen('/sse/distributions', connectionStateCallback).subscribe(observer);
   }
 
   getCurrentDistribution(): BehaviorSubject<DistributionItem> {
     return this.currentDistribution;
   }
 
-  /* eslint-disable @typescript-eslint/no-explicit-any */
-  private getCurrentDistributionPromise(): Promise<any> {
-    return new Promise((resolve, reject) => {
-
-      /* eslint-disable @typescript-eslint/no-empty-function */
-      /* eslint-disable @typescript-eslint/no-unused-vars */
-      const observer = {
-        next: (distributionUpdate: DistributionItemUpdate) => {
-          const distributionItem = distributionUpdate.distribution;
-          this.currentDistribution.next(distributionItem);
-          resolve(distributionItem);
-        },
-        error: error => reject(error),
-      };
-
-      return this.sseService.listen('/sse/distributions').subscribe(observer);
-    });
+  getConnectionState(): BehaviorSubject<boolean> {
+    return this.connectionState;
   }
 
 }

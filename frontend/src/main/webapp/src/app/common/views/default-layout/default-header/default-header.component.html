@@ -12,6 +12,9 @@
       <svg cIcon name="cilMenu" size="lg"></svg>
     </button>
     <c-header-nav class="mx-0">
+      <div class="d-flex align-items-center">
+        <c-badge [color]="sseConnected === false ? 'danger' : 'success'">Live-Verbindung</c-badge>
+      </div>
       <ng-container *ngTemplateOutlet="userDropdown"/>
     </c-header-nav>
   </c-container>

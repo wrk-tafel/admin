@@ -8,8 +8,8 @@ export class DefaultLayoutResolver {
   private readonly globalStateService = inject(GlobalStateService);
 
   /* eslint-disable @typescript-eslint/no-explicit-any */
-  public resolve(): Promise<any[]> {
-    return Promise.all([this.globalStateService.init()]);
+  public resolve(): void {
+    this.globalStateService.init();
   }
 
 }

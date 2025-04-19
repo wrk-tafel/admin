@@ -9,13 +9,21 @@ export class SseService {
   private readonly urlHelperService = inject(UrlHelperService);
   private readonly ngZone = inject(NgZone);
 
-  listen<T>(url: string): Observable<T> {
+  listen<T>(url: string, connectionStateCallback?: (connected: boolean) => void): Observable<T> {
     return new Observable<T>((observer) => {
       const baseUrl = this.urlHelperService.getBaseUrl();
       let eventSource: EventSource | null = null;
 
       const connect = () => {
         eventSource = new EventSource(`${baseUrl}/api${url}`);
+
+        eventSource.onopen = () => {
+          if (connectionStateCallback) {
+            this.ngZone.run(() => {
+              connectionStateCallback(true);
+            });
+          }
+        };
 
         eventSource.onmessage = (event) => {
           this.ngZone.run(() => {
@@ -31,6 +39,12 @@ export class SseService {
           console.error('SSE connection error', error);
 
           if (eventSource?.readyState === EventSource.CLOSED) {
+            if (connectionStateCallback) {
+              this.ngZone.run(() => {
+                connectionStateCallback(false);
+              });
+            }
+
             console.warn('SSE connection permanently closed, trying to reconnect...');
             reconnect();
           }
