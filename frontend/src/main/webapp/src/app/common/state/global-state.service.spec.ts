@@ -26,7 +26,7 @@ describe('GlobalStateService', () => {
     service.init();
 
     expect(service.getCurrentDistribution().value).toEqual(testDistributionUpdate.distribution);
-    expect(sseServiceSpy.listen).toHaveBeenCalledWith('/sse/distributions');
+    expect(sseServiceSpy.listen).toHaveBeenCalledWith('/sse/distributions', 2);
   });
 
 });

@@ -9,7 +9,11 @@ export class SseService {
   private readonly urlHelperService = inject(UrlHelperService);
   private readonly ngZone = inject(NgZone);
 
-  listen<T>(url: string): Observable<T> {
+  private retryCount = 0;
+
+  listen<T>(url: string, maxRetries: number = 0): Observable<T> {
+    this.retryCount = 0;
+
     return new Observable<T>((observer) => {
       const baseUrl = this.urlHelperService.getBaseUrl();
       let eventSource: EventSource | null = null;
@@ -41,10 +45,21 @@ export class SseService {
         if (eventSource) {
           eventSource.close();
         }
+
+        if (maxRetries > 0 && this.retryCount >= maxRetries) {
+          console.error('Max retries reached, stopping reconnection attempts.');
+          observer.next(null);
+          observer.complete();
+          return;
+        } else {
+          this.retryCount++;
+          console.warn(`Reconnecting... Attempt ${this.retryCount}`);
+        }
+
         // Wait a little before reconnecting
         setTimeout(() => {
           connect();
-        }, 1000);
+        }, 500);
       };
 
       connect();

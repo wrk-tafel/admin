@@ -9,7 +9,7 @@ export class DefaultLayoutResolver {
 
   /* eslint-disable @typescript-eslint/no-explicit-any */
   public resolve(): Promise<any[]> {
-    return Promise.all([this.globalStateService.init()]);
+    return this.globalStateService.init();
   }
 
 }
