@@ -5,21 +5,27 @@
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=wrk-tafel-admin&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=wrk-tafel-admin)
 
 # TODO
+
 # Prio 1
+
 * Bug: customer creation - field birthDate form control validation not working (red/green border)
+* Bug: customer creation - field nationality (add persons) form control validation not working (red/green border)
 * Bug: Customer in CustomerList(PDF) still visible after deletion of ticketNumber! - caching?
+* feat: Overviewpage: prolonged and new customers (all actions) of last distribution (selection for distribution?)
+* feat: Improve customer-creation / search before creating to avoid duplicates
 
 * Statistics Module: Show charts / CSV Export
 * Statistics: Show live data on dashboard
 
 # Rest
+
 * impro 1: Ticket-Monitor layout-error when rendering the preview (order of tickets wrong sometimes)
 * impro 1: Show additional persons on checkin page (could reduce id-card details afterwards)
 * impro 5: scanner-phones, 3d modeling table-holders
 * impro 5: Maybe decouple reporting from closing? Favor auto-closing, how to deal with multiple distributions?
 
 * duplicates (customers) showing late? - current duplicate already longer there but only shown now
- 
+
 * advanced logging monitor / ticket numbers
 * ticketmonitor control shows nothing when loaded initially
 
@@ -30,21 +36,25 @@
 * MFA?
 
 statistic:
+
 * add alleinerzieher flag
 
 ## LTL
+
 * Goods recording - implement proper mobile view
 * Goods recording - tests in FoodCollectionRecordingComponent
 
 * Edit Route / also contact-person needs to be editable
 * Edit route - Person-select (Dropdown) incl. Search?
-* * Auto-create persons without dedicated maintenance
+*
+    * Auto-create persons without dedicated maintenance
 * Route only needs a time and no separate order (sorting)
 * Validation necessary for KM Abfahrt < KM Ankunft
 * Route: Model extra-stops in DB (needs to part of the route, comment is not enough)
 
 ### Open things (to be decided)
-* All forms - change to  updateOn: 'blur'
+
+* All forms - change to updateOn: 'blur'
 
 * customer-detail
     * add document upload
@@ -52,6 +62,7 @@ statistic:
 * provide jar-file releases via github ?
 
 ### Lower prio
+
 * switch to signals
 * switch to control flow syntax @if, @for, @switch
 
@@ -61,7 +72,8 @@ statistic:
   events (https://docs.spring.io/spring-modulith/docs/current/reference/html/#events)
 
 ### Tech
-* Separate compile from the rest to have a faster deploy 
+
+* Separate compile from the rest to have a faster deploy
 * Change all with distribution direct-related apis to /distributions (eg. collections)
 * Create a central interceptor/aspect to handel distribution not active state
 * Exclude mail from health check
