@@ -72,7 +72,7 @@ export class CustomerFormComponent implements OnInit {
 
     country: new FormControl<CountryData>(null, Validators.required),
     telephoneNumber: new FormControl<string>(null, [Validators.required, Validators.pattern('^[0-9]*$')]),
-    email: new FormControl<string>(null, [Validators.required, Validators.maxLength(100), Validators.email]),
+    email: new FormControl<string>(null, [Validators.maxLength(100), Validators.email]),
 
     address: new FormGroup({
       street: new FormControl<string>(null, [Validators.required, Validators.maxLength(100)]),
