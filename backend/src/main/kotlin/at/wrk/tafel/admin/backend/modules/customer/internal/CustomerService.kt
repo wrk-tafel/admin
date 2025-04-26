@@ -4,6 +4,7 @@ import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.database.model.customer.CustomerEntity.Specs.Companion.firstnameContains
 import at.wrk.tafel.admin.backend.database.model.customer.CustomerEntity.Specs.Companion.lastnameContains
 import at.wrk.tafel.admin.backend.database.model.customer.CustomerEntity.Specs.Companion.orderByUpdatedAtDesc
+import at.wrk.tafel.admin.backend.database.model.customer.CustomerEntity.Specs.Companion.pendingCostContribution
 import at.wrk.tafel.admin.backend.database.model.customer.CustomerEntity.Specs.Companion.postProcessingNecessary
 import at.wrk.tafel.admin.backend.database.model.customer.CustomerRepository
 import at.wrk.tafel.admin.backend.modules.customer.Customer
@@ -67,7 +68,8 @@ class CustomerService(
         firstname: String? = null,
         lastname: String? = null,
         page: Int?,
-        postProcessing: Boolean?
+        postProcessing: Boolean?,
+        costContribution: Boolean?
     ): CustomerSearchResult {
         val pageRequest = PageRequest.of(page?.minus(1) ?: 0, 25)
 
@@ -75,7 +77,8 @@ class CustomerService(
             Specification.allOf(
                 firstnameContains(firstname),
                 lastnameContains(lastname),
-                if (postProcessing != null) postProcessingNecessary() else null
+                if (postProcessing != null) postProcessingNecessary() else null,
+                if (costContribution != null) pendingCostContribution() else null
             )
         )
 

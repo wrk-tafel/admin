@@ -99,7 +99,7 @@ describe('CustomerSearchComponent', () => {
 
     component.searchForDetails();
 
-    expect(apiService.searchCustomer).toHaveBeenCalledWith('lastname', 'firstname', null, undefined);
+    expect(apiService.searchCustomer).toHaveBeenCalledWith('lastname', 'firstname', null, null, undefined);
 
     fixture.detectChanges();
     expect(fixture.debugElement.query(By.css('[testid="searchresult-id-0"]')).nativeElement.textContent).toBe('0');
@@ -117,7 +117,7 @@ describe('CustomerSearchComponent', () => {
 
     component.searchForDetails();
 
-    expect(apiService.searchCustomer).toHaveBeenCalledWith(null, 'firstname', null, undefined);
+    expect(apiService.searchCustomer).toHaveBeenCalledWith(null, 'firstname', null, null, undefined);
   });
 
   it('search with firstname no results', () => {
@@ -129,7 +129,7 @@ describe('CustomerSearchComponent', () => {
 
     component.searchForDetails();
 
-    expect(apiService.searchCustomer).toHaveBeenCalledWith(null, 'firstname', null, undefined);
+    expect(apiService.searchCustomer).toHaveBeenCalledWith(null, 'firstname', null, null, undefined);
     expect(toastService.showToast).toHaveBeenCalledWith({type: ToastType.INFO, title: 'Keine Kunden gefunden!'});
   });
 
@@ -141,7 +141,7 @@ describe('CustomerSearchComponent', () => {
 
     component.searchForDetails();
 
-    expect(apiService.searchCustomer).toHaveBeenCalledWith('lastname', null, null, undefined);
+    expect(apiService.searchCustomer).toHaveBeenCalledWith('lastname', null, null, null, undefined);
   });
 
   it('search with postProcessing enabled', () => {
@@ -152,7 +152,18 @@ describe('CustomerSearchComponent', () => {
 
     component.searchForDetails();
 
-    expect(apiService.searchCustomer).toHaveBeenCalledWith(null, null, true, undefined);
+    expect(apiService.searchCustomer).toHaveBeenCalledWith(null, null, true, null, undefined);
+  });
+
+  it('search with costContribution enabled', () => {
+    const fixture = TestBed.createComponent(CustomerSearchComponent);
+    const component = fixture.componentInstance;
+    component.costContribution.setValue(true);
+    apiService.searchCustomer.and.returnValue(EMPTY);
+
+    component.searchForDetails();
+
+    expect(apiService.searchCustomer).toHaveBeenCalledWith(null, null, null, true, undefined);
   });
 
   it('navigate to customer', () => {

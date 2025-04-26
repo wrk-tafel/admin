@@ -23,7 +23,7 @@ import java.io.ByteArrayInputStream
 @RequestMapping("/api/customers")
 class CustomerController(
     private val customerService: CustomerService,
-    private val customerDuplicationService: CustomerDuplicationService
+    private val customerDuplicationService: CustomerDuplicationService,
 ) {
     @PostMapping("/validate")
     @PreAuthorize("hasAuthority('CUSTOMER')")
@@ -54,7 +54,7 @@ class CustomerController(
     @PreAuthorize("hasAuthority('CUSTOMER')")
     fun updateCustomer(
         @PathVariable("customerId") customerId: Long,
-        @RequestBody customer: Customer
+        @RequestBody customer: Customer,
     ): Customer {
         if (!customerService.existsByCustomerId(customerId)) {
             throw TafelValidationException(
@@ -82,13 +82,15 @@ class CustomerController(
         @RequestParam firstname: String? = null,
         @RequestParam lastname: String? = null,
         @RequestParam page: Int? = null,
-        @RequestParam postProcessing: Boolean? = null
+        @RequestParam postProcessing: Boolean? = null,
+        @RequestParam costContribution: Boolean? = null,
     ): CustomerListResponse {
         val customerSearchResult = customerService.getCustomers(
             firstname = firstname?.trim(),
             lastname = lastname?.trim(),
             page = page,
-            postProcessing = postProcessing
+            postProcessing = postProcessing,
+            costContribution = costContribution
         )
         return CustomerListResponse(
             items = customerSearchResult.items,
@@ -116,7 +118,7 @@ class CustomerController(
     @PreAuthorize("hasAuthority('CUSTOMER')")
     fun generatePdf(
         @PathVariable("customerId") customerId: Long,
-        @RequestParam("type") type: CustomerPdfType
+        @RequestParam("type") type: CustomerPdfType,
     ): ResponseEntity<InputStreamResource> {
         val pdfResult = customerService.generatePdf(customerId, type)
         pdfResult?.let {
@@ -161,7 +163,7 @@ class CustomerController(
     @PreAuthorize("hasAuthority('CUSTOMER_DUPLICATES')")
     fun mergeIntoCustomer(
         @PathVariable("customerId") customerId: Long,
-        @RequestBody request: CustomerMergeRequest
+        @RequestBody request: CustomerMergeRequest,
     ): ResponseEntity<Any> {
         customerService.mergeCustomers(customerId, request.sourceCustomerIds)
         return ResponseEntity.ok().build()

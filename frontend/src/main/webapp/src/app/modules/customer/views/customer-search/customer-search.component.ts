@@ -59,6 +59,7 @@ export class CustomerSearchComponent {
     lastname: this.fb.control<string>(null),
     firstname: this.fb.control<string>(null),
     postProcessing: this.fb.control<boolean>(null),
+    costContribution: this.fb.control<boolean>(null),
   });
 
   searchResult: CustomerSearchResult;
@@ -79,7 +80,7 @@ export class CustomerSearchComponent {
   }
 
   searchForDetails(page?: number) {
-    this.customerApiService.searchCustomer(this.lastname.value, this.firstname.value, this.postProcessing.value, page)
+    this.customerApiService.searchCustomer(this.lastname.value, this.firstname.value, this.postProcessing.value, this.costContribution.value, page)
       .subscribe((response: CustomerSearchResult) => {
         if (response.items.length === 0) {
           this.toastService.showToast({type: ToastType.INFO, title: 'Keine Kunden gefunden!'});
@@ -132,6 +133,10 @@ export class CustomerSearchComponent {
 
   get postProcessing() {
     return this.form.get('postProcessing');
+  }
+
+  get costContribution() {
+    return this.form.get('costContribution');
   }
 
   protected readonly faPencil = faPencil;

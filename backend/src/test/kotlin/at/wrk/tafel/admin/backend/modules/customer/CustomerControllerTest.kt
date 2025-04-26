@@ -231,6 +231,7 @@ class CustomerControllerTest {
                 any(),
                 any(),
                 testSearchResult.currentPage,
+                true,
                 true
             )
         } returns testSearchResult
@@ -239,7 +240,8 @@ class CustomerControllerTest {
             firstname = " first ",
             lastname = " last ",
             page = testSearchResult.currentPage,
-            postProcessing = true
+            postProcessing = true,
+            costContribution = true
         )
 
         verify {
@@ -247,7 +249,8 @@ class CustomerControllerTest {
                 firstname = "first",
                 lastname = "last",
                 page = testSearchResult.currentPage,
-                postProcessing = true
+                postProcessing = true,
+                costContribution = true
             )
         }
         assertThat(response.items).hasSize(1)
