@@ -68,4 +68,17 @@ describe('Customer Search', () => {
     });
   });
 
+  it('search by cost contribution', () => {
+    cy.byTestId('costContributionInput').check();
+    cy.byTestId('search-button').click();
+
+    cy.byTestId('searchresult-table').should('be.visible');
+    cy.byTestId('searchresult-row').should('have.length', 1);
+
+    cy.byTestId('searchresult-showcustomer-button-0').first().should('be.visible');
+
+    cy.byTestId('searchresult-showcustomer-button-0').first().click();
+    cy.url().should('include', '/kunden/detail/100');
+  });
+
 });

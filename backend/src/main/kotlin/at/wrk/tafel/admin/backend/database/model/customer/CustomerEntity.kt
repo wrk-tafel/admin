@@ -187,6 +187,13 @@ class CustomerEntity : BaseChangeTrackingEntity() {
                 }
             }
 
+            fun pendingCostContribution(): Specification<CustomerEntity> {
+                return Specification { root: Root<CustomerEntity>, _: CriteriaQuery<*>?, cb: CriteriaBuilder ->
+                    val pendingCostContribution: Expression<BigDecimal> = root["pendingCostContribution"]
+                    cb.greaterThan(pendingCostContribution, BigDecimal.ZERO)
+                }
+            }
+
             fun orderByUpdatedAtDesc(spec: Specification<CustomerEntity>): Specification<CustomerEntity> {
                 return Specification { root: Root<CustomerEntity>, cq: CriteriaQuery<*>?, cb: CriteriaBuilder ->
                     val updatedAt: Expression<LocalDate> = root["updatedAt"]
