@@ -25,6 +25,7 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.UsernameNotFoundException
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -39,7 +40,7 @@ import org.springframework.web.bind.annotation.RestController
 @PreAuthorize("isAuthenticated()")
 class UserController(
     private val userDetailsManager: TafelUserDetailsManager,
-    private val tafelPasswordGenerator: TafelPasswordGenerator
+    private val tafelPasswordGenerator: TafelPasswordGenerator,
 ) {
 
     companion object {
@@ -66,6 +67,7 @@ class UserController(
     }
 
     @PostMapping("/change-password")
+    @Transactional
     fun changePassword(@RequestBody request: ChangePasswordRequest): ResponseEntity<ChangePasswordResponse> {
         try {
             userDetailsManager.changePassword(request.passwordCurrent, request.passwordNew)
@@ -138,8 +140,9 @@ class UserController(
 
     @PostMapping
     @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
+    @Transactional
     fun createUser(
-        @RequestBody user: User
+        @RequestBody user: User,
     ): ResponseEntity<User> {
         validateIfUserExists(user)
 
@@ -165,9 +168,10 @@ class UserController(
 
     @PostMapping("/{userId}")
     @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
+    @Transactional
     fun updateUser(
         @PathVariable("userId") userId: Long,
-        @RequestBody user: User
+        @RequestBody user: User,
     ): ResponseEntity<User> {
         userDetailsManager.loadUserById(userId)
             ?: throw TafelValidationException(
@@ -195,8 +199,9 @@ class UserController(
 
     @DeleteMapping("/{userId}")
     @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
+    @Transactional
     fun deleteUser(
-        @PathVariable("userId") userId: Long
+        @PathVariable("userId") userId: Long,
     ) {
         val tafelUser = userDetailsManager.loadUserById(userId)
             ?: throw TafelValidationException(
@@ -243,7 +248,7 @@ class UserController(
             passwordRepeat = null,
             passwordChangeRequired = user.passwordChangeRequired,
             permissions = user.authorities
-                .mapNotNull { authority -> mapToUserPermission(authority.authority) }
+                .map { authority -> mapToUserPermission(authority.authority) }
                 .sortedBy { it.title }
         )
     }
