@@ -46,7 +46,7 @@
     "@fortawesome/free-solid-svg-icons": "6.7.2",
     "bootstrap": "5.3.5",
     "chart.js": "4.4.9",
-    "core-js": "3.41.0",
+    "core-js": "3.42.0",
     "cypress-recurse": "1.35.3",
     "flag-icon-css": "4.1.7",
     "follow-redirects": "1.15.9",
