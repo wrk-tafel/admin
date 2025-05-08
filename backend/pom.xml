@@ -39,7 +39,7 @@
         <jacoco.maven.plugin.version>0.8.13</jacoco.maven.plugin.version>
 
         <!-- Test dependency versions -->
-        <archunit.version>1.4.0</archunit.version>
+        <archunit.version>1.4.1</archunit.version>
         <mockk.version>1.14.2</mockk.version>
         <testcontainers.version>1.21.0</testcontainers.version>
         <apache.pdfbox.version>3.0.5</apache.pdfbox.version>
