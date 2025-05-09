@@ -86,7 +86,7 @@
     "cypress": "14.3.3",
     "cypress-browser-permissions": "1.1.0",
     "eslint": "8.57.1",
-    "eslint-config-prettier": "10.1.3",
+    "eslint-config-prettier": "10.1.5",
     "eslint-plugin-import": "2.31.0",
     "jasmine-core": "5.7.1",
     "jasmine-spec-reporter": "7.0.0",
