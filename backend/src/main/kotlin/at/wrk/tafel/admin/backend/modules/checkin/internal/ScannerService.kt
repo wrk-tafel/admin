@@ -54,7 +54,6 @@ class ScannerService(
     }
 
     @Scheduled(fixedDelay = 1, timeUnit = TimeUnit.HOURS)
-    @Transactional
     fun cleanupScannerRegistrations() {
         val date = LocalDateTime.now().minusDays(SCANNER_REGISTRATIONS_KEEP_DAYS)
         scannerRegisteredRepository.deleteAllByRegistrationTimeBefore(date)

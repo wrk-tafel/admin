@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.database.model.checkin
 
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
+import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 
 interface ScannerRegistrationRepository : JpaRepository<ScannerRegistrationEntity, Long> {
@@ -33,6 +34,7 @@ interface ScannerRegistrationRepository : JpaRepository<ScannerRegistrationEntit
 
     fun findByScannerId(scannerId: Int?): ScannerRegistrationEntity?
 
+    @Transactional
     fun deleteAllByRegistrationTimeBefore(registrationTime: LocalDateTime)
 
 }
