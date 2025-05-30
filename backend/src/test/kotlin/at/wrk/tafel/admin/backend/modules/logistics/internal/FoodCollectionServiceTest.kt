@@ -66,8 +66,8 @@ class FoodCollectionServiceTest {
     @Test
     fun `get food collection data`() {
         val routeId = testFoodCollectionRoute1Entity.route!!.id!!
-        every { employeeRepository.findByIdOrNull(testEmployee1.id) } returns testEmployee1
-        every { employeeRepository.findByIdOrNull(testEmployee2.id) } returns testEmployee2
+        every { employeeRepository.findByIdOrNull(testEmployee1.id!!) } returns testEmployee1
+        every { employeeRepository.findByIdOrNull(testEmployee2.id!!) } returns testEmployee2
 
         val distributionMock = mockk<DistributionEntity>()
         every { distributionMock.foodCollections } returns listOf(testFoodCollectionRoute1Entity)
@@ -198,11 +198,11 @@ class FoodCollectionServiceTest {
         every { employeeRepository.findByIdOrNull(request.driverId) } returns testEmployee1
         every { employeeRepository.findByIdOrNull(request.coDriverId) } returns testEmployee2
         every { foodCollectionRepository.save(any()) } returns mockk()
-        every { foodCategoryRepository.findByIdOrNull(testFoodCategory1.id) } returns testFoodCategory1
-        every { foodCategoryRepository.findByIdOrNull(testFoodCategory2.id) } returns testFoodCategory2
-        every { shopRepository.findByIdOrNull(testShop1.id) } returns testShop1
-        every { shopRepository.findByIdOrNull(testShop2.id) } returns testShop2
-        every { carRepository.findByIdOrNull(testCar1.id) } returns testCar1
+        every { foodCategoryRepository.findByIdOrNull(testFoodCategory1.id!!) } returns testFoodCategory1
+        every { foodCategoryRepository.findByIdOrNull(testFoodCategory2.id!!) } returns testFoodCategory2
+        every { shopRepository.findByIdOrNull(testShop1.id!!) } returns testShop1
+        every { shopRepository.findByIdOrNull(testShop2.id!!) } returns testShop2
+        every { carRepository.findByIdOrNull(testCar1.id!!) } returns testCar1
 
         service.save(request)
 
