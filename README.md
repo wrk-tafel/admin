@@ -17,8 +17,6 @@
 * Statistics Module: Show charts / CSV Export
 * Statistics: Show live data on dashboard
 
-** Test
-
 # Rest
 
 * impro 1: Ticket-Monitor layout-error when rendering the preview (order of tickets wrong sometimes)
