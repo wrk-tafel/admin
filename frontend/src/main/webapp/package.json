@@ -47,7 +47,7 @@
     "bootstrap": "5.3.6",
     "chart.js": "4.5.0",
     "core-js": "3.43.0",
-    "cypress-recurse": "1.35.3",
+    "cypress-recurse": "1.36.0",
     "flag-icon-css": "4.1.7",
     "follow-redirects": "1.15.9",
     "html5-qrcode": "2.3.8",
