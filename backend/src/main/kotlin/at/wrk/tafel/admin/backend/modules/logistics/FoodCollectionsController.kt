@@ -2,15 +2,12 @@ package at.wrk.tafel.admin.backend.modules.logistics
 
 import at.wrk.tafel.admin.backend.modules.logistics.internal.FoodCollectionService
 import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCollectionData
-import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCollectionSaveRequest
+import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCollectionItem
+import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCollectionSaveItems
+import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCollectionSaveRouteData
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/api/food-collections")
@@ -28,10 +25,33 @@ class FoodCollectionsController(
         return ResponseEntity.ok(data)
     }
 
-    @PostMapping
+    @PostMapping("/route/{routeId}")
     @PreAuthorize("hasAuthority('LOGISTICS')")
-    fun saveFoodCollection(@RequestBody request: FoodCollectionSaveRequest): ResponseEntity<Unit> {
-        foodCollectionService.save(request)
+    fun saveFoodCollectionRouteData(
+        @PathVariable("routeId") routeId: Long,
+        @RequestBody request: FoodCollectionSaveRouteData
+    ): ResponseEntity<Unit> {
+        foodCollectionService.saveRouteData(routeId, request)
+        return ResponseEntity.ok().build()
+    }
+
+    @PostMapping("/route/{routeId}/items")
+    @PreAuthorize("hasAuthority('LOGISTICS')")
+    fun saveFoodCollectionItems(
+        @PathVariable("routeId") routeId: Long,
+        @RequestBody request: FoodCollectionSaveItems
+    ): ResponseEntity<Unit> {
+        foodCollectionService.saveItems(routeId, request)
+        return ResponseEntity.ok().build()
+    }
+
+    @PatchMapping("/route/{routeId}/items")
+    @PreAuthorize("hasAuthority('LOGISTICS')")
+    fun patchFoodCollectionItem(
+        @PathVariable("routeId") routeId: Long,
+        @RequestBody request: FoodCollectionItem
+    ): ResponseEntity<Unit> {
+        foodCollectionService.patchItem(routeId, request)
         return ResponseEntity.ok().build()
     }
 

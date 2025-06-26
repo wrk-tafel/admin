@@ -2,7 +2,12 @@ import {HttpTestingController, provideHttpClientTesting} from '@angular/common/h
 import {TestBed} from '@angular/core/testing';
 import {ReactiveFormsModule} from '@angular/forms';
 import {provideHttpClient} from '@angular/common/http';
-import {FoodCollectionData, FoodCollectionsApiService, FoodCollectionSaveRequest} from './food-collections-api.service';
+import {
+  FoodCollectionData,
+  FoodCollectionsApiService,
+  FoodCollectionSaveItemsRequest,
+  FoodCollectionSaveRouteDataRequest
+} from './food-collections-api.service';
 
 describe('FoodCollectionsApiService', () => {
   let httpMock: HttpTestingController;
@@ -48,14 +53,28 @@ describe('FoodCollectionsApiService', () => {
     httpMock.verify();
   });
 
-  it('save collection', () => {
-    const mockFoodCollection: FoodCollectionSaveRequest = {
-      routeId: 1,
+  it('save route data', () => {
+    const routeId = 1;
+    const mockRouteData: FoodCollectionSaveRouteDataRequest = {
       carId: 1,
       driverId: 2,
       coDriverId: 3,
       kmStart: 1000,
-      kmEnd: 2000,
+      kmEnd: 2000
+    };
+
+    apiService.saveRouteData(routeId, mockRouteData).subscribe();
+
+    const req = httpMock.expectOne({method: 'POST', url: `/food-collections/route/${routeId}`});
+    req.flush({});
+    httpMock.verify();
+
+    expect(req.request.body).toEqual(mockRouteData);
+  });
+
+  it('save items', () => {
+    const routeId = 1;
+    const mockFoodCollection: FoodCollectionSaveItemsRequest = {
       items: [
         {categoryId: 0, shopId: 0, amount: 0},
         {categoryId: 1, shopId: 0, amount: 1},
@@ -64,9 +83,9 @@ describe('FoodCollectionsApiService', () => {
       ]
     };
 
-    apiService.saveFoodCollection(mockFoodCollection).subscribe();
+    apiService.saveItems(routeId, mockFoodCollection).subscribe();
 
-    const req = httpMock.expectOne({method: 'POST', url: '/food-collections'});
+    const req = httpMock.expectOne({method: 'POST', url: `/food-collections/route/${routeId}/items`});
     req.flush({});
     httpMock.verify();
 
