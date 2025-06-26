@@ -20,4 +20,7 @@ class RouteController(
         return RouteListResponse(routes = routes)
     }
 
+    // TODO seperate shops from routes?
+    // especially cause the sorting is done in the service and is needed for the frontend
+
 }
