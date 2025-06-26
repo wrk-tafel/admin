@@ -1,0 +1,15 @@
+<c-row>
+  <c-col class="col-2 p-0 pe-5">
+    <button cButton (click)="decrement()">
+      <fa-icon [icon]="faMinus" inverse="true"></fa-icon>
+    </button>
+  </c-col>
+  <c-col class="col-4 p-0 pe-2">
+    <input [attr.testid]="testId()" type="number" name="valueInput" class="text-center" cFormControl size="2" [ngModel]="currentValue" (ngModelChange)="onValueChange($event)" />
+  </c-col>
+  <c-col class="col-2 p-0">
+    <button cButton (click)="increment()">
+      <fa-icon [icon]="faPlus" inverse="true"></fa-icon>
+    </button>
+  </c-col>
+</c-row>

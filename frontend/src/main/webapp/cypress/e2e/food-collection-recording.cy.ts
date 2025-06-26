@@ -58,17 +58,22 @@ describe('Food Collection Recording', () => {
         });
       cy.byTestId('selectedCoDriverDescription').should('have.text', '0500 Scanner 2');
 
-      fillCategories();
-
-      cy.byTestId('save-button').click();
+      cy.byTestId('save-routedata-button').click();
 
       cy.byTestId('tafel-toast-header')
         .should('be.visible')
         .within(() => {
-          cy.byTestId('title').should('have.text', 'Waren wurden erfasst!');
+          cy.byTestId('title').should('have.text', 'Daten wurden gespeichert!');
         });
 
-      cy.url().should('include', '/logistik/warenerfassung');
+      cy.byTestId('select-items-tab').click();
+      fillCategories();
+      cy.byTestId('save-items-button').click();
+      cy.byTestId('tafel-toast-header')
+        .should('be.visible')
+        .within(() => {
+          cy.byTestId('title').should('have.text', 'Daten wurden gespeichert!');
+        });
 
       // check if existing data is filled again
       cy.byTestId('routeInput').select('Route 1');

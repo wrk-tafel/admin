@@ -2,7 +2,6 @@ package at.wrk.tafel.admin.backend.modules.logistics.internal
 
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteRepository
 import at.wrk.tafel.admin.backend.modules.logistics.model.Route
-import at.wrk.tafel.admin.backend.modules.logistics.model.Shop
 import at.wrk.tafel.admin.backend.modules.logistics.testRoute1
 import at.wrk.tafel.admin.backend.modules.logistics.testRoute2
 import io.mockk.every
@@ -34,22 +33,11 @@ class RouteServiceTest {
             listOf(
                 Route(
                     id = route1.id!!,
-                    name = route1.name!!,
-                    shops = route1.stops
-                        .sortedBy { it.time }
-                        .filter { it.shop != null }
-                        .map {
-                            Shop(
-                                id = it.shop!!.id!!,
-                                number = it.shop!!.number!!,
-                                name = it.shop!!.name!!
-                            )
-                        }
+                    name = route1.name!!
                 ),
                 Route(
                     id = route2.id!!,
                     name = route2.name!!,
-                    shops = emptyList()
                 )
             )
         )

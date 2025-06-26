@@ -102,7 +102,7 @@ class ReturnBoxesMailPostProcessorTest {
                 shops = listOf(
                     ReturnBoxesShop(
                         name = "3 Hofer 2",
-                        address = "",
+                        address = "Street 1, 1234, City",
                         returnBoxes = "5x Category 2"
                     )
                 )

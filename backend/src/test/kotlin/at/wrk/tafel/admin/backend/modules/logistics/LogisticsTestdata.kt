@@ -12,6 +12,11 @@ val testShop1 = ShopEntity().apply {
     id = 1
     number = 1
     name = "Billa"
+    address = ShopAddress().apply {
+        street = "Street 1"
+        postalCode = 1234
+        city = "City"
+    }
 }
 
 val testShop2 = ShopEntity().apply {
@@ -30,6 +35,11 @@ val testShop3 = ShopEntity().apply {
     number = 3
     name = "Hofer 2"
     foodUnit = FoodUnit.KG
+    address = ShopAddress().apply {
+        street = "Street 1"
+        postalCode = 1234
+        city = "City"
+    }
 }
 
 val testRoute1 = RouteEntity().apply {
