@@ -36,6 +36,7 @@ class RouteServiceTest {
                     id = route1.id!!,
                     name = route1.name!!,
                     shops = route1.stops
+                        .sortedBy { it.time }
                         .filter { it.shop != null }
                         .map {
                             Shop(

@@ -1,22 +1,12 @@
 package at.wrk.tafel.admin.backend.modules.logistics
 
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticShelterEntity
-import at.wrk.tafel.admin.backend.database.model.logistics.CarEntity
-import at.wrk.tafel.admin.backend.database.model.logistics.FoodCategoryEntity
-import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionEntity
-import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionItemEntity
-import at.wrk.tafel.admin.backend.database.model.logistics.FoodUnit
-import at.wrk.tafel.admin.backend.database.model.logistics.RouteEntity
-import at.wrk.tafel.admin.backend.database.model.logistics.RouteStopEntity
-import at.wrk.tafel.admin.backend.database.model.logistics.ShelterEntity
-import at.wrk.tafel.admin.backend.database.model.logistics.ShopAddress
-import at.wrk.tafel.admin.backend.database.model.logistics.ShopEntity
+import at.wrk.tafel.admin.backend.database.model.logistics.*
 import at.wrk.tafel.admin.backend.modules.base.employee.testEmployee1
 import at.wrk.tafel.admin.backend.modules.base.employee.testEmployee2
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionEntity
 import java.math.BigDecimal
 import java.time.LocalTime
-import java.time.temporal.ChronoUnit
 
 val testShop1 = ShopEntity().apply {
     id = 1
@@ -49,20 +39,20 @@ val testRoute1 = RouteEntity().apply {
     note = "Note 1"
     stops = listOf(
         RouteStopEntity().apply {
-            id = 11
+            id = 33
             shop = testShop1
-            time = LocalTime.now()
-        },
-        RouteStopEntity().apply {
-            id = 11
-            shop = null
-            time = LocalTime.now()
-            description = "Extra stop at home"
+            time = LocalTime.MIDNIGHT.plusHours(5)
         },
         RouteStopEntity().apply {
             id = 22
+            shop = null
+            time = LocalTime.MIDNIGHT.plusMinutes(30)
+            description = "Extra stop at home"
+        },
+        RouteStopEntity().apply {
+            id = 11
             shop = testShop2
-            time = LocalTime.now().plus(15, ChronoUnit.MINUTES)
+            time = LocalTime.MIDNIGHT.plusMinutes(15)
         }
     )
 }
