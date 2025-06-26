@@ -85,7 +85,7 @@ Cypress.Commands.add('closeDistribution', () => {
 
   cy.request({
     method: 'POST',
-    url: '/api/distributions/close'
+    url: '/api/distributions/close?forceClose=true'
   });
 });
 

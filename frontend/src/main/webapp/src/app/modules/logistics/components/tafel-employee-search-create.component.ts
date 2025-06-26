@@ -7,9 +7,7 @@ import {
   CardBodyComponent,
   CardComponent,
   ColComponent,
-  FormSelectDirective,
   InputGroupComponent,
-  InputGroupTextDirective,
   ModalModule,
   RowComponent
 } from '@coreui/angular';
@@ -32,8 +30,6 @@ import {
     FaIconComponent,
     ButtonDirective,
     ColComponent,
-    FormSelectDirective,
-    InputGroupTextDirective,
     RowComponent,
     BgColorDirective,
     ButtonCloseDirective,
@@ -72,7 +68,7 @@ export class TafelEmployeeSearchCreateComponent {
       this.showSelectEmployeeModal = false;
 
       const employees = response.items;
-      if (employees.length == 1) {
+      if (employees.length === 1) {
         this.selectedEmployee.emit(employees[0]);
       } else if (employees.length > 1) {
         this.employeeSearchResponse = response;

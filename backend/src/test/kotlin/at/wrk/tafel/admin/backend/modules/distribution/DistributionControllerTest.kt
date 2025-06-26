@@ -5,12 +5,7 @@ import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelException
 import at.wrk.tafel.admin.backend.modules.distribution.DistributionController.Companion.DISTRIBUTION_UPDATE_NOTIFICATION_NAME
 import at.wrk.tafel.admin.backend.modules.distribution.internal.DistributionService
-import at.wrk.tafel.admin.backend.modules.distribution.internal.model.AssignCustomerRequest
-import at.wrk.tafel.admin.backend.modules.distribution.internal.model.CustomerListPdfResult
-import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionItem
-import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionItemUpdate
-import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionNoteData
-import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionStatisticData
+import at.wrk.tafel.admin.backend.modules.distribution.internal.model.*
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -158,12 +153,16 @@ internal class DistributionControllerTest {
     }
 
     @Test
-    fun `close distribution`() {
+    fun `close distribution successful`() {
         val distributionEntity = DistributionEntity()
         distributionEntity.id = 123
         every { service.getCurrentDistribution() } returns distributionEntity
+        every { service.validateClose() } returns DistributionCloseValidationResult(
+            errors = emptyList(),
+            warnings = emptyList()
+        )
 
-        val response = controller.closeDistribution()
+        val response = controller.closeDistribution(forceClose = false)
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
         assertThat(response.body).isNull()
@@ -183,6 +182,118 @@ internal class DistributionControllerTest {
                 distribution = null
             )
         )
+    }
+
+    @Test
+    fun `close distribution failed with errors`() {
+        val distributionEntity = DistributionEntity()
+        distributionEntity.id = 123
+        every { service.getCurrentDistribution() } returns distributionEntity
+
+        val validationResult = DistributionCloseValidationResult(
+            errors = listOf("Error 1", "Error 2"),
+            warnings = emptyList()
+        )
+        every { service.validateClose() } returns validationResult
+
+        val response = controller.closeDistribution(forceClose = false)
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(response.body).isEqualTo(validationResult)
+
+        verify(exactly = 0) { service.closeDistribution() }
+        verify(exactly = 0) {
+            sseOutboxService.saveOutboxEntry(
+                notificationName = DISTRIBUTION_UPDATE_NOTIFICATION_NAME,
+                payload = any()
+            )
+        }
+    }
+
+    @Test
+    fun `close distribution failed with warnings`() {
+        val distributionEntity = DistributionEntity()
+        distributionEntity.id = 123
+        every { service.getCurrentDistribution() } returns distributionEntity
+
+        val validationResult = DistributionCloseValidationResult(
+            errors = emptyList(),
+            warnings = listOf("Warning 1", "Warning 2")
+        )
+        every { service.validateClose() } returns validationResult
+
+        val response = controller.closeDistribution(forceClose = false)
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(response.body).isEqualTo(validationResult)
+
+        verify(exactly = 0) { service.closeDistribution() }
+        verify(exactly = 0) {
+            sseOutboxService.saveOutboxEntry(
+                notificationName = DISTRIBUTION_UPDATE_NOTIFICATION_NAME,
+                payload = any()
+            )
+        }
+    }
+
+    @Test
+    fun `close distribution failed with warnings and forceClosed`() {
+        val distributionEntity = DistributionEntity()
+        distributionEntity.id = 123
+        every { service.getCurrentDistribution() } returns distributionEntity
+
+        val validationResult = DistributionCloseValidationResult(
+            errors = emptyList(),
+            warnings = listOf("Warning 1", "Warning 2")
+        )
+        every { service.validateClose() } returns validationResult
+
+        val response = controller.closeDistribution(forceClose = true)
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(response.body).isNull()
+
+        verify { service.closeDistribution() }
+
+        val distributionItemResponseSlot = slot<DistributionItemUpdate>()
+        verify {
+            sseOutboxService.saveOutboxEntry(
+                notificationName = DISTRIBUTION_UPDATE_NOTIFICATION_NAME,
+                payload = capture(distributionItemResponseSlot)
+            )
+        }
+
+        assertThat(distributionItemResponseSlot.captured).isEqualTo(
+            DistributionItemUpdate(
+                distribution = null
+            )
+        )
+    }
+
+    @Test
+    fun `close distribution failed with errors, warnings and forceClosed`() {
+        val distributionEntity = DistributionEntity()
+        distributionEntity.id = 123
+        every { service.getCurrentDistribution() } returns distributionEntity
+
+        val validationResult = DistributionCloseValidationResult(
+            errors = listOf("Error 1", "Error 2"),
+            warnings = listOf("Warning 1", "Warning 2")
+        )
+        every { service.validateClose() } returns validationResult
+
+        val response = controller.closeDistribution(forceClose = true)
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(response.body).isEqualTo(validationResult)
+
+        verify(exactly = 0) { service.closeDistribution() }
+        verify(exactly = 0) {
+            sseOutboxService.saveOutboxEntry(
+                notificationName = DISTRIBUTION_UPDATE_NOTIFICATION_NAME,
+                payload = any()
+            )
+        }
     }
 
     @Test

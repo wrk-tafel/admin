@@ -31,20 +31,57 @@
     <button [cModalToggle]="closeDistributionModal.id" cButtonClose></button>
   </c-modal-header>
   <c-modal-body>
-    <div class="row mb-3">
-      <div class="col">Achtung: Dieser Schritt kann nicht rückgängig gemacht werden!</div>
-    </div>
-    <div class="row">
-      <div class="col-6">
-        <button testid="ok-button" cButton class="me-2"
-                testid="distribution-close-modal-ok-button"
-                (click)="closeDistribution()">OK
+    <c-row class="mb-3">
+      <c-col>Achtung: Dieser Schritt kann nicht rückgängig gemacht werden!</c-col>
+    </c-row>
+    <c-row>
+      <c-col class="col-6">
+        <button testid="distribution-close-modal-ok-button" cButton class="me-2"
+                (click)="closeDistribution(false)">OK
         </button>
-        <button testid="cancel-button" cButton color="secondary"
-                testid="distribution-close-modal-cancel-button"
+        <button testid="distribution-close-modal-cancel-button" cButton color="secondary"
                 (click)="showCloseDistributionModal = false">Abbrechen
         </button>
-      </div>
-    </div>
+      </c-col>
+    </c-row>
   </c-modal-body>
 </c-modal>
+@if(closeDistributionValidationResult) {
+  <c-modal id="closeDistributionValidationModal" #closeDistributionValidationModal testid="distribution-close-validation-modal"
+           [(visible)]="showCloseDistributionValidationModal">
+    <c-modal-header [cBgColor]="getCloseValidationResultBgColorClass()">
+      <h4 testid="title" class="text-white">
+        {{getCloseValidationResultTitle()}}
+      </h4>
+      <button [cModalToggle]="closeDistributionValidationModal.id" cButtonClose></button>
+    </c-modal-header>
+    <c-modal-body>
+      <c-row>
+        <c-col class="mb-3">
+          @for( error of closeDistributionValidationResult.errors; track error) {
+            <c-row>
+              <c-col>{{error}}</c-col>
+            </c-row>
+          }
+          @for( warning of closeDistributionValidationResult.warnings; track warning) {
+            <c-row>
+              <c-col>{{warning}}</c-col>
+            </c-row>
+          }
+        </c-col>
+      </c-row>
+      <c-row>
+        <c-col class="col-12">
+          @if (closeDistributionValidationResult.warnings.length > 0) {
+            <button testid="distribution-close-validation-modal-ok-button" cButton class="me-2"
+                    (click)="closeDistribution(true)">Trotzdem beenden
+            </button>
+          }
+          <button testid="distribution-close-validation-modal-cancel-button" cButton color="secondary"
+                  (click)="showCloseDistributionValidationModal = false">Abbrechen
+          </button>
+        </c-col>
+      </c-row>
+    </c-modal-body>
+  </c-modal>
+}

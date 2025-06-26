@@ -1,0 +1,55 @@
+@if (currentShop) {
+  <div class="mt-3 mb-3">
+    <c-row>
+      <c-col class="col-3 fw-bold">Filiale:</c-col>
+      <c-col class="col-9" testid="shop-title">{{ currentShop.id + ' - ' + currentShop.name }}</c-col>
+    </c-row>
+    <c-row>
+      <c-col class="col-3"></c-col>
+      <c-col class="col-9">{{ currentShop.address }}</c-col>
+    </c-row>
+    <c-row class="mt-3">
+      <c-col class="text-center">
+        <button cButton (click)="selectPreviousShop()" testid="previous-shop-button"
+                [disabled]="this.selectedRouteData().shops.indexOf(currentShop) === 0">
+          Vorherige
+        </button>
+      </c-col>
+      <c-col class="text-center">
+        <button cButton (click)="selectNextShop()" [disabled]="this.selectedRouteData().shops.indexOf(currentShop) === this.selectedRouteData().shops.length - 1" testid="next-shop-button">
+          Nächste
+        </button>
+      </c-col>
+    </c-row>
+    <c-row>
+      <c-col>
+        <hr>
+      </c-col>
+    </c-row>
+    <c-row>
+      <c-col>
+        @for (category of foodCategories(); track category.id) {
+          <c-row class="d-flex flex-column">
+            <c-col class="text-center">{{ category.name }}</c-col>
+            <c-col class="mb-3">
+              <tafel-counter-input [testId]="'category-' + category.id"
+                                   [key]="category.id"
+                                   [value]="categoryValues[category.id]"
+                                   (valueChanged)="onValueChange($event)"></tafel-counter-input>
+            </c-col>
+          </c-row>
+        }
+      </c-col>
+    </c-row>
+    <c-row>
+      <c-col>
+        <hr>
+      </c-col>
+    </c-row>
+    <c-row>
+      <c-col>
+        <button testid="save-items-responsive-button" cButton (click)="save()">Speichern</button>
+      </c-col>
+    </c-row>
+  </div>
+}

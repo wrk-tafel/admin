@@ -6,18 +6,15 @@ import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.customer.CustomerAddPersonEntity
 import at.wrk.tafel.admin.backend.database.model.customer.CustomerEntity
 import at.wrk.tafel.admin.backend.database.model.customer.CustomerRepository
-import at.wrk.tafel.admin.backend.database.model.distribution.DistributionCustomerEntity
-import at.wrk.tafel.admin.backend.database.model.distribution.DistributionCustomerRepository
-import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
-import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
-import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
+import at.wrk.tafel.admin.backend.database.model.distribution.*
+import at.wrk.tafel.admin.backend.database.model.logistics.FoodCollectionEntity
+import at.wrk.tafel.admin.backend.database.model.logistics.RouteRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.ShelterRepository
 import at.wrk.tafel.admin.backend.modules.base.country.testCountry1
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.CustomerListItem
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.CustomerListPdfModel
-import at.wrk.tafel.admin.backend.modules.logistics.testShelter1
-import at.wrk.tafel.admin.backend.modules.logistics.testShelter2
+import at.wrk.tafel.admin.backend.modules.logistics.*
 import at.wrk.tafel.admin.backend.security.testUser
 import at.wrk.tafel.admin.backend.security.testUserEntity
 import at.wrk.tafel.admin.backend.security.testUserPermissions
@@ -30,12 +27,8 @@ import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertThrows
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
@@ -72,6 +65,9 @@ internal class DistributionServiceTest {
 
     @RelaxedMockK
     private lateinit var shelterRepository: ShelterRepository
+
+    @RelaxedMockK
+    private lateinit var routeRepository: RouteRepository
 
     @InjectMockKs
     private lateinit var service: DistributionService
@@ -248,11 +244,60 @@ internal class DistributionServiceTest {
     }
 
     @Test
-    fun `close distribution when statistic data is missing`() {
+    fun `validate close distribution when not open`() {
+        every { distributionRepository.getCurrentDistribution() } returns null
+
+        val result = service.validateClose()
+
+        assertThat(result.errors).containsExactly("Ausgabe nicht gestartet!")
+        assertThat(result.warnings).isEmpty()
+    }
+
+    @Test
+    fun `validate close distribution when statistic data is missing`() {
         every { distributionRepository.getCurrentDistribution() } returns DistributionEntity()
 
-        val exception = assertThrows<TafelValidationException> { service.closeDistribution() }
-        assertThat(exception.message).isEqualTo("Statistik-Daten fehlen!")
+        val result = service.validateClose()
+
+        assertThat(result.errors).containsExactly("Statistik-Daten fehlen!")
+        assertThat(result.warnings).isEmpty()
+    }
+
+    @Test
+    fun `validate close distribution when not all routes are recorded`() {
+        every { distributionRepository.getCurrentDistribution() } returns DistributionEntity().apply {
+            statistic = testDistributionStatisticEntity
+            foodCollections = listOf(
+                testFoodCollectionRoute1Entity
+            )
+        }
+        every { routeRepository.findAll() } returns listOf(testRoute1, testRoute2, testRoute3)
+
+        val result = service.validateClose()
+
+        assertThat(result.errors).isEmpty()
+        assertThat(result.warnings).containsExactly("Die Route(n) 2.0, 3.0 wurden nicht erfasst!")
+    }
+
+    @Test
+    fun `validate close distribution when a route is missing data`() {
+        every { distributionRepository.getCurrentDistribution() } returns DistributionEntity().apply {
+            statistic = testDistributionStatisticEntity
+            foodCollections = listOf(
+                FoodCollectionEntity().apply {
+                    route = testRoute1
+                },
+                FoodCollectionEntity().apply {
+                    route = testRoute2
+                }
+            )
+        }
+        every { routeRepository.findAll() } returns listOf(testRoute1, testRoute2)
+
+        val result = service.validateClose()
+
+        assertThat(result.errors).containsExactly("Die Route(n) 1.0, 2.0 sind unvollständig!")
+        assertThat(result.warnings).isEmpty()
     }
 
     @Test
