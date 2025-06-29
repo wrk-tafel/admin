@@ -1,5 +1,8 @@
-### Store collected food
-POST {{baseApiPath}}/food-collections
+### Get collected food for route X
+GET {{baseApiPath}}/food-collections/route/1
+
+### Save route data
+POST {{baseApiPath}}/food-collections/route/1
 Content-Type: application/json
 
 {
@@ -8,7 +11,14 @@ Content-Type: application/json
   "driverId": 100,
   "coDriverId": 100,
   "kmStart": 100,
-  "kmEnd": 200,
+  "kmEnd": 200
+}
+
+### Save food items
+POST {{baseApiPath}}/food-collections/route/1/items
+Content-Type: application/json
+
+{
   "items": [
     {
       "categoryId": 1,
@@ -22,6 +32,3 @@ Content-Type: application/json
     }
   ]
 }
-
-### Get collected food for route X
-GET {{baseApiPath}}/food-collections/route/1

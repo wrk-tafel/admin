@@ -4,7 +4,8 @@ import at.wrk.tafel.admin.backend.modules.base.employee.Employee
 import at.wrk.tafel.admin.backend.modules.logistics.internal.FoodCollectionService
 import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCollectionData
 import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCollectionItem
-import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCollectionSaveRequest
+import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCollectionSaveItems
+import at.wrk.tafel.admin.backend.modules.logistics.model.FoodCollectionSaveRouteData
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -28,6 +29,7 @@ class FoodCollectionsControllerTest {
     fun `get food collection`() {
         val routeId = 456L
         val testFoodCollectionData = FoodCollectionData(
+            routeId = routeId,
             carId = 1,
             driver = Employee(
                 id = 1,
@@ -61,20 +63,51 @@ class FoodCollectionsControllerTest {
     }
 
     @Test
-    fun `saves food collection`() {
-        val request = FoodCollectionSaveRequest(
-            routeId = 123L,
+    fun `saves route data`() {
+        val routeId = 123L
+        val request = FoodCollectionSaveRouteData(
             carId = 1,
             driverId = 1,
             coDriverId = 2,
             kmStart = 1000,
-            kmEnd = 2000,
-            items = emptyList()
+            kmEnd = 2000
         )
 
-        controller.saveFoodCollection(request)
+        controller.saveFoodCollectionRouteData(routeId = routeId, request = request)
 
-        verify(exactly = 1) { service.save(request) }
+        verify(exactly = 1) { service.saveRouteData(routeId = routeId, data = request) }
+    }
+
+    @Test
+    fun `saves items`() {
+        val routeId = 123L
+        val request = FoodCollectionSaveItems(
+            items = listOf(
+                FoodCollectionItem(
+                    categoryId = 1,
+                    shopId = 2,
+                    amount = 3
+                )
+            )
+        )
+
+        controller.saveFoodCollectionItems(routeId = routeId, request = request)
+
+        verify(exactly = 1) { service.saveItems(routeId = routeId, data = request) }
+    }
+
+    @Test
+    fun `patch a single item`() {
+        val routeId = 123L
+        val request = FoodCollectionItem(
+            categoryId = 1,
+            shopId = 2,
+            amount = 3
+        )
+
+        controller.patchFoodCollectionItem(routeId = routeId, request = request)
+
+        verify(exactly = 1) { service.patchItem(routeId = routeId, data = request) }
     }
 
 }
