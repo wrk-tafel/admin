@@ -1,8 +1,10 @@
 package at.wrk.tafel.admin.backend.modules.logistics
 
 import at.wrk.tafel.admin.backend.modules.logistics.internal.RouteService
+import at.wrk.tafel.admin.backend.modules.logistics.internal.ShopService
 import at.wrk.tafel.admin.backend.modules.logistics.model.Route
 import at.wrk.tafel.admin.backend.modules.logistics.model.RouteListResponse
+import at.wrk.tafel.admin.backend.modules.logistics.model.RouteShopsResponse
 import at.wrk.tafel.admin.backend.modules.logistics.model.Shop
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
@@ -18,6 +20,9 @@ class RouteControllerTest {
     @RelaxedMockK
     private lateinit var routeService: RouteService
 
+    @RelaxedMockK
+    private lateinit var shopService: ShopService
+
     @InjectMockKs
     private lateinit var controller: RouteController
 
@@ -25,16 +30,11 @@ class RouteControllerTest {
     fun `get routes`() {
         val route1 = Route(
             id = 1,
-            name = "Route 1",
-            shops = listOf(
-                Shop(id = 1, number = 111, name = "Billa"),
-                Shop(id = 2, number = 222, name = "Hofer")
-            )
+            name = "Route 1"
         )
         val route2 = Route(
             id = 2,
-            name = "Route 2",
-            shops = emptyList()
+            name = "Route 2"
         )
         every { routeService.getRoutes() } returns listOf(route1, route2)
 
@@ -46,6 +46,24 @@ class RouteControllerTest {
                     route1,
                     route2
                 )
+            )
+        )
+    }
+
+    @Test
+    fun `get shops of route`() {
+        val routeId = testRoute1.id!!
+        val shopList = listOf(
+            Shop(id = 1, number = 111, name = "Billa", address = "Street 1, 1010 City"),
+            Shop(id = 2, number = 222, name = "Hofer", address = "Street 2, 1020 City")
+        )
+        every { shopService.getShopsForRouteId(routeId) } returns shopList
+
+        val routeShopsResponse = controller.getShopsOfRoute(routeId)
+
+        assertThat(routeShopsResponse).isEqualTo(
+            RouteShopsResponse(
+                shops = shopList
             )
         )
     }

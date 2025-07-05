@@ -33,23 +33,10 @@ describe('RouteDataResolver', () => {
         {
           id: 1,
           name: 'Route 1',
-          shops: [
-            {
-              id: 1,
-              number: 111,
-              name: 'Shop 1'
-            },
-            {
-              id: 2,
-              number: 222,
-              name: 'Shop 2'
-            }
-          ]
         },
         {
           id: 2,
           name: 'Route 2',
-          shops: []
         }
       ]
     };

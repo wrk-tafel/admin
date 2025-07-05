@@ -2,16 +2,11 @@ import {TestBed, waitForAsync} from '@angular/core/testing';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 import {provideHttpClient} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
-import {FoodCollectionRecordingComponent} from './food-collection-recording.component';
-import {BehaviorSubject} from 'rxjs';
+import {FoodCollectionRecordingBasedataComponent} from './food-collection-recording-basedata.component';
 import {Router} from '@angular/router';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
-import {DistributionItem} from '../../../../api/distribution-api.service';
 
-describe('FoodCollectionRecordingComponent', () => {
-  let router: jasmine.SpyObj<Router>;
-  let globalStateService: jasmine.SpyObj<GlobalStateService>;
-
+describe('FoodCollectionRecordingBasedataComponent', () => {
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       imports: [
@@ -30,25 +25,23 @@ describe('FoodCollectionRecordingComponent', () => {
         }
       ]
     }).compileComponents();
-
-    router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
-    globalStateService = TestBed.inject(GlobalStateService) as jasmine.SpyObj<GlobalStateService>;
   }));
 
   it('component can be created', () => {
-    const fixture = TestBed.createComponent(FoodCollectionRecordingComponent);
+    const fixture = TestBed.createComponent(FoodCollectionRecordingBasedataComponent);
     const component = fixture.componentInstance;
     expect(component).toBeTruthy();
   });
 
-  it('ngOnInit without active distribution', () => {
-    const fixture = TestBed.createComponent(FoodCollectionRecordingComponent);
-    const component = fixture.componentInstance;
-    globalStateService.getCurrentDistribution.and.returnValue(new BehaviorSubject<DistributionItem>(null));
-
-    component.ngOnInit();
-
-    expect(router.navigate).toHaveBeenCalledWith(['uebersicht']);
-  });
+  // TODO effect - route change ?
+  // TODO kmValidation ?
+  // TODO triggerSearchDriver / triggerSearchCoDriver
+  // TODO set selected driver/coDriver ?
+  // TODO saveIsDisabled
+  // TODO save
+  // TODO resetDriver ?
+  // TODO resetCoDriver ?
+  // TODO test prefill of existing data
+  // TODO test save
 
 });
