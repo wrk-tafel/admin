@@ -23,6 +23,7 @@ class RouteService(
             id = routeEntity.id!!,
             name = routeEntity.name!!,
             shops = routeEntity.stops
+                .sortedBy { it.time }
                 .mapNotNull { it.shop }
                 .map { shop ->
                     Shop(

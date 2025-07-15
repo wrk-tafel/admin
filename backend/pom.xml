@@ -23,13 +23,13 @@
         <sonar.kotlin.source.version>${kotlin.version}</sonar.kotlin.source.version>
 
         <spring.boot.version>3.5.3</spring.boot.version>
-        <flyway.version>11.9.2</flyway.version>
+        <flyway.version>11.10.2</flyway.version>
         <spring.modulith.version>1.4.1</spring.modulith.version>
         <jjwt.version>0.12.6</jjwt.version>
         <postgresql.driver.version>42.7.7</postgresql.driver.version>
         <bouncycastle.version>1.70</bouncycastle.version>
         <apache.fop.version>2.11</apache.fop.version>
-        <qrcode.kotlin.version>4.4.1</qrcode.kotlin.version>
+        <qrcode.kotlin.version>4.5.0</qrcode.kotlin.version>
         <passay.version>1.6.6</passay.version>
         <apache.commons.csv.version>1.14.0</apache.commons.csv.version>
 
@@ -41,7 +41,7 @@
         <!-- Test dependency versions -->
         <archunit.version>1.4.1</archunit.version>
         <mockk.version>1.14.4</mockk.version>
-        <testcontainers.version>1.21.2</testcontainers.version>
+        <testcontainers.version>1.21.3</testcontainers.version>
         <apache.pdfbox.version>3.0.5</apache.pdfbox.version>
         <image.comparison.version>4.4.0</image.comparison.version>
     </properties>
