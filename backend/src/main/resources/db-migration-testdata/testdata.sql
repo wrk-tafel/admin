@@ -337,7 +337,7 @@ VALUES (4, NOW(), NOW(), 100, 103, 4, true, true);
 INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
                    address_postal_code, address_city, food_unit)
 VALUES (1, NOW(), NOW(), 100, 'Billa', '01 23 45 67 89', null,
-        'Fr. Musterfrau', 'Bloch-Bauer-promenade 1', 1100, 'Wien', 'BOX');
+        'Fr. Musterfrau', 'Bloch-Bauer-Promenade 1', 1100, 'Wien', 'BOX');
 INSERT INTO shops (id, created_at, updated_at, number, name, phone, note, contact_person, address_street,
                    address_postal_code, address_city, food_unit)
 VALUES (2, NOW(), NOW(), 200, 'Billa Plus', '01 23 45 67 89',

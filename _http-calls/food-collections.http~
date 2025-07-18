@@ -32,33 +32,3 @@ Content-Type: application/json
     }
   ]
 }
-
-### Save food items per shop
-POST {{baseApiPath}}/food-collections/route/1/shop/1/items
-Content-Type: application/json
-
-{
-  "items": [
-    {
-      "categoryId": 1,
-      "amount": 1
-    },
-    {
-      "categoryId": 2,
-      "amount": 2
-    }
-  ]
-}
-
-### Get food items per shop
-GET {{baseApiPath}}/food-collections/route/1/shop/1/items
-
-### Patch a single food item
-PATCH {{baseApiPath}}/food-collections/route/1/items
-Content-Type: application/json
-
-{
-  "categoryId": 1,
-  "shopId": 20,
-  "amount": 1
-}

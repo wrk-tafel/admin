@@ -1,5 +1,9 @@
 import {TestBed, waitForAsync} from '@angular/core/testing';
-import {DistributionApiService, DistributionItem} from '../../../../api/distribution-api.service';
+import {
+  DistributionApiService,
+  DistributionCloseValidationResult,
+  DistributionItem
+} from '../../../../api/distribution-api.service';
 import {DistributionStateComponent} from './distribution-state.component';
 import {BehaviorSubject, EMPTY, of} from 'rxjs';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
@@ -86,19 +90,68 @@ describe('DistributionStateComponent', () => {
     expect(distributionApiService.createNewDistribution).toHaveBeenCalled();
   });
 
-  it('close distribution', () => {
+  it('close distribution without errors and warnings', () => {
     const fixture = TestBed.createComponent(DistributionStateComponent);
     const component = fixture.componentInstance;
     component.showCloseDistributionModal = true;
 
     const distribution: DistributionItem = {id: 123};
     globalStateService.getCurrentDistribution.and.returnValue(new BehaviorSubject<DistributionItem>(distribution));
-    distributionApiService.closeDistribution.and.returnValue(of(null));
 
-    component.closeDistribution();
+    const validationResult: DistributionCloseValidationResult = {
+      errors: [],
+      warnings: []
+    };
+    distributionApiService.closeDistribution.and.returnValue(of(validationResult));
 
-    expect(distributionApiService.closeDistribution).toHaveBeenCalled();
-    expect(component.showCloseDistributionModal).toBeFalsy();
+    component.closeDistribution(true);
+
+    expect(distributionApiService.closeDistribution).toHaveBeenCalledWith(true);
+    expect(component.showCloseDistributionModal).toBeFalse();
+  });
+
+  it('close distribution with errors', () => {
+    const fixture = TestBed.createComponent(DistributionStateComponent);
+    const component = fixture.componentInstance;
+    component.showCloseDistributionModal = true;
+    component.showCloseDistributionValidationModal = false;
+
+    const distribution: DistributionItem = {id: 123};
+    globalStateService.getCurrentDistribution.and.returnValue(new BehaviorSubject<DistributionItem>(distribution));
+
+    const validationResult: DistributionCloseValidationResult = {
+      errors: ['Error 1', 'Error 2'],
+      warnings: []
+    };
+    distributionApiService.closeDistribution.and.returnValue(of(validationResult));
+
+    component.closeDistribution(true);
+
+    expect(distributionApiService.closeDistribution).toHaveBeenCalledWith(true);
+    expect(component.showCloseDistributionModal).toBeFalse();
+    expect(component.showCloseDistributionValidationModal).toBeTrue();
+  });
+
+  it('close distribution with warnings', () => {
+    const fixture = TestBed.createComponent(DistributionStateComponent);
+    const component = fixture.componentInstance;
+    component.showCloseDistributionModal = true;
+    component.showCloseDistributionValidationModal = false;
+
+    const distribution: DistributionItem = {id: 123};
+    globalStateService.getCurrentDistribution.and.returnValue(new BehaviorSubject<DistributionItem>(distribution));
+
+    const validationResult: DistributionCloseValidationResult = {
+      errors: [],
+      warnings: ['Warning 1', 'Warning 2']
+    };
+    distributionApiService.closeDistribution.and.returnValue(of(validationResult));
+
+    component.closeDistribution(false);
+
+    expect(distributionApiService.closeDistribution).toHaveBeenCalledWith(false);
+    expect(component.showCloseDistributionModal).toBeFalse();
+    expect(component.showCloseDistributionValidationModal).toBeTrue();
   });
 
 });

@@ -11,6 +11,10 @@ data class RouteListResponse(
 data class Route(
     val id: Long,
     val name: String,
+)
+
+@ExcludeFromTestCoverage
+data class RouteShopsResponse(
     val shops: List<Shop>
 )
 
@@ -18,5 +22,6 @@ data class Route(
 data class Shop(
     val id: Long,
     val number: Int,
-    val name: String
+    val name: String,
+    val address: String
 )

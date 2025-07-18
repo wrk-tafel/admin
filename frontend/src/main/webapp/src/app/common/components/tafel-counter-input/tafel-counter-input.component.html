@@ -1,0 +1,15 @@
+<c-row class="d-flex align-items-center justify-content-center">
+  <c-col class="col-2">
+    <button cButton (click)="decrement()" [attr.testid]="testId() + '-decrement-button'">
+      <fa-icon [icon]="faMinus" inverse="true"></fa-icon>
+    </button>
+  </c-col>
+  <c-col class="col-4">
+    <input [attr.testid]="testId() + '-input'" type="number" name="valueInput" class="text-center" cFormControl size="2" [ngModel]="currentValue" (ngModelChange)="onValueChange($event)" />
+  </c-col>
+  <c-col class="col-2">
+    <button cButton (click)="increment()" [attr.testid]="testId() + '-increment-button'">
+      <fa-icon [icon]="faPlus" inverse="true"></fa-icon>
+    </button>
+  </c-col>
+</c-row>

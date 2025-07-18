@@ -4,17 +4,14 @@ import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.common.pdf.PDFService
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.customer.CustomerRepository
-import at.wrk.tafel.admin.backend.database.model.distribution.DistributionCustomerEntity
-import at.wrk.tafel.admin.backend.database.model.distribution.DistributionCustomerRepository
-import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
-import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
-import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
-import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticShelterEntity
+import at.wrk.tafel.admin.backend.database.model.distribution.*
+import at.wrk.tafel.admin.backend.database.model.logistics.RouteRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.ShelterRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.CustomerListItem
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.CustomerListPdfModel
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.CustomerListPdfResult
+import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionCloseValidationResult
 import at.wrk.tafel.admin.backend.modules.distribution.internal.ticket.DistributionTicketController
 import org.slf4j.LoggerFactory
 import org.springframework.security.core.context.SecurityContextHolder
@@ -38,6 +35,7 @@ class DistributionService(
     private val distributionPostProcessorService: DistributionPostProcessorService,
     private val transactionTemplate: TransactionTemplate,
     private val shelterRepository: ShelterRepository,
+    private val routeRepository: RouteRepository,
 ) {
     companion object {
         private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
@@ -170,14 +168,57 @@ class DistributionService(
         } ?: false
     }
 
+    @Transactional
+    fun validateClose(): DistributionCloseValidationResult {
+        val errors = mutableListOf<String>()
+        val warnings = mutableListOf<String>()
+
+        val currentDistribution = distributionRepository.getCurrentDistribution()
+        if (currentDistribution == null) {
+            errors.add("Ausgabe nicht gestartet!")
+        } else {
+            if (currentDistribution.statistic == null || currentDistribution.statistic?.isEmpty() == true) {
+                errors.add("Statistik-Daten fehlen!")
+            }
+
+            val incompleteRoutes = currentDistribution.foodCollections.filter {
+                it.driver == null || it.coDriver == null || it.car == null || it.kmStart == null || it.kmEnd == null || it.items == null || it.items!!.isEmpty()
+            }
+            if (incompleteRoutes.isNotEmpty()) {
+                errors.add("Die Route(n) ${incompleteRoutes.joinToString(", ") { it.route!!.number.toString() }} sind unvollständig!")
+            }
+
+            return if (errors.isNotEmpty()) {
+                DistributionCloseValidationResult(
+                    errors = errors,
+                    warnings = emptyList(),
+                )
+            } else {
+                // Warnings
+                val routes = routeRepository.findAll()
+                val missingRoutes =
+                    routes.map { it.number } - currentDistribution.foodCollections.map { it.route!!.number }
+                if (missingRoutes.isNotEmpty()) {
+                    warnings.add("Die Route(n) ${missingRoutes.joinToString(", ")} wurden nicht erfasst!")
+                }
+
+                DistributionCloseValidationResult(
+                    errors = emptyList(),
+                    warnings = warnings,
+                )
+            }
+        }
+
+        return DistributionCloseValidationResult(
+            errors = errors,
+            warnings = warnings,
+        )
+    }
+
+    @Transactional
     fun closeDistribution() {
         val currentDistribution = distributionRepository.getCurrentDistribution()
             ?: throw TafelValidationException("Ausgabe nicht gestartet!")
-
-        // validate if statistic data exists
-        if (currentDistribution.statistic == null || currentDistribution.statistic?.isEmpty() == true) {
-            throw TafelValidationException("Statistik-Daten fehlen!")
-        }
 
         val authenticatedUser = SecurityContextHolder.getContext().authentication as? TafelJwtAuthentication
 

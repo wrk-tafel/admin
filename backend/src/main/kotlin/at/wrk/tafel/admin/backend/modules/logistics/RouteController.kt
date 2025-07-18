@@ -1,16 +1,20 @@
 package at.wrk.tafel.admin.backend.modules.logistics
 
 import at.wrk.tafel.admin.backend.modules.logistics.internal.RouteService
+import at.wrk.tafel.admin.backend.modules.logistics.internal.ShopService
 import at.wrk.tafel.admin.backend.modules.logistics.model.RouteListResponse
+import at.wrk.tafel.admin.backend.modules.logistics.model.RouteShopsResponse
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/api/routes")
 class RouteController(
-    private val routeService: RouteService
+    private val routeService: RouteService,
+    private val shopService: ShopService,
 ) {
 
     @GetMapping
@@ -20,7 +24,13 @@ class RouteController(
         return RouteListResponse(routes = routes)
     }
 
-    // TODO seperate shops from routes?
-    // especially cause the sorting is done in the service and is needed for the frontend
+    @GetMapping("/{routeId}/shops")
+    @PreAuthorize("hasAuthority('LOGISTICS')")
+    fun getShopsOfRoute(
+        @PathVariable("routeId") routeId: Long,
+    ): RouteShopsResponse {
+        val shops = shopService.getShopsForRouteId(routeId)
+        return RouteShopsResponse(shops = shops)
+    }
 
 }

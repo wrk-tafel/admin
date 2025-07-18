@@ -4,21 +4,13 @@ import at.wrk.tafel.admin.backend.common.sse.SseUtil
 import at.wrk.tafel.admin.backend.database.common.sse_outbox.SseOutboxService
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.modules.distribution.internal.DistributionService
-import at.wrk.tafel.admin.backend.modules.distribution.internal.model.AssignCustomerRequest
-import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionItem
-import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionItemUpdate
-import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionNoteData
-import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionStatisticData
+import at.wrk.tafel.admin.backend.modules.distribution.internal.model.*
 import org.springframework.core.io.InputStreamResource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 import java.io.ByteArrayInputStream
 
@@ -83,7 +75,19 @@ class DistributionController(
 
     @PostMapping("/distributions/close")
     @PreAuthorize("hasAuthority('DISTRIBUTION_LCM')")
-    fun closeDistribution(): ResponseEntity<Unit> {
+    fun closeDistribution(@RequestParam forceClose: Boolean = false): ResponseEntity<DistributionCloseValidationResult> {
+        val closeValidationResult = service.validateClose()
+        if (closeValidationResult.isInvalid()) {
+            if (forceClose && closeValidationResult.hasOnlyWarnings()) {
+                return closeAndNotify()
+            }
+            return ResponseEntity.ok(closeValidationResult)
+        } else {
+            return closeAndNotify()
+        }
+    }
+
+    private fun closeAndNotify(): ResponseEntity<DistributionCloseValidationResult> {
         service.closeDistribution()
 
         // update clients about new state
