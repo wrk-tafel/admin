@@ -24,8 +24,8 @@ describe('FoodCategoriesApiService', () => {
 
   it('get categories', () => {
     const mockCategories: FoodCategory[] = [
-      {id: 0, name: 'Bakery'},
-      {id: 1, name: 'Frozen Food'}
+      {id: 0, name: 'Bakery', returnItem: false},
+      {id: 1, name: 'Frozen Food', returnItem: true}
     ];
 
     apiService.getFoodCategories().subscribe((data: FoodCategory[]) => {

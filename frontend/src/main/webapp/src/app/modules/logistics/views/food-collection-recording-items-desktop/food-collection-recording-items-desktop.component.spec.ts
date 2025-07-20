@@ -43,8 +43,8 @@ describe('FoodCollectionRecordingItemsDesktopComponent', () => {
     name: 'Route 1'
   };
   const testFoodCategories: FoodCategory[] = [
-    {id: 0, name: 'Category 1'},
-    {id: 1, name: 'Category 2'}
+    {id: 0, name: 'Category 1', returnItem: false},
+    {id: 1, name: 'Category 2', returnItem: true},
   ];
 
   it('component can be created', () => {

@@ -12,13 +12,22 @@ class FoodCategoryService(
 
     fun getFoodCategories(): List<FoodCategory> {
         val categories = foodCategoriesRepository.findAll().toList()
-        return categories.map { mapRoute(it) }
+        return categories
+            .sortedWith(
+                compareBy(
+                    { it.returnItem },
+                    { it.sortOrder },
+                    { it.name },
+                )
+            )
+            .map { mapRoute(it) }
     }
 
     private fun mapRoute(foodCategoryEntity: FoodCategoryEntity): FoodCategory {
         return FoodCategory(
             id = foodCategoryEntity.id!!,
             name = foodCategoryEntity.name!!,
+            returnItem = foodCategoryEntity.returnItem ?: false
         )
     }
 
