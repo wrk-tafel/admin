@@ -35,6 +35,8 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
   foodCategories = model.required<FoodCategory[]>();
   selectedRouteData = input<SelectedRouteData>();
 
+  foodCategoriesItems: FoodCategory[] = [];
+  foodCategoriesReturn: FoodCategory[] = [];
   currentShop: Shop;
   categoryValues: Record<number, number> = {};
 
@@ -44,6 +46,14 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
   loadEffect = effect(() => {
     const shop = this.findNextUnfilledShop();
     this.selectShop(shop);
+
+    this.foodCategories().forEach(category => {
+      if (category.returnItem) {
+        this.foodCategoriesReturn.push(category);
+      } else {
+        this.foodCategoriesItems.push(category);
+      }
+    });
   });
 
   private findNextUnfilledShop(): Shop {

@@ -97,6 +97,7 @@ val testFoodCategory1 = FoodCategoryEntity().apply {
     name = "Category 1"
     weightPerUnit = BigDecimal.TEN
     returnItem = false
+    sortOrder = 200
 }
 
 val testFoodCategory2 = FoodCategoryEntity().apply {
@@ -111,6 +112,7 @@ val testFoodCategory3 = FoodCategoryEntity().apply {
     name = "Category 3"
     weightPerUnit = BigDecimal("30")
     returnItem = false
+    sortOrder = 100
 }
 
 val testCar1 = CarEntity().apply {

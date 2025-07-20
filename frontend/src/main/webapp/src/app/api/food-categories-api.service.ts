@@ -22,4 +22,5 @@ export interface FoodCategoriesList {
 export interface FoodCategory {
   id: number;
   name: string;
+  returnItem: boolean;
 }

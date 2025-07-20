@@ -28,7 +28,23 @@
     </c-row>
     <c-row>
       <c-col>
-        @for (category of foodCategories(); track category.id) {
+        @for (category of foodCategoriesItems; track category.id) {
+          <c-row class="d-flex flex-column">
+            <c-col class="text-center">{{ category.name }}</c-col>
+            <c-col class="mb-3">
+              <tafel-counter-input [testId]="'category-' + category.id"
+                                   [key]="category.id"
+                                   [value]="categoryValues[category.id]"
+                                   (valueChanged)="onValueChange($event)"></tafel-counter-input>
+            </c-col>
+          </c-row>
+        }
+      </c-col>
+    </c-row>
+    <hr>
+    <c-row>
+      <c-col>
+        @for (category of foodCategoriesReturn; track category.id) {
           <c-row class="d-flex flex-column">
             <c-col class="text-center">{{ category.name }}</c-col>
             <c-col class="mb-3">

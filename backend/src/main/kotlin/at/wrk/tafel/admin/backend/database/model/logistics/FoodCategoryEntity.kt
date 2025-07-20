@@ -21,4 +21,7 @@ class FoodCategoryEntity : BaseChangeTrackingEntity() {
     @Column(name = "return_item")
     var returnItem: Boolean? = null
 
+    @Column(name = "sort_order")
+    var sortOrder: Int? = null
+
 }
