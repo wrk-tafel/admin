@@ -31,7 +31,7 @@
         <apache.fop.version>2.11</apache.fop.version>
         <qrcode.kotlin.version>4.5.0</qrcode.kotlin.version>
         <passay.version>1.6.6</passay.version>
-        <apache.commons.csv.version>1.14.0</apache.commons.csv.version>
+        <apache.commons.csv.version>1.14.1</apache.commons.csv.version>
 
         <!-- Maven plugin version -->
         <maven.surefire.plugin.version>3.5.3</maven.surefire.plugin.version>
