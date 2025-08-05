@@ -1,14 +1,19 @@
 import {Component, inject, OnInit} from '@angular/core';
-import {DistributionApiService, DistributionItem} from '../../../../api/distribution-api.service';
+import {
+  DistributionApiService,
+  DistributionCloseValidationResult,
+  DistributionItem
+} from '../../../../api/distribution-api.service';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
 import {
+  BgColorDirective,
   ButtonCloseDirective,
   ButtonDirective,
   CardBodyComponent,
   CardComponent,
   CardFooterComponent,
-  CardHeaderComponent,
   ColComponent,
+  Colors,
   ModalBodyComponent,
   ModalComponent,
   ModalHeaderComponent,
@@ -22,7 +27,6 @@ import {NgIf} from '@angular/common';
   templateUrl: 'distribution-state.component.html',
   imports: [
     CardComponent,
-    CardHeaderComponent,
     CardBodyComponent,
     RowComponent,
     ColComponent,
@@ -33,13 +37,17 @@ import {NgIf} from '@angular/common';
     NgIf,
     ButtonDirective,
     ButtonCloseDirective,
-    CardFooterComponent
+    CardFooterComponent,
+    BgColorDirective
   ],
   standalone: true
 })
 export class DistributionStateComponent implements OnInit {
   distribution: DistributionItem;
   showCloseDistributionModal = false;
+  showCloseDistributionValidationModal = false;
+  closeDistributionValidationResult: DistributionCloseValidationResult;
+
   private readonly distributionApiService = inject(DistributionApiService);
   private readonly globalStateService = inject(GlobalStateService);
 
@@ -53,10 +61,40 @@ export class DistributionStateComponent implements OnInit {
     this.distributionApiService.createNewDistribution().subscribe();
   }
 
-  closeDistribution() {
-    this.distributionApiService.closeDistribution().subscribe(() => {
-      this.showCloseDistributionModal = false;
-    });
+  closeDistribution(forceClose: boolean) {
+    const observer = {
+      next: (result: DistributionCloseValidationResult) => {
+        this.closeDistributionValidationResult = result;
+
+        if (result.errors.length === 0 && result.warnings.length === 0) {
+          this.showCloseDistributionModal = false;
+        } else {
+          this.showCloseDistributionModal = false;
+          this.showCloseDistributionValidationModal = true;
+        }
+      },
+      error: error => {
+      },
+    };
+    this.distributionApiService.closeDistribution(forceClose).subscribe(observer);
+  }
+
+  getCloseValidationResultBgColorClass(): Colors {
+    if (this.closeDistributionValidationResult.errors.length > 0) {
+      return 'danger';
+    } else if (this.closeDistributionValidationResult.warnings.length > 0) {
+      return 'warning';
+    }
+    return null;
+  }
+
+  getCloseValidationResultTitle(): string {
+    if (this.closeDistributionValidationResult.errors.length > 0) {
+      return 'Fehler';
+    } else if (this.closeDistributionValidationResult.warnings.length > 0) {
+      return 'Hinweis';
+    }
+    return null;
   }
 
 }

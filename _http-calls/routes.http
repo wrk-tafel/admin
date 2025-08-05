@@ -1,2 +1,5 @@
 ### Fetch all routes
 GET {{baseApiPath}}/routes
+
+### Fetch shops for a specific route
+GET {{baseApiPath}}/routes/1/shops

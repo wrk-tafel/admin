@@ -16,17 +16,18 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
 
+val testDistributionStatisticEntity = DistributionStatisticEntity().apply {
+    employeeCount = 100
+    shelters = listOf(
+        testDistributionStatisticShelterEntity1,
+        testDistributionStatisticShelterEntity2
+    ).toMutableList()
+}
 
 val testDistributionEntity = DistributionEntity().apply {
     id = 123
     startedAt = LocalDateTime.now()
-    statistic = DistributionStatisticEntity().apply {
-        employeeCount = 100
-        shelters = listOf(
-            testDistributionStatisticShelterEntity1,
-            testDistributionStatisticShelterEntity2
-        ).toMutableList()
-    }
+    statistic = testDistributionStatisticEntity
 }
 
 val testDistributionCustomerEntity1 = DistributionCustomerEntity().apply {

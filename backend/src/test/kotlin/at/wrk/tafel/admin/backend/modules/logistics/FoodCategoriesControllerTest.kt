@@ -24,11 +24,13 @@ class FoodCategoriesControllerTest {
     fun `get categories`() {
         val category1 = FoodCategory(
             id = 1,
-            name = "Category 1"
+            name = "Category 1",
+            returnItem = false,
         )
         val category2 = FoodCategory(
             id = 2,
-            name = "Category 2"
+            name = "Category 2",
+            returnItem = true,
         )
         every { foodCategoriesService.getFoodCategories() } returns listOf(category1, category2)
 

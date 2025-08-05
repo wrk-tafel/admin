@@ -10,5 +10,6 @@ data class FoodCategoriesListResponse(
 @ExcludeFromTestCoverage
 data class FoodCategory(
     val id: Long,
-    val name: String
+    val name: String,
+    val returnItem: Boolean
 )

@@ -1,4 +1,4 @@
-import {HttpClient, HttpResponse} from '@angular/common/http';
+import {HttpClient, HttpParams, HttpResponse} from '@angular/common/http';
 import {inject, Injectable} from '@angular/core';
 import {Observable} from 'rxjs';
 
@@ -12,8 +12,12 @@ export class DistributionApiService {
     return this.http.post<void>('/distributions/new', null);
   }
 
-  closeDistribution(): Observable<void> {
-    return this.http.post<void>('/distributions/close', null);
+  closeDistribution(forceClose: boolean): Observable<DistributionCloseValidationResult> {
+    let queryParams = new HttpParams();
+    if (forceClose) {
+      queryParams = queryParams.set('forceClose', forceClose);
+    }
+    return this.http.post<DistributionCloseValidationResult>('/distributions/close', null, {params: queryParams});
   }
 
   assignCustomer(customerId: number, ticketNumber: number, costContributionPaid: boolean): Observable<void> {
@@ -71,4 +75,9 @@ export interface SaveDistributionStatisticRequest {
 
 export interface SaveDistributionNotesRequest {
   notes: string;
+}
+
+export interface DistributionCloseValidationResult {
+  errors: string[];
+  warnings: string[];
 }

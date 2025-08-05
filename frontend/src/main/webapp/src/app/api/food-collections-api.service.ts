@@ -13,20 +13,47 @@ export class FoodCollectionsApiService {
     return this.http.get<FoodCollectionData>(`/food-collections/route/${routeId}`);
   }
 
-  saveFoodCollection(data: FoodCollectionSaveRequest): Observable<void> {
-    return this.http.post<void>('/food-collections', data);
+  saveRouteData(routeId: number, data: FoodCollectionSaveRouteDataRequest): Observable<void> {
+    return this.http.post<void>(`/food-collections/route/${routeId}`, data);
+  }
+
+  saveItems(routeId: number, data: FoodCollectionSaveItemsRequest): Observable<void> {
+    return this.http.post<void>(`/food-collections/route/${routeId}/items`, data);
+  }
+
+  saveItemsPerShop(routeId: number, shopId: number, data: FoodCollectionSaveItemsPerShopRequest): Observable<void> {
+    return this.http.post<void>(`/food-collections/route/${routeId}/shop/${shopId}/items`, data);
+  }
+
+  getItemsPerShop(routeId: number, shopId: number): Observable<void> {
+    return this.http.get<void>(`/food-collections/route/${routeId}/shop/${shopId}/items`);
+  }
+
+  patchItems(routeId: number, data: FoodCollectionItem): Observable<void> {
+    return this.http.patch<void>(`/food-collections/route/${routeId}/items`, data);
   }
 
 }
 
-export interface FoodCollectionSaveRequest {
-  routeId: number;
+export interface FoodCollectionSaveRouteDataRequest {
   carId: number;
   driverId: number;
   coDriverId: number;
   kmStart: number;
   kmEnd: number;
-  items: FoodCollectionItem[]
+}
+
+export interface FoodCollectionSaveItemsPerShopRequest {
+  items?: FoodCollectionCategoryWithAmount[];
+}
+
+export interface FoodCollectionCategoryWithAmount {
+  categoryId: number;
+  amount: number;
+}
+
+export interface FoodCollectionSaveItemsRequest {
+  items?: FoodCollectionItem[];
 }
 
 export interface FoodCollectionItem {

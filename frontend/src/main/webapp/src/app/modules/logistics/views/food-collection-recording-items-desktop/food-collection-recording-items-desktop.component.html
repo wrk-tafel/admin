@@ -1,0 +1,48 @@
+<c-row>
+  <c-col>
+    @if (selectedRouteData() && foodCategories() && categories.controls.length > 0) {
+      <form [formGroup]="form">
+        <div>
+          <table cTable striped="true" class="mt-3">
+            <thead>
+            <tr>
+              <th scope="col" class="col-sm"></th>
+              @for (shop of selectedRouteData().shops; track shop.id) {
+                <th scope="col" style="word-break: break-all;">{{ shop.name }}<br>{{ shop.number }}</th>
+              }
+            </tr>
+            </thead>
+            <tbody formArrayName="categories">
+              @for (category of categories.controls; let categoryIndex = $index; track category) {
+                <tr [formGroupName]="categoryIndex"
+                    [cTableColor]="category.untouched ? null : category.invalid ? 'danger' : 'success'">
+                  <td class="fw-bold">{{ foodCategories()[categoryIndex].name }}</td>
+                  <ng-container formArrayName="shops">
+                    @for (shop of getShops(categoryIndex).controls; let shopIndex = $index; track shop) {
+                      <td [formGroupName]="shopIndex">
+                        <input type="number" class="form-control" min="0"
+                               [attr.testid]="'category-' + foodCategories()[categoryIndex].id + '-shop-' + selectedRouteData().shops[shopIndex]?.id + '-input'"
+                               formControlName="amount"
+                               style="min-width: 3.6em; max-width: 5em;">
+                      </td>
+                    }
+                  </ng-container>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </form>
+    }
+  </c-col>
+</c-row>
+<c-row>
+  <c-col>
+    <hr>
+  </c-col>
+</c-row>
+<c-row>
+  <c-col>
+    <button testid="save-items-button" cButton (click)="save()">Speichern</button>
+  </c-col>
+</c-row>

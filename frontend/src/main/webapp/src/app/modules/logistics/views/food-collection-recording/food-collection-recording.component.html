@@ -3,200 +3,52 @@
     <h5>Warenerfassung</h5>
   </c-card-header>
   <c-card-body>
-    <form [formGroup]="form">
-      <c-row>
-        <c-col md="4">
-          <label class="form-label">Route</label>
-          <c-input-group>
-            <select testid="routeInput" class="form-control" formControlName="route" cSelect>
-              @for (route of routeList().routes; track route.id) {
-                <option [ngValue]="route">
-                  {{ route.name }}
-                </option>
-              }
-            </select>
-            <span cInputGroupText>
+    <c-row class="flex align-items-center">
+      <c-col class="col-3 col-md-1">Route</c-col>
+      <c-col class="col-9 col-md-4">
+        <c-input-group>
+          <select testid="routeInput" class="form-control" cSelect [ngModel]="selectedRoute"
+                  (ngModelChange)="onSelectedRouteChange($event)">
+            <option [ngValue]="undefined">Bitte auswählen</option>
+            @for (route of routeList().routes; track route) {
+              <option [ngValue]="route">{{ route.name }}</option>
+            }
+          </select>
+          <span cInputGroupText>
               <fa-icon [icon]="faRoute"></fa-icon>
             </span>
-            @if (route.errors?.required && (route.dirty || route.touched)) {
-              <div class="invalid-feedback">
-                Pflichtfeld
-              </div>
-            }
-          </c-input-group>
-        </c-col>
-      </c-row>
+        </c-input-group>
+      </c-col>
+    </c-row>
+    @if (selectedRouteData) {
       <hr>
-      <c-row class="mt-2">
-        <c-col md="5">
-          <label class="form-label">KFZ *</label>
-          <c-input-group>
-            <select testid="carInput" class="form-control" formControlName="car" cSelect>
-              @for (car of carList().cars; track car.id) {
-                <option [ngValue]="car">
-                  {{ car.licensePlate }} ({{ car.name }})
-                </option>
-              }
-            </select>
-            <span cInputGroupText>
-              <fa-icon [icon]="faTruck"></fa-icon>
-            </span>
-            @if (car.errors?.required && (car.dirty || car.touched)) {
-              <div class="invalid-feedback">
-                Pflichtfeld
-              </div>
-            }
-          </c-input-group>
-        </c-col>
-        <c-col md="3">
-          <label class="form-label">KM Start *</label>
-          <c-input-group>
-            <input testid="kmStartInput" type="number" formControlName="kmStart" class="form-control"
-                   [ngClass]="{'is-invalid': kmStart.invalid && (kmStart.dirty || kmStart.touched), 'is-valid': kmStart.valid && (kmStart.dirty || kmStart.touched)}">
-            <span cInputGroupText>
-              <fa-icon [icon]="faGauge"></fa-icon>
-            </span>
-            @if (kmStart.errors?.required && (kmStart.dirty || kmStart.touched)) {
-              <div class="invalid-feedback">
-                Pflichtfeld
-              </div>
-            }
-            @if (kmStart.errors?.min && (kmStart.dirty || kmStart.touched)) {
-              <div class="invalid-feedback">
-                Muss mindestens 1 sein
-              </div>
-            }
-          </c-input-group>
-        </c-col>
-        <c-col md="3">
-          <label class="form-label">KM Ende *</label>
-          <c-input-group>
-            <input testid="kmEndInput" type="number" formControlName="kmEnd" class="form-control"
-                   [ngClass]="{'is-invalid': kmEnd.invalid && (kmEnd.dirty || kmEnd.touched), 'is-valid': kmEnd.valid && (kmEnd.dirty || kmEnd.touched)}">
-            <span cInputGroupText>
-              <fa-icon [icon]="faGauge"></fa-icon>
-            </span>
-            @if (kmEnd.errors?.required && (kmEnd.dirty || kmEnd.touched)) {
-              <div class="invalid-feedback">
-                Pflichtfeld
-              </div>
-            }
-            @if (kmEnd.errors?.min && (kmEnd.dirty || kmEnd.touched)) {
-              <div class="invalid-feedback">
-                Muss mindestens 1 sein
-              </div>
-            }
-            @if (kmEnd.errors?.kmValidation && (kmEnd.dirty || kmEnd.touched)) {
-              <div class="invalid-feedback">
-                KM Ende muss größer als KM Start sein
-              </div>
-            }
-          </c-input-group>
-        </c-col>
-      </c-row>
-      <c-row class="mt-2">
-        <c-col md="4">
-          @if (!selectedDriver) {
-            <label class="form-label">Fahrer *</label>
-            <c-input-group>
-              <input testid="driverSearchInput" type="text" formControlName="driverSearchInput" class="form-control" placeholder="Personalnummer / Name" (keyup.enter)="triggerSearchDriver()"
-                     [ngClass]="{'is-invalid': driverSearchInput.invalid && (driverSearchInput.dirty || driverSearchInput.touched), 'is-valid': driverSearchInput.valid && (driverSearchInput.dirty || driverSearchInput.touched)}">
-              <tafel-employee-search-create #driverEmployeeSearchCreate [testIdPrefix]="'driver'" [searchInput]="driverSearchInput.value" (selectedEmployee)="setSelectedDriver($event)" />
-              @if (driverSearchInput.errors?.required && (driverSearchInput.dirty || driverSearchInput.touched)) {
-                <div class="invalid-feedback">
-                  Pflichtfeld
-                </div>
-              }
-              @if (driverSearchInput.errors?.maxlength && (driverSearchInput.dirty || driverSearchInput.touched)) {
-                <div class="invalid-feedback">
-                  Fahrer zu lang (Limit: {{ driverSearchInput.errors.maxlength.requiredLength }})
-                </div>
-              }
-              @if (driverSearchInput.errors?.hasValue && (driverSearchInput.dirty || driverSearchInput.touched)) {
-                <div class="invalid-feedback">
-                  {{ driverSearchInput.errors.hasValue.message }}
-                </div>
-              }
-            </c-input-group>
-          } @else {
-            <label class="form-label">Fahrer *</label>
-            <c-row>
-              <c-col testid="selectedDriverDescription" sm="10">{{ selectedDriver.personnelNumber }} {{ selectedDriver.firstname }} {{ selectedDriver.lastname }}</c-col>
-              <c-col sm="2">
-                <button cButton testid="selectedDriverRemoveButton" class="float-end" color="danger" (click)="resetDriver()"><fa-icon [icon]="faRemove"></fa-icon></button>
-              </c-col>
-            </c-row>
-          }
-        </c-col>
-        <c-col md="4">
-          @if (!selectedCoDriver) {
-            <label class="form-label">Beifahrer *</label>
-            <c-input-group>
-              <input testid="coDriverSearchInput" type="text" formControlName="coDriverSearchInput" class="form-control" placeholder="Personalnummer / Name" (keyup.enter)="triggerSearchCoDriver()"
-                     [ngClass]="{'is-invalid': coDriverSearchInput.invalid && (coDriverSearchInput.dirty || coDriverSearchInput.touched), 'is-valid': coDriverSearchInput.valid && (coDriverSearchInput.dirty || coDriverSearchInput.touched)}">
-              <tafel-employee-search-create #coDriverEmployeeSearchCreate [testIdPrefix]="'codriver'" [searchInput]="coDriverSearchInput.value" (selectedEmployee)="setSelectedCoDriver($event)" />
-              @if (coDriverSearchInput.errors?.required && (coDriverSearchInput.dirty || coDriverSearchInput.touched)) {
-                <div class="invalid-feedback">
-                  Pflichtfeld
-                </div>
-              }
-              @if (coDriverSearchInput.errors?.maxlength && (coDriverSearchInput.dirty || coDriverSearchInput.touched)) {
-                <div class="invalid-feedback">
-                  Beifahrer zu lang (Limit: {{ coDriverSearchInput.errors.maxlength.requiredLength }})
-                </div>
-              }
-              @if (coDriverSearchInput.errors?.hasValue && (coDriverSearchInput.dirty || coDriverSearchInput.touched)) {
-                <div class="invalid-feedback">
-                  {{ coDriverSearchInput.errors.hasValue.message }}
-                </div>
-              }
-            </c-input-group>
-          } @else {
-            <label class="form-label">Beifahrer *</label>
-            <c-row>
-              <c-col testid="selectedCoDriverDescription" sm="10">{{ selectedCoDriver.personnelNumber }} {{ selectedCoDriver.firstname }} {{ selectedCoDriver.lastname }}</c-col>
-              <c-col sm="2">
-                <button cButton testid="selectedCoDriverRemoveButton" class="float-end" color="danger" (click)="resetCoDriver()"><fa-icon [icon]="faRemove"></fa-icon></button>
-              </c-col>
-            </c-row>
-          }
-        </c-col>
-      </c-row>
-      <hr>
-      @if (route.getRawValue() && categories.controls.length > 0) {
-        <div>
-          <table cTable striped="true" class="mt-3">
-            <thead>
-              <tr>
-                <th scope="col" class="col-sm"></th>
-                @for (shop of routeShops; track shop.id) {
-                  <th scope="col" style="word-break: break-all;">{{ shop.name }}<br>{{ shop.number }}</th>
-                }
-              </tr>
-            </thead>
-            <tbody formArrayName="categories">
-              @for (category of categories.controls; let categoryIndex = $index; track category) {
-                <tr [formGroupName]="categoryIndex" [cTableColor]="category.untouched ? null : category.invalid ? 'danger' : 'success'">
-                  <td class="fw-bold">{{ foodCategories()[categoryIndex].name }}</td>
-                  <ng-container formArrayName="shops">
-                    @for (shop of getShops(categoryIndex).controls; let shopIndex = $index; track shop) {
-                      <td [formGroupName]="shopIndex">
-                        <input type="number" class="form-control" min="0"
-                               [attr.testid]="'category-' + foodCategories()[categoryIndex].id + '-shop-' + routeShops[shopIndex].id + '-input'"
-                               formControlName="amount"
-                               style="min-width: 3.6em; max-width: 5em;">
-                      </td>
-                    }
-                  </ng-container>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-      }
-    </form>
+      <c-tabs [activeItemKey]="0">
+        <c-tabs-list variant="underline-border">
+          <button cTab [itemKey]="0" testid="select-route-tab">
+            Route
+          </button>
+          <button cTab [itemKey]="1" testid="select-items-tab">
+            Waren
+          </button>
+        </c-tabs-list>
+        <c-tabs-content>
+          <c-tab-panel [itemKey]="0" class="p-3">
+            <tafel-food-collection-recording-basedata [carList]="carList()"
+                                                      [selectedRouteData]="selectedRouteData">
+            </tafel-food-collection-recording-basedata>
+          </c-tab-panel>
+          <c-tab-panel [itemKey]="1">
+            <div class="d-none d-md-block">
+              <tafel-food-collection-recording-items-desktop [foodCategories]="foodCategories()"
+                                                             [selectedRouteData]="selectedRouteData"></tafel-food-collection-recording-items-desktop>
+            </div>
+            <div class="d-block d-md-none">
+              <tafel-food-collection-recording-items-responsive [foodCategories]="foodCategories()"
+                                                                [selectedRouteData]="selectedRouteData"></tafel-food-collection-recording-items-responsive>
+            </div>
+          </c-tab-panel>
+        </c-tabs-content>
+      </c-tabs>
+    }
   </c-card-body>
-  <c-card-footer>
-    <button testid="save-button" cButton [disabled]="saveIsDisabled()" (click)="save()">Speichern</button>
-  </c-card-footer>
 </c-card>

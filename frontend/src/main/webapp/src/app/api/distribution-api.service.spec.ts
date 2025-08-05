@@ -38,9 +38,10 @@ describe('DistributionApiService', () => {
   });
 
   it('close distribution', () => {
-    apiService.closeDistribution().subscribe();
+    const forceClose = true;
+    apiService.closeDistribution(forceClose).subscribe();
 
-    const req = httpMock.expectOne({method: 'POST', url: '/distributions/close'});
+    const req = httpMock.expectOne({method: 'POST', url: '/distributions/close?forceClose=true'});
     req.flush(null);
     httpMock.verify();
   });

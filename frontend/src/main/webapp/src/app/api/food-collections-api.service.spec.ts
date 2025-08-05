@@ -2,7 +2,14 @@ import {HttpTestingController, provideHttpClientTesting} from '@angular/common/h
 import {TestBed} from '@angular/core/testing';
 import {ReactiveFormsModule} from '@angular/forms';
 import {provideHttpClient} from '@angular/common/http';
-import {FoodCollectionData, FoodCollectionsApiService, FoodCollectionSaveRequest} from './food-collections-api.service';
+import {
+  FoodCollectionData,
+  FoodCollectionItem,
+  FoodCollectionsApiService,
+  FoodCollectionSaveItemsPerShopRequest,
+  FoodCollectionSaveItemsRequest,
+  FoodCollectionSaveRouteDataRequest
+} from './food-collections-api.service';
 
 describe('FoodCollectionsApiService', () => {
   let httpMock: HttpTestingController;
@@ -48,14 +55,28 @@ describe('FoodCollectionsApiService', () => {
     httpMock.verify();
   });
 
-  it('save collection', () => {
-    const mockFoodCollection: FoodCollectionSaveRequest = {
-      routeId: 1,
+  it('save route data', () => {
+    const routeId = 1;
+    const mockRouteData: FoodCollectionSaveRouteDataRequest = {
       carId: 1,
       driverId: 2,
       coDriverId: 3,
       kmStart: 1000,
-      kmEnd: 2000,
+      kmEnd: 2000
+    };
+
+    apiService.saveRouteData(routeId, mockRouteData).subscribe();
+
+    const req = httpMock.expectOne({method: 'POST', url: `/food-collections/route/${routeId}`});
+    req.flush({});
+    httpMock.verify();
+
+    expect(req.request.body).toEqual(mockRouteData);
+  });
+
+  it('save items', () => {
+    const routeId = 1;
+    const mockFoodCollection: FoodCollectionSaveItemsRequest = {
       items: [
         {categoryId: 0, shopId: 0, amount: 0},
         {categoryId: 1, shopId: 0, amount: 1},
@@ -64,13 +85,56 @@ describe('FoodCollectionsApiService', () => {
       ]
     };
 
-    apiService.saveFoodCollection(mockFoodCollection).subscribe();
+    apiService.saveItems(routeId, mockFoodCollection).subscribe();
 
-    const req = httpMock.expectOne({method: 'POST', url: '/food-collections'});
+    const req = httpMock.expectOne({method: 'POST', url: `/food-collections/route/${routeId}/items`});
     req.flush({});
     httpMock.verify();
 
     expect(req.request.body).toEqual(mockFoodCollection);
+  });
+
+  it('save items per shop', () => {
+    const routeId = 1;
+    const shopId = 2;
+    const mockFoodCollection: FoodCollectionSaveItemsPerShopRequest = {
+      items: [
+        {categoryId: 0, amount: 0},
+        {categoryId: 1, amount: 1},
+      ]
+    };
+
+    apiService.saveItemsPerShop(routeId, shopId, mockFoodCollection).subscribe();
+
+    const req = httpMock.expectOne({method: 'POST', url: `/food-collections/route/${routeId}/shop/${shopId}/items`});
+    req.flush({});
+    httpMock.verify();
+
+    expect(req.request.body).toEqual(mockFoodCollection);
+  });
+
+  it('get items per shop', () => {
+    const routeId = 1;
+    const shopId = 2;
+
+    apiService.getItemsPerShop(routeId, shopId).subscribe();
+
+    const req = httpMock.expectOne({method: 'GET', url: `/food-collections/route/${routeId}/shop/${shopId}/items`});
+    req.flush({});
+    httpMock.verify();
+  });
+
+  it('patch items', () => {
+    const routeId = 1;
+    const data: FoodCollectionItem = {categoryId: 0, shopId: 1, amount: 2};
+
+    apiService.patchItems(routeId, data).subscribe();
+
+    const req = httpMock.expectOne({method: 'PATCH', url: `/food-collections/route/${routeId}/items`});
+    req.flush({});
+    httpMock.verify();
+
+    expect(req.request.body).toEqual(data);
   });
 
 });
