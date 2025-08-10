@@ -212,14 +212,6 @@ internal class DistributionServiceTest {
     }
 
     @Test
-    fun `close distribution when not open`() {
-        every { distributionRepository.getCurrentDistribution() } returns null
-
-        val exception = assertThrows<TafelValidationException> { service.closeDistribution() }
-        assertThat(exception.message).isEqualTo("Ausgabe nicht gestartet!")
-    }
-
-    @Test
     fun `close distribution when open`() {
         val distributionEntity = testDistributionEntity
         every { distributionRepository.getCurrentDistribution() } returns distributionEntity
@@ -403,15 +395,6 @@ internal class DistributionServiceTest {
     }
 
     @Test
-    fun `generate customerlist pdf - no active distribution`() {
-        every { distributionRepository.getCurrentDistribution() } returns null
-
-        val exception = assertThrows<TafelValidationException> { service.generateCustomerListPdf() }
-
-        assertThat(exception.message).isEqualTo("Ausgabe nicht gestartet!")
-    }
-
-    @Test
     fun `generate customerlist pdf - successful`() {
         val date = LocalDateTime.now()
         val testDistributionEntity = DistributionEntity().apply {
@@ -473,14 +456,6 @@ internal class DistributionServiceTest {
                 )
             )
         )
-    }
-
-    @Test
-    fun `get current ticket without open distribution`() {
-        every { service.getCurrentDistribution() } returns null
-
-        val exception = assertThrows<TafelValidationException> { service.getCurrentTicketNumber(123) }
-        assertThat(exception.message).isEqualTo("Ausgabe nicht gestartet!")
     }
 
     @Test
@@ -548,14 +523,6 @@ internal class DistributionServiceTest {
         val ticket = service.getCurrentTicketNumber()
 
         assertThat(ticket).isNull()
-    }
-
-    @Test
-    fun `close ticket and next without open distribution`() {
-        every { service.getCurrentDistribution() } returns null
-
-        val exception = assertThrows<TafelValidationException> { service.closeCurrentTicketAndGetNext() }
-        assertThat(exception.message).isEqualTo("Ausgabe nicht gestartet!")
     }
 
     @Test
@@ -630,14 +597,6 @@ internal class DistributionServiceTest {
         val ticket = service.closeCurrentTicketAndGetNext()
 
         assertThat(ticket).isNull()
-    }
-
-    @Test
-    fun `delete current ticket without open distribution`() {
-        every { service.getCurrentDistribution() } returns null
-
-        val exception = assertThrows<TafelValidationException> { service.deleteCurrentTicket(123) }
-        assertThat(exception.message).isEqualTo("Ausgabe nicht gestartet!")
     }
 
     @Test

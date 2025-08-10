@@ -1,15 +1,12 @@
 package at.wrk.tafel.admin.backend.modules.distribution.internal.ticket
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
+import at.wrk.tafel.admin.backend.common.api.ActiveDistributionRequired
 import at.wrk.tafel.admin.backend.common.sse.SseUtil
 import at.wrk.tafel.admin.backend.database.common.sse_outbox.SseOutboxService
 import at.wrk.tafel.admin.backend.modules.distribution.internal.DistributionService
 import org.slf4j.LoggerFactory
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 
 @RestController
@@ -43,6 +40,7 @@ class DistributionTicketScreenController(
     }
 
     @PostMapping("/distributions/ticket-screen/show-next")
+    @ActiveDistributionRequired
     fun showNextTicket() {
         val nextTicketNumber = service.closeCurrentTicketAndGetNext()
         logger.info("Ticket-Log - fetched next ticket-number: $nextTicketNumber")

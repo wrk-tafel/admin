@@ -1,4 +1,4 @@
-### Get collected food for route X
+### Get collected food for route 1
 GET {{baseApiPath}}/food-collections/route/1
 
 ### Save route data

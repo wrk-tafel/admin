@@ -103,31 +103,6 @@ class FoodCollectionServiceTest {
     }
 
     @Test
-    fun `get food collection data without open distribution`() {
-        val routeId = testFoodCollectionRoute1Entity.route!!.id!!
-        every { distributionRepository.getCurrentDistribution() } returns null
-
-        val exception = assertThrows<TafelValidationException> { service.getFoodCollection(routeId) }
-        assertThat(exception.message).isEqualTo("Ausgabe nicht gestartet!")
-    }
-
-    @Test
-    fun `save route data without open distribution`() {
-        val routeId = 123L
-        val data = FoodCollectionSaveRouteData(
-            carId = testCar1.id!!,
-            driverId = 1L,
-            coDriverId = 2L,
-            kmStart = 1000,
-            kmEnd = 2000
-        )
-        every { distributionRepository.getCurrentDistribution() } returns null
-
-        val exception = assertThrows<TafelValidationException> { service.saveRouteData(routeId = routeId, data = data) }
-        assertThat(exception.message).isEqualTo("Ausgabe nicht gestartet!")
-    }
-
-    @Test
     fun `save route data with invalid route`() {
         val routeId = 123L
         val driverId = 1L
@@ -182,18 +157,6 @@ class FoodCollectionServiceTest {
         assertThat(foodCollection.coDriver!!.id).isEqualTo(data.coDriverId)
         assertThat(foodCollection.kmStart).isEqualTo(data.kmStart)
         assertThat(foodCollection.kmEnd).isEqualTo(data.kmEnd)
-    }
-
-    @Test
-    fun `save items without open distribution`() {
-        val routeId = 123L
-        val data = FoodCollectionItems(
-            items = emptyList()
-        )
-        every { distributionRepository.getCurrentDistribution() } returns null
-
-        val exception = assertThrows<TafelValidationException> { service.saveItems(routeId = routeId, data = data) }
-        assertThat(exception.message).isEqualTo("Ausgabe nicht gestartet!")
     }
 
     @Test
@@ -269,34 +232,6 @@ class FoodCollectionServiceTest {
         assertThat(foodCollection.items!![3].category!!.id).isEqualTo(data.items[3].categoryId)
         assertThat(foodCollection.items!![3].shop!!.id).isEqualTo(data.items[3].shopId)
         assertThat(foodCollection.items!![3].amount).isEqualTo(data.items[3].amount)
-    }
-
-    @Test
-    fun `save items per shop without open distribution`() {
-        val routeId = 123L
-        val shopId = 456L
-        val data = FoodCollectionSaveItemsPerShopData(
-            items = listOf(
-                FoodCollectionCategoryAmount(
-                    categoryId = testFoodCategory1.id!!,
-                    amount = 1
-                ),
-                FoodCollectionCategoryAmount(
-                    categoryId = testFoodCategory2.id!!,
-                    amount = 2
-                )
-            )
-        )
-        every { distributionRepository.getCurrentDistribution() } returns null
-
-        val exception = assertThrows<TafelValidationException> {
-            service.saveItemsPerShop(
-                routeId = routeId,
-                shopId = shopId,
-                data = data
-            )
-        }
-        assertThat(exception.message).isEqualTo("Ausgabe nicht gestartet!")
     }
 
     @Test
@@ -483,18 +418,6 @@ class FoodCollectionServiceTest {
     }
 
     @Test
-    fun `get items per shop without active distribution`() {
-        val routeId = testRoute1.id!!
-
-        every { distributionRepository.getCurrentDistribution() } returns null
-
-        val exception = assertThrows<TafelValidationException> {
-            service.getItemsPerShop(routeId = routeId, shopId = testShop1.id!!)
-        }
-        assertThat(exception.message).isEqualTo("Ausgabe nicht gestartet!")
-    }
-
-    @Test
     fun `get items per shop without existing data`() {
         val routeId = testRoute1.id!!
         val distributionEntity = DistributionEntity().apply {
@@ -571,20 +494,6 @@ class FoodCollectionServiceTest {
         assertThat(result.items[1].categoryId).isEqualTo(existingItems[1].category!!.id)
         assertThat(result.items[1].shopId).isEqualTo(testShop1.id)
         assertThat(result.items[1].amount).isEqualTo(existingItems[1].amount)
-    }
-
-    @Test
-    fun `patch a single item without open distribution`() {
-        val routeId = 123L
-        val data = FoodCollectionItem(
-            categoryId = testFoodCategory1.id!!,
-            shopId = testShop1.id!!,
-            amount = 1
-        )
-        every { distributionRepository.getCurrentDistribution() } returns null
-
-        val exception = assertThrows<TafelValidationException> { service.patchItem(routeId = routeId, data = data) }
-        assertThat(exception.message).isEqualTo("Ausgabe nicht gestartet!")
     }
 
     @Test

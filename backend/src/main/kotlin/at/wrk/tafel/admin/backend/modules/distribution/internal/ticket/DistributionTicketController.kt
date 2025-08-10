@@ -1,15 +1,12 @@
 package at.wrk.tafel.admin.backend.modules.distribution.internal.ticket
 
+import at.wrk.tafel.admin.backend.common.api.ActiveDistributionRequired
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.distribution.internal.DistributionService
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.TicketNumberResponse
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.DeleteMapping
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/api/distributions/tickets")
@@ -22,6 +19,7 @@ class DistributionTicketController(
     }
 
     @GetMapping("/customers/{customerId}")
+    @ActiveDistributionRequired
     fun getCurrentTicketForCustomerId(
         @PathVariable("customerId") customerId: Long,
     ): TicketNumberResponse {
@@ -34,6 +32,7 @@ class DistributionTicketController(
     }
 
     @DeleteMapping("/customers/{customerId}")
+    @ActiveDistributionRequired
     fun deleteCurrentTicketForCustomer(
         @PathVariable("customerId") customerId: Long,
     ): ResponseEntity<Unit> {

@@ -12,10 +12,10 @@
 * Bug: customer creation - field nationality (add persons) form control validation not working (red/green border)
 * Bug: Customer in CustomerList(PDF) still visible after deletion of ticketNumber! - caching?
 * feat: Overviewpage: prolonged and new customers (all actions) of last distribution (selection for distribution?)
+
 * feat: Improve customer-creation / search before creating to avoid duplicates
 
 * Statistics Module: Show charts / CSV Export
-* Statistics: Show live data on dashboard
 
 # Rest
 
@@ -33,49 +33,41 @@
 * Improve creation / enforce search before creating
 * Add "supervisor" role (can force-fully create customers even when exceeding the income limit)
 * Menu/navigation: Fix menu when collapsed - first character of text is shown
-* MFA?
 
 statistic:
-
 * add alleinerzieher flag
 
 ## LTL
-
-* Goods recording - implement proper mobile view
 * Goods recording - tests in FoodCollectionRecordingComponent
 
 * Edit Route / also contact-person needs to be editable
 * Edit route - Person-select (Dropdown) incl. Search?
-*
-    * Auto-create persons without dedicated maintenance
+  * Auto-create persons without dedicated maintenance
 * Route only needs a time and no separate order (sorting)
 * Validation necessary for KM Abfahrt < KM Ankunft
 * Route: Model extra-stops in DB (needs to part of the route, comment is not enough)
 
 ### Open things (to be decided)
 
-* All forms - change to updateOn: 'blur'
-
+* All forms - change to updateOn: 'blur' ?
 * customer-detail
     * add document upload
 * use semantic versioning ?
 * provide jar-file releases via github ?
+* Move statistics package into reporting ?
 
 ### Lower prio
-
 * switch to signals
 * switch to control flow syntax @if, @for, @switch
 
 * tech: switch to spring boot layered build (^ deployment speed): https://www.baeldung.com/docker-layers-spring-boot
-* Move statistics package into reporting?
+
 * Improve module communication by using async
   events (https://docs.spring.io/spring-modulith/docs/current/reference/html/#events)
 
 ### Tech
 
 * Separate compile from the rest to have a faster deploy
-* Change all with distribution direct-related apis to /distributions (eg. collections)
-* Create a central interceptor/aspect to handel distribution not active state
 * Exclude mail from health check
 * Test if mails are properly received with mailpit rest api
 * Sec: Set cookie path to seperate prod/env (even when the token is not accepted)
