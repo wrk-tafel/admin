@@ -25,8 +25,7 @@ class FoodCollectionService(
 
     @Transactional
     fun getFoodCollection(routeId: Long): FoodCollectionData? {
-        val distribution = distributionRepository.getCurrentDistribution()
-            ?: throw TafelValidationException("Ausgabe nicht gestartet!")
+        val distribution = distributionRepository.getCurrentDistribution()!!
 
         val foodCollection = distribution.foodCollections.firstOrNull { it.route?.id == routeId }
 
@@ -55,16 +54,14 @@ class FoodCollectionService(
 
     @Transactional
     fun saveRouteData(routeId: Long, data: FoodCollectionSaveRouteData) {
-        val distribution = distributionRepository.getCurrentDistribution()
-            ?: throw TafelValidationException("Ausgabe nicht gestartet!")
+        val distribution = distributionRepository.getCurrentDistribution()!!
 
         foodCollectionRepository.save(mapRouteData(distribution, routeId, data))
     }
 
     @Transactional
     fun saveItems(routeId: Long, data: FoodCollectionItems) {
-        val distribution = distributionRepository.getCurrentDistribution()
-            ?: throw TafelValidationException("Ausgabe nicht gestartet!")
+        val distribution = distributionRepository.getCurrentDistribution()!!
 
         foodCollectionRepository.save(mapAllItems(distribution, routeId, data))
     }
@@ -75,8 +72,7 @@ class FoodCollectionService(
         shopId: Long,
         data: FoodCollectionSaveItemsPerShopData
     ) {
-        val distributionEntity = distributionRepository.getCurrentDistribution()
-            ?: throw TafelValidationException("Ausgabe nicht gestartet!")
+        val distributionEntity = distributionRepository.getCurrentDistribution()!!
 
         val foodCollectionEntity = getOrCreateFoodCollectionEntity(distributionEntity, routeId)
         val items = foodCollectionEntity.items?.toMutableList() ?: mutableListOf()
@@ -95,8 +91,7 @@ class FoodCollectionService(
 
     @Transactional
     fun getItemsPerShop(routeId: Long, shopId: Long): FoodCollectionItems? {
-        val distributionEntity = distributionRepository.getCurrentDistribution()
-            ?: throw TafelValidationException("Ausgabe nicht gestartet!")
+        val distributionEntity = distributionRepository.getCurrentDistribution()!!
 
         val collectionForRoute = distributionEntity.foodCollections.firstOrNull {
             it.route?.id == routeId
@@ -116,8 +111,7 @@ class FoodCollectionService(
 
     @Transactional
     fun patchItem(routeId: Long, data: FoodCollectionItem) {
-        val distributionEntity = distributionRepository.getCurrentDistribution()
-            ?: throw TafelValidationException("Ausgabe nicht gestartet!")
+        val distributionEntity = distributionRepository.getCurrentDistribution()!!
 
         val foodCollectionEntity = getOrCreateFoodCollectionEntity(distributionEntity, routeId)
         val items = foodCollectionEntity.items?.toMutableList() ?: mutableListOf()

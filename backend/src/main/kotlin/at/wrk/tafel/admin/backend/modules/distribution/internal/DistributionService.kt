@@ -73,8 +73,7 @@ class DistributionService(
         ticketNumber: Int,
         costContributionPaid: Boolean,
     ) {
-        val distribution = getCurrentDistribution()
-            ?: throw TafelValidationException("Ausgabe nicht gestartet!")
+        val distribution = getCurrentDistribution()!!
 
         val customer = customerRepository.findByCustomerId(customerId)
             ?: throw TafelValidationException("Kunde Nr. $customerId nicht vorhanden!")
@@ -97,8 +96,7 @@ class DistributionService(
 
     @Transactional
     fun generateCustomerListPdf(): CustomerListPdfResult? {
-        val currentDistribution = distributionRepository.getCurrentDistribution()
-            ?: throw TafelValidationException("Ausgabe nicht gestartet!")
+        val currentDistribution = distributionRepository.getCurrentDistribution()!!
 
         val formattedDate = DATE_FORMATTER.format(currentDistribution.startedAt)
         val sortedCustomers = currentDistribution.customers.sortedBy { it.ticketNumber }
@@ -128,8 +126,7 @@ class DistributionService(
 
     @Transactional
     fun getCurrentTicketNumber(customerId: Long? = null): DistributionCustomerEntity? {
-        val distribution = getCurrentDistribution()
-            ?: throw TafelValidationException("Ausgabe nicht gestartet!")
+        val distribution = getCurrentDistribution()!!
 
         val distributionCustomerEntity = getDistributionCustomerEntity(distribution, customerId)
         logger.info("Ticket-Log - Fetched current ticket-number (service): ${distributionCustomerEntity?.ticketNumber}")
@@ -138,8 +135,7 @@ class DistributionService(
 
     @Transactional
     fun closeCurrentTicketAndGetNext(): Int? {
-        val distribution = getCurrentDistribution()
-            ?: throw TafelValidationException("Ausgabe nicht gestartet!")
+        val distribution = getCurrentDistribution()!!
 
         val distributionCustomerEntity = getDistributionCustomerEntity(distribution)
 
@@ -156,8 +152,7 @@ class DistributionService(
 
     @Transactional
     fun deleteCurrentTicket(customerId: Long): Boolean {
-        val distribution = getCurrentDistribution()
-            ?: throw TafelValidationException("Ausgabe nicht gestartet!")
+        val distribution = getCurrentDistribution()!!
 
         val distributionCustomerEntity = getDistributionCustomerEntity(distribution, customerId)
         logger.info("Ticket-Log - Deleted ticket-number: ${distributionCustomerEntity?.ticketNumber}, customer ${distributionCustomerEntity?.customer?.customerId}")
@@ -217,8 +212,7 @@ class DistributionService(
 
     @Transactional
     fun closeDistribution() {
-        val currentDistribution = distributionRepository.getCurrentDistribution()
-            ?: throw TafelValidationException("Ausgabe nicht gestartet!")
+        val currentDistribution = distributionRepository.getCurrentDistribution()!!
 
         val authenticatedUser = SecurityContextHolder.getContext().authentication as? TafelJwtAuthentication
 
@@ -275,8 +269,7 @@ class DistributionService(
         employeeCount: Int,
         selectedShelterIds: List<Long>,
     ) {
-        val currentDistribution = distributionRepository.getCurrentDistribution()
-            ?: throw TafelValidationException("Ausgabe nicht gestartet!")
+        val currentDistribution = distributionRepository.getCurrentDistribution()!!
 
         val currentStatistic = currentDistribution.statistic
         if (currentStatistic == null) {
@@ -307,8 +300,7 @@ class DistributionService(
     }
 
     fun updateDistributionNoteData(notes: String) {
-        val currentDistribution = distributionRepository.getCurrentDistribution()
-            ?: throw TafelValidationException("Ausgabe nicht gestartet!")
+        val currentDistribution = distributionRepository.getCurrentDistribution()!!
 
         currentDistribution.notes = notes.trim().ifBlank { null }
 
