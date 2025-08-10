@@ -68,7 +68,6 @@ statistic:
 ### Tech
 
 * Separate compile from the rest to have a faster deploy
-* Exclude mail from health check
 * Test if mails are properly received with mailpit rest api
 * Sec: Set cookie path to seperate prod/env (even when the token is not accepted)
 
