@@ -16,6 +16,16 @@
 * feat: Improve customer-creation / search before creating to avoid duplicates
 
 * Statistics Module: Show charts / CSV Export
+* Report for Schulstartpakete:
+  * Show all customers/children suitable for Schulstartpaket
+  * SQL: SELECT c.customer_id, cap.firstname, cap.lastname, AGE(CURRENT_DATE, cap.birth_date), COUNT(CASE WHEN DATE_PART('YEAR', AGE(CURRENT_DATE, cap.birth_date)) BETWEEN 6 AND 10 THEN 1 END) AS period
+    FROM customers_addpersons cap
+    JOIN customers c ON cap.customer_id = c.id
+    WHERE c.valid_until >= CURRENT_DATE
+    GROUP BY c.customer_id, cap.firstname, cap.lastname, cap.birth_date
+    HAVING COUNT(CASE WHEN DATE_PART('YEAR', AGE(CURRENT_DATE, cap.birth_date)) BETWEEN 6 AND 10 THEN 1 END) >= 1
+    ORDER BY c.customer_id;
+  * Age maybe configurable
 
 # Rest
 
