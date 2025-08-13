@@ -28,9 +28,8 @@
   * Age maybe configurable
 
 # Rest
-
 * impro 1: Ticket-Monitor layout-error when rendering the preview (order of tickets wrong sometimes)
-* impro 1: Show additional persons on checkin page (could reduce id-card details afterwards)
+ 
 * impro 5: scanner-phones, 3d modeling table-holders
 * impro 5: Maybe decouple reporting from closing? Favor auto-closing, how to deal with multiple distributions?
 

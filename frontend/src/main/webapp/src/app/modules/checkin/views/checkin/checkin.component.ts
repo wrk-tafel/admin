@@ -1,5 +1,5 @@
 import {ChangeDetectorRef, Component, ElementRef, inject, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {CustomerApiService, CustomerData} from '../../../../api/customer-api.service';
+import {CustomerApiService, CustomerData, Gender, GenderLabel} from '../../../../api/customer-api.service';
 import {Subscription} from 'rxjs';
 import * as moment from 'moment';
 import {CustomerNoteApiService, CustomerNoteItem} from '../../../../api/customer-note-api.service';
@@ -17,7 +17,12 @@ import {
   Colors,
   FormCheckInputDirective,
   FormSelectDirective,
-  RowComponent
+  RowComponent,
+  TabDirective,
+  TabPanelComponent,
+  TabsComponent,
+  TabsContentComponent,
+  TabsListComponent
 } from '@coreui/angular';
 import {DistributionTicketApiService, TicketNumberResponse} from '../../../../api/distribution-ticket-api.service';
 import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
@@ -46,7 +51,12 @@ import {ScannerApiService, ScannerList} from '../../../../api/scanner-api.servic
     CommonModule,
     TafelAutofocusDirective,
     FormCheckInputDirective,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    TabDirective,
+    TabPanelComponent,
+    TabsComponent,
+    TabsContentComponent,
+    TabsListComponent
   ],
   standalone: true
 })
@@ -252,6 +262,21 @@ export class CheckinComponent implements OnInit, OnDestroy {
     this.distributionTicketApiService.deleteCurrentTicketOfCustomer(this.customer.id).subscribe(observer);
   }
 
+  getBirthDateAndAge(birthDate?: Date): string {
+    if (birthDate) {
+      const age = moment().diff(birthDate, 'years');
+      return moment(birthDate).format('DD.MM.YYYY') + ' (' + age + ')';
+    }
+    return '-';
+  }
+
+  getGenderLabel(gender?: Gender): string {
+    if (gender) {
+      return GenderLabel[gender];
+    }
+    return '-';
+  }
+
   protected getCustomerStateColor(): Colors {
     switch (this.customerState) {
       case CustomerState.RED:
@@ -264,7 +289,6 @@ export class CheckinComponent implements OnInit, OnDestroy {
         return null;
     }
   }
-
 }
 
 export enum CustomerState {
