@@ -22,7 +22,7 @@
         </sonar.coverage.jacoco.xmlReportPaths>
         <sonar.kotlin.source.version>${kotlin.version}</sonar.kotlin.source.version>
 
-        <spring.boot.version>3.5.4</spring.boot.version>
+        <spring.boot.version>3.5.5</spring.boot.version>
         <flyway.version>11.11.2</flyway.version>
         <spring.modulith.version>1.4.2</spring.modulith.version>
         <jjwt.version>0.12.7</jjwt.version>
