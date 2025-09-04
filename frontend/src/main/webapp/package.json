@@ -78,7 +78,7 @@
     "@cypress/schematic": "4.1.1",
     "@types/jasmine": "5.1.9",
     "@types/jasminewd2": "2.0.13",
-    "@types/node": "20.19.11",
+    "@types/node": "20.19.12",
     "@typescript-eslint/eslint-plugin": "8.41.0",
     "@typescript-eslint/eslint-plugin-tslint": "7.0.2",
     "@typescript-eslint/parser": "8.41.0",
