@@ -42,7 +42,7 @@
     "@coreui/icons-angular": "5.2.25",
     "@fortawesome/angular-fontawesome": "0.15.0",
     "@fortawesome/free-brands-svg-icons": "7.0.1",
-    "@fortawesome/free-regular-svg-icons": "7.0.0",
+    "@fortawesome/free-regular-svg-icons": "7.0.1",
     "@fortawesome/free-solid-svg-icons": "7.0.1",
     "bootstrap": "5.3.8",
     "chart.js": "4.5.0",
