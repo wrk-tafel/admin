@@ -1,4 +1,4 @@
-import {TestBed, waitForAsync} from '@angular/core/testing';
+import {TestBed} from '@angular/core/testing';
 import {
   DistributionApiService,
   DistributionCloseValidationResult,
@@ -8,16 +8,16 @@ import {DistributionStateComponent} from './distribution-state.component';
 import {BehaviorSubject, EMPTY, of} from 'rxjs';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
 import {CardModule, ColComponent, ModalModule, ProgressModule, RowComponent} from '@coreui/angular';
-import {NoopAnimationsModule} from '@angular/platform-browser/animations';
+import {provideZonelessChangeDetection} from "@angular/core";
+import {provideNoopAnimations} from "@angular/platform-browser/animations";
 
 describe('DistributionStateComponent', () => {
   let distributionApiService: jasmine.SpyObj<DistributionApiService>;
   let globalStateService: jasmine.SpyObj<GlobalStateService>;
 
-  beforeEach(waitForAsync(() => {
+  beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [
-        NoopAnimationsModule,
         ModalModule,
         CardModule,
         RowComponent,
@@ -25,6 +25,8 @@ describe('DistributionStateComponent', () => {
         ProgressModule
       ],
       providers: [
+        provideNoopAnimations(),
+        provideZonelessChangeDetection(),
         {
           provide: DistributionApiService,
           useValue: jasmine.createSpyObj('DistributionApiService', ['createNewDistribution', 'closeDistribution'])
@@ -38,7 +40,7 @@ describe('DistributionStateComponent', () => {
 
     distributionApiService = TestBed.inject(DistributionApiService) as jasmine.SpyObj<DistributionApiService>;
     globalStateService = TestBed.inject(GlobalStateService) as jasmine.SpyObj<GlobalStateService>;
-  }));
+  });
 
   it('component can be created', () => {
     const fixture = TestBed.createComponent(DistributionStateComponent);

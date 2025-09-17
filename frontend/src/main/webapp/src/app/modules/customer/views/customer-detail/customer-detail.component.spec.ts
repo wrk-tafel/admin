@@ -1,13 +1,13 @@
 import {HttpHeaders, HttpResponse} from '@angular/common/http';
-import {ComponentFixture, TestBed, waitForAsync} from '@angular/core/testing';
+import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {By} from '@angular/platform-browser';
-import * as moment from 'moment';
+import moment from 'moment';
 import {of, throwError} from 'rxjs';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
 import {CustomerApiService, CustomerData, Gender} from '../../../../api/customer-api.service';
 import {CustomerDetailComponent} from './customer-detail.component';
 import {CommonModule, Location} from '@angular/common';
-import {DEFAULT_CURRENCY_CODE, LOCALE_ID} from '@angular/core';
+import {DEFAULT_CURRENCY_CODE, LOCALE_ID, provideZonelessChangeDetection} from '@angular/core';
 import {
   CustomerNoteApiService,
   CustomerNoteItem,
@@ -23,13 +23,13 @@ import {
   RowComponent,
   TabsModule
 } from '@coreui/angular';
-import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
 import {TafelPaginationData} from '../../../../common/components/tafel-pagination/tafel-pagination.component';
 import {provideRouter} from '@angular/router';
 import {CustomerEditComponent} from '../customer-edit/customer-edit.component';
 import {provideLocationMocks} from '@angular/common/testing';
 import {CustomerSearchComponent} from '../customer-search/customer-search.component';
+import {provideNoopAnimations} from "@angular/platform-browser/animations";
 
 describe('CustomerDetailComponent', () => {
   let customerApiService: jasmine.SpyObj<CustomerApiService>;
@@ -121,7 +121,7 @@ describe('CustomerDetailComponent', () => {
     pageSize: 10
   };
 
-  beforeEach(waitForAsync(() => {
+  beforeEach(() => {
     const customerApiServiceSpy = jasmine.createSpyObj('CustomerApiService', ['generatePdf', 'deleteCustomer', 'updateCustomer']);
     const customerNoteApiServiceSpy = jasmine.createSpyObj('CustomerNoteApiService', ['createNewNote', 'getNotesForCustomer']);
     const fileHelperServiceSpy = jasmine.createSpyObj('FileHelperService', ['downloadFile']);
@@ -129,7 +129,6 @@ describe('CustomerDetailComponent', () => {
 
     TestBed.configureTestingModule({
       imports: [
-        NoopAnimationsModule,
         CommonModule,
         ModalModule,
         TabsModule,
@@ -141,6 +140,8 @@ describe('CustomerDetailComponent', () => {
         RowComponent
       ],
       providers: [
+        provideNoopAnimations(),
+        provideZonelessChangeDetection(),
         {
           provide: LOCALE_ID,
           useValue: 'de-AT'
@@ -184,7 +185,7 @@ describe('CustomerDetailComponent', () => {
     customerNoteApiService = TestBed.inject(CustomerNoteApiService) as jasmine.SpyObj<CustomerNoteApiService>;
     fileHelperService = TestBed.inject(FileHelperService) as jasmine.SpyObj<FileHelperService>;
     toastService = TestBed.inject(ToastService) as jasmine.SpyObj<ToastService>;
-  }));
+  });
 
   it('component can be created', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
@@ -193,14 +194,14 @@ describe('CustomerDetailComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('initial data loaded and shown correctly', () => {
+  it('initial data loaded and shown correctly', async () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
     component.customerData = mockCustomer;
     component.customerNotesResponse = mockCustomerNotesResponse;
 
     component.ngOnInit();
-    fixture.detectChanges();
+    await fixture.whenStable();
 
     expect(component.customerData).toEqual(mockCustomer);
     expect(component.customerNotes).toEqual(mockCustomerNotesResponse.items);
@@ -322,20 +323,20 @@ describe('CustomerDetailComponent', () => {
     expect(fileHelperService.downloadFile).toHaveBeenCalledWith('test-name-1.pdf', response.body);
   });
 
-  it('editCustomer', waitForAsync(async () => {
+  it('editCustomer', async () => {
     const location = TestBed.inject(Location);
 
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
     component.customerData = mockCustomer;
     component.customerNotesResponse = mockCustomerNotesResponse;
-    fixture.detectChanges();
+    await fixture.whenStable();
 
     component.ngOnInit();
     await component.editCustomer();
 
     expect(location.path()).toBe('/kunden/bearbeiten/' + mockCustomer.id);
-  }));
+  });
 
   it('isValid with date of yesterday results in false', () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
@@ -377,7 +378,7 @@ describe('CustomerDetailComponent', () => {
     // TODO expect(incomeDueText)-class success or danger
   });
 
-  it('delete customer successful', waitForAsync(async () => {
+  it('delete customer successful', async () => {
     const location = TestBed.inject(Location);
 
     const fixture = TestBed.createComponent(CustomerDetailComponent);
@@ -391,7 +392,7 @@ describe('CustomerDetailComponent', () => {
     expect(customerApiService.deleteCustomer).toHaveBeenCalled();
     expect(location.path()).toBe('/kunden/suchen');
     expect(toastService.showToast).toHaveBeenCalledWith({type: ToastType.SUCCESS, title: 'Kunde wurde gelöscht!'});
-  }));
+  });
 
   it('delete customer failed', () => {
     const location = TestBed.inject(Location);
@@ -467,7 +468,7 @@ describe('CustomerDetailComponent', () => {
     expect(component.customerData).toEqual(expectedCustomerData);
   });
 
-  it('unlock customer', () => {
+  it('unlock customer', async () => {
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     const component = fixture.componentInstance;
 
@@ -478,7 +479,7 @@ describe('CustomerDetailComponent', () => {
       lockReason: 'lock-text'
     };
     component.customerNotesResponse = mockCustomerNotesResponse;
-    fixture.detectChanges();
+    await fixture.whenStable();
 
     const expectedCustomerData = {
       ...mockCustomer,

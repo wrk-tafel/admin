@@ -1,4 +1,4 @@
-import {TestBed, waitForAsync} from '@angular/core/testing';
+import {TestBed} from '@angular/core/testing';
 import {provideHttpClient} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
 import {
@@ -8,18 +8,18 @@ import {
   EmployeeListResponse
 } from '../../../api/employee-api.service';
 import {TafelEmployeeSearchCreateComponent} from './tafel-employee-search-create.component';
-import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 import {of} from 'rxjs';
+import {provideZonelessChangeDetection} from "@angular/core";
+import {provideNoopAnimations} from "@angular/platform-browser/animations";
 
 describe('TafelEmployeeSearchCreate', () => {
   let employeeApiService: jasmine.SpyObj<EmployeeApiService>;
 
-  beforeEach(waitForAsync(() => {
+  beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [
-        NoopAnimationsModule
-      ],
       providers: [
+        provideNoopAnimations(),
+        provideZonelessChangeDetection(),
         provideHttpClient(),
         provideHttpClientTesting(),
         {
@@ -30,7 +30,7 @@ describe('TafelEmployeeSearchCreate', () => {
     }).compileComponents();
 
     employeeApiService = TestBed.inject(EmployeeApiService) as jasmine.SpyObj<EmployeeApiService>;
-  }));
+  });
 
   const mockEmployeeResponse: EmployeeListResponse = {
     items: [

@@ -1,4 +1,4 @@
-import {inject, Injectable, NgZone} from '@angular/core';
+import {inject, Injectable, ChangeDetectorRef} from '@angular/core';
 import {Observable} from 'rxjs';
 import {UrlHelperService} from '../util/url-helper.service';
 
@@ -7,7 +7,7 @@ import {UrlHelperService} from '../util/url-helper.service';
 })
 export class SseService {
   private readonly urlHelperService = inject(UrlHelperService);
-  private readonly ngZone = inject(NgZone);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   listen<T>(url: string, connectionStateCallback?: (connected: boolean) => void): Observable<T> {
     return new Observable<T>((observer) => {
@@ -19,20 +19,18 @@ export class SseService {
 
         eventSource.onopen = () => {
           if (connectionStateCallback) {
-            this.ngZone.run(() => {
-              connectionStateCallback(true);
-            });
+            connectionStateCallback(true);
+            this.cdr.detectChanges();
           }
         };
 
         eventSource.onmessage = (event) => {
-          this.ngZone.run(() => {
-            try {
-              observer.next(JSON.parse(event.data) as T);
-            } catch (parseError) {
-              console.error('Failed to parse SSE message', parseError, event.data);
-            }
-          });
+          try {
+            observer.next(JSON.parse(event.data) as T);
+            this.cdr.detectChanges();
+          } catch (parseError) {
+            console.error('Failed to parse SSE message', parseError, event.data);
+          }
         };
 
         eventSource.onerror = (error) => {
@@ -40,9 +38,8 @@ export class SseService {
 
           if (eventSource?.readyState === EventSource.CLOSED) {
             if (connectionStateCallback) {
-              this.ngZone.run(() => {
-                connectionStateCallback(false);
-              });
+              connectionStateCallback(false);
+              this.cdr.detectChanges();
             }
 
             console.warn('SSE connection permanently closed, trying to reconnect...');

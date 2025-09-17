@@ -10,22 +10,24 @@
                   <img ngSrc="./assets/img/brand/logo.svg" alt="ÖRK Logo" width="200" class="mb-2" height="54"/>
                   <h1>Tafel Admin</h1>
                 </div>
-                <div testid="errorMessage" *ngIf="errorMessage" class="alert alert-danger">
-                  <div>{{errorMessage}}</div>
-                </div>
+                @if (errorMessage) {
+                  <div testid="errorMessage" class="alert alert-danger">
+                    <div>{{errorMessage}}</div>
+                  </div>
+                }
                 <c-input-group class="mb-3">
                   <span cInputGroupText>
                     <svg cIcon name="cilUser"></svg>
                   </span>
                   <input formControlName="username" testid="username" name="username" type="text" class="form-control"
-                         placeholder="Benutzername" autocomplete="username" required tafelAutofocus>
+                    placeholder="Benutzername" autocomplete="username" required tafelAutofocus>
                 </c-input-group>
                 <c-input-group class="mb-4">
                   <span cInputGroupText>
                     <svg cIcon name="cilLockLocked"></svg>
                   </span>
                   <input formControlName="password" testid="password" name="password" type="password"
-                         class="form-control" placeholder="Passwort" autocomplete="current-password" required>
+                    class="form-control" placeholder="Passwort" autocomplete="current-password" required>
                 </c-input-group>
                 <button testid="loginButton" cButton class="px-4" type="submit" [disabled]="!form.valid">Anmelden</button>
               </form>

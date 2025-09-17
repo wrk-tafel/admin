@@ -1,8 +1,6 @@
 import {Component, forwardRef, Input} from '@angular/core';
 import {
   BgColorDirective,
-  ButtonCloseDirective,
-  ProgressBarComponent,
   ProgressComponent,
   TextColorDirective,
   ToastBodyComponent,
@@ -12,33 +10,17 @@ import {
 } from '@coreui/angular';
 
 @Component({
-  selector: 'tafel-toast',
-  templateUrl: 'tafel-toast.component.html',
-  imports: [
-    ToastComponent,
-    ToastHeaderComponent,
-    ToastBodyComponent,
-    BgColorDirective,
-    ProgressComponent,
-    ProgressBarComponent,
-    ButtonCloseDirective,
-    TextColorDirective,
-    ToastCloseDirective,
-    ProgressComponent,
-    ToastBodyComponent,
-    ToastHeaderComponent,
-    ProgressComponent,
-    ToastBodyComponent,
-    ToastHeaderComponent,
-    ProgressComponent,
-    ToastBodyComponent,
-    ProgressComponent,
-    ToastBodyComponent,
-    ToastHeaderComponent,
-    ProgressComponent,
-  ],
-  providers: [{ provide: ToastComponent, useExisting: forwardRef(() => TafelToastComponent) }],
-  standalone: true
+    selector: 'tafel-toast',
+    templateUrl: 'tafel-toast.component.html',
+    imports: [
+        ToastHeaderComponent,
+        ToastBodyComponent,
+        BgColorDirective,
+        ProgressComponent,
+        TextColorDirective,
+        ToastCloseDirective,
+    ],
+    providers: [{ provide: ToastComponent, useExisting: forwardRef(() => TafelToastComponent) }]
 })
 export class TafelToastComponent extends ToastComponent {
   @Input() bgColor: string;

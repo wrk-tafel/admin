@@ -1,8 +1,12 @@
-<div testid="lock-info-banner" *ngIf="customerData.locked" class="alert alert-danger">
-  <div><strong>Kunde ist gesperrt!</strong></div>
-  <div *ngIf="customerData.lockedBy">Gesperrt am {{customerData.lockedAt | date : 'dd.MM.yyyy HH:mm' }} von {{customerData.lockedBy}}</div>
-  <div><strong>Sperrgrund:</strong> {{customerData.lockReason}}</div>
-</div>
+@if (customerData.locked) {
+  <div testid="lock-info-banner" class="alert alert-danger">
+    <div><strong>Kunde ist gesperrt!</strong></div>
+    @if (customerData.lockedBy) {
+      <div>Gesperrt am {{customerData.lockedAt | date : 'dd.MM.yyyy HH:mm' }} von {{customerData.lockedBy}}</div>
+    }
+    <div><strong>Sperrgrund:</strong> {{customerData.lockReason}}</div>
+  </div>
+}
 <div class="d-flex flex-column-reverse flex-lg-column">
   <div class="d-flex flex-column flex-lg-row mt-3 mt-lg-0 mb-4 mb-lg-0">
     <c-dropdown variant="dropdown">
@@ -34,7 +38,7 @@
       variant="btn-group"
       class="mt-3 mt-lg-0 ms-lg-3">
       <button cButton color="danger" class="text-white" testid="editCustomerButton" (click)="editCustomer()"
-              [disabled]="!customerData || customerData.locked">Kunden bearbeiten
+        [disabled]="!customerData || customerData.locked">Kunden bearbeiten
       </button>
       <button testid="editCustomerToggleButton" color="danger" class="text-white" cButton cDropdownToggle split>
         <span class="visually-hidden">Toggle Dropdown</span>
@@ -106,237 +110,255 @@
                       <c-col testid="emailText">{{customerData?.email ? customerData?.email : '-'}}</c-col>
                     </c-row>
                     <hr>
-                    <c-row>
-                      <c-col class="fw-bold">Adresse</c-col>
-                      <c-col>
+                      <c-row>
+                        <c-col class="fw-bold">Adresse</c-col>
+                        <c-col>
+                          <c-row>
+                            <c-col testid="addressLine1Text">{{customerData?.address ? formatAddressLine1(customerData?.address) : ''}}</c-col>
+                          </c-row>
+                          <c-row>
+                            <c-col testid="addressLine2Text">{{customerData?.address ? formatAddressLine2(customerData?.address) : ''}}</c-col>
+                          </c-row>
+                        </c-col>
+                      </c-row>
+                      <hr>
                         <c-row>
-                          <c-col testid="addressLine1Text">{{customerData?.address ? formatAddressLine1(customerData?.address) : ''}}</c-col>
+                          <c-col class="fw-bold">Arbeitgeber</c-col>
+                          <c-col testid="employerText">{{customerData?.employer ? customerData?.employer : '-'}}</c-col>
                         </c-row>
-                        <c-row>
-                          <c-col testid="addressLine2Text">{{customerData?.address ? formatAddressLine2(customerData?.address) : ''}}</c-col>
+                        <c-row class="mt-2 align-items-end">
+                          <c-col class="fw-bold">Einkommen (monatlich)</c-col>
+                          <c-col testid="incomeText">{{!customerData?.income ? '-' : customerData?.income | currency}}</c-col>
                         </c-row>
-                      </c-col>
-                    </c-row>
-                    <hr>
-                    <c-row>
-                      <c-col class="fw-bold">Arbeitgeber</c-col>
-                      <c-col testid="employerText">{{customerData?.employer ? customerData?.employer : '-'}}</c-col>
-                    </c-row>
-                    <c-row class="mt-2 align-items-end">
-                      <c-col class="fw-bold">Einkommen (monatlich)</c-col>
-                      <c-col testid="incomeText">{{!customerData?.income ? '-' : customerData?.income | currency}}</c-col>
-                    </c-row>
-                    <c-row class="align-items-end">
-                      <c-col>nachgewiesen bis:</c-col>
-                      <c-col testid="incomeDueText">{{!customerData?.incomeDue ? '-' : customerData?.incomeDue | date : 'dd.MM.yyyy'}}</c-col>
-                    </c-row>
-                    <hr>
-                    <c-row>
-                      <c-col class="fw-bold">Angelegt</c-col>
-                      <c-col testid="issuedInformation">am {{customerData?.issuedAt | date : 'dd.MM.yyyy'}} {{formatIssuer(customerData?.issuer)}}</c-col>
-                    </c-row>
-                    <c-row>
-                      <c-col class="fw-bold text-white" [ngClass]="{'bg-success': customerData?.validUntil && isValid(), 'bg-danger': customerData?.validUntil && !isValid()}">
-                        Gültig bis:
-                      </c-col>
-                      <c-col testid="validUntilText" class="text-white" [ngClass]="{'bg-success': customerData?.validUntil && isValid(), 'bg-danger': customerData?.validUntil && !isValid()}">{{customerData?.validUntil | date : 'dd.MM.yyyy'}}</c-col>
-                    </c-row>
-                    <c-row>
-                      <c-col class="fw-bold" [ngClass]="{'bg-danger': customerData?.pendingCostContribution > 0, 'text-white': customerData?.pendingCostContribution > 0}">Unkostenbeitrag ausstehend:</c-col>
-                      <c-col testid="pendingCostContributionText" [ngClass]="{'bg-danger': customerData?.pendingCostContribution > 0, 'text-white': customerData?.pendingCostContribution > 0}">
-                        {{customerData?.pendingCostContribution | currency}}
-                      </c-col>
-                    </c-row>
-                  </c-card-body>
-                </c-card>
-              </c-col>
-              <div class="col-lg-6 col-sm-12 mt-4 mt-sm-0">
-                <c-card>
-                  <c-card-header>
-                    <c-row>
-                      <c-col class="align-self-center">
-                        <h5 class="m-0">Aktuellste Notiz</h5>
-                      </c-col>
-                      <c-col class="text-end">
-                        <button testid="addnote-button" cButton color="success" (click)="showAddNewNoteModal = true">
-                          <fa-icon [icon]="faPlus" inverse="true"></fa-icon>
-                        </button>
-                      </c-col>
-                    </c-row>
-                  </c-card-header>
-                  <c-card-body>
-                    <c-row>
-                      <c-col class="fw-bold" *ngIf="customerNotes?.length === 0">
-                        <h6 testid="nonotes-label">Keine Notiz vorhanden</h6>
-                      </c-col>
-                      <c-col *ngIf="customerNotes?.length !== 0">
-                        <c-row class="mb-2">
-                          <c-col class="fw-bold" testid="note-title">{{customerNotes[0].timestamp | date : 'dd.MM.yyyy HH:mm' }}&nbsp;{{customerNotes[0].author}}</c-col>
-                        </c-row>
-                        <c-row>
-                          <c-col testid="note-text" [innerHtml]="customerNotes[0].note"></c-col>
-                        </c-row>
-                      </c-col>
-                    </c-row>
-                  </c-card-body>
-                  <c-card-footer *ngIf="customerNotes.length > 1">
-                    <button testid="showall-notes-button" cButton (click)="showAllNotesModal = true">Alle Notizen anzeigen</button>
-                  </c-card-footer>
-                </c-card>
-              </div>
-            </c-row>
-          </c-tab-panel>
-          <c-tab-panel [itemKey]="1" role="tabpanel">
-            @if(customerData?.additionalPersons.length === 0) {
-              <c-row>
-                <c-col class="mt-3">
-                  <h6 testid="nopersons-label">Keine Personen vorhanden</h6>
-                </c-col>
-              </c-row>
-            }
-            @if (customerData?.additionalPersons.length > 0) {
-              <c-row class="mt-4 row-cols-sm-2 row-cols-1 row-gap-3">
-                @for(addPerson of customerData?.additionalPersons; track addPerson.id; let i = $index) {
-                  <c-col>
-                    <c-card>
-                      <c-card-body>
-                        <c-row>
-                          <c-col class="fw-bold" [attr.testid]="'addperson-' + i + '-lastnameText'">{{addPerson?.lastname}}</c-col>
-                          <c-col class="fw-bold" [attr.testid]="'addperson-' + i + '-firstnameText'">{{addPerson?.firstname}}</c-col>
-                        </c-row>
-                        <c-row>
-                          <c-col class="col-6" [attr.testid]="'addperson-' + i + '-birthDateAgeText'">{{getBirthDateAndAge(addPerson?.birthDate)}}</c-col>
-                          <c-col class="col-6" [attr.testid]="'addperson-' + i + '-genderText'">{{getGenderLabel(addPerson?.gender)}}</c-col>
-                        </c-row>
-                        <c-row>
-                          <c-col [attr.testid]="'addperson-' + i + '-countryText'">{{addPerson?.country.name}}</c-col>
+                        <c-row class="align-items-end">
+                          <c-col>nachgewiesen bis:</c-col>
+                          <c-col testid="incomeDueText">{{!customerData?.incomeDue ? '-' : customerData?.incomeDue | date : 'dd.MM.yyyy'}}</c-col>
                         </c-row>
                         <hr>
-                        <c-row class="mt-1">
-                          <c-col class="col-6">Arbeitgeber</c-col>
-                          <c-col class="col-6" [attr.testid]="'addperson-' + i + '-employerText'" *ngIf="addPerson?.employer !== null">{{addPerson?.employer}}</c-col>
-                          <c-col class="col-6" [attr.testid]="'addperson-' + i + '-employerText'" *ngIf="addPerson?.employer === null">-</c-col>
-                        </c-row>
-                        <c-row class="mt-1 align-items-end">
-                          <c-col class="col-6">Einkommen (monatl.)</c-col>
-                          <c-col class="col-6" [attr.testid]="'addperson-' + i + '-incomeText'" *ngIf="addPerson?.income">{{addPerson?.income | currency}}</c-col>
-                          <c-col class="col-6" [attr.testid]="'addperson-' + i + '-incomeText'" *ngIf="!addPerson?.income">-</c-col>
-                        </c-row>
-                        <c-row class="align-items-end">
-                          <c-col class="col-6">Einkommen nachgewiesen bis:</c-col>
-                          <c-col class="col-6 align-bottom" [attr.testid]="'addperson-' + i + '-incomeDueText'" *ngIf="addPerson?.incomeDue">{{addPerson?.incomeDue | date : 'dd.MM.yyyy'}}</c-col>
-                          <c-col class="col-6 align-bottom" [attr.testid]="'addperson-' + i + '-incomeDueText'" *ngIf="!addPerson?.incomeDue">-</c-col>
-                        </c-row>
-                        <c-row class="align-items-end">
-                          <c-col class="col-6">Bezieht Familienbeihilfe:</c-col>
-                          <c-col class="col-6 align-bottom" [attr.testid]="'addperson-' + i + '-receivesFamilyBonus'">{{addPerson?.receivesFamilyBonus === true ? 'Ja' : 'Nein'}}</c-col>
-                        </c-row>
-                        <c-row class="align-items-end">
-                          <c-col class="col-6">Im selben Haushalt:</c-col>
-                          <c-col class="col-6 align-bottom" [attr.testid]="'addperson-' + i + '-excludeFromHouseholdText'">{{addPerson?.excludeFromHousehold === true ? 'Nein' : 'Ja'}}</c-col>
-                        </c-row>
-                      </c-card-body>
-                    </c-card>
-                  </c-col>
-                }
-              </c-row>
-            }
-          </c-tab-panel>
-        </c-tabs-content>
-      </c-tabs>
-    </c-col>
-  </c-row>
-</div>
-<c-modal id="deleteCustomerModal" #deleteCustomerModal testid="deletecustomer-modal" [(visible)]="showDeleteCustomerModal">
-  <c-modal-header cBgColor="warning">
-    <h4 class="text-white">Kunden löschen</h4>
-    <button [cModalToggle]="deleteCustomerModal.id" cButtonClose></button>
-  </c-modal-header>
-  <c-modal-body>
-    <c-row class="mb-3">
-      <c-col>Der Kunde wird unwiderruflich gelöscht.</c-col>
-    </c-row>
-    <c-row class="mb-3">
-      <c-col>Sicher?</c-col>
-    </c-row>
-  </c-modal-body>
-  <c-modal-footer>
-    <button testid="okButton" cButton (click)="deleteCustomer()">Löschen
-    </button>
-    <button testid="cancelButton" cButton color="secondary" (click)="showDeleteCustomerModal = false">
-      Abbrechen
-    </button>
-  </c-modal-footer>
-</c-modal>
-<c-modal id="allNotesModal" #allNotesModal testid="showallnotes-modal" [(visible)]="showAllNotesModal" scrollable="true">
-  <c-modal-header cBgColor="info">
-    <h4 class="text-white">Alle Notizen</h4>
-    <button [cModalToggle]="allNotesModal.id" cButtonClose></button>
-  </c-modal-header>
-  <c-modal-body>
-    <tafel-pagination class="d-none d-sm-block" align="center" [paginationData]="customerNotesPaginationData" (pageChanged)="getCustomerNotes($event)"></tafel-pagination>
-    <tafel-pagination class="d-block d-sm-none" align="center" size="sm" [paginationData]="customerNotesPaginationData" (pageChanged)="getCustomerNotes($event)"></tafel-pagination>
-    @for(noteItem of customerNotes; track noteItem.timestamp; let i = $index) {
-      <c-row>
-        @if (customerNotes?.length !== 0) {
-          @if (i > 0) {
-            <hr>
-          }
-          <c-row class="mb-2">
-            <c-col class="fw-bold" testid="note-title">
-              {{noteItem.timestamp | date : 'dd.MM.yyyy HH:mm' }}&nbsp;{{noteItem.author}}
+                          <c-row>
+                            <c-col class="fw-bold">Angelegt</c-col>
+                            <c-col testid="issuedInformation">am {{customerData?.issuedAt | date : 'dd.MM.yyyy'}} {{formatIssuer(customerData?.issuer)}}</c-col>
+                          </c-row>
+                          <c-row>
+                            <c-col class="fw-bold text-white" [ngClass]="{'bg-success': customerData?.validUntil && isValid(), 'bg-danger': customerData?.validUntil && !isValid()}">
+                              Gültig bis:
+                            </c-col>
+                            <c-col testid="validUntilText" class="text-white" [ngClass]="{'bg-success': customerData?.validUntil && isValid(), 'bg-danger': customerData?.validUntil && !isValid()}">{{customerData?.validUntil | date : 'dd.MM.yyyy'}}</c-col>
+                          </c-row>
+                          <c-row>
+                            <c-col class="fw-bold" [ngClass]="{'bg-danger': customerData?.pendingCostContribution > 0, 'text-white': customerData?.pendingCostContribution > 0}">Unkostenbeitrag ausstehend:</c-col>
+                            <c-col testid="pendingCostContributionText" [ngClass]="{'bg-danger': customerData?.pendingCostContribution > 0, 'text-white': customerData?.pendingCostContribution > 0}">
+                              {{customerData?.pendingCostContribution | currency}}
+                            </c-col>
+                          </c-row>
+                        </c-card-body>
+                      </c-card>
+                    </c-col>
+                    <div class="col-lg-6 col-sm-12 mt-4 mt-sm-0">
+                      <c-card>
+                        <c-card-header>
+                          <c-row>
+                            <c-col class="align-self-center">
+                              <h5 class="m-0">Aktuellste Notiz</h5>
+                            </c-col>
+                            <c-col class="text-end">
+                              <button testid="addnote-button" cButton color="success" (click)="showAddNewNoteModal = true">
+                                <fa-icon [icon]="faPlus" inverse="true"></fa-icon>
+                              </button>
+                            </c-col>
+                          </c-row>
+                        </c-card-header>
+                        <c-card-body>
+                          <c-row>
+                            @if (customerNotes?.length === 0) {
+                              <c-col class="fw-bold">
+                                <h6 testid="nonotes-label">Keine Notiz vorhanden</h6>
+                              </c-col>
+                            }
+                            @if (customerNotes?.length !== 0) {
+                              <c-col>
+                                <c-row class="mb-2">
+                                  <c-col class="fw-bold" testid="note-title">{{customerNotes[0].timestamp | date : 'dd.MM.yyyy HH:mm' }}&nbsp;{{customerNotes[0].author}}</c-col>
+                                </c-row>
+                                <c-row>
+                                  <c-col testid="note-text" [innerHtml]="customerNotes[0].note"></c-col>
+                                </c-row>
+                              </c-col>
+                            }
+                          </c-row>
+                        </c-card-body>
+                        @if (customerNotes.length > 1) {
+                          <c-card-footer>
+                            <button testid="showall-notes-button" cButton (click)="showAllNotesModal = true">Alle Notizen anzeigen</button>
+                          </c-card-footer>
+                        }
+                      </c-card>
+                    </div>
+                  </c-row>
+                </c-tab-panel>
+                <c-tab-panel [itemKey]="1" role="tabpanel">
+                  @if(customerData?.additionalPersons.length === 0) {
+                    <c-row>
+                      <c-col class="mt-3">
+                        <h6 testid="nopersons-label">Keine Personen vorhanden</h6>
+                      </c-col>
+                    </c-row>
+                  }
+                  @if (customerData?.additionalPersons.length > 0) {
+                    <c-row class="mt-4 row-cols-sm-2 row-cols-1 row-gap-3">
+                      @for(addPerson of customerData?.additionalPersons; track addPerson.id; let i = $index) {
+                        <c-col>
+                          <c-card>
+                            <c-card-body>
+                              <c-row>
+                                <c-col class="fw-bold" [attr.testid]="'addperson-' + i + '-lastnameText'">{{addPerson?.lastname}}</c-col>
+                                <c-col class="fw-bold" [attr.testid]="'addperson-' + i + '-firstnameText'">{{addPerson?.firstname}}</c-col>
+                              </c-row>
+                              <c-row>
+                                <c-col class="col-6" [attr.testid]="'addperson-' + i + '-birthDateAgeText'">{{getBirthDateAndAge(addPerson?.birthDate)}}</c-col>
+                                <c-col class="col-6" [attr.testid]="'addperson-' + i + '-genderText'">{{getGenderLabel(addPerson?.gender)}}</c-col>
+                              </c-row>
+                              <c-row>
+                                <c-col [attr.testid]="'addperson-' + i + '-countryText'">{{addPerson?.country.name}}</c-col>
+                              </c-row>
+                              <hr>
+                                <c-row class="mt-1">
+                                  <c-col class="col-6">Arbeitgeber</c-col>
+                                  @if (addPerson?.employer !== null) {
+                                    <c-col class="col-6" [attr.testid]="'addperson-' + i + '-employerText'">{{addPerson?.employer}}</c-col>
+                                  }
+                                  @if (addPerson?.employer === null) {
+                                    <c-col class="col-6" [attr.testid]="'addperson-' + i + '-employerText'">-</c-col>
+                                  }
+                                </c-row>
+                                <c-row class="mt-1 align-items-end">
+                                  <c-col class="col-6">Einkommen (monatl.)</c-col>
+                                  @if (addPerson?.income) {
+                                    <c-col class="col-6" [attr.testid]="'addperson-' + i + '-incomeText'">{{addPerson?.income | currency}}</c-col>
+                                  }
+                                  @if (!addPerson?.income) {
+                                    <c-col class="col-6" [attr.testid]="'addperson-' + i + '-incomeText'">-</c-col>
+                                  }
+                                </c-row>
+                                <c-row class="align-items-end">
+                                  <c-col class="col-6">Einkommen nachgewiesen bis:</c-col>
+                                  @if (addPerson?.incomeDue) {
+                                    <c-col class="col-6 align-bottom" [attr.testid]="'addperson-' + i + '-incomeDueText'">{{addPerson?.incomeDue | date : 'dd.MM.yyyy'}}</c-col>
+                                  }
+                                  @if (!addPerson?.incomeDue) {
+                                    <c-col class="col-6 align-bottom" [attr.testid]="'addperson-' + i + '-incomeDueText'">-</c-col>
+                                  }
+                                </c-row>
+                                <c-row class="align-items-end">
+                                  <c-col class="col-6">Bezieht Familienbeihilfe:</c-col>
+                                  <c-col class="col-6 align-bottom" [attr.testid]="'addperson-' + i + '-receivesFamilyBonus'">{{addPerson?.receivesFamilyBonus === true ? 'Ja' : 'Nein'}}</c-col>
+                                </c-row>
+                                <c-row class="align-items-end">
+                                  <c-col class="col-6">Im selben Haushalt:</c-col>
+                                  <c-col class="col-6 align-bottom" [attr.testid]="'addperson-' + i + '-excludeFromHouseholdText'">{{addPerson?.excludeFromHousehold === true ? 'Nein' : 'Ja'}}</c-col>
+                                </c-row>
+                              </c-card-body>
+                            </c-card>
+                          </c-col>
+                        }
+                      </c-row>
+                    }
+                  </c-tab-panel>
+                </c-tabs-content>
+              </c-tabs>
             </c-col>
           </c-row>
-          <c-row class="mb-2">
-            <c-col>{{noteItem.note}}</c-col>
-          </c-row>
-        }
-      </c-row>
-    }
-    <tafel-pagination class="d-none d-sm-block mt-4" align="center" [paginationData]="customerNotesPaginationData" (pageChanged)="getCustomerNotes($event)"></tafel-pagination>
-    <tafel-pagination class="d-block d-sm-none mt-4" align="center" size="sm" [paginationData]="customerNotesPaginationData" (pageChanged)="getCustomerNotes($event)"></tafel-pagination>
-  </c-modal-body>
-  <c-modal-footer>
-    <button testid="cancelButton" cButton (click)="showAllNotesModal = false">
-      OK
-    </button>
-  </c-modal-footer>
-</c-modal>
-<c-modal id="addNewNoteModal" #addNewNoteModal testid="addnew-note-modal" [(visible)]="showAddNewNoteModal">
-  <c-modal-header cBgColor="info">
-    <h4 class="text-white">Neue Notiz hinzufügen</h4>
-    <button [cModalToggle]="addNewNoteModal.id" (click)="newNoteText = undefined" cButtonClose></button>
-  </c-modal-header>
-  <c-modal-body>
-    <textarea id="textarea-input" name="textarea-input" rows="9" class="form-control"
+        </div>
+        <c-modal id="deleteCustomerModal" #deleteCustomerModal testid="deletecustomer-modal" [(visible)]="showDeleteCustomerModal">
+          <c-modal-header cBgColor="warning">
+            <h4 class="text-white">Kunden löschen</h4>
+            <button [cModalToggle]="deleteCustomerModal.id" cButtonClose></button>
+          </c-modal-header>
+          <c-modal-body>
+            <c-row class="mb-3">
+              <c-col>Der Kunde wird unwiderruflich gelöscht.</c-col>
+            </c-row>
+            <c-row class="mb-3">
+              <c-col>Sicher?</c-col>
+            </c-row>
+          </c-modal-body>
+          <c-modal-footer>
+            <button testid="okButton" cButton (click)="deleteCustomer()">Löschen
+            </button>
+            <button testid="cancelButton" cButton color="secondary" (click)="showDeleteCustomerModal = false">
+              Abbrechen
+            </button>
+          </c-modal-footer>
+        </c-modal>
+        <c-modal id="allNotesModal" #allNotesModal testid="showallnotes-modal" [(visible)]="showAllNotesModal" scrollable="true">
+          <c-modal-header cBgColor="info">
+            <h4 class="text-white">Alle Notizen</h4>
+            <button [cModalToggle]="allNotesModal.id" cButtonClose></button>
+          </c-modal-header>
+          <c-modal-body>
+            <tafel-pagination class="d-none d-sm-block" align="center" [paginationData]="customerNotesPaginationData" (pageChanged)="getCustomerNotes($event)"></tafel-pagination>
+            <tafel-pagination class="d-block d-sm-none" align="center" size="sm" [paginationData]="customerNotesPaginationData" (pageChanged)="getCustomerNotes($event)"></tafel-pagination>
+            @for(noteItem of customerNotes; track noteItem.timestamp; let i = $index) {
+              <c-row>
+                @if (customerNotes?.length !== 0) {
+                  @if (i > 0) {
+                    <hr>
+                    }
+                    <c-row class="mb-2">
+                      <c-col class="fw-bold" testid="note-title">
+                        {{noteItem.timestamp | date : 'dd.MM.yyyy HH:mm' }}&nbsp;{{noteItem.author}}
+                      </c-col>
+                    </c-row>
+                    <c-row class="mb-2">
+                      <c-col>{{noteItem.note}}</c-col>
+                    </c-row>
+                  }
+                </c-row>
+              }
+              <tafel-pagination class="d-none d-sm-block mt-4" align="center" [paginationData]="customerNotesPaginationData" (pageChanged)="getCustomerNotes($event)"></tafel-pagination>
+              <tafel-pagination class="d-block d-sm-none mt-4" align="center" size="sm" [paginationData]="customerNotesPaginationData" (pageChanged)="getCustomerNotes($event)"></tafel-pagination>
+            </c-modal-body>
+            <c-modal-footer>
+              <button testid="cancelButton" cButton (click)="showAllNotesModal = false">
+                OK
+              </button>
+            </c-modal-footer>
+          </c-modal>
+          <c-modal id="addNewNoteModal" #addNewNoteModal testid="addnew-note-modal" [(visible)]="showAddNewNoteModal">
+            <c-modal-header cBgColor="info">
+              <h4 class="text-white">Neue Notiz hinzufügen</h4>
+              <button [cModalToggle]="addNewNoteModal.id" (click)="newNoteText = undefined" cButtonClose></button>
+            </c-modal-header>
+            <c-modal-body>
+              <textarea id="textarea-input" name="textarea-input" rows="9" class="form-control"
               [(ngModel)]="newNoteText"></textarea>
-  </c-modal-body>
-  <c-modal-footer>
-    <button testid="okButton" cButton (click)="addNewNote()"
-            [disabled]="!newNoteText || newNoteText.trim().length === 0">Speichern
-    </button>
-    <button testid="cancelButton" cButton color="secondary"
-            (click)="newNoteText = undefined; showAddNewNoteModal = false;">
-      Abbrechen
-    </button>
-  </c-modal-footer>
-</c-modal>
-<c-modal id="lockCustomerModal" #lockCustomerModal testid="lock-customer-modal" [(visible)]="showLockCustomerModal">
-  <c-modal-header cBgColor="info">
-    <h4 class="text-white">Kunden sperren</h4>
-    <button [cModalToggle]="lockCustomerModal.id" (click)="lockReasonText = undefined" cButtonClose></button>
-  </c-modal-header>
-  <c-modal-body>
-    <div class="fw-bold">Sperrgrund:</div>
-    <textarea testid="lockreason-input-text" id="textarea-input" name="textarea-input" rows="9" class="form-control"
+            </c-modal-body>
+            <c-modal-footer>
+              <button testid="okButton" cButton (click)="addNewNote()"
+                [disabled]="!newNoteText || newNoteText.trim().length === 0">Speichern
+              </button>
+              <button testid="cancelButton" cButton color="secondary"
+                (click)="newNoteText = undefined; showAddNewNoteModal = false;">
+                Abbrechen
+              </button>
+            </c-modal-footer>
+          </c-modal>
+          <c-modal id="lockCustomerModal" #lockCustomerModal testid="lock-customer-modal" [(visible)]="showLockCustomerModal">
+            <c-modal-header cBgColor="info">
+              <h4 class="text-white">Kunden sperren</h4>
+              <button [cModalToggle]="lockCustomerModal.id" (click)="lockReasonText = undefined" cButtonClose></button>
+            </c-modal-header>
+            <c-modal-body>
+              <div class="fw-bold">Sperrgrund:</div>
+              <textarea testid="lockreason-input-text" id="textarea-input" name="textarea-input" rows="9" class="form-control"
               [(ngModel)]="lockReasonText"></textarea>
-  </c-modal-body>
-  <c-modal-footer>
-    <button testid="okButton" cButton (click)="lockCustomer()"
-            [disabled]="!lockReasonText || lockReasonText.trim().length === 0">Speichern
-    </button>
-    <button testid="cancelButton" cButton color="secondary" (click)="lockReasonText = undefined; showLockCustomerModal = false;">
-      Abbrechen
-    </button>
-  </c-modal-footer>
-</c-modal>
+            </c-modal-body>
+            <c-modal-footer>
+              <button testid="okButton" cButton (click)="lockCustomer()"
+                [disabled]="!lockReasonText || lockReasonText.trim().length === 0">Speichern
+              </button>
+              <button testid="cancelButton" cButton color="secondary" (click)="lockReasonText = undefined; showLockCustomerModal = false;">
+                Abbrechen
+              </button>
+            </c-modal-footer>
+          </c-modal>

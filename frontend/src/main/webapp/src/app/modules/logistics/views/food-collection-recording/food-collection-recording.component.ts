@@ -1,6 +1,6 @@
 import {Component, inject, model, OnInit} from '@angular/core';
 import {RouteApiService, RouteData, RouteList, Shop} from '../../../../api/route-api.service';
-import {CommonModule} from '@angular/common';
+
 import {
   CardBodyComponent,
   CardComponent,
@@ -37,10 +37,9 @@ import {ToastService, ToastType} from '../../../../common/components/toasts/toas
 import {forkJoin} from 'rxjs';
 
 @Component({
-  selector: 'tafel-food-collection-recording',
-  templateUrl: 'food-collection-recording.component.html',
-  imports: [
-    CommonModule,
+    selector: 'tafel-food-collection-recording',
+    templateUrl: 'food-collection-recording.component.html',
+    imports: [
     CardComponent,
     CardBodyComponent,
     CardHeaderComponent,
@@ -59,9 +58,8 @@ import {forkJoin} from 'rxjs';
     InputGroupTextDirective,
     FoodCollectionRecordingBasedataComponent,
     FoodCollectionRecordingItemsDesktopComponent,
-    FoodCollectionRecordingItemsResponsiveComponent,
-  ],
-  standalone: true
+    FoodCollectionRecordingItemsResponsiveComponent
+]
 })
 export class FoodCollectionRecordingComponent implements OnInit {
   routeList = model.required<RouteList>();

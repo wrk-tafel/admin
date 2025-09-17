@@ -1,4 +1,4 @@
-import {Component, effect, inject, input, model, NgZone, ViewChild} from '@angular/core';
+import {ChangeDetectorRef, Component, effect, inject, input, model, ViewChild} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {
   ButtonDirective,
@@ -20,7 +20,6 @@ import {
 } from '../../../../api/food-collections-api.service';
 import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
 import {CarData, CarList} from '../../../../api/car-api.service';
-import {take} from 'rxjs';
 import {SelectedRouteData} from '../food-collection-recording/food-collection-recording.component';
 
 @Component({
@@ -38,8 +37,7 @@ import {SelectedRouteData} from '../food-collection-recording/food-collection-re
     FaIconComponent,
     InputGroupTextDirective,
     TafelEmployeeSearchCreateComponent
-  ],
-  standalone: true
+  ]
 })
 export class FoodCollectionRecordingBasedataComponent {
   @ViewChild('driverEmployeeSearchCreate') driverEmployeeSearchCreate: TafelEmployeeSearchCreateComponent
@@ -51,7 +49,7 @@ export class FoodCollectionRecordingBasedataComponent {
   private readonly foodCollectionsApiService = inject(FoodCollectionsApiService);
   private readonly fb = inject(FormBuilder);
   private readonly toastService = inject(ToastService);
-  private readonly ngZone = inject(NgZone);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   selectedDriver: EmployeeData;
   selectedCoDriver: EmployeeData;
@@ -97,15 +95,13 @@ export class FoodCollectionRecordingBasedataComponent {
 
       if (foodCollectionData.driver) {
         this.driverSearchInput.setValue(foodCollectionData.driver.personnelNumber);
-        this.ngZone.onStable.pipe(take(1)).subscribe(() => {
-          this.driverEmployeeSearchCreate.triggerSearch();
-        });
+        this.cdr.detectChanges();
+        this.driverEmployeeSearchCreate.triggerSearch();
       }
       if (foodCollectionData.coDriver) {
         this.coDriverSearchInput.setValue(foodCollectionData.coDriver.personnelNumber);
-        this.ngZone.onStable.pipe(take(1)).subscribe(() => {
-          this.coDriverEmployeeSearchCreate.triggerSearch();
-        });
+        this.cdr.detectChanges();
+        this.coDriverEmployeeSearchCreate.triggerSearch();
       }
 
       this.kmStart.setValue(foodCollectionData.kmStart);

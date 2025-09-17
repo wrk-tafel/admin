@@ -26,27 +26,26 @@ import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
 
 @Component({
-  selector: 'tafel-customer-search',
-  templateUrl: 'customer-search.component.html',
-  imports: [
-    ReactiveFormsModule,
-    CardComponent,
-    CardBodyComponent,
-    RowComponent,
-    ColComponent,
-    InputGroupComponent,
-    TafelPaginationComponent,
-    CardHeaderComponent,
-    CardFooterComponent,
-    FormDirective,
-    FormCheckInputDirective,
-    TableDirective,
-    ButtonDirective,
-    CommonModule,
-    FaIconComponent,
-    TafelAutofocusDirective
-  ],
-  standalone: true
+    selector: 'tafel-customer-search',
+    templateUrl: 'customer-search.component.html',
+    imports: [
+        ReactiveFormsModule,
+        CardComponent,
+        CardBodyComponent,
+        RowComponent,
+        ColComponent,
+        InputGroupComponent,
+        TafelPaginationComponent,
+        CardHeaderComponent,
+        CardFooterComponent,
+        FormDirective,
+        FormCheckInputDirective,
+        TableDirective,
+        ButtonDirective,
+        CommonModule,
+        FaIconComponent,
+        TafelAutofocusDirective
+    ]
 })
 export class CustomerSearchComponent {
   private readonly customerApiService = inject(CustomerApiService);

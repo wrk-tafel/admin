@@ -5,19 +5,18 @@ import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {faMinus, faPlus} from '@fortawesome/free-solid-svg-icons';
 
 @Component({
-  selector: 'tafel-counter-input',
-  templateUrl: 'tafel-counter-input.component.html',
-  imports: [
-    FormModule,
-    ReactiveFormsModule,
-    FormControlDirective,
-    RowComponent,
-    ColComponent,
-    ButtonDirective,
-    FaIconComponent,
-    FormsModule
-  ],
-  standalone: true
+    selector: 'tafel-counter-input',
+    templateUrl: 'tafel-counter-input.component.html',
+    imports: [
+        FormModule,
+        ReactiveFormsModule,
+        FormControlDirective,
+        RowComponent,
+        ColComponent,
+        ButtonDirective,
+        FaIconComponent,
+        FormsModule
+    ]
 })
 export class TafelCounterInputComponent {
   testId = input.required<string>();

@@ -11,25 +11,23 @@ import {
   RowComponent
 } from '@coreui/angular';
 import {FormsModule} from '@angular/forms';
-import {CommonModule} from '@angular/common';
+
 import {ScannerApiService, ScannerRegistration} from '../../../../api/scanner-api.service';
 import {firstValueFrom} from 'rxjs';
 import {tap} from 'rxjs/operators';
 
 @Component({
-  selector: 'tafel-scanner',
-  templateUrl: 'scanner.component.html',
-  imports: [
+    selector: 'tafel-scanner',
+    templateUrl: 'scanner.component.html',
+    imports: [
     RowComponent,
     ColComponent,
     CardComponent,
     CardBodyComponent,
     BadgeComponent,
     FormsModule,
-    FormSelectDirective,
-    CommonModule
-  ],
-  standalone: true
+    FormSelectDirective
+]
 })
 export class ScannerComponent implements OnInit, OnDestroy {
   private readonly qrCodeReaderService = inject(QRCodeReaderService);

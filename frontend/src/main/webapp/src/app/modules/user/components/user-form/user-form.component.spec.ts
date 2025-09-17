@@ -1,10 +1,11 @@
-import {TestBed, waitForAsync} from '@angular/core/testing';
+import {TestBed} from '@angular/core/testing';
 import {passwordRepeatValidator, UserFormComponent, UserPermissionFormItem} from './user-form.component';
 import {FormControl, FormGroup, ReactiveFormsModule} from '@angular/forms';
 import {CardModule, ColComponent, InputGroupComponent, RowComponent} from '@coreui/angular';
 import {UserApiService, UserData, UserPermission} from '../../../../api/user-api.service';
 import {of, throwError} from 'rxjs';
 import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
+import {provideZonelessChangeDetection} from "@angular/core";
 
 describe('UserFormComponent', () => {
   const mockPermissions: UserPermission[] = [
@@ -26,7 +27,7 @@ describe('UserFormComponent', () => {
   let userApiService: jasmine.SpyObj<UserApiService>;
   let toastService: jasmine.SpyObj<ToastService>;
 
-  beforeEach(waitForAsync(() => {
+  beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [
         ReactiveFormsModule,
@@ -36,6 +37,7 @@ describe('UserFormComponent', () => {
         ColComponent
       ],
       providers: [
+        provideZonelessChangeDetection(),
         {
           provide: UserApiService,
           useValue: jasmine.createSpyObj('UserApiService', ['generatePassword'])
@@ -49,15 +51,15 @@ describe('UserFormComponent', () => {
 
     userApiService = TestBed.inject(UserApiService) as jasmine.SpyObj<UserApiService>;
     toastService = TestBed.inject(ToastService) as jasmine.SpyObj<ToastService>;
-  }));
+  });
 
-  it('should create the component', waitForAsync(() => {
+  it('should create the component', () => {
     const fixture = TestBed.createComponent(UserFormComponent);
     const component = fixture.componentInstance;
     expect(component).toBeTruthy();
-  }));
+  });
 
-  it('data filling works', waitForAsync(() => {
+  it('data filling works', async () => {
     const fixture = TestBed.createComponent(UserFormComponent);
     const component = fixture.componentInstance;
 
@@ -66,11 +68,11 @@ describe('UserFormComponent', () => {
     component.permissionsData = mockPermissions;
     component.ngOnInit();
 
-    fixture.detectChanges();
+    await fixture.whenStable();
 
     // TODO check dom elements - makes more sense
     /*
-    fixture.detectChanges();
+    await fixture.whenStable();
 
     fixture.whenStable().then(() => {
       expect(fixture.debugElement.query(By.css('[testid="idInput"]')).nativeElement.value).toBe(testData.id);
@@ -94,9 +96,9 @@ describe('UserFormComponent', () => {
     expect(component.permissions.controls.length).toBe(2);
     expect(component.permissions.controls[0].value).toEqual({...mockPermissions[0], enabled: true});
     expect(component.permissions.controls[1].value).toEqual({...mockPermissions[1], enabled: true});
-  }));
+  });
 
-  it('data update works', waitForAsync(() => {
+  it('data update works', async () => {
     const fixture = TestBed.createComponent(UserFormComponent);
     const component = fixture.componentInstance;
 
@@ -120,7 +122,7 @@ describe('UserFormComponent', () => {
     component.passwordChangeRequired.setValue(updatedPasswordChangeRequired);
     component.permissions.clear();
 
-    fixture.detectChanges();
+    await fixture.whenStable();
 
     expect(component.userDataChange.emit).toHaveBeenCalledWith(jasmine.objectContaining({
       personnelNumber: updatedPersonnelNumber,
@@ -131,9 +133,9 @@ describe('UserFormComponent', () => {
       passwordChangeRequired: updatedPasswordChangeRequired,
       permissions: []
     }));
-  }));
+  });
 
-  it('password-repeat validator passwords different', waitForAsync(() => {
+  it('password-repeat validator passwords different', () => {
     const passwordControl = new FormControl();
     passwordControl.setValue('pwd');
     const passwordRepeatControl = new FormControl();
@@ -146,9 +148,9 @@ describe('UserFormComponent', () => {
 
     const result = passwordRepeatValidator(formGroup);
     expect(result['passwordRepeatInvalid']).toBeTrue();
-  }));
+  });
 
-  it('password-repeat validator passwords same', waitForAsync(() => {
+  it('password-repeat validator passwords same', () => {
     const passwordControl = new FormControl();
     passwordControl.setValue('pwd');
     const passwordRepeatControl = new FormControl();
@@ -161,9 +163,9 @@ describe('UserFormComponent', () => {
 
     const result = passwordRepeatValidator(formGroup);
     expect(result).toBeNull();
-  }));
+  });
 
-  it('generate password', waitForAsync(() => {
+  it('generate password', () => {
     const fixture = TestBed.createComponent(UserFormComponent);
     const component = fixture.componentInstance;
     component.passwordTextVisible = false;
@@ -178,9 +180,9 @@ describe('UserFormComponent', () => {
     expect(component.passwordRepeat.value).toEqual(generatedPassword);
     expect(component.passwordTextVisible).toBeTrue();
     expect(component.passwordRepeatTextVisible).toBeTrue();
-  }));
+  });
 
-  it('generate password failed', waitForAsync(() => {
+  it('generate password failed', () => {
     const fixture = TestBed.createComponent(UserFormComponent);
     const component = fixture.componentInstance;
     component.passwordTextVisible = false;
@@ -199,6 +201,6 @@ describe('UserFormComponent', () => {
       title: 'Fehler',
       message: 'Passwort-Generierung fehlgeschlagen!'
     });
-  }));
+  });
 
 });

@@ -3,6 +3,7 @@ import {TestBed} from '@angular/core/testing';
 import {ReactiveFormsModule} from '@angular/forms';
 import {provideHttpClient} from '@angular/common/http';
 import {CarApiService} from './car-api.service';
+import {provideZonelessChangeDetection} from "@angular/core";
 
 describe('CarApiService', () => {
   let httpMock: HttpTestingController;
@@ -12,6 +13,7 @@ describe('CarApiService', () => {
     TestBed.configureTestingModule({
       imports: [ReactiveFormsModule],
       providers: [
+        provideZonelessChangeDetection(),
         provideHttpClient(),
         provideHttpClientTesting(),
         CarApiService

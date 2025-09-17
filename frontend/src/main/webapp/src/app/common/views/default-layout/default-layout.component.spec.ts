@@ -1,4 +1,4 @@
-import {TestBed, waitForAsync} from '@angular/core/testing';
+import {TestBed} from '@angular/core/testing';
 import {DefaultLayoutComponent} from './default-layout.component';
 import {AuthenticationService} from '../../security/authentication.service';
 import {ContainerComponent, HeaderNavComponent, SidebarModule} from '@coreui/angular';
@@ -7,13 +7,14 @@ import {DistributionItem} from '../../../api/distribution-api.service';
 import {BehaviorSubject} from 'rxjs';
 import {provideLocationMocks} from '@angular/common/testing';
 import {provideRouter} from '@angular/router';
+import {provideZonelessChangeDetection} from "@angular/core";
 
 describe('DefaultLayoutComponent', () => {
   let authService: jasmine.SpyObj<AuthenticationService>;
   /* eslint-disable @typescript-eslint/no-unused-vars */
   let globalStateService: jasmine.SpyObj<GlobalStateService>;
 
-  beforeEach(waitForAsync(() => {
+  beforeEach(() => {
     const authServiceSpy = jasmine.createSpyObj('AuthenticationService', ['hasPermission', 'hasAnyPermission']);
     const globalStateServiceSpy = jasmine.createSpyObj('GlobalStateService', ['getCurrentDistribution']);
 
@@ -24,6 +25,7 @@ describe('DefaultLayoutComponent', () => {
         HeaderNavComponent
       ],
       providers: [
+        provideZonelessChangeDetection(),
         provideRouter([]),
         provideLocationMocks(),
         {
@@ -41,16 +43,16 @@ describe('DefaultLayoutComponent', () => {
     globalStateService = TestBed.inject(GlobalStateService) as jasmine.SpyObj<GlobalStateService>;
 
     globalStateService.getCurrentDistribution.and.returnValue(new BehaviorSubject<DistributionItem>(null));
-  }));
+  });
 
-  it('should create the component', waitForAsync(() => {
+  it('should create the component', () => {
     authService.hasAnyPermission.and.returnValue(false);
 
     const fixture = TestBed.createComponent(DefaultLayoutComponent);
     const component = fixture.componentInstance;
 
     expect(component).toBeTruthy();
-  }));
+  });
 
   it('navItems are filtered by permissions - permissions undefined', () => {
     const fixture = TestBed.createComponent(DefaultLayoutComponent);
@@ -140,7 +142,7 @@ describe('DefaultLayoutComponent', () => {
     expect(filteredItems).toEqual(testMenuItems);
   });
 
-  it('navItems are filtered by permissions - permission partially given', waitForAsync(() => {
+  it('navItems are filtered by permissions - permission partially given', () => {
     authService.hasPermission.and.returnValue(false);
     authService.hasPermission.withArgs('PERM1').and.returnValue(false);
     authService.hasPermission.withArgs('PERM2').and.returnValue(true);
@@ -161,9 +163,9 @@ describe('DefaultLayoutComponent', () => {
     const filteredItems = component.filterNavItemsByPermissions(testMenuItems);
 
     expect(filteredItems).toEqual([testMenuItem2]);
-  }));
+  });
 
-  it('navItems - empty titles removed', waitForAsync(() => {
+  it('navItems - empty titles removed', () => {
     const testMenuItem1 = {
       name: 'Test1'
     };
@@ -197,7 +199,7 @@ describe('DefaultLayoutComponent', () => {
     const filteredItems = component.filterEmptyTitleItems(testMenuItems);
 
     expect(filteredItems).toEqual([testMenuItem1, testMenuItem2, testMenuItem3, testMenuItem5, testMenuItem6]);
-  }));
+  });
 
   it('navItems are modified by distribution state when inactive', () => {
     const testMenuItem1 = {

@@ -1,19 +1,21 @@
-import {TestBed, waitForAsync} from '@angular/core/testing';
+import {TestBed} from '@angular/core/testing';
 import {CommonModule} from '@angular/common';
 import {ScannerComponent} from './scanner.component';
 import {CameraDevice} from 'html5-qrcode/esm/camera/core';
 import {QRCodeReaderService} from '../../services/qrcode-reader/qrcode-reader.service';
 import {ScannerApiService, ScannerRegistration} from '../../../../api/scanner-api.service';
 import {EMPTY, of} from 'rxjs';
+import {provideZonelessChangeDetection} from "@angular/core";
 
 describe('ScannerComponent', () => {
   let scannerApiService: jasmine.SpyObj<ScannerApiService>;
   let qrCodeReaderService: jasmine.SpyObj<QRCodeReaderService>;
 
-  beforeEach(waitForAsync(() => {
+  beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [CommonModule],
       providers: [
+        provideZonelessChangeDetection(),
         {
           provide: ScannerApiService,
           useValue: jasmine.createSpyObj('ScannerApiService', ['registerScanner', 'sendScanResult'])
@@ -27,15 +29,15 @@ describe('ScannerComponent', () => {
 
     scannerApiService = TestBed.inject(ScannerApiService) as jasmine.SpyObj<ScannerApiService>;
     qrCodeReaderService = TestBed.inject(QRCodeReaderService) as jasmine.SpyObj<QRCodeReaderService>;
-  }));
+  });
 
-  it('component can be created', waitForAsync(async () => {
+  it('component can be created', async () => {
     const fixture = TestBed.createComponent(ScannerComponent);
     const component = fixture.componentInstance;
     expect(component).toBeTruthy();
-  }));
+  });
 
-  it('ngOnInit', waitForAsync(async () => {
+  it('ngOnInit', async () => {
     const fixture = TestBed.createComponent(ScannerComponent);
     const component = fixture.componentInstance;
 
@@ -59,9 +61,9 @@ describe('ScannerComponent', () => {
     expect(qrCodeReaderService.getCurrentCamera).toHaveBeenCalled();
     expect(qrCodeReaderService.start).toHaveBeenCalled();
     expect(scannerApiService.registerScanner).toHaveBeenCalled();
-  }));
+  });
 
-  it('ngOnDestroy stops qrCodeReader', waitForAsync(async () => {
+  it('ngOnDestroy stops qrCodeReader', async () => {
     qrCodeReaderService.stop.and.returnValue(Promise.resolve(null));
 
     const fixture = TestBed.createComponent(ScannerComponent);
@@ -70,9 +72,9 @@ describe('ScannerComponent', () => {
     await component.ngOnDestroy();
 
     expect(qrCodeReaderService.stop).toHaveBeenCalled();
-  }));
+  });
 
-  it('processQrCodeReaderPromise fills state when successful', waitForAsync(async () => {
+  it('processQrCodeReaderPromise fills state when successful', async () => {
     const fixture = TestBed.createComponent(ScannerComponent);
     const component = fixture.componentInstance;
     component.ready.set(false);
@@ -80,9 +82,9 @@ describe('ScannerComponent', () => {
     await component.processQrCodeReaderPromise(Promise.resolve(null));
 
     expect(component.ready()).toBe(true);
-  }));
+  });
 
-  it('processQrCodeReaderPromise fills state when failed', waitForAsync(async () => {
+  it('processQrCodeReaderPromise fills state when failed', async () => {
     const fixture = TestBed.createComponent(ScannerComponent);
     const component = fixture.componentInstance;
     component.ready.set(true);
@@ -90,7 +92,7 @@ describe('ScannerComponent', () => {
     await component.processQrCodeReaderPromise(Promise.reject());
 
     expect(component.ready()).toBe(false);
-  }));
+  });
 
   it('qrCodeReaderSuccessCallback and received the same text', () => {
     const fixture = TestBed.createComponent(ScannerComponent);
@@ -121,7 +123,7 @@ describe('ScannerComponent', () => {
     expect(component.lastScanResult).toBe(testValue);
   }));
 
-  it('qrCodeReaderSuccessCallback and received a different text', waitForAsync(async () => {
+  it('qrCodeReaderSuccessCallback and received a different text', async () => {
     const fixture = TestBed.createComponent(ScannerComponent);
     const component = fixture.componentInstance;
     const scannerId = 111;
@@ -135,9 +137,9 @@ describe('ScannerComponent', () => {
 
     expect(scannerApiService.sendScanResult).toHaveBeenCalledWith(scannerId, testResult);
     expect(component.lastScanResult).toBe(testResult);
-  }));
+  });
 
-  it('setSelectedCamera', waitForAsync(async () => {
+  it('setSelectedCamera', async () => {
     const fixture = TestBed.createComponent(ScannerComponent);
     const component = fixture.componentInstance;
     qrCodeReaderService.restart.and.returnValue(Promise.resolve(null));
@@ -149,6 +151,6 @@ describe('ScannerComponent', () => {
     expect(component.currentCamera).toEqual(testCamera);
     expect(qrCodeReaderService.saveCurrentCamera).toHaveBeenCalledWith(testCamera);
     expect(qrCodeReaderService.restart).toHaveBeenCalledWith(testCamera.id);
-  }));
+  });
 
 });

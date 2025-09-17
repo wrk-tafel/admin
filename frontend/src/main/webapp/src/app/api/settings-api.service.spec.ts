@@ -3,6 +3,7 @@ import {TestBed} from '@angular/core/testing';
 import {UserApiService} from './user-api.service';
 import {provideHttpClient} from '@angular/common/http';
 import {MailRecipients, MailTypeEnum, RecipientTypeEnum, SettingsApiService} from './settings-api.service';
+import {provideZonelessChangeDetection} from "@angular/core";
 
 describe('SettingsApiService', () => {
   let httpMock: HttpTestingController;
@@ -11,6 +12,7 @@ describe('SettingsApiService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
+        provideZonelessChangeDetection(),
         provideHttpClient(),
         provideHttpClientTesting(),
         UserApiService

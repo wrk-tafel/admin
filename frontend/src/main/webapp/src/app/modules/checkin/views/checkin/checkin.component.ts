@@ -1,7 +1,7 @@
 import {ChangeDetectorRef, Component, ElementRef, inject, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {CustomerApiService, CustomerData, Gender, GenderLabel} from '../../../../api/customer-api.service';
 import {Subscription} from 'rxjs';
-import * as moment from 'moment';
+import moment from 'moment';
 import {CustomerNoteApiService, CustomerNoteItem} from '../../../../api/customer-note-api.service';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
 import {Router} from '@angular/router';
@@ -27,38 +27,37 @@ import {
 import {DistributionTicketApiService, TicketNumberResponse} from '../../../../api/distribution-ticket-api.service';
 import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
-import {CommonModule, DatePipe, NgClass} from '@angular/common';
+import { CommonModule, DatePipe, NgClass } from '@angular/common';
 import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
 import {SseService} from '../../../../common/sse/sse.service';
 import {ScannerApiService, ScannerList} from '../../../../api/scanner-api.service';
 
 @Component({
-  selector: 'tafel-checkin',
-  templateUrl: 'checkin.component.html',
-  imports: [
-    RowComponent,
-    ColComponent,
-    CardComponent,
-    CardBodyComponent,
-    FormsModule,
-    BadgeComponent,
-    DatePipe,
-    CardHeaderComponent,
-    NgClass,
-    CardFooterComponent,
-    ButtonDirective,
-    FormSelectDirective,
-    CommonModule,
-    TafelAutofocusDirective,
-    FormCheckInputDirective,
-    ReactiveFormsModule,
-    TabDirective,
-    TabPanelComponent,
-    TabsComponent,
-    TabsContentComponent,
-    TabsListComponent
-  ],
-  standalone: true
+    selector: 'tafel-checkin',
+    templateUrl: 'checkin.component.html',
+    imports: [
+        RowComponent,
+        ColComponent,
+        CardComponent,
+        CardBodyComponent,
+        FormsModule,
+        BadgeComponent,
+        DatePipe,
+        CardHeaderComponent,
+        NgClass,
+        CardFooterComponent,
+        ButtonDirective,
+        FormSelectDirective,
+        CommonModule,
+        TafelAutofocusDirective,
+        FormCheckInputDirective,
+        ReactiveFormsModule,
+        TabDirective,
+        TabPanelComponent,
+        TabsComponent,
+        TabsContentComponent,
+        TabsListComponent
+    ]
 })
 export class CheckinComponent implements OnInit, OnDestroy {
   private readonly customerApiService = inject(CustomerApiService);

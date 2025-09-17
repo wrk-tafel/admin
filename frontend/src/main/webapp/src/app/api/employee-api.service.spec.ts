@@ -2,6 +2,7 @@ import {HttpTestingController, provideHttpClientTesting} from '@angular/common/h
 import {TestBed} from '@angular/core/testing';
 import {provideHttpClient} from '@angular/common/http';
 import {CreateEmployeeRequest, EmployeeApiService, EmployeeListResponse} from './employee-api.service';
+import {provideZonelessChangeDetection} from "@angular/core";
 
 describe('EmployeeApiService', () => {
   let httpMock: HttpTestingController;
@@ -10,6 +11,7 @@ describe('EmployeeApiService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
+        provideZonelessChangeDetection(),
         provideHttpClient(),
         provideHttpClientTesting(),
         EmployeeApiService

@@ -21,24 +21,23 @@ import {
 } from '../../../common/components/tafel-pagination/tafel-pagination.component';
 
 @Component({
-  selector: 'tafel-employee-search-create',
-  templateUrl: 'tafel-employee-search-create.component.html',
-  imports: [
-    ReactiveFormsModule,
-    InputGroupComponent,
-    CommonModule,
-    FaIconComponent,
-    ButtonDirective,
-    ColComponent,
-    RowComponent,
-    BgColorDirective,
-    ButtonCloseDirective,
-    ModalModule,
-    CardBodyComponent,
-    CardComponent,
-    TafelPaginationComponent,
-  ],
-  standalone: true
+    selector: 'tafel-employee-search-create',
+    templateUrl: 'tafel-employee-search-create.component.html',
+    imports: [
+        ReactiveFormsModule,
+        InputGroupComponent,
+        CommonModule,
+        FaIconComponent,
+        ButtonDirective,
+        ColComponent,
+        RowComponent,
+        BgColorDirective,
+        ButtonCloseDirective,
+        ModalModule,
+        CardBodyComponent,
+        CardComponent,
+        TafelPaginationComponent,
+    ]
 })
 export class TafelEmployeeSearchCreateComponent {
   searchInput = input.required<string>()

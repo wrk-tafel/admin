@@ -1,23 +1,21 @@
-import {TestBed, waitForAsync} from '@angular/core/testing';
-import {NoopAnimationsModule} from '@angular/platform-browser/animations';
+import {TestBed} from '@angular/core/testing';
 import {provideHttpClient} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
 import {FoodCollectionRecordingItemsResponsiveComponent} from './food-collection-recording-items-responsive.component';
 import {FoodCollectionsApiService} from '../../../../api/food-collections-api.service';
 import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
+import {provideZonelessChangeDetection} from "@angular/core";
 
 describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
-  beforeEach(waitForAsync(() => {
+  beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [
-        NoopAnimationsModule
-      ],
       providers: [
+        provideZonelessChangeDetection(),
         provideHttpClient(),
         provideHttpClientTesting(),
       ]
     }).compileComponents();
-  }));
+  });
 
   const mockFoodCategories = [
     {id: 1, name: 'Category 1'},
@@ -36,7 +34,7 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should select next unfilled shop when initialized', () => {
+  it('should select next unfilled shop when initialized', async () => {
     const mockRouteData = {
       route: mockRoute,
       shops: mockShops,
@@ -64,7 +62,7 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
 
     const selectShopSpy = spyOn(component, 'selectShop').and.callThrough();
 
-    fixture.detectChanges();
+    await fixture.whenStable();
 
     expect(selectShopSpy).toHaveBeenCalledWith(mockShops[1]);
   });

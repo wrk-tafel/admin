@@ -1,5 +1,14 @@
-import {APP_INITIALIZER, ApplicationConfig, DEFAULT_CURRENCY_CODE, importProvidersFrom, LOCALE_ID} from '@angular/core';
-import {provideAnimations} from '@angular/platform-browser/animations';
+import {
+  ApplicationConfig,
+  DEFAULT_CURRENCY_CODE,
+  importProvidersFrom,
+  inject,
+  isDevMode,
+  LOCALE_ID,
+  provideAppInitializer,
+  provideCheckNoChangesConfig,
+  provideZonelessChangeDetection
+} from '@angular/core';
 import {
   provideRouter,
   withComponentInputBinding,
@@ -21,6 +30,10 @@ import {AuthenticationService} from './common/security/authentication.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZonelessChangeDetection(),
+    ...(isDevMode() ? [
+      provideCheckNoChangesConfig({exhaustive: true, interval: 1000}),
+    ] : []),
     provideHttpClient(
       withInterceptors([
         apiPathInterceptor,
@@ -41,7 +54,6 @@ export const appConfig: ApplicationConfig = {
     ),
     importProvidersFrom(SidebarModule, DropdownModule),
     IconSetService,
-    provideAnimations(),
     {
       provide: LOCALE_ID,
       useValue: 'de-AT'
@@ -62,11 +74,9 @@ export const appConfig: ApplicationConfig = {
       provide: Window,
       useValue: window
     },
-    {
-      provide: APP_INITIALIZER,
-      useFactory: (authService: AuthenticationService) => () => authService.loadUserInfo(),
-      deps: [AuthenticationService],
-      multi: true
-    }
+    provideAppInitializer(() => {
+      const initializerFn = ((authService: AuthenticationService) => () => authService.loadUserInfo())(inject(AuthenticationService));
+      return initializerFn();
+    })
   ]
 };

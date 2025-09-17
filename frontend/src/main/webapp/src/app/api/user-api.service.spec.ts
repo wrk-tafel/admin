@@ -2,6 +2,7 @@ import {HttpTestingController, provideHttpClientTesting} from '@angular/common/h
 import {TestBed} from '@angular/core/testing';
 import {ChangePasswordRequest, ChangePasswordResponse, UserApiService, UserData} from './user-api.service';
 import {provideHttpClient} from '@angular/common/http';
+import {provideZonelessChangeDetection} from "@angular/core";
 
 describe('UserApiService', () => {
   let httpMock: HttpTestingController;
@@ -21,6 +22,7 @@ describe('UserApiService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
+        provideZonelessChangeDetection(),
         provideHttpClient(),
         provideHttpClientTesting(),
         UserApiService

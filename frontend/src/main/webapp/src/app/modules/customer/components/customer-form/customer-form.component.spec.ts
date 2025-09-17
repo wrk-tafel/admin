@@ -1,11 +1,12 @@
-import {TestBed, waitForAsync} from '@angular/core/testing';
-import * as moment from 'moment';
+import {TestBed} from '@angular/core/testing';
+import moment from 'moment';
 import {of} from 'rxjs';
 import {CountryApiService} from '../../../../api/country-api.service';
 import {CustomerData, Gender} from '../../../../api/customer-api.service';
 import {CustomerFormComponent} from './customer-form.component';
 import {FormControl, FormGroup, ReactiveFormsModule} from '@angular/forms';
 import {CardModule, ColComponent, InputGroupComponent, RowComponent} from '@coreui/angular';
+import {provideZonelessChangeDetection} from "@angular/core";
 
 describe('CustomerFormComponent', () => {
   let apiService: jasmine.SpyObj<CountryApiService>;
@@ -65,7 +66,7 @@ describe('CustomerFormComponent', () => {
     ]
   };
 
-  beforeEach(waitForAsync(() => {
+  beforeEach(() => {
     const apiServiceSpy = jasmine.createSpyObj('CountryApiService', ['getCountries']);
 
     TestBed.configureTestingModule({
@@ -77,6 +78,7 @@ describe('CustomerFormComponent', () => {
         ColComponent
       ],
       providers: [
+        provideZonelessChangeDetection(),
         {
           provide: CountryApiService,
           useValue: apiServiceSpy
@@ -85,15 +87,15 @@ describe('CustomerFormComponent', () => {
     }).compileComponents();
 
     apiService = TestBed.inject(CountryApiService) as jasmine.SpyObj<CountryApiService>;
-  }));
+  });
 
-  it('should create the component', waitForAsync(() => {
+  it('should create the component', () => {
     const fixture = TestBed.createComponent(CustomerFormComponent);
     const component = fixture.componentInstance;
     expect(component).toBeTruthy();
-  }));
+  });
 
-  it('data filling works', waitForAsync(() => {
+  it('data filling works', () => {
     apiService.getCountries.and.returnValue(of(mockCountryList));
 
     const fixture = TestBed.createComponent(CustomerFormComponent);
@@ -105,7 +107,7 @@ describe('CustomerFormComponent', () => {
 
     // TODO check dom elements - makes more sense
     /*
-    fixture.detectChanges();
+    await fixture.whenStable();
 
     fixture.whenStable().then(() => {
       expect(fixture.debugElement.query(By.css('[testid="idInput"]')).nativeElement.value).toBe(testData.id);
@@ -158,9 +160,9 @@ describe('CustomerFormComponent', () => {
         excludeFromHousehold: testCustomerData.additionalPersons[1].excludeFromHousehold,
         receivesFamilyBonus: testCustomerData.additionalPersons[1].receivesFamilyBonus
       }));
-  }));
+  });
 
-  it('data update works', waitForAsync(() => {
+  it('data update works', async () => {
     apiService.getCountries.and.returnValue(of(mockCountryList));
 
     const fixture = TestBed.createComponent(CustomerFormComponent);
@@ -184,7 +186,7 @@ describe('CustomerFormComponent', () => {
 
     // TODO const updatedPers1Lastname = 'Pers1UpdatedLastName';
     // TODO component.additionalPersons.at(1).get('lastname').setValue(updatedPers1Lastname);
-    fixture.detectChanges();
+    await fixture.whenStable();
 
     expect(component.customerDataChange.emit).toHaveBeenCalledWith(jasmine.objectContaining({
       lastname: updatedLastname,
@@ -203,7 +205,7 @@ describe('CustomerFormComponent', () => {
         }]
     }));
      */
-  }));
+  });
 
   it('trackBy', () => {
     const fixture = TestBed.createComponent(CustomerFormComponent);
@@ -217,7 +219,7 @@ describe('CustomerFormComponent', () => {
     expect(trackingId).toBe(testUuid);
   });
 
-  it('validUntil set when incomeDue is updated', () => {
+  it('validUntil set when incomeDue is updated', async () => {
     apiService.getCountries.and.returnValue(of(mockCountryList));
 
     const fixture = TestBed.createComponent(CustomerFormComponent);
@@ -225,12 +227,12 @@ describe('CustomerFormComponent', () => {
     component.ngOnInit();
     component.incomeDue.setValue(moment('01.01.2000', 'DD.MM.YYYY').toDate());
 
-    fixture.detectChanges();
+    await fixture.whenStable();
 
     expect(component.validUntil.value).toEqual(moment('01.03.2000', 'DD.MM.YYYY').toDate());
   });
 
-  it('validUntil set when incomeDue is updated respects additional persons', () => {
+  it('validUntil set when incomeDue is updated respects additional persons', async () => {
     apiService.getCountries.and.returnValue(of(mockCountryList));
 
     const fixture = TestBed.createComponent(CustomerFormComponent);
@@ -244,7 +246,7 @@ describe('CustomerFormComponent', () => {
 
     component.removePerson(1);
 
-    fixture.detectChanges();
+    await fixture.whenStable();
 
     expect(component.validUntil.value).toEqual(moment('02.04.2000', 'DD.MM.YYYY').toDate());
   });

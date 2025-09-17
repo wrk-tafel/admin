@@ -1,76 +1,79 @@
 <c-row>
-    <c-col>
-        <c-card>
-            <c-card-body>
+  <c-col>
+    <c-card>
+      <c-card-body>
+        <c-row>
+          <c-col class="mb-2">
+            <h5>Kunden-Annahme</h5>
+          </c-col>
+        </c-row>
+        <c-row>
+          <c-col sm="3" class="align-self-center">
+            <label class="form-label">Scanner</label>
+          </c-col>
+          <c-col sm="3" class="align-self-center">
+            <select testid="scannerIdInput" class="form-control" cSelect [(ngModel)]="selectedScannerId">
+              <option [ngValue]="undefined">Nicht aktiv</option>
+              @for (scannerId of scannerIds; track scannerId) {
+                <option [ngValue]="scannerId">
+                Nr. {{scannerId}}</option>
+              }
+            </select>
+          </c-col>
+          <c-col>
+            <h5>
+              <c-badge [color]="scannerReadyStateColor" testid="state-camera"
+                class="mt-3 mt-md-0 mt-lg-0">
+                {{scannerReadyState ? 'AKTIV' : 'INAKTIV'}}
+              </c-badge>
+            </h5>
+          </c-col>
+        </c-row>
+        <hr>
+          <c-row>
+            <c-col sm="3">
+              <label class="form-label">Kundennummer</label>
+            </c-col>
+            <c-col sm="3" class="mb-3">
+              <input testid="customerIdInput" #customerIdInput type="number" name="customerIdInput"
+                [(ngModel)]="customerId" tafelAutofocus
+                class="form-control" (keydown.enter)="searchForCustomerId()">
+            </c-col>
+            <c-col sm="3">
+              <button testid="showCustomerButton" cButton
+                [disabled]="!customerId" (click)="searchForCustomerId()">Anzeigen
+              </button>
+            </c-col>
+          </c-row>
+        </c-card-body>
+      </c-card>
+      @if (customer !== undefined) {
+        <c-card class="mt-3" testid="customerDetailPanel">
+          <c-card-body>
+            <c-row>
+              <c-col class="mb-2">
+                <h4>
+                  <c-badge [color]="getCustomerStateColor()">
+                    {{customerStateText}}
+                  </c-badge>
+                  @if (customer?.pendingCostContribution > 0) {
+                    <c-badge color="danger" class="ms-2">
+                      Unkostenbeitrag offen: {{customer?.pendingCostContribution | currency}}
+                    </c-badge>
+                  }
+                </h4>
+              </c-col>
+            </c-row>
+            <c-row>
+              <c-col>
                 <c-row>
-                    <c-col class="mb-2">
-                        <h5>Kunden-Annahme</h5>
-                    </c-col>
+                  <h4>Nr. {{customer.id}}{{formatName() ? ' - ' + formatName() : ''}}</h4>
                 </c-row>
                 <c-row>
-                    <c-col sm="3" class="align-self-center">
-                        <label class="form-label">Scanner</label>
-                    </c-col>
-                    <c-col sm="3" class="align-self-center">
-                        <select testid="scannerIdInput" class="form-control" cSelect [(ngModel)]="selectedScannerId">
-                            <option [ngValue]="undefined">Nicht aktiv</option>
-                            <option *ngFor="let scannerId of scannerIds" [ngValue]="scannerId">
-                                Nr. {{scannerId}}</option>
-                        </select>
-                    </c-col>
-                    <c-col>
-                        <h5>
-                            <c-badge [color]="scannerReadyStateColor" testid="state-camera"
-                                     class="mt-3 mt-md-0 mt-lg-0">
-                                {{scannerReadyState ? 'AKTIV' : 'INAKTIV'}}
-                            </c-badge>
-                        </h5>
-                    </c-col>
+                  <c-col>Gültig bis:</c-col>
+                  <c-col>{{customer.validUntil | date : 'dd.MM.yyyy'}}</c-col>
                 </c-row>
                 <hr>
-                <c-row>
-                    <c-col sm="3">
-                        <label class="form-label">Kundennummer</label>
-                    </c-col>
-                    <c-col sm="3" class="mb-3">
-                        <input testid="customerIdInput" #customerIdInput type="number" name="customerIdInput"
-                               [(ngModel)]="customerId" tafelAutofocus
-                               class="form-control" (keydown.enter)="searchForCustomerId()">
-                    </c-col>
-                    <c-col sm="3">
-                        <button testid="showCustomerButton" cButton
-                                [disabled]="!customerId" (click)="searchForCustomerId()">Anzeigen
-                        </button>
-                    </c-col>
-                </c-row>
-            </c-card-body>
-        </c-card>
-        <c-card class="mt-3" *ngIf="customer !== undefined" testid="customerDetailPanel">
-            <c-card-body>
-              <c-row>
-                <c-col class="mb-2">
-                  <h4>
-                    <c-badge [color]="getCustomerStateColor()">
-                      {{customerStateText}}
-                    </c-badge>
-                    @if (customer?.pendingCostContribution > 0) {
-                      <c-badge color="danger" class="ms-2">
-                        Unkostenbeitrag offen: {{customer?.pendingCostContribution | currency}}
-                      </c-badge>
-                    }
-                  </h4>
-                </c-col>
-              </c-row>
-              <c-row>
-                <c-col>
-                  <c-row>
-                    <h4>Nr. {{customer.id}}{{formatName() ? ' - ' + formatName() : ''}}</h4>
-                  </c-row>
-                  <c-row>
-                    <c-col>Gültig bis:</c-col>
-                    <c-col>{{customer.validUntil | date : 'dd.MM.yyyy'}}</c-col>
-                  </c-row>
-                  <hr>
                   <c-tabs [activeItemKey]="0">
                     <c-tabs-list variant="underline-border">
                       <button cTab [itemKey]="0">Details</button>
@@ -115,94 +118,103 @@
                                       <c-col [attr.testid]="'addperson-' + i + '-countryText'">{{addPerson?.country.name}}</c-col>
                                     </c-row>
                                     <hr>
-                                    <c-row class="align-items-end">
-                                      <c-col>Im selben Haushalt:</c-col>
-                                      <c-col class="align-bottom" [attr.testid]="'addperson-' + i + '-excludeFromHouseholdText'">{{addPerson?.excludeFromHousehold === true ? 'Nein' : 'Ja'}}</c-col>
-                                    </c-row>
-                                  </c-card-body>
-                                </c-card>
-                              </c-col>
-                            }
-                          </c-row>
-                        }
-                      </c-tab-panel>
-                    </c-tabs-content>
-                  </c-tabs>
-                </c-col>
-                <c-col class="col-sm-4 col-12">
-                  <hr class="d-sm-none d-block">
-                  <c-card>
-                    <c-card-header class="fw-bold">Aktuellste Notiz</c-card-header>
-                    <c-card-body>
-                      <c-row>
-                        <c-col class="fw-bold" *ngIf="customerNotes?.length === 0">
-                          <h6 testid="nonotes-label">Keine Notiz vorhanden</h6>
-                        </c-col>
-                      </c-row>
-                      <c-row>
-                        <c-col *ngIf="customerNotes && customerNotes?.length !== 0">
-                          <c-row class="mb-2">
-                            <c-col class="fw-bold" testid="note-title">
-                              {{customerNotes[0].timestamp | date : 'dd.MM.yyyy HH:mm' }}&nbsp;{{customerNotes[0].author}}
+                                      <c-row class="align-items-end">
+                                        <c-col>Im selben Haushalt:</c-col>
+                                        <c-col class="align-bottom" [attr.testid]="'addperson-' + i + '-excludeFromHouseholdText'">{{addPerson?.excludeFromHousehold === true ? 'Nein' : 'Ja'}}</c-col>
+                                      </c-row>
+                                    </c-card-body>
+                                  </c-card>
+                                </c-col>
+                              }
+                            </c-row>
+                          }
+                        </c-tab-panel>
+                      </c-tabs-content>
+                    </c-tabs>
+                  </c-col>
+                  <c-col class="col-sm-4 col-12">
+                    <hr class="d-sm-none d-block">
+                    <c-card>
+                      <c-card-header class="fw-bold">Aktuellste Notiz</c-card-header>
+                      <c-card-body>
+                        <c-row>
+                          @if (customerNotes?.length === 0) {
+                            <c-col class="fw-bold">
+                              <h6 testid="nonotes-label">Keine Notiz vorhanden</h6>
+                            </c-col>
+                          }
+                        </c-row>
+                        <c-row>
+                          @if (customerNotes && customerNotes?.length !== 0) {
+                            <c-col>
+                              <c-row class="mb-2">
+                                <c-col class="fw-bold" testid="note-title">
+                                  {{customerNotes[0].timestamp | date : 'dd.MM.yyyy HH:mm' }}&nbsp;{{customerNotes[0].author}}
+                                </c-col>
+                              </c-row>
+                              <c-row>
+                                <c-col testid="note-text">
+                                  {{customerNotes[0].note}}
+                                </c-col>
+                              </c-row>
+                            </c-col>
+                          }
+                        </c-row>
+                      </c-card-body>
+                    </c-card>
+                  </c-col>
+                </c-row>
+                <c-row>
+                  <c-col>
+                    @if (customerState !== 0) {
+                      <div>
+                        <hr>
+                          <c-row>
+                            <c-col size="12" md="3" class="fw-bold">Ticket-Nummer: *</c-col>
+                            <c-col size="12" md="3" class="align-middle">
+                              <input testid="ticketNumberInput" #ticketNumberInput type="number"
+                                name="ticketNumberInput" [(ngModel)]="ticketNumber"
+                                class="form-control" required (keydown.enter)="assignCustomer()"
+                                [ngClass]="{'is-invalid': !ticketNumber, 'is-valid': ticketNumber}">
+                            </c-col>
+                            <c-col>
+                              @if (ticketNumberEdit === true) {
+                                <button testid="deleteTicketButton"
+                                  cButton color="danger"
+                                  class="ms-0 ms-md-3 mt-3 mt-md-0 text-white"
+                                  (click)="deleteTicket()">Ticket löschen
+                                </button>
+                              }
                             </c-col>
                           </c-row>
                           <c-row>
-                            <c-col testid="note-text">
-                              {{customerNotes[0].note}}
+                            <c-col size="12" md="3" class="fw-bold">
+                              <label class="form-label">Unkostenbeitrag bezahlt? *</label>
+                            </c-col>
+                            <c-col size="12" md="3" class="align-middle">
+                              <input testid="costContributionPaidInput" type="checkbox" cFormCheckInput
+                                name="costContributionPaidInput" [(ngModel)]="costContributionPaid" required>
                             </c-col>
                           </c-row>
-                        </c-col>
-                      </c-row>
-                    </c-card-body>
-                  </c-card>
-                </c-col>
-              </c-row>
-              <c-row>
-                  <c-col>
-                      <div *ngIf="customerState !== 0">
-                        <hr>
-                        <c-row>
-                          <c-col size="12" md="3" class="fw-bold">Ticket-Nummer: *</c-col>
-                          <c-col size="12" md="3" class="align-middle">
-                            <input testid="ticketNumberInput" #ticketNumberInput type="number"
-                                   name="ticketNumberInput" [(ngModel)]="ticketNumber"
-                                   class="form-control" required (keydown.enter)="assignCustomer()"
-                                   [ngClass]="{'is-invalid': !ticketNumber, 'is-valid': ticketNumber}">
-                          </c-col>
-                          <c-col>
-                            <button testid="deleteTicketButton" *ngIf="ticketNumberEdit === true"
-                                    cButton color="danger"
-                                    class="ms-0 ms-md-3 mt-3 mt-md-0 text-white"
-                                    (click)="deleteTicket()">Ticket löschen
-                            </button>
-                          </c-col>
-                        </c-row>
-                        <c-row>
-                          <c-col size="12" md="3" class="fw-bold">
-                            <label class="form-label">Unkostenbeitrag bezahlt? *</label>
-                          </c-col>
-                          <c-col size="12" md="3" class="align-middle">
-                            <input testid="costContributionPaidInput" type="checkbox" cFormCheckInput
-                                   name="costContributionPaidInput" [(ngModel)]="costContributionPaid" required>
-                          </c-col>
-                        </c-row>
-                      </div>
-                  </c-col>
-              </c-row>
-            </c-card-body>
-            <c-card-footer>
-                <c-row>
-                    <c-col>
-                        <button [disabled]="customerState === 0 || !ticketNumber" testid="assignCustomerButton"
-                                cButton color="success"
-                                (click)="assignCustomer()">Annehmen
-                        </button>
-                        <button testid="cancelButton" #cancelButton cButton class="ms-3"
-                                (click)="cancel()">Abbrechen
-                        </button>
+                        </div>
+                      }
                     </c-col>
-                </c-row>
-            </c-card-footer>
-        </c-card>
-    </c-col>
-</c-row>
+                  </c-row>
+                </c-card-body>
+                <c-card-footer>
+                  <c-row>
+                    <c-col>
+                      <button [disabled]="customerState === 0 || !ticketNumber" testid="assignCustomerButton"
+                        cButton color="success"
+                        (click)="assignCustomer()">Annehmen
+                      </button>
+                      <button testid="cancelButton" #cancelButton cButton class="ms-3"
+                        (click)="cancel()">Abbrechen
+                      </button>
+                    </c-col>
+                  </c-row>
+                </c-card-footer>
+              </c-card>
+            }
+          </c-col>
+        </c-row>

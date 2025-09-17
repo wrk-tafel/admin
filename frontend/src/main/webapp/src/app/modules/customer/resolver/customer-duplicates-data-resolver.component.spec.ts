@@ -6,6 +6,7 @@ import {ActivatedRouteSnapshot} from '@angular/router';
 import {CustomerDuplicatesDataResolver} from './customer-duplicates-data-resolver.component';
 import {provideHttpClient} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
+import {provideZonelessChangeDetection} from "@angular/core";
 
 describe('CustomerDuplicatesDataResolver', () => {
   let apiService: jasmine.SpyObj<CustomerApiService>;
@@ -14,6 +15,7 @@ describe('CustomerDuplicatesDataResolver', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
+        provideZonelessChangeDetection(),
         provideHttpClient(),
         provideHttpClientTesting(),
         {

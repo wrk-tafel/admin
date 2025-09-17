@@ -10,49 +10,55 @@
   </c-modal-header>
   <c-modal-body>
     <form [formGroup]="form">
-      <div *ngIf="shelters().length > 0">
-        <div formArrayName="selectedShelters">
-          <div *ngFor="let shelter of shelters(); let idx = index">
-            <hr *ngIf="idx > 0" />
-            <c-container>
-              <c-row class="flex-row">
-                <c-col class="col-2">
-                  <c-form-check switch="true" sizing="xl">
-                      <input
-                        type="checkbox"
-                        [formControl]="selectedShelters.controls[idx]"
-                        [id]="'shelter-' + shelter.id"
-                        [attr.testid]="'selectable-shelter-row-' + idx"
-                        cFormCheckInput
-                      >
-                  </c-form-check>
-                </c-col>
-                <c-col class="col-5 text-start">
-                  <c-row>
-                    <c-col class="text-start text-wrap">
-                      <strong>{{shelter.name}}</strong>
+      @if (shelters().length > 0) {
+        <div>
+          <div formArrayName="selectedShelters">
+            @for (shelter of shelters(); track shelter; let idx = $index) {
+              <div>
+                @if (idx > 0) {
+                  <hr />
+                }
+                <c-container>
+                  <c-row class="flex-row">
+                    <c-col class="col-2">
+                      <c-form-check switch="true" sizing="xl">
+                        <input
+                          type="checkbox"
+                          [formControl]="selectedShelters.controls[idx]"
+                          [id]="'shelter-' + shelter.id"
+                          [attr.testid]="'selectable-shelter-row-' + idx"
+                          cFormCheckInput
+                          >
+                      </c-form-check>
                     </c-col>
-                  </c-row>
-                  <c-row>
-                    <c-col class="text-start text-wrap">
-                      <label cFormCheckLabel [for]="'shelter-' + shelter.id">
-                        {{ formatStreet(shelter) }}
-                        <br>
-                        {{ shelter.addressPostalCode }} {{ shelter.addressCity }}
-                      </label>
-                    </c-col>
-                  </c-row>
-                </c-col>
-                <c-col class="col-5 fs-5">{{shelter.personsCount}} Personen</c-col>
-              </c-row>
-            </c-container>
+                    <c-col class="col-5 text-start">
+                      <c-row>
+                        <c-col class="text-start text-wrap">
+                          <strong>{{shelter.name}}</strong>
+                        </c-col>
+                      </c-row>
+                      <c-row>
+                        <c-col class="text-start text-wrap">
+                          <label cFormCheckLabel [for]="'shelter-' + shelter.id">
+                            {{ formatStreet(shelter) }}
+                            <br>
+                              {{ shelter.addressPostalCode }} {{ shelter.addressCity }}
+                            </label>
+                          </c-col>
+                        </c-row>
+                      </c-col>
+                      <c-col class="col-5 fs-5">{{shelter.personsCount}} Personen</c-col>
+                    </c-row>
+                  </c-container>
+                </div>
+              }
+            </div>
           </div>
-        </div>
-      </div>
-    </form>
-  </c-modal-body>
-  <c-modal-footer>
-    <button testid="selectshelters-save-button" cButton (click)="saveShelterSelection()" [disabled]="this.form.invalid">Speichern</button>
-    <button testid="selectshelters-cancel-button" cButton color="secondary" (click)="cancelModal()">Abbrechen</button>
-  </c-modal-footer>
-</c-modal>
+        }
+      </form>
+    </c-modal-body>
+    <c-modal-footer>
+      <button testid="selectshelters-save-button" cButton (click)="saveShelterSelection()" [disabled]="this.form.invalid">Speichern</button>
+      <button testid="selectshelters-cancel-button" cButton color="secondary" (click)="cancelModal()">Abbrechen</button>
+    </c-modal-footer>
+  </c-modal>

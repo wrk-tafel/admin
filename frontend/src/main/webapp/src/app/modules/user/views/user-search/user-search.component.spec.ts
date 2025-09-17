@@ -1,4 +1,4 @@
-import {TestBed, waitForAsync} from '@angular/core/testing';
+import {TestBed} from '@angular/core/testing';
 import {ReactiveFormsModule} from '@angular/forms';
 import {Router} from '@angular/router';
 import {EMPTY, of} from 'rxjs';
@@ -7,6 +7,7 @@ import {CardModule, ColComponent, RowComponent} from '@coreui/angular';
 import {By} from '@angular/platform-browser';
 import {UserApiService, UserSearchResult} from '../../../../api/user-api.service';
 import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
+import {provideZonelessChangeDetection} from "@angular/core";
 
 describe('UserSearchComponent', () => {
   let apiService: jasmine.SpyObj<UserApiService>;
@@ -32,7 +33,7 @@ describe('UserSearchComponent', () => {
     pageSize: 10
   };
 
-  beforeEach(waitForAsync(() => {
+  beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [
         ReactiveFormsModule,
@@ -41,6 +42,7 @@ describe('UserSearchComponent', () => {
         ColComponent
       ],
       providers: [
+        provideZonelessChangeDetection(),
         {
           provide: UserApiService,
           useValue: jasmine.createSpyObj('UserApiService', ['getUserForPersonnelNumber', 'searchUser'])
@@ -59,7 +61,7 @@ describe('UserSearchComponent', () => {
     apiService = TestBed.inject(UserApiService) as jasmine.SpyObj<UserApiService>;
     router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
     toastService = TestBed.inject(ToastService) as jasmine.SpyObj<ToastService>;
-  }));
+  });
 
   it('component can be created', () => {
     const fixture = TestBed.createComponent(UserSearchComponent);
@@ -82,7 +84,7 @@ describe('UserSearchComponent', () => {
     expect(router.navigate).toHaveBeenCalledWith(['/benutzer/detail', mockUser.id]);
   });
 
-  it('search with all parameters', () => {
+  it('search with all parameters', async () => {
     const fixture = TestBed.createComponent(UserSearchComponent);
     const component = fixture.componentInstance;
 
@@ -97,7 +99,8 @@ describe('UserSearchComponent', () => {
 
     expect(apiService.searchUser).toHaveBeenCalledWith('username', false, 'lastname', 'firstname', undefined);
 
-    fixture.detectChanges();
+    await fixture.whenStable();
+
     expect(fixture.debugElement.query(By.css('[testid="searchresult-id-0"]')).nativeElement.textContent).toBe('0');
     expect(fixture.debugElement.query(By.css('[testid="searchresult-name-0"]')).nativeElement.textContent).toBe('last first');
     expect(fixture.debugElement.query(By.css('[testid="searchresult-enabled-0"]')).nativeElement.textContent).toBe('Ja');

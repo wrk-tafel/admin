@@ -1,13 +1,14 @@
-import {TestBed, waitForAsync} from '@angular/core/testing';
+import {TestBed} from '@angular/core/testing';
 import {ReactiveFormsModule} from '@angular/forms';
 import {Router} from '@angular/router';
-import * as moment from 'moment';
+import moment from 'moment';
 import {EMPTY, of} from 'rxjs';
 import {CustomerApiService, CustomerSearchResult, Gender} from '../../../../api/customer-api.service';
 import {CustomerSearchComponent} from './customer-search.component';
 import {CardModule, ColComponent, PaginationModule, RowComponent} from '@coreui/angular';
 import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
 import {By} from '@angular/platform-browser';
+import {provideZonelessChangeDetection} from "@angular/core";
 
 describe('CustomerSearchComponent', () => {
   let apiService: jasmine.SpyObj<CustomerApiService>;
@@ -38,7 +39,7 @@ describe('CustomerSearchComponent', () => {
     pageSize: 10
   };
 
-  beforeEach(waitForAsync(() => {
+  beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [
         ReactiveFormsModule,
@@ -48,6 +49,7 @@ describe('CustomerSearchComponent', () => {
         PaginationModule
       ],
       providers: [
+        provideZonelessChangeDetection(),
         {
           provide: CustomerApiService,
           useValue: jasmine.createSpyObj('CustomerApiService', ['getCustomer', 'searchCustomer'])
@@ -66,7 +68,7 @@ describe('CustomerSearchComponent', () => {
     apiService = TestBed.inject(CustomerApiService) as jasmine.SpyObj<CustomerApiService>;
     router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
     toastService = TestBed.inject(ToastService) as jasmine.SpyObj<ToastService>;
-  }));
+  });
 
   it('component can be created', () => {
     const fixture = TestBed.createComponent(CustomerSearchComponent);
@@ -88,7 +90,7 @@ describe('CustomerSearchComponent', () => {
     expect(router.navigate).toHaveBeenCalledWith(['/kunden/detail', testCustomerId]);
   });
 
-  it('search with firstname and lastname', () => {
+  it('search with firstname and lastname', async () => {
     const fixture = TestBed.createComponent(CustomerSearchComponent);
     const component = fixture.componentInstance;
 
@@ -101,7 +103,8 @@ describe('CustomerSearchComponent', () => {
 
     expect(apiService.searchCustomer).toHaveBeenCalledWith('lastname', 'firstname', null, null, undefined);
 
-    fixture.detectChanges();
+    await fixture.whenStable();
+
     expect(fixture.debugElement.query(By.css('[testid="searchresult-id-0"]')).nativeElement.textContent).toBe('0');
     expect(fixture.debugElement.query(By.css('[testid="searchresult-name-0"]')).nativeElement.textContent).toBe('last first');
     expect(fixture.debugElement.query(By.css('[testid="searchresult-birthDate-0"]')).nativeElement.textContent).toBe('10.05.2000');

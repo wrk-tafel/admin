@@ -5,6 +5,7 @@ import {of} from 'rxjs';
 import {ActivatedRouteSnapshot} from '@angular/router';
 import {FoodCategoriesDataResolver} from './food-categories-data-resolver.component';
 import {FoodCategoriesApiService, FoodCategory} from '../../../api/food-categories-api.service';
+import {provideZonelessChangeDetection} from "@angular/core";
 
 describe('FoodCategoriesDataResolver', () => {
   let apiService: jasmine.SpyObj<FoodCategoriesApiService>;
@@ -13,6 +14,7 @@ describe('FoodCategoriesDataResolver', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
+        provideZonelessChangeDetection(),
         provideHttpClient(),
         provideHttpClientTesting(),
         {

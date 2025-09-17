@@ -3,17 +3,11 @@ import {
   BgColorDirective,
   ButtonCloseDirective,
   ButtonDirective,
-  CardBodyComponent,
-  CardComponent,
-  CardFooterComponent,
-  CardHeaderComponent,
   ColComponent,
   ContainerComponent,
   FormCheckComponent,
   FormCheckInputDirective,
   FormCheckLabelDirective,
-  InputGroupComponent,
-  InputGroupTextDirective,
   ModalBodyComponent,
   ModalComponent,
   ModalFooterComponent,
@@ -21,44 +15,33 @@ import {
   ModalToggleDirective,
   RowComponent
 } from '@coreui/angular';
-import {CommonModule, NgIf} from '@angular/common';
+
 import {FormArray, FormBuilder, FormControl, ReactiveFormsModule} from '@angular/forms';
-import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
 import {faCalculator} from '@fortawesome/free-solid-svg-icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {ShelterItem} from '../../../../api/shelter-api.service';
 
 @Component({
-  selector: 'tafel-select-shelters',
-  templateUrl: 'select-shelters.component.html',
-  imports: [
-    CardComponent,
-    CardHeaderComponent,
-    CardBodyComponent,
+    selector: 'tafel-select-shelters',
+    templateUrl: 'select-shelters.component.html',
+    imports: [
     RowComponent,
     ColComponent,
     ModalComponent,
     ModalHeaderComponent,
     ModalToggleDirective,
     ModalBodyComponent,
-    NgIf,
     ButtonDirective,
     ButtonCloseDirective,
     ReactiveFormsModule,
-    TafelAutofocusDirective,
-    CommonModule,
-    CardFooterComponent,
     BgColorDirective,
-    InputGroupComponent,
-    InputGroupTextDirective,
     ModalFooterComponent,
     FaIconComponent,
     FormCheckComponent,
     FormCheckInputDirective,
     FormCheckLabelDirective,
     ContainerComponent
-  ],
-  standalone: true
+]
 })
 export class SelectSheltersComponent implements OnInit {
   private readonly fb = inject(FormBuilder);

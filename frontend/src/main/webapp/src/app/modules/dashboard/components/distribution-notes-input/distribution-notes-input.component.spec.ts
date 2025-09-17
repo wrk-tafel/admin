@@ -1,19 +1,21 @@
-import {TestBed, waitForAsync} from '@angular/core/testing';
+import {TestBed} from '@angular/core/testing';
 import {DistributionApiService} from '../../../../api/distribution-api.service';
 import {DistributionNotesInputComponent} from './distribution-notes-input.component';
 import {CardModule, ColComponent, ModalModule, ProgressModule, RowComponent} from '@coreui/angular';
-import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
-import {of, throwError} from 'rxjs';
+import {of, throwError, BehaviorSubject} from 'rxjs';
+import {provideZonelessChangeDetection} from "@angular/core";
+import {GlobalStateService} from '../../../../common/state/global-state.service';
+import {DistributionItem} from '../../../../api/distribution-api.service';
 
 describe('DistributionNotesInputComponent', () => {
   let distributionApiService: jasmine.SpyObj<DistributionApiService>;
   let toastService: jasmine.SpyObj<ToastService>;
+  let globalStateService: jasmine.SpyObj<GlobalStateService>;
 
-  beforeEach(waitForAsync(() => {
+  beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [
-        NoopAnimationsModule,
         ModalModule,
         CardModule,
         RowComponent,
@@ -21,6 +23,7 @@ describe('DistributionNotesInputComponent', () => {
         ProgressModule
       ],
       providers: [
+        provideZonelessChangeDetection(),
         {
           provide: DistributionApiService,
           useValue: jasmine.createSpyObj('DistributionApiService', ['saveNotes'])
@@ -28,13 +31,26 @@ describe('DistributionNotesInputComponent', () => {
         {
           provide: ToastService,
           useValue: jasmine.createSpyObj('ToastService', ['showToast'])
+        },
+        {
+          provide: GlobalStateService,
+          useValue: jasmine.createSpyObj('GlobalStateService', ['getCurrentDistribution'])
         }
       ]
     }).compileComponents();
 
     distributionApiService = TestBed.inject(DistributionApiService) as jasmine.SpyObj<DistributionApiService>;
     toastService = TestBed.inject(ToastService) as jasmine.SpyObj<ToastService>;
-  }));
+    globalStateService = TestBed.inject(GlobalStateService) as jasmine.SpyObj<GlobalStateService>;
+    
+    // Setup mock for GlobalStateService
+    const mockDistribution: DistributionItem = {
+      id: 123,
+      name: 'Test Distribution'
+    } as DistributionItem;
+    const mockBehaviorSubject = new BehaviorSubject<DistributionItem>(mockDistribution);
+    globalStateService.getCurrentDistribution.and.returnValue(mockBehaviorSubject);
+  });
 
   it('component can be created', () => {
     const fixture = TestBed.createComponent(DistributionNotesInputComponent);
@@ -60,7 +76,7 @@ describe('DistributionNotesInputComponent', () => {
     });
   });
 
-  it('save data failed', () => {
+  it('save data failed', async () => {
     const fixture = TestBed.createComponent(DistributionNotesInputComponent);
     const component = fixture.componentInstance;
     const componentRef = fixture.componentRef;
@@ -70,7 +86,7 @@ describe('DistributionNotesInputComponent', () => {
     );
     const testNotes = 'test-notes';
     componentRef.setInput('initialNotesData', testNotes);
-    fixture.detectChanges();
+    await fixture.whenStable();
 
     component.save();
 

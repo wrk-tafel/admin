@@ -5,6 +5,7 @@ import {RouteApiService, RouteList} from '../../../api/route-api.service';
 import {RouteDataResolver} from './route-data-resolver.component';
 import {of} from 'rxjs';
 import {ActivatedRouteSnapshot} from '@angular/router';
+import {provideZonelessChangeDetection} from "@angular/core";
 
 describe('RouteDataResolver', () => {
   let apiService: jasmine.SpyObj<RouteApiService>;
@@ -13,6 +14,7 @@ describe('RouteDataResolver', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
+        provideZonelessChangeDetection(),
         provideHttpClient(),
         provideHttpClientTesting(),
         {

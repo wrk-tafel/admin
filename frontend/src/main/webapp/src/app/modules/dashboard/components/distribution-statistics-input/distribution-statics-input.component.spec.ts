@@ -1,12 +1,13 @@
-import {TestBed, waitForAsync} from '@angular/core/testing';
+import {TestBed} from '@angular/core/testing';
 import {DistributionApiService, DistributionItem} from '../../../../api/distribution-api.service';
 import {DistributionStatisticsInputComponent} from './distribution-statistics-input.component';
 import {CardModule, ColComponent, ModalModule, ProgressModule, RowComponent} from '@coreui/angular';
-import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
 import {BehaviorSubject, of, throwError} from 'rxjs';
 import {ShelterItem} from '../../../../api/shelter-api.service';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
+import {provideZonelessChangeDetection} from "@angular/core";
+import {provideNoopAnimations} from "@angular/platform-browser/animations";
 
 describe('DistributionStatisticsInputComponent', () => {
   let distributionApiService: jasmine.SpyObj<DistributionApiService>;
@@ -48,10 +49,9 @@ describe('DistributionStatisticsInputComponent', () => {
     }
   };
 
-  beforeEach(waitForAsync(() => {
+  beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [
-        NoopAnimationsModule,
         ModalModule,
         CardModule,
         RowComponent,
@@ -59,6 +59,8 @@ describe('DistributionStatisticsInputComponent', () => {
         ProgressModule
       ],
       providers: [
+        provideNoopAnimations(),
+        provideZonelessChangeDetection(),
         {
           provide: DistributionApiService,
           useValue: jasmine.createSpyObj('DistributionApiService', ['saveStatistic'])
@@ -77,7 +79,7 @@ describe('DistributionStatisticsInputComponent', () => {
     distributionApiService = TestBed.inject(DistributionApiService) as jasmine.SpyObj<DistributionApiService>;
     toastService = TestBed.inject(ToastService) as jasmine.SpyObj<ToastService>;
     globalStateService = TestBed.inject(GlobalStateService) as jasmine.SpyObj<GlobalStateService>;
-  }));
+  });
 
   it('component can be created', () => {
     const fixture = TestBed.createComponent(DistributionStatisticsInputComponent);
@@ -125,21 +127,21 @@ describe('DistributionStatisticsInputComponent', () => {
     });
   });
 
-  it('person count updated after edit', () => {
+  it('person count updated after edit', async () => {
     const fixture = TestBed.createComponent(DistributionStatisticsInputComponent);
     const component = fixture.componentInstance;
     const componentRef = fixture.componentRef;
     globalStateService.getCurrentDistribution.and.returnValue(new BehaviorSubject<DistributionItem>(testDistribution));
     componentRef.setInput('sheltersData', {shelters: testShelters});
     componentRef.setInput('initialSelectedShelterIds', testShelters[0].id);
-    fixture.detectChanges();
+    await fixture.whenStable();
 
     component.onUpdateSelectedShelters(testShelters)
 
     expect(component.personsInShelterCount.value).toBe(300);
   });
 
-  it('save data failed', () => {
+  it('save data failed', async () => {
     const fixture = TestBed.createComponent(DistributionStatisticsInputComponent);
     const component = fixture.componentInstance;
     const componentRef = fixture.componentRef;
@@ -152,7 +154,7 @@ describe('DistributionStatisticsInputComponent', () => {
     componentRef.setInput('sheltersData', {shelters: testShelters});
     componentRef.setInput('employeeCountInput', 100);
     componentRef.setInput('initialSelectedShelterNames', testShelters.map(shelter => shelter.name));
-    fixture.detectChanges();
+    await fixture.whenStable();
 
     component.save();
 
@@ -160,7 +162,7 @@ describe('DistributionStatisticsInputComponent', () => {
     expect(toastService.showToast).toHaveBeenCalledWith({type: ToastType.ERROR, title: 'Speichern fehlgeschlagen!'});
   });
 
-  it('inputs are reflected to form', () => {
+  it('inputs are reflected to form', async () => {
     const fixture = TestBed.createComponent(DistributionStatisticsInputComponent);
     const componentRef = fixture.componentRef;
     const component = fixture.componentInstance;
@@ -169,13 +171,13 @@ describe('DistributionStatisticsInputComponent', () => {
     componentRef.setInput('sheltersData', {shelters: testShelters});
     componentRef.setInput('employeeCountInput', 100);
     componentRef.setInput('initialSelectedShelterNames', testShelters.map(shelter => shelter.name));
-    fixture.detectChanges();
+    await fixture.whenStable();
 
     expect(component.employeeCount.value).toBe(100);
     expect(component.personsInShelterCount.value).toBe(300);
   });
 
-  it('employeeCount disabled and data reset without active distribution', () => {
+  it('employeeCount disabled and data reset without active distribution', async () => {
     const fixture = TestBed.createComponent(DistributionStatisticsInputComponent);
     const componentRef = fixture.componentRef;
     const component = fixture.componentInstance;
@@ -184,7 +186,7 @@ describe('DistributionStatisticsInputComponent', () => {
     componentRef.setInput('sheltersData', {shelters: testShelters});
     componentRef.setInput('employeeCountInput', 100);
     componentRef.setInput('initialSelectedShelterNames', testShelters.map(shelter => shelter.name));
-    fixture.detectChanges();
+    await fixture.whenStable();
 
     component.ngOnInit();
 

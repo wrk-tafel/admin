@@ -6,16 +6,8 @@ import {
   CardFooterComponent,
   CardHeaderComponent,
   ColComponent,
-  InputGroupTextDirective,
-  NavComponent,
-  NavItemComponent,
-  NavLinkDirective,
-  RoundedDirective,
   RowComponent,
-  TabContentComponent,
-  TabContentRefDirective,
   TabDirective,
-  TabPaneComponent,
   TabPanelComponent,
   TabsComponent,
   TabsContentComponent,
@@ -25,7 +17,6 @@ import {
 import {IconDirective} from '@coreui/icons-angular';
 import {cilEnvelopeClosed} from '@coreui/icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
-import {RouterLink} from '@angular/router';
 import {MailTypeEnum, RecipientTypeEnum, SettingsApiService} from '../../api/settings-api.service';
 import {FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {faPlus, faTrashCan} from '@fortawesome/free-solid-svg-icons';
@@ -33,37 +24,27 @@ import {CommonModule} from '@angular/common';
 import {ToastService, ToastType} from '../../common/components/toasts/toast.service';
 
 @Component({
-  selector: 'tafel-settings',
-  templateUrl: 'settings.component.html',
-  imports: [
-    CardComponent,
-    CardHeaderComponent,
-    CardBodyComponent,
-    CardFooterComponent,
-    RowComponent,
-    ColComponent,
-    IconDirective,
-    ButtonDirective,
-    FaIconComponent,
-    NavComponent,
-    NavItemComponent,
-    NavLinkDirective,
-    TabContentRefDirective,
-    RouterLink,
-    RoundedDirective,
-    TabContentComponent,
-    TabPaneComponent,
-    ReactiveFormsModule,
-    TabsContentComponent,
-    TabsComponent,
-    TabDirective,
-    TabPanelComponent,
-    InputGroupTextDirective,
-    CommonModule,
-    TextColorDirective,
-    TabsListComponent
-  ],
-  standalone: true
+    selector: 'tafel-settings',
+    templateUrl: 'settings.component.html',
+    imports: [
+        CardComponent,
+        CardHeaderComponent,
+        CardBodyComponent,
+        CardFooterComponent,
+        RowComponent,
+        ColComponent,
+        IconDirective,
+        ButtonDirective,
+        FaIconComponent,
+        ReactiveFormsModule,
+        TabsContentComponent,
+        TabsComponent,
+        TabDirective,
+        TabPanelComponent,
+        CommonModule,
+        TextColorDirective,
+        TabsListComponent
+    ]
 })
 export class SettingsComponent implements OnInit {
   private readonly settingsApiService = inject(SettingsApiService);

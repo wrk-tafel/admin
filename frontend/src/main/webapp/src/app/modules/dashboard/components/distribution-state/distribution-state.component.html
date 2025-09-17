@@ -12,18 +12,22 @@
     </c-row>
   </c-card-body>
   <c-card-footer>
-    <button *ngIf="!distribution" cButton color="light"
-            testid="distribution-start-button"
-            (click)="createNewDistribution()">Tag starten
-    </button>
-    <button *ngIf="distribution" cButton color="light"
-            testid="distribution-close-button"
-            (click)="showCloseDistributionModal = true">Tag beenden
-    </button>
+    @if (!distribution) {
+      <button cButton color="light"
+        testid="distribution-start-button"
+        (click)="createNewDistribution()">Tag starten
+      </button>
+    }
+    @if (distribution) {
+      <button cButton color="light"
+        testid="distribution-close-button"
+        (click)="showCloseDistributionModal = true">Tag beenden
+      </button>
+    }
   </c-card-footer>
 </c-card>
 <c-modal id="closeDistributionModal" #closeDistributionModal testid="distribution-close-modal"
-         [(visible)]="showCloseDistributionModal">
+  [(visible)]="showCloseDistributionModal">
   <c-modal-header class="bg-warning">
     <h4 testid="title" class="text-white">
       Tag beenden?
@@ -37,10 +41,10 @@
     <c-row>
       <c-col class="col-6">
         <button testid="distribution-close-modal-ok-button" cButton class="me-2"
-                (click)="closeDistribution(false)">OK
+          (click)="closeDistribution(false)">OK
         </button>
         <button testid="distribution-close-modal-cancel-button" cButton color="secondary"
-                (click)="showCloseDistributionModal = false">Abbrechen
+          (click)="showCloseDistributionModal = false">Abbrechen
         </button>
       </c-col>
     </c-row>
@@ -48,7 +52,7 @@
 </c-modal>
 @if(closeDistributionValidationResult) {
   <c-modal id="closeDistributionValidationModal" #closeDistributionValidationModal testid="distribution-close-validation-modal"
-           [(visible)]="showCloseDistributionValidationModal">
+    [(visible)]="showCloseDistributionValidationModal">
     <c-modal-header [cBgColor]="getCloseValidationResultBgColorClass()">
       <h4 testid="title" class="text-white">
         {{getCloseValidationResultTitle()}}
@@ -74,11 +78,11 @@
         <c-col class="col-12">
           @if (closeDistributionValidationResult.warnings.length > 0) {
             <button testid="distribution-close-validation-modal-ok-button" cButton class="me-2"
-                    (click)="closeDistribution(true)">Trotzdem beenden
+              (click)="closeDistribution(true)">Trotzdem beenden
             </button>
           }
           <button testid="distribution-close-validation-modal-cancel-button" cButton color="secondary"
-                  (click)="showCloseDistributionValidationModal = false">Abbrechen
+            (click)="showCloseDistributionValidationModal = false">Abbrechen
           </button>
         </c-col>
       </c-row>

@@ -3,6 +3,7 @@ import {TestBed} from '@angular/core/testing';
 import {ReactiveFormsModule} from '@angular/forms';
 import {provideHttpClient} from '@angular/common/http';
 import {FoodCategoriesApiService, FoodCategory} from './food-categories-api.service';
+import {provideZonelessChangeDetection} from "@angular/core";
 
 describe('FoodCategoriesApiService', () => {
   let httpMock: HttpTestingController;
@@ -12,6 +13,7 @@ describe('FoodCategoriesApiService', () => {
     TestBed.configureTestingModule({
       imports: [ReactiveFormsModule],
       providers: [
+        provideZonelessChangeDetection(),
         provideHttpClient(),
         provideHttpClientTesting(),
         FoodCategoriesApiService

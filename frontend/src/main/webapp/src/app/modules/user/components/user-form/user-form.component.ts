@@ -12,7 +12,7 @@ import {
 } from '@angular/forms';
 import {GeneratedPasswordResponse, UserApiService, UserData, UserPermission} from '../../../../api/user-api.service';
 import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
-import {CommonModule, NgClass} from '@angular/common';
+import { CommonModule, NgClass } from '@angular/common';
 import {
   ButtonDirective,
   FormCheckInputDirective,
@@ -26,22 +26,21 @@ import {faEye, faEyeSlash} from '@fortawesome/free-solid-svg-icons';
 import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
 
 @Component({
-  selector: 'tafel-user-form',
-  templateUrl: 'user-form.component.html',
-  imports: [
-    ReactiveFormsModule,
-    NgClass,
-    InputGroupComponent,
-    InputGroupTextDirective,
-    CommonModule,
-    FormControlDirective,
-    FormLabelDirective,
-    FormCheckInputDirective,
-    FaIconComponent,
-    ButtonDirective,
-    TafelAutofocusDirective
-  ],
-  standalone: true
+    selector: 'tafel-user-form',
+    templateUrl: 'user-form.component.html',
+    imports: [
+        ReactiveFormsModule,
+        NgClass,
+        InputGroupComponent,
+        InputGroupTextDirective,
+        CommonModule,
+        FormControlDirective,
+        FormLabelDirective,
+        FormCheckInputDirective,
+        FaIconComponent,
+        ButtonDirective,
+        TafelAutofocusDirective
+    ]
 })
 export class UserFormComponent implements OnInit {
   @Input() userData: UserData;

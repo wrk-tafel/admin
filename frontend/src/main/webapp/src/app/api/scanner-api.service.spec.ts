@@ -3,6 +3,7 @@ import {TestBed} from '@angular/core/testing';
 import {UserApiService} from './user-api.service';
 import {provideHttpClient} from '@angular/common/http';
 import {ScannerApiService} from './scanner-api.service';
+import {provideZonelessChangeDetection} from "@angular/core";
 
 describe('ScannerApiService', () => {
   let httpMock: HttpTestingController;
@@ -11,6 +12,7 @@ describe('ScannerApiService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
+        provideZonelessChangeDetection(),
         provideHttpClient(),
         provideHttpClientTesting(),
         UserApiService
