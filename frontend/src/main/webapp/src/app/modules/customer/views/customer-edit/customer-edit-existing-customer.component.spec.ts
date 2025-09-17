@@ -1,7 +1,7 @@
-import {TestBed, waitForAsync} from '@angular/core/testing';
+import {TestBed} from '@angular/core/testing';
 import {ReactiveFormsModule} from '@angular/forms';
 import {ActivatedRoute, Router} from '@angular/router';
-import * as moment from 'moment';
+import moment from 'moment';
 import {of} from 'rxjs';
 import {CustomerApiService, CustomerData, Gender} from '../../../../api/customer-api.service';
 import {CustomerEditComponent} from './customer-edit.component';
@@ -13,9 +13,10 @@ import {
   ModalModule,
   RowComponent
 } from '@coreui/angular';
-import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 import {provideHttpClient} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
+import {provideZonelessChangeDetection} from "@angular/core";
+import {provideNoopAnimations} from "@angular/platform-browser/animations";
 
 describe('CustomerEditComponent - Editing an existing customer', () => {
   const testCountry = {
@@ -80,12 +81,11 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
   let router: jasmine.SpyObj<Router>;
   let apiService: jasmine.SpyObj<CustomerApiService>;
 
-  beforeEach(waitForAsync(() => {
+  beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [
         ReactiveFormsModule,
         ModalModule,
-        NoopAnimationsModule,
         CardModule,
         InputGroupComponent,
         RowComponent,
@@ -93,6 +93,8 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
         BgColorDirective
       ],
       providers: [
+        provideZonelessChangeDetection(),
+        provideNoopAnimations(),
         provideHttpClient(),
         provideHttpClientTesting(),
         {
@@ -118,19 +120,19 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
 
     router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
     apiService = TestBed.inject(CustomerApiService) as jasmine.SpyObj<CustomerApiService>;
-  }));
+  });
 
-  it('initial checks', waitForAsync(() => {
+  it('initial checks', async () => {
     const fixture = TestBed.createComponent(CustomerEditComponent);
     const component = fixture.componentInstance;
     component.customerData = testCustomerData;
 
     component.ngOnInit();
-    fixture.detectChanges();
+    await fixture.whenStable();
 
     expect(component.editMode).toBeTrue();
     expect(component.customerValidForSave).toBeFalse();
-  }));
+  });
 
   it('existing customer saved successfully', () => {
     const customerFormComponent = jasmine.createSpyObj('CustomerFormComponent', ['markAllAsTouched', 'isValid']);
@@ -155,7 +157,7 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
     expect(router.navigate).toHaveBeenCalledWith(['/kunden/detail', testCustomerData.id]);
   });
 
-  it('existing customer saved successfully even when not entitled', () => {
+  it('existing customer saved successfully even when not entitled', async () => {
     const customerFormComponent = jasmine.createSpyObj('CustomerFormComponent', ['markAllAsTouched', 'isValid']);
     customerFormComponent.isValid.and.returnValue(true);
     apiService.getCustomer.withArgs(testCustomerData.id).and.returnValue(of(testCustomerData));
@@ -169,7 +171,7 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
 
     component.ngOnInit();
     component.save();
-    fixture.detectChanges();
+    await fixture.whenStable();
 
     expect(component.isSaveEnabled()).toBeTrue();
     expect(component.editMode).toBeTrue();

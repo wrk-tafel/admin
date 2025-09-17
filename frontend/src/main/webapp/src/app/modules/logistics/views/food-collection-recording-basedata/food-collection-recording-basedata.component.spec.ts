@@ -1,5 +1,4 @@
-import {TestBed, waitForAsync} from '@angular/core/testing';
-import {NoopAnimationsModule} from '@angular/platform-browser/animations';
+import {TestBed} from '@angular/core/testing';
 import {FoodCollectionRecordingBasedataComponent} from './food-collection-recording-basedata.component';
 import {Router} from '@angular/router';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
@@ -9,17 +8,18 @@ import {of} from 'rxjs';
 import {CarList} from '../../../../api/car-api.service';
 import {RouteData} from '../../../../api/route-api.service';
 import {SelectedRouteData} from '../food-collection-recording/food-collection-recording.component';
+import {provideZonelessChangeDetection} from "@angular/core";
+import {provideNoopAnimations} from "@angular/platform-browser/animations";
 
 describe('FoodCollectionRecordingBasedataComponent', () => {
   let foodCollectionsApiServiceSpy: jasmine.SpyObj<FoodCollectionsApiService>;
   let employeeApiServiceSpy: jasmine.SpyObj<EmployeeApiService>;
 
-  beforeEach(waitForAsync(() => {
+  beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [
-        NoopAnimationsModule
-      ],
       providers: [
+        provideNoopAnimations(),
+        provideZonelessChangeDetection(),
         {
           provide: Router,
           useValue: jasmine.createSpyObj('Router', ['navigate'])
@@ -41,7 +41,7 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
 
     foodCollectionsApiServiceSpy = TestBed.inject(FoodCollectionsApiService) as jasmine.SpyObj<FoodCollectionsApiService>;
     employeeApiServiceSpy = TestBed.inject(EmployeeApiService) as jasmine.SpyObj<EmployeeApiService>;
-  }));
+  });
 
   const mockEmployees: EmployeeData[] = [
     {
@@ -91,7 +91,7 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should reset and update form when foodCollectionData changes', () => {
+  it('should reset and update form when foodCollectionData changes', async () => {
     const fixture = TestBed.createComponent(FoodCollectionRecordingBasedataComponent);
     const component = fixture.componentInstance;
     const componentRef = fixture.componentRef;
@@ -108,7 +108,7 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
     // Set initial route data
     componentRef.setInput('selectedRouteData', mockRouteData);
 
-    fixture.detectChanges();
+    await fixture.whenStable();
 
     // Verify reset was called
     expect(component.car.reset).toHaveBeenCalled();
@@ -125,7 +125,7 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
     expect(component.kmEnd.value).toEqual(200);
   });
 
-  it('should validate km values - end km must be greater than start km', () => {
+  it('should validate km values - end km must be greater than start km', async () => {
     const fixture = TestBed.createComponent(FoodCollectionRecordingBasedataComponent);
     const component = fixture.componentInstance;
     const componentRef = fixture.componentRef;
@@ -136,7 +136,7 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
       foodCollectionData: null
     });
 
-    fixture.detectChanges();
+    await fixture.whenStable();
 
     // Set car
     component.car.setValue(mockCarList.cars[0]);
@@ -144,14 +144,14 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
     // Test valid scenario - end km > start km
     component.kmStart.setValue(100);
     component.kmEnd.setValue(150);
-    fixture.detectChanges();
+    await fixture.whenStable();
 
     expect(component.kmEnd.errors).toBeFalsy();
 
     // Test invalid scenario - start km > end km
     component.kmStart.setValue(200);
     component.kmEnd.setValue(150);
-    fixture.detectChanges();
+    await fixture.whenStable();
 
     expect(component.kmEnd.errors).toBeTruthy();
     expect(component.kmEnd.errors['kmValidation']).toBeTrue();
@@ -159,7 +159,7 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
     // Test invalid scenario - start km = end km
     component.kmStart.setValue(150);
     component.kmEnd.setValue(150);
-    fixture.detectChanges();
+    await fixture.whenStable();
 
     expect(component.kmEnd.errors).toBeTruthy();
     expect(component.kmEnd.errors['kmValidation']).toBeTrue();
@@ -194,7 +194,7 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
     expect(component.coDriverEmployeeSearchCreate.triggerSearch).toHaveBeenCalled();
   });
 
-  it('should correctly determine if save is disabled based on form state', () => {
+  it('should correctly determine if save is disabled based on form state', async () => {
     const fixture = TestBed.createComponent(FoodCollectionRecordingBasedataComponent);
     const component = fixture.componentInstance;
     const componentRef = fixture.componentRef;
@@ -204,7 +204,7 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
       foodCollectionData: null
     });
 
-    fixture.detectChanges();
+    await fixture.whenStable();
 
     // Initially the form should be invalid (no data entered)
     expect(component.isSaveDisabled()).toEqual(true);

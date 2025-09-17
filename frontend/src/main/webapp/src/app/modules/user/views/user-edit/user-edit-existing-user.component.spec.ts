@@ -1,4 +1,4 @@
-import {TestBed, waitForAsync} from '@angular/core/testing';
+import {TestBed} from '@angular/core/testing';
 import {ReactiveFormsModule} from '@angular/forms';
 import {ActivatedRoute, Router} from '@angular/router';
 import {of} from 'rxjs';
@@ -11,10 +11,10 @@ import {
   ModalModule,
   RowComponent
 } from '@coreui/angular';
-import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 import {UserApiService, UserData} from '../../../../api/user-api.service';
 import {provideHttpClient} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
+import {provideZonelessChangeDetection} from "@angular/core";
 
 describe('UserEditComponent - Editing an existing user', () => {
   const mockUser: UserData = {
@@ -31,12 +31,11 @@ describe('UserEditComponent - Editing an existing user', () => {
   let router: jasmine.SpyObj<Router>;
   let apiService: jasmine.SpyObj<UserApiService>;
 
-  beforeEach(waitForAsync(() => {
+  beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [
         ReactiveFormsModule,
         ModalModule,
-        NoopAnimationsModule,
         CardModule,
         InputGroupComponent,
         RowComponent,
@@ -44,6 +43,7 @@ describe('UserEditComponent - Editing an existing user', () => {
         BgColorDirective
       ],
       providers: [
+        provideZonelessChangeDetection(),
         provideHttpClient(),
         provideHttpClientTesting(),
         {
@@ -69,7 +69,7 @@ describe('UserEditComponent - Editing an existing user', () => {
 
     router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
     apiService = TestBed.inject(UserApiService) as jasmine.SpyObj<UserApiService>;
-  }));
+  });
 
   it('existing user saved successfully', () => {
     const userFormComponent = jasmine.createSpyObj('UserFormComponent', ['markAllAsTouched', 'isValid']);

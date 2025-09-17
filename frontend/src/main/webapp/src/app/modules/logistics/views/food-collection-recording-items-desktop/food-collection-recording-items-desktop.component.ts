@@ -1,6 +1,6 @@
 import {Component, effect, inject, input, model} from '@angular/core';
 import {Shop} from '../../../../api/route-api.service';
-import {CommonModule} from '@angular/common';
+
 import {ButtonDirective, ColComponent, RowComponent, TableColorDirective, TableDirective} from '@coreui/angular';
 import {FoodCategory} from '../../../../api/food-categories-api.service';
 import {FormArray, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
@@ -13,10 +13,9 @@ import {ToastService, ToastType} from '../../../../common/components/toasts/toas
 import {SelectedRouteData} from '../food-collection-recording/food-collection-recording.component';
 
 @Component({
-  selector: 'tafel-food-collection-recording-items-desktop',
-  templateUrl: 'food-collection-recording-items-desktop.component.html',
-  imports: [
-    CommonModule,
+    selector: 'tafel-food-collection-recording-items-desktop',
+    templateUrl: 'food-collection-recording-items-desktop.component.html',
+    imports: [
     ReactiveFormsModule,
     FormsModule,
     ButtonDirective,
@@ -24,8 +23,7 @@ import {SelectedRouteData} from '../food-collection-recording/food-collection-re
     TableColorDirective,
     ColComponent,
     RowComponent
-  ],
-  standalone: true
+]
 })
 export class FoodCollectionRecordingItemsDesktopComponent {
   foodCategories = model.required<FoodCategory[]>();

@@ -20,12 +20,11 @@ import {
   ModalToggleDirective,
   RowComponent
 } from '@coreui/angular';
-import {NgIf} from '@angular/common';
 
 @Component({
-  selector: 'tafel-distribution-state',
-  templateUrl: 'distribution-state.component.html',
-  imports: [
+    selector: 'tafel-distribution-state',
+    templateUrl: 'distribution-state.component.html',
+    imports: [
     CardComponent,
     CardBodyComponent,
     RowComponent,
@@ -34,13 +33,11 @@ import {NgIf} from '@angular/common';
     ModalHeaderComponent,
     ModalToggleDirective,
     ModalBodyComponent,
-    NgIf,
     ButtonDirective,
     ButtonCloseDirective,
     CardFooterComponent,
     BgColorDirective
-  ],
-  standalone: true
+]
 })
 export class DistributionStateComponent implements OnInit {
   distribution: DistributionItem;

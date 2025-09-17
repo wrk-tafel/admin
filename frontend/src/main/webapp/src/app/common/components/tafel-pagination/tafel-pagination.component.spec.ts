@@ -1,25 +1,29 @@
-import {TestBed, waitForAsync} from '@angular/core/testing';
+import {TestBed} from '@angular/core/testing';
 import {TafelPaginationComponent} from './tafel-pagination.component';
 import {PaginationComponent, PaginationModule} from '@coreui/angular';
+import {provideZonelessChangeDetection} from "@angular/core";
 
 describe('TafelPaginationComponent', () => {
-  beforeEach(waitForAsync(() => {
+  beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [
         PaginationModule,
         PaginationComponent
       ],
+      providers: [
+        provideZonelessChangeDetection(),
+      ]
     }).compileComponents();
-  }));
+  });
 
-  it('should create the component', waitForAsync(() => {
+  it('should create the component', () => {
     const fixture = TestBed.createComponent(TafelPaginationComponent);
     const component = fixture.componentInstance;
 
     expect(component).toBeTruthy();
-  }));
+  });
 
-  it('pagination for single page', waitForAsync(() => {
+  it('pagination for single page', () => {
     const fixture = TestBed.createComponent(TafelPaginationComponent);
     const component = fixture.componentInstance;
     component.paginationData = {
@@ -33,9 +37,9 @@ describe('TafelPaginationComponent', () => {
     expect(component.currentPage).toBe(1);
     expect(component.maxPage).toBe(1);
     expect(component.text).toBe('1 - 5 von 5');
-  }));
+  });
 
-  it('pagination for multiple pages, selected first page', waitForAsync(() => {
+  it('pagination for multiple pages, selected first page', () => {
     const fixture = TestBed.createComponent(TafelPaginationComponent);
     const component = fixture.componentInstance;
     component.paginationData = {
@@ -49,9 +53,9 @@ describe('TafelPaginationComponent', () => {
     expect(component.currentPage).toBe(1);
     expect(component.maxPage).toBe(10);
     expect(component.text).toBe('1 - 5 von 50');
-  }));
+  });
 
-  it('pagination for multiple pages, selected second page', waitForAsync(() => {
+  it('pagination for multiple pages, selected second page', () => {
     const fixture = TestBed.createComponent(TafelPaginationComponent);
     const component = fixture.componentInstance;
     component.paginationData = {
@@ -65,9 +69,9 @@ describe('TafelPaginationComponent', () => {
     expect(component.currentPage).toBe(2);
     expect(component.maxPage).toBe(2);
     expect(component.text).toBe('11 - 20 von 30');
-  }));
+  });
 
-  it('pagination for multiple pages, selected last page', waitForAsync(() => {
+  it('pagination for multiple pages, selected last page', () => {
     const fixture = TestBed.createComponent(TafelPaginationComponent);
     const component = fixture.componentInstance;
     component.paginationData = {
@@ -81,9 +85,9 @@ describe('TafelPaginationComponent', () => {
     expect(component.currentPage).toBe(3);
     expect(component.maxPage).toBe(3);
     expect(component.text).toBe('21 - 28 von 28');
-  }));
+  });
 
-  it('selectFirstPage', waitForAsync(() => {
+  it('selectFirstPage', () => {
     const fixture = TestBed.createComponent(TafelPaginationComponent);
     const component = fixture.componentInstance;
     spyOn(component.pageChanged, 'emit');
@@ -91,9 +95,9 @@ describe('TafelPaginationComponent', () => {
     component.selectFirstPage();
 
     expect(component.pageChanged.emit).toHaveBeenCalledWith(1);
-  }));
+  });
 
-  it('selectPreviousPage', waitForAsync(() => {
+  it('selectPreviousPage', () => {
     const fixture = TestBed.createComponent(TafelPaginationComponent);
     const component = fixture.componentInstance;
     spyOn(component.pageChanged, 'emit');
@@ -102,9 +106,9 @@ describe('TafelPaginationComponent', () => {
     component.selectPreviousPage();
 
     expect(component.pageChanged.emit).toHaveBeenCalledWith(4);
-  }));
+  });
 
-  it('selectPreviousPage on first page', waitForAsync(() => {
+  it('selectPreviousPage on first page', () => {
     const fixture = TestBed.createComponent(TafelPaginationComponent);
     const component = fixture.componentInstance;
     spyOn(component.pageChanged, 'emit');
@@ -113,9 +117,9 @@ describe('TafelPaginationComponent', () => {
     component.selectPreviousPage();
 
     expect(component.pageChanged.emit).toHaveBeenCalledWith(1);
-  }));
+  });
 
-  it('selectNextPage', waitForAsync(() => {
+  it('selectNextPage', () => {
     const fixture = TestBed.createComponent(TafelPaginationComponent);
     const component = fixture.componentInstance;
     spyOn(component.pageChanged, 'emit');
@@ -125,9 +129,9 @@ describe('TafelPaginationComponent', () => {
     component.selectNextPage();
 
     expect(component.pageChanged.emit).toHaveBeenCalledWith(5);
-  }));
+  });
 
-  it('selectNextPage on last page', waitForAsync(() => {
+  it('selectNextPage on last page', () => {
     const fixture = TestBed.createComponent(TafelPaginationComponent);
     const component = fixture.componentInstance;
     spyOn(component.pageChanged, 'emit');
@@ -137,9 +141,9 @@ describe('TafelPaginationComponent', () => {
     component.selectNextPage();
 
     expect(component.pageChanged.emit).toHaveBeenCalledWith(10);
-  }));
+  });
 
-  it('selectLastPage', waitForAsync(() => {
+  it('selectLastPage', () => {
     const fixture = TestBed.createComponent(TafelPaginationComponent);
     const component = fixture.componentInstance;
     spyOn(component.pageChanged, 'emit');
@@ -148,6 +152,6 @@ describe('TafelPaginationComponent', () => {
     component.selectLastPage();
 
     expect(component.pageChanged.emit).toHaveBeenCalledWith(7);
-  }));
+  });
 
 });

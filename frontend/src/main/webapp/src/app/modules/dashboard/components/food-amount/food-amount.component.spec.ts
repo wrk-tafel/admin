@@ -1,14 +1,14 @@
-import {TestBed, waitForAsync} from '@angular/core/testing';
+import {TestBed} from '@angular/core/testing';
 import {FoodAmountComponent} from './food-amount.component';
 import {By} from '@angular/platform-browser';
 import {CardModule, ColComponent, ModalModule, RowComponent} from '@coreui/angular';
 import {provideHttpClient} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
-import {DEFAULT_CURRENCY_CODE, LOCALE_ID} from '@angular/core';
+import {DEFAULT_CURRENCY_CODE, LOCALE_ID, provideZonelessChangeDetection} from '@angular/core';
 
 describe('FoodAmountComponent', () => {
 
-  beforeEach(waitForAsync(() => {
+  beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [
         ModalModule,
@@ -17,6 +17,7 @@ describe('FoodAmountComponent', () => {
         RowComponent
       ],
       providers: [
+        provideZonelessChangeDetection(),
         provideHttpClient(),
         provideHttpClientTesting(),
         {
@@ -29,7 +30,7 @@ describe('FoodAmountComponent', () => {
         },
       ]
     }).compileComponents();
-  }));
+  });
 
   it('component can be created', () => {
     const fixture = TestBed.createComponent(FoodAmountComponent);
@@ -37,19 +38,19 @@ describe('FoodAmountComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('food amount rendered', () => {
+  it('food amount rendered', async () => {
     const fixture = TestBed.createComponent(FoodAmountComponent);
     const componentRef = fixture.componentRef;
     componentRef.setInput('amount', 1234);
 
-    fixture.detectChanges();
+    await fixture.whenStable();
     expect(fixture.debugElement.query(By.css('[testid="food-amount-total"]')).nativeElement.textContent).toBe(`1 234,00 kg`);
   });
 
-  it('food amount rendered without active distribution', () => {
+  it('food amount rendered without active distribution', async () => {
     const fixture = TestBed.createComponent(FoodAmountComponent);
 
-    fixture.detectChanges();
+    await fixture.whenStable();
     expect(fixture.debugElement.query(By.css('[testid="food-amount-total"]')).nativeElement.textContent).toBe(`-`);
   });
 

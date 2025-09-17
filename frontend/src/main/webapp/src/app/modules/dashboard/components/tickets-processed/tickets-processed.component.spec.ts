@@ -1,12 +1,13 @@
-import {TestBed, waitForAsync} from '@angular/core/testing';
+import {TestBed} from '@angular/core/testing';
 import {TicketsProcessedComponent} from './tickets-processed.component';
 import {By} from '@angular/platform-browser';
 import {CardModule, ColComponent, ModalModule, RowComponent} from '@coreui/angular';
 import {provideHttpClient} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
+import {provideZonelessChangeDetection} from "@angular/core";
 
 describe('TicketsProcessedComponent', () => {
-  beforeEach(waitForAsync(() => {
+  beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [
         ModalModule,
@@ -15,11 +16,12 @@ describe('TicketsProcessedComponent', () => {
         RowComponent
       ],
       providers: [
+        provideZonelessChangeDetection(),
         provideHttpClient(),
         provideHttpClientTesting()
       ]
     }).compileComponents();
-  }));
+  });
 
   it('component can be created', () => {
     const fixture = TestBed.createComponent(TicketsProcessedComponent);
@@ -27,7 +29,7 @@ describe('TicketsProcessedComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('counts rendered', () => {
+  it('counts rendered', async () => {
     const fixture = TestBed.createComponent(TicketsProcessedComponent);
     const componentRef = fixture.componentRef;
 
@@ -35,13 +37,13 @@ describe('TicketsProcessedComponent', () => {
     const countTotal = 200;
     componentRef.setInput('countProcessedTickets', countProcessed);
     componentRef.setInput('countTotalTickets', countTotal);
-    fixture.detectChanges();
+    await fixture.whenStable();
 
     expect(fixture.debugElement.query(By.css('[testid="tickets-processed-count"]')).nativeElement.textContent)
       .toBe(`${countProcessed} / ${countTotal}`);
   });
 
-  it('panel color primary when not initialized', () => {
+  it('panel color primary when not initialized', async () => {
     const fixture = TestBed.createComponent(TicketsProcessedComponent);
     const componentRef = fixture.componentRef;
     const component = fixture.componentInstance;
@@ -50,12 +52,12 @@ describe('TicketsProcessedComponent', () => {
     const countTotal = 0;
     componentRef.setInput('countProcessedTickets', countProcessed);
     componentRef.setInput('countTotalTickets', countTotal);
-    fixture.detectChanges();
+    await fixture.whenStable();
 
     expect(component.getPanelColor()).toBe('primary');
   });
 
-  it('panel color warning when tickets are still open', () => {
+  it('panel color warning when tickets are still open', async () => {
     const fixture = TestBed.createComponent(TicketsProcessedComponent);
     const componentRef = fixture.componentRef;
     const component = fixture.componentInstance;
@@ -64,12 +66,12 @@ describe('TicketsProcessedComponent', () => {
     const countTotal = 20;
     componentRef.setInput('countProcessedTickets', countProcessed);
     componentRef.setInput('countTotalTickets', countTotal);
-    fixture.detectChanges();
+    await fixture.whenStable();
 
     expect(component.getPanelColor()).toBe('warning');
   });
 
-  it('panel color success when all tickets are processed', () => {
+  it('panel color success when all tickets are processed', async () => {
     const fixture = TestBed.createComponent(TicketsProcessedComponent);
     const componentRef = fixture.componentRef;
     const component = fixture.componentInstance;
@@ -78,7 +80,7 @@ describe('TicketsProcessedComponent', () => {
     const countTotal = 20;
     componentRef.setInput('countProcessedTickets', countProcessed);
     componentRef.setInput('countTotalTickets', countTotal);
-    fixture.detectChanges();
+    await fixture.whenStable();
 
     expect(component.getPanelColor()).toBe('success');
   });

@@ -1,11 +1,12 @@
 import {TestBed} from '@angular/core/testing';
-import * as moment from 'moment/moment';
+import moment from 'moment';
 import {of} from 'rxjs';
 import {ActivatedRouteSnapshot} from '@angular/router';
 import {CustomerNotesResolver} from './customernotes-resolver.component';
 import {CustomerNoteApiService, CustomerNotesResponse} from '../../../api/customer-note-api.service';
 import {provideHttpClient} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
+import {provideZonelessChangeDetection} from "@angular/core";
 
 describe('CustomerNotesResolver', () => {
   let apiService: jasmine.SpyObj<CustomerNoteApiService>;
@@ -14,6 +15,7 @@ describe('CustomerNotesResolver', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
+        provideZonelessChangeDetection(),
         provideHttpClient(),
         provideHttpClientTesting(),
         {

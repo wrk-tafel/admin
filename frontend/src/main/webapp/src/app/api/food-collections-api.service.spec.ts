@@ -10,6 +10,7 @@ import {
   FoodCollectionSaveItemsRequest,
   FoodCollectionSaveRouteDataRequest
 } from './food-collections-api.service';
+import {provideZonelessChangeDetection} from "@angular/core";
 
 describe('FoodCollectionsApiService', () => {
   let httpMock: HttpTestingController;
@@ -19,6 +20,7 @@ describe('FoodCollectionsApiService', () => {
     TestBed.configureTestingModule({
       imports: [ReactiveFormsModule],
       providers: [
+        provideZonelessChangeDetection(),
         provideHttpClient(),
         provideHttpClientTesting(),
         FoodCollectionsApiService

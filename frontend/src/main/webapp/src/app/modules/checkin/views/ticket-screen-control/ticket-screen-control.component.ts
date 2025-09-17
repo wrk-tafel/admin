@@ -7,19 +7,18 @@ import {NgClass} from '@angular/common';
 import {DistributionTicketScreenApiService} from '../../../../api/distribution-ticket-screen-api.service';
 
 @Component({
-  selector: 'tafel-ticket-screen-control',
-  templateUrl: 'ticket-screen-control.component.html',
-  imports: [
-    CardComponent,
-    CardBodyComponent,
-    RowComponent,
-    ColComponent,
-    ReactiveFormsModule,
-    NgClass,
-    TicketScreenComponent,
-    ButtonDirective
-  ],
-  standalone: true
+    selector: 'tafel-ticket-screen-control',
+    templateUrl: 'ticket-screen-control.component.html',
+    imports: [
+        CardComponent,
+        CardBodyComponent,
+        RowComponent,
+        ColComponent,
+        ReactiveFormsModule,
+        NgClass,
+        TicketScreenComponent,
+        ButtonDirective
+    ]
 })
 export class TicketScreenControlComponent {
   private readonly distributionTicketScreenApiService = inject(DistributionTicketScreenApiService);

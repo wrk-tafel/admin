@@ -4,6 +4,7 @@ import {HttpTestingController, provideHttpClientTesting} from '@angular/common/h
 import {errorHandlerInterceptor, TafelErrorResponse} from './errorhandler-interceptor.service';
 import {AuthenticationService} from '../security/authentication.service';
 import {ToastOptions, ToastService, ToastType} from '../components/toasts/toast.service';
+import {provideZonelessChangeDetection} from "@angular/core";
 
 describe('ErrorHandlerInterceptor', () => {
   let httpTestingController: HttpTestingController;
@@ -14,6 +15,7 @@ describe('ErrorHandlerInterceptor', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
+        provideZonelessChangeDetection(),
         provideHttpClient(
           withInterceptors([errorHandlerInterceptor])
         ),

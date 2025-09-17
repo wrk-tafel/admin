@@ -13,13 +13,10 @@ import {
   HeaderComponent,
   HeaderNavComponent,
   HeaderTogglerDirective,
-  NavItemComponent,
-  NavLinkDirective,
-  SidebarToggleDirective,
-  TextColorDirective
+  SidebarToggleDirective
 } from '@coreui/angular';
 import {AuthenticationService} from '../../../security/authentication.service';
-import {RouterLink, RouterLinkActive} from '@angular/router';
+import {RouterLink} from '@angular/router';
 import {IconDirective} from '@coreui/icons-angular';
 import {NgTemplateOutlet} from '@angular/common';
 import {FontAwesomeModule} from '@fortawesome/angular-fontawesome';
@@ -27,32 +24,27 @@ import {faKey, faLock} from '@fortawesome/free-solid-svg-icons';
 import {GlobalStateService} from '../../../state/global-state.service';
 
 @Component({
-  selector: 'app-default-header',
-  templateUrl: './default-header.component.html',
-  imports: [
-    ContainerComponent,
-    SidebarToggleDirective,
-    HeaderNavComponent,
-    DropdownComponent,
-    DropdownToggleDirective,
-    AvatarComponent,
-    RouterLink,
-    HeaderTogglerDirective,
-    IconDirective,
-    ButtonDirective,
-    TextColorDirective,
-    NgTemplateOutlet,
-    DropdownMenuDirective,
-    DropdownHeaderDirective,
-    DropdownItemDirective,
-    DropdownDividerDirective,
-    NavItemComponent,
-    BadgeComponent,
-    NavLinkDirective,
-    RouterLinkActive,
-    FontAwesomeModule
-  ],
-  standalone: true
+    selector: 'app-default-header',
+    templateUrl: './default-header.component.html',
+    imports: [
+        ContainerComponent,
+        SidebarToggleDirective,
+        HeaderNavComponent,
+        DropdownComponent,
+        DropdownToggleDirective,
+        AvatarComponent,
+        RouterLink,
+        HeaderTogglerDirective,
+        IconDirective,
+        ButtonDirective,
+        NgTemplateOutlet,
+        DropdownMenuDirective,
+        DropdownHeaderDirective,
+        DropdownItemDirective,
+        DropdownDividerDirective,
+        BadgeComponent,
+        FontAwesomeModule
+    ]
 })
 export class DefaultHeaderComponent extends HeaderComponent implements OnInit {
   @Input() sidebarId = 'sidebar';
