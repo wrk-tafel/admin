@@ -26,7 +26,7 @@
         <flyway.version>11.11.2</flyway.version>
         <spring.modulith.version>1.4.3</spring.modulith.version>
         <jjwt.version>0.12.7</jjwt.version>
-        <postgresql.driver.version>42.7.7</postgresql.driver.version>
+        <postgresql.driver.version>42.7.8</postgresql.driver.version>
         <bouncycastle.version>1.70</bouncycastle.version>
         <apache.fop.version>2.11</apache.fop.version>
         <qrcode.kotlin.version>4.5.0</qrcode.kotlin.version>
