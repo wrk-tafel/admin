@@ -7,6 +7,8 @@
 # TODO
 
 # Prio 1
+* Bug: Mails aren't sent sometimes
+* Feat: Add button to repeat mail sending for last or a selected distribution
 
 * Bug: customer creation - field birthDate form control validation not working (red/green border)
 * Bug: customer creation - field nationality (add persons) form control validation not working (red/green border)
