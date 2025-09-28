@@ -5,6 +5,7 @@ import {PermissionsListResponse, UserApiService, UserPermission} from '../../../
 import {PermissionsDataResolver} from './permissionsdata-resolver.component';
 import {provideHttpClient} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
+import {provideZonelessChangeDetection} from "@angular/core";
 
 describe('PermissionsDataResolver', () => {
   let apiService: jasmine.SpyObj<UserApiService>;
@@ -13,6 +14,7 @@ describe('PermissionsDataResolver', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
+        provideZonelessChangeDetection(),
         provideHttpClient(),
         provideHttpClientTesting(),
         {

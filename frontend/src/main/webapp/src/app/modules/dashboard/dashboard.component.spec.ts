@@ -1,16 +1,18 @@
-import {TestBed, waitForAsync} from '@angular/core/testing';
+import {TestBed} from '@angular/core/testing';
 import {DashboardComponent, DashboardData} from './dashboard.component';
 import {of} from 'rxjs';
 import {provideHttpClient} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
 import {SseService} from '../../common/sse/sse.service';
+import {provideZonelessChangeDetection} from "@angular/core";
 
 describe('DashboardComponent', () => {
   let sseService: jasmine.SpyObj<SseService>;
 
-  beforeEach(waitForAsync(() => {
+  beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
+        provideZonelessChangeDetection(),
         provideHttpClient(),
         provideHttpClientTesting(),
         {
@@ -21,7 +23,7 @@ describe('DashboardComponent', () => {
     }).compileComponents();
 
     sseService = TestBed.inject(SseService) as jasmine.SpyObj<SseService>;
-  }));
+  });
 
   it('component can be created', () => {
     const fixture = TestBed.createComponent(DashboardComponent);

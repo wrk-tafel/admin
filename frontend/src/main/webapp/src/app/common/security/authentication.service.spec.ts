@@ -4,6 +4,7 @@ import {Router} from '@angular/router';
 
 import {AuthenticationService} from './authentication.service';
 import {provideHttpClient} from '@angular/common/http';
+import {provideZonelessChangeDetection} from "@angular/core";
 
 describe('AuthenticationService', () => {
   let httpMock: HttpTestingController;
@@ -16,6 +17,7 @@ describe('AuthenticationService', () => {
 
     TestBed.configureTestingModule({
       providers: [
+        provideZonelessChangeDetection(),
         provideHttpClient(),
         provideHttpClientTesting(),
         AuthenticationService,

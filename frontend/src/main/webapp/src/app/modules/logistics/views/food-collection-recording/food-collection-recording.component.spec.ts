@@ -1,5 +1,4 @@
-import {TestBed, waitForAsync} from '@angular/core/testing';
-import {NoopAnimationsModule} from '@angular/platform-browser/animations';
+import {TestBed} from '@angular/core/testing';
 import {provideHttpClient} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
 import {FoodCollectionRecordingComponent} from './food-collection-recording.component';
@@ -7,17 +6,16 @@ import {BehaviorSubject} from 'rxjs';
 import {Router} from '@angular/router';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
 import {DistributionItem} from '../../../../api/distribution-api.service';
+import {provideZonelessChangeDetection} from "@angular/core";
 
 describe('FoodCollectionRecordingComponent', () => {
   let router: jasmine.SpyObj<Router>;
   let globalStateService: jasmine.SpyObj<GlobalStateService>;
 
-  beforeEach(waitForAsync(() => {
+  beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [
-        NoopAnimationsModule
-      ],
       providers: [
+        provideZonelessChangeDetection(),
         provideHttpClient(),
         provideHttpClientTesting(),
         {
@@ -33,7 +31,7 @@ describe('FoodCollectionRecordingComponent', () => {
 
     router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
     globalStateService = TestBed.inject(GlobalStateService) as jasmine.SpyObj<GlobalStateService>;
-  }));
+  });
 
   it('component can be created', () => {
     const fixture = TestBed.createComponent(FoodCollectionRecordingComponent);

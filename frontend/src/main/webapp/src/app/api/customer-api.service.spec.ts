@@ -1,9 +1,10 @@
 import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
 import {TestBed} from '@angular/core/testing';
-import * as moment from 'moment';
+import moment from 'moment';
 import {CustomerApiService, CustomerMergeRequest, Gender} from './customer-api.service';
 import {ReactiveFormsModule} from '@angular/forms';
 import {provideHttpClient} from '@angular/common/http';
+import {provideZonelessChangeDetection} from "@angular/core";
 
 describe('CustomerApiService', () => {
   let httpMock: HttpTestingController;
@@ -13,6 +14,7 @@ describe('CustomerApiService', () => {
     TestBed.configureTestingModule({
       imports: [ReactiveFormsModule],
       providers: [
+        provideZonelessChangeDetection(),
         provideHttpClient(),
         provideHttpClientTesting(),
         CustomerApiService

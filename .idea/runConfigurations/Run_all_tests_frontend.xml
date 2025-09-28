@@ -4,7 +4,7 @@
     <karma-options value="--browsers ChromeHeadless" />
     <karma-package-dir value="$PROJECT_DIR$/frontend/src/main/webapp/node_modules/@angular/cli" />
     <working-directory value="$PROJECT_DIR$/frontend/src/main/webapp" />
-    <node-interpreter value="project" />
+    <node-interpreter value="$USER_HOME$/.nvm/versions/node/v22.19.0/bin/node" />
     <envs />
     <method v="2" />
   </configuration>

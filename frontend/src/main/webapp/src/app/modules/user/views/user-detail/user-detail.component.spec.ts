@@ -1,4 +1,4 @@
-import {ComponentFixture, TestBed, waitForAsync} from '@angular/core/testing';
+import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {ReactiveFormsModule} from '@angular/forms';
 import {ActivatedRoute, Router} from '@angular/router';
 import {UserDetailComponent} from './user-detail.component';
@@ -7,6 +7,7 @@ import {UserApiService, UserData} from '../../../../api/user-api.service';
 import {By} from '@angular/platform-browser';
 import {of, throwError} from 'rxjs';
 import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
+import {provideZonelessChangeDetection} from "@angular/core";
 
 describe('UserDetailComponent', () => {
   const mockUser: UserData = {
@@ -27,7 +28,7 @@ describe('UserDetailComponent', () => {
   let router: jasmine.SpyObj<Router>;
   let toastService: jasmine.SpyObj<ToastService>;
 
-  beforeEach(waitForAsync(() => {
+  beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [
         ReactiveFormsModule,
@@ -36,6 +37,7 @@ describe('UserDetailComponent', () => {
         ColComponent
       ],
       providers: [
+        provideZonelessChangeDetection(),
         {
           provide: UserApiService,
           useValue: jasmine.createSpyObj('UserApiService', ['updateUser', 'deleteUser'])
@@ -64,7 +66,7 @@ describe('UserDetailComponent', () => {
     userApiService = TestBed.inject(UserApiService) as jasmine.SpyObj<UserApiService>;
     router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
     toastService = TestBed.inject(ToastService) as jasmine.SpyObj<ToastService>;
-  }));
+  });
 
   it('component can be created', () => {
     const fixture = TestBed.createComponent(UserDetailComponent);
@@ -72,11 +74,12 @@ describe('UserDetailComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('initial data loaded and shown correctly', () => {
+  it('initial data loaded and shown correctly', async () => {
     const fixture = TestBed.createComponent(UserDetailComponent);
     const component = fixture.componentInstance;
     component.userData = mockUser;
-    fixture.detectChanges();
+
+    await fixture.whenStable();
 
     expect(getTextByTestId(fixture, 'nameText')).toBe(`${mockUser.lastname} ${mockUser.firstname}`);
     expect(getTextByTestId(fixture, 'usernameText')).toBe(mockUser.username);

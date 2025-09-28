@@ -1,12 +1,12 @@
-import {TestBed, waitForAsync} from '@angular/core/testing';
+import {TestBed} from '@angular/core/testing';
 import {CustomerApiService, CustomerDuplicatesResponse, Gender} from '../../../../api/customer-api.service';
 import {CustomerDuplicatesComponent} from './customer-duplicates.component';
 import {ActivatedRoute, Router} from '@angular/router';
-import * as moment from 'moment/moment';
+import moment from 'moment';
 import {of, throwError} from 'rxjs';
 import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
 import {CardModule, ColComponent, PaginationModule, RowComponent} from '@coreui/angular';
-import {TafelPaginationComponent} from '../../../../common/components/tafel-pagination/tafel-pagination.component';
+import {provideZonelessChangeDetection} from "@angular/core";
 
 describe('CustomerDuplicatesComponent', () => {
   let customerApiService: jasmine.SpyObj<CustomerApiService>;
@@ -77,7 +77,7 @@ describe('CustomerDuplicatesComponent', () => {
     pageSize: 10
   };
 
-  beforeEach(waitForAsync(() => {
+  beforeEach(() => {
     const customerApiServiceSpy = jasmine.createSpyObj('CustomerApiService', ['getCustomerDuplicates', 'deleteCustomer', 'mergeCustomers']);
     const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
     const toastServiceSpy = jasmine.createSpyObj('ToastService', ['showToast']);
@@ -90,6 +90,7 @@ describe('CustomerDuplicatesComponent', () => {
         PaginationModule
       ],
       providers: [
+        provideZonelessChangeDetection(),
         {
           provide: CustomerApiService,
           useValue: customerApiServiceSpy
@@ -118,7 +119,7 @@ describe('CustomerDuplicatesComponent', () => {
     customerApiService = TestBed.inject(CustomerApiService) as jasmine.SpyObj<CustomerApiService>;
     router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
     toastService = TestBed.inject(ToastService) as jasmine.SpyObj<ToastService>;
-  }));
+  });
 
   it('component can be created', () => {
     const fixture = TestBed.createComponent(CustomerDuplicatesComponent);

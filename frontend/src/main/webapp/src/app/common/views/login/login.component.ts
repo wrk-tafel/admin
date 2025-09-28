@@ -15,13 +15,13 @@ import {
   RowComponent
 } from '@coreui/angular';
 import {IconDirective} from '@coreui/icons-angular';
-import {NgIf, NgOptimizedImage} from '@angular/common';
+import { NgOptimizedImage } from '@angular/common';
 import {TafelAutofocusDirective} from '../../directive/tafel-autofocus.directive';
 
 @Component({
-  selector: 'tafel-login',
-  templateUrl: 'login.component.html',
-  imports: [
+    selector: 'tafel-login',
+    templateUrl: 'login.component.html',
+    imports: [
     ContainerComponent,
     RowComponent,
     ColComponent,
@@ -34,11 +34,9 @@ import {TafelAutofocusDirective} from '../../directive/tafel-autofocus.directive
     IconDirective,
     NgOptimizedImage,
     FormDirective,
-    NgIf,
     ButtonDirective,
     TafelAutofocusDirective
-  ],
-  standalone: true
+]
 })
 export class LoginComponent implements OnInit {
   private readonly authenticationService = inject(AuthenticationService);

@@ -1,16 +1,18 @@
-import {TestBed, waitForAsync} from '@angular/core/testing';
+import {TestBed} from '@angular/core/testing';
 import {CommonModule} from '@angular/common';
 import {TicketScreenComponent, TicketScreenText} from './ticket-screen.component';
 import {of} from 'rxjs';
 import {SseService} from '../../../../common/sse/sse.service';
+import {provideZonelessChangeDetection} from "@angular/core";
 
 describe('TicketScreenComponent', () => {
   let sseService: jasmine.SpyObj<SseService>;
 
-  beforeEach(waitForAsync(() => {
+  beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [CommonModule],
       providers: [
+        provideZonelessChangeDetection(),
         {
           provide: SseService,
           useValue: jasmine.createSpyObj('SseService', ['listen'])
@@ -19,7 +21,7 @@ describe('TicketScreenComponent', () => {
     }).compileComponents();
 
     sseService = TestBed.inject(SseService) as jasmine.SpyObj<SseService>;
-  }));
+  });
 
   it('component can be created', () => {
     const fixture = TestBed.createComponent(TicketScreenComponent);

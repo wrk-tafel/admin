@@ -4,6 +4,7 @@ import {provideHttpClient} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
 import {ShelterApiService, ShelterListResponse} from '../../../api/shelter-api.service';
 import {DashboardSheltersDataResolver} from './dashboard-shelters-resolver-component.service';
+import {provideZonelessChangeDetection} from "@angular/core";
 
 describe('DashboardSheltersDataResolver', () => {
   let apiService: jasmine.SpyObj<ShelterApiService>;
@@ -12,6 +13,7 @@ describe('DashboardSheltersDataResolver', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
+        provideZonelessChangeDetection(),
         provideHttpClient(),
         provideHttpClientTesting(),
         {

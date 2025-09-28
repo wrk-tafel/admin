@@ -1,25 +1,16 @@
 import {Component, effect, inject, input, OnInit, signal} from '@angular/core';
 import {
-  BgColorDirective,
-  ButtonCloseDirective,
   ButtonDirective,
   CardBodyComponent,
   CardComponent,
   CardFooterComponent,
-  CardHeaderComponent,
   ColComponent,
   InputGroupComponent,
   InputGroupTextDirective,
-  ModalBodyComponent,
-  ModalComponent,
-  ModalFooterComponent,
-  ModalHeaderComponent,
-  ModalToggleDirective,
   RowComponent
 } from '@coreui/angular';
 import {CommonModule} from '@angular/common';
 import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
-import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
 import {DistributionApiService} from '../../../../api/distribution-api.service';
 import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
 import {SelectSheltersComponent} from '../select-shelters/select-shelters.component';
@@ -27,31 +18,21 @@ import {ShelterItem, ShelterListResponse} from '../../../../api/shelter-api.serv
 import {GlobalStateService} from '../../../../common/state/global-state.service';
 
 @Component({
-  selector: 'tafel-distribution-statistics-input',
-  templateUrl: 'distribution-statistics-input.component.html',
-  imports: [
-    CardComponent,
-    CardHeaderComponent,
-    CardBodyComponent,
-    RowComponent,
-    ColComponent,
-    ModalComponent,
-    ModalHeaderComponent,
-    ModalToggleDirective,
-    ModalBodyComponent,
-    ButtonDirective,
-    ButtonCloseDirective,
-    ReactiveFormsModule,
-    TafelAutofocusDirective,
-    CommonModule,
-    CardFooterComponent,
-    BgColorDirective,
-    InputGroupComponent,
-    InputGroupTextDirective,
-    ModalFooterComponent,
-    SelectSheltersComponent
-  ],
-  standalone: true
+    selector: 'tafel-distribution-statistics-input',
+    templateUrl: 'distribution-statistics-input.component.html',
+    imports: [
+        CardComponent,
+        CardBodyComponent,
+        RowComponent,
+        ColComponent,
+        ButtonDirective,
+        ReactiveFormsModule,
+        CommonModule,
+        CardFooterComponent,
+        InputGroupComponent,
+        InputGroupTextDirective,
+        SelectSheltersComponent
+    ]
 })
 export class DistributionStatisticsInputComponent implements OnInit {
   private readonly fb = inject(FormBuilder);

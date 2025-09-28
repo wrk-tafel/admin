@@ -3,6 +3,7 @@ import {TestBed} from '@angular/core/testing';
 import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
 import {apiPathInterceptor} from './apipath-interceptor.service';
 import {UrlHelperService} from '../util/url-helper.service';
+import {provideZonelessChangeDetection} from "@angular/core";
 
 describe('ApiPathInterceptor', () => {
   let httpTestingController: HttpTestingController;
@@ -12,6 +13,7 @@ describe('ApiPathInterceptor', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
+        provideZonelessChangeDetection(),
         provideHttpClient(
           withInterceptors([apiPathInterceptor])
         ),

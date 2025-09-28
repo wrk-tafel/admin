@@ -1,6 +1,5 @@
 import {AuthGuardData, AuthGuardService} from './authguard.service';
 import {ActivatedRouteSnapshot} from '@angular/router';
-import {waitForAsync} from '@angular/core/testing';
 
 describe('AuthGuardService', () => {
   function setup() {
@@ -12,7 +11,7 @@ describe('AuthGuardService', () => {
     return {service, authServiceSpy};
   }
 
-  it('canActivate when authenticated', waitForAsync(async () => {
+  it('canActivate when authenticated', async () => {
     const {service, authServiceSpy} = setup();
     authServiceSpy.isAuthenticated.and.returnValue(true);
     authServiceSpy.hasAnyPermission.and.returnValue(true);
@@ -21,9 +20,9 @@ describe('AuthGuardService', () => {
     const canActivate = await service.canActivate(activatedRoute);
 
     expect(canActivate).toBeTrue();
-  }));
+  });
 
-  it('canActivate when authenticated without permissions', waitForAsync(async () => {
+  it('canActivate when authenticated without permissions', async () => {
     const {service, authServiceSpy} = setup();
     authServiceSpy.isAuthenticated.and.returnValue(true);
 
@@ -32,9 +31,9 @@ describe('AuthGuardService', () => {
 
     expect(canActivate).toBeTrue();
     expect(authServiceSpy.redirectToLogin).not.toHaveBeenCalled();
-  }));
+  });
 
-  it('canActivate when authenticated without permissions but anyPermission is necessary', waitForAsync(async () => {
+  it('canActivate when authenticated without permissions but anyPermission is necessary', async () => {
     const {service, authServiceSpy} = setup();
     authServiceSpy.isAuthenticated.and.returnValue(true);
     authServiceSpy.hasAnyPermission.and.returnValue(false);
@@ -44,9 +43,9 @@ describe('AuthGuardService', () => {
 
     expect(canActivate).toBeFalse();
     expect(authServiceSpy.redirectToLogin).toHaveBeenCalledWith('fehlgeschlagen');
-  }));
+  });
 
-  it('canActivate when authenticated with wrong permission', waitForAsync(async () => {
+  it('canActivate when authenticated with wrong permission', async () => {
     const {service, authServiceSpy} = setup();
     authServiceSpy.isAuthenticated.and.returnValue(true);
     authServiceSpy.hasAnyPermission.and.returnValue(true);
@@ -57,7 +56,7 @@ describe('AuthGuardService', () => {
 
     expect(canActivate).toBeFalse();
     expect(authServiceSpy.redirectToLogin).toHaveBeenCalledWith('fehlgeschlagen');
-  }));
+  });
 
   it('canActivate when authenticated with correct permission', () => {
     const {service, authServiceSpy} = setup();

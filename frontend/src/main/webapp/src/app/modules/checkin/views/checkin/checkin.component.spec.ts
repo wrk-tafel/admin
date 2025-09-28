@@ -1,15 +1,15 @@
-import {TestBed, waitForAsync} from '@angular/core/testing';
+import {TestBed} from '@angular/core/testing';
 import {CheckinComponent, CustomerState, ScanResult} from './checkin.component';
 import {CommonModule} from '@angular/common';
 import {CustomerApiService, Gender, GenderLabel} from '../../../../api/customer-api.service';
 import {BehaviorSubject, EMPTY, of, throwError} from 'rxjs';
-import * as moment from 'moment/moment';
+import moment from 'moment';
 import {CustomerNoteApiService, CustomerNotesResponse} from '../../../../api/customer-note-api.service';
 import {Router} from '@angular/router';
 import {DistributionApiService, DistributionItem} from '../../../../api/distribution-api.service';
 import {BadgeModule, CardModule, ColComponent, ModalModule, RowComponent} from '@coreui/angular';
 import {FormsModule} from '@angular/forms';
-import {ChangeDetectorRef, ElementRef} from '@angular/core';
+import {ChangeDetectorRef, ElementRef, provideZonelessChangeDetection} from '@angular/core';
 import {DistributionTicketApiService} from '../../../../api/distribution-ticket-api.service';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
 import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
@@ -27,7 +27,7 @@ describe('CheckinComponent', () => {
   let router: jasmine.SpyObj<Router>;
   let toastService: jasmine.SpyObj<ToastService>;
 
-  beforeEach(waitForAsync(() => {
+  beforeEach(() => {
     const customerApiServiceSpy = jasmine.createSpyObj('CustomerApiService', ['getCustomer']);
     const customerNoteApiServiceSpy = jasmine.createSpyObj('CustomerNoteApiService', ['getNotesForCustomer']);
     const scannerApiServiceSpy = jasmine.createSpyObj('ScannerApiService', ['getScanners']);
@@ -49,6 +49,7 @@ describe('CheckinComponent', () => {
         BadgeModule
       ],
       providers: [
+        provideZonelessChangeDetection(),
         {
           provide: CustomerApiService,
           useValue: customerApiServiceSpy
@@ -97,7 +98,7 @@ describe('CheckinComponent', () => {
     distributionTicketApiService = TestBed.inject(DistributionTicketApiService) as jasmine.SpyObj<DistributionTicketApiService>;
     router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
     toastService = TestBed.inject(ToastService) as jasmine.SpyObj<ToastService>;
-  }));
+  });
 
   it('component can be created', () => {
     const fixture = TestBed.createComponent(CheckinComponent);

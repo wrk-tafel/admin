@@ -1,4 +1,4 @@
-import {TestBed, waitForAsync} from '@angular/core/testing';
+import {TestBed} from '@angular/core/testing';
 import {SettingsComponent} from './settings.component';
 import {provideHttpClient} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
@@ -6,17 +6,19 @@ import {MailRecipients, MailTypeEnum, RecipientTypeEnum, SettingsApiService} fro
 import {of, throwError} from 'rxjs';
 import {ToastService, ToastType} from '../../common/components/toasts/toast.service';
 import {ReactiveFormsModule} from '@angular/forms';
+import {provideZonelessChangeDetection} from "@angular/core";
 
 describe('SettingsComponent', () => {
   let apiService: jasmine.SpyObj<SettingsApiService>;
   let toastService: jasmine.SpyObj<ToastService>;
 
-  beforeEach(waitForAsync(() => {
+  beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [
         ReactiveFormsModule
       ],
       providers: [
+        provideZonelessChangeDetection(),
         provideHttpClient(),
         provideHttpClientTesting(),
         {
@@ -32,7 +34,7 @@ describe('SettingsComponent', () => {
 
     apiService = TestBed.inject(SettingsApiService) as jasmine.SpyObj<SettingsApiService>;
     toastService = TestBed.inject(ToastService) as jasmine.SpyObj<ToastService>;
-  }));
+  });
 
   const testData: MailRecipients = {
     mailRecipients: [

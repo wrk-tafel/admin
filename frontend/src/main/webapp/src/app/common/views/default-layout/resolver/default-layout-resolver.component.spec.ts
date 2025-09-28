@@ -3,6 +3,7 @@ import {DefaultLayoutResolver} from './default-layout-resolver.component';
 import {GlobalStateService} from '../../../state/global-state.service';
 import {provideHttpClient} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
+import {provideZonelessChangeDetection} from "@angular/core";
 
 describe('DefaultLayoutResolver', () => {
   let globalStateService: jasmine.SpyObj<GlobalStateService>;
@@ -11,6 +12,7 @@ describe('DefaultLayoutResolver', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
+        provideZonelessChangeDetection(),
         provideHttpClient(),
         provideHttpClientTesting(),
         {

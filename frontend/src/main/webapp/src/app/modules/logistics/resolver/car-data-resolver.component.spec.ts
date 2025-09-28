@@ -5,6 +5,7 @@ import {of} from 'rxjs';
 import {ActivatedRouteSnapshot} from '@angular/router';
 import {CarApiService, CarList} from '../../../api/car-api.service';
 import {CarDataResolver} from './car-data-resolver.component';
+import {provideZonelessChangeDetection} from "@angular/core";
 
 describe('CarDataResolver', () => {
   let apiService: jasmine.SpyObj<CarApiService>;
@@ -13,6 +14,7 @@ describe('CarDataResolver', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
+        provideZonelessChangeDetection(),
         provideHttpClient(),
         provideHttpClientTesting(),
         {

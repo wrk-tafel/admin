@@ -8,6 +8,7 @@ import {
   SaveDistributionStatisticRequest
 } from './distribution-api.service';
 import {provideHttpClient} from '@angular/common/http';
+import {provideZonelessChangeDetection} from "@angular/core";
 
 describe('DistributionApiService', () => {
   let httpMock: HttpTestingController;
@@ -16,6 +17,7 @@ describe('DistributionApiService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
+        provideZonelessChangeDetection(),
         provideHttpClient(),
         provideHttpClientTesting()
       ]

@@ -1,22 +1,26 @@
-import {TestBed, waitForAsync} from '@angular/core/testing';
+import {TestBed} from '@angular/core/testing';
 import {SelectSheltersComponent} from './select-shelters.component';
 import {CardModule, ColComponent, ModalModule, ProgressModule, RowComponent} from '@coreui/angular';
-import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 import {ShelterItem} from '../../../../api/shelter-api.service';
+import {provideZonelessChangeDetection} from "@angular/core";
+import {provideNoopAnimations} from "@angular/platform-browser/animations";
 
 describe('SelectSheltersComponent', () => {
-  beforeEach(waitForAsync(() => {
+  beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [
-        NoopAnimationsModule,
         ModalModule,
         CardModule,
         RowComponent,
         ColComponent,
         ProgressModule
+      ],
+      providers: [
+        provideNoopAnimations(),
+        provideZonelessChangeDetection(),
       ]
     }).compileComponents();
-  }));
+  });
 
   const testShelters: ShelterItem[] = [
     {
@@ -52,7 +56,7 @@ describe('SelectSheltersComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('newly selected shelter is emitted to output', () => {
+  it('newly selected shelter is emitted to output', async () => {
     const fixture = TestBed.createComponent(SelectSheltersComponent);
     const componentRef = fixture.componentRef;
     const component = fixture.componentInstance;
@@ -61,7 +65,7 @@ describe('SelectSheltersComponent', () => {
     componentRef.setInput('shelters', testShelters);
     component.ngOnInit();
     componentRef.setInput('initialSelectedShelters', [testShelters[1]]);
-    fixture.detectChanges();
+    await fixture.whenStable();
 
     expect(component.selectedShelters.at(1).value).toBeTrue();
 

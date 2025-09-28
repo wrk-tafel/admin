@@ -43,119 +43,125 @@
 
     <hr/>
 
-    <c-row *ngIf="customerDuplicatesData.items.length === 0">
-      <h4 class="fw-bold">Keine Duplikate gefunden!</h4>
-    </c-row>
+    @if (customerDuplicatesData.items.length === 0) {
+      <c-row>
+        <h4 class="fw-bold">Keine Duplikate gefunden!</h4>
+      </c-row>
+    }
 
-    <div  *ngIf="customerDuplicatesData.items.length > 0">
-      <tafel-pagination class="d-none d-sm-block" align="end" [paginationData]="paginationData"
-                        (pageChanged)="getDuplicates($event)"></tafel-pagination>
-      <tafel-pagination class="d-block d-sm-none" align="center" size="sm" [paginationData]="paginationData"
-                        (pageChanged)="getDuplicates($event)"></tafel-pagination>
-
-      <div class="d-grid gap-3">
-        <c-row *ngFor="let item of this.customerDuplicatesData.items">
-          <c-col>
-            <c-card class="mb-3 mb-sm-0">
-              <c-card-header class="fw-bold">
-                <c-row class="d-flex flex-column flex-sm-row">
-                  <c-col class="align-self-center">
-                    {{item.customer.id + ' - ' + item.customer.lastname + ' ' + item.customer.firstname}}
-                  </c-col>
-                  <c-col class="text-end pt-2 pt-sm-0">
-                    <button cButton color="success" class="me-2" (click)="mergeCustomers(item.customer)">
-                      <fa-icon [icon]="faCheck" inverse="true"></fa-icon>
-                    </button>
-                    <button cButton class="me-2" (click)="showCustomerDetail(item.customer.id)">
-                      <fa-icon [icon]="faMagnifyingGlass" inverse="true"></fa-icon>
-                    </button>
-                    <button cButton color="danger" (click)="deleteCustomer(item.customer.id)">
-                      <fa-icon [icon]="faTrashCan" inverse="true"></fa-icon>
-                    </button>
-                  </c-col>
-                </c-row>
-              </c-card-header>
-              <c-card-body>
-                <c-row>
-                  <c-col class="fw-bold">Geburtsdatum:</c-col>
-                  <c-col>
-                    {{item.customer.birthDate | date : 'dd.MM.yyyy'}}
-                  </c-col>
-                </c-row>
-                <c-row>
-                  <c-col class="fw-bold">Adresse:</c-col>
-                  <c-col>
-                    {{formatAddress(item.customer.address)}}
-                  </c-col>
-                </c-row>
-                <c-row>
-                  <c-col class="fw-bold text-white"
-                         [ngClass]="{'bg-success': isValid(item.customer), 'bg-danger': !isValid(item.customer)}">
-                    Gültig bis:
-                  </c-col>
-                  <c-col class="text-white"
-                         [ngClass]="{'bg-success': isValid(item.customer), 'bg-danger': !isValid(item.customer)}"
-                         [innerHTML]="item.customer.validUntil | date : 'dd.MM.yyyy'">
-                  </c-col>
-                </c-row>
-              </c-card-body>
-            </c-card>
-          </c-col>
-          <c-col>
-            <div class="d-flex flex-column gap-3">
-              <c-card *ngFor="let similarCustomer of item.similarCustomers">
-                <c-card-header class="fw-bold">
-                  <c-row class="d-flex flex-column flex-sm-row">
-                    <c-col>
-                      {{similarCustomer.id + ' - ' + similarCustomer.lastname + ' ' + similarCustomer.firstname}}
-                    </c-col>
-                    <c-col class="text-end pt-2 pt-sm-0">
-                      <button cButton color="success" class="me-2" (click)="mergeCustomers(similarCustomer)">
-                        <fa-icon [icon]="faCheck" inverse="true"></fa-icon>
-                      </button>
-                      <button cButton class="me-2" (click)="showCustomerDetail(similarCustomer.id)">
-                        <fa-icon [icon]="faMagnifyingGlass" inverse="true"></fa-icon>
-                      </button>
-                      <button cButton color="danger" class="text-white" (click)="deleteCustomer(similarCustomer.id)">
-                        <fa-icon [icon]="faTrashCan" inverse="true"></fa-icon>
-                      </button>
-                    </c-col>
-                  </c-row>
-                </c-card-header>
-                <c-card-body>
-                  <c-row>
-                    <c-col class="fw-bold">Geburtsdatum:</c-col>
-                    <c-col>
-                      {{similarCustomer.birthDate | date : 'dd.MM.yyyy'}}
-                    </c-col>
-                  </c-row>
-                  <c-row>
-                    <c-col class="fw-bold">Adresse:</c-col>
-                    <c-col>
-                      {{formatAddress(similarCustomer.address)}}
-                    </c-col>
-                  </c-row>
-                  <c-row>
-                    <c-col class="fw-bold text-white"
-                           [ngClass]="{'bg-success': isValid(similarCustomer), 'bg-danger': !isValid(similarCustomer)}">
-                      Gültig bis:
-                    </c-col>
-                    <c-col class="text-white"
-                           [ngClass]="{'bg-success': isValid(similarCustomer), 'bg-danger': !isValid(similarCustomer)}"
-                           [innerHTML]="similarCustomer.validUntil | date : 'dd.MM.yyyy'">
-                    </c-col>
-                  </c-row>
-                </c-card-body>
-              </c-card>
-            </div>
-          </c-col>
-        </c-row>
+    @if (customerDuplicatesData.items.length > 0) {
+      <div >
+        <tafel-pagination class="d-none d-sm-block" align="end" [paginationData]="paginationData"
+        (pageChanged)="getDuplicates($event)"></tafel-pagination>
+        <tafel-pagination class="d-block d-sm-none" align="center" size="sm" [paginationData]="paginationData"
+        (pageChanged)="getDuplicates($event)"></tafel-pagination>
+        <div class="d-grid gap-3">
+          @for (item of this.customerDuplicatesData.items; track item) {
+            <c-row>
+              <c-col>
+                <c-card class="mb-3 mb-sm-0">
+                  <c-card-header class="fw-bold">
+                    <c-row class="d-flex flex-column flex-sm-row">
+                      <c-col class="align-self-center">
+                        {{item.customer.id + ' - ' + item.customer.lastname + ' ' + item.customer.firstname}}
+                      </c-col>
+                      <c-col class="text-end pt-2 pt-sm-0">
+                        <button cButton color="success" class="me-2" (click)="mergeCustomers(item.customer)">
+                          <fa-icon [icon]="faCheck" inverse="true"></fa-icon>
+                        </button>
+                        <button cButton class="me-2" (click)="showCustomerDetail(item.customer.id)">
+                          <fa-icon [icon]="faMagnifyingGlass" inverse="true"></fa-icon>
+                        </button>
+                        <button cButton color="danger" (click)="deleteCustomer(item.customer.id)">
+                          <fa-icon [icon]="faTrashCan" inverse="true"></fa-icon>
+                        </button>
+                      </c-col>
+                    </c-row>
+                  </c-card-header>
+                  <c-card-body>
+                    <c-row>
+                      <c-col class="fw-bold">Geburtsdatum:</c-col>
+                      <c-col>
+                        {{item.customer.birthDate | date : 'dd.MM.yyyy'}}
+                      </c-col>
+                    </c-row>
+                    <c-row>
+                      <c-col class="fw-bold">Adresse:</c-col>
+                      <c-col>
+                        {{formatAddress(item.customer.address)}}
+                      </c-col>
+                    </c-row>
+                    <c-row>
+                      <c-col class="fw-bold text-white"
+                        [ngClass]="{'bg-success': isValid(item.customer), 'bg-danger': !isValid(item.customer)}">
+                        Gültig bis:
+                      </c-col>
+                      <c-col class="text-white"
+                        [ngClass]="{'bg-success': isValid(item.customer), 'bg-danger': !isValid(item.customer)}"
+                        [innerHTML]="item.customer.validUntil | date : 'dd.MM.yyyy'">
+                      </c-col>
+                    </c-row>
+                  </c-card-body>
+                </c-card>
+              </c-col>
+              <c-col>
+                <div class="d-flex flex-column gap-3">
+                  @for (similarCustomer of item.similarCustomers; track similarCustomer) {
+                    <c-card>
+                      <c-card-header class="fw-bold">
+                        <c-row class="d-flex flex-column flex-sm-row">
+                          <c-col>
+                            {{similarCustomer.id + ' - ' + similarCustomer.lastname + ' ' + similarCustomer.firstname}}
+                          </c-col>
+                          <c-col class="text-end pt-2 pt-sm-0">
+                            <button cButton color="success" class="me-2" (click)="mergeCustomers(similarCustomer)">
+                              <fa-icon [icon]="faCheck" inverse="true"></fa-icon>
+                            </button>
+                            <button cButton class="me-2" (click)="showCustomerDetail(similarCustomer.id)">
+                              <fa-icon [icon]="faMagnifyingGlass" inverse="true"></fa-icon>
+                            </button>
+                            <button cButton color="danger" class="text-white" (click)="deleteCustomer(similarCustomer.id)">
+                              <fa-icon [icon]="faTrashCan" inverse="true"></fa-icon>
+                            </button>
+                          </c-col>
+                        </c-row>
+                      </c-card-header>
+                      <c-card-body>
+                        <c-row>
+                          <c-col class="fw-bold">Geburtsdatum:</c-col>
+                          <c-col>
+                            {{similarCustomer.birthDate | date : 'dd.MM.yyyy'}}
+                          </c-col>
+                        </c-row>
+                        <c-row>
+                          <c-col class="fw-bold">Adresse:</c-col>
+                          <c-col>
+                            {{formatAddress(similarCustomer.address)}}
+                          </c-col>
+                        </c-row>
+                        <c-row>
+                          <c-col class="fw-bold text-white"
+                            [ngClass]="{'bg-success': isValid(similarCustomer), 'bg-danger': !isValid(similarCustomer)}">
+                            Gültig bis:
+                          </c-col>
+                          <c-col class="text-white"
+                            [ngClass]="{'bg-success': isValid(similarCustomer), 'bg-danger': !isValid(similarCustomer)}"
+                            [innerHTML]="similarCustomer.validUntil | date : 'dd.MM.yyyy'">
+                          </c-col>
+                        </c-row>
+                      </c-card-body>
+                    </c-card>
+                  }
+                </div>
+              </c-col>
+            </c-row>
+          }
+        </div>
+        <tafel-pagination class="d-none d-sm-block mt-3" align="end" [paginationData]="paginationData"
+        (pageChanged)="getDuplicates($event)"></tafel-pagination>
+        <tafel-pagination class="d-block d-sm-none mt-3" align="center" size="sm" [paginationData]="paginationData"
+        (pageChanged)="getDuplicates($event)"></tafel-pagination>
       </div>
-
-      <tafel-pagination class="d-none d-sm-block mt-3" align="end" [paginationData]="paginationData"
-                        (pageChanged)="getDuplicates($event)"></tafel-pagination>
-      <tafel-pagination class="d-block d-sm-none mt-3" align="center" size="sm" [paginationData]="paginationData"
-                        (pageChanged)="getDuplicates($event)"></tafel-pagination>
-    </div>
+    }
   </c-card-body>
 </c-card>

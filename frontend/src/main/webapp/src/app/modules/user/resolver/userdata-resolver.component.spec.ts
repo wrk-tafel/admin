@@ -5,6 +5,7 @@ import {ActivatedRouteSnapshot} from '@angular/router';
 import {UserApiService, UserData} from '../../../api/user-api.service';
 import {provideHttpClient} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
+import {provideZonelessChangeDetection} from "@angular/core";
 
 describe('UserDataResolver', () => {
   let apiService: jasmine.SpyObj<UserApiService>;
@@ -13,6 +14,7 @@ describe('UserDataResolver', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
+        provideZonelessChangeDetection(),
         provideHttpClient(),
         provideHttpClientTesting(),
         {

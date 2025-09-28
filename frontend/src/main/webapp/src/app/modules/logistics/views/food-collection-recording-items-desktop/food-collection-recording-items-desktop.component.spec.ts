@@ -1,5 +1,4 @@
-import {TestBed, waitForAsync} from '@angular/core/testing';
-import {NoopAnimationsModule} from '@angular/platform-browser/animations';
+import {TestBed} from '@angular/core/testing';
 import {provideHttpClient} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
 import {FoodCollectionRecordingItemsDesktopComponent} from './food-collection-recording-items-desktop.component';
@@ -8,16 +7,15 @@ import {GlobalStateService} from '../../../../common/state/global-state.service'
 import {DistributionItem} from '../../../../api/distribution-api.service';
 import {RouteData} from '../../../../api/route-api.service';
 import {FoodCategory} from '../../../../api/food-categories-api.service';
+import {provideZonelessChangeDetection} from "@angular/core";
 
 describe('FoodCollectionRecordingItemsDesktopComponent', () => {
   let globalStateService: jasmine.SpyObj<GlobalStateService>;
 
-  beforeEach(waitForAsync(() => {
+  beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [
-        NoopAnimationsModule
-      ],
       providers: [
+        provideZonelessChangeDetection(),
         provideHttpClient(),
         provideHttpClientTesting(),
         {
@@ -28,7 +26,7 @@ describe('FoodCollectionRecordingItemsDesktopComponent', () => {
     }).compileComponents();
 
     globalStateService = TestBed.inject(GlobalStateService) as jasmine.SpyObj<GlobalStateService>;
-  }));
+  });
 
   const testDistribution = {
     id: 123,
@@ -53,7 +51,7 @@ describe('FoodCollectionRecordingItemsDesktopComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('ngOnInit - selected route provides category controls', () => {
+  it('ngOnInit - selected route provides category controls', async () => {
     const fixture = TestBed.createComponent(FoodCollectionRecordingItemsDesktopComponent);
     const component = fixture.componentInstance;
     const componentRef = fixture.componentRef;
@@ -63,7 +61,7 @@ describe('FoodCollectionRecordingItemsDesktopComponent', () => {
 
     componentRef.setInput('selectedRoute', testRoute);
     componentRef.setInput('foodCategories', testFoodCategories);
-    fixture.detectChanges();
+    await fixture.whenStable();
 
     // TODO expect(component.categories.controls.length).toEqual(10);
   });

@@ -5,6 +5,7 @@ import {
   DistributionTicketScreenApiService,
   TicketScreenShowTextRequest
 } from './distribution-ticket-screen-api.service';
+import {provideZonelessChangeDetection} from "@angular/core";
 
 describe('DistributionTicketScreenApiService', () => {
   let httpMock: HttpTestingController;
@@ -13,6 +14,7 @@ describe('DistributionTicketScreenApiService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
+        provideZonelessChangeDetection(),
         provideHttpClient(),
         provideHttpClientTesting(),
         DistributionTicketScreenApiService

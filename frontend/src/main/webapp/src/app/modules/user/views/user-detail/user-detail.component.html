@@ -8,8 +8,12 @@
         Benutzer-Status ändern
       </button>
       <ul cDropdownMenu>
-        <li><button *ngIf="userData.enabled" cDropdownItem style="cursor: pointer;" testid="disableUserButton" (click)="disableUser()">Benutzer deaktivieren</button></li>
-        <li><button *ngIf="!userData.enabled" cDropdownItem style="cursor: pointer;" testid="enableUserButton" (click)="enableUser()">Benutzer aktivieren</button></li>
+        <li>@if (userData.enabled) {
+          <button cDropdownItem style="cursor: pointer;" testid="disableUserButton" (click)="disableUser()">Benutzer deaktivieren</button>
+        }</li>
+        <li>@if (!userData.enabled) {
+          <button cDropdownItem style="cursor: pointer;" testid="enableUserButton" (click)="enableUser()">Benutzer aktivieren</button>
+        }</li>
         <li><hr cDropdownDivider></li>
         <li><button cDropdownItem style="cursor: pointer;" testid="deleteUserButton" (click)="deleteUser()">Benutzer löschen</button></li>
       </ul>
@@ -47,21 +51,21 @@
               Passwortänderung notwendig
             </c-col>
             <c-col
-              testid="passwordChangeRequiredText">{{userData?.passwordChangeRequired == true ? 'Ja' : 'Nein'}}</c-col>
+            testid="passwordChangeRequiredText">{{userData?.passwordChangeRequired == true ? 'Ja' : 'Nein'}}</c-col>
           </c-row>
           <c-row>
             <c-col class="fw-bold">
               Berechtigungen
             </c-col>
             <c-col
-              testid="permissionsText" class="fw-bold">{{formatPermissions()}}</c-col>
+            testid="permissionsText" class="fw-bold">{{formatPermissions()}}</c-col>
           </c-row>
           <c-row>
             <c-col class="fw-bold text-white"
-                   [ngClass]="{'bg-success': userData?.enabled == true, 'bg-danger': userData?.enabled == false}">Aktiv
+              [ngClass]="{'bg-success': userData?.enabled == true, 'bg-danger': userData?.enabled == false}">Aktiv
             </c-col>
             <c-col testid="enabledText" class="text-white"
-                   [ngClass]="{'bg-success': userData?.enabled == true, 'bg-danger': userData?.enabled == false}">{{userData?.enabled == true ? 'Ja' : 'Nein'}}</c-col>
+            [ngClass]="{'bg-success': userData?.enabled == true, 'bg-danger': userData?.enabled == false}">{{userData?.enabled == true ? 'Ja' : 'Nein'}}</c-col>
           </c-row>
         </c-col>
       </c-row>

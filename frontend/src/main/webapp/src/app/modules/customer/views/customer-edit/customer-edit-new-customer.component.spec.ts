@@ -1,7 +1,7 @@
-import {TestBed, waitForAsync} from '@angular/core/testing';
+import {TestBed} from '@angular/core/testing';
 import {ReactiveFormsModule} from '@angular/forms';
 import {ActivatedRoute, Router} from '@angular/router';
-import * as moment from 'moment';
+import moment from 'moment';
 import {of} from 'rxjs';
 import {CustomerApiService, CustomerData, Gender, ValidateCustomerResponse} from '../../../../api/customer-api.service';
 import {CustomerEditComponent} from './customer-edit.component';
@@ -14,10 +14,11 @@ import {
   ModalModule,
   RowComponent
 } from '@coreui/angular';
-import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
 import {provideHttpClient} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
+import {provideZonelessChangeDetection} from "@angular/core";
+import {provideNoopAnimations} from "@angular/platform-browser/animations";
 
 describe('CustomerEditComponent - Creating a new customer', () => {
 
@@ -79,10 +80,9 @@ describe('CustomerEditComponent - Creating a new customer', () => {
   let apiService: jasmine.SpyObj<CustomerApiService>;
   let toastService: jasmine.SpyObj<ToastService>;
 
-  beforeEach(waitForAsync(() => {
+  beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [
-        NoopAnimationsModule,
         ReactiveFormsModule,
         ModalModule,
         InputGroupComponent,
@@ -92,6 +92,8 @@ describe('CustomerEditComponent - Creating a new customer', () => {
         BgColorDirective
       ],
       providers: [
+        provideNoopAnimations(),
+        provideZonelessChangeDetection(),
         provideHttpClient(),
         provideHttpClientTesting(),
         {
@@ -120,13 +122,13 @@ describe('CustomerEditComponent - Creating a new customer', () => {
     router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
     apiService = TestBed.inject(CustomerApiService) as jasmine.SpyObj<CustomerApiService>;
     toastService = TestBed.inject(ToastService) as jasmine.SpyObj<ToastService>;
-  }));
+  });
 
-  it('initial checks', () => {
+  it('initial checks', async () => {
     const fixture = TestBed.createComponent(CustomerEditComponent);
     const component = fixture.componentInstance;
     expect(component).toBeTruthy();
-    fixture.detectChanges();
+    await fixture.whenStable();
 
     expect(fixture.debugElement.query(By.css('[testid="nopersons-label"]'))).toBeTruthy();
     expect(component.editMode).toBeFalse();
