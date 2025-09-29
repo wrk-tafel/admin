@@ -32,7 +32,7 @@
     "@angular/forms": "18.2.14",
     "@angular/localize": "18.2.13",
     "@angular/platform-browser": "18.2.13",
-    "@angular/platform-browser-dynamic": "18.2.13",
+    "@angular/platform-browser-dynamic": "18.2.14",
     "@angular/router": "18.2.13",
     "@coreui/angular": "5.2.25",
     "@coreui/angular-chartjs": "5.2.25",
