@@ -1,10 +1,9 @@
 import {TestBed, waitForAsync} from '@angular/core/testing';
-import {SettingsComponent} from './settings.component';
+import {SendMailsComponent} from './send-mails.component';
 import {provideHttpClient} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
 
-describe('SettingsComponent', () => {
-
+describe('SendMailsComponent', () => {
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       providers: [
@@ -15,9 +14,11 @@ describe('SettingsComponent', () => {
   }));
 
   it('component can be created', () => {
-    const fixture = TestBed.createComponent(SettingsComponent);
+    const fixture = TestBed.createComponent(SendMailsComponent);
     const component = fixture.componentInstance;
     expect(component).toBeTruthy();
   });
+
+  // TODO add tests
 
 });

@@ -1,6 +1,12 @@
 package at.wrk.tafel.admin.backend.modules.distribution.internal.model
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
+import java.time.LocalDateTime
+
+@ExcludeFromTestCoverage
+data class DistributionListResponse(
+    val items: List<DistributionItem>,
+)
 
 @ExcludeFromTestCoverage
 data class DistributionItemUpdate(
@@ -10,6 +16,8 @@ data class DistributionItemUpdate(
 @ExcludeFromTestCoverage
 data class DistributionItem(
     val id: Long,
+    val startedAt: LocalDateTime,
+    val endedAt: LocalDateTime?,
 )
 
 @ExcludeFromTestCoverage

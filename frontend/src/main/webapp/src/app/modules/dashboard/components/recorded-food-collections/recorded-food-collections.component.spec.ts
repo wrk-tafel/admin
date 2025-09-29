@@ -56,7 +56,7 @@ describe('RecordedFoodCollectionsComponent', () => {
   it('panel color warning when not all data is recorded', () => {
     const fixture = TestBed.createComponent(RecordedFoodCollectionsComponent);
     const component = fixture.componentInstance;
-    component.distribution = {id: 123};
+    component.distribution = {id: 123, startedAt: new Date()};
     const componentRef = fixture.componentRef;
     componentRef.setInput('countRecorded', 2);
     componentRef.setInput('countTotal', 5);
@@ -68,7 +68,7 @@ describe('RecordedFoodCollectionsComponent', () => {
   it('panel color success when all data is recorded', () => {
     const fixture = TestBed.createComponent(RecordedFoodCollectionsComponent);
     const component = fixture.componentInstance;
-    component.distribution = {id: 123};
+    component.distribution = {id: 123, startedAt: new Date()};
     const componentRef = fixture.componentRef;
     componentRef.setInput('countRecorded', 5);
     componentRef.setInput('countTotal', 5);

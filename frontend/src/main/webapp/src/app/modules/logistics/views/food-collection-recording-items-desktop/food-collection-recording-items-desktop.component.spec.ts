@@ -30,13 +30,9 @@ describe('FoodCollectionRecordingItemsDesktopComponent', () => {
     globalStateService = TestBed.inject(GlobalStateService) as jasmine.SpyObj<GlobalStateService>;
   }));
 
-  const testDistribution = {
+  const testDistribution: DistributionItem = {
     id: 123,
-    state: {
-      name: 'OPEN',
-      stateLabel: 'Offen',
-      actionLabel: 'Offen'
-    }
+    startedAt: new Date()
   };
   const testRoute: RouteData = {
     id: 0,

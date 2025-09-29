@@ -14,6 +14,9 @@ import at.wrk.tafel.admin.backend.modules.base.country.testCountry1
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.CustomerListItem
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.CustomerListPdfModel
+import at.wrk.tafel.admin.backend.modules.distribution.internal.postprocessors.DailyReportMailPostProcessor
+import at.wrk.tafel.admin.backend.modules.distribution.internal.postprocessors.ReturnBoxesMailPostProcessor
+import at.wrk.tafel.admin.backend.modules.distribution.internal.postprocessors.StatisticMailPostProcessor
 import at.wrk.tafel.admin.backend.modules.logistics.*
 import at.wrk.tafel.admin.backend.security.testUser
 import at.wrk.tafel.admin.backend.security.testUserEntity
@@ -30,6 +33,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.context.SecurityContextImpl
@@ -68,6 +72,15 @@ internal class DistributionServiceTest {
 
     @RelaxedMockK
     private lateinit var routeRepository: RouteRepository
+
+    @RelaxedMockK
+    private lateinit var dailyReportMailPostProcessor: DailyReportMailPostProcessor
+
+    @RelaxedMockK
+    private lateinit var returnBoxesMailPostProcessor: ReturnBoxesMailPostProcessor
+
+    @RelaxedMockK
+    private lateinit var statisticMailPostProcessor: StatisticMailPostProcessor
 
     @InjectMockKs
     private lateinit var service: DistributionService
@@ -158,6 +171,17 @@ internal class DistributionServiceTest {
     @AfterEach
     fun afterEach() {
         SecurityContextHolder.clearContext()
+    }
+
+    @Test
+    fun `get distributions`() {
+        every { distributionRepository.getDistributionEntityByEndedAtIsNotNullOrderByStartedAtDesc() } returns listOf(
+            testDistributionEntity
+        )
+
+        val distributions = service.getDistributions()
+
+        assertThat(distributions).hasSameElementsAs(listOf(testDistributionEntity))
     }
 
     @Test
@@ -696,6 +720,25 @@ internal class DistributionServiceTest {
     @Disabled
     // TODO maybe also add a pdf comparison (probably after OS problems fixed)
     fun `generate customerlist pdf - compare`() {
+    }
+
+    @Test
+    fun `send mails`() {
+        every { distributionRepository.findByIdOrNull(testDistributionEntity.id!!) } returns testDistributionEntity
+
+        service.sendMails(testDistributionEntity.id!!)
+
+        verify { dailyReportMailPostProcessor.process(testDistributionEntity, testDistributionStatisticEntity) }
+        verify { returnBoxesMailPostProcessor.process(testDistributionEntity, testDistributionStatisticEntity) }
+        verify { statisticMailPostProcessor.process(testDistributionEntity, testDistributionStatisticEntity) }
+    }
+
+    @Test
+    fun `send mails with invalid distribution`() {
+        every { distributionRepository.findByIdOrNull(testDistributionEntity.id!!) } returns null
+
+        val exception = assertThrows<TafelValidationException> { service.sendMails(testDistributionEntity.id!!) }
+        assertThat(exception.message).isEqualTo("Ausgabe nicht gefunden!")
     }
 
 }

@@ -18,7 +18,8 @@ describe('GlobalStateService', () => {
 
     const testDistributionUpdate: DistributionItemUpdate = {
       distribution: {
-        id: 123
+        id: 123,
+        startedAt: new Date()
       }
     };
     sseServiceSpy.listen.and.returnValue(of(testDistributionUpdate));

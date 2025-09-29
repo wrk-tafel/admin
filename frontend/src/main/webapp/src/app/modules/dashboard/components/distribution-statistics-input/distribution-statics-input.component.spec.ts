@@ -39,13 +39,9 @@ describe('DistributionStatisticsInputComponent', () => {
       personsCount: 200
     }
   ];
-  const testDistribution = {
+  const testDistribution: DistributionItem = {
     id: 123,
-    state: {
-      name: 'OPEN',
-      stateLabel: 'Offen',
-      actionLabel: 'Offen'
-    }
+    startedAt: new Date()
   };
 
   beforeEach(waitForAsync(() => {

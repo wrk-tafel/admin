@@ -18,9 +18,8 @@ import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
-import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
-import org.springframework.http.MediaType
+import java.time.LocalDateTime
 
 @ExtendWith(MockKExtension::class)
 internal class DistributionControllerTest {
@@ -38,13 +37,17 @@ internal class DistributionControllerTest {
     fun `create new distribution`() {
         val distributionEntity = DistributionEntity()
         distributionEntity.id = 123
+        distributionEntity.startedAt = LocalDateTime.now()
+        distributionEntity.endedAt = null
         every { service.createNewDistribution() } returns distributionEntity
 
         controller.createNewDistribution()
 
         val distributionItemResponse = DistributionItemUpdate(
             distribution = DistributionItem(
-                id = distributionEntity.id!!
+                id = distributionEntity.id!!,
+                startedAt = distributionEntity.startedAt!!,
+                endedAt = distributionEntity.endedAt
             )
         )
 
@@ -54,6 +57,29 @@ internal class DistributionControllerTest {
                 payload = distributionItemResponse
             )
         }
+    }
+
+    @Test
+    fun `get distributions`() {
+        val distributionEntity = DistributionEntity()
+        distributionEntity.id = 123
+        distributionEntity.startedAt = LocalDateTime.now()
+        distributionEntity.endedAt = null
+        every { service.getDistributions() } returns listOf(distributionEntity)
+
+        val response = controller.getDistributions()
+
+        assertThat(response).isEqualTo(
+            DistributionListResponse(
+                items = listOf(
+                    DistributionItem(
+                        id = distributionEntity.id!!,
+                        startedAt = distributionEntity.startedAt!!,
+                        endedAt = distributionEntity.endedAt
+                    )
+                )
+            )
+        )
     }
 
     @Test
@@ -72,6 +98,8 @@ internal class DistributionControllerTest {
     fun `listen for distribution updates with active distribution`() {
         val distributionEntity = DistributionEntity()
         distributionEntity.id = 123
+        distributionEntity.startedAt = LocalDateTime.now()
+        distributionEntity.endedAt = null
         every { service.getCurrentDistribution() } returns distributionEntity
 
         val sseEmitter = controller.listenForDistributionUpdates()
@@ -82,7 +110,9 @@ internal class DistributionControllerTest {
                 sseEmitter,
                 DistributionItemUpdate(
                     distribution = DistributionItem(
-                        id = distributionEntity.id!!
+                        id = distributionEntity.id!!,
+                        startedAt = distributionEntity.startedAt!!,
+                        endedAt = distributionEntity.endedAt
                     )
                 )
             )
@@ -335,28 +365,11 @@ internal class DistributionControllerTest {
     }
 
     @Test
-    fun `generate customerlist pdf - result mapped`() {
-        val testFilename = "file.pdf"
-        every { service.generateCustomerListPdf() } returns CustomerListPdfResult(
-            filename = testFilename,
-            bytes = testFilename.toByteArray()
-        )
+    fun `send mails`() {
+        val distributionId = 123L
+        controller.sendMails(distributionId)
 
-        val response = controller.generateCustomerListPdf()
-
-        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
-        assertThat(
-            response.headers.filter { it.key === HttpHeaders.CONTENT_TYPE }
-                .map { it.value.first().toString() }.first()
-        ).isEqualTo(MediaType.APPLICATION_PDF_VALUE)
-
-        assertThat(
-            response.headers.filter { it.key === HttpHeaders.CONTENT_DISPOSITION }
-                .map { it.value.first().toString() }.first()
-        ).isEqualTo("inline; filename=$testFilename")
-
-        val bodyBytes = response.body?.inputStream?.readAllBytes()!!
-        assertThat(String(bodyBytes)).isEqualTo(testFilename)
+        verify { service.sendMails(distributionId) }
     }
 
 }

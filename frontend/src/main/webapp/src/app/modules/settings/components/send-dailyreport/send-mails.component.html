@@ -1,0 +1,35 @@
+<c-row>
+  <c-col sm="3">
+    <c-card>
+      <c-card-header>
+        <c-row class="d-flex align-items-center">
+          <c-col class="d-flex align-items-center gap-2">
+            <svg [cIcon]="cilEnvelopeClosed" size="xl" title="E-Mails erneut senden"></svg>
+            <h5 class="mb-0 mt-1 align-self-center">E-Mails erneut senden</h5>
+          </c-col>
+        </c-row>
+      </c-card-header>
+      <c-card-body>
+        <c-row>
+          <c-col>Ausgabe vom:</c-col>
+        </c-row>
+        <c-row>
+          <c-col>
+            <select class="form-control" cSelect [(ngModel)]="selectedDistribution">
+              @for (distribution of distributions; track distribution) {
+                <option [ngValue]="distribution">
+                  {{ distribution.startedAt | date : 'dd.MM.yyyy' }}
+                </option>
+              }
+            </select>
+          </c-col>
+        </c-row>
+        <c-row class="mt-4">
+          <c-col>
+            <button cButton (click)="sendMails()" [disabled]="!selectedDistribution">E-Mails erneut senden</button>
+          </c-col>
+        </c-row>
+      </c-card-body>
+    </c-card>
+  </c-col>
+</c-row>

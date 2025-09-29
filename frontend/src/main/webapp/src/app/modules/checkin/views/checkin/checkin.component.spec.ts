@@ -113,13 +113,9 @@ describe('CheckinComponent', () => {
     const scannersResponse: ScannerList = {scannerIds: [1, 2, 3]};
     scannerApiService.getScanners.and.returnValue(of(scannersResponse));
 
-    const testDistribution = {
+    const testDistribution: DistributionItem = {
       id: 123,
-      state: {
-        name: 'OPEN',
-        stateLabel: 'Offen',
-        actionLabel: 'Offen'
-      }
+      startedAt: new Date()
     };
     globalStateService.getCurrentDistribution.and.returnValue(new BehaviorSubject<DistributionItem>(testDistribution));
 
@@ -261,7 +257,10 @@ describe('CheckinComponent', () => {
     };
     customerNoteApiService.getNotesForCustomer.and.returnValue(of(notesResponse));
     component.customerId = mockCustomer.id;
-    distributionTicketApiService.getCurrentTicketForCustomer.and.returnValue(of({ticketNumber: null, costContributionPaid: false}));
+    distributionTicketApiService.getCurrentTicketForCustomer.and.returnValue(of({
+      ticketNumber: null,
+      costContributionPaid: false
+    }));
 
     component.searchForCustomerId();
 
@@ -323,7 +322,10 @@ describe('CheckinComponent', () => {
     component.customerId = mockCustomer.id;
 
     const testTicketNumber = 123;
-    distributionTicketApiService.getCurrentTicketForCustomer.and.returnValue(of({ticketNumber: testTicketNumber, costContributionPaid: true}));
+    distributionTicketApiService.getCurrentTicketForCustomer.and.returnValue(of({
+      ticketNumber: testTicketNumber,
+      costContributionPaid: true
+    }));
 
     component.searchForCustomerId();
 
@@ -382,7 +384,10 @@ describe('CheckinComponent', () => {
     };
     customerNoteApiService.getNotesForCustomer.and.returnValue(of(notesResponse));
     component.customerId = mockCustomer.id;
-    distributionTicketApiService.getCurrentTicketForCustomer.and.returnValue(of({ticketNumber: null, costContributionPaid: false}));
+    distributionTicketApiService.getCurrentTicketForCustomer.and.returnValue(of({
+      ticketNumber: null,
+      costContributionPaid: false
+    }));
 
     component.searchForCustomerId();
 
@@ -443,7 +448,10 @@ describe('CheckinComponent', () => {
     };
     customerNoteApiService.getNotesForCustomer.and.returnValue(of(notesResponse));
     component.customerId = mockCustomer.id;
-    distributionTicketApiService.getCurrentTicketForCustomer.and.returnValue(of({ticketNumber: null, costContributionPaid: false}));
+    distributionTicketApiService.getCurrentTicketForCustomer.and.returnValue(of({
+      ticketNumber: null,
+      costContributionPaid: false
+    }));
 
     component.searchForCustomerId();
 
@@ -506,7 +514,10 @@ describe('CheckinComponent', () => {
     };
     customerNoteApiService.getNotesForCustomer.and.returnValue(of(notesResponse));
     component.customerId = mockCustomer.id;
-    distributionTicketApiService.getCurrentTicketForCustomer.and.returnValue(of({ticketNumber: null, costContributionPaid: true}));
+    distributionTicketApiService.getCurrentTicketForCustomer.and.returnValue(of({
+      ticketNumber: null,
+      costContributionPaid: true
+    }));
 
     component.searchForCustomerId();
 
@@ -597,7 +608,10 @@ describe('CheckinComponent', () => {
       pageSize: 5
     };
     customerNoteApiService.getNotesForCustomer.and.returnValue(of(mockNotesResponse));
-    distributionTicketApiService.getCurrentTicketForCustomer.and.returnValue(of({ticketNumber: null, costContributionPaid: true}));
+    distributionTicketApiService.getCurrentTicketForCustomer.and.returnValue(of({
+      ticketNumber: null,
+      costContributionPaid: true
+    }));
 
     component.searchForCustomerId();
 

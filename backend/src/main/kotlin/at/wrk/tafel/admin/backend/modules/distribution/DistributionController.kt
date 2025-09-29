@@ -26,6 +26,13 @@ class DistributionController(
         const val DISTRIBUTION_UPDATE_NOTIFICATION_NAME = "distribution_update"
     }
 
+    @GetMapping("/distributions")
+    @PreAuthorize("isAuthenticated()")
+    fun getDistributions(): DistributionListResponse {
+        val distributions = service.getDistributions().map { mapDistribution(it) }
+        return DistributionListResponse(items = distributions)
+    }
+
     @PostMapping("/distributions/new")
     @PreAuthorize("hasAuthority('DISTRIBUTION_LCM')")
     fun createNewDistribution(): DistributionItemUpdate {
@@ -138,8 +145,19 @@ class DistributionController(
         return ResponseEntity.noContent().build()
     }
 
+    @PostMapping("/distributions/{distributionId}/send-mails")
+    @PreAuthorize("hasAuthority('DISTRIBUTION_LCM')")
+    fun sendMails(@PathVariable distributionId: Long): ResponseEntity<Unit> {
+        service.sendMails(distributionId)
+        return ResponseEntity.ok().build()
+    }
+
     private fun mapDistribution(distribution: DistributionEntity): DistributionItem {
-        return DistributionItem(id = distribution.id!!)
+        return DistributionItem(
+            id = distribution.id!!,
+            startedAt = distribution.startedAt!!,
+            endedAt = distribution.endedAt,
+        )
     }
 
 }
