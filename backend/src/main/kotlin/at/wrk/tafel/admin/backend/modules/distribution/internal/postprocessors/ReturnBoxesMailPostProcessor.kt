@@ -8,7 +8,6 @@ import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatis
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.thymeleaf.context.Context
-import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 @Component
@@ -22,13 +21,13 @@ class ReturnBoxesMailPostProcessor(
     }
 
     override fun process(distribution: DistributionEntity, statistic: DistributionStatisticEntity) {
-        val dateFormatted = LocalDate.now().format(DATE_TIME_FORMATTER)
+        val dateFormatted = distribution.startedAt!!.format(DATE_TIME_FORMATTER)
 
         val mailSubject = "TÖ Tafel 1030 - Retourkisten vom $dateFormatted"
         val returnBoxes = createReturnBoxesData(distribution)
 
         val ctx = Context()
-        ctx.setVariable("distributionDate", distribution.startedAt!!.format(DATE_TIME_FORMATTER))
+        ctx.setVariable("distributionDate", dateFormatted)
         ctx.setVariable("returnBoxes", returnBoxes)
 
         mailSenderService.sendHtmlMail(

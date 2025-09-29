@@ -1,7 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.distribution.internal.postprocessors
 
 import at.wrk.tafel.admin.backend.common.mail.MailSenderService
-import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.model.base.MailType
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
@@ -20,15 +19,11 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.thymeleaf.context.Context
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 @ExtendWith(MockKExtension::class)
 class ReturnBoxesMailPostProcessorTest {
-
-    @RelaxedMockK
-    private lateinit var tafelAdminProperties: TafelAdminProperties
 
     @RelaxedMockK
     private lateinit var mailSenderService: MailSenderService
@@ -40,10 +35,12 @@ class ReturnBoxesMailPostProcessorTest {
     fun `proper postprocessing done`() {
         val distributionId = 123L
         val distributionNotes = "Test note 123, no problems, everything easy"
+        val distributionStartDate = LocalDateTime.now().minusDays(7)
+        val dateFormatted = distributionStartDate.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
 
         val distribution = mockk<DistributionEntity>()
         every { distribution.id } returns distributionId
-        every { distribution.startedAt } returns LocalDateTime.now()
+        every { distribution.startedAt } returns distributionStartDate
         every { distribution.notes } returns distributionNotes
         every { distribution.foodCollections } returns listOf(
             testFoodCollectionRoute1Entity,
@@ -55,12 +52,12 @@ class ReturnBoxesMailPostProcessorTest {
         val distributionStatistic = mockk<DistributionStatisticEntity>()
         postProcessor.process(distribution, distributionStatistic)
 
-        assertMail()
+        assertMail(dateFormatted)
     }
 
-    private fun assertMail() {
+    private fun assertMail(dateFormatted: String) {
         val mailSubject =
-            "TÖ Tafel 1030 - Retourkisten vom ${LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))}"
+            "TÖ Tafel 1030 - Retourkisten vom $dateFormatted"
 
         val contextSlot = slot<Context>()
         verify {
@@ -74,9 +71,7 @@ class ReturnBoxesMailPostProcessorTest {
         }
 
         val context = contextSlot.captured
-        assertThat(context.getVariable("distributionDate")).isEqualTo(
-            LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
-        )
+        assertThat(context.getVariable("distributionDate")).isEqualTo(dateFormatted)
 
         val returnBoxes = context.getVariable("returnBoxes") as ReturnBoxesDataModel
         assertThat(returnBoxes.routes).hasSize(2)
