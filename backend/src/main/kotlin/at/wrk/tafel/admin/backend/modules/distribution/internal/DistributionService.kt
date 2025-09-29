@@ -12,8 +12,12 @@ import at.wrk.tafel.admin.backend.modules.distribution.internal.model.CustomerLi
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.CustomerListPdfModel
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.CustomerListPdfResult
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.DistributionCloseValidationResult
+import at.wrk.tafel.admin.backend.modules.distribution.internal.postprocessors.DailyReportMailPostProcessor
+import at.wrk.tafel.admin.backend.modules.distribution.internal.postprocessors.ReturnBoxesMailPostProcessor
+import at.wrk.tafel.admin.backend.modules.distribution.internal.postprocessors.StatisticMailPostProcessor
 import at.wrk.tafel.admin.backend.modules.distribution.internal.ticket.DistributionTicketController
 import org.slf4j.LoggerFactory
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -36,10 +40,17 @@ class DistributionService(
     private val transactionTemplate: TransactionTemplate,
     private val shelterRepository: ShelterRepository,
     private val routeRepository: RouteRepository,
+    private val dailyReportMailPostProcessor: DailyReportMailPostProcessor,
+    private val returnBoxesMailPostProcessor: ReturnBoxesMailPostProcessor,
+    private val statisticMailPostProcessor: StatisticMailPostProcessor,
 ) {
     companion object {
         private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
         private val logger = LoggerFactory.getLogger(DistributionTicketController::class.java)
+    }
+
+    fun getDistributions(): List<DistributionEntity> {
+        return distributionRepository.getDistributionEntityByEndedAtIsNotNullOrderByStartedAtDesc()
     }
 
     fun createNewDistribution(): DistributionEntity {
@@ -305,6 +316,16 @@ class DistributionService(
         currentDistribution.notes = notes.trim().ifBlank { null }
 
         distributionRepository.save(currentDistribution)
+    }
+
+    @Transactional
+    fun sendMails(distributionId: Long) {
+        val distribution = distributionRepository.findByIdOrNull(distributionId)
+            ?: throw TafelValidationException("Ausgabe nicht gefunden!")
+
+        dailyReportMailPostProcessor.process(distribution, distribution.statistic!!)
+        returnBoxesMailPostProcessor.process(distribution, distribution.statistic!!)
+        statisticMailPostProcessor.process(distribution, distribution.statistic!!)
     }
 
 }

@@ -1,3 +1,6 @@
+### Get distributions
+GET {{baseApiPath}}/distributions
+
 ### Create a new distribution
 POST {{baseApiPath}}/distributions/new
 
@@ -28,3 +31,6 @@ Content-Type: application/json
 
 ### Get customer list (pdf)
 GET {{baseApiPath}}/distributions/customers/generate-pdf
+
+### Send mails for distribution
+POST {{baseApiPath}}/distributions/100/send-mails

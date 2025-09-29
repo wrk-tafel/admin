@@ -231,13 +231,9 @@ describe('DefaultLayoutComponent', () => {
   });
 
   it('navItems are not modified by distribution state when active', () => {
-    const testDistribution = {
+    const testDistribution: DistributionItem = {
       id: 123,
-      state: {
-        name: 'OPEN',
-        stateLabel: 'Offen',
-        actionLabel: 'Offen'
-      }
+      startedAt: new Date()
     };
 
     const testMenuItem1 = {

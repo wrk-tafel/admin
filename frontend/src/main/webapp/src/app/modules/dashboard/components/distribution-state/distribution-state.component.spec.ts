@@ -54,7 +54,7 @@ describe('DistributionStateComponent', () => {
     const fixture = TestBed.createComponent(DistributionStateComponent);
     const component = fixture.componentInstance;
 
-    const distribution: DistributionItem = {id: 123};
+    const distribution: DistributionItem = {id: 123, startedAt: new Date()};
     const subject = new BehaviorSubject<DistributionItem>(distribution);
     globalStateService.getCurrentDistribution.and.returnValue(subject);
 
@@ -95,7 +95,7 @@ describe('DistributionStateComponent', () => {
     const component = fixture.componentInstance;
     component.showCloseDistributionModal = true;
 
-    const distribution: DistributionItem = {id: 123};
+    const distribution: DistributionItem = {id: 123, startedAt: new Date()};
     globalStateService.getCurrentDistribution.and.returnValue(new BehaviorSubject<DistributionItem>(distribution));
 
     const validationResult: DistributionCloseValidationResult = {
@@ -116,7 +116,7 @@ describe('DistributionStateComponent', () => {
     component.showCloseDistributionModal = true;
     component.showCloseDistributionValidationModal = false;
 
-    const distribution: DistributionItem = {id: 123};
+    const distribution: DistributionItem = {id: 123, startedAt: new Date()};
     globalStateService.getCurrentDistribution.and.returnValue(new BehaviorSubject<DistributionItem>(distribution));
 
     const validationResult: DistributionCloseValidationResult = {
@@ -138,7 +138,7 @@ describe('DistributionStateComponent', () => {
     component.showCloseDistributionModal = true;
     component.showCloseDistributionValidationModal = false;
 
-    const distribution: DistributionItem = {id: 123};
+    const distribution: DistributionItem = {id: 123, startedAt: new Date()};
     globalStateService.getCurrentDistribution.and.returnValue(new BehaviorSubject<DistributionItem>(distribution));
 
     const validationResult: DistributionCloseValidationResult = {

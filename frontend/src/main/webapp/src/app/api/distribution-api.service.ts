@@ -8,6 +8,10 @@ import {Observable} from 'rxjs';
 export class DistributionApiService {
   private readonly http = inject(HttpClient);
 
+  getDistributions(): Observable<DistributionListResponse> {
+    return this.http.get<DistributionListResponse>('/distributions');
+  }
+
   createNewDistribution(): Observable<void> {
     return this.http.post<void>('/distributions/new', null);
   }
@@ -52,6 +56,14 @@ export class DistributionApiService {
       });
   }
 
+  sendMails(distributionId: number): Observable<void> {
+    return this.http.post<void>(`/distributions/${distributionId}/send-mails`, undefined);
+  }
+
+}
+
+export interface DistributionListResponse {
+  items: DistributionItem[];
 }
 
 export interface DistributionItemUpdate {
@@ -60,6 +72,8 @@ export interface DistributionItemUpdate {
 
 export interface DistributionItem {
   id: number;
+  startedAt: Date;
+  endedAt?: Date;
 }
 
 export interface AssignCustomerRequest {

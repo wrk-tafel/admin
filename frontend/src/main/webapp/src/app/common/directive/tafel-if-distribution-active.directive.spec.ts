@@ -15,7 +15,7 @@ describe('TafelIfDistributionActiveDirective', () => {
 
   it('should render when distribution is active', () => {
     const {viewContainerSpy, globalStateServiceSpy, directive} = setup();
-    const mockDistributionItem: DistributionItem = {id: 123};
+    const mockDistributionItem: DistributionItem = {id: 123, startedAt: new Date()};
     globalStateServiceSpy.getCurrentDistribution.and.returnValue(new BehaviorSubject(mockDistributionItem));
 
     directive.ngAfterViewInit();

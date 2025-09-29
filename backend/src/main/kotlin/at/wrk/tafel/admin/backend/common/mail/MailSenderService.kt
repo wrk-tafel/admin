@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service
 import org.thymeleaf.TemplateEngine
 import org.thymeleaf.context.Context
 
-
 @Service
 class MailSenderService(
     @Autowired(required = false)

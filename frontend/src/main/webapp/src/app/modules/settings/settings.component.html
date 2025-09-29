@@ -1,80 +1,10 @@
 <c-row>
   <c-col>
-    <c-card>
-      <c-card-header>
-        <c-row class="d-flex align-items-center">
-          <c-col class="d-flex align-items-center gap-2">
-            <svg [cIcon]="cilEnvelopeClosed" size="xl" title="E-Mail Icon"></svg>
-            <h5 class="mb-0 mt-1 align-self-center">E-Mail Empfänger</h5>
-          </c-col>
-        </c-row>
-      </c-card-header>
-      <c-card-body>
-        <c-tabs [activeItemKey]="0">
-          <c-tabs-list variant="underline-border">
-            @for (recipientOfMailType of mailRecipientArray.controls; track recipientOfMailType; let i = $index; ) {
-              <button cTab [attr.testid]="'mailtype-tab-' + recipientOfMailType.value.mailType" [itemKey]="i" [cTextColor]="recipientOfMailType.invalid ? 'danger' : undefined">
-                {{ MailTypeLabels[recipientOfMailType.value.mailType] }}
-              </button>
-            }
-          </c-tabs-list>
-          <form [formGroup]="form">
-            <c-tabs-content formArrayName="mailRecipients">
-              @for (recipientOfMailType of mailRecipientArray.controls; track recipientOfMailType; let i = $index; ) {
-                <c-tab-panel class="p-3" [itemKey]="i" [formGroupName]="i">
-                  <c-row formArrayName="recipients" class="g-3">
-                    @for (recipient of getRecipientsForMailTypeIndex(i).controls; track recipient; let j = $index; ) {
-                      <c-col sm="12" md="4" [formGroupName]="j">
-                        <c-row class="align-items-center flex-nowrap">
-                          <c-col xs="10" class="fw-bold">
-                            {{ RecipientTypeLabels[recipient.get('recipientType').value] }}
-                          </c-col>
-                          <c-col xs="2" class="text-end">
-                            <button cButton [attr.testid]="'add-recipient-button-' + recipientOfMailType.value.mailType + '-' + recipient.get('recipientType').value" color="success" (click)="addAddress(i, j)">
-                              <fa-icon [icon]="faPlus" inverse="true"></fa-icon>
-                            </button>
-                          </c-col>
-                        </c-row>
-                        <div formArrayName="addresses">
-                          @for (address of getAddressesOfRecipientTypeIndex(i, j).controls; track address; let k = $index; ) {
-                            <c-row class="mt-2 align-items-center flex-nowrap">
-                              <c-col xs="10">
-                                <input
-                                  [attr.testid]="'email-input-' + recipientOfMailType.value.mailType + '-' + recipient.get('recipientType').value + '-' + k"
-                                  type="email"
-                                  [formControlName]="k"
-                                  class="form-control"
-                                  [ngClass]="{'is-invalid': address.invalid && (address.dirty || address.touched), 'is-valid': address.valid && (address.dirty || address.touched)}"
-                                >
-                                @if (address.errors && (address.dirty || address.touched)) {
-                                  <div class="invalid-feedback">
-                                    Ungültige E-Mail Adresse
-                                  </div>
-                                }
-                              </c-col>
-                              <c-col xs="2" class="text-end">
-                                <button cButton color="danger" [attr.testid]="'remove-recipient-button-' + recipientOfMailType.value.mailType + '-' + recipient.get('recipientType').value + '-' + k" (click)="removeAddress(i, j, k)">
-                                  <fa-icon [icon]="faTrashCan" inverse="true"></fa-icon>
-                                </button>
-                              </c-col>
-                            </c-row>
-                          }
-                        </div>
-                        @if (j < 2) {
-                          <hr class="d-md-none">
-                        }
-                      </c-col>
-                    }
-                  </c-row>
-                </c-tab-panel>
-              }
-            </c-tabs-content>
-          </form>
-        </c-tabs>
-      </c-card-body>
-      <c-card-footer>
-        <button cButton testid="save-button" color="primary" (click)="save()">Speichern</button>
-      </c-card-footer>
-    </c-card>
+    <tafel-mail-recipients/>
+  </c-col>
+</c-row>
+<c-row class="mt-4">
+  <c-col>
+    <tafel-send-mails/>
   </c-col>
 </c-row>

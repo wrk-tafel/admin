@@ -12,4 +12,6 @@ interface DistributionRepository : JpaRepository<DistributionEntity, Long> {
     @Query("SELECT d from Distribution d where year(d.startedAt) = :year order by d.startedAt asc")
     fun getDistributionsForYear(@Param("year") year: Int): List<DistributionEntity>
 
+    fun getDistributionEntityByEndedAtIsNotNullOrderByStartedAtDesc(): List<DistributionEntity>
+
 }

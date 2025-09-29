@@ -25,9 +25,18 @@ describe('DistributionApiService', () => {
     apiService = TestBed.inject(DistributionApiService);
   });
 
+  it('get distributions', () => {
+    apiService.getDistributions().subscribe();
+
+    const req = httpMock.expectOne({method: 'GET', url: '/distributions'});
+    req.flush(null);
+    httpMock.verify();
+  });
+
   it('create new distribution', () => {
     const testResponse: DistributionItem = {
-      id: 123
+      id: 123,
+      startedAt: new Date()
     };
 
     apiService.createNewDistribution().subscribe();
@@ -83,6 +92,15 @@ describe('DistributionApiService', () => {
     apiService.downloadCustomerList().subscribe();
 
     const req = httpMock.expectOne({method: 'GET', url: '/distributions/customers/generate-pdf'});
+    req.flush(null);
+    httpMock.verify();
+  });
+
+  it('send emails for distribution', () => {
+    const distributionId = 123;
+    apiService.sendMails(distributionId).subscribe();
+
+    const req = httpMock.expectOne({method: 'POST', url: `/distributions/${distributionId}/send-mails`});
     req.flush(null);
     httpMock.verify();
   });
