@@ -19,7 +19,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.thymeleaf.context.Context
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -37,14 +36,16 @@ class DailyReportMailPostProcessorTest {
 
     @Test
     fun `proper postprocessing done`() {
-        val dateFormatted = LocalDate.now().format(DateTimeFormatter.ofPattern("ddMMyyyy"))
+        val distributionStartDate = LocalDateTime.now().minusDays(7)
+        val dateFormatted = distributionStartDate.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
+        val dateFilename = distributionStartDate.format(DateTimeFormatter.ofPattern("ddMMyyyy"))
 
         val distributionId = 123L
         val distributionNotes = "test notes"
 
         val distribution = mockk<DistributionEntity>()
         every { distribution.id } returns distributionId
-        every { distribution.startedAt } returns LocalDateTime.now()
+        every { distribution.startedAt } returns distributionStartDate
         every { distribution.notes } returns distributionNotes
         every { distribution.customers } returns listOf(
             testDistributionCustomerEntity1,
@@ -57,7 +58,7 @@ class DailyReportMailPostProcessorTest {
 
         postProcessor.process(distribution, distributionStatistic)
 
-        assertMail(distributionStatistic, dateFormatted)
+        assertMail(distributionStatistic, dateFormatted, dateFilename)
     }
 
     @Test
@@ -77,11 +78,12 @@ class DailyReportMailPostProcessorTest {
     private fun assertMail(
         distributionStatistic: DistributionStatisticEntity,
         dateFormatted: String,
+        dateFilename: String,
     ) {
         verify { dailyReportService.generateDailyReportPdf(distributionStatistic) }
 
         val dailyReportMailSubject =
-            "TÖ Tafel 1030 - Tagesreport vom ${LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))}"
+            "TÖ Tafel 1030 - Tagesreport vom $dateFormatted"
 
         val contextSlot = slot<Context>()
 
@@ -97,16 +99,14 @@ class DailyReportMailPostProcessorTest {
         }
 
         val context = contextSlot.captured
-        assertThat(context.getVariable("distributionDate")).isEqualTo(
-            LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
-        )
+        assertThat(context.getVariable("distributionDate")).isEqualTo(dateFormatted)
         assertThat(context.getVariable("notes")).isEqualTo("test notes")
 
         val dailyReportAttachmentList = dailyReportMailAttachmentSlot.captured
         assertThat(dailyReportAttachmentList).hasSize(1)
 
         val dailyReportAttachment = dailyReportAttachmentList[0]
-        assertThat(dailyReportAttachment.filename).isEqualTo("tagesreport_${dateFormatted}.pdf")
+        assertThat(dailyReportAttachment.filename).isEqualTo("tagesreport_${dateFilename}.pdf")
         assertThat(dailyReportAttachment.inputStreamSource).isNotNull
         assertThat(dailyReportAttachment.contentType).isEqualTo("application/pdf")
     }

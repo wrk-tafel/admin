@@ -2,7 +2,6 @@ package at.wrk.tafel.admin.backend.modules.distribution.internal.postprocessors
 
 import at.wrk.tafel.admin.backend.common.mail.MailAttachment
 import at.wrk.tafel.admin.backend.common.mail.MailSenderService
-import at.wrk.tafel.admin.backend.config.properties.TafelAdminProperties
 import at.wrk.tafel.admin.backend.database.model.base.MailType
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
@@ -19,15 +18,11 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.thymeleaf.context.Context
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 @ExtendWith(MockKExtension::class)
 class StatisticMailPostProcessorTest {
-
-    @RelaxedMockK
-    private lateinit var tafelAdminProperties: TafelAdminProperties
 
     @RelaxedMockK
     private lateinit var mailSenderService: MailSenderService
@@ -41,9 +36,12 @@ class StatisticMailPostProcessorTest {
     @Test
     fun `proper postprocessing done`() {
         val distributionId = 123L
+        val distributionStartDate = LocalDateTime.now().minusDays(7)
+        val dateFormatted = distributionStartDate.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
+
         val distribution = mockk<DistributionEntity>()
         every { distribution.id } returns distributionId
-        every { distribution.startedAt } returns LocalDateTime.now()
+        every { distribution.startedAt } returns distributionStartDate
         val distributionStatistic = mockk<DistributionStatisticEntity>()
 
         every { statisticExportService.exportStatisticFiles(any()) } returns listOf(
@@ -52,16 +50,17 @@ class StatisticMailPostProcessorTest {
 
         postProcessor.process(distribution, distributionStatistic)
 
-        assertStatisticExportFiles(distributionStatistic)
+        assertStatisticExportFiles(distributionStatistic, dateFormatted)
     }
 
     private fun assertStatisticExportFiles(
         distributionStatistic: DistributionStatisticEntity,
+        dateFormatted: String
     ) {
         verify { statisticExportService.exportStatisticFiles(distributionStatistic) }
 
         val statisticExportMailSubject =
-            "TÖ Tafel 1030 - Statistiken vom ${LocalDate.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))}"
+            "TÖ Tafel 1030 - Statistiken vom $dateFormatted"
 
         val statisticExportMailAttachmentSlot = slot<List<MailAttachment>>()
         val contextSlot = slot<Context>()
@@ -76,9 +75,7 @@ class StatisticMailPostProcessorTest {
         }
 
         val context = contextSlot.captured
-        assertThat(context.getVariable("distributionDate")).isEqualTo(
-            LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
-        )
+        assertThat(context.getVariable("distributionDate")).isEqualTo(dateFormatted)
 
         val statisticExportAttachmentList = statisticExportMailAttachmentSlot.captured
         assertThat(statisticExportAttachmentList).hasSize(1)

@@ -11,7 +11,6 @@ import org.springframework.core.io.ByteArrayResource
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.thymeleaf.context.Context
-import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 @Component
@@ -36,10 +35,10 @@ class DailyReportMailPostProcessor(
     }
 
     private fun sendMail(distribution: DistributionEntity, pdfReportBytes: ByteArray) {
-        val dateTitleFormatted = LocalDate.now().format(DATE_TIME_FORMATTER)
-        val dateFilenameFormatted = LocalDate.now().format(DATE_FILENAME_FORMATTER)
+        val dateFormatted = distribution.startedAt!!.format(DATE_TIME_FORMATTER)
+        val dateFilenameFormatted = distribution.startedAt!!.format(DATE_FILENAME_FORMATTER)
 
-        val mailSubject = "TÖ Tafel 1030 - Tagesreport vom $dateTitleFormatted"
+        val mailSubject = "TÖ Tafel 1030 - Tagesreport vom $dateFormatted"
         val filename = "tagesreport_${dateFilenameFormatted}.pdf"
         val attachment = listOf(
             MailAttachment(
@@ -50,7 +49,7 @@ class DailyReportMailPostProcessor(
         )
 
         val ctx = Context()
-        ctx.setVariable("distributionDate", distribution.startedAt!!.format(DATE_TIME_FORMATTER))
+        ctx.setVariable("distributionDate", dateFormatted)
         ctx.setVariable("notes", distribution.notes)
 
         mailSenderService.sendHtmlMail(
