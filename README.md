@@ -8,7 +8,9 @@
 
 # Prio 1
 * Bug: Mails aren't sent sometimes
-* Feat: Add button to repeat mail sending for last or a selected distribution
+
+* Feat: Move cost contribution paid flag to processing customers (not checkin)
+* Feat: Monitor switch ticket back and forth between ticket-numbers (maybe history of ticket-numbers?)
 
 * Bug: customer creation - field birthDate form control validation not working (red/green border)
 * Bug: customer creation - field nationality (add persons) form control validation not working (red/green border)
