@@ -18,7 +18,7 @@ class TafelBaseIntegrationTest {
     companion object {
         @Container
         @JvmStatic
-        private val postgreSQLContainer: PostgreSQLContainer<*> = PostgreSQLContainer("postgres:14.0")
+        private val postgreSQLContainer: PostgreSQLContainer<*> = PostgreSQLContainer("postgres:16.1")
             .withDatabaseName("tafeladmin")
             .withUsername("admin")
             .withPassword("admin")

@@ -2,6 +2,8 @@ package at.wrk.tafel.admin.backend.modules.distribution.internal
 
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.common.pdf.PDFService
+import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockKey
+import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.customer.CustomerRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.*
@@ -43,6 +45,7 @@ class DistributionService(
     private val dailyReportMailPostProcessor: DailyReportMailPostProcessor,
     private val returnBoxesMailPostProcessor: ReturnBoxesMailPostProcessor,
     private val statisticMailPostProcessor: StatisticMailPostProcessor,
+    private val advisoryLockService: AdvisoryLockService,
 ) {
     companion object {
         private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
@@ -53,24 +56,35 @@ class DistributionService(
         return distributionRepository.getDistributionEntityByEndedAtIsNotNullOrderByStartedAtDesc()
     }
 
+    @Transactional
     fun createNewDistribution(): DistributionEntity {
-        val currentDistribution = distributionRepository.getCurrentDistribution()
-        if (currentDistribution != null) {
-            throw TafelValidationException("Ausgabe bereits gestartet!")
+        var result: DistributionEntity? = null
+        
+        val acquired = advisoryLockService.tryWithLock(AdvisoryLockKey.CREATE_DISTRIBUTION) {
+            val currentDistribution = distributionRepository.getCurrentDistribution()
+            if (currentDistribution != null) {
+                throw TafelValidationException("Ausgabe bereits gestartet!")
+            }
+
+            val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
+
+            val newDistribution = DistributionEntity()
+            newDistribution.startedAt = LocalDateTime.now()
+            newDistribution.startedByUser = userRepository.findByUsername(authenticatedUser.username!!)
+
+            val statisticEntity = DistributionStatisticEntity().apply {
+                distribution = newDistribution
+            }
+            newDistribution.statistic = statisticEntity
+
+            result = distributionRepository.save(newDistribution)
         }
-
-        val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
-
-        val newDistribution = DistributionEntity()
-        newDistribution.startedAt = LocalDateTime.now()
-        newDistribution.startedByUser = userRepository.findByUsername(authenticatedUser.username!!)
-
-        val statisticEntity = DistributionStatisticEntity().apply {
-            distribution = newDistribution
+        
+        if (!acquired) {
+            throw TafelValidationException("Eine neue Ausgabe wird gerade gestartet. Bitte kurz warten und im Anschluss die Seite neu laden.")
         }
-        newDistribution.statistic = statisticEntity
-
-        return distributionRepository.save(newDistribution)
+        
+        return result!!
     }
 
     @Transactional
@@ -223,26 +237,32 @@ class DistributionService(
 
     @Transactional
     fun closeDistribution() {
-        val currentDistribution = distributionRepository.getCurrentDistribution()!!
+        val acquired = advisoryLockService.tryWithLock(AdvisoryLockKey.CLOSE_DISTRIBUTION) {
+            val currentDistribution = distributionRepository.getCurrentDistribution()!!
 
-        val authenticatedUser = SecurityContextHolder.getContext().authentication as? TafelJwtAuthentication
+            val authenticatedUser = SecurityContextHolder.getContext().authentication as? TafelJwtAuthentication
 
-        transactionTemplate.executeWithoutResult {
-            currentDistribution.endedAt = LocalDateTime.now()
-            currentDistribution.endedByUser =
-                authenticatedUser?.let { userRepository.findByUsername(authenticatedUser.username!!) }
-                    ?: currentDistribution.startedByUser
+            transactionTemplate.executeWithoutResult {
+                currentDistribution.endedAt = LocalDateTime.now()
+                currentDistribution.endedByUser =
+                    authenticatedUser?.let { userRepository.findByUsername(authenticatedUser.username!!) }
+                        ?: currentDistribution.startedByUser
 
-            distributionRepository.save(currentDistribution)
+                distributionRepository.save(currentDistribution)
+            }
+
+            logger.info(
+                "Closed distribution: ID ${currentDistribution.id} (started at: ${
+                    currentDistribution.startedAt?.format(DateTimeFormatter.ISO_DATE_TIME)
+                }"
+            )
+
+            distributionPostProcessorService.process(currentDistribution.id!!)
         }
-
-        logger.info(
-            "Closed distribution: ID ${currentDistribution.id} (started at: ${
-                currentDistribution.startedAt?.format(DateTimeFormatter.ISO_DATE_TIME)
-            }"
-        )
-
-        distributionPostProcessorService.process(currentDistribution.id!!)
+        
+        if (!acquired) {
+            throw TafelValidationException("Die Ausgabe wird gerade geschlossen. Bitte kurz warten und im Anschluss die Seite neu laden.")
+        }
     }
 
     private fun getDistributionCustomerEntity(

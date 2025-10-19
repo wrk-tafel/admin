@@ -27,6 +27,7 @@ val testDistributionStatisticEntity = DistributionStatisticEntity().apply {
 val testDistributionEntity = DistributionEntity().apply {
     id = 123
     startedAt = LocalDateTime.now()
+    endedAt = null
     statistic = testDistributionStatisticEntity
 }
 

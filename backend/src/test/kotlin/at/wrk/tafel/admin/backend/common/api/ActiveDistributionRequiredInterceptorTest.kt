@@ -1,6 +1,7 @@
 package at.wrk.tafel.admin.backend.common.api
 
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
+import at.wrk.tafel.admin.backend.database.model.distribution.getCurrentDistribution
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionEntity
 import io.mockk.every
@@ -16,7 +17,7 @@ import org.springframework.web.method.HandlerMethod
 class ActiveDistributionRequiredInterceptorTest {
 
     private val distributionRepository = mockk<DistributionRepository>()
-    private val interceptor = ActiveDistributionRequiredInterceptor(distributionRepository)
+    private val interceptor = TafelActiveDistributionRequiredInterceptor(distributionRepository)
     private val request = mockk<HttpServletRequest>()
     private val response = mockk<HttpServletResponse>()
 
@@ -33,7 +34,7 @@ class ActiveDistributionRequiredInterceptorTest {
         val method = this::class.java.getDeclaredMethod("annotatedMethod")
         every { handlerMethod.method } returns method
         every { handlerMethod.beanType } returns this::class.java
-        every { distributionRepository.getCurrentDistribution() } returns null
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns null
 
         val exception = assertThrows<TafelValidationException> {
             interceptor.preHandle(request, response, handlerMethod)
@@ -47,13 +48,13 @@ class ActiveDistributionRequiredInterceptorTest {
         val method = this::class.java.getDeclaredMethod("annotatedMethod")
         every { handlerMethod.method } returns method
         every { handlerMethod.beanType } returns this::class.java
-        every { distributionRepository.getCurrentDistribution() } returns testDistributionEntity
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
 
         val result = interceptor.preHandle(request, response, handlerMethod)
         assertTrue(result)
     }
 
-    @ActiveDistributionRequired
+    @TafelActiveDistributionRequired
     fun annotatedMethod() {
     }
 

@@ -1,7 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.distribution.internal.ticket
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
-import at.wrk.tafel.admin.backend.common.api.ActiveDistributionRequired
+import at.wrk.tafel.admin.backend.common.api.TafelActiveDistributionRequired
 import at.wrk.tafel.admin.backend.common.sse.SseUtil
 import at.wrk.tafel.admin.backend.database.common.sse_outbox.SseOutboxService
 import at.wrk.tafel.admin.backend.modules.distribution.internal.DistributionService
@@ -40,7 +40,7 @@ class DistributionTicketScreenController(
     }
 
     @PostMapping("/distributions/ticket-screen/show-next")
-    @ActiveDistributionRequired
+    @TafelActiveDistributionRequired
     fun showNextTicket() {
         val nextTicketNumber = service.closeCurrentTicketAndGetNext()
         logger.info("Ticket-Log - fetched next ticket-number: $nextTicketNumber")

@@ -1,6 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.distribution.internal.ticket
 
-import at.wrk.tafel.admin.backend.common.api.ActiveDistributionRequired
+import at.wrk.tafel.admin.backend.common.api.TafelActiveDistributionRequired
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.distribution.internal.DistributionService
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.TicketNumberResponse
@@ -19,7 +19,7 @@ class DistributionTicketController(
     }
 
     @GetMapping("/customers/{customerId}")
-    @ActiveDistributionRequired
+    @TafelActiveDistributionRequired
     fun getCurrentTicketForCustomerId(
         @PathVariable("customerId") customerId: Long,
     ): TicketNumberResponse {
@@ -32,7 +32,7 @@ class DistributionTicketController(
     }
 
     @DeleteMapping("/customers/{customerId}")
-    @ActiveDistributionRequired
+    @TafelActiveDistributionRequired
     fun deleteCurrentTicketForCustomer(
         @PathVariable("customerId") customerId: Long,
     ): ResponseEntity<Unit> {
