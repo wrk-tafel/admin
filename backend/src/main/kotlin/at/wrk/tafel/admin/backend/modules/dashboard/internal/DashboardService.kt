@@ -3,6 +3,7 @@ package at.wrk.tafel.admin.backend.modules.dashboard.internal
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionCustomerRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
+import at.wrk.tafel.admin.backend.database.model.distribution.getCurrentDistribution
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteRepository
 import at.wrk.tafel.admin.backend.modules.dashboard.DashboardData
 import at.wrk.tafel.admin.backend.modules.dashboard.DashboardLogisticsData

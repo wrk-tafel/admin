@@ -1,6 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.logistics
 
-import at.wrk.tafel.admin.backend.common.api.ActiveDistributionRequired
+import at.wrk.tafel.admin.backend.common.api.TafelActiveDistributionRequired
 import at.wrk.tafel.admin.backend.modules.logistics.internal.FoodCollectionService
 import at.wrk.tafel.admin.backend.modules.logistics.model.*
 import org.springframework.http.ResponseEntity
@@ -15,7 +15,7 @@ class FoodCollectionsController(
 
     @GetMapping("/route/{routeId}")
     @PreAuthorize("hasAuthority('LOGISTICS')")
-    @ActiveDistributionRequired
+    @TafelActiveDistributionRequired
     fun getFoodCollection(
         @PathVariable("routeId") routeId: Long
     ): ResponseEntity<FoodCollectionData> {
@@ -26,7 +26,7 @@ class FoodCollectionsController(
 
     @PostMapping("/route/{routeId}")
     @PreAuthorize("hasAuthority('LOGISTICS')")
-    @ActiveDistributionRequired
+    @TafelActiveDistributionRequired
     fun saveFoodCollectionRouteData(
         @PathVariable("routeId") routeId: Long,
         @RequestBody request: FoodCollectionSaveRouteData
@@ -37,7 +37,7 @@ class FoodCollectionsController(
 
     @PostMapping("/route/{routeId}/items")
     @PreAuthorize("hasAuthority('LOGISTICS')")
-    @ActiveDistributionRequired
+    @TafelActiveDistributionRequired
     fun saveFoodCollectionItems(
         @PathVariable("routeId") routeId: Long,
         @RequestBody request: FoodCollectionItems
@@ -48,7 +48,7 @@ class FoodCollectionsController(
 
     @GetMapping("/route/{routeId}/shop/{shopId}/items")
     @PreAuthorize("hasAuthority('LOGISTICS')")
-    @ActiveDistributionRequired
+    @TafelActiveDistributionRequired
     fun getFoodCollectionItemsPerShop(
         @PathVariable("routeId") routeId: Long,
         @PathVariable("shopId") shopId: Long
@@ -59,7 +59,7 @@ class FoodCollectionsController(
 
     @PostMapping("/route/{routeId}/shop/{shopId}/items")
     @PreAuthorize("hasAuthority('LOGISTICS')")
-    @ActiveDistributionRequired
+    @TafelActiveDistributionRequired
     fun saveFoodCollectionItemsPerShop(
         @PathVariable("routeId") routeId: Long,
         @PathVariable("shopId") shopId: Long,
@@ -71,7 +71,7 @@ class FoodCollectionsController(
 
     @PatchMapping("/route/{routeId}/items")
     @PreAuthorize("hasAuthority('LOGISTICS')")
-    @ActiveDistributionRequired
+    @TafelActiveDistributionRequired
     fun patchFoodCollectionItem(
         @PathVariable("routeId") routeId: Long,
         @RequestBody request: FoodCollectionItem

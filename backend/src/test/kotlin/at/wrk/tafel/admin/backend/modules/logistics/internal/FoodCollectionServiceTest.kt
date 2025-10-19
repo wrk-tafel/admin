@@ -3,6 +3,7 @@ package at.wrk.tafel.admin.backend.modules.logistics.internal
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
+import at.wrk.tafel.admin.backend.database.model.distribution.getCurrentDistribution
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.*
 import at.wrk.tafel.admin.backend.modules.base.employee.Employee
@@ -61,7 +62,8 @@ class FoodCollectionServiceTest {
 
         val distributionMock = mockk<DistributionEntity>()
         every { distributionMock.foodCollections } returns listOf(testFoodCollectionRoute1Entity)
-        every { distributionRepository.getCurrentDistribution() } returns distributionMock
+        every { distributionMock.endedAt } returns null
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns distributionMock
 
         val data = service.getFoodCollection(routeId)!!
 
@@ -114,6 +116,8 @@ class FoodCollectionServiceTest {
             kmStart = 1000,
             kmEnd = 2000,
         )
+        val activeDistribution = testDistributionEntity.apply { endedAt = null }
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
         every { routeRepository.findByIdOrNull(routeId) } returns null
 
         val exception = assertThrows<TafelValidationException> { service.saveRouteData(routeId = routeId, data = data) }
@@ -132,7 +136,8 @@ class FoodCollectionServiceTest {
             kmStart = 1000,
             kmEnd = 2000,
         )
-        every { distributionRepository.getCurrentDistribution() } returns testDistributionEntity
+        val activeDistribution = testDistributionEntity.apply { endedAt = null }
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
         every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
         every { employeeRepository.findByIdOrNull(data.driverId) } returns testEmployee1
         every { employeeRepository.findByIdOrNull(data.coDriverId) } returns testEmployee2
@@ -150,7 +155,7 @@ class FoodCollectionServiceTest {
 
         val foodCollection = foodCollectionSlot.captured
         assertThat(foodCollection).isNotNull
-        assertThat(foodCollection.distribution!!.id).isEqualTo(testDistributionEntity.id)
+        assertThat(foodCollection.distribution!!.id).isEqualTo(activeDistribution.id)
         assertThat(foodCollection.route!!.id).isEqualTo(testRoute1.id)
         assertThat(foodCollection.car!!.id).isEqualTo(data.carId)
         assertThat(foodCollection.driver!!.id).isEqualTo(data.driverId)
@@ -165,6 +170,8 @@ class FoodCollectionServiceTest {
         val data = FoodCollectionItems(
             items = emptyList()
         )
+        val activeDistribution = testDistributionEntity.apply { endedAt = null }
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
         every { routeRepository.findByIdOrNull(routeId) } returns null
 
         val exception = assertThrows<TafelValidationException> { service.saveItems(routeId = routeId, data = data) }
@@ -198,7 +205,8 @@ class FoodCollectionServiceTest {
                 )
             )
         )
-        every { distributionRepository.getCurrentDistribution() } returns testDistributionEntity
+        val activeDistribution = testDistributionEntity.apply { endedAt = null }
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
         every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
         every { foodCollectionRepository.save(any()) } returns mockk()
         every { foodCategoryRepository.findByIdOrNull(testFoodCategory1.id!!) } returns testFoodCategory1
@@ -213,7 +221,7 @@ class FoodCollectionServiceTest {
 
         val foodCollection = foodCollectionSlot.captured
         assertThat(foodCollection).isNotNull
-        assertThat(foodCollection.distribution!!.id).isEqualTo(testDistributionEntity.id)
+        assertThat(foodCollection.distribution!!.id).isEqualTo(activeDistribution.id)
         assertThat(foodCollection.route!!.id).isEqualTo(testRoute1.id)
 
         assertThat(foodCollection.items).hasSize(data.items.size)
@@ -250,7 +258,8 @@ class FoodCollectionServiceTest {
             )
         )
 
-        every { distributionRepository.getCurrentDistribution() } returns testDistributionEntity
+        val activeDistribution = testDistributionEntity.apply { endedAt = null }
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
         every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
         every { foodCollectionRepository.save(any()) } returns mockk()
         every { foodCategoryRepository.findByIdOrNull(testFoodCategory1.id!!) } returns testFoodCategory1
@@ -264,7 +273,7 @@ class FoodCollectionServiceTest {
 
         val foodCollection = foodCollectionSlot.captured
         assertThat(foodCollection).isNotNull
-        assertThat(foodCollection.distribution!!.id).isEqualTo(testDistributionEntity.id)
+        assertThat(foodCollection.distribution!!.id).isEqualTo(activeDistribution.id)
         assertThat(foodCollection.route!!.id).isEqualTo(testRoute1.id)
 
         assertThat(foodCollection.items).hasSize(2)
@@ -305,7 +314,7 @@ class FoodCollectionServiceTest {
         }
         distributionEntity.foodCollections = mutableListOf(existingFoodCollection)
 
-        every { distributionRepository.getCurrentDistribution() } returns distributionEntity
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns distributionEntity
         every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
         every { foodCollectionRepository.save(any()) } returns mockk()
         every { foodCategoryRepository.findByIdOrNull(testFoodCategory1.id!!) } returns testFoodCategory1
@@ -329,7 +338,7 @@ class FoodCollectionServiceTest {
 
         val foodCollection = foodCollectionSlot.captured
         assertThat(foodCollection).isNotNull
-        assertThat(foodCollection.distribution!!.id).isEqualTo(testDistributionEntity.id)
+        assertThat(foodCollection.distribution!!.id).isEqualTo(distributionEntity.id)
         assertThat(foodCollection.route!!.id).isEqualTo(testRoute1.id)
 
         assertThat(foodCollection.items).hasSize(2)
@@ -390,7 +399,7 @@ class FoodCollectionServiceTest {
             )
         )
 
-        every { distributionRepository.getCurrentDistribution() } returns distributionEntity
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns distributionEntity
         every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
         every { foodCollectionRepository.save(any()) } returns mockk()
         every { foodCategoryRepository.findByIdOrNull(testFoodCategory1.id!!) } returns testFoodCategory1
@@ -403,7 +412,7 @@ class FoodCollectionServiceTest {
 
         val foodCollection = foodCollectionSlot.captured
         assertThat(foodCollection).isNotNull
-        assertThat(foodCollection.distribution!!.id).isEqualTo(testDistributionEntity.id)
+        assertThat(foodCollection.distribution!!.id).isEqualTo(distributionEntity.id)
         assertThat(foodCollection.route!!.id).isEqualTo(testRoute1.id)
 
         assertThat(foodCollection.items).hasSize(2)
@@ -433,7 +442,7 @@ class FoodCollectionServiceTest {
         }
         distributionEntity.foodCollections = emptyList()
 
-        every { distributionRepository.getCurrentDistribution() } returns distributionEntity
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns distributionEntity
         every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
         every { foodCollectionRepository.save(any()) } returns mockk()
         every { foodCategoryRepository.findByIdOrNull(testFoodCategory1.id!!) } returns testFoodCategory1
@@ -477,7 +486,7 @@ class FoodCollectionServiceTest {
         }
         distributionEntity.foodCollections = mutableListOf(existingFoodCollection)
 
-        every { distributionRepository.getCurrentDistribution() } returns distributionEntity
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns distributionEntity
         every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
         every { foodCollectionRepository.save(any()) } returns mockk()
         every { foodCategoryRepository.findByIdOrNull(testFoodCategory1.id!!) } returns testFoodCategory1
@@ -505,7 +514,8 @@ class FoodCollectionServiceTest {
             amount = 44
         )
 
-        every { distributionRepository.getCurrentDistribution() } returns testDistributionEntity
+        val activeDistribution = testDistributionEntity.apply { endedAt = null }
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
         every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
         every { foodCollectionRepository.save(any()) } returns mockk()
         every { foodCategoryRepository.findByIdOrNull(testFoodCategory1.id!!) } returns testFoodCategory1
@@ -518,7 +528,7 @@ class FoodCollectionServiceTest {
 
         val foodCollection = foodCollectionSlot.captured
         assertThat(foodCollection).isNotNull
-        assertThat(foodCollection.distribution!!.id).isEqualTo(testDistributionEntity.id)
+        assertThat(foodCollection.distribution!!.id).isEqualTo(activeDistribution.id)
         assertThat(foodCollection.route!!.id).isEqualTo(testRoute1.id)
 
         assertThat(foodCollection.items).hasSize(1)
@@ -560,7 +570,7 @@ class FoodCollectionServiceTest {
             amount = 22
         )
 
-        every { distributionRepository.getCurrentDistribution() } returns distributionEntity
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns distributionEntity
         every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
         every { foodCollectionRepository.save(any()) } returns mockk()
         every { foodCategoryRepository.findByIdOrNull(testFoodCategory1.id!!) } returns testFoodCategory1
@@ -575,7 +585,7 @@ class FoodCollectionServiceTest {
 
         val foodCollection = foodCollectionSlot.captured
         assertThat(foodCollection).isNotNull
-        assertThat(foodCollection.distribution!!.id).isEqualTo(testDistributionEntity.id)
+        assertThat(foodCollection.distribution!!.id).isEqualTo(distributionEntity.id)
         assertThat(foodCollection.route!!.id).isEqualTo(testRoute1.id)
 
         assertThat(foodCollection.items).hasSize(2)
@@ -622,7 +632,7 @@ class FoodCollectionServiceTest {
             amount = 22
         )
 
-        every { distributionRepository.getCurrentDistribution() } returns distributionEntity
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns distributionEntity
         every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
         every { foodCollectionRepository.save(any()) } returns mockk()
         every { foodCategoryRepository.findByIdOrNull(testFoodCategory1.id!!) } returns testFoodCategory1
@@ -635,7 +645,7 @@ class FoodCollectionServiceTest {
 
         val foodCollection = foodCollectionSlot.captured
         assertThat(foodCollection).isNotNull
-        assertThat(foodCollection.distribution!!.id).isEqualTo(testDistributionEntity.id)
+        assertThat(foodCollection.distribution!!.id).isEqualTo(distributionEntity.id)
         assertThat(foodCollection.route!!.id).isEqualTo(testRoute1.id)
 
         assertThat(foodCollection.items).hasSize(1)

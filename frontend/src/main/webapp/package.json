@@ -10,7 +10,7 @@
   "license": "MIT",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve --host=0.0.0.0 --disable-host-check --configuration=development",
+    "dev": "ng serve --host=0.0.0.0 --disable-host-check --configuration=development",
     "build-local": "ng build --aot --build-optimizer --common-chunk --vendor-chunk --optimization --progress",
     "build-prod": "ng build --configuration=production --aot --build-optimizer --common-chunk --vendor-chunk --optimization --progress",
     "test": "ng test",

@@ -3,6 +3,7 @@ package at.wrk.tafel.admin.backend.modules.dashboard.internal
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionCustomerRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
+import at.wrk.tafel.admin.backend.database.model.distribution.getCurrentDistribution
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionStatisticShelterEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteRepository
@@ -43,8 +44,9 @@ internal class DashboardServiceTest {
     fun `get registered customers`() {
         val testDistributionEntity = DistributionEntity().apply {
             id = 123
+            endedAt = null
         }
-        every { distributionRepository.getCurrentDistribution() } returns testDistributionEntity
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
 
         val countRegisteredCustomers = 5
         every { distributionCustomerRepository.countAllByDistributionId(testDistributionEntity.id!!) } returns countRegisteredCustomers
@@ -58,13 +60,14 @@ internal class DashboardServiceTest {
     fun `get tickets`() {
         val testDistributionEntity = DistributionEntity().apply {
             id = 123
+            endedAt = null
             customers = listOf(
                 testDistributionCustomerEntity1,
                 testDistributionCustomerEntity2,
                 testDistributionCustomerEntity3,
             )
         }
-        every { distributionRepository.getCurrentDistribution() } returns testDistributionEntity
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
 
         val data = service.getData()
 
@@ -76,6 +79,7 @@ internal class DashboardServiceTest {
     fun `get statistics`() {
         val testDistributionEntity = DistributionEntity().apply {
             id = 123
+            endedAt = null
             statistic = DistributionStatisticEntity().apply {
                 employeeCount = 100
                 shelters = mutableListOf(
@@ -90,7 +94,7 @@ internal class DashboardServiceTest {
                 )
             }
         }
-        every { distributionRepository.getCurrentDistribution() } returns testDistributionEntity
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
 
         val countRegisteredCustomers = 5
         every { distributionCustomerRepository.countAllByDistributionId(testDistributionEntity.id!!) } returns countRegisteredCustomers
@@ -108,9 +112,10 @@ internal class DashboardServiceTest {
         val testNotes = "dummy-notes"
         val testDistributionEntity = DistributionEntity().apply {
             id = 123
+            endedAt = null
             notes = testNotes
         }
-        every { distributionRepository.getCurrentDistribution() } returns testDistributionEntity
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
 
         val data = service.getData()
 
@@ -121,11 +126,12 @@ internal class DashboardServiceTest {
     fun `get logistics`() {
         val testDistributionEntity = DistributionEntity().apply {
             id = 123
+            endedAt = null
             foodCollections = listOf(
                 testFoodCollectionRoute1Entity
             )
         }
-        every { distributionRepository.getCurrentDistribution() } returns testDistributionEntity
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
 
         every { routeRepository.findAll() } returns listOf(
             testRoute1,
@@ -141,7 +147,7 @@ internal class DashboardServiceTest {
 
     @Test
     fun `get data without active distribution`() {
-        every { distributionRepository.getCurrentDistribution() } returns null
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns null
 
         val data = service.getData()
 
@@ -152,7 +158,7 @@ internal class DashboardServiceTest {
         assertThat(data.logistics).isNull()
         assertThat(data.notes).isNull()
 
-        verify { distributionRepository.getCurrentDistribution() }
+        verify { distributionRepository.findFirstByOrderByIdDesc() }
         verify(exactly = 0) { distributionCustomerRepository.countAllByDistributionId(any()) }
     }
 

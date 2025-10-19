@@ -2,6 +2,7 @@ package at.wrk.tafel.admin.backend.modules.distribution.internal
 
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.common.pdf.PDFService
+import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.customer.CustomerAddPersonEntity
 import at.wrk.tafel.admin.backend.database.model.customer.CustomerEntity
@@ -31,7 +32,6 @@ import io.mockk.slot
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.*
-import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.core.authority.SimpleGrantedAuthority
@@ -81,6 +81,9 @@ internal class DistributionServiceTest {
 
     @RelaxedMockK
     private lateinit var statisticMailPostProcessor: StatisticMailPostProcessor
+
+    @RelaxedMockK
+    private lateinit var advisoryLockService: AdvisoryLockService
 
     @InjectMockKs
     private lateinit var service: DistributionService
@@ -187,11 +190,16 @@ internal class DistributionServiceTest {
     @Test
     fun `create new distribution`() {
         every { userRepository.findByUsername(authentication.username!!) } returns testUserEntity
-        every { distributionRepository.getCurrentDistribution() } returns null
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns null
 
         val distributionEntity = DistributionEntity()
         distributionEntity.id = 123
         every { distributionRepository.save(any()) } returns distributionEntity
+        every { advisoryLockService.tryWithLock(any(), any()) } answers {
+            val block = secondArg<() -> Unit>()
+            block.invoke()
+            true
+        }
 
         val distribution = service.createNewDistribution()
 
@@ -208,9 +216,15 @@ internal class DistributionServiceTest {
 
     @Test
     fun `create new distribution with existing ongoing distribution`() {
-        every { distributionRepository.getCurrentDistribution() } returns testDistributionEntity
+        val ongoingDistribution = testDistributionEntity.apply { endedAt = null }
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns ongoingDistribution
+        every { advisoryLockService.tryWithLock(any(), any()) } answers {
+            val block = secondArg<() -> Unit>()
+            block.invoke()
+            true
+        }
 
-        val exception = assertThrows(TafelValidationException::class.java) {
+        val exception = assertThrows<TafelValidationException> {
             service.createNewDistribution()
         }
 
@@ -218,8 +232,20 @@ internal class DistributionServiceTest {
     }
 
     @Test
+    fun `create new distribution with existing lock`() {
+        every { advisoryLockService.tryWithLock(any(), any()) } returns false
+
+        val exception = assertThrows<TafelValidationException> {
+            service.createNewDistribution()
+        }
+
+        assertThat(exception.message).isEqualTo("Eine neue Ausgabe wird gerade gestartet. Bitte kurz warten und im Anschluss die Seite neu laden.")
+    }
+
+    @Test
     fun `current distribution found`() {
-        every { distributionRepository.getCurrentDistribution() } returns testDistributionEntity
+        val activeDistribution = testDistributionEntity.apply { endedAt = null }
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
 
         val distribution = service.getCurrentDistribution()
 
@@ -228,7 +254,7 @@ internal class DistributionServiceTest {
 
     @Test
     fun `current distribution not found`() {
-        every { distributionRepository.getCurrentDistribution() } returns null
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns null
 
         val distribution = service.getCurrentDistribution()
 
@@ -237,8 +263,8 @@ internal class DistributionServiceTest {
 
     @Test
     fun `close distribution when open`() {
-        val distributionEntity = testDistributionEntity
-        every { distributionRepository.getCurrentDistribution() } returns distributionEntity
+        val distributionEntity = testDistributionEntity.apply { endedAt = null }
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns distributionEntity
 
         val savedDistributionId = 123L
         val savedDistribution = mockk<DistributionEntity>()
@@ -246,6 +272,11 @@ internal class DistributionServiceTest {
         every { distributionRepository.save(any()) } returns savedDistribution
 
         every { userRepository.findByUsername(authentication.username!!) } returns testUserEntity
+        every { advisoryLockService.tryWithLock(any(), any()) } answers {
+            val block = secondArg<() -> Unit>()
+            block.invoke()
+            true
+        }
 
         service.closeDistribution()
 
@@ -261,7 +292,7 @@ internal class DistributionServiceTest {
 
     @Test
     fun `validate close distribution when not open`() {
-        every { distributionRepository.getCurrentDistribution() } returns null
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns null
 
         val result = service.validateClose()
 
@@ -270,8 +301,21 @@ internal class DistributionServiceTest {
     }
 
     @Test
+    fun `close distribution with existing lock`() {
+        every { advisoryLockService.tryWithLock(any(), any()) } returns false
+
+        val exception = assertThrows<TafelValidationException> {
+            service.closeDistribution()
+        }
+
+        assertThat(exception.message).isEqualTo("Die Ausgabe wird gerade geschlossen. Bitte kurz warten und im Anschluss die Seite neu laden.")
+    }
+
+    @Test
     fun `validate close distribution when statistic data is missing`() {
-        every { distributionRepository.getCurrentDistribution() } returns DistributionEntity()
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns DistributionEntity().apply {
+            endedAt = null
+        }
 
         val result = service.validateClose()
 
@@ -281,7 +325,8 @@ internal class DistributionServiceTest {
 
     @Test
     fun `validate close distribution when not all routes are recorded`() {
-        every { distributionRepository.getCurrentDistribution() } returns DistributionEntity().apply {
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns DistributionEntity().apply {
+            endedAt = null
             statistic = testDistributionStatisticEntity
             foodCollections = listOf(
                 testFoodCollectionRoute1Entity
@@ -297,7 +342,8 @@ internal class DistributionServiceTest {
 
     @Test
     fun `validate close distribution when a route is missing data`() {
-        every { distributionRepository.getCurrentDistribution() } returns DistributionEntity().apply {
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns DistributionEntity().apply {
+            endedAt = null
             statistic = testDistributionStatisticEntity
             foodCollections = listOf(
                 FoodCollectionEntity().apply {
@@ -322,7 +368,8 @@ internal class DistributionServiceTest {
         val ticketNumber = 200
         val costContributionPaid = true
 
-        every { distributionRepository.getCurrentDistribution() } returns testDistributionEntity
+        val activeDistribution = testDistributionEntity.apply { endedAt = null }
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
         every { customerRepository.findByCustomerId(customerId) } returns null
 
         val exception = assertThrows<TafelValidationException> {
@@ -342,7 +389,8 @@ internal class DistributionServiceTest {
         val ticketNumber = 200
         val costContributionPaid = true
 
-        every { distributionRepository.getCurrentDistribution() } returns testDistributionEntity
+        val activeDistribution = testDistributionEntity.apply { endedAt = null }
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
         every { customerRepository.findByCustomerId(customerId) } returns testCustomerEntity1
         every { distributionCustomerRepository.save(any()) } returns mockk()
 
@@ -355,7 +403,7 @@ internal class DistributionServiceTest {
         verify {
             distributionCustomerRepository.save(withArg {
                 assertThat(it.customer).isEqualTo(testCustomerEntity1)
-                assertThat(it.distribution).isEqualTo(testDistributionEntity)
+                assertThat(it.distribution).isEqualTo(activeDistribution)
                 assertThat(it.ticketNumber).isEqualTo(ticketNumber)
             })
         }
@@ -365,6 +413,7 @@ internal class DistributionServiceTest {
     fun `assign customer with existing entry (update)`() {
         val testDistributionEntity = DistributionEntity().apply {
             id = 123
+            endedAt = null
             customers = listOf(
                 testDistributionCustomerEntity1
             )
@@ -373,7 +422,7 @@ internal class DistributionServiceTest {
         val updatedTicketNumber = 300
         val updatedCostContributionPaid = true
 
-        every { distributionRepository.getCurrentDistribution() } returns testDistributionEntity
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
         every { customerRepository.findByCustomerId(customerId) } returns testCustomerEntity1
         every { distributionCustomerRepository.save(any()) } returns mockk()
 
@@ -397,6 +446,7 @@ internal class DistributionServiceTest {
     fun `assign existing ticketnumber to another customer`() {
         val testDistributionEntity = DistributionEntity().apply {
             id = 123
+            endedAt = null
             customers = listOf(
                 testDistributionCustomerEntity1
             )
@@ -405,7 +455,7 @@ internal class DistributionServiceTest {
         val ticketNumber = 50
         val costContributionPaid = true
 
-        every { distributionRepository.getCurrentDistribution() } returns testDistributionEntity
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
         every { customerRepository.findByCustomerId(customerId) } returns testCustomerEntity1
 
         val exception = assertThrows<TafelValidationException> {
@@ -424,13 +474,14 @@ internal class DistributionServiceTest {
         val testDistributionEntity = DistributionEntity().apply {
             id = 123
             startedAt = date
+            endedAt = null
             customers = listOf(
                 testDistributionCustomerEntity1,
                 testDistributionCustomerEntity2,
                 testDistributionCustomerEntity3
             )
         }
-        every { distributionRepository.getCurrentDistribution() } returns testDistributionEntity
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
 
         val bytes = ByteArray(0)
         every { pdfService.generatePdf(any(), any()) } returns bytes
@@ -484,7 +535,8 @@ internal class DistributionServiceTest {
 
     @Test
     fun `get current ticketNumber without registered customers`() {
-        every { distributionRepository.getCurrentDistribution() } returns testDistributionEntity
+        val activeDistribution = testDistributionEntity.apply { endedAt = null }
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
 
         val ticket = service.getCurrentTicketNumber()
 
@@ -495,12 +547,13 @@ internal class DistributionServiceTest {
     fun `get current ticketNumber with open tickets left`() {
         val testDistributionEntity = DistributionEntity().apply {
             id = 123
+            endedAt = null
             customers = listOf(
                 testDistributionCustomerEntity1,
                 testDistributionCustomerEntity2
             )
         }
-        every { distributionRepository.getCurrentDistribution() } returns testDistributionEntity
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
 
         val distributionCustomerEntity = service.getCurrentTicketNumber()
 
@@ -511,12 +564,13 @@ internal class DistributionServiceTest {
     fun `get current ticketNumber for customer`() {
         val testDistributionEntity = DistributionEntity().apply {
             id = 123
+            endedAt = null
             customers = listOf(
                 testDistributionCustomerEntity1,
                 testDistributionCustomerEntity2
             )
         }
-        every { distributionRepository.getCurrentDistribution() } returns testDistributionEntity
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
 
         val distributionCustomerEntity = service.getCurrentTicketNumber(
             testDistributionCustomerEntity2.customer!!.customerId
@@ -538,11 +592,12 @@ internal class DistributionServiceTest {
 
         val testDistributionEntity = DistributionEntity().apply {
             id = 123
+            endedAt = null
             customers = listOf(
                 testDistributionCustomerEntity1
             )
         }
-        every { distributionRepository.getCurrentDistribution() } returns testDistributionEntity
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
 
         val ticket = service.getCurrentTicketNumber()
 
@@ -551,7 +606,8 @@ internal class DistributionServiceTest {
 
     @Test
     fun `close ticket and next without registered customers`() {
-        every { distributionRepository.getCurrentDistribution() } returns testDistributionEntity
+        val activeDistribution = testDistributionEntity.apply { endedAt = null }
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
 
         val ticket = service.closeCurrentTicketAndGetNext()
 
@@ -582,12 +638,13 @@ internal class DistributionServiceTest {
 
         val testDistributionEntity = DistributionEntity().apply {
             id = 123
+            endedAt = null
             customers = listOf(
                 testDistributionCustomerEntity1,
                 testDistributionCustomerEntity2
             )
         }
-        every { distributionRepository.getCurrentDistribution() } returns testDistributionEntity
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
 
         val ticket = service.closeCurrentTicketAndGetNext()
 
@@ -612,11 +669,12 @@ internal class DistributionServiceTest {
 
         val testDistributionEntity = DistributionEntity().apply {
             id = 123
+            endedAt = null
             customers = listOf(
                 testDistributionCustomerEntity1
             )
         }
-        every { distributionRepository.getCurrentDistribution() } returns testDistributionEntity
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
 
         val ticket = service.closeCurrentTicketAndGetNext()
 
@@ -627,12 +685,13 @@ internal class DistributionServiceTest {
     fun `delete current ticket of customer`() {
         val testDistributionEntity = DistributionEntity().apply {
             id = 123
+            endedAt = null
             customers = listOf(
                 testDistributionCustomerEntity1,
                 testDistributionCustomerEntity2
             )
         }
-        every { distributionRepository.getCurrentDistribution() } returns testDistributionEntity
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
 
         val result =
             service.deleteCurrentTicket(testDistributionCustomerEntity2.customer!!.customerId!!)
@@ -648,11 +707,12 @@ internal class DistributionServiceTest {
         val selectedShelterIds = selectedShelters.mapNotNull { it.id }
 
         val testDistributionEntity = DistributionEntity().apply {
+            endedAt = null
             statistic = DistributionStatisticEntity().apply {
                 employeeCount = 1
             }
         }
-        every { distributionRepository.getCurrentDistribution() } returns testDistributionEntity
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
         every { distributionRepository.save(any()) } returns mockk()
         every { shelterRepository.findAllById(selectedShelterIds) } returns listOf(testShelter1, testShelter2)
 
@@ -686,8 +746,8 @@ internal class DistributionServiceTest {
     fun `update notes data of distribution`() {
         val notes = "  test notes, easy peasy  "
 
-        val testDistributionEntity = DistributionEntity()
-        every { distributionRepository.getCurrentDistribution() } returns testDistributionEntity
+        val testDistributionEntity = DistributionEntity().apply { endedAt = null }
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
         every { distributionRepository.save(any()) } returns mockk()
 
         service.updateDistributionNoteData(notes)
@@ -703,8 +763,8 @@ internal class DistributionServiceTest {
     fun `update sanitized notes data of distribution`() {
         val notes = "   "
 
-        val testDistributionEntity = DistributionEntity()
-        every { distributionRepository.getCurrentDistribution() } returns testDistributionEntity
+        val testDistributionEntity = DistributionEntity().apply { endedAt = null }
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
         every { distributionRepository.save(any()) } returns mockk()
 
         service.updateDistributionNoteData(notes)

@@ -1,6 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.distribution
 
-import at.wrk.tafel.admin.backend.common.api.ActiveDistributionRequired
+import at.wrk.tafel.admin.backend.common.api.TafelActiveDistributionRequired
 import at.wrk.tafel.admin.backend.common.sse.SseUtil
 import at.wrk.tafel.admin.backend.database.common.sse_outbox.SseOutboxService
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
@@ -69,7 +69,7 @@ class DistributionController(
 
     @PostMapping("/distributions/statistics")
     @PreAuthorize("hasAuthority('LOGISTICS')")
-    @ActiveDistributionRequired
+    @TafelActiveDistributionRequired
     fun saveDistributionStatistic(@RequestBody statisticData: DistributionStatisticData): ResponseEntity<Unit> {
         service.updateDistributionStatisticData(statisticData.employeeCount, statisticData.selectedShelterIds)
         return ResponseEntity.ok().build()
@@ -77,7 +77,7 @@ class DistributionController(
 
     @PostMapping("/distributions/notes")
     @PreAuthorize("isAuthenticated()")
-    @ActiveDistributionRequired
+    @TafelActiveDistributionRequired
     fun saveDistributionNotes(@RequestBody noteData: DistributionNoteData): ResponseEntity<Unit> {
         service.updateDistributionNoteData(noteData.notes)
         return ResponseEntity.ok().build()
@@ -85,7 +85,7 @@ class DistributionController(
 
     @PostMapping("/distributions/close")
     @PreAuthorize("hasAuthority('DISTRIBUTION_LCM')")
-    @ActiveDistributionRequired
+    @TafelActiveDistributionRequired
     fun closeDistribution(@RequestParam forceClose: Boolean = false): ResponseEntity<DistributionCloseValidationResult> {
         val closeValidationResult = service.validateClose()
         if (closeValidationResult.isInvalid()) {
@@ -112,7 +112,7 @@ class DistributionController(
 
     @PostMapping("/distributions/customers")
     @PreAuthorize("hasAuthority('CHECKIN')")
-    @ActiveDistributionRequired
+    @TafelActiveDistributionRequired
     fun assignCustomerToDistribution(
         @RequestBody assignCustomerRequest: AssignCustomerRequest,
     ): ResponseEntity<Unit> {
@@ -126,7 +126,7 @@ class DistributionController(
     }
 
     @GetMapping("/distributions/customers/generate-pdf", produces = [MediaType.APPLICATION_PDF_VALUE])
-    @ActiveDistributionRequired
+    @TafelActiveDistributionRequired
     fun generateCustomerListPdf(): ResponseEntity<InputStreamResource> {
         val pdfResult = service.generateCustomerListPdf()
         pdfResult?.let {
