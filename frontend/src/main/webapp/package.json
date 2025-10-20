@@ -83,7 +83,7 @@
     "@typescript-eslint/eslint-plugin-tslint": "7.0.2",
     "@typescript-eslint/parser": "8.46.1",
     "codelyzer": "6.0.2",
-    "cypress": "15.4.0",
+    "cypress": "15.5.0",
     "cypress-browser-permissions": "1.1.0",
     "eslint": "8.57.1",
     "eslint-config-prettier": "10.1.8",
