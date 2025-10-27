@@ -21,7 +21,7 @@ jobs:
       packages: write
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v6
         with:
           name: admin-jarfile
           path: ./artifact
