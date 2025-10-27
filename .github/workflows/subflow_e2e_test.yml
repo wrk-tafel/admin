@@ -45,7 +45,7 @@ jobs:
           java -Dspring.profiles.active=e2e -jar ./artifact/admin-backend.jar &
           cd frontend/src/main/webapp
           npm run cy:run-ci
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         if: always()
         with:
           name: cypress-results
