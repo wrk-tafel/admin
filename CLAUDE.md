@@ -25,17 +25,34 @@ cd frontend && mvn clean install
 # Run backend with local profile (from backend/)
 mvn spring-boot:run -Dspring-boot.run.profiles=local
 
-# Run backend tests
+# Run all tests
 mvn test
+
+# Run specific test class
+mvn test -Dtest=CustomerServiceTest
+
+# Run specific test method
+mvn test -Dtest=CustomerServiceTest#createCustomerSuccessful
+
+# Run integration tests with timeout
+timeout 90 mvn test -Dtest=AdvisoryLockServiceIT
 
 # Run with testdata
 mvn spring-boot:run -Dspring-boot.run.profiles=local,testdata
 
 # Run with e2e profile
 mvn spring-boot:run -Dspring-boot.run.profiles=e2e
+
+# Compile only (useful for quick validation)
+mvn compile
 ```
 
 ### Frontend Development
+
+**Prerequisites:**
+- Node.js >= 20.16.0
+- npm >= 10.9.2
+
 ```bash
 # Navigate to frontend webapp directory
 cd frontend/src/main/webapp
@@ -58,10 +75,13 @@ npm test
 # Run unit tests in CI mode (headless)
 npm run test-ci
 
+# Run unit tests for specific file
+npm test -- --include="src/app/common/sse/sse.service.spec.ts"
+
 # Lint code
 npm run lint
 
-# Run E2E tests (requires backend running)
+# Run E2E tests (requires backend running on port 8080)
 npm run cy:run-ci
 
 # Open Cypress UI for E2E tests
@@ -90,13 +110,14 @@ The backend uses **Spring Modulith** architecture with 7 core feature modules, e
 - Entities: Located in `database/model/` with Flyway migrations in `resources/db-migration/`
 
 **Key Technologies:**
-- Kotlin 2.1 with coroutines support
+- Java 21 with Kotlin 2.1 (coroutines support)
 - Spring Boot 3.5 with Spring Modulith for modular monolith architecture
 - PostgreSQL with Flyway for database migrations (60+ R__ repeatable scripts)
 - JWT authentication with Argon2 password hashing
 - Server-Sent Events (SSE) via outbox pattern for real-time notifications
 - Apache FOP for PDF generation from XSL templates
 - Spring Security with role-based access control
+- Testcontainers for integration testing
 
 **Notable Patterns:**
 - Outbox pattern for reliable SSE event publishing (`sse_outbox` table)
@@ -172,17 +193,21 @@ The application uses PostgreSQL with Flyway for schema management. Migration fil
 ## Testing
 
 ### Backend Tests
-- Unit tests: Named `*Test.kt`
+- Unit tests: Named `*Test.kt` in `src/test/kotlin/`
 - Integration tests: Named `*IT.kt` (use Testcontainers for PostgreSQL)
 - Run all tests: `mvn test` (from backend/)
+- Run specific test: `mvn test -Dtest=CustomerServiceTest#createCustomerSuccessful`
 - Base test class: `TafelBaseIntegrationTest` sets up test environment
+- Integration tests automatically start PostgreSQL via Testcontainers
 
 ### Frontend Tests
-- Unit tests: Karma + Jasmine (`.spec.ts` files)
+- Unit tests: Karma + Jasmine (`.spec.ts` files in `src/app/`)
 - Run unit tests: `npm test` (from frontend/src/main/webapp)
 - Run headless: `npm run test-ci`
+- Run specific test: `npm test -- --include="src/app/common/sse/sse.service.spec.ts"`
 - E2E tests: Cypress (in `frontend/src/main/webapp/cypress/e2e/`)
 - Run E2E: `npm run cy:run-ci` (requires backend running on port 8080)
+- Open Cypress UI: `npm run cy:open-local` (for local development)
 
 ## Code Conventions
 
@@ -244,11 +269,16 @@ Authentication: Basic HTTP auth with JWT token stored in cookie.
 ## Profiles and Configuration
 
 Backend profiles (in `backend/src/main/resources/application-<profile>.yml`):
-- `local`: Development with local PostgreSQL
-- `e2e`: E2E testing configuration
-- `testdata`: Loads test data via Flyway callback
+- `local`: Development with local PostgreSQL (connection settings required in application-local.yml)
+- `e2e`: E2E testing configuration with test user credentials
+- `testdata`: Loads test data via Flyway callback for development
 
 Frontend proxy configuration: `frontend/src/main/webapp/proxy.conf.json` proxies `/api` to `http://localhost:8080` during development.
+
+**Important:** For local development, you need:
+1. PostgreSQL database running locally
+2. Database connection configured in `backend/src/main/resources/application-local.yml`
+3. Backend running on port 8080 for frontend proxy to work
 
 ## Common Tasks
 
