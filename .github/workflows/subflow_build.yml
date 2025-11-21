@@ -17,7 +17,7 @@ jobs:
     permissions:
       pull-requests: read # allows SonarCloud to decorate PRs with analysis results
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: actions/setup-node@v6.0.0
         with:
           node-version-file: 'frontend/src/main/webapp/.nvmrc'
