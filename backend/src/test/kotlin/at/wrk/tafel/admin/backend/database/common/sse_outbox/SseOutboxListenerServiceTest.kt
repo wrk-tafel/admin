@@ -126,4 +126,33 @@ class SseOutboxListenerServiceTest {
         assertThat(service.callbacks[notificationName]!!.first()).isEqualTo(eventCallback)
     }
 
+    @Test
+    fun `unregister callback`() {
+        val eventCallback: (String?) -> Unit = {}
+        service.registerCallback(notificationName = notificationName, eventCallback = eventCallback)
+
+        assertThat(service.callbacks).hasSize(1)
+        assertThat(service.callbacks[notificationName]).hasSize(1)
+
+        service.unregisterCallback(notificationName = notificationName, eventCallback = eventCallback)
+
+        assertThat(service.callbacks[notificationName]).isEmpty()
+    }
+
+    @Test
+    fun `unregister callback with multiple callbacks registered`() {
+        val eventCallback1: (String?) -> Unit = {}
+        val eventCallback2: (String?) -> Unit = {}
+
+        service.registerCallback(notificationName = notificationName, eventCallback = eventCallback1)
+        service.registerCallback(notificationName = notificationName, eventCallback = eventCallback2)
+
+        assertThat(service.callbacks[notificationName]).hasSize(2)
+
+        service.unregisterCallback(notificationName = notificationName, eventCallback = eventCallback1)
+
+        assertThat(service.callbacks[notificationName]).hasSize(1)
+        assertThat(service.callbacks[notificationName]!!.first()).isEqualTo(eventCallback2)
+    }
+
 }

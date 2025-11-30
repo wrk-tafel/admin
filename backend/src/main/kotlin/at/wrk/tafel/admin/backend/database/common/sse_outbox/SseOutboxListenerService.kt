@@ -76,6 +76,13 @@ class SseOutboxListenerService(
         callbacks.computeIfAbsent(notificationName) { CopyOnWriteArrayList() }.add(eventCallback)
     }
 
+    fun unregisterCallback(
+        notificationName: String,
+        eventCallback: (payload: String?) -> Unit,
+    ) {
+        callbacks[notificationName]?.remove(eventCallback)
+    }
+
     private fun listenOnConnection(connection: Connection) {
         val stmt = connection.createStatement()
         stmt.execute("LISTEN $PG_NOTIFICATION_CHANNEL_NAME;")

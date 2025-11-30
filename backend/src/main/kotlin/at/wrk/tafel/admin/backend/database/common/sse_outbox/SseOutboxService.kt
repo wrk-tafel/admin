@@ -50,20 +50,23 @@ class SseOutboxService(
         resultType: Class<T>,
         acceptFilter: (data: T?) -> Boolean = { true },
     ) {
+        val callback: (String?) -> Unit = { payload ->
+            val value = if (payload != null) objectMapper.readValue(payload, resultType) else null
+            if (acceptFilter(value)) {
+                sendEvent(sseEmitter, payload)
+            }
+        }
+
         val job = CoroutineScope(Dispatchers.IO).launch {
             try {
-                sseOutboxListenerService.registerCallback(notificationName) { payload ->
-                    val value = if (payload != null) objectMapper.readValue(payload, resultType) else null
-                    if (acceptFilter(value)) {
-                        sendEvent(sseEmitter, payload)
-                    }
-                }
+                sseOutboxListenerService.registerCallback(notificationName, callback)
+                logger.debug("Registered SSE callback for notification: {}", notificationName)
             } catch (e: Exception) {
                 logger.error("Failed to listen for notification name: $notificationName", e)
             }
         }
 
-        finalize(sseEmitter, job)
+        finalize(sseEmitter, job, notificationName, callback)
     }
 
     fun <T> listenForNotificationEvents(
@@ -72,33 +75,44 @@ class SseOutboxService(
         resultType: Class<T>?,
         resultCallback: (data: T?) -> Unit,
     ) {
+        val callback: (String?) -> Unit = { payload ->
+            val value =
+                if (payload != null && resultType != null) objectMapper.readValue(payload, resultType) else null
+            resultCallback(value)
+        }
+
         val job = CoroutineScope(Dispatchers.IO).launch {
             try {
-                sseOutboxListenerService.registerCallback(notificationName) { payload ->
-                    val value =
-                        if (payload != null && resultType != null) objectMapper.readValue(payload, resultType) else null
-                    resultCallback(value)
-                }
+                sseOutboxListenerService.registerCallback(notificationName, callback)
+                logger.debug("Registered SSE callback for notification: {}", notificationName)
             } catch (e: Exception) {
                 logger.error("Failed to listen for notification name: $notificationName", e)
             }
         }
 
-        finalize(sseEmitter, job)
+        finalize(sseEmitter, job, notificationName, callback)
     }
 
     private fun finalize(
         sseEmitter: SseEmitter,
         coroutine: Job,
+        notificationName: String,
+        callback: (String?) -> Unit,
     ) {
-        sseEmitter.onTimeout {
+        val cleanup = {
             coroutine.cancel()
+            sseOutboxListenerService.unregisterCallback(notificationName, callback)
+            logger.debug("Unregistered SSE callback for notification: {}", notificationName)
+        }
+
+        sseEmitter.onTimeout {
+            cleanup()
         }
         sseEmitter.onCompletion {
-            coroutine.cancel()
+            cleanup()
         }
         sseEmitter.onError {
-            coroutine.cancel()
+            cleanup()
         }
     }
 
@@ -109,6 +123,9 @@ class SseOutboxService(
                 event = event.data(data)
             }
             sseEmitter.send(event)
+        } catch (e: IllegalStateException) {
+            // Emitter already completed - callback cleanup may not have finished yet
+            logger.warn("Attempted to send to already completed SSE emitter", e)
         } catch (e: IOException) {
             // Broken pipe, client disconnected
             logger.warn("SSE client disconnected", e)
