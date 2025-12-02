@@ -269,6 +269,8 @@ internal class DistributionServiceTest {
         val savedDistributionId = 123L
         val savedDistribution = mockk<DistributionEntity>()
         every { savedDistribution.id } returns savedDistributionId
+        every { savedDistribution.startedAt } returns LocalDateTime.now().minusHours(1)
+        every { savedDistribution.endedAt } returns LocalDateTime.now()
         every { distributionRepository.save(any()) } returns savedDistribution
 
         every { userRepository.findByUsername(authentication.username!!) } returns testUserEntity
@@ -287,7 +289,7 @@ internal class DistributionServiceTest {
             })
         }
         verify { distributionPostProcessorService.process(savedDistributionId) }
-        verify(exactly = 1) { transactionTemplate.executeWithoutResult(any()) }
+        verify(exactly = 1) { transactionTemplate.transactionManager }
     }
 
     @Test

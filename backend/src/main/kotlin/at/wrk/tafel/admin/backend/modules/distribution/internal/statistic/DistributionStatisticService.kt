@@ -23,8 +23,8 @@ class DistributionStatisticService(
         private val logger = LoggerFactory.getLogger(DistributionStatisticService::class.java)
     }
 
-    fun createAndSaveStatistic(distribution: DistributionEntity): DistributionStatisticEntity {
-        val statisticEntry = getOrCreateStatisticEntry(distribution)
+    fun saveStatistic(distribution: DistributionEntity): DistributionStatisticEntity {
+        val statisticEntry = saveStatisticEntry(distribution)
         val savedStatisticEntry = distributionStatisticRepository.save(statisticEntry)
 
         logger.info(
@@ -37,7 +37,7 @@ class DistributionStatisticService(
         return savedStatisticEntry
     }
 
-    private fun getOrCreateStatisticEntry(distribution: DistributionEntity): DistributionStatisticEntity {
+    private fun saveStatisticEntry(distribution: DistributionEntity): DistributionStatisticEntity {
         val statistic = distribution.statistic ?: throw TafelValidationException("Statistik-Daten nicht vorhanden!")
         val statisticStartTime = distribution.startedAt!!.toLocalDate().atStartOfDay()
         val statisticEndTime = distribution.endedAt!!

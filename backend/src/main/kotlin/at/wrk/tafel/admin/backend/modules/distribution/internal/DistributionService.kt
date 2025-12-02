@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.transaction.support.TransactionTemplate
 import java.math.BigDecimal
@@ -59,7 +60,7 @@ class DistributionService(
     @Transactional
     fun createNewDistribution(): DistributionEntity {
         var result: DistributionEntity? = null
-        
+
         val acquired = advisoryLockService.tryWithLock(AdvisoryLockKey.CREATE_DISTRIBUTION) {
             val currentDistribution = distributionRepository.getCurrentDistribution()
             if (currentDistribution != null) {
@@ -79,11 +80,11 @@ class DistributionService(
 
             result = distributionRepository.save(newDistribution)
         }
-        
+
         if (!acquired) {
             throw TafelValidationException("Eine neue Ausgabe wird gerade gestartet. Bitte kurz warten und im Anschluss die Seite neu laden.")
         }
-        
+
         return result!!
     }
 
@@ -235,14 +236,17 @@ class DistributionService(
         )
     }
 
-    @Transactional
     fun closeDistribution() {
         val acquired = advisoryLockService.tryWithLock(AdvisoryLockKey.CLOSE_DISTRIBUTION) {
-            val currentDistribution = distributionRepository.getCurrentDistribution()!!
-
             val authenticatedUser = SecurityContextHolder.getContext().authentication as? TafelJwtAuthentication
 
-            transactionTemplate.executeWithoutResult {
+            // Use REQUIRES_NEW to ensure endedAt is committed before async post-processor runs
+            val requiresNewTemplate = TransactionTemplate(transactionTemplate.transactionManager!!).apply {
+                propagationBehavior = Propagation.REQUIRES_NEW.value()
+            }
+
+            val currentDistribution = requiresNewTemplate.execute {
+                val currentDistribution = distributionRepository.getCurrentDistribution()!!
                 currentDistribution.endedAt = LocalDateTime.now()
                 currentDistribution.endedByUser =
                     authenticatedUser?.let { userRepository.findByUsername(authenticatedUser.username!!) }
@@ -251,15 +255,15 @@ class DistributionService(
                 distributionRepository.save(currentDistribution)
             }
 
+            val startDateFormatted = currentDistribution?.startedAt?.format(DateTimeFormatter.ISO_DATE_TIME)
+            val endDateFormatted = currentDistribution?.endedAt?.format(DateTimeFormatter.ISO_DATE_TIME)
             logger.info(
-                "Closed distribution: ID ${currentDistribution.id} (started at: ${
-                    currentDistribution.startedAt?.format(DateTimeFormatter.ISO_DATE_TIME)
-                }"
+                "Closed distribution: ID ${currentDistribution?.id} (started at: $startDateFormatted, ended at: $endDateFormatted)"
             )
 
-            distributionPostProcessorService.process(currentDistribution.id!!)
+            distributionPostProcessorService.process(currentDistribution!!.id!!)
         }
-        
+
         if (!acquired) {
             throw TafelValidationException("Die Ausgabe wird gerade geschlossen. Bitte kurz warten und im Anschluss die Seite neu laden.")
         }
