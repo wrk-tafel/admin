@@ -110,6 +110,22 @@ describe('DistributionStateComponent', () => {
     expect(component.showCloseDistributionModal).toBeFalse();
   });
 
+  it('close distribution without any response at all', () => {
+    const fixture = TestBed.createComponent(DistributionStateComponent);
+    const component = fixture.componentInstance;
+    component.showCloseDistributionModal = true;
+
+    const distribution: DistributionItem = {id: 123, startedAt: new Date()};
+    globalStateService.getCurrentDistribution.and.returnValue(new BehaviorSubject<DistributionItem>(distribution));
+
+    distributionApiService.closeDistribution.and.returnValue(of(null));
+
+    component.closeDistribution(true);
+
+    expect(distributionApiService.closeDistribution).toHaveBeenCalledWith(true);
+    expect(component.showCloseDistributionModal).toBeFalse();
+  });
+
   it('close distribution with errors', () => {
     const fixture = TestBed.createComponent(DistributionStateComponent);
     const component = fixture.componentInstance;
