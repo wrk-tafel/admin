@@ -1,12 +1,16 @@
 package at.wrk.tafel.admin.backend.database.config
 
+import io.mockk.*
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
-import io.mockk.verify
 import org.flywaydb.core.api.callback.Context
 import org.flywaydb.core.api.callback.Event
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.core.io.ClassPathResource
+import org.springframework.core.io.Resource
+import org.springframework.jdbc.datasource.init.ScriptUtils
+import java.sql.Connection
 
 @ExtendWith(MockKExtension::class)
 class FlywayImportTestdataCallbackTest {
@@ -34,13 +38,16 @@ class FlywayImportTestdataCallbackTest {
 
     @Test
     fun `handle with testdataEnabled true and event afterMigrate should migrate`() {
-        val callback =
-            FlywayImportTestdataCallback(testdataEnabled = true, sqlFileClassPath = "/testdata/unittest-data.sql")
+        mockkStatic(ScriptUtils::class)
+        every { ScriptUtils.executeSqlScript(any<Connection>(), any<Resource>()) } just runs
+        val sqlPath = "/testdata/unittest-data.sql"
+
+        val callback = FlywayImportTestdataCallback(testdataEnabled = true, sqlFileClassPath = sqlPath)
 
         callback.handle(Event.AFTER_MIGRATE, context)
 
         verify {
-            context.connection.createStatement()
+            ScriptUtils.executeSqlScript(context.connection, ClassPathResource(sqlPath))
         }
     }
 

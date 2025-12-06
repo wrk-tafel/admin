@@ -2,7 +2,7 @@ package at.wrk.tafel.admin.backend.modules.distribution.internal.model
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import com.fasterxml.jackson.annotation.JsonInclude
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
+import com.fasterxml.jackson.annotation.JsonRootName
 
 @ExcludeFromTestCoverage
 data class CustomerListPdfResult(
@@ -26,7 +26,7 @@ data class CustomerListPdfResult(
     }
 }
 
-@JacksonXmlRootElement(localName = "data")
+@JsonRootName("data")
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @ExcludeFromTestCoverage
 data class CustomerListPdfModel(

@@ -1,6 +1,5 @@
 package at.wrk.tafel.admin.backend.database.common.sse_outbox
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -10,13 +9,14 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
+import tools.jackson.databind.json.JsonMapper
 import java.io.IOException
 import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit
 
 @Service
 class SseOutboxService(
-    private val objectMapper: ObjectMapper,
+    private val jsonMapper: JsonMapper,
     private val sseOutboxRepository: SseOutboxRepository,
     private val sseOutboxListenerService: SseOutboxListenerService,
 ) {
@@ -38,7 +38,7 @@ class SseOutboxService(
         sseOutboxEntity.eventTime = LocalDateTime.now()
         sseOutboxEntity.notificationName = notificationName
 
-        val serializedPayload = objectMapper.writeValueAsString(payload)
+        val serializedPayload = jsonMapper.writeValueAsString(payload)
         sseOutboxEntity.payload = serializedPayload
 
         return sseOutboxRepository.save(sseOutboxEntity)
@@ -51,7 +51,7 @@ class SseOutboxService(
         acceptFilter: (data: T?) -> Boolean = { true },
     ) {
         val callback: (String?) -> Unit = { payload ->
-            val value = if (payload != null) objectMapper.readValue(payload, resultType) else null
+            val value = if (payload != null) jsonMapper.readValue(payload, resultType) else null
             if (acceptFilter(value)) {
                 sendEvent(sseEmitter, payload)
             }
@@ -77,7 +77,7 @@ class SseOutboxService(
     ) {
         val callback: (String?) -> Unit = { payload ->
             val value =
-                if (payload != null && resultType != null) objectMapper.readValue(payload, resultType) else null
+                if (payload != null && resultType != null) jsonMapper.readValue(payload, resultType) else null
             resultCallback(value)
         }
 

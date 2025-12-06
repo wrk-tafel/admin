@@ -12,7 +12,6 @@ import at.wrk.tafel.admin.backend.common.auth.components.TafelUserDetailsManager
 import at.wrk.tafel.admin.backend.config.properties.ApplicationProperties
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.passay.CharacterRule
 import org.passay.DictionarySubstringRule
 import org.passay.EnglishCharacterData
@@ -38,10 +37,11 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.provisioning.UserDetailsManager
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.AuthenticationFilter
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher
 import org.springframework.security.web.util.matcher.AndRequestMatcher
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher
 import org.springframework.security.web.util.matcher.NegatedRequestMatcher
 import org.springframework.security.web.util.matcher.OrRequestMatcher
+import tools.jackson.databind.json.JsonMapper
 
 @Configuration
 @EnableWebSecurity
@@ -52,7 +52,7 @@ class WebSecurityConfig(
     private val userRepository: UserRepository,
     private val employeeRepository: EmployeeRepository,
     private val applicationProperties: ApplicationProperties,
-    private val objectMapper: ObjectMapper
+    private val jsonMapper: JsonMapper,
 ) {
 
     companion object {
@@ -91,11 +91,11 @@ class WebSecurityConfig(
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         val authFilter = AuthenticationFilter(authenticationManager(), tafelJwtAuthConverter())
         authFilter.requestMatcher = AndRequestMatcher(
-            AntPathRequestMatcher("/api/**"),
+            PathPatternRequestMatcher.pathPattern("/api/**"),
             NegatedRequestMatcher(
                 OrRequestMatcher(
                     publicEndpoints.map {
-                        AntPathRequestMatcher(it)
+                        PathPatternRequestMatcher.pathPattern(it)
                     }
                 )
             )
@@ -108,7 +108,7 @@ class WebSecurityConfig(
                     authenticationManager = authenticationManager(),
                     jwtTokenService = jwtTokenService,
                     applicationProperties = applicationProperties,
-                    objectMapper = objectMapper
+                    jsonMapper = jsonMapper
                 )
             )
             .addFilterAfter(authFilter, TafelLoginFilter::class.java)

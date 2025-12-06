@@ -5,7 +5,6 @@ import at.wrk.tafel.admin.backend.common.auth.components.TafelLoginFilter
 import at.wrk.tafel.admin.backend.common.auth.model.LoginResponse
 import at.wrk.tafel.admin.backend.config.properties.ApplicationProperties
 import at.wrk.tafel.admin.backend.security.testUser
-import com.fasterxml.jackson.databind.ObjectMapper
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -20,6 +19,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.http.HttpHeaders
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.core.Authentication
+import tools.jackson.databind.json.JsonMapper
 
 @ExtendWith(MockKExtension::class)
 class TafelLoginFilterTest {
@@ -46,7 +46,7 @@ class TafelLoginFilterTest {
     private lateinit var applicationProperties: ApplicationProperties
 
     @RelaxedMockK
-    private lateinit var objectMapper: ObjectMapper
+    private lateinit var jsonMapper: JsonMapper
 
     @InjectMockKs
     private lateinit var tafelLoginFilter: TafelLoginFilter
@@ -85,7 +85,7 @@ class TafelLoginFilterTest {
         verify(exactly = 1) { jwtTokenService.generateToken(testUser.username, testUser.authorities, expirationTime) }
 
         verify {
-            objectMapper.writeValueAsString(withArg<LoginResponse> { response ->
+            jsonMapper.writeValueAsString(withArg<LoginResponse> { response ->
                 assertThat(response.passwordChangeRequired).isFalse()
             })
         }
@@ -114,7 +114,7 @@ class TafelLoginFilterTest {
 
         verify(exactly = 1) { jwtTokenService.generateToken(testUser.username, emptyList(), expirationTime) }
         verify {
-            objectMapper.writeValueAsString(withArg<LoginResponse> { response ->
+            jsonMapper.writeValueAsString(withArg<LoginResponse> { response ->
                 assertThat(response.passwordChangeRequired).isTrue()
             })
         }

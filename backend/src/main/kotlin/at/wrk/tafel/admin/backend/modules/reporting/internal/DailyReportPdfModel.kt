@@ -1,10 +1,10 @@
 package at.wrk.tafel.admin.backend.modules.reporting.internal
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
+import com.fasterxml.jackson.annotation.JsonRootName
 import java.math.BigDecimal
 
-@JacksonXmlRootElement(localName = "data")
+@JsonRootName("data")
 @ExcludeFromTestCoverage
 data class DailyReportPdfModel(
     val logoContentType: String,

@@ -10,11 +10,7 @@ import at.wrk.tafel.admin.backend.database.model.customer.CustomerRepository
 import at.wrk.tafel.admin.backend.database.model.staticdata.CountryRepository
 import at.wrk.tafel.admin.backend.modules.base.country.Country
 import at.wrk.tafel.admin.backend.modules.base.country.testCountry1
-import at.wrk.tafel.admin.backend.modules.customer.Customer
-import at.wrk.tafel.admin.backend.modules.customer.CustomerAdditionalPerson
-import at.wrk.tafel.admin.backend.modules.customer.CustomerAddress
-import at.wrk.tafel.admin.backend.modules.customer.CustomerGender
-import at.wrk.tafel.admin.backend.modules.customer.CustomerIssuer
+import at.wrk.tafel.admin.backend.modules.customer.*
 import at.wrk.tafel.admin.backend.security.testUser
 import at.wrk.tafel.admin.backend.security.testUserEntity
 import at.wrk.tafel.admin.backend.security.testUserPermissions
@@ -207,10 +203,10 @@ internal class CustomerConverterTest {
         every { userRepository.findByUsername(testUser.username) } returns testUserEntity
         every { countryRepository.findById(testCustomer.country.id) } returns Optional.of(testCountry1)
 
-        every { customerAddPersonRepository.findById(testCustomer.additionalPersons[0].id) } returns Optional.of(
+        every { customerAddPersonRepository.findById(testCustomer.additionalPersons[0].id!!) } returns Optional.of(
             testCustomerEntity1.additionalPersons[0]
         )
-        every { customerAddPersonRepository.findById(testCustomer.additionalPersons[1].id) } returns Optional.of(
+        every { customerAddPersonRepository.findById(testCustomer.additionalPersons[1].id!!) } returns Optional.of(
             testCustomerEntity1.additionalPersons[1]
         )
     }

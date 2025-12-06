@@ -1,11 +1,9 @@
 package at.wrk.tafel.admin.backend.common.pdf
 
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.dataformat.xml.XmlMapper
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import org.apache.fop.apps.FopFactoryBuilder
 import org.apache.fop.apps.MimeConstants
 import org.springframework.stereotype.Service
+import tools.jackson.dataformat.xml.XmlMapper
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -17,8 +15,7 @@ import javax.xml.transform.stream.StreamSource
 class PDFService {
 
     companion object {
-        private val xmlMapper = XmlMapper().registerModule(JavaTimeModule())
-            .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
+        private val xmlMapper = XmlMapper()
     }
 
     fun generatePdf(data: Any, stylesheetPath: String): ByteArray {

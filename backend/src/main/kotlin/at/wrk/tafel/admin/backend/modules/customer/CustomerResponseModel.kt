@@ -59,7 +59,7 @@ data class CustomerAddress(
 
 @ExcludeFromTestCoverage
 data class CustomerAdditionalPerson(
-    val id: Long,
+    val id: Long?,
     val firstname: String,
     val lastname: String,
     val birthDate: LocalDate?,

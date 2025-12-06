@@ -1,7 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.base.exception
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
 import org.springframework.context.MessageSource
 import org.springframework.http.HttpStatus
@@ -11,6 +10,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.context.request.ServletWebRequest
 import org.springframework.web.context.request.WebRequest
+import tools.jackson.databind.json.JsonMapper
 import java.time.LocalDateTime
 
 import java.util.*
@@ -18,7 +18,7 @@ import java.util.*
 @ControllerAdvice
 class GenericExceptionHandler(
     private val messageSource: MessageSource,
-    private val objectMapper: ObjectMapper,
+    private val jsonMapper: JsonMapper,
 ) {
 
     companion object {
@@ -78,7 +78,7 @@ class GenericExceptionHandler(
 
         val isSseRequest = request.getHeader("Accept")?.contains("text/event-stream") == true
         return if (isSseRequest) {
-            val errorMessage = objectMapper.writeValueAsString(error)
+            val errorMessage = jsonMapper.writeValueAsString(error)
             ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .contentType(MediaType.TEXT_EVENT_STREAM)
