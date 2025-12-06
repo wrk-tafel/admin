@@ -89,7 +89,7 @@ internal class DistributionStatisticServiceTest {
 
         every { distributionStatisticRepository.save(any()) } returns mockk()
 
-        val createdStatistic = service.createAndSaveStatistic(testDistributionEntity)
+        val createdStatistic = service.saveStatistic(testDistributionEntity)
         assertThat(createdStatistic).isNotNull
 
         val savedStatisticSlot = slot<DistributionStatisticEntity>()
@@ -132,7 +132,7 @@ internal class DistributionStatisticServiceTest {
         every { customerRepository.findAllByProlongedAtBetween(any(), any()) } returns emptyList()
         every { distributionStatisticRepository.save(any()) } returns mockk()
 
-        service.createAndSaveStatistic(testDistributionEntity)
+        service.saveStatistic(testDistributionEntity)
 
         val savedStatisticSlot = slot<DistributionStatisticEntity>()
         verify { distributionStatisticRepository.save(capture(savedStatisticSlot)) }
@@ -164,7 +164,7 @@ internal class DistributionStatisticServiceTest {
             endedAt = LocalDateTime.now()
         }
 
-        val message = assertThrows<TafelValidationException> { service.createAndSaveStatistic(testDistributionEntity) }
+        val message = assertThrows<TafelValidationException> { service.saveStatistic(testDistributionEntity) }
         assertThat(message.message).isEqualTo("Statistik-Daten nicht vorhanden!")
     }
 

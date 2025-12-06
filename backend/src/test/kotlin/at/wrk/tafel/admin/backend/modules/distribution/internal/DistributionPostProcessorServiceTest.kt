@@ -59,13 +59,13 @@ internal class DistributionPostProcessorServiceTest {
         )
 
         val distributionStatistic = mockk<DistributionStatisticEntity>()
-        every { distributionStatisticService.createAndSaveStatistic(distribution) } returns distributionStatistic
+        every { distributionStatisticService.saveStatistic(distribution) } returns distributionStatistic
         every { distributionRepository.findById(distributionId) } returns Optional.of(distribution)
 
         service.process(distributionId)
 
         verify(exactly = 1) { transactionTemplate.executeWithoutResult(any()) }
-        verify(exactly = 1) { distributionStatisticService.createAndSaveStatistic(distribution) }
+        verify(exactly = 1) { distributionStatisticService.saveStatistic(distribution) }
         verify(exactly = 2) { successfulPostProcessor.process(distribution, distributionStatistic) }
     }
 
@@ -90,7 +90,7 @@ internal class DistributionPostProcessorServiceTest {
         )
 
         val distributionStatistic = mockk<DistributionStatisticEntity>()
-        every { distributionStatisticService.createAndSaveStatistic(distribution) } returns distributionStatistic
+        every { distributionStatisticService.saveStatistic(distribution) } returns distributionStatistic
         every { distributionRepository.findById(distributionId) } returns Optional.of(distribution)
 
         service.process(distributionId)
