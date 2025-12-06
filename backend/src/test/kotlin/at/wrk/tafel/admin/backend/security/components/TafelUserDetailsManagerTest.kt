@@ -128,8 +128,8 @@ class TafelUserDetailsManagerTest {
         assertThat(userDetails.passwordChangeRequired).isTrue
         assertThat(userDetails.authorities).hasSameElementsAs(
             listOf(
-                SimpleGrantedAuthority(userAuthorityEntity1.name),
-                SimpleGrantedAuthority(userAuthorityEntity2.name)
+                SimpleGrantedAuthority(userAuthorityEntity1.name!!),
+                SimpleGrantedAuthority(userAuthorityEntity2.name!!)
             )
         )
 

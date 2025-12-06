@@ -34,7 +34,7 @@ class TafelUserDetailsManager(
     private val userRepository: UserRepository,
     private val employeeRepository: EmployeeRepository,
     private val passwordEncoder: PasswordEncoder,
-    private val passwordValidator: PasswordValidator
+    private val passwordValidator: PasswordValidator,
 ) : UserDetailsManager {
 
     fun loadUserById(userId: Long): TafelUser? {
@@ -58,17 +58,19 @@ class TafelUserDetailsManager(
         firstname: String?,
         lastname: String?,
         enabled: Boolean?,
-        page: Int?
+        page: Int?,
     ): UserSearchResult {
         val pageRequest = PageRequest.of(page?.minus(1) ?: 0, 25)
 
         val spec = orderByUpdatedAtDesc(
             where(
                 Specification.allOf(
-                    usernameContains(username),
-                    firstnameContains(firstname),
-                    lastnameContains(lastname),
-                    enabledEquals(enabled)
+                    listOf(
+                        usernameContains(username),
+                        firstnameContains(firstname),
+                        lastnameContains(lastname),
+                        enabledEquals(enabled)
+                    ).mapNotNull { it }
                 )
             )
         )
@@ -83,7 +85,7 @@ class TafelUserDetailsManager(
         )
     }
 
-    override fun createUser(user: UserDetails?) {
+    override fun createUser(user: UserDetails) {
         val tafelUser = user as TafelUser
 
         val userEntity = UserEntity()
@@ -154,7 +156,7 @@ class TafelUserDetailsManager(
             personnelNumber = userEntity.employee!!.personnelNumber!!,
             firstname = userEntity.employee!!.firstname!!,
             lastname = userEntity.employee!!.lastname!!,
-            authorities = userEntity.authorities.map { SimpleGrantedAuthority(it.name) },
+            authorities = userEntity.authorities.filter { it.name != null }.map { SimpleGrantedAuthority(it.name!!) },
             passwordChangeRequired = userEntity.passwordChangeRequired!!
         )
     }
@@ -204,5 +206,5 @@ data class UserSearchResult(
     val totalCount: Long,
     val currentPage: Int,
     val totalPages: Int,
-    val pageSize: Int
+    val pageSize: Int,
 )

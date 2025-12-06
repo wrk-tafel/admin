@@ -15,7 +15,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager
+import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager
 import org.springframework.transaction.annotation.Transactional
 
 class CustomerServiceIT : TafelBaseIntegrationTest() {
@@ -75,12 +75,12 @@ class CustomerServiceIT : TafelBaseIntegrationTest() {
         testEntityManager.clear()
 
         // targetCustomer still exists
-        assertThat(testEntityManager.find(CustomerEntity::class.java, targetCustomer.id)).isNotNull
+        assertThat(testEntityManager.find(CustomerEntity::class.java, targetCustomer.id as Any)).isNotNull
 
         // sourceCustomers are deleted
-        assertThat(testEntityManager.find(CustomerEntity::class.java, sourceCustomer1.id)).isNull()
-        assertThat(testEntityManager.find(CustomerEntity::class.java, sourceCustomer2.id)).isNull()
-        assertThat(testEntityManager.find(CustomerEntity::class.java, sourceCustomer3.id)).isNull()
+        assertThat(testEntityManager.find(CustomerEntity::class.java, sourceCustomer1.id as Any)).isNull()
+        assertThat(testEntityManager.find(CustomerEntity::class.java, sourceCustomer2.id as Any)).isNull()
+        assertThat(testEntityManager.find(CustomerEntity::class.java, sourceCustomer3.id as Any)).isNull()
     }
 
     private fun createDistributionCustomerEntity(
