@@ -75,10 +75,12 @@ class CustomerService(
 
         val where = where(
             Specification.allOf(
-                firstnameContains(firstname),
-                lastnameContains(lastname),
-                if (postProcessing != null) postProcessingNecessary() else null,
-                if (costContribution != null) pendingCostContribution() else null
+                listOf(
+                    firstnameContains(firstname),
+                    lastnameContains(lastname),
+                    if (postProcessing != null) postProcessingNecessary() else null,
+                    if (costContribution != null) pendingCostContribution() else null
+                ).mapNotNull { it }
             )
         )
 

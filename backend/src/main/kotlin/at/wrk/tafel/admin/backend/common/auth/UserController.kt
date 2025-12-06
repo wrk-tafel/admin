@@ -53,7 +53,7 @@ class UserController(
 
         val userInfo = UserInfo(
             username = authenticatedUser.username!!,
-            permissions = authenticatedUser.authorities.map { it.authority }
+            permissions = authenticatedUser.authorities.mapNotNull { it.authority }
         )
 
         return ResponseEntity.ok(userInfo)
@@ -248,7 +248,8 @@ class UserController(
             passwordRepeat = null,
             passwordChangeRequired = user.passwordChangeRequired,
             permissions = user.authorities
-                .map { authority -> mapToUserPermission(authority.authority) }
+                .filter { it.authority != null }
+                .map { authority -> mapToUserPermission(authority.authority!!) }
                 .sortedBy { it.title }
         )
     }

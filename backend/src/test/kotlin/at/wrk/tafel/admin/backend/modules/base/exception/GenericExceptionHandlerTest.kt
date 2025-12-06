@@ -1,6 +1,5 @@
 package at.wrk.tafel.admin.backend.modules.base.exception
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -12,6 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.context.MessageSource
 import org.springframework.http.HttpStatus
 import org.springframework.web.context.request.ServletWebRequest
+import tools.jackson.databind.json.JsonMapper
 import java.util.*
 
 @ExtendWith(MockKExtension::class)
@@ -24,7 +24,7 @@ internal class GenericExceptionHandlerTest {
     private lateinit var request: ServletWebRequest
 
     @RelaxedMockK
-    private lateinit var objectMapper: ObjectMapper
+    private lateinit var jsonMapper: JsonMapper
 
     @InjectMockKs
     private lateinit var exceptionHandler: GenericExceptionHandler
@@ -127,7 +127,7 @@ internal class GenericExceptionHandlerTest {
             )
         } returns "localized-title"
         val exception = IllegalArgumentException("test-msg")
-        every { objectMapper.writeValueAsString(any()) } returns exception.message
+        every { jsonMapper.writeValueAsString(any()) } returns exception.message
 
         val response = exceptionHandler.handleException(exception, request, Locale.GERMAN)
 

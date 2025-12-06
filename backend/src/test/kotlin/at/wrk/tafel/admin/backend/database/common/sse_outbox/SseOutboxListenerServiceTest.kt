@@ -2,7 +2,6 @@ package at.wrk.tafel.admin.backend.database.common.sse_outbox
 
 import at.wrk.tafel.admin.backend.database.common.sse_outbox.SseOutboxListenerService.Companion.NOTIFICATIONS_POLL_TIMEOUT
 import at.wrk.tafel.admin.backend.database.common.sse_outbox.SseOutboxListenerService.Companion.PG_NOTIFICATION_CHANNEL_NAME
-import com.fasterxml.jackson.databind.ObjectMapper
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -17,6 +16,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.postgresql.PGConnection
 import org.springframework.jdbc.core.JdbcTemplate
+import tools.jackson.databind.json.JsonMapper
 import java.sql.Connection
 import java.sql.SQLException
 import java.sql.Statement
@@ -28,7 +28,7 @@ class SseOutboxListenerServiceTest {
     private lateinit var jdbcTemplate: JdbcTemplate
 
     @RelaxedMockK
-    private lateinit var objectMapper: ObjectMapper
+    private lateinit var jsonMapper: JsonMapper
 
     @RelaxedMockK
     private lateinit var mockStatement: Statement
@@ -62,7 +62,7 @@ class SseOutboxListenerServiceTest {
         every { mockConnection.unwrap(PGConnection::class.java) } returns mockPGConnection
 
         every {
-            objectMapper.readValue(
+            jsonMapper.readValue(
                 testNotificationEventString,
                 SseOutboxNotificationEvent::class.java
             )

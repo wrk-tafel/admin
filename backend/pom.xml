@@ -22,9 +22,9 @@
         </sonar.coverage.jacoco.xmlReportPaths>
         <sonar.kotlin.source.version>${kotlin.version}</sonar.kotlin.source.version>
 
-        <spring.boot.version>3.5.4</spring.boot.version>
+        <spring.boot.version>4.0.0</spring.boot.version>
         <flyway.version>11.18.0</flyway.version>
-        <spring.modulith.version>1.4.4</spring.modulith.version>
+        <spring.modulith.version>2.0.0</spring.modulith.version>
         <jjwt.version>0.13.0</jjwt.version>
         <postgresql.driver.version>42.7.8</postgresql.driver.version>
         <bouncycastle.version>1.70</bouncycastle.version>
@@ -103,7 +103,21 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jdbc-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-flyway</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa-test</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -112,6 +126,10 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jackson</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
