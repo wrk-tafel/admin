@@ -65,11 +65,9 @@ export class DistributionStateComponent implements OnInit {
     const observer = {
       next: (result: DistributionCloseValidationResult) => {
         this.closeDistributionValidationResult = result;
+        this.showCloseDistributionModal = false;
 
-        if (result.errors.length === 0 && result.warnings.length === 0) {
-          this.showCloseDistributionModal = false;
-        } else {
-          this.showCloseDistributionModal = false;
+        if (result && (result.errors.length > 0 || result.warnings.length > 0)) {
           this.showCloseDistributionValidationModal = true;
         }
       },

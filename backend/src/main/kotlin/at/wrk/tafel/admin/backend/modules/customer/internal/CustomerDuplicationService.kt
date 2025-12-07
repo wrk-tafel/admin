@@ -85,7 +85,7 @@ class CustomerDuplicationService(
                           )
                   ) < 10;
         """.trimIndent()
-        val totalCount = jdbcTemplate.query(rowCountSql, SingleColumnRowMapper<Long>()).first()
+        val totalCount = jdbcTemplate.query(rowCountSql, SingleColumnRowMapper<Long>()).first() ?: 0
 
         val sql = """
             WITH compare AS (SELECT id, customer_id, firstname, lastname, address_street, address_houseNumber, address_door

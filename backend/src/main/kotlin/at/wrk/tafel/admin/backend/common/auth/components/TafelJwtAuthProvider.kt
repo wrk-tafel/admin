@@ -10,11 +10,11 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority
 import java.util.*
 
 class TafelJwtAuthProvider(
-    private val jwtTokenService: JwtTokenService
+    private val jwtTokenService: JwtTokenService,
 ) : AuthenticationProvider {
 
-    override fun supports(authenticationClass: Class<*>?): Boolean {
-        return authenticationClass == TafelJwtAuthentication::class.java
+    override fun supports(authentication: Class<*>): Boolean {
+        return authentication == TafelJwtAuthentication::class.java
     }
 
     override fun authenticate(authentication: Authentication): TafelJwtAuthentication {

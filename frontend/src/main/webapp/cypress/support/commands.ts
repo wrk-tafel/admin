@@ -171,6 +171,7 @@ Cypress.Commands.add('getAnyRandomNumber', (): Chainable<number> => {
 export interface AddCustomerToDistributionRequest {
   customerId: number;
   ticketNumber: number;
+  costContributionPaid: boolean;
 }
 
 export interface CountryData {

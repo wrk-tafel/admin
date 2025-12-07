@@ -22,8 +22,10 @@ class DistributionPostProcessorService(
     @Async
     fun process(distributionId: Long) {
         transactionTemplate.executeWithoutResult {
+            // Re-fetch in this transaction's persistence context to ensure lazy associations work properly
+            // The distribution passed here is from a committed REQUIRES_NEW transaction, so the fetch is safe
             val distribution = distributionRepository.findById(distributionId).get()
-            val statistic = distributionStatisticService.createAndSaveStatistic(distribution)
+            val statistic = distributionStatisticService.saveStatistic(distribution)
 
             postProcessors.forEach {
                 val postProcessorName = it.javaClass.simpleName

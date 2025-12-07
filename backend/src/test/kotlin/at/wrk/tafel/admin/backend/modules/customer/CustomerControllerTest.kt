@@ -277,14 +277,10 @@ class CustomerControllerTest {
         val response = controller.generatePdf(123, CustomerPdfType.COMBINED)
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
-        assertThat(
-            response.headers.filter { it.key === HttpHeaders.CONTENT_TYPE }
-                .map { it.value.first().toString() }.first()
-        ).isEqualTo(MediaType.APPLICATION_PDF_VALUE)
+        assertThat(response.headers.get(HttpHeaders.CONTENT_TYPE)!!.first()).isEqualTo(MediaType.APPLICATION_PDF_VALUE)
 
         assertThat(
-            response.headers.filter { it.key === HttpHeaders.CONTENT_DISPOSITION }
-                .map { it.value.first().toString() }.first()
+            response.headers.get(HttpHeaders.CONTENT_DISPOSITION)!!.first()
         ).isEqualTo("inline; filename=$testFilename")
 
         val bodyBytes = response.body?.inputStream?.readAllBytes()!!

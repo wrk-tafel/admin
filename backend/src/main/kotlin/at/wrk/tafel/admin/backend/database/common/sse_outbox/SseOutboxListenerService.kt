@@ -1,7 +1,6 @@
 package at.wrk.tafel.admin.backend.database.common.sse_outbox
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
-import com.fasterxml.jackson.databind.ObjectMapper
 import jakarta.annotation.PostConstruct
 import jakarta.annotation.PreDestroy
 import kotlinx.coroutines.CoroutineScope
@@ -12,6 +11,7 @@ import org.postgresql.PGConnection
 import org.postgresql.PGNotification
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Service
+import tools.jackson.databind.json.JsonMapper
 import java.sql.Connection
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
@@ -19,7 +19,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 @Service
 class SseOutboxListenerService(
     private val jdbcTemplate: JdbcTemplate,
-    private val objectMapper: ObjectMapper,
+    private val jsonMapper: JsonMapper,
 ) {
 
     companion object {
@@ -51,7 +51,7 @@ class SseOutboxListenerService(
     private fun processNotifications(notifications: Array<PGNotification>) {
         for (notification in notifications) {
             if (notification.parameter != null) {
-                val event = objectMapper.readValue(
+                val event = jsonMapper.readValue(
                     notification.parameter,
                     SseOutboxNotificationEvent::class.java
                 )
@@ -74,6 +74,13 @@ class SseOutboxListenerService(
         eventCallback: (payload: String?) -> Unit,
     ) {
         callbacks.computeIfAbsent(notificationName) { CopyOnWriteArrayList() }.add(eventCallback)
+    }
+
+    fun unregisterCallback(
+        notificationName: String,
+        eventCallback: (payload: String?) -> Unit,
+    ) {
+        callbacks[notificationName]?.remove(eventCallback)
     }
 
     private fun listenOnConnection(connection: Connection) {

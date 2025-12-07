@@ -10,11 +10,8 @@ import at.wrk.tafel.admin.backend.database.model.customer.CustomerRepository
 import at.wrk.tafel.admin.backend.database.model.staticdata.CountryEntity
 import at.wrk.tafel.admin.backend.database.model.staticdata.CountryRepository
 import at.wrk.tafel.admin.backend.modules.base.country.Country
-import at.wrk.tafel.admin.backend.modules.customer.Customer
-import at.wrk.tafel.admin.backend.modules.customer.CustomerAdditionalPerson
-import at.wrk.tafel.admin.backend.modules.customer.CustomerAddress
-import at.wrk.tafel.admin.backend.modules.customer.CustomerGender
-import at.wrk.tafel.admin.backend.modules.customer.CustomerIssuer
+import at.wrk.tafel.admin.backend.modules.customer.*
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
@@ -79,8 +76,9 @@ class CustomerConverter(
         customerEntity.additionalPersons.clear()
         customerEntity.additionalPersons.addAll(
             customerUpdate.additionalPersons.map { addPerson ->
-                val addPersonEntity =
-                    customerAddPersonRepository.findById(addPerson.id).orElseGet { CustomerAddPersonEntity() }
+                val existingEntity: CustomerAddPersonEntity? = addPerson.id?.let { customerAddPersonRepository.findByIdOrNull(addPerson.id) }
+                val addPersonEntity = existingEntity ?: CustomerAddPersonEntity()
+
                 addPersonEntity.customer = customerEntity
                 addPersonEntity.lastname = addPerson.lastname.trim()
                 addPersonEntity.firstname = addPerson.firstname.trim()

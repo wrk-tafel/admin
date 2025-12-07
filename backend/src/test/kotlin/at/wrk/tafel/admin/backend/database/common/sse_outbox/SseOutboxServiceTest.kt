@@ -1,8 +1,8 @@
 package at.wrk.tafel.admin.backend.database.common.sse_outbox
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
+import at.wrk.tafel.admin.backend.modules.base.exception.TafelException
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.fasterxml.jackson.databind.ObjectMapper
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -18,12 +18,14 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter.SseEventBuilder
+import tools.jackson.databind.json.JsonMapper
+import java.util.function.Consumer
 
 @ExtendWith(MockKExtension::class)
 class SseOutboxServiceTest {
 
     @RelaxedMockK
-    private lateinit var objectMapper: ObjectMapper
+    private lateinit var jsonMapper: JsonMapper
 
     @RelaxedMockK
     private lateinit var sseOutboxRepository: SseOutboxRepository
@@ -43,8 +45,8 @@ class SseOutboxServiceTest {
 
     @BeforeEach
     fun beforeEach() {
-        every { objectMapper.readValue(testPayloadString, TestJsonPayload::class.java) } returns testPayload
-        every { objectMapper.writeValueAsString(testPayload) } returns testPayloadString
+        every { jsonMapper.readValue(testPayloadString, TestJsonPayload::class.java) } returns testPayload
+        every { jsonMapper.writeValueAsString(testPayload) } returns testPayloadString
     }
 
     @Test
@@ -58,7 +60,7 @@ class SseOutboxServiceTest {
     fun saveOutboxEntry() {
         val testPayload = TestJsonPayload(123)
         val dummyPayload = "dummy-payload"
-        every { objectMapper.writeValueAsString(any()) } returns dummyPayload
+        every { jsonMapper.writeValueAsString(any()) } returns dummyPayload
 
         val resultOutboxEntity = mockk<SseOutboxEntity>()
         every { sseOutboxRepository.save(any()) } returns resultOutboxEntity
@@ -66,7 +68,7 @@ class SseOutboxServiceTest {
         val returnedEntity = service.saveOutboxEntry("dummy-notification", testPayload)
         assertThat(returnedEntity).isEqualTo(resultOutboxEntity)
 
-        verify { objectMapper.writeValueAsString(testPayload) }
+        verify { jsonMapper.writeValueAsString(testPayload) }
 
         val savedOutboxEntitySlot = slot<SseOutboxEntity>()
         verify { sseOutboxRepository.save(capture(savedOutboxEntitySlot)) }
@@ -181,11 +183,110 @@ class SseOutboxServiceTest {
 
         val testPayload = TestJsonPayload(123)
         val testPayloadString = "{\"value\":123}"
-        every { objectMapper.writeValueAsString(any()) } returns testPayloadString
+        every { jsonMapper.writeValueAsString(any()) } returns testPayloadString
 
         service.sendEvent(sseEmitter, testPayload)
 
         verify { sseEmitter.send(any<SseEventBuilder>()) }
+    }
+
+    @Test
+    fun `callback is unregistered on emitter timeout`() = runBlocking {
+        val onTimeoutSlot = slot<Runnable>()
+        every { sseEmitter.onTimeout(capture(onTimeoutSlot)) } returns Unit
+        every { sseEmitter.onCompletion(any()) } returns Unit
+        every { sseEmitter.onError(any<Consumer<Throwable>>()) } returns Unit
+
+        service.forwardNotificationEventsToSse(
+            sseEmitter = sseEmitter,
+            notificationName = notificationName,
+            resultType = TestJsonPayload::class.java
+        )
+        delay(1000)
+
+        val callbackSlot = slot<(String?) -> Unit>()
+        verify {
+            sseOutboxListenerService.registerCallback(
+                notificationName = notificationName,
+                eventCallback = capture(callbackSlot)
+            )
+        }
+
+        // Trigger timeout
+        onTimeoutSlot.captured.run()
+
+        verify {
+            sseOutboxListenerService.unregisterCallback(
+                notificationName = notificationName,
+                eventCallback = callbackSlot.captured
+            )
+        }
+    }
+
+    @Test
+    fun `callback is unregistered on emitter completion`() = runBlocking {
+        val onCompletionSlot = slot<Runnable>()
+        every { sseEmitter.onTimeout(any()) } returns Unit
+        every { sseEmitter.onCompletion(capture(onCompletionSlot)) } returns Unit
+        every { sseEmitter.onError(any<Consumer<Throwable>>()) } returns Unit
+
+        service.listenForNotificationEvents<Unit>(
+            sseEmitter = sseEmitter,
+            notificationName = notificationName,
+            resultType = null
+        ) { }
+        delay(1000)
+
+        val callbackSlot = slot<(String?) -> Unit>()
+        verify {
+            sseOutboxListenerService.registerCallback(
+                notificationName = notificationName,
+                eventCallback = capture(callbackSlot)
+            )
+        }
+
+        // Trigger completion
+        onCompletionSlot.captured.run()
+
+        verify {
+            sseOutboxListenerService.unregisterCallback(
+                notificationName = notificationName,
+                eventCallback = callbackSlot.captured
+            )
+        }
+    }
+
+    @Test
+    fun `callback is unregistered on emitter error`() = runBlocking {
+        val onErrorSlot = slot<Consumer<Throwable>>()
+        every { sseEmitter.onTimeout(any()) } returns Unit
+        every { sseEmitter.onCompletion(any()) } returns Unit
+        every { sseEmitter.onError(capture(onErrorSlot)) } returns Unit
+
+        service.forwardNotificationEventsToSse(
+            sseEmitter = sseEmitter,
+            notificationName = notificationName,
+            resultType = TestJsonPayload::class.java
+        )
+        delay(1000)
+
+        val callbackSlot = slot<(String?) -> Unit>()
+        verify {
+            sseOutboxListenerService.registerCallback(
+                notificationName = notificationName,
+                eventCallback = capture(callbackSlot)
+            )
+        }
+
+        // Trigger error
+        onErrorSlot.captured.accept(TafelException("test error"))
+
+        verify {
+            sseOutboxListenerService.unregisterCallback(
+                notificationName = notificationName,
+                eventCallback = callbackSlot.captured
+            )
+        }
     }
 
 }

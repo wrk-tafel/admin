@@ -4,17 +4,7 @@ import at.wrk.tafel.admin.backend.common.auth.components.PasswordChangeException
 import at.wrk.tafel.admin.backend.common.auth.components.TafelLoginFilter
 import at.wrk.tafel.admin.backend.common.auth.components.TafelPasswordGenerator
 import at.wrk.tafel.admin.backend.common.auth.components.TafelUserDetailsManager
-import at.wrk.tafel.admin.backend.common.auth.model.ChangePasswordRequest
-import at.wrk.tafel.admin.backend.common.auth.model.ChangePasswordResponse
-import at.wrk.tafel.admin.backend.common.auth.model.GeneratedPasswordResponse
-import at.wrk.tafel.admin.backend.common.auth.model.PermissionsListResponse
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
-import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
-import at.wrk.tafel.admin.backend.common.auth.model.User
-import at.wrk.tafel.admin.backend.common.auth.model.UserInfo
-import at.wrk.tafel.admin.backend.common.auth.model.UserListResponse
-import at.wrk.tafel.admin.backend.common.auth.model.UserPermission
-import at.wrk.tafel.admin.backend.common.auth.model.UserPermissions
+import at.wrk.tafel.admin.backend.common.auth.model.*
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -26,14 +16,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.web.bind.annotation.DeleteMapping
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/api/users")
@@ -53,7 +36,7 @@ class UserController(
 
         val userInfo = UserInfo(
             username = authenticatedUser.username!!,
-            permissions = authenticatedUser.authorities.map { it.authority }
+            permissions = authenticatedUser.authorities.mapNotNull { it.authority }
         )
 
         return ResponseEntity.ok(userInfo)
@@ -248,7 +231,8 @@ class UserController(
             passwordRepeat = null,
             passwordChangeRequired = user.passwordChangeRequired,
             permissions = user.authorities
-                .map { authority -> mapToUserPermission(authority.authority) }
+                .filter { it.authority != null }
+                .map { authority -> mapToUserPermission(authority.authority!!) }
                 .sortedBy { it.title }
         )
     }

@@ -1,7 +1,7 @@
 package at.wrk.tafel.admin.backend.common.pdf
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
+import com.fasterxml.jackson.annotation.JsonRootName
 import org.apache.commons.io.IOUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Disabled
@@ -34,7 +34,7 @@ internal class PDFServiceTest {
 
 }
 
-@JacksonXmlRootElement(localName = "data")
+@JsonRootName("data")
 @ExcludeFromTestCoverage
 data class DummyData(
     val text: String
