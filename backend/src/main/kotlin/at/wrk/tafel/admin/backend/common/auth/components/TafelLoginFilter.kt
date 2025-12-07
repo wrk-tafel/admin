@@ -4,7 +4,6 @@ import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
 import at.wrk.tafel.admin.backend.common.auth.model.LoginResponse
 import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
 import at.wrk.tafel.admin.backend.config.properties.ApplicationProperties
-import com.fasterxml.jackson.databind.ObjectMapper
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletRequest
@@ -17,6 +16,7 @@ import org.springframework.security.core.AuthenticationException
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 import org.springframework.security.web.authentication.www.BasicAuthenticationConverter
 import org.springframework.util.MimeTypeUtils
+import tools.jackson.databind.json.JsonMapper
 import java.nio.charset.Charset
 
 @ExcludeFromTestCoverage
@@ -24,7 +24,7 @@ class TafelLoginFilter(
     authenticationManager: AuthenticationManager,
     private val jwtTokenService: JwtTokenService,
     private val applicationProperties: ApplicationProperties,
-    private val objectMapper: ObjectMapper
+    private val jsonMapper: JsonMapper
 ) : UsernamePasswordAuthenticationFilter(authenticationManager) {
 
     companion object {
@@ -47,11 +47,11 @@ class TafelLoginFilter(
     }
 
     public override fun obtainUsername(request: HttpServletRequest): String {
-        return basicAuthConverter.convert(request).name as String
+        return basicAuthConverter.convert(request)?.name as String
     }
 
     public override fun obtainPassword(request: HttpServletRequest): String {
-        return basicAuthConverter.convert(request).credentials as String
+        return basicAuthConverter.convert(request)?.credentials as String
     }
 
     public override fun successfulAuthentication(
@@ -82,7 +82,7 @@ class TafelLoginFilter(
             val responseBody = LoginResponse(passwordChangeRequired = user.passwordChangeRequired)
 
             response.contentType = MimeTypeUtils.APPLICATION_JSON_VALUE
-            val responseString = objectMapper.writeValueAsString(responseBody)
+            val responseString = jsonMapper.writeValueAsString(responseBody)
 
             IOUtils.write(responseString, response.outputStream, Charset.defaultCharset())
         }

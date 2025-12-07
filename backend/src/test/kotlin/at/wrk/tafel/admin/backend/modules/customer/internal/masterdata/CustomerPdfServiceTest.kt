@@ -10,6 +10,7 @@ import at.wrk.tafel.admin.backend.modules.base.country.testCountry1
 import com.github.romankh3.image.comparison.ImageComparison
 import com.github.romankh3.image.comparison.model.ImageComparisonState
 import org.apache.commons.io.FileUtils
+import org.apache.commons.lang3.SystemUtils
 import org.apache.pdfbox.Loader
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.rendering.ImageType
@@ -18,7 +19,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.testcontainers.shaded.org.apache.commons.lang3.SystemUtils
 import java.io.File
 import java.math.BigDecimal
 import java.time.LocalDate

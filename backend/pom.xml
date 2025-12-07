@@ -22,9 +22,9 @@
         </sonar.coverage.jacoco.xmlReportPaths>
         <sonar.kotlin.source.version>${kotlin.version}</sonar.kotlin.source.version>
 
-        <spring.boot.version>3.5.4</spring.boot.version>
-        <flyway.version>11.18.0</flyway.version>
-        <spring.modulith.version>1.4.4</spring.modulith.version>
+        <spring.boot.version>4.0.0</spring.boot.version>
+        <jackson.version>3.0.3</jackson.version>
+        <spring.modulith.version>2.0.0</spring.modulith.version>
         <jjwt.version>0.13.0</jjwt.version>
         <postgresql.driver.version>42.7.8</postgresql.driver.version>
         <bouncycastle.version>1.70</bouncycastle.version>
@@ -32,6 +32,7 @@
         <qrcode.kotlin.version>4.5.0</qrcode.kotlin.version>
         <passay.version>1.6.6</passay.version>
         <apache.commons.csv.version>1.14.1</apache.commons.csv.version>
+        <apache.commons.lang3.version>3.20.0</apache.commons.lang3.version>
 
         <!-- Maven plugin version -->
         <maven.surefire.plugin.version>3.5.4</maven.surefire.plugin.version>
@@ -41,7 +42,7 @@
         <!-- Test dependency versions -->
         <archunit.version>1.4.1</archunit.version>
         <mockk.version>1.14.6</mockk.version>
-        <testcontainers.version>1.21.3</testcontainers.version>
+        <testcontainers.version>2.0.2</testcontainers.version>
         <apache.pdfbox.version>3.0.6</apache.pdfbox.version>
         <image.comparison.version>4.4.0</image.comparison.version>
     </properties>
@@ -103,7 +104,25 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jdbc-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-flyway</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-database-postgresql</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa-test</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -112,6 +131,10 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jackson</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -135,26 +158,14 @@
             <scope>runtime</scope>
         </dependency>
         <dependency>
-            <groupId>com.fasterxml.jackson.module</groupId>
+            <groupId>tools.jackson.module</groupId>
             <artifactId>jackson-module-kotlin</artifactId>
+            <version>${jackson.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <groupId>tools.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-xml</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.datatype</groupId>
-            <artifactId>jackson-datatype-jsr310</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.flywaydb</groupId>
-            <artifactId>flyway-core</artifactId>
-            <version>${flyway.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.flywaydb</groupId>
-            <artifactId>flyway-database-postgresql</artifactId>
-            <version>${flyway.version}</version>
+            <version>${jackson.version}</version>
         </dependency>
         <dependency>
             <groupId>org.postgresql</groupId>
@@ -203,6 +214,11 @@
             <artifactId>commons-csv</artifactId>
             <version>${apache.commons.csv.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>${apache.commons.lang3.version}</version>
+        </dependency>
 
         <!-- Dev and Test dependencies -->
         <dependency>
@@ -250,12 +266,12 @@
         </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
-            <artifactId>junit-jupiter</artifactId>
+            <artifactId>testcontainers-junit-jupiter</artifactId>
             <version>${testcontainers.version}</version>
         </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
-            <artifactId>postgresql</artifactId>
+            <artifactId>testcontainers-postgresql</artifactId>
             <version>${testcontainers.version}</version>
             <scope>test</scope>
         </dependency>

@@ -128,8 +128,8 @@ class TafelUserDetailsManagerTest {
         assertThat(userDetails.passwordChangeRequired).isTrue
         assertThat(userDetails.authorities).hasSameElementsAs(
             listOf(
-                SimpleGrantedAuthority(userAuthorityEntity1.name),
-                SimpleGrantedAuthority(userAuthorityEntity2.name)
+                SimpleGrantedAuthority(userAuthorityEntity1.name!!),
+                SimpleGrantedAuthority(userAuthorityEntity2.name!!)
             )
         )
 
@@ -488,7 +488,7 @@ class TafelUserDetailsManagerTest {
             )
         }
 
-        every { userRepository.getReferenceById(testUser.id) } returns testUserEntity
+        every { userRepository.getReferenceById(testUser.id!!) } returns testUserEntity
         every { userRepository.save(any()) } returns mockk(relaxed = true)
 
         val userUpdate = testUser.copy(
@@ -544,7 +544,7 @@ class TafelUserDetailsManagerTest {
             passwordChangeRequired = false
         }
 
-        every { userRepository.getReferenceById(testUser.id) } returns testUserEntity
+        every { userRepository.getReferenceById(testUser.id!!) } returns testUserEntity
         every { userRepository.save(any()) } returns mockk(relaxed = true)
 
         val encodedPassword = "dummy-encoded-pwd"
@@ -601,7 +601,7 @@ class TafelUserDetailsManagerTest {
             passwordChangeRequired = false
         }
 
-        every { userRepository.getReferenceById(testUser.id) } returns testUserEntity
+        every { userRepository.getReferenceById(testUser.id!!) } returns testUserEntity
         every { userRepository.save(any()) } returns mockk(relaxed = true)
         every { passwordValidator.validate(any()) } returns RuleResult(false)
 

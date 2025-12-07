@@ -16,7 +16,7 @@ data class ChangePasswordResponse(
 
 @ExcludeFromTestCoverage
 data class User(
-    val id: Long,
+    val id: Long?,
     val personnelNumber: String,
     val username: String,
     val firstname: String,

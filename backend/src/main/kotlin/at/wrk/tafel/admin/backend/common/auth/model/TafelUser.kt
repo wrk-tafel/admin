@@ -10,7 +10,7 @@ data class TafelUser(
     private val username: String,
     private var password: String?,
     val enabled: Boolean,
-    val id: Long,
+    val id: Long?,
     val personnelNumber: String,
     val firstname: String,
     val lastname: String,

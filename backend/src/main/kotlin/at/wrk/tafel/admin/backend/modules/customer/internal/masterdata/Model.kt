@@ -1,9 +1,9 @@
 package at.wrk.tafel.admin.backend.modules.customer.internal.masterdata
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
+import com.fasterxml.jackson.annotation.JsonRootName
 
-@JacksonXmlRootElement(localName = "data")
+@JsonRootName("data")
 @ExcludeFromTestCoverage
 data class PdfData(
     val logoContentType: String,

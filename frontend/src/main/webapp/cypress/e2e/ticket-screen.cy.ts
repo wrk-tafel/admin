@@ -37,9 +37,9 @@ describe('TicketScreen', () => {
     cy.byTestId('text').should('have.text', '-');
 
     cy.createDistribution();
-    cy.addCustomerToDistribution({customerId: 100, ticketNumber: 1});
-    cy.addCustomerToDistribution({customerId: 101, ticketNumber: 2});
-    cy.addCustomerToDistribution({customerId: 102, ticketNumber: 3});
+    cy.addCustomerToDistribution({customerId: 100, ticketNumber: 1, costContributionPaid: false});
+    cy.addCustomerToDistribution({customerId: 101, ticketNumber: 2, costContributionPaid: false});
+    cy.addCustomerToDistribution({customerId: 102, ticketNumber: 3, costContributionPaid: false});
 
     cy.visit('/#/anmeldung/ticketmonitor-steuerung');
 
@@ -65,9 +65,9 @@ describe('TicketScreen', () => {
     cy.byTestId('text').should('have.text', '-');
 
     cy.createDistribution();
-    cy.addCustomerToDistribution({customerId: 100, ticketNumber: 1});
-    cy.addCustomerToDistribution({customerId: 101, ticketNumber: 2});
-    cy.addCustomerToDistribution({customerId: 102, ticketNumber: 3});
+    cy.addCustomerToDistribution({customerId: 100, ticketNumber: 1, costContributionPaid: false});
+    cy.addCustomerToDistribution({customerId: 101, ticketNumber: 2, costContributionPaid: false});
+    cy.addCustomerToDistribution({customerId: 102, ticketNumber: 3, costContributionPaid: false});
 
     cy.visit('/#/anmeldung/ticketmonitor-steuerung');
 
@@ -87,9 +87,9 @@ describe('TicketScreen', () => {
     cy.byTestId('text').should('have.text', '-');
 
     cy.createDistribution();
-    cy.addCustomerToDistribution({customerId: 100, ticketNumber: 1});
-    cy.addCustomerToDistribution({customerId: 101, ticketNumber: 2});
-    cy.addCustomerToDistribution({customerId: 102, ticketNumber: 3});
+    cy.addCustomerToDistribution({customerId: 100, ticketNumber: 1, costContributionPaid: false});
+    cy.addCustomerToDistribution({customerId: 101, ticketNumber: 2, costContributionPaid: false});
+    cy.addCustomerToDistribution({customerId: 102, ticketNumber: 3, costContributionPaid: false});
 
     cy.visit('/#/anmeldung/ticketmonitor-steuerung');
 

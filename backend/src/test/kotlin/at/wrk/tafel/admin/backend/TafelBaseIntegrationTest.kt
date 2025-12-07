@@ -1,13 +1,13 @@
 package at.wrk.tafel.admin.backend
 
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
-import org.springframework.boot.test.autoconfigure.orm.jpa.AutoConfigureTestEntityManager
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase
+import org.springframework.boot.jpa.test.autoconfigure.AutoConfigureTestEntityManager
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
-import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
+import org.testcontainers.postgresql.PostgreSQLContainer
 
 @SpringBootTest
 @AutoConfigureTestEntityManager
@@ -18,7 +18,7 @@ class TafelBaseIntegrationTest {
     companion object {
         @Container
         @JvmStatic
-        private val postgreSQLContainer: PostgreSQLContainer<*> = PostgreSQLContainer("postgres:16.1")
+        private val postgreSQLContainer: PostgreSQLContainer = PostgreSQLContainer("postgres:16.1")
             .withDatabaseName("tafeladmin")
             .withUsername("admin")
             .withPassword("admin")

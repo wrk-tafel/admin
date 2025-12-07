@@ -1,18 +1,8 @@
 package at.wrk.tafel.admin.backend.security
 
 import at.wrk.tafel.admin.backend.common.auth.UserController
-import at.wrk.tafel.admin.backend.common.auth.components.PasswordChangeException
-import at.wrk.tafel.admin.backend.common.auth.components.TafelLoginFilter
-import at.wrk.tafel.admin.backend.common.auth.components.TafelPasswordGenerator
-import at.wrk.tafel.admin.backend.common.auth.components.TafelUserDetailsManager
-import at.wrk.tafel.admin.backend.common.auth.components.UserSearchResult
-import at.wrk.tafel.admin.backend.common.auth.model.ChangePasswordRequest
-import at.wrk.tafel.admin.backend.common.auth.model.GeneratedPasswordResponse
-import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
-import at.wrk.tafel.admin.backend.common.auth.model.TafelUser
-import at.wrk.tafel.admin.backend.common.auth.model.User
-import at.wrk.tafel.admin.backend.common.auth.model.UserPermission
-import at.wrk.tafel.admin.backend.common.auth.model.UserPermissions
+import at.wrk.tafel.admin.backend.common.auth.components.*
+import at.wrk.tafel.admin.backend.common.auth.model.*
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
@@ -279,7 +269,7 @@ class UserControllerTest {
             enabled = false
         )
 
-        val updatedUserResponse = controller.updateUser(userId = testUser.id, user = updatedUser)
+        val updatedUserResponse = controller.updateUser(userId = testUser.id!!, user = updatedUser)
 
         assertThat(updatedUserResponse.statusCode).isEqualTo(HttpStatus.OK)
         assertThat(updatedUserResponse.body).isEqualTo(testUserApiResponse)
