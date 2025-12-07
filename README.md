@@ -75,8 +75,8 @@ statistic:
 
 * tech: switch to spring boot layered build (^ deployment speed): https://www.baeldung.com/docker-layers-spring-boot
 
-* Improve module communication by using async
-  events (https://docs.spring.io/spring-modulith/docs/current/reference/html/#events)
+* Improve module communication by using async events (https://docs.spring.io/spring-modulith/docs/current/reference/html/#events)
+  * also persist events in db and re-process maybe
 
 ### Tech
 
