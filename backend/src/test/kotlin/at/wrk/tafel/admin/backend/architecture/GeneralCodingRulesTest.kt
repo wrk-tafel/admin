@@ -1,8 +1,11 @@
 package at.wrk.tafel.admin.backend.architecture
 
 import at.wrk.tafel.admin.backend.architecture.options.ExcludeDbMigrationImportOption
+import com.tngtech.archunit.base.DescribedPredicate
+import com.tngtech.archunit.core.domain.JavaClass
 import com.tngtech.archunit.junit.AnalyzeClasses
 import com.tngtech.archunit.junit.ArchTest
+import com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noFields
 import com.tngtech.archunit.library.GeneralCodingRules
 import com.tngtech.archunit.library.GeneralCodingRules.BE_ANNOTATED_WITH_AN_INJECTION_ANNOTATION
@@ -11,7 +14,11 @@ import com.tngtech.archunit.library.GeneralCodingRules.BE_ANNOTATED_WITH_AN_INJE
 internal class GeneralCodingRulesTest {
 
     @ArchTest
-    val `stdout and stderr shouldn't be used` = GeneralCodingRules.NO_CLASSES_SHOULD_ACCESS_STANDARD_STREAMS
+    val `stdout and stderr shouldn't be used` = noClasses()
+        .that().haveNameNotMatching(".*Test.*")
+        .and().haveNameNotMatching(".*IT.*")
+        .should(GeneralCodingRules.ACCESS_STANDARD_STREAMS)
+        .because("test classes and mockk-generated code are allowed to access standard streams")
 
     @ArchTest
     val `no classes should use field injection` =
