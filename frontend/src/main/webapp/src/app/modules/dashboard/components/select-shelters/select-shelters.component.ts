@@ -108,6 +108,10 @@ export class SelectSheltersComponent implements OnInit {
     return addressFormatted?.trim().length > 0 ? addressFormatted : '';
   }
 
+  trackByShelterId(index: number, shelter: ShelterItem): number {
+    return shelter.id;
+  }
+
   get selectedShelters(): FormArray<FormControl<boolean>> {
     return this.form.controls.selectedShelters;
   }

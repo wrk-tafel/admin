@@ -1,4 +1,5 @@
-import {Component, effect, inject, input, OnInit, signal} from '@angular/core';
+import {Component, effect, inject, input, OnDestroy, OnInit, signal} from '@angular/core';
+import {Subscription} from 'rxjs';
 import {
   BgColorDirective,
   ButtonCloseDirective,
@@ -53,11 +54,12 @@ import {GlobalStateService} from '../../../../common/state/global-state.service'
   ],
   standalone: true
 })
-export class DistributionStatisticsInputComponent implements OnInit {
+export class DistributionStatisticsInputComponent implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly distributionApiService = inject(DistributionApiService);
   private readonly toastService = inject(ToastService);
   private readonly globalStateService = inject(GlobalStateService);
+  private distributionSubscription: Subscription;
 
   sheltersData = input<ShelterListResponse>();
   employeeCountInput = input<number>();
@@ -76,7 +78,7 @@ export class DistributionStatisticsInputComponent implements OnInit {
   selectedShelters: ShelterItem[] = [];
 
   ngOnInit(): void {
-    this.globalStateService.getCurrentDistribution().subscribe(distribution => {
+    this.distributionSubscription = this.globalStateService.getCurrentDistribution().subscribe(distribution => {
       if (distribution) {
         this.employeeCount.enable();
         this.panelDisabled.set(false);
@@ -90,6 +92,12 @@ export class DistributionStatisticsInputComponent implements OnInit {
         this.selectedShelters = [];
       }
     });
+  }
+
+  ngOnDestroy(): void {
+    if (this.distributionSubscription) {
+      this.distributionSubscription.unsubscribe();
+    }
   }
 
   initialSelectedShelterIdsEffect = effect(() => {

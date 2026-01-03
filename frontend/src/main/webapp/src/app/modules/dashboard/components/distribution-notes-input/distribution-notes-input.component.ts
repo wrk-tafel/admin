@@ -1,4 +1,4 @@
-import {Component, effect, inject, input, OnInit} from '@angular/core';
+import {Component, effect, inject, input, OnDestroy, OnInit} from '@angular/core';
 import {
   BgColorDirective,
   ButtonCloseDirective,
@@ -24,6 +24,7 @@ import {DistributionApiService} from '../../../../api/distribution-api.service';
 import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
 import {SelectSheltersComponent} from '../select-shelters/select-shelters.component';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
+import {Subscription} from 'rxjs';
 
 @Component({
   selector: 'tafel-distribution-notes-input',
@@ -53,10 +54,11 @@ import {GlobalStateService} from '../../../../common/state/global-state.service'
   ],
   standalone: true
 })
-export class DistributionNotesInputComponent implements OnInit {
+export class DistributionNotesInputComponent implements OnInit, OnDestroy {
   private readonly distributionApiService = inject(DistributionApiService);
   private readonly toastService = inject(ToastService);
   private readonly globalStateService = inject(GlobalStateService);
+  private distributionSubscription: Subscription;
 
   initialNotesData = input<string>();
   notes: string = '';
@@ -67,9 +69,15 @@ export class DistributionNotesInputComponent implements OnInit {
   });
 
   ngOnInit() {
-    this.globalStateService.getCurrentDistribution().subscribe((distribution) => {
+    this.distributionSubscription = this.globalStateService.getCurrentDistribution().subscribe((distribution) => {
       this.inputIsDisabled = (distribution == undefined);
     });
+  }
+
+  ngOnDestroy(): void {
+    if (this.distributionSubscription) {
+      this.distributionSubscription.unsubscribe();
+    }
   }
 
   save() {

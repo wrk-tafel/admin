@@ -52,7 +52,7 @@ describe('TicketsProcessedComponent', () => {
     componentRef.setInput('countTotalTickets', countTotal);
     fixture.detectChanges();
 
-    expect(component.getPanelColor()).toBe('primary');
+    expect(component.panelColor()).toBe('primary');
   });
 
   it('panel color warning when tickets are still open', () => {
@@ -66,7 +66,7 @@ describe('TicketsProcessedComponent', () => {
     componentRef.setInput('countTotalTickets', countTotal);
     fixture.detectChanges();
 
-    expect(component.getPanelColor()).toBe('warning');
+    expect(component.panelColor()).toBe('warning');
   });
 
   it('panel color success when all tickets are processed', () => {
@@ -80,7 +80,7 @@ describe('TicketsProcessedComponent', () => {
     componentRef.setInput('countTotalTickets', countTotal);
     fixture.detectChanges();
 
-    expect(component.getPanelColor()).toBe('success');
+    expect(component.panelColor()).toBe('success');
   });
 
 });

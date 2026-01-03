@@ -1,4 +1,4 @@
-import {TestBed, waitForAsync} from '@angular/core/testing';
+import {fakeAsync, TestBed, tick, waitForAsync} from '@angular/core/testing';
 import {CheckinComponent, CustomerState, ScanResult} from './checkin.component';
 import {CommonModule} from '@angular/common';
 import {CustomerApiService, Gender, GenderLabel} from '../../../../api/customer-api.service';
@@ -264,7 +264,7 @@ describe('CheckinComponent', () => {
 
     component.searchForCustomerId();
 
-    expect(component.customer).toEqual(mockCustomer);
+    expect(component.customer()).toEqual(mockCustomer);
     expect(customerApiService.getCustomer).toHaveBeenCalledWith(mockCustomer.id);
 
     expect(component.customerState).toBe(CustomerState.GREEN);
@@ -329,7 +329,7 @@ describe('CheckinComponent', () => {
 
     component.searchForCustomerId();
 
-    expect(component.customer).toEqual(mockCustomer);
+    expect(component.customer()).toEqual(mockCustomer);
     expect(customerApiService.getCustomer).toHaveBeenCalledWith(mockCustomer.id);
 
     expect(component.customerState).toBe(CustomerState.GREEN);
@@ -391,7 +391,7 @@ describe('CheckinComponent', () => {
 
     component.searchForCustomerId();
 
-    expect(component.customer).toEqual(mockCustomer);
+    expect(component.customer()).toEqual(mockCustomer);
     expect(customerApiService.getCustomer).toHaveBeenCalledWith(mockCustomer.id);
 
     expect(component.customerState).toBe(CustomerState.YELLOW);
@@ -455,7 +455,7 @@ describe('CheckinComponent', () => {
 
     component.searchForCustomerId();
 
-    expect(component.customer).toEqual(mockCustomer);
+    expect(component.customer()).toEqual(mockCustomer);
     expect(customerApiService.getCustomer).toHaveBeenCalledWith(mockCustomer.id);
 
     expect(component.customerState).toBe(CustomerState.RED);
@@ -521,7 +521,7 @@ describe('CheckinComponent', () => {
 
     component.searchForCustomerId();
 
-    expect(component.customer).toEqual(mockCustomer);
+    expect(component.customer()).toEqual(mockCustomer);
     expect(customerApiService.getCustomer).toHaveBeenCalledWith(mockCustomer.id);
 
     expect(component.customerState).toBe(CustomerState.RED);
@@ -550,11 +550,11 @@ describe('CheckinComponent', () => {
 
     component.searchForCustomerId();
 
-    expect(component.customer).toBeUndefined();
+    expect(component.customer()).toBeUndefined();
     expect(customerApiService.getCustomer).toHaveBeenCalledWith(testCustomerId);
   });
 
-  it('searchForCustomerId found notes', () => {
+  it('searchForCustomerId found notes', fakeAsync(() => {
     const fixture = TestBed.createComponent(CheckinComponent);
     const component = fixture.componentInstance;
     component.ticketNumberInputRef = new ElementRef({
@@ -613,10 +613,12 @@ describe('CheckinComponent', () => {
       costContributionPaid: true
     }));
 
+    component.customerId = mockCustomer.id;
     component.searchForCustomerId();
+    tick();
 
     expect(component.customerNotes).toEqual(mockNotesResponse.items);
-  });
+  }));
 
   it('reset customer', () => {
     const fixture = TestBed.createComponent(CheckinComponent);

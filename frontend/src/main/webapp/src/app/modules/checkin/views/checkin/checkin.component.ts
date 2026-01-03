@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, ElementRef, inject, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {ChangeDetectorRef, Component, computed, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild} from '@angular/core';
 import {CustomerApiService, CustomerData, Gender, GenderLabel} from '../../../../api/customer-api.service';
 import {Subscription} from 'rxjs';
 import * as moment from 'moment';
@@ -82,13 +82,61 @@ export class CheckinComponent implements OnInit, OnDestroy {
   scannerReadyState: boolean;
   scannerSubscription: Subscription;
   customerId: number;
-  customer: CustomerData;
+  customer = signal<CustomerData>(undefined);
   customerState: CustomerState;
   customerStateText: string;
   customerNotes: CustomerNoteItem[];
   ticketNumber: number;
   ticketNumberEdit = false;
   costContributionPaid: boolean = true;
+
+  customerStateColor = computed<Colors>(() => {
+    switch (this.customerState) {
+      case CustomerState.RED:
+        return 'danger';
+      case CustomerState.YELLOW:
+        return 'warning';
+      case CustomerState.GREEN:
+        return 'success';
+      default:
+        return null;
+    }
+  });
+
+  formattedName = computed<string>(() => {
+    const customer = this.customer();
+    if (customer) {
+      const formatted = [customer.lastname, customer.firstname].join(' ');
+      return formatted?.trim().length > 0 ? formatted : undefined;
+    }
+    return undefined;
+  });
+
+  formattedAddress = computed<string>(() => {
+    const customer = this.customer();
+    if (customer) {
+      const formatted = [
+        [customer.address.street, customer.address.houseNumber].join(' '),
+        customer.address.stairway ? 'Stiege ' + customer.address.stairway : undefined,
+        customer.address.door ? 'Top ' + customer.address.door : undefined,
+        [customer.address.postalCode, customer.address.city].join(' ')
+      ]
+        .filter(value => value?.trim().length > 0)
+        .join(', ');
+      return formatted?.trim().length > 0 ? formatted : '-';
+    }
+    return undefined;
+  });
+
+  infantCount = computed<number>(() => {
+    const customer = this.customer();
+    if (!customer) return 0;
+
+    const length = customer.additionalPersons.filter((person) => {
+      return moment().diff(person.birthDate, 'years') < 3;
+    }).length;
+    return length;
+  });
 
   get selectedScannerId(): number {
     return this.currentScannerId;
@@ -156,13 +204,18 @@ export class CheckinComponent implements OnInit, OnDestroy {
         }
       },
     };
-    this.customerApiService.getCustomer(this.customerId).subscribe(observer);
+
+    if (this.customerId) {
+      this.customerApiService.getCustomer(this.customerId).subscribe(observer);
+    } else {
+      this.toastService.showToast({type: ToastType.WARN, title: undefined, message: 'Keine Kundennummer angegeben!'});
+    }
   }
 
   processCustomer(customer: CustomerData) {
     this.ticketNumber = undefined;
     this.costContributionPaid = true;
-    this.customer = customer;
+    this.customer.set(customer);
 
     if (customer) {
       const validUntil = moment(customer.validUntil).startOf('day');
@@ -199,13 +252,6 @@ export class CheckinComponent implements OnInit, OnDestroy {
     }
   }
 
-  getInfantCount(): number {
-    const length = this.customer.additionalPersons.filter((person) => {
-      return moment().diff(person.birthDate, 'years') < 3;
-    }).length;
-    return length;
-  }
-
   cancel() {
     this.processCustomer(undefined);
     this.customerNotes = [];
@@ -216,35 +262,13 @@ export class CheckinComponent implements OnInit, OnDestroy {
     this.customerIdInputRef.nativeElement.focus();
   }
 
-  formatAddress(): string {
-    if (this.customer) {
-      const formatted = [
-        [this.customer.address.street, this.customer.address.houseNumber].join(' '),
-        this.customer.address.stairway ? 'Stiege ' + this.customer.address.stairway : undefined,
-        this.customer.address.door ? 'Top ' + this.customer.address.door : undefined,
-        [this.customer.address.postalCode, this.customer.address.city].join(' ')
-      ]
-        .filter(value => value?.trim().length > 0)
-        .join(', ');
-      return formatted?.trim().length > 0 ? formatted : '-';
-    }
-  }
-
-  formatName(): string {
-    if (this.customer) {
-      const formatted = [this.customer.lastname, this.customer.firstname].join(' ');
-      return formatted?.trim().length > 0 ? formatted : undefined;
-    }
-    return undefined;
-  }
-
   assignCustomer() {
     if (this.ticketNumber > 0) {
       /* eslint-disable @typescript-eslint/no-unused-vars */
       const observer = {
         next: (response) => this.cancel()
       };
-      this.distributionApiService.assignCustomer(this.customer.id, this.ticketNumber, this.costContributionPaid).subscribe(observer);
+      this.distributionApiService.assignCustomer(this.customer().id, this.ticketNumber, this.costContributionPaid).subscribe(observer);
       this.customerIdInputRef.nativeElement.focus();
     }
   }
@@ -259,7 +283,7 @@ export class CheckinComponent implements OnInit, OnDestroy {
         this.ticketNumberInputRef.nativeElement.focus();
       }
     };
-    this.distributionTicketApiService.deleteCurrentTicketOfCustomer(this.customer.id).subscribe(observer);
+    this.distributionTicketApiService.deleteCurrentTicketOfCustomer(this.customer().id).subscribe(observer);
   }
 
   getBirthDateAndAge(birthDate?: Date): string {
@@ -275,19 +299,6 @@ export class CheckinComponent implements OnInit, OnDestroy {
       return GenderLabel[gender];
     }
     return '-';
-  }
-
-  protected getCustomerStateColor(): Colors {
-    switch (this.customerState) {
-      case CustomerState.RED:
-        return 'danger';
-      case CustomerState.YELLOW:
-        return 'warning';
-      case CustomerState.GREEN:
-        return 'success';
-      default:
-        return null;
-    }
   }
 }
 

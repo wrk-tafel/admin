@@ -79,7 +79,7 @@
                         </thead>
                         <tbody>
                         <tr testid="searchresult-row" scope="row"
-                            *ngFor="let customer of searchResult.items; let i = index">
+                            *ngFor="let customer of searchResult.items; trackBy: trackByCustomerId; let i = index">
                             <td><fa-icon [icon]="faUser"></fa-icon></td>
                             <td [attr.testid]="'searchresult-id-' + i">{{customer.id}}</td>
                             <td [attr.testid]="'searchresult-name-' + i">
@@ -115,7 +115,7 @@
                     <tafel-pagination align="center" size="sm" [paginationData]="paginationData"
                                       (pageChanged)="searchForDetails($event)"></tafel-pagination>
                     <div class="d-flex flex-column gap-3 mb-3">
-                        <c-card *ngFor="let customer of this.searchResult.items; let i = index">
+                        <c-card *ngFor="let customer of this.searchResult.items; trackBy: trackByCustomerId; let i = index">
                             <c-card-header class="fw-bold">{{customer.id}} - {{customer.lastname}} {{customer.firstname}}</c-card-header>
                             <c-card-body>
                                 <c-row>

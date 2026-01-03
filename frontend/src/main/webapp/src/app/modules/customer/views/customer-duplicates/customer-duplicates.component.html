@@ -54,7 +54,7 @@
                         (pageChanged)="getDuplicates($event)"></tafel-pagination>
 
       <div class="d-grid gap-3">
-        <c-row *ngFor="let item of this.customerDuplicatesData.items">
+        <c-row *ngFor="let item of this.customerDuplicatesData.items; trackBy: trackByDuplicateItemId">
           <c-col>
             <c-card class="mb-3 mb-sm-0">
               <c-card-header class="fw-bold">
@@ -103,7 +103,7 @@
           </c-col>
           <c-col>
             <div class="d-flex flex-column gap-3">
-              <c-card *ngFor="let similarCustomer of item.similarCustomers">
+              <c-card *ngFor="let similarCustomer of item.similarCustomers; trackBy: trackBySimilarCustomerId">
                 <c-card-header class="fw-bold">
                   <c-row class="d-flex flex-column flex-sm-row">
                     <c-col>

@@ -12,7 +12,7 @@
     <form [formGroup]="form">
       <div *ngIf="shelters().length > 0">
         <div formArrayName="selectedShelters">
-          <div *ngFor="let shelter of shelters(); let idx = index">
+          <div *ngFor="let shelter of shelters(); trackBy: trackByShelterId; let idx = index">
             <hr *ngIf="idx > 0" />
             <c-container>
               <c-row class="flex-row">

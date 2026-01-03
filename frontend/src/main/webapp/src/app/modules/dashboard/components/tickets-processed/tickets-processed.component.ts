@@ -1,4 +1,4 @@
-import {Component, input} from '@angular/core';
+import {Component, computed, input} from '@angular/core';
 import {
   ButtonDirective,
   CardBodyComponent,
@@ -30,7 +30,7 @@ export class TicketsProcessedComponent {
   countProcessedTickets = input<number>();
   countTotalTickets = input<number>();
 
-  getPanelColor(): Colors {
+  panelColor = computed<Colors>(() => {
     const processed = this.countProcessedTickets();
     const total = this.countTotalTickets();
 
@@ -41,6 +41,6 @@ export class TicketsProcessedComponent {
     } else {
       return 'success';
     }
-  }
+  });
 
 }

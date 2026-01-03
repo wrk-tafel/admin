@@ -119,6 +119,10 @@ export class CustomerSearchComponent {
     return formatted?.trim().length > 0 ? formatted : '-';
   }
 
+  trackByCustomerId(index: number, customer: any): number {
+    return customer.id;
+  }
+
   get customerId() {
     return this.form.get('customerId');
   }

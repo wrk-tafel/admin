@@ -1,5 +1,6 @@
-import {Component, inject, OnInit} from '@angular/core';
+import {Component, inject, OnDestroy, OnInit} from '@angular/core';
 import {NavigationEnd, Router, RouterOutlet} from '@angular/router';
+import {Subscription} from 'rxjs';
 
 import {IconSetService} from '@coreui/icons-angular';
 import {freeSet} from '@coreui/icons';
@@ -16,9 +17,10 @@ import {TafelToasterComponent} from './common/components/toasts/tafel-toaster.co
   standalone: true
 })
 
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly iconSetService = inject(IconSetService);
+  private routerEventsSubscription: Subscription;
 
   constructor() {
     // iconSet singleton
@@ -26,12 +28,18 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.router.events.subscribe((evt) => {
+    this.routerEventsSubscription = this.router.events.subscribe((evt) => {
       if (!(evt instanceof NavigationEnd)) {
         return;
       }
       window.scrollTo(0, 0);
     });
+  }
+
+  ngOnDestroy(): void {
+    if (this.routerEventsSubscription) {
+      this.routerEventsSubscription.unsubscribe();
+    }
   }
 
 }

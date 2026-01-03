@@ -1,4 +1,4 @@
-import {Component, inject, Input, OnInit} from '@angular/core';
+import {Component, inject, Input, OnDestroy, OnInit} from '@angular/core';
 import {ButtonDirective, ColComponent, RowComponent} from '@coreui/angular';
 import {DistributionStateComponent} from './components/distribution-state/distribution-state.component';
 import {RegisteredCustomersComponent} from './components/registered-customers/registered-customers.component';
@@ -17,6 +17,7 @@ import {
 } from './components/distribution-notes-input/distribution-notes-input.component';
 import {TicketsProcessedComponent} from './components/tickets-processed/tickets-processed.component';
 import {SseService} from '../../common/sse/sse.service';
+import {Subscription} from 'rxjs';
 
 @Component({
   selector: 'tafel-dashboard',
@@ -37,16 +38,23 @@ import {SseService} from '../../common/sse/sse.service';
   ],
   standalone: true
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy {
   private readonly sseService = inject(SseService);
+  private dashboardSubscription: Subscription;
 
   @Input() sheltersData: ShelterListResponse;
   data: DashboardData;
 
   ngOnInit(): void {
-    this.sseService.listen('/sse/dashboard').subscribe((data: DashboardData) => {
+    this.dashboardSubscription = this.sseService.listen('/sse/dashboard').subscribe((data: DashboardData) => {
       this.data = data;
     });
+  }
+
+  ngOnDestroy(): void {
+    if (this.dashboardSubscription) {
+      this.dashboardSubscription.unsubscribe();
+    }
   }
 
 }
