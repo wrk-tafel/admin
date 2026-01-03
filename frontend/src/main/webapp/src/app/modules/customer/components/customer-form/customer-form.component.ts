@@ -1,4 +1,4 @@
-import {Component, EventEmitter, inject, Input, OnInit, Output} from '@angular/core';
+import {Component, EventEmitter, inject, Input, OnDestroy, OnInit, Output} from '@angular/core';
 import {FormArray, FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {CountryApiService, CountryData} from '../../../../api/country-api.service';
 import {CustomValidator} from '../../../../common/validator/CustomValidator';
@@ -6,6 +6,8 @@ import {CustomerAddPersonData, CustomerData, Gender, GenderLabel} from '../../..
 import {v4 as uuidv4} from 'uuid';
 import * as moment from 'moment';
 import {CommonModule} from '@angular/common';
+import {Subject} from 'rxjs';
+import {takeUntil} from 'rxjs/operators';
 import {
   ButtonDirective,
   CardBodyComponent,
@@ -53,11 +55,12 @@ import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofo
   ],
   standalone: true
 })
-export class CustomerFormComponent implements OnInit {
+export class CustomerFormComponent implements OnInit, OnDestroy {
   @Input() editMode = false;
   @Output() customerDataChange = new EventEmitter<CustomerData>();
 
   private readonly countryApiService = inject(CountryApiService);
+  private destroy$ = new Subject<void>();
 
   form = new FormGroup({
     id: new FormControl<number>(null),
@@ -101,17 +104,28 @@ export class CustomerFormComponent implements OnInit {
   genders: Gender[] = [Gender.FEMALE, Gender.MALE];
 
   ngOnInit(): void {
-    this.countryApiService.getCountries().subscribe((countries) => {
-      this.countries = countries;
-    });
+    this.countryApiService.getCountries()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((countries) => {
+        this.countries = countries;
+      });
 
-    this.incomeDue.valueChanges.subscribe(() => {
-      this.updateValidUntilDate();
-    });
+    this.incomeDue.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.updateValidUntilDate();
+      });
 
-    this.form.valueChanges.subscribe(() => {
-      this.customerDataChange.emit(this.form.getRawValue());
-    });
+    this.form.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.customerDataChange.emit(this.form.getRawValue());
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   updateValidUntilDate() {
@@ -206,9 +220,11 @@ export class CustomerFormComponent implements OnInit {
       receivesFamilyBonus: new FormControl<boolean>(additionalPerson.receivesFamilyBonus),
     });
 
-    control.get('incomeDue').valueChanges.subscribe(() => {
-      this.updateValidUntilDate();
-    });
+    control.get('incomeDue').valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.updateValidUntilDate();
+      });
 
     this.additionalPersons.push(control);
   }

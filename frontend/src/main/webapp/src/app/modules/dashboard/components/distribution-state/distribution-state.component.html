@@ -46,24 +46,24 @@
     </c-row>
   </c-modal-body>
 </c-modal>
-@if(closeDistributionValidationResult) {
+@if(closeDistributionValidationResult()) {
   <c-modal id="closeDistributionValidationModal" #closeDistributionValidationModal testid="distribution-close-validation-modal"
            [(visible)]="showCloseDistributionValidationModal">
-    <c-modal-header [cBgColor]="getCloseValidationResultBgColorClass()">
+    <c-modal-header [cBgColor]="closeValidationResultBgColorClass()">
       <h4 testid="title" class="text-white">
-        {{getCloseValidationResultTitle()}}
+        {{closeValidationResultTitle()}}
       </h4>
       <button [cModalToggle]="closeDistributionValidationModal.id" cButtonClose></button>
     </c-modal-header>
     <c-modal-body>
       <c-row>
         <c-col class="mb-3">
-          @for( error of closeDistributionValidationResult.errors; track error) {
+          @for( error of closeDistributionValidationResult().errors; track error) {
             <c-row>
               <c-col>{{error}}</c-col>
             </c-row>
           }
-          @for( warning of closeDistributionValidationResult.warnings; track warning) {
+          @for( warning of closeDistributionValidationResult().warnings; track warning) {
             <c-row>
               <c-col>{{warning}}</c-col>
             </c-row>
@@ -72,7 +72,7 @@
       </c-row>
       <c-row>
         <c-col class="col-12">
-          @if (closeDistributionValidationResult.warnings.length > 0) {
+          @if (closeDistributionValidationResult().warnings.length > 0) {
             <button testid="distribution-close-validation-modal-ok-button" cButton class="me-2"
                     (click)="closeDistribution(true)">Trotzdem beenden
             </button>

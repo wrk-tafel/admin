@@ -1,4 +1,4 @@
-import {Component, inject, OnInit, ViewChild} from '@angular/core';
+import {Component, inject, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {ToastOptions, ToastService, ToastType} from './toast.service';
 import {
   BgColorDirective,
@@ -9,7 +9,7 @@ import {
   ToastHeaderComponent
 } from '@coreui/angular';
 import {TafelToastComponent} from './toast/tafel-toast.component';
-import {Subject} from 'rxjs';
+import {Subject, Subscription} from 'rxjs';
 import {NgClass, NgStyle} from '@angular/common';
 
 @Component({
@@ -29,16 +29,23 @@ import {NgClass, NgStyle} from '@angular/common';
   ],
   standalone: true
 })
-export class TafelToasterComponent implements OnInit {
+export class TafelToasterComponent implements OnInit, OnDestroy {
   @ViewChild(ToasterComponent) toaster: ToasterComponent;
   private readonly toastService = inject(ToastService);
+  private toastSubscription: Subscription;
 
   ngOnInit(): void {
     this.subscribeToastSubject(this.toastService.addToastSubject);
   }
 
+  ngOnDestroy(): void {
+    if (this.toastSubscription) {
+      this.toastSubscription.unsubscribe();
+    }
+  }
+
   subscribeToastSubject(subject: Subject<ToastOptions>) {
-    subject.subscribe((options: ToastOptions) => {
+    this.toastSubscription = subject.subscribe((options: ToastOptions) => {
       const type = options.type;
       const typeSpecificOptions = this.getTypeSpecificOptions(type);
 

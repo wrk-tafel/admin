@@ -124,6 +124,10 @@ export class UserSearchComponent {
     return this.form.get('firstname');
   }
 
+  trackByUserId(index: number, user: any): number {
+    return user.id;
+  }
+
   protected readonly faSearch = faSearch;
   protected readonly faPencil = faPencil;
   protected readonly faUser = faUser;

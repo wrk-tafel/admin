@@ -49,31 +49,31 @@ describe('RecordedFoodCollectionsComponent', () => {
     const fixture = TestBed.createComponent(RecordedFoodCollectionsComponent);
     const component = fixture.componentInstance;
 
-    const color = component.getPanelColor();
+    const color = component.panelColor();
     expect(color).toBe('primary');
   });
 
   it('panel color warning when not all data is recorded', () => {
     const fixture = TestBed.createComponent(RecordedFoodCollectionsComponent);
     const component = fixture.componentInstance;
-    component.distribution = {id: 123, startedAt: new Date()};
+    component.distribution.set({id: 123, startedAt: new Date()});
     const componentRef = fixture.componentRef;
     componentRef.setInput('countRecorded', 2);
     componentRef.setInput('countTotal', 5);
 
-    const color = component.getPanelColor();
+    const color = component.panelColor();
     expect(color).toBe('warning');
   });
 
   it('panel color success when all data is recorded', () => {
     const fixture = TestBed.createComponent(RecordedFoodCollectionsComponent);
     const component = fixture.componentInstance;
-    component.distribution = {id: 123, startedAt: new Date()};
+    component.distribution.set({id: 123, startedAt: new Date()});
     const componentRef = fixture.componentRef;
     componentRef.setInput('countRecorded', 5);
     componentRef.setInput('countTotal', 5);
 
-    const color = component.getPanelColor();
+    const color = component.panelColor();
     expect(color).toBe('success');
   });
 

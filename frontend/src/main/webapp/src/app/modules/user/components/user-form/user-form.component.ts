@@ -1,4 +1,4 @@
-import {Component, EventEmitter, inject, Input, OnInit, Output} from '@angular/core';
+import {Component, EventEmitter, inject, Input, OnDestroy, OnInit, Output} from '@angular/core';
 import {
   AbstractControl,
   FormArray,
@@ -13,6 +13,8 @@ import {
 import {GeneratedPasswordResponse, UserApiService, UserData, UserPermission} from '../../../../api/user-api.service';
 import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
 import {CommonModule, NgClass} from '@angular/common';
+import {Subject} from 'rxjs';
+import {takeUntil} from 'rxjs/operators';
 import {
   ButtonDirective,
   FormCheckInputDirective,
@@ -43,7 +45,7 @@ import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofo
   ],
   standalone: true
 })
-export class UserFormComponent implements OnInit {
+export class UserFormComponent implements OnInit, OnDestroy {
   @Input() userData: UserData;
   @Input() permissionsData: UserPermission[];
   @Output() userDataChange = new EventEmitter<UserData>();
@@ -51,6 +53,7 @@ export class UserFormComponent implements OnInit {
   private readonly userApiService = inject(UserApiService);
   private readonly toastService = inject(ToastService);
   private readonly fb = inject(FormBuilder);
+  private destroy$ = new Subject<void>();
 
   form = this.fb.group({
     id: this.fb.control<number>(null),
@@ -86,14 +89,21 @@ export class UserFormComponent implements OnInit {
       this.permissionsData.forEach((permission) => this.pushUserPermissionControl(permission, false));
     }
 
-    this.form.valueChanges.subscribe(() => {
-      const rawValue: UserFormData = this.form.getRawValue();
-      const mappedUserData: UserData = {
-        ...rawValue,
-        permissions: rawValue.permissions.filter((permission) => permission.enabled === true)
-      };
-      this.userDataChange.emit(mappedUserData);
-    });
+    this.form.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        const rawValue: UserFormData = this.form.getRawValue();
+        const mappedUserData: UserData = {
+          ...rawValue,
+          permissions: rawValue.permissions.filter((permission) => permission.enabled === true)
+        };
+        this.userDataChange.emit(mappedUserData);
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   public markAllAsTouched() {

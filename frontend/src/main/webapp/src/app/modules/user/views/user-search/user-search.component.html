@@ -75,7 +75,7 @@
             </thead>
             <tbody>
             <tr testid="searchresult-row" scope="row"
-                *ngFor="let user of searchResult.items; let i = index">
+                *ngFor="let user of searchResult.items; trackBy: trackByUserId; let i = index">
               <td><fa-icon [icon]="faUser"></fa-icon></td>
               <td [attr.testid]="'searchresult-id-' + i">{{user.id}}</td>
               <td [attr.testid]="'searchresult-name-' + i" (click)="navigateToUserDetail(user.id)" style="cursor: pointer;">
@@ -109,7 +109,7 @@
           <h5 class="mb-4">Suchergebnis ({{this.searchResult.totalCount}} gefunden)</h5>
           <tafel-pagination align="center" size="sm" [paginationData]="paginationData" (pageChanged)="searchForDetails($event)"></tafel-pagination>
           <div class="d-flex flex-column gap-3 mb-3">
-            <c-card *ngFor="let user of this.searchResult.items; let i = index">
+            <c-card *ngFor="let user of this.searchResult.items; trackBy: trackByUserId; let i = index">
               <c-card-header class="fw-bold">{{user.id}} - {{user.lastname}} {{user.firstname}}</c-card-header>
               <c-card-body>
                 <c-row>

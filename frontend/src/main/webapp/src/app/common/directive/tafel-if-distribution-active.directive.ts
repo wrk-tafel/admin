@@ -1,12 +1,14 @@
-import {AfterViewInit, Directive, TemplateRef, ViewContainerRef} from '@angular/core';
+import {AfterViewInit, Directive, OnDestroy, TemplateRef, ViewContainerRef} from '@angular/core';
 import {GlobalStateService} from '../state/global-state.service';
 import {DistributionItem} from '../../api/distribution-api.service';
+import {Subscription} from 'rxjs';
 
 @Directive({
   standalone: true,
   selector: '[tafelIfDistributionActive]'
 })
-export class TafelIfDistributionActiveDirective implements AfterViewInit {
+export class TafelIfDistributionActiveDirective implements AfterViewInit, OnDestroy {
+  private distributionSubscription: Subscription;
 
   constructor(
     /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -16,7 +18,7 @@ export class TafelIfDistributionActiveDirective implements AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.globalStateService.getCurrentDistribution().subscribe((distributionItem: DistributionItem) => {
+    this.distributionSubscription = this.globalStateService.getCurrentDistribution().subscribe((distributionItem: DistributionItem) => {
       if (distributionItem) {
         this.viewContainer.clear();
         this.viewContainer.createEmbeddedView(this.templateRef);
@@ -24,6 +26,12 @@ export class TafelIfDistributionActiveDirective implements AfterViewInit {
         this.viewContainer.clear();
       }
     });
+  }
+
+  ngOnDestroy(): void {
+    if (this.distributionSubscription) {
+      this.distributionSubscription.unsubscribe();
+    }
   }
 
 }

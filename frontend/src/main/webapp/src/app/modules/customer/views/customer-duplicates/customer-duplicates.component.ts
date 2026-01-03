@@ -134,6 +134,14 @@ export class CustomerDuplicatesComponent implements OnInit {
     this.customerApiService.mergeCustomers(customer.id, sourceCustomerIds).subscribe(observer);
   }
 
+  trackByDuplicateItemId(index: number, item: any): number {
+    return item.customer.id;
+  }
+
+  trackBySimilarCustomerId(index: number, customer: any): number {
+    return customer.id;
+  }
+
   protected readonly faCheck = faCheck;
   protected readonly faMagnifyingGlass = faMagnifyingGlass;
   protected readonly faTrashCan = faTrashCan;

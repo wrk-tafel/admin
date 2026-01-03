@@ -45,17 +45,17 @@
                 </c-row>
             </c-card-body>
         </c-card>
-        <c-card class="mt-3" *ngIf="customer !== undefined" testid="customerDetailPanel">
+        <c-card class="mt-3" *ngIf="customer() !== undefined" testid="customerDetailPanel">
             <c-card-body>
               <c-row>
                 <c-col class="mb-2">
                   <h4>
-                    <c-badge [color]="getCustomerStateColor()">
+                    <c-badge [color]="customerStateColor()">
                       {{customerStateText}}
                     </c-badge>
-                    @if (customer?.pendingCostContribution > 0) {
+                    @if (customer()?.pendingCostContribution > 0) {
                       <c-badge color="danger" class="ms-2">
-                        Unkostenbeitrag offen: {{customer?.pendingCostContribution | currency}}
+                        Unkostenbeitrag offen: {{customer()?.pendingCostContribution | currency}}
                       </c-badge>
                     }
                   </h4>
@@ -64,42 +64,42 @@
               <c-row>
                 <c-col>
                   <c-row>
-                    <h4>Nr. {{customer.id}}{{formatName() ? ' - ' + formatName() : ''}}</h4>
+                    <h4>Nr. {{customer().id}}{{formattedName() ? ' - ' + formattedName() : ''}}</h4>
                   </c-row>
                   <c-row>
                     <c-col>Gültig bis:</c-col>
-                    <c-col>{{customer.validUntil | date : 'dd.MM.yyyy'}}</c-col>
+                    <c-col>{{customer().validUntil | date : 'dd.MM.yyyy'}}</c-col>
                   </c-row>
                   <hr>
                   <c-tabs [activeItemKey]="0">
                     <c-tabs-list variant="underline-border">
                       <button cTab [itemKey]="0">Details</button>
-                      <button cTab [itemKey]="1">Personen ({{customer.additionalPersons.length}})</button>
+                      <button cTab [itemKey]="1">Personen ({{customer().additionalPersons.length}})</button>
                     </c-tabs-list>
                     <c-tabs-content>
                       <c-tab-panel class="mt-3" [itemKey]="0">
                         <c-row>
                           <c-col>Adresse:</c-col>
-                          <c-col>{{formatAddress()}}</c-col>
+                          <c-col>{{formattedAddress()}}</c-col>
                         </c-row>
                         <c-row>
                           <c-col>Personen im Haushalt (insgesamt):</c-col>
-                          <c-col>{{customer.additionalPersons.length + 1}}</c-col>
+                          <c-col>{{customer().additionalPersons.length + 1}}</c-col>
                         </c-row>
                         <c-row>
                           <c-col>Personen unter 3 Jahren:</c-col>
-                          <c-col>{{getInfantCount()}}</c-col>
+                          <c-col>{{infantCount()}}</c-col>
                         </c-row>
                       </c-tab-panel>
                       <c-tab-panel class="mt-3" [itemKey]="1">
-                        @if(customer.additionalPersons.length === 0) {
+                        @if(customer().additionalPersons.length === 0) {
                           <c-row>
                             <c-col class="mt-1" testid="nopersons-label">Keine Personen vorhanden</c-col>
                           </c-row>
                         }
-                        @if(customer.additionalPersons.length > 0) {
+                        @if(customer().additionalPersons.length > 0) {
                           <c-row class="mb-2 row row-cols-sm-2 row-cols-1 row-gap-3">
-                            @for(addPerson of customer.additionalPersons; track addPerson.id; let i = $index) {
+                            @for(addPerson of customer().additionalPersons; track addPerson.id; let i = $index) {
                               <c-col>
                                 <c-card>
                                   <c-card-body>

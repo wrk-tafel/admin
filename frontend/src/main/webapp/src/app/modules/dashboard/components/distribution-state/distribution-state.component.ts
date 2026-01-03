@@ -1,10 +1,11 @@
-import {Component, inject, OnInit} from '@angular/core';
+import {Component, computed, inject, OnDestroy, OnInit, signal} from '@angular/core';
 import {
   DistributionApiService,
   DistributionCloseValidationResult,
   DistributionItem
 } from '../../../../api/distribution-api.service';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
+import {Subscription} from 'rxjs';
 import {
   BgColorDirective,
   ButtonCloseDirective,
@@ -42,19 +43,50 @@ import {NgIf} from '@angular/common';
   ],
   standalone: true
 })
-export class DistributionStateComponent implements OnInit {
+export class DistributionStateComponent implements OnInit, OnDestroy {
   distribution: DistributionItem;
   showCloseDistributionModal = false;
   showCloseDistributionValidationModal = false;
-  closeDistributionValidationResult: DistributionCloseValidationResult;
+  closeDistributionValidationResult = signal<DistributionCloseValidationResult>(null);
 
   private readonly distributionApiService = inject(DistributionApiService);
   private readonly globalStateService = inject(GlobalStateService);
+  private distributionSubscription: Subscription;
+
+  closeValidationResultBgColorClass = computed<Colors>(() => {
+    const result = this.closeDistributionValidationResult();
+    if (!result) return null;
+
+    if (result.errors.length > 0) {
+      return 'danger';
+    } else if (result.warnings.length > 0) {
+      return 'warning';
+    }
+    return null;
+  });
+
+  closeValidationResultTitle = computed<string>(() => {
+    const result = this.closeDistributionValidationResult();
+    if (!result) return null;
+
+    if (result.errors.length > 0) {
+      return 'Fehler';
+    } else if (result.warnings.length > 0) {
+      return 'Hinweis';
+    }
+    return null;
+  });
 
   ngOnInit() {
-    this.globalStateService.getCurrentDistribution().subscribe((distribution) => {
+    this.distributionSubscription = this.globalStateService.getCurrentDistribution().subscribe((distribution) => {
       this.distribution = distribution;
     });
+  }
+
+  ngOnDestroy(): void {
+    if (this.distributionSubscription) {
+      this.distributionSubscription.unsubscribe();
+    }
   }
 
   createNewDistribution() {
@@ -64,7 +96,7 @@ export class DistributionStateComponent implements OnInit {
   closeDistribution(forceClose: boolean) {
     const observer = {
       next: (result: DistributionCloseValidationResult) => {
-        this.closeDistributionValidationResult = result;
+        this.closeDistributionValidationResult.set(result);
         this.showCloseDistributionModal = false;
 
         if (result && (result.errors.length > 0 || result.warnings.length > 0)) {
@@ -75,24 +107,6 @@ export class DistributionStateComponent implements OnInit {
       },
     };
     this.distributionApiService.closeDistribution(forceClose).subscribe(observer);
-  }
-
-  getCloseValidationResultBgColorClass(): Colors {
-    if (this.closeDistributionValidationResult.errors.length > 0) {
-      return 'danger';
-    } else if (this.closeDistributionValidationResult.warnings.length > 0) {
-      return 'warning';
-    }
-    return null;
-  }
-
-  getCloseValidationResultTitle(): string {
-    if (this.closeDistributionValidationResult.errors.length > 0) {
-      return 'Fehler';
-    } else if (this.closeDistributionValidationResult.warnings.length > 0) {
-      return 'Hinweis';
-    }
-    return null;
   }
 
 }

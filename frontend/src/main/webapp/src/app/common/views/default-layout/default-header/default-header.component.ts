@@ -1,4 +1,4 @@
-import {Component, inject, Input, OnInit} from '@angular/core';
+import {Component, inject, Input, OnDestroy, OnInit} from '@angular/core';
 import {
   AvatarComponent,
   BadgeComponent,
@@ -25,6 +25,7 @@ import {NgTemplateOutlet} from '@angular/common';
 import {FontAwesomeModule} from '@fortawesome/angular-fontawesome';
 import {faKey, faLock} from '@fortawesome/free-solid-svg-icons';
 import {GlobalStateService} from '../../../state/global-state.service';
+import {Subscription} from 'rxjs';
 
 @Component({
   selector: 'app-default-header',
@@ -54,11 +55,12 @@ import {GlobalStateService} from '../../../state/global-state.service';
   ],
   standalone: true
 })
-export class DefaultHeaderComponent extends HeaderComponent implements OnInit {
+export class DefaultHeaderComponent extends HeaderComponent implements OnInit, OnDestroy {
   @Input() sidebarId = 'sidebar';
 
   private readonly authenticationService = inject(AuthenticationService);
   private readonly globalStateService = inject(GlobalStateService);
+  private connectionStateSubscription: Subscription;
 
   sseConnected = false;
 
@@ -68,7 +70,13 @@ export class DefaultHeaderComponent extends HeaderComponent implements OnInit {
         this.sseConnected = connected;
       }
     };
-    this.globalStateService.getConnectionState().subscribe(connectionStateObserver);
+    this.connectionStateSubscription = this.globalStateService.getConnectionState().subscribe(connectionStateObserver);
+  }
+
+  ngOnDestroy(): void {
+    if (this.connectionStateSubscription) {
+      this.connectionStateSubscription.unsubscribe();
+    }
   }
 
   public logout() {
