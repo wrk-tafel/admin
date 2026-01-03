@@ -1,7 +1,7 @@
 import {fakeAsync, TestBed, tick, waitForAsync} from '@angular/core/testing';
 import {CheckinComponent, CustomerState, ScanResult} from './checkin.component';
 import {CommonModule} from '@angular/common';
-import {CustomerApiService, Gender, GenderLabel} from '../../../../api/customer-api.service';
+import {CustomerApiService, Gender} from '../../../../api/customer-api.service';
 import {BehaviorSubject, EMPTY, of, throwError} from 'rxjs';
 import * as moment from 'moment/moment';
 import {CustomerNoteApiService, CustomerNotesResponse} from '../../../../api/customer-note-api.service';
@@ -817,42 +817,6 @@ describe('CheckinComponent', () => {
     expect(component.ticketNumberEdit).toBeUndefined();
     expect(toastService.showToast).toHaveBeenCalledWith({type: ToastType.SUCCESS, title: 'Ticket-Nummer gelöscht!'});
     expect(component.ticketNumberInputRef.nativeElement.focus).toHaveBeenCalled();
-  });
-
-  it('getBirthDateAndAge should format date and calculate age correctly', () => {
-    const fixture = TestBed.createComponent(CheckinComponent);
-    const component = fixture.componentInstance;
-
-    // Mock a date that's exactly 25 years ago
-    const birthDate = moment().subtract(25, 'years').toDate();
-    const result = component.getBirthDateAndAge(birthDate);
-
-    // Should be in format DD.MM.YYYY (25)
-    expect(result).toEqual(moment(birthDate).format('DD.MM.YYYY') + ' (25)');
-  });
-
-  it('getBirthDateAndAge should return dash for undefined date', () => {
-    const fixture = TestBed.createComponent(CheckinComponent);
-    const component = fixture.componentInstance;
-
-    const result = component.getBirthDateAndAge(undefined);
-
-    expect(result).toEqual('-');
-  });
-
-  it('getGenderLabel should return correct label for gender', () => {
-    const fixture = TestBed.createComponent(CheckinComponent);
-    const component = fixture.componentInstance;
-
-    expect(component.getGenderLabel(Gender.MALE)).toEqual(GenderLabel[Gender.MALE]);
-    expect(component.getGenderLabel(Gender.FEMALE)).toEqual(GenderLabel[Gender.FEMALE]);
-  });
-
-  it('getGenderLabel should return dash for undefined gender', () => {
-    const fixture = TestBed.createComponent(CheckinComponent);
-    const component = fixture.componentInstance;
-
-    expect(component.getGenderLabel(undefined)).toEqual('-');
   });
 
 });

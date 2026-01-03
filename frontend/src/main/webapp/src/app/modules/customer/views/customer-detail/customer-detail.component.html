@@ -83,15 +83,15 @@
                     </c-row>
                     <c-row>
                       <c-col class="fw-bold">Name</c-col>
-                      <c-col testid="nameText">{{getFormattedName()}}</c-col>
+                      <c-col testid="nameText">{{customerData | formattedCustomerName}}</c-col>
                     </c-row>
                     <c-row>
                       <c-col class="fw-bold">Geburtsdatum (Alter)</c-col>
-                      <c-col testid="birthDateAgeText">{{getBirthDateAndAge(this.customerData?.birthDate)}}</c-col>
+                      <c-col testid="birthDateAgeText">{{customerData?.birthDate | birthdateAge}}</c-col>
                     </c-row>
                     <c-row>
                       <c-col class="fw-bold">Geschlecht</c-col>
-                      <c-col testid="genderText">{{getGenderLabel(customerData?.gender)}}</c-col>
+                      <c-col testid="genderText">{{customerData?.gender | genderLabel}}</c-col>
                     </c-row>
                     <c-row>
                       <c-col class="fw-bold">Nationalität</c-col>
@@ -133,7 +133,7 @@
                     <hr>
                     <c-row>
                       <c-col class="fw-bold">Angelegt</c-col>
-                      <c-col testid="issuedInformation">am {{customerData?.issuedAt | date : 'dd.MM.yyyy'}} {{formatIssuer(customerData?.issuer)}}</c-col>
+                      <c-col testid="issuedInformation">am {{customerData?.issuedAt | date : 'dd.MM.yyyy'}} {{customerData?.issuer | formatIssuer}}</c-col>
                     </c-row>
                     <c-row>
                       <c-col class="fw-bold text-white" [ngClass]="{'bg-success': customerData?.validUntil && isValid(), 'bg-danger': customerData?.validUntil && !isValid()}">
@@ -205,8 +205,8 @@
                           <c-col class="fw-bold" [attr.testid]="'addperson-' + i + '-firstnameText'">{{addPerson?.firstname}}</c-col>
                         </c-row>
                         <c-row>
-                          <c-col class="col-6" [attr.testid]="'addperson-' + i + '-birthDateAgeText'">{{getBirthDateAndAge(addPerson?.birthDate)}}</c-col>
-                          <c-col class="col-6" [attr.testid]="'addperson-' + i + '-genderText'">{{getGenderLabel(addPerson?.gender)}}</c-col>
+                          <c-col class="col-6" [attr.testid]="'addperson-' + i + '-birthDateAgeText'">{{addPerson?.birthDate | birthdateAge}}</c-col>
+                          <c-col class="col-6" [attr.testid]="'addperson-' + i + '-genderText'">{{addPerson?.gender | genderLabel}}</c-col>
                         </c-row>
                         <c-row>
                           <c-col [attr.testid]="'addperson-' + i + '-countryText'">{{addPerson?.country.name}}</c-col>

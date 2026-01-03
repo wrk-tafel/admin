@@ -1,6 +1,5 @@
 import {Component, inject, Input, OnInit} from '@angular/core';
 import {
-  CustomerAddressData,
   CustomerApiService,
   CustomerData,
   CustomerDuplicatesResponse
@@ -23,6 +22,7 @@ import {
 import {DatePipe, NgClass, NgForOf, NgIf} from '@angular/common';
 import {faCheck, faMagnifyingGlass, faTrashCan} from '@fortawesome/free-solid-svg-icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
+import {FormatAddressPipe} from '../../../../common/pipes/format-address.pipe';
 
 @Component({
   selector: 'tafel-customer-duplicates',
@@ -39,7 +39,8 @@ import {FaIconComponent} from '@fortawesome/angular-fontawesome';
     ButtonDirective,
     NgIf,
     NgForOf,
-    FaIconComponent
+    FaIconComponent,
+    FormatAddressPipe
   ],
   standalone: true
 })
@@ -78,18 +79,6 @@ export class CustomerDuplicatesComponent implements OnInit {
           };
         }
       });
-  }
-
-  formatAddress(address: CustomerAddressData) {
-    const formatted = [
-      [address.street, address.houseNumber].join(' ').trim(),
-      address.stairway ? 'Stiege ' + address.stairway : undefined,
-      address.door ? 'Top ' + address.door : undefined,
-      [address.postalCode, address.city].join(' ').trim()
-    ]
-      .filter(value => value?.trim().length > 0)
-      .join(', ');
-    return formatted?.trim().length > 0 ? formatted : '-';
   }
 
   isValid(customer: CustomerData) {

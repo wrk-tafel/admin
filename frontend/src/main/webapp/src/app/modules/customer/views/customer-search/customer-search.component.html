@@ -87,7 +87,7 @@
                               <div *ngIf="!customer.lastname && !customer.firstname">-</div>
                             </td>
                             <td [attr.testid]="'searchresult-birthDate-' + i">{{!customer.birthDate ? '-' : customer.birthDate | date : 'dd.MM.yyyy'}}</td>
-                            <td [attr.testid]="'searchresult-address-' + i">{{formatAddress(customer.address)}}</td>
+                            <td [attr.testid]="'searchresult-address-' + i">{{customer.address | formatAddress}}</td>
                             <td>
                                 <div class="d-flex flex-fill gap-2">
                                     <button [attr.testid]="'searchresult-showcustomer-button-' + i"
@@ -124,7 +124,7 @@
                                 </c-row>
                                 <c-row>
                                     <c-col class="fw-bold">Addresse:</c-col>
-                                    <c-col>{{formatAddress(customer.address)}}</c-col>
+                                    <c-col>{{customer.address | formatAddress}}</c-col>
                                 </c-row>
                             </c-card-body>
                             <c-card-footer class="d-flex flex-fill gap-2">

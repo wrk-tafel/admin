@@ -105,7 +105,7 @@ export class CustomerEditComponent implements OnInit {
     }
   }
 
-  isSaveEnabled(): boolean {
+  get isSaveEnabled(): boolean {
     return this.formIsValid() && (this.customerValidForSave || this.editMode);
   }
 

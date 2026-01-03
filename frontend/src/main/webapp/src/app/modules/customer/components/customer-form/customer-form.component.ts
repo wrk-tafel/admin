@@ -2,7 +2,7 @@ import {Component, EventEmitter, inject, Input, OnDestroy, OnInit, Output} from 
 import {FormArray, FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {CountryApiService, CountryData} from '../../../../api/country-api.service';
 import {CustomValidator} from '../../../../common/validator/CustomValidator';
-import {CustomerAddPersonData, CustomerData, Gender, GenderLabel} from '../../../../api/customer-api.service';
+import {CustomerAddPersonData, CustomerData, Gender} from '../../../../api/customer-api.service';
 import {v4 as uuidv4} from 'uuid';
 import * as moment from 'moment';
 import {CommonModule} from '@angular/common';
@@ -32,6 +32,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
+import {GenderLabelPipe} from '../../../../common/pipes/gender-label.pipe';
 
 @Component({
   selector: 'tafel-customer-form',
@@ -51,7 +52,8 @@ import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofo
     ButtonDirective,
     FaIconComponent,
     TafelAutofocusDirective,
-    FormCheckInputDirective
+    FormCheckInputDirective,
+    GenderLabelPipe
   ],
   standalone: true
 })
@@ -160,6 +162,14 @@ export class CustomerFormComponent implements OnInit, OnDestroy {
     return personData.key;
   }
 
+  trackByGender(gender: Gender) {
+    return gender;
+  }
+
+  trackByCountryId(countryId: number) {
+    return countryId;
+  }
+
   addNewPerson() {
     this.pushPersonGroupControl({
       key: uuidv4(),
@@ -192,10 +202,6 @@ export class CustomerFormComponent implements OnInit, OnDestroy {
 
   isValid(): boolean {
     return this.form.valid;
-  }
-
-  getGenderLabel(gender: Gender): string {
-    return GenderLabel[gender];
   }
 
   private pushPersonGroupControl(additionalPerson: CustomerAddPersonData) {

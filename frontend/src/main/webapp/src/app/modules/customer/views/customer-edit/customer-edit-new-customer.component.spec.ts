@@ -154,7 +154,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
 
     component.save();
 
-    expect(component.isSaveEnabled()).toBeTrue();
+    expect(component.isSaveEnabled).toBeTrue();
     expect(customerFormComponent.markAllAsTouched).toHaveBeenCalled();
     expect(apiService.createCustomer).toHaveBeenCalledWith(jasmine.objectContaining(testCustomerData));
     expect(router.navigate).toHaveBeenCalledWith(['/kunden/detail', testCustomerData.id]);
@@ -171,7 +171,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
 
     component.save();
 
-    expect(component.isSaveEnabled()).toBeFalse();
+    expect(component.isSaveEnabled).toBeFalse();
     expect(customerFormComponent.markAllAsTouched).toHaveBeenCalled();
     expect(toastService.showToast).toHaveBeenCalledWith({type: ToastType.ERROR, title: 'Bitte Eingaben überprüfen!'});
     expect(apiService.createCustomer).not.toHaveBeenCalledWith(jasmine.objectContaining(testCustomerData));
@@ -199,7 +199,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
 
     component.validate();
 
-    expect(component.isSaveEnabled()).toBeTrue();
+    expect(component.isSaveEnabled).toBeTrue();
     expect(customerFormComponent.markAllAsTouched).toHaveBeenCalled();
     expect(apiService.validate).toHaveBeenCalledWith(jasmine.objectContaining(testCustomerData));
     expect(component.customerValidForSave).toBeTrue();
@@ -226,7 +226,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
 
     component.validate();
 
-    expect(component.isSaveEnabled()).toBeFalse();
+    expect(component.isSaveEnabled).toBeFalse();
     expect(customerFormComponent.markAllAsTouched).toHaveBeenCalled();
     expect(apiService.validate).toHaveBeenCalledWith(jasmine.objectContaining(testCustomerData));
     expect(component.customerValidForSave).toBeFalse();
