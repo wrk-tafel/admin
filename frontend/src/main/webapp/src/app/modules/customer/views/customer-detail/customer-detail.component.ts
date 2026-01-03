@@ -1,15 +1,8 @@
 import {Component, inject, Input, OnInit} from '@angular/core';
-import {Router, RouterLink} from '@angular/router';
+import {Router} from '@angular/router';
 import * as moment from 'moment';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
-import {
-  CustomerAddressData,
-  CustomerApiService,
-  CustomerData,
-  CustomerIssuer,
-  Gender,
-  GenderLabel
-} from '../../../../api/customer-api.service';
+import {CustomerAddressData, CustomerApiService, CustomerData} from '../../../../api/customer-api.service';
 import {HttpResponse} from '@angular/common/http';
 import {
   CustomerNoteApiService,
@@ -40,15 +33,8 @@ import {
   ModalFooterComponent,
   ModalHeaderComponent,
   ModalToggleDirective,
-  NavComponent,
-  NavItemComponent,
-  NavLinkDirective,
-  RoundedDirective,
   RowComponent,
-  TabContentComponent,
-  TabContentRefDirective,
   TabDirective,
-  TabPaneComponent,
   TabPanelComponent,
   TabsComponent,
   TabsContentComponent,
@@ -58,6 +44,10 @@ import {CommonModule} from '@angular/common';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {faPlus, faUsers} from '@fortawesome/free-solid-svg-icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
+import {BirthdateAgePipe} from '../../../../common/pipes/birthdate-age.pipe';
+import {GenderLabelPipe} from '../../../../common/pipes/gender-label.pipe';
+import {FormatIssuerPipe} from '../../../../common/pipes/format-issuer.pipe';
+import {FormattedCustomerNamePipe} from '../../../../common/pipes/formatted-customer-name.pipe';
 
 @Component({
   selector: 'tafel-customer-detail',
@@ -65,12 +55,6 @@ import {FaIconComponent} from '@fortawesome/angular-fontawesome';
   imports: [
     CommonModule,
     DropdownComponent,
-    NavComponent,
-    NavItemComponent,
-    TabContentRefDirective,
-    RouterLink,
-    TabContentComponent,
-    TabPaneComponent,
     CardComponent,
     CardHeaderComponent,
     RowComponent,
@@ -91,8 +75,6 @@ import {FaIconComponent} from '@fortawesome/angular-fontawesome';
     DropdownMenuDirective,
     DropdownItemDirective,
     DropdownDividerDirective,
-    NavLinkDirective,
-    RoundedDirective,
     FaIconComponent,
     ReactiveFormsModule,
     TabDirective,
@@ -100,6 +82,10 @@ import {FaIconComponent} from '@fortawesome/angular-fontawesome';
     TabsComponent,
     TabsContentComponent,
     TabsListComponent,
+    BirthdateAgePipe,
+    GenderLabelPipe,
+    FormatIssuerPipe,
+    FormattedCustomerNamePipe
   ],
   standalone: true
 })
@@ -154,28 +140,6 @@ export class CustomerDetailComponent implements OnInit {
   formatAddressLine2(address: CustomerAddressData): string {
     const formatted = [address.postalCode?.toString(), address.city].join(' ').trim();
     return formatted?.trim().length > 0 ? formatted : '-';
-  }
-
-  getFormattedName() {
-    if (!this.customerData?.lastname && !this.customerData?.firstname) {
-      return '-';
-    }
-    return [this.customerData?.lastname, this.customerData?.firstname].join(' ');
-  }
-
-  getBirthDateAndAge(birthDate?: Date): string {
-    if (birthDate) {
-      const age = moment().diff(birthDate, 'years');
-      return moment(birthDate).format('DD.MM.YYYY') + ' (' + age + ')';
-    }
-    return '-';
-  }
-
-  formatIssuer(issuer: CustomerIssuer): string {
-    if (issuer) {
-      return 'von ' + issuer.personnelNumber + ' ' + issuer.firstname + ' ' + issuer.lastname;
-    }
-    return '';
   }
 
   async editCustomer() {
@@ -258,13 +222,6 @@ export class CustomerDetailComponent implements OnInit {
       this.newNoteText = undefined;
       this.showAddNewNoteModal = false;
     });
-  }
-
-  getGenderLabel(gender?: Gender): string {
-    if (gender) {
-      return GenderLabel[gender];
-    }
-    return '-';
   }
 
   getCustomerNotes(page: number) {

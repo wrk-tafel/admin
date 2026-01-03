@@ -156,9 +156,10 @@ describe('UserDetailComponent', () => {
     const component = fixture.componentInstance;
     component.userData = mockUser;
 
-    const permissions = component.formatPermissions();
+    fixture.detectChanges();
 
-    expect(permissions).toEqual(`${mockUser.permissions[0].title}, ${mockUser.permissions[1].title}`);
+    const permissionsElement = getTextByTestId(fixture, 'permissionsText');
+    expect(permissionsElement).toEqual(`${mockUser.permissions[0].title}, ${mockUser.permissions[1].title}`);
   });
 
   function getTextByTestId(fixture: ComponentFixture<UserDetailComponent>, testId: string): string {

@@ -131,6 +131,10 @@ export class PasswordChangeFormComponent {
     return this.form.valid;
   }
 
+  trackByErrorDetail(index: number, detail: string): number {
+    return index;
+  }
+
   protected readonly faEye = faEye;
   protected readonly faEyeSlash = faEyeSlash;
 }

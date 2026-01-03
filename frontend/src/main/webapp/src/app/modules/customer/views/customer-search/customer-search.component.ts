@@ -1,6 +1,6 @@
 import {Component, inject} from '@angular/core';
 import {Router} from '@angular/router';
-import {CustomerAddressData, CustomerApiService, CustomerSearchResult} from '../../../../api/customer-api.service';
+import {CustomerApiService, CustomerSearchResult} from '../../../../api/customer-api.service';
 import {FormBuilder, ReactiveFormsModule} from '@angular/forms';
 import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
 import {
@@ -24,6 +24,7 @@ import {CommonModule} from '@angular/common';
 import {faPencil, faSearch, faUser} from '@fortawesome/free-solid-svg-icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
+import {FormatAddressPipe} from '../../../../common/pipes/format-address.pipe';
 
 @Component({
   selector: 'tafel-customer-search',
@@ -44,7 +45,8 @@ import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofo
     ButtonDirective,
     CommonModule,
     FaIconComponent,
-    TafelAutofocusDirective
+    TafelAutofocusDirective,
+    FormatAddressPipe
   ],
   standalone: true
 })
@@ -105,18 +107,6 @@ export class CustomerSearchComponent {
 
   editCustomer(customerId: number) {
     this.router.navigate(['/kunden/bearbeiten', customerId]);
-  }
-
-  formatAddress(address: CustomerAddressData): string {
-    const formatted = [
-      [address.street, address.houseNumber].join(' ').trim(),
-      address.stairway ? 'Stiege ' + address.stairway : undefined,
-      address.door ? 'Top ' + address.door : undefined,
-      [address.postalCode, address.city].join(' ').trim()
-    ]
-      .filter(value => value?.trim().length > 0)
-      .join(', ');
-    return formatted?.trim().length > 0 ? formatted : '-';
   }
 
   trackByCustomerId(index: number, customer: any): number {

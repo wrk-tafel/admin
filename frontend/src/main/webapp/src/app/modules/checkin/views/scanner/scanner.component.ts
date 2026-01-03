@@ -107,6 +107,10 @@ export class ScannerComponent implements OnInit, OnDestroy {
     );
   }
 
+  trackByCameraId(index: number, camera: CameraDevice): string {
+    return camera.id;
+  }
+
   qrCodeReaderSuccessCallback = (decodedText: string, _: Html5QrcodeResult) => {
     const scanResult: ScanResult = {value: +decodedText};
     const scannedValue = scanResult.value;

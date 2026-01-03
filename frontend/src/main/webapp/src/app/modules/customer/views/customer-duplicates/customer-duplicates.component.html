@@ -85,7 +85,7 @@
                 <c-row>
                   <c-col class="fw-bold">Adresse:</c-col>
                   <c-col>
-                    {{formatAddress(item.customer.address)}}
+                    {{item.customer.address | formatAddress}}
                   </c-col>
                 </c-row>
                 <c-row>
@@ -132,7 +132,7 @@
                   <c-row>
                     <c-col class="fw-bold">Adresse:</c-col>
                     <c-col>
-                      {{formatAddress(similarCustomer.address)}}
+                      {{similarCustomer.address | formatAddress}}
                     </c-col>
                   </c-row>
                   <c-row>

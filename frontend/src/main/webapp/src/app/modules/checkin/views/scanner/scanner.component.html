@@ -17,7 +17,7 @@
               <div class="form-inline">
                 <label class="form-label fw-bold me-2">Kamera</label>
                 <select testid="cameraSelectionInput" cSelect class="form-control" [(ngModel)]="selectedCamera">
-                  <option *ngFor="let camera of availableCameras" [ngValue]="camera">
+                  <option *ngFor="let camera of availableCameras; trackBy: trackByCameraId" [ngValue]="camera">
                     {{camera.label}}</option>
                 </select>
               </div>

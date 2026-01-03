@@ -15,6 +15,7 @@ import {
   RowComponent
 } from '@coreui/angular';
 import {CommonModule, NgClass} from '@angular/common';
+import {FormatPermissionsPipe} from '../../../../common/pipes/format-permissions.pipe';
 
 @Component({
   selector: 'tafel-user-detail',
@@ -31,7 +32,8 @@ import {CommonModule, NgClass} from '@angular/common';
     DropdownToggleDirective,
     DropdownMenuDirective,
     DropdownDividerDirective,
-    CommonModule
+    CommonModule,
+    FormatPermissionsPipe
   ],
   standalone: true
 })
@@ -65,12 +67,6 @@ export class UserDetailComponent {
 
   editUser() {
     this.router.navigate(['/benutzer/bearbeiten', this.userData.id]);
-  }
-
-  formatPermissions(): string {
-    return this.userData?.permissions
-      .map(permission => permission.title)
-      .join(', ');
   }
 
   private changeUserState(enabled: boolean) {

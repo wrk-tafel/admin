@@ -1,5 +1,15 @@
-import {ChangeDetectorRef, Component, computed, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild} from '@angular/core';
-import {CustomerApiService, CustomerData, Gender, GenderLabel} from '../../../../api/customer-api.service';
+import {
+  ChangeDetectorRef,
+  Component,
+  computed,
+  ElementRef,
+  inject,
+  OnDestroy,
+  OnInit,
+  signal,
+  ViewChild
+} from '@angular/core';
+import {CustomerApiService, CustomerData} from '../../../../api/customer-api.service';
 import {Subscription} from 'rxjs';
 import * as moment from 'moment';
 import {CustomerNoteApiService, CustomerNoteItem} from '../../../../api/customer-note-api.service';
@@ -31,6 +41,8 @@ import {CommonModule, DatePipe, NgClass} from '@angular/common';
 import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
 import {SseService} from '../../../../common/sse/sse.service';
 import {ScannerApiService, ScannerList} from '../../../../api/scanner-api.service';
+import {GenderLabelPipe} from '../../../../common/pipes/gender-label.pipe';
+import {BirthdateAgePipe} from '../../../../common/pipes/birthdate-age.pipe';
 
 @Component({
   selector: 'tafel-checkin',
@@ -56,7 +68,9 @@ import {ScannerApiService, ScannerList} from '../../../../api/scanner-api.servic
     TabPanelComponent,
     TabsComponent,
     TabsContentComponent,
-    TabsListComponent
+    TabsListComponent,
+    GenderLabelPipe,
+    BirthdateAgePipe
   ],
   standalone: true
 })
@@ -132,11 +146,14 @@ export class CheckinComponent implements OnInit, OnDestroy {
     const customer = this.customer();
     if (!customer) return 0;
 
-    const length = customer.additionalPersons.filter((person) => {
+    return customer.additionalPersons.filter((person) => {
       return moment().diff(person.birthDate, 'years') < 3;
     }).length;
-    return length;
   });
+
+  trackByScannerId(scannerId: number) {
+    return scannerId;
+  }
 
   get selectedScannerId(): number {
     return this.currentScannerId;
@@ -284,21 +301,6 @@ export class CheckinComponent implements OnInit, OnDestroy {
       }
     };
     this.distributionTicketApiService.deleteCurrentTicketOfCustomer(this.customer().id).subscribe(observer);
-  }
-
-  getBirthDateAndAge(birthDate?: Date): string {
-    if (birthDate) {
-      const age = moment().diff(birthDate, 'years');
-      return moment(birthDate).format('DD.MM.YYYY') + ' (' + age + ')';
-    }
-    return '-';
-  }
-
-  getGenderLabel(gender?: Gender): string {
-    if (gender) {
-      return GenderLabel[gender];
-    }
-    return '-';
   }
 }
 

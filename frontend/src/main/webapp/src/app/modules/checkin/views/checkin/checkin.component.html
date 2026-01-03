@@ -14,7 +14,7 @@
                     <c-col sm="3" class="align-self-center">
                         <select testid="scannerIdInput" class="form-control" cSelect [(ngModel)]="selectedScannerId">
                             <option [ngValue]="undefined">Nicht aktiv</option>
-                            <option *ngFor="let scannerId of scannerIds" [ngValue]="scannerId">
+                            <option *ngFor="let scannerId of scannerIds; trackBy: trackByScannerId" [ngValue]="scannerId">
                                 Nr. {{scannerId}}</option>
                         </select>
                     </c-col>
@@ -108,8 +108,8 @@
                                       <c-col class="fw-bold" [attr.testid]="'addperson-' + i + '-firstnameText'">{{addPerson?.firstname}}</c-col>
                                     </c-row>
                                     <c-row>
-                                      <c-col [attr.testid]="'addperson-' + i + '-birthDateAgeText'">{{getBirthDateAndAge(addPerson?.birthDate)}}</c-col>
-                                      <c-col [attr.testid]="'addperson-' + i + '-genderText'">{{getGenderLabel(addPerson?.gender)}}</c-col>
+                                      <c-col [attr.testid]="'addperson-' + i + '-birthDateAgeText'">{{addPerson?.birthDate | birthdateAge}}</c-col>
+                                      <c-col [attr.testid]="'addperson-' + i + '-genderText'">{{addPerson?.gender | genderLabel}}</c-col>
                                     </c-row>
                                     <c-row>
                                       <c-col [attr.testid]="'addperson-' + i + '-countryText'">{{addPerson?.country.name}}</c-col>

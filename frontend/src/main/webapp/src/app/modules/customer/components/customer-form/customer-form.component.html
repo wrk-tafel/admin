@@ -57,8 +57,8 @@
               <c-input-group>
                 <select testid="genderInput" formControlName="gender" class="form-control" cSelect
                         [ngClass]="{'is-invalid': gender.invalid && (gender.dirty || gender.touched), 'is-valid': gender.valid && (gender.dirty || gender.touched)}">
-                  <option *ngFor="let gender of genders" [ngValue]="gender">
-                    {{getGenderLabel(gender)}}</option>
+                  <option *ngFor="let gender of genders; trackBy: trackByGender" [ngValue]="gender">
+                    {{gender | genderLabel}}</option>
                 </select>
                 <span cInputGroupText>
                   <fa-icon [icon]="faVenusMars"></fa-icon>
@@ -77,7 +77,7 @@
                 <select testid="countryInput" formControlName="country" class="form-control" cSelect
                         [compareWith]="compareCountry"
                         [ngClass]="{'is-invalid': country.invalid && (country.dirty || country.touched), 'is-valid': country.valid && (country.dirty || country.touched)}">
-                  <option *ngFor="let countryItem of countries" [ngValue]="countryItem">
+                  <option *ngFor="let countryItem of countries; trackBy: trackByCountryId" [ngValue]="countryItem">
                     {{countryItem.name}}</option>
                 </select>
                 <span cInputGroupText>
@@ -359,8 +359,8 @@
                           <c-input-group>
                             <select testid="genderInput" formControlName="gender" cSelect class="form-control"
                                     [ngClass]="{'is-invalid': additionalPerson.get('gender').invalid && (additionalPerson.get('gender').dirty || additionalPerson.get('gender').touched), 'is-valid': additionalPerson.get('gender').valid && (additionalPerson.get('gender').dirty || additionalPerson.get('gender').touched)}">
-                              <option *ngFor="let gender of genders" [ngValue]="gender">
-                                {{getGenderLabel(gender)}}</option>
+                              <option *ngFor="let gender of genders; trackBy: trackByGender" [ngValue]="gender">
+                                {{gender | genderLabel}}</option>
                             </select>
                             <span cInputGroupText>
                               <fa-icon [icon]="faVenusMars"></fa-icon>
@@ -380,7 +380,7 @@
                             <select testid="countryInput" formControlName="country" cSelect class="form-control"
                                     [compareWith]="compareCountry"
                                     [ngClass]="{'is-invalid': additionalPerson.get('country').invalid && (additionalPerson.get('country').dirty || additionalPerson.get('country').touched), 'is-valid': additionalPerson.get('country').valid && (additionalPerson.get('country').dirty || additionalPerson.get('country').touched)}">
-                              <option *ngFor="let countryItem of countries" [ngValue]="countryItem">
+                              <option *ngFor="let countryItem of countries; trackBy: trackByCountryId" [ngValue]="countryItem">
                                 {{countryItem.name}}</option>
                             </select>
                             <span cInputGroupText>

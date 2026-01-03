@@ -1,7 +1,7 @@
 <div class="mb-3">
     <tafel-customer-form [customerData]="customerData" (customerDataChange)="customerDataUpdated($event)" [editMode]="editMode"></tafel-customer-form>
     <button testid="validate-button" cButton class="px-4 mt-3 mb-3" (click)="validate()">Anspruch prüfen</button>
-    <button testid="save-button" cButton [color]="isSaveEnabled() ? 'success' : 'danger'" class="text-white px-4 mt-3 ms-2 mb-3" (click)="save()" [disabled]="!isSaveEnabled()">Speichern</button>
+    <button testid="save-button" cButton [color]="isSaveEnabled ? 'success' : 'danger'" class="text-white px-4 mt-3 ms-2 mb-3" (click)="save()" [disabled]="!isSaveEnabled">Speichern</button>
 </div>
 <c-modal id="validationResultModal" #validationResultModal testid="validationresult-modal" [(visible)]="showValidationResultModal">
   <c-modal-header [cBgColor]="validationResultColor" testid="header">
