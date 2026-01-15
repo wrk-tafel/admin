@@ -23,7 +23,7 @@ jobs:
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6.1.0
+      - uses: actions/setup-node@v6.2.0
         with:
           node-version-file: 'frontend/src/main/webapp/.nvmrc'
           cache: 'npm'
