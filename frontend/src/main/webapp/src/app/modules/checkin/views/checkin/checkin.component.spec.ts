@@ -267,8 +267,8 @@ describe('CheckinComponent', () => {
     expect(component.customer()).toEqual(mockCustomer);
     expect(customerApiService.getCustomer).toHaveBeenCalledWith(mockCustomer.id);
 
-    expect(component.customerState).toBe(CustomerState.GREEN);
-    expect(component.customerStateText).toBe('GÜLTIG');
+    expect(component.customerState()).toBe(CustomerState.VALID);
+    expect(component.customerStateText()).toBe('GÜLTIG');
 
     expect(component.ticketNumber).toBeUndefined();
     expect(component.ticketNumberEdit).toBeFalse();
@@ -332,8 +332,8 @@ describe('CheckinComponent', () => {
     expect(component.customer()).toEqual(mockCustomer);
     expect(customerApiService.getCustomer).toHaveBeenCalledWith(mockCustomer.id);
 
-    expect(component.customerState).toBe(CustomerState.GREEN);
-    expect(component.customerStateText).toBe('GÜLTIG');
+    expect(component.customerState()).toBe(CustomerState.VALID);
+    expect(component.customerStateText()).toBe('GÜLTIG');
 
     expect(component.ticketNumber).toBe(testTicketNumber);
     expect(component.ticketNumberEdit).toBeTrue();
@@ -394,8 +394,8 @@ describe('CheckinComponent', () => {
     expect(component.customer()).toEqual(mockCustomer);
     expect(customerApiService.getCustomer).toHaveBeenCalledWith(mockCustomer.id);
 
-    expect(component.customerState).toBe(CustomerState.YELLOW);
-    expect(component.customerStateText).toBe('GÜLTIG - läuft bald ab');
+    expect(component.customerState()).toBe(CustomerState.VALID_WARN);
+    expect(component.customerStateText()).toBe('GÜLTIG - läuft bald ab');
     expect(component.ticketNumberInputRef.nativeElement.focus).toHaveBeenCalled();
   });
 
@@ -458,8 +458,8 @@ describe('CheckinComponent', () => {
     expect(component.customer()).toEqual(mockCustomer);
     expect(customerApiService.getCustomer).toHaveBeenCalledWith(mockCustomer.id);
 
-    expect(component.customerState).toBe(CustomerState.RED);
-    expect(component.customerStateText).toBe('UNGÜLTIG');
+    expect(component.customerState()).toBe(CustomerState.INVALID);
+    expect(component.customerStateText()).toBe('UNGÜLTIG');
     expect(component.ticketNumberInputRef.nativeElement.focus).not.toHaveBeenCalled();
     expect(component.cancelButtonRef.nativeElement.focus).toHaveBeenCalled();
   });
@@ -524,8 +524,8 @@ describe('CheckinComponent', () => {
     expect(component.customer()).toEqual(mockCustomer);
     expect(customerApiService.getCustomer).toHaveBeenCalledWith(mockCustomer.id);
 
-    expect(component.customerState).toBe(CustomerState.RED);
-    expect(component.customerStateText).toBe('GESPERRT');
+    expect(component.customerState()).toBe(CustomerState.LOCKED);
+    expect(component.customerStateText()).toBe('GESPERRT');
     expect(component.ticketNumberInputRef.nativeElement.focus).not.toHaveBeenCalled();
     expect(component.cancelButtonRef.nativeElement.focus).toHaveBeenCalled();
   });
@@ -664,8 +664,8 @@ describe('CheckinComponent', () => {
     component.cancel();
 
     expect(component.customerId).toBeUndefined();
-    expect(component.customerState).toBeUndefined();
-    expect(component.customerStateText).toBeUndefined();
+    expect(component.customerState()).toBeUndefined();
+    expect(component.customerStateText()).toBeNull();
     expect(component.customerNotes).toBeDefined();
     expect(component.customerNotes.length).toBe(0);
     expect(component.customerIdInputRef.nativeElement.focus).toHaveBeenCalled();
@@ -724,8 +724,8 @@ describe('CheckinComponent', () => {
     expect(distributionApiService.assignCustomer).toHaveBeenCalledWith(mockCustomer.id, ticketNumber, costContributionPaid);
 
     expect(component.customerId).toBeUndefined();
-    expect(component.customerState).toBeUndefined();
-    expect(component.customerStateText).toBeUndefined();
+    expect(component.customerState()).toBeUndefined();
+    expect(component.customerStateText()).toBeNull();
     expect(component.customerNotes).toBeDefined();
     expect(component.customerNotes.length).toBe(0);
     expect(component.ticketNumber).toBeUndefined();

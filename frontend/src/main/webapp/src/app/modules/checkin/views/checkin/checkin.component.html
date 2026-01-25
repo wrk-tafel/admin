@@ -51,7 +51,7 @@
                 <c-col class="mb-2">
                   <h4>
                     <c-badge [color]="customerStateColor()">
-                      {{customerStateText}}
+                      {{customerStateText()}}
                     </c-badge>
                     @if (customer()?.pendingCostContribution > 0) {
                       <c-badge color="danger" class="ms-2">

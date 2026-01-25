@@ -97,21 +97,36 @@ export class CheckinComponent implements OnInit, OnDestroy {
   scannerSubscription: Subscription;
   customerId: number;
   customer = signal<CustomerData>(undefined);
-  customerState: CustomerState;
-  customerStateText: string;
+  customerState = signal<CustomerState>(undefined);
   customerNotes: CustomerNoteItem[];
   ticketNumber: number;
   ticketNumberEdit = false;
   costContributionPaid: boolean = true;
 
   customerStateColor = computed<Colors>(() => {
-    switch (this.customerState) {
-      case CustomerState.RED:
+    switch (this.customerState()) {
+      case CustomerState.LOCKED:
+      case CustomerState.INVALID:
         return 'danger';
-      case CustomerState.YELLOW:
+      case CustomerState.VALID_WARN:
         return 'warning';
-      case CustomerState.GREEN:
+      case CustomerState.VALID:
         return 'success';
+      default:
+        return null;
+    }
+  });
+
+  customerStateText = computed<string>(() => {
+    switch (this.customerState()) {
+      case CustomerState.LOCKED:
+        return 'GESPERRT';
+      case CustomerState.INVALID:
+        return 'UNGÜLTIG';
+      case CustomerState.VALID_WARN:
+        return 'GÜLTIG - läuft bald ab';
+      case CustomerState.VALID:
+        return 'GÜLTIG';
       default:
         return null;
     }
@@ -144,11 +159,11 @@ export class CheckinComponent implements OnInit, OnDestroy {
 
   infantCount = computed<number>(() => {
     const customer = this.customer();
-    if (!customer) return 0;
+    if (!customer) {
+      return 0;
+    }
 
-    return customer.additionalPersons.filter((person) => {
-      return moment().diff(person.birthDate, 'years') < 3;
-    }).length;
+    return customer.additionalPersons.filter((person) => moment().diff(person.birthDate, 'years') < 3).length;
   });
 
   trackByScannerId(scannerId: number) {
@@ -239,33 +254,26 @@ export class CheckinComponent implements OnInit, OnDestroy {
       const now = moment().startOf('day');
 
       if (customer.locked) {
-        this.customerState = CustomerState.RED;
-        this.customerStateText = 'GESPERRT';
-
+        this.customerState.set(CustomerState.LOCKED);
         this.changeDetectorRef.detectChanges();
         this.cancelButtonRef.nativeElement.focus();
       } else if (validUntil.isBefore(now)) {
-        this.customerState = CustomerState.RED;
-        this.customerStateText = 'UNGÜLTIG';
-
+        this.customerState.set(CustomerState.INVALID);
         this.changeDetectorRef.detectChanges();
         this.cancelButtonRef.nativeElement.focus();
       } else {
         const warnLimit = now.add(this.VALID_UNTIL_WARNLIMIT_WEEKS, 'weeks');
         if (!validUntil.isAfter(warnLimit)) {
-          this.customerState = CustomerState.YELLOW;
-          this.customerStateText = 'GÜLTIG - läuft bald ab';
+          this.customerState.set(CustomerState.VALID_WARN);
         } else {
-          this.customerState = CustomerState.GREEN;
-          this.customerStateText = 'GÜLTIG';
+          this.customerState.set(CustomerState.VALID);
         }
 
         this.changeDetectorRef.detectChanges();
         this.ticketNumberInputRef.nativeElement.focus();
       }
     } else {
-      this.customerState = undefined;
-      this.customerStateText = undefined;
+      this.customerState.set(undefined);
     }
   }
 
@@ -305,7 +313,7 @@ export class CheckinComponent implements OnInit, OnDestroy {
 }
 
 export enum CustomerState {
-  RED, YELLOW, GREEN
+  LOCKED, INVALID, VALID_WARN, VALID
 }
 
 export interface ScanResult {
