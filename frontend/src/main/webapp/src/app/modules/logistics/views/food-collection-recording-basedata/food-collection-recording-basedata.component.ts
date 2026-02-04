@@ -1,11 +1,18 @@
-import {Component, effect, inject, input, model, NgZone, ViewChild} from '@angular/core';
+import {Component, effect, inject, input, model, NgZone, OnDestroy, ViewChild} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {
+  BgColorDirective,
+  ButtonCloseDirective,
   ButtonDirective,
   ColComponent,
   FormSelectDirective,
   InputGroupComponent,
   InputGroupTextDirective,
+  ModalBodyComponent,
+  ModalComponent,
+  ModalFooterComponent,
+  ModalHeaderComponent,
+  ModalToggleDirective,
   RowComponent
 } from '@coreui/angular';
 import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
@@ -20,7 +27,7 @@ import {
 } from '../../../../api/food-collections-api.service';
 import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
 import {CarData, CarList} from '../../../../api/car-api.service';
-import {take} from 'rxjs';
+import {Subject, take, takeUntil} from 'rxjs';
 import {SelectedRouteData} from '../food-collection-recording/food-collection-recording.component';
 
 @Component({
@@ -37,11 +44,18 @@ import {SelectedRouteData} from '../food-collection-recording/food-collection-re
     InputGroupComponent,
     FaIconComponent,
     InputGroupTextDirective,
-    TafelEmployeeSearchCreateComponent
+    TafelEmployeeSearchCreateComponent,
+    ButtonCloseDirective,
+    ModalBodyComponent,
+    ModalComponent,
+    ModalFooterComponent,
+    ModalHeaderComponent,
+    BgColorDirective,
+    ModalToggleDirective
   ],
   standalone: true
 })
-export class FoodCollectionRecordingBasedataComponent {
+export class FoodCollectionRecordingBasedataComponent implements OnDestroy {
   @ViewChild('driverEmployeeSearchCreate') driverEmployeeSearchCreate: TafelEmployeeSearchCreateComponent
   @ViewChild('coDriverEmployeeSearchCreate') coDriverEmployeeSearchCreate: TafelEmployeeSearchCreateComponent
 
@@ -52,9 +66,14 @@ export class FoodCollectionRecordingBasedataComponent {
   private readonly fb = inject(FormBuilder);
   private readonly toastService = inject(ToastService);
   private readonly ngZone = inject(NgZone);
+  private readonly destroy$ = new Subject<void>();
 
   selectedDriver: EmployeeData;
   selectedCoDriver: EmployeeData;
+
+  kmDifference = 0;
+  showKmDiffModal = false;
+  overrideKmDiffModal = false;
 
   form = this.fb.group({
       car: this.fb.control<CarData>(null, [Validators.required]),
@@ -97,14 +116,18 @@ export class FoodCollectionRecordingBasedataComponent {
 
       if (foodCollectionData.driver) {
         this.driverSearchInput.setValue(foodCollectionData.driver.personnelNumber);
-        this.ngZone.onStable.pipe(take(1)).subscribe(() => {
-          this.driverEmployeeSearchCreate.triggerSearch();
+        this.ngZone.onStable.pipe(take(1), takeUntil(this.destroy$)).subscribe(() => {
+          if (this.driverEmployeeSearchCreate) {
+            this.driverEmployeeSearchCreate.triggerSearch();
+          }
         });
       }
       if (foodCollectionData.coDriver) {
         this.coDriverSearchInput.setValue(foodCollectionData.coDriver.personnelNumber);
-        this.ngZone.onStable.pipe(take(1)).subscribe(() => {
-          this.coDriverEmployeeSearchCreate.triggerSearch();
+        this.ngZone.onStable.pipe(take(1), takeUntil(this.destroy$)).subscribe(() => {
+          if (this.coDriverEmployeeSearchCreate) {
+            this.coDriverEmployeeSearchCreate.triggerSearch();
+          }
         });
       }
 
@@ -131,13 +154,13 @@ export class FoodCollectionRecordingBasedataComponent {
   }
 
   triggerSearchDriver() {
-    if (this.driverSearchInput.value) {
+    if (this.driverSearchInput.value && this.driverEmployeeSearchCreate) {
       this.driverEmployeeSearchCreate.triggerSearch();
     }
   }
 
   triggerSearchCoDriver() {
-    if (this.coDriverSearchInput.value) {
+    if (this.coDriverSearchInput.value && this.coDriverEmployeeSearchCreate) {
       this.coDriverEmployeeSearchCreate.triggerSearch();
     }
   }
@@ -157,6 +180,15 @@ export class FoodCollectionRecordingBasedataComponent {
   }
 
   save() {
+    const kmStart = this.kmStart.value;
+    const kmEnd = this.kmEnd.value;
+    this.kmDifference = kmEnd - kmStart;
+
+    if (!this.overrideKmDiffModal && this.kmDifference > 350) {
+      this.showKmDiffModal = true;
+      return;
+    }
+
     const routeData: FoodCollectionSaveRouteDataRequest = {
       carId: this.car.value.id,
       driverId: this.selectedDriver.id,
@@ -165,9 +197,11 @@ export class FoodCollectionRecordingBasedataComponent {
       kmEnd: this.kmEnd.value
     };
 
-    this.foodCollectionsApiService.saveRouteData(this.selectedRouteData().route.id, routeData).subscribe(() => {
-      this.toastService.showToast({type: ToastType.SUCCESS, title: 'Daten wurden gespeichert!'});
-    });
+    this.foodCollectionsApiService.saveRouteData(this.selectedRouteData().route.id, routeData)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.toastService.showToast({type: ToastType.SUCCESS, title: 'Daten wurden gespeichert!'});
+      });
   }
 
   resetDriver() {
@@ -198,6 +232,11 @@ export class FoodCollectionRecordingBasedataComponent {
 
   get kmEnd() {
     return this.form.get('kmEnd');
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   protected readonly faTruck = faTruck;

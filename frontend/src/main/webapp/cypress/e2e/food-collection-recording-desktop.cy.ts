@@ -60,6 +60,12 @@ describe('Food Collection Recording', () => {
 
       cy.byTestId('save-routedata-button').click();
 
+      cy.byTestId('km-diff-modal')
+        .should('be.visible')
+        .within(() => {
+          cy.byTestId('ok-button').click();
+        });
+
       cy.byTestId('tafel-toast-header')
         .should('be.visible')
         .within(() => {

@@ -236,12 +236,219 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
     expect(component.isSaveDisabled()).toEqual(true);
   });
 
-  // TODO test resetDriver
+  it('should reset driver when resetDriver is called', () => {
+    const fixture = TestBed.createComponent(FoodCollectionRecordingBasedataComponent);
+    const component = fixture.componentInstance;
+    const componentRef = fixture.componentRef;
+    componentRef.setInput('carList', mockCarList);
+    componentRef.setInput('selectedRouteData', {
+      ...mockRouteData,
+      foodCollectionData: null
+    });
 
-  // TODO test resetCoDriver
+    fixture.detectChanges();
 
-  // TODO test prefill of existing data
+    // Set a driver
+    component.driverSearchInput.setValue('D1');
+    component.setSelectedDriver(mockEmployees[0]);
 
-  // TODO test save
+    expect(component.driverSearchInput.value).toEqual('D1');
+    expect(component.selectedDriver).toEqual(mockEmployees[0]);
+
+    // Reset driver
+    component.resetDriver();
+
+    expect(component.driverSearchInput.value).toBeNull();
+    expect(component.selectedDriver).toBeNull();
+  });
+
+  it('should reset co-driver when resetCoDriver is called', () => {
+    const fixture = TestBed.createComponent(FoodCollectionRecordingBasedataComponent);
+    const component = fixture.componentInstance;
+    const componentRef = fixture.componentRef;
+    componentRef.setInput('carList', mockCarList);
+    componentRef.setInput('selectedRouteData', {
+      ...mockRouteData,
+      foodCollectionData: null
+    });
+
+    fixture.detectChanges();
+
+    // Set a co-driver
+    component.coDriverSearchInput.setValue('D2');
+    component.setSelectedCoDriver(mockEmployees[1]);
+
+    expect(component.coDriverSearchInput.value).toEqual('D2');
+    expect(component.selectedCoDriver).toEqual(mockEmployees[1]);
+
+    // Reset co-driver
+    component.resetCoDriver();
+
+    expect(component.coDriverSearchInput.value).toBeNull();
+    expect(component.selectedCoDriver).toBeNull();
+  });
+
+  it('should save route data when km difference is <= 350', () => {
+    const fixture = TestBed.createComponent(FoodCollectionRecordingBasedataComponent);
+    const component = fixture.componentInstance;
+    const componentRef = fixture.componentRef;
+    componentRef.setInput('carList', mockCarList);
+    componentRef.setInput('selectedRouteData', mockRouteData);
+
+    fixture.detectChanges();
+
+    foodCollectionsApiServiceSpy.saveRouteData.and.returnValue(of(null));
+
+    // Set valid form data with km difference = 150 (< 350)
+    component.car.setValue(mockCarList.cars[0]);
+    component.kmStart.setValue(100);
+    component.kmEnd.setValue(250);
+    component.driverSearchInput.setValue('D1');
+    component.setSelectedDriver(mockEmployees[0]);
+    component.coDriverSearchInput.setValue('D2');
+    component.setSelectedCoDriver(mockEmployees[1]);
+
+    // Save should proceed without showing modal
+    component.save();
+
+    expect(component.showKmDiffModal).toBeFalse();
+    expect(foodCollectionsApiServiceSpy.saveRouteData).toHaveBeenCalledWith(123, {
+      carId: 1,
+      driverId: 1,
+      coDriverId: 2,
+      kmStart: 100,
+      kmEnd: 250
+    });
+  });
+
+  it('should show kmDiffModal when km difference is > 350', () => {
+    const fixture = TestBed.createComponent(FoodCollectionRecordingBasedataComponent);
+    const component = fixture.componentInstance;
+    const componentRef = fixture.componentRef;
+    componentRef.setInput('carList', mockCarList);
+    componentRef.setInput('selectedRouteData', mockRouteData);
+
+    fixture.detectChanges();
+
+    foodCollectionsApiServiceSpy.saveRouteData.and.returnValue(of(null));
+
+    // Set valid form data with km difference = 400 (> 350)
+    component.car.setValue(mockCarList.cars[0]);
+    component.kmStart.setValue(100);
+    component.kmEnd.setValue(500);
+    component.driverSearchInput.setValue('D1');
+    component.setSelectedDriver(mockEmployees[0]);
+    component.coDriverSearchInput.setValue('D2');
+    component.setSelectedCoDriver(mockEmployees[1]);
+
+    // Save should show modal instead of proceeding
+    component.save();
+
+    expect(component.showKmDiffModal).toBeTrue();
+    expect(component.kmDifference).toEqual(400);
+    expect(foodCollectionsApiServiceSpy.saveRouteData).not.toHaveBeenCalled();
+  });
+
+  it('should save route data when overrideKmDiffModal is true even if km difference > 350', () => {
+    const fixture = TestBed.createComponent(FoodCollectionRecordingBasedataComponent);
+    const component = fixture.componentInstance;
+    const componentRef = fixture.componentRef;
+    componentRef.setInput('carList', mockCarList);
+    componentRef.setInput('selectedRouteData', mockRouteData);
+
+    fixture.detectChanges();
+
+    foodCollectionsApiServiceSpy.saveRouteData.and.returnValue(of(null));
+
+    // Set valid form data with km difference = 400 (> 350)
+    component.car.setValue(mockCarList.cars[0]);
+    component.kmStart.setValue(100);
+    component.kmEnd.setValue(500);
+    component.driverSearchInput.setValue('D1');
+    component.setSelectedDriver(mockEmployees[0]);
+    component.coDriverSearchInput.setValue('D2');
+    component.setSelectedCoDriver(mockEmployees[1]);
+
+    // First save shows modal
+    component.save();
+    expect(component.showKmDiffModal).toBeTrue();
+    expect(foodCollectionsApiServiceSpy.saveRouteData).not.toHaveBeenCalled();
+
+    // Simulate clicking OK button
+    component.overrideKmDiffModal = true;
+    component.showKmDiffModal = false;
+    component.save();
+
+    expect(foodCollectionsApiServiceSpy.saveRouteData).toHaveBeenCalledWith(123, {
+      carId: 1,
+      driverId: 1,
+      coDriverId: 2,
+      kmStart: 100,
+      kmEnd: 500
+    });
+  });
+
+  it('should calculate km difference correctly', () => {
+    const fixture = TestBed.createComponent(FoodCollectionRecordingBasedataComponent);
+    const component = fixture.componentInstance;
+    const componentRef = fixture.componentRef;
+    componentRef.setInput('carList', mockCarList);
+    componentRef.setInput('selectedRouteData', mockRouteData);
+
+    fixture.detectChanges();
+
+    foodCollectionsApiServiceSpy.saveRouteData.and.returnValue(of(null));
+
+    component.car.setValue(mockCarList.cars[0]);
+    component.driverSearchInput.setValue('D1');
+    component.setSelectedDriver(mockEmployees[0]);
+    component.coDriverSearchInput.setValue('D2');
+    component.setSelectedCoDriver(mockEmployees[1]);
+
+    // Test with km difference = 250
+    component.kmStart.setValue(100);
+    component.kmEnd.setValue(350);
+    component.save();
+
+    expect(component.kmDifference).toEqual(250);
+
+    // Test with km difference = 400
+    component.kmStart.setValue(50);
+    component.kmEnd.setValue(450);
+    component.save();
+
+    expect(component.kmDifference).toEqual(400);
+  });
+
+  it('should hide modal when cancel is clicked', () => {
+    const fixture = TestBed.createComponent(FoodCollectionRecordingBasedataComponent);
+    const component = fixture.componentInstance;
+    const componentRef = fixture.componentRef;
+    componentRef.setInput('carList', mockCarList);
+    componentRef.setInput('selectedRouteData', mockRouteData);
+
+    fixture.detectChanges();
+
+    foodCollectionsApiServiceSpy.saveRouteData.and.returnValue(of(null));
+
+    // Set valid form data with km difference = 400 (> 350)
+    component.car.setValue(mockCarList.cars[0]);
+    component.kmStart.setValue(100);
+    component.kmEnd.setValue(500);
+    component.driverSearchInput.setValue('D1');
+    component.setSelectedDriver(mockEmployees[0]);
+    component.coDriverSearchInput.setValue('D2');
+    component.setSelectedCoDriver(mockEmployees[1]);
+
+    // First save shows modal
+    component.save();
+    expect(component.showKmDiffModal).toBeTrue();
+
+    // Simulate clicking Cancel button
+    component.showKmDiffModal = false;
+
+    expect(component.showKmDiffModal).toBeFalse();
+    expect(foodCollectionsApiServiceSpy.saveRouteData).not.toHaveBeenCalled();
+  });
 
 });
