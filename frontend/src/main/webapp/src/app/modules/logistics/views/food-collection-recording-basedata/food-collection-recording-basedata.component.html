@@ -161,3 +161,21 @@
     <button testid="save-routedata-button" cButton [disabled]="isSaveDisabled()" (click)="save()">Speichern</button>
   </c-col>
 </c-row>
+<c-modal id="kmDiffModal" #kmDiffModal testid="km-diff-modal" [(visible)]="showKmDiffModal">
+  <c-modal-header cBgColor="warning" testid="header">
+    <h4 testid="title" class="text-white">
+      Routenlänge überschritten
+    </h4>
+    <button [cModalToggle]="kmDiffModal.id" cButtonClose></button>
+  </c-modal-header>
+  <c-modal-body>
+    <div class="row">
+      <div class="col-12">Die Routenlänge beträgt: {{ kmDifference | number }} km (> 350 km).</div>
+      <div class="col-12 mt-3">Ist das korrekt?</div>
+    </div>
+  </c-modal-body>
+  <c-modal-footer>
+    <button testid="ok-button" cButton (click)="overrideKmDiffModal = true; showKmDiffModal = false; save();">OK</button>
+    <button testid="cancel-button" cButton color="secondary" (click)="showKmDiffModal = false">Abbrechen</button>
+  </c-modal-footer>
+</c-modal>
