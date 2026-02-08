@@ -1,24 +1,18 @@
 import {Component, computed, inject, input, OnDestroy, OnInit, signal} from '@angular/core';
-import {ButtonDirective, CardBodyComponent, CardComponent, ColComponent, Colors, RowComponent} from '@coreui/angular';
-import {FaIconComponent} from '@fortawesome/angular-fontawesome';
-import {TafelIfDistributionActiveDirective} from '../../../../common/directive/tafel-if-distribution-active.directive';
+import {CardBodyComponent, CardComponent, ColComponent, Colors, RowComponent} from '@coreui/angular';
 import {DistributionItem} from '../../../../api/distribution-api.service';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
 import {Subscription} from 'rxjs';
 
 @Component({
-  selector: 'tafel-recorded-food-collections',
-  templateUrl: 'recorded-food-collections.component.html',
-  imports: [
-    CardComponent,
-    CardBodyComponent,
-    RowComponent,
-    ColComponent,
-    FaIconComponent,
-    ButtonDirective,
-    TafelIfDistributionActiveDirective
-  ],
-  standalone: true
+    selector: 'tafel-recorded-food-collections',
+    templateUrl: 'recorded-food-collections.component.html',
+    imports: [
+        CardComponent,
+        CardBodyComponent,
+        RowComponent,
+        ColComponent
+    ]
 })
 export class RecordedFoodCollectionsComponent implements OnInit, OnDestroy {
   countRecorded = input<number | null>(null);

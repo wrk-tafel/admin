@@ -18,18 +18,17 @@ import {
 import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
 
 @Component({
-  selector: 'tafel-food-collection-recording-items-responsive',
-  templateUrl: 'food-collection-recording-items-responsive.component.html',
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    FormsModule,
-    ButtonDirective,
-    RowComponent,
-    ColComponent,
-    TafelCounterInputComponent,
-  ],
-  standalone: true
+    selector: 'tafel-food-collection-recording-items-responsive',
+    templateUrl: 'food-collection-recording-items-responsive.component.html',
+    imports: [
+        CommonModule,
+        ReactiveFormsModule,
+        FormsModule,
+        ButtonDirective,
+        RowComponent,
+        ColComponent,
+        TafelCounterInputComponent,
+    ]
 })
 export class FoodCollectionRecordingItemsResponsiveComponent {
   foodCategories = model.required<FoodCategory[]>();

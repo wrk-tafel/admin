@@ -1,33 +1,19 @@
 import {Component, inject, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {ToastOptions, ToastService, ToastType} from './toast.service';
 import {
-  BgColorDirective,
-  TextColorDirective,
-  ToastBodyComponent,
-  ToastComponent,
-  ToasterComponent,
-  ToastHeaderComponent
+  ToasterComponent
 } from '@coreui/angular';
 import {TafelToastComponent} from './toast/tafel-toast.component';
 import {Subject, Subscription} from 'rxjs';
-import {NgClass, NgStyle} from '@angular/common';
+import {NgClass} from '@angular/common';
 
 @Component({
-  selector: 'tafel-toaster',
-  templateUrl: 'tafel-toaster.component.html',
-  imports: [
-    ToasterComponent,
-    ToasterComponent,
-    NgClass,
-    ToasterComponent,
-    ToastBodyComponent,
-    ToastComponent,
-    ToastHeaderComponent,
-    BgColorDirective,
-    TextColorDirective,
-    NgStyle
-  ],
-  standalone: true
+    selector: 'tafel-toaster',
+    templateUrl: 'tafel-toaster.component.html',
+    imports: [
+        ToasterComponent,
+        NgClass
+    ]
 })
 export class TafelToasterComponent implements OnInit, OnDestroy {
   @ViewChild(ToasterComponent) toaster: ToasterComponent;

@@ -25,24 +25,23 @@ import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {FormatAddressPipe} from '../../../../common/pipes/format-address.pipe';
 
 @Component({
-  selector: 'tafel-customer-duplicates',
-  templateUrl: 'customer-duplicates.component.html',
-  imports: [
-    CardComponent,
-    CardHeaderComponent,
-    CardBodyComponent,
-    RowComponent,
-    ColComponent,
-    TafelPaginationComponent,
-    DatePipe,
-    NgClass,
-    ButtonDirective,
-    NgIf,
-    NgForOf,
-    FaIconComponent,
-    FormatAddressPipe
-  ],
-  standalone: true
+    selector: 'tafel-customer-duplicates',
+    templateUrl: 'customer-duplicates.component.html',
+    imports: [
+        CardComponent,
+        CardHeaderComponent,
+        CardBodyComponent,
+        RowComponent,
+        ColComponent,
+        TafelPaginationComponent,
+        DatePipe,
+        NgClass,
+        ButtonDirective,
+        NgIf,
+        NgForOf,
+        FaIconComponent,
+        FormatAddressPipe
+    ]
 })
 export class CustomerDuplicatesComponent implements OnInit {
   @Input() customerDuplicatesData: CustomerDuplicatesResponse;

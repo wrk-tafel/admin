@@ -37,31 +37,30 @@ import {ToastService, ToastType} from '../../../../common/components/toasts/toas
 import {forkJoin} from 'rxjs';
 
 @Component({
-  selector: 'tafel-food-collection-recording',
-  templateUrl: 'food-collection-recording.component.html',
-  imports: [
-    CommonModule,
-    CardComponent,
-    CardBodyComponent,
-    CardHeaderComponent,
-    ReactiveFormsModule,
-    FormsModule,
-    TabsComponent,
-    TabsListComponent,
-    TabDirective,
-    TabsContentComponent,
-    TabPanelComponent,
-    RowComponent,
-    ColComponent,
-    FormSelectDirective,
-    InputGroupComponent,
-    FaIconComponent,
-    InputGroupTextDirective,
-    FoodCollectionRecordingBasedataComponent,
-    FoodCollectionRecordingItemsDesktopComponent,
-    FoodCollectionRecordingItemsResponsiveComponent,
-  ],
-  standalone: true
+    selector: 'tafel-food-collection-recording',
+    templateUrl: 'food-collection-recording.component.html',
+    imports: [
+        CommonModule,
+        CardComponent,
+        CardBodyComponent,
+        CardHeaderComponent,
+        ReactiveFormsModule,
+        FormsModule,
+        TabsComponent,
+        TabsListComponent,
+        TabDirective,
+        TabsContentComponent,
+        TabPanelComponent,
+        RowComponent,
+        ColComponent,
+        FormSelectDirective,
+        InputGroupComponent,
+        FaIconComponent,
+        InputGroupTextDirective,
+        FoodCollectionRecordingBasedataComponent,
+        FoodCollectionRecordingItemsDesktopComponent,
+        FoodCollectionRecordingItemsResponsiveComponent,
+    ]
 })
 export class FoodCollectionRecordingComponent implements OnInit {
   routeList = model.required<RouteList>();

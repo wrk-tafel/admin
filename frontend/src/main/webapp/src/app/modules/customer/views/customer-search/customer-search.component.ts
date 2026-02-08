@@ -27,28 +27,27 @@ import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofo
 import {FormatAddressPipe} from '../../../../common/pipes/format-address.pipe';
 
 @Component({
-  selector: 'tafel-customer-search',
-  templateUrl: 'customer-search.component.html',
-  imports: [
-    ReactiveFormsModule,
-    CardComponent,
-    CardBodyComponent,
-    RowComponent,
-    ColComponent,
-    InputGroupComponent,
-    TafelPaginationComponent,
-    CardHeaderComponent,
-    CardFooterComponent,
-    FormDirective,
-    FormCheckInputDirective,
-    TableDirective,
-    ButtonDirective,
-    CommonModule,
-    FaIconComponent,
-    TafelAutofocusDirective,
-    FormatAddressPipe
-  ],
-  standalone: true
+    selector: 'tafel-customer-search',
+    templateUrl: 'customer-search.component.html',
+    imports: [
+        ReactiveFormsModule,
+        CardComponent,
+        CardBodyComponent,
+        RowComponent,
+        ColComponent,
+        InputGroupComponent,
+        TafelPaginationComponent,
+        CardHeaderComponent,
+        CardFooterComponent,
+        FormDirective,
+        FormCheckInputDirective,
+        TableDirective,
+        ButtonDirective,
+        CommonModule,
+        FaIconComponent,
+        TafelAutofocusDirective,
+        FormatAddressPipe
+    ]
 })
 export class CustomerSearchComponent {
   private readonly customerApiService = inject(CustomerApiService);

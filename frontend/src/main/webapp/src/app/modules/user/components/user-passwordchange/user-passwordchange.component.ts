@@ -9,17 +9,16 @@ import {
 } from '@coreui/angular';
 
 @Component({
-  selector: 'tafel-user-passwordchange',
-  templateUrl: 'user-passwordchange.component.html',
-  imports: [
-    CardComponent,
-    CardHeaderComponent,
-    CardBodyComponent,
-    PasswordChangeFormComponent,
-    CardFooterComponent,
-    ButtonDirective
-  ],
-  standalone: true
+    selector: 'tafel-user-passwordchange',
+    templateUrl: 'user-passwordchange.component.html',
+    imports: [
+        CardComponent,
+        CardHeaderComponent,
+        CardBodyComponent,
+        PasswordChangeFormComponent,
+        CardFooterComponent,
+        ButtonDirective
+    ]
 })
 export class UserPasswordChangeComponent {
   @ViewChild(PasswordChangeFormComponent) public form: PasswordChangeFormComponent;

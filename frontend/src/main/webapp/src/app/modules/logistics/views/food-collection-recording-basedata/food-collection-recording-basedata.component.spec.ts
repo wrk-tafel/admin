@@ -15,9 +15,20 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
   let employeeApiServiceSpy: jasmine.SpyObj<EmployeeApiService>;
 
   beforeEach(waitForAsync(() => {
+    const employeeApiSpy = jasmine.createSpyObj('EmployeeApiService', ['findEmployees', 'saveEmployee']);
+    // Set default return value to prevent errors in async operations
+    employeeApiSpy.findEmployees.and.returnValue(of({
+      items: [],
+      totalCount: 0,
+      currentPage: 1,
+      totalPages: 1,
+      pageSize: 10
+    }));
+
     TestBed.configureTestingModule({
       imports: [
-        NoopAnimationsModule
+        NoopAnimationsModule,
+        FoodCollectionRecordingBasedataComponent
       ],
       providers: [
         {
@@ -34,7 +45,7 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
         },
         {
           provide: EmployeeApiService,
-          useValue: jasmine.createSpyObj('EmployeeApiService', ['findEmployees', 'saveEmployee'])
+          useValue: employeeApiSpy
         }
       ]
     }).compileComponents();

@@ -14,20 +14,19 @@ import {
 import {NgOptimizedImage} from '@angular/common';
 
 @Component({
-  selector: 'tafel-login-passwordchange',
-  templateUrl: 'login-passwordchange.component.html',
-  imports: [
-    ContainerComponent,
-    RowComponent,
-    ColComponent,
-    CardGroupComponent,
-    CardComponent,
-    CardBodyComponent,
-    PasswordChangeFormComponent,
-    ButtonDirective,
-    NgOptimizedImage
-  ],
-  standalone: true
+    selector: 'tafel-login-passwordchange',
+    templateUrl: 'login-passwordchange.component.html',
+    imports: [
+        ContainerComponent,
+        RowComponent,
+        ColComponent,
+        CardGroupComponent,
+        CardComponent,
+        CardBodyComponent,
+        PasswordChangeFormComponent,
+        ButtonDirective,
+        NgOptimizedImage
+    ]
 })
 export class LoginPasswordChangeComponent {
   @ViewChild(PasswordChangeFormComponent) public form: PasswordChangeFormComponent;

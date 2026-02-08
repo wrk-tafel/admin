@@ -31,29 +31,28 @@ import {Subject, take, takeUntil} from 'rxjs';
 import {SelectedRouteData} from '../food-collection-recording/food-collection-recording.component';
 
 @Component({
-  selector: 'tafel-food-collection-recording-basedata',
-  templateUrl: 'food-collection-recording-basedata.component.html',
-  imports: [
-    CommonModule,
-    FormSelectDirective,
-    ReactiveFormsModule,
-    RowComponent,
-    ColComponent,
-    FormsModule,
-    ButtonDirective,
-    InputGroupComponent,
-    FaIconComponent,
-    InputGroupTextDirective,
-    TafelEmployeeSearchCreateComponent,
-    ButtonCloseDirective,
-    ModalBodyComponent,
-    ModalComponent,
-    ModalFooterComponent,
-    ModalHeaderComponent,
-    BgColorDirective,
-    ModalToggleDirective
-  ],
-  standalone: true
+    selector: 'tafel-food-collection-recording-basedata',
+    templateUrl: 'food-collection-recording-basedata.component.html',
+    imports: [
+        CommonModule,
+        FormSelectDirective,
+        ReactiveFormsModule,
+        RowComponent,
+        ColComponent,
+        FormsModule,
+        ButtonDirective,
+        InputGroupComponent,
+        FaIconComponent,
+        InputGroupTextDirective,
+        TafelEmployeeSearchCreateComponent,
+        ButtonCloseDirective,
+        ModalBodyComponent,
+        ModalComponent,
+        ModalFooterComponent,
+        ModalHeaderComponent,
+        BgColorDirective,
+        ModalToggleDirective
+    ]
 })
 export class FoodCollectionRecordingBasedataComponent implements OnDestroy {
   @ViewChild('driverEmployeeSearchCreate') driverEmployeeSearchCreate: TafelEmployeeSearchCreateComponent
