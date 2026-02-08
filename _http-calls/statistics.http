@@ -1,0 +1,2 @@
+### Fetch settings
+GET {{baseApiPath}}/statistics/settings

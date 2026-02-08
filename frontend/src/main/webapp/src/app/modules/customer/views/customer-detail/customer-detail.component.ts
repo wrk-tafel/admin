@@ -90,8 +90,8 @@ import {FormattedCustomerNamePipe} from '../../../../common/pipes/formatted-cust
   standalone: true
 })
 export class CustomerDetailComponent implements OnInit {
-  @Input('customerData') customerData: CustomerData;
-  @Input('customerNotesResponse') customerNotesResponse: CustomerNotesResponse;
+  @Input() customerData: CustomerData;
+  @Input() customerNotesResponse: CustomerNotesResponse;
 
   customerNotes: CustomerNoteItem[];
   customerNotesPaginationData: TafelPaginationData;

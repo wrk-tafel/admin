@@ -26,6 +26,8 @@ INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (1007, NOW(), NOW(), 100, 'LOGISTICS');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (1008, NOW(), NOW(), 100, 'SETTINGS');
+INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
+VALUES (1009, NOW(), NOW(), 100, 'STATISTICS');
 
 -- user: testuser
 -- pwd: 35bc40681124f412c5d052366edb9eb9
@@ -70,6 +72,8 @@ INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (3007, NOW(), NOW(), 300, 'LOGISTICS');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (3008, NOW(), NOW(), 300, 'SETTINGS');
+INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
+VALUES (3009, NOW(), NOW(), 300, 'STATISTICS');
 
 -- user: scanner1
 -- pwd: 12345

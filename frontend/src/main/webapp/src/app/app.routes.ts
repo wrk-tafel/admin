@@ -104,6 +104,13 @@ export const routes: Routes = [
         }
       },
       {
+        path: 'statistiken',
+        loadChildren: () => import('./modules/./statistics/statistics.routes').then(m => m.routes),
+        data: {
+          anyPermissionOf: ['STATISTICS']
+        }
+      },
+      {
         path: 'passwortaendern',
         component: UserPasswordChangeComponent
       }

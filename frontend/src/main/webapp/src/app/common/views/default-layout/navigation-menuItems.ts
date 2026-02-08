@@ -90,6 +90,12 @@ export const navigationMenuItems: ITafelNavData[] = [
     ]
   },
   {
+    name: 'Statistiken',
+    iconComponent: {name: 'cil-chart-line'},
+    url: '/statistiken',
+    permissions: ['STATISTICS'],
+  },
+  {
     name: 'Einstellungen',
     iconComponent: {name: 'cil-settings'},
     url: '/einstellungen',
