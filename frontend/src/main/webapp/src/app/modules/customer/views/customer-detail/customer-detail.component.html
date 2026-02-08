@@ -1,8 +1,12 @@
-<div testid="lock-info-banner" *ngIf="customerData.locked" class="alert alert-danger">
-  <div><strong>Kunde ist gesperrt!</strong></div>
-  <div *ngIf="customerData.lockedBy">Gesperrt am {{customerData.lockedAt | date : 'dd.MM.yyyy HH:mm' }} von {{customerData.lockedBy}}</div>
-  <div><strong>Sperrgrund:</strong> {{customerData.lockReason}}</div>
-</div>
+@if (customerData.locked) {
+  <div testid="lock-info-banner" class="alert alert-danger">
+    <div><strong>Kunde ist gesperrt!</strong></div>
+    @if (customerData.lockedBy) {
+      <div>Gesperrt am {{customerData.lockedAt | date : 'dd.MM.yyyy HH:mm' }} von {{customerData.lockedBy}}</div>
+    }
+    <div><strong>Sperrgrund:</strong> {{customerData.lockReason}}</div>
+  </div>
+}
 <div class="d-flex flex-column-reverse flex-lg-column">
   <div class="d-flex flex-column flex-lg-row mt-3 mt-lg-0 mb-4 mb-lg-0">
     <c-dropdown variant="dropdown">
@@ -166,22 +170,28 @@
                   </c-card-header>
                   <c-card-body>
                     <c-row>
-                      <c-col class="fw-bold" *ngIf="customerNotes?.length === 0">
-                        <h6 testid="nonotes-label">Keine Notiz vorhanden</h6>
-                      </c-col>
-                      <c-col *ngIf="customerNotes?.length !== 0">
-                        <c-row class="mb-2">
-                          <c-col class="fw-bold" testid="note-title">{{customerNotes[0].timestamp | date : 'dd.MM.yyyy HH:mm' }}&nbsp;{{customerNotes[0].author}}</c-col>
-                        </c-row>
-                        <c-row>
-                          <c-col testid="note-text" [innerHtml]="customerNotes[0].note"></c-col>
-                        </c-row>
-                      </c-col>
+                      @if (customerNotes?.length === 0) {
+                        <c-col class="fw-bold">
+                          <h6 testid="nonotes-label">Keine Notiz vorhanden</h6>
+                        </c-col>
+                      }
+                      @if (customerNotes?.length !== 0) {
+                        <c-col>
+                          <c-row class="mb-2">
+                            <c-col class="fw-bold" testid="note-title">{{customerNotes[0].timestamp | date : 'dd.MM.yyyy HH:mm' }}&nbsp;{{customerNotes[0].author}}</c-col>
+                          </c-row>
+                          <c-row>
+                            <c-col testid="note-text" [innerHtml]="customerNotes[0].note"></c-col>
+                          </c-row>
+                        </c-col>
+                      }
                     </c-row>
                   </c-card-body>
-                  <c-card-footer *ngIf="customerNotes.length > 1">
-                    <button testid="showall-notes-button" cButton (click)="showAllNotesModal = true">Alle Notizen anzeigen</button>
-                  </c-card-footer>
+                  @if (customerNotes.length > 1) {
+                    <c-card-footer>
+                      <button testid="showall-notes-button" cButton (click)="showAllNotesModal = true">Alle Notizen anzeigen</button>
+                    </c-card-footer>
+                  }
                 </c-card>
               </div>
             </c-row>
@@ -214,18 +224,30 @@
                         <hr>
                         <c-row class="mt-1">
                           <c-col class="col-6">Arbeitgeber</c-col>
-                          <c-col class="col-6" [attr.testid]="'addperson-' + i + '-employerText'" *ngIf="addPerson?.employer !== null">{{addPerson?.employer}}</c-col>
-                          <c-col class="col-6" [attr.testid]="'addperson-' + i + '-employerText'" *ngIf="addPerson?.employer === null">-</c-col>
+                          @if (addPerson?.employer !== null) {
+                            <c-col class="col-6" [attr.testid]="'addperson-' + i + '-employerText'">{{addPerson?.employer}}</c-col>
+                          }
+                          @if (addPerson?.employer === null) {
+                            <c-col class="col-6" [attr.testid]="'addperson-' + i + '-employerText'">-</c-col>
+                          }
                         </c-row>
                         <c-row class="mt-1 align-items-end">
                           <c-col class="col-6">Einkommen (monatl.)</c-col>
-                          <c-col class="col-6" [attr.testid]="'addperson-' + i + '-incomeText'" *ngIf="addPerson?.income">{{addPerson?.income | currency}}</c-col>
-                          <c-col class="col-6" [attr.testid]="'addperson-' + i + '-incomeText'" *ngIf="!addPerson?.income">-</c-col>
+                          @if (addPerson?.income) {
+                            <c-col class="col-6" [attr.testid]="'addperson-' + i + '-incomeText'">{{addPerson?.income | currency}}</c-col>
+                          }
+                          @if (!addPerson?.income) {
+                            <c-col class="col-6" [attr.testid]="'addperson-' + i + '-incomeText'">-</c-col>
+                          }
                         </c-row>
                         <c-row class="align-items-end">
                           <c-col class="col-6">Einkommen nachgewiesen bis:</c-col>
-                          <c-col class="col-6 align-bottom" [attr.testid]="'addperson-' + i + '-incomeDueText'" *ngIf="addPerson?.incomeDue">{{addPerson?.incomeDue | date : 'dd.MM.yyyy'}}</c-col>
-                          <c-col class="col-6 align-bottom" [attr.testid]="'addperson-' + i + '-incomeDueText'" *ngIf="!addPerson?.incomeDue">-</c-col>
+                          @if (addPerson?.incomeDue) {
+                            <c-col class="col-6 align-bottom" [attr.testid]="'addperson-' + i + '-incomeDueText'">{{addPerson?.incomeDue | date : 'dd.MM.yyyy'}}</c-col>
+                          }
+                          @if (!addPerson?.incomeDue) {
+                            <c-col class="col-6 align-bottom" [attr.testid]="'addperson-' + i + '-incomeDueText'">-</c-col>
+                          }
                         </c-row>
                         <c-row class="align-items-end">
                           <c-col class="col-6">Bezieht Familienbeihilfe:</c-col>

@@ -43,18 +43,22 @@
 
     <hr/>
 
-    <c-row *ngIf="customerDuplicatesData.items.length === 0">
-      <h4 class="fw-bold">Keine Duplikate gefunden!</h4>
-    </c-row>
+    @if (customerDuplicatesData.items.length === 0) {
+      <c-row>
+        <h4 class="fw-bold">Keine Duplikate gefunden!</h4>
+      </c-row>
+    }
 
-    <div  *ngIf="customerDuplicatesData.items.length > 0">
+    @if (customerDuplicatesData.items.length > 0) {
+    <div>
       <tafel-pagination class="d-none d-sm-block" align="end" [paginationData]="paginationData"
                         (pageChanged)="getDuplicates($event)"></tafel-pagination>
       <tafel-pagination class="d-block d-sm-none" align="center" size="sm" [paginationData]="paginationData"
                         (pageChanged)="getDuplicates($event)"></tafel-pagination>
 
       <div class="d-grid gap-3">
-        <c-row *ngFor="let item of this.customerDuplicatesData.items; trackBy: trackByDuplicateItemId">
+        @for (item of customerDuplicatesData.items; track trackByDuplicateItemId($index, item)) {
+        <c-row>
           <c-col>
             <c-card class="mb-3 mb-sm-0">
               <c-card-header class="fw-bold">
@@ -103,7 +107,8 @@
           </c-col>
           <c-col>
             <div class="d-flex flex-column gap-3">
-              <c-card *ngFor="let similarCustomer of item.similarCustomers; trackBy: trackBySimilarCustomerId">
+              @for (similarCustomer of item.similarCustomers; track trackBySimilarCustomerId($index, similarCustomer)) {
+              <c-card>
                 <c-card-header class="fw-bold">
                   <c-row class="d-flex flex-column flex-sm-row">
                     <c-col>
@@ -147,9 +152,11 @@
                   </c-row>
                 </c-card-body>
               </c-card>
+              }
             </div>
           </c-col>
         </c-row>
+        }
       </div>
 
       <tafel-pagination class="d-none d-sm-block mt-3" align="end" [paginationData]="paginationData"
@@ -157,5 +164,6 @@
       <tafel-pagination class="d-block d-sm-none mt-3" align="center" size="sm" [paginationData]="paginationData"
                         (pageChanged)="getDuplicates($event)"></tafel-pagination>
     </div>
+    }
   </c-card-body>
 </c-card>

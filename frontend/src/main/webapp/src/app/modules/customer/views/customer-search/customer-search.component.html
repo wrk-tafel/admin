@@ -56,12 +56,15 @@
                     </button>
                 </c-col>
             </c-row>
-            <c-row *ngIf="searchResult" testid="searchresult-table">
-                <c-col>
-                    <hr>
-                </c-col>
-            </c-row>
-            <c-row *ngIf="searchResult" class="d-none d-sm-block">
+            @if (searchResult) {
+              <c-row testid="searchresult-table">
+                  <c-col>
+                      <hr>
+                  </c-col>
+              </c-row>
+            }
+            @if (searchResult) {
+              <c-row class="d-none d-sm-block">
                 <c-col sm="12" class="table-responsive">
                     <h5 class="mb-4">Suchergebnis ({{this.searchResult.totalCount}} Kunden)</h5>
                     <tafel-pagination align="end" [paginationData]="paginationData"
@@ -78,13 +81,17 @@
                         </tr>
                         </thead>
                         <tbody>
-                        <tr testid="searchresult-row" scope="row"
-                            *ngFor="let customer of searchResult.items; trackBy: trackByCustomerId; let i = index">
+                        @for (customer of searchResult.items; track customer.id; let i = $index) {
+                          <tr testid="searchresult-row" scope="row">
                             <td><fa-icon [icon]="faUser"></fa-icon></td>
                             <td [attr.testid]="'searchresult-id-' + i">{{customer.id}}</td>
                             <td [attr.testid]="'searchresult-name-' + i">
-                              <a *ngIf="customer.lastname || customer.firstname" style="cursor: pointer;" (click)="navigateToCustomer(customer.id)">{{customer.lastname ? customer.lastname : '-'}} {{customer.firstname ? customer.firstname : '-'}}</a>
-                              <div *ngIf="!customer.lastname && !customer.firstname">-</div>
+                              @if (customer.lastname || customer.firstname) {
+                                <a style="cursor: pointer;" (click)="navigateToCustomer(customer.id)">{{customer.lastname ? customer.lastname : '-'}} {{customer.firstname ? customer.firstname : '-'}}</a>
+                              }
+                              @if (!customer.lastname && !customer.firstname) {
+                                <div>-</div>
+                              }
                             </td>
                             <td [attr.testid]="'searchresult-birthDate-' + i">{{!customer.birthDate ? '-' : customer.birthDate | date : 'dd.MM.yyyy'}}</td>
                             <td [attr.testid]="'searchresult-address-' + i">{{customer.address | formatAddress}}</td>
@@ -102,20 +109,24 @@
                                     </button>
                                 </div>
                             </td>
-                        </tr>
+                          </tr>
+                        }
                         </tbody>
                     </table>
                     <tafel-pagination align="end" [paginationData]="paginationData"
                                       (pageChanged)="searchForDetails($event)"></tafel-pagination>
                 </c-col>
-            </c-row>
-            <c-row *ngIf="searchResult" class="d-block d-sm-none">
+              </c-row>
+            }
+            @if (searchResult) {
+              <c-row class="d-block d-sm-none">
                 <c-col sm="12" class="table-responsive">
                     <h5 class="mb-4">Suchergebnis ({{this.searchResult.totalCount}} Kunden)</h5>
                     <tafel-pagination align="center" size="sm" [paginationData]="paginationData"
                                       (pageChanged)="searchForDetails($event)"></tafel-pagination>
                     <div class="d-flex flex-column gap-3 mb-3">
-                        <c-card *ngFor="let customer of this.searchResult.items; trackBy: trackByCustomerId; let i = index">
+                        @for (customer of this.searchResult.items; track customer.id; let i = $index) {
+                          <c-card>
                             <c-card-header class="fw-bold">{{customer.id}} - {{customer.lastname}} {{customer.firstname}}</c-card-header>
                             <c-card-body>
                                 <c-row>
@@ -139,12 +150,14 @@
                                         <fa-icon [icon]="faPencil" inverse="true"></fa-icon>
                                 </button>
                             </c-card-footer>
-                        </c-card>
+                          </c-card>
+                        }
                     </div>
                     <tafel-pagination align="center" size="sm" [paginationData]="paginationData"
                                       (pageChanged)="searchForDetails($event)"></tafel-pagination>
                 </c-col>
-            </c-row>
+              </c-row>
+            }
         </c-card-body>
     </c-card>
 </form>

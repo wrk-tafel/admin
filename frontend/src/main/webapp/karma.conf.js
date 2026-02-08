@@ -12,7 +12,7 @@ module.exports = function (config) {
       require('karma-spec-reporter'),
       require('jasmine-spec-reporter'),
       require('karma-coverage'),
-      require('@angular-devkit/build-angular/plugins/karma')
+      
     ],
     client: {
       captureConsole: true,

@@ -12,14 +12,18 @@
     </c-row>
   </c-card-body>
   <c-card-footer>
-    <button *ngIf="!distribution" cButton color="light"
-            testid="distribution-start-button"
-            (click)="createNewDistribution()">Tag starten
-    </button>
-    <button *ngIf="distribution" cButton color="light"
-            testid="distribution-close-button"
-            (click)="showCloseDistributionModal = true">Tag beenden
-    </button>
+    @if (!distribution) {
+      <button cButton color="light"
+              testid="distribution-start-button"
+              (click)="createNewDistribution()">Tag starten
+      </button>
+    }
+    @if (distribution) {
+      <button cButton color="light"
+              testid="distribution-close-button"
+              (click)="showCloseDistributionModal = true">Tag beenden
+      </button>
+    }
   </c-card-footer>
 </c-card>
 <c-modal id="closeDistributionModal" #closeDistributionModal testid="distribution-close-modal"

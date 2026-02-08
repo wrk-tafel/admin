@@ -8,8 +8,12 @@
         Benutzer-Status ändern
       </button>
       <ul cDropdownMenu>
-        <li><button *ngIf="userData.enabled" cDropdownItem style="cursor: pointer;" testid="disableUserButton" (click)="disableUser()">Benutzer deaktivieren</button></li>
-        <li><button *ngIf="!userData.enabled" cDropdownItem style="cursor: pointer;" testid="enableUserButton" (click)="enableUser()">Benutzer aktivieren</button></li>
+        @if (userData.enabled) {
+          <li><button cDropdownItem style="cursor: pointer;" testid="disableUserButton" (click)="disableUser()">Benutzer deaktivieren</button></li>
+        }
+        @if (!userData.enabled) {
+          <li><button cDropdownItem style="cursor: pointer;" testid="enableUserButton" (click)="enableUser()">Benutzer aktivieren</button></li>
+        }
         <li><hr cDropdownDivider></li>
         <li><button cDropdownItem style="cursor: pointer;" testid="deleteUserButton" (click)="deleteUser()">Benutzer löschen</button></li>
       </ul>

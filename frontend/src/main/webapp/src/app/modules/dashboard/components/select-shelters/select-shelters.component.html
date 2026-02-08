@@ -10,10 +10,12 @@
   </c-modal-header>
   <c-modal-body>
     <form [formGroup]="form">
-      <div *ngIf="shelters().length > 0">
+      @if (shelters().length > 0) {
         <div formArrayName="selectedShelters">
-          <div *ngFor="let shelter of shelters(); trackBy: trackByShelterId; let idx = index">
-            <hr *ngIf="idx > 0" />
+          @for (shelter of shelters(); track trackByShelterId($index, shelter); let idx = $index) {
+            @if (idx > 0) {
+              <hr />
+            }
             <c-container>
               <c-row class="flex-row">
                 <c-col class="col-2">
@@ -46,9 +48,9 @@
                 <c-col class="col-5 fs-5">{{shelter.personsCount}} Personen</c-col>
               </c-row>
             </c-container>
-          </div>
+          }
         </div>
-      </div>
+      }
     </form>
   </c-modal-body>
   <c-modal-footer>

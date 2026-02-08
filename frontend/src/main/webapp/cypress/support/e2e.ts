@@ -18,3 +18,13 @@ import './commands';
 
 // Alternatively you can use CommonJS syntax:
 // require('./commands')
+
+// Ignore ResizeObserver errors that are common with Angular and CoreUI
+Cypress.on('uncaught:exception', (err) => {
+  // Ignore ResizeObserver loop errors - these are benign and common with CoreUI components
+  if (err.message.includes('ResizeObserver loop')) {
+    return false;
+  }
+  // Let other errors fail the test
+  return true;
+});

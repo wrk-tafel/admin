@@ -3,7 +3,7 @@ import {CheckinComponent, CustomerState, ScanResult} from './checkin.component';
 import {CommonModule} from '@angular/common';
 import {CustomerApiService, Gender} from '../../../../api/customer-api.service';
 import {BehaviorSubject, EMPTY, of, throwError} from 'rxjs';
-import * as moment from 'moment/moment';
+import moment from 'moment';
 import {CustomerNoteApiService, CustomerNotesResponse} from '../../../../api/customer-note-api.service';
 import {Router} from '@angular/router';
 import {DistributionApiService, DistributionItem} from '../../../../api/distribution-api.service';

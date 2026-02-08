@@ -4,7 +4,7 @@ import {CountryApiService, CountryData} from '../../../../api/country-api.servic
 import {CustomValidator} from '../../../../common/validator/CustomValidator';
 import {CustomerAddPersonData, CustomerData, Gender} from '../../../../api/customer-api.service';
 import {v4 as uuidv4} from 'uuid';
-import * as moment from 'moment';
+import moment from 'moment';
 import {CommonModule} from '@angular/common';
 import {Subject} from 'rxjs';
 import {takeUntil} from 'rxjs/operators';
