@@ -28,22 +28,21 @@ import {faEye, faEyeSlash} from '@fortawesome/free-solid-svg-icons';
 import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
 
 @Component({
-  selector: 'tafel-user-form',
-  templateUrl: 'user-form.component.html',
-  imports: [
-    ReactiveFormsModule,
-    NgClass,
-    InputGroupComponent,
-    InputGroupTextDirective,
-    CommonModule,
-    FormControlDirective,
-    FormLabelDirective,
-    FormCheckInputDirective,
-    FaIconComponent,
-    ButtonDirective,
-    TafelAutofocusDirective
-  ],
-  standalone: true
+    selector: 'tafel-user-form',
+    templateUrl: 'user-form.component.html',
+    imports: [
+        ReactiveFormsModule,
+        NgClass,
+        InputGroupComponent,
+        InputGroupTextDirective,
+        CommonModule,
+        FormControlDirective,
+        FormLabelDirective,
+        FormCheckInputDirective,
+        FaIconComponent,
+        ButtonDirective,
+        TafelAutofocusDirective
+    ]
 })
 export class UserFormComponent implements OnInit, OnDestroy {
   @Input() userData: UserData;

@@ -17,19 +17,18 @@ import {firstValueFrom} from 'rxjs';
 import {tap} from 'rxjs/operators';
 
 @Component({
-  selector: 'tafel-scanner',
-  templateUrl: 'scanner.component.html',
-  imports: [
-    RowComponent,
-    ColComponent,
-    CardComponent,
-    CardBodyComponent,
-    BadgeComponent,
-    FormsModule,
-    FormSelectDirective,
-    CommonModule
-  ],
-  standalone: true
+    selector: 'tafel-scanner',
+    templateUrl: 'scanner.component.html',
+    imports: [
+        RowComponent,
+        ColComponent,
+        CardComponent,
+        CardBodyComponent,
+        BadgeComponent,
+        FormsModule,
+        FormSelectDirective,
+        CommonModule
+    ]
 })
 export class ScannerComponent implements OnInit, OnDestroy {
   private readonly qrCodeReaderService = inject(QRCodeReaderService);

@@ -22,24 +22,23 @@ import {
 import {Subject, takeUntil} from 'rxjs';
 
 @Component({
-  selector: 'tafel-employee-search-create',
-  templateUrl: 'tafel-employee-search-create.component.html',
-  imports: [
-    ReactiveFormsModule,
-    InputGroupComponent,
-    CommonModule,
-    FaIconComponent,
-    ButtonDirective,
-    ColComponent,
-    RowComponent,
-    BgColorDirective,
-    ButtonCloseDirective,
-    ModalModule,
-    CardBodyComponent,
-    CardComponent,
-    TafelPaginationComponent,
-  ],
-  standalone: true
+    selector: 'tafel-employee-search-create',
+    templateUrl: 'tafel-employee-search-create.component.html',
+    imports: [
+        ReactiveFormsModule,
+        InputGroupComponent,
+        CommonModule,
+        FaIconComponent,
+        ButtonDirective,
+        ColComponent,
+        RowComponent,
+        BgColorDirective,
+        ButtonCloseDirective,
+        ModalModule,
+        CardBodyComponent,
+        CardComponent,
+        TafelPaginationComponent,
+    ]
 })
 export class TafelEmployeeSearchCreateComponent implements OnDestroy {
   searchInput = input.required<string>()

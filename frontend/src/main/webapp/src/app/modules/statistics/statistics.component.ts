@@ -14,21 +14,20 @@ import * as moment from 'moment';
 import {CommonModule} from '@angular/common';
 
 @Component({
-  selector: 'tafel-statistics',
-  templateUrl: 'statistics.component.html',
-  imports: [
-    CommonModule,
-    RowComponent,
-    ColComponent,
-    CardHeaderComponent,
-    CardBodyComponent,
-    CardComponent,
-    FormsModule,
-    ReactiveFormsModule,
-    FormSelectDirective,
-    ButtonDirective
-  ],
-  standalone: true
+    selector: 'tafel-statistics',
+    templateUrl: 'statistics.component.html',
+    imports: [
+        CommonModule,
+        RowComponent,
+        ColComponent,
+        CardHeaderComponent,
+        CardBodyComponent,
+        CardComponent,
+        FormsModule,
+        ReactiveFormsModule,
+        FormSelectDirective,
+        ButtonDirective
+    ]
 })
 export class StatisticsComponent {
   @Input() settings: StatisticsSettings;

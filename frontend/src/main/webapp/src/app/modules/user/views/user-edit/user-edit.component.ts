@@ -2,18 +2,15 @@ import {Component, inject, Input, OnInit, ViewChild} from '@angular/core';
 import {Router} from '@angular/router';
 import {UserApiService, UserData, UserPermission} from '../../../../api/user-api.service';
 import {UserFormComponent} from '../../components/user-form/user-form.component';
-import {NgClass} from '@angular/common';
 import {ButtonDirective} from '@coreui/angular';
 
 @Component({
-  selector: 'tafel-user-edit',
-  templateUrl: 'user-edit.component.html',
-  imports: [
-    UserFormComponent,
-    NgClass,
-    ButtonDirective
-  ],
-  standalone: true
+    selector: 'tafel-user-edit',
+    templateUrl: 'user-edit.component.html',
+    imports: [
+        UserFormComponent,
+        ButtonDirective
+    ]
 })
 export class UserEditComponent implements OnInit {
   @Input() permissionsData: UserPermission[];

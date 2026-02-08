@@ -45,34 +45,33 @@ import {GenderLabelPipe} from '../../../../common/pipes/gender-label.pipe';
 import {BirthdateAgePipe} from '../../../../common/pipes/birthdate-age.pipe';
 
 @Component({
-  selector: 'tafel-checkin',
-  templateUrl: 'checkin.component.html',
-  imports: [
-    RowComponent,
-    ColComponent,
-    CardComponent,
-    CardBodyComponent,
-    FormsModule,
-    BadgeComponent,
-    DatePipe,
-    CardHeaderComponent,
-    NgClass,
-    CardFooterComponent,
-    ButtonDirective,
-    FormSelectDirective,
-    CommonModule,
-    TafelAutofocusDirective,
-    FormCheckInputDirective,
-    ReactiveFormsModule,
-    TabDirective,
-    TabPanelComponent,
-    TabsComponent,
-    TabsContentComponent,
-    TabsListComponent,
-    GenderLabelPipe,
-    BirthdateAgePipe
-  ],
-  standalone: true
+    selector: 'tafel-checkin',
+    templateUrl: 'checkin.component.html',
+    imports: [
+        RowComponent,
+        ColComponent,
+        CardComponent,
+        CardBodyComponent,
+        FormsModule,
+        BadgeComponent,
+        DatePipe,
+        CardHeaderComponent,
+        NgClass,
+        CardFooterComponent,
+        ButtonDirective,
+        FormSelectDirective,
+        CommonModule,
+        TafelAutofocusDirective,
+        FormCheckInputDirective,
+        ReactiveFormsModule,
+        TabDirective,
+        TabPanelComponent,
+        TabsComponent,
+        TabsContentComponent,
+        TabsListComponent,
+        GenderLabelPipe,
+        BirthdateAgePipe
+    ]
 })
 export class CheckinComponent implements OnInit, OnDestroy {
   private readonly customerApiService = inject(CustomerApiService);

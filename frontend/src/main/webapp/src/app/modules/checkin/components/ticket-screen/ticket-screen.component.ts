@@ -1,21 +1,17 @@
 import {Component, inject, OnDestroy, OnInit} from '@angular/core';
 import {BgColorDirective, ColComponent, ContainerComponent, RowComponent} from '@coreui/angular';
-import {DatePipe, NgIf} from '@angular/common';
 import {SseService} from '../../../../common/sse/sse.service';
 import {Subscription} from 'rxjs';
 
 @Component({
-  selector: 'tafel-ticket-screen',
-  templateUrl: 'ticket-screen.component.html',
-  imports: [
-    ContainerComponent,
-    RowComponent,
-    ColComponent,
-    DatePipe,
-    BgColorDirective,
-    NgIf
-  ],
-  standalone: true
+    selector: 'tafel-ticket-screen',
+    templateUrl: 'ticket-screen.component.html',
+    imports: [
+        ContainerComponent,
+        RowComponent,
+        ColComponent,
+        BgColorDirective
+    ]
 })
 export class TicketScreenComponent implements OnInit, OnDestroy {
   private readonly sseService = inject(SseService);

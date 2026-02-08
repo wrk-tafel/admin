@@ -4,15 +4,14 @@ import {ColComponent, RowComponent} from '@coreui/angular';
 import {SendMailsComponent} from './components/send-dailyreport/send-mails.component';
 
 @Component({
-  selector: 'tafel-settings',
-  templateUrl: 'settings.component.html',
-  imports: [
-    MailRecipientsComponent,
-    RowComponent,
-    ColComponent,
-    SendMailsComponent
-  ],
-  standalone: true
+    selector: 'tafel-settings',
+    templateUrl: 'settings.component.html',
+    imports: [
+        MailRecipientsComponent,
+        RowComponent,
+        ColComponent,
+        SendMailsComponent
+    ]
 })
 export class SettingsComponent {
 }

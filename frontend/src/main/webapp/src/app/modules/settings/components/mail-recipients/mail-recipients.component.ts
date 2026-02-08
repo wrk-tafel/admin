@@ -24,28 +24,27 @@ import {MailTypeEnum, RecipientTypeEnum, SettingsApiService} from '../../../../a
 import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
 
 @Component({
-  selector: 'tafel-mail-recipients',
-  templateUrl: 'mail-recipients.component.html',
-  imports: [
-    CardComponent,
-    CardHeaderComponent,
-    CardBodyComponent,
-    CardFooterComponent,
-    RowComponent,
-    ColComponent,
-    IconDirective,
-    ButtonDirective,
-    FaIconComponent,
-    ReactiveFormsModule,
-    TabsContentComponent,
-    TabsComponent,
-    TabDirective,
-    TabPanelComponent,
-    CommonModule,
-    TextColorDirective,
-    TabsListComponent
-  ],
-  standalone: true
+    selector: 'tafel-mail-recipients',
+    templateUrl: 'mail-recipients.component.html',
+    imports: [
+        CardComponent,
+        CardHeaderComponent,
+        CardBodyComponent,
+        CardFooterComponent,
+        RowComponent,
+        ColComponent,
+        IconDirective,
+        ButtonDirective,
+        FaIconComponent,
+        ReactiveFormsModule,
+        TabsContentComponent,
+        TabsComponent,
+        TabDirective,
+        TabPanelComponent,
+        CommonModule,
+        TextColorDirective,
+        TabsListComponent
+    ]
 })
 export class MailRecipientsComponent implements OnInit {
   private readonly settingsApiService = inject(SettingsApiService);

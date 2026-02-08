@@ -18,24 +18,23 @@ import {CommonModule, NgClass} from '@angular/common';
 import {FormatPermissionsPipe} from '../../../../common/pipes/format-permissions.pipe';
 
 @Component({
-  selector: 'tafel-user-detail',
-  templateUrl: 'user-detail.component.html',
-  imports: [
-    DropdownComponent,
-    CardComponent,
-    CardBodyComponent,
-    RowComponent,
-    ColComponent,
-    NgClass,
-    DropdownItemDirective,
-    ButtonDirective,
-    DropdownToggleDirective,
-    DropdownMenuDirective,
-    DropdownDividerDirective,
-    CommonModule,
-    FormatPermissionsPipe
-  ],
-  standalone: true
+    selector: 'tafel-user-detail',
+    templateUrl: 'user-detail.component.html',
+    imports: [
+        DropdownComponent,
+        CardComponent,
+        CardBodyComponent,
+        RowComponent,
+        ColComponent,
+        NgClass,
+        DropdownItemDirective,
+        ButtonDirective,
+        DropdownToggleDirective,
+        DropdownMenuDirective,
+        DropdownDividerDirective,
+        CommonModule,
+        FormatPermissionsPipe
+    ]
 })
 export class UserDetailComponent {
   @Input() userData: UserData;

@@ -15,19 +15,18 @@ import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {TafelIfDistributionActiveDirective} from '../../../../common/directive/tafel-if-distribution-active.directive';
 
 @Component({
-  selector: 'tafel-registered-customers',
-  templateUrl: 'registered-customers.component.html',
-  imports: [
-    CardComponent,
-    CardBodyComponent,
-    RowComponent,
-    ColComponent,
-    FaIconComponent,
-    ButtonDirective,
-    TafelIfDistributionActiveDirective,
-    CardFooterComponent
-  ],
-  standalone: true
+    selector: 'tafel-registered-customers',
+    templateUrl: 'registered-customers.component.html',
+    imports: [
+        CardComponent,
+        CardBodyComponent,
+        RowComponent,
+        ColComponent,
+        FaIconComponent,
+        ButtonDirective,
+        TafelIfDistributionActiveDirective,
+        CardFooterComponent
+    ]
 })
 export class RegisteredCustomersComponent {
   private readonly distributionApiService = inject(DistributionApiService);

@@ -16,22 +16,21 @@ import {FormsModule} from '@angular/forms';
 import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
 
 @Component({
-  selector: 'tafel-send-mails',
-  templateUrl: 'send-mails.component.html',
-  imports: [
-    CardComponent,
-    CardHeaderComponent,
-    ColComponent,
-    IconDirective,
-    RowComponent,
-    CardBodyComponent,
-    ButtonDirective,
-    DatePipe,
-    FormsModule,
-    FormsModule,
-    FormSelectDirective
-  ],
-  standalone: true
+    selector: 'tafel-send-mails',
+    templateUrl: 'send-mails.component.html',
+    imports: [
+        CardComponent,
+        CardHeaderComponent,
+        ColComponent,
+        IconDirective,
+        RowComponent,
+        CardBodyComponent,
+        ButtonDirective,
+        DatePipe,
+        FormsModule,
+        FormsModule,
+        FormSelectDirective
+    ]
 })
 export class SendMailsComponent {
   private readonly distributionApiService = inject(DistributionApiService);

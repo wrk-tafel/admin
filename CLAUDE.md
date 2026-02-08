@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a food bank (Tafel) administration system built with a Spring Boot/Kotlin backend and Angular 18 frontend. The system manages customer registrations, food distributions, logistics operations, and generates various reports and statistics. It supports German/Austrian locale (de-AT) with Euro currency.
+This is a food bank (Tafel) administration system built with a Spring Boot/Kotlin backend and Angular 19 frontend. The system manages customer registrations, food distributions, logistics operations, and generates various reports and statistics. It supports German/Austrian locale (de-AT) with Euro currency.
 
 ## Build and Development Commands
 
@@ -128,7 +128,7 @@ The backend uses **Spring Modulith** architecture with 7 core feature modules, e
 
 ### Frontend Architecture
 
-The frontend is an Angular 18 single-page application using CoreUI 5.2 as the UI framework.
+The frontend is an Angular 19 single-page application using CoreUI 5.3 as the UI framework.
 
 **Feature Modules:**
 - **dashboard**: Overview with distribution state, registered customers, food amounts, statistics input
@@ -157,8 +157,8 @@ modules/<feature>/
 ```
 
 **Key Technologies:**
-- Angular 18 with standalone components
-- CoreUI 5.2 (Bootstrap-based UI library)
+- Angular 19 with standalone components
+- CoreUI 5.3 (Bootstrap-based UI library)
 - RxJS for reactive programming
 - html5-qrcode for scanner functionality
 - ngx-cookie-service for session management

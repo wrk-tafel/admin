@@ -19,26 +19,25 @@ import {NgIf, NgOptimizedImage} from '@angular/common';
 import {TafelAutofocusDirective} from '../../directive/tafel-autofocus.directive';
 
 @Component({
-  selector: 'tafel-login',
-  templateUrl: 'login.component.html',
-  imports: [
-    ContainerComponent,
-    RowComponent,
-    ColComponent,
-    CardGroupComponent,
-    CardComponent,
-    CardBodyComponent,
-    ReactiveFormsModule,
-    InputGroupComponent,
-    InputGroupTextDirective,
-    IconDirective,
-    NgOptimizedImage,
-    FormDirective,
-    NgIf,
-    ButtonDirective,
-    TafelAutofocusDirective
-  ],
-  standalone: true
+    selector: 'tafel-login',
+    templateUrl: 'login.component.html',
+    imports: [
+        ContainerComponent,
+        RowComponent,
+        ColComponent,
+        CardGroupComponent,
+        CardComponent,
+        CardBodyComponent,
+        ReactiveFormsModule,
+        InputGroupComponent,
+        InputGroupTextDirective,
+        IconDirective,
+        NgOptimizedImage,
+        FormDirective,
+        NgIf,
+        ButtonDirective,
+        TafelAutofocusDirective
+    ]
 })
 export class LoginComponent implements OnInit {
   private readonly authenticationService = inject(AuthenticationService);

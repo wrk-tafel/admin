@@ -35,27 +35,26 @@ import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofo
 import {GenderLabelPipe} from '../../../../common/pipes/gender-label.pipe';
 
 @Component({
-  selector: 'tafel-customer-form',
-  templateUrl: 'customer-form.component.html',
-  imports: [
-    ReactiveFormsModule,
-    InputGroupComponent,
-    CardComponent,
-    CardHeaderComponent,
-    RowComponent,
-    ColComponent,
-    CardBodyComponent,
-    CardFooterComponent,
-    CommonModule,
-    InputGroupTextDirective,
-    FormSelectDirective,
-    ButtonDirective,
-    FaIconComponent,
-    TafelAutofocusDirective,
-    FormCheckInputDirective,
-    GenderLabelPipe
-  ],
-  standalone: true
+    selector: 'tafel-customer-form',
+    templateUrl: 'customer-form.component.html',
+    imports: [
+        ReactiveFormsModule,
+        InputGroupComponent,
+        CardComponent,
+        CardHeaderComponent,
+        RowComponent,
+        ColComponent,
+        CardBodyComponent,
+        CardFooterComponent,
+        CommonModule,
+        InputGroupTextDirective,
+        FormSelectDirective,
+        ButtonDirective,
+        FaIconComponent,
+        TafelAutofocusDirective,
+        FormCheckInputDirective,
+        GenderLabelPipe
+    ]
 })
 export class CustomerFormComponent implements OnInit, OnDestroy {
   @Input() editMode = false;
