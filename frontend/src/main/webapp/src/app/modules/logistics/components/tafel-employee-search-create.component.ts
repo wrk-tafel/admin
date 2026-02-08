@@ -1,4 +1,4 @@
-import {Component, inject, input, OnDestroy, output} from '@angular/core';
+import {ChangeDetectorRef, Component, inject, input, OnDestroy, output} from '@angular/core';
 import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
 import {
   BgColorDirective,
@@ -20,6 +20,7 @@ import {
   TafelPaginationData
 } from '../../../common/components/tafel-pagination/tafel-pagination.component';
 import {Subject, takeUntil} from 'rxjs';
+import {ToastService, ToastType} from "../../../common/components/toasts/toast.service";
 
 @Component({
     selector: 'tafel-employee-search-create',
@@ -46,7 +47,9 @@ export class TafelEmployeeSearchCreateComponent implements OnDestroy {
   selectedEmployee = output<EmployeeData>()
 
   private readonly employeeApiService = inject(EmployeeApiService);
+  private readonly toastService = inject(ToastService);
   private readonly fb = inject(FormBuilder);
+  private readonly cdr = inject(ChangeDetectorRef);
   private readonly destroy$ = new Subject<void>();
 
   createEmployeeForm = this.fb.group({
@@ -91,18 +94,28 @@ export class TafelEmployeeSearchCreateComponent implements OnDestroy {
 
   selectEmployee(employee: EmployeeData) {
     this.employeeSearchResponse = undefined;
-    this.selectedEmployee.emit(employee);
     this.showSelectEmployeeModal = false;
+    this.cdr.detectChanges();
+    this.selectedEmployee.emit(employee);
   }
 
   saveNewEmployee() {
     this.employeeApiService.saveEmployee(this.createEmployeeForm.getRawValue())
       .pipe(takeUntil(this.destroy$))
-      .subscribe((savedEmployee) => {
-        this.selectedEmployee.emit(savedEmployee);
+      .subscribe({
+        next: (savedEmployee) => {
+          this.selectedEmployee.emit(savedEmployee);
+          this.createEmployeeForm.reset();
 
-        this.createEmployeeForm.reset();
-        this.showCreateEmployeeModal = false;
+          this.showCreateEmployeeModal = false;
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          this.toastService.showToast({
+            type: ToastType.ERROR,
+            title: 'Fehler beim Speichern des Mitarbeiters'
+          });
+        }
       });
   }
 

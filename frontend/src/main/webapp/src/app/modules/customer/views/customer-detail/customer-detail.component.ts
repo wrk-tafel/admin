@@ -1,6 +1,6 @@
 import {Component, inject, Input, OnInit} from '@angular/core';
 import {Router} from '@angular/router';
-import * as moment from 'moment';
+import moment from 'moment';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
 import {CustomerAddressData, CustomerApiService, CustomerData} from '../../../../api/customer-api.service';
 import {HttpResponse} from '@angular/common/http';

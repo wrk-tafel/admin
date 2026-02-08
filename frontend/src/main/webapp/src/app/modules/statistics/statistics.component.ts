@@ -10,7 +10,7 @@ import {
 } from '@coreui/angular';
 import {StatisticsDistribution, StatisticsSettings} from '../../api/statistics-api.service';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
-import * as moment from 'moment';
+import moment from 'moment';
 import {CommonModule} from '@angular/common';
 
 @Component({

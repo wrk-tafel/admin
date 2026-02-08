@@ -4,12 +4,7 @@
     "outDir": "../out-tsc/app",
     "baseUrl": "./",
     "module": "es2022",
-    "types": [],
-    "paths": {
-      "@angular/*": [
-        "../node_modules/@angular/*"
-      ]
-    }
+    "types": []
   },
   "angularCompilerOptions": {
     "importHelpers": true

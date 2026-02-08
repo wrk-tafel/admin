@@ -1,7 +1,7 @@
 import {TestBed, waitForAsync} from '@angular/core/testing';
 import {ReactiveFormsModule} from '@angular/forms';
 import {Router} from '@angular/router';
-import * as moment from 'moment';
+import moment from 'moment';
 import {EMPTY, of} from 'rxjs';
 import {CustomerApiService, CustomerSearchResult, Gender} from '../../../../api/customer-api.service';
 import {CustomerSearchComponent} from './customer-search.component';

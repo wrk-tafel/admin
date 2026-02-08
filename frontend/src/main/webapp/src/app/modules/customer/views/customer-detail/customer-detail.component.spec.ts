@@ -1,7 +1,7 @@
 import {HttpHeaders, HttpResponse} from '@angular/common/http';
 import {ComponentFixture, TestBed, waitForAsync} from '@angular/core/testing';
 import {By} from '@angular/platform-browser';
-import * as moment from 'moment';
+import moment from 'moment';
 import {of, throwError} from 'rxjs';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
 import {CustomerApiService, CustomerData, Gender} from '../../../../api/customer-api.service';
@@ -23,7 +23,7 @@ import {
   RowComponent,
   TabsModule
 } from '@coreui/angular';
-import {NoopAnimationsModule} from '@angular/platform-browser/animations';
+import {provideNoopAnimations} from '@angular/platform-browser/animations';
 import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
 import {TafelPaginationData} from '../../../../common/components/tafel-pagination/tafel-pagination.component';
 import {provideRouter} from '@angular/router';
@@ -129,7 +129,6 @@ describe('CustomerDetailComponent', () => {
 
     TestBed.configureTestingModule({
       imports: [
-        NoopAnimationsModule,
         CommonModule,
         ModalModule,
         TabsModule,
@@ -141,6 +140,7 @@ describe('CustomerDetailComponent', () => {
         RowComponent
       ],
       providers: [
+        provideNoopAnimations(),
         {
           provide: LOCALE_ID,
           useValue: 'de-AT'

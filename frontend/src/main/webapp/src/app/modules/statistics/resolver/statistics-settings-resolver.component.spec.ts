@@ -1,5 +1,5 @@
 import {TestBed} from '@angular/core/testing';
-import * as moment from 'moment/moment';
+import moment from 'moment';
 import {of} from 'rxjs';
 import {ActivatedRouteSnapshot} from '@angular/router';
 import {provideHttpClient} from '@angular/common/http';

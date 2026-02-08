@@ -9,7 +9,7 @@ import {
   TafelPaginationComponent,
   TafelPaginationData
 } from '../../../../common/components/tafel-pagination/tafel-pagination.component';
-import * as moment from 'moment/moment';
+import moment from 'moment';
 import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
 import {
   ButtonDirective,
@@ -19,7 +19,7 @@ import {
   ColComponent,
   RowComponent
 } from '@coreui/angular';
-import {DatePipe, NgClass, NgForOf, NgIf} from '@angular/common';
+import {DatePipe, NgClass} from '@angular/common';
 import {faCheck, faMagnifyingGlass, faTrashCan} from '@fortawesome/free-solid-svg-icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {FormatAddressPipe} from '../../../../common/pipes/format-address.pipe';
@@ -37,8 +37,6 @@ import {FormatAddressPipe} from '../../../../common/pipes/format-address.pipe';
         DatePipe,
         NgClass,
         ButtonDirective,
-        NgIf,
-        NgForOf,
         FaIconComponent,
         FormatAddressPipe
     ]

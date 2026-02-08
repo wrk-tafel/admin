@@ -11,7 +11,7 @@ import {
 } from '@angular/core';
 import {CustomerApiService, CustomerData} from '../../../../api/customer-api.service';
 import {Subscription} from 'rxjs';
-import * as moment from 'moment';
+import moment from 'moment';
 import {CustomerNoteApiService, CustomerNoteItem} from '../../../../api/customer-note-api.service';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
 import {Router} from '@angular/router';

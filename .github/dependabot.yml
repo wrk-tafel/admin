@@ -15,30 +15,6 @@ updates:
     schedule:
       interval: "daily"
     open-pull-requests-limit: 50
-    ignore:
-      # Wait for Angular 19
-      - dependency-name: "@angular*"
-        versions: [ ">=19" ]
-      - dependency-name: "@angular-devkit/build-angular"
-        versions: [ ">=19" ]
-      - dependency-name: "@coreui*"
-        versions: [ ">=5.3" ]
-      - dependency-name: "@fortawesome*"
-        versions: [ ">=19" ]
-      - dependency-name: "ngx-cookie-service"
-        versions: [ ">=19" ]
-      - dependency-name: "zone.js"
-        versions: [ ">=0.15" ]
-      - dependency-name: "@fortawesome/angular-fontawesome"
-        versions: [ ">=1.0" ]
-      # Needed by @stomp/rx-stomp (2.0.0)
-      - dependency-name: "uuid"
-        versions: [ ">=10" ]
-      # keep it matching the node version
-      - dependency-name: "@types/node"
-        versions: [ ">=21" ]
-      - dependency-name: "typescript"
-        versions: [ ">=5.5" ]
   # Maintain dependencies for GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/.github/workflows"
