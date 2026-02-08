@@ -133,7 +133,7 @@
               <h5>Berechtigungen</h5>
             </div>
           </div>
-          <div class="d-flex flex-column flex-md-row flex-wrap">
+          <div style="display: grid; grid-template-columns: repeat(5, 1fr);">
             <div formArrayName="permissions" *ngFor="let permission of permissions.controls; trackBy: trackBy; let i = index;">
               <div [formGroupName]="i" [attr.testid]="'permission-' + i" class="mt-2 mb-2 me-0 me-sm-5">
                 <label cLabel [attr.for]="'permission-checkbox-' + i">{{permission.get('title').value}}</label>

@@ -35,7 +35,7 @@ import {DecimalPipe, NgClass} from '@angular/common';
   standalone: true
 })
 export class CustomerEditComponent implements OnInit {
-  @Input('customerData') customerData: CustomerData;
+  @Input() customerData: CustomerData;
 
   customerUpdated: CustomerData;
   editMode = false;

@@ -19,6 +19,12 @@ body {
   margin: auto;
 }
 
+.sidebar-nav {
+  .nav-title {
+    margin-top: 5px;
+  }
+}
+
 .sidebar-header {
   .nav-underline-border {
     --cui-nav-underline-border-link-padding-x: 1rem;

@@ -11,6 +11,7 @@ enum class UserPermissions(val key: String, val title: String) {
     CUSTOMER_DUPLICATES("CUSTOMER_DUPLICATES", "Kunden-Duplikate"),
     LOGISTICS("LOGISTICS", "Transport/Logistik"),
     SCANNER("SCANNER", "Scanner"),
+    STATISTICS("STATISTICS", "Statistiken"),
     SETTINGS("SETTINGS", "Einstellungen");
 
     companion object {
