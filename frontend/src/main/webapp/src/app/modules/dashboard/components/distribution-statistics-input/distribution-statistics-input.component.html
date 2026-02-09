@@ -11,14 +11,16 @@
           <label class="form-label">Anzahl der Mitarbeiter *</label>
           <input testid="distribution-statistics-employee-count-input" type="number" formControlName="employeeCount" class="form-control"
                  [ngClass]="{'is-invalid': employeeCount.invalid && (employeeCount.dirty || employeeCount.touched), 'is-valid': employeeCount.valid && (employeeCount.dirty || employeeCount.touched)}">
-          <div *ngIf="employeeCount.errors?.required && (employeeCount.dirty || employeeCount.touched)"
-               class="invalid-feedback">
-            Pflichtfeld
-          </div>
-          <div *ngIf="employeeCount.errors?.min && (employeeCount.dirty || employeeCount.touched)"
-               class="invalid-feedback">
-            Muss mindestens 1 sein
-          </div>
+          @if (employeeCount.errors?.required && (employeeCount.dirty || employeeCount.touched)) {
+            <div class="invalid-feedback">
+              Pflichtfeld
+            </div>
+          }
+          @if (employeeCount.errors?.min && (employeeCount.dirty || employeeCount.touched)) {
+            <div class="invalid-feedback">
+              Muss mindestens 1 sein
+            </div>
+          }
         </c-col>
       </c-row>
       <c-row class="mt-4">
@@ -30,14 +32,16 @@
             <span cInputGroupText>
                 <tafel-select-shelters (updateSelectedShelters)="onUpdateSelectedShelters($event)" [shelters]="sheltersData().shelters" [initialSelectedShelters]="selectedShelters" [disabled]="panelDisabled()"></tafel-select-shelters>
             </span>
-            <div *ngIf="personsInShelterCount.errors?.required && (personsInShelterCount.dirty || personsInShelterCount.touched)"
-                 class="invalid-feedback">
-              Pflichtfeld
-            </div>
-            <div *ngIf="personsInShelterCount.errors?.min && (personsInShelterCount.dirty || personsInShelterCount.touched)"
-                 class="invalid-feedback">
-              Muss mindestens 1 sein
-            </div>
+            @if (personsInShelterCount.errors?.required && (personsInShelterCount.dirty || personsInShelterCount.touched)) {
+              <div class="invalid-feedback">
+                Pflichtfeld
+              </div>
+            }
+            @if (personsInShelterCount.errors?.min && (personsInShelterCount.dirty || personsInShelterCount.touched)) {
+              <div class="invalid-feedback">
+                Muss mindestens 1 sein
+              </div>
+            }
           </c-input-group>
         </c-col>
       </c-row>

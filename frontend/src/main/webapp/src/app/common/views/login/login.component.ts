@@ -15,7 +15,7 @@ import {
   RowComponent
 } from '@coreui/angular';
 import {IconDirective} from '@coreui/icons-angular';
-import {NgIf, NgOptimizedImage} from '@angular/common';
+import {NgOptimizedImage} from '@angular/common';
 import {TafelAutofocusDirective} from '../../directive/tafel-autofocus.directive';
 
 @Component({
@@ -34,7 +34,6 @@ import {TafelAutofocusDirective} from '../../directive/tafel-autofocus.directive
         IconDirective,
         NgOptimizedImage,
         FormDirective,
-        NgIf,
         ButtonDirective,
         TafelAutofocusDirective
     ]
