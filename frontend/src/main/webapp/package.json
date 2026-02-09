@@ -98,7 +98,7 @@
     "karma-spec-reporter": "0.0.36",
     "protractor": "7.0.0",
     "ts-node": "10.9.2",
-    "typescript": "5.8.3",
+    "typescript": "5.9.3",
     "wait-on": "9.0.3"
   },
   "engines": {
