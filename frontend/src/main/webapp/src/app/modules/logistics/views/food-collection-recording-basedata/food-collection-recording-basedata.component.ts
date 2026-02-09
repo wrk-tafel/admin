@@ -72,7 +72,6 @@ export class FoodCollectionRecordingBasedataComponent implements OnDestroy {
 
   kmDifference = 0;
   showKmDiffModal = false;
-  overrideKmDiffModal = false;
 
   form = this.fb.group({
       car: this.fb.control<CarData>(null, [Validators.required]),
@@ -178,12 +177,12 @@ export class FoodCollectionRecordingBasedataComponent implements OnDestroy {
     return this.form.invalid || !this.selectedDriver || !this.selectedCoDriver;
   }
 
-  save() {
+  save(overrideKmDiffModal: boolean = false) {
     const kmStart = this.kmStart.value;
     const kmEnd = this.kmEnd.value;
     this.kmDifference = kmEnd - kmStart;
 
-    if (!this.overrideKmDiffModal && this.kmDifference > 350) {
+    if (!overrideKmDiffModal && this.kmDifference > 350) {
       this.showKmDiffModal = true;
       return;
     }

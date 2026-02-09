@@ -1,7 +1,7 @@
 import {TestBed, waitForAsync} from '@angular/core/testing';
 import {ReactiveFormsModule} from '@angular/forms';
 import {ActivatedRoute, Router} from '@angular/router';
-import * as moment from 'moment';
+import moment from 'moment';
 import {of} from 'rxjs';
 import {CustomerApiService, CustomerData, Gender, ValidateCustomerResponse} from '../../../../api/customer-api.service';
 import {CustomerEditComponent} from './customer-edit.component';
@@ -14,7 +14,7 @@ import {
   ModalModule,
   RowComponent
 } from '@coreui/angular';
-import {NoopAnimationsModule} from '@angular/platform-browser/animations';
+import {provideNoopAnimations} from '@angular/platform-browser/animations';
 import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
 import {provideHttpClient} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
@@ -82,7 +82,6 @@ describe('CustomerEditComponent - Creating a new customer', () => {
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       imports: [
-        NoopAnimationsModule,
         ReactiveFormsModule,
         ModalModule,
         InputGroupComponent,
@@ -92,6 +91,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
         BgColorDirective
       ],
       providers: [
+        provideNoopAnimations(),
         provideHttpClient(),
         provideHttpClientTesting(),
         {

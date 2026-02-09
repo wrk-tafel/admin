@@ -6,6 +6,7 @@ export default defineConfig({
   viewportHeight: 1024,
   videoCompression: false,
   video: true,
+  allowCypressEnv: false,
   env: {
     'browserPermissions': {
       'camera': 'allow'

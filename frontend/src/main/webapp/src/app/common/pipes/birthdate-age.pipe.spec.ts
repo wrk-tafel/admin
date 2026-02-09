@@ -1,5 +1,5 @@
 import {BirthdateAgePipe} from './birthdate-age.pipe';
-import * as moment from 'moment';
+import moment from 'moment';
 
 describe('BirthdateAgePipe', () => {
   let pipe: BirthdateAgePipe;

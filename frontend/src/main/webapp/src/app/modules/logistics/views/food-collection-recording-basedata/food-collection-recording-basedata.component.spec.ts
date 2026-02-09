@@ -386,9 +386,8 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
     expect(foodCollectionsApiServiceSpy.saveRouteData).not.toHaveBeenCalled();
 
     // Simulate clicking OK button
-    component.overrideKmDiffModal = true;
     component.showKmDiffModal = false;
-    component.save();
+    component.save(true);
 
     expect(foodCollectionsApiServiceSpy.saveRouteData).toHaveBeenCalledWith(123, {
       carId: 1,

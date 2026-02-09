@@ -159,7 +159,7 @@
               </c-row>
               <c-row>
                   <c-col>
-                      <div *ngIf="customerState !== 0">
+                      <div *ngIf="customerState() !== undefined && customerState() !== 0">
                         <hr>
                         <c-row>
                           <c-col size="12" md="3" class="fw-bold">Ticket-Nummer: *</c-col>
@@ -193,7 +193,7 @@
             <c-card-footer>
                 <c-row>
                     <c-col>
-                        <button [disabled]="customerState === 0 || !ticketNumber" testid="assignCustomerButton"
+                        <button [disabled]="customerState() === 0 || !ticketNumber" testid="assignCustomerButton"
                                 cButton color="success"
                                 (click)="assignCustomer()">Annehmen
                         </button>

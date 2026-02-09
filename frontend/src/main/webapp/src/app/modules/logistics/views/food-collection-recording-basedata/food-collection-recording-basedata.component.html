@@ -175,7 +175,7 @@
     </div>
   </c-modal-body>
   <c-modal-footer>
-    <button testid="ok-button" cButton (click)="overrideKmDiffModal = true; showKmDiffModal = false; save();">OK</button>
+    <button testid="ok-button" cButton (click)="showKmDiffModal = false; save(true);">OK</button>
     <button testid="cancel-button" cButton color="secondary" (click)="showKmDiffModal = false">Abbrechen</button>
   </c-modal-footer>
 </c-modal>
