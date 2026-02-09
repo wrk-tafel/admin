@@ -1,9 +1,16 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="AdminBackendApplication (local)" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
     <option name="ACTIVE_PROFILES" value="local" />
+    <option name="ALTERNATIVE_JRE_PATH" value="corretto-25" />
+    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
     <module name="backend" />
     <option name="SPRING_BOOT_MAIN_CLASS" value="at.wrk.tafel.admin.backend.AdminBackendApplication" />
     <option name="VM_PARAMETERS" value="-Duser.timezone=Europe/Vienna" />
+    <extension name="software.aws.toolkits.jetbrains.core.execution.JavaAwsConnectionExtension">
+      <option name="credential" />
+      <option name="region" />
+      <option name="useCurrentConnection" value="false" />
+    </extension>
     <method v="2">
       <option name="Make" enabled="true" />
     </method>
