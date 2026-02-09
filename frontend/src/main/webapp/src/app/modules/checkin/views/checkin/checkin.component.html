@@ -14,8 +14,9 @@
                     <c-col sm="3" class="align-self-center">
                         <select testid="scannerIdInput" class="form-control" cSelect [(ngModel)]="selectedScannerId">
                             <option [ngValue]="undefined">Nicht aktiv</option>
-                            <option *ngFor="let scannerId of scannerIds; trackBy: trackByScannerId" [ngValue]="scannerId">
-                                Nr. {{scannerId}}</option>
+                            @for (scannerId of scannerIds; track trackByScannerId(scannerId)) {
+                              <option [ngValue]="scannerId">Nr. {{scannerId}}</option>
+                            }
                         </select>
                     </c-col>
                     <c-col>
@@ -45,7 +46,8 @@
                 </c-row>
             </c-card-body>
         </c-card>
-        <c-card class="mt-3" *ngIf="customer() !== undefined" testid="customerDetailPanel">
+        @if (customer() !== undefined) {
+          <c-card class="mt-3" testid="customerDetailPanel">
             <c-card-body>
               <c-row>
                 <c-col class="mb-2">
@@ -135,23 +137,27 @@
                     <c-card-header class="fw-bold">Aktuellste Notiz</c-card-header>
                     <c-card-body>
                       <c-row>
-                        <c-col class="fw-bold" *ngIf="customerNotes?.length === 0">
-                          <h6 testid="nonotes-label">Keine Notiz vorhanden</h6>
-                        </c-col>
+                        @if (customerNotes?.length === 0) {
+                          <c-col class="fw-bold">
+                            <h6 testid="nonotes-label">Keine Notiz vorhanden</h6>
+                          </c-col>
+                        }
                       </c-row>
                       <c-row>
-                        <c-col *ngIf="customerNotes && customerNotes?.length !== 0">
-                          <c-row class="mb-2">
-                            <c-col class="fw-bold" testid="note-title">
-                              {{customerNotes[0].timestamp | date : 'dd.MM.yyyy HH:mm' }}&nbsp;{{customerNotes[0].author}}
-                            </c-col>
-                          </c-row>
-                          <c-row>
-                            <c-col testid="note-text">
-                              {{customerNotes[0].note}}
-                            </c-col>
-                          </c-row>
-                        </c-col>
+                        @if (customerNotes && customerNotes?.length !== 0) {
+                          <c-col>
+                            <c-row class="mb-2">
+                              <c-col class="fw-bold" testid="note-title">
+                                {{customerNotes[0].timestamp | date : 'dd.MM.yyyy HH:mm' }}&nbsp;{{customerNotes[0].author}}
+                              </c-col>
+                            </c-row>
+                            <c-row>
+                              <c-col testid="note-text">
+                                {{customerNotes[0].note}}
+                              </c-col>
+                            </c-row>
+                          </c-col>
+                        }
                       </c-row>
                     </c-card-body>
                   </c-card>
@@ -159,34 +165,38 @@
               </c-row>
               <c-row>
                   <c-col>
-                      <div *ngIf="customerState() !== undefined && customerState() !== 0">
-                        <hr>
-                        <c-row>
-                          <c-col size="12" md="3" class="fw-bold">Ticket-Nummer: *</c-col>
-                          <c-col size="12" md="3" class="align-middle">
-                            <input testid="ticketNumberInput" #ticketNumberInput type="number"
-                                   name="ticketNumberInput" [(ngModel)]="ticketNumber"
-                                   class="form-control" required (keydown.enter)="assignCustomer()"
-                                   [ngClass]="{'is-invalid': !ticketNumber, 'is-valid': ticketNumber}">
-                          </c-col>
-                          <c-col>
-                            <button testid="deleteTicketButton" *ngIf="ticketNumberEdit === true"
-                                    cButton color="danger"
-                                    class="ms-0 ms-md-3 mt-3 mt-md-0 text-white"
-                                    (click)="deleteTicket()">Ticket löschen
-                            </button>
-                          </c-col>
-                        </c-row>
-                        <c-row>
-                          <c-col size="12" md="3" class="fw-bold">
-                            <label class="form-label">Unkostenbeitrag bezahlt? *</label>
-                          </c-col>
-                          <c-col size="12" md="3" class="align-middle">
-                            <input testid="costContributionPaidInput" type="checkbox" cFormCheckInput
-                                   name="costContributionPaidInput" [(ngModel)]="costContributionPaid" required>
-                          </c-col>
-                        </c-row>
-                      </div>
+                      @if (customerState() !== undefined && customerState() !== 0) {
+                        <div>
+                          <hr>
+                          <c-row>
+                            <c-col size="12" md="3" class="fw-bold">Ticket-Nummer: *</c-col>
+                            <c-col size="12" md="3" class="align-middle">
+                              <input testid="ticketNumberInput" #ticketNumberInput type="number"
+                                     name="ticketNumberInput" [(ngModel)]="ticketNumber"
+                                     class="form-control" required (keydown.enter)="assignCustomer()"
+                                     [ngClass]="{'is-invalid': !ticketNumber, 'is-valid': ticketNumber}">
+                            </c-col>
+                            <c-col>
+                              @if (ticketNumberEdit === true) {
+                                <button testid="deleteTicketButton"
+                                        cButton color="danger"
+                                        class="ms-0 ms-md-3 mt-3 mt-md-0 text-white"
+                                        (click)="deleteTicket()">Ticket löschen
+                                </button>
+                              }
+                            </c-col>
+                          </c-row>
+                          <c-row>
+                            <c-col size="12" md="3" class="fw-bold">
+                              <label class="form-label">Unkostenbeitrag bezahlt? *</label>
+                            </c-col>
+                            <c-col size="12" md="3" class="align-middle">
+                              <input testid="costContributionPaidInput" type="checkbox" cFormCheckInput
+                                     name="costContributionPaidInput" [(ngModel)]="costContributionPaid" required>
+                            </c-col>
+                          </c-row>
+                        </div>
+                      }
                   </c-col>
               </c-row>
             </c-card-body>
@@ -203,6 +213,7 @@
                     </c-col>
                 </c-row>
             </c-card-footer>
-        </c-card>
+          </c-card>
+        }
     </c-col>
 </c-row>

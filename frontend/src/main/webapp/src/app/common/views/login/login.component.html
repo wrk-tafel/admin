@@ -10,9 +10,11 @@
                   <img ngSrc="./assets/img/brand/logo.svg" alt="ÖRK Logo" width="200" class="mb-2" height="54"/>
                   <h1>Tafel Admin</h1>
                 </div>
-                <div testid="errorMessage" *ngIf="errorMessage" class="alert alert-danger">
-                  <div>{{errorMessage}}</div>
-                </div>
+                @if (errorMessage) {
+                  <div testid="errorMessage" class="alert alert-danger">
+                    <div>{{errorMessage}}</div>
+                  </div>
+                }
                 <c-input-group class="mb-3">
                   <span cInputGroupText>
                     <svg cIcon name="cilUser"></svg>

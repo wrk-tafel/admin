@@ -21,7 +21,6 @@ import {
   ModalToggleDirective,
   RowComponent
 } from '@coreui/angular';
-import {NgIf} from '@angular/common';
 
 @Component({
     selector: 'tafel-distribution-state',
@@ -35,7 +34,6 @@ import {NgIf} from '@angular/common';
         ModalHeaderComponent,
         ModalToggleDirective,
         ModalBodyComponent,
-        NgIf,
         ButtonDirective,
         ButtonCloseDirective,
         CardFooterComponent,
