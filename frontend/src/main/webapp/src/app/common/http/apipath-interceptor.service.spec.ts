@@ -1,51 +1,52 @@
-import {HttpClient, provideHttpClient, withInterceptors} from '@angular/common/http';
-import {TestBed} from '@angular/core/testing';
-import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
-import {apiPathInterceptor} from './apipath-interceptor.service';
-import {UrlHelperService} from '../util/url-helper.service';
+import type { MockedObject } from "vitest";
+import { HttpClient, provideHttpClient, withInterceptors } from '@angular/common/http';
+import { TestBed } from '@angular/core/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { apiPathInterceptor } from './apipath-interceptor.service';
+import { UrlHelperService } from '../util/url-helper.service';
 
 describe('ApiPathInterceptor', () => {
-  let httpTestingController: HttpTestingController;
-  let httpClient: HttpClient;
-  let urlHelperSpy: jasmine.SpyObj<UrlHelperService>;
+    let httpTestingController: HttpTestingController;
+    let httpClient: HttpClient;
+    let urlHelperSpy: MockedObject<UrlHelperService>;
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      providers: [
-        provideHttpClient(
-          withInterceptors([apiPathInterceptor])
-        ),
-        provideHttpClientTesting(),
-        {
-          provide: UrlHelperService,
-          useValue: jasmine.createSpyObj('UrlHelperService', ['getBaseUrl'])
-        }
-      ],
+    beforeEach(() => {
+        TestBed.configureTestingModule({
+            providers: [
+                provideHttpClient(withInterceptors([apiPathInterceptor])),
+                provideHttpClientTesting(),
+                {
+                    provide: UrlHelperService,
+                    useValue: {
+                        getBaseUrl: vi.fn().mockName("UrlHelperService.getBaseUrl")
+                    }
+                }
+            ],
+        });
+
+        httpTestingController = TestBed.inject(HttpTestingController);
+        httpClient = TestBed.inject(HttpClient);
+        urlHelperSpy = TestBed.inject(UrlHelperService) as MockedObject<UrlHelperService>;
     });
 
-    httpTestingController = TestBed.inject(HttpTestingController);
-    httpClient = TestBed.inject(HttpClient);
-    urlHelperSpy = TestBed.inject(UrlHelperService) as jasmine.SpyObj<UrlHelperService>;
-  });
+    afterEach(() => {
+        httpTestingController.verify();
+    });
 
-  afterEach(() => {
-    httpTestingController.verify();
-  });
+    it('should add the api path with base root without subpath', () => {
+        urlHelperSpy.getBaseUrl.mockReturnValue('http://test:1234');
 
-  it('should add the api path with base root without subpath', () => {
-    urlHelperSpy.getBaseUrl.and.returnValue('http://test:1234');
+        httpClient.get('/test').subscribe();
 
-    httpClient.get('/test').subscribe();
+        httpTestingController.expectOne('http://test:1234/api/test');
+    });
 
-    httpTestingController.expectOne('http://test:1234/api/test');
-  });
+    it('should add the api path with base root and with subpath', () => {
+        urlHelperSpy.getBaseUrl.mockReturnValue('http://test:1234/subpath');
 
-  it('should add the api path with base root and with subpath', () => {
-    urlHelperSpy.getBaseUrl.and.returnValue('http://test:1234/subpath');
+        httpClient.get('/test').subscribe();
 
-    httpClient.get('/test').subscribe();
-
-    httpTestingController.expectOne('http://test:1234/subpath/api/test');
-  });
+        httpTestingController.expectOne('http://test:1234/subpath/api/test');
+    });
 
 });

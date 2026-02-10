@@ -1,4 +1,5 @@
-import {TestBed, waitForAsync} from '@angular/core/testing';
+import type { MockedObject } from "vitest";
+import {TestBed} from '@angular/core/testing';
 import {passwordRepeatValidator, UserFormComponent, UserPermissionFormItem} from './user-form.component';
 import {FormControl, FormGroup, ReactiveFormsModule} from '@angular/forms';
 import {CardModule, ColComponent, InputGroupComponent, RowComponent} from '@coreui/angular';
@@ -23,10 +24,10 @@ describe('UserFormComponent', () => {
     permissions: mockPermissions
   };
 
-  let userApiService: jasmine.SpyObj<UserApiService>;
-  let toastService: jasmine.SpyObj<ToastService>;
+  let userApiService: MockedObject<UserApiService>;
+  let toastService: MockedObject<ToastService>;
 
-  beforeEach(waitForAsync(() => {
+  beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [
         ReactiveFormsModule,
@@ -38,30 +39,36 @@ describe('UserFormComponent', () => {
       providers: [
         {
           provide: UserApiService,
-          useValue: jasmine.createSpyObj('UserApiService', ['generatePassword'])
+          useValue: {
+            generatePassword: vi.fn().mockName("UserApiService.generatePassword")
+          }
         },
         {
           provide: ToastService,
-          useValue: jasmine.createSpyObj('ToastService', ['showToast'])
+          useValue: {
+            showToast: vi.fn().mockName("ToastService.showToast")
+          }
         }
       ]
     }).compileComponents();
 
-    userApiService = TestBed.inject(UserApiService) as jasmine.SpyObj<UserApiService>;
-    toastService = TestBed.inject(ToastService) as jasmine.SpyObj<ToastService>;
-  }));
+    userApiService = TestBed.inject(UserApiService) as MockedObject<UserApiService>;
+    toastService = TestBed.inject(ToastService) as MockedObject<ToastService>;
+  });
 
-  it('should create the component', waitForAsync(() => {
+  it('should create the component', () => {
     const fixture = TestBed.createComponent(UserFormComponent);
     const component = fixture.componentInstance;
+    component.permissionsData = mockPermissions;
+    component.ngOnInit();
     expect(component).toBeTruthy();
-  }));
+  });
 
-  it('data filling works', waitForAsync(() => {
+  it('data filling works', () => {
     const fixture = TestBed.createComponent(UserFormComponent);
     const component = fixture.componentInstance;
 
-    spyOn(component.userDataChange, 'emit');
+    vi.spyOn(component.userDataChange, 'emit');
     component.userData = mockUser;
     component.permissionsData = mockPermissions;
     component.ngOnInit();
@@ -94,13 +101,13 @@ describe('UserFormComponent', () => {
     expect(component.permissions.controls.length).toBe(2);
     expect(component.permissions.controls[0].value).toEqual({...mockPermissions[0], enabled: true});
     expect(component.permissions.controls[1].value).toEqual({...mockPermissions[1], enabled: true});
-  }));
+  });
 
-  it('data update works', waitForAsync(() => {
+  it('data update works', () => {
     const fixture = TestBed.createComponent(UserFormComponent);
     const component = fixture.componentInstance;
 
-    spyOn(component.userDataChange, 'emit');
+    vi.spyOn(component.userDataChange, 'emit');
     component.userData = mockUser;
     component.permissionsData = mockPermissions;
     component.ngOnInit();
@@ -122,7 +129,7 @@ describe('UserFormComponent', () => {
 
     fixture.detectChanges();
 
-    expect(component.userDataChange.emit).toHaveBeenCalledWith(jasmine.objectContaining({
+    expect(component.userDataChange.emit).toHaveBeenCalledWith(expect.objectContaining({
       personnelNumber: updatedPersonnelNumber,
       username: updatedUsername,
       lastname: updatedLastname,
@@ -131,9 +138,9 @@ describe('UserFormComponent', () => {
       passwordChangeRequired: updatedPasswordChangeRequired,
       permissions: []
     }));
-  }));
+  });
 
-  it('password-repeat validator passwords different', waitForAsync(() => {
+  it('password-repeat validator passwords different', () => {
     const passwordControl = new FormControl();
     passwordControl.setValue('pwd');
     const passwordRepeatControl = new FormControl();
@@ -145,10 +152,10 @@ describe('UserFormComponent', () => {
     });
 
     const result = passwordRepeatValidator(formGroup);
-    expect(result['passwordRepeatInvalid']).toBeTrue();
-  }));
+    expect(result['passwordRepeatInvalid']).toBe(true);
+  });
 
-  it('password-repeat validator passwords same', waitForAsync(() => {
+  it('password-repeat validator passwords same', () => {
     const passwordControl = new FormControl();
     passwordControl.setValue('pwd');
     const passwordRepeatControl = new FormControl();
@@ -161,44 +168,48 @@ describe('UserFormComponent', () => {
 
     const result = passwordRepeatValidator(formGroup);
     expect(result).toBeNull();
-  }));
+  });
 
-  it('generate password', waitForAsync(() => {
+  it('generate password', () => {
     const fixture = TestBed.createComponent(UserFormComponent);
     const component = fixture.componentInstance;
+    component.permissionsData = mockPermissions;
+    component.ngOnInit();
     component.passwordTextVisible = false;
     component.passwordRepeatTextVisible = false;
 
     const generatedPassword = 'random-pwd';
-    userApiService.generatePassword.and.returnValues(of({password: generatedPassword}));
+    userApiService.generatePassword.mockReturnValue(of({password: generatedPassword}));
 
     component.generatePassword();
 
     expect(component.password.value).toEqual(generatedPassword);
     expect(component.passwordRepeat.value).toEqual(generatedPassword);
-    expect(component.passwordTextVisible).toBeTrue();
-    expect(component.passwordRepeatTextVisible).toBeTrue();
-  }));
+    expect(component.passwordTextVisible).toBe(true);
+    expect(component.passwordRepeatTextVisible).toBe(true);
+  });
 
-  it('generate password failed', waitForAsync(() => {
+  it('generate password failed', () => {
     const fixture = TestBed.createComponent(UserFormComponent);
     const component = fixture.componentInstance;
+    component.permissionsData = mockPermissions;
+    component.ngOnInit();
     component.passwordTextVisible = false;
     component.passwordRepeatTextVisible = false;
-    userApiService.generatePassword.and.returnValues(throwError(() => 'generation failed'));
+    userApiService.generatePassword.mockReturnValue(throwError(() => 'generation failed'));
 
     component.generatePassword();
 
     expect(component.password.value).toBeNull();
     expect(component.passwordRepeat.value).toBeNull();
-    expect(component.passwordTextVisible).toBeFalse();
-    expect(component.passwordRepeatTextVisible).toBeFalse();
+    expect(component.passwordTextVisible).toBe(false);
+    expect(component.passwordRepeatTextVisible).toBe(false);
 
     expect(toastService.showToast).toHaveBeenCalledWith({
       type: ToastType.ERROR,
       title: 'Fehler',
       message: 'Passwort-Generierung fehlgeschlagen!'
     });
-  }));
+  });
 
 });

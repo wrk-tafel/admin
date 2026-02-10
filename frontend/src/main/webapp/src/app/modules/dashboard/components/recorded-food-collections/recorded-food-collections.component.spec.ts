@@ -1,4 +1,4 @@
-import {TestBed, waitForAsync} from '@angular/core/testing';
+import {TestBed} from '@angular/core/testing';
 import {RecordedFoodCollectionsComponent} from './recorded-food-collections.component';
 import {By} from '@angular/platform-browser';
 import {CardModule, ColComponent, ModalModule, RowComponent} from '@coreui/angular';
@@ -7,7 +7,7 @@ import {provideHttpClientTesting} from '@angular/common/http/testing';
 
 describe('RecordedFoodCollectionsComponent', () => {
 
-  beforeEach(waitForAsync(() => {
+  beforeEach((() => {
     TestBed.configureTestingModule({
       imports: [
         ModalModule,

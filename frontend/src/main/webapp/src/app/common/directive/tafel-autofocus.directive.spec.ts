@@ -1,22 +1,24 @@
-import {TafelAutofocusDirective} from './tafel-autofocus.directive';
-import {ElementRef} from '@angular/core';
+import { TafelAutofocusDirective } from './tafel-autofocus.directive';
+import { ElementRef } from '@angular/core';
 
 describe('TafelAutofocusDirective', () => {
 
-  function setup() {
-    const nativeElement = jasmine.createSpyObj('div', ['focus']);
-    const hostElementRef = new ElementRef(nativeElement);
+    function setup() {
+        const nativeElement = {
+            focus: vi.fn().mockName("div.focus")
+        };
+        const hostElementRef = new ElementRef(nativeElement);
 
-    const directive = new TafelAutofocusDirective(hostElementRef);
-    return {nativeElement, directive};
-  }
+        const directive = new TafelAutofocusDirective(hostElementRef);
+        return { nativeElement, directive };
+    }
 
-  it('should focus after view loaded', () => {
-    const {nativeElement, directive} = setup();
+    it('should focus after view loaded', () => {
+        const { nativeElement, directive } = setup();
 
-    directive.ngAfterViewInit();
+        directive.ngAfterViewInit();
 
-    expect(nativeElement.focus).toHaveBeenCalled();
-  });
+        expect(nativeElement.focus).toHaveBeenCalled();
+    });
 
 });

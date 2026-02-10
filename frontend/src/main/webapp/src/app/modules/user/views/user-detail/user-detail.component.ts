@@ -14,7 +14,7 @@ import {
   DropdownToggleDirective,
   RowComponent
 } from '@coreui/angular';
-import {CommonModule, NgClass} from '@angular/common';
+import { CommonModule, NgClass } from '@angular/common';
 import {FormatPermissionsPipe} from '../../../../common/pipes/format-permissions.pipe';
 
 @Component({

@@ -1,4 +1,5 @@
-import {TestBed, waitForAsync} from '@angular/core/testing';
+import type {MockedObject} from 'vitest';
+import {TestBed} from '@angular/core/testing';
 import {DistributionApiService, DistributionItem} from '../../../../api/distribution-api.service';
 import {DistributionStatisticsInputComponent} from './distribution-statistics-input.component';
 import {CardModule, ColComponent, ModalModule, ProgressModule, RowComponent} from '@coreui/angular';
@@ -9,9 +10,9 @@ import {ShelterItem} from '../../../../api/shelter-api.service';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
 
 describe('DistributionStatisticsInputComponent', () => {
-  let distributionApiService: jasmine.SpyObj<DistributionApiService>;
-  let toastService: jasmine.SpyObj<ToastService>;
-  let globalStateService: jasmine.SpyObj<GlobalStateService>;
+  let distributionApiService: MockedObject<DistributionApiService>;
+  let toastService: MockedObject<ToastService>;
+  let globalStateService: MockedObject<GlobalStateService>;
 
   const testShelters: ShelterItem[] = [
     {
@@ -44,7 +45,7 @@ describe('DistributionStatisticsInputComponent', () => {
     startedAt: new Date()
   };
 
-  beforeEach(waitForAsync(() => {
+  beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [
         NoopAnimationsModule,
@@ -57,23 +58,29 @@ describe('DistributionStatisticsInputComponent', () => {
       providers: [
         {
           provide: DistributionApiService,
-          useValue: jasmine.createSpyObj('DistributionApiService', ['saveStatistic'])
+          useValue: {
+            saveStatistic: vi.fn().mockName('DistributionApiService.saveStatistic')
+          }
         },
         {
           provide: ToastService,
-          useValue: jasmine.createSpyObj('ToastService', ['showToast'])
+          useValue: {
+            showToast: vi.fn().mockName('ToastService.showToast')
+          }
         },
         {
           provide: GlobalStateService,
-          useValue: jasmine.createSpyObj('GlobalStateService', ['getCurrentDistribution'])
+          useValue: {
+            getCurrentDistribution: vi.fn().mockName('GlobalStateService.getCurrentDistribution')
+          }
         }
       ]
     }).compileComponents();
 
-    distributionApiService = TestBed.inject(DistributionApiService) as jasmine.SpyObj<DistributionApiService>;
-    toastService = TestBed.inject(ToastService) as jasmine.SpyObj<ToastService>;
-    globalStateService = TestBed.inject(GlobalStateService) as jasmine.SpyObj<GlobalStateService>;
-  }));
+    distributionApiService = TestBed.inject(DistributionApiService) as MockedObject<DistributionApiService>;
+    toastService = TestBed.inject(ToastService) as MockedObject<ToastService>;
+    globalStateService = TestBed.inject(GlobalStateService) as MockedObject<GlobalStateService>;
+  });
 
   it('component can be created', () => {
     const fixture = TestBed.createComponent(DistributionStatisticsInputComponent);
@@ -85,7 +92,7 @@ describe('DistributionStatisticsInputComponent', () => {
   it('save data successful', () => {
     const fixture = TestBed.createComponent(DistributionStatisticsInputComponent);
     const component = fixture.componentInstance;
-    distributionApiService.saveStatistic.and.returnValue(of(null));
+    distributionApiService.saveStatistic.mockReturnValue(of(null));
 
     component.employeeCount.setValue(100);
     component.personsInShelterCount.setValue(200);
@@ -125,9 +132,9 @@ describe('DistributionStatisticsInputComponent', () => {
     const fixture = TestBed.createComponent(DistributionStatisticsInputComponent);
     const component = fixture.componentInstance;
     const componentRef = fixture.componentRef;
-    globalStateService.getCurrentDistribution.and.returnValue(new BehaviorSubject<DistributionItem>(testDistribution));
+    globalStateService.getCurrentDistribution.mockReturnValue(new BehaviorSubject<DistributionItem>(testDistribution));
     componentRef.setInput('sheltersData', {shelters: testShelters});
-    componentRef.setInput('initialSelectedShelterIds', testShelters[0].id);
+    componentRef.setInput('initialSelectedShelterNames', [testShelters[0].name]);
     fixture.detectChanges();
 
     component.onUpdateSelectedShelters(testShelters)
@@ -139,11 +146,11 @@ describe('DistributionStatisticsInputComponent', () => {
     const fixture = TestBed.createComponent(DistributionStatisticsInputComponent);
     const component = fixture.componentInstance;
     const componentRef = fixture.componentRef;
-    distributionApiService.saveStatistic.and.returnValue(throwError(() => {
+    distributionApiService.saveStatistic.mockReturnValue(throwError(() => {
         return {status: 500};
       })
     );
-    globalStateService.getCurrentDistribution.and.returnValue(new BehaviorSubject<DistributionItem>(testDistribution));
+    globalStateService.getCurrentDistribution.mockReturnValue(new BehaviorSubject<DistributionItem>(testDistribution));
 
     componentRef.setInput('sheltersData', {shelters: testShelters});
     componentRef.setInput('employeeCountInput', 100);
@@ -160,7 +167,7 @@ describe('DistributionStatisticsInputComponent', () => {
     const fixture = TestBed.createComponent(DistributionStatisticsInputComponent);
     const componentRef = fixture.componentRef;
     const component = fixture.componentInstance;
-    globalStateService.getCurrentDistribution.and.returnValue(new BehaviorSubject<DistributionItem>(testDistribution));
+    globalStateService.getCurrentDistribution.mockReturnValue(new BehaviorSubject<DistributionItem>(testDistribution));
 
     componentRef.setInput('sheltersData', {shelters: testShelters});
     componentRef.setInput('employeeCountInput', 100);
@@ -175,7 +182,7 @@ describe('DistributionStatisticsInputComponent', () => {
     const fixture = TestBed.createComponent(DistributionStatisticsInputComponent);
     const componentRef = fixture.componentRef;
     const component = fixture.componentInstance;
-    globalStateService.getCurrentDistribution.and.returnValue(new BehaviorSubject<DistributionItem>(null));
+    globalStateService.getCurrentDistribution.mockReturnValue(new BehaviorSubject<DistributionItem>(null));
 
     componentRef.setInput('sheltersData', {shelters: testShelters});
     componentRef.setInput('employeeCountInput', 100);
@@ -184,8 +191,8 @@ describe('DistributionStatisticsInputComponent', () => {
 
     component.ngOnInit();
 
-    expect(component.employeeCount.disabled).toBeTrue();
-    expect(component.panelDisabled()).toBeTrue();
+    expect(component.employeeCount.disabled).toBe(true);
+    expect(component.panelDisabled()).toBe(true);
     expect(component.employeeCount.value).toBeNull();
     expect(component.personsInShelterCount.value).toBeNull();
   });

@@ -1,44 +1,47 @@
-import {TestBed, waitForAsync} from '@angular/core/testing';
-import {CommonModule} from '@angular/common';
-import {TicketScreenComponent, TicketScreenText} from './ticket-screen.component';
-import {of} from 'rxjs';
-import {SseService} from '../../../../common/sse/sse.service';
+import type { MockedObject } from "vitest";
+import { TestBed } from '@angular/core/testing';
+import { CommonModule } from '@angular/common';
+import { TicketScreenComponent, TicketScreenText } from './ticket-screen.component';
+import { of } from 'rxjs';
+import { SseService } from '../../../../common/sse/sse.service';
 
 describe('TicketScreenComponent', () => {
-  let sseService: jasmine.SpyObj<SseService>;
+    let sseService: MockedObject<SseService>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      imports: [CommonModule],
-      providers: [
-        {
-          provide: SseService,
-          useValue: jasmine.createSpyObj('SseService', ['listen'])
-        }
-      ]
-    }).compileComponents();
+    beforeEach(() => {
+        TestBed.configureTestingModule({
+            imports: [CommonModule],
+            providers: [
+                {
+                    provide: SseService,
+                    useValue: {
+                        listen: vi.fn().mockName("SseService.listen")
+                    }
+                }
+            ]
+        }).compileComponents();
 
-    sseService = TestBed.inject(SseService) as jasmine.SpyObj<SseService>;
-  }));
+        sseService = TestBed.inject(SseService) as MockedObject<SseService>;
+    });
 
-  it('component can be created', () => {
-    const fixture = TestBed.createComponent(TicketScreenComponent);
-    const component = fixture.componentInstance;
-    expect(component).toBeTruthy();
-  });
+    it('component can be created', () => {
+        const fixture = TestBed.createComponent(TicketScreenComponent);
+        const component = fixture.componentInstance;
+        expect(component).toBeTruthy();
+    });
 
-  it('data change fills states correctly', () => {
-    const fixture = TestBed.createComponent(TicketScreenComponent);
-    const component = fixture.componentInstance;
+    it('data change fills states correctly', () => {
+        const fixture = TestBed.createComponent(TicketScreenComponent);
+        const component = fixture.componentInstance;
 
-    const testData: TicketScreenText = {text: 'Test Text', value: 'Test Value'};
-    sseService.listen.and.returnValue(of(testData));
+        const testData: TicketScreenText = { text: 'Test Text', value: 'Test Value' };
+        sseService.listen.mockReturnValue(of(testData));
 
-    component.ngOnInit();
+        component.ngOnInit();
 
-    expect(sseService.listen).toHaveBeenCalledWith('/sse/distributions/ticket-screen/current');
-    expect(component.text).toBe(testData.text);
-    expect(component.value).toBe(testData.value);
-  });
+        expect(sseService.listen).toHaveBeenCalledWith('/sse/distributions/ticket-screen/current');
+        expect(component.text).toBe(testData.text);
+        expect(component.value).toBe(testData.value);
+    });
 
 });

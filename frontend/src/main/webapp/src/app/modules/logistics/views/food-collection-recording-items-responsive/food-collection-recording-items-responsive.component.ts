@@ -1,5 +1,5 @@
 import {Component, effect, inject, input, model} from '@angular/core';
-import {CommonModule} from '@angular/common';
+
 import {FoodCategory} from '../../../../api/food-categories-api.service';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {ButtonDirective, ColComponent, RowComponent} from '@coreui/angular';
@@ -21,14 +21,13 @@ import {ToastService, ToastType} from '../../../../common/components/toasts/toas
     selector: 'tafel-food-collection-recording-items-responsive',
     templateUrl: 'food-collection-recording-items-responsive.component.html',
     imports: [
-        CommonModule,
-        ReactiveFormsModule,
-        FormsModule,
-        ButtonDirective,
-        RowComponent,
-        ColComponent,
-        TafelCounterInputComponent,
-    ]
+    ReactiveFormsModule,
+    FormsModule,
+    ButtonDirective,
+    RowComponent,
+    ColComponent,
+    TafelCounterInputComponent
+]
 })
 export class FoodCollectionRecordingItemsResponsiveComponent {
   foodCategories = model.required<FoodCategory[]>();

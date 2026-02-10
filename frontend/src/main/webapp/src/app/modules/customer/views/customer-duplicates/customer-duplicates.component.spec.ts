@@ -1,4 +1,5 @@
-import {TestBed, waitForAsync} from '@angular/core/testing';
+import type {MockedObject} from 'vitest';
+import {TestBed} from '@angular/core/testing';
 import {CustomerApiService, CustomerDuplicatesResponse, Gender} from '../../../../api/customer-api.service';
 import {CustomerDuplicatesComponent} from './customer-duplicates.component';
 import {ActivatedRoute, Router} from '@angular/router';
@@ -9,9 +10,9 @@ import {CardModule, ColComponent, PaginationModule, RowComponent} from '@coreui/
 import {TafelPaginationComponent} from '../../../../common/components/tafel-pagination/tafel-pagination.component';
 
 describe('CustomerDuplicatesComponent', () => {
-  let customerApiService: jasmine.SpyObj<CustomerApiService>;
-  let router: jasmine.SpyObj<Router>;
-  let toastService: jasmine.SpyObj<ToastService>;
+  let customerApiService: MockedObject<CustomerApiService>;
+  let router: MockedObject<Router>;
+  let toastService: MockedObject<ToastService>;
 
   const mockCustomer1 = {
     id: 133,
@@ -77,10 +78,18 @@ describe('CustomerDuplicatesComponent', () => {
     pageSize: 10
   };
 
-  beforeEach(waitForAsync(() => {
-    const customerApiServiceSpy = jasmine.createSpyObj('CustomerApiService', ['getCustomerDuplicates', 'deleteCustomer', 'mergeCustomers']);
-    const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
-    const toastServiceSpy = jasmine.createSpyObj('ToastService', ['showToast']);
+  beforeEach(() => {
+    const customerApiServiceSpy = {
+      getCustomerDuplicates: vi.fn().mockName('CustomerApiService.getCustomerDuplicates'),
+      deleteCustomer: vi.fn().mockName('CustomerApiService.deleteCustomer'),
+      mergeCustomers: vi.fn().mockName('CustomerApiService.mergeCustomers')
+    } as any;
+    const routerSpy = {
+      navigate: vi.fn().mockName('Router.navigate')
+    } as any;
+    const toastServiceSpy = {
+      showToast: vi.fn().mockName('ToastService.showToast')
+    } as any;
 
     TestBed.configureTestingModule({
       imports: [
@@ -115,10 +124,10 @@ describe('CustomerDuplicatesComponent', () => {
       ]
     }).compileComponents();
 
-    customerApiService = TestBed.inject(CustomerApiService) as jasmine.SpyObj<CustomerApiService>;
-    router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
-    toastService = TestBed.inject(ToastService) as jasmine.SpyObj<ToastService>;
-  }));
+    customerApiService = TestBed.inject(CustomerApiService) as MockedObject<CustomerApiService>;
+    router = TestBed.inject(Router) as MockedObject<Router>;
+    toastService = TestBed.inject(ToastService) as MockedObject<ToastService>;
+  });
 
   it('component can be created', () => {
     const fixture = TestBed.createComponent(CustomerDuplicatesComponent);
@@ -149,7 +158,7 @@ describe('CustomerDuplicatesComponent', () => {
     const component = fixture.componentInstance;
 
     const page = 5;
-    customerApiService.getCustomerDuplicates.withArgs(page).and.returnValue(of(mockCustomerDuplicatesDataResponse));
+    customerApiService.getCustomerDuplicates.mockReturnValue(of(mockCustomerDuplicatesDataResponse));
 
     component.getDuplicates(page);
 
@@ -177,7 +186,7 @@ describe('CustomerDuplicatesComponent', () => {
     const fixture = TestBed.createComponent(CustomerDuplicatesComponent);
     const component = fixture.componentInstance;
 
-    customerApiService.deleteCustomer.and.returnValue(throwError(() => {
+    customerApiService.deleteCustomer.mockReturnValue(throwError(() => {
       return {status: 404};
     }));
 
@@ -193,7 +202,7 @@ describe('CustomerDuplicatesComponent', () => {
     const component = fixture.componentInstance;
 
     const customerId = 123;
-    customerApiService.deleteCustomer.withArgs(customerId).and.returnValue(of(null));
+    customerApiService.deleteCustomer.mockReturnValue(of(null));
 
     const page = 3;
     component.paginationData = {
@@ -203,7 +212,7 @@ describe('CustomerDuplicatesComponent', () => {
       totalPages: 10,
       pageSize: 10
     };
-    customerApiService.getCustomerDuplicates.withArgs(page).and.returnValue(of(mockCustomerDuplicatesDataResponse));
+    customerApiService.getCustomerDuplicates.mockReturnValue(of(mockCustomerDuplicatesDataResponse));
 
     component.deleteCustomer(customerId);
 
@@ -230,7 +239,7 @@ describe('CustomerDuplicatesComponent', () => {
     };
     component.customerDuplicatesData = customerDuplicatesData;
 
-    customerApiService.mergeCustomers.and.returnValue(throwError(() => {
+    customerApiService.mergeCustomers.mockReturnValue(throwError(() => {
       return {status: 404};
     }));
 
@@ -263,8 +272,8 @@ describe('CustomerDuplicatesComponent', () => {
     };
     component.customerDuplicatesData = customerDuplicatesData;
 
-    customerApiService.mergeCustomers.and.returnValue(of(null));
-    customerApiService.getCustomerDuplicates.withArgs(1).and.returnValue(of(mockCustomerDuplicatesDataResponse));
+    customerApiService.mergeCustomers.mockReturnValue(of(null));
+    customerApiService.getCustomerDuplicates.mockReturnValue(of(mockCustomerDuplicatesDataResponse));
 
     component.mergeCustomers(mockCustomer1);
 

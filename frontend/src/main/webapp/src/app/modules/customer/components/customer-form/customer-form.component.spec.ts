@@ -1,4 +1,5 @@
-import {TestBed, waitForAsync} from '@angular/core/testing';
+import type {MockedObject} from 'vitest';
+import {TestBed} from '@angular/core/testing';
 import moment from 'moment';
 import {of} from 'rxjs';
 import {CountryApiService} from '../../../../api/country-api.service';
@@ -8,7 +9,7 @@ import {FormControl, FormGroup, ReactiveFormsModule} from '@angular/forms';
 import {CardModule, ColComponent, InputGroupComponent, RowComponent} from '@coreui/angular';
 
 describe('CustomerFormComponent', () => {
-  let apiService: jasmine.SpyObj<CountryApiService>;
+  let apiService: MockedObject<CountryApiService>;
 
   const mockCountryList = [
     {id: 0, code: 'AT', name: 'Österreich'},
@@ -65,8 +66,10 @@ describe('CustomerFormComponent', () => {
     ]
   };
 
-  beforeEach(waitForAsync(() => {
-    const apiServiceSpy = jasmine.createSpyObj('CountryApiService', ['getCountries']);
+  beforeEach(() => {
+    const apiServiceSpy = {
+      getCountries: vi.fn().mockName('CountryApiService.getCountries')
+    } as any;
 
     TestBed.configureTestingModule({
       imports: [
@@ -84,22 +87,22 @@ describe('CustomerFormComponent', () => {
       ]
     }).compileComponents();
 
-    apiService = TestBed.inject(CountryApiService) as jasmine.SpyObj<CountryApiService>;
-  }));
+    apiService = TestBed.inject(CountryApiService) as MockedObject<CountryApiService>;
+  });
 
-  it('should create the component', waitForAsync(() => {
+  it('should create the component', () => {
     const fixture = TestBed.createComponent(CustomerFormComponent);
     const component = fixture.componentInstance;
     expect(component).toBeTruthy();
-  }));
+  });
 
-  it('data filling works', waitForAsync(() => {
-    apiService.getCountries.and.returnValue(of(mockCountryList));
+  it('data filling works', () => {
+    apiService.getCountries.mockReturnValue(of(mockCountryList));
 
     const fixture = TestBed.createComponent(CustomerFormComponent);
     const component = fixture.componentInstance;
 
-    spyOn(component.customerDataChange, 'emit');
+    vi.spyOn(component.customerDataChange, 'emit');
     component.ngOnInit();
     component.customerData = testCustomerData;
 
@@ -130,12 +133,12 @@ describe('CustomerFormComponent', () => {
     expect(component.incomeDue.value).toBe(testCustomerData.incomeDue);
     expect(component.validUntil.value).toBe(testCustomerData.validUntil);
 
-    expect(component.isValid()).toBeTrue();
+    expect(component.isValid()).toBe(true);
     expect(component.countries).toEqual(mockCountryList);
 
     expect(component.additionalPersons.length).toBe(2);
     expect(component.additionalPersons.at(0).value)
-      .toEqual(jasmine.objectContaining({
+      .toEqual(expect.objectContaining({
         id: testCustomerData.additionalPersons[0].id,
         lastname: testCustomerData.additionalPersons[0].lastname,
         firstname: testCustomerData.additionalPersons[0].firstname,
@@ -148,7 +151,7 @@ describe('CustomerFormComponent', () => {
         receivesFamilyBonus: testCustomerData.additionalPersons[0].receivesFamilyBonus
       }));
     expect(component.additionalPersons.at(1).value)
-      .toEqual(jasmine.objectContaining({
+      .toEqual(expect.objectContaining({
         id: testCustomerData.additionalPersons[1].id,
         lastname: testCustomerData.additionalPersons[1].lastname,
         firstname: testCustomerData.additionalPersons[1].firstname,
@@ -158,15 +161,15 @@ describe('CustomerFormComponent', () => {
         excludeFromHousehold: testCustomerData.additionalPersons[1].excludeFromHousehold,
         receivesFamilyBonus: testCustomerData.additionalPersons[1].receivesFamilyBonus
       }));
-  }));
+  });
 
-  it('data update works', waitForAsync(() => {
-    apiService.getCountries.and.returnValue(of(mockCountryList));
+  it('data update works', () => {
+    apiService.getCountries.mockReturnValue(of(mockCountryList));
 
     const fixture = TestBed.createComponent(CustomerFormComponent);
     const component = fixture.componentInstance;
 
-    spyOn(component.customerDataChange, 'emit');
+    vi.spyOn(component.customerDataChange, 'emit');
     component.ngOnInit();
     component.customerData = testCustomerData;
 
@@ -186,7 +189,7 @@ describe('CustomerFormComponent', () => {
     // TODO component.additionalPersons.at(1).get('lastname').setValue(updatedPers1Lastname);
     fixture.detectChanges();
 
-    expect(component.customerDataChange.emit).toHaveBeenCalledWith(jasmine.objectContaining({
+    expect(component.customerDataChange.emit).toHaveBeenCalledWith(expect.objectContaining({
       lastname: updatedLastname,
       birthDate: updatedBirthDate,
       gender: updatedGender,
@@ -195,7 +198,7 @@ describe('CustomerFormComponent', () => {
 
     // TODO validate add person change
     /*
-    expect(component.customerDataChange.emit).toHaveBeenCalledWith(jasmine.objectContaining({
+    expect(component.customerDataChange.emit).toHaveBeenCalledWith(expect.objectContaining({
       additionalPersons: [
         {},
         {
@@ -203,7 +206,7 @@ describe('CustomerFormComponent', () => {
         }]
     }));
      */
-  }));
+  });
 
   it('trackBy', () => {
     const fixture = TestBed.createComponent(CustomerFormComponent);
@@ -218,7 +221,7 @@ describe('CustomerFormComponent', () => {
   });
 
   it('validUntil set when incomeDue is updated', () => {
-    apiService.getCountries.and.returnValue(of(mockCountryList));
+    apiService.getCountries.mockReturnValue(of(mockCountryList));
 
     const fixture = TestBed.createComponent(CustomerFormComponent);
     const component = fixture.componentInstance;
@@ -231,7 +234,7 @@ describe('CustomerFormComponent', () => {
   });
 
   it('validUntil set when incomeDue is updated respects additional persons', () => {
-    apiService.getCountries.and.returnValue(of(mockCountryList));
+    apiService.getCountries.mockReturnValue(of(mockCountryList));
 
     const fixture = TestBed.createComponent(CustomerFormComponent);
     const component = fixture.componentInstance;

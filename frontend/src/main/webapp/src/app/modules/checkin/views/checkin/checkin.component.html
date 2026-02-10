@@ -76,7 +76,7 @@
                   <c-tabs [activeItemKey]="0">
                     <c-tabs-list variant="underline-border">
                       <button cTab [itemKey]="0">Details</button>
-                      <button cTab [itemKey]="1">Personen ({{customer().additionalPersons.length}})</button>
+                      <button cTab [itemKey]="1">Personen ({{customer()?.additionalPersons?.length ?? 0}})</button>
                     </c-tabs-list>
                     <c-tabs-content>
                       <c-tab-panel class="mt-3" [itemKey]="0">
@@ -86,7 +86,7 @@
                         </c-row>
                         <c-row>
                           <c-col>Personen im Haushalt (insgesamt):</c-col>
-                          <c-col>{{customer().additionalPersons.length + 1}}</c-col>
+                          <c-col>{{(customer()?.additionalPersons?.length ?? 0) + 1}}</c-col>
                         </c-row>
                         <c-row>
                           <c-col>Personen unter 3 Jahren:</c-col>
@@ -94,14 +94,14 @@
                         </c-row>
                       </c-tab-panel>
                       <c-tab-panel class="mt-3" [itemKey]="1">
-                        @if(customer().additionalPersons.length === 0) {
+                        @if((customer()?.additionalPersons?.length ?? 0) === 0) {
                           <c-row>
                             <c-col class="mt-1" testid="nopersons-label">Keine Personen vorhanden</c-col>
                           </c-row>
                         }
-                        @if(customer().additionalPersons.length > 0) {
+                        @if((customer()?.additionalPersons?.length ?? 0) > 0) {
                           <c-row class="mb-2 row row-cols-sm-2 row-cols-1 row-gap-3">
-                            @for(addPerson of customer().additionalPersons; track addPerson.id; let i = $index) {
+                            @for(addPerson of customer()?.additionalPersons ?? []; track addPerson.id; let i = $index) {
                               <c-col>
                                 <c-card>
                                   <c-card-body>
