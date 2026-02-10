@@ -1,7 +1,7 @@
 name: Build and Analyze
 
 env:
-  JAVA_VERSION: '21'
+  JAVA_VERSION: '25'
   JAVA_DISTRIBUTION: 'corretto'
 
 on:

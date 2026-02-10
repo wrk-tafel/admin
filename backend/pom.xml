@@ -11,7 +11,7 @@
     <artifactId>backend</artifactId>
 
     <properties>
-        <java.version>21</java.version>
+        <java.version>25</java.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <kotlin.version>2.3.10</kotlin.version>
