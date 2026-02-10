@@ -3,10 +3,10 @@
     <tafel-distribution-state></tafel-distribution-state>
   </c-col>
   <c-col sm="12" lg="4" class="mt-4 mt-sm-0">
-    <tafel-registered-customers [count]="data?.registeredCustomers"></tafel-registered-customers>
+    <tafel-registered-customers [count]="data()?.registeredCustomers"></tafel-registered-customers>
   </c-col>
   <c-col sm="12" lg="4" class="mt-4 mt-sm-0">
-    <tafel-tickets-processed [countProcessedTickets]="data?.tickets?.countProcessedTickets" [countTotalTickets]="data?.tickets?.countTotalTickets">
+    <tafel-tickets-processed [countProcessedTickets]="data()?.tickets?.countProcessedTickets" [countTotalTickets]="data()?.tickets?.countTotalTickets">
     </tafel-tickets-processed>
   </c-col>
 </c-row>
@@ -14,26 +14,26 @@
 <c-row class="mt-0 mt-md-4" *tafelIfPermission="'LOGISTICS'">
   <c-col sm="12" lg="4" class="mt-4 mt-sm-0">
     <tafel-distribution-statistics-input [sheltersData]="sheltersData"
-                                         [employeeCountInput]="data?.statistics?.employeeCount"
-                                         [initialSelectedShelterNames]="data?.statistics?.selectedShelterNames">
+                                         [employeeCountInput]="data()?.statistics?.employeeCount"
+                                         [initialSelectedShelterNames]="data()?.statistics?.selectedShelterNames">
     </tafel-distribution-statistics-input>
   </c-col>
   <c-col sm="12" lg="8">
     <c-row>
       <c-col sm="12" lg="6" class="mt-4 mt-sm-0">
-        <tafel-distribution-notes-input [initialNotesData]="data?.notes">
+        <tafel-distribution-notes-input [initialNotesData]="data()?.notes">
         </tafel-distribution-notes-input>
       </c-col>
       <c-col sm="12" lg="6" class="mt-4 mt-sm-0">
-        <tafel-recorded-food-collections [countRecorded]="data?.logistics?.foodCollectionsRecordedCount"
-                                         [countTotal]="data?.logistics?.foodCollectionsTotalCount">
+        <tafel-recorded-food-collections [countRecorded]="data()?.logistics?.foodCollectionsRecordedCount"
+                                         [countTotal]="data()?.logistics?.foodCollectionsTotalCount">
         </tafel-recorded-food-collections>
       </c-col>
     </c-row>
     <hr>
     <c-row class="mt-4">
       <c-col sm="12" lg="12">
-        <tafel-food-amount [amount]="data?.logistics?.foodAmountTotal">
+        <tafel-food-amount [amount]="data()?.logistics?.foodAmountTotal">
         </tafel-food-amount>
       </c-col>
     </c-row>

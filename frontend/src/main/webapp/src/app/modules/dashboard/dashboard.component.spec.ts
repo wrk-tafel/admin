@@ -27,15 +27,14 @@ describe('DashboardComponent', () => {
     }));
 
     it('component can be created', () => {
+        sseService.listen.mockReturnValueOnce(of({}));
+
         const fixture = TestBed.createComponent(DashboardComponent);
         const component = fixture.componentInstance;
         expect(component).toBeTruthy();
     });
 
     it('init subscribes data', () => {
-        const fixture = TestBed.createComponent(DashboardComponent);
-        const component = fixture.componentInstance;
-
         const mockData: DashboardData = {
             registeredCustomers: 123,
             logistics: {
@@ -50,9 +49,10 @@ describe('DashboardComponent', () => {
         };
         sseService.listen.mockReturnValueOnce(of(mockData));
 
-        component.ngOnInit();
+        const fixture = TestBed.createComponent(DashboardComponent);
+        const component = fixture.componentInstance;
 
-        expect(component.data).toEqual(mockData);
+        expect(component.data()).toEqual(mockData);
         expect(sseService.listen).toHaveBeenCalledWith('/sse/dashboard');
     });
 
