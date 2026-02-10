@@ -33,7 +33,7 @@
     "@angular/localize": "20.3.16",
     "@angular/platform-browser": "20.3.16",
     "@angular/platform-browser-dynamic": "20.3.16",
-    "@angular/router": "20.3.16",
+    "@angular/router": "21.1.3",
     "@coreui/angular": "5.5.25",
     "@coreui/angular-chartjs": "5.5.25",
     "@coreui/chartjs": "4.1.0",
