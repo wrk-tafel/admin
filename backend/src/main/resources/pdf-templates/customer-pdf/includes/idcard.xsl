@@ -52,7 +52,14 @@
                                 </fo:table-row>
                                 <fo:table-row>
                                     <fo:table-cell number-columns-spanned="2">
-                                        <fo:block font-size="10pt" margin-top="3.70cm" margin-left="0.5cm">
+                                        <fo:block font-size="10pt" margin-top="2.70cm" margin-left="0.5cm" margin-right="0.5cm" font-weight="bold">
+                                            Diese Bezugskarte ist Eigentum des Roten Kreuzes und ist auf Verlangen wieder zurückzugeben.
+                                        </fo:block>
+                                    </fo:table-cell>
+                                </fo:table-row>
+                                <fo:table-row>
+                                    <fo:table-cell number-columns-spanned="2">
+                                        <fo:block font-size="10pt" margin-top="0.25cm"  margin-left="0.5cm">
                                             Wiener Rotes Kreuz - Team Österreich Tafel
                                         </fo:block>
                                         <fo:block font-size="10pt" margin-left="0.5cm">
