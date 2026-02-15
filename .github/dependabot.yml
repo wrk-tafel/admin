@@ -15,6 +15,30 @@ updates:
     schedule:
       interval: "daily"
     open-pull-requests-limit: 50
+    groups:
+      angular:
+        patterns:
+          - "@angular/*"           # Core framework
+          - "@angular-devkit/*"    # Build tools & schematics
+          - "@angular-eslint/*"    # Linting rules
+          - "@angular/build"       # New build system
+          - "@angular/cli"         # CLI
+          - "@angular/compiler-cli"
+          - "rxjs*"                # Reactive extensions
+          - "typescript"           # Language
+          - "tslib"                # Runtime library
+      coreui:
+        patterns:
+          - "@coreui/*"            # Keeps all CoreUI components/icons together
+          - "chart.js"             # Linked to @coreui/angular-chartjs
+          - "ng2-charts"
+      eslint:
+        patterns:
+          - "eslint"
+          - "eslint-*"
+          - "@angular-eslint/*"
+          - "@typescript-eslint/*"
+          - "prettier" # Included because you use eslint-config-prettier
   # Maintain dependencies for GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/.github/workflows"
