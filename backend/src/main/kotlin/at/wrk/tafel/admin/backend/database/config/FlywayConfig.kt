@@ -12,7 +12,7 @@ import javax.sql.DataSource
 @Configuration
 @ExcludeFromTestCoverage
 class FlywayConfig(
-    @Value("\${tafeladmin.testdata.enabled:false}") private val testdataEnabled: Boolean
+    @Value("\${tafeladmin.testdata.enabled:false}") private val testdataEnabled: Boolean = false
 ) {
 
     @Bean
