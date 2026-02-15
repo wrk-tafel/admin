@@ -39,6 +39,14 @@ updates:
           - "@angular-eslint/*"
           - "@typescript-eslint/*"
           - "prettier" # Included because you use eslint-config-prettier
+      testing-tools:
+        patterns:
+          - "cypress"
+          - "@cypress/*"
+          - "cypress-*"
+          - "vitest"
+          - "jsdom"
+          - "wait-on"
   # Maintain dependencies for GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/.github/workflows"
