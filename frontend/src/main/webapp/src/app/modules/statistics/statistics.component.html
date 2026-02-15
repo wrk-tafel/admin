@@ -44,7 +44,7 @@
               <c-col sm="5" md="5" class="d-flex flex-row">
                 <select testid="yearInput" class="form-control" cSelect [ngModel]="undefined" (ngModelChange)="onYearSelected($event)">
                   <option [ngValue]="undefined"></option>
-                  @for (year of settings.availableYears; track year) {
+                  @for (year of settings()?.availableYears; track year) {
                     <option [ngValue]="year">{{ year }}</option>
                   }
                 </select>
@@ -57,7 +57,7 @@
               <c-col sm="5" class="d-flex flex-row">
                 <select testid="distributionDateInput" class="form-control" cSelect [ngModel]="undefined" (ngModelChange)="onDistributionSelected($event)">
                   <option [ngValue]="undefined"></option>
-                  @for (distribution of settings.distributions; track distribution.startDate) {
+                  @for (distribution of settings()?.distributions; track distribution.startDate) {
                     <option [ngValue]="distribution">{{ distribution.startDate | date : 'dd.MM.yyyy' }}</option>
                   }
                 </select>

@@ -56,18 +56,16 @@
                     </button>
                 </c-col>
             </c-row>
-            @if (searchResult) {
+            @if (searchResult()) {
               <c-row testid="searchresult-table">
                   <c-col>
                       <hr>
                   </c-col>
               </c-row>
-            }
-            @if (searchResult) {
               <c-row class="d-none d-sm-block">
                 <c-col sm="12" class="table-responsive">
-                    <h5 class="mb-4">Suchergebnis ({{this.searchResult.totalCount}} Kunden)</h5>
-                    <tafel-pagination align="end" [paginationData]="paginationData"
+                    <h5 class="mb-4">Suchergebnis ({{searchResult().totalCount}} Kunden)</h5>
+                    <tafel-pagination align="end" [paginationData]="paginationData()"
                                       (pageChanged)="searchForDetails($event)"></tafel-pagination>
                     <table cTable striped="true" aria-label="Liste der gefundenen Kunden" class="mt-3">
                         <thead>
@@ -81,7 +79,7 @@
                         </tr>
                         </thead>
                         <tbody>
-                        @for (customer of searchResult.items; track customer.id; let i = $index) {
+                        @for (customer of searchResult().items; track customer.id; let i = $index) {
                           <tr testid="searchresult-row" scope="row">
                             <td><fa-icon [icon]="faUser"></fa-icon></td>
                             <td [attr.testid]="'searchresult-id-' + i">{{customer.id}}</td>
@@ -113,19 +111,19 @@
                         }
                         </tbody>
                     </table>
-                    <tafel-pagination align="end" [paginationData]="paginationData"
+                    <tafel-pagination align="end" [paginationData]="paginationData()"
                                       (pageChanged)="searchForDetails($event)"></tafel-pagination>
                 </c-col>
               </c-row>
             }
-            @if (searchResult) {
+            @if (searchResult()) {
               <c-row class="d-block d-sm-none">
                 <c-col sm="12" class="table-responsive">
-                    <h5 class="mb-4">Suchergebnis ({{this.searchResult.totalCount}} Kunden)</h5>
-                    <tafel-pagination align="center" size="sm" [paginationData]="paginationData"
+                    <h5 class="mb-4">Suchergebnis ({{searchResult().totalCount}} Kunden)</h5>
+                    <tafel-pagination align="center" size="sm" [paginationData]="paginationData()"
                                       (pageChanged)="searchForDetails($event)"></tafel-pagination>
                     <div class="d-flex flex-column gap-3 mb-3">
-                        @for (customer of this.searchResult.items; track customer.id; let i = $index) {
+                        @for (customer of searchResult().items; track customer.id; let i = $index) {
                           <c-card>
                             <c-card-header class="fw-bold">{{customer.id}} - {{customer.lastname}} {{customer.firstname}}</c-card-header>
                             <c-card-body>
@@ -153,7 +151,7 @@
                           </c-card>
                         }
                     </div>
-                    <tafel-pagination align="center" size="sm" [paginationData]="paginationData"
+                    <tafel-pagination align="center" size="sm" [paginationData]="paginationData()"
                                       (pageChanged)="searchForDetails($event)"></tafel-pagination>
                 </c-col>
               </c-row>

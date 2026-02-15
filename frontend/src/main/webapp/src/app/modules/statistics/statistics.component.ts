@@ -1,4 +1,4 @@
-import {Component, computed, Input, signal} from '@angular/core';
+import {Component, computed, input, signal} from '@angular/core';
 import {
   ButtonDirective,
   CardBodyComponent,
@@ -30,7 +30,8 @@ import {CommonModule} from '@angular/common';
     ]
 })
 export class StatisticsComponent {
-  @Input() settings: StatisticsSettings;
+  // Signal input from resolver - reactive!
+  readonly settings = input<StatisticsSettings>();
 
   currentYear: number = moment().year();
   _dateRangeFrom = signal<Date>(moment().startOf('year').toDate());

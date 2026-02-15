@@ -5,16 +5,14 @@
     "outDir": "../out-tsc/spec",
     "baseUrl": "./",
     "module": "es2022",
-    "types": [
-      "jasmine",
-      "node"
-    ]
+    "types": []
   },
-  "files": [
-    "test.ts"
-  ],
   "include": [
+    "../vitest.config.ts",
+    "vitest-globals.d.ts",
+    "test-providers.ts",
     "**/*.spec.ts",
+    "**/*.test.ts",
     "**/*.d.ts"
   ]
 }

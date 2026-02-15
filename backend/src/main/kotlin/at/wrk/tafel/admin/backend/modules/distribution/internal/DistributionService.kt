@@ -236,7 +236,9 @@ class DistributionService(
         )
     }
 
-    fun closeDistribution() {
+    fun closeDistribution(): DistributionEntity {
+        var result: DistributionEntity? = null
+
         val acquired = advisoryLockService.tryWithLock(AdvisoryLockKey.CLOSE_DISTRIBUTION) {
             val authenticatedUser = SecurityContextHolder.getContext().authentication as? TafelJwtAuthentication
 
@@ -262,11 +264,14 @@ class DistributionService(
             )
 
             distributionPostProcessorService.process(currentDistribution!!.id!!)
+            result = currentDistribution
         }
 
         if (!acquired) {
             throw TafelValidationException("Die Ausgabe wird gerade geschlossen. Bitte kurz warten und im Anschluss die Seite neu laden.")
         }
+
+        return result!!
     }
 
     private fun getDistributionCustomerEntity(

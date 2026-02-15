@@ -10,9 +10,9 @@
   </c-modal-header>
   <c-modal-body>
     <form [formGroup]="form">
-      @if (shelters().length > 0) {
+      @if (sheltersList() && sheltersList()!.length > 0) {
         <div formArrayName="selectedShelters">
-          @for (shelter of shelters(); track trackByShelterId($index, shelter); let idx = $index) {
+          @for (shelter of sheltersList()!; track trackByShelterId($index, shelter); let idx = $index) {
             @if (idx > 0) {
               <hr />
             }

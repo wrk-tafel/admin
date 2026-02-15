@@ -1,59 +1,59 @@
-import {TestBed, waitForAsync} from '@angular/core/testing';
-import {UserPasswordChangeComponent} from './user-passwordchange.component';
-import {of} from 'rxjs';
-import {CardModule} from '@coreui/angular';
-import {provideHttpClient} from '@angular/common/http';
-import {provideHttpClientTesting} from '@angular/common/http/testing';
-import {PasswordChangeFormComponent} from '../../../../common/views/passwordchange-form/passwordchange-form.component';
+import { TestBed } from '@angular/core/testing';
+import { UserPasswordChangeComponent } from './user-passwordchange.component';
+import { of } from 'rxjs';
+import { CardModule } from '@coreui/angular';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { PasswordChangeFormComponent } from '../../../../common/views/passwordchange-form/passwordchange-form.component';
 
 describe('UserPasswordChangeComponent', () => {
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      imports: [
-        CardModule
-      ],
-      providers: [
-        provideHttpClient(),
-        provideHttpClientTesting()
-      ]
-    }).compileComponents();
-  }));
+    beforeEach(() => {
+        TestBed.configureTestingModule({
+            imports: [
+                CardModule
+            ],
+            providers: [
+                provideHttpClient(),
+                provideHttpClientTesting()
+            ]
+        }).compileComponents();
+    });
 
-  it('component can be created', () => {
-    const fixture = TestBed.createComponent(UserPasswordChangeComponent);
-    const component = fixture.componentInstance;
-    expect(component).toBeTruthy();
-  });
+    it('component can be created', () => {
+        const fixture = TestBed.createComponent(UserPasswordChangeComponent);
+        const component = fixture.componentInstance;
+        expect(component).toBeTruthy();
+    });
 
-  it('changePassword', () => {
-    const fixture = TestBed.createComponent(UserPasswordChangeComponent);
-    const component = fixture.componentInstance;
-    component.form = TestBed.createComponent(PasswordChangeFormComponent).componentInstance;
-    spyOn(component.form, 'changePassword').and.returnValue(of(true));
+    it('changePassword', () => {
+        const fixture = TestBed.createComponent(UserPasswordChangeComponent);
+        const component = fixture.componentInstance;
+        component.form = TestBed.createComponent(PasswordChangeFormComponent).componentInstance;
+        vi.spyOn(component.form, 'changePassword').mockReturnValue(of(true));
 
-    component.changePassword();
+        component.changePassword();
 
-    expect(component.form.changePassword).toHaveBeenCalled();
-  });
+        expect(component.form.changePassword).toHaveBeenCalled();
+    });
 
-  it('isSaveDisabled - form valid', () => {
-    const fixture = TestBed.createComponent(UserPasswordChangeComponent);
-    const component = fixture.componentInstance;
-    component.form = TestBed.createComponent(PasswordChangeFormComponent).componentInstance;
-    spyOn(component.form, 'isValid').and.returnValue(true);
-    spyOnProperty(component.form.form, 'valid', 'get').and.returnValue(true);
+    it('isSaveDisabled - form valid', () => {
+        const fixture = TestBed.createComponent(UserPasswordChangeComponent);
+        const component = fixture.componentInstance;
+        component.form = TestBed.createComponent(PasswordChangeFormComponent).componentInstance;
+        vi.spyOn(component.form, 'isValid').mockReturnValue(true);
+        vi.spyOn(component.form.form, 'valid', 'get').mockReturnValue(true);
 
-    expect(component.isSaveDisabled()).toBeFalsy();
-  });
+        expect(component.isSaveDisabled()).toBeFalsy();
+    });
 
-  it('isSaveDisabled - form invalid', () => {
-    const fixture = TestBed.createComponent(UserPasswordChangeComponent);
-    const component = fixture.componentInstance;
-    component.form = TestBed.createComponent(PasswordChangeFormComponent).componentInstance;
-    spyOn(component.form, 'isValid').and.returnValue(false);
-    spyOnProperty(component.form.form, 'valid', 'get').and.returnValue(false);
+    it('isSaveDisabled - form invalid', () => {
+        const fixture = TestBed.createComponent(UserPasswordChangeComponent);
+        const component = fixture.componentInstance;
+        component.form = TestBed.createComponent(PasswordChangeFormComponent).componentInstance;
+        vi.spyOn(component.form, 'isValid').mockReturnValue(false);
+        vi.spyOn(component.form.form, 'valid', 'get').mockReturnValue(false);
 
-    expect(component.isSaveDisabled()).toBeTruthy();
-  });
+        expect(component.isSaveDisabled()).toBeTruthy();
+    });
 
 });

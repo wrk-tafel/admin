@@ -1,9 +1,9 @@
 <ng-container>
-  <c-toast-header testid="tafel-toast-header" [closeButton]="closeButton" [cBgColor]="bgColor" [cTextColor]="headerTextColor">
-    <strong testid="title" class="me-3">{{ titlePrefix ? titlePrefix + ' ' : '' }}{{ title }}</strong>
+  <c-toast-header testid="tafel-toast-header" [closeButton]="closeButton()" [cBgColor]="bgColor()" [cTextColor]="headerTextColor()">
+    <strong testid="title" class="me-3">{{ titlePrefix() ? titlePrefix() + ' ' : '' }}{{ title() }}</strong>
   </c-toast-header>
   <c-toast-body testid="tafel-toast-body" #toastBody [cToastClose]="toastBody.toast" cBgColor="white">
-    <div testid="message" class="mb-3">{{ message }}</div>
+    <div testid="message" class="mb-3">{{ message() }}</div>
     <c-progress [value]="25*(toastBody.toast?.clock ?? 1)" />
   </c-toast-body>
 </ng-container>

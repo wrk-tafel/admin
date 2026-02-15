@@ -1,4 +1,4 @@
-import {Component, inject, Input, OnInit, ViewChild} from '@angular/core';
+import {ChangeDetectorRef, Component, effect, inject, input, OnInit, ViewChild} from '@angular/core';
 import {CustomerFormComponent} from '../../components/customer-form/customer-form.component';
 import {CustomerApiService, CustomerData, ValidateCustomerResponse} from '../../../../api/customer-api.service';
 import {Router} from '@angular/router';
@@ -34,7 +34,7 @@ import {DecimalPipe, NgClass} from '@angular/common';
     ]
 })
 export class CustomerEditComponent implements OnInit {
-  @Input() customerData: CustomerData;
+  customerData = input<CustomerData>();
 
   customerUpdated: CustomerData;
   editMode = false;
@@ -46,13 +46,15 @@ export class CustomerEditComponent implements OnInit {
   private readonly customerApiService = inject(CustomerApiService);
   private readonly router = inject(Router);
   private readonly toastService = inject(ToastService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   ngOnInit(): void {
-    if (this.customerData) {
+    const customerData = this.customerData();
+    if (customerData) {
       this.editMode = true;
 
       // Load data into forms
-      this.customerUpdated = this.customerData;
+      this.customerUpdated = customerData;
 
       // Mark forms as touched to show the validation state (postponed to next macrotask after angular finished)
       setTimeout(() => {
@@ -78,6 +80,7 @@ export class CustomerEditComponent implements OnInit {
 
         this.customerValidForSave = result.valid;
         this.showValidationResultModal = true;
+        this.cdr.detectChanges();
       });
     }
   }

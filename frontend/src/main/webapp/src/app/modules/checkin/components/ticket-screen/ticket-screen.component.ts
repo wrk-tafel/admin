@@ -1,7 +1,7 @@
-import {Component, inject, OnDestroy, OnInit} from '@angular/core';
+import {Component, computed, inject, Signal} from '@angular/core';
 import {BgColorDirective, ColComponent, ContainerComponent, RowComponent} from '@coreui/angular';
 import {SseService} from '../../../../common/sse/sse.service';
-import {Subscription} from 'rxjs';
+import {toSignal} from '@angular/core/rxjs-interop';
 
 @Component({
     selector: 'tafel-ticket-screen',
@@ -13,25 +13,15 @@ import {Subscription} from 'rxjs';
         BgColorDirective
     ]
 })
-export class TicketScreenComponent implements OnInit, OnDestroy {
+export class TicketScreenComponent {
   private readonly sseService = inject(SseService);
-  private ticketScreenSubscription: Subscription;
 
-  text: string;
-  value: string;
+  private readonly ticketScreenData: Signal<TicketScreenText | undefined> = toSignal(
+    this.sseService.listen<TicketScreenText>('/sse/distributions/ticket-screen/current')
+  );
 
-  ngOnInit(): void {
-    this.ticketScreenSubscription = this.sseService.listen('/sse/distributions/ticket-screen/current').subscribe((response: TicketScreenText) => {
-      this.text = response.text;
-      this.value = response.value;
-    });
-  }
-
-  ngOnDestroy(): void {
-    if (this.ticketScreenSubscription) {
-      this.ticketScreenSubscription.unsubscribe();
-    }
-  }
+  readonly text = computed(() => this.ticketScreenData()?.text ?? undefined);
+  readonly value = computed(() => this.ticketScreenData()?.value ?? '-');
 
 }
 

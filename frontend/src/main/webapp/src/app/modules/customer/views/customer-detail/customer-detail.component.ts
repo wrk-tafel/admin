@@ -1,4 +1,4 @@
-import {Component, inject, Input, OnInit} from '@angular/core';
+import {Component, effect, inject, input, OnInit, signal} from '@angular/core';
 import {Router} from '@angular/router';
 import moment from 'moment';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
@@ -89,39 +89,55 @@ import {FormattedCustomerNamePipe} from '../../../../common/pipes/formatted-cust
     ]
 })
 export class CustomerDetailComponent implements OnInit {
-  @Input() customerData: CustomerData;
-  @Input() customerNotesResponse: CustomerNotesResponse;
+  // Input signals
+  customerDataInput = input.required<CustomerData>({alias: 'customerData'});
+  customerNotesResponseInput = input.required<CustomerNotesResponse>({alias: 'customerNotesResponse'});
 
-  customerNotes: CustomerNoteItem[];
-  customerNotesPaginationData: TafelPaginationData;
-  newNoteText: string;
-  lockReasonText: string;
-  showDeleteCustomerModal = false;
-  showAddNewNoteModal = false;
-  showAllNotesModal = false;
-  showLockCustomerModal = false;
+  readonly customerData = signal<CustomerData>(null);
+  readonly customerNotesResponse = signal<CustomerNotesResponse>(null);
+
+  // Other signals
+  customerNotes = signal<CustomerNoteItem[]>([]);
+  customerNotesPaginationData = signal<TafelPaginationData>(null);
+  newNoteText = signal<string>(null);
+  lockReasonText = signal<string>(null);
+  showDeleteCustomerModal = signal(false);
+  showAddNewNoteModal = signal(false);
+  showAllNotesModal = signal(false);
+  showLockCustomerModal = signal(false);
+
   private readonly customerApiService = inject(CustomerApiService);
   private readonly customerNoteApiService = inject(CustomerNoteApiService);
   private readonly fileHelperService = inject(FileHelperService);
   private readonly router = inject(Router);
   private readonly toastService = inject(ToastService);
 
+  // Initialize signals from input
+  constructor() {
+    effect(() => {
+      this.customerData.set(this.customerDataInput());
+    });
+    effect(() => {
+      this.customerNotesResponse.set(this.customerNotesResponseInput());
+    });
+  }
+
   ngOnInit(): void {
-    this.processCustomerNoteResponse(this.customerNotesResponse);
+    this.processCustomerNoteResponse(this.customerNotesResponseInput());
   }
 
   printMasterdata() {
-    this.customerApiService.generatePdf(this.customerData.id, 'MASTERDATA')
+    this.customerApiService.generatePdf(this.customerData().id, 'MASTERDATA')
       .subscribe((response) => this.processPdfResponse(response));
   }
 
   printIdCard() {
-    this.customerApiService.generatePdf(this.customerData.id, 'IDCARD')
+    this.customerApiService.generatePdf(this.customerData().id, 'IDCARD')
       .subscribe((response) => this.processPdfResponse(response));
   }
 
   printCombined() {
-    this.customerApiService.generatePdf(this.customerData.id, 'COMBINED')
+    this.customerApiService.generatePdf(this.customerData().id, 'COMBINED')
       .subscribe((response) => this.processPdfResponse(response));
   }
 
@@ -142,11 +158,11 @@ export class CustomerDetailComponent implements OnInit {
   }
 
   async editCustomer() {
-    await this.router.navigate(['/kunden/bearbeiten', this.customerData.id]);
+    await this.router.navigate(['/kunden/bearbeiten', this.customerData().id]);
   }
 
   isValid(): boolean {
-    return !moment(this.customerData.validUntil).startOf('day').isBefore(moment().startOf('day'));
+    return !moment(this.customerData().validUntil).startOf('day').isBefore(moment().startOf('day'));
   }
 
   async deleteCustomer() {
@@ -157,87 +173,87 @@ export class CustomerDetailComponent implements OnInit {
         await this.router.navigate(['/kunden/suchen']);
       },
       error: error => {
-        this.showDeleteCustomerModal = false;
+        this.showDeleteCustomerModal.set(false);
         this.toastService.showToast({type: ToastType.ERROR, title: 'Löschen fehlgeschlagen!'});
       },
     };
-    await this.customerApiService.deleteCustomer(this.customerData.id).subscribe(observer);
+    await this.customerApiService.deleteCustomer(this.customerData().id).subscribe(observer);
   }
 
   prolongCustomer(countMonths: number) {
-    const newValidUntilDate = moment(this.customerData.validUntil).add(countMonths, 'months').endOf('day').toDate();
+    const newValidUntilDate = moment(this.customerData().validUntil).add(countMonths, 'months').endOf('day').toDate();
     const updatedCustomerData = {
-      ...this.customerData,
+      ...this.customerData(),
       validUntil: newValidUntilDate
     };
 
     this.customerApiService.updateCustomer(updatedCustomerData).subscribe(customerData => {
-      this.customerData = customerData;
+      this.customerData.set(customerData);
     });
   }
 
   invalidateCustomer() {
     const updatedCustomerData = {
-      ...this.customerData,
+      ...this.customerData(),
       validUntil: moment().subtract(1, 'day').endOf('day').toDate()
     };
 
     this.customerApiService.updateCustomer(updatedCustomerData).subscribe(customerData => {
-      this.customerData = customerData;
+      this.customerData.set(customerData);
     });
   }
 
   lockCustomer() {
     const updatedCustomerData: CustomerData = {
-      ...this.customerData,
+      ...this.customerData(),
       locked: true,
-      lockReason: this.lockReasonText
+      lockReason: this.lockReasonText()
     };
 
     this.customerApiService.updateCustomer(updatedCustomerData).subscribe(customerData => {
-      this.customerData = customerData;
-      this.lockReasonText = undefined;
-      this.showLockCustomerModal = false;
+      this.customerData.set(customerData);
+      this.lockReasonText.set(null);
+      this.showLockCustomerModal.set(false);
     });
   }
 
   unlockCustomer() {
     const updatedCustomerData: CustomerData = {
-      ...this.customerData,
+      ...this.customerData(),
       locked: false,
       lockedBy: null,
       lockReason: null
     };
 
     this.customerApiService.updateCustomer(updatedCustomerData).subscribe(customerData => {
-      this.customerData = customerData;
+      this.customerData.set(customerData);
     });
   }
 
   addNewNote() {
-    const sanitizedText = this.newNoteText.replace(/\n/g, '<br/>');
-    this.customerNoteApiService.createNewNote(this.customerData.id, sanitizedText).subscribe(newNoteItem => {
-      this.customerNotes.unshift(newNoteItem);
-      this.newNoteText = undefined;
-      this.showAddNewNoteModal = false;
+    const sanitizedText = this.newNoteText().replace(/\n/g, '<br/>');
+    this.customerNoteApiService.createNewNote(this.customerData().id, sanitizedText).subscribe(newNoteItem => {
+      this.customerNotes.update(notes => [newNoteItem, ...notes]);
+      this.newNoteText.set(null);
+      this.showAddNewNoteModal.set(false);
     });
   }
 
   getCustomerNotes(page: number) {
-    this.customerNoteApiService.getNotesForCustomer(this.customerData.id, page).subscribe((response) => {
+    this.customerNoteApiService.getNotesForCustomer(this.customerData().id, page).subscribe((response) => {
       this.processCustomerNoteResponse(response);
     });
   }
 
   private processCustomerNoteResponse(response: CustomerNotesResponse) {
-    this.customerNotes = response.items;
-    this.customerNotesPaginationData = {
+    this.customerNotes.set(response.items);
+    this.customerNotesPaginationData.set({
       count: response.items.length,
       totalCount: response.totalCount,
       currentPage: response.currentPage,
       totalPages: response.totalPages,
       pageSize: response.pageSize
-    };
+    });
   }
 
   private processPdfResponse(response: HttpResponse<Blob>) {

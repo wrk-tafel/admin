@@ -17,14 +17,15 @@ describe('ToastService', () => {
     service = TestBed.inject(ToastService);
   });
 
-  it('showToast publishes to subject', () => {
+  it('showToast adds to queue', () => {
     const expectedOptions: ToastOptions = {type: ToastType.INFO, title: 'title-123', message: 'message-123'};
 
-    service.addToastSubject.subscribe((options: ToastOptions) => {
-      expect(options).toEqual(options);
-    });
-
     service.showToast(expectedOptions);
+
+    const queue = service.getToastQueue()();
+    expect(queue.length).toBe(1);
+    expect(queue[0]).toMatchObject(expectedOptions);
+    expect(queue[0].id).toBeDefined();
   });
 
 });

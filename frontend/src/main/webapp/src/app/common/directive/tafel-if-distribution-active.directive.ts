@@ -1,37 +1,24 @@
-import {AfterViewInit, Directive, OnDestroy, TemplateRef, ViewContainerRef} from '@angular/core';
+import {Directive, effect, inject, TemplateRef, ViewContainerRef} from '@angular/core';
 import {GlobalStateService} from '../state/global-state.service';
-import {DistributionItem} from '../../api/distribution-api.service';
-import {Subscription} from 'rxjs';
 
 @Directive({
   standalone: true,
   selector: '[tafelIfDistributionActive]'
 })
-export class TafelIfDistributionActiveDirective implements AfterViewInit, OnDestroy {
-  private distributionSubscription: Subscription;
+export class TafelIfDistributionActiveDirective {
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  private readonly templateRef = inject(TemplateRef<any>);
+  private readonly viewContainer = inject(ViewContainerRef);
+  private readonly globalStateService = inject(GlobalStateService);
 
-  constructor(
-    /* eslint-disable @typescript-eslint/no-explicit-any */
-    private templateRef: TemplateRef<any>,
-    private viewContainer: ViewContainerRef,
-    private globalStateService: GlobalStateService) {
-  }
-
-  ngAfterViewInit(): void {
-    this.distributionSubscription = this.globalStateService.getCurrentDistribution().subscribe((distributionItem: DistributionItem) => {
-      if (distributionItem) {
-        this.viewContainer.clear();
-        this.viewContainer.createEmbeddedView(this.templateRef);
-      } else {
-        this.viewContainer.clear();
-      }
-    });
-  }
-
-  ngOnDestroy(): void {
-    if (this.distributionSubscription) {
-      this.distributionSubscription.unsubscribe();
+  initialEffect = effect(() => {
+    const distributionItem = this.globalStateService.getCurrentDistribution()();
+    if (distributionItem) {
+      this.viewContainer.clear();
+      this.viewContainer.createEmbeddedView(this.templateRef);
+    } else {
+      this.viewContainer.clear();
     }
-  }
+  });
 
 }

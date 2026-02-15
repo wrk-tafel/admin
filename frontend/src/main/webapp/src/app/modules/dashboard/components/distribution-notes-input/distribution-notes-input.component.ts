@@ -1,4 +1,4 @@
-import {Component, effect, inject, input, OnDestroy, OnInit} from '@angular/core';
+import {Component, computed, effect, inject, input, signal} from '@angular/core';
 import {
   ButtonDirective,
   CardBodyComponent,
@@ -11,7 +11,6 @@ import {FormsModule} from '@angular/forms';
 import {DistributionApiService} from '../../../../api/distribution-api.service';
 import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
-import {Subscription} from 'rxjs';
 
 @Component({
     selector: 'tafel-distribution-notes-input',
@@ -26,31 +25,20 @@ import {Subscription} from 'rxjs';
         FormsModule
     ]
 })
-export class DistributionNotesInputComponent implements OnInit, OnDestroy {
+export class DistributionNotesInputComponent {
   private readonly distributionApiService = inject(DistributionApiService);
   private readonly toastService = inject(ToastService);
   private readonly globalStateService = inject(GlobalStateService);
-  private distributionSubscription: Subscription;
 
   initialNotesData = input<string>();
-  notes: string = '';
-  inputIsDisabled: boolean = true;
+  notes = signal<string>('');
+
+  readonly distribution = this.globalStateService.getCurrentDistribution();
+  readonly inputIsDisabled = computed(() => this.distribution() === undefined);
 
   initialNotesDataEffect = effect(() => {
-    this.notes = this.initialNotesData() ?? '';
+    this.notes.set(this.initialNotesData() ?? '');
   });
-
-  ngOnInit() {
-    this.distributionSubscription = this.globalStateService.getCurrentDistribution().subscribe((distribution) => {
-      this.inputIsDisabled = (distribution == undefined);
-    });
-  }
-
-  ngOnDestroy(): void {
-    if (this.distributionSubscription) {
-      this.distributionSubscription.unsubscribe();
-    }
-  }
 
   save() {
     const observer = {
@@ -62,11 +50,11 @@ export class DistributionNotesInputComponent implements OnInit, OnDestroy {
       },
     };
 
-    this.distributionApiService.saveNotes(this.notes).subscribe(observer);
+    this.distributionApiService.saveNotes(this.notes()).subscribe(observer);
   }
 
   isSaveDisabled() {
-    return this.notes.trim().length <= 0;
+    return this.notes().trim().length <= 0;
   }
 
 }

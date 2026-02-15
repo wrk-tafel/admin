@@ -1,4 +1,4 @@
-import {Component, inject, Input, OnInit} from '@angular/core';
+import {Component, effect, inject, input, signal} from '@angular/core';
 import {
   CustomerApiService,
   CustomerData,
@@ -41,39 +41,49 @@ import {FormatAddressPipe} from '../../../../common/pipes/format-address.pipe';
         FormatAddressPipe
     ]
 })
-export class CustomerDuplicatesComponent implements OnInit {
-  @Input() customerDuplicatesData: CustomerDuplicatesResponse;
+export class CustomerDuplicatesComponent {
+  // Signal input from resolver - read-only input
+  readonly customerDuplicatesDataInput = input<CustomerDuplicatesResponse>();
 
-  paginationData: TafelPaginationData;
+  // Writable signal for local updates and template binding
+  readonly customerDuplicatesData = signal<CustomerDuplicatesResponse>(null);
+  readonly paginationData = signal<TafelPaginationData>(null);
+
   private readonly customerApiService = inject(CustomerApiService);
   private readonly router = inject(Router);
   private readonly toastService = inject(ToastService);
 
-  ngOnInit(): void {
-    this.paginationData = {
-      count: this.customerDuplicatesData.items.length,
-      totalCount: this.customerDuplicatesData.totalCount,
-      currentPage: this.customerDuplicatesData.currentPage,
-      totalPages: this.customerDuplicatesData.totalPages,
-      pageSize: this.customerDuplicatesData.pageSize
-    };
+  constructor() {
+    effect(() => {
+      const data = this.customerDuplicatesDataInput();
+      if (data) {
+        this.customerDuplicatesData.set(data);
+        this.paginationData.set({
+          count: data.items.length,
+          totalCount: data.totalCount,
+          currentPage: data.currentPage,
+          totalPages: data.totalPages,
+          pageSize: data.pageSize
+        });
+      }
+    });
   }
 
   getDuplicates(page?: number) {
     this.customerApiService.getCustomerDuplicates(page)
       .subscribe((response: CustomerDuplicatesResponse) => {
         if (response.items.length === 0) {
-          this.customerDuplicatesData = null;
-          this.paginationData = null;
+          this.customerDuplicatesData.set(null);
+          this.paginationData.set(null);
         } else {
-          this.customerDuplicatesData = response;
-          this.paginationData = {
+          this.customerDuplicatesData.set(response);
+          this.paginationData.set({
             count: response.items.length,
             totalCount: response.totalCount,
             currentPage: response.currentPage,
             totalPages: response.totalPages,
             pageSize: response.pageSize
-          };
+          });
         }
       });
   }
@@ -90,7 +100,7 @@ export class CustomerDuplicatesComponent implements OnInit {
     const observer = {
       next: () => {
         this.toastService.showToast({type: ToastType.SUCCESS, title: 'Kunde wurde gelöscht!'});
-        this.getDuplicates(this.paginationData.currentPage);
+        this.getDuplicates(this.paginationData().currentPage);
       },
       error: error => {
         this.toastService.showToast({type: ToastType.ERROR, title: 'Löschen fehlgeschlagen!'});
@@ -100,7 +110,7 @@ export class CustomerDuplicatesComponent implements OnInit {
   }
 
   mergeCustomers(customer: CustomerData) {
-    const sourceCustomerIds = [this.customerDuplicatesData.items[0].customer, ...this.customerDuplicatesData.items[0].similarCustomers]
+    const sourceCustomerIds = [this.customerDuplicatesData().items[0].customer, ...this.customerDuplicatesData().items[0].similarCustomers]
       .filter((filterCustomer) => filterCustomer.id !== customer.id)
       .map(mapCustomer => mapCustomer.id);
 

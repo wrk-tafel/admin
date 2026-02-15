@@ -1,4 +1,4 @@
-<c-pagination [align]="align" [size]="size" style="cursor: pointer;">
+<c-pagination [align]="align()" [size]="size()" style="cursor: pointer;">
   <li cPageItem [disabled]="currentPage === 1" (click)="selectFirstPage()">
     <a cPageLink><span aria-hidden="true">&lt;&lt;</span></a>
   </li>

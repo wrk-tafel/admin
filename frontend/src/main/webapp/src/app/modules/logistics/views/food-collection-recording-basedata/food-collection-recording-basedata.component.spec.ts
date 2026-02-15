@@ -1,4 +1,5 @@
-import {TestBed, waitForAsync} from '@angular/core/testing';
+import type {MockedObject} from 'vitest';
+import {TestBed} from '@angular/core/testing';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 import {FoodCollectionRecordingBasedataComponent} from './food-collection-recording-basedata.component';
 import {Router} from '@angular/router';
@@ -11,13 +12,16 @@ import {RouteData} from '../../../../api/route-api.service';
 import {SelectedRouteData} from '../food-collection-recording/food-collection-recording.component';
 
 describe('FoodCollectionRecordingBasedataComponent', () => {
-  let foodCollectionsApiServiceSpy: jasmine.SpyObj<FoodCollectionsApiService>;
-  let employeeApiServiceSpy: jasmine.SpyObj<EmployeeApiService>;
+  let foodCollectionsApiServiceSpy: MockedObject<FoodCollectionsApiService>;
+  let employeeApiServiceSpy: MockedObject<EmployeeApiService>;
 
-  beforeEach(waitForAsync(() => {
-    const employeeApiSpy = jasmine.createSpyObj('EmployeeApiService', ['findEmployees', 'saveEmployee']);
+  beforeEach(() => {
+    const employeeApiSpy = {
+      findEmployees: vi.fn().mockName('EmployeeApiService.findEmployees'),
+      saveEmployee: vi.fn().mockName('EmployeeApiService.saveEmployee')
+    } as any;
     // Set default return value to prevent errors in async operations
-    employeeApiSpy.findEmployees.and.returnValue(of({
+    employeeApiSpy.findEmployees.mockReturnValue(of({
       items: [],
       totalCount: 0,
       currentPage: 1,
@@ -33,15 +37,21 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
       providers: [
         {
           provide: Router,
-          useValue: jasmine.createSpyObj('Router', ['navigate'])
+          useValue: {
+            navigate: vi.fn().mockName('Router.navigate')
+          }
         },
         {
           provide: GlobalStateService,
-          useValue: jasmine.createSpyObj('GlobalStateService', ['getCurrentDistribution'])
+          useValue: {
+            getCurrentDistribution: vi.fn().mockName('GlobalStateService.getCurrentDistribution')
+          }
         },
         {
           provide: FoodCollectionsApiService,
-          useValue: jasmine.createSpyObj('FoodCollectionsApiService', ['saveRouteData'])
+          useValue: {
+            saveRouteData: vi.fn().mockName('FoodCollectionsApiService.saveRouteData')
+          }
         },
         {
           provide: EmployeeApiService,
@@ -50,9 +60,9 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
       ]
     }).compileComponents();
 
-    foodCollectionsApiServiceSpy = TestBed.inject(FoodCollectionsApiService) as jasmine.SpyObj<FoodCollectionsApiService>;
-    employeeApiServiceSpy = TestBed.inject(EmployeeApiService) as jasmine.SpyObj<EmployeeApiService>;
-  }));
+    foodCollectionsApiServiceSpy = TestBed.inject(FoodCollectionsApiService) as MockedObject<FoodCollectionsApiService>;
+    employeeApiServiceSpy = TestBed.inject(EmployeeApiService) as MockedObject<EmployeeApiService>;
+  });
 
   const mockEmployees: EmployeeData[] = [
     {
@@ -106,15 +116,15 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
     const fixture = TestBed.createComponent(FoodCollectionRecordingBasedataComponent);
     const component = fixture.componentInstance;
     const componentRef = fixture.componentRef;
-    employeeApiServiceSpy.findEmployees.and.returnValue(of(mockEmployeeListResponse));
+    employeeApiServiceSpy.findEmployees.mockReturnValue(of(mockEmployeeListResponse));
     componentRef.setInput('carList', mockCarList);
 
     // Spy on form controls
-    spyOn(component.car, 'reset').and.callThrough();
-    spyOn(component.kmStart, 'reset').and.callThrough();
-    spyOn(component.kmEnd, 'reset').and.callThrough();
-    spyOn(component.driverSearchInput, 'reset').and.callThrough();
-    spyOn(component.coDriverSearchInput, 'reset').and.callThrough();
+    vi.spyOn(component.car, 'reset');
+    vi.spyOn(component.kmStart, 'reset');
+    vi.spyOn(component.kmEnd, 'reset');
+    vi.spyOn(component.driverSearchInput, 'reset');
+    vi.spyOn(component.coDriverSearchInput, 'reset');
 
     // Set initial route data
     componentRef.setInput('selectedRouteData', mockRouteData);
@@ -165,7 +175,7 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
     fixture.detectChanges();
 
     expect(component.kmEnd.errors).toBeTruthy();
-    expect(component.kmEnd.errors['kmValidation']).toBeTrue();
+    expect(component.kmEnd.errors['kmValidation']).toBe(true);
 
     // Test invalid scenario - start km = end km
     component.kmStart.setValue(150);
@@ -173,7 +183,7 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
     fixture.detectChanges();
 
     expect(component.kmEnd.errors).toBeTruthy();
-    expect(component.kmEnd.errors['kmValidation']).toBeTrue();
+    expect(component.kmEnd.errors['kmValidation']).toBe(true);
   });
 
   it('should trigger search for driver and co-driver when input exists', () => {
@@ -181,8 +191,12 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
     const component = fixture.componentInstance;
 
     // Mock the child components
-    component.driverEmployeeSearchCreate = jasmine.createSpyObj('TafelEmployeeSearchCreateComponent', ['triggerSearch']);
-    component.coDriverEmployeeSearchCreate = jasmine.createSpyObj('TafelEmployeeSearchCreateComponent', ['triggerSearch']);
+    component.driverEmployeeSearchCreate = {
+      triggerSearch: vi.fn().mockName('TafelEmployeeSearchCreateComponent.triggerSearch')
+    } as any;
+    component.coDriverEmployeeSearchCreate = {
+      triggerSearch: vi.fn().mockName('TafelEmployeeSearchCreateComponent.triggerSearch')
+    } as any;
 
     // Test driver search with no input
     component.driverSearchInput.setValue(null);
@@ -308,7 +322,7 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
 
     fixture.detectChanges();
 
-    foodCollectionsApiServiceSpy.saveRouteData.and.returnValue(of(null));
+    foodCollectionsApiServiceSpy.saveRouteData.mockReturnValue(of(null));
 
     // Set valid form data with km difference = 150 (< 350)
     component.car.setValue(mockCarList.cars[0]);
@@ -322,7 +336,7 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
     // Save should proceed without showing modal
     component.save();
 
-    expect(component.showKmDiffModal).toBeFalse();
+    expect(component.showKmDiffModal).toBe(false);
     expect(foodCollectionsApiServiceSpy.saveRouteData).toHaveBeenCalledWith(123, {
       carId: 1,
       driverId: 1,
@@ -341,7 +355,7 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
 
     fixture.detectChanges();
 
-    foodCollectionsApiServiceSpy.saveRouteData.and.returnValue(of(null));
+    foodCollectionsApiServiceSpy.saveRouteData.mockReturnValue(of(null));
 
     // Set valid form data with km difference = 400 (> 350)
     component.car.setValue(mockCarList.cars[0]);
@@ -355,7 +369,7 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
     // Save should show modal instead of proceeding
     component.save();
 
-    expect(component.showKmDiffModal).toBeTrue();
+    expect(component.showKmDiffModal).toBe(true);
     expect(component.kmDifference).toEqual(400);
     expect(foodCollectionsApiServiceSpy.saveRouteData).not.toHaveBeenCalled();
   });
@@ -369,7 +383,7 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
 
     fixture.detectChanges();
 
-    foodCollectionsApiServiceSpy.saveRouteData.and.returnValue(of(null));
+    foodCollectionsApiServiceSpy.saveRouteData.mockReturnValue(of(null));
 
     // Set valid form data with km difference = 400 (> 350)
     component.car.setValue(mockCarList.cars[0]);
@@ -382,7 +396,7 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
 
     // First save shows modal
     component.save();
-    expect(component.showKmDiffModal).toBeTrue();
+    expect(component.showKmDiffModal).toBe(true);
     expect(foodCollectionsApiServiceSpy.saveRouteData).not.toHaveBeenCalled();
 
     // Simulate clicking OK button
@@ -407,7 +421,7 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
 
     fixture.detectChanges();
 
-    foodCollectionsApiServiceSpy.saveRouteData.and.returnValue(of(null));
+    foodCollectionsApiServiceSpy.saveRouteData.mockReturnValue(of(null));
 
     component.car.setValue(mockCarList.cars[0]);
     component.driverSearchInput.setValue('D1');
@@ -439,7 +453,7 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
 
     fixture.detectChanges();
 
-    foodCollectionsApiServiceSpy.saveRouteData.and.returnValue(of(null));
+    foodCollectionsApiServiceSpy.saveRouteData.mockReturnValue(of(null));
 
     // Set valid form data with km difference = 400 (> 350)
     component.car.setValue(mockCarList.cars[0]);
@@ -452,12 +466,12 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
 
     // First save shows modal
     component.save();
-    expect(component.showKmDiffModal).toBeTrue();
+    expect(component.showKmDiffModal).toBe(true);
 
     // Simulate clicking Cancel button
     component.showKmDiffModal = false;
 
-    expect(component.showKmDiffModal).toBeFalse();
+    expect(component.showKmDiffModal).toBe(false);
     expect(foodCollectionsApiServiceSpy.saveRouteData).not.toHaveBeenCalled();
   });
 

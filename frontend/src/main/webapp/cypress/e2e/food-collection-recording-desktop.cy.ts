@@ -86,11 +86,11 @@ describe('Food Collection Recording', () => {
       cy.byTestId('routeInput').select('Route 2');
       cy.byTestId('category-1-shop-20-input').should('have.value', '12');
 
-      cy.byTestId('driver-search-create-modal').should('not.exist');
-      cy.byTestId('codriver-search-create-modal').should('not.exist');
+      cy.byTestId('driver-search-create-modal').should('not.be.visible');
+      cy.byTestId('codriver-search-create-modal').should('not.be.visible');
 
-      cy.byTestId('driver-select-employee-modal').should('not.exist');
-      cy.byTestId('codriver-select-employee-modal').should('not.exist');
+      cy.byTestId('driver-select-employee-modal').should('not.be.visible');
+      cy.byTestId('codriver-select-employee-modal').should('not.be.visible');
     });
   });
 

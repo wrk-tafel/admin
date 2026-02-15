@@ -1,4 +1,4 @@
-import {Component, inject, Input, OnInit, ViewChild} from '@angular/core';
+import {Component, inject, input, OnInit, ViewChild} from '@angular/core';
 import {Router} from '@angular/router';
 import {UserApiService, UserData, UserPermission} from '../../../../api/user-api.service';
 import {UserFormComponent} from '../../components/user-form/user-form.component';
@@ -13,8 +13,8 @@ import {ButtonDirective} from '@coreui/angular';
     ]
 })
 export class UserEditComponent implements OnInit {
-  @Input() permissionsData: UserPermission[];
-  @Input() userData: UserData;
+  permissionsData = input<UserPermission[]>();
+  userData = input<UserData>();
 
   userUpdated: UserData;
   userValidForSave = false;
@@ -23,9 +23,10 @@ export class UserEditComponent implements OnInit {
   private readonly router = inject(Router);
 
   ngOnInit(): void {
-    if (this.userData) {
+    const userData = this.userData();
+    if (userData) {
       // Load data into forms
-      this.userUpdated = this.userData;
+      this.userUpdated = userData;
 
       // Mark forms as touched to show the validation state (postponed to next macrotask after angular finished)
       setTimeout(() => {
@@ -42,7 +43,7 @@ export class UserEditComponent implements OnInit {
   save() {
     this.userFormComponent.markAllAsTouched();
 
-    if (!this.userData) {
+    if (!this.userData()) {
       this.userApiService.createUser(this.userUpdated)
         .subscribe(user => {
             this.router.navigate(['/benutzer/detail', user.id]);

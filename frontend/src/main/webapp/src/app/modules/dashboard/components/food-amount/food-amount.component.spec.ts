@@ -1,14 +1,19 @@
-import {TestBed, waitForAsync} from '@angular/core/testing';
+import {TestBed} from '@angular/core/testing';
 import {FoodAmountComponent} from './food-amount.component';
 import {By} from '@angular/platform-browser';
 import {CardModule, ColComponent, ModalModule, RowComponent} from '@coreui/angular';
 import {provideHttpClient} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
 import {DEFAULT_CURRENCY_CODE, LOCALE_ID} from '@angular/core';
+import {registerLocaleData} from '@angular/common';
+import localeDeAt from '@angular/common/locales/de-AT';
+
+// Register de-AT locale
+registerLocaleData(localeDeAt);
 
 describe('FoodAmountComponent', () => {
 
-  beforeEach(waitForAsync(() => {
+  beforeEach((() => {
     TestBed.configureTestingModule({
       imports: [
         ModalModule,

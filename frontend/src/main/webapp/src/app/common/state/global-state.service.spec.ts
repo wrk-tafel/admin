@@ -1,41 +1,51 @@
-import {GlobalStateService} from './global-state.service';
-import {DistributionItemUpdate} from '../../api/distribution-api.service';
-import {of} from 'rxjs';
-import {SseService} from '../sse/sse.service';
+import { GlobalStateService } from './global-state.service';
+import { DistributionItemUpdate } from '../../api/distribution-api.service';
+import { of } from 'rxjs';
+import { SseService } from '../sse/sse.service';
+import { TestBed } from '@angular/core/testing';
 
 describe('GlobalStateService', () => {
-  function setup() {
-    const sseServiceSpy: jasmine.SpyObj<SseService> = jasmine.createSpyObj('SseService', ['listen']);
+    function setup() {
+        const sseServiceSpy = {
+            listen: vi.fn().mockName("SseService.listen")
+        };
 
-    const service = new GlobalStateService(sseServiceSpy);
+        TestBed.configureTestingModule({
+            providers: [
+                GlobalStateService,
+                { provide: SseService, useValue: sseServiceSpy }
+            ]
+        });
 
-    return {service, sseServiceSpy};
-  }
+        const service = TestBed.inject(GlobalStateService);
 
-  it('init calls services correctly', () => {
-    const {service, sseServiceSpy} = setup();
-    expect(service.getCurrentDistribution().value).toBeNull();
+        return { service, sseServiceSpy };
+    }
 
-    const testDistributionUpdate: DistributionItemUpdate = {
-      distribution: {
-        id: 123,
-        startedAt: new Date()
-      }
-    };
-    sseServiceSpy.listen.and.returnValue(of(testDistributionUpdate));
+    it('init calls services correctly', () => {
+        const { service, sseServiceSpy } = setup();
+        expect(service.getCurrentDistribution()()).toBeNull();
 
-    service.init();
+        const testDistributionUpdate: DistributionItemUpdate = {
+            distribution: {
+                id: 123,
+                startedAt: new Date()
+            }
+        };
+        sseServiceSpy.listen.mockReturnValue(of(testDistributionUpdate));
 
-    expect(service.getCurrentDistribution().value).toEqual(testDistributionUpdate.distribution);
+        service.init();
 
-    const args = sseServiceSpy.listen.calls.mostRecent().args;
-    expect(args[0]).toBe('/sse/distributions');
+        expect(service.getCurrentDistribution()()).toEqual(testDistributionUpdate.distribution);
 
-    const connectionStateCallback = args[1];
-    connectionStateCallback(false);
-    expect(service.getConnectionState().value).toBeFalse();
-    connectionStateCallback(true);
-    expect(service.getConnectionState().value).toBeTrue();
-  });
+        const args = vi.mocked(sseServiceSpy.listen).mock.lastCall;
+        expect(args[0]).toBe('/sse/distributions');
+
+        const connectionStateCallback = args[1];
+        connectionStateCallback(false);
+        expect(service.getConnectionState()()).toBe(false);
+        connectionStateCallback(true);
+        expect(service.getConnectionState()()).toBe(true);
+    });
 
 });

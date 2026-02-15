@@ -7,7 +7,7 @@
     </c-row>
     <c-row>
       <c-col>
-        <textarea testid="distribution-notes-textarea" type="text" class="form-control" [(ngModel)]="notes" rows="4" [disabled]="inputIsDisabled">
+        <textarea testid="distribution-notes-textarea" type="text" class="form-control" [ngModel]="notes()" (ngModelChange)="notes.set($event)" rows="4" [disabled]="inputIsDisabled()">
         </textarea>
       </c-col>
     </c-row>

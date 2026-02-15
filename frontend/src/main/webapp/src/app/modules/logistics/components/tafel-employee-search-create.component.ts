@@ -89,14 +89,16 @@ export class TafelEmployeeSearchCreateComponent implements OnDestroy {
         } else {
           this.showCreateEmployeeModal = true;
         }
+
+        this.cdr.detectChanges();
       });
   }
 
   selectEmployee(employee: EmployeeData) {
     this.employeeSearchResponse = undefined;
     this.showSelectEmployeeModal = false;
-    this.cdr.detectChanges();
     this.selectedEmployee.emit(employee);
+    this.cdr.detectChanges();
   }
 
   saveNewEmployee() {

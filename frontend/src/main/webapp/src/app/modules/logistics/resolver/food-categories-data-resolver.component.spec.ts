@@ -1,3 +1,4 @@
+import type {MockedObject} from 'vitest';
 import {TestBed} from '@angular/core/testing';
 import {provideHttpClient} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
@@ -7,7 +8,7 @@ import {FoodCategoriesDataResolver} from './food-categories-data-resolver.compon
 import {FoodCategoriesApiService, FoodCategory} from '../../../api/food-categories-api.service';
 
 describe('FoodCategoriesDataResolver', () => {
-  let apiService: jasmine.SpyObj<FoodCategoriesApiService>;
+  let apiService: MockedObject<FoodCategoriesApiService>;
   let resolver: FoodCategoriesDataResolver;
 
   beforeEach(() => {
@@ -17,13 +18,15 @@ describe('FoodCategoriesDataResolver', () => {
         provideHttpClientTesting(),
         {
           provide: FoodCategoriesApiService,
-          useValue: jasmine.createSpyObj('FoodCategoriesApiService', ['getFoodCategories'])
+          useValue: {
+            getFoodCategories: vi.fn().mockName('FoodCategoriesApiService.getFoodCategories')
+          }
         },
         FoodCategoriesDataResolver
       ]
     });
 
-    apiService = TestBed.inject(FoodCategoriesApiService) as jasmine.SpyObj<FoodCategoriesApiService>;
+    apiService = TestBed.inject(FoodCategoriesApiService) as MockedObject<FoodCategoriesApiService>;
     resolver = TestBed.inject(FoodCategoriesDataResolver);
   });
 
@@ -32,7 +35,7 @@ describe('FoodCategoriesDataResolver', () => {
       {id: 0, name: 'Cat 1', returnItem: false},
       {id: 1, name: 'Cat 2', returnItem: true},
     ];
-    apiService.getFoodCategories.and.returnValue(of(mockCategories));
+    apiService.getFoodCategories.mockReturnValue(of(mockCategories));
 
     const activatedRoute = <ActivatedRouteSnapshot><unknown>{};
     resolver.resolve(activatedRoute).subscribe((categories: FoodCategory[]) => {

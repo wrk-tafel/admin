@@ -1,4 +1,4 @@
-import {Component, inject, Input} from '@angular/core';
+import {Component, effect, inject, input, signal} from '@angular/core';
 import {UserApiService, UserData} from '../../../../api/user-api.service';
 import {Router} from '@angular/router';
 import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
@@ -37,11 +37,23 @@ import {FormatPermissionsPipe} from '../../../../common/pipes/format-permissions
     ]
 })
 export class UserDetailComponent {
-  @Input() userData: UserData;
+  readonly userData = input<UserData>();
 
   private readonly userApiService = inject(UserApiService);
   private readonly router = inject(Router);
   private readonly toastService = inject(ToastService);
+
+  readonly currentUserData = signal<UserData>(undefined);
+
+  constructor() {
+    // Sync input signal to writable signal
+    effect(() => {
+      const data = this.userData();
+      if (data) {
+        this.currentUserData.set(data);
+      }
+    });
+  }
 
   disableUser() {
     this.changeUserState(false);
@@ -61,21 +73,21 @@ export class UserDetailComponent {
         this.toastService.showToast({type: ToastType.ERROR, title: 'Löschen fehlgeschlagen!'});
       },
     };
-    this.userApiService.deleteUser(this.userData.id).subscribe(observer);
+    this.userApiService.deleteUser(this.currentUserData().id).subscribe(observer);
   }
 
   editUser() {
-    this.router.navigate(['/benutzer/bearbeiten', this.userData.id]);
+    this.router.navigate(['/benutzer/bearbeiten', this.currentUserData().id]);
   }
 
   private changeUserState(enabled: boolean) {
     const modifiedUser = {
-      ...this.userData,
+      ...this.currentUserData(),
       enabled: enabled
     };
 
     this.userApiService.updateUser(modifiedUser).subscribe(updatedUser => {
-      this.userData = updatedUser;
+      this.currentUserData.set(updatedUser);
     });
   }
 

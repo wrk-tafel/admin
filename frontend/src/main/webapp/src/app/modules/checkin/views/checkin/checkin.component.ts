@@ -37,7 +37,7 @@ import {
 import {DistributionTicketApiService, TicketNumberResponse} from '../../../../api/distribution-ticket-api.service';
 import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
-import {CommonModule, DatePipe, NgClass} from '@angular/common';
+import { CommonModule, DatePipe, NgClass } from '@angular/common';
 import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
 import {SseService} from '../../../../common/sse/sse.service';
 import {ScannerApiService, ScannerList} from '../../../../api/scanner-api.service';
@@ -90,7 +90,7 @@ export class CheckinComponent implements OnInit, OnDestroy {
   @ViewChild('ticketNumberInput') ticketNumberInputRef: ElementRef;
   @ViewChild('cancelButton') cancelButtonRef: ElementRef;
 
-  scannerIds: number[];
+  scannerIds: number[] = [];
   currentScannerId: number;
   scannerReadyState: boolean;
   scannerSubscription: Subscription;
@@ -158,7 +158,7 @@ export class CheckinComponent implements OnInit, OnDestroy {
 
   infantCount = computed<number>(() => {
     const customer = this.customer();
-    if (!customer) {
+    if (!customer || !customer.additionalPersons) {
       return 0;
     }
 
@@ -196,7 +196,7 @@ export class CheckinComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    if (this.globalStateService.getCurrentDistribution().value === null) {
+    if (this.globalStateService.getCurrentDistribution()() === null) {
       this.router.navigate(['uebersicht']);
     }
 

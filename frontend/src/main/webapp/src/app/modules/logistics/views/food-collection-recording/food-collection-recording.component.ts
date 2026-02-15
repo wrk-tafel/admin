@@ -1,6 +1,6 @@
-import {Component, inject, model, OnInit} from '@angular/core';
+import {ChangeDetectorRef, Component, inject, model, OnInit} from '@angular/core';
 import {RouteApiService, RouteData, RouteList, Shop} from '../../../../api/route-api.service';
-import {CommonModule} from '@angular/common';
+
 import {
   CardBodyComponent,
   CardComponent,
@@ -40,27 +40,26 @@ import {forkJoin} from 'rxjs';
     selector: 'tafel-food-collection-recording',
     templateUrl: 'food-collection-recording.component.html',
     imports: [
-        CommonModule,
-        CardComponent,
-        CardBodyComponent,
-        CardHeaderComponent,
-        ReactiveFormsModule,
-        FormsModule,
-        TabsComponent,
-        TabsListComponent,
-        TabDirective,
-        TabsContentComponent,
-        TabPanelComponent,
-        RowComponent,
-        ColComponent,
-        FormSelectDirective,
-        InputGroupComponent,
-        FaIconComponent,
-        InputGroupTextDirective,
-        FoodCollectionRecordingBasedataComponent,
-        FoodCollectionRecordingItemsDesktopComponent,
-        FoodCollectionRecordingItemsResponsiveComponent,
-    ]
+    CardComponent,
+    CardBodyComponent,
+    CardHeaderComponent,
+    ReactiveFormsModule,
+    FormsModule,
+    TabsComponent,
+    TabsListComponent,
+    TabDirective,
+    TabsContentComponent,
+    TabPanelComponent,
+    RowComponent,
+    ColComponent,
+    FormSelectDirective,
+    InputGroupComponent,
+    FaIconComponent,
+    InputGroupTextDirective,
+    FoodCollectionRecordingBasedataComponent,
+    FoodCollectionRecordingItemsDesktopComponent,
+    FoodCollectionRecordingItemsResponsiveComponent
+]
 })
 export class FoodCollectionRecordingComponent implements OnInit {
   routeList = model.required<RouteList>();
@@ -75,9 +74,10 @@ export class FoodCollectionRecordingComponent implements OnInit {
   private readonly routeApiService = inject(RouteApiService);
   private readonly toastService = inject(ToastService);
   private readonly router = inject(Router);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   ngOnInit(): void {
-    if (this.globalStateService.getCurrentDistribution().value === null) {
+    if (this.globalStateService.getCurrentDistribution()() === null) {
       this.router.navigate(['uebersicht']);
     }
   }
@@ -93,6 +93,7 @@ export class FoodCollectionRecordingComponent implements OnInit {
           shops: shopsOfRouteData.shops,
           foodCollectionData: foodCollectionData
         };
+        this.cdr.detectChanges();
       },
       error: (error: any) => {
         this.toastService.showToast({type: ToastType.ERROR, title: 'Fehler beim Laden der Daten!'});

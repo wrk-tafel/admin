@@ -30,7 +30,7 @@
             <input testid="distribution-statistics-persons-in-shelter-input" type="number" formControlName="personsInShelterCount" class="form-control"
                    [ngClass]="{'is-invalid': personsInShelterCount.invalid && (personsInShelterCount.dirty || personsInShelterCount.touched), 'is-valid': personsInShelterCount.valid && (personsInShelterCount.dirty || personsInShelterCount.touched)}">
             <span cInputGroupText>
-                <tafel-select-shelters (updateSelectedShelters)="onUpdateSelectedShelters($event)" [shelters]="sheltersData().shelters" [initialSelectedShelters]="selectedShelters" [disabled]="panelDisabled()"></tafel-select-shelters>
+                <tafel-select-shelters (updateSelectedShelters)="onUpdateSelectedShelters($event)" [sheltersList]="sheltersData()?.shelters" [initialSelectedShelters]="selectedShelters()" [disabled]="panelDisabled()"></tafel-select-shelters>
             </span>
             @if (personsInShelterCount.errors?.required && (personsInShelterCount.dirty || personsInShelterCount.touched)) {
               <div class="invalid-feedback">

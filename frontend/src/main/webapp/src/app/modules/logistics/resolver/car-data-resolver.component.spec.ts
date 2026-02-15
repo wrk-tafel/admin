@@ -1,3 +1,4 @@
+import type {MockedObject} from 'vitest';
 import {TestBed} from '@angular/core/testing';
 import {provideHttpClient} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
@@ -7,7 +8,7 @@ import {CarApiService, CarList} from '../../../api/car-api.service';
 import {CarDataResolver} from './car-data-resolver.component';
 
 describe('CarDataResolver', () => {
-  let apiService: jasmine.SpyObj<CarApiService>;
+  let apiService: MockedObject<CarApiService>;
   let resolver: CarDataResolver;
 
   beforeEach(() => {
@@ -17,13 +18,15 @@ describe('CarDataResolver', () => {
         provideHttpClientTesting(),
         {
           provide: CarApiService,
-          useValue: jasmine.createSpyObj('CarApiService', ['getCars'])
+          useValue: {
+            getCars: vi.fn().mockName('CarApiService.getCars')
+          }
         },
         CarDataResolver
       ]
     });
 
-    apiService = TestBed.inject(CarApiService) as jasmine.SpyObj<CarApiService>;
+    apiService = TestBed.inject(CarApiService) as MockedObject<CarApiService>;
     resolver = TestBed.inject(CarDataResolver);
   });
 
@@ -42,7 +45,7 @@ describe('CarDataResolver', () => {
         }
       ]
     };
-    apiService.getCars.and.returnValue(of(mockCars));
+    apiService.getCars.mockReturnValue(of(mockCars));
 
     const activatedRoute = <ActivatedRouteSnapshot><unknown>{};
     resolver.resolve(activatedRoute).subscribe((carList: CarList) => {
