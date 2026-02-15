@@ -223,7 +223,7 @@ export class CustomerFormComponent implements OnInit, OnDestroy {
 
   private pushPersonGroupControl(additionalPerson: CustomerAddPersonData) {
     const control = new FormGroup({
-      key: new FormControl<number>(additionalPerson.key),
+      key: new FormControl<string | number>(additionalPerson.key),
       id: new FormControl<number>(additionalPerson.id),
       lastname: new FormControl<string>(additionalPerson.lastname, [Validators.required, Validators.maxLength(50)]),
       firstname: new FormControl<string>(additionalPerson.firstname, [Validators.required, Validators.maxLength(50)]),
