@@ -132,7 +132,7 @@ export interface CustomerAddressData {
 }
 
 export interface CustomerAddPersonData {
-  key: number;
+  key: string | number;
   id: number;
   firstname: string;
   lastname: string;
