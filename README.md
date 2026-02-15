@@ -7,6 +7,7 @@
 # TODO
 
 # Prio 1
+* Update to postgres 18
 * Move cost contribution from CheckIn to ticket screen (after checkin, before distribution) - time when its payed
 ** Keep on checkin to show debts
 * Replace cdr.detectChanges() with signals to show/hide modals
