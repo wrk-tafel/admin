@@ -1,36 +1,49 @@
-import {TafelIfDistributionActiveDirective} from './tafel-if-distribution-active.directive';
-import {BehaviorSubject} from 'rxjs';
-import {DistributionItem} from '../../api/distribution-api.service';
+import { TafelIfDistributionActiveDirective } from './tafel-if-distribution-active.directive';
+import { DistributionItem } from '../../api/distribution-api.service';
+import { TestBed } from '@angular/core/testing';
+import { GlobalStateService } from '../state/global-state.service';
+import { signal } from '@angular/core';
+import { Component, TemplateRef, ViewContainerRef } from '@angular/core';
+
+@Component({
+    template: '<div *tafelIfDistributionActive>Content</div>',
+    imports: [TafelIfDistributionActiveDirective]
+})
+class TestComponent {}
 
 describe('TafelIfDistributionActiveDirective', () => {
 
-  function setup() {
-    const viewContainerSpy =
-      jasmine.createSpyObj('ViewContainer', ['createEmbeddedView', 'clear']);
-    const globalStateServiceSpy =
-      jasmine.createSpyObj('GlobalStateService', ['getCurrentDistribution']);
-    const directive = new TafelIfDistributionActiveDirective(undefined, viewContainerSpy, globalStateServiceSpy);
-    return {viewContainerSpy, globalStateServiceSpy, directive};
-  }
+    function setup(distributionItem: DistributionItem | null) {
+        const globalStateServiceSpy = {
+            getCurrentDistribution: vi.fn().mockName("GlobalStateService.getCurrentDistribution")
+        };
+        globalStateServiceSpy.getCurrentDistribution.mockReturnValue(signal(distributionItem).asReadonly());
 
-  it('should render when distribution is active', () => {
-    const {viewContainerSpy, globalStateServiceSpy, directive} = setup();
-    const mockDistributionItem: DistributionItem = {id: 123, startedAt: new Date()};
-    globalStateServiceSpy.getCurrentDistribution.and.returnValue(new BehaviorSubject(mockDistributionItem));
+        TestBed.configureTestingModule({
+            providers: [
+                { provide: GlobalStateService, useValue: globalStateServiceSpy }
+            ]
+        });
 
-    directive.ngAfterViewInit();
+        const fixture = TestBed.createComponent(TestComponent);
+        return { fixture, globalStateServiceSpy };
+    }
 
-    expect(viewContainerSpy.clear).toHaveBeenCalled();
-    expect(viewContainerSpy.createEmbeddedView).toHaveBeenCalled();
-  });
+    it('should render when distribution is active', () => {
+        const mockDistributionItem: DistributionItem = { id: 123, startedAt: new Date() };
+        const { fixture } = setup(mockDistributionItem);
 
-  it('should not render distribution is inactive', () => {
-    const {viewContainerSpy, globalStateServiceSpy, directive} = setup();
-    globalStateServiceSpy.getCurrentDistribution.and.returnValue(new BehaviorSubject(undefined));
+        fixture.detectChanges();
 
-    directive.ngAfterViewInit();
+        expect(fixture.nativeElement.textContent).toContain('Content');
+    });
 
-    expect(viewContainerSpy.clear).toHaveBeenCalled();
-  });
+    it('should not render when distribution is inactive', () => {
+        const { fixture } = setup(null);
+
+        fixture.detectChanges();
+
+        expect(fixture.nativeElement.textContent).not.toContain('Content');
+    });
 
 });

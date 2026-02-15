@@ -1,16 +1,18 @@
-@if (customerData.locked) {
+@if (customerData()?.locked) {
   <div testid="lock-info-banner" class="alert alert-danger">
     <div><strong>Kunde ist gesperrt!</strong></div>
-    @if (customerData.lockedBy) {
-      <div>Gesperrt am {{customerData.lockedAt | date : 'dd.MM.yyyy HH:mm' }} von {{customerData.lockedBy}}</div>
+    @if (customerData().lockedBy) {
+      <div>Gesperrt am {{customerData().lockedAt | date : 'dd.MM.yyyy HH:mm' }} von {{customerData().lockedBy}}</div>
     }
-    <div><strong>Sperrgrund:</strong> {{customerData.lockReason}}</div>
+    @if (customerData().lockReason) {
+      <div><strong>Sperrgrund:</strong> {{customerData().lockReason}}</div>
+    }
   </div>
 }
 <div class="d-flex flex-column-reverse flex-lg-column">
   <div class="d-flex flex-column flex-lg-row mt-3 mt-lg-0 mb-4 mb-lg-0">
     <c-dropdown variant="dropdown">
-      <button testid="printMenuButton" cButton cDropdownToggle [disabled]="customerData.locked">
+      <button testid="printMenuButton" cButton cDropdownToggle [disabled]="customerData()?.locked">
         Daten ausdrucken
       </button>
       <ul cDropdownMenu>
@@ -23,7 +25,7 @@
     <c-dropdown
       variant="dropdown"
       class="mt-3 mt-lg-0 ms-lg-3">
-      <button testid="prolongButton" cButton cDropdownToggle [disabled]="customerData.locked">
+      <button testid="prolongButton" cButton cDropdownToggle [disabled]="customerData()?.locked">
         Bezug verlängern
       </button>
       <ul cDropdownMenu>
@@ -38,25 +40,25 @@
       variant="btn-group"
       class="mt-3 mt-lg-0 ms-lg-3">
       <button cButton color="danger" class="text-white" testid="editCustomerButton" (click)="editCustomer()"
-              [disabled]="!customerData || customerData.locked">Kunden bearbeiten
+              [disabled]="!customerData() || customerData()?.locked">Kunden bearbeiten
       </button>
       <button testid="editCustomerToggleButton" color="danger" class="text-white" cButton cDropdownToggle split>
         <span class="visually-hidden">Toggle Dropdown</span>
       </button>
       <ul cDropdownMenu>
         <li>
-          <button cDropdownItem testid="invalidateCustomerButton" (click)="invalidateCustomer()" [disabled]="!customerData" [disabled]="customerData.locked">Kunden deaktivieren</button>
+          <button cDropdownItem testid="invalidateCustomerButton" (click)="invalidateCustomer()" [disabled]="!customerData() || customerData()?.locked">Kunden deaktivieren</button>
         </li>
         <li><hr cDropdownDivider></li>
         <li>
-          <button cDropdownItem testid="lockCustomerButton" (click)="showLockCustomerModal = true" [disabled]="!customerData" [disabled]="customerData.locked">Kunden sperren</button>
+          <button cDropdownItem testid="lockCustomerButton" (click)="showLockCustomerModal.set(true)" [disabled]="!customerData() || customerData()?.locked">Kunden sperren</button>
         </li>
         <li>
-          <button cDropdownItem testid="unlockCustomerButton" (click)="unlockCustomer()" [disabled]="!customerData" [disabled]="!customerData.locked">Kunden entsperren</button>
+          <button cDropdownItem testid="unlockCustomerButton" (click)="unlockCustomer()" [disabled]="!customerData() || !customerData()?.locked">Kunden entsperren</button>
         </li>
         <li><hr cDropdownDivider></li>
         <li>
-          <button cDropdownItem testid="deleteCustomerButton" (click)="showDeleteCustomerModal = true" [disabled]="!customerData" [disabled]="customerData.locked">Kunden löschen</button>
+          <button cDropdownItem testid="deleteCustomerButton" (click)="showDeleteCustomerModal.set(true)" [disabled]="!customerData() || customerData()?.locked">Kunden löschen</button>
         </li>
       </ul>
     </c-dropdown>
@@ -69,7 +71,7 @@
             Allgemeine Daten
           </button>
           <button cTab [itemKey]="1">
-            <fa-icon [icon]="faUsers"></fa-icon> Weitere Personen ({{customerData?.additionalPersons.length}})
+            <fa-icon [icon]="faUsers"></fa-icon> Weitere Personen ({{customerData()?.additionalPersons.length}})
           </button>
         </c-tabs-list>
         <c-tabs-content>
@@ -83,72 +85,72 @@
                   <c-card-body>
                     <c-row>
                       <c-col class="fw-bold">Kundennummer</c-col>
-                      <c-col testid="customerIdText">{{customerData?.id}}</c-col>
+                      <c-col testid="customerIdText">{{customerData()?.id}}</c-col>
                     </c-row>
                     <c-row>
                       <c-col class="fw-bold">Name</c-col>
-                      <c-col testid="nameText">{{customerData | formattedCustomerName}}</c-col>
+                      <c-col testid="nameText">{{customerData() | formattedCustomerName}}</c-col>
                     </c-row>
                     <c-row>
                       <c-col class="fw-bold">Geburtsdatum (Alter)</c-col>
-                      <c-col testid="birthDateAgeText">{{customerData?.birthDate | birthdateAge}}</c-col>
+                      <c-col testid="birthDateAgeText">{{customerData()?.birthDate | birthdateAge}}</c-col>
                     </c-row>
                     <c-row>
                       <c-col class="fw-bold">Geschlecht</c-col>
-                      <c-col testid="genderText">{{customerData?.gender | genderLabel}}</c-col>
+                      <c-col testid="genderText">{{customerData()?.gender | genderLabel}}</c-col>
                     </c-row>
                     <c-row>
                       <c-col class="fw-bold">Nationalität</c-col>
-                      <c-col testid="countryText">{{customerData?.country?.name}}</c-col>
+                      <c-col testid="countryText">{{customerData()?.country?.name}}</c-col>
                     </c-row>
                     <c-row>
                       <c-col class="fw-bold">Telefon</c-col>
-                      <c-col testid="telephoneNumberText">{{customerData?.telephoneNumber ? customerData?.telephoneNumber : '-'}}</c-col>
+                      <c-col testid="telephoneNumberText">{{customerData()?.telephoneNumber ? customerData()?.telephoneNumber : '-'}}</c-col>
                     </c-row>
                     <c-row>
                       <c-col class="fw-bold">E-Mail</c-col>
-                      <c-col testid="emailText">{{customerData?.email ? customerData?.email : '-'}}</c-col>
+                      <c-col testid="emailText">{{customerData()?.email ? customerData()?.email : '-'}}</c-col>
                     </c-row>
                     <hr>
                     <c-row>
                       <c-col class="fw-bold">Adresse</c-col>
                       <c-col>
                         <c-row>
-                          <c-col testid="addressLine1Text">{{customerData?.address ? formatAddressLine1(customerData?.address) : ''}}</c-col>
+                          <c-col testid="addressLine1Text">{{customerData()?.address ? formatAddressLine1(customerData()?.address) : ''}}</c-col>
                         </c-row>
                         <c-row>
-                          <c-col testid="addressLine2Text">{{customerData?.address ? formatAddressLine2(customerData?.address) : ''}}</c-col>
+                          <c-col testid="addressLine2Text">{{customerData()?.address ? formatAddressLine2(customerData()?.address) : ''}}</c-col>
                         </c-row>
                       </c-col>
                     </c-row>
                     <hr>
                     <c-row>
                       <c-col class="fw-bold">Arbeitgeber</c-col>
-                      <c-col testid="employerText">{{customerData?.employer ? customerData?.employer : '-'}}</c-col>
+                      <c-col testid="employerText">{{customerData()?.employer ? customerData()?.employer : '-'}}</c-col>
                     </c-row>
                     <c-row class="mt-2 align-items-end">
                       <c-col class="fw-bold">Einkommen (monatlich)</c-col>
-                      <c-col testid="incomeText">{{!customerData?.income ? '-' : customerData?.income | currency}}</c-col>
+                      <c-col testid="incomeText">{{!customerData()?.income ? '-' : customerData()?.income | currency}}</c-col>
                     </c-row>
                     <c-row class="align-items-end">
                       <c-col>nachgewiesen bis:</c-col>
-                      <c-col testid="incomeDueText">{{!customerData?.incomeDue ? '-' : customerData?.incomeDue | date : 'dd.MM.yyyy'}}</c-col>
+                      <c-col testid="incomeDueText">{{!customerData()?.incomeDue ? '-' : customerData()?.incomeDue | date : 'dd.MM.yyyy'}}</c-col>
                     </c-row>
                     <hr>
                     <c-row>
                       <c-col class="fw-bold">Angelegt</c-col>
-                      <c-col testid="issuedInformation">am {{customerData?.issuedAt | date : 'dd.MM.yyyy'}} {{customerData?.issuer | formatIssuer}}</c-col>
+                      <c-col testid="issuedInformation">am {{customerData()?.issuedAt | date : 'dd.MM.yyyy'}} {{customerData()?.issuer | formatIssuer}}</c-col>
                     </c-row>
                     <c-row>
-                      <c-col class="fw-bold text-white" [ngClass]="{'bg-success': customerData?.validUntil && isValid(), 'bg-danger': customerData?.validUntil && !isValid()}">
+                      <c-col class="fw-bold text-white" [ngClass]="{'bg-success': customerData()?.validUntil && isValid(), 'bg-danger': customerData()?.validUntil && !isValid()}">
                         Gültig bis:
                       </c-col>
-                      <c-col testid="validUntilText" class="text-white" [ngClass]="{'bg-success': customerData?.validUntil && isValid(), 'bg-danger': customerData?.validUntil && !isValid()}">{{customerData?.validUntil | date : 'dd.MM.yyyy'}}</c-col>
+                      <c-col testid="validUntilText" class="text-white" [ngClass]="{'bg-success': customerData()?.validUntil && isValid(), 'bg-danger': customerData()?.validUntil && !isValid()}">{{customerData()?.validUntil | date : 'dd.MM.yyyy'}}</c-col>
                     </c-row>
                     <c-row>
-                      <c-col class="fw-bold" [ngClass]="{'bg-danger': customerData?.pendingCostContribution > 0, 'text-white': customerData?.pendingCostContribution > 0}">Unkostenbeitrag ausstehend:</c-col>
-                      <c-col testid="pendingCostContributionText" [ngClass]="{'bg-danger': customerData?.pendingCostContribution > 0, 'text-white': customerData?.pendingCostContribution > 0}">
-                        {{customerData?.pendingCostContribution | currency}}
+                      <c-col class="fw-bold" [ngClass]="{'bg-danger': customerData()?.pendingCostContribution > 0, 'text-white': customerData()?.pendingCostContribution > 0}">Unkostenbeitrag ausstehend:</c-col>
+                      <c-col testid="pendingCostContributionText" [ngClass]="{'bg-danger': customerData()?.pendingCostContribution > 0, 'text-white': customerData()?.pendingCostContribution > 0}">
+                        {{customerData()?.pendingCostContribution | currency}}
                       </c-col>
                     </c-row>
                   </c-card-body>
@@ -162,7 +164,7 @@
                         <h5 class="m-0">Aktuellste Notiz</h5>
                       </c-col>
                       <c-col class="text-end">
-                        <button testid="addnote-button" cButton color="success" (click)="showAddNewNoteModal = true">
+                        <button testid="addnote-button" cButton color="success" (click)="showAddNewNoteModal.set(true)">
                           <fa-icon [icon]="faPlus" inverse="true"></fa-icon>
                         </button>
                       </c-col>
@@ -178,18 +180,18 @@
                       @if (customerNotes?.length !== 0) {
                         <c-col>
                           <c-row class="mb-2">
-                            <c-col class="fw-bold" testid="note-title">{{customerNotes[0].timestamp | date : 'dd.MM.yyyy HH:mm' }}&nbsp;{{customerNotes[0].author}}</c-col>
+                            <c-col class="fw-bold" testid="note-title">{{customerNotes()[0].timestamp | date : 'dd.MM.yyyy HH:mm' }}&nbsp;{{customerNotes()[0].author}}</c-col>
                           </c-row>
                           <c-row>
-                            <c-col testid="note-text" [innerHtml]="customerNotes[0].note"></c-col>
+                            <c-col testid="note-text" [innerHtml]="customerNotes()[0].note"></c-col>
                           </c-row>
                         </c-col>
                       }
                     </c-row>
                   </c-card-body>
-                  @if (customerNotes.length > 1) {
+                  @if (customerNotes?.length > 1) {
                     <c-card-footer>
-                      <button testid="showall-notes-button" cButton (click)="showAllNotesModal = true">Alle Notizen anzeigen</button>
+                      <button testid="showall-notes-button" cButton (click)="showAllNotesModal.set(true)">Alle Notizen anzeigen</button>
                     </c-card-footer>
                   }
                 </c-card>
@@ -197,16 +199,16 @@
             </c-row>
           </c-tab-panel>
           <c-tab-panel [itemKey]="1" role="tabpanel">
-            @if(customerData?.additionalPersons.length === 0) {
+            @if(customerData()?.additionalPersons.length === 0) {
               <c-row>
                 <c-col class="mt-3">
                   <h6 testid="nopersons-label">Keine Personen vorhanden</h6>
                 </c-col>
               </c-row>
             }
-            @if (customerData?.additionalPersons.length > 0) {
+            @if (customerData()?.additionalPersons.length > 0) {
               <c-row class="mt-4 row-cols-sm-2 row-cols-1 row-gap-3">
-                @for(addPerson of customerData?.additionalPersons; track addPerson.id; let i = $index) {
+                @for(addPerson of customerData()?.additionalPersons; track addPerson.id; let i = $index) {
                   <c-col>
                     <c-card>
                       <c-card-body>
@@ -219,7 +221,7 @@
                           <c-col class="col-6" [attr.testid]="'addperson-' + i + '-genderText'">{{addPerson?.gender | genderLabel}}</c-col>
                         </c-row>
                         <c-row>
-                          <c-col [attr.testid]="'addperson-' + i + '-countryText'">{{addPerson?.country.name}}</c-col>
+                          <c-col [attr.testid]="'addperson-' + i + '-countryText'">{{addPerson?.country?.name}}</c-col>
                         </c-row>
                         <hr>
                         <c-row class="mt-1">
@@ -269,7 +271,7 @@
     </c-col>
   </c-row>
 </div>
-<c-modal id="deleteCustomerModal" #deleteCustomerModal testid="deletecustomer-modal" [(visible)]="showDeleteCustomerModal">
+<c-modal id="deleteCustomerModal" #deleteCustomerModal testid="deletecustomer-modal" [visible]="showDeleteCustomerModal()" (visibleChange)="showDeleteCustomerModal.set($event)">
   <c-modal-header cBgColor="warning">
     <h4 class="text-white">Kunden löschen</h4>
     <button [cModalToggle]="deleteCustomerModal.id" cButtonClose></button>
@@ -285,20 +287,22 @@
   <c-modal-footer>
     <button testid="okButton" cButton (click)="deleteCustomer()">Löschen
     </button>
-    <button testid="cancelButton" cButton color="secondary" (click)="showDeleteCustomerModal = false">
+    <button testid="cancelButton" cButton color="secondary" (click)="showDeleteCustomerModal.set(false)">
       Abbrechen
     </button>
   </c-modal-footer>
 </c-modal>
-<c-modal id="allNotesModal" #allNotesModal testid="showallnotes-modal" [(visible)]="showAllNotesModal" scrollable="true">
+<c-modal id="allNotesModal" #allNotesModal testid="showallnotes-modal" [visible]="showAllNotesModal()" (visibleChange)="showAllNotesModal.set($event)" scrollable="true">
   <c-modal-header cBgColor="info">
     <h4 class="text-white">Alle Notizen</h4>
     <button [cModalToggle]="allNotesModal.id" cButtonClose></button>
   </c-modal-header>
   <c-modal-body>
-    <tafel-pagination class="d-none d-sm-block" align="center" [paginationData]="customerNotesPaginationData" (pageChanged)="getCustomerNotes($event)"></tafel-pagination>
-    <tafel-pagination class="d-block d-sm-none" align="center" size="sm" [paginationData]="customerNotesPaginationData" (pageChanged)="getCustomerNotes($event)"></tafel-pagination>
-    @for(noteItem of customerNotes; track noteItem.timestamp; let i = $index) {
+    @if(customerNotesPaginationData()) {
+      <tafel-pagination class="d-none d-sm-block" align="center" [paginationData]="customerNotesPaginationData()" (pageChanged)="getCustomerNotes($event)"></tafel-pagination>
+      <tafel-pagination class="d-block d-sm-none" align="center" size="sm" [paginationData]="customerNotesPaginationData()" (pageChanged)="getCustomerNotes($event)"></tafel-pagination>
+    }
+    @for(noteItem of customerNotes(); track noteItem.timestamp; let i = $index) {
       <c-row>
         @if (customerNotes?.length !== 0) {
           @if (i > 0) {
@@ -315,11 +319,13 @@
         }
       </c-row>
     }
-    <tafel-pagination class="d-none d-sm-block mt-4" align="center" [paginationData]="customerNotesPaginationData" (pageChanged)="getCustomerNotes($event)"></tafel-pagination>
-    <tafel-pagination class="d-block d-sm-none mt-4" align="center" size="sm" [paginationData]="customerNotesPaginationData" (pageChanged)="getCustomerNotes($event)"></tafel-pagination>
+    @if(customerNotesPaginationData()) {
+      <tafel-pagination class="d-none d-sm-block mt-4" align="center" [paginationData]="customerNotesPaginationData()" (pageChanged)="getCustomerNotes($event)"></tafel-pagination>
+      <tafel-pagination class="d-block d-sm-none mt-4" align="center" size="sm" [paginationData]="customerNotesPaginationData()" (pageChanged)="getCustomerNotes($event)"></tafel-pagination>
+    }
   </c-modal-body>
   <c-modal-footer>
-    <button testid="cancelButton" cButton (click)="showAllNotesModal = false">
+    <button testid="cancelButton" cButton (click)="showAllNotesModal.set(false)">
       OK
     </button>
   </c-modal-footer>
@@ -327,37 +333,37 @@
 <c-modal id="addNewNoteModal" #addNewNoteModal testid="addnew-note-modal" [(visible)]="showAddNewNoteModal">
   <c-modal-header cBgColor="info">
     <h4 class="text-white">Neue Notiz hinzufügen</h4>
-    <button [cModalToggle]="addNewNoteModal.id" (click)="newNoteText = undefined" cButtonClose></button>
+    <button [cModalToggle]="addNewNoteModal.id" (click)="newNoteText.set(undefined)" cButtonClose></button>
   </c-modal-header>
   <c-modal-body>
     <textarea id="textarea-input" name="textarea-input" rows="9" class="form-control"
-              [(ngModel)]="newNoteText"></textarea>
+              [ngModel]="newNoteText()" (ngModelChange)="newNoteText.set($event)"></textarea>
   </c-modal-body>
   <c-modal-footer>
     <button testid="okButton" cButton (click)="addNewNote()"
-            [disabled]="!newNoteText || newNoteText.trim().length === 0">Speichern
+            [disabled]="!newNoteText() || newNoteText()?.trim().length === 0">Speichern
     </button>
     <button testid="cancelButton" cButton color="secondary"
-            (click)="newNoteText = undefined; showAddNewNoteModal = false;">
+            (click)="newNoteText.set(undefined); showAddNewNoteModal.set(false);">
       Abbrechen
     </button>
   </c-modal-footer>
 </c-modal>
-<c-modal id="lockCustomerModal" #lockCustomerModal testid="lock-customer-modal" [(visible)]="showLockCustomerModal">
+<c-modal id="lockCustomerModal" #lockCustomerModal testid="lock-customer-modal" [visible]="showLockCustomerModal()" (visibleChange)="showLockCustomerModal.set($event)">
   <c-modal-header cBgColor="info">
     <h4 class="text-white">Kunden sperren</h4>
-    <button [cModalToggle]="lockCustomerModal.id" (click)="lockReasonText = undefined" cButtonClose></button>
+    <button [cModalToggle]="lockCustomerModal.id" (click)="lockReasonText.set(undefined)" cButtonClose></button>
   </c-modal-header>
   <c-modal-body>
     <div class="fw-bold">Sperrgrund:</div>
     <textarea testid="lockreason-input-text" id="textarea-input" name="textarea-input" rows="9" class="form-control"
-              [(ngModel)]="lockReasonText"></textarea>
+              [ngModel]="lockReasonText()" (ngModelChange)="lockReasonText.set($event)"></textarea>
   </c-modal-body>
   <c-modal-footer>
     <button testid="okButton" cButton (click)="lockCustomer()"
-            [disabled]="!lockReasonText || lockReasonText.trim().length === 0">Speichern
+            [disabled]="!lockReasonText() || lockReasonText().trim().length === 0">Speichern
     </button>
-    <button testid="cancelButton" cButton color="secondary" (click)="lockReasonText = undefined; showLockCustomerModal = false;">
+    <button testid="cancelButton" cButton color="secondary" (click)="lockReasonText.set(undefined); showLockCustomerModal.set(false);">
       Abbrechen
     </button>
   </c-modal-footer>

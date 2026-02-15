@@ -1,4 +1,4 @@
-import {Component, effect, inject, input, OnInit, output} from '@angular/core';
+import {Component, effect, inject, input, output} from '@angular/core';
 import {
   BgColorDirective,
   ButtonCloseDirective,
@@ -15,39 +15,38 @@ import {
   ModalToggleDirective,
   RowComponent
 } from '@coreui/angular';
-import {CommonModule} from '@angular/common';
+
 import {FormArray, FormBuilder, FormControl, ReactiveFormsModule} from '@angular/forms';
 import {faCalculator} from '@fortawesome/free-solid-svg-icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {ShelterItem} from '../../../../api/shelter-api.service';
 
 @Component({
-    selector: 'tafel-select-shelters',
-    templateUrl: 'select-shelters.component.html',
-    imports: [
-        RowComponent,
-        ColComponent,
-        ModalComponent,
-        ModalHeaderComponent,
-        ModalToggleDirective,
-        ModalBodyComponent,
-        ButtonDirective,
-        ButtonCloseDirective,
-        ReactiveFormsModule,
-        CommonModule,
-        BgColorDirective,
-        ModalFooterComponent,
-        FaIconComponent,
-        FormCheckComponent,
-        FormCheckInputDirective,
-        FormCheckLabelDirective,
-        ContainerComponent
-    ]
+  selector: 'tafel-select-shelters',
+  templateUrl: 'select-shelters.component.html',
+  imports: [
+    RowComponent,
+    ColComponent,
+    ModalComponent,
+    ModalHeaderComponent,
+    ModalToggleDirective,
+    ModalBodyComponent,
+    ButtonDirective,
+    ButtonCloseDirective,
+    ReactiveFormsModule,
+    BgColorDirective,
+    ModalFooterComponent,
+    FaIconComponent,
+    FormCheckComponent,
+    FormCheckInputDirective,
+    FormCheckLabelDirective,
+    ContainerComponent
+  ]
 })
-export class SelectSheltersComponent implements OnInit {
+export class SelectSheltersComponent {
   private readonly fb = inject(FormBuilder);
 
-  public readonly shelters = input<ShelterItem[]>();
+  public readonly sheltersList = input<ShelterItem[]>();
   public readonly initialSelectedShelters = input<ShelterItem[]>();
   public readonly updateSelectedShelters = output<ShelterItem[]>();
   public readonly disabled = input<boolean>();
@@ -57,23 +56,29 @@ export class SelectSheltersComponent implements OnInit {
   });
   showSelectSheltersModal: boolean = false;
 
-  ngOnInit(): void {
-    this.shelters().forEach((shelter: ShelterItem) => {
-      this.selectedShelters.push(this.fb.control<boolean>(false))
-    });
-  }
-
-  initialSelectedSheltersEffect = effect(() => {
+  sheltersEffect = effect(() => {
+    const shelters = this.sheltersList() ?? [];
     const initialSelectedShelters = this.initialSelectedShelters() ?? [];
-    this.shelters().forEach((shelter: ShelterItem, index: number) => {
-      const selected = initialSelectedShelters.map(selectedShelter => selectedShelter.id).includes(shelter.id);
-      this.selectedShelters.at(index)?.setValue(selected);
-    });
+
+    // Only rebuild if we have shelters
+    if (shelters.length > 0) {
+      // Clear the form array first to avoid duplicates
+      this.selectedShelters.clear();
+
+      // Rebuild the form array with proper initial values
+      shelters.forEach((shelter: ShelterItem) => {
+        const selected = initialSelectedShelters.map(selectedShelter => selectedShelter.id).includes(shelter.id);
+        this.selectedShelters.push(this.fb.control<boolean>(selected));
+      });
+    }
   });
 
   saveShelterSelection() {
-    const selectedShelters = this.shelters().filter((_, index) => this.selectedShelters.at(index).value);
-    this.updateSelectedShelters.emit(selectedShelters);
+    const sheltersList = this.sheltersList();
+    if (sheltersList) {
+      const selectedShelters = sheltersList.filter((_, index) => this.selectedShelters.at(index).value);
+      this.updateSelectedShelters.emit(selectedShelters);
+    }
     this.showSelectSheltersModal = false;
   }
 

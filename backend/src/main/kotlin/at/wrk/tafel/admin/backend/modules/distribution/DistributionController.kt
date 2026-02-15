@@ -101,7 +101,7 @@ class DistributionController(
     private fun closeAndNotify(): ResponseEntity<DistributionCloseValidationResult> {
         service.closeDistribution()
 
-        // update clients about new state
+        // update clients about new state - no active distribution
         sseOutboxService.saveOutboxEntry(
             notificationName = DISTRIBUTION_UPDATE_NOTIFICATION_NAME,
             payload = DistributionItemUpdate(distribution = null)

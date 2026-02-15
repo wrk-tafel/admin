@@ -8,10 +8,10 @@
         Benutzer-Status ändern
       </button>
       <ul cDropdownMenu>
-        @if (userData.enabled) {
+        @if (currentUserData().enabled) {
           <li><button cDropdownItem style="cursor: pointer;" testid="disableUserButton" (click)="disableUser()">Benutzer deaktivieren</button></li>
         }
-        @if (!userData.enabled) {
+        @if (!currentUserData().enabled) {
           <li><button cDropdownItem style="cursor: pointer;" testid="enableUserButton" (click)="enableUser()">Benutzer aktivieren</button></li>
         }
         <li><hr cDropdownDivider></li>
@@ -32,40 +32,40 @@
             <c-col class="fw-bold">
               Name
             </c-col>
-            <c-col testid="nameText">{{userData?.lastname}} {{userData?.firstname}}</c-col>
+            <c-col testid="nameText">{{currentUserData()?.lastname}} {{currentUserData()?.firstname}}</c-col>
           </c-row>
           <c-row>
             <c-col class="fw-bold">
               Benutzername
             </c-col>
-            <c-col testid="usernameText">{{userData?.username}}</c-col>
+            <c-col testid="usernameText">{{currentUserData()?.username}}</c-col>
           </c-row>
           <c-row>
             <c-col class="fw-bold">
               Personal-Nummer
             </c-col>
-            <c-col testid="personnelNumberText">{{userData?.personnelNumber}}</c-col>
+            <c-col testid="personnelNumberText">{{currentUserData()?.personnelNumber}}</c-col>
           </c-row>
           <c-row>
             <c-col class="fw-bold">
               Passwortänderung notwendig
             </c-col>
             <c-col
-              testid="passwordChangeRequiredText">{{userData?.passwordChangeRequired == true ? 'Ja' : 'Nein'}}</c-col>
+              testid="passwordChangeRequiredText">{{currentUserData()?.passwordChangeRequired == true ? 'Ja' : 'Nein'}}</c-col>
           </c-row>
           <c-row>
             <c-col class="fw-bold">
               Berechtigungen
             </c-col>
             <c-col
-              testid="permissionsText" class="fw-bold">{{userData | formatPermissions}}</c-col>
+              testid="permissionsText" class="fw-bold">{{currentUserData() | formatPermissions}}</c-col>
           </c-row>
           <c-row>
             <c-col class="fw-bold text-white"
-                   [ngClass]="{'bg-success': userData?.enabled == true, 'bg-danger': userData?.enabled == false}">Aktiv
+                   [ngClass]="{'bg-success': currentUserData()?.enabled == true, 'bg-danger': currentUserData()?.enabled == false}">Aktiv
             </c-col>
             <c-col testid="enabledText" class="text-white"
-                   [ngClass]="{'bg-success': userData?.enabled == true, 'bg-danger': userData?.enabled == false}">{{userData?.enabled == true ? 'Ja' : 'Nein'}}</c-col>
+                   [ngClass]="{'bg-success': currentUserData()?.enabled == true, 'bg-danger': currentUserData()?.enabled == false}">{{currentUserData()?.enabled == true ? 'Ja' : 'Nein'}}</c-col>
           </c-row>
         </c-col>
       </c-row>

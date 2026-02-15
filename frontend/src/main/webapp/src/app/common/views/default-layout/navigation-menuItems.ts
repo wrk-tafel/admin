@@ -62,7 +62,7 @@ export const navigationMenuItems: ITafelNavData[] = [
     title: true
   },
   {
-    name: 'Warenerfassung',
+    name: 'Waren-Eingabe',
     url: '/logistik/warenerfassung',
     iconComponent: {name: 'cil-bus-alt'},
     permissions: ['LOGISTICS'],

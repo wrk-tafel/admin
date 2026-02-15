@@ -20,3 +20,4 @@ target/
 /_http-calls/http-client.private.env.json
 /frontend/src/main/webapp/cypress/downloads/
 /admin.iml
+/.claude

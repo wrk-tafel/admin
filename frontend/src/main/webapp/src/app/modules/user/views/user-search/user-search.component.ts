@@ -1,4 +1,4 @@
-import {Component, inject} from '@angular/core';
+import {Component, inject, signal} from '@angular/core';
 import {Router} from '@angular/router';
 import {FormBuilder, ReactiveFormsModule} from '@angular/forms';
 import {UserApiService, UserData, UserSearchResult} from '../../../../api/user-api.service';
@@ -19,37 +19,34 @@ import {
   FormLabelDirective,
   InputGroupComponent,
   RowComponent,
-  TableDirective,
-  TextColorDirective
+  TableDirective
 } from '@coreui/angular';
 import {faPencil, faSearch, faUser} from '@fortawesome/free-solid-svg-icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
-import {CommonModule} from '@angular/common';
+
 import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
 
 @Component({
     selector: 'tafel-user-search',
     templateUrl: 'user-search.component.html',
     imports: [
-        CardComponent,
-        CardBodyComponent,
-        RowComponent,
-        ColComponent,
-        ReactiveFormsModule,
-        TafelPaginationComponent,
-        CardFooterComponent,
-        CardHeaderComponent,
-        InputGroupComponent,
-        FormDirective,
-        FormLabelDirective,
-        FormCheckInputDirective,
-        TableDirective,
-        ButtonDirective,
-        TextColorDirective,
-        FaIconComponent,
-        CommonModule,
-        TafelAutofocusDirective
-    ]
+    CardComponent,
+    CardBodyComponent,
+    RowComponent,
+    ColComponent,
+    ReactiveFormsModule,
+    TafelPaginationComponent,
+    CardFooterComponent,
+    CardHeaderComponent,
+    InputGroupComponent,
+    FormDirective,
+    FormLabelDirective,
+    FormCheckInputDirective,
+    TableDirective,
+    ButtonDirective,
+    FaIconComponent,
+    TafelAutofocusDirective
+]
 })
 export class UserSearchComponent {
   private readonly userApiService = inject(UserApiService);
@@ -64,13 +61,20 @@ export class UserSearchComponent {
     firstname: this.fb.control<string>(null),
     enabled: this.fb.control<boolean>(true)
   });
-  searchResult: UserSearchResult;
-  paginationData: TafelPaginationData;
+  searchResult = signal<UserSearchResult | undefined>(undefined);
+  paginationData = signal<TafelPaginationData | undefined>(undefined);
 
   searchForPersonnelNumber() {
     /* eslint-disable @typescript-eslint/no-unused-vars */
     const observer = {
-      next: (userData: UserData) => this.navigateToUserDetail(userData.id)
+      next: (userData: UserData) => this.navigateToUserDetail(userData.id),
+      error: (error) => {
+        if (error.status === 404) {
+          this.toastService.showToast({type: ToastType.INFO, title: 'Benutzer nicht gefunden!'});
+        } else {
+          this.toastService.showToast({type: ToastType.ERROR, title: 'Fehler beim Laden des Benutzers!'});
+        }
+      }
     };
     this.userApiService.getUserForPersonnelNumber(this.personnelNumber.value).subscribe(observer);
   }
@@ -84,17 +88,17 @@ export class UserSearchComponent {
       .subscribe((response: UserSearchResult) => {
         if (response.items.length === 0) {
           this.toastService.showToast({type: ToastType.INFO, title: 'Keine Benutzer gefunden!'});
-          this.searchResult = null;
-          this.paginationData = null;
+          this.searchResult.set(undefined);
+          this.paginationData.set(undefined);
         } else {
-          this.searchResult = response;
-          this.paginationData = {
+          this.searchResult.set(response);
+          this.paginationData.set({
             count: response.items.length,
             totalCount: response.totalCount,
             currentPage: response.currentPage,
             totalPages: response.totalPages,
             pageSize: response.pageSize
-          };
+          });
         }
       });
   }

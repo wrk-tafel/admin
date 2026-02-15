@@ -1,4 +1,4 @@
-import {TestBed, waitForAsync} from '@angular/core/testing';
+import {TestBed} from '@angular/core/testing';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 import {provideHttpClient} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
@@ -7,7 +7,7 @@ import {FoodCollectionsApiService} from '../../../../api/food-collections-api.se
 import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
 
 describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
-  beforeEach(waitForAsync(() => {
+  beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [
         NoopAnimationsModule
@@ -17,7 +17,7 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
         provideHttpClientTesting(),
       ]
     }).compileComponents();
-  }));
+  });
 
   const mockFoodCategories = [
     {id: 1, name: 'Category 1'},
@@ -62,7 +62,7 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     componentRef.setInput('foodCategories', mockFoodCategories);
     componentRef.setInput('selectedRouteData', mockRouteData);
 
-    const selectShopSpy = spyOn(component, 'selectShop').and.callThrough();
+    const selectShopSpy = vi.spyOn(component, 'selectShop');
 
     fixture.detectChanges();
 
@@ -83,18 +83,18 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     componentRef.setInput('foodCategories', mockFoodCategories);
     componentRef.setInput('selectedRouteData', mockRouteData);
 
-    component.currentShop = mockShops[0];
-    component.categoryValues = {1: 3, 2: 5};
+    component.currentShop.set(mockShops[0]);
+    component.categoryValues.set({1: 3, 2: 5});
 
     const apiService = TestBed.inject(FoodCollectionsApiService);
-    const saveItemsSpy = spyOn(apiService, 'saveItemsPerShop').and.returnValue({
+    const saveItemsSpy = vi.spyOn(apiService, 'saveItemsPerShop').mockReturnValue({
       subscribe: (observer: any) => {
         observer.next();
       }
     } as any);
 
     const toastService = TestBed.inject(ToastService);
-    const toastSpy = spyOn(toastService, 'showToast');
+    const toastSpy = vi.spyOn(toastService, 'showToast');
 
     component.save();
 
@@ -129,17 +129,17 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     componentRef.setInput('foodCategories', mockFoodCategories);
     componentRef.setInput('selectedRouteData', mockRouteData);
 
-    component.currentShop = mockShops[0];
+    component.currentShop.set(mockShops[0]);
 
     const apiService = TestBed.inject(FoodCollectionsApiService);
-    const saveItemsSpy = spyOn(apiService, 'saveItemsPerShop').and.returnValue({
+    const saveItemsSpy = vi.spyOn(apiService, 'saveItemsPerShop').mockReturnValue({
       subscribe: (observer: any) => {
         observer.error('Error saving data');
       }
     } as any);
 
     const toastService = TestBed.inject(ToastService);
-    const toastSpy = spyOn(toastService, 'showToast');
+    const toastSpy = vi.spyOn(toastService, 'showToast');
 
     component.save();
 
@@ -163,10 +163,10 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     componentRef.setInput('foodCategories', mockFoodCategories);
     componentRef.setInput('selectedRouteData', mockRouteData);
 
-    component.currentShop = mockShops[0];
+    component.currentShop.set(mockShops[0]);
 
     const apiService = TestBed.inject(FoodCollectionsApiService);
-    const patchItemsSpy = spyOn(apiService, 'patchItems').and.returnValue({
+    const patchItemsSpy = vi.spyOn(apiService, 'patchItems').mockReturnValue({
       subscribe: () => {
       }
     } as any);
@@ -178,7 +178,7 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
 
     component.onValueChange(valueChange);
 
-    expect(component.categoryValues[mockFoodCategories[0].id]).toBe(7);
+    expect(component.categoryValues()[mockFoodCategories[0].id]).toBe(7);
     expect(patchItemsSpy).toHaveBeenCalledWith(
       mockRoute.id,
       {
@@ -214,7 +214,7 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     };
 
     const apiService = TestBed.inject(FoodCollectionsApiService);
-    const getItemsSpy = spyOn(apiService, 'getItemsPerShop').and.returnValue({
+    const getItemsSpy = vi.spyOn(apiService, 'getItemsPerShop').mockReturnValue({
       subscribe: (observer: any) => {
         observer.next(mockItemsData);
       }
@@ -223,9 +223,9 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     component.selectShop(mockShops[1]);
 
     expect(getItemsSpy).toHaveBeenCalledWith(mockRoute.id, mockShops[1].id);
-    expect(component.currentShop).toBe(mockShops[1]);
-    expect(component.categoryValues[mockFoodCategories[0].id]).toBe(3);
-    expect(component.categoryValues[mockFoodCategories[1].id]).toBe(0);
+    expect(component.currentShop()).toBe(mockShops[1]);
+    expect(component.categoryValues()[mockFoodCategories[0].id]).toBe(3);
+    expect(component.categoryValues()[mockFoodCategories[1].id]).toBe(0);
   });
 
   it('should show error toast when selectShop fails', () => {
@@ -243,14 +243,14 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     componentRef.setInput('selectedRouteData', mockRouteData);
 
     const apiService = TestBed.inject(FoodCollectionsApiService);
-    const getItemsSpy = spyOn(apiService, 'getItemsPerShop').and.returnValue({
+    const getItemsSpy = vi.spyOn(apiService, 'getItemsPerShop').mockReturnValue({
       subscribe: (observer: any) => {
         observer.error('Error loading data');
       }
     } as any);
 
     const toastService = TestBed.inject(ToastService);
-    const toastSpy = spyOn(toastService, 'showToast');
+    const toastSpy = vi.spyOn(toastService, 'showToast');
 
     component.selectShop(mockShops[1]);
 
@@ -274,9 +274,9 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     componentRef.setInput('foodCategories', mockFoodCategories);
     componentRef.setInput('selectedRouteData', mockRouteData);
 
-    component.currentShop = mockShops[1]; // start at middle shop
+    component.currentShop.set(mockShops[1]); // start at middle shop
 
-    const selectShopSpy = spyOn(component, 'selectShop');
+    const selectShopSpy = vi.spyOn(component, 'selectShop');
 
     component.selectPreviousShop();
 
@@ -297,9 +297,9 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     componentRef.setInput('foodCategories', mockFoodCategories);
     componentRef.setInput('selectedRouteData', mockRouteData);
 
-    component.currentShop = mockShops[1]; // start at middle shop
+    component.currentShop.set(mockShops[1]); // start at middle shop
 
-    const selectShopSpy = spyOn(component, 'selectShop');
+    const selectShopSpy = vi.spyOn(component, 'selectShop');
 
     component.selectNextShop();
 

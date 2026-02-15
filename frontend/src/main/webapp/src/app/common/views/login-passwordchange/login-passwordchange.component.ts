@@ -1,4 +1,4 @@
-import {Component, inject, ViewChild} from '@angular/core';
+import {Component, computed, effect, inject, signal, viewChild} from '@angular/core';
 import {PasswordChangeFormComponent} from '../passwordchange-form/passwordchange-form.component';
 import {Router} from '@angular/router';
 import {AuthenticationService, LoginResult} from '../../security/authentication.service';
@@ -29,15 +29,44 @@ import {NgOptimizedImage} from '@angular/common';
     ]
 })
 export class LoginPasswordChangeComponent {
-  @ViewChild(PasswordChangeFormComponent) public form: PasswordChangeFormComponent;
+  form = viewChild(PasswordChangeFormComponent);
+  private formValid = signal(false);
+
+  saveDisabled = computed(() => {
+    const formComponent = this.form();
+    if (!formComponent) {
+      return true;
+    }
+    return !this.formValid();
+  });
+
   private authenticationService = inject(AuthenticationService);
   private router = inject(Router);
 
+  constructor() {
+    effect(() => {
+      const formComponent = this.form();
+      if (formComponent) {
+        // Subscribe to form status changes
+        formComponent.form.statusChanges.subscribe(() => {
+          this.formValid.set(formComponent.isValid());
+        });
+        // Set initial validity
+        this.formValid.set(formComponent.isValid());
+      }
+    });
+  }
+
   changePassword() {
-    this.form.changePassword().subscribe(successful => {
+    const formComponent = this.form();
+    if (!formComponent) {
+      return;
+    }
+
+    formComponent.changePassword().subscribe(successful => {
       if (successful) {
         const username = this.authenticationService.getUsername();
-        const password = this.form.newPassword.value;
+        const password = formComponent.newPassword.value;
         this.authenticationService.login(username, password).then((result: LoginResult) => {
           if (result.successful) {
             this.router.navigate(['uebersicht']);
@@ -49,10 +78,6 @@ export class LoginPasswordChangeComponent {
 
   cancel() {
     this.router.navigate(['login']);
-  }
-
-  isSaveDisabled(): boolean {
-    return !this.form?.isValid();
   }
 
 }

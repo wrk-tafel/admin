@@ -1,4 +1,4 @@
-import {Component, inject, Input, OnDestroy, OnInit} from '@angular/core';
+import {Component, inject, input, Signal} from '@angular/core';
 import {
   AvatarComponent,
   BadgeComponent,
@@ -23,7 +23,6 @@ import {NgTemplateOutlet} from '@angular/common';
 import {FontAwesomeModule} from '@fortawesome/angular-fontawesome';
 import {faKey, faLock} from '@fortawesome/free-solid-svg-icons';
 import {GlobalStateService} from '../../../state/global-state.service';
-import {Subscription} from 'rxjs';
 
 @Component({
     selector: 'app-default-header',
@@ -49,29 +48,13 @@ import {Subscription} from 'rxjs';
         FontAwesomeModule
     ]
 })
-export class DefaultHeaderComponent extends HeaderComponent implements OnInit, OnDestroy {
-  @Input() sidebarId = 'sidebar';
+export class DefaultHeaderComponent extends HeaderComponent {
+  sidebarId = input('sidebar');
 
   private readonly authenticationService = inject(AuthenticationService);
   private readonly globalStateService = inject(GlobalStateService);
-  private connectionStateSubscription: Subscription;
 
-  sseConnected = false;
-
-  ngOnInit(): void {
-    const connectionStateObserver = {
-      next: (connected: boolean) => {
-        this.sseConnected = connected;
-      }
-    };
-    this.connectionStateSubscription = this.globalStateService.getConnectionState().subscribe(connectionStateObserver);
-  }
-
-  ngOnDestroy(): void {
-    if (this.connectionStateSubscription) {
-      this.connectionStateSubscription.unsubscribe();
-    }
-  }
+  readonly sseConnected: Signal<boolean> = this.globalStateService.getConnectionState();
 
   public logout() {
     /* eslint-disable @typescript-eslint/no-unused-vars */

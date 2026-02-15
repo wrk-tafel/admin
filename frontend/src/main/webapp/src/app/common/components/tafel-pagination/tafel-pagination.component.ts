@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Input, Output} from '@angular/core';
+import {Component, effect, input, output} from '@angular/core';
 import {PageItemDirective, PageLinkDirective, PaginationComponent} from '@coreui/angular';
 
 @Component({
@@ -11,21 +11,29 @@ import {PageItemDirective, PageLinkDirective, PaginationComponent} from '@coreui
     ]
 })
 export class TafelPaginationComponent {
-  @Input() align: 'start' | 'center' | 'end' | '' = '';
-  @Input() size?: 'sm' | 'lg';
-  @Output() pageChanged = new EventEmitter<number>();
+  align = input<'start' | 'center' | 'end' | ''>('');
+  size = input<'sm' | 'lg'>();
+  paginationData = input<TafelPaginationData | null | undefined>();
+  pageChanged = output<number>();
 
-  maxPage: number;
-  currentPage: number;
-  text: string;
+  maxPage: number = 1;
+  currentPage: number = 1;
+  text: string = '';
 
-  @Input() set paginationData(paginationData: TafelPaginationData) {
-    this.currentPage = paginationData.currentPage;
-    this.maxPage = paginationData.totalPages;
+  constructor() {
+    effect(() => {
+      const data = this.paginationData();
+      if (!data) {
+        return;
+      }
 
-    const start = ((paginationData.currentPage - 1) * paginationData.pageSize) + 1;
-    const end = (start - 1) + paginationData.count;
-    this.text = `${start} - ${end} von ${paginationData.totalCount}`;
+      this.currentPage = data.currentPage;
+      this.maxPage = data.totalPages;
+
+      const start = ((data.currentPage - 1) * data.pageSize) + 1;
+      const end = (start - 1) + data.count;
+      this.text = `${start} - ${end} von ${data.totalCount}`;
+    });
   }
 
   selectFirstPage() {

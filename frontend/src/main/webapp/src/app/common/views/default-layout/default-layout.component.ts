@@ -1,4 +1,4 @@
-import {Component, inject, OnInit} from '@angular/core';
+import {Component, computed, inject} from '@angular/core';
 import {RouterLink, RouterOutlet} from '@angular/router';
 import {NgScrollbar} from 'ngx-scrollbar';
 
@@ -20,37 +20,38 @@ import {GlobalStateService} from '../../state/global-state.service';
 import {DistributionItem} from '../../../api/distribution-api.service';
 
 @Component({
-    selector: 'tafel-default-layout',
-    templateUrl: 'default-layout.component.html',
-    styleUrls: ['default-layout.component.scss'],
-    imports: [
-        SidebarComponent,
-        SidebarHeaderComponent,
-        SidebarBrandComponent,
-        RouterLink,
-        NgScrollbar,
-        SidebarNavComponent,
-        SidebarFooterComponent,
-        SidebarToggleDirective,
-        SidebarTogglerDirective,
-        DefaultHeaderComponent,
-        ShadowOnScrollDirective,
-        ContainerComponent,
-        RouterOutlet
-    ]
+  selector: 'tafel-default-layout',
+  templateUrl: 'default-layout.component.html',
+  styleUrls: ['default-layout.component.scss'],
+  imports: [
+    SidebarComponent,
+    SidebarHeaderComponent,
+    SidebarBrandComponent,
+    RouterLink,
+    NgScrollbar,
+    SidebarNavComponent,
+    SidebarFooterComponent,
+    SidebarToggleDirective,
+    SidebarTogglerDirective,
+    DefaultHeaderComponent,
+    ShadowOnScrollDirective,
+    ContainerComponent,
+    RouterOutlet
+  ]
 })
-export class DefaultLayoutComponent implements OnInit {
-  public navItems: ITafelNavData[] = navigationMenuItems;
+export class DefaultLayoutComponent {
   private readonly authenticationService = inject(AuthenticationService);
   private readonly globalStateService = inject(GlobalStateService);
 
-  ngOnInit() {
-    this.globalStateService.getCurrentDistribution().subscribe((distribution: DistributionItem) => {
-      this.navItems = this.filterNavItemsByPermissions(this.navItems);
-      this.navItems = this.filterEmptyTitleItems(this.navItems);
-      this.navItems = this.editNavItemsForDistributionState(this.navItems, distribution);
-    });
-  }
+  readonly distribution = this.globalStateService.getCurrentDistribution();
+
+  readonly navItems = computed(() => {
+    const distribution = this.distribution();
+    let items = this.filterNavItemsByPermissions(navigationMenuItems);
+    items = this.filterEmptyTitleItems(items);
+    items = this.editNavItemsForDistributionState(items, distribution);
+    return items;
+  });
 
   public filterNavItemsByPermissions(navItems: ITafelNavData[]): ITafelNavData[] {
     const resultNavItems: ITafelNavData[] = [];

@@ -15,8 +15,8 @@
         </c-row>
         <c-row>
           <c-col>
-            <select class="form-control" cSelect [(ngModel)]="selectedDistribution">
-              @for (distribution of distributions; track distribution) {
+            <select class="form-control" cSelect [ngModel]="selectedDistribution()" (ngModelChange)="selectedDistribution.set($event)">
+              @for (distribution of distributions(); track distribution) {
                 <option [ngValue]="distribution">
                   {{ distribution.startedAt | date : 'dd.MM.yyyy' }}
                 </option>
@@ -26,7 +26,7 @@
         </c-row>
         <c-row class="mt-4">
           <c-col>
-            <button cButton (click)="sendMails()" [disabled]="!selectedDistribution">E-Mails erneut senden</button>
+            <button cButton (click)="sendMails()" [disabled]="!selectedDistribution()">E-Mails erneut senden</button>
           </c-col>
         </c-row>
       </c-card-body>

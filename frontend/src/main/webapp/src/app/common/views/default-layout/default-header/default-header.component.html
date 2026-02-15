@@ -2,7 +2,7 @@
 <ng-container>
   <c-container [fluid]="true" class="border-bottom px-4">
     <button
-      [cSidebarToggle]="sidebarId"
+      [cSidebarToggle]="sidebarId()"
       cHeaderToggler
       cButton
       toggle="visible"
@@ -13,7 +13,7 @@
     </button>
     <c-header-nav class="mx-0">
       <div class="d-flex align-items-center">
-        <c-badge [color]="sseConnected === false ? 'danger' : 'success'">Live-Verbindung</c-badge>
+        <c-badge [color]="sseConnected() === false ? 'danger' : 'success'">Live-Verbindung</c-badge>
       </div>
       <ng-container *ngTemplateOutlet="userDropdown"/>
     </c-header-nav>

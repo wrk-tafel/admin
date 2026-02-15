@@ -1,10 +1,10 @@
-import {TestBed, waitForAsync} from '@angular/core/testing';
+import {TestBed} from '@angular/core/testing';
 import {CommonModule} from '@angular/common';
 import {TicketScreenFullscreenComponent} from './ticket-screen-fullscreen.component';
 
 describe('TicketScreenFullscreenComponent', () => {
 
-  beforeEach(waitForAsync(() => {
+  beforeEach((() => {
     TestBed.configureTestingModule({
       imports: [CommonModule]
     }).compileComponents();

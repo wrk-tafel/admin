@@ -1,4 +1,4 @@
-<c-card class="h-100" [color]="distribution ? 'success' : 'primary'" textColor="white">
+<c-card class="h-100" [color]="isDistributionActive() ? 'success' : 'primary'" textColor="white">
   <c-card-body>
     <c-row>
       <c-col>
@@ -7,27 +7,27 @@
     </c-row>
     <c-row>
       <c-col testid="distribution-state-text" class="fw-bold">
-        <h1>{{distribution ? 'Geöffnet' : 'Geschlossen'}}</h1>
+        <h1>{{isDistributionActive() ? 'Geöffnet' : 'Geschlossen'}}</h1>
       </c-col>
     </c-row>
   </c-card-body>
   <c-card-footer>
-    @if (!distribution) {
+    @if (!isDistributionActive()) {
       <button cButton color="light"
               testid="distribution-start-button"
               (click)="createNewDistribution()">Tag starten
       </button>
     }
-    @if (distribution) {
+    @if (isDistributionActive()) {
       <button cButton color="light"
               testid="distribution-close-button"
-              (click)="showCloseDistributionModal = true">Tag beenden
+              (click)="showCloseDistributionModal.set(true)">Tag beenden
       </button>
     }
   </c-card-footer>
 </c-card>
 <c-modal id="closeDistributionModal" #closeDistributionModal testid="distribution-close-modal"
-         [(visible)]="showCloseDistributionModal">
+         [visible]="showCloseDistributionModal()" (visibleChange)="showCloseDistributionModal.set($event)">
   <c-modal-header class="bg-warning">
     <h4 testid="title" class="text-white">
       Tag beenden?
@@ -44,7 +44,7 @@
                 (click)="closeDistribution(false)">OK
         </button>
         <button testid="distribution-close-modal-cancel-button" cButton color="secondary"
-                (click)="showCloseDistributionModal = false">Abbrechen
+                (click)="showCloseDistributionModal.set(false)">Abbrechen
         </button>
       </c-col>
     </c-row>
@@ -52,7 +52,7 @@
 </c-modal>
 @if(closeDistributionValidationResult()) {
   <c-modal id="closeDistributionValidationModal" #closeDistributionValidationModal testid="distribution-close-validation-modal"
-           [(visible)]="showCloseDistributionValidationModal">
+           [visible]="showCloseDistributionValidationModal()" (visibleChange)="onValidationModalVisibilityChange($event)">
     <c-modal-header [cBgColor]="closeValidationResultBgColorClass()">
       <h4 testid="title" class="text-white">
         {{closeValidationResultTitle()}}
@@ -82,7 +82,7 @@
             </button>
           }
           <button testid="distribution-close-validation-modal-cancel-button" cButton color="secondary"
-                  (click)="showCloseDistributionValidationModal = false">Abbrechen
+                  (click)="showCloseDistributionValidationModal.set(false)">Abbrechen
           </button>
         </c-col>
       </c-row>

@@ -102,11 +102,11 @@ describe('Food Collection Recording', () => {
       cy.byTestId('category-1-input').should('have.value', '12');
       cy.byTestId('category-2-input').should('have.value', '2');
 
-      cy.byTestId('driver-search-create-modal').should('not.exist');
-      cy.byTestId('codriver-search-create-modal').should('not.exist');
+      cy.byTestId('driver-search-create-modal').should('not.be.visible');
+      cy.byTestId('codriver-search-create-modal').should('not.be.visible');
 
-      cy.byTestId('driver-select-employee-modal').should('not.exist');
-      cy.byTestId('codriver-select-employee-modal').should('not.exist');
+      cy.byTestId('driver-select-employee-modal').should('not.be.visible');
+      cy.byTestId('codriver-select-employee-modal').should('not.be.visible');
 
       // go to next shop
       cy.byTestId('next-shop-button').click();

@@ -1,11 +1,10 @@
-import {Component, computed, inject, OnDestroy, OnInit, signal} from '@angular/core';
+import {Component, computed, inject, Signal, signal, viewChild} from '@angular/core';
 import {
   DistributionApiService,
   DistributionCloseValidationResult,
   DistributionItem
 } from '../../../../api/distribution-api.service';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
-import {Subscription} from 'rxjs';
 import {
   BgColorDirective,
   ButtonCloseDirective,
@@ -23,36 +22,45 @@ import {
 } from '@coreui/angular';
 
 @Component({
-    selector: 'tafel-distribution-state',
-    templateUrl: 'distribution-state.component.html',
-    imports: [
-        CardComponent,
-        CardBodyComponent,
-        RowComponent,
-        ColComponent,
-        ModalComponent,
-        ModalHeaderComponent,
-        ModalToggleDirective,
-        ModalBodyComponent,
-        ButtonDirective,
-        ButtonCloseDirective,
-        CardFooterComponent,
-        BgColorDirective
-    ]
+  selector: 'tafel-distribution-state',
+  templateUrl: 'distribution-state.component.html',
+  imports: [
+    CardComponent,
+    CardBodyComponent,
+    RowComponent,
+    ColComponent,
+    ModalComponent,
+    ModalHeaderComponent,
+    ModalToggleDirective,
+    ModalBodyComponent,
+    ButtonDirective,
+    ButtonCloseDirective,
+    CardFooterComponent,
+    BgColorDirective
+  ]
 })
-export class DistributionStateComponent implements OnInit, OnDestroy {
-  distribution: DistributionItem;
-  showCloseDistributionModal = false;
-  showCloseDistributionValidationModal = false;
+export class DistributionStateComponent {
+  closeDistributionValidationModal = viewChild<ModalComponent>('closeDistributionValidationModal');
+
+  showCloseDistributionModal = signal<boolean>(false);
+  showCloseDistributionValidationModal = signal<boolean>(false);
   closeDistributionValidationResult = signal<DistributionCloseValidationResult>(null);
+  private shouldClearValidationResult = false;
 
   private readonly distributionApiService = inject(DistributionApiService);
   private readonly globalStateService = inject(GlobalStateService);
-  private distributionSubscription: Subscription;
+
+  readonly distribution: Signal<DistributionItem> = this.globalStateService.getCurrentDistribution();
+  readonly isDistributionActive = computed(() => {
+    const dist = this.distribution();
+    return dist && !dist.endedAt;
+  });
 
   closeValidationResultBgColorClass = computed<Colors>(() => {
     const result = this.closeDistributionValidationResult();
-    if (!result) return null;
+    if (!result) {
+      return null;
+    }
 
     if (result.errors.length > 0) {
       return 'danger';
@@ -64,7 +72,9 @@ export class DistributionStateComponent implements OnInit, OnDestroy {
 
   closeValidationResultTitle = computed<string>(() => {
     const result = this.closeDistributionValidationResult();
-    if (!result) return null;
+    if (!result) {
+      return null;
+    }
 
     if (result.errors.length > 0) {
       return 'Fehler';
@@ -74,18 +84,6 @@ export class DistributionStateComponent implements OnInit, OnDestroy {
     return null;
   });
 
-  ngOnInit() {
-    this.distributionSubscription = this.globalStateService.getCurrentDistribution().subscribe((distribution) => {
-      this.distribution = distribution;
-    });
-  }
-
-  ngOnDestroy(): void {
-    if (this.distributionSubscription) {
-      this.distributionSubscription.unsubscribe();
-    }
-  }
-
   createNewDistribution() {
     this.distributionApiService.createNewDistribution().subscribe();
   }
@@ -93,17 +91,32 @@ export class DistributionStateComponent implements OnInit, OnDestroy {
   closeDistribution(forceClose: boolean) {
     const observer = {
       next: (result: DistributionCloseValidationResult) => {
-        this.closeDistributionValidationResult.set(result);
-        this.showCloseDistributionModal = false;
+        this.showCloseDistributionModal.set(false);
 
         if (result && (result.errors.length > 0 || result.warnings.length > 0)) {
-          this.showCloseDistributionValidationModal = true;
+          this.shouldClearValidationResult = false;
+          this.closeDistributionValidationResult.set(result);
+          this.showCloseDistributionValidationModal.set(true);
+        } else {
+          // Close successful - hide modal and mark for cleanup
+          this.shouldClearValidationResult = true;
+          this.showCloseDistributionValidationModal.set(false);
         }
       },
       error: error => {
       },
     };
     this.distributionApiService.closeDistribution(forceClose).subscribe(observer);
+  }
+
+  onValidationModalVisibilityChange(visible: boolean) {
+    this.showCloseDistributionValidationModal.set(visible);
+
+    // If modal is now hidden and we should clear the result, do it now
+    if (!visible && this.shouldClearValidationResult) {
+      this.closeDistributionValidationResult.set(null);
+      this.shouldClearValidationResult = false;
+    }
   }
 
 }

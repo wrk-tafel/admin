@@ -1,4 +1,4 @@
-import {Component, EventEmitter, inject, Input, OnDestroy, OnInit, Output} from '@angular/core';
+import {Component, effect, inject, input, OnDestroy, OnInit, output} from '@angular/core';
 import {
   AbstractControl,
   FormArray,
@@ -12,7 +12,7 @@ import {
 } from '@angular/forms';
 import {GeneratedPasswordResponse, UserApiService, UserData, UserPermission} from '../../../../api/user-api.service';
 import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
-import {CommonModule, NgClass} from '@angular/common';
+import { CommonModule, NgClass } from '@angular/common';
 import {Subject} from 'rxjs';
 import {takeUntil} from 'rxjs/operators';
 import {
@@ -45,9 +45,9 @@ import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofo
     ]
 })
 export class UserFormComponent implements OnInit, OnDestroy {
-  @Input() userData: UserData;
-  @Input() permissionsData: UserPermission[];
-  @Output() userDataChange = new EventEmitter<UserData>();
+  userData = input<UserData>();
+  permissionsData = input<UserPermission[]>();
+  userDataChange = output<UserData>();
 
   private readonly userApiService = inject(UserApiService);
   private readonly toastService = inject(ToastService);
@@ -71,21 +71,24 @@ export class UserFormComponent implements OnInit, OnDestroy {
   passwordRepeatTextVisible: boolean;
 
   ngOnInit(): void {
-    if (this.userData) {
-      const formPermissions: UserPermissionFormItem[] = this.permissionsData.map((availablePermission) => {
-        const enabled = this.userData.permissions.findIndex((userPermission) => userPermission.key === availablePermission.key) !== -1;
+    const userData = this.userData();
+    const permissionsData = this.permissionsData();
+
+    if (userData) {
+      const formPermissions: UserPermissionFormItem[] = permissionsData.map((availablePermission) => {
+        const enabled = userData.permissions.findIndex((userPermission) => userPermission.key === availablePermission.key) !== -1;
         return {...availablePermission, enabled: enabled};
       });
 
       const data: UserFormData = {
-        ...this.userData,
+        ...userData,
         permissions: undefined
       };
       this.form.patchValue(data);
       this.permissions.clear();
       formPermissions.forEach((permission) => this.pushUserPermissionControl(permission, permission.enabled));
     } else {
-      this.permissionsData.forEach((permission) => this.pushUserPermissionControl(permission, false));
+      permissionsData?.forEach((permission) => this.pushUserPermissionControl(permission, false));
     }
 
     this.form.valueChanges

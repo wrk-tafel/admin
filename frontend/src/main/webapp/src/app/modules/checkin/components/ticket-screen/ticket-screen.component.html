@@ -1,12 +1,12 @@
 <c-container fluid="true" cBgColor="black" class="h-100 w-100">
   <c-row>
     <c-col class="text-center mt-5">
-      <h1 testid="title" class="text-white" style="font-size: 10em;">{{text}}</h1>
+      <h1 testid="title" class="text-white" style="font-size: 10em;">{{text()}}</h1>
     </c-col>
   </c-row>
   <c-row>
     <c-col class="text-center">
-      <div testid="text" class="text-white" style="font-size: 30em;">{{value ?? '-'}}</div>
+      <div testid="text" class="text-white" style="font-size: 30em;">{{value()}}</div>
     </c-col>
   </c-row>
 </c-container>

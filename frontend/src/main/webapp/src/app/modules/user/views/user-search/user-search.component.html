@@ -53,18 +53,16 @@
                   (click)="searchForDetails()">Suchen</button>
         </c-col>
       </c-row>
-      @if (searchResult) {
+      @if (searchResult()) {
         <c-row testid="searchresult-table">
           <c-col>
             <hr>
           </c-col>
         </c-row>
-      }
-      @if (searchResult) {
         <c-row class="d-none d-sm-block">
         <c-col sm="12" class="table-responsive">
-          <h5 class="mb-4">Suchergebnis ({{this.searchResult.totalCount}} gefunden)</h5>
-          <tafel-pagination align="end" [paginationData]="paginationData" (pageChanged)="searchForDetails($event)"></tafel-pagination>
+          <h5 class="mb-4">Suchergebnis ({{this.searchResult().totalCount}} gefunden)</h5>
+          <tafel-pagination align="end" [paginationData]="paginationData()" (pageChanged)="searchForDetails($event)"></tafel-pagination>
           <table cTable striped="true" aria-label="Liste der gefundenen Benutzer" class="mt-3">
             <thead>
             <tr>
@@ -77,7 +75,7 @@
             </tr>
             </thead>
             <tbody>
-            @for (user of searchResult.items; track user.id; let i = $index) {
+            @for (user of searchResult().items; track user.id; let i = $index) {
               <tr testid="searchresult-row" scope="row">
                 <td><fa-icon [icon]="faUser"></fa-icon></td>
                 <td [attr.testid]="'searchresult-id-' + i">{{user.id}}</td>
@@ -109,17 +107,17 @@
             }
             </tbody>
           </table>
-          <tafel-pagination align="end" [paginationData]="paginationData" (pageChanged)="searchForDetails($event)"></tafel-pagination>
+          <tafel-pagination align="end" [paginationData]="paginationData()" (pageChanged)="searchForDetails($event)"></tafel-pagination>
         </c-col>
         </c-row>
       }
-      @if (searchResult) {
+      @if (searchResult()) {
         <c-row class="d-block d-sm-none">
           <c-col sm="12" class="table-responsive">
-            <h5 class="mb-4">Suchergebnis ({{this.searchResult.totalCount}} gefunden)</h5>
-            <tafel-pagination align="center" size="sm" [paginationData]="paginationData" (pageChanged)="searchForDetails($event)"></tafel-pagination>
+            <h5 class="mb-4">Suchergebnis ({{this.searchResult().totalCount}} gefunden)</h5>
+            <tafel-pagination align="center" size="sm" [paginationData]="paginationData()" (pageChanged)="searchForDetails($event)"></tafel-pagination>
             <div class="d-flex flex-column gap-3 mb-3">
-              @for (user of this.searchResult.items; track user.id; let i = $index) {
+              @for (user of this.searchResult().items; track user.id; let i = $index) {
                 <c-card>
                   <c-card-header class="fw-bold">{{user.id}} - {{user.lastname}} {{user.firstname}}</c-card-header>
                   <c-card-body>
@@ -147,7 +145,7 @@
                 </c-card>
               }
             </div>
-            <tafel-pagination align="center" size="sm" [paginationData]="paginationData" (pageChanged)="searchForDetails($event)"></tafel-pagination>
+            <tafel-pagination align="center" size="sm" [paginationData]="paginationData()" (pageChanged)="searchForDetails($event)"></tafel-pagination>
           </c-col>
         </c-row>
       }

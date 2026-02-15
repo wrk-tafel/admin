@@ -43,21 +43,21 @@
 
     <hr/>
 
-    @if (customerDuplicatesData.items.length === 0) {
+    @if (customerDuplicatesData()?.items.length === 0) {
       <c-row>
         <h4 class="fw-bold">Keine Duplikate gefunden!</h4>
       </c-row>
     }
 
-    @if (customerDuplicatesData.items.length > 0) {
+    @if (customerDuplicatesData()?.items.length > 0) {
     <div>
-      <tafel-pagination class="d-none d-sm-block" align="end" [paginationData]="paginationData"
+      <tafel-pagination class="d-none d-sm-block" align="end" [paginationData]="paginationData()"
                         (pageChanged)="getDuplicates($event)"></tafel-pagination>
-      <tafel-pagination class="d-block d-sm-none" align="center" size="sm" [paginationData]="paginationData"
+      <tafel-pagination class="d-block d-sm-none" align="center" size="sm" [paginationData]="paginationData()"
                         (pageChanged)="getDuplicates($event)"></tafel-pagination>
 
       <div class="d-grid gap-3">
-        @for (item of customerDuplicatesData.items; track trackByDuplicateItemId($index, item)) {
+        @for (item of customerDuplicatesData().items; track trackByDuplicateItemId($index, item)) {
         <c-row>
           <c-col>
             <c-card class="mb-3 mb-sm-0">
@@ -159,9 +159,9 @@
         }
       </div>
 
-      <tafel-pagination class="d-none d-sm-block mt-3" align="end" [paginationData]="paginationData"
+      <tafel-pagination class="d-none d-sm-block mt-3" align="end" [paginationData]="paginationData()"
                         (pageChanged)="getDuplicates($event)"></tafel-pagination>
-      <tafel-pagination class="d-block d-sm-none mt-3" align="center" size="sm" [paginationData]="paginationData"
+      <tafel-pagination class="d-block d-sm-none mt-3" align="center" size="sm" [paginationData]="paginationData()"
                         (pageChanged)="getDuplicates($event)"></tafel-pagination>
     </div>
     }

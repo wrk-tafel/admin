@@ -1,32 +1,51 @@
-import {TafelIfPermissionDirective} from './tafel-if-permission.directive';
+import { Component } from '@angular/core';
+import { TestBed, ComponentFixture } from '@angular/core/testing';
+import { TafelIfPermissionDirective } from './tafel-if-permission.directive';
+import { AuthenticationService } from './authentication.service';
+
+@Component({
+    selector: 'test-component',
+    template: `<div *tafelIfPermission="permission">Content</div>`,
+    standalone: true,
+    imports: [TafelIfPermissionDirective]
+})
+class TestComponent {
+    permission = 'PERM1';
+}
 
 describe('TafelIfPermissionDirective', () => {
-  function setup() {
-    const viewContainerSpy =
-      jasmine.createSpyObj('ViewContainer', ['createEmbeddedView', 'clear']);
-    const authServiceSpy =
-      jasmine.createSpyObj('AuthenticationService', ['hasPermission']);
-    const directive = new TafelIfPermissionDirective(undefined, viewContainerSpy, authServiceSpy);
-    return {viewContainerSpy, authServiceSpy, directive};
-  }
+    let fixture: ComponentFixture<TestComponent>;
+    let component: TestComponent;
+    let authServiceSpy: any;
 
-  it('should render when permission is given', () => {
-    const {viewContainerSpy, authServiceSpy, directive} = setup();
-    authServiceSpy.hasPermission.withArgs('PERM1').and.returnValue(true);
+    beforeEach(() => {
+        authServiceSpy = {
+            hasPermission: vi.fn().mockName("AuthenticationService.hasPermission")
+        };
 
-    directive.tafelIfPermission = 'PERM1';
+        TestBed.configureTestingModule({
+            imports: [TestComponent],
+            providers: [
+                { provide: AuthenticationService, useValue: authServiceSpy }
+            ]
+        });
 
-    expect(viewContainerSpy.clear).toHaveBeenCalled();
-    expect(viewContainerSpy.createEmbeddedView).toHaveBeenCalled();
-  });
+        fixture = TestBed.createComponent(TestComponent);
+        component = fixture.componentInstance;
+    });
 
-  it('should not render when permission is missing', () => {
-    const {viewContainerSpy, authServiceSpy, directive} = setup();
-    authServiceSpy.hasPermission.withArgs('PERM1').and.returnValue(false);
+    it('should render when permission is given', () => {
+        authServiceSpy.hasPermission.mockReturnValue(true);
+        fixture.detectChanges();
 
-    directive.tafelIfPermission = 'PERM1';
+        expect(fixture.nativeElement.textContent).toContain('Content');
+    });
 
-    expect(viewContainerSpy.clear).toHaveBeenCalled();
-  });
+    it('should not render when permission is missing', () => {
+        authServiceSpy.hasPermission.mockReturnValue(false);
+        fixture.detectChanges();
+
+        expect(fixture.nativeElement.textContent).not.toContain('Content');
+    });
 
 });

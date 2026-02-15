@@ -1,4 +1,5 @@
-import {TestBed, waitForAsync} from '@angular/core/testing';
+import type {MockedObject} from 'vitest';
+import {TestBed} from '@angular/core/testing';
 import {DistributionApiService} from '../../../../api/distribution-api.service';
 import {DistributionNotesInputComponent} from './distribution-notes-input.component';
 import {CardModule, ColComponent, ModalModule, ProgressModule, RowComponent} from '@coreui/angular';
@@ -7,10 +8,10 @@ import {ToastService, ToastType} from '../../../../common/components/toasts/toas
 import {of, throwError} from 'rxjs';
 
 describe('DistributionNotesInputComponent', () => {
-  let distributionApiService: jasmine.SpyObj<DistributionApiService>;
-  let toastService: jasmine.SpyObj<ToastService>;
+  let distributionApiService: MockedObject<DistributionApiService>;
+  let toastService: MockedObject<ToastService>;
 
-  beforeEach(waitForAsync(() => {
+  beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [
         NoopAnimationsModule,
@@ -23,18 +24,22 @@ describe('DistributionNotesInputComponent', () => {
       providers: [
         {
           provide: DistributionApiService,
-          useValue: jasmine.createSpyObj('DistributionApiService', ['saveNotes'])
+          useValue: {
+            saveNotes: vi.fn().mockName('DistributionApiService.saveNotes')
+          }
         },
         {
           provide: ToastService,
-          useValue: jasmine.createSpyObj('ToastService', ['showToast'])
+          useValue: {
+            showToast: vi.fn().mockName('ToastService.showToast')
+          }
         }
       ]
     }).compileComponents();
 
-    distributionApiService = TestBed.inject(DistributionApiService) as jasmine.SpyObj<DistributionApiService>;
-    toastService = TestBed.inject(ToastService) as jasmine.SpyObj<ToastService>;
-  }));
+    distributionApiService = TestBed.inject(DistributionApiService) as MockedObject<DistributionApiService>;
+    toastService = TestBed.inject(ToastService) as MockedObject<ToastService>;
+  });
 
   it('component can be created', () => {
     const fixture = TestBed.createComponent(DistributionNotesInputComponent);
@@ -46,10 +51,10 @@ describe('DistributionNotesInputComponent', () => {
   it('save data successful', () => {
     const fixture = TestBed.createComponent(DistributionNotesInputComponent);
     const component = fixture.componentInstance;
-    distributionApiService.saveNotes.and.returnValue(of(null));
+    distributionApiService.saveNotes.mockReturnValue(of(null));
     const testNotes = ''
 
-    component.notes = testNotes;
+    component.notes.set(testNotes);
 
     component.save();
 
@@ -64,7 +69,7 @@ describe('DistributionNotesInputComponent', () => {
     const fixture = TestBed.createComponent(DistributionNotesInputComponent);
     const component = fixture.componentInstance;
     const componentRef = fixture.componentRef;
-    distributionApiService.saveNotes.and.returnValue(throwError(() => {
+    distributionApiService.saveNotes.mockReturnValue(throwError(() => {
         return {status: 500};
       })
     );

@@ -1,6 +1,6 @@
-import {Component, effect, inject, input, model} from '@angular/core';
+import {Component, computed, effect, inject, input, model, signal} from '@angular/core';
 import {Shop} from '../../../../api/route-api.service';
-import {CommonModule} from '@angular/common';
+
 import {ButtonDirective, ColComponent, RowComponent, TableColorDirective, TableDirective} from '@coreui/angular';
 import {FoodCategory} from '../../../../api/food-categories-api.service';
 import {FormArray, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
@@ -16,15 +16,14 @@ import {SelectedRouteData} from '../food-collection-recording/food-collection-re
     selector: 'tafel-food-collection-recording-items-desktop',
     templateUrl: 'food-collection-recording-items-desktop.component.html',
     imports: [
-        CommonModule,
-        ReactiveFormsModule,
-        FormsModule,
-        ButtonDirective,
-        TableDirective,
-        TableColorDirective,
-        ColComponent,
-        RowComponent
-    ]
+    ReactiveFormsModule,
+    FormsModule,
+    ButtonDirective,
+    TableDirective,
+    TableColorDirective,
+    ColComponent,
+    RowComponent
+]
 })
 export class FoodCollectionRecordingItemsDesktopComponent {
   foodCategories = model.required<FoodCategory[]>();
@@ -39,13 +38,25 @@ export class FoodCollectionRecordingItemsDesktopComponent {
     }
   );
 
+  // Track form initialization state with signal
+  private formInitialized = signal<boolean>(false);
+
+  readonly formReady = computed(() =>
+    this.formInitialized() &&
+    this.selectedRouteData() !== undefined &&
+    this.foodCategories().length > 0 &&
+    this.categories.controls.length > 0
+  );
+
   foodCollectionDataEffect = effect(() => {
     // reset form without route to prevent an infinite loop
     this.categories.clear();
+    this.formInitialized.set(false);
 
     if (this.selectedRouteData()) {
       this.createCategoryShopInputs(this.selectedRouteData().shops, this.selectedRouteData().foodCollectionData?.items ?? []);
       this.categories.markAllAsTouched();
+      this.formInitialized.set(true);
     }
   });
 
@@ -78,6 +89,10 @@ export class FoodCollectionRecordingItemsDesktopComponent {
   }
 
   save() {
+    if (!this.selectedRouteData()) {
+      return;
+    }
+
     const routeId = this.selectedRouteData().route.id;
     const collectionData: FoodCollectionSaveItemsRequest = {
       items: this.mapItemsFromCategories()

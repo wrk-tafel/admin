@@ -1,3 +1,4 @@
+import type {MockedObject} from 'vitest';
 import {TestBed} from '@angular/core/testing';
 import {provideHttpClient} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
@@ -7,7 +8,7 @@ import {of} from 'rxjs';
 import {ActivatedRouteSnapshot} from '@angular/router';
 
 describe('RouteDataResolver', () => {
-  let apiService: jasmine.SpyObj<RouteApiService>;
+  let apiService: MockedObject<RouteApiService>;
   let resolver: RouteDataResolver;
 
   beforeEach(() => {
@@ -17,13 +18,15 @@ describe('RouteDataResolver', () => {
         provideHttpClientTesting(),
         {
           provide: RouteApiService,
-          useValue: jasmine.createSpyObj('RouteApiService', ['getRoutes'])
+          useValue: {
+            getRoutes: vi.fn().mockName('RouteApiService.getRoutes')
+          }
         },
         RouteDataResolver
       ]
     });
 
-    apiService = TestBed.inject(RouteApiService) as jasmine.SpyObj<RouteApiService>;
+    apiService = TestBed.inject(RouteApiService) as MockedObject<RouteApiService>;
     resolver = TestBed.inject(RouteDataResolver);
   });
 
@@ -40,7 +43,7 @@ describe('RouteDataResolver', () => {
         }
       ]
     };
-    apiService.getRoutes.and.returnValue(of(mockRoutes));
+    apiService.getRoutes.mockReturnValue(of(mockRoutes));
 
     const activatedRoute = <ActivatedRouteSnapshot><unknown>{};
     resolver.resolve(activatedRoute).subscribe((routeList: RouteList) => {

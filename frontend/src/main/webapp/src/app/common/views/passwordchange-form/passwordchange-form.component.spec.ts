@@ -1,4 +1,4 @@
-import {ComponentFixture, TestBed, waitForAsync} from '@angular/core/testing';
+import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
 import {FormControl, FormGroup} from '@angular/forms';
 import {PasswordChangeFormComponent} from './passwordchange-form.component';
@@ -10,7 +10,7 @@ describe('PasswordChangeFormComponent', () => {
   let fixture: ComponentFixture<PasswordChangeFormComponent>;
   let component: PasswordChangeFormComponent;
 
-  beforeEach(waitForAsync(() => {
+  beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [ModalModule],
       providers: [
@@ -22,13 +22,13 @@ describe('PasswordChangeFormComponent', () => {
     httpMock = TestBed.inject(HttpTestingController);
     fixture = TestBed.createComponent(PasswordChangeFormComponent);
     component = fixture.componentInstance;
-  }));
+  });
 
-  it('should create the component', waitForAsync(() => {
+  it('should create the component', () => {
     expect(component).toBeTruthy();
-  }));
+  });
 
-  it('validateNewAndRepeatedPasswords should return null on matching values', waitForAsync(() => {
+  it('validateNewAndRepeatedPasswords should return null on matching values', () => {
     const validator = component.validateNewAndRepeatedPasswords();
 
     const testForm = new FormGroup({
@@ -39,9 +39,9 @@ describe('PasswordChangeFormComponent', () => {
     const result = validator(testForm);
 
     expect(result).toBe(null);
-  }));
+  });
 
-  it('validateNewAndRepeatedPasswords should return object when values dont match', waitForAsync(() => {
+  it('validateNewAndRepeatedPasswords should return object when values dont match', () => {
     const validator = component.validateNewAndRepeatedPasswords();
 
     const testForm = new FormGroup({
@@ -52,11 +52,11 @@ describe('PasswordChangeFormComponent', () => {
     const result = validator(testForm);
 
     expect(result).toEqual({passwordsDontMatch: true});
-  }));
+  });
 
   // TODO fix test
   /*
-  it('changePassword should fill errorMessages correctly', waitForAsync(() => {
+  it('changePassword should fill errorMessages correctly'(() => {
     const errorResponse: ChangePasswordResponse = {
       message: 'ERROR 123',
       details: ['DETAIL 0', 'DETAIL 1']
@@ -73,10 +73,10 @@ describe('PasswordChangeFormComponent', () => {
 
     expect(component.errorMessage).toBe(errorResponse.message);
     expect(component.errorMessageDetails).toEqual(errorResponse.details);
-  }));
+  });
    */
 
-  it('changePassword should set successMessage and clear errorMessages', waitForAsync(() => {
+  it('changePassword should set successMessage and clear errorMessages', () => {
     component.currentPassword.setValue('CURR');
     component.newPassword.setValue('NEW');
     component.successMessage = 'success-msg';
@@ -92,9 +92,9 @@ describe('PasswordChangeFormComponent', () => {
     expect(component.errorMessage).toBe(null);
     expect(component.errorMessageDetails).toEqual(null);
     expect(component.successMessage).toBe('Passwort erfolgreich geändert!');
-  }));
+  });
 
-  it('reset clears messages and form state', waitForAsync(() => {
+  it('reset clears messages and form state', () => {
     component.currentPassword.setValue('CURR');
     component.newPassword.setValue('NEW');
     component.newRepeatedPassword.setValue('NEW-REPEATED');
@@ -110,7 +110,7 @@ describe('PasswordChangeFormComponent', () => {
     expect(component.successMessage).toBe(null);
     expect(component.errorMessage).toBe(null);
     expect(component.errorMessageDetails).toBe(null);
-  }));
+  });
 
   // TODO test: isValid --> form.true/false/undefined
 

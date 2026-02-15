@@ -1,4 +1,4 @@
-import {Component, effect, inject} from '@angular/core';
+import {Component, effect, inject, signal} from '@angular/core';
 import {
   ButtonDirective,
   CardBodyComponent,
@@ -37,16 +37,16 @@ export class SendMailsComponent {
   private readonly toastService = inject(ToastService);
   protected readonly cilEnvelopeClosed = cilEnvelopeClosed;
 
-  public distributions: DistributionItem[];
-  public selectedDistribution: DistributionItem;
+  readonly distributions = signal<DistributionItem[]>([]);
+  readonly selectedDistribution = signal<DistributionItem | null>(null);
 
   initialLoadEffect = effect(() => {
     this.distributionApiService.getDistributions().subscribe((response) => {
       const distributions = response.items;
-      this.distributions = distributions;
+      this.distributions.set(distributions);
 
       if (distributions.length > 0) {
-        this.selectedDistribution = distributions[0];
+        this.selectedDistribution.set(distributions[0]);
       }
     });
   });
@@ -60,7 +60,10 @@ export class SendMailsComponent {
         this.toastService.showToast({type: ToastType.SUCCESS, title: 'Senden der E-Mails fehlgeschlagen!'});
       },
     };
-    this.distributionApiService.sendMails(this.selectedDistribution.id).subscribe(observer);
+    const selectedDist = this.selectedDistribution();
+    if (selectedDist) {
+      this.distributionApiService.sendMails(selectedDist.id).subscribe(observer);
+    }
   }
 
 }

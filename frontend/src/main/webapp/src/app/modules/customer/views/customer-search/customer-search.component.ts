@@ -1,4 +1,4 @@
-import {Component, inject} from '@angular/core';
+import {Component, inject, signal} from '@angular/core';
 import {Router} from '@angular/router';
 import {CustomerApiService, CustomerSearchResult} from '../../../../api/customer-api.service';
 import {FormBuilder, ReactiveFormsModule} from '@angular/forms';
@@ -63,15 +63,23 @@ export class CustomerSearchComponent {
     costContribution: this.fb.control<boolean>(null),
   });
 
-  searchResult: CustomerSearchResult;
-  paginationData: TafelPaginationData;
+  // Use signals so the template-sugar (@if / @for) reacts immediately when updated
+  searchResult = signal<CustomerSearchResult | undefined>(undefined);
+  paginationData = signal<TafelPaginationData | undefined>(undefined);
 
   searchForCustomerId() {
     const customerId = this.customerId.value;
 
     /* eslint-disable @typescript-eslint/no-unused-vars */
     const observer = {
-      next: (response) => this.navigateToCustomerDetail(customerId)
+      next: (response) => this.navigateToCustomerDetail(customerId),
+      error: (error) => {
+        if (error.status === 404) {
+          this.toastService.showToast({type: ToastType.INFO, title: 'Kunde nicht gefunden!'});
+        } else {
+          this.toastService.showToast({type: ToastType.ERROR, title: 'Fehler beim Laden des Kunden!'});
+        }
+      }
     };
     this.customerApiService.getCustomer(customerId).subscribe(observer);
   }
@@ -85,17 +93,17 @@ export class CustomerSearchComponent {
       .subscribe((response: CustomerSearchResult) => {
         if (response.items.length === 0) {
           this.toastService.showToast({type: ToastType.INFO, title: 'Keine Kunden gefunden!'});
-          this.searchResult = null;
-          this.paginationData = null;
+          this.searchResult.set(undefined);
+          this.paginationData.set(undefined);
         } else {
-          this.searchResult = response;
-          this.paginationData = {
+          this.searchResult.set(response);
+          this.paginationData.set({
             count: response.items.length,
             totalCount: response.totalCount,
             currentPage: response.currentPage,
             totalPages: response.totalPages,
             pageSize: response.pageSize
-          };
+          });
         }
       });
   }

@@ -1,70 +1,77 @@
-import {TestBed, waitForAsync} from '@angular/core/testing';
-import {NoopAnimationsModule} from '@angular/platform-browser/animations';
-import {provideHttpClient} from '@angular/common/http';
-import {provideHttpClientTesting} from '@angular/common/http/testing';
-import {FoodCollectionRecordingItemsDesktopComponent} from './food-collection-recording-items-desktop.component';
-import {BehaviorSubject} from 'rxjs';
-import {GlobalStateService} from '../../../../common/state/global-state.service';
-import {DistributionItem} from '../../../../api/distribution-api.service';
-import {RouteData} from '../../../../api/route-api.service';
-import {FoodCategory} from '../../../../api/food-categories-api.service';
+import type { MockedObject } from "vitest";
+import { TestBed } from '@angular/core/testing';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { FoodCollectionRecordingItemsDesktopComponent } from './food-collection-recording-items-desktop.component';
+import { GlobalStateService } from '../../../../common/state/global-state.service';
+import { DistributionItem } from '../../../../api/distribution-api.service';
+import { RouteData } from '../../../../api/route-api.service';
+import { FoodCategory } from '../../../../api/food-categories-api.service';
+import { signal } from '@angular/core';
 
 describe('FoodCollectionRecordingItemsDesktopComponent', () => {
-  let globalStateService: jasmine.SpyObj<GlobalStateService>;
+    let globalStateService: MockedObject<GlobalStateService>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-      imports: [
-        NoopAnimationsModule
-      ],
-      providers: [
-        provideHttpClient(),
-        provideHttpClientTesting(),
-        {
-          provide: GlobalStateService,
-          useValue: jasmine.createSpyObj('GlobalStateService', ['getCurrentDistribution'])
-        }
-      ]
-    }).compileComponents();
+    beforeEach((() => {
+        TestBed.configureTestingModule({
+            imports: [
+                NoopAnimationsModule
+            ],
+            providers: [
+                provideHttpClient(),
+                provideHttpClientTesting(),
+                {
+                    provide: GlobalStateService,
+                    useValue: {
+                        getCurrentDistribution: vi.fn().mockName("GlobalStateService.getCurrentDistribution")
+                    }
+                }
+            ]
+        }).compileComponents();
 
-    globalStateService = TestBed.inject(GlobalStateService) as jasmine.SpyObj<GlobalStateService>;
-  }));
+        globalStateService = TestBed.inject(GlobalStateService) as MockedObject<GlobalStateService>;
+    }));
 
-  const testDistribution: DistributionItem = {
-    id: 123,
-    startedAt: new Date()
-  };
-  const testRoute: RouteData = {
-    id: 0,
-    name: 'Route 1'
-  };
-  const testFoodCategories: FoodCategory[] = [
-    {id: 0, name: 'Category 1', returnItem: false},
-    {id: 1, name: 'Category 2', returnItem: true},
-  ];
+    const testDistribution: DistributionItem = {
+        id: 123,
+        startedAt: new Date()
+    };
+    const testRoute: RouteData = {
+        id: 0,
+        name: 'Route 1'
+    };
+    const testFoodCategories: FoodCategory[] = [
+        { id: 0, name: 'Category 1', returnItem: false },
+        { id: 1, name: 'Category 2', returnItem: true },
+    ];
 
-  it('component can be created', () => {
-    const fixture = TestBed.createComponent(FoodCollectionRecordingItemsDesktopComponent);
-    const component = fixture.componentInstance;
-    expect(component).toBeTruthy();
-  });
+    it('component can be created', () => {
+        const fixture = TestBed.createComponent(FoodCollectionRecordingItemsDesktopComponent);
+        const component = fixture.componentInstance;
+        expect(component).toBeTruthy();
+    });
 
-  it('ngOnInit - selected route provides category controls', () => {
-    const fixture = TestBed.createComponent(FoodCollectionRecordingItemsDesktopComponent);
-    const component = fixture.componentInstance;
-    const componentRef = fixture.componentRef;
-    globalStateService.getCurrentDistribution.and.returnValue(new BehaviorSubject<DistributionItem>(testDistribution));
+    it('ngOnInit - selected route provides category controls', () => {
+        const fixture = TestBed.createComponent(FoodCollectionRecordingItemsDesktopComponent);
+        const component = fixture.componentInstance;
+        const componentRef = fixture.componentRef;
+        globalStateService.getCurrentDistribution.mockReturnValue(signal<DistributionItem>(testDistribution).asReadonly());
 
-    expect(component.categories.controls).toEqual([]);
+        expect(component.categories.controls).toEqual([]);
 
-    componentRef.setInput('selectedRoute', testRoute);
-    componentRef.setInput('foodCategories', testFoodCategories);
-    fixture.detectChanges();
+        const selectedRouteData = {
+            route: testRoute,
+            shops: []
+        };
+        componentRef.setInput('selectedRouteData', selectedRouteData);
+        componentRef.setInput('foodCategories', testFoodCategories);
+        fixture.detectChanges();
 
-    // TODO expect(component.categories.controls.length).toEqual(10);
-  });
+        // TODO expect(component.categories.controls.length).toEqual(10);
+    });
 
-  // TODO test prefill of existing data
-  // TODO test save
+    // TODO test prefill of existing data
+    // TODO test save
 
 });

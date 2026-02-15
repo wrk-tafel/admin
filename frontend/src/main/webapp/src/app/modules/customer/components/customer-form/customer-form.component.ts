@@ -1,4 +1,4 @@
-import {Component, EventEmitter, inject, Input, OnDestroy, OnInit, Output} from '@angular/core';
+import {Component, effect, inject, input, OnDestroy, OnInit, output} from '@angular/core';
 import {FormArray, FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {CountryApiService, CountryData} from '../../../../api/country-api.service';
 import {CustomValidator} from '../../../../common/validator/CustomValidator';
@@ -57,8 +57,9 @@ import {GenderLabelPipe} from '../../../../common/pipes/gender-label.pipe';
     ]
 })
 export class CustomerFormComponent implements OnInit, OnDestroy {
-  @Input() editMode = false;
-  @Output() customerDataChange = new EventEmitter<CustomerData>();
+  editMode = input(false);
+  customerData = input<CustomerData>();
+  customerDataChange = output<CustomerData>();
 
   private readonly countryApiService = inject(CountryApiService);
   private destroy$ = new Subject<void>();
@@ -103,6 +104,23 @@ export class CustomerFormComponent implements OnInit, OnDestroy {
 
   countries: CountryData[];
   genders: Gender[] = [Gender.FEMALE, Gender.MALE];
+
+  constructor() {
+    effect(() => {
+      const customerData = this.customerData();
+      if (customerData) {
+        this.form.patchValue(customerData);
+
+        this.additionalPersons.clear();
+        customerData.additionalPersons.forEach((person) => this.pushPersonGroupControl(
+          {
+            ...person,
+            key: person.key ? person.key : uuidv4()
+          }
+        ));
+      }
+    });
+  }
 
   ngOnInit(): void {
     this.countryApiService.getCountries()
@@ -185,7 +203,7 @@ export class CustomerFormComponent implements OnInit, OnDestroy {
       receivesFamilyBonus: true
     });
 
-    if (this.editMode) {
+    if (this.editMode()) {
       this.additionalPersons.at(this.additionalPersons.length - 1).markAllAsTouched();
     }
   }
@@ -232,21 +250,6 @@ export class CustomerFormComponent implements OnInit, OnDestroy {
       });
 
     this.additionalPersons.push(control);
-  }
-
-  @Input()
-  set customerData(customerData: CustomerData) {
-    if (customerData) {
-      this.form.patchValue(customerData);
-
-      this.additionalPersons.clear();
-      customerData.additionalPersons.forEach((person) => this.pushPersonGroupControl(
-        {
-          ...person,
-          key: person.key ? person.key : uuidv4()
-        }
-      ));
-    }
   }
 
   get id() {

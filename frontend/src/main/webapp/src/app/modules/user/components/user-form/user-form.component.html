@@ -151,17 +151,15 @@
               <h5>Berechtigungen</h5>
             </div>
           </div>
-          <div style="display: grid; grid-template-columns: repeat(5, 1fr);">
-            <div formArrayName="permissions">
-              @for (permission of permissions.controls; track $index; let i = $index) {
-                <div [formGroupName]="i" [attr.testid]="'permission-' + i" class="mt-2 mb-2 me-0 me-sm-5">
-                  <label cLabel [attr.for]="'permission-checkbox-' + i">{{permission.get('title').value}}</label>
-                  <c-input-group>
-                    <input cFormCheckInput type="checkbox" formControlName="enabled" [attr.id]="'permission-checkbox-' + i" [attr.testid]="'permission-checkbox-' + i">
-                  </c-input-group>
-                </div>
-              }
-            </div>
+          <div class="row row-cols-1 row-cols-md-5 row-gap-2" formArrayName="permissions">
+            @for (permission of permissions.controls; track $index; let i = $index) {
+              <div class="col" [formGroupName]="i" [attr.testid]="'permission-' + i">
+                <label cLabel [attr.for]="'permission-checkbox-' + i">{{permission.get('title').value}}</label>
+                <c-input-group>
+                  <input cFormCheckInput type="checkbox" formControlName="enabled" [attr.id]="'permission-checkbox-' + i" [attr.testid]="'permission-checkbox-' + i">
+                </c-input-group>
+              </div>
+            }
           </div>
         </div>
       </div>

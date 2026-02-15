@@ -1,8 +1,7 @@
-import {Component, computed, inject, input, OnDestroy, OnInit, signal} from '@angular/core';
+import {Component, computed, inject, input, Signal} from '@angular/core';
 import {CardBodyComponent, CardComponent, ColComponent, Colors, RowComponent} from '@coreui/angular';
 import {DistributionItem} from '../../../../api/distribution-api.service';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
-import {Subscription} from 'rxjs';
 
 @Component({
     selector: 'tafel-recorded-food-collections',
@@ -14,13 +13,13 @@ import {Subscription} from 'rxjs';
         ColComponent
     ]
 })
-export class RecordedFoodCollectionsComponent implements OnInit, OnDestroy {
+export class RecordedFoodCollectionsComponent {
   countRecorded = input<number | null>(null);
   countTotal = input<number | null>(null);
 
   private readonly globalStateService = inject(GlobalStateService);
-  private distributionSubscription: Subscription;
-  distribution = signal<DistributionItem>(null);
+
+  readonly distribution: Signal<DistributionItem> = this.globalStateService.getCurrentDistribution();
 
   panelColor = computed<Colors>(() => {
     if (!this.distribution()) {
@@ -31,17 +30,5 @@ export class RecordedFoodCollectionsComponent implements OnInit, OnDestroy {
       return 'success';
     }
   });
-
-  ngOnInit(): void {
-    this.distributionSubscription = this.globalStateService.getCurrentDistribution().subscribe((distribution) => {
-      this.distribution.set(distribution);
-    });
-  }
-
-  ngOnDestroy(): void {
-    if (this.distributionSubscription) {
-      this.distributionSubscription.unsubscribe();
-    }
-  }
 
 }
