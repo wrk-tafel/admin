@@ -13,7 +13,13 @@ describe('User Edit', () => {
 
       cy.visit('/#/benutzer/bearbeiten/' + user.id);
 
-      cy.byTestId('firstnameInput').type('updated');
+      // Wait for form to be fully loaded with user data
+      cy.byTestId('firstnameInput').should('have.value', user.firstname);
+
+      cy.byTestId('firstnameInput').click();
+      cy.byTestId('firstnameInput').clear();
+      cy.byTestId('firstnameInput').type(`${user.firstname} updated`);
+
       cy.byTestId('permission-checkbox-0').click();
       cy.byTestId('save-button').click();
 

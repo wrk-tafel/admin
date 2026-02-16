@@ -87,7 +87,8 @@ describe('UserEditComponent - Editing an existing user', () => {
         fixture.detectChanges();
 
         // Make form valid to allow save
-        vi.spyOn(component.userFormComponent, 'isValid').mockReturnValue(true);
+        const mockFormComponent = { isValid: vi.fn().mockReturnValue(true), markAllAsTouched: vi.fn() };
+        (component as any).userFormComponent = () => mockFormComponent;
         fixture.detectChanges(); // Stabilize view with mocked isValid
 
         component.save();

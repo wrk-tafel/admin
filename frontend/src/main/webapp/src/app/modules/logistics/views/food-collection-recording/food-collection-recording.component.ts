@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, inject, model, OnInit} from '@angular/core';
+import {ChangeDetectorRef, Component, effect, inject, model} from '@angular/core';
 import {RouteApiService, RouteData, RouteList, Shop} from '../../../../api/route-api.service';
 
 import {
@@ -61,7 +61,7 @@ import {forkJoin} from 'rxjs';
     FoodCollectionRecordingItemsResponsiveComponent
 ]
 })
-export class FoodCollectionRecordingComponent implements OnInit {
+export class FoodCollectionRecordingComponent {
   routeList = model.required<RouteList>();
   carList = model.required<CarList>();
   foodCategories = model.required<FoodCategory[]>();
@@ -76,10 +76,13 @@ export class FoodCollectionRecordingComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
 
-  ngOnInit(): void {
-    if (this.globalStateService.getCurrentDistribution()() === null) {
-      this.router.navigate(['uebersicht']);
-    }
+  constructor() {
+    // Redirect to overview if no distribution is active
+    effect(() => {
+      if (this.globalStateService.getCurrentDistribution()() === null) {
+        this.router.navigate(['uebersicht']);
+      }
+    });
   }
 
   onSelectedRouteChange(route: RouteData) {

@@ -1,4 +1,4 @@
-import {Component, computed, inject, OnDestroy, OnInit, signal, WritableSignal} from '@angular/core';
+import {Component, computed, DestroyRef, effect, inject, signal, WritableSignal} from '@angular/core';
 import {QRCodeReaderService} from '../../services/qrcode-reader/qrcode-reader.service';
 import {CameraDevice} from 'html5-qrcode/esm/camera/core';
 import {Html5QrcodeResult} from 'html5-qrcode/core';
@@ -29,9 +29,10 @@ import {tap} from 'rxjs/operators';
     FormSelectDirective
 ]
 })
-export class ScannerComponent implements OnInit, OnDestroy {
+export class ScannerComponent {
   private readonly qrCodeReaderService = inject(QRCodeReaderService);
   private readonly scannerApiService = inject(ScannerApiService);
+  private readonly destroyRef = inject(DestroyRef);
 
   scannerId: number;
   lastScanResult: number;
@@ -58,19 +59,29 @@ export class ScannerComponent implements OnInit, OnDestroy {
     this.processQrCodeReaderPromise(promise);
   }
 
-  async ngOnInit(): Promise<void> {
-    const registrationPromise = this.registerScanner();
+  constructor() {
+    // Initialize scanner on component creation
+    effect(() => {
+      (async () => {
+        const registrationPromise = this.registerScanner();
 
-    const qrPromise = this.qrCodeReaderService.getCameras().then(async cameras => {
-      this.availableCameras = cameras;
-      this.currentCamera = this.qrCodeReaderService.getCurrentCamera(cameras);
+        const qrPromise = this.qrCodeReaderService.getCameras().then(async cameras => {
+          this.availableCameras = cameras;
+          this.currentCamera = this.qrCodeReaderService.getCurrentCamera(cameras);
 
-      this.qrCodeReaderService.init('qrCodeReaderBox', this.qrCodeReaderSuccessCallback);
-      const promise = this.qrCodeReaderService.start(this.currentCamera.id);
-      await this.processQrCodeReaderPromise(promise);
+          this.qrCodeReaderService.init('qrCodeReaderBox', this.qrCodeReaderSuccessCallback);
+          const promise = this.qrCodeReaderService.start(this.currentCamera.id);
+          await this.processQrCodeReaderPromise(promise);
+        });
+
+        await Promise.all([registrationPromise, qrPromise]);
+      })();
     });
 
-    await Promise.all([registrationPromise, qrPromise])
+    // Register cleanup on destroy
+    this.destroyRef.onDestroy(async () => {
+      await this.qrCodeReaderService.stop();
+    });
   }
 
   private registerScanner(): Promise<ScannerRegistration> {
@@ -88,10 +99,6 @@ export class ScannerComponent implements OnInit, OnDestroy {
         localStorage.setItem(storageKey, response.scannerId.toString());
       }))
     );
-  }
-
-  async ngOnDestroy(): Promise<void> {
-    await this.qrCodeReaderService.stop();
   }
 
   async processQrCodeReaderPromise(promise: Promise<null>) {

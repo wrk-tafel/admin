@@ -69,22 +69,24 @@ describe('UserEditComponent - Creating a new user', () => {
     });
 
     it('new user saved successfully', () => {
-        const userFormComponent = {
+        const userFormComponentMock = {
             markAllAsTouched: vi.fn().mockName("UserFormComponent.markAllAsTouched"),
             isValid: vi.fn().mockName("UserFormComponent.isValid")
         };
-        userFormComponent.isValid.mockReturnValue(true);
+        userFormComponentMock.isValid.mockReturnValue(true);
         apiService.createUser.mockReturnValue(of(mockUser));
 
         const fixture = TestBed.createComponent(UserEditComponent);
         const component = fixture.componentInstance;
-        component.userFormComponent = userFormComponent as any;
+        Object.defineProperty(component, 'userFormComponent', {
+            get: () => () => userFormComponentMock
+        });
         component.userUpdated = mockUser;
 
         component.save();
 
         expect(component.isSaveEnabled()).toBe(true);
-        expect(userFormComponent.markAllAsTouched).toHaveBeenCalled();
+        expect(userFormComponentMock.markAllAsTouched).toHaveBeenCalled();
         expect(apiService.createUser).toHaveBeenCalledWith(expect.objectContaining(mockUser));
         expect(router.navigate).toHaveBeenCalledWith(['/benutzer/detail', mockUser.id]);
     });

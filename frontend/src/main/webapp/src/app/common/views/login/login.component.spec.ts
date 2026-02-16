@@ -65,7 +65,7 @@ describe('LoginComponent', () => {
         const component = fixture.componentInstance;
         fixture.detectChanges();
 
-        expect(component.errorMessage).toBe('Sitzung abgelaufen! Bitte erneut anmelden.');
+        expect(component.errorMessage()).toBe('Sitzung abgelaufen! Bitte erneut anmelden.');
     });
 
     it('init with forbidden flag should show message', () => {
@@ -75,7 +75,7 @@ describe('LoginComponent', () => {
         const component = fixture.componentInstance;
         fixture.detectChanges();
 
-        expect(component.errorMessage).toBe('Zugriff nicht erlaubt!');
+        expect(component.errorMessage()).toBe('Zugriff nicht erlaubt!');
     });
 
     it('login successful', async () => {
@@ -114,7 +114,7 @@ describe('LoginComponent', () => {
 
         await component.login();
 
-        expect(component.errorMessage).toBe('Anmeldung fehlgeschlagen!');
+        expect(component.errorMessage()).toBe('Anmeldung fehlgeschlagen!');
     });
 
     it('login but passwordchange required', async () => {

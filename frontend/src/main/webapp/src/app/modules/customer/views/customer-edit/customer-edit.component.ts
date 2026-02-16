@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, effect, inject, input, OnInit, ViewChild} from '@angular/core';
+import {afterNextRender, ChangeDetectorRef, Component, effect, inject, input, viewChild} from '@angular/core';
 import {CustomerFormComponent} from '../../components/customer-form/customer-form.component';
 import {CustomerApiService, CustomerData, ValidateCustomerResponse} from '../../../../api/customer-api.service';
 import {Router} from '@angular/router';
@@ -33,7 +33,7 @@ import {DecimalPipe, NgClass} from '@angular/common';
         DecimalPipe
     ]
 })
-export class CustomerEditComponent implements OnInit {
+export class CustomerEditComponent {
   customerData = input<CustomerData>();
 
   customerUpdated: CustomerData;
@@ -42,25 +42,31 @@ export class CustomerEditComponent implements OnInit {
   validationResult: ValidateCustomerResponse;
   validationResultColor: Colors;
   showValidationResultModal = false;
-  @ViewChild(CustomerFormComponent) customerFormComponent: CustomerFormComponent;
+  customerFormComponent = viewChild<CustomerFormComponent>(CustomerFormComponent);
   private readonly customerApiService = inject(CustomerApiService);
   private readonly router = inject(Router);
   private readonly toastService = inject(ToastService);
   private readonly cdr = inject(ChangeDetectorRef);
 
-  ngOnInit(): void {
-    const customerData = this.customerData();
-    if (customerData) {
-      this.editMode = true;
+  constructor() {
+    // Initialize form when customerData changes
+    effect(() => {
+      const customerData = this.customerData();
+      if (customerData) {
+        this.editMode = true;
 
-      // Load data into forms
-      this.customerUpdated = customerData;
+        // Load data into forms
+        this.customerUpdated = customerData;
 
-      // Mark forms as touched to show the validation state (postponed to next macrotask after angular finished)
-      setTimeout(() => {
-        this.customerFormComponent.markAllAsTouched();
-      });
-    }
+        // Mark forms as touched to show the validation state (postponed to next render)
+        afterNextRender(() => {
+          const formComponent = this.customerFormComponent();
+          if (formComponent) {
+            formComponent.markAllAsTouched();
+          }
+        });
+      }
+    });
   }
 
   customerDataUpdated(event: CustomerData) {
@@ -69,7 +75,10 @@ export class CustomerEditComponent implements OnInit {
   }
 
   validate() {
-    this.customerFormComponent.markAllAsTouched();
+    const formComponent = this.customerFormComponent();
+    if (formComponent) {
+      formComponent.markAllAsTouched();
+    }
 
     if (!this.formIsValid()) {
       this.toastService.showToast({type: ToastType.ERROR, title: 'Bitte Eingaben überprüfen!'});
@@ -86,7 +95,10 @@ export class CustomerEditComponent implements OnInit {
   }
 
   save() {
-    this.customerFormComponent.markAllAsTouched();
+    const formComponent = this.customerFormComponent();
+    if (formComponent) {
+      formComponent.markAllAsTouched();
+    }
 
     if (!this.formIsValid()) {
       this.toastService.showToast({type: ToastType.ERROR, title: 'Bitte Eingaben überprüfen!'});
@@ -112,8 +124,9 @@ export class CustomerEditComponent implements OnInit {
   }
 
   private formIsValid() {
-    if (this.customerFormComponent) {
-      return this.customerFormComponent.isValid();
+    const formComponent = this.customerFormComponent();
+    if (formComponent) {
+      return formComponent.isValid();
     }
     return true;
   }

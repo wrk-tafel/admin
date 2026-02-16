@@ -1,7 +1,8 @@
-import {Component, inject, OnInit} from '@angular/core';
+import {Component, computed, inject, signal} from '@angular/core';
 import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
 import {ActivatedRoute, Router} from '@angular/router';
 import {AuthenticationService} from '../../security/authentication.service';
+import {toSignal} from '@angular/core/rxjs-interop';
 import {
   ButtonDirective,
   CardBodyComponent,
@@ -38,7 +39,7 @@ import {TafelAutofocusDirective} from '../../directive/tafel-autofocus.directive
         TafelAutofocusDirective
     ]
 })
-export class LoginComponent implements OnInit {
+export class LoginComponent {
   private readonly authenticationService = inject(AuthenticationService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
@@ -49,18 +50,29 @@ export class LoginComponent implements OnInit {
     password: this.fb.control<string>(null, Validators.required)
   });
 
-  errorMessage: string;
+  // Convert route params to signal
+  private readonly routeParams = toSignal(this.route.params, { initialValue: {} });
 
-  ngOnInit(): void {
-    this.route.params.subscribe(params => {
-      const errorType: string = params['errorType'];
-      if (errorType === 'abgelaufen') {
-        this.errorMessage = 'Sitzung abgelaufen! Bitte erneut anmelden.';
-      } else if (errorType === 'fehlgeschlagen') {
-        this.errorMessage = 'Zugriff nicht erlaubt!';
-      }
-    });
-  }
+  // Signal for login errors
+  private readonly loginError = signal<string | null>(null);
+
+  // Derive error message from route params or login error
+  errorMessage = computed(() => {
+    // Check login error first
+    const loginErr = this.loginError();
+    if (loginErr) {
+      return loginErr;
+    }
+
+    // Then check route params
+    const errorType = this.routeParams()['errorType'];
+    if (errorType === 'abgelaufen') {
+      return 'Sitzung abgelaufen! Bitte erneut anmelden.';
+    } else if (errorType === 'fehlgeschlagen') {
+      return 'Zugriff nicht erlaubt!';
+    }
+    return null;
+  });
 
   public async login() {
     const username = this.form.get('username').value;
@@ -74,7 +86,7 @@ export class LoginComponent implements OnInit {
         await this.router.navigate(['uebersicht']);
       }
     } else {
-      this.errorMessage = 'Anmeldung fehlgeschlagen!';
+      this.loginError.set('Anmeldung fehlgeschlagen!');
     }
   }
 

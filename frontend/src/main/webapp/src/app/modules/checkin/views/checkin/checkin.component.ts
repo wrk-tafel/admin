@@ -2,12 +2,12 @@ import {
   ChangeDetectorRef,
   Component,
   computed,
+  DestroyRef,
+  effect,
   ElementRef,
   inject,
-  OnDestroy,
-  OnInit,
   signal,
-  ViewChild
+  viewChild
 } from '@angular/core';
 import {CustomerApiService, CustomerData} from '../../../../api/customer-api.service';
 import {Subscription} from 'rxjs';
@@ -73,7 +73,7 @@ import {BirthdateAgePipe} from '../../../../common/pipes/birthdate-age.pipe';
         BirthdateAgePipe
     ]
 })
-export class CheckinComponent implements OnInit, OnDestroy {
+export class CheckinComponent {
   private readonly customerApiService = inject(CustomerApiService);
   private readonly customerNoteApiService = inject(CustomerNoteApiService);
   private readonly globalStateService = inject(GlobalStateService);
@@ -84,11 +84,12 @@ export class CheckinComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
   private readonly toastService = inject(ToastService);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly VALID_UNTIL_WARNLIMIT_WEEKS = 8;
 
-  @ViewChild('customerIdInput') customerIdInputRef: ElementRef;
-  @ViewChild('ticketNumberInput') ticketNumberInputRef: ElementRef;
-  @ViewChild('cancelButton') cancelButtonRef: ElementRef;
+  customerIdInputRef = viewChild<ElementRef>('customerIdInput');
+  ticketNumberInputRef = viewChild<ElementRef>('ticketNumberInput');
+  cancelButtonRef = viewChild<ElementRef>('cancelButton');
 
   scannerIds: number[] = [];
   currentScannerId: number;
@@ -195,20 +196,27 @@ export class CheckinComponent implements OnInit, OnDestroy {
     return this.scannerReadyState ? 'success' : 'danger';
   }
 
-  ngOnInit(): void {
-    if (this.globalStateService.getCurrentDistribution()() === null) {
-      this.router.navigate(['uebersicht']);
-    }
-
-    this.scannerApiService.getScanners().subscribe((response: ScannerList) => {
-      this.scannerIds = response.scannerIds;
+  constructor() {
+    // Redirect to overview if no distribution is active
+    effect(() => {
+      if (this.globalStateService.getCurrentDistribution()() === null) {
+        this.router.navigate(['uebersicht']);
+      }
     });
-  }
 
-  ngOnDestroy(): void {
-    if (this.scannerSubscription) {
-      this.scannerSubscription.unsubscribe();
-    }
+    // Load scanners on init
+    effect(() => {
+      this.scannerApiService.getScanners().subscribe((response: ScannerList) => {
+        this.scannerIds = response.scannerIds;
+      });
+    });
+
+    // Register cleanup for scanner subscription
+    this.destroyRef.onDestroy(() => {
+      if (this.scannerSubscription) {
+        this.scannerSubscription.unsubscribe();
+      }
+    });
   }
 
   searchForCustomerId() {
@@ -255,11 +263,11 @@ export class CheckinComponent implements OnInit, OnDestroy {
       if (customer.locked) {
         this.customerState.set(CustomerState.LOCKED);
         this.changeDetectorRef.detectChanges();
-        this.cancelButtonRef.nativeElement.focus();
+        this.cancelButtonRef()?.nativeElement.focus();
       } else if (validUntil.isBefore(now)) {
         this.customerState.set(CustomerState.INVALID);
         this.changeDetectorRef.detectChanges();
-        this.cancelButtonRef.nativeElement.focus();
+        this.cancelButtonRef()?.nativeElement.focus();
       } else {
         const warnLimit = now.add(this.VALID_UNTIL_WARNLIMIT_WEEKS, 'weeks');
         if (!validUntil.isAfter(warnLimit)) {
@@ -269,7 +277,7 @@ export class CheckinComponent implements OnInit, OnDestroy {
         }
 
         this.changeDetectorRef.detectChanges();
-        this.ticketNumberInputRef.nativeElement.focus();
+        this.ticketNumberInputRef()?.nativeElement.focus();
       }
     } else {
       this.customerState.set(undefined);
@@ -283,7 +291,7 @@ export class CheckinComponent implements OnInit, OnDestroy {
     this.ticketNumber = undefined;
     this.ticketNumberEdit = undefined;
     this.costContributionPaid = true;
-    this.customerIdInputRef.nativeElement.focus();
+    this.customerIdInputRef()?.nativeElement.focus();
   }
 
   assignCustomer() {
@@ -293,7 +301,7 @@ export class CheckinComponent implements OnInit, OnDestroy {
         next: (response) => this.cancel()
       };
       this.distributionApiService.assignCustomer(this.customer().id, this.ticketNumber, this.costContributionPaid).subscribe(observer);
-      this.customerIdInputRef.nativeElement.focus();
+      this.customerIdInputRef()?.nativeElement.focus();
     }
   }
 
@@ -304,7 +312,7 @@ export class CheckinComponent implements OnInit, OnDestroy {
         this.ticketNumberEdit = undefined;
         this.costContributionPaid = true;
         this.toastService.showToast({type: ToastType.SUCCESS, title: 'Ticket-Nummer gelöscht!'});
-        this.ticketNumberInputRef.nativeElement.focus();
+        this.ticketNumberInputRef()?.nativeElement.focus();
       }
     };
     this.distributionTicketApiService.deleteCurrentTicketOfCustomer(this.customer().id).subscribe(observer);
