@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a food bank (Tafel) administration system built with a Spring Boot/Kotlin backend and Angular 20 frontend. The system manages customer registrations, food distributions, logistics operations, and generates various reports and statistics. It supports German/Austrian locale (de-AT) with Euro currency.
+This is a food bank (Tafel) administration system built with a Spring Boot/Kotlin backend and Angular 21 frontend. The system manages customer registrations, food distributions, logistics operations, and generates various reports and statistics. It supports German/Austrian locale (de-AT) with Euro currency.
 
 ## Build and Development Commands
 
@@ -201,7 +201,7 @@ The application uses PostgreSQL with Flyway for schema management. Migration fil
 - Integration tests automatically start PostgreSQL via Testcontainers
 
 ### Frontend Tests
-- Unit tests: Karma + Jasmine (`.spec.ts` files in `src/app/`)
+- Unit tests: Vitest (`.spec.ts` files in `src/app/`)
 - Run unit tests: `npm test` (from frontend/src/main/webapp)
 - Run headless: `npm run test-ci`
 - Run specific test: `npm test -- --include="src/app/common/sse/sse.service.spec.ts"`
@@ -231,8 +231,20 @@ The application uses PostgreSQL with Flyway for schema management. Migration fil
 - Use `inject()` function for dependency injection in components
 - Use `HttpClient` for API calls, typed with interfaces
 - Reactive forms for all form handling
-- Use `async` pipe in templates for observables
 - Custom validators in `common/validator/`
+
+**Signal-Based Patterns (Angular 21):**
+- Use `input()` / `input.required()` for component inputs (not `@Input`)
+- Use `output()` for component outputs (not `@Output`)
+- Use `signal()` for local component state
+- Use `computed()` for derived state (not methods)
+- Use `effect()` in constructor for side effects (not `ngOnInit`)
+- Use `viewChild()` / `viewChildren()` for template queries (not `@ViewChild`)
+- Use `toSignal()` to convert Observables to Signals
+- Use `resource()` for data fetching with automatic loading/error states
+- Read signals in templates with `()` - e.g., `@if (loading())`
+- Application runs in **zoneless mode** - no `ngZone.run()` needed
+- See [ANGULAR_SIGNAL_PATTERNS.md](./ANGULAR_SIGNAL_PATTERNS.md) for detailed patterns and examples
 
 ## API Structure
 
