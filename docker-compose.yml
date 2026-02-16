@@ -1,6 +1,6 @@
 services:
   database:
-    image: "postgres:16.1-bullseye"
+    image: "postgres:18.2-bookworm"
     container_name: tafeladmin-postgres
     hostname: tafeladmin-postgres
     ports:
@@ -10,22 +10,7 @@ services:
       POSTGRES_PASSWORD: admin
       POSTGRES_DB: tafeladmin
     volumes:
-      - database-data:/var/lib/postgresql/data/
-    networks:
-      - tafeladmin_net
-
-  database2:
-    image: "postgres:16.1-bullseye"
-    container_name: tafeladmin-postgres2
-    hostname: tafeladmin-postgres2
-    ports:
-      - "5433:5432"
-    environment:
-      POSTGRES_USER: tafeladmin
-      POSTGRES_PASSWORD: admin
-      POSTGRES_DB: tafeladmin
-    volumes:
-      - database2-data:/var/lib/postgresql/data/
+      - database-data:/var/lib/postgresql
     networks:
       - tafeladmin_net
 
@@ -43,16 +28,6 @@ services:
       - pgadmin-data:/var/lib/pgadmin
     networks:
       - tafeladmin_net
-
-  mysql:
-    image: mysql:5.7
-    command: --default-authentication-plugin=mysql_native_password
-    ports:
-      - "3306:3306"
-    environment:
-      MYSQL_ROOT_PASSWORD: admin
-    volumes:
-      - mysql-data:/var/lib/mysql
 
   mailpit:
     image: axllent/mailpit:latest
@@ -97,9 +72,7 @@ services:
 
 volumes:
   database-data:
-  database2-data:
   pgadmin-data:
-  mysql-data:
 
 networks:
   tafeladmin_net:
