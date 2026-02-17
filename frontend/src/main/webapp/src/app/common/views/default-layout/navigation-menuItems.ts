@@ -74,6 +74,7 @@ export const navigationMenuItems: ITafelNavData[] = [
   },
   {
     name: 'Benutzer',
+    url: '/benutzer',
     iconComponent: {name: 'cil-user'},
     permissions: ['USER_MANAGEMENT'],
     children: [
