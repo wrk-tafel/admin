@@ -81,7 +81,7 @@ describe('UserEditComponent - Creating a new user', () => {
         Object.defineProperty(component, 'userFormComponent', {
             get: () => () => userFormComponentMock
         });
-        component.userUpdated = mockUser;
+        component.userUpdated.set(mockUser);
 
         component.save();
 

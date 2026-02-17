@@ -1,4 +1,4 @@
-import {Component, computed, effect, inject, signal, viewChild} from '@angular/core';
+import {Component, computed, inject, viewChild} from '@angular/core';
 import {PasswordChangeFormComponent} from '../passwordchange-form/passwordchange-form.component';
 import {Router} from '@angular/router';
 import {AuthenticationService, LoginResult} from '../../security/authentication.service';
@@ -30,32 +30,19 @@ import {NgOptimizedImage} from '@angular/common';
 })
 export class LoginPasswordChangeComponent {
   form = viewChild(PasswordChangeFormComponent);
-  private formValid = signal(false);
 
+  private authenticationService = inject(AuthenticationService);
+  private router = inject(Router);
+
+  // Use signal from child component for reactive form validity
   saveDisabled = computed(() => {
     const formComponent = this.form();
     if (!formComponent) {
       return true;
     }
-    return !this.formValid();
+    // Use the formValid signal exposed by the child component
+    return !formComponent.formValid();
   });
-
-  private authenticationService = inject(AuthenticationService);
-  private router = inject(Router);
-
-  constructor() {
-    effect(() => {
-      const formComponent = this.form();
-      if (formComponent) {
-        // Subscribe to form status changes
-        formComponent.form.statusChanges.subscribe(() => {
-          this.formValid.set(formComponent.isValid());
-        });
-        // Set initial validity
-        this.formValid.set(formComponent.isValid());
-      }
-    });
-  }
 
   changePassword() {
     const formComponent = this.form();

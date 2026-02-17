@@ -1,4 +1,4 @@
-import {Component, computed, inject, signal} from '@angular/core';
+import {Component, inject, linkedSignal} from '@angular/core';
 import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
 import {ActivatedRoute, Router} from '@angular/router';
 import {AuthenticationService} from '../../security/authentication.service';
@@ -53,18 +53,9 @@ export class LoginComponent {
   // Convert route params to signal
   private readonly routeParams = toSignal(this.route.params, { initialValue: {} });
 
-  // Signal for login errors
-  private readonly loginError = signal<string | null>(null);
-
-  // Derive error message from route params or login error
-  errorMessage = computed(() => {
-    // Check login error first
-    const loginErr = this.loginError();
-    if (loginErr) {
-      return loginErr;
-    }
-
-    // Then check route params
+  // Error message derived from route params via linkedSignal.
+  // Writable: can be manually set on login failure, resets when route params change.
+  errorMessage = linkedSignal<string | null>(() => {
     const errorType = this.routeParams()['errorType'];
     if (errorType === 'abgelaufen') {
       return 'Sitzung abgelaufen! Bitte erneut anmelden.';
@@ -86,7 +77,7 @@ export class LoginComponent {
         await this.router.navigate(['uebersicht']);
       }
     } else {
-      this.loginError.set('Anmeldung fehlgeschlagen!');
+      this.errorMessage.set('Anmeldung fehlgeschlagen!');
     }
   }
 

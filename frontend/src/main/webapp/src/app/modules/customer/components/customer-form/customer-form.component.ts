@@ -1,4 +1,4 @@
-import {Component, effect, inject, input, output} from '@angular/core';
+import {Component, effect, inject, input, linkedSignal, output} from '@angular/core';
 import {toSignal} from '@angular/core/rxjs-interop';
 import {FormArray, FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {CountryApiService, CountryData} from '../../../../api/country-api.service';
@@ -103,9 +103,30 @@ export class CustomerFormComponent {
   countries: CountryData[];
   genders: Gender[] = [Gender.FEMALE, Gender.MALE];
 
-  // Convert form value changes to signal
+  // Convert form value changes to signals
   private formValue = toSignal(this.form.valueChanges, { initialValue: this.form.value });
   private incomeDueValue = toSignal(this.incomeDue.valueChanges);
+  // Track additionalPersons array changes to detect when any incomeDue changes
+  private additionalPersonsValue = toSignal(this.additionalPersons.valueChanges);
+
+  // Derived validUntil date from incomeDue values using linkedSignal
+  // Automatically recomputes when any incomeDue changes (main or additional persons)
+  private derivedValidUntilDate = linkedSignal<Date | undefined, Date | undefined>({
+    source: () => {
+      // Track both main incomeDue and additional persons changes
+      this.incomeDueValue();
+      this.additionalPersonsValue();
+      return this.incomeDue.value;
+    },
+    computation: () => this.computeValidUntilDate()
+  });
+
+  // Derived customer data from form value changes using linkedSignal
+  // Automatically emits customerDataChange when form values change
+  private derivedFormData = linkedSignal({
+    source: this.formValue,
+    computation: (value) => value ? this.form.getRawValue() : null
+  });
 
   constructor() {
     // Load countries once
@@ -131,24 +152,24 @@ export class CustomerFormComponent {
       }
     });
 
-    // Update validUntil when incomeDue changes
+    // Update validUntil form control when derived date changes
     effect(() => {
-      const value = this.incomeDueValue();
-      if (value !== undefined) {
-        this.updateValidUntilDate();
+      const derivedDate = this.derivedValidUntilDate();
+      if (derivedDate) {
+        this.validUntil.setValue(derivedDate);
       }
     });
 
     // Emit form changes
     effect(() => {
-      const value = this.formValue();
-      if (value) {
-        this.customerDataChange.emit(this.form.getRawValue());
+      const formData = this.derivedFormData();
+      if (formData) {
+        this.customerDataChange.emit(formData);
       }
     });
   }
 
-  updateValidUntilDate() {
+  computeValidUntilDate(): Date | undefined {
     let incomeDueValues = [];
     if (this.incomeDue.value) {
       incomeDueValues.push(this.incomeDue.value);
@@ -165,10 +186,10 @@ export class CustomerFormComponent {
 
     if (incomeDueValues.length > 0) {
       const minIncomeDueValue = new Date(Math.min.apply(null, incomeDueValues));
-
-      const derivedValidUntilDate = moment(minIncomeDueValue).add(2, 'months').toDate();
-      this.validUntil.setValue(derivedValidUntilDate);
+      return moment(minIncomeDueValue).add(2, 'months').toDate();
     }
+
+    return undefined;
   }
 
   compareCountry(c1: CountryData, c2: CountryData): boolean {
@@ -211,7 +232,11 @@ export class CustomerFormComponent {
 
   removePerson(index: number) {
     this.additionalPersons.removeAt(index);
-    this.updateValidUntilDate();
+    // Recalculate validUntil after removing a person
+    const derivedDate = this.computeValidUntilDate();
+    if (derivedDate) {
+      this.validUntil.setValue(derivedDate);
+    }
   }
 
   markAllAsTouched() {
@@ -244,11 +269,7 @@ export class CustomerFormComponent {
       receivesFamilyBonus: new FormControl<boolean>(additionalPerson.receivesFamilyBonus),
     });
 
-    // Subscribe to incomeDue changes for this person
-    // Note: subscriptions to individual form controls complete when the control is removed
-    control.get('incomeDue').valueChanges.subscribe(() => {
-      this.updateValidUntilDate();
-    });
+    // No manual subscription needed - handled by effect watching additionalPersonsValue signal
 
     this.additionalPersons.push(control);
   }

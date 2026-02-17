@@ -1,4 +1,4 @@
-import {Component, effect, inject, input, output} from '@angular/core';
+import {Component, effect, inject, input, linkedSignal, output} from '@angular/core';
 import {toSignal} from '@angular/core/rxjs-interop';
 import {
   AbstractControl,
@@ -71,6 +71,20 @@ export class UserFormComponent {
   // Convert form value changes to signal (skip initial value to avoid ExpressionChangedAfterItHasBeenCheckedError)
   private formValue = toSignal(this.form.valueChanges);
 
+  // Derived user data from form value changes using linkedSignal
+  // Maps raw form data to UserData with filtered permissions
+  private derivedUserData = linkedSignal(() => {
+    const value = this.formValue();
+    if (!value) {
+      return null as UserData | null;
+    }
+    const rawValue: UserFormData = this.form.getRawValue();
+    return {
+      ...rawValue,
+      permissions: rawValue.permissions.filter((permission) => permission.enabled === true)
+    } as UserData | null;
+  });
+
   constructor() {
     // Initialize form when userData or permissionsData changes
     effect(() => {
@@ -95,16 +109,11 @@ export class UserFormComponent {
       }
     });
 
-    // Emit userDataChange when form value signal changes
+    // Emit userDataChange when derived user data changes
     effect(() => {
-      const value = this.formValue();
-      if (value) {
-        const rawValue: UserFormData = this.form.getRawValue();
-        const mappedUserData: UserData = {
-          ...rawValue,
-          permissions: rawValue.permissions.filter((permission) => permission.enabled === true)
-        };
-        this.userDataChange.emit(mappedUserData);
+      const userData = this.derivedUserData();
+      if (userData) {
+        this.userDataChange.emit(userData);
       }
     });
   }

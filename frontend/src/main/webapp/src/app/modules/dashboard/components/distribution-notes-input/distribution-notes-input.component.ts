@@ -1,4 +1,4 @@
-import {Component, computed, effect, inject, input, signal} from '@angular/core';
+import {Component, computed, inject, input, linkedSignal} from '@angular/core';
 import {
   ButtonDirective,
   CardBodyComponent,
@@ -31,14 +31,12 @@ export class DistributionNotesInputComponent {
   private readonly globalStateService = inject(GlobalStateService);
 
   initialNotesData = input<string>();
-  notes = signal<string>('');
+
+  // Writable signal that resets to input value when it changes, but can be locally edited
+  notes = linkedSignal(() => this.initialNotesData() ?? '');
 
   readonly distribution = this.globalStateService.getCurrentDistribution();
   readonly inputIsDisabled = computed(() => this.distribution() === undefined);
-
-  initialNotesDataEffect = effect(() => {
-    this.notes.set(this.initialNotesData() ?? '');
-  });
 
   save() {
     const observer = {

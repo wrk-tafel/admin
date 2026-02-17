@@ -130,7 +130,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
         fixture.detectChanges();
 
         expect(fixture.debugElement.query(By.css('[testid="nopersons-label"]'))).toBeTruthy();
-        expect(component.editMode).toBe(false);
+        expect(component.editMode()).toBe(false);
         expect(component.customerValidForSave).toBe(false);
     });
 
@@ -147,7 +147,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
         Object.defineProperty(component, 'customerFormComponent', {
             get: () => () => customerFormComponentMock
         });
-        component.customerUpdated = testCustomerData;
+        component.customerUpdated.set(testCustomerData);
         component.customerValidForSave = true;
         const validationResult: ValidateCustomerResponse = {
             valid: true,
@@ -178,7 +178,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
         Object.defineProperty(component, 'customerFormComponent', {
             get: () => () => customerFormComponentMock
         });
-        component.customerUpdated = testCustomerData;
+        component.customerUpdated.set(testCustomerData);
 
         component.save();
 
@@ -204,7 +204,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
             get: () => () => customerFormComponentMock
         });
         component.showValidationResultModal = false;
-        component.customerUpdated = testCustomerData;
+        component.customerUpdated.set(testCustomerData);
 
         apiService.validate.mockReturnValue(of({
             valid: true,
@@ -244,7 +244,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
             get: () => () => customerFormComponentMock
         });
         component.showValidationResultModal = false;
-        component.customerUpdated = testCustomerData;
+        component.customerUpdated.set(testCustomerData);
 
         component.validate();
 

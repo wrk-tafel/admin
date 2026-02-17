@@ -1,4 +1,4 @@
-import {Component, effect, inject, input, signal} from '@angular/core';
+import {Component, effect, inject, input, linkedSignal, signal} from '@angular/core';
 import {Router} from '@angular/router';
 import moment from 'moment';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
@@ -93,8 +93,9 @@ export class CustomerDetailComponent {
   customerDataInput = input.required<CustomerData>({alias: 'customerData'});
   customerNotesResponseInput = input.required<CustomerNotesResponse>({alias: 'customerNotesResponse'});
 
-  readonly customerData = signal<CustomerData>(null);
-  readonly customerNotesResponse = signal<CustomerNotesResponse>(null);
+  // Writable signals linked to inputs - reset when input changes, locally writable for API updates
+  readonly customerData = linkedSignal(() => this.customerDataInput());
+  readonly customerNotesResponse = linkedSignal(() => this.customerNotesResponseInput());
 
   // Other signals
   customerNotes = signal<CustomerNoteItem[]>([]);
@@ -112,16 +113,13 @@ export class CustomerDetailComponent {
   private readonly router = inject(Router);
   private readonly toastService = inject(ToastService);
 
-  // Initialize signals from input
   constructor() {
+    // Process notes when the notes response changes (from input or local updates)
     effect(() => {
-      this.customerData.set(this.customerDataInput());
-    });
-    effect(() => {
-      const notesResponse = this.customerNotesResponseInput();
-      this.customerNotesResponse.set(notesResponse);
-      // Process notes when they change
-      this.processCustomerNoteResponse(notesResponse);
+      const notesResponse = this.customerNotesResponse();
+      if (notesResponse) {
+        this.processCustomerNoteResponse(notesResponse);
+      }
     });
   }
 
