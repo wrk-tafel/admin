@@ -1,4 +1,4 @@
-import {Component, inject, OnInit} from '@angular/core';
+import {Component, effect, inject} from '@angular/core';
 import {
   ButtonDirective,
   CardBodyComponent,
@@ -46,7 +46,7 @@ import {ToastService, ToastType} from '../../../../common/components/toasts/toas
         TabsListComponent
     ]
 })
-export class MailRecipientsComponent implements OnInit {
+export class MailRecipientsComponent {
   private readonly settingsApiService = inject(SettingsApiService);
   private readonly fb = inject(FormBuilder);
   private readonly toastService = inject(ToastService);
@@ -55,29 +55,31 @@ export class MailRecipientsComponent implements OnInit {
     mailRecipients: this.fb.array([])
   });
 
-  ngOnInit(): void {
-    this.settingsApiService.getMailRecipients().subscribe(response => {
+  constructor() {
+    // Load mail recipients on component initialization
+    effect(() => {
+      this.settingsApiService.getMailRecipients().subscribe(response => {
+        Object.values(MailTypeEnum).forEach((mailType: MailTypeEnum) => {
+          this.mailRecipientArray.push(
+            this.fb.group({
+              mailType: this.fb.control<MailTypeEnum>(mailType),
+              recipients: this.fb.array(
+                Object.values(RecipientTypeEnum).map((recipientType: RecipientTypeEnum) => {
+                  const addressesOfType = response.mailRecipients
+                    .filter(recipient => recipient.mailType === mailType)
+                    .flatMap(recipient => recipient.recipients)
+                    .filter(recipient => recipient.recipientType === recipientType)
+                    .flatMap(recipient => recipient.addresses);
 
-      Object.values(MailTypeEnum).forEach((mailType: MailTypeEnum) => {
-        this.mailRecipientArray.push(
-          this.fb.group({
-            mailType: this.fb.control<MailTypeEnum>(mailType),
-            recipients: this.fb.array(
-              Object.values(RecipientTypeEnum).map((recipientType: RecipientTypeEnum) => {
-                const addressesOfType = response.mailRecipients
-                  .filter(recipient => recipient.mailType === mailType)
-                  .flatMap(recipient => recipient.recipients)
-                  .filter(recipient => recipient.recipientType === recipientType)
-                  .flatMap(recipient => recipient.addresses);
+                  return this.createAddressesPerTypeGroup(recipientType, addressesOfType);
+                })
+              )
+            })
+          );
+        });
 
-                return this.createAddressesPerTypeGroup(recipientType, addressesOfType);
-              })
-            )
-          })
-        );
+        this.form.markAllAsTouched();
       });
-
-      this.form.markAllAsTouched();
     });
   }
 

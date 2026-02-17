@@ -1,4 +1,4 @@
-import {Component, inject, input, OnInit, ViewChild} from '@angular/core';
+import {Component, effect, inject, input, untracked, viewChild} from '@angular/core';
 import {Router} from '@angular/router';
 import {UserApiService, UserData, UserPermission} from '../../../../api/user-api.service';
 import {UserFormComponent} from '../../components/user-form/user-form.component';
@@ -12,27 +12,35 @@ import {ButtonDirective} from '@coreui/angular';
         ButtonDirective
     ]
 })
-export class UserEditComponent implements OnInit {
+export class UserEditComponent {
   permissionsData = input<UserPermission[]>();
   userData = input<UserData>();
 
   userUpdated: UserData;
   userValidForSave = false;
-  @ViewChild(UserFormComponent) userFormComponent: UserFormComponent;
+  userFormComponent = viewChild<UserFormComponent>(UserFormComponent);
   private readonly userApiService = inject(UserApiService);
   private readonly router = inject(Router);
 
-  ngOnInit(): void {
-    const userData = this.userData();
-    if (userData) {
-      // Load data into forms
-      this.userUpdated = userData;
+  constructor() {
+    // Initialize form when userData changes
+    effect(() => {
+      const userData = this.userData();
+      if (userData) {
+        // Load data into forms
+        this.userUpdated = userData;
 
-      // Mark forms as touched to show the validation state (postponed to next macrotask after angular finished)
-      setTimeout(() => {
-        this.userFormComponent.markAllAsTouched();
-      });
-    }
+        // Mark forms as touched to show the validation state (use queueMicrotask to defer)
+        queueMicrotask(() => {
+          untracked(() => {
+            const formComponent = this.userFormComponent();
+            if (formComponent) {
+              formComponent.markAllAsTouched();
+            }
+          });
+        });
+      }
+    });
   }
 
   userDataUpdated(event: UserData) {
@@ -41,7 +49,10 @@ export class UserEditComponent implements OnInit {
   }
 
   save() {
-    this.userFormComponent.markAllAsTouched();
+    const formComponent = this.userFormComponent();
+    if (formComponent) {
+      formComponent.markAllAsTouched();
+    }
 
     if (!this.userData()) {
       this.userApiService.createUser(this.userUpdated)
@@ -59,8 +70,9 @@ export class UserEditComponent implements OnInit {
   }
 
   isSaveEnabled(): boolean {
-    if (this.userFormComponent) {
-      return this.userFormComponent.isValid();
+    const formComponent = this.userFormComponent();
+    if (formComponent) {
+      return formComponent.isValid();
     }
     return false;
   }

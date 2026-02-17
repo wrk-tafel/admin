@@ -135,16 +135,18 @@ describe('CustomerEditComponent - Creating a new customer', () => {
     });
 
     it('new customer saved successfully', () => {
-        const customerFormComponent = {
+        const customerFormComponentMock = {
             markAllAsTouched: vi.fn().mockName("CustomerFormComponent.markAllAsTouched"),
             isValid: vi.fn().mockName("CustomerFormComponent.isValid")
         } as any;
-        customerFormComponent.isValid.mockReturnValue(true);
+        customerFormComponentMock.isValid.mockReturnValue(true);
         apiService.createCustomer.mockReturnValue(of(testCustomerData));
 
         const fixture = TestBed.createComponent(CustomerEditComponent);
         const component = fixture.componentInstance;
-        component.customerFormComponent = customerFormComponent;
+        Object.defineProperty(component, 'customerFormComponent', {
+            get: () => () => customerFormComponentMock
+        });
         component.customerUpdated = testCustomerData;
         component.customerValidForSave = true;
         const validationResult: ValidateCustomerResponse = {
@@ -159,27 +161,29 @@ describe('CustomerEditComponent - Creating a new customer', () => {
         component.save();
 
         expect(component.isSaveEnabled).toBe(true);
-        expect(customerFormComponent.markAllAsTouched).toHaveBeenCalled();
+        expect(customerFormComponentMock.markAllAsTouched).toHaveBeenCalled();
         expect(apiService.createCustomer).toHaveBeenCalledWith(expect.objectContaining(testCustomerData));
         expect(router.navigate).toHaveBeenCalledWith(['/kunden/detail', testCustomerData.id]);
     });
 
     it('new customer save failed - form invalid', () => {
-        const customerFormComponent = {
+        const customerFormComponentMock = {
             markAllAsTouched: vi.fn().mockName("CustomerFormComponent.markAllAsTouched"),
             isValid: vi.fn().mockName("CustomerFormComponent.isValid")
         } as any;
-        customerFormComponent.isValid.mockReturnValue(false);
+        customerFormComponentMock.isValid.mockReturnValue(false);
 
         const fixture = TestBed.createComponent(CustomerEditComponent);
         const component = fixture.componentInstance;
-        component.customerFormComponent = customerFormComponent;
+        Object.defineProperty(component, 'customerFormComponent', {
+            get: () => () => customerFormComponentMock
+        });
         component.customerUpdated = testCustomerData;
 
         component.save();
 
         expect(component.isSaveEnabled).toBe(false);
-        expect(customerFormComponent.markAllAsTouched).toHaveBeenCalled();
+        expect(customerFormComponentMock.markAllAsTouched).toHaveBeenCalled();
         expect(toastService.showToast).toHaveBeenCalledWith({ type: ToastType.ERROR, title: 'Bitte Eingaben überprüfen!' });
         expect(apiService.createCustomer).not.toHaveBeenCalledWith(expect.objectContaining(testCustomerData));
         expect(router.navigate).not.toHaveBeenCalledWith(['/kunden/detail', testCustomerData.id]);
@@ -190,13 +194,15 @@ describe('CustomerEditComponent - Creating a new customer', () => {
         const component = fixture.componentInstance;
         fixture.detectChanges();
 
-        const customerFormComponent = {
+        const customerFormComponentMock = {
             markAllAsTouched: vi.fn().mockName("CustomerFormComponent.markAllAsTouched"),
             isValid: vi.fn().mockName("CustomerFormComponent.isValid")
         } as any;
-        customerFormComponent.isValid.mockReturnValue(true);
+        customerFormComponentMock.isValid.mockReturnValue(true);
 
-        component.customerFormComponent = customerFormComponent;
+        Object.defineProperty(component, 'customerFormComponent', {
+            get: () => () => customerFormComponentMock
+        });
         component.showValidationResultModal = false;
         component.customerUpdated = testCustomerData;
 
@@ -211,18 +217,18 @@ describe('CustomerEditComponent - Creating a new customer', () => {
         component.validate();
 
         expect(component.isSaveEnabled).toBe(true);
-        expect(customerFormComponent.markAllAsTouched).toHaveBeenCalled();
+        expect(customerFormComponentMock.markAllAsTouched).toHaveBeenCalled();
         expect(apiService.validate).toHaveBeenCalledWith(expect.objectContaining(testCustomerData));
         expect(component.customerValidForSave).toBe(true);
         expect(component.showValidationResultModal).toBeTruthy();
     });
 
     it('new customer validation failed', () => {
-        const customerFormComponent = {
+        const customerFormComponentMock = {
             markAllAsTouched: vi.fn().mockName("CustomerFormComponent.markAllAsTouched"),
             isValid: vi.fn().mockName("CustomerFormComponent.isValid")
         } as any;
-        customerFormComponent.isValid.mockReturnValue(true);
+        customerFormComponentMock.isValid.mockReturnValue(true);
 
         apiService.validate.mockReturnValue(of({
             valid: false,
@@ -234,14 +240,16 @@ describe('CustomerEditComponent - Creating a new customer', () => {
 
         const fixture = TestBed.createComponent(CustomerEditComponent);
         const component = fixture.componentInstance;
-        component.customerFormComponent = customerFormComponent;
+        Object.defineProperty(component, 'customerFormComponent', {
+            get: () => () => customerFormComponentMock
+        });
         component.showValidationResultModal = false;
         component.customerUpdated = testCustomerData;
 
         component.validate();
 
         expect(component.isSaveEnabled).toBe(false);
-        expect(customerFormComponent.markAllAsTouched).toHaveBeenCalled();
+        expect(customerFormComponentMock.markAllAsTouched).toHaveBeenCalled();
         expect(apiService.validate).toHaveBeenCalledWith(expect.objectContaining(testCustomerData));
         expect(component.customerValidForSave).toBe(false);
         expect(component.showValidationResultModal).toBeTruthy();

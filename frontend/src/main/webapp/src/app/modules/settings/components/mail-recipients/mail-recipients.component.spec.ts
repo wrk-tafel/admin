@@ -7,6 +7,7 @@ import { of, throwError } from 'rxjs';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MailRecipients, MailTypeEnum, RecipientTypeEnum, SettingsApiService } from '../../../../api/settings-api.service';
 import { ToastService, ToastType } from '../../../../common/components/toasts/toast.service';
+import { provideNoopAnimations } from '@angular/platform-browser/animations';
 
 describe('MailRecipients', () => {
     let apiService: MockedObject<SettingsApiService>;
@@ -20,6 +21,7 @@ describe('MailRecipients', () => {
             providers: [
                 provideHttpClient(),
                 provideHttpClientTesting(),
+                provideNoopAnimations(),
                 {
                     provide: SettingsApiService,
                     useValue: {
@@ -78,7 +80,7 @@ describe('MailRecipients', () => {
         vi.spyOn(component.form, 'getRawValue').mockReturnValue(testData);
         const markAllAsTouchedSpy = vi.spyOn(component.form, 'markAllAsTouched');
 
-        component.ngOnInit();
+        fixture.detectChanges(); // Trigger effect in constructor
         component.save();
 
         expect(markAllAsTouchedSpy).toHaveBeenCalled();
@@ -93,7 +95,7 @@ describe('MailRecipients', () => {
         vi.spyOn(component.form, 'valid', 'get').mockReturnValue(false);
         const markAllAsTouchedSpy = vi.spyOn(component.form, 'markAllAsTouched');
 
-        component.ngOnInit();
+        fixture.detectChanges(); // Trigger effect in constructor
         component.save();
 
         expect(markAllAsTouchedSpy).toHaveBeenCalled();
@@ -108,7 +110,7 @@ describe('MailRecipients', () => {
         vi.spyOn(component.form, 'valid', 'get').mockReturnValue(true);
         const markAllAsTouchedSpy = vi.spyOn(component.form, 'markAllAsTouched');
 
-        component.ngOnInit();
+        fixture.detectChanges(); // Trigger effect in constructor
         component.save();
 
         expect(markAllAsTouchedSpy).toHaveBeenCalled();
@@ -120,7 +122,7 @@ describe('MailRecipients', () => {
         const fixture = TestBed.createComponent(MailRecipientsComponent);
         const component = fixture.componentInstance;
         apiService.getMailRecipients.mockReturnValue(of(testData));
-        component.ngOnInit();
+        fixture.detectChanges(); // Trigger effect in constructor
 
         expect(component.getAddressesOfRecipientTypeIndex(1, 0).length).toBe(0);
 
@@ -133,7 +135,7 @@ describe('MailRecipients', () => {
         const fixture = TestBed.createComponent(MailRecipientsComponent);
         const component = fixture.componentInstance;
         apiService.getMailRecipients.mockReturnValue(of(testData));
-        component.ngOnInit();
+        fixture.detectChanges(); // Trigger effect in constructor
 
         expect(component.getAddressesOfRecipientTypeIndex(0, 0).length).toBe(1);
 

@@ -191,32 +191,37 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
     const component = fixture.componentInstance;
 
     // Mock the child components
-    component.driverEmployeeSearchCreate = {
+    // Mock the viewChild signals to return the mock objects
+    const mockDriverSearch = {
       triggerSearch: vi.fn().mockName('TafelEmployeeSearchCreateComponent.triggerSearch')
     } as any;
-    component.coDriverEmployeeSearchCreate = {
+    const mockCoDriverSearch = {
       triggerSearch: vi.fn().mockName('TafelEmployeeSearchCreateComponent.triggerSearch')
     } as any;
+
+    // Override the viewChild signals with functions that return mocks
+    (component as any).driverEmployeeSearchCreate = () => mockDriverSearch;
+    (component as any).coDriverEmployeeSearchCreate = () => mockCoDriverSearch;
 
     // Test driver search with no input
     component.driverSearchInput.setValue(null);
     component.triggerSearchDriver();
-    expect(component.driverEmployeeSearchCreate.triggerSearch).not.toHaveBeenCalled();
+    expect(mockDriverSearch.triggerSearch).not.toHaveBeenCalled();
 
     // Test driver search with input
     component.driverSearchInput.setValue('D1');
     component.triggerSearchDriver();
-    expect(component.driverEmployeeSearchCreate.triggerSearch).toHaveBeenCalled();
+    expect(mockDriverSearch.triggerSearch).toHaveBeenCalled();
 
     // Test co-driver search with no input
     component.coDriverSearchInput.setValue(null);
     component.triggerSearchCoDriver();
-    expect(component.coDriverEmployeeSearchCreate.triggerSearch).not.toHaveBeenCalled();
+    expect(mockCoDriverSearch.triggerSearch).not.toHaveBeenCalled();
 
     // Test co-driver search with input
     component.coDriverSearchInput.setValue('D2');
     component.triggerSearchCoDriver();
-    expect(component.coDriverEmployeeSearchCreate.triggerSearch).toHaveBeenCalled();
+    expect(mockCoDriverSearch.triggerSearch).toHaveBeenCalled();
   });
 
   it('should correctly determine if save is disabled based on form state', () => {

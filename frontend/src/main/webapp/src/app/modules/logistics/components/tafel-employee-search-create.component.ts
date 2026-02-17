@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, inject, input, OnDestroy, output} from '@angular/core';
+import {ChangeDetectorRef, Component, inject, input, output} from '@angular/core';
 import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
 import {
   BgColorDirective,
@@ -19,7 +19,6 @@ import {
   TafelPaginationComponent,
   TafelPaginationData
 } from '../../../common/components/tafel-pagination/tafel-pagination.component';
-import {Subject, takeUntil} from 'rxjs';
 import {ToastService, ToastType} from "../../../common/components/toasts/toast.service";
 
 @Component({
@@ -41,7 +40,7 @@ import {ToastService, ToastType} from "../../../common/components/toasts/toast.s
         TafelPaginationComponent,
     ]
 })
-export class TafelEmployeeSearchCreateComponent implements OnDestroy {
+export class TafelEmployeeSearchCreateComponent {
   searchInput = input.required<string>()
   testIdPrefix = input<string>()
   selectedEmployee = output<EmployeeData>()
@@ -50,7 +49,6 @@ export class TafelEmployeeSearchCreateComponent implements OnDestroy {
   private readonly toastService = inject(ToastService);
   private readonly fb = inject(FormBuilder);
   private readonly cdr = inject(ChangeDetectorRef);
-  private readonly destroy$ = new Subject<void>();
 
   createEmployeeForm = this.fb.group({
     personnelNumber: this.fb.control<string>(null, [Validators.required, Validators.maxLength(50)]),
@@ -66,7 +64,6 @@ export class TafelEmployeeSearchCreateComponent implements OnDestroy {
 
   triggerSearch(page?: number) {
     this.employeeApiService.findEmployees(this.searchInput(), page)
-      .pipe(takeUntil(this.destroy$))
       .subscribe((response) => {
         this.employeeSearchResponse = null;
         this.paginationData = null;
@@ -103,7 +100,6 @@ export class TafelEmployeeSearchCreateComponent implements OnDestroy {
 
   saveNewEmployee() {
     this.employeeApiService.saveEmployee(this.createEmployeeForm.getRawValue())
-      .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (savedEmployee) => {
           this.selectedEmployee.emit(savedEmployee);
@@ -119,11 +115,6 @@ export class TafelEmployeeSearchCreateComponent implements OnDestroy {
           });
         }
       });
-  }
-
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
   }
 
   get personnelNumber() {

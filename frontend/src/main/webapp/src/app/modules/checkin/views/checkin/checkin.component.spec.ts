@@ -178,7 +178,8 @@ describe('CheckinComponent', () => {
         component.customerNotes = [];
         component.scannerSubscription = testSubscription;
 
-        component.ngOnDestroy();
+        // Trigger destroyRef cleanup by destroying the fixture
+        fixture.destroy();
 
         expect(component.scannerSubscription.unsubscribe).toHaveBeenCalled();
     });

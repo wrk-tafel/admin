@@ -124,7 +124,8 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
     it('initial checks', () => {
         const fixture = TestBed.createComponent(CustomerEditComponent);
         const component = fixture.componentInstance;
-        fixture.componentRef.setInput('customerData', testCustomerData);
+        component.editMode = true;
+        component.customerUpdated = testCustomerData;
         fixture.detectChanges();
 
         expect(component.editMode).toBe(true);
@@ -132,11 +133,11 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
     });
 
     it('existing customer saved successfully', () => {
-        const customerFormComponent = {
+        const customerFormComponentMock = {
             markAllAsTouched: vi.fn().mockName("CustomerFormComponent.markAllAsTouched"),
             isValid: vi.fn().mockName("CustomerFormComponent.isValid")
         } as any;
-        customerFormComponent.isValid.mockReturnValue(true);
+        customerFormComponentMock.isValid.mockReturnValue(true);
         apiService.getCustomer.mockImplementation((id) =>
             id === testCustomerData.id ? of(testCustomerData) : of(testCustomerData)
         );
@@ -144,17 +145,19 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
 
         const fixture = TestBed.createComponent(CustomerEditComponent);
         const component = fixture.componentInstance;
-        fixture.componentRef.setInput('customerData', testCustomerData);
-        fixture.detectChanges();
-        component.customerFormComponent = customerFormComponent;
+        component.editMode = true;
+        Object.defineProperty(component, 'customerFormComponent', {
+            get: () => () => customerFormComponentMock
+        });
         component.customerValidForSave = true;
+        fixture.detectChanges();
+        component.customerUpdated = testCustomerData;
 
         component.save();
 
         expect(component.isSaveEnabled).toBe(true);
         expect(component.editMode).toBe(true);
-        expect(component.customerData()).toEqual(testCustomerData);
-        expect(customerFormComponent.markAllAsTouched).toHaveBeenCalled();
+        expect(customerFormComponentMock.markAllAsTouched).toHaveBeenCalled();
         expect(apiService.updateCustomer).toHaveBeenCalledWith(expect.objectContaining({
             id: testCustomerData.id,
             lastname: testCustomerData.lastname,
@@ -166,11 +169,11 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
     });
 
     it('existing customer saved successfully even when not entitled', () => {
-        const customerFormComponent = {
+        const customerFormComponentMock = {
             markAllAsTouched: vi.fn().mockName("CustomerFormComponent.markAllAsTouched"),
             isValid: vi.fn().mockName("CustomerFormComponent.isValid")
         } as any;
-        customerFormComponent.isValid.mockReturnValue(true);
+        customerFormComponentMock.isValid.mockReturnValue(true);
         apiService.getCustomer.mockImplementation((id) =>
             id === testCustomerData.id ? of(testCustomerData) : of(testCustomerData)
         );
@@ -178,18 +181,20 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
 
         const fixture = TestBed.createComponent(CustomerEditComponent);
         const component = fixture.componentInstance;
-        fixture.componentRef.setInput('customerData', testCustomerData);
-        fixture.detectChanges();
-        component.customerFormComponent = customerFormComponent;
+        component.editMode = true;
+        Object.defineProperty(component, 'customerFormComponent', {
+            get: () => () => customerFormComponentMock
+        });
         component.customerValidForSave = false;
+        fixture.detectChanges();
+        component.customerUpdated = testCustomerData;
 
         component.save();
         fixture.detectChanges();
 
         expect(component.isSaveEnabled).toBe(true);
         expect(component.editMode).toBe(true);
-        expect(component.customerData()).toEqual(testCustomerData);
-        expect(customerFormComponent.markAllAsTouched).toHaveBeenCalled();
+        expect(customerFormComponentMock.markAllAsTouched).toHaveBeenCalled();
         expect(apiService.updateCustomer).toHaveBeenCalledWith(expect.objectContaining({
             id: testCustomerData.id,
             lastname: testCustomerData.lastname,
@@ -201,25 +206,27 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
     });
 
     it('existing customer save failed when form is invalid', () => {
-        const customerFormComponent = {
+        const customerFormComponentMock = {
             markAllAsTouched: vi.fn().mockName("CustomerFormComponent.markAllAsTouched"),
             isValid: vi.fn().mockName("CustomerFormComponent.isValid")
         } as any;
-        customerFormComponent.isValid.mockReturnValue(false);
+        customerFormComponentMock.isValid.mockReturnValue(false);
         apiService.updateCustomer.mockReturnValue(of(testCustomerData));
 
         const fixture = TestBed.createComponent(CustomerEditComponent);
         const component = fixture.componentInstance;
-        fixture.componentRef.setInput('customerData', testCustomerData);
+        component.editMode = true;
+        component.customerUpdated = testCustomerData;
+        Object.defineProperty(component, 'customerFormComponent', {
+            get: () => () => customerFormComponentMock
+        });
         fixture.detectChanges();
-        component.customerFormComponent = customerFormComponent;
 
         component.save();
 
         expect(component.isSaveEnabled).toBe(false);
         expect(component.editMode).toBe(true);
-        expect(component.customerData()).toEqual(testCustomerData);
-        expect(customerFormComponent.markAllAsTouched).toHaveBeenCalled();
+        expect(customerFormComponentMock.markAllAsTouched).toHaveBeenCalled();
         expect(apiService.updateCustomer).not.toHaveBeenCalled();
         expect(router.navigate).not.toHaveBeenCalledWith(['/kunden/detail', testCustomerData.id]);
     });

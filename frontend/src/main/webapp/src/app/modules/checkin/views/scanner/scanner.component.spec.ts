@@ -61,7 +61,9 @@ describe('ScannerComponent', () => {
         const scannerRegistration: ScannerRegistration = { scannerId: 123 };
         scannerApiService.registerScanner.mockReturnValue(of(scannerRegistration));
 
-        await component.ngOnInit();
+        // Trigger component initialization (effect runs in constructor)
+        fixture.detectChanges();
+        await fixture.whenStable();
 
         expect(component.scannerId).toBe(scannerRegistration.scannerId);
 
@@ -73,13 +75,15 @@ describe('ScannerComponent', () => {
         expect(scannerApiService.registerScanner).toHaveBeenCalled();
     });
 
-    it('ngOnDestroy stops qrCodeReader', async () => {
+    it('destroyRef cleanup stops qrCodeReader', async () => {
         qrCodeReaderService.stop.mockReturnValue(Promise.resolve(null));
 
         const fixture = TestBed.createComponent(ScannerComponent);
         const component = fixture.componentInstance;
 
-        await component.ngOnDestroy();
+        // Trigger destroyRef cleanup by destroying the fixture
+        fixture.destroy();
+        await fixture.whenStable();
 
         expect(qrCodeReaderService.stop).toHaveBeenCalled();
     });

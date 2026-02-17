@@ -1,4 +1,5 @@
-import {Component, effect, inject, input, OnDestroy, OnInit, output} from '@angular/core';
+import {Component, effect, inject, input, output} from '@angular/core';
+import {toSignal} from '@angular/core/rxjs-interop';
 import {
   AbstractControl,
   FormArray,
@@ -12,9 +13,7 @@ import {
 } from '@angular/forms';
 import {GeneratedPasswordResponse, UserApiService, UserData, UserPermission} from '../../../../api/user-api.service';
 import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
-import { CommonModule, NgClass } from '@angular/common';
-import {Subject} from 'rxjs';
-import {takeUntil} from 'rxjs/operators';
+import {CommonModule, NgClass} from '@angular/common';
 import {
   ButtonDirective,
   FormCheckInputDirective,
@@ -44,7 +43,7 @@ import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofo
         TafelAutofocusDirective
     ]
 })
-export class UserFormComponent implements OnInit, OnDestroy {
+export class UserFormComponent {
   userData = input<UserData>();
   permissionsData = input<UserPermission[]>();
   userDataChange = output<UserData>();
@@ -52,7 +51,6 @@ export class UserFormComponent implements OnInit, OnDestroy {
   private readonly userApiService = inject(UserApiService);
   private readonly toastService = inject(ToastService);
   private readonly fb = inject(FormBuilder);
-  private destroy$ = new Subject<void>();
 
   form = this.fb.group({
     id: this.fb.control<number>(null),
@@ -70,42 +68,45 @@ export class UserFormComponent implements OnInit, OnDestroy {
   passwordTextVisible: boolean;
   passwordRepeatTextVisible: boolean;
 
-  ngOnInit(): void {
-    const userData = this.userData();
-    const permissionsData = this.permissionsData();
+  // Convert form value changes to signal (skip initial value to avoid ExpressionChangedAfterItHasBeenCheckedError)
+  private formValue = toSignal(this.form.valueChanges);
 
-    if (userData) {
-      const formPermissions: UserPermissionFormItem[] = permissionsData.map((availablePermission) => {
-        const enabled = userData.permissions.findIndex((userPermission) => userPermission.key === availablePermission.key) !== -1;
-        return {...availablePermission, enabled: enabled};
-      });
+  constructor() {
+    // Initialize form when userData or permissionsData changes
+    effect(() => {
+      const userData = this.userData();
+      const permissionsData = this.permissionsData();
 
-      const data: UserFormData = {
-        ...userData,
-        permissions: undefined
-      };
-      this.form.patchValue(data);
-      this.permissions.clear();
-      formPermissions.forEach((permission) => this.pushUserPermissionControl(permission, permission.enabled));
-    } else {
-      permissionsData?.forEach((permission) => this.pushUserPermissionControl(permission, false));
-    }
+      if (userData) {
+        const formPermissions: UserPermissionFormItem[] = permissionsData.map((availablePermission) => {
+          const enabled = userData.permissions.findIndex((userPermission) => userPermission.key === availablePermission.key) !== -1;
+          return {...availablePermission, enabled: enabled};
+        });
 
-    this.form.valueChanges
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(() => {
+        const data: UserFormData = {
+          ...userData,
+          permissions: undefined
+        };
+        this.form.patchValue(data);
+        this.permissions.clear();
+        formPermissions.forEach((permission) => this.pushUserPermissionControl(permission, permission.enabled));
+      } else if (permissionsData) {
+        permissionsData.forEach((permission) => this.pushUserPermissionControl(permission, false));
+      }
+    });
+
+    // Emit userDataChange when form value signal changes
+    effect(() => {
+      const value = this.formValue();
+      if (value) {
         const rawValue: UserFormData = this.form.getRawValue();
         const mappedUserData: UserData = {
           ...rawValue,
           permissions: rawValue.permissions.filter((permission) => permission.enabled === true)
         };
         this.userDataChange.emit(mappedUserData);
-      });
-  }
-
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
+      }
+    });
   }
 
   public markAllAsTouched() {

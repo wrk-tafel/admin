@@ -36,7 +36,7 @@ describe('CustomerFormComponent', () => {
     employer: 'WRK',
     income: 123.50,
     incomeDue: moment().add(1, 'years').startOf('day').utc().toDate(),
-    validUntil: moment().add(1, 'years').startOf('day').utc().toDate(),
+    validUntil: moment().add(1, 'years').add(2, 'months').startOf('day').utc().toDate(),
     additionalPersons: [
       {
         key: 0,
@@ -131,7 +131,7 @@ describe('CustomerFormComponent', () => {
     expect(component.employer.value).toBe(testCustomerData.employer);
     expect(component.income.value).toBe(testCustomerData.income);
     expect(component.incomeDue.value).toBe(testCustomerData.incomeDue);
-    expect(component.validUntil.value).toBe(testCustomerData.validUntil);
+    expect(component.validUntil.value).toEqual(testCustomerData.validUntil);
 
     expect(component.isValid()).toBe(true);
     expect(component.countries).toEqual(mockCountryList);
@@ -225,8 +225,9 @@ describe('CustomerFormComponent', () => {
 
     const fixture = TestBed.createComponent(CustomerFormComponent);
     const component = fixture.componentInstance;
-    fixture.detectChanges(); // Trigger ngOnInit
+    fixture.detectChanges(); // Trigger effects
     component.incomeDue.setValue(moment('01.01.2000', 'DD.MM.YYYY').toDate());
+    fixture.detectChanges(); // Trigger effect after value change
 
     expect(component.validUntil.value).toEqual(moment('01.03.2000', 'DD.MM.YYYY').toDate());
   });

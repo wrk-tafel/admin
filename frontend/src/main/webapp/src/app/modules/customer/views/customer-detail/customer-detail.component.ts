@@ -1,4 +1,4 @@
-import {Component, effect, inject, input, OnInit, signal} from '@angular/core';
+import {Component, effect, inject, input, signal} from '@angular/core';
 import {Router} from '@angular/router';
 import moment from 'moment';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
@@ -88,7 +88,7 @@ import {FormattedCustomerNamePipe} from '../../../../common/pipes/formatted-cust
         FormattedCustomerNamePipe
     ]
 })
-export class CustomerDetailComponent implements OnInit {
+export class CustomerDetailComponent {
   // Input signals
   customerDataInput = input.required<CustomerData>({alias: 'customerData'});
   customerNotesResponseInput = input.required<CustomerNotesResponse>({alias: 'customerNotesResponse'});
@@ -118,12 +118,11 @@ export class CustomerDetailComponent implements OnInit {
       this.customerData.set(this.customerDataInput());
     });
     effect(() => {
-      this.customerNotesResponse.set(this.customerNotesResponseInput());
+      const notesResponse = this.customerNotesResponseInput();
+      this.customerNotesResponse.set(notesResponse);
+      // Process notes when they change
+      this.processCustomerNoteResponse(notesResponse);
     });
-  }
-
-  ngOnInit(): void {
-    this.processCustomerNoteResponse(this.customerNotesResponseInput());
   }
 
   printMasterdata() {

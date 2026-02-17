@@ -1,4 +1,5 @@
-import {Component, effect, inject, input, OnDestroy, OnInit, output} from '@angular/core';
+import {Component, effect, inject, input, output} from '@angular/core';
+import {toSignal} from '@angular/core/rxjs-interop';
 import {FormArray, FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {CountryApiService, CountryData} from '../../../../api/country-api.service';
 import {CustomValidator} from '../../../../common/validator/CustomValidator';
@@ -6,8 +7,6 @@ import {CustomerAddPersonData, CustomerData, Gender} from '../../../../api/custo
 import {v4 as uuidv4} from 'uuid';
 import moment from 'moment';
 import {CommonModule} from '@angular/common';
-import {Subject} from 'rxjs';
-import {takeUntil} from 'rxjs/operators';
 import {
   ButtonDirective,
   CardBodyComponent,
@@ -56,13 +55,12 @@ import {GenderLabelPipe} from '../../../../common/pipes/gender-label.pipe';
         GenderLabelPipe
     ]
 })
-export class CustomerFormComponent implements OnInit, OnDestroy {
+export class CustomerFormComponent {
   editMode = input(false);
   customerData = input<CustomerData>();
   customerDataChange = output<CustomerData>();
 
   private readonly countryApiService = inject(CountryApiService);
-  private destroy$ = new Subject<void>();
 
   form = new FormGroup({
     id: new FormControl<number>(null),
@@ -105,7 +103,19 @@ export class CustomerFormComponent implements OnInit, OnDestroy {
   countries: CountryData[];
   genders: Gender[] = [Gender.FEMALE, Gender.MALE];
 
+  // Convert form value changes to signal
+  private formValue = toSignal(this.form.valueChanges, { initialValue: this.form.value });
+  private incomeDueValue = toSignal(this.incomeDue.valueChanges);
+
   constructor() {
+    // Load countries once
+    effect(() => {
+      this.countryApiService.getCountries().subscribe((countries) => {
+        this.countries = countries;
+      });
+    });
+
+    // Populate form when customerData changes
     effect(() => {
       const customerData = this.customerData();
       if (customerData) {
@@ -120,31 +130,22 @@ export class CustomerFormComponent implements OnInit, OnDestroy {
         ));
       }
     });
-  }
 
-  ngOnInit(): void {
-    this.countryApiService.getCountries()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((countries) => {
-        this.countries = countries;
-      });
-
-    this.incomeDue.valueChanges
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(() => {
+    // Update validUntil when incomeDue changes
+    effect(() => {
+      const value = this.incomeDueValue();
+      if (value !== undefined) {
         this.updateValidUntilDate();
-      });
+      }
+    });
 
-    this.form.valueChanges
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(() => {
+    // Emit form changes
+    effect(() => {
+      const value = this.formValue();
+      if (value) {
         this.customerDataChange.emit(this.form.getRawValue());
-      });
-  }
-
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
+      }
+    });
   }
 
   updateValidUntilDate() {
@@ -243,11 +244,11 @@ export class CustomerFormComponent implements OnInit, OnDestroy {
       receivesFamilyBonus: new FormControl<boolean>(additionalPerson.receivesFamilyBonus),
     });
 
-    control.get('incomeDue').valueChanges
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(() => {
-        this.updateValidUntilDate();
-      });
+    // Subscribe to incomeDue changes for this person
+    // Note: subscriptions to individual form controls complete when the control is removed
+    control.get('incomeDue').valueChanges.subscribe(() => {
+      this.updateValidUntilDate();
+    });
 
     this.additionalPersons.push(control);
   }

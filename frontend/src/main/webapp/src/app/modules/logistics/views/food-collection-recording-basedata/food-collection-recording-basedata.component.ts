@@ -1,4 +1,4 @@
-import {Component, effect, inject, input, model, NgZone, OnDestroy, ViewChild} from '@angular/core';
+import {Component, effect, inject, input, model, viewChild} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {
   BgColorDirective,
@@ -27,7 +27,6 @@ import {
 } from '../../../../api/food-collections-api.service';
 import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
 import {CarData, CarList} from '../../../../api/car-api.service';
-import {Subject, take, takeUntil} from 'rxjs';
 import {SelectedRouteData} from '../food-collection-recording/food-collection-recording.component';
 
 @Component({
@@ -54,9 +53,9 @@ import {SelectedRouteData} from '../food-collection-recording/food-collection-re
         ModalToggleDirective
     ]
 })
-export class FoodCollectionRecordingBasedataComponent implements OnDestroy {
-  @ViewChild('driverEmployeeSearchCreate') driverEmployeeSearchCreate: TafelEmployeeSearchCreateComponent
-  @ViewChild('coDriverEmployeeSearchCreate') coDriverEmployeeSearchCreate: TafelEmployeeSearchCreateComponent
+export class FoodCollectionRecordingBasedataComponent {
+  driverEmployeeSearchCreate = viewChild<TafelEmployeeSearchCreateComponent>('driverEmployeeSearchCreate');
+  coDriverEmployeeSearchCreate = viewChild<TafelEmployeeSearchCreateComponent>('coDriverEmployeeSearchCreate');
 
   selectedRouteData = input<SelectedRouteData>();
   carList = model.required<CarList>();
@@ -64,8 +63,6 @@ export class FoodCollectionRecordingBasedataComponent implements OnDestroy {
   private readonly foodCollectionsApiService = inject(FoodCollectionsApiService);
   private readonly fb = inject(FormBuilder);
   private readonly toastService = inject(ToastService);
-  private readonly ngZone = inject(NgZone);
-  private readonly destroy$ = new Subject<void>();
 
   selectedDriver: EmployeeData;
   selectedCoDriver: EmployeeData;
@@ -114,17 +111,21 @@ export class FoodCollectionRecordingBasedataComponent implements OnDestroy {
 
       if (foodCollectionData.driver) {
         this.driverSearchInput.setValue(foodCollectionData.driver.personnelNumber);
-        this.ngZone.onStable.pipe(take(1), takeUntil(this.destroy$)).subscribe(() => {
-          if (this.driverEmployeeSearchCreate) {
-            this.driverEmployeeSearchCreate.triggerSearch();
+        // Use setTimeout to defer execution until after view is stable
+        setTimeout(() => {
+          const driverSearch = this.driverEmployeeSearchCreate();
+          if (driverSearch) {
+            driverSearch.triggerSearch();
           }
         });
       }
       if (foodCollectionData.coDriver) {
         this.coDriverSearchInput.setValue(foodCollectionData.coDriver.personnelNumber);
-        this.ngZone.onStable.pipe(take(1), takeUntil(this.destroy$)).subscribe(() => {
-          if (this.coDriverEmployeeSearchCreate) {
-            this.coDriverEmployeeSearchCreate.triggerSearch();
+        // Use setTimeout to defer execution until after view is stable
+        setTimeout(() => {
+          const coDriverSearch = this.coDriverEmployeeSearchCreate();
+          if (coDriverSearch) {
+            coDriverSearch.triggerSearch();
           }
         });
       }
@@ -152,14 +153,16 @@ export class FoodCollectionRecordingBasedataComponent implements OnDestroy {
   }
 
   triggerSearchDriver() {
-    if (this.driverSearchInput.value && this.driverEmployeeSearchCreate) {
-      this.driverEmployeeSearchCreate.triggerSearch();
+    const driverSearch = this.driverEmployeeSearchCreate();
+    if (this.driverSearchInput.value && driverSearch) {
+      driverSearch.triggerSearch();
     }
   }
 
   triggerSearchCoDriver() {
-    if (this.coDriverSearchInput.value && this.coDriverEmployeeSearchCreate) {
-      this.coDriverEmployeeSearchCreate.triggerSearch();
+    const coDriverSearch = this.coDriverEmployeeSearchCreate();
+    if (this.coDriverSearchInput.value && coDriverSearch) {
+      coDriverSearch.triggerSearch();
     }
   }
 
@@ -196,7 +199,6 @@ export class FoodCollectionRecordingBasedataComponent implements OnDestroy {
     };
 
     this.foodCollectionsApiService.saveRouteData(this.selectedRouteData().route.id, routeData)
-      .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
         this.toastService.showToast({type: ToastType.SUCCESS, title: 'Daten wurden gespeichert!'});
       });
@@ -230,11 +232,6 @@ export class FoodCollectionRecordingBasedataComponent implements OnDestroy {
 
   get kmEnd() {
     return this.form.get('kmEnd');
-  }
-
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
   }
 
   protected readonly faTruck = faTruck;
