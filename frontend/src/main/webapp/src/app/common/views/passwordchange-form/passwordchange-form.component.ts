@@ -1,4 +1,5 @@
-import {Component, inject} from '@angular/core';
+import {Component, inject, linkedSignal} from '@angular/core';
+import {toSignal} from '@angular/core/rxjs-interop';
 import {FormBuilder, FormGroup, ReactiveFormsModule, ValidatorFn, Validators} from '@angular/forms';
 import {ChangePasswordRequest, ChangePasswordResponse, UserApiService} from '../../../api/user-api.service';
 import {catchError, map} from 'rxjs/operators';
@@ -45,6 +46,17 @@ export class PasswordChangeFormComponent {
       validators: [this.validateNewAndRepeatedPasswords()]
     }
   );
+
+  // Form status as a signal, tracking status changes reactively
+  private formStatusSignal = toSignal(this.form.statusChanges, {
+    initialValue: this.form.status
+  });
+
+  // Form validity linked to status changes - recomputes automatically when form status changes
+  readonly formValid = linkedSignal(() => {
+    this.formStatusSignal();
+    return this.form.valid;
+  });
 
   currentPasswordTextVisible: boolean;
   newPasswordTextVisible: boolean;

@@ -1,4 +1,4 @@
-import {Component, effect, inject, input, signal} from '@angular/core';
+import {Component, effect, inject, input, linkedSignal, signal} from '@angular/core';
 import {
   ButtonDirective,
   CardBodyComponent,
@@ -54,17 +54,18 @@ export class DistributionStatisticsInputComponent {
   })
 
   readonly distribution = this.globalStateService.getCurrentDistribution();
-  panelDisabled = signal<boolean>(true);
+
+  // Panel disabled state derived from distribution - recomputes when distribution changes
+  panelDisabled = linkedSignal(() => !this.distribution());
+
   selectedShelters = signal<ShelterItem[]>([]);
 
   distributionEffect = effect(() => {
     const distribution = this.distribution();
     if (distribution) {
       this.employeeCount.enable();
-      this.panelDisabled.set(false);
     } else {
       this.employeeCount.disable();
-      this.panelDisabled.set(true);
 
       // reset form
       this.employeeCount.reset();

@@ -1,4 +1,4 @@
-import {Component, effect, input, output, signal} from '@angular/core';
+import {Component, input, linkedSignal, output} from '@angular/core';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {ButtonDirective, ColComponent, FormControlDirective, FormModule, RowComponent} from '@coreui/angular';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
@@ -26,11 +26,8 @@ export class TafelCounterInputComponent {
   maxValue = input<number>(99);
   valueChanged = output<TafelCounterInputValueChange>();
 
-  currentValue = signal<number>(0);
-
-  loadEffect = effect(() => {
-    this.currentValue.set(this.value());
-  });
+  // Writable signal that resets to input value when it changes, but can be locally modified
+  currentValue = linkedSignal(() => this.value());
 
   protected readonly faPlus = faPlus;
   protected readonly faMinus = faMinus;

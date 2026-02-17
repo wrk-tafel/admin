@@ -1,4 +1,4 @@
-import {Component, effect, inject, input, signal} from '@angular/core';
+import {Component, inject, input, linkedSignal} from '@angular/core';
 import {UserApiService, UserData} from '../../../../api/user-api.service';
 import {Router} from '@angular/router';
 import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
@@ -43,17 +43,8 @@ export class UserDetailComponent {
   private readonly router = inject(Router);
   private readonly toastService = inject(ToastService);
 
-  readonly currentUserData = signal<UserData>(undefined);
-
-  constructor() {
-    // Sync input signal to writable signal
-    effect(() => {
-      const data = this.userData();
-      if (data) {
-        this.currentUserData.set(data);
-      }
-    });
-  }
+  // Writable signal that resets from input, but can be locally updated after API calls
+  readonly currentUserData = linkedSignal(() => this.userData());
 
   disableUser() {
     this.changeUserState(false);

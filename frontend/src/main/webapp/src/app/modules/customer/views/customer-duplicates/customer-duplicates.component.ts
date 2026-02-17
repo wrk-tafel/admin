@@ -1,4 +1,4 @@
-import {Component, effect, inject, input, signal} from '@angular/core';
+import {Component, inject, input, linkedSignal} from '@angular/core';
 import {
   CustomerApiService,
   CustomerData,
@@ -45,46 +45,33 @@ export class CustomerDuplicatesComponent {
   // Signal input from resolver - read-only input
   readonly customerDuplicatesDataInput = input<CustomerDuplicatesResponse>();
 
-  // Writable signal for local updates and template binding
-  readonly customerDuplicatesData = signal<CustomerDuplicatesResponse>(null);
-  readonly paginationData = signal<TafelPaginationData>(null);
+  // Writable signal linked to input - resets when input changes, locally writable for pagination/updates
+  readonly customerDuplicatesData = linkedSignal(() => this.customerDuplicatesDataInput());
+
+  // Pagination data derived from customerDuplicatesData via linkedSignal
+  readonly paginationData = linkedSignal<TafelPaginationData | null>(() => {
+    const data = this.customerDuplicatesData();
+    if (data) {
+      return {
+        count: data.items.length,
+        totalCount: data.totalCount,
+        currentPage: data.currentPage,
+        totalPages: data.totalPages,
+        pageSize: data.pageSize
+      };
+    }
+    return null;
+  });
 
   private readonly customerApiService = inject(CustomerApiService);
   private readonly router = inject(Router);
   private readonly toastService = inject(ToastService);
 
-  constructor() {
-    effect(() => {
-      const data = this.customerDuplicatesDataInput();
-      if (data) {
-        this.customerDuplicatesData.set(data);
-        this.paginationData.set({
-          count: data.items.length,
-          totalCount: data.totalCount,
-          currentPage: data.currentPage,
-          totalPages: data.totalPages,
-          pageSize: data.pageSize
-        });
-      }
-    });
-  }
-
   getDuplicates(page?: number) {
     this.customerApiService.getCustomerDuplicates(page)
       .subscribe((response: CustomerDuplicatesResponse) => {
-        if (response.items.length === 0) {
-          this.customerDuplicatesData.set(null);
-          this.paginationData.set(null);
-        } else {
-          this.customerDuplicatesData.set(response);
-          this.paginationData.set({
-            count: response.items.length,
-            totalCount: response.totalCount,
-            currentPage: response.currentPage,
-            totalPages: response.totalPages,
-            pageSize: response.pageSize
-          });
-        }
+        // Setting customerDuplicatesData automatically recomputes paginationData via linkedSignal
+        this.customerDuplicatesData.set(response.items.length === 0 ? null : response);
       });
   }
 
