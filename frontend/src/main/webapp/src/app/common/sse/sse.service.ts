@@ -1,4 +1,4 @@
-import {inject, Injectable} from '@angular/core';
+import {ApplicationRef, inject, Injectable} from '@angular/core';
 import {Observable} from 'rxjs';
 import {UrlHelperService} from '../util/url-helper.service';
 
@@ -7,6 +7,7 @@ import {UrlHelperService} from '../util/url-helper.service';
 })
 export class SseService {
   private readonly urlHelperService = inject(UrlHelperService);
+  private readonly appRef = inject(ApplicationRef);
 
   listen<T>(url: string, connectionStateCallback?: (connected: boolean) => void): Observable<T> {
     return new Observable<T>((observer) => {
@@ -25,6 +26,8 @@ export class SseService {
         eventSource.onmessage = (event) => {
           try {
             observer.next(JSON.parse(event.data) as T);
+            // Notify Angular's change detection since EventSource callbacks run outside Angular's context
+            this.appRef.tick();
           } catch (parseError) {
             console.error('Failed to parse SSE message', parseError, event.data);
           }

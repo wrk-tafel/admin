@@ -22,7 +22,7 @@ describe('User Edit', () => {
 
       cy.byTestId('permission-checkbox-0').click();
 
-      cy.intercept('PUT', '/api/users/*').as('updateUser');
+      cy.intercept('POST', '/api/users/' + user.id).as('updateUser');
       cy.byTestId('save-button').click();
       cy.wait('@updateUser');
 

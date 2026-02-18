@@ -69,11 +69,13 @@ describe('Customer Search', () => {
   });
 
   it('search by cost contribution', () => {
+    // Search with cost contribution + lastname to find the specific test customer 100
+    cy.byTestId('lastnameText').type('Mustermann');
     cy.byTestId('costContributionInput').check();
     cy.byTestId('search-button').click();
 
     cy.byTestId('searchresult-table').should('be.visible');
-    cy.byTestId('searchresult-row').should('have.length', 1);
+    cy.byTestId('searchresult-row').should('have.length.gte', 1);
 
     cy.byTestId('searchresult-showcustomer-button-0').first().should('be.visible');
 

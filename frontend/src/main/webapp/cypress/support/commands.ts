@@ -62,6 +62,20 @@ Cypress.Commands.add('createLoginRequest', (username: string, password: string, 
 });
 
 Cypress.Commands.add('createDistribution', () => {
+  // Force close any existing distribution - save statistics first to avoid validation errors
+  cy.request({
+    method: 'POST',
+    url: '/api/distributions/statistics',
+    body: {employeeCount: 1, selectedShelterIds: []},
+    failOnStatusCode: false
+  });
+
+  cy.request({
+    method: 'POST',
+    url: '/api/distributions/close?forceClose=true',
+    failOnStatusCode: false
+  });
+
   cy.request({
     method: 'POST',
     url: '/api/distributions/new'
@@ -102,7 +116,7 @@ Cypress.Commands.add('createDummyCustomer', (): Cypress.Chainable<Cypress.Respon
     const data: CustomerData = {
       firstname: 'firstname-' + randomNumber,
       lastname: 'lastname-' + randomNumber,
-      birthDate: moment().toDate(),
+      birthDate: moment().subtract(30, 'years').toDate(),
       gender: Gender.MALE,
       telephoneNumber: '0123456789',
       email: 'firstname.lastname@test.com',

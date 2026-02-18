@@ -2,18 +2,14 @@ describe('Food Collection Recording', () => {
 
   beforeEach(() => {
     cy.loginDefault();
-
-    // Ensure no distribution is open from previous tests
-    cy.request({
-      method: 'POST',
-      url: '/api/distributions/close?forceClose=true',
-      failOnStatusCode: false
-    });
-
-    cy.intercept('POST', '/api/distributions/new').as('createDistribution');
     cy.createDistribution();
-    cy.wait('@createDistribution');
+
+    // Visit overview first to let SSE deliver the distribution state to GlobalStateService
+    cy.visit('/#/uebersicht');
+    cy.byTestId('distribution-state-text').should('have.text', 'Geöffnet');
+
     cy.visit('/#/logistik/warenerfassung');
+    cy.byTestId('routeInput').should('be.visible');
   });
 
   afterEach(() => {
@@ -24,7 +20,7 @@ describe('Food Collection Recording', () => {
     cy.viewport('iphone-7');
 
     cy.getAnyRandomNumber().then((randomNumber) => {
-      cy.intercept('GET', '/api/food-collections/*').as('getFoodCollection');
+      cy.intercept('GET', '/api/food-collections/route/*').as('getFoodCollection');
       cy.intercept('GET', '/api/routes/*/shops').as('getShopsOfRoute');
       cy.byTestId('routeInput').select('Route 2');
       cy.wait('@getFoodCollection');
@@ -52,7 +48,7 @@ describe('Food Collection Recording', () => {
       cy.byTestId('codriver-employee-search-button').click();
 
       cy.byTestId('codriver-search-create-modal')
-        .should('be.visible')
+        .should('have.class', 'show')
         .within(() => {
           cy.byTestId('codriver-create-personnelnumber-input').type('personnelNumber-' + randomNumber);
           cy.byTestId('codriver-create-firstname-input').type('firstname-' + randomNumber);
@@ -67,7 +63,7 @@ describe('Food Collection Recording', () => {
       cy.byTestId('codriver-employee-search-button').click();
 
       cy.byTestId('codriver-select-employee-modal')
-        .should('be.visible')
+        .should('have.class', 'show')
         .within(() => {
           cy.byTestId('codriver-select-employee-row-0').should('exist');
           cy.byTestId('codriver-select-employee-row-1').should('exist');
@@ -75,11 +71,11 @@ describe('Food Collection Recording', () => {
         });
       cy.byTestId('selectedCoDriverDescription').should('have.text', '0500 Scanner 2');
 
-      cy.intercept('POST', '/api/food-collections/*/basedata').as('saveBaseData');
+      cy.intercept('POST', '/api/food-collections/route/*').as('saveBaseData');
       cy.byTestId('save-routedata-button').click();
 
       cy.byTestId('km-diff-modal')
-        .should('be.visible')
+        .should('have.class', 'show')
         .within(() => {
           cy.byTestId('ok-button').click();
         });
@@ -92,26 +88,52 @@ describe('Food Collection Recording', () => {
         });
 
       cy.byTestId('select-items-tab').click();
+      // Wait for the shop title to appear - indicates selectShop() GET has completed
+      cy.byTestId('shop-title').should('be.visible');
 
-      cy.byTestId('category-1-input').type('12');
+      // Wait for each auto-save PATCH to complete before triggering the next.
+      // Concurrent PATCHes on the same food collection cause duplicate key constraint errors.
+      // ngModelChange fires per keystroke, so type each digit separately and wait for its PATCH.
+      cy.intercept('PATCH', '/api/food-collections/route/*/items').as('autoSave1a');
+      cy.byTestId('category-1-input').should('be.visible').type('{selectall}1');
+      cy.wait('@autoSave1a').its('response.statusCode').should('eq', 200);
+
+      cy.intercept('PATCH', '/api/food-collections/route/*/items').as('autoSave1b');
+      cy.byTestId('category-1-input').type('2');
+      cy.wait('@autoSave1b').its('response.statusCode').should('eq', 200);
+
+      cy.intercept('PATCH', '/api/food-collections/route/*/items').as('autoSave2');
       cy.byTestId('category-2-increment-button').click();
+      cy.wait('@autoSave2').its('response.statusCode').should('eq', 200);
+
+      cy.intercept('PATCH', '/api/food-collections/route/*/items').as('autoSave3');
       cy.byTestId('category-2-increment-button').click();
+      cy.wait('@autoSave3').its('response.statusCode').should('eq', 200);
+
+      cy.intercept('PATCH', '/api/food-collections/route/*/items').as('autoSave4');
       cy.byTestId('category-2-increment-button').click();
+      cy.wait('@autoSave4').its('response.statusCode').should('eq', 200);
+
+      cy.intercept('PATCH', '/api/food-collections/route/*/items').as('autoSave5');
       cy.byTestId('category-2-decrement-button').click();
+      cy.wait('@autoSave5').its('response.statusCode').should('eq', 200);
 
       // validate auto-save on input change
-      cy.intercept('GET', '/api/food-collections/*').as('getFoodCollectionReload');
-      cy.intercept('GET', '/api/routes/*/shops').as('getShopsOfRouteReload');
       cy.reload();
+      cy.byTestId('routeInput').should('be.visible');
+
+      cy.intercept('GET', '/api/food-collections/route/*').as('getFoodCollectionReload');
+      cy.intercept('GET', '/api/routes/*/shops').as('getShopsOfRouteReload');
+      cy.byTestId('routeInput').select('Route 2');
       cy.wait('@getFoodCollectionReload');
       cy.wait('@getShopsOfRouteReload');
 
-      cy.byTestId('routeInput').select('Route 2');
       cy.byTestId('select-items-tab').click();
+      cy.byTestId('shop-title').should('be.visible');
       cy.byTestId('category-1-input').should('have.value', '12');
       cy.byTestId('category-2-input').should('have.value', '2');
 
-      cy.intercept('POST', '/api/food-collections/*/items').as('saveItems');
+      cy.intercept('POST', '/api/food-collections/route/*/shop/*/items').as('saveItems');
       cy.byTestId('save-items-responsive-button').click();
       cy.wait('@saveItems');
       cy.byTestId('tafel-toast-header')
@@ -121,13 +143,13 @@ describe('Food Collection Recording', () => {
         });
 
       // check if existing data is filled again
-      cy.intercept('GET', '/api/food-collections/*').as('getFoodCollection2');
+      cy.intercept('GET', '/api/food-collections/route/*').as('getFoodCollection2');
       cy.intercept('GET', '/api/routes/*/shops').as('getShopsOfRoute2');
       cy.byTestId('routeInput').select('Route 1');
       cy.wait('@getFoodCollection2');
       cy.wait('@getShopsOfRoute2');
 
-      cy.intercept('GET', '/api/food-collections/*').as('getFoodCollection3');
+      cy.intercept('GET', '/api/food-collections/route/*').as('getFoodCollection3');
       cy.intercept('GET', '/api/routes/*/shops').as('getShopsOfRoute3');
       cy.byTestId('routeInput').select('Route 2');
       cy.wait('@getFoodCollection3');

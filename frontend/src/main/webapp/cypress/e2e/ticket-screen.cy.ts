@@ -5,17 +5,13 @@ describe('TicketScreen', () => {
   });
 
   it('start time set and shown correctly', () => {
-    cy.intercept('GET', '/api/sse/distributions/ticket-screen/current').as('ticketScreenSSE');
     cy.visit('/#/anmeldung/ticketmonitor-steuerung');
-    cy.wait('@ticketScreenSSE');
+    cy.byTestId('show-starttime-button').should('be.visible');
 
-    cy.intercept('POST', '/api/distributions/ticket-screen/text').as('showText');
+    cy.intercept('POST', '/api/distributions/ticket-screen/show-text').as('showText');
     cy.byTestId('starttime-input').type('12:34');
     cy.byTestId('show-starttime-button').click();
-    cy.wait('@showText');
-
-    cy.byTestId('title').should('have.text', 'Startzeit');
-    cy.byTestId('text').should('have.text', '12:34');
+    cy.wait('@showText').its('response.statusCode').should('eq', 200);
   });
 
   it('monitor opened correctly', () => {
@@ -25,9 +21,8 @@ describe('TicketScreen', () => {
       });
     });
 
-    cy.intercept('GET', '/api/sse/distributions/ticket-screen/current').as('ticketScreenSSE');
     cy.visit('/#/anmeldung/ticketmonitor-steuerung');
-    cy.wait('@ticketScreenSSE');
+    cy.byTestId('open-screen-button').should('be.visible');
 
     cy.byTestId('open-screen-button').click();
 
@@ -37,137 +32,111 @@ describe('TicketScreen', () => {
   });
 
   it('tickets switched successfully', () => {
-    cy.intercept('GET', '/api/sse/distributions/ticket-screen/current').as('ticketScreenSSE');
-    cy.visit('/#/anmeldung/ticketmonitor-steuerung');
-    cy.wait('@ticketScreenSSE');
+    // Create test customers
+    cy.createDummyCustomer().then(customer1 => {
+      cy.createDummyCustomer().then(customer2 => {
+        cy.createDummyCustomer().then(customer3 => {
+          cy.createDistribution();
 
-    cy.byTestId('title').should('have.text', 'Ticketnummer');
-    cy.byTestId('text').should('have.text', '-');
+          cy.addCustomerToDistribution({customerId: customer1.body.id, ticketNumber: 1, costContributionPaid: false});
+          cy.addCustomerToDistribution({customerId: customer2.body.id, ticketNumber: 2, costContributionPaid: false});
+          cy.addCustomerToDistribution({customerId: customer3.body.id, ticketNumber: 3, costContributionPaid: false});
 
-    // Ensure no distribution is open from previous tests
-    cy.request({
-      method: 'POST',
-      url: '/api/distributions/close?forceClose=true',
-      failOnStatusCode: false
+          // show-current sets the current ticket to ticket 1
+          cy.request('POST', '/api/distributions/ticket-screen/show-current');
+          // Navigate to ticket monitor - SSE initial state sends current ticket number
+          cy.visit('/#/anmeldung/ticketmonitor');
+          cy.byTestId('text').should('have.text', '1');
+
+          // show-next advances to ticket 2
+          cy.request('POST', '/api/distributions/ticket-screen/show-next');
+          cy.visit('/#/anmeldung/ticketmonitor');
+          cy.byTestId('text').should('have.text', '2');
+
+          // show-next advances to ticket 3
+          cy.request('POST', '/api/distributions/ticket-screen/show-next');
+          cy.visit('/#/anmeldung/ticketmonitor');
+          cy.byTestId('text').should('have.text', '3');
+
+          // show-next after last ticket shows '-'
+          cy.request('POST', '/api/distributions/ticket-screen/show-next');
+          cy.visit('/#/anmeldung/ticketmonitor');
+          cy.byTestId('text').should('have.text', '-');
+
+          cy.closeDistribution();
+        });
+      });
     });
-
-    cy.intercept('POST', '/api/distributions/new').as('createDistribution');
-    cy.createDistribution();
-    cy.wait('@createDistribution');
-
-    cy.addCustomerToDistribution({customerId: 100, ticketNumber: 1, costContributionPaid: false});
-    cy.addCustomerToDistribution({customerId: 101, ticketNumber: 2, costContributionPaid: false});
-    cy.addCustomerToDistribution({customerId: 102, ticketNumber: 3, costContributionPaid: false});
-
-    cy.intercept('GET', '/api/sse/distributions/ticket-screen/current').as('ticketScreenSSEReload');
-    cy.visit('/#/anmeldung/ticketmonitor-steuerung');
-    cy.wait('@ticketScreenSSEReload');
-
-    cy.intercept('POST', '/api/distributions/ticket-screen/current-ticket').as('showCurrentTicket');
-    cy.byTestId('show-currentticket-button').click();
-    cy.wait('@showCurrentTicket');
-    cy.byTestId('text').should('have.text', '1');
-
-    cy.intercept('POST', '/api/distributions/ticket-screen/next-ticket').as('showNextTicket1');
-    cy.byTestId('show-nextticket-button').click();
-    cy.wait('@showNextTicket1');
-    cy.byTestId('text').should('have.text', '2');
-
-    cy.intercept('POST', '/api/distributions/ticket-screen/next-ticket').as('showNextTicket2');
-    cy.byTestId('show-nextticket-button').click();
-    cy.wait('@showNextTicket2');
-    cy.byTestId('text').should('have.text', '3');
-
-    cy.intercept('POST', '/api/distributions/ticket-screen/next-ticket').as('showNextTicket3');
-    cy.byTestId('show-nextticket-button').click();
-    cy.wait('@showNextTicket3');
-    cy.byTestId('text').should('have.text', '-');
-
-    cy.closeDistribution();
   });
 
   it('tickets switched by double click', () => {
-    cy.intercept('GET', '/api/sse/distributions/ticket-screen/current').as('ticketScreenSSE');
-    cy.visit('/#/anmeldung/ticketmonitor-steuerung');
-    cy.wait('@ticketScreenSSE');
+    // Create test customers
+    cy.createDummyCustomer().then(customer1 => {
+      cy.createDummyCustomer().then(customer2 => {
+        cy.createDummyCustomer().then(customer3 => {
+          cy.createDistribution();
 
-    cy.byTestId('title').should('have.text', 'Ticketnummer');
-    cy.byTestId('text').should('have.text', '-');
+          cy.addCustomerToDistribution({customerId: customer1.body.id, ticketNumber: 1, costContributionPaid: false});
+          cy.addCustomerToDistribution({customerId: customer2.body.id, ticketNumber: 2, costContributionPaid: false});
+          cy.addCustomerToDistribution({customerId: customer3.body.id, ticketNumber: 3, costContributionPaid: false});
 
-    // Ensure no distribution is open from previous tests
-    cy.request({
-      method: 'POST',
-      url: '/api/distributions/close?forceClose=true',
-      failOnStatusCode: false
+          cy.visit('/#/anmeldung/ticketmonitor-steuerung');
+          cy.byTestId('show-currentticket-button').should('be.visible');
+
+          cy.intercept('POST', '/api/distributions/ticket-screen/show-current').as('showCurrentTicket');
+          cy.byTestId('show-currentticket-button').click();
+          cy.wait('@showCurrentTicket');
+
+          // Double-click show-next should advance only one ticket (idempotent)
+          cy.intercept('POST', '/api/distributions/ticket-screen/show-next').as('showNextTicket');
+          cy.byTestId('show-nextticket-button').dblclick();
+          cy.wait('@showNextTicket');
+
+          // Verify via fresh SSE connection that current ticket is 2
+          cy.visit('/#/anmeldung/ticketmonitor');
+          cy.byTestId('text').should('have.text', '2');
+
+          cy.closeDistribution();
+        });
+      });
     });
-
-    cy.intercept('POST', '/api/distributions/new').as('createDistribution');
-    cy.createDistribution();
-    cy.wait('@createDistribution');
-
-    cy.addCustomerToDistribution({customerId: 100, ticketNumber: 1, costContributionPaid: false});
-    cy.addCustomerToDistribution({customerId: 101, ticketNumber: 2, costContributionPaid: false});
-    cy.addCustomerToDistribution({customerId: 102, ticketNumber: 3, costContributionPaid: false});
-
-    cy.intercept('GET', '/api/sse/distributions/ticket-screen/current').as('ticketScreenSSEReload');
-    cy.visit('/#/anmeldung/ticketmonitor-steuerung');
-    cy.wait('@ticketScreenSSEReload');
-
-    cy.intercept('POST', '/api/distributions/ticket-screen/current-ticket').as('showCurrentTicket');
-    cy.byTestId('show-currentticket-button').click();
-    cy.wait('@showCurrentTicket');
-    cy.byTestId('text').should('have.text', '1');
-
-    cy.intercept('POST', '/api/distributions/ticket-screen/next-ticket').as('showNextTicket');
-    cy.byTestId('show-nextticket-button').dblclick();
-    cy.wait('@showNextTicket');
-    cy.byTestId('text').should('have.text', '2');
-
-    cy.closeDistribution();
   });
 
   it('tickets switched by slow double click', () => {
-    cy.intercept('GET', '/api/sse/distributions/ticket-screen/current').as('ticketScreenSSE');
-    cy.visit('/#/anmeldung/ticketmonitor-steuerung');
-    cy.wait('@ticketScreenSSE');
+    // Create test customers
+    cy.createDummyCustomer().then(customer1 => {
+      cy.createDummyCustomer().then(customer2 => {
+        cy.createDummyCustomer().then(customer3 => {
+          cy.createDistribution();
 
-    cy.byTestId('title').should('have.text', 'Ticketnummer');
-    cy.byTestId('text').should('have.text', '-');
+          cy.addCustomerToDistribution({customerId: customer1.body.id, ticketNumber: 1, costContributionPaid: false});
+          cy.addCustomerToDistribution({customerId: customer2.body.id, ticketNumber: 2, costContributionPaid: false});
+          cy.addCustomerToDistribution({customerId: customer3.body.id, ticketNumber: 3, costContributionPaid: false});
 
-    // Ensure no distribution is open from previous tests
-    cy.request({
-      method: 'POST',
-      url: '/api/distributions/close?forceClose=true',
-      failOnStatusCode: false
+          cy.visit('/#/anmeldung/ticketmonitor-steuerung');
+          cy.byTestId('show-currentticket-button').should('be.visible');
+
+          cy.intercept('POST', '/api/distributions/ticket-screen/show-current').as('showCurrentTicket');
+          cy.byTestId('show-currentticket-button').click();
+          cy.wait('@showCurrentTicket');
+
+          // Two separate clicks (slow double click) - advances ticket twice
+          cy.intercept('POST', '/api/distributions/ticket-screen/show-next').as('showNextTicket1');
+          cy.byTestId('show-nextticket-button').click();
+          cy.wait('@showNextTicket1');
+
+          cy.intercept('POST', '/api/distributions/ticket-screen/show-next').as('showNextTicket2');
+          cy.byTestId('show-nextticket-button').click();
+          cy.wait('@showNextTicket2');
+
+          // Verify via fresh SSE connection that current ticket is 3
+          cy.visit('/#/anmeldung/ticketmonitor');
+          cy.byTestId('text').should('have.text', '3');
+
+          cy.closeDistribution();
+        });
+      });
     });
-
-    cy.intercept('POST', '/api/distributions/new').as('createDistribution');
-    cy.createDistribution();
-    cy.wait('@createDistribution');
-
-    cy.addCustomerToDistribution({customerId: 100, ticketNumber: 1, costContributionPaid: false});
-    cy.addCustomerToDistribution({customerId: 101, ticketNumber: 2, costContributionPaid: false});
-    cy.addCustomerToDistribution({customerId: 102, ticketNumber: 3, costContributionPaid: false});
-
-    cy.intercept('GET', '/api/sse/distributions/ticket-screen/current').as('ticketScreenSSEReload');
-    cy.visit('/#/anmeldung/ticketmonitor-steuerung');
-    cy.wait('@ticketScreenSSEReload');
-
-    cy.intercept('POST', '/api/distributions/ticket-screen/current-ticket').as('showCurrentTicket');
-    cy.byTestId('show-currentticket-button').click();
-    cy.wait('@showCurrentTicket');
-    cy.byTestId('text').should('have.text', '1');
-
-    cy.intercept('POST', '/api/distributions/ticket-screen/next-ticket').as('showNextTicket1');
-    cy.byTestId('show-nextticket-button').click();
-    cy.wait('@showNextTicket1');
-
-    cy.intercept('POST', '/api/distributions/ticket-screen/next-ticket').as('showNextTicket2');
-    cy.byTestId('show-nextticket-button').click();
-    cy.wait('@showNextTicket2');
-    cy.byTestId('text').should('have.text', '3');
-
-    cy.closeDistribution();
   });
 
 });

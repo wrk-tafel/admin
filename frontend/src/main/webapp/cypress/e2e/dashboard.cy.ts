@@ -9,19 +9,28 @@ describe('Dashboard', () => {
   });
 
   it('create and stop distribution', () => {
-    cy.byTestId('distribution-state-text').should('have.text', 'Geschlossen');
-
     // Ensure no distribution is open from previous tests
+    cy.request({
+      method: 'POST',
+      url: '/api/distributions/statistics',
+      body: {employeeCount: 1, selectedShelterIds: []},
+      failOnStatusCode: false
+    });
     cy.request({
       method: 'POST',
       url: '/api/distributions/close?forceClose=true',
       failOnStatusCode: false
     });
+    cy.reload();
+
+    cy.byTestId('distribution-state-text').should('have.text', 'Geschlossen');
 
     // create distribution (event) - OPEN
     cy.intercept('POST', '/api/distributions/new').as('createDistribution');
     cy.byTestId('distribution-start-button').click();
     cy.wait('@createDistribution');
+    // Reload to let SSE initial state reflect the new distribution
+    cy.reload();
     cy.byTestId('distribution-state-text').should('have.text', 'Geöffnet');
 
     // fill employee count
@@ -46,9 +55,7 @@ describe('Dashboard', () => {
     cy.wait('@saveNotes');
 
     // check if data is filled after reload
-    cy.intercept('GET', '/api/sse/dashboard').as('dashboardSSE');
     cy.reload();
-    cy.wait('@dashboardSSE');
     cy.byTestId('distribution-statistics-employee-count-input').should('have.value', '100');
     cy.byTestId('distribution-statistics-persons-in-shelter-input').should('have.value', '150');
     cy.byTestId('distribution-notes-textarea').should('have.value', 'Test note - everything went well!');
@@ -59,26 +66,35 @@ describe('Dashboard', () => {
     cy.byTestId('distribution-close-modal-ok-button').click();
     cy.byTestId('distribution-close-validation-modal-ok-button').click();
     cy.wait('@closeDistribution');
+    // Reload to let SSE initial state reflect the closed distribution
+    cy.reload();
     cy.byTestId('distribution-state-text').should('have.text', 'Geschlossen');
   });
 
   it('download customer list', () => {
-    cy.byTestId('download-customerlist-button').should('not.exist');
-
     // Ensure no distribution is open from previous tests
+    cy.request({
+      method: 'POST',
+      url: '/api/distributions/statistics',
+      body: {employeeCount: 1, selectedShelterIds: []},
+      failOnStatusCode: false
+    });
     cy.request({
       method: 'POST',
       url: '/api/distributions/close?forceClose=true',
       failOnStatusCode: false
     });
+    cy.reload();
 
-    cy.intercept('POST', '/api/distributions/new').as('createDistribution');
+    cy.byTestId('download-customerlist-button').should('not.exist');
+
     cy.createDistribution();
-    cy.wait('@createDistribution');
 
-    const downloadCustomerListButton = cy.byTestId('download-customerlist-button');
-    downloadCustomerListButton.should('be.visible');
-    downloadCustomerListButton.click();
+    // Reload to pick up the new distribution state via SSE
+    cy.reload();
+    cy.byTestId('distribution-state-text').should('have.text', 'Geöffnet');
+    cy.byTestId('download-customerlist-button').should('be.visible');
+    cy.byTestId('download-customerlist-button').click();
 
     const downloadsFolder = Cypress.config('downloadsFolder');
     const formattedDate = moment().format('DD.MM.YYYY');

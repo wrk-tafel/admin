@@ -51,7 +51,9 @@ describe('PasswordChange', () => {
           {timeout: 30000}
         ).should('have.value', newPassword);
 
+        cy.intercept('POST', '/api/users/change-password').as('changePassword');
         cy.byTestId('saveButton').click();
+        cy.wait('@changePassword');
 
         cy.byTestId('usermenu').click();
         cy.byTestId('usermenu-logout').click();
@@ -64,7 +66,7 @@ describe('PasswordChange', () => {
         cy.url().should('contain', '/#');
 
         // expect error for old password
-        cy.createLoginRequest(user.username, 'e2etest', false).then((resp) => {
+        cy.createLoginRequest(user.username, testUser.password, false).then((resp) => {
           expect(resp.status).to.eq(403);
         });
       });

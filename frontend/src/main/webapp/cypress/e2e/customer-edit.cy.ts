@@ -5,25 +5,28 @@ describe('Customer Edit', () => {
   });
 
   it('customer updated', () => {
-    cy.visit('/#/kunden/bearbeiten/102');
+    cy.createDummyCustomer().then((response) => {
+      const customerId = response.body.id;
+      cy.visit('/#/kunden/bearbeiten/' + customerId);
 
-    cy.byTestId('save-button').should('be.enabled');
+      cy.byTestId('save-button').should('be.enabled');
 
-    cy.byTestId('validate-button').click();
+      cy.intercept('POST', '/api/customers/validate').as('validateCustomer');
+      cy.byTestId('validate-button').click();
+      cy.wait('@validateCustomer');
 
-    cy.byTestId('validationresult-modal')
-      .should('be.visible')
-      .within(() => {
-        cy.byTestId('ok-button').click();
-      });
+      cy.byTestId('validationresult-modal')
+        .should('have.class', 'show')
+        .within(() => {
+          cy.byTestId('ok-button').should('be.visible').click();
+        });
 
-    cy.intercept('PUT', '/api/customers/*').as('updateCustomer');
-    cy.byTestId('save-button').click();
-    cy.wait('@updateCustomer');
+      cy.intercept('POST', '/api/customers/' + customerId).as('updateCustomer');
+      cy.byTestId('save-button').click();
+      cy.wait('@updateCustomer');
 
-    cy.url().should('contain', '/kunden/detail/102');
-
-    // TODO change actual data (but for that create a new dedicated customer beforehand)
+      cy.url().should('contain', '/kunden/detail/' + customerId);
+    });
   });
 
   it('customer invalid but still updatable', () => {
@@ -33,21 +36,22 @@ describe('Customer Edit', () => {
 
       cy.byTestId('save-button').should('be.enabled');
 
-      const incomeInput = cy.byTestId('incomeInput');
-      incomeInput.clear();
-      incomeInput.type('10000');
+      cy.byTestId('incomeInput').clear();
+      cy.byTestId('incomeInput').type('10000');
 
+      cy.intercept('POST', '/api/customers/validate').as('validateCustomer');
       cy.byTestId('validate-button').click();
+      cy.wait('@validateCustomer');
 
       cy.byTestId('validationresult-modal')
-        .should('be.visible')
+        .should('have.class', 'show')
         .within(() => {
           cy.byTestId('title').contains('Kein Anspruch vorhanden');
           cy.byTestId('header').should('have.class', 'bg-danger');
-          cy.byTestId('ok-button').click();
+          cy.byTestId('ok-button').should('be.visible').click();
         });
 
-      cy.intercept('PUT', '/api/customers/*').as('updateCustomer');
+      cy.intercept('POST', '/api/customers/' + customerId).as('updateCustomer');
       cy.byTestId('save-button').click();
       cy.wait('@updateCustomer');
 

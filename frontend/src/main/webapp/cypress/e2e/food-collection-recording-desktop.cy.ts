@@ -2,18 +2,14 @@ describe('Food Collection Recording', () => {
 
   beforeEach(() => {
     cy.loginDefault();
-
-    // Ensure no distribution is open from previous tests
-    cy.request({
-      method: 'POST',
-      url: '/api/distributions/close?forceClose=true',
-      failOnStatusCode: false
-    });
-
-    cy.intercept('POST', '/api/distributions/new').as('createDistribution');
     cy.createDistribution();
-    cy.wait('@createDistribution');
+
+    // Visit overview first to let SSE deliver the distribution state to GlobalStateService
+    cy.visit('/#/uebersicht');
+    cy.byTestId('distribution-state-text').should('have.text', 'Geöffnet');
+
     cy.visit('/#/logistik/warenerfassung');
+    cy.byTestId('routeInput').should('be.visible');
   });
 
   afterEach(() => {
@@ -22,7 +18,7 @@ describe('Food Collection Recording', () => {
 
   it('food collection recorded properly on desktop', () => {
     cy.getAnyRandomNumber().then((randomNumber) => {
-      cy.intercept('GET', '/api/food-collections/*').as('getFoodCollection');
+      cy.intercept('GET', '/api/food-collections/route/*').as('getFoodCollection');
       cy.intercept('GET', '/api/routes/*/shops').as('getShopsOfRoute');
       cy.byTestId('routeInput').select('Route 2');
       cy.wait('@getFoodCollection');
@@ -50,7 +46,7 @@ describe('Food Collection Recording', () => {
       cy.byTestId('codriver-employee-search-button').click();
 
       cy.byTestId('codriver-search-create-modal')
-        .should('be.visible')
+        .should('have.class', 'show')
         .within(() => {
           cy.byTestId('codriver-create-personnelnumber-input').type('personnelNumber-' + randomNumber);
           cy.byTestId('codriver-create-firstname-input').type('firstname-' + randomNumber);
@@ -65,7 +61,7 @@ describe('Food Collection Recording', () => {
       cy.byTestId('codriver-employee-search-button').click();
 
       cy.byTestId('codriver-select-employee-modal')
-        .should('be.visible')
+        .should('have.class', 'show')
         .within(() => {
           cy.byTestId('codriver-select-employee-row-0').should('exist');
           cy.byTestId('codriver-select-employee-row-1').should('exist');
@@ -73,11 +69,11 @@ describe('Food Collection Recording', () => {
         });
       cy.byTestId('selectedCoDriverDescription').should('have.text', '0500 Scanner 2');
 
-      cy.intercept('POST', '/api/food-collections/*/basedata').as('saveBaseData');
+      cy.intercept('POST', '/api/food-collections/route/*').as('saveBaseData');
       cy.byTestId('save-routedata-button').click();
 
       cy.byTestId('km-diff-modal')
-        .should('be.visible')
+        .should('have.class', 'show')
         .within(() => {
           cy.byTestId('ok-button').click();
         });
@@ -92,7 +88,7 @@ describe('Food Collection Recording', () => {
       cy.byTestId('select-items-tab').click();
       fillCategories();
 
-      cy.intercept('POST', '/api/food-collections/*/items').as('saveItems');
+      cy.intercept('POST', '/api/food-collections/route/*/items').as('saveItems');
       cy.byTestId('save-items-button').click();
       cy.wait('@saveItems');
       cy.byTestId('tafel-toast-header')
@@ -102,13 +98,13 @@ describe('Food Collection Recording', () => {
         });
 
       // check if existing data is filled again
-      cy.intercept('GET', '/api/food-collections/*').as('getFoodCollection2');
+      cy.intercept('GET', '/api/food-collections/route/*').as('getFoodCollection2');
       cy.intercept('GET', '/api/routes/*/shops').as('getShopsOfRoute2');
       cy.byTestId('routeInput').select('Route 1');
       cy.wait('@getFoodCollection2');
       cy.wait('@getShopsOfRoute2');
 
-      cy.intercept('GET', '/api/food-collections/*').as('getFoodCollection3');
+      cy.intercept('GET', '/api/food-collections/route/*').as('getFoodCollection3');
       cy.intercept('GET', '/api/routes/*/shops').as('getShopsOfRoute3');
       cy.byTestId('routeInput').select('Route 2');
       cy.wait('@getFoodCollection3');

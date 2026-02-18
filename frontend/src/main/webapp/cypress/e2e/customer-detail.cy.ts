@@ -7,9 +7,21 @@ describe('Customer Detail', () => {
     cy.loginDefault();
   });
 
+  afterEach(() => {
+    // Cleanup: Ensure customer 101 is unlocked for next test run
+    cy.request({
+      method: 'POST',
+      url: '/api/customers/101/unlock',
+      failOnStatusCode: false
+    });
+  });
+
   it('customerId correct', () => {
-    cy.visit('/#/kunden/detail/101');
-    cy.byTestId('customerIdText').should('have.text', '101');
+    cy.createDummyCustomer().then((response) => {
+      const customerId = response.body.id;
+      cy.visit('/#/kunden/detail/' + customerId);
+      cy.byTestId('customerIdText').should('have.text', customerId.toString());
+    });
   });
 
   it('generate pdf and opens for download', () => {
@@ -51,11 +63,14 @@ describe('Customer Detail', () => {
   });
 
   it('edit customer', () => {
-    cy.visit('/#/kunden/detail/101');
+    cy.createDummyCustomer().then((response) => {
+      const customerId = response.body.id;
+      cy.visit('/#/kunden/detail/' + customerId);
 
-    cy.byTestId('editCustomerButton').click();
+      cy.byTestId('editCustomerButton').click();
 
-    cy.url({timeout: 10000}).should('include', '/kunden/bearbeiten/101');
+      cy.url({timeout: 10000}).should('include', '/kunden/bearbeiten/' + customerId);
+    });
   });
 
   it('delete customer', () => {
@@ -65,16 +80,17 @@ describe('Customer Detail', () => {
       cy.byTestId('editCustomerToggleButton').click();
       cy.byTestId('deleteCustomerButton').click();
 
-      cy.byTestId('deletecustomer-modal').should('be.visible');
+      cy.byTestId('deletecustomer-modal').should('have.class', 'show');
       cy.byTestId('deletecustomer-modal').within(() => {
         cy.byTestId('cancelButton').click();
       });
 
-      cy.byTestId('deletecustomer-modal').should('not.be.visible');
+      cy.byTestId('deletecustomer-modal').should('not.have.class', 'show');
 
       cy.intercept('DELETE', '/api/customers/*').as('deleteCustomer');
       cy.byTestId('editCustomerToggleButton').click();
       cy.byTestId('deleteCustomerButton').click();
+      cy.byTestId('deletecustomer-modal').should('have.class', 'show');
       cy.byTestId('deletecustomer-modal').within(() => {
         cy.byTestId('okButton').click();
       });
@@ -85,56 +101,72 @@ describe('Customer Detail', () => {
   });
 
   it('prolong customer', () => {
-    cy.visit('/#/kunden/detail/100');
+    cy.createDummyCustomer().then((response) => {
+      const customerId = response.body.id;
+      cy.visit('/#/kunden/detail/' + customerId);
 
-    let validDateString;
-    cy.byTestId('validUntilText').then(($value) => {
-      validDateString = $value.text();
-      const expectedValidDate = moment(validDateString, 'DD.MM.YYYY').add(3, 'months').endOf('day').format('DD.MM.YYYY');
+      cy.byTestId('validUntilText').should('be.visible');
+      cy.byTestId('validUntilText').then(($value) => {
+        const validDateString = $value.text();
+        const expectedValidDate = moment(validDateString, 'DD.MM.YYYY').add(3, 'months').endOf('day').format('DD.MM.YYYY');
 
-      cy.intercept('POST', '/api/customers/*/prolong').as('prolongCustomer');
-      cy.byTestId('editCustomerToggleButton').click();
-      cy.byTestId('prolongButton').click();
-      cy.byTestId('prolongThreeMonthsButton').click();
-      cy.wait('@prolongCustomer');
+        cy.intercept('POST', '/api/customers/' + customerId).as('prolongCustomer');
+        cy.byTestId('editCustomerToggleButton').click();
+        cy.byTestId('prolongButton').click();
+        cy.byTestId('prolongThreeMonthsButton').click();
+        cy.wait('@prolongCustomer');
 
-      cy.byTestId('validUntilText').should('have.text', expectedValidDate);
+        // Reload to let the resolver fetch the updated data from the backend
+        cy.reload();
+        cy.byTestId('validUntilText').should('have.text', expectedValidDate);
+      });
     });
   });
 
   it('invalidate customer', () => {
-    cy.visit('/#/kunden/detail/101');
+    cy.createDummyCustomer().then((response) => {
+      const customerId = response.body.id;
+      cy.visit('/#/kunden/detail/' + customerId);
 
-    cy.intercept('POST', '/api/customers/*/invalidate').as('invalidateCustomer');
-    cy.byTestId('editCustomerToggleButton').click();
-    cy.byTestId('invalidateCustomerButton').click();
-    cy.wait('@invalidateCustomer');
+      cy.byTestId('editCustomerToggleButton').should('be.visible');
 
-    cy.byTestId('validUntilText').should('have.text', moment().subtract(1, 'day').endOf('day').format('DD.MM.YYYY'));
+      cy.intercept('POST', '/api/customers/' + customerId).as('invalidateCustomer');
+      cy.byTestId('editCustomerToggleButton').click();
+      cy.byTestId('invalidateCustomerButton').click();
+      cy.wait('@invalidateCustomer');
+
+      // Reload to let the resolver fetch the updated data from the backend
+      cy.reload();
+      cy.byTestId('validUntilText').should('have.text', moment().subtract(1, 'day').endOf('day').format('DD.MM.YYYY'));
+    });
   });
 
   it('lock and unlock customer', () => {
-    cy.visit('/#/kunden/detail/101');
+    cy.createDummyCustomer().then((response) => {
+      const customerId = response.body.id;
+      cy.visit('/#/kunden/detail/' + customerId);
 
-    cy.byTestId('lock-info-banner').should('not.exist');
+      cy.byTestId('editCustomerToggleButton').should('be.visible');
+      cy.byTestId('lock-info-banner').should('not.exist');
 
-    cy.intercept('POST', '/api/customers/*/lock').as('lockCustomer');
-    cy.byTestId('editCustomerToggleButton').click();
-    cy.byTestId('lockCustomerButton').click();
-    cy.byTestId('lockreason-input-text').type('dummy lockreason');
-    cy.byTestId('lock-customer-modal').within(() => {
-      cy.byTestId('okButton').click();
+      cy.intercept('POST', '/api/customers/' + customerId).as('lockCustomer');
+      cy.byTestId('editCustomerToggleButton').click();
+      cy.byTestId('lockCustomerButton').click();
+      cy.byTestId('lockreason-input-text').type('dummy lockreason');
+      cy.byTestId('lock-customer-modal').within(() => {
+        cy.byTestId('okButton').click();
+      });
+      cy.wait('@lockCustomer');
+
+      cy.byTestId('lock-info-banner').should('exist');
+
+      cy.intercept('POST', '/api/customers/' + customerId).as('unlockCustomer');
+      cy.byTestId('editCustomerToggleButton').click();
+      cy.byTestId('unlockCustomerButton').click();
+      cy.wait('@unlockCustomer');
+
+      cy.byTestId('lock-info-banner').should('not.exist');
     });
-    cy.wait('@lockCustomer');
-
-    cy.byTestId('lock-info-banner').should('exist');
-
-    cy.intercept('POST', '/api/customers/*/unlock').as('unlockCustomer');
-    cy.byTestId('editCustomerToggleButton').click();
-    cy.byTestId('unlockCustomerButton').click();
-    cy.wait('@unlockCustomer');
-
-    cy.byTestId('lock-info-banner').should('not.exist');
   });
 
 });

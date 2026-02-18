@@ -5,36 +5,45 @@ describe('User Detail', () => {
   });
 
   it('userId correct', () => {
-    cy.visit('/#/benutzer/detail/300');
-    cy.byTestId('usernameText').should('have.text', 'admin');
+    cy.createDummyUser().then(response => {
+      const user = response.body;
+      cy.visit('/#/benutzer/detail/' + user.id);
+      cy.byTestId('usernameText').should('have.text', user.username);
+    });
   });
 
   it('disable and re-enable user', () => {
-    cy.visit('/#/benutzer/detail/300');
+    cy.createDummyUser().then(response => {
+      const user = response.body;
 
-    cy.byTestId('enabledText').should('have.text', 'Ja');
+      cy.visit('/#/benutzer/detail/' + user.id);
+      cy.byTestId('enabledText').should('have.text', 'Ja');
 
-    cy.intercept('POST', '/api/users/*/disable').as('disableUser');
-    cy.byTestId('changeUserStateButton').click();
-    cy.byTestId('disableUserButton').click();
-    cy.wait('@disableUser');
+      cy.intercept('POST', '/api/users/' + user.id).as('disableUser');
+      cy.byTestId('changeUserStateButton').click();
+      cy.byTestId('disableUserButton').click();
+      cy.wait('@disableUser');
 
-    cy.byTestId('enabledText').should('have.text', 'Nein');
+      cy.byTestId('enabledText').should('have.text', 'Nein');
 
-    cy.intercept('POST', '/api/users/*/enable').as('enableUser');
-    cy.byTestId('changeUserStateButton').click();
-    cy.byTestId('enableUserButton').click();
-    cy.wait('@enableUser');
+      cy.intercept('POST', '/api/users/' + user.id).as('enableUser');
+      cy.byTestId('changeUserStateButton').click();
+      cy.byTestId('enableUserButton').click();
+      cy.wait('@enableUser');
 
-    cy.byTestId('enabledText').should('have.text', 'Ja');
+      cy.byTestId('enabledText').should('have.text', 'Ja');
+    });
   });
 
   it('edit user', () => {
-    cy.visit('/#/benutzer/detail/100');
+    cy.createDummyUser().then(response => {
+      const user = response.body;
+      cy.visit('/#/benutzer/detail/' + user.id);
 
-    cy.byTestId('editUserButton').click();
+      cy.byTestId('editUserButton').click();
 
-    cy.url().should('include', '/benutzer/bearbeiten/100');
+      cy.url().should('include', '/benutzer/bearbeiten/' + user.id);
+    });
   });
 
   it('delete user', () => {
