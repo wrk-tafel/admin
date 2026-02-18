@@ -12,7 +12,9 @@ describe('Dashboard', () => {
     cy.byTestId('distribution-state-text').should('have.text', 'Geschlossen');
 
     // create distribution (event) - OPEN
+    cy.intercept('POST', '/api/distributions/new').as('createDistribution');
     cy.byTestId('distribution-start-button').click();
+    cy.wait('@createDistribution');
     cy.byTestId('distribution-state-text').should('have.text', 'Geöffnet');
 
     // fill employee count
@@ -26,28 +28,38 @@ describe('Dashboard', () => {
     cy.byTestId('selectshelters-save-button').click();
     cy.byTestId('distribution-statistics-persons-in-shelter-input').should('have.value', '150');
 
+    cy.intercept('POST', '/api/distributions/statistics').as('saveStatistics');
     cy.byTestId('distribution-statistics-save-button').click();
+    cy.wait('@saveStatistics');
 
     // fill notes
+    cy.intercept('POST', '/api/distributions/notes').as('saveNotes');
     cy.byTestId('distribution-notes-textarea').type('Test note - everything went well!');
     cy.byTestId('distribution-notes-save-button').click();
+    cy.wait('@saveNotes');
 
     // check if data is filled after reload
+    cy.intercept('GET', '/api/sse/dashboard').as('dashboardSSE');
     cy.reload();
+    cy.wait('@dashboardSSE');
     cy.byTestId('distribution-statistics-employee-count-input').should('have.value', '100');
     cy.byTestId('distribution-statistics-persons-in-shelter-input').should('have.value', '150');
     cy.byTestId('distribution-notes-textarea').should('have.value', 'Test note - everything went well!');
 
     // --> CLOSED
+    cy.intercept('POST', '/api/distributions/close*').as('closeDistribution');
     cy.byTestId('distribution-close-button').click();
     cy.byTestId('distribution-close-modal-ok-button').click();
     cy.byTestId('distribution-close-validation-modal-ok-button').click();
+    cy.wait('@closeDistribution');
     cy.byTestId('distribution-state-text').should('have.text', 'Geschlossen');
   });
 
   it('download customer list', () => {
     cy.byTestId('download-customerlist-button').should('not.exist');
+    cy.intercept('POST', '/api/distributions/new').as('createDistribution');
     cy.createDistribution();
+    cy.wait('@createDistribution');
 
     const downloadCustomerListButton = cy.byTestId('download-customerlist-button');
     downloadCustomerListButton.should('be.visible');
