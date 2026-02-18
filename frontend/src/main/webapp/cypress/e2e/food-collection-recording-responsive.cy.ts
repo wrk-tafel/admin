@@ -2,6 +2,14 @@ describe('Food Collection Recording', () => {
 
   beforeEach(() => {
     cy.loginDefault();
+
+    // Ensure no distribution is open from previous tests
+    cy.request({
+      method: 'POST',
+      url: '/api/distributions/close?forceClose=true',
+      failOnStatusCode: false
+    });
+
     cy.intercept('POST', '/api/distributions/new').as('createDistribution');
     cy.createDistribution();
     cy.wait('@createDistribution');

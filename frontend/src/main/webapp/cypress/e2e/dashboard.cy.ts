@@ -11,6 +11,13 @@ describe('Dashboard', () => {
   it('create and stop distribution', () => {
     cy.byTestId('distribution-state-text').should('have.text', 'Geschlossen');
 
+    // Ensure no distribution is open from previous tests
+    cy.request({
+      method: 'POST',
+      url: '/api/distributions/close?forceClose=true',
+      failOnStatusCode: false
+    });
+
     // create distribution (event) - OPEN
     cy.intercept('POST', '/api/distributions/new').as('createDistribution');
     cy.byTestId('distribution-start-button').click();
@@ -57,6 +64,14 @@ describe('Dashboard', () => {
 
   it('download customer list', () => {
     cy.byTestId('download-customerlist-button').should('not.exist');
+
+    // Ensure no distribution is open from previous tests
+    cy.request({
+      method: 'POST',
+      url: '/api/distributions/close?forceClose=true',
+      failOnStatusCode: false
+    });
+
     cy.intercept('POST', '/api/distributions/new').as('createDistribution');
     cy.createDistribution();
     cy.wait('@createDistribution');
