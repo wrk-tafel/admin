@@ -5,12 +5,14 @@ describe('Scanner', () => {
   });
 
   it('connection and webcam initialized successfully', () => {
+    cy.intercept('POST', '/api/scanners').as('registerScanner');
     cy.visit('/#/anmeldung/scanner');
 
-    // to be safe having the sse-connection established and the webcam ready
-    cy.wait(2000);
+    // Wait for scanner registration API call
+    cy.wait('@registerScanner');
 
-    cy.byTestId('state-camera').should('have.class', 'bg-success');
+    // Wait for camera to be ready (the component sets the state)
+    cy.byTestId('state-camera').should('have.class', 'bg-success', {timeout: 10000});
     cy.byTestId('scanner-id').should('have.text', '1');
   });
 

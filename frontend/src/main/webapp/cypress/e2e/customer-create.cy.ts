@@ -21,7 +21,9 @@ describe('Customer Creation', () => {
         cy.byTestId('ok-button').click();
       });
 
+    cy.intercept('POST', '/api/customers').as('createCustomer');
     cy.byTestId('save-button').click();
+    cy.wait('@createCustomer');
 
     cy.url().should('include', '/kunden/detail');
   });

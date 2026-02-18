@@ -21,7 +21,10 @@ describe('User Create', () => {
       cy.byTestId('permission-checkbox-0').click();
 
       cy.byTestId('permission-checkbox-2').click();
+
+      cy.intercept('POST', '/api/users').as('createUser');
       cy.byTestId('save-button').click();
+      cy.wait('@createUser');
 
       cy.url().should('contain', `/benutzer/detail`);
       cy.byTestId('usernameText').should('have.text', username);

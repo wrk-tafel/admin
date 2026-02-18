@@ -16,7 +16,10 @@ describe('Customer Edit', () => {
       .within(() => {
         cy.byTestId('ok-button').click();
       });
+
+    cy.intercept('PUT', '/api/customers/*').as('updateCustomer');
     cy.byTestId('save-button').click();
+    cy.wait('@updateCustomer');
 
     cy.url().should('contain', '/kunden/detail/102');
 
@@ -44,7 +47,9 @@ describe('Customer Edit', () => {
           cy.byTestId('ok-button').click();
         });
 
+      cy.intercept('PUT', '/api/customers/*').as('updateCustomer');
       cy.byTestId('save-button').click();
+      cy.wait('@updateCustomer');
 
       cy.url().should('contain', '/kunden/detail/' + customerId);
     });

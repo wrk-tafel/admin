@@ -21,7 +21,9 @@ describe('Dashboard', () => {
     cy.byTestId('email-input-STATISTICS-TO-0').type('test-to@email.com');
 
     // Save
+    cy.intercept('POST', '/api/settings/mail-addresses').as('saveSettings');
     cy.byTestId('save-button').click();
+    cy.wait('@saveSettings');
     cy.byTestId('tafel-toast-header')
       .should('be.visible')
       .within(() => {
@@ -34,8 +36,10 @@ describe('Dashboard', () => {
     cy.byTestId('email-input-STATISTICS-CC-0').should('have.value', 'test-cc@email.com');
 
     // Reset
+    cy.intercept('POST', '/api/settings/mail-addresses').as('saveSettings2');
     cy.byTestId('remove-recipient-button-STATISTICS-CC-0').click();
     cy.byTestId('save-button').click();
+    cy.wait('@saveSettings2');
   });
 
 });

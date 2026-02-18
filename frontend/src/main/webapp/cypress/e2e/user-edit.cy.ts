@@ -21,7 +21,10 @@ describe('User Edit', () => {
       cy.byTestId('firstnameInput').type(`${user.firstname} updated`);
 
       cy.byTestId('permission-checkbox-0').click();
+
+      cy.intercept('PUT', '/api/users/*').as('updateUser');
       cy.byTestId('save-button').click();
+      cy.wait('@updateUser');
 
       cy.url().should('contain', '/benutzer/detail/' + user.id);
 
