@@ -35,6 +35,7 @@ export class TicketScreenControlComponent {
   // Loading states to prevent double-clicks
   isShowingStartTime = signal(false);
   isShowingCurrentTicket = signal(false);
+  isShowingPreviousTicket = signal(false);
   isShowingNextTicket = signal(false);
 
   openScreenInNewTab() {
@@ -75,9 +76,23 @@ export class TicketScreenControlComponent {
       });
   }
 
-  showNextTicket() {
+  showPreviousTicket() {
+    this.isShowingPreviousTicket.set(true);
+    this.distributionTicketScreenApiService.showPreviousTicket()
+      .pipe(finalize(() => this.isShowingPreviousTicket.set(false)))
+      .subscribe({
+        error: () => {
+          this.toastService.showToast({
+            type: ToastType.ERROR,
+            title: 'Fehler beim Anzeigen des vorherigen Tickets!'
+          });
+        }
+      });
+  }
+
+  showNextTicket(costContributionPaid: boolean) {
     this.isShowingNextTicket.set(true);
-    this.distributionTicketScreenApiService.showNextTicket()
+    this.distributionTicketScreenApiService.showNextTicket(costContributionPaid)
       .pipe(finalize(() => this.isShowingNextTicket.set(false)))
       .subscribe({
         error: () => {

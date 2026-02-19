@@ -21,8 +21,16 @@ export class DistributionTicketScreenApiService {
     return this.http.post<void>('/distributions/ticket-screen/show-current', undefined);
   }
 
-  showNextTicket(): Observable<void> {
-    return this.http.post<void>('/distributions/ticket-screen/show-next', undefined);
+  showPreviousTicket(): Observable<void> {
+    return this.http.post<void>('/distributions/ticket-screen/show-previous', undefined);
+  }
+
+  showNextTicket(costContributionPaid: boolean): Observable<void> {
+    const request: TicketScreenShowNextTicketRequest = {
+      costContributionPaid: costContributionPaid,
+    };
+
+    return this.http.post<void>('/distributions/ticket-screen/show-next', request);
   }
 
 }
@@ -30,4 +38,8 @@ export class DistributionTicketScreenApiService {
 export interface TicketScreenShowTextRequest {
   text: string;
   value: string;
+}
+
+export interface TicketScreenShowNextTicketRequest {
+  costContributionPaid: boolean;
 }

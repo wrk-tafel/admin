@@ -368,7 +368,6 @@ internal class DistributionServiceTest {
     fun `assign customer without existing customer`() {
         val customerId = 1L
         val ticketNumber = 200
-        val costContributionPaid = true
 
         val activeDistribution = testDistributionEntity.apply { endedAt = null }
         every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
@@ -378,7 +377,6 @@ internal class DistributionServiceTest {
             service.assignCustomerToDistribution(
                 customerId = customerId,
                 ticketNumber = ticketNumber,
-                costContributionPaid = costContributionPaid
             )
         }
 
@@ -389,7 +387,6 @@ internal class DistributionServiceTest {
     fun `assign customer successful`() {
         val customerId = 1L
         val ticketNumber = 200
-        val costContributionPaid = true
 
         val activeDistribution = testDistributionEntity.apply { endedAt = null }
         every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
@@ -399,7 +396,6 @@ internal class DistributionServiceTest {
         service.assignCustomerToDistribution(
             customerId = customerId,
             ticketNumber = ticketNumber,
-            costContributionPaid = costContributionPaid
         )
 
         verify {
@@ -422,7 +418,6 @@ internal class DistributionServiceTest {
         }
         val customerId = 1L
         val updatedTicketNumber = 300
-        val updatedCostContributionPaid = true
 
         every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
         every { customerRepository.findByCustomerId(customerId) } returns testCustomerEntity1
@@ -431,7 +426,6 @@ internal class DistributionServiceTest {
         service.assignCustomerToDistribution(
             customerId = customerId,
             ticketNumber = updatedTicketNumber,
-            costContributionPaid = updatedCostContributionPaid
         )
 
         verify {
@@ -439,7 +433,6 @@ internal class DistributionServiceTest {
                 assertThat(it.customer).isEqualTo(testCustomerEntity1)
                 assertThat(it.distribution).isEqualTo(testDistributionEntity)
                 assertThat(it.ticketNumber).isEqualTo(updatedTicketNumber)
-                assertThat(it.costContributionPaid).isEqualTo(updatedCostContributionPaid)
             })
         }
     }
@@ -455,7 +448,6 @@ internal class DistributionServiceTest {
         }
         val customerId = 2L
         val ticketNumber = 50
-        val costContributionPaid = true
 
         every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
         every { customerRepository.findByCustomerId(customerId) } returns testCustomerEntity1
@@ -464,7 +456,6 @@ internal class DistributionServiceTest {
             service.assignCustomerToDistribution(
                 customerId = customerId,
                 ticketNumber = ticketNumber,
-                costContributionPaid = costContributionPaid
             )
         }
         assertThat(exception.message).isEqualTo("Ticketnummer $ticketNumber bereits vergeben!")
@@ -607,17 +598,61 @@ internal class DistributionServiceTest {
     }
 
     @Test
-    fun `close ticket and next without registered customers`() {
+    fun `reopen ticket and previous one without registered customers`() {
         val activeDistribution = testDistributionEntity.apply { endedAt = null }
         every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
 
-        val ticket = service.closeCurrentTicketAndGetNext()
+        val ticket = service.reopenAndGetPreviousTicket()
 
         assertThat(ticket).isNull()
     }
 
     @Test
-    fun `close ticket and next with open tickets left`() {
+    fun `reopen ticket and previous with open tickets before`() {
+        every { distributionCustomerRepository.save(any()) } returns mockk<DistributionCustomerEntity>()
+
+        val testDistributionCustomerEntity1 = DistributionCustomerEntity().apply {
+            id = 1
+            createdAt = LocalDateTime.now()
+            distribution = testDistributionEntity
+            customer = testCustomerEntity1
+            ticketNumber = 1
+            costContributionPaid = true
+            processed = true
+        }
+
+        val testDistributionCustomerEntity2 = DistributionCustomerEntity().apply {
+            id = 2
+            createdAt = LocalDateTime.now()
+            distribution = testDistributionEntity
+            customer = testCustomerEntity2
+            ticketNumber = 2
+            processed = false
+        }
+
+        val testDistributionEntity = DistributionEntity().apply {
+            id = 123
+            endedAt = null
+            customers = listOf(
+                testDistributionCustomerEntity1,
+                testDistributionCustomerEntity2
+            )
+        }
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
+
+        val ticket = service.reopenAndGetPreviousTicket()
+
+        assertThat(ticket).isEqualTo(1)
+        verify {
+            distributionCustomerRepository.save(withArg {
+                assertThat(it.costContributionPaid).isTrue()
+                assertThat(it.processed).isFalse()
+            })
+        }
+    }
+
+    @Test
+    fun `reopen ticket and previous without open tickets before`() {
         every { distributionCustomerRepository.save(any()) } returns mockk<DistributionCustomerEntity>()
 
         val testDistributionCustomerEntity1 = DistributionCustomerEntity().apply {
@@ -648,18 +683,75 @@ internal class DistributionServiceTest {
         }
         every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
 
-        val ticket = service.closeCurrentTicketAndGetNext()
+        val ticket = service.reopenAndGetPreviousTicket()
+
+        assertThat(ticket).isEqualTo(1)
+        verify(exactly = 0) {
+            distributionCustomerRepository.save(any())
+        }
+    }
+
+    @Test
+    fun `close current ticket and next without registered customers`() {
+        val activeDistribution = testDistributionEntity.apply { endedAt = null }
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
+
+        val ticket = service.closeCurrentTicketAndGetNext(
+            costContributionPaid = false
+        )
+
+        assertThat(ticket).isNull()
+    }
+
+    @Test
+    fun `close current ticket and next with open tickets left`() {
+        every { distributionCustomerRepository.save(any()) } returns mockk<DistributionCustomerEntity>()
+
+        val testDistributionCustomerEntity1 = DistributionCustomerEntity().apply {
+            id = 1
+            createdAt = LocalDateTime.now()
+            distribution = testDistributionEntity
+            customer = testCustomerEntity1
+            ticketNumber = 1
+            costContributionPaid = false
+            processed = false
+        }
+
+        val testDistributionCustomerEntity2 = DistributionCustomerEntity().apply {
+            id = 2
+            createdAt = LocalDateTime.now()
+            distribution = testDistributionEntity
+            customer = testCustomerEntity2
+            ticketNumber = 2
+            costContributionPaid = false
+            processed = false
+        }
+
+        val testDistributionEntity = DistributionEntity().apply {
+            id = 123
+            endedAt = null
+            customers = listOf(
+                testDistributionCustomerEntity1,
+                testDistributionCustomerEntity2
+            )
+        }
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
+
+        val ticket = service.closeCurrentTicketAndGetNext(
+            costContributionPaid = true
+        )
 
         assertThat(ticket).isEqualTo(2)
         verify {
             distributionCustomerRepository.save(withArg {
+                assertThat(it.costContributionPaid).isTrue()
                 assertThat(it.processed).isTrue()
             })
         }
     }
 
     @Test
-    fun `close ticket and next with all tickets resolved`() {
+    fun `close current ticket and next with all tickets resolved`() {
         val testDistributionCustomerEntity1 = DistributionCustomerEntity().apply {
             id = 1
             createdAt = LocalDateTime.now()
@@ -678,7 +770,7 @@ internal class DistributionServiceTest {
         }
         every { distributionRepository.findFirstByOrderByIdDesc() } returns testDistributionEntity
 
-        val ticket = service.closeCurrentTicketAndGetNext()
+        val ticket = service.closeCurrentTicketAndGetNext(false)
 
         assertThat(ticket).isNull()
     }

@@ -19,6 +19,7 @@ class DistributionTicketScreenController(
     companion object {
         private val logger = LoggerFactory.getLogger(DistributionTicketController::class.java)
         const val TICKET_SCREEN_SHOW_VALUE_NOTIFICATION_NAME = "ticket_screen_show_value"
+        const val TICKET_SCREEN_TITLE = "Ticket"
     }
 
     @PostMapping("/distributions/ticket-screen/show-text")
@@ -36,16 +37,25 @@ class DistributionTicketScreenController(
             ticketNumber
         }
 
-        saveToOutbox(text = "Ticketnummer", response?.toString())
+        saveToOutbox(text = TICKET_SCREEN_TITLE, response?.toString())
+    }
+
+    @PostMapping("/distributions/ticket-screen/show-previous")
+    @TafelActiveDistributionRequired
+    fun showPreviousTicket() {
+        val previousTicketNumber = service.reopenAndGetPreviousTicket()
+        logger.info("Ticket-Log - fetched previous ticket-number: $previousTicketNumber")
+
+        saveToOutbox(text = TICKET_SCREEN_TITLE, value = previousTicketNumber?.toString())
     }
 
     @PostMapping("/distributions/ticket-screen/show-next")
     @TafelActiveDistributionRequired
-    fun showNextTicket() {
-        val nextTicketNumber = service.closeCurrentTicketAndGetNext()
+    fun showNextTicket(@RequestBody request: TicketScreenShowNextTicketRequest) {
+        val nextTicketNumber = service.closeCurrentTicketAndGetNext(request.costContributionPaid)
         logger.info("Ticket-Log - fetched next ticket-number: $nextTicketNumber")
 
-        saveToOutbox(text = "Ticketnummer", value = nextTicketNumber?.toString())
+        saveToOutbox(text = TICKET_SCREEN_TITLE, value = nextTicketNumber?.toString())
     }
 
     @GetMapping("/sse/distributions/ticket-screen/current")
@@ -57,7 +67,7 @@ class DistributionTicketScreenController(
         service.getCurrentDistribution()?.let {
             currentTicketNumber = service.getCurrentTicketNumber()?.ticketNumber
         }
-        val payload = TicketScreenShowText("Ticketnummer", currentTicketNumber?.toString())
+        val payload = TicketScreenShowText(TICKET_SCREEN_TITLE, currentTicketNumber?.toString())
         sseOutboxService.sendEvent(sseEmitter, payload)
 
         sseOutboxService.forwardNotificationEventsToSse(
@@ -85,4 +95,9 @@ class DistributionTicketScreenController(
 data class TicketScreenShowText(
     val text: String,
     val value: String?,
+)
+
+@ExcludeFromTestCoverage
+data class TicketScreenShowNextTicketRequest(
+    val costContributionPaid: Boolean
 )

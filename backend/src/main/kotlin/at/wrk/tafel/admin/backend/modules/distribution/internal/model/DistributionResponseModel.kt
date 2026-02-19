@@ -24,13 +24,11 @@ data class DistributionItem(
 data class AssignCustomerRequest(
     val customerId: Long,
     val ticketNumber: Int,
-    val costContributionPaid: Boolean,
 )
 
 @ExcludeFromTestCoverage
 data class TicketNumberResponse(
-    val ticketNumber: Int?,
-    val costContributionPaid: Boolean,
+    val ticketNumber: Int?
 )
 
 @ExcludeFromTestCoverage

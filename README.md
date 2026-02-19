@@ -7,14 +7,11 @@
 # TODO
 
 # Prio 1
-* Move cost contribution from CheckIn to ticket screen (after checkin, before distribution) - time when its payed
-** Keep on checkin to show debts
 * Replace cdr.detectChanges() with signals to show/hide modals
 * Add file upload / documents (e.g. for proof of income, school enrollement, ID, etc.) to customer details
 
 * Bug: Mails aren't sent sometimes
 
-* Feat: Move cost contribution paid flag to processing customers (not checkin)
 * Feat: Monitor switch ticket back and forth between ticket-numbers (maybe history of ticket-numbers?)
 
 * Bug: customer creation - field birthDate form control validation not working (red/green border)

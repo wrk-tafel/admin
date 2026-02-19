@@ -2,7 +2,6 @@ package at.wrk.tafel.admin.backend.modules.distribution
 
 import at.wrk.tafel.admin.backend.database.common.sse_outbox.SseOutboxService
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
-import at.wrk.tafel.admin.backend.database.model.distribution.getCurrentDistribution
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelException
 import at.wrk.tafel.admin.backend.modules.distribution.DistributionController.Companion.DISTRIBUTION_UPDATE_NOTIFICATION_NAME
 import at.wrk.tafel.admin.backend.modules.distribution.internal.DistributionService
@@ -332,12 +331,11 @@ internal class DistributionControllerTest {
         every {
             service.assignCustomerToDistribution(
                 any(),
-                any(),
-                any(),
+                any()
             )
         } throws TafelException("dummy error")
 
-        val requestBody = AssignCustomerRequest(customerId = 1, ticketNumber = 100, costContributionPaid = true)
+        val requestBody = AssignCustomerRequest(customerId = 1, ticketNumber = 100)
 
         val exception = assertThrows<TafelException> {
             controller.assignCustomerToDistribution(requestBody)
@@ -348,7 +346,7 @@ internal class DistributionControllerTest {
 
     @Test
     fun `assign customer with valid data`() {
-        val requestBody = AssignCustomerRequest(customerId = 1, ticketNumber = 100, costContributionPaid = true)
+        val requestBody = AssignCustomerRequest(customerId = 1, ticketNumber = 100)
         val response = controller.assignCustomerToDistribution(requestBody)
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.NO_CONTENT)

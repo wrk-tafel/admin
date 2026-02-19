@@ -96,8 +96,7 @@ class DistributionService(
     @Transactional
     fun assignCustomerToDistribution(
         customerId: Long,
-        ticketNumber: Int,
-        costContributionPaid: Boolean,
+        ticketNumber: Int
     ) {
         val distribution = getCurrentDistribution()!!
 
@@ -114,7 +113,6 @@ class DistributionService(
         entry.distribution = distribution
         entry.customer = customer
         entry.ticketNumber = ticketNumber
-        entry.costContributionPaid = costContributionPaid
         entry.processed = false
 
         distributionCustomerRepository.save(entry)
@@ -154,18 +152,35 @@ class DistributionService(
     fun getCurrentTicketNumber(customerId: Long? = null): DistributionCustomerEntity? {
         val distribution = getCurrentDistribution()!!
 
-        val distributionCustomerEntity = getDistributionCustomerEntity(distribution, customerId)
+        val distributionCustomerEntity = getFirstUnprocessedDistributionCustomerEntity(distribution, customerId)
         logger.info("Ticket-Log - Fetched current ticket-number (service): ${distributionCustomerEntity?.ticketNumber}")
         return distributionCustomerEntity
     }
 
     @Transactional
-    fun closeCurrentTicketAndGetNext(): Int? {
+    fun reopenAndGetPreviousTicket(): Int? {
         val distribution = getCurrentDistribution()!!
 
-        val distributionCustomerEntity = getDistributionCustomerEntity(distribution)
+        val distributionCustomerEntity = getLastProcessedDistributionCustomerEntity(distribution)
 
         if (distributionCustomerEntity != null) {
+            distributionCustomerEntity.processed = false
+            distributionCustomerRepository.save(distributionCustomerEntity)
+            logger.info("Ticket-Log - Reopened ticket-number: ${distributionCustomerEntity.ticketNumber}")
+        }
+
+        val currentTicketNumber = getCurrentTicketNumber()?.ticketNumber
+        return currentTicketNumber
+    }
+
+    @Transactional
+    fun closeCurrentTicketAndGetNext(costContributionPaid: Boolean): Int? {
+        val distribution = getCurrentDistribution()!!
+
+        val distributionCustomerEntity = getFirstUnprocessedDistributionCustomerEntity(distribution)
+
+        if (distributionCustomerEntity != null) {
+            distributionCustomerEntity.costContributionPaid = costContributionPaid
             distributionCustomerEntity.processed = true
             distributionCustomerRepository.save(distributionCustomerEntity)
 
@@ -180,7 +195,7 @@ class DistributionService(
     fun deleteCurrentTicket(customerId: Long): Boolean {
         val distribution = getCurrentDistribution()!!
 
-        val distributionCustomerEntity = getDistributionCustomerEntity(distribution, customerId)
+        val distributionCustomerEntity = getFirstUnprocessedDistributionCustomerEntity(distribution, customerId)
         logger.info("Ticket-Log - Deleted ticket-number: ${distributionCustomerEntity?.ticketNumber}, customer ${distributionCustomerEntity?.customer?.customerId}")
 
         return distributionCustomerEntity?.let {
@@ -274,7 +289,19 @@ class DistributionService(
         return result!!
     }
 
-    private fun getDistributionCustomerEntity(
+    private fun getLastProcessedDistributionCustomerEntity(
+        distribution: DistributionEntity,
+        customerId: Long? = null,
+    ): DistributionCustomerEntity? {
+        return distribution.customers
+            .asSequence()
+            .filter { customerId == null || it.customer?.customerId == customerId }
+            .filter { it.processed == true }
+            .sortedBy { it.ticketNumber }
+            .lastOrNull()
+    }
+
+    private fun getFirstUnprocessedDistributionCustomerEntity(
         distribution: DistributionEntity,
         customerId: Long? = null,
     ): DistributionCustomerEntity? {

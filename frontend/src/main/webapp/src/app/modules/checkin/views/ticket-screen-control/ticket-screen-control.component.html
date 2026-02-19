@@ -13,37 +13,73 @@
         <hr>
       </c-col>
     </c-row>
-    <form [formGroup]="form">
-      <c-row>
-        <c-col sm="3" class="d-flex flex-row">
-          <label class="form-label">Ausgabestart:</label>
-          <input testid="starttime-input" type="time" formControlName="startTime" class="form-control ms-3" (keydown.enter)="showStartTime()"
-                 [ngClass]="{'is-invalid': startTime.invalid && (startTime.dirty || startTime.touched), 'is-valid': startTime.valid && (startTime.dirty || startTime.touched)}">
-        </c-col>
-        <c-col sm="1">
-          <button testid="show-starttime-button" cButton class="mt-3 mt-sm-0" (click)="showStartTime()" [disabled]="isShowingStartTime()">Anzeigen</button>
-        </c-col>
-        <c-col sm="8" class="text-end">
-          <button testid="show-currentticket-button" cButton class="mt-3 mt-sm-0" (click)="showCurrentTicket()" [disabled]="isShowingCurrentTicket()">Aktuelles Ticket anzeigen</button>
-          <button testid="show-nextticket-button" cButton class="ms-0 ms-sm-3 mt-3 mt-sm-0" (click)="showNextTicket()" [disabled]="isShowingNextTicket()">Weiter zum nächsten Ticket</button>
-        </c-col>
-      </c-row>
-    </form>
     <c-row>
       <c-col>
-        <hr>
+        <c-row>
+          <form [formGroup]="form">
+            <c-col>
+              <c-row>
+                <c-col sm="3">
+                  <label class="form-label">Ausgabestart:</label>
+                </c-col>
+                <c-col sm="5">
+                  <input testid="starttime-input" type="time" formControlName="startTime" class="form-control" (keydown.enter)="showStartTime()"
+                         [ngClass]="{'is-invalid': startTime.invalid && (startTime.dirty || startTime.touched), 'is-valid': startTime.valid && (startTime.dirty || startTime.touched)}">
+                </c-col>
+                <c-col sm="3">
+                  <button testid="show-starttime-button" cButton (click)="showStartTime()" [disabled]="isShowingStartTime()">Anzeigen</button>
+                </c-col>
+              </c-row>
+              <c-row>
+                <c-col>
+                  <hr/>
+                </c-col>
+              </c-row>
+              <c-row>
+                <c-col>
+                  <label class="form-label me-3">Tickets:</label>
+                </c-col>
+                <c-col sm="9">
+                  <button testid="show-currentticket-button" cButton (click)="showCurrentTicket()" [disabled]="isShowingCurrentTicket()">Aktuelles Ticket</button>
+                  <button testid="show-previousticket-button" class="ms-3" cButton (click)="showPreviousTicket()" [disabled]="isShowingPreviousTicket()">Vorheriges Ticket</button>
+                </c-col>
+              </c-row>
+              <c-row class="mt-5">
+                <c-col></c-col>
+                <c-col sm="9">
+                  <h4>Aktuelles Ticket</h4>
+                </c-col>
+              </c-row>
+              <c-row class="mt-2">
+                <c-col></c-col>
+                <c-col sm="9">
+                  Unkostenbeitrag entrichtet ?
+                </c-col>
+              </c-row>
+              <c-row class="mt-2">
+                <c-col></c-col>
+                <c-col sm="9">
+                  <button testid="costcontribution-paid-yes-button" cButton color="success" class="text-white" (click)="showNextTicket(true)" [disabled]="isShowingNextTicket()">Weiter (bezahlt)</button>
+                  <button testid="costcontribution-paid-no-button" cButton color="danger" class="text-white ms-3" (click)="showNextTicket(false)" [disabled]="isShowingNextTicket()">Weiter (nicht bezahlt)</button>
+                </c-col>
+              </c-row>
+            </c-col>
+          </form>
+        </c-row>
       </c-col>
-    </c-row>
-    <c-row class="text-center">
       <c-col>
-        <h3>Live-Ansicht</h3>
-      </c-col>
-    </c-row>
-    <c-row>
-      <c-col class="mt-3 d-flex justify-content-center">
-        <div style="height: 59vh; width: 59vw; font-size: 7pt;">
-          <tafel-ticket-screen></tafel-ticket-screen>
-        </div>
+        <c-row class="text-center">
+          <c-col>
+            <h3>Live-Ansicht</h3>
+          </c-col>
+        </c-row>
+        <c-row>
+          <c-col class="mt-3 d-flex justify-content-center">
+            <div style="height: 40vh; width: 40vw; font-size: 4pt;">
+              <tafel-ticket-screen></tafel-ticket-screen>
+            </div>
+          </c-col>
+        </c-row>
       </c-col>
     </c-row>
   </c-card-body>

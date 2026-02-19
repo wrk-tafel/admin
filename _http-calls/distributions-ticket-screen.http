@@ -10,8 +10,16 @@ Content-Type: application/json
 ### Show current ticket on ticket screen
 POST {{baseApiPath}}/distributions/ticket-screen/show-current
 
+### Show previous ticket on ticket screen
+POST {{baseApiPath}}/distributions/ticket-screen/show-previous
+
 ### Show next ticket on ticket screen
 POST {{baseApiPath}}/distributions/ticket-screen/show-next
+Content-Type: application/json
+
+{
+  "costContributionPaid": true
+}
 
 ### Listen for ticket screen changes
 GET {{baseApiPath}}/sse/distributions/ticket-screen/current

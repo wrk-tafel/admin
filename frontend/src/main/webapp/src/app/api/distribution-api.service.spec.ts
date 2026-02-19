@@ -56,8 +56,8 @@ describe('DistributionApiService', () => {
   });
 
   it('assign customer', () => {
-    const requestBody: AssignCustomerRequest = {customerId: 1, ticketNumber: 100, costContributionPaid: true};
-    apiService.assignCustomer(requestBody.customerId, requestBody.ticketNumber, requestBody.costContributionPaid).subscribe();
+    const requestBody: AssignCustomerRequest = {customerId: 1, ticketNumber: 100};
+    apiService.assignCustomer(requestBody.customerId, requestBody.ticketNumber).subscribe();
 
     const req = httpMock.expectOne({method: 'POST', url: '/distributions/customers'});
     req.flush(null);
