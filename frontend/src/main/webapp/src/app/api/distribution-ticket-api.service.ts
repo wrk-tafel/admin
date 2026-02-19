@@ -20,5 +20,4 @@ export class DistributionTicketApiService {
 
 export interface TicketNumberResponse {
   ticketNumber: number;
-  costContributionPaid: boolean;
 }

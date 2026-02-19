@@ -1,7 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.distribution.internal.ticket
 
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
-import at.wrk.tafel.admin.backend.database.model.distribution.getCurrentDistribution
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.distribution.internal.DistributionService
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.TicketNumberResponse
@@ -35,7 +34,7 @@ internal class DistributionTicketControllerTest {
         val response = controller.getCurrentTicketForCustomerId(customerId)
 
         assertThat(response).isEqualTo(
-            TicketNumberResponse(ticketNumber = 50, costContributionPaid = false),
+            TicketNumberResponse(ticketNumber = 50),
         )
     }
 
@@ -47,7 +46,7 @@ internal class DistributionTicketControllerTest {
         val response = controller.getCurrentTicketForCustomerId(customerId)
 
         assertThat(response).isEqualTo(
-            TicketNumberResponse(ticketNumber = 52, costContributionPaid = true),
+            TicketNumberResponse(ticketNumber = 52),
         )
     }
 

@@ -25,7 +25,6 @@ import {
   CardHeaderComponent,
   ColComponent,
   Colors,
-  FormCheckInputDirective,
   FormSelectDirective,
   RowComponent,
   TabDirective,
@@ -37,7 +36,7 @@ import {
 import {DistributionTicketApiService, TicketNumberResponse} from '../../../../api/distribution-ticket-api.service';
 import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
-import { CommonModule, DatePipe, NgClass } from '@angular/common';
+import {CommonModule, DatePipe, NgClass} from '@angular/common';
 import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
 import {SseService} from '../../../../common/sse/sse.service';
 import {ScannerApiService, ScannerList} from '../../../../api/scanner-api.service';
@@ -47,31 +46,30 @@ import {BirthdateAgePipe} from '../../../../common/pipes/birthdate-age.pipe';
 @Component({
     selector: 'tafel-checkin',
     templateUrl: 'checkin.component.html',
-    imports: [
-        RowComponent,
-        ColComponent,
-        CardComponent,
-        CardBodyComponent,
-        FormsModule,
-        BadgeComponent,
-        DatePipe,
-        CardHeaderComponent,
-        NgClass,
-        CardFooterComponent,
-        ButtonDirective,
-        FormSelectDirective,
-        CommonModule,
-        TafelAutofocusDirective,
-        FormCheckInputDirective,
-        ReactiveFormsModule,
-        TabDirective,
-        TabPanelComponent,
-        TabsComponent,
-        TabsContentComponent,
-        TabsListComponent,
-        GenderLabelPipe,
-        BirthdateAgePipe
-    ]
+  imports: [
+    RowComponent,
+    ColComponent,
+    CardComponent,
+    CardBodyComponent,
+    FormsModule,
+    BadgeComponent,
+    DatePipe,
+    CardHeaderComponent,
+    NgClass,
+    CardFooterComponent,
+    ButtonDirective,
+    FormSelectDirective,
+    CommonModule,
+    TafelAutofocusDirective,
+    ReactiveFormsModule,
+    TabDirective,
+    TabPanelComponent,
+    TabsComponent,
+    TabsContentComponent,
+    TabsListComponent,
+    GenderLabelPipe,
+    BirthdateAgePipe
+  ]
 })
 export class CheckinComponent {
   private readonly customerApiService = inject(CustomerApiService);
@@ -101,7 +99,6 @@ export class CheckinComponent {
   customerNotes: CustomerNoteItem[];
   ticketNumber: number;
   ticketNumberEdit = false;
-  costContributionPaid: boolean = true;
 
   customerStateColor = computed<Colors>(() => {
     switch (this.customerState()) {
@@ -231,7 +228,6 @@ export class CheckinComponent {
         this.distributionTicketApiService.getCurrentTicketForCustomer(customerData.id).subscribe((ticketNumberResponse: TicketNumberResponse) => {
           if (ticketNumberResponse.ticketNumber) {
             this.ticketNumber = ticketNumberResponse.ticketNumber;
-            this.costContributionPaid = ticketNumberResponse.costContributionPaid;
           }
           this.ticketNumberEdit = this.ticketNumber != null;
         });
@@ -253,7 +249,6 @@ export class CheckinComponent {
 
   processCustomer(customer: CustomerData) {
     this.ticketNumber = undefined;
-    this.costContributionPaid = true;
     this.customer.set(customer);
 
     if (customer) {
@@ -290,7 +285,6 @@ export class CheckinComponent {
     this.customerId = undefined;
     this.ticketNumber = undefined;
     this.ticketNumberEdit = undefined;
-    this.costContributionPaid = true;
     this.customerIdInputRef()?.nativeElement.focus();
   }
 
@@ -300,7 +294,7 @@ export class CheckinComponent {
       const observer = {
         next: (response) => this.cancel()
       };
-      this.distributionApiService.assignCustomer(this.customer().id, this.ticketNumber, this.costContributionPaid).subscribe(observer);
+      this.distributionApiService.assignCustomer(this.customer().id, this.ticketNumber).subscribe(observer);
       this.customerIdInputRef()?.nativeElement.focus();
     }
   }
@@ -310,7 +304,6 @@ export class CheckinComponent {
       next: () => {
         this.ticketNumber = undefined;
         this.ticketNumberEdit = undefined;
-        this.costContributionPaid = true;
         this.toastService.showToast({type: ToastType.SUCCESS, title: 'Ticket-Nummer gelöscht!'});
         this.ticketNumberInputRef()?.nativeElement.focus();
       }

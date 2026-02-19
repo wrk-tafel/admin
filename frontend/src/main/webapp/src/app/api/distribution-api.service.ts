@@ -24,11 +24,10 @@ export class DistributionApiService {
     return this.http.post<DistributionCloseValidationResult>('/distributions/close', null, {params: queryParams});
   }
 
-  assignCustomer(customerId: number, ticketNumber: number, costContributionPaid: boolean): Observable<void> {
+  assignCustomer(customerId: number, ticketNumber: number): Observable<void> {
     const body: AssignCustomerRequest = {
       customerId: customerId,
       ticketNumber: ticketNumber,
-      costContributionPaid: costContributionPaid
     };
     return this.http.post<void>('/distributions/customers', body);
   }
@@ -79,7 +78,6 @@ export interface DistributionItem {
 export interface AssignCustomerRequest {
   customerId: number;
   ticketNumber: number;
-  costContributionPaid: boolean;
 }
 
 export interface SaveDistributionStatisticRequest {

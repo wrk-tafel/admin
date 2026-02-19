@@ -2,7 +2,6 @@ package at.wrk.tafel.admin.backend.modules.distribution.internal.ticket
 
 import at.wrk.tafel.admin.backend.database.common.sse_outbox.SseOutboxService
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
-import at.wrk.tafel.admin.backend.database.model.distribution.getCurrentDistribution
 import at.wrk.tafel.admin.backend.modules.distribution.internal.DistributionService
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionCustomerEntity1
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionEntity
@@ -62,7 +61,7 @@ internal class DistributionTicketScreenControllerTest {
             sseOutboxService.saveOutboxEntry(
                 TICKET_SCREEN_SHOW_VALUE_NOTIFICATION_NAME,
                 TicketScreenShowText(
-                    text = "Ticketnummer",
+                    text = "Ticket",
                     value = "50"
                 )
             )
@@ -80,7 +79,7 @@ internal class DistributionTicketScreenControllerTest {
             sseOutboxService.saveOutboxEntry(
                 TICKET_SCREEN_SHOW_VALUE_NOTIFICATION_NAME,
                 TicketScreenShowText(
-                    text = "Ticketnummer",
+                    text = "Ticket",
                     value = null
                 )
             )
@@ -88,18 +87,57 @@ internal class DistributionTicketScreenControllerTest {
     }
 
     @Test
-    fun `show next ticket`() {
-        val nextTicketNumber = 123
-        every { service.closeCurrentTicketAndGetNext() } returns nextTicketNumber
+    fun `show previous ticket`() {
+        val previousTicketNumber = 123
+        every { service.reopenAndGetPreviousTicket() } returns previousTicketNumber
 
-        controller.showNextTicket()
+        controller.showPreviousTicket()
 
-        verify { service.closeCurrentTicketAndGetNext() }
+        verify { service.reopenAndGetPreviousTicket() }
         verify {
             sseOutboxService.saveOutboxEntry(
                 TICKET_SCREEN_SHOW_VALUE_NOTIFICATION_NAME,
                 TicketScreenShowText(
-                    text = "Ticketnummer",
+                    text = "Ticket",
+                    value = previousTicketNumber.toString()
+                )
+            )
+        }
+    }
+
+    @Test
+    fun `show previous ticket when ticket is null`() {
+        every { service.reopenAndGetPreviousTicket() } returns null
+
+        controller.showPreviousTicket()
+
+        val payloadSlot = slot<TicketScreenShowText>()
+        verify { service.reopenAndGetPreviousTicket() }
+        verify {
+            sseOutboxService.saveOutboxEntry(
+                notificationName = TICKET_SCREEN_SHOW_VALUE_NOTIFICATION_NAME,
+                payload = capture(payloadSlot)
+            )
+        }
+
+        val payload = payloadSlot.captured
+        assertThat(payload).isNotNull
+        assertThat(payload.value).isNull()
+    }
+
+    @Test
+    fun `show next ticket`() {
+        val nextTicketNumber = 123
+        every { service.closeCurrentTicketAndGetNext(false) } returns nextTicketNumber
+
+        controller.showNextTicket(TicketScreenShowNextTicketRequest(costContributionPaid = false))
+
+        verify { service.closeCurrentTicketAndGetNext(false) }
+        verify {
+            sseOutboxService.saveOutboxEntry(
+                TICKET_SCREEN_SHOW_VALUE_NOTIFICATION_NAME,
+                TicketScreenShowText(
+                    text = "Ticket",
                     value = nextTicketNumber.toString()
                 )
             )
@@ -108,12 +146,12 @@ internal class DistributionTicketScreenControllerTest {
 
     @Test
     fun `show next ticket when ticket is null`() {
-        every { service.closeCurrentTicketAndGetNext() } returns null
+        every { service.closeCurrentTicketAndGetNext(true) } returns null
 
-        controller.showNextTicket()
+        controller.showNextTicket(TicketScreenShowNextTicketRequest(costContributionPaid = true))
 
         val payloadSlot = slot<TicketScreenShowText>()
-        verify { service.closeCurrentTicketAndGetNext() }
+        verify { service.closeCurrentTicketAndGetNext(true) }
         verify {
             sseOutboxService.saveOutboxEntry(
                 notificationName = TICKET_SCREEN_SHOW_VALUE_NOTIFICATION_NAME,
@@ -128,7 +166,7 @@ internal class DistributionTicketScreenControllerTest {
 
     @Test
     fun `listen for changes with active distribution`() {
-        val testValue = TicketScreenShowText(text = "Ticketnummer", value = "50")
+        val testValue = TicketScreenShowText(text = "Ticket", value = "50")
 
         every { service.getCurrentDistribution() } returns DistributionEntity()
         every { service.getCurrentTicketNumber() } returns testDistributionCustomerEntity1
@@ -156,7 +194,7 @@ internal class DistributionTicketScreenControllerTest {
 
     @Test
     fun `listen for changes without active distribution`() {
-        val testValue = TicketScreenShowText(text = "Ticketnummer", value = null)
+        val testValue = TicketScreenShowText(text = "Ticket", value = null)
 
         every { service.getCurrentDistribution() } returns null
 

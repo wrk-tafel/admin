@@ -26,8 +26,7 @@ class DistributionTicketController(
         val distributionCustomerEntity = service.getCurrentTicketNumber(customerId)
         logger.info("Ticket-Log - Fetched current ticket-number: $distributionCustomerEntity")
         return TicketNumberResponse(
-            ticketNumber = distributionCustomerEntity?.ticketNumber,
-            costContributionPaid = distributionCustomerEntity?.costContributionPaid ?: true,
+            ticketNumber = distributionCustomerEntity?.ticketNumber
         )
     }
 

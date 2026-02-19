@@ -119,7 +119,6 @@ class DistributionController(
         service.assignCustomerToDistribution(
             assignCustomerRequest.customerId,
             assignCustomerRequest.ticketNumber,
-            assignCustomerRequest.costContributionPaid
         )
 
         return ResponseEntity.noContent().build()

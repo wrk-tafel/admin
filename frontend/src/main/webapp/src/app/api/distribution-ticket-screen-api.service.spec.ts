@@ -3,6 +3,7 @@ import {TestBed} from '@angular/core/testing';
 import {provideHttpClient} from '@angular/common/http';
 import {
   DistributionTicketScreenApiService,
+  TicketScreenShowNextTicketRequest,
   TicketScreenShowTextRequest
 } from './distribution-ticket-screen-api.service';
 
@@ -45,10 +46,23 @@ describe('DistributionTicketScreenApiService', () => {
     httpMock.verify();
   });
 
+  it('show previous ticket', () => {
+    apiService.showPreviousTicket().subscribe();
+
+    const req = httpMock.expectOne({method: 'POST', url: '/distributions/ticket-screen/show-previous'});
+    req.flush(null);
+    httpMock.verify();
+  });
+
   it('show next ticket', () => {
-    apiService.showNextTicket().subscribe();
+    const request: TicketScreenShowNextTicketRequest = {
+      costContributionPaid: true
+    };
+    apiService.showNextTicket(request.costContributionPaid).subscribe();
 
     const req = httpMock.expectOne({method: 'POST', url: '/distributions/ticket-screen/show-next'});
+    expect(req.request.body).toEqual(request);
+
     req.flush(null);
     httpMock.verify();
   });

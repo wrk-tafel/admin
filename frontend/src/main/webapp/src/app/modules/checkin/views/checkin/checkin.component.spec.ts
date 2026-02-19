@@ -1,23 +1,23 @@
-import type { MockedObject } from "vitest";
-import { TestBed } from '@angular/core/testing';
-import { CheckinComponent, CustomerState, ScanResult } from './checkin.component';
-import { CommonModule } from '@angular/common';
+import type {MockedObject} from "vitest";
+import {TestBed} from '@angular/core/testing';
+import {CheckinComponent, CustomerState, ScanResult} from './checkin.component';
+import {CommonModule} from '@angular/common';
 // eslint-disable-next-line deprecation/deprecation
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
-import { CustomerApiService, Gender } from '../../../../api/customer-api.service';
-import { EMPTY, of, throwError } from 'rxjs';
+import {provideNoopAnimations} from '@angular/platform-browser/animations';
+import {CustomerApiService, Gender} from '../../../../api/customer-api.service';
+import {EMPTY, of, throwError} from 'rxjs';
 import moment from 'moment';
-import { CustomerNoteApiService, CustomerNotesResponse } from '../../../../api/customer-note-api.service';
-import { Router } from '@angular/router';
-import { DistributionApiService, DistributionItem } from '../../../../api/distribution-api.service';
-import { BadgeModule, CardModule, ColComponent, ModalModule, RowComponent } from '@coreui/angular';
-import { FormsModule } from '@angular/forms';
-import { ChangeDetectorRef, ElementRef , signal} from '@angular/core';
-import { DistributionTicketApiService } from '../../../../api/distribution-ticket-api.service';
-import { GlobalStateService } from '../../../../common/state/global-state.service';
-import { ToastService, ToastType } from '../../../../common/components/toasts/toast.service';
-import { ScannerApiService, ScannerList } from '../../../../api/scanner-api.service';
-import { SseService } from '../../../../common/sse/sse.service';
+import {CustomerNoteApiService, CustomerNotesResponse} from '../../../../api/customer-note-api.service';
+import {Router} from '@angular/router';
+import {DistributionApiService, DistributionItem} from '../../../../api/distribution-api.service';
+import {BadgeModule, CardModule, ColComponent, ModalModule, RowComponent} from '@coreui/angular';
+import {FormsModule} from '@angular/forms';
+import {ChangeDetectorRef, signal} from '@angular/core';
+import {DistributionTicketApiService} from '../../../../api/distribution-ticket-api.service';
+import {GlobalStateService} from '../../../../common/state/global-state.service';
+import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
+import {ScannerApiService, ScannerList} from '../../../../api/scanner-api.service';
+import {SseService} from '../../../../common/sse/sse.service';
 
 describe('CheckinComponent', () => {
     let customerApiService: MockedObject<CustomerApiService>;
@@ -297,8 +297,7 @@ describe('CheckinComponent', () => {
         customerNoteApiService.getNotesForCustomer.mockReturnValue(of(notesResponse));
         component.customerId = mockCustomer.id;
         distributionTicketApiService.getCurrentTicketForCustomer.mockReturnValue(of({
-            ticketNumber: null,
-            costContributionPaid: false
+            ticketNumber: null
         }));
 
         component.searchForCustomerId();
@@ -313,7 +312,6 @@ describe('CheckinComponent', () => {
 
         expect(component.ticketNumber).toBeUndefined();
         expect(component.ticketNumberEdit).toBe(false);
-        expect(component.costContributionPaid).toBe(true);
     });
 
     it('searchForCustomerId found valid customer with assigned ticket', async () => {
@@ -359,8 +357,7 @@ describe('CheckinComponent', () => {
 
         const testTicketNumber = 123;
         distributionTicketApiService.getCurrentTicketForCustomer.mockReturnValue(of({
-            ticketNumber: testTicketNumber,
-            costContributionPaid: true
+            ticketNumber: testTicketNumber
         }));
 
         component.searchForCustomerId();
@@ -375,7 +372,6 @@ describe('CheckinComponent', () => {
 
         expect(component.ticketNumber).toBe(testTicketNumber);
         expect(component.ticketNumberEdit).toBe(true);
-        expect(component.costContributionPaid).toBe(true);
     });
 
     it('searchForCustomerId found valid customer but expires soon', async () => {
@@ -417,8 +413,7 @@ describe('CheckinComponent', () => {
         customerNoteApiService.getNotesForCustomer.mockReturnValue(of(notesResponse));
         component.customerId = mockCustomer.id;
         distributionTicketApiService.getCurrentTicketForCustomer.mockReturnValue(of({
-            ticketNumber: null,
-            costContributionPaid: false
+            ticketNumber: null
         }));
 
         component.searchForCustomerId();
@@ -471,8 +466,7 @@ describe('CheckinComponent', () => {
         customerNoteApiService.getNotesForCustomer.mockReturnValue(of(notesResponse));
         component.customerId = mockCustomer.id;
         distributionTicketApiService.getCurrentTicketForCustomer.mockReturnValue(of({
-            ticketNumber: null,
-            costContributionPaid: false
+            ticketNumber: null
         }));
 
         component.searchForCustomerId();
@@ -526,8 +520,7 @@ describe('CheckinComponent', () => {
         customerNoteApiService.getNotesForCustomer.mockReturnValue(of(notesResponse));
         component.customerId = mockCustomer.id;
         distributionTicketApiService.getCurrentTicketForCustomer.mockReturnValue(of({
-            ticketNumber: null,
-            costContributionPaid: true
+            ticketNumber: null
         }));
 
         component.searchForCustomerId();
@@ -617,8 +610,7 @@ describe('CheckinComponent', () => {
         };
         customerNoteApiService.getNotesForCustomer.mockReturnValue(of(mockNotesResponse));
         distributionTicketApiService.getCurrentTicketForCustomer.mockReturnValue(of({
-            ticketNumber: null,
-            costContributionPaid: true
+            ticketNumber: null
         }));
 
         component.customerId = mockCustomer.id;
@@ -705,9 +697,7 @@ describe('CheckinComponent', () => {
         component.processCustomer(mockCustomer);
 
         const ticketNumber = 55;
-        const costContributionPaid = true;
         component.ticketNumber = ticketNumber;
-        component.costContributionPaid = costContributionPaid;
 
         distributionApiService.assignCustomer.mockReturnValue(of(null));
 
@@ -715,7 +705,7 @@ describe('CheckinComponent', () => {
         await fixture.whenStable();
         fixture.detectChanges();
 
-        expect(distributionApiService.assignCustomer).toHaveBeenCalledWith(mockCustomer.id, ticketNumber, costContributionPaid);
+        expect(distributionApiService.assignCustomer).toHaveBeenCalledWith(mockCustomer.id, ticketNumber);
 
         expect(component.customerId).toBeUndefined();
         expect(component.customerState()).toBeUndefined();
