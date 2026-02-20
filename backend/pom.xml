@@ -25,7 +25,7 @@
 
         <spring.boot.version>4.0.3</spring.boot.version>
         <jackson.version>3.0.4</jackson.version>
-        <spring.modulith.version>2.0.2</spring.modulith.version>
+        <spring.modulith.version>2.0.3</spring.modulith.version>
         <jjwt.version>0.13.0</jjwt.version>
         <postgresql.driver.version>42.7.10</postgresql.driver.version>
         <bouncycastle.version>1.70</bouncycastle.version>
