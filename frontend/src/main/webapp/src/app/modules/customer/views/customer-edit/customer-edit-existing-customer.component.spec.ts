@@ -124,7 +124,7 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
     it('initial checks', () => {
         const fixture = TestBed.createComponent(CustomerEditComponent);
         const component = fixture.componentInstance;
-        component.editMode.set(true);
+        fixture.componentRef.setInput('customerData', testCustomerData);
         component.customerUpdated.set(testCustomerData);
         fixture.detectChanges();
 
@@ -145,7 +145,7 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
 
         const fixture = TestBed.createComponent(CustomerEditComponent);
         const component = fixture.componentInstance;
-        component.editMode.set(true);
+        fixture.componentRef.setInput('customerData', testCustomerData);
         Object.defineProperty(component, 'customerFormComponent', {
             get: () => () => customerFormComponentMock
         });
@@ -155,7 +155,7 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
 
         component.save();
 
-        expect(component.isSaveEnabled).toBe(true);
+        expect(component.isSaveEnabled()).toBe(true);
         expect(component.editMode()).toBe(true);
         expect(customerFormComponentMock.markAllAsTouched).toHaveBeenCalled();
         expect(apiService.updateCustomer).toHaveBeenCalledWith(expect.objectContaining({
@@ -181,7 +181,7 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
 
         const fixture = TestBed.createComponent(CustomerEditComponent);
         const component = fixture.componentInstance;
-        component.editMode.set(true);
+        fixture.componentRef.setInput('customerData', testCustomerData);
         Object.defineProperty(component, 'customerFormComponent', {
             get: () => () => customerFormComponentMock
         });
@@ -192,7 +192,7 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
         component.save();
         fixture.detectChanges();
 
-        expect(component.isSaveEnabled).toBe(true);
+        expect(component.isSaveEnabled()).toBe(true);
         expect(component.editMode()).toBe(true);
         expect(customerFormComponentMock.markAllAsTouched).toHaveBeenCalled();
         expect(apiService.updateCustomer).toHaveBeenCalledWith(expect.objectContaining({
@@ -215,7 +215,7 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
 
         const fixture = TestBed.createComponent(CustomerEditComponent);
         const component = fixture.componentInstance;
-        component.editMode.set(true);
+        fixture.componentRef.setInput('customerData', testCustomerData);
         component.customerUpdated.set(testCustomerData);
         Object.defineProperty(component, 'customerFormComponent', {
             get: () => () => customerFormComponentMock
@@ -224,7 +224,7 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
 
         component.save();
 
-        expect(component.isSaveEnabled).toBe(false);
+        expect(component.isSaveEnabled()).toBe(false);
         expect(component.editMode()).toBe(true);
         expect(customerFormComponentMock.markAllAsTouched).toHaveBeenCalled();
         expect(apiService.updateCustomer).not.toHaveBeenCalled();

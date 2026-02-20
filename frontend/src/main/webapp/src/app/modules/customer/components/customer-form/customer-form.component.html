@@ -87,7 +87,7 @@
                 <select testid="countryInput" formControlName="country" class="form-control" cSelect
                         [compareWith]="compareCountry"
                         [ngClass]="{'is-invalid': country.invalid && (country.dirty || country.touched), 'is-valid': country.valid && (country.dirty || country.touched)}">
-                  @for (countryItem of countries; track countryItem.id) {
+                  @for (countryItem of countries(); track countryItem.id) {
                     <option [ngValue]="countryItem">
                       {{countryItem.name}}</option>
                   }
@@ -118,6 +118,11 @@
                     Pflichtfeld
                   </div>
                 }
+                @if (telephoneNumber.errors?.pattern && (telephoneNumber.dirty || telephoneNumber.touched)) {
+                  <div class="invalid-feedback">
+                    Nur Ziffern erlaubt
+                  </div>
+                }
               </c-input-group>
             </c-col>
             <c-col sm>
@@ -136,11 +141,6 @@
                 @if (email.errors?.email && (email.dirty || email.touched)) {
                   <div class="invalid-feedback">
                     E-Mail-Format ungültig!
-                  </div>
-                }
-                @if (email.errors?.required && (email.dirty || email.touched)) {
-                  <div class="invalid-feedback">
-                    Pflichtfeld
                   </div>
                 }
               </c-input-group>
@@ -264,6 +264,11 @@
                 <span cInputGroupText>
                   <fa-icon [icon]="faEuroSign"></fa-icon>
                 </span>
+                @if (income.errors?.min && (income.dirty || income.touched)) {
+                  <div class="invalid-feedback">
+                    Muss mindestens 1 sein
+                  </div>
+                }
               </c-input-group>
             </c-col>
             <c-col sm>
@@ -308,7 +313,7 @@
               <h5>Weitere Personen</h5>
             </c-col>
             <c-col class="text-end">
-              <button cButton color="success" (click)="addNewPerson()">Hinzufügen</button>
+              <button cButton color="success" class="text-white" (click)="addNewPerson()">Hinzufügen</button>
             </c-col>
           </c-row>
         </c-card-header>
@@ -412,7 +417,7 @@
                             <select testid="countryInput" formControlName="country" cSelect class="form-control"
                                     [compareWith]="compareCountry"
                                     [ngClass]="{'is-invalid': additionalPerson.get('country').invalid && (additionalPerson.get('country').dirty || additionalPerson.get('country').touched), 'is-valid': additionalPerson.get('country').valid && (additionalPerson.get('country').dirty || additionalPerson.get('country').touched)}">
-                              @for (countryItem of countries; track countryItem.id) {
+                              @for (countryItem of countries(); track countryItem.id) {
                                 <option [ngValue]="countryItem">
                                   {{countryItem.name}}</option>
                               }
@@ -505,7 +510,7 @@
           }
         </c-card-body>
         <c-card-footer class="text-end">
-          <button testid="addperson-button-bottom" cButton color="success" (click)="addNewPerson()">
+          <button testid="addperson-button-bottom" cButton color="success" class="text-white" (click)="addNewPerson()">
             Hinzufügen
           </button>
         </c-card-footer>

@@ -68,7 +68,7 @@ describe('CustomerFormComponent', () => {
 
   beforeEach(() => {
     const apiServiceSpy = {
-      getCountries: vi.fn().mockName('CountryApiService.getCountries')
+      getCountries: vi.fn().mockName('CountryApiService.getCountries').mockReturnValue(of(mockCountryList))
     } as any;
 
     TestBed.configureTestingModule({
@@ -134,7 +134,7 @@ describe('CustomerFormComponent', () => {
     expect(component.validUntil.value).toEqual(testCustomerData.validUntil);
 
     expect(component.isValid()).toBe(true);
-    expect(component.countries).toEqual(mockCountryList);
+    expect(component.countries()).toEqual(mockCountryList);
 
     expect(component.additionalPersons.length).toBe(2);
     expect(component.additionalPersons.at(0).value)
@@ -226,29 +226,52 @@ describe('CustomerFormComponent', () => {
     const fixture = TestBed.createComponent(CustomerFormComponent);
     const component = fixture.componentInstance;
     fixture.detectChanges(); // Trigger effects
-    component.incomeDue.setValue(moment('01.01.2000', 'DD.MM.YYYY').toDate());
+
+    // Set incomeDue as string (YYYY-MM-DD format as HTML date input provides)
+    component.incomeDue.setValue('2000-01-01' as any);
     fixture.detectChanges(); // Trigger effect after value change
 
-    expect(component.validUntil.value).toEqual(moment('01.03.2000', 'DD.MM.YYYY').toDate());
+    expect(component.validUntil.value).toEqual('2000-03-01');
   });
 
-  it('validUntil set when incomeDue is updated respects additional persons', () => {
+  it('validUntil updates as incomeDue changes if not manually changed', () => {
     apiService.getCountries.mockReturnValue(of(mockCountryList));
 
     const fixture = TestBed.createComponent(CustomerFormComponent);
     const component = fixture.componentInstance;
-    fixture.detectChanges(); // Trigger ngOnInit
-    component.incomeDue.setValue(moment('03.03.2000', 'DD.MM.YYYY').toDate());
-    component.addNewPerson();
-    component.addNewPerson();
-    component.additionalPersons.at(0).get('incomeDue').setValue('2000-02-02');
-    component.additionalPersons.at(1).get('incomeDue').setValue('2000-01-01');
-
-    component.removePerson(1);
-
     fixture.detectChanges();
 
-    expect(component.validUntil.value).toEqual(moment('02.04.2000', 'DD.MM.YYYY').toDate());
+    // First set incomeDue
+    component.incomeDue.setValue('2000-01-01' as any);
+    fixture.detectChanges();
+    expect(component.validUntil.value).toEqual('2000-03-01');
+
+    // Change incomeDue - validUntil should update
+    component.incomeDue.setValue('2000-02-01' as any);
+    fixture.detectChanges();
+    expect(component.validUntil.value).toEqual('2000-04-01');
+  });
+
+  it('validUntil does not update if manually changed by user', () => {
+    apiService.getCountries.mockReturnValue(of(mockCountryList));
+
+    const fixture = TestBed.createComponent(CustomerFormComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    // Set incomeDue
+    component.incomeDue.setValue('2000-01-01' as any);
+    fixture.detectChanges();
+    expect(component.validUntil.value).toEqual('2000-03-01');
+
+    // User manually changes validUntil
+    component.validUntil.setValue('2000-12-31' as any);
+    fixture.detectChanges();
+
+    // Change incomeDue - validUntil should NOT update
+    component.incomeDue.setValue('2000-02-01' as any);
+    fixture.detectChanges();
+    expect(component.validUntil.value).toEqual('2000-12-31');
   });
 
 });
