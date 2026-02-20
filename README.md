@@ -6,16 +6,19 @@
 
 # TODO
 
+
 # Prio 1
-* Replace cdr.detectChanges() with signals to show/hide modals
-* Add file upload / documents (e.g. for proof of income, school enrollement, ID, etc.) to customer details
-
-* Bug: Mails aren't sent sometimes
-
-* Feat: Monitor switch ticket back and forth between ticket-numbers (maybe history of ticket-numbers?)
-
+* Add overview "Customers above limit"
+* New permission : ADMIN, Duplicates / Settings / Customers above limit
+* Fix formvalidation for Customers
+* Create/edit customers when above limit (show warning, but allow to create/edit)
 * Bug: customer creation - field birthDate form control validation not working (red/green border)
 * Bug: customer creation - field nationality (add persons) form control validation not working (red/green border)
+
+
+* Replace cdr.detectChanges() with signals to show/hide modals
+* Add file upload / documents (e.g. for proof of income, school enrollement, ID, etc.) to customer details
+* Bug: Mails aren't sent sometimes
 * Bug: Customer in CustomerList(PDF) still visible after deletion of ticketNumber! - caching?
 * feat: Overviewpage: prolonged and new customers (all actions) of last distribution (selection for distribution?)
 
@@ -41,7 +44,6 @@
 
 * duplicates (customers) showing late? - current duplicate already longer there but only shown now
 
-* advanced logging monitor / ticket numbers
 * ticketmonitor control shows nothing when loaded initially
 
 * customer-creation: Advanced postalCode validation (only numbers from 03. and 01. district / Vienna)
