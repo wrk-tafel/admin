@@ -1,4 +1,4 @@
-<form [formGroup]="form">
+<form [formGroup]="form" autocomplete="off">
   <button cButton (click)="showSelectSheltersModal = true" testid="dashboard-select-shelters-button" [disabled]="disabled()">
     <fa-icon [icon]="faCalculator"></fa-icon>
   </button>
@@ -9,7 +9,7 @@
     <button [cModalToggle]="selectSheltersModal.id" cButtonClose></button>
   </c-modal-header>
   <c-modal-body>
-    <form [formGroup]="form">
+    <form [formGroup]="form" autocomplete="off">
       @if (sheltersList() && sheltersList()!.length > 0) {
         <div formArrayName="selectedShelters">
           @for (shelter of sheltersList()!; track trackByShelterId($index, shelter); let idx = $index) {

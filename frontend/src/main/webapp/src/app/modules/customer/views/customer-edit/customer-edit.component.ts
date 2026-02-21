@@ -1,4 +1,4 @@
-import {afterNextRender, ChangeDetectorRef, Component, effect, inject, input, linkedSignal, viewChild} from '@angular/core';
+import {Component, computed, effect, inject, input, linkedSignal, viewChild} from '@angular/core';
 import {CustomerFormComponent} from '../../components/customer-form/customer-form.component';
 import {CustomerApiService, CustomerData, ValidateCustomerResponse} from '../../../../api/customer-api.service';
 import {Router} from '@angular/router';
@@ -17,50 +17,48 @@ import {ToastService, ToastType} from '../../../../common/components/toasts/toas
 import {DecimalPipe, NgClass} from '@angular/common';
 
 @Component({
-    selector: 'tafel-customer-edit',
-    templateUrl: 'customer-edit.component.html',
-    imports: [
-        CustomerFormComponent,
-        NgClass,
-        ModalComponent,
-        ModalHeaderComponent,
-        ModalToggleDirective,
-        BgColorDirective,
-        ModalBodyComponent,
-        ModalFooterComponent,
-        ButtonCloseDirective,
-        ButtonDirective,
-        DecimalPipe
-    ]
+  selector: 'tafel-customer-edit',
+  templateUrl: 'customer-edit.component.html',
+  imports: [
+    CustomerFormComponent,
+    NgClass,
+    ModalComponent,
+    ModalHeaderComponent,
+    ModalToggleDirective,
+    BgColorDirective,
+    ModalBodyComponent,
+    ModalFooterComponent,
+    ButtonCloseDirective,
+    ButtonDirective,
+    DecimalPipe
+  ]
 })
 export class CustomerEditComponent {
   customerData = input<CustomerData>();
 
   // Writable signal linked to input - resets when customerData changes, locally writable from form updates
   customerUpdated = linkedSignal<CustomerData>(() => this.customerData());
-  // Writable signal linked to input - true when customerData is provided (edit mode), false for new customer
-  editMode = linkedSignal(() => !!this.customerData());
+  // editMode is derived from input customerData; use computed (read-only signal)
+  editMode = computed(() => !!this.customerData());
   customerValidForSave = false;
   validationResult: ValidateCustomerResponse;
   validationResultColor: Colors;
   showValidationResultModal = false;
   customerFormComponent = viewChild<CustomerFormComponent>(CustomerFormComponent);
+  readonly formIsValid = computed(() => this.customerFormComponent()?.isValid() ?? false);
+  readonly isSaveEnabled = computed(() => this.formIsValid() && (this.customerValidForSave || this.editMode()));
+
   private readonly customerApiService = inject(CustomerApiService);
   private readonly router = inject(Router);
   private readonly toastService = inject(ToastService);
-  private readonly cdr = inject(ChangeDetectorRef);
 
   constructor() {
-    // Mark forms as touched when customerData changes (deferred to next render)
+    // Mark forms as touched when customerData is loaded (edit mode)
     effect(() => {
-      const customerData = this.customerData();
-      if (customerData) {
-        afterNextRender(() => {
-          const formComponent = this.customerFormComponent();
-          if (formComponent) {
-            formComponent.markAllAsTouched();
-          }
-        });
+      const editMode = this.editMode();
+      const formComponent = this.customerFormComponent();
+      if (editMode) {
+        formComponent.markAllAsTouched();
       }
     });
   }
@@ -72,9 +70,7 @@ export class CustomerEditComponent {
 
   validate() {
     const formComponent = this.customerFormComponent();
-    if (formComponent) {
-      formComponent.markAllAsTouched();
-    }
+    formComponent.markAllAsTouched();
 
     if (!this.formIsValid()) {
       this.toastService.showToast({type: ToastType.ERROR, title: 'Bitte Eingaben überprüfen!'});
@@ -85,16 +81,13 @@ export class CustomerEditComponent {
 
         this.customerValidForSave = result.valid;
         this.showValidationResultModal = true;
-        this.cdr.detectChanges();
       });
     }
   }
 
   save() {
     const formComponent = this.customerFormComponent();
-    if (formComponent) {
-      formComponent.markAllAsTouched();
-    }
+    formComponent.markAllAsTouched();
 
     if (!this.formIsValid()) {
       this.toastService.showToast({type: ToastType.ERROR, title: 'Bitte Eingaben überprüfen!'});
@@ -113,18 +106,6 @@ export class CustomerEditComponent {
           );
       }
     }
-  }
-
-  get isSaveEnabled(): boolean {
-    return this.formIsValid() && (this.customerValidForSave || this.editMode());
-  }
-
-  private formIsValid() {
-    const formComponent = this.customerFormComponent();
-    if (formComponent) {
-      return formComponent.isValid();
-    }
-    return true;
   }
 
 }

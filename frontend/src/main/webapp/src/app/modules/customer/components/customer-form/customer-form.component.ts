@@ -1,12 +1,12 @@
-import {Component, effect, inject, input, linkedSignal, output} from '@angular/core';
+import {Component, effect, inject, input, linkedSignal, output, signal} from '@angular/core';
 import {toSignal} from '@angular/core/rxjs-interop';
 import {FormArray, FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {CountryApiService, CountryData} from '../../../../api/country-api.service';
 import {CustomValidator} from '../../../../common/validator/CustomValidator';
 import {CustomerAddPersonData, CustomerData, Gender} from '../../../../api/customer-api.service';
 import {v4 as uuidv4} from 'uuid';
-import moment from 'moment';
 import {CommonModule} from '@angular/common';
+import moment from 'moment';
 import {
   ButtonDirective,
   CardBodyComponent,
@@ -100,27 +100,12 @@ export class CustomerFormComponent {
     additionalPersons: new FormArray([])
   });
 
-  countries: CountryData[];
+  countries = signal<CountryData[]>([]);
   genders: Gender[] = [Gender.FEMALE, Gender.MALE];
 
-  // Convert form value changes to signals
+  private validUntilManuallyChanged = false;
+
   private formValue = toSignal(this.form.valueChanges, { initialValue: this.form.value });
-  private incomeDueValue = toSignal(this.incomeDue.valueChanges);
-  // Track additionalPersons array changes to detect when any incomeDue changes
-  private additionalPersonsValue = toSignal(this.additionalPersons.valueChanges);
-
-  // Derived validUntil date from incomeDue values using linkedSignal
-  // Automatically recomputes when any incomeDue changes (main or additional persons)
-  private derivedValidUntilDate = linkedSignal<Date | undefined, Date | undefined>({
-    source: () => {
-      // Track both main incomeDue and additional persons changes
-      this.incomeDueValue();
-      this.additionalPersonsValue();
-      return this.incomeDue.value;
-    },
-    computation: () => this.computeValidUntilDate()
-  });
-
   // Derived customer data from form value changes using linkedSignal
   // Automatically emits customerDataChange when form values change
   private derivedFormData = linkedSignal({
@@ -129,11 +114,9 @@ export class CustomerFormComponent {
   });
 
   constructor() {
-    // Load countries once
-    effect(() => {
-      this.countryApiService.getCountries().subscribe((countries) => {
-        this.countries = countries;
-      });
+    // Load countries once on initialization
+    this.countryApiService.getCountries().subscribe((countries) => {
+      this.countries.set(countries);
     });
 
     // Populate form when customerData changes
@@ -152,11 +135,34 @@ export class CustomerFormComponent {
       }
     });
 
-    // Update validUntil form control when derived date changes
-    effect(() => {
-      const derivedDate = this.derivedValidUntilDate();
-      if (derivedDate) {
-        this.validUntil.setValue(derivedDate);
+    // Track when user manually edits validUntil
+    let isProgrammaticChange = false;
+    this.validUntil.valueChanges.subscribe(() => {
+      if (!isProgrammaticChange) {
+        this.validUntilManuallyChanged = true;
+      }
+    });
+
+    // Auto-fill validUntil when incomeDue changes
+    this.incomeDue.valueChanges.subscribe((incomeDue) => {
+      const incomeDueStr = incomeDue as any;
+
+      // Only update if user hasn't manually changed validUntil
+      if (!this.validUntilManuallyChanged) {
+        // Only process if incomeDue is a complete date (yyyy-mm-dd = 10 chars)
+        if (incomeDueStr && typeof incomeDueStr === 'string' && incomeDueStr.length === 10) {
+          const incomeDueMoment = moment(incomeDueStr, 'YYYY-MM-DD', true);
+
+          // Validate the date is valid
+          if (incomeDueMoment.isValid()) {
+            // Add 2 months and format as YYYY-MM-DD
+            const validUntilDate = incomeDueMoment.add(2, 'months').format('YYYY-MM-DD');
+
+            isProgrammaticChange = true;
+            this.validUntil.setValue(validUntilDate as any);
+            isProgrammaticChange = false;
+          }
+        }
       }
     });
 
@@ -169,29 +175,6 @@ export class CustomerFormComponent {
     });
   }
 
-  computeValidUntilDate(): Date | undefined {
-    let incomeDueValues = [];
-    if (this.incomeDue.value) {
-      incomeDueValues.push(this.incomeDue.value);
-    }
-
-    for (let i = 0; i < this.additionalPersons.length; i++) {
-      const value = this.additionalPersons.at(i).get('incomeDue').value;
-      if (value) {
-        incomeDueValues.push(value);
-      }
-    }
-
-    incomeDueValues = incomeDueValues.map((dateString) => moment(dateString, 'YYYY-MM-DD').toDate());
-
-    if (incomeDueValues.length > 0) {
-      const minIncomeDueValue = new Date(Math.min.apply(null, incomeDueValues));
-      return moment(minIncomeDueValue).add(2, 'months').toDate();
-    }
-
-    return undefined;
-  }
-
   compareCountry(c1: CountryData, c2: CountryData): boolean {
     return c1 && c2 ? c1.id === c2.id : c1 === c2;
   }
@@ -199,14 +182,6 @@ export class CustomerFormComponent {
   trackBy(index: number, personDataControl: FormGroup) {
     const personData = personDataControl.value;
     return personData.key;
-  }
-
-  trackByGender(gender: Gender) {
-    return gender;
-  }
-
-  trackByCountryId(countryId: number) {
-    return countryId;
   }
 
   addNewPerson() {
@@ -232,11 +207,6 @@ export class CustomerFormComponent {
 
   removePerson(index: number) {
     this.additionalPersons.removeAt(index);
-    // Recalculate validUntil after removing a person
-    const derivedDate = this.computeValidUntilDate();
-    if (derivedDate) {
-      this.validUntil.setValue(derivedDate);
-    }
   }
 
   markAllAsTouched() {
@@ -268,8 +238,6 @@ export class CustomerFormComponent {
       excludeFromHousehold: new FormControl<boolean>(additionalPerson.excludeFromHousehold),
       receivesFamilyBonus: new FormControl<boolean>(additionalPerson.receivesFamilyBonus),
     });
-
-    // No manual subscription needed - handled by effect watching additionalPersonsValue signal
 
     this.additionalPersons.push(control);
   }

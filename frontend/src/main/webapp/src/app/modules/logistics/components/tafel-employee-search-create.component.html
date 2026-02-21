@@ -7,7 +7,7 @@
     <button cButtonClose (click)="showCreateEmployeeModal = false"></button>
   </c-modal-header>
   <c-modal-body>
-    <form [formGroup]="createEmployeeForm">
+    <form [formGroup]="createEmployeeForm" autocomplete="off">
       <c-row class="mb-2">
         <c-col>
           <strong>Neuen Mitarbeiter anlegen</strong>

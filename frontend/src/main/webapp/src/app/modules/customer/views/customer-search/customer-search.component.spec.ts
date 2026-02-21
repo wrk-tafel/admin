@@ -1,14 +1,14 @@
-import type { MockedObject } from "vitest";
-import { TestBed } from '@angular/core/testing';
-import { ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import type {MockedObject} from "vitest";
+import {TestBed} from '@angular/core/testing';
+import {ReactiveFormsModule} from '@angular/forms';
+import {Router} from '@angular/router';
 import moment from 'moment';
-import { EMPTY, of } from 'rxjs';
-import { CustomerApiService, CustomerSearchResult, Gender } from '../../../../api/customer-api.service';
-import { CustomerSearchComponent } from './customer-search.component';
-import { CardModule, ColComponent, PaginationModule, RowComponent } from '@coreui/angular';
-import { ToastService, ToastType } from '../../../../common/components/toasts/toast.service';
-import { By } from '@angular/platform-browser';
+import {EMPTY, of} from 'rxjs';
+import {CustomerApiService, CustomerSearchResult, Gender} from '../../../../api/customer-api.service';
+import {CustomerSearchComponent} from './customer-search.component';
+import {CardModule, ColComponent, PaginationModule, RowComponent} from '@coreui/angular';
+import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
+import {By} from '@angular/platform-browser';
 
 describe('CustomerSearchComponent', () => {
     let apiService: MockedObject<CustomerApiService>;
@@ -107,7 +107,7 @@ describe('CustomerSearchComponent', () => {
 
         component.searchForDetails();
 
-        expect(apiService.searchCustomer).toHaveBeenCalledWith('lastname', 'firstname', null, null, undefined);
+        expect(apiService.searchCustomer).toHaveBeenCalledWith('lastname', 'firstname', null, null, null, undefined);
 
         fixture.detectChanges();
         expect(fixture.debugElement.query(By.css('[testid="searchresult-id-0"]')).nativeElement.textContent).toBe('0');
@@ -125,7 +125,7 @@ describe('CustomerSearchComponent', () => {
 
         component.searchForDetails();
 
-        expect(apiService.searchCustomer).toHaveBeenCalledWith(null, 'firstname', null, null, undefined);
+        expect(apiService.searchCustomer).toHaveBeenCalledWith(null, 'firstname', null, null, null, undefined);
     });
 
     it('search with firstname no results', () => {
@@ -137,7 +137,7 @@ describe('CustomerSearchComponent', () => {
 
         component.searchForDetails();
 
-        expect(apiService.searchCustomer).toHaveBeenCalledWith(null, 'firstname', null, null, undefined);
+        expect(apiService.searchCustomer).toHaveBeenCalledWith(null, 'firstname', null, null, null, undefined);
         expect(toastService.showToast).toHaveBeenCalledWith({ type: ToastType.INFO, title: 'Keine Kunden gefunden!' });
     });
 
@@ -149,7 +149,7 @@ describe('CustomerSearchComponent', () => {
 
         component.searchForDetails();
 
-        expect(apiService.searchCustomer).toHaveBeenCalledWith('lastname', null, null, null, undefined);
+        expect(apiService.searchCustomer).toHaveBeenCalledWith('lastname', null, null, null, null, undefined);
     });
 
     it('search with postProcessing enabled', () => {
@@ -160,19 +160,30 @@ describe('CustomerSearchComponent', () => {
 
         component.searchForDetails();
 
-        expect(apiService.searchCustomer).toHaveBeenCalledWith(null, null, true, null, undefined);
+        expect(apiService.searchCustomer).toHaveBeenCalledWith(null, null, true, null, null, undefined);
     });
 
-    it('search with costContribution enabled', () => {
-        const fixture = TestBed.createComponent(CustomerSearchComponent);
-        const component = fixture.componentInstance;
-        component.costContribution.setValue(true);
-        apiService.searchCustomer.mockReturnValue(EMPTY);
+  it('search with costContribution enabled', () => {
+    const fixture = TestBed.createComponent(CustomerSearchComponent);
+    const component = fixture.componentInstance;
+    component.costContribution.setValue(true);
+    apiService.searchCustomer.mockReturnValue(EMPTY);
 
-        component.searchForDetails();
+    component.searchForDetails();
 
-        expect(apiService.searchCustomer).toHaveBeenCalledWith(null, null, null, true, undefined);
-    });
+    expect(apiService.searchCustomer).toHaveBeenCalledWith(null, null, null, true, null, undefined);
+  });
+
+  it('search with valid enabled', () => {
+    const fixture = TestBed.createComponent(CustomerSearchComponent);
+    const component = fixture.componentInstance;
+    component.valid.setValue(true);
+    apiService.searchCustomer.mockReturnValue(EMPTY);
+
+    component.searchForDetails();
+
+    expect(apiService.searchCustomer).toHaveBeenCalledWith(null, null, null, null, true, undefined);
+  });
 
     it('navigate to customer', () => {
         const fixture = TestBed.createComponent(CustomerSearchComponent);

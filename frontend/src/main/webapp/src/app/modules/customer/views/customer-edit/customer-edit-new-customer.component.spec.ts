@@ -160,7 +160,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
 
         component.save();
 
-        expect(component.isSaveEnabled).toBe(true);
+        expect(component.isSaveEnabled()).toBe(true);
         expect(customerFormComponentMock.markAllAsTouched).toHaveBeenCalled();
         expect(apiService.createCustomer).toHaveBeenCalledWith(expect.objectContaining(testCustomerData));
         expect(router.navigate).toHaveBeenCalledWith(['/kunden/detail', testCustomerData.id]);
@@ -182,7 +182,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
 
         component.save();
 
-        expect(component.isSaveEnabled).toBe(false);
+        expect(component.isSaveEnabled()).toBe(false);
         expect(customerFormComponentMock.markAllAsTouched).toHaveBeenCalled();
         expect(toastService.showToast).toHaveBeenCalledWith({ type: ToastType.ERROR, title: 'Bitte Eingaben überprüfen!' });
         expect(apiService.createCustomer).not.toHaveBeenCalledWith(expect.objectContaining(testCustomerData));
@@ -190,15 +190,14 @@ describe('CustomerEditComponent - Creating a new customer', () => {
     });
 
     it('new customer validated successfully', () => {
-        const fixture = TestBed.createComponent(CustomerEditComponent);
-        const component = fixture.componentInstance;
-        fixture.detectChanges();
-
         const customerFormComponentMock = {
             markAllAsTouched: vi.fn().mockName("CustomerFormComponent.markAllAsTouched"),
             isValid: vi.fn().mockName("CustomerFormComponent.isValid")
         } as any;
         customerFormComponentMock.isValid.mockReturnValue(true);
+
+        const fixture = TestBed.createComponent(CustomerEditComponent);
+        const component = fixture.componentInstance;
 
         Object.defineProperty(component, 'customerFormComponent', {
             get: () => () => customerFormComponentMock
@@ -216,7 +215,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
 
         component.validate();
 
-        expect(component.isSaveEnabled).toBe(true);
+        expect(component.isSaveEnabled()).toBe(true);
         expect(customerFormComponentMock.markAllAsTouched).toHaveBeenCalled();
         expect(apiService.validate).toHaveBeenCalledWith(expect.objectContaining(testCustomerData));
         expect(component.customerValidForSave).toBe(true);
@@ -248,7 +247,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
 
         component.validate();
 
-        expect(component.isSaveEnabled).toBe(false);
+        expect(component.isSaveEnabled()).toBe(false);
         expect(customerFormComponentMock.markAllAsTouched).toHaveBeenCalled();
         expect(apiService.validate).toHaveBeenCalledWith(expect.objectContaining(testCustomerData));
         expect(component.customerValidForSave).toBe(false);

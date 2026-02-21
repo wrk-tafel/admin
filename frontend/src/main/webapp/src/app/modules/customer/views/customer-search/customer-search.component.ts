@@ -61,6 +61,7 @@ export class CustomerSearchComponent {
     firstname: this.fb.control<string>(null),
     postProcessing: this.fb.control<boolean>(null),
     costContribution: this.fb.control<boolean>(null),
+    valid: this.fb.control<boolean>(null),
   });
 
   // Use signals so the template-sugar (@if / @for) reacts immediately when updated
@@ -89,7 +90,7 @@ export class CustomerSearchComponent {
   }
 
   searchForDetails(page?: number) {
-    this.customerApiService.searchCustomer(this.lastname.value, this.firstname.value, this.postProcessing.value, this.costContribution.value, page)
+    this.customerApiService.searchCustomer(this.lastname.value, this.firstname.value, this.postProcessing.value, this.costContribution.value, this.valid.value, page)
       .subscribe((response: CustomerSearchResult) => {
         if (response.items.length === 0) {
           this.toastService.showToast({type: ToastType.INFO, title: 'Keine Kunden gefunden!'});
@@ -138,6 +139,10 @@ export class CustomerSearchComponent {
 
   get costContribution() {
     return this.form.get('costContribution');
+  }
+
+  get valid() {
+    return this.form.get('valid');
   }
 
   protected readonly faPencil = faPencil;

@@ -6,15 +6,10 @@
 
 # TODO
 
-
 # Prio 1
 * Add overview "Customers above limit"
 * New permission : ADMIN, Duplicates / Settings / Customers above limit
-* Fix formvalidation for Customers
 * Create/edit customers when above limit (show warning, but allow to create/edit)
-* Bug: customer creation - field birthDate form control validation not working (red/green border)
-* Bug: customer creation - field nationality (add persons) form control validation not working (red/green border)
-
 
 * Replace cdr.detectChanges() with signals to show/hide modals
 * Add file upload / documents (e.g. for proof of income, school enrollement, ID, etc.) to customer details
