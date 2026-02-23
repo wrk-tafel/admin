@@ -1,4 +1,4 @@
-import type { MockedObject } from "vitest";
+import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { RegisteredCustomersComponent } from './registered-customers.component';
 import { By } from '@angular/platform-browser';

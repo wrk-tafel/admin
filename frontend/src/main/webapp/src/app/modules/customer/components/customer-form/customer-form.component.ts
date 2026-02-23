@@ -1,11 +1,8 @@
-import {Component, effect, inject, input, linkedSignal, output} from '@angular/core';
-import {toSignal} from '@angular/core/rxjs-interop';
-import {FormArray, FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
+import {Component, computed, effect, inject, input, output, signal} from '@angular/core';
+import {applyEach, form, FormField, maxLength, required, validate} from '@angular/forms/signals';
 import {CountryApiService, CountryData} from '../../../../api/country-api.service';
-import {CustomValidator} from '../../../../common/validator/CustomValidator';
 import {CustomerAddPersonData, CustomerData, Gender} from '../../../../api/customer-api.service';
 import {v4 as uuidv4} from 'uuid';
-import moment from 'moment';
 import {CommonModule} from '@angular/common';
 import {
   ButtonDirective,
@@ -32,28 +29,32 @@ import {
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
 import {GenderLabelPipe} from '../../../../common/pipes/gender-label.pipe';
+import {getErrorMessages, shouldShowErrors} from '../../../../common/util/signal-form-helper';
+import {email, maxDate, min, minDate, pattern} from '../../../../common/validator/signal-form-validators';
+import {toSignal} from '@angular/core/rxjs-interop';
+import moment from 'moment';
 
 @Component({
-    selector: 'tafel-customer-form',
-    templateUrl: 'customer-form.component.html',
-    imports: [
-        ReactiveFormsModule,
-        InputGroupComponent,
-        CardComponent,
-        CardHeaderComponent,
-        RowComponent,
-        ColComponent,
-        CardBodyComponent,
-        CardFooterComponent,
-        CommonModule,
-        InputGroupTextDirective,
-        FormSelectDirective,
-        ButtonDirective,
-        FaIconComponent,
-        TafelAutofocusDirective,
-        FormCheckInputDirective,
-        GenderLabelPipe
-    ]
+  selector: 'tafel-customer-form',
+  templateUrl: 'customer-form.component.html',
+  imports: [
+    FormField,
+    InputGroupComponent,
+    CardComponent,
+    CardHeaderComponent,
+    RowComponent,
+    ColComponent,
+    CardBodyComponent,
+    CardFooterComponent,
+    CommonModule,
+    InputGroupTextDirective,
+    FormSelectDirective,
+    ButtonDirective,
+    FaIconComponent,
+    TafelAutofocusDirective,
+    FormCheckInputDirective,
+    GenderLabelPipe
+  ]
 })
 export class CustomerFormComponent {
   editMode = input(false);
@@ -62,101 +63,153 @@ export class CustomerFormComponent {
 
   private readonly countryApiService = inject(CountryApiService);
 
-  form = new FormGroup({
-    id: new FormControl<number>(null),
-    lastname: new FormControl<string>(null, [Validators.required, Validators.maxLength(50)]),
-    firstname: new FormControl<string>(null, [Validators.required, Validators.maxLength(50)]),
-    birthDate: new FormControl<Date>(null, [
-      Validators.required,
-      CustomValidator.minDate(new Date(1900, 0, 1)),
-      CustomValidator.maxDate(new Date())
-    ]),
-    gender: new FormControl<Gender>(null, [Validators.required]),
-
-    country: new FormControl<CountryData>(null, Validators.required),
-    telephoneNumber: new FormControl<string>(null, [Validators.required, Validators.pattern('^[0-9]*$')]),
-    email: new FormControl<string>(null, [Validators.maxLength(100), Validators.email]),
-
-    address: new FormGroup({
-      street: new FormControl<string>(null, [Validators.required, Validators.maxLength(100)]),
-      houseNumber: new FormControl<string>(null, [Validators.required, Validators.maxLength(10)]),
-      stairway: new FormControl<string>(null),
-      door: new FormControl<string>(null),
-      postalCode: new FormControl<number>(null, [Validators.required, Validators.pattern('^[0-9]{4}$')]),
-      city: new FormControl<string>(null, [Validators.required, Validators.maxLength(50)]),
-    }),
-
-    employer: new FormControl<string>(null, Validators.required),
-    income: new FormControl<number>(null, [
-      Validators.min(1)
-    ]),
-    incomeDue: new FormControl<Date>(null, [CustomValidator.minDate(new Date())]),
-
-    validUntil: new FormControl<Date>(null, [
-      Validators.required,
-      CustomValidator.minDate(new Date())
-    ]),
-
-    additionalPersons: new FormArray([])
+  // Signal for form model
+  private formModel = signal<CustomerFormModel>({
+    id: null,
+    lastname: '',
+    firstname: '',
+    birthDate: null,
+    gender: null,
+    country: null,
+    telephoneNumber: '',
+    email: null,
+    address: {
+      street: '',
+      houseNumber: '',
+      stairway: null,
+      door: null,
+      postalCode: null,
+      city: ''
+    },
+    employer: '',
+    income: null,
+    incomeDue: null,
+    validUntil: null,
+    additionalPersons: []
   });
 
-  countries: CountryData[];
+  // Create signal form with validation schema
+  customerForm = form(this.formModel, (schemaPath) => {
+    // Main customer fields
+    required(schemaPath.lastname, {message: 'Pflichtfeld'});
+    maxLength(schemaPath.lastname, 50, {message: 'Nachname zu lang (maximal 50 Zeichen)'});
+
+    required(schemaPath.firstname, {message: 'Pflichtfeld'});
+    maxLength(schemaPath.firstname, 50, {message: 'Vorname zu lang (maximal 50 Zeichen)'});
+
+    required(schemaPath.birthDate, {message: 'Pflichtfeld'});
+    validate(schemaPath.birthDate, minDate(new Date(1900, 0, 1), {message: 'Datum muss nach dem 01.01.1900 liegen'}));
+    validate(schemaPath.birthDate, maxDate(new Date(), {message: 'Datum darf nicht in der Zukunft liegen'}));
+
+    required(schemaPath.gender, {message: 'Pflichtfeld'});
+
+    required(schemaPath.country, {message: 'Pflichtfeld'});
+
+    required(schemaPath.telephoneNumber, {message: 'Pflichtfeld'});
+    validate(schemaPath.telephoneNumber, pattern('^[0-9]*$', {message: 'Nur Ziffern erlaubt'}));
+
+    maxLength(schemaPath.email, 100, {message: 'E-Mail zu lang (maximal 100 Zeichen)'});
+    validate(schemaPath.email, email({message: 'E-Mail-Format ungültig'}));
+
+    // Address fields
+    required(schemaPath.address.street, {message: 'Pflichtfeld'});
+    maxLength(schemaPath.address.street, 100, {message: 'Straße zu lang (maximal 100 Zeichen)'});
+
+    required(schemaPath.address.houseNumber, {message: 'Pflichtfeld'});
+    maxLength(schemaPath.address.houseNumber, 10, {message: 'Hausnummer zu lang (maximal 10 Zeichen)'});
+
+    required(schemaPath.address.postalCode, {message: 'Pflichtfeld'});
+    validate(schemaPath.address.postalCode, pattern('^[0-9]{4}$', {message: 'Postleitzahl muss 4 Ziffern haben'}));
+
+    required(schemaPath.address.city, {message: 'Pflichtfeld'});
+    maxLength(schemaPath.address.city, 50, {message: 'Stadt zu lang (maximal 50 Zeichen)'});
+
+    // Employment fields
+    required(schemaPath.employer, {message: 'Pflichtfeld'});
+
+    validate(schemaPath.income, min(0, {message: 'Einkommen muss mindestens 0 sein'}));
+
+    validate(schemaPath.incomeDue, minDate(new Date(), {message: 'Datum muss in der Zukunft liegen'}));
+
+    required(schemaPath.validUntil, {message: 'Pflichtfeld'});
+    validate(schemaPath.validUntil, minDate(new Date(), {message: 'Datum muss in der Zukunft liegen'}));
+
+    // Additional persons validation using applyEach
+    applyEach(schemaPath.additionalPersons, (personPath) => {
+      required(personPath.lastname, {message: 'Pflichtfeld'});
+      maxLength(personPath.lastname, 50, {message: 'Nachname zu lang (maximal 50 Zeichen)'});
+
+      required(personPath.firstname, {message: 'Pflichtfeld'});
+      maxLength(personPath.firstname, 50, {message: 'Vorname zu lang (maximal 50 Zeichen)'});
+
+      required(personPath.birthDate, {message: 'Pflichtfeld'});
+      validate(personPath.birthDate, minDate(new Date(1920, 0, 1), {message: 'Datum muss nach dem 01.01.1920 liegen'}));
+      validate(personPath.birthDate, maxDate(new Date(), {message: 'Datum darf nicht in der Zukunft liegen'}));
+
+      required(personPath.gender, {message: 'Pflichtfeld'});
+      required(personPath.country, {message: 'Pflichtfeld'});
+
+      validate(personPath.income, min(0, {message: 'Einkommen muss mindestens 0 sein'}));
+      validate(personPath.incomeDue, minDate(new Date(), {message: 'Datum muss in der Zukunft liegen'}));
+    });
+  });
+
+  valid = computed(() => this.customerForm().valid());
+  countries = toSignal<CountryData[]>(this.countryApiService.getCountries());
   genders: Gender[] = [Gender.FEMALE, Gender.MALE];
 
-  // Convert form value changes to signals
-  private formValue = toSignal(this.form.valueChanges, { initialValue: this.form.value });
-  private incomeDueValue = toSignal(this.incomeDue.valueChanges);
-  // Track additionalPersons array changes to detect when any incomeDue changes
-  private additionalPersonsValue = toSignal(this.additionalPersons.valueChanges);
-
-  // Derived validUntil date from incomeDue values using linkedSignal
-  // Automatically recomputes when any incomeDue changes (main or additional persons)
-  private derivedValidUntilDate = linkedSignal<Date | undefined, Date | undefined>({
-    source: () => {
-      // Track both main incomeDue and additional persons changes
-      this.incomeDueValue();
-      this.additionalPersonsValue();
-      return this.incomeDue.value;
-    },
-    computation: () => this.computeValidUntilDate()
-  });
-
-  // Derived customer data from form value changes using linkedSignal
-  // Automatically emits customerDataChange when form values change
-  private derivedFormData = linkedSignal({
-    source: this.formValue,
-    computation: (value) => value ? this.form.getRawValue() : null
+  // Derived customer data from form model
+  private derivedFormData = computed(() => {
+    const formValue = this.formModel();
+    return formValue as CustomerData;
   });
 
   constructor() {
-    // Load countries once
-    effect(() => {
-      this.countryApiService.getCountries().subscribe((countries) => {
-        this.countries = countries;
-      });
-    });
-
     // Populate form when customerData changes
     effect(() => {
       const customerData = this.customerData();
       if (customerData) {
-        this.form.patchValue(customerData);
+        // Update main form model including additional persons
+        const additionalPersonsData = customerData.additionalPersons.map((person) => ({
+          ...person,
+          key: person.key ? person.key : uuidv4(),
+          employer: person.employer ?? '',
+          income: person.income ?? null,
+          incomeDue: person.incomeDue ?? null,
+        }));
 
-        this.additionalPersons.clear();
-        customerData.additionalPersons.forEach((person) => this.pushPersonGroupControl(
-          {
-            ...person,
-            key: person.key ? person.key : uuidv4()
-          }
-        ));
+        this.formModel.set({
+          id: customerData.id,
+          lastname: customerData.lastname ?? '',
+          firstname: customerData.firstname ?? '',
+          birthDate: customerData.birthDate,
+          gender: customerData.gender,
+          country: customerData.country,
+          telephoneNumber: customerData.telephoneNumber ?? '',
+          email: customerData.email,
+          address: {
+            street: customerData.address?.street ?? '',
+            houseNumber: customerData.address?.houseNumber ?? '',
+            stairway: customerData.address?.stairway,
+            door: customerData.address?.door,
+            postalCode: customerData.address?.postalCode,
+            city: customerData.address?.city ?? ''
+          },
+          employer: customerData.employer ?? '',
+          income: customerData.income,
+          incomeDue: customerData.incomeDue,
+          validUntil: customerData.validUntil,
+          additionalPersons: additionalPersonsData
+        });
       }
     });
 
-    // Update validUntil form control when derived date changes
+    // Auto-fill validUntil when incomeDue changes
     effect(() => {
-      const derivedDate = this.derivedValidUntilDate();
-      if (derivedDate) {
-        this.validUntil.setValue(derivedDate);
+      const incomeDue = this.customerForm.incomeDue().value();
+      if (incomeDue) {
+        const validUntilDate = moment(incomeDue).add(2, 'months').toDate();
+        this.customerForm.validUntil().value.set(validUntilDate);
       }
     });
 
@@ -169,48 +222,54 @@ export class CustomerFormComponent {
     });
   }
 
-  computeValidUntilDate(): Date | undefined {
-    let incomeDueValues = [];
-    if (this.incomeDue.value) {
-      incomeDueValues.push(this.incomeDue.value);
-    }
-
-    for (let i = 0; i < this.additionalPersons.length; i++) {
-      const value = this.additionalPersons.at(i).get('incomeDue').value;
-      if (value) {
-        incomeDueValues.push(value);
-      }
-    }
-
-    incomeDueValues = incomeDueValues.map((dateString) => moment(dateString, 'YYYY-MM-DD').toDate());
-
-    if (incomeDueValues.length > 0) {
-      const minIncomeDueValue = new Date(Math.min.apply(null, incomeDueValues));
-      return moment(minIncomeDueValue).add(2, 'months').toDate();
-    }
-
-    return undefined;
+  onCountryChange(event: Event) {
+    const select = event.target as HTMLSelectElement;
+    const selectedId = select.value;
+    const country = this.countries().find(c => c.id.toString() === selectedId);
+    this.customerForm.country().value.set(country ?? null);
+    this.customerForm.country().markAsTouched();
   }
 
-  compareCountry(c1: CountryData, c2: CountryData): boolean {
-    return c1 && c2 ? c1.id === c2.id : c1 === c2;
+  onGenderChange(event: Event) {
+    const select = event.target as HTMLSelectElement;
+    const selectedGender = select.value as Gender;
+    this.customerForm.gender().value.set(selectedGender || null);
+    this.customerForm.gender().markAsTouched();
   }
 
-  trackBy(index: number, personDataControl: FormGroup) {
-    const personData = personDataControl.value;
-    return personData.key;
+  onPersonCountryChange(index: number, event: Event) {
+    const select = event.target as HTMLSelectElement;
+    const selectedId = select.value;
+    const country = this.countries().find(c => c.id.toString() === selectedId);
+
+    // Update the form model
+    this.formModel.update(model => {
+      const updated = [...model.additionalPersons];
+      updated[index] = {...updated[index], country: country ?? null};
+      return {
+        ...model,
+        additionalPersons: updated
+      };
+    });
   }
 
-  trackByGender(gender: Gender) {
-    return gender;
-  }
+  onPersonGenderChange(index: number, event: Event) {
+    const select = event.target as HTMLSelectElement;
+    const selectedGender = select.value as Gender;
 
-  trackByCountryId(countryId: number) {
-    return countryId;
+    // Update the form model
+    this.formModel.update(model => {
+      const updated = [...model.additionalPersons];
+      updated[index] = {...updated[index], gender: selectedGender || null};
+      return {
+        ...model,
+        additionalPersons: updated
+      };
+    });
   }
 
   addNewPerson() {
-    this.pushPersonGroupControl({
+    const newPerson: AdditionalPersonFormItem = {
       key: uuidv4(),
       id: null,
       firstname: null,
@@ -223,132 +282,60 @@ export class CustomerFormComponent {
       incomeDue: null,
       excludeFromHousehold: false,
       receivesFamilyBonus: true
-    });
+    };
 
-    if (this.editMode()) {
-      this.additionalPersons.at(this.additionalPersons.length - 1).markAllAsTouched();
-    }
+    // Update the form model's additionalPersons array
+    this.formModel.update(model => ({
+      ...model,
+      additionalPersons: [...model.additionalPersons, newPerson]
+    }));
   }
 
   removePerson(index: number) {
-    this.additionalPersons.removeAt(index);
-    // Recalculate validUntil after removing a person
-    const derivedDate = this.computeValidUntilDate();
-    if (derivedDate) {
-      this.validUntil.setValue(derivedDate);
-    }
+    this.formModel.update(model => ({
+      ...model,
+      additionalPersons: model.additionalPersons.filter((_, i) => i !== index)
+    }));
   }
 
   markAllAsTouched() {
-    this.form.markAllAsTouched();
+    // Mark all signal form fields as touched
+    this.customerForm.lastname().markAsTouched();
+    this.customerForm.firstname().markAsTouched();
+    this.customerForm.birthDate().markAsTouched();
+    this.customerForm.gender().markAsTouched();
+    this.customerForm.country().markAsTouched();
+    this.customerForm.telephoneNumber().markAsTouched();
+    this.customerForm.email().markAsTouched();
+    this.customerForm.address.street().markAsTouched();
+    this.customerForm.address.houseNumber().markAsTouched();
+    this.customerForm.address.stairway().markAsTouched();
+    this.customerForm.address.door().markAsTouched();
+    this.customerForm.address.postalCode().markAsTouched();
+    this.customerForm.address.city().markAsTouched();
+    this.customerForm.employer().markAsTouched();
+    this.customerForm.income().markAsTouched();
+    this.customerForm.incomeDue().markAsTouched();
+    this.customerForm.validUntil().markAsTouched();
+
+    // Mark all additional persons fields as touched using bracket notation
+    const additionalPersons = this.formModel().additionalPersons;
+    for (let i = 0; i < additionalPersons.length; i++) {
+      const anyForm = this.customerForm as any;
+      anyForm.additionalPersons[i].lastname().markAsTouched();
+      anyForm.additionalPersons[i].firstname().markAsTouched();
+      anyForm.additionalPersons[i].birthDate().markAsTouched();
+      anyForm.additionalPersons[i].gender().markAsTouched();
+      anyForm.additionalPersons[i].country().markAsTouched();
+      anyForm.additionalPersons[i].employer().markAsTouched();
+      anyForm.additionalPersons[i].income().markAsTouched();
+      anyForm.additionalPersons[i].incomeDue().markAsTouched();
+    }
   }
 
-  isValid(): boolean {
-    return this.form.valid;
-  }
-
-  private pushPersonGroupControl(additionalPerson: CustomerAddPersonData) {
-    const control = new FormGroup({
-      key: new FormControl<string | number>(additionalPerson.key),
-      id: new FormControl<number>(additionalPerson.id),
-      lastname: new FormControl<string>(additionalPerson.lastname, [Validators.required, Validators.maxLength(50)]),
-      firstname: new FormControl<string>(additionalPerson.firstname, [Validators.required, Validators.maxLength(50)]),
-      birthDate: new FormControl<Date>(additionalPerson.birthDate, [
-        Validators.required,
-        CustomValidator.minDate(new Date(1920, 0, 1)),
-        CustomValidator.maxDate(new Date())
-      ]),
-      gender: new FormControl<Gender>(additionalPerson.gender, [Validators.required]),
-      country: new FormControl<CountryData>(additionalPerson.country, Validators.required),
-      employer: new FormControl<string>(additionalPerson.employer),
-      income: new FormControl<number>(additionalPerson.income, [Validators.min(1)]),
-      incomeDue: new FormControl<Date>(additionalPerson.incomeDue, [
-        CustomValidator.minDate(new Date())
-      ]),
-      excludeFromHousehold: new FormControl<boolean>(additionalPerson.excludeFromHousehold),
-      receivesFamilyBonus: new FormControl<boolean>(additionalPerson.receivesFamilyBonus),
-    });
-
-    // No manual subscription needed - handled by effect watching additionalPersonsValue signal
-
-    this.additionalPersons.push(control);
-  }
-
-  get id() {
-    return this.form.get('id');
-  }
-
-  get lastname() {
-    return this.form.get('lastname');
-  }
-
-  get firstname() {
-    return this.form.get('firstname');
-  }
-
-  get birthDate() {
-    return this.form.get('birthDate');
-  }
-
-  get gender() {
-    return this.form.get('gender');
-  }
-
-  get country() {
-    return this.form.get('country');
-  }
-
-  get telephoneNumber() {
-    return this.form.get('telephoneNumber');
-  }
-
-  get email() {
-    return this.form.get('email');
-  }
-
-  get street() {
-    return this.form.get('address').get('street');
-  }
-
-  get houseNumber() {
-    return this.form.get('address').get('houseNumber');
-  }
-
-  get stairway() {
-    return this.form.get('address').get('stairway');
-  }
-
-  get door() {
-    return this.form.get('address').get('door');
-  }
-
-  get postalCode() {
-    return this.form.get('address').get('postalCode');
-  }
-
-  get city() {
-    return this.form.get('address').get('city');
-  }
-
-  get employer() {
-    return this.form.get('employer');
-  }
-
-  get income() {
-    return this.form.get('income');
-  }
-
-  get incomeDue() {
-    return this.form.get('incomeDue');
-  }
-
-  get validUntil() {
-    return this.form.get('validUntil');
-  }
-
-  get additionalPersons() {
-    return this.form.get('additionalPersons') as FormArray;
-  }
+  // Expose utility functions for template use
+  protected readonly getErrorMessages = getErrorMessages;
+  protected readonly shouldShowErrors = shouldShowErrors;
 
   protected readonly faVenusMars = faVenusMars;
   protected readonly faFlag = faFlag;
@@ -357,4 +344,34 @@ export class CustomerFormComponent {
   protected readonly faBuilding = faBuilding;
   protected readonly faEuroSign = faEuroSign;
   protected readonly faPhone = faPhone;
+}
+
+export interface CustomerFormModel {
+  id: number | null;
+  lastname: string;
+  firstname: string;
+  birthDate: Date | null;
+  gender: Gender | null;
+  country: CountryData | null;
+  telephoneNumber: string;
+  email: string | null;
+  address: AddressFormModel;
+  employer: string;
+  income: number | null;
+  incomeDue: Date | null;
+  validUntil: Date | null;
+  additionalPersons: AdditionalPersonFormItem[];
+}
+
+export interface AddressFormModel {
+  street: string;
+  houseNumber: string;
+  stairway: string | null;
+  door: string | null;
+  postalCode: number | null;
+  city: string;
+}
+
+export interface AdditionalPersonFormItem extends CustomerAddPersonData {
+  key: string | number;
 }

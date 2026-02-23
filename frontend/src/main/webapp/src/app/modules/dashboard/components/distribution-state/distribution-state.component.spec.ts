@@ -1,4 +1,4 @@
-import type { MockedObject } from "vitest";
+import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { DistributionApiService, DistributionCloseValidationResult, DistributionItem } from '../../../../api/distribution-api.service';
 import { DistributionStateComponent } from './distribution-state.component';

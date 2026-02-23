@@ -1,5 +1,5 @@
-import {Component, inject, linkedSignal} from '@angular/core';
-import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
+import {Component, inject, linkedSignal, signal} from '@angular/core';
+import {form, FormField, required} from '@angular/forms/signals';
 import {ActivatedRoute, Router} from '@angular/router';
 import {AuthenticationService} from '../../security/authentication.service';
 import {toSignal} from '@angular/core/rxjs-interop';
@@ -10,48 +10,50 @@ import {
   CardGroupComponent,
   ColComponent,
   ContainerComponent,
-  FormDirective,
   InputGroupComponent,
   InputGroupTextDirective,
   RowComponent
 } from '@coreui/angular';
 import {IconDirective} from '@coreui/icons-angular';
-import {NgOptimizedImage} from '@angular/common';
 import {TafelAutofocusDirective} from '../../directive/tafel-autofocus.directive';
 
 @Component({
-    selector: 'tafel-login',
-    templateUrl: 'login.component.html',
-    imports: [
-        ContainerComponent,
-        RowComponent,
-        ColComponent,
-        CardGroupComponent,
-        CardComponent,
-        CardBodyComponent,
-        ReactiveFormsModule,
-        InputGroupComponent,
-        InputGroupTextDirective,
-        IconDirective,
-        NgOptimizedImage,
-        FormDirective,
-        ButtonDirective,
-        TafelAutofocusDirective
-    ]
+  selector: 'tafel-login',
+  templateUrl: 'login.component.html',
+  imports: [
+    ContainerComponent,
+    RowComponent,
+    ColComponent,
+    CardGroupComponent,
+    CardComponent,
+    CardBodyComponent,
+    FormField,
+    InputGroupComponent,
+    InputGroupTextDirective,
+    IconDirective,
+    ButtonDirective,
+    TafelAutofocusDirective
+  ]
 })
 export class LoginComponent {
   private readonly authenticationService = inject(AuthenticationService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
-  private readonly fb = inject(FormBuilder);
 
-  form = this.fb.group({
-    username: this.fb.control<string>(null, Validators.required),
-    password: this.fb.control<string>(null, Validators.required)
+  // Form model as a signal
+  loginFormModel = signal({
+    username: '',
+    password: ''
+  });
+
+  // Create form with validators using schema function
+  loginForm = form(this.loginFormModel, (schemaPath) => {
+    required(schemaPath.username, {message: 'Benutzername ist erforderlich'});
+    required(schemaPath.password, {message: 'Passwort ist erforderlich'});
   });
 
   // Convert route params to signal
-  private readonly routeParams = toSignal(this.route.params, { initialValue: {} });
+  private readonly routeParams = toSignal(this.route.params, {initialValue: {}});
 
   // Error message derived from route params via linkedSignal.
   // Writable: can be manually set on login failure, resets when route params change.
@@ -66,19 +68,20 @@ export class LoginComponent {
   });
 
   public async login() {
-    const username = this.form.get('username').value;
-    const password = this.form.get('password').value;
+    const username = this.loginForm.username().value();
+    const password = this.loginForm.password().value();
 
-    const loginResult = await this.authenticationService.login(username, password);
-    if (loginResult.successful) {
-      if (loginResult.passwordChangeRequired) {
-        await this.router.navigate(['/login/passwortaendern']);
+    this.authenticationService.login(username, password).then((loginResult) => {
+      if (loginResult.successful) {
+        if (loginResult.passwordChangeRequired) {
+          this.router.navigate(['/login/passwortaendern']);
+        } else {
+          this.router.navigate(['uebersicht']);
+        }
       } else {
-        await this.router.navigate(['uebersicht']);
+        this.errorMessage.set('Anmeldung fehlgeschlagen!');
       }
-    } else {
-      this.errorMessage.set('Anmeldung fehlgeschlagen!');
-    }
+    });
   }
 
 }

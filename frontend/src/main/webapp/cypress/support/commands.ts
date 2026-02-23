@@ -251,5 +251,5 @@ export interface UserPermission {
 }
 
 export enum Gender {
-  MALE = 0, FEMALE = 1
+  MALE = 1, FEMALE = 2
 }

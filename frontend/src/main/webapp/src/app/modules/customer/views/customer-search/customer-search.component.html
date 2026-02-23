@@ -1,4 +1,4 @@
-<form cForm [formGroup]="form">
+<form cForm [formGroup]="form" autocomplete="off">
     <c-card>
         <c-card-header>
           <h5>Kunden-Suche</h5>
@@ -33,20 +33,29 @@
                            class="form-control">
                 </c-col>
             </c-row>
-            <c-row>
-                <c-col sm="3" class="mt-sm-2">
+            <c-row class="mt-sm-2">
+                <c-col class="d-flex flex-row justify-content-start">
+                  <div>
                     <label cLabel>Daten unvollständig</label>
                     <c-input-group>
                         <input cFormCheckInput type="checkbox" formControlName="postProcessing"
                                testid="postProcessingInput">
                     </c-input-group>
-                </c-col>
-                <c-col sm="3" class="mt-sm-2">
-                  <label cLabel>Unkostenbeitrag offen</label>
-                  <c-input-group>
-                    <input cFormCheckInput type="checkbox" formControlName="costContribution"
-                           testid="costContributionInput">
-                  </c-input-group>
+                  </div>
+                  <div class="ms-4">
+                    <label cLabel>Unkostenbeitrag offen</label>
+                    <c-input-group>
+                      <input cFormCheckInput type="checkbox" formControlName="costContribution"
+                             testid="costContributionInput">
+                    </c-input-group>
+                  </div>
+                  <div class="ms-4">
+                    <label cLabel>Derzeit bezugsberechtigt</label>
+                    <c-input-group>
+                      <input cFormCheckInput type="checkbox" formControlName="valid"
+                             testid="validInput">
+                    </c-input-group>
+                  </div>
                 </c-col>
             </c-row>
             <c-row>

@@ -41,7 +41,7 @@ export class CustomerApiService {
       });
   }
 
-  searchCustomer(lastname?: string, firstname?: string, postProcessing?: boolean, costContribution?: boolean, page?: number): Observable<CustomerSearchResult> {
+  searchCustomer(lastname?: string, firstname?: string, postProcessing?: boolean, costContribution?: boolean, valid?: boolean, page?: number): Observable<CustomerSearchResult> {
     let queryParams = new HttpParams();
     if (lastname) {
       queryParams = queryParams.set('lastname', lastname);
@@ -54,6 +54,9 @@ export class CustomerApiService {
     }
     if (costContribution) {
       queryParams = queryParams.set('costContribution', costContribution);
+    }
+    if (valid) {
+      queryParams = queryParams.set('valid', valid);
     }
     if (page) {
       queryParams = queryParams.set('page', page);

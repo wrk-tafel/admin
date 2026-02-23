@@ -6,21 +6,8 @@ import at.wrk.tafel.admin.backend.database.model.base.BaseChangeTrackingEntity
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.model.base.Gender
 import at.wrk.tafel.admin.backend.database.model.staticdata.CountryEntity
-import jakarta.persistence.CascadeType
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.EnumType
-import jakarta.persistence.Enumerated
-import jakarta.persistence.JoinColumn
-import jakarta.persistence.ManyToOne
-import jakarta.persistence.OneToMany
-import jakarta.persistence.Table
-import jakarta.persistence.criteria.CriteriaBuilder
-import jakarta.persistence.criteria.CriteriaQuery
-import jakarta.persistence.criteria.Expression
-import jakarta.persistence.criteria.Join
-import jakarta.persistence.criteria.Root
-import jakarta.persistence.criteria.Subquery
+import jakarta.persistence.*
+import jakarta.persistence.criteria.*
 import org.springframework.data.jpa.domain.Specification
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -200,6 +187,16 @@ class CustomerEntity : BaseChangeTrackingEntity() {
 
                     cq!!.orderBy(cb.desc(updatedAt))
                     spec.toPredicate(root, cq, cb)
+                }
+            }
+
+            fun validCustomer(): Specification<CustomerEntity> {
+                return Specification { root: Root<CustomerEntity>, _: CriteriaQuery<*>?, cb: CriteriaBuilder ->
+                    val validUntil: Expression<LocalDate> = root["validUntil"]
+                    cb.and(
+                        cb.isNotNull(validUntil),
+                        cb.greaterThanOrEqualTo(validUntil, LocalDate.now())
+                    )
                 }
             }
         }

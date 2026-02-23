@@ -1,4 +1,4 @@
-import type { MockedObject } from "vitest";
+import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -124,20 +124,20 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
     it('initial checks', () => {
         const fixture = TestBed.createComponent(CustomerEditComponent);
         const component = fixture.componentInstance;
-        component.editMode.set(true);
+        fixture.componentRef.setInput('customerData', testCustomerData);
         component.customerUpdated.set(testCustomerData);
         fixture.detectChanges();
 
         expect(component.editMode()).toBe(true);
-        expect(component.customerValidForSave).toBe(false);
+        expect(component.customerValidForSave()).toBe(false);
     });
 
     it('existing customer saved successfully', () => {
         const customerFormComponentMock = {
             markAllAsTouched: vi.fn().mockName("CustomerFormComponent.markAllAsTouched"),
-            isValid: vi.fn().mockName("CustomerFormComponent.isValid")
+            valid: vi.fn().mockName("CustomerFormComponent.valid")
         } as any;
-        customerFormComponentMock.isValid.mockReturnValue(true);
+        customerFormComponentMock.valid.mockReturnValue(true);
         apiService.getCustomer.mockImplementation((id) =>
             id === testCustomerData.id ? of(testCustomerData) : of(testCustomerData)
         );
@@ -145,17 +145,17 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
 
         const fixture = TestBed.createComponent(CustomerEditComponent);
         const component = fixture.componentInstance;
-        component.editMode.set(true);
+        fixture.componentRef.setInput('customerData', testCustomerData);
         Object.defineProperty(component, 'customerFormComponent', {
             get: () => () => customerFormComponentMock
         });
-        component.customerValidForSave = true;
+        component.customerValidForSave.set(true);
         fixture.detectChanges();
         component.customerUpdated.set(testCustomerData);
 
         component.save();
 
-        expect(component.isSaveEnabled).toBe(true);
+        expect(component.isSaveEnabled()).toBe(true);
         expect(component.editMode()).toBe(true);
         expect(customerFormComponentMock.markAllAsTouched).toHaveBeenCalled();
         expect(apiService.updateCustomer).toHaveBeenCalledWith(expect.objectContaining({
@@ -171,9 +171,9 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
     it('existing customer saved successfully even when not entitled', () => {
         const customerFormComponentMock = {
             markAllAsTouched: vi.fn().mockName("CustomerFormComponent.markAllAsTouched"),
-            isValid: vi.fn().mockName("CustomerFormComponent.isValid")
+            valid: vi.fn().mockName("CustomerFormComponent.valid")
         } as any;
-        customerFormComponentMock.isValid.mockReturnValue(true);
+        customerFormComponentMock.valid.mockReturnValue(true);
         apiService.getCustomer.mockImplementation((id) =>
             id === testCustomerData.id ? of(testCustomerData) : of(testCustomerData)
         );
@@ -181,18 +181,18 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
 
         const fixture = TestBed.createComponent(CustomerEditComponent);
         const component = fixture.componentInstance;
-        component.editMode.set(true);
+        fixture.componentRef.setInput('customerData', testCustomerData);
         Object.defineProperty(component, 'customerFormComponent', {
             get: () => () => customerFormComponentMock
         });
-        component.customerValidForSave = false;
+        component.customerValidForSave.set(false);
         fixture.detectChanges();
         component.customerUpdated.set(testCustomerData);
 
         component.save();
         fixture.detectChanges();
 
-        expect(component.isSaveEnabled).toBe(true);
+        expect(component.isSaveEnabled()).toBe(true);
         expect(component.editMode()).toBe(true);
         expect(customerFormComponentMock.markAllAsTouched).toHaveBeenCalled();
         expect(apiService.updateCustomer).toHaveBeenCalledWith(expect.objectContaining({
@@ -208,14 +208,14 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
     it('existing customer save failed when form is invalid', () => {
         const customerFormComponentMock = {
             markAllAsTouched: vi.fn().mockName("CustomerFormComponent.markAllAsTouched"),
-            isValid: vi.fn().mockName("CustomerFormComponent.isValid")
+            valid: vi.fn().mockName("CustomerFormComponent.valid")
         } as any;
-        customerFormComponentMock.isValid.mockReturnValue(false);
+        customerFormComponentMock.valid.mockReturnValue(false);
         apiService.updateCustomer.mockReturnValue(of(testCustomerData));
 
         const fixture = TestBed.createComponent(CustomerEditComponent);
         const component = fixture.componentInstance;
-        component.editMode.set(true);
+        fixture.componentRef.setInput('customerData', testCustomerData);
         component.customerUpdated.set(testCustomerData);
         Object.defineProperty(component, 'customerFormComponent', {
             get: () => () => customerFormComponentMock
@@ -224,7 +224,7 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
 
         component.save();
 
-        expect(component.isSaveEnabled).toBe(false);
+        expect(component.isSaveEnabled()).toBe(false);
         expect(component.editMode()).toBe(true);
         expect(customerFormComponentMock.markAllAsTouched).toHaveBeenCalled();
         expect(apiService.updateCustomer).not.toHaveBeenCalled();

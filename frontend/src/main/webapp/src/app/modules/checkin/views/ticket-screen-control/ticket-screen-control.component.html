@@ -16,15 +16,15 @@
     <c-row>
       <c-col>
         <c-row>
-          <form [formGroup]="form">
+          <form autocomplete="off">
             <c-col>
               <c-row>
                 <c-col sm="3">
                   <label class="form-label">Startzeit:</label>
                 </c-col>
                 <c-col sm="5">
-                  <input testid="starttime-input" type="time" formControlName="startTime" class="form-control" (keydown.enter)="showStartTime()"
-                         [ngClass]="{'is-invalid': startTime.invalid && (startTime.dirty || startTime.touched), 'is-valid': startTime.valid && (startTime.dirty || startTime.touched)}">
+                  <input testid="starttime-input" type="time" [formField]="startTimeForm.startTime" class="form-control" (keydown.enter)="showStartTime()"
+                         [ngClass]="{'is-invalid': startTimeForm.startTime().invalid() && (startTimeForm.startTime().dirty() || startTimeForm.startTime().touched()), 'is-valid': startTimeForm.startTime().valid() && (startTimeForm.startTime().dirty() || startTimeForm.startTime().touched())}">
                 </c-col>
                 <c-col sm="3">
                   <button testid="show-starttime-button" cButton (click)="showStartTime()" [disabled]="isShowingStartTime()">Anzeigen</button>

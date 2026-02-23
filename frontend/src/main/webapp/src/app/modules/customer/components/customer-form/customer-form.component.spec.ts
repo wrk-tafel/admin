@@ -5,7 +5,7 @@ import {of} from 'rxjs';
 import {CountryApiService} from '../../../../api/country-api.service';
 import {CustomerData, Gender} from '../../../../api/customer-api.service';
 import {CustomerFormComponent} from './customer-form.component';
-import {FormControl, FormGroup, ReactiveFormsModule} from '@angular/forms';
+import {ReactiveFormsModule} from '@angular/forms';
 import {CardModule, ColComponent, InputGroupComponent, RowComponent} from '@coreui/angular';
 
 describe('CustomerFormComponent', () => {
@@ -68,7 +68,7 @@ describe('CustomerFormComponent', () => {
 
   beforeEach(() => {
     const apiServiceSpy = {
-      getCountries: vi.fn().mockName('CountryApiService.getCountries')
+      getCountries: vi.fn().mockName('CountryApiService.getCountries').mockReturnValue(of(mockCountryList))
     } as any;
 
     TestBed.configureTestingModule({
@@ -115,29 +115,29 @@ describe('CustomerFormComponent', () => {
     });
     */
 
-    expect(component.lastname.value).toBe(testCustomerData.lastname);
-    expect(component.firstname.value).toBe(testCustomerData.firstname);
-    expect(component.birthDate.value).toBe(testCustomerData.birthDate);
-    expect(component.gender.value).toBe(testCustomerData.gender);
-    expect(component.country.value).toBe(testCustomerData.country);
-    expect(component.telephoneNumber.value).toBe(testCustomerData.telephoneNumber);
-    expect(component.email.value).toBe(testCustomerData.email);
-    expect(component.street.value).toBe(testCustomerData.address.street);
-    expect(component.houseNumber.value).toBe(testCustomerData.address.houseNumber);
-    expect(component.door.value).toBe(testCustomerData.address.door);
-    expect(component.stairway.value).toBe(testCustomerData.address.stairway);
-    expect(component.postalCode.value).toBe(testCustomerData.address.postalCode);
-    expect(component.city.value).toBe(testCustomerData.address.city);
-    expect(component.employer.value).toBe(testCustomerData.employer);
-    expect(component.income.value).toBe(testCustomerData.income);
-    expect(component.incomeDue.value).toBe(testCustomerData.incomeDue);
-    expect(component.validUntil.value).toEqual(testCustomerData.validUntil);
+    expect(component.customerForm.lastname().value()).toBe(testCustomerData.lastname);
+    expect(component.customerForm.firstname().value()).toBe(testCustomerData.firstname);
+    expect(component.customerForm.birthDate().value()).toBe(testCustomerData.birthDate);
+    expect(component.customerForm.gender().value()).toBe(testCustomerData.gender);
+    expect(component.customerForm.country().value()).toBe(testCustomerData.country);
+    expect(component.customerForm.telephoneNumber().value()).toBe(testCustomerData.telephoneNumber);
+    expect(component.customerForm.email().value()).toBe(testCustomerData.email);
+    expect(component.customerForm.address.street().value()).toBe(testCustomerData.address.street);
+    expect(component.customerForm.address.houseNumber().value()).toBe(testCustomerData.address.houseNumber);
+    expect(component.customerForm.address.door().value()).toBe(testCustomerData.address.door);
+    expect(component.customerForm.address.stairway().value()).toBe(testCustomerData.address.stairway);
+    expect(component.customerForm.address.postalCode().value()).toBe(testCustomerData.address.postalCode);
+    expect(component.customerForm.address.city().value()).toBe(testCustomerData.address.city);
+    expect(component.customerForm.employer().value()).toBe(testCustomerData.employer);
+    expect(component.customerForm.income().value()).toBe(testCustomerData.income);
+    expect(component.customerForm.incomeDue().value()).toBe(testCustomerData.incomeDue);
+    expect(component.customerForm.validUntil().value()).toEqual(testCustomerData.validUntil);
 
-    expect(component.isValid()).toBe(true);
-    expect(component.countries).toEqual(mockCountryList);
+    expect(component.customerForm().valid()).toBe(true);
+    expect(component.countries()).toEqual(mockCountryList);
 
-    expect(component.additionalPersons.length).toBe(2);
-    expect(component.additionalPersons.at(0).value)
+    expect(component.customerForm.additionalPersons().value().length).toBe(2);
+    expect(component.customerForm.additionalPersons().value()[0])
       .toEqual(expect.objectContaining({
         id: testCustomerData.additionalPersons[0].id,
         lastname: testCustomerData.additionalPersons[0].lastname,
@@ -150,7 +150,7 @@ describe('CustomerFormComponent', () => {
         incomeDue: testCustomerData.additionalPersons[0].incomeDue,
         receivesFamilyBonus: testCustomerData.additionalPersons[0].receivesFamilyBonus
       }));
-    expect(component.additionalPersons.at(1).value)
+    expect(component.customerForm.additionalPersons().value()[1])
       .toEqual(expect.objectContaining({
         id: testCustomerData.additionalPersons[1].id,
         lastname: testCustomerData.additionalPersons[1].lastname,
@@ -179,11 +179,11 @@ describe('CustomerFormComponent', () => {
     const updatedIncome = 54321;
     const updatedIncomeDue = moment().add(2, 'years').startOf('day').utc().toDate();
 
-    component.lastname.setValue(updatedLastname);
-    component.birthDate.setValue(updatedBirthDate);
-    component.gender.setValue(updatedGender);
-    component.income.setValue(updatedIncome);
-    component.incomeDue.setValue(updatedIncomeDue);
+    component.customerForm.lastname().value.set(updatedLastname);
+    component.customerForm.birthDate().value.set(updatedBirthDate);
+    component.customerForm.gender().value.set(updatedGender);
+    component.customerForm.income().value.set(updatedIncome);
+    component.customerForm.incomeDue().value.set(updatedIncomeDue);
 
     // TODO const updatedPers1Lastname = 'Pers1UpdatedLastName';
     // TODO component.additionalPersons.at(1).get('lastname').setValue(updatedPers1Lastname);
@@ -208,47 +208,40 @@ describe('CustomerFormComponent', () => {
      */
   });
 
-  it('trackBy', () => {
-    const fixture = TestBed.createComponent(CustomerFormComponent);
-    const component = fixture.componentInstance;
-    const testUuid = 'test-UUID';
-
-    const trackingId = component.trackBy(0, new FormGroup({
-      key: new FormControl(testUuid)
-    }));
-
-    expect(trackingId).toBe(testUuid);
-  });
-
   it('validUntil set when incomeDue is updated', () => {
     apiService.getCountries.mockReturnValue(of(mockCountryList));
 
     const fixture = TestBed.createComponent(CustomerFormComponent);
     const component = fixture.componentInstance;
     fixture.detectChanges(); // Trigger effects
-    component.incomeDue.setValue(moment('01.01.2000', 'DD.MM.YYYY').toDate());
+
+    // Set incomeDue as string (YYYY-MM-DD format as HTML date input provides)
+    component.customerForm.incomeDue().value.set('2000-01-01' as any);
     fixture.detectChanges(); // Trigger effect after value change
 
-    expect(component.validUntil.value).toEqual(moment('01.03.2000', 'DD.MM.YYYY').toDate());
+    const validUntil = moment(component.customerForm.validUntil().value()).format('YYYY-MM-DD');
+    expect(validUntil).toEqual('2000-03-01');
   });
 
-  it('validUntil set when incomeDue is updated respects additional persons', () => {
+  it('validUntil updates as incomeDue changes if not manually changed', () => {
     apiService.getCountries.mockReturnValue(of(mockCountryList));
 
     const fixture = TestBed.createComponent(CustomerFormComponent);
     const component = fixture.componentInstance;
-    fixture.detectChanges(); // Trigger ngOnInit
-    component.incomeDue.setValue(moment('03.03.2000', 'DD.MM.YYYY').toDate());
-    component.addNewPerson();
-    component.addNewPerson();
-    component.additionalPersons.at(0).get('incomeDue').setValue('2000-02-02');
-    component.additionalPersons.at(1).get('incomeDue').setValue('2000-01-01');
-
-    component.removePerson(1);
-
     fixture.detectChanges();
 
-    expect(component.validUntil.value).toEqual(moment('02.04.2000', 'DD.MM.YYYY').toDate());
+    // First set incomeDue
+    component.customerForm.incomeDue().value.set(moment('2000-01-01', 'YYYY-MM-DD').toDate());
+    fixture.detectChanges();
+    const validUntil = moment(component.customerForm.validUntil().value()).format('YYYY-MM-DD');
+    expect(validUntil).toEqual('2000-03-01');
+
+    // Change incomeDue - validUntil should update
+    component.customerForm.incomeDue().value.set(moment('2000-02-01', 'YYYY-MM-DD').toDate());
+    fixture.detectChanges();
+
+    const validUntilUpdated = moment(component.customerForm.validUntil().value()).format('YYYY-MM-DD');
+    expect(validUntilUpdated).toEqual('2000-04-01');
   });
 
 });

@@ -2,12 +2,7 @@ package at.wrk.tafel.admin.backend.modules.customer
 
 import at.wrk.tafel.admin.backend.modules.base.country.Country
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
-import at.wrk.tafel.admin.backend.modules.customer.internal.CustomerDuplicateSearchResult
-import at.wrk.tafel.admin.backend.modules.customer.internal.CustomerDuplicateSearchResultItem
-import at.wrk.tafel.admin.backend.modules.customer.internal.CustomerDuplicationService
-import at.wrk.tafel.admin.backend.modules.customer.internal.CustomerPdfResult
-import at.wrk.tafel.admin.backend.modules.customer.internal.CustomerSearchResult
-import at.wrk.tafel.admin.backend.modules.customer.internal.CustomerService
+import at.wrk.tafel.admin.backend.modules.customer.internal.*
 import at.wrk.tafel.admin.backend.modules.customer.internal.income.IncomeValidatorResult
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
@@ -232,6 +227,7 @@ class CustomerControllerTest {
                 any(),
                 testSearchResult.currentPage,
                 true,
+                true,
                 true
             )
         } returns testSearchResult
@@ -241,7 +237,8 @@ class CustomerControllerTest {
             lastname = " last ",
             page = testSearchResult.currentPage,
             postProcessing = true,
-            costContribution = true
+            costContribution = true,
+            valid = true,
         )
 
         verify {
@@ -250,7 +247,8 @@ class CustomerControllerTest {
                 lastname = "last",
                 page = testSearchResult.currentPage,
                 postProcessing = true,
-                costContribution = true
+                costContribution = true,
+                valid = true,
             )
         }
         assertThat(response.items).hasSize(1)

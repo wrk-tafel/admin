@@ -1,4 +1,4 @@
-<form [formGroup]="form">
+<form>
   <c-row>
     <c-col md>
       <c-card>
@@ -9,73 +9,54 @@
           <c-row class="mb-2">
             <c-col sm>
               <label class="form-label">Nachname *</label>
-              <input testid="lastnameInput" type="text" formControlName="lastname" class="form-control" tafelAutofocus
-                     [ngClass]="{'is-invalid': lastname.invalid && (lastname.dirty || lastname.touched), 'is-valid': lastname.valid && (lastname.dirty || lastname.touched)}">
-              @if (lastname.errors?.required && (lastname.dirty || lastname.touched)) {
-                <div class="invalid-feedback">
-                  Pflichtfeld
-                </div>
-              }
-              @if (lastname.errors?.maxlength && (lastname.dirty || lastname.touched)) {
-                <div class="invalid-feedback">
-                  Nachname zu lang (Limit: {{lastname.errors.maxlength.requiredLength}})
-                </div>
+              <input testid="lastnameInput" type="text" [formField]="customerForm.lastname" class="form-control" tafelAutofocus
+                     [ngClass]="{'is-invalid': shouldShowErrors(customerForm.lastname()), 'is-valid': customerForm.lastname().valid() && (customerForm.lastname().dirty() || customerForm.lastname().touched())}">
+              @if (shouldShowErrors(customerForm.lastname())) {
+                @for (errorMessage of getErrorMessages(customerForm.lastname()); track $index) {
+                  <div class="invalid-feedback">{{errorMessage}}</div>
+                }
               }
             </c-col>
             <c-col sm>
               <label class="form-label">Vorname *</label>
-              <input testid="firstnameInput" type="text" formControlName="firstname" class="form-control"
-                     [ngClass]="{'is-invalid': firstname.invalid && (firstname.dirty || firstname.touched), 'is-valid': firstname.valid && (firstname.dirty || firstname.touched)}">
-              @if (firstname.errors?.required && (firstname.dirty || firstname.touched)) {
-                <div class="invalid-feedback">
-                  Pflichtfeld
-                </div>
-              }
-              @if (firstname.errors?.maxlength && (firstname.dirty || firstname.touched)) {
-                <div class="invalid-feedback">
-                  Vorname zu lang (Limit: {{firstname.errors.maxlength.requiredLength}})
-                </div>
+              <input testid="firstnameInput" type="text" [formField]="customerForm.firstname" class="form-control"
+                     [ngClass]="{'is-invalid': shouldShowErrors(customerForm.firstname()), 'is-valid': customerForm.firstname().valid() && (customerForm.firstname().dirty() || customerForm.firstname().touched())}">
+              @if (shouldShowErrors(customerForm.firstname())) {
+                @for (errorMessage of getErrorMessages(customerForm.firstname()); track $index) {
+                  <div class="invalid-feedback">{{errorMessage}}</div>
+                }
               }
             </c-col>
           </c-row>
           <c-row class="mb-2">
             <c-col sm>
               <label class="form-label">Geburtsdatum *</label>
-              <input testid="birthDateInput" type="date" formControlName="birthDate" class="form-control"
-                     [ngClass]="{'is-invalid': birthDate.invalid && (birthDate.dirty || birthDate.touched), 'is-valid': birthDate.valid && (birthDate.dirty || birthDate.touched)}">
-              @if (birthDate.errors?.required && (birthDate.dirty || birthDate.touched)) {
-                <div class="invalid-feedback">
-                  Pflichtfeld
-                </div>
-              }
-              @if (birthDate.errors?.mindate && (birthDate.dirty || birthDate.touched)) {
-                <div class="invalid-feedback">
-                  Mind. Datum: {{birthDate.errors.mindate.minimumDate}}
-                </div>
-              }
-              @if (birthDate.errors?.maxdate && (birthDate.dirty || birthDate.touched)) {
-                <div class="invalid-feedback">
-                  Max. Datum: {{birthDate.errors.maxdate.maximumDate}}
-                </div>
+              <input testid="birthDateInput" type="date" [formField]="customerForm.birthDate" class="form-control"
+                     [ngClass]="{'is-invalid': shouldShowErrors(customerForm.birthDate()), 'is-valid': customerForm.birthDate().valid() && (customerForm.birthDate().dirty() || customerForm.birthDate().touched())}">
+              @if (shouldShowErrors(customerForm.birthDate())) {
+                @for (errorMessage of getErrorMessages(customerForm.birthDate()); track $index) {
+                  <div class="invalid-feedback">{{errorMessage}}</div>
+                }
               }
             </c-col>
             <c-col sm>
               <label class="form-label">Geschlecht *</label>
               <c-input-group>
-                <select testid="genderInput" formControlName="gender" class="form-control" cSelect
-                        [ngClass]="{'is-invalid': gender.invalid && (gender.dirty || gender.touched), 'is-valid': gender.valid && (gender.dirty || gender.touched)}">
-                  @for (gender of genders; track gender) {
-                    <option [ngValue]="gender">
-                      {{gender | genderLabel}}</option>
+                <select testid="genderInput" (change)="onGenderChange($event)" class="form-control" cSelect
+                        [ngClass]="{'is-invalid': shouldShowErrors(customerForm.gender()), 'is-valid': customerForm.gender().valid() && (customerForm.gender().dirty() || customerForm.gender().touched())}">
+                  <option value="" [selected]="!customerForm.gender().value()">Bitte wählen...</option>
+                  @for (genderOption of genders; track genderOption) {
+                    <option [value]="genderOption" [selected]="genderOption === customerForm.gender().value()">
+                      {{genderOption | genderLabel}}</option>
                   }
                 </select>
                 <span cInputGroupText>
                   <fa-icon [icon]="faVenusMars"></fa-icon>
                 </span>
-                @if (gender.errors?.required && (gender.dirty || gender.touched)) {
-                  <div class="invalid-feedback">
-                    Pflichtfeld
-                  </div>
+                @if (shouldShowErrors(customerForm.gender())) {
+                  @for (errorMessage of getErrorMessages(customerForm.gender()); track $index) {
+                    <div class="invalid-feedback">{{errorMessage}}</div>
+                  }
                 }
               </c-input-group>
             </c-col>
@@ -84,21 +65,21 @@
             <c-col>
               <label class="form-label">Nationalität *</label>
               <c-input-group>
-                <select testid="countryInput" formControlName="country" class="form-control" cSelect
-                        [compareWith]="compareCountry"
-                        [ngClass]="{'is-invalid': country.invalid && (country.dirty || country.touched), 'is-valid': country.valid && (country.dirty || country.touched)}">
-                  @for (countryItem of countries; track countryItem.id) {
-                    <option [ngValue]="countryItem">
+                <select testid="countryInput" (change)="onCountryChange($event)" class="form-control" cSelect
+                        [ngClass]="{'is-invalid': shouldShowErrors(customerForm.country()), 'is-valid': customerForm.country().valid() && (customerForm.country().dirty() || customerForm.country().touched())}">
+                  <option value="" [selected]="!customerForm.country().value()">Bitte wählen...</option>
+                  @for (countryItem of countries(); track countryItem.id) {
+                    <option [value]="countryItem.id" [selected]="countryItem.id === customerForm.country().value()?.id">
                       {{countryItem.name}}</option>
                   }
                 </select>
                 <span cInputGroupText>
                   <fa-icon [icon]="faFlag"></fa-icon>
                 </span>
-                @if (country.errors?.required && (country.dirty || country.touched)) {
-                  <div class="invalid-feedback">
-                    Pflichtfeld
-                  </div>
+                @if (shouldShowErrors(customerForm.country())) {
+                  @for (errorMessage of getErrorMessages(customerForm.country()); track $index) {
+                    <div class="invalid-feedback">{{errorMessage}}</div>
+                  }
                 }
               </c-input-group>
             </c-col>
@@ -107,130 +88,102 @@
             <c-col sm>
               <label class="form-label">Telefonnummer *</label>
               <c-input-group>
-                <input testid="telephoneNumberInput" type="text" formControlName="telephoneNumber"
+                <input testid="telephoneNumberInput" type="text" [formField]="customerForm.telephoneNumber"
                        class="form-control"
-                       [ngClass]="{'is-invalid': telephoneNumber.invalid && (telephoneNumber.dirty || telephoneNumber.touched), 'is-valid': telephoneNumber.valid && (telephoneNumber.dirty || telephoneNumber.touched)}">
+                       [ngClass]="{'is-invalid': shouldShowErrors(customerForm.telephoneNumber()), 'is-valid': customerForm.telephoneNumber().valid() && (customerForm.telephoneNumber().dirty() || customerForm.telephoneNumber().touched())}">
                 <span cInputGroupText>
                   <fa-icon [icon]="faPhone"></fa-icon>
                 </span>
-                @if (telephoneNumber.errors?.required && (telephoneNumber.dirty || telephoneNumber.touched)) {
-                  <div class="invalid-feedback">
-                    Pflichtfeld
-                  </div>
+                @if (shouldShowErrors(customerForm.telephoneNumber())) {
+                  @for (errorMessage of getErrorMessages(customerForm.telephoneNumber()); track $index) {
+                    <div class="invalid-feedback">{{errorMessage}}</div>
+                  }
                 }
               </c-input-group>
             </c-col>
             <c-col sm>
               <label class="form-label">E-Mail</label>
               <c-input-group>
-                <input testid="emailInput" type="text" formControlName="email" class="form-control"
-                       [ngClass]="{'is-invalid': email.invalid && (email.dirty || email.touched), 'is-valid': email.valid && (email.dirty || email.touched)}">
+                <input testid="emailInput" type="text" [formField]="customerForm.email" class="form-control"
+                       [ngClass]="{'is-invalid': shouldShowErrors(customerForm.email()), 'is-valid': customerForm.email().valid() && (customerForm.email().dirty() || customerForm.email().touched())}">
                 <span cInputGroupText>
                   <fa-icon [icon]="faEnvelope"></fa-icon>
                 </span>
-                @if (email.errors?.maxlength && (email.dirty || email.touched)) {
-                  <div class="invalid-feedback">
-                    E-Mail zu lang (Limit: {{email.errors.maxlength.requiredLength}})
-                  </div>
-                }
-                @if (email.errors?.email && (email.dirty || email.touched)) {
-                  <div class="invalid-feedback">
-                    E-Mail-Format ungültig!
-                  </div>
-                }
-                @if (email.errors?.required && (email.dirty || email.touched)) {
-                  <div class="invalid-feedback">
-                    Pflichtfeld
-                  </div>
+                @if (shouldShowErrors(customerForm.email())) {
+                  @for (errorMessage of getErrorMessages(customerForm.email()); track $index) {
+                    <div class="invalid-feedback">{{errorMessage}}</div>
+                  }
                 }
               </c-input-group>
             </c-col>
           </c-row>
           <hr>
-          <div formGroupName="address">
+          <div>
             <c-row class="mb-2">
               <c-col sm>
                 <label class="form-label">Straße *</label>
-                <input testid="streetInput" type="text" formControlName="street" class="form-control"
-                       [ngClass]="{'is-invalid': street.invalid && (street.dirty || street.touched), 'is-valid': street.valid && (street.dirty || street.touched)}">
-                @if (street.errors?.required && (street.dirty || street.touched)) {
-                  <div class="invalid-feedback">
-                    Pflichtfeld
-                  </div>
-                }
-                @if (street.errors?.maxlength && (street.dirty || street.touched)) {
-                  <div class="invalid-feedback">
-                    Straße zu lang (Limit:
-                    {{street.errors.maxlength.requiredLength}})
-                  </div>
+                <input testid="streetInput" type="text" [formField]="customerForm.address.street" class="form-control"
+                       [ngClass]="{'is-invalid': shouldShowErrors(customerForm.address.street()), 'is-valid': customerForm.address.street().valid() && (customerForm.address.street().dirty() || customerForm.address.street().touched())}">
+                @if (shouldShowErrors(customerForm.address.street())) {
+                  @for (errorMessage of getErrorMessages(customerForm.address.street()); track $index) {
+                    <div class="invalid-feedback">{{errorMessage}}</div>
+                  }
                 }
               </c-col>
             </c-row>
             <c-row class="mb-2">
               <c-col sm>
                 <label class="form-label">Hausnummer *</label>
-                <input testid="houseNumberInput" type="text" formControlName="houseNumber"
+                <input testid="houseNumberInput" type="text" [formField]="customerForm.address.houseNumber"
                        class="form-control"
-                       [ngClass]="{'is-invalid': houseNumber.invalid && (houseNumber.dirty || houseNumber.touched), 'is-valid': houseNumber.valid && (houseNumber.dirty || houseNumber.touched)}">
-                @if (houseNumber.errors?.required && (houseNumber.dirty || houseNumber.touched)) {
-                  <div class="invalid-feedback">
-                    Pflichtfeld
-                  </div>
-                }
-                @if (houseNumber.errors?.maxlength && (houseNumber.dirty || houseNumber.touched)) {
-                  <div class="invalid-feedback">
-                    Hausnummer zu lang (Limit:
-                    {{houseNumber.errors.maxlength.requiredLength}})
-                  </div>
+                       [ngClass]="{'is-invalid': shouldShowErrors(customerForm.address.houseNumber()), 'is-valid': customerForm.address.houseNumber().valid() && (customerForm.address.houseNumber().dirty() || customerForm.address.houseNumber().touched())}">
+                @if (shouldShowErrors(customerForm.address.houseNumber())) {
+                  @for (errorMessage of getErrorMessages(customerForm.address.houseNumber()); track $index) {
+                    <div class="invalid-feedback">{{errorMessage}}</div>
+                  }
                 }
               </c-col>
               <c-col sm>
                 <label class="form-label">Stiege</label>
-                <input testid="stairwayInput" type="number" formControlName="stairway"
+                <input testid="stairwayInput" type="number" [formField]="customerForm.address.stairway"
                        class="form-control"
-                       [ngClass]="{'is-invalid': stairway.invalid && (stairway.dirty || stairway.touched), 'is-valid': stairway.valid && (stairway.dirty || stairway.touched)}">
+                       [ngClass]="{'is-invalid': shouldShowErrors(customerForm.address.stairway()), 'is-valid': customerForm.address.stairway().valid() && (customerForm.address.stairway().dirty() || customerForm.address.stairway().touched())}">
               </c-col>
               <c-col sm>
                 <label class="form-label">Top</label>
-                <input testid="doorInput" type="number" formControlName="door" class="form-control"
-                       [ngClass]="{'is-invalid': door.invalid && (door.dirty || door.touched), 'is-valid': door.valid && (door.dirty || door.touched)}">
+                <input testid="doorInput" type="number" [formField]="customerForm.address.door" class="form-control"
+                       [ngClass]="{'is-invalid': shouldShowErrors(customerForm.address.door()), 'is-valid': customerForm.address.door().valid() && (customerForm.address.door().dirty() || customerForm.address.door().touched())}">
               </c-col>
             </c-row>
             <c-row class="mb-2">
               <c-col sm>
                 <label class="form-label">PLZ *</label>
                 <c-input-group>
-                  <input testid="postalCodeInput" type="number" formControlName="postalCode"
+                  <input testid="postalCodeInput" type="number" [formField]="customerForm.address.postalCode"
                          class="form-control"
-                         [ngClass]="{'is-invalid': postalCode.invalid && (postalCode.dirty || postalCode.touched), 'is-valid': postalCode.valid && (postalCode.dirty || postalCode.touched)}">
+                         [ngClass]="{'is-invalid': shouldShowErrors(customerForm.address.postalCode()), 'is-valid': customerForm.address.postalCode().valid() && (customerForm.address.postalCode().dirty() || customerForm.address.postalCode().touched())}">
                   <span cInputGroupText>
                     <fa-icon [icon]="faLocationDot"></fa-icon>
                   </span>
-                  @if (postalCode.errors && (postalCode.dirty || postalCode.touched)) {
-                    <div class="invalid-feedback">
-                      Pflichtfeld / 4-stellig
-                    </div>
+                  @if (shouldShowErrors(customerForm.address.postalCode())) {
+                    @for (errorMessage of getErrorMessages(customerForm.address.postalCode()); track $index) {
+                      <div class="invalid-feedback">{{errorMessage}}</div>
+                    }
                   }
                 </c-input-group>
               </c-col>
               <c-col sm>
                 <label class="form-label">Ort *</label>
                 <c-input-group>
-                  <input testid="cityInput" type="text" formControlName="city" class="form-control"
-                         [ngClass]="{'is-invalid': city.invalid && (city.dirty || city.touched), 'is-valid': city.valid && (city.dirty || city.touched)}">
+                  <input testid="cityInput" type="text" [formField]="customerForm.address.city" class="form-control"
+                         [ngClass]="{'is-invalid': shouldShowErrors(customerForm.address.city()), 'is-valid': customerForm.address.city().valid() && (customerForm.address.city().dirty() || customerForm.address.city().touched())}">
                   <span cInputGroupText>
                     <fa-icon [icon]="faLocationDot"></fa-icon>
                   </span>
-                  @if (city.errors?.required && (city.dirty || city.touched)) {
-                    <div class="invalid-feedback">
-                      Pflichtfeld
-                    </div>
-                  }
-                  @if (city.errors?.maxlength && (city.dirty || city.touched)) {
-                    <div class="invalid-feedback">
-                      Ort zu lang (Limit:
-                      {{city.errors.maxlength.requiredLength}})
-                    </div>
+                  @if (shouldShowErrors(customerForm.address.city())) {
+                    @for (errorMessage of getErrorMessages(customerForm.address.city()); track $index) {
+                      <div class="invalid-feedback">{{errorMessage}}</div>
+                    }
                   }
                 </c-input-group>
               </c-col>
@@ -241,16 +194,16 @@
             <c-col sm>
               <label class="form-label">Arbeitgeber *</label>
               <c-input-group>
-                <input testid="employerInput" type="text" formControlName="employer"
+                <input testid="employerInput" type="text" [formField]="customerForm.employer"
                        class="form-control"
-                       [ngClass]="{'is-invalid': employer.invalid && (employer.dirty || employer.touched), 'is-valid': employer.valid && (employer.dirty || employer.touched)}">
+                       [ngClass]="{'is-invalid': shouldShowErrors(customerForm.employer()), 'is-valid': customerForm.employer().valid() && (customerForm.employer().dirty() || customerForm.employer().touched())}">
                 <span cInputGroupText>
                   <fa-icon [icon]="faBuilding"></fa-icon>
                 </span>
-                @if (employer.errors?.required && (employer.dirty || employer.touched)) {
-                  <div class="invalid-feedback">
-                    Pflichtfeld
-                  </div>
+                @if (shouldShowErrors(customerForm.employer())) {
+                  @for (errorMessage of getErrorMessages(customerForm.employer()); track $index) {
+                    <div class="invalid-feedback">{{errorMessage}}</div>
+                  }
                 }
               </c-input-group>
             </c-col>
@@ -259,22 +212,27 @@
             <c-col sm>
               <label class="form-label">Einkommen (monatl.)</label>
               <c-input-group>
-                <input testid="incomeInput" type="number" formControlName="income" class="form-control"
-                       [ngClass]="{'is-invalid': income.invalid && (income.dirty || income.touched), 'is-valid': income.valid && (income.dirty || income.touched)}">
+                <input testid="incomeInput" type="number" [formField]="customerForm.income" class="form-control"
+                       [ngClass]="{'is-invalid': shouldShowErrors(customerForm.income()), 'is-valid': customerForm.income().valid() && (customerForm.income().dirty() || customerForm.income().touched())}">
                 <span cInputGroupText>
                   <fa-icon [icon]="faEuroSign"></fa-icon>
                 </span>
+                @if (shouldShowErrors(customerForm.income())) {
+                  @for (errorMessage of getErrorMessages(customerForm.income()); track $index) {
+                    <div class="invalid-feedback">{{errorMessage}}</div>
+                  }
+                }
               </c-input-group>
             </c-col>
             <c-col sm>
               <label class="form-label">nachgewiesen bis</label>
               <div class="input-group">
-                <input testid="incomeDueInput" type="date" formControlName="incomeDue" class="form-control"
-                       [ngClass]="{'is-invalid': incomeDue.invalid && (incomeDue.dirty || incomeDue.touched), 'is-valid': incomeDue.valid && (incomeDue.dirty || incomeDue.touched)}">
-                @if (incomeDue.errors?.mindate && (incomeDue.dirty || incomeDue.touched)) {
-                  <div class="invalid-feedback">
-                    Mind. Datum: {{incomeDue.errors.mindate.minimumDate}}
-                  </div>
+                <input testid="incomeDueInput" type="date" [formField]="customerForm.incomeDue" class="form-control"
+                       [ngClass]="{'is-invalid': shouldShowErrors(customerForm.incomeDue()), 'is-valid': customerForm.incomeDue().valid() && (customerForm.incomeDue().dirty() || customerForm.incomeDue().touched())}">
+                @if (shouldShowErrors(customerForm.incomeDue())) {
+                  @for (errorMessage of getErrorMessages(customerForm.incomeDue()); track $index) {
+                    <div class="invalid-feedback">{{errorMessage}}</div>
+                  }
                 }
               </div>
             </c-col>
@@ -283,17 +241,12 @@
           <c-row class="mb-2">
             <c-col sm>
               <label class="form-label">Gültig bis *</label>
-              <input testid="validUntilInput" type="date" formControlName="validUntil" class="form-control"
-                     [ngClass]="{'is-invalid': validUntil.invalid && (validUntil.dirty || validUntil.touched), 'is-valid': validUntil.valid && (validUntil.dirty || validUntil.touched)}">
-              @if (validUntil.errors?.required && (validUntil.dirty || validUntil.touched)) {
-                <div class="invalid-feedback">
-                  Pflichtfeld
-                </div>
-              }
-              @if (validUntil.errors?.mindate && (validUntil.dirty || validUntil.touched)) {
-                <div class="invalid-feedback">
-                  Mind. Datum: {{validUntil.errors.mindate.minimumDate}}
-                </div>
+              <input testid="validUntilInput" type="date" [formField]="customerForm.validUntil" class="form-control"
+                     [ngClass]="{'is-invalid': shouldShowErrors(customerForm.validUntil()), 'is-valid': customerForm.validUntil().valid() && (customerForm.validUntil().dirty() || customerForm.validUntil().touched())}">
+              @if (shouldShowErrors(customerForm.validUntil())) {
+                @for (errorMessage of getErrorMessages(customerForm.validUntil()); track $index) {
+                  <div class="invalid-feedback">{{errorMessage}}</div>
+                }
               }
             </c-col>
           </c-row>
@@ -308,168 +261,155 @@
               <h5>Weitere Personen</h5>
             </c-col>
             <c-col class="text-end">
-              <button cButton color="success" (click)="addNewPerson()">Hinzufügen</button>
+              <button cButton color="success" class="text-white" (click)="addNewPerson()">Hinzufügen</button>
             </c-col>
           </c-row>
         </c-card-header>
         <c-card-body>
-          @if (!additionalPersons || additionalPersons?.length === 0) {
+          @if (!customerForm.additionalPersons().value() || customerForm.additionalPersons().value()?.length === 0) {
             <div>
               <h6 testid="nopersons-label" class="mb-3">Keine Personen vorhanden</h6>
             </div>
           }
-          @for (additionalPerson of additionalPersons.controls; track $index; let i = $index) {
-            <div formArrayName="additionalPersons" class="mt-3">
+          @for (person of customerForm.additionalPersons().value(); track person.key; let i = $index) {
+            <div class="mt-3">
             <c-col size="12" class="p-0">
               <c-card>
                 <c-card-body>
-                  <c-row [formGroupName]="i" [attr.testid]="'personform-' + i">
+                  <c-row [attr.testid]="'personform-' + i">
                     <c-col>
                       <c-row>
                         <c-col lg size="6">
-                          <input testid="idInput" type="hidden" formControlName="id" class="form-control"/>
                           <label class="form-label">Nachname *</label>
-                          <input testid="lastnameInput" type="text" formControlName="lastname"
-                                 class="form-control"
-                                 [ngClass]="{'is-invalid': additionalPerson.get('lastname').invalid && (additionalPerson.get('lastname').dirty || additionalPerson.get('lastname').touched), 'is-valid': additionalPerson.get('lastname').valid && (additionalPerson.get('lastname').dirty || additionalPerson.get('lastname').touched)}"
-                                 tafelAutofocus>
-                          @if (additionalPerson.get('lastname').errors?.required && (additionalPerson.get('lastname').dirty || additionalPerson.get('lastname').touched)) {
-                            <div class="invalid-feedback">
-                              Pflichtfeld
-                            </div>
-                          }
-                          @if (additionalPerson.get('lastname').errors?.maxlength && (additionalPerson.get('lastname').dirty || additionalPerson.get('lastname').touched)) {
-                            <div class="invalid-feedback">
-                              Nachname zu lang (Limit: {{lastname.errors.maxlength.requiredLength}})
-                            </div>
+                          <input testid="lastnameInput" type="text" [formField]="customerForm.additionalPersons[i].lastname"
+                                 class="form-control" tafelAutofocus
+                                 [ngClass]="{'is-invalid': shouldShowErrors(customerForm.additionalPersons[i].lastname()), 'is-valid': customerForm.additionalPersons[i].lastname().valid() && (customerForm.additionalPersons[i].lastname().dirty() || customerForm.additionalPersons[i].lastname().touched())}">
+                          @if (shouldShowErrors(customerForm.additionalPersons[i].lastname())) {
+                            @for (errorMessage of getErrorMessages(customerForm.additionalPersons[i].lastname()); track $index) {
+                              <div class="invalid-feedback">{{errorMessage}}</div>
+                            }
                           }
                         </c-col>
                         <c-col lg size="6">
                           <label class="form-label">Vorname *</label>
-                          <input testid="firstnameInput" type="text"
-                                 formControlName="firstname" class="form-control"
-                                 [ngClass]="{'is-invalid': additionalPerson.get('firstname').invalid && (additionalPerson.get('firstname').dirty || additionalPerson.get('firstname').touched), 'is-valid': additionalPerson.get('firstname').valid && (additionalPerson.get('firstname').dirty || additionalPerson.get('firstname').touched)}">
-                          @if (additionalPerson.get('firstname').errors?.required && (additionalPerson.get('firstname').dirty || additionalPerson.get('firstname').touched)) {
-                            <div class="invalid-feedback">
-                              Pflichtfeld
-                            </div>
-                          }
-                          @if (additionalPerson.get('firstname').errors?.maxlength && (additionalPerson.get('firstname').dirty || additionalPerson.get('firstname').touched)) {
-                            <div class="invalid-feedback">
-                              Vorname zu lang
-                              (Limit: {{additionalPerson.get('firstname').errors.maxlength.requiredLength}})
-                            </div>
+                          <input testid="firstnameInput" type="text" [formField]="customerForm.additionalPersons[i].firstname"
+                                 class="form-control"
+                                 [ngClass]="{'is-invalid': shouldShowErrors(customerForm.additionalPersons[i].firstname()), 'is-valid': customerForm.additionalPersons[i].firstname().valid() && (customerForm.additionalPersons[i].firstname().dirty() || customerForm.additionalPersons[i].firstname().touched())}">
+                          @if (shouldShowErrors(customerForm.additionalPersons[i].firstname())) {
+                            @for (errorMessage of getErrorMessages(customerForm.additionalPersons[i].firstname()); track $index) {
+                              <div class="invalid-feedback">{{errorMessage}}</div>
+                            }
                           }
                         </c-col>
                       </c-row>
                       <c-row>
                         <c-col lg size="6">
                           <label class="form-label">Geburtsdatum *</label>
-                          <input testid="birthDateInput" type="date"
-                                 formControlName="birthDate" class="form-control"
-                                 [ngClass]="{'is-invalid': additionalPerson.get('birthDate').invalid && (additionalPerson.get('birthDate').dirty || additionalPerson.get('birthDate').touched), 'is-valid': additionalPerson.get('birthDate').valid && (additionalPerson.get('birthDate').dirty || additionalPerson.get('birthDate').touched)}">
-                          @if (additionalPerson.get('birthDate').errors?.required && (additionalPerson.get('birthDate').dirty || additionalPerson.get('birthDate').touched)) {
-                            <div class="invalid-feedback">
-                              Pflichtfeld
-                            </div>
-                          }
-                          @if (additionalPerson.get('birthDate').errors?.mindate && (additionalPerson.get('birthDate').dirty || additionalPerson.get('birthDate').touched)) {
-                            <div class="invalid-feedback">
-                              Mind. Datum: {{additionalPerson.get('birthDate').errors.mindate.minimumDate}}
-                            </div>
-                          }
-                          @if (additionalPerson.get('birthDate').errors?.maxdate && (additionalPerson.get('birthDate').dirty || additionalPerson.get('birthDate').touched)) {
-                            <div class="invalid-feedback">
-                              Max. Datum: {{additionalPerson.get('birthDate').errors.maxdate.maximumDate}}
-                            </div>
+                          <input testid="birthDateInput" type="date" [formField]="customerForm.additionalPersons[i].birthDate"
+                                 class="form-control"
+                                 [ngClass]="{'is-invalid': shouldShowErrors(customerForm.additionalPersons[i].birthDate()), 'is-valid': customerForm.additionalPersons[i].birthDate().valid() && (customerForm.additionalPersons[i].birthDate().dirty() || customerForm.additionalPersons[i].birthDate().touched())}">
+                          @if (shouldShowErrors(customerForm.additionalPersons[i].birthDate())) {
+                            @for (errorMessage of getErrorMessages(customerForm.additionalPersons[i].birthDate()); track $index) {
+                              <div class="invalid-feedback">{{errorMessage}}</div>
+                            }
                           }
                         </c-col>
                         <c-col lg size="6">
                           <label class="form-label">Geschlecht *</label>
                           <c-input-group>
-                            <select testid="genderInput" formControlName="gender" cSelect class="form-control"
-                                    [ngClass]="{'is-invalid': additionalPerson.get('gender').invalid && (additionalPerson.get('gender').dirty || additionalPerson.get('gender').touched), 'is-valid': additionalPerson.get('gender').valid && (additionalPerson.get('gender').dirty || additionalPerson.get('gender').touched)}">
-                              @for (gender of genders; track gender) {
-                                <option [ngValue]="gender">
-                                  {{gender | genderLabel}}</option>
+                            <select testid="genderInput"
+                                    (change)="onPersonGenderChange(i, $event)"
+                                    cSelect class="form-control"
+                                    [ngClass]="{'is-invalid': shouldShowErrors(customerForm.additionalPersons[i].gender()), 'is-valid': customerForm.additionalPersons[i].gender().valid() && (customerForm.additionalPersons[i].gender().dirty() || customerForm.additionalPersons[i].gender().touched())}">
+                              <option value="" [selected]="!customerForm.additionalPersons[i].gender().value()">Bitte wählen...</option>
+                              @for (genderOption of genders; track genderOption) {
+                                <option [value]="genderOption" [selected]="genderOption === customerForm.additionalPersons[i].gender().value()">
+                                  {{genderOption | genderLabel}}</option>
                               }
                             </select>
                             <span cInputGroupText>
                               <fa-icon [icon]="faVenusMars"></fa-icon>
                             </span>
-                            @if (additionalPerson.get('gender').errors?.required && (additionalPerson.get('gender').dirty || additionalPerson.get('gender').touched)) {
-                              <div class="invalid-feedback">
-                                Pflichtfeld
-                              </div>
-                            }
                           </c-input-group>
+                          @if (shouldShowErrors(customerForm.additionalPersons[i].gender())) {
+                            @for (errorMessage of getErrorMessages(customerForm.additionalPersons[i].gender()); track $index) {
+                              <div class="invalid-feedback">{{errorMessage}}</div>
+                            }
+                          }
                         </c-col>
                       </c-row>
                       <c-row>
                         <c-col>
                           <label class="form-label">Nationalität *</label>
                           <c-input-group>
-                            <select testid="countryInput" formControlName="country" cSelect class="form-control"
-                                    [compareWith]="compareCountry"
-                                    [ngClass]="{'is-invalid': additionalPerson.get('country').invalid && (additionalPerson.get('country').dirty || additionalPerson.get('country').touched), 'is-valid': additionalPerson.get('country').valid && (additionalPerson.get('country').dirty || additionalPerson.get('country').touched)}">
-                              @for (countryItem of countries; track countryItem.id) {
-                                <option [ngValue]="countryItem">
+                            <select testid="countryInput"
+                                    (change)="onPersonCountryChange(i, $event)"
+                                    cSelect class="form-control"
+                                    [ngClass]="{'is-invalid': shouldShowErrors(customerForm.additionalPersons[i].country()), 'is-valid': customerForm.additionalPersons[i].country().valid() && (customerForm.additionalPersons[i].country().dirty() || customerForm.additionalPersons[i].country().touched())}">
+                              <option value="" [selected]="!customerForm.additionalPersons[i].country().value()">Bitte wählen...</option>
+                              @for (countryItem of countries(); track countryItem.id) {
+                                <option [value]="countryItem.id" [selected]="countryItem.id === customerForm.additionalPersons[i].country().value()?.id">
                                   {{countryItem.name}}</option>
                               }
                             </select>
                             <span cInputGroupText>
                               <fa-icon [icon]="faFlag"></fa-icon>
                             </span>
-                            @if (additionalPerson.get('country').errors?.required && (additionalPerson.get('country').dirty || additionalPerson.get('country').touched)) {
-                              <div class="invalid-feedback">
-                                Pflichtfeld
-                              </div>
-                            }
                           </c-input-group>
+                          @if (shouldShowErrors(customerForm.additionalPersons[i].country())) {
+                            @for (errorMessage of getErrorMessages(customerForm.additionalPersons[i].country()); track $index) {
+                              <div class="invalid-feedback">{{errorMessage}}</div>
+                            }
+                          }
                         </c-col>
                       </c-row>
                       <c-row>
                         <c-col lg size="6">
                           <label class="form-label">Arbeitgeber</label>
                           <c-input-group>
-                            <input testid="employerInput" type="text"
-                                   formControlName="employer" class="form-control"
-                                   [ngClass]="{'is-invalid': additionalPerson.get('employer').invalid && (additionalPerson.get('employer').dirty || additionalPerson.get('employer').touched), 'is-valid': additionalPerson.get('employer').valid && (additionalPerson.get('employer').dirty || additionalPerson.get('employer').touched)}">
+                            <input testid="employerInput" type="text" [formField]="customerForm.additionalPersons[i].employer"
+                                   class="form-control"
+                                   [ngClass]="{'is-invalid': shouldShowErrors(customerForm.additionalPersons[i].employer()), 'is-valid': customerForm.additionalPersons[i].employer().valid() && (customerForm.additionalPersons[i].employer().dirty() || customerForm.additionalPersons[i].employer().touched())}">
                             <span cInputGroupText>
                               <fa-icon [icon]="faBuilding"></fa-icon>
                             </span>
                           </c-input-group>
+                          @if (shouldShowErrors(customerForm.additionalPersons[i].employer())) {
+                            @for (errorMessage of getErrorMessages(customerForm.additionalPersons[i].employer()); track $index) {
+                              <div class="invalid-feedback">{{errorMessage}}</div>
+                            }
+                          }
                         </c-col>
                         <c-col lg size="6">
                           <label class="form-label">Einkommen (monatl.)</label>
                           <c-input-group>
-                            <input testid="incomeInput" type="number"
-                                   formControlName="income" class="form-control"
-                                   [ngClass]="{'is-invalid': additionalPerson.get('income').invalid && (additionalPerson.get('income').dirty || additionalPerson.get('income').touched), 'is-valid': additionalPerson.get('income').valid && (additionalPerson.get('income').dirty || additionalPerson.get('income').touched)}">
+                            <input testid="incomeInput" type="number" [formField]="customerForm.additionalPersons[i].income"
+                                   class="form-control"
+                                   [ngClass]="{'is-invalid': shouldShowErrors(customerForm.additionalPersons[i].income()), 'is-valid': customerForm.additionalPersons[i].income().valid() && (customerForm.additionalPersons[i].income().dirty() || customerForm.additionalPersons[i].income().touched())}">
                             <span cInputGroupText>
                               <fa-icon [icon]="faEuroSign"></fa-icon>
                             </span>
-                            @if (additionalPerson.get('income').errors?.min && (additionalPerson.get('income').dirty || additionalPerson.get('income').touched)) {
-                              <div class="invalid-feedback">
-                                Muss mindestens 1 sein
-                              </div>
-                            }
                           </c-input-group>
+                          @if (shouldShowErrors(customerForm.additionalPersons[i].income())) {
+                            @for (errorMessage of getErrorMessages(customerForm.additionalPersons[i].income()); track $index) {
+                              <div class="invalid-feedback">{{errorMessage}}</div>
+                            }
+                          }
                         </c-col>
                       </c-row>
                       <c-row>
                         <c-col lg size="12">
                           <label class="form-label">nachgewiesen bis</label>
                           <div class="input-group">
-                            <input testid="incomeDueInput" type="date"
-                                   formControlName="incomeDue" class="form-control"
-                                   [ngClass]="{'is-invalid': additionalPerson.get('incomeDue').invalid && (additionalPerson.get('incomeDue').dirty || additionalPerson.get('incomeDue').touched), 'is-valid': additionalPerson.get('incomeDue').valid && (additionalPerson.get('incomeDue').dirty || additionalPerson.get('incomeDue').touched)}">
-                            @if (additionalPerson.get('incomeDue').errors?.mindate && (additionalPerson.get('incomeDue').dirty || additionalPerson.get('incomeDue').touched)) {
-                              <div class="invalid-feedback">
-                                Mind. Datum: {{additionalPerson.get('incomeDue').errors.mindate.minimumDate}}
-                              </div>
-                            }
+                            <input testid="incomeDueInput" type="date" [formField]="customerForm.additionalPersons[i].incomeDue"
+                                   class="form-control"
+                                   [ngClass]="{'is-invalid': shouldShowErrors(customerForm.additionalPersons[i].incomeDue()), 'is-valid': customerForm.additionalPersons[i].incomeDue().valid() && (customerForm.additionalPersons[i].incomeDue().dirty() || customerForm.additionalPersons[i].incomeDue().touched())}">
                           </div>
+                          @if (shouldShowErrors(customerForm.additionalPersons[i].incomeDue())) {
+                            @for (errorMessage of getErrorMessages(customerForm.additionalPersons[i].incomeDue()); track $index) {
+                              <div class="invalid-feedback">{{errorMessage}}</div>
+                            }
+                          }
                         </c-col>
                       </c-row>
                       <c-row class="mt-2">
@@ -477,14 +417,16 @@
                           <label class="form-label">Bezieht Familienbeihilfe</label>
                           <div class="input-group">
                             <input testid="receivesFamilyBonusInput" type="checkbox"
-                                   formControlName="receivesFamilyBonus" cFormCheckInput>
+                                   [formField]="customerForm.additionalPersons[i].receivesFamilyBonus"
+                                   cFormCheckInput>
                           </div>
                         </c-col>
                         <c-col lg size="6">
                           <label class="form-label">Nicht im selben Haushalt (keine Berechnung)</label>
                           <div class="input-group">
                             <input testid="excludeFromHouseholdInput" type="checkbox"
-                                   formControlName="excludeFromHousehold" cFormCheckInput>
+                                   [formField]="customerForm.additionalPersons[i].excludeFromHousehold"
+                                   cFormCheckInput>
                           </div>
                         </c-col>
                       </c-row>
@@ -505,7 +447,7 @@
           }
         </c-card-body>
         <c-card-footer class="text-end">
-          <button testid="addperson-button-bottom" cButton color="success" (click)="addNewPerson()">
+          <button testid="addperson-button-bottom" cButton color="success" class="text-white" (click)="addNewPerson()">
             Hinzufügen
           </button>
         </c-card-footer>

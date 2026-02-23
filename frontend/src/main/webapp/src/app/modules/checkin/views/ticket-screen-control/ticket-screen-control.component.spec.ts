@@ -1,4 +1,4 @@
-import type {MockedObject} from "vitest";
+import type {MockedObject} from 'vitest';
 import {TestBed} from '@angular/core/testing';
 import {CommonModule} from '@angular/common';
 import {TicketScreenControlComponent} from './ticket-screen-control.component';
@@ -70,7 +70,9 @@ describe('TicketScreenControlComponent', () => {
     distributionTicketScreenApiService.showText.mockReturnValue(of(null));
 
     const startTime = '19:00';
-    component.form.get('startTime').setValue(startTime);
+    component.startTimeFormModel.set({
+      startTime: startTime
+    });
 
     component.showStartTime();
 
@@ -123,7 +125,9 @@ describe('TicketScreenControlComponent', () => {
     distributionTicketScreenApiService.showText.mockReturnValue(throwError(() => new Error('API Error')));
 
     const startTime = '19:00';
-    component.form.get('startTime').setValue(startTime);
+    component.startTimeFormModel.set({
+      startTime: startTime
+    });
 
     component.showStartTime();
 
@@ -165,7 +169,9 @@ describe('TicketScreenControlComponent', () => {
     distributionTicketScreenApiService.showText.mockReturnValue(of(null));
 
     const startTime = '19:00';
-    component.form.get('startTime').setValue(startTime);
+    component.startTimeFormModel.set({
+      startTime: startTime
+    });
 
     expect(component.isShowingStartTime()).toBe(false);
     component.showStartTime();

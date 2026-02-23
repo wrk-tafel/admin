@@ -29,7 +29,7 @@ describe('User Create', () => {
     });
   });
 
-  it('create new user that already exists', () => {
+  it('create new user which exists already', () => {
     cy.visit('/#/benutzer/erstellen');
 
     // 1. Intercept the POST request that returns the 400 error

@@ -1,98 +1,98 @@
-import {Component, inject, linkedSignal} from '@angular/core';
-import {toSignal} from '@angular/core/rxjs-interop';
-import {FormBuilder, FormGroup, ReactiveFormsModule, ValidatorFn, Validators} from '@angular/forms';
+import {Component, inject, signal} from '@angular/core';
+import {form, FormField, maxLength, minLength, required, validate} from '@angular/forms/signals';
 import {ChangePasswordRequest, ChangePasswordResponse, UserApiService} from '../../../api/user-api.service';
 import {catchError, map} from 'rxjs/operators';
 import {Observable, throwError} from 'rxjs';
 import {HttpErrorResponse} from '@angular/common/http';
 import {CommonModule} from '@angular/common';
 import {TafelAutofocusDirective} from '../../directive/tafel-autofocus.directive';
-import {InputGroupComponent, InputGroupTextDirective} from '@coreui/angular';
+import {ColComponent, InputGroupComponent, InputGroupTextDirective, RowComponent} from '@coreui/angular';
 import {faEye, faEyeSlash} from '@fortawesome/free-solid-svg-icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 
 @Component({
     selector: 'tafel-passwordchange-form',
     templateUrl: 'passwordchange-form.component.html',
-    imports: [
-        ReactiveFormsModule,
-        CommonModule,
-        TafelAutofocusDirective,
-        InputGroupComponent,
-        FaIconComponent,
-        InputGroupTextDirective
-    ]
+  imports: [
+    FormField,
+    CommonModule,
+    TafelAutofocusDirective,
+    InputGroupComponent,
+    FaIconComponent,
+    InputGroupTextDirective,
+    RowComponent,
+    ColComponent
+  ]
 })
 export class PasswordChangeFormComponent {
   private readonly userApiService = inject(UserApiService);
-  private readonly fb = inject(FormBuilder);
 
-  form = this.fb.group({
-      currentPassword: this.fb.control<string>(null, [
-        Validators.required
-      ]),
-      newPassword: this.fb.control<string>(null, [
-        Validators.required,
-        Validators.minLength(8),
-        Validators.maxLength(50)
-      ]),
-      newRepeatedPassword: this.fb.control<string>(null, [
-        Validators.required,
-        Validators.minLength(8),
-        Validators.maxLength(50)
-      ])
-    },
-    {
-      validators: [this.validateNewAndRepeatedPasswords()]
-    }
-  );
+  // Form model as a signal
+  private emptyPasswordModel = {
+    currentPassword: '',
+    newPassword: '',
+    newRepeatedPassword: ''
+  };
+  passwordFormModel = signal(this.emptyPasswordModel);
 
-  // Form status as a signal, tracking status changes reactively
-  private formStatusSignal = toSignal(this.form.statusChanges, {
-    initialValue: this.form.status
+  // Create form with validators using schema function
+  passwordForm = form(this.passwordFormModel, (schemaPath) => {
+    required(schemaPath.currentPassword, {message: 'Pflichtfeld'});
+
+    required(schemaPath.newPassword, {message: 'Pflichtfeld'});
+    minLength(schemaPath.newPassword, 8, {
+      message: 'Passwort zu kurz (Limit: 8)'
+    });
+    maxLength(schemaPath.newPassword, 50, {
+      message: 'Passwort zu lang (Limit: 50)'
+    });
+
+    required(schemaPath.newRepeatedPassword, {message: 'Pflichtfeld'});
+    minLength(schemaPath.newRepeatedPassword, 8, {
+      message: 'Passwort zu kurz (Limit: 8)'
+    });
+    maxLength(schemaPath.newRepeatedPassword, 50, {
+      message: 'Passwort zu lang (Limit: 50)'
+    });
+
+    // Cross-field validation for password matching
+    validate(schemaPath.newRepeatedPassword, ({value, valueOf}) => {
+      const repeatedPassword = value();
+      const newPassword = valueOf(schemaPath.newPassword);
+
+      if (repeatedPassword !== newPassword) {
+        return {
+          kind: 'passwordsDontMatch',
+          message: 'Passwort-Wiederholung stimmt nicht überein!'
+        };
+      }
+      return null;
+    });
   });
 
-  // Form validity linked to status changes - recomputes automatically when form status changes
-  readonly formValid = linkedSignal(() => {
-    this.formStatusSignal();
-    return this.form.valid;
-  });
+  currentPasswordTextVisible = signal(false);
+  newPasswordTextVisible = signal(false);
+  newRepeatedPasswordTextVisible = signal(false);
 
-  currentPasswordTextVisible: boolean;
-  newPasswordTextVisible: boolean;
-  newRepeatedPasswordTextVisible: boolean;
-
-  successMessage: string;
-  errorMessage: string;
-  errorMessageDetails: string[];
+  successMessage = signal<string | null>(null);
+  errorMessage = signal<string | null>(null);
+  errorMessageDetails = signal<string[]>([]);
 
   public toggleCurrentPasswordVisibility() {
-    this.currentPasswordTextVisible = !this.currentPasswordTextVisible;
+    this.currentPasswordTextVisible.update(value => !value);
   }
 
   public toggleNewPasswordVisibility() {
-    this.newPasswordTextVisible = !this.newPasswordTextVisible;
+    this.newPasswordTextVisible.update(value => !value);
   }
 
   public toggleNewRepeatedPasswordTextVisible() {
-    this.newRepeatedPasswordTextVisible = !this.newRepeatedPasswordTextVisible;
-  }
-
-  get currentPassword() {
-    return this.form.get('currentPassword');
-  }
-
-  get newPassword() {
-    return this.form.get('newPassword');
-  }
-
-  get newRepeatedPassword() {
-    return this.form.get('newRepeatedPassword');
+    this.newRepeatedPasswordTextVisible.update(value => !value);
   }
 
   changePassword(): Observable<boolean> {
-    const currentPassword = this.currentPassword.value;
-    const newPassword = this.newPassword.value;
+    const currentPassword = this.passwordForm.currentPassword().value();
+    const newPassword = this.passwordForm.newPassword().value();
 
     const passwordChangeRequest: ChangePasswordRequest = {passwordCurrent: currentPassword, passwordNew: newPassword};
 
@@ -100,18 +100,18 @@ export class PasswordChangeFormComponent {
       map(
         /* eslint-disable @typescript-eslint/no-unused-vars */
         (response: ChangePasswordResponse) => {
-          this.errorMessage = null;
-          this.errorMessageDetails = null;
-          this.successMessage = 'Passwort erfolgreich geändert!';
+          this.errorMessage.set(null);
+          this.errorMessageDetails.set([]);
+          this.successMessage.set('Passwort erfolgreich geändert!');
           return true;
         }
       ),
       catchError(
         (error: HttpErrorResponse) => {
           const errorBody = error.error as ChangePasswordResponse;
-          this.errorMessage = errorBody.message;
-          this.errorMessageDetails = errorBody.details;
-          this.successMessage = null;
+          this.errorMessage.set(errorBody.message);
+          this.errorMessageDetails.set(errorBody.details || []);
+          this.successMessage.set(null);
           return throwError(() => false);
         }
       )
@@ -119,31 +119,13 @@ export class PasswordChangeFormComponent {
   }
 
   reset() {
-    this.successMessage = null;
-    this.errorMessage = null;
-    this.errorMessageDetails = null;
-    this.form.reset();
-  }
-
-  validateNewAndRepeatedPasswords(): ValidatorFn {
-    return (formGroup: FormGroup) => {
-      const newPassword = formGroup.get('newPassword').value;
-      const newRepeatedPassword = formGroup.get('newRepeatedPassword').value;
-
-      if (newPassword !== newRepeatedPassword) {
-        return {passwordsDontMatch: true};
-      }
-
-      return null;
-    };
-  }
-
-  isValid() {
-    return this.form.valid;
-  }
-
-  trackByErrorDetail(index: number, detail: string): number {
-    return index;
+    this.successMessage.set(null);
+    this.errorMessage.set(null);
+    this.errorMessageDetails.set([]);
+    // Reset the model signal to clear form values
+    this.passwordFormModel.set(this.emptyPasswordModel);
+    // Reset form state (touched, dirty)
+    this.passwordForm().reset();
   }
 
   protected readonly faEye = faEye;

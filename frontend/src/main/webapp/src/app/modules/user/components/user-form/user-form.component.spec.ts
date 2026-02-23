@@ -1,7 +1,7 @@
-import type { MockedObject } from "vitest";
+import type {MockedObject} from 'vitest';
 import {TestBed} from '@angular/core/testing';
-import {passwordRepeatValidator, UserFormComponent, UserPermissionFormItem} from './user-form.component';
-import {FormControl, FormGroup, ReactiveFormsModule} from '@angular/forms';
+import {UserFormComponent, UserPermissionFormItem} from './user-form.component';
+import {FormField} from '@angular/forms/signals';
 import {CardModule, ColComponent, InputGroupComponent, RowComponent} from '@coreui/angular';
 import {UserApiService, UserData, UserPermission} from '../../../../api/user-api.service';
 import {of, throwError} from 'rxjs';
@@ -30,7 +30,7 @@ describe('UserFormComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [
-        ReactiveFormsModule,
+        FormField,
         InputGroupComponent,
         CardModule,
         RowComponent,
@@ -84,23 +84,23 @@ describe('UserFormComponent', () => {
     });
     */
 
-    expect(component.id.value).toBe(mockUser.id);
-    expect(component.username.value).toBe(mockUser.username);
-    expect(component.personnelNumber.value).toBe(mockUser.personnelNumber);
-    expect(component.lastname.value).toBe(mockUser.lastname);
-    expect(component.firstname.value).toBe(mockUser.firstname);
-    expect(component.enabled.value).toBe(mockUser.enabled);
-    expect(component.passwordChangeRequired.value).toBe(mockUser.passwordChangeRequired);
+    expect(component.userForm.id().value()).toBe(mockUser.id);
+    expect(component.userForm.username().value()).toBe(mockUser.username);
+    expect(component.userForm.personnelNumber().value()).toBe(mockUser.personnelNumber);
+    expect(component.userForm.lastname().value()).toBe(mockUser.lastname);
+    expect(component.userForm.firstname().value()).toBe(mockUser.firstname);
+    expect(component.userForm.enabled().value()).toBe(mockUser.enabled);
+    expect(component.userForm.passwordChangeRequired().value()).toBe(mockUser.passwordChangeRequired);
 
-    expect(component.permissions.value).toEqual(
+    expect(component.permissions()).toEqual(
       mockPermissions.map((permission) => {
         const mapped: UserPermissionFormItem = {...permission, enabled: true};
         return mapped;
       })
     );
-    expect(component.permissions.controls.length).toBe(2);
-    expect(component.permissions.controls[0].value).toEqual({...mockPermissions[0], enabled: true});
-    expect(component.permissions.controls[1].value).toEqual({...mockPermissions[1], enabled: true});
+    expect(component.permissions().length).toBe(2);
+    expect(component.permissions()[0]).toEqual({...mockPermissions[0], enabled: true});
+    expect(component.permissions()[1]).toEqual({...mockPermissions[1], enabled: true});
   });
 
   it('data update works', () => {
@@ -119,13 +119,13 @@ describe('UserFormComponent', () => {
     const updatedEnabled = false;
     const updatedPasswordChangeRequired = true;
 
-    component.personnelNumber.setValue(updatedPersonnelNumber);
-    component.username.setValue(updatedUsername);
-    component.lastname.setValue(updatedLastname);
-    component.firstname.setValue(updatedFirstname);
-    component.enabled.setValue(updatedEnabled);
-    component.passwordChangeRequired.setValue(updatedPasswordChangeRequired);
-    component.permissions.clear();
+    component.userForm.personnelNumber().value.set(updatedPersonnelNumber);
+    component.userForm.username().value.set(updatedUsername);
+    component.userForm.lastname().value.set(updatedLastname);
+    component.userForm.firstname().value.set(updatedFirstname);
+    component.userForm.enabled().value.set(updatedEnabled);
+    component.userForm.passwordChangeRequired().value.set(updatedPasswordChangeRequired);
+    component.permissions.set([]);
 
     fixture.detectChanges();
 
@@ -141,33 +141,34 @@ describe('UserFormComponent', () => {
   });
 
   it('password-repeat validator passwords different', () => {
-    const passwordControl = new FormControl();
-    passwordControl.setValue('pwd');
-    const passwordRepeatControl = new FormControl();
-    passwordRepeatControl.setValue('pwd-different');
+    const fixture = TestBed.createComponent(UserFormComponent);
+    const component = fixture.componentInstance;
+    fixture.componentRef.setInput('permissionsData', mockPermissions);
+    fixture.detectChanges();
 
-    const formGroup = new FormGroup({
-      password: passwordControl,
-      passwordRepeat: passwordRepeatControl
-    });
+    component.userForm.password().value.set('pwd');
+    component.userForm.passwordRepeat().value.set('pwd-different');
+    fixture.detectChanges();
 
-    const result = passwordRepeatValidator(formGroup);
-    expect(result['passwordRepeatInvalid']).toBe(true);
+    const errors = component.userForm.passwordRepeat().errors();
+    // In signal forms, errors() returns an array of error objects
+    expect(errors?.length).toBeGreaterThan(0);
+    expect(errors?.some((error: any) => error.kind === 'passwordRepeatInvalid')).toBe(true);
   });
 
   it('password-repeat validator passwords same', () => {
-    const passwordControl = new FormControl();
-    passwordControl.setValue('pwd');
-    const passwordRepeatControl = new FormControl();
-    passwordRepeatControl.setValue('pwd');
+    const fixture = TestBed.createComponent(UserFormComponent);
+    const component = fixture.componentInstance;
+    fixture.componentRef.setInput('permissionsData', mockPermissions);
+    fixture.detectChanges();
 
-    const formGroup = new FormGroup({
-      password: passwordControl,
-      passwordRepeat: passwordRepeatControl
-    });
+    component.userForm.password().value.set('pwd');
+    component.userForm.passwordRepeat().value.set('pwd');
+    fixture.detectChanges();
 
-    const result = passwordRepeatValidator(formGroup);
-    expect(result).toBeNull();
+    const errors = component.userForm.passwordRepeat().errors();
+    // In signal forms, errors() returns an empty array when there are no errors
+    expect(errors?.length).toBe(0);
   });
 
   it('generate password', () => {
@@ -175,18 +176,18 @@ describe('UserFormComponent', () => {
     const component = fixture.componentInstance;
     fixture.componentRef.setInput('permissionsData', mockPermissions);
     fixture.detectChanges();
-    component.passwordTextVisible = false;
-    component.passwordRepeatTextVisible = false;
+    component.passwordTextVisible.set(false);
+    component.passwordRepeatTextVisible.set(false);
 
     const generatedPassword = 'random-pwd';
     userApiService.generatePassword.mockReturnValue(of({password: generatedPassword}));
 
     component.generatePassword();
 
-    expect(component.password.value).toEqual(generatedPassword);
-    expect(component.passwordRepeat.value).toEqual(generatedPassword);
-    expect(component.passwordTextVisible).toBe(true);
-    expect(component.passwordRepeatTextVisible).toBe(true);
+    expect(component.userForm.password().value()).toEqual(generatedPassword);
+    expect(component.userForm.passwordRepeat().value()).toEqual(generatedPassword);
+    expect(component.passwordTextVisible()).toBe(true);
+    expect(component.passwordRepeatTextVisible()).toBe(true);
   });
 
   it('generate password failed', () => {
@@ -194,16 +195,16 @@ describe('UserFormComponent', () => {
     const component = fixture.componentInstance;
     fixture.componentRef.setInput('permissionsData', mockPermissions);
     fixture.detectChanges();
-    component.passwordTextVisible = false;
-    component.passwordRepeatTextVisible = false;
+    component.passwordTextVisible.set(false);
+    component.passwordRepeatTextVisible.set(false);
     userApiService.generatePassword.mockReturnValue(throwError(() => 'generation failed'));
 
     component.generatePassword();
 
-    expect(component.password.value).toBeNull();
-    expect(component.passwordRepeat.value).toBeNull();
-    expect(component.passwordTextVisible).toBe(false);
-    expect(component.passwordRepeatTextVisible).toBe(false);
+    expect(component.userForm.password().value()).toBe(null);
+    expect(component.userForm.passwordRepeat().value()).toBe(null);
+    expect(component.passwordTextVisible()).toBe(false);
+    expect(component.passwordRepeatTextVisible()).toBe(false);
 
     expect(toastService.showToast).toHaveBeenCalledWith({
       type: ToastType.ERROR,

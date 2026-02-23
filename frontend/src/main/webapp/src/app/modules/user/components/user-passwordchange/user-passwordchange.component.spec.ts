@@ -40,8 +40,11 @@ describe('UserPasswordChangeComponent', () => {
         const fixture = TestBed.createComponent(UserPasswordChangeComponent);
         const component = fixture.componentInstance;
         component.form = TestBed.createComponent(PasswordChangeFormComponent).componentInstance;
-        vi.spyOn(component.form, 'isValid').mockReturnValue(true);
-        vi.spyOn(component.form.form, 'valid', 'get').mockReturnValue(true);
+
+        // Mock passwordForm to return a valid state
+        vi.spyOn(component.form, 'passwordForm').mockReturnValue({
+            valid: vi.fn().mockReturnValue(true)
+        } as any);
 
         expect(component.isSaveDisabled()).toBeFalsy();
     });
@@ -50,8 +53,11 @@ describe('UserPasswordChangeComponent', () => {
         const fixture = TestBed.createComponent(UserPasswordChangeComponent);
         const component = fixture.componentInstance;
         component.form = TestBed.createComponent(PasswordChangeFormComponent).componentInstance;
-        vi.spyOn(component.form, 'isValid').mockReturnValue(false);
-        vi.spyOn(component.form.form, 'valid', 'get').mockReturnValue(false);
+
+        // Mock passwordForm to return an invalid state
+        vi.spyOn(component.form, 'passwordForm').mockReturnValue({
+            valid: vi.fn().mockReturnValue(false)
+        } as any);
 
         expect(component.isSaveDisabled()).toBeTruthy();
     });

@@ -1,4 +1,4 @@
-import type { MockedObject } from "vitest";
+import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { TafelToasterComponent } from './tafel-toaster.component';
 import { CommonModule } from '@angular/common';
