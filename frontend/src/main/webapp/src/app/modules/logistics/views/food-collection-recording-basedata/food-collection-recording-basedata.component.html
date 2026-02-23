@@ -1,6 +1,6 @@
 <c-row>
   <c-col>
-    <form [formGroup]="form">
+    <form [formGroup]="form" autocomplete="off">
       <c-row>
         <c-col md="5">
           <label class="form-label">KFZ *</label>
@@ -100,7 +100,7 @@
             <c-row>
               <c-col testid="selectedDriverDescription" class="col-10">{{ selectedDriver.personnelNumber }} {{ selectedDriver.firstname }} {{ selectedDriver.lastname }}</c-col>
               <c-col class="col-2">
-                <button cButton testid="selectedDriverRemoveButton" class="float-end" color="danger"
+                <button cButton testid="selectedDriverRemoveButton" class="float-end text-white" color="danger"
                         (click)="resetDriver()">
                   <fa-icon [icon]="faRemove"></fa-icon>
                 </button>
@@ -139,7 +139,7 @@
             <c-row>
               <c-col testid="selectedCoDriverDescription" class="col-10">{{ selectedCoDriver.personnelNumber }} {{ selectedCoDriver.firstname }} {{ selectedCoDriver.lastname }}</c-col>
               <c-col class="col-2">
-                <button cButton testid="selectedCoDriverRemoveButton" class="float-end" color="danger"
+                <button cButton testid="selectedCoDriverRemoveButton" class="float-end text-white" color="danger"
                         (click)="resetCoDriver()">
                   <fa-icon [icon]="faRemove"></fa-icon>
                 </button>

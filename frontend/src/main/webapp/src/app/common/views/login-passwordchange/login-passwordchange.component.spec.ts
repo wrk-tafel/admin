@@ -1,14 +1,12 @@
-import type { MockedObject } from "vitest";
-import { TestBed } from '@angular/core/testing';
-import { AbstractControl, ReactiveFormsModule } from '@angular/forms';
-import { LoginPasswordChangeComponent } from './login-passwordchange.component';
-import { AuthenticationService, LoginResult } from '../../security/authentication.service';
-import { Router } from '@angular/router';
-import { firstValueFrom, of } from 'rxjs';
-import { PasswordChangeFormComponent } from '../passwordchange-form/passwordchange-form.component';
-import { CardModule, ColComponent, ContainerComponent, RowComponent } from '@coreui/angular';
-import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
+import type {MockedObject} from 'vitest';
+import {TestBed} from '@angular/core/testing';
+import {LoginPasswordChangeComponent} from './login-passwordchange.component';
+import {AuthenticationService, LoginResult} from '../../security/authentication.service';
+import {Router} from '@angular/router';
+import {firstValueFrom, of} from 'rxjs';
+import {CardModule, ColComponent, ContainerComponent, RowComponent} from '@coreui/angular';
+import {provideHttpClient} from '@angular/common/http';
+import {provideHttpClientTesting} from '@angular/common/http/testing';
 
 describe('LoginPasswordChangeComponent', () => {
     let authServiceSpy: MockedObject<AuthenticationService>;
@@ -17,7 +15,6 @@ describe('LoginPasswordChangeComponent', () => {
     beforeEach(() => {
         TestBed.configureTestingModule({
             imports: [
-                ReactiveFormsModule,
                 CardModule,
                 ContainerComponent,
                 RowComponent,
@@ -77,7 +74,6 @@ describe('LoginPasswordChangeComponent', () => {
         const formComponent = component.form();
         if (formComponent) {
             // Leave form empty - it will be invalid due to required validators
-            formComponent.form.updateValueAndValidity();
             fixture.detectChanges();
         }
 
@@ -92,12 +88,11 @@ describe('LoginPasswordChangeComponent', () => {
         const formComponent = component.form();
         if (formComponent) {
             // Set valid values to make form valid
-            formComponent.form.patchValue({
+            formComponent.passwordFormModel.set({
                 currentPassword: 'current123',
                 newPassword: 'newPassword123',
                 newRepeatedPassword: 'newPassword123'
             });
-            formComponent.form.updateValueAndValidity();
             fixture.detectChanges();
         }
 
@@ -115,8 +110,14 @@ describe('LoginPasswordChangeComponent', () => {
         const formComponent = component.form();
         expect(formComponent).toBeDefined();
 
+        // Set the password in the form model
+        formComponent!.passwordFormModel.set({
+            currentPassword: 'current',
+            newPassword: testNewPassword,
+            newRepeatedPassword: testNewPassword
+        });
+
         vi.spyOn(formComponent!, 'changePassword').mockReturnValue(of(true));
-        vi.spyOn(formComponent!, 'newPassword', 'get').mockReturnValue({ value: testNewPassword } as AbstractControl);
         authServiceSpy.getUsername.mockReturnValue(testUsername);
 
         const loginResult: LoginResult = { successful: true, passwordChangeRequired: false };

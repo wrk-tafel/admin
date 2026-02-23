@@ -1,5 +1,5 @@
 import {Component, inject, signal} from '@angular/core';
-import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
+import {ReactiveFormsModule} from '@angular/forms';
 import {TicketScreenComponent} from '../../components/ticket-screen/ticket-screen.component';
 import {UrlHelperService} from '../../../../common/util/url-helper.service';
 import {ButtonDirective, CardBodyComponent, CardComponent, ColComponent, RowComponent} from '@coreui/angular';
@@ -7,29 +7,33 @@ import {NgClass} from '@angular/common';
 import {DistributionTicketScreenApiService} from '../../../../api/distribution-ticket-screen-api.service';
 import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
 import {finalize} from 'rxjs';
+import {form, FormField, required} from '@angular/forms/signals';
 
 @Component({
     selector: 'tafel-ticket-screen-control',
     templateUrl: 'ticket-screen-control.component.html',
-    imports: [
-        CardComponent,
-        CardBodyComponent,
-        RowComponent,
-        ColComponent,
-        ReactiveFormsModule,
-        NgClass,
-        TicketScreenComponent,
-        ButtonDirective
-    ]
+  imports: [
+    CardComponent,
+    CardBodyComponent,
+    RowComponent,
+    ColComponent,
+    ReactiveFormsModule,
+    NgClass,
+    TicketScreenComponent,
+    ButtonDirective,
+    FormField
+  ]
 })
 export class TicketScreenControlComponent {
   private readonly distributionTicketScreenApiService = inject(DistributionTicketScreenApiService);
   private readonly urlHelperService = inject(UrlHelperService);
   private readonly toastService = inject(ToastService);
-  private readonly fb = inject(FormBuilder);
 
-  form = this.fb.group({
-    startTime: this.fb.control<string>(null, Validators.required)
+  startTimeFormModel = signal({
+    startTime: '',
+  });
+  startTimeForm = form(this.startTimeFormModel, (schemaPath) => {
+    required(schemaPath.startTime);
   });
 
   // Loading states to prevent double-clicks
@@ -44,9 +48,9 @@ export class TicketScreenControlComponent {
   }
 
   showStartTime() {
-    this.form.markAllAsTouched();
+    this.startTimeForm.startTime().markAsTouched();
 
-    const time = this.startTime.value;
+    const time = this.startTimeForm.startTime().value();
     if (time) {
       this.isShowingStartTime.set(true);
       this.distributionTicketScreenApiService.showText('Startzeit', time)
@@ -102,10 +106,6 @@ export class TicketScreenControlComponent {
           });
         }
       });
-  }
-
-  get startTime() {
-    return this.form.get('startTime');
   }
 
 }

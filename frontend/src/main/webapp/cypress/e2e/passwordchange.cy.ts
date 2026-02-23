@@ -8,6 +8,44 @@ describe('PasswordChange', () => {
     cy.visit('/#');
   });
 
+  it('password mismatch validation', () => {
+    cy.byTestId('usermenu').click();
+    cy.byTestId('usermenu-changepassword').click();
+
+    // Enter current password
+    cy.byTestId('currentPasswordText').type('e2etest');
+
+    // Enter new password
+    const newPassword = 'NewPassword123';
+    cy.byTestId('newPasswordText').type(newPassword);
+
+    // Enter different repeated password (mismatch)
+    const mismatchPassword = 'DifferentPassword123';
+    cy.byTestId('newRepeatedPasswordText').type(mismatchPassword);
+
+    // Blur the field to trigger validation
+    cy.byTestId('newRepeatedPasswordText').blur();
+
+    // Verify the mismatch error message is shown
+    cy.contains('Passwort-Wiederholung stimmt nicht überein!').should('be.visible');
+
+    // Verify the newRepeatedPassword field has the invalid class
+    cy.byTestId('newRepeatedPasswordText').should('have.class', 'is-invalid');
+
+    // Verify save button is disabled (if there's a save button in the component)
+    cy.byTestId('saveButton').should('be.disabled');
+
+    // Now fix the password to match
+    cy.byTestId('newRepeatedPasswordText').clear().type(newPassword);
+    cy.byTestId('newRepeatedPasswordText').blur();
+
+    // Verify the error message is gone
+    cy.contains('Passwort-Wiederholung stimmt nicht überein!').should('not.exist');
+
+    // Verify the field is now valid
+    cy.byTestId('newRepeatedPasswordText').should('have.class', 'is-valid');
+  });
+
   it('change password', () => {
     cy.getAnyRandomNumber().then(randomNumber => {
       const testUser: UserData = {
@@ -51,7 +89,13 @@ describe('PasswordChange', () => {
           {timeout: 30000}
         ).should('have.value', newPassword);
 
+        // Intercept the password change request
+        cy.intercept('POST', '/api/users/change-password').as('changePassword');
+
         cy.byTestId('saveButton').click();
+
+        // Wait for the password change to complete
+        cy.wait('@changePassword').its('response.statusCode').should('eq', 200);
 
         cy.byTestId('usermenu').click();
         cy.byTestId('usermenu-logout').click();
@@ -63,8 +107,8 @@ describe('PasswordChange', () => {
 
         cy.url().should('contain', '/#');
 
-        // expect error for old password
-        cy.createLoginRequest(user.username, 'e2etest', false).then((resp) => {
+        // expect error for invalid password
+        cy.createLoginRequest(user.username, currentPassword, false).then((resp) => {
           expect(resp.status).to.eq(403);
         });
       });

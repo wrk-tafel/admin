@@ -1,4 +1,4 @@
-import type { MockedObject } from "vitest";
+import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { MailRecipientsComponent } from './mail-recipients.component';
 import { provideHttpClient } from '@angular/common/http';

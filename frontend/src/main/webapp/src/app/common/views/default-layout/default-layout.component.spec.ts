@@ -1,4 +1,4 @@
-import type { MockedObject } from "vitest";
+import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { DefaultLayoutComponent } from './default-layout.component';
 import { AuthenticationService } from '../../security/authentication.service';

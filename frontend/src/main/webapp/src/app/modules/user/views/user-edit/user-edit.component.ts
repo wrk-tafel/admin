@@ -1,16 +1,16 @@
-import {Component, effect, inject, input, linkedSignal, untracked, viewChild} from '@angular/core';
+import {afterRenderEffect, Component, inject, input, linkedSignal, viewChild} from '@angular/core';
 import {Router} from '@angular/router';
 import {UserApiService, UserData, UserPermission} from '../../../../api/user-api.service';
 import {UserFormComponent} from '../../components/user-form/user-form.component';
 import {ButtonDirective} from '@coreui/angular';
 
 @Component({
-    selector: 'tafel-user-edit',
-    templateUrl: 'user-edit.component.html',
-    imports: [
-        UserFormComponent,
-        ButtonDirective
-    ]
+  selector: 'tafel-user-edit',
+  templateUrl: 'user-edit.component.html',
+  imports: [
+    UserFormComponent,
+    ButtonDirective
+  ]
 })
 export class UserEditComponent {
   permissionsData = input<UserPermission[]>();
@@ -25,17 +25,13 @@ export class UserEditComponent {
 
   constructor() {
     // Mark forms as touched when userData changes (deferred to next microtask)
-    effect(() => {
+    afterRenderEffect(() => {
       const userData = this.userData();
       if (userData) {
-        queueMicrotask(() => {
-          untracked(() => {
-            const formComponent = this.userFormComponent();
-            if (formComponent) {
-              formComponent.markAllAsTouched();
-            }
-          });
-        });
+        const formComponent = this.userFormComponent();
+        if (formComponent) {
+          formComponent.markAllAsTouched();
+        }
       }
     });
   }

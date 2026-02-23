@@ -195,7 +195,7 @@
                 <c-row>
                     <c-col>
                         <button [disabled]="customerState() === 0 || !ticketNumber" testid="assignCustomerButton"
-                                cButton color="success"
+                                cButton color="success" class="text-white"
                                 (click)="assignCustomer()">Annehmen
                         </button>
                         <button testid="cancelButton" #cancelButton cButton class="ms-3"

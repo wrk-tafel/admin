@@ -1,4 +1,4 @@
-<form [formGroup]="form">
+<form autocomplete="off">
   <div class="row">
     <div class="col-md">
       <div class="card">
@@ -9,65 +9,45 @@
           <div class="row">
             <div class="col-sm">
               <label class="form-label">Benutzername *</label>
-              <input cFormControl formControlName="username" testid="usernameInput" type="text" tafelAutofocus
-                     [ngClass]="{'is-invalid': username.invalid && (username.dirty || username.touched), 'is-valid': username.valid && (username.dirty || username.touched)}">
-              @if (username.errors?.required && (username.dirty || username.touched)) {
-                <div class="invalid-feedback">
-                  Pflichtfeld
-                </div>
-              }
-              @if (username.errors?.maxlength && (username.dirty || username.touched)) {
-                <div class="invalid-feedback">
-                  Benutzername zu lang (Limit: {{username.errors.maxlength.requiredLength}})
-                </div>
+              <input cFormControl [formField]="userForm.username" testid="usernameInput" type="text" tafelAutofocus
+                     [ngClass]="{'is-invalid': shouldShowErrors(userForm.username()), 'is-valid': userForm.username().valid() && (userForm.username().dirty() || userForm.username().touched())}">
+              @if (shouldShowErrors(userForm.username())) {
+                @for (errorMessage of getErrorMessages(userForm.username()); track errorMessage) {
+                  <div class="invalid-feedback">{{errorMessage}}</div>
+                }
               }
             </div>
             <div class="col-sm">
               <label class="form-label">Personalnummer *</label>
-              <input testid="personnelNumberInput" type="text" formControlName="personnelNumber" class="form-control"
-                     [ngClass]="{'is-invalid': personnelNumber.invalid && (personnelNumber.dirty || personnelNumber.touched), 'is-valid': personnelNumber.valid && (personnelNumber.dirty || personnelNumber.touched)}">
-              @if (personnelNumber.errors?.required && (personnelNumber.dirty || personnelNumber.touched)) {
-                <div class="invalid-feedback">
-                  Pflichtfeld
-                </div>
-              }
-              @if (personnelNumber.errors?.maxlength && (personnelNumber.dirty || personnelNumber.touched)) {
-                <div class="invalid-feedback">
-                  Personalnummer zu lang (Limit: {{personnelNumber.errors.maxlength.requiredLength}})
-                </div>
+              <input testid="personnelNumberInput" type="text" [formField]="userForm.personnelNumber" class="form-control"
+                     [ngClass]="{'is-invalid': shouldShowErrors(userForm.personnelNumber()), 'is-valid': userForm.personnelNumber().valid() && (userForm.personnelNumber().dirty() || userForm.personnelNumber().touched())}">
+              @if (shouldShowErrors(userForm.personnelNumber())) {
+                @for (errorMessage of getErrorMessages(userForm.personnelNumber()); track errorMessage) {
+                  <div class="invalid-feedback">{{errorMessage}}</div>
+                }
               }
             </div>
           </div>
           <div class="row">
             <div class="col-sm">
               <label class="form-label">Nachname *</label>
-              <input testid="lastnameInput" type="text" formControlName="lastname" class="form-control"
-                     [ngClass]="{'is-invalid': lastname.invalid && (lastname.dirty || lastname.touched), 'is-valid': lastname.valid && (lastname.dirty || lastname.touched)}">
-              @if (lastname.errors?.required && (lastname.dirty || lastname.touched)) {
-                <div class="invalid-feedback">
-                  Pflichtfeld
-                </div>
-              }
-              @if (lastname.errors?.maxlength && (lastname.dirty || lastname.touched)) {
-                <div class="invalid-feedback">
-                  Nachname zu lang (Limit: {{lastname.errors.maxlength.requiredLength}})
-                </div>
+              <input testid="lastnameInput" type="text" [formField]="userForm.lastname" class="form-control"
+                     [ngClass]="{'is-invalid': shouldShowErrors(userForm.lastname()), 'is-valid': userForm.lastname().valid() && (userForm.lastname().dirty() || userForm.lastname().touched())}">
+              @if (shouldShowErrors(userForm.lastname())) {
+                @for (errorMessage of getErrorMessages(userForm.lastname()); track errorMessage) {
+                  <div class="invalid-feedback">{{errorMessage}}</div>
+                }
               }
             </div>
             <div class="col-sm">
               <label class="form-label">Vorname *</label>
-              <input testid="firstnameInput" type="text" formControlName="firstname" class="form-control"
+              <input testid="firstnameInput" type="text" [formField]="userForm.firstname" class="form-control"
                      autocomplete="new-password"
-                     [ngClass]="{'is-invalid': firstname.invalid && (firstname.dirty || firstname.touched), 'is-valid': firstname.valid && (firstname.dirty || firstname.touched)}">
-              @if (firstname.errors?.required && (firstname.dirty || firstname.touched)) {
-                <div class="invalid-feedback">
-                  Pflichtfeld
-                </div>
-              }
-              @if (firstname.errors?.maxlength && (firstname.dirty || firstname.touched)) {
-                <div class="invalid-feedback">
-                  Vorname zu lang (Limit: {{firstname.errors.maxlength.requiredLength}})
-                </div>
+                     [ngClass]="{'is-invalid': shouldShowErrors(userForm.firstname()), 'is-valid': userForm.firstname().valid() && (userForm.firstname().dirty() || userForm.firstname().touched())}">
+              @if (shouldShowErrors(userForm.firstname())) {
+                @for (errorMessage of getErrorMessages(userForm.firstname()); track errorMessage) {
+                  <div class="invalid-feedback">{{errorMessage}}</div>
+                }
               }
             </div>
           </div>
@@ -78,22 +58,22 @@
               <c-input-group>
                 <input testid="passwordInput"
                        autocomplete="new-password"
-                       [type]="passwordTextVisible ? 'text' : 'password'"
-                       formControlName="password" class="form-control"
-                       [ngClass]="{'is-invalid': form.errors?.['passwordRepeatInvalid'] && (password.dirty || password.touched), 'is-valid': password.valid && (password.dirty || password.touched)}">
+                       [type]="passwordTextVisible() ? 'text' : 'password'"
+                       [formField]="userForm.password" class="form-control"
+                       [ngClass]="{'is-invalid': shouldShowErrors(userForm.passwordRepeat()), 'is-valid': userForm.password().valid() && (userForm.password().dirty() || userForm.password().touched())}">
                 <span cInputGroupText
                       (click)="togglePasswordVisibility()">
-                      @if (!passwordTextVisible) {
+                      @if (!passwordTextVisible()) {
                         <fa-icon [icon]="faEyeSlash"></fa-icon>
                       }
-                      @if (passwordTextVisible) {
+                      @if (passwordTextVisible()) {
                         <fa-icon [icon]="faEye"></fa-icon>
                       }
                 </span>
-                @if (form.errors?.['passwordRepeatInvalid'] && (password.dirty || password.touched)) {
-                  <div class="invalid-feedback">
-                    Passwort stimmt nicht mit der Wiederholung überein!
-                  </div>
+                @if (shouldShowErrors(userForm.passwordRepeat())) {
+                  @for (errorMessage of getErrorMessages(userForm.passwordRepeat()); track errorMessage) {
+                    <div class="invalid-feedback">{{errorMessage}}</div>
+                  }
                 }
               </c-input-group>
             </div>
@@ -102,22 +82,22 @@
               <c-input-group>
                 <input testid="passwordRepeatInput"
                        autocomplete="new-password"
-                       [type]="passwordRepeatTextVisible ? 'text' : 'password'"
-                       formControlName="passwordRepeat" class="form-control"
-                       [ngClass]="{'is-invalid': form.errors?.['passwordRepeatInvalid'] && (passwordRepeat.dirty || passwordRepeat.touched), 'is-valid': passwordRepeat.valid && (passwordRepeat.dirty || passwordRepeat.touched)}">
+                       [type]="passwordRepeatTextVisible() ? 'text' : 'password'"
+                       [formField]="userForm.passwordRepeat" class="form-control"
+                       [ngClass]="{'is-invalid': shouldShowErrors(userForm.passwordRepeat()), 'is-valid': userForm.passwordRepeat().valid() && (userForm.passwordRepeat().dirty() || userForm.passwordRepeat().touched())}">
                 <span cInputGroupText
                       (click)="togglePasswordRepeatVisibility()">
-                      @if (!passwordRepeatTextVisible) {
+                      @if (!passwordRepeatTextVisible()) {
                         <fa-icon [icon]="faEyeSlash"></fa-icon>
                       }
-                      @if (passwordRepeatTextVisible) {
+                      @if (passwordRepeatTextVisible()) {
                         <fa-icon [icon]="faEye"></fa-icon>
                       }
                 </span>
-                @if (form.errors?.['passwordRepeatInvalid'] && (passwordRepeat.dirty || passwordRepeat.touched)) {
-                  <div class="invalid-feedback">
-                    Passwort stimmt nicht mit der Wiederholung überein!
-                  </div>
+                @if (shouldShowErrors(userForm.passwordRepeat())) {
+                  @for (errorMessage of getErrorMessages(userForm.passwordRepeat()); track errorMessage) {
+                    <div class="invalid-feedback">{{errorMessage}}</div>
+                  }
                 }
               </c-input-group>
             </div>
@@ -134,13 +114,13 @@
             <div class="col-sm">
               <label class="form-label">Benutzer aktiv</label>
               <div class="input-group">
-                <input testid="enabledInput" type="checkbox" formControlName="enabled" class="form-check-input">
+                <input testid="enabledInput" type="checkbox" [formField]="userForm.enabled" class="form-check-input">
               </div>
             </div>
             <div class="col-sm mt-3 mt-sm-0">
               <label class="form-label">Passwort-Änderung beim nächsten Login erforderlich</label>
               <div class="input-group">
-                <input testid="passwordChangeRequiredInput" type="checkbox" formControlName="passwordChangeRequired"
+                <input testid="passwordChangeRequiredInput" type="checkbox" [formField]="userForm.passwordChangeRequired"
                        class="form-check-input">
               </div>
             </div>
@@ -151,12 +131,12 @@
               <h5>Berechtigungen</h5>
             </div>
           </div>
-          <div class="row row-cols-1 row-cols-md-5 row-gap-2" formArrayName="permissions">
-            @for (permission of permissions.controls; track $index; let i = $index) {
-              <div class="col" [formGroupName]="i" [attr.testid]="'permission-' + i">
-                <label cLabel [attr.for]="'permission-checkbox-' + i">{{permission.get('title').value}}</label>
+          <div class="row row-cols-1 row-cols-md-5 row-gap-2">
+            @for (permission of permissions(); track trackBy($index, permission); let i = $index) {
+              <div class="col" [attr.testid]="'permission-' + i">
+                <label cLabel [attr.for]="'permission-checkbox-' + i">{{permission.title}}</label>
                 <c-input-group>
-                  <input cFormCheckInput type="checkbox" formControlName="enabled" [attr.id]="'permission-checkbox-' + i" [attr.testid]="'permission-checkbox-' + i">
+                  <input cFormCheckInput type="checkbox" [checked]="permission.enabled" (change)="togglePermission(i)" [attr.id]="'permission-checkbox-' + i" [attr.testid]="'permission-checkbox-' + i">
                 </c-input-group>
               </div>
             }

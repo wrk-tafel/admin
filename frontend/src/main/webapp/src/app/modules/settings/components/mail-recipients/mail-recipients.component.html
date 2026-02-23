@@ -17,7 +17,7 @@
           </button>
         }
       </c-tabs-list>
-      <form [formGroup]="form">
+      <form [formGroup]="form" autocomplete="off">
         <c-tabs-content formArrayName="mailRecipients">
           @for (recipientOfMailType of mailRecipientArray.controls; track recipientOfMailType; let i = $index; ) {
             <c-tab-panel class="p-3" [itemKey]="i" [formGroupName]="i">

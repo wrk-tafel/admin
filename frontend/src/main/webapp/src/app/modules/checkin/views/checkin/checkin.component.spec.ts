@@ -1,4 +1,4 @@
-import type {MockedObject} from "vitest";
+import type {MockedObject} from 'vitest';
 import {TestBed} from '@angular/core/testing';
 import {CheckinComponent, CustomerState, ScanResult} from './checkin.component';
 import {CommonModule} from '@angular/common';

@@ -11,7 +11,6 @@ import {
   ContainerComponent,
   RowComponent
 } from '@coreui/angular';
-import {NgOptimizedImage} from '@angular/common';
 
 @Component({
     selector: 'tafel-login-passwordchange',
@@ -25,7 +24,6 @@ import {NgOptimizedImage} from '@angular/common';
         CardBodyComponent,
         PasswordChangeFormComponent,
         ButtonDirective,
-        NgOptimizedImage
     ]
 })
 export class LoginPasswordChangeComponent {
@@ -40,8 +38,8 @@ export class LoginPasswordChangeComponent {
     if (!formComponent) {
       return true;
     }
-    // Use the formValid signal exposed by the child component
-    return !formComponent.formValid();
+    // Check form validity using signal forms API
+    return !formComponent.passwordForm().valid();
   });
 
   changePassword() {
@@ -53,7 +51,7 @@ export class LoginPasswordChangeComponent {
     formComponent.changePassword().subscribe(successful => {
       if (successful) {
         const username = this.authenticationService.getUsername();
-        const password = formComponent.newPassword.value;
+        const password = formComponent.passwordForm.newPassword().value();
         this.authenticationService.login(username, password).then((result: LoginResult) => {
           if (result.successful) {
             this.router.navigate(['uebersicht']);

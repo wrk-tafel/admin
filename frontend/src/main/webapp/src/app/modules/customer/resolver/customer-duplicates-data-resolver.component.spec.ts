@@ -1,4 +1,4 @@
-import type { MockedObject } from "vitest";
+import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { CustomerApiService, CustomerDuplicatesResponse } from '../../../api/customer-api.service';
 import { of } from 'rxjs';

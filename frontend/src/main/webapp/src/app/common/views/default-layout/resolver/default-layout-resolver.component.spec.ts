@@ -1,4 +1,4 @@
-import type { MockedObject } from "vitest";
+import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { DefaultLayoutResolver } from './default-layout-resolver.component';
 import { GlobalStateService } from '../../../state/global-state.service';

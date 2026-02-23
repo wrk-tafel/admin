@@ -1,11 +1,10 @@
-import type { MockedObject } from "vitest";
-import { TestBed } from '@angular/core/testing';
-import { ActivatedRoute, Router } from '@angular/router';
-import { AuthenticationService } from '../../security/authentication.service';
-import { LoginComponent } from './login.component';
-import { ReactiveFormsModule } from '@angular/forms';
-import { EMPTY, of } from 'rxjs';
-import { CardModule, ColComponent, ContainerComponent, InputGroupComponent, RowComponent } from '@coreui/angular';
+import type {MockedObject} from 'vitest';
+import {TestBed} from '@angular/core/testing';
+import {ActivatedRoute, Router} from '@angular/router';
+import {AuthenticationService} from '../../security/authentication.service';
+import {LoginComponent} from './login.component';
+import {EMPTY, of} from 'rxjs';
+import {CardModule, ColComponent, ContainerComponent, InputGroupComponent, RowComponent} from '@coreui/angular';
 
 describe('LoginComponent', () => {
     let authService: MockedObject<AuthenticationService>;
@@ -22,7 +21,6 @@ describe('LoginComponent', () => {
 
         TestBed.configureTestingModule({
             imports: [
-                ReactiveFormsModule,
                 ContainerComponent,
                 RowComponent,
                 ColComponent,
@@ -85,9 +83,9 @@ describe('LoginComponent', () => {
         const fixture = TestBed.createComponent(LoginComponent);
         const component = fixture.componentInstance;
 
-        component.form.setValue({
-            'username': 'user',
-            'password': 'pwd'
+        component.loginFormModel.set({
+            username: 'user',
+            password: 'pwd'
         });
 
         let expectedDone = false;
@@ -107,9 +105,9 @@ describe('LoginComponent', () => {
         const fixture = TestBed.createComponent(LoginComponent);
         const component = fixture.componentInstance;
 
-        component.form.setValue({
-            'username': 'user',
-            'password': 'pwd'
+        component.loginFormModel.set({
+            username: 'user',
+            password: 'pwd'
         });
 
         await component.login();
@@ -124,9 +122,9 @@ describe('LoginComponent', () => {
         const fixture = TestBed.createComponent(LoginComponent);
         const component = fixture.componentInstance;
 
-        component.form.setValue({
-            'username': 'user',
-            'password': 'pwd'
+        component.loginFormModel.set({
+            username: 'user',
+            password: 'pwd'
         });
 
         await component.login();

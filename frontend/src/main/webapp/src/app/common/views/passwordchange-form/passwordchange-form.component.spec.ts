@@ -1,6 +1,5 @@
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
-import {FormControl, FormGroup} from '@angular/forms';
 import {PasswordChangeFormComponent} from './passwordchange-form.component';
 import {ModalModule} from '@coreui/angular';
 import {provideHttpClient} from '@angular/common/http';
@@ -28,30 +27,44 @@ describe('PasswordChangeFormComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('validateNewAndRepeatedPasswords should return null on matching values', () => {
-    const validator = component.validateNewAndRepeatedPasswords();
-
-    const testForm = new FormGroup({
-      newPassword: new FormControl('12345'),
-      newRepeatedPassword: new FormControl('12345')
+  it('form should be invalid when passwords dont match', () => {
+    // Set password fields
+    component.passwordFormModel.set({
+      currentPassword: 'current123',
+      newPassword: '12345678',
+      newRepeatedPassword: '87654321'
     });
 
-    const result = validator(testForm);
+    // Mark fields as touched to trigger validation
+    component.passwordForm.newPassword().markAsTouched();
+    component.passwordForm.newRepeatedPassword().markAsTouched();
 
-    expect(result).toBe(null);
+    // Check that newRepeatedPassword has passwordsDontMatch error
+    const errors = component.passwordForm.newRepeatedPassword().errors();
+    const passwordMismatchError = errors.find(e => e.kind === 'passwordsDontMatch');
+
+    expect(passwordMismatchError).toBeDefined();
+    expect(passwordMismatchError?.message).toBe('Passwort-Wiederholung stimmt nicht überein!');
   });
 
-  it('validateNewAndRepeatedPasswords should return object when values dont match', () => {
-    const validator = component.validateNewAndRepeatedPasswords();
-
-    const testForm = new FormGroup({
-      newPassword: new FormControl('12345'),
-      newRepeatedPassword: new FormControl('67890')
+  it('form should be valid when passwords match', () => {
+    // Set matching passwords
+    component.passwordFormModel.set({
+      currentPassword: 'current123',
+      newPassword: '12345678',
+      newRepeatedPassword: '12345678'
     });
 
-    const result = validator(testForm);
+    // Mark fields as touched
+    component.passwordForm.currentPassword().markAsTouched();
+    component.passwordForm.newPassword().markAsTouched();
+    component.passwordForm.newRepeatedPassword().markAsTouched();
 
-    expect(result).toEqual({passwordsDontMatch: true});
+    // Check no passwordsDontMatch error exists
+    const errors = component.passwordForm.newRepeatedPassword().errors();
+    const passwordMismatchError = errors.find(e => e.kind === 'passwordsDontMatch');
+
+    expect(passwordMismatchError).toBeUndefined();
   });
 
   // TODO fix test
@@ -77,11 +90,14 @@ describe('PasswordChangeFormComponent', () => {
    */
 
   it('changePassword should set successMessage and clear errorMessages', () => {
-    component.currentPassword.setValue('CURR');
-    component.newPassword.setValue('NEW');
-    component.successMessage = 'success-msg';
-    component.errorMessage = 'error-msg';
-    component.errorMessageDetails = ['detail0', 'detail1'];
+    component.passwordFormModel.set({
+      currentPassword: 'CURR',
+      newPassword: 'NEW',
+      newRepeatedPassword: 'NEW'
+    });
+    component.successMessage.set('success-msg');
+    component.errorMessage.set('error-msg');
+    component.errorMessageDetails.set(['detail0', 'detail1']);
 
     component.changePassword().subscribe();
 
@@ -89,27 +105,29 @@ describe('PasswordChangeFormComponent', () => {
     req.flush({});
     httpMock.verify();
 
-    expect(component.errorMessage).toBe(null);
-    expect(component.errorMessageDetails).toEqual(null);
-    expect(component.successMessage).toBe('Passwort erfolgreich geändert!');
+    expect(component.errorMessage()).toBe(null);
+    expect(component.errorMessageDetails()).toEqual([]);
+    expect(component.successMessage()).toBe('Passwort erfolgreich geändert!');
   });
 
   it('reset clears messages and form state', () => {
-    component.currentPassword.setValue('CURR');
-    component.newPassword.setValue('NEW');
-    component.newRepeatedPassword.setValue('NEW-REPEATED');
-    component.successMessage = 'succ-msg';
-    component.errorMessage = 'error-msg';
-    component.errorMessageDetails = ['detail0', 'detail1'];
+    component.passwordFormModel.set({
+      currentPassword: 'CURR',
+      newPassword: 'NEW',
+      newRepeatedPassword: 'NEW-REPEATED'
+    });
+    component.successMessage.set('succ-msg');
+    component.errorMessage.set('error-msg');
+    component.errorMessageDetails.set(['detail0', 'detail1']);
 
     component.reset();
 
-    expect(component.currentPassword.value).toBe(null);
-    expect(component.newPassword.value).toBe(null);
-    expect(component.newRepeatedPassword.value).toBe(null);
-    expect(component.successMessage).toBe(null);
-    expect(component.errorMessage).toBe(null);
-    expect(component.errorMessageDetails).toBe(null);
+    expect(component.passwordForm.currentPassword().value()).toBe('');
+    expect(component.passwordForm.newPassword().value()).toBe('');
+    expect(component.passwordForm.newRepeatedPassword().value()).toBe('');
+    expect(component.successMessage()).toBe(null);
+    expect(component.errorMessage()).toBe(null);
+    expect(component.errorMessageDetails()).toEqual([]);
   });
 
   // TODO test: isValid --> form.true/false/undefined

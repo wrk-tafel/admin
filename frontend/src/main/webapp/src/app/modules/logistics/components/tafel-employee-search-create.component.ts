@@ -19,7 +19,7 @@ import {
   TafelPaginationComponent,
   TafelPaginationData
 } from '../../../common/components/tafel-pagination/tafel-pagination.component';
-import {ToastService, ToastType} from "../../../common/components/toasts/toast.service";
+import {ToastService, ToastType} from '../../../common/components/toasts/toast.service';
 
 @Component({
     selector: 'tafel-employee-search-create',

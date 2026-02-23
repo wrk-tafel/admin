@@ -1,4 +1,4 @@
-import type { MockedObject } from "vitest";
+import type { MockedObject } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { AvatarModule, BadgeModule, BreadcrumbModule, DropdownModule, GridModule, HeaderModule, NavModule, SidebarModule } from '@coreui/angular';

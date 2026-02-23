@@ -6,6 +6,7 @@ import at.wrk.tafel.admin.backend.database.model.customer.CustomerEntity.Specs.C
 import at.wrk.tafel.admin.backend.database.model.customer.CustomerEntity.Specs.Companion.orderByUpdatedAtDesc
 import at.wrk.tafel.admin.backend.database.model.customer.CustomerEntity.Specs.Companion.pendingCostContribution
 import at.wrk.tafel.admin.backend.database.model.customer.CustomerEntity.Specs.Companion.postProcessingNecessary
+import at.wrk.tafel.admin.backend.database.model.customer.CustomerEntity.Specs.Companion.validCustomer
 import at.wrk.tafel.admin.backend.database.model.customer.CustomerRepository
 import at.wrk.tafel.admin.backend.modules.customer.Customer
 import at.wrk.tafel.admin.backend.modules.customer.CustomerPdfType
@@ -69,7 +70,8 @@ class CustomerService(
         lastname: String? = null,
         page: Int?,
         postProcessing: Boolean?,
-        costContribution: Boolean?
+        costContribution: Boolean?,
+        valid: Boolean?,
     ): CustomerSearchResult {
         val pageRequest = PageRequest.of(page?.minus(1) ?: 0, 25)
 
@@ -79,7 +81,8 @@ class CustomerService(
                     firstnameContains(firstname),
                     lastnameContains(lastname),
                     if (postProcessing != null) postProcessingNecessary() else null,
-                    if (costContribution != null) pendingCostContribution() else null
+                    if (costContribution != null) pendingCostContribution() else null,
+                    if (valid != null) validCustomer() else null,
                 ).mapNotNull { it }
             )
         )

@@ -61,7 +61,7 @@ describe('Customer Creation', () => {
       gender: Gender.MALE,
       employer: 'test employer',
       income: 500,
-      country: {id: 0, code: 'AT', name: 'Österreich'},
+      country: {id: 1, code: 'AF', name: 'Afghanistan'},
       excludeFromHousehold: false
     });
     enterAdditionalPersonData(1, {
@@ -73,7 +73,7 @@ describe('Customer Creation', () => {
       birthDate: getBirthDateForAge(3),
       gender: Gender.FEMALE,
       income: 0,
-      country: {id: 1, code: 'DE', name: 'Deutschland'},
+      country: {id: 2, code: 'EG', name: 'Ägypten'},
       excludeFromHousehold: false
     });
     enterAdditionalPersonData(2, {
@@ -84,7 +84,7 @@ describe('Customer Creation', () => {
       firstname: 'Child 2',
       birthDate: getBirthDateForAge(8),
       gender: Gender.MALE,
-      country: {id: 2, code: 'CH', name: 'Schweiz'},
+      country: {id: 3, code: 'AX', name: 'Aland'},
       excludeFromHousehold: true
     });
 
