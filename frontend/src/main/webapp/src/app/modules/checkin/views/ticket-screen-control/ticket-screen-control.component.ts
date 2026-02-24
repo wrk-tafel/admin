@@ -1,4 +1,4 @@
-import {Component, inject, signal} from '@angular/core';
+import {Component, effect, inject, signal} from '@angular/core';
 import {ReactiveFormsModule} from '@angular/forms';
 import {TicketScreenComponent} from '../../components/ticket-screen/ticket-screen.component';
 import {UrlHelperService} from '../../../../common/util/url-helper.service';
@@ -8,6 +8,7 @@ import {DistributionTicketScreenApiService} from '../../../../api/distribution-t
 import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
 import {finalize} from 'rxjs';
 import {form, FormField, required} from '@angular/forms/signals';
+import {GlobalStateService} from "../../../../common/state/global-state.service";
 
 @Component({
     selector: 'tafel-ticket-screen-control',
@@ -28,6 +29,7 @@ export class TicketScreenControlComponent {
   private readonly distributionTicketScreenApiService = inject(DistributionTicketScreenApiService);
   private readonly urlHelperService = inject(UrlHelperService);
   private readonly toastService = inject(ToastService);
+  private readonly globalStateService = inject(GlobalStateService);
 
   startTimeFormModel = signal({
     startTime: '',
@@ -41,6 +43,11 @@ export class TicketScreenControlComponent {
   isShowingCurrentTicket = signal(false);
   isShowingPreviousTicket = signal(false);
   isShowingNextTicket = signal(false);
+  currentDistribution = this.globalStateService.getCurrentDistribution();
+
+  test = effect(() => {
+    console.log('Current distribution changed:', this.currentDistribution())
+  });
 
   openScreenInNewTab() {
     const baseUrl = this.urlHelperService.getBaseUrl();

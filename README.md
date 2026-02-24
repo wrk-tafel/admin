@@ -8,7 +8,6 @@
 
 # Prio 1
 * Last one in customers: validation country/gender of addPersons (only) doesnt show validation result/border
-* Ticket screen disable next buttons when distribution not started or current ticket is null
 
 * Add overview "Customers above limit"
 * New permission : ADMIN, Duplicates / Settings / Customers above limit
