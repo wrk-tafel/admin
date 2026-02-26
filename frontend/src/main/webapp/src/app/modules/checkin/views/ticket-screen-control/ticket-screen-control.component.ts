@@ -1,4 +1,4 @@
-import {Component, effect, inject, signal} from '@angular/core';
+import {Component, inject, signal} from '@angular/core';
 import {ReactiveFormsModule} from '@angular/forms';
 import {TicketScreenComponent} from '../../components/ticket-screen/ticket-screen.component';
 import {UrlHelperService} from '../../../../common/util/url-helper.service';
@@ -44,10 +44,6 @@ export class TicketScreenControlComponent {
   isShowingPreviousTicket = signal(false);
   isShowingNextTicket = signal(false);
   currentDistribution = this.globalStateService.getCurrentDistribution();
-
-  test = effect(() => {
-    console.log('Current distribution changed:', this.currentDistribution())
-  });
 
   openScreenInNewTab() {
     const baseUrl = this.urlHelperService.getBaseUrl();
