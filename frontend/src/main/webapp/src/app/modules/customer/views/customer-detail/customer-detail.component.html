@@ -172,13 +172,13 @@
                   </c-card-header>
                   <c-card-body>
                     <c-row>
-                      @if (customerNotes?.length === 0) {
-                        <c-col class="fw-bold">
+                      @if (customerNotes()?.length === 0) {
+                        <c-col class="fw-bold" testid="latest-customer-note-none">
                           <h6 testid="nonotes-label">Keine Notiz vorhanden</h6>
                         </c-col>
                       }
-                      @if (customerNotes?.length !== 0) {
-                        <c-col>
+                      @if (customerNotes()?.length !== 0) {
+                        <c-col testid="latest-customer-note">
                           <c-row class="mb-2">
                             <c-col class="fw-bold" testid="note-title">{{customerNotes()[0].timestamp | date : 'dd.MM.yyyy HH:mm' }}&nbsp;{{customerNotes()[0].author}}</c-col>
                           </c-row>
@@ -189,7 +189,7 @@
                       }
                     </c-row>
                   </c-card-body>
-                  @if (customerNotes?.length > 1) {
+                  @if (customerNotes()?.length > 1) {
                     <c-card-footer>
                       <button testid="showall-notes-button" cButton (click)="showAllNotesModal.set(true)">Alle Notizen anzeigen</button>
                     </c-card-footer>
@@ -304,7 +304,7 @@
     }
     @for(noteItem of customerNotes(); track noteItem.timestamp; let i = $index) {
       <c-row>
-        @if (customerNotes?.length !== 0) {
+        @if (customerNotes()?.length !== 0) {
           @if (i > 0) {
             <hr>
           }

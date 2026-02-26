@@ -127,4 +127,18 @@ describe('Customer Detail', () => {
     cy.byTestId('lock-info-banner').should('not.exist');
   });
 
+  it('customer note shown', () => {
+    cy.visit('/#/kunden/detail/101');
+
+    cy.byTestId('latest-customer-note').should('be.visible');
+    cy.byTestId('latest-customer-note-none').should('not.exist');
+  });
+
+  it('customer note not shown', () => {
+    cy.visit('/#/kunden/detail/100');
+
+    cy.byTestId('latest-customer-note').should('not.exist');
+    cy.byTestId('latest-customer-note-none').should('be.visible');
+  });
+
 });
