@@ -22,15 +22,7 @@ describe('Customer Search', () => {
 
       cy.byTestId('lastnameText').type(customer.lastname);
       cy.byTestId('firstnameText').type(customer.firstname);
-      cy.byTestId('search-button').click();
-
-      cy.byTestId('searchresult-table').should('be.visible');
-      cy.byTestId('searchresult-row').should('have.length', 1);
-
-      cy.byTestId('searchresult-showcustomer-button-0').first().should('be.visible');
-
-      cy.byTestId('searchresult-showcustomer-button-0').first().click();
-      cy.url().should('include', '/kunden/detail/' + customer.id);
+      clickSearchAndOpenFirstResult(customer.id);
     });
   });
 
@@ -39,15 +31,7 @@ describe('Customer Search', () => {
       const customer = response.body;
 
       cy.byTestId('lastnameText').type(customer.lastname);
-      cy.byTestId('search-button').click();
-
-      cy.byTestId('searchresult-table').should('be.visible');
-      cy.byTestId('searchresult-row').should('have.length', 1);
-
-      cy.byTestId('searchresult-showcustomer-button-0').first().should('be.visible');
-
-      cy.byTestId('searchresult-showcustomer-button-0').first().click();
-      cy.url().should('include', '/kunden/detail/' + customer.id);
+      clickSearchAndOpenFirstResult(customer.id);
     });
   });
 
@@ -56,20 +40,16 @@ describe('Customer Search', () => {
       const customer = response.body;
 
       cy.byTestId('firstnameText').type(customer.firstname);
-      cy.byTestId('search-button').click();
-
-      cy.byTestId('searchresult-table').should('be.visible');
-      cy.byTestId('searchresult-row').should('have.length', 1);
-
-      cy.byTestId('searchresult-showcustomer-button-0').first().should('be.visible');
-
-      cy.byTestId('searchresult-showcustomer-button-0').first().click();
-      cy.url().should('include', '/kunden/detail/' + customer.id);
+      clickSearchAndOpenFirstResult(customer.id);
     });
   });
 
   it('search by cost contribution', () => {
     cy.byTestId('costContributionInput').check();
+    clickSearchAndOpenFirstResult(100);
+  });
+
+  function clickSearchAndOpenFirstResult(expectedCustomerId: number) {
     cy.byTestId('search-button').click();
 
     cy.byTestId('searchresult-table').should('be.visible');
@@ -78,7 +58,7 @@ describe('Customer Search', () => {
     cy.byTestId('searchresult-showcustomer-button-0').first().should('be.visible');
 
     cy.byTestId('searchresult-showcustomer-button-0').first().click();
-    cy.url().should('include', '/kunden/detail/100');
-  });
+    cy.url().should('include', '/kunden/detail/' + expectedCustomerId);
+  }
 
 });

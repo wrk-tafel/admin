@@ -14,40 +14,12 @@ describe('Customer Detail', () => {
 
   it('generate pdf and opens for download', () => {
     cy.visit('/#/kunden/detail/101');
-
-    cy.intercept('/api/customers/*/generate-pdf**', request => {
-      request.on('response', function (response) {
-        expect(response.statusCode).is.lessThan(500); // Test will fail if an 500 error happen
-      });
-    });
-
-    cy.byTestId('printMenuButton').click();
-    cy.byTestId('printMasterdataButton').click();
-
-    const downloadsFolder = Cypress.config('downloadsFolder');
-    const downloadedFilename = path.join(downloadsFolder, 'stammdaten-101-musterfrau-eva.pdf');
-
-    cy.readFile(downloadedFilename, 'binary', {timeout: 15000})
-      .should((buffer: string | any[]) => expect(buffer.length).to.be.gt(20000));
+    generateAndDownloadPdf('stammdaten-101-musterfrau-eva.pdf');
   });
 
   it('generate pdf and opens for download with less data from customer', () => {
     cy.visit('/#/kunden/detail/100');
-
-    cy.intercept('/api/customers/*/generate-pdf**', request => {
-      request.on('response', function (response) {
-        expect(response.statusCode).is.lessThan(500); // Test will fail if an 500 error happen
-      });
-    });
-
-    cy.byTestId('printMenuButton').click();
-    cy.byTestId('printMasterdataButton').click();
-
-    const downloadsFolder = Cypress.config('downloadsFolder');
-    const downloadedFilename = path.join(downloadsFolder, 'stammdaten-100-mustermann-max-single.pdf');
-
-    cy.readFile(downloadedFilename, 'binary', {timeout: 15000})
-      .should((buffer: string | any[]) => expect(buffer.length).to.be.gt(20000));
+    generateAndDownloadPdf('stammdaten-100-mustermann-max-single.pdf');
   });
 
   it('edit customer', () => {
@@ -62,7 +34,7 @@ describe('Customer Detail', () => {
     cy.createDummyCustomer().then((response) => {
       cy.visit('/#/kunden/detail/' + response.body.id);
 
-      cy.byTestId('editCustomerToggleButton').click();
+      openEditMenu();
       cy.byTestId('deleteCustomerButton').click();
 
       cy.byTestId('deletecustomer-modal').should('be.visible');
@@ -72,7 +44,7 @@ describe('Customer Detail', () => {
 
       cy.byTestId('deletecustomer-modal').should('not.be.visible');
 
-      cy.byTestId('editCustomerToggleButton').click();
+      openEditMenu();
       cy.byTestId('deleteCustomerButton').click();
       cy.byTestId('deletecustomer-modal').within(() => {
         cy.byTestId('okButton').click();
@@ -90,7 +62,7 @@ describe('Customer Detail', () => {
       validDateString = $value.text();
       const expectedValidDate = moment(validDateString, 'DD.MM.YYYY').add(3, 'months').endOf('day').format('DD.MM.YYYY');
 
-      cy.byTestId('editCustomerToggleButton').click();
+      openEditMenu();
       cy.byTestId('prolongButton').click();
       cy.byTestId('prolongThreeMonthsButton').click();
 
@@ -101,7 +73,7 @@ describe('Customer Detail', () => {
   it('invalidate customer', () => {
     cy.visit('/#/kunden/detail/101');
 
-    cy.byTestId('editCustomerToggleButton').click();
+    openEditMenu();
     cy.byTestId('invalidateCustomerButton').click();
 
     cy.byTestId('validUntilText').should('have.text', moment().subtract(1, 'day').endOf('day').format('DD.MM.YYYY'));
@@ -112,7 +84,7 @@ describe('Customer Detail', () => {
 
     cy.byTestId('lock-info-banner').should('not.exist');
 
-    cy.byTestId('editCustomerToggleButton').click();
+    openEditMenu();
     cy.byTestId('lockCustomerButton').click();
     cy.byTestId('lockreason-input-text').type('dummy lockreason');
     cy.byTestId('lock-customer-modal').within(() => {
@@ -121,7 +93,7 @@ describe('Customer Detail', () => {
 
     cy.byTestId('lock-info-banner').should('exist');
 
-    cy.byTestId('editCustomerToggleButton').click();
+    openEditMenu();
     cy.byTestId('unlockCustomerButton').click();
 
     cy.byTestId('lock-info-banner').should('not.exist');
@@ -140,5 +112,26 @@ describe('Customer Detail', () => {
     cy.byTestId('latest-customer-note').should('not.exist');
     cy.byTestId('latest-customer-note-none').should('be.visible');
   });
+
+  function generateAndDownloadPdf(expectedFilename: string) {
+    cy.intercept('/api/customers/*/generate-pdf**', request => {
+      request.on('response', function (response) {
+        expect(response.statusCode).is.lessThan(500);
+      });
+    });
+
+    cy.byTestId('printMenuButton').click();
+    cy.byTestId('printMasterdataButton').click();
+
+    const downloadsFolder = Cypress.config('downloadsFolder');
+    const downloadedFilename = path.join(downloadsFolder, expectedFilename);
+
+    cy.readFile(downloadedFilename, 'binary', {timeout: 15000})
+      .should((buffer: string | any[]) => expect(buffer.length).to.be.gt(20000));
+  }
+
+  function openEditMenu() {
+    cy.byTestId('editCustomerToggleButton').click();
+  }
 
 });

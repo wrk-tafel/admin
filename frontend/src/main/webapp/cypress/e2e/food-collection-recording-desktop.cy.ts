@@ -66,65 +66,46 @@ describe('Food Collection Recording', () => {
           cy.byTestId('ok-button').click();
         });
 
-      cy.byTestId('tafel-toast-header')
-        .should('be.visible')
-        .within(() => {
-          cy.byTestId('title').should('have.text', 'Daten wurden gespeichert!');
-        });
+      assertSavedToast();
 
       cy.byTestId('select-items-tab').click();
       fillCategories();
       cy.byTestId('save-items-button').click();
-      cy.byTestId('tafel-toast-header')
-        .should('be.visible')
-        .within(() => {
-          cy.byTestId('title').should('have.text', 'Daten wurden gespeichert!');
-        });
+      assertSavedToast();
 
       // check if existing data is filled again
       cy.byTestId('routeInput').select('Route 1');
       cy.byTestId('routeInput').select('Route 2');
       cy.byTestId('category-1-shop-20-input').should('have.value', '12');
 
-      cy.byTestId('driver-search-create-modal').should('not.exist');
-      cy.byTestId('codriver-search-create-modal').should('not.exist');
-
-      cy.byTestId('driver-select-employee-modal').should('not.exist');
-      cy.byTestId('codriver-select-employee-modal').should('not.exist');
+      assertNoEmployeeModalsOpen();
     });
   });
 
   function fillCategories() {
-    cy.byTestId('category-1-shop-20-input').clear().type('12');
-    cy.byTestId('category-1-shop-21-input').clear().type('1');
-    cy.byTestId('category-2-shop-20-input').clear().type('1');
-    cy.byTestId('category-2-shop-21-input').clear().type('1');
-    cy.byTestId('category-3-shop-20-input').clear().type('1');
-    cy.byTestId('category-3-shop-21-input').clear().type('1');
-    cy.byTestId('category-4-shop-20-input').clear().type('1');
-    cy.byTestId('category-4-shop-21-input').clear().type('1');
-    cy.byTestId('category-5-shop-20-input').clear().type('1');
-    cy.byTestId('category-5-shop-21-input').clear().type('1');
-    cy.byTestId('category-6-shop-20-input').clear().type('1');
-    cy.byTestId('category-6-shop-21-input').clear().type('1');
-    cy.byTestId('category-7-shop-20-input').clear().type('1');
-    cy.byTestId('category-7-shop-21-input').clear().type('1');
-    cy.byTestId('category-8-shop-20-input').clear().type('1');
-    cy.byTestId('category-8-shop-21-input').clear().type('1');
-    cy.byTestId('category-9-shop-20-input').clear().type('1');
-    cy.byTestId('category-9-shop-21-input').clear().type('1');
-    cy.byTestId('category-10-shop-20-input').clear().type('1');
-    cy.byTestId('category-10-shop-21-input').clear().type('1');
-    cy.byTestId('category-11-shop-20-input').clear().type('1');
-    cy.byTestId('category-11-shop-21-input').clear().type('1');
-    cy.byTestId('category-12-shop-20-input').clear().type('1');
-    cy.byTestId('category-12-shop-21-input').clear().type('1');
-    cy.byTestId('category-13-shop-20-input').clear().type('1');
-    cy.byTestId('category-13-shop-21-input').clear().type('1');
-    cy.byTestId('category-14-shop-20-input').clear().type('1');
-    cy.byTestId('category-14-shop-21-input').clear().type('1');
-    cy.byTestId('category-15-shop-20-input').clear().type('1');
-    cy.byTestId('category-15-shop-21-input').clear().type('1');
+    const shopIds = [20, 21];
+    for (let category = 1; category <= 15; category++) {
+      for (const shopId of shopIds) {
+        const value = category === 1 && shopId === 20 ? '12' : '1';
+        cy.byTestId(`category-${category}-shop-${shopId}-input`).clear().type(value);
+      }
+    }
+  }
+
+  function assertSavedToast() {
+    cy.byTestId('tafel-toast-header')
+      .should('be.visible')
+      .within(() => {
+        cy.byTestId('title').should('have.text', 'Daten wurden gespeichert!');
+      });
+  }
+
+  function assertNoEmployeeModalsOpen() {
+    cy.byTestId('driver-search-create-modal').should('not.exist');
+    cy.byTestId('codriver-search-create-modal').should('not.exist');
+
+    cy.byTestId('driver-select-employee-modal').should('not.exist');
+    cy.byTestId('codriver-select-employee-modal').should('not.exist');
   }
 
 });
