@@ -30,82 +30,64 @@ describe('TicketScreen', () => {
     cy.url().should('eq', Cypress.config().baseUrl + '#/anmeldung/ticketmonitor');
   });
 
-  it('tickets switched successfully', () => {
-    cy.visit('/#/anmeldung/ticketmonitor-steuerung');
+  describe('with distribution and tickets', () => {
 
-    cy.byTestId('title').should('have.text', 'Ticket');
-    cy.byTestId('text').should('have.text', '-');
+    beforeEach(() => {
+      createDistributionWithTickets();
+      cy.visit('/#/anmeldung/ticketmonitor-steuerung');
+    });
 
+    afterEach(() => {
+      cy.closeDistribution();
+    });
+
+    it('tickets switched successfully', () => {
+      cy.byTestId('show-currentticket-button').click();
+      assertTicketText('1');
+
+      cy.byTestId('costcontribution-paid-yes-button').click();
+      assertTicketText('2');
+
+      cy.byTestId('show-previousticket-button').click();
+      assertTicketText('1');
+      cy.byTestId('costcontribution-paid-yes-button').click();
+      assertTicketText('2');
+
+      cy.byTestId('costcontribution-paid-yes-button').click();
+      assertTicketText('3');
+
+      cy.byTestId('costcontribution-paid-yes-button').click();
+      assertTicketText('-');
+    });
+
+    it('tickets switched by double click', () => {
+      cy.byTestId('show-currentticket-button').click();
+      assertTicketText('1');
+
+      cy.byTestId('costcontribution-paid-yes-button').dblclick();
+      assertTicketText('2');
+    });
+
+    it('tickets switched by slow double click', () => {
+      cy.byTestId('show-currentticket-button').click();
+      assertTicketText('1');
+
+      cy.byTestId('costcontribution-paid-yes-button').click();
+      cy.byTestId('costcontribution-paid-yes-button').click();
+      assertTicketText('3');
+    });
+
+  });
+
+  function createDistributionWithTickets() {
     cy.createDistribution();
     cy.addCustomerToDistribution({customerId: 100, ticketNumber: 1});
     cy.addCustomerToDistribution({customerId: 101, ticketNumber: 2});
     cy.addCustomerToDistribution({customerId: 102, ticketNumber: 3});
+  }
 
-    cy.visit('/#/anmeldung/ticketmonitor-steuerung');
-
-    cy.byTestId('show-currentticket-button').click();
-    cy.byTestId('text').should('have.text', '1');
-
-    cy.byTestId('costcontribution-paid-yes-button').click();
-    cy.byTestId('text').should('have.text', '2');
-
-    cy.byTestId('show-previousticket-button').click();
-    cy.byTestId('text').should('have.text', '1');
-    cy.byTestId('costcontribution-paid-yes-button').click();
-    cy.byTestId('text').should('have.text', '2');
-
-    cy.byTestId('costcontribution-paid-yes-button').click();
-    cy.byTestId('text').should('have.text', '3');
-
-    cy.byTestId('costcontribution-paid-yes-button').click();
-    cy.byTestId('text').should('have.text', '-');
-
-    cy.closeDistribution();
-  });
-
-  it('tickets switched by double click', () => {
-    cy.visit('/#/anmeldung/ticketmonitor-steuerung');
-
-    cy.byTestId('title').should('have.text', 'Ticket');
-    cy.byTestId('text').should('have.text', '-');
-
-    cy.createDistribution();
-    cy.addCustomerToDistribution({customerId: 100, ticketNumber: 1});
-    cy.addCustomerToDistribution({customerId: 101, ticketNumber: 2});
-    cy.addCustomerToDistribution({customerId: 102, ticketNumber: 3});
-
-    cy.visit('/#/anmeldung/ticketmonitor-steuerung');
-
-    cy.byTestId('show-currentticket-button').click();
-    cy.byTestId('text').should('have.text', '1');
-
-    cy.byTestId('costcontribution-paid-yes-button').dblclick();
-    cy.byTestId('text').should('have.text', '2');
-
-    cy.closeDistribution();
-  });
-
-  it('tickets switched by slow double click', () => {
-    cy.visit('/#/anmeldung/ticketmonitor-steuerung');
-
-    cy.byTestId('title').should('have.text', 'Ticket');
-    cy.byTestId('text').should('have.text', '-');
-
-    cy.createDistribution();
-    cy.addCustomerToDistribution({customerId: 100, ticketNumber: 1});
-    cy.addCustomerToDistribution({customerId: 101, ticketNumber: 2});
-    cy.addCustomerToDistribution({customerId: 102, ticketNumber: 3});
-
-    cy.visit('/#/anmeldung/ticketmonitor-steuerung');
-
-    cy.byTestId('show-currentticket-button').click();
-    cy.byTestId('text').should('have.text', '1');
-
-    cy.byTestId('costcontribution-paid-yes-button').click();
-    cy.byTestId('costcontribution-paid-yes-button').click();
-    cy.byTestId('text').should('have.text', '3');
-
-    cy.closeDistribution();
-  });
+  function assertTicketText(expected: string) {
+    cy.byTestId('text').should('have.text', expected);
+  }
 
 });

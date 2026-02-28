@@ -102,14 +102,16 @@ class DistributionService(
 
         val customer = customerRepository.findByCustomerId(customerId)
             ?: throw TafelValidationException("Kunde Nr. $customerId nicht vorhanden!")
-        val distributionCustomerEntity = distribution.customers.firstOrNull { it.ticketNumber == ticketNumber }
+        val existingCustomer = distribution.customers.firstOrNull { it.customer?.customerId == customerId }
+
+        val existingTicket = distribution.customers.firstOrNull { it.ticketNumber == ticketNumber }
 
         // Can't assign to another customer if already assigned but ok if it's the same customer (update costContributionPaid flag)
-        if (distributionCustomerEntity != null && distributionCustomerEntity.customer?.id != customerId) {
+        if (existingTicket != null && existingCustomer?.customer?.id != customerId) {
             throw TafelValidationException("Ticketnummer $ticketNumber bereits vergeben!")
         }
 
-        val entry = distributionCustomerEntity ?: DistributionCustomerEntity()
+        val entry = existingCustomer ?: DistributionCustomerEntity()
         entry.distribution = distribution
         entry.customer = customer
         entry.ticketNumber = ticketNumber

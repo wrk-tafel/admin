@@ -22,15 +22,7 @@ describe('User Search', () => {
 
       cy.byTestId('firstnameText').type(user.firstname);
       cy.byTestId('lastnameText').type(user.lastname);
-      cy.byTestId('search-button').click();
-
-      cy.byTestId('searchresult-table').should('be.visible');
-      cy.byTestId('searchresult-row').should('have.length', 1);
-
-      cy.byTestId('searchresult-showuser-button-0').first().should('be.visible');
-
-      cy.byTestId('searchresult-showuser-button-0').first().click();
-      cy.url().should('include', '/benutzer/detail/' + user.id);
+      clickSearchAndOpenFirstResult(user.id);
     });
   });
 
@@ -39,15 +31,7 @@ describe('User Search', () => {
       const user = response.body;
 
       cy.byTestId('lastnameText').type(user.lastname);
-      cy.byTestId('search-button').click();
-
-      cy.byTestId('searchresult-table').should('be.visible');
-      cy.byTestId('searchresult-row').should('have.length', 1);
-
-      cy.byTestId('searchresult-showuser-button-0').first().should('be.visible');
-
-      cy.byTestId('searchresult-showuser-button-0').first().click();
-      cy.url().should('include', '/benutzer/detail/' + user.id);
+      clickSearchAndOpenFirstResult(user.id);
     });
   });
 
@@ -56,16 +40,20 @@ describe('User Search', () => {
       const user = response.body;
 
       cy.byTestId('firstnameText').type(user.firstname);
-      cy.byTestId('search-button').click();
-
-      cy.byTestId('searchresult-table').should('be.visible');
-      cy.byTestId('searchresult-row').should('have.length', 1);
-
-      cy.byTestId('searchresult-showuser-button-0').first().should('be.visible');
-
-      cy.byTestId('searchresult-showuser-button-0').first().click();
-      cy.url().should('include', '/benutzer/detail/' + user.id);
+      clickSearchAndOpenFirstResult(user.id);
     });
   });
+
+  function clickSearchAndOpenFirstResult(expectedUserId: number) {
+    cy.byTestId('search-button').click();
+
+    cy.byTestId('searchresult-table').should('be.visible');
+    cy.byTestId('searchresult-row').should('have.length', 1);
+
+    cy.byTestId('searchresult-showuser-button-0').first().should('be.visible');
+
+    cy.byTestId('searchresult-showuser-button-0').first().click();
+    cy.url().should('include', '/benutzer/detail/' + expectedUserId);
+  }
 
 });

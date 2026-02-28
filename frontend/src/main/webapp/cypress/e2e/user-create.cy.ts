@@ -9,12 +9,8 @@ describe('User Create', () => {
 
     cy.getAnyRandomNumber().then((userRandomId) => {
       const username = 'test-username-' + userRandomId;
-      cy.byTestId('usernameInput').type(username);
       const personnelNumber = 'test-personnelNumber-' + userRandomId;
-      cy.byTestId('personnelNumberInput').type(personnelNumber);
-      cy.byTestId('lastnameInput').type('test-lastname');
-      cy.byTestId('firstnameInput').type('test-firstname');
-      cy.byTestId('generate-password-button').click();
+      fillUserForm(username, personnelNumber);
 
       cy.byTestId('passwordChangeRequiredInput').click();
 
@@ -41,11 +37,8 @@ describe('User Create', () => {
     });
 
     cy.getAnyRandomNumber().then((userRandomId) => {
-      cy.byTestId('usernameInput').type('e2etest');
-      cy.byTestId('personnelNumberInput').type('e2etest');
-      cy.byTestId('lastnameInput').type('test-lastname');
-      cy.byTestId('firstnameInput').type('test-firstname');
-      cy.byTestId('generate-password-button').click();
+      fillUserForm('e2etest', 'e2etest');
+
       cy.byTestId('passwordChangeRequiredInput').click();
       cy.byTestId('permission-checkbox-0').click();
       cy.byTestId('permission-checkbox-2').click();
@@ -65,5 +58,13 @@ describe('User Create', () => {
         });
     });
   });
+
+  function fillUserForm(username: string, personnelNumber: string) {
+    cy.byTestId('usernameInput').type(username);
+    cy.byTestId('personnelNumberInput').type(personnelNumber);
+    cy.byTestId('lastnameInput').type('test-lastname');
+    cy.byTestId('firstnameInput').type('test-firstname');
+    cy.byTestId('generate-password-button').click();
+  }
 
 });
