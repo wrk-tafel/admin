@@ -2,6 +2,14 @@
     Infos zur Ausgabe vom [( ${distributionDate} )].
     <br/>
     <br/>
+    <p><strong>Anmerkungen:</strong></p>
+    <div th:if="${notes}">
+        <p>[( ${notes} )]</p>
+    </div>
+    <div th:unless="${notes}">
+        <p>Keine</p>
+    </div>
+    <br/>
     <p><h3>Retourkisten</h3></p>
     <br/>
     <div th:if="${!#lists.isEmpty(returnBoxes.routes)}">

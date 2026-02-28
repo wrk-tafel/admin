@@ -52,12 +52,11 @@ class ReturnBoxesMailPostProcessorTest {
         val distributionStatistic = mockk<DistributionStatisticEntity>()
         postProcessor.process(distribution, distributionStatistic)
 
-        assertMail(dateFormatted)
+        assertMail(dateFormatted, distributionNotes)
     }
 
-    private fun assertMail(dateFormatted: String) {
-        val mailSubject =
-            "TÖ Tafel 1030 - Retourkisten vom $dateFormatted"
+    private fun assertMail(dateFormatted: String, distributionNotes: String) {
+        val mailSubject = "TÖ Tafel 1030 - Retourkisten vom $dateFormatted"
 
         val contextSlot = slot<Context>()
         verify {
@@ -72,6 +71,7 @@ class ReturnBoxesMailPostProcessorTest {
 
         val context = contextSlot.captured
         assertThat(context.getVariable("distributionDate")).isEqualTo(dateFormatted)
+        assertThat(context.getVariable("notes")).isEqualTo(distributionNotes)
 
         val returnBoxes = context.getVariable("returnBoxes") as ReturnBoxesDataModel
         assertThat(returnBoxes.routes).hasSize(2)

@@ -29,6 +29,7 @@ class ReturnBoxesMailPostProcessor(
         val ctx = Context()
         ctx.setVariable("distributionDate", dateFormatted)
         ctx.setVariable("returnBoxes", returnBoxes)
+        ctx.setVariable("notes", distribution.notes)
 
         mailSenderService.sendHtmlMail(
             mailType = MailType.RETURN_BOXES,
