@@ -1,0 +1,5 @@
+### Healthcheck
+GET {{baseManagementPath}}/actuator/health
+
+### Fetch metrics
+GET {{baseManagementPath}}/actuator/prometheus
