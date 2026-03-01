@@ -6,7 +6,7 @@ logging:
 management:
   server:
     port: 8081
-  endpoints.web.exposure.include: caches,env,prometheus
+  endpoints.web.exposure.include: caches,env,prometheus,health
 
 server:
   port: 8080
