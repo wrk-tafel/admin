@@ -8,7 +8,7 @@ import {DistributionTicketScreenApiService} from '../../../../api/distribution-t
 import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
 import {finalize} from 'rxjs';
 import {form, FormField, required} from '@angular/forms/signals';
-import {GlobalStateService} from "../../../../common/state/global-state.service";
+import {GlobalStateService} from '../../../../common/state/global-state.service';
 
 @Component({
     selector: 'tafel-ticket-screen-control',

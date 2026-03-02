@@ -1,7 +1,9 @@
 package at.wrk.tafel.admin.backend.modules.reporting.internal
 
+import at.wrk.tafel.admin.backend.database.model.customer.CustomerRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
+import at.wrk.tafel.admin.backend.modules.reporting.StatisticsData
 import at.wrk.tafel.admin.backend.modules.reporting.StatisticsDistribution
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
@@ -10,6 +12,7 @@ import io.mockk.junit5.MockKExtension
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 @ExtendWith(MockKExtension::class)
@@ -17,6 +20,9 @@ internal class StatisticsServiceTest {
 
     @RelaxedMockK
     private lateinit var distributionRepository: DistributionRepository
+
+    @RelaxedMockK
+    private lateinit var customerRepository: CustomerRepository
 
     @InjectMockKs
     private lateinit var service: StatisticsService
@@ -321,6 +327,25 @@ internal class StatisticsServiceTest {
             StatisticsDistribution(
                 startDate = LocalDateTime.of(2023, 3, 10, 11, 0),
                 endDate = LocalDateTime.of(2023, 3, 10, 13, 0)
+            )
+        )
+    }
+
+    @Test
+    fun `get data`() {
+        val fromDate = LocalDate.now().minusDays(7)
+        val toDate = LocalDate.now()
+        val expectedCustomersValid = 123
+        val expectedPersonsValid = 456
+
+        every { customerRepository.countByValidUntilAfter(fromDate.minusDays(1)) } returns expectedCustomersValid
+
+        val result = service.getData(fromDate, toDate)
+
+        assertThat(result).isEqualTo(
+            StatisticsData(
+                customersValid = expectedCustomersValid,
+                personsValid = expectedPersonsValid
             )
         )
     }
