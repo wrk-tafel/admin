@@ -3,6 +3,7 @@ package at.wrk.tafel.admin.backend.database.model.customer
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.data.jpa.repository.Query
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 interface CustomerRepository : JpaRepository<CustomerEntity, Long>, JpaSpecificationExecutor<CustomerEntity> {
@@ -21,5 +22,7 @@ interface CustomerRepository : JpaRepository<CustomerEntity, Long>, JpaSpecifica
     fun findAllByProlongedAtBetween(fromDate: LocalDateTime, toDate: LocalDateTime): List<CustomerEntity>
 
     fun countByUpdatedAtBetween(fromDate: LocalDateTime, toDate: LocalDateTime): Int
+
+    fun findByValidUntilAfter(fromDate: LocalDate): List<CustomerEntity>
 
 }

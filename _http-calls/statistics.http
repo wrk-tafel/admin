@@ -1,2 +1,5 @@
 ### Fetch settings
 GET {{baseApiPath}}/statistics/settings
+
+### Fetch data
+GET {{baseApiPath}}/statistics/data?fromDate=2000-01-01&toDate=2999-12-31

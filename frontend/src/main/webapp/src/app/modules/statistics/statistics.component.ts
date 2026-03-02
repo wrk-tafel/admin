@@ -1,4 +1,4 @@
-import {Component, computed, input, signal} from '@angular/core';
+import {Component, computed, inject, input, signal} from '@angular/core';
 import {
   ButtonDirective,
   CardBodyComponent,
@@ -8,35 +8,45 @@ import {
   FormSelectDirective,
   RowComponent
 } from '@coreui/angular';
-import {StatisticsDistribution, StatisticsSettings} from '../../api/statistics-api.service';
+import {StatisticsApiService, StatisticsDistribution, StatisticsSettings} from '../../api/statistics-api.service';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import moment from 'moment';
 import {CommonModule} from '@angular/common';
+import {switchMap} from "rxjs";
+import {toObservable, toSignal} from "@angular/core/rxjs-interop";
 
 @Component({
-    selector: 'tafel-statistics',
-    templateUrl: 'statistics.component.html',
-    imports: [
-        CommonModule,
-        RowComponent,
-        ColComponent,
-        CardHeaderComponent,
-        CardBodyComponent,
-        CardComponent,
-        FormsModule,
-        ReactiveFormsModule,
-        FormSelectDirective,
-        ButtonDirective
-    ]
+  selector: 'tafel-statistics',
+  templateUrl: 'statistics.component.html',
+  imports: [
+    CommonModule,
+    RowComponent,
+    ColComponent,
+    CardHeaderComponent,
+    CardBodyComponent,
+    CardComponent,
+    FormsModule,
+    ReactiveFormsModule,
+    FormSelectDirective,
+    ButtonDirective
+  ]
 })
 export class StatisticsComponent {
-  // Signal input from resolver - reactive!
   readonly settings = input<StatisticsSettings>();
+  private readonly statisticsApiService = inject(StatisticsApiService);
 
   currentYear: number = moment().year();
   _dateRangeFrom = signal<Date>(moment().startOf('year').toDate());
   _dateRangeTo = signal<Date>(moment().endOf('year').toDate());
-  statisticsData = computed(() => this.loadData(this._dateRangeFrom(), this._dateRangeTo()));
+  dateRange = computed(() => ({
+    from: this._dateRangeFrom(),
+    to: this._dateRangeTo()
+  }));
+  statisticsData = toSignal(
+    toObservable(this.dateRange).pipe(
+      switchMap(range => this.statisticsApiService.getData(range.from, range.to))
+    )
+  );
 
   onYearSelected(year: number | undefined): void {
     if (year) {
@@ -50,18 +60,6 @@ export class StatisticsComponent {
       this._dateRangeFrom.set(distribution.startDate);
       this._dateRangeTo.set(distribution.endDate);
     }
-  }
-
-  trackByYear(index: number, year: any): number {
-    return year;
-  }
-
-  trackByDistributionDate(index: number, distributionDate: any): number {
-    return distributionDate;
-  }
-
-  loadData(fromDate: Date, toDate: Date): string {
-    return 'Loading data from ' + moment(fromDate).format('YYYY-MM-DD') + ' to ' + moment(toDate).format('YYYY-MM-DD');
   }
 
   get dateRangeFrom(): string {
