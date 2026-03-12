@@ -1,7 +1,8 @@
 import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
 import {TestBed} from '@angular/core/testing';
 import {provideHttpClient} from '@angular/common/http';
-import {StatisticsApiService, StatisticsSettings} from './statistics-api.service';
+import {StatisticsApiService, StatisticsData, StatisticsSettings} from './statistics-api.service';
+import moment from 'moment';
 
 describe('StatisticsApiService', () => {
   let httpMock: HttpTestingController;
@@ -45,6 +46,23 @@ describe('StatisticsApiService', () => {
     });
 
     const req = httpMock.expectOne({method: 'GET', url: '/statistics/settings'});
+    expect(req.request.method).toBe('GET');
+    req.flush(testResponse);
+  });
+
+  it('get data', () => {
+    const fromDate = moment('1234-01-02', 'YYYY-MM-DD').toDate();
+    const toDate = moment('4321-01-02', 'YYYY-MM-DD').toDate();
+    const testResponse: StatisticsData = {
+      customersValid: 123,
+      personsValid: 456
+    };
+
+    apiService.getData(fromDate, toDate).subscribe((response) => {
+      expect(response).toEqual(testResponse);
+    });
+
+    const req = httpMock.expectOne({method: 'GET', url: '/statistics/data?fromDate=1234-01-02&toDate=4321-01-02'});
     expect(req.request.method).toBe('GET');
     req.flush(testResponse);
   });

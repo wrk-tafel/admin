@@ -5,10 +5,12 @@ import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
+import io.mockk.mockk
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 @ExtendWith(MockKExtension::class)
@@ -18,7 +20,7 @@ class StatisticsControllerTest {
     private lateinit var statisticsService: StatisticsService
 
     @InjectMockKs
-    private lateinit var reportingController: ReportingController
+    private lateinit var statisticsController: StatisticsController
 
     @Test
     fun `getSettings returns statistics settings from service`() {
@@ -42,7 +44,7 @@ class StatisticsControllerTest {
 
         every { statisticsService.getSettings() } returns expectedSettings
 
-        val result = reportingController.getSettings()
+        val result = statisticsController.getSettings()
 
         assertThat(result).isEqualTo(expectedSettings)
         assertThat(result.availableYears).containsExactly(2024, 2023, 2022)
@@ -59,7 +61,7 @@ class StatisticsControllerTest {
 
         every { statisticsService.getSettings() } returns expectedSettings
 
-        val result = reportingController.getSettings()
+        val result = statisticsController.getSettings()
 
         assertThat(result).isEqualTo(expectedSettings)
         assertThat(result.availableYears).isEmpty()
@@ -69,7 +71,7 @@ class StatisticsControllerTest {
 
     @Test
     fun `getSettings delegates to service`() {
-        reportingController.getSettings()
+        statisticsController.getSettings()
 
         verify(exactly = 1) { statisticsService.getSettings() }
     }
@@ -88,7 +90,7 @@ class StatisticsControllerTest {
 
         every { statisticsService.getSettings() } returns expectedSettings
 
-        val result = reportingController.getSettings()
+        val result = statisticsController.getSettings()
 
         assertThat(result.availableYears).containsExactly(2024)
         assertThat(result.distributions).hasSize(1)
@@ -135,7 +137,7 @@ class StatisticsControllerTest {
 
         every { statisticsService.getSettings() } returns expectedSettings
 
-        val result = reportingController.getSettings()
+        val result = statisticsController.getSettings()
 
         assertThat(result.availableYears).containsExactly(2025, 2024, 2023, 2022, 2021)
         assertThat(result.distributions).hasSize(6)
@@ -164,7 +166,7 @@ class StatisticsControllerTest {
 
         every { statisticsService.getSettings() } returns expectedSettings
 
-        val result = reportingController.getSettings()
+        val result = statisticsController.getSettings()
 
         assertThat(result.availableYears).containsExactlyElementsOf(expectedSettings.availableYears)
         verify(exactly = 1) { statisticsService.getSettings() }
@@ -194,10 +196,24 @@ class StatisticsControllerTest {
 
         every { statisticsService.getSettings() } returns expectedSettings
 
-        val result = reportingController.getSettings()
+        val result = statisticsController.getSettings()
 
         assertThat(result.distributions).containsExactlyElementsOf(expectedDistributions)
         verify(exactly = 1) { statisticsService.getSettings() }
+    }
+
+    @Test
+    fun `get data`() {
+        val fromDate = LocalDate.now().minusDays(2)
+        val toDate = LocalDate.now()
+        val expectedData = mockk<StatisticsData>()
+
+        every { statisticsService.getData(fromDate, toDate) } returns expectedData
+
+        val result = statisticsController.getData(fromDate, toDate)
+
+        assertThat(result).isEqualTo(expectedData)
+        verify(exactly = 1) { statisticsService.getData(fromDate, toDate) }
     }
 
 }
