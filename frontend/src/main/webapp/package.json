@@ -67,7 +67,7 @@
     "@types/node": "25.5.0",
     "@typescript-eslint/eslint-plugin": "8.57.0",
     "@typescript-eslint/parser": "8.57.0",
-    "cypress": "15.11.0",
+    "cypress": "15.12.0",
     "cypress-browser-permissions": "1.1.0",
     "cypress-recurse": "1.37.2",
     "eslint": "9.39.4",
@@ -76,7 +76,7 @@
     "jsdom": "28.1.0",
     "ts-node": "10.9.2",
     "typescript": "5.9.3",
-    "vitest": "4.0.18",
+    "vitest": "4.1.0",
     "wait-on": "9.0.4"
   },
   "engines": {
