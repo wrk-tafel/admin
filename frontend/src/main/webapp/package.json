@@ -70,7 +70,7 @@
     "cypress": "15.11.0",
     "cypress-browser-permissions": "1.1.0",
     "cypress-recurse": "1.37.2",
-    "eslint": "9.39.4",
+    "eslint": "10.0.3",
     "eslint-config-prettier": "10.1.8",
     "eslint-plugin-import": "2.32.0",
     "jsdom": "28.1.0",
