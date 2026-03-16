@@ -115,4 +115,14 @@ describe('StatisticsApiService', () => {
     req.flush(testResponse);
   });
 
+  it('generate csv', () => {
+    const fromDate = moment('1234-01-02', 'YYYY-MM-DD').toDate();
+    const toDate = moment('4321-01-02', 'YYYY-MM-DD').toDate();
+    apiService.generateCsv(fromDate, toDate).subscribe();
+
+    const req = httpMock.expectOne({method: 'GET', url: '/statistics/generate-csv?fromDate=1234-01-02&toDate=4321-01-02'});
+    req.flush(null);
+    httpMock.verify();
+  });
+
 });
