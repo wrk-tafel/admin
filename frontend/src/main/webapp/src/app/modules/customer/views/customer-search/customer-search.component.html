@@ -84,6 +84,8 @@
                             <th scope="col">Name</th>
                             <th scope="col">Geb. Datum</th>
                             <th scope="col">Adresse</th>
+                            <th scope="col">Ausgestellt am</th>
+                            <th scope="col">Gültig bis</th>
                             <th scope="col">Aktionen</th>
                         </tr>
                         </thead>
@@ -102,6 +104,8 @@
                             </td>
                             <td [attr.testid]="'searchresult-birthDate-' + i">{{!customer.birthDate ? '-' : customer.birthDate | date : 'dd.MM.yyyy'}}</td>
                             <td [attr.testid]="'searchresult-address-' + i">{{customer.address | formatAddress}}</td>
+                            <td [attr.testid]="'searchresult-issuedAt-' + i">{{!customer.issuedAt ? '-' : customer.issuedAt | date : 'dd.MM.yyyy'}}</td>
+                            <td [attr.testid]="'searchresult-validUntil-' + i">{{!customer.validUntil ? '-' : customer.validUntil | date : 'dd.MM.yyyy'}}</td>
                             <td>
                                 <div class="d-flex flex-fill gap-2">
                                     <button [attr.testid]="'searchresult-showcustomer-button-' + i"
@@ -144,6 +148,10 @@
                                     <c-col class="fw-bold">Addresse:</c-col>
                                     <c-col>{{customer.address | formatAddress}}</c-col>
                                 </c-row>
+                              <c-row>
+                                <c-col class="fw-bold">Gültig bis:</c-col>
+                                <c-col>{{customer.validUntil | date : 'dd.MM.yyyy'}}</c-col>
+                              </c-row>
                             </c-card-body>
                             <c-card-footer class="d-flex flex-fill gap-2">
                                 <button [attr.testid]="'searchresult-showcustomer-button-' + i"

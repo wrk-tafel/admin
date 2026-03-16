@@ -104,6 +104,9 @@
           "builder": "@angular/build:unit-test",
           "options": {
             "tsConfig": "src/tsconfig.spec.json",
+            "browsers": [
+              "ChromiumHeadless"
+            ],
             "runnerConfig": true,
             "providersFile": "src/test-providers.ts"
           }

@@ -1,0 +1,11 @@
+<c-widget-stat-a
+  color="primary"
+  [title]="data().subTitle"
+>
+  <ng-template cTemplateId="widgetValueTemplate" ngPreserveWhitespaces>
+    {{ data().title }}
+  </ng-template>
+  <ng-template cTemplateId="widgetChartTemplate">
+    <c-chart [data]="chartData()" [options]="optionsDefault" class="mt-3 mx-3" height="110" type="line"/>
+  </ng-template>
+</c-widget-stat-a>

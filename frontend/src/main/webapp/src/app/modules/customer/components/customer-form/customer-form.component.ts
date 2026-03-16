@@ -2,7 +2,6 @@ import {Component, computed, effect, inject, input, output, signal} from '@angul
 import {applyEach, form, FormField, maxLength, required, validate} from '@angular/forms/signals';
 import {CountryApiService, CountryData} from '../../../../api/country-api.service';
 import {CustomerAddPersonData, CustomerData, Gender} from '../../../../api/customer-api.service';
-import {v4 as uuidv4} from 'uuid';
 import {CommonModule} from '@angular/common';
 import {
   ButtonDirective,
@@ -172,7 +171,7 @@ export class CustomerFormComponent {
         // Update main form model including additional persons
         const additionalPersonsData = customerData.additionalPersons.map((person) => ({
           ...person,
-          key: person.key ? person.key : uuidv4(),
+          key: person.key ? person.key : crypto.randomUUID(),
           employer: person.employer ?? '',
           income: person.income ?? null,
           incomeDue: person.incomeDue ?? null,
@@ -270,7 +269,7 @@ export class CustomerFormComponent {
 
   addNewPerson() {
     const newPerson: AdditionalPersonFormItem = {
-      key: uuidv4(),
+      key: crypto.randomUUID(),
       id: null,
       firstname: null,
       lastname: null,
