@@ -2,14 +2,20 @@ package at.wrk.tafel.admin.backend.modules.reporting.internal
 
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
+import at.wrk.tafel.admin.backend.modules.reporting.StatisticsData
+import at.wrk.tafel.admin.backend.modules.reporting.StatisticsDetailData
 import at.wrk.tafel.admin.backend.modules.reporting.StatisticsDistribution
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
+import io.mockk.mockk
+import jakarta.persistence.EntityManager
+import jakarta.persistence.Query
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 @ExtendWith(MockKExtension::class)
@@ -17,6 +23,9 @@ internal class StatisticsServiceTest {
 
     @RelaxedMockK
     private lateinit var distributionRepository: DistributionRepository
+
+    @RelaxedMockK
+    private lateinit var entityManager: EntityManager
 
     @InjectMockKs
     private lateinit var service: StatisticsService
@@ -321,6 +330,60 @@ internal class StatisticsServiceTest {
             StatisticsDistribution(
                 startDate = LocalDateTime.of(2023, 3, 10, 11, 0),
                 endDate = LocalDateTime.of(2023, 3, 10, 13, 0)
+            )
+        )
+    }
+
+    @Test
+    fun `get data`() {
+        val fromDate = LocalDate.now().minusDays(7)
+        val toDate = LocalDate.now()
+
+        val mockQuery = mockk<Query>(relaxed = true)
+        every { entityManager.createNativeQuery(any<String>()) } returns mockQuery
+        every { mockQuery.resultList } returns listOf(
+            arrayOf<Any>("Jänner", 10L),
+            arrayOf<Any>("Februar", 20L),
+            arrayOf<Any>("März", 30L)
+        )
+
+        val result = service.getData(fromDate, toDate)
+
+        val expectedLabels = listOf("Jänner", "Februar", "März")
+        val expectedDataPoints = listOf(10.0, 20.0, 30.0)
+
+        assertThat(result).isEqualTo(
+            StatisticsData(
+                beneficiaryCustomers = StatisticsDetailData(
+                    title = "30.0",
+                    subTitle = "Bezugsberechtigte Haushalte",
+                    labels = expectedLabels,
+                    dataPoints = expectedDataPoints
+                ),
+                beneficiaryPersons = StatisticsDetailData(
+                    title = "30.0",
+                    subTitle = "Bezugsberechtigte Personen",
+                    labels = expectedLabels,
+                    dataPoints = expectedDataPoints
+                ),
+                beneficiaryCustomersWithChildren = StatisticsDetailData(
+                    title = "30.0",
+                    subTitle = "Bezugsberechtigte Haushalte mit Kindern (Alter <= 15)",
+                    labels = expectedLabels,
+                    dataPoints = expectedDataPoints
+                ),
+                sheltersCount = StatisticsDetailData(
+                    title = "30.0",
+                    subTitle = "Notschlafstellen (Anzahl)",
+                    labels = expectedLabels,
+                    dataPoints = expectedDataPoints
+                ),
+                sheltersAverage = StatisticsDetailData(
+                    title = "30.0",
+                    subTitle = "Notschlafstellen (Durchschnitt pro Ausgabe)",
+                    labels = expectedLabels,
+                    dataPoints = expectedDataPoints
+                ),
             )
         )
     }

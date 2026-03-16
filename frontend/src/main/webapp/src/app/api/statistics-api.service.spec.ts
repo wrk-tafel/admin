@@ -1,7 +1,8 @@
 import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
 import {TestBed} from '@angular/core/testing';
 import {provideHttpClient} from '@angular/common/http';
-import {StatisticsApiService, StatisticsSettings} from './statistics-api.service';
+import {StatisticsApiService, StatisticsData, StatisticsSettings} from './statistics-api.service';
+import moment from 'moment';
 
 describe('StatisticsApiService', () => {
   let httpMock: HttpTestingController;
@@ -45,6 +46,71 @@ describe('StatisticsApiService', () => {
     });
 
     const req = httpMock.expectOne({method: 'GET', url: '/statistics/settings'});
+    expect(req.request.method).toBe('GET');
+    req.flush(testResponse);
+  });
+
+  it('get data', () => {
+    const fromDate = moment('1234-01-02', 'YYYY-MM-DD').toDate();
+    const toDate = moment('4321-01-02', 'YYYY-MM-DD').toDate();
+    const testResponse: StatisticsData = {
+      beneficiaryCustomers: {
+        title: "5",
+        subTitle: "Bezugsberechtigte Haushalte",
+        labels: [
+          "2026-01",
+          "2026-02",
+          "2026-03",
+        ],
+        dataPoints: [5, 5, 5]
+      },
+      beneficiaryPersons: {
+        title: "20",
+        subTitle: "Bezugsberechtigte Personen",
+        labels: [
+          "2026-01",
+          "2026-02",
+          "2026-03",
+        ],
+        dataPoints: [20, 20, 20]
+      },
+      beneficiaryCustomersWithChildren: {
+        title: "2",
+        subTitle: "Bezugsberechtigte Haushalte mit Kindern (Alter <= 15)",
+        labels: [
+          "2026-01",
+          "2026-02",
+          "2026-03"
+        ],
+        dataPoints: [2, 2, 2]
+      },
+      sheltersCount: {
+        title: "0",
+        subTitle: "Notschlafstellen (Anzahl)",
+        labels: [
+          "2026-01",
+          "2026-02",
+          "2026-03"
+        ],
+        dataPoints: [0, 0, 0]
+      },
+      sheltersAverage: {
+        title: "0",
+        subTitle: "Notschlafstellen (Durchschnitt pro Ausgabe)",
+        labels: [
+          "2026-01",
+          "2026-02",
+          "2026-03"
+        ],
+        dataPoints: [0, 0, 0]
+      }
+    };
+
+    apiService.getData(fromDate, toDate).subscribe((response) => {
+      expect(response).toEqual(testResponse);
+    });
+
+    const req = httpMock.expectOne({method: 'GET', url: '/statistics/data?fromDate=1234-01-02&toDate=4321-01-02'});
     expect(req.request.method).toBe('GET');
     req.flush(testResponse);
   });
