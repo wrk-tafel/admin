@@ -15,6 +15,10 @@ import {CommonModule} from '@angular/common';
 import {switchMap} from 'rxjs';
 import {toObservable, toSignal} from '@angular/core/rxjs-interop';
 import {StatisticsPanelComponent} from './components/statistics-panel.component';
+import {HttpResponse} from '@angular/common/http';
+import {FileHelperService} from '../../common/util/file-helper.service';
+import {IconDirective} from '@coreui/icons-angular';
+import {cilSave} from '@coreui/icons';
 
 @Component({
   selector: 'tafel-statistics',
@@ -30,16 +34,17 @@ import {StatisticsPanelComponent} from './components/statistics-panel.component'
     ReactiveFormsModule,
     FormSelectDirective,
     ButtonDirective,
-    StatisticsPanelComponent
+    StatisticsPanelComponent,
+    IconDirective
   ]
 })
 export class StatisticsComponent {
   readonly settings = input<StatisticsSettings>();
   private readonly statisticsApiService = inject(StatisticsApiService);
+  private readonly fileHelperService = inject(FileHelperService);
 
-  currentYear: number = moment().year();
   _dateRangeFrom = signal<Date>(moment().startOf('year').toDate());
-  _dateRangeTo = signal<Date>(moment().endOf('year').toDate());
+  _dateRangeTo = signal<Date>(moment().toDate());
   dateRange = computed(() => ({
     from: this._dateRangeFrom(),
     to: this._dateRangeTo()
@@ -50,7 +55,7 @@ export class StatisticsComponent {
     )
   );
 
-  onYearSelected(year: number | undefined): void {
+  onYearSelected(year: number | undefined) {
     if (year) {
       this._dateRangeFrom.set(moment().year(year).startOf('year').toDate());
       this._dateRangeTo.set(moment().year(year).endOf('year').toDate());
@@ -62,6 +67,16 @@ export class StatisticsComponent {
       this._dateRangeFrom.set(distribution.startDate);
       this._dateRangeTo.set(distribution.endDate);
     }
+  }
+
+  onSelectCurrentYear(): void {
+    this._dateRangeFrom.set(moment().startOf('year').toDate());
+    this._dateRangeTo.set(moment().toDate());
+  }
+
+  onSelectCurrentMonth(): void {
+    this._dateRangeFrom.set(moment().startOf('month').toDate());
+    this._dateRangeTo.set(moment().toDate());
   }
 
   get dateRangeFrom(): string {
@@ -80,4 +95,16 @@ export class StatisticsComponent {
     this._dateRangeTo.set(new Date(value));
   }
 
+  protected generateCsv() {
+    this.statisticsApiService.generateCsv(this.dateRange().from, this.dateRange().to)
+      .subscribe((response) => this.processCsvResponse(response));
+  }
+
+  private processCsvResponse(response: HttpResponse<Blob>) {
+    const contentDisposition = response.headers.get('content-disposition');
+    const filename = contentDisposition.split(';')[1].split('filename')[1].split('=')[1].trim();
+    this.fileHelperService.downloadFile(filename, response.body);
+  }
+
+  protected readonly cilSave = cilSave;
 }

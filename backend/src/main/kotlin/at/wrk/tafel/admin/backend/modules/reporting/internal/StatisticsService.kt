@@ -1,5 +1,7 @@
 package at.wrk.tafel.admin.backend.modules.reporting.internal
 
+import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
+import at.wrk.tafel.admin.backend.common.csv.CsvUtil
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
 import at.wrk.tafel.admin.backend.modules.reporting.StatisticsData
 import at.wrk.tafel.admin.backend.modules.reporting.StatisticsDetailData
@@ -9,12 +11,18 @@ import jakarta.persistence.EntityManager
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import kotlin.math.max
 
 @Service
 class StatisticsService(
     private val distributionRepository: DistributionRepository,
     private val entityManager: EntityManager,
 ) {
+
+    companion object {
+        private val DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+    }
 
     fun getSettings(): StatisticsSettings {
         val closedDistributions = distributionRepository.findAll()
@@ -38,42 +46,55 @@ class StatisticsService(
     @Transactional
     fun getData(fromDate: LocalDate, toDate: LocalDate): StatisticsData {
         val countBeneficiaryCustomers = countBeneficiaryCustomers(fromDate, toDate)
+        val countBeneficiaryCustomersData = StatisticsDetailData(
+            title = countBeneficiaryCustomers.lastOrNull()?.value?.toString() ?: "0",
+            subTitle = "Bezugsberechtigte Haushalte",
+            labels = countBeneficiaryCustomers.map { it.label },
+            dataPoints = countBeneficiaryCustomers.map { it.value }
+        )
+
         val countBeneficiaryPersons = countBeneficiaryPersons(fromDate, toDate)
+        val countBeneficiaryPersonsData = StatisticsDetailData(
+            title = countBeneficiaryPersons.lastOrNull()?.value?.toString() ?: "0",
+            subTitle = "Bezugsberechtigte Personen",
+            labels = countBeneficiaryPersons.map { it.label },
+            dataPoints = countBeneficiaryPersons.map { it.value }
+        )
+
         val countBeneficiaryCustomersWithChildren = countBeneficiaryCustomersWithChildren(fromDate, toDate)
+        val countBeneficiaryCustomersWithChildrenData = StatisticsDetailData(
+            title = countBeneficiaryCustomersWithChildren.lastOrNull()?.value?.toString() ?: "0",
+            subTitle = "Bezugsberechtigte Haushalte mit Kindern (Alter <= 15)",
+            labels = countBeneficiaryCustomersWithChildren.map { it.label },
+            dataPoints = countBeneficiaryCustomersWithChildren.map { it.value }
+        )
+
         val countShelters = countShelters(fromDate, toDate)
+        val countSheltersData = StatisticsDetailData(
+            title = countShelters.sumOf { it.value.toLong() }.toString(),
+            subTitle = "Notschlafstellen (Anzahl)",
+            labels = countShelters.map { it.label },
+            dataPoints = countShelters.map { it.value }
+        )
+
         val averageShelters = averageShelters(fromDate, toDate)
+        val averageSheltersTotalAverage =
+            (averageShelters.sumOf { it.value.toDouble() } / max(averageShelters.size, 1)).let {
+                String.format("%.2f", it)
+            }
+        val averageSheltersData = StatisticsDetailData(
+            title = averageSheltersTotalAverage,
+            subTitle = "Notschlafstellen (Durchschnitt pro Ausgabe)",
+            labels = averageShelters.map { it.label },
+            dataPoints = averageShelters.map { it.value }
+        )
 
         return StatisticsData(
-            beneficiaryCustomers = StatisticsDetailData(
-                title = countBeneficiaryCustomers.lastOrNull()?.value?.toString() ?: "0",
-                subTitle = "Bezugsberechtigte Haushalte",
-                labels = countBeneficiaryCustomers.map { it.label },
-                dataPoints = countBeneficiaryCustomers.map { it.value }
-            ),
-            beneficiaryPersons = StatisticsDetailData(
-                title = countBeneficiaryPersons.lastOrNull()?.value?.toString() ?: "0",
-                subTitle = "Bezugsberechtigte Personen",
-                labels = countBeneficiaryPersons.map { it.label },
-                dataPoints = countBeneficiaryPersons.map { it.value }
-            ),
-            beneficiaryCustomersWithChildren = StatisticsDetailData(
-                title = countBeneficiaryCustomersWithChildren.lastOrNull()?.value?.toString() ?: "0",
-                subTitle = "Bezugsberechtigte Haushalte mit Kindern (Alter <= 15)",
-                labels = countBeneficiaryCustomersWithChildren.map { it.label },
-                dataPoints = countBeneficiaryCustomersWithChildren.map { it.value }
-            ),
-            sheltersCount = StatisticsDetailData(
-                title = countShelters.lastOrNull()?.value?.toString() ?: "0",
-                subTitle = "Notschlafstellen (Anzahl)",
-                labels = countShelters.map { it.label },
-                dataPoints = countShelters.map { it.value }
-            ),
-            sheltersAverage = StatisticsDetailData(
-                title = averageShelters.lastOrNull()?.value?.toString() ?: "0",
-                subTitle = "Notschlafstellen (Durchschnitt pro Ausgabe)",
-                labels = averageShelters.map { it.label },
-                dataPoints = averageShelters.map { it.value }
-            )
+            beneficiaryCustomers = countBeneficiaryCustomersData,
+            beneficiaryPersons = countBeneficiaryPersonsData,
+            beneficiaryCustomersWithChildren = countBeneficiaryCustomersWithChildrenData,
+            sheltersCount = countSheltersData,
+            sheltersAverage = averageSheltersData
         )
     }
 
@@ -179,14 +200,62 @@ class StatisticsService(
             val cols = row as Array<*>
             StatisticsResult(
                 label = cols[0] as String,
-                value = (cols[1] as Number).toDouble()
+                value = cols[1] as Number
             )
         }
+    }
+
+    @Transactional
+    fun generateCsv(fromDate: LocalDate, toDate: LocalDate): StatisticsCsvResult {
+        val data = getData(fromDate, toDate)
+
+        val rows: List<List<String>> = listOf(
+            listOf(
+                "Statistik-Export",
+                "Zeitraum: ${DATE_TIME_FORMATTER.format(fromDate)} bis ${DATE_TIME_FORMATTER.format(toDate)}"
+            ),
+            listOf("Bezugsberechtigte Haushalte", data.beneficiaryCustomers.title),
+            listOf("Bezugsberechtigte Personen", data.beneficiaryPersons.title),
+            listOf(
+                "Bezugsberechtigte Haushalte mit Kindern (Alter <= 15)",
+                data.beneficiaryCustomersWithChildren.title
+            ),
+            listOf("Notschlafstellen (Anzahl)", data.sheltersCount.title),
+            listOf("Notschlafstellen (Durchschnitt pro Ausgabe)", data.sheltersAverage.title),
+        )
+
+        return StatisticsCsvResult(
+            filename = "statistik_export_${DATE_TIME_FORMATTER.format(fromDate)}_bis_${DATE_TIME_FORMATTER.format(toDate)}.csv",
+            bytes = CsvUtil.writeRowsToByteArray(rows)
+        )
     }
 
 }
 
 data class StatisticsResult(
     val label: String,
-    val value: Double
+    val value: Number
 )
+
+@ExcludeFromTestCoverage
+data class StatisticsCsvResult(
+    val filename: String,
+    val bytes: ByteArray
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as StatisticsCsvResult
+
+        if (filename != other.filename) return false
+        return bytes.contentEquals(other.bytes)
+    }
+
+    override fun hashCode(): Int {
+        var result = filename.hashCode()
+        result = 31 * result + bytes.contentHashCode()
+        return result
+    }
+
+}

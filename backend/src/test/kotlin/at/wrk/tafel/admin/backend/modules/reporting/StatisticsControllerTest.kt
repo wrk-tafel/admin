@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.reporting
 
+import at.wrk.tafel.admin.backend.modules.reporting.internal.StatisticsCsvResult
 import at.wrk.tafel.admin.backend.modules.reporting.internal.StatisticsService
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
@@ -10,6 +11,9 @@ import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -17,10 +21,10 @@ import java.time.LocalDateTime
 class StatisticsControllerTest {
 
     @RelaxedMockK
-    private lateinit var statisticsService: StatisticsService
+    private lateinit var service: StatisticsService
 
     @InjectMockKs
-    private lateinit var statisticsController: StatisticsController
+    private lateinit var controller: StatisticsController
 
     @Test
     fun `getSettings returns statistics settings from service`() {
@@ -42,14 +46,14 @@ class StatisticsControllerTest {
             )
         )
 
-        every { statisticsService.getSettings() } returns expectedSettings
+        every { service.getSettings() } returns expectedSettings
 
-        val result = statisticsController.getSettings()
+        val result = controller.getSettings()
 
         assertThat(result).isEqualTo(expectedSettings)
         assertThat(result.availableYears).containsExactly(2024, 2023, 2022)
         assertThat(result.distributions).hasSize(3)
-        verify(exactly = 1) { statisticsService.getSettings() }
+        verify(exactly = 1) { service.getSettings() }
     }
 
     @Test
@@ -59,21 +63,21 @@ class StatisticsControllerTest {
             distributions = emptyList()
         )
 
-        every { statisticsService.getSettings() } returns expectedSettings
+        every { service.getSettings() } returns expectedSettings
 
-        val result = statisticsController.getSettings()
+        val result = controller.getSettings()
 
         assertThat(result).isEqualTo(expectedSettings)
         assertThat(result.availableYears).isEmpty()
         assertThat(result.distributions).isEmpty()
-        verify(exactly = 1) { statisticsService.getSettings() }
+        verify(exactly = 1) { service.getSettings() }
     }
 
     @Test
     fun `getSettings delegates to service`() {
-        statisticsController.getSettings()
+        controller.getSettings()
 
-        verify(exactly = 1) { statisticsService.getSettings() }
+        verify(exactly = 1) { service.getSettings() }
     }
 
     @Test
@@ -88,9 +92,9 @@ class StatisticsControllerTest {
             )
         )
 
-        every { statisticsService.getSettings() } returns expectedSettings
+        every { service.getSettings() } returns expectedSettings
 
-        val result = statisticsController.getSettings()
+        val result = controller.getSettings()
 
         assertThat(result.availableYears).containsExactly(2024)
         assertThat(result.distributions).hasSize(1)
@@ -100,7 +104,7 @@ class StatisticsControllerTest {
                 endDate = LocalDateTime.of(2024, 6, 15, 12, 0)
             )
         )
-        verify(exactly = 1) { statisticsService.getSettings() }
+        verify(exactly = 1) { service.getSettings() }
     }
 
     @Test
@@ -135,13 +139,13 @@ class StatisticsControllerTest {
             )
         )
 
-        every { statisticsService.getSettings() } returns expectedSettings
+        every { service.getSettings() } returns expectedSettings
 
-        val result = statisticsController.getSettings()
+        val result = controller.getSettings()
 
         assertThat(result.availableYears).containsExactly(2025, 2024, 2023, 2022, 2021)
         assertThat(result.distributions).hasSize(6)
-        verify(exactly = 1) { statisticsService.getSettings() }
+        verify(exactly = 1) { service.getSettings() }
     }
 
     @Test
@@ -164,12 +168,12 @@ class StatisticsControllerTest {
             )
         )
 
-        every { statisticsService.getSettings() } returns expectedSettings
+        every { service.getSettings() } returns expectedSettings
 
-        val result = statisticsController.getSettings()
+        val result = controller.getSettings()
 
         assertThat(result.availableYears).containsExactlyElementsOf(expectedSettings.availableYears)
-        verify(exactly = 1) { statisticsService.getSettings() }
+        verify(exactly = 1) { service.getSettings() }
     }
 
     @Test
@@ -194,12 +198,12 @@ class StatisticsControllerTest {
             distributions = expectedDistributions
         )
 
-        every { statisticsService.getSettings() } returns expectedSettings
+        every { service.getSettings() } returns expectedSettings
 
-        val result = statisticsController.getSettings()
+        val result = controller.getSettings()
 
         assertThat(result.distributions).containsExactlyElementsOf(expectedDistributions)
-        verify(exactly = 1) { statisticsService.getSettings() }
+        verify(exactly = 1) { service.getSettings() }
     }
 
     @Test
@@ -208,12 +212,36 @@ class StatisticsControllerTest {
         val toDate = LocalDate.now()
         val expectedData = mockk<StatisticsData>()
 
-        every { statisticsService.getData(fromDate, toDate) } returns expectedData
+        every { service.getData(fromDate, toDate) } returns expectedData
 
-        val result = statisticsController.getData(fromDate, toDate)
+        val result = controller.getData(fromDate, toDate)
 
         assertThat(result).isEqualTo(expectedData)
-        verify(exactly = 1) { statisticsService.getData(fromDate, toDate) }
+        verify(exactly = 1) { service.getData(fromDate, toDate) }
+    }
+
+    @Test
+    fun `generate csv - result mapped`() {
+        val testFilename = "file.csv"
+        every { service.generateCsv(any(), any()) } returns StatisticsCsvResult(
+            filename = testFilename,
+            bytes = testFilename.toByteArray()
+        )
+
+        val response = controller.generateCsv(
+            fromDate = LocalDate.now().minusDays(2),
+            toDate = LocalDate.now()
+        )
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(response.headers.get(HttpHeaders.CONTENT_TYPE)!!.first()).isEqualTo(MediaType.TEXT_PLAIN_VALUE)
+
+        assertThat(
+            response.headers.get(HttpHeaders.CONTENT_DISPOSITION)!!.first()
+        ).isEqualTo("inline; filename=$testFilename")
+
+        val bodyBytes = response.body?.inputStream?.readAllBytes()!!
+        assertThat(String(bodyBytes)).isEqualTo(testFilename)
     }
 
 }

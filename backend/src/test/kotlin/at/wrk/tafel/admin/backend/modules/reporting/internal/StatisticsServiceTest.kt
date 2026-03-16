@@ -350,42 +350,70 @@ internal class StatisticsServiceTest {
         val result = service.getData(fromDate, toDate)
 
         val expectedLabels = listOf("Jänner", "Februar", "März")
-        val expectedDataPoints = listOf(10.0, 20.0, 30.0)
+        val expectedDataPoints: List<Number> = listOf(10L, 20L, 30L)
 
         assertThat(result).isEqualTo(
             StatisticsData(
                 beneficiaryCustomers = StatisticsDetailData(
-                    title = "30.0",
+                    title = "30",
                     subTitle = "Bezugsberechtigte Haushalte",
                     labels = expectedLabels,
                     dataPoints = expectedDataPoints
                 ),
                 beneficiaryPersons = StatisticsDetailData(
-                    title = "30.0",
+                    title = "30",
                     subTitle = "Bezugsberechtigte Personen",
                     labels = expectedLabels,
                     dataPoints = expectedDataPoints
                 ),
                 beneficiaryCustomersWithChildren = StatisticsDetailData(
-                    title = "30.0",
+                    title = "30",
                     subTitle = "Bezugsberechtigte Haushalte mit Kindern (Alter <= 15)",
                     labels = expectedLabels,
                     dataPoints = expectedDataPoints
                 ),
                 sheltersCount = StatisticsDetailData(
-                    title = "30.0",
+                    title = "60",
                     subTitle = "Notschlafstellen (Anzahl)",
                     labels = expectedLabels,
                     dataPoints = expectedDataPoints
                 ),
                 sheltersAverage = StatisticsDetailData(
-                    title = "30.0",
+                    title = "20.00",
                     subTitle = "Notschlafstellen (Durchschnitt pro Ausgabe)",
                     labels = expectedLabels,
                     dataPoints = expectedDataPoints
                 ),
             )
         )
+    }
+
+    @Test
+    fun `generate csv`() {
+        val fromDate = LocalDate.of(2024, 1, 1)
+        val toDate = LocalDate.of(2024, 12, 31)
+
+        val mockQuery = mockk<Query>(relaxed = true)
+        every { entityManager.createNativeQuery(any<String>()) } returns mockQuery
+        every { mockQuery.resultList } returns listOf(
+            arrayOf<Any>("Jänner", 10L),
+            arrayOf<Any>("Februar", 20L),
+            arrayOf<Any>("März", 30L)
+        )
+
+        val result = service.generateCsv(fromDate, toDate)
+
+        assertThat(result.filename).isEqualTo("statistik_export_01.01.2024_bis_31.12.2024.csv")
+
+        val csvContent = String(result.bytes, Charsets.UTF_8)
+        val lines = csvContent.trim().lines()
+        assertThat(lines).hasSize(6)
+        assertThat(lines[0]).isEqualTo("Statistik-Export;Zeitraum: 01.01.2024 bis 31.12.2024")
+        assertThat(lines[1]).isEqualTo("Bezugsberechtigte Haushalte;30")
+        assertThat(lines[2]).isEqualTo("Bezugsberechtigte Personen;30")
+        assertThat(lines[3]).isEqualTo("Bezugsberechtigte Haushalte mit Kindern (Alter <= 15);30")
+        assertThat(lines[4]).isEqualTo("Notschlafstellen (Anzahl);60")
+        assertThat(lines[5]).isEqualTo("Notschlafstellen (Durchschnitt pro Ausgabe);20.00")
     }
 
 }
