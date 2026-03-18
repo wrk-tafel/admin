@@ -8,6 +8,7 @@
 
 # Prio 1
 * Last one in customers: validation country/gender of addPersons (only) doesnt show validation result/border
+* Improve performance of statistics page (issue in prod only)
 
 * Add overview "Customers above limit"
 * New permission : ADMIN, Duplicates / Settings / Customers above limit
