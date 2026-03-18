@@ -384,6 +384,12 @@ internal class StatisticsServiceTest {
                     labels = expectedLabels,
                     dataPoints = expectedDataPoints
                 ),
+                sheltersPersonsCount = StatisticsDetailData(
+                    title = "60",
+                    subTitle = "Versorgte Personen (Anzahl)",
+                    labels = expectedLabels,
+                    dataPoints = expectedDataPoints
+                ),
                 shopsCount = StatisticsDetailData(
                     title = "60",
                     subTitle = "Spender (Anzahl)",
@@ -426,7 +432,7 @@ internal class StatisticsServiceTest {
         val csvContent = String(result.bytes, Charsets.UTF_8)
 
         val lines = csvContent.trim().lines()
-        assertThat(lines).hasSize(9)
+        assertThat(lines).hasSize(10)
 
         assertThat(lines[0]).isEqualTo("Statistik-Export;Zeitraum: 01.01.2024 bis 31.12.2024")
         assertThat(lines[1]).isEqualTo("Bezugsberechtigte Haushalte;30")
@@ -434,9 +440,10 @@ internal class StatisticsServiceTest {
         assertThat(lines[3]).isEqualTo("Bezugsberechtigte Haushalte mit Kindern (Alter <= 15);30")
         assertThat(lines[4]).isEqualTo("Notschlafstellen (Anzahl);60")
         assertThat(lines[5]).isEqualTo("Notschlafstellen (Durchschnitt pro Ausgabe);20.00")
-        assertThat(lines[6]).isEqualTo("Spender (Anzahl);60")
-        assertThat(lines[7]).isEqualTo("Warenmenge (Gesamt);60 kg")
-        assertThat(lines[8]).isEqualTo("Warenmenge (Durchschnitt pro Spender);20.00 kg")
+        assertThat(lines[6]).isEqualTo("Notschlafstellen (versorgte Personen pro Ausgabe);60")
+        assertThat(lines[7]).isEqualTo("Spender (Anzahl);60")
+        assertThat(lines[8]).isEqualTo("Warenmenge (Gesamt);60 kg")
+        assertThat(lines[9]).isEqualTo("Warenmenge (Durchschnitt pro Spender);20.00 kg")
     }
 
 }

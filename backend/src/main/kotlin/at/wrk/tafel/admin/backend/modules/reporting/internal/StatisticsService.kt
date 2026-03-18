@@ -88,6 +88,14 @@ class StatisticsService(
             dataPoints = averageShelters.map { it.value }
         )
 
+        val countSheltersPersons = countSheltersPersons(fromDate, toDate)
+        val countSheltersPersonsData = StatisticsDetailData(
+            title = countSheltersPersons.sumOf { it.value.toLong() }.toString(),
+            subTitle = "Versorgte Personen (Anzahl)",
+            labels = countSheltersPersons.map { it.label },
+            dataPoints = countSheltersPersons.map { it.value }
+        )
+
         val countShops = countShops(fromDate, toDate)
         val countShopsData = StatisticsDetailData(
             title = countShops.sumOf { it.value.toLong() }.toString(),
@@ -122,6 +130,7 @@ class StatisticsService(
             beneficiaryCustomersWithChildren = countBeneficiaryCustomersWithChildrenData,
             sheltersCount = countSheltersData,
             sheltersAverage = averageSheltersData,
+            sheltersPersonsCount = countSheltersPersonsData,
             shopsCount = countShopsData,
             shopItemsTotal = totalShopItemsData,
             shopItemsAverage = averageShopItemsData
@@ -209,6 +218,24 @@ class StatisticsService(
                     SELECT 
                         CASE WHEN COUNT(DISTINCT d.id) = 0 THEN 0 
                         ELSE COUNT(dss.id)::FLOAT / COUNT(DISTINCT d.id)::FLOAT END
+                    FROM distributions_statistics_shelters dss
+                    JOIN distributions_statistics ds ON ds.id = dss.distribution_statistic_id
+                    JOIN distributions d ON d.id = ds.distribution_id
+                    WHERE DATE(d.started_at) BETWEEN t.start_date AND t.end_date
+                ) as value
+            FROM get_timeline(:fromDate, :toDate) t
+            ORDER BY t.start_date ASC
+        """.trimIndent()
+
+        return executeStatsQuery(sql, fromDate, toDate)
+    }
+
+    fun countSheltersPersons(fromDate: LocalDate, toDate: LocalDate): List<StatisticsResult> {
+        val sql = """
+            SELECT 
+                format_by_resolution(t.start_date, t.res_code) as label,
+                (
+                    SELECT SUM(dss.persons_count)
                     FROM distributions_statistics_shelters dss
                     JOIN distributions_statistics ds ON ds.id = dss.distribution_statistic_id
                     JOIN distributions d ON d.id = ds.distribution_id
@@ -312,6 +339,7 @@ class StatisticsService(
             ),
             listOf("Notschlafstellen (Anzahl)", data.sheltersCount.title),
             listOf("Notschlafstellen (Durchschnitt pro Ausgabe)", data.sheltersAverage.title),
+            listOf("Notschlafstellen (versorgte Personen pro Ausgabe)", data.sheltersPersonsCount.title),
             listOf("Spender (Anzahl)", data.shopsCount.title),
             listOf("Warenmenge (Gesamt)", data.shopItemsTotal.title),
             listOf("Warenmenge (Durchschnitt pro Spender)", data.shopItemsAverage.title),
