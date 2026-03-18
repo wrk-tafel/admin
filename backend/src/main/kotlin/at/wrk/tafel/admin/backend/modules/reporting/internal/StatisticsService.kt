@@ -78,10 +78,9 @@ class StatisticsService(
         )
 
         val averageShelters = averageShelters(fromDate, toDate)
-        val averageSheltersTotalAverage =
-            (averageShelters.sumOf { it.value.toDouble() } / max(averageShelters.size, 1)).let {
-                String.format("%.2f", it)
-            }
+        val averageSheltersDivisor = max(averageShelters.count { it.value.toDouble() > 0 }, 1)
+        val averageSheltersTotalAverage = (averageShelters.sumOf { it.value.toDouble() } / averageSheltersDivisor)
+            .let { String.format("%.2f", it) }
         val averageSheltersData = StatisticsDetailData(
             title = averageSheltersTotalAverage,
             subTitle = "Notschlafstellen (Durchschnitt pro Ausgabe)",
@@ -89,12 +88,43 @@ class StatisticsService(
             dataPoints = averageShelters.map { it.value }
         )
 
+        val countShops = countShops(fromDate, toDate)
+        val countShopsData = StatisticsDetailData(
+            title = countShops.sumOf { it.value.toLong() }.toString(),
+            subTitle = "Spender (Anzahl)",
+            labels = countShops.map { it.label },
+            dataPoints = countShops.map { it.value }
+        )
+
+        val totalShopItems = totalShopItems(fromDate, toDate)
+        val totalShopItemsData = StatisticsDetailData(
+            title = "${totalShopItems.sumOf { it.value.toInt() }} kg",
+            subTitle = "Warenmenge (Gesamt)",
+            labels = totalShopItems.map { it.label },
+            dataPoints = totalShopItems.map { it.value }
+        )
+
+        val averageShopItems = averageShopItems(fromDate, toDate)
+        val averageShopItemsDivisor = max(averageShopItems.count { it.value.toDouble() > 0 }, 1)
+        val averageShopItemsTotalAverage =
+            (averageShopItems.sumOf { it.value.toDouble() } / averageShopItemsDivisor)
+                .let { String.format("%.2f", it) }
+        val averageShopItemsData = StatisticsDetailData(
+            title = "$averageShopItemsTotalAverage kg",
+            subTitle = "Warenmenge (Durchschnitt pro Spender)",
+            labels = averageShopItems.map { it.label },
+            dataPoints = averageShopItems.map { it.value }
+        )
+
         return StatisticsData(
             beneficiaryCustomers = countBeneficiaryCustomersData,
             beneficiaryPersons = countBeneficiaryPersonsData,
             beneficiaryCustomersWithChildren = countBeneficiaryCustomersWithChildrenData,
             sheltersCount = countSheltersData,
-            sheltersAverage = averageSheltersData
+            sheltersAverage = averageSheltersData,
+            shopsCount = countShopsData,
+            shopItemsTotal = totalShopItemsData,
+            shopItemsAverage = averageShopItemsData
         )
     }
 
@@ -162,7 +192,7 @@ class StatisticsService(
                     FROM distributions_statistics_shelters dss
                     JOIN distributions_statistics ds ON ds.id = dss.distribution_statistic_id
                     JOIN distributions d ON d.id = ds.distribution_id
-                    WHERE d.started_at BETWEEN t.start_date AND t.end_date
+                    WHERE DATE(d.started_at) BETWEEN t.start_date AND t.end_date
                 ) as value
             FROM get_timeline(:fromDate, :toDate) t
             ORDER BY t.start_date ASC
@@ -182,8 +212,64 @@ class StatisticsService(
                     FROM distributions_statistics_shelters dss
                     JOIN distributions_statistics ds ON ds.id = dss.distribution_statistic_id
                     JOIN distributions d ON d.id = ds.distribution_id
-                    WHERE d.started_at BETWEEN t.start_date AND t.end_date
-                ) as average_value
+                    WHERE DATE(d.started_at) BETWEEN t.start_date AND t.end_date
+                ) as value
+            FROM get_timeline(:fromDate, :toDate) t
+            ORDER BY t.start_date ASC
+        """.trimIndent()
+
+        return executeStatsQuery(sql, fromDate, toDate)
+    }
+
+    fun countShops(fromDate: LocalDate, toDate: LocalDate): List<StatisticsResult> {
+        val sql = """
+            SELECT 
+                format_by_resolution(t.start_date, t.res_code) as label,
+                (
+                    SELECT COUNT(DISTINCT fci.shop_id)
+                    FROM distributions d
+                    JOIN food_collections fc ON d.id = fc.distribution_id
+                    JOIN food_collections_items fci ON fc.id = fci.food_collection_id
+                    WHERE DATE(d.started_at) BETWEEN t.start_date AND t.end_date
+                ) as value
+            FROM get_timeline(:fromDate, :toDate) t
+            ORDER BY t.start_date ASC
+        """.trimIndent()
+
+        return executeStatsQuery(sql, fromDate, toDate)
+    }
+
+    fun totalShopItems(fromDate: LocalDate, toDate: LocalDate): List<StatisticsResult> {
+        val sql = """
+            SELECT 
+                format_by_resolution(t.start_date, t.res_code) as label,
+                (
+                    SELECT SUM(fci.amount)
+                    FROM distributions d
+                    JOIN food_collections fc ON d.id = fc.distribution_id
+                    JOIN food_collections_items fci ON fc.id = fci.food_collection_id
+                    WHERE DATE(d.started_at) BETWEEN t.start_date AND t.end_date
+                ) as value
+            FROM get_timeline(:fromDate, :toDate) t
+            ORDER BY t.start_date ASC
+        """.trimIndent()
+
+        return executeStatsQuery(sql, fromDate, toDate)
+    }
+
+    fun averageShopItems(fromDate: LocalDate, toDate: LocalDate): List<StatisticsResult> {
+        val sql = """
+            SELECT 
+                format_by_resolution(t.start_date, t.res_code) as label,
+                (
+                    SELECT 
+                        CASE WHEN COUNT(DISTINCT d.id) = 0 THEN 0
+                        ELSE SUM(fci.amount)::FLOAT / COUNT(DISTINCT fci.shop_id)::FLOAT END
+                    FROM distributions d
+                    JOIN food_collections fc ON d.id = fc.distribution_id
+                    JOIN food_collections_items fci ON fc.id = fci.food_collection_id
+                    WHERE DATE(d.started_at) BETWEEN t.start_date AND t.end_date
+                ) as value
             FROM get_timeline(:fromDate, :toDate) t
             ORDER BY t.start_date ASC
         """.trimIndent()
@@ -198,9 +284,13 @@ class StatisticsService(
 
         return query.resultList.map { row ->
             val cols = row as Array<*>
+            val label = cols[0] as String
+            val value = if (cols[1] != null) cols[1] as Number else 0
+            val valueFormatted = if (value is Double) String.format("%.2f", value).toDouble() else value
+
             StatisticsResult(
-                label = cols[0] as String,
-                value = cols[1] as Number
+                label = label,
+                value = valueFormatted
             )
         }
     }
@@ -222,6 +312,9 @@ class StatisticsService(
             ),
             listOf("Notschlafstellen (Anzahl)", data.sheltersCount.title),
             listOf("Notschlafstellen (Durchschnitt pro Ausgabe)", data.sheltersAverage.title),
+            listOf("Spender (Anzahl)", data.shopsCount.title),
+            listOf("Warenmenge (Gesamt)", data.shopItemsTotal.title),
+            listOf("Warenmenge (Durchschnitt pro Spender)", data.shopItemsAverage.title),
         )
 
         return StatisticsCsvResult(

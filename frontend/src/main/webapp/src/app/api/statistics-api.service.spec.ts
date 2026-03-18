@@ -103,6 +103,36 @@ describe('StatisticsApiService', () => {
           "2026-03"
         ],
         dataPoints: [0, 0, 0]
+      },
+      shopsCount: {
+        title: "0",
+        subTitle: "Spender (Anzahl)",
+        labels: [
+          "2026-01",
+          "2026-02",
+          "2026-03"
+        ],
+        dataPoints: [0, 0, 0]
+      },
+      shopItemsTotal: {
+        title: "0",
+        subTitle: "Warenmenge (Gesamt)",
+        labels: [
+          "2026-01",
+          "2026-02",
+          "2026-03"
+        ],
+        dataPoints: [0, 0, 0]
+      },
+      shopItemsAverage: {
+        title: "0",
+        subTitle: "Warenmenge (Durchschnitt pro Spender)",
+        labels: [
+          "2026-01",
+          "2026-02",
+          "2026-03"
+        ],
+        dataPoints: [0, 0, 0]
       }
     };
 
