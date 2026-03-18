@@ -384,6 +384,24 @@ internal class StatisticsServiceTest {
                     labels = expectedLabels,
                     dataPoints = expectedDataPoints
                 ),
+                shopsCount = StatisticsDetailData(
+                    title = "60",
+                    subTitle = "Spender (Anzahl)",
+                    labels = expectedLabels,
+                    dataPoints = expectedDataPoints
+                ),
+                shopItemsTotal = StatisticsDetailData(
+                    title = "60 kg",
+                    subTitle = "Warenmenge (Gesamt)",
+                    labels = expectedLabels,
+                    dataPoints = expectedDataPoints
+                ),
+                shopItemsAverage = StatisticsDetailData(
+                    title = "20.00 kg",
+                    subTitle = "Warenmenge (Durchschnitt pro Spender)",
+                    labels = expectedLabels,
+                    dataPoints = expectedDataPoints
+                )
             )
         )
     }
@@ -406,14 +424,19 @@ internal class StatisticsServiceTest {
         assertThat(result.filename).isEqualTo("statistik_export_01.01.2024_bis_31.12.2024.csv")
 
         val csvContent = String(result.bytes, Charsets.UTF_8)
+
         val lines = csvContent.trim().lines()
-        assertThat(lines).hasSize(6)
+        assertThat(lines).hasSize(9)
+
         assertThat(lines[0]).isEqualTo("Statistik-Export;Zeitraum: 01.01.2024 bis 31.12.2024")
         assertThat(lines[1]).isEqualTo("Bezugsberechtigte Haushalte;30")
         assertThat(lines[2]).isEqualTo("Bezugsberechtigte Personen;30")
         assertThat(lines[3]).isEqualTo("Bezugsberechtigte Haushalte mit Kindern (Alter <= 15);30")
         assertThat(lines[4]).isEqualTo("Notschlafstellen (Anzahl);60")
         assertThat(lines[5]).isEqualTo("Notschlafstellen (Durchschnitt pro Ausgabe);20.00")
+        assertThat(lines[6]).isEqualTo("Spender (Anzahl);60")
+        assertThat(lines[7]).isEqualTo("Warenmenge (Gesamt);60 kg")
+        assertThat(lines[8]).isEqualTo("Warenmenge (Durchschnitt pro Spender);20.00 kg")
     }
 
 }

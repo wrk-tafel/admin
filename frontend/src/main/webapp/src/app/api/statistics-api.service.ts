@@ -52,6 +52,9 @@ export interface StatisticsData {
   beneficiaryCustomersWithChildren: StatisticsDetailData
   sheltersCount: StatisticsDetailData
   sheltersAverage: StatisticsDetailData
+  shopsCount: StatisticsDetailData
+  shopItemsTotal: StatisticsDetailData
+  shopItemsAverage: StatisticsDetailData
 }
 
 export interface StatisticsDetailData {
