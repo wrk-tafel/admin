@@ -115,11 +115,14 @@
             </c-col>
           </c-row>
           <c-row>
-            <c-col sm="6">
+            <c-col sm="4">
               <tafel-statistics-panel [data]="statisticsData().sheltersCount"></tafel-statistics-panel>
             </c-col>
-            <c-col sm="6" class="mt-2 mt-md-0">
+            <c-col sm="4" class="mt-2 mt-md-0">
               <tafel-statistics-panel [data]="statisticsData().sheltersAverage"></tafel-statistics-panel>
+            </c-col>
+            <c-col sm="4" class="mt-2 mt-md-0">
+              <tafel-statistics-panel [data]="statisticsData().sheltersPersonsCount"></tafel-statistics-panel>
             </c-col>
           </c-row>
           <c-row class="mt-3">
