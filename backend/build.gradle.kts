@@ -27,20 +27,14 @@ repositories {
 }
 
 dependencies {
-    // BOMs
+    // implementation
     implementation(platform(libs.spring.boot.bom))
     implementation(platform(libs.spring.modulith.bom))
-
-    // Kotlin
     implementation(libs.kotlin.stdlib.jdk8)
     implementation(libs.kotlin.reflect)
     implementation(libs.kotlinx.coroutines.core)
-
-    // Logback
     implementation(libs.logback.json.classic)
     implementation(libs.logback.jackson)
-
-    // Spring Boot starters
     implementation(libs.spring.boot.starter.actuator)
     implementation(libs.spring.boot.starter.web)
     implementation(libs.spring.boot.starter.jdbc)
@@ -50,51 +44,35 @@ dependencies {
     implementation(libs.spring.boot.starter.mail)
     implementation(libs.spring.boot.starter.jackson)
     implementation(libs.spring.boot.starter.thymeleaf)
-
-    // Spring Modulith
     implementation(libs.spring.modulith.starter.jpa)
     implementation(libs.spring.modulith.actuator)
-
-    // Spring Security
     implementation(libs.spring.security.messaging)
-
-    // Flyway
     implementation(libs.flyway.database.postgresql)
-
-    // Jackson
     implementation(libs.jackson.module.kotlin)
     implementation(libs.jackson.dataformat.xml)
-
-    // Database
     implementation(libs.postgresql)
-
-    // JWT
     implementation(libs.jjwt.api)
-    runtimeOnly(libs.jjwt.impl)
-    runtimeOnly(libs.jjwt.jackson)
-
-    // Crypto
     implementation(libs.bouncycastle)
-
-    // PDF / QR
     implementation(libs.apache.fop)
     implementation(libs.qrcode.kotlin.jvm)
-
-    // Utilities
     implementation(libs.passay)
     implementation(libs.apache.commons.csv)
     implementation(libs.apache.commons.lang3)
 
-    // Micrometer
+    // runtimeOnly
+    runtimeOnly(libs.jjwt.impl)
+    runtimeOnly(libs.jjwt.jackson)
     runtimeOnly(libs.micrometer.registry.prometheus)
 
-    // Dev
+    // developmentOnly
     developmentOnly(platform(libs.spring.boot.bom))
     developmentOnly(libs.spring.boot.devtools)
+
+    // annotationProcessor
     annotationProcessor(platform(libs.spring.boot.bom))
     annotationProcessor(libs.spring.boot.configuration.processor)
 
-    // Test
+    // testImplementation
     testImplementation(platform(libs.spring.boot.bom))
     testImplementation(platform(libs.spring.modulith.bom))
     testImplementation(libs.jjwt.impl)

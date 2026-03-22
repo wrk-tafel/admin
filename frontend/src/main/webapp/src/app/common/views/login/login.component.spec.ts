@@ -5,6 +5,8 @@ import {AuthenticationService} from '../../security/authentication.service';
 import {LoginComponent} from './login.component';
 import {EMPTY, of} from 'rxjs';
 import {CardModule, ColComponent, ContainerComponent, InputGroupComponent, RowComponent} from '@coreui/angular';
+import {IconSetService} from '@coreui/icons-angular';
+import {cilLockLocked, cilUser} from '@coreui/icons';
 
 describe('LoginComponent', () => {
     let authService: MockedObject<AuthenticationService>;
@@ -28,6 +30,7 @@ describe('LoginComponent', () => {
                 InputGroupComponent
             ],
             providers: [
+                IconSetService,
                 {
                     provide: AuthenticationService,
                     useValue: authServiceSpy
@@ -44,6 +47,9 @@ describe('LoginComponent', () => {
                 },
             ],
         }).compileComponents();
+
+        const iconSetService = TestBed.inject(IconSetService);
+        iconSetService.icons = {cilUser, cilLockLocked};
 
         authService = TestBed.inject(AuthenticationService) as MockedObject<AuthenticationService>;
         router = TestBed.inject(Router) as MockedObject<Router>;

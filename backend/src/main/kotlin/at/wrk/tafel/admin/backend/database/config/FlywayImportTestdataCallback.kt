@@ -13,8 +13,8 @@ import org.springframework.stereotype.Component
 @Component
 @ExcludeFromTestCoverage
 class FlywayImportTestdataCallback(
-    @Value("\${tafeladmin.testdata.enabled:false}") private val testdataEnabled: Boolean,
-    @Value("/db-migration-testdata/testdata.sql") val sqlFileClassPath: String? = null
+    @param:Value("\${tafeladmin.testdata.enabled:false}") private val testdataEnabled: Boolean,
+    @param:Value("/db-migration-testdata/testdata.sql") val sqlFileClassPath: String? = null
 ) : BaseCallback() {
 
     companion object {

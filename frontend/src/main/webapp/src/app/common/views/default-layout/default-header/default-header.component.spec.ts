@@ -3,6 +3,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { AvatarModule, BadgeModule, BreadcrumbModule, DropdownModule, GridModule, HeaderModule, NavModule, SidebarModule } from '@coreui/angular';
 import { IconSetService } from '@coreui/icons-angular';
+import { cilMenu } from '@coreui/icons';
 import { DefaultHeaderComponent } from './default-header.component';
 import { AuthenticationService } from '../../../security/authentication.service';
 import { of } from 'rxjs';
@@ -53,6 +54,9 @@ describe('DefaultHeaderComponent', () => {
             ]
         })
             .compileComponents();
+
+        const iconSetService = TestBed.inject(IconSetService);
+        iconSetService.icons = {cilMenu};
 
         authenticationService = TestBed.inject(AuthenticationService) as MockedObject<AuthenticationService>;
         globalStateService = TestBed.inject(GlobalStateService) as MockedObject<GlobalStateService>;
