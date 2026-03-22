@@ -11,40 +11,40 @@ This is a food bank (Tafel) administration system built with a Spring Boot/Kotli
 ### Full Application Build
 ```bash
 # Build both backend and frontend (from root)
-mvn clean install
+./gradlew build
 
 # Build only backend
-cd backend && mvn clean install
+./gradlew :backend:build
 
 # Build only frontend
-cd frontend && mvn clean install
+./gradlew :frontend:build
 ```
 
 ### Backend Development
 ```bash
-# Run backend with local profile (from backend/)
-mvn spring-boot:run -Dspring-boot.run.profiles=local
+# Run backend with local profile (from root)
+./gradlew :backend:bootRun --args='--spring.profiles.active=local'
 
 # Run all tests
-mvn test
+./gradlew :backend:test
 
 # Run specific test class
-mvn test -Dtest=CustomerServiceTest
+./gradlew :backend:test --tests "at.wrk.tafel.admin.backend.modules.customer.internal.CustomerServiceTest"
 
 # Run specific test method
-mvn test -Dtest=CustomerServiceTest#createCustomerSuccessful
+./gradlew :backend:test --tests "at.wrk.tafel.admin.backend.modules.customer.internal.CustomerServiceTest.createCustomerSuccessful"
 
 # Run integration tests with timeout
-timeout 90 mvn test -Dtest=AdvisoryLockServiceIT
+timeout 90 ./gradlew :backend:test --tests "*AdvisoryLockServiceIT"
 
 # Run with testdata
-mvn spring-boot:run -Dspring-boot.run.profiles=local,testdata
+./gradlew :backend:bootRun --args='--spring.profiles.active=local,testdata'
 
 # Run with e2e profile
-mvn spring-boot:run -Dspring-boot.run.profiles=e2e
+./gradlew :backend:bootRun --args='--spring.profiles.active=e2e'
 
 # Compile only (useful for quick validation)
-mvn compile
+./gradlew :backend:compileKotlin
 ```
 
 ### Frontend Development
@@ -87,6 +87,16 @@ npm run cy:run-ci
 # Open Cypress UI for E2E tests
 npm run cy:open-local
 ```
+
+### Dependency Verification
+
+Gradle dependency verification is configured via `gradle/verification-metadata.xml`. When updating dependencies, always regenerate this file with `--refresh-dependencies` to avoid missing checksums:
+
+```bash
+./gradlew --write-verification-metadata sha256 --refresh-dependencies
+```
+
+Without `--refresh-dependencies`, Gradle uses locally cached artifacts and skips re-downloading them, so new checksums (e.g., `.module` files) may not be recorded. This causes CI failures where artifacts are downloaded fresh and cannot be verified.
 
 ## Architecture
 
@@ -195,8 +205,8 @@ The application uses PostgreSQL with Flyway for schema management. Migration fil
 ### Backend Tests
 - Unit tests: Named `*Test.kt` in `src/test/kotlin/`
 - Integration tests: Named `*IT.kt` (use Testcontainers for PostgreSQL)
-- Run all tests: `mvn test` (from backend/)
-- Run specific test: `mvn test -Dtest=CustomerServiceTest#createCustomerSuccessful`
+- Run all tests: `./gradlew :backend:test` (from root)
+- Run specific test: `./gradlew :backend:test --tests "*CustomerServiceTest.createCustomerSuccessful"`
 - Base test class: `TafelBaseIntegrationTest` sets up test environment
 - Integration tests automatically start PostgreSQL via Testcontainers
 
