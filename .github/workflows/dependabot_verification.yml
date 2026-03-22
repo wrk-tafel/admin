@@ -1,0 +1,44 @@
+name: Dependabot Verification Metadata
+
+on:
+  pull_request:
+    paths:
+      - 'gradle/libs.versions.toml'
+      - 'settings.gradle.kts'
+      - 'build.gradle.kts'
+      - 'backend/build.gradle.kts'
+      - 'frontend/build.gradle.kts'
+
+permissions:
+  contents: write
+
+env:
+  JAVA_VERSION: '25'
+  JAVA_DISTRIBUTION: 'corretto'
+
+jobs:
+  update-verification-metadata:
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: ${{ github.head_ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set up JDK
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5
+      - name: Regenerate dependency verification metadata
+        run: ./gradlew --write-verification-metadata sha256 --refresh-dependencies
+      - name: Commit updated verification metadata
+        run: |
+          git diff --quiet gradle/verification-metadata.xml && exit 0
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add gradle/verification-metadata.xml
+          git commit -m "Updated Gradle dependency verification metadata"
+          git push
