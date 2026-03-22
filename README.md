@@ -1,319 +1,287 @@
-[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=wrk-tafel-admin&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=wrk-tafel-admin)
-[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=wrk-tafel-admin&metric=coverage)](https://sonarcloud.io/summary/new_code?id=wrk-tafel-admin)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wrk-tafel-admin&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wrk-tafel-admin)
-[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=wrk-tafel-admin&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=wrk-tafel-admin)
-[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=wrk-tafel-admin&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=wrk-tafel-admin)
+# Tafel Admin
 
-# TODO
+Administration system for food banks (Tafel) to manage customer registrations, food distributions, logistics operations, and reporting. Built for Austrian food bank operations with German locale (de-AT) and Euro currency.
 
-# Prio 1
-* Last one in customers: validation country/gender of addPersons (only) doesnt show validation result/border
-* Improve performance of statistics page (issue in prod only)
+[![CI](https://github.com/wrk-tafel/admin/actions/workflows/main_push.yml/badge.svg)](https://github.com/wrk-tafel/admin/actions/workflows/main_push.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE.txt)
 
-* Add overview "Customers above limit"
-* New permission : ADMIN, Duplicates / Settings / Customers above limit
-* Create/edit customers when above limit (show warning, but allow to create/edit)
+## Features
 
-* Replace cdr.detectChanges() with signals to show/hide modals
-* Add file upload / documents (e.g. for proof of income, school enrollement, ID, etc.) to customer details
-* Bug: Mails aren't sent sometimes
-* Bug: Customer in CustomerList(PDF) still visible after deletion of ticketNumber! - caching?
-* feat: Overviewpage: prolonged and new customers (all actions) of last distribution (selection for distribution?)
+- **Customer Management** - Registration, income validation, duplicate detection, PDF ID card generation
+- **Food Distribution** - Distribution events with ticket numbering (1-999), customer check-in, and real-time ticket screen
+- **Scanner Check-in** - QR code scanning for customer check-in via handheld scanners
+- **Logistics** - Routes, food collections, shelters, shops, and vehicle management
+- **Reporting** - Daily reports (PDF), statistics exports (CSV), demographic distributions
+- **Dashboard** - Real-time overview with SSE-powered live updates
+- **User Management** - Role-based access control with configurable permissions
 
-* feat: Improve customer-creation / search before creating to avoid duplicates
+## Tech Stack
 
-* Statistics Module: Show charts / CSV Export
-* Report for Schulstartpakete:
-  * Show all customers/children suitable for Schulstartpaket
-  * SQL: SELECT c.customer_id, cap.firstname, cap.lastname, AGE(CURRENT_DATE, cap.birth_date), COUNT(CASE WHEN DATE_PART('YEAR', AGE(CURRENT_DATE, cap.birth_date)) BETWEEN 6 AND 10 THEN 1 END) AS period
-    FROM customers_addpersons cap
-    JOIN customers c ON cap.customer_id = c.id
-    WHERE c.valid_until >= CURRENT_DATE
-    GROUP BY c.customer_id, cap.firstname, cap.lastname, cap.birth_date
-    HAVING COUNT(CASE WHEN DATE_PART('YEAR', AGE(CURRENT_DATE, cap.birth_date)) BETWEEN 6 AND 10 THEN 1 END) >= 1
-    ORDER BY c.customer_id;
-  * Age maybe configurable
+### Backend
 
-# Rest
-* impro 1: Ticket-Monitor layout-error when rendering the preview (order of tickets wrong sometimes)
- 
-* impro 5: scanner-phones, 3d modeling table-holders
-* impro 5: Maybe decouple reporting from closing? Favor auto-closing, how to deal with multiple distributions?
+| Technology | Version |
+|---|---|
+| Java (Amazon Corretto) | 25 |
+| Kotlin | 2.3.10 |
+| Spring Boot | 4.0.4 |
+| Spring Modulith | 2.0.4 |
+| PostgreSQL | 18.2 |
+| Gradle | 9.4.0 |
 
-* duplicates (customers) showing late? - current duplicate already longer there but only shown now
+### Frontend
 
-* ticketmonitor control shows nothing when loaded initially
+| Technology | Version |
+|---|---|
+| Angular | 21 |
+| TypeScript | 5.9 |
+| CoreUI | 5.6 |
+| Bootstrap | 5.3 |
+| RxJS | 7.8 |
+| Chart.js | 4.5 |
 
-* customer-creation: Advanced postalCode validation (only numbers from 03. and 01. district / Vienna)
-* Improve creation / enforce search before creating
-* Add "supervisor" role (can force-fully create customers even when exceeding the income limit)
-* Menu/navigation: Fix menu when collapsed - first character of text is shown
+## Prerequisites
 
-statistic:
-* add alleinerzieher flag
+- Java 25 (Amazon Corretto recommended)
+- Node.js >= 20.19 (24.x recommended, see `.nvmrc`)
+- npm >= 10.9
+- Docker & Docker Compose (for local PostgreSQL and mail server)
 
-## LTL
-* Goods recording - tests in FoodCollectionRecordingComponent
+## Getting Started
 
-* Edit Route / also contact-person needs to be editable
-* Edit route - Person-select (Dropdown) incl. Search?
-  * Auto-create persons without dedicated maintenance
-* Route only needs a time and no separate order (sorting)
-* Validation necessary for KM Abfahrt < KM Ankunft
-* Route: Model extra-stops in DB (needs to part of the route, comment is not enough)
-
-### Open things (to be decided)
-
-* All forms - change to updateOn: 'blur' ?
-* customer-detail
-    * add document upload
-* use semantic versioning ?
-* provide jar-file releases via github ?
-* Move statistics package into reporting ?
-
-### Lower prio
-* switch to signals
-* switch to control flow syntax @if, @for, @switch
-
-* tech: switch to spring boot layered build (^ deployment speed): https://www.baeldung.com/docker-layers-spring-boot
-
-* Improve module communication by using async events (https://docs.spring.io/spring-modulith/docs/current/reference/html/#events)
-  * also persist events in db and re-process maybe
-
-### Tech
-
-* Separate compile from the rest to have a faster deploy
-* Test if mails are properly received with mailpit rest api
-* Sec: Set cookie path to seperate prod/env (even when the token is not accepted)
-
-# Frontend #
-
-[![@coreui angular](https://img.shields.io/badge/@coreui%20-angular-lightgrey.svg?style=flat-square)](https://github.com/coreui/angular)
-[![npm package][npm-coreui-angular-badge]][npm-coreui-angular]
-[![NPM downloads][npm-coreui-angular-download]][npm-coreui-angular]  
-[![@coreui coreui](https://img.shields.io/badge/@coreui%20-coreui-lightgrey.svg?style=flat-square)](https://github.com/coreui/coreui)
-[![npm package][npm-coreui-badge]][npm-coreui]
-[![NPM downloads][npm-coreui-download]][npm-coreui]  
-![angular](https://img.shields.io/badge/angular-^11.0.9-lightgrey.svg?style=flat-square&logo=angular)
-
-[npm-coreui-angular]: https://www.npmjs.com/package/@coreui/angular
-
-[npm-coreui-angular-badge]: https://img.shields.io/npm/v/@coreui/angular.png?style=flat-square
-
-[npm-coreui-angular-download]: https://img.shields.io/npm/dm/@coreui/angular.svg?style=flat-square
-
-[npm-coreui]: https://www.npmjs.com/package/@coreui/coreui
-
-[npm-coreui-badge]: https://img.shields.io/npm/v/@coreui/coreui.png?style=flat-square
-
-[npm-coreui-download]: https://img.shields.io/npm/dm/@coreui/coreui.svg?style=flat-square
-
-# CoreUI Free Angular 2+ Admin Template [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social&logo=twitter)](https://twitter.com/intent/tweet?text=CoreUI%20-%20Free%20Bootstrap%204%20Admin%20Template%20&url=https://coreui.io&hashtags=bootstrap,admin,template,dashboard,panel,free,angular,react,vue)
-
-Please help us
-on [Product Hunt](https://www.producthunt.com/posts/coreui-open-source-bootstrap-4-admin-template-with-angular-2-react-js-vue-js-support)
-and [Designer News](https://www.designernews.co/stories/81127). Thanks in advance!
-
-Curious why I decided to create CoreUI? Please read this
-article: [Jack of all trades, master of none. Why Bootstrap Admin Templates suck.](https://medium.com/@lukaszholeczek/jack-of-all-trades-master-of-none-5ea53ef8a1f#.7eqx1bcd8)
-
-CoreUI is an Open Source Bootstrap Admin Template. But CoreUI is not just another Admin Template. It goes way beyond
-hitherto admin templates thanks to transparent code and file structure. And if that's not enough, let’s just add that
-CoreUI consists bunch of unique features and over 1000 high quality icons.
-
-CoreUI is based on Bootstrap 4 and offers 6 versions:
-[HTML5 AJAX](https://github.com/coreui/coreui-free-bootstrap-admin-template-ajax),
-[HTML5](https://github.com/coreui/coreui-free-angular-admin-template),
-[Angular 2+](https://github.com/coreui/coreui-free-angular-admin-template),
-[React.js](https://github.com/coreui/coreui-free-react-admin-template),
-[Vue.js](https://github.com/coreui/coreui-free-vue-admin-template)
-& [.NET Core 2](https://github.com/mrholek/CoreUI-NET).
-
-CoreUI is meant to be the UX game changer. Pure & transparent code is devoid of redundant components, so the app is
-light enough to offer ultimate user experience. This means mobile devices also, where the navigation is just as easy and
-intuitive as on a desktop or laptop. The CoreUI Layout API lets you customize your project for almost any device – be it
-Mobile, Web or WebApp – CoreUI covers them all!
-
-## Table of Contents
-
-- [CoreUI Free Angular 2+ Admin Template ![Tweet](https://twitter.com/intent/tweet?text=CoreUI%20-%20Free%20Bootstrap%204%20Admin%20Template%20&url=https://coreui.io&hashtags=bootstrap,admin,template,dashboard,panel,free,angular,react,vue)](#coreui-free-angular-2-admin-template-tweethttpstwittercomintenttweettextcoreui20-20free20bootstrap20420admin20template20urlhttpscoreuiiohashtagsbootstrapadmintemplatedashboardpanelfreeangularreactvue)
-    - [Table of Contents](#table-of-contents)
-    - [Versions](#versions)
-    - [CoreUI Pro](#coreui-pro)
-    - [Admin Templates built on top of CoreUI Pro](#admin-templates-built-on-top-of-coreui-pro)
-        - [Prerequisites](#prerequisites)
-            - [Node.js](#nodejs)
-            - [Angular CLI](#angular-cli)
-            - [Update to Angular 11](#update-to-angular-9)
-    - [Installation](#installation)
-        - [Clone repo](#clone-repo)
-    - [Usage](#usage)
-    - [What's included](#whats-included)
-    - [Documentation](#documentation)
-    - [Contributing](#contributing)
-    - [Versioning](#versioning)
-    - [Creators](#creators)
-    - [Community](#community)
-        - [Community Projects](#community-projects)
-    - [Copyright and license](#copyright-and-license)
-    - [Support CoreUI Development](#support-coreui-development)
-
-## Versions
-
-CoreUI is built on top of Bootstrap 4 and supports popular frameworks.
-
-* [CoreUI Free Bootstrap Admin Template](https://github.com/coreui/coreui-free-bootstrap-admin-template)
-* [CoreUI Free Bootstrap Admin Template (Ajax)](https://github.com/coreui/coreui-free-bootstrap-admin-template-ajax)
-* [CoreUI Free Angular 2+ Admin Template](https://github.com/coreui/coreui-free-angular-admin-template)
-* [CoreUI Free React.js Admin Template](https://github.com/coreui/coreui-free-react-admin-template)
-* [CoreUI Free Vue.js Admin Template](https://github.com/coreui/coreui-free-vue-admin-template)
-
-## CoreUI Pro
-
-* 💪  [CoreUI Pro Bootstrap Admin Template](https://coreui.io/pro/)
-* 💪  [CoreUI Pro Bootstrap Admin Template (Ajax)](https://coreui.io/pro/)
-* 💪  [CoreUI Pro Angular Admin Template](https://coreui.io/pro/angular)
-* 💪  [CoreUI Pro React Admin Template](https://coreui.io/pro/react)
-* 💪  [CoreUI Pro Vue Admin Template](https://coreui.io/pro/vue)
-
-## Admin Templates built on top of CoreUI Pro
-
-| CoreUI Pro                                                                                                       | Prime                                                                                                                                    | Root                                                                                                                                  | Alba                                                                                                                                  | Leaf                                                                                                                                  |
-|------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------|
-| [![CoreUI Pro Admin Template](https://coreui.io/assets/img/example-coureui.jpg)](https://coreui.io/pro/angular/) | [![Prime Admin Template](https://coreui.io/assets/img/responsive-prime.png)](https://coreui.io/admin-templates/angular/prime/?support=1) | [![Root Admin Template](https://coreui.io/assets/img/responsive-root.png)](https://coreui.io/admin-templates/angular/root/?support=1) | [![Alba Admin Template](https://coreui.io/assets/img/responsive-alba.png)](https://coreui.io/admin-templates/angular/alba/?support=1) | [![Leaf Admin Template](https://coreui.io/assets/img/responsive-leaf.png)](https://coreui.io/admin-templates/angular/leaf/?support=1) 
-
-#### Prerequisites
-
-Before you begin, make sure your development environment includes `Node.js®` and an `npm` package manager.
-
-###### Node.js
-
-Angular 11 requires `Node.js` version 10.13 or later.
-
-- To check your version, run `node -v` in a terminal/console window.
-- To get `Node.js`, go to [nodejs.org](https://nodejs.org/).
-
-###### Angular CLI
-
-Install the Angular CLI globally using a terminal/console window.
+### 1. Start Infrastructure
 
 ```bash
-npm install -g @angular/cli
+docker compose up -d
 ```
 
-##### Update to Angular 11
+This starts:
+- **PostgreSQL** on port 5432
+- **pgAdmin** on port 5050
+- **Mailpit** (SMTP on port 1025, web UI on port 8025)
 
-Angular 11 requires `Node.js` version 10.13 or newer    
-Update guide - see: [https://update.angular.io](https://update.angular.io)
+### 2. Start Backend
 
-## Installation
-
-### Clone repo
-
-``` bash
-# clone the repo
-$ git clone https://github.com/coreui/coreui-free-angular-admin-template.git my-project
-
-# go into app's directory
-$ cd my-project
-
-# install app's dependencies
-$ npm install
+```bash
+./gradlew :backend:bootRun --args='--spring.profiles.active=local'
 ```
 
-## Usage
+To load test data for development:
 
-``` bash
-# serve with hot reload at localhost:4200.
-$ ng serve
-
-# build for production with minification
-$ ng build
+```bash
+./gradlew :backend:bootRun --args='--spring.profiles.active=local,testdata'
 ```
 
-## What's included
+The backend starts on http://localhost:8080, management endpoints on port 8081.
 
-Within the download you'll find the following directories and files, logically grouping common assets and providing both
-compiled and minified variations. You'll see something like this:
+### 3. Start Frontend
 
-```
-free-angular-admin-template/
-├── e2e/
-├── src/
-│   ├── app/
-│   ├── assets/
-│   ├── environments/
-│   ├── scss/
-│   ├── index.html
-│   └── ...
-├── .angular-cli.json
-├── ...
-├── package.json
-└── ...
+```bash
+cd frontend/src/main/webapp
+npm install
+npm run dev
 ```
 
-## Documentation
+The frontend dev server starts on http://localhost:4200 and proxies API requests to the backend on port 8080.
 
-The documentation for the CoreUI Free Angularp Admin Template is hosted at our
-website [CoreUI](https://coreui.io/angular/)
+## Building
 
-## Contributing
+```bash
+# Full build (backend + frontend)
+./gradlew build
 
-Please read through
-our [contributing guidelines](https://github.com/coreui/coreui-free-angular-admin-template/blob/master/CONTRIBUTING.md).
-Included are directions for opening issues, coding standards, and notes on development.
+# Backend only
+./gradlew :backend:build
 
-Editor preferences are available in
-the [editor config](https://github.com/coreui/coreui-free-angular-admin-template/blob/master/.editorconfig) for easy use
-in common text editors. Read more and download plugins at <http://editorconfig.org>.
+# Frontend only
+./gradlew :frontend:build
 
-## Versioning
+# Quick compile check (no tests)
+./gradlew :backend:compileKotlin
+```
 
-For transparency into our release cycle and in striving to maintain backward compatibility, CoreUI Free Admin Template
-is maintained under [the Semantic Versioning guidelines](http://semver.org/).
+### Docker Image
 
-See [the Releases section of our project](https://github.com/coreui/coreui-free-angular-admin-template/releases) for
-changelogs for each release version.
+```bash
+./gradlew :backend:bootJar
+docker build -t wrk-tafel-admin:local -f _build/Dockerfile .
+```
 
-## Creators
+The Docker image runs on Amazon Corretto 25 Alpine with timezone set to `Europe/Vienna`.
 
-**Łukasz Holeczek**
+## Testing
 
-* <https://twitter.com/lukaszholeczek>
-* <https://github.com/mrholek>
+### Backend
 
-**Andrzej Kopański**
+```bash
+# All tests (unit + integration)
+./gradlew :backend:test
 
-* <https://github.com/xidedix>
+# Specific test class
+./gradlew :backend:test --tests "at.wrk.tafel.admin.backend.modules.customer.internal.CustomerServiceTest"
 
-## Community
+# Specific test method
+./gradlew :backend:test --tests "*CustomerServiceTest.createCustomerSuccessful"
+```
 
-Get updates on CoreUI's development and chat with the project maintainers and community members.
+Integration tests use Testcontainers to start PostgreSQL automatically.
 
-- Follow [@core_ui on Twitter](https://twitter.com/core_ui).
-- Read and subscribe to [CoreUI Blog](https://coreui.io/blog/).
+### Frontend Unit Tests
 
-### Community Projects
+```bash
+cd frontend/src/main/webapp
 
-Some of projects created by community but not maintained by CoreUI team.
+# Watch mode
+npm test
 
-* [NuxtJS + Vue CoreUI](https://github.com/muhibbudins/nuxt-coreui)
-* [Colmena](https://github.com/colmena/colmena)
+# Headless (CI)
+npm run test-ci
 
-## Copyright and license
+# Specific file
+npm test -- --include="src/app/common/sse/sse.service.spec.ts"
+```
 
-copyright 2017-2021 creativeLabs Łukasz Holeczek. Code released
-under [the MIT license](https://github.com/coreui/coreui-free-angular-admin-template/blob/master/LICENSE).
-There is only one limitation you can't re-distribute the CoreUI as stock. You can’t do this if you modify the CoreUI. In
-past we faced some problems with persons who tried to sell CoreUI based templates.
+### E2E Tests
 
-## Support CoreUI Development
+Requires the backend running on port 8080 with the `e2e` profile:
 
-CoreUI is an MIT licensed open source project and completely free to use. However, the amount of effort needed to
-maintain and develop new features for the project is not sustainable without proper financial backing. You can support
-development by donating on [PayPal](https://www.paypal.me/holeczek), buying [CoreUI Pro Version](https://coreui.io/pro)
-or buying one of our [premium admin templates](https://genesisui.com/?support=1).
+```bash
+./gradlew :backend:bootRun --args='--spring.profiles.active=e2e'
+```
 
-As of now I am exploring the possibility of working on CoreUI full-time - if you are a business that is building core
-products using CoreUI, I am also open to conversations regarding custom sponsorship / consulting arrangements. Get in
-touch on [Twitter](https://twitter.com/lukaszholeczek).
+Then in another terminal:
+
+```bash
+cd frontend/src/main/webapp
+
+# Headless
+npm run cy:run-ci
+
+# Cypress UI
+npm run cy:open-local
+```
+
+### Linting
+
+```bash
+cd frontend/src/main/webapp
+npm run lint
+```
+
+## Project Structure
+
+```
+admin/
+├── backend/                        # Spring Boot/Kotlin backend
+│   └── src/main/
+│       ├── kotlin/.../modules/     # Feature modules (Spring Modulith)
+│       │   ├── base/               #   Shared utilities, countries, employees
+│       │   ├── checkin/            #   Scanner registration, QR check-in
+│       │   ├── customer/           #   Customer CRUD, income validation, PDFs
+│       │   ├── dashboard/          #   Real-time overview, SSE
+│       │   ├── distribution/       #   Distribution events, tickets, statistics
+│       │   ├── logistics/          #   Routes, food collections, shelters
+│       │   ├── reporting/          #   CSV/PDF reports, statistics exports
+│       │   └── settings/           #   App configuration, mail recipients
+│       └── resources/
+│           ├── db-migration/       #   Flyway SQL migrations
+│           ├── pdf-templates/      #   XSL-FO templates for PDF generation
+│           └── mail-templates/     #   Thymeleaf email templates
+├── frontend/                       # Angular frontend
+│   └── src/main/webapp/
+│       ├── src/app/
+│       │   ├── api/                #   API service layer
+│       │   ├── common/             #   Shared services, directives, validators
+│       │   └── modules/            #   Feature modules
+│       │       ├── checkin/
+│       │       ├── customer/
+│       │       ├── dashboard/
+│       │       ├── logistics/
+│       │       ├── settings/
+│       │       ├── statistics/
+│       │       └── user/
+│       └── cypress/                #   E2E tests
+├── _build/                         # Dockerfile
+├── _http-calls/                    # HTTP request examples for API testing
+├── .github/workflows/              # CI/CD pipelines
+├── docker-compose.yml              # Local development infrastructure
+├── build.gradle.kts                # Root Gradle build
+├── settings.gradle.kts             # Gradle multi-project settings
+└── gradle/
+    ├── libs.versions.toml          # Centralized dependency versions
+    └── verification-metadata.xml   # Dependency verification checksums
+```
+
+## Architecture
+
+### Backend
+
+The backend follows a **modular monolith** architecture using Spring Modulith. Each module has explicit boundaries enforced via `@ApplicationModule` annotations in `package-info.java` files.
+
+**Layering within each module:**
+- **Controllers** - REST endpoints with `@PreAuthorize` method-level security
+- **Services** - Business logic with `@Transactional` boundaries
+- **Repositories** - Spring Data JPA with custom specifications
+- **Entities** - JPA entities in `database/model/` with Flyway-managed schemas
+
+**Key patterns:**
+- Outbox pattern for reliable SSE event publishing
+- Post-processor chain for distribution event side effects (emails, reports)
+- Converter pattern for entity-to-DTO mapping
+- Custom validators for income limits and customer data
+
+### Frontend
+
+Angular single-page application using standalone components in zoneless mode with signal-based reactivity patterns.
+
+**Key patterns:**
+- Lazy-loaded feature modules with route guards
+- `input()` / `output()` / `signal()` / `computed()` for component state
+- SSE service for real-time backend updates
+- Custom directives for permission checks and distribution state
+
+## Dependency Verification
+
+Gradle dependency verification is configured via `gradle/verification-metadata.xml`. When updating dependencies, always regenerate this file with `--refresh-dependencies` to avoid missing checksums:
+
+```bash
+./gradlew --write-verification-metadata sha256 --refresh-dependencies
+```
+
+Without `--refresh-dependencies`, Gradle uses locally cached artifacts and may skip recording checksums for `.module` files, causing CI failures.
+
+## CI/CD
+
+The project uses GitHub Actions with the following pipelines:
+
+| Workflow | Trigger | Actions |
+|---|---|---|
+| Pull Request | PR opened/updated | Build, test, Docker image (`dev`), E2E tests, deploy to dev |
+| Main Push | Push to `main` | Build, test, Docker image (`test`), E2E tests, deploy to test |
+| Release | Push to `release` | Build, test, Docker images (`test` + `latest`), deploy to test + prod |
+
+Code quality is monitored via SonarCloud with JaCoCo coverage reports.
+
+## Configuration
+
+### Backend Profiles
+
+| Profile | Purpose |
+|---|---|
+| `local` | Local development (PostgreSQL on localhost, Mailpit for email) |
+| `testdata` | Loads test data via Flyway callback |
+| `e2e` | E2E testing with test user credentials |
+
+### Permissions
+
+Access control is based on these permissions:
+
+- `CUSTOMER` - Customer management
+- `SCANNER` - Scanner device access
+- `CHECKIN` - Check-in operations
+- `LOGISTICS` - Logistics management
+- `USER_MANAGEMENT` - User administration
+- `SETTINGS` - System settings
+
+## License
+
+This project is licensed under the MIT License. See [LICENSE.txt](LICENSE.txt) for details.

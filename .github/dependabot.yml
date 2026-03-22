@@ -5,11 +5,17 @@
 
 version: 2
 updates:
-  - package-ecosystem: "maven" # See documentation for possible values
+  - package-ecosystem: "gradle" # See documentation for possible values
     directory: "/" # Location of package manifests
     schedule:
       interval: "daily"
     open-pull-requests-limit: 50
+    groups:
+      testing-tools:
+        patterns:
+          - "io.mockk:mockk-jvm"
+          - "com.tngtech.archunit:archunit-junit5"
+          - "org.testcontainers:*"
   - package-ecosystem: "npm" # See documentation for possible values
     directory: "/frontend/src/main/webapp" # Location of package manifests
     schedule:
@@ -56,6 +62,10 @@ updates:
     schedule:
       interval: "daily"
     open-pull-requests-limit: 50
+    groups:
+      github-actions:
+        patterns:
+          - "*"
   - package-ecosystem: "docker"
     directory: "/_build"
     schedule:

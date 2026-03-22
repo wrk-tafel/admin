@@ -293,5 +293,5 @@ class SseOutboxServiceTest {
 
 @ExcludeFromTestCoverage
 data class TestJsonPayload(
-    @JsonProperty("value") val value: Int,
+    @param:JsonProperty("value") val value: Int,
 )

@@ -1,0 +1,111 @@
+[versions]
+kotlin = "2.3.10"
+kotlinx-coroutines = "1.10.2"
+spring-boot = "4.0.4"
+spring-modulith = "2.0.4"
+jackson = "3.1.0"
+jjwt = "0.13.0"
+postgresql = "42.7.10"
+bouncycastle = "1.70"
+apache-fop = "2.11"
+qrcode-kotlin = "4.5.0"
+passay = "1.6.6"
+apache-commons-csv = "1.14.1"
+apache-commons-lang3 = "3.20.0"
+logback-jackson = "0.1.5"
+
+# Test dependency versions
+archunit = "1.4.1"
+mockk = "1.14.9"
+testcontainers = "2.0.4"
+apache-pdfbox = "3.0.7"
+image-comparison = "4.4.0"
+
+# Plugin versions
+sonarqube = "7.2.3.7755"
+
+[libraries]
+# Kotlin
+kotlin-stdlib-jdk8 = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk8", version.ref = "kotlin" }
+kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
+
+# Logback
+logback-json-classic = { module = "ch.qos.logback.contrib:logback-json-classic", version.ref = "logback-jackson" }
+logback-jackson = { module = "ch.qos.logback.contrib:logback-jackson", version.ref = "logback-jackson" }
+
+# Spring Boot starters
+spring-boot-starter-actuator = { module = "org.springframework.boot:spring-boot-starter-actuator" }
+spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web" }
+spring-boot-starter-jdbc = { module = "org.springframework.boot:spring-boot-starter-jdbc" }
+spring-boot-starter-flyway = { module = "org.springframework.boot:spring-boot-starter-flyway" }
+spring-boot-starter-data-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa" }
+spring-boot-starter-security = { module = "org.springframework.boot:spring-boot-starter-security" }
+spring-boot-starter-mail = { module = "org.springframework.boot:spring-boot-starter-mail" }
+spring-boot-starter-jackson = { module = "org.springframework.boot:spring-boot-starter-jackson" }
+spring-boot-starter-thymeleaf = { module = "org.springframework.boot:spring-boot-starter-thymeleaf" }
+spring-boot-devtools = { module = "org.springframework.boot:spring-boot-devtools" }
+spring-boot-configuration-processor = { module = "org.springframework.boot:spring-boot-configuration-processor" }
+
+# Spring Modulith
+spring-modulith-starter-jpa = { module = "org.springframework.modulith:spring-modulith-starter-jpa" }
+spring-modulith-actuator = { module = "org.springframework.modulith:spring-modulith-actuator" }
+
+# Spring Security
+spring-security-messaging = { module = "org.springframework.security:spring-security-messaging" }
+
+# Flyway
+flyway-database-postgresql = { module = "org.flywaydb:flyway-database-postgresql" }
+
+# Micrometer
+micrometer-registry-prometheus = { module = "io.micrometer:micrometer-registry-prometheus" }
+
+# Jackson
+jackson-module-kotlin = { module = "tools.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
+jackson-dataformat-xml = { module = "tools.jackson.dataformat:jackson-dataformat-xml", version.ref = "jackson" }
+
+# Database
+postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
+
+# JWT
+jjwt-api = { module = "io.jsonwebtoken:jjwt-api", version.ref = "jjwt" }
+jjwt-impl = { module = "io.jsonwebtoken:jjwt-impl", version.ref = "jjwt" }
+jjwt-jackson = { module = "io.jsonwebtoken:jjwt-jackson", version.ref = "jjwt" }
+
+# Crypto
+bouncycastle = { module = "org.bouncycastle:bcprov-jdk15on", version.ref = "bouncycastle" }
+
+# PDF / QR
+apache-fop = { module = "org.apache.xmlgraphics:fop", version.ref = "apache-fop" }
+qrcode-kotlin-jvm = { module = "io.github.g0dkar:qrcode-kotlin-jvm", version.ref = "qrcode-kotlin" }
+
+# Utilities
+passay = { module = "org.passay:passay", version.ref = "passay" }
+apache-commons-csv = { module = "org.apache.commons:commons-csv", version.ref = "apache-commons-csv" }
+apache-commons-lang3 = { module = "org.apache.commons:commons-lang3", version.ref = "apache-commons-lang3" }
+
+# Test dependencies
+spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
+spring-boot-starter-jdbc-test = { module = "org.springframework.boot:spring-boot-starter-jdbc-test" }
+spring-boot-starter-data-jpa-test = { module = "org.springframework.boot:spring-boot-starter-data-jpa-test" }
+spring-security-test = { module = "org.springframework.security:spring-security-test" }
+spring-modulith-starter-test = { module = "org.springframework.modulith:spring-modulith-starter-test" }
+mockk-jvm = { module = "io.mockk:mockk-jvm", version.ref = "mockk" }
+archunit-junit5 = { module = "com.tngtech.archunit:archunit-junit5", version.ref = "archunit" }
+testcontainers = { module = "org.testcontainers:testcontainers", version.ref = "testcontainers" }
+testcontainers-junit-jupiter = { module = "org.testcontainers:testcontainers-junit-jupiter", version.ref = "testcontainers" }
+testcontainers-postgresql = { module = "org.testcontainers:testcontainers-postgresql", version.ref = "testcontainers" }
+apache-pdfbox = { module = "org.apache.pdfbox:pdfbox", version.ref = "apache-pdfbox" }
+image-comparison = { module = "com.github.romankh3:image-comparison", version.ref = "image-comparison" }
+
+# BOMs
+spring-boot-bom = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
+spring-modulith-bom = { module = "org.springframework.modulith:spring-modulith-bom", version.ref = "spring-modulith" }
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-spring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }
+kotlin-jpa = { id = "org.jetbrains.kotlin.plugin.jpa", version.ref = "kotlin" }
+kotlin-allopen = { id = "org.jetbrains.kotlin.plugin.allopen", version.ref = "kotlin" }
+spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }
+sonarqube = { id = "org.sonarqube", version.ref = "sonarqube" }

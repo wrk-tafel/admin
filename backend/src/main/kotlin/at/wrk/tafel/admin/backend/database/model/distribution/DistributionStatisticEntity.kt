@@ -89,7 +89,7 @@ class DistributionStatisticEntity : BaseChangeTrackingEntity() {
                 BigDecimal.ZERO.compareTo(foodPerShopAverage) == 0 &&
                 routesLengthKm == 0 &&
                 employeeCount == 0 &&
-                personsInShelterCount == 0 &&
+                @Suppress("DEPRECATION") personsInShelterCount == 0 &&
                 shelters.isEmpty()
     }
 

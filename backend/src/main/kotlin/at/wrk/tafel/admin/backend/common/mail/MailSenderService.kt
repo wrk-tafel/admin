@@ -16,7 +16,7 @@ import org.thymeleaf.context.Context
 
 @Service
 class MailSenderService(
-    @Autowired(required = false)
+    @param:Autowired(required = false)
     private val mailSender: JavaMailSender?,
     private val tafelAdminProperties: TafelAdminProperties,
     private val mailRecipientRepository: MailRecipientRepository,

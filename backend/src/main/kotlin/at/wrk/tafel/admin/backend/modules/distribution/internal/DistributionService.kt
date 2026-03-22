@@ -274,13 +274,13 @@ class DistributionService(
                 distributionRepository.save(currentDistribution)
             }
 
-            val startDateFormatted = currentDistribution?.startedAt?.format(DateTimeFormatter.ISO_DATE_TIME)
-            val endDateFormatted = currentDistribution?.endedAt?.format(DateTimeFormatter.ISO_DATE_TIME)
+            val startDateFormatted = currentDistribution.startedAt?.format(DateTimeFormatter.ISO_DATE_TIME)
+            val endDateFormatted = currentDistribution.endedAt?.format(DateTimeFormatter.ISO_DATE_TIME)
             logger.info(
-                "Closed distribution: ID ${currentDistribution?.id} (started at: $startDateFormatted, ended at: $endDateFormatted)"
+                "Closed distribution: ID ${currentDistribution.id} (started at: $startDateFormatted, ended at: $endDateFormatted)"
             )
 
-            distributionPostProcessorService.process(currentDistribution!!.id!!)
+            distributionPostProcessorService.process(currentDistribution.id!!)
             result = currentDistribution
         }
 

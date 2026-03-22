@@ -34,7 +34,7 @@ class CustomerPdfServiceTest {
 
     companion object {
         private val comparisonResultDirectory = File(
-            System.getProperty("user.dir"), "target/custom-test-results/customerpdf-comparison-results"
+            System.getProperty("user.dir"), "build/custom-test-results/customerpdf-comparison-results"
         )
 
         private var masterReferencesPath = "/pdf-references/customer/master-references/"
