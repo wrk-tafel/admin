@@ -54,6 +54,7 @@ updates:
           - "@cypress/*"
           - "cypress-*"
           - "vitest"
+          - "@vitest/*"
           - "jsdom"
           - "wait-on"
   # Maintain dependencies for GitHub Actions
