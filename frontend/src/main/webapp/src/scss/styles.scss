@@ -1,5 +1,8 @@
 /* You can add global styles to this file, and also import other style files */
 
+// Angular Material theme (@use must come before @import)
+@use "material-theme";
+
 // NOTE: @import is deprecated in Dart Sass and will be removed in Dart Sass 3.0.0
 // However, we must continue using @import until CoreUI migrates to @use/@forward
 // See: https://sass-lang.com/documentation/at-rules/import
