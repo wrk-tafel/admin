@@ -24,6 +24,8 @@ updates:
     ignore:
       - dependency-name: "eslint"
         versions: [ "10.x" ]
+      - dependency-name: "typescript"
+        versions: [ ">= 6.0.0" ]
     groups:
       angular:
         patterns:
