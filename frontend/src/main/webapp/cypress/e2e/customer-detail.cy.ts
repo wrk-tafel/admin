@@ -113,6 +113,58 @@ describe('Customer Detail', () => {
     cy.byTestId('latest-customer-note-none').should('be.visible');
   });
 
+  it('ticket section not visible when no distribution is active', () => {
+    cy.visit('/#/kunden/detail/100');
+
+    cy.byTestId('ticket-number-input').should('not.exist');
+    cy.byTestId('ticket-number-display').should('not.exist');
+  });
+
+  describe('ticket assignment', () => {
+    beforeEach(() => {
+      cy.createDistribution();
+    });
+
+    afterEach(() => {
+      cy.closeDistribution();
+    });
+
+    it('ticket section visible when distribution is active', () => {
+      cy.visit('/#/kunden/detail/100');
+
+      cy.byTestId('ticket-number-input').should('be.visible');
+      cy.byTestId('assign-ticket-button').should('be.visible');
+    });
+
+    it('assign ticket to customer', () => {
+      cy.visit('/#/kunden/detail/100');
+
+      cy.byTestId('ticket-number-input').type('15');
+      cy.byTestId('assign-ticket-button').click();
+
+      cy.byTestId('ticket-number-display').should('be.visible');
+      cy.byTestId('ticket-number-display').should('contain.text', '15');
+      cy.byTestId('delete-ticket-button').should('be.visible');
+    });
+
+    it('delete assigned ticket from customer', () => {
+      cy.addCustomerToDistribution({customerId: 100, ticketNumber: 25});
+      cy.visit('/#/kunden/detail/100');
+
+      cy.byTestId('ticket-number-display').should('contain.text', '25');
+      cy.byTestId('delete-ticket-button').click();
+
+      cy.byTestId('ticket-number-input').should('be.visible');
+      cy.byTestId('ticket-number-display').should('not.exist');
+    });
+
+    it('assign ticket button disabled when input is empty', () => {
+      cy.visit('/#/kunden/detail/100');
+
+      cy.byTestId('assign-ticket-button').should('be.disabled');
+    });
+  });
+
   function generateAndDownloadPdf(expectedFilename: string) {
     cy.intercept('/api/customers/*/generate-pdf**', request => {
       request.on('response', function (response) {
