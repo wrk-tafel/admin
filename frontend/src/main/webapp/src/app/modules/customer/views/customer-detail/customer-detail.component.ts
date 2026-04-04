@@ -1,4 +1,4 @@
-import {Component, effect, inject, input, linkedSignal, signal} from '@angular/core';
+import {Component, computed, effect, inject, input, linkedSignal, signal} from '@angular/core';
 import {Router} from '@angular/router';
 import moment from 'moment';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
@@ -14,6 +14,10 @@ import {
   TafelPaginationComponent,
   TafelPaginationData
 } from '../../../../common/components/tafel-pagination/tafel-pagination.component';
+import {DistributionTicketApiService} from '../../../../api/distribution-ticket-api.service';
+import {DistributionApiService} from '../../../../api/distribution-api.service';
+import {GlobalStateService} from '../../../../common/state/global-state.service';
+import {TafelIfDistributionActiveDirective} from '../../../../common/directive/tafel-if-distribution-active.directive';
 import {
   BgColorDirective,
   ButtonCloseDirective,
@@ -85,7 +89,8 @@ import {FormattedCustomerNamePipe} from '../../../../common/pipes/formatted-cust
         BirthdateAgePipe,
         GenderLabelPipe,
         FormatIssuerPipe,
-        FormattedCustomerNamePipe
+        FormattedCustomerNamePipe,
+        TafelIfDistributionActiveDirective
     ]
 })
 export class CustomerDetailComponent {
@@ -107,11 +112,20 @@ export class CustomerDetailComponent {
   showAllNotesModal = signal(false);
   showLockCustomerModal = signal(false);
 
+  // Ticket signals
+  ticketNumber = signal<number>(null);
+  ticketNumberInput = signal<number>(null);
+
   private readonly customerApiService = inject(CustomerApiService);
   private readonly customerNoteApiService = inject(CustomerNoteApiService);
   private readonly fileHelperService = inject(FileHelperService);
   private readonly router = inject(Router);
   private readonly toastService = inject(ToastService);
+  private readonly distributionTicketApiService = inject(DistributionTicketApiService);
+  private readonly distributionApiService = inject(DistributionApiService);
+  private readonly globalStateService = inject(GlobalStateService);
+
+  readonly isDistributionActive = computed(() => !!this.globalStateService.getCurrentDistribution()());
 
   constructor() {
     // Process notes when the notes response changes (from input or local updates)
@@ -119,6 +133,20 @@ export class CustomerDetailComponent {
       const notesResponse = this.customerNotesResponse();
       if (notesResponse) {
         this.processCustomerNoteResponse(notesResponse);
+      }
+    });
+
+    // Fetch current ticket when distribution is active and customer data is loaded
+    effect(() => {
+      const isActive = this.isDistributionActive();
+      const customer = this.customerData();
+      if (isActive && customer?.id) {
+        this.distributionTicketApiService.getCurrentTicketForCustomer(customer.id).subscribe({
+          next: (response) => this.ticketNumber.set(response.ticketNumber),
+          error: () => this.ticketNumber.set(null)
+        });
+      } else {
+        this.ticketNumber.set(null);
       }
     });
   }
@@ -233,6 +261,34 @@ export class CustomerDetailComponent {
       this.customerNotes.update(notes => [newNoteItem, ...notes]);
       this.newNoteText.set(null);
       this.showAddNewNoteModal.set(false);
+    });
+  }
+
+  assignTicket() {
+    const ticketNumber = this.ticketNumberInput();
+    const customerId = this.customerData().id;
+    this.distributionApiService.assignCustomer(customerId, ticketNumber).subscribe({
+      next: () => {
+        this.ticketNumber.set(ticketNumber);
+        this.ticketNumberInput.set(null);
+        this.toastService.showToast({type: ToastType.SUCCESS, title: 'Ticket wurde zugewiesen!'});
+      },
+      error: () => {
+        this.toastService.showToast({type: ToastType.ERROR, title: 'Ticket-Zuweisung fehlgeschlagen!'});
+      }
+    });
+  }
+
+  deleteTicket() {
+    const customerId = this.customerData().id;
+    this.distributionTicketApiService.deleteCurrentTicketOfCustomer(customerId).subscribe({
+      next: () => {
+        this.ticketNumber.set(null);
+        this.toastService.showToast({type: ToastType.SUCCESS, title: 'Ticket wurde gelöscht!'});
+      },
+      error: () => {
+        this.toastService.showToast({type: ToastType.ERROR, title: 'Ticket-Löschung fehlgeschlagen!'});
+      }
     });
   }
 

@@ -8,7 +8,7 @@ import {FileHelperService} from '../../../../common/util/file-helper.service';
 import {CustomerApiService, CustomerData, Gender} from '../../../../api/customer-api.service';
 import {CustomerDetailComponent} from './customer-detail.component';
 import {CommonModule, Location, registerLocaleData} from '@angular/common';
-import {DEFAULT_CURRENCY_CODE, LOCALE_ID} from '@angular/core';
+import {DEFAULT_CURRENCY_CODE, LOCALE_ID, signal} from '@angular/core';
 import {
   CustomerNoteApiService,
   CustomerNoteItem,
@@ -32,6 +32,9 @@ import {CustomerEditComponent} from '../customer-edit/customer-edit.component';
 import {provideLocationMocks} from '@angular/common/testing';
 import {CustomerSearchComponent} from '../customer-search/customer-search.component';
 import localeDeAt from '@angular/common/locales/de-AT';
+import {DistributionTicketApiService} from '../../../../api/distribution-ticket-api.service';
+import {DistributionApiService, DistributionItem} from '../../../../api/distribution-api.service';
+import {GlobalStateService} from '../../../../common/state/global-state.service';
 
 // Register de-AT locale
 registerLocaleData(localeDeAt);
@@ -41,6 +44,9 @@ describe('CustomerDetailComponent', () => {
   let customerNoteApiService: MockedObject<CustomerNoteApiService>;
   let fileHelperService: MockedObject<FileHelperService>;
   let toastService: MockedObject<ToastService>;
+  let distributionTicketApiService: MockedObject<DistributionTicketApiService>;
+  let distributionApiService: MockedObject<DistributionApiService>;
+  const currentDistributionSignal = signal<DistributionItem>(null);
 
   const mockCountry = {
     id: 0,
@@ -142,6 +148,17 @@ describe('CustomerDetailComponent', () => {
     const toastServiceSpy = {
       showToast: vi.fn().mockName("ToastService.showToast")
     };
+    const distributionTicketApiServiceSpy = {
+      getCurrentTicketForCustomer: vi.fn().mockName("DistributionTicketApiService.getCurrentTicketForCustomer").mockReturnValue(throwError(() => ({status: 404}))),
+      deleteCurrentTicketOfCustomer: vi.fn().mockName("DistributionTicketApiService.deleteCurrentTicketOfCustomer")
+    };
+    const distributionApiServiceSpy = {
+      assignCustomer: vi.fn().mockName("DistributionApiService.assignCustomer")
+    };
+    currentDistributionSignal.set(null);
+    const globalStateServiceSpy = {
+      getCurrentDistribution: vi.fn().mockReturnValue(currentDistributionSignal)
+    };
 
     TestBed.configureTestingModule({
       imports: [
@@ -181,6 +198,18 @@ describe('CustomerDetailComponent', () => {
           provide: ToastService,
           useValue: toastServiceSpy
         },
+        {
+          provide: DistributionTicketApiService,
+          useValue: distributionTicketApiServiceSpy
+        },
+        {
+          provide: DistributionApiService,
+          useValue: distributionApiServiceSpy
+        },
+        {
+          provide: GlobalStateService,
+          useValue: globalStateServiceSpy
+        },
         provideRouter([
           {
             path: 'kunden/bearbeiten/:id',
@@ -199,6 +228,8 @@ describe('CustomerDetailComponent', () => {
     customerNoteApiService = TestBed.inject(CustomerNoteApiService) as MockedObject<CustomerNoteApiService>;
     fileHelperService = TestBed.inject(FileHelperService) as MockedObject<FileHelperService>;
     toastService = TestBed.inject(ToastService) as MockedObject<ToastService>;
+    distributionTicketApiService = TestBed.inject(DistributionTicketApiService) as MockedObject<DistributionTicketApiService>;
+    distributionApiService = TestBed.inject(DistributionApiService) as MockedObject<DistributionApiService>;
   }));
 
   it('component can be created', () => {
@@ -557,6 +588,102 @@ describe('CustomerDetailComponent', () => {
     expect(component.customerNotes()[0]).toEqual(resultNote);
     expect(component.newNoteText()).toBeNull();
     expect(component.showAddNewNoteModal()).toBeFalsy();
+  });
+
+  it('ticket section not shown when distribution is inactive', async () => {
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    fixture.componentRef.setInput('customerData', mockCustomer);
+    fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const ticketInput = fixture.debugElement.query(By.css('[testid="ticket-number-input"]'));
+    const ticketDisplay = fixture.debugElement.query(By.css('[testid="ticket-number-display"]'));
+
+    expect(ticketInput).toBeFalsy();
+    expect(ticketDisplay).toBeFalsy();
+  });
+
+  it('ticket section shown with input when distribution is active and no ticket assigned', async () => {
+    currentDistributionSignal.set({id: 1, startedAt: new Date()});
+    distributionTicketApiService.getCurrentTicketForCustomer.mockReturnValue(throwError(() => ({status: 404})));
+
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    fixture.componentRef.setInput('customerData', mockCustomer);
+    fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const ticketInput = fixture.debugElement.query(By.css('[testid="ticket-number-input"]'));
+    const assignButton = fixture.debugElement.query(By.css('[testid="assign-ticket-button"]'));
+
+    expect(ticketInput).toBeTruthy();
+    expect(assignButton).toBeTruthy();
+  });
+
+  it('ticket number displayed when already assigned', async () => {
+    currentDistributionSignal.set({id: 1, startedAt: new Date()});
+    distributionTicketApiService.getCurrentTicketForCustomer.mockReturnValue(of({ticketNumber: 42}));
+
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    fixture.componentRef.setInput('customerData', mockCustomer);
+    fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const ticketDisplay = fixture.debugElement.query(By.css('[testid="ticket-number-display"]'));
+    const deleteButton = fixture.debugElement.query(By.css('[testid="delete-ticket-button"]'));
+
+    expect(ticketDisplay).toBeTruthy();
+    expect(ticketDisplay.nativeElement.textContent).toContain('42');
+    expect(deleteButton).toBeTruthy();
+  });
+
+  it('assign ticket calls API correctly', async () => {
+    currentDistributionSignal.set({id: 1, startedAt: new Date()});
+    distributionTicketApiService.getCurrentTicketForCustomer.mockReturnValue(throwError(() => ({status: 404})));
+    distributionApiService.assignCustomer.mockReturnValue(of(undefined));
+
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    fixture.componentRef.setInput('customerData', mockCustomer);
+    fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    component.ticketNumberInput.set(55);
+    component.assignTicket();
+
+    expect(distributionApiService.assignCustomer).toHaveBeenCalledWith(mockCustomer.id, 55);
+    expect(component.ticketNumber()).toBe(55);
+    expect(component.ticketNumberInput()).toBeNull();
+    expect(toastService.showToast).toHaveBeenCalledWith({type: ToastType.SUCCESS, title: 'Ticket wurde zugewiesen!'});
+  });
+
+  it('delete ticket calls API correctly and clears ticket number', async () => {
+    currentDistributionSignal.set({id: 1, startedAt: new Date()});
+    distributionTicketApiService.getCurrentTicketForCustomer.mockReturnValue(of({ticketNumber: 42}));
+    distributionTicketApiService.deleteCurrentTicketOfCustomer.mockReturnValue(of(undefined));
+
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    fixture.componentRef.setInput('customerData', mockCustomer);
+    fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(component.ticketNumber()).toBe(42);
+
+    component.deleteTicket();
+
+    expect(distributionTicketApiService.deleteCurrentTicketOfCustomer).toHaveBeenCalledWith(mockCustomer.id);
+    expect(component.ticketNumber()).toBeNull();
+    expect(toastService.showToast).toHaveBeenCalledWith({type: ToastType.SUCCESS, title: 'Ticket wurde gelöscht!'});
   });
 
   function getTextByTestId(fixture: ComponentFixture<CustomerDetailComponent>, testId: string): string {

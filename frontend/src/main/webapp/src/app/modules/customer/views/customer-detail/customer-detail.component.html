@@ -63,6 +63,25 @@
       </ul>
     </c-dropdown>
   </div>
+  <div *tafelIfDistributionActive class="d-flex align-items-center mt-3 mt-lg-2 mb-2">
+    @if (!ticketNumber()) {
+      <input testid="ticket-number-input" type="number" class="form-control me-2" style="max-width: 150px;"
+             placeholder="Ticketnr."
+             [ngModel]="ticketNumberInput()" (ngModelChange)="ticketNumberInput.set($event)">
+      <button testid="assign-ticket-button" cButton color="success" class="text-white"
+              [disabled]="!ticketNumberInput() || customerData()?.locked"
+              (click)="assignTicket()">
+        Ticket zuweisen
+      </button>
+    } @else {
+      <span testid="ticket-number-display" class="fw-bold me-3">Ticket: {{ticketNumber()}}</span>
+      <button testid="delete-ticket-button" cButton color="danger" class="text-white"
+              (click)="deleteTicket()">
+        Ticket löschen
+      </button>
+    }
+  </div>
+  <hr>
   <c-row class="mt-0 mt-lg-3 mb-0 mb-lg-3">
     <c-col>
       <c-tabs [activeItemKey]="0">
