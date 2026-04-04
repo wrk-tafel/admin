@@ -1,6 +1,9 @@
 # TODO
 
 # Prio 1
+* customer details: add button to assign ticket number and delete if assigned (only when distribution is active)
+* food recording: sonstige kisten (add function to add a description) - how?
+
 * Last one in customers: validation country/gender of addPersons (only) doesnt show validation result/border
 * Improve performance of statistics page (issue in prod only)
 
