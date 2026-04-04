@@ -8,9 +8,7 @@
 * Add overview "Customers above limit"
 * New permission : ADMIN, Duplicates / Settings / Customers above limit
 
-* Replace cdr.detectChanges() with signals to show/hide modals
 * Add file upload / documents (e.g. for proof of income, school enrollement, ID, etc.) to customer details
-* Bug: Mails aren't sent sometimes
 * Bug: Customer in CustomerList(PDF) still visible after deletion of ticketNumber! - caching?
 * feat: Overviewpage: prolonged and new customers (all actions) of last distribution (selection for distribution?)
 

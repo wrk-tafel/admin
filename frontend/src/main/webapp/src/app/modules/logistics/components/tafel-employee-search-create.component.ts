@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, inject, input, output} from '@angular/core';
+import {Component, inject, input, output, signal} from '@angular/core';
 import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
 import {
   BgColorDirective,
@@ -48,7 +48,6 @@ export class TafelEmployeeSearchCreateComponent {
   private readonly employeeApiService = inject(EmployeeApiService);
   private readonly toastService = inject(ToastService);
   private readonly fb = inject(FormBuilder);
-  private readonly cdr = inject(ChangeDetectorRef);
 
   createEmployeeForm = this.fb.group({
     personnelNumber: this.fb.control<string>(null, [Validators.required, Validators.maxLength(50)]),
@@ -56,19 +55,19 @@ export class TafelEmployeeSearchCreateComponent {
     lastname: this.fb.control<string>(null, [Validators.required, Validators.maxLength(50)]),
   });
 
-  showCreateEmployeeModal: boolean = false;
+  showCreateEmployeeModal = signal<boolean>(false);
 
   paginationData: TafelPaginationData;
   employeeSearchResponse: EmployeeListResponse;
-  showSelectEmployeeModal: boolean = false;
+  showSelectEmployeeModal = signal<boolean>(false);
 
   triggerSearch(page?: number) {
     this.employeeApiService.findEmployees(this.searchInput(), page)
       .subscribe((response) => {
         this.employeeSearchResponse = null;
         this.paginationData = null;
-        this.showCreateEmployeeModal = false;
-        this.showSelectEmployeeModal = false;
+        this.showCreateEmployeeModal.set(false);
+        this.showSelectEmployeeModal.set(false);
 
         const employees = response.items;
         if (employees.length === 1) {
@@ -82,20 +81,17 @@ export class TafelEmployeeSearchCreateComponent {
             totalPages: response.totalPages,
             pageSize: response.pageSize
           };
-          this.showSelectEmployeeModal = true;
+          this.showSelectEmployeeModal.set(true);
         } else {
-          this.showCreateEmployeeModal = true;
+          this.showCreateEmployeeModal.set(true);
         }
-
-        this.cdr.detectChanges();
       });
   }
 
   selectEmployee(employee: EmployeeData) {
     this.employeeSearchResponse = undefined;
-    this.showSelectEmployeeModal = false;
+    this.showSelectEmployeeModal.set(false);
     this.selectedEmployee.emit(employee);
-    this.cdr.detectChanges();
   }
 
   saveNewEmployee() {
@@ -105,8 +101,7 @@ export class TafelEmployeeSearchCreateComponent {
           this.selectedEmployee.emit(savedEmployee);
           this.createEmployeeForm.reset();
 
-          this.showCreateEmployeeModal = false;
-          this.cdr.detectChanges();
+          this.showCreateEmployeeModal.set(false);
         },
         error: () => {
           this.toastService.showToast({

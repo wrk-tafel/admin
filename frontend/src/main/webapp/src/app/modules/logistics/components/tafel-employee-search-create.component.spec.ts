@@ -98,8 +98,8 @@ describe('TafelEmployeeSearchCreate', () => {
 
         component.triggerSearch();
 
-        expect(component.showSelectEmployeeModal).toBe(true);
-        expect(component.showCreateEmployeeModal).toBe(false);
+        expect(component.showSelectEmployeeModal()).toBe(true);
+        expect(component.showCreateEmployeeModal()).toBe(false);
         expect(emitted).toBe(false);
     });
 
@@ -126,15 +126,15 @@ describe('TafelEmployeeSearchCreate', () => {
 
         component.triggerSearch();
 
-        expect(component.showCreateEmployeeModal).toBe(true);
-        expect(component.showSelectEmployeeModal).toBe(false);
+        expect(component.showCreateEmployeeModal()).toBe(true);
+        expect(component.showSelectEmployeeModal()).toBe(false);
         expect(emitted).toBe(false);
     });
 
     it('selected employee', () => {
         const fixture = TestBed.createComponent(TafelEmployeeSearchCreateComponent);
         const component = fixture.componentInstance;
-        component.showSelectEmployeeModal = true;
+        component.showSelectEmployeeModal.set(true);
 
         const mockEmployee: EmployeeData = { id: 1, personnelNumber: '00001', firstname: 'first 1', lastname: 'last 1' };
 
@@ -145,7 +145,7 @@ describe('TafelEmployeeSearchCreate', () => {
 
         component.selectEmployee(mockEmployee);
 
-        expect(component.showSelectEmployeeModal).toBe(false);
+        expect(component.showSelectEmployeeModal()).toBe(false);
         expect(emittedEmployee).toEqual(mockEmployee);
     });
 
@@ -164,7 +164,7 @@ describe('TafelEmployeeSearchCreate', () => {
         component.personnelNumber.setValue(mockEmployee.personnelNumber);
         component.firstname.setValue(mockEmployee.firstname);
         component.lastname.setValue(mockEmployee.lastname);
-        component.showCreateEmployeeModal = true;
+        component.showCreateEmployeeModal.set(true);
 
         let emittedEmployee: EmployeeData;
         component.selectedEmployee.subscribe((employee) => {
@@ -175,7 +175,7 @@ describe('TafelEmployeeSearchCreate', () => {
 
         expect(employeeApiService.saveEmployee).toHaveBeenCalledWith(mockCreateEmployeeRequest);
         expect(emittedEmployee).toEqual(mockEmployee);
-        expect(component.showCreateEmployeeModal).toBe(false);
+        expect(component.showCreateEmployeeModal()).toBe(false);
         expect(component.createEmployeeForm.value.personnelNumber).toBeNull();
         expect(component.createEmployeeForm.value.firstname).toBeNull();
         expect(component.createEmployeeForm.value.lastname).toBeNull();
@@ -195,7 +195,7 @@ describe('TafelEmployeeSearchCreate', () => {
         component.personnelNumber.setValue(mockCreateEmployeeRequest.personnelNumber);
         component.firstname.setValue(mockCreateEmployeeRequest.firstname);
         component.lastname.setValue(mockCreateEmployeeRequest.lastname);
-        component.showCreateEmployeeModal = true;
+        component.showCreateEmployeeModal.set(true);
 
         let emittedEmployee: EmployeeData;
         component.selectedEmployee.subscribe((employee) => {
@@ -206,7 +206,7 @@ describe('TafelEmployeeSearchCreate', () => {
 
         expect(employeeApiService.saveEmployee).toHaveBeenCalledWith(mockCreateEmployeeRequest);
         expect(emittedEmployee).toBeUndefined();
-        expect(component.showCreateEmployeeModal).toBe(true);
+        expect(component.showCreateEmployeeModal()).toBe(true);
         expect(toastService.showToast).toHaveBeenCalledWith({
             type: ToastType.ERROR,
             title: 'Fehler beim Speichern des Mitarbeiters'

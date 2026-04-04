@@ -12,7 +12,7 @@ import {Router} from '@angular/router';
 import {DistributionApiService, DistributionItem} from '../../../../api/distribution-api.service';
 import {BadgeModule, CardModule, ColComponent, ModalModule, RowComponent} from '@coreui/angular';
 import {FormsModule} from '@angular/forms';
-import {ChangeDetectorRef, signal} from '@angular/core';
+import {signal} from '@angular/core';
 import {DistributionTicketApiService} from '../../../../api/distribution-ticket-api.service';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
 import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
@@ -262,9 +262,6 @@ describe('CheckinComponent', () => {
         component.customerNotes = [];
         component.ticketNumber = 123;
 
-        const changeDetectorRef = fixture.debugElement.injector.get(ChangeDetectorRef);
-        vi.spyOn(changeDetectorRef.constructor.prototype, 'detectChanges');
-
         const mockCustomer = {
             id: 133,
             lastname: 'Mustermann',
@@ -319,9 +316,6 @@ describe('CheckinComponent', () => {
         const component = fixture.componentInstance;
         component.customerNotes = [];
         component.ticketNumber = 123;
-
-        const changeDetectorRef = fixture.debugElement.injector.get(ChangeDetectorRef);
-        vi.spyOn(changeDetectorRef.constructor.prototype, 'detectChanges');
 
         const mockCustomer = {
             id: 133,
@@ -379,9 +373,6 @@ describe('CheckinComponent', () => {
         const component = fixture.componentInstance;
         component.customerNotes = [];
 
-        const changeDetectorRef = fixture.debugElement.injector.get(ChangeDetectorRef);
-        vi.spyOn(changeDetectorRef.constructor.prototype, 'detectChanges');
-
         const mockCustomer = {
             id: 133,
             lastname: 'Mustermann',
@@ -432,9 +423,6 @@ describe('CheckinComponent', () => {
         const component = fixture.componentInstance;
         component.customerNotes = [];
 
-        const changeDetectorRef = fixture.debugElement.injector.get(ChangeDetectorRef);
-        vi.spyOn(changeDetectorRef.constructor.prototype, 'detectChanges');
-
         const mockCustomer = {
             id: 133,
             lastname: 'Mustermann',
@@ -484,9 +472,6 @@ describe('CheckinComponent', () => {
         const fixture = TestBed.createComponent(CheckinComponent);
         const component = fixture.componentInstance;
         component.customerNotes = [];
-
-        const changeDetectorRef = fixture.debugElement.injector.get(ChangeDetectorRef);
-        vi.spyOn(changeDetectorRef.constructor.prototype, 'detectChanges');
 
         const mockCustomer = {
             id: 133,
@@ -564,9 +549,6 @@ describe('CheckinComponent', () => {
         const component = fixture.componentInstance;
         component.customerNotes = [];
 
-        const changeDetectorRef = fixture.debugElement.injector.get(ChangeDetectorRef);
-        vi.spyOn(changeDetectorRef.constructor.prototype, 'detectChanges');
-
         const mockCustomer = {
             id: 133,
             lastname: 'Mustermann',
@@ -627,9 +609,6 @@ describe('CheckinComponent', () => {
         component.customerNotes = [];
         fixture.detectChanges();  // Populate ViewChildren from template
 
-        const changeDetectorRef = fixture.debugElement.injector.get(ChangeDetectorRef);
-        vi.spyOn(changeDetectorRef.constructor.prototype, 'detectChanges');
-
         const mockCustomer = {
             id: 133,
             lastname: 'Mustermann',
@@ -669,9 +648,6 @@ describe('CheckinComponent', () => {
         const component = fixture.componentInstance;
         component.customerNotes = [];
         fixture.detectChanges();  // Populate ViewChildren from template
-
-        const changeDetectorRef = fixture.debugElement.injector.get(ChangeDetectorRef);
-        vi.spyOn(changeDetectorRef.constructor.prototype, 'detectChanges');
 
         const mockCustomer = {
             id: 133,
@@ -720,9 +696,6 @@ describe('CheckinComponent', () => {
         const component = fixture.componentInstance;
         component.customerNotes = [];
 
-        const changeDetectorRef = fixture.debugElement.injector.get(ChangeDetectorRef);
-        vi.spyOn(changeDetectorRef.constructor.prototype, 'detectChanges');
-
         const mockCustomer = {
             id: 133,
             lastname: 'Mustermann',
@@ -759,9 +732,6 @@ describe('CheckinComponent', () => {
         const fixture = TestBed.createComponent(CheckinComponent);
         const component = fixture.componentInstance;
         component.customerNotes = [];
-
-        const changeDetectorRef = fixture.debugElement.injector.get(ChangeDetectorRef);
-        vi.spyOn(changeDetectorRef.constructor.prototype, 'detectChanges');
 
         const mockCustomer = {
             id: 133,
