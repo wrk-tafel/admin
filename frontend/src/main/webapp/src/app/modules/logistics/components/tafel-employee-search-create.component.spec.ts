@@ -6,8 +6,7 @@ import { CreateEmployeeRequest, EmployeeApiService, EmployeeData, EmployeeListRe
 import { TafelEmployeeSearchCreateComponent } from './tafel-employee-search-create.component';
 import { of, throwError } from 'rxjs';
 import { ToastService, ToastType } from '../../../common/components/toasts/toast.service';
-// eslint-disable-next-line deprecation/deprecation
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 describe('TafelEmployeeSearchCreate', () => {
     let employeeApiService: MockedObject<EmployeeApiService>;
@@ -15,11 +14,8 @@ describe('TafelEmployeeSearchCreate', () => {
 
     beforeEach((() => {
         TestBed.configureTestingModule({
+            imports: [NoopAnimationsModule],
             providers: [
-                // Required for CoreUI components that use animations (e.g., ModalComponent with @showHide)
-                // Though deprecated in Angular 20.2, still needed until CoreUI migrates to CSS animations
-                // eslint-disable-next-line deprecation/deprecation
-                provideNoopAnimations(),
                 provideHttpClient(),
                 provideHttpClientTesting(),
                 {

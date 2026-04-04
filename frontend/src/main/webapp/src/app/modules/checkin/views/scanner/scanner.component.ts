@@ -34,7 +34,7 @@ export class ScannerComponent {
   private readonly scannerApiService = inject(ScannerApiService);
   private readonly destroyRef = inject(DestroyRef);
 
-  scannerId: number;
+  readonly scannerId = signal<number>(undefined);
   lastScanResult: number;
   availableCameras: CameraDevice[] = [];
   currentCamera: CameraDevice;
@@ -95,7 +95,7 @@ export class ScannerComponent {
 
     return firstValueFrom(this.scannerApiService.registerScanner(existingScannerId)
       .pipe(tap(response => {
-        this.scannerId = response.scannerId;
+        this.scannerId.set(response.scannerId);
         localStorage.setItem(storageKey, response.scannerId.toString());
       }))
     );
@@ -121,7 +121,7 @@ export class ScannerComponent {
     const scannedValue = scanResult.value;
     if (!this.lastScanResult || this.lastScanResult !== scannedValue) {
       this.lastScanResult = scanResult.value;
-      this.scannerApiService.sendScanResult(this.scannerId, scanResult.value).subscribe();
+      this.scannerApiService.sendScanResult(this.scannerId(), scanResult.value).subscribe();
     }
   }
 

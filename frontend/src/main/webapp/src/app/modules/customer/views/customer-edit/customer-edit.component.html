@@ -6,18 +6,18 @@
 <c-modal id="validationResultModal" #validationResultModal testid="validationresult-modal" [(visible)]="showValidationResultModal">
   <c-modal-header [cBgColor]="validationResultColor" testid="header">
     <h4 testid="title" class="text-white">
-      {{validationResult?.valid === true ? "Anspruch vorhanden" : "Kein Anspruch vorhanden"}}
+      {{validationResult()?.valid === true ? "Anspruch vorhanden" : "Kein Anspruch vorhanden"}}
     </h4>
     <button [cModalToggle]="validationResultModal.id" cButtonClose></button>
   </c-modal-header>
   <c-modal-body>
     <div class="row">
-      <div class="col-8 fw-bold">Limit (inkl. Toleranz von {{validationResult?.toleranceValue}}&nbsp;&euro;):</div>
-      <div class="col-4">{{validationResult?.limit | number : '1.2-2' }}&nbsp;&euro;</div>
+      <div class="col-8 fw-bold">Limit (inkl. Toleranz von {{validationResult()?.toleranceValue}}&nbsp;&euro;):</div>
+      <div class="col-4">{{validationResult()?.limit | number : '1.2-2' }}&nbsp;&euro;</div>
     </div>
     <div class="row">
       <div class="col-8 fw-bold">Einkommen gesamt:</div>
-      <div class="col-4">{{validationResult?.totalSum | number : '1.2-2' }}&nbsp;&euro;</div>
+      <div class="col-4">{{validationResult()?.totalSum | number : '1.2-2' }}&nbsp;&euro;</div>
     </div>
     <div class="row">
       <div class="col-12">
@@ -26,8 +26,8 @@
     </div>
     <div class="row">
       <div class="col-8 fw-bold">Einkommen über Limit:</div>
-      <div class="col-4" [ngClass]="{'text-danger': validationResult?.valid === false}">
-        {{validationResult?.amountExceededLimit | number : '1.2-2' }}&nbsp;&euro;</div>
+      <div class="col-4" [ngClass]="{'text-danger': validationResult()?.valid === false}">
+        {{validationResult()?.amountExceededLimit | number : '1.2-2' }}&nbsp;&euro;</div>
     </div>
   </c-modal-body>
   <c-modal-footer>

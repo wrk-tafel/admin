@@ -121,7 +121,7 @@ The backend uses **Spring Modulith** architecture with 7 core feature modules, e
 
 **Key Technologies:**
 - Java 25 with Kotlin 2.3 (coroutines support)
-- Spring Boot 3.5 with Spring Modulith for modular monolith architecture
+- Spring Boot 4.0.5 with Spring Modulith for modular monolith architecture
 - PostgreSQL with Flyway for database migrations (60+ R__ repeatable scripts)
 - JWT authentication with Argon2 password hashing
 - Server-Sent Events (SSE) via outbox pattern for real-time notifications
@@ -138,7 +138,7 @@ The backend uses **Spring Modulith** architecture with 7 core feature modules, e
 
 ### Frontend Architecture
 
-The frontend is an Angular 20 single-page application using CoreUI 5.5 as the UI framework.
+The frontend is an Angular 21 single-page application using CoreUI 5.6 as the UI framework.
 
 **Feature Modules:**
 - **dashboard**: Overview with distribution state, registered customers, food amounts, statistics input
@@ -167,8 +167,8 @@ modules/<feature>/
 ```
 
 **Key Technologies:**
-- Angular 20 with standalone components
-- CoreUI 5.5 (Bootstrap-based UI library)
+- Angular 21 with standalone components
+- CoreUI 5.6 (Bootstrap-based UI library)
 - RxJS for reactive programming
 - html5-qrcode for scanner functionality
 - ngx-cookie-service for session management
@@ -257,6 +257,8 @@ The application uses PostgreSQL with Flyway for schema management. Migration fil
 - See [ANGULAR_SIGNAL_PATTERNS.md](./ANGULAR_SIGNAL_PATTERNS.md) for detailed patterns and examples
 
 ## API Structure
+
+**HTTP Requests Collection (`_http-calls/`):** Before inspecting controller source code, check the `_http-calls/` folder for sample HTTP calls (`.http` files) organized by feature area (customers, distributions, routes, users, etc.). These provide quick insight into request/response shapes, query parameters, and authentication patterns. Use them as a first reference, but always verify against the actual controller endpoints when needed — the `.http` files may not cover every endpoint or edge case.
 
 The backend exposes REST APIs under `/api/` prefix:
 - `/api/users`: User management

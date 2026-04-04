@@ -191,10 +191,13 @@ export class CheckinComponent {
     return this.scannerReadyState ? 'success' : 'danger';
   }
 
+  readonly currentDistribution = this.globalStateService.getCurrentDistribution();
+  readonly connectionState = this.globalStateService.getConnectionState();
+
   constructor() {
-    // Redirect to overview if no distribution is active
+    // Redirect to overview if no distribution is active (only after SSE connection is established)
     effect(() => {
-      if (this.globalStateService.getCurrentDistribution()() === null) {
+      if (this.connectionState() && this.currentDistribution() === null) {
         this.router.navigate(['uebersicht']);
       }
     });

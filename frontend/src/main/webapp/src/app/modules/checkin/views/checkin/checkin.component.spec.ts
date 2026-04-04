@@ -2,8 +2,7 @@ import type {MockedObject} from 'vitest';
 import {TestBed} from '@angular/core/testing';
 import {CheckinComponent, CustomerState, ScanResult} from './checkin.component';
 import {CommonModule} from '@angular/common';
-// eslint-disable-next-line deprecation/deprecation
-import {provideNoopAnimations} from '@angular/platform-browser/animations';
+import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 import {CustomerApiService, Gender} from '../../../../api/customer-api.service';
 import {EMPTY, of, throwError} from 'rxjs';
 import moment from 'moment';
@@ -48,7 +47,8 @@ describe('CheckinComponent', () => {
             startedAt: new Date()
         };
         const globalStateServiceSpy = {
-            getCurrentDistribution: vi.fn().mockName("GlobalStateService.getCurrentDistribution").mockReturnValue(signal<DistributionItem>(defaultDistribution).asReadonly())
+            getCurrentDistribution: vi.fn().mockName("GlobalStateService.getCurrentDistribution").mockReturnValue(signal<DistributionItem>(defaultDistribution).asReadonly()),
+            getConnectionState: vi.fn().mockName("GlobalStateService.getConnectionState").mockReturnValue(signal(true).asReadonly())
         };
         const distributionApiServiceSpy = {
             assignCustomer: vi.fn().mockName("DistributionApiService.assignCustomer")
@@ -72,13 +72,10 @@ describe('CheckinComponent', () => {
                 RowComponent,
                 ColComponent,
                 CardModule,
-                BadgeModule
+                BadgeModule,
+                NoopAnimationsModule
             ],
             providers: [
-                // Required for CoreUI components that use animations (e.g., ModalComponent with @fadeInOut)
-                // Though deprecated in Angular 20.2, still needed until CoreUI migrates to CSS animations
-                // eslint-disable-next-line deprecation/deprecation
-                provideNoopAnimations(),
                 {
                     provide: CustomerApiService,
                     useValue: customerApiServiceSpy

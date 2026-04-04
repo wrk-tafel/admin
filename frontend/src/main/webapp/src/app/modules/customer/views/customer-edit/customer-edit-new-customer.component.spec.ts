@@ -8,7 +8,7 @@ import { CustomerApiService, CustomerData, Gender } from '../../../../api/custom
 import { CustomerEditComponent } from './customer-edit.component';
 import { By } from '@angular/platform-browser';
 import { BgColorDirective, CardModule, ColComponent, InputGroupComponent, ModalModule, RowComponent } from '@coreui/angular';
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ToastService, ToastType } from '../../../../common/components/toasts/toast.service';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
@@ -82,10 +82,10 @@ describe('CustomerEditComponent - Creating a new customer', () => {
                 CardModule,
                 RowComponent,
                 ColComponent,
-                BgColorDirective
+                BgColorDirective,
+                NoopAnimationsModule
             ],
             providers: [
-                provideNoopAnimations(),
                 provideHttpClient(),
                 provideHttpClientTesting(),
                 {
@@ -156,7 +156,6 @@ describe('CustomerEditComponent - Creating a new customer', () => {
         component.save();
 
         expect(component.editMode()).toBe(false);
-        expect(component.isSaveEnabled()).toBe(true);
         expect(customerFormComponentMock.markAllAsTouched).toHaveBeenCalled();
         expect(apiService.createCustomer).toHaveBeenCalledWith(expect.objectContaining({
             lastname: testCustomerData.lastname,

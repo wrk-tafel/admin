@@ -7,7 +7,7 @@ import { of, throwError } from 'rxjs';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MailRecipients, MailTypeEnum, RecipientTypeEnum, SettingsApiService } from '../../../../api/settings-api.service';
 import { ToastService, ToastType } from '../../../../common/components/toasts/toast.service';
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 describe('MailRecipients', () => {
     let apiService: MockedObject<SettingsApiService>;
@@ -16,12 +16,12 @@ describe('MailRecipients', () => {
     beforeEach(() => {
         TestBed.configureTestingModule({
             imports: [
-                ReactiveFormsModule
+                ReactiveFormsModule,
+                NoopAnimationsModule
             ],
             providers: [
                 provideHttpClient(),
                 provideHttpClientTesting(),
-                provideNoopAnimations(),
                 {
                     provide: SettingsApiService,
                     useValue: {

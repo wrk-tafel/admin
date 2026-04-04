@@ -6,8 +6,7 @@ import { ToastModule } from '@coreui/angular';
 import { ToastOptions, ToastOptionsWithId, ToastService, ToastType } from './toast.service';
 import { TafelToastComponent } from './toast/tafel-toast.component';
 import { signal } from '@angular/core';
-// eslint-disable-next-line deprecation/deprecation
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 describe('TafelToasterComponent', () => {
     let toastServiceSpy: MockedObject<ToastService>;
@@ -16,13 +15,10 @@ describe('TafelToasterComponent', () => {
         TestBed.configureTestingModule({
             imports: [
                 CommonModule,
-                ToastModule
+                ToastModule,
+                NoopAnimationsModule
             ],
             providers: [
-                // Required for CoreUI components that use animations (e.g., ToastComponent with @fadeInOut)
-                // Though deprecated in Angular 20.2, still needed until CoreUI migrates to CSS animations
-                // eslint-disable-next-line deprecation/deprecation
-                provideNoopAnimations(),
                 {
                     provide: ToastService,
                     useValue: {

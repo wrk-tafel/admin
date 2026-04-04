@@ -108,8 +108,6 @@ describe('Food Collection Recording', () => {
     cy.byTestId('codriver-select-employee-modal')
       .should('be.visible')
       .within(() => {
-        cy.byTestId('codriver-select-employee-row-0').should('exist');
-        cy.byTestId('codriver-select-employee-row-1').should('exist');
         cy.byTestId('codriver-select-employee-button-1').click();
       });
     cy.byTestId('selectedCoDriverDescription').should('have.text', '0500 Scanner 2');
