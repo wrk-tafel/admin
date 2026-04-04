@@ -241,30 +241,28 @@ export class CustomerFormComponent {
     const selectedId = select.value;
     const country = this.countries().find(c => c.id.toString() === selectedId);
 
-    // Update the form model
-    this.formModel.update(model => {
-      const updated = [...model.additionalPersons];
-      updated[index] = {...updated[index], country: country ?? null};
-      return {
-        ...model,
-        additionalPersons: updated
-      };
-    });
+    const anyForm = this.customerForm as any;
+    anyForm.additionalPersons[index].country().value.set(country ?? null);
+    anyForm.additionalPersons[index].country().markAsTouched();
   }
 
   onPersonGenderChange(index: number, event: Event) {
     const select = event.target as HTMLSelectElement;
     const selectedGender = select.value as Gender;
 
-    // Update the form model
-    this.formModel.update(model => {
-      const updated = [...model.additionalPersons];
-      updated[index] = {...updated[index], gender: selectedGender || null};
-      return {
-        ...model,
-        additionalPersons: updated
-      };
-    });
+    const anyForm = this.customerForm as any;
+    anyForm.additionalPersons[index].gender().value.set(selectedGender || null);
+    anyForm.additionalPersons[index].gender().markAsTouched();
+  }
+
+  onPersonGenderBlur(index: number) {
+    const anyForm = this.customerForm as any;
+    anyForm.additionalPersons[index].gender().markAsTouched();
+  }
+
+  onPersonCountryBlur(index: number) {
+    const anyForm = this.customerForm as any;
+    anyForm.additionalPersons[index].country().markAsTouched();
   }
 
   addNewPerson() {
