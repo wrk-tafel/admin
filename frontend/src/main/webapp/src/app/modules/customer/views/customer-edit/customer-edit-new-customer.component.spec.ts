@@ -4,7 +4,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import moment from 'moment';
 import { of } from 'rxjs';
-import { CustomerApiService, CustomerData, Gender, ValidateCustomerResponse } from '../../../../api/customer-api.service';
+import { CustomerApiService, CustomerData, Gender } from '../../../../api/customer-api.service';
 import { CustomerEditComponent } from './customer-edit.component';
 import { By } from '@angular/platform-browser';
 import { BgColorDirective, CardModule, ColComponent, InputGroupComponent, ModalModule, RowComponent } from '@coreui/angular';
@@ -131,7 +131,6 @@ describe('CustomerEditComponent - Creating a new customer', () => {
 
         expect(fixture.debugElement.query(By.css('[testid="nopersons-label"]'))).toBeTruthy();
         expect(component.editMode()).toBe(false);
-        expect(component.customerValidForSave()).toBe(false);
     });
 
     it('new customer saved successfully', () => {
@@ -144,25 +143,26 @@ describe('CustomerEditComponent - Creating a new customer', () => {
 
         const fixture = TestBed.createComponent(CustomerEditComponent);
         const component = fixture.componentInstance;
+        fixture.componentRef.setInput('customerData', testCustomerData);
         Object.defineProperty(component, 'customerFormComponent', {
             get: () => () => customerFormComponentMock
         });
-        component.customerUpdated.set(testCustomerData);
-        component.customerValidForSave.set(true);
-        const validationResult: ValidateCustomerResponse = {
-            valid: true,
-            limit: 1000,
-            amountExceededLimit: 0,
-            toleranceValue: 10,
-            totalSum: 1000
-        };
-        component.validationResult = validationResult;
+        // Override editMode to simulate new customer mode
+        Object.defineProperty(component, 'editMode', {
+            get: () => () => false
+        });
+        fixture.detectChanges();
 
         component.save();
 
+        expect(component.editMode()).toBe(false);
         expect(component.isSaveEnabled()).toBe(true);
         expect(customerFormComponentMock.markAllAsTouched).toHaveBeenCalled();
-        expect(apiService.createCustomer).toHaveBeenCalledWith(expect.objectContaining(testCustomerData));
+        expect(apiService.createCustomer).toHaveBeenCalledWith(expect.objectContaining({
+            lastname: testCustomerData.lastname,
+            firstname: testCustomerData.firstname,
+            birthDate: testCustomerData.birthDate
+        }));
         expect(router.navigate).toHaveBeenCalledWith(['/kunden/detail', testCustomerData.id]);
     });
 
@@ -218,11 +218,10 @@ describe('CustomerEditComponent - Creating a new customer', () => {
         expect(component.isSaveEnabled()).toBe(true);
         expect(customerFormComponentMock.markAllAsTouched).toHaveBeenCalled();
         expect(apiService.validate).toHaveBeenCalledWith(expect.objectContaining(testCustomerData));
-        expect(component.customerValidForSave()).toBe(true);
         expect(component.showValidationResultModal()).toBeTruthy();
     });
 
-    it('new customer validation failed', () => {
+    it('new customer validation failed - but can still save', () => {
         const customerFormComponentMock = {
             markAllAsTouched: vi.fn().mockName("CustomerFormComponent.markAllAsTouched"),
             valid: vi.fn().mockName("CustomerFormComponent.valid")
@@ -236,6 +235,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
             toleranceValue: 100,
             totalSum: 1500
         }));
+        apiService.createCustomer.mockReturnValue(of(testCustomerData));
 
         const fixture = TestBed.createComponent(CustomerEditComponent);
         const component = fixture.componentInstance;
@@ -247,11 +247,20 @@ describe('CustomerEditComponent - Creating a new customer', () => {
 
         component.validate();
 
-        expect(component.isSaveEnabled()).toBe(false);
+        expect(component.isSaveEnabled()).toBe(true);
         expect(customerFormComponentMock.markAllAsTouched).toHaveBeenCalled();
         expect(apiService.validate).toHaveBeenCalledWith(expect.objectContaining(testCustomerData));
-        expect(component.customerValidForSave()).toBe(false);
         expect(component.showValidationResultModal()).toBeTruthy();
+
+        // Save should still work even when validation shows customer is above limit
+        component.save();
+
+        expect(apiService.createCustomer).toHaveBeenCalledWith(expect.objectContaining({
+            lastname: testCustomerData.lastname,
+            firstname: testCustomerData.firstname,
+            birthDate: testCustomerData.birthDate
+        }));
+        expect(router.navigate).toHaveBeenCalledWith(['/kunden/detail', testCustomerData.id]);
     });
 
 });

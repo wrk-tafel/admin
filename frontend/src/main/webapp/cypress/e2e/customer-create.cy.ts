@@ -26,7 +26,7 @@ describe('Customer Creation', () => {
     cy.url().should('include', '/kunden/detail');
   });
 
-  it('create new customer not qualified', () => {
+  it('create new customer not qualified but can still save', () => {
     createCustomer(0, 10000);
 
     cy.byTestId('validationresult-modal')
@@ -37,7 +37,10 @@ describe('Customer Creation', () => {
         cy.byTestId('ok-button').click();
       });
 
-    cy.byTestId('save-button').should('be.disabled');
+    cy.byTestId('save-button').should('be.enabled');
+    cy.byTestId('save-button').click();
+
+    cy.url().should('include', '/kunden/detail');
   });
 
   function createCustomer(customerId?: number, income?: number) {

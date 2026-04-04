@@ -129,7 +129,6 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
         fixture.detectChanges();
 
         expect(component.editMode()).toBe(true);
-        expect(component.customerValidForSave()).toBe(false);
     });
 
     it('existing customer saved successfully', () => {
@@ -149,10 +148,8 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
         Object.defineProperty(component, 'customerFormComponent', {
             get: () => () => customerFormComponentMock
         });
-        component.customerValidForSave.set(true);
         fixture.detectChanges();
         component.customerUpdated.set(testCustomerData);
-
         component.save();
 
         expect(component.isSaveEnabled()).toBe(true);
@@ -168,7 +165,7 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
         expect(router.navigate).toHaveBeenCalledWith(['/kunden/detail', testCustomerData.id]);
     });
 
-    it('existing customer saved successfully even when not entitled', () => {
+    it('existing customer saved successfully even when validation shows not entitled', () => {
         const customerFormComponentMock = {
             markAllAsTouched: vi.fn().mockName("CustomerFormComponent.markAllAsTouched"),
             valid: vi.fn().mockName("CustomerFormComponent.valid")
@@ -185,7 +182,6 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
         Object.defineProperty(component, 'customerFormComponent', {
             get: () => () => customerFormComponentMock
         });
-        component.customerValidForSave.set(false);
         fixture.detectChanges();
         component.customerUpdated.set(testCustomerData);
 
