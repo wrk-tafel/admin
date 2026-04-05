@@ -10,12 +10,8 @@ import {
   InputGroupComponent,
   InputGroupTextDirective,
   RowComponent,
-  TabDirective,
-  TabPanelComponent,
-  TabsComponent,
-  TabsContentComponent,
-  TabsListComponent
 } from '@coreui/angular';
+import {MatTabsModule} from '@angular/material/tabs';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
 import {Router} from '@angular/router';
 import {FoodCategory} from '../../../../api/food-categories-api.service';
@@ -33,23 +29,19 @@ import {
   FoodCollectionRecordingItemsResponsiveComponent
 } from '../food-collection-recording-items-responsive/food-collection-recording-items-responsive.component';
 import {FoodCollectionData, FoodCollectionsApiService} from '../../../../api/food-collections-api.service';
-import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
+import {ToastrService} from 'ngx-toastr';
 import {forkJoin} from 'rxjs';
 
 @Component({
-    selector: 'tafel-food-collection-recording',
-    templateUrl: 'food-collection-recording.component.html',
-    imports: [
+  selector: 'tafel-food-collection-recording',
+  templateUrl: 'food-collection-recording.component.html',
+  imports: [
     CardComponent,
     CardBodyComponent,
     CardHeaderComponent,
     ReactiveFormsModule,
     FormsModule,
-    TabsComponent,
-    TabsListComponent,
-    TabDirective,
-    TabsContentComponent,
-    TabPanelComponent,
+    MatTabsModule,
     RowComponent,
     ColComponent,
     FormSelectDirective,
@@ -59,7 +51,7 @@ import {forkJoin} from 'rxjs';
     FoodCollectionRecordingBasedataComponent,
     FoodCollectionRecordingItemsDesktopComponent,
     FoodCollectionRecordingItemsResponsiveComponent
-]
+  ]
 })
 export class FoodCollectionRecordingComponent {
   routeList = model.required<RouteList>();
@@ -72,7 +64,7 @@ export class FoodCollectionRecordingComponent {
   private readonly globalStateService = inject(GlobalStateService);
   private readonly foodCollectionsApiService = inject(FoodCollectionsApiService);
   private readonly routeApiService = inject(RouteApiService);
-  private readonly toastService = inject(ToastService);
+  private readonly toastr = inject(ToastrService);
   private readonly router = inject(Router);
 
   constructor() {
@@ -97,7 +89,7 @@ export class FoodCollectionRecordingComponent {
         });
       },
       error: (error: any) => {
-        this.toastService.showToast({type: ToastType.ERROR, title: 'Fehler beim Laden der Daten!'});
+        this.toastr.error('Fehler beim Laden der Daten!');
       }
     });
   }

@@ -2,7 +2,7 @@ import {Component, inject, signal} from '@angular/core';
 import {Router} from '@angular/router';
 import {CustomerApiService, CustomerSearchResult} from '../../../../api/customer-api.service';
 import {FormBuilder, ReactiveFormsModule} from '@angular/forms';
-import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
+import {ToastrService} from 'ngx-toastr';
 import {
   TafelPaginationComponent,
   TafelPaginationData
@@ -27,32 +27,32 @@ import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofo
 import {FormatAddressPipe} from '../../../../common/pipes/format-address.pipe';
 
 @Component({
-    selector: 'tafel-customer-search',
-    templateUrl: 'customer-search.component.html',
-    imports: [
-        ReactiveFormsModule,
-        CardComponent,
-        CardBodyComponent,
-        RowComponent,
-        ColComponent,
-        InputGroupComponent,
-        TafelPaginationComponent,
-        CardHeaderComponent,
-        CardFooterComponent,
-        FormDirective,
-        FormCheckInputDirective,
-        TableDirective,
-        ButtonDirective,
-        CommonModule,
-        FaIconComponent,
-        TafelAutofocusDirective,
-        FormatAddressPipe
-    ]
+  selector: 'tafel-customer-search',
+  templateUrl: 'customer-search.component.html',
+  imports: [
+    ReactiveFormsModule,
+    CardComponent,
+    CardBodyComponent,
+    RowComponent,
+    ColComponent,
+    InputGroupComponent,
+    TafelPaginationComponent,
+    CardHeaderComponent,
+    CardFooterComponent,
+    FormDirective,
+    FormCheckInputDirective,
+    TableDirective,
+    ButtonDirective,
+    CommonModule,
+    FaIconComponent,
+    TafelAutofocusDirective,
+    FormatAddressPipe
+  ]
 })
 export class CustomerSearchComponent {
   private readonly customerApiService = inject(CustomerApiService);
   private readonly router = inject(Router);
-  private readonly toastService = inject(ToastService);
+  private readonly toastr = inject(ToastrService);
   private readonly fb = inject(FormBuilder);
 
   form = this.fb.group({
@@ -76,9 +76,9 @@ export class CustomerSearchComponent {
       next: (response) => this.navigateToCustomerDetail(customerId),
       error: (error) => {
         if (error.status === 404) {
-          this.toastService.showToast({type: ToastType.INFO, title: 'Kunde nicht gefunden!'});
+          this.toastr.info('Kunde nicht gefunden!');
         } else {
-          this.toastService.showToast({type: ToastType.ERROR, title: 'Fehler beim Laden des Kunden!'});
+          this.toastr.error('Fehler beim Laden des Kunden!');
         }
       }
     };
@@ -93,7 +93,7 @@ export class CustomerSearchComponent {
     this.customerApiService.searchCustomer(this.lastname.value, this.firstname.value, this.postProcessing.value, this.costContribution.value, this.valid.value, page)
       .subscribe((response: CustomerSearchResult) => {
         if (response.items.length === 0) {
-          this.toastService.showToast({type: ToastType.INFO, title: 'Keine Kunden gefunden!'});
+          this.toastr.info('Keine Kunden gefunden!');
           this.searchResult.set(undefined);
           this.paginationData.set(undefined);
         } else {

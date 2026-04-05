@@ -1,43 +1,18 @@
-import {Component, inject, input, output, signal} from '@angular/core';
-import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
-import {
-  BgColorDirective,
-  ButtonCloseDirective,
-  ButtonDirective,
-  CardBodyComponent,
-  CardComponent,
-  ColComponent,
-  InputGroupComponent,
-  ModalModule,
-  RowComponent
-} from '@coreui/angular';
-import {CommonModule} from '@angular/common';
+import {Component, inject, input, output} from '@angular/core';
+import {ButtonDirective} from '@coreui/angular';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
-import {faHandPointer, faSearch} from '@fortawesome/free-solid-svg-icons';
-import {EmployeeApiService, EmployeeData, EmployeeListResponse} from '../../../api/employee-api.service';
-import {
-  TafelPaginationComponent,
-  TafelPaginationData
-} from '../../../common/components/tafel-pagination/tafel-pagination.component';
-import {ToastService, ToastType} from '../../../common/components/toasts/toast.service';
+import {faSearch} from '@fortawesome/free-solid-svg-icons';
+import {EmployeeApiService, EmployeeData} from '../../../api/employee-api.service';
+import {MatDialog} from '@angular/material/dialog';
+import {CreateEmployeeDialogComponent} from './dialogs/create-employee-dialog.component';
+import {SelectEmployeeDialogComponent} from './dialogs/select-employee-dialog.component';
 
 @Component({
     selector: 'tafel-employee-search-create',
     templateUrl: 'tafel-employee-search-create.component.html',
     imports: [
-        ReactiveFormsModule,
-        InputGroupComponent,
-        CommonModule,
         FaIconComponent,
         ButtonDirective,
-        ColComponent,
-        RowComponent,
-        BgColorDirective,
-        ButtonCloseDirective,
-        ModalModule,
-        CardBodyComponent,
-        CardComponent,
-        TafelPaginationComponent,
     ]
 })
 export class TafelEmployeeSearchCreateComponent {
@@ -46,84 +21,41 @@ export class TafelEmployeeSearchCreateComponent {
   selectedEmployee = output<EmployeeData>()
 
   private readonly employeeApiService = inject(EmployeeApiService);
-  private readonly toastService = inject(ToastService);
-  private readonly fb = inject(FormBuilder);
-
-  createEmployeeForm = this.fb.group({
-    personnelNumber: this.fb.control<string>(null, [Validators.required, Validators.maxLength(50)]),
-    firstname: this.fb.control<string>(null, [Validators.required, Validators.maxLength(50)]),
-    lastname: this.fb.control<string>(null, [Validators.required, Validators.maxLength(50)]),
-  });
-
-  showCreateEmployeeModal = signal<boolean>(false);
-
-  paginationData: TafelPaginationData;
-  employeeSearchResponse: EmployeeListResponse;
-  showSelectEmployeeModal = signal<boolean>(false);
+  private readonly dialog = inject(MatDialog);
 
   triggerSearch(page?: number) {
     this.employeeApiService.findEmployees(this.searchInput(), page)
       .subscribe((response) => {
-        this.employeeSearchResponse = null;
-        this.paginationData = null;
-        this.showCreateEmployeeModal.set(false);
-        this.showSelectEmployeeModal.set(false);
-
         const employees = response.items;
         if (employees.length === 1) {
           this.selectedEmployee.emit(employees[0]);
         } else if (employees.length > 1) {
-          this.employeeSearchResponse = response;
-          this.paginationData = {
-            count: response.items.length,
-            totalCount: response.totalCount,
-            currentPage: response.currentPage,
-            totalPages: response.totalPages,
-            pageSize: response.pageSize
-          };
-          this.showSelectEmployeeModal.set(true);
+          this.dialog.open(SelectEmployeeDialogComponent, {
+            data: {
+              initialResponse: response,
+              searchInput: this.searchInput(),
+              testId: this.testIdPrefix() + '-select-employee-dialog',
+              testIdPrefix: this.testIdPrefix() + '-'
+            }
+          }).afterClosed().subscribe(employee => {
+            if (employee) {
+              this.selectedEmployee.emit(employee);
+            }
+          });
         } else {
-          this.showCreateEmployeeModal.set(true);
-        }
-      });
-  }
-
-  selectEmployee(employee: EmployeeData) {
-    this.employeeSearchResponse = undefined;
-    this.showSelectEmployeeModal.set(false);
-    this.selectedEmployee.emit(employee);
-  }
-
-  saveNewEmployee() {
-    this.employeeApiService.saveEmployee(this.createEmployeeForm.getRawValue())
-      .subscribe({
-        next: (savedEmployee) => {
-          this.selectedEmployee.emit(savedEmployee);
-          this.createEmployeeForm.reset();
-
-          this.showCreateEmployeeModal.set(false);
-        },
-        error: () => {
-          this.toastService.showToast({
-            type: ToastType.ERROR,
-            title: 'Fehler beim Speichern des Mitarbeiters'
+          this.dialog.open(CreateEmployeeDialogComponent, {
+            data: {
+              testId: this.testIdPrefix() + '-search-create-dialog',
+              testIdPrefix: this.testIdPrefix() + '-'
+            }
+          }).afterClosed().subscribe(employee => {
+            if (employee) {
+              this.selectedEmployee.emit(employee);
+            }
           });
         }
       });
   }
 
-  get personnelNumber() {
-    return this.createEmployeeForm.get('personnelNumber');
-  }
-
-  get firstname() {
-    return this.createEmployeeForm.get('firstname');
-  }
-
-  get lastname() {
-    return this.createEmployeeForm.get('lastname');
-  }
-
   protected readonly faSearch = faSearch;
-  protected readonly faHandPointer = faHandPointer;
 }

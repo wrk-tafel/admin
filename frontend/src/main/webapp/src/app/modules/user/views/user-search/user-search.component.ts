@@ -1,8 +1,8 @@
 import {Component, inject, signal} from '@angular/core';
 import {Router} from '@angular/router';
-import {FormBuilder, ReactiveFormsModule} from '@angular/forms';
+import {ReactiveFormsModule} from '@angular/forms';
 import {UserApiService, UserData, UserSearchResult} from '../../../../api/user-api.service';
-import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
+import {ToastrService} from 'ngx-toastr';
 import {
   TafelPaginationComponent,
   TafelPaginationData
@@ -27,8 +27,8 @@ import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofo
 import {form, FormField} from '@angular/forms/signals';
 
 @Component({
-    selector: 'tafel-user-search',
-    templateUrl: 'user-search.component.html',
+  selector: 'tafel-user-search',
+  templateUrl: 'user-search.component.html',
   imports: [
     CardComponent,
     CardBodyComponent,
@@ -51,8 +51,7 @@ import {form, FormField} from '@angular/forms/signals';
 export class UserSearchComponent {
   private readonly userApiService = inject(UserApiService);
   private readonly router = inject(Router);
-  private readonly toastService = inject(ToastService);
-  private readonly fb = inject(FormBuilder);
+  private readonly toastr = inject(ToastrService);
 
   private searchModel = {
     personnelNumber: '',
@@ -73,9 +72,9 @@ export class UserSearchComponent {
       next: (userData: UserData) => this.navigateToUserDetail(userData.id),
       error: (error) => {
         if (error.status === 404) {
-          this.toastService.showToast({type: ToastType.INFO, title: 'Benutzer nicht gefunden!'});
+          this.toastr.error('Benutzer nicht gefunden!');
         } else {
-          this.toastService.showToast({type: ToastType.ERROR, title: 'Fehler beim Laden des Benutzers!'});
+          this.toastr.error('Fehler beim Laden des Benutzers!');
         }
       }
     };
@@ -95,7 +94,7 @@ export class UserSearchComponent {
     this.userApiService.searchUser(username, enabled, lastname, firstname, page)
       .subscribe((response: UserSearchResult) => {
         if (response.items.length === 0) {
-          this.toastService.showToast({type: ToastType.INFO, title: 'Keine Benutzer gefunden!'});
+          this.toastr.info('Keine Benutzer gefunden!');
           this.searchResult.set(undefined);
           this.paginationData.set(undefined);
         } else {

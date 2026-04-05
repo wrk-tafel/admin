@@ -5,7 +5,7 @@ import {FormField} from '@angular/forms/signals';
 import {CardModule, ColComponent, InputGroupComponent, RowComponent} from '@coreui/angular';
 import {UserApiService, UserData, UserPermission} from '../../../../api/user-api.service';
 import {of, throwError} from 'rxjs';
-import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
+import { ToastrService } from 'ngx-toastr';
 
 describe('UserFormComponent', () => {
   const mockPermissions: UserPermission[] = [
@@ -25,7 +25,7 @@ describe('UserFormComponent', () => {
   };
 
   let userApiService: MockedObject<UserApiService>;
-  let toastService: MockedObject<ToastService>;
+  let toastr: MockedObject<ToastrService>;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -44,16 +44,16 @@ describe('UserFormComponent', () => {
           }
         },
         {
-          provide: ToastService,
+          provide: ToastrService,
           useValue: {
-            showToast: vi.fn().mockName("ToastService.showToast")
+            error: vi.fn().mockName("ToastrService.error")
           }
         }
       ]
     }).compileComponents();
 
     userApiService = TestBed.inject(UserApiService) as MockedObject<UserApiService>;
-    toastService = TestBed.inject(ToastService) as MockedObject<ToastService>;
+    toastr = TestBed.inject(ToastrService) as MockedObject<ToastrService>;
   });
 
   it('should create the component', () => {
@@ -206,11 +206,7 @@ describe('UserFormComponent', () => {
     expect(component.passwordTextVisible()).toBe(false);
     expect(component.passwordRepeatTextVisible()).toBe(false);
 
-    expect(toastService.showToast).toHaveBeenCalledWith({
-      type: ToastType.ERROR,
-      title: 'Fehler',
-      message: 'Passwort-Generierung fehlgeschlagen!'
-    });
+    expect(toastr.error).toHaveBeenCalledWith('Passwort-Generierung fehlgeschlagen!', 'Fehler');
   });
 
 });

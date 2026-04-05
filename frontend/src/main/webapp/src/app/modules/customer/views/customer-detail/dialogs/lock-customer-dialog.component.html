@@ -1,0 +1,12 @@
+<tafel-dialog testId="lock-customer-dialog" type="info" title="Kunden sperren">
+  <div tafel-dialog-content>
+    <div class="fw-bold">Sperrgrund:</div>
+    <textarea testid="lockreason-input-text" id="textarea-input" name="textarea-input" rows="9" class="form-control"
+              [ngModel]="reasonText()" (ngModelChange)="reasonText.set($event)"></textarea>
+  </div>
+  <div tafel-dialog-actions>
+    <button testid="okButton" cButton (click)="dialogRef.close(reasonText())"
+            [disabled]="!reasonText() || reasonText()?.trim().length === 0">Speichern</button>
+    <button testid="cancelButton" cButton color="secondary" (click)="dialogRef.close()">Abbrechen</button>
+  </div>
+</tafel-dialog>

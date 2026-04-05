@@ -1,0 +1,10 @@
+<tafel-dialog type="warning" title="Routenlänge überschritten" testId="km-diff-dialog">
+  <div tafel-dialog-content>
+    <div>Die Routenlänge beträgt: {{ data.kmDifference | number }} km (&gt; 350 km).</div>
+    <div class="mt-3">Ist das korrekt?</div>
+  </div>
+  <div tafel-dialog-actions>
+    <button testid="ok-button" cButton (click)="dialogRef.close(true)">OK</button>
+    <button testid="cancel-button" cButton color="secondary" (click)="dialogRef.close()">Abbrechen</button>
+  </div>
+</tafel-dialog>

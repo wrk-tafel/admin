@@ -1,0 +1,11 @@
+<tafel-dialog type="info" title="Neue Notiz hinzufügen">
+  <div tafel-dialog-content>
+    <textarea id="textarea-input" name="textarea-input" rows="9" class="form-control"
+              [ngModel]="noteText()" (ngModelChange)="noteText.set($event)"></textarea>
+  </div>
+  <div tafel-dialog-actions>
+    <button testid="okButton" cButton (click)="dialogRef.close(noteText())"
+            [disabled]="!noteText() || noteText()?.trim().length === 0">Speichern</button>
+    <button testid="cancelButton" cButton color="secondary" (click)="dialogRef.close()">Abbrechen</button>
+  </div>
+</tafel-dialog>

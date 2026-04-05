@@ -1,0 +1,10 @@
+<tafel-dialog testId="deletecustomer-dialog" type="warning" title="Kunden löschen">
+  <div tafel-dialog-content>
+    <div class="mb-2">Der Kunde wird unwiderruflich gelöscht.</div>
+    <div class="fw-bold">Sicher?</div>
+  </div>
+  <div tafel-dialog-actions>
+    <button testid="okButton" cButton (click)="dialogRef.close(true)">Löschen</button>
+    <button testid="cancelButton" cButton color="secondary" (click)="dialogRef.close()">Abbrechen</button>
+  </div>
+</tafel-dialog>

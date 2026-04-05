@@ -1,21 +1,26 @@
+import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { SelectSheltersComponent } from './select-shelters.component';
-import { CardModule, ColComponent, ModalModule, ProgressModule, RowComponent } from '@coreui/angular';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ShelterItem } from '../../../../api/shelter-api.service';
+import { MatDialog } from '@angular/material/dialog';
+import { of } from 'rxjs';
 
 describe('SelectSheltersComponent', () => {
+    let matDialog: MockedObject<MatDialog>;
+
     beforeEach((() => {
         TestBed.configureTestingModule({
-            imports: [
-                NoopAnimationsModule,
-                ModalModule,
-                CardModule,
-                RowComponent,
-                ColComponent,
-                ProgressModule
+            providers: [
+                {
+                    provide: MatDialog,
+                    useValue: {
+                        open: vi.fn().mockName("MatDialog.open")
+                    }
+                }
             ]
         }).compileComponents();
+
+        matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
     }));
 
     const testShelters: ShelterItem[] = [
@@ -52,7 +57,9 @@ describe('SelectSheltersComponent', () => {
         expect(component).toBeTruthy();
     });
 
-    it('newly selected shelter is emitted to output', () => {
+    it('selected shelters from dialog are emitted to output', () => {
+        matDialog.open.mockReturnValue({ afterClosed: () => of(testShelters) } as any);
+
         const fixture = TestBed.createComponent(SelectSheltersComponent);
         const componentRef = fixture.componentRef;
         const component = fixture.componentInstance;
@@ -62,34 +69,28 @@ describe('SelectSheltersComponent', () => {
         componentRef.setInput('initialSelectedShelters', [testShelters[1]]);
         fixture.detectChanges();
 
-        expect(component.selectedShelters.at(1).value).toBe(true);
+        component.openSelectSheltersDialog();
 
-        component.selectedShelters.at(0).setValue(true);
-
-        component.saveShelterSelection();
-
+        expect(matDialog.open).toHaveBeenCalled();
         expect(component.updateSelectedShelters.emit).toHaveBeenCalledWith(testShelters);
     });
 
-    it('cancel modal', () => {
+    it('dialog dismissed without selection does not emit', () => {
+        matDialog.open.mockReturnValue({ afterClosed: () => of(undefined) } as any);
+
         const fixture = TestBed.createComponent(SelectSheltersComponent);
+        const componentRef = fixture.componentRef;
         const component = fixture.componentInstance;
-        component.showSelectSheltersModal = true;
+        vi.spyOn(component.updateSelectedShelters, 'emit');
 
-        expect(component.showSelectSheltersModal).toBe(true);
+        componentRef.setInput('sheltersList', testShelters);
+        componentRef.setInput('initialSelectedShelters', [testShelters[1]]);
+        fixture.detectChanges();
 
-        component.cancelModal();
+        component.openSelectSheltersDialog();
 
-        expect(component.showSelectSheltersModal).toBe(false);
-    });
-
-    it('format street', () => {
-        const fixture = TestBed.createComponent(SelectSheltersComponent);
-        const component = fixture.componentInstance;
-
-        const address = component.formatStreet(testShelters[0]);
-
-        expect(address).toBe('Test Street 1, Stiege A, Top B');
+        expect(matDialog.open).toHaveBeenCalled();
+        expect(component.updateSelectedShelters.emit).not.toHaveBeenCalled();
     });
 
 });

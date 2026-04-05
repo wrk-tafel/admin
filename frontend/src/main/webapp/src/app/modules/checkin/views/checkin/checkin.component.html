@@ -73,63 +73,59 @@
                     <c-col>{{customer().validUntil | date : 'dd.MM.yyyy'}}</c-col>
                   </c-row>
                   <hr>
-                  <c-tabs [activeItemKey]="0">
-                    <c-tabs-list variant="underline-border">
-                      <button cTab [itemKey]="0">Details</button>
-                      <button cTab [itemKey]="1">Personen ({{customer()?.additionalPersons?.length ?? 0}})</button>
-                    </c-tabs-list>
-                    <c-tabs-content>
-                      <c-tab-panel class="mt-3" [itemKey]="0">
-                        <c-row>
-                          <c-col>Adresse:</c-col>
-                          <c-col>{{formattedAddress()}}</c-col>
-                        </c-row>
-                        <c-row>
-                          <c-col>Personen im Haushalt (insgesamt):</c-col>
-                          <c-col>{{(customer()?.additionalPersons?.length ?? 0) + 1}}</c-col>
-                        </c-row>
-                        <c-row>
-                          <c-col>Personen unter 3 Jahren:</c-col>
-                          <c-col>{{infantCount()}}</c-col>
-                        </c-row>
-                      </c-tab-panel>
-                      <c-tab-panel class="mt-3" [itemKey]="1">
+                  <mat-tab-group animationDuration="0ms">
+                    <mat-tab label="Details">
+                      <div class="mt-3 px-3">
+                        <div class="d-flex justify-content-between">
+                          <span>Adresse:</span>
+                          <span>{{formattedAddress()}}</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                          <span>Personen im Haushalt (insgesamt):</span>
+                          <span>{{(customer()?.additionalPersons?.length ?? 0) + 1}}</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                          <span>Personen unter 3 Jahren:</span>
+                          <span>{{infantCount()}}</span>
+                        </div>
+                      </div>
+                    </mat-tab>
+                    <mat-tab [label]="'Personen (' + (customer()?.additionalPersons?.length ?? 0) + ')'">
+                      <div class="mt-3 px-3">
                         @if((customer()?.additionalPersons?.length ?? 0) === 0) {
-                          <c-row>
-                            <c-col class="mt-1" testid="nopersons-label">Keine Personen vorhanden</c-col>
-                          </c-row>
+                          <div testid="nopersons-label">Keine Personen vorhanden</div>
                         }
                         @if((customer()?.additionalPersons?.length ?? 0) > 0) {
-                          <c-row class="mb-2 row row-cols-sm-2 row-cols-1 row-gap-3">
+                          <div class="row g-3">
                             @for(addPerson of customer()?.additionalPersons ?? []; track addPerson.id; let i = $index) {
-                              <c-col>
+                              <div class="col-sm-6 col-12">
                                 <c-card>
                                   <c-card-body>
-                                    <c-row>
-                                      <c-col class="fw-bold" [attr.testid]="'addperson-' + i + '-lastnameText'">{{addPerson?.lastname}}</c-col>
-                                      <c-col class="fw-bold" [attr.testid]="'addperson-' + i + '-firstnameText'">{{addPerson?.firstname}}</c-col>
-                                    </c-row>
-                                    <c-row>
-                                      <c-col [attr.testid]="'addperson-' + i + '-birthDateAgeText'">{{addPerson?.birthDate | birthdateAge}}</c-col>
-                                      <c-col [attr.testid]="'addperson-' + i + '-genderText'">{{addPerson?.gender | genderLabel}}</c-col>
-                                    </c-row>
-                                    <c-row>
-                                      <c-col [attr.testid]="'addperson-' + i + '-countryText'">{{addPerson?.country.name}}</c-col>
-                                    </c-row>
+                                    <div class="d-flex justify-content-between">
+                                      <span class="fw-bold" [attr.testid]="'addperson-' + i + '-lastnameText'">{{addPerson?.lastname}}</span>
+                                      <span class="fw-bold" [attr.testid]="'addperson-' + i + '-firstnameText'">{{addPerson?.firstname}}</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                      <span [attr.testid]="'addperson-' + i + '-birthDateAgeText'">{{addPerson?.birthDate | birthdateAge}}</span>
+                                      <span [attr.testid]="'addperson-' + i + '-genderText'">{{addPerson?.gender | genderLabel}}</span>
+                                    </div>
+                                    <div>
+                                      <span [attr.testid]="'addperson-' + i + '-countryText'">{{addPerson?.country.name}}</span>
+                                    </div>
                                     <hr>
-                                    <c-row class="align-items-end">
-                                      <c-col>Im selben Haushalt:</c-col>
-                                      <c-col class="align-bottom" [attr.testid]="'addperson-' + i + '-excludeFromHouseholdText'">{{addPerson?.excludeFromHousehold === true ? 'Nein' : 'Ja'}}</c-col>
-                                    </c-row>
+                                    <div class="d-flex justify-content-between align-items-end">
+                                      <span>Im selben Haushalt:</span>
+                                      <span class="align-bottom" [attr.testid]="'addperson-' + i + '-excludeFromHouseholdText'">{{addPerson?.excludeFromHousehold === true ? 'Nein' : 'Ja'}}</span>
+                                    </div>
                                   </c-card-body>
                                 </c-card>
-                              </c-col>
+                              </div>
                             }
-                          </c-row>
+                          </div>
                         }
-                      </c-tab-panel>
-                    </c-tabs-content>
-                  </c-tabs>
+                      </div>
+                    </mat-tab>
+                  </mat-tab-group>
                 </c-col>
                 <c-col class="col-sm-4 col-12">
                   <hr class="d-sm-none d-block">

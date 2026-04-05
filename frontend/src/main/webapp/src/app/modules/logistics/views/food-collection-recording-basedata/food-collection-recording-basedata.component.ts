@@ -1,20 +1,15 @@
 import {Component, effect, inject, input, model, viewChild} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {
-  BgColorDirective,
-  ButtonCloseDirective,
   ButtonDirective,
   ColComponent,
   FormSelectDirective,
   InputGroupComponent,
   InputGroupTextDirective,
-  ModalBodyComponent,
-  ModalComponent,
-  ModalFooterComponent,
-  ModalHeaderComponent,
-  ModalToggleDirective,
   RowComponent
 } from '@coreui/angular';
+import {MatDialog} from '@angular/material/dialog';
+import {KmDiffDialogComponent} from './dialogs/km-diff-dialog.component';
 import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {faGauge, faRemove, faTruck} from '@fortawesome/free-solid-svg-icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
@@ -25,7 +20,7 @@ import {
   FoodCollectionsApiService,
   FoodCollectionSaveRouteDataRequest
 } from '../../../../api/food-collections-api.service';
-import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
+import { ToastrService } from 'ngx-toastr';
 import {CarData, CarList} from '../../../../api/car-api.service';
 import {SelectedRouteData} from '../food-collection-recording/food-collection-recording.component';
 
@@ -43,14 +38,7 @@ import {SelectedRouteData} from '../food-collection-recording/food-collection-re
         InputGroupComponent,
         FaIconComponent,
         InputGroupTextDirective,
-        TafelEmployeeSearchCreateComponent,
-        ButtonCloseDirective,
-        ModalBodyComponent,
-        ModalComponent,
-        ModalFooterComponent,
-        ModalHeaderComponent,
-        BgColorDirective,
-        ModalToggleDirective
+        TafelEmployeeSearchCreateComponent
     ]
 })
 export class FoodCollectionRecordingBasedataComponent {
@@ -62,13 +50,11 @@ export class FoodCollectionRecordingBasedataComponent {
 
   private readonly foodCollectionsApiService = inject(FoodCollectionsApiService);
   private readonly fb = inject(FormBuilder);
-  private readonly toastService = inject(ToastService);
+  private readonly toastr = inject(ToastrService);
+  private readonly dialog = inject(MatDialog);
 
   selectedDriver: EmployeeData;
   selectedCoDriver: EmployeeData;
-
-  kmDifference = 0;
-  showKmDiffModal = false;
 
   form = this.fb.group({
       car: this.fb.control<CarData>(null, [Validators.required]),
@@ -180,13 +166,19 @@ export class FoodCollectionRecordingBasedataComponent {
     return this.form.invalid || !this.selectedDriver || !this.selectedCoDriver;
   }
 
-  save(overrideKmDiffModal: boolean = false) {
+  save(overrideKmDiff: boolean = false) {
     const kmStart = this.kmStart.value;
     const kmEnd = this.kmEnd.value;
-    this.kmDifference = kmEnd - kmStart;
+    const kmDifference = kmEnd - kmStart;
 
-    if (!overrideKmDiffModal && this.kmDifference > 350) {
-      this.showKmDiffModal = true;
+    if (!overrideKmDiff && kmDifference > 350) {
+      this.dialog.open(KmDiffDialogComponent, {
+        data: {kmDifference}
+      }).afterClosed().subscribe(confirmed => {
+        if (confirmed) {
+          this.save(true);
+        }
+      });
       return;
     }
 
@@ -200,7 +192,7 @@ export class FoodCollectionRecordingBasedataComponent {
 
     this.foodCollectionsApiService.saveRouteData(this.selectedRouteData().route.id, routeData)
       .subscribe(() => {
-        this.toastService.showToast({type: ToastType.SUCCESS, title: 'Daten wurden gespeichert!'});
+        this.toastr.success('Daten wurden gespeichert!');
       });
   }
 

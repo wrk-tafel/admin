@@ -8,6 +8,7 @@ import { Router } from '@angular/router';
 import { GlobalStateService } from '../../../../common/state/global-state.service';
 import { DistributionItem } from '../../../../api/distribution-api.service';
 import { signal } from '@angular/core';
+import { ToastrService } from 'ngx-toastr';
 
 describe('FoodCollectionRecordingComponent', () => {
     let router: MockedObject<Router>;
@@ -32,7 +33,8 @@ describe('FoodCollectionRecordingComponent', () => {
                     useValue: {
                         getCurrentDistribution: vi.fn().mockName("GlobalStateService.getCurrentDistribution")
                     }
-                }
+                },
+                { provide: ToastrService, useValue: { error: vi.fn(), info: vi.fn(), success: vi.fn(), warning: vi.fn(), show: vi.fn() } }
             ]
         }).compileComponents();
 

@@ -5,14 +5,14 @@ import {CustomerDuplicatesComponent} from './customer-duplicates.component';
 import {ActivatedRoute, Router} from '@angular/router';
 import moment from 'moment';
 import {of, throwError} from 'rxjs';
-import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
+import {ToastrService} from 'ngx-toastr';
 import {CardModule, ColComponent, PaginationModule, RowComponent} from '@coreui/angular';
 import {TafelPaginationComponent} from '../../../../common/components/tafel-pagination/tafel-pagination.component';
 
 describe('CustomerDuplicatesComponent', () => {
   let customerApiService: MockedObject<CustomerApiService>;
   let router: MockedObject<Router>;
-  let toastService: MockedObject<ToastService>;
+  let toastr: MockedObject<ToastrService>;
 
   const mockCustomer1 = {
     id: 133,
@@ -87,8 +87,11 @@ describe('CustomerDuplicatesComponent', () => {
     const routerSpy = {
       navigate: vi.fn().mockName('Router.navigate')
     } as any;
-    const toastServiceSpy = {
-      showToast: vi.fn().mockName('ToastService.showToast')
+    const toastrSpy = {
+      error: vi.fn().mockName('ToastrService.error'),
+      info: vi.fn().mockName('ToastrService.info'),
+      success: vi.fn().mockName('ToastrService.success'),
+      warning: vi.fn().mockName('ToastrService.warning')
     } as any;
 
     TestBed.configureTestingModule({
@@ -118,15 +121,15 @@ describe('CustomerDuplicatesComponent', () => {
           }
         },
         {
-          provide: ToastService,
-          useValue: toastServiceSpy
+          provide: ToastrService,
+          useValue: toastrSpy
         }
       ]
     }).compileComponents();
 
     customerApiService = TestBed.inject(CustomerApiService) as MockedObject<CustomerApiService>;
     router = TestBed.inject(Router) as MockedObject<Router>;
-    toastService = TestBed.inject(ToastService) as MockedObject<ToastService>;
+    toastr = TestBed.inject(ToastrService) as MockedObject<ToastrService>;
   });
 
   it('component can be created', () => {
@@ -193,7 +196,7 @@ describe('CustomerDuplicatesComponent', () => {
     component.deleteCustomer(customerId);
 
     expect(customerApiService.deleteCustomer).toHaveBeenCalledWith(customerId);
-    expect(toastService.showToast).toHaveBeenCalledWith({type: ToastType.ERROR, title: 'Löschen fehlgeschlagen!'});
+    expect(toastr.error).toHaveBeenCalledWith('Löschen fehlgeschlagen!');
   });
 
   it('delete customer successful', () => {
@@ -217,7 +220,7 @@ describe('CustomerDuplicatesComponent', () => {
 
     expect(customerApiService.deleteCustomer).toHaveBeenCalledWith(customerId);
     expect(customerApiService.getCustomerDuplicates).toHaveBeenCalledWith(page);
-    expect(toastService.showToast).toHaveBeenCalledWith({type: ToastType.SUCCESS, title: 'Kunde wurde gelöscht!'});
+    expect(toastr.success).toHaveBeenCalledWith('Kunde wurde gelöscht!');
   });
 
   it('merge customer failed', () => {
@@ -247,10 +250,7 @@ describe('CustomerDuplicatesComponent', () => {
     expect(customerApiService.mergeCustomers).toHaveBeenCalledWith(
       mockCustomer1.id, [mockCustomer2.id, mockCustomer3.id]
     );
-    expect(toastService.showToast).toHaveBeenCalledWith({
-      type: ToastType.ERROR,
-      title: 'Zusammenführen der Kunden fehlgeschlagen!'
-    });
+    expect(toastr.error).toHaveBeenCalledWith('Zusammenführen der Kunden fehlgeschlagen!');
   });
 
   it('merge customers successful', () => {
@@ -280,11 +280,7 @@ describe('CustomerDuplicatesComponent', () => {
       mockCustomer1.id, [mockCustomer2.id, mockCustomer3.id]
     );
     expect(customerApiService.getCustomerDuplicates).toHaveBeenCalledWith(1);
-    expect(toastService.showToast).toHaveBeenCalledWith({
-      type: ToastType.SUCCESS,
-      title: 'Kunden wurden zusammengeführt!',
-      message: `2 Kunde(n) wurden gelöscht.`
-    });
+    expect(toastr.success).toHaveBeenCalledWith(`2 Kunde(n) wurden gelöscht.`, 'Kunden wurden zusammengeführt!');
   });
 
 });

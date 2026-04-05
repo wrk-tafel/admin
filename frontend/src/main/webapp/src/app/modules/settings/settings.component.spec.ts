@@ -2,6 +2,7 @@ import {TestBed} from '@angular/core/testing';
 import {SettingsComponent} from './settings.component';
 import {provideHttpClient} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
+import { ToastrService } from 'ngx-toastr';
 
 describe('SettingsComponent', () => {
 
@@ -10,6 +11,7 @@ describe('SettingsComponent', () => {
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
+        { provide: ToastrService, useValue: { error: vi.fn(), info: vi.fn(), success: vi.fn(), warning: vi.fn(), show: vi.fn() } }
       ]
     }).compileComponents();
   });

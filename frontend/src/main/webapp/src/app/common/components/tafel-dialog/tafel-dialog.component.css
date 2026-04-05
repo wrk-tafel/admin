@@ -1,0 +1,8 @@
+:host {
+  display: block;
+  min-width: 35vw;
+}
+:host ::ng-deep [tafel-dialog-actions] {
+  display: flex;
+  gap: 8px;
+}

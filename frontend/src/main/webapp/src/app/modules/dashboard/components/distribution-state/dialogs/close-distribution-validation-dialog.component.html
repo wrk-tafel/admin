@@ -1,0 +1,20 @@
+<tafel-dialog [type]="dialogType()" [title]="dialogTitle()">
+  <div tafel-dialog-content>
+    @for (error of data.validationResult.errors; track error) {
+      <div class="mb-2">{{ error }}</div>
+    }
+    @for (warning of data.validationResult.warnings; track warning) {
+      <div class="mb-2">{{ warning }}</div>
+    }
+  </div>
+  <div tafel-dialog-actions>
+    @if (data.validationResult.warnings.length > 0) {
+      <button testid="distribution-close-validation-dialog-ok-button" cButton
+              (click)="dialogRef.close('force')">Trotzdem beenden
+      </button>
+    }
+    <button testid="distribution-close-validation-dialog-cancel-button" cButton color="secondary"
+            (click)="dialogRef.close()">Abbrechen
+    </button>
+  </div>
+</tafel-dialog>

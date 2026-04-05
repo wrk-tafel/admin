@@ -7,13 +7,13 @@ import {EMPTY, of} from 'rxjs';
 import {CustomerApiService, CustomerSearchResult, Gender} from '../../../../api/customer-api.service';
 import {CustomerSearchComponent} from './customer-search.component';
 import {CardModule, ColComponent, PaginationModule, RowComponent} from '@coreui/angular';
-import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
+import { ToastrService } from 'ngx-toastr';
 import {By} from '@angular/platform-browser';
 
 describe('CustomerSearchComponent', () => {
     let apiService: MockedObject<CustomerApiService>;
     let router: MockedObject<Router>;
-    let toastService: MockedObject<ToastService>;
+    let toastr: MockedObject<ToastrService>;
 
     const searchCustomerMockResponse = {
         items: [
@@ -63,9 +63,12 @@ describe('CustomerSearchComponent', () => {
                     }
                 },
                 {
-                    provide: ToastService,
+                    provide: ToastrService,
                     useValue: {
-                        showToast: vi.fn().mockName("ToastService.showToast")
+                        error: vi.fn().mockName("ToastrService.error"),
+                        info: vi.fn().mockName("ToastrService.info"),
+                        success: vi.fn().mockName("ToastrService.success"),
+                        warning: vi.fn().mockName("ToastrService.warning")
                     }
                 }
             ]
@@ -73,7 +76,7 @@ describe('CustomerSearchComponent', () => {
 
         apiService = TestBed.inject(CustomerApiService) as MockedObject<CustomerApiService>;
         router = TestBed.inject(Router) as MockedObject<Router>;
-        toastService = TestBed.inject(ToastService) as MockedObject<ToastService>;
+        toastr = TestBed.inject(ToastrService) as MockedObject<ToastrService>;
     }));
 
     it('component can be created', () => {
@@ -138,7 +141,7 @@ describe('CustomerSearchComponent', () => {
         component.searchForDetails();
 
         expect(apiService.searchCustomer).toHaveBeenCalledWith(null, 'firstname', null, null, null, undefined);
-        expect(toastService.showToast).toHaveBeenCalledWith({ type: ToastType.INFO, title: 'Keine Kunden gefunden!' });
+        expect(toastr.info).toHaveBeenCalledWith('Keine Kunden gefunden!');
     });
 
     it('search with lastname only', () => {

@@ -22,22 +22,21 @@
     </c-row>
     @if (selectedRouteData()) {
       <hr>
-      <c-tabs [activeItemKey]="0">
-        <c-tabs-list variant="underline-border">
-          <button cTab [itemKey]="0" testid="select-route-tab">
-            Route
-          </button>
-          <button cTab [itemKey]="1" testid="select-items-tab">
-            Waren
-          </button>
-        </c-tabs-list>
-        <c-tabs-content>
-          <c-tab-panel [itemKey]="0" class="p-3">
+      <mat-tab-group animationDuration="0ms">
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <span testid="select-route-tab">Route</span>
+          </ng-template>
+          <div class="p-3">
             <tafel-food-collection-recording-basedata [carList]="carList()"
                                                       [selectedRouteData]="selectedRouteData()">
             </tafel-food-collection-recording-basedata>
-          </c-tab-panel>
-          <c-tab-panel [itemKey]="1">
+          </div>
+        </mat-tab>
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <span testid="select-items-tab">Waren</span>
+          </ng-template>
             <div class="d-none d-md-block">
               <tafel-food-collection-recording-items-desktop [foodCategories]="foodCategories()"
                                                              [selectedRouteData]="selectedRouteData()"></tafel-food-collection-recording-items-desktop>
@@ -46,9 +45,8 @@
               <tafel-food-collection-recording-items-responsive [foodCategories]="foodCategories()"
                                                                 [selectedRouteData]="selectedRouteData()"></tafel-food-collection-recording-items-responsive>
             </div>
-          </c-tab-panel>
-        </c-tabs-content>
-      </c-tabs>
+        </mat-tab>
+      </mat-tab-group>
     }
   </c-card-body>
 </c-card>

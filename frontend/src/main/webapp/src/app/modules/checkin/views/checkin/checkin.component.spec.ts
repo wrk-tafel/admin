@@ -14,7 +14,7 @@ import {FormsModule} from '@angular/forms';
 import {signal} from '@angular/core';
 import {DistributionTicketApiService} from '../../../../api/distribution-ticket-api.service';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
-import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
+import {ToastrService} from 'ngx-toastr';
 import {ScannerApiService, ScannerList} from '../../../../api/scanner-api.service';
 import {SseService} from '../../../../common/sse/sse.service';
 
@@ -27,7 +27,7 @@ describe('CheckinComponent', () => {
     let distributionApiService: MockedObject<DistributionApiService>;
     let distributionTicketApiService: MockedObject<DistributionTicketApiService>;
     let router: MockedObject<Router>;
-    let toastService: MockedObject<ToastService>;
+    let toastr: MockedObject<ToastrService>;
 
     beforeEach(() => {
         const customerApiServiceSpy = {
@@ -60,8 +60,11 @@ describe('CheckinComponent', () => {
         const routerSpy = {
             navigate: vi.fn().mockName("Router.navigate")
         };
-        const toastServiceSpy = {
-            showToast: vi.fn().mockName("ToastService.showToast")
+        const toastrSpy = {
+            error: vi.fn().mockName("ToastrService.error"),
+            info: vi.fn().mockName("ToastrService.info"),
+            success: vi.fn().mockName("ToastrService.success"),
+            warning: vi.fn().mockName("ToastrService.warning")
         };
 
         TestBed.configureTestingModule({
@@ -109,8 +112,8 @@ describe('CheckinComponent', () => {
                     useValue: routerSpy
                 },
                 {
-                    provide: ToastService,
-                    useValue: toastServiceSpy
+                    provide: ToastrService,
+                    useValue: toastrSpy
                 }
             ]
         }).compileComponents();
@@ -123,7 +126,7 @@ describe('CheckinComponent', () => {
         distributionApiService = TestBed.inject(DistributionApiService) as MockedObject<DistributionApiService>;
         distributionTicketApiService = TestBed.inject(DistributionTicketApiService) as MockedObject<DistributionTicketApiService>;
         router = TestBed.inject(Router) as MockedObject<Router>;
-        toastService = TestBed.inject(ToastService) as MockedObject<ToastService>;
+        toastr = TestBed.inject(ToastrService) as MockedObject<ToastrService>;
     });
 
     it('component can be created', () => {
@@ -516,7 +519,7 @@ describe('CheckinComponent', () => {
         expect(component.customerStateText()).toBe('GESPERRT');
     });
 
-    it('searchForCustomerId customer not found', () => {
+    it('searchForCustomerId customer not found shows toast', () => {
         const fixture = TestBed.createComponent(CheckinComponent);
         const component = fixture.componentInstance;
         component.customerNotes = [];
@@ -538,7 +541,10 @@ describe('CheckinComponent', () => {
         component.searchForCustomerId();
 
         expect(component.customer()).toBeUndefined();
+        expect(component.customerState()).toBeUndefined();
+        expect(component.customerNotes).toEqual([]);
         expect(customerApiService.getCustomer).toHaveBeenCalledWith(testCustomerId);
+        expect(toastr.info).toHaveBeenCalledWith(`Kunde ${testCustomerId} nicht gefunden!`);
     });
 
     it('searchForCustomerId found notes', async () => {
@@ -763,7 +769,7 @@ describe('CheckinComponent', () => {
         expect(distributionTicketApiService.deleteCurrentTicketOfCustomer).toHaveBeenCalledWith(mockCustomer.id);
         expect(component.ticketNumber).toBeUndefined();
         expect(component.ticketNumberEdit).toBeUndefined();
-        expect(toastService.showToast).toHaveBeenCalledWith({ type: ToastType.SUCCESS, title: 'Ticket-Nummer gelöscht!' });
+        expect(toastr.success).toHaveBeenCalledWith('Ticket-Nummer gelöscht!');
     });
 
 });

@@ -4,13 +4,13 @@ import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { errorHandlerInterceptor, TafelErrorResponse } from './errorhandler-interceptor.service';
 import { AuthenticationService } from '../security/authentication.service';
-import { ToastOptions, ToastService, ToastType } from '../components/toasts/toast.service';
+import { ToastrService } from 'ngx-toastr';
 
 describe('ErrorHandlerInterceptor', () => {
     let httpTestingController: HttpTestingController;
     let httpClient: HttpClient;
     let authServiceSpy: MockedObject<AuthenticationService>;
-    let toastServiceSpy: MockedObject<ToastService>;
+    let toastrSpy: MockedObject<ToastrService>;
 
     beforeEach(() => {
         TestBed.configureTestingModule({
@@ -25,9 +25,12 @@ describe('ErrorHandlerInterceptor', () => {
                     }
                 },
                 {
-                    provide: ToastService,
+                    provide: ToastrService,
                     useValue: {
-                        showToast: vi.fn().mockName("ToastService.showToast")
+                        error: vi.fn().mockName("ToastrService.error"),
+                        info: vi.fn().mockName("ToastrService.info"),
+                        success: vi.fn().mockName("ToastrService.success"),
+                        warning: vi.fn().mockName("ToastrService.warning")
                     }
                 }
             ]
@@ -36,7 +39,7 @@ describe('ErrorHandlerInterceptor', () => {
         httpTestingController = TestBed.inject(HttpTestingController);
         httpClient = TestBed.inject(HttpClient);
         authServiceSpy = TestBed.inject(AuthenticationService) as MockedObject<AuthenticationService>;
-        toastServiceSpy = TestBed.inject(ToastService) as MockedObject<ToastService>;
+        toastrSpy = TestBed.inject(ToastrService) as MockedObject<ToastrService>;
     });
 
     afterEach(() => {
@@ -49,12 +52,10 @@ describe('ErrorHandlerInterceptor', () => {
         /* eslint-disable @typescript-eslint/no-unused-vars */
         const observer = {
             error: error => {
-                const expectedToast: ToastOptions = {
-                    type: ToastType.ERROR,
-                    title: 'HTTP 500 - Internal Server Error',
-                    message: 'Http failure response for /test: 500 Internal Server Error'
-                };
-                expect(toastServiceSpy.showToast).toHaveBeenCalledWith(expectedToast);
+                expect(toastrSpy.error).toHaveBeenCalledWith(
+                    'Http failure response for /test: 500 Internal Server Error',
+                    'HTTP 500 - Internal Server Error'
+                );
             },
         };
         httpClient.get('/test').subscribe(observer);
@@ -71,12 +72,10 @@ describe('ErrorHandlerInterceptor', () => {
         /* eslint-disable @typescript-eslint/no-unused-vars */
         const observer = {
             error: error => {
-                const expectedToast: ToastOptions = {
-                    type: ToastType.ERROR,
-                    title: 'HTTP 504 - Bad Gateway',
-                    message: 'Server nicht verfügbar!'
-                };
-                expect(toastServiceSpy.showToast).toHaveBeenCalledWith(expectedToast);
+                expect(toastrSpy.error).toHaveBeenCalledWith(
+                    'Server nicht verfügbar!',
+                    'HTTP 504 - Bad Gateway'
+                );
             },
         };
         httpClient.get('/test').subscribe(observer);
@@ -93,12 +92,10 @@ describe('ErrorHandlerInterceptor', () => {
         /* eslint-disable @typescript-eslint/no-unused-vars */
         const observer = {
             error: error => {
-                const expectedToast: ToastOptions = {
-                    type: ToastType.ERROR,
-                    title: 'HTTP 403 - Forbidden',
-                    message: 'Zugriff nicht erlaubt!'
-                };
-                expect(toastServiceSpy.showToast).toHaveBeenCalledWith(expectedToast);
+                expect(toastrSpy.error).toHaveBeenCalledWith(
+                    'Zugriff nicht erlaubt!',
+                    'HTTP 403 - Forbidden'
+                );
             },
         };
         httpClient.get('/test').subscribe(observer);
@@ -115,12 +112,10 @@ describe('ErrorHandlerInterceptor', () => {
         /* eslint-disable @typescript-eslint/no-unused-vars */
         const observer = {
             error: _ => {
-                const expectedToast: ToastOptions = {
-                    type: ToastType.ERROR,
-                    title: 'HTTP 400 - Bad Request',
-                    message: 'Custom message from body'
-                };
-                expect(toastServiceSpy.showToast).toHaveBeenCalledWith(expectedToast);
+                expect(toastrSpy.error).toHaveBeenCalledWith(
+                    'Custom message from body',
+                    'HTTP 400 - Bad Request'
+                );
             },
         };
         httpClient.get('/test').subscribe(observer);

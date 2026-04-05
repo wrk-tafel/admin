@@ -4,7 +4,7 @@ import {provideHttpClient} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
 import {FoodCollectionRecordingItemsResponsiveComponent} from './food-collection-recording-items-responsive.component';
 import {FoodCollectionsApiService} from '../../../../api/food-collections-api.service';
-import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
+import { ToastrService } from 'ngx-toastr';
 
 describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
   beforeEach(() => {
@@ -15,6 +15,7 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
+        { provide: ToastrService, useValue: { error: vi.fn(), info: vi.fn(), success: vi.fn(), warning: vi.fn(), show: vi.fn() } }
       ]
     }).compileComponents();
   });
@@ -93,8 +94,8 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
       }
     } as any);
 
-    const toastService = TestBed.inject(ToastService);
-    const toastSpy = vi.spyOn(toastService, 'showToast');
+    const toastr = TestBed.inject(ToastrService);
+    const toastSpy = vi.spyOn(toastr, 'success');
 
     component.save();
 
@@ -109,10 +110,7 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
       }
     );
 
-    expect(toastSpy).toHaveBeenCalledWith({
-      type: ToastType.SUCCESS,
-      title: 'Daten wurden gespeichert!'
-    });
+    expect(toastSpy).toHaveBeenCalledWith('Daten wurden gespeichert!');
   });
 
   it('should show error toast when save fails', () => {
@@ -138,15 +136,12 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
       }
     } as any);
 
-    const toastService = TestBed.inject(ToastService);
-    const toastSpy = vi.spyOn(toastService, 'showToast');
+    const toastr = TestBed.inject(ToastrService);
+    const toastSpy = vi.spyOn(toastr, 'error');
 
     component.save();
 
-    expect(toastSpy).toHaveBeenCalledWith({
-      type: ToastType.ERROR,
-      title: 'Speichern fehlgeschlagen!'
-    });
+    expect(toastSpy).toHaveBeenCalledWith('Speichern fehlgeschlagen!');
   });
 
   it('should update categoryValues and call patchItems when onValueChange is called', () => {
@@ -249,15 +244,12 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
       }
     } as any);
 
-    const toastService = TestBed.inject(ToastService);
-    const toastSpy = vi.spyOn(toastService, 'showToast');
+    const toastr = TestBed.inject(ToastrService);
+    const toastSpy = vi.spyOn(toastr, 'error');
 
     component.selectShop(mockShops[1]);
 
-    expect(toastSpy).toHaveBeenCalledWith({
-      type: ToastType.ERROR,
-      title: 'Laden fehlgeschlagen!'
-    });
+    expect(toastSpy).toHaveBeenCalledWith('Laden fehlgeschlagen!');
   });
 
   it('should navigate to previous shop correctly', () => {

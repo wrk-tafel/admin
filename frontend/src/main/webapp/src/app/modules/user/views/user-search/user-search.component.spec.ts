@@ -7,12 +7,12 @@ import {UserSearchComponent} from './user-search.component';
 import {CardModule, ColComponent, RowComponent} from '@coreui/angular';
 import {By} from '@angular/platform-browser';
 import {UserApiService, UserSearchResult} from '../../../../api/user-api.service';
-import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
+import { ToastrService } from 'ngx-toastr';
 
 describe('UserSearchComponent', () => {
   let apiService: MockedObject<UserApiService>;
   let router: MockedObject<Router>;
-  let toastService: MockedObject<ToastService>;
+  let toastr: MockedObject<ToastrService>;
 
   const searchUserMockResponse: UserSearchResult = {
     items: [
@@ -56,9 +56,12 @@ describe('UserSearchComponent', () => {
           }
         },
         {
-          provide: ToastService,
+          provide: ToastrService,
           useValue: {
-            showToast: vi.fn().mockName("ToastService.showToast")
+            error: vi.fn().mockName("ToastrService.error"),
+            info: vi.fn().mockName("ToastrService.info"),
+            success: vi.fn().mockName("ToastrService.success"),
+            warning: vi.fn().mockName("ToastrService.warning")
           }
         }
       ]
@@ -66,7 +69,7 @@ describe('UserSearchComponent', () => {
 
     apiService = TestBed.inject(UserApiService) as MockedObject<UserApiService>;
     router = TestBed.inject(Router) as MockedObject<Router>;
-    toastService = TestBed.inject(ToastService) as MockedObject<ToastService>;
+    toastr = TestBed.inject(ToastrService) as MockedObject<ToastrService>;
   });
 
   it('component can be created', () => {
@@ -154,7 +157,7 @@ describe('UserSearchComponent', () => {
     component.searchForDetails();
 
     expect(apiService.searchUser).toHaveBeenCalledWith(null, null, null, 'firstname', undefined);
-    expect(toastService.showToast).toHaveBeenCalledWith({type: ToastType.INFO, title: 'Keine Benutzer gefunden!'});
+    expect(toastr.info).toHaveBeenCalledWith('Keine Benutzer gefunden!');
   });
 
   it('navigate to user', () => {

@@ -1,7 +1,7 @@
 import {Component, computed, effect, inject, input, output, signal} from '@angular/core';
 import {form, FormField, maxLength, required, validate} from '@angular/forms/signals';
 import {GeneratedPasswordResponse, UserApiService, UserData, UserPermission} from '../../../../api/user-api.service';
-import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
+import { ToastrService } from 'ngx-toastr';
 import {CommonModule, NgClass} from '@angular/common';
 import {
   ButtonDirective,
@@ -39,7 +39,7 @@ export class UserFormComponent {
   userDataChange = output<UserData>();
 
   private readonly userApiService = inject(UserApiService);
-  private readonly toastService = inject(ToastService);
+  private readonly toastr = inject(ToastrService);
 
   // Signal for form model
   private formModel = signal<UserFormModel>({
@@ -173,11 +173,7 @@ export class UserFormComponent {
         this.passwordRepeatTextVisible.set(true);
       },
       error: error => {
-        this.toastService.showToast({
-          type: ToastType.ERROR,
-          title: 'Fehler',
-          message: 'Passwort-Generierung fehlgeschlagen!'
-        });
+        this.toastr.error('Passwort-Generierung fehlgeschlagen!', 'Fehler');
       },
     };
 

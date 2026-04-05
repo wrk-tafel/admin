@@ -13,28 +13,28 @@ import {cilEnvelopeClosed} from '@coreui/icons';
 import {DistributionApiService, DistributionItem} from '../../../../api/distribution-api.service';
 import {DatePipe} from '@angular/common';
 import {FormsModule} from '@angular/forms';
-import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
+import {ToastrService} from 'ngx-toastr';
 
 @Component({
-    selector: 'tafel-send-mails',
-    templateUrl: 'send-mails.component.html',
-    imports: [
-        CardComponent,
-        CardHeaderComponent,
-        ColComponent,
-        IconDirective,
-        RowComponent,
-        CardBodyComponent,
-        ButtonDirective,
-        DatePipe,
-        FormsModule,
-        FormsModule,
-        FormSelectDirective
-    ]
+  selector: 'tafel-send-mails',
+  templateUrl: 'send-mails.component.html',
+  imports: [
+    CardComponent,
+    CardHeaderComponent,
+    ColComponent,
+    IconDirective,
+    RowComponent,
+    CardBodyComponent,
+    ButtonDirective,
+    DatePipe,
+    FormsModule,
+    FormsModule,
+    FormSelectDirective
+  ]
 })
 export class SendMailsComponent {
   private readonly distributionApiService = inject(DistributionApiService);
-  private readonly toastService = inject(ToastService);
+  private readonly toastr = inject(ToastrService);
   protected readonly cilEnvelopeClosed = cilEnvelopeClosed;
 
   readonly distributions = signal<DistributionItem[]>([]);
@@ -54,10 +54,10 @@ export class SendMailsComponent {
   sendMails() {
     const observer = {
       next: () => {
-        this.toastService.showToast({type: ToastType.SUCCESS, title: 'E-Mails wurden erneut verschickt!'});
+        this.toastr.success('E-Mails wurden erneut verschickt!');
       },
       error: error => {
-        this.toastService.showToast({type: ToastType.SUCCESS, title: 'Senden der E-Mails fehlgeschlagen!'});
+        this.toastr.error('Senden der E-Mails fehlgeschlagen!');
       },
     };
     const selectedDist = this.selectedDistribution();

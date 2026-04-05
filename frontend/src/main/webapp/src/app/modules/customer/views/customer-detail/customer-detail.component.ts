@@ -9,18 +9,17 @@ import {
   CustomerNoteItem,
   CustomerNotesResponse
 } from '../../../../api/customer-note-api.service';
-import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
-import {
-  TafelPaginationComponent,
-  TafelPaginationData
-} from '../../../../common/components/tafel-pagination/tafel-pagination.component';
+import {ToastrService} from 'ngx-toastr';
+import {DeleteCustomerDialogComponent} from './dialogs/delete-customer-dialog.component';
+import {AllNotesDialogComponent} from './dialogs/all-notes-dialog.component';
+import {AddNoteDialogComponent} from './dialogs/add-note-dialog.component';
+import {LockCustomerDialogComponent} from './dialogs/lock-customer-dialog.component';
+import {TafelPaginationData} from '../../../../common/components/tafel-pagination/tafel-pagination.component';
 import {DistributionTicketApiService} from '../../../../api/distribution-ticket-api.service';
 import {DistributionApiService} from '../../../../api/distribution-api.service';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
 import {TafelIfDistributionActiveDirective} from '../../../../common/directive/tafel-if-distribution-active.directive';
 import {
-  BgColorDirective,
-  ButtonCloseDirective,
   ButtonDirective,
   CardBodyComponent,
   CardComponent,
@@ -32,66 +31,45 @@ import {
   DropdownItemDirective,
   DropdownMenuDirective,
   DropdownToggleDirective,
-  ModalBodyComponent,
-  ModalComponent,
-  ModalFooterComponent,
-  ModalHeaderComponent,
-  ModalToggleDirective,
-  RowComponent,
-  TabDirective,
-  TabPanelComponent,
-  TabsComponent,
-  TabsContentComponent,
-  TabsListComponent
+  RowComponent
 } from '@coreui/angular';
+import {MatTabsModule} from '@angular/material/tabs';
+import {MatDialog} from '@angular/material/dialog';
 import {CommonModule} from '@angular/common';
-import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {faPlus, faUsers} from '@fortawesome/free-solid-svg-icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {BirthdateAgePipe} from '../../../../common/pipes/birthdate-age.pipe';
 import {GenderLabelPipe} from '../../../../common/pipes/gender-label.pipe';
 import {FormatIssuerPipe} from '../../../../common/pipes/format-issuer.pipe';
 import {FormattedCustomerNamePipe} from '../../../../common/pipes/formatted-customer-name.pipe';
+import {FormsModule} from '@angular/forms';
 
 @Component({
-    selector: 'tafel-customer-detail',
-    templateUrl: 'customer-detail.component.html',
-    imports: [
-        CommonModule,
-        DropdownComponent,
-        CardComponent,
-        CardHeaderComponent,
-        RowComponent,
-        ColComponent,
-        CardBodyComponent,
-        CardFooterComponent,
-        ModalComponent,
-        ModalHeaderComponent,
-        ModalToggleDirective,
-        ModalBodyComponent,
-        ModalFooterComponent,
-        TafelPaginationComponent,
-        FormsModule,
-        BgColorDirective,
-        ButtonCloseDirective,
-        ButtonDirective,
-        DropdownToggleDirective,
-        DropdownMenuDirective,
-        DropdownItemDirective,
-        DropdownDividerDirective,
-        FaIconComponent,
-        ReactiveFormsModule,
-        TabDirective,
-        TabPanelComponent,
-        TabsComponent,
-        TabsContentComponent,
-        TabsListComponent,
-        BirthdateAgePipe,
-        GenderLabelPipe,
-        FormatIssuerPipe,
-        FormattedCustomerNamePipe,
-        TafelIfDistributionActiveDirective
-    ]
+  selector: 'tafel-customer-detail',
+  templateUrl: 'customer-detail.component.html',
+  imports: [
+    CommonModule,
+    DropdownComponent,
+    CardComponent,
+    CardHeaderComponent,
+    RowComponent,
+    ColComponent,
+    CardBodyComponent,
+    CardFooterComponent,
+    ButtonDirective,
+    DropdownToggleDirective,
+    DropdownMenuDirective,
+    DropdownItemDirective,
+    DropdownDividerDirective,
+    FaIconComponent,
+    MatTabsModule,
+    BirthdateAgePipe,
+    GenderLabelPipe,
+    FormatIssuerPipe,
+    FormattedCustomerNamePipe,
+    TafelIfDistributionActiveDirective,
+    FormsModule
+  ]
 })
 export class CustomerDetailComponent {
   // Input signals
@@ -105,12 +83,6 @@ export class CustomerDetailComponent {
   // Other signals
   customerNotes = signal<CustomerNoteItem[]>([]);
   customerNotesPaginationData = signal<TafelPaginationData>(null);
-  newNoteText = signal<string>(null);
-  lockReasonText = signal<string>(null);
-  showDeleteCustomerModal = signal(false);
-  showAddNewNoteModal = signal(false);
-  showAllNotesModal = signal(false);
-  showLockCustomerModal = signal(false);
 
   // Ticket signals
   ticketNumber = signal<number>(null);
@@ -120,7 +92,8 @@ export class CustomerDetailComponent {
   private readonly customerNoteApiService = inject(CustomerNoteApiService);
   private readonly fileHelperService = inject(FileHelperService);
   private readonly router = inject(Router);
-  private readonly toastService = inject(ToastService);
+  private readonly toastr = inject(ToastrService);
+  private readonly dialog = inject(MatDialog);
   private readonly distributionTicketApiService = inject(DistributionTicketApiService);
   private readonly distributionApiService = inject(DistributionApiService);
   private readonly globalStateService = inject(GlobalStateService);
@@ -190,19 +163,20 @@ export class CustomerDetailComponent {
     return !moment(this.customerData().validUntil).startOf('day').isBefore(moment().startOf('day'));
   }
 
-  async deleteCustomer() {
-    /* eslint-disable @typescript-eslint/no-unused-vars */
-    const observer = {
-      next: async (response) => {
-        this.toastService.showToast({type: ToastType.SUCCESS, title: 'Kunde wurde gelöscht!'});
-        await this.router.navigate(['/kunden/suchen']);
-      },
-      error: error => {
-        this.showDeleteCustomerModal.set(false);
-        this.toastService.showToast({type: ToastType.ERROR, title: 'Löschen fehlgeschlagen!'});
-      },
-    };
-    await this.customerApiService.deleteCustomer(this.customerData().id).subscribe(observer);
+  openDeleteCustomerDialog() {
+    this.dialog.open(DeleteCustomerDialogComponent).afterClosed().subscribe(confirmed => {
+      if (confirmed) {
+        this.customerApiService.deleteCustomer(this.customerData().id).subscribe({
+          next: async () => {
+            this.toastr.success('Kunde wurde gelöscht!');
+            await this.router.navigate(['/kunden/suchen']);
+          },
+          error: () => {
+            this.toastr.error('Löschen fehlgeschlagen!');
+          },
+        });
+      }
+    });
   }
 
   prolongCustomer(countMonths: number) {
@@ -217,7 +191,7 @@ export class CustomerDetailComponent {
     });
   }
 
-  invalidateCustomer() {
+  disableCustomer() {
     const updatedCustomerData = {
       ...this.customerData(),
       validUntil: moment().subtract(1, 'day').endOf('day').toDate()
@@ -228,17 +202,18 @@ export class CustomerDetailComponent {
     });
   }
 
-  lockCustomer() {
-    const updatedCustomerData: CustomerData = {
-      ...this.customerData(),
-      locked: true,
-      lockReason: this.lockReasonText()
-    };
-
-    this.customerApiService.updateCustomer(updatedCustomerData).subscribe(customerData => {
-      this.customerData.set(customerData);
-      this.lockReasonText.set(null);
-      this.showLockCustomerModal.set(false);
+  openLockCustomerDialog() {
+    this.dialog.open(LockCustomerDialogComponent).afterClosed().subscribe(reason => {
+      if (reason) {
+        const updatedCustomerData: CustomerData = {
+          ...this.customerData(),
+          locked: true,
+          lockReason: reason
+        };
+        this.customerApiService.updateCustomer(updatedCustomerData).subscribe(customerData => {
+          this.customerData.set(customerData);
+        });
+      }
     });
   }
 
@@ -255,12 +230,29 @@ export class CustomerDetailComponent {
     });
   }
 
-  addNewNote() {
-    const sanitizedText = this.newNoteText().replace(/\n/g, '<br/>');
-    this.customerNoteApiService.createNewNote(this.customerData().id, sanitizedText).subscribe(newNoteItem => {
-      this.customerNotes.update(notes => [newNoteItem, ...notes]);
-      this.newNoteText.set(null);
-      this.showAddNewNoteModal.set(false);
+  openAddNoteDialog() {
+    this.dialog.open(AddNoteDialogComponent).afterClosed().subscribe(noteText => {
+      if (noteText) {
+        const sanitizedText = noteText.replace(/\n/g, '<br/>');
+        this.customerNoteApiService.createNewNote(this.customerData().id, sanitizedText).subscribe(newNoteItem => {
+          this.customerNotes.update(notes => [newNoteItem, ...notes]);
+          const currentResponse = this.customerNotesResponse();
+          this.customerNotesResponse.set({
+            ...currentResponse,
+            items: [newNoteItem, ...currentResponse.items],
+            totalCount: currentResponse.totalCount + 1
+          });
+        });
+      }
+    });
+  }
+
+  openAllNotesDialog() {
+    this.dialog.open(AllNotesDialogComponent, {
+      data: {
+        customerId: this.customerData().id,
+        initialNotesResponse: this.customerNotesResponse()
+      }
     });
   }
 
@@ -271,10 +263,10 @@ export class CustomerDetailComponent {
       next: () => {
         this.ticketNumber.set(ticketNumber);
         this.ticketNumberInput.set(null);
-        this.toastService.showToast({type: ToastType.SUCCESS, title: 'Ticket wurde zugewiesen!'});
+        this.toastr.success('Ticket wurde zugewiesen!');
       },
       error: () => {
-        this.toastService.showToast({type: ToastType.ERROR, title: 'Ticket-Zuweisung fehlgeschlagen!'});
+        this.toastr.error('Ticket-Zuweisung fehlgeschlagen!');
       }
     });
   }
@@ -284,10 +276,10 @@ export class CustomerDetailComponent {
     this.distributionTicketApiService.deleteCurrentTicketOfCustomer(customerId).subscribe({
       next: () => {
         this.ticketNumber.set(null);
-        this.toastService.showToast({type: ToastType.SUCCESS, title: 'Ticket wurde gelöscht!'});
+        this.toastr.success('Ticket wurde gelöscht!');
       },
       error: () => {
-        this.toastService.showToast({type: ToastType.ERROR, title: 'Ticket-Löschung fehlgeschlagen!'});
+        this.toastr.error('Ticket-Löschung fehlgeschlagen!');
       }
     });
   }
@@ -317,4 +309,5 @@ export class CustomerDetailComponent {
 
   protected readonly faUsers = faUsers;
   protected readonly faPlus = faPlus;
+  protected readonly Number = Number;
 }

@@ -51,11 +51,9 @@ describe('User Create', () => {
       cy.wait('@createUserRequest').its('response.statusCode').should('eq', 400);
 
       // 4. Assert the UI feedback
-      cy.byTestId('tafel-toast-body')
+      cy.get('.toast-message')
         .should('be.visible')
-        .within(() => {
-          cy.byTestId('message').should('have.text', 'Benutzer (Benutzername: e2etest) existiert bereits!');
-        });
+        .should('contain.text', 'Benutzer (Benutzername: e2etest) existiert bereits!');
     });
   });
 

@@ -12,7 +12,7 @@ import {
 import {CommonModule} from '@angular/common';
 import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
 import {DistributionApiService} from '../../../../api/distribution-api.service';
-import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
+import { ToastrService } from 'ngx-toastr';
 import {SelectSheltersComponent} from '../select-shelters/select-shelters.component';
 import {ShelterItem, ShelterListResponse} from '../../../../api/shelter-api.service';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
@@ -37,7 +37,7 @@ import {GlobalStateService} from '../../../../common/state/global-state.service'
 export class DistributionStatisticsInputComponent {
   private readonly fb = inject(FormBuilder);
   private readonly distributionApiService = inject(DistributionApiService);
-  private readonly toastService = inject(ToastService);
+  private readonly toastr = inject(ToastrService);
   private readonly globalStateService = inject(GlobalStateService);
 
   sheltersData = input<ShelterListResponse>();
@@ -107,10 +107,10 @@ export class DistributionStatisticsInputComponent {
   save() {
     const observer = {
       next: () => {
-        this.toastService.showToast({type: ToastType.SUCCESS, title: 'Statistik-Daten gespeichert!'});
+        this.toastr.success('Statistik-Daten gespeichert!');
       },
       error: error => {
-        this.toastService.showToast({type: ToastType.ERROR, title: 'Speichern fehlgeschlagen!'});
+        this.toastr.error('Speichern fehlgeschlagen!');
       },
     };
 

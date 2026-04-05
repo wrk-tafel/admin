@@ -1,16 +1,12 @@
 import {Component, inject, input, linkedSignal} from '@angular/core';
-import {
-  CustomerApiService,
-  CustomerData,
-  CustomerDuplicatesResponse
-} from '../../../../api/customer-api.service';
+import {CustomerApiService, CustomerData, CustomerDuplicatesResponse} from '../../../../api/customer-api.service';
 import {Router} from '@angular/router';
 import {
   TafelPaginationComponent,
   TafelPaginationData
 } from '../../../../common/components/tafel-pagination/tafel-pagination.component';
 import moment from 'moment';
-import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
+import {ToastrService} from 'ngx-toastr';
 import {
   ButtonDirective,
   CardBodyComponent,
@@ -25,21 +21,21 @@ import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {FormatAddressPipe} from '../../../../common/pipes/format-address.pipe';
 
 @Component({
-    selector: 'tafel-customer-duplicates',
-    templateUrl: 'customer-duplicates.component.html',
-    imports: [
-        CardComponent,
-        CardHeaderComponent,
-        CardBodyComponent,
-        RowComponent,
-        ColComponent,
-        TafelPaginationComponent,
-        DatePipe,
-        NgClass,
-        ButtonDirective,
-        FaIconComponent,
-        FormatAddressPipe
-    ]
+  selector: 'tafel-customer-duplicates',
+  templateUrl: 'customer-duplicates.component.html',
+  imports: [
+    CardComponent,
+    CardHeaderComponent,
+    CardBodyComponent,
+    RowComponent,
+    ColComponent,
+    TafelPaginationComponent,
+    DatePipe,
+    NgClass,
+    ButtonDirective,
+    FaIconComponent,
+    FormatAddressPipe
+  ]
 })
 export class CustomerDuplicatesComponent {
   // Signal input from resolver - read-only input
@@ -65,7 +61,7 @@ export class CustomerDuplicatesComponent {
 
   private readonly customerApiService = inject(CustomerApiService);
   private readonly router = inject(Router);
-  private readonly toastService = inject(ToastService);
+  private readonly toastr = inject(ToastrService);
 
   getDuplicates(page?: number) {
     this.customerApiService.getCustomerDuplicates(page)
@@ -86,11 +82,11 @@ export class CustomerDuplicatesComponent {
   deleteCustomer(customerId: number) {
     const observer = {
       next: () => {
-        this.toastService.showToast({type: ToastType.SUCCESS, title: 'Kunde wurde gelöscht!'});
+        this.toastr.success('Kunde wurde gelöscht!');
         this.getDuplicates(this.paginationData().currentPage);
       },
       error: error => {
-        this.toastService.showToast({type: ToastType.ERROR, title: 'Löschen fehlgeschlagen!'});
+        this.toastr.error('Löschen fehlgeschlagen!');
       }
     };
     this.customerApiService.deleteCustomer(customerId).subscribe(observer);
@@ -103,15 +99,11 @@ export class CustomerDuplicatesComponent {
 
     const observer = {
       next: () => {
-        this.toastService.showToast({
-          type: ToastType.SUCCESS,
-          title: 'Kunden wurden zusammengeführt!',
-          message: `${sourceCustomerIds.length} Kunde(n) wurden gelöscht.`
-        });
+        this.toastr.success(`${sourceCustomerIds.length} Kunde(n) wurden gelöscht.`, 'Kunden wurden zusammengeführt!');
         this.getDuplicates(1);
       },
       error: error => {
-        this.toastService.showToast({type: ToastType.ERROR, title: 'Zusammenführen der Kunden fehlgeschlagen!'});
+        this.toastr.error('Zusammenführen der Kunden fehlgeschlagen!');
       }
     };
     this.customerApiService.mergeCustomers(customer.id, sourceCustomerIds).subscribe(observer);
