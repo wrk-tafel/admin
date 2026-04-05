@@ -6,8 +6,7 @@ import { CreateEmployeeRequest, EmployeeApiService, EmployeeData, EmployeeListRe
 import { TafelEmployeeSearchCreateComponent } from './tafel-employee-search-create.component';
 import { of, throwError } from 'rxjs';
 import { ToastService, ToastType } from '../../../common/components/toasts/toast.service';
-// eslint-disable-next-line deprecation/deprecation
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 describe('TafelEmployeeSearchCreate', () => {
     let employeeApiService: MockedObject<EmployeeApiService>;
@@ -15,11 +14,8 @@ describe('TafelEmployeeSearchCreate', () => {
 
     beforeEach((() => {
         TestBed.configureTestingModule({
+            imports: [NoopAnimationsModule],
             providers: [
-                // Required for CoreUI components that use animations (e.g., ModalComponent with @showHide)
-                // Though deprecated in Angular 20.2, still needed until CoreUI migrates to CSS animations
-                // eslint-disable-next-line deprecation/deprecation
-                provideNoopAnimations(),
                 provideHttpClient(),
                 provideHttpClientTesting(),
                 {
@@ -98,8 +94,8 @@ describe('TafelEmployeeSearchCreate', () => {
 
         component.triggerSearch();
 
-        expect(component.showSelectEmployeeModal).toBe(true);
-        expect(component.showCreateEmployeeModal).toBe(false);
+        expect(component.showSelectEmployeeModal()).toBe(true);
+        expect(component.showCreateEmployeeModal()).toBe(false);
         expect(emitted).toBe(false);
     });
 
@@ -126,15 +122,15 @@ describe('TafelEmployeeSearchCreate', () => {
 
         component.triggerSearch();
 
-        expect(component.showCreateEmployeeModal).toBe(true);
-        expect(component.showSelectEmployeeModal).toBe(false);
+        expect(component.showCreateEmployeeModal()).toBe(true);
+        expect(component.showSelectEmployeeModal()).toBe(false);
         expect(emitted).toBe(false);
     });
 
     it('selected employee', () => {
         const fixture = TestBed.createComponent(TafelEmployeeSearchCreateComponent);
         const component = fixture.componentInstance;
-        component.showSelectEmployeeModal = true;
+        component.showSelectEmployeeModal.set(true);
 
         const mockEmployee: EmployeeData = { id: 1, personnelNumber: '00001', firstname: 'first 1', lastname: 'last 1' };
 
@@ -145,7 +141,7 @@ describe('TafelEmployeeSearchCreate', () => {
 
         component.selectEmployee(mockEmployee);
 
-        expect(component.showSelectEmployeeModal).toBe(false);
+        expect(component.showSelectEmployeeModal()).toBe(false);
         expect(emittedEmployee).toEqual(mockEmployee);
     });
 
@@ -164,7 +160,7 @@ describe('TafelEmployeeSearchCreate', () => {
         component.personnelNumber.setValue(mockEmployee.personnelNumber);
         component.firstname.setValue(mockEmployee.firstname);
         component.lastname.setValue(mockEmployee.lastname);
-        component.showCreateEmployeeModal = true;
+        component.showCreateEmployeeModal.set(true);
 
         let emittedEmployee: EmployeeData;
         component.selectedEmployee.subscribe((employee) => {
@@ -175,7 +171,7 @@ describe('TafelEmployeeSearchCreate', () => {
 
         expect(employeeApiService.saveEmployee).toHaveBeenCalledWith(mockCreateEmployeeRequest);
         expect(emittedEmployee).toEqual(mockEmployee);
-        expect(component.showCreateEmployeeModal).toBe(false);
+        expect(component.showCreateEmployeeModal()).toBe(false);
         expect(component.createEmployeeForm.value.personnelNumber).toBeNull();
         expect(component.createEmployeeForm.value.firstname).toBeNull();
         expect(component.createEmployeeForm.value.lastname).toBeNull();
@@ -195,7 +191,7 @@ describe('TafelEmployeeSearchCreate', () => {
         component.personnelNumber.setValue(mockCreateEmployeeRequest.personnelNumber);
         component.firstname.setValue(mockCreateEmployeeRequest.firstname);
         component.lastname.setValue(mockCreateEmployeeRequest.lastname);
-        component.showCreateEmployeeModal = true;
+        component.showCreateEmployeeModal.set(true);
 
         let emittedEmployee: EmployeeData;
         component.selectedEmployee.subscribe((employee) => {
@@ -206,7 +202,7 @@ describe('TafelEmployeeSearchCreate', () => {
 
         expect(employeeApiService.saveEmployee).toHaveBeenCalledWith(mockCreateEmployeeRequest);
         expect(emittedEmployee).toBeUndefined();
-        expect(component.showCreateEmployeeModal).toBe(true);
+        expect(component.showCreateEmployeeModal()).toBe(true);
         expect(toastService.showToast).toHaveBeenCalledWith({
             type: ToastType.ERROR,
             title: 'Fehler beim Speichern des Mitarbeiters'

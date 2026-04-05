@@ -1,5 +1,4 @@
 import {
-  ChangeDetectorRef,
   Component,
   computed,
   DestroyRef,
@@ -80,7 +79,6 @@ export class CheckinComponent {
   private readonly scannerApiService = inject(ScannerApiService);
   private readonly sseService = inject(SseService);
   private readonly router = inject(Router);
-  private readonly changeDetectorRef = inject(ChangeDetectorRef);
   private readonly toastService = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly VALID_UNTIL_WARNLIMIT_WEEKS = 8;
@@ -193,10 +191,13 @@ export class CheckinComponent {
     return this.scannerReadyState ? 'success' : 'danger';
   }
 
+  readonly currentDistribution = this.globalStateService.getCurrentDistribution();
+  readonly connectionState = this.globalStateService.getConnectionState();
+
   constructor() {
-    // Redirect to overview if no distribution is active
+    // Redirect to overview if no distribution is active (only after SSE connection is established)
     effect(() => {
-      if (this.globalStateService.getCurrentDistribution()() === null) {
+      if (this.connectionState() && this.currentDistribution() === null) {
         this.router.navigate(['uebersicht']);
       }
     });
@@ -257,11 +258,9 @@ export class CheckinComponent {
 
       if (customer.locked) {
         this.customerState.set(CustomerState.LOCKED);
-        this.changeDetectorRef.detectChanges();
         this.cancelButtonRef()?.nativeElement.focus();
       } else if (validUntil.isBefore(now)) {
         this.customerState.set(CustomerState.INVALID);
-        this.changeDetectorRef.detectChanges();
         this.cancelButtonRef()?.nativeElement.focus();
       } else {
         const warnLimit = now.add(this.VALID_UNTIL_WARNLIMIT_WEEKS, 'weeks');
@@ -271,7 +270,6 @@ export class CheckinComponent {
           this.customerState.set(CustomerState.VALID);
         }
 
-        this.changeDetectorRef.detectChanges();
         this.ticketNumberInputRef()?.nativeElement.focus();
       }
     } else {

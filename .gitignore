@@ -18,4 +18,6 @@ build/
 /admin.iml
 /_http-calls/http-client.private.env.json
 /frontend/src/main/webapp/cypress/downloads/
-/.claude
+/.claude/*
+!/.claude/skills/
+/.kotlin/

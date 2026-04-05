@@ -7,7 +7,7 @@ import { of } from 'rxjs';
 import { CustomerApiService, CustomerData, Gender } from '../../../../api/customer-api.service';
 import { CustomerEditComponent } from './customer-edit.component';
 import { BgColorDirective, CardModule, ColComponent, InputGroupComponent, ModalModule, RowComponent } from '@coreui/angular';
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 
@@ -83,10 +83,10 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
                 InputGroupComponent,
                 RowComponent,
                 ColComponent,
-                BgColorDirective
+                BgColorDirective,
+                NoopAnimationsModule
             ],
             providers: [
-                provideNoopAnimations(),
                 provideHttpClient(),
                 provideHttpClientTesting(),
                 {
@@ -129,7 +129,6 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
         fixture.detectChanges();
 
         expect(component.editMode()).toBe(true);
-        expect(component.customerValidForSave()).toBe(false);
     });
 
     it('existing customer saved successfully', () => {
@@ -149,10 +148,8 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
         Object.defineProperty(component, 'customerFormComponent', {
             get: () => () => customerFormComponentMock
         });
-        component.customerValidForSave.set(true);
         fixture.detectChanges();
         component.customerUpdated.set(testCustomerData);
-
         component.save();
 
         expect(component.isSaveEnabled()).toBe(true);
@@ -168,7 +165,7 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
         expect(router.navigate).toHaveBeenCalledWith(['/kunden/detail', testCustomerData.id]);
     });
 
-    it('existing customer saved successfully even when not entitled', () => {
+    it('existing customer saved successfully even when validation shows not entitled', () => {
         const customerFormComponentMock = {
             markAllAsTouched: vi.fn().mockName("CustomerFormComponent.markAllAsTouched"),
             valid: vi.fn().mockName("CustomerFormComponent.valid")
@@ -185,7 +182,6 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
         Object.defineProperty(component, 'customerFormComponent', {
             get: () => () => customerFormComponentMock
         });
-        component.customerValidForSave.set(false);
         fixture.detectChanges();
         component.customerUpdated.set(testCustomerData);
 

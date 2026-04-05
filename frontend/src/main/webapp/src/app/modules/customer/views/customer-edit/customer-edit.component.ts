@@ -40,12 +40,14 @@ export class CustomerEditComponent {
   customerUpdated = linkedSignal<CustomerData>(() => this.customerData());
   // editMode is derived from input customerData; use computed (read-only signal)
   editMode = computed(() => !!this.customerData());
-  customerValidForSave = signal(false);
-  validationResult: ValidateCustomerResponse;
+  readonly validationResult = signal<ValidateCustomerResponse>(null);
   validationResultColor: Colors;
   showValidationResultModal = signal(false);
   customerFormComponent = viewChild<CustomerFormComponent>(CustomerFormComponent);
-  readonly isSaveEnabled = computed(() => this.customerFormComponent().valid() && (this.customerValidForSave() || this.editMode()));
+  readonly isSaveEnabled = computed(() =>
+    this.customerFormComponent() != null
+    && this.customerFormComponent().valid()
+    && (this.editMode() || this.validationResult() != null));
 
   private readonly customerApiService = inject(CustomerApiService);
   private readonly router = inject(Router);
@@ -64,7 +66,6 @@ export class CustomerEditComponent {
 
   customerDataUpdated(event: CustomerData) {
     this.customerUpdated.set(event);
-    this.customerValidForSave.set(false);
   }
 
   validate() {
@@ -75,10 +76,9 @@ export class CustomerEditComponent {
       this.toastService.showToast({type: ToastType.ERROR, title: 'Bitte Eingaben überprüfen!'});
     } else {
       this.customerApiService.validate(this.customerUpdated()).subscribe((result) => {
-        this.validationResult = result;
+        this.validationResult.set(result);
         this.validationResultColor = result.valid ? 'success' : 'danger';
 
-        this.customerValidForSave.set(result.valid);
         this.showValidationResultModal.set(true);
       });
     }

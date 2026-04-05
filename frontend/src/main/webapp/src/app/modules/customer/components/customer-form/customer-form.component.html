@@ -319,6 +319,7 @@
                           <c-input-group>
                             <select testid="genderInput"
                                     (change)="onPersonGenderChange(i, $event)"
+                                    (blur)="onPersonGenderBlur(i)"
                                     cSelect class="form-control"
                                     [ngClass]="{'is-invalid': shouldShowErrors(customerForm.additionalPersons[i].gender()), 'is-valid': customerForm.additionalPersons[i].gender().valid() && (customerForm.additionalPersons[i].gender().dirty() || customerForm.additionalPersons[i].gender().touched())}">
                               <option value="" [selected]="!customerForm.additionalPersons[i].gender().value()">Bitte wählen...</option>
@@ -344,6 +345,7 @@
                           <c-input-group>
                             <select testid="countryInput"
                                     (change)="onPersonCountryChange(i, $event)"
+                                    (blur)="onPersonCountryBlur(i)"
                                     cSelect class="form-control"
                                     [ngClass]="{'is-invalid': shouldShowErrors(customerForm.additionalPersons[i].country()), 'is-valid': customerForm.additionalPersons[i].country().valid() && (customerForm.additionalPersons[i].country().dirty() || customerForm.additionalPersons[i].country().touched())}">
                               <option value="" [selected]="!customerForm.additionalPersons[i].country().value()">Bitte wählen...</option>

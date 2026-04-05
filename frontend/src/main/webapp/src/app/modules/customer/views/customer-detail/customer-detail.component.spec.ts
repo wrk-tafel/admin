@@ -24,7 +24,7 @@ import {
   RowComponent,
   TabsModule
 } from '@coreui/angular';
-import {provideNoopAnimations} from '@angular/platform-browser/animations';
+import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
 import {TafelPaginationData} from '../../../../common/components/tafel-pagination/tafel-pagination.component';
 import {provideRouter} from '@angular/router';
@@ -170,10 +170,10 @@ describe('CustomerDetailComponent', () => {
         NavItemComponent,
         CardModule,
         ColComponent,
-        RowComponent
+        RowComponent,
+        NoopAnimationsModule
       ],
       providers: [
-        provideNoopAnimations(),
         {
           provide: LOCALE_ID,
           useValue: 'de-AT'

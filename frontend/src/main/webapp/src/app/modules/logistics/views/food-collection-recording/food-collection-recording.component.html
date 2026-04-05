@@ -20,7 +20,7 @@
         </c-input-group>
       </c-col>
     </c-row>
-    @if (selectedRouteData) {
+    @if (selectedRouteData()) {
       <hr>
       <c-tabs [activeItemKey]="0">
         <c-tabs-list variant="underline-border">
@@ -34,17 +34,17 @@
         <c-tabs-content>
           <c-tab-panel [itemKey]="0" class="p-3">
             <tafel-food-collection-recording-basedata [carList]="carList()"
-                                                      [selectedRouteData]="selectedRouteData">
+                                                      [selectedRouteData]="selectedRouteData()">
             </tafel-food-collection-recording-basedata>
           </c-tab-panel>
           <c-tab-panel [itemKey]="1">
             <div class="d-none d-md-block">
               <tafel-food-collection-recording-items-desktop [foodCategories]="foodCategories()"
-                                                             [selectedRouteData]="selectedRouteData"></tafel-food-collection-recording-items-desktop>
+                                                             [selectedRouteData]="selectedRouteData()"></tafel-food-collection-recording-items-desktop>
             </div>
             <div class="d-block d-md-none">
               <tafel-food-collection-recording-items-responsive [foodCategories]="foodCategories()"
-                                                                [selectedRouteData]="selectedRouteData"></tafel-food-collection-recording-items-responsive>
+                                                                [selectedRouteData]="selectedRouteData()"></tafel-food-collection-recording-items-responsive>
             </div>
           </c-tab-panel>
         </c-tabs-content>

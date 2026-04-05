@@ -1,10 +1,10 @@
 <button cButton [attr.testid]="testIdPrefix() + '-employee-search-button'" (click)="triggerSearch()">
   <fa-icon [icon]="faSearch"/>
 </button>
-<c-modal id="createEmployeeModal" [attr.testid]="testIdPrefix() + '-search-create-modal'" [(visible)]="showCreateEmployeeModal">
+<c-modal id="createEmployeeModal" [attr.testid]="testIdPrefix() + '-search-create-modal'" [visible]="showCreateEmployeeModal()" (visibleChange)="showCreateEmployeeModal.set($event)">
   <c-modal-header cBgColor="info">
     <h4 class="text-white">Mitarbeiter nicht gefunden</h4>
-    <button cButtonClose (click)="showCreateEmployeeModal = false"></button>
+    <button cButtonClose (click)="showCreateEmployeeModal.set(false)"></button>
   </c-modal-header>
   <c-modal-body>
     <form [formGroup]="createEmployeeForm" autocomplete="off">
@@ -74,15 +74,15 @@
   </c-modal-body>
   <c-modal-footer>
     <button [attr.testid]="testIdPrefix() + '-save-button'" cButton (click)="saveNewEmployee()" [disabled]="this.createEmployeeForm.invalid">Speichern</button>
-    <button [attr.testid]="testIdPrefix() + '-cancel-button'" cButton color="secondary" (click)="showCreateEmployeeModal = false">
+    <button [attr.testid]="testIdPrefix() + '-cancel-button'" cButton color="secondary" (click)="showCreateEmployeeModal.set(false)">
       Abbrechen
     </button>
   </c-modal-footer>
 </c-modal>
-<c-modal id="selectEmployeeModal" [attr.testid]="testIdPrefix() + '-select-employee-modal'" [(visible)]="showSelectEmployeeModal">
+<c-modal id="selectEmployeeModal" [attr.testid]="testIdPrefix() + '-select-employee-modal'" [visible]="showSelectEmployeeModal()" (visibleChange)="showSelectEmployeeModal.set($event)">
   <c-modal-header cBgColor="info">
     <h4 class="text-white">Mitarbeiter auswählen</h4>
-    <button cButtonClose (click)="showSelectEmployeeModal = false"></button>
+    <button cButtonClose (click)="showSelectEmployeeModal.set(false)"></button>
   </c-modal-header>
   @if (employeeSearchResponse) {
     <c-modal-body>
@@ -113,7 +113,7 @@
     </c-modal-body>
   }
   <c-modal-footer>
-    <button [attr.testid]="testIdPrefix() + '-cancel-button'" cButton color="secondary" (click)="showSelectEmployeeModal = false">
+    <button [attr.testid]="testIdPrefix() + '-cancel-button'" cButton color="secondary" (click)="showSelectEmployeeModal.set(false)">
       Abbrechen
     </button>
   </c-modal-footer>

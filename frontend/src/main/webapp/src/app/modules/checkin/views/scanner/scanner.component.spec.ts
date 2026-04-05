@@ -65,7 +65,7 @@ describe('ScannerComponent', () => {
         fixture.detectChanges();
         await fixture.whenStable();
 
-        expect(component.scannerId).toBe(scannerRegistration.scannerId);
+        expect(component.scannerId()).toBe(scannerRegistration.scannerId);
 
         expect(component.availableCameras).toEqual(testCameraList);
         expect(component.currentCamera).toEqual(testCamera2);
@@ -129,7 +129,7 @@ describe('ScannerComponent', () => {
         const scannerId = 111;
         const testValue = 12345;
         component.lastScanResult = null;
-        component.scannerId = scannerId;
+        component.scannerId.set(scannerId);
 
         component.qrCodeReaderSuccessCallback(String(testValue), undefined);
 
@@ -145,7 +145,7 @@ describe('ScannerComponent', () => {
         scannerApiService.sendScanResult.mockReturnValue(EMPTY);
 
         component.lastScanResult = 67890;
-        component.scannerId = scannerId;
+        component.scannerId.set(scannerId);
 
         component.qrCodeReaderSuccessCallback(String(testResult), undefined);
 

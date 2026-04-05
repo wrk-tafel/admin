@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, effect, inject, model} from '@angular/core';
+import {Component, effect, inject, model, signal} from '@angular/core';
 import {RouteApiService, RouteData, RouteList, Shop} from '../../../../api/route-api.service';
 
 import {
@@ -67,14 +67,13 @@ export class FoodCollectionRecordingComponent {
   foodCategories = model.required<FoodCategory[]>();
 
   selectedRoute?: RouteData;
-  selectedRouteData?: SelectedRouteData;
+  selectedRouteData = signal<SelectedRouteData>(undefined);
 
   private readonly globalStateService = inject(GlobalStateService);
   private readonly foodCollectionsApiService = inject(FoodCollectionsApiService);
   private readonly routeApiService = inject(RouteApiService);
   private readonly toastService = inject(ToastService);
   private readonly router = inject(Router);
-  private readonly cdr = inject(ChangeDetectorRef);
 
   constructor() {
     // Redirect to overview if no distribution is active
@@ -91,12 +90,11 @@ export class FoodCollectionRecordingComponent {
       shopsOfRouteData: this.routeApiService.getShopsOfRoute(route.id)
     }).subscribe({
       next: ({foodCollectionData, shopsOfRouteData}) => {
-        this.selectedRouteData = {
+        this.selectedRouteData.set({
           route: route,
           shops: shopsOfRouteData.shops,
           foodCollectionData: foodCollectionData
-        };
-        this.cdr.detectChanges();
+        });
       },
       error: (error: any) => {
         this.toastService.showToast({type: ToastType.ERROR, title: 'Fehler beim Laden der Daten!'});

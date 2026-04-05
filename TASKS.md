@@ -3,16 +3,12 @@
 # Prio 1
 * food recording: sonstige kisten (add function to add a description) - how?
 
-* Last one in customers: validation country/gender of addPersons (only) doesnt show validation result/border
 * Improve performance of statistics page (issue in prod only)
 
 * Add overview "Customers above limit"
 * New permission : ADMIN, Duplicates / Settings / Customers above limit
-* Create/edit customers when above limit (show warning, but allow to create/edit)
 
-* Replace cdr.detectChanges() with signals to show/hide modals
 * Add file upload / documents (e.g. for proof of income, school enrollement, ID, etc.) to customer details
-* Bug: Mails aren't sent sometimes
 * Bug: Customer in CustomerList(PDF) still visible after deletion of ticketNumber! - caching?
 * feat: Overviewpage: prolonged and new customers (all actions) of last distribution (selection for distribution?)
 

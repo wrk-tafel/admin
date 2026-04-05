@@ -113,14 +113,14 @@ Cypress.Commands.add('createDummyCustomer', (): Cypress.Chainable<Cypress.Respon
         name: 'Österreich'
       },
       income: 100,
-      incomeDue: moment().toDate(),
+      incomeDue: moment().add(30, 'days').toDate(),
       address: {
         street: 'street-' + randomNumber,
         houseNumber: '1A',
         city: 'city-' + randomNumber,
         postalCode: 1234
       },
-      validUntil: moment().toDate()
+      validUntil: moment().add(1, 'year').toDate()
     };
     return cy.createCustomer(data);
   });
