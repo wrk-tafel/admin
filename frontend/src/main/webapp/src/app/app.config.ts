@@ -1,4 +1,5 @@
 import {APP_INITIALIZER, ApplicationConfig, DEFAULT_CURRENCY_CODE, importProvidersFrom, LOCALE_ID} from '@angular/core';
+import {provideToastr} from 'ngx-toastr';
 import {provideAnimationsAsync} from '@angular/platform-browser/animations/async';
 import {
   provideRouter,
@@ -18,9 +19,24 @@ import {HashLocationStrategy, LocationStrategy} from '@angular/common';
 import {errorHandlerInterceptor} from './common/http/errorhandler-interceptor.service';
 import {apiPathInterceptor} from './common/http/apipath-interceptor.service';
 import {AuthenticationService} from './common/security/authentication.service';
+import {MAT_DIALOG_DEFAULT_OPTIONS, MatDialogConfig} from '@angular/material/dialog';
+
+const DEFAULT_DIALOG_CONFIG: MatDialogConfig = {
+  position: {top: '16px'}
+};
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideToastr({
+      timeOut: 5000,
+      closeButton: true,
+      preventDuplicates: true,
+      includeTitleDuplicates: true,
+      resetTimeoutOnDuplicate: true,
+      maxOpened: 3,
+      autoDismiss: true,
+      progressBar: true,
+    }),
     provideHttpClient(
       withInterceptors([
         apiPathInterceptor,
@@ -67,6 +83,10 @@ export const appConfig: ApplicationConfig = {
       useFactory: (authService: AuthenticationService) => () => authService.loadUserInfo(),
       deps: [AuthenticationService],
       multi: true
+    },
+    {
+      provide: MAT_DIALOG_DEFAULT_OPTIONS,
+      useValue: DEFAULT_DIALOG_CONFIG
     }
   ]
 };

@@ -7,7 +7,7 @@ import { CardModule, ColComponent, RowComponent } from '@coreui/angular';
 import { UserApiService, UserData } from '../../../../api/user-api.service';
 import { By } from '@angular/platform-browser';
 import { of, throwError } from 'rxjs';
-import { ToastService, ToastType } from '../../../../common/components/toasts/toast.service';
+import { ToastrService } from 'ngx-toastr';
 
 describe('UserDetailComponent', () => {
     const mockUser: UserData = {
@@ -26,7 +26,7 @@ describe('UserDetailComponent', () => {
 
     let userApiService: MockedObject<UserApiService>;
     let router: MockedObject<Router>;
-    let toastService: MockedObject<ToastService>;
+    let toastr: MockedObject<ToastrService>;
 
     beforeEach(() => {
         TestBed.configureTestingModule({
@@ -45,9 +45,10 @@ describe('UserDetailComponent', () => {
                     }
                 },
                 {
-                    provide: ToastService,
+                    provide: ToastrService,
                     useValue: {
-                        showToast: vi.fn().mockName("ToastService.showToast")
+                        success: vi.fn().mockName("ToastrService.success"),
+                        error: vi.fn().mockName("ToastrService.error")
                     }
                 },
                 {
@@ -71,7 +72,7 @@ describe('UserDetailComponent', () => {
 
         userApiService = TestBed.inject(UserApiService) as MockedObject<UserApiService>;
         router = TestBed.inject(Router) as MockedObject<Router>;
-        toastService = TestBed.inject(ToastService) as MockedObject<ToastService>;
+        toastr = TestBed.inject(ToastrService) as MockedObject<ToastrService>;
     });
 
     it('component can be created', () => {
@@ -134,7 +135,7 @@ describe('UserDetailComponent', () => {
 
         expect(userApiService.deleteUser).toHaveBeenCalledWith(mockUser.id);
         expect(router.navigate).toHaveBeenCalledWith(['/benutzer/suchen']);
-        expect(toastService.showToast).toHaveBeenCalledWith({ type: ToastType.SUCCESS, title: 'Benutzer wurde gelöscht!' });
+        expect(toastr.success).toHaveBeenCalledWith('Benutzer wurde gelöscht!');
     });
 
     it('delete user failed', () => {
@@ -150,7 +151,7 @@ describe('UserDetailComponent', () => {
 
         expect(userApiService.deleteUser).toHaveBeenCalledWith(mockUser.id);
         expect(router.navigate).not.toHaveBeenCalled();
-        expect(toastService.showToast).toHaveBeenCalledWith({ type: ToastType.ERROR, title: 'Löschen fehlgeschlagen!' });
+        expect(toastr.error).toHaveBeenCalledWith('Löschen fehlgeschlagen!');
     });
 
     it('editUser should navigate properly', () => {

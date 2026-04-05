@@ -6,10 +6,12 @@ import moment from 'moment';
 import { of } from 'rxjs';
 import { CustomerApiService, CustomerData, Gender } from '../../../../api/customer-api.service';
 import { CustomerEditComponent } from './customer-edit.component';
-import { BgColorDirective, CardModule, ColComponent, InputGroupComponent, ModalModule, RowComponent } from '@coreui/angular';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { BgColorDirective, CardModule, ColComponent, InputGroupComponent, RowComponent } from '@coreui/angular';
+import { MatDialog } from '@angular/material/dialog';
+import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { ToastrService } from 'ngx-toastr';
 
 describe('CustomerEditComponent - Editing an existing customer', () => {
     const testCountry = {
@@ -78,17 +80,20 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
         TestBed.configureTestingModule({
             imports: [
                 ReactiveFormsModule,
-                ModalModule,
                 CardModule,
                 InputGroupComponent,
                 RowComponent,
                 ColComponent,
-                BgColorDirective,
-                NoopAnimationsModule
+                BgColorDirective
             ],
             providers: [
+                provideNoopAnimations(),
                 provideHttpClient(),
                 provideHttpClientTesting(),
+                {
+                    provide: MatDialog,
+                    useValue: {open: vi.fn()}
+                },
                 {
                     provide: CustomerApiService,
                     useValue: {
@@ -113,7 +118,8 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
                             }
                         }
                     }
-                }
+                },
+                { provide: ToastrService, useValue: { error: vi.fn(), info: vi.fn(), success: vi.fn(), warning: vi.fn(), show: vi.fn() } }
             ]
         }).compileComponents();
 

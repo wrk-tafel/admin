@@ -1,0 +1,26 @@
+<tafel-dialog type="info" title="Alle Notizen">
+  <div tafel-dialog-content>
+    @if (paginationData()) {
+      <tafel-pagination class="d-none d-sm-block" align="center" [paginationData]="paginationData()" (pageChanged)="getCustomerNotes($event)"></tafel-pagination>
+      <tafel-pagination class="d-block d-sm-none" align="center" size="sm" [paginationData]="paginationData()" (pageChanged)="getCustomerNotes($event)"></tafel-pagination>
+    }
+    @for (noteItem of customerNotes(); track noteItem.timestamp; let i = $index) {
+      @if (i > 0) {
+        <hr>
+      }
+      <div class="mb-2">
+        <div class="fw-bold" testid="note-title">
+          {{noteItem.timestamp | date : 'dd.MM.yyyy HH:mm' }}&nbsp;{{noteItem.author}}
+        </div>
+        <div>{{noteItem.note}}</div>
+      </div>
+    }
+    @if (paginationData()) {
+      <tafel-pagination class="d-none d-sm-block mt-4" align="center" [paginationData]="paginationData()" (pageChanged)="getCustomerNotes($event)"></tafel-pagination>
+      <tafel-pagination class="d-block d-sm-none mt-4" align="center" size="sm" [paginationData]="paginationData()" (pageChanged)="getCustomerNotes($event)"></tafel-pagination>
+    }
+  </div>
+  <div tafel-dialog-actions>
+    <button testid="cancelButton" cButton (click)="dialogRef.close()">OK</button>
+  </div>
+</tafel-dialog>

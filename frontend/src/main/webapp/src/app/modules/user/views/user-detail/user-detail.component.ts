@@ -1,7 +1,7 @@
 import {Component, inject, input, linkedSignal} from '@angular/core';
 import {UserApiService, UserData} from '../../../../api/user-api.service';
 import {Router} from '@angular/router';
-import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
+import { ToastrService } from 'ngx-toastr';
 import {
   ButtonDirective,
   CardBodyComponent,
@@ -41,7 +41,7 @@ export class UserDetailComponent {
 
   private readonly userApiService = inject(UserApiService);
   private readonly router = inject(Router);
-  private readonly toastService = inject(ToastService);
+  private readonly toastr = inject(ToastrService);
 
   // Writable signal that resets from input, but can be locally updated after API calls
   readonly currentUserData = linkedSignal(() => this.userData());
@@ -57,11 +57,11 @@ export class UserDetailComponent {
   deleteUser() {
     const observer = {
       next: (_: any) => {
-        this.toastService.showToast({type: ToastType.SUCCESS, title: 'Benutzer wurde gelöscht!'});
+        this.toastr.success('Benutzer wurde gelöscht!');
         this.router.navigate(['/benutzer/suchen']);
       },
       error: (_: any) => {
-        this.toastService.showToast({type: ToastType.ERROR, title: 'Löschen fehlgeschlagen!'});
+        this.toastr.error('Löschen fehlgeschlagen!');
       },
     };
     this.userApiService.deleteUser(this.currentUserData().id).subscribe(observer);

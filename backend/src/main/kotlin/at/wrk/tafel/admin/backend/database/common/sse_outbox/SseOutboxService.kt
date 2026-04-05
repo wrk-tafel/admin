@@ -123,16 +123,14 @@ class SseOutboxService(
                 event = event.data(data)
             }
             sseEmitter.send(event)
-        } catch (e: IllegalStateException) {
-            // Emitter already completed - callback cleanup may not have finished yet
-            logger.warn("Attempted to send to already completed SSE emitter", e)
         } catch (e: IOException) {
-            // Broken pipe, client disconnected
-            logger.warn("SSE client disconnected", e)
-            sseEmitter.complete()
-        } catch (e: Exception) {
-            logger.warn("Unexpected error during SSE send", e)
-            sseEmitter.completeWithError(e)
+            // Broken pipe / client disconnected — expected when clients navigate away
+            // or close their connection. Don't try to complete the emitter; it's
+            // either already completed by cleanup callbacks or in an error state.
+            logger.debug("SSE client disconnected: {}", e.message)
+        } catch (e: IllegalStateException) {
+            // Emitter already completed — cleanup may not have finished yet
+            logger.debug("Attempted to send to already completed SSE emitter")
         }
     }
 

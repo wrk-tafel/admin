@@ -2,15 +2,15 @@ import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { CreateEmployeeRequest, EmployeeApiService, EmployeeData, EmployeeListResponse } from '../../../api/employee-api.service';
+import { EmployeeApiService, EmployeeData, EmployeeListResponse } from '../../../api/employee-api.service';
 import { TafelEmployeeSearchCreateComponent } from './tafel-employee-search-create.component';
-import { of, throwError } from 'rxjs';
-import { ToastService, ToastType } from '../../../common/components/toasts/toast.service';
+import { of } from 'rxjs';
+import { MatDialog } from '@angular/material/dialog';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 describe('TafelEmployeeSearchCreate', () => {
     let employeeApiService: MockedObject<EmployeeApiService>;
-    let toastService: MockedObject<ToastService>;
+    let matDialog: MockedObject<MatDialog>;
 
     beforeEach((() => {
         TestBed.configureTestingModule({
@@ -26,16 +26,16 @@ describe('TafelEmployeeSearchCreate', () => {
                     }
                 },
                 {
-                    provide: ToastService,
+                    provide: MatDialog,
                     useValue: {
-                        showToast: vi.fn().mockName("ToastService.showToast")
+                        open: vi.fn().mockName("MatDialog.open")
                     }
                 }
             ]
         }).compileComponents();
 
         employeeApiService = TestBed.inject(EmployeeApiService) as MockedObject<EmployeeApiService>;
-        toastService = TestBed.inject(ToastService) as MockedObject<ToastService>;
+        matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
     }));
 
     const mockEmployeeResponse: EmployeeListResponse = {
@@ -78,7 +78,10 @@ describe('TafelEmployeeSearchCreate', () => {
         expect(emittedEmployee).toEqual(mockEmployeeResponse.items[0]);
     });
 
-    it('multiple employees found', () => {
+    it('multiple employees found - opens select employee dialog', () => {
+        const mockEmployee: EmployeeData = { id: 1, personnelNumber: '00001', firstname: 'first 1', lastname: 'last 1' };
+        matDialog.open.mockReturnValue({ afterClosed: () => of(mockEmployee) } as any);
+
         const fixture = TestBed.createComponent(TafelEmployeeSearchCreateComponent);
         const component = fixture.componentInstance;
         const componentRef = fixture.componentRef;
@@ -87,19 +90,50 @@ describe('TafelEmployeeSearchCreate', () => {
 
         employeeApiService.findEmployees.mockReturnValueOnce(of(mockEmployeeResponse));
 
-        let emitted = false;
+        let emittedEmployee: EmployeeData;
         component.selectedEmployee.subscribe((employee) => {
-            emitted = true;
+            emittedEmployee = employee;
         });
 
         component.triggerSearch();
 
-        expect(component.showSelectEmployeeModal()).toBe(true);
-        expect(component.showCreateEmployeeModal()).toBe(false);
-        expect(emitted).toBe(false);
+        expect(matDialog.open).toHaveBeenCalled();
+        expect(emittedEmployee).toEqual(mockEmployee);
     });
 
-    it('employee not found', () => {
+    it('employee not found - opens create employee dialog', () => {
+        const mockEmployee: EmployeeData = { id: 1, personnelNumber: '00001', firstname: 'first 1', lastname: 'last 1' };
+        matDialog.open.mockReturnValue({ afterClosed: () => of(mockEmployee) } as any);
+
+        const fixture = TestBed.createComponent(TafelEmployeeSearchCreateComponent);
+        const component = fixture.componentInstance;
+        const componentRef = fixture.componentRef;
+        const personnelNumber = '00001';
+        componentRef.setInput('searchInput', personnelNumber);
+
+        const emptyResponse: EmployeeListResponse = {
+            items: [],
+            currentPage: 1,
+            pageSize: 1,
+            totalCount: 1,
+            totalPages: 1
+        };
+        employeeApiService.findEmployees.mockReturnValueOnce(of(emptyResponse));
+
+        let emittedEmployee: EmployeeData;
+        component.selectedEmployee.subscribe((employee) => {
+            emittedEmployee = employee;
+        });
+
+        component.triggerSearch();
+
+        expect(matDialog.open).toHaveBeenCalled();
+        expect(emittedEmployee).toEqual(mockEmployee);
+    });
+
+    it('employee not found - dialog dismissed without creating', () => {
+        matDialog.open.mockReturnValue({ afterClosed: () => of(undefined) } as any);
+
         const fixture = TestBed.createComponent(TafelEmployeeSearchCreateComponent);
         const component = fixture.componentInstance;
         const componentRef = fixture.componentRef;
@@ -116,101 +150,14 @@ describe('TafelEmployeeSearchCreate', () => {
         employeeApiService.findEmployees.mockReturnValueOnce(of(emptyResponse));
 
         let emitted = false;
-        component.selectedEmployee.subscribe((employee) => {
+        component.selectedEmployee.subscribe(() => {
             emitted = true;
         });
 
         component.triggerSearch();
 
-        expect(component.showCreateEmployeeModal()).toBe(true);
-        expect(component.showSelectEmployeeModal()).toBe(false);
+        expect(matDialog.open).toHaveBeenCalled();
         expect(emitted).toBe(false);
-    });
-
-    it('selected employee', () => {
-        const fixture = TestBed.createComponent(TafelEmployeeSearchCreateComponent);
-        const component = fixture.componentInstance;
-        component.showSelectEmployeeModal.set(true);
-
-        const mockEmployee: EmployeeData = { id: 1, personnelNumber: '00001', firstname: 'first 1', lastname: 'last 1' };
-
-        let emittedEmployee: EmployeeData;
-        component.selectedEmployee.subscribe((employee) => {
-            emittedEmployee = employee;
-        });
-
-        component.selectEmployee(mockEmployee);
-
-        expect(component.showSelectEmployeeModal()).toBe(false);
-        expect(emittedEmployee).toEqual(mockEmployee);
-    });
-
-    it('save new employee successfully', () => {
-        const fixture = TestBed.createComponent(TafelEmployeeSearchCreateComponent);
-        const component = fixture.componentInstance;
-
-        const mockCreateEmployeeRequest: CreateEmployeeRequest = {
-            personnelNumber: '00001',
-            firstname: 'first 1',
-            lastname: 'last 1'
-        };
-        const mockEmployee: EmployeeData = { id: 1, personnelNumber: '00001', firstname: 'first 1', lastname: 'last 1' };
-        employeeApiService.saveEmployee.mockReturnValue(of(mockEmployee));
-
-        component.personnelNumber.setValue(mockEmployee.personnelNumber);
-        component.firstname.setValue(mockEmployee.firstname);
-        component.lastname.setValue(mockEmployee.lastname);
-        component.showCreateEmployeeModal.set(true);
-
-        let emittedEmployee: EmployeeData;
-        component.selectedEmployee.subscribe((employee) => {
-            emittedEmployee = employee;
-        });
-
-        component.saveNewEmployee();
-
-        expect(employeeApiService.saveEmployee).toHaveBeenCalledWith(mockCreateEmployeeRequest);
-        expect(emittedEmployee).toEqual(mockEmployee);
-        expect(component.showCreateEmployeeModal()).toBe(false);
-        expect(component.createEmployeeForm.value.personnelNumber).toBeNull();
-        expect(component.createEmployeeForm.value.firstname).toBeNull();
-        expect(component.createEmployeeForm.value.lastname).toBeNull();
-    });
-
-    it('save new employee with error shows toast and keeps modal open', () => {
-        const fixture = TestBed.createComponent(TafelEmployeeSearchCreateComponent);
-        const component = fixture.componentInstance;
-
-        const mockCreateEmployeeRequest: CreateEmployeeRequest = {
-            personnelNumber: '00001',
-            firstname: 'first 1',
-            lastname: 'last 1'
-        };
-        employeeApiService.saveEmployee.mockReturnValue(throwError(() => new Error('API Error')));
-
-        component.personnelNumber.setValue(mockCreateEmployeeRequest.personnelNumber);
-        component.firstname.setValue(mockCreateEmployeeRequest.firstname);
-        component.lastname.setValue(mockCreateEmployeeRequest.lastname);
-        component.showCreateEmployeeModal.set(true);
-
-        let emittedEmployee: EmployeeData;
-        component.selectedEmployee.subscribe((employee) => {
-            emittedEmployee = employee;
-        });
-
-        component.saveNewEmployee();
-
-        expect(employeeApiService.saveEmployee).toHaveBeenCalledWith(mockCreateEmployeeRequest);
-        expect(emittedEmployee).toBeUndefined();
-        expect(component.showCreateEmployeeModal()).toBe(true);
-        expect(toastService.showToast).toHaveBeenCalledWith({
-            type: ToastType.ERROR,
-            title: 'Fehler beim Speichern des Mitarbeiters'
-        });
-        // Form should not be reset on error
-        expect(component.createEmployeeForm.value.personnelNumber).toBe(mockCreateEmployeeRequest.personnelNumber);
-        expect(component.createEmployeeForm.value.firstname).toBe(mockCreateEmployeeRequest.firstname);
-        expect(component.createEmployeeForm.value.lastname).toBe(mockCreateEmployeeRequest.lastname);
     });
 
 });

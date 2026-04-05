@@ -21,7 +21,7 @@ describe('Food Collection Recording', () => {
 
       cy.byTestId('save-routedata-button').click();
 
-      cy.byTestId('km-diff-modal')
+      cy.byTestId('km-diff-dialog')
         .should('be.visible')
         .within(() => {
           cy.byTestId('ok-button').click();
@@ -83,18 +83,20 @@ describe('Food Collection Recording', () => {
     cy.byTestId('driverSearchInput').should('exist');
     cy.byTestId('driverSearchInput').type('00000');
     cy.byTestId('driver-employee-search-button').click();
+    cy.byTestId('driverSearchInput').should('not.exist');
+    cy.byTestId('selectedDriverDescription').should('have.text', '00000 E2E Test');
   }
 
   function createAndSelectCoDriver(randomNumber: number) {
     cy.byTestId('coDriverSearchInput').type(String(randomNumber));
     cy.byTestId('codriver-employee-search-button').click();
 
-    cy.byTestId('codriver-search-create-modal')
+    cy.byTestId('codriver-search-create-dialog')
       .should('be.visible')
       .within(() => {
-        cy.byTestId('codriver-create-personnelnumber-input').type('personnelNumber-' + randomNumber);
-        cy.byTestId('codriver-create-firstname-input').type('firstname-' + randomNumber);
-        cy.byTestId('codriver-create-lastname-input').type('lastname-' + randomNumber);
+        cy.byTestId('codriver-personnelnumber-input').type('personnelNumber-' + randomNumber);
+        cy.byTestId('codriver-firstname-input').type('firstname-' + randomNumber);
+        cy.byTestId('codriver-lastname-input').type('lastname-' + randomNumber);
         cy.byTestId('codriver-save-button').click();
       });
     cy.byTestId('selectedCoDriverRemoveButton').click();
@@ -105,28 +107,26 @@ describe('Food Collection Recording', () => {
     cy.byTestId('coDriverSearchInput').type('scan');
     cy.byTestId('codriver-employee-search-button').click();
 
-    cy.byTestId('codriver-select-employee-modal')
+    cy.byTestId('codriver-select-employee-dialog')
       .should('be.visible')
       .within(() => {
-        cy.byTestId('codriver-select-employee-button-1').click();
+        cy.byTestId('select-employee-button-1').click();
       });
     cy.byTestId('selectedCoDriverDescription').should('have.text', '0500 Scanner 2');
   }
 
   function assertSavedToast() {
-    cy.byTestId('tafel-toast-header')
+    cy.get('.toast-message')
       .should('be.visible')
-      .within(() => {
-        cy.byTestId('title').should('have.text', 'Daten wurden gespeichert!');
-      });
+      .should('contain.text', 'Daten wurden gespeichert!');
   }
 
   function assertNoEmployeeModalsOpen() {
-    cy.byTestId('driver-search-create-modal').should('not.exist');
-    cy.byTestId('codriver-search-create-modal').should('not.exist');
+    cy.byTestId('driver-search-create-dialog').should('not.exist');
+    cy.byTestId('codriver-search-create-dialog').should('not.exist');
 
-    cy.byTestId('driver-select-employee-modal').should('not.exist');
-    cy.byTestId('codriver-select-employee-modal').should('not.exist');
+    cy.byTestId('driver-select-employee-dialog').should('not.exist');
+    cy.byTestId('codriver-select-employee-dialog').should('not.exist');
   }
 
 });

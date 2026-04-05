@@ -15,19 +15,19 @@ import {
   TafelCounterInputComponent,
   TafelCounterInputValueChange
 } from '../../../../common/components/tafel-counter-input/tafel-counter-input.component';
-import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
+import {ToastrService} from 'ngx-toastr';
 
 @Component({
-    selector: 'tafel-food-collection-recording-items-responsive',
-    templateUrl: 'food-collection-recording-items-responsive.component.html',
-    imports: [
+  selector: 'tafel-food-collection-recording-items-responsive',
+  templateUrl: 'food-collection-recording-items-responsive.component.html',
+  imports: [
     ReactiveFormsModule,
     FormsModule,
     ButtonDirective,
     RowComponent,
     ColComponent,
     TafelCounterInputComponent
-]
+  ]
 })
 export class FoodCollectionRecordingItemsResponsiveComponent {
   foodCategories = model.required<FoodCategory[]>();
@@ -43,7 +43,7 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
   categoryValues = signal<Record<number, number>>({});
 
   private readonly foodCollectionsApiService = inject(FoodCollectionsApiService);
-  private readonly toastService = inject(ToastService);
+  private readonly toastr = inject(ToastrService);
 
   loadEffect = effect(() => {
     if (this.selectedRouteData()) {
@@ -96,10 +96,10 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
 
     const observer = {
       next: () => {
-        this.toastService.showToast({type: ToastType.SUCCESS, title: 'Daten wurden gespeichert!'});
+        this.toastr.success('Daten wurden gespeichert!');
       },
       error: (error: any) => {
-        this.toastService.showToast({type: ToastType.ERROR, title: 'Speichern fehlgeschlagen!'});
+        this.toastr.error('Speichern fehlgeschlagen!');
       }
     };
     this.foodCollectionsApiService.saveItemsPerShop(routeId, shopId, saveItemsRequest).subscribe(observer);
@@ -148,7 +148,7 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
         this.currentShop.set(shop);
       },
       error: (error: any) => {
-        this.toastService.showToast({type: ToastType.ERROR, title: 'Laden fehlgeschlagen!'});
+        this.toastr.error('Laden fehlgeschlagen!');
       }
     };
     this.foodCollectionsApiService.getItemsPerShop(routeId, shopId).subscribe(observer);

@@ -18,14 +18,13 @@ import {
   CardModule,
   ColComponent,
   DropdownComponent,
-  ModalModule,
   NavComponent,
   NavItemComponent,
-  RowComponent,
-  TabsModule
+  RowComponent
 } from '@coreui/angular';
+import {MatDialog} from '@angular/material/dialog';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
-import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
+import {ToastrService} from 'ngx-toastr';
 import {TafelPaginationData} from '../../../../common/components/tafel-pagination/tafel-pagination.component';
 import {provideRouter} from '@angular/router';
 import {CustomerEditComponent} from '../customer-edit/customer-edit.component';
@@ -43,7 +42,7 @@ describe('CustomerDetailComponent', () => {
   let customerApiService: MockedObject<CustomerApiService>;
   let customerNoteApiService: MockedObject<CustomerNoteApiService>;
   let fileHelperService: MockedObject<FileHelperService>;
-  let toastService: MockedObject<ToastService>;
+  let toastr: MockedObject<ToastrService>;
   let distributionTicketApiService: MockedObject<DistributionTicketApiService>;
   let distributionApiService: MockedObject<DistributionApiService>;
   const currentDistributionSignal = signal<DistributionItem>(null);
@@ -145,8 +144,11 @@ describe('CustomerDetailComponent', () => {
     const fileHelperServiceSpy = {
       downloadFile: vi.fn().mockName("FileHelperService.downloadFile")
     };
-    const toastServiceSpy = {
-      showToast: vi.fn().mockName("ToastService.showToast")
+    const toastrSpy = {
+      error: vi.fn().mockName("ToastrService.error"),
+      info: vi.fn().mockName("ToastrService.info"),
+      success: vi.fn().mockName("ToastrService.success"),
+      warning: vi.fn().mockName("ToastrService.warning")
     };
     const distributionTicketApiServiceSpy = {
       getCurrentTicketForCustomer: vi.fn().mockName("DistributionTicketApiService.getCurrentTicketForCustomer").mockReturnValue(throwError(() => ({status: 404}))),
@@ -163,8 +165,6 @@ describe('CustomerDetailComponent', () => {
     TestBed.configureTestingModule({
       imports: [
         CommonModule,
-        ModalModule,
-        TabsModule,
         DropdownComponent,
         NavComponent,
         NavItemComponent,
@@ -195,8 +195,12 @@ describe('CustomerDetailComponent', () => {
           useValue: fileHelperServiceSpy
         },
         {
-          provide: ToastService,
-          useValue: toastServiceSpy
+          provide: ToastrService,
+          useValue: toastrSpy
+        },
+        {
+          provide: MatDialog,
+          useValue: {open: vi.fn()}
         },
         {
           provide: DistributionTicketApiService,
@@ -227,7 +231,7 @@ describe('CustomerDetailComponent', () => {
     customerApiService = TestBed.inject(CustomerApiService) as MockedObject<CustomerApiService>;
     customerNoteApiService = TestBed.inject(CustomerNoteApiService) as MockedObject<CustomerNoteApiService>;
     fileHelperService = TestBed.inject(FileHelperService) as MockedObject<FileHelperService>;
-    toastService = TestBed.inject(ToastService) as MockedObject<ToastService>;
+    toastr = TestBed.inject(ToastrService) as MockedObject<ToastrService>;
     distributionTicketApiService = TestBed.inject(DistributionTicketApiService) as MockedObject<DistributionTicketApiService>;
     distributionApiService = TestBed.inject(DistributionApiService) as MockedObject<DistributionApiService>;
   }));
@@ -279,6 +283,13 @@ describe('CustomerDetailComponent', () => {
     expect(getTextByTestId(fixture, 'issuedInformation'))
       .toBe('am ' + moment(mockCustomer.issuedAt).format('DD.MM.YYYY') + ' von 12345 first last');
     expect(getTextByTestId(fixture, 'pendingCostContributionText').trim()).toBe('€ 123,00');
+
+    // Switch to the "Weitere Personen" tab to render its content
+    const tabLabels = fixture.nativeElement.querySelectorAll('.mat-mdc-tab');
+    tabLabels[1].click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
 
     expect(getTextByTestId(fixture, 'addperson-0-lastnameText')).toBe('Add');
     expect(getTextByTestId(fixture, 'addperson-0-firstnameText')).toBe('Pers 1');
@@ -432,6 +443,8 @@ describe('CustomerDetailComponent', () => {
 
   it('delete customer successful', async () => {
     const location = TestBed.inject(Location);
+    const matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
+    matDialog.open.mockReturnValue({afterClosed: () => of(true)} as any);
 
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     fixture.componentRef.setInput('customerData', mockCustomer);
@@ -441,35 +454,35 @@ describe('CustomerDetailComponent', () => {
 
     customerApiService.deleteCustomer.mockReturnValue(of(null));
 
-    await component.deleteCustomer();
+    component.openDeleteCustomerDialog();
     fixture.detectChanges();
     await fixture.whenStable();
 
     expect(customerApiService.deleteCustomer).toHaveBeenCalled();
     expect(location.path()).toBe('/kunden/suchen');
-    expect(toastService.showToast).toHaveBeenCalledWith({type: ToastType.SUCCESS, title: 'Kunde wurde gelöscht!'});
+    expect(toastr.success).toHaveBeenCalledWith('Kunde wurde gelöscht!');
   });
 
   it('delete customer failed', () => {
     const location = TestBed.inject(Location);
+    const matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
+    matDialog.open.mockReturnValue({afterClosed: () => of(true)} as any);
 
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     fixture.componentRef.setInput('customerData', mockCustomer);
     fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
     const component = fixture.componentInstance;
     fixture.detectChanges();
-    component.showDeleteCustomerModal.set(true);
 
     customerApiService.deleteCustomer.mockReturnValue(throwError(() => {
       return {status: 404};
     }));
 
-    component.deleteCustomer();
+    component.openDeleteCustomerDialog();
 
     expect(customerApiService.deleteCustomer).toHaveBeenCalled();
     expect(location.path()).not.toBe('/kunden/suchen');
-    expect(component.showDeleteCustomerModal()).toBeFalsy();
-    expect(toastService.showToast).toHaveBeenCalledWith({type: ToastType.ERROR, title: 'Löschen fehlgeschlagen!'});
+    expect(toastr.error).toHaveBeenCalledWith('Löschen fehlgeschlagen!');
   });
 
   it('prolong customer', () => {
@@ -504,20 +517,22 @@ describe('CustomerDetailComponent', () => {
     };
     customerApiService.updateCustomer.mockReturnValue(of(expectedCustomerData));
 
-    component.invalidateCustomer();
+    component.disableCustomer();
 
     expect(customerApiService.updateCustomer).toHaveBeenCalledWith(expectedCustomerData);
     expect(component.customerData()).toEqual(expectedCustomerData);
   });
 
   it('lock customer', () => {
+    const matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
+    const lockReasonText = 'locked due to lorem ipsum';
+    matDialog.open.mockReturnValue({afterClosed: () => of(lockReasonText)} as any);
+
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     fixture.componentRef.setInput('customerData', mockCustomer);
     fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
     const component = fixture.componentInstance;
     fixture.detectChanges();
-    const lockReasonText = 'locked due to lorem ipsum';
-    component.lockReasonText.set(lockReasonText);
 
     const expectedCustomerData = {
       ...mockCustomer,
@@ -526,7 +541,7 @@ describe('CustomerDetailComponent', () => {
     };
     customerApiService.updateCustomer.mockReturnValue(of(expectedCustomerData));
 
-    component.lockCustomer();
+    component.openLockCustomerDialog();
 
     expect(customerApiService.updateCustomer).toHaveBeenCalledWith(expectedCustomerData);
     expect(component.customerData()).toEqual(expectedCustomerData);
@@ -559,6 +574,10 @@ describe('CustomerDetailComponent', () => {
   });
 
   it('add new note to customer', () => {
+    const matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
+    const noteText = 'new note\ntext';
+    matDialog.open.mockReturnValue({afterClosed: () => of(noteText)} as any);
+
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     fixture.componentRef.setInput('customerData', mockCustomer);
     fixture.componentRef.setInput('customerNotesResponse', {
@@ -570,11 +589,8 @@ describe('CustomerDetailComponent', () => {
     });
     const component = fixture.componentInstance;
     fixture.detectChanges();
-    component.showAddNewNoteModal.set(true);
-    const noteText = 'new note\ntext';
-    const sanitizedNoteText = 'new note<br/>text';
-    component.newNoteText.set(noteText);
 
+    const sanitizedNoteText = 'new note<br/>text';
     const resultNote: CustomerNoteItem = {
       author: 'author1',
       timestamp: moment('2023-03-22T19:45:25.615477+01:00').toDate(),
@@ -582,12 +598,36 @@ describe('CustomerDetailComponent', () => {
     };
     customerNoteApiService.createNewNote.mockReturnValue(of(resultNote));
 
-    component.addNewNote();
+    component.openAddNoteDialog();
 
     expect(customerNoteApiService.createNewNote).toHaveBeenCalledWith(mockCustomer.id, sanitizedNoteText);
     expect(component.customerNotes()[0]).toEqual(resultNote);
-    expect(component.newNoteText()).toBeNull();
-    expect(component.showAddNewNoteModal()).toBeFalsy();
+  });
+
+  it('add new note also updates customerNotesResponse so "show all notes" displays it', () => {
+    const matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
+    const noteText = 'fresh note text';
+    matDialog.open.mockReturnValue({afterClosed: () => of(noteText)} as any);
+
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    fixture.componentRef.setInput('customerData', mockCustomer);
+    fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    const resultNote: CustomerNoteItem = {
+      author: 'newAuthor',
+      timestamp: moment('2024-01-15T10:00:00.000+01:00').toDate(),
+      note: noteText
+    };
+    customerNoteApiService.createNewNote.mockReturnValue(of(resultNote));
+
+    component.openAddNoteDialog();
+
+    const updatedResponse = component.customerNotesResponse();
+    expect(updatedResponse.items[0]).toEqual(resultNote);
+    expect(updatedResponse.items).toContain(resultNote);
+    expect(updatedResponse.totalCount).toBe(mockCustomerNotesResponse.totalCount + 1);
   });
 
   it('ticket section not shown when distribution is inactive', async () => {
@@ -661,7 +701,7 @@ describe('CustomerDetailComponent', () => {
     expect(distributionApiService.assignCustomer).toHaveBeenCalledWith(mockCustomer.id, 55);
     expect(component.ticketNumber()).toBe(55);
     expect(component.ticketNumberInput()).toBeNull();
-    expect(toastService.showToast).toHaveBeenCalledWith({type: ToastType.SUCCESS, title: 'Ticket wurde zugewiesen!'});
+    expect(toastr.success).toHaveBeenCalledWith('Ticket wurde zugewiesen!');
   });
 
   it('delete ticket calls API correctly and clears ticket number', async () => {
@@ -683,7 +723,7 @@ describe('CustomerDetailComponent', () => {
 
     expect(distributionTicketApiService.deleteCurrentTicketOfCustomer).toHaveBeenCalledWith(mockCustomer.id);
     expect(component.ticketNumber()).toBeNull();
-    expect(toastService.showToast).toHaveBeenCalledWith({type: ToastType.SUCCESS, title: 'Ticket wurde gelöscht!'});
+    expect(toastr.success).toHaveBeenCalledWith('Ticket wurde gelöscht!');
   });
 
   function getTextByTestId(fixture: ComponentFixture<CustomerDetailComponent>, testId: string): string {

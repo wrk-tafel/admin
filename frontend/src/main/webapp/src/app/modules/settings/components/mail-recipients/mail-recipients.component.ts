@@ -7,13 +7,8 @@ import {
   CardHeaderComponent,
   ColComponent,
   RowComponent,
-  TabDirective,
-  TabPanelComponent,
-  TabsComponent,
-  TabsContentComponent,
-  TabsListComponent,
-  TextColorDirective
 } from '@coreui/angular';
+import {MatTabsModule} from '@angular/material/tabs';
 import {IconDirective} from '@coreui/icons-angular';
 import {cilEnvelopeClosed} from '@coreui/icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
@@ -21,35 +16,30 @@ import {FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators} from
 import {faPlus, faTrashCan} from '@fortawesome/free-solid-svg-icons';
 import {CommonModule} from '@angular/common';
 import {MailTypeEnum, RecipientTypeEnum, SettingsApiService} from '../../../../api/settings-api.service';
-import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
+import {ToastrService} from 'ngx-toastr';
 
 @Component({
-    selector: 'tafel-mail-recipients',
-    templateUrl: 'mail-recipients.component.html',
-    imports: [
-        CardComponent,
-        CardHeaderComponent,
-        CardBodyComponent,
-        CardFooterComponent,
-        RowComponent,
-        ColComponent,
-        IconDirective,
-        ButtonDirective,
-        FaIconComponent,
-        ReactiveFormsModule,
-        TabsContentComponent,
-        TabsComponent,
-        TabDirective,
-        TabPanelComponent,
-        CommonModule,
-        TextColorDirective,
-        TabsListComponent
-    ]
+  selector: 'tafel-mail-recipients',
+  templateUrl: 'mail-recipients.component.html',
+  imports: [
+    CardComponent,
+    CardHeaderComponent,
+    CardBodyComponent,
+    CardFooterComponent,
+    RowComponent,
+    ColComponent,
+    IconDirective,
+    ButtonDirective,
+    FaIconComponent,
+    ReactiveFormsModule,
+    MatTabsModule,
+    CommonModule
+  ]
 })
 export class MailRecipientsComponent {
   private readonly settingsApiService = inject(SettingsApiService);
   private readonly fb = inject(FormBuilder);
-  private readonly toastService = inject(ToastService);
+  private readonly toastr = inject(ToastrService);
 
   form: FormGroup = this.fb.group({
     mailRecipients: this.fb.array([])
@@ -118,10 +108,10 @@ export class MailRecipientsComponent {
     if (this.form.valid) {
       const observer = {
         next: () => {
-          this.toastService.showToast({type: ToastType.SUCCESS, title: 'Einstellungen gespeichert!'});
+          this.toastr.success('Einstellungen gespeichert!');
         },
         error: error => {
-          this.toastService.showToast({type: ToastType.ERROR, title: 'Speichern fehlgeschlagen!'});
+          this.toastr.error('Speichern fehlgeschlagen!');
         },
       };
       this.settingsApiService.saveMailRecipients(this.form.getRawValue()).subscribe(observer);

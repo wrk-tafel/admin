@@ -5,12 +5,12 @@ import {TicketScreenControlComponent} from './ticket-screen-control.component';
 import {UrlHelperService} from '../../../../common/util/url-helper.service';
 import {DistributionTicketScreenApiService} from '../../../../api/distribution-ticket-screen-api.service';
 import {of, throwError} from 'rxjs';
-import {ToastService} from '../../../../common/components/toasts/toast.service';
+import {ToastrService} from 'ngx-toastr';
 
 describe('TicketScreenControlComponent', () => {
   let distributionTicketScreenApiService: MockedObject<DistributionTicketScreenApiService>;
   let urlHelperSpy: MockedObject<UrlHelperService>;
-  let toastService: MockedObject<ToastService>;
+  let toastr: MockedObject<ToastrService>;
 
   beforeEach((() => {
     TestBed.configureTestingModule({
@@ -32,9 +32,12 @@ describe('TicketScreenControlComponent', () => {
           }
         },
         {
-          provide: ToastService,
+          provide: ToastrService,
           useValue: {
-            showToast: vi.fn().mockName("ToastService.showToast")
+            error: vi.fn().mockName("ToastrService.error"),
+            info: vi.fn().mockName("ToastrService.info"),
+            success: vi.fn().mockName("ToastrService.success"),
+            warning: vi.fn().mockName("ToastrService.warning")
           }
         }
       ]
@@ -42,7 +45,7 @@ describe('TicketScreenControlComponent', () => {
 
     distributionTicketScreenApiService = TestBed.inject(DistributionTicketScreenApiService) as MockedObject<DistributionTicketScreenApiService>;
     urlHelperSpy = TestBed.inject(UrlHelperService) as MockedObject<UrlHelperService>;
-    toastService = TestBed.inject(ToastService) as MockedObject<ToastService>;
+    toastr = TestBed.inject(ToastrService) as MockedObject<ToastrService>;
   }));
 
   it('component can be created', () => {
@@ -131,10 +134,7 @@ describe('TicketScreenControlComponent', () => {
 
     component.showStartTime();
 
-    expect(toastService.showToast).toHaveBeenCalledWith({
-      type: expect.anything(),
-      title: 'Fehler beim Anzeigen der Startzeit!'
-    });
+    expect(toastr.error).toHaveBeenCalledWith('Fehler beim Anzeigen der Startzeit!');
   });
 
   it('showCurrentTicket handles errors and shows toast', () => {
@@ -144,10 +144,7 @@ describe('TicketScreenControlComponent', () => {
 
     component.showCurrentTicket();
 
-    expect(toastService.showToast).toHaveBeenCalledWith({
-      type: expect.anything(),
-      title: 'Fehler beim Anzeigen des aktuellen Tickets!'
-    });
+    expect(toastr.error).toHaveBeenCalledWith('Fehler beim Anzeigen des aktuellen Tickets!');
   });
 
   it('showNextTicket handles errors and shows toast', () => {
@@ -157,10 +154,7 @@ describe('TicketScreenControlComponent', () => {
 
     component.showNextTicket(false);
 
-    expect(toastService.showToast).toHaveBeenCalledWith({
-      type: expect.anything(),
-      title: 'Fehler beim Anzeigen des nächsten Tickets!'
-    });
+    expect(toastr.error).toHaveBeenCalledWith('Fehler beim Anzeigen des nächsten Tickets!');
   });
 
   it('showStartTime manages loading state correctly', () => {

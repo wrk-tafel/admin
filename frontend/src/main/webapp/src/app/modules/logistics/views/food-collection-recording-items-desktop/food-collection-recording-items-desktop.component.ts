@@ -9,13 +9,13 @@ import {
   FoodCollectionsApiService,
   FoodCollectionSaveItemsRequest
 } from '../../../../api/food-collections-api.service';
-import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
+import {ToastrService} from 'ngx-toastr';
 import {SelectedRouteData} from '../food-collection-recording/food-collection-recording.component';
 
 @Component({
-    selector: 'tafel-food-collection-recording-items-desktop',
-    templateUrl: 'food-collection-recording-items-desktop.component.html',
-    imports: [
+  selector: 'tafel-food-collection-recording-items-desktop',
+  templateUrl: 'food-collection-recording-items-desktop.component.html',
+  imports: [
     ReactiveFormsModule,
     FormsModule,
     ButtonDirective,
@@ -23,14 +23,14 @@ import {SelectedRouteData} from '../food-collection-recording/food-collection-re
     TableColorDirective,
     ColComponent,
     RowComponent
-]
+  ]
 })
 export class FoodCollectionRecordingItemsDesktopComponent {
   foodCategories = model.required<FoodCategory[]>();
   selectedRouteData = input<SelectedRouteData>();
 
   private readonly foodCollectionsApiService = inject(FoodCollectionsApiService);
-  private readonly toastService = inject(ToastService);
+  private readonly toastr = inject(ToastrService);
   private readonly fb = inject(FormBuilder);
 
   form = this.fb.group({
@@ -99,7 +99,7 @@ export class FoodCollectionRecordingItemsDesktopComponent {
     };
 
     this.foodCollectionsApiService.saveItems(routeId, collectionData).subscribe(() => {
-      this.toastService.showToast({type: ToastType.SUCCESS, title: 'Daten wurden gespeichert!'});
+      this.toastr.success('Daten wurden gespeichert!');
     });
   }
 

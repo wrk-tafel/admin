@@ -37,16 +37,17 @@ describe('Customer Detail', () => {
       openEditMenu();
       cy.byTestId('deleteCustomerButton').click();
 
-      cy.byTestId('deletecustomer-modal').should('be.visible');
-      cy.byTestId('deletecustomer-modal').within(() => {
+      cy.byTestId('deletecustomer-dialog').should('be.visible');
+      cy.byTestId('deletecustomer-dialog').within(() => {
         cy.byTestId('cancelButton').click();
       });
 
-      cy.byTestId('deletecustomer-modal').should('not.be.visible');
+      cy.wait(6000);
+      cy.byTestId('deletecustomer-dialog').should('not.exist');
 
       openEditMenu();
       cy.byTestId('deleteCustomerButton').click();
-      cy.byTestId('deletecustomer-modal').within(() => {
+      cy.byTestId('deletecustomer-dialog').within(() => {
         cy.byTestId('okButton').click();
       });
 
@@ -87,7 +88,7 @@ describe('Customer Detail', () => {
     openEditMenu();
     cy.byTestId('lockCustomerButton').click();
     cy.byTestId('lockreason-input-text').type('dummy lockreason');
-    cy.byTestId('lock-customer-modal').within(() => {
+    cy.byTestId('lock-customer-dialog').within(() => {
       cy.byTestId('okButton').click();
     });
 
@@ -140,6 +141,7 @@ describe('Customer Detail', () => {
       cy.visit('/#/kunden/detail/100');
 
       cy.byTestId('ticket-number-input').type('15');
+      cy.byTestId('assign-ticket-button').should('not.be.disabled');
       cy.byTestId('assign-ticket-button').click();
 
       cy.byTestId('ticket-number-display').should('be.visible');

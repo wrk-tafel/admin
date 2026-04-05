@@ -1,36 +1,18 @@
 import {afterRenderEffect, Component, computed, inject, input, linkedSignal, signal, viewChild} from '@angular/core';
 import {CustomerFormComponent} from '../../components/customer-form/customer-form.component';
-import {CustomerApiService, CustomerData, ValidateCustomerResponse} from '../../../../api/customer-api.service';
+import {CustomerApiService, CustomerData} from '../../../../api/customer-api.service';
 import {Router} from '@angular/router';
-import {
-  BgColorDirective,
-  ButtonCloseDirective,
-  ButtonDirective,
-  Colors,
-  ModalBodyComponent,
-  ModalComponent,
-  ModalFooterComponent,
-  ModalHeaderComponent,
-  ModalToggleDirective
-} from '@coreui/angular';
-import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
-import {DecimalPipe, NgClass} from '@angular/common';
+import {ButtonDirective} from '@coreui/angular';
+import {ToastrService} from 'ngx-toastr';
+import {MatDialog} from '@angular/material/dialog';
+import {ValidationResultDialogComponent} from './dialogs/validation-result-dialog.component';
 
 @Component({
   selector: 'tafel-customer-edit',
   templateUrl: 'customer-edit.component.html',
   imports: [
     CustomerFormComponent,
-    NgClass,
-    ModalComponent,
-    ModalHeaderComponent,
-    ModalToggleDirective,
-    BgColorDirective,
-    ModalBodyComponent,
-    ModalFooterComponent,
-    ButtonCloseDirective,
-    ButtonDirective,
-    DecimalPipe
+    ButtonDirective
   ]
 })
 export class CustomerEditComponent {
@@ -40,18 +22,17 @@ export class CustomerEditComponent {
   customerUpdated = linkedSignal<CustomerData>(() => this.customerData());
   // editMode is derived from input customerData; use computed (read-only signal)
   editMode = computed(() => !!this.customerData());
-  readonly validationResult = signal<ValidateCustomerResponse>(null);
-  validationResultColor: Colors;
-  showValidationResultModal = signal(false);
+  customerValidForSave = signal(false);
   customerFormComponent = viewChild<CustomerFormComponent>(CustomerFormComponent);
   readonly isSaveEnabled = computed(() =>
     this.customerFormComponent() != null
     && this.customerFormComponent().valid()
-    && (this.editMode() || this.validationResult() != null));
+    && (this.editMode() || this.customerValidForSave()));
 
   private readonly customerApiService = inject(CustomerApiService);
   private readonly router = inject(Router);
-  private readonly toastService = inject(ToastService);
+  private readonly toastr = inject(ToastrService);
+  private readonly dialog = inject(MatDialog);
 
   constructor() {
     // Mark forms as touched when customerData is loaded (edit mode)
@@ -73,13 +54,19 @@ export class CustomerEditComponent {
     formComponent.markAllAsTouched();
 
     if (!this.customerFormComponent().valid()) {
-      this.toastService.showToast({type: ToastType.ERROR, title: 'Bitte Eingaben überprüfen!'});
+      this.toastr.error('Bitte Eingaben überprüfen!');
     } else {
       this.customerApiService.validate(this.customerUpdated()).subscribe((result) => {
-        this.validationResult.set(result);
-        this.validationResultColor = result.valid ? 'success' : 'danger';
-
-        this.showValidationResultModal.set(true);
+        this.customerValidForSave.set(result.valid);
+        this.dialog.open(ValidationResultDialogComponent, {
+          data: {validationResult: result}
+        }).afterClosed().subscribe(() => {
+          // Allow save after user acknowledged validation result
+          // For invalid customers, enable save only if user explicitly acknowledged
+          if (!result.valid) {
+            this.customerValidForSave.set(true);
+          }
+        });
       });
     }
   }
@@ -89,7 +76,7 @@ export class CustomerEditComponent {
     formComponent.markAllAsTouched();
 
     if (!this.customerFormComponent().valid()) {
-      this.toastService.showToast({type: ToastType.ERROR, title: 'Bitte Eingaben überprüfen!'});
+      this.toastr.error('Bitte Eingaben überprüfen!');
     } else {
       if (!this.editMode()) {
         this.customerApiService.createCustomer(this.customerUpdated())

@@ -10,10 +10,13 @@ import {of} from 'rxjs';
 import {CarList} from '../../../../api/car-api.service';
 import {RouteData} from '../../../../api/route-api.service';
 import {SelectedRouteData} from '../food-collection-recording/food-collection-recording.component';
+import {MatDialog} from '@angular/material/dialog';
+import { ToastrService } from 'ngx-toastr';
 
 describe('FoodCollectionRecordingBasedataComponent', () => {
   let foodCollectionsApiServiceSpy: MockedObject<FoodCollectionsApiService>;
   let employeeApiServiceSpy: MockedObject<EmployeeApiService>;
+  let matDialog: MockedObject<MatDialog>;
 
   beforeEach(() => {
     const employeeApiSpy = {
@@ -56,12 +59,18 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
         {
           provide: EmployeeApiService,
           useValue: employeeApiSpy
-        }
+        },
+        {
+          provide: MatDialog,
+          useValue: {open: vi.fn().mockReturnValue({afterClosed: () => of(undefined)})}
+        },
+        { provide: ToastrService, useValue: { error: vi.fn(), info: vi.fn(), success: vi.fn(), warning: vi.fn(), show: vi.fn() } }
       ]
     }).compileComponents();
 
     foodCollectionsApiServiceSpy = TestBed.inject(FoodCollectionsApiService) as MockedObject<FoodCollectionsApiService>;
     employeeApiServiceSpy = TestBed.inject(EmployeeApiService) as MockedObject<EmployeeApiService>;
+    matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
   });
 
   const mockEmployees: EmployeeData[] = [
@@ -341,7 +350,7 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
     // Save should proceed without showing modal
     component.save();
 
-    expect(component.showKmDiffModal).toBe(false);
+    expect(matDialog.open).not.toHaveBeenCalled();
     expect(foodCollectionsApiServiceSpy.saveRouteData).toHaveBeenCalledWith(123, {
       carId: 1,
       driverId: 1,
@@ -351,7 +360,9 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
     });
   });
 
-  it('should show kmDiffModal when km difference is > 350', () => {
+  it('should show kmDiffDialog when km difference is > 350', () => {
+    matDialog.open.mockReturnValue({afterClosed: () => of(false)} as any);
+
     const fixture = TestBed.createComponent(FoodCollectionRecordingBasedataComponent);
     const component = fixture.componentInstance;
     const componentRef = fixture.componentRef;
@@ -371,15 +382,16 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
     component.coDriverSearchInput.setValue('D2');
     component.setSelectedCoDriver(mockEmployees[1]);
 
-    // Save should show modal instead of proceeding
+    // Save should show dialog instead of proceeding
     component.save();
 
-    expect(component.showKmDiffModal).toBe(true);
-    expect(component.kmDifference).toEqual(400);
+    expect(matDialog.open).toHaveBeenCalled();
     expect(foodCollectionsApiServiceSpy.saveRouteData).not.toHaveBeenCalled();
   });
 
-  it('should save route data when overrideKmDiffModal is true even if km difference > 350', () => {
+  it('should save route data when kmDiffDialog is confirmed even if km difference > 350', () => {
+    matDialog.open.mockReturnValue({afterClosed: () => of(true)} as any);
+
     const fixture = TestBed.createComponent(FoodCollectionRecordingBasedataComponent);
     const component = fixture.componentInstance;
     const componentRef = fixture.componentRef;
@@ -399,15 +411,10 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
     component.coDriverSearchInput.setValue('D2');
     component.setSelectedCoDriver(mockEmployees[1]);
 
-    // First save shows modal
+    // Save opens dialog, user confirms, so save proceeds
     component.save();
-    expect(component.showKmDiffModal).toBe(true);
-    expect(foodCollectionsApiServiceSpy.saveRouteData).not.toHaveBeenCalled();
 
-    // Simulate clicking OK button
-    component.showKmDiffModal = false;
-    component.save(true);
-
+    expect(matDialog.open).toHaveBeenCalled();
     expect(foodCollectionsApiServiceSpy.saveRouteData).toHaveBeenCalledWith(123, {
       carId: 1,
       driverId: 1,
@@ -417,7 +424,9 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
     });
   });
 
-  it('should calculate km difference correctly', () => {
+  it('should save directly when km difference <= 350 and open dialog when > 350', () => {
+    matDialog.open.mockReturnValue({afterClosed: () => of(false)} as any);
+
     const fixture = TestBed.createComponent(FoodCollectionRecordingBasedataComponent);
     const component = fixture.componentInstance;
     const componentRef = fixture.componentRef;
@@ -434,22 +443,29 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
     component.coDriverSearchInput.setValue('D2');
     component.setSelectedCoDriver(mockEmployees[1]);
 
-    // Test with km difference = 250
+    // Test with km difference = 250 - should save directly
     component.kmStart.setValue(100);
     component.kmEnd.setValue(350);
     component.save();
 
-    expect(component.kmDifference).toEqual(250);
+    expect(matDialog.open).not.toHaveBeenCalled();
+    expect(foodCollectionsApiServiceSpy.saveRouteData).toHaveBeenCalled();
 
-    // Test with km difference = 400
+    foodCollectionsApiServiceSpy.saveRouteData.mockClear();
+    matDialog.open.mockClear();
+    matDialog.open.mockReturnValue({afterClosed: () => of(false)} as any);
+
+    // Test with km difference = 400 - should open dialog
     component.kmStart.setValue(50);
     component.kmEnd.setValue(450);
     component.save();
 
-    expect(component.kmDifference).toEqual(400);
+    expect(matDialog.open).toHaveBeenCalled();
   });
 
-  it('should hide modal when cancel is clicked', () => {
+  it('should not save when dialog is dismissed', () => {
+    matDialog.open.mockReturnValue({afterClosed: () => of(false)} as any);
+
     const fixture = TestBed.createComponent(FoodCollectionRecordingBasedataComponent);
     const component = fixture.componentInstance;
     const componentRef = fixture.componentRef;
@@ -469,14 +485,10 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
     component.coDriverSearchInput.setValue('D2');
     component.setSelectedCoDriver(mockEmployees[1]);
 
-    // First save shows modal
+    // Save opens dialog, user cancels
     component.save();
-    expect(component.showKmDiffModal).toBe(true);
 
-    // Simulate clicking Cancel button
-    component.showKmDiffModal = false;
-
-    expect(component.showKmDiffModal).toBe(false);
+    expect(matDialog.open).toHaveBeenCalled();
     expect(foodCollectionsApiServiceSpy.saveRouteData).not.toHaveBeenCalled();
   });
 

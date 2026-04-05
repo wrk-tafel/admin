@@ -26,14 +26,10 @@ import {
   Colors,
   FormSelectDirective,
   RowComponent,
-  TabDirective,
-  TabPanelComponent,
-  TabsComponent,
-  TabsContentComponent,
-  TabsListComponent
 } from '@coreui/angular';
+import {MatTabsModule} from '@angular/material/tabs';
 import {DistributionTicketApiService, TicketNumberResponse} from '../../../../api/distribution-ticket-api.service';
-import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
+import {ToastrService} from 'ngx-toastr';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {CommonModule, DatePipe, NgClass} from '@angular/common';
 import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
@@ -61,11 +57,7 @@ import {BirthdateAgePipe} from '../../../../common/pipes/birthdate-age.pipe';
     CommonModule,
     TafelAutofocusDirective,
     ReactiveFormsModule,
-    TabDirective,
-    TabPanelComponent,
-    TabsComponent,
-    TabsContentComponent,
-    TabsListComponent,
+    MatTabsModule,
     GenderLabelPipe,
     BirthdateAgePipe
   ]
@@ -79,7 +71,7 @@ export class CheckinComponent {
   private readonly scannerApiService = inject(ScannerApiService);
   private readonly sseService = inject(SseService);
   private readonly router = inject(Router);
-  private readonly toastService = inject(ToastService);
+  private readonly toastr = inject(ToastrService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly VALID_UNTIL_WARNLIMIT_WEEKS = 8;
 
@@ -237,6 +229,7 @@ export class CheckinComponent {
         if (error.status === 404) {
           this.processCustomer(undefined);
           this.customerNotes = [];
+          this.toastr.info(`Kunde ${this.customerId} nicht gefunden!`);
         }
       },
     };
@@ -244,7 +237,7 @@ export class CheckinComponent {
     if (this.customerId) {
       this.customerApiService.getCustomer(this.customerId).subscribe(observer);
     } else {
-      this.toastService.showToast({type: ToastType.WARN, title: undefined, message: 'Keine Kundennummer angegeben!'});
+      this.toastr.warning('Keine Kundennummer angegeben!');
     }
   }
 
@@ -258,10 +251,10 @@ export class CheckinComponent {
 
       if (customer.locked) {
         this.customerState.set(CustomerState.LOCKED);
-        this.cancelButtonRef()?.nativeElement.focus();
+        setTimeout(() => this.cancelButtonRef()?.nativeElement.focus());
       } else if (validUntil.isBefore(now)) {
         this.customerState.set(CustomerState.INVALID);
-        this.cancelButtonRef()?.nativeElement.focus();
+        setTimeout(() => this.cancelButtonRef()?.nativeElement.focus());
       } else {
         const warnLimit = now.add(this.VALID_UNTIL_WARNLIMIT_WEEKS, 'weeks');
         if (!validUntil.isAfter(warnLimit)) {
@@ -270,7 +263,7 @@ export class CheckinComponent {
           this.customerState.set(CustomerState.VALID);
         }
 
-        this.ticketNumberInputRef()?.nativeElement.focus();
+        setTimeout(() => this.ticketNumberInputRef()?.nativeElement.focus());
       }
     } else {
       this.customerState.set(undefined);
@@ -302,7 +295,7 @@ export class CheckinComponent {
       next: () => {
         this.ticketNumber = undefined;
         this.ticketNumberEdit = undefined;
-        this.toastService.showToast({type: ToastType.SUCCESS, title: 'Ticket-Nummer gelöscht!'});
+        this.toastr.success('Ticket-Nummer gelöscht!');
         this.ticketNumberInputRef()?.nativeElement.focus();
       }
     };

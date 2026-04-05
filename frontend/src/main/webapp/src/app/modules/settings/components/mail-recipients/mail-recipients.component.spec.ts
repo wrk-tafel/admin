@@ -6,12 +6,12 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { of, throwError } from 'rxjs';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MailRecipients, MailTypeEnum, RecipientTypeEnum, SettingsApiService } from '../../../../api/settings-api.service';
-import { ToastService, ToastType } from '../../../../common/components/toasts/toast.service';
+import { ToastrService } from 'ngx-toastr';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 describe('MailRecipients', () => {
     let apiService: MockedObject<SettingsApiService>;
-    let toastService: MockedObject<ToastService>;
+    let toastr: MockedObject<ToastrService>;
 
     beforeEach(() => {
         TestBed.configureTestingModule({
@@ -30,16 +30,19 @@ describe('MailRecipients', () => {
                     }
                 },
                 {
-                    provide: ToastService,
+                    provide: ToastrService,
                     useValue: {
-                        showToast: vi.fn().mockName("ToastService.showToast")
+                        error: vi.fn().mockName("ToastrService.error"),
+                        info: vi.fn().mockName("ToastrService.info"),
+                        success: vi.fn().mockName("ToastrService.success"),
+                        warning: vi.fn().mockName("ToastrService.warning")
                     }
                 }
             ]
         }).compileComponents();
 
         apiService = TestBed.inject(SettingsApiService) as MockedObject<SettingsApiService>;
-        toastService = TestBed.inject(ToastService) as MockedObject<ToastService>;
+        toastr = TestBed.inject(ToastrService) as MockedObject<ToastrService>;
     });
 
     const testData: MailRecipients = {
@@ -85,7 +88,7 @@ describe('MailRecipients', () => {
 
         expect(markAllAsTouchedSpy).toHaveBeenCalled();
         expect(apiService.saveMailRecipients).toHaveBeenCalledWith(testData);
-        expect(toastService.showToast).toHaveBeenCalledWith({ type: ToastType.SUCCESS, title: 'Einstellungen gespeichert!' });
+        expect(toastr.success).toHaveBeenCalledWith('Einstellungen gespeichert!');
     });
 
     it('save failed due to an invalid form', () => {
@@ -115,7 +118,7 @@ describe('MailRecipients', () => {
 
         expect(markAllAsTouchedSpy).toHaveBeenCalled();
         expect(apiService.saveMailRecipients).toHaveBeenCalled();
-        expect(toastService.showToast).toHaveBeenCalledWith({ type: ToastType.ERROR, title: 'Speichern fehlgeschlagen!' });
+        expect(toastr.error).toHaveBeenCalledWith('Speichern fehlgeschlagen!');
     });
 
     it('add address', () => {

@@ -20,13 +20,10 @@ describe('Dashboard', () => {
     cy.byTestId('email-input-STATISTICS-TO-0').clear();
     cy.byTestId('email-input-STATISTICS-TO-0').type('test-to@email.com');
 
-    // Save
+    // Save - verify POST success via intercept
+    cy.intercept('POST', '/api/settings/mail-recipients').as('saveRecipients');
     cy.byTestId('save-button').click();
-    cy.byTestId('tafel-toast-header')
-      .should('be.visible')
-      .within(() => {
-        cy.byTestId('title').should('have.text', 'Einstellungen gespeichert!');
-      });
+    cy.wait('@saveRecipients').its('response.statusCode').should('eq', 200);
 
     cy.reload();
     cy.byTestId('mailtype-tab-STATISTICS').click();

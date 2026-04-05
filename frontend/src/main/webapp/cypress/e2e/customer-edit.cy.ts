@@ -11,7 +11,7 @@ describe('Customer Edit', () => {
 
     cy.byTestId('validate-button').click();
 
-    cy.byTestId('validationresult-modal')
+    cy.byTestId('validationresult-dialog')
       .should('be.visible')
       .within(() => {
         cy.byTestId('ok-button').click();
@@ -36,11 +36,11 @@ describe('Customer Edit', () => {
 
       cy.byTestId('validate-button').click();
 
-      cy.byTestId('validationresult-modal')
+      cy.byTestId('validationresult-dialog')
         .should('be.visible')
         .within(() => {
           cy.byTestId('title').contains('Kein Anspruch vorhanden');
-          cy.byTestId('header').should('have.class', 'bg-danger');
+          cy.byTestId('header').should('have.class', 'dialog-header-danger');
           cy.byTestId('ok-button').click();
         });
 

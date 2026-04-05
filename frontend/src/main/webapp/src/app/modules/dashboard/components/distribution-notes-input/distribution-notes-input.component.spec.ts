@@ -4,12 +4,12 @@ import {DistributionApiService} from '../../../../api/distribution-api.service';
 import {DistributionNotesInputComponent} from './distribution-notes-input.component';
 import {CardModule, ColComponent, ModalModule, ProgressModule, RowComponent} from '@coreui/angular';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
-import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
+import { ToastrService } from 'ngx-toastr';
 import {of, throwError} from 'rxjs';
 
 describe('DistributionNotesInputComponent', () => {
   let distributionApiService: MockedObject<DistributionApiService>;
-  let toastService: MockedObject<ToastService>;
+  let toastr: MockedObject<ToastrService>;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -29,16 +29,17 @@ describe('DistributionNotesInputComponent', () => {
           }
         },
         {
-          provide: ToastService,
+          provide: ToastrService,
           useValue: {
-            showToast: vi.fn().mockName('ToastService.showToast')
+            success: vi.fn().mockName('ToastrService.success'),
+            error: vi.fn().mockName('ToastrService.error')
           }
         }
       ]
     }).compileComponents();
 
     distributionApiService = TestBed.inject(DistributionApiService) as MockedObject<DistributionApiService>;
-    toastService = TestBed.inject(ToastService) as MockedObject<ToastService>;
+    toastr = TestBed.inject(ToastrService) as MockedObject<ToastrService>;
   });
 
   it('component can be created', () => {
@@ -59,10 +60,7 @@ describe('DistributionNotesInputComponent', () => {
     component.save();
 
     expect(distributionApiService.saveNotes).toHaveBeenCalledWith(testNotes);
-    expect(toastService.showToast).toHaveBeenCalledWith({
-      type: ToastType.SUCCESS,
-      title: 'Anmerkungen gespeichert!'
-    });
+    expect(toastr.success).toHaveBeenCalledWith('Anmerkungen gespeichert!');
   });
 
   it('save data failed', () => {
@@ -80,7 +78,7 @@ describe('DistributionNotesInputComponent', () => {
     component.save();
 
     expect(distributionApiService.saveNotes).toHaveBeenCalledWith(testNotes);
-    expect(toastService.showToast).toHaveBeenCalledWith({type: ToastType.ERROR, title: 'Speichern fehlgeschlagen!'});
+    expect(toastr.error).toHaveBeenCalledWith('Speichern fehlgeschlagen!');
   });
 
 });

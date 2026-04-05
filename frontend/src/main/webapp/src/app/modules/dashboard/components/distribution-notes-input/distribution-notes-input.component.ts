@@ -9,7 +9,7 @@ import {
 } from '@coreui/angular';
 import {FormsModule} from '@angular/forms';
 import {DistributionApiService} from '../../../../api/distribution-api.service';
-import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
+import { ToastrService } from 'ngx-toastr';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
 
 @Component({
@@ -27,7 +27,7 @@ import {GlobalStateService} from '../../../../common/state/global-state.service'
 })
 export class DistributionNotesInputComponent {
   private readonly distributionApiService = inject(DistributionApiService);
-  private readonly toastService = inject(ToastService);
+  private readonly toastr = inject(ToastrService);
   private readonly globalStateService = inject(GlobalStateService);
 
   initialNotesData = input<string>();
@@ -41,10 +41,10 @@ export class DistributionNotesInputComponent {
   save() {
     const observer = {
       next: () => {
-        this.toastService.showToast({type: ToastType.SUCCESS, title: 'Anmerkungen gespeichert!'});
+        this.toastr.success('Anmerkungen gespeichert!');
       },
       error: error => {
-        this.toastService.showToast({type: ToastType.ERROR, title: 'Speichern fehlgeschlagen!'});
+        this.toastr.error('Speichern fehlgeschlagen!');
       },
     };
 

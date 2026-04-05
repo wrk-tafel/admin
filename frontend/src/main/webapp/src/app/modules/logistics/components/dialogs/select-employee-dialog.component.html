@@ -1,0 +1,22 @@
+<tafel-dialog [testId]="data.testId" type="info" title="Mitarbeiter auswählen">
+  <div tafel-dialog-content>
+    <tafel-pagination align="center" size="sm" [paginationData]="paginationData()"
+                      (pageChanged)="triggerSearch($event)"></tafel-pagination>
+    @for (employee of employeeSearchResponse().items; track employee.id; let i = $index) {
+      <c-card class="mb-2">
+        <c-card-body>
+          <div [attr.testid]="'select-employee-row-' + i" class="d-flex justify-content-between align-items-center">
+            <span>{{ employee.personnelNumber }} {{ employee.firstname }} {{ employee.lastname }}</span>
+            <button cButton (click)="selectEmployee(employee)"
+                    [attr.testid]="'select-employee-button-' + i">
+              <fa-icon [icon]="faHandPointer"></fa-icon>
+            </button>
+          </div>
+        </c-card-body>
+      </c-card>
+    }
+  </div>
+  <div tafel-dialog-actions>
+    <button testid="cancel-button" cButton color="secondary" (click)="dialogRef.close()">Abbrechen</button>
+  </div>
+</tafel-dialog>

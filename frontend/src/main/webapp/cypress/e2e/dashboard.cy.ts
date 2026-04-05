@@ -40,8 +40,8 @@ describe('Dashboard', () => {
 
     // --> CLOSED
     cy.byTestId('distribution-close-button').click();
-    cy.byTestId('distribution-close-modal-ok-button').click();
-    cy.byTestId('distribution-close-validation-modal-ok-button').click();
+    cy.byTestId('distribution-close-dialog-ok-button').click();
+    cy.byTestId('distribution-close-validation-dialog-ok-button').click();
     cy.byTestId('distribution-state-text').should('have.text', 'Geschlossen');
   });
 

@@ -4,7 +4,7 @@ import {DistributionApiService, DistributionItem} from '../../../../api/distribu
 import {DistributionStatisticsInputComponent} from './distribution-statistics-input.component';
 import {CardModule, ColComponent, ModalModule, ProgressModule, RowComponent} from '@coreui/angular';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
-import {ToastService, ToastType} from '../../../../common/components/toasts/toast.service';
+import { ToastrService } from 'ngx-toastr';
 import {of, throwError} from 'rxjs';
 import {ShelterItem} from '../../../../api/shelter-api.service';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
@@ -12,7 +12,7 @@ import { signal } from '@angular/core';
 
 describe('DistributionStatisticsInputComponent', () => {
   let distributionApiService: MockedObject<DistributionApiService>;
-  let toastService: MockedObject<ToastService>;
+  let toastr: MockedObject<ToastrService>;
   let globalStateService: MockedObject<GlobalStateService>;
 
   const testShelters: ShelterItem[] = [
@@ -64,9 +64,10 @@ describe('DistributionStatisticsInputComponent', () => {
           }
         },
         {
-          provide: ToastService,
+          provide: ToastrService,
           useValue: {
-            showToast: vi.fn().mockName('ToastService.showToast')
+            success: vi.fn().mockName('ToastrService.success'),
+            error: vi.fn().mockName('ToastrService.error')
           }
         },
         {
@@ -79,7 +80,7 @@ describe('DistributionStatisticsInputComponent', () => {
     }).compileComponents();
 
     distributionApiService = TestBed.inject(DistributionApiService) as MockedObject<DistributionApiService>;
-    toastService = TestBed.inject(ToastService) as MockedObject<ToastService>;
+    toastr = TestBed.inject(ToastrService) as MockedObject<ToastrService>;
     globalStateService = TestBed.inject(GlobalStateService) as MockedObject<GlobalStateService>;
   });
 
@@ -123,10 +124,7 @@ describe('DistributionStatisticsInputComponent', () => {
     component.save();
 
     expect(distributionApiService.saveStatistic).toHaveBeenCalledWith(100, [1, 2]);
-    expect(toastService.showToast).toHaveBeenCalledWith({
-      type: ToastType.SUCCESS,
-      title: 'Statistik-Daten gespeichert!'
-    });
+    expect(toastr.success).toHaveBeenCalledWith('Statistik-Daten gespeichert!');
   });
 
   it('person count updated after edit', () => {
@@ -161,7 +159,7 @@ describe('DistributionStatisticsInputComponent', () => {
     component.save();
 
     expect(distributionApiService.saveStatistic).toHaveBeenCalledWith(100, [1, 2]);
-    expect(toastService.showToast).toHaveBeenCalledWith({type: ToastType.ERROR, title: 'Speichern fehlgeschlagen!'});
+    expect(toastr.error).toHaveBeenCalledWith('Speichern fehlgeschlagen!');
   });
 
   it('inputs are reflected to form', () => {

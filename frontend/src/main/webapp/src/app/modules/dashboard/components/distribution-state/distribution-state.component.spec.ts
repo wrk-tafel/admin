@@ -4,23 +4,23 @@ import { DistributionApiService, DistributionCloseValidationResult, Distribution
 import { DistributionStateComponent } from './distribution-state.component';
 import { EMPTY, of } from 'rxjs';
 import { GlobalStateService } from '../../../../common/state/global-state.service';
-import { CardModule, ColComponent, ModalModule, ProgressModule, RowComponent } from '@coreui/angular';
+import { CardModule, ColComponent, RowComponent } from '@coreui/angular';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { signal } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
 
 describe('DistributionStateComponent', () => {
     let distributionApiService: MockedObject<DistributionApiService>;
     let globalStateService: MockedObject<GlobalStateService>;
+    let matDialog: MockedObject<MatDialog>;
 
     beforeEach((() => {
         TestBed.configureTestingModule({
             imports: [
                 NoopAnimationsModule,
-                ModalModule,
                 CardModule,
                 RowComponent,
-                ColComponent,
-                ProgressModule
+                ColComponent
             ],
             providers: [
                 {
@@ -35,12 +35,19 @@ describe('DistributionStateComponent', () => {
                     useValue: {
                         getCurrentDistribution: vi.fn().mockName("GlobalStateService.getCurrentDistribution")
                     }
+                },
+                {
+                    provide: MatDialog,
+                    useValue: {
+                        open: vi.fn().mockName("MatDialog.open")
+                    }
                 }
             ]
         }).compileComponents();
 
         distributionApiService = TestBed.inject(DistributionApiService) as MockedObject<DistributionApiService>;
         globalStateService = TestBed.inject(GlobalStateService) as MockedObject<GlobalStateService>;
+        matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
     }));
 
     it('component can be created', () => {
@@ -97,12 +104,12 @@ describe('DistributionStateComponent', () => {
 
         const fixture = TestBed.createComponent(DistributionStateComponent);
         const component = fixture.componentInstance;
-        component.showCloseDistributionModal.set(true);
 
         component.closeDistribution(true);
 
         expect(distributionApiService.closeDistribution).toHaveBeenCalledWith(true);
-        expect(component.showCloseDistributionModal()).toBe(false);
+        // No validation dialog should be opened when there are no errors/warnings
+        expect(matDialog.open).not.toHaveBeenCalled();
     });
 
     it('close distribution without any response at all', () => {
@@ -112,15 +119,14 @@ describe('DistributionStateComponent', () => {
 
         const fixture = TestBed.createComponent(DistributionStateComponent);
         const component = fixture.componentInstance;
-        component.showCloseDistributionModal.set(true);
 
         component.closeDistribution(true);
 
         expect(distributionApiService.closeDistribution).toHaveBeenCalledWith(true);
-        expect(component.showCloseDistributionModal()).toBe(false);
+        expect(matDialog.open).not.toHaveBeenCalled();
     });
 
-    it('close distribution with errors', () => {
+    it('close distribution with errors opens validation dialog', () => {
         const distribution: DistributionItem = { id: 123, startedAt: new Date() };
         globalStateService.getCurrentDistribution.mockReturnValue(signal(distribution).asReadonly());
 
@@ -129,20 +135,18 @@ describe('DistributionStateComponent', () => {
             warnings: []
         };
         distributionApiService.closeDistribution.mockReturnValue(of(validationResult));
+        matDialog.open.mockReturnValue({ afterClosed: () => of(undefined) } as any);
 
         const fixture = TestBed.createComponent(DistributionStateComponent);
         const component = fixture.componentInstance;
-        component.showCloseDistributionModal.set(true);
-        component.showCloseDistributionValidationModal.set(false);
 
         component.closeDistribution(true);
 
         expect(distributionApiService.closeDistribution).toHaveBeenCalledWith(true);
-        expect(component.showCloseDistributionModal()).toBe(false);
-        expect(component.showCloseDistributionValidationModal()).toBe(true);
+        expect(matDialog.open).toHaveBeenCalled();
     });
 
-    it('close distribution with warnings', () => {
+    it('close distribution with warnings opens validation dialog', () => {
         const distribution: DistributionItem = { id: 123, startedAt: new Date() };
         globalStateService.getCurrentDistribution.mockReturnValue(signal(distribution).asReadonly());
 
@@ -151,17 +155,15 @@ describe('DistributionStateComponent', () => {
             warnings: ['Warning 1', 'Warning 2']
         };
         distributionApiService.closeDistribution.mockReturnValue(of(validationResult));
+        matDialog.open.mockReturnValue({ afterClosed: () => of(undefined) } as any);
 
         const fixture = TestBed.createComponent(DistributionStateComponent);
         const component = fixture.componentInstance;
-        component.showCloseDistributionModal.set(true);
-        component.showCloseDistributionValidationModal.set(false);
 
         component.closeDistribution(false);
 
         expect(distributionApiService.closeDistribution).toHaveBeenCalledWith(false);
-        expect(component.showCloseDistributionModal()).toBe(false);
-        expect(component.showCloseDistributionValidationModal()).toBe(true);
+        expect(matDialog.open).toHaveBeenCalled();
     });
 
 });
