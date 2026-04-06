@@ -212,8 +212,8 @@ class TafelUserDetailsManagerTest {
         verify { passwordEncoder.matches(currentPassword, testUserEntity.password) }
         verify {
             passwordValidator.validate(withArg {
-                assertThat(it.username).isEqualTo(testUserEntity.username)
-                assertThat(it.password).isEqualTo(newPassword)
+                assertThat(it.username.toString()).isEqualTo(testUserEntity.username)
+                assertThat(it.password.toString()).isEqualTo(newPassword)
             })
         }
         verify(exactly = 0) { userRepository.save(testUserEntity) }
@@ -572,8 +572,8 @@ class TafelUserDetailsManagerTest {
 
         val passwordValidationDataSlot = slot<PasswordData>()
         verify(exactly = 1) { passwordValidator.validate(capture(passwordValidationDataSlot)) }
-        assertThat(passwordValidationDataSlot.captured.username).isEqualTo(userUpdate.username)
-        assertThat(passwordValidationDataSlot.captured.password).isEqualTo(newPassword)
+        assertThat(passwordValidationDataSlot.captured.username.toString()).isEqualTo(userUpdate.username)
+        assertThat(passwordValidationDataSlot.captured.password.toString()).isEqualTo(newPassword)
 
         val updatedUser = updatedUserSlot.captured
         assertThat(updatedUser.password).isEqualTo(encodedPassword)
@@ -626,8 +626,8 @@ class TafelUserDetailsManagerTest {
 
         val passwordValidationDataSlot = slot<PasswordData>()
         verify(exactly = 1) { passwordValidator.validate(capture(passwordValidationDataSlot)) }
-        assertThat(passwordValidationDataSlot.captured.username).isEqualTo(userUpdate.username)
-        assertThat(passwordValidationDataSlot.captured.password).isEqualTo(newPassword)
+        assertThat(passwordValidationDataSlot.captured.username.toString()).isEqualTo(userUpdate.username)
+        assertThat(passwordValidationDataSlot.captured.password.toString()).isEqualTo(newPassword)
     }
 
     @Test
