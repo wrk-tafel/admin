@@ -1,28 +1,17 @@
 package at.wrk.tafel.admin.backend.config
 
 import at.wrk.tafel.admin.backend.common.ExcludeFromTestCoverage
-import at.wrk.tafel.admin.backend.common.auth.components.JwtTokenService
-import at.wrk.tafel.admin.backend.common.auth.components.NoOpAuthenticationSuccessHandler
-import at.wrk.tafel.admin.backend.common.auth.components.TafelJwtAuthConverter
-import at.wrk.tafel.admin.backend.common.auth.components.TafelJwtAuthProvider
-import at.wrk.tafel.admin.backend.common.auth.components.TafelLoginFilter
-import at.wrk.tafel.admin.backend.common.auth.components.TafelLoginProvider
-import at.wrk.tafel.admin.backend.common.auth.components.TafelPasswordGenerator
-import at.wrk.tafel.admin.backend.common.auth.components.TafelUserDetailsManager
+import at.wrk.tafel.admin.backend.common.auth.components.*
 import at.wrk.tafel.admin.backend.config.properties.ApplicationProperties
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
-import org.passay.CharacterRule
-import org.passay.DictionarySubstringRule
-import org.passay.EnglishCharacterData
-import org.passay.GermanCharacterData
-import org.passay.LengthRule
-import org.passay.PasswordValidator
-import org.passay.UsernameRule
-import org.passay.WhitespaceRule
+import org.passay.DefaultPasswordValidator
+import org.passay.data.EnglishCharacterData
+import org.passay.data.GermanCharacterData
 import org.passay.dictionary.ArrayWordList
 import org.passay.dictionary.WordListDictionary
 import org.passay.dictionary.sort.ArraysSort
+import org.passay.rule.*
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.authentication.AuthenticationManager
@@ -59,7 +48,7 @@ class WebSecurityConfig(
         private val publicEndpoints = listOf("/api/login", "/api/logout")
 
         val passwordLengthRule = LengthRule(8, 50)
-        val passwordValidator = PasswordValidator(
+        val passwordValidator = DefaultPasswordValidator(
             listOf(
                 passwordLengthRule,
                 UsernameRule(),
