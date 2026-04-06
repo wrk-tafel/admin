@@ -2,9 +2,9 @@ package at.wrk.tafel.admin.backend.common.auth.components
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.passay.CharacterRule
-import org.passay.EnglishCharacterData
-import org.passay.GermanCharacterData
+import org.passay.data.EnglishCharacterData
+import org.passay.data.GermanCharacterData
+import org.passay.rule.CharacterRule
 
 internal class TafelPasswordGeneratorTest {
 

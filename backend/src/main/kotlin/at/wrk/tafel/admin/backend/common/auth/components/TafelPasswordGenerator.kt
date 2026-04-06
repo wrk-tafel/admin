@@ -1,7 +1,7 @@
 package at.wrk.tafel.admin.backend.common.auth.components
 
-import org.passay.CharacterRule
-import org.passay.PasswordGenerator
+import org.passay.generate.PasswordGenerator
+import org.passay.rule.CharacterRule
 
 class TafelPasswordGenerator(
     private val length: Int,
@@ -9,7 +9,7 @@ class TafelPasswordGenerator(
 ) {
 
     fun generatePassword(): String {
-        return PasswordGenerator().generatePassword(length, generatedPasswordCharactersRules)
+        return PasswordGenerator(length, generatedPasswordCharactersRules).generate().toString()
     }
 
 }
