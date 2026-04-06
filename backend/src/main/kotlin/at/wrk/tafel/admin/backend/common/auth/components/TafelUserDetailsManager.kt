@@ -13,7 +13,14 @@ import at.wrk.tafel.admin.backend.database.model.auth.UserEntity.Specs.Companion
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeEntity
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
-import org.passay.*
+import org.passay.PasswordData
+import org.passay.PasswordValidator
+import org.passay.RuleResult
+import org.passay.ValidationResult
+import org.passay.rule.DictionarySubstringRule
+import org.passay.rule.LengthRule
+import org.passay.rule.UsernameRule
+import org.passay.rule.WhitespaceRule
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.jpa.domain.Specification
 import org.springframework.data.jpa.domain.Specification.where
@@ -125,7 +132,7 @@ class TafelUserDetailsManager(
         return true
     }
 
-    private fun translateViolationsToMessages(result: RuleResult): List<String> {
+    private fun translateViolationsToMessages(result: ValidationResult): List<String> {
         return result.details.mapNotNull {
             when (it.errorCode) {
                 LengthRule.ERROR_CODE_MIN -> """Mindestlänge: ${it.parameters["minimumLength"]}, Maximale Länge: ${it.parameters["maximumLength"]}"""

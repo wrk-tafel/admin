@@ -28,9 +28,11 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
+import org.passay.FailureValidationResult
 import org.passay.PasswordData
 import org.passay.PasswordValidator
 import org.passay.RuleResult
+import org.passay.SuccessValidationResult
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.jpa.domain.Specification
@@ -158,7 +160,7 @@ class TafelUserDetailsManagerTest {
         val newPassword = "67890"
         val newPasswordEncoded = "encoded-pwd"
 
-        every { passwordValidator.validate(any()) } returns RuleResult(true)
+        every { passwordValidator.validate(any()) } returns SuccessValidationResult()
         every { passwordEncoder.encode(newPassword) } returns newPasswordEncoded
         every { userRepository.save(any()) } returns testUserEntity
 
@@ -179,7 +181,7 @@ class TafelUserDetailsManagerTest {
 
     @Test
     fun `changePassword - passwords not matching`() {
-        every { passwordValidator.validate(any()) } returns RuleResult(true)
+        every { passwordValidator.validate(any()) } returns SuccessValidationResult()
 
         val currentPassword = "wrong-password"
         val newPassword = "67890"
@@ -196,7 +198,7 @@ class TafelUserDetailsManagerTest {
 
     @Test
     fun `changePassword - new password invalid`() {
-        every { passwordValidator.validate(any()) } returns RuleResult(false)
+        every { passwordValidator.validate(any()) } returns FailureValidationResult()
 
         val currentPassword = "12345"
         val newPassword = "67890"
@@ -210,8 +212,8 @@ class TafelUserDetailsManagerTest {
         verify { passwordEncoder.matches(currentPassword, testUserEntity.password) }
         verify {
             passwordValidator.validate(withArg {
-                assertThat(it.username).isEqualTo(testUserEntity.username)
-                assertThat(it.password).isEqualTo(newPassword)
+                assertThat(it.username.toString()).isEqualTo(testUserEntity.username)
+                assertThat(it.password.toString()).isEqualTo(newPassword)
             })
         }
         verify(exactly = 0) { userRepository.save(testUserEntity) }
@@ -570,8 +572,8 @@ class TafelUserDetailsManagerTest {
 
         val passwordValidationDataSlot = slot<PasswordData>()
         verify(exactly = 1) { passwordValidator.validate(capture(passwordValidationDataSlot)) }
-        assertThat(passwordValidationDataSlot.captured.username).isEqualTo(userUpdate.username)
-        assertThat(passwordValidationDataSlot.captured.password).isEqualTo(newPassword)
+        assertThat(passwordValidationDataSlot.captured.username.toString()).isEqualTo(userUpdate.username)
+        assertThat(passwordValidationDataSlot.captured.password.toString()).isEqualTo(newPassword)
 
         val updatedUser = updatedUserSlot.captured
         assertThat(updatedUser.password).isEqualTo(encodedPassword)
@@ -603,7 +605,7 @@ class TafelUserDetailsManagerTest {
 
         every { userRepository.getReferenceById(testUser.id!!) } returns testUserEntity
         every { userRepository.save(any()) } returns mockk(relaxed = true)
-        every { passwordValidator.validate(any()) } returns RuleResult(false)
+        every { passwordValidator.validate(any()) } returns FailureValidationResult()
 
         val newPassword = "new-pwd1234"
         val userUpdate = testUser.copy(
@@ -624,8 +626,8 @@ class TafelUserDetailsManagerTest {
 
         val passwordValidationDataSlot = slot<PasswordData>()
         verify(exactly = 1) { passwordValidator.validate(capture(passwordValidationDataSlot)) }
-        assertThat(passwordValidationDataSlot.captured.username).isEqualTo(userUpdate.username)
-        assertThat(passwordValidationDataSlot.captured.password).isEqualTo(newPassword)
+        assertThat(passwordValidationDataSlot.captured.username.toString()).isEqualTo(userUpdate.username)
+        assertThat(passwordValidationDataSlot.captured.password.toString()).isEqualTo(newPassword)
     }
 
     @Test
