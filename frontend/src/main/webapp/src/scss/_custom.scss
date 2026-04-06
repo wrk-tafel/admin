@@ -1,5 +1,5 @@
 // Here you can add other styles
-@import "tailwindcss";
+// Tailwind is now processed via src/tailwind.css (PostCSS) -- no @import needed here
 
 .main-container {
   margin-left: 0;

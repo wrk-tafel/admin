@@ -2,6 +2,7 @@
 
 // Angular Material theme (@use must come before @import)
 @use "material-theme";
+@use "shared-tokens";
 
 // NOTE: @import is deprecated in Dart Sass and will be removed in Dart Sass 3.0.0
 // However, we must continue using @import until CoreUI migrates to @use/@forward

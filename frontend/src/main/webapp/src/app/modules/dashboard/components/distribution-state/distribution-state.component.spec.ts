@@ -4,8 +4,10 @@ import { DistributionApiService, DistributionCloseValidationResult, Distribution
 import { DistributionStateComponent } from './distribution-state.component';
 import { EMPTY, of } from 'rxjs';
 import { GlobalStateService } from '../../../../common/state/global-state.service';
-import { CardModule, ColComponent, RowComponent } from '@coreui/angular';
+import { MatCardModule } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { signal } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 
@@ -18,9 +20,8 @@ describe('DistributionStateComponent', () => {
         TestBed.configureTestingModule({
             imports: [
                 NoopAnimationsModule,
-                CardModule,
-                RowComponent,
-                ColComponent
+                MatCardModule,
+                MatButtonModule
             ],
             providers: [
                 {

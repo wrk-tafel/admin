@@ -1,0 +1,102 @@
+/* Tailwind v4 entry point -- processed by PostCSS (@tailwindcss/postcss) */
+@import "tailwindcss";
+
+/* ── Design Tokens (CoreUI-sourced) ─────────────────────────────── */
+@theme {
+  /* Brand / semantic colors -- CoreUI palette */
+  --color-primary-50:  #e9e8fa;
+  --color-primary-100: #cfc7f3;
+  --color-primary-200: #b4aaed;
+  --color-primary-300: #9388e4;
+  --color-primary-400: #786bda;
+  --color-primary-500: #5856d6;
+  --color-primary-600: #4745c0;
+  --color-primary-700: #3634a3;
+  --color-primary-800: #2a2885;
+  --color-primary-900: #1e1d67;
+
+  --color-success-50:  #e6f5eb;
+  --color-success-100: #cbedd6;
+  --color-success-200: #96dbad;
+  --color-success-300: #5ec96e;
+  --color-success-400: #32b350;
+  --color-success-500: #1b9e3e;
+  --color-success-600: #157d31;
+  --color-success-700: #0f5722;
+  --color-success-800: #0a3d18;
+  --color-success-900: #05200d;
+
+  --color-warning-50:  #fdf8e5;
+  --color-warning-100: #feecc5;
+  --color-warning-200: #fcd88a;
+  --color-warning-300: #fbc14e;
+  --color-warning-400: #faaf23;
+  --color-warning-500: #f9b115;
+  --color-warning-600: #e08e07;
+  --color-warning-700: #764705;
+  --color-warning-800: #5c3a04;
+  --color-warning-900: #4a2f03;
+
+  --color-danger-50:  #fdeaea;
+  --color-danger-100: #f9d4d4;
+  --color-danger-200: #f2a9a9;
+  --color-danger-300: #e87e7e;
+  --color-danger-400: #e55353;
+  --color-danger-500: #d63d3d;
+  --color-danger-600: #b02424;
+  --color-danger-700: #671414;
+  --color-danger-800: #521010;
+  --color-danger-900: #430d0d;
+
+  --color-info-50:  #e6f5ff;
+  --color-info-100: #c0e6ff;
+  --color-info-200: #80c6ff;
+  --color-info-300: #4daeff;
+  --color-info-400: #3399ff;
+  --color-info-500: #1a8aee;
+  --color-info-600: #184c77;
+  --color-info-700: #133d5f;
+  --color-info-800: #0e2d47;
+  --color-info-900: #0a2033;
+
+  /* Grayscale (CoreUI defaults) */
+  --color-gray-50:  #fafbfc;
+  --color-gray-100: #f3f4f7;
+  --color-gray-200: #e7eaee;
+  --color-gray-300: #dbdfe6;
+  --color-gray-400: #cfd4de;
+  --color-gray-500: #aab3c5;
+  --color-gray-600: #6d7d9c;
+  --color-gray-700: #4a566d;
+  --color-gray-800: #323a49;
+  --color-gray-900: #212631;
+
+  /* Semantic aliases */
+  --color-secondary:   #6b7785;
+  --color-light:       #f3f4f7;
+  --color-dark:        #212631;
+
+  /* Font families */
+  --font-sans: 'Source Sans Pro', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* Border radii */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+}
+
+/* ── Custom utility overrides ───────────────────────────────────── */
+/* CoreUI body background */
+body {
+  background-color: var(--cui-tertiary-bg);
+}
+
+.footer {
+  min-height: calc(3rem + 1px);
+}

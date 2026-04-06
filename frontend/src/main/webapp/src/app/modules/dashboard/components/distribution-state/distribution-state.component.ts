@@ -1,18 +1,13 @@
-import {Component, computed, inject, Signal} from '@angular/core';
+import {Component, computed, inject, signal, Signal} from '@angular/core';
+import {NgClass} from '@angular/common';
 import {
   DistributionApiService,
   DistributionCloseValidationResult,
   DistributionItem
 } from '../../../../api/distribution-api.service';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
-import {
-  ButtonDirective,
-  CardBodyComponent,
-  CardComponent,
-  CardFooterComponent,
-  ColComponent,
-  RowComponent
-} from '@coreui/angular';
+import {MatCard, MatCardContent, MatCardActions} from '@angular/material/card';
+import {MatButton} from '@angular/material/button';
 import {MatDialog} from '@angular/material/dialog';
 import {CloseDistributionDialogComponent} from './dialogs/close-distribution-dialog.component';
 import {CloseDistributionValidationDialogComponent} from './dialogs/close-distribution-validation-dialog.component';
@@ -20,14 +15,7 @@ import {CloseDistributionValidationDialogComponent} from './dialogs/close-distri
 @Component({
   selector: 'tafel-distribution-state',
   templateUrl: 'distribution-state.component.html',
-  imports: [
-    CardComponent,
-    CardBodyComponent,
-    RowComponent,
-    ColComponent,
-    ButtonDirective,
-    CardFooterComponent
-  ]
+  imports: [NgClass, MatCard, MatCardContent, MatCardActions, MatButton]
 })
 export class DistributionStateComponent {
   private readonly distributionApiService = inject(DistributionApiService);

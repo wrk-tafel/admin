@@ -1,28 +1,24 @@
-<c-card class="h-100" [color]="isDistributionActive() ? 'success' : 'primary'" textColor="white">
-  <c-card-body>
-    <c-row>
-      <c-col>
-        <h4>Status</h4>
-      </c-col>
-    </c-row>
-    <c-row>
-      <c-col testid="distribution-state-text" class="fw-bold">
-        <h1>{{isDistributionActive() ? 'Geöffnet' : 'Geschlossen'}}</h1>
-      </c-col>
-    </c-row>
-  </c-card-body>
-  <c-card-footer>
+<mat-card class="distribution-state-card" [ngClass]="isDistributionActive() ? 'state-open' : 'state-closed'">
+  <mat-card-content>
+    <h4 class="m-0 text-gray-300 font-light">Status</h4>
+    <h1 class="m-0 font-bold" testid="distribution-state-text">
+      {{isDistributionActive() ? 'Ge&ouml;ffnet' : 'Geschlossen'}}
+    </h1>
+  </mat-card-content>
+  <mat-card-actions>
     @if (!isDistributionActive()) {
-      <button cButton color="light"
+      <button mat-flat-button
               testid="distribution-start-button"
+              color="primary"
               (click)="createNewDistribution()">Tag starten
       </button>
     }
     @if (isDistributionActive()) {
-      <button cButton color="light"
+      <button mat-flat-button
               testid="distribution-close-button"
+              color="warn"
               (click)="openCloseDistributionDialog()">Tag beenden
       </button>
     }
-  </c-card-footer>
-</c-card>
+  </mat-card-actions>
+</mat-card>

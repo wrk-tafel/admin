@@ -1,5 +1,13 @@
 @use '@angular/material' as mat;
 
+// Primary color derived from CoreUI (#5856d6 - deep purple/indigo)
+$primary-color: #5856d6;
+// Tertiary color derived from CoreUI info (#3399ff - cyan-blue)
+$tertiary-color: #3399ff;
+
+// Use the closest Angular Material palette to match CoreUI primary.
+// CoreUI #5856d6 maps well to Azure (indigo-like).
+// The $theme system will generate proper M3 tonal palettes.
 $theme: mat.define-theme((
   color: (
     theme-type: light,
