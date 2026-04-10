@@ -32,13 +32,13 @@ import {MatDialogModule} from '@angular/material/dialog';
 @Component({
   selector: 'tafel-dialog',
   imports: [MatDialogModule, NgClass, CommonModule],
-  templateUrl: './tafel-dialog.component.html',
-  styleUrls: ['./tafel-dialog.component.css'],
+  templateUrl: './tafel-dialog.component.html'
 })
 export class TafelDialogComponent {
   @HostBinding('attr.testid') get hostTestId() {
     return this.testId() || null;
   }
+
   /**
    * The visual style of the dialog header.
    * Determines the background color via the corresponding `dialog-header-<type>` CSS class.
