@@ -1,18 +1,14 @@
-<c-card class="h-100" color="primary">
-  <c-card-body>
-    <c-row>
-      <c-col size="12">
-        <h4 class="card-title text-white">Erfasste Warenmenge</h4>
-      </c-col>
-    </c-row>
-    <c-row>
-      <c-col>
-        @if (amount() !== null) {
-          <div testid="food-amount-total" class="text-white text-end" style="font-size: 50pt;">{{ (amount() | number: '1.2-2') + ' kg' }}</div>
-        } @else {
-          <div testid="food-amount-total" class="text-white text-end" style="font-size: 50pt;">-</div>
-        }
-      </c-col>
-    </c-row>
-  </c-card-body>
-</c-card>
+<mat-card class="h-100 mat-card-primary">
+  <mat-card-header>
+    <mat-card-title>
+      <h4 class="text-white">Erfasste Warenmenge</h4>
+    </mat-card-title>
+  </mat-card-header>
+  <mat-card-content class="text-end mb-3">
+    @if (amount() !== null) {
+      <div testid="food-amount-total" class="text-white text-5xl">{{ (amount() | number: '1.2-2') }} kg</div>
+    } @else {
+      <div testid="food-amount-total" class="text-white text-5xl">-</div>
+    }
+  </mat-card-content>
+</mat-card>

@@ -1,11 +1,9 @@
 <div [ngClass]="'dialog-header-' + type()" testid="header">
   <h4 mat-dialog-title class="text-white m-0" testid="title">{{ title() }}</h4>
 </div>
-
 <mat-dialog-content>
   <ng-content select="[tafel-dialog-content]"></ng-content>
 </mat-dialog-content>
-
 <mat-dialog-actions align="end">
   <ng-content select="[tafel-dialog-actions]"></ng-content>
 </mat-dialog-actions>

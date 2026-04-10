@@ -1,0 +1,7 @@
+@use '@angular/material' as mat;
+@import '@angular/material/prebuilt-themes/azure-blue.css';
+
+// Customizations
+@import "components/mat-dialog";
+@import "components/mat-card";
+@import "components/mat-button";

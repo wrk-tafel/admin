@@ -1,0 +1,33 @@
+.mat-mdc-card-footer {
+  padding: 0 1rem 1rem 1rem !important;
+}
+
+.mat-mdc-card {
+  border: #080A0C2D solid 1px !important;
+  background-color: white !important;
+  box-shadow: none !important;
+}
+
+.mat-mdc-card-content {
+  flex-grow: 1 !important;
+}
+
+.mat-card-colored {
+  color: white !important;
+  border-radius: 8px !important;
+}
+
+.mat-card-primary {
+  @extend .mat-card-colored;
+  background-color: #5856d6 !important;
+}
+
+.mat-card-warning {
+  @extend .mat-card-colored;
+  background-color: #f9b115 !important;
+}
+
+.mat-card-success {
+  @extend .mat-card-colored;
+  background-color: #1b9e3e !important;
+}

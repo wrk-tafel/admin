@@ -5,14 +5,8 @@ import {
   DistributionItem
 } from '../../../../api/distribution-api.service';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
-import {
-  ButtonDirective,
-  CardBodyComponent,
-  CardComponent,
-  CardFooterComponent,
-  ColComponent,
-  RowComponent
-} from '@coreui/angular';
+import {MatCard, MatCardContent, MatCardFooter, MatCardHeader, MatCardTitle} from '@angular/material/card';
+import {MatButton} from '@angular/material/button';
 import {MatDialog} from '@angular/material/dialog';
 import {CloseDistributionDialogComponent} from './dialogs/close-distribution-dialog.component';
 import {CloseDistributionValidationDialogComponent} from './dialogs/close-distribution-validation-dialog.component';
@@ -21,12 +15,12 @@ import {CloseDistributionValidationDialogComponent} from './dialogs/close-distri
   selector: 'tafel-distribution-state',
   templateUrl: 'distribution-state.component.html',
   imports: [
-    CardComponent,
-    CardBodyComponent,
-    RowComponent,
-    ColComponent,
-    ButtonDirective,
-    CardFooterComponent
+    MatCard,
+    MatCardHeader,
+    MatCardTitle,
+    MatCardContent,
+    MatCardFooter,
+    MatButton
   ]
 })
 export class DistributionStateComponent {

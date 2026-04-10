@@ -1,19 +1,16 @@
-<c-card class="h-100" color="primary" textColor="white">
-  <c-card-body>
-    <c-row>
-      <c-col size="12">
-        <h4>Kunden angemeldet</h4>
-      </c-col>
-    </c-row>
-    <c-row>
-      <c-col>
-        <div testid="customers-count" class="text-end" style="font-size: 50pt;">{{count() ?? '-'}}</div>
-      </c-col>
-    </c-row>
-  </c-card-body>
-  <c-card-footer *tafelIfDistributionActive>
-    <button testid="download-customerlist-button" cButton color="light" (click)="downloadCustomerList()">
-      <fa-icon [icon]="faDownload"></fa-icon> Kundenliste
+<mat-card class="h-100 mat-card-primary">
+  <mat-card-header>
+    <mat-card-title>
+      <h4>Kunden angemeldet</h4>
+    </mat-card-title>
+  </mat-card-header>
+  <mat-card-content class="text-end">
+    <div testid="customers-count" class="text-5xl">{{ count() ?? '-' }}</div>
+  </mat-card-content>
+  <mat-card-footer *tafelIfDistributionActive>
+    <button testid="download-customerlist-button" mat-raised-button (click)="downloadCustomerList()">
+      <fa-icon [icon]="faDownload"></fa-icon>
+      Kundenliste
     </button>
-  </c-card-footer>
-</c-card>
+  </mat-card-footer>
+</mat-card>

@@ -1,9 +1,10 @@
 import {Component, inject} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
-import {ButtonDirective, FormCheckComponent, FormCheckInputDirective, FormCheckLabelDirective} from '@coreui/angular';
+import {FormCheckComponent, FormCheckInputDirective, FormCheckLabelDirective} from '@coreui/angular';
 import {FormArray, FormBuilder, FormControl, ReactiveFormsModule} from '@angular/forms';
 import {ShelterItem} from '../../../../../api/shelter-api.service';
 import {TafelDialogComponent} from '../../../../../common/components/tafel-dialog/tafel-dialog.component';
+import {MatButton} from "@angular/material/button";
 
 export interface SelectSheltersDialogData {
   sheltersList: ShelterItem[];
@@ -12,55 +13,15 @@ export interface SelectSheltersDialogData {
 
 @Component({
   selector: 'tafel-select-shelters-dialog',
+  templateUrl: 'select-shelters-dialog.component.html',
   imports: [
-    TafelDialogComponent, ButtonDirective, ReactiveFormsModule,
-    FormCheckComponent, FormCheckInputDirective, FormCheckLabelDirective
-  ],
-  template: `
-    <tafel-dialog title="Notschlafstellen auswählen">
-      <div tafel-dialog-content>
-        <form [formGroup]="form" autocomplete="off">
-          @if (data.sheltersList && data.sheltersList.length > 0) {
-            <div formArrayName="selectedShelters">
-              @for (shelter of data.sheltersList; track shelter.id; let idx = $index) {
-                @if (idx > 0) {
-                  <hr/>
-                }
-                <div class="d-flex flex-row align-items-start gap-2">
-                  <div class="flex-shrink-0">
-                    <c-form-check switch="true" sizing="xl">
-                      <input
-                        type="checkbox"
-                        [formControl]="selectedShelters.controls[idx]"
-                        [id]="'shelter-' + shelter.id"
-                        [attr.testid]="'selectable-shelter-row-' + idx"
-                        cFormCheckInput
-                      >
-                    </c-form-check>
-                  </div>
-                  <div class="flex-grow-1 text-start text-wrap">
-                    <strong>{{ shelter.name }}</strong>
-                    <br>
-                    <label cFormCheckLabel [for]="'shelter-' + shelter.id">
-                      {{ formatStreet(shelter) }}
-                      <br>
-                      {{ shelter.addressPostalCode }} {{ shelter.addressCity }}
-                    </label>
-                  </div>
-                  <div class="fs-5">{{ shelter.personsCount }} Personen</div>
-                </div>
-              }
-            </div>
-          }
-        </form>
-      </div>
-      <div tafel-dialog-actions>
-        <button testid="selectshelters-save-button" cButton (click)="save()" [disabled]="form.invalid">Speichern</button>
-        <button testid="selectshelters-cancel-button" cButton color="secondary" (click)="dialogRef.close()">Abbrechen
-        </button>
-      </div>
-    </tafel-dialog>
-  `,
+    TafelDialogComponent,
+    ReactiveFormsModule,
+    FormCheckComponent,
+    FormCheckInputDirective,
+    FormCheckLabelDirective,
+    MatButton
+  ]
 })
 export class SelectSheltersDialogComponent {
   readonly dialogRef = inject(MatDialogRef<SelectSheltersDialogComponent>);
