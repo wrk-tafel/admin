@@ -24,26 +24,23 @@ describe('PasswordChange', () => {
     cy.byTestId('newRepeatedPasswordText').type(mismatchPassword);
 
     // Blur the field to trigger validation
-    cy.byTestId('newRepeatedPasswordText').blur();
+    cy.byTestId('newRepeatedPasswordText').find('input').blur();
 
     // Verify the mismatch error message is shown
     cy.contains('Passwort-Wiederholung stimmt nicht überein!').should('be.visible');
 
-    // Verify the newRepeatedPassword field has the invalid class
-    cy.byTestId('newRepeatedPasswordText').should('have.class', 'is-invalid');
+    // Verify the newRepeatedPassword field shows error message
+    cy.byTestId('newRepeatedPasswordText-error').should('have.text', 'Passwort-Wiederholung stimmt nicht überein!');
 
     // Verify save button is disabled (if there's a save button in the component)
     cy.byTestId('saveButton').should('be.disabled');
 
     // Now fix the password to match
-    cy.byTestId('newRepeatedPasswordText').clear().type(newPassword);
-    cy.byTestId('newRepeatedPasswordText').blur();
+    cy.byTestId('newRepeatedPasswordText').find('input').clear().type(newPassword);
+    cy.byTestId('newRepeatedPasswordText').find('input').blur();
 
     // Verify the error message is gone
-    cy.contains('Passwort-Wiederholung stimmt nicht überein!').should('not.exist');
-
-    // Verify the field is now valid
-    cy.byTestId('newRepeatedPasswordText').should('have.class', 'is-valid');
+    cy.byTestId('newRepeatedPasswordText-error').should('not.exist');
   });
 
   it('change password', () => {
@@ -71,20 +68,20 @@ describe('PasswordChange', () => {
 
         const currentPassword = testUser.password;
         recurse(
-          () => cy.byTestId('currentPasswordText').type(currentPassword),
+          () => cy.byTestId('currentPasswordText').find('input').type(currentPassword),
           ($input) => $input.val() === currentPassword,
           {timeout: 30000}
         ).should('have.value', currentPassword);
 
         const newPassword = '4wtouCcWWqDJsP';
         recurse(
-          () => cy.byTestId('newPasswordText').type(newPassword),
+          () => cy.byTestId('newPasswordText').find('input').type(newPassword),
           ($input) => $input.val() === newPassword,
           {timeout: 30000}
         ).should('have.value', newPassword);
 
         recurse(
-          () => cy.byTestId('newRepeatedPasswordText').type(newPassword),
+          () => cy.byTestId('newRepeatedPasswordText').find('input').type(newPassword),
           ($input) => $input.val() === newPassword,
           {timeout: 30000}
         ).should('have.value', newPassword);

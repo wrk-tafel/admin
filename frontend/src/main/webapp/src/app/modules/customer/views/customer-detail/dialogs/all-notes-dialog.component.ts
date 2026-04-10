@@ -14,7 +14,7 @@ export interface AllNotesDialogData {
 @Component({
   selector: 'tafel-all-notes-dialog',
   imports: [TafelDialogComponent, MatDialogModule, ButtonDirective, CommonModule, TafelPaginationComponent],
-  templateUrl: './all-notes-dialog.component.html',
+  templateUrl: 'all-notes-dialog.component.html',
 })
 export class AllNotesDialogComponent {
   readonly dialogRef = inject(MatDialogRef<AllNotesDialogComponent>);

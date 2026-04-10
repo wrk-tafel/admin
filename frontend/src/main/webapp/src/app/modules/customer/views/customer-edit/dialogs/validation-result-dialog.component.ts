@@ -12,7 +12,7 @@ export interface ValidationResultDialogData {
 @Component({
   selector: 'tafel-validation-result-dialog',
   imports: [TafelDialogComponent, MatDialogModule, ButtonDirective, DecimalPipe, NgClass],
-  templateUrl: './validation-result-dialog.component.html',
+  templateUrl: 'validation-result-dialog.component.html',
 })
 export class ValidationResultDialogComponent {
   readonly dialogRef = inject(MatDialogRef<ValidationResultDialogComponent>);

@@ -6,22 +6,27 @@ import {Observable, throwError} from 'rxjs';
 import {HttpErrorResponse} from '@angular/common/http';
 import {CommonModule} from '@angular/common';
 import {TafelAutofocusDirective} from '../../directive/tafel-autofocus.directive';
-import {ColComponent, InputGroupComponent, InputGroupTextDirective, RowComponent} from '@coreui/angular';
 import {faEye, faEyeSlash} from '@fortawesome/free-solid-svg-icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
+import {MatError, MatFormField, MatInput, MatLabel, MatSuffix} from "@angular/material/input";
+import {MatDivider} from "@angular/material/list";
+import {MatIcon} from "@angular/material/icon";
 
 @Component({
-    selector: 'tafel-passwordchange-form',
-    templateUrl: 'passwordchange-form.component.html',
+  selector: 'tafel-passwordchange-form',
+  templateUrl: 'passwordchange-form.component.html',
   imports: [
     FormField,
     CommonModule,
     TafelAutofocusDirective,
-    InputGroupComponent,
     FaIconComponent,
-    InputGroupTextDirective,
-    RowComponent,
-    ColComponent
+    MatFormField,
+    MatLabel,
+    MatError,
+    MatDivider,
+    MatInput,
+    MatSuffix,
+    MatIcon
   ]
 })
 export class PasswordChangeFormComponent {

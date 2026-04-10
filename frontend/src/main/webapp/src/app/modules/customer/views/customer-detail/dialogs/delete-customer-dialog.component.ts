@@ -6,7 +6,7 @@ import {TafelDialogComponent} from '../../../../../common/components/tafel-dialo
 @Component({
   selector: 'tafel-delete-customer-dialog',
   imports: [TafelDialogComponent, ButtonDirective],
-  templateUrl: './delete-customer-dialog.component.html',
+  templateUrl: 'delete-customer-dialog.component.html',
 })
 export class DeleteCustomerDialogComponent {
   readonly dialogRef = inject(MatDialogRef<DeleteCustomerDialogComponent>);

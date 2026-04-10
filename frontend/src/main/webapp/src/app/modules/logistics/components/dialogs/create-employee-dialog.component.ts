@@ -15,7 +15,7 @@ export interface CreateEmployeeDialogData {
 @Component({
   selector: 'tafel-create-employee-dialog',
   imports: [TafelDialogComponent, ButtonDirective, ReactiveFormsModule, CommonModule, InputGroupComponent],
-  templateUrl: './create-employee-dialog.component.html',
+  templateUrl: 'create-employee-dialog.component.html',
 })
 export class CreateEmployeeDialogComponent {
   readonly dialogRef = inject(MatDialogRef<CreateEmployeeDialogComponent>);

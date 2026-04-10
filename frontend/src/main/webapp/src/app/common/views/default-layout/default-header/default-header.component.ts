@@ -13,8 +13,7 @@ import {
   HeaderComponent,
   HeaderNavComponent,
   HeaderTogglerDirective,
-  SidebarToggleDirective,
-  TextColorDirective
+  SidebarToggleDirective
 } from '@coreui/angular';
 import {AuthenticationService} from '../../../security/authentication.service';
 import {RouterLink} from '@angular/router';
@@ -25,28 +24,27 @@ import {faKey, faLock} from '@fortawesome/free-solid-svg-icons';
 import {GlobalStateService} from '../../../state/global-state.service';
 
 @Component({
-    selector: 'app-default-header',
-    templateUrl: './default-header.component.html',
-    imports: [
-        ContainerComponent,
-        SidebarToggleDirective,
-        HeaderNavComponent,
-        DropdownComponent,
-        DropdownToggleDirective,
-        AvatarComponent,
-        RouterLink,
-        HeaderTogglerDirective,
-        IconDirective,
-        ButtonDirective,
-        TextColorDirective,
-        NgTemplateOutlet,
-        DropdownMenuDirective,
-        DropdownHeaderDirective,
-        DropdownItemDirective,
-        DropdownDividerDirective,
-        BadgeComponent,
-        FontAwesomeModule
-    ]
+  selector: 'app-default-header',
+  templateUrl: 'default-header.component.html',
+  imports: [
+    ContainerComponent,
+    SidebarToggleDirective,
+    HeaderNavComponent,
+    DropdownComponent,
+    DropdownToggleDirective,
+    AvatarComponent,
+    RouterLink,
+    HeaderTogglerDirective,
+    IconDirective,
+    ButtonDirective,
+    NgTemplateOutlet,
+    DropdownMenuDirective,
+    DropdownHeaderDirective,
+    DropdownItemDirective,
+    DropdownDividerDirective,
+    BadgeComponent,
+    FontAwesomeModule
+  ]
 })
 export class DefaultHeaderComponent extends HeaderComponent {
   sidebarId = input('sidebar');

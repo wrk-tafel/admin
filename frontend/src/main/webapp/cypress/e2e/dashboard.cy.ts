@@ -24,7 +24,9 @@ describe('Dashboard', () => {
     cy.byTestId('selectable-shelter-row-1').click();
     cy.byTestId('selectable-shelter-row-2').click();
     cy.byTestId('selectshelters-save-button').click();
-    cy.byTestId('distribution-statistics-persons-in-shelter-input').should('have.value', '150');
+    cy.byTestId('distribution-statistics-persons-in-shelter-input')
+      .find('input')
+      .should('have.value', '150');
 
     cy.byTestId('distribution-statistics-save-button').click();
 
@@ -34,8 +36,12 @@ describe('Dashboard', () => {
 
     // check if data is filled after reload
     cy.reload();
-    cy.byTestId('distribution-statistics-employee-count-input').should('have.value', '100');
-    cy.byTestId('distribution-statistics-persons-in-shelter-input').should('have.value', '150');
+    cy.byTestId('distribution-statistics-employee-count-input')
+      .find('input')
+      .should('have.value', '100');
+    cy.byTestId('distribution-statistics-persons-in-shelter-input')
+      .find('input')
+      .should('have.value', '150');
     cy.byTestId('distribution-notes-textarea').should('have.value', 'Test note - everything went well!');
 
     // --> CLOSED

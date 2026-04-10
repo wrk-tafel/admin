@@ -2,29 +2,18 @@ import {Component, computed, inject, viewChild} from '@angular/core';
 import {PasswordChangeFormComponent} from '../passwordchange-form/passwordchange-form.component';
 import {Router} from '@angular/router';
 import {AuthenticationService, LoginResult} from '../../security/authentication.service';
-import {
-  ButtonDirective,
-  CardBodyComponent,
-  CardComponent,
-  CardGroupComponent,
-  ColComponent,
-  ContainerComponent,
-  RowComponent
-} from '@coreui/angular';
+import {MatCard, MatCardContent} from "@angular/material/card";
+import {MatButton} from "@angular/material/button";
 
 @Component({
-    selector: 'tafel-login-passwordchange',
-    templateUrl: 'login-passwordchange.component.html',
-    imports: [
-        ContainerComponent,
-        RowComponent,
-        ColComponent,
-        CardGroupComponent,
-        CardComponent,
-        CardBodyComponent,
-        PasswordChangeFormComponent,
-        ButtonDirective,
-    ]
+  selector: 'tafel-login-passwordchange',
+  templateUrl: 'login-passwordchange.component.html',
+  imports: [
+    PasswordChangeFormComponent,
+    MatCard,
+    MatCardContent,
+    MatButton,
+  ]
 })
 export class LoginPasswordChangeComponent {
   form = viewChild(PasswordChangeFormComponent);

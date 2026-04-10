@@ -7,7 +7,7 @@ import {TafelDialogComponent} from '../../../../../common/components/tafel-dialo
 @Component({
   selector: 'tafel-lock-customer-dialog',
   imports: [TafelDialogComponent, ButtonDirective, FormsModule],
-  templateUrl: './lock-customer-dialog.component.html',
+  templateUrl: 'lock-customer-dialog.component.html',
 })
 export class LockCustomerDialogComponent {
   readonly dialogRef = inject(MatDialogRef<LockCustomerDialogComponent>);

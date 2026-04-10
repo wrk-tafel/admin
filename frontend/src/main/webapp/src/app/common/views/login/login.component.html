@@ -1,40 +1,33 @@
-<div class="bg-light min-vh-100 d-flex flex-row align-items-center">
-  <c-container>
-    <c-row class="justify-content-center">
-      <c-col md="8">
-        <c-card-group>
-          <c-card class="p-4">
-            <c-card-body>
-              <form>
-                <div class="mb-4 text-center">
-                  <img src="assets/img/brand/logo.svg" alt="ÖRK Logo" width="200" class="mb-2" height="54"/>
-                  <h1>Tafel Admin</h1>
-                </div>
-                @if (errorMessage()) {
-                  <div testid="errorMessage" class="alert alert-danger">
-                    <div>{{errorMessage()}}</div>
-                  </div>
-                }
-                <c-input-group class="mb-3">
-                  <span cInputGroupText>
-                    <svg cIcon name="cilUser"></svg>
-                  </span>
-                  <input [formField]="loginForm.username" testid="username" type="text" class="form-control"
-                         placeholder="Benutzername" autocomplete="username" tafelAutofocus>
-                </c-input-group>
-                <c-input-group class="mb-4">
-                  <span cInputGroupText>
-                    <svg cIcon name="cilLockLocked"></svg>
-                  </span>
-                  <input [formField]="loginForm.password" testid="password" type="password"
-                         class="form-control" placeholder="Passwort" autocomplete="current-password">
-                </c-input-group>
-                <button testid="loginButton" cButton class="px-4" [disabled]="!loginForm().valid()" (click)="login()">Anmelden</button>
-              </form>
-            </c-card-body>
-          </c-card>
-        </c-card-group>
-      </c-col>
-    </c-row>
-  </c-container>
+<div class="d-flex flex-row min-w-screen min-h-screen align-items-center justify-content-center">
+  <mat-card class="min-w-[500px]">
+    <mat-card-content class="p-4">
+      <div class="d-flex flex-column align-items-center gap-2">
+        <div>
+          <img src="assets/img/brand/logo.svg" alt="ÖRK Logo" width="200px" height="54px"/>
+          <h1>Tafel Admin</h1>
+        </div>
+        @if (errorMessage()) {
+          <div testid="errorMessage" class="tafel-error-banner">
+            <div>{{ errorMessage() }}</div>
+          </div>
+        }
+        <div class="flex flex-column gap-2 m-4">
+          <div class="flex flex-row align-items-center">
+            <fa-icon [icon]="faUser" class="mr-2"></fa-icon>
+            <input [formField]="loginForm.username" matInput testid="username" type="text" class="form-control"
+                   placeholder="Benutzername" autocomplete="username" tafelAutofocus>
+          </div>
+          <div class="flex flex-row align-items-center">
+            <fa-icon [icon]="faKey" class="mr-2"></fa-icon>
+            <input [formField]="loginForm.password" matInput testid="password" type="password"
+                   class="form-control" placeholder="Passwort" autocomplete="current-password">
+          </div>
+        </div>
+
+        <button testid="loginButton" matButton="filled" [disabled]="!loginForm().valid()" (click)="login()">
+          Anmelden
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
 </div>

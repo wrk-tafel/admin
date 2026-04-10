@@ -1,14 +1,8 @@
 import {Component} from '@angular/core';
-import {ColComponent, ContainerComponent, RowComponent} from '@coreui/angular';
 
 @Component({
-    selector: 'tafel-error-500',
-    templateUrl: '500.component.html',
-    imports: [
-        ContainerComponent,
-        RowComponent,
-        ColComponent
-    ]
+  selector: 'tafel-error-500',
+  templateUrl: '500.component.html'
 })
 export class P500Component {
 }
