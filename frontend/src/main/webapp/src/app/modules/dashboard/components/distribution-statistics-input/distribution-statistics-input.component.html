@@ -1,53 +1,75 @@
-<c-card class="h-100" color="primary" textColor="white">
-  <c-card-body>
+<mat-card class="h-100 mat-card-primary">
+  <mat-card-header>
+    <mat-card-title>
+      <h4>Statistik</h4>
+    </mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
     <form [formGroup]="form" autocomplete="off">
-      <c-row>
-        <c-col>
-          <h4>Statistik</h4>
-        </c-col>
-      </c-row>
-      <c-row class="mt-2">
-        <c-col>
-          <label class="form-label">Anzahl der Mitarbeiter *</label>
-          <input testid="distribution-statistics-employee-count-input" type="number" formControlName="employeeCount" class="form-control"
-                 [ngClass]="{'is-invalid': employeeCount.invalid && (employeeCount.dirty || employeeCount.touched), 'is-valid': employeeCount.valid && (employeeCount.dirty || employeeCount.touched)}">
-          @if (employeeCount.errors?.required && (employeeCount.dirty || employeeCount.touched)) {
-            <div class="invalid-feedback">
-              Pflichtfeld
-            </div>
-          }
-          @if (employeeCount.errors?.min && (employeeCount.dirty || employeeCount.touched)) {
-            <div class="invalid-feedback">
-              Muss mindestens 1 sein
-            </div>
-          }
-        </c-col>
-      </c-row>
-      <c-row class="mt-4">
-        <c-col>
-          <label class="form-label">Anzahl Personen in Notschlafstellen</label>
-          <c-input-group>
-            <input testid="distribution-statistics-persons-in-shelter-input" type="number" formControlName="personsInShelterCount" class="form-control"
-                   [ngClass]="{'is-invalid': personsInShelterCount.invalid && (personsInShelterCount.dirty || personsInShelterCount.touched), 'is-valid': personsInShelterCount.valid && (personsInShelterCount.dirty || personsInShelterCount.touched)}">
-            <span cInputGroupText>
-                <tafel-select-shelters (updateSelectedShelters)="onUpdateSelectedShelters($event)" [sheltersList]="sheltersData()?.shelters" [initialSelectedShelters]="selectedShelters()" [disabled]="panelDisabled()"></tafel-select-shelters>
-            </span>
-            @if (personsInShelterCount.errors?.required && (personsInShelterCount.dirty || personsInShelterCount.touched)) {
-              <div class="invalid-feedback">
+      <label>Anzahl der Mitarbeiter *</label>
+      <mat-form-field appearance="fill" class="w-100">
+        <input
+          matInput
+          type="number"
+          testid="distribution-statistics-employee-count-input"
+          formControlName="employeeCount"
+          placeholder="Anzahl der Mitarbeiter"
+        />
+        @if (employeeCount.errors?.required) {
+          <mat-error>
+            Pflichtfeld
+          </mat-error>
+        }
+        @if (employeeCount.errors?.min) {
+          <mat-error>
+            Muss mindestens 1 sein
+          </mat-error>
+        }
+      </mat-form-field>
+
+      <div class="gap-2 d-flex flex-row align-items-center">
+        <div>
+          <label>Anzahl Personen in Notschlafstellen</label>
+          <mat-form-field appearance="fill" class="w-100">
+            <input
+              matInput
+              type="number"
+              testid="distribution-statistics-persons-in-shelter-input"
+              formControlName="personsInShelterCount"
+              placeholder="Anzahl Personen in Notschlafstellen"
+              [readonly]="true"
+              [disabled]="panelDisabled()"
+            />
+            @if (personsInShelterCount.errors?.required) {
+              <mat-error>
                 Pflichtfeld
-              </div>
+              </mat-error>
             }
-            @if (personsInShelterCount.errors?.min && (personsInShelterCount.dirty || personsInShelterCount.touched)) {
-              <div class="invalid-feedback">
+            @if (personsInShelterCount.errors?.min) {
+              <mat-error>
                 Muss mindestens 1 sein
-              </div>
+              </mat-error>
             }
-          </c-input-group>
-        </c-col>
-      </c-row>
+          </mat-form-field>
+        </div>
+        <tafel-select-shelters
+          (updateSelectedShelters)="onUpdateSelectedShelters($event)"
+          [sheltersList]="sheltersData()?.shelters"
+          [initialSelectedShelters]="selectedShelters()"
+          [disabled]="panelDisabled()"
+        ></tafel-select-shelters>
+      </div>
     </form>
-  </c-card-body>
-  <c-card-footer>
-    <button cButton type="button" testid="distribution-statistics-save-button" (click)="save()" [disabled]="isSaveDisabled()" color="light">Speichern</button>
-  </c-card-footer>
-</c-card>
+  </mat-card-content>
+  <mat-card-footer>
+    <button
+      mat-raised-button
+      type="button"
+      testid="distribution-statistics-save-button"
+      (click)="save()"
+      [disabled]="panelDisabled()"
+    >
+      Speichern
+    </button>
+  </mat-card-footer>
+</mat-card>

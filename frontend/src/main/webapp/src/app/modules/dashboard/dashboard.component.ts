@@ -1,5 +1,4 @@
 import {Component, inject, input, Signal} from '@angular/core';
-import {ColComponent, RowComponent} from '@coreui/angular';
 import {DistributionStateComponent} from './components/distribution-state/distribution-state.component';
 import {RegisteredCustomersComponent} from './components/registered-customers/registered-customers.component';
 import {TafelIfPermissionDirective} from '../../common/security/tafel-if-permission.directive';
@@ -19,25 +18,23 @@ import {SseService} from '../../common/sse/sse.service';
 import {toSignal} from '@angular/core/rxjs-interop';
 
 @Component({
-    selector: 'tafel-dashboard',
-    templateUrl: 'dashboard.component.html',
-    imports: [
-        RowComponent,
-        ColComponent,
-        DistributionStateComponent,
-        RegisteredCustomersComponent,
-        TafelIfPermissionDirective,
-        DistributionStatisticsInputComponent,
-        RecordedFoodCollectionsComponent,
-        FoodAmountComponent,
-        DistributionNotesInputComponent,
-        TicketsProcessedComponent
-    ]
+  selector: 'tafel-dashboard',
+  templateUrl: 'dashboard.component.html',
+  imports: [
+    DistributionStateComponent,
+    RegisteredCustomersComponent,
+    TafelIfPermissionDirective,
+    DistributionStatisticsInputComponent,
+    RecordedFoodCollectionsComponent,
+    FoodAmountComponent,
+    DistributionNotesInputComponent,
+    TicketsProcessedComponent,
+  ]
 })
+
 export class DashboardComponent {
   private readonly sseService = inject(SseService);
 
-  // Signal input from resolver - reactive!
   readonly sheltersData = input<ShelterListResponse>();
 
   readonly data: Signal<DashboardData | undefined> = toSignal(

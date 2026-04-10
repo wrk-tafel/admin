@@ -2,31 +2,25 @@ import {Component, inject, input} from '@angular/core';
 import {DistributionApiService} from '../../../../api/distribution-api.service';
 import {HttpResponse} from '@angular/common/http';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
-import {
-  ButtonDirective,
-  CardBodyComponent,
-  CardComponent,
-  CardFooterComponent,
-  ColComponent,
-  RowComponent
-} from '@coreui/angular';
+import {MatCard, MatCardContent, MatCardFooter, MatCardHeader, MatCardTitle} from '@angular/material/card';
+import {MatButton} from '@angular/material/button';
 import {faDownload} from '@fortawesome/free-solid-svg-icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {TafelIfDistributionActiveDirective} from '../../../../common/directive/tafel-if-distribution-active.directive';
 
 @Component({
-    selector: 'tafel-registered-customers',
-    templateUrl: 'registered-customers.component.html',
-    imports: [
-        CardComponent,
-        CardBodyComponent,
-        RowComponent,
-        ColComponent,
-        FaIconComponent,
-        ButtonDirective,
-        TafelIfDistributionActiveDirective,
-        CardFooterComponent
-    ]
+  selector: 'tafel-registered-customers',
+  templateUrl: 'registered-customers.component.html',
+  imports: [
+    MatCard,
+    MatCardHeader,
+    MatCardTitle,
+    MatCardFooter,
+    FaIconComponent,
+    MatButton,
+    TafelIfDistributionActiveDirective,
+    MatCardContent
+  ]
 })
 export class RegisteredCustomersComponent {
   private readonly distributionApiService = inject(DistributionApiService);

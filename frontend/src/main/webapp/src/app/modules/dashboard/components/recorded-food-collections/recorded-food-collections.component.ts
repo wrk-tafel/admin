@@ -1,17 +1,17 @@
 import {Component, computed, inject, input, Signal} from '@angular/core';
-import {CardBodyComponent, CardComponent, ColComponent, Colors, RowComponent} from '@coreui/angular';
+import {MatCard, MatCardHeader, MatCardTitle, MatCardContent} from '@angular/material/card';
 import {DistributionItem} from '../../../../api/distribution-api.service';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
 
 @Component({
-    selector: 'tafel-recorded-food-collections',
-    templateUrl: 'recorded-food-collections.component.html',
-    imports: [
-        CardComponent,
-        CardBodyComponent,
-        RowComponent,
-        ColComponent
-    ]
+  selector: 'tafel-recorded-food-collections',
+  templateUrl: 'recorded-food-collections.component.html',
+  imports: [
+    MatCard,
+    MatCardHeader,
+    MatCardTitle,
+    MatCardContent
+  ]
 })
 export class RecordedFoodCollectionsComponent {
   countRecorded = input<number | null>(null);
@@ -21,7 +21,7 @@ export class RecordedFoodCollectionsComponent {
 
   readonly distribution: Signal<DistributionItem> = this.globalStateService.getCurrentDistribution();
 
-  panelColor = computed<Colors>(() => {
+  panelColor = computed<string>(() => {
     if (!this.distribution()) {
       return 'primary';
     } else if (this.countRecorded() < this.countTotal()) {

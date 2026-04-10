@@ -1,7 +1,9 @@
 /* You can add global styles to this file, and also import other style files */
 
-// Angular Material theme (@use must come before @import)
-@use "material-theme";
+@use 'tailwindcss';
+
+// Angular Material theme
+@import "angular-material-theme";
 
 // NOTE: @import is deprecated in Dart Sass and will be removed in Dart Sass 3.0.0
 // However, we must continue using @import until CoreUI migrates to @use/@forward
@@ -19,14 +21,11 @@
 // TODO: Replace with @use once CoreUI supports it
 @import "@coreui/chartjs/scss/coreui-chartjs";
 
-// Custom styles for this theme
-@import "theme";
+// ngx-toastr styles
+@import "ngx-toastr/toastr";
 
-// Some temp fixes
-//@import "fixes";
+// Custom styles
+@import "theme";
 
 // If you want to add custom CSS you can put it here.
 @import "custom";
-
-// ngx-toastr styles
-@import "ngx-toastr/toastr";

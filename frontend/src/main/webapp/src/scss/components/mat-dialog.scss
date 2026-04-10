@@ -1,0 +1,37 @@
+.dialog-header-warning,
+.dialog-header-info,
+.dialog-header-danger,
+.dialog-header-success {
+  padding: 0.5rem;
+}
+
+.dialog-header-warning {
+  background-color: var(--cui-warning, #f9b115);
+}
+
+.dialog-header-info {
+  background-color: var(--cui-info, #39f);
+}
+
+.dialog-header-danger {
+  background-color: var(--cui-danger, #e55353);
+}
+
+.dialog-header-success {
+  background-color: var(--cui-success, #2eb85c);
+}
+
+// Remove border-radius from Material dialog surface
+.mat-mdc-dialog-surface {
+  border-radius: 8px !important;
+}
+
+.mat-mdc-dialog-title {
+  padding: 0 !important;
+  padding-left: 0.3rem !important;
+}
+
+.mat-mdc-dialog-content {
+  padding: 1rem !important;
+  font-size: 1rem !important;
+}

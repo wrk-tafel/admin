@@ -1,18 +1,14 @@
-<c-card testid="recorded-food-collections-panel" class="h-100" [color]="panelColor()">
-  <c-card-body>
-    <c-row>
-      <c-col size="12">
-        <h4 class="card-title text-white">Erfasste Routen</h4>
-      </c-col>
-    </c-row>
-    <c-row>
-      <c-col>
-        @if (countRecorded() !== null && countTotal() !== null) {
-          <div testid="recorded-food-collections-count" class="text-white text-end" style="font-size: 50pt;">{{ countRecorded() + ' / ' + countTotal() }}</div>
-        } @else {
-          <div testid="recorded-food-collections-count" class="text-white text-end" style="font-size: 50pt;">-</div>
-        }
-      </c-col>
-    </c-row>
-  </c-card-body>
-</c-card>
+<mat-card class="h-100 mat-card-{{ panelColor() }}" testid="recorded-food-collections-panel">
+  <mat-card-header>
+    <mat-card-title>
+      <h4 class="text-white">Erfasste Routen</h4>
+    </mat-card-title>
+  </mat-card-header>
+  <mat-card-content class="text-end">
+    @if (countRecorded() !== null && countTotal() !== null) {
+      <div testid="recorded-food-collections-count" class="text-5xl">{{ countRecorded() }} / {{ countTotal() }}</div>
+    } @else {
+      <div testid="recorded-food-collections-count" class="text-5xl">-</div>
+    }
+  </mat-card-content>
+</mat-card>

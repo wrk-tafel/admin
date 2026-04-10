@@ -1,28 +1,24 @@
-<c-card class="h-100" [color]="isDistributionActive() ? 'success' : 'primary'" textColor="white">
-  <c-card-body>
-    <c-row>
-      <c-col>
-        <h4>Status</h4>
-      </c-col>
-    </c-row>
-    <c-row>
-      <c-col testid="distribution-state-text" class="fw-bold">
-        <h1>{{isDistributionActive() ? 'Geöffnet' : 'Geschlossen'}}</h1>
-      </c-col>
-    </c-row>
-  </c-card-body>
-  <c-card-footer>
+<mat-card class="h-100 mat-card-primary">
+  <mat-card-header>
+    <mat-card-title>
+      <h4>Status</h4>
+    </mat-card-title>
+  </mat-card-header>
+  <mat-card-content class="text-center">
+    <div testid="distribution-state-text" class="fw-bold text-5xl">{{isDistributionActive() ? 'Geöffnet' : 'Geschlossen'}}</div>
+  </mat-card-content>
+  <mat-card-footer class="mt-4">
     @if (!isDistributionActive()) {
-      <button cButton color="light"
-              testid="distribution-start-button"
+      <button testid="distribution-start-button"
+              mat-raised-button
               (click)="createNewDistribution()">Tag starten
       </button>
     }
     @if (isDistributionActive()) {
-      <button cButton color="light"
-              testid="distribution-close-button"
+      <button testid="distribution-close-button"
+              mat-raised-button
               (click)="openCloseDistributionDialog()">Tag beenden
       </button>
     }
-  </c-card-footer>
-</c-card>
+  </mat-card-footer>
+</mat-card>

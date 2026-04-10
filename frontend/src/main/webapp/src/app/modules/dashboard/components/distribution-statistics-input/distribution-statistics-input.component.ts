@@ -1,37 +1,34 @@
-import {Component, effect, inject, input, linkedSignal, signal} from '@angular/core';
-import {
-  ButtonDirective,
-  CardBodyComponent,
-  CardComponent,
-  CardFooterComponent,
-  ColComponent,
-  InputGroupComponent,
-  InputGroupTextDirective,
-  RowComponent
-} from '@coreui/angular';
+import {Component, effect, inject, input, linkedSignal, Signal, signal} from '@angular/core';
+import {MatCard, MatCardContent, MatCardFooter, MatCardHeader, MatCardTitle} from '@angular/material/card';
+import {MatError, MatFormField} from '@angular/material/form-field';
+import {MatInput} from '@angular/material/input';
+import {MatButton} from '@angular/material/button';
+import {FormBuilder, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {CommonModule} from '@angular/common';
-import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
+import {ToastrService} from 'ngx-toastr';
 import {DistributionApiService} from '../../../../api/distribution-api.service';
-import { ToastrService } from 'ngx-toastr';
 import {SelectSheltersComponent} from '../select-shelters/select-shelters.component';
 import {ShelterItem, ShelterListResponse} from '../../../../api/shelter-api.service';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
+import {DistributionItem} from '../../../../api/distribution-api.service';
 
 @Component({
   selector: 'tafel-distribution-statistics-input',
   templateUrl: 'distribution-statistics-input.component.html',
   imports: [
-    CardComponent,
-    CardBodyComponent,
-    RowComponent,
-    ColComponent,
-    ButtonDirective,
+    MatCard,
+    MatCardHeader,
+    MatCardTitle,
+    MatCardContent,
+    MatFormField,
+    MatInput,
+    MatButton,
+    MatCardFooter,
     ReactiveFormsModule,
     CommonModule,
-    CardFooterComponent,
-    InputGroupComponent,
-    InputGroupTextDirective,
-    SelectSheltersComponent
+    FormsModule,
+    SelectSheltersComponent,
+    MatError
   ]
 })
 export class DistributionStatisticsInputComponent {
@@ -47,16 +44,13 @@ export class DistributionStatisticsInputComponent {
 
   form = this.fb.group({
     employeeCount: this.fb.control<number>(null, [Validators.required, Validators.min(1)]),
-    personsInShelterCount: this.fb.control<number>({
-      value: null,
-      disabled: true
-    }, [Validators.required, Validators.min(1)]),
-  })
+    personsInShelterCount: this.fb.control<number>(null, [Validators.required, Validators.min(1)]),
+  });
 
-  readonly distribution = this.globalStateService.getCurrentDistribution();
+  readonly distribution: Signal<DistributionItem | null> = this.globalStateService.getCurrentDistribution();
 
   // Panel disabled state derived from distribution - recomputes when distribution changes
-  panelDisabled = linkedSignal(() => !this.distribution());
+  readonly panelDisabled = linkedSignal(() => !this.distribution());
 
   selectedShelters = signal<ShelterItem[]>([]);
 
@@ -64,8 +58,10 @@ export class DistributionStatisticsInputComponent {
     const distribution = this.distribution();
     if (distribution) {
       this.employeeCount.enable();
+      this.personsInShelterCount.enable();
     } else {
       this.employeeCount.disable();
+      this.personsInShelterCount.disable();
 
       // reset form
       this.employeeCount.reset();
@@ -126,7 +122,4 @@ export class DistributionStatisticsInputComponent {
     return this.form.get('personsInShelterCount');
   }
 
-  isSaveDisabled() {
-    return !this.form.valid;
-  }
 }

@@ -7,7 +7,7 @@ services:
       - "5432:5432"
     environment:
       POSTGRES_USER: tafeladmin
-      POSTGRES_PASSWORD: admin
+      POSTGRES_PASSWORD: tafeladmin
       POSTGRES_DB: tafeladmin
     volumes:
       - database-data:/var/lib/postgresql

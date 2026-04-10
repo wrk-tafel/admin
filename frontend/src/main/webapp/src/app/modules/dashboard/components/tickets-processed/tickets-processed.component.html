@@ -1,18 +1,14 @@
-<c-card class="h-100" [color]="panelColor()" textColor="white">
-  <c-card-body>
-    <c-row>
-      <c-col size="12">
-        <h4>Tickets abgearbeitet</h4>
-      </c-col>
-    </c-row>
-    <c-row>
-      <c-col>
-        @if (countProcessedTickets() !== null && countTotalTickets() !== null) {
-          <div testid="tickets-processed-count" class="text-end" style="font-size: 50pt;">{{ countProcessedTickets() + ' / ' + countTotalTickets() }}</div>
-        } @else {
-          <div testid="tickets-processed-count" class="text-end" style="font-size: 50pt;">-</div>
-        }
-      </c-col>
-    </c-row>
-  </c-card-body>
-</c-card>
+<mat-card class="h-100 mat-card-{{ panelColor() }}">
+  <mat-card-header>
+    <mat-card-title>
+      <h4>Tickets abgearbeitet</h4>
+    </mat-card-title>
+  </mat-card-header>
+  <mat-card-content class="text-end">
+    @if (countProcessedTickets() !== null && countTotalTickets() !== null) {
+      <div testid="tickets-processed-count" class="text-5xl">{{ countProcessedTickets() }} / {{ countTotalTickets() }}</div>
+    } @else {
+      <div testid="tickets-processed-count" class="text-5xl">-</div>
+    }
+  </mat-card-content>
+</mat-card>

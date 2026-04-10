@@ -9,11 +9,11 @@
   </div>
   <div tafel-dialog-actions>
     @if (data.validationResult.warnings.length > 0) {
-      <button testid="distribution-close-validation-dialog-ok-button" cButton
+      <button testid="distribution-close-validation-dialog-ok-button" matButton="filled"
               (click)="dialogRef.close('force')">Trotzdem beenden
       </button>
     }
-    <button testid="distribution-close-validation-dialog-cancel-button" cButton color="secondary"
+    <button testid="distribution-close-validation-dialog-cancel-button" matButton
             (click)="dialogRef.close()">Abbrechen
     </button>
   </div>

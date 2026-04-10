@@ -1,8 +1,8 @@
 import {Component, computed, inject} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogModule, MatDialogRef} from '@angular/material/dialog';
-import {ButtonDirective} from '@coreui/angular';
 import {DistributionCloseValidationResult} from '../../../../../api/distribution-api.service';
 import {TafelDialogComponent} from '../../../../../common/components/tafel-dialog/tafel-dialog.component';
+import {MatButton} from "@angular/material/button";
 
 export interface CloseDistributionValidationDialogData {
   validationResult: DistributionCloseValidationResult;
@@ -10,29 +10,8 @@ export interface CloseDistributionValidationDialogData {
 
 @Component({
   selector: 'tafel-close-distribution-validation-dialog',
-  imports: [TafelDialogComponent, MatDialogModule, ButtonDirective],
-  template: `
-    <tafel-dialog [type]="dialogType()" [title]="dialogTitle()">
-      <div tafel-dialog-content>
-        @for (error of data.validationResult.errors; track error) {
-          <div class="mb-2">{{ error }}</div>
-        }
-        @for (warning of data.validationResult.warnings; track warning) {
-          <div class="mb-2">{{ warning }}</div>
-        }
-      </div>
-      <div tafel-dialog-actions>
-        @if (data.validationResult.warnings.length > 0) {
-          <button testid="distribution-close-validation-dialog-ok-button" cButton
-                  (click)="dialogRef.close('force')">Trotzdem beenden
-          </button>
-        }
-        <button testid="distribution-close-validation-dialog-cancel-button" cButton color="secondary"
-                (click)="dialogRef.close()">Abbrechen
-        </button>
-      </div>
-    </tafel-dialog>
-  `,
+  imports: [TafelDialogComponent, MatDialogModule, MatButton],
+  templateUrl: 'close-distribution-validation-dialog.component.html'
 })
 export class CloseDistributionValidationDialogComponent {
   readonly dialogRef = inject(MatDialogRef<CloseDistributionValidationDialogComponent>);

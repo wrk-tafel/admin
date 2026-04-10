@@ -1,41 +1,24 @@
-<c-row *tafelIfPermission="'DISTRIBUTION_LCM'">
-  <c-col sm="12" lg="4">
-    <tafel-distribution-state></tafel-distribution-state>
-  </c-col>
-  <c-col sm="12" lg="4" class="mt-4 mt-lg-0">
-    <tafel-registered-customers [count]="data()?.registeredCustomers"></tafel-registered-customers>
-  </c-col>
-  <c-col sm="12" lg="4" class="mt-4 mt-lg-0">
-    <tafel-tickets-processed [countProcessedTickets]="data()?.tickets?.countProcessedTickets" [countTotalTickets]="data()?.tickets?.countTotalTickets">
-    </tafel-tickets-processed>
-  </c-col>
-</c-row>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-2">
+  <tafel-distribution-state *tafelIfPermission="'DISTRIBUTION_LCM'"></tafel-distribution-state>
+  <tafel-registered-customers [count]="data()?.registeredCustomers"></tafel-registered-customers>
+  <tafel-tickets-processed [countProcessedTickets]="data()?.tickets?.countProcessedTickets"
+                           [countTotalTickets]="data()?.tickets?.countTotalTickets">
+  </tafel-tickets-processed>
+</div>
 <hr>
-<c-row *tafelIfPermission="'LOGISTICS'">
-  <c-col sm="12" lg="4">
-    <tafel-distribution-statistics-input [sheltersData]="sheltersData()"
-                                         [employeeCountInput]="data()?.statistics?.employeeCount"
-                                         [initialSelectedShelterNames]="data()?.statistics?.selectedShelterNames">
-    </tafel-distribution-statistics-input>
-  </c-col>
-  <c-col sm="12" lg="8">
-    <c-row>
-      <c-col sm="12" lg="6" class="mt-4 mt-lg-0">
-        <tafel-distribution-notes-input [initialNotesData]="data()?.notes">
-        </tafel-distribution-notes-input>
-      </c-col>
-      <c-col sm="12" lg="6" class="mt-4 mt-lg-0">
-        <tafel-recorded-food-collections [countRecorded]="data()?.logistics?.foodCollectionsRecordedCount"
-                                         [countTotal]="data()?.logistics?.foodCollectionsTotalCount">
-        </tafel-recorded-food-collections>
-      </c-col>
-    </c-row>
-    <hr>
-    <c-row class="mt-4">
-      <c-col sm="12" lg="12">
-        <tafel-food-amount [amount]="data()?.logistics?.foodAmountTotal">
-        </tafel-food-amount>
-      </c-col>
-    </c-row>
-  </c-col>
-</c-row>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-2">
+  <tafel-recorded-food-collections [countRecorded]="data()?.logistics?.foodCollectionsRecordedCount"
+                                   [countTotal]="data()?.logistics?.foodCollectionsTotalCount">
+  </tafel-recorded-food-collections>
+  <tafel-food-amount [amount]="data()?.logistics?.foodAmountTotal">
+  </tafel-food-amount>
+</div>
+<hr>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-2">
+  <tafel-distribution-statistics-input *tafelIfPermission="'LOGISTICS'" [sheltersData]="sheltersData()"
+                                       [employeeCountInput]="data()?.statistics?.employeeCount"
+                                       [initialSelectedShelterNames]="data()?.statistics?.selectedShelterNames">
+  </tafel-distribution-statistics-input>
+  <tafel-distribution-notes-input class="col-span-2" [initialNotesData]="data()?.notes">
+  </tafel-distribution-notes-input>
+</div>
