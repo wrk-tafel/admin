@@ -1,13 +1,18 @@
-<div class="bg-light min-vh-100 d-flex flex-row align-items-center">
-  <c-container>
-    <c-row class="justify-content-center">
-      <c-col md="6">
-        <span class="clearfix">
-          <h1 testid="status" class="float-start display-3 me-4">500</h1>
-          <h4 testid="title" class="pt-3">Houston, wir haben ein Problem!</h4>
-          <p testid="subtitle" class="text-medium-emphasis float-start">Interner Server Fehler</p>
-        </span>
-      </c-col>
-    </c-row>
-  </c-container>
+<div class="min-h-screen flex flex-row items-center bg-slate-50">
+  <div class="container mx-auto px-4">
+    <div class="flex justify-center">
+      <div class="w-full md:w-1/2">
+        <div class="flex flex-col md:flex-row items-center md:items-start gap-4">
+          <h1 testid="status" class="text-7xl font-light text-slate-800 leading-none">500</h1>
+
+          <div class="hidden md:block self-stretch w-px bg-slate-300 mx-2"></div>
+
+          <div class="flex flex-col pt-1">
+            <h4 testid="title" class="mat-h4 text-xl font-semibold mb-1">Houston, wir haben ein Problem!</h4>
+            <p testid="subtitle" class="text-slate-500 italic">Interner Server Fehler</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>

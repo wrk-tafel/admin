@@ -7,7 +7,7 @@ import {TafelDialogComponent} from '../../../../../common/components/tafel-dialo
 @Component({
   selector: 'tafel-add-note-dialog',
   imports: [TafelDialogComponent, ButtonDirective, FormsModule],
-  templateUrl: './add-note-dialog.component.html',
+  templateUrl: 'add-note-dialog.component.html',
 })
 export class AddNoteDialogComponent {
   readonly dialogRef = inject(MatDialogRef<AddNoteDialogComponent>);

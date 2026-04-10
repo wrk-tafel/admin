@@ -1,0 +1,5 @@
+// TODO: remove once everything is migrated to angular material (only needed for CoreUI)
+:host ::ng-deep [tafel-dialog-actions] {
+  display: flex;
+  gap: 8px;
+}

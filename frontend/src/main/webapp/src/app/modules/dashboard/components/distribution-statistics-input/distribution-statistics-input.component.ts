@@ -1,6 +1,6 @@
 import {Component, effect, inject, input, linkedSignal, Signal, signal} from '@angular/core';
 import {MatCard, MatCardContent, MatCardFooter, MatCardHeader, MatCardTitle} from '@angular/material/card';
-import {MatError, MatFormField} from '@angular/material/form-field';
+import {MatError, MatFormField, MatLabel} from '@angular/material/form-field';
 import {MatInput} from '@angular/material/input';
 import {MatButton} from '@angular/material/button';
 import {FormBuilder, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
@@ -28,7 +28,8 @@ import {DistributionItem} from '../../../../api/distribution-api.service';
     CommonModule,
     FormsModule,
     SelectSheltersComponent,
-    MatError
+    MatError,
+    MatLabel
   ]
 })
 export class DistributionStatisticsInputComponent {
@@ -44,7 +45,7 @@ export class DistributionStatisticsInputComponent {
 
   form = this.fb.group({
     employeeCount: this.fb.control<number>(null, [Validators.required, Validators.min(1)]),
-    personsInShelterCount: this.fb.control<number>(null, [Validators.required, Validators.min(1)]),
+    personsInShelterCount: this.fb.control<number>(null, [Validators.min(1)]),
   });
 
   readonly distribution: Signal<DistributionItem | null> = this.globalStateService.getCurrentDistribution();

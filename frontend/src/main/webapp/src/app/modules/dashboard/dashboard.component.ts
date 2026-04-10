@@ -16,6 +16,7 @@ import {
 import {TicketsProcessedComponent} from './components/tickets-processed/tickets-processed.component';
 import {SseService} from '../../common/sse/sse.service';
 import {toSignal} from '@angular/core/rxjs-interop';
+import {MatDivider} from "@angular/material/list";
 
 @Component({
   selector: 'tafel-dashboard',
@@ -29,6 +30,7 @@ import {toSignal} from '@angular/core/rxjs-interop';
     FoodAmountComponent,
     DistributionNotesInputComponent,
     TicketsProcessedComponent,
+    MatDivider,
   ]
 })
 

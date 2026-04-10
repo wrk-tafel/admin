@@ -11,7 +11,7 @@ export interface KmDiffDialogData {
 @Component({
   selector: 'tafel-km-diff-dialog',
   imports: [TafelDialogComponent, ButtonDirective, DecimalPipe],
-  templateUrl: './km-diff-dialog.component.html',
+  templateUrl: 'km-diff-dialog.component.html',
 })
 export class KmDiffDialogComponent {
   readonly dialogRef = inject(MatDialogRef<KmDiffDialogComponent>);

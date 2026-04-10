@@ -26,7 +26,7 @@ export interface SelectEmployeeDialogData {
     TafelDialogComponent, ButtonDirective,
     CardComponent, CardBodyComponent, FaIconComponent, TafelPaginationComponent
   ],
-  templateUrl: './select-employee-dialog.component.html',
+  templateUrl: 'select-employee-dialog.component.html',
 })
 export class SelectEmployeeDialogComponent {
   readonly dialogRef = inject(MatDialogRef<SelectEmployeeDialogComponent>);

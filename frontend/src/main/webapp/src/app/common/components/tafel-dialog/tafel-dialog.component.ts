@@ -32,7 +32,8 @@ import {MatDialogModule} from '@angular/material/dialog';
 @Component({
   selector: 'tafel-dialog',
   imports: [MatDialogModule, NgClass, CommonModule],
-  templateUrl: './tafel-dialog.component.html'
+  templateUrl: 'tafel-dialog.component.html',
+  styleUrl: 'tafel-dialog.component.scss'
 })
 export class TafelDialogComponent {
   @HostBinding('attr.testid') get hostTestId() {

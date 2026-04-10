@@ -3,36 +3,24 @@ import {form, FormField, required} from '@angular/forms/signals';
 import {ActivatedRoute, Router} from '@angular/router';
 import {AuthenticationService} from '../../security/authentication.service';
 import {toSignal} from '@angular/core/rxjs-interop';
-import {
-  ButtonDirective,
-  CardBodyComponent,
-  CardComponent,
-  CardGroupComponent,
-  ColComponent,
-  ContainerComponent,
-  InputGroupComponent,
-  InputGroupTextDirective,
-  RowComponent
-} from '@coreui/angular';
-import {IconDirective} from '@coreui/icons-angular';
 import {TafelAutofocusDirective} from '../../directive/tafel-autofocus.directive';
+import {MatCard, MatCardContent} from "@angular/material/card";
+import {MatButton} from "@angular/material/button";
+import {MatInput} from "@angular/material/input";
+import {FaIconComponent} from "@fortawesome/angular-fontawesome";
+import {faKey, faUser} from "@fortawesome/free-solid-svg-icons";
 
 @Component({
   selector: 'tafel-login',
   templateUrl: 'login.component.html',
   imports: [
-    ContainerComponent,
-    RowComponent,
-    ColComponent,
-    CardGroupComponent,
-    CardComponent,
-    CardBodyComponent,
     FormField,
-    InputGroupComponent,
-    InputGroupTextDirective,
-    IconDirective,
-    ButtonDirective,
-    TafelAutofocusDirective
+    TafelAutofocusDirective,
+    MatCard,
+    MatCardContent,
+    MatButton,
+    MatInput,
+    FaIconComponent
   ]
 })
 export class LoginComponent {
@@ -84,4 +72,6 @@ export class LoginComponent {
     });
   }
 
+  protected readonly faUser = faUser;
+  protected readonly faKey = faKey;
 }
