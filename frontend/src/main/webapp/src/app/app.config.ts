@@ -1,6 +1,12 @@
-import {APP_INITIALIZER, ApplicationConfig, DEFAULT_CURRENCY_CODE, importProvidersFrom, LOCALE_ID} from '@angular/core';
+import {
+  ApplicationConfig,
+  DEFAULT_CURRENCY_CODE,
+  importProvidersFrom,
+  inject,
+  LOCALE_ID,
+  provideAppInitializer
+} from '@angular/core';
 import {provideToastr} from 'ngx-toastr';
-import {provideAnimationsAsync} from '@angular/platform-browser/animations/async';
 import {
   provideRouter,
   withComponentInputBinding,
@@ -57,7 +63,7 @@ export const appConfig: ApplicationConfig = {
     ),
     importProvidersFrom(SidebarModule, DropdownModule),
     IconSetService,
-    provideAnimationsAsync(),
+    provideAppInitializer(() => inject(AuthenticationService).loadUserInfo()),
     {
       provide: LOCALE_ID,
       useValue: 'de-AT'
@@ -77,12 +83,6 @@ export const appConfig: ApplicationConfig = {
     {
       provide: Window,
       useValue: window
-    },
-    {
-      provide: APP_INITIALIZER,
-      useFactory: (authService: AuthenticationService) => () => authService.loadUserInfo(),
-      deps: [AuthenticationService],
-      multi: true
     },
     {
       provide: MAT_DIALOG_DEFAULT_OPTIONS,

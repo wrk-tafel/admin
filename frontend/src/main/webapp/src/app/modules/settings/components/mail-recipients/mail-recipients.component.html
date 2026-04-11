@@ -1,69 +1,72 @@
-<c-card>
-  <c-card-header>
-    <c-row class="d-flex align-items-center">
-      <c-col class="d-flex align-items-center gap-2">
-        <svg [cIcon]="cilEnvelopeClosed" size="xl" title="E-Mail Icon"></svg>
-        <h5 class="mb-0 mt-1 align-self-center">E-Mail Empfänger</h5>
-      </c-col>
-    </c-row>
-  </c-card-header>
-  <c-card-body>
+<mat-card>
+  <mat-card-header>
+    <mat-card-title>
+      <div class="flex items-center gap-2">
+        <fa-icon [icon]="faEnvelope" />
+        <h5 class="mb-0 mt-1">E-Mail Empfänger</h5>
+      </div>
+    </mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
     <form [formGroup]="form" autocomplete="off">
       <mat-tab-group animationDuration="0ms" formArrayName="mailRecipients">
         @for (recipientOfMailType of mailRecipientArray.controls; track recipientOfMailType; let i = $index; ) {
           <mat-tab>
             <ng-template mat-tab-label>
               <span [attr.testid]="'mailtype-tab-' + recipientOfMailType.value.mailType"
-                    [class.text-danger]="recipientOfMailType.invalid">
+                    [class.text-red-600]="recipientOfMailType.invalid">
                 {{ MailTypeLabels[recipientOfMailType.value.mailType] }}
               </span>
             </ng-template>
             <div class="p-3" [formGroupName]="i">
-              <div formArrayName="recipients" class="row g-3">
+              <div formArrayName="recipients" class="grid grid-cols-1 md:grid-cols-3 gap-3">
                 @for (recipient of getRecipientsForMailTypeIndex(i).controls; track recipient; let j = $index; ) {
-                  <div class="col-sm-12 col-md-4" [formGroupName]="j">
-                    <div class="d-flex align-items-center flex-nowrap">
-                      <div class="fw-bold flex-grow-1">
+                  <div [formGroupName]="j">
+                    <div class="flex items-center flex-nowrap">
+                      <div class="font-bold flex-grow-1">
                         {{ RecipientTypeLabels[recipient.get('recipientType').value] }}
                       </div>
-                      <div class="text-end">
-                        <button cButton
+                      <div class="text-right">
+                        <button mat-stroked-button
+                                class="button-success"
                                 [attr.testid]="'add-recipient-button-' + recipientOfMailType.value.mailType + '-' + recipient.get('recipientType').value"
-                                color="success" (click)="addAddress(i, j)">
-                          <fa-icon [icon]="faPlus" inverse="true"></fa-icon>
+                                (click)="addAddress(i, j)">
+                          <fa-icon [icon]="faPlus"></fa-icon>
                         </button>
                       </div>
                     </div>
                     <div formArrayName="addresses">
                       @for (address of getAddressesOfRecipientTypeIndex(i, j).controls; track address; let
                         k = $index; ) {
-                        <div class="mt-2 d-flex align-items-center flex-nowrap">
+                        <div class="mt-2 flex items-center flex-nowrap">
                           <div class="flex-grow-1">
                             <input
                               [attr.testid]="'email-input-' + recipientOfMailType.value.mailType + '-' + recipient.get('recipientType').value + '-' + k"
                               type="email"
                               [formControlName]="k"
-                              class="form-control"
-                              [ngClass]="{'is-invalid': address.invalid && (address.dirty || address.touched), 'is-valid': address.valid && (address.dirty || address.touched)}"
+                              class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                              [class.border-red-500]="address.invalid && (address.dirty || address.touched)"
+                              [class.border-green-500]="address.valid && (address.dirty || address.touched)"
                             >
                             @if (address.errors && (address.dirty || address.touched)) {
-                              <div class="invalid-feedback">
+                              <div class="mt-1 text-sm text-red-600">
                                 Ungültige E-Mail Adresse
                               </div>
                             }
                           </div>
-                          <div class="text-end">
-                            <button cButton color="danger"
+                          <div class="text-right ml-2">
+                            <button mat-stroked-button
+                                    class="button-danger"
                                     [attr.testid]="'remove-recipient-button-' + recipientOfMailType.value.mailType + '-' + recipient.get('recipientType').value + '-' + k"
                                     (click)="removeAddress(i, j, k)">
-                              <fa-icon [icon]="faTrashCan" inverse="true"></fa-icon>
+                              <fa-icon [icon]="faTrashCan"></fa-icon>
                             </button>
                           </div>
                         </div>
                       }
                     </div>
                     @if (j < 2) {
-                      <hr class="d-md-none">
+                      <hr class="md:hidden mt-4 mb-3">
                     }
                   </div>
                 }
@@ -73,8 +76,8 @@
         }
       </mat-tab-group>
     </form>
-  </c-card-body>
-  <c-card-footer>
-    <button cButton testid="save-button" color="primary" (click)="save()">Speichern</button>
-  </c-card-footer>
-</c-card>
+  </mat-card-content>
+  <mat-card-footer>
+    <button matButton="filled" testid="save-button" (click)="save()">Speichern</button>
+  </mat-card-footer>
+</mat-card>

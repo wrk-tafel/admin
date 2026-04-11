@@ -19,15 +19,20 @@
 
 .mat-card-primary {
   @extend .mat-card-colored;
-  background-color: #5856d6 !important;
+  background-color: var(--cui-primary, #5856d6) !important;
 }
 
 .mat-card-warning {
   @extend .mat-card-colored;
-  background-color: #f9b115 !important;
+  background-color: var(--cui-warning, #f9b115) !important;
+}
+
+.mat-card-danger {
+  @extend .mat-card-colored;
+  background-color: var(--cui-danger, #e55353) !important;
 }
 
 .mat-card-success {
   @extend .mat-card-colored;
-  background-color: #1b9e3e !important;
+  background-color: var(--cui-success, #2eb85c) !important;
 }
