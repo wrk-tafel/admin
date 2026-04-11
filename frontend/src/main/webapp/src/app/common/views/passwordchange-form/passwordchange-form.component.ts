@@ -8,9 +8,9 @@ import {CommonModule} from '@angular/common';
 import {TafelAutofocusDirective} from '../../directive/tafel-autofocus.directive';
 import {faEye, faEyeSlash} from '@fortawesome/free-solid-svg-icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
-import {MatError, MatFormField, MatInput, MatLabel, MatSuffix} from "@angular/material/input";
-import {MatDivider} from "@angular/material/list";
-import {MatIcon} from "@angular/material/icon";
+import {MatError, MatFormField, MatInput, MatLabel, MatSuffix} from '@angular/material/input';
+import {MatDivider} from '@angular/material/list';
+import {MatIcon} from '@angular/material/icon';
 
 @Component({
   selector: 'tafel-passwordchange-form',

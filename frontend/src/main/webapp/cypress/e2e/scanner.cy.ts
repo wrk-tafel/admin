@@ -8,13 +8,18 @@ describe('Scanner', () => {
   it('connection and webcam initialized successfully', () => {
     cy.visit('/#/anmeldung/scanner');
 
-    // to be safe having the sse-connection established and the webcam ready
+    // Wait for effects to complete and webcam to initialize
     cy.wait(5000);
 
-    cy.byTestId('state-camera').should('have.class', 'bg-success');
-    cy.byTestId('scanner-id').invoke('text').then((text) => {
+    // Check that the scanner ID is displayed
+    cy.byTestId('scanner-id').should('be.visible').invoke('text').then((text) => {
       expect(text).not.to.be.empty;
       expect(Number(text)).to.be.greaterThan(0);
+    });
+
+    // Check that the scanner is ready
+    cy.byTestId('state-camera').should('be.visible').invoke('text').then((text) => {
+      expect(text).to.equal('Bereit');
     });
   });
 

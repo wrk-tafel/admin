@@ -4,11 +4,11 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {AuthenticationService} from '../../security/authentication.service';
 import {toSignal} from '@angular/core/rxjs-interop';
 import {TafelAutofocusDirective} from '../../directive/tafel-autofocus.directive';
-import {MatCard, MatCardContent} from "@angular/material/card";
-import {MatButton} from "@angular/material/button";
-import {MatInput} from "@angular/material/input";
-import {FaIconComponent} from "@fortawesome/angular-fontawesome";
-import {faKey, faUser} from "@fortawesome/free-solid-svg-icons";
+import {MatCard, MatCardContent} from '@angular/material/card';
+import {MatButton} from '@angular/material/button';
+import {MatInput} from '@angular/material/input';
+import {FaIconComponent} from '@fortawesome/angular-fontawesome';
+import {faKey, faUser} from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'tafel-login',
