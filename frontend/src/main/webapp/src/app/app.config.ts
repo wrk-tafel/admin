@@ -26,6 +26,7 @@ import {errorHandlerInterceptor} from './common/http/errorhandler-interceptor.se
 import {apiPathInterceptor} from './common/http/apipath-interceptor.service';
 import {AuthenticationService} from './common/security/authentication.service';
 import {MAT_DIALOG_DEFAULT_OPTIONS, MatDialogConfig} from '@angular/material/dialog';
+import {provideAnimationsAsync} from '@angular/platform-browser/animations/async';
 
 const DEFAULT_DIALOG_CONFIG: MatDialogConfig = {
   position: {top: '16px'}
@@ -64,6 +65,7 @@ export const appConfig: ApplicationConfig = {
     importProvidersFrom(SidebarModule, DropdownModule),
     IconSetService,
     provideAppInitializer(() => inject(AuthenticationService).loadUserInfo()),
+    provideAnimationsAsync(),
     {
       provide: LOCALE_ID,
       useValue: 'de-AT'

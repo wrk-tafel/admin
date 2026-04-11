@@ -9,8 +9,8 @@ import {DistributionApiService, DistributionItem} from '../../../../api/distribu
 import {DatePipe} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {ToastrService} from 'ngx-toastr';
-import {FaIconComponent} from "@fortawesome/angular-fontawesome";
-import {faEnvelope} from "@fortawesome/free-solid-svg-icons";
+import {FaIconComponent} from '@fortawesome/angular-fontawesome';
+import {faEnvelope} from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'tafel-send-mails',

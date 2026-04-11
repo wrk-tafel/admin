@@ -2,7 +2,7 @@ import {Component, computed, inject} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogModule, MatDialogRef} from '@angular/material/dialog';
 import {DistributionCloseValidationResult} from '../../../../../api/distribution-api.service';
 import {TafelDialogComponent} from '../../../../../common/components/tafel-dialog/tafel-dialog.component';
-import {MatButton} from "@angular/material/button";
+import {MatButton} from '@angular/material/button';
 
 export interface CloseDistributionValidationDialogData {
   validationResult: DistributionCloseValidationResult;

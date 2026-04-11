@@ -1,52 +1,39 @@
-<c-row>
-  <c-col>
-    <c-card>
-      <c-card-body>
-        <c-row>
-          <c-col class="d-flex justify-content-center">
-            <h5>
-              <c-badge [color]="readyColor()" testid="state-camera" class="me-3">
-                {{readyText()}}
-              </c-badge>
-            </h5>
-          </c-col>
-        </c-row>
-        @if(availableCameras.length > 0) {
-          <c-row class="mt-3 mb-3">
-            <c-col class="d-flex justify-content-center">
-              <div class="form-inline">
-                <label class="form-label fw-bold me-2">Kamera</label>
-                <select testid="cameraSelectionInput" cSelect class="form-control" [(ngModel)]="selectedCamera">
-                  @for (camera of availableCameras; track trackByCameraId($index, camera)) {
-                    <option [ngValue]="camera">{{camera.label}}</option>
-                  }
-                </select>
-              </div>
-            </c-col>
-          </c-row>
-          <hr>
-        }
-        <c-row class="mb-3">
-          <c-col class="d-flex justify-content-center">
-            <h1 class="font-5xl">Scanner Nr:</h1>
-            <h1 class="ms-3 font-5xl" testid="scanner-id">{{scannerId()}}</h1>
-          </c-col>
-        </c-row>
-        <c-row>
-          <c-col>
-            <div id="qrCodeReaderBox"></div>
-          </c-col>
-        </c-row>
-        @if (ready()) {
-          <c-row class="mt-3">
-            <c-col class="d-flex justify-content-center">
-              <div class="alert alert-info ms-2 me-2" testid="message">
-                <div><strong>Letzter Scan: </strong>{{lastScanResult}}</div>
-              </div>
-            </c-col>
-          </c-row>
-        }
-      </c-card-body>
-    </c-card>
-  </c-col>
-</c-row>
+<mat-card>
+  <mat-card-content class="flex justify-items-center">
+    @if (availableCameras() && availableCameras().length == 0) {
+      <div class="my-3 w-full">
+        <div class="tafel-banner-error" testid="no-camera-message">
+          Es wurde keine Kamera gefunden.<br/>Bitte schließen Sie eine Kamera an und laden Sie die Seite neu.
+        </div>
+      </div>
+    }
+    <div class="flex mb-3">
+      <h1 class="text-6xl">Scanner Nr:</h1>
+      <h1 class="ms-3 text-6xl" testid="scanner-id">{{ scannerId() }}</h1>
+    </div>
+    <div class="flex gap-3 my-3">
+      <mat-form-field subscriptSizing="dynamic" appearance="outline">
+        <mat-label>Kamera</mat-label>
+        <mat-select testid="cameraSelectionInput"
+                    [(ngModel)]="selectedCamera"
+                    class="w-64">
+          @for (camera of availableCameras(); track trackByCameraId(camera)) {
+            <mat-option [value]="camera">{{ camera.label }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      <h4 class="flex items-center justify-center m-0">
+        <div testid="state-camera" [class]="'badge badge-' + readyStateColor()">{{ readyStateText() }}</div>
+      </h4>
+    </div>
+    <mat-divider class="my-3"></mat-divider>
+    <div id="qrCodeReaderBox" class="w-full max-w-4xl"></div>
+    @if (readyState()) {
+      <div class="mt-4">
+        <div class="tafel-banner-info" testid="message">
+          <div><strong>Letzter Scan: </strong>{{ lastScanResult() }}</div>
+        </div>
+      </div>
+    }
+  </mat-card-content>
+</mat-card>

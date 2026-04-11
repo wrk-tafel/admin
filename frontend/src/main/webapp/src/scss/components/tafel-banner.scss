@@ -1,9 +1,13 @@
 @layer components {
-  .tafel-error-banner {
+  .tafel-banner-error {
     @apply flex flex-col p-4 text-red-800 bg-red-100 border border-red-200 rounded-lg mb-4;
   }
 
-  .tafel-success-banner {
+  .tafel-banner-success {
     @apply flex items-center p-4 text-green-800 bg-green-50 border border-green-200 rounded-lg mb-4;
+  }
+
+  .tafel-banner-info {
+    @apply flex items-center p-4 text-blue-800 bg-blue-50 border border-blue-200 rounded-lg mb-4;
   }
 }

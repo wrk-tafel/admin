@@ -2,8 +2,8 @@ import {Component, computed, inject, viewChild} from '@angular/core';
 import {PasswordChangeFormComponent} from '../passwordchange-form/passwordchange-form.component';
 import {Router} from '@angular/router';
 import {AuthenticationService, LoginResult} from '../../security/authentication.service';
-import {MatCard, MatCardContent} from "@angular/material/card";
-import {MatButton} from "@angular/material/button";
+import {MatCard, MatCardContent} from '@angular/material/card';
+import {MatButton} from '@angular/material/button';
 
 @Component({
   selector: 'tafel-login-passwordchange',
