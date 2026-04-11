@@ -1,41 +1,40 @@
 import {Component, effect, inject, signal} from '@angular/core';
-import {
-  ButtonDirective,
-  CardBodyComponent,
-  CardComponent,
-  CardHeaderComponent,
-  ColComponent,
-  FormSelectDirective,
-  RowComponent
-} from '@coreui/angular';
-import {IconDirective} from '@coreui/icons-angular';
-import {cilEnvelopeClosed} from '@coreui/icons';
+import {MatCard, MatCardContent, MatCardFooter, MatCardHeader, MatCardTitle} from '@angular/material/card';
+import {MatButton, MatButtonModule} from '@angular/material/button';
+import {MatSelect, MatSelectModule} from '@angular/material/select';
+import {MatIconModule} from '@angular/material/icon';
+import {MatInputModule} from '@angular/material/input';
+import {MatDatepickerModule} from '@angular/material/datepicker';
 import {DistributionApiService, DistributionItem} from '../../../../api/distribution-api.service';
 import {DatePipe} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {ToastrService} from 'ngx-toastr';
+import {FaIconComponent} from "@fortawesome/angular-fontawesome";
+import {faEnvelope} from "@fortawesome/free-solid-svg-icons";
 
 @Component({
   selector: 'tafel-send-mails',
   templateUrl: 'send-mails.component.html',
   imports: [
-    CardComponent,
-    CardHeaderComponent,
-    ColComponent,
-    IconDirective,
-    RowComponent,
-    CardBodyComponent,
-    ButtonDirective,
+    MatCard,
+    MatCardHeader,
+    MatCardTitle,
+    MatCardContent,
+    MatButtonModule,
+    MatSelect,
+    MatSelectModule,
+    MatIconModule,
+    MatInputModule,
+    MatDatepickerModule,
+    FormsModule,
     DatePipe,
-    FormsModule,
-    FormsModule,
-    FormSelectDirective
+    FaIconComponent,
+    MatCardFooter
   ]
 })
 export class SendMailsComponent {
   private readonly distributionApiService = inject(DistributionApiService);
   private readonly toastr = inject(ToastrService);
-  protected readonly cilEnvelopeClosed = cilEnvelopeClosed;
 
   readonly distributions = signal<DistributionItem[]>([]);
   readonly selectedDistribution = signal<DistributionItem | null>(null);
@@ -66,4 +65,5 @@ export class SendMailsComponent {
     }
   }
 
+  protected readonly faEnvelope = faEnvelope;
 }

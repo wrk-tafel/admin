@@ -1,6 +1,5 @@
 import {Component} from '@angular/core';
 import {MailRecipientsComponent} from './components/mail-recipients/mail-recipients.component';
-import {ColComponent, RowComponent} from '@coreui/angular';
 import {SendMailsComponent} from './components/send-dailyreport/send-mails.component';
 
 @Component({
@@ -8,8 +7,6 @@ import {SendMailsComponent} from './components/send-dailyreport/send-mails.compo
     templateUrl: 'settings.component.html',
     imports: [
         MailRecipientsComponent,
-        RowComponent,
-        ColComponent,
         SendMailsComponent
     ]
 })

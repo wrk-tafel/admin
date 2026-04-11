@@ -1,19 +1,11 @@
 import {Component, effect, inject} from '@angular/core';
-import {
-  ButtonDirective,
-  CardBodyComponent,
-  CardComponent,
-  CardFooterComponent,
-  CardHeaderComponent,
-  ColComponent,
-  RowComponent,
-} from '@coreui/angular';
+import {MatCard, MatCardContent, MatCardFooter, MatCardHeader, MatCardTitle} from '@angular/material/card';
+import {MatButtonModule} from '@angular/material/button';
 import {MatTabsModule} from '@angular/material/tabs';
-import {IconDirective} from '@coreui/icons-angular';
-import {cilEnvelopeClosed} from '@coreui/icons';
-import {FaIconComponent} from '@fortawesome/angular-fontawesome';
+import {MatIconModule} from '@angular/material/icon';
 import {FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
-import {faPlus, faTrashCan} from '@fortawesome/free-solid-svg-icons';
+import {faEnvelope, faPlus, faTrashCan} from '@fortawesome/free-solid-svg-icons';
+import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {CommonModule} from '@angular/common';
 import {MailTypeEnum, RecipientTypeEnum, SettingsApiService} from '../../../../api/settings-api.service';
 import {ToastrService} from 'ngx-toastr';
@@ -22,17 +14,16 @@ import {ToastrService} from 'ngx-toastr';
   selector: 'tafel-mail-recipients',
   templateUrl: 'mail-recipients.component.html',
   imports: [
-    CardComponent,
-    CardHeaderComponent,
-    CardBodyComponent,
-    CardFooterComponent,
-    RowComponent,
-    ColComponent,
-    IconDirective,
-    ButtonDirective,
+    MatCard,
+    MatCardHeader,
+    MatCardTitle,
+    MatCardContent,
+    MatCardFooter,
+    MatButtonModule,
+    MatTabsModule,
+    MatIconModule,
     FaIconComponent,
     ReactiveFormsModule,
-    MatTabsModule,
     CommonModule
   ]
 })
@@ -144,5 +135,5 @@ export class MailRecipientsComponent {
 
   protected readonly faTrashCan = faTrashCan;
   protected readonly faPlus = faPlus;
-  protected readonly cilEnvelopeClosed = cilEnvelopeClosed;
+  protected readonly faEnvelope = faEnvelope;
 }

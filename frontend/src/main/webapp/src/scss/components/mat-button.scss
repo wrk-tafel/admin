@@ -2,3 +2,13 @@
   border: #080A0C2D solid 1px !important;
   box-shadow: none !important;
 }
+
+.button-success {
+  background-color: var(--cui-success, #2eb85c) !important;
+  color: white !important;
+}
+
+.button-danger {
+  background-color: var(--cui-danger, #e55353) !important;
+  color: white !important;
+}

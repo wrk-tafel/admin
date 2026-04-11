@@ -524,6 +524,12 @@ VALUES (15, NOW(), NOW(), 'Sonstige Kisten', null, true, 2100);
 -- distributions
 INSERT INTO distributions (id, created_at, updated_at, started_at, ended_at, startedby_userid, endedby_userid)
 VALUES (1, NOW(), NOW(), '2000-01-01 17:00:00.000000', '2000-01-01 22:00:00.000000', 300, 300);
+INSERT INTO distributions_statistics (id, created_at, updated_at, distribution_id, count_customers,
+                                      count_persons, count_infants, average_persons_per_customer,
+                                      count_customers_new, count_persons_new,
+                                      count_customers_prolonged, count_persons_prolonged,
+                                      count_customers_updated, employee_count, persons_in_shelter_count)
+VALUES (1, NOW(), NOW(), 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
 -- other employees
 INSERT INTO employees (id, created_at, updated_at, personnel_number, firstname, lastname)
