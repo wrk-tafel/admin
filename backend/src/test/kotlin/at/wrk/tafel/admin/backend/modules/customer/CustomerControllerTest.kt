@@ -4,6 +4,7 @@ import at.wrk.tafel.admin.backend.modules.base.country.Country
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.customer.internal.*
 import at.wrk.tafel.admin.backend.modules.customer.internal.income.IncomeValidatorResult
+import at.wrk.tafel.admin.backend.security.testUserEntity
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -18,6 +19,8 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
+import org.springframework.security.core.authority.SimpleGrantedAuthority
+import org.springframework.security.core.context.SecurityContextHolder
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -34,9 +37,16 @@ class CustomerControllerTest {
     private lateinit var controller: CustomerController
 
     private lateinit var testCustomer: Customer
+    private val isSupervisor = false
 
     @BeforeEach
     fun beforeEach() {
+        SecurityContextHolder.getContext().authentication =
+            at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication(
+                "TOKEN",
+                testUserEntity.username,
+                true
+            )
         testCustomer = Customer(
             id = 100,
             issuer = CustomerIssuer(
@@ -135,7 +145,7 @@ class CustomerControllerTest {
     fun `create customer - given id and exists already`() {
         every { customerService.existsByCustomerId(testCustomer.id!!) } returns true
 
-        val exception = assertThrows<TafelValidationException> { controller.createCustomer(testCustomer) }
+        val exception = assertThrows<TafelValidationException> { controller.createCustomer(false, testCustomer) }
 
         assertThat(exception.message).isEqualTo("Kunde Nr. 100 bereits vorhanden!")
     }
@@ -144,17 +154,34 @@ class CustomerControllerTest {
     fun `create customer - missing id so the customer should be created`() {
         every { customerService.existsByCustomerId(testCustomer.id!!) } returns false
 
-        controller.createCustomer(testCustomer)
+        controller.createCustomer(false, testCustomer)
 
-        verify { customerService.createCustomer(testCustomer) }
+        verify { customerService.createCustomer(testCustomer, false, false) }
     }
 
     @Test
-    fun `update customer - doesnt exist`() {
+    fun `create customer - supervisor with invalid income and force=true`() {
+        val supervisorAuth = at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication(
+            "TOKEN",
+            testUserEntity.username,
+            true,
+            authorities = listOf(SimpleGrantedAuthority("SUPERVISOR"))
+        )
+        SecurityContextHolder.getContext().authentication = supervisorAuth
+
+        every { customerService.existsByCustomerId(testCustomer.id!!) } returns false
+
+        controller.createCustomer(true, testCustomer)
+
+        verify { customerService.createCustomer(testCustomer, true, true) }
+    }
+
+    @Test
+    fun `update customer - does not exist`() {
         every { customerService.existsByCustomerId(testCustomer.id!!) } returns false
 
         val exception =
-            assertThrows<TafelValidationException> { controller.updateCustomer(testCustomer.id!!, testCustomer) }
+            assertThrows<TafelValidationException> { controller.updateCustomer(testCustomer.id!!, false, testCustomer) }
 
         assertThat(exception.message).isEqualTo("Kunde Nr. 100 nicht vorhanden!")
         assertThat(exception.status).isEqualTo(HttpStatus.NOT_FOUND)
@@ -163,10 +190,35 @@ class CustomerControllerTest {
     @Test
     fun `update customer - exists and should be updated`() {
         every { customerService.existsByCustomerId(testCustomer.id!!) } returns true
+        every {
+            customerService.updateCustomer(
+                testCustomer.id!!,
+                testCustomer,
+                false,
+                isSupervisor
+            )
+        } returns testCustomer
 
-        controller.updateCustomer(testCustomer.id!!, testCustomer)
+        controller.updateCustomer(testCustomer.id!!, false, testCustomer)
 
-        verify { customerService.updateCustomer(testCustomer.id!!, testCustomer) }
+        verify { customerService.updateCustomer(testCustomer.id!!, testCustomer, false, isSupervisor) }
+    }
+
+    @Test
+    fun `update customer with force=true`() {
+        every { customerService.existsByCustomerId(testCustomer.id!!) } returns true
+        every {
+            customerService.updateCustomer(
+                testCustomer.id!!,
+                testCustomer,
+                true,
+                isSupervisor
+            )
+        } returns testCustomer
+
+        controller.updateCustomer(testCustomer.id!!, true, testCustomer)
+
+        verify { customerService.updateCustomer(testCustomer.id!!, testCustomer, true, isSupervisor) }
     }
 
     @Test

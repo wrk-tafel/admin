@@ -8,6 +8,7 @@ import at.wrk.tafel.admin.backend.database.model.customer.CustomerEntity.Specs.C
 import at.wrk.tafel.admin.backend.database.model.customer.CustomerEntity.Specs.Companion.postProcessingNecessary
 import at.wrk.tafel.admin.backend.database.model.customer.CustomerEntity.Specs.Companion.validCustomer
 import at.wrk.tafel.admin.backend.database.model.customer.CustomerRepository
+import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.customer.Customer
 import at.wrk.tafel.admin.backend.modules.customer.CustomerPdfType
 import at.wrk.tafel.admin.backend.modules.customer.internal.converter.CustomerConverter
@@ -18,9 +19,9 @@ import at.wrk.tafel.admin.backend.modules.customer.internal.masterdata.CustomerP
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.jpa.domain.Specification
 import org.springframework.data.jpa.domain.Specification.where
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDate
 
 @Service
 class CustomerService(
@@ -43,21 +44,52 @@ class CustomerService(
         return customerRepository.findByCustomerId(customerId)?.let { customerConverter.mapEntityToCustomer(it) }
     }
 
-    fun createCustomer(customer: Customer): Customer {
+    fun createCustomer(customer: Customer, force: Boolean, isSupervisor: Boolean): Customer {
         val entity = customerConverter.mapCustomerToEntity(customer)
+
+        val valid = incomeValidatorService.validate(mapToValidationPersons(customer)).valid
+        if (!valid && isSupervisor) {
+            if (!force) {
+                throw TafelValidationException(
+                    message = "Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt).",
+                    status = HttpStatus.CONFLICT
+                )
+            } else {
+                val savedEntity = customerRepository.save(entity)
+                return customerConverter.mapEntityToCustomer(savedEntity)
+            }
+        } else if (!valid) {
+            throw TafelValidationException(
+                message = "Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt).",
+                status = HttpStatus.BAD_REQUEST
+            )
+        }
+
         val savedEntity = customerRepository.save(entity)
         return customerConverter.mapEntityToCustomer(savedEntity)
     }
 
     @Transactional
-    fun updateCustomer(customerId: Long, customer: Customer): Customer {
+    fun updateCustomer(customerId: Long, customer: Customer, force: Boolean, isSupervisor: Boolean): Customer {
         val existingEntity = customerRepository.getReferenceByCustomerId(customerId)
         val mappedEntity = customerConverter.mapCustomerToEntity(customer, existingEntity)
 
-        // When a customer is updated with an invalid income - force set him invalid
-        val validationResult = incomeValidatorService.validate(mapToValidationPersons(customer))
-        if (!validationResult.valid) {
-            mappedEntity.validUntil = LocalDate.now().minusDays(1)
+        val valid = incomeValidatorService.validate(mapToValidationPersons(customer)).valid
+        if (!valid && isSupervisor) {
+            if (!force) {
+                throw TafelValidationException(
+                    message = "Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt).",
+                    status = HttpStatus.CONFLICT
+                )
+            } else {
+                val savedEntity = customerRepository.save(mappedEntity)
+                return customerConverter.mapEntityToCustomer(savedEntity)
+            }
+        } else if (!valid) {
+            throw TafelValidationException(
+                message = "Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt).",
+                status = HttpStatus.BAD_REQUEST
+            )
         }
 
         val savedEntity = customerRepository.save(mappedEntity)

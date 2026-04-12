@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 import tools.jackson.databind.json.JsonMapper
 import java.io.IOException
+import org.springframework.web.context.request.async.AsyncRequestNotUsableException
 import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit
 
@@ -123,6 +124,17 @@ class SseOutboxService(
                 event = event.data(data)
             }
             sseEmitter.send(event)
+        } catch (e: AsyncRequestNotUsableException) {
+            // Client disconnected during async processing — expected when clients
+            // navigate away or close their connection. This is a normal scenario,
+            // not an error. Don't log it as ERROR, just clean up silently.
+            logger.debug("SSE client disconnected during async processing")
+            // Try to complete the emitter to release resources
+            try {
+                sseEmitter.complete()
+            } catch (ex: Exception) {
+                // Already completed, ignore
+            }
         } catch (e: IOException) {
             // Broken pipe / client disconnected — expected when clients navigate away
             // or close their connection. Don't try to complete the emitter; it's

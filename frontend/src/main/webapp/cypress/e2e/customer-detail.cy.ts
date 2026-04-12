@@ -188,4 +188,124 @@ describe('Customer Detail', () => {
     cy.byTestId('editCustomerToggleButton').click();
   }
 
+  describe('Supervisor', () => {
+    beforeEach(() => {
+      cy.loginDefault();
+    });
+
+    it('prolong customer with invalid income triggers confirm dialog when supervisor', () => {
+      cy.createDummyCustomer(10000, true).then((response) => {
+        const customerId = response.body.id;
+        cy.visit('/#/kunden/detail/' + customerId);
+
+        openEditMenu();
+        cy.byTestId('prolongButton').click();
+        cy.byTestId('prolongThreeMonthsButton').click();
+
+        // Should trigger confirm dialog
+        cy.byTestId('confirm-customer-save-dialog')
+          .should('be.visible')
+          .within(() => {
+            cy.byTestId('title').contains('Kunde speichern');
+            cy.byTestId('message').contains('Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt).');
+            cy.byTestId('header').should('have.class', 'dialog-header-warning');
+            cy.byTestId('ok-button').click();
+          });
+      });
+    });
+
+    it('should display confirm dialog with correct message and allow cancellation', () => {
+      cy.createDummyCustomer().then((response) => {
+        const customerId = response.body.id;
+
+        // Manually set up a scenario that would trigger the dialog
+        cy.intercept('/api/customers/*', (req) => {
+          if (req.method === 'POST') {
+            req.reply({
+              statusCode: 409,
+              body: {message: 'Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt).'}
+            });
+          }
+        });
+
+        cy.visit('/#/kunden/detail/' + customerId);
+        cy.byTestId('editCustomerButton').click();
+
+        const observer = {
+          error: (error: any) => {
+            if (error.status == 409) {
+              // Dialog should appear after 409 error
+              cy.byTestId('confirm-customer-save-dialog').should('be.visible');
+              cy.byTestId('confirm-customer-save-dialog').should('contain.text', error.error.message);
+              cy.byTestId('confirm-customer-save-dialog').should('contain.text', 'Trotzdem speichern?');
+            }
+          },
+        };
+
+        cy.byTestId('save-button').click();
+      });
+    });
+
+    it('should confirm update and persist changes', () => {
+      cy.createDummyCustomer().then((response) => {
+        const customerId = response.body.id;
+
+        cy.visit('/#/kunden/detail/' + customerId);
+        cy.byTestId('editCustomerButton').click();
+
+        const incomeInput = cy.byTestId('incomeInput');
+        incomeInput.clear();
+        incomeInput.type('15000');
+
+        cy.byTestId('save-button').click();
+
+        cy.byTestId('confirm-customer-save-dialog')
+          .should('be.visible')
+          .within(() => {
+            cy.byTestId('title').contains('Kunde speichern');
+            cy.byTestId('message').contains('Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt).');
+            cy.byTestId('header').should('have.class', 'dialog-header-warning');
+            cy.byTestId('ok-button').click();
+          });
+
+        cy.get('.toast-message')
+          .should('be.visible')
+          .should('contain.text', 'Kunde wurde gespeichert!');
+
+        // Should reload the page or navigate to detail view
+        cy.byTestId('confirm-customer-save-dialog').should('not.exist');
+        cy.url().should('contain', `/kunden/detail/${customerId}`);
+        cy.byTestId('incomeText').should('contain.text', '15.000');
+      });
+    });
+
+    it('should cancel update and stay on edit page', () => {
+      cy.createDummyCustomer().then((response) => {
+        const customerId = response.body.id;
+
+        cy.visit('/#/kunden/detail/' + customerId);
+        cy.byTestId('editCustomerButton').click();
+
+        const incomeInput = cy.byTestId('incomeInput');
+        incomeInput.clear();
+        incomeInput.type('15000');
+
+        cy.byTestId('save-button').click();
+
+        // Confirm dialog should appear
+        cy.byTestId('confirm-customer-save-dialog').should('be.visible');
+
+        // Click cancel
+        cy.byTestId('confirm-customer-save-dialog').within(() => {
+          cy.byTestId('cancel-button').click();
+        });
+
+        // Should stay on edit page
+        cy.url().should('contain', '/kunden/bearbeiten/' + customerId);
+        cy.byTestId('confirm-customer-save-dialog').should('not.exist');
+      });
+    });
+
+  });
+
 });

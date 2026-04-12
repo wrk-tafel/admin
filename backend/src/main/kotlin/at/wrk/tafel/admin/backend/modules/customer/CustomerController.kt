@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.customer
 
+import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.customer.internal.CustomerDuplicationService
 import at.wrk.tafel.admin.backend.modules.customer.internal.CustomerService
@@ -9,6 +10,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.*
 import java.io.ByteArrayInputStream
 
@@ -33,22 +35,32 @@ class CustomerController(
 
     @PostMapping
     @PreAuthorize("hasAuthority('CUSTOMER')")
-    fun createCustomer(@RequestBody customer: Customer): Customer {
+    fun createCustomer(
+        @RequestParam force: Boolean = false,
+        @RequestBody customer: Customer
+    ): Customer {
+        val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
+        val isSupervisor = authenticatedUser.hasRole("SUPERVISOR")
+
         customer.id?.let {
             if (customerService.existsByCustomerId(it)) {
                 throw TafelValidationException("Kunde Nr. $it bereits vorhanden!")
             }
         }
 
-        return customerService.createCustomer(customer)
+        return customerService.createCustomer(customer, force, isSupervisor)
     }
 
     @PostMapping("/{customerId}")
     @PreAuthorize("hasAuthority('CUSTOMER')")
     fun updateCustomer(
         @PathVariable("customerId") customerId: Long,
+        @RequestParam force: Boolean = false,
         @RequestBody customer: Customer,
     ): Customer {
+        val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
+        val isSupervisor = authenticatedUser.hasRole("SUPERVISOR")
+
         if (!customerService.existsByCustomerId(customerId)) {
             throw TafelValidationException(
                 message = "Kunde Nr. $customerId nicht vorhanden!",
@@ -56,7 +68,7 @@ class CustomerController(
             )
         }
 
-        return customerService.updateCustomer(customerId, customer)
+        return customerService.updateCustomer(customerId, customer, force, isSupervisor)
     }
 
     @GetMapping("/{customerId}")

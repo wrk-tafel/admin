@@ -13,12 +13,12 @@ export class CustomerApiService {
     return this.http.post<ValidateCustomerResponse>('/customers/validate', data);
   }
 
-  createCustomer(data: CustomerData): Observable<CustomerData> {
-    return this.http.post<CustomerData>('/customers', data);
+  createCustomer(data: CustomerData, force: boolean): Observable<CustomerData> {
+    return this.http.post<CustomerData>('/customers', data, {params: {force}});
   }
 
-  updateCustomer(data: CustomerData): Observable<CustomerData> {
-    return this.http.post<CustomerData>(`/customers/${data.id}`, data);
+  updateCustomer(data: CustomerData, force: boolean): Observable<CustomerData> {
+    return this.http.post<CustomerData>(`/customers/${data.id}`, data, {params: {force}});
   }
 
   deleteCustomer(customerId: number): Observable<void> {

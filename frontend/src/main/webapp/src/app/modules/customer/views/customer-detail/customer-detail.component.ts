@@ -43,6 +43,9 @@ import {GenderLabelPipe} from '../../../../common/pipes/gender-label.pipe';
 import {FormatIssuerPipe} from '../../../../common/pipes/format-issuer.pipe';
 import {FormattedCustomerNamePipe} from '../../../../common/pipes/formatted-customer-name.pipe';
 import {FormsModule} from '@angular/forms';
+import {
+  ConfirmCustomerSaveDialog
+} from '../../components/confirm-customer-save-dialog/confirm-customer-save-dialog.component';
 
 @Component({
   selector: 'tafel-customer-detail',
@@ -164,7 +167,8 @@ export class CustomerDetailComponent {
   }
 
   openDeleteCustomerDialog() {
-    this.dialog.open(DeleteCustomerDialogComponent).afterClosed().subscribe(confirmed => {
+    this.dialog.open(DeleteCustomerDialogComponent)
+      .afterClosed().subscribe(confirmed => {
       if (confirmed) {
         this.customerApiService.deleteCustomer(this.customerData().id).subscribe({
           next: async () => {
@@ -179,16 +183,46 @@ export class CustomerDetailComponent {
     });
   }
 
-  prolongCustomer(countMonths: number) {
+  openConfirmUpdateCustomerDialog(customerData: CustomerData, message: string) {
+    this.dialog.open(ConfirmCustomerSaveDialog, {
+      data: {
+        message: message
+      }
+    }).afterClosed().subscribe(confirmed => {
+      if (confirmed) {
+        this.customerApiService.updateCustomer(customerData, true).subscribe({
+          next: () => {
+            this.toastr.success('Kunde wurde verlängert!');
+          },
+          error: () => {
+            this.toastr.error('Verlängerung fehlgeschlagen!');
+          },
+        });
+      }
+    });
+  }
+
+  prolongCustomer(countMonths : number) {
     const newValidUntilDate = moment(this.customerData().validUntil).add(countMonths, 'months').endOf('day').toDate();
     const updatedCustomerData = {
       ...this.customerData(),
       validUntil: newValidUntilDate
     };
 
-    this.customerApiService.updateCustomer(updatedCustomerData).subscribe(customerData => {
-      this.customerData.set(customerData);
-    });
+    const observer = {
+      next: (customerData: CustomerData) => {
+        this.customerData.set(customerData);
+      },
+      error: (error: any) => {
+        if (error.status == 409) {
+          this.openConfirmUpdateCustomerDialog(updatedCustomerData, error.error.message);
+        } else {
+          this.toastr.error('Verlängerung fehlgeschlagen!');
+        }
+      },
+    };
+
+    this.customerApiService.updateCustomer(updatedCustomerData, false).subscribe(observer);
   }
 
   disableCustomer() {
@@ -197,7 +231,7 @@ export class CustomerDetailComponent {
       validUntil: moment().subtract(1, 'day').endOf('day').toDate()
     };
 
-    this.customerApiService.updateCustomer(updatedCustomerData).subscribe(customerData => {
+    this.customerApiService.updateCustomer(updatedCustomerData, false).subscribe(customerData => {
       this.customerData.set(customerData);
     });
   }
@@ -210,7 +244,7 @@ export class CustomerDetailComponent {
           locked: true,
           lockReason: reason
         };
-        this.customerApiService.updateCustomer(updatedCustomerData).subscribe(customerData => {
+        this.customerApiService.updateCustomer(updatedCustomerData, false).subscribe(customerData => {
           this.customerData.set(customerData);
         });
       }
@@ -225,7 +259,7 @@ export class CustomerDetailComponent {
       lockReason: null
     };
 
-    this.customerApiService.updateCustomer(updatedCustomerData).subscribe(customerData => {
+    this.customerApiService.updateCustomer(updatedCustomerData, false).subscribe(customerData => {
       this.customerData.set(customerData);
     });
   }
@@ -281,12 +315,6 @@ export class CustomerDetailComponent {
       error: () => {
         this.toastr.error('Ticket-Löschung fehlgeschlagen!');
       }
-    });
-  }
-
-  getCustomerNotes(page: number) {
-    this.customerNoteApiService.getNotesForCustomer(this.customerData().id, page).subscribe((response) => {
-      this.processCustomerNoteResponse(response);
     });
   }
 

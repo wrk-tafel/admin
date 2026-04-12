@@ -32,9 +32,9 @@ describe('CustomerApiService', () => {
   });
 
   it('create customer', () => {
-    apiService.createCustomer(null).subscribe();
+    apiService.createCustomer(null, false).subscribe();
 
-    const req = httpMock.expectOne({method: 'POST', url: '/customers'});
+    const req = httpMock.expectOne({method: 'POST', url: '/customers?force=false'});
     req.flush(null);
     httpMock.verify();
   });
@@ -56,9 +56,35 @@ describe('CustomerApiService', () => {
       employer: 'test employer',
       income: 1000
     };
-    apiService.updateCustomer(mockCustomer).subscribe();
+    apiService.updateCustomer(mockCustomer, false).subscribe();
 
-    const req = httpMock.expectOne({method: 'POST', url: '/customers/133'});
+    const req = httpMock.expectOne({method: 'POST', url: '/customers/133?force=false'});
+    req.flush(null);
+    httpMock.verify();
+
+    expect(req.request.body).toEqual(mockCustomer);
+  });
+
+  it('update customer forced', () => {
+    const mockCustomer = {
+      id: 133,
+      lastname: 'Mustermann',
+      firstname: 'Max',
+      birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
+      gender: Gender.MALE,
+      address: {
+        street: 'Teststraße',
+        houseNumber: '123A',
+        door: '21',
+        postalCode: 1020,
+        city: 'Wien',
+      },
+      employer: 'test employer',
+      income: 1000
+    };
+    apiService.updateCustomer(mockCustomer, true).subscribe();
+
+    const req = httpMock.expectOne({method: 'POST', url: '/customers/133?force=true'});
     req.flush(null);
     httpMock.verify();
 
