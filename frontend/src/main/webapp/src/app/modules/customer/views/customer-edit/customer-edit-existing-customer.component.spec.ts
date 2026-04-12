@@ -296,7 +296,7 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
         component.save();
 
         expect(customerFormComponentMock.markAllAsTouched).toHaveBeenCalled();
-        expect(toastr.error).toHaveBeenCalledWith('Speichern fehlgeschlagen!');
+        expect(toastr.error).toHaveBeenCalledWith('Internal server error', 'Speichern fehlgeschlagen!');
         expect(matDialog.open).not.toHaveBeenCalled();
     });
 

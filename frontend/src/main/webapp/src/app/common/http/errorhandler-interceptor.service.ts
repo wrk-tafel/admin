@@ -11,7 +11,7 @@ export const errorHandlerInterceptor: HttpInterceptorFn = (
 ): Observable<HttpEvent<unknown>> => {
   const authenticationService = inject(AuthenticationService);
   const toastr = inject(ToastrService);
-  const ERROR_CODES_WHITELIST = [401, 404, 409];
+  const ERROR_CODES_WHITELIST = [400, 401, 404, 409];
 
   const handleAuthError = (error: HttpErrorResponse): Observable<any> => {
     if (authenticationService.isAuthenticated() && error.status === 401) {

@@ -114,7 +114,7 @@ describe('ErrorHandlerInterceptor', () => {
             error: _ => {
                 expect(toastrSpy.error).toHaveBeenCalledWith(
                     'Custom message from body',
-                    'HTTP 400 - Bad Request'
+                    'HTTP 403 - Error Code'
                 );
             },
         };
@@ -122,8 +122,8 @@ describe('ErrorHandlerInterceptor', () => {
 
         const mockReq = httpTestingController.expectOne('/test');
         const mockErrorResponse = {
-            status: 400,
-            statusText: 'Bad Request'
+            status: 403,
+            statusText: 'Error Code'
         };
 
         const errorBody: TafelErrorResponse = {
