@@ -12,9 +12,15 @@ declare namespace Cypress {
 
     /**
      * Custom command to execute a login via api using fixed credentials.
-     * @example cy.login();
+     * @example cy.loginDefault();
      */
     loginDefault(): void;
+
+    /**
+     * Custom command to execute a login via api using fixed credentials (user e2etest2).
+     * @example cy.loginE2ETest2();
+     */
+    loginE2ETest2(): void;
 
     /**
      * Custom command to execute a login via api using fixed credentials.
@@ -51,13 +57,13 @@ declare namespace Cypress {
      * Custom command to create a new customer.
      * @example cy.createCustomer(customerData);
      */
-    createCustomer(data: CustomerData): Cypress.Chainable<Cypress.Response<CustomerData>>;
+    createCustomer(data: CustomerData, force?: boolean): Cypress.Chainable<Cypress.Response<CustomerData>>;
 
     /**
      * Create a test customer with fixed data.
-     * @example cy.createDummyCustomer();
+     * @example cy.createDummyCustomer(1000);
      */
-    createDummyCustomer(): Cypress.Chainable<Cypress.Response<CustomerData>>;
+    createDummyCustomer(income?: number, force?: boolean): Cypress.Chainable<Cypress.Response<CustomerData>>;
 
     /**
      * Custom command to create a new user.

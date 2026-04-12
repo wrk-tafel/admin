@@ -1,4 +1,5 @@
 import type { MockedObject } from 'vitest';
+import { throwError } from 'rxjs';
 import { TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -9,7 +10,6 @@ import { CustomerEditComponent } from './customer-edit.component';
 import { By } from '@angular/platform-browser';
 import { BgColorDirective, CardModule, ColComponent, InputGroupComponent, RowComponent } from '@coreui/angular';
 import { MatDialog } from '@angular/material/dialog';
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { ToastrService } from 'ngx-toastr';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
@@ -73,6 +73,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
     let router: MockedObject<Router>;
     let apiService: MockedObject<CustomerApiService>;
     let toastr: MockedObject<ToastrService>;
+    let matDialog: MockedObject<MatDialog>;
 
     beforeEach((() => {
         TestBed.configureTestingModule({
@@ -89,7 +90,9 @@ describe('CustomerEditComponent - Creating a new customer', () => {
                 provideHttpClientTesting(),
                 {
                     provide: MatDialog,
-                    useValue: {open: vi.fn()}
+                    useValue: {
+                        open: vi.fn().mockReturnValue({afterClosed: () => of(true)})
+                    }
                 },
                 {
                     provide: CustomerApiService,
@@ -127,6 +130,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
         router = TestBed.inject(Router) as MockedObject<Router>;
         apiService = TestBed.inject(CustomerApiService) as MockedObject<CustomerApiService>;
         toastr = TestBed.inject(ToastrService) as MockedObject<ToastrService>;
+        matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
     }));
 
     it('initial checks', () => {
@@ -163,7 +167,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
             lastname: testCustomerData.lastname,
             firstname: testCustomerData.firstname,
             birthDate: testCustomerData.birthDate
-        }));
+        }), false);
         expect(router.navigate).toHaveBeenCalledWith(['/kunden/detail', testCustomerData.id]);
     });
 
@@ -228,7 +232,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
     it('new customer validation failed', () => {
         const matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
         matDialog.open.mockReturnValue({afterClosed: () => of(true)} as any);
-const customerFormComponentMock = {
+        const customerFormComponentMock = {
             markAllAsTouched: vi.fn().mockName("CustomerFormComponent.markAllAsTouched"),
             valid: vi.fn().mockName("CustomerFormComponent.valid")
         } as any;
@@ -254,6 +258,67 @@ const customerFormComponentMock = {
 
         expect(component.customerValidForSave()).toBe(true);
         expect(matDialog.open).toHaveBeenCalled();
+    });
+
+    it('new customer save with 409 conflict shows confirmation dialog and retries with validation', async () => {
+        const matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
+        const mockMessage = 'Customer has been updated by another user. Do you want to proceed?';
+        matDialog.open.mockReturnValue({afterClosed: () => of(true)} as any);
+
+        const customerFormComponentMock = {
+            markAllAsTouched: vi.fn().mockName("CustomerFormComponent.markAllAsTouched"),
+            valid: vi.fn().mockName("CustomerFormComponent.valid")
+        } as any;
+        customerFormComponentMock.valid.mockReturnValue(true);
+
+        // First call with validate=false, second call with validate=true
+        apiService.createCustomer.mockReturnValueOnce(throwError(() => ({
+            status: 409,
+            error: { message: mockMessage }
+        }))).mockReturnValueOnce(of(testCustomerData));
+
+        const fixture = TestBed.createComponent(CustomerEditComponent);
+        const component = fixture.componentInstance;
+        Object.defineProperty(component, 'customerFormComponent', {
+            get: () => () => customerFormComponentMock
+        });
+        component.customerUpdated.set(testCustomerData);
+
+        component.save();
+
+        expect(matDialog.open).toHaveBeenCalledWith(expect.anything(), {
+            data: {
+                message: mockMessage
+            }
+        });
+        expect(apiService.createCustomer).toHaveBeenNthCalledWith(1, expect.objectContaining(testCustomerData), false);
+        expect(apiService.createCustomer).toHaveBeenNthCalledWith(2, expect.objectContaining(testCustomerData), true);
+        expect(router.navigate).toHaveBeenCalledWith(['/kunden/detail', testCustomerData.id]);
+    });
+
+    it('new customer save with non-409 error shows error toast', () => {
+        const customerFormComponentMock = {
+            markAllAsTouched: vi.fn().mockName("CustomerFormComponent.markAllAsTouched"),
+            valid: vi.fn().mockName("CustomerFormComponent.valid")
+        } as any;
+        customerFormComponentMock.valid.mockReturnValue(true);
+
+        apiService.createCustomer.mockReturnValue(throwError(() => ({
+            status: 500,
+            error: { message: 'Internal server error' }
+        })));
+
+        const fixture = TestBed.createComponent(CustomerEditComponent);
+        const component = fixture.componentInstance;
+        Object.defineProperty(component, 'customerFormComponent', {
+            get: () => () => customerFormComponentMock
+        });
+        component.customerUpdated.set(testCustomerData);
+
+        component.save();
+
+        expect(toastr.error).toHaveBeenCalledWith('Speichern fehlgeschlagen!');
+        expect(matDialog.open).not.toHaveBeenCalled();
     });
 
 });

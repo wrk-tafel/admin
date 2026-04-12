@@ -1,0 +1,10 @@
+<tafel-dialog testId="confirm-customer-save-dialog" type="warning" title="Kunde speichern">
+  <div tafel-dialog-content>
+    <div class="mb-2" testid="message">{{ data.message }}</div>
+    <div class="fw-bold mt-4">Trotzdem speichern?</div>
+  </div>
+  <div tafel-dialog-actions>
+    <button testid="ok-button" cButton (click)="dialogRef.close(true)">OK</button>
+    <button testid="cancel-button" cButton color="secondary" (click)="dialogRef.close()">Abbrechen</button>
+  </div>
+</tafel-dialog>

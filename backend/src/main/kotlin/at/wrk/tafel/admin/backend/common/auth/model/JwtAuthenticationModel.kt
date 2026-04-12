@@ -38,6 +38,10 @@ class TafelJwtAuthentication(
     override fun setAuthenticated(isAuthenticated: Boolean) {
         authenticated = isAuthenticated
     }
+
+    fun hasRole(role: String): Boolean {
+        return authorities.map { it.authority }.contains(role)
+    }
 }
 
 @ExcludeFromTestCoverage

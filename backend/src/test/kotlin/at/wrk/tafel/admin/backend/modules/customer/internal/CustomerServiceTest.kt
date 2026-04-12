@@ -6,6 +6,7 @@ import at.wrk.tafel.admin.backend.database.model.customer.CustomerEntity
 import at.wrk.tafel.admin.backend.database.model.customer.CustomerRepository
 import at.wrk.tafel.admin.backend.database.model.staticdata.CountryRepository
 import at.wrk.tafel.admin.backend.modules.base.country.testCountry1
+import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.customer.Customer
 import at.wrk.tafel.admin.backend.modules.customer.CustomerAdditionalPerson
 import at.wrk.tafel.admin.backend.modules.customer.CustomerPdfType
@@ -25,6 +26,7 @@ import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
@@ -183,14 +185,70 @@ class CustomerServiceTest {
         every { customerConverter.mapEntityToCustomer(testCustomerEntity) } returns testCustomer
         every { customerConverter.mapCustomerToEntity(testCustomer) } returns testCustomerEntity
         every { customerRepository.save(any()) } returns testCustomerEntity
+        every { incomeValidatorService.validate(any()) } returns IncomeValidatorResult(
+            valid = true,
+            totalSum = BigDecimal("1"),
+            limit = BigDecimal("2"),
+            toleranceValue = BigDecimal("3"),
+            amountExceededLimit = BigDecimal("4")
+        )
 
-        val result = service.createCustomer(testCustomer)
+        val result = service.createCustomer(testCustomer, force = false, isSupervisor = false)
 
         assertThat(result).isEqualTo(testCustomer)
 
         verify(exactly = 1) { customerRepository.save(any()) }
         verify(exactly = 1) { customerConverter.mapEntityToCustomer(testCustomerEntity) }
         verify(exactly = 1) { customerConverter.mapCustomerToEntity(testCustomer) }
+    }
+
+    @Test
+    fun `create customer - supervisor with invalid income and force=true should save`() {
+        val testCustomer = mockk<Customer>(relaxed = true)
+        val testCustomerEntity = mockk<CustomerEntity>(relaxed = true)
+
+        every { customerConverter.mapEntityToCustomer(testCustomerEntity) } returns testCustomer
+        every { customerConverter.mapCustomerToEntity(testCustomer) } returns testCustomerEntity
+        every { customerRepository.save(any()) } returns testCustomerEntity
+
+        every { incomeValidatorService.validate(any()) } returns IncomeValidatorResult(
+            valid = false,
+            totalSum = BigDecimal("1"),
+            limit = BigDecimal("2"),
+            toleranceValue = BigDecimal("3"),
+            amountExceededLimit = BigDecimal("4")
+        )
+
+        val result = service.createCustomer(testCustomer, true, true)
+
+        assertThat(result).isEqualTo(testCustomer)
+        verify(exactly = 1) { customerRepository.save(testCustomerEntity) }
+        verify(exactly = 1) { customerConverter.mapCustomerToEntity(testCustomer) }
+    }
+
+    @Test
+    fun `create customer - supervisor with invalid income and force=false should throw exception`() {
+        val testCustomer = mockk<Customer>(relaxed = true)
+        val testCustomerEntity = mockk<CustomerEntity>(relaxed = true)
+
+        every { customerConverter.mapEntityToCustomer(testCustomerEntity) } returns testCustomer
+        every { customerConverter.mapCustomerToEntity(testCustomer) } returns testCustomerEntity
+
+        every { incomeValidatorService.validate(any()) } returns IncomeValidatorResult(
+            valid = false,
+            totalSum = BigDecimal("1"),
+            limit = BigDecimal("2"),
+            toleranceValue = BigDecimal("3"),
+            amountExceededLimit = BigDecimal("4")
+        )
+
+        val exception = assertThrows<TafelValidationException> {
+            service.createCustomer(testCustomer, false, true)
+        }
+
+        assertThat(exception.message).isEqualTo("Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt).")
+        assertThat(exception.status).isEqualTo(org.springframework.http.HttpStatus.CONFLICT)
+        verify(exactly = 0) { customerRepository.save(any()) }
     }
 
     @Test
@@ -214,7 +272,8 @@ class CustomerServiceTest {
             amountExceededLimit = BigDecimal("4")
         )
 
-        val result = service.updateCustomer(testCustomerUpdate.id!!, testCustomerUpdate)
+        val force = false
+        val result = service.updateCustomer(testCustomerUpdate.id!!, testCustomerUpdate, force, false)
 
         assertThat(result).isEqualTo(testCustomerUpdate)
         verify(exactly = 1) { customerRepository.save(testCustomerEntity) }
@@ -222,7 +281,7 @@ class CustomerServiceTest {
     }
 
     @Test
-    fun `update customer is invalid`() {
+    fun `update customer is invalid and throws exception when not supervisor`() {
         val customerId = 123L
 
         val testCustomer = mockk<Customer>(relaxed = true)
@@ -245,16 +304,46 @@ class CustomerServiceTest {
             amountExceededLimit = BigDecimal("4")
         )
 
-        val result = service.updateCustomer(testCustomer.id!!, testCustomerUpdate)
+        val force = false
+        val exception = assertThrows<TafelValidationException> {
+            service.updateCustomer(testCustomer.id!!, testCustomerUpdate, force, false)
+        }
 
-        assertThat(result).isEqualTo(testCustomer)
+        assertThat(exception.message).isEqualTo("Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt).")
+        assertThat(exception.status).isEqualTo(org.springframework.http.HttpStatus.BAD_REQUEST)
 
-        val savedCustomerSlot = slot<CustomerEntity>()
-        verify(exactly = 1) { customerRepository.save(capture(savedCustomerSlot)) }
+        verify(exactly = 0) { customerRepository.save(any()) }
+        verify(exactly = 1) { customerConverter.mapCustomerToEntity(any(), any()) }
+    }
 
-        val savedCustomer = savedCustomerSlot.captured
-        assertThat(savedCustomer.validUntil).isEqualTo(LocalDate.now().minusDays(1))
+    @Test
+    fun `update customer with force=true when supervisor tries to bypass validation`() {
+        val customerId = 123L
 
+        val testCustomer = mockk<Customer>(relaxed = true)
+        every { testCustomer.id } returns customerId
+
+        val testCustomerUpdate = mockk<Customer>(relaxed = true)
+        every { testCustomerUpdate.id } returns customerId
+
+        val testCustomerEntity = CustomerEntity()
+        every { customerRepository.getReferenceByCustomerId(customerId) } returns testCustomerEntity
+        every { customerConverter.mapCustomerToEntity(any(), any()) } returns testCustomerEntity
+        every { customerConverter.mapEntityToCustomer(testCustomerEntity) } returns testCustomerUpdate
+        every { customerRepository.save(any()) } returns testCustomerEntity
+
+        every { incomeValidatorService.validate(any()) } returns IncomeValidatorResult(
+            valid = false,
+            totalSum = BigDecimal("1"),
+            limit = BigDecimal("2"),
+            toleranceValue = BigDecimal("3"),
+            amountExceededLimit = BigDecimal("4")
+        )
+
+        val result = service.updateCustomer(testCustomer.id!!, testCustomerUpdate, true, true)
+
+        assertThat(result).isEqualTo(testCustomerUpdate)
+        verify(exactly = 1) { customerRepository.save(testCustomerEntity) }
         verify(exactly = 1) { customerConverter.mapCustomerToEntity(any(), any()) }
     }
 
@@ -271,7 +360,8 @@ class CustomerServiceTest {
         val page = PageImpl(listOf(testCustomerEntity1, testCustomerEntity2), pageRequest, 123)
         every { customerRepository.findAll(any<Specification<CustomerEntity>>(), pageRequest) } returns page
 
-        val searchResult = service.getCustomers(page = selectedPage, postProcessing = true, costContribution = true, valid = true)
+        val searchResult =
+            service.getCustomers(page = selectedPage, postProcessing = true, costContribution = true, valid = true)
 
         assertThat(searchResult.currentPage).isEqualTo(selectedPage)
         assertThat(searchResult.totalPages).isEqualTo(5)
@@ -319,6 +409,55 @@ class CustomerServiceTest {
         service.deleteCustomerByCustomerId(customerId)
 
         verify(exactly = 1) { customerRepository.deleteByCustomerId(customerId) }
+    }
+
+    @Test
+    fun `update customer with force=true when non-supervisor tries to bypass validation still fails`() {
+        val customerId = 123L
+
+        val testCustomer = mockk<Customer>(relaxed = true)
+        every { testCustomer.id } returns customerId
+
+        val testCustomerUpdate = mockk<Customer>(relaxed = true)
+        every { testCustomerUpdate.id } returns customerId
+
+        val testCustomerEntity = CustomerEntity().apply {
+            validUntil = LocalDate.now()
+        }
+        every { customerRepository.getReferenceByCustomerId(customerId) } returns testCustomerEntity
+        every { customerConverter.mapCustomerToEntity(any(), any()) } returns testCustomerEntity
+        every { customerConverter.mapEntityToCustomer(testCustomerEntity) } returns testCustomerUpdate
+        every { customerRepository.save(any()) } returns testCustomerEntity
+
+        every { incomeValidatorService.validate(any()) } returns IncomeValidatorResult(
+            valid = false,
+            totalSum = BigDecimal("1"),
+            limit = BigDecimal("2"),
+            toleranceValue = BigDecimal("3"),
+            amountExceededLimit = BigDecimal("4")
+        )
+
+        val exception = assertThrows<TafelValidationException> {
+            service.updateCustomer(testCustomer.id!!, testCustomerUpdate, true, false)
+        }
+
+        assertThat(exception.message).isEqualTo("Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt).")
+        assertThat(exception.status).isEqualTo(org.springframework.http.HttpStatus.BAD_REQUEST)
+
+        verify(exactly = 0) { customerRepository.save(any()) }
+        verify(exactly = 1) { customerConverter.mapCustomerToEntity(any(), any()) }
+    }
+
+    @Test
+    fun `merge customers`() {
+        val targetCustomer = 1L
+        val sourceCustomers = listOf(2L, 3L, 4L)
+
+        service.mergeCustomers(targetCustomer, sourceCustomers)
+
+        verify(exactly = 1) { customerRepository.deleteByCustomerId(2L) }
+        verify(exactly = 1) { customerRepository.deleteByCustomerId(3L) }
+        verify(exactly = 1) { customerRepository.deleteByCustomerId(4L) }
     }
 
 }

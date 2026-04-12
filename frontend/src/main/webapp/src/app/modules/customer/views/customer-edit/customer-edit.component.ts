@@ -6,6 +6,9 @@ import {ButtonDirective} from '@coreui/angular';
 import {ToastrService} from 'ngx-toastr';
 import {MatDialog} from '@angular/material/dialog';
 import {ValidationResultDialogComponent} from './dialogs/validation-result-dialog.component';
+import {
+  ConfirmCustomerSaveDialog
+} from '../../components/confirm-customer-save-dialog/confirm-customer-save-dialog.component';
 
 @Component({
   selector: 'tafel-customer-edit',
@@ -71,6 +74,18 @@ export class CustomerEditComponent {
     }
   }
 
+  openConfirmCustomerSaveDialog(message: string, confirmationCallback = () => {}) {
+    this.dialog.open(ConfirmCustomerSaveDialog, {
+      data: {
+        message: message
+      }
+    }).afterClosed().subscribe(confirmed => {
+      if (confirmed) {
+        confirmationCallback();
+      }
+    });
+  }
+
   save() {
     const formComponent = this.customerFormComponent();
     formComponent.markAllAsTouched();
@@ -79,17 +94,54 @@ export class CustomerEditComponent {
       this.toastr.error('Bitte Eingaben überprüfen!');
     } else {
       if (!this.editMode()) {
-        this.customerApiService.createCustomer(this.customerUpdated())
-          .subscribe(customer => {
-              this.router.navigate(['/kunden/detail', customer.id]);
+        const observer = {
+          next: (customer: CustomerData) => {
+            this.router.navigate(['/kunden/detail', customer.id]);
+          },
+          error: (error: any) => {
+            if (error.status == 409) {
+              this.openConfirmCustomerSaveDialog(error.error.message, () => {
+                this.customerApiService.createCustomer(this.customerUpdated(), true).subscribe({
+                  next: (customer: CustomerData) => {
+                    this.toastr.success('Kunde wurde gespeichert!');
+                    this.router.navigate(['/kunden/detail', customer.id]);
+                  },
+                  error: () => {
+                    this.toastr.error('Speichern fehlgeschlagen!');
+                  },
+                });
+              });
+            } else {
+              this.toastr.error('Speichern fehlgeschlagen!');
             }
-          );
+          },
+        };
+
+        this.customerApiService.createCustomer(this.customerUpdated(), false).subscribe(observer);
       } else {
-        this.customerApiService.updateCustomer(this.customerUpdated())
-          .subscribe(customer => {
-              this.router.navigate(['/kunden/detail', customer.id]);
+        const observer = {
+          next: (customer: CustomerData) => {
+            this.router.navigate(['/kunden/detail', customer.id]);
+          },
+          error: (error: any) => {
+            if (error.status == 409) {
+              this.openConfirmCustomerSaveDialog(error.error.message, () => {
+                this.customerApiService.updateCustomer(this.customerUpdated(), true).subscribe({
+                  next: (customer: CustomerData) => {
+                    this.toastr.success('Kunde wurde gespeichert!');
+                    this.router.navigate(['/kunden/detail', customer.id]);
+                  },
+                  error: () => {
+                    this.toastr.error('Speichern fehlgeschlagen!');
+                  },
+                });
+              });
+            } else {
+              this.toastr.error('Speichern fehlgeschlagen!');
             }
-          );
+          },
+        };
+        this.customerApiService.updateCustomer(this.customerUpdated(), false).subscribe(observer);
       }
     }
   }

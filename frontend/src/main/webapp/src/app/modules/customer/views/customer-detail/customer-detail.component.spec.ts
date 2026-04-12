@@ -34,6 +34,9 @@ import localeDeAt from '@angular/common/locales/de-AT';
 import {DistributionTicketApiService} from '../../../../api/distribution-ticket-api.service';
 import {DistributionApiService, DistributionItem} from '../../../../api/distribution-api.service';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
+import {
+  ConfirmCustomerSaveDialog
+} from '../../components/confirm-customer-save-dialog/confirm-customer-save-dialog.component';
 
 // Register de-AT locale
 registerLocaleData(localeDeAt);
@@ -134,8 +137,8 @@ describe('CustomerDetailComponent', () => {
   beforeEach((() => {
     const customerApiServiceSpy = {
       generatePdf: vi.fn().mockName("CustomerApiService.generatePdf"),
-      deleteCustomer: vi.fn().mockName("CustomerApiService.deleteCustomer"),
-      updateCustomer: vi.fn().mockName("CustomerApiService.updateCustomer")
+      deleteCustomer: vi.fn().mockReturnValue(of(null)).mockName("CustomerApiService.deleteCustomer"),
+      updateCustomer: vi.fn().mockReturnValue(of(null)).mockName("CustomerApiService.updateCustomer")
     };
     const customerNoteApiServiceSpy = {
       createNewNote: vi.fn().mockName("CustomerNoteApiService.createNewNote"),
@@ -200,7 +203,9 @@ describe('CustomerDetailComponent', () => {
         },
         {
           provide: MatDialog,
-          useValue: {open: vi.fn()}
+          useValue: {
+            open: vi.fn().mockReturnValue({afterClosed: () => of(true)})
+          }
         },
         {
           provide: DistributionTicketApiService,
@@ -500,7 +505,7 @@ describe('CustomerDetailComponent', () => {
 
     component.prolongCustomer(3);
 
-    expect(customerApiService.updateCustomer).toHaveBeenCalledWith(expectedCustomerData);
+    expect(customerApiService.updateCustomer).toHaveBeenCalledWith(expectedCustomerData, false);
     expect(component.customerData()).toEqual(expectedCustomerData);
   });
 
@@ -519,7 +524,7 @@ describe('CustomerDetailComponent', () => {
 
     component.disableCustomer();
 
-    expect(customerApiService.updateCustomer).toHaveBeenCalledWith(expectedCustomerData);
+    expect(customerApiService.updateCustomer).toHaveBeenCalledWith(expectedCustomerData, false);
     expect(component.customerData()).toEqual(expectedCustomerData);
   });
 
@@ -543,7 +548,7 @@ describe('CustomerDetailComponent', () => {
 
     component.openLockCustomerDialog();
 
-    expect(customerApiService.updateCustomer).toHaveBeenCalledWith(expectedCustomerData);
+    expect(customerApiService.updateCustomer).toHaveBeenCalledWith(expectedCustomerData, false);
     expect(component.customerData()).toEqual(expectedCustomerData);
   });
 
@@ -569,7 +574,7 @@ describe('CustomerDetailComponent', () => {
 
     component.unlockCustomer();
 
-    expect(customerApiService.updateCustomer).toHaveBeenCalledWith(expectedCustomerData);
+    expect(customerApiService.updateCustomer).toHaveBeenCalledWith(expectedCustomerData, false);
     expect(component.customerData()).toEqual(expectedCustomerData);
   });
 
@@ -724,6 +729,123 @@ describe('CustomerDetailComponent', () => {
     expect(distributionTicketApiService.deleteCurrentTicketOfCustomer).toHaveBeenCalledWith(mockCustomer.id);
     expect(component.ticketNumber()).toBeNull();
     expect(toastr.success).toHaveBeenCalledWith('Ticket wurde gelöscht!');
+  });
+
+  it('openConfirmUpdateCustomerDialog opens dialog with correct message', () => {
+    const mockMessage = 'Customer has been updated by another user. Do you want to proceed?';
+
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    fixture.componentRef.setInput('customerData', mockCustomer);
+    fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    const matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
+    matDialog.open.mockReturnValue({
+      afterClosed: vi.fn().mockReturnValue(of(true))
+    } as any);
+
+    component.openConfirmUpdateCustomerDialog(mockCustomer, mockMessage);
+
+    expect(matDialog.open).toHaveBeenCalledWith(ConfirmCustomerSaveDialog, {
+      data: {
+        message: mockMessage
+      }
+    });
+  });
+
+  it('openConfirmUpdateCustomerDialog calls API with force=true when confirmed', () => {
+    const mockMessage = 'Customer has been updated by another user. Do you want to proceed?';
+    const expectedCustomerData = {
+      ...mockCustomer,
+      validUntil: moment(mockCustomer.validUntil).add(3, 'months').endOf('day').toDate()
+    };
+    customerApiService.updateCustomer.mockReturnValue(of(expectedCustomerData));
+
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    fixture.componentRef.setInput('customerData', mockCustomer);
+    fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    const matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
+    matDialog.open.mockReturnValue({
+      afterClosed: vi.fn().mockReturnValue(of(true))
+    } as any);
+
+    component.openConfirmUpdateCustomerDialog(mockCustomer, mockMessage);
+
+    expect(matDialog.open).toHaveBeenCalledWith(ConfirmCustomerSaveDialog, {
+      data: {
+        message: mockMessage
+      }
+    });
+    expect(customerApiService.updateCustomer).toHaveBeenCalledWith(mockCustomer, true);
+  });
+
+  it('openConfirmUpdateCustomerDialog does not call API when dialog is cancelled', () => {
+    const mockMessage = 'Customer has been updated by another user. Do you want to proceed?';
+
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    fixture.componentRef.setInput('customerData', mockCustomer);
+    fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    const matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
+    matDialog.open.mockReturnValue({
+      afterClosed: vi.fn().mockReturnValue(of(false))
+    } as any);
+
+    component.openConfirmUpdateCustomerDialog(mockCustomer, mockMessage);
+
+    expect(matDialog.open).toHaveBeenCalled();
+    expect(customerApiService.updateCustomer).not.toHaveBeenCalled();
+  });
+
+  it('prolong customer with 409 conflict shows confirmation dialog', () => {
+    const expectedCustomerData = {
+      ...mockCustomer,
+      validUntil: moment(mockCustomer.validUntil).add(3, 'months').endOf('day').toDate()
+    };
+
+    customerApiService.updateCustomer.mockReturnValue(throwError(() => ({
+      status: 409,
+      error: { message: 'Conflict: customer was updated by another user' }
+    })));
+
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    fixture.componentRef.setInput('customerData', mockCustomer);
+    fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.prolongCustomer(3);
+
+    expect(customerApiService.updateCustomer).toHaveBeenCalledWith(expectedCustomerData, false);
+  });
+
+  it('prolong customer with non-409 error shows error toast', () => {
+    const expectedCustomerData = {
+      ...mockCustomer,
+      validUntil: moment(mockCustomer.validUntil).add(3, 'months').endOf('day').toDate()
+    };
+
+    customerApiService.updateCustomer.mockReturnValue(throwError(() => ({
+      status: 500,
+      error: { message: 'Internal server error' }
+    })));
+
+    const fixture = TestBed.createComponent(CustomerDetailComponent);
+    fixture.componentRef.setInput('customerData', mockCustomer);
+    fixture.componentRef.setInput('customerNotesResponse', mockCustomerNotesResponse);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.prolongCustomer(3);
+
+    expect(customerApiService.updateCustomer).toHaveBeenCalledWith(expectedCustomerData, false);
+    expect(toastr.error).toHaveBeenCalledWith('Verlängerung fehlgeschlagen!');
   });
 
   function getTextByTestId(fixture: ComponentFixture<CustomerDetailComponent>, testId: string): string {

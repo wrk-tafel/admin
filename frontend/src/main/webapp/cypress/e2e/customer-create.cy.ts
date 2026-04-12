@@ -1,12 +1,12 @@
-import * as moment from 'moment';
-import {CustomerAddPersonData, Gender} from '../support/commands';
-
 // TODO optimize structure
+
+import {CustomerAddPersonData, Gender} from "../support/commands";
+import moment = require("moment");
 
 describe('Customer Creation', () => {
 
   beforeEach(() => {
-    cy.loginDefault();
+    cy.loginE2ETest2();
     cy.visit('/#/kunden/anlegen');
   });
 
@@ -26,8 +26,8 @@ describe('Customer Creation', () => {
     cy.url().should('include', '/kunden/detail');
   });
 
-  it('create new customer not qualified but can still save', () => {
-    createCustomer(0, 10000);
+  it('create new customer not qualified and save denied', () => {
+    createCustomer(10000);
 
     cy.byTestId('validationresult-dialog')
       .should('be.visible')
@@ -40,13 +40,79 @@ describe('Customer Creation', () => {
     cy.byTestId('save-button').should('be.enabled');
     cy.byTestId('save-button').click();
 
-    cy.url().should('include', '/kunden/detail');
+    cy.get('.toast-message')
+      .should('be.visible')
+      .should('contain.text', 'Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt).');
+
+    cy.url().should('not.include', '/kunden/detail');
   });
 
-  function createCustomer(customerId?: number, income?: number) {
-    if (customerId) {
-      cy.byTestId('customerIdInput').type(customerId.toString());
-    }
+  describe('Supervisor', () => {
+
+    beforeEach(() => {
+      cy.loginDefault();
+      cy.visit('/#/kunden/anlegen');
+    });
+
+    it('supervisor should be able to create qualified customer', () => {
+      createCustomer(1000);
+
+      cy.byTestId('validationresult-dialog')
+        .should('be.visible')
+        .within(() => {
+          cy.byTestId('title').contains('Anspruch vorhanden');
+          cy.byTestId('header').should('have.class', 'dialog-header-success');
+          cy.byTestId('ok-button').click();
+        });
+
+      cy.byTestId('save-button').click();
+
+      cy.url().should('include', '/kunden/detail');
+    });
+
+    it('supervisor should be able to override warning on customer creation', () => {
+      enterCustomerData();
+      cy.byTestId('incomeInput').type('10000');
+      cy.byTestId('addperson-button-bottom').click();
+
+      cy.byTestId('personform-0').within(() => {
+        cy.byTestId('lastnameInput').type('Add');
+        cy.byTestId('firstnameInput').type('Adult 1');
+        cy.byTestId('birthDateInput').type('1990-01-01');
+        cy.byTestId('genderInput').select('Männlich');
+        cy.byTestId('countryInput').select('Österreich');
+        cy.byTestId('employerInput').type('Test Employer');
+      });
+
+      cy.byTestId('save-button').should('be.disabled');
+      cy.byTestId('validate-button').should('be.enabled');
+      cy.byTestId('validate-button').click();
+
+      cy.byTestId('validationresult-dialog')
+        .should('be.visible')
+        .within(() => {
+          cy.byTestId('title').contains('Anspruch vorhanden');
+          cy.byTestId('header').should('have.class', 'dialog-header-danger');
+          cy.byTestId('ok-button').click();
+        });
+
+      cy.byTestId('save-button').should('be.enabled');
+      cy.byTestId('save-button').click();
+
+      cy.byTestId('confirm-customer-save-dialog')
+        .should('be.visible')
+        .within(() => {
+          cy.byTestId('title').contains('Kunde speichern');
+          cy.byTestId('message').contains('Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt).');
+          cy.byTestId('header').should('have.class', 'dialog-header-warning');
+          cy.byTestId('ok-button').click();
+        });
+
+      cy.url().should('include', '/kunden/detail');
+    });
+  });
+
+  function createCustomer(income?: number) {
     enterCustomerData();
     if (income) {
       cy.byTestId('incomeInput').type(income.toString());

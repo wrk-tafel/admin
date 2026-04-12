@@ -111,7 +111,7 @@ The backend uses **Spring Modulith** architecture with 7 core feature modules, e
 - **dashboard**: Overview page with real-time updates, registered customers, and distribution state
 - **reporting**: Statistics exports (CSV), daily reports (PDF), age/country/household distributions
 - **settings**: Application configuration and mail recipient management
-- **base**: Shared utilities (countries, employees, exception handling)
+- **base**: Shared utilities (countries, employees, exception handling) - located in `database/model/` not `modules/`
 
 **Layering Pattern:**
 - Controllers: REST endpoints with `@PreAuthorize` method-level security
@@ -168,11 +168,15 @@ modules/<feature>/
 
 **Key Technologies:**
 - Angular 21 with standalone components
+- Angular Material 21 (UI component library)
+- Angular CDK 21 (component dev kit)
+- Tailwind CSS 4 (utility-first CSS framework)
 - CoreUI 5.6 (Bootstrap-based UI library)
 - RxJS for reactive programming
 - html5-qrcode for scanner functionality
 - ngx-cookie-service for session management
 - Chart.js for statistics visualization
+- FontAwesome Angular (icon library)
 - Cypress for E2E testing
 
 **Authentication:**
@@ -254,7 +258,7 @@ The application uses PostgreSQL with Flyway for schema management. Migration fil
 - Use `resource()` for data fetching with automatic loading/error states
 - Read signals in templates with `()` - e.g., `@if (loading())`
 - Application runs in **zoneless mode** - no `ngZone.run()` needed
-- See [ANGULAR_SIGNAL_PATTERNS.md](./ANGULAR_SIGNAL_PATTERNS.md) for detailed patterns and examples
+- Angular signal patterns documentation referenced in `ANGULAR_SIGNAL_PATTERNS.md` does not currently exist in the repo
 
 ## API Structure
 
@@ -292,17 +296,37 @@ Authentication: Basic HTTP auth with JWT token stored in cookie.
 
 ## Profiles and Configuration
 
-Backend profiles (in `backend/src/main/resources/application-<profile>.yml`):
-- `local`: Development with local PostgreSQL (connection settings required in application-local.yml)
+### Backend Profiles
+
+**Default profiles** (in `backend/src/main/resources/application-<profile>.yml`):
+- `local`: Development with local PostgreSQL (connection settings required in application-local.yml) and Mailpit for email (SMTP on port 1025, web UI on port 8025)
 - `e2e`: E2E testing configuration with test user credentials
 - `testdata`: Loads test data via Flyway callback for development
 
-Frontend proxy configuration: `frontend/src/main/webapp/proxy.conf.json` proxies `/api` to `http://localhost:8080` during development.
+**Local development setup** (via `docker-compose.yml`):
+```bash
+# Start infrastructure (PostgreSQL, pgAdmin, Mailpit)
+docker compose up -d
+```
+
+This starts:
+- **PostgreSQL** on port 5432
+- **pgAdmin** on port 5050
+- **Mailpit** (SMTP on port 1025, web UI on port 8025)
 
 **Important:** For local development, you need:
-1. PostgreSQL database running locally
+1. Docker infrastructure running (or PostgreSQL locally)
 2. Database connection configured in `backend/src/main/resources/application-local.yml`
 3. Backend running on port 8080 for frontend proxy to work
+
+Frontend proxy configuration: `frontend/src/main/webapp/proxy.conf.json` proxies `/api` to `http://localhost:8080` during development.
+
+## Claude Skills
+
+This repository includes custom skills for Claude Code in the `.claude/skills/` directory:
+- **fix-e2e**: Skill for debugging and fixing E2E test failures (automated workflow)
+
+You can invoke these skills using `/fix-e2e` in conversations.
 
 ## Common Tasks
 
@@ -325,7 +349,7 @@ Frontend proxy configuration: `frontend/src/main/webapp/proxy.conf.json` proxies
 
 ### Creating a New Database Migration
 1. Create file `backend/src/main/resources/db-migration/R__XXXXX_<description>.sql`
-2. Use next available number for XXXXX
+2. Use next available number for XXXXX (check current highest number in the directory)
 3. Include IF NOT EXISTS clauses for repeatability
 4. Test migration with clean database
 

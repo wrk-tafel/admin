@@ -28,6 +28,8 @@ INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (1008, NOW(), NOW(), 100, 'SETTINGS');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (1009, NOW(), NOW(), 100, 'STATISTICS');
+INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
+VALUES (1010, NOW(), NOW(), 100, 'SUPERVISOR');
 
 -- user: testuser
 -- pwd: 35bc40681124f412c5d052366edb9eb9
@@ -74,6 +76,8 @@ INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (3008, NOW(), NOW(), 300, 'SETTINGS');
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (3009, NOW(), NOW(), 300, 'STATISTICS');
+INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
+VALUES (3010, NOW(), NOW(), 300, 'SUPERVISOR');
 
 -- user: scanner1
 -- pwd: 12345
@@ -116,6 +120,17 @@ VALUES (700, NOW(), NOW(), 'checkin1',
         true, 700);
 INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
 VALUES (7001, NOW(), NOW(), 700, 'CHECKIN');
+
+-- user e2etest2 for cypress tests
+-- pwd: e2etest
+INSERT INTO employees (id, created_at, updated_at, personnel_number, firstname, lastname)
+VALUES (800, NOW(), NOW(), '0800', 'E2E', 'Test 2');
+INSERT INTO users (id, created_at, updated_at, username, password, enabled, employee_id)
+VALUES (800, NOW(), NOW(), 'e2etest2',
+        '{argon2}$argon2id$v=19$m=4096,t=3,p=1$Cnj0ayQKhOPbkomIRV5tnQ$BfU/uOr20/vg9ie0CQcWhCD00DqjPDf6UI0pRvz1/gg',
+        true, 800);
+INSERT INTO users_authorities (id, created_at, updated_at, user_id, name)
+VALUES (8001, NOW(), NOW(), 800, 'CUSTOMER');
 
 -- customers
 INSERT INTO customers (id, created_at, updated_at, customer_id, employee_id, firstname, lastname, birth_date, gender,

@@ -36,6 +36,13 @@ Cypress.Commands.add('loginDefault', () => {
   cy.createLoginRequest(username, password);
 });
 
+Cypress.Commands.add('loginE2ETest2', () => {
+  const username = 'e2etest2';
+  const password = 'e2etest';
+
+  cy.createLoginRequest(username, password);
+});
+
 Cypress.Commands.add('login', (username: string, password: string) => {
   cy.createLoginRequest(username, password);
 });
@@ -89,20 +96,20 @@ Cypress.Commands.add('closeDistribution', () => {
   });
 });
 
-Cypress.Commands.add('createCustomer', (data: CustomerData): Cypress.Chainable<Cypress.Response<CustomerData>> => {
+Cypress.Commands.add('createCustomer', (data: CustomerData, force?: boolean): Cypress.Chainable<Cypress.Response<CustomerData>> => {
   return cy.request({
     method: 'POST',
-    url: '/api/customers',
+    url: `/api/customers?force=${force ?? false}`,
     body: data
   });
 });
 
-Cypress.Commands.add('createDummyCustomer', (): Cypress.Chainable<Cypress.Response<CustomerData>> => {
+Cypress.Commands.add('createDummyCustomer', (income?: number, force?: boolean): Cypress.Chainable<Cypress.Response<CustomerData>> => {
   return cy.getAnyRandomNumber().then(randomNumber => {
     const data: CustomerData = {
       firstname: 'firstname-' + randomNumber,
       lastname: 'lastname-' + randomNumber,
-      birthDate: moment().toDate(),
+      birthDate: moment().subtract(25, 'year').toDate(),
       gender: Gender.MALE,
       telephoneNumber: '0123456789',
       email: 'firstname.lastname@test.com',
@@ -112,7 +119,7 @@ Cypress.Commands.add('createDummyCustomer', (): Cypress.Chainable<Cypress.Respon
         code: 'AT',
         name: 'Österreich'
       },
-      income: 100,
+      income: income ?? 1000,
       incomeDue: moment().add(30, 'days').toDate(),
       address: {
         street: 'street-' + randomNumber,
@@ -122,7 +129,7 @@ Cypress.Commands.add('createDummyCustomer', (): Cypress.Chainable<Cypress.Respon
       },
       validUntil: moment().add(1, 'year').toDate()
     };
-    return cy.createCustomer(data);
+    return cy.createCustomer(data, force);
   });
 });
 

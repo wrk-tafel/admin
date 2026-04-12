@@ -1,4 +1,5 @@
 import type { MockedObject } from 'vitest';
+import { throwError } from 'rxjs';
 import { TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -75,6 +76,7 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
 
     let router: MockedObject<Router>;
     let apiService: MockedObject<CustomerApiService>;
+    let toastr: MockedObject<ToastrService>;
 
     beforeEach((() => {
         TestBed.configureTestingModule({
@@ -125,6 +127,7 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
 
         router = TestBed.inject(Router) as MockedObject<Router>;
         apiService = TestBed.inject(CustomerApiService) as MockedObject<CustomerApiService>;
+        toastr = TestBed.inject(ToastrService) as MockedObject<ToastrService>;
     }));
 
     it('initial checks', () => {
@@ -167,7 +170,7 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
             firstname: testCustomerData.firstname,
             birthDate: testCustomerData.birthDate,
             gender: testCustomerData.gender
-        }));
+        }), false);
         expect(router.navigate).toHaveBeenCalledWith(['/kunden/detail', testCustomerData.id]);
     });
 
@@ -203,7 +206,7 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
             firstname: testCustomerData.firstname,
             birthDate: testCustomerData.birthDate,
             gender: testCustomerData.gender
-        }));
+        }), false);
         expect(router.navigate).toHaveBeenCalledWith(['/kunden/detail', testCustomerData.id]);
     });
 
@@ -231,6 +234,70 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
         expect(customerFormComponentMock.markAllAsTouched).toHaveBeenCalled();
         expect(apiService.updateCustomer).not.toHaveBeenCalled();
         expect(router.navigate).not.toHaveBeenCalledWith(['/kunden/detail', testCustomerData.id]);
+    });
+
+    it('existing customer save with 409 conflict shows confirmation dialog', () => {
+        const matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
+        const mockMessage = 'Customer has been updated by another user. Do you want to proceed?';
+        matDialog.open.mockReturnValue({afterClosed: () => of(true)} as any);
+
+        const customerFormComponentMock = {
+            markAllAsTouched: vi.fn().mockName("CustomerFormComponent.markAllAsTouched"),
+            valid: vi.fn().mockName("CustomerFormComponent.valid")
+        } as any;
+        customerFormComponentMock.valid.mockReturnValue(true);
+
+        apiService.updateCustomer.mockReturnValue(throwError(() => ({
+            status: 409,
+            error: { message: mockMessage }
+        })));
+
+        const fixture = TestBed.createComponent(CustomerEditComponent);
+        const component = fixture.componentInstance;
+        fixture.componentRef.setInput('customerData', testCustomerData);
+        Object.defineProperty(component, 'customerFormComponent', {
+            get: () => () => customerFormComponentMock
+        });
+        fixture.detectChanges();
+        component.customerUpdated.set(testCustomerData);
+
+        component.save();
+
+        expect(customerFormComponentMock.markAllAsTouched).toHaveBeenCalled();
+        expect(matDialog.open).toHaveBeenCalledWith(expect.anything(), {
+            data: {
+                message: mockMessage
+            }
+        });
+    });
+
+    it('existing customer save with non-409 error shows error toast', () => {
+        const matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
+        const customerFormComponentMock = {
+            markAllAsTouched: vi.fn().mockName("CustomerFormComponent.markAllAsTouched"),
+            valid: vi.fn().mockName("CustomerFormComponent.valid")
+        } as any;
+        customerFormComponentMock.valid.mockReturnValue(true);
+
+        apiService.updateCustomer.mockReturnValue(throwError(() => ({
+            status: 500,
+            error: { message: 'Internal server error' }
+        })));
+
+        const fixture = TestBed.createComponent(CustomerEditComponent);
+        const component = fixture.componentInstance;
+        fixture.componentRef.setInput('customerData', testCustomerData);
+        Object.defineProperty(component, 'customerFormComponent', {
+            get: () => () => customerFormComponentMock
+        });
+        fixture.detectChanges();
+        component.customerUpdated.set(testCustomerData);
+
+        component.save();
+
+        expect(customerFormComponentMock.markAllAsTouched).toHaveBeenCalled();
+        expect(toastr.error).toHaveBeenCalledWith('Speichern fehlgeschlagen!');
+        expect(matDialog.open).not.toHaveBeenCalled();
     });
 
 });
