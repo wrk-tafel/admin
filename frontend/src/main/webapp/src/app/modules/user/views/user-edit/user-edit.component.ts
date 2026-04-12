@@ -3,6 +3,7 @@ import {Router} from '@angular/router';
 import {UserApiService, UserData, UserPermission} from '../../../../api/user-api.service';
 import {UserFormComponent} from '../../components/user-form/user-form.component';
 import {ButtonDirective} from '@coreui/angular';
+import {ToastrService} from "ngx-toastr";
 
 @Component({
   selector: 'tafel-user-edit',
@@ -22,6 +23,7 @@ export class UserEditComponent {
   userFormComponent = viewChild<UserFormComponent>(UserFormComponent);
   private readonly userApiService = inject(UserApiService);
   private readonly router = inject(Router);
+  private readonly toastr = inject(ToastrService);
 
   constructor() {
     // Mark forms as touched when userData changes (deferred to next microtask)
@@ -47,18 +49,19 @@ export class UserEditComponent {
       formComponent.markAllAsTouched();
     }
 
+    const observer = {
+      next: (user: UserData) => {
+        this.router.navigate(['/benutzer/detail', user.id]);
+      },
+      error: (error: any) => {
+        this.toastr.error(error.error.message || 'Fehler beim Speichern des Benutzers');
+      },
+    };
+
     if (!this.userData()) {
-      this.userApiService.createUser(this.userUpdated())
-        .subscribe(user => {
-            this.router.navigate(['/benutzer/detail', user.id]);
-          }
-        );
+      this.userApiService.createUser(this.userUpdated()).subscribe(observer);
     } else {
-      this.userApiService.updateUser(this.userUpdated())
-        .subscribe(user => {
-            this.router.navigate(['/benutzer/detail', user.id]);
-          }
-        );
+      this.userApiService.updateUser(this.userUpdated()).subscribe(observer);
     }
   }
 
