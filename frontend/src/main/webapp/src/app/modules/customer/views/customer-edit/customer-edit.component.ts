@@ -1,6 +1,11 @@
-import {afterRenderEffect, Component, computed, inject, input, linkedSignal, signal, viewChild} from '@angular/core';
+import {afterRenderEffect, Component, computed, inject, input, linkedSignal, viewChild} from '@angular/core';
 import {CustomerFormComponent} from '../../components/customer-form/customer-form.component';
-import {CustomerApiService, CustomerData} from '../../../../api/customer-api.service';
+import {
+  CustomerApiService,
+  CustomerCreationResponse,
+  CustomerData,
+  CustomerUpdateResponse
+} from '../../../../api/customer-api.service';
 import {Router} from '@angular/router';
 import {ButtonDirective} from '@coreui/angular';
 import {ToastrService} from 'ngx-toastr';
@@ -25,12 +30,8 @@ export class CustomerEditComponent {
   customerUpdated = linkedSignal<CustomerData>(() => this.customerData());
   // editMode is derived from input customerData; use computed (read-only signal)
   editMode = computed(() => !!this.customerData());
-  customerValidForSave = signal(false);
   customerFormComponent = viewChild<CustomerFormComponent>(CustomerFormComponent);
-  readonly isSaveEnabled = computed(() =>
-    this.customerFormComponent() != null
-    && this.customerFormComponent().valid()
-    && (this.editMode() || this.customerValidForSave()));
+  readonly isSaveEnabled = computed(() => this.customerFormComponent() != null && this.customerFormComponent().valid());
 
   private readonly customerApiService = inject(CustomerApiService);
   private readonly router = inject(Router);
@@ -60,21 +61,15 @@ export class CustomerEditComponent {
       this.toastr.error('Bitte Eingaben überprüfen!');
     } else {
       this.customerApiService.validate(this.customerUpdated()).subscribe((result) => {
-        this.customerValidForSave.set(result.valid);
         this.dialog.open(ValidationResultDialogComponent, {
           data: {validationResult: result}
-        }).afterClosed().subscribe(() => {
-          // Allow save after user acknowledged validation result
-          // For invalid customers, enable save only if user explicitly acknowledged
-          if (!result.valid) {
-            this.customerValidForSave.set(true);
-          }
-        });
+        }).afterClosed().subscribe();
       });
     }
   }
 
-  openConfirmCustomerSaveDialog(message: string, confirmationCallback = () => {}) {
+  openConfirmCustomerSaveDialog(message: string, confirmationCallback = () => {
+  }) {
     this.dialog.open(ConfirmCustomerSaveDialog, {
       data: {
         message: message
@@ -95,7 +90,8 @@ export class CustomerEditComponent {
     } else {
       if (!this.editMode()) {
         const observer = {
-          next: (customer: CustomerData) => {
+          next: (response: CustomerCreationResponse) => {
+            const customer = response.data;
             this.router.navigate(['/kunden/detail', customer.id]);
           },
           error: (error: any) => {
@@ -103,7 +99,8 @@ export class CustomerEditComponent {
             if (error.status == 409) {
               this.openConfirmCustomerSaveDialog(errorMessage, () => {
                 this.customerApiService.createCustomer(this.customerUpdated(), true).subscribe({
-                  next: (customer: CustomerData) => {
+                  next: (response: CustomerCreationResponse) => {
+                    const customer = response.data;
                     this.toastr.success('Kunde wurde gespeichert!');
                     this.router.navigate(['/kunden/detail', customer.id]);
                   },
@@ -121,7 +118,8 @@ export class CustomerEditComponent {
         this.customerApiService.createCustomer(this.customerUpdated(), false).subscribe(observer);
       } else {
         const observer = {
-          next: (customer: CustomerData) => {
+          next: (response: CustomerUpdateResponse) => {
+            const customer = response.data;
             this.router.navigate(['/kunden/detail', customer.id]);
           },
           error: (error: any) => {
@@ -129,7 +127,8 @@ export class CustomerEditComponent {
             if (error.status == 409) {
               this.openConfirmCustomerSaveDialog(errorMessage, () => {
                 this.customerApiService.updateCustomer(this.customerUpdated(), true).subscribe({
-                  next: (customer: CustomerData) => {
+                  next: (response: CustomerUpdateResponse) => {
+                    const customer = response.data;
                     this.toastr.success('Kunde wurde gespeichert!');
                     this.router.navigate(['/kunden/detail', customer.id]);
                   },

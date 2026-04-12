@@ -2,6 +2,8 @@
 // Inside cypress/support/indes.ts in this case
 /// <reference types="cypress" />
 
+import {CustomerCreationResponse} from "./commands";
+
 declare namespace Cypress {
   interface Chainable {
     /**
@@ -57,7 +59,7 @@ declare namespace Cypress {
      * Custom command to create a new customer.
      * @example cy.createCustomer(customerData);
      */
-    createCustomer(data: CustomerData, force?: boolean): Cypress.Chainable<Cypress.Response<CustomerData>>;
+    createCustomer(data: CustomerData, force?: boolean): Cypress.Chainable<Cypress.Response<CustomerCreationResponse>>;
 
     /**
      * Create a test customer with fixed data.

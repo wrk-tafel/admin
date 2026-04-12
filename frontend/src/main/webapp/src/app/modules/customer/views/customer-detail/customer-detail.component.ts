@@ -2,7 +2,12 @@ import {Component, computed, effect, inject, input, linkedSignal, signal} from '
 import {Router} from '@angular/router';
 import moment from 'moment';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
-import {CustomerAddressData, CustomerApiService, CustomerData} from '../../../../api/customer-api.service';
+import {
+  CustomerAddressData,
+  CustomerApiService,
+  CustomerData,
+  CustomerUpdateResponse
+} from '../../../../api/customer-api.service';
 import {HttpResponse} from '@angular/common/http';
 import {
   CustomerNoteApiService,
@@ -210,8 +215,9 @@ export class CustomerDetailComponent {
     };
 
     const observer = {
-      next: (customerData: CustomerData) => {
-        this.customerData.set(customerData);
+      next: (response: CustomerUpdateResponse) => {
+        const customer = response.data;
+        this.customerData.set(customer);
       },
       error: (error: any) => {
         if (error.status == 409) {
@@ -231,8 +237,9 @@ export class CustomerDetailComponent {
       validUntil: moment().subtract(1, 'day').endOf('day').toDate()
     };
 
-    this.customerApiService.updateCustomer(updatedCustomerData, false).subscribe(customerData => {
-      this.customerData.set(customerData);
+    this.customerApiService.updateCustomer(updatedCustomerData, false).subscribe(response => {
+      const customer = response.data;
+      this.customerData.set(customer);
     });
   }
 
@@ -244,8 +251,9 @@ export class CustomerDetailComponent {
           locked: true,
           lockReason: reason
         };
-        this.customerApiService.updateCustomer(updatedCustomerData, false).subscribe(customerData => {
-          this.customerData.set(customerData);
+        this.customerApiService.updateCustomer(updatedCustomerData, false).subscribe(response => {
+          const customer = response.data;
+          this.customerData.set(customer);
         });
       }
     });
@@ -259,8 +267,9 @@ export class CustomerDetailComponent {
       lockReason: null
     };
 
-    this.customerApiService.updateCustomer(updatedCustomerData, false).subscribe(customerData => {
-      this.customerData.set(customerData);
+    this.customerApiService.updateCustomer(updatedCustomerData, false).subscribe(response => {
+      const customer = response.data;
+      this.customerData.set(customer);
     });
   }
 

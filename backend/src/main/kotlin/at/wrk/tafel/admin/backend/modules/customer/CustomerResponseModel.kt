@@ -16,6 +16,18 @@ data class CustomerListResponse(
 )
 
 @ExcludeFromTestCoverage
+data class CustomerCreationResponse(
+    val data: Customer,
+    val errorMsg: String?,
+)
+
+@ExcludeFromTestCoverage
+data class CustomerUpdateResponse(
+    val data: Customer,
+    val errorMsg: String?,
+)
+
+@ExcludeFromTestCoverage
 data class Customer(
     val id: Long? = null,
     val issuer: CustomerIssuer? = null,

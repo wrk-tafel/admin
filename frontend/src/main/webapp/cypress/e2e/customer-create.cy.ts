@@ -42,9 +42,9 @@ describe('Customer Creation', () => {
 
     cy.get('.toast-message')
       .should('be.visible')
-      .should('contain.text', 'Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt).');
+      .should('contain.text', 'Kunde wurde als ungültig gespeichert da sich das Einkommen über dem Limit befindet');
 
-    cy.url().should('not.include', '/kunden/detail');
+    cy.url().should('include', '/kunden/detail');
   });
 
   describe('Supervisor', () => {
@@ -70,7 +70,7 @@ describe('Customer Creation', () => {
       cy.url().should('include', '/kunden/detail');
     });
 
-    it('supervisor should be able to override warning on customer creation', () => {
+    it('supervisor should be able to override with warning on customer creation', () => {
       enterCustomerData();
       cy.byTestId('incomeInput').type('10000');
       cy.byTestId('addperson-button-bottom').click();
@@ -84,7 +84,7 @@ describe('Customer Creation', () => {
         cy.byTestId('employerInput').type('Test Employer');
       });
 
-      cy.byTestId('save-button').should('be.disabled');
+      cy.byTestId('save-button').should('be.enabled');
       cy.byTestId('validate-button').should('be.enabled');
       cy.byTestId('validate-button').click();
 
@@ -103,7 +103,7 @@ describe('Customer Creation', () => {
         .should('be.visible')
         .within(() => {
           cy.byTestId('title').contains('Kunde speichern');
-          cy.byTestId('message').contains('Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt).');
+          cy.byTestId('message').contains('Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt)');
           cy.byTestId('header').should('have.class', 'dialog-header-warning');
           cy.byTestId('ok-button').click();
         });
@@ -157,7 +157,7 @@ describe('Customer Creation', () => {
       excludeFromHousehold: true
     });
 
-    cy.byTestId('save-button').should('be.disabled');
+    cy.byTestId('save-button').should('be.enabled');
     cy.byTestId('validate-button').should('be.enabled');
 
     cy.byTestId('validate-button').click();

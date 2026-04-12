@@ -1,13 +1,17 @@
 import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
 import {TestBed} from '@angular/core/testing';
 import moment from 'moment';
-import {CustomerApiService, CustomerMergeRequest, Gender} from './customer-api.service';
+import {CustomerApiService, CustomerMergeRequest, Gender, CustomerData} from './customer-api.service';
 import {ReactiveFormsModule} from '@angular/forms';
 import {provideHttpClient} from '@angular/common/http';
+import {ToastrService} from "ngx-toastr";
+import type {MockedObject} from "vitest";
+import {AuthenticationService} from "../common/security/authentication.service";
 
 describe('CustomerApiService', () => {
   let httpMock: HttpTestingController;
   let apiService: CustomerApiService;
+  let toastrServiceSpy: MockedObject<ToastrService>;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -15,12 +19,19 @@ describe('CustomerApiService', () => {
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
-        CustomerApiService
+        CustomerApiService,
+        {
+          provide: ToastrService,
+          useValue: {
+            error: vi.fn().mockName("ToastrService.error"),
+          }
+        },
       ]
     });
 
     httpMock = TestBed.inject(HttpTestingController);
     apiService = TestBed.inject(CustomerApiService);
+    toastrServiceSpy = TestBed.inject(ToastrService) as MockedObject<ToastrService>;
   });
 
   it('validate customer', () => {
@@ -32,15 +43,38 @@ describe('CustomerApiService', () => {
   });
 
   it('create customer', () => {
-    apiService.createCustomer(null, false).subscribe();
+    const mockCustomer: CustomerData = {
+      lastname: 'Müller',
+      firstname: 'Max',
+      birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
+      gender: Gender.MALE,
+      address: {
+        street: 'Musterstraße',
+        houseNumber: '1',
+        postalCode: 1010,
+        city: 'Wien'
+      },
+      employer: 'Test GmbH',
+      income: 1500
+    };
+
+    const mockResponse = {
+      data: mockCustomer,
+      errorMsg: null
+    };
+
+    apiService.createCustomer(mockCustomer, false).subscribe(response => {
+      expect(response.data).toEqual(mockCustomer);
+      expect(response.errorMsg).toBeNull();
+    });
 
     const req = httpMock.expectOne({method: 'POST', url: '/customers?force=false'});
-    req.flush(null);
+    req.flush(mockResponse);
     httpMock.verify();
   });
 
   it('update customer', () => {
-    const mockCustomer = {
+    const mockCustomer: CustomerData = {
       id: 133,
       lastname: 'Mustermann',
       firstname: 'Max',
@@ -56,17 +90,26 @@ describe('CustomerApiService', () => {
       employer: 'test employer',
       income: 1000
     };
-    apiService.updateCustomer(mockCustomer, false).subscribe();
+
+    const mockResponse = {
+      data: mockCustomer,
+      errorMsg: null
+    };
+
+    apiService.updateCustomer(mockCustomer, false).subscribe(response => {
+      expect(response.data).toEqual(mockCustomer);
+      expect(response.errorMsg).toBeNull();
+    });
 
     const req = httpMock.expectOne({method: 'POST', url: '/customers/133?force=false'});
-    req.flush(null);
+    req.flush(mockResponse);
     httpMock.verify();
 
     expect(req.request.body).toEqual(mockCustomer);
   });
 
   it('update customer forced', () => {
-    const mockCustomer = {
+    const mockCustomer: CustomerData = {
       id: 133,
       lastname: 'Mustermann',
       firstname: 'Max',
@@ -82,10 +125,19 @@ describe('CustomerApiService', () => {
       employer: 'test employer',
       income: 1000
     };
-    apiService.updateCustomer(mockCustomer, true).subscribe();
+
+    const mockResponse = {
+      data: mockCustomer,
+      errorMsg: null
+    };
+
+    apiService.updateCustomer(mockCustomer, true).subscribe(response => {
+      expect(response.data).toEqual(mockCustomer);
+      expect(response.errorMsg).toBeNull();
+    });
 
     const req = httpMock.expectOne({method: 'POST', url: '/customers/133?force=true'});
-    req.flush(null);
+    req.flush(mockResponse);
     httpMock.verify();
 
     expect(req.request.body).toEqual(mockCustomer);

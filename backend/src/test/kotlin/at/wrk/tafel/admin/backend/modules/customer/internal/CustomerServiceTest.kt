@@ -9,7 +9,9 @@ import at.wrk.tafel.admin.backend.modules.base.country.testCountry1
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.customer.Customer
 import at.wrk.tafel.admin.backend.modules.customer.CustomerAdditionalPerson
+import at.wrk.tafel.admin.backend.modules.customer.CustomerCreationResponse
 import at.wrk.tafel.admin.backend.modules.customer.CustomerPdfType
+import at.wrk.tafel.admin.backend.modules.customer.CustomerUpdateResponse
 import at.wrk.tafel.admin.backend.modules.customer.internal.converter.CustomerConverter
 import at.wrk.tafel.admin.backend.modules.customer.internal.income.IncomeValidatorPerson
 import at.wrk.tafel.admin.backend.modules.customer.internal.income.IncomeValidatorResult
@@ -195,7 +197,7 @@ class CustomerServiceTest {
 
         val result = service.createCustomer(testCustomer, force = false, isSupervisor = false)
 
-        assertThat(result).isEqualTo(testCustomer)
+        assertThat(result).isEqualTo(CustomerCreationResponse(data = testCustomer, errorMsg = null))
 
         verify(exactly = 1) { customerRepository.save(any()) }
         verify(exactly = 1) { customerConverter.mapEntityToCustomer(testCustomerEntity) }
@@ -221,7 +223,7 @@ class CustomerServiceTest {
 
         val result = service.createCustomer(testCustomer, true, true)
 
-        assertThat(result).isEqualTo(testCustomer)
+        assertThat(result).isEqualTo(CustomerCreationResponse(data = testCustomer, errorMsg = null))
         verify(exactly = 1) { customerRepository.save(testCustomerEntity) }
         verify(exactly = 1) { customerConverter.mapCustomerToEntity(testCustomer) }
     }
@@ -246,7 +248,7 @@ class CustomerServiceTest {
             service.createCustomer(testCustomer, false, true)
         }
 
-        assertThat(exception.message).isEqualTo("Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt).")
+        assertThat(exception.message).isEqualTo("Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt)")
         assertThat(exception.status).isEqualTo(org.springframework.http.HttpStatus.CONFLICT)
         verify(exactly = 0) { customerRepository.save(any()) }
     }
@@ -275,25 +277,24 @@ class CustomerServiceTest {
         val force = false
         val result = service.updateCustomer(testCustomerUpdate.id!!, testCustomerUpdate, force, false)
 
-        assertThat(result).isEqualTo(testCustomerUpdate)
+        assertThat(result).isEqualTo(CustomerUpdateResponse(data = testCustomerUpdate, errorMsg = null))
         verify(exactly = 1) { customerRepository.save(testCustomerEntity) }
         verify(exactly = 1) { customerConverter.mapCustomerToEntity(testCustomerUpdate, testCustomerEntity) }
     }
 
     @Test
-    fun `update customer is invalid and throws exception when not supervisor`() {
+    fun `update customer is invalid and should set validUntil to yesterday when not supervisor`() {
         val customerId = 123L
-
-        val testCustomer = mockk<Customer>(relaxed = true)
-        every { testCustomer.id } returns customerId
 
         val testCustomerUpdate = mockk<Customer>(relaxed = true)
         every { testCustomerUpdate.id } returns customerId
+        every { testCustomerUpdate.birthDate } returns LocalDate.now().minusYears(30)
+        every { testCustomerUpdate.income } returns BigDecimal("2000")
 
         val testCustomerEntity = CustomerEntity()
         every { customerRepository.getReferenceByCustomerId(customerId) } returns testCustomerEntity
         every { customerConverter.mapCustomerToEntity(any(), any()) } returns testCustomerEntity
-        every { customerConverter.mapEntityToCustomer(testCustomerEntity) } returns testCustomer
+        every { customerConverter.mapEntityToCustomer(testCustomerEntity) } returns testCustomerUpdate
         every { customerRepository.save(any()) } returns testCustomerEntity
 
         every { incomeValidatorService.validate(any()) } returns IncomeValidatorResult(
@@ -304,15 +305,10 @@ class CustomerServiceTest {
             amountExceededLimit = BigDecimal("4")
         )
 
-        val force = false
-        val exception = assertThrows<TafelValidationException> {
-            service.updateCustomer(testCustomer.id!!, testCustomerUpdate, force, false)
-        }
+        val result = service.updateCustomer(testCustomerUpdate.id!!, testCustomerUpdate, force = false, isSupervisor = false)
 
-        assertThat(exception.message).isEqualTo("Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt).")
-        assertThat(exception.status).isEqualTo(org.springframework.http.HttpStatus.BAD_REQUEST)
-
-        verify(exactly = 0) { customerRepository.save(any()) }
+        assertThat(result).isEqualTo(CustomerUpdateResponse(data = testCustomerUpdate, errorMsg = "Kunde wurde als ungültig gespeichert da sich das Einkommen über dem Limit befindet"))
+        verify(exactly = 1) { customerRepository.save(testCustomerEntity) }
         verify(exactly = 1) { customerConverter.mapCustomerToEntity(any(), any()) }
     }
 
@@ -342,7 +338,7 @@ class CustomerServiceTest {
 
         val result = service.updateCustomer(testCustomer.id!!, testCustomerUpdate, true, true)
 
-        assertThat(result).isEqualTo(testCustomerUpdate)
+        assertThat(result).isEqualTo(CustomerUpdateResponse(data = testCustomerUpdate, errorMsg = null))
         verify(exactly = 1) { customerRepository.save(testCustomerEntity) }
         verify(exactly = 1) { customerConverter.mapCustomerToEntity(any(), any()) }
     }
@@ -412,14 +408,13 @@ class CustomerServiceTest {
     }
 
     @Test
-    fun `update customer with force=true when non-supervisor tries to bypass validation still fails`() {
+    fun `update customer with force=true when non-supervisor should still set validUntil to yesterday`() {
         val customerId = 123L
-
-        val testCustomer = mockk<Customer>(relaxed = true)
-        every { testCustomer.id } returns customerId
 
         val testCustomerUpdate = mockk<Customer>(relaxed = true)
         every { testCustomerUpdate.id } returns customerId
+        every { testCustomerUpdate.birthDate } returns LocalDate.now().minusYears(30)
+        every { testCustomerUpdate.income } returns BigDecimal("2000")
 
         val testCustomerEntity = CustomerEntity().apply {
             validUntil = LocalDate.now()
@@ -437,14 +432,10 @@ class CustomerServiceTest {
             amountExceededLimit = BigDecimal("4")
         )
 
-        val exception = assertThrows<TafelValidationException> {
-            service.updateCustomer(testCustomer.id!!, testCustomerUpdate, true, false)
-        }
+        val result = service.updateCustomer(testCustomerUpdate.id!!, testCustomerUpdate, force = true, isSupervisor = false)
 
-        assertThat(exception.message).isEqualTo("Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt).")
-        assertThat(exception.status).isEqualTo(org.springframework.http.HttpStatus.BAD_REQUEST)
-
-        verify(exactly = 0) { customerRepository.save(any()) }
+        assertThat(result).isEqualTo(CustomerUpdateResponse(data = testCustomerUpdate, errorMsg = "Kunde wurde als ungültig gespeichert da sich das Einkommen über dem Limit befindet"))
+        verify(exactly = 1) { customerRepository.save(testCustomerEntity) }
         verify(exactly = 1) { customerConverter.mapCustomerToEntity(any(), any()) }
     }
 
