@@ -99,20 +99,21 @@ export class CustomerEditComponent {
             this.router.navigate(['/kunden/detail', customer.id]);
           },
           error: (error: any) => {
+            const errorMessage = error.error.message;
             if (error.status == 409) {
-              this.openConfirmCustomerSaveDialog(error.error.message, () => {
+              this.openConfirmCustomerSaveDialog(errorMessage, () => {
                 this.customerApiService.createCustomer(this.customerUpdated(), true).subscribe({
                   next: (customer: CustomerData) => {
                     this.toastr.success('Kunde wurde gespeichert!');
                     this.router.navigate(['/kunden/detail', customer.id]);
                   },
                   error: () => {
-                    this.toastr.error('Speichern fehlgeschlagen!');
+                    this.toastr.error(errorMessage, 'Speichern fehlgeschlagen!');
                   },
                 });
               });
             } else {
-              this.toastr.error('Speichern fehlgeschlagen!');
+              this.toastr.error(errorMessage, 'Speichern fehlgeschlagen!');
             }
           },
         };
@@ -124,20 +125,21 @@ export class CustomerEditComponent {
             this.router.navigate(['/kunden/detail', customer.id]);
           },
           error: (error: any) => {
+            const errorMessage = error.error.message;
             if (error.status == 409) {
-              this.openConfirmCustomerSaveDialog(error.error.message, () => {
+              this.openConfirmCustomerSaveDialog(errorMessage, () => {
                 this.customerApiService.updateCustomer(this.customerUpdated(), true).subscribe({
                   next: (customer: CustomerData) => {
                     this.toastr.success('Kunde wurde gespeichert!');
                     this.router.navigate(['/kunden/detail', customer.id]);
                   },
                   error: () => {
-                    this.toastr.error('Speichern fehlgeschlagen!');
+                    this.toastr.error(errorMessage, 'Speichern fehlgeschlagen!');
                   },
                 });
               });
             } else {
-              this.toastr.error('Speichern fehlgeschlagen!');
+              this.toastr.error(errorMessage, 'Speichern fehlgeschlagen!');
             }
           },
         };
