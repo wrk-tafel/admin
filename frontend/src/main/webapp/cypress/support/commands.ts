@@ -96,7 +96,7 @@ Cypress.Commands.add('closeDistribution', () => {
   });
 });
 
-Cypress.Commands.add('createCustomer', (data: CustomerData, force?: boolean): Cypress.Chainable<Cypress.Response<CustomerData>> => {
+Cypress.Commands.add('createCustomer', (data: CustomerData, force?: boolean): Cypress.Chainable<Cypress.Response<CustomerCreationResponse>> => {
   return cy.request({
     method: 'POST',
     url: `/api/customers?force=${force ?? false}`,
@@ -104,7 +104,7 @@ Cypress.Commands.add('createCustomer', (data: CustomerData, force?: boolean): Cy
   });
 });
 
-Cypress.Commands.add('createDummyCustomer', (income?: number, force?: boolean): Cypress.Chainable<Cypress.Response<CustomerData>> => {
+Cypress.Commands.add('createDummyCustomer', (income?: number, force?: boolean): Cypress.Chainable<Cypress.Response<CustomerCreationResponse>> => {
   return cy.getAnyRandomNumber().then(randomNumber => {
     const data: CustomerData = {
       firstname: 'firstname-' + randomNumber,
@@ -184,6 +184,11 @@ export interface CountryData {
   id: number;
   code: string;
   name: string;
+}
+
+export interface CustomerCreationResponse {
+  data: CustomerData;
+  errorMsg: string;
 }
 
 export interface CustomerData {

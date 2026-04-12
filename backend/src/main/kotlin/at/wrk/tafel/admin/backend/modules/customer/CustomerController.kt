@@ -38,7 +38,7 @@ class CustomerController(
     fun createCustomer(
         @RequestParam force: Boolean = false,
         @RequestBody customer: Customer
-    ): Customer {
+    ): CustomerCreationResponse {
         val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
         val isSupervisor = authenticatedUser.hasRole("SUPERVISOR")
 
@@ -57,7 +57,7 @@ class CustomerController(
         @PathVariable("customerId") customerId: Long,
         @RequestParam force: Boolean = false,
         @RequestBody customer: Customer,
-    ): Customer {
+    ): CustomerUpdateResponse {
         val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
         val isSupervisor = authenticatedUser.hasRole("SUPERVISOR")
 

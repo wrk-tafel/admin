@@ -5,7 +5,7 @@ import {By} from '@angular/platform-browser';
 import moment from 'moment';
 import {of, throwError} from 'rxjs';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
-import {CustomerApiService, CustomerData, Gender} from '../../../../api/customer-api.service';
+import {CustomerApiService, CustomerData, Gender, CustomerUpdateResponse} from '../../../../api/customer-api.service';
 import {CustomerDetailComponent} from './customer-detail.component';
 import {CommonModule, Location, registerLocaleData} from '@angular/common';
 import {DEFAULT_CURRENCY_CODE, LOCALE_ID, signal} from '@angular/core';
@@ -134,11 +134,19 @@ describe('CustomerDetailComponent', () => {
     pageSize: 10
   };
 
+  const mockUpdateSuccessResponse: CustomerUpdateResponse = {
+    data: mockCustomer,
+    errorMsg: null
+  };
+
   beforeEach((() => {
     const customerApiServiceSpy = {
       generatePdf: vi.fn().mockName("CustomerApiService.generatePdf"),
       deleteCustomer: vi.fn().mockReturnValue(of(null)).mockName("CustomerApiService.deleteCustomer"),
-      updateCustomer: vi.fn().mockReturnValue(of(null)).mockName("CustomerApiService.updateCustomer")
+      updateCustomer: vi.fn().mockImplementation((customerData: CustomerData) => of({
+        data: customerData,
+        errorMsg: null
+      }))
     };
     const customerNoteApiServiceSpy = {
       createNewNote: vi.fn().mockName("CustomerNoteApiService.createNewNote"),
@@ -501,7 +509,11 @@ describe('CustomerDetailComponent', () => {
       ...mockCustomer,
       validUntil: moment(mockCustomer.validUntil).add(3, 'months').endOf('day').toDate()
     };
-    customerApiService.updateCustomer.mockReturnValue(of(expectedCustomerData));
+    const mockUpdateSuccessResponse: CustomerUpdateResponse = {
+      data: expectedCustomerData,
+      errorMsg: null
+    };
+    customerApiService.updateCustomer.mockReturnValue(of(mockUpdateSuccessResponse));
 
     component.prolongCustomer(3);
 
@@ -520,7 +532,11 @@ describe('CustomerDetailComponent', () => {
       ...mockCustomer,
       validUntil: moment().subtract(1, 'day').endOf('day').toDate()
     };
-    customerApiService.updateCustomer.mockReturnValue(of(expectedCustomerData));
+    const mockUpdateSuccessResponse: CustomerUpdateResponse = {
+      data: expectedCustomerData,
+      errorMsg: null
+    };
+    customerApiService.updateCustomer.mockReturnValue(of(mockUpdateSuccessResponse));
 
     component.disableCustomer();
 
@@ -544,7 +560,11 @@ describe('CustomerDetailComponent', () => {
       locked: true,
       lockReason: lockReasonText
     };
-    customerApiService.updateCustomer.mockReturnValue(of(expectedCustomerData));
+    const mockUpdateSuccessResponse: CustomerUpdateResponse = {
+      data: expectedCustomerData,
+      errorMsg: null
+    };
+    customerApiService.updateCustomer.mockReturnValue(of(mockUpdateSuccessResponse));
 
     component.openLockCustomerDialog();
 
@@ -570,7 +590,11 @@ describe('CustomerDetailComponent', () => {
       lockedBy: null,
       lockReason: null
     };
-    customerApiService.updateCustomer.mockReturnValue(of(expectedCustomerData));
+    const mockUpdateSuccessResponse: CustomerUpdateResponse = {
+      data: expectedCustomerData,
+      errorMsg: null
+    };
+    customerApiService.updateCustomer.mockReturnValue(of(mockUpdateSuccessResponse));
 
     component.unlockCustomer();
 
@@ -760,7 +784,7 @@ describe('CustomerDetailComponent', () => {
       ...mockCustomer,
       validUntil: moment(mockCustomer.validUntil).add(3, 'months').endOf('day').toDate()
     };
-    customerApiService.updateCustomer.mockReturnValue(of(expectedCustomerData));
+    customerApiService.updateCustomer.mockReturnValue(of(mockUpdateSuccessResponse));
 
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     fixture.componentRef.setInput('customerData', mockCustomer);
@@ -811,7 +835,7 @@ describe('CustomerDetailComponent', () => {
 
     customerApiService.updateCustomer.mockReturnValue(throwError(() => ({
       status: 409,
-      error: { message: 'Conflict: customer was updated by another user' }
+      error: { message: 'Conflict: customer was updated by another user', body: { data: mockCustomer, errorMsg: 'Conflict: customer was updated by another user' } }
     })));
 
     const fixture = TestBed.createComponent(CustomerDetailComponent);

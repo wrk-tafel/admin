@@ -197,10 +197,11 @@ class CustomerControllerTest {
                 false,
                 isSupervisor
             )
-        } returns testCustomer
+        } returns CustomerUpdateResponse(data = testCustomer, errorMsg = null)
 
-        controller.updateCustomer(testCustomer.id!!, false, testCustomer)
+        val response = controller.updateCustomer(testCustomer.id!!, false, testCustomer)
 
+        assertThat(response.data).isEqualTo(testCustomer)
         verify { customerService.updateCustomer(testCustomer.id!!, testCustomer, false, isSupervisor) }
     }
 
@@ -214,10 +215,11 @@ class CustomerControllerTest {
                 true,
                 isSupervisor
             )
-        } returns testCustomer
+        } returns CustomerUpdateResponse(data = testCustomer, errorMsg = null)
 
-        controller.updateCustomer(testCustomer.id!!, true, testCustomer)
+        val response = controller.updateCustomer(testCustomer.id!!, true, testCustomer)
 
+        assertThat(response.data).isEqualTo(testCustomer)
         verify { customerService.updateCustomer(testCustomer.id!!, testCustomer, true, isSupervisor) }
     }
 

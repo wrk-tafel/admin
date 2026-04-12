@@ -10,7 +10,9 @@ import at.wrk.tafel.admin.backend.database.model.customer.CustomerEntity.Specs.C
 import at.wrk.tafel.admin.backend.database.model.customer.CustomerRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
 import at.wrk.tafel.admin.backend.modules.customer.Customer
+import at.wrk.tafel.admin.backend.modules.customer.CustomerCreationResponse
 import at.wrk.tafel.admin.backend.modules.customer.CustomerPdfType
+import at.wrk.tafel.admin.backend.modules.customer.CustomerUpdateResponse
 import at.wrk.tafel.admin.backend.modules.customer.internal.converter.CustomerConverter
 import at.wrk.tafel.admin.backend.modules.customer.internal.income.IncomeValidatorPerson
 import at.wrk.tafel.admin.backend.modules.customer.internal.income.IncomeValidatorResult
@@ -22,6 +24,7 @@ import org.springframework.data.jpa.domain.Specification.where
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDate
 
 @Service
 class CustomerService(
@@ -44,33 +47,47 @@ class CustomerService(
         return customerRepository.findByCustomerId(customerId)?.let { customerConverter.mapEntityToCustomer(it) }
     }
 
-    fun createCustomer(customer: Customer, force: Boolean, isSupervisor: Boolean): Customer {
+    fun createCustomer(customer: Customer, force: Boolean, isSupervisor: Boolean): CustomerCreationResponse {
         val entity = customerConverter.mapCustomerToEntity(customer)
 
         val valid = incomeValidatorService.validate(mapToValidationPersons(customer)).valid
         if (!valid && isSupervisor) {
             if (!force) {
                 throw TafelValidationException(
-                    message = "Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt).",
+                    message = "Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt)",
                     status = HttpStatus.CONFLICT
                 )
             } else {
                 val savedEntity = customerRepository.save(entity)
-                return customerConverter.mapEntityToCustomer(savedEntity)
+                return CustomerCreationResponse(
+                    data = customerConverter.mapEntityToCustomer(savedEntity),
+                    errorMsg = null
+                )
             }
         } else if (!valid) {
-            throw TafelValidationException(
-                message = "Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt).",
-                status = HttpStatus.BAD_REQUEST
+            // When a customer is created with an invalid income - force set him invalid
+            entity.validUntil = LocalDate.now().minusDays(1)
+            val savedEntity = customerRepository.save(entity)
+            return CustomerCreationResponse(
+                data = customerConverter.mapEntityToCustomer(savedEntity),
+                errorMsg = "Kunde wurde als ungültig gespeichert da sich das Einkommen über dem Limit befindet"
             )
         }
 
         val savedEntity = customerRepository.save(entity)
-        return customerConverter.mapEntityToCustomer(savedEntity)
+        return CustomerCreationResponse(
+            data = customerConverter.mapEntityToCustomer(savedEntity),
+            errorMsg = null
+        )
     }
 
     @Transactional
-    fun updateCustomer(customerId: Long, customer: Customer, force: Boolean, isSupervisor: Boolean): Customer {
+    fun updateCustomer(
+        customerId: Long,
+        customer: Customer,
+        force: Boolean,
+        isSupervisor: Boolean
+    ): CustomerUpdateResponse {
         val existingEntity = customerRepository.getReferenceByCustomerId(customerId)
         val mappedEntity = customerConverter.mapCustomerToEntity(customer, existingEntity)
 
@@ -78,22 +95,31 @@ class CustomerService(
         if (!valid && isSupervisor) {
             if (!force) {
                 throw TafelValidationException(
-                    message = "Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt).",
+                    message = "Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt)",
                     status = HttpStatus.CONFLICT
                 )
             } else {
                 val savedEntity = customerRepository.save(mappedEntity)
-                return customerConverter.mapEntityToCustomer(savedEntity)
+                return CustomerUpdateResponse(
+                    data = customerConverter.mapEntityToCustomer(savedEntity),
+                    errorMsg = null
+                )
             }
         } else if (!valid) {
-            throw TafelValidationException(
-                message = "Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt).",
-                status = HttpStatus.BAD_REQUEST
+            // When a customer is created with an invalid income - force set him invalid
+            mappedEntity.validUntil = LocalDate.now().minusDays(1)
+            val savedEntity = customerRepository.save(mappedEntity)
+            return CustomerUpdateResponse(
+                data = customerConverter.mapEntityToCustomer(savedEntity),
+                errorMsg = "Kunde wurde als ungültig gespeichert da sich das Einkommen über dem Limit befindet"
             )
         }
 
         val savedEntity = customerRepository.save(mappedEntity)
-        return customerConverter.mapEntityToCustomer(savedEntity)
+        return CustomerUpdateResponse(
+            data = customerConverter.mapEntityToCustomer(savedEntity),
+            errorMsg = null
+        )
     }
 
     @Transactional

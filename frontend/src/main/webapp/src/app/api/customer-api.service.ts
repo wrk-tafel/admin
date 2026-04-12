@@ -2,23 +2,36 @@ import {HttpClient, HttpParams, HttpResponse} from '@angular/common/http';
 import {inject, Injectable} from '@angular/core';
 import {Observable} from 'rxjs';
 import {CountryData} from './country-api.service';
+import {tap} from "rxjs/operators";
+import {ToastrService} from "ngx-toastr";
 
 @Injectable({
   providedIn: 'root'
 })
 export class CustomerApiService {
   private readonly http = inject(HttpClient);
+  private readonly toastr = inject(ToastrService);
 
   validate(data: CustomerData): Observable<ValidateCustomerResponse> {
     return this.http.post<ValidateCustomerResponse>('/customers/validate', data);
   }
 
-  createCustomer(data: CustomerData, force: boolean): Observable<CustomerData> {
-    return this.http.post<CustomerData>('/customers', data, {params: {force}});
+  createCustomer(data: CustomerData, force: boolean): Observable<CustomerCreationResponse> {
+    return this.http.post<CustomerCreationResponse>('/customers', data, {params: {force}}).pipe(tap(response => {
+      const errorMsg = response.errorMsg;
+      if (errorMsg) {
+        this.toastr.error(errorMsg);
+      }
+    }));
   }
 
-  updateCustomer(data: CustomerData, force: boolean): Observable<CustomerData> {
-    return this.http.post<CustomerData>(`/customers/${data.id}`, data, {params: {force}});
+  updateCustomer(data: CustomerData, force: boolean): Observable<CustomerUpdateResponse> {
+    return this.http.post<CustomerUpdateResponse>(`/customers/${data.id}`, data, {params: {force}}).pipe(tap(response => {
+      const errorMsg = response.errorMsg;
+      if (errorMsg) {
+        this.toastr.error(errorMsg);
+      }
+    }));
   }
 
   deleteCustomer(customerId: number): Observable<void> {
@@ -93,6 +106,16 @@ export interface CustomerSearchResult {
   currentPage: number;
   totalPages: number;
   pageSize: number;
+}
+
+export interface CustomerCreationResponse {
+  data: CustomerData;
+  errorMsg: string;
+}
+
+export interface CustomerUpdateResponse {
+  data: CustomerData;
+  errorMsg: string;
 }
 
 export interface CustomerData {

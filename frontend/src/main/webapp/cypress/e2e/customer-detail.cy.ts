@@ -32,7 +32,7 @@ describe('Customer Detail', () => {
 
   it('delete customer', () => {
     cy.createDummyCustomer().then((response) => {
-      cy.visit('/#/kunden/detail/' + response.body.id);
+      cy.visit('/#/kunden/detail/' + response.body.data.id);
 
       openEditMenu();
       cy.byTestId('deleteCustomerButton').click();
@@ -195,7 +195,7 @@ describe('Customer Detail', () => {
 
     it('prolong customer with invalid income triggers confirm dialog when supervisor', () => {
       cy.createDummyCustomer(10000, true).then((response) => {
-        const customerId = response.body.id;
+        const customerId = response.body.data.id;
         cy.visit('/#/kunden/detail/' + customerId);
 
         openEditMenu();
@@ -207,7 +207,7 @@ describe('Customer Detail', () => {
           .should('be.visible')
           .within(() => {
             cy.byTestId('title').contains('Kunde speichern');
-            cy.byTestId('message').contains('Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt).');
+            cy.byTestId('message').contains('Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt)');
             cy.byTestId('header').should('have.class', 'dialog-header-warning');
             cy.byTestId('ok-button').click();
           });
@@ -216,14 +216,14 @@ describe('Customer Detail', () => {
 
     it('should display confirm dialog with correct message and allow cancellation', () => {
       cy.createDummyCustomer().then((response) => {
-        const customerId = response.body.id;
+        const customerId = response.body.data.id;
 
         // Manually set up a scenario that would trigger the dialog
         cy.intercept('/api/customers/*', (req) => {
           if (req.method === 'POST') {
             req.reply({
               statusCode: 409,
-              body: {message: 'Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt).'}
+              body: {message: 'Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt)'}
             });
           }
         });
@@ -248,7 +248,7 @@ describe('Customer Detail', () => {
 
     it('should confirm update and persist changes', () => {
       cy.createDummyCustomer().then((response) => {
-        const customerId = response.body.id;
+        const customerId = response.body.data.id;
 
         cy.visit('/#/kunden/detail/' + customerId);
         cy.byTestId('editCustomerButton').click();
@@ -263,7 +263,7 @@ describe('Customer Detail', () => {
           .should('be.visible')
           .within(() => {
             cy.byTestId('title').contains('Kunde speichern');
-            cy.byTestId('message').contains('Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt).');
+            cy.byTestId('message').contains('Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt)');
             cy.byTestId('header').should('have.class', 'dialog-header-warning');
             cy.byTestId('ok-button').click();
           });
@@ -281,7 +281,7 @@ describe('Customer Detail', () => {
 
     it('should cancel update and stay on edit page', () => {
       cy.createDummyCustomer().then((response) => {
-        const customerId = response.body.id;
+        const customerId = response.body.data.id;
 
         cy.visit('/#/kunden/detail/' + customerId);
         cy.byTestId('editCustomerButton').click();
