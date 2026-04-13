@@ -6,6 +6,11 @@ import {UrlHelperService} from '../../../../common/util/url-helper.service';
 import {DistributionTicketScreenApiService} from '../../../../api/distribution-ticket-screen-api.service';
 import {of, throwError} from 'rxjs';
 import {ToastrService} from 'ngx-toastr';
+import {MatCardModule} from '@angular/material/card';
+import {MatButtonModule} from '@angular/material/button';
+import {MatFormFieldModule} from '@angular/material/form-field';
+import {MatInputModule} from '@angular/material/input';
+import {TicketScreenComponent} from '../../components/ticket-screen/ticket-screen.component';
 
 describe('TicketScreenControlComponent', () => {
   let distributionTicketScreenApiService: MockedObject<DistributionTicketScreenApiService>;
@@ -14,7 +19,7 @@ describe('TicketScreenControlComponent', () => {
 
   beforeEach((() => {
     TestBed.configureTestingModule({
-      imports: [CommonModule],
+      imports: [CommonModule, MatCardModule, MatButtonModule, MatFormFieldModule, MatInputModule, TicketScreenComponent],
       providers: [
         {
           provide: DistributionTicketScreenApiService,

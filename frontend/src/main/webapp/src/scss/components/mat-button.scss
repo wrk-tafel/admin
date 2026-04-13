@@ -3,12 +3,28 @@
   box-shadow: none !important;
 }
 
-.button-success {
-  background-color: var(--cui-success, #2eb85c) !important;
-  color: white !important;
-}
+/* Support legacy "btn-success" / "btn-danger" utility classes on Material buttons
+   and ensure the background color applies in normal, hover, focus and active states. */
+.mat-mdc-button:not([disabled]):not(.mat-mdc-button-disabled),
+.mat-mdc-raised-button:not([disabled]):not(.mat-mdc-button-disabled),
+.mat-mdc-unelevated-button:not([disabled]):not(.mat-mdc-button-disabled) {
+  &.button-success {
+    background-color: var(--cui-success, #2eb85c) !important;
+    color: white !important;
 
-.button-danger {
-  background-color: var(--cui-danger, #e55353) !important;
-  color: white !important;
+    &:hover, &:focus, &:active {
+      background-color: var(--cui-success, #2eb85c) !important;
+      color: white !important;
+    }
+  }
+
+  &.button-danger {
+    background-color: var(--cui-danger, #e55353) !important;
+    color: white !important;
+
+    &:hover, &:focus, &:active {
+      background-color: var(--cui-danger, #e55353) !important;
+      color: white !important;
+    }
+  }
 }

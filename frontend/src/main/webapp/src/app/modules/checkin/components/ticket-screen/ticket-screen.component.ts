@@ -1,17 +1,10 @@
 import {Component, computed, inject, Signal} from '@angular/core';
-import {BgColorDirective, ColComponent, ContainerComponent, RowComponent} from '@coreui/angular';
 import {SseService} from '../../../../common/sse/sse.service';
 import {toSignal} from '@angular/core/rxjs-interop';
 
 @Component({
     selector: 'tafel-ticket-screen',
-    templateUrl: 'ticket-screen.component.html',
-    imports: [
-        ContainerComponent,
-        RowComponent,
-        ColComponent,
-        BgColorDirective
-    ]
+    templateUrl: 'ticket-screen.component.html'
 })
 export class TicketScreenComponent {
   private readonly sseService = inject(SseService);

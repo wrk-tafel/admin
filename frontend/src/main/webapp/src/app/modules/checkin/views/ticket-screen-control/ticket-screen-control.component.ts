@@ -2,27 +2,30 @@ import {Component, inject, signal} from '@angular/core';
 import {ReactiveFormsModule} from '@angular/forms';
 import {TicketScreenComponent} from '../../components/ticket-screen/ticket-screen.component';
 import {UrlHelperService} from '../../../../common/util/url-helper.service';
-import {ButtonDirective, CardBodyComponent, CardComponent, ColComponent, RowComponent} from '@coreui/angular';
 import {NgClass} from '@angular/common';
 import {DistributionTicketScreenApiService} from '../../../../api/distribution-ticket-screen-api.service';
 import {ToastrService} from 'ngx-toastr';
 import {finalize} from 'rxjs';
 import {form, FormField, required} from '@angular/forms/signals';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
+import {MatCardModule} from '@angular/material/card';
+import {MatButtonModule} from '@angular/material/button';
+import {MatFormFieldModule} from '@angular/material/form-field';
+import {MatInputModule} from '@angular/material/input';
+import {MatDivider} from "@angular/material/list";
 
 @Component({
   selector: 'tafel-ticket-screen-control',
   templateUrl: 'ticket-screen-control.component.html',
   imports: [
-    CardComponent,
-    CardBodyComponent,
-    RowComponent,
-    ColComponent,
+    MatCardModule,
+    MatButtonModule,
+    MatFormFieldModule,
+    MatInputModule,
     ReactiveFormsModule,
-    NgClass,
     TicketScreenComponent,
-    ButtonDirective,
-    FormField
+    FormField,
+    MatDivider
   ]
 })
 export class TicketScreenControlComponent {
