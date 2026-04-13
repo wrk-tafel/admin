@@ -1,0 +1,23 @@
+{
+  "name": "cypress-e2e-server",
+  "type": "cypress",
+  "description": "MCP server config for running Cypress E2E tests for frontend/src/main/webapp",
+  "project_root": "frontend/src/main/webapp",
+  "commands": {
+    "run_headless": "npm run cy:run-ci",
+    "open_ui": "npm run cy:open-local"
+  },
+  "env": {
+    "BACKEND_URL": "http://localhost:8080",
+    "CYPRESS_baseUrl": "http://localhost:4200"
+  },
+  "ci_integration": {
+    "workflow_files": [".github/workflows/main_push.yml"],
+    "setup_steps": [
+      "cd frontend/src/main/webapp",
+      "npm ci",
+      "# ensure backend is running on http://localhost:8080 with e2e profile",
+      "npm run cy:run-ci"
+    ]
+  }
+}
