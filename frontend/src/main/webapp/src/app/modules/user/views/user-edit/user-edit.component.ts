@@ -3,7 +3,7 @@ import {Router} from '@angular/router';
 import {UserApiService, UserData, UserPermission} from '../../../../api/user-api.service';
 import {UserFormComponent} from '../../components/user-form/user-form.component';
 import {ButtonDirective} from '@coreui/angular';
-import {ToastrService} from "ngx-toastr";
+import {ToastrService} from 'ngx-toastr';
 
 @Component({
   selector: 'tafel-user-edit',

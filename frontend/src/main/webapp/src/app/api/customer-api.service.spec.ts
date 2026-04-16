@@ -4,9 +4,9 @@ import moment from 'moment';
 import {CustomerApiService, CustomerMergeRequest, Gender, CustomerData} from './customer-api.service';
 import {ReactiveFormsModule} from '@angular/forms';
 import {provideHttpClient} from '@angular/common/http';
-import {ToastrService} from "ngx-toastr";
-import type {MockedObject} from "vitest";
-import {AuthenticationService} from "../common/security/authentication.service";
+import {ToastrService} from 'ngx-toastr';
+import type {MockedObject} from 'vitest';
+import {AuthenticationService} from '../common/security/authentication.service';
 
 describe('CustomerApiService', () => {
   let httpMock: HttpTestingController;

@@ -15,19 +15,6 @@ import {CustomerNoteApiService, CustomerNoteItem} from '../../../../api/customer
 import {GlobalStateService} from '../../../../common/state/global-state.service';
 import {Router} from '@angular/router';
 import {DistributionApiService} from '../../../../api/distribution-api.service';
-import {
-  BadgeComponent,
-  ButtonDirective,
-  CardBodyComponent,
-  CardComponent,
-  CardFooterComponent,
-  CardHeaderComponent,
-  ColComponent,
-  Colors,
-  FormSelectDirective,
-  RowComponent,
-} from '@coreui/angular';
-import {MatTabsModule} from '@angular/material/tabs';
 import {DistributionTicketApiService, TicketNumberResponse} from '../../../../api/distribution-ticket-api.service';
 import {ToastrService} from 'ngx-toastr';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
@@ -37,29 +24,37 @@ import {SseService} from '../../../../common/sse/sse.service';
 import {ScannerApiService, ScannerList} from '../../../../api/scanner-api.service';
 import {GenderLabelPipe} from '../../../../common/pipes/gender-label.pipe';
 import {BirthdateAgePipe} from '../../../../common/pipes/birthdate-age.pipe';
+import {MatTabsModule} from '@angular/material/tabs';
+import {MatCardModule} from '@angular/material/card';
+import {MatButtonModule} from '@angular/material/button';
+import {MatInputModule} from '@angular/material/input';
+import {MatFormFieldModule} from '@angular/material/form-field';
+import {MatDividerModule} from '@angular/material/divider';
+import {MatOption, MatSelect} from '@angular/material/select';
+import {FaIconComponent} from '@fortawesome/angular-fontawesome';
+import {faTrashCan} from '@fortawesome/free-solid-svg-icons';
 
 @Component({
     selector: 'tafel-checkin',
     templateUrl: 'checkin.component.html',
   imports: [
-    RowComponent,
-    ColComponent,
-    CardComponent,
-    CardBodyComponent,
     FormsModule,
-    BadgeComponent,
-    DatePipe,
-    CardHeaderComponent,
-    NgClass,
-    CardFooterComponent,
-    ButtonDirective,
-    FormSelectDirective,
     CommonModule,
-    TafelAutofocusDirective,
     ReactiveFormsModule,
-    MatTabsModule,
+    DatePipe,
+    NgClass,
+    TafelAutofocusDirective,
     GenderLabelPipe,
-    BirthdateAgePipe
+    BirthdateAgePipe,
+    MatTabsModule,
+    MatCardModule,
+    MatButtonModule,
+    MatInputModule,
+    MatFormFieldModule,
+    MatDividerModule,
+    MatSelect,
+    MatOption,
+    FaIconComponent,
   ]
 })
 export class CheckinComponent {
@@ -90,7 +85,7 @@ export class CheckinComponent {
   ticketNumber: number;
   ticketNumberEdit = false;
 
-  customerStateColor = computed<Colors>(() => {
+  customerStateColor = computed<string>(() => {
     switch (this.customerState()) {
       case CustomerState.LOCKED:
       case CustomerState.INVALID:
@@ -179,7 +174,7 @@ export class CheckinComponent {
     }
   }
 
-  get scannerReadyStateColor(): Colors {
+  get scannerReadyStateColor(): string {
     return this.scannerReadyState ? 'success' : 'danger';
   }
 
@@ -251,10 +246,10 @@ export class CheckinComponent {
 
       if (customer.locked) {
         this.customerState.set(CustomerState.LOCKED);
-        setTimeout(() => this.cancelButtonRef()?.nativeElement.focus());
+        setTimeout(() => this.cancelButtonRef()?.nativeElement?.focus?.());
       } else if (validUntil.isBefore(now)) {
         this.customerState.set(CustomerState.INVALID);
-        setTimeout(() => this.cancelButtonRef()?.nativeElement.focus());
+        setTimeout(() => this.cancelButtonRef()?.nativeElement?.focus?.());
       } else {
         const warnLimit = now.add(this.VALID_UNTIL_WARNLIMIT_WEEKS, 'weeks');
         if (!validUntil.isAfter(warnLimit)) {
@@ -263,7 +258,7 @@ export class CheckinComponent {
           this.customerState.set(CustomerState.VALID);
         }
 
-        setTimeout(() => this.ticketNumberInputRef()?.nativeElement.focus());
+        setTimeout(() => this.ticketNumberInputRef()?.nativeElement?.focus?.());
       }
     } else {
       this.customerState.set(undefined);
@@ -276,7 +271,7 @@ export class CheckinComponent {
     this.customerId = undefined;
     this.ticketNumber = undefined;
     this.ticketNumberEdit = undefined;
-    this.customerIdInputRef()?.nativeElement.focus();
+    this.customerIdInputRef()?.nativeElement?.focus?.();
   }
 
   assignCustomer() {
@@ -286,7 +281,7 @@ export class CheckinComponent {
         next: (response) => this.cancel()
       };
       this.distributionApiService.assignCustomer(this.customer().id, this.ticketNumber).subscribe(observer);
-      this.customerIdInputRef()?.nativeElement.focus();
+      this.customerIdInputRef()?.nativeElement?.focus?.();
     }
   }
 
@@ -296,11 +291,13 @@ export class CheckinComponent {
         this.ticketNumber = undefined;
         this.ticketNumberEdit = undefined;
         this.toastr.success('Ticket-Nummer gelöscht!');
-        this.ticketNumberInputRef()?.nativeElement.focus();
+        this.ticketNumberInputRef()?.nativeElement?.focus?.();
       }
     };
     this.distributionTicketApiService.deleteCurrentTicketOfCustomer(this.customer().id).subscribe(observer);
   }
+
+  protected readonly faTrashCan = faTrashCan;
 }
 
 export enum CustomerState {
