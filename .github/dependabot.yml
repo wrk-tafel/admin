@@ -10,17 +10,28 @@ updates:
     schedule:
       interval: "daily"
     open-pull-requests-limit: 50
+    automerge: true
+    automerge_type: "pull_request"
+    allow:
+      - dependency-type: "all"
+    ignore:
+      - dependency-name: "amazoncorretto"
     groups:
       testing-tools:
         patterns:
           - "io.mockk:mockk-jvm"
           - "com.tngtech.archunit:archunit-junit5"
           - "org.testcontainers:*"
+
   - package-ecosystem: "npm" # See documentation for possible values
     directory: "/frontend/src/main/webapp" # Location of package manifests
     schedule:
       interval: "daily"
     open-pull-requests-limit: 50
+    automerge: true
+    automerge_type: "pull_request"
+    allow:
+      - dependency-type: "all"
     ignore:
       - dependency-name: "eslint"
         versions: [ "10.x" ]
@@ -59,16 +70,20 @@ updates:
           - "@vitest/*"
           - "jsdom"
           - "wait-on"
+
   # Maintain dependencies for GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/.github/workflows"
     schedule:
       interval: "daily"
     open-pull-requests-limit: 50
+    automerge: true
+    automerge_type: "pull_request"
     groups:
       github-actions:
         patterns:
           - "*"
+
   - package-ecosystem: "docker"
     directory: "/_build"
     schedule:
@@ -76,3 +91,7 @@ updates:
     ignore:
       - dependency-name: "amazoncorretto"
     open-pull-requests-limit: 50
+    automerge: true
+    automerge_type: "pull_request"
+    allow:
+      - dependency-type: "all"
