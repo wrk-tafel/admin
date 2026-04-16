@@ -12,7 +12,7 @@ import {MatCardModule} from '@angular/material/card';
 import {MatButtonModule} from '@angular/material/button';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
-import {MatDivider} from "@angular/material/list";
+import {MatDivider} from '@angular/material/list';
 
 @Component({
   selector: 'tafel-ticket-screen-control',

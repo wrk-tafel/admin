@@ -9,7 +9,6 @@ import moment from 'moment';
 import {CustomerNoteApiService, CustomerNotesResponse} from '../../../../api/customer-note-api.service';
 import {Router} from '@angular/router';
 import {DistributionApiService, DistributionItem} from '../../../../api/distribution-api.service';
-import {BadgeModule, CardModule, ColComponent, ModalModule, RowComponent} from '@coreui/angular';
 import {FormsModule} from '@angular/forms';
 import {signal} from '@angular/core';
 import {DistributionTicketApiService} from '../../../../api/distribution-ticket-api.service';
@@ -17,6 +16,18 @@ import {GlobalStateService} from '../../../../common/state/global-state.service'
 import {ToastrService} from 'ngx-toastr';
 import {ScannerApiService, ScannerList} from '../../../../api/scanner-api.service';
 import {SseService} from '../../../../common/sse/sse.service';
+
+import {MatTabsModule} from '@angular/material/tabs';
+import {MatCardModule} from '@angular/material/card';
+import {MatButtonModule} from '@angular/material/button';
+import {MatInputModule} from '@angular/material/input';
+import {MatFormFieldModule} from '@angular/material/form-field';
+import {MatDividerModule} from '@angular/material/divider';
+import {MatSelectModule} from '@angular/material/select';
+import {FontAwesomeModule} from '@fortawesome/angular-fontawesome';
+import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
+import {GenderLabelPipe} from '../../../../common/pipes/gender-label.pipe';
+import {BirthdateAgePipe} from '../../../../common/pipes/birthdate-age.pipe';
 
 describe('CheckinComponent', () => {
     let customerApiService: MockedObject<CustomerApiService>;
@@ -69,14 +80,20 @@ describe('CheckinComponent', () => {
 
         TestBed.configureTestingModule({
             imports: [
-                CommonModule,
+                        CommonModule,
                 FormsModule,
-                ModalModule,
-                RowComponent,
-                ColComponent,
-                CardModule,
-                BadgeModule,
-                NoopAnimationsModule
+                NoopAnimationsModule,
+                MatTabsModule,
+                MatCardModule,
+                MatButtonModule,
+                MatFormFieldModule,
+                MatInputModule,
+                MatDividerModule,
+                MatSelectModule,
+                FontAwesomeModule,
+                TafelAutofocusDirective,
+                GenderLabelPipe,
+                BirthdateAgePipe
             ],
             providers: [
                 {

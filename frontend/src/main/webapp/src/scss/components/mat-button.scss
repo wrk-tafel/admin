@@ -18,6 +18,16 @@
     }
   }
 
+  &.button-warning {
+    background-color: var(--cui-warning, #e55353) !important;
+    color: white !important;
+
+    &:hover, &:focus, &:active {
+      background-color: var(--cui-warning, #e55353) !important;
+      color: white !important;
+    }
+  }
+
   &.button-danger {
     background-color: var(--cui-danger, #e55353) !important;
     color: white !important;
