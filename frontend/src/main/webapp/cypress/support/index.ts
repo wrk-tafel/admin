@@ -2,8 +2,6 @@
 // Inside cypress/support/indes.ts in this case
 /// <reference types="cypress" />
 
-import {CustomerCreationResponse} from "./commands";
-
 declare namespace Cypress {
   interface Chainable {
     /**

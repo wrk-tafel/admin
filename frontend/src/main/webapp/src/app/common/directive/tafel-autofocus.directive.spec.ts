@@ -16,9 +16,15 @@ describe('TafelAutofocusDirective', () => {
     it('should focus after view loaded', () => {
         const { nativeElement, directive } = setup();
 
-        directive.ngAfterViewInit();
-
-        expect(nativeElement.focus).toHaveBeenCalled();
+        // directive schedules focus with setTimeout(…, 0) — use fake timers to advance
+        vi.useFakeTimers();
+        try {
+            directive.ngAfterViewInit();
+            vi.runAllTimers();
+            expect(nativeElement.focus).toHaveBeenCalled();
+        } finally {
+            vi.useRealTimers();
+        }
     });
 
 });
