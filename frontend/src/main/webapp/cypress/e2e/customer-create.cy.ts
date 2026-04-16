@@ -1,7 +1,7 @@
 // TODO optimize structure
 
-import {CustomerAddPersonData, Gender} from "../support/commands";
-import moment = require("moment");
+import {CustomerAddPersonData, Gender} from '../support/commands';
+import moment = require('moment');
 
 describe('Customer Creation', () => {
 

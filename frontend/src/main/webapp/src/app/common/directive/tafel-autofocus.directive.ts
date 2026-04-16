@@ -10,7 +10,8 @@ export class TafelAutofocusDirective implements AfterViewInit {
   }
 
   ngAfterViewInit() {
-    this.host.nativeElement.focus();
+    // schedule focus asynchronously to avoid ExpressionChangedAfterItHasBeenCheckedError in tests
+    setTimeout(() => this.host.nativeElement.focus(), 0);
   }
 
 }

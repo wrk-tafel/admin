@@ -2,8 +2,8 @@ import {HttpClient, HttpParams, HttpResponse} from '@angular/common/http';
 import {inject, Injectable} from '@angular/core';
 import {Observable} from 'rxjs';
 import {CountryData} from './country-api.service';
-import {tap} from "rxjs/operators";
-import {ToastrService} from "ngx-toastr";
+import {tap} from 'rxjs/operators';
+import {ToastrService} from 'ngx-toastr';
 
 @Injectable({
   providedIn: 'root'
