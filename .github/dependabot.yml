@@ -12,6 +12,8 @@ updates:
     open-pull-requests-limit: 50
     automerge: true
     automerge_type: "pull_request"
+    automerge-ignore-configurations:
+      - update-type: "version-update:version:major"
     allow:
       - dependency-type: "all"
     ignore:
@@ -30,6 +32,8 @@ updates:
     open-pull-requests-limit: 50
     automerge: true
     automerge_type: "pull_request"
+    automerge-ignore-configurations:
+      - update-type: "version-update:version:major"
     allow:
       - dependency-type: "all"
     ignore:
@@ -79,6 +83,8 @@ updates:
     open-pull-requests-limit: 50
     automerge: true
     automerge_type: "pull_request"
+    automerge-ignore-configurations:
+      - update-type: "version-update:version:major"
     groups:
       github-actions:
         patterns:
@@ -93,5 +99,7 @@ updates:
     open-pull-requests-limit: 50
     automerge: true
     automerge_type: "pull_request"
+    automerge-ignore-configurations:
+      - update-type: "version-update:version:major"
     allow:
       - dependency-type: "all"
