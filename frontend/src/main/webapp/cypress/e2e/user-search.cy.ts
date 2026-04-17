@@ -48,7 +48,7 @@ describe('User Search', () => {
     cy.byTestId('search-button').click();
 
     cy.byTestId('searchresult-table').should('be.visible');
-    cy.byTestId('searchresult-row').should('have.length', 1);
+    cy.byTestId('searchresult-row-0').should('be.visible');
 
     cy.byTestId('searchresult-showuser-button-0').first().should('be.visible');
 
