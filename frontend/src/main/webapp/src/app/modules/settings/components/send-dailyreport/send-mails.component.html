@@ -9,7 +9,7 @@
       </mat-card-title>
     </mat-card-header>
     <mat-card-content>
-      <mat-form-field appearance="outline" class="w-full mt-4" subscriptSizing="dynamic">
+      <mat-form-field class="w-full mt-4">
         <mat-label>Ausgabe vom:</mat-label>
         <mat-select [value]="selectedDistribution()" (selectionChange)="selectedDistribution.set($event.value)">
           @for (distribution of distributions(); track distribution) {

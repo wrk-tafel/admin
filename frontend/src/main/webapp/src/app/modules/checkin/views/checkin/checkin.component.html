@@ -5,7 +5,7 @@
   <mat-card-content>
     <div class="grid grid-cols-1 md:grid-cols-8 gap-4 items-center">
       <label class="md:col-span-1">Scanner</label>
-      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="md:col-span-2">
+      <mat-form-field class="md:col-span-2">
         <mat-label>Scanner auswählen</mat-label>
         <mat-select testid="scannerIdInput" [(ngModel)]="selectedScannerId">
           <mat-option [value]="undefined">Nicht aktiv</mat-option>
@@ -27,7 +27,7 @@
 
     <div class="grid grid-cols-1 md:grid-cols-8 gap-4 items-center">
       <label class="md:col-span-1">Kundennummer</label>
-      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="md:col-span-2">
+      <mat-form-field class="md:col-span-2">
         <mat-label>Kundennummer</mat-label>
         <input #customerIdInput matInput testid="customerIdInput" type="number" name="customerIdInput"
                [(ngModel)]="customerId" tafelAutofocus
@@ -165,7 +165,7 @@
               <div class="text-red-600">*</div>
             </div>
             <div class="flex items-center gap-3">
-              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-48">
+              <mat-form-field class="w-48">
                 <mat-label>Ticket-Nummer</mat-label>
                 <input #ticketNumberInput matInput testid="ticketNumberInput" type="number"
                        name="ticketNumberInput" [(ngModel)]="ticketNumber"

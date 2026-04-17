@@ -27,6 +27,7 @@ import {apiPathInterceptor} from './common/http/apipath-interceptor.service';
 import {AuthenticationService} from './common/security/authentication.service';
 import {MAT_DIALOG_DEFAULT_OPTIONS, MatDialogConfig} from '@angular/material/dialog';
 import {provideAnimationsAsync} from '@angular/platform-browser/animations/async';
+import {MAT_FORM_FIELD_DEFAULT_OPTIONS} from "@angular/material/form-field";
 
 const DEFAULT_DIALOG_CONFIG: MatDialogConfig = {
   position: {top: '16px'}
@@ -89,6 +90,14 @@ export const appConfig: ApplicationConfig = {
     {
       provide: MAT_DIALOG_DEFAULT_OPTIONS,
       useValue: DEFAULT_DIALOG_CONFIG
+    },
+    {
+      provide: MAT_FORM_FIELD_DEFAULT_OPTIONS,
+      useValue: {
+        appearance: 'outline',
+        floatLabel: 'always',
+        subscriptSizing: 'fixed',
+      }
     }
   ]
 };
