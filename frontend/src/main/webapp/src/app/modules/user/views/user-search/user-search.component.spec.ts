@@ -4,7 +4,15 @@ import {ReactiveFormsModule} from '@angular/forms';
 import {Router} from '@angular/router';
 import {EMPTY, of} from 'rxjs';
 import {UserSearchComponent} from './user-search.component';
-import {CardModule, ColComponent, RowComponent} from '@coreui/angular';
+import {MatCardModule} from '@angular/material/card';
+import {MatFormFieldModule} from '@angular/material/form-field';
+import {MatInputModule} from '@angular/material/input';
+import {MatCheckboxModule} from '@angular/material/checkbox';
+import {MatButtonModule} from '@angular/material/button';
+import {MatIconModule} from '@angular/material/icon';
+import {MatTableModule} from '@angular/material/table';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { CommonModule } from '@angular/common';
 import {By} from '@angular/platform-browser';
 import {UserApiService, UserSearchResult} from '../../../../api/user-api.service';
 import { ToastrService } from 'ngx-toastr';
@@ -36,10 +44,17 @@ describe('UserSearchComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [
+        MatCardModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatCheckboxModule,
+        MatButtonModule,
+        MatIconModule,
+        MatTableModule,
+        NoopAnimationsModule,
         ReactiveFormsModule,
-        CardModule,
-        RowComponent,
-        ColComponent
+        // CommonModule required for *ngIf, *ngFor etc.
+        CommonModule
       ],
       providers: [
         {
@@ -118,9 +133,15 @@ describe('UserSearchComponent', () => {
     expect(apiService.searchUser).toHaveBeenCalledWith('username', true, 'lastname', 'firstname', undefined);
 
     fixture.detectChanges();
-    expect(fixture.debugElement.query(By.css('[testid="searchresult-id-0"]')).nativeElement.textContent).toBe('0');
-    expect(fixture.debugElement.query(By.css('[testid="searchresult-name-0"]')).nativeElement.textContent).toBe('last first');
-    expect(fixture.debugElement.query(By.css('[testid="searchresult-enabled-0"]')).nativeElement.textContent).toBe('Ja');
+    // mat-table renders rows; query by attribute selector on nativeElement
+    const root = fixture.nativeElement as HTMLElement;
+    const idEl = root.querySelector('[testid="searchresult-id-0"]');
+    const nameEl = root.querySelector('[testid="searchresult-name-0"]');
+    const enabledEl = root.querySelector('[testid="searchresult-enabled-0"]');
+
+    expect(idEl?.textContent?.trim()).toBe('0');
+    expect(nameEl?.textContent?.trim()).toBe('last first');
+    expect(enabledEl?.textContent?.trim()).toBe('Ja');
   });
 
   it('search with firstname only', () => {
