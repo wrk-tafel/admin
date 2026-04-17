@@ -8,7 +8,7 @@
       <div class="mb-3">
         <div class="flex flex-col sm:flex-row sm:items-center gap-4">
           <div class="sm:w-1/3">
-            <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
+            <mat-form-field class="w-full">
               <mat-label>Personalnummer</mat-label>
               <input matInput testid="personnelNumberText" type="text" [formField]="searchForm.personnelNumber" (keydown.enter)="searchForPersonnelNumber()" tafelAutofocus>
             </mat-form-field>
@@ -24,7 +24,7 @@
       <div class="mb-3">
         <div class="flex flex-col sm:flex-row sm:items-center gap-4">
           <div class="sm:w-1/3">
-            <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
+            <mat-form-field class="w-full">
               <mat-label>Benutzername</mat-label>
               <input matInput testid="usernameText" type="text" [formField]="searchForm.username">
             </mat-form-field>
@@ -39,13 +39,13 @@
       <div class="mb-3">
         <div class="flex flex-col sm:flex-row gap-4">
           <div class="sm:w-1/3">
-            <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
+            <mat-form-field class="w-full">
               <mat-label>Nachname</mat-label>
               <input matInput testid="lastnameText" type="text" [formField]="searchForm.lastname">
             </mat-form-field>
           </div>
           <div class="sm:w-1/3">
-            <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
+            <mat-form-field class="w-full">
               <mat-label>Vorname</mat-label>
               <input matInput testid="firstnameText" type="text" [formField]="searchForm.firstname">
             </mat-form-field>
