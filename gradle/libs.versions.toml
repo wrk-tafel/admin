@@ -17,7 +17,7 @@ logback-jackson = "0.1.5"
 # Test dependency versions
 archunit = "1.4.2"
 mockk = "1.14.9"
-testcontainers = "2.0.4"
+testcontainers = "2.0.5"
 apache-pdfbox = "3.0.7"
 image-comparison = "4.4.0"
 
