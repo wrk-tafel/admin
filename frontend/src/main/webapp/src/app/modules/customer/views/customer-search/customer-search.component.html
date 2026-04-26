@@ -103,7 +103,7 @@
                               }
                             </td>
                             <td [attr.testid]="'searchresult-birthDate-' + i">{{!customer.birthDate ? '-' : customer.birthDate | date : 'dd.MM.yyyy'}}</td>
-                            <td [attr.testid]="'searchresult-address-' + i">{{customer.address | formatAddress}}</td>
+                            <td [attr.testid]="'searchresult-address-' + i">{{customer.address | formatCustomerAddress}}</td>
                             <td [attr.testid]="'searchresult-issuedAt-' + i">{{!customer.issuedAt ? '-' : customer.issuedAt | date : 'dd.MM.yyyy'}}</td>
                             <td [attr.testid]="'searchresult-validUntil-' + i">{{!customer.validUntil ? '-' : customer.validUntil | date : 'dd.MM.yyyy'}}</td>
                             <td>
@@ -135,7 +135,7 @@
                     <h5 class="mb-4">Suchergebnis ({{searchResult().totalCount}} Kunden)</h5>
                     <tafel-pagination align="center" size="sm" [paginationData]="paginationData()"
                                       (pageChanged)="searchForDetails($event)"></tafel-pagination>
-                    <div class="d-flex flex-column gap-3 mb-3">
+                    <div class="d-flex flex-col gap-3 mb-3">
                         @for (customer of searchResult().items; track customer.id; let i = $index) {
                           <c-card>
                             <c-card-header class="fw-bold">{{customer.id}} - {{customer.lastname}} {{customer.firstname}}</c-card-header>
@@ -146,7 +146,7 @@
                                 </c-row>
                                 <c-row>
                                     <c-col class="fw-bold">Addresse:</c-col>
-                                    <c-col>{{customer.address | formatAddress}}</c-col>
+                                    <c-col>{{customer.address | formatCustomerAddress}}</c-col>
                                 </c-row>
                               <c-row>
                                 <c-col class="fw-bold">Gültig bis:</c-col>

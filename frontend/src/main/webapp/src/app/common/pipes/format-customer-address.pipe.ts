@@ -2,10 +2,10 @@ import {Pipe, PipeTransform} from '@angular/core';
 import {CustomerAddressData} from '../../api/customer-api.service';
 
 @Pipe({
-  name: 'formatAddress',
+  name: 'formatCustomerAddress',
   standalone: true
 })
-export class FormatAddressPipe implements PipeTransform {
+export class FormatCustomerAddressPipe implements PipeTransform {
   transform(address: CustomerAddressData): string {
     if (!address) {
       return '-';

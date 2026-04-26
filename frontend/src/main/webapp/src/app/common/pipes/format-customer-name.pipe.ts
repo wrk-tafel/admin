@@ -2,10 +2,10 @@ import {Pipe, PipeTransform} from '@angular/core';
 import {CustomerData} from '../../api/customer-api.service';
 
 @Pipe({
-  name: 'formattedCustomerName',
+  name: 'formatCustomerName',
   standalone: true
 })
-export class FormattedCustomerNamePipe implements PipeTransform {
+export class FormatCustomerNamePipe implements PipeTransform {
   transform(customer?: CustomerData): string {
     if (!customer?.lastname && !customer?.firstname) {
       return '-';

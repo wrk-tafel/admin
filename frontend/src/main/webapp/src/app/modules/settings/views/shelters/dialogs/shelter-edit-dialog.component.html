@@ -1,0 +1,92 @@
+<tafel-dialog title="Notschlafstelle bearbeiten" testid="shelter-edit-dialog">
+  <div tafel-dialog-content>
+    <form [formGroup]="form" class="grid grid-cols-1">
+      <mat-form-field>
+        <mat-label>Name</mat-label>
+        <input matInput formControlName="name"/>
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Straße</mat-label>
+        <input matInput formControlName="addressStreet"/>
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Hausnummer</mat-label>
+        <input matInput formControlName="addressHouseNumber"/>
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Stiege</mat-label>
+        <input matInput formControlName="addressStairway"/>
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Tür</mat-label>
+        <input matInput formControlName="addressDoor"/>
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>PLZ</mat-label>
+        <input matInput type="number" formControlName="addressPostalCode"/>
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Ort</mat-label>
+        <input matInput formControlName="addressCity"/>
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Anzahl Personen</mat-label>
+        <input matInput type="number" formControlName="personsCount"/>
+      </mat-form-field>
+
+      <mat-checkbox formControlName="enabled" class="mb-4">Aktiv</mat-checkbox>
+
+      <mat-form-field>
+        <mat-label>Hinweis</mat-label>
+        <textarea matInput formControlName="note" placeholder="Notiz für diese Notschlafstelle eingeben ..."
+                  rows="5"></textarea>
+      </mat-form-field>
+
+      <!-- Contacts -->
+      <div class="mt-4">
+        <h4 class="mb-2">Kontakte</h4>
+        <div formArrayName="contacts">
+          @for (contactCtrl of contacts.controls; track i; let i = $index) {
+            @if(i > 0) {
+              <mat-divider class="my-4"></mat-divider>
+            }
+            <div [formGroupName]="i">
+              <div class="flex gap-2">
+                <mat-form-field>
+                  <mat-label>Vorname</mat-label>
+                  <input matInput formControlName="firstname" />
+                </mat-form-field>
+                <mat-form-field>
+                  <mat-label>Nachname</mat-label>
+                  <input matInput formControlName="lastname" />
+                </mat-form-field>
+              </div>
+              <div class="flex gap-2 mt-2">
+                <mat-form-field class="flex-1">
+                  <mat-label>Telefon</mat-label>
+                  <input matInput formControlName="phone" />
+                </mat-form-field>
+                <button matButton type="button" (click)="removeContact(i)">Entfernen</button>
+              </div>
+            </div>
+          }
+        </div>
+
+        <button matButton="filled" type="button" (click)="addContact()">Kontakt hinzufügen</button>
+      </div>
+
+    </form>
+  </div>
+
+  <div tafel-dialog-actions>
+    <button matButton="filled" (click)="save()">Speichern</button>
+    <button matButton (click)="cancel()">Abbrechen</button>
+  </div>
+</tafel-dialog>

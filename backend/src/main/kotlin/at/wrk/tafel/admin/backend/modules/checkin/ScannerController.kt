@@ -33,7 +33,7 @@ class ScannerController(
     }
 
     @PostMapping("/scanners/{scannerId}/results")
-    fun sendResult(@PathVariable("scannerId") scannerId: Int, @RequestParam("scanResult") scanResult: Long) {
+    fun sendResult(@PathVariable scannerId: Int, @RequestParam("scanResult") scanResult: Long) {
         sseOutboxService.saveOutboxEntry(
             notificationName = SCANNER_RESULT_NOTIFICATION_NAME,
             payload = ScanResult(
@@ -44,7 +44,7 @@ class ScannerController(
     }
 
     @GetMapping("/sse/scanners/{scannerId}/results")
-    fun listenForResults(@PathVariable("scannerId") scannerId: Int): SseEmitter {
+    fun listenForResults(@PathVariable scannerId: Int): SseEmitter {
         val sseEmitter = SseUtil.createSseEmitter()
 
         val acceptFilter = { result: ScanResult? ->

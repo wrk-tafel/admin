@@ -29,7 +29,7 @@
     <c-row>
       <c-col>
         @for (category of foodCategoriesItems(); track category?.id) {
-          <c-row class="d-flex flex-column">
+          <c-row class="d-flex flex-col">
             <c-col class="text-center">{{ category.name }}</c-col>
             <c-col class="mb-3">
               <tafel-counter-input [testId]="'category-' + category.id"
@@ -45,7 +45,7 @@
     <c-row>
       <c-col>
         @for (category of foodCategoriesReturn(); track category?.id) {
-          <c-row class="d-flex flex-column">
+          <c-row class="d-flex flex-col">
             <c-col class="text-center">{{ category.name }}</c-col>
             <c-col class="mb-3">
               <tafel-counter-input [testId]="'category-' + category.id"

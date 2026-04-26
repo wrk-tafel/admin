@@ -1,11 +1,11 @@
-import {FormattedCustomerNamePipe} from './formatted-customer-name.pipe';
+import {FormatCustomerNamePipe} from './format-customer-name.pipe';
 import {CustomerData} from '../../api/customer-api.service';
 
-describe('FormattedCustomerNamePipe', () => {
-  let pipe: FormattedCustomerNamePipe;
+describe('FormatCustomerNamePipe', () => {
+  let pipe: FormatCustomerNamePipe;
 
   beforeEach(() => {
-    pipe = new FormattedCustomerNamePipe();
+    pipe = new FormatCustomerNamePipe();
   });
 
   it('should create an instance', () => {

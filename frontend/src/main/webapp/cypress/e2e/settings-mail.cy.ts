@@ -2,7 +2,7 @@ describe('Dashboard', () => {
 
   beforeEach(() => {
     cy.loginDefault();
-    cy.visit('/#/einstellungen');
+    cy.visit('/#/einstellungen/email');
   });
 
   it('change email recipients', () => {
@@ -22,10 +22,13 @@ describe('Dashboard', () => {
 
     // Save - verify POST success via intercept
     cy.intercept('POST', '/api/settings/mail-recipients').as('saveRecipients');
+    // Also intercept subsequent GET so we can wait for reload to finish
+    cy.intercept('GET', '/api/settings/mail-recipients').as('loadRecipients');
     cy.byTestId('save-button').click();
     cy.wait('@saveRecipients').its('response.statusCode').should('eq', 200);
 
     cy.reload();
+    cy.wait('@loadRecipients');
     cy.byTestId('mailtype-tab-STATISTICS').click();
     cy.byTestId('email-input-STATISTICS-TO-0').should('have.value', 'test-to@email.com');
     cy.byTestId('email-input-STATISTICS-CC-0').should('have.value', 'test-cc@email.com');

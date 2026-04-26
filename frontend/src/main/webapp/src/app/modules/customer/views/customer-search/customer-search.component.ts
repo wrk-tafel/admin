@@ -24,7 +24,7 @@ import {CommonModule} from '@angular/common';
 import {faPencil, faSearch, faUser} from '@fortawesome/free-solid-svg-icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
-import {FormatAddressPipe} from '../../../../common/pipes/format-address.pipe';
+import {FormatCustomerAddressPipe} from '../../../../common/pipes/format-customer-address.pipe';
 
 @Component({
   selector: 'tafel-customer-search',
@@ -46,7 +46,7 @@ import {FormatAddressPipe} from '../../../../common/pipes/format-address.pipe';
     CommonModule,
     FaIconComponent,
     TafelAutofocusDirective,
-    FormatAddressPipe
+    FormatCustomerAddressPipe
   ]
 })
 export class CustomerSearchComponent {

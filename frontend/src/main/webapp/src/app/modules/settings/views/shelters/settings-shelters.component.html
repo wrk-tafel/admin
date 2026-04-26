@@ -1,0 +1,65 @@
+<mat-card class="w-full">
+  <mat-card-header class="mb-2">
+    <mat-card-title>
+      <div class="flex items-center gap-2">
+        <h5 class="mb-0 mt-1">Notschlafstellen</h5>
+        <button matButton="filled" class="button-success" testid="addShelterButton" (click)="addShelter()">
+          <fa-icon [icon]="faPlus"></fa-icon>
+        </button>
+      </div>
+    </mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <table mat-table [dataSource]="shelters() ? shelters().shelters : []" testid="shelters-table">
+      <ng-container matColumnDef="active">
+        <th mat-header-cell *matHeaderCellDef>Aktiv</th>
+        <td mat-cell *matCellDef="let shelter; let i = index">
+          @if (shelter.enabled) {
+            <button matButton="filled" class="button-success ms-2" testid="enableShelterButton"
+                    (click)="toggleShelterVisibility(shelter, false)">
+              <fa-icon [icon]="faEye"></fa-icon>
+            </button>
+          } @else {
+            <button matButton="filled" class="button-danger ms-2" testid="disableShelterButton"
+                    (click)="toggleShelterVisibility(shelter, true)">
+              <fa-icon [icon]="faEyeSlash"></fa-icon>
+            </button>
+          }
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef>Name</th>
+        <td mat-cell *matCellDef="let shelter; let i = index">{{ shelter.name }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="address">
+        <th mat-header-cell *matHeaderCellDef class="px-4 py-2 text-left">Addresse</th>
+        <td mat-cell *matCellDef="let shelter; let i = index">{{ shelter | formatShelterAddress }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="persons">
+        <th mat-header-cell *matHeaderCellDef class="px-4 py-2 text-left">Anz. Personen</th>
+        <td mat-cell *matCellDef="let shelter; let i = index">{{ shelter.personsCount }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef class="px-4 py-2 text-left">Aktionen</th>
+        <td mat-cell *matCellDef="let shelter; let i = index">
+          <button matButton="filled" class="button-secondary me-2" testid="viewShelterButton"
+                  (click)="viewShelterDetails(shelter)">
+            <fa-icon [icon]="faMagnifyingGlass"></fa-icon>
+          </button>
+          <button matButton="filled" class="button-danger" [attr.testid]="'searchresult-edituser-button-' + i"
+                  (click)="editShelter(shelter)">
+            <fa-icon [icon]="faPencil"></fa-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; let i = index; columns: displayedColumns;"
+          [attr.testid]="'shelters-row-' + i"></tr>
+    </table>
+  </mat-card-content>
+</mat-card>

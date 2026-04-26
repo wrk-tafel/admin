@@ -74,7 +74,7 @@ class UserController(
 
     @GetMapping("/{userId}")
     @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
-    fun getUser(@PathVariable("userId") userId: Long): ResponseEntity<User> {
+    fun getUser(@PathVariable userId: Long): ResponseEntity<User> {
         val userDetails = userDetailsManager.loadUserById(userId)
             ?: throw TafelValidationException(
                 message = "Benutzer (ID: $userId) nicht gefunden!",
@@ -86,7 +86,7 @@ class UserController(
 
     @GetMapping("/personnel-number/{personnelNumber}")
     @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
-    fun getUserByPersonnelNumber(@PathVariable("personnelNumber") personnelNumber: String): ResponseEntity<User> {
+    fun getUserByPersonnelNumber(@PathVariable personnelNumber: String): ResponseEntity<User> {
         val userDetails = userDetailsManager.loadUserByPersonnelNumber(personnelNumber.trim())
             ?: throw TafelValidationException(
                 message = "Benutzer (Personalnummer: $personnelNumber) nicht gefunden!",
@@ -153,7 +153,7 @@ class UserController(
     @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
     @Transactional
     fun updateUser(
-        @PathVariable("userId") userId: Long,
+        @PathVariable userId: Long,
         @RequestBody user: User,
     ): ResponseEntity<User> {
         userDetailsManager.loadUserById(userId)
@@ -184,7 +184,7 @@ class UserController(
     @PreAuthorize("hasAuthority('USER_MANAGEMENT')")
     @Transactional
     fun deleteUser(
-        @PathVariable("userId") userId: Long,
+        @PathVariable userId: Long,
     ) {
         val tafelUser = userDetailsManager.loadUserById(userId)
             ?: throw TafelValidationException(

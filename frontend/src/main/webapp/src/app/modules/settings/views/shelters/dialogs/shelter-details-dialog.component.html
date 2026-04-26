@@ -1,0 +1,35 @@
+<tafel-dialog title="Notschlafstelle Details" testid="shelter-details-dialog">
+  <div tafel-dialog-content>
+    <div class="grid grid-cols-1 gap-2">
+      <h5>Daten</h5>
+      <div><strong>Name:</strong> {{ data.shelter?.name }}</div>
+      <div><strong>Straße:</strong> {{ data.shelter?.addressStreet }} {{ data.shelter?.addressHouseNumber }}</div>
+      <div><strong>Stiege:</strong> {{ data.shelter?.addressStairway ?? '-' }}</div>
+      <div><strong>Tür:</strong> {{ data.shelter?.addressDoor ?? '-' }}</div>
+      <div><strong>PLZ / Ort:</strong> {{ data.shelter?.addressPostalCode }} {{ data.shelter?.addressCity }}</div>
+      <div><strong>Anz. Personen:</strong> {{ data.shelter?.personsCount }}</div>
+      <div><strong>Aktiv:</strong> {{ data.shelter?.enabled ? 'Ja' : 'Nein' }}</div>
+      <div><strong>Hinweis:</strong> {{ data.shelter?.note ?? '-' }}</div>
+
+      <div class="mt-2">
+        <h5 class="mb-2">Kontakte</h5>
+        @if (data.shelter?.contacts && data.shelter.contacts.length > 0) {
+          <ul class="list-disc pl-4">
+            @for (contact of data.shelter.contacts; track contact.phone) {
+              <li>
+                <div><strong>{{ contact.firstname }} {{ contact.lastname }}</strong></div>
+                <div>{{ contact.phone }}</div>
+              </li>
+            }
+          </ul>
+        } @else {
+          <div>Keine Kontakte vorhanden</div>
+        }
+      </div>
+
+    </div>
+  </div>
+  <div tafel-dialog-actions>
+    <button matButton="filled" (click)="close()">Schließen</button>
+  </div>
+</tafel-dialog>

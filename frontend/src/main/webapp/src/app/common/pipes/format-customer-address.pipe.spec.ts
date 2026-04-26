@@ -1,11 +1,11 @@
-import {FormatAddressPipe} from './format-address.pipe';
+import {FormatCustomerAddressPipe} from './format-customer-address.pipe';
 import {CustomerAddressData} from '../../api/customer-api.service';
 
-describe('FormatAddressPipe', () => {
-  let pipe: FormatAddressPipe;
+describe('FormatCustomerAddressPipe', () => {
+  let pipe: FormatCustomerAddressPipe;
 
   beforeEach(() => {
-    pipe = new FormatAddressPipe();
+    pipe = new FormatCustomerAddressPipe();
   });
 
   it('should create an instance', () => {

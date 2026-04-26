@@ -21,7 +21,7 @@ class DistributionTicketController(
     @GetMapping("/customers/{customerId}")
     @TafelActiveDistributionRequired
     fun getCurrentTicketForCustomerId(
-        @PathVariable("customerId") customerId: Long,
+        @PathVariable customerId: Long,
     ): TicketNumberResponse {
         val distributionCustomerEntity = service.getCurrentTicketNumber(customerId)
         logger.info("Ticket-Log - Fetched current ticket-number: $distributionCustomerEntity")
@@ -33,7 +33,7 @@ class DistributionTicketController(
     @DeleteMapping("/customers/{customerId}")
     @TafelActiveDistributionRequired
     fun deleteCurrentTicketForCustomer(
-        @PathVariable("customerId") customerId: Long,
+        @PathVariable customerId: Long,
     ): ResponseEntity<Unit> {
         val deleted = service.deleteCurrentTicket(customerId)
         if (!deleted) {
