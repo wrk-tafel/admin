@@ -637,14 +637,17 @@ FROM ShopCategories sc;
 
 -- shelters
 INSERT INTO shelters (id, created_at, updated_at, name, address_street, address_houseNumber, address_stairway,
-                      address_door, address_postalCode, address_city, note, persons_count)
-values (1, NOW(), NOW(), 'Shelter 1', 'Erdberg', 1, null, null, '1030', 'Wien', 'Right around the corner', 100);
+                      address_door, address_postalCode, address_city, note, persons_count, enabled)
+values (1, NOW(), NOW(), 'Shelter 1', 'Erdberg', 1, null, null, '1030', 'Wien', 'Right around the corner', 100, true);
 INSERT INTO shelters (id, created_at, updated_at, name, address_street, address_houseNumber, address_stairway,
-                      address_door, address_postalCode, address_city, note, persons_count)
-values (2, NOW(), NOW(), 'Shelter 2 with a very long name', 'Erdberg', 2, '1', '10', '1030', 'Wien', null, 50);
+                      address_door, address_postalCode, address_city, note, persons_count, enabled)
+values (2, NOW(), NOW(), 'Shelter 2 with a very long name', 'Erdberg', 2, '1', '10', '1030', 'Wien', null, 50, true);
 INSERT INTO shelters (id, created_at, updated_at, name, address_street, address_houseNumber, address_stairway,
-                      address_door, address_postalCode, address_city, note, persons_count)
-values (3, NOW(), NOW(), 'Shelter 3', 'Erdberg', 3, null, null, '1030', 'Wien', null, 0);
+                      address_door, address_postalCode, address_city, note, persons_count, enabled)
+values (3, NOW(), NOW(), 'Shelter 3', 'Erdberg', 3, null, null, '1030', 'Wien', null, 0, true);
+INSERT INTO shelters (id, created_at, updated_at, name, address_street, address_houseNumber, address_stairway,
+                      address_door, address_postalCode, address_city, note, persons_count, enabled)
+values (4, NOW(), NOW(), 'Shelter 4 disabled', 'Erdberg', 4, null, null, '1040', 'Wien', null, 0, false);
 
 INSERT INTO shelters_contacts (id, created_at, updated_at, shelter_id, firstname, lastname, phone)
 values (1, NOW(), NOW(), 1, null, null, '01 23 45 67 89');

@@ -8,8 +8,20 @@ import {Observable} from 'rxjs';
 export class ShelterApiService {
   private readonly http = inject(HttpClient);
 
-  getShelters(): Observable<ShelterListResponse> {
+  getActiveShelters(): Observable<ShelterListResponse> {
+    return this.http.get<ShelterListResponse>('/shelters/active');
+  }
+
+  getAllShelters(): Observable<ShelterListResponse> {
     return this.http.get<ShelterListResponse>('/shelters');
+  }
+
+  updateShelter(shelterId: number, shelter: ShelterItem): Observable<ShelterItem> {
+    return this.http.post<ShelterItem>(`/shelters/${shelterId}`, shelter);
+  }
+
+  createShelter(shelter: ShelterItem): Observable<ShelterItem> {
+    return this.http.post<ShelterItem>('/shelters', shelter);
   }
 
 }
@@ -29,4 +41,12 @@ export interface ShelterItem {
   addressCity: string;
   note: string;
   personsCount: number;
+  enabled: boolean;
+  contacts?: ShelterContact[];
+}
+
+export interface ShelterContact {
+  firstname: string;
+  lastname: string;
+  phone: string;
 }

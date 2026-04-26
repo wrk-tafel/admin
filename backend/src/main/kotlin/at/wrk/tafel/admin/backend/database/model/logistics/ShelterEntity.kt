@@ -6,6 +6,7 @@ import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
+import jakarta.persistence.CascadeType
 
 @Entity(name = "Shelter")
 @Table(name = "shelters")
@@ -36,10 +37,13 @@ class ShelterEntity : BaseChangeTrackingEntity() {
     @Column(name = "note")
     var note: String? = null
 
-    @OneToMany(mappedBy = "shelter")
-    var contacts: List<ShelterContactEntity> = emptyList()
+    @OneToMany(mappedBy = "shelter", cascade = [CascadeType.ALL], orphanRemoval = true)
+    var contacts: MutableList<ShelterContactEntity> = mutableListOf()
 
     @Column(name = "persons_count")
     var personsCount: Int? = null
+
+    @Column(name = "enabled")
+    var enabled: Boolean? = null
 
 }

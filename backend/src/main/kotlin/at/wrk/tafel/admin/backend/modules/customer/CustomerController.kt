@@ -54,7 +54,7 @@ class CustomerController(
     @PostMapping("/{customerId}")
     @PreAuthorize("hasAuthority('CUSTOMER')")
     fun updateCustomer(
-        @PathVariable("customerId") customerId: Long,
+        @PathVariable customerId: Long,
         @RequestParam force: Boolean = false,
         @RequestBody customer: Customer,
     ): CustomerUpdateResponse {
@@ -73,7 +73,7 @@ class CustomerController(
 
     @GetMapping("/{customerId}")
     @PreAuthorize("hasAuthority('CUSTOMER')")
-    fun getCustomer(@PathVariable("customerId") customerId: Long): Customer {
+    fun getCustomer(@PathVariable customerId: Long): Customer {
         return customerService.findByCustomerId(customerId)
             ?: throw TafelValidationException(
                 message = "Kunde Nr. $customerId nicht gefunden!",
@@ -110,7 +110,7 @@ class CustomerController(
 
     @DeleteMapping("/{customerId}")
     @PreAuthorize("hasAuthority('CUSTOMER')")
-    fun deleteCustomer(@PathVariable("customerId") customerId: Long) {
+    fun deleteCustomer(@PathVariable customerId: Long) {
         if (!customerService.existsByCustomerId(customerId)) {
             throw TafelValidationException(
                 message = "Kunde Nr. $customerId nicht vorhanden!",
@@ -124,7 +124,7 @@ class CustomerController(
     @GetMapping("/{customerId}/generate-pdf", produces = [MediaType.APPLICATION_PDF_VALUE])
     @PreAuthorize("hasAuthority('CUSTOMER')")
     fun generatePdf(
-        @PathVariable("customerId") customerId: Long,
+        @PathVariable customerId: Long,
         @RequestParam("type") type: CustomerPdfType,
     ): ResponseEntity<InputStreamResource> {
         val pdfResult = customerService.generatePdf(customerId, type)
@@ -169,7 +169,7 @@ class CustomerController(
     @PostMapping("/{customerId}/merge")
     @PreAuthorize("hasAuthority('CUSTOMER_DUPLICATES')")
     fun mergeIntoCustomer(
-        @PathVariable("customerId") customerId: Long,
+        @PathVariable customerId: Long,
         @RequestBody request: CustomerMergeRequest,
     ): ResponseEntity<Any> {
         customerService.mergeCustomers(customerId, request.sourceCustomerIds)

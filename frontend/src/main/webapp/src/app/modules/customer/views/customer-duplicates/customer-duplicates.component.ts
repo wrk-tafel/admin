@@ -18,7 +18,7 @@ import {
 import {DatePipe, NgClass} from '@angular/common';
 import {faCheck, faMagnifyingGlass, faTrashCan} from '@fortawesome/free-solid-svg-icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
-import {FormatAddressPipe} from '../../../../common/pipes/format-address.pipe';
+import {FormatCustomerAddressPipe} from '../../../../common/pipes/format-customer-address.pipe';
 
 @Component({
   selector: 'tafel-customer-duplicates',
@@ -34,7 +34,7 @@ import {FormatAddressPipe} from '../../../../common/pipes/format-address.pipe';
     NgClass,
     ButtonDirective,
     FaIconComponent,
-    FormatAddressPipe
+    FormatCustomerAddressPipe
   ]
 })
 export class CustomerDuplicatesComponent {

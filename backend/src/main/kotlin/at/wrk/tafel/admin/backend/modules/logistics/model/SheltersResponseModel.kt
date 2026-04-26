@@ -9,7 +9,7 @@ data class ShelterListResponse(
 
 @ExcludeFromTestCoverage
 data class Shelter(
-    val id: Long,
+    val id: Long?,
     val name: String,
     var addressStreet: String,
     var addressHouseNumber: String,
@@ -19,4 +19,13 @@ data class Shelter(
     var addressCity: String,
     val note: String?,
     val personsCount: Int,
+    val enabled: Boolean,
+    val contacts: List<ShelterContact>,
+)
+
+@ExcludeFromTestCoverage
+data class ShelterContact(
+    val firstname: String?,
+    val lastname: String?,
+    var phone: String,
 )

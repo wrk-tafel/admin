@@ -1,9 +1,14 @@
 import {Routes} from '@angular/router';
-import {SettingsComponent} from './settings.component';
+import {SettingsEmailComponent} from './views/email/settings-email.component';
+import {SettingsSheltersComponent} from './views/shelters/settings-shelters.component';
 
 export const routes: Routes = [
   {
-    path: '',
-    component: SettingsComponent,
+    path: 'email',
+    component: SettingsEmailComponent,
+  },
+  {
+    path: 'notschlafstellen',
+    component: SettingsSheltersComponent,
   },
 ];

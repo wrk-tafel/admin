@@ -27,7 +27,7 @@ class RouteController(
     @GetMapping("/{routeId}/shops")
     @PreAuthorize("hasAuthority('LOGISTICS')")
     fun getShopsOfRoute(
-        @PathVariable("routeId") routeId: Long,
+        @PathVariable routeId: Long,
     ): RouteShopsResponse {
         val shops = shopService.getShopsForRouteId(routeId)
         return RouteShopsResponse(shops = shops)

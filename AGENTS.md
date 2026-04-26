@@ -225,6 +225,12 @@ The application uses PostgreSQL with Flyway for schema management. Migration fil
 
 ## Code Conventions
 
+**Template flow-control (project convention):**
+- Prefer the repository flow-control-syntax for templates instead of Angular structural directives (*ngFor, *ngIf).
+- Use `@for (...) { ... }` and `@if (condition) { ... }` for iteration and conditional rendering in templates to ensure consistent parsing and tooling in this codebase.
+- Avoid using `*ngFor` / `*ngIf` unless interacting with third-party examples; convert new code to the flow-control-syntax.
+
+
 ### Backend (Kotlin)
 - Package structure: `at.wrk.tafel.admin.backend.modules.<module>.<subpackage>`
 - Controllers: Suffix with `Controller`, return response models

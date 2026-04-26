@@ -5,7 +5,7 @@
     </mat-card-title>
   </mat-card-header>
   <mat-card-content>
-    <form [formGroup]="form" autocomplete="off" class="flex flex-column gap-4">
+    <form [formGroup]="form" autocomplete="off" class="flex flex-col gap-4">
       <mat-form-field appearance="fill" subscriptSizing="fixed" class="w-100" testid="distribution-statistics-employee-count-input">
         <mat-label>Anzahl der Mitarbeiter</mat-label>
         <input
@@ -26,7 +26,7 @@
         }
       </mat-form-field>
 
-      <div class="gap-2 d-flex flex-row align-items-center">
+      <div class="gap-2 d-flex flex-row">
         <mat-form-field appearance="fill" class="w-100" testid="distribution-statistics-persons-in-shelter-input">
           <mat-label>Personen in Notschlafstellen</mat-label>
           <input

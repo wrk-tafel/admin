@@ -26,7 +26,8 @@ describe('DistributionStatisticsInputComponent', () => {
       addressPostalCode: 12345,
       addressCity: 'Test City',
       note: 'Test Note',
-      personsCount: 100
+      personsCount: 100,
+      enabled: true
     },
     {
       id: 2,
@@ -38,7 +39,8 @@ describe('DistributionStatisticsInputComponent', () => {
       addressPostalCode: 12345,
       addressCity: 'Test City',
       note: 'Test Note 2',
-      personsCount: 200
+      personsCount: 200,
+      enabled: true
     }
   ];
   const testDistribution: DistributionItem = {
@@ -107,7 +109,8 @@ describe('DistributionStatisticsInputComponent', () => {
         addressPostalCode: 1210,
         addressCity: 'Wien',
         note: 'Testnote 1',
-        personsCount: 100
+        personsCount: 100,
+        enabled: true
       },
       {
         id: 2,
@@ -117,7 +120,8 @@ describe('DistributionStatisticsInputComponent', () => {
         addressPostalCode: 1220,
         addressCity: 'Wien',
         note: 'Testnote 2',
-        personsCount: 50
+        personsCount: 50,
+        enabled: true
       }
     ]);
 

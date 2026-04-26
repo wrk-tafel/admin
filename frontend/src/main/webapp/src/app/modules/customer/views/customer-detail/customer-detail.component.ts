@@ -46,7 +46,7 @@ import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {BirthdateAgePipe} from '../../../../common/pipes/birthdate-age.pipe';
 import {GenderLabelPipe} from '../../../../common/pipes/gender-label.pipe';
 import {FormatIssuerPipe} from '../../../../common/pipes/format-issuer.pipe';
-import {FormattedCustomerNamePipe} from '../../../../common/pipes/formatted-customer-name.pipe';
+import {FormatCustomerNamePipe} from '../../../../common/pipes/format-customer-name.pipe';
 import {FormsModule} from '@angular/forms';
 import {
   ConfirmCustomerSaveDialog
@@ -74,7 +74,7 @@ import {
     BirthdateAgePipe,
     GenderLabelPipe,
     FormatIssuerPipe,
-    FormattedCustomerNamePipe,
+    FormatCustomerNamePipe,
     TafelIfDistributionActiveDirective,
     FormsModule
   ]

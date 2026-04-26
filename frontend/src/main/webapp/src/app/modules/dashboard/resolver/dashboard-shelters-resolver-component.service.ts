@@ -9,7 +9,7 @@ export class DashboardSheltersDataResolver {
   private readonly shelterApiService = inject(ShelterApiService);
 
   public resolve(): Observable<ShelterListResponse> {
-    return this.shelterApiService.getShelters();
+    return this.shelterApiService.getActiveShelters();
   }
 
 }

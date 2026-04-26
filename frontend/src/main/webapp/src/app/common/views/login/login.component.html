@@ -1,7 +1,7 @@
 <div class="d-flex flex-row min-w-screen min-h-screen align-items-center justify-content-center">
   <mat-card class="min-w-[500px]">
     <mat-card-content class="p-4">
-      <div class="d-flex flex-column align-items-center gap-2">
+      <div class="d-flex flex-col align-items-center gap-2">
         <div>
           <img src="assets/img/brand/logo.svg" alt="ÖRK Logo" width="200px" height="54px"/>
           <h1>Tafel Admin</h1>
@@ -11,7 +11,7 @@
             <div>{{ errorMessage() }}</div>
           </div>
         }
-        <div class="flex flex-column gap-2 m-4">
+        <div class="flex flex-col gap-2 m-4">
           <div class="flex flex-row align-items-center">
             <fa-icon [icon]="faUser" class="mr-2"></fa-icon>
             <input [formField]="loginForm.username" matInput testid="username" type="text" class="form-control"

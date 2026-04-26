@@ -20,7 +20,7 @@ class CustomerNoteController(
 
     @GetMapping
     fun getNotes(
-        @PathVariable("customerId") customerId: Long,
+        @PathVariable customerId: Long,
         @RequestParam("page") page: Int?
     ): CustomerNotesResponse {
         val searchResult = service.getNotes(customerId = customerId, page = page)
@@ -35,7 +35,7 @@ class CustomerNoteController(
 
     @PostMapping
     fun createNewNote(
-        @PathVariable("customerId") customerId: Long,
+        @PathVariable customerId: Long,
         @RequestBody request: CreateCustomerNoteRequest
     ): ResponseEntity<CustomerNoteItem> {
         val note = request.note.ifBlank { throw TafelValidationException("Notiz darf nicht leer sein!") }

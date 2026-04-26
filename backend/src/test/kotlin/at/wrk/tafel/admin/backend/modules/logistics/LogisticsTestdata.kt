@@ -204,6 +204,7 @@ val testShelter1 = ShelterEntity().apply {
     addressCity = "City 1"
     note = "Note 1"
     personsCount = 1
+    enabled = true
 }
 
 val testDistributionStatisticShelterEntity1 = DistributionStatisticShelterEntity().apply {
@@ -229,6 +230,21 @@ val testShelter2 = ShelterEntity().apply {
     addressCity = "City 2"
     note = "Note 2"
     personsCount = 2
+    enabled = true
+}
+
+val testShelter3 = ShelterEntity().apply {
+    id = 3
+    name = "Shelter 3"
+    addressStreet = "Street"
+    addressHouseNumber = "3"
+    addressStairway = "A"
+    addressPostalCode = 4321
+    addressDoor = "3"
+    addressCity = "City 3"
+    note = "Note 3"
+    personsCount = 3
+    enabled = false
 }
 
 val testDistributionStatisticShelterEntity2 = DistributionStatisticShelterEntity().apply {

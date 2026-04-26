@@ -101,5 +101,15 @@ export const navigationMenuItems: ITafelNavData[] = [
     iconComponent: {name: 'cil-settings'},
     url: '/einstellungen',
     permissions: ['SETTINGS'],
+    children: [
+      {
+        name: 'E-Mail',
+        url: '/einstellungen/email'
+      },
+      {
+        name: 'Notschlafstellen',
+        url: '/einstellungen/notschlafstellen'
+      },
+    ],
   },
 ];
