@@ -22,7 +22,7 @@ apache-pdfbox = "3.0.7"
 image-comparison = "4.4.0"
 
 # Plugin versions
-sonarqube = "7.2.3.7755"
+sonarqube = "7.3.0.8198"
 
 [libraries]
 # Kotlin
