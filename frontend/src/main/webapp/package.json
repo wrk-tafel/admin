@@ -70,7 +70,7 @@
     "@angular/cli": "21.2.11",
     "@angular/compiler-cli": "21.2.13",
     "@angular/language-service": "21.2.13",
-    "@types/node": "25.7.0",
+    "@types/node": "25.8.0",
     "@typescript-eslint/eslint-plugin": "8.59.3",
     "@typescript-eslint/parser": "8.59.3",
     "@vitest/browser-playwright": "4.1.6",
