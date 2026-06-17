@@ -1,7 +1,7 @@
 name: E2E Test
 
 env:
-  JAVA_VERSION: '25'
+  JAVA_VERSION: '26'
   JAVA_DISTRIBUTION: 'corretto'
 
 on:
@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:18.2-bookworm
+        image: postgres:18.4-bookworm
         env:
           POSTGRES_USER: tafeladmin
           POSTGRES_PASSWORD: tafeladmin

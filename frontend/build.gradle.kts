@@ -3,11 +3,19 @@ plugins {
 }
 
 val webappDir = "src/main/webapp"
+val osName = System.getProperty("os.name")
+val isWindows = osName.lowercase().contains("windows")
+val npmCommand = if (isWindows) "npm.cmd" else "npm"
 
 val npmInstall by tasks.registering(Exec::class) {
     description = "Install npm dependencies"
     workingDir(webappDir)
-    commandLine("npm", "install")
+
+    val osName = System.getProperty("os.name")
+    val isWindows = osName.lowercase().contains("windows")
+    val npmCommand = if (isWindows) "npm.cmd" else "npm"
+    commandLine(npmCommand, "install")
+
     inputs.file("$webappDir/package.json")
     inputs.file("$webappDir/package-lock.json")
     outputs.dir("$webappDir/node_modules")
@@ -16,14 +24,14 @@ val npmInstall by tasks.registering(Exec::class) {
 val npmTest by tasks.registering(Exec::class) {
     description = "Run frontend unit tests"
     workingDir(webappDir)
-    commandLine("npm", "run", "test-ci")
+    commandLine(npmCommand, "run", "test-ci")
     dependsOn(npmInstall)
 }
 
 val npmBuild by tasks.registering(Exec::class) {
     description = "Build frontend for production"
     workingDir(webappDir)
-    commandLine("npm", "run", "build-prod")
+    commandLine(npmCommand, "run", "build-prod")
     dependsOn(npmInstall)
     inputs.dir("$webappDir/src")
     inputs.file("$webappDir/angular.json")
@@ -41,7 +49,10 @@ tasks.named("check") {
 
 sonar {
     properties {
-        property("sonar.coverage.exclusions", "**/*spec.ts,**/*config.ts,**/*conf.js,src/main/webapp/cypress/**,src/main/webapp/src/environments/**,src/main/webapp/src/main.ts,src/main/webapp/src/test.ts,src/main/webapp/src/app/app.routing.ts,src/main/webapp/src/app/app.module.ts,src/main/webapp/src/app/**/*-routing.module.ts")
+        property(
+            "sonar.coverage.exclusions",
+            "**/*spec.ts,**/*config.ts,**/*conf.js,src/main/webapp/cypress/**,src/main/webapp/src/environments/**,src/main/webapp/src/main.ts,src/main/webapp/src/test.ts,src/main/webapp/src/app/app.routing.ts,src/main/webapp/src/app/app.module.ts,src/main/webapp/src/app/**/*-routing.module.ts"
+        )
         property("sonar.javascript.lcov.reportPaths", "$webappDir/coverage/lcov.info")
     }
 }
