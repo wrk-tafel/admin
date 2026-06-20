@@ -135,7 +135,7 @@ export class CustomerFormComponent {
     validate(schemaPath.validUntil, minDate(new Date(), {message: 'Datum muss in der Zukunft liegen'}));
 
     // Additional persons validation using applyEach
-    applyEach(schemaPath.additionalPersons, (personPath) => {
+    applyEach(schemaPath.additionalPersons as any, (personPath: any) => {
       required(personPath.lastname, {message: 'Pflichtfeld'});
       maxLength(personPath.lastname, 50, {message: 'Nachname zu lang (maximal 50 Zeichen)'});
 
@@ -170,7 +170,7 @@ export class CustomerFormComponent {
       const customerData = this.customerData();
       if (customerData) {
         // Update main form model including additional persons
-        const additionalPersonsData = customerData.additionalPersons.map((person) => ({
+        const additionalPersonsData = (customerData.additionalPersons ?? []).map((person) => ({
           ...person,
           key: person.key ? person.key : crypto.randomUUID(),
           employer: person.employer ?? '',
