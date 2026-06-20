@@ -4,7 +4,8 @@
     "outDir": "../out-tsc/app",
     "baseUrl": "./",
     "module": "es2022",
-    "types": []
+    "types": [],
+    "ignoreDeprecations": "6.0"
   },
   "angularCompilerOptions": {
     "importHelpers": true,
