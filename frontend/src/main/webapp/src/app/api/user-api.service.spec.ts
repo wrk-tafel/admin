@@ -1,7 +1,7 @@
 import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
 import {TestBed} from '@angular/core/testing';
 import {ChangePasswordRequest, ChangePasswordResponse, UserApiService, UserData} from './user-api.service';
-import {provideHttpClient} from '@angular/common/http';
+import {provideHttpClient, withXhr} from '@angular/common/http';
 
 describe('UserApiService', () => {
   let httpMock: HttpTestingController;
@@ -21,7 +21,7 @@ describe('UserApiService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
-        provideHttpClient(),
+        provideHttpClient(withXhr()),
         provideHttpClientTesting(),
         UserApiService
       ]
@@ -67,23 +67,23 @@ describe('UserApiService', () => {
       method: 'GET',
       url: '/users?username=maxl-username&enabled=false&lastname=mustermann&firstname=max&page=3'
     });
-    req.flush(null);
+    req.flush(null as any);
     httpMock.verify();
   });
 
   it('search user with lastname only', () => {
-    apiService.searchUser(null, null, 'mustermann', null).subscribe();
+    apiService.searchUser(null as any, null as any, 'mustermann', null as any).subscribe();
 
     const req = httpMock.expectOne({method: 'GET', url: '/users?lastname=mustermann'});
-    req.flush(null);
+    req.flush(null as any);
     httpMock.verify();
   });
 
   it('search user with firstname only', () => {
-    apiService.searchUser(null, null, null, 'max').subscribe();
+    apiService.searchUser(null as any, null as any, null as any, 'max').subscribe();
 
     const req = httpMock.expectOne({method: 'GET', url: '/users?firstname=max'});
-    req.flush(null);
+    req.flush(null as any);
     httpMock.verify();
   });
 
@@ -91,7 +91,7 @@ describe('UserApiService', () => {
     apiService.getUserForId(1234).subscribe();
 
     const req = httpMock.expectOne({method: 'GET', url: '/users/1234'});
-    req.flush(null);
+    req.flush(null as any);
     httpMock.verify();
   });
 
@@ -109,7 +109,7 @@ describe('UserApiService', () => {
     apiService.updateUser(mockUserUpdate).subscribe();
 
     const req = httpMock.expectOne({method: 'POST', url: '/users/133'});
-    req.flush(null);
+    req.flush(null as any);
     httpMock.verify();
 
     expect(req.request.body).toEqual(mockUserUpdate);
@@ -119,7 +119,7 @@ describe('UserApiService', () => {
     apiService.deleteUser(1).subscribe();
 
     const req = httpMock.expectOne({method: 'DELETE', url: '/users/1'});
-    req.flush(null);
+    req.flush(null as any);
     httpMock.verify();
   });
 
@@ -128,7 +128,7 @@ describe('UserApiService', () => {
 
     const req = httpMock.expectOne({method: 'POST', url: '/users'});
     expect(req.request.body).toEqual(mockUser);
-    req.flush(null);
+    req.flush(null as any);
     httpMock.verify();
   });
 
@@ -136,8 +136,9 @@ describe('UserApiService', () => {
     apiService.getPermissions().subscribe();
 
     const req = httpMock.expectOne({method: 'GET', url: '/users/permissions'});
-    req.flush(null);
+    req.flush(null as any);
     httpMock.verify();
   });
 
 });
+

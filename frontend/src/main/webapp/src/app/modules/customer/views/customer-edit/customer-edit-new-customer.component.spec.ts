@@ -10,7 +10,7 @@ import {By} from '@angular/platform-browser';
 import {BgColorDirective, CardModule, ColComponent, InputGroupComponent, RowComponent} from '@coreui/angular';
 import {MatDialog} from '@angular/material/dialog';
 import {ToastrService} from 'ngx-toastr';
-import {provideHttpClient} from '@angular/common/http';
+import {provideHttpClient, withXhr} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
 
 describe('CustomerEditComponent - Creating a new customer', () => {
@@ -85,7 +85,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
         BgColorDirective
       ],
       providers: [
-        provideHttpClient(),
+        provideHttpClient(withXhr()),
         provideHttpClientTesting(),
         {
           provide: MatDialog,
@@ -151,7 +151,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
 
     const mockResponse = {
       data: testCustomerData,
-      errorMsg: null
+      errorMsg: null as any
     };
     apiService.createCustomer.mockReturnValue(of(mockResponse));
 
@@ -249,7 +249,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
     }));
     const mockResponse = {
       data: testCustomerData,
-      errorMsg: null
+      errorMsg: null as any
     };
     apiService.createCustomer.mockReturnValue(of(mockResponse));
 
@@ -279,7 +279,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
     // First call with validate=false, second call with validate=true
     const mockResponse = {
       data: testCustomerData,
-      errorMsg: null
+      errorMsg: null as any
     };
     apiService.createCustomer.mockReturnValueOnce(throwError(() => ({
       status: 409,
@@ -331,3 +331,4 @@ describe('CustomerEditComponent - Creating a new customer', () => {
   });
 
 });
+

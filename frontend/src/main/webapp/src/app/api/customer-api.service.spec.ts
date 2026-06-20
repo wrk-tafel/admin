@@ -3,7 +3,7 @@ import {TestBed} from '@angular/core/testing';
 import moment from 'moment';
 import {CustomerApiService, CustomerMergeRequest, Gender, CustomerData} from './customer-api.service';
 import {ReactiveFormsModule} from '@angular/forms';
-import {provideHttpClient} from '@angular/common/http';
+import {provideHttpClient, withXhr} from '@angular/common/http';
 import {ToastrService} from 'ngx-toastr';
 import type {MockedObject} from 'vitest';
 import {AuthenticationService} from '../common/security/authentication.service';
@@ -17,7 +17,7 @@ describe('CustomerApiService', () => {
     TestBed.configureTestingModule({
       imports: [ReactiveFormsModule],
       providers: [
-        provideHttpClient(),
+        provideHttpClient(withXhr()),
         provideHttpClientTesting(),
         CustomerApiService,
         {
@@ -35,10 +35,10 @@ describe('CustomerApiService', () => {
   });
 
   it('validate customer', () => {
-    apiService.validate(null).subscribe();
+    apiService.validate(null as any).subscribe();
 
     const req = httpMock.expectOne({method: 'POST', url: '/customers/validate'});
-    req.flush(null);
+    req.flush(null as any);
     httpMock.verify();
   });
 
@@ -60,7 +60,7 @@ describe('CustomerApiService', () => {
 
     const mockResponse = {
       data: mockCustomer,
-      errorMsg: null
+      errorMsg: null as any
     };
 
     apiService.createCustomer(mockCustomer, false).subscribe(response => {
@@ -93,7 +93,7 @@ describe('CustomerApiService', () => {
 
     const mockResponse = {
       data: mockCustomer,
-      errorMsg: null
+      errorMsg: null as any
     };
 
     apiService.updateCustomer(mockCustomer, false).subscribe(response => {
@@ -128,7 +128,7 @@ describe('CustomerApiService', () => {
 
     const mockResponse = {
       data: mockCustomer,
-      errorMsg: null
+      errorMsg: null as any
     };
 
     apiService.updateCustomer(mockCustomer, true).subscribe(response => {
@@ -147,7 +147,7 @@ describe('CustomerApiService', () => {
     apiService.getCustomer(1).subscribe();
 
     const req = httpMock.expectOne({method: 'GET', url: '/customers/1'});
-    req.flush(null);
+    req.flush(null as any);
     httpMock.verify();
   });
 
@@ -155,7 +155,7 @@ describe('CustomerApiService', () => {
     apiService.generatePdf(1, 'MASTERDATA').subscribe();
 
     const req = httpMock.expectOne({method: 'GET', url: '/customers/1/generate-pdf?type=MASTERDATA'});
-    req.flush(null);
+    req.flush(null as any);
     httpMock.verify();
   });
 
@@ -163,7 +163,7 @@ describe('CustomerApiService', () => {
     apiService.generatePdf(1, 'IDCARD').subscribe();
 
     const req = httpMock.expectOne({method: 'GET', url: '/customers/1/generate-pdf?type=IDCARD'});
-    req.flush(null);
+    req.flush(null as any);
     httpMock.verify();
   });
 
@@ -171,7 +171,7 @@ describe('CustomerApiService', () => {
     apiService.generatePdf(1, 'COMBINED').subscribe();
 
     const req = httpMock.expectOne({method: 'GET', url: '/customers/1/generate-pdf?type=COMBINED'});
-    req.flush(null);
+    req.flush(null as any);
     httpMock.verify();
   });
 
@@ -179,7 +179,7 @@ describe('CustomerApiService', () => {
     apiService.searchCustomer('mustermann', 'max').subscribe();
 
     const req = httpMock.expectOne({method: 'GET', url: '/customers?lastname=mustermann&firstname=max'});
-    req.flush(null);
+    req.flush(null as any);
     httpMock.verify();
   });
 
@@ -187,47 +187,47 @@ describe('CustomerApiService', () => {
     apiService.searchCustomer('mustermann').subscribe();
 
     const req = httpMock.expectOne({method: 'GET', url: '/customers?lastname=mustermann'});
-    req.flush(null);
+    req.flush(null as any);
     httpMock.verify();
   });
 
   it('search customer with firstname only', () => {
-    apiService.searchCustomer(null, 'max').subscribe();
+    apiService.searchCustomer(null as any, 'max').subscribe();
 
     const req = httpMock.expectOne({method: 'GET', url: '/customers?firstname=max'});
-    req.flush(null);
+    req.flush(null as any);
     httpMock.verify();
   });
 
   it('search customer including postProcessing parameter', () => {
-    apiService.searchCustomer(null, null, true, null).subscribe();
+    apiService.searchCustomer(null as any, null as any, true, null as any).subscribe();
 
     const req = httpMock.expectOne({method: 'GET', url: '/customers?postProcessing=true'});
-    req.flush(null);
+    req.flush(null as any);
     httpMock.verify();
   });
 
   it('search customer including costContribution parameter', () => {
-    apiService.searchCustomer(null, null, null, true).subscribe();
+    apiService.searchCustomer(null as any, null as any, null as any, true).subscribe();
 
     const req = httpMock.expectOne({method: 'GET', url: '/customers?costContribution=true'});
-    req.flush(null);
+    req.flush(null as any);
     httpMock.verify();
   });
 
   it('search customer including valid parameter', () => {
-    apiService.searchCustomer(null, null, null, null, true).subscribe();
+    apiService.searchCustomer(null as any, null as any, null as any, null as any, true).subscribe();
 
     const req = httpMock.expectOne({method: 'GET', url: '/customers?valid=true'});
-    req.flush(null);
+    req.flush(null as any);
     httpMock.verify();
   });
 
   it('search customer including page parameter', () => {
-    apiService.searchCustomer(null, 'max', null, null, null, 3).subscribe();
+    apiService.searchCustomer(null as any, 'max', null as any, null as any, null as any, 3).subscribe();
 
     const req = httpMock.expectOne({method: 'GET', url: '/customers?firstname=max&page=3'});
-    req.flush(null);
+    req.flush(null as any);
     httpMock.verify();
   });
 
@@ -235,7 +235,7 @@ describe('CustomerApiService', () => {
     apiService.deleteCustomer(1).subscribe();
 
     const req = httpMock.expectOne({method: 'DELETE', url: '/customers/1'});
-    req.flush(null);
+    req.flush(null as any);
     httpMock.verify();
   });
 
@@ -243,7 +243,7 @@ describe('CustomerApiService', () => {
     apiService.getCustomerDuplicates().subscribe();
 
     const req = httpMock.expectOne({method: 'GET', url: '/customers/duplicates'});
-    req.flush(null);
+    req.flush(null as any);
     httpMock.verify();
   });
 
@@ -251,7 +251,7 @@ describe('CustomerApiService', () => {
     apiService.getCustomerDuplicates(3).subscribe();
 
     const req = httpMock.expectOne({method: 'GET', url: '/customers/duplicates?page=3'});
-    req.flush(null);
+    req.flush(null as any);
     httpMock.verify();
   });
 
@@ -265,8 +265,9 @@ describe('CustomerApiService', () => {
     const req = httpMock.expectOne({method: 'POST', url: `/customers/${targetCustomerId}/merge`});
     expect(req.request.body).toEqual(expectedMergeRequest);
 
-    req.flush(null);
+    req.flush(null as any);
     httpMock.verify();
   });
 
 });
+

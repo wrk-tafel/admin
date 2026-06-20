@@ -1,7 +1,7 @@
 import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
 import {TestBed} from '@angular/core/testing';
 import {UserApiService} from './user-api.service';
-import {provideHttpClient} from '@angular/common/http';
+import {provideHttpClient, withXhr} from '@angular/common/http';
 import {ScannerApiService} from './scanner-api.service';
 
 describe('ScannerApiService', () => {
@@ -11,7 +11,7 @@ describe('ScannerApiService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
-        provideHttpClient(),
+        provideHttpClient(withXhr()),
         provideHttpClientTesting(),
         UserApiService
       ]
@@ -26,7 +26,7 @@ describe('ScannerApiService', () => {
     apiService.registerScanner(existingScannerId).subscribe();
 
     const req = httpMock.expectOne({method: 'POST', url: `/scanners/register?scannerId=${existingScannerId}`});
-    req.flush(null);
+    req.flush(null as any);
     httpMock.verify();
   });
 
@@ -34,7 +34,7 @@ describe('ScannerApiService', () => {
     apiService.registerScanner().subscribe();
 
     const req = httpMock.expectOne({method: 'POST', url: `/scanners/register`});
-    req.flush(null);
+    req.flush(null as any);
     httpMock.verify();
   });
 
@@ -42,7 +42,7 @@ describe('ScannerApiService', () => {
     apiService.getScanners().subscribe();
 
     const req = httpMock.expectOne({method: 'GET', url: `/scanners`});
-    req.flush(null);
+    req.flush(null as any);
     httpMock.verify();
   });
 
@@ -52,8 +52,9 @@ describe('ScannerApiService', () => {
     apiService.sendScanResult(scannerId, scanResult).subscribe();
 
     const req = httpMock.expectOne({method: 'POST', url: `/scanners/${scannerId}/results?scanResult=${scanResult}`});
-    req.flush(null);
+    req.flush(null as any);
     httpMock.verify();
   });
 
 });
+

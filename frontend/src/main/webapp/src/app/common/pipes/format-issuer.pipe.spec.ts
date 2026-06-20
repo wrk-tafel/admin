@@ -42,9 +42,10 @@ describe('FormatIssuerPipe', () => {
     expect(result).toBe('');
   });
 
-  it('should return empty string for null issuer', () => {
-    const result = pipe.transform(null);
+  it('should return empty string for null as any issuer', () => {
+    const result = pipe.transform(null as any);
 
     expect(result).toBe('');
   });
 });
+

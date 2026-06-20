@@ -7,7 +7,7 @@ import {
   SaveDistributionNotesRequest,
   SaveDistributionStatisticRequest
 } from './distribution-api.service';
-import {provideHttpClient} from '@angular/common/http';
+import {provideHttpClient, withXhr} from '@angular/common/http';
 
 describe('DistributionApiService', () => {
   let httpMock: HttpTestingController;
@@ -16,7 +16,7 @@ describe('DistributionApiService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
-        provideHttpClient(),
+        provideHttpClient(withXhr()),
         provideHttpClientTesting()
       ]
     });
@@ -29,7 +29,7 @@ describe('DistributionApiService', () => {
     apiService.getDistributions().subscribe();
 
     const req = httpMock.expectOne({method: 'GET', url: '/distributions'});
-    req.flush(null);
+    req.flush(null as any);
     httpMock.verify();
   });
 
@@ -51,7 +51,7 @@ describe('DistributionApiService', () => {
     apiService.closeDistribution(forceClose).subscribe();
 
     const req = httpMock.expectOne({method: 'POST', url: '/distributions/close?forceClose=true'});
-    req.flush(null);
+    req.flush(null as any);
     httpMock.verify();
   });
 
@@ -60,7 +60,7 @@ describe('DistributionApiService', () => {
     apiService.assignCustomer(requestBody.customerId, requestBody.ticketNumber).subscribe();
 
     const req = httpMock.expectOne({method: 'POST', url: '/distributions/customers'});
-    req.flush(null);
+    req.flush(null as any);
     httpMock.verify();
 
     expect(req.request.body).toEqual(requestBody);
@@ -71,7 +71,7 @@ describe('DistributionApiService', () => {
     apiService.saveStatistic(requestBody.employeeCount, requestBody.selectedShelterIds).subscribe();
 
     const req = httpMock.expectOne({method: 'POST', url: '/distributions/statistics'});
-    req.flush(null);
+    req.flush(null as any);
     httpMock.verify();
 
     expect(req.request.body).toEqual(requestBody);
@@ -82,7 +82,7 @@ describe('DistributionApiService', () => {
     apiService.saveNotes(requestBody.notes).subscribe();
 
     const req = httpMock.expectOne({method: 'POST', url: '/distributions/notes'});
-    req.flush(null);
+    req.flush(null as any);
     httpMock.verify();
 
     expect(req.request.body).toEqual(requestBody);
@@ -92,7 +92,7 @@ describe('DistributionApiService', () => {
     apiService.downloadCustomerList().subscribe();
 
     const req = httpMock.expectOne({method: 'GET', url: '/distributions/customers/generate-pdf'});
-    req.flush(null);
+    req.flush(null as any);
     httpMock.verify();
   });
 
@@ -101,8 +101,9 @@ describe('DistributionApiService', () => {
     apiService.sendMails(distributionId).subscribe();
 
     const req = httpMock.expectOne({method: 'POST', url: `/distributions/${distributionId}/send-mails`});
-    req.flush(null);
+    req.flush(null as any);
     httpMock.verify();
   });
 
 });
+

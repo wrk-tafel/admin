@@ -1,7 +1,7 @@
 import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { FoodCollectionRecordingItemsDesktopComponent } from './food-collection-recording-items-desktop.component';
 import { GlobalStateService } from '../../../../common/state/global-state.service';
@@ -20,7 +20,7 @@ describe('FoodCollectionRecordingItemsDesktopComponent', () => {
                 NoopAnimationsModule
             ],
             providers: [
-                provideHttpClient(),
+                provideHttpClient(withXhr()),
                 provideHttpClientTesting(),
                 {
                     provide: GlobalStateService,

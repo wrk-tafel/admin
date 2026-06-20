@@ -5,7 +5,7 @@ import { of } from 'rxjs';
 import { CustomerDataResolver } from './customerdata-resolver.component';
 import { ActivatedRouteSnapshot } from '@angular/router';
 import { CustomerDuplicatesDataResolver } from './customer-duplicates-data-resolver.component';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 
 describe('CustomerDuplicatesDataResolver', () => {
@@ -15,7 +15,7 @@ describe('CustomerDuplicatesDataResolver', () => {
     beforeEach(() => {
         TestBed.configureTestingModule({
             providers: [
-                provideHttpClient(),
+                provideHttpClient(withXhr()),
                 provideHttpClientTesting(),
                 {
                     provide: CustomerApiService,

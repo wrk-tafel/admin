@@ -68,8 +68,8 @@ describe('FormatCustomerNamePipe', () => {
     expect(result).toBe('-');
   });
 
-  it('should return dash for null customer', () => {
-    const result = pipe.transform(null);
+  it('should return dash for null as any customer', () => {
+    const result = pipe.transform(null as any);
 
     expect(result).toBe('-');
   });
@@ -96,3 +96,4 @@ describe('FormatCustomerNamePipe', () => {
     expect(result).toBe('Mustermann Max');
   });
 });
+

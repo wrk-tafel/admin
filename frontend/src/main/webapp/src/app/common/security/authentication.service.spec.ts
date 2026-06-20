@@ -4,7 +4,7 @@ import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 
 import { AuthenticationService } from './authentication.service';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 
 describe('AuthenticationService', () => {
     let httpMock: HttpTestingController;
@@ -19,7 +19,7 @@ describe('AuthenticationService', () => {
 
         TestBed.configureTestingModule({
             providers: [
-                provideHttpClient(),
+                provideHttpClient(withXhr()),
                 provideHttpClientTesting(),
                 AuthenticationService,
                 {
@@ -103,7 +103,7 @@ describe('AuthenticationService', () => {
         expect(loginMockReq.request.headers.get('Authorization')).toBe('Basic ' + btoa('USER:PWD'));
 
         const loginMockResponse = { status: 403, statusText: 'Forbidden' };
-        loginMockReq.flush(null, loginMockResponse);
+        loginMockReq.flush(null as any, loginMockResponse);
 
         httpMock.expectNone('/users/info');
 
@@ -188,7 +188,7 @@ describe('AuthenticationService', () => {
         expect(mockReq.request.method).toBe('POST');
 
         const mockErrorResponse = { status: 200, statusText: 'OK' };
-        mockReq.flush(null, mockErrorResponse);
+        mockReq.flush(null as any, mockErrorResponse);
         httpMock.verify();
     });
 
@@ -201,7 +201,7 @@ describe('AuthenticationService', () => {
     });
 
     it('isAuthenticated false', () => {
-        service.userInfo = null;
+        service.userInfo = null as any;
 
         const isAuthenticated = service.isAuthenticated();
 
@@ -241,3 +241,4 @@ describe('AuthenticationService', () => {
     });
 
 });
+

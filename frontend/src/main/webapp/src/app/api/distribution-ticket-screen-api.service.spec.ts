@@ -1,6 +1,6 @@
 import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
 import {TestBed} from '@angular/core/testing';
-import {provideHttpClient} from '@angular/common/http';
+import {provideHttpClient, withXhr} from '@angular/common/http';
 import {
   DistributionTicketScreenApiService,
   TicketScreenShowNextTicketRequest,
@@ -14,7 +14,7 @@ describe('DistributionTicketScreenApiService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
-        provideHttpClient(),
+        provideHttpClient(withXhr()),
         provideHttpClientTesting(),
         DistributionTicketScreenApiService
       ]
@@ -34,7 +34,7 @@ describe('DistributionTicketScreenApiService', () => {
     const req = httpMock.expectOne({method: 'POST', url: `/distributions/ticket-screen/show-text`});
     expect(req.request.body).toEqual(request);
 
-    req.flush(null);
+    req.flush(null as any);
     httpMock.verify();
   });
 
@@ -42,7 +42,7 @@ describe('DistributionTicketScreenApiService', () => {
     apiService.showCurrentTicket().subscribe();
 
     const req = httpMock.expectOne({method: 'POST', url: '/distributions/ticket-screen/show-current'});
-    req.flush(null);
+    req.flush(null as any);
     httpMock.verify();
   });
 
@@ -50,7 +50,7 @@ describe('DistributionTicketScreenApiService', () => {
     apiService.showPreviousTicket().subscribe();
 
     const req = httpMock.expectOne({method: 'POST', url: '/distributions/ticket-screen/show-previous'});
-    req.flush(null);
+    req.flush(null as any);
     httpMock.verify();
   });
 
@@ -63,8 +63,9 @@ describe('DistributionTicketScreenApiService', () => {
     const req = httpMock.expectOne({method: 'POST', url: '/distributions/ticket-screen/show-next'});
     expect(req.request.body).toEqual(request);
 
-    req.flush(null);
+    req.flush(null as any);
     httpMock.verify();
   });
 
 });
+

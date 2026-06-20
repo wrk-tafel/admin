@@ -1,7 +1,7 @@
 import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { MailRecipientsComponent } from './mail-recipients.component';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { of, throwError } from 'rxjs';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -20,7 +20,7 @@ describe('MailRecipients', () => {
                 NoopAnimationsModule
             ],
             providers: [
-                provideHttpClient(),
+                provideHttpClient(withXhr()),
                 provideHttpClientTesting(),
                 {
                     provide: SettingsApiService,

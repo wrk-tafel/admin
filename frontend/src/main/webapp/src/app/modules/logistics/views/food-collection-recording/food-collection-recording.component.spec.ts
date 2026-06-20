@@ -1,7 +1,7 @@
 import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { FoodCollectionRecordingComponent } from './food-collection-recording.component';
 import { Router } from '@angular/router';
@@ -20,7 +20,7 @@ describe('FoodCollectionRecordingComponent', () => {
                 NoopAnimationsModule
             ],
             providers: [
-                provideHttpClient(),
+                provideHttpClient(withXhr()),
                 provideHttpClientTesting(),
                 {
                     provide: Router,
@@ -49,7 +49,7 @@ describe('FoodCollectionRecordingComponent', () => {
     });
 
     it('ngOnInit without active distribution', () => {
-        globalStateService.getCurrentDistribution.mockReturnValue(signal<DistributionItem>(null).asReadonly());
+        globalStateService.getCurrentDistribution.mockReturnValue(signal<DistributionItem>(null as any).asReadonly());
 
         const fixture = TestBed.createComponent(FoodCollectionRecordingComponent);
         const componentRef = fixture.componentRef;
@@ -66,3 +66,4 @@ describe('FoodCollectionRecordingComponent', () => {
     });
 
 });
+

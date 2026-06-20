@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { MatDialogModule } from '@angular/material/dialog';
-import {Component} from '@angular/core';
+import {Component, ChangeDetectionStrategy} from '@angular/core';
 import {TafelDialogComponent} from './tafel-dialog.component';
 
 @Component({
@@ -10,6 +10,7 @@ import {TafelDialogComponent} from './tafel-dialog.component';
         <div tafel-dialog-content><span id="projected-content">Hello World</span></div>
         <div tafel-dialog-actions><button id="action-btn">Click</button></div>
     </tafel-dialog>`,
+    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [TafelDialogComponent],
 })
 class TestHostInfoComponent {}
@@ -20,6 +21,7 @@ class TestHostInfoComponent {}
         <div tafel-dialog-content><span>Warning content</span></div>
         <div tafel-dialog-actions><button>OK</button></div>
     </tafel-dialog>`,
+    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [TafelDialogComponent],
 })
 class TestHostWarningComponent {}
@@ -30,6 +32,7 @@ class TestHostWarningComponent {}
         <div tafel-dialog-content><span>Danger content</span></div>
         <div tafel-dialog-actions><button>Delete</button></div>
     </tafel-dialog>`,
+    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [TafelDialogComponent],
 })
 class TestHostDangerComponent {}
@@ -40,6 +43,7 @@ class TestHostDangerComponent {}
         <div tafel-dialog-content><span>Success content</span></div>
         <div tafel-dialog-actions><button>Save</button></div>
     </tafel-dialog>`,
+    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [TafelDialogComponent],
 })
 class TestHostSuccessComponent {}

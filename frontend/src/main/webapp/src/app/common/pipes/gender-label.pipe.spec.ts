@@ -30,9 +30,10 @@ describe('GenderLabelPipe', () => {
     expect(result).toBe('-');
   });
 
-  it('should return dash for null gender', () => {
-    const result = pipe.transform(null);
+  it('should return dash for null as any gender', () => {
+    const result = pipe.transform(null as any);
 
     expect(result).toBe('-');
   });
 });
+

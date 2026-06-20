@@ -107,7 +107,7 @@ describe('UserSearchComponent', () => {
       firstname: '',
       lastname: '',
       username: '',
-      enabled: null
+      enabled: null as any
     });
     component.searchForPersonnelNumber();
 
@@ -148,28 +148,28 @@ describe('UserSearchComponent', () => {
     const fixture = TestBed.createComponent(UserSearchComponent);
     const component = fixture.componentInstance;
     component.searchFormModel.set({
-      personnelNumber: null,
+      personnelNumber: null as any,
       firstname: 'firstname',
-      lastname: null,
-      username: null,
-      enabled: null
+      lastname: null as any,
+      username: null as any,
+      enabled: null as any
     });
     apiService.searchUser.mockReturnValue(EMPTY);
 
     component.searchForDetails();
 
-    expect(apiService.searchUser).toHaveBeenCalledWith(null, null, null, 'firstname', undefined);
+    expect(apiService.searchUser).toHaveBeenCalledWith(null as any, null as any, null as any, 'firstname', undefined);
   });
 
   it('search with firstname no results', () => {
     const fixture = TestBed.createComponent(UserSearchComponent);
     const component = fixture.componentInstance;
     component.searchFormModel.set({
-      personnelNumber: null,
+      personnelNumber: null as any,
       firstname: 'firstname',
-      lastname: null,
-      username: null,
-      enabled: null
+      lastname: null as any,
+      username: null as any,
+      enabled: null as any
     });
 
     const response: UserSearchResult = {items: [], totalCount: 0, currentPage: 3, totalPages: 0, pageSize: 0};
@@ -177,7 +177,7 @@ describe('UserSearchComponent', () => {
 
     component.searchForDetails();
 
-    expect(apiService.searchUser).toHaveBeenCalledWith(null, null, null, 'firstname', undefined);
+    expect(apiService.searchUser).toHaveBeenCalledWith(null as any, null as any, null as any, 'firstname', undefined);
     expect(toastr.info).toHaveBeenCalledWith('Keine Benutzer gefunden!');
   });
 
@@ -200,3 +200,4 @@ describe('UserSearchComponent', () => {
   });
 
 });
+

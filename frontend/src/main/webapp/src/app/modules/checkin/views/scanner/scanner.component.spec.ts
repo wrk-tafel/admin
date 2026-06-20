@@ -29,13 +29,13 @@ describe('ScannerComponent', () => {
                 {
                     provide: QRCodeReaderService,
                     useValue: {
-                        stop: vi.fn().mockResolvedValue(null),
+                        stop: vi.fn().mockResolvedValue(null as any),
                         saveCurrentCamera: vi.fn(),
-                        restart: vi.fn().mockResolvedValue(null),
+                        restart: vi.fn().mockResolvedValue(null as any),
                         getCameras: vi.fn().mockResolvedValue([]),
                         getCurrentCamera: vi.fn().mockReturnValue({ id: 'default', label: 'Default Camera' }),
                         init: vi.fn(),
-                        start: vi.fn().mockResolvedValue(null)
+                        start: vi.fn().mockResolvedValue(null as any)
                     }
                 }
             ]
@@ -67,7 +67,7 @@ describe('ScannerComponent', () => {
     it('processQrCodeReaderPromise handles success', async () => {
         component.readyState.set(false);
 
-        await component.processQrCodeReaderPromise(Promise.resolve(null));
+        await component.processQrCodeReaderPromise(Promise.resolve(null as any));
 
         expect(component.readyState()).toBe(true);
     });

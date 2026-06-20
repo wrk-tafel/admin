@@ -3,7 +3,7 @@ import {TestBed} from '@angular/core/testing';
 import {ReactiveFormsModule} from '@angular/forms';
 import {CreateCustomerNoteRequest, CustomerNoteApiService, CustomerNoteItem} from './customer-note-api.service';
 import moment from 'moment';
-import {provideHttpClient} from '@angular/common/http';
+import {provideHttpClient, withXhr} from '@angular/common/http';
 
 describe('CustomerNoteApiService', () => {
   let httpMock: HttpTestingController;
@@ -14,7 +14,7 @@ describe('CustomerNoteApiService', () => {
       imports: [ReactiveFormsModule],
       providers: [
         CustomerNoteApiService,
-        provideHttpClient(),
+        provideHttpClient(withXhr()),
         provideHttpClientTesting()
       ]
     });
@@ -27,7 +27,7 @@ describe('CustomerNoteApiService', () => {
     apiService.getNotesForCustomer(1).subscribe();
 
     const req = httpMock.expectOne({method: 'GET', url: '/customers/1/notes'});
-    req.flush(null);
+    req.flush(null as any);
     httpMock.verify();
   });
 
@@ -35,7 +35,7 @@ describe('CustomerNoteApiService', () => {
     apiService.getNotesForCustomer(1, 2).subscribe();
 
     const req = httpMock.expectOne({method: 'GET', url: '/customers/1/notes?page=2'});
-    req.flush(null);
+    req.flush(null as any);
     httpMock.verify();
   });
 
@@ -62,3 +62,4 @@ describe('CustomerNoteApiService', () => {
   });
 
 });
+

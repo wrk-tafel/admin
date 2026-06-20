@@ -48,7 +48,7 @@ describe('CustomerDetailComponent', () => {
   let toastr: MockedObject<ToastrService>;
   let distributionTicketApiService: MockedObject<DistributionTicketApiService>;
   let distributionApiService: MockedObject<DistributionApiService>;
-  const currentDistributionSignal = signal<DistributionItem>(null);
+  const currentDistributionSignal = signal<DistributionItem>(null as any);
 
   const mockCountry = {
     id: 0,
@@ -136,16 +136,16 @@ describe('CustomerDetailComponent', () => {
 
   const mockUpdateSuccessResponse: CustomerUpdateResponse = {
     data: mockCustomer,
-    errorMsg: null
+    errorMsg: null as any
   };
 
   beforeEach((() => {
     const customerApiServiceSpy = {
       generatePdf: vi.fn().mockName("CustomerApiService.generatePdf"),
-      deleteCustomer: vi.fn().mockReturnValue(of(null)).mockName("CustomerApiService.deleteCustomer"),
+      deleteCustomer: vi.fn().mockReturnValue(of(null as any)).mockName("CustomerApiService.deleteCustomer"),
       updateCustomer: vi.fn().mockImplementation((customerData: CustomerData) => of({
         data: customerData,
-        errorMsg: null
+        errorMsg: null as any
       }))
     };
     const customerNoteApiServiceSpy = {
@@ -168,7 +168,7 @@ describe('CustomerDetailComponent', () => {
     const distributionApiServiceSpy = {
       assignCustomer: vi.fn().mockName("DistributionApiService.assignCustomer")
     };
-    currentDistributionSignal.set(null);
+    currentDistributionSignal.set(null as any);
     const globalStateServiceSpy = {
       getCurrentDistribution: vi.fn().mockReturnValue(currentDistributionSignal)
     };
@@ -465,7 +465,7 @@ describe('CustomerDetailComponent', () => {
     const component = fixture.componentInstance;
     fixture.detectChanges();
 
-    customerApiService.deleteCustomer.mockReturnValue(of(null));
+    customerApiService.deleteCustomer.mockReturnValue(of(null as any));
 
     component.openDeleteCustomerDialog();
     fixture.detectChanges();
@@ -511,7 +511,7 @@ describe('CustomerDetailComponent', () => {
     };
     const mockUpdateSuccessResponse: CustomerUpdateResponse = {
       data: expectedCustomerData,
-      errorMsg: null
+      errorMsg: null as any
     };
     customerApiService.updateCustomer.mockReturnValue(of(mockUpdateSuccessResponse));
 
@@ -534,7 +534,7 @@ describe('CustomerDetailComponent', () => {
     };
     const mockUpdateSuccessResponse: CustomerUpdateResponse = {
       data: expectedCustomerData,
-      errorMsg: null
+      errorMsg: null as any
     };
     customerApiService.updateCustomer.mockReturnValue(of(mockUpdateSuccessResponse));
 
@@ -562,7 +562,7 @@ describe('CustomerDetailComponent', () => {
     };
     const mockUpdateSuccessResponse: CustomerUpdateResponse = {
       data: expectedCustomerData,
-      errorMsg: null
+      errorMsg: null as any
     };
     customerApiService.updateCustomer.mockReturnValue(of(mockUpdateSuccessResponse));
 
@@ -587,12 +587,12 @@ describe('CustomerDetailComponent', () => {
     const expectedCustomerData = {
       ...mockCustomer,
       locked: false,
-      lockedBy: null,
-      lockReason: null
+      lockedBy: null as any,
+      lockReason: null as any
     };
     const mockUpdateSuccessResponse: CustomerUpdateResponse = {
       data: expectedCustomerData,
-      errorMsg: null
+      errorMsg: null as any
     };
     customerApiService.updateCustomer.mockReturnValue(of(mockUpdateSuccessResponse));
 
@@ -881,3 +881,4 @@ describe('CustomerDetailComponent', () => {
   }
 
 });
+

@@ -75,7 +75,7 @@ describe('TicketScreenControlComponent', () => {
   it('showStartTime', () => {
     const fixture = TestBed.createComponent(TicketScreenControlComponent);
     const component = fixture.componentInstance;
-    distributionTicketScreenApiService.showText.mockReturnValue(of(null));
+    distributionTicketScreenApiService.showText.mockReturnValue(of(null as any));
 
     const startTime = '19:00';
     component.startTimeFormModel.set({
@@ -90,7 +90,7 @@ describe('TicketScreenControlComponent', () => {
   it('showCurrentTicket', () => {
     const fixture = TestBed.createComponent(TicketScreenControlComponent);
     const component = fixture.componentInstance;
-    distributionTicketScreenApiService.showCurrentTicket.mockReturnValue(of(null));
+    distributionTicketScreenApiService.showCurrentTicket.mockReturnValue(of(null as any));
 
     component.showCurrentTicket();
 
@@ -100,7 +100,7 @@ describe('TicketScreenControlComponent', () => {
   it('showPreviousTicket', () => {
     const fixture = TestBed.createComponent(TicketScreenControlComponent);
     const component = fixture.componentInstance;
-    distributionTicketScreenApiService.showPreviousTicket.mockReturnValue(of(null));
+    distributionTicketScreenApiService.showPreviousTicket.mockReturnValue(of(null as any));
 
     component.showPreviousTicket();
 
@@ -110,7 +110,7 @@ describe('TicketScreenControlComponent', () => {
   it('showNextTicket with costContributionPaid true', () => {
     const fixture = TestBed.createComponent(TicketScreenControlComponent);
     const component = fixture.componentInstance;
-    distributionTicketScreenApiService.showNextTicket.mockReturnValue(of(null));
+    distributionTicketScreenApiService.showNextTicket.mockReturnValue(of(null as any));
 
     component.showNextTicket(true);
 
@@ -120,7 +120,7 @@ describe('TicketScreenControlComponent', () => {
   it('showNextTicket with costContributionPaid false', () => {
     const fixture = TestBed.createComponent(TicketScreenControlComponent);
     const component = fixture.componentInstance;
-    distributionTicketScreenApiService.showNextTicket.mockReturnValue(of(null));
+    distributionTicketScreenApiService.showNextTicket.mockReturnValue(of(null as any));
 
     component.showNextTicket(false);
 
@@ -165,7 +165,7 @@ describe('TicketScreenControlComponent', () => {
   it('showStartTime manages loading state correctly', () => {
     const fixture = TestBed.createComponent(TicketScreenControlComponent);
     const component = fixture.componentInstance;
-    distributionTicketScreenApiService.showText.mockReturnValue(of(null));
+    distributionTicketScreenApiService.showText.mockReturnValue(of(null as any));
 
     const startTime = '19:00';
     component.startTimeFormModel.set({
@@ -180,7 +180,7 @@ describe('TicketScreenControlComponent', () => {
   it('showCurrentTicket manages loading state correctly', () => {
     const fixture = TestBed.createComponent(TicketScreenControlComponent);
     const component = fixture.componentInstance;
-    distributionTicketScreenApiService.showCurrentTicket.mockReturnValue(of(null));
+    distributionTicketScreenApiService.showCurrentTicket.mockReturnValue(of(null as any));
 
     expect(component.isShowingCurrentTicket()).toBe(false);
     component.showCurrentTicket();
@@ -190,7 +190,7 @@ describe('TicketScreenControlComponent', () => {
   it('showNextTicket manages loading state correctly', () => {
     const fixture = TestBed.createComponent(TicketScreenControlComponent);
     const component = fixture.componentInstance;
-    distributionTicketScreenApiService.showNextTicket.mockReturnValue(of(null));
+    distributionTicketScreenApiService.showNextTicket.mockReturnValue(of(null as any));
 
     expect(component.isShowingNextTicket()).toBe(false);
     component.showNextTicket(false);
@@ -198,3 +198,4 @@ describe('TicketScreenControlComponent', () => {
   });
 
 });
+

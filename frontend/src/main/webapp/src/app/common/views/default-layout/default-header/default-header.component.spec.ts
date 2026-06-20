@@ -7,7 +7,7 @@ import { cilMenu } from '@coreui/icons';
 import { DefaultHeaderComponent } from './default-header.component';
 import { AuthenticationService } from '../../../security/authentication.service';
 import { of } from 'rxjs';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { GlobalStateService } from '../../../state/global-state.service';
 import { signal } from '@angular/core';
@@ -33,7 +33,7 @@ describe('DefaultHeaderComponent', () => {
                 SidebarModule
             ],
             providers: [
-                provideHttpClient(),
+                provideHttpClient(withXhr()),
                 provideHttpClientTesting(),
                 provideRouter([]),
                 provideLocationMocks(),
@@ -81,7 +81,7 @@ describe('DefaultHeaderComponent', () => {
     });
 
     it('logout', () => {
-        authenticationService.logout.mockReturnValueOnce(of(null));
+        authenticationService.logout.mockReturnValueOnce(of(null as any));
 
         const fixture = TestBed.createComponent(DefaultHeaderComponent);
         const component = fixture.componentInstance;
@@ -92,3 +92,4 @@ describe('DefaultHeaderComponent', () => {
     });
 
 });
+

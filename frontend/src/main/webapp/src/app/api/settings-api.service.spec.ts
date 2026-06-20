@@ -1,7 +1,7 @@
 import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
 import {TestBed} from '@angular/core/testing';
 import {UserApiService} from './user-api.service';
-import {provideHttpClient} from '@angular/common/http';
+import {provideHttpClient, withXhr} from '@angular/common/http';
 import {MailRecipients, MailTypeEnum, RecipientTypeEnum, SettingsApiService} from './settings-api.service';
 
 describe('SettingsApiService', () => {
@@ -11,7 +11,7 @@ describe('SettingsApiService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
-        provideHttpClient(),
+        provideHttpClient(withXhr()),
         provideHttpClientTesting(),
         UserApiService
       ]
@@ -25,7 +25,7 @@ describe('SettingsApiService', () => {
     apiService.getMailRecipients().subscribe();
 
     const req = httpMock.expectOne({method: 'GET', url: '/settings/mail-recipients'});
-    req.flush(null);
+    req.flush(null as any);
     httpMock.verify();
   });
 
@@ -56,10 +56,11 @@ describe('SettingsApiService', () => {
     apiService.saveMailRecipients(testData).subscribe();
 
     const req = httpMock.expectOne({method: 'POST', url: '/settings/mail-recipients'});
-    req.flush(null);
+    req.flush(null as any);
     httpMock.verify();
 
     expect(req.request.body).toEqual(testData);
   });
 
 });
+

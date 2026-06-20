@@ -4,7 +4,7 @@ import { of } from 'rxjs';
 import { UserDataResolver } from './userdata-resolver.component';
 import { ActivatedRouteSnapshot } from '@angular/router';
 import { UserApiService, UserData } from '../../../api/user-api.service';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 
 describe('UserDataResolver', () => {
@@ -14,7 +14,7 @@ describe('UserDataResolver', () => {
     beforeEach(() => {
         TestBed.configureTestingModule({
             providers: [
-                provideHttpClient(),
+                provideHttpClient(withXhr()),
                 provideHttpClientTesting(),
                 {
                     provide: UserApiService,

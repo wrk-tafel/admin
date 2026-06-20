@@ -1,5 +1,5 @@
 import type { MockedObject } from 'vitest';
-import { HttpClient, provideHttpClient, withInterceptors } from '@angular/common/http';
+import { HttpClient, provideHttpClient, withInterceptors, withXhr } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { apiPathInterceptor } from './apipath-interceptor.service';
@@ -13,7 +13,7 @@ describe('ApiPathInterceptor', () => {
     beforeEach(() => {
         TestBed.configureTestingModule({
             providers: [
-                provideHttpClient(withInterceptors([apiPathInterceptor])),
+                provideHttpClient(withXhr(), withInterceptors([apiPathInterceptor])),
                 provideHttpClientTesting(),
                 {
                     provide: UrlHelperService,

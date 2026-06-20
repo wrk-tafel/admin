@@ -1,5 +1,5 @@
 import type { MockedObject } from 'vitest';
-import { HttpClient, provideHttpClient, withInterceptors } from '@angular/common/http';
+import { HttpClient, provideHttpClient, withInterceptors, withXhr } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { errorHandlerInterceptor, TafelErrorResponse } from './errorhandler-interceptor.service';
@@ -15,7 +15,7 @@ describe('ErrorHandlerInterceptor', () => {
     beforeEach(() => {
         TestBed.configureTestingModule({
             providers: [
-                provideHttpClient(withInterceptors([errorHandlerInterceptor])),
+                provideHttpClient(withXhr(), withInterceptors([errorHandlerInterceptor])),
                 provideHttpClientTesting(),
                 {
                     provide: AuthenticationService,
@@ -62,7 +62,7 @@ describe('ErrorHandlerInterceptor', () => {
 
         const mockReq = httpTestingController.expectOne('/test');
         const mockErrorResponse = { status: 500, statusText: 'Internal Server Error' };
-        mockReq.flush(null, mockErrorResponse);
+        mockReq.flush(null as any, mockErrorResponse);
         httpTestingController.verify();
     });
 
@@ -82,7 +82,7 @@ describe('ErrorHandlerInterceptor', () => {
 
         const mockReq = httpTestingController.expectOne('/test');
         const mockErrorResponse = { status: 504, statusText: 'Bad Gateway' };
-        mockReq.flush(null, mockErrorResponse);
+        mockReq.flush(null as any, mockErrorResponse);
         httpTestingController.verify();
     });
 
@@ -102,7 +102,7 @@ describe('ErrorHandlerInterceptor', () => {
 
         const mockReq = httpTestingController.expectOne('/test');
         const mockErrorResponse = { status: 403, statusText: 'Forbidden' };
-        mockReq.flush(null, mockErrorResponse);
+        mockReq.flush(null as any, mockErrorResponse);
         httpTestingController.verify();
     });
 
@@ -146,8 +146,9 @@ describe('ErrorHandlerInterceptor', () => {
 
         const mockReq = httpTestingController.expectOne('/test');
         const mockErrorResponse = { status: 401, statusText: 'Unauthorized' };
-        mockReq.flush(null, mockErrorResponse);
+        mockReq.flush(null as any, mockErrorResponse);
         httpTestingController.verify();
     });
 
 });
+

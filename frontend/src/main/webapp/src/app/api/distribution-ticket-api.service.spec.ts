@@ -2,7 +2,7 @@ import {HttpTestingController, provideHttpClientTesting} from '@angular/common/h
 import {TestBed} from '@angular/core/testing';
 import {DistributionApiService} from './distribution-api.service';
 import {DistributionTicketApiService} from './distribution-ticket-api.service';
-import {provideHttpClient} from '@angular/common/http';
+import {provideHttpClient, withXhr} from '@angular/common/http';
 
 describe('DistributionTicketApiService', () => {
   let httpMock: HttpTestingController;
@@ -11,7 +11,7 @@ describe('DistributionTicketApiService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
-        provideHttpClient(),
+        provideHttpClient(withXhr()),
         provideHttpClientTesting(),
         DistributionApiService
       ]
@@ -26,7 +26,7 @@ describe('DistributionTicketApiService', () => {
     apiService.getCurrentTicketForCustomer(customerId).subscribe();
 
     const req = httpMock.expectOne({method: 'GET', url: `/distributions/tickets/customers/${customerId}`});
-    req.flush(null);
+    req.flush(null as any);
     httpMock.verify();
   });
 
@@ -35,8 +35,9 @@ describe('DistributionTicketApiService', () => {
     apiService.deleteCurrentTicketOfCustomer(customerId).subscribe();
 
     const req = httpMock.expectOne({method: 'DELETE', url: `/distributions/tickets/customers/${customerId}`});
-    req.flush(null);
+    req.flush(null as any);
     httpMock.verify();
   });
 
 });
+

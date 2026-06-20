@@ -201,8 +201,8 @@ describe('UserFormComponent', () => {
 
     component.generatePassword();
 
-    expect(component.userForm.password().value()).toBe(null);
-    expect(component.userForm.passwordRepeat().value()).toBe(null);
+    expect(component.userForm.password().value()).toBe(null as any);
+    expect(component.userForm.passwordRepeat().value()).toBe(null as any);
     expect(component.passwordTextVisible()).toBe(false);
     expect(component.passwordRepeatTextVisible()).toBe(false);
 
@@ -210,3 +210,4 @@ describe('UserFormComponent', () => {
   });
 
 });
+

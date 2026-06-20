@@ -2,18 +2,19 @@ import { TafelIfDistributionActiveDirective } from './tafel-if-distribution-acti
 import { DistributionItem } from '../../api/distribution-api.service';
 import { TestBed } from '@angular/core/testing';
 import { GlobalStateService } from '../state/global-state.service';
-import { signal } from '@angular/core';
+import { signal, ChangeDetectionStrategy } from '@angular/core';
 import { Component, TemplateRef, ViewContainerRef } from '@angular/core';
 
 @Component({
     template: '<div *tafelIfDistributionActive>Content</div>',
+    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [TafelIfDistributionActiveDirective]
 })
 class TestComponent {}
 
 describe('TafelIfDistributionActiveDirective', () => {
 
-    function setup(distributionItem: DistributionItem | null) {
+    function setup(distributionItem: DistributionItem | null as any) {
         const globalStateServiceSpy = {
             getCurrentDistribution: vi.fn().mockName("GlobalStateService.getCurrentDistribution")
         };
@@ -39,7 +40,7 @@ describe('TafelIfDistributionActiveDirective', () => {
     });
 
     it('should not render when distribution is inactive', () => {
-        const { fixture } = setup(null);
+        const { fixture } = setup(null as any);
 
         fixture.detectChanges();
 
@@ -47,3 +48,4 @@ describe('TafelIfDistributionActiveDirective', () => {
     });
 
 });
+

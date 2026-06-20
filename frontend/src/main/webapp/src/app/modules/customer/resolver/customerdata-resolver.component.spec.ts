@@ -5,7 +5,7 @@ import moment from 'moment';
 import { of } from 'rxjs';
 import { CustomerDataResolver } from './customerdata-resolver.component';
 import { ActivatedRouteSnapshot } from '@angular/router';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 
 describe('CustomerDataResolver', () => {
@@ -15,7 +15,7 @@ describe('CustomerDataResolver', () => {
     beforeEach(() => {
         TestBed.configureTestingModule({
             providers: [
-                provideHttpClient(),
+                provideHttpClient(withXhr()),
                 provideHttpClientTesting(),
                 {
                     provide: CustomerApiService,

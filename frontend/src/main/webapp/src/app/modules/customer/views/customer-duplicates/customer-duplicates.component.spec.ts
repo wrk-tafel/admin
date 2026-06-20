@@ -204,7 +204,7 @@ describe('CustomerDuplicatesComponent', () => {
     const component = fixture.componentInstance;
 
     const customerId = 123;
-    customerApiService.deleteCustomer.mockReturnValue(of(null));
+    customerApiService.deleteCustomer.mockReturnValue(of(null as any));
 
     const page = 3;
     component.paginationData.set({
@@ -271,7 +271,7 @@ describe('CustomerDuplicatesComponent', () => {
     };
     component.customerDuplicatesData.set(customerDuplicatesData);
 
-    customerApiService.mergeCustomers.mockReturnValue(of(null));
+    customerApiService.mergeCustomers.mockReturnValue(of(null as any));
     customerApiService.getCustomerDuplicates.mockReturnValue(of(mockCustomerDuplicatesDataResponse));
 
     component.mergeCustomers(mockCustomer1);
@@ -284,3 +284,4 @@ describe('CustomerDuplicatesComponent', () => {
   });
 
 });
+

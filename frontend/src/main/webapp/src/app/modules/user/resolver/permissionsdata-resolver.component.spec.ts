@@ -4,7 +4,7 @@ import { of } from 'rxjs';
 import { ActivatedRouteSnapshot } from '@angular/router';
 import { PermissionsListResponse, UserApiService, UserPermission } from '../../../api/user-api.service';
 import { PermissionsDataResolver } from './permissionsdata-resolver.component';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 
 describe('PermissionsDataResolver', () => {
@@ -14,7 +14,7 @@ describe('PermissionsDataResolver', () => {
     beforeEach(() => {
         TestBed.configureTestingModule({
             providers: [
-                provideHttpClient(),
+                provideHttpClient(withXhr()),
                 provideHttpClientTesting(),
                 {
                     provide: UserApiService,

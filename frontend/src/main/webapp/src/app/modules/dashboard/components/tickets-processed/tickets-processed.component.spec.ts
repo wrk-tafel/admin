@@ -2,7 +2,7 @@ import {TestBed} from '@angular/core/testing';
 import {TicketsProcessedComponent} from './tickets-processed.component';
 import {By} from '@angular/platform-browser';
 import {CardModule, ColComponent, ModalModule, RowComponent} from '@coreui/angular';
-import {provideHttpClient} from '@angular/common/http';
+import {provideHttpClient, withXhr} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
 
 describe('TicketsProcessedComponent', () => {
@@ -15,7 +15,7 @@ describe('TicketsProcessedComponent', () => {
         RowComponent
       ],
       providers: [
-        provideHttpClient(),
+        provideHttpClient(withXhr()),
         provideHttpClientTesting()
       ]
     }).compileComponents();

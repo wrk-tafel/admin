@@ -67,8 +67,8 @@ describe('FormatPermissionsPipe', () => {
     expect(result).toBe('');
   });
 
-  it('should return empty string for null userData', () => {
-    const result = pipe.transform(null);
+  it('should return empty string for null as any userData', () => {
+    const result = pipe.transform(null as any);
 
     expect(result).toBe('');
   });
@@ -91,3 +91,4 @@ describe('FormatPermissionsPipe', () => {
     expect(result).toBe('Kundenverwaltung, Scanner, Check-in, Logistik, Benutzerverwaltung, Einstellungen');
   });
 });
+

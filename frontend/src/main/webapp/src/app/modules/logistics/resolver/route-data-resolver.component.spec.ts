@@ -1,6 +1,6 @@
 import type {MockedObject} from 'vitest';
 import {TestBed} from '@angular/core/testing';
-import {provideHttpClient} from '@angular/common/http';
+import {provideHttpClient, withXhr} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
 import {RouteApiService, RouteList} from '../../../api/route-api.service';
 import {RouteDataResolver} from './route-data-resolver.component';
@@ -14,7 +14,7 @@ describe('RouteDataResolver', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
-        provideHttpClient(),
+        provideHttpClient(withXhr()),
         provideHttpClientTesting(),
         {
           provide: RouteApiService,

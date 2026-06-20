@@ -175,7 +175,7 @@ describe('CheckinComponent', () => {
 
     it('ngOnInit without ongoing distribution navigates to dashboard', () => {
         scannerApiService.getScanners.mockReturnValue(EMPTY);
-        globalStateService.getCurrentDistribution.mockReturnValue(signal<DistributionItem>(null).asReadonly());
+        globalStateService.getCurrentDistribution.mockReturnValue(signal<DistributionItem>(null as any).asReadonly());
 
         const fixture = TestBed.createComponent(CheckinComponent);
         const component = fixture.componentInstance;
@@ -311,7 +311,7 @@ describe('CheckinComponent', () => {
         customerNoteApiService.getNotesForCustomer.mockReturnValue(of(notesResponse));
         component.customerId = mockCustomer.id;
         distributionTicketApiService.getCurrentTicketForCustomer.mockReturnValue(of({
-            ticketNumber: null
+            ticketNumber: null as any
         }));
 
         component.searchForCustomerId();
@@ -421,7 +421,7 @@ describe('CheckinComponent', () => {
         customerNoteApiService.getNotesForCustomer.mockReturnValue(of(notesResponse));
         component.customerId = mockCustomer.id;
         distributionTicketApiService.getCurrentTicketForCustomer.mockReturnValue(of({
-            ticketNumber: null
+            ticketNumber: null as any
         }));
 
         component.searchForCustomerId();
@@ -471,7 +471,7 @@ describe('CheckinComponent', () => {
         customerNoteApiService.getNotesForCustomer.mockReturnValue(of(notesResponse));
         component.customerId = mockCustomer.id;
         distributionTicketApiService.getCurrentTicketForCustomer.mockReturnValue(of({
-            ticketNumber: null
+            ticketNumber: null as any
         }));
 
         component.searchForCustomerId();
@@ -522,7 +522,7 @@ describe('CheckinComponent', () => {
         customerNoteApiService.getNotesForCustomer.mockReturnValue(of(notesResponse));
         component.customerId = mockCustomer.id;
         distributionTicketApiService.getCurrentTicketForCustomer.mockReturnValue(of({
-            ticketNumber: null
+            ticketNumber: null as any
         }));
 
         component.searchForCustomerId();
@@ -612,7 +612,7 @@ describe('CheckinComponent', () => {
         };
         customerNoteApiService.getNotesForCustomer.mockReturnValue(of(mockNotesResponse));
         distributionTicketApiService.getCurrentTicketForCustomer.mockReturnValue(of({
-            ticketNumber: null
+            ticketNumber: null as any
         }));
 
         component.customerId = mockCustomer.id;
@@ -695,7 +695,7 @@ describe('CheckinComponent', () => {
         const ticketNumber = 55;
         component.ticketNumber = ticketNumber;
 
-        distributionApiService.assignCustomer.mockReturnValue(of(null));
+        distributionApiService.assignCustomer.mockReturnValue(of(null as any));
 
         component.assignCustomer();
         await fixture.whenStable();
@@ -776,7 +776,7 @@ describe('CheckinComponent', () => {
         };
         component.processCustomer(mockCustomer);
         distributionTicketApiService.deleteCurrentTicketOfCustomer.mockImplementation((id) =>
-            id === mockCustomer.id ? of(null) : of(null)
+            id === mockCustomer.id ? of(null as any) : of(null as any)
         );
 
         component.deleteTicket();
@@ -790,3 +790,4 @@ describe('CheckinComponent', () => {
     });
 
 });
+

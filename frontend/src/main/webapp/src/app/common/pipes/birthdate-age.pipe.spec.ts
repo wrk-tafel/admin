@@ -58,8 +58,8 @@ describe('BirthdateAgePipe', () => {
     expect(result).toBe('-');
   });
 
-  it('should return dash for null birthdate', () => {
-    const result = pipe.transform(null);
+  it('should return dash for null as any birthdate', () => {
+    const result = pipe.transform(null as any);
 
     expect(result).toBe('-');
   });
@@ -72,3 +72,4 @@ describe('BirthdateAgePipe', () => {
     expect(result).toBe(`15.06.1990 (${age})`);
   });
 });
+

@@ -9,7 +9,7 @@ import {CustomerEditComponent} from './customer-edit.component';
 import {BgColorDirective, CardModule, ColComponent, InputGroupComponent, RowComponent} from '@coreui/angular';
 import {MatDialog} from '@angular/material/dialog';
 import {provideNoopAnimations} from '@angular/platform-browser/animations';
-import {provideHttpClient} from '@angular/common/http';
+import {provideHttpClient, withXhr} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
 import {ToastrService} from 'ngx-toastr';
 
@@ -74,7 +74,7 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
   };
   const mockUpdateSuccessResponse: CustomerUpdateResponse = {
     data: testCustomerData,
-    errorMsg: null
+    errorMsg: null as any
   };
 
   let router: MockedObject<Router>;
@@ -93,7 +93,7 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
       ],
       providers: [
         provideNoopAnimations(),
-        provideHttpClient(),
+        provideHttpClient(withXhr()),
         provideHttpClientTesting(),
         {
           provide: MatDialog,
@@ -307,3 +307,4 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
   });
 
 });
+

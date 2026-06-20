@@ -47,7 +47,7 @@ describe('DefaultLayoutComponent', () => {
         authService = TestBed.inject(AuthenticationService) as MockedObject<AuthenticationService>;
         globalStateService = TestBed.inject(GlobalStateService) as MockedObject<GlobalStateService>;
 
-        globalStateService.getCurrentDistribution.mockReturnValue(signal<DistributionItem>(null).asReadonly());
+        globalStateService.getCurrentDistribution.mockReturnValue(signal<DistributionItem>(null as any).asReadonly());
     });
 
     it('should create the component', () => {
@@ -78,11 +78,11 @@ describe('DefaultLayoutComponent', () => {
         expect(filteredItems).toEqual([]);
     });
 
-    it('navItems are filtered by permissions - permissions null', () => {
+    it('navItems are filtered by permissions - permissions null as any', () => {
         const fixture = TestBed.createComponent(DefaultLayoutComponent);
         const component = fixture.componentInstance;
 
-        const filteredItems = component.filterNavItemsByPermissions(null);
+        const filteredItems = component.filterNavItemsByPermissions(null as any);
 
         expect(filteredItems).toEqual([]);
     });
@@ -224,7 +224,7 @@ describe('DefaultLayoutComponent', () => {
         const fixture = TestBed.createComponent(DefaultLayoutComponent);
         const component = fixture.componentInstance;
 
-        const editedItems = component.editNavItemsForDistributionState(testMenuItems, null);
+        const editedItems = component.editNavItemsForDistributionState(testMenuItems, null as any);
 
         expect(editedItems).toEqual([
             testMenuItem1, {
@@ -276,3 +276,4 @@ describe('DefaultLayoutComponent', () => {
     });
 
 });
+

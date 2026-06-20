@@ -2,7 +2,7 @@ import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
 import {PasswordChangeFormComponent} from './passwordchange-form.component';
 import {ModalModule} from '@coreui/angular';
-import {provideHttpClient} from '@angular/common/http';
+import {provideHttpClient, withXhr} from '@angular/common/http';
 
 describe('PasswordChangeFormComponent', () => {
   let httpMock: HttpTestingController;
@@ -13,7 +13,7 @@ describe('PasswordChangeFormComponent', () => {
     TestBed.configureTestingModule({
       imports: [ModalModule],
       providers: [
-        provideHttpClient(),
+        provideHttpClient(withXhr()),
         provideHttpClientTesting(),
       ]
     }).compileComponents();
@@ -105,7 +105,7 @@ describe('PasswordChangeFormComponent', () => {
     req.flush({});
     httpMock.verify();
 
-    expect(component.errorMessage()).toBe(null);
+    expect(component.errorMessage()).toBe(null as any);
     expect(component.errorMessageDetails()).toEqual([]);
     expect(component.successMessage()).toBe('Passwort erfolgreich geändert!');
   });
@@ -125,11 +125,12 @@ describe('PasswordChangeFormComponent', () => {
     expect(component.passwordForm.currentPassword().value()).toBe('');
     expect(component.passwordForm.newPassword().value()).toBe('');
     expect(component.passwordForm.newRepeatedPassword().value()).toBe('');
-    expect(component.successMessage()).toBe(null);
-    expect(component.errorMessage()).toBe(null);
+    expect(component.successMessage()).toBe(null as any);
+    expect(component.errorMessage()).toBe(null as any);
     expect(component.errorMessageDetails()).toEqual([]);
   });
 
   // TODO test: isValid --> form.true/false/undefined
 
 });
+

@@ -51,7 +51,7 @@ describe('DistributionStateComponent', () => {
     }));
 
     it('component can be created', () => {
-        globalStateService.getCurrentDistribution.mockReturnValue(signal(null).asReadonly());
+        globalStateService.getCurrentDistribution.mockReturnValue(signal(null as any).asReadonly());
 
         const fixture = TestBed.createComponent(DistributionStateComponent);
         const component = fixture.componentInstance;
@@ -71,7 +71,7 @@ describe('DistributionStateComponent', () => {
     });
 
     it('component init distribution not active', () => {
-        globalStateService.getCurrentDistribution.mockReturnValue(signal(null).asReadonly());
+        globalStateService.getCurrentDistribution.mockReturnValue(signal(null as any).asReadonly());
 
         const fixture = TestBed.createComponent(DistributionStateComponent);
         const component = fixture.componentInstance;
@@ -81,7 +81,7 @@ describe('DistributionStateComponent', () => {
     });
 
     it('create new distribution', () => {
-        globalStateService.getCurrentDistribution.mockReturnValue(signal(null).asReadonly());
+        globalStateService.getCurrentDistribution.mockReturnValue(signal(null as any).asReadonly());
         distributionApiService.createNewDistribution.mockReturnValue(EMPTY);
 
         const fixture = TestBed.createComponent(DistributionStateComponent);
@@ -115,7 +115,7 @@ describe('DistributionStateComponent', () => {
     it('close distribution without any response at all', () => {
         const distribution: DistributionItem = { id: 123, startedAt: new Date() };
         globalStateService.getCurrentDistribution.mockReturnValue(signal(distribution).asReadonly());
-        distributionApiService.closeDistribution.mockReturnValue(of(null));
+        distributionApiService.closeDistribution.mockReturnValue(of(null as any));
 
         const fixture = TestBed.createComponent(DistributionStateComponent);
         const component = fixture.componentInstance;
@@ -167,3 +167,4 @@ describe('DistributionStateComponent', () => {
     });
 
 });
+

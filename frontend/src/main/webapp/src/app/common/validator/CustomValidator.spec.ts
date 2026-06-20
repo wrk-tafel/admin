@@ -37,7 +37,7 @@ describe('CustomValidator', () => {
     const minDate = new Date(2000, 0, 1);
     const result = CustomValidator.minDate(minDate)(control);
 
-    expect(result).toBe(null);
+    expect(result).toBe(null as any);
   });
 
   it('actualDate matching minDate time ignored', () => {
@@ -52,7 +52,7 @@ describe('CustomValidator', () => {
     const minDate = new Date(2000, 0, 1, 12, 0, 0);
     const result = CustomValidator.minDate(minDate)(control);
 
-    expect(result).toBe(null);
+    expect(result).toBe(null as any);
   });
 
   it('actualDate later than minDate', () => {
@@ -67,7 +67,7 @@ describe('CustomValidator', () => {
     const minDate = new Date(2000, 0, 1);
     const result = CustomValidator.minDate(minDate)(control);
 
-    expect(result).toBe(null);
+    expect(result).toBe(null as any);
   });
 
   it('actualDate earlier than maxDate', () => {
@@ -82,7 +82,7 @@ describe('CustomValidator', () => {
     const maxDate = new Date(2000, 0, 1);
     const result = CustomValidator.maxDate(maxDate)(control);
 
-    expect(result).toBe(null);
+    expect(result).toBe(null as any);
   });
 
   it('actualDate matching maxDate', () => {
@@ -97,7 +97,7 @@ describe('CustomValidator', () => {
     const maxDate = new Date(2000, 0, 1);
     const result = CustomValidator.maxDate(maxDate)(control);
 
-    expect(result).toBe(null);
+    expect(result).toBe(null as any);
   });
 
   it('actualDate matching maxDate time ignored', () => {
@@ -112,7 +112,7 @@ describe('CustomValidator', () => {
     const maxDate = new Date(2000, 0, 1);
     const result = CustomValidator.maxDate(maxDate)(control);
 
-    expect(result).toBe(null);
+    expect(result).toBe(null as any);
   });
 
   it('actualDate later than maxDate', () => {
@@ -137,21 +137,21 @@ describe('CustomValidator', () => {
     );
   });
 
-  it('hasValue with null value', () => {
+  it('hasValue with null as any value', () => {
     const control = Object.defineProperties({} as AbstractControl, {
       value: {
         get: function get() {
-          return null;
+          return null as any;
         }
       }
     });
 
-    const testCallback = () => null
+    const testCallback = () => null as any
     const testMessage = 'todo test'
 
     const result = CustomValidator.hasValue(testCallback, testMessage)(control);
 
-    expect(result).toBe(null);
+    expect(result).toBe(null as any);
   });
 
   it('hasValue with undefined value', () => {
@@ -191,7 +191,8 @@ describe('CustomValidator', () => {
 
     const result = CustomValidator.hasValue(testCallback, testMessage)(control);
 
-    expect(result).toBe(null);
+    expect(result).toBe(null as any);
   });
 
 });
+

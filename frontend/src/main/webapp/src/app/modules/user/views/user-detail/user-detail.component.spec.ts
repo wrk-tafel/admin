@@ -129,7 +129,7 @@ describe('UserDetailComponent', () => {
         const component = fixture.componentInstance;
         fixture.componentRef.setInput('userData', mockUser);
         fixture.detectChanges();
-        userApiService.deleteUser.mockReturnValueOnce(of(null));
+        userApiService.deleteUser.mockReturnValueOnce(of(null as any));
 
         component.deleteUser();
 
@@ -181,3 +181,4 @@ describe('UserDetailComponent', () => {
     }
 
 });
+
