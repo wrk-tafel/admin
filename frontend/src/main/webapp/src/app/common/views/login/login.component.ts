@@ -42,7 +42,7 @@ export class LoginComponent {
   });
 
   // Convert route params to signal
-  private readonly routeParams = toSignal(this.route.params, {initialValue: {}});
+  private readonly routeParams = toSignal<Record<string, any>>(this.route.params, {initialValue: {}});
 
   // Error message derived from route params via linkedSignal.
   // Writable: can be manually set on login failure, resets when route params change.
