@@ -78,7 +78,7 @@ describe('SelectSheltersComponent', () => {
   });
 
   it('dialog dismissed without selection does not emit', () => {
-    matDialog.open.mockReturnValue({afterClosed: () => of(undefined)} as any);
+    matDialog.open.mockReturnValue({afterClosed: () => of(undefined as any)} as any);
 
     const fixture = TestBed.createComponent(SelectSheltersComponent);
     const componentRef = fixture.componentRef;
@@ -96,3 +96,4 @@ describe('SelectSheltersComponent', () => {
   });
 
 });
+

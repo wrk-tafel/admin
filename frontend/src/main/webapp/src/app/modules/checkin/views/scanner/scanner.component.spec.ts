@@ -29,13 +29,13 @@ describe('ScannerComponent', () => {
                 {
                     provide: QRCodeReaderService,
                     useValue: {
-                        stop: vi.fn().mockResolvedValue(null),
+                        stop: vi.fn().mockResolvedValue(null as any),
                         saveCurrentCamera: vi.fn(),
-                        restart: vi.fn().mockResolvedValue(null),
+                        restart: vi.fn().mockResolvedValue(null as any),
                         getCameras: vi.fn().mockResolvedValue([]),
                         getCurrentCamera: vi.fn().mockReturnValue({ id: 'default', label: 'Default Camera' }),
                         init: vi.fn(),
-                        start: vi.fn().mockResolvedValue(null)
+                        start: vi.fn().mockResolvedValue(null as any)
                     }
                 }
             ]
@@ -67,7 +67,7 @@ describe('ScannerComponent', () => {
     it('processQrCodeReaderPromise handles success', async () => {
         component.readyState.set(false);
 
-        await component.processQrCodeReaderPromise(Promise.resolve(null));
+        await component.processQrCodeReaderPromise(Promise.resolve(null as any));
 
         expect(component.readyState()).toBe(true);
     });
@@ -84,17 +84,17 @@ describe('ScannerComponent', () => {
         component.lastScanResult.set(12345);
         component.scannerId.set(111);
 
-        component.qrCodeReaderSuccessCallback('12345', undefined);
+        component.qrCodeReaderSuccessCallback('12345', undefined as any);
 
         expect(scannerApiService.sendScanResult).not.toHaveBeenCalled();
         expect(component.lastScanResult()).toBe(12345);
     });
 
     it('qrCodeReaderSuccessCallback processes new scan', () => {
-        component.lastScanResult.set(undefined);
+        component.lastScanResult.set(undefined as any);
         component.scannerId.set(111);
 
-        component.qrCodeReaderSuccessCallback('12345', undefined);
+        component.qrCodeReaderSuccessCallback('12345', undefined as any);
 
         expect(scannerApiService.sendScanResult).toHaveBeenCalledWith(111, 12345);
         expect(component.lastScanResult()).toBe(12345);
@@ -104,7 +104,7 @@ describe('ScannerComponent', () => {
         component.lastScanResult.set(67890);
         component.scannerId.set(111);
 
-        component.qrCodeReaderSuccessCallback('12345', undefined);
+        component.qrCodeReaderSuccessCallback('12345', undefined as any);
 
         expect(scannerApiService.sendScanResult).toHaveBeenCalledWith(111, 12345);
         expect(component.lastScanResult()).toBe(12345);
@@ -133,4 +133,5 @@ describe('ScannerComponent', () => {
     });
 
 });
+
 

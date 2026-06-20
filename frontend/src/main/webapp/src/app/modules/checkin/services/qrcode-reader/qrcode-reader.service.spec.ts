@@ -76,7 +76,7 @@ describe('QRCodeReaderService', () => {
         const promise = service.start(testCameraId);
 
         expect(promise).toBeDefined();
-        expect(qrCodeReaderSpy.start).toHaveBeenCalledWith(testCameraId, expect.objectContaining({ fps: 10 }), undefined, undefined);
+        expect(qrCodeReaderSpy.start).toHaveBeenCalledWith(testCameraId, expect.objectContaining({ fps: 10 }), undefined as any, undefined as any);
     });
 
     it('restart while scanning is not active', () => {
@@ -88,7 +88,7 @@ describe('QRCodeReaderService', () => {
         const promise = service.restart(testCameraId);
 
         expect(promise).toBeDefined();
-        expect(qrCodeReaderSpy.start).toHaveBeenCalledWith(testCameraId, expect.objectContaining({ fps: 10 }), undefined, undefined);
+        expect(qrCodeReaderSpy.start).toHaveBeenCalledWith(testCameraId, expect.objectContaining({ fps: 10 }), undefined as any, undefined as any);
     });
 
     // TODO fix tests
@@ -104,7 +104,7 @@ describe('QRCodeReaderService', () => {
 
       expect(promise).toBeDefined();
       expect(qrCodeReaderSpy.stop).toHaveBeenCalled();
-      expect(qrCodeReaderSpy.start).toHaveBeenCalledWith(testCameraId, jasmine.objectContaining({fps: 10}), undefined, undefined);
+      expect(qrCodeReaderSpy.start).toHaveBeenCalledWith(testCameraId, jasmine.objectContaining({fps: 10}), undefined as any, undefined as any);
     });
 
     it('restart while scanning is active and stop failed', () => {
@@ -143,3 +143,4 @@ describe('QRCodeReaderService', () => {
     });
 
 });
+

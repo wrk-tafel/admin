@@ -157,7 +157,7 @@ describe('AuthenticationService', () => {
     it('getUsername - not authenticated', () => {
         const username = service.getUsername();
 
-        expect(username).toEqual(undefined);
+        expect(username).toEqual(undefined as any);
     });
 
     it('hasAnyPermission - no permissions', () => {
@@ -241,4 +241,5 @@ describe('AuthenticationService', () => {
     });
 
 });
+
 

@@ -20,7 +20,7 @@ describe('SettingsSheltersComponent', () => {
     };
 
     const matDialogMock: Partial<MatDialog> = {
-      open: vi.fn(() => ({ afterClosed: () => of(undefined) })) as any
+      open: vi.fn(() => ({ afterClosed: () => of(undefined as any) })) as any
     };
 
     TestBed.configureTestingModule({
@@ -50,3 +50,4 @@ describe('SettingsSheltersComponent', () => {
   });
 
 });
+

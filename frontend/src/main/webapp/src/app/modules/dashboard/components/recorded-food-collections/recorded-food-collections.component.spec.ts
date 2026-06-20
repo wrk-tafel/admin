@@ -31,7 +31,7 @@ describe('RecordedFoodCollectionsComponent', () => {
   }));
 
   it('component can be created', () => {
-    globalStateService.getCurrentDistribution.mockReturnValue(signal(null).asReadonly());
+    globalStateService.getCurrentDistribution.mockReturnValue(signal(null as any).asReadonly());
 
     const fixture = TestBed.createComponent(RecordedFoodCollectionsComponent);
     const component = fixture.componentInstance;
@@ -51,7 +51,7 @@ describe('RecordedFoodCollectionsComponent', () => {
   });
 
   it('recorded food collections count rendered without active distribution', () => {
-    globalStateService.getCurrentDistribution.mockReturnValue(signal(null).asReadonly());
+    globalStateService.getCurrentDistribution.mockReturnValue(signal(null as any).asReadonly());
 
     const fixture = TestBed.createComponent(RecordedFoodCollectionsComponent);
 
@@ -60,7 +60,7 @@ describe('RecordedFoodCollectionsComponent', () => {
   });
 
   it('panel color primary without active distribution', () => {
-    globalStateService.getCurrentDistribution.mockReturnValue(signal(null).asReadonly());
+    globalStateService.getCurrentDistribution.mockReturnValue(signal(null as any).asReadonly());
 
     const fixture = TestBed.createComponent(RecordedFoodCollectionsComponent);
     const component = fixture.componentInstance;
@@ -96,5 +96,6 @@ describe('RecordedFoodCollectionsComponent', () => {
   });
 
 });
+
 
 

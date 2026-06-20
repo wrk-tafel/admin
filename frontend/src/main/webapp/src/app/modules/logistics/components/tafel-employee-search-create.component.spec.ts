@@ -132,7 +132,7 @@ describe('TafelEmployeeSearchCreate', () => {
     });
 
     it('employee not found - dialog dismissed without creating', () => {
-        matDialog.open.mockReturnValue({ afterClosed: () => of(undefined) } as any);
+        matDialog.open.mockReturnValue({ afterClosed: () => of(undefined as any) } as any);
 
         const fixture = TestBed.createComponent(TafelEmployeeSearchCreateComponent);
         const component = fixture.componentInstance;
@@ -161,3 +161,4 @@ describe('TafelEmployeeSearchCreate', () => {
     });
 
 });
+

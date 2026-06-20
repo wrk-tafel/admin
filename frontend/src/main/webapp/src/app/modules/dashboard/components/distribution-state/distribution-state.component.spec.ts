@@ -135,7 +135,7 @@ describe('DistributionStateComponent', () => {
             warnings: []
         };
         distributionApiService.closeDistribution.mockReturnValue(of(validationResult));
-        matDialog.open.mockReturnValue({ afterClosed: () => of(undefined) } as any);
+        matDialog.open.mockReturnValue({ afterClosed: () => of(undefined as any) } as any);
 
         const fixture = TestBed.createComponent(DistributionStateComponent);
         const component = fixture.componentInstance;
@@ -155,7 +155,7 @@ describe('DistributionStateComponent', () => {
             warnings: ['Warning 1', 'Warning 2']
         };
         distributionApiService.closeDistribution.mockReturnValue(of(validationResult));
-        matDialog.open.mockReturnValue({ afterClosed: () => of(undefined) } as any);
+        matDialog.open.mockReturnValue({ afterClosed: () => of(undefined as any) } as any);
 
         const fixture = TestBed.createComponent(DistributionStateComponent);
         const component = fixture.componentInstance;
@@ -167,4 +167,5 @@ describe('DistributionStateComponent', () => {
     });
 
 });
+
 

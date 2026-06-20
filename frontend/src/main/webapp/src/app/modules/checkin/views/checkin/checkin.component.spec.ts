@@ -175,7 +175,7 @@ describe('CheckinComponent', () => {
 
     it('ngOnInit without ongoing distribution navigates to dashboard', () => {
         scannerApiService.getScanners.mockReturnValue(EMPTY);
-        globalStateService.getCurrentDistribution.mockReturnValue(signal<DistributionItem>(null).asReadonly());
+        globalStateService.getCurrentDistribution.mockReturnValue(signal<DistributionItem>(null as any).asReadonly());
 
         const fixture = TestBed.createComponent(CheckinComponent);
         const component = fixture.componentInstance;
@@ -240,7 +240,7 @@ describe('CheckinComponent', () => {
         component.scannerReadyState = true;
         component.scannerSubscription = testSubscription;
 
-        component.selectedScannerId = undefined;
+        component.selectedScannerId = undefined as any;
 
         expect(component.currentScannerId).toBeUndefined();
         expect(component.customerId).not.toBeUndefined();
@@ -695,7 +695,7 @@ describe('CheckinComponent', () => {
         const ticketNumber = 55;
         component.ticketNumber = ticketNumber;
 
-        distributionApiService.assignCustomer.mockReturnValue(of(null));
+        distributionApiService.assignCustomer.mockReturnValue(of(null as any));
 
         component.assignCustomer();
         await fixture.whenStable();
@@ -739,7 +739,7 @@ describe('CheckinComponent', () => {
         };
         component.processCustomer(mockCustomer);
 
-        component.ticketNumber = undefined;
+        component.ticketNumber = undefined as any;
 
         component.assignCustomer();
         await fixture.whenStable();
@@ -776,7 +776,7 @@ describe('CheckinComponent', () => {
         };
         component.processCustomer(mockCustomer);
         distributionTicketApiService.deleteCurrentTicketOfCustomer.mockImplementation((id) =>
-            id === mockCustomer.id ? of(null) : of(null)
+            id === mockCustomer.id ? of(null as any) : of(null as any)
         );
 
         component.deleteTicket();
@@ -790,5 +790,6 @@ describe('CheckinComponent', () => {
     });
 
 });
+
 
 

@@ -78,7 +78,7 @@ describe('MailRecipients', () => {
         const fixture = TestBed.createComponent(MailRecipientsComponent);
         const component = fixture.componentInstance;
         apiService.getMailRecipients.mockReturnValue(of(testData));
-        apiService.saveMailRecipients.mockReturnValue(of(undefined));
+        apiService.saveMailRecipients.mockReturnValue(of(undefined as any));
         vi.spyOn(component.form, 'valid', 'get').mockReturnValue(true);
         vi.spyOn(component.form, 'getRawValue').mockReturnValue(testData);
         const markAllAsTouchedSpy = vi.spyOn(component.form, 'markAllAsTouched');
@@ -148,3 +148,4 @@ describe('MailRecipients', () => {
     });
 
 });
+

@@ -40,7 +40,7 @@ describe('TafelIfDistributionActiveDirective', () => {
     });
 
     it('should not render when distribution is inactive', () => {
-        const { fixture } = setup(null);
+        const { fixture } = setup(null as any);
 
         fixture.detectChanges();
 
@@ -48,5 +48,6 @@ describe('TafelIfDistributionActiveDirective', () => {
     });
 
 });
+
 
 

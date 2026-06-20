@@ -20,8 +20,8 @@ describe('UrlHelperService', () => {
     }
 
     afterEach(() => {
-        overwriteProtocol = undefined;
-        overwriteTestPathname = undefined;
+        overwriteProtocol = undefined as any;
+        overwriteTestPathname = undefined as any;
     });
 
     it('client configured correctly with http', () => {
@@ -60,3 +60,4 @@ describe('UrlHelperService', () => {
     });
 
 });
+

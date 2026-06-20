@@ -48,7 +48,7 @@ describe('CustomerDetailComponent', () => {
   let toastr: MockedObject<ToastrService>;
   let distributionTicketApiService: MockedObject<DistributionTicketApiService>;
   let distributionApiService: MockedObject<DistributionApiService>;
-  const currentDistributionSignal = signal<DistributionItem>(null);
+  const currentDistributionSignal = signal<DistributionItem>(null as any);
 
   const mockCountry = {
     id: 0,
@@ -142,7 +142,7 @@ describe('CustomerDetailComponent', () => {
   beforeEach((() => {
     const customerApiServiceSpy = {
       generatePdf: vi.fn().mockName("CustomerApiService.generatePdf"),
-      deleteCustomer: vi.fn().mockReturnValue(of(null)).mockName("CustomerApiService.deleteCustomer"),
+      deleteCustomer: vi.fn().mockReturnValue(of(null as any)).mockName("CustomerApiService.deleteCustomer"),
       updateCustomer: vi.fn().mockImplementation((customerData: CustomerData) => of({
         data: customerData,
         errorMsg: null as any
@@ -168,7 +168,7 @@ describe('CustomerDetailComponent', () => {
     const distributionApiServiceSpy = {
       assignCustomer: vi.fn().mockName("DistributionApiService.assignCustomer")
     };
-    currentDistributionSignal.set(null);
+    currentDistributionSignal.set(null as any);
     const globalStateServiceSpy = {
       getCurrentDistribution: vi.fn().mockReturnValue(currentDistributionSignal)
     };
@@ -465,7 +465,7 @@ describe('CustomerDetailComponent', () => {
     const component = fixture.componentInstance;
     fixture.detectChanges();
 
-    customerApiService.deleteCustomer.mockReturnValue(of(null));
+    customerApiService.deleteCustomer.mockReturnValue(of(null as any));
 
     component.openDeleteCustomerDialog();
     fixture.detectChanges();
@@ -714,7 +714,7 @@ describe('CustomerDetailComponent', () => {
   it('assign ticket calls API correctly', async () => {
     currentDistributionSignal.set({id: 1, startedAt: new Date()});
     distributionTicketApiService.getCurrentTicketForCustomer.mockReturnValue(throwError(() => ({status: 404})));
-    distributionApiService.assignCustomer.mockReturnValue(of(undefined));
+    distributionApiService.assignCustomer.mockReturnValue(of(undefined as any));
 
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     fixture.componentRef.setInput('customerData', mockCustomer);
@@ -736,7 +736,7 @@ describe('CustomerDetailComponent', () => {
   it('delete ticket calls API correctly and clears ticket number', async () => {
     currentDistributionSignal.set({id: 1, startedAt: new Date()});
     distributionTicketApiService.getCurrentTicketForCustomer.mockReturnValue(of({ticketNumber: 42}));
-    distributionTicketApiService.deleteCurrentTicketOfCustomer.mockReturnValue(of(undefined));
+    distributionTicketApiService.deleteCurrentTicketOfCustomer.mockReturnValue(of(undefined as any));
 
     const fixture = TestBed.createComponent(CustomerDetailComponent);
     fixture.componentRef.setInput('customerData', mockCustomer);
@@ -881,5 +881,6 @@ describe('CustomerDetailComponent', () => {
   }
 
 });
+
 
 
