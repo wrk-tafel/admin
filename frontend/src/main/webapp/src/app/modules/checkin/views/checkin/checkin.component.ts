@@ -77,17 +77,17 @@ export class CheckinComponent {
   cancelButtonRef = viewChild<ElementRef>('cancelButton');
 
   scannerIds: number[] = [];
-  currentScannerId: number;
-  scannerReadyState: boolean;
-  scannerSubscription: Subscription;
-  customerId: number;
+  currentScannerId?: number;
+  scannerReadyState?: boolean;
+  scannerSubscription?: Subscription;
+  customerId?: number;
   customer = signal<CustomerData | undefined>(undefined);
   customerState = signal<CustomerState | undefined>(undefined);
-  customerNotes!: CustomerNoteItem[];
-  ticketNumber!: number;
-  ticketNumberEdit = false;
+  customerNotes: CustomerNoteItem[] = [];
+  ticketNumber: number | undefined;
+  ticketNumberEdit: boolean | undefined = false;
 
-  customerStateColor = computed<string>(() => {
+  customerStateColor = computed<string | null>(() => {
     switch (this.customerState()) {
       case CustomerState.LOCKED:
       case CustomerState.INVALID:
@@ -101,7 +101,7 @@ export class CheckinComponent {
     }
   });
 
-  customerStateText = computed<string>(() => {
+  customerStateText = computed<string | null>(() => {
     switch (this.customerState()) {
       case CustomerState.LOCKED:
         return 'GESPERRT';
@@ -116,7 +116,7 @@ export class CheckinComponent {
     }
   });
 
-  formattedName = computed<string>(() => {
+  formattedName = computed<string | undefined>(() => {
     const customer = this.customer();
     if (customer) {
       const formatted = [customer.lastname, customer.firstname].join(' ');
@@ -125,7 +125,7 @@ export class CheckinComponent {
     return undefined;
   });
 
-  formattedAddress = computed<string>(() => {
+  formattedAddress = computed<string | undefined>(() => {
     const customer = this.customer();
     if (customer) {
       const formatted = [
@@ -134,7 +134,7 @@ export class CheckinComponent {
         customer.address.door ? 'Top ' + customer.address.door : undefined,
         [customer.address.postalCode, customer.address.city].join(' ')
       ]
-        .filter(value => value?.trim().length > 0)
+        .filter(value => (value?.trim().length ?? 0) > 0)
         .join(', ');
       return formatted?.trim().length > 0 ? formatted : '-';
     }
@@ -282,7 +282,7 @@ export class CheckinComponent {
       const observer = {
         next: (response) => this.cancel()
       };
-      this.distributionApiService.assignCustomer(this.customer().id, this.ticketNumber).subscribe(observer);
+      this.distributionApiService.assignCustomer(this.customer()!.id, this.ticketNumber!).subscribe(observer);
       this.customerIdInputRef()?.nativeElement?.focus?.();
     }
   }
@@ -296,7 +296,7 @@ export class CheckinComponent {
         this.ticketNumberInputRef()?.nativeElement?.focus?.();
       }
     };
-    this.distributionTicketApiService.deleteCurrentTicketOfCustomer(this.customer().id).subscribe(observer);
+    this.distributionTicketApiService.deleteCurrentTicketOfCustomer(this.customer()!.id).subscribe(observer);
   }
 
   protected readonly faTrashCan = faTrashCan;
