@@ -20,13 +20,13 @@ Administration system for food banks (Tafel) to manage customer registrations, f
 ### Backend
 
 | Technology | Version |
-|---|---|
-| Java (Amazon Corretto) | 25 |
-| Kotlin | 2.3.10 |
-| Spring Boot | 4.0.4 |
-| Spring Modulith | 2.0.4 |
-| PostgreSQL | 18.2 |
-| Gradle | 9.4.0 |
+|---|---------|
+| Java (Amazon Corretto) | 26      |
+| Kotlin | 2.3.10  |
+| Spring Boot | 4.0.4   |
+| Spring Modulith | 2.0.4   |
+| PostgreSQL | 18.4    |
+| Gradle | 9.4.0   |
 
 ### Frontend
 
@@ -41,7 +41,7 @@ Administration system for food banks (Tafel) to manage customer registrations, f
 
 ## Prerequisites
 
-- Java 25 (Amazon Corretto recommended)
+- Java 26 (Amazon Corretto recommended)
 - Node.js >= 20.19 (24.x recommended, see `.nvmrc`)
 - npm >= 10.9
 - Docker & Docker Compose (for local PostgreSQL and mail server)
@@ -106,7 +106,7 @@ The frontend dev server starts on http://localhost:4200 and proxies API requests
 docker build -t wrk-tafel-admin:local -f _build/Dockerfile .
 ```
 
-The Docker image runs on Amazon Corretto 25 Alpine with timezone set to `Europe/Vienna`.
+The Docker image runs on Amazon Corretto 26 Alpine with timezone set to `Europe/Vienna`.
 
 ## Testing
 

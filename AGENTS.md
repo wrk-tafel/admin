@@ -120,7 +120,7 @@ The backend uses **Spring Modulith** architecture with 7 core feature modules, e
 - Entities: Located in `database/model/` with Flyway migrations in `resources/db-migration/`
 
 **Key Technologies:**
-- Java 25 with Kotlin 2.3 (coroutines support)
+- Java 26 with Kotlin 2.3 (coroutines support)
 - Spring Boot 4.0.5 with Spring Modulith for modular monolith architecture
 - PostgreSQL with Flyway for database migrations (60+ R__ repeatable scripts)
 - JWT authentication with Argon2 password hashing
