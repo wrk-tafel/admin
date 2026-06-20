@@ -10,9 +10,9 @@ import {Injectable} from '@angular/core';
 })
 export class QRCodeReaderService {
 
-  qrCodeReader: Html5Qrcode;
+  qrCodeReader!: Html5Qrcode;
   private readonly LOCAL_STORAGE_LAST_CAMERA_ID_KEY = 'TAFEL_LAST_CAMERA_ID';
-  private successCallback: QrcodeSuccessCallback;
+  private successCallback!: QrcodeSuccessCallback;
 
   private readonly basicConfig: Html5QrcodeFullConfig = {
     formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
@@ -82,7 +82,7 @@ export class QRCodeReaderService {
     return Promise.resolve();
   }
 
-  private getLastUsedCameraId(): string {
+  private getLastUsedCameraId(): string | null {
     return localStorage.getItem(this.LOCAL_STORAGE_LAST_CAMERA_ID_KEY);
   }
 

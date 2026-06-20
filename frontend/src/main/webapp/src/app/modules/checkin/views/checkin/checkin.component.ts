@@ -81,10 +81,10 @@ export class CheckinComponent {
   scannerReadyState: boolean;
   scannerSubscription: Subscription;
   customerId: number;
-  customer = signal<CustomerData>(undefined);
-  customerState = signal<CustomerState>(undefined);
-  customerNotes: CustomerNoteItem[];
-  ticketNumber: number;
+  customer = signal<CustomerData | undefined>(undefined);
+  customerState = signal<CustomerState | undefined>(undefined);
+  customerNotes!: CustomerNoteItem[];
+  ticketNumber!: number;
   ticketNumberEdit = false;
 
   customerStateColor = computed<string>(() => {

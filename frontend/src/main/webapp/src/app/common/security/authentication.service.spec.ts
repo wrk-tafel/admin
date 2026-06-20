@@ -41,8 +41,8 @@ describe('AuthenticationService', () => {
 
         service.login('USER', 'PWD').then(response => {
             expect(response).toEqual({ successful: true, passwordChangeRequired: false });
-            expect(service.userInfo.username).toBe(userInfoResponseBody.username);
-            expect(service.userInfo.permissions).toEqual(userInfoResponseBody.permissions);
+            expect(service.userInfo!.username).toBe(userInfoResponseBody.username);
+            expect(service.userInfo!.permissions).toEqual(userInfoResponseBody.permissions);
         });
 
         const mockLoginReq = httpMock.expectOne('/login');
@@ -69,8 +69,8 @@ describe('AuthenticationService', () => {
 
         service.login('USER', 'PWD').then(response => {
             expect(response).toEqual({ successful: true, passwordChangeRequired: true });
-            expect(service.userInfo.username).toBe(userInfoResponseBody.username);
-            expect(service.userInfo.permissions).toEqual(userInfoResponseBody.permissions);
+            expect(service.userInfo!.username).toBe(userInfoResponseBody.username);
+            expect(service.userInfo!.permissions).toEqual(userInfoResponseBody.permissions);
         });
 
         const loginMockReq = httpMock.expectOne('/login');
