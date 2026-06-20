@@ -25,7 +25,7 @@ export class UserApiService {
     if (username) {
       queryParams = queryParams.set('username', username);
     }
-    if (enabled !== null) {
+    if (enabled !== undefined) {
       queryParams = queryParams.set('enabled', enabled);
     }
     if (lastname) {
@@ -34,7 +34,7 @@ export class UserApiService {
     if (firstname) {
       queryParams = queryParams.set('firstname', firstname);
     }
-    if (page) {
+    if (page !== undefined) {
       queryParams = queryParams.set('page', page);
     }
     return this.http.get<UserSearchResult>('/users', {params: queryParams});
