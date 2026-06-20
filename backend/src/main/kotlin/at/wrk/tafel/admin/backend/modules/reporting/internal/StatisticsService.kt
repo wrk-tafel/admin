@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import kotlin.math.max
+import java.util.Locale
 
 @Service
 class StatisticsService(
@@ -80,7 +81,7 @@ class StatisticsService(
         val averageShelters = averageShelters(fromDate, toDate)
         val averageSheltersDivisor = max(averageShelters.count { it.value.toDouble() > 0 }, 1)
         val averageSheltersTotalAverage = (averageShelters.sumOf { it.value.toDouble() } / averageSheltersDivisor)
-            .let { String.format("%.2f", it) }
+                    .let { String.format("%.2f", it) }
         val averageSheltersData = StatisticsDetailData(
             title = averageSheltersTotalAverage,
             subTitle = "Notschlafstellen (Durchschnitt pro Ausgabe)",
@@ -116,7 +117,7 @@ class StatisticsService(
         val averageShopItemsDivisor = max(averageShopItems.count { it.value.toDouble() > 0 }, 1)
         val averageShopItemsTotalAverage =
             (averageShopItems.sumOf { it.value.toDouble() } / averageShopItemsDivisor)
-                .let { String.format("%.2f", it) }
+                            .let { String.format("%.2f", it) }
         val averageShopItemsData = StatisticsDetailData(
             title = "$averageShopItemsTotalAverage kg",
             subTitle = "Warenmenge (Durchschnitt pro Spender)",
