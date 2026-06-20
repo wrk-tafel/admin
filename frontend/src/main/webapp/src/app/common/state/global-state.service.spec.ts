@@ -41,7 +41,7 @@ describe('GlobalStateService', () => {
         const args = vi.mocked(sseServiceSpy.listen).mock.lastCall;
         expect(args[0]).toBe('/sse/distributions');
 
-        const connectionStateCallback = args[1];
+        const connectionStateCallback = args![1] as (s: boolean) => void;
         connectionStateCallback(false);
         expect(service.getConnectionState()()).toBe(false);
         connectionStateCallback(true);
