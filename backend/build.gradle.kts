@@ -12,7 +12,7 @@ version = "0.0.1-SNAPSHOT"
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(25)
+        languageVersion = JavaLanguageVersion.of(26)
     }
 }
 
@@ -113,6 +113,11 @@ tasks.named("processResources") {
 tasks.withType<Test> {
     useJUnitPlatform()
     include("**/*Test.class", "**/*IT.class")
+
+    // Use German (Austria) locale for tests in CI so CSV/date/number formatting matches local dev
+    systemProperty("user.language", "de")
+    systemProperty("user.country", "AT")
+    systemProperty("user.timezone", "Europe/Vienna")
 }
 
 jacoco {
@@ -133,7 +138,10 @@ tasks.test {
 
 sonar {
     properties {
-        property("sonar.coverage.jacoco.xmlReportPaths", "${layout.buildDirectory.get().asFile}/reports/jacoco/test/jacocoTestReport.xml")
+        property(
+            "sonar.coverage.jacoco.xmlReportPaths",
+            "${layout.buildDirectory.get().asFile}/reports/jacoco/test/jacocoTestReport.xml"
+        )
         property("sonar.kotlin.source.version", libs.versions.kotlin.get())
     }
 }

@@ -108,20 +108,24 @@ class TafelUserDetailsManager(
         userRepository.delete(userEntity)
     }
 
-    override fun changePassword(currentPassword: String, newPassword: String) {
-        val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
-        var storedUser = userRepository.findByUsername(authenticatedUser.username!!)!!
+    override fun changePassword(oldPassword: String?, newPassword: String?) {
+            if (oldPassword == null || newPassword == null) {
+                throw PasswordChangeException("Aktuelles Passwort ist falsch!")
+            }
 
-        if (!passwordEncoder.matches(currentPassword, storedUser.password)) {
-            throw PasswordChangeException("Aktuelles Passwort ist falsch!")
-        }
+            val authenticatedUser = SecurityContextHolder.getContext().authentication as TafelJwtAuthentication
+            var storedUser = userRepository.findByUsername(authenticatedUser.username!!)!!
 
-        if (isPasswordValid(storedUser.username!!, newPassword)) {
-            storedUser.password = passwordEncoder.encode(newPassword)
-            storedUser.passwordChangeRequired = false
-            userRepository.save(storedUser)
+            if (!passwordEncoder.matches(oldPassword, storedUser.password)) {
+                throw PasswordChangeException("Aktuelles Passwort ist falsch!")
+            }
+
+            if (isPasswordValid(storedUser.username!!, newPassword)) {
+                storedUser.password = passwordEncoder.encode(newPassword)
+                storedUser.passwordChangeRequired = false
+                userRepository.save(storedUser)
+            }
         }
-    }
 
     private fun isPasswordValid(username: String, newPassword: String): Boolean {
         val data = PasswordData(username, newPassword)
