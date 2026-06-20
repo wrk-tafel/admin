@@ -28,7 +28,7 @@ export class GlobalStateService {
     });
   }
 
-  getCurrentDistribution(): Signal<DistributionItem> {
+  getCurrentDistribution(): Signal<DistributionItem | null> {
     return this._currentDistribution.asReadonly();
   }
 

@@ -175,7 +175,7 @@ describe('CheckinComponent', () => {
 
     it('ngOnInit without ongoing distribution navigates to dashboard', () => {
         scannerApiService.getScanners.mockReturnValue(EMPTY);
-        globalStateService.getCurrentDistribution.mockReturnValue(signal<DistributionItem>(null as any).asReadonly());
+        globalStateService.getCurrentDistribution.mockReturnValue(signal<DistributionItem | null>(null).asReadonly());
 
         const fixture = TestBed.createComponent(CheckinComponent);
         const component = fixture.componentInstance;
@@ -198,7 +198,7 @@ describe('CheckinComponent', () => {
         // Trigger destroyRef cleanup by destroying the fixture
         fixture.destroy();
 
-        expect(component.scannerSubscription.unsubscribe).toHaveBeenCalled();
+        expect(component.scannerSubscription!.unsubscribe).toHaveBeenCalled();
     });
 
     it('selectedScannerId first time selected', () => {

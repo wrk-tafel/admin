@@ -46,7 +46,7 @@ export class FoodCollectionRecordingBasedataComponent {
   driverEmployeeSearchCreate = viewChild<TafelEmployeeSearchCreateComponent>('driverEmployeeSearchCreate');
   coDriverEmployeeSearchCreate = viewChild<TafelEmployeeSearchCreateComponent>('coDriverEmployeeSearchCreate');
 
-  selectedRouteData = input<SelectedRouteData>();
+  selectedRouteData = input<SelectedRouteData | undefined>();
   carList = model.required<CarList>();
 
   private readonly foodCollectionsApiService = inject(FoodCollectionsApiService);
@@ -54,11 +54,11 @@ export class FoodCollectionRecordingBasedataComponent {
   private readonly toastr = inject(ToastrService);
   private readonly dialog = inject(MatDialog);
 
-  selectedDriver: EmployeeData;
-  selectedCoDriver: EmployeeData;
+  selectedDriver: EmployeeData | null = null;
+  selectedCoDriver: EmployeeData | null = null;
 
   form = this.fb.group({
-      car: this.fb.control<CarData>(null, [Validators.required]),
+      car: this.fb.control<CarData | null>(null, [Validators.required]),
       driverSearchInput: this.fb.control<string>(null,
         [
           Validators.required,
@@ -82,7 +82,11 @@ export class FoodCollectionRecordingBasedataComponent {
   );
 
   foodCollectionDataEffect = effect(() => {
-    const foodCollectionData = this.selectedRouteData().foodCollectionData;
+    const route = this.selectedRouteData();
+    if (!route) {
+      return;
+    }
+    const foodCollectionData = route.foodCollectionData;
 
     // reset form without route to prevent an infinite loop
     this.car.reset();
@@ -97,7 +101,7 @@ export class FoodCollectionRecordingBasedataComponent {
       this.car.setValue(this.carList().cars.find(car => car.id === foodCollectionData.carId));
 
       if (foodCollectionData.driver) {
-        this.driverSearchInput.setValue(foodCollectionData.driver.personnelNumber);
+                this.driverSearchInput?.setValue(foodCollectionData.driver.personnelNumber);
         // Use setTimeout to defer execution until after view is stable
         setTimeout(() => {
           const driverSearch = this.driverEmployeeSearchCreate();
@@ -107,7 +111,7 @@ export class FoodCollectionRecordingBasedataComponent {
         });
       }
       if (foodCollectionData.coDriver) {
-        this.coDriverSearchInput.setValue(foodCollectionData.coDriver.personnelNumber);
+                this.coDriverSearchInput?.setValue(foodCollectionData.coDriver.personnelNumber);
         // Use setTimeout to defer execution until after view is stable
         setTimeout(() => {
           const coDriverSearch = this.coDriverEmployeeSearchCreate();
@@ -155,7 +159,7 @@ export class FoodCollectionRecordingBasedataComponent {
 
   setSelectedDriver(employee: EmployeeData) {
     this.selectedDriver = employee;
-    this.driverSearchInput.updateValueAndValidity()
+    this.driverSearchInput?.updateValueAndValidity()
   }
 
   setSelectedCoDriver(employee: EmployeeData) {
@@ -183,15 +187,19 @@ export class FoodCollectionRecordingBasedataComponent {
       return;
     }
 
+    if (!this.selectedRouteData()) {
+      return;
+    }
+
     const routeData: FoodCollectionSaveRouteDataRequest = {
-      carId: this.car.value.id,
-      driverId: this.selectedDriver.id,
-      coDriverId: this.selectedCoDriver.id,
+      carId: this.car.value!.id,
+      driverId: this.selectedDriver!.id,
+      coDriverId: this.selectedCoDriver!.id,
       kmStart: this.kmStart.value,
       kmEnd: this.kmEnd.value
     };
 
-    this.foodCollectionsApiService.saveRouteData(this.selectedRouteData().route.id, routeData)
+    this.foodCollectionsApiService.saveRouteData(this.selectedRouteData()!.route.id, routeData)
       .subscribe(() => {
         this.toastr.success('Daten wurden gespeichert!');
       });

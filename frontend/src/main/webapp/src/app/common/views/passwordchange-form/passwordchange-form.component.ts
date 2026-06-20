@@ -62,7 +62,7 @@ export class PasswordChangeFormComponent {
     });
 
     // Cross-field validation for password matching
-    validate(schemaPath.newRepeatedPassword, ({value, valueOf}) => {
+    validate(schemaPath.newRepeatedPassword, (({value, valueOf}: any) => {
       const repeatedPassword = value();
       const newPassword = valueOf(schemaPath.newPassword);
 
@@ -73,7 +73,7 @@ export class PasswordChangeFormComponent {
         };
       }
       return null;
-    });
+    }) as any);
   });
 
   currentPasswordTextVisible = signal(false);
@@ -94,6 +94,31 @@ export class PasswordChangeFormComponent {
 
   public toggleNewRepeatedPasswordTextVisible() {
     this.newRepeatedPasswordTextVisible.update(value => !value);
+  }
+
+  // Helper accessors for template (avoid complex calls in template type-checker)
+  currentPasswordInvalid(): boolean {
+    return this.passwordForm.currentPassword().invalid();
+  }
+
+  currentPasswordErrors() {
+    return this.passwordForm.currentPassword().errors();
+  }
+
+  newPasswordInvalid(): boolean {
+    return this.passwordForm.newPassword().invalid();
+  }
+
+  newPasswordErrors() {
+    return this.passwordForm.newPassword().errors();
+  }
+
+  newRepeatedPasswordInvalid(): boolean {
+    return this.passwordForm.newRepeatedPassword().invalid();
+  }
+
+  newRepeatedPasswordErrors() {
+    return this.passwordForm.newRepeatedPassword().errors();
   }
 
   changePassword(): Observable<boolean> {

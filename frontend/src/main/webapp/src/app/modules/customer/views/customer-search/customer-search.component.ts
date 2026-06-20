@@ -57,12 +57,12 @@ export class CustomerSearchComponent {
   private readonly fb = inject(FormBuilder);
 
   form = this.fb.group({
-    customerId: this.fb.control<number>(null),
-    lastname: this.fb.control<string>(null),
-    firstname: this.fb.control<string>(null),
-    postProcessing: this.fb.control<boolean>(null),
-    costContribution: this.fb.control<boolean>(null),
-    valid: this.fb.control<boolean>(null),
+    customerId: this.fb.control<number | null>(null),
+    lastname: this.fb.control<string | null>(null),
+    firstname: this.fb.control<string | null>(null),
+    postProcessing: this.fb.control<boolean | null>(null),
+    costContribution: this.fb.control<boolean | null>(null),
+    valid: this.fb.control<boolean | null>(null),
   });
 
   // Use signals so the template-sugar (@if / @for) reacts immediately when updated

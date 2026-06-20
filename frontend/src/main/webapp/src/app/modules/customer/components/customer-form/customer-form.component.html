@@ -104,13 +104,13 @@
             <c-col sm>
               <label class="form-label">E-Mail</label>
               <c-input-group>
-                <input testid="emailInput" type="text" [formField]="customerForm.email" class="form-control"
-                       [ngClass]="{'is-invalid': shouldShowErrors(customerForm.email()), 'is-valid': customerForm.email().valid() && (customerForm.email().dirty() || customerForm.email().touched())}">
+                <input testid="emailInput" type="text" [formField]="emailFormField" class="form-control"
+                       [ngClass]="{'is-invalid': emailShouldShowErrors(), 'is-valid': emailIsValidAndTouched()}">
                 <span cInputGroupText>
                   <fa-icon [icon]="faEnvelope"></fa-icon>
                 </span>
-                @if (shouldShowErrors(customerForm.email())) {
-                  @for (errorMessage of getErrorMessages(customerForm.email()); track $index) {
+                @if (emailShouldShowErrors()) {
+                  @for (errorMessage of emailErrorMessages(); track $index) {
                     <div class="invalid-feedback">{{errorMessage}}</div>
                   }
                 }

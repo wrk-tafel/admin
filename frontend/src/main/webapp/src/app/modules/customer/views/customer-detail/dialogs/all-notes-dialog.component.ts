@@ -23,7 +23,7 @@ export class AllNotesDialogComponent {
   private readonly customerNoteApiService = inject(CustomerNoteApiService);
 
   customerNotes = signal<CustomerNoteItem[]>([]);
-  paginationData = signal<TafelPaginationData>(null);
+  paginationData = signal<TafelPaginationData | null>(null);
 
   constructor() {
     this.processCustomerNoteResponse(this.data.initialNotesResponse);

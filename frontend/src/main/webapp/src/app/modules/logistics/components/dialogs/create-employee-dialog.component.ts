@@ -26,9 +26,9 @@ export class CreateEmployeeDialogComponent {
   private readonly fb = inject(FormBuilder);
 
   createEmployeeForm = this.fb.group({
-    personnelNumber: this.fb.control<string>(null, [Validators.required, Validators.maxLength(50)]),
-    firstname: this.fb.control<string>(null, [Validators.required, Validators.maxLength(50)]),
-    lastname: this.fb.control<string>(null, [Validators.required, Validators.maxLength(50)]),
+    personnelNumber: this.fb.control<string | null>(null, [Validators.required, Validators.maxLength(50)]),
+    firstname: this.fb.control<string | null>(null, [Validators.required, Validators.maxLength(50)]),
+    lastname: this.fb.control<string | null>(null, [Validators.required, Validators.maxLength(50)]),
   });
 
   saveNewEmployee() {

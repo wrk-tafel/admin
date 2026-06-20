@@ -60,7 +60,7 @@ export class FoodCollectionRecordingComponent {
   foodCategories = model.required<FoodCategory[]>();
 
   selectedRoute?: RouteData;
-  selectedRouteData = signal<SelectedRouteData>(undefined);
+  selectedRouteData = signal<SelectedRouteData | undefined>(undefined);
 
   private readonly globalStateService = inject(GlobalStateService);
   private readonly foodCollectionsApiService = inject(FoodCollectionsApiService);

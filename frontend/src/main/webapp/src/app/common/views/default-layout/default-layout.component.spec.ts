@@ -47,7 +47,7 @@ describe('DefaultLayoutComponent', () => {
         authService = TestBed.inject(AuthenticationService) as MockedObject<AuthenticationService>;
         globalStateService = TestBed.inject(GlobalStateService) as MockedObject<GlobalStateService>;
 
-        globalStateService.getCurrentDistribution.mockReturnValue(signal<DistributionItem>(null as any).asReadonly());
+        globalStateService.getCurrentDistribution.mockReturnValue(signal<DistributionItem | null>(null).asReadonly());
     });
 
     it('should create the component', () => {

@@ -32,7 +32,7 @@ import {ToastrService} from 'ngx-toastr';
 })
 export class FoodCollectionRecordingItemsResponsiveComponent {
   foodCategories = model.required<FoodCategory[]>();
-  selectedRouteData = input<SelectedRouteData>();
+  selectedRouteData = input<SelectedRouteData | undefined>();
 
   readonly foodCategoriesItems = computed(() =>
     this.foodCategories().filter(category => !category.returnItem)
@@ -54,7 +54,7 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
   });
 
   private findNextUnfilledShop(): Shop {
-    const shops = this.selectedRouteData().shops;
+    const shops = this.selectedRouteData()!.shops;
     for (const shop of shops) {
       const items = this.selectedRouteData().foodCollectionData?.items ?? [];
       const itemsPerShop = items.filter(
@@ -160,8 +160,8 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
       return;
     }
 
-    const currentShop = this.currentShop();
-    const shop = this.selectedRouteData().shops[this.selectedRouteData().shops.indexOf(currentShop) - 1];
+    const currentShop = this.currentShop()!;
+    const shop = this.selectedRouteData()!.shops[this.selectedRouteData()!.shops.indexOf(currentShop) - 1];
     this.selectShop(shop);
   }
 
@@ -170,8 +170,8 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
       return;
     }
 
-    const currentShop = this.currentShop();
-    const shop = this.selectedRouteData().shops[this.selectedRouteData().shops.indexOf(currentShop) + 1];
+    const currentShop = this.currentShop()!;
+    const shop = this.selectedRouteData()!.shops[this.selectedRouteData()!.shops.indexOf(currentShop) + 1];
     this.selectShop(shop);
   }
 

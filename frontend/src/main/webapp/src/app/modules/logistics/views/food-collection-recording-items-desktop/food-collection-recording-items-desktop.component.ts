@@ -55,7 +55,8 @@ export class FoodCollectionRecordingItemsDesktopComponent {
     this.formInitialized.set(false);
 
     if (this.selectedRouteData()) {
-      this.createCategoryShopInputs(this.selectedRouteData().shops, this.selectedRouteData().foodCollectionData?.items ?? []);
+      const route = this.selectedRouteData();
+      this.createCategoryShopInputs(route.shops, route.foodCollectionData?.items ?? []);
       this.categories.markAllAsTouched();
       this.formInitialized.set(true);
     }
@@ -81,8 +82,9 @@ export class FoodCollectionRecordingItemsDesktopComponent {
     });
   }
 
-  private getCurrentValue(items: FoodCollectionItem[], category: FoodCategory, shop: Shop) {
-    const filteredItems = items.filter(data => data.categoryId === category.id && data.shopId === shop.id);
+  private getCurrentValue(items: FoodCollectionItem[] | undefined, category: FoodCategory, shop: Shop) {
+    const source = items ?? [];
+    const filteredItems = source.filter(data => data.categoryId === category.id && data.shopId === shop.id);
     if (filteredItems.length === 1) {
       return filteredItems[0].amount;
     }
@@ -106,13 +108,13 @@ export class FoodCollectionRecordingItemsDesktopComponent {
 
   private mapItemsFromCategories(): FoodCollectionItem[] {
     return this.categories.controls.flatMap((formGroup) => {
-      const categoryId = formGroup.get('categoryId').value;
+      const categoryId = formGroup.get('categoryId')!.value;
       const shops = (formGroup.get('shops') as FormArray).controls;
 
       return shops.map((shopGroup) => ({
         categoryId,
-        shopId: shopGroup.get('shopId').value,
-        amount: shopGroup.get('amount').value,
+        shopId: shopGroup.get('shopId')!.value,
+        amount: shopGroup.get('amount')!.value,
       }));
     });
   }

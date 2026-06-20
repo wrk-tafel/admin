@@ -182,7 +182,7 @@ describe('DistributionStatisticsInputComponent', () => {
   });
 
   it('employeeCount disabled and data reset without active distribution', () => {
-    globalStateService.getCurrentDistribution.mockReturnValue(signal<DistributionItem>(null as any).asReadonly());
+    globalStateService.getCurrentDistribution.mockReturnValue(signal<DistributionItem | null>(null).asReadonly());
 
     const fixture = TestBed.createComponent(DistributionStatisticsInputComponent);
     const componentRef = fixture.componentRef;

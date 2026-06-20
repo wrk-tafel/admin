@@ -12,5 +12,5 @@ import {TafelDialogComponent} from '../../../../../common/components/tafel-dialo
 })
 export class AddNoteDialogComponent {
   readonly dialogRef = inject(MatDialogRef<AddNoteDialogComponent>);
-  noteText = signal<string>(null);
+  noteText = signal<string | null>(null);
 }

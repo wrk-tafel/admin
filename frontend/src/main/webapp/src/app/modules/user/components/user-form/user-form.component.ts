@@ -49,8 +49,8 @@ export class UserFormComponent {
     username: '',
     lastname: '',
     firstname: '',
-    password: null,
-    passwordRepeat: null,
+    password: '',
+    passwordRepeat: '',
     enabled: true,
     passwordChangeRequired: true
   });
@@ -73,7 +73,7 @@ export class UserFormComponent {
     maxLength(schemaPath.firstname, 50, {message: 'Vorname zu lang (maximal 50 Zeichen)'});
 
     // Custom validator for password repeat matching
-    validate(schemaPath.passwordRepeat, ({ value, valueOf }) => {
+    validate(schemaPath.passwordRepeat, (({ value, valueOf }: any) => {
       const passwordRepeatValue = value();
       const passwordValue = valueOf(schemaPath.password);
 
@@ -84,7 +84,7 @@ export class UserFormComponent {
       return passwordRepeatValue === passwordValue
         ? undefined
         : { kind: 'passwordRepeatInvalid', message: 'Passwort stimmt nicht mit der Wiederholung überein!' };
-    });
+    }) as any);
   });
 
   passwordTextVisible = signal(false);
@@ -115,14 +115,14 @@ export class UserFormComponent {
           username: userData.username ?? '',
           lastname: userData.lastname ?? '',
           firstname: userData.firstname ?? '',
-          password: null,
-          passwordRepeat: null,
+          password: '',
+          passwordRepeat: '',
           enabled: userData.enabled ?? true,
           passwordChangeRequired: userData.passwordChangeRequired ?? true
         });
 
         // Update permissions
-        const formPermissions: UserPermissionFormItem[] = permissionsData.map((availablePermission) => {
+        const formPermissions: UserPermissionFormItem[] = (permissionsData ?? []).map((availablePermission) => {
           const enabled = userData.permissions.findIndex((userPermission) => userPermission.key === availablePermission.key) !== -1;
           return {...availablePermission, enabled: enabled};
         });
@@ -173,7 +173,7 @@ export class UserFormComponent {
         this.passwordTextVisible.set(true);
         this.passwordRepeatTextVisible.set(true);
       },
-      error: error => {
+      error: (error: any) => {
         this.toastr.error('Passwort-Generierung fehlgeschlagen!', 'Fehler');
       },
     };

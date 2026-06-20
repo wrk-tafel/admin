@@ -18,7 +18,7 @@ import {MatButton} from '@angular/material/button';
   ]
 })
 export class UserPasswordChangeComponent {
-  @ViewChild(PasswordChangeFormComponent) public form: PasswordChangeFormComponent;
+  @ViewChild(PasswordChangeFormComponent) public form!: PasswordChangeFormComponent;
 
   changePassword() {
     this.form.changePassword().subscribe();

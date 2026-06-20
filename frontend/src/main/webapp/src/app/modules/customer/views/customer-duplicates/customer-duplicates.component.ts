@@ -68,7 +68,7 @@ export class CustomerDuplicatesComponent {
     this.customerApiService.getCustomerDuplicates(page)
       .subscribe((response: CustomerDuplicatesResponse) => {
         // Setting customerDuplicatesData automatically recomputes paginationData via linkedSignal
-        this.customerDuplicatesData.set(response.items.length === 0 ? null : response);
+        this.customerDuplicatesData.set(response.items.length === 0 ? undefined : response);
       });
   }
 
@@ -84,9 +84,9 @@ export class CustomerDuplicatesComponent {
     const observer = {
       next: () => {
         this.toastr.success('Kunde wurde gelöscht!');
-        this.getDuplicates(this.paginationData().currentPage);
+        this.getDuplicates(this.paginationData()?.currentPage ?? 1);
       },
-      error: error => {
+      error: (error: any) => {
         this.toastr.error('Löschen fehlgeschlagen!');
       }
     };
@@ -94,7 +94,10 @@ export class CustomerDuplicatesComponent {
   }
 
   mergeCustomers(customer: CustomerData) {
-    const sourceCustomerIds = [this.customerDuplicatesData().items[0].customer, ...this.customerDuplicatesData().items[0].similarCustomers]
+    const data = this.customerDuplicatesData();
+    if (!data || data.items.length === 0) return;
+
+    const sourceCustomerIds = [data.items[0].customer, ...data.items[0].similarCustomers]
       .filter((filterCustomer) => filterCustomer.id !== customer.id)
       .map(mapCustomer => mapCustomer.id);
 
@@ -103,7 +106,7 @@ export class CustomerDuplicatesComponent {
         this.toastr.success(`${sourceCustomerIds.length} Kunde(n) wurden gelöscht.`, 'Kunden wurden zusammengeführt!');
         this.getDuplicates(1);
       },
-      error: error => {
+      error: (error: any) => {
         this.toastr.error('Zusammenführen der Kunden fehlgeschlagen!');
       }
     };

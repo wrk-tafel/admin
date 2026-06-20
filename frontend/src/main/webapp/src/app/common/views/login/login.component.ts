@@ -42,12 +42,13 @@ export class LoginComponent {
   });
 
   // Convert route params to signal
-  private readonly routeParams = toSignal<Record<string, any>>(this.route.params, {initialValue: {}});
+  private readonly routeParams = toSignal<Record<string, any> | undefined>(this.route.params, {initialValue: undefined});
 
   // Error message derived from route params via linkedSignal.
   // Writable: can be manually set on login failure, resets when route params change.
   errorMessage = linkedSignal<string | null>(() => {
-    const errorType = this.routeParams()['errorType'];
+    const params = this.routeParams();
+    const errorType = params ? params['errorType'] : undefined;
     if (errorType === 'abgelaufen') {
       return 'Sitzung abgelaufen! Bitte erneut anmelden.';
     } else if (errorType === 'fehlgeschlagen') {

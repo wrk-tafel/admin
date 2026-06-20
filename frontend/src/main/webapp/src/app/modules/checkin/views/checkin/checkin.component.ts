@@ -154,11 +154,11 @@ export class CheckinComponent {
     return scannerId;
   }
 
-  get selectedScannerId(): number {
+  get selectedScannerId(): number | undefined {
     return this.currentScannerId;
   }
 
-  set selectedScannerId(scannerId: number) {
+  set selectedScannerId(scannerId: number | undefined) {
     this.currentScannerId = scannerId;
     if (this.scannerSubscription) {
       this.scannerSubscription.unsubscribe();
@@ -166,7 +166,7 @@ export class CheckinComponent {
     this.scannerReadyState = false;
 
     if (scannerId) {
-      this.scannerSubscription = this.sseService.listen<ScanResult>(`/sse/scanners/${this.currentScannerId}/results`)
+      this.scannerSubscription = this.sseService.listen<ScanResult>(`/sse/scanners/${scannerId}/results`)
         .subscribe((result: ScanResult) => {
           this.customerId = result.value;
           this.searchForCustomerId();
@@ -211,19 +211,24 @@ export class CheckinComponent {
       next: (customerData: CustomerData) => {
         this.processCustomer(customerData);
 
-        this.customerNoteApiService.getNotesForCustomer(this.customerId).subscribe(notesResponse => {
+        this.customerNoteApiService.getNotesForCustomer(this.customerId!).subscribe(notesResponse => {
           this.customerNotes = notesResponse.items;
         });
 
-        this.distributionTicketApiService.getCurrentTicketForCustomer(customerData.id).subscribe((ticketNumberResponse: TicketNumberResponse) => {
-          if (ticketNumberResponse.ticketNumber) {
-            this.ticketNumber = ticketNumberResponse.ticketNumber;
-          }
-          this.ticketNumberEdit = this.ticketNumber != null;
-        });
+        if (customerData.id != null) {
+          this.distributionTicketApiService.getCurrentTicketForCustomer(customerData.id).subscribe((ticketNumberResponse: TicketNumberResponse) => {
+            if (ticketNumberResponse.ticketNumber) {
+              this.ticketNumber = ticketNumberResponse.ticketNumber;
+            }
+            this.ticketNumberEdit = this.ticketNumber != null;
+          });
+        } else {
+          this.ticketNumber = undefined;
+          this.ticketNumberEdit = false;
+        }
       },
-      error: error => {
-        if (error.status === 404) {
+      error: (error: any) => {
+        if (error && error.status === 404) {
           this.processCustomer(undefined);
           this.customerNotes = [];
           this.toastr.info(`Kunde ${this.customerId} nicht gefunden!`);
@@ -238,7 +243,7 @@ export class CheckinComponent {
     }
   }
 
-  processCustomer(customer: CustomerData) {
+  processCustomer(customer: CustomerData | undefined) {
     this.ticketNumber = undefined;
     this.customer.set(customer);
 
@@ -277,12 +282,13 @@ export class CheckinComponent {
   }
 
   assignCustomer() {
-    if (this.ticketNumber > 0) {
+    const customerId = this.customer()?.id;
+    if (customerId != null && this.ticketNumber != null && this.ticketNumber > 0) {
       /* eslint-disable @typescript-eslint/no-unused-vars */
       const observer = {
-        next: (response) => this.cancel()
+        next: (response: any) => this.cancel()
       };
-      this.distributionApiService.assignCustomer(this.customer()!.id, this.ticketNumber!).subscribe(observer);
+      this.distributionApiService.assignCustomer(customerId, this.ticketNumber).subscribe(observer);
       this.customerIdInputRef()?.nativeElement?.focus?.();
     }
   }
@@ -296,7 +302,10 @@ export class CheckinComponent {
         this.ticketNumberInputRef()?.nativeElement?.focus?.();
       }
     };
-    this.distributionTicketApiService.deleteCurrentTicketOfCustomer(this.customer()!.id).subscribe(observer);
+    const customerId = this.customer()?.id;
+    if (customerId != null) {
+      this.distributionTicketApiService.deleteCurrentTicketOfCustomer(customerId).subscribe(observer);
+    }
   }
 
   protected readonly faTrashCan = faTrashCan;

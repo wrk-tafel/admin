@@ -35,7 +35,7 @@ export class SelectEmployeeDialogComponent {
   private readonly employeeApiService = inject(EmployeeApiService);
 
   employeeSearchResponse = signal<EmployeeListResponse>(this.data.initialResponse);
-  paginationData = signal<TafelPaginationData>(null);
+  paginationData = signal<TafelPaginationData | null>(null);
 
   protected readonly faHandPointer = faHandPointer;
 

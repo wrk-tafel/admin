@@ -72,7 +72,7 @@ export class CustomerFormComponent {
     gender: null,
     country: null,
     telephoneNumber: '',
-    email: null,
+    email: '',
     address: {
       street: '',
       houseNumber: '',
@@ -98,18 +98,18 @@ export class CustomerFormComponent {
     maxLength(schemaPath.firstname, 50, {message: 'Vorname zu lang (maximal 50 Zeichen)'});
 
     required(schemaPath.birthDate, {message: 'Pflichtfeld'});
-    validate(schemaPath.birthDate, minDate(new Date(1900, 0, 1), {message: 'Datum muss nach dem 01.01.1900 liegen'}));
-    validate(schemaPath.birthDate, maxDate(new Date(), {message: 'Datum darf nicht in der Zukunft liegen'}));
+    validate(schemaPath.birthDate, minDate(new Date(1900, 0, 1), {message: 'Datum muss nach dem 01.01.1900 liegen'}) as any);
+        validate(schemaPath.birthDate, maxDate(new Date(), {message: 'Datum darf nicht in der Zukunft liegen'}) as any);
 
     required(schemaPath.gender, {message: 'Pflichtfeld'});
 
     required(schemaPath.country, {message: 'Pflichtfeld'});
 
     required(schemaPath.telephoneNumber, {message: 'Pflichtfeld'});
-    validate(schemaPath.telephoneNumber, pattern('^[0-9]*$', {message: 'Nur Ziffern erlaubt'}));
+    validate(schemaPath.telephoneNumber, pattern('^[0-9]*$', {message: 'Nur Ziffern erlaubt'}) as any);
 
-    maxLength(schemaPath.email, 100, {message: 'E-Mail zu lang (maximal 100 Zeichen)'});
-    validate(schemaPath.email, email({message: 'E-Mail-Format ungültig'}));
+    maxLength(schemaPath.email as any, 100, {message: 'E-Mail zu lang (maximal 100 Zeichen)'});
+    validate(schemaPath.email as any, email({message: 'E-Mail-Format ungültig'}) as any);
 
     // Address fields
     required(schemaPath.address.street, {message: 'Pflichtfeld'});
@@ -119,7 +119,7 @@ export class CustomerFormComponent {
     maxLength(schemaPath.address.houseNumber, 10, {message: 'Hausnummer zu lang (maximal 10 Zeichen)'});
 
     required(schemaPath.address.postalCode, {message: 'Pflichtfeld'});
-    validate(schemaPath.address.postalCode, pattern('^[0-9]{4}$', {message: 'Postleitzahl muss 4 Ziffern haben'}));
+    validate(schemaPath.address.postalCode, pattern('^[0-9]{4}$', {message: 'Postleitzahl muss 4 Ziffern haben'}) as any);
 
     required(schemaPath.address.city, {message: 'Pflichtfeld'});
     maxLength(schemaPath.address.city, 50, {message: 'Stadt zu lang (maximal 50 Zeichen)'});
@@ -127,12 +127,12 @@ export class CustomerFormComponent {
     // Employment fields
     required(schemaPath.employer, {message: 'Pflichtfeld'});
 
-    validate(schemaPath.income, min(0, {message: 'Einkommen muss mindestens 0 sein'}));
+    validate(schemaPath.income, min(0, {message: 'Einkommen muss mindestens 0 sein'}) as any);
 
-    validate(schemaPath.incomeDue, minDate(new Date(), {message: 'Datum muss in der Zukunft liegen'}));
+    validate(schemaPath.incomeDue, minDate(new Date(), {message: 'Datum muss in der Zukunft liegen'}) as any);
 
     required(schemaPath.validUntil, {message: 'Pflichtfeld'});
-    validate(schemaPath.validUntil, minDate(new Date(), {message: 'Datum muss in der Zukunft liegen'}));
+    validate(schemaPath.validUntil, minDate(new Date(), {message: 'Datum muss in der Zukunft liegen'}) as any);
 
     // Additional persons validation using applyEach
     applyEach(schemaPath.additionalPersons as any, (personPath: any) => {
@@ -143,14 +143,14 @@ export class CustomerFormComponent {
       maxLength(personPath.firstname, 50, {message: 'Vorname zu lang (maximal 50 Zeichen)'});
 
       required(personPath.birthDate, {message: 'Pflichtfeld'});
-      validate(personPath.birthDate, minDate(new Date(1920, 0, 1), {message: 'Datum muss nach dem 01.01.1920 liegen'}));
-      validate(personPath.birthDate, maxDate(new Date(), {message: 'Datum darf nicht in der Zukunft liegen'}));
+      validate(personPath.birthDate, minDate(new Date(1920, 0, 1), {message: 'Datum muss nach dem 01.01.1920 liegen'}) as any);
+      validate(personPath.birthDate, maxDate(new Date(), {message: 'Datum darf nicht in der Zukunft liegen'}) as any);
 
       required(personPath.gender, {message: 'Pflichtfeld'});
       required(personPath.country, {message: 'Pflichtfeld'});
 
-      validate(personPath.income, min(0, {message: 'Einkommen muss mindestens 0 sein'}));
-      validate(personPath.incomeDue, minDate(new Date(), {message: 'Datum muss in der Zukunft liegen'}));
+      validate(personPath.income, min(0, {message: 'Einkommen muss mindestens 0 sein'}) as any);
+      validate(personPath.incomeDue, minDate(new Date(), {message: 'Datum muss in der Zukunft liegen'}) as any);
     });
   });
 
@@ -164,6 +164,26 @@ export class CustomerFormComponent {
     return formValue as CustomerData;
   });
 
+  // Helper to satisfy template formField type expectations for potentially nullable fields during migration
+  // Return the raw form field as any for template binding until typings are reconciled
+  get emailFormField(): any {
+    return this.customerForm.email as any;
+  }
+
+  // Helper wrappers for template usage to avoid deep typing issues during migration
+  emailShouldShowErrors(): boolean {
+    return shouldShowErrors(this.customerForm.email());
+  }
+
+  emailErrorMessages(): string[] {
+    return getErrorMessages(this.customerForm.email());
+  }
+
+  emailIsValidAndTouched(): boolean {
+    const field = this.customerForm.email();
+    return field.valid() && (field.dirty() || field.touched());
+  }
+
   constructor() {
     // Populate form when customerData changes
     effect(() => {
@@ -174,32 +194,32 @@ export class CustomerFormComponent {
           ...person,
           key: person.key ? person.key : crypto.randomUUID(),
           employer: person.employer ?? '',
-          income: person.income ?? null,
-          incomeDue: person.incomeDue ?? null,
+          income: person.income ?? undefined,
+          incomeDue: person.incomeDue ?? undefined,
         }));
 
         this.formModel.set({
-          id: customerData.id,
+          id: customerData.id ?? null,
           lastname: customerData.lastname ?? '',
           firstname: customerData.firstname ?? '',
-          birthDate: customerData.birthDate,
-          gender: customerData.gender,
-          country: customerData.country,
+          birthDate: customerData.birthDate ?? null,
+          gender: customerData.gender ?? null,
+          country: customerData.country ?? null,
           telephoneNumber: customerData.telephoneNumber ?? '',
-          email: customerData.email,
+          email: customerData.email ?? '',
           address: {
             street: customerData.address?.street ?? '',
             houseNumber: customerData.address?.houseNumber ?? '',
-            stairway: customerData.address?.stairway,
-            door: customerData.address?.door,
-            postalCode: customerData.address?.postalCode,
+            stairway: customerData.address?.stairway ?? null,
+            door: customerData.address?.door ?? null,
+            postalCode: customerData.address?.postalCode ?? null,
             city: customerData.address?.city ?? ''
           },
           employer: customerData.employer ?? '',
-          income: customerData.income,
-          incomeDue: customerData.incomeDue,
-          validUntil: customerData.validUntil,
-          additionalPersons: additionalPersonsData
+          income: customerData.income ?? null,
+          incomeDue: customerData.incomeDue ?? null,
+          validUntil: customerData.validUntil ?? null,
+          additionalPersons: additionalPersonsData as any
         });
       }
     });
@@ -225,7 +245,7 @@ export class CustomerFormComponent {
   onCountryChange(event: Event) {
     const select = event.target as HTMLSelectElement;
     const selectedId = select.value;
-    const country = this.countries().find(c => c.id.toString() === selectedId);
+    const country = (this.countries() ?? []).find(c => c.id.toString() === selectedId);
     this.customerForm.country().value.set(country ?? null);
     this.customerForm.country().markAsTouched();
   }
@@ -240,7 +260,7 @@ export class CustomerFormComponent {
   onPersonCountryChange(index: number, event: Event) {
     const select = event.target as HTMLSelectElement;
     const selectedId = select.value;
-    const country = this.countries().find(c => c.id.toString() === selectedId);
+    const country = (this.countries() ?? []).find(c => c.id.toString() === selectedId);
 
     const anyForm = this.customerForm as any;
     anyForm.additionalPersons[index].country().value.set(country ?? null);
@@ -269,15 +289,16 @@ export class CustomerFormComponent {
   addNewPerson() {
     const newPerson: AdditionalPersonFormItem = {
       key: crypto.randomUUID(),
-      id: null,
-      firstname: null,
-      lastname: null,
-      birthDate: null,
-      gender: null,
-      country: null,
-      employer: null,
-      income: null,
-      incomeDue: null,
+      id: 0,
+      firstname: '',
+      lastname: '',
+      // optional fields left undefined where allowed
+      birthDate: undefined as any,
+      gender: undefined as any,
+      country: undefined as any,
+      employer: '',
+      income: undefined as any,
+      incomeDue: undefined as any,
       excludeFromHousehold: false,
       receivesFamilyBonus: true
     };

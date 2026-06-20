@@ -84,7 +84,8 @@ export class MailRecipientsComponent {
 
   addAddress(mailTypeIndex: number, recipientTypeIndex: number) {
     const addresses = this.getAddressesOfRecipientTypeIndex(mailTypeIndex, recipientTypeIndex);
-    addresses.push(this.createAddressControl(undefined));
+    addresses.push(this.createAddressControl(''));
+
 
     this.form.markAllAsTouched();
   }

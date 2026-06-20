@@ -45,7 +45,7 @@ export class UserDetailComponent {
   private readonly toastr = inject(ToastrService);
 
   // Writable signal that resets from input, but can be locally updated after API calls
-  readonly currentUserData = linkedSignal(() => this.userData());
+  readonly currentUserData = linkedSignal<UserData | undefined>(() => this.userData());
 
   disableUser() {
     this.changeUserState(false);
@@ -65,11 +65,19 @@ export class UserDetailComponent {
         this.toastr.error('Löschen fehlgeschlagen!');
       },
     };
-    this.userApiService.deleteUser(this.currentUserData().id).subscribe(observer);
+    const currentId = this.currentUserData()?.id;
+    if (!currentId) {
+      return;
+    }
+    this.userApiService.deleteUser(currentId).subscribe(observer);
   }
 
   editUser() {
-    this.router.navigate(['/benutzer/bearbeiten', this.currentUserData().id]);
+    const currentId = this.currentUserData()?.id;
+    if (!currentId) {
+      return;
+    }
+    this.router.navigate(['/benutzer/bearbeiten', currentId]);
   }
 
   private changeUserState(enabled: boolean) {

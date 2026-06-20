@@ -21,7 +21,7 @@ import {StatisticsDetailData} from '../../../api/statistics-api.service';
   ]
 })
 export class StatisticsPanelComponent {
-  data = input<StatisticsDetailData>();
+  data = input<StatisticsDetailData | undefined>();
 
   icons = {cilArrowTop};
 
@@ -73,6 +73,12 @@ export class StatisticsPanelComponent {
 
   chartData = computed(() => {
     const statisticsData = this.data();
+    if (!statisticsData) {
+      return {labels: [], datasets: [{
+        ...this.datasetOptionsDefault,
+        data: []
+      }]} as StatisticsPanelData;
+    }
     return {
       labels: statisticsData.labels,
       datasets: [

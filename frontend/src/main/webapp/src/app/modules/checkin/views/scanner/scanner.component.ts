@@ -122,16 +122,23 @@ export class ScannerComponent {
     const scannedValue = scanResult.value;
     if (!this.lastScanResult() || this.lastScanResult() !== scannedValue) {
       this.lastScanResult.set(scanResult.value);
-      this.scannerApiService.sendScanResult(this.scannerId(), scanResult.value).subscribe();
+      const id = this.scannerId();
+      if (id != null) {
+        this.scannerApiService.sendScanResult(id, scanResult.value).subscribe();
+      }
     }
   }
 
-  get selectedCamera(): CameraDevice {
+  get selectedCamera(): CameraDevice | undefined {
     return this.currentCamera();
   }
 
-  set selectedCamera(camera: CameraDevice) {
-    this.currentCamera.set(camera);
+  set selectedCamera(camera: CameraDevice | undefined) {
+    if (camera) {
+      this.currentCamera.set(camera);
+    } else {
+      this.currentCamera.set(undefined);
+    }
   }
 
 }

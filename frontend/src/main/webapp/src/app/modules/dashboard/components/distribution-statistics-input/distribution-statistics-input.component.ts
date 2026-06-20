@@ -45,8 +45,8 @@ export class DistributionStatisticsInputComponent {
   initialIdsProcessed = signal<boolean>(false);
 
   form = this.fb.group({
-    employeeCount: this.fb.control<number>(null, [Validators.required, Validators.min(1)]),
-    personsInShelterCount: this.fb.control<number>(null, [Validators.min(1)]),
+    employeeCount: this.fb.control<number | null>(null, [Validators.required, Validators.min(1)]),
+    personsInShelterCount: this.fb.control<number | null>(null, [Validators.min(1)]),
   });
 
   readonly distribution: Signal<DistributionItem | null> = this.globalStateService.getCurrentDistribution();

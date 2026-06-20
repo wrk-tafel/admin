@@ -42,6 +42,9 @@ export class LoginPasswordChangeComponent {
       if (successful) {
         const username = this.authenticationService.getUsername();
         const password = formComponent.passwordForm.newPassword().value();
+        if (!username || !password) {
+          return;
+        }
         this.authenticationService.login(username, password).then((result: LoginResult) => {
           if (result.successful) {
             this.router.navigate(['uebersicht']);

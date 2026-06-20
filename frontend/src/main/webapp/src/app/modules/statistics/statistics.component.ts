@@ -101,8 +101,11 @@ export class StatisticsComponent {
       .subscribe((response) => this.processCsvResponse(response));
   }
 
-  private processCsvResponse(response: HttpResponse<Blob>) {
+  private processCsvResponse(response: HttpResponse<Blob | null>) {
     const contentDisposition = response.headers.get('content-disposition');
+    if (!contentDisposition || !response.body) {
+      return;
+    }
     const filename = contentDisposition.split(';')[1].split('filename')[1].split('=')[1].trim();
     this.fileHelperService.downloadFile(filename, response.body);
   }

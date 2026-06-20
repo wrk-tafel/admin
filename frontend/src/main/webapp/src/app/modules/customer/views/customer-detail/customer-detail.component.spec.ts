@@ -48,7 +48,7 @@ describe('CustomerDetailComponent', () => {
   let toastr: MockedObject<ToastrService>;
   let distributionTicketApiService: MockedObject<DistributionTicketApiService>;
   let distributionApiService: MockedObject<DistributionApiService>;
-  const currentDistributionSignal = signal<DistributionItem>(null as any);
+  const currentDistributionSignal = signal<DistributionItem | null>(null);
 
   const mockCountry = {
     id: 0,
@@ -168,7 +168,7 @@ describe('CustomerDetailComponent', () => {
     const distributionApiServiceSpy = {
       assignCustomer: vi.fn().mockName("DistributionApiService.assignCustomer")
     };
-    currentDistributionSignal.set(null as any);
+    currentDistributionSignal.set(null);
     const globalStateServiceSpy = {
       getCurrentDistribution: vi.fn().mockReturnValue(currentDistributionSignal)
     };
@@ -308,8 +308,8 @@ describe('CustomerDetailComponent', () => {
     expect(getTextByTestId(fixture, 'addperson-0-firstnameText')).toBe('Pers 1');
     expect(getTextByTestId(fixture, 'addperson-0-receivesFamilyBonus')).toBe('Ja');
 
-    const birthDateAgePers1 = moment(mockCustomer.additionalPersons[0].birthDate).format('DD.MM.YYYY') +
-      ' (' + moment().diff(mockCustomer.additionalPersons[0].birthDate, 'years') + ')';
+    const birthDateAgePers1 = moment(mockCustomer.additionalPersons![0].birthDate).format('DD.MM.YYYY') +
+      ' (' + moment().diff(mockCustomer.additionalPersons![0].birthDate, 'years') + ')';
     expect(getTextByTestId(fixture, 'addperson-0-birthDateAgeText')).toBe(birthDateAgePers1);
     expect(getTextByTestId(fixture, 'addperson-0-genderText')).toBe('Weiblich');
 
@@ -317,7 +317,7 @@ describe('CustomerDetailComponent', () => {
     expect(getTextByTestId(fixture, 'addperson-0-employerText')).toBe('test employer 2');
     expect(getTextByTestId(fixture, 'addperson-0-incomeText')).toBe('€ 50,00');
     expect(getTextByTestId(fixture, 'addperson-0-incomeDueText'))
-      .toBe(moment(mockCustomer.additionalPersons[0].incomeDue).format('DD.MM.YYYY'));
+      .toBe(moment(mockCustomer.additionalPersons![0].incomeDue).format('DD.MM.YYYY'));
 
     expect(getTextByTestId(fixture, 'addperson-1-incomeText')).toBe('-');
     expect(getTextByTestId(fixture, 'addperson-1-incomeDueText')).toBe('-');

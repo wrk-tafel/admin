@@ -12,5 +12,5 @@ import {TafelDialogComponent} from '../../../../../common/components/tafel-dialo
 })
 export class LockCustomerDialogComponent {
   readonly dialogRef = inject(MatDialogRef<LockCustomerDialogComponent>);
-  reasonText = signal<string>(null);
+  reasonText = signal<string | null>(null);
 }
