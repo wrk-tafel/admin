@@ -1,4 +1,4 @@
-import {Component, effect, inject, signal} from '@angular/core';
+import {Component, effect, inject, signal, ChangeDetectionStrategy} from '@angular/core';
 import {MatCard, MatCardContent, MatCardFooter, MatCardHeader, MatCardTitle} from '@angular/material/card';
 import {MatButton, MatButtonModule} from '@angular/material/button';
 import {MatSelect, MatSelectModule} from '@angular/material/select';
@@ -15,6 +15,7 @@ import {faEnvelope} from '@fortawesome/free-solid-svg-icons';
 @Component({
   selector: 'tafel-send-mails',
   templateUrl: 'send-mails.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     MatCard,
     MatCardHeader,

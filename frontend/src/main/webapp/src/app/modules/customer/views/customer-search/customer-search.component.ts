@@ -1,4 +1,4 @@
-import {Component, inject, signal} from '@angular/core';
+import {Component, inject, signal, ChangeDetectionStrategy} from '@angular/core';
 import {Router} from '@angular/router';
 import {CustomerApiService, CustomerSearchResult} from '../../../../api/customer-api.service';
 import {FormBuilder, ReactiveFormsModule} from '@angular/forms';
@@ -29,6 +29,7 @@ import {FormatCustomerAddressPipe} from '../../../../common/pipes/format-custome
 @Component({
   selector: 'tafel-customer-search',
   templateUrl: 'customer-search.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     ReactiveFormsModule,
     CardComponent,

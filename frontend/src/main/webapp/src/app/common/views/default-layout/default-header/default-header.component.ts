@@ -1,4 +1,4 @@
-import {Component, inject, input, Signal} from '@angular/core';
+import {Component, inject, input, Signal, ChangeDetectionStrategy} from '@angular/core';
 import {
   AvatarComponent,
   BadgeComponent,
@@ -26,6 +26,7 @@ import {GlobalStateService} from '../../../state/global-state.service';
 @Component({
   selector: 'app-default-header',
   templateUrl: 'default-header.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     ContainerComponent,
     SidebarToggleDirective,

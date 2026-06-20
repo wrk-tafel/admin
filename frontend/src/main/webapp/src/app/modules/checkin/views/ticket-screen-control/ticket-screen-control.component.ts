@@ -1,4 +1,4 @@
-import {Component, inject, signal} from '@angular/core';
+import {Component, inject, signal, ChangeDetectionStrategy} from '@angular/core';
 import {ReactiveFormsModule} from '@angular/forms';
 import {TicketScreenComponent} from '../../components/ticket-screen/ticket-screen.component';
 import {UrlHelperService} from '../../../../common/util/url-helper.service';
@@ -17,6 +17,7 @@ import {MatDivider} from '@angular/material/list';
 @Component({
   selector: 'tafel-ticket-screen-control',
   templateUrl: 'ticket-screen-control.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     MatCardModule,
     MatButtonModule,

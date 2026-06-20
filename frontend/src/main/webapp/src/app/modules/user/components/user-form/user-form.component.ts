@@ -1,4 +1,4 @@
-import {Component, computed, effect, inject, input, output, signal} from '@angular/core';
+import {Component, computed, effect, inject, input, output, signal, ChangeDetectionStrategy} from '@angular/core';
 import {form, FormField, maxLength, required, validate} from '@angular/forms/signals';
 import {GeneratedPasswordResponse, UserApiService, UserData, UserPermission} from '../../../../api/user-api.service';
 import { ToastrService } from 'ngx-toastr';
@@ -19,6 +19,7 @@ import {getErrorMessages, shouldShowErrors} from '../../../../common/util/signal
 @Component({
     selector: 'tafel-user-form',
     templateUrl: 'user-form.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [
         FormField,
         NgClass,

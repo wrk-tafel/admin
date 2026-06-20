@@ -213,7 +213,7 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
     (component as any).coDriverEmployeeSearchCreate = () => mockCoDriverSearch;
 
     // Test driver search with no input
-    component.driverSearchInput.setValue(null as any);
+    component.driverSearchInput.setValue(null);
     component.triggerSearchDriver();
     expect(mockDriverSearch.triggerSearch).not.toHaveBeenCalled();
 
@@ -223,7 +223,7 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
     expect(mockDriverSearch.triggerSearch).toHaveBeenCalled();
 
     // Test co-driver search with no input
-    component.coDriverSearchInput.setValue(null as any);
+    component.coDriverSearchInput.setValue(null);
     component.triggerSearchCoDriver();
     expect(mockCoDriverSearch.triggerSearch).not.toHaveBeenCalled();
 
@@ -271,7 +271,7 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
     expect(component.isSaveDisabled()).toEqual(false);
 
     // If we make one field invalid, save should be disabled
-    component.kmEnd.setValue(null as any);
+    component.kmEnd.setValue(null);
     expect(component.isSaveDisabled()).toEqual(true);
   });
 
@@ -336,7 +336,7 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
 
     fixture.detectChanges();
 
-    foodCollectionsApiServiceSpy.saveRouteData.mockReturnValue(of(null as any));
+    foodCollectionsApiServiceSpy.saveRouteData.mockReturnValue(of(null));
 
     // Set valid form data with km difference = 150 (< 350)
     component.car.setValue(mockCarList.cars[0]);
@@ -371,7 +371,7 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
 
     fixture.detectChanges();
 
-    foodCollectionsApiServiceSpy.saveRouteData.mockReturnValue(of(null as any));
+    foodCollectionsApiServiceSpy.saveRouteData.mockReturnValue(of(null));
 
     // Set valid form data with km difference = 400 (> 350)
     component.car.setValue(mockCarList.cars[0]);
@@ -400,7 +400,7 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
 
     fixture.detectChanges();
 
-    foodCollectionsApiServiceSpy.saveRouteData.mockReturnValue(of(null as any));
+    foodCollectionsApiServiceSpy.saveRouteData.mockReturnValue(of(null));
 
     // Set valid form data with km difference = 400 (> 350)
     component.car.setValue(mockCarList.cars[0]);
@@ -435,7 +435,7 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
 
     fixture.detectChanges();
 
-    foodCollectionsApiServiceSpy.saveRouteData.mockReturnValue(of(null as any));
+    foodCollectionsApiServiceSpy.saveRouteData.mockReturnValue(of(null));
 
     component.car.setValue(mockCarList.cars[0]);
     component.driverSearchInput.setValue('D1');
@@ -474,7 +474,7 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
 
     fixture.detectChanges();
 
-    foodCollectionsApiServiceSpy.saveRouteData.mockReturnValue(of(null as any));
+    foodCollectionsApiServiceSpy.saveRouteData.mockReturnValue(of(null));
 
     // Set valid form data with km difference = 400 (> 350)
     component.car.setValue(mockCarList.cars[0]);
@@ -493,4 +493,5 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
   });
 
 });
+
 

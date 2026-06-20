@@ -1,4 +1,4 @@
-import {Component, effect, inject, model, signal} from '@angular/core';
+import {Component, effect, inject, model, signal, ChangeDetectionStrategy} from '@angular/core';
 import {RouteApiService, RouteData, RouteList, Shop} from '../../../../api/route-api.service';
 
 import {
@@ -35,6 +35,7 @@ import {forkJoin} from 'rxjs';
 @Component({
   selector: 'tafel-food-collection-recording',
   templateUrl: 'food-collection-recording.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CardComponent,
     CardBodyComponent,

@@ -48,7 +48,7 @@ describe('CustomerDetailComponent', () => {
   let toastr: MockedObject<ToastrService>;
   let distributionTicketApiService: MockedObject<DistributionTicketApiService>;
   let distributionApiService: MockedObject<DistributionApiService>;
-  const currentDistributionSignal = signal<DistributionItem>(null as any);
+  const currentDistributionSignal = signal<DistributionItem>(null);
 
   const mockCountry = {
     id: 0,
@@ -142,7 +142,7 @@ describe('CustomerDetailComponent', () => {
   beforeEach((() => {
     const customerApiServiceSpy = {
       generatePdf: vi.fn().mockName("CustomerApiService.generatePdf"),
-      deleteCustomer: vi.fn().mockReturnValue(of(null as any)).mockName("CustomerApiService.deleteCustomer"),
+      deleteCustomer: vi.fn().mockReturnValue(of(null)).mockName("CustomerApiService.deleteCustomer"),
       updateCustomer: vi.fn().mockImplementation((customerData: CustomerData) => of({
         data: customerData,
         errorMsg: null as any
@@ -168,7 +168,7 @@ describe('CustomerDetailComponent', () => {
     const distributionApiServiceSpy = {
       assignCustomer: vi.fn().mockName("DistributionApiService.assignCustomer")
     };
-    currentDistributionSignal.set(null as any);
+    currentDistributionSignal.set(null);
     const globalStateServiceSpy = {
       getCurrentDistribution: vi.fn().mockReturnValue(currentDistributionSignal)
     };
@@ -465,7 +465,7 @@ describe('CustomerDetailComponent', () => {
     const component = fixture.componentInstance;
     fixture.detectChanges();
 
-    customerApiService.deleteCustomer.mockReturnValue(of(null as any));
+    customerApiService.deleteCustomer.mockReturnValue(of(null));
 
     component.openDeleteCustomerDialog();
     fixture.detectChanges();
@@ -881,4 +881,5 @@ describe('CustomerDetailComponent', () => {
   }
 
 });
+
 

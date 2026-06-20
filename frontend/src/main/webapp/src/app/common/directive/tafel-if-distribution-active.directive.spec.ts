@@ -14,7 +14,7 @@ class TestComponent {}
 
 describe('TafelIfDistributionActiveDirective', () => {
 
-    function setup(distributionItem: DistributionItem | null as any) {
+    function setup(distributionItem: DistributionItem | null) {
         const globalStateServiceSpy = {
             getCurrentDistribution: vi.fn().mockName("GlobalStateService.getCurrentDistribution")
         };
@@ -40,7 +40,7 @@ describe('TafelIfDistributionActiveDirective', () => {
     });
 
     it('should not render when distribution is inactive', () => {
-        const { fixture } = setup(null as any);
+        const { fixture } = setup(null);
 
         fixture.detectChanges();
 
@@ -48,4 +48,5 @@ describe('TafelIfDistributionActiveDirective', () => {
     });
 
 });
+
 

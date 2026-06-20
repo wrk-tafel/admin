@@ -1,9 +1,10 @@
-import {Component, effect, input, output} from '@angular/core';
+import {Component, effect, input, output, ChangeDetectionStrategy} from '@angular/core';
 import {PageItemDirective, PageLinkDirective, PaginationComponent} from '@coreui/angular';
 
 @Component({
     selector: 'tafel-pagination',
     templateUrl: 'tafel-pagination.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [
         PaginationComponent,
         PageItemDirective,

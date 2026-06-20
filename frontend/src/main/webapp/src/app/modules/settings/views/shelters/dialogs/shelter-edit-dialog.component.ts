@@ -1,4 +1,4 @@
-import {Component, inject, ChangeDetectorRef} from '@angular/core';
+import {Component, inject, ChangeDetectorRef, ChangeDetectionStrategy} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 import {TafelDialogComponent} from '../../../../../common/components/tafel-dialog/tafel-dialog.component';
 import {FormArray, FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
@@ -17,6 +17,7 @@ export interface ShelterEditDialogData {
 @Component({
   selector: 'tafel-shelter-edit-dialog',
   templateUrl: 'shelter-edit-dialog.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     TafelDialogComponent,

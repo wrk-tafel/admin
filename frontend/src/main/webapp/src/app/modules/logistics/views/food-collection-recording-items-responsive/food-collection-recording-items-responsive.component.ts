@@ -1,4 +1,4 @@
-import {Component, computed, effect, inject, input, model, signal} from '@angular/core';
+import {Component, computed, effect, inject, input, model, signal, ChangeDetectionStrategy} from '@angular/core';
 
 import {FoodCategory} from '../../../../api/food-categories-api.service';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
@@ -20,6 +20,7 @@ import {ToastrService} from 'ngx-toastr';
 @Component({
   selector: 'tafel-food-collection-recording-items-responsive',
   templateUrl: 'food-collection-recording-items-responsive.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     ReactiveFormsModule,
     FormsModule,

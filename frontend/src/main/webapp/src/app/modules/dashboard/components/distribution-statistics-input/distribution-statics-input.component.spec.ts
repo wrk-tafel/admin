@@ -96,7 +96,7 @@ describe('DistributionStatisticsInputComponent', () => {
   it('save data successful', () => {
     const fixture = TestBed.createComponent(DistributionStatisticsInputComponent);
     const component = fixture.componentInstance;
-    distributionApiService.saveStatistic.mockReturnValue(of(null as any));
+    distributionApiService.saveStatistic.mockReturnValue(of(null));
 
     component.employeeCount.setValue(100);
     component.personsInShelterCount.setValue(200);
@@ -182,7 +182,7 @@ describe('DistributionStatisticsInputComponent', () => {
   });
 
   it('employeeCount disabled and data reset without active distribution', () => {
-    globalStateService.getCurrentDistribution.mockReturnValue(signal<DistributionItem>(null as any).asReadonly());
+    globalStateService.getCurrentDistribution.mockReturnValue(signal<DistributionItem>(null).asReadonly());
 
     const fixture = TestBed.createComponent(DistributionStatisticsInputComponent);
     const componentRef = fixture.componentRef;
@@ -199,4 +199,5 @@ describe('DistributionStatisticsInputComponent', () => {
   });
 
 });
+
 

@@ -1,4 +1,4 @@
-import {Component, inject, input, output} from '@angular/core';
+import {Component, inject, input, output, ChangeDetectionStrategy} from '@angular/core';
 import {MatButton} from '@angular/material/button';
 import {faCalculator} from '@fortawesome/free-solid-svg-icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
@@ -9,6 +9,7 @@ import {SelectSheltersDialogComponent} from './dialogs/select-shelters-dialog.co
 @Component({
   selector: 'tafel-select-shelters',
   templateUrl: 'select-shelters.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     MatButton,
     FaIconComponent

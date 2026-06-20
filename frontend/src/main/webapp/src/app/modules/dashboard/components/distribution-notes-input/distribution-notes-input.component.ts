@@ -1,4 +1,4 @@
-import {Component, computed, inject, input, linkedSignal, Signal} from '@angular/core';
+import {Component, computed, inject, input, linkedSignal, Signal, ChangeDetectionStrategy} from '@angular/core';
 import {MatCard, MatCardContent, MatCardFooter, MatCardHeader, MatCardTitle} from '@angular/material/card';
 import {MatButton} from '@angular/material/button';
 import {MatInput} from '@angular/material/input';
@@ -12,6 +12,7 @@ import {GlobalStateService} from '../../../../common/state/global-state.service'
 @Component({
   selector: 'tafel-distribution-notes-input',
   templateUrl: 'distribution-notes-input.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     MatCard,
     MatCardHeader,

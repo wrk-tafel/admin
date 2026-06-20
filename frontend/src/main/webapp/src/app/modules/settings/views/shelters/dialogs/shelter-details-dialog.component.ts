@@ -1,4 +1,4 @@
-import {Component, inject} from '@angular/core';
+import {Component, inject, ChangeDetectionStrategy} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 import {TafelDialogComponent} from '../../../../../common/components/tafel-dialog/tafel-dialog.component';
 import {MatButton} from '@angular/material/button';
@@ -11,6 +11,7 @@ export interface ShelterDetailsDialogData {
 @Component({
   selector: 'tafel-shelter-details-dialog',
   templateUrl: 'shelter-details-dialog.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [TafelDialogComponent, MatButton]
 })
 export class ShelterDetailsDialogComponent {

@@ -1,24 +1,24 @@
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-2">
   <tafel-distribution-state *tafelIfPermission="'DISTRIBUTION_LCM'"></tafel-distribution-state>
-  <tafel-registered-customers [count]="data()?.registeredCustomers"></tafel-registered-customers>
-  <tafel-tickets-processed [countProcessedTickets]="data()?.tickets?.countProcessedTickets"
-                           [countTotalTickets]="data()?.tickets?.countTotalTickets">
+  <tafel-registered-customers [count]="$safeNavigationMigration(data()?.registeredCustomers)"></tafel-registered-customers>
+  <tafel-tickets-processed [countProcessedTickets]="$safeNavigationMigration(data()?.tickets?.countProcessedTickets)"
+                           [countTotalTickets]="$safeNavigationMigration(data()?.tickets?.countTotalTickets)">
   </tafel-tickets-processed>
 </div>
 <mat-divider class="m-3"></mat-divider>
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-2">
-  <tafel-recorded-food-collections [countRecorded]="data()?.logistics?.foodCollectionsRecordedCount"
-                                   [countTotal]="data()?.logistics?.foodCollectionsTotalCount">
+  <tafel-recorded-food-collections [countRecorded]="$safeNavigationMigration(data()?.logistics?.foodCollectionsRecordedCount)"
+                                   [countTotal]="$safeNavigationMigration(data()?.logistics?.foodCollectionsTotalCount)">
   </tafel-recorded-food-collections>
-  <tafel-food-amount [amount]="data()?.logistics?.foodAmountTotal">
+  <tafel-food-amount [amount]="$safeNavigationMigration(data()?.logistics?.foodAmountTotal)">
   </tafel-food-amount>
 </div>
 <mat-divider class="m-3"></mat-divider>
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-2">
   <tafel-distribution-statistics-input *tafelIfPermission="'LOGISTICS'" [sheltersData]="sheltersData()"
-                                       [employeeCountInput]="data()?.statistics?.employeeCount"
-                                       [initialSelectedShelterNames]="data()?.statistics?.selectedShelterNames">
+                                       [employeeCountInput]="$safeNavigationMigration(data()?.statistics?.employeeCount)"
+                                       [initialSelectedShelterNames]="$safeNavigationMigration(data()?.statistics?.selectedShelterNames)">
   </tafel-distribution-statistics-input>
-  <tafel-distribution-notes-input class="col-span-2" [initialNotesData]="data()?.notes">
+  <tafel-distribution-notes-input class="col-span-2" [initialNotesData]="$safeNavigationMigration(data()?.notes)">
   </tafel-distribution-notes-input>
 </div>

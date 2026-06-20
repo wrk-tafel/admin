@@ -19,7 +19,7 @@ import {
 import {DropdownModule, SidebarModule} from '@coreui/angular';
 import {IconSetService} from '@coreui/icons-angular';
 import {routes} from './app.routes';
-import {provideHttpClient, withInterceptors} from '@angular/common/http';
+import {provideHttpClient, withInterceptors, withXhr} from '@angular/common/http';
 import {CookieService} from 'ngx-cookie-service';
 import {HashLocationStrategy, LocationStrategy} from '@angular/common';
 import {errorHandlerInterceptor} from './common/http/errorhandler-interceptor.service';
@@ -45,7 +45,7 @@ export const appConfig: ApplicationConfig = {
       autoDismiss: true,
       progressBar: true,
     }),
-    provideHttpClient(
+    provideHttpClient(withXhr(), 
       withInterceptors([
         apiPathInterceptor,
         errorHandlerInterceptor

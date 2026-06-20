@@ -175,7 +175,7 @@ describe('CheckinComponent', () => {
 
     it('ngOnInit without ongoing distribution navigates to dashboard', () => {
         scannerApiService.getScanners.mockReturnValue(EMPTY);
-        globalStateService.getCurrentDistribution.mockReturnValue(signal<DistributionItem>(null as any).asReadonly());
+        globalStateService.getCurrentDistribution.mockReturnValue(signal<DistributionItem>(null).asReadonly());
 
         const fixture = TestBed.createComponent(CheckinComponent);
         const component = fixture.componentInstance;
@@ -695,7 +695,7 @@ describe('CheckinComponent', () => {
         const ticketNumber = 55;
         component.ticketNumber = ticketNumber;
 
-        distributionApiService.assignCustomer.mockReturnValue(of(null as any));
+        distributionApiService.assignCustomer.mockReturnValue(of(null));
 
         component.assignCustomer();
         await fixture.whenStable();
@@ -776,7 +776,7 @@ describe('CheckinComponent', () => {
         };
         component.processCustomer(mockCustomer);
         distributionTicketApiService.deleteCurrentTicketOfCustomer.mockImplementation((id) =>
-            id === mockCustomer.id ? of(null as any) : of(null as any)
+            id === mockCustomer.id ? of(null) : of(null)
         );
 
         component.deleteTicket();
@@ -790,4 +790,5 @@ describe('CheckinComponent', () => {
     });
 
 });
+
 

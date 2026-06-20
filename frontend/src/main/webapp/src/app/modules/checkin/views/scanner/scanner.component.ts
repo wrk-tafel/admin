@@ -1,4 +1,4 @@
-import {Component, computed, DestroyRef, effect, inject, signal, WritableSignal} from '@angular/core';
+import {Component, computed, DestroyRef, effect, inject, signal, WritableSignal, ChangeDetectionStrategy} from '@angular/core';
 import {QRCodeReaderService} from '../../services/qrcode-reader/qrcode-reader.service';
 import {CameraDevice} from 'html5-qrcode/esm/camera/core';
 import {Html5QrcodeResult} from 'html5-qrcode/core';
@@ -17,6 +17,7 @@ import {MatDivider} from '@angular/material/list';
 @Component({
   selector: 'tafel-scanner',
   templateUrl: 'scanner.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     MatBadgeModule,
     MatCard,

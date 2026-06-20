@@ -6,7 +6,8 @@ import {
   ElementRef,
   inject,
   signal,
-  viewChild
+  viewChild,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import {CustomerApiService, CustomerData} from '../../../../api/customer-api.service';
 import {Subscription} from 'rxjs';
@@ -37,6 +38,7 @@ import {faTrashCan} from '@fortawesome/free-solid-svg-icons';
 @Component({
     selector: 'tafel-checkin',
     templateUrl: 'checkin.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     FormsModule,
     CommonModule,

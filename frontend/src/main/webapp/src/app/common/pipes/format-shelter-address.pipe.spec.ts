@@ -88,7 +88,7 @@ describe('FormatShelterAddressPipe', () => {
   });
 
   it('should return dash for null as any address', () => {
-    const result = pipe.transform(null as any);
+    const result = pipe.transform(null);
 
     expect(result).toBe('-');
   });
@@ -139,4 +139,5 @@ describe('FormatShelterAddressPipe', () => {
     expect(result).toBe('Gasse 3, 1090 Wien');
   });
 });
+
 
