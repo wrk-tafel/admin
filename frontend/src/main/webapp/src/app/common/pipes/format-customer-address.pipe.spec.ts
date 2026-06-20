@@ -68,7 +68,7 @@ describe('FormatCustomerAddressPipe', () => {
   });
 
   it('should return dash for null as any address', () => {
-    const result = pipe.transform(null);
+    const result = pipe.transform(null as any);
 
     expect(result).toBe('-');
   });
