@@ -63,7 +63,7 @@ describe('FormatCustomerNamePipe', () => {
   });
 
   it('should return dash for undefined customer', () => {
-    const result = pipe.transform(undefined);
+    const result = pipe.transform(undefined as any);
 
     expect(result).toBe('-');
   });

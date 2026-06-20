@@ -62,7 +62,7 @@ describe('FormatPermissionsPipe', () => {
   });
 
   it('should return empty string for undefined userData', () => {
-    const result = pipe.transform(undefined);
+    const result = pipe.transform(undefined as any);
 
     expect(result).toBe('');
   });

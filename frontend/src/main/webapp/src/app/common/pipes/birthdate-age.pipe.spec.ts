@@ -53,7 +53,7 @@ describe('BirthdateAgePipe', () => {
   });
 
   it('should return dash for undefined birthdate', () => {
-    const result = pipe.transform(undefined);
+    const result = pipe.transform(undefined as any);
 
     expect(result).toBe('-');
   });

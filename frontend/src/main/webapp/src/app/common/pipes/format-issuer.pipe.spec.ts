@@ -37,7 +37,7 @@ describe('FormatIssuerPipe', () => {
   });
 
   it('should return empty string for undefined issuer', () => {
-    const result = pipe.transform(undefined);
+    const result = pipe.transform(undefined as any);
 
     expect(result).toBe('');
   });

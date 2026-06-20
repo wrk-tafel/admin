@@ -94,7 +94,7 @@ describe('FormatShelterAddressPipe', () => {
   });
 
   it('should return dash for undefined address', () => {
-    const result = pipe.transform(undefined);
+    const result = pipe.transform(undefined as any);
 
     expect(result).toBe('-');
   });
