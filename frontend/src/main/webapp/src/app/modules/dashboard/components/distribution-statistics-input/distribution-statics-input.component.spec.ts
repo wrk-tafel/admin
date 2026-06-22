@@ -4,15 +4,15 @@ import {DistributionApiService, DistributionItem} from '../../../../api/distribu
 import {DistributionStatisticsInputComponent} from './distribution-statistics-input.component';
 import {CardModule, ColComponent, ModalModule, ProgressModule, RowComponent} from '@coreui/angular';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
-import { ToastrService } from 'ngx-toastr';
 import {of, throwError} from 'rxjs';
 import {ShelterItem} from '../../../../api/shelter-api.service';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
 import { signal } from '@angular/core';
+import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
 describe('DistributionStatisticsInputComponent', () => {
   let distributionApiService: MockedObject<DistributionApiService>;
-  let toastr: MockedObject<ToastrService>;
+  let toastr: MockedObject<TafelToastrService>;
   let globalStateService: MockedObject<GlobalStateService>;
 
   const testShelters: ShelterItem[] = [
@@ -66,10 +66,10 @@ describe('DistributionStatisticsInputComponent', () => {
           }
         },
         {
-          provide: ToastrService,
+          provide: TafelToastrService,
           useValue: {
-            success: vi.fn().mockName('ToastrService.success'),
-            error: vi.fn().mockName('ToastrService.error')
+            success: vi.fn().mockName('TafelToastrService.success'),
+            error: vi.fn().mockName('TafelToastrService.error')
           }
         },
         {
@@ -82,7 +82,7 @@ describe('DistributionStatisticsInputComponent', () => {
     }).compileComponents();
 
     distributionApiService = TestBed.inject(DistributionApiService) as MockedObject<DistributionApiService>;
-    toastr = TestBed.inject(ToastrService) as MockedObject<ToastrService>;
+    toastr = TestBed.inject(TafelToastrService) as MockedObject<TafelToastrService>;
     globalStateService = TestBed.inject(GlobalStateService) as MockedObject<GlobalStateService>;
   });
 

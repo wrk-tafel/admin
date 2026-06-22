@@ -11,7 +11,7 @@ import {MatDialog} from '@angular/material/dialog';
 import {provideNoopAnimations} from '@angular/platform-browser/animations';
 import {provideHttpClient} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
-import {ToastrService} from 'ngx-toastr';
+import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
 describe('CustomerEditComponent - Editing an existing customer', () => {
   const testCountry = {
@@ -79,7 +79,7 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
 
   let router: MockedObject<Router>;
   let apiService: MockedObject<CustomerApiService>;
-  let toastr: MockedObject<ToastrService>;
+  let toastr: MockedObject<TafelToastrService>;
 
   beforeEach((() => {
     TestBed.configureTestingModule({
@@ -125,7 +125,7 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
           }
         },
         {
-          provide: ToastrService,
+          provide: TafelToastrService,
           useValue: {error: vi.fn(), info: vi.fn(), success: vi.fn(), warning: vi.fn(), show: vi.fn()}
         }
       ]
@@ -133,7 +133,7 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
 
     router = TestBed.inject(Router) as MockedObject<Router>;
     apiService = TestBed.inject(CustomerApiService) as MockedObject<CustomerApiService>;
-    toastr = TestBed.inject(ToastrService) as MockedObject<ToastrService>;
+    toastr = TestBed.inject(TafelToastrService) as MockedObject<TafelToastrService>;
   }));
 
   it('initial checks', () => {

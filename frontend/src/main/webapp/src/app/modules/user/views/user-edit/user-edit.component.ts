@@ -3,7 +3,7 @@ import {Router} from '@angular/router';
 import {UserApiService, UserData, UserPermission} from '../../../../api/user-api.service';
 import {UserFormComponent} from '../../components/user-form/user-form.component';
 import {ButtonDirective} from '@coreui/angular';
-import {ToastrService} from 'ngx-toastr';
+import {TafelToastrService} from "../../../../common/components/tafel-toastr/tafel-toastr.service";
 
 @Component({
   selector: 'tafel-user-edit',
@@ -23,7 +23,7 @@ export class UserEditComponent {
   userFormComponent = viewChild<UserFormComponent>(UserFormComponent);
   private readonly userApiService = inject(UserApiService);
   private readonly router = inject(Router);
-  private readonly toastr = inject(ToastrService);
+  private readonly toastr = inject(TafelToastrService);
 
   constructor() {
     // Mark forms as touched when userData changes (deferred to next microtask)

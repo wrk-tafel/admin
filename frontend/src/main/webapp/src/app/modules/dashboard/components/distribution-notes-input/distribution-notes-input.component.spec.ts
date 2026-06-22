@@ -4,12 +4,12 @@ import {DistributionApiService} from '../../../../api/distribution-api.service';
 import {DistributionNotesInputComponent} from './distribution-notes-input.component';
 import {CardModule, ColComponent, ModalModule, ProgressModule, RowComponent} from '@coreui/angular';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
-import { ToastrService } from 'ngx-toastr';
 import {of, throwError} from 'rxjs';
+import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
 describe('DistributionNotesInputComponent', () => {
   let distributionApiService: MockedObject<DistributionApiService>;
-  let toastr: MockedObject<ToastrService>;
+  let toastr: MockedObject<TafelToastrService>;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -29,17 +29,17 @@ describe('DistributionNotesInputComponent', () => {
           }
         },
         {
-          provide: ToastrService,
+          provide: TafelToastrService,
           useValue: {
-            success: vi.fn().mockName('ToastrService.success'),
-            error: vi.fn().mockName('ToastrService.error')
+            success: vi.fn().mockName('TafelToastrService.success'),
+            error: vi.fn().mockName('TafelToastrService.error')
           }
         }
       ]
     }).compileComponents();
 
     distributionApiService = TestBed.inject(DistributionApiService) as MockedObject<DistributionApiService>;
-    toastr = TestBed.inject(ToastrService) as MockedObject<ToastrService>;
+    toastr = TestBed.inject(TafelToastrService) as MockedObject<TafelToastrService>;
   });
 
   it('component can be created', () => {

@@ -13,7 +13,6 @@ import {FormsModule} from '@angular/forms';
 import {signal} from '@angular/core';
 import {DistributionTicketApiService} from '../../../../api/distribution-ticket-api.service';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
-import {ToastrService} from 'ngx-toastr';
 import {ScannerApiService, ScannerList} from '../../../../api/scanner-api.service';
 import {SseService} from '../../../../common/sse/sse.service';
 
@@ -28,6 +27,7 @@ import {FontAwesomeModule} from '@fortawesome/angular-fontawesome';
 import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
 import {GenderLabelPipe} from '../../../../common/pipes/gender-label.pipe';
 import {BirthdateAgePipe} from '../../../../common/pipes/birthdate-age.pipe';
+import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
 describe('CheckinComponent', () => {
     let customerApiService: MockedObject<CustomerApiService>;
@@ -38,7 +38,7 @@ describe('CheckinComponent', () => {
     let distributionApiService: MockedObject<DistributionApiService>;
     let distributionTicketApiService: MockedObject<DistributionTicketApiService>;
     let router: MockedObject<Router>;
-    let toastr: MockedObject<ToastrService>;
+    let toastr: MockedObject<TafelToastrService>;
 
     beforeEach(() => {
         const customerApiServiceSpy = {
@@ -72,10 +72,10 @@ describe('CheckinComponent', () => {
             navigate: vi.fn().mockName("Router.navigate")
         };
         const toastrSpy = {
-            error: vi.fn().mockName("ToastrService.error"),
-            info: vi.fn().mockName("ToastrService.info"),
-            success: vi.fn().mockName("ToastrService.success"),
-            warning: vi.fn().mockName("ToastrService.warning")
+            error: vi.fn().mockName("TafelToastrService.error"),
+            info: vi.fn().mockName("TafelToastrService.info"),
+            success: vi.fn().mockName("TafelToastrService.success"),
+            warning: vi.fn().mockName("TafelToastrService.warning")
         };
 
         TestBed.configureTestingModule({
@@ -129,7 +129,7 @@ describe('CheckinComponent', () => {
                     useValue: routerSpy
                 },
                 {
-                    provide: ToastrService,
+                    provide: TafelToastrService,
                     useValue: toastrSpy
                 }
             ]
@@ -143,7 +143,7 @@ describe('CheckinComponent', () => {
         distributionApiService = TestBed.inject(DistributionApiService) as MockedObject<DistributionApiService>;
         distributionTicketApiService = TestBed.inject(DistributionTicketApiService) as MockedObject<DistributionTicketApiService>;
         router = TestBed.inject(Router) as MockedObject<Router>;
-        toastr = TestBed.inject(ToastrService) as MockedObject<ToastrService>;
+        toastr = TestBed.inject(TafelToastrService) as MockedObject<TafelToastrService>;
     });
 
     it('component can be created', () => {

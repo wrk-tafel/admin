@@ -4,8 +4,8 @@ import {ButtonDirective, InputGroupComponent} from '@coreui/angular';
 import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
 import {CommonModule} from '@angular/common';
 import {EmployeeApiService, EmployeeData} from '../../../../api/employee-api.service';
-import {ToastrService} from 'ngx-toastr';
 import {TafelDialogComponent} from '../../../../common/components/tafel-dialog/tafel-dialog.component';
+import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
 export interface CreateEmployeeDialogData {
   testId: string;
@@ -21,7 +21,7 @@ export class CreateEmployeeDialogComponent {
   readonly dialogRef = inject(MatDialogRef<CreateEmployeeDialogComponent>);
   readonly data: CreateEmployeeDialogData = inject(MAT_DIALOG_DATA);
   private readonly employeeApiService = inject(EmployeeApiService);
-  private readonly toastr = inject(ToastrService);
+  private readonly toastr = inject(TafelToastrService);
   private readonly fb = inject(FormBuilder);
 
   createEmployeeForm = this.fb.group({

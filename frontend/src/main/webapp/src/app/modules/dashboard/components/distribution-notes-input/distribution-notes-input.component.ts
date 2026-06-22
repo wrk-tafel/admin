@@ -6,8 +6,8 @@ import {MatFormField} from '@angular/material/form-field';
 import {FormsModule} from '@angular/forms';
 import {DistributionApiService} from '../../../../api/distribution-api.service';
 import {DistributionItem} from '../../../../api/distribution-api.service';
-import {ToastrService} from 'ngx-toastr';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
+import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
 @Component({
   selector: 'tafel-distribution-notes-input',
@@ -26,7 +26,7 @@ import {GlobalStateService} from '../../../../common/state/global-state.service'
 })
 export class DistributionNotesInputComponent {
   private readonly distributionApiService = inject(DistributionApiService);
-  private readonly toastr = inject(ToastrService);
+  private readonly toastr = inject(TafelToastrService);
   private readonly globalStateService = inject(GlobalStateService);
 
   initialNotesData = input<string>();

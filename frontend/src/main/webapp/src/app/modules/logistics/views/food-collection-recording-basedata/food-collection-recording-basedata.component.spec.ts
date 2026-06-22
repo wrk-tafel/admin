@@ -11,7 +11,7 @@ import {CarList} from '../../../../api/car-api.service';
 import {RouteData} from '../../../../api/route-api.service';
 import {SelectedRouteData} from '../food-collection-recording/food-collection-recording.component';
 import {MatDialog} from '@angular/material/dialog';
-import { ToastrService } from 'ngx-toastr';
+import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
 describe('FoodCollectionRecordingBasedataComponent', () => {
   let foodCollectionsApiServiceSpy: MockedObject<FoodCollectionsApiService>;
@@ -64,7 +64,7 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
           provide: MatDialog,
           useValue: {open: vi.fn().mockReturnValue({afterClosed: () => of(undefined)})}
         },
-        { provide: ToastrService, useValue: { error: vi.fn(), info: vi.fn(), success: vi.fn(), warning: vi.fn(), show: vi.fn() } }
+        { provide: TafelToastrService, useValue: { error: vi.fn(), info: vi.fn(), success: vi.fn(), warning: vi.fn(), show: vi.fn() } }
       ]
     }).compileComponents();
 

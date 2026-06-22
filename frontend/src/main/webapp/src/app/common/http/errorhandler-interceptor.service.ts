@@ -1,16 +1,16 @@
 import {HttpErrorResponse, HttpEvent, HttpHandlerFn, HttpInterceptorFn, HttpRequest} from '@angular/common/http';
 import {inject} from '@angular/core';
-import {ToastrService} from 'ngx-toastr';
 import {from, Observable, throwError} from 'rxjs';
 import {catchError} from 'rxjs/operators';
 import {AuthenticationService} from '../security/authentication.service';
+import {TafelToastrService} from '../components/tafel-toastr/tafel-toastr.service';
 
 export const errorHandlerInterceptor: HttpInterceptorFn = (
   request: HttpRequest<unknown>,
   next: HttpHandlerFn
 ): Observable<HttpEvent<unknown>> => {
   const authenticationService = inject(AuthenticationService);
-  const toastr = inject(ToastrService);
+  const toastr = inject(TafelToastrService);
   const ERROR_CODES_WHITELIST = [400, 401, 404, 409];
 
   const handleAuthError = (error: HttpErrorResponse): Observable<any> => {

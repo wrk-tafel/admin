@@ -5,17 +5,17 @@ import {TicketScreenControlComponent} from './ticket-screen-control.component';
 import {UrlHelperService} from '../../../../common/util/url-helper.service';
 import {DistributionTicketScreenApiService} from '../../../../api/distribution-ticket-screen-api.service';
 import {of, throwError} from 'rxjs';
-import {ToastrService} from 'ngx-toastr';
 import {MatCardModule} from '@angular/material/card';
 import {MatButtonModule} from '@angular/material/button';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {TicketScreenComponent} from '../../components/ticket-screen/ticket-screen.component';
+import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
 describe('TicketScreenControlComponent', () => {
   let distributionTicketScreenApiService: MockedObject<DistributionTicketScreenApiService>;
   let urlHelperSpy: MockedObject<UrlHelperService>;
-  let toastr: MockedObject<ToastrService>;
+  let toastr: MockedObject<TafelToastrService>;
 
   beforeEach((() => {
     TestBed.configureTestingModule({
@@ -37,12 +37,12 @@ describe('TicketScreenControlComponent', () => {
           }
         },
         {
-          provide: ToastrService,
+          provide: TafelToastrService,
           useValue: {
-            error: vi.fn().mockName("ToastrService.error"),
-            info: vi.fn().mockName("ToastrService.info"),
-            success: vi.fn().mockName("ToastrService.success"),
-            warning: vi.fn().mockName("ToastrService.warning")
+            error: vi.fn().mockName("TafelToastrService.error"),
+            info: vi.fn().mockName("TafelToastrService.info"),
+            success: vi.fn().mockName("TafelToastrService.success"),
+            warning: vi.fn().mockName("TafelToastrService.warning")
           }
         }
       ]
@@ -50,7 +50,7 @@ describe('TicketScreenControlComponent', () => {
 
     distributionTicketScreenApiService = TestBed.inject(DistributionTicketScreenApiService) as MockedObject<DistributionTicketScreenApiService>;
     urlHelperSpy = TestBed.inject(UrlHelperService) as MockedObject<UrlHelperService>;
-    toastr = TestBed.inject(ToastrService) as MockedObject<ToastrService>;
+    toastr = TestBed.inject(TafelToastrService) as MockedObject<TafelToastrService>;
   }));
 
   it('component can be created', () => {

@@ -1,7 +1,6 @@
 import {Component, computed, effect, inject, input, output, signal} from '@angular/core';
 import {form, FormField, maxLength, required, validate} from '@angular/forms/signals';
 import {GeneratedPasswordResponse, UserApiService, UserData, UserPermission} from '../../../../api/user-api.service';
-import { ToastrService } from 'ngx-toastr';
 import {CommonModule, NgClass} from '@angular/common';
 import {
   ButtonDirective,
@@ -15,6 +14,7 @@ import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {faEye, faEyeSlash} from '@fortawesome/free-solid-svg-icons';
 import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
 import {getErrorMessages, shouldShowErrors} from '../../../../common/util/signal-form-helper';
+import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
 @Component({
     selector: 'tafel-user-form',
@@ -39,7 +39,7 @@ export class UserFormComponent {
   userDataChange = output<UserData>();
 
   private readonly userApiService = inject(UserApiService);
-  private readonly toastr = inject(ToastrService);
+  private readonly toastr = inject(TafelToastrService);
 
   // Signal for form model
   private formModel = signal<UserFormModel>({

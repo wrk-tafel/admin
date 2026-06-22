@@ -4,7 +4,7 @@ import {provideHttpClient} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
 import {FoodCollectionRecordingItemsResponsiveComponent} from './food-collection-recording-items-responsive.component';
 import {FoodCollectionsApiService} from '../../../../api/food-collections-api.service';
-import { ToastrService } from 'ngx-toastr';
+import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
 describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
   beforeEach(() => {
@@ -15,7 +15,7 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
-        { provide: ToastrService, useValue: { error: vi.fn(), info: vi.fn(), success: vi.fn(), warning: vi.fn(), show: vi.fn() } }
+        { provide: TafelToastrService, useValue: { error: vi.fn(), info: vi.fn(), success: vi.fn(), warning: vi.fn(), show: vi.fn() } }
       ]
     }).compileComponents();
   });
@@ -94,7 +94,7 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
       }
     } as any);
 
-    const toastr = TestBed.inject(ToastrService);
+    const toastr = TestBed.inject(TafelToastrService);
     const toastSpy = vi.spyOn(toastr, 'success');
 
     component.save();
@@ -136,7 +136,7 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
       }
     } as any);
 
-    const toastr = TestBed.inject(ToastrService);
+    const toastr = TestBed.inject(TafelToastrService);
     const toastSpy = vi.spyOn(toastr, 'error');
 
     component.save();
@@ -244,7 +244,7 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
       }
     } as any);
 
-    const toastr = TestBed.inject(ToastrService);
+    const toastr = TestBed.inject(TafelToastrService);
     const toastSpy = vi.spyOn(toastr, 'error');
 
     component.selectShop(mockShops[1]);

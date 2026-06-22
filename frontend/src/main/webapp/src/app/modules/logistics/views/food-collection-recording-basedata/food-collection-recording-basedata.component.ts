@@ -20,9 +20,9 @@ import {
   FoodCollectionsApiService,
   FoodCollectionSaveRouteDataRequest
 } from '../../../../api/food-collections-api.service';
-import { ToastrService } from 'ngx-toastr';
 import {CarData, CarList} from '../../../../api/car-api.service';
 import {SelectedRouteData} from '../food-collection-recording/food-collection-recording.component';
+import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
 @Component({
     selector: 'tafel-food-collection-recording-basedata',
@@ -50,7 +50,7 @@ export class FoodCollectionRecordingBasedataComponent {
 
   private readonly foodCollectionsApiService = inject(FoodCollectionsApiService);
   private readonly fb = inject(FormBuilder);
-  private readonly toastr = inject(ToastrService);
+  private readonly toastr = inject(TafelToastrService);
   private readonly dialog = inject(MatDialog);
 
   selectedDriver: EmployeeData;

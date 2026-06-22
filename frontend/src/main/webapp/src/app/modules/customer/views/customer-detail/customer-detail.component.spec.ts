@@ -24,7 +24,6 @@ import {
 } from '@coreui/angular';
 import {MatDialog} from '@angular/material/dialog';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
-import {ToastrService} from 'ngx-toastr';
 import {TafelPaginationData} from '../../../../common/components/tafel-pagination/tafel-pagination.component';
 import {provideRouter} from '@angular/router';
 import {CustomerEditComponent} from '../customer-edit/customer-edit.component';
@@ -37,6 +36,7 @@ import {GlobalStateService} from '../../../../common/state/global-state.service'
 import {
   ConfirmCustomerSaveDialog
 } from '../../components/confirm-customer-save-dialog/confirm-customer-save-dialog.component';
+import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
 // Register de-AT locale
 registerLocaleData(localeDeAt);
@@ -45,7 +45,7 @@ describe('CustomerDetailComponent', () => {
   let customerApiService: MockedObject<CustomerApiService>;
   let customerNoteApiService: MockedObject<CustomerNoteApiService>;
   let fileHelperService: MockedObject<FileHelperService>;
-  let toastr: MockedObject<ToastrService>;
+  let toastr: MockedObject<TafelToastrService>;
   let distributionTicketApiService: MockedObject<DistributionTicketApiService>;
   let distributionApiService: MockedObject<DistributionApiService>;
   const currentDistributionSignal = signal<DistributionItem>(null);
@@ -156,10 +156,10 @@ describe('CustomerDetailComponent', () => {
       downloadFile: vi.fn().mockName("FileHelperService.downloadFile")
     };
     const toastrSpy = {
-      error: vi.fn().mockName("ToastrService.error"),
-      info: vi.fn().mockName("ToastrService.info"),
-      success: vi.fn().mockName("ToastrService.success"),
-      warning: vi.fn().mockName("ToastrService.warning")
+      error: vi.fn().mockName("TafelToastrService.error"),
+      info: vi.fn().mockName("TafelToastrService.info"),
+      success: vi.fn().mockName("TafelToastrService.success"),
+      warning: vi.fn().mockName("TafelToastrService.warning")
     };
     const distributionTicketApiServiceSpy = {
       getCurrentTicketForCustomer: vi.fn().mockName("DistributionTicketApiService.getCurrentTicketForCustomer").mockReturnValue(throwError(() => ({status: 404}))),
@@ -206,7 +206,7 @@ describe('CustomerDetailComponent', () => {
           useValue: fileHelperServiceSpy
         },
         {
-          provide: ToastrService,
+          provide: TafelToastrService,
           useValue: toastrSpy
         },
         {
@@ -244,7 +244,7 @@ describe('CustomerDetailComponent', () => {
     customerApiService = TestBed.inject(CustomerApiService) as MockedObject<CustomerApiService>;
     customerNoteApiService = TestBed.inject(CustomerNoteApiService) as MockedObject<CustomerNoteApiService>;
     fileHelperService = TestBed.inject(FileHelperService) as MockedObject<FileHelperService>;
-    toastr = TestBed.inject(ToastrService) as MockedObject<ToastrService>;
+    toastr = TestBed.inject(TafelToastrService) as MockedObject<TafelToastrService>;
     distributionTicketApiService = TestBed.inject(DistributionTicketApiService) as MockedObject<DistributionTicketApiService>;
     distributionApiService = TestBed.inject(DistributionApiService) as MockedObject<DistributionApiService>;
   }));

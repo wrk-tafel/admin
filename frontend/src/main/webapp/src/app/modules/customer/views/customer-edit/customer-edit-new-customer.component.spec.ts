@@ -9,9 +9,9 @@ import {CustomerEditComponent} from './customer-edit.component';
 import {By} from '@angular/platform-browser';
 import {BgColorDirective, CardModule, ColComponent, InputGroupComponent, RowComponent} from '@coreui/angular';
 import {MatDialog} from '@angular/material/dialog';
-import {ToastrService} from 'ngx-toastr';
 import {provideHttpClient} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
+import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
 describe('CustomerEditComponent - Creating a new customer', () => {
 
@@ -71,7 +71,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
 
   let router: MockedObject<Router>;
   let apiService: MockedObject<CustomerApiService>;
-  let toastr: MockedObject<ToastrService>;
+  let toastr: MockedObject<TafelToastrService>;
   let matDialog: MockedObject<MatDialog>;
 
   beforeEach((() => {
@@ -107,12 +107,12 @@ describe('CustomerEditComponent - Creating a new customer', () => {
           }
         },
         {
-          provide: ToastrService,
+          provide: TafelToastrService,
           useValue: {
-            error: vi.fn().mockName("ToastrService.error"),
-            info: vi.fn().mockName("ToastrService.info"),
-            success: vi.fn().mockName("ToastrService.success"),
-            warning: vi.fn().mockName("ToastrService.warning")
+            error: vi.fn().mockName("TafelToastrService.error"),
+            info: vi.fn().mockName("TafelToastrService.info"),
+            success: vi.fn().mockName("TafelToastrService.success"),
+            warning: vi.fn().mockName("TafelToastrService.warning")
           }
         },
         {
@@ -128,7 +128,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
 
     router = TestBed.inject(Router) as MockedObject<Router>;
     apiService = TestBed.inject(CustomerApiService) as MockedObject<CustomerApiService>;
-    toastr = TestBed.inject(ToastrService) as MockedObject<ToastrService>;
+    toastr = TestBed.inject(TafelToastrService) as MockedObject<TafelToastrService>;
     matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
   }));
 

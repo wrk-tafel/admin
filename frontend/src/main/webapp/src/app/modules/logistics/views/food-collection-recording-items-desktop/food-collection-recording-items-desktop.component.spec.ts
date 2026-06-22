@@ -9,7 +9,7 @@ import { DistributionItem } from '../../../../api/distribution-api.service';
 import { RouteData } from '../../../../api/route-api.service';
 import { FoodCategory } from '../../../../api/food-categories-api.service';
 import { signal } from '@angular/core';
-import { ToastrService } from 'ngx-toastr';
+import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
 describe('FoodCollectionRecordingItemsDesktopComponent', () => {
     let globalStateService: MockedObject<GlobalStateService>;
@@ -28,7 +28,7 @@ describe('FoodCollectionRecordingItemsDesktopComponent', () => {
                         getCurrentDistribution: vi.fn().mockName("GlobalStateService.getCurrentDistribution")
                     }
                 },
-                { provide: ToastrService, useValue: { error: vi.fn(), info: vi.fn(), success: vi.fn(), warning: vi.fn(), show: vi.fn() } }
+                { provide: TafelToastrService, useValue: { error: vi.fn(), info: vi.fn(), success: vi.fn(), warning: vi.fn(), show: vi.fn() } }
             ]
         }).compileComponents();
 

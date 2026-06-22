@@ -9,8 +9,8 @@ import {
   FoodCollectionsApiService,
   FoodCollectionSaveItemsRequest
 } from '../../../../api/food-collections-api.service';
-import {ToastrService} from 'ngx-toastr';
 import {SelectedRouteData} from '../food-collection-recording/food-collection-recording.component';
+import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
 @Component({
   selector: 'tafel-food-collection-recording-items-desktop',
@@ -30,7 +30,7 @@ export class FoodCollectionRecordingItemsDesktopComponent {
   selectedRouteData = input<SelectedRouteData>();
 
   private readonly foodCollectionsApiService = inject(FoodCollectionsApiService);
-  private readonly toastr = inject(ToastrService);
+  private readonly toastr = inject(TafelToastrService);
   private readonly fb = inject(FormBuilder);
 
   form = this.fb.group({

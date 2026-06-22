@@ -6,12 +6,12 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { of, throwError } from 'rxjs';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MailRecipients, MailTypeEnum, RecipientTypeEnum, SettingsApiService } from '../../../../api/settings-api.service';
-import { ToastrService } from 'ngx-toastr';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
 describe('MailRecipients', () => {
     let apiService: MockedObject<SettingsApiService>;
-    let toastr: MockedObject<ToastrService>;
+    let toastr: MockedObject<TafelToastrService>;
 
     beforeEach(() => {
         TestBed.configureTestingModule({
@@ -30,19 +30,19 @@ describe('MailRecipients', () => {
                     }
                 },
                 {
-                    provide: ToastrService,
+                    provide: TafelToastrService,
                     useValue: {
-                        error: vi.fn().mockName("ToastrService.error"),
-                        info: vi.fn().mockName("ToastrService.info"),
-                        success: vi.fn().mockName("ToastrService.success"),
-                        warning: vi.fn().mockName("ToastrService.warning")
+                        error: vi.fn().mockName("TafelToastrService.error"),
+                        info: vi.fn().mockName("TafelToastrService.info"),
+                        success: vi.fn().mockName("TafelToastrService.success"),
+                        warning: vi.fn().mockName("TafelToastrService.warning")
                     }
                 }
             ]
         }).compileComponents();
 
         apiService = TestBed.inject(SettingsApiService) as MockedObject<SettingsApiService>;
-        toastr = TestBed.inject(ToastrService) as MockedObject<ToastrService>;
+        toastr = TestBed.inject(TafelToastrService) as MockedObject<TafelToastrService>;
     });
 
     const testData: MailRecipients = {

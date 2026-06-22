@@ -4,13 +4,13 @@ import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { errorHandlerInterceptor, TafelErrorResponse } from './errorhandler-interceptor.service';
 import { AuthenticationService } from '../security/authentication.service';
-import { ToastrService } from 'ngx-toastr';
+import {TafelToastrService} from '../components/tafel-toastr/tafel-toastr.service';
 
 describe('ErrorHandlerInterceptor', () => {
     let httpTestingController: HttpTestingController;
     let httpClient: HttpClient;
     let authServiceSpy: MockedObject<AuthenticationService>;
-    let toastrSpy: MockedObject<ToastrService>;
+    let toastrSpy: MockedObject<TafelToastrService>;
 
     beforeEach(() => {
         TestBed.configureTestingModule({
@@ -25,12 +25,12 @@ describe('ErrorHandlerInterceptor', () => {
                     }
                 },
                 {
-                    provide: ToastrService,
+                    provide: TafelToastrService,
                     useValue: {
-                        error: vi.fn().mockName("ToastrService.error"),
-                        info: vi.fn().mockName("ToastrService.info"),
-                        success: vi.fn().mockName("ToastrService.success"),
-                        warning: vi.fn().mockName("ToastrService.warning")
+                        error: vi.fn().mockName("TafelToastrService.error"),
+                        info: vi.fn().mockName("TafelToastrService.info"),
+                        success: vi.fn().mockName("TafelToastrService.success"),
+                        warning: vi.fn().mockName("TafelToastrService.warning")
                     }
                 }
             ]
@@ -39,7 +39,7 @@ describe('ErrorHandlerInterceptor', () => {
         httpTestingController = TestBed.inject(HttpTestingController);
         httpClient = TestBed.inject(HttpClient);
         authServiceSpy = TestBed.inject(AuthenticationService) as MockedObject<AuthenticationService>;
-        toastrSpy = TestBed.inject(ToastrService) as MockedObject<ToastrService>;
+        toastrSpy = TestBed.inject(TafelToastrService) as MockedObject<TafelToastrService>;
     });
 
     afterEach(() => {

@@ -4,14 +4,13 @@ import moment from 'moment';
 import {CustomerApiService, CustomerMergeRequest, Gender, CustomerData} from './customer-api.service';
 import {ReactiveFormsModule} from '@angular/forms';
 import {provideHttpClient} from '@angular/common/http';
-import {ToastrService} from 'ngx-toastr';
 import type {MockedObject} from 'vitest';
-import {AuthenticationService} from '../common/security/authentication.service';
+import {TafelToastrService} from '../common/components/tafel-toastr/tafel-toastr.service';
 
 describe('CustomerApiService', () => {
   let httpMock: HttpTestingController;
   let apiService: CustomerApiService;
-  let toastrServiceSpy: MockedObject<ToastrService>;
+  let toastrServiceSpy: MockedObject<TafelToastrService>;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -21,9 +20,9 @@ describe('CustomerApiService', () => {
         provideHttpClientTesting(),
         CustomerApiService,
         {
-          provide: ToastrService,
+          provide: TafelToastrService,
           useValue: {
-            error: vi.fn().mockName("ToastrService.error"),
+            error: vi.fn().mockName("TafelToastrService.error"),
           }
         },
       ]
@@ -31,7 +30,7 @@ describe('CustomerApiService', () => {
 
     httpMock = TestBed.inject(HttpTestingController);
     apiService = TestBed.inject(CustomerApiService);
-    toastrServiceSpy = TestBed.inject(ToastrService) as MockedObject<ToastrService>;
+    toastrServiceSpy = TestBed.inject(TafelToastrService) as MockedObject<TafelToastrService>;
   });
 
   it('validate customer', () => {

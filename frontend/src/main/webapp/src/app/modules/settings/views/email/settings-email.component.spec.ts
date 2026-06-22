@@ -1,8 +1,8 @@
 import {TestBed} from '@angular/core/testing';
 import {provideHttpClient} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
-import {ToastrService} from 'ngx-toastr';
 import {SettingsEmailComponent} from './settings-email.component';
+import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
 describe('SettingsEmailComponent', () => {
 
@@ -12,7 +12,7 @@ describe('SettingsEmailComponent', () => {
         provideHttpClient(),
         provideHttpClientTesting(),
         {
-          provide: ToastrService,
+          provide: TafelToastrService,
           useValue: {error: vi.fn(), info: vi.fn(), success: vi.fn(), warning: vi.fn(), show: vi.fn()}
         }
       ]

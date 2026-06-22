@@ -15,7 +15,7 @@ import {
   TafelCounterInputComponent,
   TafelCounterInputValueChange
 } from '../../../../common/components/tafel-counter-input/tafel-counter-input.component';
-import {ToastrService} from 'ngx-toastr';
+import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
 @Component({
   selector: 'tafel-food-collection-recording-items-responsive',
@@ -43,7 +43,7 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
   categoryValues = signal<Record<number, number>>({});
 
   private readonly foodCollectionsApiService = inject(FoodCollectionsApiService);
-  private readonly toastr = inject(ToastrService);
+  private readonly toastr = inject(TafelToastrService);
 
   loadEffect = effect(() => {
     if (this.selectedRouteData()) {

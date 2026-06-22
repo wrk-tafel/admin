@@ -29,8 +29,8 @@ import {
   FoodCollectionRecordingItemsResponsiveComponent
 } from '../food-collection-recording-items-responsive/food-collection-recording-items-responsive.component';
 import {FoodCollectionData, FoodCollectionsApiService} from '../../../../api/food-collections-api.service';
-import {ToastrService} from 'ngx-toastr';
 import {forkJoin} from 'rxjs';
+import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
 @Component({
   selector: 'tafel-food-collection-recording',
@@ -64,7 +64,7 @@ export class FoodCollectionRecordingComponent {
   private readonly globalStateService = inject(GlobalStateService);
   private readonly foodCollectionsApiService = inject(FoodCollectionsApiService);
   private readonly routeApiService = inject(RouteApiService);
-  private readonly toastr = inject(ToastrService);
+  private readonly toastr = inject(TafelToastrService);
   private readonly router = inject(Router);
 
   constructor() {
