@@ -22,12 +22,10 @@
               "src/assets"
             ],
             "styles": [
-              "node_modules/toastr/build/toastr.min.css",
               "src/scss/styles.scss"
             ],
             "scripts": [
-              "node_modules/jquery/dist/jquery.min.js",
-              "node_modules/toastr/build/toastr.min.js"
+              "node_modules/jquery/dist/jquery.min.js"
             ],
             "allowedCommonJsDependencies": [
               "chart.js",
