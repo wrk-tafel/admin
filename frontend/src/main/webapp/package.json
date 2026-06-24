@@ -75,7 +75,7 @@
     "@typescript-eslint/eslint-plugin": "8.61.1",
     "@typescript-eslint/parser": "8.61.1",
     "@vitest/browser-playwright": "4.1.9",
-    "cypress": "15.17.0",
+    "cypress": "15.18.0",
     "cypress-browser-permissions": "1.1.0",
     "cypress-recurse": "1.37.2",
     "eslint": "9.39.4",
