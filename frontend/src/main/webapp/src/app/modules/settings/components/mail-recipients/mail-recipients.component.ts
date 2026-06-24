@@ -8,7 +8,7 @@ import {faEnvelope, faPlus, faTrashCan} from '@fortawesome/free-solid-svg-icons'
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {CommonModule} from '@angular/common';
 import {MailTypeEnum, RecipientTypeEnum, SettingsApiService} from '../../../../api/settings-api.service';
-import {ToastrService} from 'ngx-toastr';
+import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
 @Component({
   selector: 'tafel-mail-recipients',
@@ -30,7 +30,7 @@ import {ToastrService} from 'ngx-toastr';
 export class MailRecipientsComponent {
   private readonly settingsApiService = inject(SettingsApiService);
   private readonly fb = inject(FormBuilder);
-  private readonly toastr = inject(ToastrService);
+  private readonly toastr = inject(TafelToastrService);
 
   form: FormGroup = this.fb.group({
     mailRecipients: this.fb.array([])

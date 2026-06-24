@@ -14,7 +14,6 @@ import {
   CustomerNoteItem,
   CustomerNotesResponse
 } from '../../../../api/customer-note-api.service';
-import {ToastrService} from 'ngx-toastr';
 import {DeleteCustomerDialogComponent} from './dialogs/delete-customer-dialog.component';
 import {AllNotesDialogComponent} from './dialogs/all-notes-dialog.component';
 import {AddNoteDialogComponent} from './dialogs/add-note-dialog.component';
@@ -51,6 +50,7 @@ import {FormsModule} from '@angular/forms';
 import {
   ConfirmCustomerSaveDialog
 } from '../../components/confirm-customer-save-dialog/confirm-customer-save-dialog.component';
+import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
 @Component({
   selector: 'tafel-customer-detail',
@@ -100,7 +100,7 @@ export class CustomerDetailComponent {
   private readonly customerNoteApiService = inject(CustomerNoteApiService);
   private readonly fileHelperService = inject(FileHelperService);
   private readonly router = inject(Router);
-  private readonly toastr = inject(ToastrService);
+  private readonly toastr = inject(TafelToastrService);
   private readonly dialog = inject(MatDialog);
   private readonly distributionTicketApiService = inject(DistributionTicketApiService);
   private readonly distributionApiService = inject(DistributionApiService);

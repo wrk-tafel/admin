@@ -2,9 +2,7 @@ import {Component, inject, signal} from '@angular/core';
 import {ReactiveFormsModule} from '@angular/forms';
 import {TicketScreenComponent} from '../../components/ticket-screen/ticket-screen.component';
 import {UrlHelperService} from '../../../../common/util/url-helper.service';
-import {NgClass} from '@angular/common';
 import {DistributionTicketScreenApiService} from '../../../../api/distribution-ticket-screen-api.service';
-import {ToastrService} from 'ngx-toastr';
 import {finalize} from 'rxjs';
 import {form, FormField, required} from '@angular/forms/signals';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
@@ -13,6 +11,7 @@ import {MatButtonModule} from '@angular/material/button';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {MatDivider} from '@angular/material/list';
+import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
 @Component({
   selector: 'tafel-ticket-screen-control',
@@ -31,7 +30,7 @@ import {MatDivider} from '@angular/material/list';
 export class TicketScreenControlComponent {
   private readonly distributionTicketScreenApiService = inject(DistributionTicketScreenApiService);
   private readonly urlHelperService = inject(UrlHelperService);
-  private readonly toastr = inject(ToastrService);
+  private readonly toastr = inject(TafelToastrService);
   private readonly globalStateService = inject(GlobalStateService);
 
   startTimeFormModel = signal({

@@ -1,7 +1,6 @@
 import {Component, inject, input, linkedSignal} from '@angular/core';
 import {UserApiService, UserData} from '../../../../api/user-api.service';
 import {Router} from '@angular/router';
-import { ToastrService } from 'ngx-toastr';
 import {
   ButtonDirective,
   CardBodyComponent,
@@ -16,6 +15,7 @@ import {
 } from '@coreui/angular';
 import {CommonModule, NgClass} from '@angular/common';
 import {FormatPermissionsPipe} from '../../../../common/pipes/format-permissions.pipe';
+import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
 @Component({
     selector: 'tafel-user-detail',
@@ -41,7 +41,7 @@ export class UserDetailComponent {
 
   private readonly userApiService = inject(UserApiService);
   private readonly router = inject(Router);
-  private readonly toastr = inject(ToastrService);
+  private readonly toastr = inject(TafelToastrService);
 
   // Writable signal that resets from input, but can be locally updated after API calls
   readonly currentUserData = linkedSignal(() => this.userData());

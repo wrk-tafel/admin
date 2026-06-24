@@ -13,14 +13,13 @@ import {MatIconModule} from '@angular/material/icon';
 import {MatTableModule} from '@angular/material/table';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { CommonModule } from '@angular/common';
-import {By} from '@angular/platform-browser';
 import {UserApiService, UserSearchResult} from '../../../../api/user-api.service';
-import { ToastrService } from 'ngx-toastr';
+import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
 describe('UserSearchComponent', () => {
   let apiService: MockedObject<UserApiService>;
   let router: MockedObject<Router>;
-  let toastr: MockedObject<ToastrService>;
+  let toastr: MockedObject<TafelToastrService>;
 
   const searchUserMockResponse: UserSearchResult = {
     items: [
@@ -71,12 +70,12 @@ describe('UserSearchComponent', () => {
           }
         },
         {
-          provide: ToastrService,
+          provide: TafelToastrService,
           useValue: {
-            error: vi.fn().mockName("ToastrService.error"),
-            info: vi.fn().mockName("ToastrService.info"),
-            success: vi.fn().mockName("ToastrService.success"),
-            warning: vi.fn().mockName("ToastrService.warning")
+            error: vi.fn().mockName("TafelToastrService.error"),
+            info: vi.fn().mockName("TafelToastrService.info"),
+            success: vi.fn().mockName("TafelToastrService.success"),
+            warning: vi.fn().mockName("TafelToastrService.warning")
           }
         }
       ]
@@ -84,7 +83,7 @@ describe('UserSearchComponent', () => {
 
     apiService = TestBed.inject(UserApiService) as MockedObject<UserApiService>;
     router = TestBed.inject(Router) as MockedObject<Router>;
-    toastr = TestBed.inject(ToastrService) as MockedObject<ToastrService>;
+    toastr = TestBed.inject(TafelToastrService) as MockedObject<TafelToastrService>;
   });
 
   it('component can be created', () => {

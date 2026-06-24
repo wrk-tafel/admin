@@ -5,14 +5,13 @@ import {CustomerDuplicatesComponent} from './customer-duplicates.component';
 import {ActivatedRoute, Router} from '@angular/router';
 import moment from 'moment';
 import {of, throwError} from 'rxjs';
-import {ToastrService} from 'ngx-toastr';
 import {CardModule, ColComponent, PaginationModule, RowComponent} from '@coreui/angular';
-import {TafelPaginationComponent} from '../../../../common/components/tafel-pagination/tafel-pagination.component';
+import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
 describe('CustomerDuplicatesComponent', () => {
   let customerApiService: MockedObject<CustomerApiService>;
   let router: MockedObject<Router>;
-  let toastr: MockedObject<ToastrService>;
+  let toastr: MockedObject<TafelToastrService>;
 
   const mockCustomer1 = {
     id: 133,
@@ -88,10 +87,10 @@ describe('CustomerDuplicatesComponent', () => {
       navigate: vi.fn().mockName('Router.navigate')
     } as any;
     const toastrSpy = {
-      error: vi.fn().mockName('ToastrService.error'),
-      info: vi.fn().mockName('ToastrService.info'),
-      success: vi.fn().mockName('ToastrService.success'),
-      warning: vi.fn().mockName('ToastrService.warning')
+      error: vi.fn().mockName('TafelToastrService.error'),
+      info: vi.fn().mockName('TafelToastrService.info'),
+      success: vi.fn().mockName('TafelToastrService.success'),
+      warning: vi.fn().mockName('TafelToastrService.warning')
     } as any;
 
     TestBed.configureTestingModule({
@@ -121,7 +120,7 @@ describe('CustomerDuplicatesComponent', () => {
           }
         },
         {
-          provide: ToastrService,
+          provide: TafelToastrService,
           useValue: toastrSpy
         }
       ]
@@ -129,7 +128,7 @@ describe('CustomerDuplicatesComponent', () => {
 
     customerApiService = TestBed.inject(CustomerApiService) as MockedObject<CustomerApiService>;
     router = TestBed.inject(Router) as MockedObject<Router>;
-    toastr = TestBed.inject(ToastrService) as MockedObject<ToastrService>;
+    toastr = TestBed.inject(TafelToastrService) as MockedObject<TafelToastrService>;
   });
 
   it('component can be created', () => {

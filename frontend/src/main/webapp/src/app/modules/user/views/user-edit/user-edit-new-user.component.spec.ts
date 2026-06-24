@@ -9,7 +9,7 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { UserApiService, UserData } from '../../../../api/user-api.service';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { ToastrService } from 'ngx-toastr';
+import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
 describe('UserEditComponent - Creating a new user', () => {
     const mockUser: UserData = {
@@ -62,7 +62,7 @@ describe('UserEditComponent - Creating a new user', () => {
                         navigate: vi.fn().mockName("Router.navigate")
                     }
                 },
-                { provide: ToastrService, useValue: { error: vi.fn(), info: vi.fn(), success: vi.fn(), warning: vi.fn(), show: vi.fn() } }
+                { provide: TafelToastrService, useValue: { error: vi.fn(), info: vi.fn(), success: vi.fn(), warning: vi.fn(), show: vi.fn() } }
             ]
         }).compileComponents();
 

@@ -6,7 +6,6 @@ import {
   TafelPaginationData
 } from '../../../../common/components/tafel-pagination/tafel-pagination.component';
 import moment from 'moment';
-import {ToastrService} from 'ngx-toastr';
 import {
   ButtonDirective,
   CardBodyComponent,
@@ -19,6 +18,7 @@ import {DatePipe, NgClass} from '@angular/common';
 import {faCheck, faMagnifyingGlass, faTrashCan} from '@fortawesome/free-solid-svg-icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {FormatCustomerAddressPipe} from '../../../../common/pipes/format-customer-address.pipe';
+import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
 @Component({
   selector: 'tafel-customer-duplicates',
@@ -61,7 +61,7 @@ export class CustomerDuplicatesComponent {
 
   private readonly customerApiService = inject(CustomerApiService);
   private readonly router = inject(Router);
-  private readonly toastr = inject(ToastrService);
+  private readonly toastr = inject(TafelToastrService);
 
   getDuplicates(page?: number) {
     this.customerApiService.getCustomerDuplicates(page)

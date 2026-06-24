@@ -7,7 +7,7 @@ import { CardModule, ColComponent, RowComponent } from '@coreui/angular';
 import { UserApiService, UserData } from '../../../../api/user-api.service';
 import { By } from '@angular/platform-browser';
 import { of, throwError } from 'rxjs';
-import { ToastrService } from 'ngx-toastr';
+import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
 describe('UserDetailComponent', () => {
     const mockUser: UserData = {
@@ -26,7 +26,7 @@ describe('UserDetailComponent', () => {
 
     let userApiService: MockedObject<UserApiService>;
     let router: MockedObject<Router>;
-    let toastr: MockedObject<ToastrService>;
+    let toastr: MockedObject<TafelToastrService>;
 
     beforeEach(() => {
         TestBed.configureTestingModule({
@@ -45,10 +45,10 @@ describe('UserDetailComponent', () => {
                     }
                 },
                 {
-                    provide: ToastrService,
+                    provide: TafelToastrService,
                     useValue: {
-                        success: vi.fn().mockName("ToastrService.success"),
-                        error: vi.fn().mockName("ToastrService.error")
+                        success: vi.fn().mockName("TafelToastrService.success"),
+                        error: vi.fn().mockName("TafelToastrService.error")
                     }
                 },
                 {
@@ -72,7 +72,7 @@ describe('UserDetailComponent', () => {
 
         userApiService = TestBed.inject(UserApiService) as MockedObject<UserApiService>;
         router = TestBed.inject(Router) as MockedObject<Router>;
-        toastr = TestBed.inject(ToastrService) as MockedObject<ToastrService>;
+        toastr = TestBed.inject(TafelToastrService) as MockedObject<TafelToastrService>;
     });
 
     it('component can be created', () => {

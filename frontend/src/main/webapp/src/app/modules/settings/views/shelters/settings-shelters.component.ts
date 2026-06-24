@@ -20,7 +20,7 @@ import {ShelterApiService, ShelterItem, ShelterListResponse} from '../../../../a
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {MatButton} from '@angular/material/button';
 import {faEye, faEyeSlash, faMagnifyingGlass, faPencil, faPlus} from '@fortawesome/free-solid-svg-icons';
-import {ToastrService} from 'ngx-toastr';
+import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
 @Component({
   selector: 'tafel-settings-shelters',
@@ -46,9 +46,9 @@ import {ToastrService} from 'ngx-toastr';
   ]
 })
 export class SettingsSheltersComponent {
-  private shelterApiService = inject(ShelterApiService);
-  private toastrService = inject(ToastrService);
-  private dialog = inject(MatDialog);
+  private readonly shelterApiService = inject(ShelterApiService);
+  private readonly toastr = inject(TafelToastrService);
+  private readonly dialog = inject(MatDialog);
 
   private _shelters = signal<ShelterListResponse | null>(null);
   protected shelters = this._shelters;
@@ -61,7 +61,7 @@ export class SettingsSheltersComponent {
   private loadShelters() {
     this.shelterApiService.getAllShelters().subscribe({
       next: data => this._shelters.set(data),
-      error: () => this.toastrService.error('Fehler beim Laden der Notschlafstellen', 'Fehler')
+      error: () => this.toastr.error('Fehler beim Laden der Notschlafstellen', 'Fehler')
     });
   }
 
@@ -75,10 +75,10 @@ export class SettingsSheltersComponent {
       if (updated) {
         this.shelterApiService.updateShelter(updated.id, updated).subscribe({
           next: () => {
-            this.toastrService.success('Notschlafstelle gespeichert', 'Erfolgreich');
+            this.toastr.success('Notschlafstelle gespeichert', 'Erfolgreich');
             this.loadShelters();
           },
-          error: () => this.toastrService.error('Speichern fehlgeschlagen', 'Fehler')
+          error: () => this.toastr.error('Speichern fehlgeschlagen', 'Fehler')
         });
       }
     });
@@ -92,11 +92,11 @@ export class SettingsSheltersComponent {
 
     const observer = {
       next: () => {
-        this.toastrService.success(`Notschlafstelle ${shelter.name} geändert`, 'Erfolgreich');
+        this.toastr.success(`Notschlafstelle ${shelter.name} geändert`, 'Erfolgreich');
         this.loadShelters();
       },
       error: error => {
-        this.toastrService.error('Fehler beim Ändern', 'Fehler');
+        this.toastr.error('Fehler beim Ändern', 'Fehler');
       }
     };
     this.shelterApiService.updateShelter(updatedShelter.id, updatedShelter).subscribe(observer);
@@ -112,10 +112,10 @@ export class SettingsSheltersComponent {
       if (created) {
         this.shelterApiService.createShelter(created).subscribe({
           next: () => {
-            this.toastrService.success('Notschlafstelle erstellt', 'Erfolgreich');
+            this.toastr.success('Notschlafstelle erstellt', 'Erfolgreich');
             this.loadShelters();
           },
-          error: () => this.toastrService.error('Erstellen fehlgeschlagen', 'Fehler')
+          error: () => this.toastr.error('Erstellen fehlgeschlagen', 'Fehler')
         });
       }
     });

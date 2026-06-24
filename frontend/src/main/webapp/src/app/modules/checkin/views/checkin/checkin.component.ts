@@ -16,7 +16,6 @@ import {GlobalStateService} from '../../../../common/state/global-state.service'
 import {Router} from '@angular/router';
 import {DistributionApiService} from '../../../../api/distribution-api.service';
 import {DistributionTicketApiService, TicketNumberResponse} from '../../../../api/distribution-ticket-api.service';
-import {ToastrService} from 'ngx-toastr';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {CommonModule, DatePipe, NgClass} from '@angular/common';
 import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
@@ -33,6 +32,7 @@ import {MatDividerModule} from '@angular/material/divider';
 import {MatOption, MatSelect} from '@angular/material/select';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {faTrashCan} from '@fortawesome/free-solid-svg-icons';
+import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
 @Component({
     selector: 'tafel-checkin',
@@ -66,7 +66,7 @@ export class CheckinComponent {
   private readonly scannerApiService = inject(ScannerApiService);
   private readonly sseService = inject(SseService);
   private readonly router = inject(Router);
-  private readonly toastr = inject(ToastrService);
+  private readonly toastr = inject(TafelToastrService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly VALID_UNTIL_WARNLIMIT_WEEKS = 8;
 

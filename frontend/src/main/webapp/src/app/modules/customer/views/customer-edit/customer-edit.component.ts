@@ -8,12 +8,12 @@ import {
 } from '../../../../api/customer-api.service';
 import {Router} from '@angular/router';
 import {ButtonDirective} from '@coreui/angular';
-import {ToastrService} from 'ngx-toastr';
 import {MatDialog} from '@angular/material/dialog';
 import {ValidationResultDialogComponent} from './dialogs/validation-result-dialog.component';
 import {
   ConfirmCustomerSaveDialog
 } from '../../components/confirm-customer-save-dialog/confirm-customer-save-dialog.component';
+import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
 @Component({
   selector: 'tafel-customer-edit',
@@ -35,7 +35,7 @@ export class CustomerEditComponent {
 
   private readonly customerApiService = inject(CustomerApiService);
   private readonly router = inject(Router);
-  private readonly toastr = inject(ToastrService);
+  private readonly toastr = inject(TafelToastrService);
   private readonly dialog = inject(MatDialog);
 
   constructor() {

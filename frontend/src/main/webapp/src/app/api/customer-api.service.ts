@@ -3,14 +3,14 @@ import {inject, Injectable} from '@angular/core';
 import {Observable} from 'rxjs';
 import {CountryData} from './country-api.service';
 import {tap} from 'rxjs/operators';
-import {ToastrService} from 'ngx-toastr';
+import {TafelToastrService} from '../common/components/tafel-toastr/tafel-toastr.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CustomerApiService {
   private readonly http = inject(HttpClient);
-  private readonly toastr = inject(ToastrService);
+  private readonly toastr = inject(TafelToastrService);
 
   validate(data: CustomerData): Observable<ValidateCustomerResponse> {
     return this.http.post<ValidateCustomerResponse>('/customers/validate', data);

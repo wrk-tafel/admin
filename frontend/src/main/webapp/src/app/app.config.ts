@@ -6,7 +6,6 @@ import {
   LOCALE_ID,
   provideAppInitializer
 } from '@angular/core';
-import {provideToastr} from 'ngx-toastr';
 import {
   provideRouter,
   withComponentInputBinding,
@@ -35,16 +34,6 @@ const DEFAULT_DIALOG_CONFIG: MatDialogConfig = {
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideToastr({
-      timeOut: 5000,
-      closeButton: true,
-      preventDuplicates: true,
-      includeTitleDuplicates: true,
-      resetTimeoutOnDuplicate: true,
-      maxOpened: 3,
-      autoDismiss: true,
-      progressBar: true,
-    }),
     provideHttpClient(
       withInterceptors([
         apiPathInterceptor,

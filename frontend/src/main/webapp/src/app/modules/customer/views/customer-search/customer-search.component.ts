@@ -2,7 +2,6 @@ import {Component, inject, signal} from '@angular/core';
 import {Router} from '@angular/router';
 import {CustomerApiService, CustomerSearchResult} from '../../../../api/customer-api.service';
 import {FormBuilder, ReactiveFormsModule} from '@angular/forms';
-import {ToastrService} from 'ngx-toastr';
 import {
   TafelPaginationComponent,
   TafelPaginationData
@@ -25,6 +24,7 @@ import {faPencil, faSearch, faUser} from '@fortawesome/free-solid-svg-icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
 import {FormatCustomerAddressPipe} from '../../../../common/pipes/format-customer-address.pipe';
+import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
 @Component({
   selector: 'tafel-customer-search',
@@ -52,7 +52,7 @@ import {FormatCustomerAddressPipe} from '../../../../common/pipes/format-custome
 export class CustomerSearchComponent {
   private readonly customerApiService = inject(CustomerApiService);
   private readonly router = inject(Router);
-  private readonly toastr = inject(ToastrService);
+  private readonly toastr = inject(TafelToastrService);
   private readonly fb = inject(FormBuilder);
 
   form = this.fb.group({

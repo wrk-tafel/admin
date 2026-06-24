@@ -1,6 +1,6 @@
 import {Component, effect, inject, signal} from '@angular/core';
 import {MatCard, MatCardContent, MatCardFooter, MatCardHeader, MatCardTitle} from '@angular/material/card';
-import {MatButton, MatButtonModule} from '@angular/material/button';
+import {MatButtonModule} from '@angular/material/button';
 import {MatSelect, MatSelectModule} from '@angular/material/select';
 import {MatIconModule} from '@angular/material/icon';
 import {MatInputModule} from '@angular/material/input';
@@ -8,9 +8,9 @@ import {MatDatepickerModule} from '@angular/material/datepicker';
 import {DistributionApiService, DistributionItem} from '../../../../api/distribution-api.service';
 import {DatePipe} from '@angular/common';
 import {FormsModule} from '@angular/forms';
-import {ToastrService} from 'ngx-toastr';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {faEnvelope} from '@fortawesome/free-solid-svg-icons';
+import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
 @Component({
   selector: 'tafel-send-mails',
@@ -34,7 +34,7 @@ import {faEnvelope} from '@fortawesome/free-solid-svg-icons';
 })
 export class SendMailsComponent {
   private readonly distributionApiService = inject(DistributionApiService);
-  private readonly toastr = inject(ToastrService);
+  private readonly toastr = inject(TafelToastrService);
 
   readonly distributions = signal<DistributionItem[]>([]);
   readonly selectedDistribution = signal<DistributionItem | null>(null);

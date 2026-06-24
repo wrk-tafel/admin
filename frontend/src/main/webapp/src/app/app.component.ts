@@ -1,19 +1,17 @@
 import {Component, effect, inject} from '@angular/core';
 import {NavigationEnd, Router, RouterOutlet} from '@angular/router';
-import {ToastContainerDirective} from 'ngx-toastr';
 
 import {IconSetService} from '@coreui/icons-angular';
 import {freeSet} from '@coreui/icons';
 import {toSignal} from '@angular/core/rxjs-interop';
 
 @Component({
-    // tslint:disable-next-line
-    selector: 'body',
-    templateUrl: 'app.component.html',
-    imports: [
-        RouterOutlet,
-        ToastContainerDirective,
-    ]
+  // tslint:disable-next-line
+  selector: 'body',
+  templateUrl: 'app.component.html',
+  imports: [
+    RouterOutlet
+  ]
 })
 
 export class AppComponent {

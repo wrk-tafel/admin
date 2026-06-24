@@ -2,10 +2,10 @@ import {TestBed} from '@angular/core/testing';
 import {provideHttpClient} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
 import {SettingsSheltersComponent} from './settings-shelters.component';
-import {ToastrService} from 'ngx-toastr';
 import {ShelterApiService, ShelterListResponse} from '../../../../api/shelter-api.service';
 import {MatDialog} from '@angular/material/dialog';
 import {of} from 'rxjs';
+import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
 describe('SettingsSheltersComponent', () => {
 
@@ -14,7 +14,7 @@ describe('SettingsSheltersComponent', () => {
       getAllShelters: () => of<ShelterListResponse>({ shelters: [] })
     };
 
-    const toastrMock: Partial<ToastrService> = {
+    const toastrMock: Partial<TafelToastrService> = {
       success: vi.fn(),
       error: vi.fn()
     };
@@ -28,7 +28,7 @@ describe('SettingsSheltersComponent', () => {
         provideHttpClient(),
         provideHttpClientTesting(),
         { provide: ShelterApiService, useValue: shelterApiMock },
-        { provide: ToastrService, useValue: toastrMock },
+        { provide: TafelToastrService, useValue: toastrMock },
         { provide: MatDialog, useValue: matDialogMock }
       ]
     }).compileComponents();

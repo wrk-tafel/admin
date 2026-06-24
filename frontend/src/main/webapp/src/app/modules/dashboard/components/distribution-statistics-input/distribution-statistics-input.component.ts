@@ -5,12 +5,12 @@ import {MatInput} from '@angular/material/input';
 import {MatButton} from '@angular/material/button';
 import {FormBuilder, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {CommonModule} from '@angular/common';
-import {ToastrService} from 'ngx-toastr';
 import {DistributionApiService} from '../../../../api/distribution-api.service';
 import {SelectSheltersComponent} from '../select-shelters/select-shelters.component';
 import {ShelterItem, ShelterListResponse} from '../../../../api/shelter-api.service';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
 import {DistributionItem} from '../../../../api/distribution-api.service';
+import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
 @Component({
   selector: 'tafel-distribution-statistics-input',
@@ -35,7 +35,7 @@ import {DistributionItem} from '../../../../api/distribution-api.service';
 export class DistributionStatisticsInputComponent {
   private readonly fb = inject(FormBuilder);
   private readonly distributionApiService = inject(DistributionApiService);
-  private readonly toastr = inject(ToastrService);
+  private readonly toastr = inject(TafelToastrService);
   private readonly globalStateService = inject(GlobalStateService);
 
   sheltersData = input<ShelterListResponse>();

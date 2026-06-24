@@ -5,7 +5,7 @@ import {FormField} from '@angular/forms/signals';
 import {CardModule, ColComponent, InputGroupComponent, RowComponent} from '@coreui/angular';
 import {UserApiService, UserData, UserPermission} from '../../../../api/user-api.service';
 import {of, throwError} from 'rxjs';
-import { ToastrService } from 'ngx-toastr';
+import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
 describe('UserFormComponent', () => {
   const mockPermissions: UserPermission[] = [
@@ -25,7 +25,7 @@ describe('UserFormComponent', () => {
   };
 
   let userApiService: MockedObject<UserApiService>;
-  let toastr: MockedObject<ToastrService>;
+  let toastr: MockedObject<TafelToastrService>;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -44,16 +44,16 @@ describe('UserFormComponent', () => {
           }
         },
         {
-          provide: ToastrService,
+          provide: TafelToastrService,
           useValue: {
-            error: vi.fn().mockName("ToastrService.error")
+            error: vi.fn().mockName("TafelToastrService.error")
           }
         }
       ]
     }).compileComponents();
 
     userApiService = TestBed.inject(UserApiService) as MockedObject<UserApiService>;
-    toastr = TestBed.inject(ToastrService) as MockedObject<ToastrService>;
+    toastr = TestBed.inject(TafelToastrService) as MockedObject<TafelToastrService>;
   });
 
   it('should create the component', () => {

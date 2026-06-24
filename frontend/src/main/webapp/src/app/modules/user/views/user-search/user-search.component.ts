@@ -3,7 +3,6 @@ import {CommonModule} from '@angular/common';
 import {Router} from '@angular/router';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {UserApiService, UserData, UserSearchResult} from '../../../../api/user-api.service';
-import {ToastrService} from 'ngx-toastr';
 import {
   TafelPaginationComponent,
   TafelPaginationData
@@ -14,21 +13,14 @@ import {MatInputModule} from '@angular/material/input';
 import {MatCheckboxModule} from '@angular/material/checkbox';
 import {MatButtonModule} from '@angular/material/button';
 import {MatIconModule} from '@angular/material/icon';
-import {
-  MatCell,
-  MatCellDef,
-  MatColumnDef,
-  MatHeaderCell,
-  MatHeaderCellDef, MatHeaderRow, MatHeaderRowDef, MatRow, MatRowDef,
-  MatTable,
-  MatTableModule
-} from '@angular/material/table';
+import {MatTableModule} from '@angular/material/table';
 import {faPencil, faSearch, faUser} from '@fortawesome/free-solid-svg-icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 
 import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
 import {form, FormField} from '@angular/forms/signals';
 import {MatDividerModule} from '@angular/material/divider';
+import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
 @Component({
   selector: 'tafel-user-search',
@@ -55,7 +47,7 @@ import {MatDividerModule} from '@angular/material/divider';
 export class UserSearchComponent {
   private readonly userApiService = inject(UserApiService);
   private readonly router = inject(Router);
-  private readonly toastr = inject(ToastrService);
+  private readonly toastr = inject(TafelToastrService);
 
   private searchModel = {
     personnelNumber: '',

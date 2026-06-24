@@ -379,7 +379,7 @@ internal class StatisticsServiceTest {
                     dataPoints = expectedDataPoints
                 ),
                 sheltersAverage = StatisticsDetailData(
-                    title = "20.00",
+                    title = "20,00",
                     subTitle = "Notschlafstellen (Durchschnitt pro Ausgabe)",
                     labels = expectedLabels,
                     dataPoints = expectedDataPoints
@@ -403,7 +403,7 @@ internal class StatisticsServiceTest {
                     dataPoints = expectedDataPoints
                 ),
                 shopItemsAverage = StatisticsDetailData(
-                    title = "20.00 kg",
+                    title = "20,00 kg",
                     subTitle = "Warenmenge (Durchschnitt pro Spender)",
                     labels = expectedLabels,
                     dataPoints = expectedDataPoints
@@ -439,11 +439,11 @@ internal class StatisticsServiceTest {
         assertThat(lines[2]).isEqualTo("Bezugsberechtigte Personen;30")
         assertThat(lines[3]).isEqualTo("Bezugsberechtigte Haushalte mit Kindern (Alter <= 15);30")
         assertThat(lines[4]).isEqualTo("Notschlafstellen (Anzahl);60")
-        assertThat(lines[5]).isEqualTo("Notschlafstellen (Durchschnitt pro Ausgabe);20.00")
+        assertThat(lines[5]).isEqualTo("Notschlafstellen (Durchschnitt pro Ausgabe);20,00")
         assertThat(lines[6]).isEqualTo("Notschlafstellen (versorgte Personen pro Ausgabe);60")
         assertThat(lines[7]).isEqualTo("Spender (Anzahl);60")
         assertThat(lines[8]).isEqualTo("Warenmenge (Gesamt);60 kg")
-        assertThat(lines[9]).isEqualTo("Warenmenge (Durchschnitt pro Spender);20.00 kg")
+        assertThat(lines[9]).isEqualTo("Warenmenge (Durchschnitt pro Spender);20,00 kg")
     }
 
 }
