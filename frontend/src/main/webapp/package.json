@@ -74,7 +74,7 @@
     "@types/toastr": "2.1.43",
     "@typescript-eslint/eslint-plugin": "8.61.1",
     "@typescript-eslint/parser": "8.61.1",
-    "@vitest/browser-playwright": "4.1.9",
+    "@vitest/browser-playwright": "4.1.10",
     "cypress": "15.18.0",
     "cypress-browser-permissions": "1.1.0",
     "cypress-recurse": "1.37.2",
@@ -84,7 +84,7 @@
     "jsdom": "29.1.1",
     "ts-node": "10.9.2",
     "typescript": "5.9.3",
-    "vitest": "4.1.9",
+    "vitest": "4.1.10",
     "wait-on": "9.0.10"
   },
   "engines": {
