@@ -63,7 +63,6 @@ describe('Customer Detail', () => {
       validDateString = $value.text();
       const expectedValidDate = moment(validDateString, 'DD.MM.YYYY').add(3, 'months').endOf('day').format('DD.MM.YYYY');
 
-      openEditMenu();
       cy.byTestId('prolongButton').click();
       cy.byTestId('prolongThreeMonthsButton').click();
 
@@ -198,7 +197,6 @@ describe('Customer Detail', () => {
         const customerId = response.body.data.id;
         cy.visit('/#/kunden/detail/' + customerId);
 
-        openEditMenu();
         cy.byTestId('prolongButton').click();
         cy.byTestId('prolongThreeMonthsButton').click();
 

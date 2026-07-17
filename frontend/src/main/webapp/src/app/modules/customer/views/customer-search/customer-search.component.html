@@ -15,7 +15,7 @@
             </mat-form-field>
           </div>
           <div class="flex sm:w-2/3 items-center">
-            <button matButton="filled" class="self-center" testid="showcustomer-button"
+            <button type="button" matButton="filled" class="self-center" testid="showcustomer-button"
                     [disabled]="!customerId.value" (click)="searchForCustomerId()">Anzeigen</button>
           </div>
         </div>
@@ -49,7 +49,7 @@
       </div>
 
       <div class="flex sm:w-1/3 mt-6">
-        <button matButton="filled" testid="search-button" (click)="searchForDetails()">Suchen</button>
+        <button type="button" matButton="filled" testid="search-button" (click)="searchForDetails()">Suchen</button>
       </div>
 
       @if (searchResult()) {
@@ -110,10 +110,10 @@
                 <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Aktionen</th>
                 <td mat-cell *matCellDef="let customer; let i = index" class="px-4 py-2">
                   <div class="flex gap-2">
-                    <button matButton="filled" class="button-info" [attr.testid]="'searchresult-showcustomer-button-' + i" (click)="navigateToCustomer(customer.id!)">
+                    <button type="button" matButton="filled" class="button-info" [attr.testid]="'searchresult-showcustomer-button-' + i" (click)="navigateToCustomer(customer.id!)">
                       <fa-icon [icon]="faSearch"></fa-icon>
                     </button>
-                    <button matButton="filled" class="button-danger" [attr.testid]="'searchresult-editcustomer-button-' + i" (click)="editCustomer(customer.id!)">
+                    <button type="button" matButton="filled" class="button-danger" [attr.testid]="'searchresult-editcustomer-button-' + i" (click)="editCustomer(customer.id!)">
                       <fa-icon [icon]="faPencil"></fa-icon>
                     </button>
                   </div>
@@ -146,10 +146,10 @@
                     </div>
                   </mat-card-content>
                   <mat-card-actions class="flex gap-2 mt-2">
-                    <button matButton="filled" class="button-info" [attr.testid]="'searchresult-showcustomer-button-' + i" (click)="navigateToCustomer(customer.id!)">
+                    <button type="button" matButton="filled" class="button-info" [attr.testid]="'searchresult-showcustomer-button-' + i" (click)="navigateToCustomer(customer.id!)">
                       <fa-icon [icon]="faSearch"></fa-icon>
                     </button>
-                    <button matButton="filled" class="button-danger" [attr.testid]="'searchresult-editcustomer-button-' + i" (click)="editCustomer(customer.id!)">
+                    <button type="button" matButton="filled" class="button-danger" [attr.testid]="'searchresult-editcustomer-button-' + i" (click)="editCustomer(customer.id!)">
                       <fa-icon [icon]="faPencil"></fa-icon>
                     </button>
                   </mat-card-actions>

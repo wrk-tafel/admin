@@ -1,5 +1,5 @@
 <mat-sidenav-container class="h-screen print:hidden">
-  <mat-sidenav #sidenav mode="side" opened disableClose
+  <mat-sidenav #sidenav [mode]="sidenavMode()" [opened]="!isMobile()" [disableClose]="!isMobile()"
                class="!border-r-0 transition-all duration-200 flex flex-col"
                [class.w-64]="!collapsed()" [class.w-16]="collapsed()">
     <div class="flex items-center justify-center h-16 w-full bg-white shrink-0">
@@ -36,6 +36,7 @@
               </a>
             } @else {
               <a [routerLink]="item.url" routerLinkActive="bg-gray-800"
+                 (click)="isMobile() && sidenav.close()"
                  class="flex items-center gap-3 px-4 py-3 hover:bg-gray-800 cursor-pointer"
                  [class.pointer-events-none]="item.attributes?.disabled"
                  [class.opacity-50]="item.attributes?.disabled">
@@ -53,6 +54,7 @@
             @if (item.children && !collapsed() && expandedItems().has(item.name)) {
               @for (child of item.children; track child.name) {
                 <a [routerLink]="child.url" routerLinkActive="bg-gray-800"
+                   (click)="isMobile() && sidenav.close()"
                    class="flex items-center gap-3 pl-9 pr-4 py-3 text-gray-300 hover:bg-gray-800 cursor-pointer">
                   @if (child.icon) {
                     <fa-icon [icon]="child.icon" class="w-5 shrink-0"></fa-icon>

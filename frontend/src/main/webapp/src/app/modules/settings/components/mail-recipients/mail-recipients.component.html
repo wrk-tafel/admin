@@ -27,7 +27,7 @@
                         {{ getRecipientTypeLabel(recipient.get('recipientType')!.value) }}
                       </div>
                       <div class="text-right">
-                        <button matButton="filled"
+                        <button type="button" matButton="filled"
                                 class="button-success"
                                 [attr.testid]="'add-recipient-button-' + recipientOfMailType.value.mailType + '-' + recipient.get('recipientType')!.value"
                                 (click)="addAddress(i, j)">
@@ -55,7 +55,7 @@
                             }
                           </div>
                           <div class="text-right ml-2">
-                            <button matButton="filled"
+                            <button type="button" matButton="filled"
                                     class="button-danger"
                                     [attr.testid]="'remove-recipient-button-' + recipientOfMailType.value.mailType + '-' + recipient.get('recipientType')!.value + '-' + k"
                                     (click)="removeAddress(i, j, k)">

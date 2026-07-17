@@ -45,7 +45,7 @@ describe('Customer Search', () => {
   });
 
   it('search by cost contribution', () => {
-    cy.byTestId('costContributionInput').check();
+    cy.byTestId('costContributionInput').click();
     clickSearchAndOpenFirstResult(100);
   });
 

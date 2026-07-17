@@ -91,7 +91,7 @@
         <label class="form-label">Fahrer *</label>
         <div class="flex items-center justify-between gap-2">
           <div testid="selectedDriverDescription">{{ selectedDriver.personnelNumber }} {{ selectedDriver.firstname }} {{ selectedDriver.lastname }}</div>
-          <button matButton="filled" testid="selectedDriverRemoveButton" class="button-danger"
+          <button type="button" matButton="filled" testid="selectedDriverRemoveButton" class="button-danger"
                   (click)="resetDriver()">
             <fa-icon [icon]="faRemove"></fa-icon>
           </button>
@@ -128,7 +128,7 @@
         <label class="form-label">Beifahrer *</label>
         <div class="flex items-center justify-between gap-2">
           <div testid="selectedCoDriverDescription">{{ selectedCoDriver.personnelNumber }} {{ selectedCoDriver.firstname }} {{ selectedCoDriver.lastname }}</div>
-          <button matButton="filled" testid="selectedCoDriverRemoveButton" class="button-danger"
+          <button type="button" matButton="filled" testid="selectedCoDriverRemoveButton" class="button-danger"
                   (click)="resetCoDriver()">
             <fa-icon [icon]="faRemove"></fa-icon>
           </button>

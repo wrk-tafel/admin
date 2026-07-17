@@ -1,6 +1,9 @@
 import {Component, computed, inject, signal} from '@angular/core';
+import {toSignal} from '@angular/core/rxjs-interop';
 import {RouterLink, RouterLinkActive, RouterOutlet} from '@angular/router';
 import {MatSidenavModule} from '@angular/material/sidenav';
+import {BreakpointObserver} from '@angular/cdk/layout';
+import {map} from 'rxjs';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {faAngleDown, faAngleRight, faAnglesLeft, faAnglesRight} from '@fortawesome/free-solid-svg-icons';
 import {NgClass} from '@angular/common';
@@ -9,6 +12,10 @@ import {ITafelNavData, navigationMenuItems} from './navigation-menuItems';
 import {AuthenticationService} from '../../security/authentication.service';
 import {GlobalStateService} from '../../state/global-state.service';
 import {DistributionItem} from '../../../api/distribution-api.service';
+
+// Matches the app's established Tailwind `lg` breakpoint, used elsewhere for the same
+// desktop/mobile distinction (e.g. the sidebar collapse-toggle footer's `hidden lg:flex`).
+const MOBILE_BREAKPOINT = '(max-width: 1023.98px)';
 
 @Component({
   selector: 'tafel-default-layout',
@@ -27,11 +34,20 @@ import {DistributionItem} from '../../../api/distribution-api.service';
 export class DefaultLayoutComponent {
   private readonly authenticationService = inject(AuthenticationService);
   private readonly globalStateService = inject(GlobalStateService);
+  private readonly breakpointObserver = inject(BreakpointObserver);
 
   readonly distribution = this.globalStateService.getCurrentDistribution();
 
   readonly collapsed = signal(false);
   readonly expandedItems = signal<Set<string>>(new Set());
+
+  // Compute the initial value synchronously (rather than defaulting to "desktop" for one render
+  // cycle) so the layout doesn't visibly flip mode/width immediately after bootstrap.
+  readonly isMobile = toSignal(
+    this.breakpointObserver.observe(MOBILE_BREAKPOINT).pipe(map(result => result.matches)),
+    {initialValue: this.breakpointObserver.isMatched(MOBILE_BREAKPOINT)}
+  );
+  readonly sidenavMode = computed<'over' | 'side'>(() => this.isMobile() ? 'over' : 'side');
 
   readonly navItems = computed(() => {
     const distribution = this.distribution();
