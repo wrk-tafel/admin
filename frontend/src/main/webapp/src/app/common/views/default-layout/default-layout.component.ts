@@ -1,4 +1,4 @@
-import {Component, computed, inject, ChangeDetectionStrategy} from '@angular/core';
+import {Component, computed, inject} from '@angular/core';
 import {RouterLink, RouterOutlet} from '@angular/router';
 import {NgScrollbar} from 'ngx-scrollbar';
 
@@ -23,7 +23,6 @@ import {DistributionItem} from '../../../api/distribution-api.service';
   selector: 'tafel-default-layout',
   templateUrl: 'default-layout.component.html',
   styleUrls: ['default-layout.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     SidebarComponent,
     SidebarHeaderComponent,

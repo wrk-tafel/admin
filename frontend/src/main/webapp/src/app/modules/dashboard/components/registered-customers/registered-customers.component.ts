@@ -1,4 +1,4 @@
-import {Component, inject, input, ChangeDetectionStrategy} from '@angular/core';
+import {Component, inject, input} from '@angular/core';
 import {DistributionApiService} from '../../../../api/distribution-api.service';
 import {HttpResponse} from '@angular/common/http';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
@@ -11,7 +11,6 @@ import {TafelIfDistributionActiveDirective} from '../../../../common/directive/t
 @Component({
   selector: 'tafel-registered-customers',
   templateUrl: 'registered-customers.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     MatCard,
     MatCardHeader,

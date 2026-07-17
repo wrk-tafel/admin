@@ -1,4 +1,4 @@
-import {afterRenderEffect, Component, computed, inject, input, linkedSignal, viewChild, ChangeDetectionStrategy} from '@angular/core';
+import {afterRenderEffect, Component, computed, inject, input, linkedSignal, viewChild} from '@angular/core';
 import {CustomerFormComponent} from '../../components/customer-form/customer-form.component';
 import {
   CustomerApiService,
@@ -18,7 +18,6 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
 @Component({
   selector: 'tafel-customer-edit',
   templateUrl: 'customer-edit.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CustomerFormComponent,
     ButtonDirective

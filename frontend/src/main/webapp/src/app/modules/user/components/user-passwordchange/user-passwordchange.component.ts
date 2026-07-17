@@ -1,4 +1,4 @@
-import {Component, ViewChild, ChangeDetectionStrategy} from '@angular/core';
+import {Component, ViewChild} from '@angular/core';
 import {PasswordChangeFormComponent} from '../../../../common/views/passwordchange-form/passwordchange-form.component';
 import {MatCard, MatCardActions, MatCardContent, MatCardHeader, MatCardTitle} from '@angular/material/card';
 import {MatButton} from '@angular/material/button';
@@ -6,7 +6,6 @@ import {MatButton} from '@angular/material/button';
 @Component({
   selector: 'tafel-user-passwordchange',
   templateUrl: 'user-passwordchange.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     PasswordChangeFormComponent,
     MatCard,

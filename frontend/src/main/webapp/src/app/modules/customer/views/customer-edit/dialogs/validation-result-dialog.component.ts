@@ -1,4 +1,4 @@
-import {Component, computed, inject, ChangeDetectionStrategy} from '@angular/core';
+import {Component, computed, inject} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogModule, MatDialogRef} from '@angular/material/dialog';
 import {ButtonDirective} from '@coreui/angular';
 import {DecimalPipe, NgClass} from '@angular/common';
@@ -12,7 +12,6 @@ export interface ValidationResultDialogData {
 @Component({
   selector: 'tafel-validation-result-dialog',
   imports: [TafelDialogComponent, MatDialogModule, ButtonDirective, DecimalPipe, NgClass],
-  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: 'validation-result-dialog.component.html',
 })
 export class ValidationResultDialogComponent {

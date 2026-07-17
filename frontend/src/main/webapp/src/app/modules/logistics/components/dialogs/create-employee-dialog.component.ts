@@ -1,4 +1,4 @@
-import {Component, inject, ChangeDetectionStrategy} from '@angular/core';
+import {Component, inject} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 import {ButtonDirective, InputGroupComponent} from '@coreui/angular';
 import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
@@ -15,7 +15,6 @@ export interface CreateEmployeeDialogData {
 @Component({
   selector: 'tafel-create-employee-dialog',
   imports: [TafelDialogComponent, ButtonDirective, ReactiveFormsModule, CommonModule, InputGroupComponent],
-  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: 'create-employee-dialog.component.html',
 })
 export class CreateEmployeeDialogComponent {

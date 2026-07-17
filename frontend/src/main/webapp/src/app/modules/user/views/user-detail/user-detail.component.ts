@@ -1,4 +1,4 @@
-import {Component, inject, input, linkedSignal, ChangeDetectionStrategy} from '@angular/core';
+import {Component, inject, input, linkedSignal} from '@angular/core';
 import {UserApiService, UserData} from '../../../../api/user-api.service';
 import {Router} from '@angular/router';
 import {
@@ -20,7 +20,6 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
 @Component({
     selector: 'tafel-user-detail',
     templateUrl: 'user-detail.component.html',
-    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [
         DropdownComponent,
         CardComponent,

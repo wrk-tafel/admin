@@ -1,4 +1,4 @@
-import {afterRenderEffect, Component, inject, input, linkedSignal, viewChild, ChangeDetectionStrategy} from '@angular/core';
+import {afterRenderEffect, Component, inject, input, linkedSignal, viewChild} from '@angular/core';
 import {Router} from '@angular/router';
 import {UserApiService, UserData, UserPermission} from '../../../../api/user-api.service';
 import {UserFormComponent} from '../../components/user-form/user-form.component';
@@ -8,7 +8,6 @@ import {TafelToastrService} from "../../../../common/components/tafel-toastr/taf
 @Component({
   selector: 'tafel-user-edit',
   templateUrl: 'user-edit.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     UserFormComponent,
     ButtonDirective

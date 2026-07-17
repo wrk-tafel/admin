@@ -1,4 +1,4 @@
-import {Component, effect, inject, ChangeDetectionStrategy} from '@angular/core';
+import {Component, effect, inject} from '@angular/core';
 import {NavigationEnd, Router, RouterOutlet} from '@angular/router';
 
 import {IconSetService} from '@coreui/icons-angular';
@@ -9,7 +9,6 @@ import {toSignal} from '@angular/core/rxjs-interop';
   // tslint:disable-next-line
   selector: 'body',
   templateUrl: 'app.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     RouterOutlet
   ]

@@ -1,14 +1,4 @@
-import {
-  Component,
-  computed,
-  DestroyRef,
-  effect,
-  ElementRef,
-  inject,
-  signal,
-  viewChild,
-  ChangeDetectionStrategy
-} from '@angular/core';
+import {ChangeDetectorRef, Component, computed, DestroyRef, effect, ElementRef, inject, signal, viewChild} from '@angular/core';
 import {CustomerApiService, CustomerData} from '../../../../api/customer-api.service';
 import {Subscription} from 'rxjs';
 import moment from 'moment';
@@ -38,7 +28,6 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
 @Component({
     selector: 'tafel-checkin',
     templateUrl: 'checkin.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     FormsModule,
     CommonModule,
@@ -70,6 +59,7 @@ export class CheckinComponent {
   private readonly router = inject(Router);
   private readonly toastr = inject(TafelToastrService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly cdr = inject(ChangeDetectorRef);
   private readonly VALID_UNTIL_WARNLIMIT_WEEKS = 8;
 
   customerIdInputRef = viewChild<ElementRef>('customerIdInput');
@@ -170,6 +160,7 @@ export class CheckinComponent {
         .subscribe((result: ScanResult) => {
           this.customerId = result.value;
           this.searchForCustomerId();
+          this.cdr.markForCheck();
         });
 
       this.scannerReadyState = true;
@@ -195,6 +186,7 @@ export class CheckinComponent {
     effect(() => {
       this.scannerApiService.getScanners().subscribe((response: ScannerList) => {
         this.scannerIds = response.scannerIds;
+        this.cdr.markForCheck();
       });
     });
 
@@ -213,6 +205,7 @@ export class CheckinComponent {
 
         this.customerNoteApiService.getNotesForCustomer(this.customerId!).subscribe(notesResponse => {
           this.customerNotes = notesResponse.items;
+          this.cdr.markForCheck();
         });
 
         this.distributionTicketApiService.getCurrentTicketForCustomer(customerData.id!).subscribe((ticketNumberResponse: TicketNumberResponse) => {
@@ -220,6 +213,7 @@ export class CheckinComponent {
             this.ticketNumber = ticketNumberResponse.ticketNumber;
           }
           this.ticketNumberEdit = this.ticketNumber != null;
+          this.cdr.markForCheck();
         });
       },
       error: (error: any) => {
@@ -227,6 +221,7 @@ export class CheckinComponent {
           this.processCustomer(undefined);
           this.customerNotes = [];
           this.toastr.info(`Kunde ${this.customerId} nicht gefunden!`);
+          this.cdr.markForCheck();
         }
       },
     };
@@ -274,6 +269,7 @@ export class CheckinComponent {
     this.ticketNumber = undefined;
     this.ticketNumberEdit = undefined;
     this.customerIdInputRef()?.nativeElement?.focus?.();
+    this.cdr.markForCheck();
   }
 
   assignCustomer() {
@@ -295,6 +291,7 @@ export class CheckinComponent {
         this.ticketNumberEdit = undefined;
         this.toastr.success('Ticket-Nummer gelöscht!');
         this.ticketNumberInputRef()?.nativeElement?.focus?.();
+        this.cdr.markForCheck();
       }
     };
     this.distributionTicketApiService.deleteCurrentTicketOfCustomer(this.customer()!.id!).subscribe(observer);

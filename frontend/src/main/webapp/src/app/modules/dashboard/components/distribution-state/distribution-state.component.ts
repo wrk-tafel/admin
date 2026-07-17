@@ -1,4 +1,4 @@
-import {Component, computed, inject, Signal, ChangeDetectionStrategy} from '@angular/core';
+import {Component, computed, inject, Signal} from '@angular/core';
 import {
   DistributionApiService,
   DistributionCloseValidationResult,
@@ -14,7 +14,6 @@ import {CloseDistributionValidationDialogComponent} from './dialogs/close-distri
 @Component({
   selector: 'tafel-distribution-state',
   templateUrl: 'distribution-state.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     MatCard,
     MatCardHeader,

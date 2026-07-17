@@ -1,4 +1,4 @@
-import {Component, effect, inject, input, model, viewChild, ChangeDetectionStrategy} from '@angular/core';
+import {ChangeDetectorRef, Component, effect, inject, input, model, viewChild} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {
   ButtonDirective,
@@ -27,7 +27,6 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
 @Component({
     selector: 'tafel-food-collection-recording-basedata',
     templateUrl: 'food-collection-recording-basedata.component.html',
-    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [
         CommonModule,
         FormSelectDirective,
@@ -53,6 +52,7 @@ export class FoodCollectionRecordingBasedataComponent {
   private readonly fb = inject(FormBuilder);
   private readonly toastr = inject(TafelToastrService);
   private readonly dialog = inject(MatDialog);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   selectedDriver: EmployeeData | null = null;
   selectedCoDriver: EmployeeData | null = null;
@@ -120,6 +120,8 @@ export class FoodCollectionRecordingBasedataComponent {
       this.kmStart.setValue(foodCollectionData.kmStart);
       this.kmEnd.setValue(foodCollectionData.kmEnd);
     }
+
+    this.cdr.markForCheck();
   });
 
   private createKmValidation() {

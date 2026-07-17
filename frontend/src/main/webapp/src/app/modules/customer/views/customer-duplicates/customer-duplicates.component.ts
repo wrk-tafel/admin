@@ -1,4 +1,4 @@
-import {Component, inject, input, linkedSignal, ChangeDetectionStrategy} from '@angular/core';
+import {Component, inject, input, linkedSignal} from '@angular/core';
 import {CustomerApiService, CustomerData, CustomerDuplicatesResponse} from '../../../../api/customer-api.service';
 import {Router} from '@angular/router';
 import {
@@ -23,7 +23,6 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
 @Component({
   selector: 'tafel-customer-duplicates',
   templateUrl: 'customer-duplicates.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CardComponent,
     CardHeaderComponent,
