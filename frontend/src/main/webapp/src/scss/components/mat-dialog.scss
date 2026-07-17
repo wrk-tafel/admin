@@ -6,19 +6,19 @@
 }
 
 .dialog-header-warning {
-  background-color: var(--cui-warning, #f9b115);
+  background-color: #f9b115;
 }
 
 .dialog-header-info {
-  background-color: var(--cui-info, #39f);
+  background-color: #39f;
 }
 
 .dialog-header-danger {
-  background-color: var(--cui-danger, #e55353);
+  background-color: #e55353;
 }
 
 .dialog-header-success {
-  background-color: var(--cui-success, #2eb85c);
+  background-color: #1b9e3e;
 }
 
 // Remove border-radius from Material dialog surface

@@ -1,6 +1,6 @@
 import {Component, input, linkedSignal, output} from '@angular/core';
-import {FormsModule, ReactiveFormsModule} from '@angular/forms';
-import {ButtonDirective, ColComponent, FormControlDirective, FormModule, RowComponent} from '@coreui/angular';
+import {FormsModule} from '@angular/forms';
+import {MatButtonModule} from '@angular/material/button';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {faMinus, faPlus} from '@fortawesome/free-solid-svg-icons';
 
@@ -8,12 +8,7 @@ import {faMinus, faPlus} from '@fortawesome/free-solid-svg-icons';
     selector: 'tafel-counter-input',
     templateUrl: 'tafel-counter-input.component.html',
     imports: [
-        FormModule,
-        ReactiveFormsModule,
-        FormControlDirective,
-        RowComponent,
-        ColComponent,
-        ButtonDirective,
+        MatButtonModule,
         FaIconComponent,
         FormsModule
     ]

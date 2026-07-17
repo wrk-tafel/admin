@@ -1,66 +1,39 @@
-import {Component, inject, input, Signal} from '@angular/core';
-import {
-  AvatarComponent,
-  BadgeComponent,
-  ButtonDirective,
-  ContainerComponent,
-  DropdownComponent,
-  DropdownDividerDirective,
-  DropdownHeaderDirective,
-  DropdownItemDirective,
-  DropdownMenuDirective,
-  DropdownToggleDirective,
-  HeaderComponent,
-  HeaderNavComponent,
-  HeaderTogglerDirective,
-  SidebarToggleDirective
-} from '@coreui/angular';
-import {AuthenticationService} from '../../../security/authentication.service';
+import {Component, inject, output} from '@angular/core';
 import {RouterLink} from '@angular/router';
-import {IconDirective} from '@coreui/icons-angular';
-import {NgTemplateOutlet} from '@angular/common';
-import {FontAwesomeModule} from '@fortawesome/angular-fontawesome';
-import {faKey, faLock} from '@fortawesome/free-solid-svg-icons';
+import {MatMenuModule} from '@angular/material/menu';
+import {MatDividerModule} from '@angular/material/divider';
+import {NgClass} from '@angular/common';
+import {FaIconComponent} from '@fortawesome/angular-fontawesome';
+import {faBars, faKey, faLock} from '@fortawesome/free-solid-svg-icons';
+import {AuthenticationService} from '../../../security/authentication.service';
 import {GlobalStateService} from '../../../state/global-state.service';
 
 @Component({
   selector: 'tafel-default-header',
   templateUrl: 'default-header.component.html',
   imports: [
-    ContainerComponent,
-    SidebarToggleDirective,
-    HeaderNavComponent,
-    DropdownComponent,
-    DropdownToggleDirective,
-    AvatarComponent,
     RouterLink,
-    HeaderTogglerDirective,
-    IconDirective,
-    ButtonDirective,
-    NgTemplateOutlet,
-    DropdownMenuDirective,
-    DropdownHeaderDirective,
-    DropdownItemDirective,
-    DropdownDividerDirective,
-    BadgeComponent,
-    FontAwesomeModule
+    MatMenuModule,
+    MatDividerModule,
+    NgClass,
+    FaIconComponent
   ]
 })
-export class DefaultHeaderComponent extends HeaderComponent {
-  sidebarId = input('sidebar');
+export class DefaultHeaderComponent {
+  readonly toggleSidebar = output<void>();
 
   private readonly authenticationService = inject(AuthenticationService);
   private readonly globalStateService = inject(GlobalStateService);
 
-  readonly sseConnected: Signal<boolean> = this.globalStateService.getConnectionState();
+  readonly sseConnected = this.globalStateService.getConnectionState();
 
   public logout() {
-
     this.authenticationService.logout().subscribe(_ => {
       this.authenticationService.redirectToLogin();
     });
   }
 
+  protected readonly faBars = faBars;
   protected readonly faKey = faKey;
   protected readonly faLock = faLock;
 }

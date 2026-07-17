@@ -6,7 +6,6 @@ import {CountryApiService} from '../../../../api/country-api.service';
 import {CustomerData, Gender} from '../../../../api/customer-api.service';
 import {CustomerFormComponent} from './customer-form.component';
 import {ReactiveFormsModule} from '@angular/forms';
-import {CardModule, ColComponent, InputGroupComponent, RowComponent} from '@coreui/angular';
 
 describe('CustomerFormComponent', () => {
   let apiService: MockedObject<CountryApiService>;
@@ -73,11 +72,7 @@ describe('CustomerFormComponent', () => {
 
     TestBed.configureTestingModule({
       imports: [
-        ReactiveFormsModule,
-        InputGroupComponent,
-        CardModule,
-        RowComponent,
-        ColComponent
+        ReactiveFormsModule
       ],
       providers: [
         {

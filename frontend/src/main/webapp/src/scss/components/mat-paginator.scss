@@ -1,0 +1,4 @@
+// mat-paginator defaults to right-aligned content; this centers it for mobile/dialog usages
+.tafel-paginator-center .mat-mdc-paginator-container {
+  justify-content: center;
+}

@@ -3,7 +3,7 @@
     <h2 class="text-2xl font-semibold">Kunden-Annahme</h2>
   </mat-card-header>
   <mat-card-content>
-    <div class="grid grid-cols-1 md:grid-cols-8 gap-4 items-center">
+    <div class="grid grid-cols-1 md:grid-cols-8 gap-6 items-center">
       <label class="md:col-span-1">Scanner</label>
       <mat-form-field class="md:col-span-2">
         <mat-label>Scanner auswählen</mat-label>
@@ -23,9 +23,9 @@
       </h4>
     </div>
 
-    <mat-divider class="my-4"></mat-divider>
+    <mat-divider class="!my-6"></mat-divider>
 
-    <div class="grid grid-cols-1 md:grid-cols-8 gap-4 items-center">
+    <div class="grid grid-cols-1 md:grid-cols-8 gap-6 items-center">
       <label class="md:col-span-1">Kundennummer</label>
       <mat-form-field class="md:col-span-2">
         <mat-label>Kundennummer</mat-label>
@@ -63,7 +63,7 @@
               <h3 class="text-lg font-semibold">
                 Nr. {{ customer()!.id! }}{{ formattedName() ? ' - ' + formattedName() : '' }}</h3>
             </div>
-            <div class="mb-4">
+            <div class="mb-6">
               <div class="flex justify-between">
                 <div class="font-bold">Gültig bis:</div>
                 <div>{{ customer()!.validUntil! | date : 'dd.MM.yyyy' }}</div>
@@ -72,7 +72,7 @@
 
             <mat-tab-group animationDuration="0ms">
               <mat-tab label="Details">
-                <div class="mt-4 space-y-4 lg:space-y-2">
+                <div class="mt-6 space-y-4 lg:space-y-2">
                   <div class="flex flex-col md:flex-row md:justify-between">
                     <strong>Adresse:</strong>
                     <div>{{ formattedAddress() }}</div>
@@ -89,10 +89,10 @@
               </mat-tab>
               <mat-tab [label]="'Personen (' + (customer()?.additionalPersons?.length ?? 0) + ')'">
                 @if ((customer()?.additionalPersons?.length ?? 0) === 0) {
-                  <div testid="nopersons-label" class="font-semibold mt-4">Keine Personen vorhanden</div>
+                  <div testid="nopersons-label" class="font-semibold mt-6">Keine Personen vorhanden</div>
                 }
                 @if ((customer()?.additionalPersons?.length ?? 0) > 0) {
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                     @for (addPerson of customer()?.additionalPersons ?? []; track addPerson.id; let i = $index) {
                       <mat-card>
                         <mat-card-content>
@@ -115,7 +115,7 @@
                             <div [attr.testid]="'addperson-' + i + '-countryText'">{{ addPerson?.country?.name }}
                             </div>
                           </div>
-                          <mat-divider class="my-2"></mat-divider>
+                          <mat-divider class="!my-2"></mat-divider>
                           <div class="flex justify-between items-end">
                             <div>Im selben Haushalt:</div>
                             <div class="align-bottom"
@@ -156,15 +156,15 @@
           </div>
         </div>
 
-        <mat-divider class="my-4"></mat-divider>
+        <mat-divider class="!my-6"></mat-divider>
 
         @if (customerState() !== undefined && customerState() !== 0) {
-          <div class="flex flex-col md:flex-row gap-2 mb-4">
+          <div class="flex flex-col md:flex-row gap-2 mb-6">
             <div class="flex flex-row gap-2 font-semibold">
               <div>Ticket-Nummer:</div>
               <div class="text-red-600">*</div>
             </div>
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-4">
               <mat-form-field class="w-48">
                 <mat-label>Ticket-Nummer</mat-label>
                 <input #ticketNumberInput matInput testid="ticketNumberInput" type="number"
@@ -185,7 +185,7 @@
         }
       </mat-card-content>
       <mat-card-actions align="end">
-        <div class="flex gap-3">
+        <div class="flex gap-4">
           <button matButton="filled" class="button-success" [disabled]="customerState() === 0 || !ticketNumber"
                   testid="assignCustomerButton" (click)="assignCustomer()">Annehmen
           </button>

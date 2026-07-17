@@ -5,22 +5,6 @@
 // Angular Material theme
 @import "angular-material-theme";
 
-// NOTE: @import is deprecated in Dart Sass and will be removed in Dart Sass 3.0.0
-// However, we must continue using @import until CoreUI migrates to @use/@forward
-// See: https://sass-lang.com/documentation/at-rules/import
-// Migration blocked by: @coreui/coreui, @coreui/chartjs using @import internally
-
-// If you want to override variables do it here
-@import "variables";
-
-// Import styles with default layout.
-// TODO: Replace with @use once CoreUI supports it
-@import "@coreui/coreui/scss/coreui";
-
-// Import Chart.js custom tooltips styles
-// TODO: Replace with @use once CoreUI supports it
-@import "@coreui/chartjs/scss/coreui-chartjs";
-
 // Toastr
 @import "toastr";
 

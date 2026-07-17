@@ -1,6 +1,5 @@
 import {Component, inject} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
-import {FormCheckComponent, FormCheckInputDirective, FormCheckLabelDirective} from '@coreui/angular';
 import {FormArray, FormBuilder, FormControl, ReactiveFormsModule} from '@angular/forms';
 import {ShelterItem} from '../../../../../api/shelter-api.service';
 import {TafelDialogComponent} from '../../../../../common/components/tafel-dialog/tafel-dialog.component';
@@ -17,9 +16,6 @@ export interface SelectSheltersDialogData {
   imports: [
     TafelDialogComponent,
     ReactiveFormsModule,
-    FormCheckComponent,
-    FormCheckInputDirective,
-    FormCheckLabelDirective,
     MatButton
   ]
 })

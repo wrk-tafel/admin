@@ -1,17 +1,17 @@
 <mat-card>
   <mat-card-content class="flex justify-items-center">
     @if (availableCameras() && availableCameras()!.length === 0) {
-      <div class="my-3 w-full">
+      <div class="my-4 w-full">
         <div class="tafel-banner-error" testid="no-camera-message">
           Es wurde keine Kamera gefunden.<br/>Bitte schließen Sie eine Kamera an und laden Sie die Seite neu.
         </div>
       </div>
     }
-    <div class="flex mb-3">
+    <div class="flex mb-4">
       <h1 class="text-6xl">Scanner Nr:</h1>
-      <h1 class="ms-3 text-6xl" testid="scanner-id">{{ scannerId() }}</h1>
+      <h1 class="ms-4 text-6xl" testid="scanner-id">{{ scannerId() }}</h1>
     </div>
-    <div class="flex gap-3 my-3">
+    <div class="flex gap-4 my-4">
       <mat-form-field>
         <mat-label>Kamera</mat-label>
         <mat-select testid="cameraSelectionInput"
@@ -26,10 +26,10 @@
         <div testid="state-camera" [class]="'badge badge-' + readyStateColor()">{{ readyStateText() }}</div>
       </h4>
     </div>
-    <mat-divider class="my-3"></mat-divider>
+    <mat-divider class="!my-4"></mat-divider>
     <div id="qrCodeReaderBox" class="w-full max-w-4xl"></div>
     @if (readyState()) {
-      <div class="mt-4">
+      <div class="mt-6">
         <div class="tafel-banner-info" testid="message">
           <div><strong>Letzter Scan: </strong>{{ lastScanResult() }}</div>
         </div>

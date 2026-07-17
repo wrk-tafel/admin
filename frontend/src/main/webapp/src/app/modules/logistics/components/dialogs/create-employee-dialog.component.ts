@@ -1,6 +1,6 @@
 import {Component, inject} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
-import {ButtonDirective, InputGroupComponent} from '@coreui/angular';
+import {MatButtonModule} from '@angular/material/button';
 import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
 import {CommonModule} from '@angular/common';
 import {EmployeeApiService, EmployeeData} from '../../../../api/employee-api.service';
@@ -14,7 +14,7 @@ export interface CreateEmployeeDialogData {
 
 @Component({
   selector: 'tafel-create-employee-dialog',
-  imports: [TafelDialogComponent, ButtonDirective, ReactiveFormsModule, CommonModule, InputGroupComponent],
+  imports: [TafelDialogComponent, MatButtonModule, ReactiveFormsModule, CommonModule],
   templateUrl: 'create-employee-dialog.component.html',
 })
 export class CreateEmployeeDialogComponent {

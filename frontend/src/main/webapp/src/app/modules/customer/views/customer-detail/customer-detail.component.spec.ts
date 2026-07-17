@@ -14,17 +14,8 @@ import {
   CustomerNoteItem,
   CustomerNotesResponse
 } from '../../../../api/customer-note-api.service';
-import {
-  CardModule,
-  ColComponent,
-  DropdownComponent,
-  NavComponent,
-  NavItemComponent,
-  RowComponent
-} from '@coreui/angular';
 import {MatDialog} from '@angular/material/dialog';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
-import {TafelPaginationData} from '../../../../common/components/tafel-pagination/tafel-pagination.component';
 import {provideRouter} from '@angular/router';
 import {CustomerEditComponent} from '../customer-edit/customer-edit.component';
 import {provideLocationMocks} from '@angular/common/testing';
@@ -177,12 +168,6 @@ describe('CustomerDetailComponent', () => {
     TestBed.configureTestingModule({
       imports: [
         CommonModule,
-        DropdownComponent,
-        NavComponent,
-        NavItemComponent,
-        CardModule,
-        ColComponent,
-        RowComponent,
         NoopAnimationsModule
       ],
       providers: [
@@ -269,14 +254,6 @@ describe('CustomerDetailComponent', () => {
 
     expect(component.customerData()).toEqual(mockCustomer);
     expect(component.customerNotes()).toEqual(mockCustomerNotesResponse.items);
-    const expectedPaginationData: TafelPaginationData = {
-      count: mockCustomerNotesResponse.items.length,
-      currentPage: mockCustomerNotesResponse.currentPage,
-      totalCount: mockCustomerNotesResponse.totalCount,
-      totalPages: mockCustomerNotesResponse.totalPages,
-      pageSize: mockCustomerNotesResponse.pageSize
-    };
-    expect(component.customerNotesPaginationData()).toEqual(expectedPaginationData);
 
     expect(getTextByTestId(fixture, 'customerIdText')).toBe('133');
     expect(getTextByTestId(fixture, 'nameText')).toBe('Mustermann Max');

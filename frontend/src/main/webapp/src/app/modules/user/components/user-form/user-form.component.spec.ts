@@ -2,7 +2,6 @@ import type {MockedObject} from 'vitest';
 import {TestBed} from '@angular/core/testing';
 import {UserFormComponent, UserPermissionFormItem} from './user-form.component';
 import {FormField} from '@angular/forms/signals';
-import {CardModule, ColComponent, InputGroupComponent, RowComponent} from '@coreui/angular';
 import {UserApiService, UserData, UserPermission} from '../../../../api/user-api.service';
 import {of, throwError} from 'rxjs';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
@@ -30,11 +29,7 @@ describe('UserFormComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [
-        FormField,
-        InputGroupComponent,
-        CardModule,
-        RowComponent,
-        ColComponent
+        FormField
       ],
       providers: [
         {

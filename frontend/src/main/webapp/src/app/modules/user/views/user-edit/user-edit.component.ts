@@ -2,7 +2,7 @@ import {afterRenderEffect, Component, inject, input, linkedSignal, viewChild} fr
 import {Router} from '@angular/router';
 import {UserApiService, UserData, UserPermission} from '../../../../api/user-api.service';
 import {UserFormComponent} from '../../components/user-form/user-form.component';
-import {ButtonDirective} from '@coreui/angular';
+import {MatButtonModule} from '@angular/material/button';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
 @Component({
@@ -10,7 +10,7 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
   templateUrl: 'user-edit.component.html',
   imports: [
     UserFormComponent,
-    ButtonDirective
+    MatButtonModule
   ]
 })
 export class UserEditComponent {

@@ -1,7 +1,8 @@
 import {Component, computed, effect, inject, input, model, signal} from '@angular/core';
+import {NgClass} from '@angular/common';
 import {Shop} from '../../../../api/route-api.service';
 
-import {ButtonDirective, ColComponent, RowComponent, TableColorDirective, TableDirective} from '@coreui/angular';
+import {MatButtonModule} from '@angular/material/button';
 import {FoodCategory} from '../../../../api/food-categories-api.service';
 import {FormArray, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {
@@ -18,11 +19,8 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
   imports: [
     ReactiveFormsModule,
     FormsModule,
-    ButtonDirective,
-    TableDirective,
-    TableColorDirective,
-    ColComponent,
-    RowComponent
+    MatButtonModule,
+    NgClass
   ]
 })
 export class FoodCollectionRecordingItemsDesktopComponent {

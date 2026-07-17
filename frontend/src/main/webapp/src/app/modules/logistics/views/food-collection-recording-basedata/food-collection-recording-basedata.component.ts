@@ -1,13 +1,6 @@
 import {ChangeDetectorRef, Component, effect, inject, input, model, viewChild} from '@angular/core';
 import {CommonModule} from '@angular/common';
-import {
-  ButtonDirective,
-  ColComponent,
-  FormSelectDirective,
-  InputGroupComponent,
-  InputGroupTextDirective,
-  RowComponent
-} from '@coreui/angular';
+import {MatButtonModule} from '@angular/material/button';
 import {MatDialog} from '@angular/material/dialog';
 import {KmDiffDialogComponent} from './dialogs/km-diff-dialog.component';
 import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
@@ -29,15 +22,10 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
     templateUrl: 'food-collection-recording-basedata.component.html',
     imports: [
         CommonModule,
-        FormSelectDirective,
         ReactiveFormsModule,
-        RowComponent,
-        ColComponent,
         FormsModule,
-        ButtonDirective,
-        InputGroupComponent,
+        MatButtonModule,
         FaIconComponent,
-        InputGroupTextDirective,
         TafelEmployeeSearchCreateComponent
     ]
 })

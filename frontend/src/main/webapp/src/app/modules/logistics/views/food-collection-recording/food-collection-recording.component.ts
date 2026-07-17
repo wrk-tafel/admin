@@ -1,16 +1,7 @@
 import {Component, effect, inject, model, signal} from '@angular/core';
 import {RouteApiService, RouteData, RouteList, Shop} from '../../../../api/route-api.service';
 
-import {
-  CardBodyComponent,
-  CardComponent,
-  CardHeaderComponent,
-  ColComponent,
-  FormSelectDirective,
-  InputGroupComponent,
-  InputGroupTextDirective,
-  RowComponent,
-} from '@coreui/angular';
+import {MatCardModule} from '@angular/material/card';
 import {MatTabsModule} from '@angular/material/tabs';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
 import {Router} from '@angular/router';
@@ -36,18 +27,11 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
   selector: 'tafel-food-collection-recording',
   templateUrl: 'food-collection-recording.component.html',
   imports: [
-    CardComponent,
-    CardBodyComponent,
-    CardHeaderComponent,
+    MatCardModule,
     ReactiveFormsModule,
     FormsModule,
     MatTabsModule,
-    RowComponent,
-    ColComponent,
-    FormSelectDirective,
-    InputGroupComponent,
     FaIconComponent,
-    InputGroupTextDirective,
     FoodCollectionRecordingBasedataComponent,
     FoodCollectionRecordingItemsDesktopComponent,
     FoodCollectionRecordingItemsResponsiveComponent

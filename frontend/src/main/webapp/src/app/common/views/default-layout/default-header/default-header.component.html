@@ -1,53 +1,25 @@
-<!--<c-header class="mb-4 d-print-none" position="sticky">-->
-<ng-container>
-  <c-container [fluid]="true" class="border-bottom px-4">
-    <button
-      [cSidebarToggle]="sidebarId()"
-      cHeaderToggler
-      cButton
-      toggle="visible"
-      style="margin-inline-start: -14px;"
-      aria-label="Menü ein-/ausklappen"
-    >
-      <svg cIcon name="cilMenu" size="lg"></svg>
+<div class="flex items-center justify-between border-b border-gray-200 px-6 h-16">
+  <button (click)="toggleSidebar.emit()" aria-label="Menü ein-/ausklappen"
+          class="w-9 h-9 flex items-center justify-center rounded-md hover:bg-gray-100">
+    <fa-icon [icon]="faBars"></fa-icon>
+  </button>
+
+  <div class="flex items-center gap-6">
+    <span class="badge" [ngClass]="!sseConnected() ? 'badge-danger' : 'badge-success'">Live-Verbindung</span>
+
+    <button [matMenuTriggerFor]="userMenu" testid="usermenu" aria-label="Öffne Benutzermenü"
+            class="w-9 h-9 rounded-md overflow-hidden">
+      <img src="./assets/img/user/user.svg" alt="Benutzer-Avatar" class="w-full h-full object-cover"/>
     </button>
-    <c-header-nav class="mx-0">
-      <div class="d-flex align-items-center">
-        <c-badge [color]="sseConnected() === false ? 'danger' : 'success'">Live-Verbindung</c-badge>
-      </div>
-      <ng-container *ngTemplateOutlet="userDropdown"/>
-    </c-header-nav>
-  </c-container>
-</ng-container>
-<!--</c-header>-->
-<ng-template #userDropdown>
-  <c-dropdown [popperOptions]="{ placement: 'bottom-start' }" variant="nav-item" testid="usermenu">
-    <button [caret]="false" cDropdownToggle class="py-0 pe-0" aria-label="Öffne Benutzermenü">
-      <c-avatar
-        shape="rounded-1"
-        [size]="'md'"
-        src="./assets/img/user/user.svg"
-        textColor="primary"
-        alt="Benutzer-Avatar"
-      />
-    </button>
-    <ul cDropdownMenu class="pt-0 w-auto">
-      <li>
-        <h6 cDropdownHeader class="bg-light fw-semibold py-2 rounded-top">Benutzer</h6>
-      </li>
-      <li>
-        <a [routerLink]="['/passwortaendern']" cDropdownItem testid="usermenu-changepassword">
-          <fa-icon [icon]="faKey"></fa-icon> Passwort ändern
-        </a>
-      </li>
-      <li>
-        <hr cDropdownDivider/>
-      </li>
-      <li>
-        <a [routerLink]="[]" cDropdownItem testid="usermenu-logout" (click)="logout()">
-          <fa-icon [icon]="faLock"></fa-icon> Abmelden
-        </a>
-      </li>
-    </ul>
-  </c-dropdown>
-</ng-template>
+    <mat-menu #userMenu="matMenu">
+      <div class="px-6 py-2 font-semibold bg-gray-100">Benutzer</div>
+      <a mat-menu-item [routerLink]="['/passwortaendern']" testid="usermenu-changepassword">
+        <fa-icon [icon]="faKey"></fa-icon> Passwort ändern
+      </a>
+      <mat-divider></mat-divider>
+      <a mat-menu-item [routerLink]="[]" testid="usermenu-logout" (click)="logout()">
+        <fa-icon [icon]="faLock"></fa-icon> Abmelden
+      </a>
+    </mat-menu>
+  </div>
+</div>

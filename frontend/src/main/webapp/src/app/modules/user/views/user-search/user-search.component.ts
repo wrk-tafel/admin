@@ -3,10 +3,6 @@ import {CommonModule} from '@angular/common';
 import {Router} from '@angular/router';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {UserApiService, UserData, UserSearchResult} from '../../../../api/user-api.service';
-import {
-  TafelPaginationComponent,
-  TafelPaginationData
-} from '../../../../common/components/tafel-pagination/tafel-pagination.component';
 import {MatCardModule} from '@angular/material/card';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
@@ -14,6 +10,7 @@ import {MatCheckboxModule} from '@angular/material/checkbox';
 import {MatButtonModule} from '@angular/material/button';
 import {MatIconModule} from '@angular/material/icon';
 import {MatTableModule} from '@angular/material/table';
+import {MatPaginatorModule} from '@angular/material/paginator';
 import {faPencil, faSearch, faUser} from '@fortawesome/free-solid-svg-icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 
@@ -28,7 +25,6 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    TafelPaginationComponent,
     FaIconComponent,
     TafelAutofocusDirective,
     FormField,
@@ -40,7 +36,8 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
     MatIconModule,
     MatDividerModule,
     FormsModule,
-    MatTableModule
+    MatTableModule,
+    MatPaginatorModule
   ]
 })
 // Note: Material modules are added via standalone imports below to keep the decorator concise.
@@ -60,7 +57,6 @@ export class UserSearchComponent {
   searchForm = form(this.searchFormModel);
 
   searchResult = signal<UserSearchResult | undefined>(undefined);
-  paginationData = signal<TafelPaginationData | undefined>(undefined);
 
   // columns for mat-table
   displayedColumns = ['icon','id','name','personnelNumber','enabled','actions'];
@@ -95,16 +91,8 @@ export class UserSearchComponent {
         if (response.items.length === 0) {
           this.toastr.info('Keine Benutzer gefunden!');
           this.searchResult.set(undefined);
-          this.paginationData.set(undefined);
         } else {
           this.searchResult.set(response);
-          this.paginationData.set({
-            count: response.items.length,
-            totalCount: response.totalCount,
-            currentPage: response.currentPage,
-            totalPages: response.totalPages,
-            pageSize: response.pageSize
-          });
         }
       });
   }

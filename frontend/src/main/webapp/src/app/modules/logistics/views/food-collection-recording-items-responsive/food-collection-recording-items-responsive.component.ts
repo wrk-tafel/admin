@@ -2,7 +2,7 @@ import {Component, computed, effect, inject, input, model, signal} from '@angula
 
 import {FoodCategory} from '../../../../api/food-categories-api.service';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
-import {ButtonDirective, ColComponent, RowComponent} from '@coreui/angular';
+import {MatButtonModule} from '@angular/material/button';
 import {
   FoodCollectionCategoryWithAmount,
   FoodCollectionItem,
@@ -24,9 +24,7 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
   imports: [
     ReactiveFormsModule,
     FormsModule,
-    ButtonDirective,
-    RowComponent,
-    ColComponent,
+    MatButtonModule,
     TafelCounterInputComponent
   ]
 })

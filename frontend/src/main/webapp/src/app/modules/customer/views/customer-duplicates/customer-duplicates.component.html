@@ -1,169 +1,145 @@
-<c-card>
-  <c-card-header class="fs-4 fw-bold">Kunden-Duplikate</c-card-header>
-  <c-card-body>
-    <c-row class="mb-3">
-      <c-col class="d-flex flex-col gap-2">
-        <c-row>
-          <c-col>
-            <h6>Legende:</h6>
-          </c-col>
-        </c-row>
-        <c-row>
-          <c-col>
-            <button cButton color="success" class="me-2" size="sm">
-              <fa-icon [icon]="faCheck" [inverse]="true"></fa-icon>
-            </button>
-            <strong>Kunde übernehmen:</strong> Der ausgewählte Kunde bleibt als einziger Kunde bestehen. Andere
-            hier angezeigte Kunden werden gelöscht!
-          </c-col>
-        </c-row>
-        <c-row>
-          <c-col>
-            <button cButton class="me-2" size="sm">
-              <fa-icon [icon]="faMagnifyingGlass" [inverse]="true"></fa-icon>
-            </button>
-            <strong>Kunden-Details ansehen:</strong> Wechsel zur Detail-Ansicht des ausgewählten Kunden.
-          </c-col>
-        </c-row>
-        <c-row>
-          <c-col>
-            <button cButton color="danger" class="text-white me-2" size="sm">
-              <fa-icon [icon]="faTrashCan" [inverse]="true"></fa-icon>
-            </button>
-            <strong>Kunden löschen:</strong> Nur der ausgewählte Kunde wird gelöscht. Andere hier angezeigte Kunden bleiben bestehen.
-          </c-col>
-        </c-row>
-        <c-row class="mt-2">
-          <c-col>
-            <strong>Achtung: Das Löschen oder Zusammenführen geschieht sofort und es öffnet sich kein Bestätigungsdialog (um eine schnellere Abarbeitung zu ermöglichen).</strong>
-          </c-col>
-        </c-row>
-      </c-col>
-    </c-row>
+<mat-card>
+  <mat-card-header class="text-xl font-bold">Kunden-Duplikate</mat-card-header>
+  <mat-card-content>
+    <div class="flex flex-col gap-2 mb-4">
+      <h6>Legende:</h6>
+      <div>
+        <button matButton="filled" class="button-success me-2">
+          <fa-icon [icon]="faCheck"></fa-icon>
+        </button>
+        <strong>Kunde übernehmen:</strong> Der ausgewählte Kunde bleibt als einziger Kunde bestehen. Andere
+        hier angezeigte Kunden werden gelöscht!
+      </div>
+      <div>
+        <button matButton="filled" class="me-2">
+          <fa-icon [icon]="faMagnifyingGlass"></fa-icon>
+        </button>
+        <strong>Kunden-Details ansehen:</strong> Wechsel zur Detail-Ansicht des ausgewählten Kunden.
+      </div>
+      <div>
+        <button matButton="filled" class="button-danger me-2">
+          <fa-icon [icon]="faTrashCan"></fa-icon>
+        </button>
+        <strong>Kunden löschen:</strong> Nur der ausgewählte Kunde wird gelöscht. Andere hier angezeigte Kunden bleiben bestehen.
+      </div>
+      <div class="mt-2">
+        <strong>Achtung: Das Löschen oder Zusammenführen geschieht sofort und es öffnet sich kein Bestätigungsdialog (um eine schnellere Abarbeitung zu ermöglichen).</strong>
+      </div>
+    </div>
 
     <hr/>
 
     @if (customerDuplicatesData()?.items?.length === 0) {
-      <c-row>
-        <h4 class="fw-bold">Keine Duplikate gefunden!</h4>
-      </c-row>
+      <h4 class="font-bold">Keine Duplikate gefunden!</h4>
     }
 
     @if ((customerDuplicatesData()?.items?.length ?? 0) > 0) {
     <div>
-      <tafel-pagination class="d-none d-sm-block" align="end" [paginationData]="paginationData()"
-                        (pageChanged)="getDuplicates($event)"></tafel-pagination>
-      <tafel-pagination class="d-block d-sm-none" align="center" size="sm" [paginationData]="paginationData()"
-                        (pageChanged)="getDuplicates($event)"></tafel-pagination>
+      <mat-paginator class="hidden sm:block" [length]="customerDuplicatesData()!.totalCount" [pageSize]="customerDuplicatesData()!.pageSize"
+                     [pageIndex]="customerDuplicatesData()!.currentPage - 1" [hidePageSize]="true" [showFirstLastButtons]="true"
+                     (page)="getDuplicates($event.pageIndex + 1)"></mat-paginator>
+      <mat-paginator class="block sm:hidden tafel-paginator-center" [length]="customerDuplicatesData()!.totalCount" [pageSize]="customerDuplicatesData()!.pageSize"
+                     [pageIndex]="customerDuplicatesData()!.currentPage - 1" [hidePageSize]="true" [showFirstLastButtons]="true"
+                     (page)="getDuplicates($event.pageIndex + 1)"></mat-paginator>
 
-      <div class="d-grid gap-3">
+      <div class="grid gap-4">
         @for (item of customerDuplicatesData()!.items; track trackByDuplicateItemId($index, item)) {
-        <c-row>
-          <c-col>
-            <c-card class="mb-3 mb-sm-0">
-              <c-card-header class="fw-bold">
-                <c-row class="d-flex flex-col flex-sm-row">
-                  <c-col class="align-self-center">
-                    {{item.customer.id + ' - ' + item.customer.lastname + ' ' + item.customer.firstname}}
-                  </c-col>
-                  <c-col class="text-end pt-2 pt-sm-0">
-                    <button cButton color="success" class="me-2" (click)="mergeCustomers(item.customer)">
-                      <fa-icon [icon]="faCheck" [inverse]="true"></fa-icon>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <mat-card class="mb-4 md:mb-0">
+            <mat-card-header class="font-bold w-full">
+              <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center w-full">
+                <div>
+                  {{item.customer.id + ' - ' + item.customer.lastname + ' ' + item.customer.firstname}}
+                </div>
+                <div class="text-right pt-2 sm:pt-0">
+                  <button matButton="filled" class="button-success me-2" (click)="mergeCustomers(item.customer)">
+                    <fa-icon [icon]="faCheck"></fa-icon>
+                  </button>
+                  <button matButton="filled" class="me-2" (click)="showCustomerDetail(item.customer.id!)">
+                    <fa-icon [icon]="faMagnifyingGlass"></fa-icon>
+                  </button>
+                  <button matButton="filled" class="button-danger" (click)="deleteCustomer(item.customer.id!)">
+                    <fa-icon [icon]="faTrashCan"></fa-icon>
+                  </button>
+                </div>
+              </div>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="grid grid-cols-2 gap-1">
+                <div class="font-bold">Geburtsdatum:</div>
+                <div>
+                  {{item.customer.birthDate | date : 'dd.MM.yyyy'}}
+                </div>
+                <div class="font-bold">Adresse:</div>
+                <div>
+                  {{item.customer.address | formatCustomerAddress}}
+                </div>
+                <div class="font-bold text-white px-2"
+                     [ngClass]="{'bg-green-600': isValid(item.customer), 'bg-red-600': !isValid(item.customer)}">
+                  Gültig bis:
+                </div>
+                <div class="text-white px-2"
+                     [ngClass]="{'bg-green-600': isValid(item.customer), 'bg-red-600': !isValid(item.customer)}"
+                     [innerHTML]="item.customer.validUntil | date : 'dd.MM.yyyy'">
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+          <div class="flex flex-col gap-4">
+            @for (similarCustomer of item.similarCustomers; track trackBySimilarCustomerId($index, similarCustomer)) {
+            <mat-card>
+              <mat-card-header class="font-bold w-full">
+                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center w-full">
+                  <div>
+                    {{similarCustomer.id + ' - ' + similarCustomer.lastname + ' ' + similarCustomer.firstname}}
+                  </div>
+                  <div class="text-right pt-2 sm:pt-0">
+                    <button matButton="filled" class="button-success me-2" (click)="mergeCustomers(similarCustomer)">
+                      <fa-icon [icon]="faCheck"></fa-icon>
                     </button>
-                    <button cButton class="me-2" (click)="showCustomerDetail(item.customer.id!)">
-                      <fa-icon [icon]="faMagnifyingGlass" [inverse]="true"></fa-icon>
+                    <button matButton="filled" class="me-2" (click)="showCustomerDetail(similarCustomer.id!)">
+                      <fa-icon [icon]="faMagnifyingGlass"></fa-icon>
                     </button>
-                    <button cButton color="danger" (click)="deleteCustomer(item.customer.id!)">
-                      <fa-icon [icon]="faTrashCan" [inverse]="true"></fa-icon>
+                    <button matButton="filled" class="button-danger" (click)="deleteCustomer(similarCustomer.id!)">
+                      <fa-icon [icon]="faTrashCan"></fa-icon>
                     </button>
-                  </c-col>
-                </c-row>
-              </c-card-header>
-              <c-card-body>
-                <c-row>
-                  <c-col class="fw-bold">Geburtsdatum:</c-col>
-                  <c-col>
-                    {{item.customer.birthDate | date : 'dd.MM.yyyy'}}
-                  </c-col>
-                </c-row>
-                <c-row>
-                  <c-col class="fw-bold">Adresse:</c-col>
-                  <c-col>
-                    {{item.customer.address | formatCustomerAddress}}
-                  </c-col>
-                </c-row>
-                <c-row>
-                  <c-col class="fw-bold text-white"
-                         [ngClass]="{'bg-success': isValid(item.customer), 'bg-danger': !isValid(item.customer)}">
+                  </div>
+                </div>
+              </mat-card-header>
+              <mat-card-content>
+                <div class="grid grid-cols-2 gap-1">
+                  <div class="font-bold">Geburtsdatum:</div>
+                  <div>
+                    {{similarCustomer.birthDate | date : 'dd.MM.yyyy'}}
+                  </div>
+                  <div class="font-bold">Adresse:</div>
+                  <div>
+                    {{similarCustomer.address | formatCustomerAddress}}
+                  </div>
+                  <div class="font-bold text-white px-2"
+                       [ngClass]="{'bg-green-600': isValid(similarCustomer), 'bg-red-600': !isValid(similarCustomer)}">
                     Gültig bis:
-                  </c-col>
-                  <c-col class="text-white"
-                         [ngClass]="{'bg-success': isValid(item.customer), 'bg-danger': !isValid(item.customer)}"
-                         [innerHTML]="item.customer.validUntil | date : 'dd.MM.yyyy'">
-                  </c-col>
-                </c-row>
-              </c-card-body>
-            </c-card>
-          </c-col>
-          <c-col>
-            <div class="d-flex flex-col gap-3">
-              @for (similarCustomer of item.similarCustomers; track trackBySimilarCustomerId($index, similarCustomer)) {
-              <c-card>
-                <c-card-header class="fw-bold">
-                  <c-row class="d-flex flex-col flex-sm-row">
-                    <c-col>
-                      {{similarCustomer.id + ' - ' + similarCustomer.lastname + ' ' + similarCustomer.firstname}}
-                    </c-col>
-                    <c-col class="text-end pt-2 pt-sm-0">
-                      <button cButton color="success" class="me-2" (click)="mergeCustomers(similarCustomer)">
-                        <fa-icon [icon]="faCheck" [inverse]="true"></fa-icon>
-                      </button>
-                      <button cButton class="me-2" (click)="showCustomerDetail(similarCustomer.id!)">
-                        <fa-icon [icon]="faMagnifyingGlass" [inverse]="true"></fa-icon>
-                      </button>
-                      <button cButton color="danger" class="text-white" (click)="deleteCustomer(similarCustomer.id!)">
-                        <fa-icon [icon]="faTrashCan" [inverse]="true"></fa-icon>
-                      </button>
-                    </c-col>
-                  </c-row>
-                </c-card-header>
-                <c-card-body>
-                  <c-row>
-                    <c-col class="fw-bold">Geburtsdatum:</c-col>
-                    <c-col>
-                      {{similarCustomer.birthDate | date : 'dd.MM.yyyy'}}
-                    </c-col>
-                  </c-row>
-                  <c-row>
-                    <c-col class="fw-bold">Adresse:</c-col>
-                    <c-col>
-                      {{similarCustomer.address | formatCustomerAddress}}
-                    </c-col>
-                  </c-row>
-                  <c-row>
-                    <c-col class="fw-bold text-white"
-                           [ngClass]="{'bg-success': isValid(similarCustomer), 'bg-danger': !isValid(similarCustomer)}">
-                      Gültig bis:
-                    </c-col>
-                    <c-col class="text-white"
-                           [ngClass]="{'bg-success': isValid(similarCustomer), 'bg-danger': !isValid(similarCustomer)}"
-                           [innerHTML]="similarCustomer.validUntil | date : 'dd.MM.yyyy'">
-                    </c-col>
-                  </c-row>
-                </c-card-body>
-              </c-card>
-              }
-            </div>
-          </c-col>
-        </c-row>
+                  </div>
+                  <div class="text-white px-2"
+                       [ngClass]="{'bg-green-600': isValid(similarCustomer), 'bg-red-600': !isValid(similarCustomer)}"
+                       [innerHTML]="similarCustomer.validUntil | date : 'dd.MM.yyyy'">
+                  </div>
+                </div>
+              </mat-card-content>
+            </mat-card>
+            }
+          </div>
+        </div>
         }
       </div>
 
-      <tafel-pagination class="d-none d-sm-block mt-3" align="end" [paginationData]="paginationData()"
-                        (pageChanged)="getDuplicates($event)"></tafel-pagination>
-      <tafel-pagination class="d-block d-sm-none mt-3" align="center" size="sm" [paginationData]="paginationData()"
-                        (pageChanged)="getDuplicates($event)"></tafel-pagination>
+      <mat-paginator class="hidden sm:block mt-4" [length]="customerDuplicatesData()!.totalCount" [pageSize]="customerDuplicatesData()!.pageSize"
+                     [pageIndex]="customerDuplicatesData()!.currentPage - 1" [hidePageSize]="true" [showFirstLastButtons]="true"
+                     (page)="getDuplicates($event.pageIndex + 1)"></mat-paginator>
+      <mat-paginator class="block sm:hidden mt-4 tafel-paginator-center" [length]="customerDuplicatesData()!.totalCount" [pageSize]="customerDuplicatesData()!.pageSize"
+                     [pageIndex]="customerDuplicatesData()!.currentPage - 1" [hidePageSize]="true" [showFirstLastButtons]="true"
+                     (page)="getDuplicates($event.pageIndex + 1)"></mat-paginator>
     </div>
     }
-  </c-card-body>
-</c-card>
+  </mat-card-content>
+</mat-card>

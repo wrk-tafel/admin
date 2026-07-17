@@ -1,24 +1,28 @@
-:host {
-  .ng-scrollbar {
-    --scrollbar-padding: 1px;
-    --scrollbar-size: 5px;
-    --scrollbar-thumb-color: var(--cui-gray-500, #999);
-    --scrollbar-thumb-hover-color: var(--cui-gray-400, #999);
-    --scrollbar-hover-size: calc(var(--scrollbar-size) * 1.5);
+// Angular Material's own (unlayered) .mat-drawer CSS sets width/background-color/color from
+// --mat-sidenav-container-* custom properties, falling back to Material's own system tokens when unset.
+// Tailwind's utility classes (w-64, bg-gray-900, text-gray-200) live inside `@layer utilities`, so per the
+// CSS cascade-layers spec this unlayered Material rule always wins over them regardless of source order or
+// specificity. Material exposes these exact custom properties as its intended theming hooks, so set them
+// directly instead of fighting the cascade.
+mat-sidenav {
+  --mat-sidenav-container-width: 16rem;
+  --mat-sidenav-container-background-color: #212631;
+  --mat-sidenav-container-text-color: rgba(255, 255, 255, .87);
+  --mat-sidenav-container-shape: 0;
+  --mat-sidenav-container-divider-color: transparent;
+  // A lightened tint of the container background above, rather than an unrelated Tailwind gray, so
+  // hover states read as "lighter version of this sidebar" instead of a barely-visible generic gray.
+  --tafel-sidenav-hover-background: #4a556e;
+
+  &.w-16 {
+    --mat-sidenav-container-width: 4rem;
   }
 }
 
-// ng-scrollbar css variables
-//.cui-scrollbar {
-//  --scrollbar-border-radius: 7px;
-//  --scrollbar-padding: 1px;
-//  --scrollbar-viewport-margin: 0;
-//  --scrollbar-track-color: transparent;
-//  --scrollbar-wrapper-color: transparent;
-//  --scrollbar-thumb-color: rgba(0, 0, 0, 0.2);
-//  --scrollbar-thumb-hover-color: var(--scrollbar-thumb-color);
-//  --scrollbar-size: 5px;
-//  --scrollbar-hover-size: var(--scrollbar-size);
-//  --scrollbar-thumb-transition: height ease-out 150ms, width ease-out 150ms;
-//  --scrollbar-track-transition: height ease-out 150ms, width ease-out 150ms;
-//}
+// .mat-drawer-container (mat-sidenav-container) also sets its own unlayered
+// background-color: var(--mat-sidenav-content-background-color, --mat-sys-background), which otherwise
+// paints the whole content area (behind the header and router-outlet) in Material's default off-white
+// instead of the app's intended light-gray content background.
+mat-sidenav-container {
+  --mat-sidenav-content-background-color: #f5f5f5;
+}

@@ -1,7 +1,6 @@
 import {TestBed} from '@angular/core/testing';
 import {FoodAmountComponent} from './food-amount.component';
 import {By} from '@angular/platform-browser';
-import {CardModule, ColComponent, ModalModule, RowComponent} from '@coreui/angular';
 import {provideHttpClient, withXhr} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
 import {DEFAULT_CURRENCY_CODE, LOCALE_ID} from '@angular/core';
@@ -15,12 +14,6 @@ describe('FoodAmountComponent', () => {
 
   beforeEach((() => {
     TestBed.configureTestingModule({
-      imports: [
-        ModalModule,
-        CardModule,
-        ColComponent,
-        RowComponent
-      ],
       providers: [
         provideHttpClient(withXhr()),
         provideHttpClientTesting(),

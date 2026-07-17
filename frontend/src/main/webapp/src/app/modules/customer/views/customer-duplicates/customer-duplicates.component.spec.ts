@@ -5,7 +5,6 @@ import {CustomerDuplicatesComponent} from './customer-duplicates.component';
 import {ActivatedRoute, Router} from '@angular/router';
 import moment from 'moment';
 import {of, throwError} from 'rxjs';
-import {CardModule, ColComponent, PaginationModule, RowComponent} from '@coreui/angular';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
 describe('CustomerDuplicatesComponent', () => {
@@ -94,12 +93,6 @@ describe('CustomerDuplicatesComponent', () => {
     } as any;
 
     TestBed.configureTestingModule({
-      imports: [
-        CardModule,
-        ColComponent,
-        RowComponent,
-        PaginationModule
-      ],
       providers: [
         {
           provide: CustomerApiService,
@@ -145,13 +138,6 @@ describe('CustomerDuplicatesComponent', () => {
     fixture.detectChanges();
 
     expect(component.customerDuplicatesData()).toEqual(mockCustomerDuplicatesDataResponse);
-    expect(component.paginationData()).toEqual({
-      count: mockCustomerDuplicatesDataResponse.items.length,
-      totalCount: mockCustomerDuplicatesDataResponse.totalCount,
-      currentPage: mockCustomerDuplicatesDataResponse.currentPage,
-      totalPages: mockCustomerDuplicatesDataResponse.totalPages,
-      pageSize: mockCustomerDuplicatesDataResponse.pageSize
-    });
   });
 
   it('get duplicates with page', () => {
@@ -164,13 +150,6 @@ describe('CustomerDuplicatesComponent', () => {
     component.getDuplicates(page);
 
     expect(component.customerDuplicatesData()).toEqual(mockCustomerDuplicatesDataResponse);
-    expect(component.paginationData()).toEqual({
-      count: mockCustomerDuplicatesDataResponse.items.length,
-      totalCount: mockCustomerDuplicatesDataResponse.totalCount,
-      currentPage: mockCustomerDuplicatesDataResponse.currentPage,
-      totalPages: mockCustomerDuplicatesDataResponse.totalPages,
-      pageSize: mockCustomerDuplicatesDataResponse.pageSize
-    });
   });
 
   it('show customer detail calls router navigation', () => {
@@ -204,8 +183,8 @@ describe('CustomerDuplicatesComponent', () => {
     customerApiService.deleteCustomer.mockReturnValue(of(undefined));
 
     const page = 3;
-    component.paginationData.set({
-      count: 10,
+    component.customerDuplicatesData.set({
+      items: [],
       totalCount: 100,
       currentPage: page,
       totalPages: 10,

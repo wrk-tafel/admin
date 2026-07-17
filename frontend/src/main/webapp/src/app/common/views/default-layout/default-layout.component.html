@@ -1,43 +1,85 @@
-<!--sidebar-->
-<c-sidebar
-  #sidebar1="cSidebar"
-  class="d-print-none sidebar sidebar-fixed border-end"
-  colorScheme="dark"
-  id="sidebar1"
-  visible
->
-  <c-sidebar-header class="border-bottom p-0">
-    <c-sidebar-brand
-      class="m-auto"
-      [brandFull]="{src: 'assets/img/brand/logo.svg', width: 150, height: 33, alt: 'ÖRK Logo'}"
-      [brandNarrow]="{src: 'assets/img/brand/logo_small.svg', width: 30, height: 30, alt: 'ÖRK Logo'}"
-      routerLink="/uebersicht">
-    </c-sidebar-brand>
-  </c-sidebar-header>
+<mat-sidenav-container class="h-screen print:hidden">
+  <mat-sidenav #sidenav [mode]="sidenavMode()" [opened]="!isMobile()" [disableClose]="!isMobile()"
+               class="!border-r-0 transition-all duration-200 flex flex-col"
+               [class.w-64]="!collapsed()" [class.w-16]="collapsed()">
+    <div class="flex items-center justify-center h-16 w-full bg-white shrink-0">
+      <a routerLink="/uebersicht">
+        @if (collapsed()) {
+          <img src="assets/img/brand/logo_small.svg" width="30" height="30" alt="ÖRK Logo"/>
+        } @else {
+          <img src="assets/img/brand/logo.svg" width="150" height="33" alt="ÖRK Logo"/>
+        }
+      </a>
+    </div>
 
-  <ng-scrollbar #scrollbar="ngScrollbar" class="overflow" pointerEventsMethod="scrollbar" visibility="hover">
-    <c-sidebar-nav #overflow [navItems]="navItems()" dropdownMode="close" compact />
-  </ng-scrollbar>
-  @if (!sidebar1.narrow) {
-    <c-sidebar-footer cSidebarToggle="sidebar1" class="border-top d-none d-lg-flex" toggle="unfoldable" style="cursor: pointer;">
-      <button cSidebarToggler aria-label="Menü ein-/ausklappen"></button>
-    </c-sidebar-footer>
-  }
-</c-sidebar>
+    <nav class="py-2 overflow-y-auto grow">
+      @for (item of navItems(); track item.name) {
+        @if (item.title) {
+          @if (!collapsed()) {
+            <div class="px-4 py-3 text-xs uppercase tracking-wide text-gray-500 font-semibold">{{ item.name }}</div>
+          }
+        } @else {
+          <div>
+            @if (item.children) {
+              <a (click)="toggleExpanded(item.name)"
+                 class="flex items-center gap-3 px-4 py-3 hover:bg-[var(--tafel-sidenav-hover-background)] cursor-pointer"
+                 [class.pointer-events-none]="item.attributes?.disabled"
+                 [class.opacity-50]="item.attributes?.disabled">
+                @if (item.icon) {
+                  <fa-icon [icon]="item.icon" class="w-5 shrink-0"></fa-icon>
+                }
+                @if (!collapsed()) {
+                  <span class="grow">{{ item.name }}</span>
+                  <fa-icon [icon]="expandedItems().has(item.name) ? faAngleDown : faAngleRight"
+                           class="w-3 shrink-0"></fa-icon>
+                }
+              </a>
+            } @else {
+              <a [routerLink]="item.url" routerLinkActive="bg-[var(--tafel-sidenav-hover-background)]"
+                 (click)="isMobile() && sidenav.close()"
+                 class="flex items-center gap-3 px-4 py-3 hover:bg-[var(--tafel-sidenav-hover-background)] cursor-pointer"
+                 [class.pointer-events-none]="item.attributes?.disabled"
+                 [class.opacity-50]="item.attributes?.disabled">
+                @if (item.icon) {
+                  <fa-icon [icon]="item.icon" class="w-5 shrink-0"></fa-icon>
+                }
+                @if (!collapsed()) {
+                  <span class="grow">{{ item.name }}</span>
+                  @if (item.badge) {
+                    <span class="badge" [ngClass]="'badge-' + item.badge.color">{{ item.badge.text }}</span>
+                  }
+                }
+              </a>
+            }
+            @if (item.children && !collapsed() && expandedItems().has(item.name)) {
+              @for (child of item.children; track child.name) {
+                <a [routerLink]="child.url" routerLinkActive="bg-[var(--tafel-sidenav-hover-background)]"
+                   (click)="isMobile() && sidenav.close()"
+                   class="flex items-center gap-3 pl-9 pr-4 py-3 text-gray-300 hover:bg-[var(--tafel-sidenav-hover-background)] cursor-pointer">
+                  @if (child.icon) {
+                    <fa-icon [icon]="child.icon" class="w-5 shrink-0"></fa-icon>
+                  }
+                  <span>{{ child.name }}</span>
+                </a>
+              }
+            }
+          </div>
+        }
+      }
+    </nav>
 
-<!--main-->
-<div class="wrapper d-flex flex-col min-vh-100">
-  <!--app-header-->
-  <tafel-default-header
-    [cShadowOnScroll]="'sm'"
-    class="mb-4 d-print-none header header-sticky p-0 shadow-sm"
-    position="sticky"
-    sidebarId="sidebar1"
-  />
-  <!--app-body-->
-  <div class="body flex-grow-1">
-    <c-container breakpoint="fluid" class="h-auto px-4 pb-4 main-container">
-      <router-outlet />
-    </c-container>
-  </div>
-</div>
+    <div class="hidden lg:flex border-t border-gray-800 justify-end px-2 py-2 shrink-0">
+      <button (click)="toggleCollapsed()" aria-label="Menü ein-/ausklappen"
+              class="w-9 h-9 flex items-center justify-center rounded-md hover:bg-[var(--tafel-sidenav-hover-background)]">
+        <fa-icon [icon]="collapsed() ? faAnglesRight : faAnglesLeft"></fa-icon>
+      </button>
+    </div>
+  </mat-sidenav>
+
+  <mat-sidenav-content class="flex flex-col min-h-screen">
+    <tafel-default-header class="block sticky top-0 z-10 bg-white shadow-sm" (toggleSidebar)="sidenav.toggle()"/>
+    <div class="grow px-6 pt-6 pb-6">
+      <router-outlet/>
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>

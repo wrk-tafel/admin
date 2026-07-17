@@ -1,25 +1,23 @@
-<c-card>
-  <c-card-header>
+<mat-card>
+  <mat-card-header>
     <h5>Warenerfassung</h5>
-  </c-card-header>
-  <c-card-body>
-    <c-row class="flex align-items-center">
-      <c-col class="col-3 col-md-1">Route</c-col>
-      <c-col class="col-9 col-md-4">
-        <c-input-group>
-          <select testid="routeInput" class="form-control" cSelect [ngModel]="selectedRoute"
+  </mat-card-header>
+  <mat-card-content>
+    <div class="flex items-center">
+      <div class="w-1/4 md:w-1/12">Route</div>
+      <div class="w-3/4 md:w-1/3">
+        <div class="flex items-center gap-2">
+          <select testid="routeInput" class="form-control" [ngModel]="selectedRoute"
                   (ngModelChange)="onSelectedRouteChange($event)">
             <option [ngValue]="undefined">Bitte auswählen</option>
             @for (route of routeList().routes; track route) {
               <option [ngValue]="route">{{ route.name }}</option>
             }
           </select>
-          <span cInputGroupText>
-              <fa-icon [icon]="faRoute"></fa-icon>
-            </span>
-        </c-input-group>
-      </c-col>
-    </c-row>
+          <fa-icon [icon]="faRoute"></fa-icon>
+        </div>
+      </div>
+    </div>
     @if (selectedRouteData()) {
       <hr>
       <mat-tab-group animationDuration="0ms">
@@ -27,7 +25,7 @@
           <ng-template mat-tab-label>
             <span testid="select-route-tab">Route</span>
           </ng-template>
-          <div class="p-3">
+          <div class="p-4">
             <tafel-food-collection-recording-basedata [carList]="carList()"
                                                       [selectedRouteData]="selectedRouteData()">
             </tafel-food-collection-recording-basedata>
@@ -37,16 +35,16 @@
           <ng-template mat-tab-label>
             <span testid="select-items-tab">Waren</span>
           </ng-template>
-            <div class="d-none d-md-block">
+            <div class="hidden md:block">
               <tafel-food-collection-recording-items-desktop [foodCategories]="foodCategories()"
                                                              [selectedRouteData]="selectedRouteData()"></tafel-food-collection-recording-items-desktop>
             </div>
-            <div class="d-block d-md-none">
+            <div class="block md:hidden">
               <tafel-food-collection-recording-items-responsive [foodCategories]="foodCategories()"
                                                                 [selectedRouteData]="selectedRouteData()"></tafel-food-collection-recording-items-responsive>
             </div>
         </mat-tab>
       </mat-tab-group>
     }
-  </c-card-body>
-</c-card>
+  </mat-card-content>
+</mat-card>

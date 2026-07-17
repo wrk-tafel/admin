@@ -7,7 +7,7 @@ import {
   CustomerUpdateResponse
 } from '../../../../api/customer-api.service';
 import {Router} from '@angular/router';
-import {ButtonDirective} from '@coreui/angular';
+import {MatButtonModule} from '@angular/material/button';
 import {MatDialog} from '@angular/material/dialog';
 import {ValidationResultDialogComponent} from './dialogs/validation-result-dialog.component';
 import {
@@ -20,7 +20,7 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
   templateUrl: 'customer-edit.component.html',
   imports: [
     CustomerFormComponent,
-    ButtonDirective
+    MatButtonModule
   ]
 })
 export class CustomerEditComponent {

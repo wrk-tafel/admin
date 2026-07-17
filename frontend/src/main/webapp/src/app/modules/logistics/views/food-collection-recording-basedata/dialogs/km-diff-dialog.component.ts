@@ -1,6 +1,6 @@
 import {Component, inject} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
-import {ButtonDirective} from '@coreui/angular';
+import {MatButtonModule} from '@angular/material/button';
 import {DecimalPipe} from '@angular/common';
 import {TafelDialogComponent} from '../../../../../common/components/tafel-dialog/tafel-dialog.component';
 
@@ -10,7 +10,7 @@ export interface KmDiffDialogData {
 
 @Component({
   selector: 'tafel-km-diff-dialog',
-  imports: [TafelDialogComponent, ButtonDirective, DecimalPipe],
+  imports: [TafelDialogComponent, MatButtonModule, DecimalPipe],
   templateUrl: 'km-diff-dialog.component.html',
 })
 export class KmDiffDialogComponent {

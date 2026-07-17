@@ -1,10 +1,8 @@
 import {Component, computed, input} from '@angular/core';
-import {TemplateIdDirective, WidgetStatAComponent} from '@coreui/angular';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {CommonModule} from '@angular/common';
-import {cilArrowTop} from '@coreui/icons';
-import {ChartjsComponent} from '@coreui/angular-chartjs';
-import {getStyle} from '@coreui/utils';
+import {MatCardModule} from '@angular/material/card';
+import {BaseChartDirective} from 'ng2-charts';
 import {StatisticsDetailData} from '../../../api/statistics-api.service';
 
 @Component({
@@ -14,15 +12,12 @@ import {StatisticsDetailData} from '../../../api/statistics-api.service';
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-    WidgetStatAComponent,
-    ChartjsComponent,
-    TemplateIdDirective,
+    MatCardModule,
+    BaseChartDirective,
   ]
 })
 export class StatisticsPanelComponent {
   data = input<StatisticsDetailData>();
-
-  icons = {cilArrowTop};
 
   optionsDefault = {
     plugins: {
@@ -66,8 +61,8 @@ export class StatisticsPanelComponent {
   private datasetOptionsDefault = {
     backgroundColor: 'transparent',
     borderColor: 'rgba(255,255,255,.55)',
-    pointBackgroundColor: getStyle('--cui-primary'),
-    pointHoverBorderColor: getStyle('--cui-primary'),
+    pointBackgroundColor: '#1976d2',
+    pointHoverBorderColor: '#1976d2',
   };
 
   chartData = computed(() => {

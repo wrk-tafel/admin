@@ -1,49 +1,65 @@
-import {Component, computed, inject} from '@angular/core';
-import {RouterLink, RouterOutlet} from '@angular/router';
-import {NgScrollbar} from 'ngx-scrollbar';
-
-import {
-  ContainerComponent,
-  ShadowOnScrollDirective,
-  SidebarBrandComponent,
-  SidebarComponent,
-  SidebarFooterComponent,
-  SidebarHeaderComponent,
-  SidebarNavComponent,
-  SidebarToggleDirective,
-  SidebarTogglerDirective
-} from '@coreui/angular';
+import {Component, computed, inject, signal, viewChild} from '@angular/core';
+import {toSignal} from '@angular/core/rxjs-interop';
+import {RouterLink, RouterLinkActive, RouterOutlet} from '@angular/router';
+import {MatSidenavContainer, MatSidenavModule} from '@angular/material/sidenav';
+import {BreakpointObserver} from '@angular/cdk/layout';
+import {map} from 'rxjs';
+import {FaIconComponent} from '@fortawesome/angular-fontawesome';
+import {faAngleDown, faAngleRight, faAnglesLeft, faAnglesRight} from '@fortawesome/free-solid-svg-icons';
+import {NgClass} from '@angular/common';
 import {DefaultHeaderComponent} from './default-header/default-header.component';
 import {ITafelNavData, navigationMenuItems} from './navigation-menuItems';
 import {AuthenticationService} from '../../security/authentication.service';
 import {GlobalStateService} from '../../state/global-state.service';
 import {DistributionItem} from '../../../api/distribution-api.service';
 
+// Matches the app's established Tailwind `lg` breakpoint, used elsewhere for the same
+// desktop/mobile distinction (e.g. the sidebar collapse-toggle footer's `hidden lg:flex`).
+const MOBILE_BREAKPOINT = '(max-width: 1023.98px)';
+
 @Component({
   selector: 'tafel-default-layout',
   templateUrl: 'default-layout.component.html',
   styleUrls: ['default-layout.component.scss'],
   imports: [
-    SidebarComponent,
-    SidebarHeaderComponent,
-    SidebarBrandComponent,
     RouterLink,
-    NgScrollbar,
-    SidebarNavComponent,
-    SidebarFooterComponent,
-    SidebarToggleDirective,
-    SidebarTogglerDirective,
-    DefaultHeaderComponent,
-    ShadowOnScrollDirective,
-    ContainerComponent,
-    RouterOutlet
+    RouterLinkActive,
+    RouterOutlet,
+    MatSidenavModule,
+    FaIconComponent,
+    NgClass,
+    DefaultHeaderComponent
   ]
 })
 export class DefaultLayoutComponent {
   private readonly authenticationService = inject(AuthenticationService);
   private readonly globalStateService = inject(GlobalStateService);
+  private readonly breakpointObserver = inject(BreakpointObserver);
 
   readonly distribution = this.globalStateService.getCurrentDistribution();
+
+  readonly collapsed = signal(false);
+  readonly expandedItems = signal<Set<string>>(new Set());
+
+  // The sidenav is always "opened" in `side` mode - collapsing only shrinks its width via a CSS class,
+  // it's never closed/reopened. Material's content-margin recalculation only runs on open/close toggles,
+  // mode changes and window resizes, so it never notices this width change on its own, leaving the content
+  // area reserving space for the pre-collapse width (a blank gap) instead of expanding into it. Recompute
+  // it manually once Angular has applied the new width class to the DOM.
+  readonly sidenavContainer = viewChild.required(MatSidenavContainer);
+
+  toggleCollapsed() {
+    this.collapsed.update(value => !value);
+    setTimeout(() => this.sidenavContainer().updateContentMargins());
+  }
+
+  // Compute the initial value synchronously (rather than defaulting to "desktop" for one render
+  // cycle) so the layout doesn't visibly flip mode/width immediately after bootstrap.
+  readonly isMobile = toSignal(
+    this.breakpointObserver.observe(MOBILE_BREAKPOINT).pipe(map(result => result.matches)),
+    {initialValue: this.breakpointObserver.isMatched(MOBILE_BREAKPOINT)}
+  );
+  readonly sidenavMode = computed<'over' | 'side'>(() => this.isMobile() ? 'over' : 'side');
 
   readonly navItems = computed(() => {
     const distribution = this.distribution();
@@ -116,4 +132,20 @@ export class DefaultLayoutComponent {
     return resultNavItems;
   }
 
+  toggleExpanded(name: string) {
+    this.expandedItems.update(current => {
+      const updated = new Set(current);
+      if (updated.has(name)) {
+        updated.delete(name);
+      } else {
+        updated.add(name);
+      }
+      return updated;
+    });
+  }
+
+  protected readonly faAngleRight = faAngleRight;
+  protected readonly faAngleDown = faAngleDown;
+  protected readonly faAnglesRight = faAnglesRight;
+  protected readonly faAnglesLeft = faAnglesLeft;
 }

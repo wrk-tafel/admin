@@ -1,7 +1,6 @@
 import {
   ApplicationConfig,
   DEFAULT_CURRENCY_CODE,
-  importProvidersFrom,
   inject,
   LOCALE_ID,
   provideAppInitializer
@@ -15,8 +14,6 @@ import {
   withViewTransitions
 } from '@angular/router';
 
-import {DropdownModule, SidebarModule} from '@coreui/angular';
-import {IconSetService} from '@coreui/icons-angular';
 import {routes} from './app.routes';
 import {provideHttpClient, withInterceptors, withXhr} from '@angular/common/http';
 import {CookieService} from 'ngx-cookie-service';
@@ -27,6 +24,8 @@ import {AuthenticationService} from './common/security/authentication.service';
 import {MAT_DIALOG_DEFAULT_OPTIONS, MatDialogConfig} from '@angular/material/dialog';
 import {provideAnimationsAsync} from '@angular/platform-browser/animations/async';
 import {MAT_FORM_FIELD_DEFAULT_OPTIONS} from '@angular/material/form-field';
+import {MatPaginatorIntl} from '@angular/material/paginator';
+import {getGermanPaginatorIntl} from './common/util/german-paginator-intl';
 
 const DEFAULT_DIALOG_CONFIG: MatDialogConfig = {
   position: {top: '16px'}
@@ -52,8 +51,6 @@ export const appConfig: ApplicationConfig = {
       withHashLocation(),
       withComponentInputBinding()
     ),
-    importProvidersFrom(SidebarModule, DropdownModule),
-    IconSetService,
     provideAppInitializer(() => inject(AuthenticationService).loadUserInfo()),
     provideAnimationsAsync(),
     {
@@ -87,6 +84,10 @@ export const appConfig: ApplicationConfig = {
         floatLabel: 'always',
         subscriptSizing: 'fixed',
       }
+    },
+    {
+      provide: MatPaginatorIntl,
+      useFactory: getGermanPaginatorIntl
     }
   ]
 };

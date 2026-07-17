@@ -9,31 +9,31 @@
 .mat-mdc-raised-button:not([disabled]):not(.mat-mdc-button-disabled),
 .mat-mdc-unelevated-button:not([disabled]):not(.mat-mdc-button-disabled) {
   &.button-success {
-    background-color: var(--cui-success, #2eb85c) !important;
+    background-color: #1b9e3e !important;
     color: white !important;
 
     &:hover, &:focus, &:active {
-      background-color: var(--cui-success, #2eb85c) !important;
+      background-color: #1b9e3e !important;
       color: white !important;
     }
   }
 
   &.button-warning {
-    background-color: var(--cui-warning, #e55353) !important;
+    background-color: #f9b115 !important;
     color: white !important;
 
     &:hover, &:focus, &:active {
-      background-color: var(--cui-warning, #e55353) !important;
+      background-color: #f9b115 !important;
       color: white !important;
     }
   }
 
   &.button-danger {
-    background-color: var(--cui-danger, #e55353) !important;
+    background-color: #e55353 !important;
     color: white !important;
 
     &:hover, &:focus, &:active {
-      background-color: var(--cui-danger, #e55353) !important;
+      background-color: #e55353 !important;
       color: white !important;
     }
   }

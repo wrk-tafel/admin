@@ -1,74 +1,56 @@
-<div class="d-flex flex-col-reverse flex-lg-column mb-3">
-  <div class="d-flex flex-col flex-lg-row mt-3 mt-lg-0 mb-4 mb-lg-0 gap-3">
-    <button testid="editUserButton" cButton color="danger" class="text-white" (click)="editUser()">
+<div class="flex flex-col-reverse lg:flex-col mb-4">
+  <div class="flex flex-col lg:flex-row mt-4 lg:mt-0 mb-6 lg:mb-0 gap-4">
+    <button testid="editUserButton" matButton="filled" class="button-danger" (click)="editUser()">
       Benutzer bearbeiten
     </button>
-    <c-dropdown variant="dropdown">
-      <button testid="changeUserStateButton" cButton cDropdownToggle color="danger" class="text-white">
-        Benutzer-Status ändern
-      </button>
-      <ul cDropdownMenu>
-        @if (currentUserData().enabled) {
-          <li><button cDropdownItem style="cursor: pointer;" testid="disableUserButton" (click)="disableUser()">Benutzer deaktivieren</button></li>
-        }
-        @if (!currentUserData().enabled) {
-          <li><button cDropdownItem style="cursor: pointer;" testid="enableUserButton" (click)="enableUser()">Benutzer aktivieren</button></li>
-        }
-        <li><hr cDropdownDivider></li>
-        <li><button cDropdownItem style="cursor: pointer;" testid="deleteUserButton" (click)="deleteUser()">Benutzer löschen</button></li>
-      </ul>
-    </c-dropdown>
+    <button testid="changeUserStateButton" matButton="filled" class="button-danger" [matMenuTriggerFor]="userStateMenu">
+      Benutzer-Status ändern ▾
+    </button>
+    <mat-menu #userStateMenu="matMenu">
+      @if (currentUserData().enabled) {
+        <button mat-menu-item testid="disableUserButton" (click)="disableUser()">Benutzer deaktivieren</button>
+      }
+      @if (!currentUserData().enabled) {
+        <button mat-menu-item testid="enableUserButton" (click)="enableUser()">Benutzer aktivieren</button>
+      }
+      <mat-divider></mat-divider>
+      <button mat-menu-item testid="deleteUserButton" (click)="deleteUser()">Benutzer löschen</button>
+    </mat-menu>
   </div>
-  <c-card class="col mt-0 mt-lg-3 mb-0 mb-lg-3">
-    <c-card-body>
-      <c-row class="mb-3">
-        <c-col>
-          <h3>Benutzerdetails</h3>
-        </c-col>
-      </c-row>
-      <c-row>
-        <c-col class="col-lg-9 col-sm-12">
-          <c-row>
-            <c-col class="fw-bold">
-              Name
-            </c-col>
-            <c-col testid="nameText">{{currentUserData()?.lastname}} {{currentUserData()?.firstname}}</c-col>
-          </c-row>
-          <c-row>
-            <c-col class="fw-bold">
-              Benutzername
-            </c-col>
-            <c-col testid="usernameText">{{currentUserData()?.username}}</c-col>
-          </c-row>
-          <c-row>
-            <c-col class="fw-bold">
-              Personal-Nummer
-            </c-col>
-            <c-col testid="personnelNumberText">{{currentUserData()?.personnelNumber}}</c-col>
-          </c-row>
-          <c-row>
-            <c-col class="fw-bold">
-              Passwortänderung notwendig
-            </c-col>
-            <c-col
-              testid="passwordChangeRequiredText">{{currentUserData()?.passwordChangeRequired === true ? 'Ja' : 'Nein'}}</c-col>
-          </c-row>
-          <c-row>
-            <c-col class="fw-bold">
-              Berechtigungen
-            </c-col>
-            <c-col
-              testid="permissionsText" class="fw-bold">{{currentUserData() | formatPermissions}}</c-col>
-          </c-row>
-          <c-row>
-            <c-col class="fw-bold text-white"
-                   [ngClass]="{'bg-success': currentUserData()?.enabled === true, 'bg-danger': currentUserData()?.enabled === false}">Aktiv
-            </c-col>
-            <c-col testid="enabledText" class="text-white"
-                   [ngClass]="{'bg-success': currentUserData()?.enabled === true, 'bg-danger': currentUserData()?.enabled === false}">{{currentUserData()?.enabled === true ? 'Ja' : 'Nein'}}</c-col>
-          </c-row>
-        </c-col>
-      </c-row>
-    </c-card-body>
-  </c-card>
+  <mat-card class="mt-0 lg:mt-3 mb-0 lg:mb-3">
+    <mat-card-content>
+      <div class="mb-4">
+        <h3>Benutzerdetails</h3>
+      </div>
+      <div class="lg:w-3/4">
+        <div class="grid grid-cols-2 gap-1">
+          <div class="font-bold">
+            Name
+          </div>
+          <div testid="nameText">{{currentUserData()?.lastname}} {{currentUserData()?.firstname}}</div>
+          <div class="font-bold">
+            Benutzername
+          </div>
+          <div testid="usernameText">{{currentUserData()?.username}}</div>
+          <div class="font-bold">
+            Personal-Nummer
+          </div>
+          <div testid="personnelNumberText">{{currentUserData()?.personnelNumber}}</div>
+          <div class="font-bold">
+            Passwortänderung notwendig
+          </div>
+          <div testid="passwordChangeRequiredText">{{currentUserData()?.passwordChangeRequired === true ? 'Ja' : 'Nein'}}</div>
+          <div class="font-bold">
+            Berechtigungen
+          </div>
+          <div testid="permissionsText" class="font-bold">{{currentUserData() | formatPermissions}}</div>
+          <div class="font-bold text-white px-2"
+               [ngClass]="{'bg-green-600': currentUserData()?.enabled === true, 'bg-red-600': currentUserData()?.enabled === false}">Aktiv
+          </div>
+          <div testid="enabledText" class="text-white px-2"
+               [ngClass]="{'bg-green-600': currentUserData()?.enabled === true, 'bg-red-600': currentUserData()?.enabled === false}">{{currentUserData()?.enabled === true ? 'Ja' : 'Nein'}}</div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
 </div>

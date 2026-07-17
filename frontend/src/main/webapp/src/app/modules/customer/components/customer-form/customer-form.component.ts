@@ -3,19 +3,8 @@ import {applyEach, form, FormField, maxLength, required, validate} from '@angula
 import {CountryApiService, CountryData} from '../../../../api/country-api.service';
 import {CustomerData, Gender} from '../../../../api/customer-api.service';
 import {CommonModule} from '@angular/common';
-import {
-  ButtonDirective,
-  CardBodyComponent,
-  CardComponent,
-  CardFooterComponent,
-  CardHeaderComponent,
-  ColComponent,
-  FormCheckInputDirective,
-  FormSelectDirective,
-  InputGroupComponent,
-  InputGroupTextDirective,
-  RowComponent
-} from '@coreui/angular';
+import {MatCardModule} from '@angular/material/card';
+import {MatButtonModule} from '@angular/material/button';
 import {
   faBuilding,
   faEnvelope,
@@ -38,20 +27,11 @@ import moment from 'moment';
   templateUrl: 'customer-form.component.html',
   imports: [
     FormField,
-    InputGroupComponent,
-    CardComponent,
-    CardHeaderComponent,
-    RowComponent,
-    ColComponent,
-    CardBodyComponent,
-    CardFooterComponent,
+    MatCardModule,
     CommonModule,
-    InputGroupTextDirective,
-    FormSelectDirective,
-    ButtonDirective,
+    MatButtonModule,
     FaIconComponent,
     TafelAutofocusDirective,
-    FormCheckInputDirective,
     GenderLabelPipe
   ]
 })

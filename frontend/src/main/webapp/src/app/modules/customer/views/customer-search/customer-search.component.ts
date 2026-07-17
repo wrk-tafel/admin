@@ -2,23 +2,14 @@ import {Component, inject, signal} from '@angular/core';
 import {Router} from '@angular/router';
 import {CustomerApiService, CustomerData, CustomerSearchResult} from '../../../../api/customer-api.service';
 import {FormBuilder, ReactiveFormsModule} from '@angular/forms';
-import {
-  TafelPaginationComponent,
-  TafelPaginationData
-} from '../../../../common/components/tafel-pagination/tafel-pagination.component';
-import {
-  ButtonDirective,
-  CardBodyComponent,
-  CardComponent,
-  CardFooterComponent,
-  CardHeaderComponent,
-  ColComponent,
-  FormCheckInputDirective,
-  FormDirective,
-  InputGroupComponent,
-  RowComponent,
-  TableDirective
-} from '@coreui/angular';
+import {MatCardModule} from '@angular/material/card';
+import {MatFormFieldModule} from '@angular/material/form-field';
+import {MatInputModule} from '@angular/material/input';
+import {MatCheckboxModule} from '@angular/material/checkbox';
+import {MatButtonModule} from '@angular/material/button';
+import {MatTableModule} from '@angular/material/table';
+import {MatDividerModule} from '@angular/material/divider';
+import {MatPaginatorModule} from '@angular/material/paginator';
 import {CommonModule} from '@angular/common';
 import {faPencil, faSearch, faUser} from '@fortawesome/free-solid-svg-icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
@@ -31,18 +22,14 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
   templateUrl: 'customer-search.component.html',
   imports: [
     ReactiveFormsModule,
-    CardComponent,
-    CardBodyComponent,
-    RowComponent,
-    ColComponent,
-    InputGroupComponent,
-    TafelPaginationComponent,
-    CardHeaderComponent,
-    CardFooterComponent,
-    FormDirective,
-    FormCheckInputDirective,
-    TableDirective,
-    ButtonDirective,
+    MatCardModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatCheckboxModule,
+    MatButtonModule,
+    MatTableModule,
+    MatDividerModule,
+    MatPaginatorModule,
     CommonModule,
     FaIconComponent,
     TafelAutofocusDirective,
@@ -66,7 +53,6 @@ export class CustomerSearchComponent {
 
   // Use signals so the template-sugar (@if / @for) reacts immediately when updated
   searchResult = signal<CustomerSearchResult | undefined>(undefined);
-  paginationData = signal<TafelPaginationData | undefined>(undefined);
 
   searchForCustomerId() {
     const customerId = this.customerId.value!;
@@ -101,16 +87,8 @@ export class CustomerSearchComponent {
         if (response.items.length === 0) {
           this.toastr.info('Keine Kunden gefunden!');
           this.searchResult.set(undefined);
-          this.paginationData.set(undefined);
         } else {
           this.searchResult.set(response);
-          this.paginationData.set({
-            count: response.items.length,
-            totalCount: response.totalCount,
-            currentPage: response.currentPage,
-            totalPages: response.totalPages,
-            pageSize: response.pageSize
-          });
         }
       });
   }
@@ -126,6 +104,9 @@ export class CustomerSearchComponent {
   trackByCustomerId(index: number, customer: any): number {
     return customer.id;
   }
+
+  // columns for mat-table
+  displayedColumns = ['icon', 'id', 'name', 'birthDate', 'address', 'issuedAt', 'validUntil', 'actions'];
 
   get customerId() {
     return this.form.get('customerId')!;

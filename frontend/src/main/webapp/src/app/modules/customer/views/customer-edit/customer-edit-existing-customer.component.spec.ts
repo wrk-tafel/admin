@@ -6,7 +6,6 @@ import {ActivatedRoute, Router} from '@angular/router';
 import moment from 'moment';
 import {CustomerApiService, CustomerData, CustomerUpdateResponse, Gender} from '../../../../api/customer-api.service';
 import {CustomerEditComponent} from './customer-edit.component';
-import {BgColorDirective, CardModule, ColComponent, InputGroupComponent, RowComponent} from '@coreui/angular';
 import {MatDialog} from '@angular/material/dialog';
 import {provideNoopAnimations} from '@angular/platform-browser/animations';
 import {provideHttpClient, withXhr} from '@angular/common/http';
@@ -84,12 +83,7 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
   beforeEach((() => {
     TestBed.configureTestingModule({
       imports: [
-        ReactiveFormsModule,
-        CardModule,
-        InputGroupComponent,
-        RowComponent,
-        ColComponent,
-        BgColorDirective
+        ReactiveFormsModule
       ],
       providers: [
         provideNoopAnimations(),

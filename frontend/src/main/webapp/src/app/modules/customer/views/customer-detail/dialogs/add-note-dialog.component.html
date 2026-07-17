@@ -4,8 +4,8 @@
               [ngModel]="noteText()" (ngModelChange)="noteText.set($event)"></textarea>
   </div>
   <div tafel-dialog-actions>
-    <button testid="okButton" cButton (click)="dialogRef.close(noteText())"
+    <button testid="okButton" matButton="filled" (click)="dialogRef.close(noteText())"
             [disabled]="!noteText() || noteText()?.trim()?.length === 0">Speichern</button>
-    <button testid="cancelButton" cButton color="secondary" (click)="dialogRef.close()">Abbrechen</button>
+    <button testid="cancelButton" matButton (click)="dialogRef.close()">Abbrechen</button>
   </div>
 </tafel-dialog>

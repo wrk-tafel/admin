@@ -1,13 +1,6 @@
 import {Component, computed, inject, input, signal} from '@angular/core';
-import {
-  ButtonDirective,
-  CardBodyComponent,
-  CardComponent,
-  CardHeaderComponent,
-  ColComponent,
-  FormSelectDirective,
-  RowComponent
-} from '@coreui/angular';
+import {MatCardModule} from '@angular/material/card';
+import {MatButtonModule} from '@angular/material/button';
 import {StatisticsApiService, StatisticsDistribution, StatisticsSettings} from '../../api/statistics-api.service';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import moment from 'moment';
@@ -17,25 +10,20 @@ import {toObservable, toSignal} from '@angular/core/rxjs-interop';
 import {StatisticsPanelComponent} from './components/statistics-panel.component';
 import {HttpResponse} from '@angular/common/http';
 import {FileHelperService} from '../../common/util/file-helper.service';
-import {IconDirective} from '@coreui/icons-angular';
-import {cilSave} from '@coreui/icons';
+import {FaIconComponent} from '@fortawesome/angular-fontawesome';
+import {faSave} from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'tafel-statistics',
   templateUrl: 'statistics.component.html',
   imports: [
     CommonModule,
-    RowComponent,
-    ColComponent,
-    CardHeaderComponent,
-    CardBodyComponent,
-    CardComponent,
+    MatCardModule,
     FormsModule,
     ReactiveFormsModule,
-    FormSelectDirective,
-    ButtonDirective,
+    MatButtonModule,
     StatisticsPanelComponent,
-    IconDirective
+    FaIconComponent
   ]
 })
 export class StatisticsComponent {
@@ -106,5 +94,5 @@ export class StatisticsComponent {
     this.fileHelperService.downloadFile(filename, response.body!);
   }
 
-  protected readonly cilSave = cilSave;
+  protected readonly faSave = faSave;
 }
