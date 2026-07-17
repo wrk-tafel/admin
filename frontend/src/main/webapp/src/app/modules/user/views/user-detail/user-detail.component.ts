@@ -1,18 +1,10 @@
 import {Component, inject, input, linkedSignal} from '@angular/core';
 import {UserApiService, UserData} from '../../../../api/user-api.service';
 import {Router} from '@angular/router';
-import {
-  ButtonDirective,
-  CardBodyComponent,
-  CardComponent,
-  ColComponent,
-  DropdownComponent,
-  DropdownDividerDirective,
-  DropdownItemDirective,
-  DropdownMenuDirective,
-  DropdownToggleDirective,
-  RowComponent
-} from '@coreui/angular';
+import {MatCardModule} from '@angular/material/card';
+import {MatButtonModule} from '@angular/material/button';
+import {MatMenuModule} from '@angular/material/menu';
+import {MatDividerModule} from '@angular/material/divider';
 import {CommonModule, NgClass} from '@angular/common';
 import {FormatPermissionsPipe} from '../../../../common/pipes/format-permissions.pipe';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
@@ -21,17 +13,11 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
     selector: 'tafel-user-detail',
     templateUrl: 'user-detail.component.html',
     imports: [
-        DropdownComponent,
-        CardComponent,
-        CardBodyComponent,
-        RowComponent,
-        ColComponent,
+        MatCardModule,
+        MatButtonModule,
+        MatMenuModule,
+        MatDividerModule,
         NgClass,
-        DropdownItemDirective,
-        ButtonDirective,
-        DropdownToggleDirective,
-        DropdownMenuDirective,
-        DropdownDividerDirective,
         CommonModule,
         FormatPermissionsPipe
     ]

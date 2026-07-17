@@ -3,7 +3,6 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { UserDetailComponent } from './user-detail.component';
-import { CardModule, ColComponent, RowComponent } from '@coreui/angular';
 import { UserApiService, UserData } from '../../../../api/user-api.service';
 import { By } from '@angular/platform-browser';
 import { of, throwError } from 'rxjs';
@@ -31,10 +30,7 @@ describe('UserDetailComponent', () => {
     beforeEach(() => {
         TestBed.configureTestingModule({
             imports: [
-                ReactiveFormsModule,
-                CardModule,
-                RowComponent,
-                ColComponent
+                ReactiveFormsModule
             ],
             providers: [
                 {
