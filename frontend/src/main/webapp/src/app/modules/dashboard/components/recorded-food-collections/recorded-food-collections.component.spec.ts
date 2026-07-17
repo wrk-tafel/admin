@@ -1,7 +1,6 @@
 import {TestBed} from '@angular/core/testing';
 import {RecordedFoodCollectionsComponent} from './recorded-food-collections.component';
 import {By} from '@angular/platform-browser';
-import {CardModule, ColComponent, ModalModule, RowComponent} from '@coreui/angular';
 import {provideHttpClient, withXhr} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
 import { GlobalStateService } from '../../../../common/state/global-state.service';
@@ -16,12 +15,6 @@ describe('RecordedFoodCollectionsComponent', () => {
     };
 
     TestBed.configureTestingModule({
-      imports: [
-        ModalModule,
-        CardModule,
-        ColComponent,
-        RowComponent
-      ],
       providers: [
         provideHttpClient(withXhr()),
         provideHttpClientTesting(),

@@ -4,7 +4,6 @@ import { DistributionApiService, DistributionCloseValidationResult, Distribution
 import { DistributionStateComponent } from './distribution-state.component';
 import { EMPTY, of } from 'rxjs';
 import { GlobalStateService } from '../../../../common/state/global-state.service';
-import { CardModule, ColComponent, RowComponent } from '@coreui/angular';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { signal } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
@@ -17,10 +16,7 @@ describe('DistributionStateComponent', () => {
     beforeEach((() => {
         TestBed.configureTestingModule({
             imports: [
-                NoopAnimationsModule,
-                CardModule,
-                RowComponent,
-                ColComponent
+                NoopAnimationsModule
             ],
             providers: [
                 {

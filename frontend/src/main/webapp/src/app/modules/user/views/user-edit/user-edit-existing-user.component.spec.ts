@@ -4,7 +4,6 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { of } from 'rxjs';
 import { UserEditComponent } from './user-edit.component';
-import { BgColorDirective, CardModule, ColComponent, InputGroupComponent, ModalModule, RowComponent } from '@coreui/angular';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { UserApiService, UserData } from '../../../../api/user-api.service';
 import { provideHttpClient, withXhr } from '@angular/common/http';
@@ -34,13 +33,7 @@ describe('UserEditComponent - Editing an existing user', () => {
         TestBed.configureTestingModule({
             imports: [
                 ReactiveFormsModule,
-                ModalModule,
-                NoopAnimationsModule,
-                CardModule,
-                InputGroupComponent,
-                RowComponent,
-                ColComponent,
-                BgColorDirective
+                NoopAnimationsModule
             ],
             providers: [
                 provideHttpClient(withXhr()),

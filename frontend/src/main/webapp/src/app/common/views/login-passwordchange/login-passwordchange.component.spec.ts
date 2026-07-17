@@ -4,7 +4,6 @@ import {LoginPasswordChangeComponent} from './login-passwordchange.component';
 import {AuthenticationService, LoginResult} from '../../security/authentication.service';
 import {Router} from '@angular/router';
 import {firstValueFrom, of} from 'rxjs';
-import {CardModule, ColComponent, ContainerComponent, RowComponent} from '@coreui/angular';
 import {provideHttpClient, withXhr} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
 
@@ -14,12 +13,6 @@ describe('LoginPasswordChangeComponent', () => {
 
     beforeEach(() => {
         TestBed.configureTestingModule({
-            imports: [
-                CardModule,
-                ContainerComponent,
-                RowComponent,
-                ColComponent
-            ],
             providers: [
                 provideHttpClient(withXhr()),
                 provideHttpClientTesting(),

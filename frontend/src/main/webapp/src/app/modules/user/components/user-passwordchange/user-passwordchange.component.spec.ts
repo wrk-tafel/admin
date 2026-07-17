@@ -1,7 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { UserPasswordChangeComponent } from './user-passwordchange.component';
 import { of } from 'rxjs';
-import { CardModule } from '@coreui/angular';
 import { provideHttpClient, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { PasswordChangeFormComponent } from '../../../../common/views/passwordchange-form/passwordchange-form.component';
@@ -9,9 +8,6 @@ import { PasswordChangeFormComponent } from '../../../../common/views/passwordch
 describe('UserPasswordChangeComponent', () => {
     beforeEach(() => {
         TestBed.configureTestingModule({
-            imports: [
-                CardModule
-            ],
             providers: [
                 provideHttpClient(withXhr()),
                 provideHttpClientTesting()

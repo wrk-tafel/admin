@@ -68,11 +68,19 @@ Ordered so early phases shrink CoreUI's footprint fast with low risk, and the ri
 - Confirm current Cypress e2e suite passes on `main`/current branch as a baseline.
 - Decide final icon strategy: FontAwesome-only (recommended — already primary) vs. keeping `mat-icon` too.
 
-**Phase 1 — Low-risk mechanical cleanup**
-- Delete stale `ModalModule` imports from the 9 `*.spec.ts` files.
-- Replace `BadgeComponent`/`BadgeModule` usage (2 files) with existing `tafel-badge` classes.
-- Replace `AvatarComponent` in `default-header` with Tailwind markup.
-- Replace remaining `cil-*` icons (`IconDirective`/`IconSetService`) with FontAwesome equivalents.
+**Phase 1 — Low-risk mechanical cleanup** ✅ DONE (2026-07-17)
+- Deleted stale CoreUI imports (`ModalModule`, `CardModule`, `ColComponent`, `RowComponent`, `ProgressModule`,
+  `BgColorDirective`, `InputGroupComponent`, `IconSetService`, `cil*` icons) from **15** `*.spec.ts` files whose
+  real component under test no longer had any CoreUI dependency — these were dead TestBed setup left over from
+  earlier refactors, not just the originally-scoped 9 `ModalModule` files. Verified via a systematic pass
+  comparing every `*.spec.ts` file importing `@coreui/*` against its sibling non-spec component file.
+- Build, lint, and full unit test suite (493 tests) all green after cleanup.
+- **Rescoped**: Badge/Avatar/icon replacement in `default-header` turned out to be inseparable from the rest of
+  that file — `default-header.component.html` is a single monolithic CoreUI-shell template (`c-container`,
+  `cHeaderToggler`, `cIcon`, `c-header-nav`, `c-badge`, `c-dropdown`, `c-avatar` all interleaved). Replacing
+  badge/avatar/icon in isolation there would leave an inconsistent half-migrated file, so this work moved into
+  **Phase 7** where the whole shell is rebuilt at once. Remaining genuinely-isolated icon usages (`cilArrowTop`,
+  `cilSave` in the statistics module) stay scoped to **Phase 6**.
 
 **Phase 2 — Buttons & Cards** (highest file count, but mechanical, pattern already established)
 - Sweep `cButton` → `mat-button`/`mat-raised-button`/`mat-stroked-button` (48 files).

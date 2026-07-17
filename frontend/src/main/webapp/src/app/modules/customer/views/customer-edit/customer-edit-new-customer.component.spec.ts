@@ -7,7 +7,6 @@ import moment from 'moment';
 import {CustomerApiService, CustomerData, Gender} from '../../../../api/customer-api.service';
 import {CustomerEditComponent} from './customer-edit.component';
 import {By} from '@angular/platform-browser';
-import {BgColorDirective, CardModule, ColComponent, InputGroupComponent, RowComponent} from '@coreui/angular';
 import {MatDialog} from '@angular/material/dialog';
 import {provideHttpClient, withXhr} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
@@ -77,12 +76,7 @@ describe('CustomerEditComponent - Creating a new customer', () => {
   beforeEach((() => {
     TestBed.configureTestingModule({
       imports: [
-        ReactiveFormsModule,
-        InputGroupComponent,
-        CardModule,
-        RowComponent,
-        ColComponent,
-        BgColorDirective
+        ReactiveFormsModule
       ],
       providers: [
         provideHttpClient(withXhr()),

@@ -2,7 +2,6 @@ import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { RegisteredCustomersComponent } from './registered-customers.component';
 import { By } from '@angular/platform-browser';
-import { CardModule, ColComponent, ModalModule, RowComponent } from '@coreui/angular';
 import { DistributionApiService } from '../../../../api/distribution-api.service';
 import { FileHelperService } from '../../../../common/util/file-helper.service';
 import { HttpHeaders, HttpResponse, provideHttpClient, withXhr } from '@angular/common/http';
@@ -15,12 +14,6 @@ describe('RegisteredCustomersComponent', () => {
 
     beforeEach((() => {
         TestBed.configureTestingModule({
-            imports: [
-                ModalModule,
-                CardModule,
-                ColComponent,
-                RowComponent
-            ],
             providers: [
                 provideHttpClient(withXhr()),
                 provideHttpClientTesting(),

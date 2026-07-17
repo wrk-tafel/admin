@@ -2,7 +2,6 @@ import type {MockedObject} from 'vitest';
 import {TestBed} from '@angular/core/testing';
 import {DistributionApiService, DistributionItem} from '../../../../api/distribution-api.service';
 import {DistributionStatisticsInputComponent} from './distribution-statistics-input.component';
-import {CardModule, ColComponent, ModalModule, ProgressModule, RowComponent} from '@coreui/angular';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 import {of, throwError} from 'rxjs';
 import {ShelterItem} from '../../../../api/shelter-api.service';
@@ -51,12 +50,7 @@ describe('DistributionStatisticsInputComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [
-        NoopAnimationsModule,
-        ModalModule,
-        CardModule,
-        RowComponent,
-        ColComponent,
-        ProgressModule
+        NoopAnimationsModule
       ],
       providers: [
         {
