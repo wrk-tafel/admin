@@ -1,15 +1,22 @@
 import { TafelAutofocusDirective } from './tafel-autofocus.directive';
 import { ElementRef } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
 
 describe('TafelAutofocusDirective', () => {
 
     function setup() {
         const nativeElement = {
-            focus: vi.fn().mockName("div.focus")
+            focus: vi.fn().mockName('div.focus')
         };
         const hostElementRef = new ElementRef(nativeElement);
 
-        const directive = new TafelAutofocusDirective(hostElementRef);
+        TestBed.configureTestingModule({
+            providers: [
+                TafelAutofocusDirective,
+                { provide: ElementRef, useValue: hostElementRef }
+            ]
+        });
+        const directive = TestBed.inject(TafelAutofocusDirective);
         return { nativeElement, directive };
     }
 

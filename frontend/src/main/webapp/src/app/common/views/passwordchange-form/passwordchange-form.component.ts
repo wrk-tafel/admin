@@ -1,4 +1,4 @@
-import {Component, inject, signal, ChangeDetectionStrategy} from '@angular/core';
+import {Component, inject, signal} from '@angular/core';
 import {form, FormField, maxLength, minLength, required, validate} from '@angular/forms/signals';
 import {ChangePasswordRequest, ChangePasswordResponse, UserApiService} from '../../../api/user-api.service';
 import {catchError, map} from 'rxjs/operators';
@@ -15,7 +15,6 @@ import {MatIcon} from '@angular/material/icon';
 @Component({
   selector: 'tafel-passwordchange-form',
   templateUrl: 'passwordchange-form.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     FormField,
     CommonModule,

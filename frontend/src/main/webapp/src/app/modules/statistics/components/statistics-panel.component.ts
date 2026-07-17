@@ -1,4 +1,4 @@
-import {Component, computed, input, ChangeDetectionStrategy} from '@angular/core';
+import {Component, computed, input} from '@angular/core';
 import {TemplateIdDirective, WidgetStatAComponent} from '@coreui/angular';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {CommonModule} from '@angular/common';
@@ -10,7 +10,6 @@ import {StatisticsDetailData} from '../../../api/statistics-api.service';
 @Component({
   selector: 'tafel-statistics-panel',
   templateUrl: 'statistics-panel.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     FormsModule,

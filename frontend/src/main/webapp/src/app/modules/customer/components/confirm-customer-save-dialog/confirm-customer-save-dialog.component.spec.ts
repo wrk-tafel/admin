@@ -8,7 +8,7 @@ describe('ConfirmUpdateCustomerDialog', () => {
 
     beforeEach(() => {
         dialogRef = {
-            close: vi.fn().mockName("MatDialogRef.close")
+            close: vi.fn().mockName('MatDialogRef.close')
         } as any;
 
         TestBed.configureTestingModule({

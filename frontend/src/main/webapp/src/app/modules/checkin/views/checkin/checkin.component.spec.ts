@@ -42,40 +42,41 @@ describe('CheckinComponent', () => {
 
     beforeEach(() => {
         const customerApiServiceSpy = {
-            getCustomer: vi.fn().mockName("CustomerApiService.getCustomer")
+            getCustomer: vi.fn().mockName('CustomerApiService.getCustomer')
         };
         const customerNoteApiServiceSpy = {
-            getNotesForCustomer: vi.fn().mockName("CustomerNoteApiService.getNotesForCustomer")
+            getNotesForCustomer: vi.fn().mockName('CustomerNoteApiService.getNotesForCustomer')
         };
         const scannerApiServiceSpy = {
-            getScanners: vi.fn().mockName("ScannerApiService.getScanners").mockReturnValue(of({ scannerIds: [] }))
+            getScanners: vi.fn().mockName('ScannerApiService.getScanners').mockReturnValue(of({ scannerIds: [] }))
         };
         const sseServiceSpy = {
-            listen: vi.fn().mockName("SseService.listen")
+            listen: vi.fn().mockName('SseService.listen')
         };
         const defaultDistribution: DistributionItem = {
             id: 1,
             startedAt: new Date()
         };
         const globalStateServiceSpy = {
-            getCurrentDistribution: vi.fn().mockName("GlobalStateService.getCurrentDistribution").mockReturnValue(signal<DistributionItem>(defaultDistribution).asReadonly()),
-            getConnectionState: vi.fn().mockName("GlobalStateService.getConnectionState").mockReturnValue(signal(true).asReadonly())
+            getCurrentDistribution: vi.fn().mockName('GlobalStateService.getCurrentDistribution')
+              .mockReturnValue(signal<DistributionItem>(defaultDistribution).asReadonly()),
+            getConnectionState: vi.fn().mockName('GlobalStateService.getConnectionState').mockReturnValue(signal(true).asReadonly())
         };
         const distributionApiServiceSpy = {
-            assignCustomer: vi.fn().mockName("DistributionApiService.assignCustomer")
+            assignCustomer: vi.fn().mockName('DistributionApiService.assignCustomer')
         };
         const distributionTicketApiServiceSpy = {
-            getCurrentTicketForCustomer: vi.fn().mockName("DistributionTicketApiService.getCurrentTicketForCustomer"),
-            deleteCurrentTicketOfCustomer: vi.fn().mockName("DistributionTicketApiService.deleteCurrentTicketOfCustomer")
+            getCurrentTicketForCustomer: vi.fn().mockName('DistributionTicketApiService.getCurrentTicketForCustomer'),
+            deleteCurrentTicketOfCustomer: vi.fn().mockName('DistributionTicketApiService.deleteCurrentTicketOfCustomer')
         };
         const routerSpy = {
-            navigate: vi.fn().mockName("Router.navigate")
+            navigate: vi.fn().mockName('Router.navigate')
         };
         const toastrSpy = {
-            error: vi.fn().mockName("TafelToastrService.error"),
-            info: vi.fn().mockName("TafelToastrService.info"),
-            success: vi.fn().mockName("TafelToastrService.success"),
-            warning: vi.fn().mockName("TafelToastrService.warning")
+            error: vi.fn().mockName('TafelToastrService.error'),
+            info: vi.fn().mockName('TafelToastrService.info'),
+            success: vi.fn().mockName('TafelToastrService.success'),
+            warning: vi.fn().mockName('TafelToastrService.warning')
         };
 
         TestBed.configureTestingModule({
@@ -187,7 +188,7 @@ describe('CheckinComponent', () => {
 
     it('ngOnDestroy with active subscription', () => {
         const testSubscription = {
-            unsubscribe: vi.fn().mockName("Subscription.unsubscribe")
+            unsubscribe: vi.fn().mockName('Subscription.unsubscribe')
         } as any;
 
         const fixture = TestBed.createComponent(CheckinComponent);
@@ -229,7 +230,7 @@ describe('CheckinComponent', () => {
 
     it('selectedScannerId removed scanner', () => {
         const testSubscription = {
-            unsubscribe: vi.fn().mockName("Subscription.unsubscribe")
+            unsubscribe: vi.fn().mockName('Subscription.unsubscribe')
         } as any;
 
         const fixture = TestBed.createComponent(CheckinComponent);
@@ -252,7 +253,7 @@ describe('CheckinComponent', () => {
 
     it('selectedScannerId switch to another scanner', () => {
         const testSubscription = {
-            unsubscribe: vi.fn().mockName("Subscription.unsubscribe")
+            unsubscribe: vi.fn().mockName('Subscription.unsubscribe')
         } as any;
         sseService.listen.mockReturnValue(EMPTY);
 
@@ -541,9 +542,7 @@ describe('CheckinComponent', () => {
         const component = fixture.componentInstance;
         component.customerNotes = [];
 
-        customerApiService.getCustomer.mockReturnValue(throwError(() => {
-            return { status: 404 };
-        }));
+        customerApiService.getCustomer.mockReturnValue(throwError(() => ({ status: 404 })));
         const notesResponse: CustomerNotesResponse = {
             items: [],
             totalCount: 0,

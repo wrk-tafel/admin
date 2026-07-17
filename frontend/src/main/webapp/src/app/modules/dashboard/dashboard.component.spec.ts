@@ -12,8 +12,6 @@ import {TafelToastrService} from '../../common/components/tafel-toastr/tafel-toa
 
 describe('DashboardComponent', () => {
   let sseService: MockedObject<SseService>;
-  let globalStateService: MockedObject<GlobalStateService>;
-  let toastrService: MockedObject<TafelToastrService>;
 
   const mockDistribution: DistributionItem = {
     id: 1,
@@ -22,8 +20,9 @@ describe('DashboardComponent', () => {
 
   beforeEach((() => {
     const globalStateServiceMock = {
-      getCurrentDistribution: vi.fn().mockName("GlobalStateService.getCurrentDistribution").mockReturnValue(signal(mockDistribution).asReadonly()),
-      getConnectionState: vi.fn().mockName("GlobalStateService.getConnectionState").mockReturnValue(signal(false).asReadonly())
+      getCurrentDistribution: vi.fn().mockName('GlobalStateService.getCurrentDistribution')
+        .mockReturnValue(signal(mockDistribution).asReadonly()),
+      getConnectionState: vi.fn().mockName('GlobalStateService.getConnectionState').mockReturnValue(signal(false).asReadonly())
     };
 
     TestBed.configureTestingModule({
@@ -33,7 +32,7 @@ describe('DashboardComponent', () => {
         {
           provide: SseService,
           useValue: {
-            listen: vi.fn().mockName("SseService.listen")
+            listen: vi.fn().mockName('SseService.listen')
           }
         },
         {
@@ -43,16 +42,14 @@ describe('DashboardComponent', () => {
         {
           provide: TafelToastrService,
           useValue: {
-            success: vi.fn().mockName("TafelToastrService.success"),
-            error: vi.fn().mockName("TafelToastrService.error")
+            success: vi.fn().mockName('TafelToastrService.success'),
+            error: vi.fn().mockName('TafelToastrService.error')
           }
         }
       ]
     }).compileComponents();
 
     sseService = TestBed.inject(SseService) as MockedObject<SseService>;
-    globalStateService = TestBed.inject(GlobalStateService) as MockedObject<GlobalStateService>;
-    toastrService = TestBed.inject(TafelToastrService) as MockedObject<TafelToastrService>;
   }));
 
   it('component can be created', () => {

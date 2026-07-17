@@ -1,4 +1,4 @@
-import {Component, effect, inject, model, signal, ChangeDetectionStrategy} from '@angular/core';
+import {Component, effect, inject, model, signal} from '@angular/core';
 import {RouteApiService, RouteData, RouteList, Shop} from '../../../../api/route-api.service';
 
 import {
@@ -35,7 +35,6 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
 @Component({
   selector: 'tafel-food-collection-recording',
   templateUrl: 'food-collection-recording.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CardComponent,
     CardBodyComponent,
@@ -89,7 +88,7 @@ export class FoodCollectionRecordingComponent {
           foodCollectionData: foodCollectionData
         });
       },
-      error: (error: any) => {
+      error: () => {
         this.toastr.error('Fehler beim Laden der Daten!');
       }
     });

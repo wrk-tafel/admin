@@ -102,16 +102,16 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
         {
           provide: CustomerApiService,
           useValue: {
-            validate: vi.fn().mockName("CustomerApiService.validate"),
-            getCustomer: vi.fn().mockName("CustomerApiService.getCustomer"),
-            createCustomer: vi.fn().mockName("CustomerApiService.createCustomer"),
-            updateCustomer: vi.fn().mockName("CustomerApiService.updateCustomer")
+            validate: vi.fn().mockName('CustomerApiService.validate'),
+            getCustomer: vi.fn().mockName('CustomerApiService.getCustomer'),
+            createCustomer: vi.fn().mockName('CustomerApiService.createCustomer'),
+            updateCustomer: vi.fn().mockName('CustomerApiService.updateCustomer')
           }
         },
         {
           provide: Router,
           useValue: {
-            navigate: vi.fn().mockName("Router.navigate")
+            navigate: vi.fn().mockName('Router.navigate')
           }
         },
         {
@@ -148,8 +148,8 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
 
   it('existing customer saved successfully', () => {
     const customerFormComponentMock = {
-      markAllAsTouched: vi.fn().mockName("CustomerFormComponent.markAllAsTouched"),
-      valid: vi.fn().mockName("CustomerFormComponent.valid")
+      markAllAsTouched: vi.fn().mockName('CustomerFormComponent.markAllAsTouched'),
+      valid: vi.fn().mockName('CustomerFormComponent.valid')
     } as any;
     customerFormComponentMock.valid.mockReturnValue(true);
     apiService.getCustomer.mockImplementation((id) =>
@@ -182,8 +182,8 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
 
   it('existing customer saved successfully even when validation shows not entitled', () => {
     const customerFormComponentMock = {
-      markAllAsTouched: vi.fn().mockName("CustomerFormComponent.markAllAsTouched"),
-      valid: vi.fn().mockName("CustomerFormComponent.valid")
+      markAllAsTouched: vi.fn().mockName('CustomerFormComponent.markAllAsTouched'),
+      valid: vi.fn().mockName('CustomerFormComponent.valid')
     } as any;
     customerFormComponentMock.valid.mockReturnValue(true);
     apiService.getCustomer.mockImplementation((id) =>
@@ -218,8 +218,8 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
 
   it('existing customer save failed when form is invalid', () => {
     const customerFormComponentMock = {
-      markAllAsTouched: vi.fn().mockName("CustomerFormComponent.markAllAsTouched"),
-      valid: vi.fn().mockName("CustomerFormComponent.valid")
+      markAllAsTouched: vi.fn().mockName('CustomerFormComponent.markAllAsTouched'),
+      valid: vi.fn().mockName('CustomerFormComponent.valid')
     } as any;
     customerFormComponentMock.valid.mockReturnValue(false);
     apiService.updateCustomer.mockReturnValue(of(mockUpdateSuccessResponse));
@@ -248,8 +248,8 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
     matDialog.open.mockReturnValue({afterClosed: () => of(true)} as any);
 
     const customerFormComponentMock = {
-      markAllAsTouched: vi.fn().mockName("CustomerFormComponent.markAllAsTouched"),
-      valid: vi.fn().mockName("CustomerFormComponent.valid")
+      markAllAsTouched: vi.fn().mockName('CustomerFormComponent.markAllAsTouched'),
+      valid: vi.fn().mockName('CustomerFormComponent.valid')
     } as any;
     customerFormComponentMock.valid.mockReturnValue(true);
 
@@ -280,8 +280,8 @@ describe('CustomerEditComponent - Editing an existing customer', () => {
   it('existing customer save with non-409 error shows error toast', () => {
     const matDialog = TestBed.inject(MatDialog) as MockedObject<MatDialog>;
     const customerFormComponentMock = {
-      markAllAsTouched: vi.fn().mockName("CustomerFormComponent.markAllAsTouched"),
-      valid: vi.fn().mockName("CustomerFormComponent.valid")
+      markAllAsTouched: vi.fn().mockName('CustomerFormComponent.markAllAsTouched'),
+      valid: vi.fn().mockName('CustomerFormComponent.valid')
     } as any;
     customerFormComponentMock.valid.mockReturnValue(true);
 

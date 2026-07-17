@@ -40,15 +40,15 @@ describe('UserDetailComponent', () => {
                 {
                     provide: UserApiService,
                     useValue: {
-                        updateUser: vi.fn().mockName("UserApiService.updateUser"),
-                        deleteUser: vi.fn().mockName("UserApiService.deleteUser")
+                        updateUser: vi.fn().mockName('UserApiService.updateUser'),
+                        deleteUser: vi.fn().mockName('UserApiService.deleteUser')
                     }
                 },
                 {
                     provide: TafelToastrService,
                     useValue: {
-                        success: vi.fn().mockName("TafelToastrService.success"),
-                        error: vi.fn().mockName("TafelToastrService.error")
+                        success: vi.fn().mockName('TafelToastrService.success'),
+                        error: vi.fn().mockName('TafelToastrService.error')
                     }
                 },
                 {
@@ -64,7 +64,7 @@ describe('UserDetailComponent', () => {
                 {
                     provide: Router,
                     useValue: {
-                        navigate: vi.fn().mockName("Router.navigate")
+                        navigate: vi.fn().mockName('Router.navigate')
                     }
                 }
             ]
@@ -83,7 +83,6 @@ describe('UserDetailComponent', () => {
 
     it('initial data loaded and shown correctly', () => {
         const fixture = TestBed.createComponent(UserDetailComponent);
-        const component = fixture.componentInstance;
         fixture.componentRef.setInput('userData', mockUser);
         fixture.detectChanges();
 
@@ -143,9 +142,7 @@ describe('UserDetailComponent', () => {
         const component = fixture.componentInstance;
         fixture.componentRef.setInput('userData', mockUser);
         fixture.detectChanges();
-        userApiService.deleteUser.mockReturnValueOnce(throwError(() => {
-            return { status: 404 };
-        }));
+        userApiService.deleteUser.mockReturnValueOnce(throwError(() => ({ status: 404 })));
 
         component.deleteUser();
 
@@ -167,7 +164,6 @@ describe('UserDetailComponent', () => {
 
     it('formatted permissions', () => {
         const fixture = TestBed.createComponent(UserDetailComponent);
-        const component = fixture.componentInstance;
         fixture.componentRef.setInput('userData', mockUser);
 
         fixture.detectChanges();

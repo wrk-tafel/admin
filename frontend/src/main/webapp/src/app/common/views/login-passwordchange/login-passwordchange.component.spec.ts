@@ -26,14 +26,14 @@ describe('LoginPasswordChangeComponent', () => {
                 {
                     provide: AuthenticationService,
                     useValue: {
-                        login: vi.fn().mockName("AuthenticationService.login"),
-                        getUsername: vi.fn().mockName("AuthenticationService.getUsername")
+                        login: vi.fn().mockName('AuthenticationService.login'),
+                        getUsername: vi.fn().mockName('AuthenticationService.getUsername')
                     }
                 },
                 {
                     provide: Router,
                     useValue: {
-                        navigate: vi.fn().mockName("Router.navigate")
+                        navigate: vi.fn().mockName('Router.navigate')
                     }
                 }
             ]

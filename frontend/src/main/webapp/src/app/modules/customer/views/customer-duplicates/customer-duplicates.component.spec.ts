@@ -187,9 +187,7 @@ describe('CustomerDuplicatesComponent', () => {
     const fixture = TestBed.createComponent(CustomerDuplicatesComponent);
     const component = fixture.componentInstance;
 
-    customerApiService.deleteCustomer.mockReturnValue(throwError(() => {
-      return {status: 404};
-    }));
+    customerApiService.deleteCustomer.mockReturnValue(throwError(() => ({status: 404})));
 
     const customerId = 123;
     component.deleteCustomer(customerId);
@@ -240,9 +238,7 @@ describe('CustomerDuplicatesComponent', () => {
     };
     component.customerDuplicatesData.set(customerDuplicatesData);
 
-    customerApiService.mergeCustomers.mockReturnValue(throwError(() => {
-      return {status: 404};
-    }));
+    customerApiService.mergeCustomers.mockReturnValue(throwError(() => ({status: 404})));
 
     component.mergeCustomers(customerDuplicatesData.items[0].customer);
 
@@ -279,7 +275,7 @@ describe('CustomerDuplicatesComponent', () => {
       mockCustomer1.id, [mockCustomer2.id, mockCustomer3.id]
     );
     expect(customerApiService.getCustomerDuplicates).toHaveBeenCalledWith(1);
-    expect(toastr.success).toHaveBeenCalledWith(`2 Kunde(n) wurden gelöscht.`, 'Kunden wurden zusammengeführt!');
+    expect(toastr.success).toHaveBeenCalledWith('2 Kunde(n) wurden gelöscht.', 'Kunden wurden zusammengeführt!');
   });
 
 });

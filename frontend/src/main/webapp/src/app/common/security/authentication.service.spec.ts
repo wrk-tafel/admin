@@ -14,7 +14,7 @@ describe('AuthenticationService', () => {
 
     beforeEach(() => {
         const routerSpy = {
-            navigate: vi.fn().mockName("Router.navigate")
+            navigate: vi.fn().mockName('Router.navigate')
         };
 
         TestBed.configureTestingModule({

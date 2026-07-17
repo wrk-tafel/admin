@@ -1,4 +1,4 @@
-import {Component, inject, signal, ChangeDetectionStrategy} from '@angular/core';
+import {Component, inject, signal} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {Router} from '@angular/router';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
@@ -25,7 +25,6 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
 @Component({
   selector: 'tafel-user-search',
   templateUrl: 'user-search.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -67,7 +66,7 @@ export class UserSearchComponent {
   displayedColumns = ['icon','id','name','personnelNumber','enabled','actions'];
 
   searchForPersonnelNumber() {
-    /* eslint-disable @typescript-eslint/no-unused-vars */
+
     const observer = {
       next: (userData: UserData) => this.navigateToUserDetail(userData.id),
       error: (error: any) => {

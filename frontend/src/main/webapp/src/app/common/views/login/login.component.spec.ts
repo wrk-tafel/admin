@@ -14,11 +14,11 @@ describe('LoginComponent', () => {
 
     beforeEach(() => {
         const authServiceSpy = {
-            login: vi.fn().mockName("AuthenticationService.login")
+            login: vi.fn().mockName('AuthenticationService.login')
         };
         const routerSpy = {
-            navigate: vi.fn().mockName("Router.navigate"),
-            getCurrentNavigation: vi.fn().mockName("Router.getCurrentNavigation")
+            navigate: vi.fn().mockName('Router.navigate'),
+            getCurrentNavigation: vi.fn().mockName('Router.getCurrentNavigation')
         };
 
         TestBed.configureTestingModule({

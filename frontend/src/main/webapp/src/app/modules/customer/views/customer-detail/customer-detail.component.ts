@@ -1,4 +1,4 @@
-import {Component, computed, effect, inject, input, linkedSignal, signal, ChangeDetectionStrategy} from '@angular/core';
+import {Component, computed, effect, inject, input, linkedSignal, signal} from '@angular/core';
 import {Router} from '@angular/router';
 import moment from 'moment';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
@@ -55,7 +55,6 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
 @Component({
   selector: 'tafel-customer-detail',
   templateUrl: 'customer-detail.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     DropdownComponent,
@@ -81,8 +80,11 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
   ]
 })
 export class CustomerDetailComponent {
-  // Input signals
+  // Input signals - aliased to match the route resolver data keys (see customer.routes.ts) since the
+  // unaliased names below are already used for the locally-writable linkedSignal counterparts
+  // eslint-disable-next-line @angular-eslint/no-input-rename
   customerDataInput = input.required<CustomerData>({alias: 'customerData'});
+  // eslint-disable-next-line @angular-eslint/no-input-rename
   customerNotesResponseInput = input.required<CustomerNotesResponse>({alias: 'customerNotesResponse'});
 
   // Writable signals linked to inputs - reset when input changes, locally writable for API updates
@@ -221,7 +223,7 @@ export class CustomerDetailComponent {
         this.customerData.set(customer);
       },
       error: (error: any) => {
-        if (error.status == 409) {
+        if (error.status === 409) {
           this.openConfirmUpdateCustomerDialog(updatedCustomerData, error.error.message);
         } else {
           this.toastr.error('Verlängerung fehlgeschlagen!');

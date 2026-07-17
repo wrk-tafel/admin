@@ -6,7 +6,7 @@ import { RouterTestingModule } from '@angular/router/testing';
 import { ScannerComponent } from './scanner.component';
 import { CameraDevice } from 'html5-qrcode/esm/camera/core';
 import { QRCodeReaderService } from '../../services/qrcode-reader/qrcode-reader.service';
-import { ScannerApiService, ScannerRegistration } from '../../../../api/scanner-api.service';
+import { ScannerApiService } from '../../../../api/scanner-api.service';
 import { EMPTY, of } from 'rxjs';
 
 describe('ScannerComponent', () => {

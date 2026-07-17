@@ -48,13 +48,11 @@ export class CustomValidator {
   }
 
   static hasValue(callback: () => any, message: string): ValidatorFn {
-    return (control: AbstractControl): ValidationErrors | null => {
-      return !control.value || callback() ? null : {
+    return (control: AbstractControl): ValidationErrors | null => !control.value || callback() ? null : {
         'hasValue': {
           'message': message
         }
       };
-    };
   }
 
 }

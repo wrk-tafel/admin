@@ -3,11 +3,9 @@ import {QrcodeSuccessCallback} from 'html5-qrcode/esm/core';
 import {CameraDevice} from 'html5-qrcode/esm/camera/core';
 import {Html5QrcodeCameraScanConfig, Html5QrcodeFullConfig} from 'html5-qrcode/esm/html5-qrcode';
 import {Html5QrcodeScannerState} from 'html5-qrcode/esm/state-manager';
-import {Injectable} from '@angular/core';
+import {Service} from '@angular/core';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Service()
 export class QRCodeReaderService {
 
   qrCodeReader!: Html5Qrcode;
@@ -21,20 +19,16 @@ export class QRCodeReaderService {
 
   private readonly cameraConfig: Html5QrcodeCameraScanConfig = {
     fps: 10,
-    qrbox: (viewfinderWidth, viewfinderHeight) => {
-      return {
+    qrbox: (viewfinderWidth, viewfinderHeight) => ({
         width: viewfinderWidth * 0.96,
         height: viewfinderHeight * 0.96
-      };
-    }
+      })
   };
 
   async getCameras(): Promise<CameraDevice[]> {
     try {
-      let cameras = await Html5Qrcode.getCameras();
-      const sorted = Object.assign([], cameras).sort((c1: CameraDevice, c2: CameraDevice) => {
-        return c1.label.localeCompare(c2.label);
-      });
+      const cameras = await Html5Qrcode.getCameras();
+      const sorted = Object.assign([], cameras).sort((c1: CameraDevice, c2: CameraDevice) => c1.label.localeCompare(c2.label));
       return Promise.resolve(sorted);
     } catch (reason) {
       return await Promise.reject(reason);

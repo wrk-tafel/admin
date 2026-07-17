@@ -21,14 +21,14 @@ describe('TafelEmployeeSearchCreate', () => {
                 {
                     provide: EmployeeApiService,
                     useValue: {
-                        findEmployees: vi.fn().mockName("EmployeeApiService.findEmployees"),
-                        saveEmployee: vi.fn().mockName("EmployeeApiService.saveEmployee")
+                        findEmployees: vi.fn().mockName('EmployeeApiService.findEmployees'),
+                        saveEmployee: vi.fn().mockName('EmployeeApiService.saveEmployee')
                     }
                 },
                 {
                     provide: MatDialog,
                     useValue: {
-                        open: vi.fn().mockName("MatDialog.open")
+                        open: vi.fn().mockName('MatDialog.open')
                     }
                 }
             ]

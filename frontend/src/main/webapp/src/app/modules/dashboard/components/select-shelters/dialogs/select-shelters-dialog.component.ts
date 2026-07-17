@@ -1,4 +1,4 @@
-import {Component, inject, ChangeDetectionStrategy} from '@angular/core';
+import {Component, inject} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 import {FormCheckComponent, FormCheckInputDirective, FormCheckLabelDirective} from '@coreui/angular';
 import {FormArray, FormBuilder, FormControl, ReactiveFormsModule} from '@angular/forms';
@@ -14,7 +14,6 @@ export interface SelectSheltersDialogData {
 @Component({
   selector: 'tafel-select-shelters-dialog',
   templateUrl: 'select-shelters-dialog.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     TafelDialogComponent,
     ReactiveFormsModule,

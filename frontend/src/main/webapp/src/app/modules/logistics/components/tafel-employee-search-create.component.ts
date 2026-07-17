@@ -1,4 +1,4 @@
-import {Component, inject, input, output, ChangeDetectionStrategy} from '@angular/core';
+import {Component, inject, input, output} from '@angular/core';
 import {ButtonDirective} from '@coreui/angular';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {faSearch} from '@fortawesome/free-solid-svg-icons';
@@ -10,16 +10,15 @@ import {SelectEmployeeDialogComponent} from './dialogs/select-employee-dialog.co
 @Component({
     selector: 'tafel-employee-search-create',
     templateUrl: 'tafel-employee-search-create.component.html',
-    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [
         FaIconComponent,
         ButtonDirective,
     ]
 })
 export class TafelEmployeeSearchCreateComponent {
-  searchInput = input.required<string>()
-  testIdPrefix = input<string>()
-  selectedEmployee = output<EmployeeData>()
+  searchInput = input.required<string>();
+  testIdPrefix = input<string>();
+  selectedEmployee = output<EmployeeData>();
 
   private readonly employeeApiService = inject(EmployeeApiService);
   private readonly dialog = inject(MatDialog);

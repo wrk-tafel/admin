@@ -1,4 +1,4 @@
-import {Component, inject, signal, ChangeDetectionStrategy} from '@angular/core';
+import {Component, inject, signal} from '@angular/core';
 import {MatDialog} from '@angular/material/dialog';
 import {ShelterEditDialogComponent} from './dialogs/shelter-edit-dialog.component';
 import {ShelterDetailsDialogComponent} from './dialogs/shelter-details-dialog.component';
@@ -25,7 +25,6 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
 @Component({
   selector: 'tafel-settings-shelters',
   templateUrl: 'settings-shelters.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     FormatShelterAddressPipe,
     MatCard,
@@ -96,7 +95,7 @@ export class SettingsSheltersComponent {
         this.toastr.success(`Notschlafstelle ${shelter.name} geändert`, 'Erfolgreich');
         this.loadShelters();
       },
-      error: (error: any) => {
+      error: () => {
         this.toastr.error('Fehler beim Ändern', 'Fehler');
       }
     };

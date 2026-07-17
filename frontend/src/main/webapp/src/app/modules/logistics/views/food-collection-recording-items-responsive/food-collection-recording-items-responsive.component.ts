@@ -1,4 +1,4 @@
-import {Component, computed, effect, inject, input, model, signal, ChangeDetectionStrategy} from '@angular/core';
+import {Component, computed, effect, inject, input, model, signal} from '@angular/core';
 
 import {FoodCategory} from '../../../../api/food-categories-api.service';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
@@ -21,7 +21,6 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
 @Component({
   selector: 'tafel-food-collection-recording-items-responsive',
   templateUrl: 'food-collection-recording-items-responsive.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     ReactiveFormsModule,
     FormsModule,
@@ -100,7 +99,7 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
       next: () => {
         this.toastr.success('Daten wurden gespeichert!');
       },
-      error: (error: any) => {
+      error: () => {
         this.toastr.error('Speichern fehlgeschlagen!');
       }
     };
@@ -149,7 +148,7 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
         this.categoryValues.set(newValues);
         this.currentShop.set(shop);
       },
-      error: (error: any) => {
+      error: () => {
         this.toastr.error('Laden fehlgeschlagen!');
       }
     };

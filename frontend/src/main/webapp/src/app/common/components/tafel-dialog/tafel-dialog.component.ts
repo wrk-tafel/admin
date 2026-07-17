@@ -1,4 +1,4 @@
-import {Component, HostBinding, input, ChangeDetectionStrategy} from '@angular/core';
+import {Component, HostBinding, input} from '@angular/core';
 import {CommonModule, NgClass} from '@angular/common';
 import {MatDialogModule} from '@angular/material/dialog';
 
@@ -33,7 +33,6 @@ import {MatDialogModule} from '@angular/material/dialog';
   selector: 'tafel-dialog',
   imports: [MatDialogModule, NgClass, CommonModule],
   templateUrl: 'tafel-dialog.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: 'tafel-dialog.component.scss'
 })
 export class TafelDialogComponent {

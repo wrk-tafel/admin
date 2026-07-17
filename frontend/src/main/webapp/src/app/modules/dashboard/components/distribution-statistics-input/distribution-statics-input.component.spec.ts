@@ -75,7 +75,8 @@ describe('DistributionStatisticsInputComponent', () => {
         {
           provide: GlobalStateService,
           useValue: {
-            getCurrentDistribution: vi.fn().mockName('GlobalStateService.getCurrentDistribution').mockReturnValue(signal(testDistribution).asReadonly())
+            getCurrentDistribution: vi.fn().mockName('GlobalStateService.getCurrentDistribution')
+              .mockReturnValue(signal(testDistribution).asReadonly())
           }
         }
       ]
@@ -140,7 +141,7 @@ describe('DistributionStatisticsInputComponent', () => {
     componentRef.setInput('initialSelectedShelterNames', [testShelters[0].name]);
     fixture.detectChanges();
 
-    component.onUpdateSelectedShelters(testShelters)
+    component.onUpdateSelectedShelters(testShelters);
 
     expect(component.personsInShelterCount.value).toBe(300);
   });
@@ -149,9 +150,7 @@ describe('DistributionStatisticsInputComponent', () => {
     const fixture = TestBed.createComponent(DistributionStatisticsInputComponent);
     const component = fixture.componentInstance;
     const componentRef = fixture.componentRef;
-    distributionApiService.saveStatistic.mockReturnValue(throwError(() => {
-        return {status: 500};
-      })
+    distributionApiService.saveStatistic.mockReturnValue(throwError(() => ({status: 500}))
     );
     globalStateService.getCurrentDistribution.mockReturnValue(signal<DistributionItem>(testDistribution).asReadonly());
 

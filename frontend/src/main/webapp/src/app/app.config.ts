@@ -34,7 +34,7 @@ const DEFAULT_DIALOG_CONFIG: MatDialogConfig = {
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideHttpClient(withXhr(), 
+    provideHttpClient(withXhr(),
       withInterceptors([
         apiPathInterceptor,
         errorHandlerInterceptor

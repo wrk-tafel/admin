@@ -1,11 +1,9 @@
-import {inject, Injectable} from '@angular/core';
+import {inject, Service} from '@angular/core';
 import {ActivatedRouteSnapshot} from '@angular/router';
 import {Observable} from 'rxjs';
 import {UserApiService, UserData} from '../../../api/user-api.service';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Service()
 export class UserDataResolver {
   private readonly userApiService = inject(UserApiService);
 

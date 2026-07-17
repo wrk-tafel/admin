@@ -1,4 +1,4 @@
-import {Component, inject, input, ChangeDetectionStrategy} from '@angular/core';
+import {Component, inject} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 import {ButtonDirective} from '@coreui/angular';
 import {TafelDialogComponent} from '../../../../common/components/tafel-dialog/tafel-dialog.component';
@@ -10,7 +10,6 @@ export interface ConfirmCustomerSaveDialogData {
 @Component({
   selector: 'tafel-confirm-customer-save-dialog',
   imports: [TafelDialogComponent, ButtonDirective],
-  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: 'confirm-customer-save-dialog.component.html',
 })
 export class ConfirmCustomerSaveDialog {

@@ -1,5 +1,6 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
-import {TafelToastrService} from './tafel-toastr.service';
+import {TafelToastrService, TOASTR_TOKEN} from './tafel-toastr.service';
+import {TestBed} from '@angular/core/testing';
 
 describe('TafelToastrService', () => {
   let service: TafelToastrService;
@@ -14,7 +15,12 @@ describe('TafelToastrService', () => {
       options: {} // Empty container for the constructor to populate
     };
 
-    service = new TafelToastrService(mockToastr);
+    TestBed.configureTestingModule({
+      providers: [
+        {provide: TOASTR_TOKEN, useValue: mockToastr}
+      ]
+    });
+    service = TestBed.runInInjectionContext(() => new TafelToastrService());
   });
 
   it('should initialize default toastr options correctly', () => {

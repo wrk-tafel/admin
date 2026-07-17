@@ -1,15 +1,13 @@
-import {inject, Injectable} from '@angular/core';
+import {inject, Service} from '@angular/core';
 import {ActivatedRouteSnapshot} from '@angular/router';
 import {Observable} from 'rxjs';
 import {RouteApiService, RouteList} from '../../../api/route-api.service';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Service()
 export class RouteDataResolver {
   private readonly routeApiService = inject(RouteApiService);
 
-  public resolve(route: ActivatedRouteSnapshot): Observable<RouteList> {
+  public resolve(_route: ActivatedRouteSnapshot): Observable<RouteList> {
     return this.routeApiService.getRoutes();
   }
 

@@ -1,5 +1,6 @@
-import { PlatformLocation } from '@angular/common';
 import { UrlHelperService } from './url-helper.service';
+import { PlatformLocation } from '@angular/common';
+import { TestBed } from '@angular/core/testing';
 
 describe('UrlHelperService', () => {
 
@@ -14,7 +15,13 @@ describe('UrlHelperService', () => {
             protocol: overwriteProtocol ?? 'http:'
         };
 
-        const service = new UrlHelperService(platformLocationSpy as any);
+        TestBed.configureTestingModule({
+            providers: [
+                UrlHelperService,
+                { provide: PlatformLocation, useValue: platformLocationSpy }
+            ]
+        });
+        const service = TestBed.inject(UrlHelperService);
 
         return { service, platformLocationSpy };
     }

@@ -2,12 +2,11 @@ import { TafelIfDistributionActiveDirective } from './tafel-if-distribution-acti
 import { DistributionItem } from '../../api/distribution-api.service';
 import { TestBed } from '@angular/core/testing';
 import { GlobalStateService } from '../state/global-state.service';
-import { signal, ChangeDetectionStrategy } from '@angular/core';
-import { Component, TemplateRef, ViewContainerRef } from '@angular/core';
+import {signal} from '@angular/core';
+import { Component } from '@angular/core';
 
 @Component({
     template: '<div *tafelIfDistributionActive>Content</div>',
-    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [TafelIfDistributionActiveDirective]
 })
 class TestComponent {}
@@ -16,7 +15,7 @@ describe('TafelIfDistributionActiveDirective', () => {
 
     function setup(distributionItem: DistributionItem | null) {
         const globalStateServiceSpy = {
-            getCurrentDistribution: vi.fn().mockName("GlobalStateService.getCurrentDistribution")
+            getCurrentDistribution: vi.fn().mockName('GlobalStateService.getCurrentDistribution')
         };
         globalStateServiceSpy.getCurrentDistribution.mockReturnValue(signal(distributionItem).asReadonly());
 

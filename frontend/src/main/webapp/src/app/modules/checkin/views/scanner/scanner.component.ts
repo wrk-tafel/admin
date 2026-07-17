@@ -1,4 +1,4 @@
-import {Component, computed, DestroyRef, effect, inject, signal, WritableSignal, ChangeDetectionStrategy} from '@angular/core';
+import {Component, computed, DestroyRef, effect, inject, signal, WritableSignal} from '@angular/core';
 import {QRCodeReaderService} from '../../services/qrcode-reader/qrcode-reader.service';
 import {CameraDevice} from 'html5-qrcode/esm/camera/core';
 import {Html5QrcodeResult} from 'html5-qrcode/core';
@@ -17,7 +17,6 @@ import {MatDivider} from '@angular/material/list';
 @Component({
   selector: 'tafel-scanner',
   templateUrl: 'scanner.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     MatBadgeModule,
     MatCard,
@@ -41,12 +40,8 @@ export class ScannerComponent {
   currentCamera = signal<CameraDevice | undefined>(undefined);
 
   readonly readyState: WritableSignal<boolean> = signal(false);
-  readonly readyStateColor = computed(() => {
-    return this.readyState() ? 'success' : 'danger';
-  });
-  readonly readyStateText = computed(() => {
-    return this.readyState() ? 'Bereit' : 'Nicht bereit';
-  });
+  readonly readyStateColor = computed(() => this.readyState() ? 'success' : 'danger');
+  readonly readyStateText = computed(() => this.readyState() ? 'Bereit' : 'Nicht bereit');
 
   initEffect = effect(async () => {
     const registrationPromise = this.registerScanner();
@@ -88,7 +83,7 @@ export class ScannerComponent {
     const storageKey = 'scanner-id';
     const storageValue = localStorage.getItem(storageKey);
 
-    let existingScannerId = undefined;
+    let existingScannerId;
     if (storageValue) {
       existingScannerId = Number(storageValue);
     }
@@ -118,13 +113,13 @@ export class ScannerComponent {
 
   qrCodeReaderSuccessCallback = (decodedText: string, _?: Html5QrcodeResult) => {
     const scanResult: ScanResult = {value: +decodedText};
-    console.log("SCANNED", scanResult)
+    console.log('SCANNED', scanResult);
     const scannedValue = scanResult.value;
     if (!this.lastScanResult() || this.lastScanResult() !== scannedValue) {
       this.lastScanResult.set(scanResult.value);
       this.scannerApiService.sendScanResult(this.scannerId()!, scanResult.value).subscribe();
     }
-  }
+  };
 
   get selectedCamera(): CameraDevice | undefined {
     return this.currentCamera();

@@ -7,7 +7,7 @@ import { TestBed } from '@angular/core/testing';
 describe('GlobalStateService', () => {
     function setup() {
         const sseServiceSpy = {
-            listen: vi.fn().mockName("SseService.listen")
+            listen: vi.fn().mockName('SseService.listen')
         };
 
         TestBed.configureTestingModule({

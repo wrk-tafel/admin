@@ -4,13 +4,11 @@ import moment from 'moment';
 import {CustomerApiService, CustomerMergeRequest, Gender, CustomerData} from './customer-api.service';
 import {ReactiveFormsModule} from '@angular/forms';
 import {provideHttpClient, withXhr} from '@angular/common/http';
-import type {MockedObject} from 'vitest';
 import {TafelToastrService} from '../common/components/tafel-toastr/tafel-toastr.service';
 
 describe('CustomerApiService', () => {
   let httpMock: HttpTestingController;
   let apiService: CustomerApiService;
-  let toastrServiceSpy: MockedObject<TafelToastrService>;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -22,7 +20,7 @@ describe('CustomerApiService', () => {
         {
           provide: TafelToastrService,
           useValue: {
-            error: vi.fn().mockName("TafelToastrService.error"),
+            error: vi.fn().mockName('TafelToastrService.error'),
           }
         },
       ]
@@ -30,7 +28,6 @@ describe('CustomerApiService', () => {
 
     httpMock = TestBed.inject(HttpTestingController);
     apiService = TestBed.inject(CustomerApiService);
-    toastrServiceSpy = TestBed.inject(TafelToastrService) as MockedObject<TafelToastrService>;
   });
 
   it('validate customer', () => {

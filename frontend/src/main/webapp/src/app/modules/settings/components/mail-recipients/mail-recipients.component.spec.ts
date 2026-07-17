@@ -25,17 +25,17 @@ describe('MailRecipients', () => {
                 {
                     provide: SettingsApiService,
                     useValue: {
-                        getMailRecipients: vi.fn().mockName("SettingsApiService.getMailRecipients"),
-                        saveMailRecipients: vi.fn().mockName("SettingsApiService.saveMailRecipients")
+                        getMailRecipients: vi.fn().mockName('SettingsApiService.getMailRecipients'),
+                        saveMailRecipients: vi.fn().mockName('SettingsApiService.saveMailRecipients')
                     }
                 },
                 {
                     provide: TafelToastrService,
                     useValue: {
-                        error: vi.fn().mockName("TafelToastrService.error"),
-                        info: vi.fn().mockName("TafelToastrService.info"),
-                        success: vi.fn().mockName("TafelToastrService.success"),
-                        warning: vi.fn().mockName("TafelToastrService.warning")
+                        error: vi.fn().mockName('TafelToastrService.error'),
+                        info: vi.fn().mockName('TafelToastrService.info'),
+                        success: vi.fn().mockName('TafelToastrService.success'),
+                        warning: vi.fn().mockName('TafelToastrService.warning')
                     }
                 }
             ]

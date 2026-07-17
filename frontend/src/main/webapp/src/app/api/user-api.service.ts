@@ -1,10 +1,8 @@
 import {HttpClient, HttpParams} from '@angular/common/http';
-import {inject, Injectable} from '@angular/core';
+import {inject, Service} from '@angular/core';
 import {Observable} from 'rxjs';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Service()
 export class UserApiService {
   private readonly http = inject(HttpClient);
 
@@ -20,7 +18,13 @@ export class UserApiService {
     return this.http.get<UserData>('/users/personnel-number/' + personnelNumber);
   }
 
-  searchUser(username?: string | null, enabled?: boolean | null, lastname?: string | null, firstname?: string | null, page?: number): Observable<UserSearchResult> {
+  searchUser(
+    username?: string | null,
+    enabled?: boolean | null,
+    lastname?: string | null,
+    firstname?: string | null,
+    page?: number
+  ): Observable<UserSearchResult> {
     let queryParams = new HttpParams();
     if (username) {
       queryParams = queryParams.set('username', username);

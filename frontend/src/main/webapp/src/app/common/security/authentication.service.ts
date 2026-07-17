@@ -1,12 +1,10 @@
 import {HttpClient, HttpHeaders} from '@angular/common/http';
-import {inject, Injectable} from '@angular/core';
+import {inject, Service} from '@angular/core';
 import {Router} from '@angular/router';
 import {firstValueFrom, Observable, of} from 'rxjs';
 import {catchError, map, tap} from 'rxjs/operators';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Service()
 export class AuthenticationService {
   userInfo: UserInfo | null = null;
   private readonly http = inject(HttpClient);
@@ -18,7 +16,7 @@ export class AuthenticationService {
           await this.loadUserInfo();
           return {successful: true, passwordChangeRequired: response.passwordChangeRequired};
         }),
-        /* eslint-disable @typescript-eslint/no-unused-vars */
+
         catchError(_ => {
           this.userInfo = null;
           return of({successful: false, passwordChangeRequired: false});
@@ -38,12 +36,12 @@ export class AuthenticationService {
   }
 
   public hasPermission(permission: string): boolean {
-    return this.hasAnyPermissionOf([permission])
+    return this.hasAnyPermissionOf([permission]);
   }
 
   public hasAnyPermissionOf(permissions: string[]): boolean {
-    const foundPermissions = this.userInfo?.permissions.filter(permission => permissions.indexOf(permission) > -1) ?? []
-    return foundPermissions.length > 0
+    const foundPermissions = this.userInfo?.permissions.filter(permission => permissions.indexOf(permission) > -1) ?? [];
+    return foundPermissions.length > 0;
   }
 
   public getUsername(): string | undefined {
@@ -61,10 +59,8 @@ export class AuthenticationService {
           this.userInfo = userInfo;
           return of(userInfo);
         }),
-        /* eslint-disable @typescript-eslint/no-unused-vars */
-        catchError(_ => {
-          return of(null);
-        })
+
+        catchError(_ => of(null))
       ));
   }
 

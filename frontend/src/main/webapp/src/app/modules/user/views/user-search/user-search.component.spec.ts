@@ -59,23 +59,23 @@ describe('UserSearchComponent', () => {
         {
           provide: UserApiService,
           useValue: {
-            getUserForPersonnelNumber: vi.fn().mockName("UserApiService.getUserForPersonnelNumber"),
-            searchUser: vi.fn().mockName("UserApiService.searchUser")
+            getUserForPersonnelNumber: vi.fn().mockName('UserApiService.getUserForPersonnelNumber'),
+            searchUser: vi.fn().mockName('UserApiService.searchUser')
           }
         },
         {
           provide: Router,
           useValue: {
-            navigate: vi.fn().mockName("Router.navigate")
+            navigate: vi.fn().mockName('Router.navigate')
           }
         },
         {
           provide: TafelToastrService,
           useValue: {
-            error: vi.fn().mockName("TafelToastrService.error"),
-            info: vi.fn().mockName("TafelToastrService.info"),
-            success: vi.fn().mockName("TafelToastrService.success"),
-            warning: vi.fn().mockName("TafelToastrService.warning")
+            error: vi.fn().mockName('TafelToastrService.error'),
+            info: vi.fn().mockName('TafelToastrService.info'),
+            success: vi.fn().mockName('TafelToastrService.success'),
+            warning: vi.fn().mockName('TafelToastrService.warning')
           }
         }
       ]

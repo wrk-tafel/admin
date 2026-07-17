@@ -1,13 +1,13 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import {Component} from '@angular/core';
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { TafelIfPermissionDirective } from './tafel-if-permission.directive';
 import { AuthenticationService } from './authentication.service';
 
 @Component({
+    // eslint-disable-next-line @angular-eslint/component-selector
     selector: 'test-component',
-    template: `<div *tafelIfPermission="permission">Content</div>`,
+    template: '<div *tafelIfPermission="permission">Content</div>',
     standalone: true,
-    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [TafelIfPermissionDirective]
 })
 class TestComponent {
@@ -16,12 +16,11 @@ class TestComponent {
 
 describe('TafelIfPermissionDirective', () => {
     let fixture: ComponentFixture<TestComponent>;
-    let component: TestComponent;
     let authServiceSpy: any;
 
     beforeEach(() => {
         authServiceSpy = {
-            hasPermission: vi.fn().mockName("AuthenticationService.hasPermission")
+            hasPermission: vi.fn().mockName('AuthenticationService.hasPermission')
         };
 
         TestBed.configureTestingModule({
@@ -32,7 +31,6 @@ describe('TafelIfPermissionDirective', () => {
         });
 
         fixture = TestBed.createComponent(TestComponent);
-        component = fixture.componentInstance;
     });
 
     it('should render when permission is given', () => {

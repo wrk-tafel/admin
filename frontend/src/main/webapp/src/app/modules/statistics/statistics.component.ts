@@ -1,4 +1,4 @@
-import {Component, computed, inject, input, signal, ChangeDetectionStrategy} from '@angular/core';
+import {Component, computed, inject, input, signal} from '@angular/core';
 import {
   ButtonDirective,
   CardBodyComponent,
@@ -23,7 +23,6 @@ import {cilSave} from '@coreui/icons';
 @Component({
   selector: 'tafel-statistics',
   templateUrl: 'statistics.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     RowComponent,

@@ -1,4 +1,4 @@
-import {Component, inject, input, Signal, ChangeDetectionStrategy} from '@angular/core';
+import {Component, inject, input, Signal} from '@angular/core';
 import {
   AvatarComponent,
   BadgeComponent,
@@ -24,9 +24,8 @@ import {faKey, faLock} from '@fortawesome/free-solid-svg-icons';
 import {GlobalStateService} from '../../../state/global-state.service';
 
 @Component({
-  selector: 'app-default-header',
+  selector: 'tafel-default-header',
   templateUrl: 'default-header.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     ContainerComponent,
     SidebarToggleDirective,
@@ -56,7 +55,7 @@ export class DefaultHeaderComponent extends HeaderComponent {
   readonly sseConnected: Signal<boolean> = this.globalStateService.getConnectionState();
 
   public logout() {
-    /* eslint-disable @typescript-eslint/no-unused-vars */
+
     this.authenticationService.logout().subscribe(_ => {
       this.authenticationService.redirectToLogin();
     });

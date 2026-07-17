@@ -55,92 +55,92 @@ describe('StatisticsApiService', () => {
     const toDate = moment('4321-01-02', 'YYYY-MM-DD').toDate();
     const testResponse: StatisticsData = {
       beneficiaryCustomers: {
-        title: "5",
-        subTitle: "Bezugsberechtigte Haushalte",
+        title: '5',
+        subTitle: 'Bezugsberechtigte Haushalte',
         labels: [
-          "2026-01",
-          "2026-02",
-          "2026-03",
+          '2026-01',
+          '2026-02',
+          '2026-03',
         ],
         dataPoints: [5, 5, 5]
       },
       beneficiaryPersons: {
-        title: "20",
-        subTitle: "Bezugsberechtigte Personen",
+        title: '20',
+        subTitle: 'Bezugsberechtigte Personen',
         labels: [
-          "2026-01",
-          "2026-02",
-          "2026-03",
+          '2026-01',
+          '2026-02',
+          '2026-03',
         ],
         dataPoints: [20, 20, 20]
       },
       beneficiaryCustomersWithChildren: {
-        title: "2",
-        subTitle: "Bezugsberechtigte Haushalte mit Kindern (Alter <= 15)",
+        title: '2',
+        subTitle: 'Bezugsberechtigte Haushalte mit Kindern (Alter <= 15)',
         labels: [
-          "2026-01",
-          "2026-02",
-          "2026-03"
+          '2026-01',
+          '2026-02',
+          '2026-03'
         ],
         dataPoints: [2, 2, 2]
       },
       sheltersCount: {
-        title: "0",
-        subTitle: "Notschlafstellen (Anzahl)",
+        title: '0',
+        subTitle: 'Notschlafstellen (Anzahl)',
         labels: [
-          "2026-01",
-          "2026-02",
-          "2026-03"
+          '2026-01',
+          '2026-02',
+          '2026-03'
         ],
         dataPoints: [0, 0, 0]
       },
       sheltersAverage: {
-        title: "0",
-        subTitle: "Notschlafstellen (Durchschnitt pro Ausgabe)",
+        title: '0',
+        subTitle: 'Notschlafstellen (Durchschnitt pro Ausgabe)',
         labels: [
-          "2026-01",
-          "2026-02",
-          "2026-03"
+          '2026-01',
+          '2026-02',
+          '2026-03'
         ],
         dataPoints: [0, 0, 0]
       },
       sheltersPersonsCount: {
-        title: "0",
-        subTitle: "Spender (Anzahl)",
+        title: '0',
+        subTitle: 'Spender (Anzahl)',
         labels: [
-          "2026-01",
-          "2026-02",
-          "2026-03"
+          '2026-01',
+          '2026-02',
+          '2026-03'
         ],
         dataPoints: [0, 0, 0]
       },
       shopsCount: {
-        title: "0",
-        subTitle: "Spender (Anzahl)",
+        title: '0',
+        subTitle: 'Spender (Anzahl)',
         labels: [
-          "2026-01",
-          "2026-02",
-          "2026-03"
+          '2026-01',
+          '2026-02',
+          '2026-03'
         ],
         dataPoints: [0, 0, 0]
       },
       shopItemsTotal: {
-        title: "0",
-        subTitle: "Warenmenge (Gesamt)",
+        title: '0',
+        subTitle: 'Warenmenge (Gesamt)',
         labels: [
-          "2026-01",
-          "2026-02",
-          "2026-03"
+          '2026-01',
+          '2026-02',
+          '2026-03'
         ],
         dataPoints: [0, 0, 0]
       },
       shopItemsAverage: {
-        title: "0",
-        subTitle: "Warenmenge (Durchschnitt pro Spender)",
+        title: '0',
+        subTitle: 'Warenmenge (Durchschnitt pro Spender)',
         labels: [
-          "2026-01",
-          "2026-02",
-          "2026-03"
+          '2026-01',
+          '2026-02',
+          '2026-03'
         ],
         dataPoints: [0, 0, 0]
       }

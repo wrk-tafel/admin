@@ -1,4 +1,4 @@
-import {Injectable, InjectionToken, Inject} from '@angular/core';
+import {Injectable, InjectionToken, inject} from '@angular/core';
 import * as toastr from 'toastr';
 
 // 1. Define an Injection Token for toastr
@@ -6,12 +6,14 @@ export const TOASTR_TOKEN = new InjectionToken<any>('toastr');
 
 @Injectable({
   providedIn: 'root',
-  // 2. Provide the default value using the factory
+  // @Service()'s typed factory option requires the return type to match the class shape,
+  // which doesn't hold here (the factory substitutes the raw toastr module instead of an instance)
   useFactory: () => toastr,
 })
 export class TafelToastrService {
+  private readonly toastrInstance = inject(TOASTR_TOKEN);
 
-  constructor(@Inject(TOASTR_TOKEN) private readonly toastrInstance: any) {
+  constructor() {
     // Configure default options
     this.toastrInstance.options.timeOut = 5000;
     this.toastrInstance.options.closeButton = true;

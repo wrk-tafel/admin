@@ -1,4 +1,4 @@
-import {Component, effect, inject, signal, ChangeDetectionStrategy} from '@angular/core';
+import {Component, effect, inject, signal} from '@angular/core';
 import {MatCard, MatCardContent, MatCardFooter, MatCardHeader, MatCardTitle} from '@angular/material/card';
 import {MatButtonModule} from '@angular/material/button';
 import {MatSelect, MatSelectModule} from '@angular/material/select';
@@ -15,7 +15,6 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
 @Component({
   selector: 'tafel-send-mails',
   templateUrl: 'send-mails.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     MatCard,
     MatCardHeader,
@@ -56,7 +55,7 @@ export class SendMailsComponent {
       next: () => {
         this.toastr.success('E-Mails wurden erneut verschickt!');
       },
-      error: (error: any) => {
+      error: () => {
         this.toastr.error('Senden der E-Mails fehlgeschlagen!');
       },
     };

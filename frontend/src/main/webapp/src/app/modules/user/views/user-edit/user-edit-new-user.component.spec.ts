@@ -44,8 +44,8 @@ describe('UserEditComponent - Creating a new user', () => {
                 {
                     provide: UserApiService,
                     useValue: {
-                        createUser: vi.fn().mockName("UserApiService.createUser"),
-                        updateUser: vi.fn().mockName("UserApiService.updateUser")
+                        createUser: vi.fn().mockName('UserApiService.createUser'),
+                        updateUser: vi.fn().mockName('UserApiService.updateUser')
                     }
                 },
                 {
@@ -59,10 +59,13 @@ describe('UserEditComponent - Creating a new user', () => {
                 {
                     provide: Router,
                     useValue: {
-                        navigate: vi.fn().mockName("Router.navigate")
+                        navigate: vi.fn().mockName('Router.navigate')
                     }
                 },
-                { provide: TafelToastrService, useValue: { error: vi.fn(), info: vi.fn(), success: vi.fn(), warning: vi.fn(), show: vi.fn() } }
+                {
+                    provide: TafelToastrService,
+                    useValue: { error: vi.fn(), info: vi.fn(), success: vi.fn(), warning: vi.fn(), show: vi.fn() }
+                }
             ]
         }).compileComponents();
 
@@ -72,8 +75,8 @@ describe('UserEditComponent - Creating a new user', () => {
 
     it('new user saved successfully', () => {
         const userFormComponentMock = {
-            markAllAsTouched: vi.fn().mockName("UserFormComponent.markAllAsTouched"),
-            isValid: vi.fn().mockName("UserFormComponent.isValid")
+            markAllAsTouched: vi.fn().mockName('UserFormComponent.markAllAsTouched'),
+            isValid: vi.fn().mockName('UserFormComponent.isValid')
         };
         userFormComponentMock.isValid.mockReturnValue(true);
         apiService.createUser.mockReturnValue(of(mockUser));

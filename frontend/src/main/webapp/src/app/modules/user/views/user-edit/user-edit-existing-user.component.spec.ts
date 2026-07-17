@@ -48,13 +48,13 @@ describe('UserEditComponent - Editing an existing user', () => {
                 {
                     provide: UserApiService,
                     useValue: {
-                        updateUser: vi.fn().mockName("UserApiService.updateUser")
+                        updateUser: vi.fn().mockName('UserApiService.updateUser')
                     }
                 },
                 {
                     provide: Router,
                     useValue: {
-                        navigate: vi.fn().mockName("Router.navigate")
+                        navigate: vi.fn().mockName('Router.navigate')
                     }
                 },
                 {

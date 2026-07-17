@@ -1,4 +1,4 @@
-import {Component, computed, inject, input, Signal, ChangeDetectionStrategy} from '@angular/core';
+import {Component, computed, inject, input, Signal} from '@angular/core';
 import {MatCard, MatCardHeader, MatCardTitle, MatCardContent} from '@angular/material/card';
 import {DistributionItem} from '../../../../api/distribution-api.service';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
@@ -6,7 +6,6 @@ import {GlobalStateService} from '../../../../common/state/global-state.service'
 @Component({
   selector: 'tafel-recorded-food-collections',
   templateUrl: 'recorded-food-collections.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     MatCard,
     MatCardHeader,

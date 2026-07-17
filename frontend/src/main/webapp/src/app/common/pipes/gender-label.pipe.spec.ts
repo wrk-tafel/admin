@@ -1,5 +1,5 @@
 import {GenderLabelPipe} from './gender-label.pipe';
-import {Gender, GenderLabel} from '../../api/customer-api.service';
+import {Gender, genderLabel} from '../../api/customer-api.service';
 
 describe('GenderLabelPipe', () => {
   let pipe: GenderLabelPipe;
@@ -15,13 +15,13 @@ describe('GenderLabelPipe', () => {
   it('should return label for MALE gender', () => {
     const result = pipe.transform(Gender.MALE);
 
-    expect(result).toBe(GenderLabel[Gender.MALE]);
+    expect(result).toBe(genderLabel[Gender.MALE]);
   });
 
   it('should return label for FEMALE gender', () => {
     const result = pipe.transform(Gender.FEMALE);
 
-    expect(result).toBe(GenderLabel[Gender.FEMALE]);
+    expect(result).toBe(genderLabel[Gender.FEMALE]);
   });
 
   it('should return dash for undefined gender', () => {

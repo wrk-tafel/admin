@@ -1,4 +1,4 @@
-import {Component, inject, ChangeDetectionStrategy} from '@angular/core';
+import {Component, inject} from '@angular/core';
 import {MatDialogRef} from '@angular/material/dialog';
 import {ButtonDirective} from '@coreui/angular';
 import {TafelDialogComponent} from '../../../../../common/components/tafel-dialog/tafel-dialog.component';
@@ -6,7 +6,6 @@ import {TafelDialogComponent} from '../../../../../common/components/tafel-dialo
 @Component({
   selector: 'tafel-delete-customer-dialog',
   imports: [TafelDialogComponent, ButtonDirective],
-  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: 'delete-customer-dialog.component.html',
 })
 export class DeleteCustomerDialogComponent {

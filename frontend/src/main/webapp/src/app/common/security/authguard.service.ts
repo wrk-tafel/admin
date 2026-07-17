@@ -1,14 +1,10 @@
-import {Injectable} from '@angular/core';
+import {inject, Service} from '@angular/core';
 import {ActivatedRouteSnapshot} from '@angular/router';
 import {AuthenticationService} from './authentication.service';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Service()
 export class AuthGuardService {
-
-  constructor(private authenticationService: AuthenticationService) {
-  }
+  private readonly authenticationService = inject(AuthenticationService);
 
   async canActivate(childRoute: ActivatedRouteSnapshot): Promise<boolean> {
     const routeData: AuthGuardData = childRoute.data;

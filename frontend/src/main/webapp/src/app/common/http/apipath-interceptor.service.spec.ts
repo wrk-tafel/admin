@@ -18,7 +18,7 @@ describe('ApiPathInterceptor', () => {
                 {
                     provide: UrlHelperService,
                     useValue: {
-                        getBaseUrl: vi.fn().mockName("UrlHelperService.getBaseUrl")
+                        getBaseUrl: vi.fn().mockName('UrlHelperService.getBaseUrl')
                     }
                 }
             ],

@@ -146,8 +146,8 @@ describe('CustomValidator', () => {
       }
     });
 
-    const testCallback = () => null
-    const testMessage = 'todo test'
+    const testCallback = () => null;
+    const testMessage = 'todo test';
 
     const result = CustomValidator.hasValue(testCallback, testMessage)(control);
 
@@ -163,8 +163,8 @@ describe('CustomValidator', () => {
       }
     });
 
-    const testCallback = () => undefined
-    const testMessage = 'todo test'
+    const testCallback = () => undefined;
+    const testMessage = 'todo test';
 
     const result = CustomValidator.hasValue(testCallback, testMessage)(control);
 
@@ -186,8 +186,8 @@ describe('CustomValidator', () => {
       }
     });
 
-    const testCallback = () => 'test123'
-    const testMessage = 'todo test'
+    const testCallback = () => 'test123';
+    const testMessage = 'todo test';
 
     const result = CustomValidator.hasValue(testCallback, testMessage)(control);
 

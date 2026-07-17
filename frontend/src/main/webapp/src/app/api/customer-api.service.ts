@@ -1,13 +1,11 @@
 import {HttpClient, HttpParams, HttpResponse} from '@angular/common/http';
-import {inject, Injectable} from '@angular/core';
+import {inject, Service} from '@angular/core';
 import {Observable} from 'rxjs';
 import {CountryData} from './country-api.service';
 import {tap} from 'rxjs/operators';
 import {TafelToastrService} from '../common/components/tafel-toastr/tafel-toastr.service';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Service()
 export class CustomerApiService {
   private readonly http = inject(HttpClient);
   private readonly toastr = inject(TafelToastrService);
@@ -54,7 +52,14 @@ export class CustomerApiService {
       });
   }
 
-  searchCustomer(lastname?: string | null, firstname?: string | null, postProcessing?: boolean | null, costContribution?: boolean | null, valid?: boolean | null, page?: number): Observable<CustomerSearchResult> {
+  searchCustomer(
+    lastname?: string | null,
+    firstname?: string | null,
+    postProcessing?: boolean | null,
+    costContribution?: boolean | null,
+    valid?: boolean | null,
+    page?: number
+  ): Observable<CustomerSearchResult> {
     let queryParams = new HttpParams();
     if (lastname) {
       queryParams = queryParams.set('lastname', lastname);
@@ -176,7 +181,7 @@ export enum Gender {
   MALE = 'MALE', FEMALE = 'FEMALE'
 }
 
-export const GenderLabel: { [key in Gender]: string } = {
+export const genderLabel: { [key in Gender]: string } = {
   [Gender.FEMALE]: 'Weiblich',
   [Gender.MALE]: 'Männlich'
 };

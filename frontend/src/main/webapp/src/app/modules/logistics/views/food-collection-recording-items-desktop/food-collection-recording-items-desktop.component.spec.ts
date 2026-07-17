@@ -25,10 +25,13 @@ describe('FoodCollectionRecordingItemsDesktopComponent', () => {
                 {
                     provide: GlobalStateService,
                     useValue: {
-                        getCurrentDistribution: vi.fn().mockName("GlobalStateService.getCurrentDistribution")
+                        getCurrentDistribution: vi.fn().mockName('GlobalStateService.getCurrentDistribution')
                     }
                 },
-                { provide: TafelToastrService, useValue: { error: vi.fn(), info: vi.fn(), success: vi.fn(), warning: vi.fn(), show: vi.fn() } }
+                {
+                    provide: TafelToastrService,
+                    useValue: { error: vi.fn(), info: vi.fn(), success: vi.fn(), warning: vi.fn(), show: vi.fn() }
+                }
             ]
         }).compileComponents();
 

@@ -42,7 +42,7 @@ describe('EmployeeApiService', () => {
   });
 
   it('find employees with searchInput', () => {
-    const searchInput = '000123'
+    const searchInput = '000123';
     const page = 5;
     apiService.findEmployees(searchInput, page).subscribe();
 
@@ -56,7 +56,7 @@ describe('EmployeeApiService', () => {
       personnelNumber: '00001',
       firstname: 'first 1',
       lastname: 'last 1'
-    }
+    };
     apiService.saveEmployee(mockCreateEmployeeRequest).subscribe();
 
     const req = httpMock.expectOne({method: 'POST', url: '/employees'});

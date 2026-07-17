@@ -25,7 +25,7 @@
           <label class="w-32">Tickets:</label>
           <div class="flex flex-wrap gap-2">
             <button testid="show-currentticket-button" matButton="filled" (click)="showCurrentTicket()" [disabled]="isShowingCurrentTicket()">Aktuelles Ticket</button>
-            <button testid="show-previousticket-button" matButton="filled" class="ml-2" (click)="showPreviousTicket()" [disabled]="isShowingPreviousTicket() || currentDistribution() == null">Vorheriges Ticket</button>
+            <button testid="show-previousticket-button" matButton="filled" class="ml-2" (click)="showPreviousTicket()" [disabled]="isShowingPreviousTicket() || currentDistribution() === null">Vorheriges Ticket</button>
           </div>
         </div>
 
@@ -33,8 +33,8 @@
           <h4 class="text-lg">Aktuelles Ticket</h4>
           <div class="mt-2">Unkostenbeitrag entrichtet ?</div>
           <div class="mt-4 flex flex-col sm:flex-row items-center justify-center gap-2">
-            <button testid="costcontribution-paid-yes-button" matButton="filled" class="button-success" (click)="showNextTicket(true)" [disabled]="isShowingNextTicket() || currentDistribution() == null">Weiter (bezahlt)</button>
-            <button testid="costcontribution-paid-no-button" matButton="filled" class="button-danger" (click)="showNextTicket(false)" [disabled]="isShowingNextTicket() || currentDistribution() == null">Weiter (nicht bezahlt)</button>
+            <button testid="costcontribution-paid-yes-button" matButton="filled" class="button-success" (click)="showNextTicket(true)" [disabled]="isShowingNextTicket() || currentDistribution() === null">Weiter (bezahlt)</button>
+            <button testid="costcontribution-paid-no-button" matButton="filled" class="button-danger" (click)="showNextTicket(false)" [disabled]="isShowingNextTicket() || currentDistribution() === null">Weiter (nicht bezahlt)</button>
           </div>
         </div>
       </div>
