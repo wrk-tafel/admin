@@ -5,7 +5,6 @@ import {CustomerDuplicatesComponent} from './customer-duplicates.component';
 import {ActivatedRoute, Router} from '@angular/router';
 import moment from 'moment';
 import {of, throwError} from 'rxjs';
-import {CardModule, ColComponent, PaginationModule, RowComponent} from '@coreui/angular';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
 describe('CustomerDuplicatesComponent', () => {
@@ -94,12 +93,6 @@ describe('CustomerDuplicatesComponent', () => {
     } as any;
 
     TestBed.configureTestingModule({
-      imports: [
-        CardModule,
-        ColComponent,
-        RowComponent,
-        PaginationModule
-      ],
       providers: [
         {
           provide: CustomerApiService,

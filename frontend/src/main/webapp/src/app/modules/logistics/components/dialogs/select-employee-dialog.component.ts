@@ -1,10 +1,7 @@
 import {Component, inject, signal} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
-import {
-  ButtonDirective,
-  CardBodyComponent,
-  CardComponent,
-} from '@coreui/angular';
+import {MatButtonModule} from '@angular/material/button';
+import {MatCardModule} from '@angular/material/card';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {faHandPointer} from '@fortawesome/free-solid-svg-icons';
 import {EmployeeApiService, EmployeeData, EmployeeListResponse} from '../../../../api/employee-api.service';
@@ -23,8 +20,8 @@ export interface SelectEmployeeDialogData {
 @Component({
   selector: 'tafel-select-employee-dialog',
   imports: [
-    TafelDialogComponent, ButtonDirective,
-    CardComponent, CardBodyComponent, FaIconComponent, TafelPaginationComponent
+    TafelDialogComponent, MatButtonModule,
+    MatCardModule, FaIconComponent, TafelPaginationComponent
   ],
   templateUrl: 'select-employee-dialog.component.html',
 })

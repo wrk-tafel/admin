@@ -6,14 +6,8 @@ import {
   TafelPaginationData
 } from '../../../../common/components/tafel-pagination/tafel-pagination.component';
 import moment from 'moment';
-import {
-  ButtonDirective,
-  CardBodyComponent,
-  CardComponent,
-  CardHeaderComponent,
-  ColComponent,
-  RowComponent
-} from '@coreui/angular';
+import {MatButtonModule} from '@angular/material/button';
+import {MatCardModule} from '@angular/material/card';
 import {DatePipe, NgClass} from '@angular/common';
 import {faCheck, faMagnifyingGlass, faTrashCan} from '@fortawesome/free-solid-svg-icons';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
@@ -24,15 +18,11 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
   selector: 'tafel-customer-duplicates',
   templateUrl: 'customer-duplicates.component.html',
   imports: [
-    CardComponent,
-    CardHeaderComponent,
-    CardBodyComponent,
-    RowComponent,
-    ColComponent,
+    MatCardModule,
     TafelPaginationComponent,
     DatePipe,
     NgClass,
-    ButtonDirective,
+    MatButtonModule,
     FaIconComponent,
     FormatCustomerAddressPipe
   ]

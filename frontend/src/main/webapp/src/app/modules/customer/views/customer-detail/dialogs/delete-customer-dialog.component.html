@@ -4,7 +4,7 @@
     <div class="fw-bold mt-4">Sicher?</div>
   </div>
   <div tafel-dialog-actions>
-    <button testid="okButton" cButton (click)="dialogRef.close(true)">Löschen</button>
-    <button testid="cancelButton" cButton color="secondary" (click)="dialogRef.close()">Abbrechen</button>
+    <button testid="okButton" matButton="filled" (click)="dialogRef.close(true)">Löschen</button>
+    <button testid="cancelButton" matButton (click)="dialogRef.close()">Abbrechen</button>
   </div>
 </tafel-dialog>
