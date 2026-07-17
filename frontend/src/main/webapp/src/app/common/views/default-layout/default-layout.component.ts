@@ -1,7 +1,7 @@
-import {Component, computed, inject, signal} from '@angular/core';
+import {Component, computed, inject, signal, viewChild} from '@angular/core';
 import {toSignal} from '@angular/core/rxjs-interop';
 import {RouterLink, RouterLinkActive, RouterOutlet} from '@angular/router';
-import {MatSidenavModule} from '@angular/material/sidenav';
+import {MatSidenavContainer, MatSidenavModule} from '@angular/material/sidenav';
 import {BreakpointObserver} from '@angular/cdk/layout';
 import {map} from 'rxjs';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
@@ -40,6 +40,18 @@ export class DefaultLayoutComponent {
 
   readonly collapsed = signal(false);
   readonly expandedItems = signal<Set<string>>(new Set());
+
+  // The sidenav is always "opened" in `side` mode - collapsing only shrinks its width via a CSS class,
+  // it's never closed/reopened. Material's content-margin recalculation only runs on open/close toggles,
+  // mode changes and window resizes, so it never notices this width change on its own, leaving the content
+  // area reserving space for the pre-collapse width (a blank gap) instead of expanding into it. Recompute
+  // it manually once Angular has applied the new width class to the DOM.
+  readonly sidenavContainer = viewChild.required(MatSidenavContainer);
+
+  toggleCollapsed() {
+    this.collapsed.update(value => !value);
+    setTimeout(() => this.sidenavContainer().updateContentMargins());
+  }
 
   // Compute the initial value synchronously (rather than defaulting to "desktop" for one render
   // cycle) so the layout doesn't visibly flip mode/width immediately after bootstrap.

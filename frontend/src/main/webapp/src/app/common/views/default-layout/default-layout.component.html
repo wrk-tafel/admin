@@ -69,7 +69,7 @@
     </nav>
 
     <div class="hidden lg:flex border-t border-gray-800 justify-end px-2 py-2 shrink-0">
-      <button (click)="collapsed.set(!collapsed())" aria-label="Menü ein-/ausklappen"
+      <button (click)="toggleCollapsed()" aria-label="Menü ein-/ausklappen"
               class="w-9 h-9 flex items-center justify-center rounded-md hover:bg-gray-800">
         <fa-icon [icon]="collapsed() ? faAnglesRight : faAnglesLeft"></fa-icon>
       </button>
