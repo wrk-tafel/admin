@@ -18,7 +18,6 @@ import {DeleteCustomerDialogComponent} from './dialogs/delete-customer-dialog.co
 import {AllNotesDialogComponent} from './dialogs/all-notes-dialog.component';
 import {AddNoteDialogComponent} from './dialogs/add-note-dialog.component';
 import {LockCustomerDialogComponent} from './dialogs/lock-customer-dialog.component';
-import {TafelPaginationData} from '../../../../common/components/tafel-pagination/tafel-pagination.component';
 import {DistributionTicketApiService} from '../../../../api/distribution-ticket-api.service';
 import {DistributionApiService} from '../../../../api/distribution-api.service';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
@@ -75,7 +74,6 @@ export class CustomerDetailComponent {
 
   // Other signals
   customerNotes = signal<CustomerNoteItem[]>([]);
-  customerNotesPaginationData = signal<TafelPaginationData | null>(null);
 
   // Ticket signals
   ticketNumber = signal<number | null>(null);
@@ -314,13 +312,6 @@ export class CustomerDetailComponent {
 
   private processCustomerNoteResponse(response: CustomerNotesResponse) {
     this.customerNotes.set(response.items);
-    this.customerNotesPaginationData.set({
-      count: response.items.length,
-      totalCount: response.totalCount,
-      currentPage: response.currentPage,
-      totalPages: response.totalPages,
-      pageSize: response.pageSize
-    });
   }
 
   private processPdfResponse(response: HttpResponse<Blob>) {

@@ -35,10 +35,12 @@
 
     @if ((customerDuplicatesData()?.items?.length ?? 0) > 0) {
     <div>
-      <tafel-pagination class="hidden sm:block" align="end" [paginationData]="paginationData()"
-                        (pageChanged)="getDuplicates($event)"></tafel-pagination>
-      <tafel-pagination class="block sm:hidden" align="center" size="sm" [paginationData]="paginationData()"
-                        (pageChanged)="getDuplicates($event)"></tafel-pagination>
+      <mat-paginator class="hidden sm:block" [length]="customerDuplicatesData()!.totalCount" [pageSize]="customerDuplicatesData()!.pageSize"
+                     [pageIndex]="customerDuplicatesData()!.currentPage - 1" [hidePageSize]="true" [showFirstLastButtons]="true"
+                     (page)="getDuplicates($event.pageIndex + 1)"></mat-paginator>
+      <mat-paginator class="block sm:hidden tafel-paginator-center" [length]="customerDuplicatesData()!.totalCount" [pageSize]="customerDuplicatesData()!.pageSize"
+                     [pageIndex]="customerDuplicatesData()!.currentPage - 1" [hidePageSize]="true" [showFirstLastButtons]="true"
+                     (page)="getDuplicates($event.pageIndex + 1)"></mat-paginator>
 
       <div class="grid gap-4">
         @for (item of customerDuplicatesData()!.items; track trackByDuplicateItemId($index, item)) {
@@ -131,10 +133,12 @@
         }
       </div>
 
-      <tafel-pagination class="hidden sm:block mt-4" align="end" [paginationData]="paginationData()"
-                        (pageChanged)="getDuplicates($event)"></tafel-pagination>
-      <tafel-pagination class="block sm:hidden mt-4" align="center" size="sm" [paginationData]="paginationData()"
-                        (pageChanged)="getDuplicates($event)"></tafel-pagination>
+      <mat-paginator class="hidden sm:block mt-4" [length]="customerDuplicatesData()!.totalCount" [pageSize]="customerDuplicatesData()!.pageSize"
+                     [pageIndex]="customerDuplicatesData()!.currentPage - 1" [hidePageSize]="true" [showFirstLastButtons]="true"
+                     (page)="getDuplicates($event.pageIndex + 1)"></mat-paginator>
+      <mat-paginator class="block sm:hidden mt-4 tafel-paginator-center" [length]="customerDuplicatesData()!.totalCount" [pageSize]="customerDuplicatesData()!.pageSize"
+                     [pageIndex]="customerDuplicatesData()!.currentPage - 1" [hidePageSize]="true" [showFirstLastButtons]="true"
+                     (page)="getDuplicates($event.pageIndex + 1)"></mat-paginator>
     </div>
     }
   </mat-card-content>

@@ -1,7 +1,8 @@
 <tafel-dialog [testId]="data.testId" type="info" title="Mitarbeiter auswählen">
   <div tafel-dialog-content>
-    <tafel-pagination align="center" size="sm" [paginationData]="paginationData()"
-                      (pageChanged)="triggerSearch($event)"></tafel-pagination>
+    <mat-paginator class="tafel-paginator-center" [length]="employeeSearchResponse().totalCount" [pageSize]="employeeSearchResponse().pageSize"
+                   [pageIndex]="employeeSearchResponse().currentPage - 1" [hidePageSize]="true" [showFirstLastButtons]="true"
+                   (page)="triggerSearch($event.pageIndex + 1)"></mat-paginator>
     @for (employee of employeeSearchResponse().items; track employee.id; let i = $index) {
       <mat-card class="mb-2">
         <mat-card-content>

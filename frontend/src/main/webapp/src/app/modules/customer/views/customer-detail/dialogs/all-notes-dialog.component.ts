@@ -1,9 +1,9 @@
 import {Component, inject, signal} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogModule, MatDialogRef} from '@angular/material/dialog';
 import {MatButtonModule} from '@angular/material/button';
+import {MatPaginatorModule} from '@angular/material/paginator';
 import {CommonModule} from '@angular/common';
-import {CustomerNoteApiService, CustomerNoteItem, CustomerNotesResponse} from '../../../../../api/customer-note-api.service';
-import {TafelPaginationComponent, TafelPaginationData} from '../../../../../common/components/tafel-pagination/tafel-pagination.component';
+import {CustomerNoteApiService, CustomerNotesResponse} from '../../../../../api/customer-note-api.service';
 import {TafelDialogComponent} from '../../../../../common/components/tafel-dialog/tafel-dialog.component';
 
 export interface AllNotesDialogData {
@@ -13,7 +13,7 @@ export interface AllNotesDialogData {
 
 @Component({
   selector: 'tafel-all-notes-dialog',
-  imports: [TafelDialogComponent, MatDialogModule, MatButtonModule, CommonModule, TafelPaginationComponent],
+  imports: [TafelDialogComponent, MatDialogModule, MatButtonModule, CommonModule, MatPaginatorModule],
   templateUrl: 'all-notes-dialog.component.html',
 })
 export class AllNotesDialogComponent {
@@ -21,27 +21,11 @@ export class AllNotesDialogComponent {
   readonly data: AllNotesDialogData = inject(MAT_DIALOG_DATA);
   private readonly customerNoteApiService = inject(CustomerNoteApiService);
 
-  customerNotes = signal<CustomerNoteItem[]>([]);
-  paginationData = signal<TafelPaginationData | null>(null);
-
-  constructor() {
-    this.processCustomerNoteResponse(this.data.initialNotesResponse);
-  }
+  notesResponse = signal<CustomerNotesResponse>(this.data.initialNotesResponse);
 
   getCustomerNotes(page: number) {
     this.customerNoteApiService.getNotesForCustomer(this.data.customerId, page).subscribe((response) => {
-      this.processCustomerNoteResponse(response);
-    });
-  }
-
-  private processCustomerNoteResponse(response: CustomerNotesResponse) {
-    this.customerNotes.set(response.items);
-    this.paginationData.set({
-      count: response.items.length,
-      totalCount: response.totalCount,
-      currentPage: response.currentPage,
-      totalPages: response.totalPages,
-      pageSize: response.pageSize
+      this.notesResponse.set(response);
     });
   }
 }

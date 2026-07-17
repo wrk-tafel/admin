@@ -24,6 +24,8 @@ import {AuthenticationService} from './common/security/authentication.service';
 import {MAT_DIALOG_DEFAULT_OPTIONS, MatDialogConfig} from '@angular/material/dialog';
 import {provideAnimationsAsync} from '@angular/platform-browser/animations/async';
 import {MAT_FORM_FIELD_DEFAULT_OPTIONS} from '@angular/material/form-field';
+import {MatPaginatorIntl} from '@angular/material/paginator';
+import {getGermanPaginatorIntl} from './common/util/german-paginator-intl';
 
 const DEFAULT_DIALOG_CONFIG: MatDialogConfig = {
   position: {top: '16px'}
@@ -82,6 +84,10 @@ export const appConfig: ApplicationConfig = {
         floatLabel: 'always',
         subscriptSizing: 'fixed',
       }
+    },
+    {
+      provide: MatPaginatorIntl,
+      useFactory: getGermanPaginatorIntl
     }
   ]
 };

@@ -102,7 +102,10 @@ Don't invent a new design system — follow what's already there:
 - **FontAwesome** (`@fortawesome/angular-fontawesome`) as the primary icon set — already used far more than
   CoreUI icons or `mat-icon`.
 - **Custom `tafel-*` components** for shared composite pieces that need one canonical implementation:
-  `tafel-dialog`, `tafel-badge` (scss classes), `tafel-banner`, `tafel-pagination`, `tafel-counter-input`, `tafel-toastr`.
+  `tafel-dialog`, `tafel-badge` (scss classes), `tafel-banner`, `tafel-counter-input`, `tafel-toastr`.
+- **`mat-paginator`** (Angular Material, out of the box) for pagination — replaced the custom `tafel-pagination`
+  component; see `tafel-paginator-center` scss helper for the centered mobile/dialog variant and
+  `getGermanPaginatorIntl()` in `app.config.ts` for German labels.
 
 Reference examples: `registered-customers.component.html`, `distribution-state.component.html`,
 `delete-customer-dialog.component.ts` + `.html`.

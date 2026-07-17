@@ -62,7 +62,9 @@
         <div class="mt-6">
           <div class="mb-6">
             <h5 class="mb-6">Suchergebnis ({{this.searchResult()?.totalCount}} gefunden)</h5>
-            <tafel-pagination align="end" [paginationData]="paginationData()" (pageChanged)="searchForDetails($event)"></tafel-pagination>
+            <mat-paginator [length]="searchResult()!.totalCount" [pageSize]="searchResult()!.pageSize"
+                           [pageIndex]="searchResult()!.currentPage - 1" [hidePageSize]="true" [showFirstLastButtons]="true"
+                           (page)="searchForDetails($event.pageIndex + 1)"></mat-paginator>
           </div>
 
           <div class="hidden md:block">
@@ -118,7 +120,9 @@
             </table>
 
             <div class="mt-6">
-              <tafel-pagination align="end" [paginationData]="paginationData()" (pageChanged)="searchForDetails($event)"></tafel-pagination>
+              <mat-paginator [length]="searchResult()!.totalCount" [pageSize]="searchResult()!.pageSize"
+                             [pageIndex]="searchResult()!.currentPage - 1" [hidePageSize]="true" [showFirstLastButtons]="true"
+                             (page)="searchForDetails($event.pageIndex + 1)"></mat-paginator>
             </div>
           </div>
 
@@ -146,8 +150,10 @@
                 </mat-card>
               }
             </div>
-            <div class="mt-2">
-              <tafel-pagination align="center" size="sm" [paginationData]="paginationData()" (pageChanged)="searchForDetails($event)"></tafel-pagination>
+            <div class="mt-2 tafel-paginator-center">
+              <mat-paginator [length]="searchResult()!.totalCount" [pageSize]="searchResult()!.pageSize"
+                             [pageIndex]="searchResult()!.currentPage - 1" [hidePageSize]="true" [showFirstLastButtons]="true"
+                             (page)="searchForDetails($event.pageIndex + 1)"></mat-paginator>
             </div>
           </div>
         </div>
