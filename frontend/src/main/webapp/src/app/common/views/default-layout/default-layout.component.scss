@@ -15,3 +15,11 @@ mat-sidenav {
     --mat-sidenav-container-width: 4rem;
   }
 }
+
+// .mat-drawer-container (mat-sidenav-container) also sets its own unlayered
+// background-color: var(--mat-sidenav-content-background-color, --mat-sys-background), which otherwise
+// paints the whole content area (behind the header and router-outlet) in Material's default off-white
+// instead of the app's intended light-gray content background.
+mat-sidenav-container {
+  --mat-sidenav-content-background-color: #f5f5f5;
+}
