@@ -6,8 +6,8 @@ import moment from 'moment';
 import {EMPTY, of} from 'rxjs';
 import {CustomerApiService, CustomerSearchResult, Gender} from '../../../../api/customer-api.service';
 import {CustomerSearchComponent} from './customer-search.component';
-import {CardModule, ColComponent, PaginationModule, RowComponent} from '@coreui/angular';
 import {By} from '@angular/platform-browser';
+import {provideNoopAnimations} from '@angular/platform-browser/animations';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
 describe('CustomerSearchComponent', () => {
@@ -42,13 +42,10 @@ describe('CustomerSearchComponent', () => {
     beforeEach((() => {
         TestBed.configureTestingModule({
             imports: [
-                ReactiveFormsModule,
-                CardModule,
-                RowComponent,
-                ColComponent,
-                PaginationModule
+                ReactiveFormsModule
             ],
             providers: [
+                provideNoopAnimations(),
                 {
                     provide: CustomerApiService,
                     useValue: {
