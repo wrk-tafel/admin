@@ -124,12 +124,24 @@ Ordered so early phases shrink CoreUI's footprint fast with low risk, and the ri
   `<canvas>` exists) since a missing-registerables error is exactly the kind of thing that fails silently at
   runtime with no build/lint error.
 
-**Phase 7 — App shell** (highest risk — do last of the component work)
-- Rebuild `default-layout.component.{ts,html,scss}` and `default-header.component.{ts,html,scss}` without
-  `Sidebar*`/`Header*`/`Nav*`/`ContainerComponent`/`DropdownModule`.
-- Rebuild `navigation-menuItems.ts` without `INavData`/`cil-*` icon names.
-- Remove `importProvidersFrom(SidebarModule, DropdownModule)` and the `IconSetService` provider from `app.config.ts`.
-- Rebuild `_theme.scss` without `--cui-*` custom properties and CoreUI Sass mixins.
+**Phase 7 — App shell** ✅ DONE (2026-07-17)
+- Rebuilt `default-layout` and `default-header` using `MatSidenavModule` (replaces `c-sidebar`) and `mat-menu`
+  (replaces `c-dropdown`, same pattern from Phase 2). The header hamburger toggles the sidenav's own open/closed
+  state; a separate footer button toggles a collapsed/icon-only width — preserving CoreUI's two independent
+  toggle affordances (visible vs. unfoldable) via a plain signal. This also fixes the icon-only collapsed mode's
+  known text-truncation bug (see `TASKS.md`) as a side effect of not reusing CoreUI's implementation.
+- `navigation-menuItems.ts` now defines its own `ITafelNavData` (no longer extends CoreUI's `INavData`) and uses
+  FontAwesome icons instead of `cil-*` strings.
+- Removed `SidebarModule`/`DropdownModule` providers and `IconSetService` from `app.config.ts`/`app.component.ts`
+  — confirmed via full-codebase grep that no component references `@coreui/*` anywhere except the still-pending
+  `styles.scss` import (Phase 9's job).
+- Rebuilt `_theme.scss`/`_custom.scss`/`_scrollbar.scss`, dropping rules that only targeted CoreUI-generated
+  class names or the now-unused CoreUI chartjs tooltip class / ngx-scrollbar (dropped in favor of
+  `mat-sidenav`'s built-in scrolling), and replacing remaining `--cui-*` var references with plain values.
+- Main bundle shrank from ~319KB to ~228KB gzipped now that CoreUI's Angular components are gone from the graph.
+- Visual verification was partial: build/lint/494 tests pass and a headless-Chrome console check found no JS
+  errors, but the app's `provideAppInitializer` blocks bootstrap on a login API call with no backend running in
+  this environment, so the actual rendered shell was never visually confirmed in a browser this session.
 
 **Phase 8 — Bootstrap utility-class audit** (cross-cutting safety sweep, run across the *whole* codebase,
 not just files touched above)
