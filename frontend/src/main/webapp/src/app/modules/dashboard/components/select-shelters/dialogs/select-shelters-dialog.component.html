@@ -7,28 +7,25 @@
             @if (idx > 0) {
               <hr/>
             }
-            <div class="d-flex flex-row align-items-start gap-2">
+            <div class="flex flex-row items-start gap-2">
               <div class="flex-shrink-0">
-                <c-form-check switch="true" sizing="xl">
-                  <input
-                    type="checkbox"
-                    [formControl]="selectedShelters.controls[idx]"
-                    [id]="'shelter-' + shelter.id"
-                    [attr.testid]="'selectable-shelter-row-' + idx"
-                    cFormCheckInput
-                  >
-                </c-form-check>
+                <input
+                  type="checkbox"
+                  [formControl]="selectedShelters.controls[idx]"
+                  [id]="'shelter-' + shelter.id"
+                  [attr.testid]="'selectable-shelter-row-' + idx"
+                >
               </div>
-              <div class="flex-grow-1 text-start text-wrap">
+              <div class="flex-grow text-left text-wrap">
                 <strong>{{ shelter.name }}</strong>
                 <br>
-                <label cFormCheckLabel [for]="'shelter-' + shelter.id">
+                <label [for]="'shelter-' + shelter.id">
                   {{ formatStreet(shelter) }}
                   <br>
                   {{ shelter.addressPostalCode }} {{ shelter.addressCity }}
                 </label>
               </div>
-              <div class="fs-5">{{ shelter.personsCount }} Personen</div>
+              <div class="text-lg">{{ shelter.personsCount }} Personen</div>
             </div>
           }
         </div>
