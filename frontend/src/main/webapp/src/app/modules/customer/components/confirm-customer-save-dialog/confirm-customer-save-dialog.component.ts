@@ -1,6 +1,6 @@
 import {Component, inject} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
-import {ButtonDirective} from '@coreui/angular';
+import {MatButtonModule} from '@angular/material/button';
 import {TafelDialogComponent} from '../../../../common/components/tafel-dialog/tafel-dialog.component';
 
 export interface ConfirmCustomerSaveDialogData {
@@ -9,7 +9,7 @@ export interface ConfirmCustomerSaveDialogData {
 
 @Component({
   selector: 'tafel-confirm-customer-save-dialog',
-  imports: [TafelDialogComponent, ButtonDirective],
+  imports: [TafelDialogComponent, MatButtonModule],
   templateUrl: 'confirm-customer-save-dialog.component.html',
 })
 export class ConfirmCustomerSaveDialog {

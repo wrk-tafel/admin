@@ -1,13 +1,11 @@
 import {Component, effect, input, output} from '@angular/core';
-import {PageItemDirective, PageLinkDirective, PaginationComponent} from '@coreui/angular';
+import {MatButtonModule} from '@angular/material/button';
 
 @Component({
     selector: 'tafel-pagination',
     templateUrl: 'tafel-pagination.component.html',
     imports: [
-        PaginationComponent,
-        PageItemDirective,
-        PageLinkDirective
+        MatButtonModule
     ]
 })
 export class TafelPaginationComponent {

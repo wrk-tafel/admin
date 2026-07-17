@@ -1,6 +1,6 @@
 import {Component, inject, signal} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogModule, MatDialogRef} from '@angular/material/dialog';
-import {ButtonDirective} from '@coreui/angular';
+import {MatButtonModule} from '@angular/material/button';
 import {CommonModule} from '@angular/common';
 import {CustomerNoteApiService, CustomerNoteItem, CustomerNotesResponse} from '../../../../../api/customer-note-api.service';
 import {TafelPaginationComponent, TafelPaginationData} from '../../../../../common/components/tafel-pagination/tafel-pagination.component';
@@ -13,7 +13,7 @@ export interface AllNotesDialogData {
 
 @Component({
   selector: 'tafel-all-notes-dialog',
-  imports: [TafelDialogComponent, MatDialogModule, ButtonDirective, CommonModule, TafelPaginationComponent],
+  imports: [TafelDialogComponent, MatDialogModule, MatButtonModule, CommonModule, TafelPaginationComponent],
   templateUrl: 'all-notes-dialog.component.html',
 })
 export class AllNotesDialogComponent {

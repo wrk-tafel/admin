@@ -54,9 +54,9 @@
     </form>
   </div>
   <div tafel-dialog-actions>
-    <button [attr.testid]="data.testIdPrefix + 'save-button'" cButton (click)="saveNewEmployee()"
+    <button [attr.testid]="data.testIdPrefix + 'save-button'" matButton="filled" (click)="saveNewEmployee()"
             [disabled]="createEmployeeForm.invalid">Speichern
     </button>
-    <button testid="cancel-button" cButton color="secondary" (click)="dialogRef.close()">Abbrechen</button>
+    <button testid="cancel-button" matButton (click)="dialogRef.close()">Abbrechen</button>
   </div>
 </tafel-dialog>

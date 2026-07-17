@@ -1,15 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 import { TafelPaginationComponent } from './tafel-pagination.component';
-import { PaginationComponent, PaginationModule } from '@coreui/angular';
 
 describe('TafelPaginationComponent', () => {
     beforeEach(() => {
-        TestBed.configureTestingModule({
-            imports: [
-                PaginationModule,
-                PaginationComponent
-            ],
-        }).compileComponents();
+        TestBed.configureTestingModule({}).compileComponents();
     });
 
     it('should create the component', () => {
