@@ -53,7 +53,7 @@ internal class StatisticsServiceTest {
             endedAt = LocalDateTime.of(2022, 12, 5, 16, 0)
         }
 
-        every { distributionRepository.findAll() } returns listOf(
+        every { distributionRepository.getDistributionEntityByEndedAtIsNotNullOrderByStartedAtDesc() } returns listOf(
             distribution1,
             distribution2,
             distribution3,
@@ -85,7 +85,7 @@ internal class StatisticsServiceTest {
 
     @Test
     fun `getSettings handles empty distributions list`() {
-        every { distributionRepository.findAll() } returns emptyList()
+        every { distributionRepository.getDistributionEntityByEndedAtIsNotNullOrderByStartedAtDesc() } returns emptyList()
 
         val result = service.getSettings()
 
@@ -111,7 +111,7 @@ internal class StatisticsServiceTest {
             endedAt = LocalDateTime.of(2023, 3, 20, 11, 30)
         }
 
-        every { distributionRepository.findAll() } returns listOf(
+        every { distributionRepository.getDistributionEntityByEndedAtIsNotNullOrderByStartedAtDesc() } returns listOf(
             distribution1,
             distribution2,
             distribution3
@@ -150,7 +150,7 @@ internal class StatisticsServiceTest {
             endedAt = LocalDateTime.of(2024, 12, 10, 13, 0)
         }
 
-        every { distributionRepository.findAll() } returns listOf(
+        every { distributionRepository.getDistributionEntityByEndedAtIsNotNullOrderByStartedAtDesc() } returns listOf(
             distribution1,
             distribution2,
             distribution3
@@ -199,7 +199,7 @@ internal class StatisticsServiceTest {
             endedAt = LocalDateTime.of(2021, 1, 1, 12, 0)
         }
 
-        every { distributionRepository.findAll() } returns listOf(
+        every { distributionRepository.getDistributionEntityByEndedAtIsNotNullOrderByStartedAtDesc() } returns listOf(
             distribution1,
             distribution2,
             distribution3,
@@ -229,7 +229,7 @@ internal class StatisticsServiceTest {
             endedAt = LocalDateTime.of(2024, 1, 1, 13, 30)
         }
 
-        every { distributionRepository.findAll() } returns listOf(
+        every { distributionRepository.getDistributionEntityByEndedAtIsNotNullOrderByStartedAtDesc() } returns listOf(
             distribution1,
             distribution2,
             distribution3
@@ -261,7 +261,7 @@ internal class StatisticsServiceTest {
             endedAt = LocalDateTime.of(2024, 6, 15, 12, 0)
         }
 
-        every { distributionRepository.findAll() } returns listOf(distribution)
+        every { distributionRepository.getDistributionEntityByEndedAtIsNotNullOrderByStartedAtDesc() } returns listOf(distribution)
 
         val result = service.getSettings()
 
@@ -287,7 +287,7 @@ internal class StatisticsServiceTest {
             endedAt = LocalDateTime.of(2024, 6, 16, 12, 0)
         }
 
-        every { distributionRepository.findAll() } returns listOf(distribution1, distribution2)
+        every { distributionRepository.getDistributionEntityByEndedAtIsNotNullOrderByStartedAtDesc() } returns listOf(distribution1, distribution2)
 
         val result = service.getSettings()
 
@@ -313,7 +313,7 @@ internal class StatisticsServiceTest {
             endedAt = LocalDateTime.of(2023, 3, 10, 13, 0)
         }
 
-        every { distributionRepository.findAll() } returns listOf(
+        every { distributionRepository.getDistributionEntityByEndedAtIsNotNullOrderByStartedAtDesc() } returns listOf(
             closedDistribution1,
             openDistribution,
             closedDistribution2
@@ -331,6 +331,26 @@ internal class StatisticsServiceTest {
                 startDate = LocalDateTime.of(2023, 3, 10, 11, 0),
                 endDate = LocalDateTime.of(2023, 3, 10, 13, 0)
             )
+        )
+    }
+
+    @Test
+    fun `executeStatsQuery formats double values independent of the default locale`() {
+        val fromDate = LocalDate.now().minusDays(7)
+        val toDate = LocalDate.now()
+
+        val mockQuery = mockk<Query>(relaxed = true)
+        every { entityManager.createNativeQuery(any<String>()) } returns mockQuery
+        every { mockQuery.resultList } returns listOf(
+            arrayOf<Any>("KW1", 0.0),
+            arrayOf<Any>("KW2", 1.5)
+        )
+
+        val result = service.averageShelters(fromDate, toDate)
+
+        assertThat(result).containsExactly(
+            StatisticsResult(label = "KW1", value = 0.0),
+            StatisticsResult(label = "KW2", value = 1.5)
         )
     }
 
