@@ -82,23 +82,35 @@ Ordered so early phases shrink CoreUI's footprint fast with low risk, and the ri
   **Phase 7** where the whole shell is rebuilt at once. Remaining genuinely-isolated icon usages (`cilArrowTop`,
   `cilSave` in the statistics module) stay scoped to **Phase 6**.
 
-**Phase 2 — Buttons & Cards** (highest file count, but mechanical, pattern already established)
-- Sweep `cButton` → `mat-button`/`mat-raised-button`/`mat-stroked-button` (48 files).
-- Sweep Card* → `mat-card` family (40 files).
-- Do this module-by-module (customer, user, logistics, dashboard, statistics) to keep diffs reviewable.
+**Phase 2 — Buttons & Cards** ✅ DONE (2026-07-17)
+- All `cButton` usages outside the shell/statistics converted to `matButton` (plain/`="filled"`/`="outlined"`),
+  using `button-success`/`button-danger` CSS classes (already defined in `mat-button.scss`) for color parity.
+- All `c-card` family usages converted to `mat-card`/`mat-card-header`/`mat-card-title`/`mat-card-content`/
+  `mat-card-actions`.
+- `c-dropdown` (used for action menus on `customer-detail` and `user-detail`, not just the header) converted
+  to `mat-menu` + `[matMenuTriggerFor]` — this pattern wasn't in the original plan and is now the established
+  replacement for CoreUI dropdowns outside the shell.
+- Real scope turned out far smaller than the original file-count estimates (48/40 files) — those counts were
+  inflated by dead CoreUI imports left in `*.spec.ts` test files after their components were already migrated
+  (see Phase 1). Actual files needing changes: ~25.
 
-**Phase 3 — Grid system** (60 files, purely structural)
-- Replace `c-row`/`c-col` with Tailwind flex/grid utilities.
-- Write a short internal "grid cheatsheet" mapping (e.g. `c-row` → `flex flex-wrap`, `c-col md="6"` →
-  `md:w-1/2` or `col-span-6` in a 12-col grid) *before* starting, so all 60 files land on one convention.
+**Phase 3 — Grid system** ✅ DONE (2026-07-17)
+- `c-row`/`c-col` (and the plain Bootstrap `.row`/`.col-*` divs used in a few already-partially-migrated files)
+  replaced with Tailwind `grid`/`flex` utilities as part of the same full-file passes as Phase 2, since splitting
+  one file's grid conversion from its card/button conversion would mean touching the same lines twice.
 
-**Phase 4 — Forms** (34 files, includes the large `customer-form`/`user-form` components)
-- Replace CoreUI form directives with Angular Material form fields, consistent with the
-  `MAT_FORM_FIELD_DEFAULT_OPTIONS` already configured in `app.config.ts`.
+**Phase 4 — Forms** ✅ DONE (2026-07-17)
+- CoreUI form directives (`cFormControl`, `cSelect`, `cFormCheckInput`, `cLabel`, `c-input-group`/
+  `cInputGroupText`, `c-form-check`) replaced with plain native elements (input/select/checkbox), **not**
+  Angular Material form fields — kept the existing manual `is-invalid`/`is-valid`/`invalid-feedback` validation
+  display as-is since that's Bootstrap CSS, not a CoreUI component dependency (left for Phase 8). Signal Forms
+  (`[formField]`) and classic `ReactiveFormsModule` bindings were both left untouched — this migration doesn't
+  change which forms API a component uses, only the surrounding markup.
 
-**Phase 5 — Table & Progress** (4 files each)
-- `TableDirective`/`TableColorDirective` → Tailwind table styling.
-- `ProgressModule` → Tailwind or `mat-progress-bar`.
+**Phase 5 — Table & Progress** ✅ DONE (2026-07-17, as a byproduct of Phase 2)
+- `TableDirective`/`TableColorDirective` (food-collection-recording-items-desktop) → plain `<table>` +
+  Tailwind classes + `[ngClass]` for the row-color highlighting.
+- No `ProgressModule` usage was found anywhere in the codebase by the time this phase was reached — already gone.
 
 **Phase 6 — Statistics chart wrapper** (2 files, self-contained)
 - Replace `@coreui/angular-chartjs` + `@coreui/chartjs` scss + `@coreui/utils.getStyle()` + `WidgetStatAComponent`
