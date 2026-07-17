@@ -1,7 +1,8 @@
 # CoreUI → Tailwind/Material Migration Plan
 
-Status: analysis complete, execution not started. Written 2026-07-17 on branch `tailwind-migration`
-(currently identical to `main` — no migration commits exist yet).
+Status: all 9 phases complete as of 2026-07-17, on branch `tailwind-migration`. CoreUI is fully removed from
+the codebase and `package.json`. Remaining gap: the full Cypress suite and a manual visual pass through the
+authenticated nav routes haven't run in this environment (no backend available) — see Phase 9's notes.
 
 ## Established target pattern (already proven in ~19 already-migrated files)
 
@@ -178,11 +179,50 @@ Ordered so early phases shrink CoreUI's footprint fast with low risk, and the ri
   confirm rendering — this is what caught the `container` regression above; a text-only/grep-based check would
   have missed it.
 
-**Phase 9 — Remove CoreUI entirely**
-- Delete all 7 `@coreui/*` packages from `package.json`, reinstall.
-- Remove the two `@import` lines for CoreUI scss from `scss/styles.scss`.
-- Replace `var(--cui-*, ...)` fallback colors in `tafel-badge.scss` with plain values.
-- Full rebuild + lint + full Cypress run + manual visual pass through every top-level nav route.
+**Phase 9 — Remove CoreUI entirely** ✅ DONE (2026-07-17)
+- Deleted all 7 `@coreui/*` packages plus the standalone `bootstrap` dependency (only present as CoreUI's peer
+  requirement — confirmed unused via grep before removing) from `package.json`, ran `npm install`. This also
+  surfaced that `@angular/animations` (used directly by `provideAnimationsAsync()` in `app.config.ts`) had never
+  been an explicit dependency — it was only present because some now-removed package pulled it in transitively.
+  Added it back explicitly; without it the build failed on an unresolved `@angular/animations/browser` import.
+- Removed the one remaining `@import "@coreui/coreui/scss/coreui"` line from `scss/styles.scss` (the
+  `@coreui/chartjs` one was already dropped in Phase 6) along with the now-dead `_variables.scss` partial
+  (its only content, `$enable-deprecation-messages`, was a CoreUI Sass compile flag with nothing left to
+  configure).
+- Replaced every remaining `var(--cui-*, fallback)` with a plain value — not just in `tafel-badge.scss` as
+  originally scoped, but also `mat-button.scss`, `mat-card.scss`, and `mat-dialog.scss`, found via grep for
+  `--cui-`. Critically, several of the *written fallback values* were stale/wrong (copy-paste artifacts) —
+  e.g. `badge-warning`/`badge-danger` in `tafel-badge.scss` both fell back to a green, and `--cui-success`'s
+  real configured value (`#1b9e3e`) didn't match the `#2eb85c` fallback text used everywhere. Since `--cui-*`
+  was still defined (just via a wrong-looking fallback) up to this point, those bugs were latent — using the
+  written fallback verbatim would have introduced real color regressions (e.g. warning badges turning red).
+  Rebuilt with CoreUI still present one more time and read the actual resolved `:root` values from the
+  compiled CSS, then hardcoded *those*.
+- Removing CoreUI's CSS also removed Bootstrap's reboot defaults that many templates relied on implicitly
+  (never an explicit Tailwind class): headings collapsed to plain inherited text size/weight (Tailwind's
+  preflight resets `h1`-`h6` to `font-size`/`font-weight: inherit`), `<hr>` lost its `1rem` vertical margin
+  and `.25` opacity (Tailwind's preflight only sets `border-top-width:1px`, no margin/opacity), and `body`
+  lost Bootstrap's dark blue-grey default text color (fell back to plain black). Restored all three as global
+  rules in `_theme.scss`, using Bootstrap 5's actual default values (checked against CoreUI's own
+  `_variables.scss`, temporarily installed to a scratch dir to confirm CoreUI hadn't customized them — it
+  hadn't). Checked the other common reboot-reliance spots (`<ul>`/`<ol>` bullets, `<p>` margin, bare `<a>`
+  links) by grepping every template — all existing usages already had explicit Tailwind classes, so no fix
+  needed there.
+- Caught the heading/body-color regression only by actually running the app (`ng serve` + headless-Chrome
+  screenshot of the login page) and comparing against the Phase-8-era screenshot — build/lint/tests all stayed
+  green throughout despite the visual break, since none of it is type- or logic-level.
+- Verified: `build-local` (styles bundle dropped from ~355KB to ~46KB, confirming CoreUI's CSS is fully gone),
+  `lint`, `test-ci` (494 tests, all green), and headless-Chrome screenshots of the login page, both error
+  pages, and the password-change page (exercises `<ul class="list-disc">` and Material form fields) all
+  matching the pre-removal rendering. The `<hr>`-margin/opacity fix itself couldn't be visually confirmed —
+  no reachable-without-auth page uses a bare `<hr>` — so it rests on the compiled-CSS diff against Bootstrap's
+  documented defaults rather than a live screenshot.
+- **Not done**: the full Cypress suite and a manual pass through the authenticated top-level nav routes —
+  both require a running backend (Postgres + the Spring Boot API via `docker-compose.yml`), which wasn't
+  available in this session. Everything reachable without authentication (login, 404, 500, password-change)
+  was visually verified; the remaining ~40 templates touched in Phase 8 were verified statically (compiled-CSS
+  diffing against Bootstrap's known reboot rules) but not rendered in a browser. This mirrors the same gap
+  Phase 7 flagged for the shell rebuild.
 
 ## Verification per phase
 - `npm run build-local` (catches TS import errors immediately)
