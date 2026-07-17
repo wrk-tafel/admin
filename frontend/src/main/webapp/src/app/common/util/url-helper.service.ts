@@ -1,9 +1,7 @@
-import {inject, Injectable} from '@angular/core';
+import {inject, Service} from '@angular/core';
 import {PlatformLocation} from '@angular/common';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Service()
 export class UrlHelperService {
   private readonly platformLocation = inject(PlatformLocation);
 

@@ -1,12 +1,10 @@
 import {HttpClient, HttpHeaders} from '@angular/common/http';
-import {inject, Injectable} from '@angular/core';
+import {inject, Service} from '@angular/core';
 import {Router} from '@angular/router';
 import {firstValueFrom, Observable, of} from 'rxjs';
 import {catchError, map, tap} from 'rxjs/operators';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Service()
 export class AuthenticationService {
   userInfo: UserInfo | null = null;
   private readonly http = inject(HttpClient);

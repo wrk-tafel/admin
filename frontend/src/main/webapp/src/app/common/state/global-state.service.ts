@@ -1,10 +1,8 @@
-import {inject, Injectable, Signal, WritableSignal, signal} from '@angular/core';
+import {inject, Service, Signal, WritableSignal, signal} from '@angular/core';
 import {DistributionItem, DistributionItemUpdate} from '../../api/distribution-api.service';
 import {SseService} from '../sse/sse.service';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Service()
 export class GlobalStateService {
   private readonly sseService = inject(SseService);
 

@@ -1,13 +1,11 @@
 import {HttpClient, HttpParams, HttpResponse} from '@angular/common/http';
-import {inject, Injectable} from '@angular/core';
+import {inject, Service} from '@angular/core';
 import {Observable} from 'rxjs';
 import {CountryData} from './country-api.service';
 import {tap} from 'rxjs/operators';
 import {TafelToastrService} from '../common/components/tafel-toastr/tafel-toastr.service';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Service()
 export class CustomerApiService {
   private readonly http = inject(HttpClient);
   private readonly toastr = inject(TafelToastrService);

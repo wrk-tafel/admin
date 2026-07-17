@@ -1,10 +1,8 @@
 import {HttpClient} from '@angular/common/http';
-import {inject, Injectable} from '@angular/core';
+import {inject, Service} from '@angular/core';
 import {Observable} from 'rxjs';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Service()
 export class ShelterApiService {
   private readonly http = inject(HttpClient);
 

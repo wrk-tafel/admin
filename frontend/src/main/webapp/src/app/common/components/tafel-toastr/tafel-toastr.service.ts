@@ -6,7 +6,8 @@ export const TOASTR_TOKEN = new InjectionToken<any>('toastr');
 
 @Injectable({
   providedIn: 'root',
-  // 2. Provide the default value using the factory
+  // @Service()'s typed factory option requires the return type to match the class shape,
+  // which doesn't hold here (the factory substitutes the raw toastr module instead of an instance)
   useFactory: () => toastr,
 })
 export class TafelToastrService {

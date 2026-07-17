@@ -1,11 +1,9 @@
-import {inject, Injectable} from '@angular/core';
+import {inject, Service} from '@angular/core';
 import {ActivatedRouteSnapshot} from '@angular/router';
 import {Observable} from 'rxjs';
 import {CarApiService, CarList} from '../../../api/car-api.service';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Service()
 export class CarDataResolver {
   private readonly carApiService = inject(CarApiService);
 

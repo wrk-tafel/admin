@@ -1,11 +1,9 @@
-import {inject, Injectable} from '@angular/core';
+import {inject, Service} from '@angular/core';
 import {ActivatedRouteSnapshot} from '@angular/router';
 import {CustomerApiService, CustomerDuplicatesResponse} from '../../../api/customer-api.service';
 import {Observable} from 'rxjs';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Service()
 export class CustomerDuplicatesDataResolver {
   private readonly customerApiService = inject(CustomerApiService);
 

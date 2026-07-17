@@ -1,10 +1,8 @@
-import {inject, Injectable} from '@angular/core';
+import {inject, Service} from '@angular/core';
 import {Observable} from 'rxjs';
 import {UrlHelperService} from '../util/url-helper.service';
 
-@Injectable({
-  providedIn: 'root',
-})
+@Service()
 export class SseService {
   private readonly urlHelperService = inject(UrlHelperService);
 
