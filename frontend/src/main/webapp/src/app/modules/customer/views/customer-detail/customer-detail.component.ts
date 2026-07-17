@@ -23,20 +23,10 @@ import {DistributionTicketApiService} from '../../../../api/distribution-ticket-
 import {DistributionApiService} from '../../../../api/distribution-api.service';
 import {GlobalStateService} from '../../../../common/state/global-state.service';
 import {TafelIfDistributionActiveDirective} from '../../../../common/directive/tafel-if-distribution-active.directive';
-import {
-  ButtonDirective,
-  CardBodyComponent,
-  CardComponent,
-  CardFooterComponent,
-  CardHeaderComponent,
-  ColComponent,
-  DropdownComponent,
-  DropdownDividerDirective,
-  DropdownItemDirective,
-  DropdownMenuDirective,
-  DropdownToggleDirective,
-  RowComponent
-} from '@coreui/angular';
+import {MatCardModule} from '@angular/material/card';
+import {MatButtonModule} from '@angular/material/button';
+import {MatMenuModule} from '@angular/material/menu';
+import {MatDividerModule} from '@angular/material/divider';
 import {MatTabsModule} from '@angular/material/tabs';
 import {MatDialog} from '@angular/material/dialog';
 import {CommonModule} from '@angular/common';
@@ -57,18 +47,10 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
   templateUrl: 'customer-detail.component.html',
   imports: [
     CommonModule,
-    DropdownComponent,
-    CardComponent,
-    CardHeaderComponent,
-    RowComponent,
-    ColComponent,
-    CardBodyComponent,
-    CardFooterComponent,
-    ButtonDirective,
-    DropdownToggleDirective,
-    DropdownMenuDirective,
-    DropdownItemDirective,
-    DropdownDividerDirective,
+    MatCardModule,
+    MatButtonModule,
+    MatMenuModule,
+    MatDividerModule,
     FaIconComponent,
     MatTabsModule,
     BirthdateAgePipe,

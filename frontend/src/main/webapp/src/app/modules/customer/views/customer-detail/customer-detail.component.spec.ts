@@ -14,14 +14,6 @@ import {
   CustomerNoteItem,
   CustomerNotesResponse
 } from '../../../../api/customer-note-api.service';
-import {
-  CardModule,
-  ColComponent,
-  DropdownComponent,
-  NavComponent,
-  NavItemComponent,
-  RowComponent
-} from '@coreui/angular';
 import {MatDialog} from '@angular/material/dialog';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 import {TafelPaginationData} from '../../../../common/components/tafel-pagination/tafel-pagination.component';
@@ -177,12 +169,6 @@ describe('CustomerDetailComponent', () => {
     TestBed.configureTestingModule({
       imports: [
         CommonModule,
-        DropdownComponent,
-        NavComponent,
-        NavItemComponent,
-        CardModule,
-        ColComponent,
-        RowComponent,
         NoopAnimationsModule
       ],
       providers: [
