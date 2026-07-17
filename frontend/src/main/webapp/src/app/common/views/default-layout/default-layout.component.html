@@ -22,7 +22,7 @@
           <div>
             @if (item.children) {
               <a (click)="toggleExpanded(item.name)"
-                 class="flex items-center gap-3 px-4 py-3 hover:bg-gray-800 cursor-pointer"
+                 class="flex items-center gap-3 px-4 py-3 hover:bg-[var(--tafel-sidenav-hover-background)] cursor-pointer"
                  [class.pointer-events-none]="item.attributes?.disabled"
                  [class.opacity-50]="item.attributes?.disabled">
                 @if (item.icon) {
@@ -37,7 +37,7 @@
             } @else {
               <a [routerLink]="item.url" routerLinkActive="bg-gray-800"
                  (click)="isMobile() && sidenav.close()"
-                 class="flex items-center gap-3 px-4 py-3 hover:bg-gray-800 cursor-pointer"
+                 class="flex items-center gap-3 px-4 py-3 hover:bg-[var(--tafel-sidenav-hover-background)] cursor-pointer"
                  [class.pointer-events-none]="item.attributes?.disabled"
                  [class.opacity-50]="item.attributes?.disabled">
                 @if (item.icon) {
@@ -55,7 +55,7 @@
               @for (child of item.children; track child.name) {
                 <a [routerLink]="child.url" routerLinkActive="bg-gray-800"
                    (click)="isMobile() && sidenav.close()"
-                   class="flex items-center gap-3 pl-9 pr-4 py-3 text-gray-300 hover:bg-gray-800 cursor-pointer">
+                   class="flex items-center gap-3 pl-9 pr-4 py-3 text-gray-300 hover:bg-[var(--tafel-sidenav-hover-background)] cursor-pointer">
                   @if (child.icon) {
                     <fa-icon [icon]="child.icon" class="w-5 shrink-0"></fa-icon>
                   }
@@ -70,7 +70,7 @@
 
     <div class="hidden lg:flex border-t border-gray-800 justify-end px-2 py-2 shrink-0">
       <button (click)="toggleCollapsed()" aria-label="Menü ein-/ausklappen"
-              class="w-9 h-9 flex items-center justify-center rounded-md hover:bg-gray-800">
+              class="w-9 h-9 flex items-center justify-center rounded-md hover:bg-[var(--tafel-sidenav-hover-background)]">
         <fa-icon [icon]="collapsed() ? faAnglesRight : faAnglesLeft"></fa-icon>
       </button>
     </div>
