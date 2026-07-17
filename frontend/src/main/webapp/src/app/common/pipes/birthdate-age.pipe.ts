@@ -6,7 +6,7 @@ import moment from 'moment';
   standalone: true
 })
 export class BirthdateAgePipe implements PipeTransform {
-  transform(birthDate?: Date): string {
+  transform(birthDate?: Date | null): string {
     if (birthDate) {
       const age = moment().diff(birthDate, 'years');
       return moment(birthDate).format('DD.MM.YYYY') + ' (' + age + ')';

@@ -6,7 +6,7 @@ import {UserData} from '../../api/user-api.service';
   standalone: true
 })
 export class FormatPermissionsPipe implements PipeTransform {
-  transform(userData?: UserData): string {
+  transform(userData?: UserData | null): string {
     if (!userData?.permissions) {
       return '';
     }

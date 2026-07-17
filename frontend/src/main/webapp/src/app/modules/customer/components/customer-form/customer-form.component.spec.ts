@@ -139,27 +139,27 @@ describe('CustomerFormComponent', () => {
     expect(component.customerForm.additionalPersons().value().length).toBe(2);
     expect(component.customerForm.additionalPersons().value()[0])
       .toEqual(expect.objectContaining({
-        id: testCustomerData.additionalPersons[0].id,
-        lastname: testCustomerData.additionalPersons[0].lastname,
-        firstname: testCustomerData.additionalPersons[0].firstname,
-        birthDate: testCustomerData.additionalPersons[0].birthDate,
-        gender: testCustomerData.additionalPersons[0].gender,
-        country: testCustomerData.additionalPersons[0].country,
-        employer: testCustomerData.additionalPersons[0].employer,
-        income: testCustomerData.additionalPersons[0].income,
-        incomeDue: testCustomerData.additionalPersons[0].incomeDue,
-        receivesFamilyBonus: testCustomerData.additionalPersons[0].receivesFamilyBonus
+        id: testCustomerData.additionalPersons![0].id,
+        lastname: testCustomerData.additionalPersons![0].lastname,
+        firstname: testCustomerData.additionalPersons![0].firstname,
+        birthDate: testCustomerData.additionalPersons![0].birthDate,
+        gender: testCustomerData.additionalPersons![0].gender,
+        country: testCustomerData.additionalPersons![0].country,
+        employer: testCustomerData.additionalPersons![0].employer,
+        income: testCustomerData.additionalPersons![0].income,
+        incomeDue: testCustomerData.additionalPersons![0].incomeDue,
+        receivesFamilyBonus: testCustomerData.additionalPersons![0].receivesFamilyBonus
       }));
     expect(component.customerForm.additionalPersons().value()[1])
       .toEqual(expect.objectContaining({
-        id: testCustomerData.additionalPersons[1].id,
-        lastname: testCustomerData.additionalPersons[1].lastname,
-        firstname: testCustomerData.additionalPersons[1].firstname,
-        birthDate: testCustomerData.additionalPersons[1].birthDate,
-        gender: testCustomerData.additionalPersons[1].gender,
-        country: testCustomerData.additionalPersons[1].country,
-        excludeFromHousehold: testCustomerData.additionalPersons[1].excludeFromHousehold,
-        receivesFamilyBonus: testCustomerData.additionalPersons[1].receivesFamilyBonus
+        id: testCustomerData.additionalPersons![1].id,
+        lastname: testCustomerData.additionalPersons![1].lastname,
+        firstname: testCustomerData.additionalPersons![1].firstname,
+        birthDate: testCustomerData.additionalPersons![1].birthDate,
+        gender: testCustomerData.additionalPersons![1].gender,
+        country: testCustomerData.additionalPersons![1].country,
+        excludeFromHousehold: testCustomerData.additionalPersons![1].excludeFromHousehold,
+        receivesFamilyBonus: testCustomerData.additionalPersons![1].receivesFamilyBonus
       }));
   });
 

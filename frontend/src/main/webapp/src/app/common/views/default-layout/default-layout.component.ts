@@ -53,7 +53,7 @@ export class DefaultLayoutComponent {
     return items;
   });
 
-  public filterNavItemsByPermissions(navItems: ITafelNavData[]): ITafelNavData[] {
+  public filterNavItemsByPermissions(navItems: ITafelNavData[] | null): ITafelNavData[] {
     const resultNavItems: ITafelNavData[] = [];
 
     navItems?.forEach(navItem => {
@@ -89,7 +89,7 @@ export class DefaultLayoutComponent {
     return resultNavItems;
   }
 
-  public editNavItemsForDistributionState(navItems: ITafelNavData[], distribution: DistributionItem): ITafelNavData[] {
+  public editNavItemsForDistributionState(navItems: ITafelNavData[], distribution: DistributionItem | null): ITafelNavData[] {
     const resultNavItems: ITafelNavData[] = [];
 
     navItems?.forEach(navItem => {

@@ -6,6 +6,7 @@ import {ButtonDirective, ColComponent, RowComponent} from '@coreui/angular';
 import {
   FoodCollectionCategoryWithAmount,
   FoodCollectionItem,
+  FoodCollectionItemsPerShopResponse,
   FoodCollectionsApiService,
   FoodCollectionSaveItemsPerShopRequest
 } from '../../../../api/food-collections-api.service';
@@ -53,9 +54,9 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
   });
 
   private findNextUnfilledShop(): Shop {
-    const shops = this.selectedRouteData().shops;
+    const shops = this.selectedRouteData()!.shops;
     for (const shop of shops) {
-      const items = this.selectedRouteData().foodCollectionData?.items ?? [];
+      const items = this.selectedRouteData()!.foodCollectionData?.items ?? [];
       const itemsPerShop = items.filter(
         item => item.shopId === shop.id
       );
@@ -80,8 +81,8 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
       return;
     }
 
-    const routeId = this.selectedRouteData().route.id;
-    const shopId = this.currentShop().id;
+    const routeId = this.selectedRouteData()!.route.id;
+    const shopId = this.currentShop()!.id;
     const values = this.categoryValues();
 
     const saveItemsRequest: FoodCollectionSaveItemsPerShopRequest = {
@@ -110,8 +111,8 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
       return;
     }
 
-    const routeId = this.selectedRouteData().route.id;
-    const shopId = this.currentShop().id;
+    const routeId = this.selectedRouteData()!.route.id;
+    const shopId = this.currentShop()!.id;
 
     this.categoryValues.update(values => ({
       ...values,
@@ -131,11 +132,11 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
       return;
     }
 
-    const routeId = this.selectedRouteData().route.id;
+    const routeId = this.selectedRouteData()!.route.id;
     const shopId = shop.id;
 
     const observer = {
-      next: (data) => {
+      next: (data: FoodCollectionItemsPerShopResponse) => {
         const newValues: Record<number, number> = {};
         for (const category of this.foodCategories()) {
           newValues[category.id] = this.getCurrentValue(
@@ -159,8 +160,8 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
       return;
     }
 
-    const currentShop = this.currentShop();
-    const shop = this.selectedRouteData().shops[this.selectedRouteData().shops.indexOf(currentShop) - 1];
+    const currentShop = this.currentShop()!;
+    const shop = this.selectedRouteData()!.shops[this.selectedRouteData()!.shops.indexOf(currentShop) - 1];
     this.selectShop(shop);
   }
 
@@ -169,8 +170,8 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
       return;
     }
 
-    const currentShop = this.currentShop();
-    const shop = this.selectedRouteData().shops[this.selectedRouteData().shops.indexOf(currentShop) + 1];
+    const currentShop = this.currentShop()!;
+    const shop = this.selectedRouteData()!.shops[this.selectedRouteData()!.shops.indexOf(currentShop) + 1];
     this.selectShop(shop);
   }
 

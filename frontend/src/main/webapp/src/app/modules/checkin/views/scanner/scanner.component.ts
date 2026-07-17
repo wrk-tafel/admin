@@ -34,10 +34,10 @@ export class ScannerComponent {
   private readonly scannerApiService = inject(ScannerApiService);
   private readonly destroyRef = inject(DestroyRef);
 
-  readonly scannerId = signal<number>(undefined);
-  lastScanResult = signal<number>(undefined);
+  readonly scannerId = signal<number | undefined>(undefined);
+  lastScanResult = signal<number | undefined>(undefined);
   availableCameras = signal<CameraDevice[] | undefined>(undefined);
-  currentCamera = signal<CameraDevice>(undefined);
+  currentCamera = signal<CameraDevice | undefined>(undefined);
 
   readonly readyState: WritableSignal<boolean> = signal(false);
   readonly readyStateColor = computed(() => {
@@ -115,17 +115,17 @@ export class ScannerComponent {
     return camera.id;
   }
 
-  qrCodeReaderSuccessCallback = (decodedText: string, _: Html5QrcodeResult) => {
+  qrCodeReaderSuccessCallback = (decodedText: string, _?: Html5QrcodeResult) => {
     const scanResult: ScanResult = {value: +decodedText};
     console.log("SCANNED", scanResult)
     const scannedValue = scanResult.value;
     if (!this.lastScanResult() || this.lastScanResult() !== scannedValue) {
       this.lastScanResult.set(scanResult.value);
-      this.scannerApiService.sendScanResult(this.scannerId(), scanResult.value).subscribe();
+      this.scannerApiService.sendScanResult(this.scannerId()!, scanResult.value).subscribe();
     }
   }
 
-  get selectedCamera(): CameraDevice {
+  get selectedCamera(): CameraDevice | undefined {
     return this.currentCamera();
   }
 

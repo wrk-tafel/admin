@@ -37,7 +37,7 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
     ]
 })
 export class UserDetailComponent {
-  readonly userData = input<UserData>();
+  readonly userData = input.required<UserData>();
 
   private readonly userApiService = inject(UserApiService);
   private readonly router = inject(Router);
@@ -64,7 +64,7 @@ export class UserDetailComponent {
         this.toastr.error('Löschen fehlgeschlagen!');
       },
     };
-    this.userApiService.deleteUser(this.currentUserData().id).subscribe(observer);
+    this.userApiService.deleteUser(this.currentUserData().id!).subscribe(observer);
   }
 
   editUser() {

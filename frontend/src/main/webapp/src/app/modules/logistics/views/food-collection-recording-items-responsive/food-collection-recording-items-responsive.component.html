@@ -11,12 +11,12 @@
     <c-row class="mt-3">
       <c-col class="text-center">
         <button cButton (click)="selectPreviousShop()" testid="previous-shop-button"
-                [disabled]="this.selectedRouteData()?.shops.indexOf(shop) === 0">
+                [disabled]="this.selectedRouteData()?.shops?.indexOf(shop) === 0">
           Vorherige
         </button>
       </c-col>
       <c-col class="text-center">
-        <button cButton (click)="selectNextShop()" [disabled]="this.selectedRouteData()?.shops.indexOf(shop) === this.selectedRouteData()?.shops.length - 1" testid="next-shop-button">
+        <button cButton (click)="selectNextShop()" [disabled]="this.selectedRouteData()?.shops?.indexOf(shop) === (this.selectedRouteData()?.shops?.length ?? 0) - 1" testid="next-shop-button">
           Nächste
         </button>
       </c-col>

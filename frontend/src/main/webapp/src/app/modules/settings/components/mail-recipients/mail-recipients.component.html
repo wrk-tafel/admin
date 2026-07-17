@@ -15,7 +15,7 @@
             <ng-template mat-tab-label>
               <span [attr.testid]="'mailtype-tab-' + recipientOfMailType.value.mailType"
                     [class.text-red-600]="recipientOfMailType.invalid">
-                {{ MailTypeLabels[recipientOfMailType.value.mailType] }}
+                {{ getMailTypeLabel(recipientOfMailType.value.mailType) }}
               </span>
             </ng-template>
             <div class="p-3" [formGroupName]="i">
@@ -24,12 +24,12 @@
                   <div [formGroupName]="j">
                     <div class="flex items-center flex-nowrap">
                       <div class="font-bold flex-grow-1">
-                        {{ RecipientTypeLabels[recipient.get('recipientType').value] }}
+                        {{ getRecipientTypeLabel(recipient.get('recipientType')!.value) }}
                       </div>
                       <div class="text-right">
                         <button matButton="filled"
                                 class="button-success"
-                                [attr.testid]="'add-recipient-button-' + recipientOfMailType.value.mailType + '-' + recipient.get('recipientType').value"
+                                [attr.testid]="'add-recipient-button-' + recipientOfMailType.value.mailType + '-' + recipient.get('recipientType')!.value"
                                 (click)="addAddress(i, j)">
                           <fa-icon [icon]="faPlus"></fa-icon>
                         </button>
@@ -41,7 +41,7 @@
                         <div class="mt-2 flex items-center flex-nowrap">
                           <div class="flex-grow-1">
                             <input
-                              [attr.testid]="'email-input-' + recipientOfMailType.value.mailType + '-' + recipient.get('recipientType').value + '-' + k"
+                              [attr.testid]="'email-input-' + recipientOfMailType.value.mailType + '-' + recipient.get('recipientType')!.value + '-' + k"
                               type="email"
                               [formControlName]="k"
                               class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -57,7 +57,7 @@
                           <div class="text-right ml-2">
                             <button matButton="filled"
                                     class="button-danger"
-                                    [attr.testid]="'remove-recipient-button-' + recipientOfMailType.value.mailType + '-' + recipient.get('recipientType').value + '-' + k"
+                                    [attr.testid]="'remove-recipient-button-' + recipientOfMailType.value.mailType + '-' + recipient.get('recipientType')!.value + '-' + k"
                                     (click)="removeAddress(i, j, k)">
                               <fa-icon [icon]="faTrashCan"></fa-icon>
                             </button>

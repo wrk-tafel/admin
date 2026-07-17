@@ -28,7 +28,7 @@ export class DistributionStateComponent {
   private readonly globalStateService = inject(GlobalStateService);
   private readonly dialog = inject(MatDialog);
 
-  readonly distribution: Signal<DistributionItem> = this.globalStateService.getCurrentDistribution();
+  readonly distribution: Signal<DistributionItem | null> = this.globalStateService.getCurrentDistribution();
   readonly isDistributionActive = computed(() => {
     const dist = this.distribution();
     return dist && !dist.endedAt;
@@ -48,7 +48,7 @@ export class DistributionStateComponent {
 
   closeDistribution(forceClose: boolean) {
     this.distributionApiService.closeDistribution(forceClose).subscribe({
-      next: (result: DistributionCloseValidationResult) => {
+      next: (result: DistributionCloseValidationResult | null) => {
         if (result && (result.errors.length > 0 || result.warnings.length > 0)) {
           this.dialog.open(CloseDistributionValidationDialogComponent, {
             data: {validationResult: result}
