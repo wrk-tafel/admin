@@ -1,148 +1,138 @@
 <form autocomplete="off">
-  <div class="row">
-    <div class="col-md">
-      <div class="card">
-        <div class="card-header text-center h5">
-          Benutzerdaten
-        </div>
-        <div class="card-body">
-          <div class="row">
-            <div class="col-sm">
-              <label class="form-label">Benutzername *</label>
-              <input cFormControl [formField]="userForm.username" testid="usernameInput" type="text" tafelAutofocus
-                     [ngClass]="{'is-invalid': shouldShowErrors(userForm.username()), 'is-valid': userForm.username().valid() && (userForm.username().dirty() || userForm.username().touched())}">
-              @if (shouldShowErrors(userForm.username())) {
-                @for (errorMessage of getErrorMessages(userForm.username()); track errorMessage) {
-                  <div class="invalid-feedback">{{errorMessage}}</div>
-                }
-              }
-            </div>
-            <div class="col-sm">
-              <label class="form-label">Personalnummer *</label>
-              <input testid="personnelNumberInput" type="text" [formField]="userForm.personnelNumber" class="form-control"
-                     [ngClass]="{'is-invalid': shouldShowErrors(userForm.personnelNumber()), 'is-valid': userForm.personnelNumber().valid() && (userForm.personnelNumber().dirty() || userForm.personnelNumber().touched())}">
-              @if (shouldShowErrors(userForm.personnelNumber())) {
-                @for (errorMessage of getErrorMessages(userForm.personnelNumber()); track errorMessage) {
-                  <div class="invalid-feedback">{{errorMessage}}</div>
-                }
-              }
-            </div>
-          </div>
-          <div class="row">
-            <div class="col-sm">
-              <label class="form-label">Nachname *</label>
-              <input testid="lastnameInput" type="text" [formField]="userForm.lastname" class="form-control"
-                     [ngClass]="{'is-invalid': shouldShowErrors(userForm.lastname()), 'is-valid': userForm.lastname().valid() && (userForm.lastname().dirty() || userForm.lastname().touched())}">
-              @if (shouldShowErrors(userForm.lastname())) {
-                @for (errorMessage of getErrorMessages(userForm.lastname()); track errorMessage) {
-                  <div class="invalid-feedback">{{errorMessage}}</div>
-                }
-              }
-            </div>
-            <div class="col-sm">
-              <label class="form-label">Vorname *</label>
-              <input testid="firstnameInput" type="text" [formField]="userForm.firstname" class="form-control"
-                     autocomplete="new-password"
-                     [ngClass]="{'is-invalid': shouldShowErrors(userForm.firstname()), 'is-valid': userForm.firstname().valid() && (userForm.firstname().dirty() || userForm.firstname().touched())}">
-              @if (shouldShowErrors(userForm.firstname())) {
-                @for (errorMessage of getErrorMessages(userForm.firstname()); track errorMessage) {
-                  <div class="invalid-feedback">{{errorMessage}}</div>
-                }
-              }
-            </div>
-          </div>
-          <hr>
-          <div class="row">
-            <div class="col-sm">
-              <label class="form-label">Passwort</label>
-              <c-input-group>
-                <input testid="passwordInput"
-                       autocomplete="new-password"
-                       [type]="passwordTextVisible() ? 'text' : 'password'"
-                       [formField]="userForm.password" class="form-control"
-                       [ngClass]="{'is-invalid': shouldShowErrors(userForm.passwordRepeat()), 'is-valid': userForm.password().valid() && (userForm.password().dirty() || userForm.password().touched())}">
-                <span cInputGroupText
-                      (click)="togglePasswordVisibility()">
-                      @if (!passwordTextVisible()) {
-                        <fa-icon [icon]="faEyeSlash"></fa-icon>
-                      }
-                      @if (passwordTextVisible()) {
-                        <fa-icon [icon]="faEye"></fa-icon>
-                      }
-                </span>
-                @if (shouldShowErrors(userForm.passwordRepeat())) {
-                  @for (errorMessage of getErrorMessages(userForm.passwordRepeat()); track errorMessage) {
-                    <div class="invalid-feedback">{{errorMessage}}</div>
-                  }
-                }
-              </c-input-group>
-            </div>
-            <div class="col-sm">
-              <label class="form-label">Passwort (Wiederholung)</label>
-              <c-input-group>
-                <input testid="passwordRepeatInput"
-                       autocomplete="new-password"
-                       [type]="passwordRepeatTextVisible() ? 'text' : 'password'"
-                       [formField]="userForm.passwordRepeat" class="form-control"
-                       [ngClass]="{'is-invalid': shouldShowErrors(userForm.passwordRepeat()), 'is-valid': userForm.passwordRepeat().valid() && (userForm.passwordRepeat().dirty() || userForm.passwordRepeat().touched())}">
-                <span cInputGroupText
-                      (click)="togglePasswordRepeatVisibility()">
-                      @if (!passwordRepeatTextVisible()) {
-                        <fa-icon [icon]="faEyeSlash"></fa-icon>
-                      }
-                      @if (passwordRepeatTextVisible()) {
-                        <fa-icon [icon]="faEye"></fa-icon>
-                      }
-                </span>
-                @if (shouldShowErrors(userForm.passwordRepeat())) {
-                  @for (errorMessage of getErrorMessages(userForm.passwordRepeat()); track errorMessage) {
-                    <div class="invalid-feedback">{{errorMessage}}</div>
-                  }
-                }
-              </c-input-group>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col mt-3">
-              <button testid="generate-password-button" cButton
-                      (click)="generatePassword()">Passwort generieren
-              </button>
-            </div>
-          </div>
-          <hr>
-          <div class="row">
-            <div class="col-sm">
-              <label class="form-label">Benutzer aktiv</label>
-              <div class="input-group">
-                <input testid="enabledInput" type="checkbox" [formField]="userForm.enabled" class="form-check-input">
-              </div>
-            </div>
-            <div class="col-sm mt-3 mt-sm-0">
-              <label class="form-label">Passwort-Änderung beim nächsten Login erforderlich</label>
-              <div class="input-group">
-                <input testid="passwordChangeRequiredInput" type="checkbox" [formField]="userForm.passwordChangeRequired"
-                       class="form-check-input">
-              </div>
-            </div>
-          </div>
-          <hr>
-          <div class="row">
-            <div class="col">
-              <h5>Berechtigungen</h5>
-            </div>
-          </div>
-          <div class="row row-cols-1 row-cols-md-5 row-gap-2">
-            @for (permission of permissions(); track trackBy($index, permission); let i = $index) {
-              <div class="col" [attr.testid]="'permission-' + i">
-                <label cLabel [attr.for]="'permission-checkbox-' + i">{{permission.title}}</label>
-                <c-input-group>
-                  <input cFormCheckInput type="checkbox" [checked]="permission.enabled" (change)="togglePermission(i)" [attr.id]="'permission-checkbox-' + i" [attr.testid]="'permission-checkbox-' + i">
-                </c-input-group>
-              </div>
+  <mat-card>
+    <mat-card-header class="justify-center text-center w-full">
+      <h5>Benutzerdaten</h5>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="form-label">Benutzername *</label>
+          <input [formField]="userForm.username" testid="usernameInput" type="text" class="form-control" tafelAutofocus
+                 [ngClass]="{'is-invalid': shouldShowErrors(userForm.username()), 'is-valid': userForm.username().valid() && (userForm.username().dirty() || userForm.username().touched())}">
+          @if (shouldShowErrors(userForm.username())) {
+            @for (errorMessage of getErrorMessages(userForm.username()); track errorMessage) {
+              <div class="invalid-feedback">{{errorMessage}}</div>
             }
+          }
+        </div>
+        <div>
+          <label class="form-label">Personalnummer *</label>
+          <input testid="personnelNumberInput" type="text" [formField]="userForm.personnelNumber" class="form-control"
+                 [ngClass]="{'is-invalid': shouldShowErrors(userForm.personnelNumber()), 'is-valid': userForm.personnelNumber().valid() && (userForm.personnelNumber().dirty() || userForm.personnelNumber().touched())}">
+          @if (shouldShowErrors(userForm.personnelNumber())) {
+            @for (errorMessage of getErrorMessages(userForm.personnelNumber()); track errorMessage) {
+              <div class="invalid-feedback">{{errorMessage}}</div>
+            }
+          }
+        </div>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+        <div>
+          <label class="form-label">Nachname *</label>
+          <input testid="lastnameInput" type="text" [formField]="userForm.lastname" class="form-control"
+                 [ngClass]="{'is-invalid': shouldShowErrors(userForm.lastname()), 'is-valid': userForm.lastname().valid() && (userForm.lastname().dirty() || userForm.lastname().touched())}">
+          @if (shouldShowErrors(userForm.lastname())) {
+            @for (errorMessage of getErrorMessages(userForm.lastname()); track errorMessage) {
+              <div class="invalid-feedback">{{errorMessage}}</div>
+            }
+          }
+        </div>
+        <div>
+          <label class="form-label">Vorname *</label>
+          <input testid="firstnameInput" type="text" [formField]="userForm.firstname" class="form-control"
+                 autocomplete="new-password"
+                 [ngClass]="{'is-invalid': shouldShowErrors(userForm.firstname()), 'is-valid': userForm.firstname().valid() && (userForm.firstname().dirty() || userForm.firstname().touched())}">
+          @if (shouldShowErrors(userForm.firstname())) {
+            @for (errorMessage of getErrorMessages(userForm.firstname()); track errorMessage) {
+              <div class="invalid-feedback">{{errorMessage}}</div>
+            }
+          }
+        </div>
+      </div>
+      <hr>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="form-label">Passwort</label>
+          <div class="flex items-center gap-2">
+            <input testid="passwordInput"
+                   autocomplete="new-password"
+                   [type]="passwordTextVisible() ? 'text' : 'password'"
+                   [formField]="userForm.password" class="form-control"
+                   [ngClass]="{'is-invalid': shouldShowErrors(userForm.passwordRepeat()), 'is-valid': userForm.password().valid() && (userForm.password().dirty() || userForm.password().touched())}">
+            <span (click)="togglePasswordVisibility()" class="cursor-pointer">
+                  @if (!passwordTextVisible()) {
+                    <fa-icon [icon]="faEyeSlash"></fa-icon>
+                  }
+                  @if (passwordTextVisible()) {
+                    <fa-icon [icon]="faEye"></fa-icon>
+                  }
+            </span>
+          </div>
+          @if (shouldShowErrors(userForm.passwordRepeat())) {
+            @for (errorMessage of getErrorMessages(userForm.passwordRepeat()); track errorMessage) {
+              <div class="invalid-feedback">{{errorMessage}}</div>
+            }
+          }
+        </div>
+        <div>
+          <label class="form-label">Passwort (Wiederholung)</label>
+          <div class="flex items-center gap-2">
+            <input testid="passwordRepeatInput"
+                   autocomplete="new-password"
+                   [type]="passwordRepeatTextVisible() ? 'text' : 'password'"
+                   [formField]="userForm.passwordRepeat" class="form-control"
+                   [ngClass]="{'is-invalid': shouldShowErrors(userForm.passwordRepeat()), 'is-valid': userForm.passwordRepeat().valid() && (userForm.passwordRepeat().dirty() || userForm.passwordRepeat().touched())}">
+            <span (click)="togglePasswordRepeatVisibility()" class="cursor-pointer">
+                  @if (!passwordRepeatTextVisible()) {
+                    <fa-icon [icon]="faEyeSlash"></fa-icon>
+                  }
+                  @if (passwordRepeatTextVisible()) {
+                    <fa-icon [icon]="faEye"></fa-icon>
+                  }
+            </span>
+          </div>
+          @if (shouldShowErrors(userForm.passwordRepeat())) {
+            @for (errorMessage of getErrorMessages(userForm.passwordRepeat()); track errorMessage) {
+              <div class="invalid-feedback">{{errorMessage}}</div>
+            }
+          }
+        </div>
+      </div>
+      <div class="mt-3">
+        <button testid="generate-password-button" matButton="filled"
+                (click)="generatePassword()">Passwort generieren
+        </button>
+      </div>
+      <hr>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="form-label">Benutzer aktiv</label>
+          <div>
+            <input testid="enabledInput" type="checkbox" [formField]="userForm.enabled" class="form-check-input">
+          </div>
+        </div>
+        <div class="mt-3 sm:mt-0">
+          <label class="form-label">Passwort-Änderung beim nächsten Login erforderlich</label>
+          <div>
+            <input testid="passwordChangeRequiredInput" type="checkbox" [formField]="userForm.passwordChangeRequired"
+                   class="form-check-input">
           </div>
         </div>
       </div>
-    </div>
-  </div>
+      <hr>
+      <div>
+        <h5>Berechtigungen</h5>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-5 gap-2 mt-2">
+        @for (permission of permissions(); track trackBy($index, permission); let i = $index) {
+          <div [attr.testid]="'permission-' + i">
+            <label [attr.for]="'permission-checkbox-' + i">{{permission.title}}</label>
+            <div>
+              <input type="checkbox" [checked]="permission.enabled" (change)="togglePermission(i)" [attr.id]="'permission-checkbox-' + i" [attr.testid]="'permission-checkbox-' + i">
+            </div>
+          </div>
+        }
+      </div>
+    </mat-card-content>
+  </mat-card>
 </form>

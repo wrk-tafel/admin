@@ -2,14 +2,8 @@ import {Component, computed, effect, inject, input, output, signal} from '@angul
 import {form, FormField, maxLength, required, validate} from '@angular/forms/signals';
 import {GeneratedPasswordResponse, UserApiService, UserData, UserPermission} from '../../../../api/user-api.service';
 import {CommonModule, NgClass} from '@angular/common';
-import {
-  ButtonDirective,
-  FormCheckInputDirective,
-  FormControlDirective,
-  FormLabelDirective,
-  InputGroupComponent,
-  InputGroupTextDirective
-} from '@coreui/angular';
+import {MatCardModule} from '@angular/material/card';
+import {MatButtonModule} from '@angular/material/button';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
 import {faEye, faEyeSlash} from '@fortawesome/free-solid-svg-icons';
 import {TafelAutofocusDirective} from '../../../../common/directive/tafel-autofocus.directive';
@@ -22,14 +16,10 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
     imports: [
         FormField,
         NgClass,
-        InputGroupComponent,
-        InputGroupTextDirective,
         CommonModule,
-        FormControlDirective,
-        FormLabelDirective,
-        FormCheckInputDirective,
+        MatCardModule,
+        MatButtonModule,
         FaIconComponent,
-        ButtonDirective,
         TafelAutofocusDirective
     ]
 })
