@@ -49,10 +49,10 @@
     </mat-menu>
 
     <div class="flex">
-      <button matButton="filled" class="button-danger" testid="editCustomerButton" (click)="editCustomer()"
+      <button type="button" matButton="filled" class="button-danger !rounded-r-none" testid="editCustomerButton" (click)="editCustomer()"
               [disabled]="!customerData() || customerData()?.locked">Kunde bearbeiten
       </button>
-      <button testid="editCustomerToggleButton" matButton="filled" class="button-danger" [matMenuTriggerFor]="editMenu"
+      <button type="button" testid="editCustomerToggleButton" matButton="filled" class="button-danger !rounded-l-none border-l border-white/30" [matMenuTriggerFor]="editMenu"
               aria-label="Toggle Dropdown">▾
       </button>
     </div>
