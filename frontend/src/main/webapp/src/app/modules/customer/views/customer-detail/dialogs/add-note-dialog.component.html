@@ -5,7 +5,7 @@
   </div>
   <div tafel-dialog-actions>
     <button testid="okButton" cButton (click)="dialogRef.close(noteText())"
-            [disabled]="!noteText() || noteText()?.trim().length === 0">Speichern</button>
+            [disabled]="!noteText() || noteText()?.trim()?.length === 0">Speichern</button>
     <button testid="cancelButton" cButton color="secondary" (click)="dialogRef.close()">Abbrechen</button>
   </div>
 </tafel-dialog>

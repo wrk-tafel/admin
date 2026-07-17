@@ -49,7 +49,7 @@
                                    'badge-success': customerStateColor() === 'success'}">
             {{ customerStateText() }}
           </div>
-          @if (customer()?.pendingCostContribution > 0) {
+          @if ((customer()?.pendingCostContribution ?? 0) > 0) {
             <div class="badge badge-danger">
               Unkostenbeitrag offen: {{ customer()?.pendingCostContribution | currency }}
             </div>
@@ -61,12 +61,12 @@
           <div class="lg:col-span-2">
             <div class="mb-2">
               <h3 class="text-lg font-semibold">
-                Nr. {{ customer().id }}{{ formattedName() ? ' - ' + formattedName() : '' }}</h3>
+                Nr. {{ customer()!.id! }}{{ formattedName() ? ' - ' + formattedName() : '' }}</h3>
             </div>
             <div class="mb-4">
               <div class="flex justify-between">
                 <div class="font-bold">Gültig bis:</div>
-                <div>{{ customer().validUntil | date : 'dd.MM.yyyy' }}</div>
+                <div>{{ customer()!.validUntil! | date : 'dd.MM.yyyy' }}</div>
               </div>
             </div>
 
@@ -112,7 +112,7 @@
                             </div>
                           </div>
                           <div>
-                            <div [attr.testid]="'addperson-' + i + '-countryText'">{{ addPerson?.country.name }}
+                            <div [attr.testid]="'addperson-' + i + '-countryText'">{{ addPerson?.country?.name }}
                             </div>
                           </div>
                           <mat-divider class="my-2"></mat-divider>

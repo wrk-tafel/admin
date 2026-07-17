@@ -27,11 +27,11 @@ export class CustomerEditComponent {
   customerData = input<CustomerData>();
 
   // Writable signal linked to input - resets when customerData changes, locally writable from form updates
-  customerUpdated = linkedSignal<CustomerData>(() => this.customerData());
+  customerUpdated = linkedSignal<CustomerData>(() => this.customerData()!);
   // editMode is derived from input customerData; use computed (read-only signal)
   editMode = computed(() => !!this.customerData());
-  customerFormComponent = viewChild<CustomerFormComponent>(CustomerFormComponent);
-  readonly isSaveEnabled = computed(() => this.customerFormComponent() != null && this.customerFormComponent().valid());
+  customerFormComponent = viewChild.required<CustomerFormComponent>(CustomerFormComponent);
+  readonly isSaveEnabled = computed(() => this.customerFormComponent().valid());
 
   private readonly customerApiService = inject(CustomerApiService);
   private readonly router = inject(Router);

@@ -52,7 +52,7 @@ describe('DistributionNotesInputComponent', () => {
   it('save data successful', () => {
     const fixture = TestBed.createComponent(DistributionNotesInputComponent);
     const component = fixture.componentInstance;
-    distributionApiService.saveNotes.mockReturnValue(of(null));
+    distributionApiService.saveNotes.mockReturnValue(of(undefined));
     const testNotes = ''
 
     component.notes.set(testNotes);

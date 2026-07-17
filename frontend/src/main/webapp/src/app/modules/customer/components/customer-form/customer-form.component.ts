@@ -1,7 +1,7 @@
 import {Component, computed, effect, inject, input, output, signal} from '@angular/core';
 import {applyEach, form, FormField, maxLength, required, validate} from '@angular/forms/signals';
 import {CountryApiService, CountryData} from '../../../../api/country-api.service';
-import {CustomerAddPersonData, CustomerData, Gender} from '../../../../api/customer-api.service';
+import {CustomerData, Gender} from '../../../../api/customer-api.service';
 import {CommonModule} from '@angular/common';
 import {
   ButtonDirective,
@@ -71,7 +71,7 @@ export class CustomerFormComponent {
     gender: null,
     country: null,
     telephoneNumber: '',
-    email: null,
+    email: '',
     address: {
       street: '',
       houseNumber: '',
@@ -154,7 +154,7 @@ export class CustomerFormComponent {
   });
 
   valid = computed(() => this.customerForm().valid());
-  countries = toSignal<CountryData[]>(this.countryApiService.getCountries());
+  countries = toSignal(this.countryApiService.getCountries(), {initialValue: [] as CountryData[]});
   genders: Gender[] = [Gender.FEMALE, Gender.MALE];
 
   // Derived customer data from form model
@@ -169,35 +169,38 @@ export class CustomerFormComponent {
       const customerData = this.customerData();
       if (customerData) {
         // Update main form model including additional persons
-        const additionalPersonsData = customerData.additionalPersons.map((person) => ({
+        const additionalPersonsData = (customerData.additionalPersons ?? []).map((person) => ({
           ...person,
           key: person.key ? person.key : crypto.randomUUID(),
+          birthDate: person.birthDate ?? null,
+          gender: person.gender ?? null,
+          country: person.country ?? null,
           employer: person.employer ?? '',
           income: person.income ?? null,
           incomeDue: person.incomeDue ?? null,
         }));
 
         this.formModel.set({
-          id: customerData.id,
+          id: customerData.id ?? null,
           lastname: customerData.lastname ?? '',
           firstname: customerData.firstname ?? '',
-          birthDate: customerData.birthDate,
+          birthDate: customerData.birthDate ?? null,
           gender: customerData.gender,
-          country: customerData.country,
+          country: customerData.country ?? null,
           telephoneNumber: customerData.telephoneNumber ?? '',
-          email: customerData.email,
+          email: customerData.email ?? '',
           address: {
             street: customerData.address?.street ?? '',
             houseNumber: customerData.address?.houseNumber ?? '',
-            stairway: customerData.address?.stairway,
-            door: customerData.address?.door,
-            postalCode: customerData.address?.postalCode,
+            stairway: customerData.address?.stairway ?? null,
+            door: customerData.address?.door ?? null,
+            postalCode: customerData.address?.postalCode ?? null,
             city: customerData.address?.city ?? ''
           },
           employer: customerData.employer ?? '',
-          income: customerData.income,
-          incomeDue: customerData.incomeDue,
-          validUntil: customerData.validUntil,
+          income: customerData.income ?? null,
+          incomeDue: customerData.incomeDue ?? null,
+          validUntil: customerData.validUntil ?? null,
           additionalPersons: additionalPersonsData
         });
       }
@@ -241,40 +244,40 @@ export class CustomerFormComponent {
     const selectedId = select.value;
     const country = this.countries().find(c => c.id.toString() === selectedId);
 
-    const anyForm = this.customerForm as any;
-    anyForm.additionalPersons[index].country().value.set(country ?? null);
-    anyForm.additionalPersons[index].country().markAsTouched();
+    this.personField(index).country().value.set(country ?? null);
+    this.personField(index).country().markAsTouched();
   }
 
   onPersonGenderChange(index: number, event: Event) {
     const select = event.target as HTMLSelectElement;
     const selectedGender = select.value as Gender;
 
-    const anyForm = this.customerForm as any;
-    anyForm.additionalPersons[index].gender().value.set(selectedGender || null);
-    anyForm.additionalPersons[index].gender().markAsTouched();
+    this.personField(index).gender().value.set(selectedGender || null);
+    this.personField(index).gender().markAsTouched();
   }
 
   onPersonGenderBlur(index: number) {
-    const anyForm = this.customerForm as any;
-    anyForm.additionalPersons[index].gender().markAsTouched();
+    this.personField(index).gender().markAsTouched();
   }
 
   onPersonCountryBlur(index: number) {
-    const anyForm = this.customerForm as any;
-    anyForm.additionalPersons[index].country().markAsTouched();
+    this.personField(index).country().markAsTouched();
+  }
+
+  personField(index: number) {
+    return this.customerForm.additionalPersons[index]!;
   }
 
   addNewPerson() {
     const newPerson: AdditionalPersonFormItem = {
       key: crypto.randomUUID(),
       id: null,
-      firstname: null,
-      lastname: null,
+      firstname: '',
+      lastname: '',
       birthDate: null,
       gender: null,
       country: null,
-      employer: null,
+      employer: '',
       income: null,
       incomeDue: null,
       excludeFromHousehold: false,
@@ -318,15 +321,14 @@ export class CustomerFormComponent {
     // Mark all additional persons fields as touched using bracket notation
     const additionalPersons = this.formModel().additionalPersons;
     for (let i = 0; i < additionalPersons.length; i++) {
-      const anyForm = this.customerForm as any;
-      anyForm.additionalPersons[i].lastname().markAsTouched();
-      anyForm.additionalPersons[i].firstname().markAsTouched();
-      anyForm.additionalPersons[i].birthDate().markAsTouched();
-      anyForm.additionalPersons[i].gender().markAsTouched();
-      anyForm.additionalPersons[i].country().markAsTouched();
-      anyForm.additionalPersons[i].employer().markAsTouched();
-      anyForm.additionalPersons[i].income().markAsTouched();
-      anyForm.additionalPersons[i].incomeDue().markAsTouched();
+      this.personField(i).lastname().markAsTouched();
+      this.personField(i).firstname().markAsTouched();
+      this.personField(i).birthDate().markAsTouched();
+      this.personField(i).gender().markAsTouched();
+      this.personField(i).country().markAsTouched();
+      this.personField(i).employer().markAsTouched();
+      this.personField(i).income().markAsTouched();
+      this.personField(i).incomeDue().markAsTouched();
     }
   }
 
@@ -351,7 +353,7 @@ export interface CustomerFormModel {
   gender: Gender | null;
   country: CountryData | null;
   telephoneNumber: string;
-  email: string | null;
+  email: string;
   address: AddressFormModel;
   employer: string;
   income: number | null;
@@ -369,6 +371,17 @@ export interface AddressFormModel {
   city: string;
 }
 
-export interface AdditionalPersonFormItem extends CustomerAddPersonData {
+export interface AdditionalPersonFormItem {
   key: string | number;
+  id: number | null;
+  firstname: string;
+  lastname: string;
+  birthDate: Date | null;
+  gender: Gender | null;
+  country: CountryData | null;
+  employer: string;
+  income: number | null;
+  incomeDue: Date | null;
+  excludeFromHousehold: boolean;
+  receivesFamilyBonus: boolean;
 }

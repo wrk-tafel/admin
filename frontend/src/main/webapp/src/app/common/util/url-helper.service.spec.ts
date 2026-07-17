@@ -3,8 +3,8 @@ import { UrlHelperService } from './url-helper.service';
 
 describe('UrlHelperService', () => {
 
-    let overwriteProtocol: string;
-    let overwriteTestPathname: string;
+    let overwriteProtocol: string | undefined;
+    let overwriteTestPathname: string | undefined;
 
     function setup() {
         const platformLocationSpy = {

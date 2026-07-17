@@ -19,12 +19,12 @@ export class RecordedFoodCollectionsComponent {
 
   private readonly globalStateService = inject(GlobalStateService);
 
-  readonly distribution: Signal<DistributionItem> = this.globalStateService.getCurrentDistribution();
+  readonly distribution: Signal<DistributionItem | null> = this.globalStateService.getCurrentDistribution();
 
   panelColor = computed<string>(() => {
     if (!this.distribution()) {
       return 'primary';
-    } else if (this.countRecorded() < this.countTotal()) {
+    } else if ((this.countRecorded() ?? 0) < (this.countTotal() ?? 0)) {
       return 'warning';
     } else {
       return 'success';

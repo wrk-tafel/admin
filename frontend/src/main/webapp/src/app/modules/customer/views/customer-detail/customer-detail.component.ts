@@ -90,11 +90,11 @@ export class CustomerDetailComponent {
 
   // Other signals
   customerNotes = signal<CustomerNoteItem[]>([]);
-  customerNotesPaginationData = signal<TafelPaginationData>(null);
+  customerNotesPaginationData = signal<TafelPaginationData | null>(null);
 
   // Ticket signals
-  ticketNumber = signal<number>(null);
-  ticketNumberInput = signal<number>(null);
+  ticketNumber = signal<number | null>(null);
+  ticketNumberInput = signal<number | null>(null);
 
   private readonly customerApiService = inject(CustomerApiService);
   private readonly customerNoteApiService = inject(CustomerNoteApiService);
@@ -133,17 +133,17 @@ export class CustomerDetailComponent {
   }
 
   printMasterdata() {
-    this.customerApiService.generatePdf(this.customerData().id, 'MASTERDATA')
+    this.customerApiService.generatePdf(this.customerData().id!, 'MASTERDATA')
       .subscribe((response) => this.processPdfResponse(response));
   }
 
   printIdCard() {
-    this.customerApiService.generatePdf(this.customerData().id, 'IDCARD')
+    this.customerApiService.generatePdf(this.customerData().id!, 'IDCARD')
       .subscribe((response) => this.processPdfResponse(response));
   }
 
   printCombined() {
-    this.customerApiService.generatePdf(this.customerData().id, 'COMBINED')
+    this.customerApiService.generatePdf(this.customerData().id!, 'COMBINED')
       .subscribe((response) => this.processPdfResponse(response));
   }
 
@@ -153,7 +153,7 @@ export class CustomerDetailComponent {
       address.stairway ? 'Stiege ' + address.stairway : undefined,
       address.door ? 'Top ' + address.door : undefined
     ]
-      .filter(value => value?.trim().length > 0)
+      .filter(value => (value?.trim().length ?? 0) > 0)
       .join(', ');
     return formatted?.trim().length > 0 ? formatted : '-';
   }
@@ -175,7 +175,7 @@ export class CustomerDetailComponent {
     this.dialog.open(DeleteCustomerDialogComponent)
       .afterClosed().subscribe(confirmed => {
       if (confirmed) {
-        this.customerApiService.deleteCustomer(this.customerData().id).subscribe({
+        this.customerApiService.deleteCustomer(this.customerData().id!).subscribe({
           next: async () => {
             this.toastr.success('Kunde wurde gelöscht!');
             await this.router.navigate(['/kunden/suchen']);
@@ -277,7 +277,7 @@ export class CustomerDetailComponent {
     this.dialog.open(AddNoteDialogComponent).afterClosed().subscribe(noteText => {
       if (noteText) {
         const sanitizedText = noteText.replace(/\n/g, '<br/>');
-        this.customerNoteApiService.createNewNote(this.customerData().id, sanitizedText).subscribe(newNoteItem => {
+        this.customerNoteApiService.createNewNote(this.customerData().id!, sanitizedText).subscribe(newNoteItem => {
           this.customerNotes.update(notes => [newNoteItem, ...notes]);
           const currentResponse = this.customerNotesResponse();
           this.customerNotesResponse.set({
@@ -300,8 +300,8 @@ export class CustomerDetailComponent {
   }
 
   assignTicket() {
-    const ticketNumber = this.ticketNumberInput();
-    const customerId = this.customerData().id;
+    const ticketNumber = this.ticketNumberInput()!;
+    const customerId = this.customerData().id!;
     this.distributionApiService.assignCustomer(customerId, ticketNumber).subscribe({
       next: () => {
         this.ticketNumber.set(ticketNumber);
@@ -315,7 +315,7 @@ export class CustomerDetailComponent {
   }
 
   deleteTicket() {
-    const customerId = this.customerData().id;
+    const customerId = this.customerData().id!;
     this.distributionTicketApiService.deleteCurrentTicketOfCustomer(customerId).subscribe({
       next: () => {
         this.ticketNumber.set(null);
@@ -339,9 +339,9 @@ export class CustomerDetailComponent {
   }
 
   private processPdfResponse(response: HttpResponse<Blob>) {
-    const contentDisposition = response.headers.get('content-disposition');
+    const contentDisposition = response.headers.get('content-disposition')!;
     const filename = contentDisposition.split(';')[1].split('filename')[1].split('=')[1].trim();
-    this.fileHelperService.downloadFile(filename, response.body);
+    this.fileHelperService.downloadFile(filename, response.body!);
   }
 
   protected readonly faUsers = faUsers;

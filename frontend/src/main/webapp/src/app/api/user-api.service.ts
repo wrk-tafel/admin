@@ -20,13 +20,13 @@ export class UserApiService {
     return this.http.get<UserData>('/users/personnel-number/' + personnelNumber);
   }
 
-  searchUser(username?: string, enabled?: boolean, lastname?: string, firstname?: string, page?: number): Observable<UserSearchResult> {
+  searchUser(username?: string | null, enabled?: boolean | null, lastname?: string | null, firstname?: string | null, page?: number): Observable<UserSearchResult> {
     let queryParams = new HttpParams();
     if (username) {
       queryParams = queryParams.set('username', username);
     }
     if (enabled !== null) {
-      queryParams = queryParams.set('enabled', enabled);
+      queryParams = queryParams.set('enabled', enabled ?? '');
     }
     if (lastname) {
       queryParams = queryParams.set('lastname', lastname);

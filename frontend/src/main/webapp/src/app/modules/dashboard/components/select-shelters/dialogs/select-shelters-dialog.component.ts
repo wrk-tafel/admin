@@ -38,7 +38,7 @@ export class SelectSheltersDialogComponent {
 
     shelters.forEach((shelter: ShelterItem) => {
       const selected = initialSelected.map(s => s.id).includes(shelter.id);
-      this.selectedShelters.push(this.fb.control<boolean>(selected));
+      this.selectedShelters.push(this.fb.control<boolean>(selected, {nonNullable: true}));
     });
   }
 
@@ -56,7 +56,7 @@ export class SelectSheltersDialogComponent {
       shelter.addressStairway ? 'Stiege ' + shelter.addressStairway : undefined,
       shelter.addressDoor ? 'Top ' + shelter.addressDoor : undefined
     ]
-      .filter(value => value?.trim().length > 0)
+      .filter(value => (value?.trim().length ?? 0) > 0)
       .join(', ');
     return addressFormatted?.trim().length > 0 ? addressFormatted : '';
   }
