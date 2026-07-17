@@ -42,7 +42,7 @@ export class DistributionNotesInputComponent {
       next: () => {
         this.toastr.success('Anmerkungen gespeichert!');
       },
-      error: error => {
+      error: (error: any) => {
         this.toastr.error('Speichern fehlgeschlagen!');
       },
     };

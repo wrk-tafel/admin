@@ -6,7 +6,7 @@ import {CustomerData} from '../../api/customer-api.service';
   standalone: true
 })
 export class FormatCustomerNamePipe implements PipeTransform {
-  transform(customer?: CustomerData): string {
+  transform(customer?: CustomerData | null): string {
     if (!customer?.lastname && !customer?.firstname) {
       return '-';
     }

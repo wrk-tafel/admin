@@ -14,7 +14,7 @@
           }
           @if (personnelNumber.errors?.maxlength && (personnelNumber.dirty || personnelNumber.touched)) {
             <div class="invalid-feedback">
-              Personalnummer zu lang (Limit: {{ personnelNumber.errors.maxlength.requiredLength }})
+              Personalnummer zu lang (Limit: {{ personnelNumber.errors?.maxlength.requiredLength }})
             </div>
           }
         </c-input-group>
@@ -30,7 +30,7 @@
           }
           @if (firstname.errors?.maxlength && (firstname.dirty || firstname.touched)) {
             <div class="invalid-feedback">
-              Vorname zu lang (Limit: {{ firstname.errors.maxlength.requiredLength }})
+              Vorname zu lang (Limit: {{ firstname.errors?.maxlength.requiredLength }})
             </div>
           }
         </c-input-group>
@@ -46,7 +46,7 @@
           }
           @if (lastname.errors?.maxlength && (lastname.dirty || lastname.touched)) {
             <div class="invalid-feedback">
-              Nachname zu lang (Limit: {{ lastname.errors.maxlength.requiredLength }})
+              Nachname zu lang (Limit: {{ lastname.errors?.maxlength.requiredLength }})
             </div>
           }
         </c-input-group>

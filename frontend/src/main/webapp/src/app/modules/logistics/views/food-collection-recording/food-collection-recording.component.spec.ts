@@ -49,7 +49,7 @@ describe('FoodCollectionRecordingComponent', () => {
     });
 
     it('ngOnInit without active distribution', () => {
-        globalStateService.getCurrentDistribution.mockReturnValue(signal<DistributionItem>(null).asReadonly());
+        globalStateService.getCurrentDistribution.mockReturnValue(signal<DistributionItem | null>(null).asReadonly());
 
         const fixture = TestBed.createComponent(FoodCollectionRecordingComponent);
         const componentRef = fixture.componentRef;

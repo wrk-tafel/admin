@@ -11,7 +11,7 @@
         <c-row>
           <c-col>
             <button cButton color="success" class="me-2" size="sm">
-              <fa-icon [icon]="faCheck" inverse="true"></fa-icon>
+              <fa-icon [icon]="faCheck" [inverse]="true"></fa-icon>
             </button>
             <strong>Kunde übernehmen:</strong> Der ausgewählte Kunde bleibt als einziger Kunde bestehen. Andere
             hier angezeigte Kunden werden gelöscht!
@@ -20,7 +20,7 @@
         <c-row>
           <c-col>
             <button cButton class="me-2" size="sm">
-              <fa-icon [icon]="faMagnifyingGlass" inverse="true"></fa-icon>
+              <fa-icon [icon]="faMagnifyingGlass" [inverse]="true"></fa-icon>
             </button>
             <strong>Kunden-Details ansehen:</strong> Wechsel zur Detail-Ansicht des ausgewählten Kunden.
           </c-col>
@@ -28,7 +28,7 @@
         <c-row>
           <c-col>
             <button cButton color="danger" class="text-white me-2" size="sm">
-              <fa-icon [icon]="faTrashCan" inverse="true"></fa-icon>
+              <fa-icon [icon]="faTrashCan" [inverse]="true"></fa-icon>
             </button>
             <strong>Kunden löschen:</strong> Nur der ausgewählte Kunde wird gelöscht. Andere hier angezeigte Kunden bleiben bestehen.
           </c-col>
@@ -43,13 +43,13 @@
 
     <hr/>
 
-    @if (customerDuplicatesData()?.items.length === 0) {
+    @if (customerDuplicatesData()?.items?.length === 0) {
       <c-row>
         <h4 class="fw-bold">Keine Duplikate gefunden!</h4>
       </c-row>
     }
 
-    @if (customerDuplicatesData()?.items.length > 0) {
+    @if ((customerDuplicatesData()?.items?.length ?? 0) > 0) {
     <div>
       <tafel-pagination class="d-none d-sm-block" align="end" [paginationData]="paginationData()"
                         (pageChanged)="getDuplicates($event)"></tafel-pagination>
@@ -57,7 +57,7 @@
                         (pageChanged)="getDuplicates($event)"></tafel-pagination>
 
       <div class="d-grid gap-3">
-        @for (item of customerDuplicatesData().items; track trackByDuplicateItemId($index, item)) {
+        @for (item of customerDuplicatesData()!.items; track trackByDuplicateItemId($index, item)) {
         <c-row>
           <c-col>
             <c-card class="mb-3 mb-sm-0">
@@ -68,13 +68,13 @@
                   </c-col>
                   <c-col class="text-end pt-2 pt-sm-0">
                     <button cButton color="success" class="me-2" (click)="mergeCustomers(item.customer)">
-                      <fa-icon [icon]="faCheck" inverse="true"></fa-icon>
+                      <fa-icon [icon]="faCheck" [inverse]="true"></fa-icon>
                     </button>
-                    <button cButton class="me-2" (click)="showCustomerDetail(item.customer.id)">
-                      <fa-icon [icon]="faMagnifyingGlass" inverse="true"></fa-icon>
+                    <button cButton class="me-2" (click)="showCustomerDetail(item.customer.id!)">
+                      <fa-icon [icon]="faMagnifyingGlass" [inverse]="true"></fa-icon>
                     </button>
-                    <button cButton color="danger" (click)="deleteCustomer(item.customer.id)">
-                      <fa-icon [icon]="faTrashCan" inverse="true"></fa-icon>
+                    <button cButton color="danger" (click)="deleteCustomer(item.customer.id!)">
+                      <fa-icon [icon]="faTrashCan" [inverse]="true"></fa-icon>
                     </button>
                   </c-col>
                 </c-row>
@@ -116,13 +116,13 @@
                     </c-col>
                     <c-col class="text-end pt-2 pt-sm-0">
                       <button cButton color="success" class="me-2" (click)="mergeCustomers(similarCustomer)">
-                        <fa-icon [icon]="faCheck" inverse="true"></fa-icon>
+                        <fa-icon [icon]="faCheck" [inverse]="true"></fa-icon>
                       </button>
-                      <button cButton class="me-2" (click)="showCustomerDetail(similarCustomer.id)">
-                        <fa-icon [icon]="faMagnifyingGlass" inverse="true"></fa-icon>
+                      <button cButton class="me-2" (click)="showCustomerDetail(similarCustomer.id!)">
+                        <fa-icon [icon]="faMagnifyingGlass" [inverse]="true"></fa-icon>
                       </button>
-                      <button cButton color="danger" class="text-white" (click)="deleteCustomer(similarCustomer.id)">
-                        <fa-icon [icon]="faTrashCan" inverse="true"></fa-icon>
+                      <button cButton color="danger" class="text-white" (click)="deleteCustomer(similarCustomer.id!)">
+                        <fa-icon [icon]="faTrashCan" [inverse]="true"></fa-icon>
                       </button>
                     </c-col>
                   </c-row>

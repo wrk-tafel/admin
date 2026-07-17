@@ -6,7 +6,7 @@ import {Gender, GenderLabel} from '../../api/customer-api.service';
   standalone: true
 })
 export class GenderLabelPipe implements PipeTransform {
-  transform(gender?: Gender): string {
+  transform(gender?: Gender | null): string {
     if (gender) {
       return GenderLabel[gender];
     }

@@ -15,7 +15,7 @@
             <tbody formArrayName="categories">
               @for (category of categories.controls; let categoryIndex = $index; track category) {
                 <tr [formGroupName]="categoryIndex"
-                    [cTableColor]="category.untouched ? null : category.invalid ? 'danger' : 'success'">
+                    [cTableColor]="category.untouched ? undefined : category.invalid ? 'danger' : 'success'">
                   <td class="fw-bold">{{ foodCategories()?.[categoryIndex]?.name }}</td>
                   <ng-container formArrayName="shops">
                     @for (shop of getShops(categoryIndex).controls; let shopIndex = $index; track shop) {
