@@ -55,7 +55,7 @@
         <div formArrayName="contacts">
           @for (contactCtrl of contacts.controls; track i; let i = $index) {
             @if(i > 0) {
-              <mat-divider class="my-6"></mat-divider>
+              <mat-divider class="!my-6"></mat-divider>
             }
             <div [formGroupName]="i">
               <div class="flex gap-2">

@@ -41,10 +41,56 @@ page (present identically on `main`, a pre-existing backend/toastr bug unrelated
 
 Verified via headless-Chrome screenshots (login, dashboard, customer search, user search, settings ×2,
 statistics, checkin scanner) after the fixes, plus `build-local` + `lint` + `test-ci` (494 tests) staying
-green throughout. Not covered: `logistik/warenerfassung` and `anmeldung/annahme` (the `admin` test user lacks
-`LOGISTICS`/`CHECKIN` permissions, so the router redirects to the dashboard — confirmed this happens
-identically on `main`, not a bug) and any page requiring seeded customer/distribution data beyond what
-`testdata` provides.
+green throughout.
+
+### Follow-up pass: remaining routes + two more cascade-layer bugs (same day)
+
+`logistik/warenerfassung` and `anmeldung/annahme` initially redirected back to the dashboard. This turned out
+to be unrelated to permissions — `admin`'s seeded `testdata` authorities already include `LOGISTICS` and
+`CHECKIN` (in fact `admin` has every permission the app defines). Both routes' components have their own
+`effect()` that redirects to `/uebersicht` whenever `getCurrentDistribution() === null`
+(`checkin.component.ts`, `food-collection-recording.component.ts`) — a deliberate business-state gate, not an
+auth gate. Started a distribution via the dashboard's "Tag starten" button (confirmed against `main` too,
+same shared Postgres DB) and re-ran the same `main`-vs-branch worktree comparison for every remaining route.
+This found two more real bugs, **both the same root cause as the sidebar-width bug**: Angular Material ships
+each component's structural CSS as unlayered `<style>` tags injected at runtime (confirmed via
+`document.styleSheets` — they're not part of the main bundled stylesheet at all, so nothing in this repo's
+own SCSS can wrap them in a layer), so any Tailwind utility applied directly to a bare Material element for a
+property Material also hardcodes gets silently discarded.
+
+- **`<mat-divider>` margins were always 0**, regardless of the `m-*`/`my-*` class applied — Material's
+  `.mat-divider` sets `margin: 0` unlayered, as a literal (not `var(...)`, so the `--mat-sidenav-container-width`
+  trick doesn't apply here). Fixed differently this time: Tailwind's `!` important-modifier (`!m-4` instead of
+  `m-4`) generates `margin: ... !important`, and per the CSS cascade-layers spec, **any** `!important`
+  declaration — layered or not — outranks **any** non-important unlayered declaration. Applied to all 11
+  `<mat-divider class="...">` usages across 7 files (`dashboard`, `passwordchange-form`, `checkin`, `scanner`,
+  `ticket-screen-control`, `customer-search`, `shelter-edit-dialog`, `user-search`). Verified `h-full` on
+  `mat-card` does *not* have the same problem first (Material's card CSS never sets height/width), rather than
+  applying `!important` everywhere pre-emptively.
+- **Three menu-trigger buttons had no dropdown affordance**: `customer-detail`'s "Daten ausdrucken" and "Bezug
+  verlängern", and `user-detail`'s "Benutzer-Status ändern". All three use `matButton` +
+  `[matMenuTriggerFor]` directly on the button with no visual indicator that it opens a menu (unlike CoreUI's
+  `cButton`+`cDropdown`, which auto-added a caret). Not a functional bug — the `<mat-menu>` and all its items
+  were fully intact, just undiscoverable. Added `▾` to the button text, matching the same character already
+  used by `customer-detail`'s pre-existing `editCustomerToggleButton` split-button. (The header's avatar-menu
+  trigger was deliberately left alone — icon-only "click the avatar" triggers don't conventionally need one.)
+
+**A screenshot methodology pitfall worth recording**: `customer-edit`'s form initially looked like it was
+missing its bottom section (`Gültig bis` field, `Anspruch prüfen`/`Speichern` buttons) compared to `main`.
+This was **not a bug** — `mat-sidenav-content` manages its own internal scroll (`overflow-y: auto`,
+`scrollHeight` 1138px vs `clientHeight` 900px), so `document.body.scrollHeight` never grows past the viewport
+height and Playwright's `page.screenshot({ fullPage: true })` (which measures the document, not the actual
+scrolling element) silently truncates anything below the fold. Confirmed by scrolling
+`mat-sidenav-content` itself and re-screenshotting — all the content was there and reachable, exactly like
+`main`. Worth remembering for any future screenshot-based check against this shell: measure/scroll the
+`mat-sidenav-content` element specifically, not the page.
+
+Routes now confirmed working end-to-end (post-distribution-start): dashboard (open state), customer search,
+user search, both settings pages, statistics, checkin scanner, checkin annahme, checkin ticket-monitor
+control, logistics warenerfassung, customer detail, user detail, customer create, user create, customer
+duplicates. Rebuilt, re-ran `build-local` + `lint` + `test-ci` (494 tests) after every fix batch — all green
+throughout. Not covered: any page needing customer/distribution data beyond what `testdata` seeds (e.g. a
+distribution with real recorded food collections), and the full Cypress suite.
 
 ## Established target pattern (already proven in ~19 already-migrated files)
 

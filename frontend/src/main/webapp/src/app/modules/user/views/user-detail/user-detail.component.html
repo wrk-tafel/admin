@@ -4,7 +4,7 @@
       Benutzer bearbeiten
     </button>
     <button testid="changeUserStateButton" matButton="filled" class="button-danger" [matMenuTriggerFor]="userStateMenu">
-      Benutzer-Status ändern
+      Benutzer-Status ändern ▾
     </button>
     <mat-menu #userStateMenu="matMenu">
       @if (currentUserData().enabled) {

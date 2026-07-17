@@ -23,7 +23,7 @@
       </h4>
     </div>
 
-    <mat-divider class="my-6"></mat-divider>
+    <mat-divider class="!my-6"></mat-divider>
 
     <div class="grid grid-cols-1 md:grid-cols-8 gap-6 items-center">
       <label class="md:col-span-1">Kundennummer</label>
@@ -115,7 +115,7 @@
                             <div [attr.testid]="'addperson-' + i + '-countryText'">{{ addPerson?.country?.name }}
                             </div>
                           </div>
-                          <mat-divider class="my-2"></mat-divider>
+                          <mat-divider class="!my-2"></mat-divider>
                           <div class="flex justify-between items-end">
                             <div>Im selben Haushalt:</div>
                             <div class="align-bottom"
@@ -156,7 +156,7 @@
           </div>
         </div>
 
-        <mat-divider class="my-6"></mat-divider>
+        <mat-divider class="!my-6"></mat-divider>
 
         @if (customerState() !== undefined && customerState() !== 0) {
           <div class="flex flex-col md:flex-row gap-2 mb-6">

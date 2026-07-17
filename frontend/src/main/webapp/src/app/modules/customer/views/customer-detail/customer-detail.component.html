@@ -12,7 +12,7 @@
 <div class="flex flex-col-reverse lg:flex-col">
   <div class="flex flex-col lg:flex-row mt-4 lg:mt-0 mb-6 lg:mb-0 gap-4">
     <button testid="printMenuButton" matButton="filled" [matMenuTriggerFor]="printMenu" [disabled]="$safeNavigationMigration(customerData()?.locked)">
-      Daten ausdrucken
+      Daten ausdrucken ▾
     </button>
     <mat-menu #printMenu="matMenu">
       <button mat-menu-item testid="printCombinedButton" (click)="printCombined()">
@@ -28,7 +28,7 @@
     </mat-menu>
 
     <button testid="prolongButton" matButton="filled" [matMenuTriggerFor]="prolongMenu" [disabled]="$safeNavigationMigration(customerData()?.locked)">
-      Bezug verlängern
+      Bezug verlängern ▾
     </button>
     <mat-menu #prolongMenu="matMenu">
       <button mat-menu-item testid="prolongOneMonthButton" (click)="prolongCustomer(1)">1
