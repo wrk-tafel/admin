@@ -1,18 +1,18 @@
-<div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6">
   <div class="md:col-span-3">
     <mat-card>
       <mat-card-header>
         <h5>Statistik</h5>
       </mat-card-header>
       <mat-card-content>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <div class="font-bold mb-2">Schnellauswahl</div>
             <div>
               <button matButton="filled" class="mt-2 md:mt-0" (click)="onSelectCurrentYear()">Aktuelles Jahr</button>
               <button matButton="filled" class="ms-2 md:ms-0 lg:ms-2 mt-2 lg:mt-0" (click)="onSelectCurrentMonth()">Aktuelles Monat</button>
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-7 gap-2 items-center mt-3">
+            <div class="grid grid-cols-1 sm:grid-cols-7 gap-2 items-center mt-4">
               <div class="sm:col-span-2">
                 <label class="form-label">Jahr</label>
               </div>
@@ -43,7 +43,7 @@
             </div>
           </div>
           <div>
-            <div class="font-bold mb-2 mt-3 md:mt-0">Zeitraum</div>
+            <div class="font-bold mb-2 mt-4 md:mt-0">Zeitraum</div>
             <div class="grid grid-cols-1 sm:grid-cols-7 gap-2 items-center">
               <div class="sm:col-span-2">
                 <label class="form-label">von</label>
@@ -65,7 +65,7 @@
       </mat-card-content>
     </mat-card>
   </div>
-  <div class="mt-3 md:mt-0">
+  <div class="mt-4 md:mt-0">
     <mat-card class="h-full">
       <mat-card-header>
         <h5>Export</h5>
@@ -79,7 +79,7 @@
   </div>
 </div>
 @if (statisticsData()) {
-  <mat-card class="mt-3">
+  <mat-card class="mt-4">
     <mat-card-header>
       <h5>Zeitraum: {{ dateRangeFrom | date: 'dd.MM.yyyy' }} - {{ dateRangeTo | date: 'dd.MM.yyyy' }}</h5>
     </mat-card-header>
@@ -87,7 +87,7 @@
       <div>
         <h5>Kunden und Personen</h5>
       </div>
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
         <div>
           <tafel-statistics-panel [data]="statisticsData()!.beneficiaryCustomers"></tafel-statistics-panel>
         </div>
@@ -99,10 +99,10 @@
             [data]="statisticsData()!.beneficiaryCustomersWithChildren"></tafel-statistics-panel>
         </div>
       </div>
-      <div class="mt-3">
+      <div class="mt-4">
         <h5>Notschlafstellen</h5>
       </div>
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
         <div>
           <tafel-statistics-panel [data]="statisticsData()!.sheltersCount"></tafel-statistics-panel>
         </div>
@@ -113,10 +113,10 @@
           <tafel-statistics-panel [data]="statisticsData()!.sheltersPersonsCount"></tafel-statistics-panel>
         </div>
       </div>
-      <div class="mt-3">
+      <div class="mt-4">
         <h5>Transport- / Logistik</h5>
       </div>
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
         <div>
           <tafel-statistics-panel [data]="statisticsData()!.shopsCount"></tafel-statistics-panel>
         </div>

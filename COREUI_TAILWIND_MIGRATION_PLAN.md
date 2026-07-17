@@ -143,13 +143,40 @@ Ordered so early phases shrink CoreUI's footprint fast with low risk, and the ri
   errors, but the app's `provideAppInitializer` blocks bootstrap on a login API call with no backend running in
   this environment, so the actual rendered shell was never visually confirmed in a browser this session.
 
-**Phase 8 — Bootstrap utility-class audit** (cross-cutting safety sweep, run across the *whole* codebase,
-not just files touched above)
-- Re-grep all templates for `fw-*`, `text-end`/`text-start`, `d-flex`/`d-none`/`d-block`, `justify-content-*`,
-  `align-items-*`, `ms-*`/`me-*`, `py-*`/`px-*`, `g-*`, `container-fluid`, `row`/`col`, `form-*` and replace with
-  Tailwind equivalents or delete.
-- Pay special attention to class names that exist in **both** frameworks with different scale values
-  (`mt-*`, `mb-*`, `row`, `col`) — these won't error, they'll silently change spacing. Visually diff key pages.
+**Phase 8 — Bootstrap utility-class audit** ✅ DONE (2026-07-17)
+- Determined the actual collision rule from the compiled CSS rather than guessing: CoreUI/Bootstrap generates
+  its utility classes (`fw-*`, `d-*`, `justify-content-*`, `align-items-*`, `m*-*`/`p*-*`/`gap-*` 0–5, `w-100`/
+  `h-100`, `rounded`, `border`, `container`, ...) with `!important`, so any template class name that collides
+  with one of those names is *already* silently rendering Bootstrap's value today, regardless of source order —
+  Tailwind's own rule for that name is fully shadowed. This made the audit mechanical: extract every
+  `!important`-flagged single-class rule from a real build's compiled CSS, cross-reference against every class
+  actually used in every template (via `class=`, `[ngClass]`, `[class.x]`, `[class]` bindings), and for each
+  real collision either rename to the Tailwind equivalent (`fw-bold`→`font-bold`, `d-flex`→`flex`,
+  `justify-content-between`→`justify-between`, `flex-grow-1`→`grow`, `text-end`→`text-right`, `w-100`→`w-full`,
+  `rounded`→`rounded-md`, ...) or, for the spacer scale, remap the index so the *rem value* is preserved
+  (Bootstrap 0/1/2/3/4/5 = 0/.25/.5/1/1.5/3rem vs Tailwind's linear scale — only index 0/1/2 coincide, so
+  3→4, 4→6, 5→12 for every `m*/p*/gap-*` combination). Where two rules for the same file would otherwise chain
+  (e.g. an original `-3` mapping to `-4`, which is itself another rule's source), applied a single simultaneous
+  pass per class token rather than sequential text substitution, to avoid double-converting.
+- `.form-control`/`.form-label`/`.form-check-input`/`.is-invalid`/`.is-valid`/`.invalid-feedback` (left in place
+  by Phase 4 on plain native inputs) needed real CSS, not a utility swap — added
+  `scss/components/tafel-form.scss` (`@layer components`, same pattern as `tafel-badge.scss`) reproducing the
+  exact computed styles (colors, validation icons, checkbox/radio checked-state SVGs) captured from a build with
+  CoreUI still present, so ~50 form-field usages across the app needed no template changes at all.
+- Bare `container` (2 files, error pages) doesn't exist in Tailwind's utility set the same way — replaced with
+  `w-full max-w-6xl mx-auto`. Initial pass dropped Bootstrap's implicit `width:100%` and only added `max-w-6xl`;
+  since the div is a flex item (not a plain block child) it collapsed to content width instead of filling the
+  row, wrapping every word onto its own line. Caught by actually running the app (`ng serve` + headless Chrome
+  screenshot) and comparing against the pre-edit render — added `w-full` back to fix.
+- Bare `border` (no color utility) on 3 elements needed an explicit color to replace Bootstrap's forced
+  `!important` border-color once removed; added `border-[#dbdfe6]` / `border-gray-300` to match. Where a color
+  utility was already present alongside bare `border` (e.g. `border border-gray-300`), left as-is — that
+  color was already the correct target and had simply been silently overridden by Bootstrap's `!important`.
+  `text-danger` (1 usage) → `text-[#e55353]` (matches the existing `--cui-danger` value used elsewhere).
+- Verified with `build-local` + `lint` + `test-ci` (494 tests, all green) after every batch, plus a real
+  `ng serve` session with headless-Chrome screenshots of the login page and both error pages to visually
+  confirm rendering — this is what caught the `container` regression above; a text-only/grep-based check would
+  have missed it.
 
 **Phase 9 — Remove CoreUI entirely**
 - Delete all 7 `@coreui/*` packages from `package.json`, reinstall.

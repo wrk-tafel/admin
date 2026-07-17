@@ -10,7 +10,7 @@
   </div>
 }
 <div class="flex flex-col-reverse lg:flex-col">
-  <div class="flex flex-col lg:flex-row mt-3 lg:mt-0 mb-4 lg:mb-0 gap-3">
+  <div class="flex flex-col lg:flex-row mt-4 lg:mt-0 mb-6 lg:mb-0 gap-4">
     <button testid="printMenuButton" matButton="filled" [matMenuTriggerFor]="printMenu" [disabled]="$safeNavigationMigration(customerData()?.locked)">
       Daten ausdrucken
     </button>
@@ -73,7 +73,7 @@
       </button>
     </mat-menu>
   </div>
-  <div *tafelIfDistributionActive class="flex items-center mt-3 lg:mt-2 mb-2 gap-2">
+  <div *tafelIfDistributionActive class="flex items-center mt-4 lg:mt-2 mb-2 gap-2">
     @if (!ticketNumber()) {
       <input testid="ticket-number-input" type="number" class="form-control" style="max-width: 150px;"
              placeholder="Ticketnummer"
@@ -95,8 +95,8 @@
   <div class="mt-0 lg:mt-3 mb-0 lg:mb-3">
     <mat-tab-group animationDuration="0ms">
       <mat-tab label="Allgemeine Daten">
-        <div class="mt-3 px-3">
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 mt-2">
+        <div class="mt-4 px-4">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-2">
             <div>
               <mat-card>
                 <mat-card-header class="justify-center text-center w-full">
@@ -222,12 +222,12 @@
         <ng-template mat-tab-label>
           <fa-icon [icon]="faUsers"></fa-icon>&nbsp;Weitere Personen ({{ customerData()?.additionalPersons?.length }})
         </ng-template>
-        <div class="px-3">
+        <div class="px-4">
           @if (customerData()?.additionalPersons?.length === 0) {
-            <h6 testid="nopersons-label" class="mt-3">Keine Personen vorhanden</h6>
+            <h6 testid="nopersons-label" class="mt-4">Keine Personen vorhanden</h6>
           }
           @if ((customerData()?.additionalPersons?.length ?? 0) > 0) {
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
               @for (addPerson of customerData()?.additionalPersons; track addPerson.id; let i = $index) {
                 <div>
                   <mat-card>

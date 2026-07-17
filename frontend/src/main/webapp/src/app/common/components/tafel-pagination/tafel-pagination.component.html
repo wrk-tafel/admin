@@ -8,7 +8,7 @@
   <button matIconButton [disabled]="currentPage === 1" (click)="selectPreviousPage()" [class.scale-75]="size() === 'sm'">
     <span aria-hidden="true">&lt;</span>
   </button>
-  <div class="mx-3" [class.text-sm]="size() === 'sm'">{{text}}</div>
+  <div class="mx-4" [class.text-sm]="size() === 'sm'">{{text}}</div>
   <button matIconButton [disabled]="currentPage === maxPage" (click)="selectNextPage()" [class.scale-75]="size() === 'sm'">
     <span aria-hidden="true">&gt;</span>
   </button>

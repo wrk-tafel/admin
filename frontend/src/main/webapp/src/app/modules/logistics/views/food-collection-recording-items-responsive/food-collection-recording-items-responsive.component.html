@@ -1,5 +1,5 @@
 @if (currentShop(); as shop) {
-  <div class="mt-3 mb-3">
+  <div class="mt-4 mb-4">
     <div class="grid grid-cols-12">
       <div class="col-span-3 font-bold">Filiale:</div>
       <div class="col-span-9" testid="shop-title">{{ shop.id + ' - ' + shop.name }}</div>
@@ -8,7 +8,7 @@
       <div class="col-span-3"></div>
       <div class="col-span-9">{{ shop.address }}</div>
     </div>
-    <div class="grid grid-cols-2 mt-3">
+    <div class="grid grid-cols-2 mt-4">
       <div class="text-center">
         <button matButton="filled" (click)="selectPreviousShop()" testid="previous-shop-button"
                 [disabled]="this.selectedRouteData()?.shops?.indexOf(shop) === 0">
@@ -26,7 +26,7 @@
       @for (category of foodCategoriesItems(); track category?.id) {
         <div class="flex flex-col">
           <div class="text-center">{{ category.name }}</div>
-          <div class="mb-3">
+          <div class="mb-4">
             <tafel-counter-input [testId]="'category-' + category.id"
                                  [key]="category.id"
                                  [value]="categoryValues()[category.id]"
@@ -40,7 +40,7 @@
       @for (category of foodCategoriesReturn(); track category?.id) {
         <div class="flex flex-col">
           <div class="text-center">{{ category.name }}</div>
-          <div class="mb-3">
+          <div class="mb-4">
             <tafel-counter-input [testId]="'category-' + category.id"
                                  [key]="category.id"
                                  [value]="categoryValues()[category.id]"

@@ -4,7 +4,7 @@
       <h5>Benutzerdaten</h5>
     </mat-card-header>
     <mat-card-content>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <div>
           <label class="form-label">Benutzername *</label>
           <input [formField]="userForm.username" testid="usernameInput" type="text" class="form-control" tafelAutofocus
@@ -26,7 +26,7 @@
           }
         </div>
       </div>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-2">
         <div>
           <label class="form-label">Nachname *</label>
           <input testid="lastnameInput" type="text" [formField]="userForm.lastname" class="form-control"
@@ -50,7 +50,7 @@
         </div>
       </div>
       <hr>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <div>
           <label class="form-label">Passwort</label>
           <div class="flex items-center gap-2">
@@ -98,20 +98,20 @@
           }
         </div>
       </div>
-      <div class="mt-3">
+      <div class="mt-4">
         <button testid="generate-password-button" matButton="filled"
                 (click)="generatePassword()">Passwort generieren
         </button>
       </div>
       <hr>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <div>
           <label class="form-label">Benutzer aktiv</label>
           <div>
             <input testid="enabledInput" type="checkbox" [formField]="userForm.enabled" class="form-check-input">
           </div>
         </div>
-        <div class="mt-3 sm:mt-0">
+        <div class="mt-4 sm:mt-0">
           <label class="form-label">Passwort-Änderung beim nächsten Login erforderlich</label>
           <div>
             <input testid="passwordChangeRequiredInput" type="checkbox" [formField]="userForm.passwordChangeRequired"

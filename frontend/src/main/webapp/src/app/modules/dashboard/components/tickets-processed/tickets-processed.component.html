@@ -1,10 +1,10 @@
-<mat-card class="h-100 mat-card-{{ panelColor() }}">
+<mat-card class="h-full mat-card-{{ panelColor() }}">
   <mat-card-header>
     <mat-card-title>
       <h4>Tickets abgearbeitet</h4>
     </mat-card-title>
   </mat-card-header>
-  <mat-card-content class="text-end">
+  <mat-card-content class="text-right">
     @if (countProcessedTickets() !== null && countTotalTickets() !== null) {
       <div testid="tickets-processed-count" class="text-5xl">{{ countProcessedTickets() }} / {{ countTotalTickets() }}</div>
     } @else {

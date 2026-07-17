@@ -1,16 +1,16 @@
-<mat-card class="p-4">
+<mat-card class="p-6">
   <mat-card-content>
-    <div class="flex justify-between items-center mb-4">
+    <div class="flex justify-between items-center mb-6">
       <h3 class="text-xl font-semibold m-0">Ticket-Monitor - Steuerung</h3>
       <button testid="open-screen-button" mat-flat-button color="primary" class="ml-4" (click)="openScreenInNewTab()">Monitor öffnen</button>
     </div>
 
-    <mat-divider class="my-4"></mat-divider>
+    <mat-divider class="my-6"></mat-divider>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <div>
         <form autocomplete="off">
-          <div class="flex items-center gap-4 mb-4">
+          <div class="flex items-center gap-6 mb-6">
             <mat-form-field class="flex-1">
               <mat-label>Startzeit</mat-label>
               <input matInput type="time" testid="starttime-input" [formField]="startTimeForm.startTime" (keydown.enter)="showStartTime()">
@@ -21,7 +21,7 @@
 
         <mat-divider></mat-divider>
 
-        <div class="flex items-center mt-4">
+        <div class="flex items-center mt-6">
           <label class="w-32">Tickets:</label>
           <div class="flex flex-wrap gap-2">
             <button testid="show-currentticket-button" matButton="filled" (click)="showCurrentTicket()" [disabled]="isShowingCurrentTicket()">Aktuelles Ticket</button>
@@ -32,7 +32,7 @@
         <div class="text-center mt-6">
           <h4 class="text-lg">Aktuelles Ticket</h4>
           <div class="mt-2">Unkostenbeitrag entrichtet ?</div>
-          <div class="mt-4 flex flex-col sm:flex-row items-center justify-center gap-2">
+          <div class="mt-6 flex flex-col sm:flex-row items-center justify-center gap-2">
             <button testid="costcontribution-paid-yes-button" matButton="filled" class="button-success" (click)="showNextTicket(true)" [disabled]="isShowingNextTicket() || currentDistribution() === null">Weiter (bezahlt)</button>
             <button testid="costcontribution-paid-no-button" matButton="filled" class="button-danger" (click)="showNextTicket(false)" [disabled]="isShowingNextTicket() || currentDistribution() === null">Weiter (nicht bezahlt)</button>
           </div>
@@ -43,7 +43,7 @@
         <div class="text-center">
           <h3 class="text-xl font-semibold">Live-Ansicht</h3>
         </div>
-        <div class="mt-3 flex justify-center">
+        <div class="mt-4 flex justify-center">
           <div style="height: 30vh; width: 30vw; font-size: 2pt;">
             <tafel-ticket-screen></tafel-ticket-screen>
           </div>

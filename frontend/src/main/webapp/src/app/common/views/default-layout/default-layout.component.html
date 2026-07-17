@@ -16,13 +16,13 @@
       @for (item of navItems(); track item.name) {
         @if (item.title) {
           @if (!collapsed()) {
-            <div class="px-4 pt-4 pb-1 text-xs uppercase tracking-wide text-gray-500 font-semibold">{{ item.name }}</div>
+            <div class="px-6 pt-6 pb-1 text-xs uppercase tracking-wide text-gray-500 font-semibold">{{ item.name }}</div>
           }
         } @else {
           <div>
             @if (item.children) {
               <a (click)="toggleExpanded(item.name)"
-                 class="flex items-center gap-3 px-4 py-2 hover:bg-gray-800 cursor-pointer"
+                 class="flex items-center gap-4 px-6 py-2 hover:bg-gray-800 cursor-pointer"
                  [class.pointer-events-none]="item.attributes?.disabled"
                  [class.opacity-50]="item.attributes?.disabled">
                 @if (item.icon) {
@@ -34,7 +34,7 @@
               </a>
             } @else {
               <a [routerLink]="item.url" routerLinkActive="bg-gray-800"
-                 class="flex items-center gap-3 px-4 py-2 hover:bg-gray-800 cursor-pointer"
+                 class="flex items-center gap-4 px-6 py-2 hover:bg-gray-800 cursor-pointer"
                  [class.pointer-events-none]="item.attributes?.disabled"
                  [class.opacity-50]="item.attributes?.disabled">
                 @if (item.icon) {
@@ -51,7 +51,7 @@
             @if (item.children && !collapsed() && expandedItems().has(item.name)) {
               @for (child of item.children; track child.name) {
                 <a [routerLink]="child.url" routerLinkActive="bg-gray-800"
-                   class="flex items-center gap-3 pl-10 pr-4 py-2 text-gray-300 hover:bg-gray-800 cursor-pointer">
+                   class="flex items-center gap-4 pl-10 pr-4 py-2 text-gray-300 hover:bg-gray-800 cursor-pointer">
                   @if (child.icon) {
                     <fa-icon [icon]="child.icon" class="w-4 shrink-0"></fa-icon>
                   }
@@ -66,7 +66,7 @@
 
     <div class="hidden lg:flex border-t border-gray-800 justify-center py-2 shrink-0">
       <button (click)="collapsed.set(!collapsed())" aria-label="Menü ein-/ausklappen"
-              class="w-9 h-9 flex items-center justify-center rounded hover:bg-gray-800">
+              class="w-9 h-9 flex items-center justify-center rounded-md hover:bg-gray-800">
         <fa-icon [icon]="collapsed() ? faAngleRight : faAngleLeft"></fa-icon>
       </button>
     </div>
@@ -74,7 +74,7 @@
 
   <mat-sidenav-content class="flex flex-col min-h-screen">
     <tafel-default-header class="sticky top-0 z-10 bg-white shadow-sm" (toggleSidebar)="sidenav.toggle()"/>
-    <div class="grow px-4 pb-4">
+    <div class="grow px-6 pb-6">
       <router-outlet/>
     </div>
   </mat-sidenav-content>

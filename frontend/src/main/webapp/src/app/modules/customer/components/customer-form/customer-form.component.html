@@ -1,11 +1,11 @@
 <form>
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
     <mat-card>
       <mat-card-header>
         <h5>Hauptbezieher</h5>
       </mat-card-header>
       <mat-card-content>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-2">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-2">
           <div>
             <label class="form-label">Nachname *</label>
             <input testid="lastnameInput" type="text" [formField]="customerForm.lastname" class="form-control" tafelAutofocus
@@ -27,7 +27,7 @@
             }
           </div>
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-2">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-2">
           <div>
             <label class="form-label">Geburtsdatum *</label>
             <input testid="birthDateInput" type="date" [formField]="customerForm.birthDate" class="form-control"
@@ -77,7 +77,7 @@
             }
           }
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-2">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-2">
           <div>
             <label class="form-label">Telefonnummer *</label>
             <div class="flex items-center gap-2">
@@ -118,7 +118,7 @@
               }
             }
           </div>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-2">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-2">
             <div>
               <label class="form-label">Hausnummer *</label>
               <input testid="houseNumberInput" type="text" [formField]="customerForm.address.houseNumber"
@@ -142,7 +142,7 @@
                      [ngClass]="{'is-invalid': shouldShowErrors(customerForm.address.door()), 'is-valid': customerForm.address.door().valid() && (customerForm.address.door().dirty() || customerForm.address.door().touched())}">
             </div>
           </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-2">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-2">
             <div>
               <label class="form-label">PLZ *</label>
               <div class="flex items-center gap-2">
@@ -187,7 +187,7 @@
             }
           }
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-2">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-2">
           <div>
             <label class="form-label">Einkommen (monatl.)</label>
             <div class="flex items-center gap-2">
@@ -225,7 +225,7 @@
         </div>
       </mat-card-content>
     </mat-card>
-    <div class="mt-3 md:mt-0">
+    <div class="mt-4 md:mt-0">
       <mat-card>
         <mat-card-header class="w-full">
           <div class="flex justify-between items-center w-full">
@@ -236,14 +236,14 @@
         <mat-card-content>
           @if (!customerForm.additionalPersons().value() || customerForm.additionalPersons().value()?.length === 0) {
             <div>
-              <h6 testid="nopersons-label" class="mb-3">Keine Personen vorhanden</h6>
+              <h6 testid="nopersons-label" class="mb-4">Keine Personen vorhanden</h6>
             </div>
           }
           @for (person of customerForm.additionalPersons().value(); track person.key; let i = $index) {
-            <div class="mt-3">
+            <div class="mt-4">
               <mat-card>
                 <mat-card-content [attr.testid]="'personform-' + i">
-                  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div>
                       <label class="form-label">Nachname *</label>
                       <input testid="lastnameInput" type="text" [formField]="personField(i).lastname"
@@ -267,7 +267,7 @@
                       }
                     </div>
                   </div>
-                  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-2">
+                  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-2">
                     <div>
                       <label class="form-label">Geburtsdatum *</label>
                       <input testid="birthDateInput" type="date" [formField]="personField(i).birthDate"
@@ -324,7 +324,7 @@
                       }
                     }
                   </div>
-                  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-2">
+                  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-2">
                     <div>
                       <label class="form-label">Arbeitgeber</label>
                       <div class="flex items-center gap-2">
@@ -365,7 +365,7 @@
                       }
                     }
                   </div>
-                  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-2">
+                  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-2">
                     <div>
                       <label class="form-label">Bezieht Familienbeihilfe</label>
                       <div>
@@ -381,7 +381,7 @@
                       </div>
                     </div>
                   </div>
-                  <div class="mt-3">
+                  <div class="mt-4">
                     <button [attr.testid]="'remove-personform-' + i" matButton="filled"
                             class="button-danger"
                             (click)="removePerson(i)">Löschen

@@ -1,18 +1,18 @@
-<div class="flex items-center justify-between border-b px-4 h-16">
+<div class="flex items-center justify-between border-b px-6 h-16">
   <button (click)="toggleSidebar.emit()" aria-label="Menü ein-/ausklappen"
-          class="w-9 h-9 flex items-center justify-center rounded hover:bg-gray-100">
+          class="w-9 h-9 flex items-center justify-center rounded-md hover:bg-gray-100">
     <fa-icon [icon]="faBars"></fa-icon>
   </button>
 
-  <div class="flex items-center gap-4">
-    <span class="badge" [ngClass]="sseConnected() === false ? 'badge-danger' : 'badge-success'">Live-Verbindung</span>
+  <div class="flex items-center gap-6">
+    <span class="badge" [ngClass]="!sseConnected() ? 'badge-danger' : 'badge-success'">Live-Verbindung</span>
 
     <button [matMenuTriggerFor]="userMenu" testid="usermenu" aria-label="Öffne Benutzermenü"
-            class="w-9 h-9 rounded overflow-hidden border">
+            class="w-9 h-9 rounded-md overflow-hidden border border-[#dbdfe6]">
       <img src="./assets/img/user/user.svg" alt="Benutzer-Avatar" class="w-full h-full object-cover"/>
     </button>
     <mat-menu #userMenu="matMenu">
-      <div class="px-4 py-2 font-semibold bg-gray-100">Benutzer</div>
+      <div class="px-6 py-2 font-semibold bg-gray-100">Benutzer</div>
       <a mat-menu-item [routerLink]="['/passwortaendern']" testid="usermenu-changepassword">
         <fa-icon [icon]="faKey"></fa-icon> Passwort ändern
       </a>

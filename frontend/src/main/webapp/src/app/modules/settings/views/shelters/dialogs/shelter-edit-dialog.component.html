@@ -41,7 +41,7 @@
         <input matInput type="number" formControlName="personsCount"/>
       </mat-form-field>
 
-      <mat-checkbox formControlName="enabled" class="mb-4">Aktiv</mat-checkbox>
+      <mat-checkbox formControlName="enabled" class="mb-6">Aktiv</mat-checkbox>
 
       <mat-form-field>
         <mat-label>Hinweis</mat-label>
@@ -50,12 +50,12 @@
       </mat-form-field>
 
       <!-- Contacts -->
-      <div class="mt-4">
+      <div class="mt-6">
         <h4 class="mb-2">Kontakte</h4>
         <div formArrayName="contacts">
           @for (contactCtrl of contacts.controls; track i; let i = $index) {
             @if(i > 0) {
-              <mat-divider class="my-4"></mat-divider>
+              <mat-divider class="my-6"></mat-divider>
             }
             <div [formGroupName]="i">
               <div class="flex gap-2">

@@ -1,12 +1,12 @@
 <form [formGroup]="form" autocomplete="off">
   <mat-card>
     <mat-card-content>
-      <div class="mb-3">
+      <div class="mb-4">
         <h5 class="text-lg font-semibold">Kunden-Suche</h5>
       </div>
 
-      <div class="mb-3">
-        <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+      <div class="mb-4">
+        <div class="flex flex-col sm:flex-row sm:items-center gap-6">
           <div class="sm:w-1/3">
             <mat-form-field class="w-full">
               <mat-label>Kundennummer</mat-label>
@@ -21,10 +21,10 @@
         </div>
       </div>
 
-      <mat-divider class="my-4"></mat-divider>
+      <mat-divider class="my-6"></mat-divider>
 
-      <div class="mb-3">
-        <div class="flex flex-col sm:flex-row gap-4">
+      <div class="mb-4">
+        <div class="flex flex-col sm:flex-row gap-6">
           <div class="sm:w-1/3">
             <mat-form-field class="w-full">
               <mat-label>Nachname</mat-label>
@@ -40,7 +40,7 @@
         </div>
       </div>
 
-      <div class="mb-3">
+      <div class="mb-4">
         <div class="flex flex-col sm:flex-row gap-6">
           <mat-checkbox formControlName="postProcessing" testid="postProcessingInput">Daten unvollständig</mat-checkbox>
           <mat-checkbox formControlName="costContribution" testid="costContributionInput">Unkostenbeitrag offen</mat-checkbox>
@@ -48,21 +48,21 @@
         </div>
       </div>
 
-      <div class="flex sm:w-1/3 mt-4">
+      <div class="flex sm:w-1/3 mt-6">
         <button matButton="filled" testid="search-button" (click)="searchForDetails()">Suchen</button>
       </div>
 
       @if (searchResult()) {
-        <mat-divider class="my-4"></mat-divider>
+        <mat-divider class="my-6"></mat-divider>
         <div class="mt-6" testid="searchresult-table">
-          <div class="mb-4">
-            <h5 class="mb-4">Suchergebnis ({{searchResult()!.totalCount}} Kunden)</h5>
+          <div class="mb-6">
+            <h5 class="mb-6">Suchergebnis ({{searchResult()!.totalCount}} Kunden)</h5>
             <tafel-pagination align="end" [paginationData]="paginationData()"
                               (pageChanged)="searchForDetails($event)"></tafel-pagination>
           </div>
 
           <div class="hidden md:block">
-            <table mat-table [dataSource]="searchResult()!.items" class="min-w-full divide-y divide-gray-200 mt-3"
+            <table mat-table [dataSource]="searchResult()!.items" class="min-w-full divide-y divide-gray-200 mt-4"
                    aria-label="Liste der gefundenen Kunden">
               <ng-container matColumnDef="icon">
                 <th mat-header-cell *matHeaderCellDef></th>
@@ -70,13 +70,13 @@
               </ng-container>
 
               <ng-container matColumnDef="id">
-                <th mat-header-cell *matHeaderCellDef class="px-4 py-2 text-left">Nr.</th>
-                <td mat-cell *matCellDef="let customer; let i = index" [attr.testid]="'searchresult-id-' + i" class="px-3 py-2">{{customer.id}}</td>
+                <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Nr.</th>
+                <td mat-cell *matCellDef="let customer; let i = index" [attr.testid]="'searchresult-id-' + i" class="px-4 py-2">{{customer.id}}</td>
               </ng-container>
 
               <ng-container matColumnDef="name">
-                <th mat-header-cell *matHeaderCellDef class="px-4 py-2 text-left">Name</th>
-                <td mat-cell *matCellDef="let customer; let i = index" [attr.testid]="'searchresult-name-' + i" class="px-3 py-2">
+                <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Name</th>
+                <td mat-cell *matCellDef="let customer; let i = index" [attr.testid]="'searchresult-name-' + i" class="px-4 py-2">
                   @if (customer.lastname || customer.firstname) {
                     <a class="text-blue-600 hover:underline cursor-pointer" (click)="navigateToCustomer(customer.id!)">{{customer.lastname ? customer.lastname : '-'}} {{customer.firstname ? customer.firstname : '-'}}</a>
                   }
@@ -87,28 +87,28 @@
               </ng-container>
 
               <ng-container matColumnDef="birthDate">
-                <th mat-header-cell *matHeaderCellDef class="px-4 py-2 text-left">Geb. Datum</th>
-                <td mat-cell *matCellDef="let customer; let i = index" [attr.testid]="'searchresult-birthDate-' + i" class="px-3 py-2">{{!customer.birthDate ? '-' : customer.birthDate | date : 'dd.MM.yyyy'}}</td>
+                <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Geb. Datum</th>
+                <td mat-cell *matCellDef="let customer; let i = index" [attr.testid]="'searchresult-birthDate-' + i" class="px-4 py-2">{{!customer.birthDate ? '-' : customer.birthDate | date : 'dd.MM.yyyy'}}</td>
               </ng-container>
 
               <ng-container matColumnDef="address">
-                <th mat-header-cell *matHeaderCellDef class="px-4 py-2 text-left">Adresse</th>
-                <td mat-cell *matCellDef="let customer; let i = index" [attr.testid]="'searchresult-address-' + i" class="px-3 py-2">{{customer.address | formatCustomerAddress}}</td>
+                <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Adresse</th>
+                <td mat-cell *matCellDef="let customer; let i = index" [attr.testid]="'searchresult-address-' + i" class="px-4 py-2">{{customer.address | formatCustomerAddress}}</td>
               </ng-container>
 
               <ng-container matColumnDef="issuedAt">
-                <th mat-header-cell *matHeaderCellDef class="px-4 py-2 text-left">Ausgestellt am</th>
-                <td mat-cell *matCellDef="let customer; let i = index" [attr.testid]="'searchresult-issuedAt-' + i" class="px-3 py-2">{{!customer.issuedAt ? '-' : customer.issuedAt | date : 'dd.MM.yyyy'}}</td>
+                <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Ausgestellt am</th>
+                <td mat-cell *matCellDef="let customer; let i = index" [attr.testid]="'searchresult-issuedAt-' + i" class="px-4 py-2">{{!customer.issuedAt ? '-' : customer.issuedAt | date : 'dd.MM.yyyy'}}</td>
               </ng-container>
 
               <ng-container matColumnDef="validUntil">
-                <th mat-header-cell *matHeaderCellDef class="px-4 py-2 text-left">Gültig bis</th>
-                <td mat-cell *matCellDef="let customer; let i = index" [attr.testid]="'searchresult-validUntil-' + i" class="px-3 py-2">{{!customer.validUntil ? '-' : customer.validUntil | date : 'dd.MM.yyyy'}}</td>
+                <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Gültig bis</th>
+                <td mat-cell *matCellDef="let customer; let i = index" [attr.testid]="'searchresult-validUntil-' + i" class="px-4 py-2">{{!customer.validUntil ? '-' : customer.validUntil | date : 'dd.MM.yyyy'}}</td>
               </ng-container>
 
               <ng-container matColumnDef="actions">
-                <th mat-header-cell *matHeaderCellDef class="px-4 py-2 text-left">Aktionen</th>
-                <td mat-cell *matCellDef="let customer; let i = index" class="px-3 py-2">
+                <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Aktionen</th>
+                <td mat-cell *matCellDef="let customer; let i = index" class="px-4 py-2">
                   <div class="flex gap-2">
                     <button matButton="filled" class="button-info" [attr.testid]="'searchresult-showcustomer-button-' + i" (click)="navigateToCustomer(customer.id!)">
                       <fa-icon [icon]="faSearch"></fa-icon>
@@ -124,14 +124,14 @@
               <tr mat-row *matRowDef="let row; let i = index; columns: displayedColumns;" testid="searchresult-row"></tr>
             </table>
 
-            <div class="mt-4">
+            <div class="mt-6">
               <tafel-pagination align="end" [paginationData]="paginationData()"
                                 (pageChanged)="searchForDetails($event)"></tafel-pagination>
             </div>
           </div>
 
           <div class="block md:hidden">
-            <div class="flex flex-col gap-3 mb-3">
+            <div class="flex flex-col gap-4 mb-4">
               @for (customer of searchResult()!.items; track customer.id; let i = $index) {
                 <mat-card>
                   <mat-card-header class="font-semibold">{{customer.id}} - {{customer.lastname}} {{customer.firstname}}</mat-card-header>

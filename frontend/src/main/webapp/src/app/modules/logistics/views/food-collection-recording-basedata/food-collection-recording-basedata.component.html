@@ -1,5 +1,5 @@
 <form [formGroup]="form" autocomplete="off">
-  <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+  <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
     <div class="md:col-span-5">
       <label class="form-label">KFZ *</label>
       <div class="flex items-center gap-2">
@@ -18,7 +18,7 @@
         </div>
       }
     </div>
-    <div class="md:col-span-3 mt-3 md:mt-0">
+    <div class="md:col-span-3 mt-4 md:mt-0">
       <label class="form-label">KM Start *</label>
       <div class="flex items-center gap-2">
         <input testid="kmStartInput" type="number" formControlName="kmStart" class="form-control"
@@ -36,7 +36,7 @@
         </div>
       }
     </div>
-    <div class="md:col-span-3 mt-3 md:mt-0">
+    <div class="md:col-span-3 mt-4 md:mt-0">
       <label class="form-label">KM Ende *</label>
       <div class="flex items-center gap-2">
         <input testid="kmEndInput" type="number" formControlName="kmEnd" class="form-control"
@@ -60,7 +60,7 @@
       }
     </div>
   </div>
-  <div class="grid grid-cols-1 md:grid-cols-12 gap-4 mt-3">
+  <div class="grid grid-cols-1 md:grid-cols-12 gap-6 mt-4">
     <div class="md:col-span-5">
       @if (!selectedDriver) {
         <label class="form-label">Fahrer *</label>
@@ -98,7 +98,7 @@
         </div>
       }
     </div>
-    <div class="md:col-span-5 mt-3 md:mt-0">
+    <div class="md:col-span-5 mt-4 md:mt-0">
       @if (!selectedCoDriver) {
         <label class="form-label">Beifahrer *</label>
         <div class="flex items-center gap-2">
