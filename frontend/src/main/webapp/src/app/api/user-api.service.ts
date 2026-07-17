@@ -26,7 +26,7 @@ export class UserApiService {
       queryParams = queryParams.set('username', username);
     }
     if (enabled !== null) {
-      queryParams = queryParams.set('enabled', enabled);
+      queryParams = queryParams.set('enabled', enabled ?? '');
     }
     if (lastname) {
       queryParams = queryParams.set('lastname', lastname);

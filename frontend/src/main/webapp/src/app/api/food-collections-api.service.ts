@@ -25,8 +25,8 @@ export class FoodCollectionsApiService {
     return this.http.post<void>(`/food-collections/route/${routeId}/shop/${shopId}/items`, data);
   }
 
-  getItemsPerShop(routeId: number, shopId: number): Observable<void> {
-    return this.http.get<void>(`/food-collections/route/${routeId}/shop/${shopId}/items`);
+  getItemsPerShop(routeId: number, shopId: number): Observable<FoodCollectionItemsPerShopResponse> {
+    return this.http.get<FoodCollectionItemsPerShopResponse>(`/food-collections/route/${routeId}/shop/${shopId}/items`);
   }
 
   patchItems(routeId: number, data: FoodCollectionItem): Observable<void> {
@@ -54,6 +54,10 @@ export interface FoodCollectionCategoryWithAmount {
 
 export interface FoodCollectionSaveItemsRequest {
   items?: FoodCollectionItem[];
+}
+
+export interface FoodCollectionItemsPerShopResponse {
+  items: FoodCollectionItem[];
 }
 
 export interface FoodCollectionItem {

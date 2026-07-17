@@ -75,17 +75,17 @@ export class CheckinComponent {
   cancelButtonRef = viewChild<ElementRef>('cancelButton');
 
   scannerIds: number[] = [];
-  currentScannerId: number;
-  scannerReadyState: boolean;
-  scannerSubscription: Subscription;
-  customerId: number;
-  customer = signal<CustomerData>(undefined);
-  customerState = signal<CustomerState>(undefined);
-  customerNotes: CustomerNoteItem[];
-  ticketNumber: number;
-  ticketNumberEdit = false;
+  currentScannerId: number | undefined;
+  scannerReadyState: boolean | undefined;
+  scannerSubscription: Subscription | undefined;
+  customerId: number | undefined;
+  customer = signal<CustomerData | undefined>(undefined);
+  customerState = signal<CustomerState | undefined>(undefined);
+  customerNotes: CustomerNoteItem[] | undefined;
+  ticketNumber: number | undefined;
+  ticketNumberEdit: boolean | undefined = false;
 
-  customerStateColor = computed<string>(() => {
+  customerStateColor = computed<string | null>(() => {
     switch (this.customerState()) {
       case CustomerState.LOCKED:
       case CustomerState.INVALID:
@@ -99,7 +99,7 @@ export class CheckinComponent {
     }
   });
 
-  customerStateText = computed<string>(() => {
+  customerStateText = computed<string | null>(() => {
     switch (this.customerState()) {
       case CustomerState.LOCKED:
         return 'GESPERRT';
@@ -114,7 +114,7 @@ export class CheckinComponent {
     }
   });
 
-  formattedName = computed<string>(() => {
+  formattedName = computed<string | undefined>(() => {
     const customer = this.customer();
     if (customer) {
       const formatted = [customer.lastname, customer.firstname].join(' ');
@@ -123,7 +123,7 @@ export class CheckinComponent {
     return undefined;
   });
 
-  formattedAddress = computed<string>(() => {
+  formattedAddress = computed<string | undefined>(() => {
     const customer = this.customer();
     if (customer) {
       const formatted = [
@@ -132,7 +132,7 @@ export class CheckinComponent {
         customer.address.door ? 'Top ' + customer.address.door : undefined,
         [customer.address.postalCode, customer.address.city].join(' ')
       ]
-        .filter(value => value?.trim().length > 0)
+        .filter(value => (value?.trim().length ?? 0) > 0)
         .join(', ');
       return formatted?.trim().length > 0 ? formatted : '-';
     }
@@ -152,7 +152,7 @@ export class CheckinComponent {
     return scannerId;
   }
 
-  get selectedScannerId(): number {
+  get selectedScannerId(): number | undefined {
     return this.currentScannerId;
   }
 
@@ -209,18 +209,18 @@ export class CheckinComponent {
       next: (customerData: CustomerData) => {
         this.processCustomer(customerData);
 
-        this.customerNoteApiService.getNotesForCustomer(this.customerId).subscribe(notesResponse => {
+        this.customerNoteApiService.getNotesForCustomer(this.customerId!).subscribe(notesResponse => {
           this.customerNotes = notesResponse.items;
         });
 
-        this.distributionTicketApiService.getCurrentTicketForCustomer(customerData.id).subscribe((ticketNumberResponse: TicketNumberResponse) => {
+        this.distributionTicketApiService.getCurrentTicketForCustomer(customerData.id!).subscribe((ticketNumberResponse: TicketNumberResponse) => {
           if (ticketNumberResponse.ticketNumber) {
             this.ticketNumber = ticketNumberResponse.ticketNumber;
           }
           this.ticketNumberEdit = this.ticketNumber != null;
         });
       },
-      error: error => {
+      error: (error: any) => {
         if (error.status === 404) {
           this.processCustomer(undefined);
           this.customerNotes = [];
@@ -236,7 +236,7 @@ export class CheckinComponent {
     }
   }
 
-  processCustomer(customer: CustomerData) {
+  processCustomer(customer: CustomerData | undefined) {
     this.ticketNumber = undefined;
     this.customer.set(customer);
 
@@ -275,12 +275,13 @@ export class CheckinComponent {
   }
 
   assignCustomer() {
-    if (this.ticketNumber > 0) {
+    const ticketNumber = this.ticketNumber;
+    if (ticketNumber !== undefined && ticketNumber > 0) {
       /* eslint-disable @typescript-eslint/no-unused-vars */
       const observer = {
-        next: (response) => this.cancel()
+        next: (_response: void) => this.cancel()
       };
-      this.distributionApiService.assignCustomer(this.customer().id, this.ticketNumber).subscribe(observer);
+      this.distributionApiService.assignCustomer(this.customer()!.id!, ticketNumber).subscribe(observer);
       this.customerIdInputRef()?.nativeElement?.focus?.();
     }
   }
@@ -294,7 +295,7 @@ export class CheckinComponent {
         this.ticketNumberInputRef()?.nativeElement?.focus?.();
       }
     };
-    this.distributionTicketApiService.deleteCurrentTicketOfCustomer(this.customer().id).subscribe(observer);
+    this.distributionTicketApiService.deleteCurrentTicketOfCustomer(this.customer()!.id!).subscribe(observer);
   }
 
   protected readonly faTrashCan = faTrashCan;

@@ -22,7 +22,7 @@
               </c-col>
               <c-col sm="5">
                 <select testid="yearInput" #yearSelect class="form-control" cSelect [ngModel]="undefined"
-                        (ngModelChange)="onYearSelected($event); yearSelect.value = undefined;">
+                        (ngModelChange)="onYearSelected($event); yearSelect.value = '';">
                   <option [ngValue]="undefined"></option>
                   @for (year of settings()?.availableYears; track year) {
                     <option [ngValue]="year">{{ year }}</option>
@@ -37,7 +37,7 @@
               <c-col sm="5">
                 <select testid="distributionDateInput" #distributionSelect class="form-control" cSelect
                         [ngModel]="undefined"
-                        (ngModelChange)="onDistributionSelected($event); distributionSelect.value = undefined;">
+                        (ngModelChange)="onDistributionSelected($event); distributionSelect.value = '';">
                   <option [ngValue]="undefined"></option>
                   @for (distribution of settings()?.distributions; track distribution.startDate) {
                     <option [ngValue]="distribution">{{ distribution.startDate | date : 'dd.MM.yyyy' }}</option>
@@ -99,14 +99,14 @@
           </c-row>
           <c-row>
             <c-col sm="4">
-              <tafel-statistics-panel [data]="statisticsData().beneficiaryCustomers"></tafel-statistics-panel>
+              <tafel-statistics-panel [data]="statisticsData()!.beneficiaryCustomers"></tafel-statistics-panel>
             </c-col>
             <c-col sm="4" class="mt-2 mt-md-0">
-              <tafel-statistics-panel [data]="statisticsData().beneficiaryPersons"></tafel-statistics-panel>
+              <tafel-statistics-panel [data]="statisticsData()!.beneficiaryPersons"></tafel-statistics-panel>
             </c-col>
             <c-col sm="4" class="mt-2 mt-md-0">
               <tafel-statistics-panel
-                [data]="statisticsData().beneficiaryCustomersWithChildren"></tafel-statistics-panel>
+                [data]="statisticsData()!.beneficiaryCustomersWithChildren"></tafel-statistics-panel>
             </c-col>
           </c-row>
           <c-row class="mt-3">
@@ -116,13 +116,13 @@
           </c-row>
           <c-row>
             <c-col sm="4">
-              <tafel-statistics-panel [data]="statisticsData().sheltersCount"></tafel-statistics-panel>
+              <tafel-statistics-panel [data]="statisticsData()!.sheltersCount"></tafel-statistics-panel>
             </c-col>
             <c-col sm="4" class="mt-2 mt-md-0">
-              <tafel-statistics-panel [data]="statisticsData().sheltersAverage"></tafel-statistics-panel>
+              <tafel-statistics-panel [data]="statisticsData()!.sheltersAverage"></tafel-statistics-panel>
             </c-col>
             <c-col sm="4" class="mt-2 mt-md-0">
-              <tafel-statistics-panel [data]="statisticsData().sheltersPersonsCount"></tafel-statistics-panel>
+              <tafel-statistics-panel [data]="statisticsData()!.sheltersPersonsCount"></tafel-statistics-panel>
             </c-col>
           </c-row>
           <c-row class="mt-3">
@@ -132,13 +132,13 @@
           </c-row>
           <c-row>
             <c-col sm="4">
-              <tafel-statistics-panel [data]="statisticsData().shopsCount"></tafel-statistics-panel>
+              <tafel-statistics-panel [data]="statisticsData()!.shopsCount"></tafel-statistics-panel>
             </c-col>
             <c-col sm="4" class="mt-2 mt-md-0">
-              <tafel-statistics-panel [data]="statisticsData().shopItemsTotal"></tafel-statistics-panel>
+              <tafel-statistics-panel [data]="statisticsData()!.shopItemsTotal"></tafel-statistics-panel>
             </c-col>
             <c-col sm="4" class="mt-2 mt-md-0">
-              <tafel-statistics-panel [data]="statisticsData().shopItemsAverage"></tafel-statistics-panel>
+              <tafel-statistics-panel [data]="statisticsData()!.shopItemsAverage"></tafel-statistics-panel>
             </c-col>
           </c-row>
         </c-card-body>

@@ -55,7 +55,7 @@ export class SendMailsComponent {
       next: () => {
         this.toastr.success('E-Mails wurden erneut verschickt!');
       },
-      error: error => {
+      error: (error: any) => {
         this.toastr.error('Senden der E-Mails fehlgeschlagen!');
       },
     };

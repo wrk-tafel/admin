@@ -51,7 +51,7 @@ describe('ErrorHandlerInterceptor', () => {
 
         /* eslint-disable @typescript-eslint/no-unused-vars */
         const observer = {
-            error: error => {
+            error: (error: any) => {
                 expect(toastrSpy.error).toHaveBeenCalledWith(
                     'Http failure response for /test: 500 Internal Server Error',
                     'HTTP 500 - Internal Server Error'
@@ -71,7 +71,7 @@ describe('ErrorHandlerInterceptor', () => {
 
         /* eslint-disable @typescript-eslint/no-unused-vars */
         const observer = {
-            error: error => {
+            error: (error: any) => {
                 expect(toastrSpy.error).toHaveBeenCalledWith(
                     'Server nicht verfügbar!',
                     'HTTP 504 - Bad Gateway'
@@ -91,7 +91,7 @@ describe('ErrorHandlerInterceptor', () => {
 
         /* eslint-disable @typescript-eslint/no-unused-vars */
         const observer = {
-            error: error => {
+            error: (error: any) => {
                 expect(toastrSpy.error).toHaveBeenCalledWith(
                     'Zugriff nicht erlaubt!',
                     'HTTP 403 - Forbidden'

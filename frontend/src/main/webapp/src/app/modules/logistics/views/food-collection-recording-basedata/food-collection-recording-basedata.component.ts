@@ -53,27 +53,27 @@ export class FoodCollectionRecordingBasedataComponent {
   private readonly toastr = inject(TafelToastrService);
   private readonly dialog = inject(MatDialog);
 
-  selectedDriver: EmployeeData;
-  selectedCoDriver: EmployeeData;
+  selectedDriver: EmployeeData | null = null;
+  selectedCoDriver: EmployeeData | null = null;
 
   form = this.fb.group({
-      car: this.fb.control<CarData>(null, [Validators.required]),
-      driverSearchInput: this.fb.control<string>(null,
+      car: this.fb.control<CarData | null>(null, [Validators.required]),
+      driverSearchInput: this.fb.control<string | null>(null,
         [
           Validators.required,
           Validators.maxLength(50),
           CustomValidator.hasValue(() => this.selectedDriver, 'Bitte die Mitarbeiter-Suche starten')
         ]
       ),
-      coDriverSearchInput: this.fb.control<string>(null,
+      coDriverSearchInput: this.fb.control<string | null>(null,
         [
           Validators.required,
           Validators.maxLength(50),
           CustomValidator.hasValue(() => this.selectedCoDriver, 'Bitte die Mitarbeiter-Suche starten')
         ]
       ),
-      kmStart: this.fb.control<number>(null, [Validators.required, Validators.min(1)]),
-      kmEnd: this.fb.control<number>(null, [Validators.required, Validators.min(1)]),
+      kmStart: this.fb.control<number | null>(null, [Validators.required, Validators.min(1)]),
+      kmEnd: this.fb.control<number | null>(null, [Validators.required, Validators.min(1)]),
     },
     {
       validators: [this.createKmValidation()]
@@ -81,7 +81,7 @@ export class FoodCollectionRecordingBasedataComponent {
   );
 
   foodCollectionDataEffect = effect(() => {
-    const foodCollectionData = this.selectedRouteData().foodCollectionData;
+    const foodCollectionData = this.selectedRouteData()!.foodCollectionData;
 
     // reset form without route to prevent an infinite loop
     this.car.reset();
@@ -93,7 +93,7 @@ export class FoodCollectionRecordingBasedataComponent {
     this.selectedCoDriver = null;
 
     if (foodCollectionData) {
-      this.car.setValue(this.carList().cars.find(car => car.id === foodCollectionData.carId));
+      this.car.setValue(this.carList().cars.find(car => car.id === foodCollectionData.carId) ?? null);
 
       if (foodCollectionData.driver) {
         this.driverSearchInput.setValue(foodCollectionData.driver.personnelNumber);
@@ -124,9 +124,9 @@ export class FoodCollectionRecordingBasedataComponent {
   private createKmValidation() {
     return (form: FormGroup) => {
       const kmStart = form.get('kmStart')
-      const kmStartValue = kmStart.value
+      const kmStartValue = kmStart?.value
       const kmEnd = form.get('kmEnd')
-      const kmEndValue = kmEnd.value
+      const kmEndValue = kmEnd?.value
 
       if (kmStart && kmEnd && kmStartValue > 0 && kmEndValue > 0 && kmStartValue >= kmEndValue) {
         const error = {kmValidation: true};
@@ -167,8 +167,8 @@ export class FoodCollectionRecordingBasedataComponent {
   }
 
   save(overrideKmDiff: boolean = false) {
-    const kmStart = this.kmStart.value;
-    const kmEnd = this.kmEnd.value;
+    const kmStart = this.kmStart.value!;
+    const kmEnd = this.kmEnd.value!;
     const kmDifference = kmEnd - kmStart;
 
     if (!overrideKmDiff && kmDifference > 350) {
@@ -183,14 +183,14 @@ export class FoodCollectionRecordingBasedataComponent {
     }
 
     const routeData: FoodCollectionSaveRouteDataRequest = {
-      carId: this.car.value.id,
-      driverId: this.selectedDriver.id,
-      coDriverId: this.selectedCoDriver.id,
-      kmStart: this.kmStart.value,
-      kmEnd: this.kmEnd.value
+      carId: this.car.value!.id,
+      driverId: this.selectedDriver!.id,
+      coDriverId: this.selectedCoDriver!.id,
+      kmStart: kmStart,
+      kmEnd: kmEnd
     };
 
-    this.foodCollectionsApiService.saveRouteData(this.selectedRouteData().route.id, routeData)
+    this.foodCollectionsApiService.saveRouteData(this.selectedRouteData()!.route.id, routeData)
       .subscribe(() => {
         this.toastr.success('Daten wurden gespeichert!');
       });
@@ -207,23 +207,23 @@ export class FoodCollectionRecordingBasedataComponent {
   }
 
   get car() {
-    return this.form.get('car');
+    return this.form.get('car')!;
   }
 
   get driverSearchInput() {
-    return this.form.get('driverSearchInput');
+    return this.form.get('driverSearchInput')!;
   }
 
   get coDriverSearchInput() {
-    return this.form.get('coDriverSearchInput');
+    return this.form.get('coDriverSearchInput')!;
   }
 
   get kmStart() {
-    return this.form.get('kmStart');
+    return this.form.get('kmStart')!;
   }
 
   get kmEnd() {
-    return this.form.get('kmEnd');
+    return this.form.get('kmEnd')!;
   }
 
   protected readonly faTruck = faTruck;

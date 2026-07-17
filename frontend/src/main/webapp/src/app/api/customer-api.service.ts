@@ -136,8 +136,8 @@ export interface CustomerData {
   validUntil?: Date;
   locked?: boolean;
   lockedAt?: Date;
-  lockedBy?: string;
-  lockReason?: string;
+  lockedBy?: string | null;
+  lockReason?: string | null;
   pendingCostContribution?: number;
   additionalPersons?: CustomerAddPersonData[];
 }

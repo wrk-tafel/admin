@@ -8,7 +8,7 @@ import {catchError, map, tap} from 'rxjs/operators';
   providedIn: 'root'
 })
 export class AuthenticationService {
-  userInfo: UserInfo = null;
+  userInfo: UserInfo | null = null;
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
 
@@ -34,7 +34,7 @@ export class AuthenticationService {
   }
 
   public hasAnyPermission(): boolean {
-    return this.userInfo?.permissions.length > 0;
+    return (this.userInfo?.permissions.length ?? 0) > 0;
   }
 
   public hasPermission(permission: string): boolean {
@@ -42,12 +42,12 @@ export class AuthenticationService {
   }
 
   public hasAnyPermissionOf(permissions: string[]): boolean {
-    const foundPermissions = this.userInfo?.permissions.filter(permission => permissions.indexOf(permission) > -1)
+    const foundPermissions = this.userInfo?.permissions.filter(permission => permissions.indexOf(permission) > -1) ?? []
     return foundPermissions.length > 0
   }
 
   public getUsername(): string {
-    return this.userInfo?.username;
+    return this.userInfo!.username;
   }
 
   public logout(): Observable<void> {
@@ -55,7 +55,7 @@ export class AuthenticationService {
     return this.http.post<void>('/users/logout', null);
   }
 
-  public loadUserInfo(): Promise<UserInfo> {
+  public loadUserInfo(): Promise<UserInfo | null> {
     return firstValueFrom(this.http.get<UserInfo>('/users/info')
       .pipe(tap(userInfo => {
           this.userInfo = userInfo;

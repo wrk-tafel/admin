@@ -73,11 +73,11 @@ export class StatisticsPanelComponent {
   chartData = computed(() => {
     const statisticsData = this.data();
     return {
-      labels: statisticsData.labels,
+      labels: statisticsData?.labels ?? [],
       datasets: [
         {
           ...this.datasetOptionsDefault,
-          data: statisticsData.dataPoints
+          data: statisticsData?.dataPoints ?? []
         }
       ]
     } as StatisticsPanelData;

@@ -48,8 +48,8 @@ export class UserFormComponent {
     username: '',
     lastname: '',
     firstname: '',
-    password: null,
-    passwordRepeat: null,
+    password: '',
+    passwordRepeat: '',
     enabled: true,
     passwordChangeRequired: true
   });
@@ -109,19 +109,19 @@ export class UserFormComponent {
       if (userData) {
         // Update form model
         this.formModel.set({
-          id: userData.id,
+          id: userData.id ?? null,
           personnelNumber: userData.personnelNumber ?? '',
           username: userData.username ?? '',
           lastname: userData.lastname ?? '',
           firstname: userData.firstname ?? '',
-          password: null,
-          passwordRepeat: null,
+          password: '',
+          passwordRepeat: '',
           enabled: userData.enabled ?? true,
           passwordChangeRequired: userData.passwordChangeRequired ?? true
         });
 
         // Update permissions
-        const formPermissions: UserPermissionFormItem[] = permissionsData.map((availablePermission) => {
+        const formPermissions: UserPermissionFormItem[] = (permissionsData ?? []).map((availablePermission) => {
           const enabled = userData.permissions.findIndex((userPermission) => userPermission.key === availablePermission.key) !== -1;
           return {...availablePermission, enabled: enabled};
         });
@@ -172,7 +172,7 @@ export class UserFormComponent {
         this.passwordTextVisible.set(true);
         this.passwordRepeatTextVisible.set(true);
       },
-      error: error => {
+      error: (error: any) => {
         this.toastr.error('Passwort-Generierung fehlgeschlagen!', 'Fehler');
       },
     };

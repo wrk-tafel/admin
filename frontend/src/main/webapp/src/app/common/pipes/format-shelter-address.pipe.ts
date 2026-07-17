@@ -17,7 +17,7 @@ export class FormatShelterAddressPipe implements PipeTransform {
       shelter.addressDoor?.trim() ? 'Top ' + shelter.addressDoor.trim() : undefined,
       [shelter.addressPostalCode, shelter.addressCity].join(' ').trim()
     ]
-      .filter(value => value?.trim().length > 0)
+      .filter(value => (value?.trim().length ?? 0) > 0)
       .join(', ');
     return formatted?.trim().length > 0 ? formatted : '-';
   }

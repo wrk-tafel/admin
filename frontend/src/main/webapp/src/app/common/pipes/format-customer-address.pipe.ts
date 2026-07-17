@@ -17,7 +17,7 @@ export class FormatCustomerAddressPipe implements PipeTransform {
       address.door?.trim() ? 'Top ' + address.door.trim() : undefined,
       [address.postalCode, address.city].join(' ').trim()
     ]
-      .filter(value => value?.trim().length > 0)
+      .filter(value => (value?.trim().length ?? 0) > 0)
       .join(', ');
     return formatted?.trim().length > 0 ? formatted : '-';
   }

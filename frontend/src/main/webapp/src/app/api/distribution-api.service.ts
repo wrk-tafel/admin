@@ -66,7 +66,7 @@ export interface DistributionListResponse {
 }
 
 export interface DistributionItemUpdate {
-  distribution: DistributionItem;
+  distribution: DistributionItem | null;
 }
 
 export interface DistributionItem {
