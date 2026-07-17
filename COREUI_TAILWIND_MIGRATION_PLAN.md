@@ -112,9 +112,17 @@ Ordered so early phases shrink CoreUI's footprint fast with low risk, and the ri
   Tailwind classes + `[ngClass]` for the row-color highlighting.
 - No `ProgressModule` usage was found anywhere in the codebase by the time this phase was reached — already gone.
 
-**Phase 6 — Statistics chart wrapper** (2 files, self-contained)
-- Replace `@coreui/angular-chartjs` + `@coreui/chartjs` scss + `@coreui/utils.getStyle()` + `WidgetStatAComponent`
-  in `statistics-panel.component.ts`/`statistics.component.ts` with plain `chart.js` + a `mat-card`-based stat tile.
+**Phase 6 — Statistics chart wrapper** ✅ DONE (2026-07-17)
+- Replaced `@coreui/angular-chartjs`'s `c-chart`/`c-widget-stat-a` with `ng2-charts`' `BaseChartDirective` on a
+  plain `<canvas baseChart>` inside a `mat-card`-based stat tile; `@coreui/utils.getStyle()` replaced with a
+  fixed color value. `provideCharts(withDefaultRegisterables())` is registered at the statistics **route**
+  level (not app-wide in `app.config.ts`) so Chart.js stays inside the lazy-loaded statistics chunk rather than
+  growing the main bundle.
+- Dropped the `@coreui/chartjs` scss import from `styles.scss` and the `cilSave` icon (→ FontAwesome `faSave`).
+- The existing `statistics-panel.component.spec.ts` never called `detectChanges()`, so it never actually
+  exercised Chart.js registration — added a render test (sets input data, calls `detectChanges()`, asserts a
+  `<canvas>` exists) since a missing-registerables error is exactly the kind of thing that fails silently at
+  runtime with no build/lint error.
 
 **Phase 7 — App shell** (highest risk — do last of the component work)
 - Rebuild `default-layout.component.{ts,html,scss}` and `default-header.component.{ts,html,scss}` without
