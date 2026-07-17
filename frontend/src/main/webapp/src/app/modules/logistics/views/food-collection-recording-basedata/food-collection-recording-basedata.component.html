@@ -77,7 +77,7 @@
                      placeholder="Personalnummer / Name" (keyup.enter)="triggerSearchDriver()"
                      [ngClass]="{'is-invalid': driverSearchInput.invalid && (driverSearchInput.dirty || driverSearchInput.touched), 'is-valid': driverSearchInput.valid && (driverSearchInput.dirty || driverSearchInput.touched)}">
               <tafel-employee-search-create #driverEmployeeSearchCreate [testIdPrefix]="'driver'"
-                                            [searchInput]="driverSearchInput.value"
+                                            [searchInput]="driverSearchInput.value ?? ''"
                                             (selectedEmployee)="setSelectedDriver($event)"/>
               @if (driverSearchInput.errors?.required && (driverSearchInput.dirty || driverSearchInput.touched)) {
                 <div class="invalid-feedback">
@@ -86,12 +86,12 @@
               }
               @if (driverSearchInput.errors?.maxlength && (driverSearchInput.dirty || driverSearchInput.touched)) {
                 <div class="invalid-feedback">
-                  Fahrer zu lang (Limit: {{ driverSearchInput.errors.maxlength.requiredLength }})
+                  Fahrer zu lang (Limit: {{ driverSearchInput.errors?.maxlength.requiredLength }})
                 </div>
               }
               @if (driverSearchInput.errors?.hasValue && (driverSearchInput.dirty || driverSearchInput.touched)) {
                 <div class="invalid-feedback">
-                  {{ driverSearchInput.errors.hasValue.message }}
+                  {{ driverSearchInput.errors?.hasValue.message }}
                 </div>
               }
             </c-input-group>
@@ -116,7 +116,7 @@
                      placeholder="Personalnummer / Name" (keyup.enter)="triggerSearchCoDriver()"
                      [ngClass]="{'is-invalid': coDriverSearchInput.invalid && (coDriverSearchInput.dirty || coDriverSearchInput.touched), 'is-valid': coDriverSearchInput.valid && (coDriverSearchInput.dirty || coDriverSearchInput.touched)}">
               <tafel-employee-search-create #coDriverEmployeeSearchCreate [testIdPrefix]="'codriver'"
-                                            [searchInput]="coDriverSearchInput.value"
+                                            [searchInput]="coDriverSearchInput.value ?? ''"
                                             (selectedEmployee)="setSelectedCoDriver($event)"/>
               @if (coDriverSearchInput.errors?.required && (coDriverSearchInput.dirty || coDriverSearchInput.touched)) {
                 <div class="invalid-feedback">
@@ -125,12 +125,12 @@
               }
               @if (coDriverSearchInput.errors?.maxlength && (coDriverSearchInput.dirty || coDriverSearchInput.touched)) {
                 <div class="invalid-feedback">
-                  Beifahrer zu lang (Limit: {{ coDriverSearchInput.errors.maxlength.requiredLength }})
+                  Beifahrer zu lang (Limit: {{ coDriverSearchInput.errors?.maxlength.requiredLength }})
                 </div>
               }
               @if (coDriverSearchInput.errors?.hasValue && (coDriverSearchInput.dirty || coDriverSearchInput.touched)) {
                 <div class="invalid-feedback">
-                  {{ coDriverSearchInput.errors.hasValue.message }}
+                  {{ coDriverSearchInput.errors?.hasValue.message }}
                 </div>
               }
             </c-input-group>

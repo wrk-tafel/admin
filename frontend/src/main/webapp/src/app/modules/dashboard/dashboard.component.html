@@ -7,17 +7,17 @@
 </div>
 <mat-divider class="m-3"></mat-divider>
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-2">
-  <tafel-recorded-food-collections [countRecorded]="data()?.logistics?.foodCollectionsRecordedCount"
-                                   [countTotal]="data()?.logistics?.foodCollectionsTotalCount">
+  <tafel-recorded-food-collections [countRecorded]="data()?.logistics?.foodCollectionsRecordedCount ?? null"
+                                   [countTotal]="data()?.logistics?.foodCollectionsTotalCount ?? null">
   </tafel-recorded-food-collections>
-  <tafel-food-amount [amount]="data()?.logistics?.foodAmountTotal">
+  <tafel-food-amount [amount]="data()?.logistics?.foodAmountTotal ?? null">
   </tafel-food-amount>
 </div>
 <mat-divider class="m-3"></mat-divider>
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-2">
   <tafel-distribution-statistics-input *tafelIfPermission="'LOGISTICS'" [sheltersData]="sheltersData()"
                                        [employeeCountInput]="data()?.statistics?.employeeCount"
-                                       [initialSelectedShelterNames]="data()?.statistics?.selectedShelterNames">
+                                       [initialSelectedShelterNames]="data()?.statistics?.selectedShelterNames ?? []">
   </tafel-distribution-statistics-input>
   <tafel-distribution-notes-input class="col-span-2" [initialNotesData]="data()?.notes">
   </tafel-distribution-notes-input>

@@ -69,7 +69,7 @@ export class UserSearchComponent {
     /* eslint-disable @typescript-eslint/no-unused-vars */
     const observer = {
       next: (userData: UserData) => this.navigateToUserDetail(userData.id),
-      error: (error) => {
+      error: (error: any) => {
         if (error.status === 404) {
           this.toastr.error('Benutzer nicht gefunden!');
         } else {
@@ -80,7 +80,7 @@ export class UserSearchComponent {
     this.userApiService.getUserForPersonnelNumber(this.searchForm.personnelNumber().value()).subscribe(observer);
   }
 
-  navigateToUserDetail(userId: number) {
+  navigateToUserDetail(userId: number | undefined) {
     return this.router.navigate(['/benutzer/detail', userId]);
   }
 
@@ -109,7 +109,7 @@ export class UserSearchComponent {
       });
   }
 
-  editUser(personnelNumber: number) {
+  editUser(personnelNumber: number | undefined) {
     this.router.navigate(['/benutzer/bearbeiten', personnelNumber]);
   }
 

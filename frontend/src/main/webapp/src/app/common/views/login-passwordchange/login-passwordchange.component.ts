@@ -39,7 +39,7 @@ export class LoginPasswordChangeComponent {
 
     formComponent.changePassword().subscribe(successful => {
       if (successful) {
-        const username = this.authenticationService.getUsername();
+        const username = this.authenticationService.getUsername()!;
         const password = formComponent.passwordForm.newPassword().value();
         this.authenticationService.login(username, password).then((result: LoginResult) => {
           if (result.successful) {

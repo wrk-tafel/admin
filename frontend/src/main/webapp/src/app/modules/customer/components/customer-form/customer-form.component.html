@@ -281,22 +281,22 @@
                       <c-row>
                         <c-col lg size="6">
                           <label class="form-label">Nachname *</label>
-                          <input testid="lastnameInput" type="text" [formField]="customerForm.additionalPersons[i].lastname"
+                          <input testid="lastnameInput" type="text" [formField]="personField(i).lastname"
                                  class="form-control" tafelAutofocus
-                                 [ngClass]="{'is-invalid': shouldShowErrors(customerForm.additionalPersons[i].lastname()), 'is-valid': customerForm.additionalPersons[i].lastname().valid() && (customerForm.additionalPersons[i].lastname().dirty() || customerForm.additionalPersons[i].lastname().touched())}">
-                          @if (shouldShowErrors(customerForm.additionalPersons[i].lastname())) {
-                            @for (errorMessage of getErrorMessages(customerForm.additionalPersons[i].lastname()); track $index) {
+                                 [ngClass]="{'is-invalid': shouldShowErrors(personField(i).lastname()), 'is-valid': personField(i).lastname().valid() && (personField(i).lastname().dirty() || personField(i).lastname().touched())}">
+                          @if (shouldShowErrors(personField(i).lastname())) {
+                            @for (errorMessage of getErrorMessages(personField(i).lastname()); track $index) {
                               <div class="invalid-feedback">{{errorMessage}}</div>
                             }
                           }
                         </c-col>
                         <c-col lg size="6">
                           <label class="form-label">Vorname *</label>
-                          <input testid="firstnameInput" type="text" [formField]="customerForm.additionalPersons[i].firstname"
+                          <input testid="firstnameInput" type="text" [formField]="personField(i).firstname"
                                  class="form-control"
-                                 [ngClass]="{'is-invalid': shouldShowErrors(customerForm.additionalPersons[i].firstname()), 'is-valid': customerForm.additionalPersons[i].firstname().valid() && (customerForm.additionalPersons[i].firstname().dirty() || customerForm.additionalPersons[i].firstname().touched())}">
-                          @if (shouldShowErrors(customerForm.additionalPersons[i].firstname())) {
-                            @for (errorMessage of getErrorMessages(customerForm.additionalPersons[i].firstname()); track $index) {
+                                 [ngClass]="{'is-invalid': shouldShowErrors(personField(i).firstname()), 'is-valid': personField(i).firstname().valid() && (personField(i).firstname().dirty() || personField(i).firstname().touched())}">
+                          @if (shouldShowErrors(personField(i).firstname())) {
+                            @for (errorMessage of getErrorMessages(personField(i).firstname()); track $index) {
                               <div class="invalid-feedback">{{errorMessage}}</div>
                             }
                           }
@@ -305,11 +305,11 @@
                       <c-row>
                         <c-col lg size="6">
                           <label class="form-label">Geburtsdatum *</label>
-                          <input testid="birthDateInput" type="date" [formField]="customerForm.additionalPersons[i].birthDate"
+                          <input testid="birthDateInput" type="date" [formField]="personField(i).birthDate"
                                  class="form-control"
-                                 [ngClass]="{'is-invalid': shouldShowErrors(customerForm.additionalPersons[i].birthDate()), 'is-valid': customerForm.additionalPersons[i].birthDate().valid() && (customerForm.additionalPersons[i].birthDate().dirty() || customerForm.additionalPersons[i].birthDate().touched())}">
-                          @if (shouldShowErrors(customerForm.additionalPersons[i].birthDate())) {
-                            @for (errorMessage of getErrorMessages(customerForm.additionalPersons[i].birthDate()); track $index) {
+                                 [ngClass]="{'is-invalid': shouldShowErrors(personField(i).birthDate()), 'is-valid': personField(i).birthDate().valid() && (personField(i).birthDate().dirty() || personField(i).birthDate().touched())}">
+                          @if (shouldShowErrors(personField(i).birthDate())) {
+                            @for (errorMessage of getErrorMessages(personField(i).birthDate()); track $index) {
                               <div class="invalid-feedback">{{errorMessage}}</div>
                             }
                           }
@@ -321,10 +321,10 @@
                                     (change)="onPersonGenderChange(i, $event)"
                                     (blur)="onPersonGenderBlur(i)"
                                     cSelect class="form-control"
-                                    [ngClass]="{'is-invalid': shouldShowErrors(customerForm.additionalPersons[i].gender()), 'is-valid': customerForm.additionalPersons[i].gender().valid() && (customerForm.additionalPersons[i].gender().dirty() || customerForm.additionalPersons[i].gender().touched())}">
-                              <option value="" [selected]="!customerForm.additionalPersons[i].gender().value()">Bitte wählen...</option>
+                                    [ngClass]="{'is-invalid': shouldShowErrors(personField(i).gender()), 'is-valid': personField(i).gender().valid() && (personField(i).gender().dirty() || personField(i).gender().touched())}">
+                              <option value="" [selected]="!personField(i).gender().value()">Bitte wählen...</option>
                               @for (genderOption of genders; track genderOption) {
-                                <option [value]="genderOption" [selected]="genderOption === customerForm.additionalPersons[i].gender().value()">
+                                <option [value]="genderOption" [selected]="genderOption === personField(i).gender().value()">
                                   {{genderOption | genderLabel}}</option>
                               }
                             </select>
@@ -332,8 +332,8 @@
                               <fa-icon [icon]="faVenusMars"></fa-icon>
                             </span>
                           </c-input-group>
-                          @if (shouldShowErrors(customerForm.additionalPersons[i].gender())) {
-                            @for (errorMessage of getErrorMessages(customerForm.additionalPersons[i].gender()); track $index) {
+                          @if (shouldShowErrors(personField(i).gender())) {
+                            @for (errorMessage of getErrorMessages(personField(i).gender()); track $index) {
                               <div class="invalid-feedback">{{errorMessage}}</div>
                             }
                           }
@@ -347,10 +347,10 @@
                                     (change)="onPersonCountryChange(i, $event)"
                                     (blur)="onPersonCountryBlur(i)"
                                     cSelect class="form-control"
-                                    [ngClass]="{'is-invalid': shouldShowErrors(customerForm.additionalPersons[i].country()), 'is-valid': customerForm.additionalPersons[i].country().valid() && (customerForm.additionalPersons[i].country().dirty() || customerForm.additionalPersons[i].country().touched())}">
-                              <option value="" [selected]="!customerForm.additionalPersons[i].country().value()">Bitte wählen...</option>
+                                    [ngClass]="{'is-invalid': shouldShowErrors(personField(i).country()), 'is-valid': personField(i).country().valid() && (personField(i).country().dirty() || personField(i).country().touched())}">
+                              <option value="" [selected]="!personField(i).country().value()">Bitte wählen...</option>
                               @for (countryItem of countries(); track countryItem.id) {
-                                <option [value]="countryItem.id" [selected]="countryItem.id === customerForm.additionalPersons[i].country().value()?.id">
+                                <option [value]="countryItem.id" [selected]="countryItem.id === personField(i).country().value()?.id">
                                   {{countryItem.name}}</option>
                               }
                             </select>
@@ -358,8 +358,8 @@
                               <fa-icon [icon]="faFlag"></fa-icon>
                             </span>
                           </c-input-group>
-                          @if (shouldShowErrors(customerForm.additionalPersons[i].country())) {
-                            @for (errorMessage of getErrorMessages(customerForm.additionalPersons[i].country()); track $index) {
+                          @if (shouldShowErrors(personField(i).country())) {
+                            @for (errorMessage of getErrorMessages(personField(i).country()); track $index) {
                               <div class="invalid-feedback">{{errorMessage}}</div>
                             }
                           }
@@ -369,15 +369,15 @@
                         <c-col lg size="6">
                           <label class="form-label">Arbeitgeber</label>
                           <c-input-group>
-                            <input testid="employerInput" type="text" [formField]="customerForm.additionalPersons[i].employer"
+                            <input testid="employerInput" type="text" [formField]="personField(i).employer"
                                    class="form-control"
-                                   [ngClass]="{'is-invalid': shouldShowErrors(customerForm.additionalPersons[i].employer()), 'is-valid': customerForm.additionalPersons[i].employer().valid() && (customerForm.additionalPersons[i].employer().dirty() || customerForm.additionalPersons[i].employer().touched())}">
+                                   [ngClass]="{'is-invalid': shouldShowErrors(personField(i).employer()), 'is-valid': personField(i).employer().valid() && (personField(i).employer().dirty() || personField(i).employer().touched())}">
                             <span cInputGroupText>
                               <fa-icon [icon]="faBuilding"></fa-icon>
                             </span>
                           </c-input-group>
-                          @if (shouldShowErrors(customerForm.additionalPersons[i].employer())) {
-                            @for (errorMessage of getErrorMessages(customerForm.additionalPersons[i].employer()); track $index) {
+                          @if (shouldShowErrors(personField(i).employer())) {
+                            @for (errorMessage of getErrorMessages(personField(i).employer()); track $index) {
                               <div class="invalid-feedback">{{errorMessage}}</div>
                             }
                           }
@@ -385,15 +385,15 @@
                         <c-col lg size="6">
                           <label class="form-label">Einkommen (monatl.)</label>
                           <c-input-group>
-                            <input testid="incomeInput" type="number" [formField]="customerForm.additionalPersons[i].income"
+                            <input testid="incomeInput" type="number" [formField]="personField(i).income"
                                    class="form-control"
-                                   [ngClass]="{'is-invalid': shouldShowErrors(customerForm.additionalPersons[i].income()), 'is-valid': customerForm.additionalPersons[i].income().valid() && (customerForm.additionalPersons[i].income().dirty() || customerForm.additionalPersons[i].income().touched())}">
+                                   [ngClass]="{'is-invalid': shouldShowErrors(personField(i).income()), 'is-valid': personField(i).income().valid() && (personField(i).income().dirty() || personField(i).income().touched())}">
                             <span cInputGroupText>
                               <fa-icon [icon]="faEuroSign"></fa-icon>
                             </span>
                           </c-input-group>
-                          @if (shouldShowErrors(customerForm.additionalPersons[i].income())) {
-                            @for (errorMessage of getErrorMessages(customerForm.additionalPersons[i].income()); track $index) {
+                          @if (shouldShowErrors(personField(i).income())) {
+                            @for (errorMessage of getErrorMessages(personField(i).income()); track $index) {
                               <div class="invalid-feedback">{{errorMessage}}</div>
                             }
                           }
@@ -403,12 +403,12 @@
                         <c-col lg size="12">
                           <label class="form-label">nachgewiesen bis</label>
                           <div class="input-group">
-                            <input testid="incomeDueInput" type="date" [formField]="customerForm.additionalPersons[i].incomeDue"
+                            <input testid="incomeDueInput" type="date" [formField]="personField(i).incomeDue"
                                    class="form-control"
-                                   [ngClass]="{'is-invalid': shouldShowErrors(customerForm.additionalPersons[i].incomeDue()), 'is-valid': customerForm.additionalPersons[i].incomeDue().valid() && (customerForm.additionalPersons[i].incomeDue().dirty() || customerForm.additionalPersons[i].incomeDue().touched())}">
+                                   [ngClass]="{'is-invalid': shouldShowErrors(personField(i).incomeDue()), 'is-valid': personField(i).incomeDue().valid() && (personField(i).incomeDue().dirty() || personField(i).incomeDue().touched())}">
                           </div>
-                          @if (shouldShowErrors(customerForm.additionalPersons[i].incomeDue())) {
-                            @for (errorMessage of getErrorMessages(customerForm.additionalPersons[i].incomeDue()); track $index) {
+                          @if (shouldShowErrors(personField(i).incomeDue())) {
+                            @for (errorMessage of getErrorMessages(personField(i).incomeDue()); track $index) {
                               <div class="invalid-feedback">{{errorMessage}}</div>
                             }
                           }
@@ -419,7 +419,7 @@
                           <label class="form-label">Bezieht Familienbeihilfe</label>
                           <div class="input-group">
                             <input testid="receivesFamilyBonusInput" type="checkbox"
-                                   [formField]="customerForm.additionalPersons[i].receivesFamilyBonus"
+                                   [formField]="personField(i).receivesFamilyBonus"
                                    cFormCheckInput>
                           </div>
                         </c-col>
@@ -427,7 +427,7 @@
                           <label class="form-label">Nicht im selben Haushalt (keine Berechnung)</label>
                           <div class="input-group">
                             <input testid="excludeFromHouseholdInput" type="checkbox"
-                                   [formField]="customerForm.additionalPersons[i].excludeFromHousehold"
+                                   [formField]="personField(i).excludeFromHousehold"
                                    cFormCheckInput>
                           </div>
                         </c-col>

@@ -1,6 +1,6 @@
 import {Component, inject, linkedSignal, signal} from '@angular/core';
 import {form, FormField, required} from '@angular/forms/signals';
-import {ActivatedRoute, Router} from '@angular/router';
+import {ActivatedRoute, Params, Router} from '@angular/router';
 import {AuthenticationService} from '../../security/authentication.service';
 import {toSignal} from '@angular/core/rxjs-interop';
 import {TafelAutofocusDirective} from '../../directive/tafel-autofocus.directive';
@@ -41,7 +41,7 @@ export class LoginComponent {
   });
 
   // Convert route params to signal
-  private readonly routeParams = toSignal(this.route.params, {initialValue: {}});
+  private readonly routeParams = toSignal(this.route.params, {initialValue: {} as Params});
 
   // Error message derived from route params via linkedSignal.
   // Writable: can be manually set on login failure, resets when route params change.

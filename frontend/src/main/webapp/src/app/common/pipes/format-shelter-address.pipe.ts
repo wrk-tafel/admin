@@ -6,7 +6,7 @@ import {ShelterItem} from '../../api/shelter-api.service';
   standalone: true
 })
 export class FormatShelterAddressPipe implements PipeTransform {
-  transform(shelter: ShelterItem): string {
+  transform(shelter?: ShelterItem | null): string {
     if (!shelter) {
       return '-';
     }
@@ -17,7 +17,7 @@ export class FormatShelterAddressPipe implements PipeTransform {
       shelter.addressDoor?.trim() ? 'Top ' + shelter.addressDoor.trim() : undefined,
       [shelter.addressPostalCode, shelter.addressCity].join(' ').trim()
     ]
-      .filter(value => value?.trim().length > 0)
+      .filter(value => (value?.trim().length ?? 0) > 0)
       .join(', ');
     return formatted?.trim().length > 0 ? formatted : '-';
   }

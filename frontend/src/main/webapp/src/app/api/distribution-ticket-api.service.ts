@@ -19,5 +19,5 @@ export class DistributionTicketApiService {
 }
 
 export interface TicketNumberResponse {
-  ticketNumber: number;
+  ticketNumber: number | null;
 }

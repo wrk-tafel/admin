@@ -83,7 +83,7 @@ export class MailRecipientsComponent {
 
   addAddress(mailTypeIndex: number, recipientTypeIndex: number) {
     const addresses = this.getAddressesOfRecipientTypeIndex(mailTypeIndex, recipientTypeIndex);
-    addresses.push(this.createAddressControl(undefined));
+    addresses.push(this.createAddressControl(''));
 
     this.form.markAllAsTouched();
   }
@@ -101,7 +101,7 @@ export class MailRecipientsComponent {
         next: () => {
           this.toastr.success('Einstellungen gespeichert!');
         },
-        error: error => {
+        error: (error: any) => {
           this.toastr.error('Speichern fehlgeschlagen!');
         },
       };
@@ -114,11 +114,11 @@ export class MailRecipientsComponent {
   }
 
   getRecipientsForMailTypeIndex(mailTypeIndex: number): FormArray {
-    return this.mailRecipientArray.controls.at(mailTypeIndex).get('recipients') as FormArray;
+    return this.mailRecipientArray.controls.at(mailTypeIndex)!.get('recipients') as FormArray;
   }
 
   getAddressesOfRecipientTypeIndex(mailTypeIndex: number, recipientTypeIndex: number): FormArray {
-    return this.getRecipientsForMailTypeIndex(mailTypeIndex).controls.at(recipientTypeIndex).get('addresses') as FormArray;
+    return this.getRecipientsForMailTypeIndex(mailTypeIndex).controls.at(recipientTypeIndex)!.get('addresses') as FormArray;
   }
 
   MailTypeLabels: Record<MailTypeEnum, string> = {
@@ -132,6 +132,14 @@ export class MailRecipientsComponent {
     [RecipientTypeEnum.CC]: 'Kopie (CC)',
     [RecipientTypeEnum.BCC]: 'Blindkopie (BCC)'
   };
+
+  getMailTypeLabel(mailType: MailTypeEnum): string {
+    return this.MailTypeLabels[mailType];
+  }
+
+  getRecipientTypeLabel(recipientType: RecipientTypeEnum): string {
+    return this.RecipientTypeLabels[recipientType];
+  }
 
   protected readonly faTrashCan = faTrashCan;
   protected readonly faPlus = faPlus;

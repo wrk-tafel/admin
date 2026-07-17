@@ -73,7 +73,7 @@
               </c-row>
               <c-row class="d-none d-sm-block">
                 <c-col sm="12" class="table-responsive">
-                    <h5 class="mb-4">Suchergebnis ({{searchResult().totalCount}} Kunden)</h5>
+                    <h5 class="mb-4">Suchergebnis ({{searchResult()!.totalCount}} Kunden)</h5>
                     <tafel-pagination align="end" [paginationData]="paginationData()"
                                       (pageChanged)="searchForDetails($event)"></tafel-pagination>
                     <table cTable striped="true" aria-label="Liste der gefundenen Kunden" class="mt-3">
@@ -90,13 +90,13 @@
                         </tr>
                         </thead>
                         <tbody>
-                        @for (customer of searchResult().items; track customer.id; let i = $index) {
+                        @for (customer of searchResult()!.items; track customer.id; let i = $index) {
                           <tr testid="searchresult-row" scope="row">
                             <td><fa-icon [icon]="faUser"></fa-icon></td>
                             <td [attr.testid]="'searchresult-id-' + i">{{customer.id}}</td>
                             <td [attr.testid]="'searchresult-name-' + i">
                               @if (customer.lastname || customer.firstname) {
-                                <a style="cursor: pointer;" (click)="navigateToCustomer(customer.id)">{{customer.lastname ? customer.lastname : '-'}} {{customer.firstname ? customer.firstname : '-'}}</a>
+                                <a style="cursor: pointer;" (click)="navigateToCustomer(customer.id!)">{{customer.lastname ? customer.lastname : '-'}} {{customer.firstname ? customer.firstname : '-'}}</a>
                               }
                               @if (!customer.lastname && !customer.firstname) {
                                 <div>-</div>
@@ -110,13 +110,13 @@
                                 <div class="d-flex flex-fill gap-2">
                                     <button [attr.testid]="'searchresult-showcustomer-button-' + i"
                                             cButton
-                                            (click)="navigateToCustomer(customer.id)">
+                                            (click)="navigateToCustomer(customer.id!)">
                                             <fa-icon [icon]="faSearch"></fa-icon>
                                     </button>
                                     <button [attr.testid]="'searchresult-editcustomer-button-' + i"
                                             cButton color="danger"
-                                            (click)="editCustomer(customer.id)">
-                                            <fa-icon [icon]="faPencil" inverse="true"></fa-icon>
+                                            (click)="editCustomer(customer.id!)">
+                                            <fa-icon [icon]="faPencil" [inverse]="true"></fa-icon>
                                     </button>
                                 </div>
                             </td>
@@ -132,11 +132,11 @@
             @if (searchResult()) {
               <c-row class="d-block d-sm-none">
                 <c-col sm="12" class="table-responsive">
-                    <h5 class="mb-4">Suchergebnis ({{searchResult().totalCount}} Kunden)</h5>
+                    <h5 class="mb-4">Suchergebnis ({{searchResult()!.totalCount}} Kunden)</h5>
                     <tafel-pagination align="center" size="sm" [paginationData]="paginationData()"
                                       (pageChanged)="searchForDetails($event)"></tafel-pagination>
                     <div class="d-flex flex-col gap-3 mb-3">
-                        @for (customer of searchResult().items; track customer.id; let i = $index) {
+                        @for (customer of searchResult()!.items; track customer.id; let i = $index) {
                           <c-card>
                             <c-card-header class="fw-bold">{{customer.id}} - {{customer.lastname}} {{customer.firstname}}</c-card-header>
                             <c-card-body>
@@ -156,13 +156,13 @@
                             <c-card-footer class="d-flex flex-fill gap-2">
                                 <button [attr.testid]="'searchresult-showcustomer-button-' + i"
                                         cButton
-                                        (click)="navigateToCustomer(customer.id)">
+                                        (click)="navigateToCustomer(customer.id!)">
                                         <fa-icon [icon]="faSearch"></fa-icon>
                                 </button>
                                 <button [attr.testid]="'searchresult-editcustomer-button-' + i"
                                         cButton color="danger"
-                                        (click)="editCustomer(customer.id)">
-                                        <fa-icon [icon]="faPencil" inverse="true"></fa-icon>
+                                        (click)="editCustomer(customer.id!)">
+                                        <fa-icon [icon]="faPencil" [inverse]="true"></fa-icon>
                                 </button>
                             </c-card-footer>
                           </c-card>

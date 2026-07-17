@@ -8,7 +8,7 @@ import { GlobalStateService } from '../../../../common/state/global-state.servic
 import { signal } from '@angular/core';
 
 describe('RecordedFoodCollectionsComponent', () => {
-  let globalStateService;
+  let globalStateService: any;
 
   beforeEach((() => {
     globalStateService = {
