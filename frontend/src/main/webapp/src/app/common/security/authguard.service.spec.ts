@@ -1,7 +1,13 @@
 import { AuthGuardData, AuthGuardService } from './authguard.service';
-import { ActivatedRouteSnapshot } from '@angular/router';
+import { ActivatedRouteSnapshot, CanActivateChildFn, provideRouter } from '@angular/router';
 import { TestBed } from '@angular/core/testing';
+import { RouterTestingHarness } from '@angular/router/testing';
+import { Component } from '@angular/core';
 import { AuthenticationService } from './authentication.service';
+
+@Component({template: '', standalone: true})
+class DummyRouteComponent {
+}
 
 describe('AuthGuardService', () => {
     function setup() {
@@ -81,4 +87,59 @@ describe('AuthGuardService', () => {
         expect(authServiceSpy.redirectToLogin).not.toHaveBeenCalled();
     });
 
+});
+
+// Angular 22 flipped the router's default paramsInheritanceStrategy from 'emptyOnly' to 'always'.
+// These tests prove that a nested child route with no data of its own (e.g. kunden/detail/:id)
+// now correctly inherits anyPermissionOf from its parent (e.g. kunden), and that AuthGuardService
+// enforces it during a real navigation - not just against a hand-built ActivatedRouteSnapshot.
+describe('AuthGuardService with real router navigation (route data inheritance)', () => {
+    function setupRouter(authServiceSpy: any) {
+        const authGuardChild: CanActivateChildFn = (route) => TestBed.inject(AuthGuardService).canActivate(route);
+
+        TestBed.configureTestingModule({
+            providers: [
+                { provide: AuthenticationService, useValue: authServiceSpy },
+                provideRouter([
+                    {
+                        path: 'kunden',
+                        canActivateChild: [authGuardChild],
+                        data: { anyPermissionOf: ['CUSTOMER'] },
+                        children: [
+                            { path: 'detail/:id', component: DummyRouteComponent }
+                        ]
+                    }
+                ])
+            ]
+        });
+    }
+
+    function mockAuthService(hasAnyPermissionOf: boolean) {
+        return {
+            isAuthenticated: vi.fn().mockReturnValue(true),
+            hasAnyPermission: vi.fn().mockReturnValue(true),
+            hasAnyPermissionOf: vi.fn().mockReturnValue(hasAnyPermissionOf),
+            redirectToLogin: vi.fn()
+        };
+    }
+
+    it('inherits the parent route\'s anyPermissionOf into the nested child route and allows access when granted', async () => {
+        const authServiceSpy = mockAuthService(true);
+        setupRouter(authServiceSpy);
+
+        await RouterTestingHarness.create('/kunden/detail/5');
+
+        expect(authServiceSpy.hasAnyPermissionOf).toHaveBeenCalledWith(['CUSTOMER']);
+        expect(authServiceSpy.redirectToLogin).not.toHaveBeenCalled();
+    });
+
+    it('blocks navigation to the nested child route when the inherited permission check fails', async () => {
+        const authServiceSpy = mockAuthService(false);
+        setupRouter(authServiceSpy);
+
+        await RouterTestingHarness.create('/kunden/detail/5');
+
+        expect(authServiceSpy.hasAnyPermissionOf).toHaveBeenCalledWith(['CUSTOMER']);
+        expect(authServiceSpy.redirectToLogin).toHaveBeenCalledWith('fehlgeschlagen');
+    });
 });
