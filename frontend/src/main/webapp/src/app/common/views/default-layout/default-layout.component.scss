@@ -11,7 +11,7 @@ mat-sidenav {
   --mat-sidenav-container-shape: 0;
   --mat-sidenav-container-divider-color: transparent;
   // A lightened tint of the container background above, rather than an unrelated Tailwind gray, so
-  // hover/focus states read as "lighter version of this sidebar" instead of a barely-visible generic gray.
+  // hover states read as "lighter version of this sidebar" instead of a barely-visible generic gray.
   --tafel-sidenav-hover-background: #4a556e;
 
   &.w-16 {

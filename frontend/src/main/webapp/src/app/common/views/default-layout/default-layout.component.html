@@ -35,7 +35,7 @@
                 }
               </a>
             } @else {
-              <a [routerLink]="item.url" routerLinkActive="bg-gray-800"
+              <a [routerLink]="item.url" routerLinkActive="bg-[var(--tafel-sidenav-hover-background)]"
                  (click)="isMobile() && sidenav.close()"
                  class="flex items-center gap-3 px-4 py-3 hover:bg-[var(--tafel-sidenav-hover-background)] cursor-pointer"
                  [class.pointer-events-none]="item.attributes?.disabled"
@@ -53,7 +53,7 @@
             }
             @if (item.children && !collapsed() && expandedItems().has(item.name)) {
               @for (child of item.children; track child.name) {
-                <a [routerLink]="child.url" routerLinkActive="bg-gray-800"
+                <a [routerLink]="child.url" routerLinkActive="bg-[var(--tafel-sidenav-hover-background)]"
                    (click)="isMobile() && sidenav.close()"
                    class="flex items-center gap-3 pl-9 pr-4 py-3 text-gray-300 hover:bg-[var(--tafel-sidenav-hover-background)] cursor-pointer">
                   @if (child.icon) {
