@@ -68,7 +68,7 @@ describe('TafelEmployeeSearchCreate', () => {
         };
         employeeApiService.findEmployees.mockReturnValueOnce(of(mockResponse));
 
-        let emittedEmployee: EmployeeData;
+        let emittedEmployee: EmployeeData | undefined;
         component.selectedEmployee.subscribe((employee) => {
             emittedEmployee = employee;
         });
@@ -90,7 +90,7 @@ describe('TafelEmployeeSearchCreate', () => {
 
         employeeApiService.findEmployees.mockReturnValueOnce(of(mockEmployeeResponse));
 
-        let emittedEmployee: EmployeeData;
+        let emittedEmployee: EmployeeData | undefined;
         component.selectedEmployee.subscribe((employee) => {
             emittedEmployee = employee;
         });
@@ -120,7 +120,7 @@ describe('TafelEmployeeSearchCreate', () => {
         };
         employeeApiService.findEmployees.mockReturnValueOnce(of(emptyResponse));
 
-        let emittedEmployee: EmployeeData;
+        let emittedEmployee: EmployeeData | undefined;
         component.selectedEmployee.subscribe((employee) => {
             emittedEmployee = employee;
         });

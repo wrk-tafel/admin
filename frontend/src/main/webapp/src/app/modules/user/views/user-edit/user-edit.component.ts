@@ -18,7 +18,7 @@ export class UserEditComponent {
   userData = input<UserData>();
 
   // Writable signal linked to input - resets when userData changes, locally writable from form updates
-  userUpdated = linkedSignal<UserData>(() => this.userData());
+  userUpdated = linkedSignal<UserData | undefined>(() => this.userData());
   userValidForSave = false;
   userFormComponent = viewChild<UserFormComponent>(UserFormComponent);
   private readonly userApiService = inject(UserApiService);
@@ -59,9 +59,9 @@ export class UserEditComponent {
     };
 
     if (!this.userData()) {
-      this.userApiService.createUser(this.userUpdated()).subscribe(observer);
+      this.userApiService.createUser(this.userUpdated()!).subscribe(observer);
     } else {
-      this.userApiService.updateUser(this.userUpdated()).subscribe(observer);
+      this.userApiService.updateUser(this.userUpdated()!).subscribe(observer);
     }
   }
 

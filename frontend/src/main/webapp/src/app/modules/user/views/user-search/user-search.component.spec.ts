@@ -106,7 +106,7 @@ describe('UserSearchComponent', () => {
       firstname: '',
       lastname: '',
       username: '',
-      enabled: null
+      enabled: false
     });
     component.searchForPersonnelNumber();
 
@@ -147,28 +147,28 @@ describe('UserSearchComponent', () => {
     const fixture = TestBed.createComponent(UserSearchComponent);
     const component = fixture.componentInstance;
     component.searchFormModel.set({
-      personnelNumber: null,
+      personnelNumber: '',
       firstname: 'firstname',
-      lastname: null,
-      username: null,
-      enabled: null
+      lastname: '',
+      username: '',
+      enabled: false
     });
     apiService.searchUser.mockReturnValue(EMPTY);
 
     component.searchForDetails();
 
-    expect(apiService.searchUser).toHaveBeenCalledWith(null, null, null, 'firstname', undefined);
+    expect(apiService.searchUser).toHaveBeenCalledWith('', false, '', 'firstname', undefined);
   });
 
   it('search with firstname no results', () => {
     const fixture = TestBed.createComponent(UserSearchComponent);
     const component = fixture.componentInstance;
     component.searchFormModel.set({
-      personnelNumber: null,
+      personnelNumber: '',
       firstname: 'firstname',
-      lastname: null,
-      username: null,
-      enabled: null
+      lastname: '',
+      username: '',
+      enabled: false
     });
 
     const response: UserSearchResult = {items: [], totalCount: 0, currentPage: 3, totalPages: 0, pageSize: 0};
@@ -176,7 +176,7 @@ describe('UserSearchComponent', () => {
 
     component.searchForDetails();
 
-    expect(apiService.searchUser).toHaveBeenCalledWith(null, null, null, 'firstname', undefined);
+    expect(apiService.searchUser).toHaveBeenCalledWith('', false, '', 'firstname', undefined);
     expect(toastr.info).toHaveBeenCalledWith('Keine Benutzer gefunden!');
   });
 

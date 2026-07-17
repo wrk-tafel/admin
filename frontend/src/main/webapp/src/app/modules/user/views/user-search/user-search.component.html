@@ -61,12 +61,12 @@
         <mat-divider class="my-4"></mat-divider>
         <div class="mt-6">
           <div class="mb-4">
-            <h5 class="mb-4">Suchergebnis ({{this.searchResult().totalCount}} gefunden)</h5>
+            <h5 class="mb-4">Suchergebnis ({{this.searchResult()?.totalCount}} gefunden)</h5>
             <tafel-pagination align="end" [paginationData]="paginationData()" (pageChanged)="searchForDetails($event)"></tafel-pagination>
           </div>
 
           <div class="hidden md:block">
-            <table mat-table [dataSource]="searchResult() ? searchResult().items : []" class="min-w-full divide-y divide-gray-200 mt-3" aria-label="Liste der gefundenen Benutzer" testid="searchresult-table">
+            <table mat-table [dataSource]="searchResult()?.items ?? []" class="min-w-full divide-y divide-gray-200 mt-3" aria-label="Liste der gefundenen Benutzer" testid="searchresult-table">
               <ng-container matColumnDef="icon">
                 <th mat-header-cell *matHeaderCellDef></th>
                 <td mat-cell *matCellDef="let user; let i = index"> <fa-icon [icon]="faUser"></fa-icon></td>
@@ -124,7 +124,7 @@
 
           <div class="block sm:hidden">
             <div class="flex flex-col gap-3 mb-3">
-              @for (user of this.searchResult().items; track user.id; let i = $index) {
+              @for (user of this.searchResult()?.items; track user.id; let i = $index) {
                 <mat-card class="shadow-sm">
                   <mat-card-header class="font-semibold">{{user.id}} - {{user.lastname}} {{user.firstname}}</mat-card-header>
                   <mat-card-content>

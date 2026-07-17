@@ -25,13 +25,18 @@ export class CreateEmployeeDialogComponent {
   private readonly fb = inject(FormBuilder);
 
   createEmployeeForm = this.fb.group({
-    personnelNumber: this.fb.control<string>(null, [Validators.required, Validators.maxLength(50)]),
-    firstname: this.fb.control<string>(null, [Validators.required, Validators.maxLength(50)]),
-    lastname: this.fb.control<string>(null, [Validators.required, Validators.maxLength(50)]),
+    personnelNumber: this.fb.control<string | null>(null, [Validators.required, Validators.maxLength(50)]),
+    firstname: this.fb.control<string | null>(null, [Validators.required, Validators.maxLength(50)]),
+    lastname: this.fb.control<string | null>(null, [Validators.required, Validators.maxLength(50)]),
   });
 
   saveNewEmployee() {
-    this.employeeApiService.saveEmployee(this.createEmployeeForm.getRawValue())
+    const rawValue = this.createEmployeeForm.getRawValue();
+    this.employeeApiService.saveEmployee({
+      personnelNumber: rawValue.personnelNumber!,
+      firstname: rawValue.firstname!,
+      lastname: rawValue.lastname!
+    })
       .subscribe({
         next: (savedEmployee: EmployeeData) => {
           this.dialogRef.close(savedEmployee);
@@ -43,14 +48,14 @@ export class CreateEmployeeDialogComponent {
   }
 
   get personnelNumber() {
-    return this.createEmployeeForm.get('personnelNumber');
+    return this.createEmployeeForm.get('personnelNumber')!;
   }
 
   get firstname() {
-    return this.createEmployeeForm.get('firstname');
+    return this.createEmployeeForm.get('firstname')!;
   }
 
   get lastname() {
-    return this.createEmployeeForm.get('lastname');
+    return this.createEmployeeForm.get('lastname')!;
   }
 }

@@ -21,7 +21,7 @@ export class TicketsProcessedComponent {
 
     if (!processed && !total) {
       return 'primary';
-    } else if (processed < total) {
+    } else if ((processed ?? 0) < (total ?? 0)) {
       return 'warning';
     } else {
       return 'success';

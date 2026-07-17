@@ -54,13 +54,13 @@ export class FoodCollectionRecordingItemsDesktopComponent {
     this.formInitialized.set(false);
 
     if (this.selectedRouteData()) {
-      this.createCategoryShopInputs(this.selectedRouteData().shops, this.selectedRouteData().foodCollectionData?.items ?? []);
+      this.createCategoryShopInputs(this.selectedRouteData()!.shops, this.selectedRouteData()!.foodCollectionData?.items ?? []);
       this.categories.markAllAsTouched();
       this.formInitialized.set(true);
     }
   });
 
-  createCategoryShopInputs(shops: Shop[], items?: FoodCollectionItem[]) {
+  createCategoryShopInputs(shops: Shop[], items: FoodCollectionItem[] = []) {
     const categories: FormGroup[] = this.foodCategories().map((category) =>
       this.fb.group({
         categoryId: this.fb.control<number>(category.id, {nonNullable: true}),
@@ -93,7 +93,7 @@ export class FoodCollectionRecordingItemsDesktopComponent {
       return;
     }
 
-    const routeId = this.selectedRouteData().route.id;
+    const routeId = this.selectedRouteData()!.route.id;
     const collectionData: FoodCollectionSaveItemsRequest = {
       items: this.mapItemsFromCategories()
     };
@@ -105,13 +105,13 @@ export class FoodCollectionRecordingItemsDesktopComponent {
 
   private mapItemsFromCategories(): FoodCollectionItem[] {
     return this.categories.controls.flatMap((formGroup) => {
-      const categoryId = formGroup.get('categoryId').value;
+      const categoryId = formGroup.get('categoryId')!.value;
       const shops = (formGroup.get('shops') as FormArray).controls;
 
       return shops.map((shopGroup) => ({
         categoryId,
-        shopId: shopGroup.get('shopId').value,
-        amount: shopGroup.get('amount').value,
+        shopId: shopGroup.get('shopId')!.value,
+        amount: shopGroup.get('amount')!.value,
       }));
     });
   }

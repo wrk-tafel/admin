@@ -175,7 +175,7 @@ describe('CheckinComponent', () => {
 
     it('ngOnInit without ongoing distribution navigates to dashboard', () => {
         scannerApiService.getScanners.mockReturnValue(EMPTY);
-        globalStateService.getCurrentDistribution.mockReturnValue(signal<DistributionItem>(null).asReadonly());
+        globalStateService.getCurrentDistribution.mockReturnValue(signal<DistributionItem | null>(null).asReadonly());
 
         const fixture = TestBed.createComponent(CheckinComponent);
         const component = fixture.componentInstance;
@@ -198,7 +198,7 @@ describe('CheckinComponent', () => {
         // Trigger destroyRef cleanup by destroying the fixture
         fixture.destroy();
 
-        expect(component.scannerSubscription.unsubscribe).toHaveBeenCalled();
+        expect(component.scannerSubscription!.unsubscribe).toHaveBeenCalled();
     });
 
     it('selectedScannerId first time selected', () => {
@@ -695,7 +695,7 @@ describe('CheckinComponent', () => {
         const ticketNumber = 55;
         component.ticketNumber = ticketNumber;
 
-        distributionApiService.assignCustomer.mockReturnValue(of(null));
+        distributionApiService.assignCustomer.mockReturnValue(of(undefined));
 
         component.assignCustomer();
         await fixture.whenStable();
@@ -776,7 +776,7 @@ describe('CheckinComponent', () => {
         };
         component.processCustomer(mockCustomer);
         distributionTicketApiService.deleteCurrentTicketOfCustomer.mockImplementation((id) =>
-            id === mockCustomer.id ? of(null) : of(null)
+            id === mockCustomer.id ? of(undefined) : of(undefined)
         );
 
         component.deleteTicket();

@@ -54,7 +54,7 @@ export class CustomerApiService {
       });
   }
 
-  searchCustomer(lastname?: string, firstname?: string, postProcessing?: boolean, costContribution?: boolean, valid?: boolean, page?: number): Observable<CustomerSearchResult> {
+  searchCustomer(lastname?: string | null, firstname?: string | null, postProcessing?: boolean | null, costContribution?: boolean | null, valid?: boolean | null, page?: number): Observable<CustomerSearchResult> {
     let queryParams = new HttpParams();
     if (lastname) {
       queryParams = queryParams.set('lastname', lastname);
@@ -110,12 +110,12 @@ export interface CustomerSearchResult {
 
 export interface CustomerCreationResponse {
   data: CustomerData;
-  errorMsg: string;
+  errorMsg: string | null;
 }
 
 export interface CustomerUpdateResponse {
   data: CustomerData;
-  errorMsg: string;
+  errorMsg: string | null;
 }
 
 export interface CustomerData {
@@ -136,8 +136,8 @@ export interface CustomerData {
   validUntil?: Date;
   locked?: boolean;
   lockedAt?: Date;
-  lockedBy?: string;
-  lockReason?: string;
+  lockedBy?: string | null;
+  lockReason?: string | null;
   pendingCostContribution?: number;
   additionalPersons?: CustomerAddPersonData[];
 }
