@@ -3,8 +3,6 @@
 # Prio 1
 * food recording: sonstige kisten (add function to add a description) - how?
 
-* Improve performance of statistics page (issue in prod only)
-
 * Add overview "Customers above limit"
 * New permission : ADMIN, Duplicates / Settings / Customers above limit
 

@@ -26,7 +26,7 @@ class StatisticsService(
     }
 
     fun getSettings(): StatisticsSettings {
-        val closedDistributions = distributionRepository.findAll()
+        val closedDistributions = distributionRepository.getDistributionEntityByEndedAtIsNotNullOrderByStartedAtDesc()
             .filter { it.endedAt != null && it.startedAt != null }
 
         return StatisticsSettings(
@@ -314,7 +314,10 @@ class StatisticsService(
             val cols = row as Array<*>
             val label = cols[0] as String
             val value = if (cols[1] != null) cols[1] as Number else 0
-            val valueFormatted = if (value is Double) String.format("%.2f", value).toDouble() else value
+            // Locale.ROOT (dot decimal separator) here, not the JVM default (de-AT, comma separator) - this
+            // round-trips through Kotlin's locale-independent String.toDouble(), which would throw
+            // NumberFormatException on a comma-formatted string like "0,00".
+            val valueFormatted = if (value is Double) String.format(Locale.ROOT, "%.2f", value).toDouble() else value
 
             StatisticsResult(
                 label = label,
