@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { TafelIfPermissionDirective } from './tafel-if-permission.directive';
 import { AuthenticationService } from './authentication.service';
@@ -7,6 +7,7 @@ import { AuthenticationService } from './authentication.service';
     selector: 'test-component',
     template: `<div *tafelIfPermission="permission">Content</div>`,
     standalone: true,
+    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [TafelIfPermissionDirective]
 })
 class TestComponent {

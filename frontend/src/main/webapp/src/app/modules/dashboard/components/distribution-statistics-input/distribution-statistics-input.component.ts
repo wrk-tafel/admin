@@ -1,4 +1,4 @@
-import {Component, effect, inject, input, linkedSignal, Signal, signal} from '@angular/core';
+import {Component, effect, inject, input, linkedSignal, Signal, signal, ChangeDetectionStrategy} from '@angular/core';
 import {MatCard, MatCardContent, MatCardFooter, MatCardHeader, MatCardTitle} from '@angular/material/card';
 import {MatError, MatFormField, MatLabel} from '@angular/material/form-field';
 import {MatInput} from '@angular/material/input';
@@ -15,6 +15,7 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
 @Component({
   selector: 'tafel-distribution-statistics-input',
   templateUrl: 'distribution-statistics-input.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     MatCard,
     MatCardHeader,

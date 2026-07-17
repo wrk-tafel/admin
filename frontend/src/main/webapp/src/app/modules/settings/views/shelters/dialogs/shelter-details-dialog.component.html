@@ -13,15 +13,19 @@
 
       <div class="mt-2">
         <h5 class="mb-2">Kontakte</h5>
-        @if (data.shelter?.contacts && data.shelter.contacts.length > 0) {
-          <ul class="list-disc pl-4">
-            @for (contact of data.shelter.contacts; track contact.phone) {
-              <li>
-                <div><strong>{{ contact.firstname }} {{ contact.lastname }}</strong></div>
-                <div>{{ contact.phone }}</div>
-              </li>
-            }
-          </ul>
+        @if (data.shelter?.contacts; as contacts) {
+          @if (contacts.length > 0) {
+            <ul class="list-disc pl-4">
+              @for (contact of contacts; track contact.phone) {
+                <li>
+                  <div><strong>{{ contact.firstname }} {{ contact.lastname }}</strong></div>
+                  <div>{{ contact.phone }}</div>
+                </li>
+              }
+            </ul>
+          } @else {
+            <div>Keine Kontakte vorhanden</div>
+          }
         } @else {
           <div>Keine Kontakte vorhanden</div>
         }

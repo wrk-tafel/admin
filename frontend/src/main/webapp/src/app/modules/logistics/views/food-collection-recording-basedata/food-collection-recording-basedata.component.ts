@@ -1,4 +1,4 @@
-import {Component, effect, inject, input, model, viewChild} from '@angular/core';
+import {Component, effect, inject, input, model, viewChild, ChangeDetectionStrategy} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {
   ButtonDirective,
@@ -27,6 +27,7 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
 @Component({
     selector: 'tafel-food-collection-recording-basedata',
     templateUrl: 'food-collection-recording-basedata.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [
         CommonModule,
         FormSelectDirective,

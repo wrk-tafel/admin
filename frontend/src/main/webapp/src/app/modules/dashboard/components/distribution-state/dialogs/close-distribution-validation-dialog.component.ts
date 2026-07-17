@@ -1,4 +1,4 @@
-import {Component, computed, inject} from '@angular/core';
+import {Component, computed, inject, ChangeDetectionStrategy} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogModule, MatDialogRef} from '@angular/material/dialog';
 import {DistributionCloseValidationResult} from '../../../../../api/distribution-api.service';
 import {TafelDialogComponent} from '../../../../../common/components/tafel-dialog/tafel-dialog.component';
@@ -11,6 +11,7 @@ export interface CloseDistributionValidationDialogData {
 @Component({
   selector: 'tafel-close-distribution-validation-dialog',
   imports: [TafelDialogComponent, MatDialogModule, MatButton],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: 'close-distribution-validation-dialog.component.html'
 })
 export class CloseDistributionValidationDialogComponent {

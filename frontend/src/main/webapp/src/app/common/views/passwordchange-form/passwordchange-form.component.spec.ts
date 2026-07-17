@@ -2,7 +2,7 @@ import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
 import {PasswordChangeFormComponent} from './passwordchange-form.component';
 import {ModalModule} from '@coreui/angular';
-import {provideHttpClient} from '@angular/common/http';
+import {provideHttpClient, withXhr} from '@angular/common/http';
 
 describe('PasswordChangeFormComponent', () => {
   let httpMock: HttpTestingController;
@@ -13,7 +13,7 @@ describe('PasswordChangeFormComponent', () => {
     TestBed.configureTestingModule({
       imports: [ModalModule],
       providers: [
-        provideHttpClient(),
+        provideHttpClient(withXhr()),
         provideHttpClientTesting(),
       ]
     }).compileComponents();

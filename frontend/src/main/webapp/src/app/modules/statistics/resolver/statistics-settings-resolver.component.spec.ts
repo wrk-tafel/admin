@@ -3,7 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import moment from 'moment';
 import { of } from 'rxjs';
 import { ActivatedRouteSnapshot } from '@angular/router';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { StatisticsApiService, StatisticsSettings } from '../../../api/statistics-api.service';
 import { StatisticsSettingsResolver } from './statistics-settings-resolver.component';
@@ -15,7 +15,7 @@ describe('StatisticsSettingsResolver', () => {
     beforeEach(() => {
         TestBed.configureTestingModule({
             providers: [
-                provideHttpClient(),
+                provideHttpClient(withXhr()),
                 provideHttpClientTesting(),
                 {
                     provide: StatisticsApiService,

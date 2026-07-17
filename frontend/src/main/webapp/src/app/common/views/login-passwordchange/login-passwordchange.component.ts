@@ -1,4 +1,4 @@
-import {Component, computed, inject, viewChild} from '@angular/core';
+import {Component, computed, inject, viewChild, ChangeDetectionStrategy} from '@angular/core';
 import {PasswordChangeFormComponent} from '../passwordchange-form/passwordchange-form.component';
 import {Router} from '@angular/router';
 import {AuthenticationService, LoginResult} from '../../security/authentication.service';
@@ -8,6 +8,7 @@ import {MatButton} from '@angular/material/button';
 @Component({
   selector: 'tafel-login-passwordchange',
   templateUrl: 'login-passwordchange.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     PasswordChangeFormComponent,
     MatCard,

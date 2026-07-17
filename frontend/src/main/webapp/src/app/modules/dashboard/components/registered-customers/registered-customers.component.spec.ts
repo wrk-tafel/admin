@@ -5,7 +5,7 @@ import { By } from '@angular/platform-browser';
 import { CardModule, ColComponent, ModalModule, RowComponent } from '@coreui/angular';
 import { DistributionApiService } from '../../../../api/distribution-api.service';
 import { FileHelperService } from '../../../../common/util/file-helper.service';
-import { HttpHeaders, HttpResponse, provideHttpClient } from '@angular/common/http';
+import { HttpHeaders, HttpResponse, provideHttpClient, withXhr } from '@angular/common/http';
 import { of } from 'rxjs';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 
@@ -22,7 +22,7 @@ describe('RegisteredCustomersComponent', () => {
                 RowComponent
             ],
             providers: [
-                provideHttpClient(),
+                provideHttpClient(withXhr()),
                 provideHttpClientTesting(),
                 {
                     provide: DistributionApiService,

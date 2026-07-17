@@ -1,4 +1,4 @@
-import {Component, input, linkedSignal, output} from '@angular/core';
+import {Component, input, linkedSignal, output, ChangeDetectionStrategy} from '@angular/core';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {ButtonDirective, ColComponent, FormControlDirective, FormModule, RowComponent} from '@coreui/angular';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
@@ -7,6 +7,7 @@ import {faMinus, faPlus} from '@fortawesome/free-solid-svg-icons';
 @Component({
     selector: 'tafel-counter-input',
     templateUrl: 'tafel-counter-input.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [
         FormModule,
         ReactiveFormsModule,

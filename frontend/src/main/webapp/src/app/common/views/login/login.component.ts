@@ -1,4 +1,4 @@
-import {Component, inject, linkedSignal, signal} from '@angular/core';
+import {Component, inject, linkedSignal, signal, ChangeDetectionStrategy} from '@angular/core';
 import {form, FormField, required} from '@angular/forms/signals';
 import {ActivatedRoute, Params, Router} from '@angular/router';
 import {AuthenticationService} from '../../security/authentication.service';
@@ -13,6 +13,7 @@ import {faKey, faUser} from '@fortawesome/free-solid-svg-icons';
 @Component({
   selector: 'tafel-login',
   templateUrl: 'login.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     FormField,
     TafelAutofocusDirective,

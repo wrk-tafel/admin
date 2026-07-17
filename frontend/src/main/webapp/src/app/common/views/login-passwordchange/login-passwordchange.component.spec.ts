@@ -5,7 +5,7 @@ import {AuthenticationService, LoginResult} from '../../security/authentication.
 import {Router} from '@angular/router';
 import {firstValueFrom, of} from 'rxjs';
 import {CardModule, ColComponent, ContainerComponent, RowComponent} from '@coreui/angular';
-import {provideHttpClient} from '@angular/common/http';
+import {provideHttpClient, withXhr} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
 
 describe('LoginPasswordChangeComponent', () => {
@@ -21,7 +21,7 @@ describe('LoginPasswordChangeComponent', () => {
                 ColComponent
             ],
             providers: [
-                provideHttpClient(),
+                provideHttpClient(withXhr()),
                 provideHttpClientTesting(),
                 {
                     provide: AuthenticationService,

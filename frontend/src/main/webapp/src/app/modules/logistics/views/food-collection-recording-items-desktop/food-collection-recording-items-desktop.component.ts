@@ -1,4 +1,4 @@
-import {Component, computed, effect, inject, input, model, signal} from '@angular/core';
+import {Component, computed, effect, inject, input, model, signal, ChangeDetectionStrategy} from '@angular/core';
 import {Shop} from '../../../../api/route-api.service';
 
 import {ButtonDirective, ColComponent, RowComponent, TableColorDirective, TableDirective} from '@coreui/angular';
@@ -15,6 +15,7 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
 @Component({
   selector: 'tafel-food-collection-recording-items-desktop',
   templateUrl: 'food-collection-recording-items-desktop.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     ReactiveFormsModule,
     FormsModule,

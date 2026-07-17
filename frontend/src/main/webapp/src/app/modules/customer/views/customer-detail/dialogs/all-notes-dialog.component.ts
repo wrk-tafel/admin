@@ -1,4 +1,4 @@
-import {Component, inject, signal} from '@angular/core';
+import {Component, inject, signal, ChangeDetectionStrategy} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogModule, MatDialogRef} from '@angular/material/dialog';
 import {ButtonDirective} from '@coreui/angular';
 import {CommonModule} from '@angular/common';
@@ -14,6 +14,7 @@ export interface AllNotesDialogData {
 @Component({
   selector: 'tafel-all-notes-dialog',
   imports: [TafelDialogComponent, MatDialogModule, ButtonDirective, CommonModule, TafelPaginationComponent],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: 'all-notes-dialog.component.html',
 })
 export class AllNotesDialogComponent {

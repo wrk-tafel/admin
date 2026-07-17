@@ -1,7 +1,7 @@
 import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
 import {TestBed} from '@angular/core/testing';
 import {UserApiService} from './user-api.service';
-import {provideHttpClient} from '@angular/common/http';
+import {provideHttpClient, withXhr} from '@angular/common/http';
 import {MailRecipients, MailTypeEnum, RecipientTypeEnum, SettingsApiService} from './settings-api.service';
 
 describe('SettingsApiService', () => {
@@ -11,7 +11,7 @@ describe('SettingsApiService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
-        provideHttpClient(),
+        provideHttpClient(withXhr()),
         provideHttpClientTesting(),
         UserApiService
       ]

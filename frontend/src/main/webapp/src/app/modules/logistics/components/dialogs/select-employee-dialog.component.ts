@@ -1,4 +1,4 @@
-import {Component, computed, inject, signal} from '@angular/core';
+import {Component, computed, inject, signal, ChangeDetectionStrategy} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 import {
   ButtonDirective,
@@ -26,6 +26,7 @@ export interface SelectEmployeeDialogData {
     TafelDialogComponent, ButtonDirective,
     CardComponent, CardBodyComponent, FaIconComponent, TafelPaginationComponent
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: 'select-employee-dialog.component.html',
 })
 export class SelectEmployeeDialogComponent {

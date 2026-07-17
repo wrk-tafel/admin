@@ -7,7 +7,7 @@ import { UserEditComponent } from './user-edit.component';
 import { BgColorDirective, CardModule, ColComponent, InputGroupComponent, ModalModule, RowComponent } from '@coreui/angular';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { UserApiService, UserData } from '../../../../api/user-api.service';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
 
@@ -39,7 +39,7 @@ describe('UserEditComponent - Creating a new user', () => {
                 BgColorDirective
             ],
             providers: [
-                provideHttpClient(),
+                provideHttpClient(withXhr()),
                 provideHttpClientTesting(),
                 {
                     provide: UserApiService,

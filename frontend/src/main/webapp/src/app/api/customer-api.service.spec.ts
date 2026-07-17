@@ -3,7 +3,7 @@ import {TestBed} from '@angular/core/testing';
 import moment from 'moment';
 import {CustomerApiService, CustomerMergeRequest, Gender, CustomerData} from './customer-api.service';
 import {ReactiveFormsModule} from '@angular/forms';
-import {provideHttpClient} from '@angular/common/http';
+import {provideHttpClient, withXhr} from '@angular/common/http';
 import type {MockedObject} from 'vitest';
 import {TafelToastrService} from '../common/components/tafel-toastr/tafel-toastr.service';
 
@@ -16,7 +16,7 @@ describe('CustomerApiService', () => {
     TestBed.configureTestingModule({
       imports: [ReactiveFormsModule],
       providers: [
-        provideHttpClient(),
+        provideHttpClient(withXhr()),
         provideHttpClientTesting(),
         CustomerApiService,
         {

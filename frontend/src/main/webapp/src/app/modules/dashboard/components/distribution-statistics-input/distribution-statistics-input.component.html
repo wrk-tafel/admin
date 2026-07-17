@@ -50,7 +50,7 @@
         </mat-form-field>
         <tafel-select-shelters
           (updateSelectedShelters)="onUpdateSelectedShelters($event)"
-          [sheltersList]="sheltersData()?.shelters"
+          [sheltersList]="$safeNavigationMigration(sheltersData()?.shelters)"
           [initialSelectedShelters]="selectedShelters()"
           [disabled]="panelDisabled()"
         ></tafel-select-shelters>
