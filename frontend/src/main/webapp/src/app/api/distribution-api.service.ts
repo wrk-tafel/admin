@@ -16,7 +16,7 @@ export class DistributionApiService {
     return this.http.post<void>('/distributions/new', null);
   }
 
-  closeDistribution(forceClose: boolean): Observable<DistributionCloseValidationResult> {
+  closeDistribution(forceClose: boolean): Observable<DistributionCloseValidationResult | null> {
     let queryParams = new HttpParams();
     if (forceClose) {
       queryParams = queryParams.set('forceClose', forceClose);

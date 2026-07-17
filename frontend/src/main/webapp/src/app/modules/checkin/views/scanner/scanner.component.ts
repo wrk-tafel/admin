@@ -115,7 +115,7 @@ export class ScannerComponent {
     return camera.id;
   }
 
-  qrCodeReaderSuccessCallback = (decodedText: string, _: Html5QrcodeResult) => {
+  qrCodeReaderSuccessCallback = (decodedText: string, _?: Html5QrcodeResult) => {
     const scanResult: ScanResult = {value: +decodedText};
     console.log("SCANNED", scanResult)
     const scannedValue = scanResult.value;

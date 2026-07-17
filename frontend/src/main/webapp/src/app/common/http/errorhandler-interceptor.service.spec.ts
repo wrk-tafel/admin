@@ -111,7 +111,7 @@ describe('ErrorHandlerInterceptor', () => {
 
         /* eslint-disable @typescript-eslint/no-unused-vars */
         const observer = {
-            error: _ => {
+            error: (_: any) => {
                 expect(toastrSpy.error).toHaveBeenCalledWith(
                     'Custom message from body',
                     'HTTP 403 - Error Code'
@@ -138,7 +138,7 @@ describe('ErrorHandlerInterceptor', () => {
 
         /* eslint-disable @typescript-eslint/no-unused-vars */
         const observer = {
-            error: _ => {
+            error: (_: any) => {
                 expect(authServiceSpy.redirectToLogin).toHaveBeenCalled();
             },
         };

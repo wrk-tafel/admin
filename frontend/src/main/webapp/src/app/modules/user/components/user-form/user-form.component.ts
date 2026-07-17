@@ -96,6 +96,9 @@ export class UserFormComponent {
 
     return {
       ...formValue,
+      // Empty password fields mean "don't change the password" - send as absent, not ''
+      password: formValue.password || undefined,
+      passwordRepeat: formValue.passwordRepeat || undefined,
       permissions: perms.filter((permission) => permission.enabled === true)
     } as UserData;
   });

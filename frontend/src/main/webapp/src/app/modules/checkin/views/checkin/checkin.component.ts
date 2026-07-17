@@ -156,7 +156,7 @@ export class CheckinComponent {
     return this.currentScannerId;
   }
 
-  set selectedScannerId(scannerId: number) {
+  set selectedScannerId(scannerId: number | undefined) {
     this.currentScannerId = scannerId;
     if (this.scannerSubscription) {
       this.scannerSubscription.unsubscribe();

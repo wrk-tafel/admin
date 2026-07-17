@@ -6,7 +6,7 @@ import {CustomerIssuer} from '../../api/customer-api.service';
   standalone: true
 })
 export class FormatIssuerPipe implements PipeTransform {
-  transform(issuer?: CustomerIssuer): string {
+  transform(issuer?: CustomerIssuer | null): string {
     if (issuer) {
       return 'von ' + issuer.personnelNumber + ' ' + issuer.firstname + ' ' + issuer.lastname;
     }

@@ -6,7 +6,7 @@ import {ShelterItem} from '../../api/shelter-api.service';
   standalone: true
 })
 export class FormatShelterAddressPipe implements PipeTransform {
-  transform(shelter: ShelterItem): string {
+  transform(shelter?: ShelterItem | null): string {
     if (!shelter) {
       return '-';
     }

@@ -46,8 +46,8 @@ export class AuthenticationService {
     return foundPermissions.length > 0
   }
 
-  public getUsername(): string {
-    return this.userInfo!.username;
+  public getUsername(): string | undefined {
+    return this.userInfo?.username;
   }
 
   public logout(): Observable<void> {

@@ -6,7 +6,7 @@ import {CustomerAddressData} from '../../api/customer-api.service';
   standalone: true
 })
 export class FormatCustomerAddressPipe implements PipeTransform {
-  transform(address: CustomerAddressData): string {
+  transform(address?: CustomerAddressData | null): string {
     if (!address) {
       return '-';
     }

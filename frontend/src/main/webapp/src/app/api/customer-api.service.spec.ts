@@ -34,7 +34,7 @@ describe('CustomerApiService', () => {
   });
 
   it('validate customer', () => {
-    apiService.validate(null).subscribe();
+    apiService.validate(null as unknown as CustomerData).subscribe();
 
     const req = httpMock.expectOne({method: 'POST', url: '/customers/validate'});
     req.flush(null);

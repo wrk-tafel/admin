@@ -81,7 +81,7 @@ describe('DefaultHeaderComponent', () => {
     });
 
     it('logout', () => {
-        authenticationService.logout.mockReturnValueOnce(of(null));
+        authenticationService.logout.mockReturnValueOnce(of(undefined));
 
         const fixture = TestBed.createComponent(DefaultHeaderComponent);
         const component = fixture.componentInstance;

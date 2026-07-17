@@ -48,7 +48,7 @@ export class DistributionStateComponent {
 
   closeDistribution(forceClose: boolean) {
     this.distributionApiService.closeDistribution(forceClose).subscribe({
-      next: (result: DistributionCloseValidationResult) => {
+      next: (result: DistributionCloseValidationResult | null) => {
         if (result && (result.errors.length > 0 || result.warnings.length > 0)) {
           this.dialog.open(CloseDistributionValidationDialogComponent, {
             data: {validationResult: result}
