@@ -10,7 +10,7 @@ import {map} from 'rxjs';
 export class GlobalStateService {
   private readonly sseService = inject(SseService);
 
-  private readonly _currentDistribution: WritableSignal<DistributionItem> = signal(null);
+  private readonly _currentDistribution: WritableSignal<DistributionItem | null> = signal(null);
   private readonly _connectionState: WritableSignal<boolean> = signal(false);
 
   /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -28,7 +28,7 @@ export class GlobalStateService {
     });
   }
 
-  getCurrentDistribution(): Signal<DistributionItem> {
+  getCurrentDistribution(): Signal<DistributionItem | null> {
     return this._currentDistribution.asReadonly();
   }
 

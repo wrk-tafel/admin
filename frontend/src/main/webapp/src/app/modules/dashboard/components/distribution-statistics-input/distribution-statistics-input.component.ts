@@ -44,8 +44,8 @@ export class DistributionStatisticsInputComponent {
   initialIdsProcessed = signal<boolean>(false);
 
   form = this.fb.group({
-    employeeCount: this.fb.control<number>(null, [Validators.required, Validators.min(1)]),
-    personsInShelterCount: this.fb.control<number>(null, [Validators.min(1)]),
+    employeeCount: this.fb.control<number | null>(null, [Validators.required, Validators.min(1)]),
+    personsInShelterCount: this.fb.control<number | null>(null, [Validators.min(1)]),
   });
 
   readonly distribution: Signal<DistributionItem | null> = this.globalStateService.getCurrentDistribution();
@@ -74,7 +74,9 @@ export class DistributionStatisticsInputComponent {
   initialSelectedShelterIdsEffect = effect(() => {
     const initialSelectedShelterIds = this.initialSelectedShelterNames() ?? [];
     if (!this.initialIdsProcessed() && initialSelectedShelterIds.length > 0) {
-      const shelters = initialSelectedShelterIds.map(name => this.sheltersData()?.shelters?.find(shelter => shelter.name === name));
+      const shelters = initialSelectedShelterIds
+        .map(name => this.sheltersData()?.shelters?.find(shelter => shelter.name === name))
+        .filter((shelter): shelter is ShelterItem => shelter !== undefined);
       this.selectedShelters.set(shelters);
       this.calculatePersonsInShelterCount();
 
@@ -106,21 +108,21 @@ export class DistributionStatisticsInputComponent {
       next: () => {
         this.toastr.success('Statistik-Daten gespeichert!');
       },
-      error: error => {
+      error: (error: any) => {
         this.toastr.error('Speichern fehlgeschlagen!');
       },
     };
 
     const selectedShelterIds = this.selectedShelters().map(shelter => shelter.id);
-    this.distributionApiService.saveStatistic(this.employeeCount.value, selectedShelterIds).subscribe(observer);
+    this.distributionApiService.saveStatistic(this.employeeCount.value!, selectedShelterIds).subscribe(observer);
   }
 
   get employeeCount() {
-    return this.form.get('employeeCount');
+    return this.form.get('employeeCount')!;
   }
 
   get personsInShelterCount() {
-    return this.form.get('personsInShelterCount');
+    return this.form.get('personsInShelterCount')!;
   }
 
 }

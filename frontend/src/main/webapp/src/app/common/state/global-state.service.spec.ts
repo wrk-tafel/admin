@@ -38,7 +38,7 @@ describe('GlobalStateService', () => {
 
         expect(service.getCurrentDistribution()()).toEqual(testDistributionUpdate.distribution);
 
-        const args = vi.mocked(sseServiceSpy.listen).mock.lastCall;
+        const args = vi.mocked(sseServiceSpy.listen).mock.lastCall!;
         expect(args[0]).toBe('/sse/distributions');
 
         const connectionStateCallback = args[1];

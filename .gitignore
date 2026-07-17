@@ -20,3 +20,4 @@ build/
 /.claude/*
 !/.claude/skills/
 /.kotlin/
+/backend/logs/

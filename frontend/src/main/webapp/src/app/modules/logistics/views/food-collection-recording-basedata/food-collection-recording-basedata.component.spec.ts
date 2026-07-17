@@ -184,7 +184,7 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
     fixture.detectChanges();
 
     expect(component.kmEnd.errors).toBeTruthy();
-    expect(component.kmEnd.errors['kmValidation']).toBe(true);
+    expect(component.kmEnd.errors!['kmValidation']).toBe(true);
 
     // Test invalid scenario - start km = end km
     component.kmStart.setValue(150);
@@ -192,7 +192,7 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
     fixture.detectChanges();
 
     expect(component.kmEnd.errors).toBeTruthy();
-    expect(component.kmEnd.errors['kmValidation']).toBe(true);
+    expect(component.kmEnd.errors!['kmValidation']).toBe(true);
   });
 
   it('should trigger search for driver and co-driver when input exists', () => {
@@ -336,7 +336,7 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
 
     fixture.detectChanges();
 
-    foodCollectionsApiServiceSpy.saveRouteData.mockReturnValue(of(null));
+    foodCollectionsApiServiceSpy.saveRouteData.mockReturnValue(of(undefined));
 
     // Set valid form data with km difference = 150 (< 350)
     component.car.setValue(mockCarList.cars[0]);
@@ -371,7 +371,7 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
 
     fixture.detectChanges();
 
-    foodCollectionsApiServiceSpy.saveRouteData.mockReturnValue(of(null));
+    foodCollectionsApiServiceSpy.saveRouteData.mockReturnValue(of(undefined));
 
     // Set valid form data with km difference = 400 (> 350)
     component.car.setValue(mockCarList.cars[0]);
@@ -400,7 +400,7 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
 
     fixture.detectChanges();
 
-    foodCollectionsApiServiceSpy.saveRouteData.mockReturnValue(of(null));
+    foodCollectionsApiServiceSpy.saveRouteData.mockReturnValue(of(undefined));
 
     // Set valid form data with km difference = 400 (> 350)
     component.car.setValue(mockCarList.cars[0]);
@@ -435,7 +435,7 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
 
     fixture.detectChanges();
 
-    foodCollectionsApiServiceSpy.saveRouteData.mockReturnValue(of(null));
+    foodCollectionsApiServiceSpy.saveRouteData.mockReturnValue(of(undefined));
 
     component.car.setValue(mockCarList.cars[0]);
     component.driverSearchInput.setValue('D1');
@@ -474,7 +474,7 @@ describe('FoodCollectionRecordingBasedataComponent', () => {
 
     fixture.detectChanges();
 
-    foodCollectionsApiServiceSpy.saveRouteData.mockReturnValue(of(null));
+    foodCollectionsApiServiceSpy.saveRouteData.mockReturnValue(of(undefined));
 
     // Set valid form data with km difference = 400 (> 350)
     component.car.setValue(mockCarList.cars[0]);

@@ -26,16 +26,16 @@ export class RegisteredCustomersComponent {
   private readonly distributionApiService = inject(DistributionApiService);
   private readonly fileHelperService = inject(FileHelperService);
 
-  count? = input<number>();
+  count = input<number>();
 
   downloadCustomerList() {
     this.distributionApiService.downloadCustomerList().subscribe(response => this.processPdfResponse(response));
   }
 
   private processPdfResponse(response: HttpResponse<Blob>) {
-    const contentDisposition = response.headers.get('content-disposition');
+    const contentDisposition = response.headers.get('content-disposition')!;
     const filename = contentDisposition.split(';')[1].split('filename')[1].split('=')[1].trim();
-    this.fileHelperService.downloadFile(filename, response.body);
+    this.fileHelperService.downloadFile(filename, response.body!);
   }
 
   protected readonly faDownload = faDownload;

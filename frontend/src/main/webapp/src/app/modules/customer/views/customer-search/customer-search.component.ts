@@ -1,6 +1,6 @@
 import {Component, inject, signal} from '@angular/core';
 import {Router} from '@angular/router';
-import {CustomerApiService, CustomerSearchResult} from '../../../../api/customer-api.service';
+import {CustomerApiService, CustomerData, CustomerSearchResult} from '../../../../api/customer-api.service';
 import {FormBuilder, ReactiveFormsModule} from '@angular/forms';
 import {
   TafelPaginationComponent,
@@ -56,12 +56,12 @@ export class CustomerSearchComponent {
   private readonly fb = inject(FormBuilder);
 
   form = this.fb.group({
-    customerId: this.fb.control<number>(null),
-    lastname: this.fb.control<string>(null),
-    firstname: this.fb.control<string>(null),
-    postProcessing: this.fb.control<boolean>(null),
-    costContribution: this.fb.control<boolean>(null),
-    valid: this.fb.control<boolean>(null),
+    customerId: this.fb.control<number | null>(null),
+    lastname: this.fb.control<string | null>(null),
+    firstname: this.fb.control<string | null>(null),
+    postProcessing: this.fb.control<boolean | null>(null),
+    costContribution: this.fb.control<boolean | null>(null),
+    valid: this.fb.control<boolean | null>(null),
   });
 
   // Use signals so the template-sugar (@if / @for) reacts immediately when updated
@@ -69,12 +69,12 @@ export class CustomerSearchComponent {
   paginationData = signal<TafelPaginationData | undefined>(undefined);
 
   searchForCustomerId() {
-    const customerId = this.customerId.value;
+    const customerId = this.customerId.value!;
 
     /* eslint-disable @typescript-eslint/no-unused-vars */
     const observer = {
-      next: (response) => this.navigateToCustomerDetail(customerId),
-      error: (error) => {
+      next: (response: CustomerData) => this.navigateToCustomerDetail(customerId),
+      error: (error: any) => {
         if (error.status === 404) {
           this.toastr.info('Kunde nicht gefunden!');
         } else {
@@ -90,7 +90,13 @@ export class CustomerSearchComponent {
   }
 
   searchForDetails(page?: number) {
-    this.customerApiService.searchCustomer(this.lastname.value, this.firstname.value, this.postProcessing.value, this.costContribution.value, this.valid.value, page)
+    this.customerApiService.searchCustomer(
+      this.lastname.value ?? undefined,
+      this.firstname.value ?? undefined,
+      this.postProcessing.value ?? undefined,
+      this.costContribution.value ?? undefined,
+      this.valid.value ?? undefined,
+      page)
       .subscribe((response: CustomerSearchResult) => {
         if (response.items.length === 0) {
           this.toastr.info('Keine Kunden gefunden!');
@@ -122,27 +128,27 @@ export class CustomerSearchComponent {
   }
 
   get customerId() {
-    return this.form.get('customerId');
+    return this.form.get('customerId')!;
   }
 
   get lastname() {
-    return this.form.get('lastname');
+    return this.form.get('lastname')!;
   }
 
   get firstname() {
-    return this.form.get('firstname');
+    return this.form.get('firstname')!;
   }
 
   get postProcessing() {
-    return this.form.get('postProcessing');
+    return this.form.get('postProcessing')!;
   }
 
   get costContribution() {
-    return this.form.get('costContribution');
+    return this.form.get('costContribution')!;
   }
 
   get valid() {
-    return this.form.get('valid');
+    return this.form.get('valid')!;
   }
 
   protected readonly faPencil = faPencil;
