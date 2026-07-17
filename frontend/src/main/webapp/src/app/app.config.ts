@@ -1,7 +1,6 @@
 import {
   ApplicationConfig,
   DEFAULT_CURRENCY_CODE,
-  importProvidersFrom,
   inject,
   LOCALE_ID,
   provideAppInitializer
@@ -15,8 +14,6 @@ import {
   withViewTransitions
 } from '@angular/router';
 
-import {DropdownModule, SidebarModule} from '@coreui/angular';
-import {IconSetService} from '@coreui/icons-angular';
 import {routes} from './app.routes';
 import {provideHttpClient, withInterceptors, withXhr} from '@angular/common/http';
 import {CookieService} from 'ngx-cookie-service';
@@ -52,8 +49,6 @@ export const appConfig: ApplicationConfig = {
       withHashLocation(),
       withComponentInputBinding()
     ),
-    importProvidersFrom(SidebarModule, DropdownModule),
-    IconSetService,
     provideAppInitializer(() => inject(AuthenticationService).loadUserInfo()),
     provideAnimationsAsync(),
     {

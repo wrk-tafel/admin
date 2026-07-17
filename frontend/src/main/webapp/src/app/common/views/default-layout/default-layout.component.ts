@@ -1,18 +1,9 @@
-import {Component, computed, inject} from '@angular/core';
-import {RouterLink, RouterOutlet} from '@angular/router';
-import {NgScrollbar} from 'ngx-scrollbar';
-
-import {
-  ContainerComponent,
-  ShadowOnScrollDirective,
-  SidebarBrandComponent,
-  SidebarComponent,
-  SidebarFooterComponent,
-  SidebarHeaderComponent,
-  SidebarNavComponent,
-  SidebarToggleDirective,
-  SidebarTogglerDirective
-} from '@coreui/angular';
+import {Component, computed, inject, signal} from '@angular/core';
+import {RouterLink, RouterLinkActive, RouterOutlet} from '@angular/router';
+import {MatSidenavModule} from '@angular/material/sidenav';
+import {FaIconComponent} from '@fortawesome/angular-fontawesome';
+import {faAngleLeft, faAngleRight} from '@fortawesome/free-solid-svg-icons';
+import {NgClass} from '@angular/common';
 import {DefaultHeaderComponent} from './default-header/default-header.component';
 import {ITafelNavData, navigationMenuItems} from './navigation-menuItems';
 import {AuthenticationService} from '../../security/authentication.service';
@@ -24,19 +15,13 @@ import {DistributionItem} from '../../../api/distribution-api.service';
   templateUrl: 'default-layout.component.html',
   styleUrls: ['default-layout.component.scss'],
   imports: [
-    SidebarComponent,
-    SidebarHeaderComponent,
-    SidebarBrandComponent,
     RouterLink,
-    NgScrollbar,
-    SidebarNavComponent,
-    SidebarFooterComponent,
-    SidebarToggleDirective,
-    SidebarTogglerDirective,
-    DefaultHeaderComponent,
-    ShadowOnScrollDirective,
-    ContainerComponent,
-    RouterOutlet
+    RouterLinkActive,
+    RouterOutlet,
+    MatSidenavModule,
+    FaIconComponent,
+    NgClass,
+    DefaultHeaderComponent
   ]
 })
 export class DefaultLayoutComponent {
@@ -44,6 +29,9 @@ export class DefaultLayoutComponent {
   private readonly globalStateService = inject(GlobalStateService);
 
   readonly distribution = this.globalStateService.getCurrentDistribution();
+
+  readonly collapsed = signal(false);
+  readonly expandedItems = signal<Set<string>>(new Set());
 
   readonly navItems = computed(() => {
     const distribution = this.distribution();
@@ -116,4 +104,18 @@ export class DefaultLayoutComponent {
     return resultNavItems;
   }
 
+  toggleExpanded(name: string) {
+    this.expandedItems.update(current => {
+      const updated = new Set(current);
+      if (updated.has(name)) {
+        updated.delete(name);
+      } else {
+        updated.add(name);
+      }
+      return updated;
+    });
+  }
+
+  protected readonly faAngleLeft = faAngleLeft;
+  protected readonly faAngleRight = faAngleRight;
 }

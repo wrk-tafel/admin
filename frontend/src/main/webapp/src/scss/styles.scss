@@ -8,7 +8,8 @@
 // NOTE: @import is deprecated in Dart Sass and will be removed in Dart Sass 3.0.0
 // However, we must continue using @import until CoreUI migrates to @use/@forward
 // See: https://sass-lang.com/documentation/at-rules/import
-// Migration blocked by: @coreui/coreui, @coreui/chartjs using @import internally
+// TODO: no component in the app depends on CoreUI's CSS anymore - this import and the
+// @coreui/* npm packages are only still here pending final removal.
 
 // If you want to override variables do it here
 @import "variables";

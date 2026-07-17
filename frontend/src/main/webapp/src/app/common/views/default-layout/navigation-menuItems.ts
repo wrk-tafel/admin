@@ -1,8 +1,28 @@
-import {INavData} from '@coreui/angular';
+import {IconDefinition} from '@fortawesome/fontawesome-svg-core';
+import {
+  faBarcode,
+  faChartLine,
+  faCheck,
+  faCopy,
+  faDesktop,
+  faGaugeHigh,
+  faGear,
+  faMagnifyingGlass,
+  faPlus,
+  faTruck,
+  faUser
+} from '@fortawesome/free-solid-svg-icons';
 
-export interface ITafelNavData extends INavData {
+export interface ITafelNavData {
+  name: string;
+  url?: string;
+  icon?: IconDefinition;
   permissions?: string[];
   activeDistributionRequired?: boolean;
+  title?: boolean;
+  badge?: { text: string; color: string };
+  attributes?: { disabled?: boolean };
+  children?: ITafelNavData[];
 }
 
 // TODO permissions can be read via router and therefore save the duplication here
@@ -10,7 +30,7 @@ export const navigationMenuItems: ITafelNavData[] = [
   {
     name: 'Übersicht',
     url: '/uebersicht',
-    iconComponent: {name: 'cil-speedometer'}
+    icon: faGaugeHigh
   },
   {
     name: 'Anmeldung',
@@ -19,20 +39,20 @@ export const navigationMenuItems: ITafelNavData[] = [
   {
     name: 'Annahme',
     url: '/anmeldung/annahme',
-    iconComponent: {name: 'cil-check-alt'},
+    icon: faCheck,
     permissions: ['CHECKIN'],
     activeDistributionRequired: true
   },
   {
     name: 'Scanner',
     url: '/anmeldung/scanner',
-    iconComponent: {name: 'cil-barcode'},
+    icon: faBarcode,
     permissions: ['SCANNER']
   },
   {
     name: 'Ticket-Monitor',
     url: '/anmeldung/ticketmonitor-steuerung',
-    iconComponent: {name: 'cil-screen-desktop'},
+    icon: faDesktop,
     permissions: ['CHECKIN']
   },
   {
@@ -42,19 +62,19 @@ export const navigationMenuItems: ITafelNavData[] = [
   {
     name: 'Kunden suchen',
     url: '/kunden/suchen',
-    iconComponent: {name: 'cil-search'},
+    icon: faMagnifyingGlass,
     permissions: ['CUSTOMER']
   },
   {
     name: 'Kunden anlegen',
     url: '/kunden/anlegen',
-    iconComponent: {name: 'cil-plus'},
+    icon: faPlus,
     permissions: ['CUSTOMER']
   },
   {
     name: 'Kunden-Duplikate',
     url: '/kunden/duplikate',
-    iconComponent: {name: 'cil-copy'},
+    icon: faCopy,
     permissions: ['CUSTOMER_DUPLICATES']
   },
   {
@@ -64,7 +84,7 @@ export const navigationMenuItems: ITafelNavData[] = [
   {
     name: 'Waren-Eingabe',
     url: '/logistik/warenerfassung',
-    iconComponent: {name: 'cil-bus-alt'},
+    icon: faTruck,
     permissions: ['LOGISTICS'],
     activeDistributionRequired: true
   },
@@ -75,30 +95,30 @@ export const navigationMenuItems: ITafelNavData[] = [
   {
     name: 'Benutzer',
     url: '/benutzer',
-    iconComponent: {name: 'cil-user'},
+    icon: faUser,
     permissions: ['USER_MANAGEMENT'],
     children: [
       {
         name: 'Benutzer suchen',
         url: '/benutzer/suchen',
-        iconComponent: {name: 'cil-search'}
+        icon: faMagnifyingGlass
       },
       {
         name: 'Benutzer anlegen',
         url: '/benutzer/erstellen',
-        iconComponent: {name: 'cil-plus'}
+        icon: faPlus
       }
     ]
   },
   {
     name: 'Statistiken',
-    iconComponent: {name: 'cil-chart-line'},
+    icon: faChartLine,
     url: '/statistiken',
     permissions: ['STATISTICS'],
   },
   {
     name: 'Einstellungen',
-    iconComponent: {name: 'cil-settings'},
+    icon: faGear,
     url: '/einstellungen',
     permissions: ['SETTINGS'],
     children: [
