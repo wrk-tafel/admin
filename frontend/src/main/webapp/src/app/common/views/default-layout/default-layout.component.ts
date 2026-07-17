@@ -2,7 +2,7 @@ import {Component, computed, inject, signal} from '@angular/core';
 import {RouterLink, RouterLinkActive, RouterOutlet} from '@angular/router';
 import {MatSidenavModule} from '@angular/material/sidenav';
 import {FaIconComponent} from '@fortawesome/angular-fontawesome';
-import {faAngleDown, faAngleLeft, faAngleRight} from '@fortawesome/free-solid-svg-icons';
+import {faAngleDown, faAngleLeft, faAngleRight, faAnglesLeft, faAnglesRight} from '@fortawesome/free-solid-svg-icons';
 import {NgClass} from '@angular/common';
 import {DefaultHeaderComponent} from './default-header/default-header.component';
 import {ITafelNavData, navigationMenuItems} from './navigation-menuItems';
@@ -116,7 +116,8 @@ export class DefaultLayoutComponent {
     });
   }
 
-  protected readonly faAngleLeft = faAngleLeft;
   protected readonly faAngleRight = faAngleRight;
   protected readonly faAngleDown = faAngleDown;
+  protected readonly faAnglesRight = faAnglesRight;
+  protected readonly faAnglesLeft = faAnglesLeft;
 }

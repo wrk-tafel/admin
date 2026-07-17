@@ -1,4 +1,4 @@
-<div class="flex items-center justify-between border-b px-6 h-16">
+<div class="flex items-center justify-between border-b border-gray-200 px-6 h-16">
   <button (click)="toggleSidebar.emit()" aria-label="Menü ein-/ausklappen"
           class="w-9 h-9 flex items-center justify-center rounded-md hover:bg-gray-100">
     <fa-icon [icon]="faBars"></fa-icon>
@@ -8,7 +8,7 @@
     <span class="badge" [ngClass]="!sseConnected() ? 'badge-danger' : 'badge-success'">Live-Verbindung</span>
 
     <button [matMenuTriggerFor]="userMenu" testid="usermenu" aria-label="Öffne Benutzermenü"
-            class="w-9 h-9 rounded-md overflow-hidden border border-[#dbdfe6]">
+            class="w-9 h-9 rounded-md overflow-hidden">
       <img src="./assets/img/user/user.svg" alt="Benutzer-Avatar" class="w-full h-full object-cover"/>
     </button>
     <mat-menu #userMenu="matMenu">

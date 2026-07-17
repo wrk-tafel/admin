@@ -1,9 +1,15 @@
-// Angular Material's own (unlayered) .mat-drawer CSS sets `width: var(--mat-sidenav-container-width, 360px)`.
-// Tailwind's utility classes live inside `@layer utilities`, so per the CSS cascade-layers spec this
-// unlayered Material rule always wins over `w-64`/`w-16` regardless of source order or specificity.
-// Material exposes this exact custom property as its intended theming hook, so set it directly instead.
+// Angular Material's own (unlayered) .mat-drawer CSS sets width/background-color/color from
+// --mat-sidenav-container-* custom properties, falling back to Material's own system tokens when unset.
+// Tailwind's utility classes (w-64, bg-gray-900, text-gray-200) live inside `@layer utilities`, so per the
+// CSS cascade-layers spec this unlayered Material rule always wins over them regardless of source order or
+// specificity. Material exposes these exact custom properties as its intended theming hooks, so set them
+// directly instead of fighting the cascade.
 mat-sidenav {
   --mat-sidenav-container-width: 16rem;
+  --mat-sidenav-container-background-color: #212631;
+  --mat-sidenav-container-text-color: rgba(255, 255, 255, .87);
+  --mat-sidenav-container-shape: 0;
+  --mat-sidenav-container-divider-color: transparent;
 
   &.w-16 {
     --mat-sidenav-container-width: 4rem;
