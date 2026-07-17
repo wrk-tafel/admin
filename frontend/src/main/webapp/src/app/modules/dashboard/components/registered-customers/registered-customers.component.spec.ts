@@ -27,13 +27,13 @@ describe('RegisteredCustomersComponent', () => {
                 {
                     provide: DistributionApiService,
                     useValue: {
-                        downloadCustomerList: vi.fn().mockName("DistributionApiService.downloadCustomerList")
+                        downloadCustomerList: vi.fn().mockName('DistributionApiService.downloadCustomerList')
                     }
                 },
                 {
                     provide: FileHelperService,
                     useValue: {
-                        downloadFile: vi.fn().mockName("FileHelperService.downloadFile")
+                        downloadFile: vi.fn().mockName('FileHelperService.downloadFile')
                     }
                 },
             ]

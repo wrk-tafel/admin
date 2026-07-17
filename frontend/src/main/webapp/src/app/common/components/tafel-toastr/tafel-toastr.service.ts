@@ -1,4 +1,4 @@
-import {Injectable, InjectionToken, Inject} from '@angular/core';
+import {Injectable, InjectionToken, inject} from '@angular/core';
 import * as toastr from 'toastr';
 
 // 1. Define an Injection Token for toastr
@@ -10,8 +10,9 @@ export const TOASTR_TOKEN = new InjectionToken<any>('toastr');
   useFactory: () => toastr,
 })
 export class TafelToastrService {
+  private readonly toastrInstance = inject(TOASTR_TOKEN);
 
-  constructor(@Inject(TOASTR_TOKEN) private readonly toastrInstance: any) {
+  constructor() {
     // Configure default options
     this.toastrInstance.options.timeOut = 5000;
     this.toastrInstance.options.closeButton = true;

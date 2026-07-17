@@ -130,7 +130,7 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     component.currentShop.set(mockShops[0]);
 
     const apiService = TestBed.inject(FoodCollectionsApiService);
-    const saveItemsSpy = vi.spyOn(apiService, 'saveItemsPerShop').mockReturnValue({
+    vi.spyOn(apiService, 'saveItemsPerShop').mockReturnValue({
       subscribe: (observer: any) => {
         observer.error('Error saving data');
       }
@@ -238,7 +238,7 @@ describe('FoodCollectionRecordingItemsResponsiveComponent', () => {
     componentRef.setInput('selectedRouteData', mockRouteData);
 
     const apiService = TestBed.inject(FoodCollectionsApiService);
-    const getItemsSpy = vi.spyOn(apiService, 'getItemsPerShop').mockReturnValue({
+    vi.spyOn(apiService, 'getItemsPerShop').mockReturnValue({
       subscribe: (observer: any) => {
         observer.error('Error loading data');
       }

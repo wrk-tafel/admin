@@ -33,7 +33,7 @@ describe('ScannerApiService', () => {
   it('register scanner without existing id', () => {
     apiService.registerScanner().subscribe();
 
-    const req = httpMock.expectOne({method: 'POST', url: `/scanners/register`});
+    const req = httpMock.expectOne({method: 'POST', url: '/scanners/register'});
     req.flush(null);
     httpMock.verify();
   });
@@ -41,7 +41,7 @@ describe('ScannerApiService', () => {
   it('get scanners', () => {
     apiService.getScanners().subscribe();
 
-    const req = httpMock.expectOne({method: 'GET', url: `/scanners`});
+    const req = httpMock.expectOne({method: 'GET', url: '/scanners'});
     req.flush(null);
     httpMock.verify();
   });

@@ -6,7 +6,7 @@ import {GlobalStateService} from '../state/global-state.service';
   selector: '[tafelIfDistributionActive]'
 })
 export class TafelIfDistributionActiveDirective {
-  /* eslint-disable @typescript-eslint/no-explicit-any */
+
   private readonly templateRef = inject(TemplateRef<any>);
   private readonly viewContainer = inject(ViewContainerRef);
   private readonly globalStateService = inject(GlobalStateService);

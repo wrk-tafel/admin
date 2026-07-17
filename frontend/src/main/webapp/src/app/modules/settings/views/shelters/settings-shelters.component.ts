@@ -95,7 +95,7 @@ export class SettingsSheltersComponent {
         this.toastr.success(`Notschlafstelle ${shelter.name} geändert`, 'Erfolgreich');
         this.loadShelters();
       },
-      error: (error: any) => {
+      error: () => {
         this.toastr.error('Fehler beim Ändern', 'Fehler');
       }
     };

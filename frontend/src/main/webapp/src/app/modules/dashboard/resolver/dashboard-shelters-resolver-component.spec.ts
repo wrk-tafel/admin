@@ -18,7 +18,7 @@ describe('DashboardSheltersDataResolver', () => {
         {
           provide: ShelterApiService,
           useValue: {
-            getActiveShelters: vi.fn().mockName("ShelterApiService.getActiveShelters")
+            getActiveShelters: vi.fn().mockName('ShelterApiService.getActiveShelters')
           }
         },
         DashboardSheltersDataResolver

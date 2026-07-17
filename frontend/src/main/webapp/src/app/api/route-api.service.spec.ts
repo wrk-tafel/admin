@@ -25,7 +25,7 @@ describe('RouteApiService', () => {
   it('get routes', () => {
     apiService.getRoutes().subscribe();
 
-    const req = httpMock.expectOne({method: 'GET', url: `/routes`});
+    const req = httpMock.expectOne({method: 'GET', url: '/routes'});
 
     req.flush(null);
     httpMock.verify();

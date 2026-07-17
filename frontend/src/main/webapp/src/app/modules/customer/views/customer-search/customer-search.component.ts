@@ -116,7 +116,7 @@ export class CustomerSearchComponent {
   }
 
   navigateToCustomer(customerId: number) {
-    this.navigateToCustomerDetail(customerId)
+    this.navigateToCustomerDetail(customerId);
   }
 
   editCustomer(customerId: number) {

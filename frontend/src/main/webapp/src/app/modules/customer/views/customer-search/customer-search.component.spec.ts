@@ -52,23 +52,23 @@ describe('CustomerSearchComponent', () => {
                 {
                     provide: CustomerApiService,
                     useValue: {
-                        getCustomer: vi.fn().mockName("CustomerApiService.getCustomer"),
-                        searchCustomer: vi.fn().mockName("CustomerApiService.searchCustomer")
+                        getCustomer: vi.fn().mockName('CustomerApiService.getCustomer'),
+                        searchCustomer: vi.fn().mockName('CustomerApiService.searchCustomer')
                     }
                 },
                 {
                     provide: Router,
                     useValue: {
-                        navigate: vi.fn().mockName("Router.navigate")
+                        navigate: vi.fn().mockName('Router.navigate')
                     }
                 },
                 {
                     provide: TafelToastrService,
                     useValue: {
-                        error: vi.fn().mockName("TafelToastrService.error"),
-                        info: vi.fn().mockName("TafelToastrService.info"),
-                        success: vi.fn().mockName("TafelToastrService.success"),
-                        warning: vi.fn().mockName("TafelToastrService.warning")
+                        error: vi.fn().mockName('TafelToastrService.error'),
+                        info: vi.fn().mockName('TafelToastrService.info'),
+                        success: vi.fn().mockName('TafelToastrService.success'),
+                        warning: vi.fn().mockName('TafelToastrService.warning')
                     }
                 }
             ]

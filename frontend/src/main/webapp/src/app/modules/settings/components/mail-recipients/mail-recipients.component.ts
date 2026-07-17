@@ -103,7 +103,7 @@ export class MailRecipientsComponent {
         next: () => {
           this.toastr.success('Einstellungen gespeichert!');
         },
-        error: (error: any) => {
+        error: () => {
           this.toastr.error('Speichern fehlgeschlagen!');
         },
       };

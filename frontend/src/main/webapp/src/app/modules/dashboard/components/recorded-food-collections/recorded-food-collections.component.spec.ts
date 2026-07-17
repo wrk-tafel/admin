@@ -12,7 +12,7 @@ describe('RecordedFoodCollectionsComponent', () => {
 
   beforeEach((() => {
     globalStateService = {
-      getCurrentDistribution: vi.fn().mockName("GlobalStateService.getCurrentDistribution")
+      getCurrentDistribution: vi.fn().mockName('GlobalStateService.getCurrentDistribution')
     };
 
     TestBed.configureTestingModule({
@@ -47,7 +47,7 @@ describe('RecordedFoodCollectionsComponent', () => {
     componentRef.setInput('countTotal', 5);
 
     fixture.detectChanges();
-    expect(fixture.debugElement.query(By.css('[testid="recorded-food-collections-count"]')).nativeElement.textContent).toBe(`2 / 5`);
+    expect(fixture.debugElement.query(By.css('[testid="recorded-food-collections-count"]')).nativeElement.textContent).toBe('2 / 5');
   });
 
   it('recorded food collections count rendered without active distribution', () => {
@@ -56,7 +56,7 @@ describe('RecordedFoodCollectionsComponent', () => {
     const fixture = TestBed.createComponent(RecordedFoodCollectionsComponent);
 
     fixture.detectChanges();
-    expect(fixture.debugElement.query(By.css('[testid="recorded-food-collections-count"]')).nativeElement.textContent).toBe(`-`);
+    expect(fixture.debugElement.query(By.css('[testid="recorded-food-collections-count"]')).nativeElement.textContent).toBe('-');
   });
 
   it('panel color primary without active distribution', () => {

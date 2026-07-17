@@ -66,7 +66,7 @@ export class UserSearchComponent {
   displayedColumns = ['icon','id','name','personnelNumber','enabled','actions'];
 
   searchForPersonnelNumber() {
-    /* eslint-disable @typescript-eslint/no-unused-vars */
+
     const observer = {
       next: (userData: UserData) => this.navigateToUserDetail(userData.id),
       error: (error: any) => {

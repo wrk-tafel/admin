@@ -88,7 +88,7 @@ export class FoodCollectionRecordingComponent {
           foodCollectionData: foodCollectionData
         });
       },
-      error: (error: any) => {
+      error: () => {
         this.toastr.error('Fehler beim Laden der Daten!');
       }
     });

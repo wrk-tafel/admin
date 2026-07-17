@@ -31,7 +31,7 @@ describe('DistributionTicketScreenApiService', () => {
     };
     apiService.showText(request.text, request.value).subscribe();
 
-    const req = httpMock.expectOne({method: 'POST', url: `/distributions/ticket-screen/show-text`});
+    const req = httpMock.expectOne({method: 'POST', url: '/distributions/ticket-screen/show-text'});
     expect(req.request.body).toEqual(request);
 
     req.flush(null);

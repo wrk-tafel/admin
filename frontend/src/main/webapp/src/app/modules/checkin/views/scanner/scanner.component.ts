@@ -40,12 +40,8 @@ export class ScannerComponent {
   currentCamera = signal<CameraDevice | undefined>(undefined);
 
   readonly readyState: WritableSignal<boolean> = signal(false);
-  readonly readyStateColor = computed(() => {
-    return this.readyState() ? 'success' : 'danger';
-  });
-  readonly readyStateText = computed(() => {
-    return this.readyState() ? 'Bereit' : 'Nicht bereit';
-  });
+  readonly readyStateColor = computed(() => this.readyState() ? 'success' : 'danger');
+  readonly readyStateText = computed(() => this.readyState() ? 'Bereit' : 'Nicht bereit');
 
   initEffect = effect(async () => {
     const registrationPromise = this.registerScanner();
@@ -87,7 +83,7 @@ export class ScannerComponent {
     const storageKey = 'scanner-id';
     const storageValue = localStorage.getItem(storageKey);
 
-    let existingScannerId = undefined;
+    let existingScannerId;
     if (storageValue) {
       existingScannerId = Number(storageValue);
     }
@@ -117,13 +113,13 @@ export class ScannerComponent {
 
   qrCodeReaderSuccessCallback = (decodedText: string, _?: Html5QrcodeResult) => {
     const scanResult: ScanResult = {value: +decodedText};
-    console.log("SCANNED", scanResult)
+    console.log('SCANNED', scanResult);
     const scannedValue = scanResult.value;
     if (!this.lastScanResult() || this.lastScanResult() !== scannedValue) {
       this.lastScanResult.set(scanResult.value);
       this.scannerApiService.sendScanResult(this.scannerId()!, scanResult.value).subscribe();
     }
-  }
+  };
 
   get selectedCamera(): CameraDevice | undefined {
     return this.currentCamera();

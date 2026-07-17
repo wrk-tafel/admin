@@ -19,7 +19,7 @@ describe('UserDataResolver', () => {
                 {
                     provide: UserApiService,
                     useValue: {
-                        getUserForId: vi.fn().mockName("UserApiService.getUserForId")
+                        getUserForId: vi.fn().mockName('UserApiService.getUserForId')
                     }
                 },
                 UserDataResolver

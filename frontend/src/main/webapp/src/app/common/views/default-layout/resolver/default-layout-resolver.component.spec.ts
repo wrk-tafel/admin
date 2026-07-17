@@ -17,7 +17,7 @@ describe('DefaultLayoutResolver', () => {
                 {
                     provide: GlobalStateService,
                     useValue: {
-                        init: vi.fn().mockName("GlobalStateService.init")
+                        init: vi.fn().mockName('GlobalStateService.init')
                     }
                 },
                 DefaultLayoutResolver

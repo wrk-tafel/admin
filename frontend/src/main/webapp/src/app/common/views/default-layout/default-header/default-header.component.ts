@@ -24,7 +24,7 @@ import {faKey, faLock} from '@fortawesome/free-solid-svg-icons';
 import {GlobalStateService} from '../../../state/global-state.service';
 
 @Component({
-  selector: 'app-default-header',
+  selector: 'tafel-default-header',
   templateUrl: 'default-header.component.html',
   imports: [
     ContainerComponent,
@@ -55,7 +55,7 @@ export class DefaultHeaderComponent extends HeaderComponent {
   readonly sseConnected: Signal<boolean> = this.globalStateService.getConnectionState();
 
   public logout() {
-    /* eslint-disable @typescript-eslint/no-unused-vars */
+
     this.authenticationService.logout().subscribe(_ => {
       this.authenticationService.redirectToLogin();
     });

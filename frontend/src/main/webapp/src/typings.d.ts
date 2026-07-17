@@ -9,7 +9,7 @@ interface NodeModule {
 // Fix for CoreUI / Chart.js "Cannot find module" errors
 declare module 'node_modules/chart.js/dist/types/basic' {
   import {ChartTypeRegistry} from 'chart.js';
-  export type AnyObject = { [key: string]: any };
+  export interface AnyObject { [key: string]: any }
   export {ChartTypeRegistry};
 }
 

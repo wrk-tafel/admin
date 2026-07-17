@@ -18,7 +18,7 @@ export const errorHandlerInterceptor: HttpInterceptorFn = (
       authenticationService.redirectToLogin('abgelaufen');
     }
     return throwError(() => error);
-  }
+  };
 
   const remapErrorBodyOnByteArrayResponseType = (request: HttpRequest<any>, error: HttpErrorResponse): Observable<any> => {
     if (request.responseType === 'blob' && error.error instanceof Blob) {
@@ -34,7 +34,7 @@ export const errorHandlerInterceptor: HttpInterceptorFn = (
       }));
     }
     return throwError(() => error);
-  }
+  };
 
   const handleErrorMessage = (error: HttpErrorResponse): Observable<any> => {
     if (ERROR_CODES_WHITELIST.indexOf(error.status) === -1) {
@@ -45,14 +45,14 @@ export const errorHandlerInterceptor: HttpInterceptorFn = (
         let message = error.message;
         if (error.status === 504) {
           message = 'Server nicht verfügbar!';
-        } else if (error.status == 403) {
+        } else if (error.status === 403) {
           message = 'Zugriff nicht erlaubt!';
         }
         toastr.error(message, `HTTP ${error.status} - ${error.statusText}`);
       }
     }
     return throwError(() => error);
-  }
+  };
 
   return next(request)
     .pipe(catchError((error) => handleAuthError(error)))

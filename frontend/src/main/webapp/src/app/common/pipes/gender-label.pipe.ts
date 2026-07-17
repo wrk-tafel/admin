@@ -1,5 +1,5 @@
 import {Pipe, PipeTransform} from '@angular/core';
-import {Gender, GenderLabel} from '../../api/customer-api.service';
+import {Gender, genderLabel} from '../../api/customer-api.service';
 
 @Pipe({
   name: 'genderLabel',
@@ -8,7 +8,7 @@ import {Gender, GenderLabel} from '../../api/customer-api.service';
 export class GenderLabelPipe implements PipeTransform {
   transform(gender?: Gender | null): string {
     if (gender) {
-      return GenderLabel[gender];
+      return genderLabel[gender];
     }
     return '-';
   }

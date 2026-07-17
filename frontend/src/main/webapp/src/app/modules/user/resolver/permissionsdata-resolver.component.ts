@@ -10,7 +10,7 @@ import {map} from 'rxjs/operators';
 export class PermissionsDataResolver {
   private readonly userApiService = inject(UserApiService);
 
-  public resolve(route: ActivatedRouteSnapshot): Observable<UserPermission[]> {
+  public resolve(_route: ActivatedRouteSnapshot): Observable<UserPermission[]> {
     return this.userApiService.getPermissions().pipe(map(response => response.permissions));
   }
 

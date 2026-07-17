@@ -9,7 +9,7 @@ import {RouteApiService, RouteList} from '../../../api/route-api.service';
 export class RouteDataResolver {
   private readonly routeApiService = inject(RouteApiService);
 
-  public resolve(route: ActivatedRouteSnapshot): Observable<RouteList> {
+  public resolve(_route: ActivatedRouteSnapshot): Observable<RouteList> {
     return this.routeApiService.getRoutes();
   }
 

@@ -108,7 +108,7 @@ export class DistributionStatisticsInputComponent {
       next: () => {
         this.toastr.success('Statistik-Daten gespeichert!');
       },
-      error: (error: any) => {
+      error: () => {
         this.toastr.error('Speichern fehlgeschlagen!');
       },
     };

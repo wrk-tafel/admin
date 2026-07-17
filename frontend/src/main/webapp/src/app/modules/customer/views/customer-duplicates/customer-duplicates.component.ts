@@ -85,7 +85,7 @@ export class CustomerDuplicatesComponent {
         this.toastr.success('Kunde wurde gelöscht!');
         this.getDuplicates(this.paginationData()!.currentPage);
       },
-      error: (error: any) => {
+      error: () => {
         this.toastr.error('Löschen fehlgeschlagen!');
       }
     };
@@ -93,7 +93,8 @@ export class CustomerDuplicatesComponent {
   }
 
   mergeCustomers(customer: CustomerData) {
-    const sourceCustomerIds = [this.customerDuplicatesData()!.items[0].customer, ...this.customerDuplicatesData()!.items[0].similarCustomers]
+    const duplicatesData = this.customerDuplicatesData()!.items[0];
+    const sourceCustomerIds = [duplicatesData.customer, ...duplicatesData.similarCustomers]
       .filter((filterCustomer) => filterCustomer.id !== customer.id)
       .map(mapCustomer => mapCustomer.id!);
 
@@ -102,7 +103,7 @@ export class CustomerDuplicatesComponent {
         this.toastr.success(`${sourceCustomerIds.length} Kunde(n) wurden gelöscht.`, 'Kunden wurden zusammengeführt!');
         this.getDuplicates(1);
       },
-      error: (error: any) => {
+      error: () => {
         this.toastr.error('Zusammenführen der Kunden fehlgeschlagen!');
       }
     };

@@ -26,20 +26,20 @@ describe('DistributionStateComponent', () => {
                 {
                     provide: DistributionApiService,
                     useValue: {
-                        createNewDistribution: vi.fn().mockName("DistributionApiService.createNewDistribution"),
-                        closeDistribution: vi.fn().mockName("DistributionApiService.closeDistribution")
+                        createNewDistribution: vi.fn().mockName('DistributionApiService.createNewDistribution'),
+                        closeDistribution: vi.fn().mockName('DistributionApiService.closeDistribution')
                     }
                 },
                 {
                     provide: GlobalStateService,
                     useValue: {
-                        getCurrentDistribution: vi.fn().mockName("GlobalStateService.getCurrentDistribution")
+                        getCurrentDistribution: vi.fn().mockName('GlobalStateService.getCurrentDistribution')
                     }
                 },
                 {
                     provide: MatDialog,
                     useValue: {
-                        open: vi.fn().mockName("MatDialog.open")
+                        open: vi.fn().mockName('MatDialog.open')
                     }
                 }
             ]

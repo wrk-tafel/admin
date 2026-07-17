@@ -9,7 +9,7 @@ import {FoodCategoriesApiService, FoodCategory} from '../../../api/food-categori
 export class FoodCategoriesDataResolver {
   private readonly foodCategoriesApiService = inject(FoodCategoriesApiService);
 
-  public resolve(route: ActivatedRouteSnapshot): Observable<FoodCategory[]> {
+  public resolve(_route: ActivatedRouteSnapshot): Observable<FoodCategory[]> {
     return this.foodCategoriesApiService.getFoodCategories();
   }
 

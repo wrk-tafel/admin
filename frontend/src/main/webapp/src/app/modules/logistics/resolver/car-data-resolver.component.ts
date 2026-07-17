@@ -9,7 +9,7 @@ import {CarApiService, CarList} from '../../../api/car-api.service';
 export class CarDataResolver {
   private readonly carApiService = inject(CarApiService);
 
-  public resolve(route: ActivatedRouteSnapshot): Observable<CarList> {
+  public resolve(_route: ActivatedRouteSnapshot): Observable<CarList> {
     return this.carApiService.getCars();
   }
 

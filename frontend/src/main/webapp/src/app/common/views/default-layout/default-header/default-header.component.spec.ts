@@ -1,7 +1,9 @@
 import type { MockedObject } from 'vitest';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing';
 
-import { AvatarModule, BadgeModule, BreadcrumbModule, DropdownModule, GridModule, HeaderModule, NavModule, SidebarModule } from '@coreui/angular';
+import {
+  AvatarModule, BadgeModule, BreadcrumbModule, DropdownModule, GridModule, HeaderModule, NavModule, SidebarModule
+} from '@coreui/angular';
 import { IconSetService } from '@coreui/icons-angular';
 import { cilMenu } from '@coreui/icons';
 import { DefaultHeaderComponent } from './default-header.component';
@@ -15,8 +17,6 @@ import { provideRouter } from '@angular/router';
 import { provideLocationMocks } from '@angular/common/testing';
 
 describe('DefaultHeaderComponent', () => {
-    let component: DefaultHeaderComponent;
-    let fixture: ComponentFixture<DefaultHeaderComponent>;
     let authenticationService: MockedObject<AuthenticationService>;
     let globalStateService: MockedObject<GlobalStateService>;
 
@@ -41,14 +41,15 @@ describe('DefaultHeaderComponent', () => {
                 {
                     provide: AuthenticationService,
                     useValue: {
-                        logout: vi.fn().mockName("AuthenticationService.logout"),
-                        redirectToLogin: vi.fn().mockName("AuthenticationService.redirectToLogin")
+                        logout: vi.fn().mockName('AuthenticationService.logout'),
+                        redirectToLogin: vi.fn().mockName('AuthenticationService.redirectToLogin')
                     }
                 },
                 {
                     provide: GlobalStateService,
                     useValue: {
-                        getConnectionState: vi.fn().mockName("GlobalStateService.getConnectionState").mockReturnValue(signal(false).asReadonly())
+                        getConnectionState: vi.fn().mockName('GlobalStateService.getConnectionState')
+                          .mockReturnValue(signal(false).asReadonly())
                     }
                 }
             ]

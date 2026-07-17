@@ -20,17 +20,17 @@ describe('ErrorHandlerInterceptor', () => {
                 {
                     provide: AuthenticationService,
                     useValue: {
-                        redirectToLogin: vi.fn().mockName("AuthenticationService.redirectToLogin"),
-                        isAuthenticated: vi.fn().mockName("AuthenticationService.isAuthenticated")
+                        redirectToLogin: vi.fn().mockName('AuthenticationService.redirectToLogin'),
+                        isAuthenticated: vi.fn().mockName('AuthenticationService.isAuthenticated')
                     }
                 },
                 {
                     provide: TafelToastrService,
                     useValue: {
-                        error: vi.fn().mockName("TafelToastrService.error"),
-                        info: vi.fn().mockName("TafelToastrService.info"),
-                        success: vi.fn().mockName("TafelToastrService.success"),
-                        warning: vi.fn().mockName("TafelToastrService.warning")
+                        error: vi.fn().mockName('TafelToastrService.error'),
+                        info: vi.fn().mockName('TafelToastrService.info'),
+                        success: vi.fn().mockName('TafelToastrService.success'),
+                        warning: vi.fn().mockName('TafelToastrService.warning')
                     }
                 }
             ]
@@ -109,7 +109,7 @@ describe('ErrorHandlerInterceptor', () => {
     it('specific spring http error', () => {
         authServiceSpy.isAuthenticated.mockReturnValue(false);
 
-        /* eslint-disable @typescript-eslint/no-unused-vars */
+
         const observer = {
             error: (_: any) => {
                 expect(toastrSpy.error).toHaveBeenCalledWith(
@@ -136,7 +136,7 @@ describe('ErrorHandlerInterceptor', () => {
     it('authentication expired and redirected to login', () => {
         authServiceSpy.isAuthenticated.mockReturnValue(true);
 
-        /* eslint-disable @typescript-eslint/no-unused-vars */
+
         const observer = {
             error: (_: any) => {
                 expect(authServiceSpy.redirectToLogin).toHaveBeenCalled();

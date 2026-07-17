@@ -99,7 +99,7 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
       next: () => {
         this.toastr.success('Daten wurden gespeichert!');
       },
-      error: (error: any) => {
+      error: () => {
         this.toastr.error('Speichern fehlgeschlagen!');
       }
     };
@@ -148,7 +148,7 @@ export class FoodCollectionRecordingItemsResponsiveComponent {
         this.categoryValues.set(newValues);
         this.currentShop.set(shop);
       },
-      error: (error: any) => {
+      error: () => {
         this.toastr.error('Laden fehlgeschlagen!');
       }
     };

@@ -96,7 +96,7 @@ export class CustomerEditComponent {
           },
           error: (error: any) => {
             const errorMessage = error.error.message;
-            if (error.status == 409) {
+            if (error.status === 409) {
               this.openConfirmCustomerSaveDialog(errorMessage, () => {
                 this.customerApiService.createCustomer(this.customerUpdated(), true).subscribe({
                   next: (response: CustomerCreationResponse) => {
@@ -124,7 +124,7 @@ export class CustomerEditComponent {
           },
           error: (error: any) => {
             const errorMessage = error.error.message;
-            if (error.status == 409) {
+            if (error.status === 409) {
               this.openConfirmCustomerSaveDialog(errorMessage, () => {
                 this.customerApiService.updateCustomer(this.customerUpdated(), true).subscribe({
                   next: (response: CustomerUpdateResponse) => {

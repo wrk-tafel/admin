@@ -25,7 +25,7 @@ describe('CarApiService', () => {
   it('get cars', () => {
     apiService.getCars().subscribe();
 
-    const req = httpMock.expectOne({method: 'GET', url: `/cars`});
+    const req = httpMock.expectOne({method: 'GET', url: '/cars'});
 
     req.flush(null);
     httpMock.verify();

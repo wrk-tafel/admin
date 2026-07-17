@@ -40,13 +40,13 @@ describe('UserFormComponent', () => {
         {
           provide: UserApiService,
           useValue: {
-            generatePassword: vi.fn().mockName("UserApiService.generatePassword")
+            generatePassword: vi.fn().mockName('UserApiService.generatePassword')
           }
         },
         {
           provide: TafelToastrService,
           useValue: {
-            error: vi.fn().mockName("TafelToastrService.error")
+            error: vi.fn().mockName('TafelToastrService.error')
           }
         }
       ]

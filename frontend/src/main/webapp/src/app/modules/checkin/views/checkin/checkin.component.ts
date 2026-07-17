@@ -208,13 +208,14 @@ export class CheckinComponent {
           this.cdr.markForCheck();
         });
 
-        this.distributionTicketApiService.getCurrentTicketForCustomer(customerData.id!).subscribe((ticketNumberResponse: TicketNumberResponse) => {
-          if (ticketNumberResponse.ticketNumber) {
-            this.ticketNumber = ticketNumberResponse.ticketNumber;
-          }
-          this.ticketNumberEdit = this.ticketNumber != null;
-          this.cdr.markForCheck();
-        });
+        this.distributionTicketApiService.getCurrentTicketForCustomer(customerData.id!)
+          .subscribe((ticketNumberResponse: TicketNumberResponse) => {
+            if (ticketNumberResponse.ticketNumber) {
+              this.ticketNumber = ticketNumberResponse.ticketNumber;
+            }
+            this.ticketNumberEdit = this.ticketNumber != null;
+            this.cdr.markForCheck();
+          });
       },
       error: (error: any) => {
         if (error.status === 404) {
@@ -275,7 +276,7 @@ export class CheckinComponent {
   assignCustomer() {
     const ticketNumber = this.ticketNumber;
     if (ticketNumber !== undefined && ticketNumber > 0) {
-      /* eslint-disable @typescript-eslint/no-unused-vars */
+
       const observer = {
         next: (_response: void) => this.cancel()
       };

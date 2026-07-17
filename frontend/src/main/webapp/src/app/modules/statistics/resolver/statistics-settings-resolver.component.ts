@@ -9,7 +9,7 @@ import {StatisticsApiService, StatisticsSettings} from '../../../api/statistics-
 export class StatisticsSettingsResolver {
   private statisticsApiService = inject(StatisticsApiService);
 
-  public resolve(route: ActivatedRouteSnapshot): Observable<StatisticsSettings> {
+  public resolve(_route: ActivatedRouteSnapshot): Observable<StatisticsSettings> {
     return this.statisticsApiService.getSettings();
   }
 

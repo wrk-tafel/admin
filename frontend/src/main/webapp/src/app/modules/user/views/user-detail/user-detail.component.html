@@ -51,7 +51,7 @@
               Passwortänderung notwendig
             </c-col>
             <c-col
-              testid="passwordChangeRequiredText">{{currentUserData()?.passwordChangeRequired == true ? 'Ja' : 'Nein'}}</c-col>
+              testid="passwordChangeRequiredText">{{currentUserData()?.passwordChangeRequired === true ? 'Ja' : 'Nein'}}</c-col>
           </c-row>
           <c-row>
             <c-col class="fw-bold">
@@ -62,10 +62,10 @@
           </c-row>
           <c-row>
             <c-col class="fw-bold text-white"
-                   [ngClass]="{'bg-success': currentUserData()?.enabled == true, 'bg-danger': currentUserData()?.enabled == false}">Aktiv
+                   [ngClass]="{'bg-success': currentUserData()?.enabled === true, 'bg-danger': currentUserData()?.enabled === false}">Aktiv
             </c-col>
             <c-col testid="enabledText" class="text-white"
-                   [ngClass]="{'bg-success': currentUserData()?.enabled == true, 'bg-danger': currentUserData()?.enabled == false}">{{currentUserData()?.enabled == true ? 'Ja' : 'Nein'}}</c-col>
+                   [ngClass]="{'bg-success': currentUserData()?.enabled === true, 'bg-danger': currentUserData()?.enabled === false}">{{currentUserData()?.enabled === true ? 'Ja' : 'Nein'}}</c-col>
           </c-row>
         </c-col>
       </c-row>

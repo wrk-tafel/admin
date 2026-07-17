@@ -1,4 +1,4 @@
-import {Component, inject, input} from '@angular/core';
+import {Component, inject} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 import {ButtonDirective} from '@coreui/angular';
 import {TafelDialogComponent} from '../../../../common/components/tafel-dialog/tafel-dialog.component';

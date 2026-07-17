@@ -26,7 +26,7 @@ export class ScannerApiService {
   }
 
   getScanners(): Observable<ScannerList> {
-    return this.http.get<ScannerList>(`/scanners`);
+    return this.http.get<ScannerList>('/scanners');
   }
 }
 

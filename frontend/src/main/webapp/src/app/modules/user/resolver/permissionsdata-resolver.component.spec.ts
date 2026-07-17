@@ -19,7 +19,7 @@ describe('PermissionsDataResolver', () => {
                 {
                     provide: UserApiService,
                     useValue: {
-                        getPermissions: vi.fn().mockName("UserApiService.getPermissions")
+                        getPermissions: vi.fn().mockName('UserApiService.getPermissions')
                     }
                 },
                 PermissionsDataResolver

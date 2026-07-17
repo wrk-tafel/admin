@@ -24,31 +24,32 @@ describe('TicketScreenControlComponent', () => {
         {
           provide: DistributionTicketScreenApiService,
           useValue: {
-            showText: vi.fn().mockName("DistributionTicketScreenApiService.showText"),
-            showCurrentTicket: vi.fn().mockName("DistributionTicketScreenApiService.showCurrentTicket"),
-            showPreviousTicket: vi.fn().mockName("DistributionTicketScreenApiService.showPreviousTicket"),
-            showNextTicket: vi.fn().mockName("DistributionTicketScreenApiService.showNextTicket")
+            showText: vi.fn().mockName('DistributionTicketScreenApiService.showText'),
+            showCurrentTicket: vi.fn().mockName('DistributionTicketScreenApiService.showCurrentTicket'),
+            showPreviousTicket: vi.fn().mockName('DistributionTicketScreenApiService.showPreviousTicket'),
+            showNextTicket: vi.fn().mockName('DistributionTicketScreenApiService.showNextTicket')
           }
         },
         {
           provide: UrlHelperService,
           useValue: {
-            getBaseUrl: vi.fn().mockName("UrlHelperService.getBaseUrl")
+            getBaseUrl: vi.fn().mockName('UrlHelperService.getBaseUrl')
           }
         },
         {
           provide: TafelToastrService,
           useValue: {
-            error: vi.fn().mockName("TafelToastrService.error"),
-            info: vi.fn().mockName("TafelToastrService.info"),
-            success: vi.fn().mockName("TafelToastrService.success"),
-            warning: vi.fn().mockName("TafelToastrService.warning")
+            error: vi.fn().mockName('TafelToastrService.error'),
+            info: vi.fn().mockName('TafelToastrService.info'),
+            success: vi.fn().mockName('TafelToastrService.success'),
+            warning: vi.fn().mockName('TafelToastrService.warning')
           }
         }
       ]
     }).compileComponents();
 
-    distributionTicketScreenApiService = TestBed.inject(DistributionTicketScreenApiService) as MockedObject<DistributionTicketScreenApiService>;
+    distributionTicketScreenApiService =
+      TestBed.inject(DistributionTicketScreenApiService) as MockedObject<DistributionTicketScreenApiService>;
     urlHelperSpy = TestBed.inject(UrlHelperService) as MockedObject<UrlHelperService>;
     toastr = TestBed.inject(TafelToastrService) as MockedObject<TafelToastrService>;
   }));

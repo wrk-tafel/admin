@@ -54,7 +54,14 @@ export class CustomerApiService {
       });
   }
 
-  searchCustomer(lastname?: string | null, firstname?: string | null, postProcessing?: boolean | null, costContribution?: boolean | null, valid?: boolean | null, page?: number): Observable<CustomerSearchResult> {
+  searchCustomer(
+    lastname?: string | null,
+    firstname?: string | null,
+    postProcessing?: boolean | null,
+    costContribution?: boolean | null,
+    valid?: boolean | null,
+    page?: number
+  ): Observable<CustomerSearchResult> {
     let queryParams = new HttpParams();
     if (lastname) {
       queryParams = queryParams.set('lastname', lastname);
@@ -176,7 +183,7 @@ export enum Gender {
   MALE = 'MALE', FEMALE = 'FEMALE'
 }
 
-export const GenderLabel: { [key in Gender]: string } = {
+export const genderLabel: { [key in Gender]: string } = {
   [Gender.FEMALE]: 'Weiblich',
   [Gender.MALE]: 'Männlich'
 };

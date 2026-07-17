@@ -1,15 +1,23 @@
 import { AuthGuardData, AuthGuardService } from './authguard.service';
 import { ActivatedRouteSnapshot } from '@angular/router';
+import { TestBed } from '@angular/core/testing';
+import { AuthenticationService } from './authentication.service';
 
 describe('AuthGuardService', () => {
     function setup() {
         const authServiceSpy = {
-            isAuthenticated: vi.fn().mockName("AuthenticationService.isAuthenticated"),
-            hasAnyPermission: vi.fn().mockName("AuthenticationService.hasAnyPermission"),
-            hasAnyPermissionOf: vi.fn().mockName("AuthenticationService.hasAnyPermissionOf"),
-            redirectToLogin: vi.fn().mockName("AuthenticationService.redirectToLogin")
+            isAuthenticated: vi.fn().mockName('AuthenticationService.isAuthenticated'),
+            hasAnyPermission: vi.fn().mockName('AuthenticationService.hasAnyPermission'),
+            hasAnyPermissionOf: vi.fn().mockName('AuthenticationService.hasAnyPermissionOf'),
+            redirectToLogin: vi.fn().mockName('AuthenticationService.redirectToLogin')
         };
-        const service = new AuthGuardService(authServiceSpy as any);
+        TestBed.configureTestingModule({
+            providers: [
+                AuthGuardService,
+                { provide: AuthenticationService, useValue: authServiceSpy }
+            ]
+        });
+        const service = TestBed.inject(AuthGuardService);
         return { service, authServiceSpy };
     }
 

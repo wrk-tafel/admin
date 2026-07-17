@@ -165,7 +165,7 @@ export class UserFormComponent {
   }
 
   public generatePassword() {
-    /* eslint-disable @typescript-eslint/no-empty-function */
+
     const observer = {
       next: (response: GeneratedPasswordResponse) => {
         const password = response.password;
@@ -175,7 +175,7 @@ export class UserFormComponent {
         this.passwordTextVisible.set(true);
         this.passwordRepeatTextVisible.set(true);
       },
-      error: (error: any) => {
+      error: () => {
         this.toastr.error('Passwort-Generierung fehlgeschlagen!', 'Fehler');
       },
     };

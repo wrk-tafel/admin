@@ -1,5 +1,4 @@
 import {getErrorMessages, shouldShowErrors} from './signal-form-helper';
-import {signal} from '@angular/core';
 
 describe('Signal Form Helper', () => {
 

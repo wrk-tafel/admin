@@ -14,7 +14,7 @@ describe('SelectSheltersComponent', () => {
         {
           provide: MatDialog,
           useValue: {
-            open: vi.fn().mockName("MatDialog.open")
+            open: vi.fn().mockName('MatDialog.open')
           }
         }
       ]

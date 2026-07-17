@@ -16,9 +16,9 @@ import {SelectEmployeeDialogComponent} from './dialogs/select-employee-dialog.co
     ]
 })
 export class TafelEmployeeSearchCreateComponent {
-  searchInput = input.required<string>()
-  testIdPrefix = input<string>()
-  selectedEmployee = output<EmployeeData>()
+  searchInput = input.required<string>();
+  testIdPrefix = input<string>();
+  selectedEmployee = output<EmployeeData>();
 
   private readonly employeeApiService = inject(EmployeeApiService);
   private readonly dialog = inject(MatDialog);

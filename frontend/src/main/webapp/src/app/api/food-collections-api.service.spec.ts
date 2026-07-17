@@ -30,7 +30,7 @@ describe('FoodCollectionsApiService', () => {
   });
 
   it('get food collection', () => {
-    const routeId = 123
+    const routeId = 123;
     const mockFoodCollectionData: FoodCollectionData = {
       routeId: 1,
       carId: 2,

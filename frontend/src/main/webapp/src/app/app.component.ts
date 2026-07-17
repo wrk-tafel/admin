@@ -6,7 +6,7 @@ import {freeSet} from '@coreui/icons';
 import {toSignal} from '@angular/core/rxjs-interop';
 
 @Component({
-  // tslint:disable-next-line
+  // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'body',
   templateUrl: 'app.component.html',
   imports: [

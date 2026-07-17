@@ -21,20 +21,16 @@ export class QRCodeReaderService {
 
   private readonly cameraConfig: Html5QrcodeCameraScanConfig = {
     fps: 10,
-    qrbox: (viewfinderWidth, viewfinderHeight) => {
-      return {
+    qrbox: (viewfinderWidth, viewfinderHeight) => ({
         width: viewfinderWidth * 0.96,
         height: viewfinderHeight * 0.96
-      };
-    }
+      })
   };
 
   async getCameras(): Promise<CameraDevice[]> {
     try {
-      let cameras = await Html5Qrcode.getCameras();
-      const sorted = Object.assign([], cameras).sort((c1: CameraDevice, c2: CameraDevice) => {
-        return c1.label.localeCompare(c2.label);
-      });
+      const cameras = await Html5Qrcode.getCameras();
+      const sorted = Object.assign([], cameras).sort((c1: CameraDevice, c2: CameraDevice) => c1.label.localeCompare(c2.label));
       return Promise.resolve(sorted);
     } catch (reason) {
       return await Promise.reject(reason);

@@ -141,32 +141,33 @@ describe('CustomerDetailComponent', () => {
 
   beforeEach((() => {
     const customerApiServiceSpy = {
-      generatePdf: vi.fn().mockName("CustomerApiService.generatePdf"),
-      deleteCustomer: vi.fn().mockReturnValue(of(undefined)).mockName("CustomerApiService.deleteCustomer"),
+      generatePdf: vi.fn().mockName('CustomerApiService.generatePdf'),
+      deleteCustomer: vi.fn().mockReturnValue(of(undefined)).mockName('CustomerApiService.deleteCustomer'),
       updateCustomer: vi.fn().mockImplementation((customerData: CustomerData) => of({
         data: customerData,
         errorMsg: null
       }))
     };
     const customerNoteApiServiceSpy = {
-      createNewNote: vi.fn().mockName("CustomerNoteApiService.createNewNote"),
-      getNotesForCustomer: vi.fn().mockName("CustomerNoteApiService.getNotesForCustomer")
+      createNewNote: vi.fn().mockName('CustomerNoteApiService.createNewNote'),
+      getNotesForCustomer: vi.fn().mockName('CustomerNoteApiService.getNotesForCustomer')
     };
     const fileHelperServiceSpy = {
-      downloadFile: vi.fn().mockName("FileHelperService.downloadFile")
+      downloadFile: vi.fn().mockName('FileHelperService.downloadFile')
     };
     const toastrSpy = {
-      error: vi.fn().mockName("TafelToastrService.error"),
-      info: vi.fn().mockName("TafelToastrService.info"),
-      success: vi.fn().mockName("TafelToastrService.success"),
-      warning: vi.fn().mockName("TafelToastrService.warning")
+      error: vi.fn().mockName('TafelToastrService.error'),
+      info: vi.fn().mockName('TafelToastrService.info'),
+      success: vi.fn().mockName('TafelToastrService.success'),
+      warning: vi.fn().mockName('TafelToastrService.warning')
     };
     const distributionTicketApiServiceSpy = {
-      getCurrentTicketForCustomer: vi.fn().mockName("DistributionTicketApiService.getCurrentTicketForCustomer").mockReturnValue(throwError(() => ({status: 404}))),
-      deleteCurrentTicketOfCustomer: vi.fn().mockName("DistributionTicketApiService.deleteCurrentTicketOfCustomer")
+      getCurrentTicketForCustomer: vi.fn().mockName('DistributionTicketApiService.getCurrentTicketForCustomer')
+        .mockReturnValue(throwError(() => ({status: 404}))),
+      deleteCurrentTicketOfCustomer: vi.fn().mockName('DistributionTicketApiService.deleteCurrentTicketOfCustomer')
     };
     const distributionApiServiceSpy = {
-      assignCustomer: vi.fn().mockName("DistributionApiService.assignCustomer")
+      assignCustomer: vi.fn().mockName('DistributionApiService.assignCustomer')
     };
     currentDistributionSignal.set(null);
     const globalStateServiceSpy = {
@@ -321,10 +322,6 @@ describe('CustomerDetailComponent', () => {
 
     expect(getTextByTestId(fixture, 'addperson-1-incomeText')).toBe('-');
     expect(getTextByTestId(fixture, 'addperson-1-incomeDueText')).toBe('-');
-
-    // validate note
-    const expectedTimestamp = moment(mockCustomerNotesResponse.items[0].timestamp).format('DD.MM.YYYY HH:mm');
-    // expect(getTextByTestId(fixture, 'note-title')).toBe(expectedTimestamp + ' author1');
 
     // TODO fix flaky assert
     // expect(getTextByTestId(fixture, 'note-text')).toBe('note from author 2');
@@ -487,9 +484,7 @@ describe('CustomerDetailComponent', () => {
     const component = fixture.componentInstance;
     fixture.detectChanges();
 
-    customerApiService.deleteCustomer.mockReturnValue(throwError(() => {
-      return {status: 404};
-    }));
+    customerApiService.deleteCustomer.mockReturnValue(throwError(() => ({status: 404})));
 
     component.openDeleteCustomerDialog();
 
@@ -780,10 +775,6 @@ describe('CustomerDetailComponent', () => {
 
   it('openConfirmUpdateCustomerDialog calls API with force=true when confirmed', () => {
     const mockMessage = 'Customer has been updated by another user. Do you want to proceed?';
-    const expectedCustomerData = {
-      ...mockCustomer,
-      validUntil: moment(mockCustomer.validUntil).add(3, 'months').endOf('day').toDate()
-    };
     customerApiService.updateCustomer.mockReturnValue(of(mockUpdateSuccessResponse));
 
     const fixture = TestBed.createComponent(CustomerDetailComponent);
@@ -835,7 +826,10 @@ describe('CustomerDetailComponent', () => {
 
     customerApiService.updateCustomer.mockReturnValue(throwError(() => ({
       status: 409,
-      error: { message: 'Conflict: customer was updated by another user', body: { data: mockCustomer, errorMsg: 'Conflict: customer was updated by another user' } }
+      error: {
+        message: 'Conflict: customer was updated by another user',
+        body: { data: mockCustomer, errorMsg: 'Conflict: customer was updated by another user' }
+      }
     })));
 
     const fixture = TestBed.createComponent(CustomerDetailComponent);

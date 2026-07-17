@@ -25,16 +25,19 @@ describe('FoodCollectionRecordingComponent', () => {
                 {
                     provide: Router,
                     useValue: {
-                        navigate: vi.fn().mockName("Router.navigate")
+                        navigate: vi.fn().mockName('Router.navigate')
                     }
                 },
                 {
                     provide: GlobalStateService,
                     useValue: {
-                        getCurrentDistribution: vi.fn().mockName("GlobalStateService.getCurrentDistribution")
+                        getCurrentDistribution: vi.fn().mockName('GlobalStateService.getCurrentDistribution')
                     }
                 },
-                { provide: TafelToastrService, useValue: { error: vi.fn(), info: vi.fn(), success: vi.fn(), warning: vi.fn(), show: vi.fn() } }
+                {
+                    provide: TafelToastrService,
+                    useValue: { error: vi.fn(), info: vi.fn(), success: vi.fn(), warning: vi.fn(), show: vi.fn() }
+                }
             ]
         }).compileComponents();
 
@@ -53,7 +56,6 @@ describe('FoodCollectionRecordingComponent', () => {
 
         const fixture = TestBed.createComponent(FoodCollectionRecordingComponent);
         const componentRef = fixture.componentRef;
-        const component = fixture.componentInstance;
 
         // Provide required model inputs before detectChanges
         componentRef.setInput('routeList', { routes: [] });

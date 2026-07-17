@@ -53,7 +53,7 @@ describe('DistributionNotesInputComponent', () => {
     const fixture = TestBed.createComponent(DistributionNotesInputComponent);
     const component = fixture.componentInstance;
     distributionApiService.saveNotes.mockReturnValue(of(undefined));
-    const testNotes = ''
+    const testNotes = '';
 
     component.notes.set(testNotes);
 
@@ -67,9 +67,7 @@ describe('DistributionNotesInputComponent', () => {
     const fixture = TestBed.createComponent(DistributionNotesInputComponent);
     const component = fixture.componentInstance;
     const componentRef = fixture.componentRef;
-    distributionApiService.saveNotes.mockReturnValue(throwError(() => {
-        return {status: 500};
-      })
+    distributionApiService.saveNotes.mockReturnValue(throwError(() => ({status: 500}))
     );
     const testNotes = 'test-notes';
     componentRef.setInput('initialNotesData', testNotes);

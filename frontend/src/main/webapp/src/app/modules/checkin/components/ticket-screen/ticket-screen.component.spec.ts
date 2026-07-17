@@ -15,7 +15,7 @@ describe('TicketScreenComponent', () => {
                 {
                     provide: SseService,
                     useValue: {
-                        listen: vi.fn().mockName("SseService.listen")
+                        listen: vi.fn().mockName('SseService.listen')
                     }
                 }
             ]

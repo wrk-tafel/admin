@@ -20,7 +20,7 @@ describe('StatisticsSettingsResolver', () => {
                 {
                     provide: StatisticsApiService,
                     useValue: {
-                        getSettings: vi.fn().mockName("StatisticsApiService.getSettings")
+                        getSettings: vi.fn().mockName('StatisticsApiService.getSettings')
                     }
                 },
                 StatisticsSettingsResolver

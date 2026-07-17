@@ -20,7 +20,7 @@ describe('CustomerNotesResolver', () => {
                 {
                     provide: CustomerNoteApiService,
                     useValue: {
-                        getNotesForCustomer: vi.fn().mockName("CustomerNoteApiService.getNotesForCustomer")
+                        getNotesForCustomer: vi.fn().mockName('CustomerNoteApiService.getNotesForCustomer')
                     }
                 },
                 CustomerNotesResolver

@@ -11,17 +11,17 @@ import { signal } from '@angular/core';
 
 describe('DefaultLayoutComponent', () => {
     let authService: MockedObject<AuthenticationService>;
-    /* eslint-disable @typescript-eslint/no-unused-vars */
+
     let globalStateService: MockedObject<GlobalStateService>;
 
     beforeEach(() => {
         const authServiceSpy = {
-            hasPermission: vi.fn().mockName("AuthenticationService.hasPermission"),
-            hasAnyPermission: vi.fn().mockName("AuthenticationService.hasAnyPermission")
+            hasPermission: vi.fn().mockName('AuthenticationService.hasPermission'),
+            hasAnyPermission: vi.fn().mockName('AuthenticationService.hasAnyPermission')
         };
         const globalStateServiceSpy = {
-            getCurrentDistribution: vi.fn().mockName("GlobalStateService.getCurrentDistribution"),
-            getConnectionState: vi.fn().mockName("GlobalStateService.getConnectionState").mockReturnValue(signal(false).asReadonly())
+            getCurrentDistribution: vi.fn().mockName('GlobalStateService.getCurrentDistribution'),
+            getConnectionState: vi.fn().mockName('GlobalStateService.getConnectionState').mockReturnValue(signal(false).asReadonly())
         };
 
         TestBed.configureTestingModule({
@@ -149,8 +149,12 @@ describe('DefaultLayoutComponent', () => {
 
     it('navItems are filtered by permissions - permission partially given', () => {
         authService.hasPermission.mockImplementation((perm: string) => {
-            if (perm === 'PERM1') return false;
-            if (perm === 'PERM2') return true;
+            if (perm === 'PERM1') {
+return false;
+}
+            if (perm === 'PERM2') {
+return true;
+}
             return false;
         });
 

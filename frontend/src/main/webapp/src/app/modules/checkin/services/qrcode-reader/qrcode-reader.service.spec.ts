@@ -14,9 +14,9 @@ describe('QRCodeReaderService', () => {
 
         const service = new QRCodeReaderService();
         const qrCodeReaderSpy = {
-            start: vi.fn().mockName("QRCodeReader.start"),
-            getState: vi.fn().mockName("QRCodeReader.getState"),
-            stop: vi.fn().mockName("QRCodeReader.stop")
+            start: vi.fn().mockName('QRCodeReader.start'),
+            getState: vi.fn().mockName('QRCodeReader.getState'),
+            stop: vi.fn().mockName('QRCodeReader.stop')
         } as any;
         service.qrCodeReader = qrCodeReaderSpy;
 

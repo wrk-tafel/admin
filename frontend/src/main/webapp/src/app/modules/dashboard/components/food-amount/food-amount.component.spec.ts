@@ -48,14 +48,14 @@ describe('FoodAmountComponent', () => {
     componentRef.setInput('amount', 1234);
 
     fixture.detectChanges();
-    expect(fixture.debugElement.query(By.css('[testid="food-amount-total"]')).nativeElement.textContent).toBe(`1 234,00 kg`);
+    expect(fixture.debugElement.query(By.css('[testid="food-amount-total"]')).nativeElement.textContent).toBe('1 234,00 kg');
   });
 
   it('food amount rendered without active distribution', () => {
     const fixture = TestBed.createComponent(FoodAmountComponent);
 
     fixture.detectChanges();
-    expect(fixture.debugElement.query(By.css('[testid="food-amount-total"]')).nativeElement.textContent).toBe(`-`);
+    expect(fixture.debugElement.query(By.css('[testid="food-amount-total"]')).nativeElement.textContent).toBe('-');
   });
 
 });
