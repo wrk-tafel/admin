@@ -1,4 +1,4 @@
-import {Component, computed, effect, inject, input, output, signal} from '@angular/core';
+import {Component, computed, effect, inject, input, output, signal, ChangeDetectionStrategy} from '@angular/core';
 import {applyEach, form, FormField, maxLength, required, validate} from '@angular/forms/signals';
 import {CountryApiService, CountryData} from '../../../../api/country-api.service';
 import {CustomerData, Gender} from '../../../../api/customer-api.service';
@@ -36,6 +36,7 @@ import moment from 'moment';
 @Component({
   selector: 'tafel-customer-form',
   templateUrl: 'customer-form.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     FormField,
     InputGroupComponent,

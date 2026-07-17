@@ -1,4 +1,4 @@
-import {Component, inject} from '@angular/core';
+import {Component, inject, ChangeDetectionStrategy} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 import {ButtonDirective} from '@coreui/angular';
 import {DecimalPipe} from '@angular/common';
@@ -11,6 +11,7 @@ export interface KmDiffDialogData {
 @Component({
   selector: 'tafel-km-diff-dialog',
   imports: [TafelDialogComponent, ButtonDirective, DecimalPipe],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: 'km-diff-dialog.component.html',
 })
 export class KmDiffDialogComponent {

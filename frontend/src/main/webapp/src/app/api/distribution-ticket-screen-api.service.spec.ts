@@ -1,6 +1,6 @@
 import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
 import {TestBed} from '@angular/core/testing';
-import {provideHttpClient} from '@angular/common/http';
+import {provideHttpClient, withXhr} from '@angular/common/http';
 import {
   DistributionTicketScreenApiService,
   TicketScreenShowNextTicketRequest,
@@ -14,7 +14,7 @@ describe('DistributionTicketScreenApiService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
-        provideHttpClient(),
+        provideHttpClient(withXhr()),
         provideHttpClientTesting(),
         DistributionTicketScreenApiService
       ]

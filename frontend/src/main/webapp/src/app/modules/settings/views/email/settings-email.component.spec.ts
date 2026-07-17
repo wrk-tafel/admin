@@ -1,5 +1,5 @@
 import {TestBed} from '@angular/core/testing';
-import {provideHttpClient} from '@angular/common/http';
+import {provideHttpClient, withXhr} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
 import {SettingsEmailComponent} from './settings-email.component';
 import {TafelToastrService} from '../../../../common/components/tafel-toastr/tafel-toastr.service';
@@ -9,7 +9,7 @@ describe('SettingsEmailComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
-        provideHttpClient(),
+        provideHttpClient(withXhr()),
         provideHttpClientTesting(),
         {
           provide: TafelToastrService,

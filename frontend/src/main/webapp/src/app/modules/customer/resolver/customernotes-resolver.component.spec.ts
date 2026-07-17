@@ -5,7 +5,7 @@ import { of } from 'rxjs';
 import { ActivatedRouteSnapshot } from '@angular/router';
 import { CustomerNotesResolver } from './customernotes-resolver.component';
 import { CustomerNoteApiService, CustomerNotesResponse } from '../../../api/customer-note-api.service';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 
 describe('CustomerNotesResolver', () => {
@@ -15,7 +15,7 @@ describe('CustomerNotesResolver', () => {
     beforeEach(() => {
         TestBed.configureTestingModule({
             providers: [
-                provideHttpClient(),
+                provideHttpClient(withXhr()),
                 provideHttpClientTesting(),
                 {
                     provide: CustomerNoteApiService,

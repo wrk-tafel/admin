@@ -1,4 +1,4 @@
-import {Component, computed, effect, inject, input, linkedSignal, signal} from '@angular/core';
+import {Component, computed, effect, inject, input, linkedSignal, signal, ChangeDetectionStrategy} from '@angular/core';
 import {Router} from '@angular/router';
 import moment from 'moment';
 import {FileHelperService} from '../../../../common/util/file-helper.service';
@@ -55,6 +55,7 @@ import {TafelToastrService} from '../../../../common/components/tafel-toastr/taf
 @Component({
   selector: 'tafel-customer-detail',
   templateUrl: 'customer-detail.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     DropdownComponent,

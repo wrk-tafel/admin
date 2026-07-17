@@ -7,7 +7,7 @@ import {
   SaveDistributionNotesRequest,
   SaveDistributionStatisticRequest
 } from './distribution-api.service';
-import {provideHttpClient} from '@angular/common/http';
+import {provideHttpClient, withXhr} from '@angular/common/http';
 
 describe('DistributionApiService', () => {
   let httpMock: HttpTestingController;
@@ -16,7 +16,7 @@ describe('DistributionApiService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
-        provideHttpClient(),
+        provideHttpClient(withXhr()),
         provideHttpClientTesting()
       ]
     });

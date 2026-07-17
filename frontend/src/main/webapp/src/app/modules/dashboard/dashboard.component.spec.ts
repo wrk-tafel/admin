@@ -2,7 +2,7 @@ import type {MockedObject} from 'vitest';
 import {TestBed} from '@angular/core/testing';
 import {DashboardComponent, DashboardData} from './dashboard.component';
 import {of} from 'rxjs';
-import {provideHttpClient} from '@angular/common/http';
+import {provideHttpClient, withXhr} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
 import {SseService} from '../../common/sse/sse.service';
 import {GlobalStateService} from '../../common/state/global-state.service';
@@ -28,7 +28,7 @@ describe('DashboardComponent', () => {
 
     TestBed.configureTestingModule({
       providers: [
-        provideHttpClient(),
+        provideHttpClient(withXhr()),
         provideHttpClientTesting(),
         {
           provide: SseService,

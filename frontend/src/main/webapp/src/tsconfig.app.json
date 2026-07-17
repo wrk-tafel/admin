@@ -6,7 +6,8 @@
     "types": []
   },
   "angularCompilerOptions": {
-    "importHelpers": true
+    "importHelpers": true,
+    "strictTemplates": true
   },
   "files": [
     "main.ts"

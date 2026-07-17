@@ -1,4 +1,4 @@
-import {Component, inject, input, Signal} from '@angular/core';
+import {Component, inject, input, Signal, ChangeDetectionStrategy} from '@angular/core';
 import {DistributionStateComponent} from './components/distribution-state/distribution-state.component';
 import {RegisteredCustomersComponent} from './components/registered-customers/registered-customers.component';
 import {TafelIfPermissionDirective} from '../../common/security/tafel-if-permission.directive';
@@ -21,6 +21,7 @@ import {MatDivider} from '@angular/material/list';
 @Component({
   selector: 'tafel-dashboard',
   templateUrl: 'dashboard.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     DistributionStateComponent,
     RegisteredCustomersComponent,

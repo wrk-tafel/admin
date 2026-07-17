@@ -1,7 +1,7 @@
 import type {MockedObject} from 'vitest';
 import {TestBed} from '@angular/core/testing';
 import {of} from 'rxjs';
-import {provideHttpClient} from '@angular/common/http';
+import {provideHttpClient, withXhr} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
 import {ShelterApiService, ShelterListResponse} from '../../../api/shelter-api.service';
 import {DashboardSheltersDataResolver} from './dashboard-shelters-resolver-component.service';
@@ -13,7 +13,7 @@ describe('DashboardSheltersDataResolver', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
-        provideHttpClient(),
+        provideHttpClient(withXhr()),
         provideHttpClientTesting(),
         {
           provide: ShelterApiService,

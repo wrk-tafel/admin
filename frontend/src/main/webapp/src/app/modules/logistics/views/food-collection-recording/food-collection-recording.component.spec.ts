@@ -1,7 +1,7 @@
 import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { FoodCollectionRecordingComponent } from './food-collection-recording.component';
 import { Router } from '@angular/router';
@@ -20,7 +20,7 @@ describe('FoodCollectionRecordingComponent', () => {
                 NoopAnimationsModule
             ],
             providers: [
-                provideHttpClient(),
+                provideHttpClient(withXhr()),
                 provideHttpClientTesting(),
                 {
                     provide: Router,
