@@ -1,8 +1,50 @@
 # CoreUI → Tailwind/Material Migration Plan
 
 Status: all 9 phases complete as of 2026-07-17, on branch `tailwind-migration`. CoreUI is fully removed from
-the codebase and `package.json`. Remaining gap: the full Cypress suite and a manual visual pass through the
-authenticated nav routes haven't run in this environment (no backend available) — see Phase 9's notes.
+the codebase and `package.json`. A real-backend visual QA pass (below) has since covered the authenticated
+routes too. Remaining gap: the full Cypress suite hasn't run in this environment.
+
+## Post-Phase-9 visual QA against a real backend (2026-07-17)
+
+The Phase 8/9 visual verification only covered pages reachable without authentication (login, 404, 500).
+To check the authenticated app (dashboard, customer/user search, settings, statistics, checkin), logged into
+the already-running local backend (`admin`/`12345`, seeded via the `testdata` Flyway profile) using a
+Playwright-driven headless Chrome session, since `ng serve`'s `proxy.conf.json` doesn't cover most API routes
+(only `/api` and `/config.json` — auth and most other calls are bare paths that only work same-origin, i.e.
+when the frontend is built into the backend's static resources).
+
+To get a real baseline instead of guessing what's "supposed to" look different, checked out `main` (pre-migration,
+100% CoreUI) into a git worktree, built its frontend, and temporarily swapped it into
+`backend/build/resources/main/static` (backing up the branch's own build first) so the *same* running backend
+could serve either version — then screenshotted the same routes against both and diffed. This surfaced two
+real bugs from **Phase 7** (the shell rebuild), invisible to build/lint/tests since they're pure layout:
+
+- **Sidebar was 360px instead of 256px.** Angular Material's own `.mat-drawer` CSS sets
+  `width: var(--mat-sidenav-container-width, 360px)` **unlayered**. Tailwind's `w-64` utility lives inside
+  `@layer utilities`. Per the CSS cascade-layers spec, unlayered rules always beat layered ones regardless of
+  specificity or source order — so Material's 360px default silently won over `w-64`'s 256px every time,
+  invisible in a screenshot with nothing to compare against. Fixed by setting
+  `--mat-sidenav-container-width` directly (Material's own intended theming hook) in the new
+  `default-layout.component.scss` instead of fighting the cascade.
+- **Expandable nav items (`Benutzer`, `Einstellungen`) had no visual affordance.** They render as a clickable
+  `<a>` with a click handler instead of a `routerLink`, but nothing in the markup indicated they were
+  expandable — the original CoreUI sidebar showed a chevron. Added one (`faAngleRight`/`faAngleDown` toggling
+  on `expandedItems()`) to `default-layout.component.ts`/`.html`.
+
+Also checked, but confirmed **not** regressions (differences from `main` that are the intentional, expected
+result of earlier migration phases converting CoreUI components to Material/Tailwind — not something to
+revert): default button color (CoreUI's brand purple `#5856d6` → Angular Material's stock theme blue
+`#005cbb` for buttons with no explicit `button-success`/`button-danger` override — happened in Phase 2), the
+dashboard's uniform bright-purple `mat-card-primary` KPI tiles (present identically on `main`), and a
+backend `HTTP 500 - For input string: "0,00"` toast + its overlapping-the-header positioning on the statistics
+page (present identically on `main`, a pre-existing backend/toastr bug unrelated to this migration).
+
+Verified via headless-Chrome screenshots (login, dashboard, customer search, user search, settings ×2,
+statistics, checkin scanner) after the fixes, plus `build-local` + `lint` + `test-ci` (494 tests) staying
+green throughout. Not covered: `logistik/warenerfassung` and `anmeldung/annahme` (the `admin` test user lacks
+`LOGISTICS`/`CHECKIN` permissions, so the router redirects to the dashboard — confirmed this happens
+identically on `main`, not a bug) and any page requiring seeded customer/distribution data beyond what
+`testdata` provides.
 
 ## Established target pattern (already proven in ~19 already-migrated files)
 

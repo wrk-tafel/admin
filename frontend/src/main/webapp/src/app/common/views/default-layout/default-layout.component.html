@@ -30,6 +30,8 @@
                 }
                 @if (!collapsed()) {
                   <span class="grow">{{ item.name }}</span>
+                  <fa-icon [icon]="expandedItems().has(item.name) ? faAngleDown : faAngleRight"
+                           class="w-3 shrink-0"></fa-icon>
                 }
               </a>
             } @else {
