@@ -45,7 +45,7 @@
     "ng2-charts": "10.0.0",
     "ngx-cookie-service": "22.0.0",
     "ngx-scrollbar": "19.1.5",
-    "postcss": "8.5.19",
+    "postcss": "8.5.21",
     "rxjs": "7.8.2",
     "tailwindcss": "4.3.3",
     "toastr": "2.1.4",
