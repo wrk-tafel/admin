@@ -45,11 +45,13 @@ jobs:
       - name: Regenerate lock file and verification metadata
         run: ./gradlew --write-locks --write-verification-metadata sha256 :backend:build --console=plain
       - name: Commit changes if any
+        env:
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
         run: |
           if [ -n "$(git status --porcelain backend/gradle.lockfile settings-gradle.lockfile gradle/verification-metadata.xml)" ]; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git add backend/gradle.lockfile settings-gradle.lockfile gradle/verification-metadata.xml
             git commit -m "Update Gradle dependency lock file and verification metadata"
-            git push origin HEAD:${{ github.event.pull_request.head.ref }}
+            git push origin "HEAD:$HEAD_REF"
           fi
