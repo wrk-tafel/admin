@@ -1,0 +1,55 @@
+name: Update Gradle Lock File
+
+# Dependabot's native Gradle lockfile update support is unreliable for this
+# repo's setup (version catalog + multi-module project), see:
+# https://github.com/dependabot/dependabot-core/issues/12557
+# https://github.com/dependabot/dependabot-core/issues/14633
+# This workflow regenerates backend/gradle.lockfile and
+# gradle/verification-metadata.xml on Dependabot gradle PRs so the build
+# can't land broken because of a stale lock/checksum.
+
+on:
+  pull_request:
+    paths:
+      - 'gradle/libs.versions.toml'
+      - 'backend/build.gradle.kts'
+      - 'build.gradle.kts'
+      - 'backend/gradle.lockfile'
+      - 'settings-gradle.lockfile'
+      - 'gradle/verification-metadata.xml'
+
+env:
+  JAVA_VERSION: '26'
+  JAVA_DISTRIBUTION: 'corretto'
+
+permissions:
+  contents: write
+
+jobs:
+  update-lockfile:
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+      - name: Set up JDK
+        uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95 # v5
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@3f131e8634966bd73d06cc69884922b02e6faf92 # v6.2.0
+        with:
+          cache-provider: basic
+      - name: Regenerate lock file and verification metadata
+        run: ./gradlew --write-locks --write-verification-metadata sha256 :backend:build --console=plain
+      - name: Commit changes if any
+        run: |
+          if [ -n "$(git status --porcelain backend/gradle.lockfile settings-gradle.lockfile gradle/verification-metadata.xml)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add backend/gradle.lockfile settings-gradle.lockfile gradle/verification-metadata.xml
+            git commit -m "Update Gradle dependency lock file and verification metadata"
+            git push origin HEAD:${{ github.event.pull_request.head.ref }}
+          fi
