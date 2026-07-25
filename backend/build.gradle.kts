@@ -26,6 +26,10 @@ repositories {
     mavenCentral()
 }
 
+dependencyLocking {
+    lockAllConfigurations()
+}
+
 dependencies {
     // implementation
     implementation(platform(libs.spring.boot.bom))
