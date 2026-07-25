@@ -37,28 +37,26 @@ data class DailyReportPdfModel(
 
         other as DailyReportPdfModel
 
-        if (logoContentType != other.logoContentType) return false
-        if (!logoBytes.contentEquals(other.logoBytes)) return false
-        if (date != other.date) return false
-        if (employeeCount != other.employeeCount) return false
-        if (countCustomers != other.countCustomers) return false
-        if (countPersons != other.countPersons) return false
-        if (countInfants != other.countInfants) return false
-        if (averagePersonsPerCustomer != other.averagePersonsPerCustomer) return false
-        if (countCustomersNew != other.countCustomersNew) return false
-        if (countPersonsNew != other.countPersonsNew) return false
-        if (countCustomersProlonged != other.countCustomersProlonged) return false
-        if (countPersonsProlonged != other.countPersonsProlonged) return false
-        if (countCustomersUpdated != other.countCustomersUpdated) return false
-        if (shopsTotalCount != other.shopsTotalCount) return false
-        if (shopsWithFoodCount != other.shopsWithFoodCount) return false
-        if (foodTotalAmount != other.foodTotalAmount) return false
-        if (foodPerShopAverage != other.foodPerShopAverage) return false
-        if (routesLengthKm != other.routesLengthKm) return false
-        if (shelters != other.shelters) return false
-        if (personsInSheltersTotalCount != other.personsInSheltersTotalCount) return false
-
-        return true
+        return logoContentType == other.logoContentType &&
+                logoBytes.contentEquals(other.logoBytes) &&
+                date == other.date &&
+                employeeCount == other.employeeCount &&
+                countCustomers == other.countCustomers &&
+                countPersons == other.countPersons &&
+                countInfants == other.countInfants &&
+                averagePersonsPerCustomer == other.averagePersonsPerCustomer &&
+                countCustomersNew == other.countCustomersNew &&
+                countPersonsNew == other.countPersonsNew &&
+                countCustomersProlonged == other.countCustomersProlonged &&
+                countPersonsProlonged == other.countPersonsProlonged &&
+                countCustomersUpdated == other.countCustomersUpdated &&
+                shopsTotalCount == other.shopsTotalCount &&
+                shopsWithFoodCount == other.shopsWithFoodCount &&
+                foodTotalAmount == other.foodTotalAmount &&
+                foodPerShopAverage == other.foodPerShopAverage &&
+                routesLengthKm == other.routesLengthKm &&
+                shelters == other.shelters &&
+                personsInSheltersTotalCount == other.personsInSheltersTotalCount
     }
 
     override fun hashCode(): Int {

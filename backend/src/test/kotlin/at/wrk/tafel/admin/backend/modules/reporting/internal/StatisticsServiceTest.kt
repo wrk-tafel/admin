@@ -355,6 +355,24 @@ internal class StatisticsServiceTest {
     }
 
     @Test
+    fun `executeStatsQuery defaults to zero when value column is null`() {
+        val fromDate = LocalDate.now().minusDays(7)
+        val toDate = LocalDate.now()
+
+        val mockQuery = mockk<Query>(relaxed = true)
+        every { entityManager.createNativeQuery(any<String>()) } returns mockQuery
+        every { mockQuery.resultList } returns listOf(
+            arrayOf<Any?>("KW1", null)
+        )
+
+        val result = service.averageShelters(fromDate, toDate)
+
+        assertThat(result).containsExactly(
+            StatisticsResult(label = "KW1", value = 0)
+        )
+    }
+
+    @Test
     fun `get data`() {
         val fromDate = LocalDate.now().minusDays(7)
         val toDate = LocalDate.now()

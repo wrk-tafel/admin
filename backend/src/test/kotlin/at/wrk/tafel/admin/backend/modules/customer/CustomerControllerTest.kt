@@ -177,6 +177,15 @@ class CustomerControllerTest {
     }
 
     @Test
+    fun `create customer - force defaults to false when omitted`() {
+        every { customerService.existsByCustomerId(testCustomer.id!!) } returns false
+
+        controller.createCustomer(customer = testCustomer)
+
+        verify { customerService.createCustomer(testCustomer, false, false) }
+    }
+
+    @Test
     fun `update customer - does not exist`() {
         every { customerService.existsByCustomerId(testCustomer.id!!) } returns false
 
@@ -221,6 +230,24 @@ class CustomerControllerTest {
 
         assertThat(response.data).isEqualTo(testCustomer)
         verify { customerService.updateCustomer(testCustomer.id!!, testCustomer, true, isSupervisor) }
+    }
+
+    @Test
+    fun `update customer - force defaults to false when omitted`() {
+        every { customerService.existsByCustomerId(testCustomer.id!!) } returns true
+        every {
+            customerService.updateCustomer(
+                testCustomer.id!!,
+                testCustomer,
+                false,
+                isSupervisor
+            )
+        } returns CustomerUpdateResponse(data = testCustomer, errorMsg = null)
+
+        val response = controller.updateCustomer(customerId = testCustomer.id!!, customer = testCustomer)
+
+        assertThat(response.data).isEqualTo(testCustomer)
+        verify { customerService.updateCustomer(testCustomer.id!!, testCustomer, false, isSupervisor) }
     }
 
     @Test
@@ -309,6 +336,34 @@ class CustomerControllerTest {
     }
 
     @Test
+    fun `get customers - all filters default when omitted`() {
+        val testSearchResult = CustomerSearchResult(
+            items = listOf(testCustomer),
+            totalCount = 123,
+            currentPage = 1,
+            totalPages = 10,
+            pageSize = 10
+        )
+        every {
+            customerService.getCustomers(null, null, null, null, null, null)
+        } returns testSearchResult
+
+        val response = controller.getCustomers()
+
+        verify {
+            customerService.getCustomers(
+                firstname = null,
+                lastname = null,
+                page = null,
+                postProcessing = null,
+                costContribution = null,
+                valid = null,
+            )
+        }
+        assertThat(response.items).hasSize(1)
+    }
+
+    @Test
     fun `generate pdf - no result`() {
         every { customerService.generatePdf(any(), any()) } returns null
 
@@ -366,6 +421,34 @@ class CustomerControllerTest {
         assertThat(duplicatesResponse.pageSize).isEqualTo(searchResult.pageSize)
         assertThat(duplicatesResponse.totalPages).isEqualTo(searchResult.totalPages)
         assertThat(duplicatesResponse.totalCount).isEqualTo(searchResult.totalCount)
+    }
+
+    @Test
+    fun `get duplicates - page defaults to null when omitted`() {
+        val searchResult = CustomerDuplicateSearchResult(
+            items = emptyList(),
+            totalCount = 0,
+            currentPage = 1,
+            totalPages = 0,
+            pageSize = 5
+        )
+        every { customerDuplicationService.findDuplicates(null) } returns searchResult
+
+        val duplicatesResponse = controller.getDuplicates()
+
+        assertThat(duplicatesResponse.items).isEmpty()
+        verify { customerDuplicationService.findDuplicates(null) }
+    }
+
+    @Test
+    fun `merge into customer`() {
+        val customerId = 100L
+        val request = CustomerMergeRequest(sourceCustomerIds = listOf(200L, 300L))
+
+        val response = controller.mergeIntoCustomer(customerId, request)
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+        verify { customerService.mergeCustomers(customerId, request.sourceCustomerIds) }
     }
 
 }

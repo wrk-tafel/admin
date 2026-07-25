@@ -7,6 +7,7 @@ import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
 import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import at.wrk.tafel.admin.backend.database.model.customer.CustomerRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.*
+import at.wrk.tafel.admin.backend.database.model.logistics.RouteEntity
 import at.wrk.tafel.admin.backend.database.model.logistics.RouteRepository
 import at.wrk.tafel.admin.backend.database.model.logistics.ShelterRepository
 import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationException
@@ -233,7 +234,7 @@ class DistributionService(
                 )
             } else {
                 // Warnings
-                val routes = routeRepository.findAll()
+                val routes: List<RouteEntity> = routeRepository.findAll()
                 val missingRoutes =
                     routes.map { it.number } - currentDistribution.foodCollections.map { it.route!!.number }
                 if (missingRoutes.isNotEmpty()) {

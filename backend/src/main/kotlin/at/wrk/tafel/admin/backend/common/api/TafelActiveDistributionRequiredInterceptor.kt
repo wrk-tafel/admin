@@ -21,11 +21,9 @@ class TafelActiveDistributionRequiredInterceptor(
             val methodAnnotation = handler.method.getAnnotation(TafelActiveDistributionRequired::class.java)
             val classAnnotation = handler.beanType.getAnnotation(TafelActiveDistributionRequired::class.java)
 
-            if (methodAnnotation != null || classAnnotation != null) {
-                // Check if an active distribution exists
-                if (distributionRepository.getCurrentDistribution() == null) {
-                    throw TafelValidationException("Ausgabe nicht gestartet!")
-                }
+            // Check if the method/class requires an active distribution and none exists
+            if ((methodAnnotation != null || classAnnotation != null) && distributionRepository.getCurrentDistribution() == null) {
+                throw TafelValidationException("Ausgabe nicht gestartet!")
             }
         }
         return true

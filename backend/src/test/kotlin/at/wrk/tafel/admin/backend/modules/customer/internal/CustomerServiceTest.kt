@@ -254,6 +254,35 @@ class CustomerServiceTest {
     }
 
     @Test
+    fun `create customer - non-supervisor with invalid income should set validUntil to yesterday`() {
+        val testCustomer = mockk<Customer>(relaxed = true)
+        val testCustomerEntity = CustomerEntity()
+
+        every { customerConverter.mapEntityToCustomer(testCustomerEntity) } returns testCustomer
+        every { customerConverter.mapCustomerToEntity(testCustomer) } returns testCustomerEntity
+        every { customerRepository.save(any()) } returns testCustomerEntity
+
+        every { incomeValidatorService.validate(any()) } returns IncomeValidatorResult(
+            valid = false,
+            totalSum = BigDecimal("1"),
+            limit = BigDecimal("2"),
+            toleranceValue = BigDecimal("3"),
+            amountExceededLimit = BigDecimal("4")
+        )
+
+        val result = service.createCustomer(testCustomer, force = false, isSupervisor = false)
+
+        assertThat(result).isEqualTo(
+            CustomerCreationResponse(
+                data = testCustomer,
+                errorMsg = "Kunde wurde als ungültig gespeichert da sich das Einkommen über dem Limit befindet"
+            )
+        )
+        assertThat(testCustomerEntity.validUntil).isEqualTo(LocalDate.now().minusDays(1))
+        verify(exactly = 1) { customerRepository.save(testCustomerEntity) }
+    }
+
+    @Test
     fun `update customer is valid`() {
         val customerId = 123L
 
@@ -310,6 +339,34 @@ class CustomerServiceTest {
         assertThat(result).isEqualTo(CustomerUpdateResponse(data = testCustomerUpdate, errorMsg = "Kunde wurde als ungültig gespeichert da sich das Einkommen über dem Limit befindet"))
         verify(exactly = 1) { customerRepository.save(testCustomerEntity) }
         verify(exactly = 1) { customerConverter.mapCustomerToEntity(any(), any()) }
+    }
+
+    @Test
+    fun `update customer - supervisor with invalid income and force=false should throw exception`() {
+        val customerId = 123L
+
+        val testCustomerUpdate = mockk<Customer>(relaxed = true)
+        every { testCustomerUpdate.id } returns customerId
+
+        val testCustomerEntity = CustomerEntity()
+        every { customerRepository.getReferenceByCustomerId(customerId) } returns testCustomerEntity
+        every { customerConverter.mapCustomerToEntity(any(), any()) } returns testCustomerEntity
+
+        every { incomeValidatorService.validate(any()) } returns IncomeValidatorResult(
+            valid = false,
+            totalSum = BigDecimal("1"),
+            limit = BigDecimal("2"),
+            toleranceValue = BigDecimal("3"),
+            amountExceededLimit = BigDecimal("4")
+        )
+
+        val exception = assertThrows<TafelValidationException> {
+            service.updateCustomer(testCustomerUpdate.id!!, testCustomerUpdate, force = false, isSupervisor = true)
+        }
+
+        assertThat(exception.message).isEqualTo("Einkommen befindet sich über dem Limit (Toleranz wurde bereits berücksichtigt)")
+        assertThat(exception.status).isEqualTo(org.springframework.http.HttpStatus.CONFLICT)
+        verify(exactly = 0) { customerRepository.save(any()) }
     }
 
     @Test
@@ -396,6 +453,44 @@ class CustomerServiceTest {
         assertThat(result).isNotNull
         assertThat(result?.filename).isEqualTo("stammdaten-100-mustermann-max.pdf")
         assertThat(result?.bytes?.size).isEqualTo(pdfBytes.size.toLong())
+    }
+
+    @Test
+    fun `generate pdf customer - IDCARD type`() {
+        val testCustomerEntity = mockk<CustomerEntity>(relaxed = true)
+        every { testCustomerEntity.customerId } returns 100
+        every { testCustomerEntity.firstname } returns "max"
+        every { testCustomerEntity.lastname } returns "mustermann"
+
+        val pdfBytes = ByteArray(10)
+        every { customerRepository.findByCustomerId(any()) } returns testCustomerEntity
+        every { customerPdfService.generateIdCardPdf(any()) } returns pdfBytes
+
+        val result = service.generatePdf(1, CustomerPdfType.IDCARD)
+
+        assertThat(result).isNotNull
+        assertThat(result?.filename).isEqualTo("ausweis-100-mustermann-max.pdf")
+        assertThat(result?.bytes?.size).isEqualTo(pdfBytes.size.toLong())
+        verify(exactly = 1) { customerPdfService.generateIdCardPdf(testCustomerEntity) }
+    }
+
+    @Test
+    fun `generate pdf customer - COMBINED type`() {
+        val testCustomerEntity = mockk<CustomerEntity>(relaxed = true)
+        every { testCustomerEntity.customerId } returns 100
+        every { testCustomerEntity.firstname } returns "max"
+        every { testCustomerEntity.lastname } returns "mustermann"
+
+        val pdfBytes = ByteArray(10)
+        every { customerRepository.findByCustomerId(any()) } returns testCustomerEntity
+        every { customerPdfService.generateCombinedPdf(any()) } returns pdfBytes
+
+        val result = service.generatePdf(1, CustomerPdfType.COMBINED)
+
+        assertThat(result).isNotNull
+        assertThat(result?.filename).isEqualTo("stammdaten-ausweis-100-mustermann-max.pdf")
+        assertThat(result?.bytes?.size).isEqualTo(pdfBytes.size.toLong())
+        verify(exactly = 1) { customerPdfService.generateCombinedPdf(testCustomerEntity) }
     }
 
     @Test
