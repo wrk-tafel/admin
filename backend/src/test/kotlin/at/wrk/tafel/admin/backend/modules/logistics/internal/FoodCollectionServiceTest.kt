@@ -655,4 +655,263 @@ class FoodCollectionServiceTest {
         assertThat(foodCollection.items!![0].amount).isEqualTo(newAmount.amount)
     }
 
+    @Test
+    fun `get items per shop with existing collection but no items returns empty list`() {
+        val routeId = testRoute1.id!!
+        val distributionEntity = DistributionEntity().apply {
+            id = 123
+            startedAt = LocalDateTime.now()
+        }
+        val existingFoodCollection = FoodCollectionEntity().apply {
+            id = 1
+            route = testRoute1
+            distribution = distributionEntity
+            items = null
+        }
+        distributionEntity.foodCollections = mutableListOf(existingFoodCollection)
+
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns distributionEntity
+
+        val result = service.getItemsPerShop(routeId = routeId, shopId = testShop1.id!!)!!
+
+        assertThat(result.items).isEmpty()
+    }
+
+    @Test
+    fun `patch a single item with unknown route throws exception`() {
+        val routeId = 123L
+        val data = FoodCollectionItem(
+            categoryId = testFoodCategory1.id!!,
+            shopId = testShop1.id!!,
+            amount = 1
+        )
+        val activeDistribution = testDistributionEntity.apply { endedAt = null; foodCollections = emptyList() }
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
+        every { routeRepository.findByIdOrNull(routeId) } returns null
+
+        val exception = assertThrows<TafelValidationException> { service.patchItem(routeId = routeId, data = data) }
+        assertThat(exception.message).isEqualTo("Route 123 nicht gefunden!")
+    }
+
+    @Test
+    fun `patch a single item with invalid category throws exception`() {
+        val routeId = 123L
+        val data = FoodCollectionItem(
+            categoryId = 999L,
+            shopId = testShop1.id!!,
+            amount = 1
+        )
+        val activeDistribution = testDistributionEntity.apply { endedAt = null; foodCollections = emptyList() }
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
+        every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
+        every { foodCategoryRepository.findByIdOrNull(999L) } returns null
+
+        val exception = assertThrows<TafelValidationException> { service.patchItem(routeId = routeId, data = data) }
+        assertThat(exception.message).isEqualTo("Kategorie ungültig!")
+    }
+
+    @Test
+    fun `patch a single item with invalid shop throws exception`() {
+        val routeId = 123L
+        val data = FoodCollectionItem(
+            categoryId = testFoodCategory1.id!!,
+            shopId = 999L,
+            amount = 1
+        )
+        val activeDistribution = testDistributionEntity.apply { endedAt = null; foodCollections = emptyList() }
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
+        every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
+        every { foodCategoryRepository.findByIdOrNull(testFoodCategory1.id!!) } returns testFoodCategory1
+        every { shopRepository.findByIdOrNull(999L) } returns null
+
+        val exception = assertThrows<TafelValidationException> { service.patchItem(routeId = routeId, data = data) }
+        assertThat(exception.message).isEqualTo("Filiale ungültig!")
+    }
+
+    @Test
+    fun `save route data reuses the existing food collection for the route`() {
+        val routeId = testRoute1.id!!
+        val driverId = testEmployee1.id!!
+        val coDriverId = testEmployee2.id!!
+        val data = FoodCollectionSaveRouteData(
+            carId = testCar1.id!!,
+            driverId = driverId,
+            coDriverId = coDriverId,
+            kmStart = 1000,
+            kmEnd = 2000,
+        )
+        val otherRouteCollection = FoodCollectionEntity().apply {
+            id = 1
+            route = testRoute2
+        }
+        val existingCollection = FoodCollectionEntity().apply {
+            id = 2
+            route = testRoute1
+        }
+        val distributionEntity = DistributionEntity().apply {
+            id = 123
+            startedAt = LocalDateTime.now()
+            foodCollections = mutableListOf(otherRouteCollection, existingCollection)
+        }
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns distributionEntity
+        every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
+        every { employeeRepository.findByIdOrNull(driverId) } returns testEmployee1
+        every { employeeRepository.findByIdOrNull(coDriverId) } returns testEmployee2
+        every { carRepository.findByIdOrNull(testCar1.id!!) } returns testCar1
+        every { foodCollectionRepository.save(any()) } returns mockk()
+
+        service.saveRouteData(routeId = routeId, data = data)
+
+        val foodCollectionSlot = slot<FoodCollectionEntity>()
+        verify(exactly = 1) { foodCollectionRepository.save(capture(foodCollectionSlot)) }
+        assertThat(foodCollectionSlot.captured.id).isEqualTo(existingCollection.id)
+    }
+
+    @Test
+    fun `save route data with invalid car throws exception`() {
+        val routeId = 123L
+        val data = FoodCollectionSaveRouteData(
+            carId = 999L,
+            driverId = testEmployee1.id!!,
+            coDriverId = testEmployee2.id!!,
+            kmStart = 1000,
+            kmEnd = 2000,
+        )
+        val activeDistribution = testDistributionEntity.apply { endedAt = null; foodCollections = emptyList() }
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
+        every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
+        every { carRepository.findByIdOrNull(999L) } returns null
+
+        val exception = assertThrows<TafelValidationException> {
+            service.saveRouteData(routeId = routeId, data = data)
+        }
+        assertThat(exception.message).isEqualTo("Ungültiges KFZ!")
+    }
+
+    @Test
+    fun `save route data with invalid driver throws exception`() {
+        val routeId = 123L
+        val data = FoodCollectionSaveRouteData(
+            carId = testCar1.id!!,
+            driverId = 999L,
+            coDriverId = testEmployee2.id!!,
+            kmStart = 1000,
+            kmEnd = 2000,
+        )
+        val activeDistribution = testDistributionEntity.apply { endedAt = null; foodCollections = emptyList() }
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
+        every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
+        every { carRepository.findByIdOrNull(testCar1.id!!) } returns testCar1
+        every { employeeRepository.findByIdOrNull(999L) } returns null
+
+        val exception = assertThrows<TafelValidationException> {
+            service.saveRouteData(routeId = routeId, data = data)
+        }
+        assertThat(exception.message).isEqualTo("Ungültiger Fahrer!")
+    }
+
+    @Test
+    fun `save route data with invalid coDriver throws exception`() {
+        val routeId = 123L
+        val data = FoodCollectionSaveRouteData(
+            carId = testCar1.id!!,
+            driverId = testEmployee1.id!!,
+            coDriverId = 999L,
+            kmStart = 1000,
+            kmEnd = 2000,
+        )
+        val activeDistribution = testDistributionEntity.apply { endedAt = null; foodCollections = emptyList() }
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
+        every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
+        every { carRepository.findByIdOrNull(testCar1.id!!) } returns testCar1
+        every { employeeRepository.findByIdOrNull(testEmployee1.id!!) } returns testEmployee1
+        every { employeeRepository.findByIdOrNull(999L) } returns null
+
+        val exception = assertThrows<TafelValidationException> {
+            service.saveRouteData(routeId = routeId, data = data)
+        }
+        assertThat(exception.message).isEqualTo("Ungültiger Beifahrer!")
+    }
+
+    @Test
+    fun `save items reuses the existing food collection for the route`() {
+        val routeId = testRoute1.id!!
+        val data = FoodCollectionItems(
+            items = listOf(
+                FoodCollectionItem(
+                    categoryId = testFoodCategory1.id!!,
+                    shopId = testShop1.id!!,
+                    amount = 1
+                )
+            )
+        )
+        val otherRouteCollection = FoodCollectionEntity().apply {
+            id = 1
+            route = testRoute2
+        }
+        val existingCollection = FoodCollectionEntity().apply {
+            id = 2
+            route = testRoute1
+        }
+        val distributionEntity = DistributionEntity().apply {
+            id = 123
+            startedAt = LocalDateTime.now()
+            foodCollections = mutableListOf(otherRouteCollection, existingCollection)
+        }
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns distributionEntity
+        every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
+        every { foodCategoryRepository.findByIdOrNull(testFoodCategory1.id!!) } returns testFoodCategory1
+        every { shopRepository.findByIdOrNull(testShop1.id!!) } returns testShop1
+        every { foodCollectionRepository.save(any()) } returns mockk()
+
+        service.saveItems(routeId = routeId, data = data)
+
+        val foodCollectionSlot = slot<FoodCollectionEntity>()
+        verify(exactly = 1) { foodCollectionRepository.save(capture(foodCollectionSlot)) }
+        assertThat(foodCollectionSlot.captured.id).isEqualTo(existingCollection.id)
+    }
+
+    @Test
+    fun `save items with invalid category throws exception`() {
+        val routeId = 123L
+        val data = FoodCollectionItems(
+            items = listOf(
+                FoodCollectionItem(
+                    categoryId = 999L,
+                    shopId = testShop1.id!!,
+                    amount = 1
+                )
+            )
+        )
+        val activeDistribution = testDistributionEntity.apply { endedAt = null; foodCollections = emptyList() }
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
+        every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
+        every { foodCategoryRepository.findByIdOrNull(999L) } returns null
+
+        val exception = assertThrows<TafelValidationException> { service.saveItems(routeId = routeId, data = data) }
+        assertThat(exception.message).isEqualTo("Kategorie ungültig!")
+    }
+
+    @Test
+    fun `save items with invalid shop throws exception`() {
+        val routeId = 123L
+        val data = FoodCollectionItems(
+            items = listOf(
+                FoodCollectionItem(
+                    categoryId = testFoodCategory1.id!!,
+                    shopId = 999L,
+                    amount = 1
+                )
+            )
+        )
+        val activeDistribution = testDistributionEntity.apply { endedAt = null; foodCollections = emptyList() }
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns activeDistribution
+        every { routeRepository.findByIdOrNull(routeId) } returns testRoute1
+        every { foodCategoryRepository.findByIdOrNull(testFoodCategory1.id!!) } returns testFoodCategory1
+        every { shopRepository.findByIdOrNull(999L) } returns null
+
+        val exception = assertThrows<TafelValidationException> { service.saveItems(routeId = routeId, data = data) }
+        assertThat(exception.message).isEqualTo("Filiale ungültig!")
+    }
+
 }

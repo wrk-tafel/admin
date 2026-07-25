@@ -5,23 +5,23 @@ import org.springframework.boot.jpa.test.autoconfigure.AutoConfigureTestEntityMa
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
-import org.testcontainers.junit.jupiter.Container
-import org.testcontainers.junit.jupiter.Testcontainers
 import org.testcontainers.postgresql.PostgreSQLContainer
 
 @SpringBootTest
 @AutoConfigureTestEntityManager
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Testcontainers
 class TafelBaseIntegrationTest {
 
     companion object {
-        @Container
-        @JvmStatic
+        // Singleton container pattern: started once for the whole JVM/test run and never stopped by JUnit,
+        // so it stays valid for every subclass. Using @Container/@Testcontainers here would stop it after each
+        // test class, while Spring's ApplicationContext cache keeps reusing the (now stale) datasource config
+        // across classes, causing "connection refused" once a second IT class runs.
         private val postgreSQLContainer: PostgreSQLContainer = PostgreSQLContainer("postgres:18.4-bookworm")
             .withDatabaseName("tafeladmin")
             .withUsername("admin")
             .withPassword("admin")
+            .apply { start() }
 
         @DynamicPropertySource
         @JvmStatic

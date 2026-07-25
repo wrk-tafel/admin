@@ -57,7 +57,7 @@ class DashboardService(
     private fun getStatisticsData(currentDistribution: DistributionEntity?): DashboardStatisticsData {
         return DashboardStatisticsData(
             employeeCount = currentDistribution?.statistic?.employeeCount.takeIf { it != 0 },
-            // TODO shelter names should be shelter ids to have a better match but in statistics it's duplicated to have a historic copy
+            // Intentionally names, not shelter ids: statistics keep a historic copy independent of later shelter renames/deletions
             selectedShelterNames = currentDistribution?.statistic?.shelters?.mapNotNull { it.name } ?: emptyList()
         )
     }
