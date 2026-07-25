@@ -32,6 +32,8 @@ import org.passay.FailureValidationResult
 import org.passay.PasswordData
 import org.passay.PasswordValidator
 import org.passay.RuleResult
+import org.passay.RuleResultDetail
+import org.passay.RuleResultMetadata
 import org.passay.SuccessValidationResult
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
@@ -177,6 +179,45 @@ class TafelUserDetailsManagerTest {
                 assertThat(it.passwordChangeRequired).isFalse()
             })
         }
+    }
+
+    @Test
+    fun `changePassword - old password missing throws exception`() {
+        val exception = assertThrows<PasswordChangeException> {
+            manager.changePassword(null, "67890")
+        }
+        assertThat(exception.message).isEqualTo("Aktuelles Passwort ist falsch!")
+
+        verify(exactly = 0) { userRepository.findByUsername(any()) }
+        verify(exactly = 0) { userRepository.save(any()) }
+    }
+
+    @Test
+    fun `changePassword - new password missing throws exception`() {
+        val exception = assertThrows<PasswordChangeException> {
+            manager.changePassword("12345", null)
+        }
+        assertThat(exception.message).isEqualTo("Aktuelles Passwort ist falsch!")
+
+        verify(exactly = 0) { userRepository.findByUsername(any()) }
+        verify(exactly = 0) { userRepository.save(any()) }
+    }
+
+    @Test
+    fun `changePassword - new password invalid with unrecognized error code produces no detail message`() {
+        every { passwordValidator.validate(any()) } returns FailureValidationResult(
+            RuleResultMetadata(),
+            listOf(RuleResultDetail("SOME_UNRECOGNIZED_ERROR_CODE", emptyMap()))
+        )
+
+        val currentPassword = "12345"
+        val newPassword = "67890"
+
+        val exception = assertThrows<PasswordChangeException> {
+            manager.changePassword(currentPassword, newPassword)
+        }
+        assertThat(exception.message).isEqualTo("Das neue Passwort ist ungültig!")
+        assertThat(exception.validationDetails).isEmpty()
     }
 
     @Test

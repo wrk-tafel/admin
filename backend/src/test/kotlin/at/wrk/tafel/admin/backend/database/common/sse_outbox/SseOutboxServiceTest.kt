@@ -13,12 +13,15 @@ import io.mockk.verify
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatCode
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.web.context.request.async.AsyncRequestNotUsableException
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter.SseEventBuilder
 import tools.jackson.databind.json.JsonMapper
+import java.io.IOException
 import java.util.function.Consumer
 
 @ExtendWith(MockKExtension::class)
@@ -188,6 +191,78 @@ class SseOutboxServiceTest {
         service.sendEvent(sseEmitter, testPayload)
 
         verify { sseEmitter.send(any<SseEventBuilder>()) }
+    }
+
+    @Test
+    fun `forward notification events logs error when registering callback fails`() = runBlocking {
+        every {
+            sseOutboxListenerService.registerCallback(notificationName = notificationName, eventCallback = any())
+        } throws IllegalStateException("registration failed")
+
+        service.forwardNotificationEventsToSse(
+            sseEmitter = sseEmitter,
+            notificationName = notificationName,
+            resultType = TestJsonPayload::class.java
+        )
+        delay(1000)
+
+        verify {
+            sseOutboxListenerService.registerCallback(notificationName = notificationName, eventCallback = any())
+        }
+    }
+
+    @Test
+    fun `listen for notification events logs error when registering callback fails`() = runBlocking {
+        every {
+            sseOutboxListenerService.registerCallback(notificationName = notificationName, eventCallback = any())
+        } throws IllegalStateException("registration failed")
+
+        service.listenForNotificationEvents<Unit>(
+            sseEmitter = sseEmitter,
+            notificationName = notificationName,
+            resultType = null
+        ) { }
+        delay(1000)
+
+        verify {
+            sseOutboxListenerService.registerCallback(notificationName = notificationName, eventCallback = any())
+        }
+    }
+
+    @Test
+    fun `send event completes emitter when AsyncRequestNotUsableException occurs`() {
+        val sseEmitter = mockk<SseEmitter>()
+        every { sseEmitter.send(any<SseEventBuilder>()) } throws AsyncRequestNotUsableException("disconnected")
+        every { sseEmitter.complete() } returns Unit
+
+        assertThatCode { service.sendEvent(sseEmitter, testPayload) }.doesNotThrowAnyException()
+
+        verify { sseEmitter.complete() }
+    }
+
+    @Test
+    fun `send event ignores exception when completing an already completed emitter`() {
+        val sseEmitter = mockk<SseEmitter>()
+        every { sseEmitter.send(any<SseEventBuilder>()) } throws AsyncRequestNotUsableException("disconnected")
+        every { sseEmitter.complete() } throws IllegalStateException("already completed")
+
+        assertThatCode { service.sendEvent(sseEmitter, testPayload) }.doesNotThrowAnyException()
+    }
+
+    @Test
+    fun `send event handles IOException`() {
+        val sseEmitter = mockk<SseEmitter>()
+        every { sseEmitter.send(any<SseEventBuilder>()) } throws IOException("broken pipe")
+
+        assertThatCode { service.sendEvent(sseEmitter, testPayload) }.doesNotThrowAnyException()
+    }
+
+    @Test
+    fun `send event handles IllegalStateException`() {
+        val sseEmitter = mockk<SseEmitter>()
+        every { sseEmitter.send(any<SseEventBuilder>()) } throws IllegalStateException("already completed")
+
+        assertThatCode { service.sendEvent(sseEmitter, testPayload) }.doesNotThrowAnyException()
     }
 
     @Test
