@@ -88,13 +88,14 @@ class DistributionController(
     @TafelActiveDistributionRequired
     fun closeDistribution(@RequestParam forceClose: Boolean = false): ResponseEntity<DistributionCloseValidationResult> {
         val closeValidationResult = service.validateClose()
-        if (closeValidationResult.isInvalid()) {
+        return if (closeValidationResult.isInvalid()) {
             if (forceClose && closeValidationResult.hasOnlyWarnings()) {
-                return closeAndNotify()
+                closeAndNotify()
+            } else {
+                ResponseEntity.ok(closeValidationResult)
             }
-            return ResponseEntity.ok(closeValidationResult)
         } else {
-            return closeAndNotify()
+            closeAndNotify()
         }
     }
 

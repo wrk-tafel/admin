@@ -13,7 +13,7 @@ class RouteService(
 
     @Transactional
     fun getRoutes(): List<Route> {
-        val routes = routeRepository.findAll()
+        val routes: List<RouteEntity> = routeRepository.findAll()
         return routes.map { mapRoute(it) }
     }
 
