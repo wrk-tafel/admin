@@ -56,9 +56,9 @@ object TestdataGenerator {
         customer.gender = Gender.MALE
         customer.country = country
         customer.addressStreet = "street-$randomNumber"
-        customer.addressHouseNumber = "${randomNumber}A"
-        customer.addressStairway = "$randomNumber"
-        customer.addressDoor = "$randomNumber"
+        customer.addressHouseNumber = "${Random.nextInt(1, 9999)}A"
+        customer.addressStairway = "${Random.nextInt(1, 9)}"
+        customer.addressDoor = "${Random.nextInt(1, 9999)}"
         customer.addressPostalCode = Random.nextInt()
         customer.addressCity = "city-$randomNumber"
         customer.telephoneNumber = "telephoneNumber-$randomNumber"
