@@ -68,7 +68,7 @@
     "@typescript-eslint/parser": "8.65.0",
     "@vitest/browser-playwright": "4.1.10",
     "angular-eslint": "22.1.0",
-    "cypress": "15.18.1",
+    "cypress": "15.19.0",
     "cypress-browser-permissions": "1.1.0",
     "cypress-recurse": "1.37.2",
     "eslint": "10.7.0",
@@ -78,7 +78,7 @@
     "typescript": "6.0.3",
     "typescript-eslint": "8.65.0",
     "vitest": "4.1.10",
-    "wait-on": "9.0.10"
+    "wait-on": "9.1.0"
   },
   "engines": {
     "node": "^22.22.3 || ^24.15.0 || ^26.0.0",
