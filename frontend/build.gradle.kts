@@ -14,7 +14,7 @@ val npmInstall by tasks.registering(Exec::class) {
     val osName = System.getProperty("os.name")
     val isWindows = osName.lowercase().contains("windows")
     val npmCommand = if (isWindows) "npm.cmd" else "npm"
-    commandLine(npmCommand, "install")
+    commandLine(npmCommand, "ci")
 
     inputs.file("$webappDir/package.json")
     inputs.file("$webappDir/package-lock.json")
