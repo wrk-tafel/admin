@@ -6,6 +6,7 @@ import at.wrk.tafel.admin.backend.modules.base.exception.TafelValidationExceptio
 import at.wrk.tafel.admin.backend.modules.distribution.internal.testDistributionEntity
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.assertj.core.api.Assertions.assertThat
@@ -54,8 +55,41 @@ class ActiveDistributionRequiredInterceptorTest {
         assertTrue(result)
     }
 
+    @Test
+    fun `preHandle returns true and skips distribution lookup if HandlerMethod has no annotation`() {
+        val handlerMethod = mockk<HandlerMethod>()
+        val method = this::class.java.getDeclaredMethod("unannotatedMethod")
+        every { handlerMethod.method } returns method
+        every { handlerMethod.beanType } returns this::class.java
+
+        val result = interceptor.preHandle(request, response, handlerMethod)
+
+        assertTrue(result)
+        verify(exactly = 0) { distributionRepository.findFirstByOrderByIdDesc() }
+    }
+
+    @Test
+    fun `preHandle throws exception if only class annotation present and no active distribution`() {
+        val handlerMethod = mockk<HandlerMethod>()
+        val method = this::class.java.getDeclaredMethod("unannotatedMethod")
+        every { handlerMethod.method } returns method
+        every { handlerMethod.beanType } returns AnnotatedClass::class.java
+        every { distributionRepository.findFirstByOrderByIdDesc() } returns null
+
+        val exception = assertThrows<TafelValidationException> {
+            interceptor.preHandle(request, response, handlerMethod)
+        }
+        assertThat(exception.message).isEqualTo("Ausgabe nicht gestartet!")
+    }
+
     @TafelActiveDistributionRequired
     fun annotatedMethod() {
     }
+
+    fun unannotatedMethod() {
+    }
+
+    @TafelActiveDistributionRequired
+    class AnnotatedClass
 
 }
