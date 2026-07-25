@@ -37,7 +37,7 @@ jobs:
         with:
           name: admin-jarfile
           path: ./artifact
-      - run: npm install
+      - run: npm ci
         working-directory: frontend/src/main/webapp
       - name: Run cypress
         run: |
