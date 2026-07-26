@@ -13,36 +13,72 @@ Five dependencies are stale/abandoned. Ordered below by recommended priority
 
 ---
 
-## 1. `logback-jackson` / `logback-json-classic` (backend) — HIGH PRIORITY
+## 1. `logback-jackson` / `logback-json-classic` (backend) — HIGH PRIORITY — ✅ RESOLVED (2026-07-26)
 
 - **Status:** Last released 2016-06-10 (`ch.qos.logback.contrib`, ~10 years stale).
 - **Used in:** `backend/src/main/resources/logback-console-json.xml` — the
   production JSON console log encoder (`JsonLayout` + `JacksonJsonFormatter`).
 - **Why it matters:** This is the only stale dependency that runs in
   production, not just tests/tooling.
-- **Replacement:** `net.logstash.logback:logstash-logback-encoder` — the
-  actively-maintained standard JSON encoder for Logback.
-- **Steps:**
-  1. Add `net.logstash.logback:logstash-logback-encoder` to
-     `gradle/libs.versions.toml` + `backend/build.gradle.kts`, remove
-     `logback-jackson`/`logback-json-classic` entries.
-  2. In `logback-console-json.xml`, replace the
-     `<layout class="ch.qos.logback.contrib.json.classic.JsonLayout">` block
-     with `<encoder class="net.logstash.logback.encoder.LogstashEncoder">`
-     directly on the appender (no `LayoutWrappingEncoder` needed — Logstash's
-     encoder is a full `Encoder`, not just a `Layout`).
-  3. Port over the existing settings: `timestampPattern` (was
-     `timestampFormat`/`yyyy-MM-dd'T'HH:mm:ss.SSSZ`), `timeZone` (was
-     `timestampFormatTimezoneId`/`Europe/Vienna`). Logstash's encoder pretty-prints
-     off by default (matches current `prettyPrint=false`).
-  4. Run with the JSON console profile locally, diff a sample log line
-     against the old format to confirm field names/shape are acceptable
-     downstream (if logs are shipped anywhere that parses specific field
-     names, e.g. an ELK/Loki pipeline).
-  5. `./gradlew build` + existing log-format tests (if any) to confirm.
-- **Risk:** Low-medium — config-only change, but verify nothing downstream
-  parses the exact JSON field names Logstash's encoder produces differently
-  from the old JsonLayout output.
+- **Resolution:** No replacement dependency needed. Spring Boot has built-in
+  structured logging since 3.4 (this project is on 4.1) — setting
+  `logging.structured.format.console=logstash` produces Logstash-format JSON
+  natively via `org.springframework.boot.logging.logback.StructuredLogEncoder`,
+  with zero extra dependencies. This supersedes the originally planned
+  `net.logstash.logback:logstash-logback-encoder` swap, which would have added
+  a dependency where none is now required.
+- **Changes made:**
+  1. Removed the `logback-jackson`/`logback-json-classic` version and
+     library entries from `gradle/libs.versions.toml` and the two
+     `implementation(...)` lines from `backend/build.gradle.kts`.
+  2. Deleted **all three** custom logback XML files —
+     `backend/src/main/resources/logback.xml`,
+     `backend/src/test/resources/logback-test.xml`, and
+     `backend/src/main/resources/logback-console-json.xml`. None are needed:
+     Spring Boot 4.1's built-in defaults already provide a console appender
+     and (once `logging.file.name` is set) a rolling file appender, each
+     independently switchable to JSON via `logging.structured.format.console`
+     / `.file` — no XML required at all.
+  3. `backend/src/main/resources/application.yml` now sets
+     `logging.file.name: ${user.dir}/logs/app.log` and
+     `logging.pattern.file` to the old pattern
+     (`%d{ISO8601} %-5level [%t] %C: %msg%n%throwable`), so `app.log`'s
+     format is byte-for-byte identical to before — verified by running the
+     app and diffing output. Console output uses Spring Boot's own default
+     colorized pattern locally (not explicitly configured — reduces config).
+     `logging.structured.format.console` is intentionally **not** set here,
+     since JSON console should only apply to the docker container, not local
+     dev/tests — verified by running with
+     `-Dlogging.structured.format.console=logstash`, which produces
+     `{"@timestamp":...,"logger_name":...,"thread_name":...,"level":...}`
+     JSON lines while `app.log` stays plain text, confirming both are
+     controlled independently.
+  4. `server.tomcat.accesslog.*` (`access.log`) was already entirely
+     independent of Logback (handled by Tomcat's own `AccessLogValve`) — no
+     change needed there.
+  5. `StructuredLogEncoder` ships inside `spring-boot-core` itself — no
+     dependency required.
+  6. Regenerated `backend/gradle.lockfile` (`./gradlew :backend:dependencies --write-locks`)
+     and pruned the stale `ch.qos.logback.contrib` entries from
+     `gradle/verification-metadata.xml`.
+  7. `./gradlew :backend:build` passes (compile + tests + jacoco).
+- **Outstanding action (outside this repo):** the external deployment
+  `config.yml` currently sets
+  `logging.config: classpath:logback-console-json.xml` — that file no longer
+  exists. Replace it with:
+  ```yaml
+  logging:
+    structured:
+      format:
+        console: logstash
+  ```
+  This is the one change needed outside this repo to keep JSON console
+  output in the docker container.
+- **Field-name change to watch:** old `JsonLayout` used
+  `timestamp`/`level`/`thread`/`logger`/`message`; the built-in Logstash
+  format uses `@timestamp`/`level`/`thread_name`/`logger_name`/`message`.
+  Since logs are shipped via Loki/Alloy, double-check whatever Alloy
+  pipeline stage extracts fields from these logs against the new schema.
 
 ---
 
@@ -176,7 +212,7 @@ Five dependencies are stale/abandoned. Ordered below by recommended priority
 
 ## Suggested execution order
 
-1. `logback-jackson`/`logback-json-classic` → `logstash-logback-encoder` (prod-facing, low risk, quick win)
+1. ✅ `logback-jackson`/`logback-json-classic` → Spring Boot built-in structured logging (prod-facing, low risk, quick win) — done
 2. `toastr` → `MatSnackBar` (removes a dependency, clears a build warning)
 3. `cypress-browser-permissions` (check if even still needed — might be a pure deletion)
 4. `image-comparison` → in-house utility (contained, test-only)
