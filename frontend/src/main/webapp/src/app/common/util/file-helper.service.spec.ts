@@ -39,15 +39,14 @@ describe('FileHelperService', () => {
   });
 
   it('downloadFile sets the anchor href and download filename before clicking', () => {
-    let anchorAtClickTime: HTMLAnchorElement | undefined;
     click.mockImplementation(function (this: HTMLAnchorElement) {
-      anchorAtClickTime = this;
+      expect(this.href).toBe('blob:mock-url');
+      expect(this.download).toBe('report.pdf');
     });
 
     service.downloadFile('report.pdf', new Blob(['file content']));
 
-    expect(anchorAtClickTime?.href).toBe('blob:mock-url');
-    expect(anchorAtClickTime?.download).toBe('report.pdf');
+    expect(click).toHaveBeenCalledTimes(1);
   });
 
   it('downloadFile revokes the object URL only after the click was triggered', () => {
