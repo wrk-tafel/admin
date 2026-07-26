@@ -33,7 +33,7 @@ class TafelJwtAuthenticationFilter(
             filterChain.doFilter(request, response)
         } catch (failed: AuthenticationException) {
             SecurityContextHolder.clearContext()
-            response.sendError(HttpServletResponse.SC_FORBIDDEN)
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED)
         }
     }
 
