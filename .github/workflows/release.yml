@@ -11,6 +11,11 @@ on:
 jobs:
   build:
     uses: ./.github/workflows/subflow_build.yml
+  test:
+    uses: ./.github/workflows/subflow_test.yml
+  sonar:
+    uses: ./.github/workflows/subflow_sonar.yml
+    needs: test
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
   lint:
@@ -20,14 +25,14 @@ jobs:
     needs: build
   build-push-image-test:
     uses: ./.github/workflows/subflow_docker_image.yml
-    needs: [build, e2e-test]
+    needs: [build, test, e2e-test]
     with:
       imageTag: test
     secrets:
       githubToken: ${{ secrets.GITHUB_TOKEN }}
   build-push-image-prod:
     uses: ./.github/workflows/subflow_docker_image.yml
-    needs: [build, e2e-test]
+    needs: [build, test, e2e-test]
     with:
       imageTag: latest
     secrets:
