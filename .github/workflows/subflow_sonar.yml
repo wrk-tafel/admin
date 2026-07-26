@@ -1,0 +1,39 @@
+name: Analyze
+
+env:
+  JAVA_VERSION: '26'
+  JAVA_DISTRIBUTION: 'corretto'
+
+on:
+  workflow_dispatch:
+  workflow_call:
+    secrets:
+      SONAR_TOKEN:
+        required: true
+
+jobs:
+  sonar:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read # allows SonarCloud to decorate PRs with analysis results
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # SonarCloud needs full history for blame and branch comparison
+      - name: Set up JDK
+        uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95 # v5
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@3f131e8634966bd73d06cc69884922b02e6faf92 # v6.2.0
+        with:
+          cache-provider: basic
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: backend-jacoco-report
+          path: ./backend/build/reports/jacoco/test
+      - name: Analyze
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: ./gradlew sonar -Dsonar.projectKey=wrk-tafel-admin -Dsonar.organization=wrk-tafel -Dsonar.token=$SONAR_TOKEN

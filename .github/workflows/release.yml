@@ -11,6 +11,9 @@ on:
 jobs:
   build:
     uses: ./.github/workflows/subflow_build.yml
+  sonar:
+    uses: ./.github/workflows/subflow_sonar.yml
+    needs: build
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
   lint:

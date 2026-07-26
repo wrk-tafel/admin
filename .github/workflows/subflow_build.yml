@@ -1,4 +1,4 @@
-name: Build and Analyze
+name: Build
 
 env:
   JAVA_VERSION: '26'
@@ -7,24 +7,12 @@ env:
 on:
   workflow_dispatch:
   workflow_call:
-    secrets:
-      SONAR_TOKEN:
-        required: true
 
 jobs:
-  build-test-analyze:
+  build-backend:
     runs-on: ubuntu-latest
-    permissions:
-      pull-requests: read # allows SonarCloud to decorate PRs with analysis results
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0 # SonarCloud needs full history for blame and branch comparison
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
-        with:
-          node-version-file: 'frontend/src/main/webapp/.nvmrc'
-          cache: 'npm'
-          cache-dependency-path: 'frontend/src/main/webapp/package-lock.json'
       - name: Set up JDK
         uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95 # v5
         with:
@@ -34,20 +22,8 @@ jobs:
         uses: gradle/actions/setup-gradle@3f131e8634966bd73d06cc69884922b02e6faf92 # v6.2.0
         with:
           cache-provider: basic
-      - run: npm ci
-        working-directory: frontend/src/main/webapp
-      - name: Frontend test
-        run: npm run test-ci
-        working-directory: frontend/src/main/webapp
-      - name: Frontend build
-        run: npm run build-prod
-        working-directory: frontend/src/main/webapp
       - name: Backend build and test
         run: ./gradlew :backend:build
-      - name: Analyze
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: ./gradlew sonar -Dsonar.projectKey=wrk-tafel-admin -Dsonar.organization=wrk-tafel -Dsonar.token=$SONAR_TOKEN
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: always()
         with:
@@ -61,6 +37,30 @@ jobs:
           path: ./backend/build/libs/admin-backend.jar
           if-no-files-found: error
           retention-days: 1
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: backend-jacoco-report
+          path: ./backend/build/reports/jacoco/test/jacocoTestReport.xml
+          if-no-files-found: error
+          retention-days: 1
+
+  build-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version-file: 'frontend/src/main/webapp/.nvmrc'
+          cache: 'npm'
+          cache-dependency-path: 'frontend/src/main/webapp/package-lock.json'
+      - run: npm ci
+        working-directory: frontend/src/main/webapp
+      - name: Frontend test
+        run: npm run test-ci
+        working-directory: frontend/src/main/webapp
+      - name: Frontend build
+        run: npm run build-prod
+        working-directory: frontend/src/main/webapp
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: frontend-dist
