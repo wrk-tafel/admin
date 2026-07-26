@@ -12,8 +12,8 @@ import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver
 
 // Renders the real templates from src/main/resources/mail-templates (mirroring the
 // spring.thymeleaf.prefix config in application.yml) instead of mocking the TemplateEngine like
-// MailSenderServiceTest does, so template syntax errors and model/variable mismatches actually
-// surface here instead of only at runtime.
+// MailSenderServiceTest does, and compares the full output byte-for-byte against golden reference
+// files, so template syntax errors and layout/whitespace regressions actually surface here.
 class MailTemplateRenderingTest {
 
     private val templateEngine = SpringTemplateEngine().apply {
@@ -32,17 +32,10 @@ class MailTemplateRenderingTest {
         return templateEngine.process("mail-layout", context)
     }
 
-    @Test
-    fun `mail-layout wraps the sub-template with greeting, signature and logo`() {
-        val context = Context()
-        context.setVariable("distributionDate", "22.03.2026")
-
-        val rendered = render("mails/statistic-mail", context)
-
-        assertThat(rendered).contains("Liebe Kolleginnen und Kollegen")
-        assertThat(rendered).contains("Liebe Grüße")
-        assertThat(rendered).contains("TÖ Tafel 1030")
-        assertThat(rendered).contains("cid:logo")
+    private fun loadReference(filename: String): String {
+        return javaClass.getResourceAsStream("/mail-references/$filename")!!
+            .bufferedReader(Charsets.UTF_8)
+            .readText()
     }
 
     @Test
@@ -53,9 +46,7 @@ class MailTemplateRenderingTest {
 
         val rendered = render("mails/daily-report-mail", context)
 
-        assertThat(rendered).contains("Der Tagesreport zur Ausgabe vom 22.03.2026")
-        assertThat(rendered).contains("some notes")
-        assertThat(rendered).doesNotContain("Keine")
+        assertThat(rendered).isEqualTo(loadReference("daily-report-mail-with-notes.html"))
     }
 
     @Test
@@ -65,7 +56,7 @@ class MailTemplateRenderingTest {
 
         val rendered = render("mails/daily-report-mail", context)
 
-        assertThat(rendered).contains("Keine")
+        assertThat(rendered).isEqualTo(loadReference("daily-report-mail-without-notes.html"))
     }
 
     @Test
@@ -75,7 +66,7 @@ class MailTemplateRenderingTest {
 
         val rendered = render("mails/statistic-mail", context)
 
-        assertThat(rendered).contains("Die Statistiken zur Ausgabe vom 22.03.2026")
+        assertThat(rendered).isEqualTo(loadReference("statistic-mail.html"))
     }
 
     @Test
@@ -103,12 +94,7 @@ class MailTemplateRenderingTest {
 
         val rendered = render("mails/return-boxes-mail", context)
 
-        assertThat(rendered).contains("Infos zur Ausgabe vom 22.03.2026")
-        assertThat(rendered).contains("some notes")
-        assertThat(rendered).contains("Route 1")
-        assertThat(rendered).contains("Shop 1")
-        assertThat(rendered).contains("Street 1, 1234, City")
-        assertThat(rendered).contains("4x Category 2")
+        assertThat(rendered).isEqualTo(loadReference("return-boxes-mail-with-data.html"))
     }
 
     @Test
@@ -120,8 +106,7 @@ class MailTemplateRenderingTest {
 
         val rendered = render("mails/return-boxes-mail", context)
 
-        assertThat(rendered).contains("Retourkisten")
-        assertThat(rendered).contains("Keine")
+        assertThat(rendered).isEqualTo(loadReference("return-boxes-mail-without-routes.html"))
     }
 
 }
