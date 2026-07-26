@@ -8,6 +8,7 @@ val isWindows = osName.lowercase().contains("windows")
 val npmCommand = if (isWindows) "npm.cmd" else "npm"
 
 val npmInstall = tasks.register<Exec>("npmInstall") {
+    group = "build"
     description = "Install npm dependencies"
     workingDir(webappDir)
 
@@ -22,6 +23,7 @@ val npmInstall = tasks.register<Exec>("npmInstall") {
 }
 
 val npmTest = tasks.register<Exec>("npmTest") {
+    group = "verification"
     description = "Run frontend unit tests"
     workingDir(webappDir)
     commandLine(npmCommand, "run", "test-ci")
@@ -29,6 +31,7 @@ val npmTest = tasks.register<Exec>("npmTest") {
 }
 
 val npmBuild = tasks.register<Exec>("npmBuild") {
+    group = "build"
     description = "Build frontend for production"
     workingDir(webappDir)
     commandLine(npmCommand, "run", "build-prod")
