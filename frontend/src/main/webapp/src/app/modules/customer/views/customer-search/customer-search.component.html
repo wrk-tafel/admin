@@ -97,6 +97,11 @@
                 <td mat-cell *matCellDef="let customer; let i = index" [attr.testid]="'searchresult-address-' + i" class="px-4 py-2">{{customer.address | formatCustomerAddress}}</td>
               </ng-container>
 
+              <ng-container matColumnDef="personsCount">
+                <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Personen</th>
+                <td mat-cell *matCellDef="let customer; let i = index" [attr.testid]="'searchresult-personsCount-' + i" class="px-4 py-2">{{1 + (customer.additionalPersons?.length ?? 0)}}</td>
+              </ng-container>
+
               <ng-container matColumnDef="issuedAt">
                 <th mat-header-cell *matHeaderCellDef class="px-6 py-2 text-left">Ausgestellt am</th>
                 <td mat-cell *matCellDef="let customer; let i = index" [attr.testid]="'searchresult-issuedAt-' + i" class="px-4 py-2">{{!customer.issuedAt ? '-' : customer.issuedAt | date : 'dd.MM.yyyy'}}</td>
@@ -143,6 +148,8 @@
                       <div>{{customer.birthDate | date : 'dd.MM.yyyy'}}</div>
                       <div class="font-bold">Adresse:</div>
                       <div>{{customer.address | formatCustomerAddress}}</div>
+                      <div class="font-bold">Personen:</div>
+                      <div>{{1 + (customer.additionalPersons?.length ?? 0)}}</div>
                       <div class="font-bold">Gültig bis:</div>
                       <div>{{customer.validUntil | date : 'dd.MM.yyyy'}}</div>
                     </div>
