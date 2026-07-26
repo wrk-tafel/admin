@@ -31,19 +31,49 @@ Five dependencies are stale/abandoned. Ordered below by recommended priority
   1. Removed the `logback-jackson`/`logback-json-classic` version and
      library entries from `gradle/libs.versions.toml` and the two
      `implementation(...)` lines from `backend/build.gradle.kts`.
-  2. `backend/src/main/resources/logback-console-json.xml` kept (same
-     filename — the external deployment config's
-     `logging.config: classpath:logback-console-json.xml` did not need to
-     change), but its Console appender now uses Spring Boot's built-in
-     `org.springframework.boot.logging.logback.StructuredLogEncoder` with
-     `<format>logstash</format>` instead of the old contrib `JsonLayout` +
-     `JacksonJsonFormatter`. `StructuredLogEncoder` ships inside
-     `spring-boot-core` itself — no dependency required. The File appender
-     (plain-text `app.log`) is untouched, so file logging is unaffected.
-  3. Regenerated `backend/gradle.lockfile` (`./gradlew :backend:dependencies --write-locks`)
+  2. Deleted **all three** custom logback XML files —
+     `backend/src/main/resources/logback.xml`,
+     `backend/src/test/resources/logback-test.xml`, and
+     `backend/src/main/resources/logback-console-json.xml`. None are needed:
+     Spring Boot 4.1's built-in defaults already provide a console appender
+     and (once `logging.file.name` is set) a rolling file appender, each
+     independently switchable to JSON via `logging.structured.format.console`
+     / `.file` — no XML required at all.
+  3. `backend/src/main/resources/application.yml` now sets
+     `logging.file.name: ${user.dir}/logs/app.log` and
+     `logging.pattern.file` to the old pattern
+     (`%d{ISO8601} %-5level [%t] %C: %msg%n%throwable`), so `app.log`'s
+     format is byte-for-byte identical to before — verified by running the
+     app and diffing output. Console output uses Spring Boot's own default
+     colorized pattern locally (not explicitly configured — reduces config).
+     `logging.structured.format.console` is intentionally **not** set here,
+     since JSON console should only apply to the docker container, not local
+     dev/tests — verified by running with
+     `-Dlogging.structured.format.console=logstash`, which produces
+     `{"@timestamp":...,"logger_name":...,"thread_name":...,"level":...}`
+     JSON lines while `app.log` stays plain text, confirming both are
+     controlled independently.
+  4. `server.tomcat.accesslog.*` (`access.log`) was already entirely
+     independent of Logback (handled by Tomcat's own `AccessLogValve`) — no
+     change needed there.
+  5. `StructuredLogEncoder` ships inside `spring-boot-core` itself — no
+     dependency required.
+  6. Regenerated `backend/gradle.lockfile` (`./gradlew :backend:dependencies --write-locks`)
      and pruned the stale `ch.qos.logback.contrib` entries from
      `gradle/verification-metadata.xml`.
-  4. `./gradlew :backend:build` passes.
+  7. `./gradlew :backend:build` passes (compile + tests + jacoco).
+- **Outstanding action (outside this repo):** the external deployment
+  `config.yml` currently sets
+  `logging.config: classpath:logback-console-json.xml` — that file no longer
+  exists. Replace it with:
+  ```yaml
+  logging:
+    structured:
+      format:
+        console: logstash
+  ```
+  This is the one change needed outside this repo to keep JSON console
+  output in the docker container.
 - **Field-name change to watch:** old `JsonLayout` used
   `timestamp`/`level`/`thread`/`logger`/`message`; the built-in Logstash
   format uses `@timestamp`/`level`/`thread_name`/`logger_name`/`message`.
