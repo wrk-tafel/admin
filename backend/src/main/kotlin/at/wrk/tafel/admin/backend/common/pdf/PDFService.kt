@@ -19,43 +19,13 @@ class PDFService {
     companion object {
         private val xmlMapper = XmlMapper()
 
-        // "Helvetica" is one of the 14 standard PDF fonts, so by default FOP writes only the font
-        // name into the PDF instead of embedding glyphs, and readers/renderers substitute a real
-        // font for it - a different one per OS. That made rendering (and any pixel-level rasterization
-        // of the PDF, e.g. in tests) OS-dependent. Overriding the "Helvetica" triplet with an embedded,
-        // metric-compatible font makes the output byte-for-byte identical regardless of OS.
         private val fopFactory: FopFactory by lazy { buildFopFactory() }
 
         private fun buildFopFactory(): FopFactory {
             val fontsDirectory = extractBundledFonts()
 
-            fun embedUrl(fileName: String) = File(fontsDirectory, fileName).toURI()
-
-            val fopConfigXml = """
-                <fop version="2.0">
-                    <renderers>
-                        <renderer mime="application/pdf">
-                            <fonts>
-                                <font kerning="yes" embed-url="${embedUrl("LiberationSans-Regular.ttf")}">
-                                    <font-triplet name="Helvetica" style="normal" weight="normal"/>
-                                </font>
-                                <font kerning="yes" embed-url="${embedUrl("LiberationSans-Bold.ttf")}">
-                                    <font-triplet name="Helvetica" style="normal" weight="bold"/>
-                                </font>
-                                <font kerning="yes" embed-url="${embedUrl("LiberationSans-Italic.ttf")}">
-                                    <font-triplet name="Helvetica" style="italic" weight="normal"/>
-                                </font>
-                                <font kerning="yes" embed-url="${embedUrl("LiberationSans-BoldItalic.ttf")}">
-                                    <font-triplet name="Helvetica" style="italic" weight="bold"/>
-                                </font>
-                            </fonts>
-                        </renderer>
-                    </renderers>
-                </fop>
-            """.trimIndent()
-
-            val confParser = ByteArrayInputStream(fopConfigXml.toByteArray()).use {
-                FopConfParser(it, File(".").toURI())
+            val confParser = PDFService::class.java.getResourceAsStream("/fop/fop-config.xml")!!.use {
+                FopConfParser(it, fontsDirectory.toURI())
             }
             return confParser.fopFactoryBuilder.build()
         }

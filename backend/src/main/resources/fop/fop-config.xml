@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  "Helvetica" is one of the 14 standard PDF fonts, so by default FOP writes only the font
+  name into the PDF instead of embedding glyphs, and readers/renderers substitute a real
+  font for it - a different one per OS. That made rendering (and any pixel-level rasterization
+  of the PDF, e.g. in tests) OS-dependent. Overriding the "Helvetica" triplet with an embedded,
+  metric-compatible font makes the output byte-for-byte identical regardless of OS.
+
+  embed-url values are resolved relative to the base URI passed to FopConfParser at runtime
+  (PDFService extracts the bundled font files to a temp directory and uses that as the base).
+-->
+<fop version="2.0">
+    <renderers>
+        <renderer mime="application/pdf">
+            <fonts>
+                <font kerning="yes" embed-url="LiberationSans-Regular.ttf">
+                    <font-triplet name="Helvetica" style="normal" weight="normal"/>
+                </font>
+                <font kerning="yes" embed-url="LiberationSans-Bold.ttf">
+                    <font-triplet name="Helvetica" style="normal" weight="bold"/>
+                </font>
+                <font kerning="yes" embed-url="LiberationSans-Italic.ttf">
+                    <font-triplet name="Helvetica" style="italic" weight="normal"/>
+                </font>
+                <font kerning="yes" embed-url="LiberationSans-BoldItalic.ttf">
+                    <font-triplet name="Helvetica" style="italic" weight="bold"/>
+                </font>
+            </fonts>
+        </renderer>
+    </renderers>
+</fop>
