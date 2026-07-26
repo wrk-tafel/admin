@@ -26,7 +26,7 @@ describe('CustomerNoteApiService', () => {
   it('get notes for customer', () => {
     apiService.getNotesForCustomer(1).subscribe();
 
-    const req = httpMock.expectOne({method: 'GET', url: '/customers/1/notes'});
+    const req = httpMock.expectOne({method: 'GET', url: '/households/1/notes'});
     req.flush(null);
     httpMock.verify();
   });
@@ -34,7 +34,7 @@ describe('CustomerNoteApiService', () => {
   it('get notes for customer including page parameter', () => {
     apiService.getNotesForCustomer(1, 2).subscribe();
 
-    const req = httpMock.expectOne({method: 'GET', url: '/customers/1/notes?page=2'});
+    const req = httpMock.expectOne({method: 'GET', url: '/households/1/notes?page=2'});
     req.flush(null);
     httpMock.verify();
   });
@@ -54,7 +54,7 @@ describe('CustomerNoteApiService', () => {
       expect(noteItem).toEqual(mockNoteItem);
     });
 
-    const req = httpMock.expectOne({method: 'POST', url: '/customers/1/notes'});
+    const req = httpMock.expectOne({method: 'POST', url: '/households/1/notes'});
     expect(req.request.body).toEqual(noteRequest);
 
     req.flush(mockNoteItem);

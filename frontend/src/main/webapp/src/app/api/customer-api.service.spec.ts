@@ -1,7 +1,7 @@
 import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
 import {TestBed} from '@angular/core/testing';
 import moment from 'moment';
-import {CustomerApiService, CustomerMergeRequest, Gender, CustomerData} from './customer-api.service';
+import {CustomerApiService, CustomerData, Gender} from './customer-api.service';
 import {ReactiveFormsModule} from '@angular/forms';
 import {provideHttpClient, withXhr} from '@angular/common/http';
 import {TafelToastrService} from '../common/components/tafel-toastr/tafel-toastr.service';
@@ -9,6 +9,92 @@ import {TafelToastrService} from '../common/components/tafel-toastr/tafel-toastr
 describe('CustomerApiService', () => {
   let httpMock: HttpTestingController;
   let apiService: CustomerApiService;
+
+  const birthDate = moment().subtract(30, 'years').startOf('day').utc().toDate();
+  const childBirthDate = moment().subtract(5, 'years').startOf('day').utc().toDate();
+  const incomeDue = moment().add(1, 'years').startOf('day').utc().toDate();
+
+  /** The flat shape the rest of the application works with. */
+  const mockCustomer: CustomerData = {
+    id: 133,
+    lastname: 'Mustermann',
+    firstname: 'Max',
+    birthDate: birthDate,
+    gender: Gender.MALE,
+    country: {id: 1, code: 'AT', name: 'Österreich'},
+    address: {
+      street: 'Teststraße',
+      houseNumber: '123A',
+      door: '21',
+      postalCode: 1020,
+      city: 'Wien',
+    },
+    telephoneNumber: '00436644123123123',
+    email: 'max.mustermann@gmail.com',
+    employer: 'test employer',
+    income: 1000,
+    incomeDue: incomeDue,
+    additionalPersons: [
+      {
+        key: 'form-only-key',
+        id: 2,
+        lastname: 'Mustermann',
+        firstname: 'Kind',
+        birthDate: childBirthDate,
+        gender: Gender.FEMALE,
+        country: {id: 1, code: 'AT', name: 'Österreich'},
+        employer: 'test employer 2',
+        income: 50,
+        incomeDue: incomeDue,
+        excludeFromHousehold: false,
+        receivesFamilyBonus: true
+      }
+    ]
+  };
+
+  /** The households/persons shape the backend actually speaks. */
+  const mockHousehold = {
+    id: 133,
+    address: {
+      street: 'Teststraße',
+      houseNumber: '123A',
+      door: '21',
+      postalCode: 1020,
+      city: 'Wien',
+    },
+    telephoneNumber: '00436644123123123',
+    email: 'max.mustermann@gmail.com',
+    persons: [
+      {
+        id: 1,
+        isMainPerson: true,
+        lastname: 'Mustermann',
+        firstname: 'Max',
+        birthDate: birthDate,
+        gender: Gender.MALE,
+        country: {id: 1, code: 'AT', name: 'Österreich'},
+        employer: 'test employer',
+        income: 1000,
+        incomeDue: incomeDue,
+        excludeFromHousehold: false,
+        receivesFamilyBonus: false
+      },
+      {
+        id: 2,
+        isMainPerson: false,
+        lastname: 'Mustermann',
+        firstname: 'Kind',
+        birthDate: childBirthDate,
+        gender: Gender.FEMALE,
+        country: {id: 1, code: 'AT', name: 'Österreich'},
+        employer: 'test employer 2',
+        income: 50,
+        incomeDue: incomeDue,
+        excludeFromHousehold: false,
+        receivesFamilyBonus: true
+      }
+    ]
+  };
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -31,118 +117,121 @@ describe('CustomerApiService', () => {
   });
 
   it('validate customer', () => {
-    apiService.validate(null as unknown as CustomerData).subscribe();
+    apiService.validate(mockCustomer).subscribe();
 
-    const req = httpMock.expectOne({method: 'POST', url: '/customers/validate'});
+    const req = httpMock.expectOne({method: 'POST', url: '/households/validate'});
+    expect(req.request.body.persons[0].isMainPerson).toBe(true);
     req.flush(null);
     httpMock.verify();
   });
 
   it('create customer', () => {
-    const mockCustomer: CustomerData = {
-      lastname: 'Müller',
-      firstname: 'Max',
-      birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
-      gender: Gender.MALE,
-      address: {
-        street: 'Musterstraße',
-        houseNumber: '1',
-        postalCode: 1010,
-        city: 'Wien'
-      },
-      employer: 'Test GmbH',
-      income: 1500
-    };
-
-    const mockResponse = {
-      data: mockCustomer,
-      errorMsg: null
-    };
-
     apiService.createCustomer(mockCustomer, false).subscribe(response => {
-      expect(response.data).toEqual(mockCustomer);
+      expect(response.data.lastname).toEqual('Mustermann');
+      expect(response.data.additionalPersons).toHaveLength(1);
       expect(response.errorMsg).toBeNull();
     });
 
-    const req = httpMock.expectOne({method: 'POST', url: '/customers?force=false'});
-    req.flush(mockResponse);
+    const req = httpMock.expectOne({method: 'POST', url: '/households?force=false'});
+    req.flush({data: mockHousehold, errorMsg: null});
     httpMock.verify();
   });
 
   it('update customer', () => {
-    const mockCustomer: CustomerData = {
-      id: 133,
-      lastname: 'Mustermann',
-      firstname: 'Max',
-      birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
-      gender: Gender.MALE,
-      address: {
-        street: 'Teststraße',
-        houseNumber: '123A',
-        door: '21',
-        postalCode: 1020,
-        city: 'Wien',
-      },
-      employer: 'test employer',
-      income: 1000
-    };
-
-    const mockResponse = {
-      data: mockCustomer,
-      errorMsg: null
-    };
-
     apiService.updateCustomer(mockCustomer, false).subscribe(response => {
-      expect(response.data).toEqual(mockCustomer);
+      expect(response.data.id).toEqual(133);
       expect(response.errorMsg).toBeNull();
     });
 
-    const req = httpMock.expectOne({method: 'POST', url: '/customers/133?force=false'});
-    req.flush(mockResponse);
+    const req = httpMock.expectOne({method: 'POST', url: '/households/133?force=false'});
+    req.flush({data: mockHousehold, errorMsg: null});
     httpMock.verify();
-
-    expect(req.request.body).toEqual(mockCustomer);
   });
 
   it('update customer forced', () => {
-    const mockCustomer: CustomerData = {
-      id: 133,
-      lastname: 'Mustermann',
-      firstname: 'Max',
-      birthDate: moment().subtract(30, 'years').startOf('day').utc().toDate(),
-      gender: Gender.MALE,
-      address: {
-        street: 'Teststraße',
-        houseNumber: '123A',
-        door: '21',
-        postalCode: 1020,
-        city: 'Wien',
-      },
-      employer: 'test employer',
-      income: 1000
-    };
-
-    const mockResponse = {
-      data: mockCustomer,
-      errorMsg: null
-    };
-
     apiService.updateCustomer(mockCustomer, true).subscribe(response => {
-      expect(response.data).toEqual(mockCustomer);
-      expect(response.errorMsg).toBeNull();
+      expect(response.data.id).toEqual(133);
     });
 
-    const req = httpMock.expectOne({method: 'POST', url: '/customers/133?force=true'});
-    req.flush(mockResponse);
+    const req = httpMock.expectOne({method: 'POST', url: '/households/133?force=true'});
+    req.flush({data: mockHousehold, errorMsg: null});
+    httpMock.verify();
+  });
+
+  it('request maps the flat customer onto a household with a persons list', () => {
+    apiService.updateCustomer(mockCustomer, false).subscribe();
+
+    const req = httpMock.expectOne({method: 'POST', url: '/households/133?force=false'});
+    const body = req.request.body;
+
+    // household-level fields
+    expect(body.id).toEqual(133);
+    expect(body.address).toEqual(mockCustomer.address);
+    expect(body.telephoneNumber).toEqual('00436644123123123');
+    expect(body.email).toEqual('max.mustermann@gmail.com');
+    expect(body.firstname).toBeUndefined();
+    expect(body.additionalPersons).toBeUndefined();
+
+    // the flat main-person fields became the first persons entry
+    expect(body.persons).toHaveLength(2);
+    expect(body.persons[0]).toEqual({
+      isMainPerson: true,
+      firstname: 'Max',
+      lastname: 'Mustermann',
+      birthDate: birthDate,
+      gender: Gender.MALE,
+      country: {id: 1, code: 'AT', name: 'Österreich'},
+      employer: 'test employer',
+      income: 1000,
+      incomeDue: incomeDue,
+      excludeFromHousehold: false,
+      receivesFamilyBonus: false
+    });
+
+    // additional persons keep their id so the backend can update the existing rows
+    expect(body.persons[1].id).toEqual(2);
+    expect(body.persons[1].isMainPerson).toBe(false);
+    expect(body.persons[1].firstname).toEqual('Kind');
+    expect(body.persons[1].receivesFamilyBonus).toBe(true);
+    // the form-only `key` is not sent to the backend
+    expect(body.persons[1].key).toBeUndefined();
+
+    req.flush({data: mockHousehold, errorMsg: null});
+    httpMock.verify();
+  });
+
+  it('response maps the household main person back onto the flat customer', () => {
+    let result: CustomerData | undefined;
+    apiService.getCustomer(133).subscribe(response => result = response);
+
+    const req = httpMock.expectOne({method: 'GET', url: '/households/133'});
+    req.flush(mockHousehold);
     httpMock.verify();
 
-    expect(req.request.body).toEqual(mockCustomer);
+    expect(result!.id).toEqual(133);
+    expect(result!.firstname).toEqual('Max');
+    expect(result!.lastname).toEqual('Mustermann');
+    expect(result!.birthDate).toEqual(birthDate);
+    expect(result!.gender).toEqual(Gender.MALE);
+    expect(result!.country).toEqual({id: 1, code: 'AT', name: 'Österreich'});
+    expect(result!.employer).toEqual('test employer');
+    expect(result!.income).toEqual(1000);
+    expect(result!.incomeDue).toEqual(incomeDue);
+    expect(result!.address).toEqual(mockCustomer.address);
+    expect(result!.telephoneNumber).toEqual('00436644123123123');
+
+    expect(result!.additionalPersons).toHaveLength(1);
+    expect(result!.additionalPersons![0].id).toEqual(2);
+    expect(result!.additionalPersons![0].firstname).toEqual('Kind');
+    expect(result!.additionalPersons![0].receivesFamilyBonus).toBe(true);
+    // the main person must not leak into the additional persons list
+    expect(result!.additionalPersons!.map(person => person.firstname)).not.toContain('Max');
   });
 
   it('get customer', () => {
     apiService.getCustomer(1).subscribe();
 
-    const req = httpMock.expectOne({method: 'GET', url: '/customers/1'});
+    const req = httpMock.expectOne({method: 'GET', url: '/households/1'});
     req.flush(null);
     httpMock.verify();
   });
@@ -150,7 +239,7 @@ describe('CustomerApiService', () => {
   it('generate masterdata pdf', () => {
     apiService.generatePdf(1, 'MASTERDATA').subscribe();
 
-    const req = httpMock.expectOne({method: 'GET', url: '/customers/1/generate-pdf?type=MASTERDATA'});
+    const req = httpMock.expectOne({method: 'GET', url: '/households/1/generate-pdf?type=MASTERDATA'});
     req.flush(null);
     httpMock.verify();
   });
@@ -158,7 +247,7 @@ describe('CustomerApiService', () => {
   it('generate idcard pdf', () => {
     apiService.generatePdf(1, 'IDCARD').subscribe();
 
-    const req = httpMock.expectOne({method: 'GET', url: '/customers/1/generate-pdf?type=IDCARD'});
+    const req = httpMock.expectOne({method: 'GET', url: '/households/1/generate-pdf?type=IDCARD'});
     req.flush(null);
     httpMock.verify();
   });
@@ -166,7 +255,7 @@ describe('CustomerApiService', () => {
   it('generate combined pdf', () => {
     apiService.generatePdf(1, 'COMBINED').subscribe();
 
-    const req = httpMock.expectOne({method: 'GET', url: '/customers/1/generate-pdf?type=COMBINED'});
+    const req = httpMock.expectOne({method: 'GET', url: '/households/1/generate-pdf?type=COMBINED'});
     req.flush(null);
     httpMock.verify();
   });
@@ -174,15 +263,29 @@ describe('CustomerApiService', () => {
   it('search customer with firstname and lastname', () => {
     apiService.searchCustomer('mustermann', 'max').subscribe();
 
-    const req = httpMock.expectOne({method: 'GET', url: '/customers?lastname=mustermann&firstname=max'});
+    const req = httpMock.expectOne({method: 'GET', url: '/households?lastname=mustermann&firstname=max'});
     req.flush(null);
     httpMock.verify();
+  });
+
+  it('search customer maps every result item', () => {
+    let result;
+    apiService.searchCustomer('mustermann').subscribe(response => result = response);
+
+    const req = httpMock.expectOne({method: 'GET', url: '/households?lastname=mustermann'});
+    req.flush({items: [mockHousehold], totalCount: 1, currentPage: 1, totalPages: 1, pageSize: 25});
+    httpMock.verify();
+
+    expect(result!.totalCount).toEqual(1);
+    expect(result!.items).toHaveLength(1);
+    expect(result!.items[0].lastname).toEqual('Mustermann');
+    expect(result!.items[0].additionalPersons).toHaveLength(1);
   });
 
   it('search customer with lastname only', () => {
     apiService.searchCustomer('mustermann').subscribe();
 
-    const req = httpMock.expectOne({method: 'GET', url: '/customers?lastname=mustermann'});
+    const req = httpMock.expectOne({method: 'GET', url: '/households?lastname=mustermann'});
     req.flush(null);
     httpMock.verify();
   });
@@ -190,7 +293,7 @@ describe('CustomerApiService', () => {
   it('search customer with firstname only', () => {
     apiService.searchCustomer(null, 'max').subscribe();
 
-    const req = httpMock.expectOne({method: 'GET', url: '/customers?firstname=max'});
+    const req = httpMock.expectOne({method: 'GET', url: '/households?firstname=max'});
     req.flush(null);
     httpMock.verify();
   });
@@ -198,7 +301,7 @@ describe('CustomerApiService', () => {
   it('search customer including postProcessing parameter', () => {
     apiService.searchCustomer(null, null, true, null).subscribe();
 
-    const req = httpMock.expectOne({method: 'GET', url: '/customers?postProcessing=true'});
+    const req = httpMock.expectOne({method: 'GET', url: '/households?postProcessing=true'});
     req.flush(null);
     httpMock.verify();
   });
@@ -206,7 +309,7 @@ describe('CustomerApiService', () => {
   it('search customer including costContribution parameter', () => {
     apiService.searchCustomer(null, null, null, true).subscribe();
 
-    const req = httpMock.expectOne({method: 'GET', url: '/customers?costContribution=true'});
+    const req = httpMock.expectOne({method: 'GET', url: '/households?costContribution=true'});
     req.flush(null);
     httpMock.verify();
   });
@@ -214,7 +317,7 @@ describe('CustomerApiService', () => {
   it('search customer including valid parameter', () => {
     apiService.searchCustomer(null, null, null, null, true).subscribe();
 
-    const req = httpMock.expectOne({method: 'GET', url: '/customers?valid=true'});
+    const req = httpMock.expectOne({method: 'GET', url: '/households?valid=true'});
     req.flush(null);
     httpMock.verify();
   });
@@ -222,7 +325,7 @@ describe('CustomerApiService', () => {
   it('search customer including page parameter', () => {
     apiService.searchCustomer(null, 'max', null, null, null, 3).subscribe();
 
-    const req = httpMock.expectOne({method: 'GET', url: '/customers?firstname=max&page=3'});
+    const req = httpMock.expectOne({method: 'GET', url: '/households?firstname=max&page=3'});
     req.flush(null);
     httpMock.verify();
   });
@@ -230,7 +333,7 @@ describe('CustomerApiService', () => {
   it('delete customer', () => {
     apiService.deleteCustomer(1).subscribe();
 
-    const req = httpMock.expectOne({method: 'DELETE', url: '/customers/1'});
+    const req = httpMock.expectOne({method: 'DELETE', url: '/households/1'});
     req.flush(null);
     httpMock.verify();
   });
@@ -238,7 +341,7 @@ describe('CustomerApiService', () => {
   it('get customer duplicates without page', () => {
     apiService.getCustomerDuplicates().subscribe();
 
-    const req = httpMock.expectOne({method: 'GET', url: '/customers/duplicates'});
+    const req = httpMock.expectOne({method: 'GET', url: '/households/duplicates'});
     req.flush(null);
     httpMock.verify();
   });
@@ -246,9 +349,29 @@ describe('CustomerApiService', () => {
   it('get customer duplicates with page', () => {
     apiService.getCustomerDuplicates(3).subscribe();
 
-    const req = httpMock.expectOne({method: 'GET', url: '/customers/duplicates?page=3'});
+    const req = httpMock.expectOne({method: 'GET', url: '/households/duplicates?page=3'});
     req.flush(null);
     httpMock.verify();
+  });
+
+  it('get customer duplicates maps household/similarHouseholds to customer/similarCustomers', () => {
+    let result;
+    apiService.getCustomerDuplicates(1).subscribe(response => result = response);
+
+    const req = httpMock.expectOne({method: 'GET', url: '/households/duplicates?page=1'});
+    req.flush({
+      items: [{household: mockHousehold, similarHouseholds: [mockHousehold]}],
+      totalCount: 1,
+      currentPage: 1,
+      totalPages: 1,
+      pageSize: 1
+    });
+    httpMock.verify();
+
+    expect(result!.items).toHaveLength(1);
+    expect(result!.items[0].customer.lastname).toEqual('Mustermann');
+    expect(result!.items[0].similarCustomers).toHaveLength(1);
+    expect(result!.items[0].similarCustomers[0].id).toEqual(133);
   });
 
   it('merge customers', () => {
@@ -256,10 +379,8 @@ describe('CustomerApiService', () => {
     const sourceCustomerIds = [456, 789];
     apiService.mergeCustomers(targetCustomerId, sourceCustomerIds).subscribe();
 
-    const expectedMergeRequest: CustomerMergeRequest = {sourceCustomerIds: sourceCustomerIds};
-
-    const req = httpMock.expectOne({method: 'POST', url: `/customers/${targetCustomerId}/merge`});
-    expect(req.request.body).toEqual(expectedMergeRequest);
+    const req = httpMock.expectOne({method: 'POST', url: `/households/${targetCustomerId}/merge`});
+    expect(req.request.body).toEqual({sourceHouseholdIds: sourceCustomerIds});
 
     req.flush(null);
     httpMock.verify();

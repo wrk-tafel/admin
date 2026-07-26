@@ -78,8 +78,9 @@ Cypress.Commands.add('createDistribution', () => {
 Cypress.Commands.add('addCustomerToDistribution', (request: AddCustomerToDistributionRequest) => {
   cy.request({
     method: 'POST',
-    url: '/api/distributions/customers',
-    body: request
+    url: '/api/distributions/households',
+    // the backend identifies the customer by its household id (same number as before)
+    body: {householdId: request.customerId, ticketNumber: request.ticketNumber}
   });
 });
 
@@ -97,12 +98,76 @@ Cypress.Commands.add('closeDistribution', () => {
 });
 
 Cypress.Commands.add('createCustomer', (data: CustomerData, force?: boolean): Cypress.Chainable<Cypress.Response<CustomerCreationResponse>> => {
+  // The backend speaks households/persons - translate in both directions here so the specs keep
+  // working with the flat CustomerData shape (same split as in CustomerApiService).
   return cy.request({
     method: 'POST',
-    url: `/api/customers?force=${force ?? false}`,
-    body: data
+    url: `/api/households?force=${force ?? false}`,
+    body: customerToHousehold(data)
+  }).then((response) => {
+    response.body = {...response.body, data: householdToCustomer(response.body?.data)};
+    return response as Cypress.Response<CustomerCreationResponse>;
   });
 });
+
+function customerToHousehold(data: CustomerData) {
+  const mainPerson = {
+    isMainPerson: true,
+    firstname: data.firstname,
+    lastname: data.lastname,
+    birthDate: data.birthDate,
+    gender: data.gender,
+    country: data.country,
+    employer: data.employer,
+    income: data.income,
+    incomeDue: data.incomeDue,
+    excludeFromHousehold: false,
+    receivesFamilyBonus: false
+  };
+  const additionalPersons = (data.additionalPersons ?? []).map(person => ({
+    id: person.id,
+    isMainPerson: false,
+    firstname: person.firstname,
+    lastname: person.lastname,
+    birthDate: person.birthDate,
+    gender: person.gender,
+    country: person.country,
+    employer: person.employer,
+    income: person.income,
+    incomeDue: person.incomeDue,
+    excludeFromHousehold: person.excludeFromHousehold,
+    receivesFamilyBonus: person.receivesFamilyBonus
+  }));
+
+  return {
+    id: data.id,
+    address: data.address,
+    telephoneNumber: data.telephoneNumber,
+    email: data.email,
+    validUntil: data.validUntil,
+    locked: data.locked,
+    lockReason: data.lockReason,
+    persons: [mainPerson, ...additionalPersons]
+  };
+}
+
+function householdToCustomer(household: any): CustomerData {
+  const persons = household?.persons ?? [];
+  const mainPerson = persons.find((person: any) => person.isMainPerson);
+
+  return {
+    ...household,
+    firstname: mainPerson?.firstname,
+    lastname: mainPerson?.lastname,
+    birthDate: mainPerson?.birthDate,
+    gender: mainPerson?.gender,
+    country: mainPerson?.country,
+    employer: mainPerson?.employer,
+    income: mainPerson?.income,
+    incomeDue: mainPerson?.incomeDue,
+    additionalPersons: persons.filter((person: any) => !person.isMainPerson)
+  };
+}
 
 Cypress.Commands.add('createDummyCustomer', (income?: number, force?: boolean): Cypress.Chainable<Cypress.Response<CustomerCreationResponse>> => {
   return cy.getAnyRandomNumber().then(randomNumber => {

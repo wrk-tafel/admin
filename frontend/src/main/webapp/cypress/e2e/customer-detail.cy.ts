@@ -167,7 +167,7 @@ describe('Customer Detail', () => {
   });
 
   function generateAndDownloadPdf(expectedFilename: string) {
-    cy.intercept('/api/customers/*/generate-pdf**', request => {
+    cy.intercept('/api/households/*/generate-pdf**', request => {
       request.on('response', function (response) {
         expect(response.statusCode).is.lessThan(500);
       });
@@ -217,7 +217,7 @@ describe('Customer Detail', () => {
         const customerId = response.body.data.id;
 
         // Manually set up a scenario that would trigger the dialog
-        cy.intercept('/api/customers/*', (req) => {
+        cy.intercept('/api/households/*', (req) => {
           if (req.method === 'POST') {
             req.reply({
               statusCode: 409,

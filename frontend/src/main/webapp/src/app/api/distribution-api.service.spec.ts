@@ -59,11 +59,12 @@ describe('DistributionApiService', () => {
     const requestBody: AssignCustomerRequest = {customerId: 1, ticketNumber: 100};
     apiService.assignCustomer(requestBody.customerId, requestBody.ticketNumber).subscribe();
 
-    const req = httpMock.expectOne({method: 'POST', url: '/distributions/customers'});
+    const req = httpMock.expectOne({method: 'POST', url: '/distributions/households'});
     req.flush(null);
     httpMock.verify();
 
-    expect(req.request.body).toEqual(requestBody);
+    // the customer id is sent as the backend's household id
+    expect(req.request.body).toEqual({householdId: requestBody.customerId, ticketNumber: requestBody.ticketNumber});
   });
 
   it('save statistics', () => {
@@ -91,7 +92,7 @@ describe('DistributionApiService', () => {
   it('download customer list', () => {
     apiService.downloadCustomerList().subscribe();
 
-    const req = httpMock.expectOne({method: 'GET', url: '/distributions/customers/generate-pdf'});
+    const req = httpMock.expectOne({method: 'GET', url: '/distributions/households/generate-pdf'});
     req.flush(null);
     httpMock.verify();
   });
