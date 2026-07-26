@@ -44,10 +44,6 @@ spring:
       auth: true
       starttls.enable: true
   jpa:
-    properties:
-      hibernate:
-        id:
-          db_structure_naming_strategy: single # TODO migrate to new default strategy (sequence per table)
     open-in-view: false
   thymeleaf:
     prefix: classpath:/mail-templates/
