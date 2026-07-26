@@ -123,19 +123,22 @@ class WebSecurityConfig(
             }
             .headers { headers ->
                 headers.contentSecurityPolicy {
-                    it.policyDirectives(
-                        "default-src 'self'; " +
-                                "script-src 'self'; " +
-                                // Angular injects component styles as inline <style> tags
-                                "style-src 'self' 'unsafe-inline'; " +
-                                "img-src 'self' data: blob:; " +
-                                "font-src 'self' data:; " +
-                                "connect-src 'self'; " +
-                                "object-src 'none'; " +
-                                "frame-ancestors 'none'; " +
-                                "base-uri 'self'; " +
-                                "form-action 'self'"
-                    )
+                    // style-src needs 'unsafe-inline' because Angular injects component styles
+                    // as inline <style> tags
+                    val policyDirectives = """
+                        default-src 'self';
+                        script-src 'self';
+                        style-src 'self' 'unsafe-inline';
+                        img-src 'self' data: blob:;
+                        font-src 'self' data:;
+                        connect-src 'self';
+                        object-src 'none';
+                        frame-ancestors 'none';
+                        base-uri 'self';
+                        form-action 'self'
+                    """.trimIndent().lines().joinToString(" ")
+
+                    it.policyDirectives(policyDirectives)
                 }
             }
 
