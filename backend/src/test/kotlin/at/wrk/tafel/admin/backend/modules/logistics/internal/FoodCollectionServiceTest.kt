@@ -1,5 +1,6 @@
 package at.wrk.tafel.admin.backend.modules.logistics.internal
 
+import at.wrk.tafel.admin.backend.database.common.lock.AdvisoryLockService
 import at.wrk.tafel.admin.backend.database.model.base.EmployeeRepository
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionEntity
 import at.wrk.tafel.admin.backend.database.model.distribution.DistributionRepository
@@ -21,6 +22,7 @@ import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
@@ -51,8 +53,18 @@ class FoodCollectionServiceTest {
     @RelaxedMockK
     private lateinit var carRepository: CarRepository
 
+    @RelaxedMockK
+    private lateinit var advisoryLockService: AdvisoryLockService
+
     @InjectMockKs
     private lateinit var service: FoodCollectionService
+
+    @BeforeEach
+    fun setUp() {
+        every { advisoryLockService.withLock(any(), any<() -> Any?>()) } answers {
+            secondArg<() -> Any?>().invoke()
+        }
+    }
 
     @Test
     fun `get food collection data`() {
