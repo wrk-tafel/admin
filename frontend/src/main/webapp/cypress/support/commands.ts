@@ -52,12 +52,41 @@ Cypress.Commands.overwrite('request', (originalFn, ...args: any[]) => {
     return originalFn(options as Cypress.RequestOptions);
   }
 
-  return cy.getCookie('XSRF-TOKEN').then(cookie => {
-    if (cookie) {
-      options.headers = {'X-XSRF-TOKEN': cookie.value, ...options.headers};
-    }
-    return originalFn(options as Cypress.RequestOptions);
-  });
+  const failOnStatusCode = options.failOnStatusCode !== false;
+
+  const send = (tokenValue: string | undefined): Cypress.Chainable<Cypress.Response<any>> => {
+    const headers = tokenValue ? {'X-XSRF-TOKEN': tokenValue, ...options.headers} : options.headers;
+    return originalFn({...options, headers, failOnStatusCode: false} as Cypress.RequestOptions);
+  };
+
+  let initialTokenValue: string | undefined;
+
+  return cy.getCookie('XSRF-TOKEN')
+    .then(cookie => {
+      initialTokenValue = cookie?.value;
+      return send(initialTokenValue);
+    })
+    .then(response => {
+      if (response.status !== 403) {
+        return response;
+      }
+      // The XSRF-TOKEN cookie can rotate concurrently (e.g. a background request completing)
+      // between reading it above and this request reaching the server, so the header we sent
+      // no longer matches the cookie Cypress auto-attached. Retry once with whatever the
+      // cookie is now before treating this as a genuine failure.
+      return cy.getCookie('XSRF-TOKEN').then(freshCookie => {
+        if (!freshCookie || freshCookie.value === initialTokenValue) {
+          return response;
+        }
+        return send(freshCookie.value);
+      });
+    })
+    .then(response => {
+      if (failOnStatusCode && (response.status < 200 || response.status >= 400)) {
+        throw new Error(`cy.request() to ${options.method ?? 'GET'} ${options.url} failed with status ${response.status}: ${JSON.stringify(response.body)}`);
+      }
+      return response;
+    });
 });
 
 Cypress.Commands.add('loginDefault', () => {
