@@ -91,35 +91,34 @@ describe('QRCodeReaderService', () => {
         expect(qrCodeReaderSpy.start).toHaveBeenCalledWith(testCameraId, expect.objectContaining({ fps: 10 }), undefined, undefined);
     });
 
-    // TODO fix tests
-    /*
-    it('restart while scanning is active and stop was successful', () => {
-      const {service, qrCodeReaderSpy} = setup();
-      qrCodeReaderSpy.getState.and.returnValue(Html5QrcodeScannerState.SCANNING);
-      qrCodeReaderSpy.stop.and.returnValue(Promise.resolve());
-      qrCodeReaderSpy.start.and.returnValue(Promise.resolve());
+    it('restart while scanning is active and stop was successful', async () => {
+        const { service, qrCodeReaderSpy } = setup();
+        qrCodeReaderSpy.getState.mockReturnValue(Html5QrcodeScannerState.SCANNING);
+        qrCodeReaderSpy.stop.mockReturnValue(Promise.resolve());
+        qrCodeReaderSpy.start.mockReturnValue(Promise.resolve());
 
-      const testCameraId = '123';
-      const promise = service.restart(testCameraId);
+        const testCameraId = '123';
+        const promise = service.restart(testCameraId);
 
-      expect(promise).toBeDefined();
-      expect(qrCodeReaderSpy.stop).toHaveBeenCalled();
-      expect(qrCodeReaderSpy.start).toHaveBeenCalledWith(testCameraId, jasmine.objectContaining({fps: 10}), undefined, undefined);
+        expect(promise).toBeDefined();
+        await promise;
+        expect(qrCodeReaderSpy.stop).toHaveBeenCalled();
+        expect(qrCodeReaderSpy.start).toHaveBeenCalledWith(testCameraId, expect.objectContaining({ fps: 10 }), undefined, undefined);
     });
 
-    it('restart while scanning is active and stop failed', () => {
-      const {service, qrCodeReaderSpy} = setup();
-      qrCodeReaderSpy.getState.and.returnValue(Html5QrcodeScannerState.SCANNING);
-      qrCodeReaderSpy.stop.and.returnValue(Promise.reject());
+    it('restart while scanning is active and stop failed', async () => {
+        const { service, qrCodeReaderSpy } = setup();
+        qrCodeReaderSpy.getState.mockReturnValue(Html5QrcodeScannerState.SCANNING);
+        qrCodeReaderSpy.stop.mockReturnValue(Promise.reject());
 
-      const testCameraId = '123';
-      const promise = service.restart(testCameraId);
+        const testCameraId = '123';
+        const promise = service.restart(testCameraId);
 
-      expect(promise).toBeDefined();
-      expect(qrCodeReaderSpy.stop).toHaveBeenCalled();
-      expect(qrCodeReaderSpy.start).not.toHaveBeenCalled();
+        expect(promise).toBeDefined();
+        await expect(promise).rejects.toBeUndefined();
+        expect(qrCodeReaderSpy.stop).toHaveBeenCalled();
+        expect(qrCodeReaderSpy.start).not.toHaveBeenCalled();
     });
-     */
 
     it('stop while scanning is not active', () => {
         const { service, qrCodeReaderSpy } = setup();
