@@ -1,3 +1,7 @@
 tafeladmin:
   testdata:
     enabled: true
+
+spring:
+  # testdata setup wipes and re-creates the schema on startup (see FlywayConfig)
+  flyway.clean-disabled: false

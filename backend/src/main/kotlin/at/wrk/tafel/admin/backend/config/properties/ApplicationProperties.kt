@@ -8,7 +8,13 @@ data class ApplicationProperties(
 )
 
 data class SecurityProperties(
-    val jwtToken: SecurityJwtTokenProperties
+    val jwtToken: SecurityJwtTokenProperties,
+    val loginAttempts: SecurityLoginAttemptsProperties = SecurityLoginAttemptsProperties()
+)
+
+data class SecurityLoginAttemptsProperties(
+    val maxFailures: Int = 5,
+    val lockoutDurationInSeconds: Long = 900
 )
 
 data class SecurityJwtTokenProperties(

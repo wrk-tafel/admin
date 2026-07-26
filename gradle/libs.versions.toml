@@ -6,7 +6,7 @@ spring-modulith = "2.1.0"
 jackson = "3.2.1"
 jjwt = "0.13.0"
 postgresql = "42.7.13"
-bouncycastle = "1.70"
+bouncycastle = "1.84"
 apache-fop = "2.11"
 qrcode-kotlin = "4.5.0"
 passay = "2.0.0"
@@ -73,7 +73,7 @@ jjwt-impl = { module = "io.jsonwebtoken:jjwt-impl", version.ref = "jjwt" }
 jjwt-jackson = { module = "io.jsonwebtoken:jjwt-jackson", version.ref = "jjwt" }
 
 # Crypto
-bouncycastle = { module = "org.bouncycastle:bcprov-jdk15on", version.ref = "bouncycastle" }
+bouncycastle = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncycastle" }
 
 # PDF / QR
 apache-fop = { module = "org.apache.xmlgraphics:fop", version.ref = "apache-fop" }

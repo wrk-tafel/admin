@@ -6,15 +6,18 @@ logging:
 management:
   server:
     port: 8081
-  endpoints.web.exposure.include: caches,env,prometheus,health
+  endpoints.web.exposure.include: prometheus,health
 
 server:
   port: 8080
+  # trust X-Forwarded-* headers from the reverse proxy, so request.isSecure is true behind TLS
+  # termination and the JWT cookie is issued with the Secure flag
+  forward-headers-strategy: framework
   servlet:
     session.cookie.path: ${tafeladmin.server.relativeBaseUrl}
   error:
     include-message: always
-    include-stacktrace: always
+    include-stacktrace: never
   tomcat:
     accesslog:
       enabled: true
@@ -34,7 +37,8 @@ spring:
     group: true
     ignore-migration-patterns: "*:missing"
     baseline-on-migrate: true
-    clean-disabled: false
+    # flyway.clean() drops the whole schema - only the testdata/e2e profiles may re-enable it
+    clean-disabled: true
   mail:
     properties.mail.smtp:
       auth: true
@@ -56,6 +60,9 @@ security:
     secret.algorithm: HMACSHA256
     expirationTimeInSeconds: 36000 # 10 hours
     expirationTimePwdChangeInSeconds: 300 # 5 minutes
+  loginAttempts:
+    maxFailures: 5
+    lockoutDurationInSeconds: 900 # 15 minutes
 
 tafeladmin:
   server:

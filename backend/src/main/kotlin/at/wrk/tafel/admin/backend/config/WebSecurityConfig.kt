@@ -31,6 +31,7 @@ import org.springframework.security.web.util.matcher.AndRequestMatcher
 import org.springframework.security.web.util.matcher.NegatedRequestMatcher
 import org.springframework.security.web.util.matcher.OrRequestMatcher
 import tools.jackson.databind.json.JsonMapper
+import java.time.Duration
 
 @Configuration
 @EnableWebSecurity
@@ -138,13 +139,22 @@ class WebSecurityConfig(
     }
 
     @Bean
+    fun loginAttemptService(): LoginAttemptService {
+        val loginAttemptsProperties = applicationProperties.security.loginAttempts
+        return LoginAttemptService(
+            maxFailures = loginAttemptsProperties.maxFailures,
+            lockoutDuration = Duration.ofSeconds(loginAttemptsProperties.lockoutDurationInSeconds)
+        )
+    }
+
+    @Bean
     fun tafelLoginProvider(): TafelLoginProvider {
-        return TafelLoginProvider(userDetailsManager(), passwordEncoder())
+        return TafelLoginProvider(userDetailsManager(), passwordEncoder(), loginAttemptService())
     }
 
     @Bean
     fun tafelJwtAuthProvider(): TafelJwtAuthProvider {
-        return TafelJwtAuthProvider(jwtTokenService)
+        return TafelJwtAuthProvider(jwtTokenService, userRepository)
     }
 
     @Bean
