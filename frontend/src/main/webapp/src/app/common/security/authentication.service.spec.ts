@@ -40,7 +40,7 @@ describe('AuthenticationService', () => {
         const userInfoResponseBody = { username: 'test-user', permissions: ['PERM1'] };
 
         service.login('USER', 'PWD').then(response => {
-            expect(response).toEqual({ successful: true, passwordChangeRequired: false });
+            expect(response).toEqual({ successful: true, passwordChangeRequired: false, locked: false });
             expect(service.userInfo!.username).toBe(userInfoResponseBody.username);
             expect(service.userInfo!.permissions).toEqual(userInfoResponseBody.permissions);
         });
@@ -68,7 +68,7 @@ describe('AuthenticationService', () => {
         const userInfoResponseBody = { username: 'test-user', permissions: [] };
 
         service.login('USER', 'PWD').then(response => {
-            expect(response).toEqual({ successful: true, passwordChangeRequired: true });
+            expect(response).toEqual({ successful: true, passwordChangeRequired: true, locked: false });
             expect(service.userInfo!.username).toBe(userInfoResponseBody.username);
             expect(service.userInfo!.permissions).toEqual(userInfoResponseBody.permissions);
         });
@@ -93,7 +93,7 @@ describe('AuthenticationService', () => {
         service.userInfo = { username: 'test123', permissions: [] };
 
         service.login('USER', 'PWD').then(response => {
-            expect(response).toEqual({ successful: false, passwordChangeRequired: false });
+            expect(response).toEqual({ successful: false, passwordChangeRequired: false, locked: false });
             // check if it's reset
             expect(service.userInfo).toBeNull();
         });
@@ -103,6 +103,27 @@ describe('AuthenticationService', () => {
         expect(loginMockReq.request.headers.get('Authorization')).toBe('Basic ' + btoa('USER:PWD'));
 
         const loginMockResponse = { status: 403, statusText: 'Forbidden' };
+        loginMockReq.flush(null, loginMockResponse);
+
+        httpMock.expectNone('/users/info');
+
+        httpMock.verify();
+    });
+
+    it('login failed - account locked', async () => {
+        service.userInfo = { username: 'test123', permissions: [] };
+
+        service.login('USER', 'PWD').then(response => {
+            expect(response).toEqual({ successful: false, passwordChangeRequired: false, locked: true });
+            // check if it's reset
+            expect(service.userInfo).toBeNull();
+        });
+
+        const loginMockReq = httpMock.expectOne('/login');
+        expect(loginMockReq.request.method).toBe('POST');
+        expect(loginMockReq.request.headers.get('Authorization')).toBe('Basic ' + btoa('USER:PWD'));
+
+        const loginMockResponse = { status: 423, statusText: 'Locked' };
         loginMockReq.flush(null, loginMockResponse);
 
         httpMock.expectNone('/users/info');

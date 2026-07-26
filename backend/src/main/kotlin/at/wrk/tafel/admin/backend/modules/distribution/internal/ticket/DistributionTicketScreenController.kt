@@ -6,9 +6,12 @@ import at.wrk.tafel.admin.backend.common.sse.SseUtil
 import at.wrk.tafel.admin.backend.database.common.sse_outbox.SseOutboxService
 import at.wrk.tafel.admin.backend.modules.distribution.internal.DistributionService
 import org.slf4j.LoggerFactory
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 
+// The SSE endpoint stays open to every authenticated user: the fullscreen ticket monitor runs
+// under a display account without permissions. The state-changing endpoints are restricted.
 @RestController
 @RequestMapping("/api")
 class DistributionTicketScreenController(
@@ -23,11 +26,13 @@ class DistributionTicketScreenController(
     }
 
     @PostMapping("/distributions/ticket-screen/show-text")
+    @PreAuthorize("hasAnyAuthority('CHECKIN', 'SCANNER')")
     fun showText(@RequestBody request: TicketScreenShowText) {
         saveToOutbox(text = request.text, value = request.value)
     }
 
     @PostMapping("/distributions/ticket-screen/show-current")
+    @PreAuthorize("hasAnyAuthority('CHECKIN', 'SCANNER')")
     fun showCurrentTicket() {
         val distribution = service.getCurrentDistribution()
 
@@ -42,6 +47,7 @@ class DistributionTicketScreenController(
 
     @PostMapping("/distributions/ticket-screen/show-previous")
     @TafelActiveDistributionRequired
+    @PreAuthorize("hasAnyAuthority('CHECKIN', 'SCANNER')")
     fun showPreviousTicket() {
         val previousTicketNumber = service.reopenAndGetPreviousTicket()
         logger.info("Ticket-Log - fetched previous ticket-number: $previousTicketNumber")
@@ -51,6 +57,7 @@ class DistributionTicketScreenController(
 
     @PostMapping("/distributions/ticket-screen/show-next")
     @TafelActiveDistributionRequired
+    @PreAuthorize("hasAnyAuthority('CHECKIN', 'SCANNER')")
     fun showNextTicket(@RequestBody request: TicketScreenShowNextTicketRequest) {
         val nextTicketNumber = service.closeCurrentTicketAndGetNext(request.costContributionPaid)
         logger.info("Ticket-Log - fetched next ticket-number: $nextTicketNumber")

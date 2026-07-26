@@ -17,7 +17,10 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatus
 import org.springframework.security.authentication.AuthenticationManager
+import org.springframework.security.authentication.BadCredentialsException
+import org.springframework.security.authentication.LockedException
 import org.springframework.security.core.Authentication
 import tools.jackson.databind.json.JsonMapper
 
@@ -128,6 +131,20 @@ class TafelLoginFilterTest {
                 assertThat(it.attributes["SameSite"]).isEqualTo("strict")
             })
         }
+    }
+
+    @Test
+    fun `unsuccessfulAuthentication with wrong credentials responds with 403`() {
+        tafelLoginFilter.unsuccessfulAuthentication(request, response, BadCredentialsException("wrong password"))
+
+        verify { response.status = HttpStatus.FORBIDDEN.value() }
+    }
+
+    @Test
+    fun `unsuccessfulAuthentication with locked account responds with 423`() {
+        tafelLoginFilter.unsuccessfulAuthentication(request, response, LockedException("account locked"))
+
+        verify { response.status = HttpStatus.LOCKED.value() }
     }
 
 }

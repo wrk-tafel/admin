@@ -47,6 +47,8 @@ export const errorHandlerInterceptor: HttpInterceptorFn = (
           message = 'Server nicht verfügbar!';
         } else if (error.status === 403) {
           message = 'Zugriff nicht erlaubt!';
+        } else if (error.status === 423) {
+          message = 'Konto vorübergehend gesperrt!';
         }
         toastr.error(message, `HTTP ${error.status} - ${error.statusText}`);
       }

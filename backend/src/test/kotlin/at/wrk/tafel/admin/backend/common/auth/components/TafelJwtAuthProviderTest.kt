@@ -1,6 +1,8 @@
 package at.wrk.tafel.admin.backend.common.auth.components
 
 import at.wrk.tafel.admin.backend.common.auth.model.TafelJwtAuthentication
+import at.wrk.tafel.admin.backend.database.model.auth.UserEntity
+import at.wrk.tafel.admin.backend.database.model.auth.UserRepository
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.MalformedJwtException
 import io.jsonwebtoken.impl.DefaultClaims
@@ -14,6 +16,7 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.authentication.CredentialsExpiredException
+import org.springframework.security.authentication.DisabledException
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.util.*
@@ -23,6 +26,9 @@ internal class TafelJwtAuthProviderTest {
 
     @RelaxedMockK
     private lateinit var jwtTokenService: JwtTokenService
+
+    @RelaxedMockK
+    private lateinit var userRepository: UserRepository
 
     @InjectMockKs
     private lateinit var provider: TafelJwtAuthProvider
@@ -56,6 +62,7 @@ internal class TafelJwtAuthProviderTest {
                 JwtTokenService.PERMISSIONS_CLAIM_KEY to listOf(perm1)
             )
         )
+        every { userRepository.findByUsername(username) } returns UserEntity().apply { enabled = true }
 
         val resultingAuthentication = provider.authenticate(authentication)
 
@@ -94,6 +101,44 @@ internal class TafelJwtAuthProviderTest {
         every { jwtTokenService.getClaimsFromToken(authentication.tokenValue) } throws MalformedJwtException("exception")
 
         assertThrows<BadCredentialsException> {
+            provider.authenticate(authentication)
+        }
+    }
+
+    @Test
+    fun `authenticate with valid token but disabled user fails`() {
+        val username = "SUBJ"
+        val expiration = Date.from(LocalDateTime.now().plusDays(1).toInstant(ZoneOffset.MIN))
+
+        val authentication = TafelJwtAuthentication(tokenValue = "TOKEN")
+        every { jwtTokenService.getClaimsFromToken(authentication.tokenValue) } returns DefaultClaims(
+            mapOf(
+                Claims.SUBJECT to username,
+                Claims.EXPIRATION to expiration
+            )
+        )
+        every { userRepository.findByUsername(username) } returns UserEntity().apply { enabled = false }
+
+        assertThrows<DisabledException> {
+            provider.authenticate(authentication)
+        }
+    }
+
+    @Test
+    fun `authenticate with valid token but deleted user fails`() {
+        val username = "SUBJ"
+        val expiration = Date.from(LocalDateTime.now().plusDays(1).toInstant(ZoneOffset.MIN))
+
+        val authentication = TafelJwtAuthentication(tokenValue = "TOKEN")
+        every { jwtTokenService.getClaimsFromToken(authentication.tokenValue) } returns DefaultClaims(
+            mapOf(
+                Claims.SUBJECT to username,
+                Claims.EXPIRATION to expiration
+            )
+        )
+        every { userRepository.findByUsername(username) } returns null
+
+        assertThrows<DisabledException> {
             provider.authenticate(authentication)
         }
     }

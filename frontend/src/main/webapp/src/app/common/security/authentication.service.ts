@@ -1,4 +1,4 @@
-import {HttpClient, HttpHeaders} from '@angular/common/http';
+import {HttpClient, HttpErrorResponse, HttpHeaders} from '@angular/common/http';
 import {inject, Service} from '@angular/core';
 import {Router} from '@angular/router';
 import {firstValueFrom, Observable, of} from 'rxjs';
@@ -14,12 +14,12 @@ export class AuthenticationService {
     return firstValueFrom(this.executeLoginRequest(username, password)
       .pipe(map(async response => {
           await this.loadUserInfo();
-          return {successful: true, passwordChangeRequired: response.passwordChangeRequired};
+          return {successful: true, passwordChangeRequired: response.passwordChangeRequired, locked: false};
         }),
 
-        catchError(_ => {
+        catchError((error: HttpErrorResponse) => {
           this.userInfo = null;
-          return of({successful: false, passwordChangeRequired: false});
+          return of({successful: false, passwordChangeRequired: false, locked: error.status === 423});
         })));
   }
 
@@ -81,6 +81,7 @@ interface LoginResponse {
 export interface LoginResult {
   successful: boolean;
   passwordChangeRequired: boolean;
+  locked: boolean;
 }
 
 interface UserInfo {

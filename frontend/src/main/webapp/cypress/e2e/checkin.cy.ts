@@ -25,6 +25,8 @@ describe('CheckIn', () => {
     cy.byTestId('ticketNumberInput').should('have.value', '10');
     cy.byTestId('deleteTicketButton').click();
 
+    cy.get('.toast-message').should('be.visible').should('contain.text', 'Ticket-Nummer gelöscht!');
+
     assertDashboardCustomerCount(0);
   });
 

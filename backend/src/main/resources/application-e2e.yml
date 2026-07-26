@@ -8,6 +8,8 @@ spring:
     username: tafeladmin
     password: tafeladmin
   flyway.locations: classpath:/db-migration,classpath:/db-migration-testdata
+  # testdata setup wipes and re-creates the schema on startup (see FlywayConfig)
+  flyway.clean-disabled: false
 
 security:
   jwtToken:

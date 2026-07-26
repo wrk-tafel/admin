@@ -106,6 +106,26 @@ describe('ErrorHandlerInterceptor', () => {
         httpTestingController.verify();
     });
 
+    it('generic http 423 error', () => {
+        authServiceSpy.isAuthenticated.mockReturnValue(false);
+
+        /* eslint-disable @typescript-eslint/no-unused-vars */
+        const observer = {
+            error: (error: any) => {
+                expect(toastrSpy.error).toHaveBeenCalledWith(
+                    'Konto vorübergehend gesperrt!',
+                    'HTTP 423 - Locked'
+                );
+            },
+        };
+        httpClient.get('/test').subscribe(observer);
+
+        const mockReq = httpTestingController.expectOne('/test');
+        const mockErrorResponse = { status: 423, statusText: 'Locked' };
+        mockReq.flush(null, mockErrorResponse);
+        httpTestingController.verify();
+    });
+
     it('specific spring http error', () => {
         authServiceSpy.isAuthenticated.mockReturnValue(false);
 

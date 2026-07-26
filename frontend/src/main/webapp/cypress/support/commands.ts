@@ -29,6 +29,66 @@ import * as moment from 'moment/moment';
 
 Cypress.Commands.add('byTestId', (id) => cy.get(`[testid="${id}"]`));
 
+// The backend requires the X-XSRF-TOKEN header (mirroring the XSRF-TOKEN cookie) on every
+// mutating request. The Angular app handles this via its xsrfInterceptor - direct cy.request
+// calls need the header injected here.
+Cypress.Commands.overwrite('request', (originalFn, ...args: any[]) => {
+  const options: Partial<Cypress.RequestOptions> = {};
+  if (args.length === 1 && typeof args[0] === 'object' && args[0] !== null) {
+    Object.assign(options, args[0]);
+  } else if (args.length === 1) {
+    options.url = args[0];
+  } else if (args.length === 2) {
+    options.method = args[0];
+    options.url = args[1];
+  } else if (args.length === 3) {
+    options.method = args[0];
+    options.url = args[1];
+    options.body = args[2];
+  }
+
+  const method = (options.method ?? 'GET').toString().toUpperCase();
+  if (method === 'GET' || method === 'HEAD') {
+    return originalFn(options as Cypress.RequestOptions);
+  }
+
+  const failOnStatusCode = options.failOnStatusCode !== false;
+
+  const send = (tokenValue: string | undefined): Cypress.Chainable<Cypress.Response<any>> => {
+    const headers = tokenValue ? {'X-XSRF-TOKEN': tokenValue, ...options.headers} : options.headers;
+    return originalFn({...options, headers, failOnStatusCode: false} as Cypress.RequestOptions);
+  };
+
+  let initialTokenValue: string | undefined;
+
+  return cy.getCookie('XSRF-TOKEN')
+    .then(cookie => {
+      initialTokenValue = cookie?.value;
+      return send(initialTokenValue);
+    })
+    .then(response => {
+      if (response.status !== 403) {
+        return response;
+      }
+      // The XSRF-TOKEN cookie can rotate concurrently (e.g. a background request completing)
+      // between reading it above and this request reaching the server, so the header we sent
+      // no longer matches the cookie Cypress auto-attached. Retry once with whatever the
+      // cookie is now before treating this as a genuine failure.
+      return cy.getCookie('XSRF-TOKEN').then(freshCookie => {
+        if (!freshCookie || freshCookie.value === initialTokenValue) {
+          return response;
+        }
+        return send(freshCookie.value);
+      });
+    })
+    .then(response => {
+      if (failOnStatusCode && (response.status < 200 || response.status >= 400)) {
+        throw new Error(`cy.request() to ${options.method ?? 'GET'} ${options.url} failed with status ${response.status}: ${JSON.stringify(response.body)}`);
+      }
+      return response;
+    });
+});
+
 Cypress.Commands.add('loginDefault', () => {
   const username = 'e2etest';
   const password = 'e2etest';

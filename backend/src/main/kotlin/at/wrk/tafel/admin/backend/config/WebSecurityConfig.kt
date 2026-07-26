@@ -26,6 +26,7 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.provisioning.UserDetailsManager
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.AuthenticationFilter
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher
 import org.springframework.security.web.util.matcher.AndRequestMatcher
 import org.springframework.security.web.util.matcher.NegatedRequestMatcher
@@ -42,6 +43,7 @@ class WebSecurityConfig(
     private val employeeRepository: EmployeeRepository,
     private val applicationProperties: ApplicationProperties,
     private val jsonMapper: JsonMapper,
+    private val loginAttemptService: LoginAttemptService,
 ) {
 
     companion object {
@@ -109,8 +111,35 @@ class WebSecurityConfig(
             .sessionManagement {
                 it.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             }
-            .csrf {
-                it.disable()
+            .csrf { csrf ->
+                val tokenRepository = CookieCsrfTokenRepository.withHttpOnlyFalse()
+                tokenRepository.setCookieCustomizer { it.sameSite("Strict") }
+
+                csrf.csrfTokenRepository(tokenRepository)
+                csrf.csrfTokenRequestHandler(SpaCsrfTokenRequestHandler())
+                // login authenticates via the Authorization header, which cross-site requests
+                // cannot set - and the client has no token yet at that point
+                csrf.ignoringRequestMatchers(PathPatternRequestMatcher.pathPattern("/api/login"))
+            }
+            .headers { headers ->
+                headers.contentSecurityPolicy {
+                    // style-src needs 'unsafe-inline' because Angular injects component styles
+                    // as inline <style> tags
+                    val policyDirectives = """
+                        default-src 'self';
+                        script-src 'self';
+                        style-src 'self' 'unsafe-inline';
+                        img-src 'self' data: blob:;
+                        font-src 'self' data:;
+                        connect-src 'self';
+                        object-src 'none';
+                        frame-ancestors 'none';
+                        base-uri 'self';
+                        form-action 'self'
+                    """.trimIndent().lines().joinToString(" ")
+
+                    it.policyDirectives(policyDirectives)
+                }
             }
 
         return http.build()
@@ -139,12 +168,12 @@ class WebSecurityConfig(
 
     @Bean
     fun tafelLoginProvider(): TafelLoginProvider {
-        return TafelLoginProvider(userDetailsManager(), passwordEncoder())
+        return TafelLoginProvider(userDetailsManager(), passwordEncoder(), loginAttemptService)
     }
 
     @Bean
     fun tafelJwtAuthProvider(): TafelJwtAuthProvider {
-        return TafelJwtAuthProvider(jwtTokenService)
+        return TafelJwtAuthProvider(jwtTokenService, userRepository)
     }
 
     @Bean

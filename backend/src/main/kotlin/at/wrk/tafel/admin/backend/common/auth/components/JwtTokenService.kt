@@ -45,7 +45,6 @@ class JwtTokenService(
     }
 
     private fun createJwtParser() = Jwts.parser()
-        .decryptWith(createSecretKeySpec())
         .verifyWith(createSecretKeySpec())
         .requireIssuer(applicationProperties.security.jwtToken.issuer)
         .requireAudience(applicationProperties.security.jwtToken.audience)

@@ -5,6 +5,7 @@ import at.wrk.tafel.admin.backend.common.sse.SseUtil
 import at.wrk.tafel.admin.backend.database.common.sse_outbox.SseOutboxService
 import at.wrk.tafel.admin.backend.modules.checkin.internal.ScannerService
 import at.wrk.tafel.admin.backend.modules.checkin.internal.ScannerService.Companion.SCANNER_RESULT_NOTIFICATION_NAME
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -16,6 +17,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 
 @RestController
 @RequestMapping("/api")
+@PreAuthorize("hasAnyAuthority('SCANNER', 'CHECKIN')")
 class ScannerController(
     private val scannerService: ScannerService,
     private val sseOutboxService: SseOutboxService,

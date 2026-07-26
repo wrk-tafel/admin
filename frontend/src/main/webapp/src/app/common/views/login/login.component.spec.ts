@@ -69,7 +69,7 @@ describe('LoginComponent', () => {
     });
 
     it('login successful', async () => {
-        const loginResult = { successful: true, passwordChangeRequired: false };
+        const loginResult = { successful: true, passwordChangeRequired: false, locked: false };
         authService.login.mockReturnValue(Promise.resolve(loginResult));
 
         const fixture = TestBed.createComponent(LoginComponent);
@@ -91,7 +91,7 @@ describe('LoginComponent', () => {
     });
 
     it('login failed', async () => {
-        const loginResult = { successful: false, passwordChangeRequired: false };
+        const loginResult = { successful: false, passwordChangeRequired: false, locked: false };
         authService.login.mockReturnValue(Promise.resolve(loginResult));
 
         const fixture = TestBed.createComponent(LoginComponent);
@@ -107,8 +107,25 @@ describe('LoginComponent', () => {
         expect(component.errorMessage()).toBe('Anmeldung fehlgeschlagen!');
     });
 
+    it('login failed - account locked', async () => {
+        const loginResult = { successful: false, passwordChangeRequired: false, locked: true };
+        authService.login.mockReturnValue(Promise.resolve(loginResult));
+
+        const fixture = TestBed.createComponent(LoginComponent);
+        const component = fixture.componentInstance;
+
+        component.loginFormModel.set({
+            username: 'user',
+            password: 'pwd'
+        });
+
+        await component.login();
+
+        expect(component.errorMessage()).toBe('Konto vorübergehend gesperrt! Bitte versuchen Sie es später erneut.');
+    });
+
     it('login but passwordchange required', async () => {
-        const loginResult = { successful: true, passwordChangeRequired: true };
+        const loginResult = { successful: true, passwordChangeRequired: true, locked: false };
         authService.login.mockReturnValue(Promise.resolve(loginResult));
 
         const fixture = TestBed.createComponent(LoginComponent);

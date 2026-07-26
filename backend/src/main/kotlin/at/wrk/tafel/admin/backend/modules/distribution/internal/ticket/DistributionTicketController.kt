@@ -6,10 +6,12 @@ import at.wrk.tafel.admin.backend.modules.distribution.internal.DistributionServ
 import at.wrk.tafel.admin.backend.modules.distribution.internal.model.TicketNumberResponse
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/api/distributions/tickets")
+@PreAuthorize("hasAnyAuthority('CHECKIN', 'CUSTOMER')")
 class DistributionTicketController(
     private val service: DistributionService,
 ) {
