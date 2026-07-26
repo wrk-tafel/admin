@@ -45,8 +45,6 @@ internal class MailSenderServiceTest {
     @InjectMockKs
     private lateinit var service: MailSenderService
 
-    // TODO add a rendering test (maybe as a seperate integration-test)
-
     @Test
     fun `sendTextMail - mailing disabled`() {
         val service = MailSenderService(null, properties, mailRecipientRepository, templateEngine)
