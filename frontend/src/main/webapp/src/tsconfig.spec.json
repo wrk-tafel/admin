@@ -7,7 +7,7 @@
     "types": []
   },
   "include": [
-    "../vitest.config.ts",
+    "../vitest-base.config.ts",
     "vitest-globals.d.ts",
     "test-providers.ts",
     "**/*.spec.ts",
