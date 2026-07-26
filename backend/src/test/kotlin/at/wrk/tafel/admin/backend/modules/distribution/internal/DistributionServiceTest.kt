@@ -24,6 +24,7 @@ import at.wrk.tafel.admin.backend.security.testUserEntity
 import at.wrk.tafel.admin.backend.security.testUserPermissions
 import com.github.romankh3.image.comparison.ImageComparison
 import com.github.romankh3.image.comparison.model.ImageComparisonState
+import com.github.romankh3.image.comparison.model.Rectangle
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.RelaxedMockK
@@ -934,7 +935,13 @@ internal class DistributionServiceTest {
         val actualImage = pdfRenderer.renderImageWithDPI(0, 300f, ImageType.RGB)
         ImageIO.write(actualImage, "png", File(comparisonResultDirectory, "customerlist-actual.png"))
 
-        val comparisonResult = ImageComparison(expectedImage, actualImage).compareImages()
+        // The "Seite X von Y" footer (bottom-right, driven by fo:page-number-citation-last) renders
+        // at a small font size and its anti-aliasing differs slightly by OS font rasterizer, even with
+        // an embedded font - unlike the rest of the page, which renders pixel-identical across OSes.
+        val footerExclusionArea = Rectangle(0, actualImage.height - 120, actualImage.width, actualImage.height)
+        val comparisonResult = ImageComparison(expectedImage, actualImage)
+            .setExcludedAreas(listOf(footerExclusionArea))
+            .compareImages()
         comparisonResult.writeResultTo(File(comparisonResultDirectory, "customerlist-diff.png"))
 
         assertThat(comparisonResult.imageComparisonState).isEqualTo(ImageComparisonState.MATCH)
