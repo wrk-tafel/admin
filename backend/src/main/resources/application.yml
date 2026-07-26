@@ -19,9 +19,6 @@ server:
   forward-headers-strategy: framework
   servlet:
     session.cookie.path: ${tafeladmin.server.relativeBaseUrl}
-  error:
-    include-message: always
-    include-stacktrace: never
   tomcat:
     accesslog:
       enabled: true
@@ -32,6 +29,10 @@ server:
       rotate: false
 
 spring:
+  web:
+    error:
+      include-message: always
+      include-stacktrace: never
   datasource:
     driverClassName: org.postgresql.Driver
     hikari:

@@ -4,11 +4,10 @@ logging:
     org.apache: INFO
     org.springframework.security: INFO
 
-server:
-  error:
-    include-stacktrace: always
-
 spring:
+  web:
+    error:
+      include-stacktrace: always
   datasource:
     url: jdbc:postgresql://localhost:5432/tafeladmin
     username: tafeladmin
