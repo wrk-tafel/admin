@@ -31,6 +31,9 @@ describe('CustomerSearchComponent', () => {
                     postalCode: 1010,
                     city: 'city'
                 },
+                additionalPersons: [
+                    { key: 1, id: 1, firstname: 'child', lastname: 'last', excludeFromHousehold: false, receivesFamilyBonus: false }
+                ],
             }
         ],
         totalCount: 1,
@@ -115,6 +118,7 @@ describe('CustomerSearchComponent', () => {
         expect(fixture.debugElement.query(By.css('[testid="searchresult-birthDate-0"]')).nativeElement.textContent).toBe('10.05.2000');
         expect(fixture.debugElement.query(By.css('[testid="searchresult-address-0"]')).nativeElement.textContent)
             .toBe('street 1, Stiege stairway1, Top 20, 1010 city');
+        expect(fixture.debugElement.query(By.css('[testid="searchresult-personsCount-0"]')).nativeElement.textContent).toBe('2');
     });
 
     it('search with firstname only', () => {

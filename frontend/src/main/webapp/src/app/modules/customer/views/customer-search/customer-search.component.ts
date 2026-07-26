@@ -106,7 +106,7 @@ export class CustomerSearchComponent {
   }
 
   // columns for mat-table
-  displayedColumns = ['icon', 'id', 'name', 'birthDate', 'address', 'issuedAt', 'validUntil', 'actions'];
+  displayedColumns = ['icon', 'id', 'name', 'birthDate', 'address', 'personsCount', 'issuedAt', 'validUntil', 'actions'];
 
   get customerId() {
     return this.form.get('customerId')!;
