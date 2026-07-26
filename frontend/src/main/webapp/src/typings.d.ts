@@ -6,7 +6,7 @@ interface NodeModule {
   id: string;
 }
 
-// Fix for CoreUI / Chart.js "Cannot find module" errors
+// Fix for Chart.js "Cannot find module" errors
 declare module 'node_modules/chart.js/dist/types/basic' {
   import {ChartTypeRegistry} from 'chart.js';
   export interface AnyObject { [key: string]: any }
@@ -14,7 +14,7 @@ declare module 'node_modules/chart.js/dist/types/basic' {
 }
 
 declare module 'node_modules/chart.js/dist/types/utils' {
-  // This recreates the internal type CoreUI is looking for
+  // This recreates an internal chart.js type that ng2-charts' typings look for
   export type _DeepPartialObject<T> = {
     [P in keyof T]?: T[P] extends (infer U)[]
       ? _DeepPartialObject<U>[]

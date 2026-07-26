@@ -32,10 +32,10 @@ Administration system for food banks (Tafel) to manage customer registrations, f
 
 | Technology | Version |
 |---|---|
-| Angular | 21 |
-| TypeScript | 5.9 |
-| CoreUI | 5.6 |
-| Bootstrap | 5.3 |
+| Angular | 22 |
+| TypeScript | 6.0 |
+| Angular Material | 22 |
+| Tailwind CSS | 4.3 |
 | RxJS | 7.8 |
 | Chart.js | 4.5 |
 

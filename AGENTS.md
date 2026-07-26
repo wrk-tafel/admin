@@ -138,7 +138,7 @@ The backend uses **Spring Modulith** architecture with 7 core feature modules, e
 
 ### Frontend Architecture
 
-The frontend is an Angular 21 single-page application using CoreUI 5.6 as the UI framework.
+The frontend is an Angular 21 single-page application using Angular Material and Tailwind CSS as the UI framework.
 
 **Feature Modules:**
 - **dashboard**: Overview with distribution state, registered customers, food amounts, statistics input
@@ -171,7 +171,6 @@ modules/<feature>/
 - Angular Material 21 (UI component library)
 - Angular CDK 21 (component dev kit)
 - Tailwind CSS 4 (utility-first CSS framework)
-- CoreUI 5.6 (Bootstrap-based UI library)
 - RxJS for reactive programming
 - html5-qrcode for scanner functionality
 - ngx-cookie-service for session management

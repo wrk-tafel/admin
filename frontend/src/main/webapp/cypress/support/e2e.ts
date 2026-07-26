@@ -19,9 +19,9 @@ import './commands';
 // Alternatively you can use CommonJS syntax:
 // require('./commands')
 
-// Ignore ResizeObserver errors that are common with Angular and CoreUI
+// Ignore ResizeObserver errors that are common with Angular
 Cypress.on('uncaught:exception', (err) => {
-  // Ignore ResizeObserver loop errors - these are benign and common with CoreUI components
+  // Ignore ResizeObserver loop errors - these are benign and common with Angular Material components
   if (err.message.includes('ResizeObserver loop')) {
     return false;
   }

@@ -1,6 +1,3 @@
-// Replaces CoreUI/Bootstrap's .form-control/.form-label/.form-check-input/.is-invalid/.is-valid/.invalid-feedback
-// component CSS (values captured from the compiled build before CoreUI removal) so templates can keep using
-// these class names without depending on CoreUI's bundled Bootstrap CSS.
 @layer components {
   .form-control {
     display: block;

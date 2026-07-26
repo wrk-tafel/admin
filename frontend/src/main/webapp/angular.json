@@ -32,7 +32,6 @@
             ],
             "allowedCommonJsDependencies": [
               "chart.js",
-              "@coreui/chartjs/dist/js/coreui-chartjs.js",
               "angular2-uuid",
               "moment"
             ],
