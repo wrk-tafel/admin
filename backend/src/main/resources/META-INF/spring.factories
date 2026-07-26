@@ -1,0 +1,1 @@
+org.springframework.modulith.core.ApplicationModulesFactory=at.wrk.tafel.admin.backend.config.TafelApplicationModulesFactory

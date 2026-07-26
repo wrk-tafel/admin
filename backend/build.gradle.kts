@@ -14,6 +14,13 @@ java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(26)
     }
+
+    sourceSets {
+        main {
+            // package-info.java files (Spring Modulith module boundaries) live next to the Kotlin sources
+            java.srcDir("src/main/kotlin")
+        }
+    }
 }
 
 kotlin {
