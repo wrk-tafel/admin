@@ -1,6 +1,25 @@
 -- adapt sequences
 SELECT setval('household_id_sequence', 10000, false);
-SELECT setval('hibernate_sequence', 10000, false);
+SELECT setval('employees_seq', 10000, false);
+SELECT setval('users_seq', 10000, false);
+SELECT setval('users_authorities_seq', 10000, false);
+SELECT setval('households_seq', 10000, false);
+SELECT setval('persons_seq', 10000, false);
+SELECT setval('household_notes_seq', 10000, false);
+SELECT setval('static_values_seq', 10000, false);
+SELECT setval('distributions_seq', 10000, false);
+SELECT setval('distributions_statistics_seq', 10000, false);
+SELECT setval('distributions_households_seq', 10000, false);
+SELECT setval('shops_seq', 10000, false);
+SELECT setval('routes_seq', 10000, false);
+SELECT setval('routes_stops_seq', 10000, false);
+SELECT setval('food_categories_seq', 10000, false);
+SELECT setval('cars_seq', 10000, false);
+SELECT setval('food_collections_seq', 10000, false);
+SELECT setval('shelters_seq', 10000, false);
+SELECT setval('shelters_contacts_seq', 10000, false);
+SELECT setval('distributions_statistics_shelters_seq', 10000, false);
+SELECT setval('mail_recipients_seq', 10000, false);
 
 -- user e2etest for cypress tests
 -- pwd: e2etest

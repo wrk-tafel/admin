@@ -8,7 +8,7 @@ BEGIN
     current_second := date_trunc('second', NOW());
 
     INSERT INTO sse_outbox (id, event_time, notification_name, payload)
-    VALUES (nextval('hibernate_sequence'), current_second, 'dashboard_update', null)
+    VALUES (nextval('sse_outbox_seq'), current_second, 'dashboard_update', null)
     ON CONFLICT (notification_name, event_time) DO NOTHING;
 
     RETURN NEW;
