@@ -33,6 +33,10 @@ spring:
     error:
       include-message: always
       include-stacktrace: never
+    resources:
+      # frontend is built and deployed independently of the backend jar (see _build/Dockerfile);
+      # this is where its static output is expected to be placed at runtime
+      static-locations: file:${user.dir}/static/
   datasource:
     driverClassName: org.postgresql.Driver
     hikari:

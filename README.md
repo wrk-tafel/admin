@@ -101,8 +101,13 @@ The frontend dev server starts on http://localhost:4200 and proxies API requests
 
 ### Docker Image
 
+The backend jar and frontend build are independent artifacts, combined only at image-build time:
+
 ```bash
-./gradlew :backend:bootJar
+./gradlew build
+mkdir -p artifact frontend-dist
+cp backend/build/libs/admin-backend.jar artifact/
+cp -r frontend/src/main/webapp/dist/browser/* frontend-dist/
 docker build -t wrk-tafel-admin:local -f _build/Dockerfile .
 ```
 

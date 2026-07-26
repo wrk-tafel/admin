@@ -37,6 +37,10 @@ jobs:
         with:
           name: admin-jarfile
           path: ./artifact
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: frontend-dist
+          path: ./static
       - run: npm ci --ignore-scripts
         working-directory: frontend/src/main/webapp
       - name: Install cypress binary
