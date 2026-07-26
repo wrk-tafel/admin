@@ -61,8 +61,8 @@ export class StatisticsPanelComponent {
   private datasetOptionsDefault = {
     backgroundColor: 'transparent',
     borderColor: 'rgba(255,255,255,.55)',
-    pointBackgroundColor: '#1976d2',
-    pointHoverBorderColor: '#1976d2',
+    pointBackgroundColor: '#ffffff',
+    pointHoverBorderColor: '#ffffff',
   };
 
   chartData = computed(() => {
