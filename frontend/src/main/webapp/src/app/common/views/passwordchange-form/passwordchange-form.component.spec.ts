@@ -2,6 +2,7 @@ import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
 import {PasswordChangeFormComponent} from './passwordchange-form.component';
 import {provideHttpClient, withXhr} from '@angular/common/http';
+import {ChangePasswordResponse} from '../../../api/user-api.service';
 
 describe('PasswordChangeFormComponent', () => {
   let httpMock: HttpTestingController;
@@ -65,27 +66,27 @@ describe('PasswordChangeFormComponent', () => {
     expect(passwordMismatchError).toBeUndefined();
   });
 
-  // TODO fix test
-  /*
-  it('changePassword should fill errorMessages correctly'(() => {
+  it('changePassword should fill errorMessages correctly', () => {
     const errorResponse: ChangePasswordResponse = {
       message: 'ERROR 123',
       details: ['DETAIL 0', 'DETAIL 1']
     };
 
-    component.currentPassword.setValue('CURR');
-    component.newPassword.setValue('NEW');
+    component.passwordFormModel.set({
+      currentPassword: 'CURR',
+      newPassword: 'NEW',
+      newRepeatedPassword: 'NEW'
+    });
 
-    component.changePassword().subscribe();
+    component.changePassword().subscribe({error: () => undefined});
 
     const req = httpMock.expectOne('/users/change-password');
     req.flush(errorResponse, {status: 422, statusText: 'Unprocessable Entity'});
     httpMock.verify();
 
-    expect(component.errorMessage).toBe(errorResponse.message);
-    expect(component.errorMessageDetails).toEqual(errorResponse.details);
+    expect(component.errorMessage()).toBe(errorResponse.message);
+    expect(component.errorMessageDetails()).toEqual(errorResponse.details);
   });
-   */
 
   it('changePassword should set successMessage and clear errorMessages', () => {
     component.passwordFormModel.set({
@@ -128,6 +129,25 @@ describe('PasswordChangeFormComponent', () => {
     expect(component.errorMessageDetails()).toEqual([]);
   });
 
-  // TODO test: isValid --> form.true/false/undefined
+  it('passwordForm validity reflects required fields and password match state', () => {
+    // Empty form is invalid - required fields missing
+    expect(component.passwordForm().valid()).toBe(false);
+
+    // Filled but mismatched passwords - still invalid
+    component.passwordFormModel.set({
+      currentPassword: 'current123',
+      newPassword: '12345678',
+      newRepeatedPassword: '87654321'
+    });
+    expect(component.passwordForm().valid()).toBe(false);
+
+    // Filled and matching passwords - valid
+    component.passwordFormModel.set({
+      currentPassword: 'current123',
+      newPassword: '12345678',
+      newRepeatedPassword: '12345678'
+    });
+    expect(component.passwordForm().valid()).toBe(true);
+  });
 
 });
